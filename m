@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:46327 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([88.97.38.141]:48875 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750896AbeFXMzz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1751352AbeFXMzz (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Sun, 24 Jun 2018 08:55:55 -0400
 From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Subject: [RFC PATCH v2 2/4] keytable: convert keymaps to new toml format
-Date: Sun, 24 Jun 2018 13:55:49 +0100
-Message-Id: <cccd85d3718559570403dc655c818aeb0199e344.1529844415.git.sean@mess.org>
+Subject: [RFC PATCH v2 3/4] keytable: add support for BPF based decoders
+Date: Sun, 24 Jun 2018 13:55:50 +0100
+Message-Id: <412db2549f5b124bce47cb958acfd8d206e11efe.1529844415.git.sean@mess.org>
 In-Reply-To: <cover.1529844415.git.sean@mess.org>
 References: <cover.1529844415.git.sean@mess.org>
 In-Reply-To: <cover.1529844415.git.sean@mess.org>
@@ -15,5166 +15,4365 @@ References: <cover.1529844415.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We will be added new BPF based keymaps which require the toml format.
-Convert all the existing keymaps to toml, so that only one format is used.
+We use a modified version of samples/bpf/bpf_load.c from linux kernel
+tree to load elf based BPF decoders, clear them on '-c' and show the
+program ids when no commands are given.
 
-Include the protocol variant as well. This will be useful in the future if
-we want to use rc keymaps for transmitting IR.
+Any global int variables can be overrided from toml. They are patched to
+be immediate loads.
 
 Signed-off-by: Sean Young <sean@mess.org>
 ---
- utils/keytable/gen_keytables.pl               |  33 ++-
- utils/keytable/ir-keytable.1.in               |   4 +-
- utils/keytable/rc_keymaps/adstech_dvb_t_pci   |  45 ---
- .../rc_keymaps/adstech_dvb_t_pci.toml         |  47 +++
- utils/keytable/rc_keymaps/af9005              |  37 ---
- utils/keytable/rc_keymaps/af9005.toml         |  39 +++
- utils/keytable/rc_keymaps/alink_dtu_m         |  19 --
- utils/keytable/rc_keymaps/alink_dtu_m.toml    |  23 ++
- .../keytable/rc_keymaps/allwinner_ba10_tv_box |  15 -
- .../rc_keymaps/allwinner_i12_a20_tv_box       |  28 --
- utils/keytable/rc_keymaps/anysee              |  45 ---
- utils/keytable/rc_keymaps/anysee.toml         |  49 ++++
- utils/keytable/rc_keymaps/apac_viewcomp       |  32 ---
- utils/keytable/rc_keymaps/apac_viewcomp.toml  |  34 +++
- utils/keytable/rc_keymaps/astrometa_t2hybrid  |  22 --
- .../rc_keymaps/astrometa_t2hybrid.toml        |  26 ++
- utils/keytable/rc_keymaps/asus_pc39           |  40 ---
- utils/keytable/rc_keymaps/asus_pc39.toml      |  44 +++
- utils/keytable/rc_keymaps/asus_ps3_100        |  42 ---
- utils/keytable/rc_keymaps/asus_ps3_100.toml   |  46 +++
- .../keytable/rc_keymaps/ati_tv_wonder_hd_600  |  25 --
- .../rc_keymaps/ati_tv_wonder_hd_600.toml      |  27 ++
- utils/keytable/rc_keymaps/ati_x10             |  49 ----
- utils/keytable/rc_keymaps/ati_x10.toml        |  51 ++++
- utils/keytable/rc_keymaps/avermedia           |  37 ---
- utils/keytable/rc_keymaps/avermedia.toml      |  39 +++
- utils/keytable/rc_keymaps/avermedia_a16d      |  35 ---
- utils/keytable/rc_keymaps/avermedia_a16d.toml |  37 +++
- utils/keytable/rc_keymaps/avermedia_cardbus   |  55 ----
- .../rc_keymaps/avermedia_cardbus.toml         |  57 ++++
- utils/keytable/rc_keymaps/avermedia_dvbt      |  35 ---
- utils/keytable/rc_keymaps/avermedia_dvbt.toml |  37 +++
- utils/keytable/rc_keymaps/avermedia_m135a     |  81 ------
- .../keytable/rc_keymaps/avermedia_m135a.toml  |  85 ++++++
- .../keytable/rc_keymaps/avermedia_m733a_rm_k6 |  45 ---
- .../rc_keymaps/avermedia_m733a_rm_k6.toml     |  49 ++++
- utils/keytable/rc_keymaps/avermedia_rm_ks     |  28 --
- .../keytable/rc_keymaps/avermedia_rm_ks.toml  |  32 +++
- utils/keytable/rc_keymaps/avertv_303          |  37 ---
- utils/keytable/rc_keymaps/avertv_303.toml     |  39 +++
- utils/keytable/rc_keymaps/az6027              |   3 -
- utils/keytable/rc_keymaps/az6027.toml         |   5 +
- utils/keytable/rc_keymaps/azurewave_ad_tu700  |  54 ----
- .../rc_keymaps/azurewave_ad_tu700.toml        |  58 ++++
- utils/keytable/rc_keymaps/behold              |  35 ---
- utils/keytable/rc_keymaps/behold.toml         |  39 +++
- utils/keytable/rc_keymaps/behold_columbus     |  29 --
- .../keytable/rc_keymaps/behold_columbus.toml  |  31 ++
- utils/keytable/rc_keymaps/budget_ci_old       |  46 ---
- utils/keytable/rc_keymaps/budget_ci_old.toml  |  48 ++++
- utils/keytable/rc_keymaps/cec                 |  98 -------
- utils/keytable/rc_keymaps/cec.toml            | 100 +++++++
- utils/keytable/rc_keymaps/cinergy             |  37 ---
- utils/keytable/rc_keymaps/cinergy.toml        |  39 +++
- utils/keytable/rc_keymaps/cinergy_1400        |  38 ---
- utils/keytable/rc_keymaps/cinergy_1400.toml   |  40 +++
- utils/keytable/rc_keymaps/cinergyt2           |  38 ---
- utils/keytable/rc_keymaps/cinergyt2.toml      |  40 +++
- utils/keytable/rc_keymaps/d680_dmb            |  36 ---
- utils/keytable/rc_keymaps/d680_dmb.toml       |  38 +++
- utils/keytable/rc_keymaps/delock_61959        |  33 ---
- utils/keytable/rc_keymaps/delock_61959.toml   |  37 +++
- utils/keytable/rc_keymaps/dib0700_nec         |  71 -----
- utils/keytable/rc_keymaps/dib0700_nec.toml    |  75 +++++
- utils/keytable/rc_keymaps/dib0700_rc5         | 181 ------------
- utils/keytable/rc_keymaps/dib0700_rc5.toml    | 185 ++++++++++++
- utils/keytable/rc_keymaps/dibusb              | 112 --------
- utils/keytable/rc_keymaps/dibusb.toml         | 114 ++++++++
- utils/keytable/rc_keymaps/digitalnow_tinytwin |  50 ----
- .../rc_keymaps/digitalnow_tinytwin.toml       |  54 ++++
- utils/keytable/rc_keymaps/digittrade          |  29 --
- utils/keytable/rc_keymaps/digittrade.toml     |  33 +++
- utils/keytable/rc_keymaps/digitv              |  56 ----
- utils/keytable/rc_keymaps/digitv.toml         |  58 ++++
- utils/keytable/rc_keymaps/dm1105_nec          |  32 ---
- utils/keytable/rc_keymaps/dm1105_nec.toml     |  34 +++
- utils/keytable/rc_keymaps/dntv_live_dvb_t     |  33 ---
- .../keytable/rc_keymaps/dntv_live_dvb_t.toml  |  35 +++
- utils/keytable/rc_keymaps/dntv_live_dvbt_pro  |  54 ----
- .../rc_keymaps/dntv_live_dvbt_pro.toml        |  56 ++++
- utils/keytable/rc_keymaps/dtt200u             |  19 --
- utils/keytable/rc_keymaps/dtt200u.toml        |  23 ++
- utils/keytable/rc_keymaps/dvbsky              |  33 ---
- utils/keytable/rc_keymaps/dvbsky.toml         |  37 +++
- utils/keytable/rc_keymaps/dvico_mce           |  46 ---
- utils/keytable/rc_keymaps/dvico_mce.toml      |  50 ++++
- utils/keytable/rc_keymaps/dvico_portable      |  37 ---
- utils/keytable/rc_keymaps/dvico_portable.toml |  41 +++
- utils/keytable/rc_keymaps/em_terratec         |  29 --
- utils/keytable/rc_keymaps/em_terratec.toml    |  31 ++
- utils/keytable/rc_keymaps/encore_enltv        |  53 ----
- utils/keytable/rc_keymaps/encore_enltv.toml   |  55 ++++
- utils/keytable/rc_keymaps/encore_enltv2       |  40 ---
- utils/keytable/rc_keymaps/encore_enltv2.toml  |  42 +++
- utils/keytable/rc_keymaps/encore_enltv_fm53   |  30 --
- .../rc_keymaps/encore_enltv_fm53.toml         |  32 +++
- utils/keytable/rc_keymaps/evga_indtube        |  17 --
- utils/keytable/rc_keymaps/evga_indtube.toml   |  19 ++
- utils/keytable/rc_keymaps/eztv                |  45 ---
- utils/keytable/rc_keymaps/eztv.toml           |  47 +++
- utils/keytable/rc_keymaps/flydvb              |  33 ---
- utils/keytable/rc_keymaps/flydvb.toml         |  35 +++
- utils/keytable/rc_keymaps/flyvideo            |  28 --
- utils/keytable/rc_keymaps/flyvideo.toml       |  30 ++
- utils/keytable/rc_keymaps/fusionhdtv_mce      |  46 ---
- utils/keytable/rc_keymaps/fusionhdtv_mce.toml |  48 ++++
- utils/keytable/rc_keymaps/gadmei_rm008z       |  32 ---
- utils/keytable/rc_keymaps/gadmei_rm008z.toml  |  34 +++
- utils/keytable/rc_keymaps/geekbox             |  13 -
- utils/keytable/rc_keymaps/geekbox.toml        |  17 ++
- utils/keytable/rc_keymaps/genius_tvgo_a11mce  |  33 ---
- .../rc_keymaps/genius_tvgo_a11mce.toml        |  35 +++
- utils/keytable/rc_keymaps/gotview7135         |  35 ---
- utils/keytable/rc_keymaps/gotview7135.toml    |  37 +++
- utils/keytable/rc_keymaps/haupp               |  46 ---
- utils/keytable/rc_keymaps/haupp.toml          |  48 ++++
- utils/keytable/rc_keymaps/hauppauge           | 173 -----------
- utils/keytable/rc_keymaps/hauppauge.toml      | 177 ++++++++++++
- utils/keytable/rc_keymaps/hisi_poplar         |  30 --
- utils/keytable/rc_keymaps/hisi_poplar.toml    |  34 +++
- utils/keytable/rc_keymaps/hisi_tv_demo        |  42 ---
- utils/keytable/rc_keymaps/hisi_tv_demo.toml   |  46 +++
- utils/keytable/rc_keymaps/imon_mce            |  78 -----
- utils/keytable/rc_keymaps/imon_mce.toml       |  82 ++++++
- utils/keytable/rc_keymaps/imon_pad            |  91 ------
- utils/keytable/rc_keymaps/imon_pad.toml       |  93 ++++++
- utils/keytable/rc_keymaps/imon_rsc            |  44 ---
- utils/keytable/rc_keymaps/imon_rsc.toml       |  48 ++++
- utils/keytable/rc_keymaps/iodata_bctv7e       |  37 ---
- utils/keytable/rc_keymaps/iodata_bctv7e.toml  |  39 +++
- utils/keytable/rc_keymaps/it913x_v1           |  53 ----
- utils/keytable/rc_keymaps/it913x_v1.toml      |  57 ++++
- utils/keytable/rc_keymaps/it913x_v2           |  48 ----
- utils/keytable/rc_keymaps/it913x_v2.toml      |  52 ++++
- utils/keytable/rc_keymaps/kaiomy              |  33 ---
- utils/keytable/rc_keymaps/kaiomy.toml         |  35 +++
- utils/keytable/rc_keymaps/kworld_315u         |  33 ---
- utils/keytable/rc_keymaps/kworld_315u.toml    |  37 +++
- utils/keytable/rc_keymaps/kworld_pc150u       |  45 ---
- utils/keytable/rc_keymaps/kworld_pc150u.toml  |  47 +++
- .../keytable/rc_keymaps/kworld_plus_tv_analog |  32 ---
- .../rc_keymaps/kworld_plus_tv_analog.toml     |  34 +++
- utils/keytable/rc_keymaps/leadtek_y04g0051    |  51 ----
- .../keytable/rc_keymaps/leadtek_y04g0051.toml |  55 ++++
- utils/keytable/rc_keymaps/lme2510             |  67 -----
- utils/keytable/rc_keymaps/lme2510.toml        |  71 +++++
- utils/keytable/rc_keymaps/manli               |  32 ---
- utils/keytable/rc_keymaps/manli.toml          |  34 +++
- utils/keytable/rc_keymaps/medion_x10          |  54 ----
- utils/keytable/rc_keymaps/medion_x10.toml     |  56 ++++
- .../keytable/rc_keymaps/medion_x10_digitainer |  50 ----
- .../rc_keymaps/medion_x10_digitainer.toml     |  52 ++++
- utils/keytable/rc_keymaps/medion_x10_or2x     |  46 ---
- .../keytable/rc_keymaps/medion_x10_or2x.toml  |  48 ++++
- utils/keytable/rc_keymaps/megasky             |  17 --
- utils/keytable/rc_keymaps/megasky.toml        |  19 ++
- utils/keytable/rc_keymaps/msi_digivox_ii      |  19 --
- utils/keytable/rc_keymaps/msi_digivox_ii.toml |  23 ++
- utils/keytable/rc_keymaps/msi_digivox_iii     |  33 ---
- .../keytable/rc_keymaps/msi_digivox_iii.toml  |  37 +++
- utils/keytable/rc_keymaps/msi_tvanywhere      |  25 --
- utils/keytable/rc_keymaps/msi_tvanywhere.toml |  27 ++
- utils/keytable/rc_keymaps/msi_tvanywhere_plus |  37 ---
- .../rc_keymaps/msi_tvanywhere_plus.toml       |  39 +++
- utils/keytable/rc_keymaps/nebula              |  56 ----
- utils/keytable/rc_keymaps/nebula.toml         |  60 ++++
- .../rc_keymaps/nec_terratec_cinergy_xs        |  86 ------
- .../rc_keymaps/nec_terratec_cinergy_xs.toml   |  90 ++++++
- utils/keytable/rc_keymaps/norwood             |  36 ---
- utils/keytable/rc_keymaps/norwood.toml        |  38 +++
- utils/keytable/rc_keymaps/npgtech             |  36 ---
- utils/keytable/rc_keymaps/npgtech.toml        |  38 +++
- utils/keytable/rc_keymaps/opera1              |  27 --
- utils/keytable/rc_keymaps/opera1.toml         |  29 ++
- utils/keytable/rc_keymaps/pctv_sedna          |  33 ---
- utils/keytable/rc_keymaps/pctv_sedna.toml     |  35 +++
- utils/keytable/rc_keymaps/pinnacle310e        |  54 ----
- utils/keytable/rc_keymaps/pinnacle310e.toml   |  56 ++++
- utils/keytable/rc_keymaps/pinnacle_color      |  43 ---
- utils/keytable/rc_keymaps/pinnacle_color.toml |  45 +++
- utils/keytable/rc_keymaps/pinnacle_grey       |  42 ---
- utils/keytable/rc_keymaps/pinnacle_grey.toml  |  44 +++
- utils/keytable/rc_keymaps/pinnacle_pctv_hd    |  27 --
- .../keytable/rc_keymaps/pinnacle_pctv_hd.toml |  31 ++
- utils/keytable/rc_keymaps/pixelview           |  33 ---
- utils/keytable/rc_keymaps/pixelview.toml      |  35 +++
- utils/keytable/rc_keymaps/pixelview_002t      |  27 --
- utils/keytable/rc_keymaps/pixelview_002t.toml |  31 ++
- utils/keytable/rc_keymaps/pixelview_mk12      |  32 ---
- utils/keytable/rc_keymaps/pixelview_mk12.toml |  36 +++
- utils/keytable/rc_keymaps/pixelview_new       |  32 ---
- utils/keytable/rc_keymaps/pixelview_new.toml  |  34 +++
- .../keytable/rc_keymaps/powercolor_real_angel |  36 ---
- .../rc_keymaps/powercolor_real_angel.toml     |  38 +++
- utils/keytable/rc_keymaps/proteus_2309        |  25 --
- utils/keytable/rc_keymaps/proteus_2309.toml   |  27 ++
- utils/keytable/rc_keymaps/purpletv            |  36 ---
- utils/keytable/rc_keymaps/purpletv.toml       |  38 +++
- utils/keytable/rc_keymaps/pv951               |  32 ---
- utils/keytable/rc_keymaps/pv951.toml          |  34 +++
- utils/keytable/rc_keymaps/rc6_mce             |  65 -----
- utils/keytable/rc_keymaps/rc6_mce.toml        |  69 +++++
- .../rc_keymaps/real_audio_220_32_keys         |  29 --
- .../rc_keymaps/real_audio_220_32_keys.toml    |  31 ++
- utils/keytable/rc_keymaps/reddo               |  24 --
- utils/keytable/rc_keymaps/reddo.toml          |  28 ++
- utils/keytable/rc_keymaps/snapstream_firefly  |  49 ----
- .../rc_keymaps/snapstream_firefly.toml        |  51 ++++
- utils/keytable/rc_keymaps/streamzap           |  36 ---
- utils/keytable/rc_keymaps/streamzap.toml      |  38 +++
- utils/keytable/rc_keymaps/su3000              |  36 ---
- utils/keytable/rc_keymaps/su3000.toml         |  40 +++
- utils/keytable/rc_keymaps/tango               |  51 ----
- utils/keytable/rc_keymaps/tango.toml          |  55 ++++
- utils/keytable/rc_keymaps/tbs_nec             |  35 ---
- utils/keytable/rc_keymaps/tbs_nec.toml        |  37 +++
- utils/keytable/rc_keymaps/technisat_ts35      |  34 ---
- utils/keytable/rc_keymaps/technisat_ts35.toml |  36 +++
- utils/keytable/rc_keymaps/technisat_usb2      |  34 ---
- utils/keytable/rc_keymaps/technisat_usb2.toml |  38 +++
- .../rc_keymaps/terratec_cinergy_c_pci         |  49 ----
- .../rc_keymaps/terratec_cinergy_c_pci.toml    |  51 ++++
- .../rc_keymaps/terratec_cinergy_s2_hd         |  49 ----
- .../rc_keymaps/terratec_cinergy_s2_hd.toml    |  51 ++++
- utils/keytable/rc_keymaps/terratec_cinergy_xs |  48 ----
- .../rc_keymaps/terratec_cinergy_xs.toml       |  50 ++++
- utils/keytable/rc_keymaps/terratec_slim       |  29 --
- utils/keytable/rc_keymaps/terratec_slim.toml  |  33 +++
- utils/keytable/rc_keymaps/terratec_slim_2     |  19 --
- .../keytable/rc_keymaps/terratec_slim_2.toml  |  23 ++
- utils/keytable/rc_keymaps/tevii_nec           |  48 ----
- utils/keytable/rc_keymaps/tevii_nec.toml      |  50 ++++
- utils/keytable/rc_keymaps/tivo                |  46 ---
- utils/keytable/rc_keymaps/tivo.toml           |  48 ++++
- utils/keytable/rc_keymaps/total_media_in_hand |  36 ---
- .../rc_keymaps/total_media_in_hand.toml       |  40 +++
- .../rc_keymaps/total_media_in_hand_02         |  36 ---
- .../rc_keymaps/total_media_in_hand_02.toml    |  40 +++
- utils/keytable/rc_keymaps/trekstor            |  29 --
- utils/keytable/rc_keymaps/trekstor.toml       |  33 +++
- utils/keytable/rc_keymaps/tt_1500             |  40 ---
- utils/keytable/rc_keymaps/tt_1500.toml        |  44 +++
- utils/keytable/rc_keymaps/tvwalkertwin        |  18 --
- utils/keytable/rc_keymaps/tvwalkertwin.toml   |  20 ++
- utils/keytable/rc_keymaps/twinhan_dtv_cab_ci  |  54 ----
- .../rc_keymaps/twinhan_dtv_cab_ci.toml        |  56 ++++
- utils/keytable/rc_keymaps/twinhan_vp1027_dvbs |  54 ----
- .../rc_keymaps/twinhan_vp1027_dvbs.toml       |  58 ++++
- utils/keytable/rc_keymaps/videomate_k100      |  52 ----
- utils/keytable/rc_keymaps/videomate_k100.toml |  54 ++++
- utils/keytable/rc_keymaps/videomate_s350      |  45 ---
- utils/keytable/rc_keymaps/videomate_s350.toml |  47 +++
- utils/keytable/rc_keymaps/videomate_tv_pvr    |  38 ---
- .../keytable/rc_keymaps/videomate_tv_pvr.toml |  40 +++
- utils/keytable/rc_keymaps/vp702x              |   3 -
- utils/keytable/rc_keymaps/vp702x.toml         |   5 +
- utils/keytable/rc_keymaps/winfast             |  57 ----
- utils/keytable/rc_keymaps/winfast.toml        |  59 ++++
- .../keytable/rc_keymaps/winfast_usbii_deluxe  |  29 --
- .../rc_keymaps/winfast_usbii_deluxe.toml      |  31 ++
- utils/keytable/rc_keymaps/wobo_i5             |   9 -
- utils/keytable/rc_keymaps/zx_irdec            |  41 ---
- utils/keytable/rc_keymaps/zx_irdec.toml       |  45 +++
- .../allwinner_ba10_tv_box                     |  15 -
- .../allwinner_ba10_tv_box.toml                |  17 ++
- .../allwinner_i12_a20_tv_box                  |  28 --
- .../allwinner_i12_a20_tv_box.toml             |  30 ++
- utils/keytable/rc_keymaps_userspace/wobo_i5   |   9 -
- .../rc_keymaps_userspace/wobo_i5.toml         |  11 +
- utils/keytable/rc_maps.cfg                    | 268 +++++++++---------
- 270 files changed, 6038 insertions(+), 5717 deletions(-)
- delete mode 100644 utils/keytable/rc_keymaps/adstech_dvb_t_pci
- create mode 100644 utils/keytable/rc_keymaps/adstech_dvb_t_pci.toml
- delete mode 100644 utils/keytable/rc_keymaps/af9005
- create mode 100644 utils/keytable/rc_keymaps/af9005.toml
- delete mode 100644 utils/keytable/rc_keymaps/alink_dtu_m
- create mode 100644 utils/keytable/rc_keymaps/alink_dtu_m.toml
- delete mode 100644 utils/keytable/rc_keymaps/allwinner_ba10_tv_box
- delete mode 100644 utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box
- delete mode 100644 utils/keytable/rc_keymaps/anysee
- create mode 100644 utils/keytable/rc_keymaps/anysee.toml
- delete mode 100644 utils/keytable/rc_keymaps/apac_viewcomp
- create mode 100644 utils/keytable/rc_keymaps/apac_viewcomp.toml
- delete mode 100644 utils/keytable/rc_keymaps/astrometa_t2hybrid
- create mode 100644 utils/keytable/rc_keymaps/astrometa_t2hybrid.toml
- delete mode 100644 utils/keytable/rc_keymaps/asus_pc39
- create mode 100644 utils/keytable/rc_keymaps/asus_pc39.toml
- delete mode 100644 utils/keytable/rc_keymaps/asus_ps3_100
- create mode 100644 utils/keytable/rc_keymaps/asus_ps3_100.toml
- delete mode 100644 utils/keytable/rc_keymaps/ati_tv_wonder_hd_600
- create mode 100644 utils/keytable/rc_keymaps/ati_tv_wonder_hd_600.toml
- delete mode 100644 utils/keytable/rc_keymaps/ati_x10
- create mode 100644 utils/keytable/rc_keymaps/ati_x10.toml
- delete mode 100644 utils/keytable/rc_keymaps/avermedia
- create mode 100644 utils/keytable/rc_keymaps/avermedia.toml
- delete mode 100644 utils/keytable/rc_keymaps/avermedia_a16d
- create mode 100644 utils/keytable/rc_keymaps/avermedia_a16d.toml
- delete mode 100644 utils/keytable/rc_keymaps/avermedia_cardbus
- create mode 100644 utils/keytable/rc_keymaps/avermedia_cardbus.toml
- delete mode 100644 utils/keytable/rc_keymaps/avermedia_dvbt
- create mode 100644 utils/keytable/rc_keymaps/avermedia_dvbt.toml
- delete mode 100644 utils/keytable/rc_keymaps/avermedia_m135a
- create mode 100644 utils/keytable/rc_keymaps/avermedia_m135a.toml
- delete mode 100644 utils/keytable/rc_keymaps/avermedia_m733a_rm_k6
- create mode 100644 utils/keytable/rc_keymaps/avermedia_m733a_rm_k6.toml
- delete mode 100644 utils/keytable/rc_keymaps/avermedia_rm_ks
- create mode 100644 utils/keytable/rc_keymaps/avermedia_rm_ks.toml
- delete mode 100644 utils/keytable/rc_keymaps/avertv_303
- create mode 100644 utils/keytable/rc_keymaps/avertv_303.toml
- delete mode 100644 utils/keytable/rc_keymaps/az6027
- create mode 100644 utils/keytable/rc_keymaps/az6027.toml
- delete mode 100644 utils/keytable/rc_keymaps/azurewave_ad_tu700
- create mode 100644 utils/keytable/rc_keymaps/azurewave_ad_tu700.toml
- delete mode 100644 utils/keytable/rc_keymaps/behold
- create mode 100644 utils/keytable/rc_keymaps/behold.toml
- delete mode 100644 utils/keytable/rc_keymaps/behold_columbus
- create mode 100644 utils/keytable/rc_keymaps/behold_columbus.toml
- delete mode 100644 utils/keytable/rc_keymaps/budget_ci_old
- create mode 100644 utils/keytable/rc_keymaps/budget_ci_old.toml
- delete mode 100644 utils/keytable/rc_keymaps/cec
- create mode 100644 utils/keytable/rc_keymaps/cec.toml
- delete mode 100644 utils/keytable/rc_keymaps/cinergy
- create mode 100644 utils/keytable/rc_keymaps/cinergy.toml
- delete mode 100644 utils/keytable/rc_keymaps/cinergy_1400
- create mode 100644 utils/keytable/rc_keymaps/cinergy_1400.toml
- delete mode 100644 utils/keytable/rc_keymaps/cinergyt2
- create mode 100644 utils/keytable/rc_keymaps/cinergyt2.toml
- delete mode 100644 utils/keytable/rc_keymaps/d680_dmb
- create mode 100644 utils/keytable/rc_keymaps/d680_dmb.toml
- delete mode 100644 utils/keytable/rc_keymaps/delock_61959
- create mode 100644 utils/keytable/rc_keymaps/delock_61959.toml
- delete mode 100644 utils/keytable/rc_keymaps/dib0700_nec
- create mode 100644 utils/keytable/rc_keymaps/dib0700_nec.toml
- delete mode 100644 utils/keytable/rc_keymaps/dib0700_rc5
- create mode 100644 utils/keytable/rc_keymaps/dib0700_rc5.toml
- delete mode 100644 utils/keytable/rc_keymaps/dibusb
- create mode 100644 utils/keytable/rc_keymaps/dibusb.toml
- delete mode 100644 utils/keytable/rc_keymaps/digitalnow_tinytwin
- create mode 100644 utils/keytable/rc_keymaps/digitalnow_tinytwin.toml
- delete mode 100644 utils/keytable/rc_keymaps/digittrade
- create mode 100644 utils/keytable/rc_keymaps/digittrade.toml
- delete mode 100644 utils/keytable/rc_keymaps/digitv
- create mode 100644 utils/keytable/rc_keymaps/digitv.toml
- delete mode 100644 utils/keytable/rc_keymaps/dm1105_nec
- create mode 100644 utils/keytable/rc_keymaps/dm1105_nec.toml
- delete mode 100644 utils/keytable/rc_keymaps/dntv_live_dvb_t
- create mode 100644 utils/keytable/rc_keymaps/dntv_live_dvb_t.toml
- delete mode 100644 utils/keytable/rc_keymaps/dntv_live_dvbt_pro
- create mode 100644 utils/keytable/rc_keymaps/dntv_live_dvbt_pro.toml
- delete mode 100644 utils/keytable/rc_keymaps/dtt200u
- create mode 100644 utils/keytable/rc_keymaps/dtt200u.toml
- delete mode 100644 utils/keytable/rc_keymaps/dvbsky
- create mode 100644 utils/keytable/rc_keymaps/dvbsky.toml
- delete mode 100644 utils/keytable/rc_keymaps/dvico_mce
- create mode 100644 utils/keytable/rc_keymaps/dvico_mce.toml
- delete mode 100644 utils/keytable/rc_keymaps/dvico_portable
- create mode 100644 utils/keytable/rc_keymaps/dvico_portable.toml
- delete mode 100644 utils/keytable/rc_keymaps/em_terratec
- create mode 100644 utils/keytable/rc_keymaps/em_terratec.toml
- delete mode 100644 utils/keytable/rc_keymaps/encore_enltv
- create mode 100644 utils/keytable/rc_keymaps/encore_enltv.toml
- delete mode 100644 utils/keytable/rc_keymaps/encore_enltv2
- create mode 100644 utils/keytable/rc_keymaps/encore_enltv2.toml
- delete mode 100644 utils/keytable/rc_keymaps/encore_enltv_fm53
- create mode 100644 utils/keytable/rc_keymaps/encore_enltv_fm53.toml
- delete mode 100644 utils/keytable/rc_keymaps/evga_indtube
- create mode 100644 utils/keytable/rc_keymaps/evga_indtube.toml
- delete mode 100644 utils/keytable/rc_keymaps/eztv
- create mode 100644 utils/keytable/rc_keymaps/eztv.toml
- delete mode 100644 utils/keytable/rc_keymaps/flydvb
- create mode 100644 utils/keytable/rc_keymaps/flydvb.toml
- delete mode 100644 utils/keytable/rc_keymaps/flyvideo
- create mode 100644 utils/keytable/rc_keymaps/flyvideo.toml
- delete mode 100644 utils/keytable/rc_keymaps/fusionhdtv_mce
- create mode 100644 utils/keytable/rc_keymaps/fusionhdtv_mce.toml
- delete mode 100644 utils/keytable/rc_keymaps/gadmei_rm008z
- create mode 100644 utils/keytable/rc_keymaps/gadmei_rm008z.toml
- delete mode 100644 utils/keytable/rc_keymaps/geekbox
- create mode 100644 utils/keytable/rc_keymaps/geekbox.toml
- delete mode 100644 utils/keytable/rc_keymaps/genius_tvgo_a11mce
- create mode 100644 utils/keytable/rc_keymaps/genius_tvgo_a11mce.toml
- delete mode 100644 utils/keytable/rc_keymaps/gotview7135
- create mode 100644 utils/keytable/rc_keymaps/gotview7135.toml
- delete mode 100644 utils/keytable/rc_keymaps/haupp
- create mode 100644 utils/keytable/rc_keymaps/haupp.toml
- delete mode 100644 utils/keytable/rc_keymaps/hauppauge
- create mode 100644 utils/keytable/rc_keymaps/hauppauge.toml
- delete mode 100644 utils/keytable/rc_keymaps/hisi_poplar
- create mode 100644 utils/keytable/rc_keymaps/hisi_poplar.toml
- delete mode 100644 utils/keytable/rc_keymaps/hisi_tv_demo
- create mode 100644 utils/keytable/rc_keymaps/hisi_tv_demo.toml
- delete mode 100644 utils/keytable/rc_keymaps/imon_mce
- create mode 100644 utils/keytable/rc_keymaps/imon_mce.toml
- delete mode 100644 utils/keytable/rc_keymaps/imon_pad
- create mode 100644 utils/keytable/rc_keymaps/imon_pad.toml
- delete mode 100644 utils/keytable/rc_keymaps/imon_rsc
- create mode 100644 utils/keytable/rc_keymaps/imon_rsc.toml
- delete mode 100644 utils/keytable/rc_keymaps/iodata_bctv7e
- create mode 100644 utils/keytable/rc_keymaps/iodata_bctv7e.toml
- delete mode 100644 utils/keytable/rc_keymaps/it913x_v1
- create mode 100644 utils/keytable/rc_keymaps/it913x_v1.toml
- delete mode 100644 utils/keytable/rc_keymaps/it913x_v2
- create mode 100644 utils/keytable/rc_keymaps/it913x_v2.toml
- delete mode 100644 utils/keytable/rc_keymaps/kaiomy
- create mode 100644 utils/keytable/rc_keymaps/kaiomy.toml
- delete mode 100644 utils/keytable/rc_keymaps/kworld_315u
- create mode 100644 utils/keytable/rc_keymaps/kworld_315u.toml
- delete mode 100644 utils/keytable/rc_keymaps/kworld_pc150u
- create mode 100644 utils/keytable/rc_keymaps/kworld_pc150u.toml
- delete mode 100644 utils/keytable/rc_keymaps/kworld_plus_tv_analog
- create mode 100644 utils/keytable/rc_keymaps/kworld_plus_tv_analog.toml
- delete mode 100644 utils/keytable/rc_keymaps/leadtek_y04g0051
- create mode 100644 utils/keytable/rc_keymaps/leadtek_y04g0051.toml
- delete mode 100644 utils/keytable/rc_keymaps/lme2510
- create mode 100644 utils/keytable/rc_keymaps/lme2510.toml
- delete mode 100644 utils/keytable/rc_keymaps/manli
- create mode 100644 utils/keytable/rc_keymaps/manli.toml
- delete mode 100644 utils/keytable/rc_keymaps/medion_x10
- create mode 100644 utils/keytable/rc_keymaps/medion_x10.toml
- delete mode 100644 utils/keytable/rc_keymaps/medion_x10_digitainer
- create mode 100644 utils/keytable/rc_keymaps/medion_x10_digitainer.toml
- delete mode 100644 utils/keytable/rc_keymaps/medion_x10_or2x
- create mode 100644 utils/keytable/rc_keymaps/medion_x10_or2x.toml
- delete mode 100644 utils/keytable/rc_keymaps/megasky
- create mode 100644 utils/keytable/rc_keymaps/megasky.toml
- delete mode 100644 utils/keytable/rc_keymaps/msi_digivox_ii
- create mode 100644 utils/keytable/rc_keymaps/msi_digivox_ii.toml
- delete mode 100644 utils/keytable/rc_keymaps/msi_digivox_iii
- create mode 100644 utils/keytable/rc_keymaps/msi_digivox_iii.toml
- delete mode 100644 utils/keytable/rc_keymaps/msi_tvanywhere
- create mode 100644 utils/keytable/rc_keymaps/msi_tvanywhere.toml
- delete mode 100644 utils/keytable/rc_keymaps/msi_tvanywhere_plus
- create mode 100644 utils/keytable/rc_keymaps/msi_tvanywhere_plus.toml
- delete mode 100644 utils/keytable/rc_keymaps/nebula
- create mode 100644 utils/keytable/rc_keymaps/nebula.toml
- delete mode 100644 utils/keytable/rc_keymaps/nec_terratec_cinergy_xs
- create mode 100644 utils/keytable/rc_keymaps/nec_terratec_cinergy_xs.toml
- delete mode 100644 utils/keytable/rc_keymaps/norwood
- create mode 100644 utils/keytable/rc_keymaps/norwood.toml
- delete mode 100644 utils/keytable/rc_keymaps/npgtech
- create mode 100644 utils/keytable/rc_keymaps/npgtech.toml
- delete mode 100644 utils/keytable/rc_keymaps/opera1
- create mode 100644 utils/keytable/rc_keymaps/opera1.toml
- delete mode 100644 utils/keytable/rc_keymaps/pctv_sedna
- create mode 100644 utils/keytable/rc_keymaps/pctv_sedna.toml
- delete mode 100644 utils/keytable/rc_keymaps/pinnacle310e
- create mode 100644 utils/keytable/rc_keymaps/pinnacle310e.toml
- delete mode 100644 utils/keytable/rc_keymaps/pinnacle_color
- create mode 100644 utils/keytable/rc_keymaps/pinnacle_color.toml
- delete mode 100644 utils/keytable/rc_keymaps/pinnacle_grey
- create mode 100644 utils/keytable/rc_keymaps/pinnacle_grey.toml
- delete mode 100644 utils/keytable/rc_keymaps/pinnacle_pctv_hd
- create mode 100644 utils/keytable/rc_keymaps/pinnacle_pctv_hd.toml
- delete mode 100644 utils/keytable/rc_keymaps/pixelview
- create mode 100644 utils/keytable/rc_keymaps/pixelview.toml
- delete mode 100644 utils/keytable/rc_keymaps/pixelview_002t
- create mode 100644 utils/keytable/rc_keymaps/pixelview_002t.toml
- delete mode 100644 utils/keytable/rc_keymaps/pixelview_mk12
- create mode 100644 utils/keytable/rc_keymaps/pixelview_mk12.toml
- delete mode 100644 utils/keytable/rc_keymaps/pixelview_new
- create mode 100644 utils/keytable/rc_keymaps/pixelview_new.toml
- delete mode 100644 utils/keytable/rc_keymaps/powercolor_real_angel
- create mode 100644 utils/keytable/rc_keymaps/powercolor_real_angel.toml
- delete mode 100644 utils/keytable/rc_keymaps/proteus_2309
- create mode 100644 utils/keytable/rc_keymaps/proteus_2309.toml
- delete mode 100644 utils/keytable/rc_keymaps/purpletv
- create mode 100644 utils/keytable/rc_keymaps/purpletv.toml
- delete mode 100644 utils/keytable/rc_keymaps/pv951
- create mode 100644 utils/keytable/rc_keymaps/pv951.toml
- delete mode 100644 utils/keytable/rc_keymaps/rc6_mce
- create mode 100644 utils/keytable/rc_keymaps/rc6_mce.toml
- delete mode 100644 utils/keytable/rc_keymaps/real_audio_220_32_keys
- create mode 100644 utils/keytable/rc_keymaps/real_audio_220_32_keys.toml
- delete mode 100644 utils/keytable/rc_keymaps/reddo
- create mode 100644 utils/keytable/rc_keymaps/reddo.toml
- delete mode 100644 utils/keytable/rc_keymaps/snapstream_firefly
- create mode 100644 utils/keytable/rc_keymaps/snapstream_firefly.toml
- delete mode 100644 utils/keytable/rc_keymaps/streamzap
- create mode 100644 utils/keytable/rc_keymaps/streamzap.toml
- delete mode 100644 utils/keytable/rc_keymaps/su3000
- create mode 100644 utils/keytable/rc_keymaps/su3000.toml
- delete mode 100644 utils/keytable/rc_keymaps/tango
- create mode 100644 utils/keytable/rc_keymaps/tango.toml
- delete mode 100644 utils/keytable/rc_keymaps/tbs_nec
- create mode 100644 utils/keytable/rc_keymaps/tbs_nec.toml
- delete mode 100644 utils/keytable/rc_keymaps/technisat_ts35
- create mode 100644 utils/keytable/rc_keymaps/technisat_ts35.toml
- delete mode 100644 utils/keytable/rc_keymaps/technisat_usb2
- create mode 100644 utils/keytable/rc_keymaps/technisat_usb2.toml
- delete mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_c_pci
- create mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_c_pci.toml
- delete mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_s2_hd
- create mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_s2_hd.toml
- delete mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_xs
- create mode 100644 utils/keytable/rc_keymaps/terratec_cinergy_xs.toml
- delete mode 100644 utils/keytable/rc_keymaps/terratec_slim
- create mode 100644 utils/keytable/rc_keymaps/terratec_slim.toml
- delete mode 100644 utils/keytable/rc_keymaps/terratec_slim_2
- create mode 100644 utils/keytable/rc_keymaps/terratec_slim_2.toml
- delete mode 100644 utils/keytable/rc_keymaps/tevii_nec
- create mode 100644 utils/keytable/rc_keymaps/tevii_nec.toml
- delete mode 100644 utils/keytable/rc_keymaps/tivo
- create mode 100644 utils/keytable/rc_keymaps/tivo.toml
- delete mode 100644 utils/keytable/rc_keymaps/total_media_in_hand
- create mode 100644 utils/keytable/rc_keymaps/total_media_in_hand.toml
- delete mode 100644 utils/keytable/rc_keymaps/total_media_in_hand_02
- create mode 100644 utils/keytable/rc_keymaps/total_media_in_hand_02.toml
- delete mode 100644 utils/keytable/rc_keymaps/trekstor
- create mode 100644 utils/keytable/rc_keymaps/trekstor.toml
- delete mode 100644 utils/keytable/rc_keymaps/tt_1500
- create mode 100644 utils/keytable/rc_keymaps/tt_1500.toml
- delete mode 100644 utils/keytable/rc_keymaps/tvwalkertwin
- create mode 100644 utils/keytable/rc_keymaps/tvwalkertwin.toml
- delete mode 100644 utils/keytable/rc_keymaps/twinhan_dtv_cab_ci
- create mode 100644 utils/keytable/rc_keymaps/twinhan_dtv_cab_ci.toml
- delete mode 100644 utils/keytable/rc_keymaps/twinhan_vp1027_dvbs
- create mode 100644 utils/keytable/rc_keymaps/twinhan_vp1027_dvbs.toml
- delete mode 100644 utils/keytable/rc_keymaps/videomate_k100
- create mode 100644 utils/keytable/rc_keymaps/videomate_k100.toml
- delete mode 100644 utils/keytable/rc_keymaps/videomate_s350
- create mode 100644 utils/keytable/rc_keymaps/videomate_s350.toml
- delete mode 100644 utils/keytable/rc_keymaps/videomate_tv_pvr
- create mode 100644 utils/keytable/rc_keymaps/videomate_tv_pvr.toml
- delete mode 100644 utils/keytable/rc_keymaps/vp702x
- create mode 100644 utils/keytable/rc_keymaps/vp702x.toml
- delete mode 100644 utils/keytable/rc_keymaps/winfast
- create mode 100644 utils/keytable/rc_keymaps/winfast.toml
- delete mode 100644 utils/keytable/rc_keymaps/winfast_usbii_deluxe
- create mode 100644 utils/keytable/rc_keymaps/winfast_usbii_deluxe.toml
- delete mode 100644 utils/keytable/rc_keymaps/wobo_i5
- delete mode 100644 utils/keytable/rc_keymaps/zx_irdec
- create mode 100644 utils/keytable/rc_keymaps/zx_irdec.toml
- delete mode 100644 utils/keytable/rc_keymaps_userspace/allwinner_ba10_tv_box
- create mode 100644 utils/keytable/rc_keymaps_userspace/allwinner_ba10_tv_box.toml
- delete mode 100644 utils/keytable/rc_keymaps_userspace/allwinner_i12_a20_tv_box
- create mode 100644 utils/keytable/rc_keymaps_userspace/allwinner_i12_a20_tv_box.toml
- delete mode 100644 utils/keytable/rc_keymaps_userspace/wobo_i5
- create mode 100644 utils/keytable/rc_keymaps_userspace/wobo_i5.toml
+ Makefile.am                |    4 +-
+ configure.ac               |   11 +
+ include/linux/bpf.h        | 2644 ++++++++++++++++++++++++++++++++++++
+ utils/keytable/Makefile.am |    7 +-
+ utils/keytable/bpf.c       |  515 +++++++
+ utils/keytable/bpf.h       |  110 ++
+ utils/keytable/bpf_load.c  |  469 +++++++
+ utils/keytable/bpf_load.h  |   43 +
+ utils/keytable/keytable.c  |  323 ++++-
+ v4l-utils.spec.in          |    2 +-
+ 10 files changed, 4104 insertions(+), 24 deletions(-)
+ create mode 100644 include/linux/bpf.h
+ create mode 100644 utils/keytable/bpf.c
+ create mode 100644 utils/keytable/bpf.h
+ create mode 100644 utils/keytable/bpf_load.c
+ create mode 100644 utils/keytable/bpf_load.h
 
-diff --git a/utils/keytable/gen_keytables.pl b/utils/keytable/gen_keytables.pl
-index 3045f257..71b36adb 100755
---- a/utils/keytable/gen_keytables.pl
-+++ b/utils/keytable/gen_keytables.pl
-@@ -16,12 +16,13 @@ my @ir_files = (
+diff --git a/Makefile.am b/Makefile.am
+index fc8f2f34..38e17bab 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -25,7 +25,8 @@ sync-with-kernel:
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/ivtv.h -o \
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/dvb/frontend.h -o \
+ 	      ! -f $(KERNEL_DIR)/usr/include/linux/dvb/dmx.h -o \
+-	      ! -f $(KERNEL_DIR)/usr/include/linux/lirc.h ]; then \
++	      ! -f $(KERNEL_DIR)/usr/include/linux/lirc.h -o \
++	      ! -f $(KERNEL_DIR)/usr/include/linux/bpf.h ]; then \
+ 	  echo "Error you must set KERNEL_DIR to point to an extracted kernel source dir"; \
+ 	  echo "and run 'make headers_install' in \$$KERNEL_DIR."; \
+ 	  exit 1; \
+@@ -43,6 +44,7 @@ sync-with-kernel:
+ 	cp $(top_srcdir)/include/linux/dvb/frontend.h $(top_srcdir)/lib/include/libdvbv5/dvb-frontend.h
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/dvb/dmx.h $(top_srcdir)/include/linux/dvb
+ 	cp -a $(KERNEL_DIR)/usr/include/linux/lirc.h $(top_srcdir)/include/linux
++	cp -a $(KERNEL_DIR)/usr/include/linux/bpf.h $(top_srcdir)/include/linux
+ 	cp -a $(KERNEL_DIR)/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c $(top_srcdir)/utils/common
+ 	cp -a $(KERNEL_DIR)/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c $(top_srcdir)/utils/common
+ 	cp -a $(KERNEL_DIR)/include/media/tpg/v4l2-tpg* $(top_srcdir)/utils/common
+diff --git a/configure.ac b/configure.ac
+index dc1e9cbf..1f48913c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -167,6 +167,16 @@ AC_SUBST([X11_CFLAGS])
+ AC_SUBST([X11_LIBS])
+ AM_CONDITIONAL([HAVE_X11], [test x$x11_pkgconfig = xyes])
  
- my $debug = 1;
- my $dir="rc_keymaps";
--my $deftype = "UNKNOWN";
-+my $deftype = "unknown";
++PKG_CHECK_MODULES([LIBELF], [libelf], [libelf_pkgconfig=yes], [libelf_pkgconfig=no])
++AC_SUBST([LIBELF_CFLAGS])
++AC_SUBST([LIBELF_LIBS])
++AM_CONDITIONAL([HAVE_LIBELF], [test x$libelf_pkgconfig = xyes])
++if test "x$libelf_pkgconfig" = "xyes"; then
++   AC_DEFINE([HAVE_LIBELF], [1], [libelf library is present])
++else
++   AC_MSG_WARN(libelf library not available)
++fi
++
+ AS_IF([test "x$x11_pkgconfig" = xyes],
+       [PKG_CHECK_MODULES(GL, [gl], [gl_pkgconfig=yes], [gl_pkgconfig=no])], [gl_pkgconfig=no])
+ AC_SUBST([GL_CFLAGS])
+@@ -497,6 +507,7 @@ compile time options summary
+     X11                        : $x11_pkgconfig
+     GL                         : $gl_pkgconfig
+     glu                        : $glu_pkgconfig
++    libelf		       : $libelf_pkgconfig
+     libjpeg                    : $have_jpeg
+     libudev                    : $have_libudev
+     pthread                    : $have_pthread
+diff --git a/include/linux/bpf.h b/include/linux/bpf.h
+new file mode 100644
+index 00000000..64ac0f7a
+--- /dev/null
++++ b/include/linux/bpf.h
+@@ -0,0 +1,2644 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/* Copyright (c) 2011-2014 PLUMgrid, http://plumgrid.com
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of version 2 of the GNU General Public
++ * License as published by the Free Software Foundation.
++ */
++#ifndef _UAPI__LINUX_BPF_H__
++#define _UAPI__LINUX_BPF_H__
++
++#include <linux/types.h>
++#include <linux/bpf_common.h>
++
++/* Extended instruction set based on top of classic BPF */
++
++/* instruction classes */
++#define BPF_ALU64	0x07	/* alu mode in double word width */
++
++/* ld/ldx fields */
++#define BPF_DW		0x18	/* double word (64-bit) */
++#define BPF_XADD	0xc0	/* exclusive add */
++
++/* alu/jmp fields */
++#define BPF_MOV		0xb0	/* mov reg to reg */
++#define BPF_ARSH	0xc0	/* sign extending arithmetic shift right */
++
++/* change endianness of a register */
++#define BPF_END		0xd0	/* flags for endianness conversion: */
++#define BPF_TO_LE	0x00	/* convert to little-endian */
++#define BPF_TO_BE	0x08	/* convert to big-endian */
++#define BPF_FROM_LE	BPF_TO_LE
++#define BPF_FROM_BE	BPF_TO_BE
++
++/* jmp encodings */
++#define BPF_JNE		0x50	/* jump != */
++#define BPF_JLT		0xa0	/* LT is unsigned, '<' */
++#define BPF_JLE		0xb0	/* LE is unsigned, '<=' */
++#define BPF_JSGT	0x60	/* SGT is signed '>', GT in x86 */
++#define BPF_JSGE	0x70	/* SGE is signed '>=', GE in x86 */
++#define BPF_JSLT	0xc0	/* SLT is signed, '<' */
++#define BPF_JSLE	0xd0	/* SLE is signed, '<=' */
++#define BPF_CALL	0x80	/* function call */
++#define BPF_EXIT	0x90	/* function return */
++
++/* Register numbers */
++enum {
++	BPF_REG_0 = 0,
++	BPF_REG_1,
++	BPF_REG_2,
++	BPF_REG_3,
++	BPF_REG_4,
++	BPF_REG_5,
++	BPF_REG_6,
++	BPF_REG_7,
++	BPF_REG_8,
++	BPF_REG_9,
++	BPF_REG_10,
++	__MAX_BPF_REG,
++};
++
++/* BPF has 10 general purpose 64-bit registers and stack frame. */
++#define MAX_BPF_REG	__MAX_BPF_REG
++
++struct bpf_insn {
++	__u8	code;		/* opcode */
++	__u8	dst_reg:4;	/* dest register */
++	__u8	src_reg:4;	/* source register */
++	__s16	off;		/* signed offset */
++	__s32	imm;		/* signed immediate constant */
++};
++
++/* Key of an a BPF_MAP_TYPE_LPM_TRIE entry */
++struct bpf_lpm_trie_key {
++	__u32	prefixlen;	/* up to 32 for AF_INET, 128 for AF_INET6 */
++	__u8	data[0];	/* Arbitrary size */
++};
++
++/* BPF syscall commands, see bpf(2) man-page for details. */
++enum bpf_cmd {
++	BPF_MAP_CREATE,
++	BPF_MAP_LOOKUP_ELEM,
++	BPF_MAP_UPDATE_ELEM,
++	BPF_MAP_DELETE_ELEM,
++	BPF_MAP_GET_NEXT_KEY,
++	BPF_PROG_LOAD,
++	BPF_OBJ_PIN,
++	BPF_OBJ_GET,
++	BPF_PROG_ATTACH,
++	BPF_PROG_DETACH,
++	BPF_PROG_TEST_RUN,
++	BPF_PROG_GET_NEXT_ID,
++	BPF_MAP_GET_NEXT_ID,
++	BPF_PROG_GET_FD_BY_ID,
++	BPF_MAP_GET_FD_BY_ID,
++	BPF_OBJ_GET_INFO_BY_FD,
++	BPF_PROG_QUERY,
++	BPF_RAW_TRACEPOINT_OPEN,
++	BPF_BTF_LOAD,
++	BPF_BTF_GET_FD_BY_ID,
++	BPF_TASK_FD_QUERY,
++};
++
++enum bpf_map_type {
++	BPF_MAP_TYPE_UNSPEC,
++	BPF_MAP_TYPE_HASH,
++	BPF_MAP_TYPE_ARRAY,
++	BPF_MAP_TYPE_PROG_ARRAY,
++	BPF_MAP_TYPE_PERF_EVENT_ARRAY,
++	BPF_MAP_TYPE_PERCPU_HASH,
++	BPF_MAP_TYPE_PERCPU_ARRAY,
++	BPF_MAP_TYPE_STACK_TRACE,
++	BPF_MAP_TYPE_CGROUP_ARRAY,
++	BPF_MAP_TYPE_LRU_HASH,
++	BPF_MAP_TYPE_LRU_PERCPU_HASH,
++	BPF_MAP_TYPE_LPM_TRIE,
++	BPF_MAP_TYPE_ARRAY_OF_MAPS,
++	BPF_MAP_TYPE_HASH_OF_MAPS,
++	BPF_MAP_TYPE_DEVMAP,
++	BPF_MAP_TYPE_SOCKMAP,
++	BPF_MAP_TYPE_CPUMAP,
++	BPF_MAP_TYPE_XSKMAP,
++	BPF_MAP_TYPE_SOCKHASH,
++};
++
++enum bpf_prog_type {
++	BPF_PROG_TYPE_UNSPEC,
++	BPF_PROG_TYPE_SOCKET_FILTER,
++	BPF_PROG_TYPE_KPROBE,
++	BPF_PROG_TYPE_SCHED_CLS,
++	BPF_PROG_TYPE_SCHED_ACT,
++	BPF_PROG_TYPE_TRACEPOINT,
++	BPF_PROG_TYPE_XDP,
++	BPF_PROG_TYPE_PERF_EVENT,
++	BPF_PROG_TYPE_CGROUP_SKB,
++	BPF_PROG_TYPE_CGROUP_SOCK,
++	BPF_PROG_TYPE_LWT_IN,
++	BPF_PROG_TYPE_LWT_OUT,
++	BPF_PROG_TYPE_LWT_XMIT,
++	BPF_PROG_TYPE_SOCK_OPS,
++	BPF_PROG_TYPE_SK_SKB,
++	BPF_PROG_TYPE_CGROUP_DEVICE,
++	BPF_PROG_TYPE_SK_MSG,
++	BPF_PROG_TYPE_RAW_TRACEPOINT,
++	BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
++	BPF_PROG_TYPE_LWT_SEG6LOCAL,
++	BPF_PROG_TYPE_LIRC_MODE2,
++};
++
++enum bpf_attach_type {
++	BPF_CGROUP_INET_INGRESS,
++	BPF_CGROUP_INET_EGRESS,
++	BPF_CGROUP_INET_SOCK_CREATE,
++	BPF_CGROUP_SOCK_OPS,
++	BPF_SK_SKB_STREAM_PARSER,
++	BPF_SK_SKB_STREAM_VERDICT,
++	BPF_CGROUP_DEVICE,
++	BPF_SK_MSG_VERDICT,
++	BPF_CGROUP_INET4_BIND,
++	BPF_CGROUP_INET6_BIND,
++	BPF_CGROUP_INET4_CONNECT,
++	BPF_CGROUP_INET6_CONNECT,
++	BPF_CGROUP_INET4_POST_BIND,
++	BPF_CGROUP_INET6_POST_BIND,
++	BPF_CGROUP_UDP4_SENDMSG,
++	BPF_CGROUP_UDP6_SENDMSG,
++	BPF_LIRC_MODE2,
++	__MAX_BPF_ATTACH_TYPE
++};
++
++#define MAX_BPF_ATTACH_TYPE __MAX_BPF_ATTACH_TYPE
++
++/* cgroup-bpf attach flags used in BPF_PROG_ATTACH command
++ *
++ * NONE(default): No further bpf programs allowed in the subtree.
++ *
++ * BPF_F_ALLOW_OVERRIDE: If a sub-cgroup installs some bpf program,
++ * the program in this cgroup yields to sub-cgroup program.
++ *
++ * BPF_F_ALLOW_MULTI: If a sub-cgroup installs some bpf program,
++ * that cgroup program gets run in addition to the program in this cgroup.
++ *
++ * Only one program is allowed to be attached to a cgroup with
++ * NONE or BPF_F_ALLOW_OVERRIDE flag.
++ * Attaching another program on top of NONE or BPF_F_ALLOW_OVERRIDE will
++ * release old program and attach the new one. Attach flags has to match.
++ *
++ * Multiple programs are allowed to be attached to a cgroup with
++ * BPF_F_ALLOW_MULTI flag. They are executed in FIFO order
++ * (those that were attached first, run first)
++ * The programs of sub-cgroup are executed first, then programs of
++ * this cgroup and then programs of parent cgroup.
++ * When children program makes decision (like picking TCP CA or sock bind)
++ * parent program has a chance to override it.
++ *
++ * A cgroup with MULTI or OVERRIDE flag allows any attach flags in sub-cgroups.
++ * A cgroup with NONE doesn't allow any programs in sub-cgroups.
++ * Ex1:
++ * cgrp1 (MULTI progs A, B) ->
++ *    cgrp2 (OVERRIDE prog C) ->
++ *      cgrp3 (MULTI prog D) ->
++ *        cgrp4 (OVERRIDE prog E) ->
++ *          cgrp5 (NONE prog F)
++ * the event in cgrp5 triggers execution of F,D,A,B in that order.
++ * if prog F is detached, the execution is E,D,A,B
++ * if prog F and D are detached, the execution is E,A,B
++ * if prog F, E and D are detached, the execution is C,A,B
++ *
++ * All eligible programs are executed regardless of return code from
++ * earlier programs.
++ */
++#define BPF_F_ALLOW_OVERRIDE	(1U << 0)
++#define BPF_F_ALLOW_MULTI	(1U << 1)
++
++/* If BPF_F_STRICT_ALIGNMENT is used in BPF_PROG_LOAD command, the
++ * verifier will perform strict alignment checking as if the kernel
++ * has been built with CONFIG_EFFICIENT_UNALIGNED_ACCESS not set,
++ * and NET_IP_ALIGN defined to 2.
++ */
++#define BPF_F_STRICT_ALIGNMENT	(1U << 0)
++
++/* when bpf_ldimm64->src_reg == BPF_PSEUDO_MAP_FD, bpf_ldimm64->imm == fd */
++#define BPF_PSEUDO_MAP_FD	1
++
++/* when bpf_call->src_reg == BPF_PSEUDO_CALL, bpf_call->imm == pc-relative
++ * offset to another bpf function
++ */
++#define BPF_PSEUDO_CALL		1
++
++/* flags for BPF_MAP_UPDATE_ELEM command */
++#define BPF_ANY		0 /* create new element or update existing */
++#define BPF_NOEXIST	1 /* create new element if it didn't exist */
++#define BPF_EXIST	2 /* update existing element */
++
++/* flags for BPF_MAP_CREATE command */
++#define BPF_F_NO_PREALLOC	(1U << 0)
++/* Instead of having one common LRU list in the
++ * BPF_MAP_TYPE_LRU_[PERCPU_]HASH map, use a percpu LRU list
++ * which can scale and perform better.
++ * Note, the LRU nodes (including free nodes) cannot be moved
++ * across different LRU lists.
++ */
++#define BPF_F_NO_COMMON_LRU	(1U << 1)
++/* Specify numa node during map creation */
++#define BPF_F_NUMA_NODE		(1U << 2)
++
++/* flags for BPF_PROG_QUERY */
++#define BPF_F_QUERY_EFFECTIVE	(1U << 0)
++
++#define BPF_OBJ_NAME_LEN 16U
++
++/* Flags for accessing BPF object */
++#define BPF_F_RDONLY		(1U << 3)
++#define BPF_F_WRONLY		(1U << 4)
++
++/* Flag for stack_map, store build_id+offset instead of pointer */
++#define BPF_F_STACK_BUILD_ID	(1U << 5)
++
++enum bpf_stack_build_id_status {
++	/* user space need an empty entry to identify end of a trace */
++	BPF_STACK_BUILD_ID_EMPTY = 0,
++	/* with valid build_id and offset */
++	BPF_STACK_BUILD_ID_VALID = 1,
++	/* couldn't get build_id, fallback to ip */
++	BPF_STACK_BUILD_ID_IP = 2,
++};
++
++#define BPF_BUILD_ID_SIZE 20
++struct bpf_stack_build_id {
++	__s32		status;
++	unsigned char	build_id[BPF_BUILD_ID_SIZE];
++	union {
++		__u64	offset;
++		__u64	ip;
++	};
++};
++
++union bpf_attr {
++	struct { /* anonymous struct used by BPF_MAP_CREATE command */
++		__u32	map_type;	/* one of enum bpf_map_type */
++		__u32	key_size;	/* size of key in bytes */
++		__u32	value_size;	/* size of value in bytes */
++		__u32	max_entries;	/* max number of entries in a map */
++		__u32	map_flags;	/* BPF_MAP_CREATE related
++					 * flags defined above.
++					 */
++		__u32	inner_map_fd;	/* fd pointing to the inner map */
++		__u32	numa_node;	/* numa node (effective only if
++					 * BPF_F_NUMA_NODE is set).
++					 */
++		char	map_name[BPF_OBJ_NAME_LEN];
++		__u32	map_ifindex;	/* ifindex of netdev to create on */
++		__u32	btf_fd;		/* fd pointing to a BTF type data */
++		__u32	btf_key_type_id;	/* BTF type_id of the key */
++		__u32	btf_value_type_id;	/* BTF type_id of the value */
++	};
++
++	struct { /* anonymous struct used by BPF_MAP_*_ELEM commands */
++		__u32		map_fd;
++		__aligned_u64	key;
++		union {
++			__aligned_u64 value;
++			__aligned_u64 next_key;
++		};
++		__u64		flags;
++	};
++
++	struct { /* anonymous struct used by BPF_PROG_LOAD command */
++		__u32		prog_type;	/* one of enum bpf_prog_type */
++		__u32		insn_cnt;
++		__aligned_u64	insns;
++		__aligned_u64	license;
++		__u32		log_level;	/* verbosity level of verifier */
++		__u32		log_size;	/* size of user buffer */
++		__aligned_u64	log_buf;	/* user supplied buffer */
++		__u32		kern_version;	/* checked when prog_type=kprobe */
++		__u32		prog_flags;
++		char		prog_name[BPF_OBJ_NAME_LEN];
++		__u32		prog_ifindex;	/* ifindex of netdev to prep for */
++		/* For some prog types expected attach type must be known at
++		 * load time to verify attach type specific parts of prog
++		 * (context accesses, allowed helpers, etc).
++		 */
++		__u32		expected_attach_type;
++	};
++
++	struct { /* anonymous struct used by BPF_OBJ_* commands */
++		__aligned_u64	pathname;
++		__u32		bpf_fd;
++		__u32		file_flags;
++	};
++
++	struct { /* anonymous struct used by BPF_PROG_ATTACH/DETACH commands */
++		__u32		target_fd;	/* container object to attach to */
++		__u32		attach_bpf_fd;	/* eBPF program to attach */
++		__u32		attach_type;
++		__u32		attach_flags;
++	};
++
++	struct { /* anonymous struct used by BPF_PROG_TEST_RUN command */
++		__u32		prog_fd;
++		__u32		retval;
++		__u32		data_size_in;
++		__u32		data_size_out;
++		__aligned_u64	data_in;
++		__aligned_u64	data_out;
++		__u32		repeat;
++		__u32		duration;
++	} test;
++
++	struct { /* anonymous struct used by BPF_*_GET_*_ID */
++		union {
++			__u32		start_id;
++			__u32		prog_id;
++			__u32		map_id;
++			__u32		btf_id;
++		};
++		__u32		next_id;
++		__u32		open_flags;
++	};
++
++	struct { /* anonymous struct used by BPF_OBJ_GET_INFO_BY_FD */
++		__u32		bpf_fd;
++		__u32		info_len;
++		__aligned_u64	info;
++	} info;
++
++	struct { /* anonymous struct used by BPF_PROG_QUERY command */
++		__u32		target_fd;	/* container object to query */
++		__u32		attach_type;
++		__u32		query_flags;
++		__u32		attach_flags;
++		__aligned_u64	prog_ids;
++		__u32		prog_cnt;
++	} query;
++
++	struct {
++		__u64 name;
++		__u32 prog_fd;
++	} raw_tracepoint;
++
++	struct { /* anonymous struct for BPF_BTF_LOAD */
++		__aligned_u64	btf;
++		__aligned_u64	btf_log_buf;
++		__u32		btf_size;
++		__u32		btf_log_size;
++		__u32		btf_log_level;
++	};
++
++	struct {
++		__u32		pid;		/* input: pid */
++		__u32		fd;		/* input: fd */
++		__u32		flags;		/* input: flags */
++		__u32		buf_len;	/* input/output: buf len */
++		__aligned_u64	buf;		/* input/output:
++						 *   tp_name for tracepoint
++						 *   symbol for kprobe
++						 *   filename for uprobe
++						 */
++		__u32		prog_id;	/* output: prod_id */
++		__u32		fd_type;	/* output: BPF_FD_TYPE_* */
++		__u64		probe_offset;	/* output: probe_offset */
++		__u64		probe_addr;	/* output: probe_addr */
++	} task_fd_query;
++} __attribute__((aligned(8)));
++
++/* The description below is an attempt at providing documentation to eBPF
++ * developers about the multiple available eBPF helper functions. It can be
++ * parsed and used to produce a manual page. The workflow is the following,
++ * and requires the rst2man utility:
++ *
++ *     $ ./scripts/bpf_helpers_doc.py \
++ *             --filename include/uapi/linux/bpf.h > /tmp/bpf-helpers.rst
++ *     $ rst2man /tmp/bpf-helpers.rst > /tmp/bpf-helpers.7
++ *     $ man /tmp/bpf-helpers.7
++ *
++ * Note that in order to produce this external documentation, some RST
++ * formatting is used in the descriptions to get "bold" and "italics" in
++ * manual pages. Also note that the few trailing white spaces are
++ * intentional, removing them would break paragraphs for rst2man.
++ *
++ * Start of BPF helper function descriptions:
++ *
++ * void *bpf_map_lookup_elem(struct bpf_map *map, const void *key)
++ * 	Description
++ * 		Perform a lookup in *map* for an entry associated to *key*.
++ * 	Return
++ * 		Map value associated to *key*, or **NULL** if no entry was
++ * 		found.
++ *
++ * int bpf_map_update_elem(struct bpf_map *map, const void *key, const void *value, u64 flags)
++ * 	Description
++ * 		Add or update the value of the entry associated to *key* in
++ * 		*map* with *value*. *flags* is one of:
++ *
++ * 		**BPF_NOEXIST**
++ * 			The entry for *key* must not exist in the map.
++ * 		**BPF_EXIST**
++ * 			The entry for *key* must already exist in the map.
++ * 		**BPF_ANY**
++ * 			No condition on the existence of the entry for *key*.
++ *
++ * 		Flag value **BPF_NOEXIST** cannot be used for maps of types
++ * 		**BPF_MAP_TYPE_ARRAY** or **BPF_MAP_TYPE_PERCPU_ARRAY**  (all
++ * 		elements always exist), the helper would return an error.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_map_delete_elem(struct bpf_map *map, const void *key)
++ * 	Description
++ * 		Delete entry with *key* from *map*.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_probe_read(void *dst, u32 size, const void *src)
++ * 	Description
++ * 		For tracing programs, safely attempt to read *size* bytes from
++ * 		address *src* and store the data in *dst*.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * u64 bpf_ktime_get_ns(void)
++ * 	Description
++ * 		Return the time elapsed since system boot, in nanoseconds.
++ * 	Return
++ * 		Current *ktime*.
++ *
++ * int bpf_trace_printk(const char *fmt, u32 fmt_size, ...)
++ * 	Description
++ * 		This helper is a "printk()-like" facility for debugging. It
++ * 		prints a message defined by format *fmt* (of size *fmt_size*)
++ * 		to file *\/sys/kernel/debug/tracing/trace* from DebugFS, if
++ * 		available. It can take up to three additional **u64**
++ * 		arguments (as an eBPF helpers, the total number of arguments is
++ * 		limited to five).
++ *
++ * 		Each time the helper is called, it appends a line to the trace.
++ * 		The format of the trace is customizable, and the exact output
++ * 		one will get depends on the options set in
++ * 		*\/sys/kernel/debug/tracing/trace_options* (see also the
++ * 		*README* file under the same directory). However, it usually
++ * 		defaults to something like:
++ *
++ * 		::
++ *
++ * 			telnet-470   [001] .N.. 419421.045894: 0x00000001: <formatted msg>
++ *
++ * 		In the above:
++ *
++ * 			* ``telnet`` is the name of the current task.
++ * 			* ``470`` is the PID of the current task.
++ * 			* ``001`` is the CPU number on which the task is
++ * 			  running.
++ * 			* In ``.N..``, each character refers to a set of
++ * 			  options (whether irqs are enabled, scheduling
++ * 			  options, whether hard/softirqs are running, level of
++ * 			  preempt_disabled respectively). **N** means that
++ * 			  **TIF_NEED_RESCHED** and **PREEMPT_NEED_RESCHED**
++ * 			  are set.
++ * 			* ``419421.045894`` is a timestamp.
++ * 			* ``0x00000001`` is a fake value used by BPF for the
++ * 			  instruction pointer register.
++ * 			* ``<formatted msg>`` is the message formatted with
++ * 			  *fmt*.
++ *
++ * 		The conversion specifiers supported by *fmt* are similar, but
++ * 		more limited than for printk(). They are **%d**, **%i**,
++ * 		**%u**, **%x**, **%ld**, **%li**, **%lu**, **%lx**, **%lld**,
++ * 		**%lli**, **%llu**, **%llx**, **%p**, **%s**. No modifier (size
++ * 		of field, padding with zeroes, etc.) is available, and the
++ * 		helper will return **-EINVAL** (but print nothing) if it
++ * 		encounters an unknown specifier.
++ *
++ * 		Also, note that **bpf_trace_printk**\ () is slow, and should
++ * 		only be used for debugging purposes. For this reason, a notice
++ * 		bloc (spanning several lines) is printed to kernel logs and
++ * 		states that the helper should not be used "for production use"
++ * 		the first time this helper is used (or more precisely, when
++ * 		**trace_printk**\ () buffers are allocated). For passing values
++ * 		to user space, perf events should be preferred.
++ * 	Return
++ * 		The number of bytes written to the buffer, or a negative error
++ * 		in case of failure.
++ *
++ * u32 bpf_get_prandom_u32(void)
++ * 	Description
++ * 		Get a pseudo-random number.
++ *
++ * 		From a security point of view, this helper uses its own
++ * 		pseudo-random internal state, and cannot be used to infer the
++ * 		seed of other random functions in the kernel. However, it is
++ * 		essential to note that the generator used by the helper is not
++ * 		cryptographically secure.
++ * 	Return
++ * 		A random 32-bit unsigned value.
++ *
++ * u32 bpf_get_smp_processor_id(void)
++ * 	Description
++ * 		Get the SMP (symmetric multiprocessing) processor id. Note that
++ * 		all programs run with preemption disabled, which means that the
++ * 		SMP processor id is stable during all the execution of the
++ * 		program.
++ * 	Return
++ * 		The SMP id of the processor running the program.
++ *
++ * int bpf_skb_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len, u64 flags)
++ * 	Description
++ * 		Store *len* bytes from address *from* into the packet
++ * 		associated to *skb*, at *offset*. *flags* are a combination of
++ * 		**BPF_F_RECOMPUTE_CSUM** (automatically recompute the
++ * 		checksum for the packet after storing the bytes) and
++ * 		**BPF_F_INVALIDATE_HASH** (set *skb*\ **->hash**, *skb*\
++ * 		**->swhash** and *skb*\ **->l4hash** to 0).
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_l3_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to, u64 size)
++ * 	Description
++ * 		Recompute the layer 3 (e.g. IP) checksum for the packet
++ * 		associated to *skb*. Computation is incremental, so the helper
++ * 		must know the former value of the header field that was
++ * 		modified (*from*), the new value of this field (*to*), and the
++ * 		number of bytes (2 or 4) for this field, stored in *size*.
++ * 		Alternatively, it is possible to store the difference between
++ * 		the previous and the new values of the header field in *to*, by
++ * 		setting *from* and *size* to 0. For both methods, *offset*
++ * 		indicates the location of the IP checksum within the packet.
++ *
++ * 		This helper works in combination with **bpf_csum_diff**\ (),
++ * 		which does not update the checksum in-place, but offers more
++ * 		flexibility and can handle sizes larger than 2 or 4 for the
++ * 		checksum to update.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_l4_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to, u64 flags)
++ * 	Description
++ * 		Recompute the layer 4 (e.g. TCP, UDP or ICMP) checksum for the
++ * 		packet associated to *skb*. Computation is incremental, so the
++ * 		helper must know the former value of the header field that was
++ * 		modified (*from*), the new value of this field (*to*), and the
++ * 		number of bytes (2 or 4) for this field, stored on the lowest
++ * 		four bits of *flags*. Alternatively, it is possible to store
++ * 		the difference between the previous and the new values of the
++ * 		header field in *to*, by setting *from* and the four lowest
++ * 		bits of *flags* to 0. For both methods, *offset* indicates the
++ * 		location of the IP checksum within the packet. In addition to
++ * 		the size of the field, *flags* can be added (bitwise OR) actual
++ * 		flags. With **BPF_F_MARK_MANGLED_0**, a null checksum is left
++ * 		untouched (unless **BPF_F_MARK_ENFORCE** is added as well), and
++ * 		for updates resulting in a null checksum the value is set to
++ * 		**CSUM_MANGLED_0** instead. Flag **BPF_F_PSEUDO_HDR** indicates
++ * 		the checksum is to be computed against a pseudo-header.
++ *
++ * 		This helper works in combination with **bpf_csum_diff**\ (),
++ * 		which does not update the checksum in-place, but offers more
++ * 		flexibility and can handle sizes larger than 2 or 4 for the
++ * 		checksum to update.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_tail_call(void *ctx, struct bpf_map *prog_array_map, u32 index)
++ * 	Description
++ * 		This special helper is used to trigger a "tail call", or in
++ * 		other words, to jump into another eBPF program. The same stack
++ * 		frame is used (but values on stack and in registers for the
++ * 		caller are not accessible to the callee). This mechanism allows
++ * 		for program chaining, either for raising the maximum number of
++ * 		available eBPF instructions, or to execute given programs in
++ * 		conditional blocks. For security reasons, there is an upper
++ * 		limit to the number of successive tail calls that can be
++ * 		performed.
++ *
++ * 		Upon call of this helper, the program attempts to jump into a
++ * 		program referenced at index *index* in *prog_array_map*, a
++ * 		special map of type **BPF_MAP_TYPE_PROG_ARRAY**, and passes
++ * 		*ctx*, a pointer to the context.
++ *
++ * 		If the call succeeds, the kernel immediately runs the first
++ * 		instruction of the new program. This is not a function call,
++ * 		and it never returns to the previous program. If the call
++ * 		fails, then the helper has no effect, and the caller continues
++ * 		to run its subsequent instructions. A call can fail if the
++ * 		destination program for the jump does not exist (i.e. *index*
++ * 		is superior to the number of entries in *prog_array_map*), or
++ * 		if the maximum number of tail calls has been reached for this
++ * 		chain of programs. This limit is defined in the kernel by the
++ * 		macro **MAX_TAIL_CALL_CNT** (not accessible to user space),
++ * 		which is currently set to 32.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_clone_redirect(struct sk_buff *skb, u32 ifindex, u64 flags)
++ * 	Description
++ * 		Clone and redirect the packet associated to *skb* to another
++ * 		net device of index *ifindex*. Both ingress and egress
++ * 		interfaces can be used for redirection. The **BPF_F_INGRESS**
++ * 		value in *flags* is used to make the distinction (ingress path
++ * 		is selected if the flag is present, egress path otherwise).
++ * 		This is the only flag supported for now.
++ *
++ * 		In comparison with **bpf_redirect**\ () helper,
++ * 		**bpf_clone_redirect**\ () has the associated cost of
++ * 		duplicating the packet buffer, but this can be executed out of
++ * 		the eBPF program. Conversely, **bpf_redirect**\ () is more
++ * 		efficient, but it is handled through an action code where the
++ * 		redirection happens only after the eBPF program has returned.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * u64 bpf_get_current_pid_tgid(void)
++ * 	Return
++ * 		A 64-bit integer containing the current tgid and pid, and
++ * 		created as such:
++ * 		*current_task*\ **->tgid << 32 \|**
++ * 		*current_task*\ **->pid**.
++ *
++ * u64 bpf_get_current_uid_gid(void)
++ * 	Return
++ * 		A 64-bit integer containing the current GID and UID, and
++ * 		created as such: *current_gid* **<< 32 \|** *current_uid*.
++ *
++ * int bpf_get_current_comm(char *buf, u32 size_of_buf)
++ * 	Description
++ * 		Copy the **comm** attribute of the current task into *buf* of
++ * 		*size_of_buf*. The **comm** attribute contains the name of
++ * 		the executable (excluding the path) for the current task. The
++ * 		*size_of_buf* must be strictly positive. On success, the
++ * 		helper makes sure that the *buf* is NUL-terminated. On failure,
++ * 		it is filled with zeroes.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * u32 bpf_get_cgroup_classid(struct sk_buff *skb)
++ * 	Description
++ * 		Retrieve the classid for the current task, i.e. for the net_cls
++ * 		cgroup to which *skb* belongs.
++ *
++ * 		This helper can be used on TC egress path, but not on ingress.
++ *
++ * 		The net_cls cgroup provides an interface to tag network packets
++ * 		based on a user-provided identifier for all traffic coming from
++ * 		the tasks belonging to the related cgroup. See also the related
++ * 		kernel documentation, available from the Linux sources in file
++ * 		*Documentation/cgroup-v1/net_cls.txt*.
++ *
++ * 		The Linux kernel has two versions for cgroups: there are
++ * 		cgroups v1 and cgroups v2. Both are available to users, who can
++ * 		use a mixture of them, but note that the net_cls cgroup is for
++ * 		cgroup v1 only. This makes it incompatible with BPF programs
++ * 		run on cgroups, which is a cgroup-v2-only feature (a socket can
++ * 		only hold data for one version of cgroups at a time).
++ *
++ * 		This helper is only available is the kernel was compiled with
++ * 		the **CONFIG_CGROUP_NET_CLASSID** configuration option set to
++ * 		"**y**" or to "**m**".
++ * 	Return
++ * 		The classid, or 0 for the default unconfigured classid.
++ *
++ * int bpf_skb_vlan_push(struct sk_buff *skb, __be16 vlan_proto, u16 vlan_tci)
++ * 	Description
++ * 		Push a *vlan_tci* (VLAN tag control information) of protocol
++ * 		*vlan_proto* to the packet associated to *skb*, then update
++ * 		the checksum. Note that if *vlan_proto* is different from
++ * 		**ETH_P_8021Q** and **ETH_P_8021AD**, it is considered to
++ * 		be **ETH_P_8021Q**.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_vlan_pop(struct sk_buff *skb)
++ * 	Description
++ * 		Pop a VLAN header from the packet associated to *skb*.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_get_tunnel_key(struct sk_buff *skb, struct bpf_tunnel_key *key, u32 size, u64 flags)
++ * 	Description
++ * 		Get tunnel metadata. This helper takes a pointer *key* to an
++ * 		empty **struct bpf_tunnel_key** of **size**, that will be
++ * 		filled with tunnel metadata for the packet associated to *skb*.
++ * 		The *flags* can be set to **BPF_F_TUNINFO_IPV6**, which
++ * 		indicates that the tunnel is based on IPv6 protocol instead of
++ * 		IPv4.
++ *
++ * 		The **struct bpf_tunnel_key** is an object that generalizes the
++ * 		principal parameters used by various tunneling protocols into a
++ * 		single struct. This way, it can be used to easily make a
++ * 		decision based on the contents of the encapsulation header,
++ * 		"summarized" in this struct. In particular, it holds the IP
++ * 		address of the remote end (IPv4 or IPv6, depending on the case)
++ * 		in *key*\ **->remote_ipv4** or *key*\ **->remote_ipv6**. Also,
++ * 		this struct exposes the *key*\ **->tunnel_id**, which is
++ * 		generally mapped to a VNI (Virtual Network Identifier), making
++ * 		it programmable together with the **bpf_skb_set_tunnel_key**\
++ * 		() helper.
++ *
++ * 		Let's imagine that the following code is part of a program
++ * 		attached to the TC ingress interface, on one end of a GRE
++ * 		tunnel, and is supposed to filter out all messages coming from
++ * 		remote ends with IPv4 address other than 10.0.0.1:
++ *
++ * 		::
++ *
++ * 			int ret;
++ * 			struct bpf_tunnel_key key = {};
++ * 			
++ * 			ret = bpf_skb_get_tunnel_key(skb, &key, sizeof(key), 0);
++ * 			if (ret < 0)
++ * 				return TC_ACT_SHOT;	// drop packet
++ * 			
++ * 			if (key.remote_ipv4 != 0x0a000001)
++ * 				return TC_ACT_SHOT;	// drop packet
++ * 			
++ * 			return TC_ACT_OK;		// accept packet
++ *
++ * 		This interface can also be used with all encapsulation devices
++ * 		that can operate in "collect metadata" mode: instead of having
++ * 		one network device per specific configuration, the "collect
++ * 		metadata" mode only requires a single device where the
++ * 		configuration can be extracted from this helper.
++ *
++ * 		This can be used together with various tunnels such as VXLan,
++ * 		Geneve, GRE or IP in IP (IPIP).
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_set_tunnel_key(struct sk_buff *skb, struct bpf_tunnel_key *key, u32 size, u64 flags)
++ * 	Description
++ * 		Populate tunnel metadata for packet associated to *skb.* The
++ * 		tunnel metadata is set to the contents of *key*, of *size*. The
++ * 		*flags* can be set to a combination of the following values:
++ *
++ * 		**BPF_F_TUNINFO_IPV6**
++ * 			Indicate that the tunnel is based on IPv6 protocol
++ * 			instead of IPv4.
++ * 		**BPF_F_ZERO_CSUM_TX**
++ * 			For IPv4 packets, add a flag to tunnel metadata
++ * 			indicating that checksum computation should be skipped
++ * 			and checksum set to zeroes.
++ * 		**BPF_F_DONT_FRAGMENT**
++ * 			Add a flag to tunnel metadata indicating that the
++ * 			packet should not be fragmented.
++ * 		**BPF_F_SEQ_NUMBER**
++ * 			Add a flag to tunnel metadata indicating that a
++ * 			sequence number should be added to tunnel header before
++ * 			sending the packet. This flag was added for GRE
++ * 			encapsulation, but might be used with other protocols
++ * 			as well in the future.
++ *
++ * 		Here is a typical usage on the transmit path:
++ *
++ * 		::
++ *
++ * 			struct bpf_tunnel_key key;
++ * 			     populate key ...
++ * 			bpf_skb_set_tunnel_key(skb, &key, sizeof(key), 0);
++ * 			bpf_clone_redirect(skb, vxlan_dev_ifindex, 0);
++ *
++ * 		See also the description of the **bpf_skb_get_tunnel_key**\ ()
++ * 		helper for additional information.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * u64 bpf_perf_event_read(struct bpf_map *map, u64 flags)
++ * 	Description
++ * 		Read the value of a perf event counter. This helper relies on a
++ * 		*map* of type **BPF_MAP_TYPE_PERF_EVENT_ARRAY**. The nature of
++ * 		the perf event counter is selected when *map* is updated with
++ * 		perf event file descriptors. The *map* is an array whose size
++ * 		is the number of available CPUs, and each cell contains a value
++ * 		relative to one CPU. The value to retrieve is indicated by
++ * 		*flags*, that contains the index of the CPU to look up, masked
++ * 		with **BPF_F_INDEX_MASK**. Alternatively, *flags* can be set to
++ * 		**BPF_F_CURRENT_CPU** to indicate that the value for the
++ * 		current CPU should be retrieved.
++ *
++ * 		Note that before Linux 4.13, only hardware perf event can be
++ * 		retrieved.
++ *
++ * 		Also, be aware that the newer helper
++ * 		**bpf_perf_event_read_value**\ () is recommended over
++ * 		**bpf_perf_event_read**\ () in general. The latter has some ABI
++ * 		quirks where error and counter value are used as a return code
++ * 		(which is wrong to do since ranges may overlap). This issue is
++ * 		fixed with **bpf_perf_event_read_value**\ (), which at the same
++ * 		time provides more features over the **bpf_perf_event_read**\
++ * 		() interface. Please refer to the description of
++ * 		**bpf_perf_event_read_value**\ () for details.
++ * 	Return
++ * 		The value of the perf event counter read from the map, or a
++ * 		negative error code in case of failure.
++ *
++ * int bpf_redirect(u32 ifindex, u64 flags)
++ * 	Description
++ * 		Redirect the packet to another net device of index *ifindex*.
++ * 		This helper is somewhat similar to **bpf_clone_redirect**\
++ * 		(), except that the packet is not cloned, which provides
++ * 		increased performance.
++ *
++ * 		Except for XDP, both ingress and egress interfaces can be used
++ * 		for redirection. The **BPF_F_INGRESS** value in *flags* is used
++ * 		to make the distinction (ingress path is selected if the flag
++ * 		is present, egress path otherwise). Currently, XDP only
++ * 		supports redirection to the egress interface, and accepts no
++ * 		flag at all.
++ *
++ * 		The same effect can be attained with the more generic
++ * 		**bpf_redirect_map**\ (), which requires specific maps to be
++ * 		used but offers better performance.
++ * 	Return
++ * 		For XDP, the helper returns **XDP_REDIRECT** on success or
++ * 		**XDP_ABORTED** on error. For other program types, the values
++ * 		are **TC_ACT_REDIRECT** on success or **TC_ACT_SHOT** on
++ * 		error.
++ *
++ * u32 bpf_get_route_realm(struct sk_buff *skb)
++ * 	Description
++ * 		Retrieve the realm or the route, that is to say the
++ * 		**tclassid** field of the destination for the *skb*. The
++ * 		indentifier retrieved is a user-provided tag, similar to the
++ * 		one used with the net_cls cgroup (see description for
++ * 		**bpf_get_cgroup_classid**\ () helper), but here this tag is
++ * 		held by a route (a destination entry), not by a task.
++ *
++ * 		Retrieving this identifier works with the clsact TC egress hook
++ * 		(see also **tc-bpf(8)**), or alternatively on conventional
++ * 		classful egress qdiscs, but not on TC ingress path. In case of
++ * 		clsact TC egress hook, this has the advantage that, internally,
++ * 		the destination entry has not been dropped yet in the transmit
++ * 		path. Therefore, the destination entry does not need to be
++ * 		artificially held via **netif_keep_dst**\ () for a classful
++ * 		qdisc until the *skb* is freed.
++ *
++ * 		This helper is available only if the kernel was compiled with
++ * 		**CONFIG_IP_ROUTE_CLASSID** configuration option.
++ * 	Return
++ * 		The realm of the route for the packet associated to *skb*, or 0
++ * 		if none was found.
++ *
++ * int bpf_perf_event_output(struct pt_reg *ctx, struct bpf_map *map, u64 flags, void *data, u64 size)
++ * 	Description
++ * 		Write raw *data* blob into a special BPF perf event held by
++ * 		*map* of type **BPF_MAP_TYPE_PERF_EVENT_ARRAY**. This perf
++ * 		event must have the following attributes: **PERF_SAMPLE_RAW**
++ * 		as **sample_type**, **PERF_TYPE_SOFTWARE** as **type**, and
++ * 		**PERF_COUNT_SW_BPF_OUTPUT** as **config**.
++ *
++ * 		The *flags* are used to indicate the index in *map* for which
++ * 		the value must be put, masked with **BPF_F_INDEX_MASK**.
++ * 		Alternatively, *flags* can be set to **BPF_F_CURRENT_CPU**
++ * 		to indicate that the index of the current CPU core should be
++ * 		used.
++ *
++ * 		The value to write, of *size*, is passed through eBPF stack and
++ * 		pointed by *data*.
++ *
++ * 		The context of the program *ctx* needs also be passed to the
++ * 		helper.
++ *
++ * 		On user space, a program willing to read the values needs to
++ * 		call **perf_event_open**\ () on the perf event (either for
++ * 		one or for all CPUs) and to store the file descriptor into the
++ * 		*map*. This must be done before the eBPF program can send data
++ * 		into it. An example is available in file
++ * 		*samples/bpf/trace_output_user.c* in the Linux kernel source
++ * 		tree (the eBPF program counterpart is in
++ * 		*samples/bpf/trace_output_kern.c*).
++ *
++ * 		**bpf_perf_event_output**\ () achieves better performance
++ * 		than **bpf_trace_printk**\ () for sharing data with user
++ * 		space, and is much better suitable for streaming data from eBPF
++ * 		programs.
++ *
++ * 		Note that this helper is not restricted to tracing use cases
++ * 		and can be used with programs attached to TC or XDP as well,
++ * 		where it allows for passing data to user space listeners. Data
++ * 		can be:
++ *
++ * 		* Only custom structs,
++ * 		* Only the packet payload, or
++ * 		* A combination of both.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_load_bytes(const struct sk_buff *skb, u32 offset, void *to, u32 len)
++ * 	Description
++ * 		This helper was provided as an easy way to load data from a
++ * 		packet. It can be used to load *len* bytes from *offset* from
++ * 		the packet associated to *skb*, into the buffer pointed by
++ * 		*to*.
++ *
++ * 		Since Linux 4.7, usage of this helper has mostly been replaced
++ * 		by "direct packet access", enabling packet data to be
++ * 		manipulated with *skb*\ **->data** and *skb*\ **->data_end**
++ * 		pointing respectively to the first byte of packet data and to
++ * 		the byte after the last byte of packet data. However, it
++ * 		remains useful if one wishes to read large quantities of data
++ * 		at once from a packet into the eBPF stack.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_get_stackid(struct pt_reg *ctx, struct bpf_map *map, u64 flags)
++ * 	Description
++ * 		Walk a user or a kernel stack and return its id. To achieve
++ * 		this, the helper needs *ctx*, which is a pointer to the context
++ * 		on which the tracing program is executed, and a pointer to a
++ * 		*map* of type **BPF_MAP_TYPE_STACK_TRACE**.
++ *
++ * 		The last argument, *flags*, holds the number of stack frames to
++ * 		skip (from 0 to 255), masked with
++ * 		**BPF_F_SKIP_FIELD_MASK**. The next bits can be used to set
++ * 		a combination of the following flags:
++ *
++ * 		**BPF_F_USER_STACK**
++ * 			Collect a user space stack instead of a kernel stack.
++ * 		**BPF_F_FAST_STACK_CMP**
++ * 			Compare stacks by hash only.
++ * 		**BPF_F_REUSE_STACKID**
++ * 			If two different stacks hash into the same *stackid*,
++ * 			discard the old one.
++ *
++ * 		The stack id retrieved is a 32 bit long integer handle which
++ * 		can be further combined with other data (including other stack
++ * 		ids) and used as a key into maps. This can be useful for
++ * 		generating a variety of graphs (such as flame graphs or off-cpu
++ * 		graphs).
++ *
++ * 		For walking a stack, this helper is an improvement over
++ * 		**bpf_probe_read**\ (), which can be used with unrolled loops
++ * 		but is not efficient and consumes a lot of eBPF instructions.
++ * 		Instead, **bpf_get_stackid**\ () can collect up to
++ * 		**PERF_MAX_STACK_DEPTH** both kernel and user frames. Note that
++ * 		this limit can be controlled with the **sysctl** program, and
++ * 		that it should be manually increased in order to profile long
++ * 		user stacks (such as stacks for Java programs). To do so, use:
++ *
++ * 		::
++ *
++ * 			# sysctl kernel.perf_event_max_stack=<new value>
++ * 	Return
++ * 		The positive or null stack id on success, or a negative error
++ * 		in case of failure.
++ *
++ * s64 bpf_csum_diff(__be32 *from, u32 from_size, __be32 *to, u32 to_size, __wsum seed)
++ * 	Description
++ * 		Compute a checksum difference, from the raw buffer pointed by
++ * 		*from*, of length *from_size* (that must be a multiple of 4),
++ * 		towards the raw buffer pointed by *to*, of size *to_size*
++ * 		(same remark). An optional *seed* can be added to the value
++ * 		(this can be cascaded, the seed may come from a previous call
++ * 		to the helper).
++ *
++ * 		This is flexible enough to be used in several ways:
++ *
++ * 		* With *from_size* == 0, *to_size* > 0 and *seed* set to
++ * 		  checksum, it can be used when pushing new data.
++ * 		* With *from_size* > 0, *to_size* == 0 and *seed* set to
++ * 		  checksum, it can be used when removing data from a packet.
++ * 		* With *from_size* > 0, *to_size* > 0 and *seed* set to 0, it
++ * 		  can be used to compute a diff. Note that *from_size* and
++ * 		  *to_size* do not need to be equal.
++ *
++ * 		This helper can be used in combination with
++ * 		**bpf_l3_csum_replace**\ () and **bpf_l4_csum_replace**\ (), to
++ * 		which one can feed in the difference computed with
++ * 		**bpf_csum_diff**\ ().
++ * 	Return
++ * 		The checksum result, or a negative error code in case of
++ * 		failure.
++ *
++ * int bpf_skb_get_tunnel_opt(struct sk_buff *skb, u8 *opt, u32 size)
++ * 	Description
++ * 		Retrieve tunnel options metadata for the packet associated to
++ * 		*skb*, and store the raw tunnel option data to the buffer *opt*
++ * 		of *size*.
++ *
++ * 		This helper can be used with encapsulation devices that can
++ * 		operate in "collect metadata" mode (please refer to the related
++ * 		note in the description of **bpf_skb_get_tunnel_key**\ () for
++ * 		more details). A particular example where this can be used is
++ * 		in combination with the Geneve encapsulation protocol, where it
++ * 		allows for pushing (with **bpf_skb_get_tunnel_opt**\ () helper)
++ * 		and retrieving arbitrary TLVs (Type-Length-Value headers) from
++ * 		the eBPF program. This allows for full customization of these
++ * 		headers.
++ * 	Return
++ * 		The size of the option data retrieved.
++ *
++ * int bpf_skb_set_tunnel_opt(struct sk_buff *skb, u8 *opt, u32 size)
++ * 	Description
++ * 		Set tunnel options metadata for the packet associated to *skb*
++ * 		to the option data contained in the raw buffer *opt* of *size*.
++ *
++ * 		See also the description of the **bpf_skb_get_tunnel_opt**\ ()
++ * 		helper for additional information.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_change_proto(struct sk_buff *skb, __be16 proto, u64 flags)
++ * 	Description
++ * 		Change the protocol of the *skb* to *proto*. Currently
++ * 		supported are transition from IPv4 to IPv6, and from IPv6 to
++ * 		IPv4. The helper takes care of the groundwork for the
++ * 		transition, including resizing the socket buffer. The eBPF
++ * 		program is expected to fill the new headers, if any, via
++ * 		**skb_store_bytes**\ () and to recompute the checksums with
++ * 		**bpf_l3_csum_replace**\ () and **bpf_l4_csum_replace**\
++ * 		(). The main case for this helper is to perform NAT64
++ * 		operations out of an eBPF program.
++ *
++ * 		Internally, the GSO type is marked as dodgy so that headers are
++ * 		checked and segments are recalculated by the GSO/GRO engine.
++ * 		The size for GSO target is adapted as well.
++ *
++ * 		All values for *flags* are reserved for future usage, and must
++ * 		be left at zero.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_change_type(struct sk_buff *skb, u32 type)
++ * 	Description
++ * 		Change the packet type for the packet associated to *skb*. This
++ * 		comes down to setting *skb*\ **->pkt_type** to *type*, except
++ * 		the eBPF program does not have a write access to *skb*\
++ * 		**->pkt_type** beside this helper. Using a helper here allows
++ * 		for graceful handling of errors.
++ *
++ * 		The major use case is to change incoming *skb*s to
++ * 		**PACKET_HOST** in a programmatic way instead of having to
++ * 		recirculate via **redirect**\ (..., **BPF_F_INGRESS**), for
++ * 		example.
++ *
++ * 		Note that *type* only allows certain values. At this time, they
++ * 		are:
++ *
++ * 		**PACKET_HOST**
++ * 			Packet is for us.
++ * 		**PACKET_BROADCAST**
++ * 			Send packet to all.
++ * 		**PACKET_MULTICAST**
++ * 			Send packet to group.
++ * 		**PACKET_OTHERHOST**
++ * 			Send packet to someone else.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_under_cgroup(struct sk_buff *skb, struct bpf_map *map, u32 index)
++ * 	Description
++ * 		Check whether *skb* is a descendant of the cgroup2 held by
++ * 		*map* of type **BPF_MAP_TYPE_CGROUP_ARRAY**, at *index*.
++ * 	Return
++ * 		The return value depends on the result of the test, and can be:
++ *
++ * 		* 0, if the *skb* failed the cgroup2 descendant test.
++ * 		* 1, if the *skb* succeeded the cgroup2 descendant test.
++ * 		* A negative error code, if an error occurred.
++ *
++ * u32 bpf_get_hash_recalc(struct sk_buff *skb)
++ * 	Description
++ * 		Retrieve the hash of the packet, *skb*\ **->hash**. If it is
++ * 		not set, in particular if the hash was cleared due to mangling,
++ * 		recompute this hash. Later accesses to the hash can be done
++ * 		directly with *skb*\ **->hash**.
++ *
++ * 		Calling **bpf_set_hash_invalid**\ (), changing a packet
++ * 		prototype with **bpf_skb_change_proto**\ (), or calling
++ * 		**bpf_skb_store_bytes**\ () with the
++ * 		**BPF_F_INVALIDATE_HASH** are actions susceptible to clear
++ * 		the hash and to trigger a new computation for the next call to
++ * 		**bpf_get_hash_recalc**\ ().
++ * 	Return
++ * 		The 32-bit hash.
++ *
++ * u64 bpf_get_current_task(void)
++ * 	Return
++ * 		A pointer to the current task struct.
++ *
++ * int bpf_probe_write_user(void *dst, const void *src, u32 len)
++ * 	Description
++ * 		Attempt in a safe way to write *len* bytes from the buffer
++ * 		*src* to *dst* in memory. It only works for threads that are in
++ * 		user context, and *dst* must be a valid user space address.
++ *
++ * 		This helper should not be used to implement any kind of
++ * 		security mechanism because of TOC-TOU attacks, but rather to
++ * 		debug, divert, and manipulate execution of semi-cooperative
++ * 		processes.
++ *
++ * 		Keep in mind that this feature is meant for experiments, and it
++ * 		has a risk of crashing the system and running programs.
++ * 		Therefore, when an eBPF program using this helper is attached,
++ * 		a warning including PID and process name is printed to kernel
++ * 		logs.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_current_task_under_cgroup(struct bpf_map *map, u32 index)
++ * 	Description
++ * 		Check whether the probe is being run is the context of a given
++ * 		subset of the cgroup2 hierarchy. The cgroup2 to test is held by
++ * 		*map* of type **BPF_MAP_TYPE_CGROUP_ARRAY**, at *index*.
++ * 	Return
++ * 		The return value depends on the result of the test, and can be:
++ *
++ * 		* 0, if the *skb* task belongs to the cgroup2.
++ * 		* 1, if the *skb* task does not belong to the cgroup2.
++ * 		* A negative error code, if an error occurred.
++ *
++ * int bpf_skb_change_tail(struct sk_buff *skb, u32 len, u64 flags)
++ * 	Description
++ * 		Resize (trim or grow) the packet associated to *skb* to the
++ * 		new *len*. The *flags* are reserved for future usage, and must
++ * 		be left at zero.
++ *
++ * 		The basic idea is that the helper performs the needed work to
++ * 		change the size of the packet, then the eBPF program rewrites
++ * 		the rest via helpers like **bpf_skb_store_bytes**\ (),
++ * 		**bpf_l3_csum_replace**\ (), **bpf_l3_csum_replace**\ ()
++ * 		and others. This helper is a slow path utility intended for
++ * 		replies with control messages. And because it is targeted for
++ * 		slow path, the helper itself can afford to be slow: it
++ * 		implicitly linearizes, unclones and drops offloads from the
++ * 		*skb*.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_pull_data(struct sk_buff *skb, u32 len)
++ * 	Description
++ * 		Pull in non-linear data in case the *skb* is non-linear and not
++ * 		all of *len* are part of the linear section. Make *len* bytes
++ * 		from *skb* readable and writable. If a zero value is passed for
++ * 		*len*, then the whole length of the *skb* is pulled.
++ *
++ * 		This helper is only needed for reading and writing with direct
++ * 		packet access.
++ *
++ * 		For direct packet access, testing that offsets to access
++ * 		are within packet boundaries (test on *skb*\ **->data_end**) is
++ * 		susceptible to fail if offsets are invalid, or if the requested
++ * 		data is in non-linear parts of the *skb*. On failure the
++ * 		program can just bail out, or in the case of a non-linear
++ * 		buffer, use a helper to make the data available. The
++ * 		**bpf_skb_load_bytes**\ () helper is a first solution to access
++ * 		the data. Another one consists in using **bpf_skb_pull_data**
++ * 		to pull in once the non-linear parts, then retesting and
++ * 		eventually access the data.
++ *
++ * 		At the same time, this also makes sure the *skb* is uncloned,
++ * 		which is a necessary condition for direct write. As this needs
++ * 		to be an invariant for the write part only, the verifier
++ * 		detects writes and adds a prologue that is calling
++ * 		**bpf_skb_pull_data()** to effectively unclone the *skb* from
++ * 		the very beginning in case it is indeed cloned.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * s64 bpf_csum_update(struct sk_buff *skb, __wsum csum)
++ * 	Description
++ * 		Add the checksum *csum* into *skb*\ **->csum** in case the
++ * 		driver has supplied a checksum for the entire packet into that
++ * 		field. Return an error otherwise. This helper is intended to be
++ * 		used in combination with **bpf_csum_diff**\ (), in particular
++ * 		when the checksum needs to be updated after data has been
++ * 		written into the packet through direct packet access.
++ * 	Return
++ * 		The checksum on success, or a negative error code in case of
++ * 		failure.
++ *
++ * void bpf_set_hash_invalid(struct sk_buff *skb)
++ * 	Description
++ * 		Invalidate the current *skb*\ **->hash**. It can be used after
++ * 		mangling on headers through direct packet access, in order to
++ * 		indicate that the hash is outdated and to trigger a
++ * 		recalculation the next time the kernel tries to access this
++ * 		hash or when the **bpf_get_hash_recalc**\ () helper is called.
++ *
++ * int bpf_get_numa_node_id(void)
++ * 	Description
++ * 		Return the id of the current NUMA node. The primary use case
++ * 		for this helper is the selection of sockets for the local NUMA
++ * 		node, when the program is attached to sockets using the
++ * 		**SO_ATTACH_REUSEPORT_EBPF** option (see also **socket(7)**),
++ * 		but the helper is also available to other eBPF program types,
++ * 		similarly to **bpf_get_smp_processor_id**\ ().
++ * 	Return
++ * 		The id of current NUMA node.
++ *
++ * int bpf_skb_change_head(struct sk_buff *skb, u32 len, u64 flags)
++ * 	Description
++ * 		Grows headroom of packet associated to *skb* and adjusts the
++ * 		offset of the MAC header accordingly, adding *len* bytes of
++ * 		space. It automatically extends and reallocates memory as
++ * 		required.
++ *
++ * 		This helper can be used on a layer 3 *skb* to push a MAC header
++ * 		for redirection into a layer 2 device.
++ *
++ * 		All values for *flags* are reserved for future usage, and must
++ * 		be left at zero.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_xdp_adjust_head(struct xdp_buff *xdp_md, int delta)
++ * 	Description
++ * 		Adjust (move) *xdp_md*\ **->data** by *delta* bytes. Note that
++ * 		it is possible to use a negative value for *delta*. This helper
++ * 		can be used to prepare the packet for pushing or popping
++ * 		headers.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_probe_read_str(void *dst, int size, const void *unsafe_ptr)
++ * 	Description
++ * 		Copy a NUL terminated string from an unsafe address
++ * 		*unsafe_ptr* to *dst*. The *size* should include the
++ * 		terminating NUL byte. In case the string length is smaller than
++ * 		*size*, the target is not padded with further NUL bytes. If the
++ * 		string length is larger than *size*, just *size*-1 bytes are
++ * 		copied and the last byte is set to NUL.
++ *
++ * 		On success, the length of the copied string is returned. This
++ * 		makes this helper useful in tracing programs for reading
++ * 		strings, and more importantly to get its length at runtime. See
++ * 		the following snippet:
++ *
++ * 		::
++ *
++ * 			SEC("kprobe/sys_open")
++ * 			void bpf_sys_open(struct pt_regs *ctx)
++ * 			{
++ * 			        char buf[PATHLEN]; // PATHLEN is defined to 256
++ * 			        int res = bpf_probe_read_str(buf, sizeof(buf),
++ * 				                             ctx->di);
++ *
++ * 				// Consume buf, for example push it to
++ * 				// userspace via bpf_perf_event_output(); we
++ * 				// can use res (the string length) as event
++ * 				// size, after checking its boundaries.
++ * 			}
++ *
++ * 		In comparison, using **bpf_probe_read()** helper here instead
++ * 		to read the string would require to estimate the length at
++ * 		compile time, and would often result in copying more memory
++ * 		than necessary.
++ *
++ * 		Another useful use case is when parsing individual process
++ * 		arguments or individual environment variables navigating
++ * 		*current*\ **->mm->arg_start** and *current*\
++ * 		**->mm->env_start**: using this helper and the return value,
++ * 		one can quickly iterate at the right offset of the memory area.
++ * 	Return
++ * 		On success, the strictly positive length of the string,
++ * 		including the trailing NUL character. On error, a negative
++ * 		value.
++ *
++ * u64 bpf_get_socket_cookie(struct sk_buff *skb)
++ * 	Description
++ * 		If the **struct sk_buff** pointed by *skb* has a known socket,
++ * 		retrieve the cookie (generated by the kernel) of this socket.
++ * 		If no cookie has been set yet, generate a new cookie. Once
++ * 		generated, the socket cookie remains stable for the life of the
++ * 		socket. This helper can be useful for monitoring per socket
++ * 		networking traffic statistics as it provides a unique socket
++ * 		identifier per namespace.
++ * 	Return
++ * 		A 8-byte long non-decreasing number on success, or 0 if the
++ * 		socket field is missing inside *skb*.
++ *
++ * u32 bpf_get_socket_uid(struct sk_buff *skb)
++ * 	Return
++ * 		The owner UID of the socket associated to *skb*. If the socket
++ * 		is **NULL**, or if it is not a full socket (i.e. if it is a
++ * 		time-wait or a request socket instead), **overflowuid** value
++ * 		is returned (note that **overflowuid** might also be the actual
++ * 		UID value for the socket).
++ *
++ * u32 bpf_set_hash(struct sk_buff *skb, u32 hash)
++ * 	Description
++ * 		Set the full hash for *skb* (set the field *skb*\ **->hash**)
++ * 		to value *hash*.
++ * 	Return
++ * 		0
++ *
++ * int bpf_setsockopt(struct bpf_sock_ops *bpf_socket, int level, int optname, char *optval, int optlen)
++ * 	Description
++ * 		Emulate a call to **setsockopt()** on the socket associated to
++ * 		*bpf_socket*, which must be a full socket. The *level* at
++ * 		which the option resides and the name *optname* of the option
++ * 		must be specified, see **setsockopt(2)** for more information.
++ * 		The option value of length *optlen* is pointed by *optval*.
++ *
++ * 		This helper actually implements a subset of **setsockopt()**.
++ * 		It supports the following *level*\ s:
++ *
++ * 		* **SOL_SOCKET**, which supports the following *optname*\ s:
++ * 		  **SO_RCVBUF**, **SO_SNDBUF**, **SO_MAX_PACING_RATE**,
++ * 		  **SO_PRIORITY**, **SO_RCVLOWAT**, **SO_MARK**.
++ * 		* **IPPROTO_TCP**, which supports the following *optname*\ s:
++ * 		  **TCP_CONGESTION**, **TCP_BPF_IW**,
++ * 		  **TCP_BPF_SNDCWND_CLAMP**.
++ * 		* **IPPROTO_IP**, which supports *optname* **IP_TOS**.
++ * 		* **IPPROTO_IPV6**, which supports *optname* **IPV6_TCLASS**.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_adjust_room(struct sk_buff *skb, u32 len_diff, u32 mode, u64 flags)
++ * 	Description
++ * 		Grow or shrink the room for data in the packet associated to
++ * 		*skb* by *len_diff*, and according to the selected *mode*.
++ *
++ * 		There is a single supported mode at this time:
++ *
++ * 		* **BPF_ADJ_ROOM_NET**: Adjust room at the network layer
++ * 		  (room space is added or removed below the layer 3 header).
++ *
++ * 		All values for *flags* are reserved for future usage, and must
++ * 		be left at zero.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_redirect_map(struct bpf_map *map, u32 key, u64 flags)
++ * 	Description
++ * 		Redirect the packet to the endpoint referenced by *map* at
++ * 		index *key*. Depending on its type, this *map* can contain
++ * 		references to net devices (for forwarding packets through other
++ * 		ports), or to CPUs (for redirecting XDP frames to another CPU;
++ * 		but this is only implemented for native XDP (with driver
++ * 		support) as of this writing).
++ *
++ * 		All values for *flags* are reserved for future usage, and must
++ * 		be left at zero.
++ *
++ * 		When used to redirect packets to net devices, this helper
++ * 		provides a high performance increase over **bpf_redirect**\ ().
++ * 		This is due to various implementation details of the underlying
++ * 		mechanisms, one of which is the fact that **bpf_redirect_map**\
++ * 		() tries to send packet as a "bulk" to the device.
++ * 	Return
++ * 		**XDP_REDIRECT** on success, or **XDP_ABORTED** on error.
++ *
++ * int bpf_sk_redirect_map(struct bpf_map *map, u32 key, u64 flags)
++ * 	Description
++ * 		Redirect the packet to the socket referenced by *map* (of type
++ * 		**BPF_MAP_TYPE_SOCKMAP**) at index *key*. Both ingress and
++ * 		egress interfaces can be used for redirection. The
++ * 		**BPF_F_INGRESS** value in *flags* is used to make the
++ * 		distinction (ingress path is selected if the flag is present,
++ * 		egress path otherwise). This is the only flag supported for now.
++ * 	Return
++ * 		**SK_PASS** on success, or **SK_DROP** on error.
++ *
++ * int bpf_sock_map_update(struct bpf_sock_ops *skops, struct bpf_map *map, void *key, u64 flags)
++ * 	Description
++ * 		Add an entry to, or update a *map* referencing sockets. The
++ * 		*skops* is used as a new value for the entry associated to
++ * 		*key*. *flags* is one of:
++ *
++ * 		**BPF_NOEXIST**
++ * 			The entry for *key* must not exist in the map.
++ * 		**BPF_EXIST**
++ * 			The entry for *key* must already exist in the map.
++ * 		**BPF_ANY**
++ * 			No condition on the existence of the entry for *key*.
++ *
++ * 		If the *map* has eBPF programs (parser and verdict), those will
++ * 		be inherited by the socket being added. If the socket is
++ * 		already attached to eBPF programs, this results in an error.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_xdp_adjust_meta(struct xdp_buff *xdp_md, int delta)
++ * 	Description
++ * 		Adjust the address pointed by *xdp_md*\ **->data_meta** by
++ * 		*delta* (which can be positive or negative). Note that this
++ * 		operation modifies the address stored in *xdp_md*\ **->data**,
++ * 		so the latter must be loaded only after the helper has been
++ * 		called.
++ *
++ * 		The use of *xdp_md*\ **->data_meta** is optional and programs
++ * 		are not required to use it. The rationale is that when the
++ * 		packet is processed with XDP (e.g. as DoS filter), it is
++ * 		possible to push further meta data along with it before passing
++ * 		to the stack, and to give the guarantee that an ingress eBPF
++ * 		program attached as a TC classifier on the same device can pick
++ * 		this up for further post-processing. Since TC works with socket
++ * 		buffers, it remains possible to set from XDP the **mark** or
++ * 		**priority** pointers, or other pointers for the socket buffer.
++ * 		Having this scratch space generic and programmable allows for
++ * 		more flexibility as the user is free to store whatever meta
++ * 		data they need.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_perf_event_read_value(struct bpf_map *map, u64 flags, struct bpf_perf_event_value *buf, u32 buf_size)
++ * 	Description
++ * 		Read the value of a perf event counter, and store it into *buf*
++ * 		of size *buf_size*. This helper relies on a *map* of type
++ * 		**BPF_MAP_TYPE_PERF_EVENT_ARRAY**. The nature of the perf event
++ * 		counter is selected when *map* is updated with perf event file
++ * 		descriptors. The *map* is an array whose size is the number of
++ * 		available CPUs, and each cell contains a value relative to one
++ * 		CPU. The value to retrieve is indicated by *flags*, that
++ * 		contains the index of the CPU to look up, masked with
++ * 		**BPF_F_INDEX_MASK**. Alternatively, *flags* can be set to
++ * 		**BPF_F_CURRENT_CPU** to indicate that the value for the
++ * 		current CPU should be retrieved.
++ *
++ * 		This helper behaves in a way close to
++ * 		**bpf_perf_event_read**\ () helper, save that instead of
++ * 		just returning the value observed, it fills the *buf*
++ * 		structure. This allows for additional data to be retrieved: in
++ * 		particular, the enabled and running times (in *buf*\
++ * 		**->enabled** and *buf*\ **->running**, respectively) are
++ * 		copied. In general, **bpf_perf_event_read_value**\ () is
++ * 		recommended over **bpf_perf_event_read**\ (), which has some
++ * 		ABI issues and provides fewer functionalities.
++ *
++ * 		These values are interesting, because hardware PMU (Performance
++ * 		Monitoring Unit) counters are limited resources. When there are
++ * 		more PMU based perf events opened than available counters,
++ * 		kernel will multiplex these events so each event gets certain
++ * 		percentage (but not all) of the PMU time. In case that
++ * 		multiplexing happens, the number of samples or counter value
++ * 		will not reflect the case compared to when no multiplexing
++ * 		occurs. This makes comparison between different runs difficult.
++ * 		Typically, the counter value should be normalized before
++ * 		comparing to other experiments. The usual normalization is done
++ * 		as follows.
++ *
++ * 		::
++ *
++ * 			normalized_counter = counter * t_enabled / t_running
++ *
++ * 		Where t_enabled is the time enabled for event and t_running is
++ * 		the time running for event since last normalization. The
++ * 		enabled and running times are accumulated since the perf event
++ * 		open. To achieve scaling factor between two invocations of an
++ * 		eBPF program, users can can use CPU id as the key (which is
++ * 		typical for perf array usage model) to remember the previous
++ * 		value and do the calculation inside the eBPF program.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_perf_prog_read_value(struct bpf_perf_event_data *ctx, struct bpf_perf_event_value *buf, u32 buf_size)
++ * 	Description
++ * 		For en eBPF program attached to a perf event, retrieve the
++ * 		value of the event counter associated to *ctx* and store it in
++ * 		the structure pointed by *buf* and of size *buf_size*. Enabled
++ * 		and running times are also stored in the structure (see
++ * 		description of helper **bpf_perf_event_read_value**\ () for
++ * 		more details).
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_getsockopt(struct bpf_sock_ops *bpf_socket, int level, int optname, char *optval, int optlen)
++ * 	Description
++ * 		Emulate a call to **getsockopt()** on the socket associated to
++ * 		*bpf_socket*, which must be a full socket. The *level* at
++ * 		which the option resides and the name *optname* of the option
++ * 		must be specified, see **getsockopt(2)** for more information.
++ * 		The retrieved value is stored in the structure pointed by
++ * 		*opval* and of length *optlen*.
++ *
++ * 		This helper actually implements a subset of **getsockopt()**.
++ * 		It supports the following *level*\ s:
++ *
++ * 		* **IPPROTO_TCP**, which supports *optname*
++ * 		  **TCP_CONGESTION**.
++ * 		* **IPPROTO_IP**, which supports *optname* **IP_TOS**.
++ * 		* **IPPROTO_IPV6**, which supports *optname* **IPV6_TCLASS**.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_override_return(struct pt_reg *regs, u64 rc)
++ * 	Description
++ * 		Used for error injection, this helper uses kprobes to override
++ * 		the return value of the probed function, and to set it to *rc*.
++ * 		The first argument is the context *regs* on which the kprobe
++ * 		works.
++ *
++ * 		This helper works by setting setting the PC (program counter)
++ * 		to an override function which is run in place of the original
++ * 		probed function. This means the probed function is not run at
++ * 		all. The replacement function just returns with the required
++ * 		value.
++ *
++ * 		This helper has security implications, and thus is subject to
++ * 		restrictions. It is only available if the kernel was compiled
++ * 		with the **CONFIG_BPF_KPROBE_OVERRIDE** configuration
++ * 		option, and in this case it only works on functions tagged with
++ * 		**ALLOW_ERROR_INJECTION** in the kernel code.
++ *
++ * 		Also, the helper is only available for the architectures having
++ * 		the CONFIG_FUNCTION_ERROR_INJECTION option. As of this writing,
++ * 		x86 architecture is the only one to support this feature.
++ * 	Return
++ * 		0
++ *
++ * int bpf_sock_ops_cb_flags_set(struct bpf_sock_ops *bpf_sock, int argval)
++ * 	Description
++ * 		Attempt to set the value of the **bpf_sock_ops_cb_flags** field
++ * 		for the full TCP socket associated to *bpf_sock_ops* to
++ * 		*argval*.
++ *
++ * 		The primary use of this field is to determine if there should
++ * 		be calls to eBPF programs of type
++ * 		**BPF_PROG_TYPE_SOCK_OPS** at various points in the TCP
++ * 		code. A program of the same type can change its value, per
++ * 		connection and as necessary, when the connection is
++ * 		established. This field is directly accessible for reading, but
++ * 		this helper must be used for updates in order to return an
++ * 		error if an eBPF program tries to set a callback that is not
++ * 		supported in the current kernel.
++ *
++ * 		The supported callback values that *argval* can combine are:
++ *
++ * 		* **BPF_SOCK_OPS_RTO_CB_FLAG** (retransmission time out)
++ * 		* **BPF_SOCK_OPS_RETRANS_CB_FLAG** (retransmission)
++ * 		* **BPF_SOCK_OPS_STATE_CB_FLAG** (TCP state change)
++ *
++ * 		Here are some examples of where one could call such eBPF
++ * 		program:
++ *
++ * 		* When RTO fires.
++ * 		* When a packet is retransmitted.
++ * 		* When the connection terminates.
++ * 		* When a packet is sent.
++ * 		* When a packet is received.
++ * 	Return
++ * 		Code **-EINVAL** if the socket is not a full TCP socket;
++ * 		otherwise, a positive number containing the bits that could not
++ * 		be set is returned (which comes down to 0 if all bits were set
++ * 		as required).
++ *
++ * int bpf_msg_redirect_map(struct sk_msg_buff *msg, struct bpf_map *map, u32 key, u64 flags)
++ * 	Description
++ * 		This helper is used in programs implementing policies at the
++ * 		socket level. If the message *msg* is allowed to pass (i.e. if
++ * 		the verdict eBPF program returns **SK_PASS**), redirect it to
++ * 		the socket referenced by *map* (of type
++ * 		**BPF_MAP_TYPE_SOCKMAP**) at index *key*. Both ingress and
++ * 		egress interfaces can be used for redirection. The
++ * 		**BPF_F_INGRESS** value in *flags* is used to make the
++ * 		distinction (ingress path is selected if the flag is present,
++ * 		egress path otherwise). This is the only flag supported for now.
++ * 	Return
++ * 		**SK_PASS** on success, or **SK_DROP** on error.
++ *
++ * int bpf_msg_apply_bytes(struct sk_msg_buff *msg, u32 bytes)
++ * 	Description
++ * 		For socket policies, apply the verdict of the eBPF program to
++ * 		the next *bytes* (number of bytes) of message *msg*.
++ *
++ * 		For example, this helper can be used in the following cases:
++ *
++ * 		* A single **sendmsg**\ () or **sendfile**\ () system call
++ * 		  contains multiple logical messages that the eBPF program is
++ * 		  supposed to read and for which it should apply a verdict.
++ * 		* An eBPF program only cares to read the first *bytes* of a
++ * 		  *msg*. If the message has a large payload, then setting up
++ * 		  and calling the eBPF program repeatedly for all bytes, even
++ * 		  though the verdict is already known, would create unnecessary
++ * 		  overhead.
++ *
++ * 		When called from within an eBPF program, the helper sets a
++ * 		counter internal to the BPF infrastructure, that is used to
++ * 		apply the last verdict to the next *bytes*. If *bytes* is
++ * 		smaller than the current data being processed from a
++ * 		**sendmsg**\ () or **sendfile**\ () system call, the first
++ * 		*bytes* will be sent and the eBPF program will be re-run with
++ * 		the pointer for start of data pointing to byte number *bytes*
++ * 		**+ 1**. If *bytes* is larger than the current data being
++ * 		processed, then the eBPF verdict will be applied to multiple
++ * 		**sendmsg**\ () or **sendfile**\ () calls until *bytes* are
++ * 		consumed.
++ *
++ * 		Note that if a socket closes with the internal counter holding
++ * 		a non-zero value, this is not a problem because data is not
++ * 		being buffered for *bytes* and is sent as it is received.
++ * 	Return
++ * 		0
++ *
++ * int bpf_msg_cork_bytes(struct sk_msg_buff *msg, u32 bytes)
++ * 	Description
++ * 		For socket policies, prevent the execution of the verdict eBPF
++ * 		program for message *msg* until *bytes* (byte number) have been
++ * 		accumulated.
++ *
++ * 		This can be used when one needs a specific number of bytes
++ * 		before a verdict can be assigned, even if the data spans
++ * 		multiple **sendmsg**\ () or **sendfile**\ () calls. The extreme
++ * 		case would be a user calling **sendmsg**\ () repeatedly with
++ * 		1-byte long message segments. Obviously, this is bad for
++ * 		performance, but it is still valid. If the eBPF program needs
++ * 		*bytes* bytes to validate a header, this helper can be used to
++ * 		prevent the eBPF program to be called again until *bytes* have
++ * 		been accumulated.
++ * 	Return
++ * 		0
++ *
++ * int bpf_msg_pull_data(struct sk_msg_buff *msg, u32 start, u32 end, u64 flags)
++ * 	Description
++ * 		For socket policies, pull in non-linear data from user space
++ * 		for *msg* and set pointers *msg*\ **->data** and *msg*\
++ * 		**->data_end** to *start* and *end* bytes offsets into *msg*,
++ * 		respectively.
++ *
++ * 		If a program of type **BPF_PROG_TYPE_SK_MSG** is run on a
++ * 		*msg* it can only parse data that the (**data**, **data_end**)
++ * 		pointers have already consumed. For **sendmsg**\ () hooks this
++ * 		is likely the first scatterlist element. But for calls relying
++ * 		on the **sendpage** handler (e.g. **sendfile**\ ()) this will
++ * 		be the range (**0**, **0**) because the data is shared with
++ * 		user space and by default the objective is to avoid allowing
++ * 		user space to modify data while (or after) eBPF verdict is
++ * 		being decided. This helper can be used to pull in data and to
++ * 		set the start and end pointer to given values. Data will be
++ * 		copied if necessary (i.e. if data was not linear and if start
++ * 		and end pointers do not point to the same chunk).
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ *
++ * 		All values for *flags* are reserved for future usage, and must
++ * 		be left at zero.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_bind(struct bpf_sock_addr *ctx, struct sockaddr *addr, int addr_len)
++ * 	Description
++ * 		Bind the socket associated to *ctx* to the address pointed by
++ * 		*addr*, of length *addr_len*. This allows for making outgoing
++ * 		connection from the desired IP address, which can be useful for
++ * 		example when all processes inside a cgroup should use one
++ * 		single IP address on a host that has multiple IP configured.
++ *
++ * 		This helper works for IPv4 and IPv6, TCP and UDP sockets. The
++ * 		domain (*addr*\ **->sa_family**) must be **AF_INET** (or
++ * 		**AF_INET6**). Looking for a free port to bind to can be
++ * 		expensive, therefore binding to port is not permitted by the
++ * 		helper: *addr*\ **->sin_port** (or **sin6_port**, respectively)
++ * 		must be set to zero.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_xdp_adjust_tail(struct xdp_buff *xdp_md, int delta)
++ * 	Description
++ * 		Adjust (move) *xdp_md*\ **->data_end** by *delta* bytes. It is
++ * 		only possible to shrink the packet as of this writing,
++ * 		therefore *delta* must be a negative integer.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_skb_get_xfrm_state(struct sk_buff *skb, u32 index, struct bpf_xfrm_state *xfrm_state, u32 size, u64 flags)
++ * 	Description
++ * 		Retrieve the XFRM state (IP transform framework, see also
++ * 		**ip-xfrm(8)**) at *index* in XFRM "security path" for *skb*.
++ *
++ * 		The retrieved value is stored in the **struct bpf_xfrm_state**
++ * 		pointed by *xfrm_state* and of length *size*.
++ *
++ * 		All values for *flags* are reserved for future usage, and must
++ * 		be left at zero.
++ *
++ * 		This helper is available only if the kernel was compiled with
++ * 		**CONFIG_XFRM** configuration option.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_get_stack(struct pt_regs *regs, void *buf, u32 size, u64 flags)
++ * 	Description
++ * 		Return a user or a kernel stack in bpf program provided buffer.
++ * 		To achieve this, the helper needs *ctx*, which is a pointer
++ * 		to the context on which the tracing program is executed.
++ * 		To store the stacktrace, the bpf program provides *buf* with
++ * 		a nonnegative *size*.
++ *
++ * 		The last argument, *flags*, holds the number of stack frames to
++ * 		skip (from 0 to 255), masked with
++ * 		**BPF_F_SKIP_FIELD_MASK**. The next bits can be used to set
++ * 		the following flags:
++ *
++ * 		**BPF_F_USER_STACK**
++ * 			Collect a user space stack instead of a kernel stack.
++ * 		**BPF_F_USER_BUILD_ID**
++ * 			Collect buildid+offset instead of ips for user stack,
++ * 			only valid if **BPF_F_USER_STACK** is also specified.
++ *
++ * 		**bpf_get_stack**\ () can collect up to
++ * 		**PERF_MAX_STACK_DEPTH** both kernel and user frames, subject
++ * 		to sufficient large buffer size. Note that
++ * 		this limit can be controlled with the **sysctl** program, and
++ * 		that it should be manually increased in order to profile long
++ * 		user stacks (such as stacks for Java programs). To do so, use:
++ *
++ * 		::
++ *
++ * 			# sysctl kernel.perf_event_max_stack=<new value>
++ * 	Return
++ * 		A non-negative value equal to or less than *size* on success,
++ * 		or a negative error in case of failure.
++ *
++ * int skb_load_bytes_relative(const struct sk_buff *skb, u32 offset, void *to, u32 len, u32 start_header)
++ * 	Description
++ * 		This helper is similar to **bpf_skb_load_bytes**\ () in that
++ * 		it provides an easy way to load *len* bytes from *offset*
++ * 		from the packet associated to *skb*, into the buffer pointed
++ * 		by *to*. The difference to **bpf_skb_load_bytes**\ () is that
++ * 		a fifth argument *start_header* exists in order to select a
++ * 		base offset to start from. *start_header* can be one of:
++ *
++ * 		**BPF_HDR_START_MAC**
++ * 			Base offset to load data from is *skb*'s mac header.
++ * 		**BPF_HDR_START_NET**
++ * 			Base offset to load data from is *skb*'s network header.
++ *
++ * 		In general, "direct packet access" is the preferred method to
++ * 		access packet data, however, this helper is in particular useful
++ * 		in socket filters where *skb*\ **->data** does not always point
++ * 		to the start of the mac header and where "direct packet access"
++ * 		is not available.
++ * 	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_fib_lookup(void *ctx, struct bpf_fib_lookup *params, int plen, u32 flags)
++ *	Description
++ *		Do FIB lookup in kernel tables using parameters in *params*.
++ *		If lookup is successful and result shows packet is to be
++ *		forwarded, the neighbor tables are searched for the nexthop.
++ *		If successful (ie., FIB lookup shows forwarding and nexthop
++ *		is resolved), the nexthop address is returned in ipv4_dst
++ *		or ipv6_dst based on family, smac is set to mac address of
++ *		egress device, dmac is set to nexthop mac address, rt_metric
++ *		is set to metric from route (IPv4/IPv6 only).
++ *
++ *             *plen* argument is the size of the passed in struct.
++ *             *flags* argument can be a combination of one or more of the
++ *             following values:
++ *
++ *		**BPF_FIB_LOOKUP_DIRECT**
++ *			Do a direct table lookup vs full lookup using FIB
++ *			rules.
++ *		**BPF_FIB_LOOKUP_OUTPUT**
++ *			Perform lookup from an egress perspective (default is
++ *			ingress).
++ *
++ *             *ctx* is either **struct xdp_md** for XDP programs or
++ *             **struct sk_buff** tc cls_act programs.
++ *     Return
++ *             Egress device index on success, 0 if packet needs to continue
++ *             up the stack for further processing or a negative error in case
++ *             of failure.
++ *
++ * int bpf_sock_hash_update(struct bpf_sock_ops_kern *skops, struct bpf_map *map, void *key, u64 flags)
++ *	Description
++ *		Add an entry to, or update a sockhash *map* referencing sockets.
++ *		The *skops* is used as a new value for the entry associated to
++ *		*key*. *flags* is one of:
++ *
++ *		**BPF_NOEXIST**
++ *			The entry for *key* must not exist in the map.
++ *		**BPF_EXIST**
++ *			The entry for *key* must already exist in the map.
++ *		**BPF_ANY**
++ *			No condition on the existence of the entry for *key*.
++ *
++ *		If the *map* has eBPF programs (parser and verdict), those will
++ *		be inherited by the socket being added. If the socket is
++ *		already attached to eBPF programs, this results in an error.
++ *	Return
++ *		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_msg_redirect_hash(struct sk_msg_buff *msg, struct bpf_map *map, void *key, u64 flags)
++ *	Description
++ *		This helper is used in programs implementing policies at the
++ *		socket level. If the message *msg* is allowed to pass (i.e. if
++ *		the verdict eBPF program returns **SK_PASS**), redirect it to
++ *		the socket referenced by *map* (of type
++ *		**BPF_MAP_TYPE_SOCKHASH**) using hash *key*. Both ingress and
++ *		egress interfaces can be used for redirection. The
++ *		**BPF_F_INGRESS** value in *flags* is used to make the
++ *		distinction (ingress path is selected if the flag is present,
++ *		egress path otherwise). This is the only flag supported for now.
++ *	Return
++ *		**SK_PASS** on success, or **SK_DROP** on error.
++ *
++ * int bpf_sk_redirect_hash(struct sk_buff *skb, struct bpf_map *map, void *key, u64 flags)
++ *	Description
++ *		This helper is used in programs implementing policies at the
++ *		skb socket level. If the sk_buff *skb* is allowed to pass (i.e.
++ *		if the verdeict eBPF program returns **SK_PASS**), redirect it
++ *		to the socket referenced by *map* (of type
++ *		**BPF_MAP_TYPE_SOCKHASH**) using hash *key*. Both ingress and
++ *		egress interfaces can be used for redirection. The
++ *		**BPF_F_INGRESS** value in *flags* is used to make the
++ *		distinction (ingress path is selected if the flag is present,
++ *		egress otherwise). This is the only flag supported for now.
++ *	Return
++ *		**SK_PASS** on success, or **SK_DROP** on error.
++ *
++ * int bpf_lwt_push_encap(struct sk_buff *skb, u32 type, void *hdr, u32 len)
++ *	Description
++ *		Encapsulate the packet associated to *skb* within a Layer 3
++ *		protocol header. This header is provided in the buffer at
++ *		address *hdr*, with *len* its size in bytes. *type* indicates
++ *		the protocol of the header and can be one of:
++ *
++ *		**BPF_LWT_ENCAP_SEG6**
++ *			IPv6 encapsulation with Segment Routing Header
++ *			(**struct ipv6_sr_hdr**). *hdr* only contains the SRH,
++ *			the IPv6 header is computed by the kernel.
++ *		**BPF_LWT_ENCAP_SEG6_INLINE**
++ *			Only works if *skb* contains an IPv6 packet. Insert a
++ *			Segment Routing Header (**struct ipv6_sr_hdr**) inside
++ *			the IPv6 header.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ *	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_lwt_seg6_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len)
++ *	Description
++ *		Store *len* bytes from address *from* into the packet
++ *		associated to *skb*, at *offset*. Only the flags, tag and TLVs
++ *		inside the outermost IPv6 Segment Routing Header can be
++ *		modified through this helper.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ *	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_lwt_seg6_adjust_srh(struct sk_buff *skb, u32 offset, s32 delta)
++ *	Description
++ *		Adjust the size allocated to TLVs in the outermost IPv6
++ *		Segment Routing Header contained in the packet associated to
++ *		*skb*, at position *offset* by *delta* bytes. Only offsets
++ *		after the segments are accepted. *delta* can be as well
++ *		positive (growing) as negative (shrinking).
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ *	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_lwt_seg6_action(struct sk_buff *skb, u32 action, void *param, u32 param_len)
++ *	Description
++ *		Apply an IPv6 Segment Routing action of type *action* to the
++ *		packet associated to *skb*. Each action takes a parameter
++ *		contained at address *param*, and of length *param_len* bytes.
++ *		*action* can be one of:
++ *
++ *		**SEG6_LOCAL_ACTION_END_X**
++ *			End.X action: Endpoint with Layer-3 cross-connect.
++ *			Type of *param*: **struct in6_addr**.
++ *		**SEG6_LOCAL_ACTION_END_T**
++ *			End.T action: Endpoint with specific IPv6 table lookup.
++ *			Type of *param*: **int**.
++ *		**SEG6_LOCAL_ACTION_END_B6**
++ *			End.B6 action: Endpoint bound to an SRv6 policy.
++ *			Type of param: **struct ipv6_sr_hdr**.
++ *		**SEG6_LOCAL_ACTION_END_B6_ENCAP**
++ *			End.B6.Encap action: Endpoint bound to an SRv6
++ *			encapsulation policy.
++ *			Type of param: **struct ipv6_sr_hdr**.
++ *
++ * 		A call to this helper is susceptible to change the underlaying
++ * 		packet buffer. Therefore, at load time, all checks on pointers
++ * 		previously done by the verifier are invalidated and must be
++ * 		performed again, if the helper is used in combination with
++ * 		direct packet access.
++ *	Return
++ * 		0 on success, or a negative error in case of failure.
++ *
++ * int bpf_rc_keydown(void *ctx, u32 protocol, u64 scancode, u32 toggle)
++ *	Description
++ *		This helper is used in programs implementing IR decoding, to
++ *		report a successfully decoded key press with *scancode*,
++ *		*toggle* value in the given *protocol*. The scancode will be
++ *		translated to a keycode using the rc keymap, and reported as
++ *		an input key down event. After a period a key up event is
++ *		generated. This period can be extended by calling either
++ *		**bpf_rc_keydown** () again with the same values, or calling
++ *		**bpf_rc_repeat** ().
++ *
++ *		Some protocols include a toggle bit, in case the button	was
++ *		released and pressed again between consecutive scancodes.
++ *
++ *		The *ctx* should point to the lirc sample as passed into
++ *		the program.
++ *
++ *		The *protocol* is the decoded protocol number (see
++ *		**enum rc_proto** for some predefined values).
++ *
++ *		This helper is only available is the kernel was compiled with
++ *		the **CONFIG_BPF_LIRC_MODE2** configuration option set to
++ *		"**y**".
++ *
++ *	Return
++ *		0
++ *
++ * int bpf_rc_repeat(void *ctx)
++ *	Description
++ *		This helper is used in programs implementing IR decoding, to
++ *		report a successfully decoded repeat key message. This delays
++ *		the generation of a key up event for previously generated
++ *		key down event.
++ *
++ *		Some IR protocols like NEC have a special IR message for
++ *		repeating last button, for when a button is held down.
++ *
++ *		The *ctx* should point to the lirc sample as passed into
++ *		the program.
++ *
++ *		This helper is only available is the kernel was compiled with
++ *		the **CONFIG_BPF_LIRC_MODE2** configuration option set to
++ *		"**y**".
++ *
++ *	Return
++ *		0
++ */
++#define __BPF_FUNC_MAPPER(FN)		\
++	FN(unspec),			\
++	FN(map_lookup_elem),		\
++	FN(map_update_elem),		\
++	FN(map_delete_elem),		\
++	FN(probe_read),			\
++	FN(ktime_get_ns),		\
++	FN(trace_printk),		\
++	FN(get_prandom_u32),		\
++	FN(get_smp_processor_id),	\
++	FN(skb_store_bytes),		\
++	FN(l3_csum_replace),		\
++	FN(l4_csum_replace),		\
++	FN(tail_call),			\
++	FN(clone_redirect),		\
++	FN(get_current_pid_tgid),	\
++	FN(get_current_uid_gid),	\
++	FN(get_current_comm),		\
++	FN(get_cgroup_classid),		\
++	FN(skb_vlan_push),		\
++	FN(skb_vlan_pop),		\
++	FN(skb_get_tunnel_key),		\
++	FN(skb_set_tunnel_key),		\
++	FN(perf_event_read),		\
++	FN(redirect),			\
++	FN(get_route_realm),		\
++	FN(perf_event_output),		\
++	FN(skb_load_bytes),		\
++	FN(get_stackid),		\
++	FN(csum_diff),			\
++	FN(skb_get_tunnel_opt),		\
++	FN(skb_set_tunnel_opt),		\
++	FN(skb_change_proto),		\
++	FN(skb_change_type),		\
++	FN(skb_under_cgroup),		\
++	FN(get_hash_recalc),		\
++	FN(get_current_task),		\
++	FN(probe_write_user),		\
++	FN(current_task_under_cgroup),	\
++	FN(skb_change_tail),		\
++	FN(skb_pull_data),		\
++	FN(csum_update),		\
++	FN(set_hash_invalid),		\
++	FN(get_numa_node_id),		\
++	FN(skb_change_head),		\
++	FN(xdp_adjust_head),		\
++	FN(probe_read_str),		\
++	FN(get_socket_cookie),		\
++	FN(get_socket_uid),		\
++	FN(set_hash),			\
++	FN(setsockopt),			\
++	FN(skb_adjust_room),		\
++	FN(redirect_map),		\
++	FN(sk_redirect_map),		\
++	FN(sock_map_update),		\
++	FN(xdp_adjust_meta),		\
++	FN(perf_event_read_value),	\
++	FN(perf_prog_read_value),	\
++	FN(getsockopt),			\
++	FN(override_return),		\
++	FN(sock_ops_cb_flags_set),	\
++	FN(msg_redirect_map),		\
++	FN(msg_apply_bytes),		\
++	FN(msg_cork_bytes),		\
++	FN(msg_pull_data),		\
++	FN(bind),			\
++	FN(xdp_adjust_tail),		\
++	FN(skb_get_xfrm_state),		\
++	FN(get_stack),			\
++	FN(skb_load_bytes_relative),	\
++	FN(fib_lookup),			\
++	FN(sock_hash_update),		\
++	FN(msg_redirect_hash),		\
++	FN(sk_redirect_hash),		\
++	FN(lwt_push_encap),		\
++	FN(lwt_seg6_store_bytes),	\
++	FN(lwt_seg6_adjust_srh),	\
++	FN(lwt_seg6_action),		\
++	FN(rc_repeat),			\
++	FN(rc_keydown),
++
++/* integer value in 'imm' field of BPF_CALL instruction selects which helper
++ * function eBPF program intends to call
++ */
++#define __BPF_ENUM_FN(x) BPF_FUNC_ ## x
++enum bpf_func_id {
++	__BPF_FUNC_MAPPER(__BPF_ENUM_FN)
++	__BPF_FUNC_MAX_ID,
++};
++#undef __BPF_ENUM_FN
++
++/* All flags used by eBPF helper functions, placed here. */
++
++/* BPF_FUNC_skb_store_bytes flags. */
++#define BPF_F_RECOMPUTE_CSUM		(1ULL << 0)
++#define BPF_F_INVALIDATE_HASH		(1ULL << 1)
++
++/* BPF_FUNC_l3_csum_replace and BPF_FUNC_l4_csum_replace flags.
++ * First 4 bits are for passing the header field size.
++ */
++#define BPF_F_HDR_FIELD_MASK		0xfULL
++
++/* BPF_FUNC_l4_csum_replace flags. */
++#define BPF_F_PSEUDO_HDR		(1ULL << 4)
++#define BPF_F_MARK_MANGLED_0		(1ULL << 5)
++#define BPF_F_MARK_ENFORCE		(1ULL << 6)
++
++/* BPF_FUNC_clone_redirect and BPF_FUNC_redirect flags. */
++#define BPF_F_INGRESS			(1ULL << 0)
++
++/* BPF_FUNC_skb_set_tunnel_key and BPF_FUNC_skb_get_tunnel_key flags. */
++#define BPF_F_TUNINFO_IPV6		(1ULL << 0)
++
++/* flags for both BPF_FUNC_get_stackid and BPF_FUNC_get_stack. */
++#define BPF_F_SKIP_FIELD_MASK		0xffULL
++#define BPF_F_USER_STACK		(1ULL << 8)
++/* flags used by BPF_FUNC_get_stackid only. */
++#define BPF_F_FAST_STACK_CMP		(1ULL << 9)
++#define BPF_F_REUSE_STACKID		(1ULL << 10)
++/* flags used by BPF_FUNC_get_stack only. */
++#define BPF_F_USER_BUILD_ID		(1ULL << 11)
++
++/* BPF_FUNC_skb_set_tunnel_key flags. */
++#define BPF_F_ZERO_CSUM_TX		(1ULL << 1)
++#define BPF_F_DONT_FRAGMENT		(1ULL << 2)
++#define BPF_F_SEQ_NUMBER		(1ULL << 3)
++
++/* BPF_FUNC_perf_event_output, BPF_FUNC_perf_event_read and
++ * BPF_FUNC_perf_event_read_value flags.
++ */
++#define BPF_F_INDEX_MASK		0xffffffffULL
++#define BPF_F_CURRENT_CPU		BPF_F_INDEX_MASK
++/* BPF_FUNC_perf_event_output for sk_buff input context. */
++#define BPF_F_CTXLEN_MASK		(0xfffffULL << 32)
++
++/* Mode for BPF_FUNC_skb_adjust_room helper. */
++enum bpf_adj_room_mode {
++	BPF_ADJ_ROOM_NET,
++};
++
++/* Mode for BPF_FUNC_skb_load_bytes_relative helper. */
++enum bpf_hdr_start_off {
++	BPF_HDR_START_MAC,
++	BPF_HDR_START_NET,
++};
++
++/* Encapsulation type for BPF_FUNC_lwt_push_encap helper. */
++enum bpf_lwt_encap_mode {
++	BPF_LWT_ENCAP_SEG6,
++	BPF_LWT_ENCAP_SEG6_INLINE
++};
++
++/* user accessible mirror of in-kernel sk_buff.
++ * new fields can only be added to the end of this structure
++ */
++struct __sk_buff {
++	__u32 len;
++	__u32 pkt_type;
++	__u32 mark;
++	__u32 queue_mapping;
++	__u32 protocol;
++	__u32 vlan_present;
++	__u32 vlan_tci;
++	__u32 vlan_proto;
++	__u32 priority;
++	__u32 ingress_ifindex;
++	__u32 ifindex;
++	__u32 tc_index;
++	__u32 cb[5];
++	__u32 hash;
++	__u32 tc_classid;
++	__u32 data;
++	__u32 data_end;
++	__u32 napi_id;
++
++	/* Accessed by BPF_PROG_TYPE_sk_skb types from here to ... */
++	__u32 family;
++	__u32 remote_ip4;	/* Stored in network byte order */
++	__u32 local_ip4;	/* Stored in network byte order */
++	__u32 remote_ip6[4];	/* Stored in network byte order */
++	__u32 local_ip6[4];	/* Stored in network byte order */
++	__u32 remote_port;	/* Stored in network byte order */
++	__u32 local_port;	/* stored in host byte order */
++	/* ... here. */
++
++	__u32 data_meta;
++};
++
++struct bpf_tunnel_key {
++	__u32 tunnel_id;
++	union {
++		__u32 remote_ipv4;
++		__u32 remote_ipv6[4];
++	};
++	__u8 tunnel_tos;
++	__u8 tunnel_ttl;
++	__u16 tunnel_ext;
++	__u32 tunnel_label;
++};
++
++/* user accessible mirror of in-kernel xfrm_state.
++ * new fields can only be added to the end of this structure
++ */
++struct bpf_xfrm_state {
++	__u32 reqid;
++	__u32 spi;	/* Stored in network byte order */
++	__u16 family;
++	union {
++		__u32 remote_ipv4;	/* Stored in network byte order */
++		__u32 remote_ipv6[4];	/* Stored in network byte order */
++	};
++};
++
++/* Generic BPF return codes which all BPF program types may support.
++ * The values are binary compatible with their TC_ACT_* counter-part to
++ * provide backwards compatibility with existing SCHED_CLS and SCHED_ACT
++ * programs.
++ *
++ * XDP is handled seprately, see XDP_*.
++ */
++enum bpf_ret_code {
++	BPF_OK = 0,
++	/* 1 reserved */
++	BPF_DROP = 2,
++	/* 3-6 reserved */
++	BPF_REDIRECT = 7,
++	/* >127 are reserved for prog type specific return codes */
++};
++
++struct bpf_sock {
++	__u32 bound_dev_if;
++	__u32 family;
++	__u32 type;
++	__u32 protocol;
++	__u32 mark;
++	__u32 priority;
++	__u32 src_ip4;		/* Allows 1,2,4-byte read.
++				 * Stored in network byte order.
++				 */
++	__u32 src_ip6[4];	/* Allows 1,2,4-byte read.
++				 * Stored in network byte order.
++				 */
++	__u32 src_port;		/* Allows 4-byte read.
++				 * Stored in host byte order
++				 */
++};
++
++#define XDP_PACKET_HEADROOM 256
++
++/* User return codes for XDP prog type.
++ * A valid XDP program must return one of these defined values. All other
++ * return codes are reserved for future use. Unknown return codes will
++ * result in packet drops and a warning via bpf_warn_invalid_xdp_action().
++ */
++enum xdp_action {
++	XDP_ABORTED = 0,
++	XDP_DROP,
++	XDP_PASS,
++	XDP_TX,
++	XDP_REDIRECT,
++};
++
++/* user accessible metadata for XDP packet hook
++ * new fields must be added to the end of this structure
++ */
++struct xdp_md {
++	__u32 data;
++	__u32 data_end;
++	__u32 data_meta;
++	/* Below access go through struct xdp_rxq_info */
++	__u32 ingress_ifindex; /* rxq->dev->ifindex */
++	__u32 rx_queue_index;  /* rxq->queue_index  */
++};
++
++enum sk_action {
++	SK_DROP = 0,
++	SK_PASS,
++};
++
++/* user accessible metadata for SK_MSG packet hook, new fields must
++ * be added to the end of this structure
++ */
++struct sk_msg_md {
++	void *data;
++	void *data_end;
++
++	__u32 family;
++	__u32 remote_ip4;	/* Stored in network byte order */
++	__u32 local_ip4;	/* Stored in network byte order */
++	__u32 remote_ip6[4];	/* Stored in network byte order */
++	__u32 local_ip6[4];	/* Stored in network byte order */
++	__u32 remote_port;	/* Stored in network byte order */
++	__u32 local_port;	/* stored in host byte order */
++};
++
++#define BPF_TAG_SIZE	8
++
++struct bpf_prog_info {
++	__u32 type;
++	__u32 id;
++	__u8  tag[BPF_TAG_SIZE];
++	__u32 jited_prog_len;
++	__u32 xlated_prog_len;
++	__aligned_u64 jited_prog_insns;
++	__aligned_u64 xlated_prog_insns;
++	__u64 load_time;	/* ns since boottime */
++	__u32 created_by_uid;
++	__u32 nr_map_ids;
++	__aligned_u64 map_ids;
++	char name[BPF_OBJ_NAME_LEN];
++	__u32 ifindex;
++	__u32 gpl_compatible:1;
++	__u64 netns_dev;
++	__u64 netns_ino;
++	__u32 nr_jited_ksyms;
++	__u32 nr_jited_func_lens;
++	__aligned_u64 jited_ksyms;
++	__aligned_u64 jited_func_lens;
++} __attribute__((aligned(8)));
++
++struct bpf_map_info {
++	__u32 type;
++	__u32 id;
++	__u32 key_size;
++	__u32 value_size;
++	__u32 max_entries;
++	__u32 map_flags;
++	char  name[BPF_OBJ_NAME_LEN];
++	__u32 ifindex;
++	__u64 netns_dev;
++	__u64 netns_ino;
++	__u32 btf_id;
++	__u32 btf_key_type_id;
++	__u32 btf_value_type_id;
++} __attribute__((aligned(8)));
++
++struct bpf_btf_info {
++	__aligned_u64 btf;
++	__u32 btf_size;
++	__u32 id;
++} __attribute__((aligned(8)));
++
++/* User bpf_sock_addr struct to access socket fields and sockaddr struct passed
++ * by user and intended to be used by socket (e.g. to bind to, depends on
++ * attach attach type).
++ */
++struct bpf_sock_addr {
++	__u32 user_family;	/* Allows 4-byte read, but no write. */
++	__u32 user_ip4;		/* Allows 1,2,4-byte read and 4-byte write.
++				 * Stored in network byte order.
++				 */
++	__u32 user_ip6[4];	/* Allows 1,2,4-byte read an 4-byte write.
++				 * Stored in network byte order.
++				 */
++	__u32 user_port;	/* Allows 4-byte read and write.
++				 * Stored in network byte order
++				 */
++	__u32 family;		/* Allows 4-byte read, but no write */
++	__u32 type;		/* Allows 4-byte read, but no write */
++	__u32 protocol;		/* Allows 4-byte read, but no write */
++	__u32 msg_src_ip4;	/* Allows 1,2,4-byte read an 4-byte write.
++				 * Stored in network byte order.
++				 */
++	__u32 msg_src_ip6[4];	/* Allows 1,2,4-byte read an 4-byte write.
++				 * Stored in network byte order.
++				 */
++};
++
++/* User bpf_sock_ops struct to access socket values and specify request ops
++ * and their replies.
++ * Some of this fields are in network (bigendian) byte order and may need
++ * to be converted before use (bpf_ntohl() defined in samples/bpf/bpf_endian.h).
++ * New fields can only be added at the end of this structure
++ */
++struct bpf_sock_ops {
++	__u32 op;
++	union {
++		__u32 args[4];		/* Optionally passed to bpf program */
++		__u32 reply;		/* Returned by bpf program	    */
++		__u32 replylong[4];	/* Optionally returned by bpf prog  */
++	};
++	__u32 family;
++	__u32 remote_ip4;	/* Stored in network byte order */
++	__u32 local_ip4;	/* Stored in network byte order */
++	__u32 remote_ip6[4];	/* Stored in network byte order */
++	__u32 local_ip6[4];	/* Stored in network byte order */
++	__u32 remote_port;	/* Stored in network byte order */
++	__u32 local_port;	/* stored in host byte order */
++	__u32 is_fullsock;	/* Some TCP fields are only valid if
++				 * there is a full socket. If not, the
++				 * fields read as zero.
++				 */
++	__u32 snd_cwnd;
++	__u32 srtt_us;		/* Averaged RTT << 3 in usecs */
++	__u32 bpf_sock_ops_cb_flags; /* flags defined in uapi/linux/tcp.h */
++	__u32 state;
++	__u32 rtt_min;
++	__u32 snd_ssthresh;
++	__u32 rcv_nxt;
++	__u32 snd_nxt;
++	__u32 snd_una;
++	__u32 mss_cache;
++	__u32 ecn_flags;
++	__u32 rate_delivered;
++	__u32 rate_interval_us;
++	__u32 packets_out;
++	__u32 retrans_out;
++	__u32 total_retrans;
++	__u32 segs_in;
++	__u32 data_segs_in;
++	__u32 segs_out;
++	__u32 data_segs_out;
++	__u32 lost_out;
++	__u32 sacked_out;
++	__u32 sk_txhash;
++	__u64 bytes_received;
++	__u64 bytes_acked;
++};
++
++/* Definitions for bpf_sock_ops_cb_flags */
++#define BPF_SOCK_OPS_RTO_CB_FLAG	(1<<0)
++#define BPF_SOCK_OPS_RETRANS_CB_FLAG	(1<<1)
++#define BPF_SOCK_OPS_STATE_CB_FLAG	(1<<2)
++#define BPF_SOCK_OPS_ALL_CB_FLAGS       0x7		/* Mask of all currently
++							 * supported cb flags
++							 */
++
++/* List of known BPF sock_ops operators.
++ * New entries can only be added at the end
++ */
++enum {
++	BPF_SOCK_OPS_VOID,
++	BPF_SOCK_OPS_TIMEOUT_INIT,	/* Should return SYN-RTO value to use or
++					 * -1 if default value should be used
++					 */
++	BPF_SOCK_OPS_RWND_INIT,		/* Should return initial advertized
++					 * window (in packets) or -1 if default
++					 * value should be used
++					 */
++	BPF_SOCK_OPS_TCP_CONNECT_CB,	/* Calls BPF program right before an
++					 * active connection is initialized
++					 */
++	BPF_SOCK_OPS_ACTIVE_ESTABLISHED_CB,	/* Calls BPF program when an
++						 * active connection is
++						 * established
++						 */
++	BPF_SOCK_OPS_PASSIVE_ESTABLISHED_CB,	/* Calls BPF program when a
++						 * passive connection is
++						 * established
++						 */
++	BPF_SOCK_OPS_NEEDS_ECN,		/* If connection's congestion control
++					 * needs ECN
++					 */
++	BPF_SOCK_OPS_BASE_RTT,		/* Get base RTT. The correct value is
++					 * based on the path and may be
++					 * dependent on the congestion control
++					 * algorithm. In general it indicates
++					 * a congestion threshold. RTTs above
++					 * this indicate congestion
++					 */
++	BPF_SOCK_OPS_RTO_CB,		/* Called when an RTO has triggered.
++					 * Arg1: value of icsk_retransmits
++					 * Arg2: value of icsk_rto
++					 * Arg3: whether RTO has expired
++					 */
++	BPF_SOCK_OPS_RETRANS_CB,	/* Called when skb is retransmitted.
++					 * Arg1: sequence number of 1st byte
++					 * Arg2: # segments
++					 * Arg3: return value of
++					 *       tcp_transmit_skb (0 => success)
++					 */
++	BPF_SOCK_OPS_STATE_CB,		/* Called when TCP changes state.
++					 * Arg1: old_state
++					 * Arg2: new_state
++					 */
++};
++
++/* List of TCP states. There is a build check in net/ipv4/tcp.c to detect
++ * changes between the TCP and BPF versions. Ideally this should never happen.
++ * If it does, we need to add code to convert them before calling
++ * the BPF sock_ops function.
++ */
++enum {
++	BPF_TCP_ESTABLISHED = 1,
++	BPF_TCP_SYN_SENT,
++	BPF_TCP_SYN_RECV,
++	BPF_TCP_FIN_WAIT1,
++	BPF_TCP_FIN_WAIT2,
++	BPF_TCP_TIME_WAIT,
++	BPF_TCP_CLOSE,
++	BPF_TCP_CLOSE_WAIT,
++	BPF_TCP_LAST_ACK,
++	BPF_TCP_LISTEN,
++	BPF_TCP_CLOSING,	/* Now a valid state */
++	BPF_TCP_NEW_SYN_RECV,
++
++	BPF_TCP_MAX_STATES	/* Leave at the end! */
++};
++
++#define TCP_BPF_IW		1001	/* Set TCP initial congestion window */
++#define TCP_BPF_SNDCWND_CLAMP	1002	/* Set sndcwnd_clamp */
++
++struct bpf_perf_event_value {
++	__u64 counter;
++	__u64 enabled;
++	__u64 running;
++};
++
++#define BPF_DEVCG_ACC_MKNOD	(1ULL << 0)
++#define BPF_DEVCG_ACC_READ	(1ULL << 1)
++#define BPF_DEVCG_ACC_WRITE	(1ULL << 2)
++
++#define BPF_DEVCG_DEV_BLOCK	(1ULL << 0)
++#define BPF_DEVCG_DEV_CHAR	(1ULL << 1)
++
++struct bpf_cgroup_dev_ctx {
++	/* access_type encoded as (BPF_DEVCG_ACC_* << 16) | BPF_DEVCG_DEV_* */
++	__u32 access_type;
++	__u32 major;
++	__u32 minor;
++};
++
++struct bpf_raw_tracepoint_args {
++	__u64 args[0];
++};
++
++/* DIRECT:  Skip the FIB rules and go to FIB table associated with device
++ * OUTPUT:  Do lookup from egress perspective; default is ingress
++ */
++#define BPF_FIB_LOOKUP_DIRECT  BIT(0)
++#define BPF_FIB_LOOKUP_OUTPUT  BIT(1)
++
++struct bpf_fib_lookup {
++	/* input:  network family for lookup (AF_INET, AF_INET6)
++	 * output: network family of egress nexthop
++	 */
++	__u8	family;
++
++	/* set if lookup is to consider L4 data - e.g., FIB rules */
++	__u8	l4_protocol;
++	__be16	sport;
++	__be16	dport;
++
++	/* total length of packet from network header - used for MTU check */
++	__u16	tot_len;
++	__u32	ifindex;  /* L3 device index for lookup */
++
++	union {
++		/* inputs to lookup */
++		__u8	tos;		/* AF_INET  */
++		__be32	flowlabel;	/* AF_INET6 */
++
++		/* output: metric of fib result (IPv4/IPv6 only) */
++		__u32	rt_metric;
++	};
++
++	union {
++		__be32		ipv4_src;
++		__u32		ipv6_src[4];  /* in6_addr; network order */
++	};
++
++	/* input to bpf_fib_lookup, ipv{4,6}_dst is destination address in
++	 * network header. output: bpf_fib_lookup sets to gateway address
++	 * if FIB lookup returns gateway route
++	 */
++	union {
++		__be32		ipv4_dst;
++		__u32		ipv6_dst[4];  /* in6_addr; network order */
++	};
++
++	/* output */
++	__be16	h_vlan_proto;
++	__be16	h_vlan_TCI;
++	__u8	smac[6];     /* ETH_ALEN */
++	__u8	dmac[6];     /* ETH_ALEN */
++};
++
++enum bpf_task_fd_type {
++	BPF_FD_TYPE_RAW_TRACEPOINT,	/* tp name */
++	BPF_FD_TYPE_TRACEPOINT,		/* tp name */
++	BPF_FD_TYPE_KPROBE,		/* (symbol + offset) or addr */
++	BPF_FD_TYPE_KRETPROBE,		/* (symbol + offset) or addr */
++	BPF_FD_TYPE_UPROBE,		/* filename + offset */
++	BPF_FD_TYPE_URETPROBE,		/* filename + offset */
++};
++
++#endif /* _UAPI__LINUX_BPF_H__ */
+diff --git a/utils/keytable/Makefile.am b/utils/keytable/Makefile.am
+index 0bd7045f..df2b2231 100644
+--- a/utils/keytable/Makefile.am
++++ b/utils/keytable/Makefile.am
+@@ -5,8 +5,13 @@ keytablesystem_DATA = $(srcdir)/rc_keymaps/*
+ udevrules_DATA = 70-infrared.rules
  
- my $keyname="";
- my $out;
- my $read=0;
- my $type = $deftype;
-+my $variant = $deftype;
- my $check_type = 0;
- my $name;
- my $warn;
-@@ -37,9 +38,15 @@ sub flush($$)
- 	my $defined;
+ ir_keytable_SOURCES = keytable.c parse.h ir-encode.c ir-encode.h toml.c toml.h
++
++if HAVE_LIBELF
++ir_keytable_SOURCES += bpf.c bpf_load.c bpf.h bpf_load.h
++endif
++
+ ir_keytable_LDADD = @LIBINTL@
+-ir_keytable_LDFLAGS = $(ARGP_LIBS)
++ir_keytable_LDFLAGS = $(ARGP_LIBS) $(LIBELF_LIBS)
  
- 	return if (!$keyname || !$out);
--	print "Creating $dir/$keyname\n";
--	open OUT, ">$dir/$keyname";
--	print OUT "# table $keyname, type: $type\n";
-+	print "Creating $dir/$keyname.toml\n";
-+	open OUT, ">$dir/$keyname.toml";
-+	print OUT "name = \"$keyname\"\n";
-+	print OUT "protocol = \"$type\"\n";
-+	if ($type eq "nec" || $type eq "rc5" || $type eq "rc6" || $type eq "sony") {
-+		print OUT "[${type}]\n";
-+		print OUT "variant = \"$variant\"\n";
+ EXTRA_DIST = 70-infrared.rules rc_keymaps rc_keymaps_userspace gen_keytables.pl ir-keytable.1 rc_maps.cfg
+ 
+diff --git a/utils/keytable/bpf.c b/utils/keytable/bpf.c
+new file mode 100644
+index 00000000..b1cd2507
+--- /dev/null
++++ b/utils/keytable/bpf.c
+@@ -0,0 +1,515 @@
++// SPDX-License-Identifier: LGPL-2.1
++
++/*
++ * common eBPF ELF operations.
++ *
++ * Copyright (C) 2013-2015 Alexei Starovoitov <ast@kernel.org>
++ * Copyright (C) 2015 Wang Nan <wangnan0@huawei.com>
++ * Copyright (C) 2015 Huawei Inc.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation;
++ * version 2.1 of the License (not later!)
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this program; if not,  see <http://www.gnu.org/licenses>
++ */
++
++#include <stdlib.h>
++#include <memory.h>
++#include <unistd.h>
++#include <asm/unistd.h>
++#include <linux/bpf.h>
++#include "bpf.h"
++#include <errno.h>
++
++/*
++ * When building perf, unistd.h is overridden. __NR_bpf is
++ * required to be defined explicitly.
++ */
++#ifndef __NR_bpf
++# if defined(__i386__)
++#  define __NR_bpf 357
++# elif defined(__x86_64__)
++#  define __NR_bpf 321
++# elif defined(__aarch64__)
++#  define __NR_bpf 280
++# elif defined(__sparc__)
++#  define __NR_bpf 349
++# elif defined(__s390__)
++#  define __NR_bpf 351
++# else
++#  error __NR_bpf not defined. libbpf does not support your arch.
++# endif
++#endif
++
++#ifndef min
++#define min(x, y) ((x) < (y) ? (x) : (y))
++#endif
++
++static inline __u64 ptr_to_u64(const void *ptr)
++{
++	return (__u64) (unsigned long) ptr;
++}
++
++static inline int sys_bpf(enum bpf_cmd cmd, union bpf_attr *attr,
++			  unsigned int size)
++{
++	return syscall(__NR_bpf, cmd, attr, size);
++}
++
++int bpf_create_map_xattr(const struct bpf_create_map_attr *create_attr)
++{
++	__u32 name_len = create_attr->name ? strlen(create_attr->name) : 0;
++	union bpf_attr attr;
++
++	memset(&attr, '\0', sizeof(attr));
++
++	attr.map_type = create_attr->map_type;
++	attr.key_size = create_attr->key_size;
++	attr.value_size = create_attr->value_size;
++	attr.max_entries = create_attr->max_entries;
++	attr.map_flags = create_attr->map_flags;
++	memcpy(attr.map_name, create_attr->name,
++	       min(name_len, BPF_OBJ_NAME_LEN - 1));
++	attr.numa_node = create_attr->numa_node;
++	attr.btf_fd = create_attr->btf_fd;
++	attr.btf_key_type_id = create_attr->btf_key_type_id;
++	attr.btf_value_type_id = create_attr->btf_value_type_id;
++	attr.map_ifindex = create_attr->map_ifindex;
++
++	return sys_bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
++}
++
++int bpf_create_map_node(enum bpf_map_type map_type, const char *name,
++			int key_size, int value_size, int max_entries,
++			__u32 map_flags, int node)
++{
++	struct bpf_create_map_attr map_attr = {};
++
++	map_attr.name = name;
++	map_attr.map_type = map_type;
++	map_attr.map_flags = map_flags;
++	map_attr.key_size = key_size;
++	map_attr.value_size = value_size;
++	map_attr.max_entries = max_entries;
++	if (node >= 0) {
++		map_attr.numa_node = node;
++		map_attr.map_flags |= BPF_F_NUMA_NODE;
 +	}
-+	print OUT "[${type}.scancodes]\n";
- 	print OUT $out;
- 	close OUT;
++
++	return bpf_create_map_xattr(&map_attr);
++}
++
++int bpf_create_map(enum bpf_map_type map_type, int key_size,
++		   int value_size, int max_entries, __u32 map_flags)
++{
++	struct bpf_create_map_attr map_attr = {};
++
++	map_attr.map_type = map_type;
++	map_attr.map_flags = map_flags;
++	map_attr.key_size = key_size;
++	map_attr.value_size = value_size;
++	map_attr.max_entries = max_entries;
++
++	return bpf_create_map_xattr(&map_attr);
++}
++
++int bpf_create_map_name(enum bpf_map_type map_type, const char *name,
++			int key_size, int value_size, int max_entries,
++			__u32 map_flags)
++{
++	struct bpf_create_map_attr map_attr = {};
++
++	map_attr.name = name;
++	map_attr.map_type = map_type;
++	map_attr.map_flags = map_flags;
++	map_attr.key_size = key_size;
++	map_attr.value_size = value_size;
++	map_attr.max_entries = max_entries;
++
++	return bpf_create_map_xattr(&map_attr);
++}
++
++int bpf_create_map_in_map_node(enum bpf_map_type map_type, const char *name,
++			       int key_size, int inner_map_fd, int max_entries,
++			       __u32 map_flags, int node)
++{
++	__u32 name_len = name ? strlen(name) : 0;
++	union bpf_attr attr;
++
++	memset(&attr, '\0', sizeof(attr));
++
++	attr.map_type = map_type;
++	attr.key_size = key_size;
++	attr.value_size = 4;
++	attr.inner_map_fd = inner_map_fd;
++	attr.max_entries = max_entries;
++	attr.map_flags = map_flags;
++	memcpy(attr.map_name, name, min(name_len, BPF_OBJ_NAME_LEN - 1));
++
++	if (node >= 0) {
++		attr.map_flags |= BPF_F_NUMA_NODE;
++		attr.numa_node = node;
++	}
++
++	return sys_bpf(BPF_MAP_CREATE, &attr, sizeof(attr));
++}
++
++int bpf_create_map_in_map(enum bpf_map_type map_type, const char *name,
++			  int key_size, int inner_map_fd, int max_entries,
++			  __u32 map_flags)
++{
++	return bpf_create_map_in_map_node(map_type, name, key_size,
++					  inner_map_fd, max_entries, map_flags,
++					  -1);
++}
++
++int bpf_load_program_xattr(const struct bpf_load_program_attr *load_attr,
++			   char *log_buf, size_t log_buf_sz)
++{
++	union bpf_attr attr;
++	__u32 name_len;
++	int fd;
++
++	if (!load_attr)
++		return -EINVAL;
++
++	name_len = load_attr->name ? strlen(load_attr->name) : 0;
++
++	bzero(&attr, sizeof(attr));
++	attr.prog_type = load_attr->prog_type;
++	attr.expected_attach_type = load_attr->expected_attach_type;
++	attr.insn_cnt = (__u32)load_attr->insns_cnt;
++	attr.insns = ptr_to_u64(load_attr->insns);
++	attr.license = ptr_to_u64(load_attr->license);
++	attr.log_buf = ptr_to_u64(NULL);
++	attr.log_size = 0;
++	attr.log_level = 0;
++	attr.kern_version = load_attr->kern_version;
++	attr.prog_ifindex = load_attr->prog_ifindex;
++	memcpy(attr.prog_name, load_attr->name,
++	       min(name_len, BPF_OBJ_NAME_LEN - 1));
++
++	fd = sys_bpf(BPF_PROG_LOAD, &attr, sizeof(attr));
++	if (fd >= 0 || !log_buf || !log_buf_sz)
++		return fd;
++
++	/* Try again with log */
++	attr.log_buf = ptr_to_u64(log_buf);
++	attr.log_size = log_buf_sz;
++	attr.log_level = 1;
++	log_buf[0] = 0;
++	return sys_bpf(BPF_PROG_LOAD, &attr, sizeof(attr));
++}
++
++int bpf_load_program(enum bpf_prog_type type, const struct bpf_insn *insns,
++		     size_t insns_cnt, const char *name, const char *license,
++		     __u32 kern_version, char *log_buf,
++		     size_t log_buf_sz)
++{
++	struct bpf_load_program_attr load_attr;
++
++	memset(&load_attr, 0, sizeof(struct bpf_load_program_attr));
++	load_attr.prog_type = type;
++	load_attr.expected_attach_type = 0;
++	load_attr.name = name;
++	load_attr.insns = insns;
++	load_attr.insns_cnt = insns_cnt;
++	load_attr.license = license;
++	load_attr.kern_version = kern_version;
++
++	return bpf_load_program_xattr(&load_attr, log_buf, log_buf_sz);
++}
++
++int bpf_verify_program(enum bpf_prog_type type, const struct bpf_insn *insns,
++		       size_t insns_cnt, int strict_alignment,
++		       const char *license, __u32 kern_version,
++		       char *log_buf, size_t log_buf_sz, int log_level)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.prog_type = type;
++	attr.insn_cnt = (__u32)insns_cnt;
++	attr.insns = ptr_to_u64(insns);
++	attr.license = ptr_to_u64(license);
++	attr.log_buf = ptr_to_u64(log_buf);
++	attr.log_size = log_buf_sz;
++	attr.log_level = log_level;
++	log_buf[0] = 0;
++	attr.kern_version = kern_version;
++	attr.prog_flags = strict_alignment ? BPF_F_STRICT_ALIGNMENT : 0;
++
++	return sys_bpf(BPF_PROG_LOAD, &attr, sizeof(attr));
++}
++
++int bpf_map_update_elem(int fd, const void *key, const void *value,
++			__u64 flags)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.map_fd = fd;
++	attr.key = ptr_to_u64(key);
++	attr.value = ptr_to_u64(value);
++	attr.flags = flags;
++
++	return sys_bpf(BPF_MAP_UPDATE_ELEM, &attr, sizeof(attr));
++}
++
++int bpf_map_lookup_elem(int fd, const void *key, void *value)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.map_fd = fd;
++	attr.key = ptr_to_u64(key);
++	attr.value = ptr_to_u64(value);
++
++	return sys_bpf(BPF_MAP_LOOKUP_ELEM, &attr, sizeof(attr));
++}
++
++int bpf_map_delete_elem(int fd, const void *key)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.map_fd = fd;
++	attr.key = ptr_to_u64(key);
++
++	return sys_bpf(BPF_MAP_DELETE_ELEM, &attr, sizeof(attr));
++}
++
++int bpf_map_get_next_key(int fd, const void *key, void *next_key)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.map_fd = fd;
++	attr.key = ptr_to_u64(key);
++	attr.next_key = ptr_to_u64(next_key);
++
++	return sys_bpf(BPF_MAP_GET_NEXT_KEY, &attr, sizeof(attr));
++}
++
++int bpf_obj_pin(int fd, const char *pathname)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.pathname = ptr_to_u64((void *)pathname);
++	attr.bpf_fd = fd;
++
++	return sys_bpf(BPF_OBJ_PIN, &attr, sizeof(attr));
++}
++
++int bpf_obj_get(const char *pathname)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.pathname = ptr_to_u64((void *)pathname);
++
++	return sys_bpf(BPF_OBJ_GET, &attr, sizeof(attr));
++}
++
++int bpf_prog_attach(int prog_fd, int target_fd, enum bpf_attach_type type,
++		    unsigned int flags)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.target_fd	   = target_fd;
++	attr.attach_bpf_fd = prog_fd;
++	attr.attach_type   = type;
++	attr.attach_flags  = flags;
++
++	return sys_bpf(BPF_PROG_ATTACH, &attr, sizeof(attr));
++}
++
++int bpf_prog_detach(int target_fd, enum bpf_attach_type type)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.target_fd	 = target_fd;
++	attr.attach_type = type;
++
++	return sys_bpf(BPF_PROG_DETACH, &attr, sizeof(attr));
++}
++
++int bpf_prog_detach2(int prog_fd, int target_fd, enum bpf_attach_type type)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.target_fd	 = target_fd;
++	attr.attach_bpf_fd = prog_fd;
++	attr.attach_type = type;
++
++	return sys_bpf(BPF_PROG_DETACH, &attr, sizeof(attr));
++}
++
++int bpf_prog_query(int target_fd, enum bpf_attach_type type, __u32 query_flags,
++		   __u32 *attach_flags, __u32 *prog_ids, __u32 *prog_cnt)
++{
++	union bpf_attr attr;
++	int ret;
++
++	bzero(&attr, sizeof(attr));
++	attr.query.target_fd	= target_fd;
++	attr.query.attach_type	= type;
++	attr.query.query_flags	= query_flags;
++	attr.query.prog_cnt	= *prog_cnt;
++	attr.query.prog_ids	= ptr_to_u64(prog_ids);
++
++	ret = sys_bpf(BPF_PROG_QUERY, &attr, sizeof(attr));
++	if (attach_flags)
++		*attach_flags = attr.query.attach_flags;
++	*prog_cnt = attr.query.prog_cnt;
++	return ret;
++}
++
++int bpf_prog_test_run(int prog_fd, int repeat, void *data, __u32 size,
++		      void *data_out, __u32 *size_out, __u32 *retval,
++		      __u32 *duration)
++{
++	union bpf_attr attr;
++	int ret;
++
++	bzero(&attr, sizeof(attr));
++	attr.test.prog_fd = prog_fd;
++	attr.test.data_in = ptr_to_u64(data);
++	attr.test.data_out = ptr_to_u64(data_out);
++	attr.test.data_size_in = size;
++	attr.test.repeat = repeat;
++
++	ret = sys_bpf(BPF_PROG_TEST_RUN, &attr, sizeof(attr));
++	if (size_out)
++		*size_out = attr.test.data_size_out;
++	if (retval)
++		*retval = attr.test.retval;
++	if (duration)
++		*duration = attr.test.duration;
++	return ret;
++}
++
++int bpf_prog_get_next_id(__u32 start_id, __u32 *next_id)
++{
++	union bpf_attr attr;
++	int err;
++
++	bzero(&attr, sizeof(attr));
++	attr.start_id = start_id;
++
++	err = sys_bpf(BPF_PROG_GET_NEXT_ID, &attr, sizeof(attr));
++	if (!err)
++		*next_id = attr.next_id;
++
++	return err;
++}
++
++int bpf_map_get_next_id(__u32 start_id, __u32 *next_id)
++{
++	union bpf_attr attr;
++	int err;
++
++	bzero(&attr, sizeof(attr));
++	attr.start_id = start_id;
++
++	err = sys_bpf(BPF_MAP_GET_NEXT_ID, &attr, sizeof(attr));
++	if (!err)
++		*next_id = attr.next_id;
++
++	return err;
++}
++
++int bpf_prog_get_fd_by_id(__u32 id)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.prog_id = id;
++
++	return sys_bpf(BPF_PROG_GET_FD_BY_ID, &attr, sizeof(attr));
++}
++
++int bpf_map_get_fd_by_id(__u32 id)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.map_id = id;
++
++	return sys_bpf(BPF_MAP_GET_FD_BY_ID, &attr, sizeof(attr));
++}
++
++int bpf_btf_get_fd_by_id(__u32 id)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.btf_id = id;
++
++	return sys_bpf(BPF_BTF_GET_FD_BY_ID, &attr, sizeof(attr));
++}
++
++int bpf_obj_get_info_by_fd(int prog_fd, void *info, __u32 *info_len)
++{
++	union bpf_attr attr;
++	int err;
++
++	bzero(&attr, sizeof(attr));
++	attr.info.bpf_fd = prog_fd;
++	attr.info.info_len = *info_len;
++	attr.info.info = ptr_to_u64(info);
++
++	err = sys_bpf(BPF_OBJ_GET_INFO_BY_FD, &attr, sizeof(attr));
++	if (!err)
++		*info_len = attr.info.info_len;
++
++	return err;
++}
++
++int bpf_raw_tracepoint_open(const char *name, int prog_fd)
++{
++	union bpf_attr attr;
++
++	bzero(&attr, sizeof(attr));
++	attr.raw_tracepoint.name = ptr_to_u64(name);
++	attr.raw_tracepoint.prog_fd = prog_fd;
++
++	return sys_bpf(BPF_RAW_TRACEPOINT_OPEN, &attr, sizeof(attr));
++}
++
++int bpf_load_btf(void *btf, __u32 btf_size, char *log_buf, __u32 log_buf_size,
++		 bool do_log)
++{
++	union bpf_attr attr = {};
++	int fd;
++
++	attr.btf = ptr_to_u64(btf);
++	attr.btf_size = btf_size;
++
++retry:
++	if (do_log && log_buf && log_buf_size) {
++		attr.btf_log_level = 1;
++		attr.btf_log_size = log_buf_size;
++		attr.btf_log_buf = ptr_to_u64(log_buf);
++	}
++
++	fd = sys_bpf(BPF_BTF_LOAD, &attr, sizeof(attr));
++	if (fd == -1 && !do_log && log_buf && log_buf_size) {
++		do_log = true;
++		goto retry;
++	}
++
++	return fd;
++}
+diff --git a/utils/keytable/bpf.h b/utils/keytable/bpf.h
+new file mode 100644
+index 00000000..fb3896c9
+--- /dev/null
++++ b/utils/keytable/bpf.h
+@@ -0,0 +1,110 @@
++/* SPDX-License-Identifier: LGPL-2.1 */
++
++/*
++ * common eBPF ELF operations.
++ *
++ * Copyright (C) 2013-2015 Alexei Starovoitov <ast@kernel.org>
++ * Copyright (C) 2015 Wang Nan <wangnan0@huawei.com>
++ * Copyright (C) 2015 Huawei Inc.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation;
++ * version 2.1 of the License (not later!)
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this program; if not,  see <http://www.gnu.org/licenses>
++ */
++#ifndef __BPF_BPF_H
++#define __BPF_BPF_H
++
++#include <linux/bpf.h>
++#include <stdbool.h>
++#include <stddef.h>
++
++struct bpf_create_map_attr {
++	const char *name;
++	enum bpf_map_type map_type;
++	__u32 map_flags;
++	__u32 key_size;
++	__u32 value_size;
++	__u32 max_entries;
++	__u32 numa_node;
++	__u32 btf_fd;
++	__u32 btf_key_type_id;
++	__u32 btf_value_type_id;
++	__u32 map_ifindex;
++};
++
++int bpf_create_map_xattr(const struct bpf_create_map_attr *create_attr);
++int bpf_create_map_node(enum bpf_map_type map_type, const char *name,
++			int key_size, int value_size, int max_entries,
++			__u32 map_flags, int node);
++int bpf_create_map_name(enum bpf_map_type map_type, const char *name,
++			int key_size, int value_size, int max_entries,
++			__u32 map_flags);
++int bpf_create_map(enum bpf_map_type map_type, int key_size, int value_size,
++		   int max_entries, __u32 map_flags);
++int bpf_create_map_in_map_node(enum bpf_map_type map_type, const char *name,
++			       int key_size, int inner_map_fd, int max_entries,
++			       __u32 map_flags, int node);
++int bpf_create_map_in_map(enum bpf_map_type map_type, const char *name,
++			  int key_size, int inner_map_fd, int max_entries,
++			  __u32 map_flags);
++
++struct bpf_load_program_attr {
++	enum bpf_prog_type prog_type;
++	enum bpf_attach_type expected_attach_type;
++	const char *name;
++	const struct bpf_insn *insns;
++	size_t insns_cnt;
++	const char *license;
++	__u32 kern_version;
++	__u32 prog_ifindex;
++};
++
++/* Recommend log buffer size */
++#define BPF_LOG_BUF_SIZE (256 * 1024)
++int bpf_load_program_xattr(const struct bpf_load_program_attr *load_attr,
++			   char *log_buf, size_t log_buf_sz);
++int bpf_load_program(enum bpf_prog_type type, const struct bpf_insn *insns,
++		     size_t insns_cnt, const char *name, const char *license,
++		     __u32 kern_version, char *log_buf,
++		     size_t log_buf_sz);
++int bpf_verify_program(enum bpf_prog_type type, const struct bpf_insn *insns,
++		       size_t insns_cnt, int strict_alignment,
++		       const char *license, __u32 kern_version,
++		       char *log_buf, size_t log_buf_sz, int log_level);
++
++int bpf_map_update_elem(int fd, const void *key, const void *value,
++			__u64 flags);
++
++int bpf_map_lookup_elem(int fd, const void *key, void *value);
++int bpf_map_delete_elem(int fd, const void *key);
++int bpf_map_get_next_key(int fd, const void *key, void *next_key);
++int bpf_obj_pin(int fd, const char *pathname);
++int bpf_obj_get(const char *pathname);
++int bpf_prog_attach(int prog_fd, int attachable_fd, enum bpf_attach_type type,
++		    unsigned int flags);
++int bpf_prog_detach(int attachable_fd, enum bpf_attach_type type);
++int bpf_prog_detach2(int prog_fd, int attachable_fd, enum bpf_attach_type type);
++int bpf_prog_test_run(int prog_fd, int repeat, void *data, __u32 size,
++		      void *data_out, __u32 *size_out, __u32 *retval,
++		      __u32 *duration);
++int bpf_prog_get_next_id(__u32 start_id, __u32 *next_id);
++int bpf_map_get_next_id(__u32 start_id, __u32 *next_id);
++int bpf_prog_get_fd_by_id(__u32 id);
++int bpf_map_get_fd_by_id(__u32 id);
++int bpf_btf_get_fd_by_id(__u32 id);
++int bpf_obj_get_info_by_fd(int prog_fd, void *info, __u32 *info_len);
++int bpf_prog_query(int target_fd, enum bpf_attach_type type, __u32 query_flags,
++		   __u32 *attach_flags, __u32 *prog_ids, __u32 *prog_cnt);
++int bpf_raw_tracepoint_open(const char *name, int prog_fd);
++int bpf_load_btf(void *btf, __u32 btf_size, char *log_buf, __u32 log_buf_size,
++		 bool do_log);
++#endif
+diff --git a/utils/keytable/bpf_load.c b/utils/keytable/bpf_load.c
+new file mode 100644
+index 00000000..7a350cc1
+--- /dev/null
++++ b/utils/keytable/bpf_load.c
+@@ -0,0 +1,469 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <stdio.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <libelf.h>
++#include <gelf.h>
++#include <errno.h>
++#include <unistd.h>
++#include <string.h>
++#include <stdbool.h>
++#include <limits.h>
++#include <stdlib.h>
++#include <linux/bpf.h>
++#include <assert.h>
++#include "toml.h"
++#include "bpf.h"
++#include "bpf_load.h"
++
++#ifdef ENABLE_NLS
++# define _(string) gettext(string)
++# include "gettext.h"
++# include <locale.h>
++# include <langinfo.h>
++# include <iconv.h>
++#else
++# define _(string) string
++#endif
++
++
++char bpf_log_buf[BPF_LOG_BUF_SIZE];
++extern int debug;
++
++struct bpf_file {
++	Elf *elf;
++	char license[128];
++	bool processed_sec[128];
++	int map_fd[MAX_MAPS];
++	struct bpf_map_data map_data[MAX_MAPS];
++	int nr_maps;
++	int maps_shidx;
++	int dataidx;
++	Elf_Data *data;
++	int strtabidx;
++	Elf_Data *symbols;
++	struct toml_table_t *toml;
++};
++
++static int load_and_attach(int lirc_fd, struct bpf_file *bpf_file, const char *name, struct bpf_insn *prog, int size)
++{
++        size_t insns_cnt = size / sizeof(struct bpf_insn);
++	int fd, err;
++
++	fd = bpf_load_program(BPF_PROG_TYPE_LIRC_MODE2, prog, insns_cnt,
++			      name, bpf_file->license, 0,
++			      bpf_log_buf, BPF_LOG_BUF_SIZE);
++	if (fd < 0) {
++		printf("bpf_load_program() err=%d\n%s", errno, bpf_log_buf);
++		return -1;
++	}
++
++	err = bpf_prog_attach(fd, lirc_fd, BPF_LIRC_MODE2, 0);
++	if (err) {
++		printf("bpf_prog_attach: err=%m\n");
++		return -1;
++	}
++	return 0;
++}
++
++static int load_maps(struct bpf_file *bpf_file)
++{
++	struct bpf_map_data *maps = bpf_file->map_data;
++	int i, numa_node;
++
++	for (i = 0; i < bpf_file->nr_maps; i++) {
++		numa_node = maps[i].def.map_flags & BPF_F_NUMA_NODE ?
++			maps[i].def.numa_node : -1;
++
++		if (maps[i].def.type == BPF_MAP_TYPE_ARRAY_OF_MAPS ||
++		    maps[i].def.type == BPF_MAP_TYPE_HASH_OF_MAPS) {
++			int inner_map_fd = bpf_file->map_fd[maps[i].def.inner_map_idx];
++
++			bpf_file->map_fd[i] = bpf_create_map_in_map_node(
++							maps[i].def.type,
++							maps[i].name,
++							maps[i].def.key_size,
++							inner_map_fd,
++							maps[i].def.max_entries,
++							maps[i].def.map_flags,
++							numa_node);
++		} else {
++			bpf_file->map_fd[i] = bpf_create_map_node(
++							maps[i].def.type,
++							maps[i].name,
++							maps[i].def.key_size,
++							maps[i].def.value_size,
++							maps[i].def.max_entries,
++							maps[i].def.map_flags,
++							numa_node);
++		}
++		if (bpf_file->map_fd[i] < 0) {
++			printf(_("failed to create a map: %d %s\n"),
++			       errno, strerror(errno));
++			return 1;
++		}
++		maps[i].fd = bpf_file->map_fd[i];
++	}
++	return 0;
++}
++
++static int get_sec(Elf *elf, int i, GElf_Ehdr *ehdr, char **shname,
++		   GElf_Shdr *shdr, Elf_Data **data)
++{
++	Elf_Scn *scn;
++
++	scn = elf_getscn(elf, i);
++	if (!scn)
++		return 1;
++
++	if (gelf_getshdr(scn, shdr) != shdr)
++		return 2;
++
++	*shname = elf_strptr(elf, ehdr->e_shstrndx, shdr->sh_name);
++	if (!*shname || !shdr->sh_size)
++		return 3;
++
++	*data = elf_getdata(scn, 0);
++	if (!*data || elf_getdata(scn, *data) != NULL)
++		return 4;
++
++	return 0;
++}
++
++static int parse_relo_and_apply(struct bpf_file *bpf_file, GElf_Shdr *shdr,
++				struct bpf_insn *insn, Elf_Data *data)
++{
++	int i, nrels;
++
++	nrels = shdr->sh_size / shdr->sh_entsize;
++
++	for (i = 0; i < nrels; i++) {
++		GElf_Sym sym;
++		GElf_Rel rel;
++		unsigned int insn_idx;
++		const char *sym_name;
++		bool match = false;
++		int map_idx;
++
++		gelf_getrel(data, i, &rel);
++
++		insn_idx = rel.r_offset / sizeof(struct bpf_insn);
++
++		gelf_getsym(bpf_file->symbols, GELF_R_SYM(rel.r_info), &sym);
++
++		sym_name = elf_strptr(bpf_file->elf, bpf_file->strtabidx, sym.st_name);
++
++		if (insn[insn_idx].code != (BPF_LD | BPF_IMM | BPF_DW)) {
++			printf(_("invalid relo for insn[%d].code 0x%x\n"),
++			       insn_idx, insn[insn_idx].code);
++			return 1;
++		}
++
++		if (sym.st_shndx == bpf_file->maps_shidx) {
++			/* Match FD relocation against recorded map_data[] offset */
++			for (map_idx = 0; map_idx < bpf_file->nr_maps; map_idx++) {
++				if (bpf_file->map_data[map_idx].elf_offset == sym.st_value) {
++					match = true;
++					break;
++				}
++			}
++
++			if (match) {
++		                insn[insn_idx].src_reg = BPF_PSEUDO_MAP_FD;
++				insn[insn_idx].imm = bpf_file->map_data[map_idx].fd;
++				continue;
++			}
++
++			printf(_("invalid relo for insn[%d] no map_data match\n"),
++			       insn_idx);
++			return 1;
++		}
++		else if (sym.st_shndx == bpf_file->dataidx) {
++			const char *raw = NULL;
++			int value;
++
++			if (!bpf_param(sym_name, &value)) {
++				// done
++			} else if (bpf_file->toml &&
++				   (raw = toml_raw_in(bpf_file->toml, sym_name)) != NULL) {
++				int64_t val64;
++
++				if (toml_rtoi(raw, &val64)) {
++					printf(_("variable %s not a integer: %s\n"), sym_name, raw);
++					return 1;
++				}
++
++				if (value < INT_MIN && value > UINT_MAX) {
++					printf(_("variable %s out of range: %s\n"), sym_name, raw);
++					return 1;
++				}
++
++				value = val64;
++			} else {
++				int32_t *p = (bpf_file->data->d_buf + sym.st_value);
++				value = *p;
++			}
++
++			if (debug)
++				printf(_("patching insn[%d] with immediate %d for symbol %s\n"), insn_idx, value, sym_name);
++
++			// patch ld to mov immediate
++			insn[insn_idx].imm = value;
++		} else {
++			printf(_("symbol %s has unknown section %d\n"), sym_name, sym.st_shndx);
++			return 1;
++		}
++	}
++
++	return 0;
++}
++
++static int cmp_symbols(const void *l, const void *r)
++{
++	const GElf_Sym *lsym = (const GElf_Sym *)l;
++	const GElf_Sym *rsym = (const GElf_Sym *)r;
++
++	if (lsym->st_value < rsym->st_value)
++		return -1;
++	else if (lsym->st_value > rsym->st_value)
++		return 1;
++	else
++		return 0;
++}
++
++static int load_elf_maps_section(struct bpf_file *bpf_file)
++{
++	int map_sz_elf, map_sz_copy;
++	bool validate_zero = false;
++	Elf_Data *data_maps;
++	int i, nr_maps;
++	GElf_Sym *sym;
++	Elf_Scn *scn;
++
++	if (bpf_file->maps_shidx < 0)
++		return -EINVAL;
++	if (!bpf_file->symbols)
++		return -EINVAL;
++
++	/* Get data for maps section via elf index */
++	scn = elf_getscn(bpf_file->elf, bpf_file->maps_shidx);
++	if (scn)
++		data_maps = elf_getdata(scn, NULL);
++	if (!scn || !data_maps) {
++		printf(_("Failed to get Elf_Data from maps section %d\n"),
++		       bpf_file->maps_shidx);
++		return -EINVAL;
++	}
++
++	/* For each map get corrosponding symbol table entry */
++	sym = calloc(MAX_MAPS+1, sizeof(GElf_Sym));
++	for (i = 0, nr_maps = 0; i < bpf_file->symbols->d_size / sizeof(GElf_Sym); i++) {
++		assert(nr_maps < MAX_MAPS+1);
++		if (!gelf_getsym(bpf_file->symbols, i, &sym[nr_maps]))
++			continue;
++		if (sym[nr_maps].st_shndx != bpf_file->maps_shidx)
++			continue;
++		/* Only increment iif maps section */
++		nr_maps++;
++	}
++
++	/* Align to map_fd[] order, via sort on offset in sym.st_value */
++	qsort(sym, nr_maps, sizeof(GElf_Sym), cmp_symbols);
++
++	/* Keeping compatible with ELF maps section changes
++	 * ------------------------------------------------
++	 * The program size of struct bpf_load_map_def is known by loader
++	 * code, but struct stored in ELF file can be different.
++	 *
++	 * Unfortunately sym[i].st_size is zero.  To calculate the
++	 * struct size stored in the ELF file, assume all struct have
++	 * the same size, and simply divide with number of map
++	 * symbols.
++	 */
++	map_sz_elf = data_maps->d_size / nr_maps;
++	map_sz_copy = sizeof(struct bpf_load_map_def);
++	if (map_sz_elf < map_sz_copy) {
++		/*
++		 * Backward compat, loading older ELF file with
++		 * smaller struct, keeping remaining bytes zero.
++		 */
++		map_sz_copy = map_sz_elf;
++	} else if (map_sz_elf > map_sz_copy) {
++		/*
++		 * Forward compat, loading newer ELF file with larger
++		 * struct with unknown features. Assume zero means
++		 * feature not used.  Thus, validate rest of struct
++		 * data is zero.
++		 */
++		validate_zero = true;
++	}
++
++	/* Memcpy relevant part of ELF maps data to loader maps */
++	for (i = 0; i < nr_maps; i++) {
++		struct bpf_load_map_def *def;
++		unsigned char *addr, *end;
++		const char *map_name;
++		struct bpf_map_data *maps = bpf_file->map_data;
++		size_t offset;
++
++		map_name = elf_strptr(bpf_file->elf, bpf_file->strtabidx, sym[i].st_name);
++		maps[i].name = strdup(map_name);
++		if (!maps[i].name) {
++			printf(_("strdup(%s): %s(%d)\n"), map_name,
++			       strerror(errno), errno);
++			free(sym);
++			return -errno;
++		}
++
++		/* Symbol value is offset into ELF maps section data area */
++		offset = sym[i].st_value;
++		def = (struct bpf_load_map_def *)(data_maps->d_buf + offset);
++		maps[i].elf_offset = offset;
++		memset(&maps[i].def, 0, sizeof(struct bpf_load_map_def));
++		memcpy(&maps[i].def, def, map_sz_copy);
++
++		/* Verify no newer features were requested */
++		if (validate_zero) {
++			addr = (unsigned char*) def + map_sz_copy;
++			end  = (unsigned char*) def + map_sz_elf;
++			for (; addr < end; addr++) {
++				if (*addr != 0) {
++					free(sym);
++					return -EFBIG;
++				}
++			}
++		}
++	}
++
++	free(sym);
++	return nr_maps;
++}
++
++int load_bpf_file(const char *path, int lirc_fd, struct toml_table_t *toml)
++{
++	struct bpf_file bpf_file = { .toml = toml };
++	int fd, i, ret;
++	Elf *elf;
++	GElf_Ehdr ehdr;
++	GElf_Shdr shdr, shdr_prog;
++	Elf_Data *data, *data_prog, *data_map = NULL;
++	char *shname, *shname_prog;
++	int nr_maps = 0;
++
++	if (elf_version(EV_CURRENT) == EV_NONE)
++		return 1;
++
++	fd = open(path, O_RDONLY, 0);
++	if (fd < 0)
++		return 1;
++
++	elf = elf_begin(fd, ELF_C_READ, NULL);
++
++	if (!elf)
++		return 1;
++
++	if (gelf_getehdr(elf, &ehdr) != &ehdr)
++		return 1;
++
++	bpf_file.elf = elf;
++
++	/* scan over all elf sections to get license and map info */
++	for (i = 1; i < ehdr.e_shnum; i++) {
++
++		if (get_sec(elf, i, &ehdr, &shname, &shdr, &data))
++			continue;
++
++		if (debug)
++			printf(_("section %d:%s data %p size %zd link %d flags %d\n"),
++			       i, shname, data->d_buf, data->d_size,
++			       shdr.sh_link, (int) shdr.sh_flags);
++
++		if (strcmp(shname, "license") == 0) {
++			bpf_file.processed_sec[i] = true;
++			memcpy(bpf_file.license, data->d_buf, data->d_size);
++		} else if (strcmp(shname, "maps") == 0) {
++			int j;
++
++			bpf_file.maps_shidx = i;
++			data_map = data;
++			for (j = 0; j < MAX_MAPS; j++)
++				bpf_file.map_data[j].fd = -1;
++		} else if (strcmp(shname, ".data") == 0) {
++			bpf_file.dataidx = i;
++			bpf_file.data = data;
++		} else if (shdr.sh_type == SHT_SYMTAB) {
++			bpf_file.strtabidx = shdr.sh_link;
++			bpf_file.symbols = data;
++		}
++	}
++
++	ret = 1;
++
++	if (!bpf_file.symbols) {
++		printf(_("missing SHT_SYMTAB section\n"));
++		goto done;
++	}
++
++	if (data_map) {
++		bpf_file.nr_maps = load_elf_maps_section(&bpf_file);
++		if (bpf_file.nr_maps < 0) {
++			printf(_("Error: Failed loading ELF maps (errno:%d):%s\n"),
++			       nr_maps, strerror(-nr_maps));
++			goto done;
++		}
++		if (load_maps(&bpf_file))
++			goto done;
++
++		bpf_file.processed_sec[bpf_file.maps_shidx] = true;
++	}
++
++	/* process all relo sections, and rewrite bpf insns for maps */
++	for (i = 1; i < ehdr.e_shnum; i++) {
++		if (bpf_file.processed_sec[i])
++			continue;
++
++		if (get_sec(elf, i, &ehdr, &shname, &shdr, &data))
++			continue;
++
++		if (shdr.sh_type == SHT_REL) {
++			struct bpf_insn *insns;
++
++			/* locate prog sec that need map fixup (relocations) */
++			if (get_sec(elf, shdr.sh_info, &ehdr, &shname_prog,
++				    &shdr_prog, &data_prog))
++				continue;
++
++			if (shdr_prog.sh_type != SHT_PROGBITS ||
++			    !(shdr_prog.sh_flags & SHF_EXECINSTR))
++				continue;
++
++			insns = (struct bpf_insn *) data_prog->d_buf;
++			bpf_file.processed_sec[i] = true; /* relo section */
++
++			if (parse_relo_and_apply(&bpf_file, &shdr, insns, data))
++				continue;
++		}
++	}
++
++	/* load programs */
++	for (i = 1; i < ehdr.e_shnum; i++) {
++		if (bpf_file.processed_sec[i])
++			continue;
++
++		if (get_sec(elf, i, &ehdr, &shname, &shdr, &data))
++			continue;
++
++		if (shdr.sh_type != SHT_PROGBITS ||
++		    !(shdr.sh_flags & SHF_EXECINSTR))
++			continue;
++
++		ret = load_and_attach(lirc_fd, &bpf_file, shname, data->d_buf,
++				      data->d_size);
++		break;
++	}
++
++done:
++	close(fd);
++	return ret;
++}
+diff --git a/utils/keytable/bpf_load.h b/utils/keytable/bpf_load.h
+new file mode 100644
+index 00000000..2775607f
+--- /dev/null
++++ b/utils/keytable/bpf_load.h
+@@ -0,0 +1,43 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __BPF_LOAD_H
++#define __BPF_LOAD_H
++
++#define BPF_LOG_BUF_SIZE (256 * 1024)
++
++#define MAX_MAPS 32
++#define MAX_PROGS 64
++
++struct bpf_load_map_def {
++	unsigned int type;
++	unsigned int key_size;
++	unsigned int value_size;
++	unsigned int max_entries;
++	unsigned int map_flags;
++	unsigned int inner_map_idx;
++	unsigned int numa_node;
++};
++
++struct bpf_map_data {
++	int fd;
++	char *name;
++	size_t elf_offset;
++	struct bpf_load_map_def def;
++};
++
++/* parses elf file compiled by llvm .c->.o
++ * . parses 'maps' section and creates maps via BPF syscall
++ * . parses 'license' section and passes it to syscall
++ * . parses elf relocations for BPF maps and adjusts BPF_LD_IMM64 insns by
++ *   storing map_fd into insn->imm and marking such insns as BPF_PSEUDO_MAP_FD
++ * . loads eBPF programs via BPF syscall
++ *
++ * One ELF file can contain multiple BPF programs which will be loaded
++ * and their FDs stored stored in prog_fd array
++ *
++ * returns zero on success
++ */
++int load_bpf_file(const char *path, int lirc_fd, struct toml_table_t *toml);
++
++int bpf_param(const char *name, int *val);
++
++#endif
+diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
+index c6304b04..6e5db5a5 100644
+--- a/utils/keytable/keytable.c
++++ b/utils/keytable/keytable.c
+@@ -34,6 +34,8 @@
+ #include "ir-encode.h"
+ #include "parse.h"
+ #include "toml.h"
++#include "bpf.h"
++#include "bpf_load.h"
  
-@@ -50,11 +57,11 @@ sub flush($$)
- 	}
+ #ifdef ENABLE_NLS
+ # define _(string) gettext(string)
+@@ -56,6 +58,10 @@ struct input_keymap_entry_v2 {
+ 	u_int8_t  scancode[32];
+ };
  
- 	if ($defined) {
--		printf OUT_MAP "*\t%-24s %s\n", $rc_map_names{$name} , $keyname;
-+		printf OUT_MAP "*\t%-24s %s.toml\n", $rc_map_names{$name} , $keyname;
- 	} else {
- 		my $fname = $filename;
- 		$fname =~ s,.*/,,;
--		printf OUT_MAP "# *\t*\t\t\t %-20s # found in %s\n", $keyname, $fname;
-+		printf OUT_MAP "# *\t*\t\t\t %-20s # found in %s\n", "$keyname.toml", $fname;
- 	}
++
++#define IR_PROTOCOLS_USER_DIR IR_KEYTABLE_USER_DIR "/protocols"
++#define IR_PROTOCOLS_SYSTEM_DIR IR_KEYTABLE_SYSTEM_DIR "/protocols"
++
+ #ifndef EVIOCSCLOCKID
+ #define EVIOCSCLOCKID		_IOW('E', 0xa0, int)
+ #endif
+@@ -219,15 +225,18 @@ static const char doc[] = N_(
+ 	"\nAllows get/set IR keycode/scancode tables\n"
+ 	"You need to have read permissions on /dev/input for the program to work\n"
+ 	"\nOn the options below, the arguments are:\n"
+-	"  DEV      - the /dev/input/event* device to control\n"
+-	"  SYSDEV   - the ir class as found at /sys/class/rc\n"
+-	"  TABLE    - a file with a set of scancode=keycode value pairs\n"
+-	"  SCANKEY  - a set of scancode1=keycode1,scancode2=keycode2.. value pairs\n"
+-	"  PROTOCOL - protocol name (nec, rc-5, rc-6, jvc, sony, sanyo, rc-5-sz, lirc,\n"
+-	"                            sharp, mce_kbd, xmp, other, all) to be enabled\n"
+-	"  DELAY    - Delay before repeating a keystroke\n"
+-	"  PERIOD   - Period to repeat a keystroke\n"
+-	"  CFGFILE  - configuration file that associates a driver/table name with a keymap file\n"
++	"  DEV       - the /dev/input/event* device to control\n"
++	"  SYSDEV    - the ir class as found at /sys/class/rc\n"
++	"  TABLE     - a file with a set of scancode=keycode value pairs\n"
++	"  SCANKEY   - a set of scancode1=keycode1,scancode2=keycode2.. value pairs\n"
++	"  PROTOCOL  - protocol name (nec, rc-5, rc-6, jvc, sony, sanyo, rc-5-sz, lirc,\n"
++	"              sharp, mce_kbd, xmp, imon, other, all) to be enabled,\n"
++	"              or a bpf protocol name or file\n"
++	"  DELAY     - Delay before repeating a keystroke\n"
++	"  PERIOD    - Period to repeat a keystroke\n"
++	"  PARAMETER - a set of name1=number1,name2=number2 for the BPF prototcol\n"
++	"  CFGFILE   - configuration file that associates a driver/table name with\n"
++	"              a keymap file\n"
+ 	"\nOptions can be combined together.");
  
- 	$keyname = "";
-@@ -104,6 +111,7 @@ sub parse_file($$)
- 				next;
- 			}
- 			if (m/RC_PROTO_([\w\d_]+)/) {
-+				$variant = lc $1;
- 				$type = $1;
+ static const struct argp_option options[] = {
+@@ -240,6 +249,7 @@ static const struct argp_option options[] = {
+ 	{"write",	'w',	N_("TABLE"),	0,	N_("write (adds) the scancodes to the device scancode/keycode table from an specified file"), 0},
+ 	{"set-key",	'k',	N_("SCANKEY"),	0,	N_("Change scan/key pairs"), 0},
+ 	{"protocol",	'p',	N_("PROTOCOL"),	0,	N_("Protocol to enable (the other ones will be disabled). To enable more than one, use the option more than one time"), 0},
++	{"parameter",	'e',	N_("PARAMETER"), 0,	N_("Set a parameter for the protocol decoder")},
+ 	{"delay",	'D',	N_("DELAY"),	0,	N_("Sets the delay before repeating a keystroke"), 0},
+ 	{"period",	'P',	N_("PERIOD"),	0,	N_("Sets the period to repeat a keystroke"), 0},
+ 	{"auto-load",	'a',	N_("CFGFILE"),	0,	N_("Auto-load a table, based on a configuration file. Only works with sysdev."), 0},
+@@ -259,12 +269,27 @@ static char *devclass = NULL;
+ static char *devicename = NULL;
+ static int readtable = 0;
+ static int clear = 0;
+-static int debug = 0;
++int debug = 0;
+ static int test = 0;
+ static int delay = -1;
+ static int period = -1;
+ static enum sysfs_protocols ch_proto = 0;
  
- 				# Proper name the RC6 protocol
-@@ -114,13 +122,14 @@ sub parse_file($$)
++struct bpf_protocol {
++	struct bpf_protocol *next;
++	struct toml_table_t *toml;
++	char *name;
++};
++
++struct bpf_parameter {
++	struct bpf_parameter *next;
++	int value;
++	char name[0];
++};
++
++static struct bpf_protocol *bpf_protocol;
++static struct bpf_parameter *bpf_parameter;
++
+ struct cfgfile cfg = {
+ 	NULL, NULL, NULL, NULL
+ };
+@@ -407,15 +432,22 @@ static error_t parse_toml_protocol(struct toml_table_t *root, const char *p)
+ 	const char *raw;
+ 	int i = 0;
  
- 				# NECX protocol variant uses nec decoder
- 				$type =~ s/^NECX$/NEC/;
-+				$type = lc $type;
- 			}
- 			next;
++	proot = toml_table_in(root, p);
++
+ 	protocol = parse_sysfs_protocol(p, false);
+ 	if (protocol == SYSFS_INVALID) {
+-		fprintf(stderr, _("Protocol `%s' not known\n"), p);
+-		return EINVAL;
+-	}
++		struct bpf_protocol *b;
+ 
+-	ch_proto |= protocol;
++		b = malloc(sizeof(*b));
++		b->name = strdup(p);
++		b->toml = proot;
++		b->next = bpf_protocol;
++		bpf_protocol = b;
++	}
++	else {
++		ch_proto |= protocol;
++	}
+ 
+-	proot = toml_table_in(root, p);
+ 	if (!proot) {
+ 		if (debug)
+ 			fprintf(stderr, _("No [%s] section"), p);
+@@ -551,7 +583,8 @@ static error_t parse_toml_keyfile(char *fname, char **table)
  		}
+ 	}
  
- 		if ($read) {
- 			if (m/(0x[\dA-Fa-f]+)[\s\,]+(KEY|BTN)(\_[^\s\,\}]+)/) {
--				$out .= "$1 $2$3\n";
-+				$out .= "$1 = \"$2$3\"\n";
- 				next;
+-	toml_free(root);
++	// Don't free toml, this is used during bpf loading */
++	//toml_free(root);
+ 	return 0;
+ out:
+ 	toml_free(root);
+@@ -748,13 +781,62 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
+ 
+ 			protocol = parse_sysfs_protocol(p, true);
+ 			if (protocol == SYSFS_INVALID) {
+-				argp_error(state, _("Unknown protocol: %s"), p);
++				struct bpf_protocol *b;
++
++				b = malloc(sizeof(*b));
++				b->name = strdup(p);
++				b->toml = NULL;
++				b->next = bpf_protocol;
++				bpf_protocol = b;
++			}
++			else {
++				ch_proto |= protocol;
++			}
++		}
++		break;
++	case 'e':
++		p = strtok(arg, ":=");
++		do {
++			struct bpf_parameter *param;
++
++			if (!param) {
++				argp_error(state, _("Missing parameter name: %s"), arg);
+ 				break;
  			}
- 			if (m/\}/) {
-@@ -198,11 +207,11 @@ print OUT_MAP << "EOF";
- #		/etc/rc_keymaps.
- # For example:
- # driver	table				file
--# cx8800	*				./keycodes/rc5_hauppauge_new
--# *		rc-avermedia-m135a-rm-jx	./keycodes/kworld_315u
--# saa7134	rc-avermedia-m135a-rm-jx	./keycodes/keycodes/nec_terratec_cinergy_xs
--# em28xx	*				./keycodes/kworld_315u
--# *		*				./keycodes/rc5_hauppauge_new
-+# cx8800	*				./keycodes/rc5_hauppauge_new.toml
-+# *		rc-avermedia-m135a-rm-jx	./keycodes/kworld_315u.toml
-+# saa7134	rc-avermedia-m135a-rm-jx	./keycodes/keycodes/nec_terratec_cinergy_xs.toml
-+# em28xx	*				./keycodes/kworld_315u.toml
-+# *		*				./keycodes/rc5_hauppauge_new.toml
  
- # Table to automatically load the rc maps for the bundled IR's provided with the
- # devices supported by the linux kernel
-diff --git a/utils/keytable/ir-keytable.1.in b/utils/keytable/ir-keytable.1.in
-index db1843b3..795fd883 100644
---- a/utils/keytable/ir-keytable.1.in
-+++ b/utils/keytable/ir-keytable.1.in
-@@ -94,11 +94,11 @@ To list all connected Remote Controller devices:
- .PP
- To clean the keycode table and use a newer one:
- .br
--	\fBir\-keytable \-c \-w /etc/rc_keymaps/nec_terratec_cinergy_xs\fR
-+	\fBir\-keytable \-c \-w /etc/rc_keymaps/nec_terratec_cinergy_xs.toml\fR
- .PP
- To append more codes to the existing table:
- .br
--	\fBir\-keytable \-w /etc/rc_keymaps/nec_terratec_cinergy_xs\fR
-+	\fBir\-keytable \-w /etc/rc_keymaps/nec_terratec_cinergy_xs.toml\fR
- .PP
- To read the current keytable, on the second remote controller:
- 	\fBir\-keytable \-s rc1 \-r\fR
-diff --git a/utils/keytable/rc_keymaps/adstech_dvb_t_pci b/utils/keytable/rc_keymaps/adstech_dvb_t_pci
-deleted file mode 100644
-index df317cd7..00000000
---- a/utils/keytable/rc_keymaps/adstech_dvb_t_pci
-+++ /dev/null
-@@ -1,45 +0,0 @@
--# table adstech_dvb_t_pci, type: UNKNOWN
--0x4d KEY_0
--0x57 KEY_1
--0x4f KEY_2
--0x53 KEY_3
--0x56 KEY_4
--0x4e KEY_5
--0x5e KEY_6
--0x54 KEY_7
--0x4c KEY_8
--0x5c KEY_9
--0x5b KEY_POWER
--0x5f KEY_MUTE
--0x55 KEY_GOTO
--0x5d KEY_SEARCH
--0x17 KEY_EPG
--0x1f KEY_MENU
--0x0f KEY_UP
--0x46 KEY_DOWN
--0x16 KEY_LEFT
--0x1e KEY_RIGHT
--0x0e KEY_SELECT
--0x5a KEY_INFO
--0x52 KEY_EXIT
--0x59 KEY_PREVIOUS
--0x51 KEY_NEXT
--0x58 KEY_REWIND
--0x50 KEY_FORWARD
--0x44 KEY_PLAYPAUSE
--0x07 KEY_STOP
--0x1b KEY_RECORD
--0x13 KEY_TUNER
--0x0a KEY_A
--0x12 KEY_B
--0x03 KEY_RED
--0x01 KEY_GREEN
--0x00 KEY_YELLOW
--0x06 KEY_DVD
--0x48 KEY_AUX
--0x40 KEY_VIDEO
--0x19 KEY_AUDIO
--0x0b KEY_CHANNELUP
--0x08 KEY_CHANNELDOWN
--0x15 KEY_VOLUMEUP
--0x1c KEY_VOLUMEDOWN
-diff --git a/utils/keytable/rc_keymaps/adstech_dvb_t_pci.toml b/utils/keytable/rc_keymaps/adstech_dvb_t_pci.toml
-new file mode 100644
-index 00000000..14cc77f7
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/adstech_dvb_t_pci.toml
-@@ -0,0 +1,47 @@
-+name = "adstech_dvb_t_pci"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x4d = "KEY_0"
-+0x57 = "KEY_1"
-+0x4f = "KEY_2"
-+0x53 = "KEY_3"
-+0x56 = "KEY_4"
-+0x4e = "KEY_5"
-+0x5e = "KEY_6"
-+0x54 = "KEY_7"
-+0x4c = "KEY_8"
-+0x5c = "KEY_9"
-+0x5b = "KEY_POWER"
-+0x5f = "KEY_MUTE"
-+0x55 = "KEY_GOTO"
-+0x5d = "KEY_SEARCH"
-+0x17 = "KEY_EPG"
-+0x1f = "KEY_MENU"
-+0x0f = "KEY_UP"
-+0x46 = "KEY_DOWN"
-+0x16 = "KEY_LEFT"
-+0x1e = "KEY_RIGHT"
-+0x0e = "KEY_SELECT"
-+0x5a = "KEY_INFO"
-+0x52 = "KEY_EXIT"
-+0x59 = "KEY_PREVIOUS"
-+0x51 = "KEY_NEXT"
-+0x58 = "KEY_REWIND"
-+0x50 = "KEY_FORWARD"
-+0x44 = "KEY_PLAYPAUSE"
-+0x07 = "KEY_STOP"
-+0x1b = "KEY_RECORD"
-+0x13 = "KEY_TUNER"
-+0x0a = "KEY_A"
-+0x12 = "KEY_B"
-+0x03 = "KEY_RED"
-+0x01 = "KEY_GREEN"
-+0x00 = "KEY_YELLOW"
-+0x06 = "KEY_DVD"
-+0x48 = "KEY_AUX"
-+0x40 = "KEY_VIDEO"
-+0x19 = "KEY_AUDIO"
-+0x0b = "KEY_CHANNELUP"
-+0x08 = "KEY_CHANNELDOWN"
-+0x15 = "KEY_VOLUMEUP"
-+0x1c = "KEY_VOLUMEDOWN"
-diff --git a/utils/keytable/rc_keymaps/af9005 b/utils/keytable/rc_keymaps/af9005
-deleted file mode 100644
-index b5d32c38..00000000
---- a/utils/keytable/rc_keymaps/af9005
-+++ /dev/null
-@@ -1,37 +0,0 @@
--# table af9005, type: UNKNOWN
--0x01b7 KEY_POWER
--0x01a7 KEY_VOLUMEUP
--0x0187 KEY_CHANNELUP
--0x017f KEY_MUTE
--0x01bf KEY_VOLUMEDOWN
--0x013f KEY_CHANNELDOWN
--0x01df KEY_1
--0x015f KEY_2
--0x019f KEY_3
--0x011f KEY_4
--0x01ef KEY_5
--0x016f KEY_6
--0x01af KEY_7
--0x0127 KEY_8
--0x0107 KEY_9
--0x01cf KEY_ZOOM
--0x014f KEY_0
--0x018f KEY_GOTO
--0x00bd KEY_POWER
--0x007d KEY_VOLUMEUP
--0x00fd KEY_CHANNELUP
--0x009d KEY_MUTE
--0x005d KEY_VOLUMEDOWN
--0x00dd KEY_CHANNELDOWN
--0x00ad KEY_1
--0x006d KEY_2
--0x00ed KEY_3
--0x008d KEY_4
--0x004d KEY_5
--0x00cd KEY_6
--0x00b5 KEY_7
--0x0075 KEY_8
--0x00f5 KEY_9
--0x0095 KEY_ZOOM
--0x0055 KEY_0
--0x00d5 KEY_GOTO
-diff --git a/utils/keytable/rc_keymaps/af9005.toml b/utils/keytable/rc_keymaps/af9005.toml
-new file mode 100644
-index 00000000..a535e8e8
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/af9005.toml
-@@ -0,0 +1,39 @@
-+name = "af9005"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x01b7 = "KEY_POWER"
-+0x01a7 = "KEY_VOLUMEUP"
-+0x0187 = "KEY_CHANNELUP"
-+0x017f = "KEY_MUTE"
-+0x01bf = "KEY_VOLUMEDOWN"
-+0x013f = "KEY_CHANNELDOWN"
-+0x01df = "KEY_1"
-+0x015f = "KEY_2"
-+0x019f = "KEY_3"
-+0x011f = "KEY_4"
-+0x01ef = "KEY_5"
-+0x016f = "KEY_6"
-+0x01af = "KEY_7"
-+0x0127 = "KEY_8"
-+0x0107 = "KEY_9"
-+0x01cf = "KEY_ZOOM"
-+0x014f = "KEY_0"
-+0x018f = "KEY_GOTO"
-+0x00bd = "KEY_POWER"
-+0x007d = "KEY_VOLUMEUP"
-+0x00fd = "KEY_CHANNELUP"
-+0x009d = "KEY_MUTE"
-+0x005d = "KEY_VOLUMEDOWN"
-+0x00dd = "KEY_CHANNELDOWN"
-+0x00ad = "KEY_1"
-+0x006d = "KEY_2"
-+0x00ed = "KEY_3"
-+0x008d = "KEY_4"
-+0x004d = "KEY_5"
-+0x00cd = "KEY_6"
-+0x00b5 = "KEY_7"
-+0x0075 = "KEY_8"
-+0x00f5 = "KEY_9"
-+0x0095 = "KEY_ZOOM"
-+0x0055 = "KEY_0"
-+0x00d5 = "KEY_GOTO"
-diff --git a/utils/keytable/rc_keymaps/alink_dtu_m b/utils/keytable/rc_keymaps/alink_dtu_m
-deleted file mode 100644
-index 64a0d24b..00000000
---- a/utils/keytable/rc_keymaps/alink_dtu_m
-+++ /dev/null
-@@ -1,19 +0,0 @@
--# table alink_dtu_m, type: NEC
--0x0800 KEY_VOLUMEUP
--0x0801 KEY_1
--0x0802 KEY_3
--0x0803 KEY_7
--0x0804 KEY_9
--0x0805 KEY_NEW
--0x0806 KEY_0
--0x0807 KEY_CHANNEL
--0x080d KEY_5
--0x080f KEY_2
--0x0812 KEY_POWER2
--0x0814 KEY_CHANNELUP
--0x0816 KEY_VOLUMEDOWN
--0x0818 KEY_6
--0x081a KEY_MUTE
--0x081b KEY_8
--0x081c KEY_4
--0x081d KEY_CHANNELDOWN
-diff --git a/utils/keytable/rc_keymaps/alink_dtu_m.toml b/utils/keytable/rc_keymaps/alink_dtu_m.toml
-new file mode 100644
-index 00000000..830ffdd4
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/alink_dtu_m.toml
-@@ -0,0 +1,23 @@
-+name = "alink_dtu_m"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0800 = "KEY_VOLUMEUP"
-+0x0801 = "KEY_1"
-+0x0802 = "KEY_3"
-+0x0803 = "KEY_7"
-+0x0804 = "KEY_9"
-+0x0805 = "KEY_NEW"
-+0x0806 = "KEY_0"
-+0x0807 = "KEY_CHANNEL"
-+0x080d = "KEY_5"
-+0x080f = "KEY_2"
-+0x0812 = "KEY_POWER2"
-+0x0814 = "KEY_CHANNELUP"
-+0x0816 = "KEY_VOLUMEDOWN"
-+0x0818 = "KEY_6"
-+0x081a = "KEY_MUTE"
-+0x081b = "KEY_8"
-+0x081c = "KEY_4"
-+0x081d = "KEY_CHANNELDOWN"
-diff --git a/utils/keytable/rc_keymaps/allwinner_ba10_tv_box b/utils/keytable/rc_keymaps/allwinner_ba10_tv_box
-deleted file mode 100644
-index 5df16e31..00000000
---- a/utils/keytable/rc_keymaps/allwinner_ba10_tv_box
-+++ /dev/null
-@@ -1,15 +0,0 @@
--# table allwinner_ba10_tv_box, type: NEC
--0x206 KEY_UP
--0x216 KEY_VOLUMEDOWN
--0x217 KEY_NEXTSONG
--0x21a KEY_POWER
--0x21b KEY_BACK
--0x21e KEY_OK
--0x21f KEY_DOWN
--0x244 KEY_VOLUMEUP
--0x254 KEY_PREVIOUSSONG
--0x255 KEY_PLAYPAUSE
--0x258 KEY_MENU
--0x259 KEY_HOMEPAGE
--0x25c KEY_RIGHT
--0x25d KEY_LEFT
-diff --git a/utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box b/utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box
-deleted file mode 100644
-index e87717cd..00000000
---- a/utils/keytable/rc_keymaps/allwinner_i12_a20_tv_box
-+++ /dev/null
-@@ -1,28 +0,0 @@
--# table allwinner_i12_a20_tv_box, type: NEC
--0x00 KEY_7
--0x01 KEY_4
--0x02 KEY_1
--0x03 KEY_VOLUMEDOWN
--0x04 KEY_8
--0x05 KEY_5
--0x06 KEY_2
--0x07 KEY_BACK
--0x08 KEY_9
--0x09 KEY_6
--0x0a KEY_3
--0x0b KEY_NEXTSONG
--0x0c KEY_WWW
--0x0d KEY_0
--0x0e KEY_BACKSPACE
--0x40 KEY_VOLUMEUP
--0x41 KEY_LEFT
--0x42 KEY_HOMEPAGE
--0x43 KEY_POWER
--0x44 KEY_DOWN
--0x45 KEY_OK
--0x46 KEY_UP
--0x47 KEY_CONTEXT_MENU
--0x48 KEY_PREVIOUSSONG
--0x49 KEY_RIGHT
--0x4a KEY_MENU
--0x4b KEY_MUTE
-diff --git a/utils/keytable/rc_keymaps/anysee b/utils/keytable/rc_keymaps/anysee
-deleted file mode 100644
-index 5e0ac1de..00000000
---- a/utils/keytable/rc_keymaps/anysee
-+++ /dev/null
-@@ -1,45 +0,0 @@
--# table anysee, type: NEC
--0x0800 KEY_0
--0x0801 KEY_1
--0x0802 KEY_2
--0x0803 KEY_3
--0x0804 KEY_4
--0x0805 KEY_5
--0x0806 KEY_6
--0x0807 KEY_7
--0x0808 KEY_8
--0x0809 KEY_9
--0x080a KEY_POWER2
--0x080b KEY_VIDEO
--0x080c KEY_CHANNEL
--0x080d KEY_NEXT
--0x080e KEY_MENU
--0x080f KEY_EPG
--0x0810 KEY_CLEAR
--0x0811 KEY_CHANNELUP
--0x0812 KEY_VOLUMEDOWN
--0x0813 KEY_VOLUMEUP
--0x0814 KEY_CHANNELDOWN
--0x0815 KEY_OK
--0x0816 KEY_RADIO
--0x0817 KEY_INFO
--0x0818 KEY_PREVIOUS
--0x0819 KEY_FAVORITES
--0x081a KEY_SUBTITLE
--0x081b KEY_CAMERA
--0x081c KEY_YELLOW
--0x081d KEY_RED
--0x081e KEY_LANGUAGE
--0x081f KEY_GREEN
--0x0820 KEY_SLEEP
--0x0821 KEY_SCREEN
--0x0822 KEY_ZOOM
--0x0824 KEY_FN
--0x0825 KEY_FN
--0x0842 KEY_MUTE
--0x0844 KEY_BLUE
--0x0847 KEY_TEXT
--0x0848 KEY_STOP
--0x0849 KEY_RECORD
--0x0850 KEY_PLAY
--0x0851 KEY_PAUSE
-diff --git a/utils/keytable/rc_keymaps/anysee.toml b/utils/keytable/rc_keymaps/anysee.toml
-new file mode 100644
-index 00000000..e70751c4
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/anysee.toml
-@@ -0,0 +1,49 @@
-+name = "anysee"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0800 = "KEY_0"
-+0x0801 = "KEY_1"
-+0x0802 = "KEY_2"
-+0x0803 = "KEY_3"
-+0x0804 = "KEY_4"
-+0x0805 = "KEY_5"
-+0x0806 = "KEY_6"
-+0x0807 = "KEY_7"
-+0x0808 = "KEY_8"
-+0x0809 = "KEY_9"
-+0x080a = "KEY_POWER2"
-+0x080b = "KEY_VIDEO"
-+0x080c = "KEY_CHANNEL"
-+0x080d = "KEY_NEXT"
-+0x080e = "KEY_MENU"
-+0x080f = "KEY_EPG"
-+0x0810 = "KEY_CLEAR"
-+0x0811 = "KEY_CHANNELUP"
-+0x0812 = "KEY_VOLUMEDOWN"
-+0x0813 = "KEY_VOLUMEUP"
-+0x0814 = "KEY_CHANNELDOWN"
-+0x0815 = "KEY_OK"
-+0x0816 = "KEY_RADIO"
-+0x0817 = "KEY_INFO"
-+0x0818 = "KEY_PREVIOUS"
-+0x0819 = "KEY_FAVORITES"
-+0x081a = "KEY_SUBTITLE"
-+0x081b = "KEY_CAMERA"
-+0x081c = "KEY_YELLOW"
-+0x081d = "KEY_RED"
-+0x081e = "KEY_LANGUAGE"
-+0x081f = "KEY_GREEN"
-+0x0820 = "KEY_SLEEP"
-+0x0821 = "KEY_SCREEN"
-+0x0822 = "KEY_ZOOM"
-+0x0824 = "KEY_FN"
-+0x0825 = "KEY_FN"
-+0x0842 = "KEY_MUTE"
-+0x0844 = "KEY_BLUE"
-+0x0847 = "KEY_TEXT"
-+0x0848 = "KEY_STOP"
-+0x0849 = "KEY_RECORD"
-+0x0850 = "KEY_PLAY"
-+0x0851 = "KEY_PAUSE"
-diff --git a/utils/keytable/rc_keymaps/apac_viewcomp b/utils/keytable/rc_keymaps/apac_viewcomp
-deleted file mode 100644
-index 13e4232a..00000000
---- a/utils/keytable/rc_keymaps/apac_viewcomp
-+++ /dev/null
-@@ -1,32 +0,0 @@
--# table apac_viewcomp, type: UNKNOWN
--0x01 KEY_1
--0x02 KEY_2
--0x03 KEY_3
--0x04 KEY_4
--0x05 KEY_5
--0x06 KEY_6
--0x07 KEY_7
--0x08 KEY_8
--0x09 KEY_9
--0x00 KEY_0
--0x17 KEY_LAST
--0x0a KEY_LIST
--0x1c KEY_TUNER
--0x15 KEY_SEARCH
--0x12 KEY_POWER
--0x1f KEY_VOLUMEDOWN
--0x1b KEY_VOLUMEUP
--0x1e KEY_CHANNELDOWN
--0x1a KEY_CHANNELUP
--0x11 KEY_VIDEO
--0x0f KEY_ZOOM
--0x13 KEY_MUTE
--0x10 KEY_TEXT
--0x0d KEY_STOP
--0x0e KEY_RECORD
--0x1d KEY_PLAYPAUSE
--0x19 KEY_PLAY
--0x16 KEY_GOTO
--0x14 KEY_REFRESH
--0x0c KEY_KPPLUS
--0x18 KEY_KPMINUS
-diff --git a/utils/keytable/rc_keymaps/apac_viewcomp.toml b/utils/keytable/rc_keymaps/apac_viewcomp.toml
-new file mode 100644
-index 00000000..ac7be9e4
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/apac_viewcomp.toml
-@@ -0,0 +1,34 @@
-+name = "apac_viewcomp"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x01 = "KEY_1"
-+0x02 = "KEY_2"
-+0x03 = "KEY_3"
-+0x04 = "KEY_4"
-+0x05 = "KEY_5"
-+0x06 = "KEY_6"
-+0x07 = "KEY_7"
-+0x08 = "KEY_8"
-+0x09 = "KEY_9"
-+0x00 = "KEY_0"
-+0x17 = "KEY_LAST"
-+0x0a = "KEY_LIST"
-+0x1c = "KEY_TUNER"
-+0x15 = "KEY_SEARCH"
-+0x12 = "KEY_POWER"
-+0x1f = "KEY_VOLUMEDOWN"
-+0x1b = "KEY_VOLUMEUP"
-+0x1e = "KEY_CHANNELDOWN"
-+0x1a = "KEY_CHANNELUP"
-+0x11 = "KEY_VIDEO"
-+0x0f = "KEY_ZOOM"
-+0x13 = "KEY_MUTE"
-+0x10 = "KEY_TEXT"
-+0x0d = "KEY_STOP"
-+0x0e = "KEY_RECORD"
-+0x1d = "KEY_PLAYPAUSE"
-+0x19 = "KEY_PLAY"
-+0x16 = "KEY_GOTO"
-+0x14 = "KEY_REFRESH"
-+0x0c = "KEY_KPPLUS"
-+0x18 = "KEY_KPMINUS"
-diff --git a/utils/keytable/rc_keymaps/astrometa_t2hybrid b/utils/keytable/rc_keymaps/astrometa_t2hybrid
-deleted file mode 100644
-index 17a3b1a6..00000000
---- a/utils/keytable/rc_keymaps/astrometa_t2hybrid
-+++ /dev/null
-@@ -1,22 +0,0 @@
--# table astrometa_t2hybrid, type: NEC
--0x4d KEY_POWER2
--0x54 KEY_VIDEO
--0x16 KEY_MUTE
--0x4c KEY_RECORD
--0x05 KEY_CHANNELUP
--0x0c KEY_TIME
--0x0a KEY_VOLUMEDOWN
--0x40 KEY_ZOOM
--0x1e KEY_VOLUMEUP
--0x12 KEY_0
--0x02 KEY_CHANNELDOWN
--0x1c KEY_AGAIN
--0x09 KEY_1
--0x1d KEY_2
--0x1f KEY_3
--0x0d KEY_4
--0x19 KEY_5
--0x1b KEY_6
--0x11 KEY_7
--0x15 KEY_8
--0x17 KEY_9
-diff --git a/utils/keytable/rc_keymaps/astrometa_t2hybrid.toml b/utils/keytable/rc_keymaps/astrometa_t2hybrid.toml
-new file mode 100644
-index 00000000..c9e1ddd2
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/astrometa_t2hybrid.toml
-@@ -0,0 +1,26 @@
-+name = "astrometa_t2hybrid"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x4d = "KEY_POWER2"
-+0x54 = "KEY_VIDEO"
-+0x16 = "KEY_MUTE"
-+0x4c = "KEY_RECORD"
-+0x05 = "KEY_CHANNELUP"
-+0x0c = "KEY_TIME"
-+0x0a = "KEY_VOLUMEDOWN"
-+0x40 = "KEY_ZOOM"
-+0x1e = "KEY_VOLUMEUP"
-+0x12 = "KEY_0"
-+0x02 = "KEY_CHANNELDOWN"
-+0x1c = "KEY_AGAIN"
-+0x09 = "KEY_1"
-+0x1d = "KEY_2"
-+0x1f = "KEY_3"
-+0x0d = "KEY_4"
-+0x19 = "KEY_5"
-+0x1b = "KEY_6"
-+0x11 = "KEY_7"
-+0x15 = "KEY_8"
-+0x17 = "KEY_9"
-diff --git a/utils/keytable/rc_keymaps/asus_pc39 b/utils/keytable/rc_keymaps/asus_pc39
-deleted file mode 100644
-index e498751f..00000000
---- a/utils/keytable/rc_keymaps/asus_pc39
-+++ /dev/null
-@@ -1,40 +0,0 @@
--# table asus_pc39, type: RC5
--0x082a KEY_0
--0x0816 KEY_1
--0x0812 KEY_2
--0x0814 KEY_3
--0x0836 KEY_4
--0x0832 KEY_5
--0x0834 KEY_6
--0x080e KEY_7
--0x080a KEY_8
--0x080c KEY_9
--0x0801 KEY_RADIO
--0x083c KEY_MENU
--0x0815 KEY_VOLUMEUP
--0x0826 KEY_VOLUMEDOWN
--0x0808 KEY_UP
--0x0804 KEY_DOWN
--0x0818 KEY_LEFT
--0x0810 KEY_RIGHT
--0x081a KEY_VIDEO
--0x0806 KEY_AUDIO
--0x081e KEY_TV
--0x0822 KEY_EXIT
--0x0835 KEY_CHANNELUP
--0x0824 KEY_CHANNELDOWN
--0x0825 KEY_ENTER
--0x0839 KEY_PAUSE
--0x0821 KEY_PREVIOUS
--0x0819 KEY_NEXT
--0x0831 KEY_REWIND
--0x0805 KEY_FASTFORWARD
--0x0809 KEY_STOP
--0x0811 KEY_RECORD
--0x0829 KEY_POWER
--0x082e KEY_ZOOM
--0x082c KEY_MACRO
--0x081c KEY_HOME
--0x083a KEY_PVR
--0x0802 KEY_MUTE
--0x083e KEY_DVD
-diff --git a/utils/keytable/rc_keymaps/asus_pc39.toml b/utils/keytable/rc_keymaps/asus_pc39.toml
-new file mode 100644
-index 00000000..6093650d
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/asus_pc39.toml
-@@ -0,0 +1,44 @@
-+name = "asus_pc39"
-+protocol = "rc5"
-+[rc5]
-+variant = "rc5"
-+[rc5.scancodes]
-+0x082a = "KEY_0"
-+0x0816 = "KEY_1"
-+0x0812 = "KEY_2"
-+0x0814 = "KEY_3"
-+0x0836 = "KEY_4"
-+0x0832 = "KEY_5"
-+0x0834 = "KEY_6"
-+0x080e = "KEY_7"
-+0x080a = "KEY_8"
-+0x080c = "KEY_9"
-+0x0801 = "KEY_RADIO"
-+0x083c = "KEY_MENU"
-+0x0815 = "KEY_VOLUMEUP"
-+0x0826 = "KEY_VOLUMEDOWN"
-+0x0808 = "KEY_UP"
-+0x0804 = "KEY_DOWN"
-+0x0818 = "KEY_LEFT"
-+0x0810 = "KEY_RIGHT"
-+0x081a = "KEY_VIDEO"
-+0x0806 = "KEY_AUDIO"
-+0x081e = "KEY_TV"
-+0x0822 = "KEY_EXIT"
-+0x0835 = "KEY_CHANNELUP"
-+0x0824 = "KEY_CHANNELDOWN"
-+0x0825 = "KEY_ENTER"
-+0x0839 = "KEY_PAUSE"
-+0x0821 = "KEY_PREVIOUS"
-+0x0819 = "KEY_NEXT"
-+0x0831 = "KEY_REWIND"
-+0x0805 = "KEY_FASTFORWARD"
-+0x0809 = "KEY_STOP"
-+0x0811 = "KEY_RECORD"
-+0x0829 = "KEY_POWER"
-+0x082e = "KEY_ZOOM"
-+0x082c = "KEY_MACRO"
-+0x081c = "KEY_HOME"
-+0x083a = "KEY_PVR"
-+0x0802 = "KEY_MUTE"
-+0x083e = "KEY_DVD"
-diff --git a/utils/keytable/rc_keymaps/asus_ps3_100 b/utils/keytable/rc_keymaps/asus_ps3_100
-deleted file mode 100644
-index 240a6b24..00000000
---- a/utils/keytable/rc_keymaps/asus_ps3_100
-+++ /dev/null
-@@ -1,42 +0,0 @@
--# table asus_ps3_100, type: RC5
--0x081c KEY_HOME
--0x081e KEY_TV
--0x0803 KEY_TEXT
--0x0829 KEY_POWER
--0x080b KEY_RED
--0x080d KEY_YELLOW
--0x0806 KEY_BLUE
--0x0807 KEY_GREEN
--0x082a KEY_0
--0x0816 KEY_1
--0x0812 KEY_2
--0x0814 KEY_3
--0x0836 KEY_4
--0x0832 KEY_5
--0x0834 KEY_6
--0x080e KEY_7
--0x080a KEY_8
--0x080c KEY_9
--0x0815 KEY_VOLUMEUP
--0x0826 KEY_VOLUMEDOWN
--0x0835 KEY_CHANNELUP
--0x0824 KEY_CHANNELDOWN
--0x0808 KEY_UP
--0x0804 KEY_DOWN
--0x0818 KEY_LEFT
--0x0810 KEY_RIGHT
--0x0825 KEY_ENTER
--0x0822 KEY_EXIT
--0x082c KEY_AB
--0x0820 KEY_AUDIO
--0x0837 KEY_SCREEN
--0x082e KEY_ZOOM
--0x0802 KEY_MUTE
--0x0831 KEY_REWIND
--0x0811 KEY_RECORD
--0x0809 KEY_STOP
--0x0805 KEY_FASTFORWARD
--0x0821 KEY_PREVIOUS
--0x081a KEY_PAUSE
--0x0839 KEY_PLAY
--0x0819 KEY_NEXT
-diff --git a/utils/keytable/rc_keymaps/asus_ps3_100.toml b/utils/keytable/rc_keymaps/asus_ps3_100.toml
-new file mode 100644
-index 00000000..5c43bd39
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/asus_ps3_100.toml
-@@ -0,0 +1,46 @@
-+name = "asus_ps3_100"
-+protocol = "rc5"
-+[rc5]
-+variant = "rc5"
-+[rc5.scancodes]
-+0x081c = "KEY_HOME"
-+0x081e = "KEY_TV"
-+0x0803 = "KEY_TEXT"
-+0x0829 = "KEY_POWER"
-+0x080b = "KEY_RED"
-+0x080d = "KEY_YELLOW"
-+0x0806 = "KEY_BLUE"
-+0x0807 = "KEY_GREEN"
-+0x082a = "KEY_0"
-+0x0816 = "KEY_1"
-+0x0812 = "KEY_2"
-+0x0814 = "KEY_3"
-+0x0836 = "KEY_4"
-+0x0832 = "KEY_5"
-+0x0834 = "KEY_6"
-+0x080e = "KEY_7"
-+0x080a = "KEY_8"
-+0x080c = "KEY_9"
-+0x0815 = "KEY_VOLUMEUP"
-+0x0826 = "KEY_VOLUMEDOWN"
-+0x0835 = "KEY_CHANNELUP"
-+0x0824 = "KEY_CHANNELDOWN"
-+0x0808 = "KEY_UP"
-+0x0804 = "KEY_DOWN"
-+0x0818 = "KEY_LEFT"
-+0x0810 = "KEY_RIGHT"
-+0x0825 = "KEY_ENTER"
-+0x0822 = "KEY_EXIT"
-+0x082c = "KEY_AB"
-+0x0820 = "KEY_AUDIO"
-+0x0837 = "KEY_SCREEN"
-+0x082e = "KEY_ZOOM"
-+0x0802 = "KEY_MUTE"
-+0x0831 = "KEY_REWIND"
-+0x0811 = "KEY_RECORD"
-+0x0809 = "KEY_STOP"
-+0x0805 = "KEY_FASTFORWARD"
-+0x0821 = "KEY_PREVIOUS"
-+0x081a = "KEY_PAUSE"
-+0x0839 = "KEY_PLAY"
-+0x0819 = "KEY_NEXT"
-diff --git a/utils/keytable/rc_keymaps/ati_tv_wonder_hd_600 b/utils/keytable/rc_keymaps/ati_tv_wonder_hd_600
-deleted file mode 100644
-index bd9b93db..00000000
---- a/utils/keytable/rc_keymaps/ati_tv_wonder_hd_600
-+++ /dev/null
-@@ -1,25 +0,0 @@
--# table ati_tv_wonder_hd_600, type: UNKNOWN
--0x00 KEY_RECORD
--0x01 KEY_PLAYPAUSE
--0x02 KEY_STOP
--0x03 KEY_POWER
--0x04 KEY_PREVIOUS
--0x05 KEY_REWIND
--0x06 KEY_FORWARD
--0x07 KEY_NEXT
--0x08 KEY_EPG
--0x09 KEY_HOME
--0x0a KEY_MENU
--0x0b KEY_CHANNELUP
--0x0c KEY_BACK
--0x0d KEY_UP
--0x0e KEY_INFO
--0x0f KEY_CHANNELDOWN
--0x10 KEY_LEFT
--0x11 KEY_SELECT
--0x12 KEY_RIGHT
--0x13 KEY_VOLUMEUP
--0x14 KEY_LAST
--0x15 KEY_DOWN
--0x16 KEY_MUTE
--0x17 KEY_VOLUMEDOWN
-diff --git a/utils/keytable/rc_keymaps/ati_tv_wonder_hd_600.toml b/utils/keytable/rc_keymaps/ati_tv_wonder_hd_600.toml
-new file mode 100644
-index 00000000..37a07e7c
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/ati_tv_wonder_hd_600.toml
-@@ -0,0 +1,27 @@
-+name = "ati_tv_wonder_hd_600"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x00 = "KEY_RECORD"
-+0x01 = "KEY_PLAYPAUSE"
-+0x02 = "KEY_STOP"
-+0x03 = "KEY_POWER"
-+0x04 = "KEY_PREVIOUS"
-+0x05 = "KEY_REWIND"
-+0x06 = "KEY_FORWARD"
-+0x07 = "KEY_NEXT"
-+0x08 = "KEY_EPG"
-+0x09 = "KEY_HOME"
-+0x0a = "KEY_MENU"
-+0x0b = "KEY_CHANNELUP"
-+0x0c = "KEY_BACK"
-+0x0d = "KEY_UP"
-+0x0e = "KEY_INFO"
-+0x0f = "KEY_CHANNELDOWN"
-+0x10 = "KEY_LEFT"
-+0x11 = "KEY_SELECT"
-+0x12 = "KEY_RIGHT"
-+0x13 = "KEY_VOLUMEUP"
-+0x14 = "KEY_LAST"
-+0x15 = "KEY_DOWN"
-+0x16 = "KEY_MUTE"
-+0x17 = "KEY_VOLUMEDOWN"
-diff --git a/utils/keytable/rc_keymaps/ati_x10 b/utils/keytable/rc_keymaps/ati_x10
-deleted file mode 100644
-index 09219d1d..00000000
---- a/utils/keytable/rc_keymaps/ati_x10
-+++ /dev/null
-@@ -1,49 +0,0 @@
--# table ati_x10, type: OTHER
--0x00 KEY_A
--0x01 KEY_B
--0x02 KEY_POWER
--0x03 KEY_TV
--0x04 KEY_DVD
--0x05 KEY_WWW
--0x06 KEY_BOOKMARKS
--0x07 KEY_EDIT
--0x09 KEY_VOLUMEDOWN
--0x08 KEY_VOLUMEUP
--0x0a KEY_MUTE
--0x0b KEY_CHANNELUP
--0x0c KEY_CHANNELDOWN
--0x0d KEY_1
--0x0e KEY_2
--0x0f KEY_3
--0x10 KEY_4
--0x11 KEY_5
--0x12 KEY_6
--0x13 KEY_7
--0x14 KEY_8
--0x15 KEY_9
--0x16 KEY_MENU
--0x17 KEY_0
--0x18 KEY_SETUP
--0x19 KEY_C
--0x1a KEY_UP
--0x1b KEY_D
--0x1c KEY_PROPS
--0x1d KEY_LEFT
--0x1e KEY_OK
--0x1f KEY_RIGHT
--0x20 KEY_SCREEN
--0x21 KEY_E
--0x22 KEY_DOWN
--0x23 KEY_F
--0x24 KEY_REWIND
--0x25 KEY_PLAY
--0x26 KEY_FASTFORWARD
--0x27 KEY_RECORD
--0x28 KEY_STOPCD
--0x29 KEY_PAUSE
--0x2a KEY_NEXT
--0x2b KEY_PREVIOUS
--0x2d KEY_INFO
--0x2e KEY_HOME
--0x2f KEY_END
--0x30 KEY_SELECT
-diff --git a/utils/keytable/rc_keymaps/ati_x10.toml b/utils/keytable/rc_keymaps/ati_x10.toml
-new file mode 100644
-index 00000000..1b055923
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/ati_x10.toml
-@@ -0,0 +1,51 @@
-+name = "ati_x10"
-+protocol = "other"
-+[other.scancodes]
-+0x00 = "KEY_A"
-+0x01 = "KEY_B"
-+0x02 = "KEY_POWER"
-+0x03 = "KEY_TV"
-+0x04 = "KEY_DVD"
-+0x05 = "KEY_WWW"
-+0x06 = "KEY_BOOKMARKS"
-+0x07 = "KEY_EDIT"
-+0x09 = "KEY_VOLUMEDOWN"
-+0x08 = "KEY_VOLUMEUP"
-+0x0a = "KEY_MUTE"
-+0x0b = "KEY_CHANNELUP"
-+0x0c = "KEY_CHANNELDOWN"
-+0x0d = "KEY_1"
-+0x0e = "KEY_2"
-+0x0f = "KEY_3"
-+0x10 = "KEY_4"
-+0x11 = "KEY_5"
-+0x12 = "KEY_6"
-+0x13 = "KEY_7"
-+0x14 = "KEY_8"
-+0x15 = "KEY_9"
-+0x16 = "KEY_MENU"
-+0x17 = "KEY_0"
-+0x18 = "KEY_SETUP"
-+0x19 = "KEY_C"
-+0x1a = "KEY_UP"
-+0x1b = "KEY_D"
-+0x1c = "KEY_PROPS"
-+0x1d = "KEY_LEFT"
-+0x1e = "KEY_OK"
-+0x1f = "KEY_RIGHT"
-+0x20 = "KEY_SCREEN"
-+0x21 = "KEY_E"
-+0x22 = "KEY_DOWN"
-+0x23 = "KEY_F"
-+0x24 = "KEY_REWIND"
-+0x25 = "KEY_PLAY"
-+0x26 = "KEY_FASTFORWARD"
-+0x27 = "KEY_RECORD"
-+0x28 = "KEY_STOPCD"
-+0x29 = "KEY_PAUSE"
-+0x2a = "KEY_NEXT"
-+0x2b = "KEY_PREVIOUS"
-+0x2d = "KEY_INFO"
-+0x2e = "KEY_HOME"
-+0x2f = "KEY_END"
-+0x30 = "KEY_SELECT"
-diff --git a/utils/keytable/rc_keymaps/avermedia b/utils/keytable/rc_keymaps/avermedia
-deleted file mode 100644
-index d6939add..00000000
---- a/utils/keytable/rc_keymaps/avermedia
-+++ /dev/null
-@@ -1,37 +0,0 @@
--# table avermedia, type: UNKNOWN
--0x28 KEY_1
--0x18 KEY_2
--0x38 KEY_3
--0x24 KEY_4
--0x14 KEY_5
--0x34 KEY_6
--0x2c KEY_7
--0x1c KEY_8
--0x3c KEY_9
--0x22 KEY_0
--0x20 KEY_TV
--0x10 KEY_CD
--0x30 KEY_TEXT
--0x00 KEY_POWER
--0x08 KEY_VIDEO
--0x04 KEY_AUDIO
--0x0c KEY_ZOOM
--0x12 KEY_SUBTITLE
--0x32 KEY_REWIND
--0x02 KEY_PRINT
--0x2a KEY_SEARCH
--0x1a KEY_SLEEP
--0x3a KEY_CAMERA
--0x0a KEY_MUTE
--0x26 KEY_RECORD
--0x16 KEY_PAUSE
--0x36 KEY_STOP
--0x06 KEY_PLAY
--0x2e KEY_RED
--0x21 KEY_GREEN
--0x0e KEY_YELLOW
--0x01 KEY_BLUE
--0x1e KEY_VOLUMEDOWN
--0x3e KEY_VOLUMEUP
--0x11 KEY_CHANNELDOWN
--0x31 KEY_CHANNELUP
-diff --git a/utils/keytable/rc_keymaps/avermedia.toml b/utils/keytable/rc_keymaps/avermedia.toml
-new file mode 100644
-index 00000000..4822424c
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avermedia.toml
-@@ -0,0 +1,39 @@
-+name = "avermedia"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x28 = "KEY_1"
-+0x18 = "KEY_2"
-+0x38 = "KEY_3"
-+0x24 = "KEY_4"
-+0x14 = "KEY_5"
-+0x34 = "KEY_6"
-+0x2c = "KEY_7"
-+0x1c = "KEY_8"
-+0x3c = "KEY_9"
-+0x22 = "KEY_0"
-+0x20 = "KEY_TV"
-+0x10 = "KEY_CD"
-+0x30 = "KEY_TEXT"
-+0x00 = "KEY_POWER"
-+0x08 = "KEY_VIDEO"
-+0x04 = "KEY_AUDIO"
-+0x0c = "KEY_ZOOM"
-+0x12 = "KEY_SUBTITLE"
-+0x32 = "KEY_REWIND"
-+0x02 = "KEY_PRINT"
-+0x2a = "KEY_SEARCH"
-+0x1a = "KEY_SLEEP"
-+0x3a = "KEY_CAMERA"
-+0x0a = "KEY_MUTE"
-+0x26 = "KEY_RECORD"
-+0x16 = "KEY_PAUSE"
-+0x36 = "KEY_STOP"
-+0x06 = "KEY_PLAY"
-+0x2e = "KEY_RED"
-+0x21 = "KEY_GREEN"
-+0x0e = "KEY_YELLOW"
-+0x01 = "KEY_BLUE"
-+0x1e = "KEY_VOLUMEDOWN"
-+0x3e = "KEY_VOLUMEUP"
-+0x11 = "KEY_CHANNELDOWN"
-+0x31 = "KEY_CHANNELUP"
-diff --git a/utils/keytable/rc_keymaps/avermedia_a16d b/utils/keytable/rc_keymaps/avermedia_a16d
-deleted file mode 100644
-index ccbafe7a..00000000
---- a/utils/keytable/rc_keymaps/avermedia_a16d
-+++ /dev/null
-@@ -1,35 +0,0 @@
--# table avermedia_a16d, type: UNKNOWN
--0x20 KEY_LIST
--0x00 KEY_POWER
--0x28 KEY_1
--0x18 KEY_2
--0x38 KEY_3
--0x24 KEY_4
--0x14 KEY_5
--0x34 KEY_6
--0x2c KEY_7
--0x1c KEY_8
--0x3c KEY_9
--0x12 KEY_SUBTITLE
--0x22 KEY_0
--0x32 KEY_REWIND
--0x3a KEY_SHUFFLE
--0x02 KEY_PRINT
--0x11 KEY_CHANNELDOWN
--0x31 KEY_CHANNELUP
--0x0c KEY_ZOOM
--0x1e KEY_VOLUMEDOWN
--0x3e KEY_VOLUMEUP
--0x0a KEY_MUTE
--0x04 KEY_AUDIO
--0x26 KEY_RECORD
--0x06 KEY_PLAY
--0x36 KEY_STOP
--0x16 KEY_PAUSE
--0x2e KEY_REWIND
--0x0e KEY_FASTFORWARD
--0x30 KEY_TEXT
--0x21 KEY_GREEN
--0x01 KEY_BLUE
--0x08 KEY_EPG
--0x2a KEY_MENU
-diff --git a/utils/keytable/rc_keymaps/avermedia_a16d.toml b/utils/keytable/rc_keymaps/avermedia_a16d.toml
-new file mode 100644
-index 00000000..e1aff583
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avermedia_a16d.toml
-@@ -0,0 +1,37 @@
-+name = "avermedia_a16d"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x20 = "KEY_LIST"
-+0x00 = "KEY_POWER"
-+0x28 = "KEY_1"
-+0x18 = "KEY_2"
-+0x38 = "KEY_3"
-+0x24 = "KEY_4"
-+0x14 = "KEY_5"
-+0x34 = "KEY_6"
-+0x2c = "KEY_7"
-+0x1c = "KEY_8"
-+0x3c = "KEY_9"
-+0x12 = "KEY_SUBTITLE"
-+0x22 = "KEY_0"
-+0x32 = "KEY_REWIND"
-+0x3a = "KEY_SHUFFLE"
-+0x02 = "KEY_PRINT"
-+0x11 = "KEY_CHANNELDOWN"
-+0x31 = "KEY_CHANNELUP"
-+0x0c = "KEY_ZOOM"
-+0x1e = "KEY_VOLUMEDOWN"
-+0x3e = "KEY_VOLUMEUP"
-+0x0a = "KEY_MUTE"
-+0x04 = "KEY_AUDIO"
-+0x26 = "KEY_RECORD"
-+0x06 = "KEY_PLAY"
-+0x36 = "KEY_STOP"
-+0x16 = "KEY_PAUSE"
-+0x2e = "KEY_REWIND"
-+0x0e = "KEY_FASTFORWARD"
-+0x30 = "KEY_TEXT"
-+0x21 = "KEY_GREEN"
-+0x01 = "KEY_BLUE"
-+0x08 = "KEY_EPG"
-+0x2a = "KEY_MENU"
-diff --git a/utils/keytable/rc_keymaps/avermedia_cardbus b/utils/keytable/rc_keymaps/avermedia_cardbus
-deleted file mode 100644
-index c4e4d369..00000000
---- a/utils/keytable/rc_keymaps/avermedia_cardbus
-+++ /dev/null
-@@ -1,55 +0,0 @@
--# table avermedia_cardbus, type: UNKNOWN
--0x00 KEY_POWER
--0x01 KEY_TUNER
--0x03 KEY_TEXT
--0x04 KEY_EPG
--0x05 KEY_1
--0x06 KEY_2
--0x07 KEY_3
--0x08 KEY_AUDIO
--0x09 KEY_4
--0x0a KEY_5
--0x0b KEY_6
--0x0c KEY_ZOOM
--0x0d KEY_7
--0x0e KEY_8
--0x0f KEY_9
--0x10 KEY_PAGEUP
--0x11 KEY_0
--0x12 KEY_INFO
--0x13 KEY_AGAIN
--0x14 KEY_MUTE
--0x15 KEY_EDIT
--0x17 KEY_SAVE
--0x18 KEY_PLAYPAUSE
--0x19 KEY_RECORD
--0x1a KEY_PLAY
--0x1b KEY_STOP
--0x1c KEY_FASTFORWARD
--0x1d KEY_REWIND
--0x1e KEY_VOLUMEDOWN
--0x1f KEY_VOLUMEUP
--0x22 KEY_SLEEP
--0x23 KEY_ZOOM
--0x26 KEY_SCREEN
--0x27 KEY_ANGLE
--0x28 KEY_SELECT
--0x29 KEY_BLUE
--0x2a KEY_BACKSPACE
--0x2b KEY_VIDEO
--0x2c KEY_DOWN
--0x2e KEY_DOT
--0x2f KEY_TV
--0x32 KEY_LEFT
--0x33 KEY_CLEAR
--0x35 KEY_RED
--0x36 KEY_UP
--0x37 KEY_HOME
--0x39 KEY_GREEN
--0x3d KEY_YELLOW
--0x3e KEY_OK
--0x3f KEY_RIGHT
--0x40 KEY_NEXT
--0x41 KEY_PREVIOUS
--0x42 KEY_CHANNELDOWN
--0x43 KEY_CHANNELUP
-diff --git a/utils/keytable/rc_keymaps/avermedia_cardbus.toml b/utils/keytable/rc_keymaps/avermedia_cardbus.toml
-new file mode 100644
-index 00000000..bf96cbc4
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avermedia_cardbus.toml
-@@ -0,0 +1,57 @@
-+name = "avermedia_cardbus"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x00 = "KEY_POWER"
-+0x01 = "KEY_TUNER"
-+0x03 = "KEY_TEXT"
-+0x04 = "KEY_EPG"
-+0x05 = "KEY_1"
-+0x06 = "KEY_2"
-+0x07 = "KEY_3"
-+0x08 = "KEY_AUDIO"
-+0x09 = "KEY_4"
-+0x0a = "KEY_5"
-+0x0b = "KEY_6"
-+0x0c = "KEY_ZOOM"
-+0x0d = "KEY_7"
-+0x0e = "KEY_8"
-+0x0f = "KEY_9"
-+0x10 = "KEY_PAGEUP"
-+0x11 = "KEY_0"
-+0x12 = "KEY_INFO"
-+0x13 = "KEY_AGAIN"
-+0x14 = "KEY_MUTE"
-+0x15 = "KEY_EDIT"
-+0x17 = "KEY_SAVE"
-+0x18 = "KEY_PLAYPAUSE"
-+0x19 = "KEY_RECORD"
-+0x1a = "KEY_PLAY"
-+0x1b = "KEY_STOP"
-+0x1c = "KEY_FASTFORWARD"
-+0x1d = "KEY_REWIND"
-+0x1e = "KEY_VOLUMEDOWN"
-+0x1f = "KEY_VOLUMEUP"
-+0x22 = "KEY_SLEEP"
-+0x23 = "KEY_ZOOM"
-+0x26 = "KEY_SCREEN"
-+0x27 = "KEY_ANGLE"
-+0x28 = "KEY_SELECT"
-+0x29 = "KEY_BLUE"
-+0x2a = "KEY_BACKSPACE"
-+0x2b = "KEY_VIDEO"
-+0x2c = "KEY_DOWN"
-+0x2e = "KEY_DOT"
-+0x2f = "KEY_TV"
-+0x32 = "KEY_LEFT"
-+0x33 = "KEY_CLEAR"
-+0x35 = "KEY_RED"
-+0x36 = "KEY_UP"
-+0x37 = "KEY_HOME"
-+0x39 = "KEY_GREEN"
-+0x3d = "KEY_YELLOW"
-+0x3e = "KEY_OK"
-+0x3f = "KEY_RIGHT"
-+0x40 = "KEY_NEXT"
-+0x41 = "KEY_PREVIOUS"
-+0x42 = "KEY_CHANNELDOWN"
-+0x43 = "KEY_CHANNELUP"
-diff --git a/utils/keytable/rc_keymaps/avermedia_dvbt b/utils/keytable/rc_keymaps/avermedia_dvbt
-deleted file mode 100644
-index f939f390..00000000
---- a/utils/keytable/rc_keymaps/avermedia_dvbt
-+++ /dev/null
-@@ -1,35 +0,0 @@
--# table avermedia_dvbt, type: UNKNOWN
--0x28 KEY_0
--0x22 KEY_1
--0x12 KEY_2
--0x32 KEY_3
--0x24 KEY_4
--0x14 KEY_5
--0x34 KEY_6
--0x26 KEY_7
--0x16 KEY_8
--0x36 KEY_9
--0x20 KEY_VIDEO
--0x10 KEY_TEXT
--0x00 KEY_POWER
--0x04 KEY_AUDIO
--0x06 KEY_ZOOM
--0x18 KEY_SWITCHVIDEOMODE
--0x38 KEY_SEARCH
--0x08 KEY_INFO
--0x2a KEY_REWIND
--0x1a KEY_FASTFORWARD
--0x3a KEY_RECORD
--0x0a KEY_MUTE
--0x2c KEY_RECORD
--0x1c KEY_PAUSE
--0x3c KEY_STOP
--0x0c KEY_PLAY
--0x2e KEY_RED
--0x01 KEY_BLUE
--0x0e KEY_YELLOW
--0x21 KEY_GREEN
--0x11 KEY_CHANNELDOWN
--0x31 KEY_CHANNELUP
--0x1e KEY_VOLUMEDOWN
--0x3e KEY_VOLUMEUP
-diff --git a/utils/keytable/rc_keymaps/avermedia_dvbt.toml b/utils/keytable/rc_keymaps/avermedia_dvbt.toml
-new file mode 100644
-index 00000000..7f171a63
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avermedia_dvbt.toml
-@@ -0,0 +1,37 @@
-+name = "avermedia_dvbt"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x28 = "KEY_0"
-+0x22 = "KEY_1"
-+0x12 = "KEY_2"
-+0x32 = "KEY_3"
-+0x24 = "KEY_4"
-+0x14 = "KEY_5"
-+0x34 = "KEY_6"
-+0x26 = "KEY_7"
-+0x16 = "KEY_8"
-+0x36 = "KEY_9"
-+0x20 = "KEY_VIDEO"
-+0x10 = "KEY_TEXT"
-+0x00 = "KEY_POWER"
-+0x04 = "KEY_AUDIO"
-+0x06 = "KEY_ZOOM"
-+0x18 = "KEY_SWITCHVIDEOMODE"
-+0x38 = "KEY_SEARCH"
-+0x08 = "KEY_INFO"
-+0x2a = "KEY_REWIND"
-+0x1a = "KEY_FASTFORWARD"
-+0x3a = "KEY_RECORD"
-+0x0a = "KEY_MUTE"
-+0x2c = "KEY_RECORD"
-+0x1c = "KEY_PAUSE"
-+0x3c = "KEY_STOP"
-+0x0c = "KEY_PLAY"
-+0x2e = "KEY_RED"
-+0x01 = "KEY_BLUE"
-+0x0e = "KEY_YELLOW"
-+0x21 = "KEY_GREEN"
-+0x11 = "KEY_CHANNELDOWN"
-+0x31 = "KEY_CHANNELUP"
-+0x1e = "KEY_VOLUMEDOWN"
-+0x3e = "KEY_VOLUMEUP"
-diff --git a/utils/keytable/rc_keymaps/avermedia_m135a b/utils/keytable/rc_keymaps/avermedia_m135a
-deleted file mode 100644
-index bc7006ad..00000000
---- a/utils/keytable/rc_keymaps/avermedia_m135a
-+++ /dev/null
-@@ -1,81 +0,0 @@
--# table avermedia_m135a, type: NEC
--0x0200 KEY_POWER2
--0x022e KEY_DOT
--0x0201 KEY_MODE
--0x0205 KEY_1
--0x0206 KEY_2
--0x0207 KEY_3
--0x0209 KEY_4
--0x020a KEY_5
--0x020b KEY_6
--0x020d KEY_7
--0x020e KEY_8
--0x020f KEY_9
--0x0211 KEY_0
--0x0213 KEY_RIGHT
--0x0212 KEY_LEFT
--0x0215 KEY_MENU
--0x0217 KEY_CAMERA
--0x0210 KEY_SHUFFLE
--0x0303 KEY_CHANNELUP
--0x0302 KEY_CHANNELDOWN
--0x021f KEY_VOLUMEUP
--0x021e KEY_VOLUMEDOWN
--0x020c KEY_ENTER
--0x0214 KEY_MUTE
--0x0208 KEY_AUDIO
--0x0203 KEY_TEXT
--0x0204 KEY_EPG
--0x022b KEY_TV2
--0x021d KEY_RED
--0x021c KEY_YELLOW
--0x0301 KEY_GREEN
--0x0300 KEY_BLUE
--0x021a KEY_PLAYPAUSE
--0x0219 KEY_RECORD
--0x0218 KEY_PLAY
--0x021b KEY_STOP
--0x0401 KEY_POWER2
--0x0406 KEY_MUTE
--0x0408 KEY_MODE
--0x0409 KEY_1
--0x040a KEY_2
--0x040b KEY_3
--0x040c KEY_4
--0x040d KEY_5
--0x040e KEY_6
--0x040f KEY_7
--0x0410 KEY_8
--0x0411 KEY_9
--0x044c KEY_DOT
--0x0412 KEY_0
--0x0407 KEY_REFRESH
--0x0413 KEY_AUDIO
--0x0440 KEY_SCREEN
--0x0441 KEY_HOME
--0x0442 KEY_BACK
--0x0447 KEY_UP
--0x0448 KEY_DOWN
--0x0449 KEY_LEFT
--0x044a KEY_RIGHT
--0x044b KEY_OK
--0x0404 KEY_VOLUMEUP
--0x0405 KEY_VOLUMEDOWN
--0x0402 KEY_CHANNELUP
--0x0403 KEY_CHANNELDOWN
--0x0443 KEY_RED
--0x0444 KEY_GREEN
--0x0445 KEY_YELLOW
--0x0446 KEY_BLUE
--0x0414 KEY_TEXT
--0x0415 KEY_EPG
--0x041a KEY_TV2
--0x041b KEY_CAMERA
--0x0417 KEY_RECORD
--0x0416 KEY_PLAYPAUSE
--0x0418 KEY_STOP
--0x0419 KEY_PAUSE
--0x041f KEY_PREVIOUS
--0x041c KEY_REWIND
--0x041d KEY_FORWARD
--0x041e KEY_NEXT
-diff --git a/utils/keytable/rc_keymaps/avermedia_m135a.toml b/utils/keytable/rc_keymaps/avermedia_m135a.toml
-new file mode 100644
-index 00000000..c6903e5a
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avermedia_m135a.toml
-@@ -0,0 +1,85 @@
-+name = "avermedia_m135a"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0200 = "KEY_POWER2"
-+0x022e = "KEY_DOT"
-+0x0201 = "KEY_MODE"
-+0x0205 = "KEY_1"
-+0x0206 = "KEY_2"
-+0x0207 = "KEY_3"
-+0x0209 = "KEY_4"
-+0x020a = "KEY_5"
-+0x020b = "KEY_6"
-+0x020d = "KEY_7"
-+0x020e = "KEY_8"
-+0x020f = "KEY_9"
-+0x0211 = "KEY_0"
-+0x0213 = "KEY_RIGHT"
-+0x0212 = "KEY_LEFT"
-+0x0215 = "KEY_MENU"
-+0x0217 = "KEY_CAMERA"
-+0x0210 = "KEY_SHUFFLE"
-+0x0303 = "KEY_CHANNELUP"
-+0x0302 = "KEY_CHANNELDOWN"
-+0x021f = "KEY_VOLUMEUP"
-+0x021e = "KEY_VOLUMEDOWN"
-+0x020c = "KEY_ENTER"
-+0x0214 = "KEY_MUTE"
-+0x0208 = "KEY_AUDIO"
-+0x0203 = "KEY_TEXT"
-+0x0204 = "KEY_EPG"
-+0x022b = "KEY_TV2"
-+0x021d = "KEY_RED"
-+0x021c = "KEY_YELLOW"
-+0x0301 = "KEY_GREEN"
-+0x0300 = "KEY_BLUE"
-+0x021a = "KEY_PLAYPAUSE"
-+0x0219 = "KEY_RECORD"
-+0x0218 = "KEY_PLAY"
-+0x021b = "KEY_STOP"
-+0x0401 = "KEY_POWER2"
-+0x0406 = "KEY_MUTE"
-+0x0408 = "KEY_MODE"
-+0x0409 = "KEY_1"
-+0x040a = "KEY_2"
-+0x040b = "KEY_3"
-+0x040c = "KEY_4"
-+0x040d = "KEY_5"
-+0x040e = "KEY_6"
-+0x040f = "KEY_7"
-+0x0410 = "KEY_8"
-+0x0411 = "KEY_9"
-+0x044c = "KEY_DOT"
-+0x0412 = "KEY_0"
-+0x0407 = "KEY_REFRESH"
-+0x0413 = "KEY_AUDIO"
-+0x0440 = "KEY_SCREEN"
-+0x0441 = "KEY_HOME"
-+0x0442 = "KEY_BACK"
-+0x0447 = "KEY_UP"
-+0x0448 = "KEY_DOWN"
-+0x0449 = "KEY_LEFT"
-+0x044a = "KEY_RIGHT"
-+0x044b = "KEY_OK"
-+0x0404 = "KEY_VOLUMEUP"
-+0x0405 = "KEY_VOLUMEDOWN"
-+0x0402 = "KEY_CHANNELUP"
-+0x0403 = "KEY_CHANNELDOWN"
-+0x0443 = "KEY_RED"
-+0x0444 = "KEY_GREEN"
-+0x0445 = "KEY_YELLOW"
-+0x0446 = "KEY_BLUE"
-+0x0414 = "KEY_TEXT"
-+0x0415 = "KEY_EPG"
-+0x041a = "KEY_TV2"
-+0x041b = "KEY_CAMERA"
-+0x0417 = "KEY_RECORD"
-+0x0416 = "KEY_PLAYPAUSE"
-+0x0418 = "KEY_STOP"
-+0x0419 = "KEY_PAUSE"
-+0x041f = "KEY_PREVIOUS"
-+0x041c = "KEY_REWIND"
-+0x041d = "KEY_FORWARD"
-+0x041e = "KEY_NEXT"
-diff --git a/utils/keytable/rc_keymaps/avermedia_m733a_rm_k6 b/utils/keytable/rc_keymaps/avermedia_m733a_rm_k6
-deleted file mode 100644
-index 94d9a355..00000000
---- a/utils/keytable/rc_keymaps/avermedia_m733a_rm_k6
-+++ /dev/null
-@@ -1,45 +0,0 @@
--# table avermedia_m733a_rm_k6, type: NEC
--0x0401 KEY_POWER2
--0x0406 KEY_MUTE
--0x0408 KEY_MODE
--0x0409 KEY_1
--0x040a KEY_2
--0x040b KEY_3
--0x040c KEY_4
--0x040d KEY_5
--0x040e KEY_6
--0x040f KEY_7
--0x0410 KEY_8
--0x0411 KEY_9
--0x044c KEY_DOT
--0x0412 KEY_0
--0x0407 KEY_REFRESH
--0x0413 KEY_AUDIO
--0x0440 KEY_SCREEN
--0x0441 KEY_HOME
--0x0442 KEY_BACK
--0x0447 KEY_UP
--0x0448 KEY_DOWN
--0x0449 KEY_LEFT
--0x044a KEY_RIGHT
--0x044b KEY_OK
--0x0404 KEY_VOLUMEUP
--0x0405 KEY_VOLUMEDOWN
--0x0402 KEY_CHANNELUP
--0x0403 KEY_CHANNELDOWN
--0x0443 KEY_RED
--0x0444 KEY_GREEN
--0x0445 KEY_YELLOW
--0x0446 KEY_BLUE
--0x0414 KEY_TEXT
--0x0415 KEY_EPG
--0x041a KEY_TV2
--0x041b KEY_CAMERA
--0x0417 KEY_RECORD
--0x0416 KEY_PLAYPAUSE
--0x0418 KEY_STOP
--0x0419 KEY_PAUSE
--0x041f KEY_PREVIOUS
--0x041c KEY_REWIND
--0x041d KEY_FORWARD
--0x041e KEY_NEXT
-diff --git a/utils/keytable/rc_keymaps/avermedia_m733a_rm_k6.toml b/utils/keytable/rc_keymaps/avermedia_m733a_rm_k6.toml
-new file mode 100644
-index 00000000..43352324
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avermedia_m733a_rm_k6.toml
-@@ -0,0 +1,49 @@
-+name = "avermedia_m733a_rm_k6"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0401 = "KEY_POWER2"
-+0x0406 = "KEY_MUTE"
-+0x0408 = "KEY_MODE"
-+0x0409 = "KEY_1"
-+0x040a = "KEY_2"
-+0x040b = "KEY_3"
-+0x040c = "KEY_4"
-+0x040d = "KEY_5"
-+0x040e = "KEY_6"
-+0x040f = "KEY_7"
-+0x0410 = "KEY_8"
-+0x0411 = "KEY_9"
-+0x044c = "KEY_DOT"
-+0x0412 = "KEY_0"
-+0x0407 = "KEY_REFRESH"
-+0x0413 = "KEY_AUDIO"
-+0x0440 = "KEY_SCREEN"
-+0x0441 = "KEY_HOME"
-+0x0442 = "KEY_BACK"
-+0x0447 = "KEY_UP"
-+0x0448 = "KEY_DOWN"
-+0x0449 = "KEY_LEFT"
-+0x044a = "KEY_RIGHT"
-+0x044b = "KEY_OK"
-+0x0404 = "KEY_VOLUMEUP"
-+0x0405 = "KEY_VOLUMEDOWN"
-+0x0402 = "KEY_CHANNELUP"
-+0x0403 = "KEY_CHANNELDOWN"
-+0x0443 = "KEY_RED"
-+0x0444 = "KEY_GREEN"
-+0x0445 = "KEY_YELLOW"
-+0x0446 = "KEY_BLUE"
-+0x0414 = "KEY_TEXT"
-+0x0415 = "KEY_EPG"
-+0x041a = "KEY_TV2"
-+0x041b = "KEY_CAMERA"
-+0x0417 = "KEY_RECORD"
-+0x0416 = "KEY_PLAYPAUSE"
-+0x0418 = "KEY_STOP"
-+0x0419 = "KEY_PAUSE"
-+0x041f = "KEY_PREVIOUS"
-+0x041c = "KEY_REWIND"
-+0x041d = "KEY_FORWARD"
-+0x041e = "KEY_NEXT"
-diff --git a/utils/keytable/rc_keymaps/avermedia_rm_ks b/utils/keytable/rc_keymaps/avermedia_rm_ks
-deleted file mode 100644
-index 80566202..00000000
---- a/utils/keytable/rc_keymaps/avermedia_rm_ks
-+++ /dev/null
-@@ -1,28 +0,0 @@
--# table avermedia_rm_ks, type: NEC
--0x0501 KEY_POWER2
--0x0502 KEY_CHANNELUP
--0x0503 KEY_CHANNELDOWN
--0x0504 KEY_VOLUMEUP
--0x0505 KEY_VOLUMEDOWN
--0x0506 KEY_MUTE
--0x0507 KEY_AGAIN
--0x0508 KEY_VIDEO
--0x0509 KEY_1
--0x050a KEY_2
--0x050b KEY_3
--0x050c KEY_4
--0x050d KEY_5
--0x050e KEY_6
--0x050f KEY_7
--0x0510 KEY_8
--0x0511 KEY_9
--0x0512 KEY_0
--0x0513 KEY_AUDIO
--0x0515 KEY_EPG
--0x0516 KEY_PLAYPAUSE
--0x0517 KEY_RECORD
--0x0518 KEY_STOP
--0x051c KEY_BACK
--0x051d KEY_FORWARD
--0x054d KEY_INFO
--0x0556 KEY_ZOOM
-diff --git a/utils/keytable/rc_keymaps/avermedia_rm_ks.toml b/utils/keytable/rc_keymaps/avermedia_rm_ks.toml
-new file mode 100644
-index 00000000..2b59ff75
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avermedia_rm_ks.toml
-@@ -0,0 +1,32 @@
-+name = "avermedia_rm_ks"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0501 = "KEY_POWER2"
-+0x0502 = "KEY_CHANNELUP"
-+0x0503 = "KEY_CHANNELDOWN"
-+0x0504 = "KEY_VOLUMEUP"
-+0x0505 = "KEY_VOLUMEDOWN"
-+0x0506 = "KEY_MUTE"
-+0x0507 = "KEY_AGAIN"
-+0x0508 = "KEY_VIDEO"
-+0x0509 = "KEY_1"
-+0x050a = "KEY_2"
-+0x050b = "KEY_3"
-+0x050c = "KEY_4"
-+0x050d = "KEY_5"
-+0x050e = "KEY_6"
-+0x050f = "KEY_7"
-+0x0510 = "KEY_8"
-+0x0511 = "KEY_9"
-+0x0512 = "KEY_0"
-+0x0513 = "KEY_AUDIO"
-+0x0515 = "KEY_EPG"
-+0x0516 = "KEY_PLAYPAUSE"
-+0x0517 = "KEY_RECORD"
-+0x0518 = "KEY_STOP"
-+0x051c = "KEY_BACK"
-+0x051d = "KEY_FORWARD"
-+0x054d = "KEY_INFO"
-+0x0556 = "KEY_ZOOM"
-diff --git a/utils/keytable/rc_keymaps/avertv_303 b/utils/keytable/rc_keymaps/avertv_303
-deleted file mode 100644
-index f60e43fc..00000000
---- a/utils/keytable/rc_keymaps/avertv_303
-+++ /dev/null
-@@ -1,37 +0,0 @@
--# table avertv_303, type: UNKNOWN
--0x2a KEY_1
--0x32 KEY_2
--0x3a KEY_3
--0x4a KEY_4
--0x52 KEY_5
--0x5a KEY_6
--0x6a KEY_7
--0x72 KEY_8
--0x7a KEY_9
--0x0e KEY_0
--0x02 KEY_POWER
--0x22 KEY_VIDEO
--0x42 KEY_AUDIO
--0x62 KEY_ZOOM
--0x0a KEY_TV
--0x12 KEY_CD
--0x1a KEY_TEXT
--0x16 KEY_SUBTITLE
--0x1e KEY_REWIND
--0x06 KEY_PRINT
--0x2e KEY_SEARCH
--0x36 KEY_SLEEP
--0x3e KEY_SHUFFLE
--0x26 KEY_MUTE
--0x4e KEY_RECORD
--0x56 KEY_PAUSE
--0x5e KEY_STOP
--0x46 KEY_PLAY
--0x6e KEY_RED
--0x0b KEY_GREEN
--0x66 KEY_YELLOW
--0x03 KEY_BLUE
--0x76 KEY_LEFT
--0x7e KEY_RIGHT
--0x13 KEY_DOWN
--0x1b KEY_UP
-diff --git a/utils/keytable/rc_keymaps/avertv_303.toml b/utils/keytable/rc_keymaps/avertv_303.toml
-new file mode 100644
-index 00000000..a44ad724
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/avertv_303.toml
-@@ -0,0 +1,39 @@
-+name = "avertv_303"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x2a = "KEY_1"
-+0x32 = "KEY_2"
-+0x3a = "KEY_3"
-+0x4a = "KEY_4"
-+0x52 = "KEY_5"
-+0x5a = "KEY_6"
-+0x6a = "KEY_7"
-+0x72 = "KEY_8"
-+0x7a = "KEY_9"
-+0x0e = "KEY_0"
-+0x02 = "KEY_POWER"
-+0x22 = "KEY_VIDEO"
-+0x42 = "KEY_AUDIO"
-+0x62 = "KEY_ZOOM"
-+0x0a = "KEY_TV"
-+0x12 = "KEY_CD"
-+0x1a = "KEY_TEXT"
-+0x16 = "KEY_SUBTITLE"
-+0x1e = "KEY_REWIND"
-+0x06 = "KEY_PRINT"
-+0x2e = "KEY_SEARCH"
-+0x36 = "KEY_SLEEP"
-+0x3e = "KEY_SHUFFLE"
-+0x26 = "KEY_MUTE"
-+0x4e = "KEY_RECORD"
-+0x56 = "KEY_PAUSE"
-+0x5e = "KEY_STOP"
-+0x46 = "KEY_PLAY"
-+0x6e = "KEY_RED"
-+0x0b = "KEY_GREEN"
-+0x66 = "KEY_YELLOW"
-+0x03 = "KEY_BLUE"
-+0x76 = "KEY_LEFT"
-+0x7e = "KEY_RIGHT"
-+0x13 = "KEY_DOWN"
-+0x1b = "KEY_UP"
-diff --git a/utils/keytable/rc_keymaps/az6027 b/utils/keytable/rc_keymaps/az6027
-deleted file mode 100644
-index cf83f188..00000000
---- a/utils/keytable/rc_keymaps/az6027
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# table az6027, type: UNKNOWN
--0x01 KEY_1
--0x02 KEY_2
-diff --git a/utils/keytable/rc_keymaps/az6027.toml b/utils/keytable/rc_keymaps/az6027.toml
-new file mode 100644
-index 00000000..0e2af495
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/az6027.toml
-@@ -0,0 +1,5 @@
-+name = "az6027"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x01 = "KEY_1"
-+0x02 = "KEY_2"
-diff --git a/utils/keytable/rc_keymaps/azurewave_ad_tu700 b/utils/keytable/rc_keymaps/azurewave_ad_tu700
-deleted file mode 100644
-index 11a513ba..00000000
---- a/utils/keytable/rc_keymaps/azurewave_ad_tu700
-+++ /dev/null
-@@ -1,54 +0,0 @@
--# table azurewave_ad_tu700, type: NEC
--0x0000 KEY_TAB
--0x0001 KEY_2
--0x0002 KEY_CHANNELDOWN
--0x0003 KEY_1
--0x0004 KEY_MENU
--0x0005 KEY_CHANNELUP
--0x0006 KEY_3
--0x0007 KEY_SLEEP
--0x0008 KEY_VIDEO
--0x0009 KEY_4
--0x000a KEY_VOLUMEDOWN
--0x000c KEY_CANCEL
--0x000d KEY_7
--0x000e KEY_AGAIN
--0x000f KEY_TEXT
--0x0010 KEY_MUTE
--0x0011 KEY_RECORD
--0x0012 KEY_FASTFORWARD
--0x0013 KEY_BACK
--0x0014 KEY_PLAY
--0x0015 KEY_0
--0x0016 KEY_POWER2
--0x0017 KEY_FAVORITES
--0x0018 KEY_RED
--0x0019 KEY_8
--0x001a KEY_STOP
--0x001b KEY_9
--0x001c KEY_EPG
--0x001d KEY_5
--0x001e KEY_VOLUMEUP
--0x001f KEY_6
--0x0040 KEY_REWIND
--0x0041 KEY_PREVIOUS
--0x0042 KEY_NEXT
--0x0043 KEY_SUBTITLE
--0x0045 KEY_KPPLUS
--0x0046 KEY_KPMINUS
--0x0047 KEY_NEW
--0x0048 KEY_INFO
--0x0049 KEY_MODE
--0x004a KEY_CLEAR
--0x004b KEY_UP
--0x004c KEY_PAUSE
--0x004d KEY_ZOOM
--0x004e KEY_LEFT
--0x004f KEY_OK
--0x0050 KEY_LANGUAGE
--0x0051 KEY_DOWN
--0x0052 KEY_RIGHT
--0x0053 KEY_GREEN
--0x0054 KEY_CAMERA
--0x005e KEY_YELLOW
--0x005f KEY_BLUE
-diff --git a/utils/keytable/rc_keymaps/azurewave_ad_tu700.toml b/utils/keytable/rc_keymaps/azurewave_ad_tu700.toml
-new file mode 100644
-index 00000000..d54fc1dc
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/azurewave_ad_tu700.toml
-@@ -0,0 +1,58 @@
-+name = "azurewave_ad_tu700"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0000 = "KEY_TAB"
-+0x0001 = "KEY_2"
-+0x0002 = "KEY_CHANNELDOWN"
-+0x0003 = "KEY_1"
-+0x0004 = "KEY_MENU"
-+0x0005 = "KEY_CHANNELUP"
-+0x0006 = "KEY_3"
-+0x0007 = "KEY_SLEEP"
-+0x0008 = "KEY_VIDEO"
-+0x0009 = "KEY_4"
-+0x000a = "KEY_VOLUMEDOWN"
-+0x000c = "KEY_CANCEL"
-+0x000d = "KEY_7"
-+0x000e = "KEY_AGAIN"
-+0x000f = "KEY_TEXT"
-+0x0010 = "KEY_MUTE"
-+0x0011 = "KEY_RECORD"
-+0x0012 = "KEY_FASTFORWARD"
-+0x0013 = "KEY_BACK"
-+0x0014 = "KEY_PLAY"
-+0x0015 = "KEY_0"
-+0x0016 = "KEY_POWER2"
-+0x0017 = "KEY_FAVORITES"
-+0x0018 = "KEY_RED"
-+0x0019 = "KEY_8"
-+0x001a = "KEY_STOP"
-+0x001b = "KEY_9"
-+0x001c = "KEY_EPG"
-+0x001d = "KEY_5"
-+0x001e = "KEY_VOLUMEUP"
-+0x001f = "KEY_6"
-+0x0040 = "KEY_REWIND"
-+0x0041 = "KEY_PREVIOUS"
-+0x0042 = "KEY_NEXT"
-+0x0043 = "KEY_SUBTITLE"
-+0x0045 = "KEY_KPPLUS"
-+0x0046 = "KEY_KPMINUS"
-+0x0047 = "KEY_NEW"
-+0x0048 = "KEY_INFO"
-+0x0049 = "KEY_MODE"
-+0x004a = "KEY_CLEAR"
-+0x004b = "KEY_UP"
-+0x004c = "KEY_PAUSE"
-+0x004d = "KEY_ZOOM"
-+0x004e = "KEY_LEFT"
-+0x004f = "KEY_OK"
-+0x0050 = "KEY_LANGUAGE"
-+0x0051 = "KEY_DOWN"
-+0x0052 = "KEY_RIGHT"
-+0x0053 = "KEY_GREEN"
-+0x0054 = "KEY_CAMERA"
-+0x005e = "KEY_YELLOW"
-+0x005f = "KEY_BLUE"
-diff --git a/utils/keytable/rc_keymaps/behold b/utils/keytable/rc_keymaps/behold
-deleted file mode 100644
-index 15c6b55f..00000000
---- a/utils/keytable/rc_keymaps/behold
-+++ /dev/null
-@@ -1,35 +0,0 @@
--# table behold, type: NEC
--0x866b1c KEY_TUNER
--0x866b12 KEY_POWER
--0x866b01 KEY_1
--0x866b02 KEY_2
--0x866b03 KEY_3
--0x866b04 KEY_4
--0x866b05 KEY_5
--0x866b06 KEY_6
--0x866b07 KEY_7
--0x866b08 KEY_8
--0x866b09 KEY_9
--0x866b0a KEY_AGAIN
--0x866b00 KEY_0
--0x866b17 KEY_MODE
--0x866b14 KEY_SCREEN
--0x866b10 KEY_ZOOM
--0x866b0b KEY_CHANNELUP
--0x866b18 KEY_VOLUMEDOWN
--0x866b16 KEY_OK
--0x866b0c KEY_VOLUMEUP
--0x866b15 KEY_CHANNELDOWN
--0x866b11 KEY_MUTE
--0x866b0d KEY_INFO
--0x866b0f KEY_RECORD
--0x866b1b KEY_PLAYPAUSE
--0x866b1a KEY_STOP
--0x866b0e KEY_TEXT
--0x866b1f KEY_RED
--0x866b1e KEY_VIDEO
--0x866b1d KEY_SLEEP
--0x866b13 KEY_GREEN
--0x866b19 KEY_BLUE
--0x866b58 KEY_SLOW
--0x866b5c KEY_CAMERA
-diff --git a/utils/keytable/rc_keymaps/behold.toml b/utils/keytable/rc_keymaps/behold.toml
-new file mode 100644
-index 00000000..d3d5f5b2
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/behold.toml
-@@ -0,0 +1,39 @@
-+name = "behold"
-+protocol = "nec"
-+[nec]
-+variant = "necx"
-+[nec.scancodes]
-+0x866b1c = "KEY_TUNER"
-+0x866b12 = "KEY_POWER"
-+0x866b01 = "KEY_1"
-+0x866b02 = "KEY_2"
-+0x866b03 = "KEY_3"
-+0x866b04 = "KEY_4"
-+0x866b05 = "KEY_5"
-+0x866b06 = "KEY_6"
-+0x866b07 = "KEY_7"
-+0x866b08 = "KEY_8"
-+0x866b09 = "KEY_9"
-+0x866b0a = "KEY_AGAIN"
-+0x866b00 = "KEY_0"
-+0x866b17 = "KEY_MODE"
-+0x866b14 = "KEY_SCREEN"
-+0x866b10 = "KEY_ZOOM"
-+0x866b0b = "KEY_CHANNELUP"
-+0x866b18 = "KEY_VOLUMEDOWN"
-+0x866b16 = "KEY_OK"
-+0x866b0c = "KEY_VOLUMEUP"
-+0x866b15 = "KEY_CHANNELDOWN"
-+0x866b11 = "KEY_MUTE"
-+0x866b0d = "KEY_INFO"
-+0x866b0f = "KEY_RECORD"
-+0x866b1b = "KEY_PLAYPAUSE"
-+0x866b1a = "KEY_STOP"
-+0x866b0e = "KEY_TEXT"
-+0x866b1f = "KEY_RED"
-+0x866b1e = "KEY_VIDEO"
-+0x866b1d = "KEY_SLEEP"
-+0x866b13 = "KEY_GREEN"
-+0x866b19 = "KEY_BLUE"
-+0x866b58 = "KEY_SLOW"
-+0x866b5c = "KEY_CAMERA"
-diff --git a/utils/keytable/rc_keymaps/behold_columbus b/utils/keytable/rc_keymaps/behold_columbus
-deleted file mode 100644
-index bf0a54a5..00000000
---- a/utils/keytable/rc_keymaps/behold_columbus
-+++ /dev/null
-@@ -1,29 +0,0 @@
--# table behold_columbus, type: UNKNOWN
--0x13 KEY_MUTE
--0x11 KEY_VIDEO
--0x1C KEY_TUNER
--0x12 KEY_POWER
--0x01 KEY_1
--0x02 KEY_2
--0x03 KEY_3
--0x0D KEY_SETUP
--0x04 KEY_4
--0x05 KEY_5
--0x06 KEY_6
--0x19 KEY_CAMERA
--0x07 KEY_7
--0x08 KEY_8
--0x09 KEY_9
--0x10 KEY_ZOOM
--0x0A KEY_AGAIN
--0x00 KEY_0
--0x0B KEY_CHANNELUP
--0x0C KEY_VOLUMEUP
--0x1B KEY_TIME
--0x1D KEY_RECORD
--0x15 KEY_CHANNELDOWN
--0x18 KEY_VOLUMEDOWN
--0x0E KEY_STOP
--0x1E KEY_PAUSE
--0x0F KEY_PREVIOUS
--0x1A KEY_NEXT
-diff --git a/utils/keytable/rc_keymaps/behold_columbus.toml b/utils/keytable/rc_keymaps/behold_columbus.toml
-new file mode 100644
-index 00000000..8a912055
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/behold_columbus.toml
-@@ -0,0 +1,31 @@
-+name = "behold_columbus"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x13 = "KEY_MUTE"
-+0x11 = "KEY_VIDEO"
-+0x1C = "KEY_TUNER"
-+0x12 = "KEY_POWER"
-+0x01 = "KEY_1"
-+0x02 = "KEY_2"
-+0x03 = "KEY_3"
-+0x0D = "KEY_SETUP"
-+0x04 = "KEY_4"
-+0x05 = "KEY_5"
-+0x06 = "KEY_6"
-+0x19 = "KEY_CAMERA"
-+0x07 = "KEY_7"
-+0x08 = "KEY_8"
-+0x09 = "KEY_9"
-+0x10 = "KEY_ZOOM"
-+0x0A = "KEY_AGAIN"
-+0x00 = "KEY_0"
-+0x0B = "KEY_CHANNELUP"
-+0x0C = "KEY_VOLUMEUP"
-+0x1B = "KEY_TIME"
-+0x1D = "KEY_RECORD"
-+0x15 = "KEY_CHANNELDOWN"
-+0x18 = "KEY_VOLUMEDOWN"
-+0x0E = "KEY_STOP"
-+0x1E = "KEY_PAUSE"
-+0x0F = "KEY_PREVIOUS"
-+0x1A = "KEY_NEXT"
-diff --git a/utils/keytable/rc_keymaps/budget_ci_old b/utils/keytable/rc_keymaps/budget_ci_old
-deleted file mode 100644
-index b62e94ed..00000000
---- a/utils/keytable/rc_keymaps/budget_ci_old
-+++ /dev/null
-@@ -1,46 +0,0 @@
--# table budget_ci_old, type: UNKNOWN
--0x00 KEY_0
--0x01 KEY_1
--0x02 KEY_2
--0x03 KEY_3
--0x04 KEY_4
--0x05 KEY_5
--0x06 KEY_6
--0x07 KEY_7
--0x08 KEY_8
--0x09 KEY_9
--0x0a KEY_ENTER
--0x0b KEY_RED
--0x0c KEY_POWER
--0x0d KEY_MUTE
--0x0f KEY_A
--0x10 KEY_VOLUMEUP
--0x11 KEY_VOLUMEDOWN
--0x14 KEY_B
--0x1c KEY_UP
--0x1d KEY_DOWN
--0x1e KEY_OPTION
--0x1f KEY_BREAK
--0x20 KEY_CHANNELUP
--0x21 KEY_CHANNELDOWN
--0x22 KEY_PREVIOUS
--0x24 KEY_RESTART
--0x25 KEY_OK
--0x26 KEY_CYCLEWINDOWS
--0x28 KEY_ENTER
--0x29 KEY_PAUSE
--0x2b KEY_RIGHT
--0x2c KEY_LEFT
--0x2e KEY_MENU
--0x30 KEY_SLOW
--0x31 KEY_PREVIOUS
--0x32 KEY_REWIND
--0x34 KEY_FASTFORWARD
--0x35 KEY_PLAY
--0x36 KEY_STOP
--0x37 KEY_RECORD
--0x38 KEY_TUNER
--0x3a KEY_C
--0x3c KEY_EXIT
--0x3d KEY_POWER2
--0x3e KEY_TUNER
-diff --git a/utils/keytable/rc_keymaps/budget_ci_old.toml b/utils/keytable/rc_keymaps/budget_ci_old.toml
-new file mode 100644
-index 00000000..deab7b09
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/budget_ci_old.toml
-@@ -0,0 +1,48 @@
-+name = "budget_ci_old"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x00 = "KEY_0"
-+0x01 = "KEY_1"
-+0x02 = "KEY_2"
-+0x03 = "KEY_3"
-+0x04 = "KEY_4"
-+0x05 = "KEY_5"
-+0x06 = "KEY_6"
-+0x07 = "KEY_7"
-+0x08 = "KEY_8"
-+0x09 = "KEY_9"
-+0x0a = "KEY_ENTER"
-+0x0b = "KEY_RED"
-+0x0c = "KEY_POWER"
-+0x0d = "KEY_MUTE"
-+0x0f = "KEY_A"
-+0x10 = "KEY_VOLUMEUP"
-+0x11 = "KEY_VOLUMEDOWN"
-+0x14 = "KEY_B"
-+0x1c = "KEY_UP"
-+0x1d = "KEY_DOWN"
-+0x1e = "KEY_OPTION"
-+0x1f = "KEY_BREAK"
-+0x20 = "KEY_CHANNELUP"
-+0x21 = "KEY_CHANNELDOWN"
-+0x22 = "KEY_PREVIOUS"
-+0x24 = "KEY_RESTART"
-+0x25 = "KEY_OK"
-+0x26 = "KEY_CYCLEWINDOWS"
-+0x28 = "KEY_ENTER"
-+0x29 = "KEY_PAUSE"
-+0x2b = "KEY_RIGHT"
-+0x2c = "KEY_LEFT"
-+0x2e = "KEY_MENU"
-+0x30 = "KEY_SLOW"
-+0x31 = "KEY_PREVIOUS"
-+0x32 = "KEY_REWIND"
-+0x34 = "KEY_FASTFORWARD"
-+0x35 = "KEY_PLAY"
-+0x36 = "KEY_STOP"
-+0x37 = "KEY_RECORD"
-+0x38 = "KEY_TUNER"
-+0x3a = "KEY_C"
-+0x3c = "KEY_EXIT"
-+0x3d = "KEY_POWER2"
-+0x3e = "KEY_TUNER"
-diff --git a/utils/keytable/rc_keymaps/cec b/utils/keytable/rc_keymaps/cec
-deleted file mode 100644
-index e6c619ab..00000000
---- a/utils/keytable/rc_keymaps/cec
-+++ /dev/null
-@@ -1,98 +0,0 @@
--# table cec, type: CEC
--0x00 KEY_OK
--0x01 KEY_UP
--0x02 KEY_DOWN
--0x03 KEY_LEFT
--0x04 KEY_RIGHT
--0x05 KEY_RIGHT_UP
--0x06 KEY_RIGHT_DOWN
--0x07 KEY_LEFT_UP
--0x08 KEY_LEFT_DOWN
--0x09 KEY_ROOT_MENU
--0x0a KEY_SETUP
--0x0b KEY_MENU
--0x0c KEY_FAVORITES
--0x0d KEY_EXIT
--0x10 KEY_MEDIA_TOP_MENU
--0x11 KEY_CONTEXT_MENU
--0x1d KEY_DIGITS
--0x1e KEY_NUMERIC_11
--0x1f KEY_NUMERIC_12
--0x20 KEY_NUMERIC_0
--0x21 KEY_NUMERIC_1
--0x22 KEY_NUMERIC_2
--0x23 KEY_NUMERIC_3
--0x24 KEY_NUMERIC_4
--0x25 KEY_NUMERIC_5
--0x26 KEY_NUMERIC_6
--0x27 KEY_NUMERIC_7
--0x28 KEY_NUMERIC_8
--0x29 KEY_NUMERIC_9
--0x2a KEY_DOT
--0x2b KEY_ENTER
--0x2c KEY_CLEAR
--0x2f KEY_NEXT_FAVORITE
--0x30 KEY_CHANNELUP
--0x31 KEY_CHANNELDOWN
--0x32 KEY_PREVIOUS
--0x33 KEY_SOUND
--0x34 KEY_VIDEO
--0x35 KEY_INFO
--0x36 KEY_HELP
--0x37 KEY_PAGEUP
--0x38 KEY_PAGEDOWN
--0x40 KEY_POWER
--0x41 KEY_VOLUMEUP
--0x42 KEY_VOLUMEDOWN
--0x43 KEY_MUTE
--0x44 KEY_PLAYCD
--0x45 KEY_STOPCD
--0x46 KEY_PAUSECD
--0x47 KEY_RECORD
--0x48 KEY_REWIND
--0x49 KEY_FASTFORWARD
--0x4a KEY_EJECTCD
--0x4b KEY_FORWARD
--0x4c KEY_BACK
--0x4d KEY_STOP_RECORD
--0x4e KEY_PAUSE_RECORD
--0x50 KEY_ANGLE
--0x51 KEY_TV2
--0x52 KEY_VOD
--0x53 KEY_EPG
--0x54 KEY_TIME
--0x55 KEY_CONFIG
--0x58 KEY_AUDIO_DESC
--0x59 KEY_WWW
--0x5a KEY_3D_MODE
--0x60 KEY_PLAYCD
--0x6005 KEY_FASTFORWARD
--0x6006 KEY_FASTFORWARD
--0x6007 KEY_FASTFORWARD
--0x6015 KEY_SLOW
--0x6016 KEY_SLOW
--0x6017 KEY_SLOW
--0x6009 KEY_FASTREVERSE
--0x600a KEY_FASTREVERSE
--0x600b KEY_FASTREVERSE
--0x6019 KEY_SLOWREVERSE
--0x601a KEY_SLOWREVERSE
--0x601b KEY_SLOWREVERSE
--0x6020 KEY_REWIND
--0x6024 KEY_PLAYCD
--0x6025 KEY_PAUSECD
--0x61 KEY_PLAYPAUSE
--0x62 KEY_RECORD
--0x63 KEY_PAUSE_RECORD
--0x64 KEY_STOPCD
--0x65 KEY_MUTE
--0x66 KEY_UNMUTE
--0x6b KEY_POWER
--0x6c KEY_SLEEP
--0x6d KEY_WAKEUP
--0x71 KEY_BLUE
--0x72 KEY_RED
--0x73 KEY_GREEN
--0x74 KEY_YELLOW
--0x75 KEY_F5
--0x76 KEY_DATA
-diff --git a/utils/keytable/rc_keymaps/cec.toml b/utils/keytable/rc_keymaps/cec.toml
-new file mode 100644
-index 00000000..837c13fb
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/cec.toml
-@@ -0,0 +1,100 @@
-+name = "cec"
-+protocol = "cec"
-+[cec.scancodes]
-+0x00 = "KEY_OK"
-+0x01 = "KEY_UP"
-+0x02 = "KEY_DOWN"
-+0x03 = "KEY_LEFT"
-+0x04 = "KEY_RIGHT"
-+0x05 = "KEY_RIGHT_UP"
-+0x06 = "KEY_RIGHT_DOWN"
-+0x07 = "KEY_LEFT_UP"
-+0x08 = "KEY_LEFT_DOWN"
-+0x09 = "KEY_ROOT_MENU"
-+0x0a = "KEY_SETUP"
-+0x0b = "KEY_MENU"
-+0x0c = "KEY_FAVORITES"
-+0x0d = "KEY_EXIT"
-+0x10 = "KEY_MEDIA_TOP_MENU"
-+0x11 = "KEY_CONTEXT_MENU"
-+0x1d = "KEY_DIGITS"
-+0x1e = "KEY_NUMERIC_11"
-+0x1f = "KEY_NUMERIC_12"
-+0x20 = "KEY_NUMERIC_0"
-+0x21 = "KEY_NUMERIC_1"
-+0x22 = "KEY_NUMERIC_2"
-+0x23 = "KEY_NUMERIC_3"
-+0x24 = "KEY_NUMERIC_4"
-+0x25 = "KEY_NUMERIC_5"
-+0x26 = "KEY_NUMERIC_6"
-+0x27 = "KEY_NUMERIC_7"
-+0x28 = "KEY_NUMERIC_8"
-+0x29 = "KEY_NUMERIC_9"
-+0x2a = "KEY_DOT"
-+0x2b = "KEY_ENTER"
-+0x2c = "KEY_CLEAR"
-+0x2f = "KEY_NEXT_FAVORITE"
-+0x30 = "KEY_CHANNELUP"
-+0x31 = "KEY_CHANNELDOWN"
-+0x32 = "KEY_PREVIOUS"
-+0x33 = "KEY_SOUND"
-+0x34 = "KEY_VIDEO"
-+0x35 = "KEY_INFO"
-+0x36 = "KEY_HELP"
-+0x37 = "KEY_PAGEUP"
-+0x38 = "KEY_PAGEDOWN"
-+0x40 = "KEY_POWER"
-+0x41 = "KEY_VOLUMEUP"
-+0x42 = "KEY_VOLUMEDOWN"
-+0x43 = "KEY_MUTE"
-+0x44 = "KEY_PLAYCD"
-+0x45 = "KEY_STOPCD"
-+0x46 = "KEY_PAUSECD"
-+0x47 = "KEY_RECORD"
-+0x48 = "KEY_REWIND"
-+0x49 = "KEY_FASTFORWARD"
-+0x4a = "KEY_EJECTCD"
-+0x4b = "KEY_FORWARD"
-+0x4c = "KEY_BACK"
-+0x4d = "KEY_STOP_RECORD"
-+0x4e = "KEY_PAUSE_RECORD"
-+0x50 = "KEY_ANGLE"
-+0x51 = "KEY_TV2"
-+0x52 = "KEY_VOD"
-+0x53 = "KEY_EPG"
-+0x54 = "KEY_TIME"
-+0x55 = "KEY_CONFIG"
-+0x58 = "KEY_AUDIO_DESC"
-+0x59 = "KEY_WWW"
-+0x5a = "KEY_3D_MODE"
-+0x60 = "KEY_PLAYCD"
-+0x6005 = "KEY_FASTFORWARD"
-+0x6006 = "KEY_FASTFORWARD"
-+0x6007 = "KEY_FASTFORWARD"
-+0x6015 = "KEY_SLOW"
-+0x6016 = "KEY_SLOW"
-+0x6017 = "KEY_SLOW"
-+0x6009 = "KEY_FASTREVERSE"
-+0x600a = "KEY_FASTREVERSE"
-+0x600b = "KEY_FASTREVERSE"
-+0x6019 = "KEY_SLOWREVERSE"
-+0x601a = "KEY_SLOWREVERSE"
-+0x601b = "KEY_SLOWREVERSE"
-+0x6020 = "KEY_REWIND"
-+0x6024 = "KEY_PLAYCD"
-+0x6025 = "KEY_PAUSECD"
-+0x61 = "KEY_PLAYPAUSE"
-+0x62 = "KEY_RECORD"
-+0x63 = "KEY_PAUSE_RECORD"
-+0x64 = "KEY_STOPCD"
-+0x65 = "KEY_MUTE"
-+0x66 = "KEY_UNMUTE"
-+0x6b = "KEY_POWER"
-+0x6c = "KEY_SLEEP"
-+0x6d = "KEY_WAKEUP"
-+0x71 = "KEY_BLUE"
-+0x72 = "KEY_RED"
-+0x73 = "KEY_GREEN"
-+0x74 = "KEY_YELLOW"
-+0x75 = "KEY_F5"
-+0x76 = "KEY_DATA"
-diff --git a/utils/keytable/rc_keymaps/cinergy b/utils/keytable/rc_keymaps/cinergy
-deleted file mode 100644
-index 666f9ee4..00000000
---- a/utils/keytable/rc_keymaps/cinergy
-+++ /dev/null
-@@ -1,37 +0,0 @@
--# table cinergy, type: UNKNOWN
--0x00 KEY_0
--0x01 KEY_1
--0x02 KEY_2
--0x03 KEY_3
--0x04 KEY_4
--0x05 KEY_5
--0x06 KEY_6
--0x07 KEY_7
--0x08 KEY_8
--0x09 KEY_9
--0x0a KEY_POWER
--0x0b KEY_MEDIA
--0x0c KEY_ZOOM
--0x0d KEY_CHANNELUP
--0x0e KEY_CHANNELDOWN
--0x0f KEY_VOLUMEUP
--0x10 KEY_VOLUMEDOWN
--0x11 KEY_TUNER
--0x12 KEY_NUMLOCK
--0x13 KEY_AUDIO
--0x14 KEY_MUTE
--0x15 KEY_UP
--0x16 KEY_DOWN
--0x17 KEY_LEFT
--0x18 KEY_RIGHT
--0x19 BTN_LEFT
--0x1a BTN_RIGHT
--0x1b KEY_WWW
--0x1c KEY_REWIND
--0x1d KEY_FORWARD
--0x1e KEY_RECORD
--0x1f KEY_PLAY
--0x20 KEY_PREVIOUSSONG
--0x21 KEY_NEXTSONG
--0x22 KEY_PAUSE
--0x23 KEY_STOP
-diff --git a/utils/keytable/rc_keymaps/cinergy.toml b/utils/keytable/rc_keymaps/cinergy.toml
-new file mode 100644
-index 00000000..ca5d9c8c
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/cinergy.toml
-@@ -0,0 +1,39 @@
-+name = "cinergy"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x00 = "KEY_0"
-+0x01 = "KEY_1"
-+0x02 = "KEY_2"
-+0x03 = "KEY_3"
-+0x04 = "KEY_4"
-+0x05 = "KEY_5"
-+0x06 = "KEY_6"
-+0x07 = "KEY_7"
-+0x08 = "KEY_8"
-+0x09 = "KEY_9"
-+0x0a = "KEY_POWER"
-+0x0b = "KEY_MEDIA"
-+0x0c = "KEY_ZOOM"
-+0x0d = "KEY_CHANNELUP"
-+0x0e = "KEY_CHANNELDOWN"
-+0x0f = "KEY_VOLUMEUP"
-+0x10 = "KEY_VOLUMEDOWN"
-+0x11 = "KEY_TUNER"
-+0x12 = "KEY_NUMLOCK"
-+0x13 = "KEY_AUDIO"
-+0x14 = "KEY_MUTE"
-+0x15 = "KEY_UP"
-+0x16 = "KEY_DOWN"
-+0x17 = "KEY_LEFT"
-+0x18 = "KEY_RIGHT"
-+0x19 = "BTN_LEFT"
-+0x1a = "BTN_RIGHT"
-+0x1b = "KEY_WWW"
-+0x1c = "KEY_REWIND"
-+0x1d = "KEY_FORWARD"
-+0x1e = "KEY_RECORD"
-+0x1f = "KEY_PLAY"
-+0x20 = "KEY_PREVIOUSSONG"
-+0x21 = "KEY_NEXTSONG"
-+0x22 = "KEY_PAUSE"
-+0x23 = "KEY_STOP"
-diff --git a/utils/keytable/rc_keymaps/cinergy_1400 b/utils/keytable/rc_keymaps/cinergy_1400
-deleted file mode 100644
-index c592f789..00000000
---- a/utils/keytable/rc_keymaps/cinergy_1400
-+++ /dev/null
-@@ -1,38 +0,0 @@
--# table cinergy_1400, type: UNKNOWN
--0x01 KEY_POWER
--0x02 KEY_1
--0x03 KEY_2
--0x04 KEY_3
--0x05 KEY_4
--0x06 KEY_5
--0x07 KEY_6
--0x08 KEY_7
--0x09 KEY_8
--0x0a KEY_9
--0x0c KEY_0
--0x0b KEY_VIDEO
--0x0d KEY_REFRESH
--0x0e KEY_SELECT
--0x0f KEY_EPG
--0x10 KEY_UP
--0x11 KEY_LEFT
--0x12 KEY_OK
--0x13 KEY_RIGHT
--0x14 KEY_DOWN
--0x15 KEY_TEXT
--0x16 KEY_INFO
--0x17 KEY_RED
--0x18 KEY_GREEN
--0x19 KEY_YELLOW
--0x1a KEY_BLUE
--0x1b KEY_CHANNELUP
--0x1c KEY_VOLUMEUP
--0x1d KEY_MUTE
--0x1e KEY_VOLUMEDOWN
--0x1f KEY_CHANNELDOWN
--0x40 KEY_PAUSE
--0x4c KEY_PLAY
--0x58 KEY_RECORD
--0x54 KEY_PREVIOUS
--0x48 KEY_STOP
--0x5c KEY_NEXT
-diff --git a/utils/keytable/rc_keymaps/cinergy_1400.toml b/utils/keytable/rc_keymaps/cinergy_1400.toml
-new file mode 100644
-index 00000000..74785a20
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/cinergy_1400.toml
-@@ -0,0 +1,40 @@
-+name = "cinergy_1400"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x01 = "KEY_POWER"
-+0x02 = "KEY_1"
-+0x03 = "KEY_2"
-+0x04 = "KEY_3"
-+0x05 = "KEY_4"
-+0x06 = "KEY_5"
-+0x07 = "KEY_6"
-+0x08 = "KEY_7"
-+0x09 = "KEY_8"
-+0x0a = "KEY_9"
-+0x0c = "KEY_0"
-+0x0b = "KEY_VIDEO"
-+0x0d = "KEY_REFRESH"
-+0x0e = "KEY_SELECT"
-+0x0f = "KEY_EPG"
-+0x10 = "KEY_UP"
-+0x11 = "KEY_LEFT"
-+0x12 = "KEY_OK"
-+0x13 = "KEY_RIGHT"
-+0x14 = "KEY_DOWN"
-+0x15 = "KEY_TEXT"
-+0x16 = "KEY_INFO"
-+0x17 = "KEY_RED"
-+0x18 = "KEY_GREEN"
-+0x19 = "KEY_YELLOW"
-+0x1a = "KEY_BLUE"
-+0x1b = "KEY_CHANNELUP"
-+0x1c = "KEY_VOLUMEUP"
-+0x1d = "KEY_MUTE"
-+0x1e = "KEY_VOLUMEDOWN"
-+0x1f = "KEY_CHANNELDOWN"
-+0x40 = "KEY_PAUSE"
-+0x4c = "KEY_PLAY"
-+0x58 = "KEY_RECORD"
-+0x54 = "KEY_PREVIOUS"
-+0x48 = "KEY_STOP"
-+0x5c = "KEY_NEXT"
-diff --git a/utils/keytable/rc_keymaps/cinergyt2 b/utils/keytable/rc_keymaps/cinergyt2
-deleted file mode 100644
-index ea0c3766..00000000
---- a/utils/keytable/rc_keymaps/cinergyt2
-+++ /dev/null
-@@ -1,38 +0,0 @@
--# table cinergyt2, type: UNKNOWN
--0x0401 KEY_POWER
--0x0402 KEY_1
--0x0403 KEY_2
--0x0404 KEY_3
--0x0405 KEY_4
--0x0406 KEY_5
--0x0407 KEY_6
--0x0408 KEY_7
--0x0409 KEY_8
--0x040a KEY_9
--0x040c KEY_0
--0x040b KEY_VIDEO
--0x040d KEY_REFRESH
--0x040e KEY_SELECT
--0x040f KEY_EPG
--0x0410 KEY_UP
--0x0414 KEY_DOWN
--0x0411 KEY_LEFT
--0x0413 KEY_RIGHT
--0x0412 KEY_OK
--0x0415 KEY_TEXT
--0x0416 KEY_INFO
--0x0417 KEY_RED
--0x0418 KEY_GREEN
--0x0419 KEY_YELLOW
--0x041a KEY_BLUE
--0x041c KEY_VOLUMEUP
--0x041e KEY_VOLUMEDOWN
--0x041d KEY_MUTE
--0x041b KEY_CHANNELUP
--0x041f KEY_CHANNELDOWN
--0x0440 KEY_PAUSE
--0x044c KEY_PLAY
--0x0458 KEY_RECORD
--0x0454 KEY_PREVIOUS
--0x0448 KEY_STOP
--0x045c KEY_NEXT
-diff --git a/utils/keytable/rc_keymaps/cinergyt2.toml b/utils/keytable/rc_keymaps/cinergyt2.toml
-new file mode 100644
-index 00000000..49699e0b
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/cinergyt2.toml
-@@ -0,0 +1,40 @@
-+name = "cinergyt2"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x0401 = "KEY_POWER"
-+0x0402 = "KEY_1"
-+0x0403 = "KEY_2"
-+0x0404 = "KEY_3"
-+0x0405 = "KEY_4"
-+0x0406 = "KEY_5"
-+0x0407 = "KEY_6"
-+0x0408 = "KEY_7"
-+0x0409 = "KEY_8"
-+0x040a = "KEY_9"
-+0x040c = "KEY_0"
-+0x040b = "KEY_VIDEO"
-+0x040d = "KEY_REFRESH"
-+0x040e = "KEY_SELECT"
-+0x040f = "KEY_EPG"
-+0x0410 = "KEY_UP"
-+0x0414 = "KEY_DOWN"
-+0x0411 = "KEY_LEFT"
-+0x0413 = "KEY_RIGHT"
-+0x0412 = "KEY_OK"
-+0x0415 = "KEY_TEXT"
-+0x0416 = "KEY_INFO"
-+0x0417 = "KEY_RED"
-+0x0418 = "KEY_GREEN"
-+0x0419 = "KEY_YELLOW"
-+0x041a = "KEY_BLUE"
-+0x041c = "KEY_VOLUMEUP"
-+0x041e = "KEY_VOLUMEDOWN"
-+0x041d = "KEY_MUTE"
-+0x041b = "KEY_CHANNELUP"
-+0x041f = "KEY_CHANNELDOWN"
-+0x0440 = "KEY_PAUSE"
-+0x044c = "KEY_PLAY"
-+0x0458 = "KEY_RECORD"
-+0x0454 = "KEY_PREVIOUS"
-+0x0448 = "KEY_STOP"
-+0x045c = "KEY_NEXT"
-diff --git a/utils/keytable/rc_keymaps/d680_dmb b/utils/keytable/rc_keymaps/d680_dmb
-deleted file mode 100644
-index 2efa19b7..00000000
---- a/utils/keytable/rc_keymaps/d680_dmb
-+++ /dev/null
-@@ -1,36 +0,0 @@
--# table d680_dmb, type: UNKNOWN
--0x0038 KEY_SWITCHVIDEOMODE
--0x080c KEY_ZOOM
--0x0800 KEY_0
--0x0001 KEY_1
--0x0802 KEY_2
--0x0003 KEY_3
--0x0804 KEY_4
--0x0005 KEY_5
--0x0806 KEY_6
--0x0007 KEY_7
--0x0808 KEY_8
--0x0009 KEY_9
--0x000a KEY_MUTE
--0x0829 KEY_BACK
--0x0012 KEY_CHANNELUP
--0x0813 KEY_CHANNELDOWN
--0x002b KEY_VOLUMEUP
--0x082c KEY_VOLUMEDOWN
--0x0020 KEY_UP
--0x0821 KEY_DOWN
--0x0011 KEY_LEFT
--0x0810 KEY_RIGHT
--0x000d KEY_OK
--0x081f KEY_RECORD
--0x0017 KEY_PLAYPAUSE
--0x0816 KEY_PLAYPAUSE
--0x000b KEY_STOP
--0x0827 KEY_FASTFORWARD
--0x0026 KEY_REWIND
--0x081e KEY_UNKNOWN
--0x000e KEY_UNKNOWN
--0x082d KEY_UNKNOWN
--0x000f KEY_UNKNOWN
--0x0814 KEY_SHUFFLE
--0x0025 KEY_POWER
-diff --git a/utils/keytable/rc_keymaps/d680_dmb.toml b/utils/keytable/rc_keymaps/d680_dmb.toml
-new file mode 100644
-index 00000000..c30ae77d
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/d680_dmb.toml
-@@ -0,0 +1,38 @@
-+name = "d680_dmb"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x0038 = "KEY_SWITCHVIDEOMODE"
-+0x080c = "KEY_ZOOM"
-+0x0800 = "KEY_0"
-+0x0001 = "KEY_1"
-+0x0802 = "KEY_2"
-+0x0003 = "KEY_3"
-+0x0804 = "KEY_4"
-+0x0005 = "KEY_5"
-+0x0806 = "KEY_6"
-+0x0007 = "KEY_7"
-+0x0808 = "KEY_8"
-+0x0009 = "KEY_9"
-+0x000a = "KEY_MUTE"
-+0x0829 = "KEY_BACK"
-+0x0012 = "KEY_CHANNELUP"
-+0x0813 = "KEY_CHANNELDOWN"
-+0x002b = "KEY_VOLUMEUP"
-+0x082c = "KEY_VOLUMEDOWN"
-+0x0020 = "KEY_UP"
-+0x0821 = "KEY_DOWN"
-+0x0011 = "KEY_LEFT"
-+0x0810 = "KEY_RIGHT"
-+0x000d = "KEY_OK"
-+0x081f = "KEY_RECORD"
-+0x0017 = "KEY_PLAYPAUSE"
-+0x0816 = "KEY_PLAYPAUSE"
-+0x000b = "KEY_STOP"
-+0x0827 = "KEY_FASTFORWARD"
-+0x0026 = "KEY_REWIND"
-+0x081e = "KEY_UNKNOWN"
-+0x000e = "KEY_UNKNOWN"
-+0x082d = "KEY_UNKNOWN"
-+0x000f = "KEY_UNKNOWN"
-+0x0814 = "KEY_SHUFFLE"
-+0x0025 = "KEY_POWER"
-diff --git a/utils/keytable/rc_keymaps/delock_61959 b/utils/keytable/rc_keymaps/delock_61959
-deleted file mode 100644
-index 2c51f945..00000000
---- a/utils/keytable/rc_keymaps/delock_61959
-+++ /dev/null
-@@ -1,33 +0,0 @@
--# table delock_61959, type: NEC
--0x866b16 KEY_POWER2
--0x866b0c KEY_POWER
--0x866b00 KEY_1
--0x866b01 KEY_2
--0x866b02 KEY_3
--0x866b03 KEY_4
--0x866b04 KEY_5
--0x866b05 KEY_6
--0x866b06 KEY_7
--0x866b07 KEY_8
--0x866b08 KEY_9
--0x866b14 KEY_0
--0x866b0a KEY_ZOOM
--0x866b10 KEY_CAMERA
--0x866b0e KEY_CHANNEL
--0x866b13 KEY_ESC
--0x866b20 KEY_UP
--0x866b21 KEY_DOWN
--0x866b42 KEY_LEFT
--0x866b43 KEY_RIGHT
--0x866b0b KEY_OK
--0x866b11 KEY_CHANNELUP
--0x866b1b KEY_CHANNELDOWN
--0x866b12 KEY_VOLUMEUP
--0x866b48 KEY_VOLUMEDOWN
--0x866b44 KEY_MUTE
--0x866b1a KEY_RECORD
--0x866b41 KEY_PLAY
--0x866b40 KEY_STOP
--0x866b19 KEY_PAUSE
--0x866b1c KEY_FASTFORWARD
--0x866b1e KEY_REWIND
-diff --git a/utils/keytable/rc_keymaps/delock_61959.toml b/utils/keytable/rc_keymaps/delock_61959.toml
-new file mode 100644
-index 00000000..1e368aa7
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/delock_61959.toml
-@@ -0,0 +1,37 @@
-+name = "delock_61959"
-+protocol = "nec"
-+[nec]
-+variant = "necx"
-+[nec.scancodes]
-+0x866b16 = "KEY_POWER2"
-+0x866b0c = "KEY_POWER"
-+0x866b00 = "KEY_1"
-+0x866b01 = "KEY_2"
-+0x866b02 = "KEY_3"
-+0x866b03 = "KEY_4"
-+0x866b04 = "KEY_5"
-+0x866b05 = "KEY_6"
-+0x866b06 = "KEY_7"
-+0x866b07 = "KEY_8"
-+0x866b08 = "KEY_9"
-+0x866b14 = "KEY_0"
-+0x866b0a = "KEY_ZOOM"
-+0x866b10 = "KEY_CAMERA"
-+0x866b0e = "KEY_CHANNEL"
-+0x866b13 = "KEY_ESC"
-+0x866b20 = "KEY_UP"
-+0x866b21 = "KEY_DOWN"
-+0x866b42 = "KEY_LEFT"
-+0x866b43 = "KEY_RIGHT"
-+0x866b0b = "KEY_OK"
-+0x866b11 = "KEY_CHANNELUP"
-+0x866b1b = "KEY_CHANNELDOWN"
-+0x866b12 = "KEY_VOLUMEUP"
-+0x866b48 = "KEY_VOLUMEDOWN"
-+0x866b44 = "KEY_MUTE"
-+0x866b1a = "KEY_RECORD"
-+0x866b41 = "KEY_PLAY"
-+0x866b40 = "KEY_STOP"
-+0x866b19 = "KEY_PAUSE"
-+0x866b1c = "KEY_FASTFORWARD"
-+0x866b1e = "KEY_REWIND"
-diff --git a/utils/keytable/rc_keymaps/dib0700_nec b/utils/keytable/rc_keymaps/dib0700_nec
-deleted file mode 100644
-index 55cd2cf6..00000000
---- a/utils/keytable/rc_keymaps/dib0700_nec
-+++ /dev/null
-@@ -1,71 +0,0 @@
--# table dib0700_nec, type: NEC
--0x866b13 KEY_MUTE
--0x866b12 KEY_POWER
--0x866b01 KEY_1
--0x866b02 KEY_2
--0x866b03 KEY_3
--0x866b04 KEY_4
--0x866b05 KEY_5
--0x866b06 KEY_6
--0x866b07 KEY_7
--0x866b08 KEY_8
--0x866b09 KEY_9
--0x866b00 KEY_0
--0x866b0d KEY_CHANNELUP
--0x866b19 KEY_CHANNELDOWN
--0x866b10 KEY_VOLUMEUP
--0x866b0c KEY_VOLUMEDOWN
--0x866b0a KEY_CAMERA
--0x866b0b KEY_ZOOM
--0x866b1b KEY_BACKSPACE
--0x866b15 KEY_ENTER
--0x866b1d KEY_UP
--0x866b1e KEY_DOWN
--0x866b0e KEY_LEFT
--0x866b0f KEY_RIGHT
--0x866b18 KEY_RECORD
--0x866b1a KEY_STOP
--0x7a00 KEY_MENU
--0x7a01 KEY_RECORD
--0x7a02 KEY_PLAY
--0x7a03 KEY_STOP
--0x7a10 KEY_CHANNELUP
--0x7a11 KEY_CHANNELDOWN
--0x7a12 KEY_VOLUMEUP
--0x7a13 KEY_VOLUMEDOWN
--0x7a40 KEY_POWER
--0x7a41 KEY_MUTE
--0x4501 KEY_POWER
--0x4502 KEY_MUTE
--0x4503 KEY_1
--0x4504 KEY_2
--0x4505 KEY_3
--0x4506 KEY_4
--0x4507 KEY_5
--0x4508 KEY_6
--0x4509 KEY_7
--0x450a KEY_8
--0x450b KEY_9
--0x450c KEY_LAST
--0x450d KEY_0
--0x450e KEY_ENTER
--0x450f KEY_RED
--0x4510 KEY_CHANNELUP
--0x4511 KEY_GREEN
--0x4512 KEY_VOLUMEDOWN
--0x4513 KEY_OK
--0x4514 KEY_VOLUMEUP
--0x4515 KEY_YELLOW
--0x4516 KEY_CHANNELDOWN
--0x4517 KEY_BLUE
--0x4518 KEY_LEFT
--0x4519 KEY_PLAYPAUSE
--0x451a KEY_RIGHT
--0x451b KEY_REWIND
--0x451c KEY_L
--0x451d KEY_FASTFORWARD
--0x451e KEY_STOP
--0x451f KEY_MENU
--0x4540 KEY_RECORD
--0x4541 KEY_SCREEN
--0x4542 KEY_SELECT
-diff --git a/utils/keytable/rc_keymaps/dib0700_nec.toml b/utils/keytable/rc_keymaps/dib0700_nec.toml
-new file mode 100644
-index 00000000..ee98481d
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/dib0700_nec.toml
-@@ -0,0 +1,75 @@
-+name = "dib0700_nec"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x866b13 = "KEY_MUTE"
-+0x866b12 = "KEY_POWER"
-+0x866b01 = "KEY_1"
-+0x866b02 = "KEY_2"
-+0x866b03 = "KEY_3"
-+0x866b04 = "KEY_4"
-+0x866b05 = "KEY_5"
-+0x866b06 = "KEY_6"
-+0x866b07 = "KEY_7"
-+0x866b08 = "KEY_8"
-+0x866b09 = "KEY_9"
-+0x866b00 = "KEY_0"
-+0x866b0d = "KEY_CHANNELUP"
-+0x866b19 = "KEY_CHANNELDOWN"
-+0x866b10 = "KEY_VOLUMEUP"
-+0x866b0c = "KEY_VOLUMEDOWN"
-+0x866b0a = "KEY_CAMERA"
-+0x866b0b = "KEY_ZOOM"
-+0x866b1b = "KEY_BACKSPACE"
-+0x866b15 = "KEY_ENTER"
-+0x866b1d = "KEY_UP"
-+0x866b1e = "KEY_DOWN"
-+0x866b0e = "KEY_LEFT"
-+0x866b0f = "KEY_RIGHT"
-+0x866b18 = "KEY_RECORD"
-+0x866b1a = "KEY_STOP"
-+0x7a00 = "KEY_MENU"
-+0x7a01 = "KEY_RECORD"
-+0x7a02 = "KEY_PLAY"
-+0x7a03 = "KEY_STOP"
-+0x7a10 = "KEY_CHANNELUP"
-+0x7a11 = "KEY_CHANNELDOWN"
-+0x7a12 = "KEY_VOLUMEUP"
-+0x7a13 = "KEY_VOLUMEDOWN"
-+0x7a40 = "KEY_POWER"
-+0x7a41 = "KEY_MUTE"
-+0x4501 = "KEY_POWER"
-+0x4502 = "KEY_MUTE"
-+0x4503 = "KEY_1"
-+0x4504 = "KEY_2"
-+0x4505 = "KEY_3"
-+0x4506 = "KEY_4"
-+0x4507 = "KEY_5"
-+0x4508 = "KEY_6"
-+0x4509 = "KEY_7"
-+0x450a = "KEY_8"
-+0x450b = "KEY_9"
-+0x450c = "KEY_LAST"
-+0x450d = "KEY_0"
-+0x450e = "KEY_ENTER"
-+0x450f = "KEY_RED"
-+0x4510 = "KEY_CHANNELUP"
-+0x4511 = "KEY_GREEN"
-+0x4512 = "KEY_VOLUMEDOWN"
-+0x4513 = "KEY_OK"
-+0x4514 = "KEY_VOLUMEUP"
-+0x4515 = "KEY_YELLOW"
-+0x4516 = "KEY_CHANNELDOWN"
-+0x4517 = "KEY_BLUE"
-+0x4518 = "KEY_LEFT"
-+0x4519 = "KEY_PLAYPAUSE"
-+0x451a = "KEY_RIGHT"
-+0x451b = "KEY_REWIND"
-+0x451c = "KEY_L"
-+0x451d = "KEY_FASTFORWARD"
-+0x451e = "KEY_STOP"
-+0x451f = "KEY_MENU"
-+0x4540 = "KEY_RECORD"
-+0x4541 = "KEY_SCREEN"
-+0x4542 = "KEY_SELECT"
-diff --git a/utils/keytable/rc_keymaps/dib0700_rc5 b/utils/keytable/rc_keymaps/dib0700_rc5
-deleted file mode 100644
-index 4f8377f3..00000000
---- a/utils/keytable/rc_keymaps/dib0700_rc5
-+++ /dev/null
-@@ -1,181 +0,0 @@
--# table dib0700_rc5, type: RC5
--0x0700 KEY_MUTE
--0x0701 KEY_MENU
--0x0739 KEY_POWER
--0x0703 KEY_VOLUMEUP
--0x0709 KEY_VOLUMEDOWN
--0x0706 KEY_CHANNELUP
--0x070c KEY_CHANNELDOWN
--0x070f KEY_1
--0x0715 KEY_2
--0x0710 KEY_3
--0x0718 KEY_4
--0x071b KEY_5
--0x071e KEY_6
--0x0711 KEY_7
--0x0721 KEY_8
--0x0712 KEY_9
--0x0727 KEY_0
--0x0724 KEY_SCREEN
--0x072a KEY_TEXT
--0x072d KEY_REWIND
--0x0730 KEY_PLAY
--0x0733 KEY_FASTFORWARD
--0x0736 KEY_RECORD
--0x073c KEY_STOP
--0x073f KEY_CANCEL
--0xeb01 KEY_POWER
--0xeb02 KEY_1
--0xeb03 KEY_2
--0xeb04 KEY_3
--0xeb05 KEY_4
--0xeb06 KEY_5
--0xeb07 KEY_6
--0xeb08 KEY_7
--0xeb09 KEY_8
--0xeb0a KEY_9
--0xeb0b KEY_VIDEO
--0xeb0c KEY_0
--0xeb0d KEY_REFRESH
--0xeb0f KEY_EPG
--0xeb10 KEY_UP
--0xeb11 KEY_LEFT
--0xeb12 KEY_OK
--0xeb13 KEY_RIGHT
--0xeb14 KEY_DOWN
--0xeb16 KEY_INFO
--0xeb17 KEY_RED
--0xeb18 KEY_GREEN
--0xeb19 KEY_YELLOW
--0xeb1a KEY_BLUE
--0xeb1b KEY_CHANNELUP
--0xeb1c KEY_VOLUMEUP
--0xeb1d KEY_MUTE
--0xeb1e KEY_VOLUMEDOWN
--0xeb1f KEY_CHANNELDOWN
--0xeb40 KEY_PAUSE
--0xeb41 KEY_HOME
--0xeb42 KEY_MENU
--0xeb43 KEY_SUBTITLE
--0xeb44 KEY_TEXT
--0xeb45 KEY_DELETE
--0xeb46 KEY_TV
--0xeb47 KEY_DVD
--0xeb48 KEY_STOP
--0xeb49 KEY_VIDEO
--0xeb4a KEY_AUDIO
--0xeb4b KEY_SCREEN
--0xeb4c KEY_PLAY
--0xeb4d KEY_BACK
--0xeb4e KEY_REWIND
--0xeb4f KEY_FASTFORWARD
--0xeb54 KEY_PREVIOUS
--0xeb58 KEY_RECORD
--0xeb5c KEY_NEXT
--0x1e00 KEY_0
--0x1e01 KEY_1
--0x1e02 KEY_2
--0x1e03 KEY_3
--0x1e04 KEY_4
--0x1e05 KEY_5
--0x1e06 KEY_6
--0x1e07 KEY_7
--0x1e08 KEY_8
--0x1e09 KEY_9
--0x1e0a KEY_KPASTERISK
--0x1e0b KEY_RED
--0x1e0c KEY_RADIO
--0x1e0d KEY_MENU
--0x1e0e KEY_GRAVE
--0x1e0f KEY_MUTE
--0x1e10 KEY_VOLUMEUP
--0x1e11 KEY_VOLUMEDOWN
--0x1e12 KEY_CHANNEL
--0x1e14 KEY_UP
--0x1e15 KEY_DOWN
--0x1e16 KEY_LEFT
--0x1e17 KEY_RIGHT
--0x1e18 KEY_VIDEO
--0x1e19 KEY_AUDIO
--0x1e1a KEY_MEDIA
--0x1e1b KEY_EPG
--0x1e1c KEY_TV
--0x1e1e KEY_NEXT
--0x1e1f KEY_BACK
--0x1e20 KEY_CHANNELUP
--0x1e21 KEY_CHANNELDOWN
--0x1e24 KEY_LAST
--0x1e25 KEY_OK
--0x1e29 KEY_BLUE
--0x1e2e KEY_GREEN
--0x1e30 KEY_PAUSE
--0x1e32 KEY_REWIND
--0x1e34 KEY_FASTFORWARD
--0x1e35 KEY_PLAY
--0x1e36 KEY_STOP
--0x1e37 KEY_RECORD
--0x1e38 KEY_YELLOW
--0x1e3b KEY_GOTO
--0x1e3d KEY_POWER
--0x0042 KEY_POWER
--0x077c KEY_TUNER
--0x0f4e KEY_PRINT
--0x0840 KEY_SCREEN
--0x0f71 KEY_DOT
--0x0743 KEY_0
--0x0c41 KEY_1
--0x0443 KEY_2
--0x0b7f KEY_3
--0x0e41 KEY_4
--0x0643 KEY_5
--0x097f KEY_6
--0x0d7e KEY_7
--0x057c KEY_8
--0x0a40 KEY_9
--0x0e4e KEY_CLEAR
--0x047c KEY_CHANNEL
--0x0f41 KEY_LAST
--0x0342 KEY_MUTE
--0x064c KEY_RESERVED
--0x0172 KEY_SHUFFLE
--0x0c4e KEY_PLAYPAUSE
--0x0b70 KEY_RECORD
--0x037d KEY_VOLUMEUP
--0x017d KEY_VOLUMEDOWN
--0x0242 KEY_CHANNELUP
--0x007d KEY_CHANNELDOWN
--0x1d00 KEY_0
--0x1d01 KEY_1
--0x1d02 KEY_2
--0x1d03 KEY_3
--0x1d04 KEY_4
--0x1d05 KEY_5
--0x1d06 KEY_6
--0x1d07 KEY_7
--0x1d08 KEY_8
--0x1d09 KEY_9
--0x1d0a KEY_TEXT
--0x1d0d KEY_MENU
--0x1d0f KEY_MUTE
--0x1d10 KEY_VOLUMEUP
--0x1d11 KEY_VOLUMEDOWN
--0x1d12 KEY_CHANNEL
--0x1d14 KEY_UP
--0x1d15 KEY_DOWN
--0x1d16 KEY_LEFT
--0x1d17 KEY_RIGHT
--0x1d1c KEY_TV
--0x1d1e KEY_NEXT
--0x1d1f KEY_BACK
--0x1d20 KEY_CHANNELUP
--0x1d21 KEY_CHANNELDOWN
--0x1d24 KEY_LAST
--0x1d25 KEY_OK
--0x1d30 KEY_PAUSE
--0x1d32 KEY_REWIND
--0x1d34 KEY_FASTFORWARD
--0x1d35 KEY_PLAY
--0x1d36 KEY_STOP
--0x1d37 KEY_RECORD
--0x1d3b KEY_GOTO
--0x1d3d KEY_POWER
-diff --git a/utils/keytable/rc_keymaps/dib0700_rc5.toml b/utils/keytable/rc_keymaps/dib0700_rc5.toml
-new file mode 100644
-index 00000000..8950b931
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/dib0700_rc5.toml
-@@ -0,0 +1,185 @@
-+name = "dib0700_rc5"
-+protocol = "rc5"
-+[rc5]
-+variant = "rc5"
-+[rc5.scancodes]
-+0x0700 = "KEY_MUTE"
-+0x0701 = "KEY_MENU"
-+0x0739 = "KEY_POWER"
-+0x0703 = "KEY_VOLUMEUP"
-+0x0709 = "KEY_VOLUMEDOWN"
-+0x0706 = "KEY_CHANNELUP"
-+0x070c = "KEY_CHANNELDOWN"
-+0x070f = "KEY_1"
-+0x0715 = "KEY_2"
-+0x0710 = "KEY_3"
-+0x0718 = "KEY_4"
-+0x071b = "KEY_5"
-+0x071e = "KEY_6"
-+0x0711 = "KEY_7"
-+0x0721 = "KEY_8"
-+0x0712 = "KEY_9"
-+0x0727 = "KEY_0"
-+0x0724 = "KEY_SCREEN"
-+0x072a = "KEY_TEXT"
-+0x072d = "KEY_REWIND"
-+0x0730 = "KEY_PLAY"
-+0x0733 = "KEY_FASTFORWARD"
-+0x0736 = "KEY_RECORD"
-+0x073c = "KEY_STOP"
-+0x073f = "KEY_CANCEL"
-+0xeb01 = "KEY_POWER"
-+0xeb02 = "KEY_1"
-+0xeb03 = "KEY_2"
-+0xeb04 = "KEY_3"
-+0xeb05 = "KEY_4"
-+0xeb06 = "KEY_5"
-+0xeb07 = "KEY_6"
-+0xeb08 = "KEY_7"
-+0xeb09 = "KEY_8"
-+0xeb0a = "KEY_9"
-+0xeb0b = "KEY_VIDEO"
-+0xeb0c = "KEY_0"
-+0xeb0d = "KEY_REFRESH"
-+0xeb0f = "KEY_EPG"
-+0xeb10 = "KEY_UP"
-+0xeb11 = "KEY_LEFT"
-+0xeb12 = "KEY_OK"
-+0xeb13 = "KEY_RIGHT"
-+0xeb14 = "KEY_DOWN"
-+0xeb16 = "KEY_INFO"
-+0xeb17 = "KEY_RED"
-+0xeb18 = "KEY_GREEN"
-+0xeb19 = "KEY_YELLOW"
-+0xeb1a = "KEY_BLUE"
-+0xeb1b = "KEY_CHANNELUP"
-+0xeb1c = "KEY_VOLUMEUP"
-+0xeb1d = "KEY_MUTE"
-+0xeb1e = "KEY_VOLUMEDOWN"
-+0xeb1f = "KEY_CHANNELDOWN"
-+0xeb40 = "KEY_PAUSE"
-+0xeb41 = "KEY_HOME"
-+0xeb42 = "KEY_MENU"
-+0xeb43 = "KEY_SUBTITLE"
-+0xeb44 = "KEY_TEXT"
-+0xeb45 = "KEY_DELETE"
-+0xeb46 = "KEY_TV"
-+0xeb47 = "KEY_DVD"
-+0xeb48 = "KEY_STOP"
-+0xeb49 = "KEY_VIDEO"
-+0xeb4a = "KEY_AUDIO"
-+0xeb4b = "KEY_SCREEN"
-+0xeb4c = "KEY_PLAY"
-+0xeb4d = "KEY_BACK"
-+0xeb4e = "KEY_REWIND"
-+0xeb4f = "KEY_FASTFORWARD"
-+0xeb54 = "KEY_PREVIOUS"
-+0xeb58 = "KEY_RECORD"
-+0xeb5c = "KEY_NEXT"
-+0x1e00 = "KEY_0"
-+0x1e01 = "KEY_1"
-+0x1e02 = "KEY_2"
-+0x1e03 = "KEY_3"
-+0x1e04 = "KEY_4"
-+0x1e05 = "KEY_5"
-+0x1e06 = "KEY_6"
-+0x1e07 = "KEY_7"
-+0x1e08 = "KEY_8"
-+0x1e09 = "KEY_9"
-+0x1e0a = "KEY_KPASTERISK"
-+0x1e0b = "KEY_RED"
-+0x1e0c = "KEY_RADIO"
-+0x1e0d = "KEY_MENU"
-+0x1e0e = "KEY_GRAVE"
-+0x1e0f = "KEY_MUTE"
-+0x1e10 = "KEY_VOLUMEUP"
-+0x1e11 = "KEY_VOLUMEDOWN"
-+0x1e12 = "KEY_CHANNEL"
-+0x1e14 = "KEY_UP"
-+0x1e15 = "KEY_DOWN"
-+0x1e16 = "KEY_LEFT"
-+0x1e17 = "KEY_RIGHT"
-+0x1e18 = "KEY_VIDEO"
-+0x1e19 = "KEY_AUDIO"
-+0x1e1a = "KEY_MEDIA"
-+0x1e1b = "KEY_EPG"
-+0x1e1c = "KEY_TV"
-+0x1e1e = "KEY_NEXT"
-+0x1e1f = "KEY_BACK"
-+0x1e20 = "KEY_CHANNELUP"
-+0x1e21 = "KEY_CHANNELDOWN"
-+0x1e24 = "KEY_LAST"
-+0x1e25 = "KEY_OK"
-+0x1e29 = "KEY_BLUE"
-+0x1e2e = "KEY_GREEN"
-+0x1e30 = "KEY_PAUSE"
-+0x1e32 = "KEY_REWIND"
-+0x1e34 = "KEY_FASTFORWARD"
-+0x1e35 = "KEY_PLAY"
-+0x1e36 = "KEY_STOP"
-+0x1e37 = "KEY_RECORD"
-+0x1e38 = "KEY_YELLOW"
-+0x1e3b = "KEY_GOTO"
-+0x1e3d = "KEY_POWER"
-+0x0042 = "KEY_POWER"
-+0x077c = "KEY_TUNER"
-+0x0f4e = "KEY_PRINT"
-+0x0840 = "KEY_SCREEN"
-+0x0f71 = "KEY_DOT"
-+0x0743 = "KEY_0"
-+0x0c41 = "KEY_1"
-+0x0443 = "KEY_2"
-+0x0b7f = "KEY_3"
-+0x0e41 = "KEY_4"
-+0x0643 = "KEY_5"
-+0x097f = "KEY_6"
-+0x0d7e = "KEY_7"
-+0x057c = "KEY_8"
-+0x0a40 = "KEY_9"
-+0x0e4e = "KEY_CLEAR"
-+0x047c = "KEY_CHANNEL"
-+0x0f41 = "KEY_LAST"
-+0x0342 = "KEY_MUTE"
-+0x064c = "KEY_RESERVED"
-+0x0172 = "KEY_SHUFFLE"
-+0x0c4e = "KEY_PLAYPAUSE"
-+0x0b70 = "KEY_RECORD"
-+0x037d = "KEY_VOLUMEUP"
-+0x017d = "KEY_VOLUMEDOWN"
-+0x0242 = "KEY_CHANNELUP"
-+0x007d = "KEY_CHANNELDOWN"
-+0x1d00 = "KEY_0"
-+0x1d01 = "KEY_1"
-+0x1d02 = "KEY_2"
-+0x1d03 = "KEY_3"
-+0x1d04 = "KEY_4"
-+0x1d05 = "KEY_5"
-+0x1d06 = "KEY_6"
-+0x1d07 = "KEY_7"
-+0x1d08 = "KEY_8"
-+0x1d09 = "KEY_9"
-+0x1d0a = "KEY_TEXT"
-+0x1d0d = "KEY_MENU"
-+0x1d0f = "KEY_MUTE"
-+0x1d10 = "KEY_VOLUMEUP"
-+0x1d11 = "KEY_VOLUMEDOWN"
-+0x1d12 = "KEY_CHANNEL"
-+0x1d14 = "KEY_UP"
-+0x1d15 = "KEY_DOWN"
-+0x1d16 = "KEY_LEFT"
-+0x1d17 = "KEY_RIGHT"
-+0x1d1c = "KEY_TV"
-+0x1d1e = "KEY_NEXT"
-+0x1d1f = "KEY_BACK"
-+0x1d20 = "KEY_CHANNELUP"
-+0x1d21 = "KEY_CHANNELDOWN"
-+0x1d24 = "KEY_LAST"
-+0x1d25 = "KEY_OK"
-+0x1d30 = "KEY_PAUSE"
-+0x1d32 = "KEY_REWIND"
-+0x1d34 = "KEY_FASTFORWARD"
-+0x1d35 = "KEY_PLAY"
-+0x1d36 = "KEY_STOP"
-+0x1d37 = "KEY_RECORD"
-+0x1d3b = "KEY_GOTO"
-+0x1d3d = "KEY_POWER"
-diff --git a/utils/keytable/rc_keymaps/dibusb b/utils/keytable/rc_keymaps/dibusb
-deleted file mode 100644
-index b00b96d0..00000000
---- a/utils/keytable/rc_keymaps/dibusb
-+++ /dev/null
-@@ -1,112 +0,0 @@
--# table dibusb, type: UNKNOWN
--0x0016 KEY_POWER
--0x0010 KEY_MUTE
--0x0003 KEY_1
--0x0001 KEY_2
--0x0006 KEY_3
--0x0009 KEY_4
--0x001d KEY_5
--0x001f KEY_6
--0x000d KEY_7
--0x0019 KEY_8
--0x001b KEY_9
--0x0015 KEY_0
--0x0005 KEY_CHANNELUP
--0x0002 KEY_CHANNELDOWN
--0x001e KEY_VOLUMEUP
--0x000a KEY_VOLUMEDOWN
--0x0011 KEY_RECORD
--0x0017 KEY_FAVORITES
--0x0014 KEY_PLAY
--0x001a KEY_STOP
--0x0040 KEY_REWIND
--0x0012 KEY_FASTFORWARD
--0x000e KEY_PREVIOUS
--0x004c KEY_PAUSE
--0x004d KEY_SCREEN
--0x0054 KEY_AUDIO
--0x000c KEY_CANCEL
--0x001c KEY_EPG
--0x0000 KEY_TAB
--0x0048 KEY_INFO
--0x0004 KEY_LIST
--0x000f KEY_TEXT
--0x8612 KEY_POWER
--0x860f KEY_SELECT
--0x860c KEY_UNKNOWN
--0x860b KEY_EPG
--0x8610 KEY_MUTE
--0x8601 KEY_1
--0x8602 KEY_2
--0x8603 KEY_3
--0x8604 KEY_4
--0x8605 KEY_5
--0x8606 KEY_6
--0x8607 KEY_7
--0x8608 KEY_8
--0x8609 KEY_9
--0x860a KEY_0
--0x8618 KEY_ZOOM
--0x861c KEY_UNKNOWN
--0x8613 KEY_UNKNOWN
--0x8600 KEY_UNDO
--0x861d KEY_RECORD
--0x860d KEY_STOP
--0x860e KEY_PAUSE
--0x8616 KEY_PLAY
--0x8611 KEY_BACK
--0x8619 KEY_FORWARD
--0x8614 KEY_UNKNOWN
--0x8615 KEY_ESC
--0x861a KEY_UP
--0x861e KEY_DOWN
--0x861f KEY_LEFT
--0x861b KEY_RIGHT
--0x8000 KEY_MUTE
--0x8001 KEY_TEXT
--0x8002 KEY_HOME
--0x8003 KEY_POWER
--0x8004 KEY_RED
--0x8005 KEY_GREEN
--0x8006 KEY_YELLOW
--0x8007 KEY_BLUE
--0x8008 KEY_DVD
--0x8009 KEY_AUDIO
--0x800a KEY_IMAGES
--0x800b KEY_VIDEO
--0x800c KEY_BACK
--0x800d KEY_UP
--0x800e KEY_RADIO
--0x800f KEY_EPG
--0x8010 KEY_LEFT
--0x8011 KEY_OK
--0x8012 KEY_RIGHT
--0x8013 KEY_UNKNOWN
--0x8014 KEY_TV
--0x8015 KEY_DOWN
--0x8016 KEY_MENU
--0x8017 KEY_LAST
--0x8018 KEY_RECORD
--0x8019 KEY_STOP
--0x801a KEY_PAUSE
--0x801b KEY_PLAY
--0x801c KEY_PREVIOUS
--0x801d KEY_REWIND
--0x801e KEY_FASTFORWARD
--0x801f KEY_NEXT
--0x8040 KEY_1
--0x8041 KEY_2
--0x8042 KEY_3
--0x8043 KEY_CHANNELUP
--0x8044 KEY_4
--0x8045 KEY_5
--0x8046 KEY_6
--0x8047 KEY_CHANNELDOWN
--0x8048 KEY_7
--0x8049 KEY_8
--0x804a KEY_9
--0x804b KEY_VOLUMEUP
--0x804c KEY_CLEAR
--0x804d KEY_0
--0x804e KEY_ENTER
--0x804f KEY_VOLUMEDOWN
-diff --git a/utils/keytable/rc_keymaps/dibusb.toml b/utils/keytable/rc_keymaps/dibusb.toml
-new file mode 100644
-index 00000000..a37b541d
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/dibusb.toml
-@@ -0,0 +1,114 @@
-+name = "dibusb"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x0016 = "KEY_POWER"
-+0x0010 = "KEY_MUTE"
-+0x0003 = "KEY_1"
-+0x0001 = "KEY_2"
-+0x0006 = "KEY_3"
-+0x0009 = "KEY_4"
-+0x001d = "KEY_5"
-+0x001f = "KEY_6"
-+0x000d = "KEY_7"
-+0x0019 = "KEY_8"
-+0x001b = "KEY_9"
-+0x0015 = "KEY_0"
-+0x0005 = "KEY_CHANNELUP"
-+0x0002 = "KEY_CHANNELDOWN"
-+0x001e = "KEY_VOLUMEUP"
-+0x000a = "KEY_VOLUMEDOWN"
-+0x0011 = "KEY_RECORD"
-+0x0017 = "KEY_FAVORITES"
-+0x0014 = "KEY_PLAY"
-+0x001a = "KEY_STOP"
-+0x0040 = "KEY_REWIND"
-+0x0012 = "KEY_FASTFORWARD"
-+0x000e = "KEY_PREVIOUS"
-+0x004c = "KEY_PAUSE"
-+0x004d = "KEY_SCREEN"
-+0x0054 = "KEY_AUDIO"
-+0x000c = "KEY_CANCEL"
-+0x001c = "KEY_EPG"
-+0x0000 = "KEY_TAB"
-+0x0048 = "KEY_INFO"
-+0x0004 = "KEY_LIST"
-+0x000f = "KEY_TEXT"
-+0x8612 = "KEY_POWER"
-+0x860f = "KEY_SELECT"
-+0x860c = "KEY_UNKNOWN"
-+0x860b = "KEY_EPG"
-+0x8610 = "KEY_MUTE"
-+0x8601 = "KEY_1"
-+0x8602 = "KEY_2"
-+0x8603 = "KEY_3"
-+0x8604 = "KEY_4"
-+0x8605 = "KEY_5"
-+0x8606 = "KEY_6"
-+0x8607 = "KEY_7"
-+0x8608 = "KEY_8"
-+0x8609 = "KEY_9"
-+0x860a = "KEY_0"
-+0x8618 = "KEY_ZOOM"
-+0x861c = "KEY_UNKNOWN"
-+0x8613 = "KEY_UNKNOWN"
-+0x8600 = "KEY_UNDO"
-+0x861d = "KEY_RECORD"
-+0x860d = "KEY_STOP"
-+0x860e = "KEY_PAUSE"
-+0x8616 = "KEY_PLAY"
-+0x8611 = "KEY_BACK"
-+0x8619 = "KEY_FORWARD"
-+0x8614 = "KEY_UNKNOWN"
-+0x8615 = "KEY_ESC"
-+0x861a = "KEY_UP"
-+0x861e = "KEY_DOWN"
-+0x861f = "KEY_LEFT"
-+0x861b = "KEY_RIGHT"
-+0x8000 = "KEY_MUTE"
-+0x8001 = "KEY_TEXT"
-+0x8002 = "KEY_HOME"
-+0x8003 = "KEY_POWER"
-+0x8004 = "KEY_RED"
-+0x8005 = "KEY_GREEN"
-+0x8006 = "KEY_YELLOW"
-+0x8007 = "KEY_BLUE"
-+0x8008 = "KEY_DVD"
-+0x8009 = "KEY_AUDIO"
-+0x800a = "KEY_IMAGES"
-+0x800b = "KEY_VIDEO"
-+0x800c = "KEY_BACK"
-+0x800d = "KEY_UP"
-+0x800e = "KEY_RADIO"
-+0x800f = "KEY_EPG"
-+0x8010 = "KEY_LEFT"
-+0x8011 = "KEY_OK"
-+0x8012 = "KEY_RIGHT"
-+0x8013 = "KEY_UNKNOWN"
-+0x8014 = "KEY_TV"
-+0x8015 = "KEY_DOWN"
-+0x8016 = "KEY_MENU"
-+0x8017 = "KEY_LAST"
-+0x8018 = "KEY_RECORD"
-+0x8019 = "KEY_STOP"
-+0x801a = "KEY_PAUSE"
-+0x801b = "KEY_PLAY"
-+0x801c = "KEY_PREVIOUS"
-+0x801d = "KEY_REWIND"
-+0x801e = "KEY_FASTFORWARD"
-+0x801f = "KEY_NEXT"
-+0x8040 = "KEY_1"
-+0x8041 = "KEY_2"
-+0x8042 = "KEY_3"
-+0x8043 = "KEY_CHANNELUP"
-+0x8044 = "KEY_4"
-+0x8045 = "KEY_5"
-+0x8046 = "KEY_6"
-+0x8047 = "KEY_CHANNELDOWN"
-+0x8048 = "KEY_7"
-+0x8049 = "KEY_8"
-+0x804a = "KEY_9"
-+0x804b = "KEY_VOLUMEUP"
-+0x804c = "KEY_CLEAR"
-+0x804d = "KEY_0"
-+0x804e = "KEY_ENTER"
-+0x804f = "KEY_VOLUMEDOWN"
-diff --git a/utils/keytable/rc_keymaps/digitalnow_tinytwin b/utils/keytable/rc_keymaps/digitalnow_tinytwin
-deleted file mode 100644
-index eb5e6773..00000000
---- a/utils/keytable/rc_keymaps/digitalnow_tinytwin
-+++ /dev/null
-@@ -1,50 +0,0 @@
--# table digitalnow_tinytwin, type: NEC
--0x0000 KEY_MUTE
--0x0001 KEY_VOLUMEUP
--0x0002 KEY_POWER2
--0x0003 KEY_2
--0x0004 KEY_3
--0x0005 KEY_4
--0x0006 KEY_6
--0x0007 KEY_7
--0x0008 KEY_8
--0x0009 KEY_NUMERIC_STAR
--0x000a KEY_0
--0x000b KEY_NUMERIC_POUND
--0x000c KEY_RIGHT
--0x000d KEY_HOMEPAGE
--0x000e KEY_RED
--0x0010 KEY_POWER
--0x0011 KEY_YELLOW
--0x0012 KEY_DOWN
--0x0013 KEY_GREEN
--0x0014 KEY_CYCLEWINDOWS
--0x0015 KEY_FAVORITES
--0x0016 KEY_UP
--0x0017 KEY_LEFT
--0x0018 KEY_OK
--0x0019 KEY_BLUE
--0x001a KEY_REWIND
--0x001b KEY_PLAY
--0x001c KEY_5
--0x001d KEY_9
--0x001e KEY_VOLUMEDOWN
--0x001f KEY_1
--0x0040 KEY_STOP
--0x0042 KEY_PAUSE
--0x0043 KEY_SCREEN
--0x0044 KEY_FORWARD
--0x0045 KEY_NEXT
--0x0048 KEY_RECORD
--0x0049 KEY_VIDEO
--0x004a KEY_EPG
--0x004b KEY_CHANNELUP
--0x004c KEY_HELP
--0x004d KEY_RADIO
--0x004f KEY_CHANNELDOWN
--0x0050 KEY_DVD
--0x0051 KEY_AUDIO
--0x0052 KEY_TITLE
--0x0053 KEY_NEW
--0x0057 KEY_MENU
--0x005a KEY_PREVIOUS
-diff --git a/utils/keytable/rc_keymaps/digitalnow_tinytwin.toml b/utils/keytable/rc_keymaps/digitalnow_tinytwin.toml
-new file mode 100644
-index 00000000..e4f84a51
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/digitalnow_tinytwin.toml
-@@ -0,0 +1,54 @@
-+name = "digitalnow_tinytwin"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0000 = "KEY_MUTE"
-+0x0001 = "KEY_VOLUMEUP"
-+0x0002 = "KEY_POWER2"
-+0x0003 = "KEY_2"
-+0x0004 = "KEY_3"
-+0x0005 = "KEY_4"
-+0x0006 = "KEY_6"
-+0x0007 = "KEY_7"
-+0x0008 = "KEY_8"
-+0x0009 = "KEY_NUMERIC_STAR"
-+0x000a = "KEY_0"
-+0x000b = "KEY_NUMERIC_POUND"
-+0x000c = "KEY_RIGHT"
-+0x000d = "KEY_HOMEPAGE"
-+0x000e = "KEY_RED"
-+0x0010 = "KEY_POWER"
-+0x0011 = "KEY_YELLOW"
-+0x0012 = "KEY_DOWN"
-+0x0013 = "KEY_GREEN"
-+0x0014 = "KEY_CYCLEWINDOWS"
-+0x0015 = "KEY_FAVORITES"
-+0x0016 = "KEY_UP"
-+0x0017 = "KEY_LEFT"
-+0x0018 = "KEY_OK"
-+0x0019 = "KEY_BLUE"
-+0x001a = "KEY_REWIND"
-+0x001b = "KEY_PLAY"
-+0x001c = "KEY_5"
-+0x001d = "KEY_9"
-+0x001e = "KEY_VOLUMEDOWN"
-+0x001f = "KEY_1"
-+0x0040 = "KEY_STOP"
-+0x0042 = "KEY_PAUSE"
-+0x0043 = "KEY_SCREEN"
-+0x0044 = "KEY_FORWARD"
-+0x0045 = "KEY_NEXT"
-+0x0048 = "KEY_RECORD"
-+0x0049 = "KEY_VIDEO"
-+0x004a = "KEY_EPG"
-+0x004b = "KEY_CHANNELUP"
-+0x004c = "KEY_HELP"
-+0x004d = "KEY_RADIO"
-+0x004f = "KEY_CHANNELDOWN"
-+0x0050 = "KEY_DVD"
-+0x0051 = "KEY_AUDIO"
-+0x0052 = "KEY_TITLE"
-+0x0053 = "KEY_NEW"
-+0x0057 = "KEY_MENU"
-+0x005a = "KEY_PREVIOUS"
-diff --git a/utils/keytable/rc_keymaps/digittrade b/utils/keytable/rc_keymaps/digittrade
-deleted file mode 100644
-index 73ee3dab..00000000
---- a/utils/keytable/rc_keymaps/digittrade
-+++ /dev/null
-@@ -1,29 +0,0 @@
--# table digittrade, type: NEC
--0x0000 KEY_9
--0x0001 KEY_EPG
--0x0002 KEY_VOLUMEDOWN
--0x0003 KEY_TEXT
--0x0004 KEY_8
--0x0005 KEY_MUTE
--0x0006 KEY_POWER2
--0x0009 KEY_ZOOM
--0x000a KEY_RECORD
--0x000d KEY_SUBTITLE
--0x000e KEY_STOP
--0x0010 KEY_OK
--0x0011 KEY_2
--0x0012 KEY_4
--0x0015 KEY_3
--0x0016 KEY_5
--0x0017 KEY_CHANNELDOWN
--0x0019 KEY_CHANNELUP
--0x001a KEY_PAUSE
--0x001b KEY_1
--0x001d KEY_AUDIO
--0x001e KEY_PLAY
--0x001f KEY_CAMERA
--0x0040 KEY_VOLUMEUP
--0x0048 KEY_7
--0x004c KEY_6
--0x004d KEY_PLAYPAUSE
--0x0054 KEY_0
-diff --git a/utils/keytable/rc_keymaps/digittrade.toml b/utils/keytable/rc_keymaps/digittrade.toml
-new file mode 100644
-index 00000000..bb8a1901
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/digittrade.toml
-@@ -0,0 +1,33 @@
-+name = "digittrade"
-+protocol = "nec"
-+[nec]
-+variant = "nec"
-+[nec.scancodes]
-+0x0000 = "KEY_9"
-+0x0001 = "KEY_EPG"
-+0x0002 = "KEY_VOLUMEDOWN"
-+0x0003 = "KEY_TEXT"
-+0x0004 = "KEY_8"
-+0x0005 = "KEY_MUTE"
-+0x0006 = "KEY_POWER2"
-+0x0009 = "KEY_ZOOM"
-+0x000a = "KEY_RECORD"
-+0x000d = "KEY_SUBTITLE"
-+0x000e = "KEY_STOP"
-+0x0010 = "KEY_OK"
-+0x0011 = "KEY_2"
-+0x0012 = "KEY_4"
-+0x0015 = "KEY_3"
-+0x0016 = "KEY_5"
-+0x0017 = "KEY_CHANNELDOWN"
-+0x0019 = "KEY_CHANNELUP"
-+0x001a = "KEY_PAUSE"
-+0x001b = "KEY_1"
-+0x001d = "KEY_AUDIO"
-+0x001e = "KEY_PLAY"
-+0x001f = "KEY_CAMERA"
-+0x0040 = "KEY_VOLUMEUP"
-+0x0048 = "KEY_7"
-+0x004c = "KEY_6"
-+0x004d = "KEY_PLAYPAUSE"
-+0x0054 = "KEY_0"
-diff --git a/utils/keytable/rc_keymaps/digitv b/utils/keytable/rc_keymaps/digitv
-deleted file mode 100644
-index 1ad8dda6..00000000
---- a/utils/keytable/rc_keymaps/digitv
-+++ /dev/null
-@@ -1,56 +0,0 @@
--# table digitv, type: UNKNOWN
--0x5f55 KEY_0
--0x6f55 KEY_1
--0x9f55 KEY_2
--0xaf55 KEY_3
--0x5f56 KEY_4
--0x6f56 KEY_5
--0x9f56 KEY_6
--0xaf56 KEY_7
--0x5f59 KEY_8
--0x6f59 KEY_9
--0x9f59 KEY_TV
--0xaf59 KEY_AUX
--0x5f5a KEY_DVD
--0x6f5a KEY_POWER
--0x9f5a KEY_CAMERA
--0xaf5a KEY_AUDIO
--0x5f65 KEY_INFO
--0x6f65 KEY_F13
--0x9f65 KEY_F14
--0xaf65 KEY_EPG
--0x5f66 KEY_EXIT
--0x6f66 KEY_MENU
--0x9f66 KEY_UP
--0xaf66 KEY_DOWN
--0x5f69 KEY_LEFT
--0x6f69 KEY_RIGHT
--0x9f69 KEY_ENTER
--0xaf69 KEY_CHANNELUP
--0x5f6a KEY_CHANNELDOWN
--0x6f6a KEY_VOLUMEUP
--0x9f6a KEY_VOLUMEDOWN
--0xaf6a KEY_RED
--0x5f95 KEY_GREEN
--0x6f95 KEY_YELLOW
--0x9f95 KEY_BLUE
--0xaf95 KEY_SUBTITLE
--0x5f96 KEY_F15
--0x6f96 KEY_TEXT
--0x9f96 KEY_MUTE
--0xaf96 KEY_REWIND
--0x5f99 KEY_STOP
--0x6f99 KEY_PLAY
--0x9f99 KEY_FASTFORWARD
--0xaf99 KEY_F16
--0x5f9a KEY_PAUSE
--0x6f9a KEY_PLAY
--0x9f9a KEY_RECORD
--0xaf9a KEY_F17
--0x5fa5 KEY_KPPLUS
--0x6fa5 KEY_KPMINUS
--0x9fa5 KEY_F18
--0xafa5 KEY_F19
--0x5fa6 KEY_EMAIL
--0x6fa6 KEY_PHONE
--0x9fa6 KEY_PC
-diff --git a/utils/keytable/rc_keymaps/digitv.toml b/utils/keytable/rc_keymaps/digitv.toml
-new file mode 100644
-index 00000000..5f05bdf3
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/digitv.toml
-@@ -0,0 +1,58 @@
-+name = "digitv"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x5f55 = "KEY_0"
-+0x6f55 = "KEY_1"
-+0x9f55 = "KEY_2"
-+0xaf55 = "KEY_3"
-+0x5f56 = "KEY_4"
-+0x6f56 = "KEY_5"
-+0x9f56 = "KEY_6"
-+0xaf56 = "KEY_7"
-+0x5f59 = "KEY_8"
-+0x6f59 = "KEY_9"
-+0x9f59 = "KEY_TV"
-+0xaf59 = "KEY_AUX"
-+0x5f5a = "KEY_DVD"
-+0x6f5a = "KEY_POWER"
-+0x9f5a = "KEY_CAMERA"
-+0xaf5a = "KEY_AUDIO"
-+0x5f65 = "KEY_INFO"
-+0x6f65 = "KEY_F13"
-+0x9f65 = "KEY_F14"
-+0xaf65 = "KEY_EPG"
-+0x5f66 = "KEY_EXIT"
-+0x6f66 = "KEY_MENU"
-+0x9f66 = "KEY_UP"
-+0xaf66 = "KEY_DOWN"
-+0x5f69 = "KEY_LEFT"
-+0x6f69 = "KEY_RIGHT"
-+0x9f69 = "KEY_ENTER"
-+0xaf69 = "KEY_CHANNELUP"
-+0x5f6a = "KEY_CHANNELDOWN"
-+0x6f6a = "KEY_VOLUMEUP"
-+0x9f6a = "KEY_VOLUMEDOWN"
-+0xaf6a = "KEY_RED"
-+0x5f95 = "KEY_GREEN"
-+0x6f95 = "KEY_YELLOW"
-+0x9f95 = "KEY_BLUE"
-+0xaf95 = "KEY_SUBTITLE"
-+0x5f96 = "KEY_F15"
-+0x6f96 = "KEY_TEXT"
-+0x9f96 = "KEY_MUTE"
-+0xaf96 = "KEY_REWIND"
-+0x5f99 = "KEY_STOP"
-+0x6f99 = "KEY_PLAY"
-+0x9f99 = "KEY_FASTFORWARD"
-+0xaf99 = "KEY_F16"
-+0x5f9a = "KEY_PAUSE"
-+0x6f9a = "KEY_PLAY"
-+0x9f9a = "KEY_RECORD"
-+0xaf9a = "KEY_F17"
-+0x5fa5 = "KEY_KPPLUS"
-+0x6fa5 = "KEY_KPMINUS"
-+0x9fa5 = "KEY_F18"
-+0xafa5 = "KEY_F19"
-+0x5fa6 = "KEY_EMAIL"
-+0x6fa6 = "KEY_PHONE"
-+0x9fa6 = "KEY_PC"
-diff --git a/utils/keytable/rc_keymaps/dm1105_nec b/utils/keytable/rc_keymaps/dm1105_nec
-deleted file mode 100644
-index d7e26b1a..00000000
---- a/utils/keytable/rc_keymaps/dm1105_nec
-+++ /dev/null
-@@ -1,32 +0,0 @@
--# table dm1105_nec, type: UNKNOWN
--0x0a KEY_POWER2
--0x0c KEY_MUTE
--0x11 KEY_1
--0x12 KEY_2
--0x13 KEY_3
--0x14 KEY_4
--0x15 KEY_5
--0x16 KEY_6
--0x17 KEY_7
--0x18 KEY_8
--0x19 KEY_9
--0x10 KEY_0
--0x1c KEY_CHANNELUP
--0x0f KEY_CHANNELDOWN
--0x1a KEY_VOLUMEUP
--0x0e KEY_VOLUMEDOWN
--0x04 KEY_RECORD
--0x09 KEY_CHANNEL
--0x08 KEY_BACKSPACE
--0x07 KEY_FASTFORWARD
--0x0b KEY_PAUSE
--0x02 KEY_ESC
--0x03 KEY_TAB
--0x00 KEY_UP
--0x1f KEY_ENTER
--0x01 KEY_DOWN
--0x05 KEY_RECORD
--0x06 KEY_STOP
--0x40 KEY_ZOOM
--0x1e KEY_TV
--0x1b KEY_B
-diff --git a/utils/keytable/rc_keymaps/dm1105_nec.toml b/utils/keytable/rc_keymaps/dm1105_nec.toml
-new file mode 100644
-index 00000000..e1c35bce
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/dm1105_nec.toml
-@@ -0,0 +1,34 @@
-+name = "dm1105_nec"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x0a = "KEY_POWER2"
-+0x0c = "KEY_MUTE"
-+0x11 = "KEY_1"
-+0x12 = "KEY_2"
-+0x13 = "KEY_3"
-+0x14 = "KEY_4"
-+0x15 = "KEY_5"
-+0x16 = "KEY_6"
-+0x17 = "KEY_7"
-+0x18 = "KEY_8"
-+0x19 = "KEY_9"
-+0x10 = "KEY_0"
-+0x1c = "KEY_CHANNELUP"
-+0x0f = "KEY_CHANNELDOWN"
-+0x1a = "KEY_VOLUMEUP"
-+0x0e = "KEY_VOLUMEDOWN"
-+0x04 = "KEY_RECORD"
-+0x09 = "KEY_CHANNEL"
-+0x08 = "KEY_BACKSPACE"
-+0x07 = "KEY_FASTFORWARD"
-+0x0b = "KEY_PAUSE"
-+0x02 = "KEY_ESC"
-+0x03 = "KEY_TAB"
-+0x00 = "KEY_UP"
-+0x1f = "KEY_ENTER"
-+0x01 = "KEY_DOWN"
-+0x05 = "KEY_RECORD"
-+0x06 = "KEY_STOP"
-+0x40 = "KEY_ZOOM"
-+0x1e = "KEY_TV"
-+0x1b = "KEY_B"
-diff --git a/utils/keytable/rc_keymaps/dntv_live_dvb_t b/utils/keytable/rc_keymaps/dntv_live_dvb_t
-deleted file mode 100644
-index 7020acb9..00000000
---- a/utils/keytable/rc_keymaps/dntv_live_dvb_t
-+++ /dev/null
-@@ -1,33 +0,0 @@
--# table dntv_live_dvb_t, type: UNKNOWN
--0x00 KEY_ESC
--0x0a KEY_0
--0x01 KEY_1
--0x02 KEY_2
--0x03 KEY_3
--0x04 KEY_4
--0x05 KEY_5
--0x06 KEY_6
--0x07 KEY_7
--0x08 KEY_8
--0x09 KEY_9
--0x0b KEY_TUNER
--0x0c KEY_SEARCH
--0x0d KEY_STOP
--0x0e KEY_PAUSE
--0x0f KEY_VIDEO
--0x10 KEY_MUTE
--0x11 KEY_REWIND
--0x12 KEY_POWER
--0x13 KEY_CAMERA
--0x14 KEY_AUDIO
--0x15 KEY_CLEAR
--0x16 KEY_PLAY
--0x17 KEY_ENTER
--0x18 KEY_ZOOM
--0x19 KEY_FASTFORWARD
--0x1a KEY_CHANNELUP
--0x1b KEY_VOLUMEUP
--0x1c KEY_INFO
--0x1d KEY_RECORD
--0x1e KEY_CHANNELDOWN
--0x1f KEY_VOLUMEDOWN
-diff --git a/utils/keytable/rc_keymaps/dntv_live_dvb_t.toml b/utils/keytable/rc_keymaps/dntv_live_dvb_t.toml
-new file mode 100644
-index 00000000..b604892c
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/dntv_live_dvb_t.toml
-@@ -0,0 +1,35 @@
-+name = "dntv_live_dvb_t"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x00 = "KEY_ESC"
-+0x0a = "KEY_0"
-+0x01 = "KEY_1"
-+0x02 = "KEY_2"
-+0x03 = "KEY_3"
-+0x04 = "KEY_4"
-+0x05 = "KEY_5"
-+0x06 = "KEY_6"
-+0x07 = "KEY_7"
-+0x08 = "KEY_8"
-+0x09 = "KEY_9"
-+0x0b = "KEY_TUNER"
-+0x0c = "KEY_SEARCH"
-+0x0d = "KEY_STOP"
-+0x0e = "KEY_PAUSE"
-+0x0f = "KEY_VIDEO"
-+0x10 = "KEY_MUTE"
-+0x11 = "KEY_REWIND"
-+0x12 = "KEY_POWER"
-+0x13 = "KEY_CAMERA"
-+0x14 = "KEY_AUDIO"
-+0x15 = "KEY_CLEAR"
-+0x16 = "KEY_PLAY"
-+0x17 = "KEY_ENTER"
-+0x18 = "KEY_ZOOM"
-+0x19 = "KEY_FASTFORWARD"
-+0x1a = "KEY_CHANNELUP"
-+0x1b = "KEY_VOLUMEUP"
-+0x1c = "KEY_INFO"
-+0x1d = "KEY_RECORD"
-+0x1e = "KEY_CHANNELDOWN"
-+0x1f = "KEY_VOLUMEDOWN"
-diff --git a/utils/keytable/rc_keymaps/dntv_live_dvbt_pro b/utils/keytable/rc_keymaps/dntv_live_dvbt_pro
-deleted file mode 100644
-index 442f4bc0..00000000
---- a/utils/keytable/rc_keymaps/dntv_live_dvbt_pro
-+++ /dev/null
-@@ -1,54 +0,0 @@
--# table dntv_live_dvbt_pro, type: UNKNOWN
--0x16 KEY_POWER
--0x5b KEY_HOME
--0x55 KEY_TV
--0x58 KEY_TUNER
--0x5a KEY_RADIO
--0x59 KEY_DVD
--0x03 KEY_1
--0x01 KEY_2
--0x06 KEY_3
--0x09 KEY_4
--0x1d KEY_5
--0x1f KEY_6
--0x0d KEY_7
--0x19 KEY_8
--0x1b KEY_9
--0x0c KEY_CANCEL
--0x15 KEY_0
--0x4a KEY_CLEAR
--0x13 KEY_BACK
--0x00 KEY_TAB
--0x4b KEY_UP
--0x4e KEY_LEFT
--0x4f KEY_OK
--0x52 KEY_RIGHT
--0x51 KEY_DOWN
--0x1e KEY_VOLUMEUP
--0x0a KEY_VOLUMEDOWN
--0x02 KEY_CHANNELDOWN
--0x05 KEY_CHANNELUP
--0x11 KEY_RECORD
--0x14 KEY_PLAY
--0x4c KEY_PAUSE
--0x1a KEY_STOP
--0x40 KEY_REWIND
--0x12 KEY_FASTFORWARD
--0x41 KEY_PREVIOUSSONG
--0x42 KEY_NEXTSONG
--0x54 KEY_CAMERA
--0x50 KEY_LANGUAGE
--0x47 KEY_TV2
--0x4d KEY_SCREEN
--0x43 KEY_SUBTITLE
--0x10 KEY_MUTE
--0x49 KEY_AUDIO
--0x07 KEY_SLEEP
--0x08 KEY_VIDEO
--0x0e KEY_PREVIOUS
--0x45 KEY_ZOOM
--0x46 KEY_ANGLE
--0x56 KEY_RED
--0x57 KEY_GREEN
--0x5c KEY_YELLOW
--0x5d KEY_BLUE
-diff --git a/utils/keytable/rc_keymaps/dntv_live_dvbt_pro.toml b/utils/keytable/rc_keymaps/dntv_live_dvbt_pro.toml
-new file mode 100644
-index 00000000..28c49212
---- /dev/null
-+++ b/utils/keytable/rc_keymaps/dntv_live_dvbt_pro.toml
-@@ -0,0 +1,56 @@
-+name = "dntv_live_dvbt_pro"
-+protocol = "unknown"
-+[unknown.scancodes]
-+0x16 = "KEY_POWER"
-+0x5b = "KEY_HOME"
-+0x55 = "KEY_TV"
-+0x58 = "KEY_TUNER"
-+0x5a = "KEY_RADIO"
-+0x59 = "KEY_DVD"
-+0x03 = "KEY_1"
-+0x01 = "KEY_2"
-+0x06 = "KEY_3"
-+0x09 = "KEY_4"
-+0x1d = "KEY_5"
-+0x1f = "KEY_6"
-+0x0d = "KEY_7"
-+0x19 = "KEY_8"
-+0x1b = "KEY_9"
-+0x0c = "KEY_CANCEL"
-+0x15 = "KEY_0"
-+0x4a = "KEY_CLEAR"
-+0x13 = "KEY_BACK"
-+0x00 = "KEY_TAB"
-+0x4b = "KEY_UP"
-+0x4e = "KEY_LEFT"
-+0x4f = "KEY_OK"
-+0x52 = "KEY_RIGHT"
-+0x51 = "KEY_DOWN"
-+0x1e = "KEY_VOLUMEUP"
-+0x0a = "KEY_VOLUMEDOWN"
-+0x02 = "KEY_CHANNELDOWN"
-+0x05 = "KEY_CHANNELUP"
-+0x11 = "KEY_RECORD"
-+0x14 = "KEY_PLAY"
-+0x4c = "KEY_PAUSE"
-+0x1a = "KEY_STOP"
-+0x40 = "KEY_REWIND"
-+0x12 = "KEY_FASTFORWARD"
-+0x41 = "KEY_PREVIOUSSONG"
-+0x42 = "KEY_NEXTSONG"
-+0x54 = "KEY_CAMERA"
-+0x50 = "KEY_LANGUAGE"
-+0x47 = "KEY_TV2"
-+0x4d = "KEY_SCREEN"
-+0x43 = "KEY_SUBTITLE"
-+0x10 = "KEY_MUTE"
-+0x49 = "KEY_AUDIO"
-+0x07 = "KEY_SLEEP"
-+0x08 = "KEY_VIDEO"
-+0x0e = "KEY_PREVIOUS"
-+0x45 = "KEY_ZOOM"
-+0x46 = "KEY_ANGLE"
-+0x56 = "KEY_RED"
-+0x57 = "KEY_GREEN"
-+0x5c = "KEY_YELLOW"
-+0x5d = "KEY_BLUE"
-diff --git a/utils/keytable/rc_keymaps/dtt200u b/utils/keytable/rc_keymaps/dtt200u
-deleted file mode 100644
-index cc4a1fc0..00000000
---- a/utils/keytable/rc_keymaps/dtt200u
-+++ /dev/null
-@@ -1,19 +0,0 @@
--# table dtt200u, type: NEC
--0x8001 KEY_MUTE
--0x8002 KEY_CHANNELDOWN
--0x8003 KEY_VOLUMEDOWN
--0x8004 KEY_1
--0x8005 KEY_2
--0x8006 KEY_3
--0x8007 KEY_4
--0x8008 KEY_5
--0x8009 KEY_6
--0x800a KEY_7
--0x800c KEY_ZOOM
--0x800d KEY_0
--0x800e KEY_SELECT
--0x8012 KEY_POWER
--0x801a KEY_CHANNELUP
--0x801b KEY_8
--0x801e KEY_VOLUMEUP
--0x801f KEY_9
-diff --git a/utils/keytable/rc_keymaps_userspace/wobo_i5 b/utils/keytable/rc_keymaps_userspace/wobo_i5
-deleted file mode 100644
-index 38362c5d..00000000
---- a/utils/keytable/rc_keymaps_userspace/wobo_i5
-+++ /dev/null
-@@ -1,9 +0,0 @@
--# table wobo_i5, type: NEC
--0x01 KEY_POWER
--0x05 KEY_UP
--0x06 KEY_LEFT
--0x08 KEY_RIGHT
--0x09 KEY_PLAYPAUSE
--0x0a KEY_DOWN
--0x0c KEY_MENU
--0x0e KEY_BACK
-diff --git a/utils/keytable/rc_keymaps_userspace/wobo_i5.toml b/utils/keytable/rc_keymaps_userspace/wobo_i5.toml
-new file mode 100644
-index 00000000..baa2618e
---- /dev/null
-+++ b/utils/keytable/rc_keymaps_userspace/wobo_i5.toml
-@@ -0,0 +1,11 @@
-+name = "wobo_i5"
-+protocol = "nec"
-+[nec.scancodes]
-+0x01 = "KEY_POWER"
-+0x05 = "KEY_UP"
-+0x06 = "KEY_LEFT"
-+0x08 = "KEY_RIGHT"
-+0x09 = "KEY_PLAYPAUSE"
-+0x0a = "KEY_DOWN"
-+0x0c = "KEY_MENU"
-+0x0e = "KEY_BACK"
-diff --git a/utils/keytable/rc_maps.cfg b/utils/keytable/rc_maps.cfg
-index 9c4cad96..03904687 100644
---- a/utils/keytable/rc_maps.cfg
-+++ b/utils/keytable/rc_maps.cfg
-@@ -20,142 +20,142 @@
- #		/etc/rc_keymaps.
- # For example:
- # driver	table				file
--# cx8800	*				./keycodes/rc5_hauppauge_new
--# *		rc-avermedia-m135a-rm-jx	./keycodes/kworld_315u
--# saa7134	rc-avermedia-m135a-rm-jx	./keycodes/keycodes/nec_terratec_cinergy_xs
--# em28xx	*				./keycodes/kworld_315u
--# *		*				./keycodes/rc5_hauppauge_new
-+# cx8800	*				./keycodes/rc5_hauppauge_new.toml
-+# *		rc-avermedia-m135a-rm-jx	./keycodes/kworld_315u.toml
-+# saa7134	rc-avermedia-m135a-rm-jx	./keycodes/keycodes/nec_terratec_cinergy_xs.toml
-+# em28xx	*				./keycodes/kworld_315u.toml
-+# *		*				./keycodes/rc5_hauppauge_new.toml
+-			ch_proto |= protocol;
+-		}
++			param = calloc(1, sizeof(*param) + strlen(p) + 1);
++			if (!p) {
++				perror(_("No memory!\n"));
++				return ENOMEM;
++			}
++
++			strcpy(param->name, p);
++
++			p = strtok(NULL, ",;");
++			if (!p) {
++				free(param);
++				argp_error(state, _("Missing value"));
++				break;
++			}
++
++			param->value = strtol(p, NULL, 0);
++			if (errno) {
++				free(param);
++				argp_error(state, _("Unknown keycode: %s"), p);
++				break;
++			}
++
++			if (debug)
++				fprintf(stderr, _("parameter %s=%d\n"),
++					param->name, param->value);
++
++			param->next = bpf_parameter;
++			bpf_parameter = param;
++
++			p = strtok(NULL, ":=");
++		} while (p);
+ 		break;
++
+ 	case '?':
+ 		argp_state_help(state, state->out_stream,
+ 				ARGP_HELP_SHORT_USAGE | ARGP_HELP_LONG
+@@ -1739,6 +1821,146 @@ static void device_info(int fd, char *prepend)
+ 		perror ("EVIOCGID");
+ }
  
- # Table to automatically load the rc maps for the bundled IR's provided with the
- # devices supported by the linux kernel
++#ifdef HAVE_LIBELF
++#define MAX_PROGS 64
++static void attach_bpf(const char *lirc_name, const char *bpf_prog, struct toml_table_t *toml)
++{
++	unsigned int features;
++	int fd;
++
++	fd = open(lirc_name, O_RDONLY);
++	if (fd == -1) {
++		perror(lirc_name);
++		return;
++	}
++
++	if (ioctl(fd, LIRC_GET_FEATURES, &features)) {
++		perror(lirc_name);
++		close(fd);
++		return;
++	}
++
++	if (!(features & LIRC_CAN_REC_MODE2)) {
++		fprintf(stderr, "%s: only raw IR devices support bpf\n",
++			lirc_name);
++		close(fd);
++		return;
++	}
++
++	load_bpf_file(bpf_prog, fd, toml);
++	close(fd);
++}
++
++static void show_bpf(const char *lirc_name)
++{
++	unsigned int prog_ids[MAX_PROGS], count = MAX_PROGS;
++	unsigned int features, i;
++	int ret, fd, prog_fd;
++
++	fd = open(lirc_name, O_RDONLY);
++	if (fd == -1) {
++		printf("\tAttached bpf protocols: %m\n");
++		return;
++	}
++
++	if (ioctl(fd, LIRC_GET_FEATURES, &features)) {
++		printf("\tAttached bpf protocols: %m\n");
++		close(fd);
++		return;
++	}
++
++	if (!(features & LIRC_CAN_REC_MODE2)) {
++		// only support for mode2 type raw ir devices
++		close(fd);
++		return;
++	}
++
++	ret = bpf_prog_query(fd, BPF_LIRC_MODE2, 0, NULL, prog_ids, &count);
++	close(fd);
++	if (ret) {
++		if (errno == EINVAL)
++			printf("\tAttached bpf protocols: No kernel support\n");
++		else
++			printf("\tAttached bpf protocols: %m\n");
++		return;
++	}
++
++	printf("\tAttached bpf protocols: ");
++	for (i=0; i<count; i++) {
++		if (i)
++			printf(" ");
++		prog_fd = bpf_prog_get_fd_by_id(prog_ids[i]);
++		if (prog_fd != -1) {
++			struct bpf_prog_info info = {};
++			__u32 info_len = sizeof(info);
++
++			ret = bpf_obj_get_info_by_fd(prog_fd, &info, &info_len);
++			close(prog_fd);
++			if (!ret && info.name[0]) {
++				printf("%s", info.name);
++				continue;
++			}
++		}
++		printf("%d", prog_ids[i]);
++	}
++	printf("\n");
++}
++
++static void clear_bpf(const char *lirc_name)
++{
++	unsigned int prog_ids[MAX_PROGS], count = MAX_PROGS;
++	unsigned int features, i;
++	int ret, prog_fd, fd;
++
++	fd = open(lirc_name, O_RDONLY);
++	if (fd == -1) {
++		perror(lirc_name);
++		return;
++	}
++
++	if (ioctl(fd, LIRC_GET_FEATURES, &features)) {
++		perror(lirc_name);
++		close(fd);
++		return;
++	}
++
++	if (!(features & LIRC_CAN_REC_MODE2)) {
++		// only support for mode2 type raw ir devices
++		close(fd);
++		return;
++	}
++
++	ret = bpf_prog_query(fd, BPF_LIRC_MODE2, 0, NULL, prog_ids, &count);
++	if (ret) {
++		close(fd);
++		return;
++	}
++
++	for (i = 0; i < count; i++) {
++		prog_fd = bpf_prog_get_fd_by_id(prog_ids[i]);
++		if (prog_fd == -1) {
++			printf("failed to get bpf prog id %u: %m\n",
++			       prog_ids[i]);
++			continue;
++		}
++		ret = bpf_prog_detach2(prog_fd, fd, BPF_LIRC_MODE2);
++		if (ret)
++			printf("failed to detach bpf prog id %u: %m\n",
++			       prog_ids[i]);
++		close(prog_fd);
++	}
++	close(fd);
++	fprintf(stderr, _("bpf protocols removed\n"));
++}
++#else
++static void attach_bpf(const char *lirc_name, const char *bpf_prog)
++{
++	fprintf(stderr, _("error: ir-keytable was compiled without BPF support\n"));
++}
++static void show_bpf(const char *lirc_name) {}
++static void clear_bpf(const char *lirc_name) {}
++#endif
++
+ static int show_sysfs_attribs(struct rc_device *rc_dev, char *name)
+ {
+ 	static struct sysfs_names *names, *cur;
+@@ -1760,9 +1982,11 @@ static int show_sysfs_attribs(struct rc_device *rc_dev, char *name)
+ 			fprintf(stderr, _("\tDriver: %s, table: %s\n"),
+ 				rc_dev->drv_name,
+ 				rc_dev->keytable_name);
+-			if (rc_dev->lirc_name)
++			if (rc_dev->lirc_name) {
+ 				fprintf(stderr, _("\tlirc device: %s\n"),
+ 					rc_dev->lirc_name);
++				show_bpf(rc_dev->lirc_name);
++			}
+ 			fprintf(stderr, _("\tSupported protocols: "));
+ 			write_sysfs_protocols(rc_dev->supported, stderr, "%s ");
+ 			fprintf(stderr, "\n\t");
+@@ -1782,6 +2006,44 @@ static int show_sysfs_attribs(struct rc_device *rc_dev, char *name)
+ 	return 0;
+ }
  
- #driver table                    file
--*	rc-adstech-dvb-t-pci     adstech_dvb_t_pci
--*	rc-alink-dtu-m           alink_dtu_m
--*	rc-anysee                anysee
--*	rc-apac-viewcomp         apac_viewcomp
--*	rc-astrometa-t2hybrid    astrometa_t2hybrid
--*	rc-asus-pc39             asus_pc39
--*	rc-asus-ps3-100          asus_ps3_100
--*	rc-ati-tv-wonder-hd-600  ati_tv_wonder_hd_600
--*	rc-ati-x10               ati_x10
--*	rc-avermedia-a16d        avermedia_a16d
--*	rc-avermedia-cardbus     avermedia_cardbus
--*	rc-avermedia-dvbt        avermedia_dvbt
--*	rc-avermedia-m135a       avermedia_m135a
--*	rc-avermedia-m733a-rm-k6 avermedia_m733a_rm_k6
--*	rc-avermedia-rm-ks       avermedia_rm_ks
--*	rc-avermedia             avermedia
--*	rc-avertv-303            avertv_303
--*	rc-azurewave-ad-tu700    azurewave_ad_tu700
--*	rc-behold-columbus       behold_columbus
--*	rc-behold                behold
--*	rc-budget-ci-old         budget_ci_old
--*	rc-cec                   cec
--*	rc-cinergy-1400          cinergy_1400
--*	rc-cinergy               cinergy
--*	rc-d680-dmb              d680_dmb
--*	rc-delock-61959          delock_61959
--*	rc-dib0700-nec           dib0700_nec
--*	rc-dib0700-rc5           dib0700_rc5
--*	rc-digitalnow-tinytwin   digitalnow_tinytwin
--*	rc-digittrade            digittrade
--*	rc-dm1105-nec            dm1105_nec
--*	rc-dntv-live-dvb-t       dntv_live_dvb_t
--*	rc-dntv-live-dvbt-pro    dntv_live_dvbt_pro
--*	rc-dtt200u               dtt200u
--*	rc-dvbsky                dvbsky
--*	rc-dvico-mce             dvico_mce
--*	rc-dvico-portable        dvico_portable
--*	rc-em-terratec           em_terratec
--*	rc-encore-enltv-fm53     encore_enltv_fm53
--*	rc-encore-enltv          encore_enltv
--*	rc-encore-enltv2         encore_enltv2
--*	rc-evga-indtube          evga_indtube
--*	rc-eztv                  eztv
--*	rc-flydvb                flydvb
--*	rc-flyvideo              flyvideo
--*	rc-fusionhdtv-mce        fusionhdtv_mce
--*	rc-gadmei-rm008z         gadmei_rm008z
--*	rc-geekbox               geekbox
--*	rc-genius-tvgo-a11mce    genius_tvgo_a11mce
--*	rc-gotview7135           gotview7135
--*	rc-hauppauge             hauppauge
--*	rc-hisi-poplar           hisi_poplar
--*	rc-hisi-tv-demo          hisi_tv_demo
--*	rc-imon-mce              imon_mce
--*	rc-imon-pad              imon_pad
--*	rc-imon-rsc              imon_rsc
--*	rc-iodata-bctv7e         iodata_bctv7e
--*	rc-it913x-v1             it913x_v1
--*	rc-it913x-v2             it913x_v2
--*	rc-kaiomy                kaiomy
--*	rc-kworld-315u           kworld_315u
--*	rc-kworld-pc150u         kworld_pc150u
--*	rc-kworld-plus-tv-analog kworld_plus_tv_analog
--*	rc-leadtek-y04g0051      leadtek_y04g0051
--*	rc-lme2510               lme2510
--*	rc-manli                 manli
--*	rc-medion-x10-digitainer medion_x10_digitainer
--*	rc-medion-x10-or2x       medion_x10_or2x
--*	rc-medion-x10            medion_x10
--*	rc-msi-digivox-ii        msi_digivox_ii
--*	rc-msi-digivox-iii       msi_digivox_iii
--*	rc-msi-tvanywhere-plus   msi_tvanywhere_plus
--*	rc-msi-tvanywhere        msi_tvanywhere
--*	rc-nebula                nebula
--*	rc-nec-terratec-cinergy-xs nec_terratec_cinergy_xs
--*	rc-norwood               norwood
--*	rc-npgtech               npgtech
--*	rc-pctv-sedna            pctv_sedna
--*	rc-pinnacle-color        pinnacle_color
--*	rc-pinnacle-grey         pinnacle_grey
--*	rc-pinnacle-pctv-hd      pinnacle_pctv_hd
--*	rc-pixelview-002t        pixelview_002t
--*	rc-pixelview-mk12        pixelview_mk12
--*	rc-pixelview-new         pixelview_new
--*	rc-pixelview             pixelview
--*	rc-powercolor-real-angel powercolor_real_angel
--*	rc-proteus-2309          proteus_2309
--*	rc-purpletv              purpletv
--*	rc-pv951                 pv951
--*	rc-rc6-mce               rc6_mce
--*	rc-real-audio-220-32-keys real_audio_220_32_keys
--*	rc-reddo                 reddo
--*	rc-snapstream-firefly    snapstream_firefly
--*	rc-streamzap             streamzap
--*	rc-su3000                su3000
--*	rc-tango                 tango
--*	rc-tbs-nec               tbs_nec
--*	rc-technisat-ts35        technisat_ts35
--*	rc-technisat-usb2        technisat_usb2
--*	rc-terratec-cinergy-c-pci terratec_cinergy_c_pci
--*	rc-terratec-cinergy-s2-hd terratec_cinergy_s2_hd
--*	rc-terratec-cinergy-xs   terratec_cinergy_xs
--*	rc-terratec-slim-2       terratec_slim_2
--*	rc-terratec-slim         terratec_slim
--*	rc-tevii-nec             tevii_nec
--*	rc-tivo                  tivo
--*	rc-total-media-in-hand-02 total_media_in_hand_02
--*	rc-total-media-in-hand   total_media_in_hand
--*	rc-trekstor              trekstor
--*	rc-tt-1500               tt_1500
--*	rc-twinhan-dtv-cab-ci    twinhan_dtv_cab_ci
--*	rc-twinhan1027           twinhan_vp1027_dvbs
--*	rc-videomate-k100        videomate_k100
--*	rc-videomate-s350        videomate_s350
--*	rc-videomate-tv-pvr      videomate_tv_pvr
--*	rc-winfast-usbii-deluxe  winfast_usbii_deluxe
--*	rc-winfast               winfast
--*	rc-zx-irdec              zx_irdec
--# *	*			 af9005               # found in af9005-remote.c
--# *	*			 az6027               # found in az6027.c
--# *	*			 cinergyt2            # found in cinergyT2-core.c
--# *	*			 dibusb               # found in dibusb-common.c
--# *	*			 digitv               # found in digitv.c
--# *	*			 megasky              # found in m920x.c
--# *	*			 tvwalkertwin         # found in m920x.c
--# *	*			 pinnacle310e         # found in m920x.c
--# *	*			 haupp                # found in nova-t-usb2.c
--# *	*			 opera1               # found in opera1.c
--# *	*			 vp702x               # found in vp702x.c
-+*	rc-adstech-dvb-t-pci     adstech_dvb_t_pci.toml
-+*	rc-alink-dtu-m           alink_dtu_m.toml
-+*	rc-anysee                anysee.toml
-+*	rc-apac-viewcomp         apac_viewcomp.toml
-+*	rc-astrometa-t2hybrid    astrometa_t2hybrid.toml
-+*	rc-asus-pc39             asus_pc39.toml
-+*	rc-asus-ps3-100          asus_ps3_100.toml
-+*	rc-ati-tv-wonder-hd-600  ati_tv_wonder_hd_600.toml
-+*	rc-ati-x10               ati_x10.toml
-+*	rc-avermedia-a16d        avermedia_a16d.toml
-+*	rc-avermedia-cardbus     avermedia_cardbus.toml
-+*	rc-avermedia-dvbt        avermedia_dvbt.toml
-+*	rc-avermedia-m135a       avermedia_m135a.toml
-+*	rc-avermedia-m733a-rm-k6 avermedia_m733a_rm_k6.toml
-+*	rc-avermedia-rm-ks       avermedia_rm_ks.toml
-+*	rc-avermedia             avermedia.toml
-+*	rc-avertv-303            avertv_303.toml
-+*	rc-azurewave-ad-tu700    azurewave_ad_tu700.toml
-+*	rc-behold-columbus       behold_columbus.toml
-+*	rc-behold                behold.toml
-+*	rc-budget-ci-old         budget_ci_old.toml
-+*	rc-cec                   cec.toml
-+*	rc-cinergy-1400          cinergy_1400.toml
-+*	rc-cinergy               cinergy.toml
-+*	rc-d680-dmb              d680_dmb.toml
-+*	rc-delock-61959          delock_61959.toml
-+*	rc-dib0700-nec           dib0700_nec.toml
-+*	rc-dib0700-rc5           dib0700_rc5.toml
-+*	rc-digitalnow-tinytwin   digitalnow_tinytwin.toml
-+*	rc-digittrade            digittrade.toml
-+*	rc-dm1105-nec            dm1105_nec.toml
-+*	rc-dntv-live-dvb-t       dntv_live_dvb_t.toml
-+*	rc-dntv-live-dvbt-pro    dntv_live_dvbt_pro.toml
-+*	rc-dtt200u               dtt200u.toml
-+*	rc-dvbsky                dvbsky.toml
-+*	rc-dvico-mce             dvico_mce.toml
-+*	rc-dvico-portable        dvico_portable.toml
-+*	rc-em-terratec           em_terratec.toml
-+*	rc-encore-enltv-fm53     encore_enltv_fm53.toml
-+*	rc-encore-enltv          encore_enltv.toml
-+*	rc-encore-enltv2         encore_enltv2.toml
-+*	rc-evga-indtube          evga_indtube.toml
-+*	rc-eztv                  eztv.toml
-+*	rc-flydvb                flydvb.toml
-+*	rc-flyvideo              flyvideo.toml
-+*	rc-fusionhdtv-mce        fusionhdtv_mce.toml
-+*	rc-gadmei-rm008z         gadmei_rm008z.toml
-+*	rc-geekbox               geekbox.toml
-+*	rc-genius-tvgo-a11mce    genius_tvgo_a11mce.toml
-+*	rc-gotview7135           gotview7135.toml
-+*	rc-hauppauge             hauppauge.toml
-+*	rc-hisi-poplar           hisi_poplar.toml
-+*	rc-hisi-tv-demo          hisi_tv_demo.toml
-+*	rc-imon-mce              imon_mce.toml
-+*	rc-imon-pad              imon_pad.toml
-+*	rc-imon-rsc              imon_rsc.toml
-+*	rc-iodata-bctv7e         iodata_bctv7e.toml
-+*	rc-it913x-v1             it913x_v1.toml
-+*	rc-it913x-v2             it913x_v2.toml
-+*	rc-kaiomy                kaiomy.toml
-+*	rc-kworld-315u           kworld_315u.toml
-+*	rc-kworld-pc150u         kworld_pc150u.toml
-+*	rc-kworld-plus-tv-analog kworld_plus_tv_analog.toml
-+*	rc-leadtek-y04g0051      leadtek_y04g0051.toml
-+*	rc-lme2510               lme2510.toml
-+*	rc-manli                 manli.toml
-+*	rc-medion-x10-digitainer medion_x10_digitainer.toml
-+*	rc-medion-x10-or2x       medion_x10_or2x.toml
-+*	rc-medion-x10            medion_x10.toml
-+*	rc-msi-digivox-ii        msi_digivox_ii.toml
-+*	rc-msi-digivox-iii       msi_digivox_iii.toml
-+*	rc-msi-tvanywhere-plus   msi_tvanywhere_plus.toml
-+*	rc-msi-tvanywhere        msi_tvanywhere.toml
-+*	rc-nebula                nebula.toml
-+*	rc-nec-terratec-cinergy-xs nec_terratec_cinergy_xs.toml
-+*	rc-norwood               norwood.toml
-+*	rc-npgtech               npgtech.toml
-+*	rc-pctv-sedna            pctv_sedna.toml
-+*	rc-pinnacle-color        pinnacle_color.toml
-+*	rc-pinnacle-grey         pinnacle_grey.toml
-+*	rc-pinnacle-pctv-hd      pinnacle_pctv_hd.toml
-+*	rc-pixelview-002t        pixelview_002t.toml
-+*	rc-pixelview-mk12        pixelview_mk12.toml
-+*	rc-pixelview-new         pixelview_new.toml
-+*	rc-pixelview             pixelview.toml
-+*	rc-powercolor-real-angel powercolor_real_angel.toml
-+*	rc-proteus-2309          proteus_2309.toml
-+*	rc-purpletv              purpletv.toml
-+*	rc-pv951                 pv951.toml
-+*	rc-rc6-mce               rc6_mce.toml
-+*	rc-real-audio-220-32-keys real_audio_220_32_keys.toml
-+*	rc-reddo                 reddo.toml
-+*	rc-snapstream-firefly    snapstream_firefly.toml
-+*	rc-streamzap             streamzap.toml
-+*	rc-su3000                su3000.toml
-+*	rc-tango                 tango.toml
-+*	rc-tbs-nec               tbs_nec.toml
-+*	rc-technisat-ts35        technisat_ts35.toml
-+*	rc-technisat-usb2        technisat_usb2.toml
-+*	rc-terratec-cinergy-c-pci terratec_cinergy_c_pci.toml
-+*	rc-terratec-cinergy-s2-hd terratec_cinergy_s2_hd.toml
-+*	rc-terratec-cinergy-xs   terratec_cinergy_xs.toml
-+*	rc-terratec-slim-2       terratec_slim_2.toml
-+*	rc-terratec-slim         terratec_slim.toml
-+*	rc-tevii-nec             tevii_nec.toml
-+*	rc-tivo                  tivo.toml
-+*	rc-total-media-in-hand-02 total_media_in_hand_02.toml
-+*	rc-total-media-in-hand   total_media_in_hand.toml
-+*	rc-trekstor              trekstor.toml
-+*	rc-tt-1500               tt_1500.toml
-+*	rc-twinhan-dtv-cab-ci    twinhan_dtv_cab_ci.toml
-+*	rc-twinhan1027           twinhan_vp1027_dvbs.toml
-+*	rc-videomate-k100        videomate_k100.toml
-+*	rc-videomate-s350        videomate_s350.toml
-+*	rc-videomate-tv-pvr      videomate_tv_pvr.toml
-+*	rc-winfast-usbii-deluxe  winfast_usbii_deluxe.toml
-+*	rc-winfast               winfast.toml
-+*	rc-zx-irdec              zx_irdec.toml
-+# *	*			 af9005.toml          # found in af9005-remote.c
-+# *	*			 az6027.toml          # found in az6027.c
-+# *	*			 cinergyt2.toml       # found in cinergyT2-core.c
-+# *	*			 dibusb.toml          # found in dibusb-common.c
-+# *	*			 digitv.toml          # found in digitv.c
-+# *	*			 megasky.toml         # found in m920x.c
-+# *	*			 tvwalkertwin.toml    # found in m920x.c
-+# *	*			 pinnacle310e.toml    # found in m920x.c
-+# *	*			 haupp.toml           # found in nova-t-usb2.c
-+# *	*			 opera1.toml          # found in opera1.c
-+# *	*			 vp702x.toml          # found in vp702x.c
++static char *find_bpf_file(const char *name)
++{
++	struct stat st;
++	char *fname;
++
++	if (!stat(name, &st))
++		return strdup(name);
++
++	asprintf(&fname, IR_PROTOCOLS_USER_DIR "/%s.o", name);
++	if (stat(fname, &st)) {
++		free(fname);
++		asprintf(&fname, IR_PROTOCOLS_SYSTEM_DIR "/%s.o", name);
++
++		if (stat(fname, &st)) {
++			fprintf(stderr, _("Can't find %s bpf protocol in %s or %s\n"), name, IR_KEYTABLE_USER_DIR "/protocols", IR_KEYTABLE_SYSTEM_DIR "/protocols");
++			free(fname);
++			return NULL;
++		}
++	}
++
++	return fname;
++}
++
++int bpf_param(const char *name, int *val)
++{
++	struct bpf_parameter *param = bpf_parameter;
++
++	while (param) {
++		if (strcmp(name, param->name) == 0) {
++			*val = param->value;
++			return 0;
++		}
++		param = param->next;
++	}
++
++	return -ENOENT;
++}
++
+ int main(int argc, char *argv[])
+ {
+ 	int dev_from_class = 0, write_cnt;
+@@ -1798,7 +2060,7 @@ int main(int argc, char *argv[])
+ 	argp_parse(&argp, argc, argv, ARGP_NO_HELP, 0, 0);
+ 
+ 	/* Just list all devices */
+-	if (!clear && !readtable && !keytable && !ch_proto && !cfg.next && !test && delay < 0 && period < 0) {
++	if (!clear && !readtable && !keytable && !ch_proto && !cfg.next && !test && delay < 0 && period < 0 && !bpf_protocol) {
+ 		if (devicename) {
+ 			fd = open(devicename, O_RDONLY);
+ 			if (fd < 0) {
+@@ -1911,6 +2173,8 @@ int main(int argc, char *argv[])
+ 	 */
+ 	if (clear) {
+ 		clear_table(fd);
++		if (rc_dev.lirc_name)
++			clear_bpf(rc_dev.lirc_name);
+ 		fprintf(stderr, _("Old keytable cleared\n"));
+ 	}
+ 
+@@ -1935,6 +2199,23 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++	if (bpf_protocol) {
++		struct bpf_protocol *b;
++
++		if (!rc_dev.lirc_name) {
++			fprintf(stderr, "Error: unable to attach bpf program, lirc device name was not found\n");
++		}
++
++		for (b = bpf_protocol; b && rc_dev.lirc_name; b = b->next) {
++			char *fname = find_bpf_file(b->name);
++
++			if (fname) {
++				attach_bpf(rc_dev.lirc_name, fname, b->toml);
++				free(fname);
++			}
++		}
++	}
++
+ 	/*
+ 	 * Fourth step: display current keytable
+ 	 */
+diff --git a/v4l-utils.spec.in b/v4l-utils.spec.in
+index bdbb27ba..f7be08b3 100644
+--- a/v4l-utils.spec.in
++++ b/v4l-utils.spec.in
+@@ -10,7 +10,7 @@ Source0:        http://linuxtv.org/downloads/v4l-utils/v4l-utils-%{version}.tar.
+ Source1:        qv4l2.desktop
+ Source2:        qv4l2.svg
+ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+-BuildRequires:  qt4-devel libsysfs-devel kernel-headers desktop-file-utils
++BuildRequires:  qt4-devel libsysfs-devel kernel-headers desktop-file-utils elfutils-libelf-devel
+ # For /etc/udev/rules.d ownership
+ Requires:       udev
+ Requires:       libv4l = %{version}-%{release}
 -- 
 2.17.1
