@@ -1,100 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54476 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751471AbeFWVda (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:49923 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750783AbeFXERa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Jun 2018 17:33:30 -0400
-Date: Sat, 23 Jun 2018 23:33:28 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
-        gshark.jeong@gmail.com, m.chehab@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: lm3560: add support for lm3559 chip
-Message-ID: <20180623213328.GA19154@amd>
-References: <20180506080607.GA24212@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
-Content-Disposition: inline
-In-Reply-To: <20180506080607.GA24212@amd>
+        Sun, 24 Jun 2018 00:17:30 -0400
+Message-ID: <d7de416da556d3247d0fb08700cfd46f@smtp-cloud8.xs4all.net>
+Date: Sun, 24 Jun 2018 06:17:27 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-On Sun 2018-05-06 10:06:07, Pavel Machek wrote:
->=20
-> Add support for LM3559, as found in Motorola Droid 4 phone, for
-> example. SW interface seems to be identical.
->=20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+date:			Sun Jun 24 05:00:16 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
+v4l-utils git hash:	2e2a3a90a19c5f2e45b889a63c96e12c7678149b
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Ping?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17.2-i686: OK
+linux-4.17.2-x86_64: OK
+linux-4.18-rc1-i686: ERRORS
+linux-4.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Could this and media: i2c: lm3560: use conservative defaults be
-applied for v4.19? This is not too complex...
+Detailed results are available here:
 
-								Pavel
-							=09
->=20
-> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-> index b600e03a..c4e5ed5 100644
-> --- a/drivers/media/i2c/lm3560.c
-> +++ b/drivers/media/i2c/lm3560.c
-> @@ -1,6 +1,6 @@
->  /*
->   * drivers/media/i2c/lm3560.c
-> - * General device driver for TI lm3560, FLASH LED Driver
-> + * General device driver for TI lm3559, lm3560, FLASH LED Driver
->   *
->   * Copyright (C) 2013 Texas Instruments
->   *
-> @@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
->  }
-> =20
->  static const struct i2c_device_id lm3560_id_table[] =3D {
-> +	{LM3559_NAME, 0},
->  	{LM3560_NAME, 0},
->  	{}
->  };
-> diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
-> index a5bd310..0e2b1c7 100644
-> --- a/include/media/i2c/lm3560.h
-> +++ b/include/media/i2c/lm3560.h
-> @@ -22,6 +22,7 @@
-> =20
->  #include <media/v4l2-subdev.h>
-> =20
-> +#define LM3559_NAME	"lm3559"
->  #define LM3560_NAME	"lm3560"
->  #define LM3560_I2C_ADDR	(0x53)
-> =20
->=20
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+The Media Infrastructure API from this daily build is here:
 
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlsuvKcACgkQMOfwapXb+vL6sgCgsaef/H0uyRrovGthhyk14Lrg
-AXMAnRqxuh4vJmTwgGVxD/Sc8ozS74zk
-=ohf/
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+http://www.xs4all.nl/~hverkuil/spec/index.html
