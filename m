@@ -1,76 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3373 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:61150 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754786AbeFYJtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 05:49:10 -0400
-From: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>
-CC: "pavel@ucw.cz" <pavel@ucw.cz>,
-        "nicolas@ndufresne.ca" <nicolas@ndufresne.ca>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "niklas.soderlund@ragnatech.se" <niklas.soderlund@ragnatech.se>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>
-Subject: RE: Software-only image processing for Intel "complex" cameras
-Date: Mon, 25 Jun 2018 09:48:56 +0000
-Message-ID: <FA6CF6692DF0B343ABE491A46A2CD0E76C6E491B@SHSMSX101.ccr.corp.intel.com>
-References: <20180620203838.GA13372@amd>
-        <b7707ec241d9d2d2966bdc32f7bb9bc55ac55c5d.camel@ndufresne.ca>
-        <20180620211144.GA16945@amd>
-        <da642773adac42a6966b9716f0d53444@ausx13mpc120.AMER.DELL.COM>
-        <20180622034946.2ae51f1e@vela.lan>
-        <db8d91a47971417da424df7bf67a5cca@ausx13mpc120.AMER.DELL.COM>
-        <20180622060850.3941d9a7@vela.lan> <20180622064032.550f24cb@vela.lan>
-In-Reply-To: <20180622064032.550f24cb@vela.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1755164AbeFYKZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 06:25:03 -0400
+Date: Mon, 25 Jun 2018 13:24:54 +0300
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To: Peter Rosin <peda@axentia.se>
+Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Sekhar Nori <nsekhar@ti.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linaro.org>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 01/10] tpm/tpm_i2c_infineon: switch to
+ i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+Message-ID: <20180625102454.GA3845@linux.intel.com>
+References: <20180620051803.12206-1-peda@axentia.se>
+ <20180620051803.12206-2-peda@axentia.se>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180620051803.12206-2-peda@axentia.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
-> Sent: Friday, June 22, 2018 5:41 AM
-> To: Mario.Limonciello@dell.com
-> Cc: pavel@ucw.cz; nicolas@ndufresne.ca; linux-media@vger.kernel.org;
-> sakari.ailus@linux.intel.com; niklas.soderlund@ragnatech.se; Hu, Jerry W
-> <jerry.w.hu@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>
-> Subject: Re: Software-only image processing for Intel "complex" cameras
+On Wed, Jun 20, 2018 at 07:17:54AM +0200, Peter Rosin wrote:
+> Locking the root adapter for __i2c_transfer will deadlock if the
+> device sits behind a mux-locked I2C mux. Switch to the finer-grained
+> i2c_lock_bus with the I2C_LOCK_SEGMENT flag. If the device does not
+> sit behind a mux-locked mux, the two locking variants are equivalent.
 > 
-> Em Fri, 22 Jun 2018 06:08:50 +0900
-> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-> 
-> > Em Thu, 21 Jun 2018 18:58:37 +0000
-> > <Mario.Limonciello@dell.com> escreveu:
-> >
-> Jerry/Jian,
-> 
-> Could you please shed a light about how a Dell 5285 hardware would be
-> detected by the IPU3 driver and what MC graph is created by the current
-> driver?
+> Signed-off-by: Peter Rosin <peda@axentia.se>
 
-Sure, Mauro. I need to check the information on the Dell 5285.
-IPU3 driver are detected by PCI vendor id and device id.
+Studied enough so that I can give
 
-IPU3 CIO2 MC graph is:
-Sensor A -> IPU3 CSI2 0(subdev) -> IPU3 CIO2 0 (video node)
-Sensor B -> IPU3 CSI2 1(subdev) -> IPU3 CIO2 1 (video node)
+Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
 
-IPU3 IMGu MC graph is:
-IMGu subdev inputs:
-ipu3-imgu input [Pad0] => ipu3-imgu [Pad0]
-ipu3-imgu parameters [Pad0] => ipu3-imgu [Pad1]
+Do not have hardware to test this, however.
 
-IMGu subdev outputs:
-ipu3-imgu [Pad2]  => ipu3-imgu output [Pad0] 
-ipu3-imgu [Pad3]  => ipu3-imgu viewfinder [Pad0] 
-ipu3-imgu [Pad4]  => ipu3-imgu postview [Pad0] 
-ipu3-imgu [Pad5]  => ipu3-imgu 3a stat [Pad0]
-
-Best Regards,
-Jianxu(Clive) Zheng
+/Jarkko
