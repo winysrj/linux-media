@@ -1,90 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:36493 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754629AbeFNHrQ (ORCPT
+Received: from mail-ed1-f66.google.com ([209.85.208.66]:40266 "EHLO
+        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754079AbeFYIQP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Jun 2018 03:47:16 -0400
-Received: by mail-pl0-f65.google.com with SMTP id a7-v6so3069936plp.3
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2018 00:47:15 -0700 (PDT)
-From: Keiichi Watanabe <keiichiw@chromium.org>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        s.nawrocki@samsung.com
-Subject: [PATCH v3 0/3] Add controls for VP8/VP9 profile
-Date: Thu, 14 Jun 2018 16:46:49 +0900
-Message-Id: <20180614074652.162796-1-keiichiw@chromium.org>
+        Mon, 25 Jun 2018 04:16:15 -0400
+Received: by mail-ed1-f66.google.com with SMTP id m15-v6so2598056edr.7
+        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2018 01:16:14 -0700 (PDT)
+Date: Mon, 25 Jun 2018 10:15:41 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Christian =?iso-8859-1?Q?K=F6nig?=
+        <ckoenig.leichtzumerken@gmail.com>
+Cc: daniel@ffwll.ch, sumit.semwal@linaro.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org
+Subject: Re: [PATCH 1/4] dma-buf: add dma_buf_(un)map_attachment_locked
+ variants v2
+Message-ID: <20180625081541.GL2958@phenom.ffwll.local>
+References: <20180622141103.1787-1-christian.koenig@amd.com>
+ <20180622141103.1787-2-christian.koenig@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180622141103.1787-2-christian.koenig@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add new menu controls V4L2_CID_MPEG_VIDEO_VP8_PROFILE and
-V4L2_CID_MPEG_VIDEO_VP9_PROFILE for VP8/VP9 profiles. These controls can be used
-to select a desired profile for VP8/VP9 encoders. In addition, they are also
-used to query for supported profiles by an encoder or a decoder.
+On Fri, Jun 22, 2018 at 04:11:00PM +0200, Christian König wrote:
+> Add function variants which can be called with the reservation lock
+> already held.
+> 
+> v2: reordered, add lockdep asserts, fix kerneldoc
+> 
+> Signed-off-by: Christian König <christian.koenig@amd.com>
+> ---
+>  drivers/dma-buf/dma-buf.c | 57 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/dma-buf.h   |  5 +++++
+>  2 files changed, 62 insertions(+)
+> 
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 852a3928ee71..dc94e76e2e2a 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -606,6 +606,40 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_detach);
+>  
+> +/**
+> + * dma_buf_map_attachment_locked - Maps the buffer into _device_ address space
+> + * with the reservation lock held. Is a wrapper for map_dma_buf() of the
+> + *
 
-Patch 1 adds a control V4L2_CID_MPEG_VIDEO_VP8_PROFILE for VP8 profile. Though
-V4L2_CID_MPEG_VIDEO_VPX_PROFILE is originally used for VP8 profile, this control
-is not good by the following reasons:
-(i) Despite the name contains 'VPX', it cannot be used for VP9 because supported
-profiles differ between VP8 and VP9.
-(ii) Unlike other controls for profiles (e.g. H264), this is not a menu control
-but an integer control, which cannot be used to query for supported profiles.
+This here looks mangled (and the blank line wreaks the resulting html).
+With that fixed.
 
-Thus, V4L2_CID_MPEG_VIDEO_VPX_PROFILE is deprecated and become an alias of
-V4L2_CID_MPEG_VIDEO_VP8_PROFILE. In addition, Patch 1 fixes the use of
-V4L2_CID_MPEG_VIDEO_VPX_PROFILE in existing venus/s5p_mfc drivers.
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-Patch 2 adds a control V4L2_CID_MPEG_VIDEO_VP9_PROFILE for VP9 profile.
 
-By patch 3, this control is supported in MediaTek decoder's driver, which
-supports VP9 profile 0.
+> + * Returns the scatterlist table of the attachment;
+> + * dma_buf_ops.
+> + * @attach:	[in]	attachment whose scatterlist is to be returned
+> + * @direction:	[in]	direction of DMA transfer
+> + *
+> + * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
+> + * on error. May return -EINTR if it is interrupted by a signal.
+> + *
+> + * A mapping must be unmapped by using dma_buf_unmap_attachment_locked(). Note
+> + * that the underlying backing storage is pinned for as long as a mapping
+> + * exists, therefore users/importers should not hold onto a mapping for undue
+> + * amounts of time.
+> + */
+> +struct sg_table *
+> +dma_buf_map_attachment_locked(struct dma_buf_attachment *attach,
+> +			      enum dma_data_direction direction)
+> +{
+> +	struct sg_table *sg_table;
+> +
+> +	might_sleep();
+> +	reservation_object_assert_held(attach->dmabuf->resv);
+> +
+> +	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
+> +	if (!sg_table)
+> +		sg_table = ERR_PTR(-ENOMEM);
+> +
+> +	return sg_table;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_map_attachment_locked);
+> +
+>  /**
+>   * dma_buf_map_attachment - Returns the scatterlist table of the attachment;
+>   * mapped into _device_ address space. Is a wrapper for map_dma_buf() of the
+> @@ -639,6 +673,29 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
+>  
+> +/**
+> + * dma_buf_unmap_attachment_locked - unmaps the buffer with reservation lock
+> + * held, should deallocate the associated scatterlist. Is a wrapper for
+> + * unmap_dma_buf() of dma_buf_ops.
+> + * @attach:	[in]	attachment to unmap buffer from
+> + * @sg_table:	[in]	scatterlist info of the buffer to unmap
+> + * @direction:  [in]    direction of DMA transfer
+> + *
+> + * This unmaps a DMA mapping for @attached obtained by
+> + * dma_buf_map_attachment_locked().
+> + */
+> +void dma_buf_unmap_attachment_locked(struct dma_buf_attachment *attach,
+> +				     struct sg_table *sg_table,
+> +				     enum dma_data_direction direction)
+> +{
+> +	might_sleep();
+> +	reservation_object_assert_held(attach->dmabuf->resv);
+> +
+> +	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
+> +						direction);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment_locked);
+> +
+>  /**
+>   * dma_buf_unmap_attachment - unmaps and decreases usecount of the buffer;might
+>   * deallocate the scatterlist associated. Is a wrapper for unmap_dma_buf() of
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index 991787a03199..a25e754ae2f7 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -384,8 +384,13 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
+>  struct dma_buf *dma_buf_get(int fd);
+>  void dma_buf_put(struct dma_buf *dmabuf);
+>  
+> +struct sg_table *dma_buf_map_attachment_locked(struct dma_buf_attachment *,
+> +					       enum dma_data_direction);
+>  struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
+>  					enum dma_data_direction);
+> +void dma_buf_unmap_attachment_locked(struct dma_buf_attachment *,
+> +				     struct sg_table *,
+> +				     enum dma_data_direction);
+>  void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
+>  				enum dma_data_direction);
+>  int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
+> -- 
+> 2.14.1
+> 
 
-Version 3 changes:
-- Add V4L2_CID_MPEG_VIDEO_VP8_PROFILE in v4l2-controls.
-- Make V4L2_CID_MPEG_VIDEO_VPX_PROFILE to be an alias of
-  V4L2_CID_MPEG_VIDEO_VP8_PROFILE.
-- Fix the use of V4L2_CID_MPEG_VIDEO_VPX_PROFILE in venus/s5p_mfc drivers.
-- Small fix in mtk_vcodec_dec.
-
-Version 2 changes:
-- Support V4L2_CID_MPEG_VIDEO_VP9_PROFILE in MediaTek decoder's driver.
-
-Version 1 changes:
-- Add V4L2_CID_MPEG_VIDEO_VP9_PROFILE in v4l2-controls.
-
-Keiichi Watanabe (3):
-  media: v4l2-ctrl: Change control for VP8 profile to menu control
-  media: v4l2-ctrl: Add control for VP9 profile
-  media: mtk-vcodec: Support VP9 profile in decoder
-
- .../media/uapi/v4l/extended-controls.rst      | 52 +++++++++++++++++--
- .../platform/mtk-vcodec/mtk_vcodec_dec.c      |  5 ++
- drivers/media/platform/qcom/venus/core.h      |  2 +-
- .../media/platform/qcom/venus/hfi_helper.h    | 12 ++---
- .../media/platform/qcom/venus/vdec_ctrls.c    | 10 ++--
- drivers/media/platform/qcom/venus/venc.c      | 14 ++---
- .../media/platform/qcom/venus/venc_ctrls.c    | 12 +++--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c  | 15 +++---
- drivers/media/v4l2-core/v4l2-ctrls.c          | 23 +++++++-
- include/uapi/linux/v4l2-controls.h            | 18 ++++++-
- 10 files changed, 127 insertions(+), 36 deletions(-)
-
---
-2.18.0.rc1.242.g61856ae69a-goog
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
