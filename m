@@ -1,35 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:40674 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753197AbeFYIPZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 04:15:25 -0400
-Received: by mail-vk0-f65.google.com with SMTP id o71-v6so7331854vke.7
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2018 01:15:25 -0700 (PDT)
+Received: from mga01.intel.com ([192.55.52.88]:3373 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754786AbeFYJtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 05:49:10 -0400
+From: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>
+CC: "pavel@ucw.cz" <pavel@ucw.cz>,
+        "nicolas@ndufresne.ca" <nicolas@ndufresne.ca>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "niklas.soderlund@ragnatech.se" <niklas.soderlund@ragnatech.se>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>
+Subject: RE: Software-only image processing for Intel "complex" cameras
+Date: Mon, 25 Jun 2018 09:48:56 +0000
+Message-ID: <FA6CF6692DF0B343ABE491A46A2CD0E76C6E491B@SHSMSX101.ccr.corp.intel.com>
+References: <20180620203838.GA13372@amd>
+        <b7707ec241d9d2d2966bdc32f7bb9bc55ac55c5d.camel@ndufresne.ca>
+        <20180620211144.GA16945@amd>
+        <da642773adac42a6966b9716f0d53444@ausx13mpc120.AMER.DELL.COM>
+        <20180622034946.2ae51f1e@vela.lan>
+        <db8d91a47971417da424df7bf67a5cca@ausx13mpc120.AMER.DELL.COM>
+        <20180622060850.3941d9a7@vela.lan> <20180622064032.550f24cb@vela.lan>
+In-Reply-To: <20180622064032.550f24cb@vela.lan>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <20180625080242.ssbqnposyap6eok2@paasikivi.fi.intel.com>
-References: <1529911783-28576-1-git-send-email-alanx.chiang@intel.com> <20180625080242.ssbqnposyap6eok2@paasikivi.fi.intel.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Mon, 25 Jun 2018 11:15:24 +0300
-Message-ID: <CAHp75Vf+2s3r-fjekj_s38FV8pkKtnWF-JqorDtiL_V=8pEvXQ@mail.gmail.com>
-Subject: Re: [RESEND PATCH v1 0/2] Add a property in at24.c
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: alanx.chiang@intel.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        andy.yeh@intel.com,
-        Andriy Shevchenko <andriy.shevchenko@intel.com>,
-        Rajmohan Mani <rajmohan.mani@intel.com>
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 25, 2018 at 11:02 AM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
-> Hi Alan,
-> On Mon, Jun 25, 2018 at 03:29:41PM +0800, alanx.chiang@intel.com wrote:
+Hi Mauro,
 
-Agreed on all Sakari's comments against the series.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
+> Sent: Friday, June 22, 2018 5:41 AM
+> To: Mario.Limonciello@dell.com
+> Cc: pavel@ucw.cz; nicolas@ndufresne.ca; linux-media@vger.kernel.org;
+> sakari.ailus@linux.intel.com; niklas.soderlund@ragnatech.se; Hu, Jerry W
+> <jerry.w.hu@intel.com>; Zheng, Jian Xu <jian.xu.zheng@intel.com>
+> Subject: Re: Software-only image processing for Intel "complex" cameras
+> 
+> Em Fri, 22 Jun 2018 06:08:50 +0900
+> Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+> 
+> > Em Thu, 21 Jun 2018 18:58:37 +0000
+> > <Mario.Limonciello@dell.com> escreveu:
+> >
+> Jerry/Jian,
+> 
+> Could you please shed a light about how a Dell 5285 hardware would be
+> detected by the IPU3 driver and what MC graph is created by the current
+> driver?
 
--- 
-With Best Regards,
-Andy Shevchenko
+Sure, Mauro. I need to check the information on the Dell 5285.
+IPU3 driver are detected by PCI vendor id and device id.
+
+IPU3 CIO2 MC graph is:
+Sensor A -> IPU3 CSI2 0(subdev) -> IPU3 CIO2 0 (video node)
+Sensor B -> IPU3 CSI2 1(subdev) -> IPU3 CIO2 1 (video node)
+
+IPU3 IMGu MC graph is:
+IMGu subdev inputs:
+ipu3-imgu input [Pad0] => ipu3-imgu [Pad0]
+ipu3-imgu parameters [Pad0] => ipu3-imgu [Pad1]
+
+IMGu subdev outputs:
+ipu3-imgu [Pad2]  => ipu3-imgu output [Pad0] 
+ipu3-imgu [Pad3]  => ipu3-imgu viewfinder [Pad0] 
+ipu3-imgu [Pad4]  => ipu3-imgu postview [Pad0] 
+ipu3-imgu [Pad5]  => ipu3-imgu 3a stat [Pad0]
+
+Best Regards,
+Jianxu(Clive) Zheng
