@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50280 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:50586 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934034AbeFYNnE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 09:43:04 -0400
-Message-ID: <bb4dea42891f1857a994b3b7f7c4f34f52acc41c.camel@bootlin.com>
-Subject: Re: [PATCH 8/9] media: cedrus: Add start and stop decoder operations
+        id S1755345AbeFYNtA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 09:49:00 -0400
+Message-ID: <0d20a3159ea710f47d1860a83b7c027116e8e97c.camel@bootlin.com>
+Subject: Re: [PATCH 6/9] media: cedrus: Add ops structure
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: Maxime Ripard <maxime.ripard@bootlin.com>
 Cc: hans.verkuil@cisco.com, acourbot@chromium.org,
@@ -16,111 +16,140 @@ Cc: hans.verkuil@cisco.com, acourbot@chromium.org,
         nicolas.dufresne@collabora.com, jenskuske@gmail.com,
         linux-sunxi@googlegroups.com,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Date: Mon, 25 Jun 2018 15:42:52 +0200
-In-Reply-To: <20180625133233.3b7qup3tcgydfo5t@flea>
+Date: Mon, 25 Jun 2018 15:48:48 +0200
+In-Reply-To: <20180625132933.tzr36vsucqsq3mmb@flea>
 References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
-         <20180613140714.1686-9-maxime.ripard@bootlin.com>
-         <f37f23580c92728bbcd5bfe3fff506b5bb2bdfd0.camel@bootlin.com>
-         <20180625133233.3b7qup3tcgydfo5t@flea>
+         <20180613140714.1686-7-maxime.ripard@bootlin.com>
+         <939381a854760b1d54984ae0f534ec03312ec8e0.camel@bootlin.com>
+         <20180625132933.tzr36vsucqsq3mmb@flea>
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-f791yFd3OE0dTHcCvKWJ"
+        protocol="application/pgp-signature"; boundary="=-0NIUE1z8vrsnfV1Gs03l"
 Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-f791yFd3OE0dTHcCvKWJ
+--=-0NIUE1z8vrsnfV1Gs03l
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, 2018-06-25 at 15:32 +0200, Maxime Ripard wrote:
-> On Thu, Jun 21, 2018 at 05:38:23PM +0200, Paul Kocialkowski wrote:
+On Mon, 2018-06-25 at 15:29 +0200, Maxime Ripard wrote:
+> Hi!
+>=20
+> On Thu, Jun 21, 2018 at 11:49:54AM +0200, Paul Kocialkowski wrote:
 > > Hi,
 > >=20
 > > On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
-> > > Some codec needs to perform some additional task when a decoding is s=
-tarted
-> > > and stopped, and not only at every frame.
+> > > In order to increase the number of codecs supported, we need to decou=
+ple
+> > > the MPEG2 only code that was there up until now and turn it into some=
+thing
+> > > a bit more generic.
 > > >=20
-> > > For example, the H264 decoding support needs to allocate buffers that=
- will
-> > > be used in the decoding process, but do not need to change over time,=
- or at
-> > > each frame.
+> > > Do that by introducing an intermediate ops structure that would need =
+to be
+> > > filled by each supported codec. Start by implementing in that structu=
+re the
+> > > setup and trigger hooks that are currently the only functions being
+> > > implemented by codecs support.
 > > >=20
-> > > In order to allow that for codecs, introduce a start and stop hook th=
-at
-> > > will be called if present at start_streaming and stop_streaming time.
-> > >=20
+> > > To do so, we need to store the current codec in use, which we do at
+> > > start_streaming time.
+> >=20
+> > With the comments below taken in account, this is:
+> >=20
+> > Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+>=20
+> Thanks!
+>=20
 > > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 > > > ---
-> > >  .../platform/sunxi/cedrus/sunxi_cedrus_common.h    |  2 ++
-> > >  .../platform/sunxi/cedrus/sunxi_cedrus_video.c     | 14 ++++++++++++=
-+-
-> > >  2 files changed, 15 insertions(+), 1 deletion(-)
+> > >  .../platform/sunxi/cedrus/sunxi_cedrus.c      |  2 ++
+> > >  .../sunxi/cedrus/sunxi_cedrus_common.h        | 11 +++++++
+> > >  .../platform/sunxi/cedrus/sunxi_cedrus_dec.c  | 10 +++---
+> > >  .../sunxi/cedrus/sunxi_cedrus_mpeg2.c         | 11 +++++--
+> > >  .../sunxi/cedrus/sunxi_cedrus_mpeg2.h         | 33 -----------------=
+--
+> > >  .../sunxi/cedrus/sunxi_cedrus_video.c         | 17 +++++++++-
+> > >  6 files changed, 42 insertions(+), 42 deletions(-)
+> > >  delete mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_=
+mpeg2.h
 > > >=20
+> > > diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c b/dri=
+vers/media/platform/sunxi/cedrus/sunxi_cedrus.c
+> > > index ccd41d9a3e41..bc80480f5dfd 100644
+> > > --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c
+> > > +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c
+> > > @@ -244,6 +244,8 @@ static int sunxi_cedrus_probe(struct platform_dev=
+ice *pdev)
+> > >  	if (ret)
+> > >  		return ret;
+> > > =20
+> > > +	dev->dec_ops[SUNXI_CEDRUS_CODEC_MPEG2] =3D &sunxi_cedrus_dec_ops_mp=
+eg2;
+> > > +
+> > >  	ret =3D v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+> > >  	if (ret)
+> > >  		goto unreg_media;
 > > > diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.=
 h b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> > > index a2a507eb9fc9..20c78ec1f037 100644
+> > > index a5f83c452006..c2e2c92d103b 100644
 > > > --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
 > > > +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> > > @@ -120,6 +120,8 @@ struct sunxi_cedrus_dec_ops {
-> > >  	enum sunxi_cedrus_irq_status (*irq_status)(struct sunxi_cedrus_ctx =
-*ctx);
-> > >  	void (*setup)(struct sunxi_cedrus_ctx *ctx,
-> > >  		      struct sunxi_cedrus_run *run);
-> > > +	int (*start)(struct sunxi_cedrus_ctx *ctx);
-> > > +	void (*stop)(struct sunxi_cedrus_ctx *ctx);
-> > >  	void (*trigger)(struct sunxi_cedrus_ctx *ctx);
-> > >  };
-> > > =20
-> > > diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c=
- b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
-> > > index fb7b081a5bb7..d93461178857 100644
-> > > --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
-> > > +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
-> > > @@ -416,6 +416,8 @@ static int sunxi_cedrus_buf_prepare(struct vb2_bu=
-ffer *vb)
-> > >  static int sunxi_cedrus_start_streaming(struct vb2_queue *q, unsigne=
-d int count)
-> > >  {
-> > >  	struct sunxi_cedrus_ctx *ctx =3D vb2_get_drv_priv(q);
-> > > +	struct sunxi_cedrus_dev *dev =3D ctx->dev;
-> > > +	int ret =3D 0;
-> > > =20
-> > >  	switch (ctx->vpu_src_fmt->fourcc) {
-> > >  	case V4L2_PIX_FMT_MPEG2_FRAME:
-> > > @@ -425,16 +427,26 @@ static int sunxi_cedrus_start_streaming(struct =
-vb2_queue *q, unsigned int count)
-> > >  		return -EINVAL;
-> > >  	}
-> > > =20
-> > > -	return 0;
-> > > +	if (V4L2_TYPE_IS_OUTPUT(q->type) &&
+> > > @@ -75,6 +75,7 @@ struct sunxi_cedrus_ctx {
+> > >  	struct v4l2_pix_format_mplane src_fmt;
+> > >  	struct sunxi_cedrus_fmt *vpu_dst_fmt;
+> > >  	struct v4l2_pix_format_mplane dst_fmt;
+> > > +	enum sunxi_cedrus_codec current_codec;
 > >=20
-> > I suppose this check was put in place to ensure that ->start is only
-> > called once, but what if start_streaming is called multiple times on
-> > output? Am I totally unsure about whether the API guarantees that we
-> > only get one start_streaming call per buffer queue, regardless of how
-> > many userspace issues.
-> >=20
-> > If we don't have such a guarantee, we probably need an internal
-> > mechanism to avoid having ->start called more than once.
+> > Nit: for consistency with the way things are named, "codec_current"
+> > probably makes more sense.
 >=20
-> As far as I understand it, start_streaming can only be called once:
-> https://elixir.bootlin.com/linux/latest/source/include/media/videobuf2-co=
-re.h#L357
+> I'm not quite sure what you mean by consitency here. This structure
+> has 5 other variables with two words: vpu_src_fmt, src_fmt,
+> vpu_dst_fmt, dst_fmt and dst_bufs. codec_current would be going
+> against the consistency of that structure.
 
-And there's definitely a check in vb2_core_streamon:
+Mhh, not sure what I meant after all regarding consistency. I was
+thinking in terms of name/qualifier, but it's clear that the structure
+for the names of already-existing elements has qualifiers first and name
+at the end, so "curent_codec" indeed fits best.
 
-	if (q->streaming) {
-		dprintk(3, "already streaming\n");
-		return 0;
-	}
+Sorry for the noise!
 
-so it looks like we're safe :)
+> > IMO using the natural English order is fine for temporary variables, bu=
+t
+> >  less so for variables used in common parts like structures. This allow=
+s
+> > seeing "_" as a logical hierarchical delimiter that automatically makes
+> > us end up with consistent prefixes that can easily be grepped for and
+> > derived.
+> >=20
+> > But that's just my 2 cents, it's really not a big deal, especially in
+> > this case!
+> >=20
+> > >  	struct v4l2_ctrl_handler hdl;
+> > >  	struct v4l2_ctrl *ctrls[SUNXI_CEDRUS_CTRL_MAX];
+> > > @@ -107,6 +108,14 @@ struct sunxi_cedrus_buffer *vb2_to_cedrus_buffer=
+(const struct vb2_buffer *p)
+> > >  	return vb2_v4l2_to_cedrus_buffer(to_vb2_v4l2_buffer(p));
+> > >  }
+> > > =20
+> > > +struct sunxi_cedrus_dec_ops {
+> > > +	void (*setup)(struct sunxi_cedrus_ctx *ctx,
+> > > +		      struct sunxi_cedrus_run *run);
+> > > +	void (*trigger)(struct sunxi_cedrus_ctx *ctx);
+> >=20
+> > By the way, are we sure that these functions won't ever fail?
+> > I think this is the case for MPEG2 (there is virtually nothing to check
+> > for errors) but perhaps it's different for H264.
+>=20
+> It won't fail either, and if we need to change it somewhere down the
+> line, it's quite easy to do.
+
+Right, let's keep it that way then.
 
 Cheers,
 
@@ -130,21 +159,21 @@ Paul
 Paul Kocialkowski, Bootlin (formerly Free Electrons)
 Embedded Linux and kernel engineering
 https://bootlin.com
---=-f791yFd3OE0dTHcCvKWJ
+--=-0NIUE1z8vrsnfV1Gs03l
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlsw8VwACgkQ3cLmz3+f
-v9HytAf/R8CAkDcS7YLu4K+EZ/FfEjTiCiZDaDRAT2Enn2FvuxCELOgAvCdhh+E6
-PAbLTkAnEvPJVUd6YM1s+sUB/eVIcR5ye8dfEeAwgH4kYNPUcrP0Ni51iD4xl4bP
-CguBcUWMsKlDkxy+aI/TXR+gHetQTJ3eP8ejov8P9Km+vrOvhh9lYwA4jJ4Ua4Jx
-IwhAVNm6hfm3w6re1KhyJFzwHNMe5PEkq111ZKO6Ng4xrvk347nWdYkG12Jl7Zsf
-+h/ZT1IkfwjR7xhDYC4exUXnQmxwm5QxMGif2OSlLFLz0WkT968Io2N+eYFbgLVr
-tEJZ8bhh4LyZaFcNNgsl9rvZlmLqHA==
-=FoKz
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlsw8sAACgkQ3cLmz3+f
+v9FkwAf/fw1tjLwFGOghickXiQz7CRqbY7gepneYN3d5MLmEk0/SeK9bNpHW7oXE
+aLJYa8YptZeuP00DzB59dNAgQPSvz7q+/ZpCFPsp6F9kQh4fToSvK+BLZihmbgTJ
+E6fmHW8uO6iOcdkTI5TfsDmyHyg5Zgv0pYunnb4uiLSEKUsrbTdOZOtCVm6SlCQJ
+x5QpRGRzAAHF9pk2zK/ZMtL2ygj99Vnis6n9RGymnGZ5j/LkN+9dW700HZ6F5THx
+JLKEZtvo/Ktxt9b3cZwyRuZXJbus3t7JX6DzJR31ZfcdTGweu1IPSS1jq6tqjRY2
+29tcnDNT7jStdYsrLfJfNzxP8XLL1A==
+=qfoR
 -----END PGP SIGNATURE-----
 
---=-f791yFd3OE0dTHcCvKWJ--
+--=-0NIUE1z8vrsnfV1Gs03l--
