@@ -1,562 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:45647 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755801AbeFOG2R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 02:28:17 -0400
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Subject: [PATCH v4 8/9] xen/gntdev: Implement dma-buf export functionality
-Date: Fri, 15 Jun 2018 09:27:52 +0300
-Message-Id: <20180615062753.9229-9-andr2000@gmail.com>
-In-Reply-To: <20180615062753.9229-1-andr2000@gmail.com>
-References: <20180615062753.9229-1-andr2000@gmail.com>
+Received: from mail.bootlin.com ([62.4.15.54]:49990 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933919AbeFYNcp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 09:32:45 -0400
+Date: Mon, 25 Jun 2018 15:32:33 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: hans.verkuil@cisco.com, acourbot@chromium.org,
+        sakari.ailus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        tfiga@chromium.org, posciak@chromium.org,
+        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Subject: Re: [PATCH 8/9] media: cedrus: Add start and stop decoder operations
+Message-ID: <20180625133233.3b7qup3tcgydfo5t@flea>
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+ <20180613140714.1686-9-maxime.ripard@bootlin.com>
+ <f37f23580c92728bbcd5bfe3fff506b5bb2bdfd0.camel@bootlin.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="bkh4pwgu6vcj5lmf"
+Content-Disposition: inline
+In-Reply-To: <f37f23580c92728bbcd5bfe3fff506b5bb2bdfd0.camel@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-1. Create a dma-buf from grant references provided by the foreign
-   domain. By default dma-buf is backed by system memory pages, but
-   by providing GNTDEV_DMA_FLAG_XXX flags it can also be created
-   as a DMA write-combine/coherent buffer, e.g. allocated with
-   corresponding dma_alloc_xxx API.
-   Export the resulting buffer as a new dma-buf.
+--bkh4pwgu6vcj5lmf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-2. Implement waiting for the dma-buf to be released: block until the
-   dma-buf with the file descriptor provided is released.
-   If within the time-out provided the buffer is not released then
-   -ETIMEDOUT error is returned. If the buffer with the file descriptor
-   does not exist or has already been released, then -ENOENT is
-   returned. For valid file descriptors this must not be treated as
-   error.
+On Thu, Jun 21, 2018 at 05:38:23PM +0200, Paul Kocialkowski wrote:
+> Hi,
+>=20
+> On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
+> > Some codec needs to perform some additional task when a decoding is sta=
+rted
+> > and stopped, and not only at every frame.
+> >=20
+> > For example, the H264 decoding support needs to allocate buffers that w=
+ill
+> > be used in the decoding process, but do not need to change over time, o=
+r at
+> > each frame.
+> >=20
+> > In order to allow that for codecs, introduce a start and stop hook that
+> > will be called if present at start_streaming and stop_streaming time.
+> >=20
+> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > ---
+> >  .../platform/sunxi/cedrus/sunxi_cedrus_common.h    |  2 ++
+> >  .../platform/sunxi/cedrus/sunxi_cedrus_video.c     | 14 +++++++++++++-
+> >  2 files changed, 15 insertions(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h =
+b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
+> > index a2a507eb9fc9..20c78ec1f037 100644
+> > --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
+> > +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
+> > @@ -120,6 +120,8 @@ struct sunxi_cedrus_dec_ops {
+> >  	enum sunxi_cedrus_irq_status (*irq_status)(struct sunxi_cedrus_ctx *c=
+tx);
+> >  	void (*setup)(struct sunxi_cedrus_ctx *ctx,
+> >  		      struct sunxi_cedrus_run *run);
+> > +	int (*start)(struct sunxi_cedrus_ctx *ctx);
+> > +	void (*stop)(struct sunxi_cedrus_ctx *ctx);
+> >  	void (*trigger)(struct sunxi_cedrus_ctx *ctx);
+> >  };
+> > =20
+> > diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c b=
+/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
+> > index fb7b081a5bb7..d93461178857 100644
+> > --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
+> > +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_video.c
+> > @@ -416,6 +416,8 @@ static int sunxi_cedrus_buf_prepare(struct vb2_buff=
+er *vb)
+> >  static int sunxi_cedrus_start_streaming(struct vb2_queue *q, unsigned =
+int count)
+> >  {
+> >  	struct sunxi_cedrus_ctx *ctx =3D vb2_get_drv_priv(q);
+> > +	struct sunxi_cedrus_dev *dev =3D ctx->dev;
+> > +	int ret =3D 0;
+> > =20
+> >  	switch (ctx->vpu_src_fmt->fourcc) {
+> >  	case V4L2_PIX_FMT_MPEG2_FRAME:
+> > @@ -425,16 +427,26 @@ static int sunxi_cedrus_start_streaming(struct vb=
+2_queue *q, unsigned int count)
+> >  		return -EINVAL;
+> >  	}
+> > =20
+> > -	return 0;
+> > +	if (V4L2_TYPE_IS_OUTPUT(q->type) &&
+>=20
+> I suppose this check was put in place to ensure that ->start is only
+> called once, but what if start_streaming is called multiple times on
+> output? Am I totally unsure about whether the API guarantees that we
+> only get one start_streaming call per buffer queue, regardless of how
+> many userspace issues.
+>=20
+> If we don't have such a guarantee, we probably need an internal
+> mechanism to avoid having ->start called more than once.
 
-3. Make gntdev's common code and structures available to dma-buf.
+As far as I understand it, start_streaming can only be called once:
+https://elixir.bootlin.com/linux/latest/source/include/media/videobuf2-core=
+=2Eh#L357
 
-Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
----
- drivers/xen/gntdev-dmabuf.c | 470 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 467 insertions(+), 3 deletions(-)
+Maxime
 
-diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
-index af782c0a8a19..07a98aa52cab 100644
---- a/drivers/xen/gntdev-dmabuf.c
-+++ b/drivers/xen/gntdev-dmabuf.c
-@@ -3,11 +3,14 @@
- /*
-  * Xen dma-buf functionality for gntdev.
-  *
-+ * DMA buffer implementation is based on drivers/gpu/drm/drm_prime.c.
-+ *
-  * Copyright (c) 2018 Oleksandr Andrushchenko, EPAM Systems Inc.
-  */
- 
- #include <linux/kernel.h>
- #include <linux/errno.h>
-+#include <linux/dma-buf.h>
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/uaccess.h>
-@@ -18,6 +21,39 @@
- #include "gntdev-common.h"
- #include "gntdev-dmabuf.h"
- 
-+struct gntdev_dmabuf {
-+	struct gntdev_dmabuf_priv *priv;
-+	struct dma_buf *dmabuf;
-+	struct list_head next;
-+	int fd;
-+
-+	union {
-+		struct {
-+			/* Exported buffers are reference counted. */
-+			struct kref refcount;
-+
-+			struct gntdev_priv *priv;
-+			struct gntdev_grant_map *map;
-+		} exp;
-+	} u;
-+
-+	/* Number of pages this buffer has. */
-+	int nr_pages;
-+	/* Pages of this buffer. */
-+	struct page **pages;
-+};
-+
-+struct gntdev_dmabuf_wait_obj {
-+	struct list_head next;
-+	struct gntdev_dmabuf *gntdev_dmabuf;
-+	struct completion completion;
-+};
-+
-+struct gntdev_dmabuf_attachment {
-+	struct sg_table *sgt;
-+	enum dma_data_direction dir;
-+};
-+
- struct gntdev_dmabuf_priv {
- 	/* List of exported DMA buffers. */
- 	struct list_head exp_list;
-@@ -31,17 +67,441 @@ struct gntdev_dmabuf_priv {
- 
- /* Implementation of wait for exported DMA buffer to be released. */
- 
-+static void dmabuf_exp_release(struct kref *kref);
-+
-+static struct gntdev_dmabuf_wait_obj *
-+dmabuf_exp_wait_obj_new(struct gntdev_dmabuf_priv *priv,
-+			struct gntdev_dmabuf *gntdev_dmabuf)
-+{
-+	struct gntdev_dmabuf_wait_obj *obj;
-+
-+	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
-+	if (!obj)
-+		return ERR_PTR(-ENOMEM);
-+
-+	init_completion(&obj->completion);
-+	obj->gntdev_dmabuf = gntdev_dmabuf;
-+
-+	mutex_lock(&priv->lock);
-+	list_add(&obj->next, &priv->exp_wait_list);
-+	/* Put our reference and wait for gntdev_dmabuf's release to fire. */
-+	kref_put(&gntdev_dmabuf->u.exp.refcount, dmabuf_exp_release);
-+	mutex_unlock(&priv->lock);
-+	return obj;
-+}
-+
-+static void dmabuf_exp_wait_obj_free(struct gntdev_dmabuf_priv *priv,
-+				     struct gntdev_dmabuf_wait_obj *obj)
-+{
-+	mutex_lock(&priv->lock);
-+	list_del(&obj->next);
-+	mutex_unlock(&priv->lock);
-+	kfree(obj);
-+}
-+
-+static int dmabuf_exp_wait_obj_wait(struct gntdev_dmabuf_wait_obj *obj,
-+				    u32 wait_to_ms)
-+{
-+	if (wait_for_completion_timeout(&obj->completion,
-+			msecs_to_jiffies(wait_to_ms)) <= 0)
-+		return -ETIMEDOUT;
-+
-+	return 0;
-+}
-+
-+static void dmabuf_exp_wait_obj_signal(struct gntdev_dmabuf_priv *priv,
-+				       struct gntdev_dmabuf *gntdev_dmabuf)
-+{
-+	struct gntdev_dmabuf_wait_obj *obj;
-+
-+	list_for_each_entry(obj, &priv->exp_wait_list, next)
-+		if (obj->gntdev_dmabuf == gntdev_dmabuf) {
-+			pr_debug("Found gntdev_dmabuf in the wait list, wake\n");
-+			complete_all(&obj->completion);
-+			break;
-+		}
-+}
-+
-+static struct gntdev_dmabuf *
-+dmabuf_exp_wait_obj_get_dmabuf(struct gntdev_dmabuf_priv *priv, int fd)
-+{
-+	struct gntdev_dmabuf *gntdev_dmabuf, *ret = ERR_PTR(-ENOENT);
-+
-+	mutex_lock(&priv->lock);
-+	list_for_each_entry(gntdev_dmabuf, &priv->exp_list, next)
-+		if (gntdev_dmabuf->fd == fd) {
-+			pr_debug("Found gntdev_dmabuf in the wait list\n");
-+			kref_get(&gntdev_dmabuf->u.exp.refcount);
-+			ret = gntdev_dmabuf;
-+			break;
-+		}
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
- static int dmabuf_exp_wait_released(struct gntdev_dmabuf_priv *priv, int fd,
- 				    int wait_to_ms)
- {
--	return -EINVAL;
-+	struct gntdev_dmabuf *gntdev_dmabuf;
-+	struct gntdev_dmabuf_wait_obj *obj;
-+	int ret;
-+
-+	pr_debug("Will wait for dma-buf with fd %d\n", fd);
-+	/*
-+	 * Try to find the DMA buffer: if not found means that
-+	 * either the buffer has already been released or file descriptor
-+	 * provided is wrong.
-+	 */
-+	gntdev_dmabuf = dmabuf_exp_wait_obj_get_dmabuf(priv, fd);
-+	if (IS_ERR(gntdev_dmabuf))
-+		return PTR_ERR(gntdev_dmabuf);
-+
-+	/*
-+	 * gntdev_dmabuf still exists and is reference count locked by us now,
-+	 * so prepare to wait: allocate wait object and add it to the wait list,
-+	 * so we can find it on release.
-+	 */
-+	obj = dmabuf_exp_wait_obj_new(priv, gntdev_dmabuf);
-+	if (IS_ERR(obj))
-+		return PTR_ERR(obj);
-+
-+	ret = dmabuf_exp_wait_obj_wait(obj, wait_to_ms);
-+	dmabuf_exp_wait_obj_free(priv, obj);
-+	return ret;
-+}
-+
-+/* DMA buffer export support. */
-+
-+static struct sg_table *
-+dmabuf_pages_to_sgt(struct page **pages, unsigned int nr_pages)
-+{
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	ret = sg_alloc_table_from_pages(sgt, pages, nr_pages, 0,
-+					nr_pages << PAGE_SHIFT,
-+					GFP_KERNEL);
-+	if (ret)
-+		goto out;
-+
-+	return sgt;
-+
-+out:
-+	kfree(sgt);
-+	return ERR_PTR(ret);
-+}
-+
-+static int dmabuf_exp_ops_attach(struct dma_buf *dma_buf,
-+				 struct device *target_dev,
-+				 struct dma_buf_attachment *attach)
-+{
-+	struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach;
-+
-+	gntdev_dmabuf_attach = kzalloc(sizeof(*gntdev_dmabuf_attach),
-+				       GFP_KERNEL);
-+	if (!gntdev_dmabuf_attach)
-+		return -ENOMEM;
-+
-+	gntdev_dmabuf_attach->dir = DMA_NONE;
-+	attach->priv = gntdev_dmabuf_attach;
-+	return 0;
-+}
-+
-+static void dmabuf_exp_ops_detach(struct dma_buf *dma_buf,
-+				  struct dma_buf_attachment *attach)
-+{
-+	struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach = attach->priv;
-+
-+	if (gntdev_dmabuf_attach) {
-+		struct sg_table *sgt = gntdev_dmabuf_attach->sgt;
-+
-+		if (sgt) {
-+			if (gntdev_dmabuf_attach->dir != DMA_NONE)
-+				dma_unmap_sg_attrs(attach->dev, sgt->sgl,
-+						   sgt->nents,
-+						   gntdev_dmabuf_attach->dir,
-+						   DMA_ATTR_SKIP_CPU_SYNC);
-+			sg_free_table(sgt);
-+		}
-+
-+		kfree(sgt);
-+		kfree(gntdev_dmabuf_attach);
-+		attach->priv = NULL;
-+	}
-+}
-+
-+static struct sg_table *
-+dmabuf_exp_ops_map_dma_buf(struct dma_buf_attachment *attach,
-+			   enum dma_data_direction dir)
-+{
-+	struct gntdev_dmabuf_attachment *gntdev_dmabuf_attach = attach->priv;
-+	struct gntdev_dmabuf *gntdev_dmabuf = attach->dmabuf->priv;
-+	struct sg_table *sgt;
-+
-+	pr_debug("Mapping %d pages for dev %p\n", gntdev_dmabuf->nr_pages,
-+		 attach->dev);
-+
-+	if (dir == DMA_NONE || !gntdev_dmabuf_attach)
-+		return ERR_PTR(-EINVAL);
-+
-+	/* Return the cached mapping when possible. */
-+	if (gntdev_dmabuf_attach->dir == dir)
-+		return gntdev_dmabuf_attach->sgt;
-+
-+	/*
-+	 * Two mappings with different directions for the same attachment are
-+	 * not allowed.
-+	 */
-+	if (gntdev_dmabuf_attach->dir != DMA_NONE)
-+		return ERR_PTR(-EBUSY);
-+
-+	sgt = dmabuf_pages_to_sgt(gntdev_dmabuf->pages,
-+				  gntdev_dmabuf->nr_pages);
-+	if (!IS_ERR(sgt)) {
-+		if (!dma_map_sg_attrs(attach->dev, sgt->sgl, sgt->nents, dir,
-+				      DMA_ATTR_SKIP_CPU_SYNC)) {
-+			sg_free_table(sgt);
-+			kfree(sgt);
-+			sgt = ERR_PTR(-ENOMEM);
-+		} else {
-+			gntdev_dmabuf_attach->sgt = sgt;
-+			gntdev_dmabuf_attach->dir = dir;
-+		}
-+	}
-+	if (IS_ERR(sgt))
-+		pr_debug("Failed to map sg table for dev %p\n", attach->dev);
-+	return sgt;
-+}
-+
-+static void dmabuf_exp_ops_unmap_dma_buf(struct dma_buf_attachment *attach,
-+					 struct sg_table *sgt,
-+					 enum dma_data_direction dir)
-+{
-+	/* Not implemented. The unmap is done at dmabuf_exp_ops_detach(). */
-+}
-+
-+static void dmabuf_exp_release(struct kref *kref)
-+{
-+	struct gntdev_dmabuf *gntdev_dmabuf =
-+		container_of(kref, struct gntdev_dmabuf, u.exp.refcount);
-+
-+	dmabuf_exp_wait_obj_signal(gntdev_dmabuf->priv, gntdev_dmabuf);
-+	list_del(&gntdev_dmabuf->next);
-+	kfree(gntdev_dmabuf);
-+}
-+
-+static void dmabuf_exp_remove_map(struct gntdev_priv *priv,
-+				  struct gntdev_grant_map *map)
-+{
-+	mutex_lock(&priv->lock);
-+	list_del(&map->next);
-+	gntdev_put_map(NULL /* already removed */, map);
-+	mutex_unlock(&priv->lock);
-+}
-+
-+static void dmabuf_exp_ops_release(struct dma_buf *dma_buf)
-+{
-+	struct gntdev_dmabuf *gntdev_dmabuf = dma_buf->priv;
-+	struct gntdev_dmabuf_priv *priv = gntdev_dmabuf->priv;
-+
-+	dmabuf_exp_remove_map(gntdev_dmabuf->u.exp.priv,
-+			      gntdev_dmabuf->u.exp.map);
-+	mutex_lock(&priv->lock);
-+	kref_put(&gntdev_dmabuf->u.exp.refcount, dmabuf_exp_release);
-+	mutex_unlock(&priv->lock);
-+}
-+
-+static void *dmabuf_exp_ops_kmap_atomic(struct dma_buf *dma_buf,
-+					unsigned long page_num)
-+{
-+	/* Not implemented. */
-+	return NULL;
-+}
-+
-+static void dmabuf_exp_ops_kunmap_atomic(struct dma_buf *dma_buf,
-+					 unsigned long page_num, void *addr)
-+{
-+	/* Not implemented. */
-+}
-+
-+static void *dmabuf_exp_ops_kmap(struct dma_buf *dma_buf,
-+				 unsigned long page_num)
-+{
-+	/* Not implemented. */
-+	return NULL;
-+}
-+
-+static void dmabuf_exp_ops_kunmap(struct dma_buf *dma_buf,
-+				  unsigned long page_num, void *addr)
-+{
-+	/* Not implemented. */
-+}
-+
-+static int dmabuf_exp_ops_mmap(struct dma_buf *dma_buf,
-+			       struct vm_area_struct *vma)
-+{
-+	/* Not implemented. */
-+	return 0;
-+}
-+
-+static const struct dma_buf_ops dmabuf_exp_ops =  {
-+	.attach = dmabuf_exp_ops_attach,
-+	.detach = dmabuf_exp_ops_detach,
-+	.map_dma_buf = dmabuf_exp_ops_map_dma_buf,
-+	.unmap_dma_buf = dmabuf_exp_ops_unmap_dma_buf,
-+	.release = dmabuf_exp_ops_release,
-+	.map = dmabuf_exp_ops_kmap,
-+	.map_atomic = dmabuf_exp_ops_kmap_atomic,
-+	.unmap = dmabuf_exp_ops_kunmap,
-+	.unmap_atomic = dmabuf_exp_ops_kunmap_atomic,
-+	.mmap = dmabuf_exp_ops_mmap,
-+};
-+
-+struct gntdev_dmabuf_export_args {
-+	struct gntdev_priv *priv;
-+	struct gntdev_grant_map *map;
-+	struct gntdev_dmabuf_priv *dmabuf_priv;
-+	struct device *dev;
-+	int count;
-+	struct page **pages;
-+	u32 fd;
-+};
-+
-+static int dmabuf_exp_from_pages(struct gntdev_dmabuf_export_args *args)
-+{
-+	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
-+	struct gntdev_dmabuf *gntdev_dmabuf;
-+	int ret;
-+
-+	gntdev_dmabuf = kzalloc(sizeof(*gntdev_dmabuf), GFP_KERNEL);
-+	if (!gntdev_dmabuf)
-+		return -ENOMEM;
-+
-+	kref_init(&gntdev_dmabuf->u.exp.refcount);
-+
-+	gntdev_dmabuf->priv = args->dmabuf_priv;
-+	gntdev_dmabuf->nr_pages = args->count;
-+	gntdev_dmabuf->pages = args->pages;
-+	gntdev_dmabuf->u.exp.priv = args->priv;
-+	gntdev_dmabuf->u.exp.map = args->map;
-+
-+	exp_info.exp_name = KBUILD_MODNAME;
-+	if (args->dev->driver && args->dev->driver->owner)
-+		exp_info.owner = args->dev->driver->owner;
-+	else
-+		exp_info.owner = THIS_MODULE;
-+	exp_info.ops = &dmabuf_exp_ops;
-+	exp_info.size = args->count << PAGE_SHIFT;
-+	exp_info.flags = O_RDWR;
-+	exp_info.priv = gntdev_dmabuf;
-+
-+	gntdev_dmabuf->dmabuf = dma_buf_export(&exp_info);
-+	if (IS_ERR(gntdev_dmabuf->dmabuf)) {
-+		ret = PTR_ERR(gntdev_dmabuf->dmabuf);
-+		gntdev_dmabuf->dmabuf = NULL;
-+		goto fail;
-+	}
-+
-+	ret = dma_buf_fd(gntdev_dmabuf->dmabuf, O_CLOEXEC);
-+	if (ret < 0)
-+		goto fail;
-+
-+	gntdev_dmabuf->fd = ret;
-+	args->fd = ret;
-+
-+	pr_debug("Exporting DMA buffer with fd %d\n", ret);
-+
-+	mutex_lock(&args->dmabuf_priv->lock);
-+	list_add(&gntdev_dmabuf->next, &args->dmabuf_priv->exp_list);
-+	mutex_unlock(&args->dmabuf_priv->lock);
-+	return 0;
-+
-+fail:
-+	if (gntdev_dmabuf->dmabuf)
-+		dma_buf_put(gntdev_dmabuf->dmabuf);
-+	kfree(gntdev_dmabuf);
-+	return ret;
-+}
-+
-+static struct gntdev_grant_map *
-+dmabuf_exp_alloc_backing_storage(struct gntdev_priv *priv, int dmabuf_flags,
-+				 int count)
-+{
-+	struct gntdev_grant_map *map;
-+
-+	if (unlikely(count <= 0))
-+		return ERR_PTR(-EINVAL);
-+
-+	if ((dmabuf_flags & GNTDEV_DMA_FLAG_WC) &&
-+	    (dmabuf_flags & GNTDEV_DMA_FLAG_COHERENT)) {
-+		pr_debug("Wrong dma-buf flags: 0x%x\n", dmabuf_flags);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	map = gntdev_alloc_map(priv, count, dmabuf_flags);
-+	if (!map)
-+		return ERR_PTR(-ENOMEM);
-+
-+	if (unlikely(gntdev_account_mapped_pages(count))) {
-+		pr_debug("can't map %d pages: over limit\n", count);
-+		gntdev_put_map(NULL, map);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+	return map;
- }
- 
- static int dmabuf_exp_from_refs(struct gntdev_priv *priv, int flags,
- 				int count, u32 domid, u32 *refs, u32 *fd)
- {
--	*fd = -1;
--	return -EINVAL;
-+	struct gntdev_grant_map *map;
-+	struct gntdev_dmabuf_export_args args;
-+	int i, ret;
-+
-+	map = dmabuf_exp_alloc_backing_storage(priv, flags, count);
-+	if (IS_ERR(map))
-+		return PTR_ERR(map);
-+
-+	for (i = 0; i < count; i++) {
-+		map->grants[i].domid = domid;
-+		map->grants[i].ref = refs[i];
-+	}
-+
-+	mutex_lock(&priv->lock);
-+	gntdev_add_map(priv, map);
-+	mutex_unlock(&priv->lock);
-+
-+	map->flags |= GNTMAP_host_map;
-+#if defined(CONFIG_X86)
-+	map->flags |= GNTMAP_device_map;
-+#endif
-+
-+	ret = gntdev_map_grant_pages(map);
-+	if (ret < 0)
-+		goto out;
-+
-+	args.priv = priv;
-+	args.map = map;
-+	args.dev = priv->dma_dev;
-+	args.dmabuf_priv = priv->dmabuf_priv;
-+	args.count = map->count;
-+	args.pages = map->pages;
-+
-+	ret = dmabuf_exp_from_pages(&args);
-+	if (ret < 0)
-+		goto out;
-+
-+	*fd = args.fd;
-+	return 0;
-+
-+out:
-+	dmabuf_exp_remove_map(priv, map);
-+	return ret;
- }
- 
- /* DMA buffer import support. */
-@@ -168,6 +628,10 @@ struct gntdev_dmabuf_priv *gntdev_dmabuf_init(void)
- 	if (!priv)
- 		return ERR_PTR(-ENOMEM);
- 
-+	mutex_init(&priv->lock);
-+	INIT_LIST_HEAD(&priv->exp_list);
-+	INIT_LIST_HEAD(&priv->exp_wait_list);
-+
- 	return priv;
- }
- 
--- 
-2.17.1
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--bkh4pwgu6vcj5lmf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlsw7vAACgkQ0rTAlCFN
+r3SG9A/+JxtDrW0vEWk/HeW3YiinlIPzaEXNtQQL668DXghQmSP1QT+7Orc6SZRZ
+5Vldwdb4Aikj099JA13q72N52jqkKALfQCEhcoFuLdlfCV2RtAJwS1B9qG22sTlT
+674bisEeytEa1ryIZkOCFORksnYsa/AEJqr2Zzm/v8bBLpOd+IptfM2J3FunjvPz
+kl1NK/WsZB307KYS9KgFmC/TOzMACRRxqhRK7Hm189xQn6gLSPf82fK9JxLmKoEu
+EkT2pJzFhFFFtEcV1L0GrQrSGfB2l/VgdPn6Anwxpnh+YEscWnO71lb8FNAjlD1K
+QltM7XhhqFEnjJXOGQz/svWeYQbo8iy8boKKHFTj6j2Xff+GrVeSstERakfgtdID
+fegw93I7g/qeeQd5MuZvX02ya2Jlft2LzHn3a18c26UxoT3lUZhX+CGae05Xx3An
+Jt9N88HJcx87Zl+mVX+3pA5oll6fpALb9p8w0WJ0NHEVXheb8iMuyBGuTmbydvRo
+GjsNjgtBiQETXe6+4xEV3TbTXH8VvaCrFpJi5W3O8TN1X5Fbp/vlxSuFm/Q8mdix
+mdaiey+A8nKBLcJDg+SqBiwoRdXWY0t9r4agZPj9A0jU2uFRDRsNCKNyVIpMqjef
+SFcb2mtIcYNZPwZvtX7E+08jiVDV/D1vDy82HeRburJPpPmNcSY=
+=e2dl
+-----END PGP SIGNATURE-----
+
+--bkh4pwgu6vcj5lmf--
