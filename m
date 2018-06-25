@@ -1,78 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2130.oracle.com ([141.146.126.79]:52280 "EHLO
-        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754498AbeFMWDe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Jun 2018 18:03:34 -0400
-Subject: Re: [PATCH v3 9/9] xen/gntdev: Implement dma-buf import functionality
-To: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180612134200.17456-1-andr2000@gmail.com>
- <20180612134200.17456-10-andr2000@gmail.com>
- <b08fdccf-2f1b-a902-f00b-a4cecf44a1b1@oracle.com>
- <cca7b9dd-a0c6-8052-c294-9e6c5d65e9eb@epam.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <0f1d87e5-823e-8b51-4ee5-029cc94eff99@oracle.com>
-Date: Wed, 13 Jun 2018 18:03:07 -0400
+Received: from mga09.intel.com ([134.134.136.24]:59168 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752155AbeFYIF3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 04:05:29 -0400
+Date: Mon, 25 Jun 2018 11:05:25 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: alanx.chiang@intel.com
+Cc: linux-media@vger.kernel.org, andy.yeh@intel.com,
+        andriy.shevchenko@intel.com, rajmohan.mani@intel.com
+Subject: Re: [RESEND PATCH v1 1/2] eeprom: at24: Add support for
+ address-width property
+Message-ID: <20180625080525.vx2c5uchhzilp6ak@paasikivi.fi.intel.com>
+References: <1529911783-28576-1-git-send-email-alanx.chiang@intel.com>
+ <1529911783-28576-2-git-send-email-alanx.chiang@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <cca7b9dd-a0c6-8052-c294-9e6c5d65e9eb@epam.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1529911783-28576-2-git-send-email-alanx.chiang@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2018 05:04 AM, Oleksandr Andrushchenko wrote:
-> On 06/13/2018 06:14 AM, Boris Ostrovsky wrote:
->>
->>
->> On 06/12/2018 09:42 AM, Oleksandr Andrushchenko wrote:
->>
->>>   int gntdev_dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32
->>> fd)
->>>   {
->>> -    return -EINVAL;
->>> +    struct gntdev_dmabuf *gntdev_dmabuf;
->>> +    struct dma_buf_attachment *attach;
->>> +    struct dma_buf *dma_buf;
->>> +
->>> +    gntdev_dmabuf = dmabuf_imp_find_unlink(priv, fd);
->>> +    if (IS_ERR(gntdev_dmabuf))
->>> +        return PTR_ERR(gntdev_dmabuf);
->>> +
->>> +    pr_debug("Releasing DMA buffer with fd %d\n", fd);
->>> +
->>> +    attach = gntdev_dmabuf->u.imp.attach;
->>> +
->>> +    if (gntdev_dmabuf->u.imp.sgt)
->>> +        dma_buf_unmap_attachment(attach, gntdev_dmabuf->u.imp.sgt,
->>> +                     DMA_BIDIRECTIONAL);
->>> +    dma_buf = attach->dmabuf;
->>> +    dma_buf_detach(attach->dmabuf, attach);
->>> +    dma_buf_put(dma_buf);
->>> +
->>> +    dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs,
->>> +                      gntdev_dmabuf->nr_pages);
->>
->>
->>
->> Should you first end foreign access, before doing anything?
->>
-> I am rolling back in reverse order here, so I think we first need
-> to finish local activities with the buffer and then end foreign
-> access.
+On Mon, Jun 25, 2018 at 03:29:42PM +0800, alanx.chiang@intel.com wrote:
+> From: "alanx.chiang" <alanx.chiang@intel.com>
+> 
+> Provide a flexible way to determine the addressing bits of eeprom.
+> It doesn't need to add acpi or i2c ids for specific modules.
+> 
+> Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+> Reviewed-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> ---
+>  drivers/misc/eeprom/at24.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
+> index 0c125f2..a6fbdae 100644
+> --- a/drivers/misc/eeprom/at24.c
+> +++ b/drivers/misc/eeprom/at24.c
+> @@ -478,6 +478,22 @@ static void at24_properties_to_pdata(struct device *dev,
+>  	if (device_property_present(dev, "no-read-rollover"))
+>  		chip->flags |= AT24_FLAG_NO_RDROL;
+>  
+> +	err = device_property_read_u32(dev, "address-width", &val);
+> +	if (!err) {
+> +		switch (val) {
+> +		case 8:
+> +			chip->flags &= ~AT24_FLAG_ADDR16;
 
-Looking at gntdev_dmabuf_imp_to_refs(), the order is
-    dmabuf_imp_alloc_storage()
-    dma_buf_attach()
-    dma_buf_map_attachment()
-    dmabuf_imp_grant_foreign_access()
+I think I'd print a warning here if the bit was set. Perhaps unlikely that
+it'd happen but that'd suggest there's a problem nevertheless.
 
-Or was I looking at wrong place?
+> +			break;
+> +		case 16:
+> +			chip->flags |= AT24_FLAG_ADDR16;
+> +			break;
+> +		default:
+> +			dev_warn(dev,
+> +				"Bad \"address-width\" property: %u\n",
 
--boris
+Fits on previous line.
+
+> +				val);
+> +		}
+> +	}
+> +
+>  	err = device_property_read_u32(dev, "size", &val);
+>  	if (!err)
+>  		chip->byte_len = val;
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
