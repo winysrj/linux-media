@@ -1,242 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:39718 "EHLO
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:33558 "EHLO
         mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752301AbeFYHqz (ORCPT
+        with ESMTP id S1752561AbeFYHvO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 03:46:55 -0400
-Received: by mail-ed1-f68.google.com with SMTP id w14-v6so4766779eds.6
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2018 00:46:55 -0700 (PDT)
-Date: Mon, 25 Jun 2018 09:46:21 +0200
+        Mon, 25 Jun 2018 03:51:14 -0400
+Received: by mail-ed1-f68.google.com with SMTP id l23-v6so2113169edq.0
+        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2018 00:51:13 -0700 (PDT)
+Date: Mon, 25 Jun 2018 09:50:40 +0200
 From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>, linaro-mm-sig@lists.linaro.org,
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+        Akhil P Oommen <akhilpo@codeaurora.org>,
+        sumit.semwal@linaro.org, jcrouse@codeaurora.org,
         linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        amd-gfx@lists.freedesktop.org
-Subject: Re: [PATCH 5/5] drm/amdgpu: add independent DMA-buf export v3
-Message-ID: <20180625074621.GJ2958@phenom.ffwll.local>
-References: <20180601120020.11520-1-christian.koenig@amd.com>
- <20180601120020.11520-5-christian.koenig@amd.com>
- <20180618082857.GY3438@phenom.ffwll.local>
- <64382bf8-9539-6fa5-3f95-a3b627e4684d@gmail.com>
+        linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, smasetty@codeaurora.org
+Subject: Re: [PATCH v2] dma-buf/fence: Take refcount on the module that owns
+ the fence
+Message-ID: <20180625075040.GK2958@phenom.ffwll.local>
+References: <1529660407-6266-1-git-send-email-akhilpo@codeaurora.org>
+ <1529661856.7034.404.camel@padovan.org>
+ <152966212844.11773.6596589902326100250@mail.alporthouse.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <64382bf8-9539-6fa5-3f95-a3b627e4684d@gmail.com>
+In-Reply-To: <152966212844.11773.6596589902326100250@mail.alporthouse.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 22, 2018 at 03:39:25PM +0200, Christian König wrote:
-> Am 18.06.2018 um 10:28 schrieb Daniel Vetter:
-> > On Fri, Jun 01, 2018 at 02:00:20PM +0200, Christian König wrote:
-> > > The caching of SGT's done by the DRM code is actually quite harmful and
-> > > should probably removed altogether in the long term.
-> > Hm, why is it harmful? We've done it because it's expensive, and people
-> > started screaming about the overhead ... hence the caching.
-> 
-> It's a bad idea because it artificially extends the lifetime of the mapping,
-> which is exactly what we want to avoid when we create the mappings
-> dynamically and only as long as necessary.
-> 
-> And actually checking the mail history I could only find indicators that
-> people thought it would help. I haven't found any evidence that anybody
-> actually checked if that helps or not.
-
-Hm, I do have some memories of people being really upset about the
-constantly rewriting of IOMMU pagetables. This was for display-only
-drivers where forcing everyone to have their own private caching
-implementation is a bit silly.
-
-> > Doing an amdgpu copypasta seems like working around issues in shared code.
-> 
-> Completely agree, but I don't want to push that policy to everybody just
-> yet.
-> 
-> When we find that this is really the right direction I can convert Radeon as
-> well, move more component functionality logic into common code and when
-> that's done rip out this middle layer because it just becomes superfluous.
-
-I expect upset people if we remove the mapping caching. Maybe we should
-change it to not cache the mapping if the exporter has the dynamic
-unbinding stuff supported? Or maybe even when both exporter and importer
-have it supported.
-
-Wrt the midlayer: That's because nvidia blob + EXPORT_SYMBOL_GPL :-)
-
-Cheers, Daniel
-
-
-> 
-> Christian.
-> 
-> > -Daniel
+On Fri, Jun 22, 2018 at 11:08:48AM +0100, Chris Wilson wrote:
+> Quoting Gustavo Padovan (2018-06-22 11:04:16)
+> > Hi Akhil,
 > > 
-> > > Start by providing a separate DMA-buf export implementation in amdgpu. This is
-> > > also a prerequisite of unpinned DMA-buf handling.
+> > On Fri, 2018-06-22 at 15:10 +0530, Akhil P Oommen wrote:
+> > > Each fence object holds function pointers of the module that
+> > > initialized
+> > > it. Allowing the module to unload before this fence's release is
+> > > catastrophic. So, keep a refcount on the module until the fence is
+> > > released.
 > > > 
-> > > v2: fix unintended recursion, remove debugging leftovers
-> > > v3: split out from unpinned DMA-buf work
-> > > 
-> > > Signed-off-by: Christian König <christian.koenig@amd.com>
+> > > Signed-off-by: Akhil P Oommen <akhilpo@codeaurora.org>
 > > > ---
-> > >   drivers/gpu/drm/amd/amdgpu/amdgpu.h       |  1 -
-> > >   drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c   |  1 -
-> > >   drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c | 73 ++++++++++++++-----------------
-> > >   3 files changed, 32 insertions(+), 43 deletions(-)
+> > > Changes in v2:
+> > > - added description for the new function parameter.
 > > > 
-> > > diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> > > index 2d7500921c0b..93dc57d74fc2 100644
-> > > --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> > > +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> > > @@ -373,7 +373,6 @@ int amdgpu_gem_object_open(struct drm_gem_object *obj,
-> > >   void amdgpu_gem_object_close(struct drm_gem_object *obj,
-> > >   				struct drm_file *file_priv);
-> > >   unsigned long amdgpu_gem_timeout(uint64_t timeout_ns);
-> > > -struct sg_table *amdgpu_gem_prime_get_sg_table(struct drm_gem_object *obj);
-> > >   struct drm_gem_object *
-> > >   amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
-> > >   				 struct dma_buf_attachment *attach,
-> > > diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-> > > index b0bf2f24da48..270b8ad927ea 100644
-> > > --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-> > > +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-> > > @@ -907,7 +907,6 @@ static struct drm_driver kms_driver = {
-> > >   	.gem_prime_export = amdgpu_gem_prime_export,
-> > >   	.gem_prime_import = amdgpu_gem_prime_import,
-> > >   	.gem_prime_res_obj = amdgpu_gem_prime_res_obj,
-> > > -	.gem_prime_get_sg_table = amdgpu_gem_prime_get_sg_table,
-> > >   	.gem_prime_import_sg_table = amdgpu_gem_prime_import_sg_table,
-> > >   	.gem_prime_vmap = amdgpu_gem_prime_vmap,
-> > >   	.gem_prime_vunmap = amdgpu_gem_prime_vunmap,
-> > > diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-> > > index a156b3891a3f..0c5a75b06648 100644
-> > > --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-> > > +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_prime.c
-> > > @@ -32,14 +32,6 @@
-> > >   static const struct dma_buf_ops amdgpu_dmabuf_ops;
-> > > -struct sg_table *amdgpu_gem_prime_get_sg_table(struct drm_gem_object *obj)
-> > > -{
-> > > -	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-> > > -	int npages = bo->tbo.num_pages;
-> > > -
-> > > -	return drm_prime_pages_to_sg(bo->tbo.ttm->pages, npages);
-> > > -}
-> > > -
-> > >   void *amdgpu_gem_prime_vmap(struct drm_gem_object *obj)
-> > >   {
-> > >   	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-> > > @@ -132,23 +124,17 @@ amdgpu_gem_prime_import_sg_table(struct drm_device *dev,
-> > >   	return ERR_PTR(ret);
-> > >   }
-> > > -static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
-> > > -				 struct dma_buf_attachment *attach)
-> > > +static struct sg_table *
-> > > +amdgpu_gem_map_dma_buf(struct dma_buf_attachment *attach,
-> > > +		       enum dma_data_direction dir)
-> > >   {
-> > > +	struct dma_buf *dma_buf = attach->dmabuf;
-> > >   	struct drm_gem_object *obj = dma_buf->priv;
-> > >   	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-> > >   	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
-> > > +	struct sg_table *sgt;
-> > >   	long r;
-> > > -	r = drm_gem_map_attach(dma_buf, attach);
-> > > -	if (r)
-> > > -		return r;
-> > > -
-> > > -	r = amdgpu_bo_reserve(bo, false);
-> > > -	if (unlikely(r != 0))
-> > > -		goto error_detach;
-> > > -
-> > > -
-> > >   	if (attach->dev->driver != adev->dev->driver) {
-> > >   		/*
-> > >   		 * Wait for all shared fences to complete before we switch to future
-> > > @@ -159,46 +145,53 @@ static int amdgpu_gem_map_attach(struct dma_buf *dma_buf,
-> > >   							MAX_SCHEDULE_TIMEOUT);
-> > >   		if (unlikely(r < 0)) {
-> > >   			DRM_DEBUG_PRIME("Fence wait failed: %li\n", r);
-> > > -			goto error_unreserve;
-> > > +			return ERR_PTR(r);
-> > >   		}
-> > >   	}
-> > >   	/* pin buffer into GTT */
-> > >   	r = amdgpu_bo_pin(bo, AMDGPU_GEM_DOMAIN_GTT, NULL);
-> > >   	if (r)
-> > > -		goto error_unreserve;
-> > > +		return ERR_PTR(r);
-> > > +
-> > > +	sgt = drm_prime_pages_to_sg(bo->tbo.ttm->pages, bo->tbo.num_pages);
-> > > +	if (IS_ERR(sgt))
-> > > +		return sgt;
-> > > +
-> > > +	if (!dma_map_sg_attrs(attach->dev, sgt->sgl, sgt->nents, dir,
-> > > +			      DMA_ATTR_SKIP_CPU_SYNC))
-> > > +		goto error_free;
-> > >   	if (attach->dev->driver != adev->dev->driver)
-> > >   		bo->prime_shared_count++;
-> > > -error_unreserve:
-> > > -	amdgpu_bo_unreserve(bo);
-> > > +	return sgt;
-> > > -error_detach:
-> > > -	if (r)
-> > > -		drm_gem_map_detach(dma_buf, attach);
-> > > -	return r;
-> > > +error_free:
-> > > +	sg_free_table(sgt);
-> > > +	kfree(sgt);
-> > > +	return ERR_PTR(-ENOMEM);
-> > >   }
-> > > -static void amdgpu_gem_map_detach(struct dma_buf *dma_buf,
-> > > -				  struct dma_buf_attachment *attach)
-> > > +static void amdgpu_gem_unmap_dma_buf(struct dma_buf_attachment *attach,
-> > > +				     struct sg_table *sgt,
-> > > +				     enum dma_data_direction dir)
-> > >   {
-> > > +	struct dma_buf *dma_buf = attach->dmabuf;
-> > >   	struct drm_gem_object *obj = dma_buf->priv;
-> > >   	struct amdgpu_bo *bo = gem_to_amdgpu_bo(obj);
-> > >   	struct amdgpu_device *adev = amdgpu_ttm_adev(bo->tbo.bdev);
-> > > -	int ret = 0;
-> > > -
-> > > -	ret = amdgpu_bo_reserve(bo, true);
-> > > -	if (unlikely(ret != 0))
-> > > -		goto error;
-> > >   	amdgpu_bo_unpin(bo);
-> > > +
-> > >   	if (attach->dev->driver != adev->dev->driver && bo->prime_shared_count)
-> > >   		bo->prime_shared_count--;
-> > > -	amdgpu_bo_unreserve(bo);
-> > > -error:
-> > > -	drm_gem_map_detach(dma_buf, attach);
-> > > +	if (sgt) {
-> > > +		dma_unmap_sg(attach->dev, sgt->sgl, sgt->nents, dir);
-> > > +		sg_free_table(sgt);
-> > > +		kfree(sgt);
-> > > +	}
-> > >   }
-> > >   struct reservation_object *amdgpu_gem_prime_res_obj(struct drm_gem_object *obj)
-> > > @@ -237,10 +230,8 @@ static int amdgpu_gem_begin_cpu_access(struct dma_buf *dma_buf,
-> > >   }
-> > >   static const struct dma_buf_ops amdgpu_dmabuf_ops = {
-> > > -	.attach = amdgpu_gem_map_attach,
-> > > -	.detach = amdgpu_gem_map_detach,
-> > > -	.map_dma_buf = drm_gem_map_dma_buf,
-> > > -	.unmap_dma_buf = drm_gem_unmap_dma_buf,
-> > > +	.map_dma_buf = amdgpu_gem_map_dma_buf,
-> > > +	.unmap_dma_buf = amdgpu_gem_unmap_dma_buf,
-> > >   	.release = drm_gem_dmabuf_release,
-> > >   	.begin_cpu_access = amdgpu_gem_begin_cpu_access,
-> > >   	.map = drm_gem_dmabuf_kmap,
-> > > -- 
-> > > 2.14.1
+> > >  drivers/dma-buf/dma-fence.c | 16 +++++++++++++---
+> > >  include/linux/dma-fence.h   | 10 ++++++++--
+> > >  2 files changed, 21 insertions(+), 5 deletions(-)
 > > > 
-> > > _______________________________________________
-> > > dri-devel mailing list
-> > > dri-devel@lists.freedesktop.org
-> > > https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> > > diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-
+> > > fence.c
+> > > index 4edb9fd..2aaa44e 100644
+> > > --- a/drivers/dma-buf/dma-fence.c
+> > > +++ b/drivers/dma-buf/dma-fence.c
+> > > @@ -18,6 +18,7 @@
+> > >   * more details.
+> > >   */
+> > >  
+> > > +#include <linux/module.h>
+> > >  #include <linux/slab.h>
+> > >  #include <linux/export.h>
+> > >  #include <linux/atomic.h>
+> > > @@ -168,6 +169,7 @@ void dma_fence_release(struct kref *kref)
+> > >  {
+> > >       struct dma_fence *fence =
+> > >               container_of(kref, struct dma_fence, refcount);
+> > > +     struct module *module = fence->owner;
+> > >  
+> > >       trace_dma_fence_destroy(fence);
+> > >  
+> > > @@ -178,6 +180,8 @@ void dma_fence_release(struct kref *kref)
+> > >               fence->ops->release(fence);
+> > >       else
+> > >               dma_fence_free(fence);
+> > > +
+> > > +     module_put(module);
+> > >  }
+> > >  EXPORT_SYMBOL(dma_fence_release);
+> > >  
+> > > @@ -541,6 +545,7 @@ struct default_wait_cb {
+> > >  
+> > >  /**
+> > >   * dma_fence_init - Initialize a custom fence.
+> > > + * @module:  [in]    the module that calls this API
+> > >   * @fence:   [in]    the fence to initialize
+> > >   * @ops:     [in]    the dma_fence_ops for operations on this
+> > > fence
+> > >   * @lock:    [in]    the irqsafe spinlock to use for locking
+> > > this fence
+> > > @@ -556,8 +561,9 @@ struct default_wait_cb {
+> > >   * to check which fence is later by simply using dma_fence_later.
+> > >   */
+> > >  void
+> > > -dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops
+> > > *ops,
+> > > -            spinlock_t *lock, u64 context, unsigned seqno)
+> > > +_dma_fence_init(struct module *module, struct dma_fence *fence,
+> > > +             const struct dma_fence_ops *ops, spinlock_t *lock,
+> > > +             u64 context, unsigned seqno)
+> > >  {
+> > >       BUG_ON(!lock);
+> > >       BUG_ON(!ops || !ops->wait || !ops->enable_signaling ||
+> > > @@ -571,7 +577,11 @@ struct default_wait_cb {
+> > >       fence->seqno = seqno;
+> > >       fence->flags = 0UL;
+> > >       fence->error = 0;
+> > > +     fence->owner = module;
+> > > +
+> > > +     if (!try_module_get(module))
+> > > +             fence->owner = NULL;
+> > >  
+> > >       trace_dma_fence_init(fence);
+> > >  }
+> > > -EXPORT_SYMBOL(dma_fence_init);
+> > > +EXPORT_SYMBOL(_dma_fence_init);
+> > 
+> > Do we still need to export the symbol, it won't be called from outside
+> > anymore? Other than that looks good to me:
 > 
+> There's a big drawback in that a module reference is often insufficient,
+> and that a reference on the driver (or whatever is required for the
+> lifetime of the fence) will already hold the module reference.
+> 
+> Considering that we want a few 100k fences in flight per second, is
+> there no other way to only export a fence with a module reference?
 
+We'd need to make the timeline a full-blown object (Maarten owes me one
+for that design screw-up), and then we could stuff all these things in
+there.
+
+And I think that's the right fix, since try_module_get for every
+dma_fence_init just ain't cool really :-)
+-Daniel
 -- 
 Daniel Vetter
 Software Engineer, Intel Corporation
