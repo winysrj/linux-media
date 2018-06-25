@@ -1,68 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:55961 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753921AbeFYIHI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 04:07:08 -0400
-Date: Mon, 25 Jun 2018 11:06:57 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: alanx.chiang@intel.com
-Cc: linux-media@vger.kernel.org, andy.yeh@intel.com,
-        andriy.shevchenko@intel.com, rajmohan.mani@intel.com
-Subject: Re: [RESEND PATCH v1 2/2] dt-bindings: at24: Add address-width
- property
-Message-ID: <20180625080657.pb3oksaqgu7xapa4@paasikivi.fi.intel.com>
-References: <1529911783-28576-1-git-send-email-alanx.chiang@intel.com>
- <1529911783-28576-3-git-send-email-alanx.chiang@intel.com>
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:40674 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753197AbeFYIPZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 04:15:25 -0400
+Received: by mail-vk0-f65.google.com with SMTP id o71-v6so7331854vke.7
+        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2018 01:15:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1529911783-28576-3-git-send-email-alanx.chiang@intel.com>
+In-Reply-To: <20180625080242.ssbqnposyap6eok2@paasikivi.fi.intel.com>
+References: <1529911783-28576-1-git-send-email-alanx.chiang@intel.com> <20180625080242.ssbqnposyap6eok2@paasikivi.fi.intel.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Mon, 25 Jun 2018 11:15:24 +0300
+Message-ID: <CAHp75Vf+2s3r-fjekj_s38FV8pkKtnWF-JqorDtiL_V=8pEvXQ@mail.gmail.com>
+Subject: Re: [RESEND PATCH v1 0/2] Add a property in at24.c
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: alanx.chiang@intel.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        andy.yeh@intel.com,
+        Andriy Shevchenko <andriy.shevchenko@intel.com>,
+        Rajmohan Mani <rajmohan.mani@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 25, 2018 at 03:29:43PM +0800, alanx.chiang@intel.com wrote:
-> From: "alanx.chiang" <alanx.chiang@intel.com>
-> 
-> The AT24 series chips use 8-bit address by default. If some
-> chips would like to support more than 8 bits, the at24 driver
-> should be added the compatible field for specfic chips.
-> 
-> Provide a flexible way to determine the addressing bits through
-> address-width in this patch.
-> 
-> Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
-> Reviewed-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> ---
->  Documentation/devicetree/bindings/eeprom/at24.txt | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/eeprom/at24.txt b/Documentation/devicetree/bindings/eeprom/at24.txt
-> index 61d833a..5879259 100644
-> --- a/Documentation/devicetree/bindings/eeprom/at24.txt
-> +++ b/Documentation/devicetree/bindings/eeprom/at24.txt
-> @@ -72,6 +72,8 @@ Optional properties:
->  
->    - wp-gpios: GPIO to which the write-protect pin of the chip is connected.
->  
-> +  - address-width : number of address bits (one of 8, 16).
-> +
->  Example:
->  
->  eeprom@52 {
-> @@ -79,4 +81,5 @@ eeprom@52 {
->  	reg = <0x52>;
->  	pagesize = <32>;
->  	wp-gpios = <&gpio1 3 0>;
-> +	address-width = <16>;
+On Mon, Jun 25, 2018 at 11:02 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi Alan,
+> On Mon, Jun 25, 2018 at 03:29:41PM +0800, alanx.chiang@intel.com wrote:
 
-Since we're only now adding address-width, it hasn't been needed
-previously. Therefore I wouldn't add it to an example.
-
->  };
+Agreed on all Sakari's comments against the series.
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+With Best Regards,
+Andy Shevchenko
