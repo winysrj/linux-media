@@ -1,13 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from heliosphere.sirena.org.uk ([172.104.155.198]:36862 "EHLO
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:36860 "EHLO
         heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933728AbeFYNPn (ORCPT
+        with ESMTP id S933726AbeFYNPn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 25 Jun 2018 09:15:43 -0400
 From: Mark Brown <broonie@kernel.org>
 To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+Cc: Ulf Hansson <ulf.hansson@linaro.org>,
         Daniel Mack <daniel@zonque.org>,
         Haojian Zhuang <haojian.zhuang@gmail.com>,
         Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
@@ -23,16 +22,16 @@ Cc: Hans Verkuil <hans.verkuil@cisco.com>,
         linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org,
         dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Applied "media: pxa_camera: remove the dmaengine compat need" to the asoc tree
-In-Reply-To: <20180524070703.11901-5-robert.jarzmik@free.fr>
-Message-Id: <E1fXRL4-0008Q6-RV@debutante>
-Date: Mon, 25 Jun 2018 14:15:26 +0100
+Subject: Applied "mmc: pxamci: remove the dmaengine compat need" to the asoc tree
+In-Reply-To: <20180524070703.11901-4-robert.jarzmik@free.fr>
+Message-Id: <E1fXRL7-0008RT-0t@debutante>
+Date: Mon, 25 Jun 2018 14:15:29 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 The patch
 
-   media: pxa_camera: remove the dmaengine compat need
+   mmc: pxamci: remove the dmaengine compat need
 
 has been applied to the asoc tree at
 
@@ -57,10 +56,10 @@ to this mail.
 Thanks,
 Mark
 
->From f727b6cda449184188d8a64987f194687bf01782 Mon Sep 17 00:00:00 2001
+>From 6b3348f9e6eb35d2c2d49ffa274039ef9a901adc Mon Sep 17 00:00:00 2001
 From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sun, 17 Jun 2018 19:02:08 +0200
-Subject: [PATCH] media: pxa_camera: remove the dmaengine compat need
+Date: Sun, 17 Jun 2018 19:02:07 +0200
+Subject: [PATCH] mmc: pxamci: remove the dmaengine compat need
 
 As the pxa architecture switched towards the dmaengine slave map, the
 old compatibility mechanism to acquire the dma requestor line number and
@@ -70,62 +69,71 @@ This patch simplifies the dma resource acquisition, using the more
 generic function dma_request_slave_channel().
 
 Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/media/platform/pxa_camera.c | 22 +++-------------------
- 1 file changed, 3 insertions(+), 19 deletions(-)
+ drivers/mmc/host/pxamci.c | 29 +++--------------------------
+ 1 file changed, 3 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index d85ffbfb7c1f..b6e9e93bde7a 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -2375,8 +2375,6 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 		.src_maxburst = 8,
- 		.direction = DMA_DEV_TO_MEM,
- 	};
+diff --git a/drivers/mmc/host/pxamci.c b/drivers/mmc/host/pxamci.c
+index c763b404510f..6c94474e36f4 100644
+--- a/drivers/mmc/host/pxamci.c
++++ b/drivers/mmc/host/pxamci.c
+@@ -24,7 +24,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/dma/pxa-dma.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/mmc/host.h>
+@@ -637,10 +636,8 @@ static int pxamci_probe(struct platform_device *pdev)
+ {
+ 	struct mmc_host *mmc;
+ 	struct pxamci_host *host = NULL;
+-	struct resource *r, *dmarx, *dmatx;
+-	struct pxad_param param_rx, param_tx;
++	struct resource *r;
+ 	int ret, irq, gpio_cd = -1, gpio_ro = -1, gpio_power = -1;
 -	dma_cap_mask_t mask;
--	struct pxad_param params;
- 	char clk_name[V4L2_CLK_NAME_SIZE];
- 	int irq;
- 	int err = 0, i;
-@@ -2450,34 +2448,20 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 	pcdev->base = base;
  
- 	/* request dma */
+ 	ret = pxamci_of_init(pdev);
+ 	if (ret)
+@@ -739,34 +736,14 @@ static int pxamci_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, mmc);
+ 
+-	if (!pdev->dev.of_node) {
+-		dmarx = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+-		dmatx = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+-		if (!dmarx || !dmatx) {
+-			ret = -ENXIO;
+-			goto out;
+-		}
+-		param_rx.prio = PXAD_PRIO_LOWEST;
+-		param_rx.drcmr = dmarx->start;
+-		param_tx.prio = PXAD_PRIO_LOWEST;
+-		param_tx.drcmr = dmatx->start;
+-	}
+-
 -	dma_cap_zero(mask);
 -	dma_cap_set(DMA_SLAVE, mask);
--	dma_cap_set(DMA_PRIVATE, mask);
 -
--	params.prio = 0;
--	params.drcmr = 68;
--	pcdev->dma_chans[0] =
+-	host->dma_chan_rx =
 -		dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						 &params, &pdev->dev, "CI_Y");
-+	pcdev->dma_chans[0] = dma_request_slave_channel(&pdev->dev, "CI_Y");
- 	if (!pcdev->dma_chans[0]) {
- 		dev_err(&pdev->dev, "Can't request DMA for Y\n");
- 		return -ENODEV;
+-						 &param_rx, &pdev->dev, "rx");
++	host->dma_chan_rx = dma_request_slave_channel(&pdev->dev, "rx");
+ 	if (host->dma_chan_rx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request rx dma channel\n");
+ 		ret = -ENODEV;
+ 		goto out;
  	}
  
--	params.drcmr = 69;
--	pcdev->dma_chans[1] =
+-	host->dma_chan_tx =
 -		dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						 &params, &pdev->dev, "CI_U");
-+	pcdev->dma_chans[1] = dma_request_slave_channel(&pdev->dev, "CI_U");
- 	if (!pcdev->dma_chans[1]) {
- 		dev_err(&pdev->dev, "Can't request DMA for Y\n");
- 		err = -ENODEV;
- 		goto exit_free_dma_y;
- 	}
- 
--	params.drcmr = 70;
--	pcdev->dma_chans[2] =
--		dma_request_slave_channel_compat(mask, pxad_filter_fn,
--						 &params, &pdev->dev, "CI_V");
-+	pcdev->dma_chans[2] = dma_request_slave_channel(&pdev->dev, "CI_V");
- 	if (!pcdev->dma_chans[2]) {
- 		dev_err(&pdev->dev, "Can't request DMA for V\n");
- 		err = -ENODEV;
+-						 &param_tx,  &pdev->dev, "tx");
++	host->dma_chan_tx = dma_request_slave_channel(&pdev->dev, "tx");
+ 	if (host->dma_chan_tx == NULL) {
+ 		dev_err(&pdev->dev, "unable to request tx dma channel\n");
+ 		ret = -ENODEV;
 -- 
 2.18.0.rc2
