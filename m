@@ -1,63 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:39244 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754648AbeFVXRP (ORCPT
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:36502 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752930AbeFYNPc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Jun 2018 19:17:15 -0400
-Received: by mail-pg0-f67.google.com with SMTP id n2-v6so152879pgq.6
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2018 16:17:15 -0700 (PDT)
-Date: Fri, 22 Jun 2018 16:19:34 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: vgarodia@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, andy.gross@linaro.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: Re: [PATCH v2 3/5] venus: add check to make scm calls
-Message-ID: <20180622231934.GO3402@tuxbook-pro>
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-4-git-send-email-vgarodia@codeaurora.org>
- <CAAFQd5BSgB0OoqUFckJLXto9FNMYCTQ8ubDftaC-LvFm+A-gxA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5BSgB0OoqUFckJLXto9FNMYCTQ8ubDftaC-LvFm+A-gxA@mail.gmail.com>
+        Mon, 25 Jun 2018 09:15:32 -0400
+From: Mark Brown <broonie@kernel.org>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Vinod Koul <vkoul@kernel.org>, Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org,
+        dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Applied "dmaengine: pxa: document pxad_param" to the asoc tree
+In-Reply-To: <20180524070703.11901-11-robert.jarzmik@free.fr>
+Message-Id: <E1fXRKy-0008Lb-A6@debutante>
+Date: Mon, 25 Jun 2018 14:15:20 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 04 Jun 05:58 PDT 2018, Tomasz Figa wrote:
+The patch
 
-> Hi Vikash,
-> 
-> On Sat, Jun 2, 2018 at 5:27 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
-> [snip]
-> > +int venus_boot(struct venus_core *core)
-> > +{
-> > +       phys_addr_t mem_phys;
-> > +       size_t mem_size;
-> > +       int ret;
-> > +       struct device *dev;
-> > +
-> > +       if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER))
-> > +               return -EPROBE_DEFER;
-> 
-> Why are we deferring probe here? The option will not magically become
-> enabled after probe is retried.
-> 
+   dmaengine: pxa: document pxad_param
 
-The original code should have read:
+has been applied to the asoc tree at
 
-	if (IS_ENABLED(CONFIG_QCOM_MDT_LOADER) && !qcom_scm_is_available())
-		return -EPROBE_DEFER;
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
 
-The code does depend on CONFIG_QCOM_MDT_LOADER regardless of it using
-scm for firmware verification.
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-Regards,
-Bjorn
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From b6d1a17f4729e4fda5740a855da91d202db2c118 Mon Sep 17 00:00:00 2001
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 17 Jun 2018 19:02:14 +0200
+Subject: [PATCH] dmaengine: pxa: document pxad_param
+
+Add some documentation for the pxad_param structure, and describe the
+contract behind the minimal required priority of a DMA channel.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Acked-by: Vinod Koul <vkoul@kernel.org>
+---
+ include/linux/dma/pxa-dma.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/include/linux/dma/pxa-dma.h b/include/linux/dma/pxa-dma.h
+index e56ec7af4fd7..9fc594f69eff 100644
+--- a/include/linux/dma/pxa-dma.h
++++ b/include/linux/dma/pxa-dma.h
+@@ -9,6 +9,15 @@ enum pxad_chan_prio {
+ 	PXAD_PRIO_LOWEST,
+ };
+ 
++/**
++ * struct pxad_param - dma channel request parameters
++ * @drcmr: requestor line number
++ * @prio: minimal mandatory priority of the channel
++ *
++ * If a requested channel is granted, its priority will be at least @prio,
++ * ie. if PXAD_PRIO_LOW is required, the requested channel will be either
++ * PXAD_PRIO_LOW, PXAD_PRIO_NORMAL or PXAD_PRIO_HIGHEST.
++ */
+ struct pxad_param {
+ 	unsigned int drcmr;
+ 	enum pxad_chan_prio prio;
+-- 
+2.18.0.rc2
