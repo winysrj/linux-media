@@ -1,166 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:49829 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932885AbeFYN3p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 09:29:45 -0400
-Date: Mon, 25 Jun 2018 15:29:33 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: hans.verkuil@cisco.com, acourbot@chromium.org,
-        sakari.ailus@linux.intel.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        tfiga@chromium.org, posciak@chromium.org,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        nicolas.dufresne@collabora.com, jenskuske@gmail.com,
-        linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: Re: [PATCH 6/9] media: cedrus: Add ops structure
-Message-ID: <20180625132933.tzr36vsucqsq3mmb@flea>
-References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
- <20180613140714.1686-7-maxime.ripard@bootlin.com>
- <939381a854760b1d54984ae0f534ec03312ec8e0.camel@bootlin.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6dj7e7c23mamq72t"
-Content-Disposition: inline
-In-Reply-To: <939381a854760b1d54984ae0f534ec03312ec8e0.camel@bootlin.com>
+Received: from faui40.informatik.uni-erlangen.de ([131.188.34.40]:56204 "EHLO
+        faui40.informatik.uni-erlangen.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933583AbeFYNbF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 09:31:05 -0400
+From: Daniel Graefe <daniel.graefe@fau.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devel@driverdev.osuosl.org, daniel.graefe@fau.de,
+        linux-kernel@i4.cs.fau.de, Roman Sommer <roman.sommer@fau.de>
+Subject: [PATCH] staging: media: omap4iss: Added SPDX license identifiers
+Date: Mon, 25 Jun 2018 15:21:32 +0200
+Message-Id: <1529932892-9036-1-git-send-email-daniel.graefe@fau.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Added missing SPDX license identifiers to all files of the omap4iss
+driver.
 
---6dj7e7c23mamq72t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Most files already have license texts which clearly state them to be
+licensed under GPL 2.0 or later. SPDX identifiers were added accordingly.
 
-Hi!
+Some files do not have any license text. SPDX identifiers for GPL 2.0
+were added to them, in accordance with the default license of the
+kernel.
 
-On Thu, Jun 21, 2018 at 11:49:54AM +0200, Paul Kocialkowski wrote:
-> Hi,
->=20
-> On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
-> > In order to increase the number of codecs supported, we need to decouple
-> > the MPEG2 only code that was there up until now and turn it into someth=
-ing
-> > a bit more generic.
-> >=20
-> > Do that by introducing an intermediate ops structure that would need to=
- be
-> > filled by each supported codec. Start by implementing in that structure=
- the
-> > setup and trigger hooks that are currently the only functions being
-> > implemented by codecs support.
-> >=20
-> > To do so, we need to store the current codec in use, which we do at
-> > start_streaming time.
->=20
-> With the comments below taken in account, this is:
->=20
-> Acked-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Signed-off-by: Daniel Graefe <daniel.graefe@fau.de>
+Signed-off-by: Roman Sommer <roman.sommer@fau.de>
+---
+ drivers/staging/media/omap4iss/Kconfig       | 2 ++
+ drivers/staging/media/omap4iss/Makefile      | 3 +++
+ drivers/staging/media/omap4iss/iss.c         | 1 +
+ drivers/staging/media/omap4iss/iss.h         | 1 +
+ drivers/staging/media/omap4iss/iss_csi2.c    | 1 +
+ drivers/staging/media/omap4iss/iss_csi2.h    | 1 +
+ drivers/staging/media/omap4iss/iss_csiphy.c  | 1 +
+ drivers/staging/media/omap4iss/iss_csiphy.h  | 1 +
+ drivers/staging/media/omap4iss/iss_ipipe.c   | 1 +
+ drivers/staging/media/omap4iss/iss_ipipe.h   | 1 +
+ drivers/staging/media/omap4iss/iss_ipipeif.c | 1 +
+ drivers/staging/media/omap4iss/iss_ipipeif.h | 1 +
+ drivers/staging/media/omap4iss/iss_regs.h    | 1 +
+ drivers/staging/media/omap4iss/iss_resizer.c | 1 +
+ drivers/staging/media/omap4iss/iss_resizer.h | 1 +
+ drivers/staging/media/omap4iss/iss_video.c   | 1 +
+ drivers/staging/media/omap4iss/iss_video.h   | 1 +
+ 17 files changed, 20 insertions(+)
 
-Thanks!
-
-> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > ---
-> >  .../platform/sunxi/cedrus/sunxi_cedrus.c      |  2 ++
-> >  .../sunxi/cedrus/sunxi_cedrus_common.h        | 11 +++++++
-> >  .../platform/sunxi/cedrus/sunxi_cedrus_dec.c  | 10 +++---
-> >  .../sunxi/cedrus/sunxi_cedrus_mpeg2.c         | 11 +++++--
-> >  .../sunxi/cedrus/sunxi_cedrus_mpeg2.h         | 33 -------------------
-> >  .../sunxi/cedrus/sunxi_cedrus_video.c         | 17 +++++++++-
-> >  6 files changed, 42 insertions(+), 42 deletions(-)
-> >  delete mode 100644 drivers/media/platform/sunxi/cedrus/sunxi_cedrus_mp=
-eg2.h
-> >=20
-> > diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c b/drive=
-rs/media/platform/sunxi/cedrus/sunxi_cedrus.c
-> > index ccd41d9a3e41..bc80480f5dfd 100644
-> > --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c
-> > +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus.c
-> > @@ -244,6 +244,8 @@ static int sunxi_cedrus_probe(struct platform_devic=
-e *pdev)
-> >  	if (ret)
-> >  		return ret;
-> > =20
-> > +	dev->dec_ops[SUNXI_CEDRUS_CODEC_MPEG2] =3D &sunxi_cedrus_dec_ops_mpeg=
-2;
-> > +
-> >  	ret =3D v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-> >  	if (ret)
-> >  		goto unreg_media;
-> > diff --git a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h =
-b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> > index a5f83c452006..c2e2c92d103b 100644
-> > --- a/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> > +++ b/drivers/media/platform/sunxi/cedrus/sunxi_cedrus_common.h
-> > @@ -75,6 +75,7 @@ struct sunxi_cedrus_ctx {
-> >  	struct v4l2_pix_format_mplane src_fmt;
-> >  	struct sunxi_cedrus_fmt *vpu_dst_fmt;
-> >  	struct v4l2_pix_format_mplane dst_fmt;
-> > +	enum sunxi_cedrus_codec current_codec;
->=20
-> Nit: for consistency with the way things are named, "codec_current"
-> probably makes more sense.
-
-I'm not quite sure what you mean by consitency here. This structure
-has 5 other variables with two words: vpu_src_fmt, src_fmt,
-vpu_dst_fmt, dst_fmt and dst_bufs. codec_current would be going
-against the consistency of that structure.
-
-> IMO using the natural English order is fine for temporary variables, but
->  less so for variables used in common parts like structures. This allows
-> seeing "_" as a logical hierarchical delimiter that automatically makes
-> us end up with consistent prefixes that can easily be grepped for and
-> derived.
->=20
-> But that's just my 2 cents, it's really not a big deal, especially in
-> this case!
->=20
-> >  	struct v4l2_ctrl_handler hdl;
-> >  	struct v4l2_ctrl *ctrls[SUNXI_CEDRUS_CTRL_MAX];
-> > @@ -107,6 +108,14 @@ struct sunxi_cedrus_buffer *vb2_to_cedrus_buffer(c=
-onst struct vb2_buffer *p)
-> >  	return vb2_v4l2_to_cedrus_buffer(to_vb2_v4l2_buffer(p));
-> >  }
-> > =20
-> > +struct sunxi_cedrus_dec_ops {
-> > +	void (*setup)(struct sunxi_cedrus_ctx *ctx,
-> > +		      struct sunxi_cedrus_run *run);
-> > +	void (*trigger)(struct sunxi_cedrus_ctx *ctx);
->=20
-> By the way, are we sure that these functions won't ever fail?
-> I think this is the case for MPEG2 (there is virtually nothing to check
-> for errors) but perhaps it's different for H264.
-
-It won't fail either, and if we need to change it somewhere down the
-line, it's quite easy to do.
-
-Maxime
-
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---6dj7e7c23mamq72t
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlsw7jwACgkQ0rTAlCFN
-r3TTQg//f5av7XpKtjKhiTl/OXZ+zeyd1vEh3qWSVPnq8Qok7n5I3CkdAq9UjNwe
-jUXFR9GefIrkDLcU9Ret36ZH1J/1A2/MqR9UGUSfvNAUkZqhZqzTshy6q/XeHeXK
-LfCp22SXs+SLMacLeMi/x9jiR250IweU5DEnjbTtyKHlxNp8LHPYU60vyvOospov
-FvMY3511XBao4yvKDKwE8CUZq4UOMa6JiWyvMmuygxAnmXwlayHWfAq2jgEU8NVH
-kC/hM1gsjY+qswVMp8lyWyztP5FZ/R24xKsgNndwNQa2if1wyUKhQluhtRIHSlF/
-wLlYgoL1nSMZNm+fPd217h9lz7Li9BiDnWWomnnGpEYRvsHSFYe+SGZw0eVX9BF/
-0pzJ0if90UL0uniFcD9naTkVrzHJkNFqedq9ogU5Mb+MsSlyMoD3SHR5SKDRYA1a
-jzeBaOajjSEMh3f+mXqTN2qi/6UGQNHFg0c2D+ah6WWF62KwvFak2/eRdYmfn3fh
-BKjDxEdli8Xazy2tzh7H3bjETHX3q/TaCvcnn412IMhXPt/6e8YYq4wpZD0SoQ53
-9N5W0fs3tIASNLRqWMyrDLKfehlUM1VrCtrR15y7JCh+AZda9l7RLgCa3VhPDGE1
-zVXUxuwtksaK5Pi0c/MDlqPXSkotwAqmVUDS3WDFDihd5fG4t/Y=
-=yGYd
------END PGP SIGNATURE-----
-
---6dj7e7c23mamq72t--
+diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
+index dddd273..841cc0b 100644
+--- a/drivers/staging/media/omap4iss/Kconfig
++++ b/drivers/staging/media/omap4iss/Kconfig
+@@ -1,3 +1,5 @@
++# SPDX-License-Identifier: GPL-2.0
++
+ config VIDEO_OMAP4
+ 	tristate "OMAP 4 Camera support"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C
+diff --git a/drivers/staging/media/omap4iss/Makefile b/drivers/staging/media/omap4iss/Makefile
+index a716ce9..e64d489 100644
+--- a/drivers/staging/media/omap4iss/Makefile
++++ b/drivers/staging/media/omap4iss/Makefile
+@@ -1,4 +1,7 @@
++# SPDX-License-Identifier: GPL-2.0
++#
+ # Makefile for OMAP4 ISS driver
++#
+ 
+ omap4-iss-objs += \
+ 	iss.o iss_csi2.o iss_csiphy.o iss_ipipeif.o iss_ipipe.o iss_resizer.o iss_video.o
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index b1036ba..0c41939 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * TI OMAP4 ISS V4L2 Driver
+  *
+diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+index 760ee27..b16a5c0 100644
+--- a/drivers/staging/media/omap4iss/iss.h
++++ b/drivers/staging/media/omap4iss/iss.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index f6acc54..cdfd12f 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * TI OMAP4 ISS V4L2 Driver - CSI PHY module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.h b/drivers/staging/media/omap4iss/iss_csi2.h
+index 24ab378..cee02ee 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.h
++++ b/drivers/staging/media/omap4iss/iss_csi2.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver - CSI2 module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c b/drivers/staging/media/omap4iss/iss_csiphy.c
+index 748607f..253b6aa 100644
+--- a/drivers/staging/media/omap4iss/iss_csiphy.c
++++ b/drivers/staging/media/omap4iss/iss_csiphy.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * TI OMAP4 ISS V4L2 Driver - CSI PHY module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_csiphy.h b/drivers/staging/media/omap4iss/iss_csiphy.h
+index a0f2d97..f264c51 100644
+--- a/drivers/staging/media/omap4iss/iss_csiphy.h
++++ b/drivers/staging/media/omap4iss/iss_csiphy.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver - CSI PHY module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
+index d86ef8a..9f90641 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipe.c
++++ b/drivers/staging/media/omap4iss/iss_ipipe.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * TI OMAP4 ISS V4L2 Driver - ISP IPIPE module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_ipipe.h b/drivers/staging/media/omap4iss/iss_ipipe.h
+index d5b441d..54718f0 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipe.h
++++ b/drivers/staging/media/omap4iss/iss_ipipe.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver - ISP IPIPE module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
+index cb88b2b..6cc9a43 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipeif.c
++++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * TI OMAP4 ISS V4L2 Driver - ISP IPIPEIF module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.h b/drivers/staging/media/omap4iss/iss_ipipeif.h
+index bad32b1..f915aa0 100644
+--- a/drivers/staging/media/omap4iss/iss_ipipeif.h
++++ b/drivers/staging/media/omap4iss/iss_ipipeif.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver - ISP IPIPEIF module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_regs.h b/drivers/staging/media/omap4iss/iss_regs.h
+index cb415e8..274dd97 100644
+--- a/drivers/staging/media/omap4iss/iss_regs.h
++++ b/drivers/staging/media/omap4iss/iss_regs.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver - Register defines
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index 4bbfa20..2d02a86 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * TI OMAP4 ISS V4L2 Driver - ISP RESIZER module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.h b/drivers/staging/media/omap4iss/iss_resizer.h
+index 8b7c5fe..8b16b31 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.h
++++ b/drivers/staging/media/omap4iss/iss_resizer.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver - ISP RESIZER module
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index a3a8342..39ffba0 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * TI OMAP4 ISS V4L2 Driver - Generic video node
+  *
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index d7e05d0..3acbb38 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+  * TI OMAP4 ISS V4L2 Driver - Generic video node
+  *
+-- 
+2.7.4
