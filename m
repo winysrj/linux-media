@@ -1,65 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61150 "EHLO mga11.intel.com"
+Received: from mout.gmx.net ([212.227.15.15]:42921 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755164AbeFYKZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 06:25:03 -0400
-Date: Mon, 25 Jun 2018 13:24:54 +0300
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Gregory Fong <gregory.0xf0@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Sekhar Nori <nsekhar@ti.com>,
-        Kevin Hilman <khilman@kernel.org>,
-        Haavard Skinnemoen <hskinnemoen@gmail.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linaro.org>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Lee Jones <lee.jones@linaro.org>,
-        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/10] tpm/tpm_i2c_infineon: switch to
- i2c_lock_bus(..., I2C_LOCK_SEGMENT)
-Message-ID: <20180625102454.GA3845@linux.intel.com>
-References: <20180620051803.12206-1-peda@axentia.se>
- <20180620051803.12206-2-peda@axentia.se>
+        id S1755094AbeFYKWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Jun 2018 06:22:01 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180620051803.12206-2-peda@axentia.se>
+Message-ID: <trinity-55d2d67c-cd7f-4b5e-ac9e-24b8f5080570-1529922119674@3c-app-gmx-bs15>
+From: "Robert Schlabbach" <Robert.Schlabbach@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] em28xx: fix dual transport stream capture hanging
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 25 Jun 2018 12:21:59 +0200
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 20, 2018 at 07:17:54AM +0200, Peter Rosin wrote:
-> Locking the root adapter for __i2c_transfer will deadlock if the
-> device sits behind a mux-locked I2C mux. Switch to the finer-grained
-> i2c_lock_bus with the I2C_LOCK_SEGMENT flag. If the device does not
-> sit behind a mux-locked mux, the two locking variants are equivalent.
-> 
-> Signed-off-by: Peter Rosin <peda@axentia.se>
+On my Marvell Kirkwood system with a Hauppauge WinTV dualHD USB, trying
+to use both tuners at the same time always resulted in the device not
+delivering any stream at all anymore, no matter in which order the
+tuners were started.
 
-Studied enough so that I can give
+I tracked this down to the usb_set_interface() call in the function
+em28xx_start_streaming() in em28xx_dvb.c. This call appears to be
+superfluous, as the alternate setting is already set in
+em28xx_dvb_init(). But even more importantly, this call is in violation
+of the USB API, which states for usb_set_interface():
 
-Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+"Also, drivers must not change altsettings while urbs are scheduled for
+endpoints in that interface; all such urbs must first be completed
+(perhaps forced by unlinking)."
 
-Do not have hardware to test this, however.
+As URBs _are_ scheduled when a transport stream capture is already
+running, this call must not be made.
 
-/Jarkko
+This patch removes the call, which makes the dual transport stream
+capture work for me.
+
+Signed-off-by: Robert Schlabbach <Robert.Schlabbach@gmx.net>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index b778d8a1..13c57dbc 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -199,7 +199,6 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 	int rc;
+ 	struct em28xx_i2c_bus *i2c_bus = dvb->adapter.priv;
+ 	struct em28xx *dev = i2c_bus->dev;
+-	struct usb_device *udev = interface_to_usbdev(dev->intf);
+ 	int dvb_max_packet_size, packet_multiplier, dvb_alt;
+ 
+ 	if (dev->dvb_xfer_bulk) {
+@@ -218,7 +217,6 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 		dvb_alt = dev->dvb_alt_isoc;
+ 	}
+ 
+-	usb_set_interface(udev, dev->ifnum, dvb_alt);
+ 	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+ 	if (rc < 0)
+ 		return rc;
+-- 
+2.17.1
