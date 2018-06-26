@@ -1,104 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server.bsftrading.cf ([80.211.30.63]:34090 "EHLO
-        server.bsftrading.cf" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932438AbeFZMeE (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:36724 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933522AbeFZNrL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 08:34:04 -0400
+        Tue, 26 Jun 2018 09:47:11 -0400
+Subject: Re: [PATCH] media: video-i2c: add hwmon support for amg88xx
+To: Matt Ranostay <matt.ranostay@konsulko.com>,
+        linux-media@vger.kernel.org
+Cc: linux-hwmon@vger.kernel.org
+References: <20180626063025.7778-1-matt.ranostay@konsulko.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Message-ID: <50948d52-3dcd-79b6-52e8-cf6651393449@roeck-us.net>
+Date: Tue, 26 Jun 2018 06:47:08 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+In-Reply-To: <20180626063025.7778-1-matt.ranostay@konsulko.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Date: Tue, 26 Jun 2018 04:45:20 -0700
-From: Dans LLC <info@bsftrading.cf>
-To: undisclosed-recipients:;
-Subject: PROCUREMENT DEPARTMENT
-Reply-To: mark.cooperation.plc@zoho.com
-In-Reply-To: <4b686ed8e74af7e60ad3dcaf0cb3b4fa@bsftrading.cf>
-References: <cde40ef99b2ba6a88e7767a66d11decb@bsftrading.cf>
- <6c0664423257887d88cc77cc5f772ae6@bsftrading.cf>
- <a6ebb19181f3af9665dc8f27f792f03c@bsftrading.cf>
- <ff0019500c468b8c8155dab607423ca7@bsftrading.cf>
- <6a94f1f777802cdc3065af93187e562c@bsftrading.cf>
- <e791d2c30e107a9d0da98f1cd2b492a4@bsftrading.cf>
- <9b8aeed2b7c9055b661e8fbf34917e1d@bsftrading.cf>
- <47073aa09d3d7d44b0263bc897b01c9d@bsftrading.cf>
- <e324e3ab68a7d0b5415fd7f6bbd521c5@bsftrading.cf>
- <92392fe1f7154d696cc8c349dc0cd34c@bsftrading.cf>
- <8b8b3d2e2dcf7fb6caab2cd51f3f2f6c@bsftrading.cf>
- <250769cbb0a68cbf77f8c695fb8c15da@bsftrading.cf>
- <7f9d19b4656cc754521539f75d860211@bsftrading.cf>
- <19fc88472c8236fb674728779722b386@bsftrading.cf>
- <548fa2d9e6e993fd35de46ed409b86d2@bsftrading.cf>
- <17bd119efd8d438f8b34b8f746e01805@bsftrading.cf>
- <33ef3ba1224f26d93df0c5cf4053e5ca@bsftrading.cf>
- <abb16315e08aa12fd1eacf718018ae84@bsftrading.cf>
- <d266f9b47c49b5a5af658f99eea7339f@bsftrading.cf>
- <e0d96bd0c8f5857bc2ce49aea93ddcdb@bsftrading.cf>
- <77c3c5acd977ca9e6be79014f5fdf358@bsftrading.cf>
- <a1285b20c727d15d91c4803d40f45282@bsftrading.cf>
- <7fa756debb3354520a7076dba28c513b@bsftrading.cf>
- <78599dc071a3345bc9809edb95486dd9@bsftrading.cf>
- <624d3948cdd32c27f5ccdbcbdae32cfa@bsftrading.cf>
- <b27d5a503e105597f7fa721198448828@bsftrading.cf>
- <9ab216f9b2686f3b3b965e7e446cecbe@bsftrading.cf>
- <c377a8a85be69db8645f320824d3aa82@bsftrading.cf>
- <bb8a2acb6b023c6290c0bd04bb85a883@bsftrading.cf>
- <e68b9512ee7341c3b9a979124472e9b3@bsftrading.cf>
- <92f8ac6f312ebde3d25ddbfd278afb16@bsftrading.cf>
- <e361f807855e384b6e10cf5c6494e6b8@bsftrading.cf>
- <d86cbe495221f7d759abde1a4d7bad5b@bsftrading.cf>
- <857bf314018edf6583c983c832f7127e@bsftrading.cf>
- <19cb3b2c15858556aae3410240b968e8@bsftrading.cf>
- <e4fd224cb1b9e0d97d2fe16300c9cc5b@bsftrading.cf>
- <ffb48cf9861ec9bc07d1df93596a145e@bsftrading.cf>
- <dc13fbab0b8a19440cd3c53bec91b2f9@bsftrading.cf>
- <0ceb673a2588e04871e20cef9ccc701e@bsftrading.cf>
- <f9460ad76d84dd4b38b20a4fe5c4d4df@bsftrading.cf>
- <3a37915a8d73e5447a42f795303a1bce@bsftrading.cf>
- <685a7033868ff54064a38e71b330aef0@bsftrading.cf>
- <e9ac7c6b5fc9d280cdb4261d206d5237@bsftrading.cf>
- <6c6a7d213c36f471b7a1cb7ee03be5ee@bsftrading.cf>
- <048ecfec7a9bdc977c6211e0745a86a1@bsftrading.cf>
- <98fe3dce241263827c154a9978ab5220@bsftrading.cf>
- <27134a26fb1442d02e3e1a1363adf67e@bsftrading.cf>
- <d1037766aa6c4366f0fb46117261fbd3@bsftrading.cf>
- <cec2271ee5113ac4c820052b1421c29c@bsftrading.cf>
- <6c60fb1a329981542d2c218fb6916f8d@bsftrading.cf>
- <b88e6f294f20e7f48208c8b2e4c1acd6@bsftrading.cf>
- <0a1a029057ea6fa4535858187dc3677f@bsftrading.cf>
- <3409c7ead649c78a61b83537d4d3b473@bsftrading.cf>
- <0fb779771bd48354d2ab192162468d09@bsftrading.cf>
- <48271923083dfb78583c43b2ba9870d2@bsftrading.cf>
- <a5728ea57b51b12717f10d4ff6377ffc@bsftrading.cf>
- <62b14bee21dadfdca6242a98a0b619fe@bsftrading.cf>
- <734377c7b4e9410eb03fd34851cbc65a@bsftrading.cf>
- <552f038843b19974d1738949743a35a3@bsftrading.cf>
- <6d3d1b30784d59fe534bce3d6ad79ab2@bsftrading.cf>
- <cba5ac4c5089a7198edb8b0bab0b9358@bsftrading.cf>
- <2641ea30846c34743f43835b0c94ced0@bsftrading.cf>
- <4dd4b479a12d5ec4e256b3b06d2264d5@bsftrading.cf>
- <1ead0fc9cc13638cc74ce67c43b04786@bsftrading.cf>
- <9b697d75f9e5eeebd2d3005660fbd8e9@bsftrading.cf>
- <8ef0c8c715be87e848f79f75c49853b1@bsftrading.cf>
- <386669029c1f2820278638b318e38049@bsftrading.cf>
- <2d3f9a358ac6f85be0be48a4baaa6692@bsftrading.cf>
- <4b686ed8e74af7e60ad3dcaf0cb3b4fa@bsftrading.cf>
-Message-ID: <030eff3b57f34a3e125852f652c7ef3d@bsftrading.cf>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good day.
+On 06/25/2018 11:30 PM, Matt Ranostay wrote:
+> AMG88xx has an on-board thermistor which is used for more accurate
+> processing of its temperature readings from the 8x8 thermopile array
+> 
+> Cc: linux-hwmon@vger.kernel.org
+> Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> ---
+>   drivers/media/i2c/video-i2c.c | 73 +++++++++++++++++++++++++++++++++++
+>   1 file changed, 73 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> index 0b347cc19aa5..16c3e03af219 100644
+> --- a/drivers/media/i2c/video-i2c.c
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -10,6 +10,8 @@
+>   
+>   #include <linux/delay.h>
+>   #include <linux/freezer.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
 
-Kindly find attached PO 28057   for your reference and action.
-Your quick response is highly appreciated.
-We wish to get your quotations on confirmation of  as attached.
+The second include is not needed.
 
-Awaits your urgent responds on confirmation of the above
-THANKS & REGARDS  ?
-Alma Patubo
-PROCUREMENT DEPARTMENT
-Office # 204, 2nd Floor,Building No P3
-Ferij Bin Omran, AL Jazeera Al-Arabiya St.
-P.O. Box 14156 Doha, State of
-Head Office Tel  : +974 4406 2762 - 600
-Fax No : +974 4487 9886
+>   #include <linux/kthread.h>
+>   #include <linux/i2c.h>
+>   #include <linux/list.h>
+> @@ -77,6 +79,9 @@ struct video_i2c_chip {
+>   
+>   	/* xfer function */
+>   	int (*xfer)(struct video_i2c_data *data, char *buf);
+> +
+> +	/* hwmon init function */
+> +	int (*hwmon_init)(struct video_i2c_data *data);
+>   };
+>   
+>   static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
+> @@ -101,6 +106,70 @@ static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
+>   	return (ret == 2) ? 0 : -EIO;
+>   }
+>   
+> +#if defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE))
+> +
+> +static const u32 amg88xx_temp_config[] = {
+> +	HWMON_T_INPUT,
+> +	0
+> +};
+> +
+> +static const struct hwmon_channel_info amg88xx_temp = {
+> +	.type = hwmon_temp,
+> +	.config = amg88xx_temp_config,
+> +};
+> +
+> +static const struct hwmon_channel_info *amg88xx_info[] = {
+> +	&amg88xx_temp,
+> +	NULL
+> +};
+> +
+> +static umode_t amg88xx_is_visible(const void *drvdata,
+> +				  enum hwmon_sensor_types type,
+> +				  u32 attr, int channel)
+> +{
+> +	return 0444;
+> +}
+> +
+> +static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
+> +			u32 attr, int channel, long *val)
+> +{
+> +	struct video_i2c_data *data = dev_get_drvdata(dev);
+> +	struct i2c_client *client = data->client;
+> +	int tmp = i2c_smbus_read_word_data(client, 0x0e);
+> +
+> +	if (tmp < 0)
+> +		return -EINVAL;
+> +
+
+Please return the error. This does not reflect an invalid argument.
+
+
+> +	/* check for sign bit, and invert temp reading to a negative value */
+> +	if (0x800 & tmp)
+
+Yoda programming dislike I do. All it does to obfuscate the code and confuse
+the reader. Don't tell me that "if (0 > ret)" is somehow better than
+"if (ret < 0)". On top of that, it is misguided here. It was introduced
+to prevent sloppy programmers from writing code such as
+	if (i = 15)
+which does not apply here.
+
+> +		tmp = -(tmp & 0x7ff);
+
+0x800 => 0x0 -> -0x0 -> 0x0
+
+seems wrong. Maybe consider using sign_extend32() instead ?
+
+> +
+> +	*val = (tmp * 625) / 10;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct hwmon_ops amg88xx_hwmon_ops = {
+> +	.is_visible = amg88xx_is_visible,
+> +	.read = amg88xx_read,
+> +};
+> +
+> +static const struct hwmon_chip_info amg88xx_chip_info = {
+> +	.ops = &amg88xx_hwmon_ops,
+> +	.info = amg88xx_info,
+> +};
+> +
+> +static int amg88xx_hwmon_init(struct video_i2c_data *data)
+> +{
+> +	void *hwmon = devm_hwmon_device_register_with_info(&data->client->dev,
+> +				"amg88xx", data, &amg88xx_chip_info, NULL);
+> +
+> +	return IS_ERR(hwmon);
+
+What is the point of not returning the error (eg with PTR_ERR_OR_ZERO) but a boolean ?
+
+> +}
+> +#else
+> +#define	amg88xx_hwmon_init	NULL
+> +#endif
+> +
+>   #define AMG88XX		0
+>   
+>   static const struct video_i2c_chip video_i2c_chip[] = {
+> @@ -111,6 +180,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
+>   		.buffer_size	= 128,
+>   		.bpp		= 16,
+>   		.xfer		= &amg88xx_xfer,
+> +		.hwmon_init	= &amg88xx_hwmon_init,
+
+This won't work if amg88xx_hwmon_init is NULL. Besides, & in front of
+a function name is unnecessary.
+
+>   	}
+>   };
+>   
+> @@ -505,6 +575,9 @@ static int video_i2c_probe(struct i2c_client *client,
+>   	video_set_drvdata(&data->vdev, data);
+>   	i2c_set_clientdata(client, data);
+>   
+> +	if (data->chip->hwmon_init)
+> +		data->chip->hwmon_init(data);
+
+What is the point of having the function return an int (or bool) and
+if the return value is ignored ?
+
+> +
+>   	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
+>   	if (ret < 0)
+>   		goto error_unregister_device;
+> 
