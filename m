@@ -1,45 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:45396 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932544AbeFZKDi (ORCPT
+Received: from smtp11.infineon.com ([217.10.52.105]:57886 "EHLO
+        smtp11.infineon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933509AbeFZKRk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 06:03:38 -0400
-Subject: Re: [PATCH v4] bpf: attach type BPF_LIRC_MODE2 should not depend on
- CONFIG_CGROUP_BPF
-To: Sean Young <sean@mess.org>, Y Song <ys114321@gmail.com>,
-        Matthias Reichl <hias@horus.com>, linux-media@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
+        Tue, 26 Jun 2018 06:17:40 -0400
+Subject: Re: [PATCH v2 01/10] tpm/tpm_i2c_infineon: switch to
+ i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        Peter Rosin <peda@axentia.se>
+CC: <linux-kernel@vger.kernel.org>, Peter Huewe <peterhuewe@gmx.de>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Sekhar Nori <nsekhar@ti.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linaro.org>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Antti Palosaari <crope@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Quentin Monnet <quentin.monnet@netronome.com>
-References: <20180618171216.gearpr755pm3wot7@gofer.mess.org>
- <201806190203.kfm0Xhda%fengguang.wu@intel.com>
- <20180618230423.nk2ey2755p2zkqmv@gofer.mess.org>
-From: Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <57baf751-cd2a-dedf-05bc-9ac3b4e050be@iogearbox.net>
-Date: Tue, 26 Jun 2018 12:03:35 +0200
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        <linux-integrity@vger.kernel.org>, <linux-i2c@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>
+References: <20180620051803.12206-1-peda@axentia.se>
+ <20180620051803.12206-2-peda@axentia.se>
+ <20180625102454.GA3845@linux.intel.com>
+From: Alexander Steffen <Alexander.Steffen@infineon.com>
+Message-ID: <7703d6a2-b22c-104c-7390-b5143a504725@infineon.com>
+Date: Tue, 26 Jun 2018 12:07:21 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180618230423.nk2ey2755p2zkqmv@gofer.mess.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20180625102454.GA3845@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/19/2018 01:04 AM, Sean Young wrote:
-> If the kernel is compiled with CONFIG_CGROUP_BPF not enabled, it is not
-> possible to attach, detach or query IR BPF programs to /dev/lircN devices,
-> making them impossible to use. For embedded devices, it should be possible
-> to use IR decoding without cgroups or CONFIG_CGROUP_BPF enabled.
+On 25.06.2018 12:24, Jarkko Sakkinen wrote:
+> On Wed, Jun 20, 2018 at 07:17:54AM +0200, Peter Rosin wrote:
+>> Locking the root adapter for __i2c_transfer will deadlock if the
+>> device sits behind a mux-locked I2C mux. Switch to the finer-grained
+>> i2c_lock_bus with the I2C_LOCK_SEGMENT flag. If the device does not
+>> sit behind a mux-locked mux, the two locking variants are equivalent.
+>>
+>> Signed-off-by: Peter Rosin <peda@axentia.se>
 > 
-> This change requires some refactoring, since bpf_prog_{attach,detach,query}
-> functions are now always compiled, but their code paths for cgroups need
-> moving out. Rather than a #ifdef CONFIG_CGROUP_BPF in kernel/bpf/syscall.c,
-> moving them to kernel/bpf/cgroup.c and kernel/bpf/sockmap.c does not
-> require #ifdefs since that is already conditionally compiled.
+> Studied enough so that I can give
 > 
-> Signed-off-by: Sean Young <sean@mess.org>
+> Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+> 
+> Do not have hardware to test this, however.
 
-Applied to bpf, thanks Sean!
+I don't have a mux-locked I2C mux either, but at least I can confirm 
+that this change did not break my existing test setup (SLB9635/SLB9645 
+on Raspberry Pi 2B).
+
+Tested-by: Alexander Steffen <Alexander.Steffen@infineon.com>
+
+Alexander
