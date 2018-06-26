@@ -1,312 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:9129 "EHLO huawei.com"
+Received: from mail-by2nam01on0081.outbound.protection.outlook.com ([104.47.34.81]:52224
+        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752606AbeFZI3X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 04:29:23 -0400
-Date: Tue, 26 Jun 2018 09:28:41 +0100
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Peter Rosin <peda@axentia.se>
-CC: <linux-kernel@vger.kernel.org>, Peter Huewe <peterhuewe@gmx.de>,
-        "Jarkko Sakkinen" <jarkko.sakkinen@linux.intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Gregory Fong <gregory.0xf0@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        <bcm-kernel-feedback-list@broadcom.com>,
-        "Sekhar Nori" <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>,
-        "Haavard Skinnemoen" <hskinnemoen@gmail.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        "Krzysztof Kozlowski" <krzk@kernel.org>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linaro.org>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        "Peter Meerwald-Stadler" <pmeerw@pmeerw.net>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Antti Palosaari <crope@iki.fi>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Lee Jones <lee.jones@linaro.org>,
-        <linux-integrity@vger.kernel.org>, <linux-i2c@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-samsung-soc@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-        <linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 10/10] i2c: remove i2c_lock_adapter and use
- i2c_lock_bus directly
-Message-ID: <20180626092841.00003277@huawei.com>
-In-Reply-To: <20180620051803.12206-11-peda@axentia.se>
-References: <20180620051803.12206-1-peda@axentia.se>
-        <20180620051803.12206-11-peda@axentia.se>
+        id S1752606AbeFZJEc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Jun 2018 05:04:32 -0400
+From: Krzysztof Witos <kwitos@cadence.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "open list:CADENCE MIPI-CSI2 BRIDGES" <linux-media@vger.kernel.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH 2/2] added support for csirx dphy
+Date: Tue, 26 Jun 2018 09:04:31 +0000
+Message-ID: <BYAPR07MB48868E383E03E438ED63BD76C3490@BYAPR07MB4886.namprd07.prod.outlook.com>
+References: <20180608103304.16054-1-kwitos@cadence.com>
+ <20180608103304.16054-3-kwitos@cadence.com>
+ <20180614075118.ukxhr5b73ofjnz6c@flea>
+In-Reply-To: <20180614075118.ukxhr5b73ofjnz6c@flea>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 20 Jun 2018 07:18:03 +0200
-Peter Rosin <peda@axentia.se> wrote:
+Hi Maxime,
 
-> The i2c_lock_adapter name is ambiguous since it is unclear if it
-> refers to the root adapter or the adapter you name in the argument.
-> The natural interpretation is the adapter you name in the argument,
-> but there are historical reasons for that not being the case; it
-> in fact locks the root adapter. Just remove the function and force
-> users to spell out the I2C_LOCK_ROOT_ADAPTER name to indicate what
-> is really going on. Also remove i2c_unlock_adapter, of course.
-> 
-> This patch was generated with
-> 
-> git grep -l 'i2c_\(un\)\?lock_adapter' \
-> | xargs sed -i 's/i2c_\(un\)\?lock_adapter(\([^)]*\))/'\
-> 'i2c_\1lock_bus(\2, I2C_LOCK_ROOT_ADAPTER)/g'
-> 
-> followed by white-space touch-up.
-> 
-> Signed-off-by: Peter Rosin <peda@axentia.se>
+Thank you very much for the review. Yes, I understand your point.=20
+This needs to be changed.
 
-For IIO: Acked-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+> Hi,
+>=20
+> On Fri, Jun 08, 2018 at 11:33:04AM +0100, Krzysztof Witos wrote:
+> > Signed-off-by: Krzysztof Witos <kwitos@cadence.com>
+>=20
+> A commit log explaining what you're doing here would be nice.
+>=20
+> > ---
+> >  drivers/media/platform/cadence/cdns-csi2rx.c | 342
+> > ++++++++++++++++++++++++---
+> >  1 file changed, 313 insertions(+), 29 deletions(-)
+> >
+> > diff --git a/drivers/media/platform/cadence/cdns-csi2rx.c
+> > b/drivers/media/platform/cadence/cdns-csi2rx.c
+> > index a0f02916006b..9251ea6015f0 100644
+> > --- a/drivers/media/platform/cadence/cdns-csi2rx.c
+> > +++ b/drivers/media/platform/cadence/cdns-csi2rx.c
+> > @@ -2,14 +2,16 @@
+> >  /*
+> >   * Driver for Cadence MIPI-CSI2 RX Controller v1.3
+> >   *
+> > - * Copyright (C) 2017 Cadence Design Systems Inc.
+> > + * Copyright (C) 2017,2018 Cadence Design Systems Inc.
+> >   */
+> >
+> >  #include <linux/clk.h>
+> > +#include <linux/iopoll.h>
+> >  #include <linux/delay.h>
+> >  #include <linux/io.h>
+> >  #include <linux/module.h>
+> >  #include <linux/of.h>
+> > +#include <linux/of_address.h>
+> >  #include <linux/of_graph.h>
+> >  #include <linux/phy/phy.h>
+> >  #include <linux/platform_device.h>
+> > @@ -44,6 +46,33 @@
+> >  #define CSI2RX_LANES_MAX	4
+> >  #define CSI2RX_STREAMS_MAX	4
+> >
+> > +/* DPHY registers */
+> > +#define DPHY_PMA_CMN(reg)       (reg)
+> > +#define DPHY_PMA_LCLK(reg)      (0x100 + (reg))
+> > +#define DPHY_PMA_LDATA(lane, reg)   (0x200 + ((lane) * 0x100) + (reg))
+> > +#define DPHY_PMA_RCLK(reg)      (0x600 + (reg))
+> > +#define DPHY_PMA_RDATA(lane, reg)   (0x700 + ((lane) * 0x100) + (reg))
+> > +#define DPHY_PCS(reg)           (0xb00 + (reg))
+> > +
+> > +#define DPHY_CMN_SSM            DPHY_PMA_CMN(0x20)
+> > +#define DPHY_CMN_SSM_EN         BIT(0)
+> > +#define DPHY_CMN_RX_MODE_EN     BIT(10)
+> > +
+> > +#define DPHY_CMN_PWM            DPHY_PMA_CMN(0x40)
+> > +#define DPHY_CMN_PWM_DIV(x)     ((x) << 20)
+> > +#define DPHY_CMN_PWM_LOW(x)     ((x) << 10)
+> > +#define DPHY_CMN_PWM_HIGH(x)        (x)
+> > +
+> > +#define DPHY_CMN_PLL_CFG	DPHY_PMA_CMN(0xE8)
+> > +#define PLL_LOCKED		BIT(2)
+> > +
+> > +#define DPHY_PSM_CFG            DPHY_PCS(0x4)
+> > +#define DPHY_PSM_CFG_FROM_REG       BIT(0)
+> > +#define DPHY_PSM_CLK_DIV(x)     ((x) << 1)
+> > +
+> > +#define DPHY_BAND_CTRL          DPHY_PCS(0x0)
+> > +#define DPHY_BAND_LEFT_VAL(x)	(x)
+> > +
+> >  enum csi2rx_pads {
+> >  	CSI2RX_PAD_SINK,
+> >  	CSI2RX_PAD_SOURCE_STREAM0,
+> > @@ -67,7 +96,7 @@ struct csi2rx_priv {
+> >  	struct clk			*sys_clk;
+> >  	struct clk			*p_clk;
+> >  	struct clk			*pixel_clk[CSI2RX_STREAMS_MAX];
+> > -	struct phy			*dphy;
+> > +	struct clk			*hs_clk;
+> >
+> >  	u8				lanes[CSI2RX_LANES_MAX];
+> >  	u8				num_lanes;
+> > @@ -83,8 +112,175 @@ struct csi2rx_priv {
+> >  	struct v4l2_async_subdev	asd;
+> >  	struct v4l2_subdev		*source_subdev;
+> >  	int				source_pad;
+> > +	struct cdns_dphy		*dphy;
+> > +};
+> > +
+> > +struct cdns_dphy_cfg {
+> > +	unsigned int nlanes;
+> > +};
+> > +
+> > +struct cdns_dphy;
+> > +
+> > +enum cdns_dphy_clk_lane_cfg {
+> > +	DPHY_CLK_CFG_LEFT_DRIVES_ALL =3D 0,
+> > +	DPHY_CLK_CFG_LEFT_DRIVES_RIGHT =3D 1,
+> > +	DPHY_CLK_CFG_LEFT_DRIVES_LEFT =3D 2,
+> > +	DPHY_CLK_CFG_RIGHT_DRIVES_ALL =3D 3
+> > +};
+> > +
+> > +struct cdns_dphy_ops {
+> > +	int (*probe)(struct cdns_dphy *dphy);
+> > +	void (*remove)(struct cdns_dphy *dphy);
+> > +	void (*set_psm_div)(struct cdns_dphy *dphy, u8 div);
+> > +	void (*set_pll_cfg)(struct cdns_dphy *dphy);
+> > +	void (*set_clk_lane_cfg)(struct cdns_dphy *dphy,
+> > +		enum cdns_dphy_clk_lane_cfg cfg);
+> > +	void (*is_pll_locked)(struct cdns_dphy *dphy);
+> > +	void (*set_band_ctrl)(struct cdns_dphy *dphy, u8 value); };
+> > +
+> > +struct cdns_dphy {
+> > +	struct cdns_dphy_cfg cfg;
+> > +	void __iomem *regs;
+> > +	struct clk *psm_clk;
+> > +	const struct cdns_dphy_ops *ops;
+> >  };
+> >
+> > +static int cdns_dphy_set_band_ctrl(struct cdns_dphy *dphy,
+> > +	struct csi2rx_priv *csirx)
+> > +{
+> > +	u8 band_value;
+> > +	u32 hs_freq_mhz =3D clk_get_rate(csirx->hs_clk);
+> > +
+> > +	if (hs_freq_mhz >=3D 80 && hs_freq_mhz < 100)
+> > +		band_value =3D 0;
+> > +	else if (hs_freq_mhz >=3D 100 && hs_freq_mhz < 120)
+> > +		band_value =3D 1;
+> > +	else if (hs_freq_mhz >=3D 120 && hs_freq_mhz < 160)
+> > +		band_value =3D 2;
+> > +	else if (hs_freq_mhz >=3D 160 && hs_freq_mhz < 200)
+> > +		band_value =3D 3;
+> > +	else if (hs_freq_mhz >=3D 200 && hs_freq_mhz < 240)
+> > +		band_value =3D 4;
+> > +	else if (hs_freq_mhz >=3D 240 && hs_freq_mhz < 280)
+> > +		band_value =3D 5;
+> > +	else if (hs_freq_mhz >=3D 280 && hs_freq_mhz < 320)
+> > +		band_value =3D 6;
+> > +	else if (hs_freq_mhz >=3D 320 && hs_freq_mhz < 360)
+> > +		band_value =3D 7;
+> > +	else if (hs_freq_mhz >=3D 360 && hs_freq_mhz < 400)
+> > +		band_value =3D 8;
+> > +	else if (hs_freq_mhz >=3D 400 && hs_freq_mhz < 480)
+> > +		band_value =3D 9;
+> > +	else if (hs_freq_mhz >=3D 480 && hs_freq_mhz < 560)
+> > +		band_value =3D 10;
+> > +	else if (hs_freq_mhz >=3D 560 && hs_freq_mhz < 640)
+> > +		band_value =3D 11;
+> > +	else if (hs_freq_mhz >=3D 640 && hs_freq_mhz < 720)
+> > +		band_value =3D 12;
+> > +	else if (hs_freq_mhz >=3D 720 && hs_freq_mhz < 800)
+> > +		band_value =3D 13;
+> > +	else if (hs_freq_mhz >=3D 800 && hs_freq_mhz < 880)
+> > +		band_value =3D 14;
+> > +	else if (hs_freq_mhz >=3D 880 && hs_freq_mhz < 1040)
+> > +		band_value =3D 15;
+> > +	else if (hs_freq_mhz >=3D 1040 && hs_freq_mhz < 1200)
+> > +		band_value =3D 16;
+> > +	else if (hs_freq_mhz >=3D 1200 && hs_freq_mhz < 1350)
+> > +		band_value =3D 17;
+> > +	else if (hs_freq_mhz >=3D 1350 && hs_freq_mhz < 1500)
+> > +		band_value =3D 18;
+> > +	else if (hs_freq_mhz >=3D 1500 && hs_freq_mhz < 1750)
+> > +		band_value =3D 19;
+> > +	else if (hs_freq_mhz >=3D 1750 && hs_freq_mhz < 2000)
+> > +		band_value =3D 20;
+> > +	else if (hs_freq_mhz >=3D 2000 && hs_freq_mhz < 2250)
+> > +		band_value =3D 21;
+> > +	else if (hs_freq_mhz >=3D 2250 && hs_freq_mhz <=3D 2500)
+> > +		band_value =3D 22;
+> > +	else
+> > +		return -EINVAL;
+> > +
+> > +	if (dphy->ops->set_band_ctrl)
+> > +		dphy->ops->set_band_ctrl(dphy, band_value);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cdns_dphy_setup_psm(struct cdns_dphy *dphy) {
+> > +	unsigned long psm_clk_hz =3D clk_get_rate(dphy->psm_clk);
+> > +	unsigned long psm_div;
+> > +
+> > +	if (!psm_clk_hz || psm_clk_hz > 100000000)
+> > +		return -EINVAL;
+> > +
+> > +	psm_div =3D DIV_ROUND_CLOSEST(psm_clk_hz, 1000000);
+> > +	if (dphy->ops->set_psm_div)
+> > +		dphy->ops->set_psm_div(dphy, psm_div);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static void cdns_dphy_set_clk_lane_cfg(struct cdns_dphy *dphy,
+> > +	enum cdns_dphy_clk_lane_cfg cfg)
+> > +{
+> > +	if (dphy->ops->set_clk_lane_cfg)
+> > +		dphy->ops->set_clk_lane_cfg(dphy, cfg); }
+> > +
+> > +static void cdns_dphy_set_pll_cfg(struct cdns_dphy *dphy) {
+> > +	if (dphy->ops->set_pll_cfg)
+> > +		dphy->ops->set_pll_cfg(dphy);
+> > +}
+> > +
+> > +static void cdns_dphy_is_pll_locked(struct cdns_dphy *dphy) {
+> > +	if (dphy->ops->is_pll_locked)
+> > +		dphy->ops->is_pll_locked(dphy);
+> > +}
+> > +
+> > +static void cdns_csirx_dphy_init(struct csi2rx_priv *csi2rx,
+> > +	const struct cdns_dphy_cfg *dphy_cfg) {
+> > +
+> > +	/*
+> > +	 * Configure the band control settings.
+> > +	 */
+> > +	cdns_dphy_set_band_ctrl(csi2rx->dphy, csi2rx);
+> > +
+> > +	/*
+> > +	 * Configure the internal PSM clk divider so that the DPHY has a
+> > +	 * 1MHz clk (or something close).
+> > +	 */
+> > +	WARN_ON_ONCE(cdns_dphy_setup_psm(csi2rx->dphy));
+> > +
+> > +	/*
+> > +	 * Configure attach clk lanes to data lanes: the DPHY has 2 clk lanes
+> > +	 * and 8 data lanes, each clk lane can be attache different set of
+> > +	 * data lanes. The 2 groups are named 'left' and 'right', so here we
+> > +	 * just say that we want the 'left' clk lane to drive the 'left' data
+> > +	 * lanes.
+> > +	 */
+> > +	cdns_dphy_set_clk_lane_cfg(csi2rx->dphy,
+> > +		DPHY_CLK_CFG_LEFT_DRIVES_LEFT);
+> > +
+> > +	/*
+> > +	 * Configure the DPHY PLL that will be used to generate the TX byte
+> > +	 * clk.
+> > +	 */
+> > +	cdns_dphy_set_pll_cfg(csi2rx->dphy);
+> > +
+> > +	/*  Start RX state machine. */
+> > +	writel(DPHY_CMN_SSM_EN | DPHY_CMN_RX_MODE_EN,
+> > +		csi2rx->dphy->regs + DPHY_CMN_SSM);
+> > +
+> > +	/* Checking if PLL is locked */
+> > +	cdns_dphy_is_pll_locked(csi2rx->dphy);
+> > +
+> > +}
+> > +
+>=20
+> That part looks like it's pretty much the same thing than the PHY support=
+ in
+> the DSI bridge found there:
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/d=
+rivers
+> /gpu/drm/bridge/cdns-dsi.c#n493
+>=20
+> This code shouldn't be duplicated, but shared, ideally through the phy
+> framework. That would require some changes to that framework though.
+>=20
+> Maxime
+>=20
+> --
+> Maxime Ripard, Bootlin (formerly Free Electrons) Embedded Linux and Kerne=
+l
+> engineering https://bootlin.com
 
-> ---
->  drivers/i2c/busses/i2c-brcmstb.c   |  8 ++++----
->  drivers/i2c/busses/i2c-davinci.c   |  4 ++--
->  drivers/i2c/busses/i2c-gpio.c      | 40 +++++++++++++++++++-------------------
->  drivers/i2c/busses/i2c-s3c2410.c   |  4 ++--
->  drivers/i2c/busses/i2c-sprd.c      |  8 ++++----
->  drivers/i2c/i2c-core-slave.c       |  8 ++++----
->  drivers/iio/temperature/mlx90614.c |  4 ++--
->  include/linux/i2c.h                | 12 ------------
->  8 files changed, 38 insertions(+), 50 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-brcmstb.c b/drivers/i2c/busses/i2c-brcmstb.c
-> index 78792b4d6437..826d32049996 100644
-> --- a/drivers/i2c/busses/i2c-brcmstb.c
-> +++ b/drivers/i2c/busses/i2c-brcmstb.c
-> @@ -689,9 +689,9 @@ static int brcmstb_i2c_suspend(struct device *dev)
->  {
->  	struct brcmstb_i2c_dev *i2c_dev = dev_get_drvdata(dev);
->  
-> -	i2c_lock_adapter(&i2c_dev->adapter);
-> +	i2c_lock_bus(&i2c_dev->adapter, I2C_LOCK_ROOT_ADAPTER);
->  	i2c_dev->is_suspended = true;
-> -	i2c_unlock_adapter(&i2c_dev->adapter);
-> +	i2c_unlock_bus(&i2c_dev->adapter, I2C_LOCK_ROOT_ADAPTER);
->  
->  	return 0;
->  }
-> @@ -700,10 +700,10 @@ static int brcmstb_i2c_resume(struct device *dev)
->  {
->  	struct brcmstb_i2c_dev *i2c_dev = dev_get_drvdata(dev);
->  
-> -	i2c_lock_adapter(&i2c_dev->adapter);
-> +	i2c_lock_bus(&i2c_dev->adapter, I2C_LOCK_ROOT_ADAPTER);
->  	brcmstb_i2c_set_bsc_reg_defaults(i2c_dev);
->  	i2c_dev->is_suspended = false;
-> -	i2c_unlock_adapter(&i2c_dev->adapter);
-> +	i2c_unlock_bus(&i2c_dev->adapter, I2C_LOCK_ROOT_ADAPTER);
->  
->  	return 0;
->  }
-> diff --git a/drivers/i2c/busses/i2c-davinci.c b/drivers/i2c/busses/i2c-davinci.c
-> index 75d6ab177055..d945a2654c2f 100644
-> --- a/drivers/i2c/busses/i2c-davinci.c
-> +++ b/drivers/i2c/busses/i2c-davinci.c
-> @@ -714,14 +714,14 @@ static int i2c_davinci_cpufreq_transition(struct notifier_block *nb,
->  
->  	dev = container_of(nb, struct davinci_i2c_dev, freq_transition);
->  
-> -	i2c_lock_adapter(&dev->adapter);
-> +	i2c_lock_bus(&dev->adapter, I2C_LOCK_ROOT_ADAPTER);
->  	if (val == CPUFREQ_PRECHANGE) {
->  		davinci_i2c_reset_ctrl(dev, 0);
->  	} else if (val == CPUFREQ_POSTCHANGE) {
->  		i2c_davinci_calc_clk_dividers(dev);
->  		davinci_i2c_reset_ctrl(dev, 1);
->  	}
-> -	i2c_unlock_adapter(&dev->adapter);
-> +	i2c_unlock_bus(&dev->adapter, I2C_LOCK_ROOT_ADAPTER);
->  
->  	return 0;
->  }
-> diff --git a/drivers/i2c/busses/i2c-gpio.c b/drivers/i2c/busses/i2c-gpio.c
-> index 005e6e0330c2..9d63337efa82 100644
-> --- a/drivers/i2c/busses/i2c-gpio.c
-> +++ b/drivers/i2c/busses/i2c-gpio.c
-> @@ -78,24 +78,24 @@ static struct dentry *i2c_gpio_debug_dir;
->  #define getscl(bd)	((bd)->getscl((bd)->data))
->  
->  #define WIRE_ATTRIBUTE(wire) \
-> -static int fops_##wire##_get(void *data, u64 *val)	\
-> -{							\
-> -	struct i2c_gpio_private_data *priv = data;	\
-> -							\
-> -	i2c_lock_adapter(&priv->adap);			\
-> -	*val = get##wire(&priv->bit_data);		\
-> -	i2c_unlock_adapter(&priv->adap);		\
-> -	return 0;					\
-> -}							\
-> -static int fops_##wire##_set(void *data, u64 val)	\
-> -{							\
-> -	struct i2c_gpio_private_data *priv = data;	\
-> -							\
-> -	i2c_lock_adapter(&priv->adap);			\
-> -	set##wire(&priv->bit_data, val);		\
-> -	i2c_unlock_adapter(&priv->adap);		\
-> -	return 0;					\
-> -}							\
-> +static int fops_##wire##_get(void *data, u64 *val)		\
-> +{								\
-> +	struct i2c_gpio_private_data *priv = data;		\
-> +								\
-> +	i2c_lock_bus(&priv->adap, I2C_LOCK_ROOT_ADAPTER);	\
-> +	*val = get##wire(&priv->bit_data);			\
-> +	i2c_unlock_bus(&priv->adap, I2C_LOCK_ROOT_ADAPTER);	\
-> +	return 0;						\
-> +}								\
-> +static int fops_##wire##_set(void *data, u64 val)		\
-> +{								\
-> +	struct i2c_gpio_private_data *priv = data;		\
-> +								\
-> +	i2c_lock_bus(&priv->adap, I2C_LOCK_ROOT_ADAPTER);	\
-> +	set##wire(&priv->bit_data, val);			\
-> +	i2c_unlock_bus(&priv->adap, I2C_LOCK_ROOT_ADAPTER);	\
-> +	return 0;						\
-> +}								\
->  DEFINE_DEBUGFS_ATTRIBUTE(fops_##wire, fops_##wire##_get, fops_##wire##_set, "%llu\n")
->  
->  WIRE_ATTRIBUTE(scl);
-> @@ -113,7 +113,7 @@ static int fops_incomplete_transfer_set(void *data, u64 addr)
->  	/* ADDR (7 bit) + RD (1 bit) + SDA hi (1 bit) */
->  	pattern = (addr << 2) | 3;
->  
-> -	i2c_lock_adapter(&priv->adap);
-> +	i2c_lock_bus(&priv->adap, I2C_LOCK_ROOT_ADAPTER);
->  
->  	/* START condition */
->  	setsda(bit_data, 0);
-> @@ -129,7 +129,7 @@ static int fops_incomplete_transfer_set(void *data, u64 addr)
->  		udelay(bit_data->udelay);
->  	}
->  
-> -	i2c_unlock_adapter(&priv->adap);
-> +	i2c_unlock_bus(&priv->adap, I2C_LOCK_ROOT_ADAPTER);
->  
->  	return 0;
->  }
-> diff --git a/drivers/i2c/busses/i2c-s3c2410.c b/drivers/i2c/busses/i2c-s3c2410.c
-> index 9fe2b6951895..2f2e28d60ef5 100644
-> --- a/drivers/i2c/busses/i2c-s3c2410.c
-> +++ b/drivers/i2c/busses/i2c-s3c2410.c
-> @@ -919,9 +919,9 @@ static int s3c24xx_i2c_cpufreq_transition(struct notifier_block *nb,
->  
->  	if ((val == CPUFREQ_POSTCHANGE && delta_f < 0) ||
->  	    (val == CPUFREQ_PRECHANGE && delta_f > 0)) {
-> -		i2c_lock_adapter(&i2c->adap);
-> +		i2c_lock_bus(&i2c->adap, I2C_LOCK_ROOT_ADAPTER);
->  		ret = s3c24xx_i2c_clockrate(i2c, &got);
-> -		i2c_unlock_adapter(&i2c->adap);
-> +		i2c_unlock_bus(&i2c->adap, I2C_LOCK_ROOT_ADAPTER);
->  
->  		if (ret < 0)
->  			dev_err(i2c->dev, "cannot find frequency (%d)\n", ret);
-> diff --git a/drivers/i2c/busses/i2c-sprd.c b/drivers/i2c/busses/i2c-sprd.c
-> index 4053259bccb8..a94e724f51dc 100644
-> --- a/drivers/i2c/busses/i2c-sprd.c
-> +++ b/drivers/i2c/busses/i2c-sprd.c
-> @@ -590,9 +590,9 @@ static int __maybe_unused sprd_i2c_suspend_noirq(struct device *pdev)
->  {
->  	struct sprd_i2c *i2c_dev = dev_get_drvdata(pdev);
->  
-> -	i2c_lock_adapter(&i2c_dev->adap);
-> +	i2c_lock_bus(&i2c_dev->adap, I2C_LOCK_ROOT_ADAPTER);
->  	i2c_dev->is_suspended = true;
-> -	i2c_unlock_adapter(&i2c_dev->adap);
-> +	i2c_unlock_bus(&i2c_dev->adap, I2C_LOCK_ROOT_ADAPTER);
->  
->  	return pm_runtime_force_suspend(pdev);
->  }
-> @@ -601,9 +601,9 @@ static int __maybe_unused sprd_i2c_resume_noirq(struct device *pdev)
->  {
->  	struct sprd_i2c *i2c_dev = dev_get_drvdata(pdev);
->  
-> -	i2c_lock_adapter(&i2c_dev->adap);
-> +	i2c_lock_bus(&i2c_dev->adap, I2C_LOCK_ROOT_ADAPTER);
->  	i2c_dev->is_suspended = false;
-> -	i2c_unlock_adapter(&i2c_dev->adap);
-> +	i2c_unlock_bus(&i2c_dev->adap, I2C_LOCK_ROOT_ADAPTER);
->  
->  	return pm_runtime_force_resume(pdev);
->  }
-> diff --git a/drivers/i2c/i2c-core-slave.c b/drivers/i2c/i2c-core-slave.c
-> index 4a78c65e9971..47a9f70a24a9 100644
-> --- a/drivers/i2c/i2c-core-slave.c
-> +++ b/drivers/i2c/i2c-core-slave.c
-> @@ -47,9 +47,9 @@ int i2c_slave_register(struct i2c_client *client, i2c_slave_cb_t slave_cb)
->  
->  	client->slave_cb = slave_cb;
->  
-> -	i2c_lock_adapter(client->adapter);
-> +	i2c_lock_bus(client->adapter, I2C_LOCK_ROOT_ADAPTER);
->  	ret = client->adapter->algo->reg_slave(client);
-> -	i2c_unlock_adapter(client->adapter);
-> +	i2c_unlock_bus(client->adapter, I2C_LOCK_ROOT_ADAPTER);
->  
->  	if (ret) {
->  		client->slave_cb = NULL;
-> @@ -69,9 +69,9 @@ int i2c_slave_unregister(struct i2c_client *client)
->  		return -EOPNOTSUPP;
->  	}
->  
-> -	i2c_lock_adapter(client->adapter);
-> +	i2c_lock_bus(client->adapter, I2C_LOCK_ROOT_ADAPTER);
->  	ret = client->adapter->algo->unreg_slave(client);
-> -	i2c_unlock_adapter(client->adapter);
-> +	i2c_unlock_bus(client->adapter, I2C_LOCK_ROOT_ADAPTER);
->  
->  	if (ret == 0)
->  		client->slave_cb = NULL;
-> diff --git a/drivers/iio/temperature/mlx90614.c b/drivers/iio/temperature/mlx90614.c
-> index d619e8634a00..13a4cec64ea8 100644
-> --- a/drivers/iio/temperature/mlx90614.c
-> +++ b/drivers/iio/temperature/mlx90614.c
-> @@ -433,11 +433,11 @@ static int mlx90614_wakeup(struct mlx90614_data *data)
->  
->  	dev_dbg(&data->client->dev, "Requesting wake-up");
->  
-> -	i2c_lock_adapter(data->client->adapter);
-> +	i2c_lock_bus(data->client->adapter, I2C_LOCK_ROOT_ADAPTER);
->  	gpiod_direction_output(data->wakeup_gpio, 0);
->  	msleep(MLX90614_TIMING_WAKEUP);
->  	gpiod_direction_input(data->wakeup_gpio);
-> -	i2c_unlock_adapter(data->client->adapter);
-> +	i2c_unlock_bus(data->client->adapter, I2C_LOCK_ROOT_ADAPTER);
->  
->  	data->ready_timestamp = jiffies +
->  			msecs_to_jiffies(MLX90614_TIMING_STARTUP);
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index 254cd34eeae2..795e3a860afe 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -754,18 +754,6 @@ i2c_unlock_bus(struct i2c_adapter *adapter, unsigned int flags)
->  	adapter->lock_ops->unlock_bus(adapter, flags);
->  }
->  
-> -static inline void
-> -i2c_lock_adapter(struct i2c_adapter *adapter)
-> -{
-> -	i2c_lock_bus(adapter, I2C_LOCK_ROOT_ADAPTER);
-> -}
-> -
-> -static inline void
-> -i2c_unlock_adapter(struct i2c_adapter *adapter)
-> -{
-> -	i2c_unlock_bus(adapter, I2C_LOCK_ROOT_ADAPTER);
-> -}
-> -
->  /*flags for the client struct: */
->  #define I2C_CLIENT_PEC		0x04	/* Use Packet Error Checking */
->  #define I2C_CLIENT_TEN		0x10	/* we have a ten bit chip address */
+
+Best Regards,
+Krzysztof
