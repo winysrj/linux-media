@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:33780 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933472AbeFZUrt (ORCPT
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:37281 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751175AbeFZU60 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 16:47:49 -0400
-Received: by mail-oi0-f65.google.com with SMTP id c6-v6so17321249oiy.0
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2018 13:47:49 -0700 (PDT)
-Subject: Re: [PATCH v3 03/13] media: v4l2: async: Add
- v4l2_async_notifier_add_subdev
+        Tue, 26 Jun 2018 16:58:26 -0400
+Received: by mail-ot0-f196.google.com with SMTP id u6-v6so12401028otk.4
+        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2018 13:58:25 -0700 (PDT)
+Subject: Re: [PATCH v3 05/13] media: v4l2-fwnode: Add a convenience function
+ for registering subdevs with notifiers
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Yong Zhi <yong.zhi@intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -15,163 +15,148 @@ Cc: Yong Zhi <yong.zhi@intel.com>,
         niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org
+        linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
 References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
- <1521592649-7264-4-git-send-email-steve_longerbeam@mentor.com>
- <20180420122450.j3wkyoardgpyzbh2@paasikivi.fi.intel.com>
- <854dab64-caf7-be8e-e5b6-10ff78aa811a@gmail.com>
- <20180508101235.wctorewkzt3jgxnh@kekkonen.localdomain>
- <90f52736-1a4d-f409-c553-d59901e413fa@gmail.com>
- <20180626071229.syph6yzwjzkbmht6@kekkonen.localdomain>
+ <1521592649-7264-6-git-send-email-steve_longerbeam@mentor.com>
+ <20180423071444.2rsqvlvlfvpoxpbu@paasikivi.fi.intel.com>
+ <8e59e530-9d13-c1ae-5f0b-6205a7b21182@gmail.com>
+ <20180508102825.xamrlnnipknsoi62@kekkonen.localdomain>
+ <40dae271-2d82-6119-e289-aec07147dce5@gmail.com>
+ <20180626074522.zhgolz47k6xyf4qt@kekkonen.localdomain>
 From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <34b9ef01-5519-8d71-ebf4-e001cf09eb99@gmail.com>
-Date: Tue, 26 Jun 2018 13:47:45 -0700
+Message-ID: <88ab8115-9c9c-d23b-1af1-1014341e4900@gmail.com>
+Date: Tue, 26 Jun 2018 13:58:22 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180626071229.syph6yzwjzkbmht6@kekkonen.localdomain>
+In-Reply-To: <20180626074522.zhgolz47k6xyf4qt@kekkonen.localdomain>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
-On 06/26/2018 12:12 AM, Sakari Ailus wrote:
-> On Wed, May 09, 2018 at 04:06:32PM -0700, Steve Longerbeam wrote:
+On 06/26/2018 12:45 AM, Sakari Ailus wrote:
+> On Tue, May 08, 2018 at 08:55:04PM -0700, Steve Longerbeam wrote:
 >>
->> On 05/08/2018 03:12 AM, Sakari Ailus wrote:
->>> On Fri, Apr 20, 2018 at 10:12:33AM -0700, Steve Longerbeam wrote:
->>>> Hi Sakari,
->>>>
->>>>
->>>> On 04/20/2018 05:24 AM, Sakari Ailus wrote:
+>> On 05/08/2018 03:28 AM, Sakari Ailus wrote:
+>>> Hi Steve,
+>>>
+>>> Again, sorry about the delay. This thread got buried in my inbox. :-(
+>>> Please see my reply below.
+>>>
+>>> On Mon, Apr 23, 2018 at 11:00:22AM -0700, Steve Longerbeam wrote:
+>>>> On 04/23/2018 12:14 AM, Sakari Ailus wrote:
 >>>>> Hi Steve,
 >>>>>
->>>>> Thanks for the patchset.
->>>>>
->>>>> On Tue, Mar 20, 2018 at 05:37:19PM -0700, Steve Longerbeam wrote:
->>>>>> v4l2_async_notifier_add_subdev() adds an asd to the notifier. It checks
->>>>>> that the asd's match_type is valid and that no other equivalent asd's
->>>>>> have already been added to this notifier's asd list, or to other
->>>>>> registered notifier's waiting or done lists, and increments num_subdevs.
+>>>>> On Tue, Mar 20, 2018 at 05:37:21PM -0700, Steve Longerbeam wrote:
+>>>>>> Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
+>>>>>> for parsing a sub-device's fwnode port endpoints for connected remote
+>>>>>> sub-devices, registering a sub-device notifier, and then registering
+>>>>>> the sub-device itself.
 >>>>>>
->>>>>> v4l2_async_notifier_add_subdev() does not make use of the notifier subdevs
->>>>>> array, otherwise it would have to re-allocate the array every time the
->>>>>> function was called. In place of the subdevs array, the function adds
->>>>>> the asd to a new master asd_list. The function will return error with a
->>>>>> WARN() if it is ever called with the subdevs array allocated.
+>>>>>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>>>>>> ---
+>>>>>> Changes since v2:
+>>>>>> - fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
+>>>>>>      to put device.
+>>>>>> Changes since v1:
+>>>>>> - add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
+>>>>>>      'struct v4l2_subdev' declaration.
+>>>>>> ---
+>>>>>>     drivers/media/v4l2-core/v4l2-fwnode.c | 101 ++++++++++++++++++++++++++++++++++
+>>>>>>     include/media/v4l2-fwnode.h           |  43 +++++++++++++++
+>>>>>>     2 files changed, 144 insertions(+)
 >>>>>>
->>>>>> In v4l2_async_notifier_has_async_subdev(), __v4l2_async_notifier_register(),
->>>>>> and v4l2_async_notifier_cleanup(), alternatively operate on the subdevs
->>>>>> array or a non-empty notifier->asd_list.
->>>>> I do agree with the approach, but this patch leaves the remaining users of
->>>>> the subdevs array in the notifier intact. Could you rework them to use the
->>>>> v4l2_async_notifier_add_subdev() as well?
->>>>>
->>>>> There seem to be just a few of them --- exynos4-is and rcar_drif.
->>>> I count more than a few :)
+>>>>>> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+>>>>>> index 99198b9..d42024d 100644
+>>>>>> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+>>>>>> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+>>>>>> @@ -880,6 +880,107 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
+>>>>>>     }
+>>>>>>     EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
+>>>>>> +int v4l2_async_register_fwnode_subdev(
+>>>>>> +	struct v4l2_subdev *sd, size_t asd_struct_size,
+>>>>>> +	unsigned int *ports, unsigned int num_ports,
+>>>>>> +	int (*parse_endpoint)(struct device *dev,
+>>>>>> +			      struct v4l2_fwnode_endpoint *vep,
+>>>>>> +			      struct v4l2_async_subdev *asd))
+>>>>>> +{
+>>>>>> +	struct v4l2_async_notifier *notifier;
+>>>>>> +	struct device *dev = sd->dev;
+>>>>>> +	struct fwnode_handle *fwnode;
+>>>>>> +	unsigned int subdev_port;
+>>>>>> +	bool is_port;
+>>>>>> +	int ret;
+>>>>>> +
+>>>>>> +	if (WARN_ON(!dev))
+>>>>>> +		return -ENODEV;
+>>>>>> +
+>>>>>> +	fwnode = dev_fwnode(dev);
+>>>>>> +	if (!fwnode_device_is_available(fwnode))
+>>>>>> +		return -ENODEV;
+>>>>>> +
+>>>>>> +	is_port = (is_of_node(fwnode) &&
+>>>>>> +		   of_node_cmp(to_of_node(fwnode)->name, "port") == 0);
+>>>>> What's the intent of this and the code below? You may not parse the graph
+>>>>> data structure here, it should be done in the actual firmware
+>>>>> implementation instead.
+>>>> The i.MX6 CSI sub-device registers itself from a port fwnode, so
+>>>> the intent of the is_port code below is to support the i.MX6 CSI.
 >>>>
->>>> % cd drivers/media && grep -l -r --include "*.[ch]"
->>>> 'notifier[\.\-]>*subdevs[   ]*='
->>>> v4l2-core/v4l2-async.c
->>>> platform/pxa_camera.c
->>>> platform/ti-vpe/cal.c
->>>> platform/exynos4-is/media-dev.c
->>>> platform/qcom/camss-8x16/camss.c
->>>> platform/soc_camera/soc_camera.c
->>>> platform/atmel/atmel-isi.c
->>>> platform/atmel/atmel-isc.c
->>>> platform/stm32/stm32-dcmi.c
->>>> platform/davinci/vpif_capture.c
->>>> platform/davinci/vpif_display.c
->>>> platform/renesas-ceu.c
->>>> platform/am437x/am437x-vpfe.c
->>>> platform/xilinx/xilinx-vipp.c
->>>> platform/rcar_drif.c
->>>>
->>>>
->>>> So not including v4l2-core, the list is:
->>>>
->>>> pxa_camera
->>>> ti-vpe
->>>> exynos4-is
->>>> qcom
->>>> soc_camera
->>>> atmel
->>>> stm32
->>>> davinci
->>>> renesas-ceu
->>>> am437x
->>>> xilinx
->>>> rcar_drif
->>>>
->>>>
->>>> Given such a large list of the users of the notifier->subdevs array,
->>>> I think this should be done is two steps: submit this patchset first,
->>>> that keeps the backward compatibility, and then a subsequent patchset
->>>> that converts all drivers to use v4l2_async_notifier_add_subdev(), at
->>>> which point the subdevs array can be removed from struct
->>>> v4l2_async_notifier.
->>>>
->>>> Or, do you still think this should be done all at once? I could add a
->>>> large patch to this patchset that does the conversion and removes
->>>> the subdevs array.
->>> Sorry for the delay. I grepped for this, too, but I guess I ended up using
->>> an expression that missed most of the users. :-(
->>>
->>> I think it'd be very good to perform that conversion --- the code in the
->>> framework would be quite a bit cleaner and easier to maintain whereas the
->>> per-driver conversions seem pretty simple, such as this on in
->>> drivers/media/platform/atmel/atmel-isi.c :
->>>
->>> 	/* Register the subdevices notifier. */
->>> 	subdevs = devm_kzalloc(isi->dev, sizeof(*subdevs), GFP_KERNEL);
->>> 	if (!subdevs) {
->>> 	        of_node_put(isi->entity.node);
->>> 		return -ENOMEM;
->>> 	}
->>>
->>> 	subdevs[0] = &isi->entity.asd;
->>>
->>> 	isi->notifier.subdevs = subdevs;
->>> 	isi->notifier.num_subdevs = 1;
->>> 	isi->notifier.ops = &isi_graph_notify_ops;
+>>>> I can remove the is_port checks, but it means
+>>>> v4l2_async_register_fwnode_subdev() won't be usable by the CSI
+>>>> sub-device.
+>>> This won't scale.
+>> The vast majority of sub-devices register themselves as
+>> port parent nodes. So for now at least, I think
+>> v4l2_async_register_fwnode_subdev() could be useful to many
+>> platforms.
 >>
->> Yes, the conversions are fairly straightforward. I've completed that work,
->> but it was a very manual conversion, every platform is different and needed
->> careful study.
+>>>    Instead, I think we'd need to separate registering
+>>> sub-devices (through async sub-devices) and binding them with the driver
+>>> that registered the notifier. Or at least change how that process works: a
+>>> single sub-device can well be bound to multiple notifiers,
+>> Ok, that is certainly not the case now, a sub-device can only
+>> be bound to a single notifier.
 >>
->> Although I was careful about getting the error-out paths correct, there
->> could
->> be mistakes there, which would result in memory leaks. And obviously I can't
->> re-test all these platforms. So this patch is very high-risk. More eyes are
->> needed on it, ideally the maintainer(s) of each affected platform.
+>>>    or multiple
+>>> times to the same notifier while it may be registered only once.
+>> Anyway, this is a future generalization if I understand you
+>> correctly. Not something to deal with here.
 >>
->> I just submitted v4 of this series, but did not include this large un-tested
->> patch in v4 for those reasons.
->>
->> Instead, this patch, and follow-up patches that strips support for subdevs
->> array altogether from v4l2-async.c, and updates rst docs, are available at
->> my
->> media-tree mirror on github:
->>
->> git@github.com:slongerbeam/mediatree.git
->>
->> in the branch 'remove-subdevs-array'. The branch is based off this series
->> (branch 'imx-subdev-notifiers.6').
-> Would you be able to post these to the list? I'd really like this being
-> done as part of the related patchset, rather than leaving the mess in the
-> framework.
+>>>>> Also, sub-devices generally do not match ports.
+>>>> Yes that's generally true, sub-devices generally match to port parent
+>>>> nodes. But I do know of one other sub-device that buck that trend.
+>>>> The ADV748x CSI-2 output sub-devices match against endpoint nodes.
+>>> Endpoints, yes, but not ports.
+>> Well, the imx CSI registers from a port node.
+> I looked at the imx driver and it appears to be parsing DT without much
+> help from the frameworks; graph or V4L2 fwnode. Is there a reason to do so,
+> other than it's a staging driver? :-)
 
-Backward compatibility can look messy.
+That's the whole point of this patchset. It gets rid of the code in imx
+that discovers subdevices by recursively walking the graph, replacing
+with the subdev notifier framework.
 
-I can include the patch that converts all platforms at once. But as I
-said it is completely untested.
 
-So I'm curious, what is the policy in V4L2 community regarding
-merging untested patches? Do we go ahead and merge and then
-fixup errors as they are discovered, or should the patch get basic
-validation by everyone who has access to the affected hardware
-first?
+>
+> Do you happen to have any DT source (or bindings) for this?
+
+Documentation/devicetree/bindings/media/imx.txt.
+
+For example DT source, it's all in the imx6 reference boards,
+see imx6qdl-sabresd.dtsi for example.
+
+>   It'd help to understand what is the aim here.
+
+The aim of what? Of this specific commit? I'll reprint it here:
+
+Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
+for parsing a sub-device's fwnode port endpoints for connected remote
+sub-devices, registering a sub-device notifier, and then registering
+the sub-device itself.
+
 
 Steve
