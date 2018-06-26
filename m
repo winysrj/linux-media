@@ -1,78 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dragon.icm.edu.pl ([213.135.60.13]:37993 "EHLO
-        dragon.icm.edu.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935001AbeFYUPU (ORCPT
+Received: from mail-it0-f68.google.com ([209.85.214.68]:54766 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751025AbeFZGL6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Jun 2018 16:15:20 -0400
-Received: from [95.160.15.100] (helo=pc-b29)
-        by dragon.icm.edu.pl with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.89)
-        (envelope-from <rrp@dragon.icm.edu.pl>)
-        id 1fXXmU-0005o9-3s
-        for linux-media@vger.kernel.org; Mon, 25 Jun 2018 20:08:10 +0000
-Date: Mon, 25 Jun 2018 20:08:09 +0000
-From: Robert Paciorek <robert@opcode.eu.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [libdvbv5] basic support for videoX and audioX devices
-Message-ID: <20180625200809.7fb10f6f@pc-b29>
+        Tue, 26 Jun 2018 02:11:58 -0400
+Received: by mail-it0-f68.google.com with SMTP id 76-v6so554974itx.4
+        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2018 23:11:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/Su/sBbJDNAEgrzPLL1X5ZSD"
+In-Reply-To: <20180305100432.15009-1-maxime.ripard@bootlin.com>
+References: <20180305100432.15009-1-maxime.ripard@bootlin.com>
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Tue, 26 Jun 2018 11:41:56 +0530
+Message-ID: <CAMty3ZBQXyvOnzy_9RLDW-QO9qnAC4SR5UJnWYmhiPrP23z_vg@mail.gmail.com>
+Subject: Re: [PATCH 0/4] media: sun6i: Add support for the H3 CSI controller
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Yong Deng <yong.deng@magewell.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Chen-Yu Tsai <wens@csie.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/Su/sBbJDNAEgrzPLL1X5ZSD
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Mon, Mar 5, 2018 at 3:34 PM, Maxime Ripard <maxime.ripard@bootlin.com> w=
+rote:
+> Hi,
+>
+> The H3 and H5 have a CSI controller based on the one previously found
+> in the A31, that is currently supported by the sun6i-csi driver.
+>
+> Add the compatibles to the device tree bindings and to the driver to
+> make it work properly.
+>
+> This obviously depends on the serie "Initial Allwinner V3s CSI
+> Support" by Yong Deng.
+>
+> Let me know what you think,
+> Maxime
+>
+> Maxime Ripard (2):
+>   dt-bindings: media: sun6i: Add A31 and H3 compatibles
+>   media: sun6i: Add A31 compatible
+>
+> Myl=C3=A8ne Josserand (2):
+>   ARM: dts: sun8i: Add the H3/H5 CSI controller
+>   [DO NOT MERGE] ARM: dts: sun8i: Add CAM500B camera module to the Nano
+>     Pi M1+
 
-Hi,
+Just trying to understand what interface has been tested with npi-m1+,
+is it DVP (parallel) interface? I've Bananapi 5MP[1] and trying to
+test on top, and look like its MIPI CSI2. I guess Yong patch[2]
+doesn't support CSI2 yet, am I correct?
 
-currently libdvbv5 generate warning about ignoring dvb output devices
-(videoX and audioX):
-	WARNING  Ignoring device /dev/dvb/adapter0/audio0
-	WARNING  Ignoring device /dev/dvb/adapter0/video0
-and does not allow search and open those devices.
+[1] https://www.amazon.in/Generic-V3-0-BPI-M3-camera-chipset/dp/B0727N5CD1
+[2] https://patchwork.kernel.org/patch/10380067/
 
-DVB output device are used (for example) in Linux based STB devices and
-IMHO would be nice to be able to handle them with libdvbv5.
+Jagan.
 
-Attached patch enabled elementary support for those devices - remove
-warning and allow search it by dvb_dev_seek_by_adapter(), open and
-close with dvb_dev_* functions.
-
-Best Regards,
-Robert Paciorek
-
---MP_/Su/sBbJDNAEgrzPLL1X5ZSD
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=video_audio_dev.patch
-
-diff --git a/lib/include/libdvbv5/dvb-dev.h b/lib/include/libdvbv5/dvb-dev.h
-index 6dbd2ae..2eeae51 100644
---- a/lib/include/libdvbv5/dvb-dev.h
-+++ b/lib/include/libdvbv5/dvb-dev.h
-@@ -62,6 +62,8 @@ enum dvb_dev_type {
- 	DVB_DEVICE_NET,
- 	DVB_DEVICE_CA,
- 	DVB_DEVICE_CA_SEC,
-+	DVB_DEVICE_VIDEO,
-+	DVB_DEVICE_AUDIO,
- };
- 
- /**
-diff --git a/lib/libdvbv5/dvb-dev.c b/lib/libdvbv5/dvb-dev.c
-index 9a0952b..c379f40 100644
---- a/lib/libdvbv5/dvb-dev.c
-+++ b/lib/libdvbv5/dvb-dev.c
-@@ -37,7 +37,7 @@
- #endif
- 
- const char * const dev_type_names[] = {
--        "frontend", "demux", "dvr", "net", "ca", "sec"
-+        "frontend", "demux", "dvr", "net", "ca", "sec", "video", "audio"
- };
- 
- const unsigned int
-
---MP_/Su/sBbJDNAEgrzPLL1X5ZSD--
+--=20
+Jagan Teki
+Senior Linux Kernel Engineer | Amarula Solutions
+U-Boot, Linux | Upstream Maintainer
+Hyderabad, India.
