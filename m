@@ -1,39 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34397 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935437AbeFZNyB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 09:54:01 -0400
-Date: Tue, 26 Jun 2018 16:53:55 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart+renesas@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 04/32] media: Rename CAMSS driver path
-Message-ID: <20180626135355.ffkssccfqwhfb53f@kekkonen.localdomain>
-References: <1529681621-9682-1-git-send-email-todor.tomov@linaro.org>
- <1529681621-9682-5-git-send-email-todor.tomov@linaro.org>
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:9181 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965824AbeFZOL2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Jun 2018 10:11:28 -0400
+Subject: Re: [PATCH v2 10/10] i2c: remove i2c_lock_adapter and use
+ i2c_lock_bus directly
+To: Peter Rosin <peda@axentia.se>, <linux-kernel@vger.kernel.org>
+CC: Peter Huewe <peterhuewe@gmx.de>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linaro.org>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        <linux-integrity@vger.kernel.org>, <linux-i2c@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-samsung-soc@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>
+References: <20180620051803.12206-1-peda@axentia.se>
+ <20180620051803.12206-11-peda@axentia.se>
+From: Sekhar Nori <nsekhar@ti.com>
+Message-ID: <4e0545e3-fee9-cf29-bae1-e442347e3cb8@ti.com>
+Date: Tue, 26 Jun 2018 19:39:43 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1529681621-9682-5-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <20180620051803.12206-11-peda@axentia.se>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
-
-On Fri, Jun 22, 2018 at 06:33:13PM +0300, Todor Tomov wrote:
-> Support for camera subsystem on QComm MSM8996/APQ8096 is to be added
-> so remove hardware version from CAMSS driver's path.
+On Wednesday 20 June 2018 10:48 AM, Peter Rosin wrote:
+> The i2c_lock_adapter name is ambiguous since it is unclear if it
+> refers to the root adapter or the adapter you name in the argument.
+> The natural interpretation is the adapter you name in the argument,
+> but there are historical reasons for that not being the case; it
+> in fact locks the root adapter. Just remove the function and force
+> users to spell out the I2C_LOCK_ROOT_ADAPTER name to indicate what
+> is really going on. Also remove i2c_unlock_adapter, of course.
 > 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> This patch was generated with
+> 
+> git grep -l 'i2c_\(un\)\?lock_adapter' \
+> | xargs sed -i 's/i2c_\(un\)\?lock_adapter(\([^)]*\))/'\
+> 'i2c_\1lock_bus(\2, I2C_LOCK_ROOT_ADAPTER)/g'
+> 
+> followed by white-space touch-up.
+> 
+> Signed-off-by: Peter Rosin <peda@axentia.se>
+> ---
+>  drivers/i2c/busses/i2c-brcmstb.c   |  8 ++++----
+>  drivers/i2c/busses/i2c-davinci.c   |  4 ++--
 
-The patch didn't make it to the list... if you're renaming or moving files,
-could you add -C option to git format-patch? It tends to produce a lot
-smaller and easier to review patches.
+On DM644x and DA850 EVMs applying this series does not seem to break I2C
+functionality. So:
 
-Thanks.
+Tested-by: Sekhar Nori <nsekhar@ti.com>
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Thanks,
+Sekhar
