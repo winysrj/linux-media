@@ -1,71 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41314 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933814AbeFZMLO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 08:11:14 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id DF1CA634C7F
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2018 15:11:12 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1fXmoS-0000qu-Nh
-        for linux-media@vger.kernel.org; Tue, 26 Jun 2018 15:11:12 +0300
-Date: Tue, 26 Jun 2018 15:11:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2 for 4.19] Add "rotation" property for sensors, use it
-Message-ID: <20180626121112.yx65wp6zuigro54t@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:29748 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933658AbeFZMIV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Jun 2018 08:08:21 -0400
+Message-ID: <6131ffd5cd7455426ea5f68633d5a8c8dd8457bb.camel@linux.intel.com>
+Subject: Re: [PATCH v2 01/10] tpm/tpm_i2c_infineon: switch to
+ i2c_lock_bus(..., I2C_LOCK_SEGMENT)
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To: Alexander Steffen <Alexander.Steffen@infineon.com>,
+        Peter Rosin <peda@axentia.se>
+Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Gregory Fong <gregory.0xf0@gmail.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Sekhar Nori <nsekhar@ti.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Haavard Skinnemoen <hskinnemoen@gmail.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang@linaro.org>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Hartmut Knaack <knaack.h@gmx.de>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Lee Jones <lee.jones@linaro.org>,
+        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Date: Tue, 26 Jun 2018 15:07:59 +0300
+In-Reply-To: <6169da633eab7e68d645e6b933b605dcc9ae09f1.camel@linux.intel.com>
+References: <20180620051803.12206-1-peda@axentia.se>
+         <20180620051803.12206-2-peda@axentia.se>
+         <20180625102454.GA3845@linux.intel.com>
+         <7703d6a2-b22c-104c-7390-b5143a504725@infineon.com>
+         <6169da633eab7e68d645e6b933b605dcc9ae09f1.camel@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Tue, 2018-06-26 at 15:05 +0300, Jarkko Sakkinen wrote:
+> On Tue, 2018-06-26 at 12:07 +0200, Alexander Steffen wrote:
+> > On 25.06.2018 12:24, Jarkko Sakkinen wrote:
+> > > On Wed, Jun 20, 2018 at 07:17:54AM +0200, Peter Rosin wrote:
+> > > > Locking the root adapter for __i2c_transfer will deadlock if the
+> > > > device sits behind a mux-locked I2C mux. Switch to the finer-grained
+> > > > i2c_lock_bus with the I2C_LOCK_SEGMENT flag. If the device does not
+> > > > sit behind a mux-locked mux, the two locking variants are equivalent.
+> > > > 
+> > > > Signed-off-by: Peter Rosin <peda@axentia.se>
+> > > 
+> > > Studied enough so that I can give
+> > > 
+> > > Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+> > > 
+> > > Do not have hardware to test this, however.
+> > 
+> > I don't have a mux-locked I2C mux either, but at least I can confirm 
+> > that this change did not break my existing test setup (SLB9635/SLB9645 
+> > on Raspberry Pi 2B).
+> > 
+> > Tested-by: Alexander Steffen <Alexander.Steffen@infineon.com>
+> > 
+> > Alexander
+> 
+> Given the scope of the change and since analogous change works for
+> every other subsystem, this should be enough! Thank you.
 
-This pull request adds the "rotation" property already used for display
-panels for sensors. Support for the property is added to the smiapp and
-ov5640 drivers.
+It is now applied to my tree (master). I will move it to the
+next branch once James has updated security/next-general.
 
-Since v1, the bindings have been split of from the driver patches and there
-are improvements in binding documentation.
-
-Please pull.
-
-
-The following changes since commit f2809d20b9250c675fca8268a0f6274277cca7ff:
-
-  media: omap2: fix compile-testing with FB_OMAP2=m (2018-06-05 09:56:56 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git v4l2-rotation
-
-for you to fetch changes up to 1a2b68f7db247da7b46cf06d5a8f57a6de8fd74b:
-
-  media: ov5640: add support of module orientation (2018-06-21 13:46:45 +0300)
-
-----------------------------------------------------------------
-Hugues Fruchet (3):
-      media: ov5640: add HFLIP/VFLIP controls support
-      dt-bindings: ov5640: Add "rotation" property
-      media: ov5640: add support of module orientation
-
-Sakari Ailus (3):
-      dt-bindings: media: Define "rotation" property for sensors
-      dt-bindings: smia: Add "rotation" property
-      smiapp: Support the "rotation" property
-
- .../devicetree/bindings/media/i2c/nokia,smia.txt   |   3 +
- .../devicetree/bindings/media/i2c/ov5640.txt       |   5 +
- .../devicetree/bindings/media/video-interfaces.txt |   4 +
- drivers/media/i2c/ov5640.c                         | 127 ++++++++++++++++++---
- drivers/media/i2c/smiapp/smiapp-core.c             |  16 +++
- 5 files changed, 137 insertions(+), 18 deletions(-)
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+/Jarkko
