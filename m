@@ -1,163 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga17.intel.com ([192.55.52.151]:37647 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751869AbeFZHp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 03:45:28 -0400
-Date: Tue, 26 Jun 2018 10:45:22 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 05/13] media: v4l2-fwnode: Add a convenience function
- for registering subdevs with notifiers
-Message-ID: <20180626074522.zhgolz47k6xyf4qt@kekkonen.localdomain>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
- <1521592649-7264-6-git-send-email-steve_longerbeam@mentor.com>
- <20180423071444.2rsqvlvlfvpoxpbu@paasikivi.fi.intel.com>
- <8e59e530-9d13-c1ae-5f0b-6205a7b21182@gmail.com>
- <20180508102825.xamrlnnipknsoi62@kekkonen.localdomain>
- <40dae271-2d82-6119-e289-aec07147dce5@gmail.com>
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:46926 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932189AbeFZIRp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Jun 2018 04:17:45 -0400
+Received: by mail-ed1-f68.google.com with SMTP id r17-v6so428661edo.13
+        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2018 01:17:44 -0700 (PDT)
+Date: Tue, 26 Jun 2018 10:17:40 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Akhil P Oommen <akhilpo@codeaurora.org>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+        Gustavo Padovan <gustavo@padovan.org>, sumit.semwal@linaro.org,
+        jcrouse@codeaurora.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        smasetty@codeaurora.org
+Subject: Re: [PATCH v2] dma-buf/fence: Take refcount on the module that owns
+ the fence
+Message-ID: <20180626081740.GT2958@phenom.ffwll.local>
+References: <1529660407-6266-1-git-send-email-akhilpo@codeaurora.org>
+ <1529661856.7034.404.camel@padovan.org>
+ <152966212844.11773.6596589902326100250@mail.alporthouse.com>
+ <20180625075040.GK2958@phenom.ffwll.local>
+ <82f8e976-2a5a-56df-28bb-c75314824bf6@codeaurora.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <40dae271-2d82-6119-e289-aec07147dce5@gmail.com>
+In-Reply-To: <82f8e976-2a5a-56df-28bb-c75314824bf6@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 08, 2018 at 08:55:04PM -0700, Steve Longerbeam wrote:
+On Mon, Jun 25, 2018 at 09:21:15PM +0530, Akhil P Oommen wrote:
 > 
 > 
-> On 05/08/2018 03:28 AM, Sakari Ailus wrote:
-> > Hi Steve,
-> > 
-> > Again, sorry about the delay. This thread got buried in my inbox. :-(
-> > Please see my reply below.
-> > 
-> > On Mon, Apr 23, 2018 at 11:00:22AM -0700, Steve Longerbeam wrote:
-> > > 
-> > > On 04/23/2018 12:14 AM, Sakari Ailus wrote:
-> > > > Hi Steve,
+> On 6/25/2018 1:20 PM, Daniel Vetter wrote:
+> > On Fri, Jun 22, 2018 at 11:08:48AM +0100, Chris Wilson wrote:
+> > > Quoting Gustavo Padovan (2018-06-22 11:04:16)
+> > > > Hi Akhil,
 > > > > 
-> > > > On Tue, Mar 20, 2018 at 05:37:21PM -0700, Steve Longerbeam wrote:
-> > > > > Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
-> > > > > for parsing a sub-device's fwnode port endpoints for connected remote
-> > > > > sub-devices, registering a sub-device notifier, and then registering
-> > > > > the sub-device itself.
+> > > > On Fri, 2018-06-22 at 15:10 +0530, Akhil P Oommen wrote:
+> > > > > Each fence object holds function pointers of the module that
+> > > > > initialized
+> > > > > it. Allowing the module to unload before this fence's release is
+> > > > > catastrophic. So, keep a refcount on the module until the fence is
+> > > > > released.
 > > > > > 
-> > > > > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> > > > > Signed-off-by: Akhil P Oommen <akhilpo@codeaurora.org>
 > > > > > ---
-> > > > > Changes since v2:
-> > > > > - fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
-> > > > >     to put device.
-> > > > > Changes since v1:
-> > > > > - add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
-> > > > >     'struct v4l2_subdev' declaration.
-> > > > > ---
-> > > > >    drivers/media/v4l2-core/v4l2-fwnode.c | 101 ++++++++++++++++++++++++++++++++++
-> > > > >    include/media/v4l2-fwnode.h           |  43 +++++++++++++++
-> > > > >    2 files changed, 144 insertions(+)
+> > > > > Changes in v2:
+> > > > > - added description for the new function parameter.
 > > > > > 
-> > > > > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > > index 99198b9..d42024d 100644
-> > > > > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > > @@ -880,6 +880,107 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
-> > > > >    }
-> > > > >    EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
-> > > > > +int v4l2_async_register_fwnode_subdev(
-> > > > > +	struct v4l2_subdev *sd, size_t asd_struct_size,
-> > > > > +	unsigned int *ports, unsigned int num_ports,
-> > > > > +	int (*parse_endpoint)(struct device *dev,
-> > > > > +			      struct v4l2_fwnode_endpoint *vep,
-> > > > > +			      struct v4l2_async_subdev *asd))
-> > > > > +{
-> > > > > +	struct v4l2_async_notifier *notifier;
-> > > > > +	struct device *dev = sd->dev;
-> > > > > +	struct fwnode_handle *fwnode;
-> > > > > +	unsigned int subdev_port;
-> > > > > +	bool is_port;
-> > > > > +	int ret;
+> > > > >   drivers/dma-buf/dma-fence.c | 16 +++++++++++++---
+> > > > >   include/linux/dma-fence.h   | 10 ++++++++--
+> > > > >   2 files changed, 21 insertions(+), 5 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/dma-buf/dma-fence.c b/drivers/dma-buf/dma-
+> > > > > fence.c
+> > > > > index 4edb9fd..2aaa44e 100644
+> > > > > --- a/drivers/dma-buf/dma-fence.c
+> > > > > +++ b/drivers/dma-buf/dma-fence.c
+> > > > > @@ -18,6 +18,7 @@
+> > > > >    * more details.
+> > > > >    */
+> > > > > +#include <linux/module.h>
+> > > > >   #include <linux/slab.h>
+> > > > >   #include <linux/export.h>
+> > > > >   #include <linux/atomic.h>
+> > > > > @@ -168,6 +169,7 @@ void dma_fence_release(struct kref *kref)
+> > > > >   {
+> > > > >        struct dma_fence *fence =
+> > > > >                container_of(kref, struct dma_fence, refcount);
+> > > > > +     struct module *module = fence->owner;
+> > > > >        trace_dma_fence_destroy(fence);
+> > > > > @@ -178,6 +180,8 @@ void dma_fence_release(struct kref *kref)
+> > > > >                fence->ops->release(fence);
+> > > > >        else
+> > > > >                dma_fence_free(fence);
 > > > > > +
-> > > > > +	if (WARN_ON(!dev))
-> > > > > +		return -ENODEV;
+> > > > > +     module_put(module);
+> > > > >   }
+> > > > >   EXPORT_SYMBOL(dma_fence_release);
+> > > > > @@ -541,6 +545,7 @@ struct default_wait_cb {
+> > > > >   /**
+> > > > >    * dma_fence_init - Initialize a custom fence.
+> > > > > + * @module:  [in]    the module that calls this API
+> > > > >    * @fence:   [in]    the fence to initialize
+> > > > >    * @ops:     [in]    the dma_fence_ops for operations on this
+> > > > > fence
+> > > > >    * @lock:    [in]    the irqsafe spinlock to use for locking
+> > > > > this fence
+> > > > > @@ -556,8 +561,9 @@ struct default_wait_cb {
+> > > > >    * to check which fence is later by simply using dma_fence_later.
+> > > > >    */
+> > > > >   void
+> > > > > -dma_fence_init(struct dma_fence *fence, const struct dma_fence_ops
+> > > > > *ops,
+> > > > > -            spinlock_t *lock, u64 context, unsigned seqno)
+> > > > > +_dma_fence_init(struct module *module, struct dma_fence *fence,
+> > > > > +             const struct dma_fence_ops *ops, spinlock_t *lock,
+> > > > > +             u64 context, unsigned seqno)
+> > > > >   {
+> > > > >        BUG_ON(!lock);
+> > > > >        BUG_ON(!ops || !ops->wait || !ops->enable_signaling ||
+> > > > > @@ -571,7 +577,11 @@ struct default_wait_cb {
+> > > > >        fence->seqno = seqno;
+> > > > >        fence->flags = 0UL;
+> > > > >        fence->error = 0;
+> > > > > +     fence->owner = module;
 > > > > > +
-> > > > > +	fwnode = dev_fwnode(dev);
-> > > > > +	if (!fwnode_device_is_available(fwnode))
-> > > > > +		return -ENODEV;
-> > > > > +
-> > > > > +	is_port = (is_of_node(fwnode) &&
-> > > > > +		   of_node_cmp(to_of_node(fwnode)->name, "port") == 0);
-> > > > What's the intent of this and the code below? You may not parse the graph
-> > > > data structure here, it should be done in the actual firmware
-> > > > implementation instead.
-> > > The i.MX6 CSI sub-device registers itself from a port fwnode, so
-> > > the intent of the is_port code below is to support the i.MX6 CSI.
+> > > > > +     if (!try_module_get(module))
+> > > > > +             fence->owner = NULL;
+> > > > >        trace_dma_fence_init(fence);
+> > > > >   }
+> > > > > -EXPORT_SYMBOL(dma_fence_init);
+> > > > > +EXPORT_SYMBOL(_dma_fence_init);
+> > > > Do we still need to export the symbol, it won't be called from outside
+> > > > anymore? Other than that looks good to me:
+> > > There's a big drawback in that a module reference is often insufficient,
+> > > and that a reference on the driver (or whatever is required for the
+> > > lifetime of the fence) will already hold the module reference.
 > > > 
-> > > I can remove the is_port checks, but it means
-> > > v4l2_async_register_fwnode_subdev() won't be usable by the CSI
-> > > sub-device.
-> > This won't scale.
-> 
-> The vast majority of sub-devices register themselves as
-> port parent nodes. So for now at least, I think
-> v4l2_async_register_fwnode_subdev() could be useful to many
-> platforms.
-> 
-> >   Instead, I think we'd need to separate registering
-> > sub-devices (through async sub-devices) and binding them with the driver
-> > that registered the notifier. Or at least change how that process works: a
-> > single sub-device can well be bound to multiple notifiers,
-> 
-> Ok, that is certainly not the case now, a sub-device can only
-> be bound to a single notifier.
-> 
-> >   or multiple
-> > times to the same notifier while it may be registered only once.
-> 
-> Anyway, this is a future generalization if I understand you
-> correctly. Not something to deal with here.
-> 
+> > > Considering that we want a few 100k fences in flight per second, is
+> > > there no other way to only export a fence with a module reference?
+> > We'd need to make the timeline a full-blown object (Maarten owes me one
+> > for that design screw-up), and then we could stuff all these things in
+> > there.
 > > 
-> > > > Also, sub-devices generally do not match ports.
-> > > Yes that's generally true, sub-devices generally match to port parent
-> > > nodes. But I do know of one other sub-device that buck that trend.
-> > > The ADV748x CSI-2 output sub-devices match against endpoint nodes.
-> > Endpoints, yes, but not ports.
+> > And I think that's the right fix, since try_module_get for every
+> > dma_fence_init just ain't cool really :-)
+> > -Daniel
+> Thanks for the feedback, Daniel.
+> I see your point, but I am not sure how much impact an extra refcounting
+> would create considering the whole effort of setting up a new fence. Also,
+> this refcounting is not required for built-in modules.
 > 
-> Well, the imx CSI registers from a port node.
+> As of now, unloading a kernel module that uses fence_init() is an easy way
+> to bring down the system. This patch simply fixes that. What you have
+> suggested sounds like a non-trivial effort which someone who is more
+> familiar with this code base can do a better job than me. Perhaps we can
+> take this patch now to fix the issue at hand and later somebody else can
+> share a more optimal solution. :)
 
-I looked at the imx driver and it appears to be parsing DT without much
-help from the frameworks; graph or V4L2 fwnode. Is there a reason to do so,
-other than it's a staging driver? :-)
+Module unload is a developer-only feature for a reason. Given that I don't
+think fixing this with a hack is the right approach. And dma_fence_init()
+is supposed to be really fast.
 
-Do you happen to have any DT source (or bindings) for this? It'd help to
-understand what is the aim here.
+Also note that you can fix this already for your own driver by simply
+waiting for all pending dma_fences to get released, so I don't think it's
+super-important to land this asap.
+
+Yes the real fix is a bit more involved, but shouldn't be too hard to pull
+off really.
+-Daniel
 
 > 
-> > 
-> > > >    How sub-devices generally
-> > > > correspond to fwnodes is up to the device.
-> > > What do you think of adding a v4l2_async_register_port_fwnode_subdev(),
-> > > and a v4l2_async_register_endpoint_fwnode_subdev() to support such
-> > > sub-devices?
-> > The endpoint is more specific than a port, so why the port and not the
-> > endpoint?
+> @Gustavo & @Sumit, I would like the maintainers to take a decision here.
 > 
-> Do you mean there should be a
-> v4l2_async_register_endpoint_fwnode_subdev() but not
-> v4l2_async_register_endpoint_port_subdev()?
-> 
-> Steve
-> 
+> -Akhil.
+
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+
 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
