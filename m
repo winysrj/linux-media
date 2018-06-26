@@ -1,96 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:40332 "EHLO
-        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752201AbeFZUNE (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:40113 "EHLO
+        homiemail-a125.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751980AbeFZUJ5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 16:13:04 -0400
-Date: Tue, 26 Jun 2018 14:13:01 -0600
-From: Rob Herring <robh@kernel.org>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Simon Horman <horms@verge.net.au>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH/RFC 0/2] media: adv748x: Fix decimal unit addresses
-Message-ID: <20180626201301.GC30143@rob-hp-laptop>
-References: <1528984088-24801-1-git-send-email-geert+renesas@glider.be>
- <39b13aa8-ed02-5aaa-2422-728ace157ae3@ideasonboard.com>
+        Tue, 26 Jun 2018 16:09:57 -0400
+Subject: Re: [PATCH] media: em28xx: fix a regression with HVR-950
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Brad Love <brad@nextdimension.cc>
+References: <41857a8224110ed8044d5fbbdded8998129e5d7e.1520598094.git.mchehab@s-opensource.com>
+From: Brad Love <brad@nextdimension.cc>
+Message-ID: <89287fa5-a214-d86b-b991-84228b228280@nextdimension.cc>
+Date: Tue, 26 Jun 2018 15:09:55 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <39b13aa8-ed02-5aaa-2422-728ace157ae3@ideasonboard.com>
+In-Reply-To: <41857a8224110ed8044d5fbbdded8998129e5d7e.1520598094.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 14, 2018 at 04:50:49PM +0100, Kieran Bingham wrote:
-> Hi Geert,
-> 
-> On 14/06/18 14:48, Geert Uytterhoeven wrote:
-> > 	Hi Rob et al.
-> > 
-> > Recent dtc assumes unit addresses are always hexadecimal (without
-> > prefix), while the bases of reg property values depend on their
-> > prefixes, and thus can be either decimal or hexadecimal.
-> > 
-> > This leads to (with W=1):
-> > 
-> >      Warning (graph_port): video-receiver@70/port@10: graph node unit address error, expected "a"
-> >      Warning (graph_port): video-receiver@70/port@11: graph node unit address error, expected "b"
-> > 
-> > In this particular case, the unit addresses are (assumed hexadecimal) 10
-> > resp. 11, while the reg properties are decimal 10 resp. 11, and thus
-> > don't match.
-> > 
-> > This RFC patch series corrects the unit addresses to match the reg
-> > address values for the DT bindings for adi,adv748x and its users.
-> > There's at least one other violator (port@10 in
-> > arch/arm/boot/dts/vf610-zii-dev-rev-c.dts), which I didn't fix.
-> > 
-> > However, ePAPR v1.1 states:
-> > 
-> >      The unit-address component of the name is specific to the bus type
-> >      on which the node sits. It consists of one or more ASCII characters
-> >      from the set of characters in Table 2-1. The unit-address must match
-> >      the first address specified in the reg property of the node. If the
-> >      node has no reg property, the @ and unit-address must be omitted and
-> >      the node-name alone differentiates the node from other nodes at the
-> >      same level in the tree. The binding for a particular bus may specify
-> >      additional, more specific requirements for the format of reg and the
-> >      unit-address.
-> > 
-> > i.e. nothing about an hexadecimal address requirement?
+Hi Mauro,
 
-No, because unit-addresses are bus specific, so in theory a bus could 
-use decimal. However, it's pretty well established practice to use hex.
+It turns out this patch breaks DualHD multiple tuner capability. When
+alt mode is set in start_streaming it immediately kills the other tuners
+stream. Essentially both tuners cannot be used together when this is
+applied. I unfortunately don't have a HVR-950 to try and fix the
+original regression better. Can you please take another look at this?
+Until this is sorted, DualHD are effectively broken.
 
-> > Should this series be applied, or should the warnings be ignored, until
-> > dtc is fixed?
-> 
-> IMO - the ports are human readable indexes, and not hexadecimal. I'd be
-> loathed to see these become hex. .. especially if not prefixed by a 0x...
+Cheers,
 
-I read hex. :)
+Brad
 
-> Otherwise, is '10', Ten, or Sixteen? IMO - no 0x = decimal only.
 
-It's hex because *everywhere* else is hex. Having a mixture would just 
-invite more confusion and errors (especially because dtc only checks 
-cases it knows the bus type).
 
-For OF graph, I'm not that worried about it because 99% of the users 
-have 10 or less ports/endpoints.
 
-> That said - I look up and see "video-receiver@70", which is of course the
-> hexadecimal I2C address :(
-
-It is bad enough that I2C addresses get expressed in both 7 and 8-bits 
-(shifted up 1), using decimal there would be really fun.
-
-Rob
+On 2018-03-09 06:21, Mauro Carvalho Chehab wrote:
+> Changeset be7fd3c3a8c5 ("media: em28xx: Hauppauge DualHD second tuner
+> functionality") removed the logic with sets the alternate for the DVB
+> device. Without setting the right alternate, the device won't be
+> able to submit URBs, and userspace fails with -EMSGSIZE:
+>
+> 	ERROR     DMX_SET_PES_FILTER failed (PID =3D 0x2000): 90 Message too l=
+ong
+>
+> Tested with Hauppauge HVR-950 model A1C0.
+>
+> Cc: Brad Love <brad@nextdimension.cc>
+> Fixes: be7fd3c3a8c5 ("media: em28xx: Hauppauge DualHD second tuner func=
+tionality")
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-dvb.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/=
+em28xx/em28xx-dvb.c
+> index a54cb8dc52c9..2ce7de1c7cce 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -199,6 +199,7 @@ static int em28xx_start_streaming(struct em28xx_dvb=
+ *dvb)
+>  	int rc;
+>  	struct em28xx_i2c_bus *i2c_bus =3D dvb->adapter.priv;
+>  	struct em28xx *dev =3D i2c_bus->dev;
+> +	struct usb_device *udev =3D interface_to_usbdev(dev->intf);
+>  	int dvb_max_packet_size, packet_multiplier, dvb_alt;
+> =20
+>  	if (dev->dvb_xfer_bulk) {
+> @@ -217,6 +218,7 @@ static int em28xx_start_streaming(struct em28xx_dvb=
+ *dvb)
+>  		dvb_alt =3D dev->dvb_alt_isoc;
+>  	}
+> =20
+> +	usb_set_interface(udev, dev->ifnum, dvb_alt);
+>  	rc =3D em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+>  	if (rc < 0)
+>  		return rc;
