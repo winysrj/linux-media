@@ -1,66 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:50123 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752309AbeF0GXp (ORCPT
+Received: from smtp-1b-out-4.atlantis.sk ([80.94.52.30]:50544 "EHLO
+        smtp-1b-out-4.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752869AbeF0IC4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 02:23:45 -0400
-Subject: Re: V4L2_CID_USER_MAX217X_BASE == V4L2_CID_USER_IMX_BASE
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Helmut Grohne <h.grohne@intenta.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-References: <20180622075151.g24iiqfcg5pwbr73@laureti-dev>
- <0b2e6f14-3297-fc53-5af0-2494ac6c925f@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4618c951-1be5-c553-9108-b15c53c57b60@xs4all.nl>
-Date: Wed, 27 Jun 2018 08:23:38 +0200
+        Wed, 27 Jun 2018 04:02:56 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: safocl <safocl88@gmail.com>
+Subject: Re: kernel patch 2018-05-28 media: gspca_zc3xx: Implement proper autogain and exposure control for OV7648
+Date: Wed, 27 Jun 2018 10:02:51 +0200
+Cc: Hans Verkuil <hansverk@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20180622034913.c005e893af31fd98253315b2@gmail.com> <a9ee3753-82f1-5780-2485-bdd8f8c7d851@cisco.com>
+In-Reply-To: <a9ee3753-82f1-5780-2485-bdd8f8c7d851@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <0b2e6f14-3297-fc53-5af0-2494ac6c925f@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201806271002.51712.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/26/2018 11:21 PM, Steve Longerbeam wrote:
-> Hello Helmut,
+On 22/06/18 01:49, safocl wrote:
+> This patch makes it impossible to configure the exposure on webcams, specifically a4tech, with others was not checked. Seen from several users.
+> link to the Russian forum archlinux: https://archlinux.org.ru/forum/topic/18581/?page=1
 > 
+> was checked on webcam a4tech pk-910h idVendor = 0ac8, idProduct = 3500, bcdDevice = 10.07
 > 
-> On 06/22/2018 12:51 AM, Helmut Grohne wrote:
->> Hi,
->>
->> I found it strange that the macros V4L2_CID_USER_MAX217X_BASE and
->> V4L2_CID_USER_IMX_BASE have equal value even though each of them state
->> that they reserved a range. Those reservations look conflicting to me.
+> with the kernel before this commit, exposure adjustment is possible.
 > 
-> Yes, they conflict.
-> 
->> The macro V4L2_CID_USER_MAX217X_BASE came first,
-> 
-> No, imx came first. e1302912 ("media: Add i.MX media core driver")
-> is dated June 10, 2017. 8d67ae25 ("media: v4l2-ctrls: Reserve controls for
-> MAX217X") is dated two days later.
-> 
->>   and
->> V4L2_CID_USER_IMX_BASE was introduced in e130291212df ("media: Add i.MX
->> media core driver") with the conflicting assignment (not a merge error).
->> The authors of that patch mostly make up the recipient list.
-> 
-> There were 8 revisions of the imx-media driver posted. In all of
-> those postings, V4L2_CID_USER_MAX217X_BASE did not exist yet.
-> So it looks like 8d67ae25 was merged at the same time as e1302912
-> but the conflict went unnoticed.
-> 
-> Steve
+> commit link: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/commit/?id=6f92c3a22ccd66604b8b528221a9d8e1b3fb4e39
 > 
 
-Since imx is staging I propose that the IMX base is modified. Steve, can
-you make a patch for this changing 0x1090 to 0x10b0?
+0ac8:3500 is an UVC camera. This patch does not affect UVC cameras in any way.
 
-Regards,
-
-	Hans
+-- 
+Ondrej Zary
