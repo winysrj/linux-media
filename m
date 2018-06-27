@@ -1,45 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:43542 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965779AbeF0Sjw (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:56187 "EHLO
+        homiemail-a125.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934936AbeF0Tlm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 14:39:52 -0400
-Received: by mail-pg0-f65.google.com with SMTP id a14-v6so1299672pgw.10
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 11:39:51 -0700 (PDT)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH] media: v4l2-ctrls: Fix CID base conflict between MAX217X and IMX
-Date: Wed, 27 Jun 2018 11:39:43 -0700
-Message-Id: <1530124783-30835-1-git-send-email-steve_longerbeam@mentor.com>
+        Wed, 27 Jun 2018 15:41:42 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org, mchehab@infradead.org,
+        dheitmueller@kernellabs.com
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH] [RFC] em28xx: Fix dual transport stream use
+Date: Wed, 27 Jun 2018 14:41:22 -0500
+Message-Id: <1530128483-31662-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the imx-media driver was initially merged, there was a conflict
-with 8d67ae25 ("media: v4l2-ctrls: Reserve controls for MAX217X") which
-was not fixed up correctly, resulting in V4L2_CID_USER_MAX217X_BASE and
-V4L2_CID_USER_IMX_BASE taking on the same value. Fix by assigning imx
-CID base the next available range at 0x10b0.
+When dual transport stream support was added the call to set
+alt mode on the USB interface was moved to em28xx_dvb_init.
+This was reported to break streaming for a device, so the
+call was re-added to em28xx_start_streaming.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- include/uapi/linux/v4l2-controls.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Commit 509f89652f83 ("media: em28xx: fix a regression with HVR-950")
 
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 8d473c9..8a75ad7 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -188,7 +188,7 @@ enum v4l2_colorfx {
- 
- /* The base for the imx driver controls.
-  * We reserve 16 controls for this driver. */
--#define V4L2_CID_USER_IMX_BASE			(V4L2_CID_USER_BASE + 0x1090)
-+#define V4L2_CID_USER_IMX_BASE			(V4L2_CID_USER_BASE + 0x10b0)
- 
- /* MPEG-class control IDs */
- /* The MPEG controls are applicable to all codec controls
+This regression fix however broke dual transport stream support.
+When a tuner starts streaming it sets alt mode on the USB interface.
+The problem is both tuners share the same USB interface, so when
+the second tuner becomes active and sets alt mode on the interface
+it kills streaming on the other port.
+
+It was suggested add a refcount somewhere and only set alt mode if
+no tuners are currently active on the interface. This requires
+sharing some state amongst both tuner devices, with appropriate
+locking.
+
+What I've done here is the following:
+- Add a usage_count pointer to struct em28xx
+- Share usage_count between both em28xx devices
+- Only set alt mode if usage_count is zero
+- Increment usage_count when each tuner becomes active
+- Decrement usage_count when a tuner becomes idle
+
+With usage_count in the main em28xx struct, locking is handled as
+follows:
+- if a secondary tuner exists, lock dev->dev_next->lock
+- if no secondary tuner exists, lock dev->lock
+
+By using the above scheme a single tuner device, will lock itself,
+the first tuner in a dual tuner device will lock the second tuner,
+and the second tuner in a dual tuner device will lock itself aka
+the second tuner instance.
+
+This is a perhaps a little hacky, which is why I've added the RFC.
+A quick solution was required though, so I don't fix a couple
+newer Hauppauge devices, just to break a lot of older ones.
+
+
+Brad Love (1):
+  em28xx: Fix dual transport stream operation
+
+ drivers/media/usb/em28xx/em28xx-cards.c |  6 ++++-
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 47 +++++++++++++++++++++++++++++++--
+ drivers/media/usb/em28xx/em28xx.h       |  1 +
+ 3 files changed, 51 insertions(+), 3 deletions(-)
+
 -- 
 2.7.4
