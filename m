@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:39027 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965252AbeF0P20 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:52283 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934924AbeF0P2R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:28:26 -0400
-Received: by mail-wm0-f66.google.com with SMTP id p11-v6so5922052wmc.4
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:25 -0700 (PDT)
+        Wed, 27 Jun 2018 11:28:17 -0400
+Received: by mail-wm0-f65.google.com with SMTP id e69-v6so3402161wme.2
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:16 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,90 +14,88 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 23/27] venus: vdec: a new function for output configuration
-Date: Wed, 27 Jun 2018 18:27:21 +0300
-Message-Id: <20180627152725.9783-24-stanimir.varbanov@linaro.org>
+Subject: [PATCH v4 15/27] venus: helpers: add helper function to set actual buffer size
+Date: Wed, 27 Jun 2018 18:27:13 +0300
+Message-Id: <20180627152725.9783-16-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make a new function vdec_output_conf() for decoder output
-configuration. vdec_output_conf() will set properties via
-HFI interface related to the output configuration, and
-keep vdec_set_properties() which will set properties
-related to decoding parameters.
+Add and use a helper function to set actual buffer size for
+particular buffer type. This is also preparation to use
+the second decoder output.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/vdec.c | 34 ++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ drivers/media/platform/qcom/venus/helpers.c | 12 ++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  1 +
+ drivers/media/platform/qcom/venus/vdec.c    | 10 ++--------
+ 3 files changed, 15 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index e3dc2772946f..0cce664f093d 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -541,6 +541,18 @@ int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_dyn_bufmode);
+ 
++int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype)
++{
++	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
++	struct hfi_buffer_size_actual bufsz;
++
++	bufsz.type = buftype;
++	bufsz.size = bufsize;
++
++	return hfi_session_set_property(inst, ptype, &bufsz);
++}
++EXPORT_SYMBOL_GPL(venus_helper_set_bufsize);
++
+ static void delayed_process_buf_func(struct work_struct *work)
+ {
+ 	struct venus_buffer *buf, *n;
+diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+index 52b961ed491e..cd306bd8978f 100644
+--- a/drivers/media/platform/qcom/venus/helpers.h
++++ b/drivers/media/platform/qcom/venus/helpers.h
+@@ -41,6 +41,7 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 			      unsigned int output_bufs);
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+ int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
++int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
+ void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+ void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+ void venus_helper_init_instance(struct venus_inst *inst);
 diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 55213a8d55a3..4d3f1cd7ed1d 100644
+index 92669a358a90..eae9c651ac91 100644
 --- a/drivers/media/platform/qcom/venus/vdec.c
 +++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -545,6 +545,22 @@ static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
- static int vdec_set_properties(struct venus_inst *inst)
- {
- 	struct vdec_controls *ctr = &inst->controls.dec;
-+	struct hfi_enable en = { .enable = 1 };
-+	u32 ptype;
-+	int ret;
-+
-+	if (ctr->post_loop_deb_mode) {
-+		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
-+		ret = hfi_session_set_property(inst, ptype, &en);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vdec_output_conf(struct venus_inst *inst)
-+{
- 	struct venus_core *core = inst->core;
- 	struct hfi_enable en = { .enable = 1 };
- 	u32 ptype;
-@@ -569,14 +585,6 @@ static int vdec_set_properties(struct venus_inst *inst)
- 	if (ret)
- 		return ret;
- 
--	if (ctr->post_loop_deb_mode) {
--		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
--		en.enable = 1;
--		ret = hfi_session_set_property(inst, ptype, &en);
--		if (ret)
--			return ret;
--	}
--
- 	return 0;
- }
- 
-@@ -724,7 +732,6 @@ static int vdec_verify_conf(struct venus_inst *inst)
- static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+@@ -710,7 +710,6 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
  {
  	struct venus_inst *inst = vb2_get_drv_priv(q);
--	struct venus_core *core = inst->core;
+ 	struct venus_core *core = inst->core;
+-	u32 ptype;
  	int ret;
  
  	mutex_lock(&inst->lock);
-@@ -753,12 +760,9 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
- 	if (ret)
+@@ -740,13 +739,8 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
  		goto deinit_sess;
  
--	if (core->res->hfi_version == HFI_VERSION_3XX) {
--		ret = venus_helper_set_bufsize(inst, inst->output_buf_size,
--					       HFI_BUFFER_OUTPUT);
--		if (ret)
--			goto deinit_sess;
--	}
-+	ret = vdec_output_conf(inst);
-+	if (ret)
-+		goto deinit_sess;
- 
- 	ret = vdec_verify_conf(inst);
- 	if (ret)
+ 	if (core->res->hfi_version == HFI_VERSION_3XX) {
+-		struct hfi_buffer_size_actual buf_sz;
+-
+-		ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
+-		buf_sz.type = HFI_BUFFER_OUTPUT;
+-		buf_sz.size = inst->output_buf_size;
+-
+-		ret = hfi_session_set_property(inst, ptype, &buf_sz);
++		ret = venus_helper_set_bufsize(inst, inst->output_buf_size,
++					       HFI_BUFFER_OUTPUT);
+ 		if (ret)
+ 			goto deinit_sess;
+ 	}
 -- 
 2.14.1
