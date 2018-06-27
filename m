@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:44609 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934912AbeF0P2Q (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40789 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964787AbeF0P2W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:28:16 -0400
-Received: by mail-wr0-f194.google.com with SMTP id p12-v6so2463672wrn.11
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:15 -0700 (PDT)
+        Wed, 27 Jun 2018 11:28:22 -0400
+Received: by mail-wr0-f193.google.com with SMTP id l2-v6so1891588wro.7
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:21 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,95 +14,115 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 14/27] venus: helpers: add a helper function to set dynamic buffer mode
-Date: Wed, 27 Jun 2018 18:27:12 +0300
-Message-Id: <20180627152725.9783-15-stanimir.varbanov@linaro.org>
+Subject: [PATCH v4 19/27] venus: helpers,vdec,venc: add helpers to set work mode and core usage
+Date: Wed, 27 Jun 2018 18:27:17 +0300
+Message-Id: <20180627152725.9783-20-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds a new helper function to set dynamic buffer mode if it is
-supported by current HFI version. The dynamic buffer mode is
-set unconditionally for both decoder outputs.
+These are new properties applicable to Venus version 4xx. Add the
+helpers and call them from decoder and encoder drivers.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/helpers.c | 22 ++++++++++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  1 +
- drivers/media/platform/qcom/venus/vdec.c    | 15 +++------------
- 3 files changed, 26 insertions(+), 12 deletions(-)
+ drivers/media/platform/qcom/venus/helpers.c | 28 ++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.h |  2 ++
+ drivers/media/platform/qcom/venus/vdec.c    |  8 ++++++++
+ drivers/media/platform/qcom/venus/venc.c    |  8 ++++++++
+ 4 files changed, 46 insertions(+)
 
 diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 03121dbb4175..e3dc2772946f 100644
+index a1590d5cc921..2295cca3c22a 100644
 --- a/drivers/media/platform/qcom/venus/helpers.c
 +++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -519,6 +519,28 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
+@@ -481,6 +481,34 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
  }
- EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
+ EXPORT_SYMBOL_GPL(venus_helper_set_output_resolution);
  
-+int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
++int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode)
 +{
-+	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
-+	struct hfi_buffer_alloc_mode mode;
-+	int ret;
++	u32 ptype = HFI_PROPERTY_PARAM_WORK_MODE;
++	struct hfi_video_work_mode wm;
 +
-+	if (!is_dynamic_bufmode(inst))
++	if (!IS_V4(inst->core))
 +		return 0;
 +
-+	mode.type = HFI_BUFFER_OUTPUT;
-+	mode.mode = HFI_BUFFER_MODE_DYNAMIC;
++	wm.video_work_mode = mode;
 +
-+	ret = hfi_session_set_property(inst, ptype, &mode);
-+	if (ret)
-+		return ret;
-+
-+	mode.type = HFI_BUFFER_OUTPUT2;
-+
-+	return hfi_session_set_property(inst, ptype, &mode);
++	return hfi_session_set_property(inst, ptype, &wm);
 +}
-+EXPORT_SYMBOL_GPL(venus_helper_set_dyn_bufmode);
++EXPORT_SYMBOL_GPL(venus_helper_set_work_mode);
 +
- static void delayed_process_buf_func(struct work_struct *work)
++int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage)
++{
++	u32 ptype = HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE;
++	struct hfi_videocores_usage_type cu;
++
++	if (!IS_V4(inst->core))
++		return 0;
++
++	cu.video_core_enable_mask = usage;
++
++	return hfi_session_set_property(inst, ptype, &cu);
++}
++EXPORT_SYMBOL_GPL(venus_helper_set_core_usage);
++
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 			      unsigned int output_bufs)
  {
- 	struct venus_buffer *buf, *n;
 diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 0e64aa95624a..52b961ed491e 100644
+index 79af7845efbd..d5e727e1ecab 100644
 --- a/drivers/media/platform/qcom/venus/helpers.h
 +++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -40,6 +40,7 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+@@ -38,6 +38,8 @@ int venus_helper_set_input_resolution(struct venus_inst *inst,
+ int venus_helper_set_output_resolution(struct venus_inst *inst,
+ 				       unsigned int width, unsigned int height,
+ 				       u32 buftype);
++int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode);
++int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage);
  int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
  			      unsigned int output_bufs);
- int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
-+int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
- void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
- void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
- void venus_helper_init_instance(struct venus_inst *inst);
+ int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
 diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 31a240ab142b..92669a358a90 100644
+index eae9c651ac91..f1cf4678d013 100644
 --- a/drivers/media/platform/qcom/venus/vdec.c
 +++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -557,18 +557,9 @@ static int vdec_set_properties(struct venus_inst *inst)
- 			return ret;
- 	}
+@@ -550,6 +550,14 @@ static int vdec_set_properties(struct venus_inst *inst)
+ 	u32 ptype;
+ 	int ret;
  
--	if (core->res->hfi_version == HFI_VERSION_3XX ||
--	    inst->cap_bufs_mode_dynamic) {
--		struct hfi_buffer_alloc_mode mode;
--
--		ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
--		mode.type = HFI_BUFFER_OUTPUT;
--		mode.mode = HFI_BUFFER_MODE_DYNAMIC;
--
--		ret = hfi_session_set_property(inst, ptype, &mode);
--		if (ret)
--			return ret;
--	}
-+	ret = venus_helper_set_dyn_bufmode(inst);
++	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
 +	if (ret)
 +		return ret;
++
++	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_1);
++	if (ret)
++		return ret;
++
+ 	if (core->res->hfi_version == HFI_VERSION_1XX) {
+ 		ptype = HFI_PROPERTY_PARAM_VDEC_CONTINUE_DATA_TRANSFER;
+ 		ret = hfi_session_set_property(inst, ptype, &en);
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 1d7f87e0f5b3..4f0a5daa97e2 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -643,6 +643,14 @@ static int venc_set_properties(struct venus_inst *inst)
+ 	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
+ 	int ret;
  
- 	if (ctr->post_loop_deb_mode) {
- 		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
++	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
++	if (ret)
++		return ret;
++
++	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_2);
++	if (ret)
++		return ret;
++
+ 	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
+ 	frate.buffer_type = HFI_BUFFER_OUTPUT;
+ 	frate.framerate = inst->fps * (1 << 16);
 -- 
 2.14.1
