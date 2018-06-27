@@ -1,151 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:38953 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751229AbeF0ETE (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53760 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932457AbeF0EkE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 00:19:04 -0400
-Received: by mail-pl0-f68.google.com with SMTP id s24-v6so395780plq.6
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2018 21:19:03 -0700 (PDT)
-From: Matt Ranostay <matt.ranostay@konsulko.com>
+        Wed, 27 Jun 2018 00:40:04 -0400
+Message-ID: <72fa5bdeb0e1aa8b13aeb77284f352b4@smtp-cloud9.xs4all.net>
+Date: Wed, 27 Jun 2018 06:40:01 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
-        linux-hwmon@vger.kernel.org
-Subject: [PATCH v2] media: video-i2c: add hwmon support for amg88xx
-Date: Tue, 26 Jun 2018 21:18:58 -0700
-Message-Id: <20180627041858.22186-1-matt.ranostay@konsulko.com>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-AMG88xx has an on-board thermistor which is used for more accurate
-processing of its temperature readings from the 8x8 thermopile array
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Cc: linux-hwmon@vger.kernel.org
-Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
----
- drivers/media/i2c/video-i2c.c | 77 +++++++++++++++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
+Results of the daily build of media_tree:
 
-Changes from v1:
-* remove unneeded include statement
-* removed evil &NULL dereference if hwmon isn't enabled
-* return PTR_ERR instead of boolean IS_ERR from amg88xx_hwmon_init()
-* use error code returned from hwmon_init() to display dev_warn
+date:			Wed Jun 27 05:00:15 CEST 2018
+media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
+media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
+v4l-utils git hash:	5c197a3bbe7358670765d09f67ae2f05e89a61d1
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-index 0b347cc19aa5..834cd4401e38 100644
---- a/drivers/media/i2c/video-i2c.c
-+++ b/drivers/media/i2c/video-i2c.c
-@@ -10,6 +10,7 @@
- 
- #include <linux/delay.h>
- #include <linux/freezer.h>
-+#include <linux/hwmon.h>
- #include <linux/kthread.h>
- #include <linux/i2c.h>
- #include <linux/list.h>
-@@ -77,6 +78,9 @@ struct video_i2c_chip {
- 
- 	/* xfer function */
- 	int (*xfer)(struct video_i2c_data *data, char *buf);
-+
-+	/* hwmon init function */
-+	int (*hwmon_init)(struct video_i2c_data *data);
- };
- 
- static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
-@@ -101,6 +105,70 @@ static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
- 	return (ret == 2) ? 0 : -EIO;
- }
- 
-+#if defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE))
-+
-+static const u32 amg88xx_temp_config[] = {
-+	HWMON_T_INPUT,
-+	0
-+};
-+
-+static const struct hwmon_channel_info amg88xx_temp = {
-+	.type = hwmon_temp,
-+	.config = amg88xx_temp_config,
-+};
-+
-+static const struct hwmon_channel_info *amg88xx_info[] = {
-+	&amg88xx_temp,
-+	NULL
-+};
-+
-+static umode_t amg88xx_is_visible(const void *drvdata,
-+				  enum hwmon_sensor_types type,
-+				  u32 attr, int channel)
-+{
-+	return 0444;
-+}
-+
-+static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
-+			u32 attr, int channel, long *val)
-+{
-+	struct video_i2c_data *data = dev_get_drvdata(dev);
-+	struct i2c_client *client = data->client;
-+	int tmp = i2c_smbus_read_word_data(client, 0x0e);
-+
-+	if (tmp < 0)
-+		return tmp;
-+
-+	/* check for sign bit, and invert temp reading to a negative value */
-+	if (tmp & BIT(11))
-+		tmp = -(tmp & 0x7ff);
-+
-+	*val = (tmp * 625) / 10;
-+
-+	return 0;
-+}
-+
-+static const struct hwmon_ops amg88xx_hwmon_ops = {
-+	.is_visible = amg88xx_is_visible,
-+	.read = amg88xx_read,
-+};
-+
-+static const struct hwmon_chip_info amg88xx_chip_info = {
-+	.ops = &amg88xx_hwmon_ops,
-+	.info = amg88xx_info,
-+};
-+
-+static int amg88xx_hwmon_init(struct video_i2c_data *data)
-+{
-+	void *hwmon = devm_hwmon_device_register_with_info(&data->client->dev,
-+				"amg88xx", data, &amg88xx_chip_info, NULL);
-+
-+	return PTR_ERR(hwmon);
-+}
-+#else
-+#define	amg88xx_hwmon_init	NULL
-+#endif
-+
- #define AMG88XX		0
- 
- static const struct video_i2c_chip video_i2c_chip[] = {
-@@ -111,6 +179,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
- 		.buffer_size	= 128,
- 		.bpp		= 16,
- 		.xfer		= &amg88xx_xfer,
-+		.hwmon_init	= amg88xx_hwmon_init,
- 	},
- };
- 
-@@ -505,6 +574,14 @@ static int video_i2c_probe(struct i2c_client *client,
- 	video_set_drvdata(&data->vdev, data);
- 	i2c_set_clientdata(client, data);
- 
-+	if (data->chip->hwmon_init) {
-+		ret = data->chip->hwmon_init(data);
-+		if (ret < 0) {
-+			dev_warn(&client->dev,
-+				 "failed to register hwmon device\n");
-+		}
-+	}
-+
- 	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0)
- 		goto error_unregister_device;
--- 
-2.17.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: OK
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17.2-i686: OK
+linux-4.17.2-x86_64: OK
+linux-4.18-rc1-i686: ERRORS
+linux-4.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
