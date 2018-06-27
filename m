@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34096 "EHLO
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:40605 "EHLO
         mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753444AbeF0P1o (ORCPT
+        with ESMTP id S934850AbeF0P2H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:27:44 -0400
-Received: by mail-wm0-f66.google.com with SMTP id l15-v6so18348253wmc.1
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:27:44 -0700 (PDT)
+        Wed, 27 Jun 2018 11:28:07 -0400
+Received: by mail-wm0-f66.google.com with SMTP id z13-v6so5958757wma.5
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:06 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,73 +14,65 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 00/27] Venus updates
-Date: Wed, 27 Jun 2018 18:26:58 +0300
-Message-Id: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
+Subject: [PATCH v4 07/27] venus: hfi_venus: add halt AXI support for Venus 4xx
+Date: Wed, 27 Jun 2018 18:27:05 +0300
+Message-Id: <20180627152725.9783-8-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
+References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add AXI halt support for version 4xx by using venus wrapper
+registers.
 
-Here is v4 with following changes:
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/hfi_venus.c    | 18 ++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus_io.h |  2 ++
+ 2 files changed, 20 insertions(+)
 
-- fixed kbuild test robot in 12/27.
-- fixed destination of memcpy in fill_xxx functions.
-
-v3 can be found at https://lkml.org/lkml/2018/6/13/464
-
-regards,
-Stan
-
-Stanimir Varbanov (27):
-  venus: hfi_msgs: correct pointer increment
-  venus: hfi: preparation to support venus 4xx
-  venus: hfi: update sequence event to handle more properties
-  venus: hfi_cmds: add set_properties for 4xx version
-  venus: hfi: support session continue for 4xx version
-  venus: hfi: handle buffer output2 type as well
-  venus: hfi_venus: add halt AXI support for Venus 4xx
-  venus: hfi_venus: fix suspend function for venus 3xx versions
-  venus: hfi_venus: move set of default properties to core init
-  venus: hfi_venus: add suspend functionality for Venus 4xx
-  venus: core,helpers: add two more clocks found in Venus 4xx
-  venus: hfi_parser: add common capability parser
-  venus: helpers: rename a helper function and use buffer mode from caps
-  venus: helpers: add a helper function to set dynamic buffer mode
-  venus: helpers: add helper function to set actual buffer size
-  venus: core: delete not used buffer mode flags
-  venus: helpers: add buffer type argument to a helper
-  venus: helpers: add a new helper to set raw format
-  venus: helpers,vdec,venc: add helpers to set work mode and core usage
-  venus: helpers: extend set_num_bufs helper with one more argument
-  venus: helpers: add a helper to return opb buffer sizes
-  venus: vdec: get required input buffers as well
-  venus: vdec: a new function for output configuration
-  venus: helpers: move frame size calculations on common place
-  venus: implementing multi-stream support
-  venus: core: add sdm845 DT compatible and resource data
-  venus: add HEVC codec support
-
- .../devicetree/bindings/media/qcom,venus.txt       |   1 +
- drivers/media/platform/qcom/venus/Makefile         |   3 +-
- drivers/media/platform/qcom/venus/core.c           | 107 ++++
- drivers/media/platform/qcom/venus/core.h           | 100 ++--
- drivers/media/platform/qcom/venus/helpers.c        | 555 +++++++++++++++++++--
- drivers/media/platform/qcom/venus/helpers.h        |  23 +-
- drivers/media/platform/qcom/venus/hfi.c            |  12 +-
- drivers/media/platform/qcom/venus/hfi.h            |  10 +
- drivers/media/platform/qcom/venus/hfi_cmds.c       |  62 ++-
- drivers/media/platform/qcom/venus/hfi_helper.h     | 112 ++++-
- drivers/media/platform/qcom/venus/hfi_msgs.c       | 399 +++------------
- drivers/media/platform/qcom/venus/hfi_parser.c     | 278 +++++++++++
- drivers/media/platform/qcom/venus/hfi_parser.h     |  45 ++
- drivers/media/platform/qcom/venus/hfi_venus.c      | 109 +++-
- drivers/media/platform/qcom/venus/hfi_venus_io.h   |  10 +
- drivers/media/platform/qcom/venus/vdec.c           | 326 +++++++-----
- drivers/media/platform/qcom/venus/venc.c           | 220 ++++----
- 17 files changed, 1694 insertions(+), 678 deletions(-)
- create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.h
-
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+index 734ce11b0ed0..784b3ad1a9f6 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus.c
++++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+@@ -532,6 +532,24 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
+ 	u32 val;
+ 	int ret;
+ 
++	if (IS_V4(hdev->core)) {
++		val = venus_readl(hdev, WRAPPER_CPU_AXI_HALT);
++		val |= WRAPPER_CPU_AXI_HALT_HALT;
++		venus_writel(hdev, WRAPPER_CPU_AXI_HALT, val);
++
++		ret = readl_poll_timeout(base + WRAPPER_CPU_AXI_HALT_STATUS,
++					 val,
++					 val & WRAPPER_CPU_AXI_HALT_STATUS_IDLE,
++					 POLL_INTERVAL_US,
++					 VBIF_AXI_HALT_ACK_TIMEOUT_US);
++		if (ret) {
++			dev_err(dev, "AXI bus port halt timeout\n");
++			return ret;
++		}
++
++		return 0;
++	}
++
+ 	/* Halt AXI and AXI IMEM VBIF Access */
+ 	val = venus_readl(hdev, VBIF_AXI_HALT_CTRL0);
+ 	val |= VBIF_AXI_HALT_CTRL0_HALT_REQ;
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+index d327b5cea334..c0b18de1e396 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
++++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+@@ -104,7 +104,9 @@
+ 
+ #define WRAPPER_CPU_CLOCK_CONFIG		(WRAPPER_BASE + 0x2000)
+ #define WRAPPER_CPU_AXI_HALT			(WRAPPER_BASE + 0x2008)
++#define WRAPPER_CPU_AXI_HALT_HALT		BIT(16)
+ #define WRAPPER_CPU_AXI_HALT_STATUS		(WRAPPER_BASE + 0x200c)
++#define WRAPPER_CPU_AXI_HALT_STATUS_IDLE	BIT(24)
+ 
+ #define WRAPPER_CPU_CGC_DIS			(WRAPPER_BASE + 0x2010)
+ #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
 -- 
 2.14.1
