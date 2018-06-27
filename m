@@ -1,142 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53760 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932457AbeF0EkE (ORCPT
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:43290 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751604AbeF0FYe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 00:40:04 -0400
-Message-ID: <72fa5bdeb0e1aa8b13aeb77284f352b4@smtp-cloud9.xs4all.net>
-Date: Wed, 27 Jun 2018 06:40:01 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 27 Jun 2018 01:24:34 -0400
+Received: by mail-lj1-f194.google.com with SMTP id x3-v6so561892ljj.10
+        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2018 22:24:34 -0700 (PDT)
+Date: Wed, 27 Jun 2018 07:24:31 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, horms@verge.net.au,
+        geert@glider.be, mchehab@kernel.org, hans.verkuil@cisco.com,
+        robh+dt@kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v4 6/6] dt-bindings: media: rcar-vin: Clarify optional
+ props
+Message-ID: <20180627052431.GO5237@bigcity.dyn.berto.se>
+References: <1528813566-17927-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1528813566-17927-7-git-send-email-jacopo+renesas@jmondi.org>
+ <20180612154553.kgqnqkwv3y6srivg@kekkonen.localdomain>
+ <20180613085455.GC4952@w540>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180613085455.GC4952@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Jacopo, Sakari and Laurent,
 
-Results of the daily build of media_tree:
+Jacopo, thanks for your patch and continued work on resolving this.
 
-date:			Wed Jun 27 05:00:15 CEST 2018
-media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
-media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
-v4l-utils git hash:	5c197a3bbe7358670765d09f67ae2f05e89a61d1
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+On 2018-06-13 10:54:55 +0200, Jacopo Mondi wrote:
+> Hi Sakari,
+> 
+> On Tue, Jun 12, 2018 at 06:45:53PM +0300, Sakari Ailus wrote:
+> > Hi Jacopo,
+> >
+> > On Tue, Jun 12, 2018 at 04:26:06PM +0200, Jacopo Mondi wrote:
+> > > Add a note to the R-Car VIN interface bindings to clarify that all
+> > > properties listed as generic properties in video-interfaces.txt can
+> > > be included in port@0 endpoint, but if not explicitly listed in the
+> > > interface bindings documentation, they do not modify it behaviour.
+> > >
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > ---
+> > >  Documentation/devicetree/bindings/media/rcar_vin.txt | 6 ++++++
+> > >  1 file changed, 6 insertions(+)
+> > >
+> > > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > > index 8130849..03544c7 100644
+> > > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> > > @@ -55,6 +55,12 @@ from local SoC CSI-2 receivers (port1) depending on SoC.
+> > >        instances that are connected to external pins should have port 0.
+> > >
+> > >        - Optional properties for endpoint nodes of port@0:
+> > > +
+> > > +        All properties described in [1] and which apply to the selected
+> > > +        media bus type could be optionally listed here to better describe
+> > > +        the current hardware configuration, but only the following ones do
+> > > +        actually modify the VIN interface behaviour:
+> > > +
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17.2-i686: OK
-linux-4.17.2-x86_64: OK
-linux-4.18-rc1-i686: ERRORS
-linux-4.18-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+I'm not sure the description have to be as explicit to that the 
+properties in 'video-interfaces.txt' are not currently used by the 
+driver. I find it not relevant which ones are used or not, what is 
+important for me is that all properties in 'video-interfaces.txt' which 
+can be used to describe the specific bus are valid for the DT 
+description.
 
-Detailed results are available here:
+On a side note, in rcar_vin.txt we have this section describing the Gen2 
+bindings:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+  The per-board settings Gen2 platforms:
+   - port sub-node describing a single endpoint connected to the vin
+     as described in video-interfaces.txt[1]. Only the first one will
+     be considered as each vin interface has one input port.
 
-Full logs are available here:
+This whole series only deals with documenting the Gen3 optional 
+properties and not the Gen2. Maybe with parallel input support for Gen3 
+patches on there way to making it upstream this series should be 
+extended to in a good way merge the port@0 optional properties for both 
+generations of hardware?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> >
+> > I don't think this should be needed. You should only have properties that
+> > describe the hardware configuration in a given system.
+> >
+> 
+> There has been quite some debate on this, and please bear with me
+> here for re-proposing it: I started by removing properties in some DT
+> files for older Renesas board which listed endpoint properties not
+> documented in the VIN's bindings and not parsed by the VIN driver [1]
+> Niklas (but Simon and Geert seems to agree here) opposed to that
+> patch, as those properties where described in 'video-interfaces.txt' and
+> even if not parsed by the current driver implementation, they actually
+> describe hardware. I rebated that only properties listed in the device
+> bindings documentation should actually be used, and having properties
+> not parsed by the driver confuses users, which may expect changing
+> them modifies the interface configuration, which does not happens at
+> the moment.
+> 
+> This came out as a middle ground from a discussion with Niklas. As
+> stated in the cover letter if this patch makes someone uncomfortable, feel
+> free to drop it not to hold back the rest of the series which has been
+> well received instead.
 
-The Media Infrastructure API from this daily build is here:
+What I don't agree with and sparked this debate from my side was the 
+deletion of properties in dts files which correctly does describe the 
+bus but which are not currently parsed by the driver. To me that is 
+decreasing the value of the dts. If on the other hand the goal is to 
+deprecate a property from the video-interfaces.txt by slowly removing 
+them from dts where the driver don't use them I'm all for it. But I 
+don't think this is the case here right?
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> Thanks
+>    j
+> 
+> [1] https://www.spinics.net/lists/arm-kernel/msg656302.html
+> 
+> > >          - hsync-active: see [1] for description. Default is active high.
+> > >          - vsync-active: see [1] for description. Default is active high.
+> > >          - data-enable-active: polarity of CLKENB signal, see [1] for
+> > > --
+> > > 2.7.4
+> > >
+> >
+> > --
+> > Sakari Ailus
+> > sakari.ailus@linux.intel.com
+
+
+
+-- 
+Regards,
+Niklas Söderlund
