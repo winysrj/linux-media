@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:40622 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934927AbeF0P2S (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:39027 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965252AbeF0P20 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:28:18 -0400
-Received: by mail-wm0-f68.google.com with SMTP id z13-v6so5959400wma.5
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:18 -0700 (PDT)
+        Wed, 27 Jun 2018 11:28:26 -0400
+Received: by mail-wm0-f66.google.com with SMTP id p11-v6so5922052wmc.4
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:25 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,83 +14,90 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 16/27] venus: core: delete not used buffer mode flags
-Date: Wed, 27 Jun 2018 18:27:14 +0300
-Message-Id: <20180627152725.9783-17-stanimir.varbanov@linaro.org>
+Subject: [PATCH v4 23/27] venus: vdec: a new function for output configuration
+Date: Wed, 27 Jun 2018 18:27:21 +0300
+Message-Id: <20180627152725.9783-24-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Delete not used flag for capture buffer allocation mode and
-no longer used cap_bufs_mode_dynamic from instance structure.
+Make a new function vdec_output_conf() for decoder output
+configuration. vdec_output_conf() will set properties via
+HFI interface related to the output configuration, and
+keep vdec_set_properties() which will set properties
+related to decoding parameters.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/core.h       |  4 ----
- drivers/media/platform/qcom/venus/hfi_parser.c | 11 +++--------
- 2 files changed, 3 insertions(+), 12 deletions(-)
+ drivers/media/platform/qcom/venus/vdec.c | 34 ++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index b995d1601c87..1d1a59a5d343 100644
---- a/drivers/media/platform/qcom/venus/core.h
-+++ b/drivers/media/platform/qcom/venus/core.h
-@@ -255,8 +255,6 @@ struct venus_buffer {
-  * @priv:	a private for HFI operations callbacks
-  * @session_type:	the type of the session (decoder or encoder)
-  * @hprop:	a union used as a holder by get property
-- * @cap_bufs_mode_static:	buffers allocation mode capability
-- * @cap_bufs_mode_dynamic:	buffers allocation mode capability
-  */
- struct venus_inst {
- 	struct list_head list;
-@@ -305,8 +303,6 @@ struct venus_inst {
- 	const struct hfi_inst_ops *ops;
- 	u32 session_type;
- 	union hfi_get_property hprop;
--	bool cap_bufs_mode_static;
--	bool cap_bufs_mode_dynamic;
- };
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 55213a8d55a3..4d3f1cd7ed1d 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -545,6 +545,22 @@ static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
+ static int vdec_set_properties(struct venus_inst *inst)
+ {
+ 	struct vdec_controls *ctr = &inst->controls.dec;
++	struct hfi_enable en = { .enable = 1 };
++	u32 ptype;
++	int ret;
++
++	if (ctr->post_loop_deb_mode) {
++		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
++		ret = hfi_session_set_property(inst, ptype, &en);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int vdec_output_conf(struct venus_inst *inst)
++{
+ 	struct venus_core *core = inst->core;
+ 	struct hfi_enable en = { .enable = 1 };
+ 	u32 ptype;
+@@ -569,14 +585,6 @@ static int vdec_set_properties(struct venus_inst *inst)
+ 	if (ret)
+ 		return ret;
  
- #define IS_V1(core)	((core)->res->hfi_version == HFI_VERSION_1XX)
-diff --git a/drivers/media/platform/qcom/venus/hfi_parser.c b/drivers/media/platform/qcom/venus/hfi_parser.c
-index 8d284cfbba7a..5f1aedc0ef5a 100644
---- a/drivers/media/platform/qcom/venus/hfi_parser.c
-+++ b/drivers/media/platform/qcom/venus/hfi_parser.c
-@@ -60,8 +60,7 @@ fill_buf_mode(struct venus_caps *cap, const void *data, unsigned int num)
+-	if (ctr->post_loop_deb_mode) {
+-		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
+-		en.enable = 1;
+-		ret = hfi_session_set_property(inst, ptype, &en);
+-		if (ret)
+-			return ret;
+-	}
+-
+ 	return 0;
  }
  
- static void
--parse_alloc_mode(struct venus_core *core, struct venus_inst *inst, u32 codecs,
--		 u32 domain, void *data)
-+parse_alloc_mode(struct venus_core *core, u32 codecs, u32 domain, void *data)
+@@ -724,7 +732,6 @@ static int vdec_verify_conf(struct venus_inst *inst)
+ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
  {
- 	struct hfi_buffer_alloc_mode_supported *mode = data;
- 	u32 num_entries = mode->num_entries;
-@@ -74,13 +73,9 @@ parse_alloc_mode(struct venus_core *core, struct venus_inst *inst, u32 codecs,
+ 	struct venus_inst *inst = vb2_get_drv_priv(q);
+-	struct venus_core *core = inst->core;
+ 	int ret;
  
- 	while (num_entries--) {
- 		if (mode->buffer_type == HFI_BUFFER_OUTPUT ||
--		    mode->buffer_type == HFI_BUFFER_OUTPUT2) {
--			if (*type == HFI_BUFFER_MODE_DYNAMIC && inst)
--				inst->cap_bufs_mode_dynamic = true;
--
-+		    mode->buffer_type == HFI_BUFFER_OUTPUT2)
- 			for_each_codec(core->caps, ARRAY_SIZE(core->caps),
- 				       codecs, domain, fill_buf_mode, type, 1);
--		}
+ 	mutex_lock(&inst->lock);
+@@ -753,12 +760,9 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	if (ret)
+ 		goto deinit_sess;
  
- 		type++;
- 	}
-@@ -267,7 +262,7 @@ u32 hfi_parser(struct venus_core *core, struct venus_inst *inst,
- 			parse_profile_level(core, codecs, domain, data);
- 			break;
- 		case HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE_SUPPORTED:
--			parse_alloc_mode(core, inst, codecs, domain, data);
-+			parse_alloc_mode(core, codecs, domain, data);
- 			break;
- 		default:
- 			break;
+-	if (core->res->hfi_version == HFI_VERSION_3XX) {
+-		ret = venus_helper_set_bufsize(inst, inst->output_buf_size,
+-					       HFI_BUFFER_OUTPUT);
+-		if (ret)
+-			goto deinit_sess;
+-	}
++	ret = vdec_output_conf(inst);
++	if (ret)
++		goto deinit_sess;
+ 
+ 	ret = vdec_verify_conf(inst);
+ 	if (ret)
 -- 
 2.14.1
