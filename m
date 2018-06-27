@@ -1,130 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:56072 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934938AbeF0P2V (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:44603 "EHLO
+        homiemail-a125.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965451AbeF0PcH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:28:21 -0400
-Received: by mail-wm0-f66.google.com with SMTP id v16-v6so6340635wmv.5
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:20 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 18/27] venus: helpers: add a new helper to set raw format
-Date: Wed, 27 Jun 2018 18:27:16 +0300
-Message-Id: <20180627152725.9783-19-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
-References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
+        Wed, 27 Jun 2018 11:32:07 -0400
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org, mchehab@infradead.org,
+        parker.l.reed@gmail.com
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 2/2] em28xx: Fix DualHD disconnect oops
+Date: Wed, 27 Jun 2018 10:32:01 -0500
+Message-Id: <1530113521-26749-3-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1530113521-26749-1-git-send-email-brad@nextdimension.cc>
+References: <1530113521-26749-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new helper will has one more argument for buffer type, that
-way the decoder can configure the format on it's secondary
-output.
+During the duplication of em28xx state for the second tuner pair
+a pointer to alt_max_pkt_size_isoc is copied. During tear down
+the second tuner is destroyed first and kfrees alt_max_pkt_size_isoc,
+then the first tuner is destroyed and kfrees it again. The property
+should only be kfree'd if the tuner is PRIMARY_TS.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+[  354.888560] ------------[ cut here ]------------
+[  354.888562] kernel BUG at mm/slub.c:296!
+[  354.888574] invalid opcode: 0000 [#1] SMP NOPTI
+[  354.888869] CPU: 1 PID: 19 Comm: kworker/1:0 Not tainted 4.18.0-rc1+ #20
+[  354.889140] Hardware name: MSI MS-7A39/B350M GAMING PRO (MS-7A39), BIOS 2.G0 04/27/2018
+[  354.889408] Workqueue: usb_hub_wq hub_event
+[  354.889679] RIP: 0010:__slab_free+0x217/0x370
+[  354.889942] Code: bb c0 e8 07 41 38 c7 72 39 48 83 c4 70 5b 41 5a 41 5c 41 5d 41 5e 41 5f 5d 49 8d 62 f8 c3 f3 90 49 8b 04 24 a8 01 75 f6 eb 82 <0f> 0b 44 89 45 80 48 89 4d 88 e8 aa fa ff ff 85 c0 74 cc e9 b7 fe 
+[  354.890598] RSP: 0018:ffffb84c41a4fad0 EFLAGS: 00010246
+[  354.890934] RAX: ffff948646e85150 RBX: ffff948646e85150 RCX: ffff948646e85150
+[  354.891280] RDX: 00000000820001d9 RSI: fffffa8fd01ba140 RDI: ffff94865e807c00
+[  354.891649] RBP: ffffb84c41a4fb70 R08: 0000000000000001 R09: ffffffffc059ce21
+[  354.892025] R10: ffff948646e85150 R11: 0000000000000001 R12: fffffa8fd01ba140
+[  354.892403] R13: ffff948646e85150 R14: ffff94865e807c00 R15: ffff94864c92e0a0
+[  354.892780] FS:  0000000000000000(0000) GS:ffff94865ec40000(0000) knlGS:0000000000000000
+[  354.893150] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  354.893530] CR2: 00007f4e476da950 CR3: 000000040112c000 CR4: 00000000003406e0
+[  354.893917] Call Trace:
+[  354.894315]  ? __dev_printk+0x3c/0x80
+[  354.894695]  ? _dev_info+0x64/0x80
+[  354.895082]  ? em28xx_free_device+0x41/0x50 [em28xx]
+[  354.895464]  kfree+0x17a/0x190
+[  354.895852]  ? kfree+0x17a/0x190
+[  354.896310]  em28xx_free_device+0x41/0x50 [em28xx]
+[  354.896698]  em28xx_usb_disconnect+0xfa/0x110 [em28xx]
+[  354.897083]  usb_unbind_interface+0x7a/0x270
+[  354.897475]  device_release_driver_internal+0x17c/0x250
+[  354.897864]  device_release_driver+0x12/0x20
+[  354.898252]  bus_remove_device+0xec/0x160
+[  354.898639]  device_del+0x13d/0x320
+[  354.899018]  ? usb_remove_ep_devs+0x1f/0x30
+[  354.899392]  usb_disable_device+0x9e/0x270
+[  354.899772]  usb_disconnect+0x92/0x2a0
+[  354.900149]  hub_event+0x98e/0x1650
+[  354.900519]  ? sched_clock_cpu+0x11/0xa0
+[  354.900890]  process_one_work+0x167/0x3f0
+[  354.901251]  worker_thread+0x4d/0x460
+[  354.901610]  kthread+0x105/0x140
+[  354.901964]  ? rescuer_thread+0x360/0x360
+[  354.902318]  ? kthread_associate_blkcg+0xa0/0xa0
+[  354.902672]  ret_from_fork+0x22/0x40
+[  354.903024] Modules linked in: rc_hauppauge em28xx_rc rc_core si2157 lgdt3306a i2c_mux em28xx_dvb dvb_core videobuf2_vmalloc videobuf2_memops videobuf2_common snd_hda_codec_hdmi nls_iso8859_1 edac_mce_amd kvm crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc snd_hda_intel snd_hda_codec snd_hda_core snd_hwdep snd_pcm snd_seq_midi aesni_intel snd_seq_midi_event aes_x86_64 snd_rawmidi crypto_simd em28xx cryptd glue_helper asix tveeprom usbnet snd_seq v4l2_common mii videodev snd_seq_device media input_leds snd_timer joydev ccp k10temp wmi_bmof snd soundcore mac_hid sch_fq_codel parport_pc ppdev lp parport ip_tables x_tables vfio_pci vfio_virqfd irqbypass vfio_iommu_type1 vfio nouveau mxm_wmi video i2c_algo_bit ttm drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops i2c_piix4 drm ahci libahci
+[  354.905129]  wmi gpio_amdpt gpio_generic hid_generic usbhid hid
+[  354.908140] ---[ end trace c230d02716298c34 ]---
+[  354.908145] RIP: 0010:__slab_free+0x217/0x370
+[  354.908147] Code: bb c0 e8 07 41 38 c7 72 39 48 83 c4 70 5b 41 5a 41 5c 41 5d 41 5e 41 5f 5d 49 8d 62 f8 c3 f3 90 49 8b 04 24 a8 01 75 f6 eb 82 <0f> 0b 44 89 45 80 48 89 4d 88 e8 aa fa ff ff 85 c0 74 cc e9 b7 fe 
+[  354.908183] RSP: 0018:ffffb84c41a4fad0 EFLAGS: 00010246
+[  354.908186] RAX: ffff948646e85150 RBX: ffff948646e85150 RCX: ffff948646e85150
+[  354.908189] RDX: 00000000820001d9 RSI: fffffa8fd01ba140 RDI: ffff94865e807c00
+[  354.908191] RBP: ffffb84c41a4fb70 R08: 0000000000000001 R09: ffffffffc059ce21
+[  354.908193] R10: ffff948646e85150 R11: 0000000000000001 R12: fffffa8fd01ba140
+[  354.908195] R13: ffff948646e85150 R14: ffff94865e807c00 R15: ffff94864c92e0a0
+[  354.908198] FS:  0000000000000000(0000) GS:ffff94865ec40000(0000) knlGS:0000000000000000
+[  354.908201] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  354.908203] CR2: 00007f4e476da950 CR3: 000000016b20a000 CR4: 00000000003406e0
+
+
+
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- drivers/media/platform/qcom/venus/helpers.c | 52 ++++++++++++++++++-----------
- drivers/media/platform/qcom/venus/helpers.h |  2 ++
- 2 files changed, 35 insertions(+), 19 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 2eeb243e4dbe..a1590d5cc921 100644
---- a/drivers/media/platform/qcom/venus/helpers.c
-+++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -407,6 +407,20 @@ static int session_register_bufs(struct venus_inst *inst)
- 	return ret;
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index c8d60e4..48bc505 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3374,7 +3374,9 @@ void em28xx_free_device(struct kref *ref)
+ 	if (!dev->disconnected)
+ 		em28xx_release_resources(dev);
+ 
+-	kfree(dev->alt_max_pkt_size_isoc);
++	if (dev->ts == PRIMARY_TS)
++		kfree(dev->alt_max_pkt_size_isoc);
++
+ 	kfree(dev);
  }
- 
-+static u32 to_hfi_raw_fmt(u32 v4l2_fmt)
-+{
-+	switch (v4l2_fmt) {
-+	case V4L2_PIX_FMT_NV12:
-+		return HFI_COLOR_FORMAT_NV12;
-+	case V4L2_PIX_FMT_NV21:
-+		return HFI_COLOR_FORMAT_NV21;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
- 			    struct hfi_buffer_requirements *req)
- {
-@@ -488,35 +502,35 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_num_bufs);
- 
--int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
-+int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
-+				u32 buftype)
- {
--	struct hfi_uncompressed_format_select fmt;
- 	u32 ptype = HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SELECT;
--	int ret;
-+	struct hfi_uncompressed_format_select fmt;
-+
-+	fmt.buffer_type = buftype;
-+	fmt.format = hfi_format;
-+
-+	return hfi_session_set_property(inst, ptype, &fmt);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_raw_format);
-+
-+int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
-+{
-+	u32 hfi_format, buftype;
- 
- 	if (inst->session_type == VIDC_SESSION_TYPE_DEC)
--		fmt.buffer_type = HFI_BUFFER_OUTPUT;
-+		buftype = HFI_BUFFER_OUTPUT;
- 	else if (inst->session_type == VIDC_SESSION_TYPE_ENC)
--		fmt.buffer_type = HFI_BUFFER_INPUT;
-+		buftype = HFI_BUFFER_INPUT;
- 	else
- 		return -EINVAL;
- 
--	switch (pixfmt) {
--	case V4L2_PIX_FMT_NV12:
--		fmt.format = HFI_COLOR_FORMAT_NV12;
--		break;
--	case V4L2_PIX_FMT_NV21:
--		fmt.format = HFI_COLOR_FORMAT_NV21;
--		break;
--	default:
-+	hfi_format = to_hfi_raw_fmt(pixfmt);
-+	if (!hfi_format)
- 		return -EINVAL;
--	}
- 
--	ret = hfi_session_set_property(inst, ptype, &fmt);
--	if (ret)
--		return ret;
--
--	return 0;
-+	return venus_helper_set_raw_format(inst, hfi_format, buftype);
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
- 
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 0de9989adcdb..79af7845efbd 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -40,6 +40,8 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
- 				       u32 buftype);
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs);
-+int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
-+				u32 buftype);
- int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
- int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
- int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
+ EXPORT_SYMBOL_GPL(em28xx_free_device);
 -- 
-2.14.1
+2.7.4
