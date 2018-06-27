@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:40789 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964787AbeF0P2W (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:56072 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934938AbeF0P2V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:28:22 -0400
-Received: by mail-wr0-f193.google.com with SMTP id l2-v6so1891588wro.7
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:21 -0700 (PDT)
+        Wed, 27 Jun 2018 11:28:21 -0400
+Received: by mail-wm0-f66.google.com with SMTP id v16-v6so6340635wmv.5
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:20 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,115 +14,117 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 19/27] venus: helpers,vdec,venc: add helpers to set work mode and core usage
-Date: Wed, 27 Jun 2018 18:27:17 +0300
-Message-Id: <20180627152725.9783-20-stanimir.varbanov@linaro.org>
+Subject: [PATCH v4 18/27] venus: helpers: add a new helper to set raw format
+Date: Wed, 27 Jun 2018 18:27:16 +0300
+Message-Id: <20180627152725.9783-19-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are new properties applicable to Venus version 4xx. Add the
-helpers and call them from decoder and encoder drivers.
+The new helper will has one more argument for buffer type, that
+way the decoder can configure the format on it's secondary
+output.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/helpers.c | 28 ++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/helpers.c | 52 ++++++++++++++++++-----------
  drivers/media/platform/qcom/venus/helpers.h |  2 ++
- drivers/media/platform/qcom/venus/vdec.c    |  8 ++++++++
- drivers/media/platform/qcom/venus/venc.c    |  8 ++++++++
- 4 files changed, 46 insertions(+)
+ 2 files changed, 35 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index a1590d5cc921..2295cca3c22a 100644
+index 2eeb243e4dbe..a1590d5cc921 100644
 --- a/drivers/media/platform/qcom/venus/helpers.c
 +++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -481,6 +481,34 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+@@ -407,6 +407,20 @@ static int session_register_bufs(struct venus_inst *inst)
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(venus_helper_set_output_resolution);
  
-+int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode)
++static u32 to_hfi_raw_fmt(u32 v4l2_fmt)
 +{
-+	u32 ptype = HFI_PROPERTY_PARAM_WORK_MODE;
-+	struct hfi_video_work_mode wm;
++	switch (v4l2_fmt) {
++	case V4L2_PIX_FMT_NV12:
++		return HFI_COLOR_FORMAT_NV12;
++	case V4L2_PIX_FMT_NV21:
++		return HFI_COLOR_FORMAT_NV21;
++	default:
++		break;
++	}
 +
-+	if (!IS_V4(inst->core))
-+		return 0;
-+
-+	wm.video_work_mode = mode;
-+
-+	return hfi_session_set_property(inst, ptype, &wm);
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(venus_helper_set_work_mode);
 +
-+int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage)
-+{
-+	u32 ptype = HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE;
-+	struct hfi_videocores_usage_type cu;
-+
-+	if (!IS_V4(inst->core))
-+		return 0;
-+
-+	cu.video_core_enable_mask = usage;
-+
-+	return hfi_session_set_property(inst, ptype, &cu);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_core_usage);
-+
- int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs)
+ int venus_helper_get_bufreq(struct venus_inst *inst, u32 type,
+ 			    struct hfi_buffer_requirements *req)
  {
+@@ -488,35 +502,35 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_num_bufs);
+ 
+-int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
++int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
++				u32 buftype)
+ {
+-	struct hfi_uncompressed_format_select fmt;
+ 	u32 ptype = HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SELECT;
+-	int ret;
++	struct hfi_uncompressed_format_select fmt;
++
++	fmt.buffer_type = buftype;
++	fmt.format = hfi_format;
++
++	return hfi_session_set_property(inst, ptype, &fmt);
++}
++EXPORT_SYMBOL_GPL(venus_helper_set_raw_format);
++
++int venus_helper_set_color_format(struct venus_inst *inst, u32 pixfmt)
++{
++	u32 hfi_format, buftype;
+ 
+ 	if (inst->session_type == VIDC_SESSION_TYPE_DEC)
+-		fmt.buffer_type = HFI_BUFFER_OUTPUT;
++		buftype = HFI_BUFFER_OUTPUT;
+ 	else if (inst->session_type == VIDC_SESSION_TYPE_ENC)
+-		fmt.buffer_type = HFI_BUFFER_INPUT;
++		buftype = HFI_BUFFER_INPUT;
+ 	else
+ 		return -EINVAL;
+ 
+-	switch (pixfmt) {
+-	case V4L2_PIX_FMT_NV12:
+-		fmt.format = HFI_COLOR_FORMAT_NV12;
+-		break;
+-	case V4L2_PIX_FMT_NV21:
+-		fmt.format = HFI_COLOR_FORMAT_NV21;
+-		break;
+-	default:
++	hfi_format = to_hfi_raw_fmt(pixfmt);
++	if (!hfi_format)
+ 		return -EINVAL;
+-	}
+ 
+-	ret = hfi_session_set_property(inst, ptype, &fmt);
+-	if (ret)
+-		return ret;
+-
+-	return 0;
++	return venus_helper_set_raw_format(inst, hfi_format, buftype);
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_color_format);
+ 
 diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 79af7845efbd..d5e727e1ecab 100644
+index 0de9989adcdb..79af7845efbd 100644
 --- a/drivers/media/platform/qcom/venus/helpers.h
 +++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -38,6 +38,8 @@ int venus_helper_set_input_resolution(struct venus_inst *inst,
- int venus_helper_set_output_resolution(struct venus_inst *inst,
- 				       unsigned int width, unsigned int height,
+@@ -40,6 +40,8 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
  				       u32 buftype);
-+int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode);
-+int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage);
  int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
  			      unsigned int output_bufs);
- int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index eae9c651ac91..f1cf4678d013 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -550,6 +550,14 @@ static int vdec_set_properties(struct venus_inst *inst)
- 	u32 ptype;
- 	int ret;
- 
-+	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_1);
-+	if (ret)
-+		return ret;
-+
- 	if (core->res->hfi_version == HFI_VERSION_1XX) {
- 		ptype = HFI_PROPERTY_PARAM_VDEC_CONTINUE_DATA_TRANSFER;
- 		ret = hfi_session_set_property(inst, ptype, &en);
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-index 1d7f87e0f5b3..4f0a5daa97e2 100644
---- a/drivers/media/platform/qcom/venus/venc.c
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -643,6 +643,14 @@ static int venc_set_properties(struct venus_inst *inst)
- 	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
- 	int ret;
- 
-+	ret = venus_helper_set_work_mode(inst, VIDC_WORK_MODE_2);
-+	if (ret)
-+		return ret;
-+
-+	ret = venus_helper_set_core_usage(inst, VIDC_CORE_ID_2);
-+	if (ret)
-+		return ret;
-+
- 	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
- 	frate.buffer_type = HFI_BUFFER_OUTPUT;
- 	frate.framerate = inst->fps * (1 << 16);
++int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
++				u32 buftype);
+ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+ int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
+ int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
 -- 
 2.14.1
