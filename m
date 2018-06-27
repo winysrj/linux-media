@@ -1,57 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f182.google.com ([209.85.216.182]:42175 "EHLO
-        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751852AbeFZVVx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Jun 2018 17:21:53 -0400
-Received: by mail-qt0-f182.google.com with SMTP id y31-v6so16531768qty.9
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2018 14:21:52 -0700 (PDT)
-Subject: Re: V4L2_CID_USER_MAX217X_BASE == V4L2_CID_USER_IMX_BASE
-To: Helmut Grohne <h.grohne@intenta.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-References: <20180622075151.g24iiqfcg5pwbr73@laureti-dev>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <0b2e6f14-3297-fc53-5af0-2494ac6c925f@gmail.com>
-Date: Tue, 26 Jun 2018 14:21:48 -0700
+Received: from mga17.intel.com ([192.55.52.151]:16362 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752039AbeF0Avd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Jun 2018 20:51:33 -0400
+Subject: Re: [PATCH v4] media: add imx319 camera sensor driver
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, bingbu.cao@intel.com
+Cc: linux-media@vger.kernel.org, tfiga@google.com, jacopo@jmondi.org,
+        rajmohan.mani@intel.com, tian.shu.qiu@intel.com,
+        jian.xu.zheng@intel.com
+References: <1527761964-13056-1-git-send-email-bingbu.cao@intel.com>
+ <20180626151535.e6uju7pbmnwqnd4t@kekkonen.localdomain>
+From: Bing Bu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <6ff0a333-1d90-6660-6528-130669d08a7f@linux.intel.com>
+Date: Wed, 27 Jun 2018 08:54:34 +0800
 MIME-Version: 1.0
-In-Reply-To: <20180622075151.g24iiqfcg5pwbr73@laureti-dev>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <20180626151535.e6uju7pbmnwqnd4t@kekkonen.localdomain>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Helmut,
 
 
-On 06/22/2018 12:51 AM, Helmut Grohne wrote:
-> Hi,
+On 06/26/2018 11:15 PM, Sakari Ailus wrote:
+> Hi Bingbu,
 >
-> I found it strange that the macros V4L2_CID_USER_MAX217X_BASE and
-> V4L2_CID_USER_IMX_BASE have equal value even though each of them state
-> that they reserved a range. Those reservations look conflicting to me.
-
-Yes, they conflict.
-
-> The macro V4L2_CID_USER_MAX217X_BASE came first,
-
-No, imx came first. e1302912 ("media: Add i.MX media core driver")
-is dated June 10, 2017. 8d67ae25 ("media: v4l2-ctrls: Reserve controls for
-MAX217X") is dated two days later.
-
->   and
-> V4L2_CID_USER_IMX_BASE was introduced in e130291212df ("media: Add i.MX
-> media core driver") with the conflicting assignment (not a merge error).
-> The authors of that patch mostly make up the recipient list.
-
-There were 8 revisions of the imx-media driver posted. In all of
-those postings, V4L2_CID_USER_MAX217X_BASE did not exist yet.
-So it looks like 8d67ae25 was merged at the same time as e1302912
-but the conflict went unnoticed.
-
-Steve
+> On Thu, May 31, 2018 at 06:19:24PM +0800, bingbu.cao@intel.com wrote:
+>> From: Bingbu Cao <bingbu.cao@intel.com>
+>>
+>> Add a v4l2 sub-device driver for the Sony imx319 image sensor.
+>> This is a camera sensor using the i2c bus for control and the
+>> csi-2 bus for data.
+>>
+>> This driver supports following features:
+>> - manual exposure and analog/digital gain control support
+>> - vblank/hblank control support
+>> -  4 test patterns control support
+>> - vflip/hflip control support (will impact the output bayer order)
+>> - support following resolutions:
+>>     - 3264x2448, 3280x2464 @ 30fps
+>>     - 1936x1096, 1920x1080 @ 60fps
+>>     - 1640x1232, 1640x922, 1296x736, 1280x720 @ 120fps
+>> - support 4 bayer orders output (via change v/hflip)
+>>     - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
+>>
+>> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+>> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+> Could you obtain the CSI-2 bus speed as well as the external clock
+> frequency from the firmware? See e.g.
+> drivers/media/i2c/smiapp/smiapp-core.c and
+> v4l2_fwnode_endpoint_alloc_parse() there. You could use the clock-frequency
+> property for the clock.
+Ack.
+> ...
+>
+>> +static void imx319_free_controls(struct imx319 *imx319)
+>> +{
+>> +	v4l2_ctrl_handler_free(imx319->sd.ctrl_handler);
+>> +}
+> Please use v4l2_ctrl_handler_free() directly instead, and remove this
+> function.
+>
+> Both apply to the imx355 driver as well.
+Ack.
+>
