@@ -1,70 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0079.hostedemail.com ([216.40.44.79]:44701 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S965140AbeF0Nnw (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:34673 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752437AbeF0PKf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 09:43:52 -0400
-Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
-        by smtpgrave07.hostedemail.com (Postfix) with ESMTP id AF6A61804FAF3
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 13:37:03 +0000 (UTC)
-Message-ID: <06bca9497a878d5f494fd97dbe2d8448caab9afd.camel@perches.com>
-Subject: Re: [PATCH v2] staging: media: omap4iss: Added SPDX license
- identifiers
-From: Joe Perches <joe@perches.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-        Daniel Graefe <daniel.graefe@fau.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        devel@driverdev.osuosl.org, linux-kernel@i4.cs.fau.de,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, Roman Sommer <roman.sommer@fau.de>,
+        Wed, 27 Jun 2018 11:10:35 -0400
+Date: Wed, 27 Jun 2018 17:10:30 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Rob Herring <robh@kernel.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Date: Wed, 27 Jun 2018 06:36:58 -0700
-In-Reply-To: <20180627084013.ybnbxbgha77cdujn@mwanda>
-References: <1529932892-9036-1-git-send-email-daniel.graefe@fau.de>
-         <1530048656-4074-1-git-send-email-daniel.graefe@fau.de>
-         <20180627084013.ybnbxbgha77cdujn@mwanda>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Magnus Damm <magnus.damm@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH/RFC 2/2] arm64: dts: renesas: salvator-common: Fix
+ adv7482 decimal unit addresses
+Message-ID: <20180627151030.o2peqxdnesni3wfi@verge.net.au>
+References: <1528984088-24801-1-git-send-email-geert+renesas@glider.be>
+ <1528984088-24801-3-git-send-email-geert+renesas@glider.be>
+ <20180626195747.GB30143@rob-hp-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180626195747.GB30143@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2018-06-27 at 11:40 +0300, Dan Carpenter wrote:
-> On Tue, Jun 26, 2018 at 11:30:56PM +0200, Daniel Graefe wrote:
-> > Changes in v2:
-> > - replaced "GPL-2.0-or-later" with "GPL-2.0+"
+On Tue, Jun 26, 2018 at 01:57:47PM -0600, Rob Herring wrote:
+> On Thu, Jun 14, 2018 at 03:48:08PM +0200, Geert Uytterhoeven wrote:
+> > With recent dtc and W=1:
+> > 
+> >     ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@10: graph node unit address error, expected "a"
+> >     ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@11: graph node unit address error, expected "b"
+> > 
+> > Unit addresses are always hexadecimal (without prefix), while the bases
+> > of reg property values depend on their prefixes.
+> > 
+> > Fixes: 908001d778eba06e ("arm64: dts: renesas: salvator-common: Add ADV7482 support")
+> > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> > ---
+> >  arch/arm64/boot/dts/renesas/salvator-common.dtsi | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> We should make checkpatch.pl complain when people use wrong tags like
-> GPL-2.0-or-later.
+> Reviewed-by: Rob Herring <robh@kernel.org>
 
-I'd rather we use the latest version of the spdx forms.
-https://lkml.org/lkml/2018/2/2/883
-I think it's better to modify checkpatch when the kernel
-uses the latest forms.
-
-There is a separate script that validates the spdx forms.
-./scripts/spdxcheck.py
-
-That script, which still needs the patch below, would work
-with either style.
-
-https://patchwork.kernel.org/patch/10448573/
-
-$ python ./scripts/spdxcheck.py 
-include/dt-bindings/reset/amlogic,meson-axg-reset.h: 9:41 Invalid License ID: BSD
-
-or for more verbose output
-
-$ python ./scripts/spdxcheck.py -v
-include/dt-bindings/reset/amlogic,meson-axg-reset.h: 9:41 Invalid License ID: BSD
-
-License files:               14
-Exception files:              1
-License IDs                  19
-Exception IDs                 1
-
-Files checked:            60967
-Lines checked:           646729
-Files with SPDX:          17393
-Files with errors:            1
+Geert, shall I apply this?
