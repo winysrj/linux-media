@@ -1,97 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.netline.ch ([148.251.143.178]:57198 "EHLO
-        netline-mail3.netline.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934246AbeF0QEK (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:44168 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965772AbeF0Qpj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 12:04:10 -0400
-Subject: Re: [PATCH] dma-buf: Move BUG_ON from _add_shared_fence to
- _add_shared_inplace
-To: Chris Wilson <chris@chris-wilson.co.uk>,
-        Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        linux-media@vger.kernel.org
-References: <20180626143147.14296-1-michel@daenzer.net>
- <153010024207.8693.14587899562244751472@mail.alporthouse.com>
-From: =?UTF-8?Q?Michel_D=c3=a4nzer?= <michel@daenzer.net>
-Message-ID: <d38ba7df-d3b4-2c90-3482-21f40ea18a00@daenzer.net>
-Date: Wed, 27 Jun 2018 18:04:05 +0200
+        Wed, 27 Jun 2018 12:45:39 -0400
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [PATCH/RFC 2/2] arm64: dts: renesas: salvator-common: Fix adv7482
+ decimal unit addresses
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Simon Horman <horms@verge.net.au>
+Cc: Rob Herring <robh@kernel.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+References: <1528984088-24801-1-git-send-email-geert+renesas@glider.be>
+ <1528984088-24801-3-git-send-email-geert+renesas@glider.be>
+ <20180626195747.GB30143@rob-hp-laptop>
+ <20180627151030.o2peqxdnesni3wfi@verge.net.au>
+ <CAMuHMdXWKuzJ5jzAMugZArXuK_NRwaptXMSGuWjtOEcPwv6CJA@mail.gmail.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <f0445e88-a8ca-081d-e553-bdfae6f374a5@ideasonboard.com>
+Date: Wed, 27 Jun 2018 17:45:34 +0100
 MIME-Version: 1.0
-In-Reply-To: <153010024207.8693.14587899562244751472@mail.alporthouse.com>
+In-Reply-To: <CAMuHMdXWKuzJ5jzAMugZArXuK_NRwaptXMSGuWjtOEcPwv6CJA@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-CA
-Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-06-27 01:50 PM, Chris Wilson wrote:
-> Quoting Michel Dänzer (2018-06-26 15:31:47)
->> From: Michel Dänzer <michel.daenzer@amd.com>
->>
->> Fixes the BUG_ON spuriously triggering under the following
->> circumstances:
->>
->> * ttm_eu_reserve_buffers processes a list containing multiple BOs using
->>   the same reservation object, so it calls
->>   reservation_object_reserve_shared with that reservation object once
->>   for each such BO.
->> * In reservation_object_reserve_shared, old->shared_count ==
->>   old->shared_max - 1, so obj->staged is freed in preparation of an
->>   in-place update.
->> * ttm_eu_fence_buffer_objects calls reservation_object_add_shared_fence
->>   once for each of the BOs above, always with the same fence.
->> * The first call adds the fence in the remaining free slot, after which
->>   old->shared_count == old->shared_max.
->>
->> In the next call to reservation_object_add_shared_fence, the BUG_ON
->> triggers. However, nothing bad would happen in
->> reservation_object_add_shared_inplace, since the fence is already in the
->> reservation object.
->>
->> Prevent this by moving the BUG_ON to where an overflow would actually
->> happen (e.g. if a buggy caller didn't call
->> reservation_object_reserve_shared before).
->>
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Michel Dänzer <michel.daenzer@amd.com>
+On 27/06/18 17:40, Geert Uytterhoeven wrote:
+> Hi Simon,
 > 
-> I've convinced myself (or rather have not found a valid argument
-> against) that being able to call reserve_shared + add_shared multiple
-> times for the same fence is an intended part of reservation_object API 
-> 
-> I'd double check with Christian though.
-
-Right, I'm interested in Christian's feedback.
-
-
-> Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-
-Thanks!
-
-
->>  drivers/dma-buf/reservation.c | 6 +++---
->>  1 file changed, 3 insertions(+), 3 deletions(-)
+> On Wed, Jun 27, 2018 at 5:10 PM Simon Horman <horms@verge.net.au> wrote:
+>> On Tue, Jun 26, 2018 at 01:57:47PM -0600, Rob Herring wrote:
+>>> On Thu, Jun 14, 2018 at 03:48:08PM +0200, Geert Uytterhoeven wrote:
+>>>> With recent dtc and W=1:
+>>>>
+>>>>     ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@10: graph node unit address error, expected "a"
+>>>>     ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@11: graph node unit address error, expected "b"
+>>>>
+>>>> Unit addresses are always hexadecimal (without prefix), while the bases
+>>>> of reg property values depend on their prefixes.
+>>>>
+>>>> Fixes: 908001d778eba06e ("arm64: dts: renesas: salvator-common: Add ADV7482 support")
+>>>> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+>>>> ---
+>>>>  arch/arm64/boot/dts/renesas/salvator-common.dtsi | 4 ++--
+>>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> Reviewed-by: Rob Herring <robh@kernel.org>
 >>
->> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
->> index 314eb1071cce..532545b9488e 100644
->> --- a/drivers/dma-buf/reservation.c
->> +++ b/drivers/dma-buf/reservation.c
->> @@ -141,6 +141,7 @@ reservation_object_add_shared_inplace(struct reservation_object *obj,
->>         if (signaled) {
->>                 RCU_INIT_POINTER(fobj->shared[signaled_idx], fence);
->>         } else {
->> +               BUG_ON(fobj->shared_count >= fobj->shared_max);
+>> Geert, shall I apply this?
 > 
-> Personally I would just let kasan detect this and throw away the BUG_ON
-> or at least move it behind some DMABUF_BUG_ON().
+> I'd say yes. Thanks!
 
-Hmm. Normally, I'm not a fan of BUG(_ON) either. But in this case, it's
-clear that the caller is buggy, and proceeding to write beyond the end
-of the array could have far-reaching consequences. I'm leaving that to
-somebody else.
+I'm happy to throw an
+
+Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+on the patch - but I had a pending question regarding the reg = <10> part.
+
+Shouldn't the reg become hex "reg = <0xa>" to be consistent?
+
+Either way - if there's precedent - take that route and I'm happy.
+
+--
+Regards
+
+Kieran
 
 
--- 
-Earthling Michel Dänzer               |               http://www.amd.com
-Libre software enthusiast             |             Mesa and X developer
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
