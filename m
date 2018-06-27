@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55644 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55642 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965391AbeF0UgB (ORCPT
+        with ESMTP id S1754417AbeF0Uf6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 16:36:01 -0400
+        Wed, 27 Jun 2018 16:35:58 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
@@ -12,103 +12,342 @@ Cc: Hans Verkuil <hans.verkuil@cisco.com>,
         Nicolas Dufresne <nicolas.dufresne@collabora.com>,
         emil.velikov@collabora.com,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v3 2/2] vim2m: add media device
-Date: Wed, 27 Jun 2018 17:35:45 -0300
-Message-Id: <20180627203545.21728-3-ezequiel@collabora.com>
+Subject: [PATCH v3 1/2] media: add helpers for memory-to-memory media controller
+Date: Wed, 27 Jun 2018 17:35:44 -0300
+Message-Id: <20180627203545.21728-2-ezequiel@collabora.com>
 In-Reply-To: <20180627203545.21728-1-ezequiel@collabora.com>
 References: <20180627203545.21728-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+A memory-to-memory pipeline device consists in three
+entities: two DMA engine and one video processing entities.
+The DMA engine entities are linked to a V4L interface.
 
-Request API requires a media node. Add one to the vim2m driver so we can
-use requests with it.
+This commit add a new v4l2_m2m_{un}register_media_controller
+API to register this topology.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+For instance, a typical mem2mem device topology would
+look like this:
+
+Device topology
+- entity 1: source (1 pad, 1 link)
+            type Node subtype V4L flags 0
+	pad0: Source
+		-> "proc":1 [ENABLED,IMMUTABLE]
+
+- entity 3: proc (2 pads, 2 links)
+            type Node subtype Unknown flags 0
+	pad0: Source
+		-> "sink":0 [ENABLED,IMMUTABLE]
+	pad1: Sink
+		<- "source":0 [ENABLED,IMMUTABLE]
+
+- entity 6: sink (1 pad, 1 link)
+            type Node subtype V4L flags 0
+	pad0: Sink
+		<- "proc":0 [ENABLED,IMMUTABLE]
+
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/platform/vim2m.c | 41 ++++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c     |  13 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 172 +++++++++++++++++++++++++
+ include/media/v4l2-mem2mem.h           |  19 +++
+ 3 files changed, 199 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 065483e62db4..da13a8927f3f 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -140,6 +140,9 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct video_device	vfd;
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 4ffd7d60a901..c1996d73ca74 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -202,7 +202,7 @@ static void v4l2_device_release(struct device *cd)
+ 	mutex_unlock(&videodev_lock);
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (v4l2_dev->mdev) {
++	if (v4l2_dev->mdev && vdev->vfl_dir != VFL_DIR_M2M) {
+ 		/* Remove interfaces and interface links */
+ 		media_devnode_remove(vdev->intf_devnode);
+ 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+@@ -733,19 +733,22 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			BASE_VIDIOC_PRIVATE);
+ }
+ 
+-static int video_register_media_controller(struct video_device *vdev, int type)
++static int video_register_media_controller(struct video_device *vdev)
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	u32 intf_type;
+ 	int ret;
+ 
+-	if (!vdev->v4l2_dev->mdev)
++	/* Memory-to-memory devices are more complex and use
++	 * their own function to register its mc entities.
++	 */
++	if (!vdev->v4l2_dev->mdev || vdev->vfl_dir == VFL_DIR_M2M)
+ 		return 0;
+ 
+ 	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+ 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
+ 
+-	switch (type) {
++	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER:
+ 		intf_type = MEDIA_INTF_T_V4L_VIDEO;
+ 		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
+@@ -993,7 +996,7 @@ int __video_register_device(struct video_device *vdev,
+ 	v4l2_device_get(vdev->v4l2_dev);
+ 
+ 	/* Part 5: Register the entity. */
+-	ret = video_register_media_controller(vdev, type);
++	ret = video_register_media_controller(vdev);
+ 
+ 	/* Part 6: Activate this minor. The char device can now be used. */
+ 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index c4f963d96a79..8107ebabaebe 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -17,9 +17,11 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ 
++#include <media/media-device.h>
+ #include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ 
+@@ -50,6 +52,18 @@ module_param(debug, bool, 0644);
+  * offsets but for different queues */
+ #define DST_QUEUE_OFF_BASE	(1 << 30)
+ 
++enum v4l2_m2m_entity_type {
++	MEM2MEM_ENT_TYPE_SOURCE,
++	MEM2MEM_ENT_TYPE_SINK,
++	MEM2MEM_ENT_TYPE_PROC,
++	MEM2MEM_ENT_TYPE_MAX
++};
++
++static const char * const m2m_entity_name[] = {
++	"source",
++	"sink",
++	"proc"
++};
+ 
+ /**
+  * struct v4l2_m2m_dev - per-device context
+@@ -60,6 +74,15 @@ module_param(debug, bool, 0644);
+  */
+ struct v4l2_m2m_dev {
+ 	struct v4l2_m2m_ctx	*curr_ctx;
 +#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device	mdev;
++	struct media_entity	*source;
++	struct media_pad	source_pad;
++	struct media_entity	sink;
++	struct media_pad	sink_pad;
++	struct media_entity	proc;
++	struct media_pad	proc_pads[2];
++	struct media_intf_devnode *intf_devnode;
 +#endif
  
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -1016,7 +1019,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
--		goto unreg_dev;
-+		goto unreg_v4l2;
- 	}
+ 	struct list_head	job_queue;
+ 	spinlock_t		job_spinlock;
+@@ -595,6 +618,155 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ }
+ EXPORT_SYMBOL(v4l2_m2m_mmap);
  
- 	video_set_drvdata(vfd, dev);
-@@ -1031,15 +1034,39 @@ static int vim2m_probe(struct platform_device *pdev)
- 	if (IS_ERR(dev->m2m_dev)) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(dev->m2m_dev);
--		goto err_m2m;
-+		goto unreg_dev;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
++{
++	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
++	media_devnode_remove(m2m_dev->intf_devnode);
++
++	media_entity_remove_links(m2m_dev->source);
++	media_entity_remove_links(&m2m_dev->sink);
++	media_entity_remove_links(&m2m_dev->proc);
++	media_device_unregister_entity(m2m_dev->source);
++	media_device_unregister_entity(&m2m_dev->sink);
++	media_device_unregister_entity(&m2m_dev->proc);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_unregister_media_controller);
++
++static int v4l2_m2m_register_entity(struct media_device *mdev,
++	struct v4l2_m2m_dev *m2m_dev, enum v4l2_m2m_entity_type type,
++	int function)
++{
++	struct media_entity *entity;
++	struct media_pad *pads;
++	int num_pads;
++	int ret;
++
++	switch (type) {
++	case MEM2MEM_ENT_TYPE_SOURCE:
++		entity = m2m_dev->source;
++		pads = &m2m_dev->source_pad;
++		pads[0].flags = MEDIA_PAD_FL_SOURCE;
++		num_pads = 1;
++		break;
++	case MEM2MEM_ENT_TYPE_SINK:
++		entity = &m2m_dev->sink;
++		pads = &m2m_dev->sink_pad;
++		pads[0].flags = MEDIA_PAD_FL_SINK;
++		num_pads = 1;
++		break;
++	case MEM2MEM_ENT_TYPE_PROC:
++		entity = &m2m_dev->proc;
++		pads = m2m_dev->proc_pads;
++		pads[0].flags = MEDIA_PAD_FL_SINK;
++		pads[1].flags = MEDIA_PAD_FL_SOURCE;
++		num_pads = 2;
++		break;
++	default:
++		return -EINVAL;
 +	}
 +
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->v4l2_dev.mdev = &dev->mdev;
++	entity->obj_type = MEDIA_ENTITY_TYPE_BASE;
++	entity->name = m2m_entity_name[type];
++	entity->function = function;
 +
-+	ret = v4l2_m2m_register_media_controller(dev->m2m_dev,
-+			vfd, MEDIA_ENT_F_PROC_VIDEO_SCALER);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
-+		goto unreg_m2m;
- 	}
- 
-+	ret = media_device_register(&dev->mdev);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
-+		goto unreg_m2m_mc;
++	ret = media_entity_pads_init(entity, num_pads, pads);
++	if (ret)
++		return ret;
++	ret = media_device_register_entity(mdev, entity);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
++		struct video_device *vdev, int function)
++{
++	struct media_device *mdev = vdev->v4l2_dev->mdev;
++	struct media_link *link;
++	int ret;
++
++	if (!mdev)
++		return 0;
++
++	/* A memory-to-memory device consists in two
++	 * DMA engine and one video processing entities.
++	 * The DMA engine entities are linked to a V4L interface
++	 */
++
++	/* Create the three entities with their pads */
++	m2m_dev->source = &vdev->entity;
++	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
++			MEM2MEM_ENT_TYPE_SOURCE, MEDIA_ENT_F_IO_V4L);
++	if (ret)
++		return ret;
++	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
++			MEM2MEM_ENT_TYPE_PROC, function);
++	if (ret)
++		goto err_rel_entity0;
++	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
++			MEM2MEM_ENT_TYPE_SINK, MEDIA_ENT_F_IO_V4L);
++	if (ret)
++		goto err_rel_entity1;
++
++	/* Connect the three entities */
++	ret = media_create_pad_link(m2m_dev->source, 0, &m2m_dev->proc, 1,
++			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
++	if (ret)
++		goto err_rel_entity2;
++
++	ret = media_create_pad_link(&m2m_dev->proc, 0, &m2m_dev->sink, 0,
++			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
++	if (ret)
++		goto err_rm_links0;
++
++	/* Create video interface */
++	m2m_dev->intf_devnode = media_devnode_create(mdev,
++			MEDIA_INTF_T_V4L_VIDEO, 0,
++			VIDEO_MAJOR, vdev->minor);
++	if (!m2m_dev->intf_devnode) {
++		ret = -ENOMEM;
++		goto err_rm_links1;
 +	}
-+#endif
- 	return 0;
- 
--err_m2m:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+unreg_m2m_mc:
-+	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-+unreg_m2m:
- 	v4l2_m2m_release(dev->m2m_dev);
--	video_unregister_device(&dev->vfd);
-+#endif
- unreg_dev:
-+	video_unregister_device(&dev->vfd);
-+unreg_v4l2:
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
- 	return ret;
-@@ -1050,6 +1077,12 @@ static int vim2m_remove(struct platform_device *pdev)
- 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
 +
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-+	media_device_cleanup(&dev->mdev);
++	/* Connect the two DMA engines to the interface */
++	link = media_create_intf_link(m2m_dev->source,
++			&m2m_dev->intf_devnode->intf, MEDIA_LNK_FL_ENABLED);
++	if (!link) {
++		ret = -ENOMEM;
++		goto err_rm_devnode;
++	}
++
++	link = media_create_intf_link(&m2m_dev->sink,
++			&m2m_dev->intf_devnode->intf, MEDIA_LNK_FL_ENABLED);
++	if (!link) {
++		ret = -ENOMEM;
++		goto err_rm_intf_link;
++	}
++	return 0;
++
++err_rm_intf_link:
++	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
++err_rm_devnode:
++	media_devnode_remove(m2m_dev->intf_devnode);
++err_rm_links1:
++	media_entity_remove_links(&m2m_dev->sink);
++err_rm_links0:
++	media_entity_remove_links(&m2m_dev->proc);
++	media_entity_remove_links(m2m_dev->source);
++err_rel_entity2:
++	media_device_unregister_entity(&m2m_dev->proc);
++err_rel_entity1:
++	media_device_unregister_entity(&m2m_dev->sink);
++err_rel_entity0:
++	media_device_unregister_entity(m2m_dev->source);
++	return ret;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_register_media_controller);
 +#endif
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
++
+ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
+ {
+ 	struct v4l2_m2m_dev *m2m_dev;
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 3d07ba3a8262..24fcc99653de 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -53,6 +53,7 @@ struct v4l2_m2m_ops {
+ 	void (*unlock)(void *priv);
+ };
+ 
++struct video_device;
+ struct v4l2_m2m_dev;
+ 
+ /**
+@@ -328,6 +329,24 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+  */
+ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev);
++int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
++			struct video_device *vdev, int function);
++#else
++static inline void
++v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
++{
++}
++
++static inline int
++v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
++		struct video_device *vdev, int function)
++{
++	return 0;
++}
++#endif
++
+ /**
+  * v4l2_m2m_release() - cleans up and frees a m2m_dev structure
+  *
 -- 
 2.18.0.rc2
