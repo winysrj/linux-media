@@ -1,34 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:56187 "EHLO
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:56196 "EHLO
         homiemail-a125.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934936AbeF0Tlm (ORCPT
+        by vger.kernel.org with ESMTP id S934936AbeF0Tln (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 15:41:42 -0400
+        Wed, 27 Jun 2018 15:41:43 -0400
 From: Brad Love <brad@nextdimension.cc>
 To: linux-media@vger.kernel.org, mchehab@infradead.org,
         dheitmueller@kernellabs.com
 Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH] [RFC] em28xx: Fix dual transport stream use
-Date: Wed, 27 Jun 2018 14:41:22 -0500
-Message-Id: <1530128483-31662-1-git-send-email-brad@nextdimension.cc>
+Subject: [PATCH] em28xx: Fix dual transport stream operation
+Date: Wed, 27 Jun 2018 14:41:23 -0500
+Message-Id: <1530128483-31662-2-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1530128483-31662-1-git-send-email-brad@nextdimension.cc>
+References: <1530128483-31662-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When dual transport stream support was added the call to set
-alt mode on the USB interface was moved to em28xx_dvb_init.
-This was reported to break streaming for a device, so the
-call was re-added to em28xx_start_streaming.
+Addresses the following, which introduced a regression itself:
 
 Commit 509f89652f83 ("media: em28xx: fix a regression with HVR-950")
 
-This regression fix however broke dual transport stream support.
-When a tuner starts streaming it sets alt mode on the USB interface.
+The regression fix breaks dual transport stream support. When a
+tuner starts streaming it sets alt mode on the USB interface.
 The problem is both tuners share the same USB interface, so when
 the second tuner becomes active and sets alt mode on the interface
 it kills streaming on the other port.
 
-It was suggested add a refcount somewhere and only set alt mode if
-no tuners are currently active on the interface. This requires
+It was suggested to add a refcounter and only set alt mode if no
+tuners are currently active on the interface. This requires
 sharing some state amongst both tuner devices, with appropriate
 locking.
 
@@ -49,18 +48,135 @@ the first tuner in a dual tuner device will lock the second tuner,
 and the second tuner in a dual tuner device will lock itself aka
 the second tuner instance.
 
-This is a perhaps a little hacky, which is why I've added the RFC.
-A quick solution was required though, so I don't fix a couple
-newer Hauppauge devices, just to break a lot of older ones.
-
-
-Brad Love (1):
-  em28xx: Fix dual transport stream operation
-
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
  drivers/media/usb/em28xx/em28xx-cards.c |  6 ++++-
  drivers/media/usb/em28xx/em28xx-dvb.c   | 47 +++++++++++++++++++++++++++++++--
  drivers/media/usb/em28xx/em28xx.h       |  1 +
  3 files changed, 51 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 48bc505..91f9787 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3374,8 +3374,10 @@ void em28xx_free_device(struct kref *ref)
+ 	if (!dev->disconnected)
+ 		em28xx_release_resources(dev);
+ 
+-	if (dev->ts == PRIMARY_TS)
++	if (dev->ts == PRIMARY_TS) {
+ 		kfree(dev->alt_max_pkt_size_isoc);
++		kfree(dev->usage_count);
++	}
+ 
+ 	kfree(dev);
+ }
+@@ -3793,6 +3795,8 @@ static int em28xx_usb_probe(struct usb_interface *intf,
+ 	dev->is_audio_only = has_vendor_audio && !(has_video || has_dvb);
+ 	dev->has_video = has_video;
+ 	dev->ifnum = ifnum;
++	dev->usage_count = kcalloc(1, sizeof(unsigned int), GFP_KERNEL);
++	*dev->usage_count = 0;
+ 
+ 	dev->ts = PRIMARY_TS;
+ 	snprintf(dev->name, 28, "em28xx");
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index b778d8a..3a67831 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -218,7 +218,19 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 		dvb_alt = dev->dvb_alt_isoc;
+ 	}
+ 
+-	usb_set_interface(udev, dev->ifnum, dvb_alt);
++	if (dev->dev_next)
++		mutex_lock(&dev->dev_next->lock);
++	else
++		mutex_lock(&dev->lock);
++
++	if (*dev->usage_count == 0)
++		usb_set_interface(udev, dev->ifnum, dvb_alt);
++
++	if (dev->dev_next)
++		mutex_unlock(&dev->dev_next->lock);
++	else
++		mutex_unlock(&dev->lock);
++
+ 	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+ 	if (rc < 0)
+ 		return rc;
+@@ -250,6 +262,8 @@ static int em28xx_start_feed(struct dvb_demux_feed *feed)
+ {
+ 	struct dvb_demux *demux  = feed->demux;
+ 	struct em28xx_dvb *dvb = demux->priv;
++	struct em28xx_i2c_bus *i2c_bus = dvb->adapter.priv;
++	struct em28xx *dev = i2c_bus->dev;
+ 	int rc, ret;
+ 
+ 	if (!demux->dmx.frontend)
+@@ -263,6 +277,19 @@ static int em28xx_start_feed(struct dvb_demux_feed *feed)
+ 		ret = em28xx_start_streaming(dvb);
+ 		if (ret < 0)
+ 			rc = ret;
++		else {
++			if (dev->dev_next)
++				mutex_lock(&dev->dev_next->lock);
++			else
++				mutex_lock(&dev->lock);
++
++			*dev->usage_count = *dev->usage_count + 1;
++
++			if (dev->dev_next)
++				mutex_unlock(&dev->dev_next->lock);
++			else
++				mutex_unlock(&dev->lock);
++		}
+ 	}
+ 
+ 	mutex_unlock(&dvb->lock);
+@@ -273,14 +300,30 @@ static int em28xx_stop_feed(struct dvb_demux_feed *feed)
+ {
+ 	struct dvb_demux *demux  = feed->demux;
+ 	struct em28xx_dvb *dvb = demux->priv;
++	struct em28xx_i2c_bus *i2c_bus = dvb->adapter.priv;
++	struct em28xx *dev = i2c_bus->dev;
+ 	int err = 0;
+ 
+ 	mutex_lock(&dvb->lock);
+ 	dvb->nfeeds--;
+ 
+-	if (!dvb->nfeeds)
++	if (!dvb->nfeeds) {
+ 		err = em28xx_stop_streaming(dvb);
+ 
++		if (dev->dev_next)
++			mutex_lock(&dev->dev_next->lock);
++		else
++			mutex_lock(&dev->lock);
++
++		*dev->usage_count = *dev->usage_count - 1;
++
++		if (dev->dev_next)
++			mutex_unlock(&dev->dev_next->lock);
++		else
++			mutex_unlock(&dev->lock);
++	}
++
++
+ 	mutex_unlock(&dvb->lock);
+ 	return err;
+ }
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 953caac..d245c4f 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -775,6 +775,7 @@ struct em28xx {
+ 
+ 	struct em28xx	*dev_next;
+ 	int ts;
++	unsigned int *usage_count;
+ };
+ 
+ #define kref_to_dev(d) container_of(d, struct em28xx, ref)
 -- 
 2.7.4
