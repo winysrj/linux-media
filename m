@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:58839 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751505AbeF0Lj4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 07:39:56 -0400
-Date: Wed, 27 Jun 2018 12:39:55 +0100
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT FIXES FOR v4.18] meson-ir produces too many warnings
-Message-ID: <20180627113954.xa7csnrrsigzj7ps@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from smtprelay0079.hostedemail.com ([216.40.44.79]:44701 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S965140AbeF0Nnw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Jun 2018 09:43:52 -0400
+Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
+        by smtpgrave07.hostedemail.com (Postfix) with ESMTP id AF6A61804FAF3
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 13:37:03 +0000 (UTC)
+Message-ID: <06bca9497a878d5f494fd97dbe2d8448caab9afd.camel@perches.com>
+Subject: Re: [PATCH v2] staging: media: omap4iss: Added SPDX license
+ identifiers
+From: Joe Perches <joe@perches.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+        Daniel Graefe <daniel.graefe@fau.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        devel@driverdev.osuosl.org, linux-kernel@i4.cs.fau.de,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, Roman Sommer <roman.sommer@fau.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Date: Wed, 27 Jun 2018 06:36:58 -0700
+In-Reply-To: <20180627084013.ybnbxbgha77cdujn@mwanda>
+References: <1529932892-9036-1-git-send-email-daniel.graefe@fau.de>
+         <1530048656-4074-1-git-send-email-daniel.graefe@fau.de>
+         <20180627084013.ybnbxbgha77cdujn@mwanda>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, 2018-06-27 at 11:40 +0300, Dan Carpenter wrote:
+> On Tue, Jun 26, 2018 at 11:30:56PM +0200, Daniel Graefe wrote:
+> > Changes in v2:
+> > - replaced "GPL-2.0-or-later" with "GPL-2.0+"
+> 
+> We should make checkpatch.pl complain when people use wrong tags like
+> GPL-2.0-or-later.
 
-The meson-ir drivers produces a lot of errors since v4.18. Simply make
-this dev_warn_once().
+I'd rather we use the latest version of the spdx forms.
+https://lkml.org/lkml/2018/2/2/883
+I think it's better to modify checkpatch when the kernel
+uses the latest forms.
 
-Thanks,
-Sean
+There is a separate script that validates the spdx forms.
+./scripts/spdxcheck.py
 
-The following changes since commit e88f5e9ebd54bdf75c9833e3d9add7c2c0d39b0b:
+That script, which still needs the patch below, would work
+with either style.
 
-  media: uvcvideo: Prevent setting unavailable flags (2018-06-05 08:53:17 -0400)
+https://patchwork.kernel.org/patch/10448573/
 
-are available in the Git repository at:
+$ python ./scripts/spdxcheck.py 
+include/dt-bindings/reset/amlogic,meson-axg-reset.h: 9:41 Invalid License ID: BSD
 
-  git://linuxtv.org/syoung/media_tree.git for-v4.18e
+or for more verbose output
 
-for you to fetch changes up to 97983eed9c07ffd94429527a5e41facde4811fbc:
+$ python ./scripts/spdxcheck.py -v
+include/dt-bindings/reset/amlogic,meson-axg-reset.h: 9:41 Invalid License ID: BSD
 
-  media: rc: be less noisy when driver misbehaves (2018-06-27 10:51:42 +0100)
+License files:               14
+Exception files:              1
+License IDs                  19
+Exception IDs                 1
 
-----------------------------------------------------------------
-Sean Young (1):
-      media: rc: be less noisy when driver misbehaves
-
- drivers/media/rc/rc-ir-raw.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Files checked:            60967
+Lines checked:           646729
+Files with SPDX:          17393
+Files with errors:            1
