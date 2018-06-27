@@ -1,95 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:47595 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751293AbeFANWg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2018 09:22:36 -0400
-Message-ID: <1527859350.5913.4.camel@pengutronix.de>
-Subject: Re: [PATCH v2 01/10] media: imx-csi: Pass sink pad field to
- ipu_csi_init_interface
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Krzysztof =?UTF-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:40622 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934927AbeF0P2S (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Jun 2018 11:28:18 -0400
+Received: by mail-wm0-f68.google.com with SMTP id z13-v6so5959400wma.5
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:18 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Fri, 01 Jun 2018 15:22:30 +0200
-In-Reply-To: <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
-References: <1527813049-3231-1-git-send-email-steve_longerbeam@mentor.com>
-         <1527813049-3231-2-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v4 16/27] venus: core: delete not used buffer mode flags
+Date: Wed, 27 Jun 2018 18:27:14 +0300
+Message-Id: <20180627152725.9783-17-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
+References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-05-31 at 17:30 -0700, Steve Longerbeam wrote:
-> The output pad's field type was being passed to ipu_csi_init_interface(),
-> in order to deal with field type 'alternate' at the sink pad, which
-> is not understood by ipu_csi_init_interface().
-> 
-> Remove that code and pass the sink pad field to ipu_csi_init_interface().
-> The latter function will have to explicity deal with field type 'alternate'
-> when setting up the CSI interface for BT.656 busses.
+Delete not used flag for capture buffer allocation mode and
+no longer used cap_bufs_mode_dynamic from instance structure.
 
-I fear this won't be enough. If we want to capture
-sink:ALTERNATE/SEQ_TB/SEQ_BT -> src:SEQ_TB we have to configure the CSI
-differently than if we want to capture
-ALTERNATE/SEQ_TB/SEQ_BT -> src:SEQ_BT. (And differently for NTSC and
-PAL). For NTSC sink:ALTERNATE should behave like sink:SEQ_BT, and for
-PAL sink:ALTERNATE should behave like sink:SEQ_TB.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+---
+ drivers/media/platform/qcom/venus/core.h       |  4 ----
+ drivers/media/platform/qcom/venus/hfi_parser.c | 11 +++--------
+ 2 files changed, 3 insertions(+), 12 deletions(-)
 
-Interweaving SEQ_TB to INTERLACED_TB should work right now, but to
-interweave SEQ_BT to INTERLACED_BT, we need to add one line offset to
-the frame start and use a negative interlaced scanline offset.
-
-regards
-Philipp
-
-> Reported-by: Krzysztof Hałasa <khalasa@piap.pl>
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  drivers/staging/media/imx/imx-media-csi.c | 13 ++-----------
->  1 file changed, 2 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 95d7805..9bc555c 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -629,12 +629,10 @@ static void csi_idmac_stop(struct csi_priv *priv)
->  /* Update the CSI whole sensor and active windows */
->  static int csi_setup(struct csi_priv *priv)
->  {
-> -	struct v4l2_mbus_framefmt *infmt, *outfmt;
-> +	struct v4l2_mbus_framefmt *infmt;
->  	struct v4l2_mbus_config mbus_cfg;
-> -	struct v4l2_mbus_framefmt if_fmt;
->  
->  	infmt = &priv->format_mbus[CSI_SINK_PAD];
-> -	outfmt = &priv->format_mbus[priv->active_output_pad];
->  
->  	/* compose mbus_config from the upstream endpoint */
->  	mbus_cfg.type = priv->upstream_ep.bus_type;
-> @@ -642,20 +640,13 @@ static int csi_setup(struct csi_priv *priv)
->  		priv->upstream_ep.bus.mipi_csi2.flags :
->  		priv->upstream_ep.bus.parallel.flags;
->  
-> -	/*
-> -	 * we need to pass input frame to CSI interface, but
-> -	 * with translated field type from output format
-> -	 */
-> -	if_fmt = *infmt;
-> -	if_fmt.field = outfmt->field;
-> -
->  	ipu_csi_set_window(priv->csi, &priv->crop);
->  
->  	ipu_csi_set_downsize(priv->csi,
->  			     priv->crop.width == 2 * priv->compose.width,
->  			     priv->crop.height == 2 * priv->compose.height);
->  
-> -	ipu_csi_init_interface(priv->csi, &mbus_cfg, &if_fmt);
-> +	ipu_csi_init_interface(priv->csi, &mbus_cfg, infmt);
->  
->  	ipu_csi_set_dest(priv->csi, priv->dest);
->  
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index b995d1601c87..1d1a59a5d343 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -255,8 +255,6 @@ struct venus_buffer {
+  * @priv:	a private for HFI operations callbacks
+  * @session_type:	the type of the session (decoder or encoder)
+  * @hprop:	a union used as a holder by get property
+- * @cap_bufs_mode_static:	buffers allocation mode capability
+- * @cap_bufs_mode_dynamic:	buffers allocation mode capability
+  */
+ struct venus_inst {
+ 	struct list_head list;
+@@ -305,8 +303,6 @@ struct venus_inst {
+ 	const struct hfi_inst_ops *ops;
+ 	u32 session_type;
+ 	union hfi_get_property hprop;
+-	bool cap_bufs_mode_static;
+-	bool cap_bufs_mode_dynamic;
+ };
+ 
+ #define IS_V1(core)	((core)->res->hfi_version == HFI_VERSION_1XX)
+diff --git a/drivers/media/platform/qcom/venus/hfi_parser.c b/drivers/media/platform/qcom/venus/hfi_parser.c
+index 8d284cfbba7a..5f1aedc0ef5a 100644
+--- a/drivers/media/platform/qcom/venus/hfi_parser.c
++++ b/drivers/media/platform/qcom/venus/hfi_parser.c
+@@ -60,8 +60,7 @@ fill_buf_mode(struct venus_caps *cap, const void *data, unsigned int num)
+ }
+ 
+ static void
+-parse_alloc_mode(struct venus_core *core, struct venus_inst *inst, u32 codecs,
+-		 u32 domain, void *data)
++parse_alloc_mode(struct venus_core *core, u32 codecs, u32 domain, void *data)
+ {
+ 	struct hfi_buffer_alloc_mode_supported *mode = data;
+ 	u32 num_entries = mode->num_entries;
+@@ -74,13 +73,9 @@ parse_alloc_mode(struct venus_core *core, struct venus_inst *inst, u32 codecs,
+ 
+ 	while (num_entries--) {
+ 		if (mode->buffer_type == HFI_BUFFER_OUTPUT ||
+-		    mode->buffer_type == HFI_BUFFER_OUTPUT2) {
+-			if (*type == HFI_BUFFER_MODE_DYNAMIC && inst)
+-				inst->cap_bufs_mode_dynamic = true;
+-
++		    mode->buffer_type == HFI_BUFFER_OUTPUT2)
+ 			for_each_codec(core->caps, ARRAY_SIZE(core->caps),
+ 				       codecs, domain, fill_buf_mode, type, 1);
+-		}
+ 
+ 		type++;
+ 	}
+@@ -267,7 +262,7 @@ u32 hfi_parser(struct venus_core *core, struct venus_inst *inst,
+ 			parse_profile_level(core, codecs, domain, data);
+ 			break;
+ 		case HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE_SUPPORTED:
+-			parse_alloc_mode(core, inst, codecs, domain, data);
++			parse_alloc_mode(core, codecs, domain, data);
+ 			break;
+ 		default:
+ 			break;
+-- 
+2.14.1
