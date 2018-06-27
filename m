@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:40798 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965049AbeF0P2Y (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:44624 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964839AbeF0P2X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Jun 2018 11:28:24 -0400
-Received: by mail-wr0-f195.google.com with SMTP id l2-v6so1891726wro.7
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:23 -0700 (PDT)
+        Wed, 27 Jun 2018 11:28:23 -0400
+Received: by mail-wr0-f196.google.com with SMTP id p12-v6so2464100wrn.11
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 08:28:22 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,85 +14,100 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Vikash Garodia <vgarodia@codeaurora.org>,
         Tomasz Figa <tfiga@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v4 21/27] venus: helpers: add a helper to return opb buffer sizes
-Date: Wed, 27 Jun 2018 18:27:19 +0300
-Message-Id: <20180627152725.9783-22-stanimir.varbanov@linaro.org>
+Subject: [PATCH v4 20/27] venus: helpers: extend set_num_bufs helper with one more argument
+Date: Wed, 27 Jun 2018 18:27:18 +0300
+Message-Id: <20180627152725.9783-21-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper function to return current output picture buffer size.
-OPB sizes can vary depending on the selected decoder output(s).
+Extend venus_helper_set_num_bufs() helper function with one more
+argument to set number of output buffers for the secondary decoder
+output.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/core.h    |  6 ++++++
- drivers/media/platform/qcom/venus/helpers.c | 15 +++++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  1 +
- 3 files changed, 22 insertions(+)
+ drivers/media/platform/qcom/venus/helpers.c | 16 ++++++++++++++--
+ drivers/media/platform/qcom/venus/helpers.h |  3 ++-
+ drivers/media/platform/qcom/venus/vdec.c    |  2 +-
+ drivers/media/platform/qcom/venus/venc.c    |  2 +-
+ 4 files changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index 1d1a59a5d343..f8e4d92ff0e1 100644
---- a/drivers/media/platform/qcom/venus/core.h
-+++ b/drivers/media/platform/qcom/venus/core.h
-@@ -239,6 +239,9 @@ struct venus_buffer {
-  * @num_output_bufs:	holds number of output buffers
-  * @input_buf_size	holds input buffer size
-  * @output_buf_size:	holds output buffer size
-+ * @output2_buf_size:	holds secondary decoder output buffer size
-+ * @opb_buftype:	output picture buffer type
-+ * @opb_fmt:		output picture buffer raw format
-  * @reconfig:	a flag raised by decoder when the stream resolution changed
-  * @reconfig_width:	holds the new width
-  * @reconfig_height:	holds the new height
-@@ -288,6 +291,9 @@ struct venus_inst {
- 	unsigned int num_output_bufs;
- 	unsigned int input_buf_size;
- 	unsigned int output_buf_size;
-+	unsigned int output2_buf_size;
-+	u32 opb_buftype;
-+	u32 opb_fmt;
- 	bool reconfig;
- 	u32 reconfig_width;
- 	u32 reconfig_height;
 diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index e332c9682b9c..6b31c91528ed 100644
+index 2295cca3c22a..e332c9682b9c 100644
 --- a/drivers/media/platform/qcom/venus/helpers.c
 +++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -608,6 +608,21 @@ int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype)
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_bufsize);
+@@ -510,7 +510,8 @@ int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage)
+ EXPORT_SYMBOL_GPL(venus_helper_set_core_usage);
  
-+unsigned int venus_helper_get_opb_size(struct venus_inst *inst)
-+{
-+	/* the encoder has only one output */
-+	if (inst->session_type == VIDC_SESSION_TYPE_ENC)
-+		return inst->output_buf_size;
-+
-+	if (inst->opb_buftype == HFI_BUFFER_OUTPUT)
-+		return inst->output_buf_size;
-+	else if (inst->opb_buftype == HFI_BUFFER_OUTPUT2)
-+		return inst->output2_buf_size;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_get_opb_size);
-+
- static void delayed_process_buf_func(struct work_struct *work)
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+-			      unsigned int output_bufs)
++			      unsigned int output_bufs,
++			      unsigned int output2_bufs)
  {
- 	struct venus_buffer *buf, *n;
+ 	u32 ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
+ 	struct hfi_buffer_count_actual buf_count;
+@@ -526,7 +527,18 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+ 	buf_count.type = HFI_BUFFER_OUTPUT;
+ 	buf_count.count_actual = output_bufs;
+ 
+-	return hfi_session_set_property(inst, ptype, &buf_count);
++	ret = hfi_session_set_property(inst, ptype, &buf_count);
++	if (ret)
++		return ret;
++
++	if (output2_bufs) {
++		buf_count.type = HFI_BUFFER_OUTPUT2;
++		buf_count.count_actual = output2_bufs;
++
++		ret = hfi_session_set_property(inst, ptype, &buf_count);
++	}
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(venus_helper_set_num_bufs);
+ 
 diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 8ff4bd3ef958..92be45894a69 100644
+index d5e727e1ecab..8ff4bd3ef958 100644
 --- a/drivers/media/platform/qcom/venus/helpers.h
 +++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -48,6 +48,7 @@ int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
+@@ -41,7 +41,8 @@ int venus_helper_set_output_resolution(struct venus_inst *inst,
+ int venus_helper_set_work_mode(struct venus_inst *inst, u32 mode);
+ int venus_helper_set_core_usage(struct venus_inst *inst, u32 usage);
+ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
+-			      unsigned int output_bufs);
++			      unsigned int output_bufs,
++			      unsigned int output2_bufs);
+ int venus_helper_set_raw_format(struct venus_inst *inst, u32 hfi_format,
+ 				u32 buftype);
  int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
- int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
- int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
-+unsigned int venus_helper_get_opb_size(struct venus_inst *inst);
- void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
- void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
- void venus_helper_init_instance(struct venus_inst *inst);
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index f1cf4678d013..5d8bf288bd2a 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -758,7 +758,7 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		goto deinit_sess;
+ 
+ 	ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
+-					VB2_MAX_FRAME);
++					VB2_MAX_FRAME, VB2_MAX_FRAME);
+ 	if (ret)
+ 		goto deinit_sess;
+ 
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 4f0a5daa97e2..abde7d6d123f 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -963,7 +963,7 @@ static int venc_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		goto deinit_sess;
+ 
+ 	ret = venus_helper_set_num_bufs(inst, inst->num_input_bufs,
+-					inst->num_output_bufs);
++					inst->num_output_bufs, 0);
+ 	if (ret)
+ 		goto deinit_sess;
+ 
 -- 
 2.14.1
