@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58834 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933738AbeF1M3m (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59588 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965954AbeF1MrN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 08:29:42 -0400
-Date: Thu, 28 Jun 2018 15:29:40 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 0/8] media/mc: fix inconsistencies
-Message-ID: <20180628122940.qxyunzbqlc5ostpn@valkosipuli.retiisi.org.uk>
-References: <20180621071914.28729-1-hverkuil@xs4all.nl>
+        Thu, 28 Jun 2018 08:47:13 -0400
+Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
+ <20180628083732.3679d730@coco.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <536a05bd-372e-a509-a6b6-0a3e916e48ae@xs4all.nl>
+Date: Thu, 28 Jun 2018 14:47:05 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180621071914.28729-1-hverkuil@xs4all.nl>
+In-Reply-To: <20180628083732.3679d730@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 21, 2018 at 09:19:06AM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/28/18 13:37, Mauro Carvalho Chehab wrote:
+> Em Thu, 17 May 2018 16:30:16 +0200
+> Niklas Söderlund         <niklas.soderlund+renesas@ragnatech.se> escreveu:
 > 
-> This patch series sits on top of this pull request:
+>> There is no way to control the standard of subdevices which are part of
+>> a media device. The ioctls which exists all target video devices
+>> explicitly and the idea is that the video device should talk to the
+>> subdevice. For subdevices part of a media graph this is not possible and
+>> the standard must be controlled on the subdev device directly.
 > 
-> https://patchwork.linuxtv.org/patch/50453/
-> 
-> That pull request cleans up the tables in the documentation, making it
-> easier to add new entries.
-> 
-> This series is v3 of my previous attempt:
-> 
-> https://www.spinics.net/lists/linux-media/msg132218.html
-> 
-> The goal is to fix the inconsistencies between the 'old' and 'new' 
-> MC API. I hate the terms 'old' and 'new', there is nothing wrong IMHO with 
-> using an 'old' API if it meets the needs of the application.
-> 
-> The differences between v2 and v3 are that I changed that I changed
-> the defines that test if the index or flags fields are present:
-> 
-> /*
->  * Appeared in 4.19.0.
->  *
->  * The media_version argument comes from the media_version field in
->  * struct media_device_info.
->  */
-> #define MEDIA_V2_PAD_HAS_INDEX(media_version) \
->        ((media_version) >= ((4 << 16) | (19 << 8) | 0))
-> 
-> KERNEL_VERSION cannot be used in a public header, and my previous
-> attempt used 0x00041300, which isn't as readable as what I do now.
-> I also expanded the comment before the define pointing to struct
-> media_device_info. I also did the same in the documentation.
-> 
-> I dropped the patches adding a function field to struct media_entity_desc.
-> Instead I started the work to ensure all drivers set function correctly.
-> 
-> I still want to add a 'function' field to struct media_entity_desc but
-> step one is to make sure drivers actually set function correctly. I'll
-> revisit this once that's done.
-> 
-> Making G_TOPOLOGY useful is urgently needed since I think that will be
-> very helpful for the work we want to do on library support for complex
-> cameras.
+> Why isn't it possible? A media pipeline should have at least a video
+> devnode where the standard ioctls will be issued.
 
-For the set:
+Not for an MC-centric device like the r-car or imx. It's why we have v4l-subdev
+ioctls for the DV_TIMINGS API, but the corresponding SDTV standards API is
+missing.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+And in a complex scenario there is nothing preventing you from having multiple
+SDTV inputs, some of which need PAL-BG, some SECAM, some NTSC (less likely)
+which are all composed together (think security cameras or something like that).
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+You definitely cannot set the standard from a video device. If nothing else,
+it would be completely inconsistent with how HDMI inputs work.
+
+The whole point of MC centric devices is that you *don't* control subdevs
+from video nodes.
+
+Regards,
+
+	Hans
+
+> So, I don't see why you would need to explicitly set the standard inside
+> a sub-device.
+> 
+> The way I see, inside a given pipeline, all subdevs should be using the
+> same video standard (maybe except for a m2m device with would have some
+> coded that would be doing format conversion).
+> 
+> Am I missing something?
+> 
+> Thanks,
+> Mauro
+> 
