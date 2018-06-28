@@ -1,92 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60146 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936076AbeFOI7K (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:49617 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965089AbeF1Hm7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Jun 2018 04:59:10 -0400
-Subject: Re: [RFC 0/2] Memory-to-memory media controller topology
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com
-References: <20180612104827.11565-1-ezequiel@collabora.com>
+        Thu, 28 Jun 2018 03:42:59 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bc662417-470a-0539-afc1-a108ee90646d@xs4all.nl>
-Date: Fri, 15 Jun 2018 10:59:08 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180612104827.11565-1-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, ville.syrjala@linux.intel.com,
+        Sean Paul <seanpaul@chromium.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Carlos Santa <carlos.santa@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv7 3/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+Date: Thu, 28 Jun 2018 09:42:53 +0200
+Message-Id: <20180628074253.21088-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180628074253.21088-1-hverkuil@xs4all.nl>
+References: <20180628074253.21088-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/18 12:48, Ezequiel Garcia wrote:
-> As discussed on IRC, memory-to-memory need to be modeled
-> properly in order to be supported by the media controller
-> framework, and thus to support the Request API.
-> 
-> This RFC is a first draft on the memory-to-memory
-> media controller topology.
-> 
-> The topology looks like this:
-> 
-> Device topology
-> - entity 1: input (1 pad, 1 link)
->             type Node subtype Unknown flags 0
-> 	pad0: Source
-> 		-> "proc":1 [ENABLED,IMMUTABLE]
-> 
-> - entity 3: proc (2 pads, 2 links)
->             type Node subtype Unknown flags 0
-> 	pad0: Source
-> 		-> "output":0 [ENABLED,IMMUTABLE]
-> 	pad1: Sink
-> 		<- "input":0 [ENABLED,IMMUTABLE]
-> 
-> - entity 6: output (1 pad, 1 link)
->             type Node subtype Unknown flags 0
-> 	pad0: Sink
-> 		<- "proc":0 [ENABLED,IMMUTABLE]
-> 
-> The first commit introduces a register/unregister API,
-> that creates/destroys all the entities and pads needed,
-> and links them.
-> 
-> The second commit uses this API to support the vim2m driver.
-> 
-> Notes
-> -----
-> 
-> * A new device node type is introduced VFL_TYPE_MEM2MEM,
->   this is mostly done so the video4linux core doesn't
->   try to register other media controller entities.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There is no need for this. You can check if vfl_dir == VFL_DIR_M2M
-instead. I'd rather not add a new VFL_TYPE.
+Implement support for this DisplayPort feature.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/gpu/drm/i915/intel_dp.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-	Hans
-
-> 
-> * Also, a new media entity type is introduced. Memory-to-memory
->   devices have a multi-entity description and so can't
->   be simply embedded in other structs, or cast from other structs.
-> 
-> Ezequiel Garcia (1):
->   media: add helpers for memory-to-memory media controller
-> 
-> Hans Verkuil (1):
->   vim2m: add media device
-> 
->  drivers/media/platform/vim2m.c         |  41 ++++++-
->  drivers/media/v4l2-core/v4l2-dev.c     |  23 ++--
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 157 +++++++++++++++++++++++++
->  include/media/media-entity.h           |   4 +
->  include/media/v4l2-dev.h               |   2 +
->  include/media/v4l2-mem2mem.h           |   5 +
->  include/uapi/linux/media.h             |   2 +
->  7 files changed, 222 insertions(+), 12 deletions(-)
-> 
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index 16faea30114a..c3045262eba1 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -4466,6 +4466,9 @@ intel_dp_short_pulse(struct intel_dp *intel_dp)
+ 			DRM_DEBUG_DRIVER("CP or sink specific irq unhandled\n");
+ 	}
+ 
++	/* Handle CEC interrupts, if any */
++	drm_dp_cec_irq(&intel_dp->aux);
++
+ 	/* defer to the hotplug work for link retraining if needed */
+ 	if (intel_dp_needs_link_retrain(intel_dp))
+ 		return false;
+@@ -4780,6 +4783,7 @@ intel_dp_set_edid(struct intel_dp *intel_dp)
+ 	intel_connector->detect_edid = edid;
+ 
+ 	intel_dp->has_audio = drm_detect_monitor_audio(edid);
++	drm_dp_cec_set_edid(&intel_dp->aux, edid);
+ }
+ 
+ static void
+@@ -4787,6 +4791,7 @@ intel_dp_unset_edid(struct intel_dp *intel_dp)
+ {
+ 	struct intel_connector *intel_connector = intel_dp->attached_connector;
+ 
++	drm_dp_cec_unset_edid(&intel_dp->aux);
+ 	kfree(intel_connector->detect_edid);
+ 	intel_connector->detect_edid = NULL;
+ 
+@@ -4975,6 +4980,7 @@ static int
+ intel_dp_connector_register(struct drm_connector *connector)
+ {
+ 	struct intel_dp *intel_dp = intel_attached_dp(connector);
++	struct drm_device *dev = connector->dev;
+ 	int ret;
+ 
+ 	ret = intel_connector_register(connector);
+@@ -4987,13 +4993,20 @@ intel_dp_connector_register(struct drm_connector *connector)
+ 		      intel_dp->aux.name, connector->kdev->kobj.name);
+ 
+ 	intel_dp->aux.dev = connector->kdev;
+-	return drm_dp_aux_register(&intel_dp->aux);
++	ret = drm_dp_aux_register(&intel_dp->aux);
++	if (!ret)
++		drm_dp_cec_register_connector(&intel_dp->aux,
++					      connector->name, dev->dev);
++	return ret;
+ }
+ 
+ static void
+ intel_dp_connector_unregister(struct drm_connector *connector)
+ {
+-	drm_dp_aux_unregister(&intel_attached_dp(connector)->aux);
++	struct intel_dp *intel_dp = intel_attached_dp(connector);
++
++	drm_dp_cec_unregister_connector(&intel_dp->aux);
++	drm_dp_aux_unregister(&intel_dp->aux);
+ 	intel_connector_unregister(connector);
+ }
+ 
+-- 
+2.17.0
