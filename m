@@ -1,141 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:32897 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751573AbeF1EG2 (ORCPT
+Received: from mail-io0-f195.google.com ([209.85.223.195]:41638 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751626AbeF1EGc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 00:06:28 -0400
-Message-ID: <efe4437d65176c35f31612b0e7f83e4b@smtp-cloud7.xs4all.net>
-Date: Thu, 28 Jun 2018 06:06:25 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 28 Jun 2018 00:06:32 -0400
+Received: by mail-io0-f195.google.com with SMTP id k16-v6so3896050ioa.8
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2018 21:06:32 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <bdf5bac2-4011-5172-ddf5-d6099b71de4e@roeck-us.net>
+References: <20180627181243.14630-1-matt.ranostay@konsulko.com>
+ <201806280548.XGuVj1ZB%fengguang.wu@intel.com> <CAJCx=g=SAhbS+_ZWhQwQLErMTMijaytdPxsWgyXqVPXqxG6cUg@mail.gmail.com>
+ <bdf5bac2-4011-5172-ddf5-d6099b71de4e@roeck-us.net>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Wed, 27 Jun 2018 21:06:31 -0700
+Message-ID: <CAJCx=gm17RjS013W2O1O7g6k4DGe37SpZK5wg_zyDCpaCZMmwQ@mail.gmail.com>
+Subject: Re: [PATCH v3] media: video-i2c: add hwmon support for amg88xx
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
+        linux-media@vger.kernel.org, linux-hwmon@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, Jun 27, 2018 at 8:42 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> On 06/27/2018 06:39 PM, Matt Ranostay wrote:
+>>
+>> On Wed, Jun 27, 2018 at 3:43 PM, kbuild test robot <lkp@intel.com> wrote:
+>>>
+>>> Hi Matt,
+>>>
+>>> I love your patch! Yet something to improve:
+>>>
+>>> [auto build test ERROR on linuxtv-media/master]
+>>> [also build test ERROR on v4.18-rc2 next-20180627]
+>>> [if your patch is applied to the wrong git tree, please drop us a note to
+>>> help improve the system]
+>>>
+>>> url:
+>>> https://github.com/0day-ci/linux/commits/Matt-Ranostay/media-video-i2c-add-hwmon-support-for-amg88xx/20180628-032019
+>>> base:   git://linuxtv.org/media_tree.git master
+>>> config: x86_64-randconfig-g0-06280029 (attached as .config)
+>>> compiler: gcc-4.9 (Debian 4.9.4-2) 4.9.4
+>>> reproduce:
+>>>          # save the attached .config to linux build tree
+>>>          make ARCH=x86_64
+>>>
+>>> All errors (new ones prefixed by >>):
+>>>
+>>>     drivers/media/i2c/video-i2c.o: In function `amg88xx_hwmon_init':
+>>>>>
+>>>>> drivers/media/i2c/video-i2c.c:167: undefined reference to
+>>>>> `devm_hwmon_device_register_with_info'
+>>>
+>>>
+>>> vim +167 drivers/media/i2c/video-i2c.c
+>>>
+>>
+>> Guenter,
+>>
+>> Before I resubmit this change do you agree an "imply HWMON" in the
+>> Kconfig is the right way to avoid this race condition on build?
+>> Using 'select HWMON' would of course defeat the purpose of '#if
+>> IS_ENABLED(CONFIG_HWMON)'
+>>
+>
+> Looks like it, but you'll have to try. I have not used it myself, so I
+> don't really know what exactly it does. Another option might be to use
+> IS_REACHABLE().
+>
 
-Results of the daily build of media_tree:
+Looking at IS_REACHABLE documentation and that seems less than ideal
+since it will return false if CONFIG_HWMON is a module.
+Testing out 'imply HWMON' tonight.
 
-date:			Thu Jun 28 05:00:19 CEST 2018
-media-tree git hash:	f6f630327de95c251741c1f682a94243c48f2b13
-media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
-v4l-utils git hash:	5c197a3bbe7358670765d09f67ae2f05e89a61d1
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+- Matt
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.42-i686: ERRORS
-linux-4.14.42-x86_64: ERRORS
-linux-4.15.14-i686: ERRORS
-linux-4.15.14-x86_64: ERRORS
-linux-4.16.8-i686: ERRORS
-linux-4.16.8-x86_64: ERRORS
-linux-4.17.2-i686: ERRORS
-linux-4.17.2-x86_64: ERRORS
-linux-4.18-rc1-i686: OK
-linux-4.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> Guenter
+>
+>
+>> Thanks,
+>>
+>> Matt
+>>
+>>>     164
+>>>     165  static int amg88xx_hwmon_init(struct video_i2c_data *data)
+>>>     166  {
+>>>   > 167          void *hwmon =
+>>> devm_hwmon_device_register_with_info(&data->client->dev,
+>>>     168                                  "amg88xx", data,
+>>> &amg88xx_chip_info, NULL);
+>>>     169
+>>>     170          return PTR_ERR(hwmon);
+>>>     171  }
+>>>     172  #else
+>>>     173  #define amg88xx_hwmon_init      NULL
+>>>     174  #endif
+>>>     175
+>>>
+>>> ---
+>>> 0-DAY kernel test infrastructure                Open Source Technology
+>>> Center
+>>> https://lists.01.org/pipermail/kbuild-all                   Intel
+>>> Corporation
+>>
+>>
+>
