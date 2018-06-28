@@ -1,183 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:43165 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:42043 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934654AbeF1QVa (ORCPT
+        with ESMTP id S967346AbeF1QWQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 12:21:30 -0400
+        Thu, 28 Jun 2018 12:22:16 -0400
 From: Marco Felsch <m.felsch@pengutronix.de>
 To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
 Cc: p.zabel@pengutronix.de, afshin.nasser@gmail.com,
         javierm@redhat.com, sakari.ailus@linux.intel.com,
         laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
         devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: [PATCH 20/22] [media] tvp5150: Add input port connectors DT bindings
-Date: Thu, 28 Jun 2018 18:20:52 +0200
-Message-Id: <20180628162054.25613-21-m.felsch@pengutronix.de>
+Subject: [PATCH 09/22] [media] tvp5150: fix standard autodetection
+Date: Thu, 28 Jun 2018 18:20:41 +0200
+Message-Id: <20180628162054.25613-10-m.felsch@pengutronix.de>
 In-Reply-To: <20180628162054.25613-1-m.felsch@pengutronix.de>
 References: <20180628162054.25613-1-m.felsch@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The TVP5150/1 decoders support different video input sources to their
-AIP1A/B pins.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Possible configurations are as follows:
-  - Analog Composite signal connected to AIP1A.
-  - Analog Composite signal connected to AIP1B.
-  - Analog S-Video Y (luminance) and C (chrominance)
-    signals connected to AIP1A and AIP1B respectively.
+Make sure to not overwrite decoder->norm when setting the standard
+in hardware, but only when instructed by V4L2 API calls.
 
-This patch extends the device tree bindings documentation to describe
-how the input connectors for these devices should be defined in a DT.
-
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
- .../devicetree/bindings/media/i2c/tvp5150.txt | 118 +++++++++++++++++-
- 1 file changed, 113 insertions(+), 5 deletions(-)
+ drivers/media/i2c/tvp5150.c | 56 ++++++++++++++++++++-----------------
+ 1 file changed, 31 insertions(+), 25 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-index 8c0fc1a26bf0..feed8c911c5e 100644
---- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-@@ -12,11 +12,23 @@ Optional Properties:
- - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
- - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index dbfc56c87434..895bc2bfb1d1 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -731,8 +731,6 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+ 	int fmt = 0;
  
--The device node must contain one 'port' child node for its digital output
--video port, in accordance with the video interface bindings defined in
--Documentation/devicetree/bindings/media/video-interfaces.txt.
-+The device node must contain one 'port' child node per device input and output
-+port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
-+are numbered as follows
+-	decoder->norm = std;
+-
+ 	/* First tests should be against specific std */
  
--Required Endpoint Properties for parallel synchronization:
-+	  Name		Type		Port
-+	--------------------------------------
-+	  AIP1A		sink		0
-+	  AIP1B		sink		1
-+	  S-VIDEO	sink		2
-+	  Y-OUT		src		3
-+
-+The device node must contain at least the Y-OUT port. Each input port must be
-+linked to an endpoint defined in
-+Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt.
-+
-+Required Endpoint Properties for parallel synchronization on output port:
+ 	if (std == V4L2_STD_NTSC_443) {
+@@ -769,13 +767,37 @@ static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	else
+ 		decoder->rect.height = TVP5150_V_MAX_OTHERS;
  
- - hsync-active: active state of the HSYNC signal. Must be <1> (HIGH).
- - vsync-active: active state of the VSYNC signal. Must be <1> (HIGH).
-@@ -26,7 +38,9 @@ Required Endpoint Properties for parallel synchronization:
- If none of hsync-active, vsync-active and field-even-active is specified,
- the endpoint is assumed to use embedded BT.656 synchronization.
++	decoder->norm = std;
  
--Example:
-+Examples:
-+
-+Only Output:
+ 	return tvp5150_set_std(sd, std);
+ }
  
- &i2c2 {
- 	...
-@@ -37,6 +51,100 @@ Example:
- 		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
++static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
++{
++	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
++
++	switch (val & 0x0F) {
++	case 0x01:
++		return V4L2_STD_NTSC;
++	case 0x03:
++		return V4L2_STD_PAL;
++	case 0x05:
++		return V4L2_STD_PAL_M;
++	case 0x07:
++		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
++	case 0x09:
++		return V4L2_STD_NTSC_443;
++	case 0xb:
++		return V4L2_STD_SECAM;
++	default:
++		return V4L2_STD_UNKNOWN;
++	}
++}
++
+ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
  
- 		port {
-+			reg = <3>;
-+			tvp5150_1: endpoint {
-+				remote-endpoint = <&ccdc_ep>;
-+			};
-+		};
-+	};
-+};
+ 	/* Initializes TVP5150 to its default values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_default);
+@@ -792,7 +814,13 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	/* Initialize image preferences */
+ 	v4l2_ctrl_handler_setup(&decoder->hdl);
+ 
+-	tvp5150_set_std(sd, decoder->norm);
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
 +
-+One Input:
-+
-+connector@0 {
-+	compatible = "composite-video-connector";
-+	label = "Composite0";
-+
-+	port {
-+		comp0_out: endpoint {
-+			remote-endpoint = <&tvp5150_comp0_in>;
-+		};
-+	};
-+};
-+
-+&i2c2 {
-+	...
-+	tvp5150@5c {
-+		compatible = "ti,tvp5150";
-+		reg = <0x5c>;
-+		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-+		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-+
-+		port@0 {
-+			reg = <0>;
-+			tvp5150_comp0_in: endpoint {
-+				remote-endpoint = <&comp0_out>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+			tvp5150_1: endpoint {
-+				remote-endpoint = <&ccdc_ep>;
-+			};
-+		};
-+	};
-+};
-+
-+
-+Two Inputs, different connector 12 on input AIP1A:
-+
-+connector@1 {
-+	compatible = "svideo-connector";
-+	label = "S-Video";
-+
-+	port {
-+		svideo_out: endpoint {
-+			remote-endpoint = <&tvp5150_svideo_in>;
-+		};
-+	};
-+};
-+
-+connector@12 {
-+	compatible = "composite-video-connector";
-+	label = "Composite12";
-+
-+	port {
-+		comp12_out: endpoint {
-+			remote-endpoint = <&tvp5150_comp12_in>;
-+		};
-+	};
-+};
-+
-+&i2c2 {
-+	...
-+	tvp5150@5c {
-+		compatible = "ti,tvp5150";
-+		reg = <0x5c>;
-+		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-+		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-+
-+		port@0 {
-+			reg = <0>;
-+			tvp5150_comp12_in: endpoint {
-+				remote-endpoint = <&comp12_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+			tvp5150_svideo_in: endpoint {
-+				remote-endpoint = <&svideo_out>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
- 			tvp5150_1: endpoint {
- 				remote-endpoint = <&ccdc_ep>;
- 			};
++	/* Disable autoswitch mode */
++	tvp5150_set_std(sd, std);
+ 
+ 	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+ 		/* 8-bit 4:2:2 YUV with discrete sync output */
+@@ -829,28 +857,6 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return -EINVAL;
+ }
+ 
+-static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
+-{
+-	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
+-
+-	switch (val & 0x0F) {
+-	case 0x01:
+-		return V4L2_STD_NTSC;
+-	case 0x03:
+-		return V4L2_STD_PAL;
+-	case 0x05:
+-		return V4L2_STD_PAL_M;
+-	case 0x07:
+-		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
+-	case 0x09:
+-		return V4L2_STD_NTSC_443;
+-	case 0xb:
+-		return V4L2_STD_SECAM;
+-	default:
+-		return V4L2_STD_UNKNOWN;
+-	}
+-}
+-
+ static void tvp5150_set_default(v4l2_std_id std, struct v4l2_rect *crop)
+ {
+ 	/* Default is no cropping */
 -- 
 2.17.1
