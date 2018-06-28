@@ -1,52 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:39422 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753239AbeF1U5r (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52281 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753116AbeF1VQT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 16:57:47 -0400
-Received: by mail-wm0-f66.google.com with SMTP id p11-v6so10337448wmc.4
-        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2018 13:57:47 -0700 (PDT)
-Subject: Re: [PATCH 00/21] TVP5150 fixes and new features
-To: Marco Felsch <m.felsch@pengutronix.de>, mchehab@kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com
-Cc: p.zabel@pengutronix.de, afshin.nasser@gmail.com,
-        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
-From: Javier Martinez Canillas <javierm@redhat.com>
-Message-ID: <9058a558-dd67-33f6-b2c7-7e3cdc3a7f61@redhat.com>
-Date: Thu, 28 Jun 2018 22:57:28 +0200
+        Thu, 28 Jun 2018 17:16:19 -0400
+Date: Thu, 28 Jun 2018 23:16:17 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] media: i2c: lm3560: add support for
+ lm3559 chip
+Message-ID: <20180628211617.GB29146@amd>
+References: <E1fYVI6-0004bV-EO@www.linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <20180628162054.25613-1-m.felsch@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
+Content-Disposition: inline
+In-Reply-To: <E1fYVI6-0004bV-EO@www.linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marco,
 
-On 06/28/2018 06:20 PM, Marco Felsch wrote:
-> First some fixes were made which may possibly interesting for other
-> kernel versions.
-> 
-> Then I picked most of the patches from Philipp [1] and ported them
-> to the recent media_tree master branch [3].
-> 
-> But the main purpose of this series is to convert the proprietary
-> connector DT property into the generic input port property. I picked commit
-> ('partial revert of "[media] tvp5150: add HW input connectors support"')
-> to have a clean working base and used the results of the discussion [2].
-> 
+--dTy3Mrz/UPE2dbVg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for working on this! I've felt guilty that I never re-worked my
-patch-set after the discussion from [2].
+Hi!
 
-I'll try to review these patches next week.
+> This is an automatic generated email to let you know that the following p=
+atch were queued:
+>=20
+> Subject: media: i2c: lm3560: add support for lm3559 chip
+> Author:  Pavel Machek <pavel@ucw.cz>
+> Date:    Sun May 6 04:06:07 2018 -0400
+>=20
+> Add support for LM3559, as found in Motorola Droid 4 phone, for
+> example. SW interface seems to be identical.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+
+I'd also recommend this one:
+
+https://lkml.org/lkml/2018/5/6/46
+
+Using most agressive settings by default is wrong.
 
 Best regards,
--- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--dTy3Mrz/UPE2dbVg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAls1UCEACgkQMOfwapXb+vK/cACfbdPlK3b6cBOpvURDhSWY2aA6
+MsoAn0pr8QcTK5iVat7dvst5B7IaPFM5
+=9Td8
+-----END PGP SIGNATURE-----
+
+--dTy3Mrz/UPE2dbVg--
