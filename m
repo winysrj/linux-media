@@ -1,149 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:50305 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933128AbeF1J0b (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 05:26:31 -0400
-Subject: Re: [PATCH v3 1/2] media: add helpers for memory-to-memory media
- controller
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        emil.velikov@collabora.com
-References: <20180627203545.21728-1-ezequiel@collabora.com>
- <20180627203545.21728-2-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c92f44fe-01ef-7cf2-d366-6f7b07320e67@xs4all.nl>
-Date: Thu, 28 Jun 2018 11:26:26 +0200
+Received: from mail-eopbgr710058.outbound.protection.outlook.com ([40.107.71.58]:14064
+        "EHLO NAM05-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S935092AbeF1Jog (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Jun 2018 05:44:36 -0400
+Message-ID: <5B34ADF7.6040508@amd.com>
+Date: Thu, 28 Jun 2018 17:44:23 +0800
+From: "Zhang, Jerry (Junwei)" <Jerry.Zhang@amd.com>
 MIME-Version: 1.0
-In-Reply-To: <20180627203545.21728-2-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?=
+        <ckoenig.leichtzumerken@gmail.com>, <daniel@ffwll.ch>,
+        <sumit.semwal@linaro.org>, <dri-devel@lists.freedesktop.org>,
+        <linux-media@vger.kernel.org>, <linaro-mm-sig@lists.linaro.org>,
+        <intel-gfx@lists.freedesktop.org>
+Subject: Re: [PATCH 1/4] dma-buf: add dma_buf_(un)map_attachment_locked variants
+ v2
+References: <20180622141103.1787-1-christian.koenig@amd.com> <20180622141103.1787-2-christian.koenig@amd.com>
+In-Reply-To: <20180622141103.1787-2-christian.koenig@amd.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/27/18 22:35, Ezequiel Garcia wrote:
-> A memory-to-memory pipeline device consists in three
-> entities: two DMA engine and one video processing entities.
-> The DMA engine entities are linked to a V4L interface.
-> 
-> This commit add a new v4l2_m2m_{un}register_media_controller
-> API to register this topology.
-> 
-> For instance, a typical mem2mem device topology would
-> look like this:
-> 
-> Device topology
-> - entity 1: source (1 pad, 1 link)
->             type Node subtype V4L flags 0
-> 	pad0: Source
-> 		-> "proc":1 [ENABLED,IMMUTABLE]
-> 
-> - entity 3: proc (2 pads, 2 links)
->             type Node subtype Unknown flags 0
-> 	pad0: Source
-> 		-> "sink":0 [ENABLED,IMMUTABLE]
-> 	pad1: Sink
-> 		<- "source":0 [ENABLED,IMMUTABLE]
-> 
-> - entity 6: sink (1 pad, 1 link)
->             type Node subtype V4L flags 0
-> 	pad0: Sink
-> 		<- "proc":0 [ENABLED,IMMUTABLE]
-> 
-> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+On 06/22/2018 10:11 PM, Christian König wrote:
+> Add function variants which can be called with the reservation lock
+> already held.
+>
+> v2: reordered, add lockdep asserts, fix kerneldoc
+>
+> Signed-off-by: Christian König <christian.koenig@amd.com>
 > ---
->  drivers/media/v4l2-core/v4l2-dev.c     |  13 +-
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 172 +++++++++++++++++++++++++
->  include/media/v4l2-mem2mem.h           |  19 +++
->  3 files changed, 199 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 4ffd7d60a901..c1996d73ca74 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -202,7 +202,7 @@ static void v4l2_device_release(struct device *cd)
->  	mutex_unlock(&videodev_lock);
->  
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -	if (v4l2_dev->mdev) {
-> +	if (v4l2_dev->mdev && vdev->vfl_dir != VFL_DIR_M2M) {
->  		/* Remove interfaces and interface links */
->  		media_devnode_remove(vdev->intf_devnode);
->  		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
-> @@ -733,19 +733,22 @@ static void determine_valid_ioctls(struct video_device *vdev)
->  			BASE_VIDIOC_PRIVATE);
->  }
->  
-> -static int video_register_media_controller(struct video_device *vdev, int type)
-> +static int video_register_media_controller(struct video_device *vdev)
->  {
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	u32 intf_type;
->  	int ret;
->  
-> -	if (!vdev->v4l2_dev->mdev)
-> +	/* Memory-to-memory devices are more complex and use
-> +	 * their own function to register its mc entities.
-> +	 */
-> +	if (!vdev->v4l2_dev->mdev || vdev->vfl_dir == VFL_DIR_M2M)
->  		return 0;
->  
->  	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
->  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
->  
-> -	switch (type) {
-> +	switch (vdev->vfl_type) {
->  	case VFL_TYPE_GRABBER:
->  		intf_type = MEDIA_INTF_T_V4L_VIDEO;
->  		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
-> @@ -993,7 +996,7 @@ int __video_register_device(struct video_device *vdev,
->  	v4l2_device_get(vdev->v4l2_dev);
->  
->  	/* Part 5: Register the entity. */
-> -	ret = video_register_media_controller(vdev, type);
-> +	ret = video_register_media_controller(vdev);
->  
->  	/* Part 6: Activate this minor. The char device can now be used. */
->  	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index c4f963d96a79..8107ebabaebe 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -17,9 +17,11 @@
->  #include <linux/sched.h>
->  #include <linux/slab.h>
->  
-> +#include <media/media-device.h>
->  #include <media/videobuf2-v4l2.h>
->  #include <media/v4l2-mem2mem.h>
->  #include <media/v4l2-dev.h>
-> +#include <media/v4l2-device.h>
->  #include <media/v4l2-fh.h>
->  #include <media/v4l2-event.h>
->  
-> @@ -50,6 +52,18 @@ module_param(debug, bool, 0644);
->   * offsets but for different queues */
->  #define DST_QUEUE_OFF_BASE	(1 << 30)
->  
-> +enum v4l2_m2m_entity_type {
-> +	MEM2MEM_ENT_TYPE_SOURCE,
-> +	MEM2MEM_ENT_TYPE_SINK,
-> +	MEM2MEM_ENT_TYPE_PROC,
-> +	MEM2MEM_ENT_TYPE_MAX
+>   drivers/dma-buf/dma-buf.c | 57 +++++++++++++++++++++++++++++++++++++++++++++++
+>   include/linux/dma-buf.h   |  5 +++++
+>   2 files changed, 62 insertions(+)
+>
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 852a3928ee71..dc94e76e2e2a 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -606,6 +606,40 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
+>   }
+>   EXPORT_SYMBOL_GPL(dma_buf_detach);
+>
+> +/**
+> + * dma_buf_map_attachment_locked - Maps the buffer into _device_ address space
+> + * with the reservation lock held. Is a wrapper for map_dma_buf() of the
+> + *
+> + * Returns the scatterlist table of the attachment;
+> + * dma_buf_ops.
+> + * @attach:	[in]	attachment whose scatterlist is to be returned
+> + * @direction:	[in]	direction of DMA transfer
+> + *
+> + * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
+> + * on error. May return -EINTR if it is interrupted by a signal.
+> + *
+> + * A mapping must be unmapped by using dma_buf_unmap_attachment_locked(). Note
+> + * that the underlying backing storage is pinned for as long as a mapping
+> + * exists, therefore users/importers should not hold onto a mapping for undue
+> + * amounts of time.
+> + */
+> +struct sg_table *
+> +dma_buf_map_attachment_locked(struct dma_buf_attachment *attach,
+> +			      enum dma_data_direction direction)
+> +{
+> +	struct sg_table *sg_table;
+> +
 
-TYPE_MAX is unused and can be removed.
+Perhaps better to add some error check, like dma_buf_map_attachment()
 
-Don't bother with a new version of this patch, if the v4l2-compliance output
-using the latest v4l2-compliance looks good, then I'll make a pull request
-for this series and just remove this line myself.
+WARN_ON(!attach || !attach->dmabuf)
 
-Regards,
+Apart from that, it's
+Reviewed-by: Junwei Zhang <Jerry.Zhang@amd.com>
 
-	Hans
+Jerry
+
+> +	might_sleep();
+> +	reservation_object_assert_held(attach->dmabuf->resv);
+> +
+> +	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
+> +	if (!sg_table)
+> +		sg_table = ERR_PTR(-ENOMEM);
+> +
+> +	return sg_table;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_map_attachment_locked);
+> +
+>   /**
+>    * dma_buf_map_attachment - Returns the scatterlist table of the attachment;
+>    * mapped into _device_ address space. Is a wrapper for map_dma_buf() of the
+> @@ -639,6 +673,29 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+>   }
+>   EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
+>
+> +/**
+> + * dma_buf_unmap_attachment_locked - unmaps the buffer with reservation lock
+> + * held, should deallocate the associated scatterlist. Is a wrapper for
+> + * unmap_dma_buf() of dma_buf_ops.
+> + * @attach:	[in]	attachment to unmap buffer from
+> + * @sg_table:	[in]	scatterlist info of the buffer to unmap
+> + * @direction:  [in]    direction of DMA transfer
+> + *
+> + * This unmaps a DMA mapping for @attached obtained by
+> + * dma_buf_map_attachment_locked().
+> + */
+> +void dma_buf_unmap_attachment_locked(struct dma_buf_attachment *attach,
+> +				     struct sg_table *sg_table,
+> +				     enum dma_data_direction direction)
+> +{
+> +	might_sleep();
+> +	reservation_object_assert_held(attach->dmabuf->resv);
+> +
+> +	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
+> +						direction);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment_locked);
+> +
+>   /**
+>    * dma_buf_unmap_attachment - unmaps and decreases usecount of the buffer;might
+>    * deallocate the scatterlist associated. Is a wrapper for unmap_dma_buf() of
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index 991787a03199..a25e754ae2f7 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -384,8 +384,13 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags);
+>   struct dma_buf *dma_buf_get(int fd);
+>   void dma_buf_put(struct dma_buf *dmabuf);
+>
+> +struct sg_table *dma_buf_map_attachment_locked(struct dma_buf_attachment *,
+> +					       enum dma_data_direction);
+>   struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
+>   					enum dma_data_direction);
+> +void dma_buf_unmap_attachment_locked(struct dma_buf_attachment *,
+> +				     struct sg_table *,
+> +				     enum dma_data_direction);
+>   void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
+>   				enum dma_data_direction);
+>   int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
+>
