@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:35497 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51538 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966107AbeF1NMN (ORCPT
+        by vger.kernel.org with ESMTP id S965285AbeF1NMO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 09:12:13 -0400
+        Thu, 28 Jun 2018 09:12:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 02/10] media-ioc-g-topology.rst: document new 'index' field
-Date: Thu, 28 Jun 2018 15:12:00 +0200
-Message-Id: <20180628131208.28009-3-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv4 07/10] media.h: reorder video en/decoder functions
+Date: Thu, 28 Jun 2018 15:12:05 +0200
+Message-Id: <20180628131208.28009-8-hverkuil@xs4all.nl>
 In-Reply-To: <20180628131208.28009-1-hverkuil@xs4all.nl>
 References: <20180628131208.28009-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-Document the new struct media_v2_pad 'index' field.
+Keep the function defines in numerical order: 0x6000 comes after
+0x2000, so move it back.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- .../media/uapi/mediactl/media-ioc-g-topology.rst      | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/uapi/linux/media.h | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index a3f259f83b25..24ab34b22df2 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -176,7 +176,7 @@ desired arrays with the media graph elements.
-     *  -  struct media_v2_intf_devnode
-        -  ``devnode``
-        -  Used only for device node interfaces. See
--	  :c:type:`media_v2_intf_devnode` for details..
-+	  :c:type:`media_v2_intf_devnode` for details.
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 6f594fa238c2..76d9bd64c116 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -89,13 +89,6 @@ struct media_device_info {
+ #define MEDIA_ENT_F_FLASH			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
+ #define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
  
+-/*
+- * Video decoder/encoder functions
+- */
+-#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+-#define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
+-#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
+-
+ /*
+  * Digital TV, analog TV, radio and/or software defined radio tuner functions.
+  *
+@@ -140,6 +133,13 @@ struct media_device_info {
+ #define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
+ #define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
  
- .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
-@@ -218,7 +218,14 @@ desired arrays with the media graph elements.
-        -  Pad flags, see :ref:`media-pad-flag` for more details.
- 
-     *  -  __u32
--       -  ``reserved``\ [5]
-+       -  ``index``
-+       -  0-based pad index. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
-+	  returns true. The ``media_version`` is defined in struct
-+	  :c:type:`media_device_info` and can be retrieved using
-+	  :ref:`MEDIA_IOC_DEVICE_INFO`.
++/*
++ * Video decoder/encoder functions
++ */
++#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
++#define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
++#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
 +
-+    *  -  __u32
-+       -  ``reserved``\ [4]
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
- 
+ /* Entity flags */
+ #define MEDIA_ENT_FL_DEFAULT			(1 << 0)
+ #define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
 -- 
 2.17.0
