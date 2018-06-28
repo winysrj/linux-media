@@ -1,68 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59588 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965954AbeF1MrN (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:47719 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966108AbeF1NMN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 08:47:13 -0400
-Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
- <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
- <20180628083732.3679d730@coco.lan>
+        Thu, 28 Jun 2018 09:12:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <536a05bd-372e-a509-a6b6-0a3e916e48ae@xs4all.nl>
-Date: Thu, 28 Jun 2018 14:47:05 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180628083732.3679d730@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv4 03/10] media: add flags field to struct media_v2_entity
+Date: Thu, 28 Jun 2018 15:12:01 +0200
+Message-Id: <20180628131208.28009-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180628131208.28009-1-hverkuil@xs4all.nl>
+References: <20180628131208.28009-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/18 13:37, Mauro Carvalho Chehab wrote:
-> Em Thu, 17 May 2018 16:30:16 +0200
-> Niklas Söderlund         <niklas.soderlund+renesas@ragnatech.se> escreveu:
-> 
->> There is no way to control the standard of subdevices which are part of
->> a media device. The ioctls which exists all target video devices
->> explicitly and the idea is that the video device should talk to the
->> subdevice. For subdevices part of a media graph this is not possible and
->> the standard must be controlled on the subdev device directly.
-> 
-> Why isn't it possible? A media pipeline should have at least a video
-> devnode where the standard ioctls will be issued.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Not for an MC-centric device like the r-car or imx. It's why we have v4l-subdev
-ioctls for the DV_TIMINGS API, but the corresponding SDTV standards API is
-missing.
+The v2 entity structure never exposed the entity flags, which made it
+impossible to detect connector or default entities.
 
-And in a complex scenario there is nothing preventing you from having multiple
-SDTV inputs, some of which need PAL-BG, some SECAM, some NTSC (less likely)
-which are all composed together (think security cameras or something like that).
+It is really trivial to just expose this information, so implement this.
 
-You definitely cannot set the standard from a video device. If nothing else,
-it would be completely inconsistent with how HDMI inputs work.
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c |  1 +
+ include/uapi/linux/media.h   | 12 +++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-The whole point of MC centric devices is that you *don't* control subdevs
-from video nodes.
-
-Regards,
-
-	Hans
-
-> So, I don't see why you would need to explicitly set the standard inside
-> a sub-device.
-> 
-> The way I see, inside a given pipeline, all subdevs should be using the
-> same video standard (maybe except for a m2m device with would have some
-> coded that would be doing format conversion).
-> 
-> Am I missing something?
-> 
-> Thanks,
-> Mauro
-> 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 047d38372a27..14959b19a342 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -266,6 +266,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
+ 		memset(&kentity, 0, sizeof(kentity));
+ 		kentity.id = entity->graph_obj.id;
+ 		kentity.function = entity->function;
++		kentity.flags = entity->flags;
+ 		strlcpy(kentity.name, entity->name,
+ 			sizeof(kentity.name));
+ 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index f6338bd57929..ebd2cda67833 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -280,11 +280,21 @@ struct media_links_enum {
+  * MC next gen API definitions
+  */
+ 
++/*
++ * Appeared in 4.19.0.
++ *
++ * The media_version argument comes from the media_version field in
++ * struct media_device_info.
++ */
++#define MEDIA_V2_ENTITY_HAS_FLAGS(media_version) \
++	((media_version) >= ((4 << 16) | (19 << 8) | 0))
++
+ struct media_v2_entity {
+ 	__u32 id;
+ 	char name[64];
+ 	__u32 function;		/* Main function of the entity */
+-	__u32 reserved[6];
++	__u32 flags;
++	__u32 reserved[5];
+ } __attribute__ ((packed));
+ 
+ /* Should match the specific fields at media_intf_devnode */
+-- 
+2.17.0
