@@ -1,65 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:51042 "EHLO
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39420 "EHLO
         lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966127AbeF1NMO (ORCPT
+        by vger.kernel.org with ESMTP id S966098AbeF1NMN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 09:12:14 -0400
+        Thu, 28 Jun 2018 09:12:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 06/10] media.h: add MEDIA_ENT_F_DV_ENCODER
-Date: Thu, 28 Jun 2018 15:12:04 +0200
-Message-Id: <20180628131208.28009-7-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv4 01/10] media: add 'index' to struct media_v2_pad
+Date: Thu, 28 Jun 2018 15:11:59 +0200
+Message-Id: <20180628131208.28009-2-hverkuil@xs4all.nl>
 In-Reply-To: <20180628131208.28009-1-hverkuil@xs4all.nl>
 References: <20180628131208.28009-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-Add a new function for digital video encoders such as HDMI transmitters.
+The v2 pad structure never exposed the pad index, which made it impossible
+to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+It is really trivial to just expose this information, so implement this.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/mediactl/media-types.rst | 7 +++++++
- include/uapi/linux/media.h                        | 3 ++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/media/media-device.c |  1 +
+ include/uapi/linux/media.h   | 12 +++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index c11b0c7e890b..e90d4d0a7f8b 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -206,6 +206,13 @@ Types and flags used to represent the media graph elements
- 	  and output it in some digital video standard, with appropriate
- 	  timing signals.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 47bb2254fbfd..047d38372a27 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
+ 		kpad.id = pad->graph_obj.id;
+ 		kpad.entity_id = pad->entity->graph_obj.id;
+ 		kpad.flags = pad->flags;
++		kpad.index = pad->index;
  
-+    *  -  ``MEDIA_ENT_F_DV_ENCODER``
-+       -  Digital video encoder. The basic function of the video encoder is
-+	  to accept digital video from some digital video standard with
-+	  appropriate timing signals (usually a parallel video bus with sync
-+	  signals) and output this to a digital video output connector such
-+	  as HDMI or DisplayPort.
-+
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
- .. _media-entity-flag:
+ 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
+ 			ret = -EFAULT;
 diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 99f5e0978ebb..6f594fa238c2 100644
+index 86c7dcc9cba3..f6338bd57929 100644
 --- a/include/uapi/linux/media.h
 +++ b/include/uapi/linux/media.h
-@@ -90,10 +90,11 @@ struct media_device_info {
- #define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+@@ -305,11 +305,21 @@ struct media_v2_interface {
+ 	};
+ } __attribute__ ((packed));
  
- /*
-- * Video decoder functions
-+ * Video decoder/encoder functions
-  */
- #define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
- #define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
-+#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
++/*
++ * Appeared in 4.19.0.
++ *
++ * The media_version argument comes from the media_version field in
++ * struct media_device_info.
++ */
++#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
++	((media_version) >= ((4 << 16) | (19 << 8) | 0))
++
+ struct media_v2_pad {
+ 	__u32 id;
+ 	__u32 entity_id;
+ 	__u32 flags;
+-	__u32 reserved[5];
++	__u32 index;
++	__u32 reserved[4];
+ } __attribute__ ((packed));
  
- /*
-  * Digital TV, analog TV, radio and/or software defined radio tuner functions.
+ struct media_v2_link {
 -- 
 2.17.0
