@@ -1,78 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:55722 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752257AbeF1Ljk (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:53833 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752095AbeF1MZb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 07:39:40 -0400
-Date: Thu, 28 Jun 2018 08:39:36 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
-        <niklas.soderlund@ragnatech.se>
-Subject: Re: [GIT PULL FOR v4.19] Convert last soc-camera users, rcar fixes,
- subdev std support
-Message-ID: <20180628083936.1787dc67@coco.lan>
-In-Reply-To: <37763018-a00b-806f-82b6-41835b2ea3ec@xs4all.nl>
-References: <37763018-a00b-806f-82b6-41835b2ea3ec@xs4all.nl>
+        Thu, 28 Jun 2018 08:25:31 -0400
+Date: Thu, 28 Jun 2018 14:25:26 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Rob Herring <robh@kernel.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH/RFC 2/2] arm64: dts: renesas: salvator-common: Fix
+ adv7482 decimal unit addresses
+Message-ID: <20180628122525.cdqo5sp5l36ozz2z@verge.net.au>
+References: <1528984088-24801-1-git-send-email-geert+renesas@glider.be>
+ <1528984088-24801-3-git-send-email-geert+renesas@glider.be>
+ <20180626195747.GB30143@rob-hp-laptop>
+ <20180627151030.o2peqxdnesni3wfi@verge.net.au>
+ <CAMuHMdXWKuzJ5jzAMugZArXuK_NRwaptXMSGuWjtOEcPwv6CJA@mail.gmail.com>
+ <f0445e88-a8ca-081d-e553-bdfae6f374a5@ideasonboard.com>
+ <20180628084758.lyfmvawuep4ql6eq@verge.net.au>
+ <CAMuHMdULm25QFx1=iokUk=fw2LAN2GRdvNhde84WVPo4r541UA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdULm25QFx1=iokUk=fw2LAN2GRdvNhde84WVPo4r541UA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 8 Jun 2018 16:39:43 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Thu, Jun 28, 2018 at 10:52:17AM +0200, Geert Uytterhoeven wrote:
+> Hi Simon,
+> 
+> On Thu, Jun 28, 2018 at 10:48 AM Simon Horman <horms@verge.net.au> wrote:
+> > On Wed, Jun 27, 2018 at 05:45:34PM +0100, Kieran Bingham wrote:
+> > > On 27/06/18 17:40, Geert Uytterhoeven wrote:
+> > > > On Wed, Jun 27, 2018 at 5:10 PM Simon Horman <horms@verge.net.au> wrote:
+> > > >> On Tue, Jun 26, 2018 at 01:57:47PM -0600, Rob Herring wrote:
+> > > >>> On Thu, Jun 14, 2018 at 03:48:08PM +0200, Geert Uytterhoeven wrote:
+> > > >>>> With recent dtc and W=1:
+> > > >>>>
+> > > >>>>     ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@10: graph node unit address error, expected "a"
+> > > >>>>     ...salvator-x.dtb: Warning (graph_port): /soc/i2c@e66d8000/video-receiver@70/port@11: graph node unit address error, expected "b"
+> > > >>>>
+> > > >>>> Unit addresses are always hexadecimal (without prefix), while the bases
+> > > >>>> of reg property values depend on their prefixes.
+> > > >>>>
+> > > >>>> Fixes: 908001d778eba06e ("arm64: dts: renesas: salvator-common: Add ADV7482 support")
+> > > >>>> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> > > >>>> ---
+> > > >>>>  arch/arm64/boot/dts/renesas/salvator-common.dtsi | 4 ++--
+> > > >>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > >>>
+> > > >>> Reviewed-by: Rob Herring <robh@kernel.org>
+> > > >>
+> > > >> Geert, shall I apply this?
+> > > >
+> > > > I'd say yes. Thanks!
+> > >
+> > > I'm happy to throw an
+> > >
+> > > Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > >
+> > > on the patch - but I had a pending question regarding the reg = <10> part.
+> > >
+> > > Shouldn't the reg become hex "reg = <0xa>" to be consistent?
+> > >
+> > > Either way - if there's precedent - take that route and I'm happy.
+> >
+> > Consistency seems good to me, Geert?
+> 
+> Typically we use decimal for "small" and hex for "large" numbers.
+> So far this was mostly relevant for the size parts of "reg"
+> properties, as the address
+> parts are usually large (if part of the main memory space).
+> 
+> These are different, as they are not memory-mapped addresses.
+> If you want to see 0xa and 0xb in the reg properties, I can respin.
 
-> Hi Mauro,
->=20
-> This pull requests converts the last users of soc-camera (thanks, Jacopo!=
-),
-> has a few rcar fixes and adds support for SDTV to v4l2-subdev (HDTV was
-> supported, but not SDTV).
->=20
-> Regards,
->=20
-> 	Hans
->=20
-> The following changes since commit f2809d20b9250c675fca8268a0f6274277cca7=
-ff:
->=20
->   media: omap2: fix compile-testing with FB_OMAP2=3Dm (2018-06-05 09:56:5=
-6 -0400)
->=20
-> are available in the Git repository at:
->=20
->   git://linuxtv.org/hverkuil/media_tree.git for-v4.19b
->=20
-> for you to fetch changes up to eae1c8802533c940e2a6ca55db4b3aa0a3d0759f:
->=20
->   v4l: Add support for STD ioctls on subdev nodes (2018-06-08 16:38:43 +0=
-200)
->=20
-> ----------------------------------------------------------------
-> Jacopo Mondi (5):
->       media: i2c: Copy rj54n1cb0c soc_camera sensor driver
->       media: i2c: rj54n1: Remove soc_camera dependencies
->       arch: sh: kfr2r09: Use new renesas-ceu camera driver
->       arch: sh: ms7724se: Use new renesas-ceu camera driver
->       arch: sh: ap325rxa: Use new renesas-ceu camera driver
->=20
-> Niklas S=C3=B6derlund (6):
->       media: dt-bindings: media: rcar_vin: add support for r8a77965
->       dt-bindings: media: rcar_vin: fix style for ports and endpoints
->       rcar-vin: sync which hardware buffer to start capture from
->       media: rcar-vin: enable support for r8a77965
->       v4l2-ioctl: create helper to fill in v4l2_standard for ENUMSTD
-
-Patches applied, thanks!
-
->       v4l: Add support for STD ioctls on subdev nodes
-
-Not convinced about this one. That requires further discussions.
-
-I'm commenting about it at the patch's thread.
-
-Thanks,
-Mauro
+I'll take this as is. We can decide how we want to address this,
+in a consistent manner, without too many puns, later.
