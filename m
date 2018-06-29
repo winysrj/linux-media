@@ -1,104 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:46780 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936729AbeF2Sw5 (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:37118 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936821AbeF2SxE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 14:52:57 -0400
+        Fri, 29 Jun 2018 14:53:04 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v5 09/17] media: imx: mipi csi-2: Register a subdev notifier
-Date: Fri, 29 Jun 2018 11:49:53 -0700
-Message-Id: <1530298220-5097-10-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v5 11/17] media: staging/imx: Loop through all registered subdevs for media links
+Date: Fri, 29 Jun 2018 11:49:55 -0700
+Message-Id: <1530298220-5097-12-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse neighbor remote devices on the MIPI CSI-2 input port, add
-them to a subdev notifier, and register the subdev notifier for the
-MIPI CSI-2 receiver, by calling v4l2_async_register_fwnode_subdev().
-
-csi2_parse_endpoints() is modified to be the parse_endpoint callback.
+The root imx-media notifier no longer sees all bound subdevices because
+some of them will be bound to subdev notifiers. So imx_media_create_links()
+now needs to loop through all subdevices registered with the v4l2-device,
+not just the ones in the root notifier's done list. This should be safe
+because imx_media_create_of_links() checks if a fwnode link already
+exists before creating.
 
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/media/imx/imx6-mipi-csi2.c | 31 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+ drivers/staging/media/imx/imx-media-dev.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
-index ceeeb30..94eb9a1 100644
---- a/drivers/staging/media/imx/imx6-mipi-csi2.c
-+++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
-@@ -551,35 +551,34 @@ static const struct v4l2_subdev_internal_ops csi2_internal_ops = {
- 	.registered = csi2_registered,
- };
- 
--static int csi2_parse_endpoints(struct csi2_dev *csi2)
-+static int csi2_parse_endpoint(struct device *dev,
-+			       struct v4l2_fwnode_endpoint *vep,
-+			       struct v4l2_async_subdev *asd)
- {
--	struct device_node *node = csi2->dev->of_node;
--	struct device_node *epnode;
--	struct v4l2_fwnode_endpoint ep;
-+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-+	struct csi2_dev *csi2 = sd_to_dev(sd);
- 
--	epnode = of_graph_get_endpoint_by_regs(node, 0, -1);
--	if (!epnode) {
--		v4l2_err(&csi2->sd, "failed to get sink endpoint node\n");
-+	if (!fwnode_device_is_available(asd->match.fwnode)) {
-+		v4l2_err(&csi2->sd, "remote is not available\n");
- 		return -EINVAL;
- 	}
- 
--	v4l2_fwnode_endpoint_parse(of_fwnode_handle(epnode), &ep);
--	of_node_put(epnode);
--
--	if (ep.bus_type != V4L2_MBUS_CSI2) {
-+	if (vep->bus_type != V4L2_MBUS_CSI2) {
- 		v4l2_err(&csi2->sd, "invalid bus type, must be MIPI CSI2\n");
- 		return -EINVAL;
- 	}
- 
--	csi2->bus = ep.bus.mipi_csi2;
-+	csi2->bus = vep->bus.mipi_csi2;
- 
- 	dev_dbg(csi2->dev, "data lanes: %d\n", csi2->bus.num_data_lanes);
- 	dev_dbg(csi2->dev, "flags: 0x%08x\n", csi2->bus.flags);
-+
- 	return 0;
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index b0be80f..ae87c81 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -175,7 +175,7 @@ static int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
  }
  
- static int csi2_probe(struct platform_device *pdev)
- {
-+	unsigned int sink_port = 0;
- 	struct csi2_dev *csi2;
- 	struct resource *res;
+ /*
+- * create the media links for all subdevs that registered async.
++ * Create the media links for all subdevs that registered.
+  * Called after all async subdevs have bound.
+  */
+ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+@@ -184,14 +184,7 @@ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+ 	struct v4l2_subdev *sd;
  	int ret;
-@@ -601,10 +600,6 @@ static int csi2_probe(struct platform_device *pdev)
- 	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
- 	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
  
--	ret = csi2_parse_endpoints(csi2);
--	if (ret)
--		return ret;
--
- 	csi2->pllref_clk = devm_clk_get(&pdev->dev, "ref");
- 	if (IS_ERR(csi2->pllref_clk)) {
- 		v4l2_err(&csi2->sd, "failed to get pll reference clock\n");
-@@ -654,7 +649,9 @@ static int csi2_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, &csi2->sd);
- 
--	ret = v4l2_async_register_subdev(&csi2->sd);
-+	ret = v4l2_async_register_fwnode_subdev(
-+		&csi2->sd, sizeof(struct v4l2_async_subdev),
-+		&sink_port, 1, csi2_parse_endpoint);
- 	if (ret)
- 		goto dphy_off;
- 
+-	/*
+-	 * Only links are created between subdevices that are known
+-	 * to the async notifier. If there are other non-async subdevices,
+-	 * they were created internally by some subdevice (smiapp is one
+-	 * example). In those cases it is expected the subdevice is
+-	 * responsible for creating those internal links.
+-	 */
+-	list_for_each_entry(sd, &notifier->done, async_list) {
++	list_for_each_entry(sd, &imxmd->v4l2_dev.subdevs, list) {
+ 		switch (sd->grp_id) {
+ 		case IMX_MEDIA_GRP_ID_VDIC:
+ 		case IMX_MEDIA_GRP_ID_IC_PRP:
+@@ -211,7 +204,10 @@ static int imx_media_create_links(struct v4l2_async_notifier *notifier)
+ 				imx_media_create_csi_of_links(imxmd, sd);
+ 			break;
+ 		default:
+-			/* this is an external fwnode subdev */
++			/*
++			 * if this subdev has fwnode links, create media
++			 * links for them.
++			 */
+ 			imx_media_create_of_links(imxmd, sd);
+ 			break;
+ 		}
 -- 
 2.7.4
