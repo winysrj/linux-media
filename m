@@ -1,97 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35663 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752005AbeFFUhP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 16:37:15 -0400
-Date: Wed, 6 Jun 2018 22:37:13 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: mchehab+samsung@kernel.org, mchehab@s-opensource.com,
-        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180606203713.GA10491@amd>
-References: <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
- <20180319095544.7e235a3e@vento.lan>
- <20180515200117.GA21673@amd>
- <20180515190314.2909e3be@vento.lan>
- <20180602210145.GB20439@amd>
- <CAAFQd5ACz1DNW07-vk6rCffC0aNcUG_9+YVNK9HmOTg0+-3yzg@mail.gmail.com>
- <20180606084612.GB18743@amd>
- <CAAFQd5CGKd=jP+h5b7HwSgd5HBoQFUX8Vd6pKLzzJFtCSukBLg@mail.gmail.com>
- <20180606105116.GA4328@amd>
- <CAAFQd5Cy+77D-hr1k7QVrxaGhsGqM8rrqCKAk9Z+GoHEG=Q_mw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5Cy+77D-hr1k7QVrxaGhsGqM8rrqCKAk9Z+GoHEG=Q_mw@mail.gmail.com>
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:46947 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751757AbeF2Suc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Jun 2018 14:50:32 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v5 00/17] media: imx: Switch to subdev notifiers
+Date: Fri, 29 Jun 2018 11:49:44 -0700
+Message-Id: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patchset converts the imx-media driver and its dependent
+subdevs to use subdev notifiers.
 
---zYM0uCDKw75PZbzx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There are a couple shortcomings in v4l2-core that prevented
+subdev notifiers from working correctly in imx-media:
 
-Hi!
+1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+   endpoint that is not connected to a remote device as an error.
+   But in the case of the video-mux subdev, this is not an error,
+   it is OK if some of the mux inputs have no connection. Also,
+   Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
+   states that the 'remote-endpoint' property is optional. So the first
+   patch is a small modification to ignore empty endpoints in
+   v4l2_async_notifier_fwnode_parse_endpoint() and allow
+   __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
+   parse the remaining port endpoints of the device.
 
-> > Thanks for thread pointer... I may be able to get in using hangouts.
-> >
-> > Anyway, there's big difference between open("/dev/video0") and
-> > v4l2_open("/dev/video0"). I don't care about the first one, but yes we
-> > should be able to support the second one eventually.
-> >
-> > And I don't think Mauro says apps like Camorama are of open() kind.
->=20
-> I don't think there is much difference between open() and v4l2_open(),
-> since the former can be changed to the latter using LD_PRELOAD.
+2. In the imx-media graph, multiple subdevs will encounter the same
+   upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+   v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+   multiple times. This is treated as an error by
+   v4l2_async_notifier_register() later.
 
-Well, if everyone thinks opening more than one fd in v4l2_open() is
-okay, I can do that. Probably "if argument is regular file and has .mc
-extension, use open_complex"? =20
+   To get around this problem, add an v4l2_async_notifier_add_subdev()
+   which first verifies the provided asd does not already exist in the
+   given notifier asd list or in other registered notifiers. If the asd
+   exists, the function returns -EEXIST and it's up to the caller to
+   decide if that is an error (in imx-media case it is never an error).
 
-> If we simply add v4l2_open_complex() to libv4l, we would have to get
-> developers of the applications (regardless of whether they use open()
-> or v4l2_open()) to also support v4l2_open_complex(). For testing
-> purposes of kernel developers it would work indeed, but I wonder if it
-> goes anywhere beyond that.
+   Patches 2-5 deal with adding that support.
 
-I'd like people to think "is opening multiple fds okay at this
-moment?" before switching to v4l2_open_complex(). But I guess I'm too caref=
-ul.
+3. Patch 6 adds v4l2_async_register_fwnode_subdev(), which is a
+   convenience function for parsing a subdev's fwnode port endpoints
+   for connected remote subdevs, registering a subdev notifier, and
+   then registering the sub-device itself.
 
-> If all we need is some code to be able to test kernel camera drivers,
-> I don't think there is any big problem in adding v4l2_open_complex()
-> to libv4l. However, we must either ensure that either:
-> a) it's not going to be widely used
-> OR
-> b) it is designed well enough to cover the complex cases I mentioned
-> and which are likely to represent most of the hardware in the wild.
+4. Patches 7-14 update the subdev drivers to register a subdev notifier
+   with endpoint parsing, and the changes to imx-media to support that.
 
-=2Emc descriptors should be indeed extensible enough for that.
+5. Finally, the last 3 patches endeavor to completely remove support for
+   the notifier->subdevs[] array in platform drivers and v4l2 core. All
+   platform drivers are modified to make use of
+   v4l2_async_notifier_add_subdev() and its related convenience functions
+   to add asd's to the notifier @asd_list, and any allocation or reference
+   to the notifier->subdevs[] array removed. After that large patch,
+   notifier->subdevs[] array is stripped from v4l2-async and v4l2-subdev
+   docs are updated to reflect the new method of adding asd's to notifiers.
 
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
 
---zYM0uCDKw75PZbzx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Patches 07-14 (video-mux and the imx patches) are
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-iEYEARECAAYFAlsYRfkACgkQMOfwapXb+vLmoACgvAHHS3j0GrgpnbjucLg8YuSE
-R60AoKnSuFFUoop6ha8ReSoQODdOniPz
-=3AkM
------END PGP SIGNATURE-----
+Patches 01-14 are
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+on i.MX6 with Toshiba TC358743 connected via MIPI CSI-2.
 
---zYM0uCDKw75PZbzx--
+History:
+v5:
+- see point 5 above.
+
+v4:
+- small non-functional code cleanup in video-mux.c.
+- strip TODO for comparing custom asd's for equivalence.
+- add three more convenience functions: v4l2_async_notifier_add_fwnode_subdev,
+  v4l2_async_notifier_add_i2c_subdev, v4l2_async_notifier_add_devname_subdev.
+- strip support in v4l2_async_register_fwnode_subdev for sub-devices
+  that register from port nodes.
+
+v3:
+- code optimization in asd_equal(), and remove unneeded braces,
+  suggested by Sakari Ailus.
+- add a NULL asd pointer check to v4l2_async_notifier_asd_valid().
+- fix an error-out path in v4l2_async_register_fwnode_subdev() that
+  forgot to put device.
+
+v2:
+- don't pass an empty endpoint to the parse_endpoint callback, 
+  v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
+  and returns success.
+- Fix a couple compile warnings and errors seen in i386 and sh archs.
+
+
+Steve Longerbeam (17):
+  media: v4l2-fwnode: ignore endpoints that have no remote port parent
+  media: v4l2: async: Allow searching for asd of any type
+  media: v4l2: async: Add v4l2_async_notifier_add_subdev
+  media: v4l2: async: Add convenience functions to allocate and add
+    asd's
+  media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+  media: v4l2-fwnode: Add a convenience function for registering subdevs
+    with notifiers
+  media: platform: video-mux: Register a subdev notifier
+  media: imx: csi: Register a subdev notifier
+  media: imx: mipi csi-2: Register a subdev notifier
+  media: staging/imx: of: Remove recursive graph walk
+  media: staging/imx: Loop through all registered subdevs for media
+    links
+  media: staging/imx: Rename root notifier
+  media: staging/imx: Switch to v4l2_async_notifier_add_*_subdev
+  media: staging/imx: TODO: Remove one assumption about OF graph parsing
+  media: platform: Switch to v4l2_async_notifier_add_subdev
+  media: v4l2: async: Remove notifier subdevs array
+  [media] v4l2-subdev.rst: Update doc regarding subdev descriptors
+
+ Documentation/media/kapi/v4l2-subdev.rst          |  28 ++-
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c          |  10 +-
+ drivers/media/platform/am437x/am437x-vpfe.c       |  80 ++++---
+ drivers/media/platform/atmel/atmel-isc.c          |  13 +-
+ drivers/media/platform/atmel/atmel-isi.c          |  15 +-
+ drivers/media/platform/cadence/cdns-csi2rx.c      |  26 +-
+ drivers/media/platform/davinci/vpif_capture.c     |  47 ++--
+ drivers/media/platform/davinci/vpif_display.c     |  23 +-
+ drivers/media/platform/exynos4-is/media-dev.c     |  30 ++-
+ drivers/media/platform/exynos4-is/media-dev.h     |   1 -
+ drivers/media/platform/pxa_camera.c               |  23 +-
+ drivers/media/platform/qcom/camss-8x16/camss.c    |  74 +++---
+ drivers/media/platform/qcom/camss-8x16/camss.h    |   2 +-
+ drivers/media/platform/rcar-vin/rcar-csi2.c       |  20 +-
+ drivers/media/platform/rcar_drif.c                |  18 +-
+ drivers/media/platform/renesas-ceu.c              |  51 ++--
+ drivers/media/platform/soc_camera/soc_camera.c    |  31 ++-
+ drivers/media/platform/stm32/stm32-dcmi.c         |  22 +-
+ drivers/media/platform/ti-vpe/cal.c               |  34 ++-
+ drivers/media/platform/video-mux.c                |  36 ++-
+ drivers/media/platform/xilinx/xilinx-vipp.c       | 154 ++++++------
+ drivers/media/platform/xilinx/xilinx-vipp.h       |   4 -
+ drivers/media/v4l2-core/v4l2-async.c              | 276 +++++++++++++++++-----
+ drivers/media/v4l2-core/v4l2-fwnode.c             | 194 +++++++--------
+ drivers/staging/media/imx/TODO                    |  29 +--
+ drivers/staging/media/imx/imx-media-csi.c         |  55 ++++-
+ drivers/staging/media/imx/imx-media-dev.c         | 143 +++--------
+ drivers/staging/media/imx/imx-media-internal-sd.c |   5 +-
+ drivers/staging/media/imx/imx-media-of.c          | 106 +--------
+ drivers/staging/media/imx/imx-media.h             |   6 +-
+ drivers/staging/media/imx/imx6-mipi-csi2.c        |  31 ++-
+ include/media/v4l2-async.h                        |  90 ++++++-
+ include/media/v4l2-fwnode.h                       |  58 ++++-
+ 33 files changed, 966 insertions(+), 769 deletions(-)
+
+-- 
+2.7.4
