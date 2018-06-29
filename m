@@ -1,140 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:55218 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750803AbeFFFRR (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47419 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932092AbeF2K00 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Jun 2018 01:17:17 -0400
-Message-ID: <04eb3b9435585adf21885b1b4037cf29@smtp-cloud8.xs4all.net>
-Date: Wed, 06 Jun 2018 07:17:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Fri, 29 Jun 2018 06:26:26 -0400
+Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
+ <20180628083732.3679d730@coco.lan>
+ <536a05bd-372e-a509-a6b6-0a3e916e48ae@xs4all.nl>
+ <20180629070647.1ce7f73b@coco.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1b948535-8067-fef6-efd9-92aff3049ec5@xs4all.nl>
+Date: Fri, 29 Jun 2018 12:26:20 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180629070647.1ce7f73b@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 06/29/18 12:06, Mauro Carvalho Chehab wrote:
+> Em Thu, 28 Jun 2018 14:47:05 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 06/28/18 13:37, Mauro Carvalho Chehab wrote:
+>>> Em Thu, 17 May 2018 16:30:16 +0200
+>>> Niklas Söderlund         <niklas.soderlund+renesas@ragnatech.se> escreveu:
+>>>   
+>>>> There is no way to control the standard of subdevices which are part of
+>>>> a media device. The ioctls which exists all target video devices
+>>>> explicitly and the idea is that the video device should talk to the
+>>>> subdevice. For subdevices part of a media graph this is not possible and
+>>>> the standard must be controlled on the subdev device directly.  
+>>>
+>>> Why isn't it possible? A media pipeline should have at least a video
+>>> devnode where the standard ioctls will be issued.  
+>>
+>> Not for an MC-centric device like the r-car or imx. It's why we have v4l-subdev
+>> ioctls for the DV_TIMINGS API, but the corresponding SDTV standards API is
+>> missing.
+>>
+>> And in a complex scenario there is nothing preventing you from having multiple
+>> SDTV inputs, some of which need PAL-BG, some SECAM, some NTSC (less likely)
+>> which are all composed together (think security cameras or something like that).
+>>
+>> You definitely cannot set the standard from a video device. If nothing else,
+>> it would be completely inconsistent with how HDMI inputs work.
+>>
+>> The whole point of MC centric devices is that you *don't* control subdevs
+>> from video nodes.
+> 
+> Well, the way it is, this change is disruptive, as, as far as I remember,
+> MC-based devices with tvp5150 already sets STD via the /dev/video device.
 
-Results of the daily build of media_tree:
+Really? Which driver? I am not aware of this and I think you are mistaken.
+Remember that we are talking about MC-centric drivers. em28xx is not MC-centric,
+even though it has a media device.
 
-date:			Wed Jun  6 05:00:18 CEST 2018
-media-tree git hash:	f2809d20b9250c675fca8268a0f6274277cca7ff
-media_build git hash:	464ef972618cc9f845f07c1a4e8957ce2270cf91
-v4l-utils git hash:	88f31856e566df6e4d38eaff94c422fbb536febb
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+> 
+> If we're willing to add it, we'll need to be clear when one approach
+> should be taken, and be clear that, if the SUBDEV version is used, the
+> driver should not support the non-subdev option.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17-i686: OK
-linux-4.17-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Of course, but in the case of em28xx the tvp5150 v4l-subdev node is never
+created, so this is not a problem.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+	Hans
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>> So, I don't see why you would need to explicitly set the standard inside
+>>> a sub-device.
+>>>
+>>> The way I see, inside a given pipeline, all subdevs should be using the
+>>> same video standard (maybe except for a m2m device with would have some
+>>> coded that would be doing format conversion).
+>>>
+>>> Am I missing something?
+>>>
+>>> Thanks,
+>>> Mauro
+>>>   
+>>
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
