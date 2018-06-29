@@ -1,84 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:35189 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752260AbeF2HRm (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34864 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751594AbeF2Hch (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 03:17:42 -0400
-Received: by mail-wr0-f195.google.com with SMTP id c13-v6so7778435wrq.2
-        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2018 00:17:42 -0700 (PDT)
-Subject: Re: [PATCHv2 1/3] dt-bindings: display: dw_hdmi.txt: add cec-disable
- property
-To: Hans Verkuil <hverkuil@xs4all.nl>, Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-amlogic@lists.infradead.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180323125915.13986-1-hverkuil@xs4all.nl>
- <20180323125915.13986-2-hverkuil@xs4all.nl>
- <20180326072830.iphtbw5mkeciv4kj@rob-hp-laptop>
- <05e7ade1-89be-0f0f-18a5-88ff0310a70b@xs4all.nl>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <714ee0ef-25c4-e065-8120-aebc27a1add7@baylibre.com>
-Date: Fri, 29 Jun 2018 09:17:39 +0200
+        Fri, 29 Jun 2018 03:32:37 -0400
+Subject: Re: [PATCH] v4l2-mem2mem: add name argument to
+ v4l2_m2m_register_media_controller()
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+References: <5a847697-17fb-5fe5-098b-a0f2f26c1574@xs4all.nl>
+Message-ID: <1fb09c62-9da8-461c-82f1-4d514e7d7f90@xs4all.nl>
+Date: Fri, 29 Jun 2018 09:32:33 +0200
 MIME-Version: 1.0
-In-Reply-To: <05e7ade1-89be-0f0f-18a5-88ff0310a70b@xs4all.nl>
+In-Reply-To: <5a847697-17fb-5fe5-098b-a0f2f26c1574@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On 03/04/2018 10:27, Hans Verkuil wrote:
-> On 27/03/18 00:25, Rob Herring wrote:
->> On Fri, Mar 23, 2018 at 01:59:13PM +0100, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Some boards have both a DesignWare and their own CEC controller.
->>> The CEC pin is only hooked up to their own CEC controller and not
->>> to the DW controller.
->>>
->>> Add the cec-disable property to disable the DW CEC controller.
->>>
->>> This particular situation happens on Amlogic boards that have their
->>> own meson CEC controller.
->>
->> Seems like we could avoid this by describing how the CEC line is hooked 
->> up which could be needed for other reasons.
+On 06/29/2018 09:01 AM, Hans Verkuil wrote:
+> Hi Ezequiel,
 > 
-> So there are three situations:
+> I added support for this to a codec and I discovered that we are missing a 'name'
+> argument to v4l2_m2m_register_media_controller(): a typical codec driver has two
+> m2m video nodes: one for encoding, one for decoding. That works fine, except that
+> the names of the source, sink and proc entities are the same for both encoder and
+> decoder node.
 > 
-> 1) The cec pin is connected to the DW HDMI TX. That's already supported.
-> 2) The cec pin is not connected at all, but the CEC IP is instantiated.
->    We need the cec-disable property for that. This simply states that the
->    CEC pin is not connected.
-> 3) The cec pin is connected to an HDMI RX. We do not support this at the
->    moment. If we want to support this, then we need a 'hdmi-rx' phandle
->    that points to the HDMI receiver that the CEC pin is associated with.
->    This will be similar to the already existing 'hdmi-phandle' property
->    used to associate a CEC driver with an HDMI transmitter. In hindsight
->    it would have been better if 'hdmi-phandle' was named 'hdmi-tx' :-(
+> So add an extra name argument to help differentiate between the two.
 > 
-> I can make a binding proposal for 3, but I have no hardware to test it,
-> so I think it is better to add this only when someone has hardware. It
-> will require quite a few changes to the driver and likely also the CEC core.
+> Can you fold this in your v4l2-mem2mem patch?
 
-Can't we simply add a property to override the HW config fields in this case ?
-It will be then usable with any feature the is enabled by reading the config
-bits like AHB Audio, I2c, CEC, ... and maybe many more in the future.
+Please ignore, I'll post a follow-up patch since this isn't sufficient.
 
-Neil
+Regards,
+
+	Hans
 
 > 
-> Regards,
+> Thanks!
 > 
 > 	Hans
 > 
->>
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> Acked-by: Neil Armstrong <narmstrong@baylibre.com>
->>> ---
->>>  Documentation/devicetree/bindings/display/bridge/dw_hdmi.txt | 3 +++
->>>  1 file changed, 3 insertions(+)
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index 40d4d645e6a6..b3ecd5a41c48 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -76,10 +76,13 @@ struct v4l2_m2m_dev {
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	struct media_entity	*source;
+>  	struct media_pad	source_pad;
+> +	char			*source_name;
+>  	struct media_entity	sink;
+>  	struct media_pad	sink_pad;
+> +	char			*sink_name;
+>  	struct media_entity	proc;
+>  	struct media_pad	proc_pads[2];
+> +	char			*proc_name;
+>  	struct media_intf_devnode *intf_devnode;
+>  #endif
+> 
+> @@ -647,33 +650,41 @@ void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
+>  	media_device_unregister_entity(m2m_dev->source);
+>  	media_device_unregister_entity(&m2m_dev->sink);
+>  	media_device_unregister_entity(&m2m_dev->proc);
+> +	kfree(m2m_dev->source_name);
+> +	kfree(m2m_dev->sink_name);
+> +	kfree(m2m_dev->proc_name);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_m2m_unregister_media_controller);
+> 
+>  static int v4l2_m2m_register_entity(struct media_device *mdev,
+>  	struct v4l2_m2m_dev *m2m_dev, enum v4l2_m2m_entity_type type,
+> -	int function)
+> +	const char *name, int function)
+>  {
+>  	struct media_entity *entity;
+>  	struct media_pad *pads;
+> +	char **p_name;
+> +	unsigned int len;
+>  	int num_pads;
+>  	int ret;
+> 
+>  	switch (type) {
+>  	case MEM2MEM_ENT_TYPE_SOURCE:
+>  		entity = m2m_dev->source;
+> +		p_name = &m2m_dev->source_name;
+>  		pads = &m2m_dev->source_pad;
+>  		pads[0].flags = MEDIA_PAD_FL_SOURCE;
+>  		num_pads = 1;
+>  		break;
+>  	case MEM2MEM_ENT_TYPE_SINK:
+>  		entity = &m2m_dev->sink;
+> +		p_name = &m2m_dev->sink_name;
+>  		pads = &m2m_dev->sink_pad;
+>  		pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		num_pads = 1;
+>  		break;
+>  	case MEM2MEM_ENT_TYPE_PROC:
+>  		entity = &m2m_dev->proc;
+> +		p_name = &m2m_dev->proc_name;
+>  		pads = m2m_dev->proc_pads;
+>  		pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		pads[1].flags = MEDIA_PAD_FL_SOURCE;
+> @@ -683,8 +694,11 @@ static int v4l2_m2m_register_entity(struct media_device *mdev,
+>  		return -EINVAL;
+>  	}
+> 
+> +	len = strlen(name) + 2 + strlen(m2m_entity_name[type]);
+>  	entity->obj_type = MEDIA_ENTITY_TYPE_BASE;
+> -	entity->name = m2m_entity_name[type];
+> +	*p_name = kmalloc(len, GFP_KERNEL);
+> +	snprintf(*p_name, len, "%s-%s", name, m2m_entity_name[type]);
+> +	entity->name = *p_name;
+>  	entity->function = function;
+> 
+>  	ret = media_entity_pads_init(entity, num_pads, pads);
+> @@ -698,7 +712,8 @@ static int v4l2_m2m_register_entity(struct media_device *mdev,
+>  }
+> 
+>  int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
+> -		struct video_device *vdev, int function)
+> +		struct video_device *vdev, const char *name,
+> +		int function)
+>  {
+>  	struct media_device *mdev = vdev->v4l2_dev->mdev;
+>  	struct media_link *link;
+> @@ -715,15 +730,15 @@ int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
+>  	/* Create the three entities with their pads */
+>  	m2m_dev->source = &vdev->entity;
+>  	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
+> -			MEM2MEM_ENT_TYPE_SOURCE, MEDIA_ENT_F_IO_V4L);
+> +			MEM2MEM_ENT_TYPE_SOURCE, name, MEDIA_ENT_F_IO_V4L);
+>  	if (ret)
+>  		return ret;
+>  	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
+> -			MEM2MEM_ENT_TYPE_PROC, function);
+> +			MEM2MEM_ENT_TYPE_PROC, name, function);
+>  	if (ret)
+>  		goto err_rel_entity0;
+>  	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
+> -			MEM2MEM_ENT_TYPE_SINK, MEDIA_ENT_F_IO_V4L);
+> +			MEM2MEM_ENT_TYPE_SINK, name, MEDIA_ENT_F_IO_V4L);
+>  	if (ret)
+>  		goto err_rel_entity1;
+> 
+> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+> index 4c14818c270e..6d52e9c06440 100644
+> --- a/include/media/v4l2-mem2mem.h
+> +++ b/include/media/v4l2-mem2mem.h
+> @@ -332,7 +332,8 @@ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev);
+>  int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
+> -			struct video_device *vdev, int function);
+> +			struct video_device *vdev, const char *name,
+> +			int function);
+>  #else
+>  static inline void
+>  v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
+> @@ -341,7 +342,8 @@ v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
+> 
+>  static inline int
+>  v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
+> -		struct video_device *vdev, int function)
+> +			struct video_device *vdev, const char *name,
+> +			int function)
+>  {
+>  	return 0;
+>  }
 > 
