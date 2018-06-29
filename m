@@ -1,170 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:37338 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933582AbeF2Suu (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:41333 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933159AbeF2Swx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 14:50:50 -0400
+        Fri, 29 Jun 2018 14:52:53 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v5 02/17] media: v4l2: async: Allow searching for asd of any type
-Date: Fri, 29 Jun 2018 11:49:46 -0700
-Message-Id: <1530298220-5097-3-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v5 08/17] media: imx: csi: Register a subdev notifier
+Date: Fri, 29 Jun 2018 11:49:52 -0700
+Message-Id: <1530298220-5097-9-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
-searching for any type of async subdev, not just fwnodes. Rename to
-v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
+Parse neighbor remote devices on the CSI port, and add them to a subdev
+notifier, by calling v4l2_async_notifier_parse_fwnode_endpoints_by_port()
+using the CSI's port id. And register the subdev notifier for the CSI.
 
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
 Changes since v4:
 - none
 Changes since v3:
-- removed TODO to support asd compare with CUSTOM match type in
-  asd_equal().
-Changes since v2:
-- code optimization in asd_equal(), and remove unneeded braces,
-  suggested by Sakari Ailus.
-Changes since v1:
-- none
+- v4l2_async_register_fwnode_subdev() no longer supports parsing
+  port sub-devices, so call
+  v4l2_async_notifier_parse_fwnode_endpoints_by_port() directly.
 ---
- drivers/media/v4l2-core/v4l2-async.c | 73 +++++++++++++++++++++---------------
- 1 file changed, 43 insertions(+), 30 deletions(-)
+ drivers/staging/media/imx/imx-media-csi.c | 55 ++++++++++++++++++++++++++++++-
+ 1 file changed, 54 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 2b08d03..0e7e529 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -124,6 +124,31 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 06af76d..d5cc4e9 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1740,6 +1740,59 @@ static const struct v4l2_subdev_internal_ops csi_internal_ops = {
+ 	.unregistered = csi_unregistered,
+ };
  
-+/* Compare two asd's for equivalence */
-+static bool asd_equal(struct v4l2_async_subdev *asd_x,
-+		      struct v4l2_async_subdev *asd_y)
++static int imx_csi_parse_endpoint(struct device *dev,
++				  struct v4l2_fwnode_endpoint *vep,
++				  struct v4l2_async_subdev *asd)
 +{
-+	if (asd_x->match_type != asd_y->match_type)
-+		return false;
-+
-+	switch (asd_x->match_type) {
-+	case V4L2_ASYNC_MATCH_DEVNAME:
-+		return strcmp(asd_x->match.device_name,
-+			      asd_y->match.device_name) == 0;
-+	case V4L2_ASYNC_MATCH_I2C:
-+		return asd_x->match.i2c.adapter_id ==
-+			asd_y->match.i2c.adapter_id &&
-+			asd_x->match.i2c.address ==
-+			asd_y->match.i2c.address;
-+	case V4L2_ASYNC_MATCH_FWNODE:
-+		return asd_x->match.fwnode == asd_y->match.fwnode;
-+	default:
-+		break;
-+	}
-+
-+	return false;
++	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
 +}
 +
- /* Find the sub-device notifier registered by a sub-device driver. */
- static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
- 	struct v4l2_subdev *sd)
-@@ -308,29 +333,22 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	notifier->parent = NULL;
- }
- 
--/* See if an fwnode can be found in a notifier's lists. */
--static bool __v4l2_async_notifier_fwnode_has_async_subdev(
--	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-+/* See if an async sub-device can be found in a notifier's lists. */
-+static bool __v4l2_async_notifier_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
++static int imx_csi_async_register(struct csi_priv *priv)
++{
++	struct v4l2_async_notifier *notifier;
++	struct fwnode_handle *fwnode;
++	unsigned int port;
++	int ret;
++
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	fwnode = dev_fwnode(priv->dev);
++
++	/* get this CSI's port id */
++	ret = fwnode_property_read_u32(fwnode, "reg", &port);
++	if (ret < 0)
++		goto out_free;
++
++	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++		priv->dev->parent, notifier, sizeof(struct v4l2_async_subdev),
++		port, imx_csi_parse_endpoint);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_subdev_notifier_register(&priv->sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(&priv->sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	priv->sd.subdev_notifier = notifier;
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++out_free:
++	kfree(notifier);
++
++	return ret;
++}
++
+ static int imx_csi_probe(struct platform_device *pdev)
  {
--	struct v4l2_async_subdev *asd;
-+	struct v4l2_async_subdev *asd_y;
- 	struct v4l2_subdev *sd;
- 
--	list_for_each_entry(asd, &notifier->waiting, list) {
--		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
--			continue;
--
--		if (asd->match.fwnode == fwnode)
-+	list_for_each_entry(asd_y, &notifier->waiting, list)
-+		if (asd_equal(asd, asd_y))
- 			return true;
--	}
- 
- 	list_for_each_entry(sd, &notifier->done, async_list) {
- 		if (WARN_ON(!sd->asd))
- 			continue;
- 
--		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
--			continue;
--
--		if (sd->asd->match.fwnode == fwnode)
-+		if (asd_equal(asd, sd->asd))
- 			return true;
+ 	struct ipu_client_platformdata *pdata;
+@@ -1809,7 +1862,7 @@ static int imx_csi_probe(struct platform_device *pdev)
+ 			goto free;
  	}
  
-@@ -338,32 +356,28 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
- }
+-	ret = v4l2_async_register_subdev(&priv->sd);
++	ret = imx_csi_async_register(priv);
+ 	if (ret)
+ 		goto free;
  
- /*
-- * Find out whether an async sub-device was set up for an fwnode already or
-+ * Find out whether an async sub-device was set up already or
-  * whether it exists in a given notifier before @this_index.
-  */
--static bool v4l2_async_notifier_fwnode_has_async_subdev(
--	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-+static bool v4l2_async_notifier_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
- 	unsigned int this_index)
- {
- 	unsigned int j;
- 
- 	lockdep_assert_held(&list_lock);
- 
--	/* Check that an fwnode is not being added more than once. */
-+	/* Check that an asd is not being added more than once. */
- 	for (j = 0; j < this_index; j++) {
--		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
--		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
-+		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
- 
--		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
--		    asd->match.fwnode ==
--		    other_asd->match.fwnode)
-+		if (asd_equal(asd, asd_y))
- 			return true;
- 	}
- 
--	/* Check than an fwnode did not exist in other notifiers. */
-+	/* Check that an asd does not exist in other notifiers. */
- 	list_for_each_entry(notifier, &notifier_list, list)
--		if (__v4l2_async_notifier_fwnode_has_async_subdev(
--			    notifier, fwnode))
-+		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
- 			return true;
- 
- 	return false;
-@@ -392,12 +406,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 		case V4L2_ASYNC_MATCH_CUSTOM:
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
--			break;
- 		case V4L2_ASYNC_MATCH_FWNODE:
--			if (v4l2_async_notifier_fwnode_has_async_subdev(
--				    notifier, asd->match.fwnode, i)) {
-+			if (v4l2_async_notifier_has_async_subdev(
-+				    notifier, asd, i)) {
- 				dev_err(dev,
--					"fwnode has already been registered or in notifier's subdev list\n");
-+					"asd has already been registered or in notifier's subdev list\n");
- 				ret = -EEXIST;
- 				goto err_unlock;
- 			}
 -- 
 2.7.4
