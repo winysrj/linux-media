@@ -1,61 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:42004 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936196AbeF2Lnh (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:51230 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936123AbeF2Lng (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 07:43:37 -0400
+        Fri, 29 Jun 2018 07:43:36 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv5 07/12] media.h: reorder video en/decoder functions
-Date: Fri, 29 Jun 2018 13:43:26 +0200
-Message-Id: <20180629114331.7617-8-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 04/12] media-ioc-g-topology.rst: document new 'flags' field
+Date: Fri, 29 Jun 2018 13:43:23 +0200
+Message-Id: <20180629114331.7617-5-hverkuil@xs4all.nl>
 In-Reply-To: <20180629114331.7617-1-hverkuil@xs4all.nl>
 References: <20180629114331.7617-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Keep the function defines in numerical order: 0x6000 comes after
-0x2000, so move it back.
+Document the new struct media_v2_entity 'flags' field.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/uapi/linux/media.h | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ .../media/uapi/mediactl/media-ioc-g-topology.rst       | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 6f594fa238c2..76d9bd64c116 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -89,13 +89,6 @@ struct media_device_info {
- #define MEDIA_ENT_F_FLASH			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
- #define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+index bae2b4db89cc..e572dd0d806d 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+@@ -142,7 +142,15 @@ desired arrays with the media graph elements.
+        -  Entity main function, see :ref:`media-entity-functions` for details.
  
--/*
-- * Video decoder/encoder functions
-- */
--#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
--#define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
--#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
--
- /*
-  * Digital TV, analog TV, radio and/or software defined radio tuner functions.
-  *
-@@ -140,6 +133,13 @@ struct media_device_info {
- #define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
- #define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
- 
-+/*
-+ * Video decoder/encoder functions
-+ */
-+#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
-+#define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
-+#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
+     *  -  __u32
+-       -  ``reserved``\ [6]
++       -  ``flags``
++       -  Entity flags, see :ref:`media-entity-flag` for details.
++	  Only valid if ``MEDIA_V2_ENTITY_HAS_FLAGS(media_version)``
++	  returns true. The ``media_version`` is defined in struct
++	  :c:type:`media_device_info` and can be retrieved using
++	  :ref:`MEDIA_IOC_DEVICE_INFO`.
 +
- /* Entity flags */
- #define MEDIA_ENT_FL_DEFAULT			(1 << 0)
- #define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
++    *  -  __u32
++       -  ``reserved``\ [5]
+        -  Reserved for future extensions. Drivers and applications must set
+ 	  this array to zero.
+ 
 -- 
 2.17.0
