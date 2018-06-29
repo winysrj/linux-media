@@ -1,141 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:35012 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751466AbeF2Do1 (ORCPT
+Received: from mail-yb0-f174.google.com ([209.85.213.174]:39762 "EHLO
+        mail-yb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933168AbeF2GCh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 23:44:27 -0400
-Message-ID: <df2a7a8253c0a8d718726c51f4f30bc2@smtp-cloud8.xs4all.net>
-Date: Fri, 29 Jun 2018 05:44:24 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 29 Jun 2018 02:02:37 -0400
+Received: by mail-yb0-f174.google.com with SMTP id k127-v6so2932684ybk.6
+        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2018 23:02:37 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180620203838.GA13372@amd>
+In-Reply-To: <20180620203838.GA13372@amd>
+From: Tomasz Figa <tfiga@google.com>
+Date: Fri, 29 Jun 2018 15:02:25 +0900
+Message-ID: <CAAFQd5DpX2MbwQ484a1Jsk1Uok6eT=oduTYpqjE7AJcmpEs1UA@mail.gmail.com>
+Subject: Re: Software-only image processing for Intel "complex" cameras
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        nicolas@ndufresne.ca,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>, mario.limonciello@dell.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Pavel,
 
-Results of the daily build of media_tree:
+On Thu, Jun 21, 2018 at 5:38 AM Pavel Machek <pavel@ucw.cz> wrote:
+>
+> Hi!
+>
+> On Nokia N900, I have similar problems as Intel IPU3 hardware.
+>
+> Meeting notes say that pure software implementation is not fast
+> enough, but that it may be useful for debugging. It would be also
+> useful for me on N900, and probably useful for processing "raw" images
+> from digital cameras.
+>
+> There is sensor part, and memory-to-memory part, right? What is
+> the format of data from the sensor part? What operations would be
+> expensive on the CPU? If we did everthing on the CPU, what would be
+> maximum resolution where we could still manage it in real time?
 
-date:			Fri Jun 29 05:00:21 CEST 2018
-media-tree git hash:	3c4a737267e89aafa6308c6c456d2ebea3fcd085
-media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
-v4l-utils git hash:	248491682a2919a1bd421f87b33c14125b9fc1f5
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+We can still use the memory-to-memory part (IMGU), even without 3A. It
+would just do demosaicing at default parameters and give us a YUV
+(NV12) frame. We could use some software component to analyze the YUV
+output and adjust sensor parameters accordingly. Possibly the part we
+already have in libv4l2 could just work?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.101-i686: ERRORS
-linux-3.2.101-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.56-i686: ERRORS
-linux-3.16.56-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.102-i686: ERRORS
-linux-3.18.102-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.51-i686: ERRORS
-linux-4.1.51-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.109-i686: ERRORS
-linux-4.4.109-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.91-i686: ERRORS
-linux-4.9.91-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.42-i686: ERRORS
-linux-4.14.42-x86_64: ERRORS
-linux-4.15.14-i686: ERRORS
-linux-4.15.14-x86_64: ERRORS
-linux-4.16.8-i686: ERRORS
-linux-4.16.8-x86_64: ERRORS
-linux-4.17.2-i686: ERRORS
-linux-4.17.2-x86_64: ERRORS
-linux-4.18-rc1-i686: ERRORS
-linux-4.18-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
+The expensive operation would be analyzing the frame itself. I suppose
+you need to build some histogram representing brightness and white
+balance of the frame and then infer necessary sensor adjustments from
+that.
 
-Detailed results are available here:
+>
+> Would it be possible to get access to machine with IPU3, or would
+> there be someone willing to test libv4l2 patches?
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+I should be able to help with some basic testing, preferably limited
+to command line tools (but I might be able to create a test
+environment for X11 tools if really necessary).
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
