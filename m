@@ -1,99 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47419 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932092AbeF2K00 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55300 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932895AbeF2K0y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 06:26:26 -0400
-Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
+        Fri, 29 Jun 2018 06:26:54 -0400
+Subject: Re: [PATCHv4 02/10] media-ioc-g-topology.rst: document new 'index'
+ field
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
- <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
- <20180628083732.3679d730@coco.lan>
- <536a05bd-372e-a509-a6b6-0a3e916e48ae@xs4all.nl>
- <20180629070647.1ce7f73b@coco.lan>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180628131208.28009-1-hverkuil@xs4all.nl>
+ <20180628131208.28009-3-hverkuil@xs4all.nl>
+ <20180629065415.2f0d7ec4@coco.lan>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1b948535-8067-fef6-efd9-92aff3049ec5@xs4all.nl>
-Date: Fri, 29 Jun 2018 12:26:20 +0200
+Message-ID: <3a8508d8-29e4-3c0c-cf66-7a5e3d02dd83@xs4all.nl>
+Date: Fri, 29 Jun 2018 12:26:50 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180629070647.1ce7f73b@coco.lan>
+In-Reply-To: <20180629065415.2f0d7ec4@coco.lan>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/29/18 12:06, Mauro Carvalho Chehab wrote:
-> Em Thu, 28 Jun 2018 14:47:05 +0200
+On 06/29/18 11:54, Mauro Carvalho Chehab wrote:
+> Em Thu, 28 Jun 2018 15:12:00 +0200
 > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
->> On 06/28/18 13:37, Mauro Carvalho Chehab wrote:
->>> Em Thu, 17 May 2018 16:30:16 +0200
->>> Niklas Söderlund         <niklas.soderlund+renesas@ragnatech.se> escreveu:
->>>   
->>>> There is no way to control the standard of subdevices which are part of
->>>> a media device. The ioctls which exists all target video devices
->>>> explicitly and the idea is that the video device should talk to the
->>>> subdevice. For subdevices part of a media graph this is not possible and
->>>> the standard must be controlled on the subdev device directly.  
->>>
->>> Why isn't it possible? A media pipeline should have at least a video
->>> devnode where the standard ioctls will be issued.  
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
 >>
->> Not for an MC-centric device like the r-car or imx. It's why we have v4l-subdev
->> ioctls for the DV_TIMINGS API, but the corresponding SDTV standards API is
->> missing.
+>> Document the new struct media_v2_pad 'index' field.
 >>
->> And in a complex scenario there is nothing preventing you from having multiple
->> SDTV inputs, some of which need PAL-BG, some SECAM, some NTSC (less likely)
->> which are all composed together (think security cameras or something like that).
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>  .../media/uapi/mediactl/media-ioc-g-topology.rst      | 11 +++++++++--
+>>  1 file changed, 9 insertions(+), 2 deletions(-)
 >>
->> You definitely cannot set the standard from a video device. If nothing else,
->> it would be completely inconsistent with how HDMI inputs work.
->>
->> The whole point of MC centric devices is that you *don't* control subdevs
->> from video nodes.
+>> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+>> index a3f259f83b25..24ab34b22df2 100644
+>> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+>> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+>> @@ -176,7 +176,7 @@ desired arrays with the media graph elements.
+>>      *  -  struct media_v2_intf_devnode
+>>         -  ``devnode``
+>>         -  Used only for device node interfaces. See
+>> -	  :c:type:`media_v2_intf_devnode` for details..
+>> +	  :c:type:`media_v2_intf_devnode` for details.
+>>  
+>>  
+>>  .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
+>> @@ -218,7 +218,14 @@ desired arrays with the media graph elements.
+>>         -  Pad flags, see :ref:`media-pad-flag` for more details.
+>>  
+>>      *  -  __u32
+>> -       -  ``reserved``\ [5]
+>> +       -  ``index``
+>> +       -  0-based pad index. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
+>> +	  returns true. The ``media_version`` is defined in struct
+>> +	  :c:type:`media_device_info` and can be retrieved using
+>> +	  :ref:`MEDIA_IOC_DEVICE_INFO`.
 > 
-> Well, the way it is, this change is disruptive, as, as far as I remember,
-> MC-based devices with tvp5150 already sets STD via the /dev/video device.
+> "0-based pad index"...
+> 
+> what you mean by that? If what you want to say is that it starts
+> with zero, I would use a clearer text, like:
+> 
+> "Pad index, starting from zero."
 
-Really? Which driver? I am not aware of this and I think you are mistaken.
-Remember that we are talking about MC-centric drivers. em28xx is not MC-centric,
-even though it has a media device.
+This text is copied from media-ioc-enum-links.rst. I can rephrase it in both
+cases to this text. Although I don't think '0-based' is unclear, this even
+has its own wiki page: https://en.wikipedia.org/wiki/Zero-based_numbering
 
 > 
-> If we're willing to add it, we'll need to be clear when one approach
-> should be taken, and be clear that, if the SUBDEV version is used, the
-> driver should not support the non-subdev option.
+> It is probably worth saying that the pad index could vary on newer
+> versions of the Kernel.
 
-Of course, but in the case of em28xx the tvp5150 v4l-subdev node is never
-created, so this is not a problem.
+I'll have to think how to phrase this.
 
 Regards,
 
 	Hans
 
 > 
->>
->> Regards,
->>
->> 	Hans
->>
->>> So, I don't see why you would need to explicitly set the standard inside
->>> a sub-device.
->>>
->>> The way I see, inside a given pipeline, all subdevs should be using the
->>> same video standard (maybe except for a m2m device with would have some
->>> coded that would be doing format conversion).
->>>
->>> Am I missing something?
->>>
->>> Thanks,
->>> Mauro
->>>   
->>
+>> +
+>> +    *  -  __u32
+>> +       -  ``reserved``\ [4]
+>>         -  Reserved for future extensions. Drivers and applications must set
+>>  	  this array to zero.
+>>  
 > 
 > 
 > 
