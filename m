@@ -1,127 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42923 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932890AbeF2Kwl (ORCPT
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:59556 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932119AbeF2LHs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 06:52:41 -0400
-Date: Fri, 29 Jun 2018 12:52:38 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        nicolas@ndufresne.ca,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>, mario.limonciello@dell.com
-Subject: Re: Software-only image processing for Intel "complex" cameras
-Message-ID: <20180629105238.GA3738@amd>
-References: <20180620203838.GA13372@amd>
- <CAAFQd5DpX2MbwQ484a1Jsk1Uok6eT=oduTYpqjE7AJcmpEs1UA@mail.gmail.com>
- <20180629091838.GA31718@amd>
- <CAAFQd5BNXs3gaMpenD8C=+Jwxcrn3KQgKHKydpdeH1S5cWDFzQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5BNXs3gaMpenD8C=+Jwxcrn3KQgKHKydpdeH1S5cWDFzQ@mail.gmail.com>
+        Fri, 29 Jun 2018 07:07:48 -0400
+From: Mark Brown <broonie@kernel.org>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Daniel Mack <daniel@zonque.org>, Mark Brown <broonie@kernel.org>,
+        Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+        alsa-devel@alsa-project.org, netdev@vger.kernel.org,
+        linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org,
+        dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Applied "ASoC: pxa: remove the dmaengine compat need" to the asoc tree
+In-Reply-To: <20180524070703.11901-9-robert.jarzmik@free.fr>
+Message-Id: <E1fYrFT-0002gi-9G@debutante>
+Date: Fri, 29 Jun 2018 12:07:31 +0100
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The patch
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   ASoC: pxa: remove the dmaengine compat need
 
-Hi!
+has been applied to the asoc tree at
 
-> > > > On Nokia N900, I have similar problems as Intel IPU3 hardware.
-> > > >
-> > > > Meeting notes say that pure software implementation is not fast
-> > > > enough, but that it may be useful for debugging. It would be also
-> > > > useful for me on N900, and probably useful for processing "raw" ima=
-ges
-> > > > from digital cameras.
-> > > >
-> > > > There is sensor part, and memory-to-memory part, right? What is
-> > > > the format of data from the sensor part? What operations would be
-> > > > expensive on the CPU? If we did everthing on the CPU, what would be
-> > > > maximum resolution where we could still manage it in real time?
-> > >
-> > > We can still use the memory-to-memory part (IMGU), even without 3A. It
-> > > would just do demosaicing at default parameters and give us a YUV
-> > > (NV12) frame. We could use some software component to analyze the YUV
-> > > output and adjust sensor parameters accordingly. Possibly the part we
-> > > already have in libv4l2 could just work?
-> >
-> > As soon as you get YUV, yes, libv4l2 should be able to work with that.
-> >
-> > OTOH using the memory-to-memory part is going to be tricky.
->=20
-> Why? I don't see any reason why it would be tricky. You just feed the
-> right CAPTURE node with YUV buffers and the right OUTPUT node with raw
-> buffers and that should work.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git 
 
-I have seen insides of libv4l2. I believe unpacking by hand will be
-simpler / less tricky than passing buffers around.
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-Of course, long term both will be needed.
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-> > What
-> > format is the data before demosaicing? Something common like BGGR10?
->=20
-> It's documented in detail in V4L2 documentation:
-> > https://www.kernel.org/doc/html/latest/media/uapi/v4l/pixfmt-srggb10-ip=
-u3.html
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-Ah, thanks for pointer. That's not too bad.
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
-> > > The expensive operation would be analyzing the frame itself. I suppose
-> > > you need to build some histogram representing brightness and white
-> > > balance of the frame and then infer necessary sensor adjustments from
-> > > that.
-> >
-> > That does not really have to be expensive. You can sample ... say
-> > 10000 pixels from the image, and get good-enough data for 3A.
->=20
-> Yes, but you need to do it relatively frequently to react for scene
-> changes and also even 10000 pixels (depending on distribution
-> ) might mean fetching 10000*cacheline bytes of data.
+Thanks,
+Mark
 
-Yeah, there are tradeoffs...
+>From 8f54061d001ad2da24dba89fc48adbbf4c85222b Mon Sep 17 00:00:00 2001
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Thu, 28 Jun 2018 22:08:37 +0200
+Subject: [PATCH] ASoC: pxa: remove the dmaengine compat need
 
-> > > > Would it be possible to get access to machine with IPU3, or would
-> > > > there be someone willing to test libv4l2 patches?
-> > >
-> > > I should be able to help with some basic testing, preferably limited
-> > > to command line tools (but I might be able to create a test
-> > > environment for X11 tools if really necessary).
-> >
-> > Could you just compile libv4l2 with sdlcam demo on the target, and
-> > then ssh -X there from some sort of reasonable system?
->=20
-> Yes, that should work I guess. That would be a Chrome OS device (which
-> doesn't include X11), so that would mean compiling some X11 libs (and
-> probably some more dependencies) as well, but that's not impossible.
+As the pxa architecture switched towards the dmaengine slave map, the
+old compatibility mechanism to acquire the dma requestor line number and
+priority are not needed anymore.
 
-I believe you want to put Debian chroot in there... or get machine
-with IPU3 where you can install Debian directly.
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+This patch simplifies the dma resource acquisition, using the more
+generic function dma_request_slave_channel().
 
---YZ5djTAD1cGYuMQK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Daniel Mack <daniel@zonque.org>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/arm/pxa2xx-ac97.c     | 14 ++------------
+ sound/arm/pxa2xx-pcm-lib.c  |  6 +++---
+ sound/soc/pxa/pxa2xx-ac97.c | 32 +++++---------------------------
+ sound/soc/pxa/pxa2xx-i2s.c  |  6 ++----
+ 4 files changed, 12 insertions(+), 46 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAls2D3YACgkQMOfwapXb+vItlwCeNEWfizXYgSZTo8dC9DaxprPR
-qX0An2maoormMS3ncstuQp83bYRFZEFm
-=ENMC
------END PGP SIGNATURE-----
-
---YZ5djTAD1cGYuMQK--
+diff --git a/sound/arm/pxa2xx-ac97.c b/sound/arm/pxa2xx-ac97.c
+index 4bc244c40f80..236a63cdaf9f 100644
+--- a/sound/arm/pxa2xx-ac97.c
++++ b/sound/arm/pxa2xx-ac97.c
+@@ -63,28 +63,18 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
+ 	.reset	= pxa2xx_ac97_legacy_reset,
+ };
+ 
+-static struct pxad_param pxa2xx_ac97_pcm_out_req = {
+-	.prio = PXAD_PRIO_LOWEST,
+-	.drcmr = 12,
+-};
+-
+ static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_out = {
+ 	.addr		= __PREG(PCDR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
++	.chan_name	= "pcm_pcm_stereo_out",
+ 	.maxburst	= 32,
+-	.filter_data	= &pxa2xx_ac97_pcm_out_req,
+-};
+-
+-static struct pxad_param pxa2xx_ac97_pcm_in_req = {
+-	.prio = PXAD_PRIO_LOWEST,
+-	.drcmr = 11,
+ };
+ 
+ static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_in = {
+ 	.addr		= __PREG(PCDR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
++	.chan_name	= "pcm_pcm_stereo_in",
+ 	.maxburst	= 32,
+-	.filter_data	= &pxa2xx_ac97_pcm_in_req,
+ };
+ 
+ static struct snd_pcm *pxa2xx_ac97_pcm;
+diff --git a/sound/arm/pxa2xx-pcm-lib.c b/sound/arm/pxa2xx-pcm-lib.c
+index e8da3b8ee721..dcbe7ecc1835 100644
+--- a/sound/arm/pxa2xx-pcm-lib.c
++++ b/sound/arm/pxa2xx-pcm-lib.c
+@@ -125,9 +125,9 @@ int __pxa2xx_pcm_open(struct snd_pcm_substream *substream)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	return snd_dmaengine_pcm_open_request_chan(substream,
+-					pxad_filter_fn,
+-					dma_params->filter_data);
++	return snd_dmaengine_pcm_open(
++		substream, dma_request_slave_channel(rtd->cpu_dai->dev,
++						     dma_params->chan_name));
+ }
+ EXPORT_SYMBOL(__pxa2xx_pcm_open);
+ 
+diff --git a/sound/soc/pxa/pxa2xx-ac97.c b/sound/soc/pxa/pxa2xx-ac97.c
+index 5738a0abcd6a..c52b33802bf2 100644
+--- a/sound/soc/pxa/pxa2xx-ac97.c
++++ b/sound/soc/pxa/pxa2xx-ac97.c
+@@ -68,61 +68,39 @@ static struct snd_ac97_bus_ops pxa2xx_ac97_ops = {
+ 	.reset	= pxa2xx_ac97_cold_reset,
+ };
+ 
+-static struct pxad_param pxa2xx_ac97_pcm_stereo_in_req = {
+-	.prio = PXAD_PRIO_LOWEST,
+-	.drcmr = 11,
+-};
+-
+ static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_in = {
+ 	.addr		= __PREG(PCDR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
++	.chan_name	= "pcm_pcm_stereo_in",
+ 	.maxburst	= 32,
+-	.filter_data	= &pxa2xx_ac97_pcm_stereo_in_req,
+-};
+-
+-static struct pxad_param pxa2xx_ac97_pcm_stereo_out_req = {
+-	.prio = PXAD_PRIO_LOWEST,
+-	.drcmr = 12,
+ };
+ 
+ static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_stereo_out = {
+ 	.addr		= __PREG(PCDR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
++	.chan_name	= "pcm_pcm_stereo_out",
+ 	.maxburst	= 32,
+-	.filter_data	= &pxa2xx_ac97_pcm_stereo_out_req,
+ };
+ 
+-static struct pxad_param pxa2xx_ac97_pcm_aux_mono_out_req = {
+-	.prio = PXAD_PRIO_LOWEST,
+-	.drcmr = 10,
+-};
+ static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_out = {
+ 	.addr		= __PREG(MODR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
++	.chan_name	= "pcm_aux_mono_out",
+ 	.maxburst	= 16,
+-	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_out_req,
+ };
+ 
+-static struct pxad_param pxa2xx_ac97_pcm_aux_mono_in_req = {
+-	.prio = PXAD_PRIO_LOWEST,
+-	.drcmr = 9,
+-};
+ static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_aux_mono_in = {
+ 	.addr		= __PREG(MODR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
++	.chan_name	= "pcm_aux_mono_in",
+ 	.maxburst	= 16,
+-	.filter_data	= &pxa2xx_ac97_pcm_aux_mono_in_req,
+ };
+ 
+-static struct pxad_param pxa2xx_ac97_pcm_aux_mic_mono_req = {
+-	.prio = PXAD_PRIO_LOWEST,
+-	.drcmr = 8,
+-};
+ static struct snd_dmaengine_dai_dma_data pxa2xx_ac97_pcm_mic_mono_in = {
+ 	.addr		= __PREG(MCDR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_2_BYTES,
++	.chan_name	= "pcm_aux_mic_mono",
+ 	.maxburst	= 16,
+-	.filter_data	= &pxa2xx_ac97_pcm_aux_mic_mono_req,
+ };
+ 
+ static int pxa2xx_ac97_hifi_startup(struct snd_pcm_substream *substream,
+diff --git a/sound/soc/pxa/pxa2xx-i2s.c b/sound/soc/pxa/pxa2xx-i2s.c
+index 3fb60baf6eab..e7184de0de04 100644
+--- a/sound/soc/pxa/pxa2xx-i2s.c
++++ b/sound/soc/pxa/pxa2xx-i2s.c
+@@ -82,20 +82,18 @@ static struct pxa_i2s_port pxa_i2s;
+ static struct clk *clk_i2s;
+ static int clk_ena = 0;
+ 
+-static unsigned long pxa2xx_i2s_pcm_stereo_out_req = 3;
+ static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_out = {
+ 	.addr		= __PREG(SADR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
++	.chan_name	= "tx",
+ 	.maxburst	= 32,
+-	.filter_data	= &pxa2xx_i2s_pcm_stereo_out_req,
+ };
+ 
+-static unsigned long pxa2xx_i2s_pcm_stereo_in_req = 2;
+ static struct snd_dmaengine_dai_dma_data pxa2xx_i2s_pcm_stereo_in = {
+ 	.addr		= __PREG(SADR),
+ 	.addr_width	= DMA_SLAVE_BUSWIDTH_4_BYTES,
++	.chan_name	= "rx",
+ 	.maxburst	= 32,
+-	.filter_data	= &pxa2xx_i2s_pcm_stereo_in_req,
+ };
+ 
+ static int pxa2xx_i2s_startup(struct snd_pcm_substream *substream,
+-- 
+2.18.0.rc2
