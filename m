@@ -1,72 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39420 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966098AbeF1NMN (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36510 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935177AbeF2KMs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Jun 2018 09:12:13 -0400
+        Fri, 29 Jun 2018 06:12:48 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hugues FRUCHET <hugues.fruchet@st.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv4 01/10] media: add 'index' to struct media_v2_pad
-Date: Thu, 28 Jun 2018 15:11:59 +0200
-Message-Id: <20180628131208.28009-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180628131208.28009-1-hverkuil@xs4all.nl>
-References: <20180628131208.28009-1-hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-ctrls.c: fix broken auto cluster handling
+Message-ID: <c65ccb5a-75ff-bb99-779c-d932f84b4769@xs4all.nl>
+Date: Fri, 29 Jun 2018 12:12:43 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+When you switch from auto to manual mode for an auto-cluster (e.g.
+autogain+gain controls), then the current HW value has to be copied
+to the current control value. However, has_changed was never set to
+true, so new_to_cur didn't actually copy this value.
 
-The v2 pad structure never exposed the pad index, which made it impossible
-to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
-
-It is really trivial to just expose this information, so implement this.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Hugues FRUCHET <hugues.fruchet@st.com>
 ---
- drivers/media/media-device.c |  1 +
- include/uapi/linux/media.h   | 12 +++++++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index d29e45516eb7..d1087573da34 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3137,9 +3137,22 @@ static int try_or_set_cluster(struct v4l2_fh *fh, struct v4l2_ctrl *master,
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 47bb2254fbfd..047d38372a27 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -331,6 +331,7 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
- 		kpad.id = pad->graph_obj.id;
- 		kpad.entity_id = pad->entity->graph_obj.id;
- 		kpad.flags = pad->flags;
-+		kpad.index = pad->index;
- 
- 		if (copy_to_user(upad, &kpad, sizeof(kpad)))
- 			ret = -EFAULT;
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 86c7dcc9cba3..f6338bd57929 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -305,11 +305,21 @@ struct media_v2_interface {
- 	};
- } __attribute__ ((packed));
- 
-+/*
-+ * Appeared in 4.19.0.
-+ *
-+ * The media_version argument comes from the media_version field in
-+ * struct media_device_info.
-+ */
-+#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
-+	((media_version) >= ((4 << 16) | (19 << 8) | 0))
+ 	/* If OK, then make the new values permanent. */
+ 	update_flag = is_cur_manual(master) != is_new_manual(master);
+-	for (i = 0; i < master->ncontrols; i++)
 +
- struct media_v2_pad {
- 	__u32 id;
- 	__u32 entity_id;
- 	__u32 flags;
--	__u32 reserved[5];
-+	__u32 index;
-+	__u32 reserved[4];
- } __attribute__ ((packed));
- 
- struct media_v2_link {
--- 
-2.17.0
++	for (i = 0; i < master->ncontrols; i++) {
++		/*
++		 * If we switch from auto to manual mode, and this cluster
++		 * contains volatile controls, then all non-master controls
++		 * have to be marked as changed. The 'new' value contains
++		 * the volatile value (obtained by update_from_auto_cluster),
++		 * which now has to become the current value.
++		 */
++		if (i && update_flag && is_new_manual(master) &&
++		    master->has_volatiles && master->cluster[i])
++			master->cluster[i]->has_changed = true;
++
+ 		new_to_cur(fh, master->cluster[i], ch_flags |
+ 			((update_flag && i > 0) ? V4L2_EVENT_CTRL_CH_FLAGS : 0));
++	}
+ 	return 0;
+ }
