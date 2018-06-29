@@ -1,114 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:39920 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934686AbeF2SW5 (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:33347 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933750AbeF2Sup (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 14:22:57 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
+        Fri, 29 Jun 2018 14:50:45 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        emil.velikov@collabora.com,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v4 2/2] vim2m: add media device
-Date: Fri, 29 Jun 2018 15:22:44 -0300
-Message-Id: <20180629182244.4235-3-ezequiel@collabora.com>
-In-Reply-To: <20180629182244.4235-1-ezequiel@collabora.com>
-References: <20180629182244.4235-1-ezequiel@collabora.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v5 01/17] media: v4l2-fwnode: ignore endpoints that have no remote port parent
+Date: Fri, 29 Jun 2018 11:49:45 -0700
+Message-Id: <1530298220-5097-2-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Documentation/devicetree/bindings/media/video-interfaces.txt states that
+the 'remote-endpoint' property is optional.
 
-Request API requires a media node. Add one to the vim2m driver so we can
-use requests with it.
+So v4l2_async_notifier_fwnode_parse_endpoint() should not return error
+if the endpoint has no remote port parent. Just ignore the endpoint,
+skip adding an asd to the notifier and return 0.
+__v4l2_async_notifier_parse_fwnode_endpoints() will then continue
+parsing the remaining port endpoints of the device.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vim2m.c | 41 ++++++++++++++++++++++++++++++----
- 1 file changed, 37 insertions(+), 4 deletions(-)
+Changes since v4:
+- none
+Changes since v3:
+- none
+Changes since v2:
+- none
+Changes since v1:
+- don't pass an empty endpoint to the parse_endpoint callback,
+  v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
+  and returns success. The current users of
+  v4l2_async_notifier_parse_fwnode_endpoints() (omap3isp, rcar-vin,
+  intel-ipu3) no longer need modification.
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 065483e62db4..da13a8927f3f 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -140,6 +140,9 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
- struct vim2m_dev {
- 	struct v4l2_device	v4l2_dev;
- 	struct video_device	vfd;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device	mdev;
-+#endif
- 
- 	atomic_t		num_inst;
- 	struct mutex		dev_mutex;
-@@ -1016,7 +1019,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
--		goto unreg_dev;
-+		goto unreg_v4l2;
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 3f77aa3..3240c2a 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -363,7 +363,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
+ 		fwnode_graph_get_remote_port_parent(endpoint);
+ 	if (!asd->match.fwnode) {
+ 		dev_warn(dev, "bad remote port parent\n");
+-		ret = -EINVAL;
++		ret = -ENOTCONN;
+ 		goto out_err;
  	}
  
- 	video_set_drvdata(vfd, dev);
-@@ -1031,15 +1034,39 @@ static int vim2m_probe(struct platform_device *pdev)
- 	if (IS_ERR(dev->m2m_dev)) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(dev->m2m_dev);
--		goto err_m2m;
-+		goto unreg_dev;
-+	}
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->mdev.dev = &pdev->dev;
-+	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
-+	media_device_init(&dev->mdev);
-+	dev->v4l2_dev.mdev = &dev->mdev;
-+
-+	ret = v4l2_m2m_register_media_controller(dev->m2m_dev,
-+			vfd, MEDIA_ENT_F_PROC_VIDEO_SCALER);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem media controller\n");
-+		goto unreg_m2m;
- 	}
- 
-+	ret = media_device_register(&dev->mdev);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to register mem2mem media device\n");
-+		goto unreg_m2m_mc;
-+	}
-+#endif
- 	return 0;
- 
--err_m2m:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+unreg_m2m_mc:
-+	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-+unreg_m2m:
- 	v4l2_m2m_release(dev->m2m_dev);
--	video_unregister_device(&dev->vfd);
-+#endif
- unreg_dev:
-+	video_unregister_device(&dev->vfd);
-+unreg_v4l2:
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
- 	return ret;
-@@ -1050,6 +1077,12 @@ static int vim2m_remove(struct platform_device *pdev)
- 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
- 
- 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	media_device_unregister(&dev->mdev);
-+	v4l2_m2m_unregister_media_controller(dev->m2m_dev);
-+	media_device_cleanup(&dev->mdev);
-+#endif
- 	v4l2_m2m_release(dev->m2m_dev);
- 	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
 -- 
-2.18.0.rc2
+2.7.4
