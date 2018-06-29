@@ -1,97 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:37121 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933159AbeF2SxI (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:46092 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966101AbeF2SxR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 14:53:08 -0400
+        Fri, 29 Jun 2018 14:53:17 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v5 12/17] media: staging/imx: Rename root notifier
-Date: Fri, 29 Jun 2018 11:49:56 -0700
-Message-Id: <1530298220-5097-13-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v5 14/17] media: staging/imx: TODO: Remove one assumption about OF graph parsing
+Date: Fri, 29 Jun 2018 11:49:58 -0700
+Message-Id: <1530298220-5097-15-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the imx-media root async notifier from "subdev_notifier" to
-simply "notifier", so as not to confuse it with true subdev notifiers.
-No functional changes.
+The move to subdev notifiers fixes one assumption of OF graph parsing.
+If a subdevice has non-video related ports, the subdev driver knows not
+to follow those ports when adding remote devices to its subdev notifier.
 
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/media/imx/imx-media-dev.c | 14 +++++++-------
- drivers/staging/media/imx/imx-media.h     |  2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/staging/media/imx/TODO | 29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index ae87c81..982e455 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -29,7 +29,7 @@
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+index 9eb7326..aeeb154 100644
+--- a/drivers/staging/media/imx/TODO
++++ b/drivers/staging/media/imx/TODO
+@@ -17,29 +17,15 @@
+   decided whether this feature is useful enough to make it generally
+   available by exporting to v4l2-core.
  
- static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
- {
--	return container_of(n, struct imx_media_dev, subdev_notifier);
-+	return container_of(n, struct imx_media_dev, notifier);
- }
+-- The OF graph is walked at probe time to form the list of fwnodes to
+-  be passed to v4l2_async_notifier_register(), starting from the IPU
+-  CSI ports. And after all async subdevices have been bound,
+-  v4l2_fwnode_parse_link() is used to form the media links between
+-  the entities discovered by walking the OF graph.
++- After all async subdevices have been bound, v4l2_fwnode_parse_link()
++  is used to form the media links between the devices discovered in
++  the OF graph.
  
- /*
-@@ -113,7 +113,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+   While this approach allows support for arbitrary OF graphs, there
+   are some assumptions for this to work:
  
- 	list_add_tail(&imxasd->list, &imxmd->asd_list);
+-  1. All port parent nodes reachable in the graph from the IPU CSI
+-     ports bind to V4L2 async subdevice drivers.
+-
+-     If a device has mixed-use ports such as video plus audio, the
+-     endpoints from the audio ports are followed to devices that must
+-     bind to V4L2 subdevice drivers, and not for example, to an ALSA
+-     driver or a non-V4L2 media driver. If the device were bound to
+-     such a driver, imx-media would never get an async completion
+-     notification because the device fwnode was added to the async
+-     list, but the driver does not interface with the V4L2 async
+-     framework.
+-
+-  2. Every port reachable in the graph is treated as a media pad,
+-     owned by the V4L2 subdevice that is bound to the port's parent.
++  1. If a port owned by a device in the graph has endpoint nodes, the
++     port is treated as a media pad.
  
--	imxmd->subdev_notifier.num_subdevs++;
-+	imxmd->notifier.num_subdevs++;
+      This presents problems for devices that don't make this port = pad
+      assumption. Examples are SMIAPP compatible cameras which define only
+@@ -54,9 +40,8 @@
+      possible long-term solution is to implement a subdev API that
+      maps a port id to a media pad index.
  
- 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
- 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
-@@ -532,7 +532,7 @@ static int imx_media_probe(struct platform_device *pdev)
- 		goto unreg_dev;
- 	}
+-  3. Every endpoint of a port reachable in the graph is treated as
+-     a media link, between V4L2 subdevices that are bound to the
+-     port parents of the local and remote endpoints.
++  2. Every endpoint of a port owned by a device in the graph is treated
++     as a media link.
  
--	num_subdevs = imxmd->subdev_notifier.num_subdevs;
-+	num_subdevs = imxmd->notifier.num_subdevs;
- 
- 	/* no subdevs? just bail */
- 	if (num_subdevs == 0) {
-@@ -552,10 +552,10 @@ static int imx_media_probe(struct platform_device *pdev)
- 		subdevs[i++] = &imxasd->asd;
- 
- 	/* prepare the async subdev notifier and register it */
--	imxmd->subdev_notifier.subdevs = subdevs;
--	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
-+	imxmd->notifier.subdevs = subdevs;
-+	imxmd->notifier.ops = &imx_media_subdev_ops;
- 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
--					   &imxmd->subdev_notifier);
-+					   &imxmd->notifier);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "v4l2_async_notifier_register failed with %d\n", ret);
-@@ -580,7 +580,7 @@ static int imx_media_remove(struct platform_device *pdev)
- 
- 	v4l2_info(&imxmd->v4l2_dev, "Removing imx-media\n");
- 
--	v4l2_async_notifier_unregister(&imxmd->subdev_notifier);
-+	v4l2_async_notifier_unregister(&imxmd->notifier);
- 	imx_media_remove_internal_subdevs(imxmd);
- 	v4l2_device_unregister(&imxmd->v4l2_dev);
- 	media_device_unregister(&imxmd->md);
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index e945e0e..7edb18a 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -148,7 +148,7 @@ struct imx_media_dev {
- 
- 	/* for async subdev registration */
- 	struct list_head asd_list;
--	struct v4l2_async_notifier subdev_notifier;
-+	struct v4l2_async_notifier notifier;
- };
- 
- enum codespace_sel {
+      Which means a port must not contain mixed-use endpoints, they
+      must all refer to media links between V4L2 subdevices.
 -- 
 2.7.4
