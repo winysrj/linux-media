@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:42805 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754566AbeF2Rkv (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:39792 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753626AbeF2Rtm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 13:40:51 -0400
-Received: by mail-pg0-f65.google.com with SMTP id c10-v6so4290619pgu.9
-        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2018 10:40:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20180629114331.7617-6-hverkuil@xs4all.nl>
-References: <20180629114331.7617-1-hverkuil@xs4all.nl> <20180629114331.7617-6-hverkuil@xs4all.nl>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Fri, 29 Jun 2018 14:40:49 -0300
-Message-ID: <CAAEAJfAmHZD2sjw9NF2Fyv6j+Z-usKJL4YNG5pgfZuyBSqLZkQ@mail.gmail.com>
-Subject: Re: [PATCHv5 05/12] media: rename MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Hans Verkuil <hansverk@cisco.com>
+        Fri, 29 Jun 2018 13:49:42 -0400
+Message-ID: <525de8a0124b2c8630cb8badf21a4746dfd33883.camel@collabora.com>
+Subject: Re: [PATCH 1/2] v4l-helpers: Don't close the fd in {}_s_fd
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Date: Fri, 29 Jun 2018 14:49:35 -0300
+In-Reply-To: <6b727801-5055-928d-4005-39caaf09200f@xs4all.nl>
+References: <20180628192557.22966-1-ezequiel@collabora.com>
+         <6b727801-5055-928d-4005-39caaf09200f@xs4all.nl>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29 June 2018 at 08:43, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
->
-> The use of 'DTV' is very confusing since it normally refers to Digital
-> TV e.g. DVB etc.
->
-> Instead use 'DV' (Digital Video), which nicely corresponds to the
-> DV Timings API used to configure such receivers and transmitters.
->
-> We keep an alias to avoid breaking userspace applications.
->
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> ---
->  Documentation/media/uapi/mediactl/media-types.rst | 2 +-
->  drivers/media/i2c/adv7604.c                       | 1 +
->  drivers/media/i2c/adv7842.c                       | 1 +
+On Fri, 2018-06-29 at 09:03 +0200, Hans Verkuil wrote:
+> On 06/28/2018 09:25 PM, Ezequiel Garcia wrote:
+> > When creating a second node via copy or assignment:
+> > 
+> >     node2 = node
+> > 
+> > The node being assigned to, i.e. node2, obtains the fd.
+> > This causes a later call to node2.media_open to close()
+> > the fd, thus unintendenly closing the original node fd,
+> > via the call path (e.g. for media devices):
+> > 
+> >   node2.media_open
+> >      v4l_media_open
+> >         v4l_media_s_fd
+> > 
+> > Similar call paths apply for other device types.
+> > Fix this by removing the close in xxx_s_fd.
+> 
+> I fixed this in a different way by overloading the assignment
+> operator
+> and calling dup(fd). That solves this as well.
+> 
 
-It would be nice to mention in the commit log
-that this patch also sets the function for these drivers.
+Yes, but I am now seeing another EBADF error in the compliance run.
 
-Regards,
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+close(3)                                = 0
+openat(AT_FDCWD, "/dev/video2", O_RDWR) = 3
+close(3)                                = 0
+ioctl(3, VIDIOC_QUERYCAP, 0x7ffe54788794) = -1 EBADF
+close(3)                                = -1 EBADF
+
+Let me see if I can dig it.
