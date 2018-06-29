@@ -1,171 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33643 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933159AbeF2SxB (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:37121 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933159AbeF2SxI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 14:53:01 -0400
+        Fri, 29 Jun 2018 14:53:08 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v5 10/17] media: staging/imx: of: Remove recursive graph walk
-Date: Fri, 29 Jun 2018 11:49:54 -0700
-Message-Id: <1530298220-5097-11-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v5 12/17] media: staging/imx: Rename root notifier
+Date: Fri, 29 Jun 2018 11:49:56 -0700
+Message-Id: <1530298220-5097-13-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After moving to subdev notifiers, it's no longer necessary to recursively
-walk the OF graph, because the subdev notifiers will discover and add
-devices from the graph for us.
-
-So the recursive of_parse_subdev() function is gone, replaced with
-of_add_csi() which adds only the CSI port fwnodes to the imx-media
-root notifier.
+Rename the imx-media root async notifier from "subdev_notifier" to
+simply "notifier", so as not to confuse it with true subdev notifiers.
+No functional changes.
 
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/media/imx/imx-media-of.c | 106 +++----------------------------
- 1 file changed, 8 insertions(+), 98 deletions(-)
+ drivers/staging/media/imx/imx-media-dev.c | 14 +++++++-------
+ drivers/staging/media/imx/imx-media.h     |  2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-index acde372..1c91754 100644
---- a/drivers/staging/media/imx/imx-media-of.c
-+++ b/drivers/staging/media/imx/imx-media-of.c
-@@ -20,74 +20,19 @@
- #include <video/imx-ipu-v3.h>
- #include "imx-media.h"
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index ae87c81..982e455 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -29,7 +29,7 @@
  
--static int of_get_port_count(const struct device_node *np)
-+static int of_add_csi(struct imx_media_dev *imxmd, struct device_node *csi_np)
+ static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
  {
--	struct device_node *ports, *child;
--	int num = 0;
--
--	/* check if this node has a ports subnode */
--	ports = of_get_child_by_name(np, "ports");
--	if (ports)
--		np = ports;
--
--	for_each_child_of_node(np, child)
--		if (of_node_cmp(child->name, "port") == 0)
--			num++;
--
--	of_node_put(ports);
--	return num;
--}
--
--/*
-- * find the remote device node given local endpoint node
-- */
--static bool of_get_remote(struct device_node *epnode,
--			  struct device_node **remote_node)
--{
--	struct device_node *rp, *rpp;
--	struct device_node *remote;
--	bool is_csi_port;
--
--	rp = of_graph_get_remote_port(epnode);
--	rpp = of_graph_get_remote_port_parent(epnode);
--
--	if (of_device_is_compatible(rpp, "fsl,imx6q-ipu")) {
--		/* the remote is one of the CSI ports */
--		remote = rp;
--		of_node_put(rpp);
--		is_csi_port = true;
--	} else {
--		remote = rpp;
--		of_node_put(rp);
--		is_csi_port = false;
--	}
--
--	if (!of_device_is_available(remote)) {
--		of_node_put(remote);
--		*remote_node = NULL;
--	} else {
--		*remote_node = remote;
--	}
--
--	return is_csi_port;
--}
--
--static int
--of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
--		bool is_csi_port)
--{
--	int i, num_ports, ret;
-+	int ret;
- 
--	if (!of_device_is_available(sd_np)) {
-+	if (!of_device_is_available(csi_np)) {
- 		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
--			sd_np->name);
-+			csi_np->name);
- 		/* unavailable is not an error */
- 		return 0;
- 	}
- 
--	/* register this subdev with async notifier */
--	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(sd_np),
--					 NULL);
-+	/* add CSI fwnode to async notifier */
-+	ret = imx_media_add_async_subdev(imxmd, of_fwnode_handle(csi_np), NULL);
- 	if (ret) {
- 		if (ret == -EEXIST) {
- 			/* already added, everything is fine */
-@@ -98,42 +43,7 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
- 		return ret;
- 	}
- 
--	/*
--	 * the ipu-csi has one sink port. The source pads are not
--	 * represented in the device tree by port nodes, but are
--	 * described by the internal pads and links later.
--	 */
--	num_ports = is_csi_port ? 1 : of_get_port_count(sd_np);
--
--	for (i = 0; i < num_ports; i++) {
--		struct device_node *epnode = NULL, *port, *remote_np;
--
--		port = is_csi_port ? sd_np : of_graph_get_port_by_id(sd_np, i);
--		if (!port)
--			continue;
--
--		for_each_child_of_node(port, epnode) {
--			bool remote_is_csi;
--
--			remote_is_csi = of_get_remote(epnode, &remote_np);
--			if (!remote_np)
--				continue;
--
--			ret = of_parse_subdev(imxmd, remote_np, remote_is_csi);
--			of_node_put(remote_np);
--			if (ret)
--				break;
--		}
--
--		if (port != sd_np)
--			of_node_put(port);
--		if (ret) {
--			of_node_put(epnode);
--			break;
--		}
--	}
--
--	return ret;
-+	return 0;
+-	return container_of(n, struct imx_media_dev, subdev_notifier);
++	return container_of(n, struct imx_media_dev, notifier);
  }
  
- int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
-@@ -147,7 +57,7 @@ int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
- 		if (!csi_np)
- 			break;
+ /*
+@@ -113,7 +113,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
  
--		ret = of_parse_subdev(imxmd, csi_np, true);
-+		ret = of_add_csi(imxmd, csi_np);
- 		of_node_put(csi_np);
- 		if (ret)
- 			return ret;
+ 	list_add_tail(&imxasd->list, &imxmd->asd_list);
+ 
+-	imxmd->subdev_notifier.num_subdevs++;
++	imxmd->notifier.num_subdevs++;
+ 
+ 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+ 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+@@ -532,7 +532,7 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		goto unreg_dev;
+ 	}
+ 
+-	num_subdevs = imxmd->subdev_notifier.num_subdevs;
++	num_subdevs = imxmd->notifier.num_subdevs;
+ 
+ 	/* no subdevs? just bail */
+ 	if (num_subdevs == 0) {
+@@ -552,10 +552,10 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		subdevs[i++] = &imxasd->asd;
+ 
+ 	/* prepare the async subdev notifier and register it */
+-	imxmd->subdev_notifier.subdevs = subdevs;
+-	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
++	imxmd->notifier.subdevs = subdevs;
++	imxmd->notifier.ops = &imx_media_subdev_ops;
+ 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
+-					   &imxmd->subdev_notifier);
++					   &imxmd->notifier);
+ 	if (ret) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+ 			 "v4l2_async_notifier_register failed with %d\n", ret);
+@@ -580,7 +580,7 @@ static int imx_media_remove(struct platform_device *pdev)
+ 
+ 	v4l2_info(&imxmd->v4l2_dev, "Removing imx-media\n");
+ 
+-	v4l2_async_notifier_unregister(&imxmd->subdev_notifier);
++	v4l2_async_notifier_unregister(&imxmd->notifier);
+ 	imx_media_remove_internal_subdevs(imxmd);
+ 	v4l2_device_unregister(&imxmd->v4l2_dev);
+ 	media_device_unregister(&imxmd->md);
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index e945e0e..7edb18a 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -148,7 +148,7 @@ struct imx_media_dev {
+ 
+ 	/* for async subdev registration */
+ 	struct list_head asd_list;
+-	struct v4l2_async_notifier subdev_notifier;
++	struct v4l2_async_notifier notifier;
+ };
+ 
+ enum codespace_sel {
 -- 
 2.7.4
