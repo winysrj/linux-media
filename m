@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:58803 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934459AbeF2Qm7 (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:42805 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754566AbeF2Rkv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 12:42:59 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, Jacopo Mondi <jacopo@jmondi.org>
-Subject: [PATCH 2/2] media: i2c: ov5640: Remove start/stop sequence
-Date: Fri, 29 Jun 2018 18:42:40 +0200
-Message-Id: <1530290560-25806-3-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1530290560-25806-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1530290560-25806-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 29 Jun 2018 13:40:51 -0400
+Received: by mail-pg0-f65.google.com with SMTP id c10-v6so4290619pgu.9
+        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2018 10:40:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180629114331.7617-6-hverkuil@xs4all.nl>
+References: <20180629114331.7617-1-hverkuil@xs4all.nl> <20180629114331.7617-6-hverkuil@xs4all.nl>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Fri, 29 Jun 2018 14:40:49 -0300
+Message-ID: <CAAEAJfAmHZD2sjw9NF2Fyv6j+Z-usKJL4YNG5pgfZuyBSqLZkQ@mail.gmail.com>
+Subject: Re: [PATCHv5 05/12] media: rename MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hansverk@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacopo Mondi <jacopo@jmondi.org>
+On 29 June 2018 at 08:43, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hansverk@cisco.com>
+>
+> The use of 'DTV' is very confusing since it normally refers to Digital
+> TV e.g. DVB etc.
+>
+> Instead use 'DV' (Digital Video), which nicely corresponds to the
+> DV Timings API used to configure such receivers and transmitters.
+>
+> We keep an alias to avoid breaking userspace applications.
+>
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> ---
+>  Documentation/media/uapi/mediactl/media-types.rst | 2 +-
+>  drivers/media/i2c/adv7604.c                       | 1 +
+>  drivers/media/i2c/adv7842.c                       | 1 +
 
-Now that data and clock lanes start in LP11 no need to issue a start/stop
-sequence at power on time to 'coax the lanes in LP11 state'.
+It would be nice to mention in the commit log
+that this patch also sets the function for these drivers.
 
-Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
----
- drivers/media/i2c/ov5640.c | 14 --------------
- 1 file changed, 14 deletions(-)
-
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 465acce..96d0203 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1796,20 +1796,6 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
- 		if (ret)
- 			goto power_off;
- 
--		if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
--			/*
--			 * start streaming briefly followed by stream off in
--			 * order to coax the clock lane into LP-11 state.
--			 */
--			ret = ov5640_set_stream_mipi(sensor, true);
--			if (ret)
--				goto power_off;
--			usleep_range(1000, 2000);
--			ret = ov5640_set_stream_mipi(sensor, false);
--			if (ret)
--				goto power_off;
--		}
--
- 		return 0;
- 	}
- 
--- 
-2.7.4
+Regards,
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
