@@ -1,146 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43219 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752385AbeFFKBy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2018 06:01:54 -0400
-Date: Wed, 6 Jun 2018 12:01:50 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: mchehab+samsung@kernel.org, mchehab@s-opensource.com,
-        Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-        sre@kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180606100150.GA32299@amd>
-References: <c0fa64ac-4185-0e15-c938-0414e9f07c42@xs4all.nl>
- <20180319120043.GA20451@amd>
- <ac65858f-7bf3-4faf-6ebd-c898b6107791@xs4all.nl>
- <20180319095544.7e235a3e@vento.lan>
- <20180515200117.GA21673@amd>
- <20180515190314.2909e3be@vento.lan>
- <20180602210145.GB20439@amd>
- <CAAFQd5ACz1DNW07-vk6rCffC0aNcUG_9+YVNK9HmOTg0+-3yzg@mail.gmail.com>
- <20180606084612.GB18743@amd>
- <CAAFQd5CGKd=jP+h5b7HwSgd5HBoQFUX8Vd6pKLzzJFtCSukBLg@mail.gmail.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:55596 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932785AbeF2Mc7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Jun 2018 08:32:59 -0400
+Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
+ <20180628083732.3679d730@coco.lan>
+ <536a05bd-372e-a509-a6b6-0a3e916e48ae@xs4all.nl>
+ <20180629070647.1ce7f73b@coco.lan>
+ <1b948535-8067-fef6-efd9-92aff3049ec5@xs4all.nl>
+ <20180629092856.73406202@coco.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6a37f16c-eb12-b60d-667f-169364d74dbe@xs4all.nl>
+Date: Fri, 29 Jun 2018 14:32:54 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5CGKd=jP+h5b7HwSgd5HBoQFUX8Vd6pKLzzJFtCSukBLg@mail.gmail.com>
+In-Reply-To: <20180629092856.73406202@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 06/29/18 14:28, Mauro Carvalho Chehab wrote:
+> Em Fri, 29 Jun 2018 12:26:20 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 06/29/18 12:06, Mauro Carvalho Chehab wrote:
+>>> Em Thu, 28 Jun 2018 14:47:05 +0200
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>   
+>>>> On 06/28/18 13:37, Mauro Carvalho Chehab wrote:  
+>>>>> Em Thu, 17 May 2018 16:30:16 +0200
+>>>>> Niklas Söderlund         <niklas.soderlund+renesas@ragnatech.se> escreveu:
+>>>>>     
+>>>>>> There is no way to control the standard of subdevices which are part of
+>>>>>> a media device. The ioctls which exists all target video devices
+>>>>>> explicitly and the idea is that the video device should talk to the
+>>>>>> subdevice. For subdevices part of a media graph this is not possible and
+>>>>>> the standard must be controlled on the subdev device directly.    
+>>>>>
+>>>>> Why isn't it possible? A media pipeline should have at least a video
+>>>>> devnode where the standard ioctls will be issued.    
+>>>>
+>>>> Not for an MC-centric device like the r-car or imx. It's why we have v4l-subdev
+>>>> ioctls for the DV_TIMINGS API, but the corresponding SDTV standards API is
+>>>> missing.
+>>>>
+>>>> And in a complex scenario there is nothing preventing you from having multiple
+>>>> SDTV inputs, some of which need PAL-BG, some SECAM, some NTSC (less likely)
+>>>> which are all composed together (think security cameras or something like that).
+>>>>
+>>>> You definitely cannot set the standard from a video device. If nothing else,
+>>>> it would be completely inconsistent with how HDMI inputs work.
+>>>>
+>>>> The whole point of MC centric devices is that you *don't* control subdevs
+>>>> from video nodes.  
+>>>
+>>> Well, the way it is, this change is disruptive, as, as far as I remember,
+>>> MC-based devices with tvp5150 already sets STD via the /dev/video device.  
+>>
+>> Really? Which driver? I am not aware of this and I think you are mistaken.
+>> Remember that we are talking about MC-centric drivers. em28xx is not MC-centric,
+>> even though it has a media device.
+> 
+> OMAP3. There are some boards out there with tvp5150.
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There is no standards support in omap3isp. It only supports sensors, not
+analog or digital video receivers. So if they support SDTV, then they hacked
+the omap3isp driver.
 
-Hi!
+Regards,
 
-> > > Who would be calling this function?
-> > >
-> > > The scenario that I could think of is:
-> > > - legacy app would call open(/dev/video?), which would be handled by
-> > > libv4l open hook (v4l2_open()?),
-> >
-> > I don't think that kind of legacy apps is in use any more. I'd prefer
-> > not to deal with them.
->=20
-> In another thread ("[ANN v2] Complex Camera Workshop - Tokyo - Jun,
-> 19"), Mauro has mentioned a number of those:
->=20
-> "open source ones (Camorama, Cheese, Xawtv, Firefox, Chromium, ...) and c=
-losed
-> source ones (Skype, Chrome, ...)"
+	Hans
 
-Yep, ok. Still would prefer not to deal with them.
-
-(Opening additional fds behind application's back is quite nasty,
-those apps should really switch to v4l2_ variants).
-
-> > > - v4l2_open() would check if given /dev/video? figures in its list of
-> > > complex pipelines, for example by calling v4l2_open_complex() and
-> > > seeing if it succeeds,
-> >
-> > I'd rather not have v4l2_open_complex() called on devices. We could
-> > test if argument is regular file and then call it... But again, that's
-> > next step.
-> >
-> > > - if it succeeds, the resulting fd would represent the complex
-> > > pipeline, otherwise it would just open the requested node directly.
->=20
-> What's the answer to my original question of who would be calling
-> v4l2_open_complex(), then?
-
-Application ready to deal with additional fds being
-opened. contrib/test/sdlcam will be the first one.
-
-We may do some magic to do v4l2_open_complex() in v4l2_open(), but I
-believe that should be separate step.
-
-> > >  - handling metadata CAPTURE and OUTPUT buffers controlling the 3A
-> > > feedback loop - this might be optional if all we need is just ability
-> > > to capture some frames, but required for getting good quality,
-> > >  - actually mapping legacy controls into the above metadata,
-> >
-> > I'm not sure what 3A is. If you mean hardware histograms and friends,
-> > yes, it would be nice to support that, but, again, statistics can be
-> > computed in software.
->=20
-> Auto-exposure, auto-white-balance, auto-focus. In complex camera
-> subsystems these need to be done in software. On most hardware
-> platforms, ISP provides necessary input data (statistics) and software
-> calculates required processing parameters.
-
-Ok, so... statistics support would be nice, but that is really
-separate problem.
-
-v4l2 already contains auto-exposure and auto-white-balance. I have
-patches for auto-focus. But hardware statistics are not used.
-
-> > Yes, we'll need something more advanced.
-> >
-> > But.. we also need something to run the devices today, so that kernel
-> > drivers can be tested and do not bitrot. That's why I'm doing this
-> > work.
->=20
-> I guess the most important bit I missed then is what is the intended
-> use case for this. It seems to be related to my earlier, unanswered
-> question about who would be calliing v4l2_open_complex(), though.
->=20
-> What userspace applications would be used for this testing?
-
-Main use case is kernel testing.
-
-Secondary use case is taking .jpg photos using sdlcam.
-
-Test apps such as qv4l2 would be nice to have, and maybe I'll
-experiment with capturing video somehow one day. I'm pretty sure it
-will not be easy.
-
-Oh and I guess a link to how well it works? See
-https://www.youtube.com/watch?v=3DfH6zuK2OOVU .
-
-Best regards,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---cWoXeonUoKmBZSoM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlsXsQ4ACgkQMOfwapXb+vL2OACffTo29PgatISAO9x/ENv6c4Xj
-yH8AoKUVtdLNRwPALlmdGmbPsBVP4J70
-=JPd2
------END PGP SIGNATURE-----
-
---cWoXeonUoKmBZSoM--
+> 
+>>
+>>>
+>>> If we're willing to add it, we'll need to be clear when one approach
+>>> should be taken, and be clear that, if the SUBDEV version is used, the
+>>> driver should not support the non-subdev option.  
+>>
+>> Of course, but in the case of em28xx the tvp5150 v4l-subdev node is never
+>> created, so this is not a problem.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>   
+>>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>>  
+>>>>> So, I don't see why you would need to explicitly set the standard inside
+>>>>> a sub-device.
+>>>>>
+>>>>> The way I see, inside a given pipeline, all subdevs should be using the
+>>>>> same video standard (maybe except for a m2m device with would have some
+>>>>> coded that would be doing format conversion).
+>>>>>
+>>>>> Am I missing something?
+>>>>>
+>>>>> Thanks,
+>>>>> Mauro
+>>>>>     
+>>>>  
+>>>
+>>>
+>>>
+>>> Thanks,
+>>> Mauro
+>>>   
+>>
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
