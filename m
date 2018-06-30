@@ -1,152 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:36940 "EHLO mail.ispras.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934086AbeF2Vus (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Jun 2018 17:50:48 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        ldv-project@linuxtesting.org, sil2review@lists.osadl.org
-Subject: [PATCH] media: fsl-viu: fix error handling in viu_of_probe()
-Date: Sat, 30 Jun 2018 00:49:22 +0300
-Message-Id: <1530308962-15027-1-git-send-email-khoroshilov@ispras.ru>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:35098 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755491AbeF3Dll (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Jun 2018 23:41:41 -0400
+Message-ID: <885ca0951a4f90d3d78358f6dcb3ec24@smtp-cloud8.xs4all.net>
+Date: Sat, 30 Jun 2018 05:41:38 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-viu_of_probe() ignores fails in i2c_get_adapter(),
-tries to unlock uninitialized mutex on error path.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The patch streamlining the error handling in viu_of_probe().
+Results of the daily build of media_tree:
 
-Found by Linux Driver Verification project (linuxtesting.org).
+date:			Sat Jun 30 05:00:16 CEST 2018
+media-tree git hash:	3c4a737267e89aafa6308c6c456d2ebea3fcd085
+media_build git hash:	26d102795c91f8593a4f74f96b955f9a8b81dbc3
+v4l-utils git hash:	0898d1d4dbcfe2fc94f80de4f9de2b2994ccea99
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/platform/fsl-viu.c | 38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.101-i686: ERRORS
+linux-3.0.101-x86_64: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.101-i686: ERRORS
+linux-3.2.101-x86_64: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.113-i686: ERRORS
+linux-3.4.113-x86_64: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.10-i686: ERRORS
+linux-3.7.10-x86_64: ERRORS
+linux-3.8.13-i686: ERRORS
+linux-3.8.13-x86_64: ERRORS
+linux-3.9.11-i686: ERRORS
+linux-3.9.11-x86_64: ERRORS
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.56-i686: ERRORS
+linux-3.16.56-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.102-i686: ERRORS
+linux-3.18.102-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.51-i686: ERRORS
+linux-4.1.51-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.109-i686: ERRORS
+linux-4.4.109-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.91-i686: ERRORS
+linux-4.9.91-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.42-i686: ERRORS
+linux-4.14.42-x86_64: ERRORS
+linux-4.15.14-i686: ERRORS
+linux-4.15.14-x86_64: ERRORS
+linux-4.16.8-i686: ERRORS
+linux-4.16.8-x86_64: ERRORS
+linux-4.17.2-i686: ERRORS
+linux-4.17.2-x86_64: ERRORS
+linux-4.18-rc1-i686: ERRORS
+linux-4.18-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index e41510ce69a4..0273302aa741 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -1414,7 +1414,7 @@ static int viu_of_probe(struct platform_device *op)
- 				     sizeof(struct viu_reg), DRV_NAME)) {
- 		dev_err(&op->dev, "Error while requesting mem region\n");
- 		ret = -EBUSY;
--		goto err;
-+		goto err_irq;
- 	}
- 
- 	/* remap registers */
-@@ -1422,7 +1422,7 @@ static int viu_of_probe(struct platform_device *op)
- 	if (!viu_regs) {
- 		dev_err(&op->dev, "Can't map register set\n");
- 		ret = -ENOMEM;
--		goto err;
-+		goto err_irq;
- 	}
- 
- 	/* Prepare our private structure */
-@@ -1430,7 +1430,7 @@ static int viu_of_probe(struct platform_device *op)
- 	if (!viu_dev) {
- 		dev_err(&op->dev, "Can't allocate private structure\n");
- 		ret = -ENOMEM;
--		goto err;
-+		goto err_irq;
- 	}
- 
- 	viu_dev->vr = viu_regs;
-@@ -1446,16 +1446,21 @@ static int viu_of_probe(struct platform_device *op)
- 	ret = v4l2_device_register(viu_dev->dev, &viu_dev->v4l2_dev);
- 	if (ret < 0) {
- 		dev_err(&op->dev, "v4l2_device_register() failed: %d\n", ret);
--		goto err;
-+		goto err_irq;
- 	}
- 
- 	ad = i2c_get_adapter(0);
-+	if (!ad) {
-+		ret = -EFAULT;
-+		dev_err(&op->dev, "couldn't get i2c adapter\n");
-+		goto err_v4l2;
-+	}
- 
- 	v4l2_ctrl_handler_init(&viu_dev->hdl, 5);
- 	if (viu_dev->hdl.error) {
- 		ret = viu_dev->hdl.error;
- 		dev_err(&op->dev, "couldn't register control\n");
--		goto err_vdev;
-+		goto err_i2c;
- 	}
- 	/* This control handler will inherit the control(s) from the
- 	   sub-device(s). */
-@@ -1471,7 +1476,7 @@ static int viu_of_probe(struct platform_device *op)
- 	vdev = video_device_alloc();
- 	if (vdev == NULL) {
- 		ret = -ENOMEM;
--		goto err_vdev;
-+		goto err_hdl;
- 	}
- 
- 	*vdev = viu_template;
-@@ -1492,7 +1497,7 @@ static int viu_of_probe(struct platform_device *op)
- 	ret = video_register_device(viu_dev->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0) {
- 		video_device_release(viu_dev->vdev);
--		goto err_vdev;
-+		goto err_unlock;
- 	}
- 
- 	/* enable VIU clock */
-@@ -1500,12 +1505,12 @@ static int viu_of_probe(struct platform_device *op)
- 	if (IS_ERR(clk)) {
- 		dev_err(&op->dev, "failed to lookup the clock!\n");
- 		ret = PTR_ERR(clk);
--		goto err_clk;
-+		goto err_vdev;
- 	}
- 	ret = clk_prepare_enable(clk);
- 	if (ret) {
- 		dev_err(&op->dev, "failed to enable the clock!\n");
--		goto err_clk;
-+		goto err_vdev;
- 	}
- 	viu_dev->clk = clk;
- 
-@@ -1516,7 +1521,7 @@ static int viu_of_probe(struct platform_device *op)
- 	if (request_irq(viu_dev->irq, viu_intr, 0, "viu", (void *)viu_dev)) {
- 		dev_err(&op->dev, "Request VIU IRQ failed.\n");
- 		ret = -ENODEV;
--		goto err_irq;
-+		goto err_clk;
- 	}
- 
- 	mutex_unlock(&viu_dev->lock);
-@@ -1524,16 +1529,19 @@ static int viu_of_probe(struct platform_device *op)
- 	dev_info(&op->dev, "Freescale VIU Video Capture Board\n");
- 	return ret;
- 
--err_irq:
--	clk_disable_unprepare(viu_dev->clk);
- err_clk:
--	video_unregister_device(viu_dev->vdev);
-+	clk_disable_unprepare(viu_dev->clk);
- err_vdev:
--	v4l2_ctrl_handler_free(&viu_dev->hdl);
-+	video_unregister_device(viu_dev->vdev);
-+err_unlock:
- 	mutex_unlock(&viu_dev->lock);
-+err_hdl:
-+	v4l2_ctrl_handler_free(&viu_dev->hdl);
-+err_i2c:
- 	i2c_put_adapter(ad);
-+err_v4l2:
- 	v4l2_device_unregister(&viu_dev->v4l2_dev);
--err:
-+err_irq:
- 	irq_dispose_mapping(viu_irq);
- 	return ret;
- }
--- 
-2.7.4
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
