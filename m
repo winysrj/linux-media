@@ -1,64 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56252 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752432AbeGBQHd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jul 2018 12:07:33 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.19] Various fixes/improvements
-Message-ID: <d8e71e81-8258-3103-9eca-928a69204a48@xs4all.nl>
-Date: Mon, 2 Jul 2018 18:07:30 +0200
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:41504 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752197AbeGBQH1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 12:07:27 -0400
+Subject: Re: [PATCH] media: i2c: lm3560: add support for lm3559 chip
+To: Pavel Machek <pavel@ucw.cz>,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
+        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
+        m.chehab@samsung.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+References: <20180506080607.GA24212@amd> <20180623213328.GA19154@amd>
+From: Daniel Jeong <gshark.jeong@gmail.com>
+Message-ID: <92fcf91d-f955-9a16-bf99-aad95f39a92a@gmail.com>
+Date: Mon, 2 Jul 2018 03:00:46 +0900
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <20180623213328.GA19154@amd>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a long-standing bug in v4l2-ctrls.c, mark all interface links as
-IMMUTABLE and add helpers to configure an MC for mem-to-mem devices
-and use that in vim2m.
+Hi Pavel,
 
-Note regarding the v4l2-ctrls.c fix: I've decided not to backport this.
-It's a dark corner of the spec that few people use and that AFAICT never
-worked properly. Hugues Fruchet was the first to complain about this in
-many years, so this is clearly not a high prio thing.
+> On Sun 2018-05-06 10:06:07, Pavel Machek wrote:
+>> Add support for LM3559, as found in Motorola Droid 4 phone, for
+>> example. SW interface seems to be identical.
+>>
+>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Ping?
 
-If I change my mind, then this should be backported all the way to 3.11.
-But before that it was also wrong, except this patch no longer applies.
+>fping daniel
+daniel is alive. :)
 
-Regards,
+>
+> Could this and media: i2c: lm3560: use conservative defaults be
+> applied for v4.19? This is not too complex...
+>
+> 								Pavel
 
-	Hans
+The lm3559 datasheet should be reviewed first
+to know whether those products have same register map and field data for each register.
 
-The following changes since commit 3c4a737267e89aafa6308c6c456d2ebea3fcd085:
-
-  media: ov5640: fix frame interval enumeration (2018-06-28 09:24:38 -0400)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.19g
-
-for you to fetch changes up to dd8320d3a8af219ce084e7342df3e9a0cecc289b:
-
-  vim2m: add media device (2018-07-02 18:00:04 +0200)
-
-----------------------------------------------------------------
-Ezequiel Garcia (1):
-      media: add helpers for memory-to-memory media controller
-
-Hans Verkuil (3):
-      v4l2-ctrls.c: fix broken auto cluster handling
-      media: mark entity-intf links as IMMUTABLE
-      vim2m: add media device
-
- drivers/media/dvb-core/dvbdev.c        |  18 ++++--
- drivers/media/platform/vim2m.c         |  41 ++++++++++++--
- drivers/media/v4l2-core/v4l2-ctrls.c   |  15 ++++-
- drivers/media/v4l2-core/v4l2-dev.c     |  16 ++++--
- drivers/media/v4l2-core/v4l2-device.c  |   3 +-
- drivers/media/v4l2-core/v4l2-mem2mem.c | 190 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-mem2mem.h           |  19 +++++++
- 7 files changed, 284 insertions(+), 18 deletions(-)
+> 								
+>> diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
+>> index b600e03a..c4e5ed5 100644
+>> --- a/drivers/media/i2c/lm3560.c
+>> +++ b/drivers/media/i2c/lm3560.c
+>> @@ -1,6 +1,6 @@
+>>   /*
+>>    * drivers/media/i2c/lm3560.c
+>> - * General device driver for TI lm3560, FLASH LED Driver
+>> + * General device driver for TI lm3559, lm3560, FLASH LED Driver
+>>    *
+>>    * Copyright (C) 2013 Texas Instruments
+>>    *
+>> @@ -465,6 +479,7 @@ static int lm3560_remove(struct i2c_client *client)
+>>   }
+>>   
+>>   static const struct i2c_device_id lm3560_id_table[] = {
+>> +	{LM3559_NAME, 0},
+>>   	{LM3560_NAME, 0},
+>>   	{}
+>>   };
+>> diff --git a/include/media/i2c/lm3560.h b/include/media/i2c/lm3560.h
+>> index a5bd310..0e2b1c7 100644
+>> --- a/include/media/i2c/lm3560.h
+>> +++ b/include/media/i2c/lm3560.h
+>> @@ -22,6 +22,7 @@
+>>   
+>>   #include <media/v4l2-subdev.h>
+>>   
+>> +#define LM3559_NAME	"lm3559"
+>>   #define LM3560_NAME	"lm3560"
+>>   #define LM3560_I2C_ADDR	(0x53)
+>>   
+>>
+>
+>
