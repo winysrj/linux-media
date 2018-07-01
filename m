@@ -1,16 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:35874 "EHLO
+Received: from Galois.linutronix.de ([146.0.238.70]:35878 "EHLO
         Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752424AbeGAPjg (ORCPT
+        with ESMTP id S1752452AbeGAPjg (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Sun, 1 Jul 2018 11:39:36 -0400
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 To: linux-media@vger.kernel.org
 Cc: tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-usb@vger.kernel.org,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH REPOST 4/5] media: tm6000: use irqsave() in USB's complete callback
-Date: Sun,  1 Jul 2018 17:39:20 +0200
-Message-Id: <20180701153921.13129-5-bigeasy@linutronix.de>
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH REPOST 5/5] media: usbtv: use irqsave() in USB's complete callback
+Date: Sun,  1 Jul 2018 17:39:21 +0200
+Message-Id: <20180701153921.13129-6-bigeasy@linutronix.de>
 In-Reply-To: <20180701153921.13129-1-bigeasy@linutronix.de>
 References: <20180701153921.13129-1-bigeasy@linutronix.de>
 MIME-Version: 1.0
@@ -27,35 +28,39 @@ USB host controller.
 Use the _irqsave() variant of the locking primitives.
 
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/media/usb/tm6000/tm6000-video.c | 5 +++--
+ drivers/media/usb/usbtv/usbtv-audio.c | 5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm=
-6000/tm6000-video.c
-index 96055de6e8ce..7d268f2404e1 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -419,6 +419,7 @@ static void tm6000_irq_callback(struct urb *urb)
- {
- 	struct tm6000_dmaqueue  *dma_q =3D urb->context;
- 	struct tm6000_core *dev =3D container_of(dma_q, struct tm6000_core, vidq);
+diff --git a/drivers/media/usb/usbtv/usbtv-audio.c b/drivers/media/usb/usbt=
+v/usbtv-audio.c
+index 2c2ca77fa01f..4ce38246ed64 100644
+--- a/drivers/media/usb/usbtv/usbtv-audio.c
++++ b/drivers/media/usb/usbtv/usbtv-audio.c
+@@ -126,6 +126,7 @@ static void usbtv_audio_urb_received(struct urb *urb)
+ 	struct snd_pcm_runtime *runtime =3D substream->runtime;
+ 	size_t i, frame_bytes, chunk_length, buffer_pos, period_pos;
+ 	int period_elapsed;
 +	unsigned long flags;
- 	int i;
+ 	void *urb_current;
 =20
  	switch (urb->status) {
-@@ -436,9 +437,9 @@ static void tm6000_irq_callback(struct urb *urb)
- 		break;
+@@ -179,12 +180,12 @@ static void usbtv_audio_urb_received(struct urb *urb)
+ 		}
  	}
 =20
--	spin_lock(&dev->slock);
-+	spin_lock_irqsave(&dev->slock, flags);
- 	tm6000_isoc_copy(urb);
--	spin_unlock(&dev->slock);
-+	spin_unlock_irqrestore(&dev->slock, flags);
+-	snd_pcm_stream_lock(substream);
++	snd_pcm_stream_lock_irqsave(substream, flags);
 =20
- 	/* Reset urb buffers */
- 	for (i =3D 0; i < urb->number_of_packets; i++) {
+ 	chip->snd_buffer_pos =3D buffer_pos;
+ 	chip->snd_period_pos =3D period_pos;
+=20
+-	snd_pcm_stream_unlock(substream);
++	snd_pcm_stream_unlock_irqrestore(substream, flags);
+=20
+ 	if (period_elapsed)
+ 		snd_pcm_period_elapsed(substream);
 --=20
 2.18.0
