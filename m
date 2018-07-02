@@ -1,145 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34582 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933098AbeGBHTd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 03:19:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: jacopo mondi <jacopo@jmondi.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>, horms@verge.net.au,
-        geert@glider.be, mchehab@kernel.org, hans.verkuil@cisco.com,
-        robh+dt@kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v4 6/6] dt-bindings: media: rcar-vin: Clarify optional props
-Date: Mon, 02 Jul 2018 10:19:25 +0300
-Message-ID: <39247463.ySXe3lkPXm@avalon>
-In-Reply-To: <20180627052431.GO5237@bigcity.dyn.berto.se>
-References: <1528813566-17927-1-git-send-email-jacopo+renesas@jmondi.org> <20180613085455.GC4952@w540> <20180627052431.GO5237@bigcity.dyn.berto.se>
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:35252 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753261AbeGBHt4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 03:49:56 -0400
+Received: by mail-yw0-f196.google.com with SMTP id t18-v6so6353944ywg.2
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 00:49:56 -0700 (PDT)
+Received: from mail-yw0-f175.google.com (mail-yw0-f175.google.com. [209.85.161.175])
+        by smtp.gmail.com with ESMTPSA id j187-v6sm5704535ywd.51.2018.07.02.00.49.54
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 02 Jul 2018 00:49:54 -0700 (PDT)
+Received: by mail-yw0-f175.google.com with SMTP id 139-v6so1012318ywg.12
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 00:49:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-12-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1522376100-22098-12-git-send-email-yong.zhi@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 2 Jul 2018 16:49:43 +0900
+Message-ID: <CAAFQd5DdJddmypcpLswQzwV8jdiS1iPGTO=FUJoz+AmnzOy2cg@mail.gmail.com>
+Subject: Re: [PATCH v6 11/12] intel-ipu3: Add v4l2 driver based on media framework
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Yong,
 
-On Wednesday, 27 June 2018 08:24:31 EEST Niklas S=F6derlund wrote:
-> On 2018-06-13 10:54:55 +0200, Jacopo Mondi wrote:
-> > On Tue, Jun 12, 2018 at 06:45:53PM +0300, Sakari Ailus wrote:
-> >> On Tue, Jun 12, 2018 at 04:26:06PM +0200, Jacopo Mondi wrote:
-> >>> Add a note to the R-Car VIN interface bindings to clarify that all
-> >>> properties listed as generic properties in video-interfaces.txt can
-> >>> be included in port@0 endpoint, but if not explicitly listed in the
-> >>> interface bindings documentation, they do not modify it behaviour.
-> >>>=20
-> >>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >>> ---
-> >>>=20
-> >>>  Documentation/devicetree/bindings/media/rcar_vin.txt | 6 ++++++
-> >>>  1 file changed, 6 insertions(+)
-> >>>=20
-> >>> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> >>> b/Documentation/devicetree/bindings/media/rcar_vin.txt index
-> >>> 8130849..03544c7 100644
-> >>> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> >>> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> >>> @@ -55,6 +55,12 @@ from local SoC CSI-2 receivers (port1) depending on
-> >>> SoC.
-> >>>=20
-> >>>        instances that are connected to external pins should have port
-> >>>        0.
-> >>>=20
-> >>>        - Optional properties for endpoint nodes of port@0:
-> >>> +
-> >>> +        All properties described in [1] and which apply to the
-> >>> selected
-> >>> +        media bus type could be optionally listed here to better
-> >>> describe
-> >>> +        the current hardware configuration, but only the following
-> >>> ones do
-> >>> +        actually modify the VIN interface behaviour:
-> >>> +
->=20
-> I'm not sure the description have to be as explicit to that the
-> properties in 'video-interfaces.txt' are not currently used by the
-> driver. I find it not relevant which ones are used or not, what is
-> important for me is that all properties in 'video-interfaces.txt' which
-> can be used to describe the specific bus are valid for the DT
-> description.
+On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
+[snip]
+> +static int ipu3_vidioc_enum_input(struct file *file, void *fh,
+> +                                 struct v4l2_input *input)
+> +{
+> +       if (input->index > 0)
+> +               return -EINVAL;
+> +       strlcpy(input->name, "camera", sizeof(input->name));
+> +       input->type = V4L2_INPUT_TYPE_CAMERA;
+> +
+> +       return 0;
+> +}
+> +
+> +static int ipu3_vidioc_g_input(struct file *file, void *fh, unsigned int *input)
+> +{
+> +       *input = 0;
+> +
+> +       return 0;
+> +}
+> +
+> +static int ipu3_vidioc_s_input(struct file *file, void *fh, unsigned int input)
+> +{
+> +       return input == 0 ? 0 : -EINVAL;
+> +}
+> +
+> +static int ipu3_vidioc_enum_output(struct file *file, void *fh,
+> +                                  struct v4l2_output *output)
+> +{
+> +       if (output->index > 0)
+> +               return -EINVAL;
+> +       strlcpy(output->name, "camera", sizeof(output->name));
+> +       output->type = V4L2_INPUT_TYPE_CAMERA;
+> +
+> +       return 0;
+> +}
+> +
+> +static int ipu3_vidioc_g_output(struct file *file, void *fh,
+> +                               unsigned int *output)
+> +{
+> +       *output = 0;
+> +
+> +       return 0;
+> +}
+> +
+> +static int ipu3_vidioc_s_output(struct file *file, void *fh,
+> +                               unsigned int output)
+> +{
+> +       return output == 0 ? 0 : -EINVAL;
+> +}
 
-I agree with you. The driver is irrelevant in this context. What matters is=
-=20
-which properties are applicable to the bus. For instance, if the VIN parall=
-el=20
-input supports configurable polarities for the h/v sync signals, hsync-acti=
-ve=20
-and vsync-active should be listed in the bindings. On the other hand, if th=
-e=20
-polarities are fixed, then the properties are not needed.
+Do we really need to implement the 6 functions above? They don't seem
+to be doing anything useful.
 
-> On a side note, in rcar_vin.txt we have this section describing the Gen2
-> bindings:
->=20
->   The per-board settings Gen2 platforms:
->    - port sub-node describing a single endpoint connected to the vin
->      as described in video-interfaces.txt[1]. Only the first one will
->      be considered as each vin interface has one input port.
->=20
-> This whole series only deals with documenting the Gen3 optional
-> properties and not the Gen2. Maybe with parallel input support for Gen3
-> patches on there way to making it upstream this series should be
-> extended to in a good way merge the port@0 optional properties for both
-> generations of hardware?
+[snip]
 
-That would be nice too :-)
+> +int ipu3_v4l2_register(struct imgu_device *imgu)
+> +{
+> +       struct v4l2_mbus_framefmt def_bus_fmt = { 0 };
+> +       struct v4l2_pix_format_mplane def_pix_fmt = { 0 };
+> +
+> +       int i, r;
+> +
+> +       /* Initialize miscellaneous variables */
+> +       imgu->streaming = false;
+> +
+> +       /* Set up media device */
+> +       imgu->media_dev.dev = &imgu->pci_dev->dev;
+> +       strlcpy(imgu->media_dev.model, IMGU_NAME,
+> +               sizeof(imgu->media_dev.model));
+> +       snprintf(imgu->media_dev.bus_info, sizeof(imgu->media_dev.bus_info),
+> +                "%s", dev_name(&imgu->pci_dev->dev));
+> +       imgu->media_dev.hw_revision = 0;
+> +       media_device_init(&imgu->media_dev);
+> +       r = media_device_register(&imgu->media_dev);
+> +       if (r) {
+> +               dev_err(&imgu->pci_dev->dev,
+> +                       "failed to register media device (%d)\n", r);
+> +               return r;
+> +       }
 
-> >> I don't think this should be needed. You should only have properties
-> >> that describe the hardware configuration in a given system.
-> >=20
-> > There has been quite some debate on this, and please bear with me
-> > here for re-proposing it: I started by removing properties in some DT
-> > files for older Renesas board which listed endpoint properties not
-> > documented in the VIN's bindings and not parsed by the VIN driver [1]
-> > Niklas (but Simon and Geert seems to agree here) opposed to that
-> > patch, as those properties where described in 'video-interfaces.txt' and
-> > even if not parsed by the current driver implementation, they actually
-> > describe hardware. I rebated that only properties listed in the device
-> > bindings documentation should actually be used, and having properties
-> > not parsed by the driver confuses users, which may expect changing
-> > them modifies the interface configuration, which does not happens at
-> > the moment.
-> >=20
-> > This came out as a middle ground from a discussion with Niklas. As
-> > stated in the cover letter if this patch makes someone uncomfortable, f=
-eel
-> > free to drop it not to hold back the rest of the series which has been
-> > well received instead.
->=20
-> What I don't agree with and sparked this debate from my side was the
-> deletion of properties in dts files which correctly does describe the
-> bus but which are not currently parsed by the driver. To me that is
-> decreasing the value of the dts. If on the other hand the goal is to
-> deprecate a property from the video-interfaces.txt by slowly removing
-> them from dts where the driver don't use them I'm all for it. But I
-> don't think this is the case here right?
+Shouldn't we register the media device at the end, after all video
+nodes are registered below? Otherwise, since media_device_register()
+exposes the media node to userspace, we risk a race, when userspace
+opens the media device before all the entities are created and linked.
 
-I think you're right, I don't think that's the case.
+[snip]
 
-We should not remove properties from the dts files when they correctly=20
-describe the hardware and have an added-value. On the other hand, if a=20
-property correctly describes the hardware, but is constrained to a single=20
-value due to hardware limitations, then we can omit it.
+> +int ipu3_v4l2_unregister(struct imgu_device *imgu)
+> +{
+> +       unsigned int i;
+> +
+> +       for (i = 0; i < IMGU_NODE_NUM; i++) {
+> +               video_unregister_device(&imgu->nodes[i].vdev);
+> +               media_entity_cleanup(&imgu->nodes[i].vdev.entity);
+> +               mutex_destroy(&imgu->nodes[i].lock);
+> +       }
+> +
+> +       v4l2_device_unregister_subdev(&imgu->subdev);
+> +       media_entity_cleanup(&imgu->subdev.entity);
+> +       kfree(imgu->subdev_pads);
+> +       v4l2_device_unregister(&imgu->v4l2_dev);
+> +       media_device_unregister(&imgu->media_dev);
 
-> > [1] https://www.spinics.net/lists/arm-kernel/msg656302.html
-> >=20
-> >>> - hsync-active: see [1] for description. Default is active high.
-> >>> - vsync-active: see [1] for description. Default is active high.
-> >>> - data-enable-active: polarity of CLKENB signal, see [1] for
+Should unregister media device at the beginning, so that it cannot be
+used when we continue to clean up the entities.
 
-=2D-=20
-Regards,
+> +       media_device_cleanup(&imgu->media_dev);
+> +
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(ipu3_v4l2_unregister);
 
-Laurent Pinchart
+Best regards,
+Tomasz
