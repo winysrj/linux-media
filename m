@@ -1,154 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:37571 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933282AbeGBJaY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 05:30:24 -0400
-Received: by mail-yb0-f193.google.com with SMTP id r3-v6so4850965ybo.4
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 02:30:24 -0700 (PDT)
-Received: from mail-yw0-f182.google.com (mail-yw0-f182.google.com. [209.85.161.182])
-        by smtp.gmail.com with ESMTPSA id k10-v6sm6127584ywk.101.2018.07.02.02.30.22
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 02 Jul 2018 02:30:22 -0700 (PDT)
-Received: by mail-yw0-f182.google.com with SMTP id l189-v6so38861ywb.10
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 02:30:22 -0700 (PDT)
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:56338 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933423AbeGBJfM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jul 2018 05:35:12 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.19] Various fixes
+Message-ID: <c5bb5c97-9e6c-75b5-bfa3-c4507693d86e@xs4all.nl>
+Date: Mon, 2 Jul 2018 11:35:10 +0200
 MIME-Version: 1.0
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
- <20180515075859.17217-28-stanimir.varbanov@linaro.org> <CAAFQd5Cyk2=YG+LVGt0qEcrRGdarpHJDJ73AzG1iWBbyhr+nAA@mail.gmail.com>
-In-Reply-To: <CAAFQd5Cyk2=YG+LVGt0qEcrRGdarpHJDJ73AzG1iWBbyhr+nAA@mail.gmail.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 2 Jul 2018 18:30:10 +0900
-Message-ID: <CAAFQd5C=__+qTXsCtr7uS+7T6Dpgpeh8m6TuNEiYe5W2K2gaSw@mail.gmail.com>
-Subject: Re: [PATCH v2 27/29] venus: implementing multi-stream support
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stanimir,
+Hi Mauro,
 
-On Thu, May 31, 2018 at 6:51 PM Tomasz Figa <tfiga@chromium.org> wrote:
->
-> On Tue, May 15, 2018 at 5:00 PM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
-> >
-> > This is implementing a multi-stream decoder support. The multi
-> > stream gives an option to use the secondary decoder output
-> > with different raw format (or the same in case of crop).
-> >
-> > Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> > ---
-> >  drivers/media/platform/qcom/venus/core.h    |   1 +
-> >  drivers/media/platform/qcom/venus/helpers.c | 204 +++++++++++++++++++++++++++-
-> >  drivers/media/platform/qcom/venus/helpers.h |   6 +
-> >  drivers/media/platform/qcom/venus/vdec.c    |  91 ++++++++++++-
-> >  drivers/media/platform/qcom/venus/venc.c    |   1 +
-> >  5 files changed, 299 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-> > index 4d6c05f156c4..85e66e2dd672 100644
-> > --- a/drivers/media/platform/qcom/venus/core.h
-> > +++ b/drivers/media/platform/qcom/venus/core.h
-> > @@ -259,6 +259,7 @@ struct venus_inst {
-> >         struct list_head list;
-> >         struct mutex lock;
-> >         struct venus_core *core;
-> > +       struct list_head dpbbufs;
-> >         struct list_head internalbufs;
-> >         struct list_head registeredbufs;
-> >         struct list_head delayed_process;
-> > diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-> > index ed569705ecac..87dcf9973e6f 100644
-> > --- a/drivers/media/platform/qcom/venus/helpers.c
-> > +++ b/drivers/media/platform/qcom/venus/helpers.c
-> > @@ -85,6 +85,112 @@ bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt)
-> >  }
-> >  EXPORT_SYMBOL_GPL(venus_helper_check_codec);
-> >
-> > +static int venus_helper_queue_dpb_bufs(struct venus_inst *inst)
-> > +{
-> > +       struct intbuf *buf;
-> > +       int ret = 0;
-> > +
-> > +       if (list_empty(&inst->dpbbufs))
-> > +               return 0;
->
-> Does this special case give us anything other than few more source lines?
->
-> > +
-> > +       list_for_each_entry(buf, &inst->dpbbufs, list) {
-> > +               struct hfi_frame_data fdata;
-> > +
-> > +               memset(&fdata, 0, sizeof(fdata));
-> > +               fdata.alloc_len = buf->size;
-> > +               fdata.device_addr = buf->da;
-> > +               fdata.buffer_type = buf->type;
-> > +
-> > +               ret = hfi_session_process_buf(inst, &fdata);
-> > +               if (ret)
-> > +                       goto fail;
-> > +       }
-> > +
-> > +fail:
-> > +       return ret;
-> > +}
-> > +
-> > +int venus_helper_free_dpb_bufs(struct venus_inst *inst)
-> > +{
-> > +       struct intbuf *buf, *n;
-> > +
-> > +       if (list_empty(&inst->dpbbufs))
-> > +               return 0;
->
-> Ditto.
->
-> > +
-> > +       list_for_each_entry_safe(buf, n, &inst->dpbbufs, list) {
-> > +               list_del_init(&buf->list);
-> > +               dma_free_attrs(inst->core->dev, buf->size, buf->va, buf->da,
-> > +                              buf->attrs);
-> > +               kfree(buf);
-> > +       }
-> > +
-> > +       INIT_LIST_HEAD(&inst->dpbbufs);
-> > +
-> > +       return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(venus_helper_free_dpb_bufs);
-> [snip]
-> > +int venus_helper_get_out_fmts(struct venus_inst *inst, u32 v4l2_fmt,
-> > +                             u32 *out_fmt, u32 *out2_fmt, bool ubwc)
-> > +{
-> > +       struct venus_core *core = inst->core;
-> > +       struct venus_caps *caps;
-> > +       u32 ubwc_fmt, fmt = to_hfi_raw_fmt(v4l2_fmt);
-> > +       bool found, found_ubwc;
-> > +
-> > +       *out_fmt = *out2_fmt = 0;
-> > +
-> > +       if (!fmt)
-> > +               return -EINVAL;
-> > +
-> > +       caps = venus_caps_by_codec(core, inst->hfi_codec, inst->session_type);
-> > +       if (!caps)
-> > +               return -EINVAL;
-> > +
-> > +       if (ubwc) {
-> > +               ubwc_fmt = fmt | HFI_COLOR_FORMAT_UBWC_BASE;
->
-> Does the UBWC base format have to be the same as fmt? Looking at
-> HFI_COLOR_FORMAT_* macros, UBWC variants seem to exist only for few
-> selected raw formats, for example there is none for NV21.
+The usual 'various fixes'. A bunch of coda fixes, and I cherry-picked from
+Ezequiel's https://www.spinics.net/lists/linux-media/msg136223.html patch
+series.
 
-Ping.
+Regards,
 
-None of the comments I posted above have been addressed in v4.
+	Hans
 
-Best regards,
-Tomasz
+The following changes since commit 3c4a737267e89aafa6308c6c456d2ebea3fcd085:
+
+  media: ov5640: fix frame interval enumeration (2018-06-28 09:24:38 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.19f
+
+for you to fetch changes up to bf40e3b08f4b7f5f49ffe28f94a2a505017df5c2:
+
+  media: fsl-viu: fix error handling in viu_of_probe() (2018-07-02 10:56:01 +0200)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      media: fsl-viu: fix error handling in viu_of_probe()
+
+Ezequiel Garcia (8):
+      sta2x11: Add video_device and vb2_queue locks
+      mtk-mdp: Add locks for capture and output vb2_queues
+      s5p-g2d: Implement wait_prepare and wait_finish
+      staging: bcm2835-camera: Provide lock for vb2_queue
+      davinci_vpfe: Add video_device and vb2_queue locks
+      mx_emmaprp: Implement wait_prepare and wait_finish
+      m2m-deinterlace: Implement wait_prepare and wait_finish
+      stk1160: Set the vb2_queue lock before calling vb2_queue_init
+
+Hans Verkuil (2):
+      v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
+      vivid: fix gain when autogain is on
+
+Philipp Zabel (8):
+      media: coda: fix encoder source stride
+      media: coda: add read-only h.264 decoder profile/level controls
+      media: coda: fix reorder detection for unknown levels
+      media: coda: clear hold flag on streamoff
+      media: coda: jpeg: allow non-JPEG colorspace
+      media: coda: jpeg: only queue two buffers into the bitstream for JPEG on CODA7541
+      media: coda: jpeg: explicitly disable thumbnails in SEQ_INIT
+      media: coda: mark CODA960 firmware version 2.1.9 as supported
+
+Steve Longerbeam (1):
+      media: v4l2-ctrls: Fix CID base conflict between MAX217X and IMX
+
+ drivers/media/pci/sta2x11/sta2x11_vip.c                       |   6 +++
+ drivers/media/platform/coda/coda-bit.c                        |  38 +++++--------
+ drivers/media/platform/coda/coda-common.c                     | 118 +++++++++++++++++++++++++++++++++++++++--
+ drivers/media/platform/coda/coda.h                            |   2 +
+ drivers/media/platform/coda/coda_regs.h                       |   1 +
+ drivers/media/platform/fsl-viu.c                              |  38 +++++++------
+ drivers/media/platform/m2m-deinterlace.c                      |   4 ++
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c                  |  20 ++-----
+ drivers/media/platform/mx2_emmaprp.c                          |   4 ++
+ drivers/media/platform/s5p-g2d/g2d.c                          |   2 +
+ drivers/media/platform/vivid/vivid-ctrls.c                    |   2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c                       |   2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c                          |  56 ++++++++++++++++++-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c               |   6 ++-
+ drivers/staging/media/davinci_vpfe/vpfe_video.h               |   2 +-
+ drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c |  24 ++-------
+ include/uapi/linux/v4l2-controls.h                            |   2 +-
+ 17 files changed, 242 insertions(+), 85 deletions(-)
