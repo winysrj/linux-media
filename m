@@ -1,192 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:40686 "EHLO
+Received: from userp2120.oracle.com ([156.151.31.85]:48126 "EHLO
         userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753133AbeGBF4S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 01:56:18 -0400
-Date: Mon, 2 Jul 2018 08:55:48 +0300
+        with ESMTP id S1752303AbeGBGJU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 02:09:20 -0400
+Date: Mon, 2 Jul 2018 09:09:07 +0300
 From: Dan Carpenter <dan.carpenter@oracle.com>
-To: kbuild@01.org, "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Cc: kbuild-all@01.org, Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RESEND][PATCH v6 3/6] cx25840: add pin to pad mapping and
- output format configuration
-Message-ID: <20180702055548.4puqbtjzgf2afyyb@mwanda>
+To: kbuild@01.org, Steve Longerbeam <slongerbeam@gmail.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 15/17] media: platform: Switch to
+ v4l2_async_notifier_add_subdev
+Message-ID: <20180702060907.xlghcxtsj5eepdxu@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <69af3169d998d78c4ce1fe8702ff795dbe89b4b7.1530305665.git.mail@maciej.szmigiero.name>
+In-Reply-To: <1530298220-5097-16-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maciej,
+Hi Steve,
 
-Thank you for the patch! Perhaps something to improve:
+I love your patch! Perhaps something to improve:
 
-url:    https://github.com/0day-ci/linux/commits/Maciej-S-Szmigiero/Add-analog-mode-support-for-Medion-MD95700/20180630-050341
+url:    https://github.com/0day-ci/linux/commits/Steve-Longerbeam/media-imx-Switch-to-subdev-notifiers/20180630-035625
 base:   git://linuxtv.org/media_tree.git master
 
 New smatch warnings:
-drivers/media/i2c/cx25840/cx25840-core.c:468 cx25840_s_io_pin_config() warn: bitwise AND condition is false here
+drivers/media/platform/xilinx/xilinx-vipp.c:97 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'struct fwnode_handle*'
+drivers/media/platform/xilinx/xilinx-vipp.c:335 xvip_graph_notify_bound() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'struct fwnode_handle*'
 
 Old smatch warnings:
-drivers/media/i2c/cx25840/cx25840-core.c:497 cx25840_s_io_pin_config() warn: bitwise AND condition is false here
-drivers/media/i2c/cx25840/cx25840-core.c:526 cx25840_s_io_pin_config() warn: bitwise AND condition is false here
+drivers/media/platform/xilinx/xilinx-vipp.c:106 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'struct fwnode_handle*'
+drivers/media/platform/xilinx/xilinx-vipp.c:133 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'struct fwnode_handle*'
+drivers/media/platform/xilinx/xilinx-vipp.c:143 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'struct fwnode_handle*'
 
-# https://github.com/0day-ci/linux/commit/64372f380e540a77b73d4628a585c9c92956a7fd
+# https://github.com/0day-ci/linux/commit/86ede05d30b3cad4b07c2df915fc83b94d3327f1
 git remote add linux-review https://github.com/0day-ci/linux
 git remote update linux-review
-git checkout 64372f380e540a77b73d4628a585c9c92956a7fd
-vim +468 drivers/media/i2c/cx25840/cx25840-core.c
+git checkout 86ede05d30b3cad4b07c2df915fc83b94d3327f1
+vim +97 drivers/media/platform/xilinx/xilinx-vipp.c
 
-64372f38 Maciej S. Szmigiero 2018-06-29  435  
-64372f38 Maciej S. Szmigiero 2018-06-29  436  static int cx25840_s_io_pin_config(struct v4l2_subdev *sd, size_t n,
-64372f38 Maciej S. Szmigiero 2018-06-29  437  				   struct v4l2_subdev_io_pin_config *p)
-64372f38 Maciej S. Szmigiero 2018-06-29  438  {
-64372f38 Maciej S. Szmigiero 2018-06-29  439  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-64372f38 Maciej S. Szmigiero 2018-06-29  440  	unsigned int i;
-64372f38 Maciej S. Szmigiero 2018-06-29  441  	u8 pinctrl[6], pinconf[10], voutctrl4;
-64372f38 Maciej S. Szmigiero 2018-06-29  442  
-64372f38 Maciej S. Szmigiero 2018-06-29  443  	for (i = 0; i < 6; i++)
-64372f38 Maciej S. Szmigiero 2018-06-29  444  		pinctrl[i] = cx25840_read(client, 0x114 + i);
-64372f38 Maciej S. Szmigiero 2018-06-29  445  
-64372f38 Maciej S. Szmigiero 2018-06-29  446  	for (i = 0; i < 10; i++)
-64372f38 Maciej S. Szmigiero 2018-06-29  447  		pinconf[i] = cx25840_read(client, 0x11c + i);
-64372f38 Maciej S. Szmigiero 2018-06-29  448  
-64372f38 Maciej S. Szmigiero 2018-06-29  449  	voutctrl4 = cx25840_read(client, 0x407);
-64372f38 Maciej S. Szmigiero 2018-06-29  450  
-64372f38 Maciej S. Szmigiero 2018-06-29  451  	for (i = 0; i < n; i++) {
-64372f38 Maciej S. Szmigiero 2018-06-29  452  		u8 strength = p[i].strength;
-64372f38 Maciej S. Szmigiero 2018-06-29  453  
-64372f38 Maciej S. Szmigiero 2018-06-29  454  		if (strength != CX25840_PIN_DRIVE_SLOW &&
-64372f38 Maciej S. Szmigiero 2018-06-29  455  		    strength != CX25840_PIN_DRIVE_MEDIUM &&
-64372f38 Maciej S. Szmigiero 2018-06-29  456  		    strength != CX25840_PIN_DRIVE_FAST) {
-64372f38 Maciej S. Szmigiero 2018-06-29  457  
-64372f38 Maciej S. Szmigiero 2018-06-29  458  			v4l_err(client,
-64372f38 Maciej S. Szmigiero 2018-06-29  459  				"invalid drive speed for pin %u (%u), assuming fast\n",
-64372f38 Maciej S. Szmigiero 2018-06-29  460  				(unsigned int)p[i].pin,
-64372f38 Maciej S. Szmigiero 2018-06-29  461  				(unsigned int)strength);
-64372f38 Maciej S. Szmigiero 2018-06-29  462  
-64372f38 Maciej S. Szmigiero 2018-06-29  463  			strength = CX25840_PIN_DRIVE_FAST;
-64372f38 Maciej S. Szmigiero 2018-06-29  464  		}
-64372f38 Maciej S. Szmigiero 2018-06-29  465  
-64372f38 Maciej S. Szmigiero 2018-06-29  466  		switch (p[i].pin) {
-64372f38 Maciej S. Szmigiero 2018-06-29  467  		case CX25840_PIN_DVALID_PRGM0:
-64372f38 Maciej S. Szmigiero 2018-06-29 @468  			if (p[i].flags & V4L2_SUBDEV_IO_PIN_DISABLE)
-
-V4L2_SUBDEV_IO_PIN_DISABLE is zero.  It's sometimes used as a bit zero
-BIT(V4L2_SUBDEV_IO_PIN_DISABLE) and presumably that's what is intended
-here.
-
-64372f38 Maciej S. Szmigiero 2018-06-29  469  				pinctrl[0] &= ~BIT(6);
-64372f38 Maciej S. Szmigiero 2018-06-29  470  			else
-64372f38 Maciej S. Szmigiero 2018-06-29  471  				pinctrl[0] |= BIT(6);
-64372f38 Maciej S. Szmigiero 2018-06-29  472  
-64372f38 Maciej S. Szmigiero 2018-06-29  473  			pinconf[3] &= 0xf0;
-64372f38 Maciej S. Szmigiero 2018-06-29  474  			pinconf[3] |= cx25840_function_to_pad(client,
-64372f38 Maciej S. Szmigiero 2018-06-29  475  							      p[i].function);
-64372f38 Maciej S. Szmigiero 2018-06-29  476  
-64372f38 Maciej S. Szmigiero 2018-06-29  477  			cx25840_set_invert(&pinctrl[3], &voutctrl4,
-64372f38 Maciej S. Szmigiero 2018-06-29  478  					   p[i].function,
-64372f38 Maciej S. Szmigiero 2018-06-29  479  					   CX25840_PIN_DVALID_PRGM0,
-64372f38 Maciej S. Szmigiero 2018-06-29  480  					   p[i].flags &
-64372f38 Maciej S. Szmigiero 2018-06-29  481  					   V4L2_SUBDEV_IO_PIN_ACTIVE_LOW);
-64372f38 Maciej S. Szmigiero 2018-06-29  482  
-64372f38 Maciej S. Szmigiero 2018-06-29  483  			pinctrl[4] &= ~(3 << 2); /* CX25840_PIN_DRIVE_MEDIUM */
-64372f38 Maciej S. Szmigiero 2018-06-29  484  			switch (strength) {
-64372f38 Maciej S. Szmigiero 2018-06-29  485  			case CX25840_PIN_DRIVE_SLOW:
-64372f38 Maciej S. Szmigiero 2018-06-29  486  				pinctrl[4] |= 1 << 2;
-64372f38 Maciej S. Szmigiero 2018-06-29  487  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  488  
-64372f38 Maciej S. Szmigiero 2018-06-29  489  			case CX25840_PIN_DRIVE_FAST:
-64372f38 Maciej S. Szmigiero 2018-06-29  490  				pinctrl[4] |= 2 << 2;
-64372f38 Maciej S. Szmigiero 2018-06-29  491  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  492  			}
-64372f38 Maciej S. Szmigiero 2018-06-29  493  
-64372f38 Maciej S. Szmigiero 2018-06-29  494  			break;
-64372f38 Maciej S. Szmigiero 2018-06-29  495  
-64372f38 Maciej S. Szmigiero 2018-06-29  496  		case CX25840_PIN_HRESET_PRGM2:
-64372f38 Maciej S. Szmigiero 2018-06-29  497  			if (p[i].flags & V4L2_SUBDEV_IO_PIN_DISABLE)
-64372f38 Maciej S. Szmigiero 2018-06-29  498  				pinctrl[1] &= ~BIT(0);
-64372f38 Maciej S. Szmigiero 2018-06-29  499  			else
-64372f38 Maciej S. Szmigiero 2018-06-29  500  				pinctrl[1] |= BIT(0);
-64372f38 Maciej S. Szmigiero 2018-06-29  501  
-64372f38 Maciej S. Szmigiero 2018-06-29  502  			pinconf[4] &= 0xf0;
-64372f38 Maciej S. Szmigiero 2018-06-29  503  			pinconf[4] |= cx25840_function_to_pad(client,
-64372f38 Maciej S. Szmigiero 2018-06-29  504  							      p[i].function);
-64372f38 Maciej S. Szmigiero 2018-06-29  505  
-64372f38 Maciej S. Szmigiero 2018-06-29  506  			cx25840_set_invert(&pinctrl[3], &voutctrl4,
-64372f38 Maciej S. Szmigiero 2018-06-29  507  					   p[i].function,
-64372f38 Maciej S. Szmigiero 2018-06-29  508  					   CX25840_PIN_HRESET_PRGM2,
-64372f38 Maciej S. Szmigiero 2018-06-29  509  					   p[i].flags &
-64372f38 Maciej S. Szmigiero 2018-06-29  510  					   V4L2_SUBDEV_IO_PIN_ACTIVE_LOW);
-64372f38 Maciej S. Szmigiero 2018-06-29  511  
-64372f38 Maciej S. Szmigiero 2018-06-29  512  			pinctrl[4] &= ~(3 << 2); /* CX25840_PIN_DRIVE_MEDIUM */
-64372f38 Maciej S. Szmigiero 2018-06-29  513  			switch (strength) {
-64372f38 Maciej S. Szmigiero 2018-06-29  514  			case CX25840_PIN_DRIVE_SLOW:
-64372f38 Maciej S. Szmigiero 2018-06-29  515  				pinctrl[4] |= 1 << 2;
-64372f38 Maciej S. Szmigiero 2018-06-29  516  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  517  
-64372f38 Maciej S. Szmigiero 2018-06-29  518  			case CX25840_PIN_DRIVE_FAST:
-64372f38 Maciej S. Szmigiero 2018-06-29  519  				pinctrl[4] |= 2 << 2;
-64372f38 Maciej S. Szmigiero 2018-06-29  520  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  521  			}
-64372f38 Maciej S. Szmigiero 2018-06-29  522  
-64372f38 Maciej S. Szmigiero 2018-06-29  523  			break;
-64372f38 Maciej S. Szmigiero 2018-06-29  524  
-64372f38 Maciej S. Szmigiero 2018-06-29  525  		case CX25840_PIN_PLL_CLK_PRGM7:
-64372f38 Maciej S. Szmigiero 2018-06-29  526  			if (p[i].flags & V4L2_SUBDEV_IO_PIN_DISABLE)
-64372f38 Maciej S. Szmigiero 2018-06-29  527  				pinctrl[2] &= ~BIT(2);
-64372f38 Maciej S. Szmigiero 2018-06-29  528  			else
-64372f38 Maciej S. Szmigiero 2018-06-29  529  				pinctrl[2] |= BIT(2);
-64372f38 Maciej S. Szmigiero 2018-06-29  530  
-64372f38 Maciej S. Szmigiero 2018-06-29  531  			switch (p[i].function) {
-64372f38 Maciej S. Szmigiero 2018-06-29  532  			case CX25840_PAD_XTI_X5_DLL:
-64372f38 Maciej S. Szmigiero 2018-06-29  533  				pinconf[6] = 0;
-64372f38 Maciej S. Szmigiero 2018-06-29  534  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  535  
-64372f38 Maciej S. Szmigiero 2018-06-29  536  			case CX25840_PAD_AUX_PLL:
-64372f38 Maciej S. Szmigiero 2018-06-29  537  				pinconf[6] = 1;
-64372f38 Maciej S. Szmigiero 2018-06-29  538  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  539  
-64372f38 Maciej S. Szmigiero 2018-06-29  540  			case CX25840_PAD_VID_PLL:
-64372f38 Maciej S. Szmigiero 2018-06-29  541  				pinconf[6] = 5;
-64372f38 Maciej S. Szmigiero 2018-06-29  542  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  543  
-64372f38 Maciej S. Szmigiero 2018-06-29  544  			case CX25840_PAD_XTI:
-64372f38 Maciej S. Szmigiero 2018-06-29  545  				pinconf[6] = 2;
-64372f38 Maciej S. Szmigiero 2018-06-29  546  				break;
-64372f38 Maciej S. Szmigiero 2018-06-29  547  
-64372f38 Maciej S. Szmigiero 2018-06-29  548  			default:
-64372f38 Maciej S. Szmigiero 2018-06-29  549  				pinconf[6] = 3;
-64372f38 Maciej S. Szmigiero 2018-06-29  550  				pinconf[6] |=
-64372f38 Maciej S. Szmigiero 2018-06-29  551  					cx25840_function_to_pad(client,
-64372f38 Maciej S. Szmigiero 2018-06-29  552  								p[i].function)
-64372f38 Maciej S. Szmigiero 2018-06-29  553  					<< 4;
-64372f38 Maciej S. Szmigiero 2018-06-29  554  			}
-64372f38 Maciej S. Szmigiero 2018-06-29  555  
-64372f38 Maciej S. Szmigiero 2018-06-29  556  			break;
-64372f38 Maciej S. Szmigiero 2018-06-29  557  
-64372f38 Maciej S. Szmigiero 2018-06-29  558  		default:
-64372f38 Maciej S. Szmigiero 2018-06-29  559  			v4l_err(client, "invalid or unsupported pin %u\n",
-64372f38 Maciej S. Szmigiero 2018-06-29  560  				(unsigned int)p[i].pin);
-64372f38 Maciej S. Szmigiero 2018-06-29  561  			break;
-64372f38 Maciej S. Szmigiero 2018-06-29  562  		}
-64372f38 Maciej S. Szmigiero 2018-06-29  563  	}
-64372f38 Maciej S. Szmigiero 2018-06-29  564  
-64372f38 Maciej S. Szmigiero 2018-06-29  565  	cx25840_write(client, 0x407, voutctrl4);
-64372f38 Maciej S. Szmigiero 2018-06-29  566  
-64372f38 Maciej S. Szmigiero 2018-06-29  567  	for (i = 0; i < 6; i++)
-64372f38 Maciej S. Szmigiero 2018-06-29  568  		cx25840_write(client, 0x114 + i, pinctrl[i]);
-64372f38 Maciej S. Szmigiero 2018-06-29  569  
-64372f38 Maciej S. Szmigiero 2018-06-29  570  	for (i = 0; i < 10; i++)
-64372f38 Maciej S. Szmigiero 2018-06-29  571  		cx25840_write(client, 0x11c + i, pinconf[i]);
-64372f38 Maciej S. Szmigiero 2018-06-29  572  
-64372f38 Maciej S. Szmigiero 2018-06-29  573  	return 0;
-64372f38 Maciej S. Szmigiero 2018-06-29  574  }
-64372f38 Maciej S. Szmigiero 2018-06-29  575  
+df3305156 Laurent Pinchart      2013-05-15   70  
+df3305156 Laurent Pinchart      2013-05-15   71  static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+df3305156 Laurent Pinchart      2013-05-15   72  				struct xvip_graph_entity *entity)
+df3305156 Laurent Pinchart      2013-05-15   73  {
+df3305156 Laurent Pinchart      2013-05-15   74  	u32 link_flags = MEDIA_LNK_FL_ENABLED;
+df3305156 Laurent Pinchart      2013-05-15   75  	struct media_entity *local = entity->entity;
+df3305156 Laurent Pinchart      2013-05-15   76  	struct media_entity *remote;
+df3305156 Laurent Pinchart      2013-05-15   77  	struct media_pad *local_pad;
+df3305156 Laurent Pinchart      2013-05-15   78  	struct media_pad *remote_pad;
+df3305156 Laurent Pinchart      2013-05-15   79  	struct xvip_graph_entity *ent;
+859969b38 Sakari Ailus          2016-08-26   80  	struct v4l2_fwnode_link link;
+86ede05d3 Steve Longerbeam      2018-06-29   81  	struct fwnode_handle *ep = NULL;
+df3305156 Laurent Pinchart      2013-05-15   82  	int ret = 0;
+df3305156 Laurent Pinchart      2013-05-15   83  
+df3305156 Laurent Pinchart      2013-05-15   84  	dev_dbg(xdev->dev, "creating links for entity %s\n", local->name);
+df3305156 Laurent Pinchart      2013-05-15   85  
+df3305156 Laurent Pinchart      2013-05-15   86  	while (1) {
+df3305156 Laurent Pinchart      2013-05-15   87  		/* Get the next endpoint and parse its link. */
+86ede05d3 Steve Longerbeam      2018-06-29   88  		ep = fwnode_graph_get_next_endpoint(entity->asd.match.fwnode,
+86ede05d3 Steve Longerbeam      2018-06-29   89  						    ep);
+ef94711a0 Akinobu Mita          2017-10-12   90  		if (ep == NULL)
+df3305156 Laurent Pinchart      2013-05-15   91  			break;
+df3305156 Laurent Pinchart      2013-05-15   92  
+68d9c47b1 Rob Herring           2017-07-21   93  		dev_dbg(xdev->dev, "processing endpoint %pOF\n", ep);
+df3305156 Laurent Pinchart      2013-05-15   94  
+86ede05d3 Steve Longerbeam      2018-06-29   95  		ret = v4l2_fwnode_parse_link(ep, &link);
+df3305156 Laurent Pinchart      2013-05-15   96  		if (ret < 0) {
+68d9c47b1 Rob Herring           2017-07-21  @97  			dev_err(xdev->dev, "failed to parse link for %pOF\n",
+68d9c47b1 Rob Herring           2017-07-21   98  				ep);
+df3305156 Laurent Pinchart      2013-05-15   99  			continue;
+df3305156 Laurent Pinchart      2013-05-15  100  		}
+df3305156 Laurent Pinchart      2013-05-15  101  
+df3305156 Laurent Pinchart      2013-05-15  102  		/* Skip sink ports, they will be processed from the other end of
+df3305156 Laurent Pinchart      2013-05-15  103  		 * the link.
+df3305156 Laurent Pinchart      2013-05-15  104  		 */
+df3305156 Laurent Pinchart      2013-05-15  105  		if (link.local_port >= local->num_pads) {
+68d9c47b1 Rob Herring           2017-07-21  106  			dev_err(xdev->dev, "invalid port number %u for %pOF\n",
+86ede05d3 Steve Longerbeam      2018-06-29  107  				link.local_port, link.local_node);
+859969b38 Sakari Ailus          2016-08-26  108  			v4l2_fwnode_put_link(&link);
+df3305156 Laurent Pinchart      2013-05-15  109  			ret = -EINVAL;
+df3305156 Laurent Pinchart      2013-05-15  110  			break;
+df3305156 Laurent Pinchart      2013-05-15  111  		}
+df3305156 Laurent Pinchart      2013-05-15  112  
+df3305156 Laurent Pinchart      2013-05-15  113  		local_pad = &local->pads[link.local_port];
+df3305156 Laurent Pinchart      2013-05-15  114  
+df3305156 Laurent Pinchart      2013-05-15  115  		if (local_pad->flags & MEDIA_PAD_FL_SINK) {
+68d9c47b1 Rob Herring           2017-07-21  116  			dev_dbg(xdev->dev, "skipping sink port %pOF:%u\n",
+86ede05d3 Steve Longerbeam      2018-06-29  117  				link.local_node, link.local_port);
+859969b38 Sakari Ailus          2016-08-26  118  			v4l2_fwnode_put_link(&link);
+df3305156 Laurent Pinchart      2013-05-15  119  			continue;
+df3305156 Laurent Pinchart      2013-05-15  120  		}
+df3305156 Laurent Pinchart      2013-05-15  121  
+df3305156 Laurent Pinchart      2013-05-15  122  		/* Skip DMA engines, they will be processed separately. */
+859969b38 Sakari Ailus          2016-08-26  123  		if (link.remote_node == of_fwnode_handle(xdev->dev->of_node)) {
+68d9c47b1 Rob Herring           2017-07-21  124  			dev_dbg(xdev->dev, "skipping DMA port %pOF:%u\n",
+86ede05d3 Steve Longerbeam      2018-06-29  125  				link.local_node, link.local_port);
+859969b38 Sakari Ailus          2016-08-26  126  			v4l2_fwnode_put_link(&link);
+df3305156 Laurent Pinchart      2013-05-15  127  			continue;
+df3305156 Laurent Pinchart      2013-05-15  128  		}
+df3305156 Laurent Pinchart      2013-05-15  129  
+df3305156 Laurent Pinchart      2013-05-15  130  		/* Find the remote entity. */
+86ede05d3 Steve Longerbeam      2018-06-29  131  		ent = xvip_graph_find_entity(xdev, link.remote_node);
+df3305156 Laurent Pinchart      2013-05-15  132  		if (ent == NULL) {
+68d9c47b1 Rob Herring           2017-07-21  133  			dev_err(xdev->dev, "no entity found for %pOF\n",
+86ede05d3 Steve Longerbeam      2018-06-29  134  				link.remote_node);
+859969b38 Sakari Ailus          2016-08-26  135  			v4l2_fwnode_put_link(&link);
+df3305156 Laurent Pinchart      2013-05-15  136  			ret = -ENODEV;
+df3305156 Laurent Pinchart      2013-05-15  137  			break;
+df3305156 Laurent Pinchart      2013-05-15  138  		}
+df3305156 Laurent Pinchart      2013-05-15  139  
+df3305156 Laurent Pinchart      2013-05-15  140  		remote = ent->entity;
+df3305156 Laurent Pinchart      2013-05-15  141  
+df3305156 Laurent Pinchart      2013-05-15  142  		if (link.remote_port >= remote->num_pads) {
+68d9c47b1 Rob Herring           2017-07-21  143  			dev_err(xdev->dev, "invalid port number %u on %pOF\n",
+86ede05d3 Steve Longerbeam      2018-06-29  144  				link.remote_port, link.remote_node);
+859969b38 Sakari Ailus          2016-08-26  145  			v4l2_fwnode_put_link(&link);
+df3305156 Laurent Pinchart      2013-05-15  146  			ret = -EINVAL;
+df3305156 Laurent Pinchart      2013-05-15  147  			break;
+df3305156 Laurent Pinchart      2013-05-15  148  		}
+df3305156 Laurent Pinchart      2013-05-15  149  
+df3305156 Laurent Pinchart      2013-05-15  150  		remote_pad = &remote->pads[link.remote_port];
+df3305156 Laurent Pinchart      2013-05-15  151  
+859969b38 Sakari Ailus          2016-08-26  152  		v4l2_fwnode_put_link(&link);
+df3305156 Laurent Pinchart      2013-05-15  153  
+df3305156 Laurent Pinchart      2013-05-15  154  		/* Create the media link. */
+df3305156 Laurent Pinchart      2013-05-15  155  		dev_dbg(xdev->dev, "creating %s:%u -> %s:%u link\n",
+df3305156 Laurent Pinchart      2013-05-15  156  			local->name, local_pad->index,
+df3305156 Laurent Pinchart      2013-05-15  157  			remote->name, remote_pad->index);
+df3305156 Laurent Pinchart      2013-05-15  158  
+8df00a158 Mauro Carvalho Chehab 2015-08-07  159  		ret = media_create_pad_link(local, local_pad->index,
+df3305156 Laurent Pinchart      2013-05-15  160  					       remote, remote_pad->index,
+df3305156 Laurent Pinchart      2013-05-15  161  					       link_flags);
+df3305156 Laurent Pinchart      2013-05-15  162  		if (ret < 0) {
+df3305156 Laurent Pinchart      2013-05-15  163  			dev_err(xdev->dev,
+df3305156 Laurent Pinchart      2013-05-15  164  				"failed to create %s:%u -> %s:%u link\n",
+df3305156 Laurent Pinchart      2013-05-15  165  				local->name, local_pad->index,
+df3305156 Laurent Pinchart      2013-05-15  166  				remote->name, remote_pad->index);
+df3305156 Laurent Pinchart      2013-05-15  167  			break;
+df3305156 Laurent Pinchart      2013-05-15  168  		}
+df3305156 Laurent Pinchart      2013-05-15  169  	}
+df3305156 Laurent Pinchart      2013-05-15  170  
+86ede05d3 Steve Longerbeam      2018-06-29  171  	fwnode_handle_put(ep);
+df3305156 Laurent Pinchart      2013-05-15  172  	return ret;
+df3305156 Laurent Pinchart      2013-05-15  173  }
+df3305156 Laurent Pinchart      2013-05-15  174  
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
