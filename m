@@ -1,49 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:47114
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752328AbeGASwN (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:41892 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752211AbeGBEfm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 1 Jul 2018 14:52:13 -0400
-Date: Sun, 1 Jul 2018 20:51:55 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Joe Perches <joe@perches.com>
-cc: linux-usb@vger.kernel.org, Chengguang Xu <cgxu519@gmx.com>,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] cast sizeof to int for comparison
-In-Reply-To: <653914f26dc8433a3f682b5e7eb850ab94bd431d.camel@perches.com>
-Message-ID: <alpine.DEB.2.20.1807012050530.2494@hadrien>
-References: <1530466325-1678-1-git-send-email-Julia.Lawall@lip6.fr> <653914f26dc8433a3f682b5e7eb850ab94bd431d.camel@perches.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 2 Jul 2018 00:35:42 -0400
+Message-ID: <6333ed5aaefec47148bf56ea9877afe4@smtp-cloud9.xs4all.net>
+Date: Mon, 02 Jul 2018 06:35:39 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On Sun, 1 Jul 2018, Joe Perches wrote:
+date:			Mon Jul  2 05:00:10 CEST 2018
+media-tree git hash:	3c4a737267e89aafa6308c6c456d2ebea3fcd085
+media_build git hash:	90c56d1e6345747b6af929867f5b7c16017dcf02
+v4l-utils git hash:	5f4d76cf6708e36114130bf10aa37c417fc7ec43
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-2-amd64
 
-> On Sun, 2018-07-01 at 19:32 +0200, Julia Lawall wrote:
-> > Comparing an int to a size, which is unsigned, causes the int to become
-> > unsigned, giving the wrong result.
-> >
-> > The semantic match that finds this problem is as follows:
-> > (http://coccinelle.lip6.fr/)
->
-> Great, thanks.
->
-> But what about the ones in net/smc like:
->
-> > net/smc/smc_clc.c:
-> >
-> >         len = kernel_sendmsg(smc->clcsock, &msg, &vec, 1,
-> >                              sizeof(struct smc_clc_msg_decline));
-> >         if (len < sizeof(struct smc_clc_msg_decline))
->
-> Are those detected by the semantic match and ignored?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: ERRORS
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17.2-i686: OK
+linux-4.17.2-x86_64: OK
+linux-4.18-rc1-i686: OK
+linux-4.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
 
-I wasn't sure how to justify that kernel_sendmsg returns a negative value.
-If it is the case, I can send the patch.  I only found this in one file,
-but there were multiple occurrences.
+Detailed results are available here:
 
-julia
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
