@@ -1,128 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0064.outbound.protection.outlook.com ([104.47.32.64]:52437
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753387AbeGBItz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jul 2018 04:49:55 -0400
-Subject: Re: [PATCH 04/15] dma-fence: Make ->wait callback optional
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-References: <20180503142603.28513-5-daniel.vetter@ffwll.ch>
- <152542135089.4767.3315686184618150713@mail.alporthouse.com>
- <20180504081722.GQ12521@phenom.ffwll.local>
- <20180504082301.GR12521@phenom.ffwll.local>
- <152542269311.4767.4254637128660397977@mail.alporthouse.com>
- <20180504085759.GT12521@phenom.ffwll.local>
- <152542538170.4767.9925437389288286145@mail.alporthouse.com>
- <CAKMK7uHqdGsRQ60mL0LUmHPYp0zCyv0ni6=uhEpeHsOR3RLBzw@mail.gmail.com>
- <82509ba9-b305-433f-b70c-16ae857d13bc@gmail.com>
- <20180504134759.GA12521@phenom.ffwll.local>
- <20180702082356.GI13978@phenom.ffwll.local>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <880471ce-1718-a9bf-675a-e6c1b47b4b62@amd.com>
-Date: Mon, 2 Jul 2018 10:49:40 +0200
+Received: from mail-io0-f194.google.com ([209.85.223.194]:40018 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753387AbeGBIvQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 04:51:16 -0400
+Received: by mail-io0-f194.google.com with SMTP id t135-v6so14064793iof.7
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:51:16 -0700 (PDT)
+Received: from mail-io0-f171.google.com (mail-io0-f171.google.com. [209.85.223.171])
+        by smtp.gmail.com with ESMTPSA id d14-v6sm3874796itc.34.2018.07.02.01.51.15
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 02 Jul 2018 01:51:15 -0700 (PDT)
+Received: by mail-io0-f171.google.com with SMTP id d185-v6so14058411ioe.0
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:51:15 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180702082356.GI13978@phenom.ffwll.local>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Mon, 2 Jul 2018 17:51:03 +0900
+Message-ID: <CAPBb6MUBi+Dn5v4PKngxztFgKd6CA7bC1pKvWd1GMY9NJFoyZQ@mail.gmail.com>
+Subject: Re: [PATCH] venus: vdec: fix decoded data size
+To: vgarodia@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.07.2018 um 10:23 schrieb Daniel Vetter:
-> On Fri, May 04, 2018 at 03:47:59PM +0200, Daniel Vetter wrote:
->> On Fri, May 04, 2018 at 03:17:08PM +0200, Christian König wrote:
->>> Am 04.05.2018 um 11:25 schrieb Daniel Vetter:
->>>> On Fri, May 4, 2018 at 11:16 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
->>>>> Quoting Daniel Vetter (2018-05-04 09:57:59)
->>>>>> On Fri, May 04, 2018 at 09:31:33AM +0100, Chris Wilson wrote:
->>>>>>> Quoting Daniel Vetter (2018-05-04 09:23:01)
->>>>>>>> On Fri, May 04, 2018 at 10:17:22AM +0200, Daniel Vetter wrote:
->>>>>>>>> On Fri, May 04, 2018 at 09:09:10AM +0100, Chris Wilson wrote:
->>>>>>>>>> Quoting Daniel Vetter (2018-05-03 15:25:52)
->>>>>>>>>>> Almost everyone uses dma_fence_default_wait.
->>>>>>>>>>>
->>>>>>>>>>> v2: Also remove the BUG_ON(!ops->wait) (Chris).
->>>>>>>>>> I just don't get the rationale for implicit over explicit.
->>>>>>>>> Closer approximation of dwim semantics. There's been tons of patch series
->>>>>>>>> all over drm and related places to get there, once we have a big pile of
->>>>>>>>> implementations and know what the dwim semantics should be. Individually
->>>>>>>>> they're all not much, in aggregate they substantially simplify simple
->>>>>>>>> drivers.
->>>>>>>> I also think clearer separation between optional optimization hooks and
->>>>>>>> mandatory core parts is useful in itself.
->>>>>>> A new spelling of midlayer ;) I don't see the contradiction with a
->>>>>>> driver saying use the default and simplicity. (I know which one the
->>>>>>> compiler thinks is simpler ;)
->>>>>> If the compiler overhead is real then I guess it would makes to be
->>>>>> explicit. I don't expect that to be a problem though for a blocking
->>>>>> function.
->>>>>>
->>>>>> I disagree on this being a midlayer - you can still overwrite everything
->>>>>> you please to. What it does help is people doing less copypasting (and
->>>>>> assorted bugs), at least in the grand scheme of things. And we do have a
->>>>>> _lot_ more random small drivers than just a few years ago. Reducing the
->>>>>> amount of explicit typing just to get default bahaviour has been an
->>>>>> ongoing theme for a few years now, and your objection here is about the
->>>>>> first that this is not a good idea. So I'm somewhat confused.
->>>>> I'm just saying I don't see any rationale for this patch.
->>>>>
->>>>>           "Almost everyone uses dma_fence_default_wait."
->>>>>
->>>>> Why change?
->>>>>
->>>>> Making it look simpler on the surface, so that you don't have to think
->>>>> about things straight away? I understand the appeal, but I do worry
->>>>> about it just being an illusion. (Cutting and pasting a line saying
->>>>> .wait = default_wait, doesn't feel that onerous, as you likely cut and
->>>>> paste the ops anyway, and at the very least you are reminded about some
->>>>> of the interactions. You could even have default initializers and/or
->>>>> magic macros to hide the cut and paste; maybe a simple_dma_fence [now
->>>>> that's a midlayer!] but I haven't looked.)
->>>> In really monolithic vtables like drm_driver we do use default
->>>> function macros, so you type 1 line, get them all. But dma_fence_ops
->>>> is pretty small, and most drivers only implement a few callbacks. Also
->>>> note that e.g. the ->release callback already works like that, so this
->>>> pattern is there already. I simply extended it to ->wait and
->>>> ->enable_signaling. Also note that I leave the EXPORT_SYMBOL in place,
->>>> you can still wrap dma_fence_default_wait if you wish to do so.
->>>>
->>>> But I just realized that I didn't clean out the optional release
->>>> hooks, I guess I should do that too (for the few cases it's not yet
->>>> done) and respin.
->>> I kind of agree with Chris here, but also see the practical problem to copy
->>> the default function in all the implementations.
->>>
->>> We had the same problem in TTM and I also don't really like the result to
->>> always have that "if (some_callback) default(); else some_callback();".
->>>
->>> Might be that the run time overhead is negligible, but it doesn't feels
->>> right from the coding style perspective.
->> Hm, maybe I've seen too much bad code, but modeset helpers is choke full
->> of exactly that pattern. It's imo also a trade-off. If you have a fairly
->> specialized library like ttm that's used by relatively few things, doing
->> everything explicitly is probably better. It's also where kms started out
->> from.
->>
->> But if you have a huge pile of fairly simple drivers, imo the balance
->> starts to tip the other way, and a bit of additional logic in the shared
->> code to make all the implementations a notch simpler is good. If we
->> wouldn't have acquired quite a pile of dma_fence implementations I
->> wouldn't have bothered with all this.
-> So ack/nack on this (i.e. do you retract your original r-b or not)? It's
-> kinda holding up all the cleanup patches below ...
-
-Feel free to add my Acked-by for now, but I still have a kind of a gut 
-feeling that we might want to revisit this decision at some time.
-
-Christian.
-
+On Mon, Jul 2, 2018 at 4:44 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
 >
-> I went ahead and applied the first three patches of this series meanwhile.
-> -Daniel
+> Exisiting code returns the max of the decoded
+
+s/Exisiting/Existing
+
+Also the lines of your commit message look pretty short - I think the
+standard for kernel log messges is 72 chars?
+
+> size and buffer size. It turns out that buffer
+> size is always greater due to hardware alignment
+> requirement. As a result, payload size given to
+> client is incorrect. This change ensures that
+> the bytesused is assigned to actual payload size.
+>
+> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
+> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> index d079aeb..ada1d2f 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
+>
+>                 vb = &vbuf->vb2_buf;
+>                 vb->planes[0].bytesused =
+> -                       max_t(unsigned int, opb_sz, bytesused);
+> +                       min_t(unsigned int, opb_sz, bytesused);
+
+Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
+Tested-by: Alexandre Courbot <acourbot@chromium.org>
+
+This indeed reports the correct size to the client. If bytesused were
+larger than the size of the buffer we would be having some trouble
+anyway.
+
+Actually in my tree I was using the following patch:
+
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -924,13 +924,12 @@ static void vdec_buf_done(struct venus_inst
+*inst, unsigned int buf_type,
+
+               vb = &vbuf->vb2_buf;
+               vb->planes[0].bytesused =
+-                       max_t(unsigned int, opb_sz, bytesused);
++                       min_t(unsigned int, opb_sz, bytesused);
+               vb->planes[0].data_offset = data_offset;
+               vb->timestamp = timestamp_us * NSEC_PER_USEC;
+               vbuf->sequence = inst->sequence_cap++;
+               if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
+                       const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
+-                       vb->planes[0].bytesused = bytesused;
+                       v4l2_event_queue_fh(&inst->fh, &ev);
+
+Given that we are now taking the minimum of these two values, it seems
+to me that we don't need to set bytesused again in case we are dealing
+with the last buffer? Stanimir, what do you think?
