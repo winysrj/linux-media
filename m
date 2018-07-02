@@ -1,164 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:41257 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752277AbeGBSI0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 14:08:26 -0400
-Received: by mail-lj1-f194.google.com with SMTP id a17-v6so10094431ljd.8
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 11:08:25 -0700 (PDT)
-Date: Mon, 2 Jul 2018 20:08:23 +0200
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:40286 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752584AbeGBSHy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 14:07:54 -0400
+Received: by mail-lf0-f65.google.com with SMTP id y200-v6so7138972lfd.7
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 11:07:53 -0700 (PDT)
+Date: Mon, 2 Jul 2018 20:07:50 +0200
 From: Niklas =?iso-8859-1?Q?S=F6derlund?=
         <niklas.soderlund@ragnatech.se>
 To: Jacopo Mondi <jacopo+renesas@jmondi.org>
 Cc: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
         linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v6 06/10] media: rcar-vin: Parse parallel input on Gen3
-Message-ID: <20180702180823.GY5237@bigcity.dyn.berto.se>
+Subject: Re: [PATCH v6 03/10] media: rcar-vin: Create a group notifier
+Message-ID: <20180702180750.GX5237@bigcity.dyn.berto.se>
 References: <1528796612-7387-1-git-send-email-jacopo+renesas@jmondi.org>
- <1528796612-7387-7-git-send-email-jacopo+renesas@jmondi.org>
+ <1528796612-7387-4-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1528796612-7387-7-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1528796612-7387-4-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Jacopo,
 
-Thanks for your work.
+Thanks for your patch.
 
-On 2018-06-12 11:43:28 +0200, Jacopo Mondi wrote:
-> The rcar-vin driver so far had a mutually exclusive code path for
-> handling parallel and CSI-2 video input subdevices, with only the CSI-2
-> use case supporting media-controller. As we add support for parallel
-> inputs to Gen3 media-controller compliant code path now parse both port@0
-> and port@1, handling the media-controller use case in the parallel
-> bound/unbind notifier operations.
+On 2018-06-12 11:43:25 +0200, Jacopo Mondi wrote:
+> As CSI-2 subdevices are shared between several VIN instances, a shared
+> notifier to collect the CSI-2 async subdevices is required. So far, the
+> rcar-vin driver used the notifier of the last VIN instance to probe but
+> with the forth-coming introduction of parallel input subdevices support
+> in mc-compliant code path, each VIN may register its own notifier if any
+> parallel subdevice is connected there.
+> 
+> To avoid registering a notifier twice (once for parallel subdev and one
+> for the CSI-2 subdevs) create a group notifier, shared by all the VIN
+> instances.
 > 
 > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
 Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
 > ---
-> r5 -> r6:
-> - Fix 'error_group_unregister' and 'error_dma_unregister' label names
-> 
 > v4 -> v5:
-> - Re-group rvin_mc_init() function
-> - Add error_group_unreg error path to clean up group registration
-> - Change rvin_parallel_init() return type to make sure Gen2 works as before
-> 
+> - replace all 'notifier_to_vin()' with 'v4l2_dev_to_vin()'
 > v3 -> v4:
-> - Change the mc/parallel initialization order. Initialize mc first, then
->   parallel
-> - As a consequence no need to delay parallel notifiers registration, the
->   media controller is set up already when parallel input got parsed,
->   this greatly simplify the group notifier complete callback.
+> - Unregister and cleanup group notifier when un-registering the VIN
+>   instance whose v4l2_dev the notifier is associated to.
 > ---
-> 
->  drivers/media/platform/rcar-vin/rcar-core.c | 53 +++++++++++++++++++++--------
->  1 file changed, 38 insertions(+), 15 deletions(-)
+>  drivers/media/platform/rcar-vin/rcar-core.c | 46 +++++++++++++----------------
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  5 ++--
+>  2 files changed, 23 insertions(+), 28 deletions(-)
 > 
 > diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 39bb193..91ccaf8 100644
+> index bcf02de..72ffd19 100644
 > --- a/drivers/media/platform/rcar-vin/rcar-core.c
 > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -397,6 +397,11 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
->  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
->  	vin->parallel->sink_pad = ret < 0 ? 0 : ret;
+> @@ -46,6 +46,8 @@
+>   */
+>  #define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
 > 
-> +	if (vin->info->use_mc) {
-> +		vin->parallel->subdev = subdev;
-> +		return 0;
-> +	}
+> +#define v4l2_dev_to_vin(d)	container_of(d, struct rvin_dev, v4l2_dev)
 > +
->  	/* Find compatible subdevices mbus format */
->  	vin->mbus_code = 0;
->  	code.index = 0;
-> @@ -458,10 +463,12 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
->  static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
->  {
->  	rvin_v4l2_unregister(vin);
-> -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
+>  /* -----------------------------------------------------------------------------
+>   * Media Controller link notification
+>   */
+> @@ -359,8 +361,6 @@ static void rvin_group_put(struct rvin_dev *vin)
+>   * Async notifier
+>   */
+> 
+> -#define notifier_to_vin(n) container_of(n, struct rvin_dev, notifier)
 > -
-> -	vin->vdev.ctrl_handler = NULL;
->  	vin->parallel->subdev = NULL;
-> +
-> +	if (!vin->info->use_mc) {
-> +		v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +		vin->vdev.ctrl_handler = NULL;
-> +	}
->  }
+>  static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
+>  {
+>  	unsigned int pad;
+> @@ -466,7 +466,7 @@ static void rvin_parallel_subdevice_detach(struct rvin_dev *vin)
 > 
 >  static int rvin_parallel_notify_complete(struct v4l2_async_notifier *notifier)
-> @@ -550,18 +557,19 @@ static int rvin_parallel_parse_v4l2(struct device *dev,
->  	return 0;
->  }
-> 
-> -static int rvin_parallel_graph_init(struct rvin_dev *vin)
-> +static int rvin_parallel_init(struct rvin_dev *vin)
 >  {
+> -	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
 >  	int ret;
 > 
-> -	ret = v4l2_async_notifier_parse_fwnode_endpoints(
-> -		vin->dev, &vin->notifier,
-> -		sizeof(struct rvin_parallel_entity), rvin_parallel_parse_v4l2);
-> +	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
-> +		vin->dev, &vin->notifier, sizeof(struct rvin_parallel_entity),
-> +		0, rvin_parallel_parse_v4l2);
->  	if (ret)
+>  	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+> @@ -482,7 +482,7 @@ static void rvin_parallel_notify_unbind(struct v4l2_async_notifier *notifier,
+>  					struct v4l2_subdev *subdev,
+>  					struct v4l2_async_subdev *asd)
+>  {
+> -	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+> 
+>  	vin_dbg(vin, "unbind parallel subdev %s\n", subdev->name);
+> 
+> @@ -495,7 +495,7 @@ static int rvin_parallel_notify_bound(struct v4l2_async_notifier *notifier,
+>  				      struct v4l2_subdev *subdev,
+>  				      struct v4l2_async_subdev *asd)
+>  {
+> -	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+>  	int ret;
+> 
+>  	mutex_lock(&vin->lock);
+> @@ -583,7 +583,7 @@ static int rvin_parallel_graph_init(struct rvin_dev *vin)
+> 
+>  static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
+>  {
+> -	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+>  	const struct rvin_group_route *route;
+>  	unsigned int i;
+>  	int ret;
+> @@ -649,7 +649,7 @@ static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
+>  				     struct v4l2_subdev *subdev,
+>  				     struct v4l2_async_subdev *asd)
+>  {
+> -	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+>  	unsigned int i;
+> 
+>  	for (i = 0; i < RCAR_VIN_NUM; i++)
+> @@ -673,7 +673,7 @@ static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
+>  				   struct v4l2_subdev *subdev,
+>  				   struct v4l2_async_subdev *asd)
+>  {
+> -	struct rvin_dev *vin = notifier_to_vin(notifier);
+> +	struct rvin_dev *vin = v4l2_dev_to_vin(notifier->v4l2_dev);
+>  	unsigned int i;
+> 
+>  	mutex_lock(&vin->group->lock);
+> @@ -734,12 +734,6 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+> 
+>  	mutex_lock(&vin->group->lock);
+> 
+> -	/* If there already is a notifier something has gone wrong, bail out. */
+> -	if (WARN_ON(vin->group->notifier)) {
+> -		mutex_unlock(&vin->group->lock);
+> -		return -EINVAL;
+> -	}
+> -
+>  	/* If not all VIN's are registered don't register the notifier. */
+>  	for (i = 0; i < RCAR_VIN_NUM; i++)
+>  		if (vin->group->vin[i])
+> @@ -751,19 +745,16 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+>  	}
+> 
+>  	/*
+> -	 * Have all VIN's look for subdevices. Some subdevices will overlap
+> -	 * but the parser function can handle it, so each subdevice will
+> -	 * only be registered once with the notifier.
+> +	 * Have all VIN's look for CSI-2 subdevices. Some subdevices will
+> +	 * overlap but the parser function can handle it, so each subdevice
+> +	 * will only be registered once with the group notifier.
+>  	 */
+> -
+> -	vin->group->notifier = &vin->notifier;
+> -
+>  	for (i = 0; i < RCAR_VIN_NUM; i++) {
+>  		if (!vin->group->vin[i])
+>  			continue;
+> 
+>  		ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> -				vin->group->vin[i]->dev, vin->group->notifier,
+> +				vin->group->vin[i]->dev, &vin->group->notifier,
+>  				sizeof(struct v4l2_async_subdev), 1,
+>  				rvin_mc_parse_of_endpoint);
+>  		if (ret) {
+> @@ -774,9 +765,12 @@ static int rvin_mc_parse_of_graph(struct rvin_dev *vin)
+> 
+>  	mutex_unlock(&vin->group->lock);
+> 
+> -	vin->group->notifier->ops = &rvin_group_notify_ops;
+> +	if (!vin->group->notifier.num_subdevs)
+> +		return 0;
+> 
+> -	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+> +	vin->group->notifier.ops = &rvin_group_notify_ops;
+> +	ret = v4l2_async_notifier_register(&vin->v4l2_dev,
+> +					   &vin->group->notifier);
+>  	if (ret < 0) {
+>  		vin_err(vin, "Notifier registration failed\n");
 >  		return ret;
+> @@ -1114,8 +1108,10 @@ static int rcar_vin_remove(struct platform_device *pdev)
 > 
-> +	/* If using mc, it's fine not to have any input registered. */
->  	if (!vin->parallel)
-> -		return -ENODEV;
-> +		return vin->info->use_mc ? 0 : -ENODEV;
-> 
->  	vin_dbg(vin, "Found parallel subdevice %pOF\n",
->  		to_of_node(vin->parallel->asd.match.fwnode));
-> @@ -1074,20 +1082,35 @@ static int rcar_vin_probe(struct platform_device *pdev)
->  		return ret;
-> 
->  	platform_set_drvdata(pdev, vin);
-> -	if (vin->info->use_mc)
-> +
-> +	if (vin->info->use_mc) {
->  		ret = rvin_mc_init(vin);
-> -	else
-> -		ret = rvin_parallel_graph_init(vin);
-> -	if (ret < 0)
-> -		goto error;
-> +		if (ret)
-> +			goto error_dma_unregister;
-> +	}
-> +
-> +	ret = rvin_parallel_init(vin);
-> +	if (ret)
-> +		goto error_group_unregister;
-> 
->  	pm_suspend_ignore_children(&pdev->dev, true);
->  	pm_runtime_enable(&pdev->dev);
-> 
->  	return 0;
-> -error:
-> +
-> +error_group_unregister:
-> +	if (vin->info->use_mc) {
-> +		mutex_lock(&vin->group->lock);
+>  	if (vin->info->use_mc) {
+>  		mutex_lock(&vin->group->lock);
+> -		if (vin->group->notifier == &vin->notifier)
+> -			vin->group->notifier = NULL;
 > +		if (&vin->v4l2_dev == vin->group->notifier.v4l2_dev) {
 > +			v4l2_async_notifier_unregister(&vin->group->notifier);
 > +			v4l2_async_notifier_cleanup(&vin->group->notifier);
 > +		}
-> +		mutex_unlock(&vin->group->lock);
-> +		rvin_group_put(vin);
-> +	}
-> +
-> +error_dma_unregister:
->  	rvin_dma_unregister(vin);
-> -	v4l2_async_notifier_cleanup(&vin->notifier);
+>  		mutex_unlock(&vin->group->lock);
+>  		rvin_group_put(vin);
+>  	} else {
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+> index 755ac3c..ebb480f7 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -225,8 +225,7 @@ struct rvin_dev {
+>   *
+>   * @lock:		protects the count, notifier, vin and csi members
+>   * @count:		number of enabled VIN instances found in DT
+> - * @notifier:		pointer to the notifier of a VIN which handles the
+> - *			groups async sub-devices.
+> + * @notifier:		group notifier for CSI-2 async subdevices
+>   * @vin:		VIN instances which are part of the group
+>   * @csi:		array of pairs of fwnode and subdev pointers
+>   *			to all CSI-2 subdevices.
+> @@ -238,7 +237,7 @@ struct rvin_group {
 > 
->  	return ret;
->  }
+>  	struct mutex lock;
+>  	unsigned int count;
+> -	struct v4l2_async_notifier *notifier;
+> +	struct v4l2_async_notifier notifier;
+>  	struct rvin_dev *vin[RCAR_VIN_NUM];
+> 
+>  	struct {
 > --
 > 2.7.4
 > 
