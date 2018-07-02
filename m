@@ -1,77 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36386 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753866AbeGBJ7L (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 05:59:11 -0400
-Received: by mail-wr0-f193.google.com with SMTP id f16-v6so14881402wrm.3
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 02:59:10 -0700 (PDT)
-Subject: Re: [PATCH v2 12/29] venus: add common capability parser
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        vgarodia@codeaurora.org
-References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
- <20180515075859.17217-13-stanimir.varbanov@linaro.org>
- <CAAFQd5Bj73zyi0vsaSJ2sam2TGm7agshXg+n+sa2c7HoqLRGUw@mail.gmail.com>
- <13c7aec1-2bb9-f449-6b7d-7ec93be4ec71@linaro.org>
- <CAAFQd5B8UVk3n7m+MV3t68vrDhtd9Hi_CnuYS-4QFaVdByOTyA@mail.gmail.com>
- <CAAFQd5CddQBo2JRaab0uWdtkmetd=zDzVt=rM+vJZQ7DM-kLGA@mail.gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <30d141b6-dffa-bf6a-dae8-79595c966a23@linaro.org>
-Date: Mon, 2 Jul 2018 12:59:07 +0300
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42084 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753279AbeGBJvW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jul 2018 05:51:22 -0400
+Date: Mon, 2 Jul 2018 12:51:19 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 00/17] media: imx: Switch to subdev notifiers
+Message-ID: <20180702095119.t2adtiffpuaoanqk@valkosipuli.retiisi.org.uk>
+References: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5CddQBo2JRaab0uWdtkmetd=zDzVt=rM+vJZQ7DM-kLGA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1530298220-5097-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi Steve,
 
-On 07/02/2018 12:23 PM, Tomasz Figa wrote:
-> On Thu, May 31, 2018 at 4:06 PM Tomasz Figa <tfiga@chromium.org> wrote:
->>
->> On Thu, May 31, 2018 at 1:21 AM Stanimir Varbanov
->> <stanimir.varbanov@linaro.org> wrote:
->>>
->>> Hi Tomasz,
->>>
->>> On 05/24/2018 05:16 PM, Tomasz Figa wrote:
->>>> Hi Stanimir,
->>>>
->>>> On Tue, May 15, 2018 at 5:08 PM Stanimir Varbanov <
-> [snip]
->>>>
->>>>> +                       break;
->>>>> +               }
->>>>> +
->>>>> +               word++;
->>>>> +               words_count--;
->>>>
->>>> If data is at |word + 1|, shouldn’t we increment |word| by |1 + |data
->>>> size||?
->>>
->>> yes, that could be possible but the firmware packets are with variable
->>> data length and don't want to make the code so complex.
->>>
->>> The idea is to search for HFI_PROPERTY_PARAM* key numbers. Yes it is not
->>> optimal but this enumeration is happen only once during driver probe.
->>>
->>
->> Hmm, do we have a guarantee that we will never find a value that
->> matches HFI_PROPERTY_PARAM*, but would be actually just some data
->> inside the payload?
+On Fri, Jun 29, 2018 at 11:49:44AM -0700, Steve Longerbeam wrote:
+> This patchset converts the imx-media driver and its dependent
+> subdevs to use subdev notifiers.
 > 
-> Ping?
+> There are a couple shortcomings in v4l2-core that prevented
+> subdev notifiers from working correctly in imx-media:
+> 
+> 1. v4l2_async_notifier_fwnode_parse_endpoint() treats a fwnode
+>    endpoint that is not connected to a remote device as an error.
+>    But in the case of the video-mux subdev, this is not an error,
+>    it is OK if some of the mux inputs have no connection. Also,
+>    Documentation/devicetree/bindings/media/video-interfaces.txt explicitly
+>    states that the 'remote-endpoint' property is optional. So the first
+>    patch is a small modification to ignore empty endpoints in
+>    v4l2_async_notifier_fwnode_parse_endpoint() and allow
+>    __v4l2_async_notifier_parse_fwnode_endpoints() to continue to
+>    parse the remaining port endpoints of the device.
+> 
+> 2. In the imx-media graph, multiple subdevs will encounter the same
+>    upstream subdev (such as the imx6-mipi-csi2 receiver), and so
+>    v4l2_async_notifier_parse_fwnode_endpoints() will add imx6-mipi-csi2
+>    multiple times. This is treated as an error by
+>    v4l2_async_notifier_register() later.
+> 
+>    To get around this problem, add an v4l2_async_notifier_add_subdev()
+>    which first verifies the provided asd does not already exist in the
+>    given notifier asd list or in other registered notifiers. If the asd
+>    exists, the function returns -EEXIST and it's up to the caller to
+>    decide if that is an error (in imx-media case it is never an error).
+> 
+>    Patches 2-5 deal with adding that support.
+> 
+> 3. Patch 6 adds v4l2_async_register_fwnode_subdev(), which is a
+>    convenience function for parsing a subdev's fwnode port endpoints
+>    for connected remote subdevs, registering a subdev notifier, and
+>    then registering the sub-device itself.
+> 
+> 4. Patches 7-14 update the subdev drivers to register a subdev notifier
+>    with endpoint parsing, and the changes to imx-media to support that.
+> 
+> 5. Finally, the last 3 patches endeavor to completely remove support for
+>    the notifier->subdevs[] array in platform drivers and v4l2 core. All
+>    platform drivers are modified to make use of
+>    v4l2_async_notifier_add_subdev() and its related convenience functions
+>    to add asd's to the notifier @asd_list, and any allocation or reference
+>    to the notifier->subdevs[] array removed. After that large patch,
+>    notifier->subdevs[] array is stripped from v4l2-async and v4l2-subdev
+>    docs are updated to reflect the new method of adding asd's to notifiers.
+> 
+> 
 
-OK, you are right there is guarantee that we not mixing keywords and
-data. I can make parse_* functions to return how words they consumed and
-increment 'word' pointer with consumed words.
+Thanks for the update! This is beginning to look really nice. A few notes
+on the entire set. I'll separately review some of the patches; I mainly
+wanted to see how the async/fwnode framework changes end up:
+
+- The reason V4L2_MAX_SUBDEVS exists is to avoid drivers accidentally
+  allocating more space than intended. Now that the subdevs array will
+  disappear, the checks as well as the macro can be removed. I think the
+  num_subdevs field also becomes redundant as a result. Could you do this
+  in the patch that removes the subdevs array?
+
+- The notifier has register, unregister and cleanup operations. Now that
+  there's an obvious need to initialise it, it'd make sense to show that to
+  the drivers as an init operation --- rather than silently initialise it
+  based on the need.
+
+- I'd assign j in its declaration in
+  v4l2_async_notifier_has_async_subdev().
+
+- No need to explicitly check that the notifier's asd_list is empty in
+  __v4l2_async_notifier_register --- list_for_each_entry() over the same
+  list will be nop in that case.
 
 -- 
-regards,
-Stan
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
