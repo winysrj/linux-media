@@ -1,91 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:56338 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933423AbeGBJfM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jul 2018 05:35:12 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.19] Various fixes
-Message-ID: <c5bb5c97-9e6c-75b5-bfa3-c4507693d86e@xs4all.nl>
-Date: Mon, 2 Jul 2018 11:35:10 +0200
+Received: from smtp.codeaurora.org ([198.145.29.96]:60560 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933423AbeGBJfV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 05:35:21 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
+Date: Mon, 02 Jul 2018 15:05:20 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, Tomasz Figa <tfiga@chromium.org>,
+        linux-media-owner@vger.kernel.org
+Subject: Re: [PATCH v4 24/27] venus: helpers: move frame size calculations on
+ common place
+In-Reply-To: <CAPBb6MVPrparfoAMaVwsDrwPO1K8cnWb24WdZFGeU5aoEqDt5w@mail.gmail.com>
+References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
+ <20180627152725.9783-25-stanimir.varbanov@linaro.org>
+ <CAPBb6MVPrparfoAMaVwsDrwPO1K8cnWb24WdZFGeU5aoEqDt5w@mail.gmail.com>
+Message-ID: <4e22af7d7ef9037996b606892ed25b36@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 2018-07-02 14:16, Alexandre Courbot wrote:
+> On Thu, Jun 28, 2018 at 12:28 AM Stanimir Varbanov
+> <stanimir.varbanov@linaro.org> wrote:
+>> 
+>> This move the calculations of raw and compressed buffer sizes
+>> on common helper and make it identical for encoder and decoder.
+>> 
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/helpers.c | 98 
+>> +++++++++++++++++++++++++++++
+>>  drivers/media/platform/qcom/venus/helpers.h |  2 +
+>>  drivers/media/platform/qcom/venus/vdec.c    | 54 ++++------------
+>>  drivers/media/platform/qcom/venus/venc.c    | 56 ++++-------------
+>>  4 files changed, 126 insertions(+), 84 deletions(-)
+>> 
+>> diff --git a/drivers/media/platform/qcom/venus/helpers.c 
+>> b/drivers/media/platform/qcom/venus/helpers.c
+>> index 6b31c91528ed..a342472ae2f0 100644
+>> --- a/drivers/media/platform/qcom/venus/helpers.c
+>> +++ b/drivers/media/platform/qcom/venus/helpers.c
+>> @@ -452,6 +452,104 @@ int venus_helper_get_bufreq(struct venus_inst 
+>> *inst, u32 type,
+>>  }
+>>  EXPORT_SYMBOL_GPL(venus_helper_get_bufreq);
+>> 
+>> +static u32 get_framesize_raw_nv12(u32 width, u32 height)
+>> +{
+>> +       u32 y_stride, uv_stride, y_plane;
+>> +       u32 y_sclines, uv_sclines, uv_plane;
+>> +       u32 size;
+>> +
+>> +       y_stride = ALIGN(width, 128);
+>> +       uv_stride = ALIGN(width, 128);
+>> +       y_sclines = ALIGN(height, 32);
+>> +       uv_sclines = ALIGN(((height + 1) >> 1), 16);
+>> +
+>> +       y_plane = y_stride * y_sclines;
+>> +       uv_plane = uv_stride * uv_sclines + SZ_4K;
+>> +       size = y_plane + uv_plane + SZ_8K;
+> 
+> Do you know the reason for this extra 8K at the end?
 
-The usual 'various fixes'. A bunch of coda fixes, and I cherry-picked from
-Ezequiel's https://www.spinics.net/lists/linux-media/msg136223.html patch
-series.
+As explained about the hardware requirement over bug [1], 8k is not 
+needed.
+I am working on a patch to fix the alignment requirement for ubwc format 
+as
+well.
+In downstream driver, this 8k was added to accomodate the video 
+extradata.
 
-Regards,
-
-	Hans
-
-The following changes since commit 3c4a737267e89aafa6308c6c456d2ebea3fcd085:
-
-  media: ov5640: fix frame interval enumeration (2018-06-28 09:24:38 -0400)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.19f
-
-for you to fetch changes up to bf40e3b08f4b7f5f49ffe28f94a2a505017df5c2:
-
-  media: fsl-viu: fix error handling in viu_of_probe() (2018-07-02 10:56:01 +0200)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      media: fsl-viu: fix error handling in viu_of_probe()
-
-Ezequiel Garcia (8):
-      sta2x11: Add video_device and vb2_queue locks
-      mtk-mdp: Add locks for capture and output vb2_queues
-      s5p-g2d: Implement wait_prepare and wait_finish
-      staging: bcm2835-camera: Provide lock for vb2_queue
-      davinci_vpfe: Add video_device and vb2_queue locks
-      mx_emmaprp: Implement wait_prepare and wait_finish
-      m2m-deinterlace: Implement wait_prepare and wait_finish
-      stk1160: Set the vb2_queue lock before calling vb2_queue_init
-
-Hans Verkuil (2):
-      v4l2-ioctl.c: use correct vb2_queue lock for m2m devices
-      vivid: fix gain when autogain is on
-
-Philipp Zabel (8):
-      media: coda: fix encoder source stride
-      media: coda: add read-only h.264 decoder profile/level controls
-      media: coda: fix reorder detection for unknown levels
-      media: coda: clear hold flag on streamoff
-      media: coda: jpeg: allow non-JPEG colorspace
-      media: coda: jpeg: only queue two buffers into the bitstream for JPEG on CODA7541
-      media: coda: jpeg: explicitly disable thumbnails in SEQ_INIT
-      media: coda: mark CODA960 firmware version 2.1.9 as supported
-
-Steve Longerbeam (1):
-      media: v4l2-ctrls: Fix CID base conflict between MAX217X and IMX
-
- drivers/media/pci/sta2x11/sta2x11_vip.c                       |   6 +++
- drivers/media/platform/coda/coda-bit.c                        |  38 +++++--------
- drivers/media/platform/coda/coda-common.c                     | 118 +++++++++++++++++++++++++++++++++++++++--
- drivers/media/platform/coda/coda.h                            |   2 +
- drivers/media/platform/coda/coda_regs.h                       |   1 +
- drivers/media/platform/fsl-viu.c                              |  38 +++++++------
- drivers/media/platform/m2m-deinterlace.c                      |   4 ++
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c                  |  20 ++-----
- drivers/media/platform/mx2_emmaprp.c                          |   4 ++
- drivers/media/platform/s5p-g2d/g2d.c                          |   2 +
- drivers/media/platform/vivid/vivid-ctrls.c                    |   2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c                       |   2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c                          |  56 ++++++++++++++++++-
- drivers/staging/media/davinci_vpfe/vpfe_video.c               |   6 ++-
- drivers/staging/media/davinci_vpfe/vpfe_video.h               |   2 +-
- drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c |  24 ++-------
- include/uapi/linux/v4l2-controls.h                            |   2 +-
- 17 files changed, 242 insertions(+), 85 deletions(-)
+[1] https://partnerissuetracker.corp.google.com/u/1/issues/110448791
