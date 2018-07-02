@@ -1,24 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:53856 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933652AbeGBIpu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 04:45:50 -0400
-Received: by mail-it0-f68.google.com with SMTP id a195-v6so11059251itd.3
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:45:49 -0700 (PDT)
-Received: from mail-io0-f174.google.com (mail-io0-f174.google.com. [209.85.223.174])
-        by smtp.gmail.com with ESMTPSA id m14-v6sm6389026ioj.58.2018.07.02.01.45.47
+Received: from mail-it0-f66.google.com ([209.85.214.66]:52969 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754305AbeGBIp5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 04:45:57 -0400
+Received: by mail-it0-f66.google.com with SMTP id p4-v6so11057912itf.2
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:45:57 -0700 (PDT)
+Received: from mail-io0-f173.google.com (mail-io0-f173.google.com. [209.85.223.173])
+        by smtp.gmail.com with ESMTPSA id o193-v6sm3666368itb.41.2018.07.02.01.45.54
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 02 Jul 2018 01:45:47 -0700 (PDT)
-Received: by mail-io0-f174.google.com with SMTP id q9-v6so3308080ioj.8
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:45:47 -0700 (PDT)
+        Mon, 02 Jul 2018 01:45:55 -0700 (PDT)
+Received: by mail-io0-f173.google.com with SMTP id r24-v6so14033991ioh.9
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:45:54 -0700 (PDT)
 MIME-Version: 1.0
-References: <20180627152725.9783-1-stanimir.varbanov@linaro.org> <20180627152725.9783-3-stanimir.varbanov@linaro.org>
-In-Reply-To: <20180627152725.9783-3-stanimir.varbanov@linaro.org>
+References: <20180627152725.9783-1-stanimir.varbanov@linaro.org> <20180627152725.9783-12-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180627152725.9783-12-stanimir.varbanov@linaro.org>
 From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 2 Jul 2018 17:45:35 +0900
-Message-ID: <CAPBb6MVST50MfDbs_GydCBDAA_fsVTYVVU9iCGiaCnMxPBRBPg@mail.gmail.com>
-Subject: Re: [PATCH v4 02/27] venus: hfi: preparation to support venus 4xx
+Date: Mon, 2 Jul 2018 17:45:43 +0900
+Message-ID: <CAPBb6MVToYzWhmbjU-M6g2CjwMzWyF97k2WqcUBFA+zTq6uhdg@mail.gmail.com>
+Subject: Re: [PATCH v4 11/27] venus: core,helpers: add two more clocks found
+ in Venus 4xx
 To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
@@ -30,359 +31,306 @@ Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 28, 2018 at 12:35 AM Stanimir Varbanov
+On Thu, Jun 28, 2018 at 12:34 AM Stanimir Varbanov
 <stanimir.varbanov@linaro.org> wrote:
 >
-> This covers the differences between 1xx,3xx and 4xx.
+> Add two more clocks for Venus 4xx in core structure and create
+> a new power enable function to handle it for 3xx/4xx versions.
 >
 > Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 > ---
->  drivers/media/platform/qcom/venus/core.h         |  4 ++
->  drivers/media/platform/qcom/venus/helpers.c      | 37 +++++++----
->  drivers/media/platform/qcom/venus/hfi_helper.h   | 84 ++++++++++++++++++++++--
->  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 ++
->  drivers/media/platform/qcom/venus/vdec.c         |  5 +-
->  drivers/media/platform/qcom/venus/venc.c         |  5 +-
->  6 files changed, 120 insertions(+), 22 deletions(-)
+>  drivers/media/platform/qcom/venus/core.h    |  4 +++
+>  drivers/media/platform/qcom/venus/helpers.c | 51 +++++++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/helpers.h |  2 ++
+>  drivers/media/platform/qcom/venus/vdec.c    | 44 ++++++++++++++++++++-----
+>  drivers/media/platform/qcom/venus/venc.c    | 44 ++++++++++++++++++++-----
+>  5 files changed, 129 insertions(+), 16 deletions(-)
 >
 > diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-> index 0360d295f4c8..8d3e150800c9 100644
+> index 8d3e150800c9..2bf8839784fa 100644
 > --- a/drivers/media/platform/qcom/venus/core.h
 > +++ b/drivers/media/platform/qcom/venus/core.h
-> @@ -305,6 +305,10 @@ struct venus_inst {
->         struct hfi_buffer_requirements bufreq[HFI_BUFFER_TYPE_MAX];
->  };
->
-> +#define IS_V1(core)    ((core)->res->hfi_version == HFI_VERSION_1XX)
-> +#define IS_V3(core)    ((core)->res->hfi_version == HFI_VERSION_3XX)
-> +#define IS_V4(core)    ((core)->res->hfi_version == HFI_VERSION_4XX)
-> +
->  #define ctrl_to_inst(ctrl)     \
->         container_of((ctrl)->handler, struct venus_inst, ctrl_handler)
->
+> @@ -65,6 +65,8 @@ struct venus_format {
+>   * @clks:      an array of struct clk pointers
+>   * @core0_clk: a struct clk pointer for core0
+>   * @core1_clk: a struct clk pointer for core1
+> + * @core0_bus_clk: a struct clk pointer for core0 bus clock
+> + * @core1_bus_clk: a struct clk pointer for core1 bus clock
+>   * @vdev_dec:  a reference to video device structure for decoder instances
+>   * @vdev_enc:  a reference to video device structure for encoder instances
+>   * @v4l2_dev:  a holder for v4l2 device structure
+> @@ -94,6 +96,8 @@ struct venus_core {
+>         struct clk *clks[VIDC_CLKS_NUM_MAX];
+>         struct clk *core0_clk;
+>         struct clk *core1_clk;
+> +       struct clk *core0_bus_clk;
+> +       struct clk *core1_bus_clk;
+>         struct video_device *vdev_dec;
+>         struct video_device *vdev_enc;
+>         struct v4l2_device v4l2_dev;
 > diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-> index 0ce9559a2924..d9065cc8a7d3 100644
+> index d9065cc8a7d3..228084e72fb7 100644
 > --- a/drivers/media/platform/qcom/venus/helpers.c
 > +++ b/drivers/media/platform/qcom/venus/helpers.c
-> @@ -166,21 +166,37 @@ static int intbufs_unset_buffers(struct venus_inst *inst)
+> @@ -13,6 +13,7 @@
+>   *
+>   */
+>  #include <linux/clk.h>
+> +#include <linux/iopoll.h>
+>  #include <linux/list.h>
+>  #include <linux/mutex.h>
+>  #include <linux/pm_runtime.h>
+> @@ -24,6 +25,7 @@
+>  #include "core.h"
+>  #include "helpers.h"
+>  #include "hfi_helper.h"
+> +#include "hfi_venus_io.h"
+>
+>  struct intbuf {
+>         struct list_head list;
+> @@ -781,3 +783,52 @@ void venus_helper_init_instance(struct venus_inst *inst)
+>         }
+>  }
+>  EXPORT_SYMBOL_GPL(venus_helper_init_instance);
+> +
+> +int venus_helper_power_enable(struct venus_core *core, u32 session_type,
+> +                             bool enable)
+> +{
+> +       void __iomem *ctrl, *stat;
+> +       u32 val;
+> +       int ret;
+> +
+> +       if (!IS_V3(core) && !IS_V4(core))
+> +               return 0;
+> +
+> +       if (IS_V3(core)) {
+> +               if (session_type == VIDC_SESSION_TYPE_DEC)
+> +                       ctrl = core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL;
+> +               else
+> +                       ctrl = core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL;
+> +               if (enable)
+> +                       writel(0, ctrl);
+> +               else
+> +                       writel(1, ctrl);
+> +
+> +               return 0;
+> +       }
+> +
+> +       if (session_type == VIDC_SESSION_TYPE_DEC) {
+> +               ctrl = core->base + WRAPPER_VCODEC0_MMCC_POWER_CONTROL;
+> +               stat = core->base + WRAPPER_VCODEC0_MMCC_POWER_STATUS;
+> +       } else {
+> +               ctrl = core->base + WRAPPER_VCODEC1_MMCC_POWER_CONTROL;
+> +               stat = core->base + WRAPPER_VCODEC1_MMCC_POWER_STATUS;
+> +       }
+> +
+> +       if (enable) {
+> +               writel(0, ctrl);
+> +
+> +               ret = readl_poll_timeout(stat, val, val & BIT(1), 1, 100);
+> +               if (ret)
+> +                       return ret;
+> +       } else {
+> +               writel(1, ctrl);
+> +
+> +               ret = readl_poll_timeout(stat, val, !(val & BIT(1)), 1, 100);
+> +               if (ret)
+> +                       return ret;
+> +       }
+> +
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(venus_helper_power_enable);
+> diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
+> index 971392be5df5..0e64aa95624a 100644
+> --- a/drivers/media/platform/qcom/venus/helpers.h
+> +++ b/drivers/media/platform/qcom/venus/helpers.h
+> @@ -43,4 +43,6 @@ int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
+>  void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
+>  void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
+>  void venus_helper_init_instance(struct venus_inst *inst);
+> +int venus_helper_power_enable(struct venus_core *core, u32 session_type,
+> +                             bool enable);
+>  #endif
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> index 261a51adeef2..3cf243ddcdb8 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -1081,12 +1081,18 @@ static int vdec_probe(struct platform_device *pdev)
+>         if (!core)
+>                 return -EPROBE_DEFER;
+>
+> -       if (core->res->hfi_version == HFI_VERSION_3XX) {
+> +       if (IS_V3(core) || IS_V4(core)) {
+>                 core->core0_clk = devm_clk_get(dev, "core");
+>                 if (IS_ERR(core->core0_clk))
+>                         return PTR_ERR(core->core0_clk);
+>         }
+>
+> +       if (IS_V4(core)) {
+> +               core->core0_bus_clk = devm_clk_get(dev, "bus");
+> +               if (IS_ERR(core->core0_bus_clk))
+> +                       return PTR_ERR(core->core0_bus_clk);
+> +       }
+> +
+>         platform_set_drvdata(pdev, core);
+>
+>         vdev = video_device_alloc();
+> @@ -1131,15 +1137,21 @@ static int vdec_remove(struct platform_device *pdev)
+>  static __maybe_unused int vdec_runtime_suspend(struct device *dev)
+>  {
+>         struct venus_core *core = dev_get_drvdata(dev);
+> +       int ret;
+>
+> -       if (core->res->hfi_version == HFI_VERSION_1XX)
+> +       if (IS_V1(core))
+>                 return 0;
+>
+> -       writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> +       ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
+> +
+> +       if (IS_V4(core))
+> +               clk_disable_unprepare(core->core0_bus_clk);
+> +
+>         clk_disable_unprepare(core->core0_clk);
+> -       writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+>
+> -       return 0;
+> +       ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
+
+Is it safe to OR two potentially different error messages, at the risk
+of getting a third one that is different?
+
+If venus_helper_power_enable() fails, shouldn't we just exit early and
+signify that the suspend operation failed?
+
+> +
+> +       return ret;
+>  }
+>
+>  static __maybe_unused int vdec_runtime_resume(struct device *dev)
+> @@ -1147,13 +1159,29 @@ static __maybe_unused int vdec_runtime_resume(struct device *dev)
+>         struct venus_core *core = dev_get_drvdata(dev);
+>         int ret;
+>
+> -       if (core->res->hfi_version == HFI_VERSION_1XX)
+> +       if (IS_V1(core))
+>                 return 0;
+>
+> -       writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> +       ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, true);
+> +       if (ret)
+> +               return ret;
+
+... similarly to what it done here, actually.
+
+> +
+>         ret = clk_prepare_enable(core->core0_clk);
+> -       writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
+> +       if (ret)
+> +               goto err_power_disable;
+> +
+> +       if (IS_V4(core))
+> +               ret = clk_prepare_enable(core->core0_bus_clk);
+>
+> +       if (ret)
+> +               goto err_unprepare_core0;
+> +
+> +       return venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
+> +
+> +err_unprepare_core0:
+> +       clk_disable_unprepare(core->core0_clk);
+> +err_power_disable:
+> +       venus_helper_power_enable(core, VIDC_SESSION_TYPE_DEC, false);
 >         return ret;
 >  }
 >
-> -static const unsigned int intbuf_types[] = {
-> -       HFI_BUFFER_INTERNAL_SCRATCH,
-> -       HFI_BUFFER_INTERNAL_SCRATCH_1,
-> -       HFI_BUFFER_INTERNAL_SCRATCH_2,
-> +static const unsigned int intbuf_types_1xx[] = {
-> +       HFI_BUFFER_INTERNAL_SCRATCH(HFI_VERSION_1XX),
-> +       HFI_BUFFER_INTERNAL_SCRATCH_1(HFI_VERSION_1XX),
-> +       HFI_BUFFER_INTERNAL_SCRATCH_2(HFI_VERSION_1XX),
-> +       HFI_BUFFER_INTERNAL_PERSIST,
-> +       HFI_BUFFER_INTERNAL_PERSIST_1,
-> +};
-> +
-> +static const unsigned int intbuf_types_4xx[] = {
-> +       HFI_BUFFER_INTERNAL_SCRATCH(HFI_VERSION_4XX),
-> +       HFI_BUFFER_INTERNAL_SCRATCH_1(HFI_VERSION_4XX),
-> +       HFI_BUFFER_INTERNAL_SCRATCH_2(HFI_VERSION_4XX),
->         HFI_BUFFER_INTERNAL_PERSIST,
->         HFI_BUFFER_INTERNAL_PERSIST_1,
->  };
->
->  static int intbufs_alloc(struct venus_inst *inst)
->  {
-> -       unsigned int i;
-> +       size_t arr_sz;
-> +       size_t i;
->         int ret;
->
-> -       for (i = 0; i < ARRAY_SIZE(intbuf_types); i++) {
-> -               ret = intbufs_set_buffer(inst, intbuf_types[i]);
-> +       if (IS_V4(inst->core))
-> +               arr_sz = ARRAY_SIZE(intbuf_types_4xx);
-> +       else
-> +               arr_sz = ARRAY_SIZE(intbuf_types_1xx);
-> +
-> +       for (i = 0; i < arr_sz; i++) {
-> +               ret = intbufs_set_buffer(inst,
-> +                           IS_V4(inst->core) ? intbuf_types_4xx[i] :
-> +                                               intbuf_types_1xx[i]);
-
-I suspect you could simplify this a bit by doing something like:
-
-    const unsigned int *intbuf;
-
-    if (IS_V4(inst->core)) {
-        arr_sz = ARRAY_SIZE(intbuf_types_4xx);
-        intbuf = intbuf_types_4xx;
-    } else {
-        arr_sz = ARRAY_SIZE(intbuf_types_1xx);
-        intbuf = intbuf_types_1xx;
-    }
-
-    for (i = 0; i < arr_sz; i++) {
-        ret = intbufs_set_buffer(inst, intbuf[i]);
-        if (ret)
-            goto error;
-    }
-
->                 if (ret)
->                         goto error;
->         }
-> @@ -257,12 +273,11 @@ static int load_scale_clocks(struct venus_core *core)
->
->  set_freq:
->
-> -       if (core->res->hfi_version == HFI_VERSION_3XX) {
-> -               ret = clk_set_rate(clk, freq);
-> +       ret = clk_set_rate(clk, freq);
-> +
-> +       if (IS_V3(core) || IS_V4(core)) {
->                 ret |= clk_set_rate(core->core0_clk, freq);
->                 ret |= clk_set_rate(core->core1_clk, freq);
-> -       } else {
-> -               ret = clk_set_rate(clk, freq);
->         }
->
->         if (ret) {
-> diff --git a/drivers/media/platform/qcom/venus/hfi_helper.h b/drivers/media/platform/qcom/venus/hfi_helper.h
-> index 55d8eb21403a..1bc5aab1ce6b 100644
-> --- a/drivers/media/platform/qcom/venus/hfi_helper.h
-> +++ b/drivers/media/platform/qcom/venus/hfi_helper.h
-> @@ -121,6 +121,7 @@
->  #define HFI_EXTRADATA_METADATA_FILLER                  0x7fe00002
->
->  #define HFI_INDEX_EXTRADATA_INPUT_CROP                 0x0700000e
-> +#define HFI_INDEX_EXTRADATA_OUTPUT_CROP                        0x0700000f
->  #define HFI_INDEX_EXTRADATA_DIGITAL_ZOOM               0x07000010
->  #define HFI_INDEX_EXTRADATA_ASPECT_RATIO               0x7f100003
->
-> @@ -376,13 +377,18 @@
->  #define HFI_BUFFER_OUTPUT2                     0x3
->  #define HFI_BUFFER_INTERNAL_PERSIST            0x4
->  #define HFI_BUFFER_INTERNAL_PERSIST_1          0x5
-> -#define HFI_BUFFER_INTERNAL_SCRATCH            0x1000001
-> -#define HFI_BUFFER_EXTRADATA_INPUT             0x1000002
-> -#define HFI_BUFFER_EXTRADATA_OUTPUT            0x1000003
-> -#define HFI_BUFFER_EXTRADATA_OUTPUT2           0x1000004
-> -#define HFI_BUFFER_INTERNAL_SCRATCH_1          0x1000005
-> -#define HFI_BUFFER_INTERNAL_SCRATCH_2          0x1000006
-> -
-> +#define HFI_BUFFER_INTERNAL_SCRATCH(ver)       \
-> +       (((ver) == HFI_VERSION_4XX) ? 0x6 : 0x1000001)
-> +#define HFI_BUFFER_INTERNAL_SCRATCH_1(ver)     \
-> +       (((ver) == HFI_VERSION_4XX) ? 0x7 : 0x1000005)
-> +#define HFI_BUFFER_INTERNAL_SCRATCH_2(ver)     \
-> +       (((ver) == HFI_VERSION_4XX) ? 0x8 : 0x1000006)
-> +#define HFI_BUFFER_EXTRADATA_INPUT(ver)                \
-> +       (((ver) == HFI_VERSION_4XX) ? 0xc : 0x1000002)
-> +#define HFI_BUFFER_EXTRADATA_OUTPUT(ver)       \
-> +       (((ver) == HFI_VERSION_4XX) ? 0xa : 0x1000003)
-> +#define HFI_BUFFER_EXTRADATA_OUTPUT2(ver)      \
-> +       (((ver) == HFI_VERSION_4XX) ? 0xb : 0x1000004)
->  #define HFI_BUFFER_TYPE_MAX                    11
->
->  #define HFI_BUFFER_MODE_STATIC                 0x1000001
-> @@ -424,12 +430,14 @@
->  #define HFI_PROPERTY_PARAM_CODEC_MASK_SUPPORTED                        0x100e
->  #define HFI_PROPERTY_PARAM_MVC_BUFFER_LAYOUT                   0x100f
->  #define HFI_PROPERTY_PARAM_MAX_SESSIONS_SUPPORTED              0x1010
-> +#define HFI_PROPERTY_PARAM_WORK_MODE                           0x1015
->
->  /*
->   * HFI_PROPERTY_CONFIG_COMMON_START
->   * HFI_DOMAIN_BASE_COMMON + HFI_ARCH_COMMON_OFFSET + 0x2000
->   */
->  #define HFI_PROPERTY_CONFIG_FRAME_RATE                         0x2001
-> +#define HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE                   0x2002
->
->  /*
->   * HFI_PROPERTY_PARAM_VDEC_COMMON_START
-> @@ -438,6 +446,9 @@
->  #define HFI_PROPERTY_PARAM_VDEC_MULTI_STREAM                   0x1003001
->  #define HFI_PROPERTY_PARAM_VDEC_CONCEAL_COLOR                  0x1003002
->  #define HFI_PROPERTY_PARAM_VDEC_NONCP_OUTPUT2                  0x1003003
-> +#define HFI_PROPERTY_PARAM_VDEC_PIXEL_BITDEPTH                 0x1003007
-> +#define HFI_PROPERTY_PARAM_VDEC_PIC_STRUCT                     0x1003009
-> +#define HFI_PROPERTY_PARAM_VDEC_COLOUR_SPACE                   0x100300a
->
->  /*
->   * HFI_PROPERTY_CONFIG_VDEC_COMMON_START
-> @@ -518,6 +529,7 @@
->  enum hfi_version {
->         HFI_VERSION_1XX,
->         HFI_VERSION_3XX,
-> +       HFI_VERSION_4XX
->  };
->
->  struct hfi_buffer_info {
-> @@ -767,12 +779,56 @@ struct hfi_framesize {
->         u32 height;
->  };
->
-> +#define VIDC_CORE_ID_DEFAULT   0
-> +#define VIDC_CORE_ID_1         1
-> +#define VIDC_CORE_ID_2         2
-> +#define VIDC_CORE_ID_3         3
-> +
-> +struct hfi_videocores_usage_type {
-> +       u32 video_core_enable_mask;
-> +};
-> +
-> +#define VIDC_WORK_MODE_1       1
-> +#define VIDC_WORK_MODE_2       2
-> +
-> +struct hfi_video_work_mode {
-> +       u32 video_work_mode;
-> +};
-> +
->  struct hfi_h264_vui_timing_info {
->         u32 enable;
->         u32 fixed_framerate;
->         u32 time_scale;
->  };
->
-> +struct hfi_bit_depth {
-> +       u32 buffer_type;
-> +       u32 bit_depth;
-> +};
-> +
-> +struct hfi_picture_type {
-> +       u32 is_sync_frame;
-> +       u32 picture_type;
-> +};
-> +
-> +struct hfi_pic_struct {
-> +       u32 progressive_only;
-> +};
-> +
-> +struct hfi_colour_space {
-> +       u32 colour_space;
-> +};
-> +
-> +struct hfi_extradata_input_crop {
-> +       u32 size;
-> +       u32 version;
-> +       u32 port_index;
-> +       u32 left;
-> +       u32 top;
-> +       u32 width;
-> +       u32 height;
-> +};
-
-These structures are being used in the next patch - wouldn't it make
-more sense to move their declaration there as well?
-
-> +
->  #define HFI_COLOR_FORMAT_MONOCHROME            0x01
->  #define HFI_COLOR_FORMAT_NV12                  0x02
->  #define HFI_COLOR_FORMAT_NV21                  0x03
-> @@ -961,6 +1017,12 @@ struct hfi_buffer_count_actual {
->         u32 count_actual;
->  };
->
-> +struct hfi_buffer_count_actual_4xx {
-> +       u32 type;
-> +       u32 count_actual;
-> +       u32 count_min_host;
-> +};
-> +
->  struct hfi_buffer_size_actual {
->         u32 type;
->         u32 size;
-> @@ -971,6 +1033,14 @@ struct hfi_buffer_display_hold_count_actual {
->         u32 hold_count;
->  };
->
-> +/* HFI 4XX reorder the fields, use these macros */
-> +#define HFI_BUFREQ_HOLD_COUNT(bufreq, ver)     \
-> +       ((ver) == HFI_VERSION_4XX ? 0 : (bufreq)->hold_count)
-> +#define HFI_BUFREQ_COUNT_MIN(bufreq, ver)      \
-> +       ((ver) == HFI_VERSION_4XX ? (bufreq)->hold_count : (bufreq)->count_min)
-> +#define HFI_BUFREQ_COUNT_MIN_HOST(bufreq, ver) \
-> +       ((ver) == HFI_VERSION_4XX ? (bufreq)->count_min : 0)
-> +
->  struct hfi_buffer_requirements {
->         u32 type;
->         u32 size;
-> diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-> index 98cc350113ab..d327b5cea334 100644
-> --- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
-> +++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-> @@ -110,4 +110,11 @@
->  #define WRAPPER_CPU_STATUS                     (WRAPPER_BASE + 0x2014)
->  #define WRAPPER_SW_RESET                       (WRAPPER_BASE + 0x3000)
->
-> +/* Venus 4xx */
-> +#define WRAPPER_VCODEC0_MMCC_POWER_STATUS      (WRAPPER_BASE + 0x90)
-> +#define WRAPPER_VCODEC0_MMCC_POWER_CONTROL     (WRAPPER_BASE + 0x94)
-> +
-> +#define WRAPPER_VCODEC1_MMCC_POWER_STATUS      (WRAPPER_BASE + 0x110)
-> +#define WRAPPER_VCODEC1_MMCC_POWER_CONTROL     (WRAPPER_BASE + 0x114)
-> +
->  #endif
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> index 49bbd1861d3a..261a51adeef2 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -689,6 +689,7 @@ static int vdec_queue_setup(struct vb2_queue *q,
->
->  static int vdec_verify_conf(struct venus_inst *inst)
->  {
-> +       enum hfi_version ver = inst->core->res->hfi_version;
->         struct hfi_buffer_requirements bufreq;
->         int ret;
->
-> @@ -700,14 +701,14 @@ static int vdec_verify_conf(struct venus_inst *inst)
->                 return ret;
->
->         if (inst->num_output_bufs < bufreq.count_actual ||
-> -           inst->num_output_bufs < bufreq.count_min)
-> +           inst->num_output_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
->                 return -EINVAL;
->
->         ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
->         if (ret)
->                 return ret;
->
-> -       if (inst->num_input_bufs < bufreq.count_min)
-> +       if (inst->num_input_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
->                 return -EINVAL;
->
->         return 0;
 > diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-> index 6b2ce479584e..947001170a77 100644
+> index 947001170a77..2cd7b342b208 100644
 > --- a/drivers/media/platform/qcom/venus/venc.c
 > +++ b/drivers/media/platform/qcom/venus/venc.c
-> @@ -892,6 +892,7 @@ static int venc_queue_setup(struct vb2_queue *q,
+> @@ -1225,12 +1225,18 @@ static int venc_probe(struct platform_device *pdev)
+>         if (!core)
+>                 return -EPROBE_DEFER;
 >
->  static int venc_verify_conf(struct venus_inst *inst)
+> -       if (core->res->hfi_version == HFI_VERSION_3XX) {
+> +       if (IS_V3(core) || IS_V4(core)) {
+>                 core->core1_clk = devm_clk_get(dev, "core");
+>                 if (IS_ERR(core->core1_clk))
+>                         return PTR_ERR(core->core1_clk);
+>         }
+>
+> +       if (IS_V4(core)) {
+> +               core->core1_bus_clk = devm_clk_get(dev, "bus");
+> +               if (IS_ERR(core->core1_bus_clk))
+> +                       return PTR_ERR(core->core1_bus_clk);
+> +       }
+> +
+>         platform_set_drvdata(pdev, core);
+>
+>         vdev = video_device_alloc();
+> @@ -1275,15 +1281,21 @@ static int venc_remove(struct platform_device *pdev)
+>  static __maybe_unused int venc_runtime_suspend(struct device *dev)
 >  {
-> +       enum hfi_version ver = inst->core->res->hfi_version;
->         struct hfi_buffer_requirements bufreq;
+>         struct venus_core *core = dev_get_drvdata(dev);
+> +       int ret;
+>
+> -       if (core->res->hfi_version == HFI_VERSION_1XX)
+> +       if (IS_V1(core))
+>                 return 0;
+>
+> -       writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+> +       ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
+> +
+> +       if (IS_V4(core))
+> +               clk_disable_unprepare(core->core1_bus_clk);
+> +
+>         clk_disable_unprepare(core->core1_clk);
+> -       writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+>
+> -       return 0;
+> +       ret |= venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
+
+Same question for this function.
+
+> +
+> +       return ret;
+>  }
+>
+>  static __maybe_unused int venc_runtime_resume(struct device *dev)
+> @@ -1291,13 +1303,29 @@ static __maybe_unused int venc_runtime_resume(struct device *dev)
+>         struct venus_core *core = dev_get_drvdata(dev);
 >         int ret;
 >
-> @@ -903,7 +904,7 @@ static int venc_verify_conf(struct venus_inst *inst)
->                 return ret;
+> -       if (core->res->hfi_version == HFI_VERSION_1XX)
+> +       if (IS_V1(core))
+>                 return 0;
 >
->         if (inst->num_output_bufs < bufreq.count_actual ||
-> -           inst->num_output_bufs < bufreq.count_min)
-> +           inst->num_output_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
->                 return -EINVAL;
+> -       writel(0, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+> +       ret = venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, true);
+> +       if (ret)
+> +               return ret;
+> +
+>         ret = clk_prepare_enable(core->core1_clk);
+> -       writel(1, core->base + WRAPPER_VENC_VCODEC_POWER_CONTROL);
+> +       if (ret)
+> +               goto err_power_disable;
+> +
+> +       if (IS_V4(core))
+> +               ret = clk_prepare_enable(core->core1_bus_clk);
 >
->         ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
-> @@ -911,7 +912,7 @@ static int venc_verify_conf(struct venus_inst *inst)
->                 return ret;
+> +       if (ret)
+> +               goto err_unprepare_core1;
+> +
+> +       return venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
+> +
+> +err_unprepare_core1:
+> +       clk_disable_unprepare(core->core1_clk);
+> +err_power_disable:
+> +       venus_helper_power_enable(core, VIDC_SESSION_TYPE_ENC, false);
+>         return ret;
+>  }
 >
->         if (inst->num_input_bufs < bufreq.count_actual ||
-> -           inst->num_input_bufs < bufreq.count_min)
-> +           inst->num_input_bufs < HFI_BUFREQ_COUNT_MIN(&bufreq, ver))
->                 return -EINVAL;
->
->         return 0;
 > --
 > 2.14.1
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
