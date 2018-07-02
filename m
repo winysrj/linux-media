@@ -1,393 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:38860 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753243AbeGBHFe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 03:05:34 -0400
-Received: by mail-yb0-f193.google.com with SMTP id i9-v6so1122471ybo.5
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 00:05:34 -0700 (PDT)
-Received: from mail-yb0-f180.google.com (mail-yb0-f180.google.com. [209.85.213.180])
-        by smtp.gmail.com with ESMTPSA id o126-v6sm4306606ywf.102.2018.07.02.00.05.32
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 02 Jul 2018 00:05:32 -0700 (PDT)
-Received: by mail-yb0-f180.google.com with SMTP id i3-v6so4727732ybl.9
-        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 00:05:32 -0700 (PDT)
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34432 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751420AbeGBHK4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 03:10:56 -0400
+Subject: Re: [PATCH v4 0/9] xen: dma-buf support for grant device
+To: jgross@suse.com, boris.ostrovsky@oracle.com
+Cc: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        konrad.wilk@oracle.com, daniel.vetter@intel.com,
+        dongwon.kim@intel.com, matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180615062753.9229-1-andr2000@gmail.com>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <0d314f2f-e0c1-1017-5ba9-83489038b544@gmail.com>
+Date: Mon, 2 Jul 2018 10:10:52 +0300
 MIME-Version: 1.0
-References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-7-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1522376100-22098-7-git-send-email-yong.zhi@intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 2 Jul 2018 16:05:20 +0900
-Message-ID: <CAAFQd5BdEvzEv63oXpC1PmPdut8kNmFzdL63nEVqhnLHets2ZA@mail.gmail.com>
-Subject: Re: [PATCH v6 06/12] intel-ipu3: css: Add support for firmware management
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180615062753.9229-1-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- Hi Yong,
+Hello, Boris, Juergen!
 
-Continuing my review. Sorry for the delay.
+Do you think I can re-base the series (which already has
+all required R-b's from Xen community) onto the latest kernel
+with API changes to patches 5 (of_dma_configure) and 8
+(dma-buf atomic ops) and we can merge it to the Xen's kernel tree?
 
-On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
+It seems like no other reviews or objections are there so this
+seems reasonable to me now.
+
+Thank you,
+Oleksandr
+
+On 06/15/2018 09:27 AM, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 >
-> Introduce functions to load and install ImgU FW blobs.
+> This work is in response to my previous attempt to introduce Xen/DRM
+> zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
+> frontends/backends. There is also an existing hyper_dmabuf approach
+> available [3] which, if reworked to utilize the proposed solution,
+> can greatly benefit as well.
 >
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-abi.h    | 1888 ++++++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-css-fw.c |  261 ++++
->  drivers/media/pci/intel/ipu3/ipu3-css-fw.h |  198 +++
->  3 files changed, 2347 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
+> RFC for this series was published and discussed [9], comments addressed.
 >
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-abi.h b/drivers/media/pci/intel/ipu3/ipu3-abi.h
-> new file mode 100644
-> index 000000000000..24102647a89e
-> --- /dev/null
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-abi.h
-[snip]
-> +/* SYSTEM_REQ_0_5_0_IMGHMMADR */
-> +#define IMGU_REG_SYSTEM_REQ                    0x18
-> +#define IMGU_SYSTEM_REQ_FREQ_MASK              0x3f
-> +#define IMGU_SYSTEM_REQ_FREQ_DIVIDER           25
-> +#define IMGU_REG_INT_STATUS                    0x30
-> +#define IMGU_REG_INT_ENABLE                    0x34
-> +#define IMGU_REG_INT_CSS_IRQ                   (1 << 31)
-
-BIT(31)
-
-[snip]
-> +       IMGU_ABI_FRAME_FORMAT_CSI_MIPI_LEGACY_YUV420_8, /* Legacy YUV420.
-> +                                                        * UY odd line;
-> +                                                        * VY even line
-> +                                                        */
-> +       IMGU_ABI_FRAME_FORMAT_CSI_MIPI_YUV420_10,/* 10 bit per Y/U/V. Y odd
-> +                                                 * line; UYVY interleaved
-> +                                                 * even line
-> +                                                 */
-> +       IMGU_ABI_FRAME_FORMAT_YCgCo444_16, /* Internal format for ISP2.7,
-
-Macros and enums should be uppercase.
-
-[snip]
-> +struct imgu_abi_shd_intra_frame_operations_data {
-> +       struct imgu_abi_acc_operation
-> +               operation_list[IMGU_ABI_SHD_MAX_OPERATIONS] IPU3_ALIGN;
-> +       struct imgu_abi_acc_process_lines_cmd_data
-> +               process_lines_data[IMGU_ABI_SHD_MAX_PROCESS_LINES] IPU3_ALIGN;
-> +       struct imgu_abi_shd_transfer_luts_set_data
-> +               transfer_data[IMGU_ABI_SHD_MAX_TRANSFERS] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct imgu_abi_shd_config {
-> +       struct ipu3_uapi_shd_config_static shd IMGU_ABI_PAD;
-> +       struct imgu_abi_shd_intra_frame_operations_data shd_ops IMGU_ABI_PAD;
-> +       struct ipu3_uapi_shd_lut shd_lut IMGU_ABI_PAD;
-
-Definitions of both IPU3_ALIGN and IMGU_ABI_PAD seem to be equivalent.
-Could we remove one and use the other everywhere?
-
-[snip]
-> +struct imgu_abi_osys_scaler_params {
-> +       __u32 inp_buf_y_st_addr;
-> +       __u32 inp_buf_y_line_stride;
-> +       __u32 inp_buf_y_buffer_stride;
-> +       __u32 inp_buf_u_st_addr;
-> +       __u32 inp_buf_v_st_addr;
-> +       __u32 inp_buf_uv_line_stride;
-> +       __u32 inp_buf_uv_buffer_stride;
-> +       __u32 inp_buf_chunk_width;
-> +       __u32 inp_buf_nr_buffers;
-> +       /* Output buffers */
-> +       __u32 out_buf_y_st_addr;
-> +       __u32 out_buf_y_line_stride;
-> +       __u32 out_buf_y_buffer_stride;
-> +       __u32 out_buf_u_st_addr;
-> +       __u32 out_buf_v_st_addr;
-> +       __u32 out_buf_uv_line_stride;
-> +       __u32 out_buf_uv_buffer_stride;
-> +       __u32 out_buf_nr_buffers;
-> +       /* Intermediate buffers */
-> +       __u32 int_buf_y_st_addr;
-> +       __u32 int_buf_y_line_stride;
-> +       __u32 int_buf_u_st_addr;
-> +       __u32 int_buf_v_st_addr;
-> +       __u32 int_buf_uv_line_stride;
-> +       __u32 int_buf_height;
-> +       __u32 int_buf_chunk_width;
-> +       __u32 int_buf_chunk_height;
-> +       /* Context buffers */
-> +       __u32 ctx_buf_hor_y_st_addr;
-> +       __u32 ctx_buf_hor_u_st_addr;
-> +       __u32 ctx_buf_hor_v_st_addr;
-> +       __u32 ctx_buf_ver_y_st_addr;
-> +       __u32 ctx_buf_ver_u_st_addr;
-> +       __u32 ctx_buf_ver_v_st_addr;
-> +       /* Addresses for release-input and process-output tokens */
-> +       __u32 release_inp_buf_addr;
-> +       __u32 release_inp_buf_en;
-> +       __u32 release_out_buf_en;
-> +       __u32 process_out_buf_addr;
-> +       /* Settings dimensions, padding, cropping */
-> +       __u32 input_image_y_width;
-> +       __u32 input_image_y_height;
-> +       __u32 input_image_y_start_column;
-> +       __u32 input_image_uv_start_column;
-> +       __u32 input_image_y_left_pad;
-> +       __u32 input_image_uv_left_pad;
-> +       __u32 input_image_y_right_pad;
-> +       __u32 input_image_uv_right_pad;
-> +       __u32 input_image_y_top_pad;
-> +       __u32 input_image_uv_top_pad;
-> +       __u32 input_image_y_bottom_pad;
-> +       __u32 input_image_uv_bottom_pad;
-> +       __u32 processing_mode;
-> +#define IMGU_ABI_OSYS_PROCMODE_BYPASS          0
-> +#define IMGU_ABI_OSYS_PROCMODE_UPSCALE         1
-> +#define IMGU_ABI_OSYS_PROCMODE_DOWNSCALE       2
-
-Could we move it to a separate enum, to be consistent with other
-structs? (e.g. imgu_abi_osys_frame_params::format)
-
-> +       __u32 scaling_ratio;
-> +       __u32 y_left_phase_init;
-> +       __u32 uv_left_phase_init;
-> +       __u32 y_top_phase_init;
-> +       __u32 uv_top_phase_init;
-> +       __u32 coeffs_exp_shift;
-> +       __u32 out_y_left_crop;
-> +       __u32 out_uv_left_crop;
-> +       __u32 out_y_top_crop;
-> +       __u32 out_uv_top_crop;
-> +} __packed;
-> +
-> +struct imgu_abi_osys_scaler {
-> +       struct imgu_abi_osys_scaler_params param IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct imgu_abi_osys_frame_params {
-> +       /* Output pins */
-> +       __u32 enable;
-> +       __u32 format;           /* enum imgu_abi_osys_format */
-> +       __u32 flip;
-> +       __u32 mirror;
-> +       __u32 tiling;           /* enum imgu_abi_osys_tiling */
-> +       __u32 width;
-> +       __u32 height;
-> +       __u32 stride;
-> +       __u32 scaled;
-> +} __packed;
-[snip]
-> +/* Defect pixel correction */
-> +
-> +struct imgu_abi_dpc_config {
-> +       __u8 __reserved[240832];
-> +} __packed;
-
-Do we need this structure? One could just add a reserved field in the
-parent structure. Also, just to confirm, is 240832 really the right
-value here? Where does it come from? Please create a macro for it,
-possibly further breaking it down into the values used to compute this
-number.
-
-[snip]
-> +struct imgu_abi_acc_param {
-> +       struct imgu_abi_stripe_data stripe;
-> +       __u8 padding[8];
-> +       struct imgu_abi_input_feeder_config input_feeder;
-> +       struct ipu3_uapi_bnr_static_config bnr;
-> +       struct ipu3_uapi_bnr_static_config_green_disparity green_disparity
-> +               IPU3_ALIGN;
-> +       struct ipu3_uapi_dm_config dm IPU3_ALIGN;
-> +       struct ipu3_uapi_ccm_mat_config ccm IPU3_ALIGN;
-> +       struct ipu3_uapi_gamma_config gamma IPU3_ALIGN;
-> +       struct ipu3_uapi_csc_mat_config csc IPU3_ALIGN;
-> +       struct ipu3_uapi_cds_params cds IPU3_ALIGN;
-> +       struct imgu_abi_shd_config shd IPU3_ALIGN;
-> +       struct imgu_abi_dvs_stat_config dvs_stat;
-> +       __u8 padding1[224];     /* reserved for lace_stat */
-> +       struct ipu3_uapi_yuvp1_iefd_config iefd IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp1_yds_config yds_c0 IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp1_chnr_config chnr_c0 IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp1_y_ee_nr_config y_ee_nr IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp1_yds_config yds IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp1_chnr_config chnr IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp2_y_tm_lut_static_config ytm IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp1_yds_config yds2 IPU3_ALIGN;
-> +       struct ipu3_uapi_yuvp2_tcc_static_config tcc IPU3_ALIGN;
-> +       struct imgu_abi_dpc_config dpc IPU3_ALIGN;
-> +       struct imgu_abi_bds_config bds;
-> +       struct ipu3_uapi_anr_config anr;
-> +       struct imgu_abi_awb_fr_config awb_fr;
-> +       struct imgu_abi_ae_config ae;
-> +       struct imgu_abi_af_config af;
-> +       struct imgu_abi_awb_config awb;
-> +       struct imgu_abi_osys_config osys;
-
-Why some fields here need and some don't need the IPU3_ALIGN specifier?
-
-[snip]
-> +/*
-> + * Frame info struct. This describes the contents of an image frame buffer.
-> + */
-> +struct imgu_abi_frame_sp_info {
-> +       struct imgu_abi_sp_resolution res;
-> +       u16 padded_width;               /* stride of line in memory
-> +                                        * (in pixels)
-> +                                        */
-> +       u8 format;                      /* format of the frame data */
-> +       u8 raw_bit_depth;               /* number of valid bits per pixel,
-> +                                        * only valid for RAW bayer frames
-> +                                        */
-> +       u8 raw_bayer_order;             /* bayer order, only valid
-> +                                        * for RAW bayer frames
-> +                                        */
-> +       u8 raw_type;            /* To choose the proper raw frame type. for
-> +                                * Legacy SKC pipes/Default is set to
-> +                                * IMGU_ABI_RAW_TYPE_BAYER. For RGB IR sensor -
-> +                                * driver should set it to:
-> +                                * IronGr case - IMGU_ABI_RAW_TYPE_IR_ON_GR
-> +                                * IronGb case - IMGU_ABI_RAW_TYPE_IR_ON_GB
-> +                                */
-> +#define IMGU_ABI_RAW_TYPE_BAYER                0
-> +#define IMGU_ABI_RAW_TYPE_IR_ON_GR     1
-> +#define IMGU_ABI_RAW_TYPE_IR_ON_GB     2
-
-Can we have a separate enum for this, consistently with other structs
-defined earlier?
-
-[snip]
-> +/* Information for a single pipeline stage */
-> +struct imgu_abi_sp_stage {
-> +       /* Multiple boolean flags can be stored in an integer */
-> +       u8 num;                         /* Stage number */
-> +       u8 isp_online;
-> +       u8 isp_copy_vf;
-> +       u8 isp_copy_output;
-> +       u8 sp_enable_xnr;
-> +       u8 isp_deci_log_factor;
-> +       u8 isp_vf_downscale_bits;
-> +       u8 deinterleaved;
-> +       /*
-> +        * NOTE: Programming the input circuit can only be done at the
-> +        * start of a session. It is illegal to program it during execution
-> +        * The input circuit defines the connectivity
-> +        */
-> +       u8 program_input_circuit;
-> +       u8 func;
-> +#define IMGU_ABI_STAGE_FUNC_RAW_COPY   0
-> +#define IMGU_ABI_STAGE_FUNC_BIN_COPY   1
-> +#define IMGU_ABI_STAGE_FUNC_ISYS_COPY  2
-> +#define IMGU_ABI_STAGE_FUNC_NO_FUNC    3
-
-Enum please.
-
-> +       u8 stage_type;                  /* The type of the pipe-stage */
-> +#define IMGU_ABI_STAGE_TYPE_SP         0
-> +#define IMGU_ABI_STAGE_TYPE_ISP                1
-
-Enum please.
-
-[snip]
-> +/*
-> + * Blob descriptor.
-> + * This structure describes an SP or ISP blob.
-> + * It describes the test, data and bss sections as well as position in a
-> + * firmware file.
-> + * For convenience, it contains dynamic data after loading.
-> + */
-> +struct imgu_abi_blob_info {
-> +       /* Static blob data */
-> +       u32 offset;                     /* Blob offset in fw file */
-> +       struct imgu_abi_isp_param_memory_offsets memory_offsets;
-> +                                       /* offset wrt hdr in bytes */
-> +       u32 prog_name_offset;           /* offset wrt hdr in bytes */
-> +       u32 size;                       /* Size of blob */
-> +       u32 padding_size;               /* total cummulative of bytes added
-> +                                        * due to section alignment
-> +                                        */
-> +       u32 icache_source;              /* Position of icache in blob */
-> +       u32 icache_size;                /* Size of icache section */
-> +       u32 icache_padding;     /* added due to icache section alignment */
-> +       u32 text_source;                /* Position of text in blob */
-> +       u32 text_size;                  /* Size of text section */
-> +       u32 text_padding;       /* bytes added due to text section alignment */
-> +       u32 data_source;                /* Position of data in blob */
-> +       u32 data_target;                /* Start of data in SP dmem */
-> +       u32 data_size;                  /* Size of text section */
-> +       u32 data_padding;       /* bytes added due to data section alignment */
-> +       u32 bss_target;         /* Start position of bss in SP dmem */
-> +       u32 bss_size;                   /* Size of bss section
-> +                                        * Dynamic data filled by loader
-> +                                        */
-> +       const void *code __aligned(8);  /* Code section absolute pointer */
-> +                                       /* within fw, code = icache + text */
-> +       const void *data __aligned(8);  /* Data section absolute pointer */
-> +                                       /* within fw, data = data + bss */
-
-How are these pointers used? I couldn't find any code referencing
-them. Are you sure these are kernel pointers (e.g. not just some
-offsets)?
-
-[snip]
-> +struct imgu_abi_binary_input_info {
-> +       u32 min_width;
-> +       u32 min_height;
-> +       u32 max_width;
-> +       u32 max_height;
-> +       u32 source;                     /* memory, sensor, variable */
-> +#define IMGU_ABI_BINARY_INPUT_SOURCE_SENSOR    0
-> +#define IMGU_ABI_BINARY_INPUT_SOURCE_MEMORY    1
-> +#define IMGU_ABI_BINARY_INPUT_SOURCE_VARIABLE  2
-
-Enum please.
-
-[snip]
-> +/* Information for a pipeline */
-> +struct imgu_abi_sp_pipeline {
-> +       u32 pipe_id;                    /* the pipe ID */
-> +       u32 pipe_num;                   /* the dynamic pipe number */
-> +       u32 thread_id;                  /* the sp thread ID */
-> +       u32 pipe_config;                /* the pipe config */
-> +#define IMGU_ABI_PIPE_CONFIG_ACQUIRE_ISP       (1 << 31)
-> +       u32 pipe_qos_config;            /* Bitmap of multiple QOS extension fw
-> +                                        * state, 0xffffffff indicates non
-> +                                        * QOS pipe.
-> +                                        */
-> +       u32 inout_port_config;
-> +#define IMGU_ABI_PORT_CONFIG_TYPE_INPUT_HOST           (1 << 0)
-> +#define IMGU_ABI_PORT_CONFIG_TYPE_INPUT_COPYSINK       (1 << 1)
-> +#define IMGU_ABI_PORT_CONFIG_TYPE_INPUT_TAGGERSINK     (1 << 2)
-> +#define IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_HOST          (1 << 4)
-> +#define IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_COPYSINK      (1 << 5)
-> +#define IMGU_ABI_PORT_CONFIG_TYPE_OUTPUT_TAGGERSINK    (1 << 6)
-> +       u32 required_bds_factor;
-> +       u32 dvs_frame_delay;
-> +       u32 num_stages;         /* the pipe config */
-> +       u32 running;                    /* needed for pipe termination */
-> +       imgu_addr_t sp_stage_addr[IMGU_ABI_MAX_STAGES];
-> +       imgu_addr_t scaler_pp_lut;      /* Early bound LUT */
-> +       u32 stage;                      /* stage ptr is only used on sp */
-> +       s32 num_execs;                  /* number of times to run if this is
-> +                                        * an acceleration pipe.
-> +                                        */
-> +       union {
-> +               struct {
-> +                       u32 bytes_available;
-> +
-
-The message is cut off here for me. Please split this patch for next
-respin. Possibly 1 patch for registers and enums at the top, then 1
-patch for structs and 1 more patch for the code being added in this
-patch.
-
-Best regards,
-Tomasz
+> The original rationale behind this work was to enable zero-copying
+> use-cases while working with Xen para-virtual display driver [4]:
+> when using Xen PV DRM frontend driver then on backend side one will
+> need to do copying of display buffers' contents (filled by the
+> frontend's user-space) into buffers allocated at the backend side.
+> Taking into account the size of display buffers and frames per
+> second it may result in unneeded huge data bus occupation and
+> performance loss.
+>
+> The helper driver [4] allows implementing zero-copying use-cases
+> when using Xen para-virtualized frontend display driver by implementing
+> a DRM/KMS helper driver running on backend's side.
+> It utilizes PRIME buffers API (implemented on top of Linux dma-buf)
+> to share frontend's buffers with physical device drivers on
+> backend's side:
+>
+>   - a dumb buffer created on backend's side can be shared
+>     with the Xen PV frontend driver, so it directly writes
+>     into backend's domain memory (into the buffer exported from
+>     DRM/KMS driver of a physical display device)
+>   - a dumb buffer allocated by the frontend can be imported
+>     into physical device DRM/KMS driver, thus allowing to
+>     achieve no copying as well
+>
+> Finally, it was discussed and decided ([1], [5]) that it is worth
+> implementing such use-cases via extension of the existing Xen gntdev
+> driver instead of introducing new DRM specific driver.
+> Please note, that the support of dma-buf is Linux only,
+> as dma-buf is a Linux only thing.
+>
+> Now to the proposed solution. The changes  to the existing Xen drivers
+> in the Linux kernel fall into 2 categories:
+> 1. DMA-able memory buffer allocation and increasing/decreasing memory
+>     reservation of the pages of such a buffer.
+>     This is required if we are about to share dma-buf with the hardware
+>     that does require those to be allocated with dma_alloc_xxx API.
+>     (It is still possible to allocate a dma-buf from any system memory,
+>     e.g. system pages).
+> 2. Extension of the gntdev driver to enable it to import/export dma-buf’s.
+>
+> The first six patches are in preparation for Xen dma-buf support,
+> but I consider those usable regardless of the dma-buf use-case,
+> e.g. other frontend/backend kernel modules may also benefit from these
+> for better code reuse:
+>      0001-xen-grant-table-Export-gnttab_-alloc-free-_pages-as-.patch
+>      0002-xen-grant-table-Make-set-clear-page-private-code-sha.patch
+>      0003-xen-balloon-Share-common-memory-reservation-routines.patch
+>      0004-xen-grant-table-Allow-allocating-buffers-suitable-fo.patch
+>      0005-xen-gntdev-Allow-mappings-for-DMA-buffers.patch
+>      0006-xen-gntdev-Make-private-routines-structures-accessib.patch
+>
+> The next three patches are Xen implementation of dma-buf as part of
+> the grant device:
+>      0007-xen-gntdev-Add-initial-support-for-dma-buf-UAPI.patch
+>      0008-xen-gntdev-Implement-dma-buf-export-functionality.patch
+>      0009-xen-gntdev-Implement-dma-buf-import-functionality.patch
+>
+> The corresponding libxengnttab changes are available at [6].
+>
+> All the above was tested with display backend [7] and its accompanying
+> helper library [8] on Renesas ARM64 based board.
+> Basic balloon tests on x86.
+>
+> *To all the communities*: I would like to ask you to review the proposed
+> solution and give feedback on it, so I can improve and send final
+> patches for review (this is still work in progress, but enough to start
+> discussing the implementation).
+>
+> Thank you in advance,
+> Oleksandr Andrushchenko
+>
+> [1] https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
+> [2] https://elixir.bootlin.com/linux/v4.17-rc5/source/Documentation/driver-api/dma-buf.rst
+> [3] https://lists.xenproject.org/archives/html/xen-devel/2018-02/msg01202.html
+> [4] https://cgit.freedesktop.org/drm/drm-misc/tree/drivers/gpu/drm/xen
+> [5] https://patchwork.kernel.org/patch/10279681/
+> [6] https://github.com/andr2000/xen/tree/xen_dma_buf_v1
+> [7] https://github.com/andr2000/displ_be/tree/xen_dma_buf_v1
+> [8] https://github.com/andr2000/libxenbe/tree/xen_dma_buf_v1
+> [9] https://lkml.org/lkml/2018/5/17/215
+>
+> Changes since v3:
+> *****************
+> - added r-b tags
+> - minor fixes
+> - removed gntdev_remove_map as it can be coded directly now
+> - moved IOCTL code to gntdev-dmabuf.c
+> - removed usless wait list walks and changed some walks to use
+>    normal version of list iterators instead of safe ones as
+>    we run under a lock anyways
+> - cleaned up comments, descriptions, pr_debug messages
+>
+> Changes since v2:
+> *****************
+> - fixed missed break in dmabuf_exp_wait_obj_signal
+> - re-worked debug and error messages, be less verbose
+> - removed patch for making gntdev functions available to other drivers
+> - removed WARN_ON's in dma-buf code
+> - moved all dma-buf related code into gntdev-dmabuf
+> - introduced gntdev-common.h with common structures and function prototypes
+> - added additional checks for number of grants in IOCTLs
+> - gnttab patch cleanup
+> - made xenmem_reservation_scrub_page defined in the header as inline
+> - fixed __pfn_to_mfn use to pfn_to_bfn
+> - no changes to patches 1-2
+>
+> Changes since v1:
+> *****************
+> - Define GNTDEV_DMA_FLAG_XXX starting from bit 0
+> - Rename mem_reservation.h to mem-reservation.h
+> - Remove usless comments
+> - Change licenses from GPLv2 OR MIT to GPLv2 only
+> - Make xenmem_reservation_va_mapping_{update|clear} inline
+> - Change EXPORT_SYMBOL to EXPORT_SYMBOL_GPL for new functions
+> - Make gnttab_dma_{alloc|free}_pages to request frames array
+>    be allocated outside
+> - Fixe gnttab_dma_alloc_pages fail path (added xenmem_reservation_increase)
+> - Move most of dma-buf from gntdev.c to gntdev-dmabuf.c
+> - Add required dependencies to Kconfig
+> - Rework "#ifdef CONFIG_XEN_XXX" for if/else
+> - Export gnttab_{alloc|free}_pages as GPL symbols (patch 1)
+>
+> Oleksandr Andrushchenko (9):
+>    xen/grant-table: Export gnttab_{alloc|free}_pages as GPL
+>    xen/grant-table: Make set/clear page private code shared
+>    xen/balloon: Share common memory reservation routines
+>    xen/grant-table: Allow allocating buffers suitable for DMA
+>    xen/gntdev: Allow mappings for DMA buffers
+>    xen/gntdev: Make private routines/structures accessible
+>    xen/gntdev: Add initial support for dma-buf UAPI
+>    xen/gntdev: Implement dma-buf export functionality
+>    xen/gntdev: Implement dma-buf import functionality
+>
+>   drivers/xen/Kconfig           |  24 +
+>   drivers/xen/Makefile          |   2 +
+>   drivers/xen/balloon.c         |  75 +--
+>   drivers/xen/gntdev-common.h   |  94 ++++
+>   drivers/xen/gntdev-dmabuf.c   | 870 ++++++++++++++++++++++++++++++++++
+>   drivers/xen/gntdev-dmabuf.h   |  33 ++
+>   drivers/xen/gntdev.c          | 220 ++++++---
+>   drivers/xen/grant-table.c     | 153 +++++-
+>   drivers/xen/mem-reservation.c | 118 +++++
+>   include/uapi/xen/gntdev.h     | 106 +++++
+>   include/xen/grant_table.h     |  21 +
+>   include/xen/mem-reservation.h |  59 +++
+>   12 files changed, 1615 insertions(+), 160 deletions(-)
+>   create mode 100644 drivers/xen/gntdev-common.h
+>   create mode 100644 drivers/xen/gntdev-dmabuf.c
+>   create mode 100644 drivers/xen/gntdev-dmabuf.h
+>   create mode 100644 drivers/xen/mem-reservation.c
+>   create mode 100644 include/xen/mem-reservation.h
+>
