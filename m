@@ -1,164 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:42014 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753111AbeGBHny (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jul 2018 03:43:54 -0400
-Date: Mon, 2 Jul 2018 10:43:41 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 05/13] media: v4l2-fwnode: Add a convenience function
- for registering subdevs with notifiers
-Message-ID: <20180702074341.mficrgu4xlq6zdxx@paasikivi.fi.intel.com>
-References: <1521592649-7264-1-git-send-email-steve_longerbeam@mentor.com>
- <1521592649-7264-6-git-send-email-steve_longerbeam@mentor.com>
- <20180423071444.2rsqvlvlfvpoxpbu@paasikivi.fi.intel.com>
- <8e59e530-9d13-c1ae-5f0b-6205a7b21182@gmail.com>
- <20180508102825.xamrlnnipknsoi62@kekkonen.localdomain>
- <40dae271-2d82-6119-e289-aec07147dce5@gmail.com>
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:38417 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753828AbeGBIIn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 04:08:43 -0400
+Received: by mail-yw0-f193.google.com with SMTP id w13-v6so6363428ywa.5
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:08:43 -0700 (PDT)
+Received: from mail-yb0-f172.google.com (mail-yb0-f172.google.com. [209.85.213.172])
+        by smtp.gmail.com with ESMTPSA id u4-v6sm2863165ywd.21.2018.07.02.01.08.41
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 02 Jul 2018 01:08:41 -0700 (PDT)
+Received: by mail-yb0-f172.google.com with SMTP id s8-v6so1173175ybe.8
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 01:08:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <40dae271-2d82-6119-e289-aec07147dce5@gmail.com>
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com> <1522376100-22098-13-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1522376100-22098-13-git-send-email-yong.zhi@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 2 Jul 2018 17:08:29 +0900
+Message-ID: <CAAFQd5CdV2BxBnW4Z70q7Sm0j=e1eO0MTTScFs-zPnMH8JHELw@mail.gmail.com>
+Subject: Re: [PATCH v6 12/12] intel-ipu3: Add imgu top level pci device driver
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Hi Yong,
 
-On Tue, May 08, 2018 at 08:55:04PM -0700, Steve Longerbeam wrote:
-> 
-> 
-> On 05/08/2018 03:28 AM, Sakari Ailus wrote:
-> > Hi Steve,
-> > 
-> > Again, sorry about the delay. This thread got buried in my inbox. :-(
-> > Please see my reply below.
-> > 
-> > On Mon, Apr 23, 2018 at 11:00:22AM -0700, Steve Longerbeam wrote:
-> > > 
-> > > On 04/23/2018 12:14 AM, Sakari Ailus wrote:
-> > > > Hi Steve,
-> > > > 
-> > > > On Tue, Mar 20, 2018 at 05:37:21PM -0700, Steve Longerbeam wrote:
-> > > > > Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
-> > > > > for parsing a sub-device's fwnode port endpoints for connected remote
-> > > > > sub-devices, registering a sub-device notifier, and then registering
-> > > > > the sub-device itself.
-> > > > > 
-> > > > > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> > > > > ---
-> > > > > Changes since v2:
-> > > > > - fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
-> > > > >     to put device.
-> > > > > Changes since v1:
-> > > > > - add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
-> > > > >     'struct v4l2_subdev' declaration.
-> > > > > ---
-> > > > >    drivers/media/v4l2-core/v4l2-fwnode.c | 101 ++++++++++++++++++++++++++++++++++
-> > > > >    include/media/v4l2-fwnode.h           |  43 +++++++++++++++
-> > > > >    2 files changed, 144 insertions(+)
-> > > > > 
-> > > > > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > > index 99198b9..d42024d 100644
-> > > > > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> > > > > @@ -880,6 +880,107 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
-> > > > >    }
-> > > > >    EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
-> > > > > +int v4l2_async_register_fwnode_subdev(
-> > > > > +	struct v4l2_subdev *sd, size_t asd_struct_size,
-> > > > > +	unsigned int *ports, unsigned int num_ports,
-> > > > > +	int (*parse_endpoint)(struct device *dev,
-> > > > > +			      struct v4l2_fwnode_endpoint *vep,
-> > > > > +			      struct v4l2_async_subdev *asd))
-> > > > > +{
-> > > > > +	struct v4l2_async_notifier *notifier;
-> > > > > +	struct device *dev = sd->dev;
-> > > > > +	struct fwnode_handle *fwnode;
-> > > > > +	unsigned int subdev_port;
-> > > > > +	bool is_port;
-> > > > > +	int ret;
-> > > > > +
-> > > > > +	if (WARN_ON(!dev))
-> > > > > +		return -ENODEV;
-> > > > > +
-> > > > > +	fwnode = dev_fwnode(dev);
-> > > > > +	if (!fwnode_device_is_available(fwnode))
-> > > > > +		return -ENODEV;
-> > > > > +
-> > > > > +	is_port = (is_of_node(fwnode) &&
-> > > > > +		   of_node_cmp(to_of_node(fwnode)->name, "port") == 0);
-> > > > What's the intent of this and the code below? You may not parse the graph
-> > > > data structure here, it should be done in the actual firmware
-> > > > implementation instead.
-> > > The i.MX6 CSI sub-device registers itself from a port fwnode, so
-> > > the intent of the is_port code below is to support the i.MX6 CSI.
-> > > 
-> > > I can remove the is_port checks, but it means
-> > > v4l2_async_register_fwnode_subdev() won't be usable by the CSI
-> > > sub-device.
-> > This won't scale.
-> 
-> The vast majority of sub-devices register themselves as
-> port parent nodes. So for now at least, I think
-> v4l2_async_register_fwnode_subdev() could be useful to many
-> platforms.
+On Fri, Mar 30, 2018 at 11:15 AM Yong Zhi <yong.zhi@intel.com> wrote:
+> +/*
+> + * Queue as many buffers to CSS as possible. If all buffers don't fit into
+> + * CSS buffer queues, they remain unqueued and will be queued later.
+> + */
+> +int imgu_queue_buffers(struct imgu_device *imgu, bool initial)
+> +{
+> +       unsigned int node;
+> +       int r = 0;
+> +       struct imgu_buffer *ibuf;
+> +
+> +       if (!ipu3_css_is_streaming(&imgu->css))
+> +               return 0;
+> +
+> +       mutex_lock(&imgu->lock);
+> +
+> +       /* Buffer set is queued to FW only when input buffer is ready */
+> +       if (!imgu_queue_getbuf(imgu, IMGU_NODE_IN)) {
+> +               mutex_unlock(&imgu->lock);
+> +               return 0;
+> +       }
+> +       for (node = IMGU_NODE_IN + 1; 1; node = (node + 1) % IMGU_NODE_NUM) {
 
-It's because the graph bindings define that the port nodes are sub-nodes of
-a device node (see Documentation/devicetree/bindings/graph.txt). It's not
-exactly the same as doing this in DT but still the kernel implementation
-pretty much assumes the same.
+Shouldn't we make (node != IMGU_NODE_IN || imgu_queue_getbuf(imgu,
+IMGU_NODE_IN)) the condition here, rather than 1?
 
-> 
-> >   Instead, I think we'd need to separate registering
-> > sub-devices (through async sub-devices) and binding them with the driver
-> > that registered the notifier. Or at least change how that process works: a
-> > single sub-device can well be bound to multiple notifiers,
-> 
-> Ok, that is certainly not the case now, a sub-device can only
-> be bound to a single notifier.
-> 
-> >   or multiple
-> > times to the same notifier while it may be registered only once.
-> 
-> Anyway, this is a future generalization if I understand you
-> correctly. Not something to deal with here.
+This would also let us remove the explicit call to imgu_queue_getbuf()
+above the loop.
 
-Indeed; just FYI.
+> +               if (node == IMGU_NODE_VF &&
+> +                   (imgu->css.pipe_id == IPU3_CSS_PIPE_ID_CAPTURE ||
+> +                    !imgu->nodes[IMGU_NODE_VF].enabled)) {
+> +                       continue;
+> +               } else if (node == IMGU_NODE_PV &&
+> +                          (imgu->css.pipe_id == IPU3_CSS_PIPE_ID_VIDEO ||
+> +                           !imgu->nodes[IMGU_NODE_PV].enabled)) {
+> +                       continue;
+> +               } else if (imgu->queue_enabled[node]) {
+> +                       struct ipu3_css_buffer *buf =
+> +                                       imgu_queue_getbuf(imgu, node);
+> +                       int dummy;
+> +
+> +                       if (!buf)
+> +                               break;
+> +
+> +                       r = ipu3_css_buf_queue(&imgu->css, buf);
+> +                       if (r)
+> +                               break;
+> +                       dummy = imgu_dummybufs_check(imgu, buf);
+> +                       if (!dummy)
+> +                               ibuf = container_of(buf, struct imgu_buffer,
+> +                                                   css_buf);
+> +                       dev_dbg(&imgu->pci_dev->dev,
+> +                               "queue %s %s buffer %d to css da: 0x%08x\n",
+> +                               dummy ? "dummy" : "user",
+> +                               imgu_node_map[node].name,
+> +                               dummy ? 0 : ibuf->vid_buf.vbb.vb2_buf.index,
+> +                               (u32)buf->daddr);
+> +               }
+> +               if (node == IMGU_NODE_IN &&
+> +                   !imgu_queue_getbuf(imgu, IMGU_NODE_IN))
+> +                       break;
 
-> 
-> > 
-> > > > Also, sub-devices generally do not match ports.
-> > > Yes that's generally true, sub-devices generally match to port parent
-> > > nodes. But I do know of one other sub-device that buck that trend.
-> > > The ADV748x CSI-2 output sub-devices match against endpoint nodes.
-> > Endpoints, yes, but not ports.
-> 
-> Well, the imx CSI registers from a port node.
-> 
-> > 
-> > > >    How sub-devices generally
-> > > > correspond to fwnodes is up to the device.
-> > > What do you think of adding a v4l2_async_register_port_fwnode_subdev(),
-> > > and a v4l2_async_register_endpoint_fwnode_subdev() to support such
-> > > sub-devices?
-> > The endpoint is more specific than a port, so why the port and not the
-> > endpoint?
-> 
-> Do you mean there should be a
-> v4l2_async_register_endpoint_fwnode_subdev() but not
-> v4l2_async_register_endpoint_port_subdev()?
-> 
-> Steve
-> 
+My suggestion to the for loop condition is based on this.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> +       }
+> +       mutex_unlock(&imgu->lock);
+> +
+> +       if (r && r != -EBUSY)
+> +               goto failed;
+> +
+> +       return 0;
+> +
+> +failed:
+> +       /*
+> +        * On error, mark all buffers as failed which are not
+> +        * yet queued to CSS
+> +        */
+> +       dev_err(&imgu->pci_dev->dev,
+> +               "failed to queue buffer to CSS on queue %i (%d)\n",
+> +               node, r);
+> +
+> +       if (initial)
+> +               /* If we were called from streamon(), no need to finish bufs */
+> +               return r;
+> +
+> +       for (node = 0; node < IMGU_NODE_NUM; node++) {
+> +               struct imgu_buffer *buf, *buf0;
+> +
+> +               if (!imgu->queue_enabled[node])
+> +                       continue;       /* Skip disabled queues */
+> +
+> +               mutex_lock(&imgu->lock);
+> +               list_for_each_entry_safe(buf, buf0, &imgu->nodes[node].buffers,
+> +                                        vid_buf.list) {
+> +                       if (ipu3_css_buf_state(&buf->css_buf) ==
+> +                                       IPU3_CSS_BUFFER_QUEUED)
+> +                               continue;       /* Was already queued, skip */
+> +
+> +                       ipu3_v4l2_buffer_done(&buf->vid_buf.vbb.vb2_buf,
+> +                                             VB2_BUF_STATE_ERROR);
+> +               }
+> +               mutex_unlock(&imgu->lock);
+> +       }
+> +
+> +       return r;
+> +}
+
+[snip]
+
+> +static irqreturn_t imgu_isr_threaded(int irq, void *imgu_ptr)
+> +{
+> +       struct imgu_device *imgu = imgu_ptr;
+> +
+> +       /* Dequeue / queue buffers */
+> +       do {
+> +               u64 ns = ktime_get_ns();
+> +               struct ipu3_css_buffer *b;
+> +               struct imgu_buffer *buf;
+> +               unsigned int node;
+> +               bool dummy;
+> +
+> +               do {
+> +                       mutex_lock(&imgu->lock);
+> +                       b = ipu3_css_buf_dequeue(&imgu->css);
+> +                       mutex_unlock(&imgu->lock);
+> +               } while (PTR_ERR(b) == -EAGAIN);
+> +
+> +               if (IS_ERR_OR_NULL(b)) {
+> +                       if (!b || PTR_ERR(b) == -EBUSY) /* All done */
+> +                               break;
+> +                       dev_err(&imgu->pci_dev->dev,
+> +                               "failed to dequeue buffers (%ld)\n",
+> +                               PTR_ERR(b));
+> +                       break;
+> +               }
+> +
+> +               node = imgu_map_node(imgu, b->queue);
+> +               dummy = imgu_dummybufs_check(imgu, b);
+> +               if (!dummy)
+> +                       buf = container_of(b, struct imgu_buffer, css_buf);
+> +               dev_dbg(&imgu->pci_dev->dev,
+> +                       "dequeue %s %s buffer %d from css\n",
+> +                       dummy ? "dummy" : "user",
+> +                       imgu_node_map[node].name,
+> +                       dummy ? 0 : buf->vid_buf.vbb.vb2_buf.index);
+> +
+> +               if (dummy)
+> +                       /* It was a dummy buffer, skip it */
+> +                       continue;
+> +
+> +               /* Fill vb2 buffer entries and tell it's ready */
+> +               if (!imgu->nodes[node].output) {
+> +                       buf->vid_buf.vbb.vb2_buf.timestamp = ns;
+> +                       buf->vid_buf.vbb.field = V4L2_FIELD_NONE;
+> +                       buf->vid_buf.vbb.sequence =
+> +                               atomic_inc_return(&imgu->nodes[node].sequence);
+> +               }
+> +               imgu_buffer_done(imgu, &buf->vid_buf.vbb.vb2_buf,
+> +                                ipu3_css_buf_state(&buf->css_buf) ==
+> +                                                   IPU3_CSS_BUFFER_DONE ?
+> +                                                   VB2_BUF_STATE_DONE :
+> +                                                   VB2_BUF_STATE_ERROR);
+> +       } while (1);
+> +
+> +       /*
+> +        * Try to queue more buffers for CSS.
+> +        * qbuf_barrier is used to disable new buffers
+> +        * to be queued to CSS.
+> +        */
+> +       if (!atomic_read(&imgu->qbuf_barrier))
+> +               imgu_queue_buffers(imgu, false);
+> +
+> +       return IRQ_NONE;
+
+This is a serious bug. An interrupt handler must not return IRQ_NONE
+unless it's really sure that the device it handles did not generate
+any interrupt. This threaded handler is called as a result of the
+hardirq handler actually finding an interrupt to be handled, so we
+must always return IRQ_HANDLED here.
+
+[snip]
+
+> +static int __maybe_unused imgu_suspend(struct device *dev)
+> +{
+> +       struct pci_dev *pci_dev = to_pci_dev(dev);
+> +       struct imgu_device *imgu = pci_get_drvdata(pci_dev);
+> +       unsigned long expire;
+> +
+> +       dev_dbg(dev, "enter %s\n", __func__);
+> +       imgu->suspend_in_stream = ipu3_css_is_streaming(&imgu->css);
+> +       if (!imgu->suspend_in_stream)
+> +               goto out;
+> +       /* Block new buffers to be queued to CSS. */
+> +       atomic_set(&imgu->qbuf_barrier, 1);
+> +       /*
+> +        * Wait for currently running irq handler to be done so that
+> +        * no new buffers will be queued to fw later.
+> +        */
+> +       synchronize_irq(pci_dev->irq);
+> +       /* Wait until all buffers in CSS are done. */
+> +       expire = jiffies + msecs_to_jiffies(1000);
+> +       while (!ipu3_css_queue_empty(&imgu->css)) {
+> +               if (time_is_before_jiffies(expire)) {
+> +                       dev_err(dev, "wait buffer drain timeout.\n");
+> +                       break;
+> +               }
+> +       }
+
+Uhm. We struggle to save some power by suspending the device only to
+end up with an ugly busy wait that could take even a second here. This
+doesn't make any sense.
+
+We had a working solution using a wait queue in previous revision [1].
+What happened to it?
+
+[1] https://chromium-review.googlesource.com/c/chromiumos/third_party/kernel/+/1029594/2/drivers/media/pci/intel/ipu3/ipu3.c#b913
+(see the left side)
+
+> +       ipu3_css_stop_streaming(&imgu->css);
+> +       atomic_set(&imgu->qbuf_barrier, 0);
+> +       imgu_powerdown(imgu);
+> +       pm_runtime_force_suspend(dev);
+> +out:
+> +       dev_dbg(dev, "leave %s\n", __func__);
+> +       return 0;
+> +}
+
+Best regards,
+Tomasz
