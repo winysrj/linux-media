@@ -1,100 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41641 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S964922AbeGBKME (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:25210 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S965314AbeGBKYp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jul 2018 06:12:04 -0400
-Subject: Re: [PATCH v11 10/10] arch: sh: migor: Use new renesas-ceu camera
- driver
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1519295846-11612-1-git-send-email-jacopo+renesas@jmondi.org>
- <1519295846-11612-11-git-send-email-jacopo+renesas@jmondi.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3a262281-2f47-af79-970a-c8ec5ac82778@xs4all.nl>
-Date: Mon, 2 Jul 2018 12:11:59 +0200
-MIME-Version: 1.0
-In-Reply-To: <1519295846-11612-11-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
+        Mon, 2 Jul 2018 06:24:45 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l2-ctrls.c: fix broken auto cluster handling
+Date: Mon, 2 Jul 2018 10:24:40 +0000
+Message-ID: <bbbf3b5f-861f-bfd9-f027-62e379d3ce14@st.com>
+References: <c65ccb5a-75ff-bb99-779c-d932f84b4769@xs4all.nl>
+In-Reply-To: <c65ccb5a-75ff-bb99-779c-d932f84b4769@xs4all.nl>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <0BD78096FB68D74A98DD521ED4A2C639@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/02/18 11:37, Jacopo Mondi wrote:
-> Migo-R platform uses sh_mobile_ceu camera driver, which is now being
-> replaced by a proper V4L2 camera driver named 'renesas-ceu'.
-> 
-> Move Migo-R platform to use the v4l2 renesas-ceu camera driver
-> interface and get rid of soc_camera defined components used to register
-> sensor drivers and of platform specific enable/disable routines.
-> 
-> Register clock source and GPIOs for sensor drivers, so they can use
-> clock and gpio APIs.
-> 
-> Also, memory for CEU video buffers is now reserved with membocks APIs,
-> and need to be declared as dma_coherent during machine initialization to
-> remove that architecture specific part from CEU driver.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  arch/sh/boards/mach-migor/setup.c      | 225 +++++++++++++++------------------
->  arch/sh/kernel/cpu/sh4a/clock-sh7722.c |   2 +-
->  2 files changed, 101 insertions(+), 126 deletions(-)
-> 
-> diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-> index 0bcbe58..271dfc2 100644
-> --- a/arch/sh/boards/mach-migor/setup.c
-> +++ b/arch/sh/boards/mach-migor/setup.c
-> @@ -1,17 +1,16 @@
-> +// SPDX-License-Identifier: GPL-2.0
->  /*
->   * Renesas System Solutions Asia Pte. Ltd - Migo-R
->   *
->   * Copyright (C) 2008 Magnus Damm
-> - *
-> - * This file is subject to the terms and conditions of the GNU General Public
-> - * License.  See the file "COPYING" in the main directory of this archive
-> - * for more details.
->   */
-> +#include <linux/clkdev.h>
->  #include <linux/init.h>
->  #include <linux/platform_device.h>
->  #include <linux/interrupt.h>
->  #include <linux/input.h>
->  #include <linux/input/sh_keysc.h>
-> +#include <linux/memblock.h>
->  #include <linux/mmc/host.h>
->  #include <linux/mtd/physmap.h>
->  #include <linux/mfd/tmio.h>
-> @@ -23,10 +22,11 @@
->  #include <linux/delay.h>
->  #include <linux/clk.h>
->  #include <linux/gpio.h>
-> +#include <linux/gpio/machine.h>
->  #include <linux/videodev2.h>
->  #include <linux/sh_intc.h>
->  #include <video/sh_mobile_lcdc.h>
-> -#include <media/drv-intf/sh_mobile_ceu.h>
-> +#include <media/drv-intf/renesas-ceu.h>
->  #include <media/i2c/ov772x.h>
->  #include <media/soc_camera.h>
-
-You left a stray soc_camera.h include here.
-
-Can you make a patch that removes this and verify that everything compiles?
-
-I also see CONFIG_SOC_CAMERA in several arch/sh/configs/*_defconfig files.
-Should those be updated?
-
-Regards,
-
-	Hans
+TWFueSB0aGFua3MgSGFucywNCg0KVGhpcyBmaXggbXkgaXNzdWUgd2l0aCBvdjU2NDAsDQoNCkJl
+c3QgcmVnYXJkcywNCkh1Z3Vlcy4NCg0KT24gMDYvMjkvMjAxOCAxMjoxMiBQTSwgSGFucyBWZXJr
+dWlsIHdyb3RlOg0KPiBXaGVuIHlvdSBzd2l0Y2ggZnJvbSBhdXRvIHRvIG1hbnVhbCBtb2RlIGZv
+ciBhbiBhdXRvLWNsdXN0ZXIgKGUuZy4NCj4gYXV0b2dhaW4rZ2FpbiBjb250cm9scyksIHRoZW4g
+dGhlIGN1cnJlbnQgSFcgdmFsdWUgaGFzIHRvIGJlIGNvcGllZA0KPiB0byB0aGUgY3VycmVudCBj
+b250cm9sIHZhbHVlLiBIb3dldmVyLCBoYXNfY2hhbmdlZCB3YXMgbmV2ZXIgc2V0IHRvDQo+IHRy
+dWUsIHNvIG5ld190b19jdXIgZGlkbid0IGFjdHVhbGx5IGNvcHkgdGhpcyB2YWx1ZS4NCj4gDQo+
+IFNpZ25lZC1vZmYtYnk6IEhhbnMgVmVya3VpbCA8aGFucy52ZXJrdWlsQGNpc2NvLmNvbT4NCj4g
+UmVwb3J0ZWQtYnk6IEh1Z3VlcyBGUlVDSEVUIDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQoNClRl
+c3RlZC1ieTogSHVndWVzIEZSVUNIRVQgPGh1Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCg0KPiAtLS0N
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Y0bDItY3RybHMuYyBiL2Ry
+aXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Y0bDItY3RybHMuYw0KPiBpbmRleCBkMjllNDU1MTZlYjcu
+LmQxMDg3NTczZGEzNCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS92NGwyLWNvcmUvdjRs
+Mi1jdHJscy5jDQo+ICsrKyBiL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Y0bDItY3RybHMuYw0K
+PiBAQCAtMzEzNyw5ICszMTM3LDIyIEBAIHN0YXRpYyBpbnQgdHJ5X29yX3NldF9jbHVzdGVyKHN0
+cnVjdCB2NGwyX2ZoICpmaCwgc3RydWN0IHY0bDJfY3RybCAqbWFzdGVyLA0KPiANCj4gICAJLyog
+SWYgT0ssIHRoZW4gbWFrZSB0aGUgbmV3IHZhbHVlcyBwZXJtYW5lbnQuICovDQo+ICAgCXVwZGF0
+ZV9mbGFnID0gaXNfY3VyX21hbnVhbChtYXN0ZXIpICE9IGlzX25ld19tYW51YWwobWFzdGVyKTsN
+Cj4gLQlmb3IgKGkgPSAwOyBpIDwgbWFzdGVyLT5uY29udHJvbHM7IGkrKykNCj4gKw0KPiArCWZv
+ciAoaSA9IDA7IGkgPCBtYXN0ZXItPm5jb250cm9sczsgaSsrKSB7DQo+ICsJCS8qDQo+ICsJCSAq
+IElmIHdlIHN3aXRjaCBmcm9tIGF1dG8gdG8gbWFudWFsIG1vZGUsIGFuZCB0aGlzIGNsdXN0ZXIN
+Cj4gKwkJICogY29udGFpbnMgdm9sYXRpbGUgY29udHJvbHMsIHRoZW4gYWxsIG5vbi1tYXN0ZXIg
+Y29udHJvbHMNCj4gKwkJICogaGF2ZSB0byBiZSBtYXJrZWQgYXMgY2hhbmdlZC4gVGhlICduZXcn
+IHZhbHVlIGNvbnRhaW5zDQo+ICsJCSAqIHRoZSB2b2xhdGlsZSB2YWx1ZSAob2J0YWluZWQgYnkg
+dXBkYXRlX2Zyb21fYXV0b19jbHVzdGVyKSwNCj4gKwkJICogd2hpY2ggbm93IGhhcyB0byBiZWNv
+bWUgdGhlIGN1cnJlbnQgdmFsdWUuDQo+ICsJCSAqLw0KPiArCQlpZiAoaSAmJiB1cGRhdGVfZmxh
+ZyAmJiBpc19uZXdfbWFudWFsKG1hc3RlcikgJiYNCj4gKwkJICAgIG1hc3Rlci0+aGFzX3ZvbGF0
+aWxlcyAmJiBtYXN0ZXItPmNsdXN0ZXJbaV0pDQo+ICsJCQltYXN0ZXItPmNsdXN0ZXJbaV0tPmhh
+c19jaGFuZ2VkID0gdHJ1ZTsNCj4gKw0KPiAgIAkJbmV3X3RvX2N1cihmaCwgbWFzdGVyLT5jbHVz
+dGVyW2ldLCBjaF9mbGFncyB8DQo+ICAgCQkJKCh1cGRhdGVfZmxhZyAmJiBpID4gMCkgPyBWNEwy
+X0VWRU5UX0NUUkxfQ0hfRkxBR1MgOiAwKSk7DQo+ICsJfQ0KPiAgIAlyZXR1cm4gMDsNCj4gICB9
+DQo+IA==
