@@ -1,81 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60560 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933423AbeGBJfV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 05:35:21 -0400
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:43897 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933917AbeGBKFl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 06:05:41 -0400
+Received: by mail-yw0-f196.google.com with SMTP id l189-v6so69630ywb.10
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 03:05:40 -0700 (PDT)
+Received: from mail-yb0-f179.google.com (mail-yb0-f179.google.com. [209.85.213.179])
+        by smtp.gmail.com with ESMTPSA id k65-v6sm6253324ywd.13.2018.07.02.03.05.39
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 02 Jul 2018 03:05:39 -0700 (PDT)
+Received: by mail-yb0-f179.google.com with SMTP id h127-v6so4876879ybg.12
+        for <linux-media@vger.kernel.org>; Mon, 02 Jul 2018 03:05:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Mon, 02 Jul 2018 15:05:20 +0530
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+References: <20180515075859.17217-1-stanimir.varbanov@linaro.org>
+ <20180515075859.17217-13-stanimir.varbanov@linaro.org> <CAAFQd5Bj73zyi0vsaSJ2sam2TGm7agshXg+n+sa2c7HoqLRGUw@mail.gmail.com>
+ <13c7aec1-2bb9-f449-6b7d-7ec93be4ec71@linaro.org> <CAAFQd5B8UVk3n7m+MV3t68vrDhtd9Hi_CnuYS-4QFaVdByOTyA@mail.gmail.com>
+ <CAAFQd5CddQBo2JRaab0uWdtkmetd=zDzVt=rM+vJZQ7DM-kLGA@mail.gmail.com> <30d141b6-dffa-bf6a-dae8-79595c966a23@linaro.org>
+In-Reply-To: <30d141b6-dffa-bf6a-dae8-79595c966a23@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 2 Jul 2018 19:05:27 +0900
+Message-ID: <CAAFQd5Aet4Hb62Jps6QPu+0fLsB=ruxH1qFwE93c_MWygvmXBw@mail.gmail.com>
+Subject: Re: [PATCH v2 12/29] venus: add common capability parser
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, Tomasz Figa <tfiga@chromium.org>,
-        linux-media-owner@vger.kernel.org
-Subject: Re: [PATCH v4 24/27] venus: helpers: move frame size calculations on
- common place
-In-Reply-To: <CAPBb6MVPrparfoAMaVwsDrwPO1K8cnWb24WdZFGeU5aoEqDt5w@mail.gmail.com>
-References: <20180627152725.9783-1-stanimir.varbanov@linaro.org>
- <20180627152725.9783-25-stanimir.varbanov@linaro.org>
- <CAPBb6MVPrparfoAMaVwsDrwPO1K8cnWb24WdZFGeU5aoEqDt5w@mail.gmail.com>
-Message-ID: <4e22af7d7ef9037996b606892ed25b36@codeaurora.org>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-07-02 14:16, Alexandre Courbot wrote:
-> On Thu, Jun 28, 2018 at 12:28 AM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
->> 
->> This move the calculations of raw and compressed buffer sizes
->> on common helper and make it identical for encoder and decoder.
->> 
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/venus/helpers.c | 98 
->> +++++++++++++++++++++++++++++
->>  drivers/media/platform/qcom/venus/helpers.h |  2 +
->>  drivers/media/platform/qcom/venus/vdec.c    | 54 ++++------------
->>  drivers/media/platform/qcom/venus/venc.c    | 56 ++++-------------
->>  4 files changed, 126 insertions(+), 84 deletions(-)
->> 
->> diff --git a/drivers/media/platform/qcom/venus/helpers.c 
->> b/drivers/media/platform/qcom/venus/helpers.c
->> index 6b31c91528ed..a342472ae2f0 100644
->> --- a/drivers/media/platform/qcom/venus/helpers.c
->> +++ b/drivers/media/platform/qcom/venus/helpers.c
->> @@ -452,6 +452,104 @@ int venus_helper_get_bufreq(struct venus_inst 
->> *inst, u32 type,
->>  }
->>  EXPORT_SYMBOL_GPL(venus_helper_get_bufreq);
->> 
->> +static u32 get_framesize_raw_nv12(u32 width, u32 height)
->> +{
->> +       u32 y_stride, uv_stride, y_plane;
->> +       u32 y_sclines, uv_sclines, uv_plane;
->> +       u32 size;
->> +
->> +       y_stride = ALIGN(width, 128);
->> +       uv_stride = ALIGN(width, 128);
->> +       y_sclines = ALIGN(height, 32);
->> +       uv_sclines = ALIGN(((height + 1) >> 1), 16);
->> +
->> +       y_plane = y_stride * y_sclines;
->> +       uv_plane = uv_stride * uv_sclines + SZ_4K;
->> +       size = y_plane + uv_plane + SZ_8K;
-> 
-> Do you know the reason for this extra 8K at the end?
+On Mon, Jul 2, 2018 at 6:59 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi Tomasz,
+>
+> On 07/02/2018 12:23 PM, Tomasz Figa wrote:
+> > On Thu, May 31, 2018 at 4:06 PM Tomasz Figa <tfiga@chromium.org> wrote:
+> >>
+> >> On Thu, May 31, 2018 at 1:21 AM Stanimir Varbanov
+> >> <stanimir.varbanov@linaro.org> wrote:
+> >>>
+> >>> Hi Tomasz,
+> >>>
+> >>> On 05/24/2018 05:16 PM, Tomasz Figa wrote:
+> >>>> Hi Stanimir,
+> >>>>
+> >>>> On Tue, May 15, 2018 at 5:08 PM Stanimir Varbanov <
+> > [snip]
+> >>>>
+> >>>>> +                       break;
+> >>>>> +               }
+> >>>>> +
+> >>>>> +               word++;
+> >>>>> +               words_count--;
+> >>>>
+> >>>> If data is at |word + 1|, shouldn=E2=80=99t we increment |word| by |=
+1 + |data
+> >>>> size||?
+> >>>
+> >>> yes, that could be possible but the firmware packets are with variabl=
+e
+> >>> data length and don't want to make the code so complex.
+> >>>
+> >>> The idea is to search for HFI_PROPERTY_PARAM* key numbers. Yes it is =
+not
+> >>> optimal but this enumeration is happen only once during driver probe.
+> >>>
+> >>
+> >> Hmm, do we have a guarantee that we will never find a value that
+> >> matches HFI_PROPERTY_PARAM*, but would be actually just some data
+> >> inside the payload?
+> >
+> > Ping?
+>
+> OK, you are right there is guarantee that we not mixing keywords and
 
-As explained about the hardware requirement over bug [1], 8k is not 
-needed.
-I am working on a patch to fix the alignment requirement for ubwc format 
-as
-well.
-In downstream driver, this 8k was added to accomodate the video 
-extradata.
+Did the auto-correction engine in my head got this correctly as "no
+guarantee"? :)
 
-[1] https://partnerissuetracker.corp.google.com/u/1/issues/110448791
+> data. I can make parse_* functions to return how words they consumed and
+> increment 'word' pointer with consumed words.
+
+Yes, that or maybe just returning the pointer to the first word after
+consumed data. Most of the looping functions already seem to have this
+value, so it would have to be just returned. (vs having to subtract
+from the start pointer)
+
+Best regards,
+Tomasz
