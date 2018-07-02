@@ -1,115 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56152 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752033AbeGBMnF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jul 2018 08:43:05 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media: mark entity-intf links as IMMUTABLE
-Message-ID: <7a8dae57-3161-d787-c1bd-95abbdae5633@xs4all.nl>
-Date: Mon, 2 Jul 2018 14:43:02 +0200
+Received: from mail.bootlin.com ([62.4.15.54]:58992 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752050AbeGBM5J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jul 2018 08:57:09 -0400
+Date: Mon, 2 Jul 2018 14:57:07 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        sam@elite-embedded.com, hugues.fruchet@st.com,
+        loic.poulain@linaro.org, daniel@zonque.org,
+        linux-media@vger.kernel.org, Jacopo Mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH 1/2] media: i2c: ov5640: Re-work MIPI start sequence
+Message-ID: <20180702125707.po2akd6p7ezd7g3q@flea>
+References: <1530290560-25806-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1530290560-25806-2-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="33x5qx3hwrazmqd6"
+Content-Disposition: inline
+In-Reply-To: <1530290560-25806-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently links between entities and an interface are just marked as
-ENABLED. But (at least today) these links cannot be disabled by userspace
-or the driver, so they should also be marked as IMMUTABLE.
 
-It might become possible that drivers can disable such links (if for some
-reason the device node cannot be used), so we might need to add a new link
-flag at some point to mark interface links that can be changed by the driver
-but not by userspace.
+--33x5qx3hwrazmqd6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 64d6793674b9..3c8778570331 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -440,8 +440,10 @@ static int dvb_register_media_device(struct dvb_device *dvbdev,
- 	if (!dvbdev->entity)
- 		return 0;
+On Fri, Jun 29, 2018 at 06:42:39PM +0200, Jacopo Mondi wrote:
+> From: Jacopo Mondi <jacopo@jmondi.org>
+>=20
+> Change the MIPI CSI-2 interface startup sequence to the following:
+>=20
+> Initialization:
+> 0x3019 =3D 0x70 : Lane1, Lane2 and clock in LP11 when in 'sleep mode'
+> 0x300e =3D 0x58 : 2 lanes mode, power down TX and RX, MIPI CSI-2 off
+> 0x4800 =3D 0x20 : Gate clock when not transmitting, LP00 when not transmi=
+tting
+>=20
+> Stream on:
+> 0x300e =3D 0x4c : 2 lanes mode, power up TX and enable MIPI
+>=20
+> Stream off:
+> 0x300e =3D 0x58 : 2 lanes mode, power down TX and RX, MIPI CSI-2 off
+>=20
+> Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+> ---
+>  drivers/media/i2c/ov5640.c | 26 ++++++++++++++++++--------
+>  1 file changed, 18 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 1ecbb7a..465acce 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -259,6 +259,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v=
+4l2_ctrl *ctrl)
+>  static const struct reg_value ov5640_init_setting_30fps_VGA[] =3D {
+>  	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
+>  	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
+> +	{0x3019, 0x70, 0, 0},
 
--	link = media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf,
--				      MEDIA_LNK_FL_ENABLED);
-+	link = media_create_intf_link(dvbdev->entity,
-+				      &dvbdev->intf_devnode->intf,
-+				      MEDIA_LNK_FL_ENABLED |
-+				      MEDIA_LNK_FL_IMMUTABLE);
- 	if (!link)
- 		return -ENOMEM;
- #endif
-@@ -599,7 +601,8 @@ static int dvb_create_io_intf_links(struct dvb_adapter *adap,
- 			if (strncmp(entity->name, name, strlen(name)))
- 				continue;
- 			link = media_create_intf_link(entity, intf,
--						      MEDIA_LNK_FL_ENABLED);
-+						      MEDIA_LNK_FL_ENABLED |
-+						      MEDIA_LNK_FL_IMMUTABLE);
- 			if (!link)
- 				return -ENOMEM;
- 		}
-@@ -754,14 +757,16 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
- 	media_device_for_each_intf(intf, mdev) {
- 		if (intf->type == MEDIA_INTF_T_DVB_CA && ca) {
- 			link = media_create_intf_link(ca, intf,
--						      MEDIA_LNK_FL_ENABLED);
-+						      MEDIA_LNK_FL_ENABLED |
-+						      MEDIA_LNK_FL_IMMUTABLE);
- 			if (!link)
- 				return -ENOMEM;
- 		}
+I'd really prefer to remove parts of that array, instead of adding
+more to that unmaintainable blob.
 
- 		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner) {
- 			link = media_create_intf_link(tuner, intf,
--						      MEDIA_LNK_FL_ENABLED);
-+						      MEDIA_LNK_FL_ENABLED |
-+						      MEDIA_LNK_FL_IMMUTABLE);
- 			if (!link)
- 				return -ENOMEM;
- 		}
-@@ -773,7 +778,8 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
- 		 */
- 		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux) {
- 			link = media_create_intf_link(demux, intf,
--						      MEDIA_LNK_FL_ENABLED);
-+						      MEDIA_LNK_FL_ENABLED |
-+						      MEDIA_LNK_FL_IMMUTABLE);
- 			if (!link)
- 				return -ENOMEM;
- 		}
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 4ffd7d60a901..5f43f63fa700 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -808,7 +808,8 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+Maxime
 
- 		link = media_create_intf_link(&vdev->entity,
- 					      &vdev->intf_devnode->intf,
--					      MEDIA_LNK_FL_ENABLED);
-+					      MEDIA_LNK_FL_ENABLED |
-+					      MEDIA_LNK_FL_IMMUTABLE);
- 		if (!link) {
- 			media_devnode_remove(vdev->intf_devnode);
- 			media_device_unregister_entity(&vdev->entity);
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 937c6de85606..3940e55c72f1 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -267,7 +267,8 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
- 			link = media_create_intf_link(&sd->entity,
- 						      &vdev->intf_devnode->intf,
--						      MEDIA_LNK_FL_ENABLED);
-+						      MEDIA_LNK_FL_ENABLED |
-+						      MEDIA_LNK_FL_IMMUTABLE);
- 			if (!link) {
- 				err = -ENOMEM;
- 				goto clean_up;
+--33x5qx3hwrazmqd6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAls6ISIACgkQ0rTAlCFN
+r3SeTQ//eh7ZWfpsvXIQjChWB6uIzZ3FDeLNbedpJR7OkbDna8Q9Oe/hz/VsBfXf
+UaJCZGpqkua1mYmwUAhlmxKIs6vQkByBXlPAedaXrTo9H1DJWUxunEQ2T3qCf1Q5
+3CUxhdLqJLEtZ87zuVpfjEStsAQcUkPcjW4eAgTxqvmYlfXWAC9y3NuyYZVtMj21
+t2iSV6wdkLt6HjNR9LitOEo/tj4ubJwXnGIKynnKfAJmsOj2txPJWmQu6OP4uOlW
+r6cBc234gBB92GDBHmM51DgWOcOEGhlrL00/VQMeV28AT+5Tnn+odKf3svAkM7+f
+/cGkz6vD68tAcstUE+XOBneScxSt2df5dr4FGrO/GTbj4Dt1eTlaaSo4KRsfUQQy
+Sswn6aShcXHLi8BxfJzuE+SX0nM2Uxq0CSsUaSThNKJVLWC4yjyOfrysWyRfnFN7
+W9cNbGg+Qagw2JieIQSGFuqp4NEjGKEJvU6kX4SjpDcUWmKO0LZkuc53eheD+evB
+O+HlrifwsVXLtwkcrNX01cvr2cdERUJI0oO7MwBFby1ZF3JohMb9KR6QGDYpdMMJ
+FbaamFvLYW1xWLFB1FuxrLSJ1Ox4UOIPiBRxGgjlDmIraTh3iLevb0I9EEPmfOj+
+DMAdzLTW9w2tyFSt1Ql8/DScmrKpnRB7BMu4/K3KA49lCJ3MUyA=
+=bFxR
+-----END PGP SIGNATURE-----
+
+--33x5qx3hwrazmqd6--
