@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55658 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55648 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752055AbeGBPgX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 11:36:23 -0400
+        with ESMTP id S1751931AbeGBPgU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jul 2018 11:36:20 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
@@ -11,358 +11,235 @@ Cc: Hans Verkuil <hans.verkuil@cisco.com>,
         Nicolas Dufresne <nicolas.dufresne@collabora.com>,
         emil.velikov@collabora.com,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v5 1/2] media: add helpers for memory-to-memory media controller
-Date: Mon,  2 Jul 2018 12:36:05 -0300
-Message-Id: <20180702153606.24876-2-ezequiel@collabora.com>
-In-Reply-To: <20180702153606.24876-1-ezequiel@collabora.com>
-References: <20180702153606.24876-1-ezequiel@collabora.com>
+Subject: [PATCH v5 0/2] Memory-to-memory media controller topology
+Date: Mon,  2 Jul 2018 12:36:04 -0300
+Message-Id: <20180702153606.24876-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A memory-to-memory pipeline device consists in three
-entities: two DMA engine and one video processing entities.
-The DMA engine entities are linked to a V4L interface.
+As discussed on IRC, memory-to-memory need to be modeled
+properly in order to be supported by the media controller
+framework, and thus to support the Request API.
 
-This commit add a new v4l2_m2m_{un}register_media_controller
-API to register this topology.
+First commit introduces a register/unregister API,
+that creates/destroys all the entities and pads needed,
+and links them.
 
-For instance, a typical mem2mem device topology would
-look like this:
+The second commit uses this API to support the vim2m driver.
 
-Device topology
-- entity 1: source (1 pad, 1 link)
-            type Node subtype V4L flags 0
-	pad0: Source
-		-> "proc":1 [ENABLED,IMMUTABLE]
+The series applies cleanly on v4.18-rc3.
 
-- entity 3: proc (2 pads, 2 links)
-            type Node subtype Unknown flags 0
-	pad0: Source
-		-> "sink":0 [ENABLED,IMMUTABLE]
-	pad1: Sink
-		<- "source":0 [ENABLED,IMMUTABLE]
+v5:
+ * Don't set major:minor to proc entity (Hans).
 
-- entity 6: sink (1 pad, 1 link)
-            type Node subtype V4L flags 0
-	pad0: Sink
-		<- "proc":0 [ENABLED,IMMUTABLE]
+v4:
+  * Add unique entity names (Hans)
+  * Add associated interface major and minor (Hans)
+  * Remove unused MEM2MEM_ENT_TYPE_MAX (Hans)	
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
+v3:
+  * Remove extra empty line.
+  * Remove duplicated entity name set.
+  * Reorder sink and source pads (Hans)
+  * Drop unused media macros, we can add them as needed.
+
+v2:
+  * Fix compile error when MEDIA_CONTROLLER was not enabled.
+  * Fix the 'proc' entity link, which was wrongly connecting
+    source to source and sink to sink.
+
+Compliance output
+=================
+
+root@(none):/# v4l2-compliance -m 0 -v
+v4l2-compliance SHA: 248491682a2919a1bd421f87b33c14125b9fc1f5, 64 bits
+
+Compliance test for device /dev/media0:
+
+Media Driver Info:
+	Driver name      : vim2m
+	Model            : vim2m
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.18.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.18.0
+
+Required ioctls:
+	test MEDIA_IOC_DEVICE_INFO: OK
+
+Allow for multiple opens:
+	test second /dev/media0 open: OK
+	test MEDIA_IOC_DEVICE_INFO: OK
+	test for unlimited opens: OK
+
+Media Controller ioctls:
+		Entity: 0x00000001 (Name: 'vim2m-source', Function: V4L2 I/O)
+		Entity: 0x00000003 (Name: 'vim2m-proc', Function: Video Scaler)
+		Entity: 0x00000006 (Name: 'vim2m-sink', Function: V4L2 I/O)
+		Interface: 0x0300000c (Type: V4L Video, DevPath: /dev/video2)
+		Pad: 0x01000002 (vim2m-source, Source)
+		Pad: 0x01000004 (vim2m-proc, Sink)
+		Pad: 0x01000005 (vim2m-proc, Source)
+		Pad: 0x01000007 (vim2m-sink, Sink)
+		Link: 0x02000008 (vim2m-source -> vim2m-proc)
+		Link: 0x0200000a (vim2m-proc -> vim2m-sink)
+		Link: 0x0200000d (vim2m-source to interface /dev/video2)
+		Link: 0x0200000e (vim2m-sink to interface /dev/video2)
+	test MEDIA_IOC_G_TOPOLOGY: OK
+	Entities: 3 Interfaces: 1 Pads: 4 Links: 4
+		Entity: 0x00000001 (Name: 'vim2m-source', Type: V4L2 I/O DevPath: /dev/video2)
+		Entity: 0x00000003 (Name: 'vim2m-proc', Type: Unknown legacy device node type (0001ffff))
+		Entity: 0x00000006 (Name: 'vim2m-sink', Type: V4L2 I/O DevPath: /dev/video2)
+		Entity Links: 0x00000001 (Name: 'vim2m-source')
+		Entity Links: 0x00000003 (Name: 'vim2m-proc')
+		Entity Links: 0x00000006 (Name: 'vim2m-sink')
+	test MEDIA_IOC_ENUM_ENTITIES/LINKS: OK
+	test MEDIA_IOC_SETUP_LINK: OK
+
+--------------------------------------------------------------------------------
+Compliance test for device /dev/video2:
+
+Driver Info:
+	Driver name      : vim2m
+	Card type        : vim2m
+	Bus info         : platform:vim2m
+	Driver version   : 4.18.0
+	Capabilities     : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+Media Driver Info:
+	Driver name      : vim2m
+	Model            : vim2m
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.18.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.18.0
+Interface Info:
+	ID               : 0x0300000c
+	Type             : V4L Video
+Entity Info:
+	ID               : 0x00000001 (1)
+	Name             : vim2m-source
+	Function         : V4L2 I/O
+	Pad 0x01000002   : Source
+	  Link 0x02000008: to remote pad 0x1000005 of entity 'vim2m-proc': Data, Enabled, Immutable
+
+Required ioctls:
+	test MC information (see 'Media Driver Info' above): OK
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second /dev/video2 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+		info: checking v4l2_queryctrl of control 'User Controls' (0x00980001)
+		info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
+		info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
+		info: checking v4l2_queryctrl of control 'Transaction Time (msec)' (0x00981900)
+		info: checking v4l2_queryctrl of control 'Buffers Per Transaction' (0x00981901)
+		info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
+		info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
+		info: checking v4l2_queryctrl of control 'Transaction Time (msec)' (0x08000000)
+		info: checking v4l2_queryctrl of control 'Buffers Per Transaction' (0x08000001)
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+		info: checking control 'User Controls' (0x00980001)
+		info: checking control 'Horizontal Flip' (0x00980914)
+		info: checking control 'Vertical Flip' (0x00980915)
+		info: checking control 'Transaction Time (msec)' (0x00981900)
+		info: checking control 'Buffers Per Transaction' (0x00981901)
+	test VIDIOC_G/S_CTRL: OK
+		info: checking extended control 'User Controls' (0x00980001)
+		info: checking extended control 'Horizontal Flip' (0x00980914)
+		info: checking extended control 'Vertical Flip' (0x00980915)
+		info: checking extended control 'Transaction Time (msec)' (0x00981900)
+		info: checking extended control 'Buffers Per Transaction' (0x00981901)
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		info: checking control event 'User Controls' (0x00980001)
+		info: checking control event 'Horizontal Flip' (0x00980914)
+		info: checking control event 'Vertical Flip' (0x00980915)
+		info: checking control event 'Transaction Time (msec)' (0x00981900)
+		info: checking control event 'Buffers Per Transaction' (0x00981901)
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 3 Private Controls: 2
+
+Format ioctls:
+		info: found 1 formats for buftype 1
+		info: found 2 formats for buftype 2
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+		info: test buftype Video Capture
+		info: test buftype Video Output
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+
+Total: 51, Succeeded: 51, Failed: 0, Warnings: 0
+
+Ezequiel Garcia (1):
+  media: add helpers for memory-to-memory media controller
+
+Hans Verkuil (1):
+  vim2m: add media device
+
+ drivers/media/platform/vim2m.c         |  41 +++++-
  drivers/media/v4l2-core/v4l2-dev.c     |  13 +-
  drivers/media/v4l2-core/v4l2-mem2mem.c | 188 +++++++++++++++++++++++++
  include/media/v4l2-mem2mem.h           |  19 +++
- 3 files changed, 215 insertions(+), 5 deletions(-)
+ 4 files changed, 252 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 4ffd7d60a901..c1996d73ca74 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -202,7 +202,7 @@ static void v4l2_device_release(struct device *cd)
- 	mutex_unlock(&videodev_lock);
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	if (v4l2_dev->mdev) {
-+	if (v4l2_dev->mdev && vdev->vfl_dir != VFL_DIR_M2M) {
- 		/* Remove interfaces and interface links */
- 		media_devnode_remove(vdev->intf_devnode);
- 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
-@@ -733,19 +733,22 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			BASE_VIDIOC_PRIVATE);
- }
- 
--static int video_register_media_controller(struct video_device *vdev, int type)
-+static int video_register_media_controller(struct video_device *vdev)
- {
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	u32 intf_type;
- 	int ret;
- 
--	if (!vdev->v4l2_dev->mdev)
-+	/* Memory-to-memory devices are more complex and use
-+	 * their own function to register its mc entities.
-+	 */
-+	if (!vdev->v4l2_dev->mdev || vdev->vfl_dir == VFL_DIR_M2M)
- 		return 0;
- 
- 	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
- 
--	switch (type) {
-+	switch (vdev->vfl_type) {
- 	case VFL_TYPE_GRABBER:
- 		intf_type = MEDIA_INTF_T_V4L_VIDEO;
- 		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
-@@ -993,7 +996,7 @@ int __video_register_device(struct video_device *vdev,
- 	v4l2_device_get(vdev->v4l2_dev);
- 
- 	/* Part 5: Register the entity. */
--	ret = video_register_media_controller(vdev, type);
-+	ret = video_register_media_controller(vdev);
- 
- 	/* Part 6: Activate this minor. The char device can now be used. */
- 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index c4f963d96a79..47d4b36978a1 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -17,9 +17,11 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- 
-+#include <media/media-device.h>
- #include <media/videobuf2-v4l2.h>
- #include <media/v4l2-mem2mem.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
- 
-@@ -50,6 +52,17 @@ module_param(debug, bool, 0644);
-  * offsets but for different queues */
- #define DST_QUEUE_OFF_BASE	(1 << 30)
- 
-+enum v4l2_m2m_entity_type {
-+	MEM2MEM_ENT_TYPE_SOURCE,
-+	MEM2MEM_ENT_TYPE_SINK,
-+	MEM2MEM_ENT_TYPE_PROC
-+};
-+
-+static const char * const m2m_entity_name[] = {
-+	"source",
-+	"sink",
-+	"proc"
-+};
- 
- /**
-  * struct v4l2_m2m_dev - per-device context
-@@ -60,6 +73,15 @@ module_param(debug, bool, 0644);
-  */
- struct v4l2_m2m_dev {
- 	struct v4l2_m2m_ctx	*curr_ctx;
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_entity	*source;
-+	struct media_pad	source_pad;
-+	struct media_entity	sink;
-+	struct media_pad	sink_pad;
-+	struct media_entity	proc;
-+	struct media_pad	proc_pads[2];
-+	struct media_intf_devnode *intf_devnode;
-+#endif
- 
- 	struct list_head	job_queue;
- 	spinlock_t		job_spinlock;
-@@ -595,6 +617,172 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- }
- EXPORT_SYMBOL(v4l2_m2m_mmap);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
-+{
-+	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
-+	media_devnode_remove(m2m_dev->intf_devnode);
-+
-+	media_entity_remove_links(m2m_dev->source);
-+	media_entity_remove_links(&m2m_dev->sink);
-+	media_entity_remove_links(&m2m_dev->proc);
-+	media_device_unregister_entity(m2m_dev->source);
-+	media_device_unregister_entity(&m2m_dev->sink);
-+	media_device_unregister_entity(&m2m_dev->proc);
-+	kfree(m2m_dev->source->name);
-+	kfree(m2m_dev->sink.name);
-+	kfree(m2m_dev->proc.name);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_unregister_media_controller);
-+
-+static int v4l2_m2m_register_entity(struct media_device *mdev,
-+	struct v4l2_m2m_dev *m2m_dev, enum v4l2_m2m_entity_type type,
-+	struct video_device *vdev, int function)
-+{
-+	struct media_entity *entity;
-+	struct media_pad *pads;
-+	char *name;
-+	unsigned int len;
-+	int num_pads;
-+	int ret;
-+
-+	switch (type) {
-+	case MEM2MEM_ENT_TYPE_SOURCE:
-+		entity = m2m_dev->source;
-+		pads = &m2m_dev->source_pad;
-+		pads[0].flags = MEDIA_PAD_FL_SOURCE;
-+		num_pads = 1;
-+		break;
-+	case MEM2MEM_ENT_TYPE_SINK:
-+		entity = &m2m_dev->sink;
-+		pads = &m2m_dev->sink_pad;
-+		pads[0].flags = MEDIA_PAD_FL_SINK;
-+		num_pads = 1;
-+		break;
-+	case MEM2MEM_ENT_TYPE_PROC:
-+		entity = &m2m_dev->proc;
-+		pads = m2m_dev->proc_pads;
-+		pads[0].flags = MEDIA_PAD_FL_SINK;
-+		pads[1].flags = MEDIA_PAD_FL_SOURCE;
-+		num_pads = 2;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	entity->obj_type = MEDIA_ENTITY_TYPE_BASE;
-+	if (type != MEM2MEM_ENT_TYPE_PROC) {
-+		entity->info.dev.major = VIDEO_MAJOR;
-+		entity->info.dev.minor = vdev->minor;
-+	}
-+	len = strlen(vdev->name) + 2 + strlen(m2m_entity_name[type]);
-+	name = kmalloc(len, GFP_KERNEL);
-+	if (!name)
-+		return -ENOMEM;
-+	snprintf(name, len, "%s-%s", vdev->name, m2m_entity_name[type]);
-+	entity->name = name;
-+	entity->function = function;
-+
-+	ret = media_entity_pads_init(entity, num_pads, pads);
-+	if (ret)
-+		return ret;
-+	ret = media_device_register_entity(mdev, entity);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
-+		struct video_device *vdev, int function)
-+{
-+	struct media_device *mdev = vdev->v4l2_dev->mdev;
-+	struct media_link *link;
-+	int ret;
-+
-+	if (!mdev)
-+		return 0;
-+
-+	/* A memory-to-memory device consists in two
-+	 * DMA engine and one video processing entities.
-+	 * The DMA engine entities are linked to a V4L interface
-+	 */
-+
-+	/* Create the three entities with their pads */
-+	m2m_dev->source = &vdev->entity;
-+	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
-+			MEM2MEM_ENT_TYPE_SOURCE, vdev, MEDIA_ENT_F_IO_V4L);
-+	if (ret)
-+		return ret;
-+	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
-+			MEM2MEM_ENT_TYPE_PROC, vdev, function);
-+	if (ret)
-+		goto err_rel_entity0;
-+	ret = v4l2_m2m_register_entity(mdev, m2m_dev,
-+			MEM2MEM_ENT_TYPE_SINK, vdev, MEDIA_ENT_F_IO_V4L);
-+	if (ret)
-+		goto err_rel_entity1;
-+
-+	/* Connect the three entities */
-+	ret = media_create_pad_link(m2m_dev->source, 0, &m2m_dev->proc, 1,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		goto err_rel_entity2;
-+
-+	ret = media_create_pad_link(&m2m_dev->proc, 0, &m2m_dev->sink, 0,
-+			MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		goto err_rm_links0;
-+
-+	/* Create video interface */
-+	m2m_dev->intf_devnode = media_devnode_create(mdev,
-+			MEDIA_INTF_T_V4L_VIDEO, 0,
-+			VIDEO_MAJOR, vdev->minor);
-+	if (!m2m_dev->intf_devnode) {
-+		ret = -ENOMEM;
-+		goto err_rm_links1;
-+	}
-+
-+	/* Connect the two DMA engines to the interface */
-+	link = media_create_intf_link(m2m_dev->source,
-+			&m2m_dev->intf_devnode->intf, MEDIA_LNK_FL_ENABLED);
-+	if (!link) {
-+		ret = -ENOMEM;
-+		goto err_rm_devnode;
-+	}
-+
-+	link = media_create_intf_link(&m2m_dev->sink,
-+			&m2m_dev->intf_devnode->intf, MEDIA_LNK_FL_ENABLED);
-+	if (!link) {
-+		ret = -ENOMEM;
-+		goto err_rm_intf_link;
-+	}
-+	return 0;
-+
-+err_rm_intf_link:
-+	media_remove_intf_links(&m2m_dev->intf_devnode->intf);
-+err_rm_devnode:
-+	media_devnode_remove(m2m_dev->intf_devnode);
-+err_rm_links1:
-+	media_entity_remove_links(&m2m_dev->sink);
-+err_rm_links0:
-+	media_entity_remove_links(&m2m_dev->proc);
-+	media_entity_remove_links(m2m_dev->source);
-+err_rel_entity2:
-+	media_device_unregister_entity(&m2m_dev->proc);
-+	kfree(m2m_dev->proc.name);
-+err_rel_entity1:
-+	media_device_unregister_entity(&m2m_dev->sink);
-+	kfree(m2m_dev->sink.name);
-+err_rel_entity0:
-+	media_device_unregister_entity(m2m_dev->source);
-+	kfree(m2m_dev->source->name);
-+	return ret;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_register_media_controller);
-+#endif
-+
- struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
- {
- 	struct v4l2_m2m_dev *m2m_dev;
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 3d07ba3a8262..24fcc99653de 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -53,6 +53,7 @@ struct v4l2_m2m_ops {
- 	void (*unlock)(void *priv);
- };
- 
-+struct video_device;
- struct v4l2_m2m_dev;
- 
- /**
-@@ -328,6 +329,24 @@ int v4l2_m2m_mmap(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
-  */
- struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+void v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev);
-+int v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
-+			struct video_device *vdev, int function);
-+#else
-+static inline void
-+v4l2_m2m_unregister_media_controller(struct v4l2_m2m_dev *m2m_dev)
-+{
-+}
-+
-+static inline int
-+v4l2_m2m_register_media_controller(struct v4l2_m2m_dev *m2m_dev,
-+		struct video_device *vdev, int function)
-+{
-+	return 0;
-+}
-+#endif
-+
- /**
-  * v4l2_m2m_release() - cleans up and frees a m2m_dev structure
-  *
 -- 
 2.18.0.rc2
