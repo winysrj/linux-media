@@ -1,200 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:43512 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752576AbeGCM1d (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2018 08:27:33 -0400
-Received: by mail-wr0-f196.google.com with SMTP id f18-v6so1771171wre.10
-        for <linux-media@vger.kernel.org>; Tue, 03 Jul 2018 05:27:32 -0700 (PDT)
-Subject: Re: [PATCH v7 3/6] mfd: cros-ec: Increase maximum mkbp event size
-To: Lee Jones <lee.jones@linaro.org>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, olof@lixom.net,
-        seanpaul@google.com, sadolfsson@google.com, felixe@google.com,
-        bleung@google.com, darekm@google.com, marcheu@chromium.org,
-        fparent@baylibre.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, eballetbo@gmail.com,
-        Stefan Adolfsson <sadolfsson@chromium.org>
-References: <1527841154-24832-1-git-send-email-narmstrong@baylibre.com>
- <1527841154-24832-4-git-send-email-narmstrong@baylibre.com>
- <20180618074443.GK31141@dell>
- <017e4688-4036-e606-7220-2e472afa0aac@baylibre.com>
- <20180703094344.GR20176@dell>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <b3ff9ca1-6961-9f06-9886-fedcd3431d0a@baylibre.com>
-Date: Tue, 3 Jul 2018 14:27:29 +0200
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:39390 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752606AbeGCNLT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2018 09:11:19 -0400
+Received: by mail-ed1-f68.google.com with SMTP id w14-v6so1587365eds.6
+        for <linux-media@vger.kernel.org>; Tue, 03 Jul 2018 06:11:18 -0700 (PDT)
+Date: Tue, 3 Jul 2018 15:11:15 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>, sumit.semwal@linaro.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org
+Subject: Re: [PATCH 2/4] dma-buf: lock the reservation object during
+ (un)map_dma_buf v2
+Message-ID: <20180703131115.GE3891@phenom.ffwll.local>
+References: <20180622141103.1787-1-christian.koenig@amd.com>
+ <20180622141103.1787-3-christian.koenig@amd.com>
+ <20180625082231.GM2958@phenom.ffwll.local>
+ <20180625091217.GO2958@phenom.ffwll.local>
+ <2ebff18b-414d-c971-1b7f-f6a21aacf196@gmail.com>
+ <20180703125235.GB3891@phenom.ffwll.local>
+ <35187534-cc89-3e31-5428-2700c3f8a90b@amd.com>
 MIME-Version: 1.0
-In-Reply-To: <20180703094344.GR20176@dell>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <35187534-cc89-3e31-5428-2700c3f8a90b@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lee,
-
-On 03/07/2018 11:43, Lee Jones wrote:
-> On Mon, 18 Jun 2018, Neil Armstrong wrote:
+On Tue, Jul 03, 2018 at 03:02:11PM +0200, Christian König wrote:
+> Am 03.07.2018 um 14:52 schrieb Daniel Vetter:
+> > On Tue, Jul 03, 2018 at 01:46:44PM +0200, Christian König wrote:
+> > > Am 25.06.2018 um 11:12 schrieb Daniel Vetter:
+> > > > On Mon, Jun 25, 2018 at 10:22:31AM +0200, Daniel Vetter wrote:
+> > > > > On Fri, Jun 22, 2018 at 04:11:01PM +0200, Christian König wrote:
+> > > > > > First step towards unpinned DMA buf operation.
+> > > > > > 
+> > > > > > I've checked the DRM drivers to potential locking of the reservation
+> > > > > > object, but essentially we need to audit all implementations of the
+> > > > > > dma_buf _ops for this to work.
+> > > > > > 
+> > > > > > v2: reordered
+> > > > > > 
+> > > > > > Signed-off-by: Christian König <christian.koenig@amd.com>
+> > > > > Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> > > > Ok I did review drivers a bit, but apparently not well enough by far. i915
+> > > > CI is unhappy:
+> > > > 
+> > > > https://intel-gfx-ci.01.org/tree/drm-tip/Patchwork_9400/fi-whl-u/igt@gem_mmap_gtt@basic-small-bo-tiledx.html
+> > > > 
+> > > > So yeah inserting that lock in there isn't the most trivial thing :-/
+> > > > 
+> > > > I kinda assume that other drivers will have similar issues, e.g. omapdrm's
+> > > > use of dev->struct_mutex also very much looks like it'll result in a new
+> > > > locking inversion.
+> > > Ah, crap. Already feared that this wouldn't be easy, but yeah that it is as
+> > > bad as this is rather disappointing.
+> > > 
+> > > Thanks for the info, going to keep thinking about how to solve those issues.
+> > Side note: We want to make sure that drivers don't get the reservation_obj
+> > locking hierarchy wrong in other places (using dev->struct_mutex is kinda
+> > a pre-existing mis-use that we can't wish away retroactively
+> > unfortunately). One really important thing is that shrinker vs resv_obj
+> > must work with trylocks in the shrinker, so that you can allocate memory
+> > while holding reservation objects.
+> > 
+> > One neat trick to teach lockdep about this would be to have a dummy
+> > 
+> > if (IS_ENABLED(CONFIG_PROVE_LOCKING)) {
+> > 	ww_mutex_lock(dma_buf->resv_obj);
+> > 	fs_reclaim_acquire(GFP_KERNEL);
+> > 	fs_reclaim_release(GFP_KERNEL);
+> > 	ww_mutex_unlock(dma_buf->resv_obj);
+> > }
+> > 
+> > in dma_buf_init(). We're using the fs_reclaim_acquire/release check very
+> > successfully to improve our igt test coverage for i915.ko in other areas.
+> > 
+> > Totally unrelated to dev->struct_mutex, but thoughts? Well for
+> > dev->struct_mutex we could at least decide on one true way to nest
+> > resv_obj vs. dev->struct_mutex as maybe an interim step, but not sure how
+> > much that would help.
 > 
->> Hi Lee,
->>
->> On 18/06/2018 09:44, Lee Jones wrote:
->>> On Fri, 01 Jun 2018, Neil Armstrong wrote:
->>>
->>>> Having a 16 byte mkbp event size makes it possible to send CEC
->>>> messages from the EC to the AP directly inside the mkbp event
->>>> instead of first doing a notification and then a read.
->>>>
->>>> Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
->>>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
->>>> Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
->>>> ---
->>>>  drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
->>>>  include/linux/mfd/cros_ec.h             |  2 +-
->>>>  include/linux/mfd/cros_ec_commands.h    | 19 ++++++++++++++++
->>>>  3 files changed, 51 insertions(+), 10 deletions(-)
->>>>
->>>> diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
->>>> index e7bbdf9..c4f6c44 100644
->>>> --- a/drivers/platform/chrome/cros_ec_proto.c
->>>> +++ b/drivers/platform/chrome/cros_ec_proto.c
->>>> @@ -504,10 +504,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
->>>>  }
->>>>  EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
->>>>  
->>>> +static int get_next_event_xfer(struct cros_ec_device *ec_dev,
->>>> +			       struct cros_ec_command *msg,
->>>> +			       int version, uint32_t size)
->>>> +{
->>>> +	int ret;
->>>> +
->>>> +	msg->version = version;
->>>> +	msg->command = EC_CMD_GET_NEXT_EVENT;
->>>> +	msg->insize = size;
->>>> +	msg->outsize = 0;
->>>> +
->>>> +	ret = cros_ec_cmd_xfer(ec_dev, msg);
->>>> +	if (ret > 0) {
->>>> +		ec_dev->event_size = ret - 1;
->>>> +		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
->>>> +	}
->>>> +
->>>> +	return ret;
->>>> +}
->>>> +
->>>>  static int get_next_event(struct cros_ec_device *ec_dev)
->>>>  {
->>>>  	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
->>>>  	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
->>>> +	static int cmd_version = 1;
->>>>  	int ret;
->>>>  
->>>>  	if (ec_dev->suspended) {
->>>> @@ -515,18 +536,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
->>>>  		return -EHOSTDOWN;
->>>>  	}
->>>>  
->>>> -	msg->version = 0;
->>>> -	msg->command = EC_CMD_GET_NEXT_EVENT;
->>>> -	msg->insize = sizeof(ec_dev->event_data);
->>>> -	msg->outsize = 0;
->>>> +	if (cmd_version == 1) {
->>>> +		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
->>>> +				sizeof(struct ec_response_get_next_event_v1));
->>>> +		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
->>>> +			return ret;
->>>>  
->>>> -	ret = cros_ec_cmd_xfer(ec_dev, msg);
->>>> -	if (ret > 0) {
->>>> -		ec_dev->event_size = ret - 1;
->>>> -		memcpy(&ec_dev->event_data, msg->data,
->>>> -		       sizeof(ec_dev->event_data));
->>>> +		/* Fallback to version 0 for future send attempts */
->>>> +		cmd_version = 0;
->>>>  	}
->>>>  
->>>> +	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
->>>> +				  sizeof(struct ec_response_get_next_event));
->>>> +
->>>>  	return ret;
->>>>  }
->>>>  
->>>> diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
->>>> index f36125e..32caef3 100644
->>>> --- a/include/linux/mfd/cros_ec.h
->>>> +++ b/include/linux/mfd/cros_ec.h
->>>> @@ -147,7 +147,7 @@ struct cros_ec_device {
->>>>  	bool mkbp_event_supported;
->>>>  	struct blocking_notifier_head event_notifier;
->>>>  
->>>> -	struct ec_response_get_next_event event_data;
->>>> +	struct ec_response_get_next_event_v1 event_data;
->>>>  	int event_size;
->>>>  	u32 host_event_wake_mask;
->>>>  };
->>>> diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
->>>> index f2edd99..cc0768e 100644
->>>> --- a/include/linux/mfd/cros_ec_commands.h
->>>> +++ b/include/linux/mfd/cros_ec_commands.h
->>>> @@ -2093,12 +2093,31 @@ union ec_response_get_next_data {
->>>>  	uint32_t   sysrq;
->>>>  } __packed;
->>>>  
->>>> +union ec_response_get_next_data_v1 {
->>>> +	uint8_t   key_matrix[16];
->>>> +
->>>> +	/* Unaligned */
->>>
->>> That's funny!
->>>
->>>> +	uint32_t  host_event;
->>>> +
->>>> +	uint32_t   buttons;
->>>> +	uint32_t   switches;
->>>> +	uint32_t   sysrq;
->>>> +	uint32_t   cec_events;
->>>> +	uint8_t    cec_message[16];
->>>
->>> Since there are some whitespace alignment issues in here.
+> I don't think that would help. As far as I can see we only have two choices:
 > 
-> Fix the white space issues.
-
-Ok
-
+> 1. Either have a big patch which fixes all DMA-buf implementations to allow
+> the reservation lock to be held during map/unmap (unrealistic).
 > 
->>>> +} __packed;
->>>
->>> How come these guys have kerneldoc headers?
+> 2. Add a flag to at least in the mid term tell the DMA-buf helper functions
+> what to do. E.g. create the mapping without the reservation lock held.
 > 
-> Consider using kerneldoc headers (not required for this patch).
-
-I already used kerneldoc for the other patch as requested by Enric.
-
 > 
->> Can you explicit what should be changed here ?
+> How about moving the SGL caching from the DRM layer into the DMA-buf layer
+> and add a flag if the exporter wants/needs this caching?
 > 
-> -^
-
-Ok
-
-Thanks,
-Neil
-
+> Then only the implementations which can deal with dynamic invalidation
+> disable SGL caching and with it enable creating the sgl with the reservation
+> object locked.
 > 
->>>>  struct ec_response_get_next_event {
->>>>  	uint8_t event_type;
->>>>  	/* Followed by event data if any */
->>>>  	union ec_response_get_next_data data;
->>>>  } __packed;
->>>>  
->>>> +struct ec_response_get_next_event_v1 {
->>>> +	uint8_t event_type;
->>>> +	/* Followed by event data if any */
->>>> +	union ec_response_get_next_data_v1 data;
->>>> +} __packed;
->>>> +
->>>>  /* Bit indices for buttons and switches.*/
->>>>  /* Buttons */
->>>>  #define EC_MKBP_POWER_BUTTON	0
->>>
->>
+> This way we can kill two birds with one stone by both avoiding the SGL
+> caching in the DRM layer as well as having a sane handling for the locking.
 > 
+> Thoughts?
+
+I don't see how the SGL stuff factors into neither the dev->struct_mutex
+nor into the need to do allocations while holding resv_obj. Neither
+changes by moving that piece around. At least as far as I can see it SGL
+caching is fully orthogonal to any kind of locking fun.
+
+Why do you see a connection here?
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
