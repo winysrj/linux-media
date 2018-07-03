@@ -1,78 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:41276 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752808AbeGBVXb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jul 2018 17:23:31 -0400
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v7 2/6] cx25840: add kernel-doc description of struct cx25840_state
-Date: Mon,  2 Jul 2018 23:23:22 +0200
-Message-Id: <761723d6712a2fe01b8118acfd9444ab9bcf917f.1530565770.git.mail@maciej.szmigiero.name>
-In-Reply-To: <cover.1530565770.git.mail@maciej.szmigiero.name>
-References: <cover.1530565770.git.mail@maciej.szmigiero.name>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:51607 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932484AbeGCDzi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jul 2018 23:55:38 -0400
+Message-ID: <49c7fbdf7cea6dafb53e89dc0ba74407@smtp-cloud9.xs4all.net>
+Date: Tue, 03 Jul 2018 05:55:36 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit describes a device instance private data of the driver
-(struct cx25840_state) in a kernel-doc style comment.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
----
- drivers/media/i2c/cx25840/cx25840-core.h | 33 ++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
-index fb13a624d2e3..c323b1af1f83 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.h
-+++ b/drivers/media/i2c/cx25840/cx25840-core.h
-@@ -45,6 +45,35 @@ enum cx25840_media_pads {
- 	CX25840_NUM_PADS
- };
- 
-+/**
-+ * struct cx25840_state - a device instance private data
-+ * @c:			i2c_client struct representing this device
-+ * @sd:		our V4L2 sub-device
-+ * @hdl:		our V4L2 control handler
-+ * @volume:		audio volume V4L2 control (non-cx2583x devices only)
-+ * @mute:		audio mute V4L2 control (non-cx2583x devices only)
-+ * @pvr150_workaround:	whether we enable workaround for Hauppauge PVR150
-+ *			hardware bug (audio dropping out)
-+ * @radio:		set if we are currently in the radio mode, otherwise
-+ *			the current mode is non-radio (that is, video)
-+ * @std:		currently set video standard
-+ * @vid_input:		currently set video input
-+ * @aud_input:		currently set audio input
-+ * @audclk_freq:	currently set audio sample rate
-+ * @audmode:		currently set audio mode (when in non-radio mode)
-+ * @vbi_line_offset:	vbi line number offset
-+ * @id:		exact device model
-+ * @rev:		raw device id read from the chip
-+ * @is_initialized:	whether we have already loaded firmware into the chip
-+ *			and initialized it
-+ * @vbi_regs_offset:	offset of vbi regs
-+ * @fw_wait:		wait queue to wake an initalization function up when
-+ *			firmware loading (on a separate workqueue) finishes
-+ * @fw_work:		a work that actually loads the firmware on a separate
-+ *			workqueue
-+ * @ir_state:		a pointer to chip IR controller private data
-+ * @pads:		array of supported chip pads (currently only a stub)
-+ */
- struct cx25840_state {
- 	struct i2c_client *c;
- 	struct v4l2_subdev sd;
-@@ -66,8 +95,8 @@ struct cx25840_state {
- 	u32 rev;
- 	int is_initialized;
- 	unsigned vbi_regs_offset;
--	wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
--	struct work_struct fw_work;   /* work entry for fw load */
-+	wait_queue_head_t fw_wait;
-+	struct work_struct fw_work;
- 	struct cx25840_ir_state *ir_state;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_pad	pads[CX25840_NUM_PADS];
+date:			Tue Jul  3 05:00:13 CEST 2018
+media-tree git hash:	3c4a737267e89aafa6308c6c456d2ebea3fcd085
+media_build git hash:	90c56d1e6345747b6af929867f5b7c16017dcf02
+v4l-utils git hash:	47593771ad61f52d3670ef35373f24f85d5da267
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-2-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.101-i686: OK
+linux-3.2.101-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.56-i686: OK
+linux-3.16.56-x86_64: OK
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: OK
+linux-3.18.102-i686: ERRORS
+linux-3.18.102-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.51-i686: OK
+linux-4.1.51-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.109-i686: OK
+linux-4.4.109-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.91-i686: OK
+linux-4.9.91-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.42-i686: OK
+linux-4.14.42-x86_64: OK
+linux-4.15.14-i686: OK
+linux-4.15.14-x86_64: OK
+linux-4.16.8-i686: OK
+linux-4.16.8-x86_64: OK
+linux-4.17.2-i686: OK
+linux-4.17.2-x86_64: OK
+linux-4.18-rc1-i686: OK
+linux-4.18-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
