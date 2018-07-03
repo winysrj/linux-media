@@ -1,1272 +1,934 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34777 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753322AbeGCOIg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2018 10:08:36 -0400
-Received: by mail-wr0-f193.google.com with SMTP id a12-v6so2141356wro.1
-        for <linux-media@vger.kernel.org>; Tue, 03 Jul 2018 07:08:35 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v7 2/2] media: ov2680: Add Omnivision OV2680 sensor driver
-Date: Tue,  3 Jul 2018 15:08:03 +0100
-Message-Id: <20180703140803.19580-3-rui.silva@linaro.org>
-In-Reply-To: <20180703140803.19580-1-rui.silva@linaro.org>
-References: <20180703140803.19580-1-rui.silva@linaro.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:60292 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932085AbeGCOIw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2018 10:08:52 -0400
+Date: Tue, 3 Jul 2018 11:08:47 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv15 29/35] Documentation: v4l: document request API
+Message-ID: <20180703110847.0632efcb@coco.lan>
+In-Reply-To: <d6ee71d9-5873-264e-de38-0fec7fe119c1@xs4all.nl>
+References: <20180604114648.26159-1-hverkuil@xs4all.nl>
+        <20180604114648.26159-30-hverkuil@xs4all.nl>
+        <20180703084917.5c93e8e4@coco.lan>
+        <d6ee71d9-5873-264e-de38-0fec7fe119c1@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds V4L2 sub-device driver for OV2680 image sensor.
-The OV2680 is a 1/5" CMOS color sensor from Omnivision.
-Supports output format: 10-bit Raw RGB.
-The OV2680 has a single lane MIPI interface.
+Em Tue, 3 Jul 2018 15:02:05 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-The driver exposes following V4L2 controls:
-- auto/manual exposure,
-- exposure,
-- auto/manual gain,
-- gain,
-- horizontal/vertical flip,
-- test pattern menu.
-Supported resolution are only: QUXGA, 720P, UXGA.
+> On 03/07/18 13:50, Mauro Carvalho Chehab wrote:
+> > Em Mon,  4 Jun 2018 13:46:42 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> From: Alexandre Courbot <acourbot@chromium.org>
+> >>
+> >> Document the request API for V4L2 devices, and amend the documentation
+> >> of system calls influenced by it.  
+> > 
+> > I'm starting reviewing the patch series from this patch, as it defines
+> > how the request API is supposed to work. Some of my comments below may
+> > reflect on code changes, in order for the core (and drivers) to be
+> > compliant with the uAPI specified here.
+> > 
+> > So, I prefer to discuss first the contents of this patch, before start
+> > reviewing the remaining patches.
+> >   
+> >>
+> >> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  .../media/uapi/mediactl/media-controller.rst  |   1 +
+> >>  .../media/uapi/mediactl/media-funcs.rst       |   3 +
+> >>  .../uapi/mediactl/media-ioc-request-alloc.rst |  71 ++++++
+> >>  .../uapi/mediactl/media-request-ioc-queue.rst |  50 ++++
+> >>  .../mediactl/media-request-ioc-reinit.rst     |  51 ++++
+> >>  .../media/uapi/mediactl/request-api.rst       | 219 ++++++++++++++++++
+> >>  Documentation/media/uapi/v4l/buffer.rst       |  18 +-
+> >>  .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     |  28 ++-
+> >>  Documentation/media/uapi/v4l/vidioc-qbuf.rst  |  11 +
+> >>  .../media/videodev2.h.rst.exceptions          |   1 +
+> >>  10 files changed, 447 insertions(+), 6 deletions(-)
+> >>  create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+> >>  create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+> >>  create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
+> >>  create mode 100644 Documentation/media/uapi/mediactl/request-api.rst
+> >>
+> >> diff --git a/Documentation/media/uapi/mediactl/media-controller.rst b/Documentation/media/uapi/mediactl/media-controller.rst
+> >> index 0eea4f9a07d5..66aff38cd499 100644
+> >> --- a/Documentation/media/uapi/mediactl/media-controller.rst
+> >> +++ b/Documentation/media/uapi/mediactl/media-controller.rst
+> >> @@ -21,6 +21,7 @@ Part IV - Media Controller API
+> >>      media-controller-intro
+> >>      media-controller-model
+> >>      media-types
+> >> +    request-api
+> >>      media-funcs
+> >>      media-header
+> >>  
+> >> diff --git a/Documentation/media/uapi/mediactl/media-funcs.rst b/Documentation/media/uapi/mediactl/media-funcs.rst
+> >> index 076856501cdb..f4da9b3e17ec 100644
+> >> --- a/Documentation/media/uapi/mediactl/media-funcs.rst
+> >> +++ b/Documentation/media/uapi/mediactl/media-funcs.rst
+> >> @@ -16,3 +16,6 @@ Function Reference
+> >>      media-ioc-enum-entities
+> >>      media-ioc-enum-links
+> >>      media-ioc-setup-link
+> >> +    media-ioc-request-alloc
+> >> +    media-request-ioc-queue
+> >> +    media-request-ioc-reinit
+> >> diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+> >> new file mode 100644
+> >> index 000000000000..d45a94c9e23c
+> >> --- /dev/null
+> >> +++ b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+> >> @@ -0,0 +1,71 @@
+> >> +.. SPDX-License-Identifier: GPL-2.0-only
+> >> +
+> >> +.. _media_ioc_request_alloc:
+> >> +
+> >> +*****************************
+> >> +ioctl MEDIA_IOC_REQUEST_ALLOC
+> >> +*****************************
+> >> +
+> >> +Name
+> >> +====
+> >> +
+> >> +MEDIA_IOC_REQUEST_ALLOC - Allocate a request
+> >> +
+> >> +
+> >> +Synopsis
+> >> +========
+> >> +
+> >> +.. c:function:: int ioctl( int fd, MEDIA_IOC_REQUEST_ALLOC, struct media_request_alloc *argp )
+> >> +    :name: MEDIA_IOC_REQUEST_ALLOC
+> >> +
+> >> +
+> >> +Arguments
+> >> +=========
+> >> +
+> >> +``fd``
+> >> +    File descriptor returned by :ref:`open() <media-func-open>`.
+> >> +
+> >> +``argp``
+> >> +
+> >> +
+> >> +Description
+> >> +===========
+> >> +
+> >> +If the media device supports :ref:`requests <media-request-api>`, then
+> >> +this ioctl can be used to allocate a request.   
+> > 
+> > Perhaps we should mention that otherwise it would set errno to ENOTTY.  
+> 
+> Will add.
+> 
+> >   
+> >> A request is accessed through
+> >> +a file descriptor that is returned in struct :c:type:`media_request_alloc`.
+> >> +
+> >> +If the request was successfully allocated, then the request file descriptor
+> >> +can be passed to :ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>`,
+> >> +:ref:`ioctl VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`,
+> >> +:ref:`ioctl VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` and
+> >> +:ref:`ioctl VIDIOC_TRY_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`.
+> >> +
+> >> +In addition, the request can be queued by calling
+> >> +:ref:`MEDIA_REQUEST_IOC_QUEUE` and re-initialized by calling
+> >> +:ref:`MEDIA_REQUEST_IOC_REINIT`.
+> >> +
+> >> +Finally, the file descriptor can be polled to wait for the request to
+> >> +complete.
+> >> +
+> >> +To free the request the file descriptor has to be closed.  
+> > 
+> > Hmm... I don't think this is clear enough. After reading this paragraph,
+> > I came back to patch 1, in order to see what's the ioctl to be called
+> > to free the request, only to notice that there's none.
+> > 
+> > So, I guess what you wanted to say, instead, is that:
+> > 
+> > "A request will remain allocated until the associated file descriptor is
+> >  closed by ::c:func:`close() <req-api-close>` and after the Kernel stops
+> >  using the request."  
+> 
+> That's a lot clearer.
+> 
+> > 
+> > (see below for a discussion about the close() reference)
+> >   
+> >> +
+> >> +.. c:type:: media_request_alloc
+> >> +
+> >> +.. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
+> >> +
+> >> +.. flat-table:: struct media_request_alloc
+> >> +    :header-rows:  0
+> >> +    :stub-columns: 0
+> >> +    :widths:       1 1 2
+> >> +
+> >> +    *  -  __s32
+> >> +       -  ``fd``
+> >> +       -  The file descriptor of the request.
+> >> +
+> >> +Return Value
+> >> +============
+> >> +
+> >> +On success 0 is returned, on error -1 and the ``errno`` variable is set
+> >> +appropriately. The generic error codes are described at the
+> >> +:ref:`Generic Error Codes <gen-errors>` chapter.
+> >> diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+> >> new file mode 100644
+> >> index 000000000000..d3bac7b70422
+> >> --- /dev/null
+> >> +++ b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+> >> @@ -0,0 +1,50 @@
+> >> +.. SPDX-License-Identifier: GPL-2.0-only
+> >> +
+> >> +.. _media_request_ioc_queue:
+> >> +
+> >> +*****************************
+> >> +ioctl MEDIA_REQUEST_IOC_QUEUE
+> >> +*****************************
+> >> +
+> >> +Name
+> >> +====
+> >> +
+> >> +MEDIA_REQUEST_IOC_QUEUE - Queue a request
+> >> +
+> >> +
+> >> +Synopsis
+> >> +========
+> >> +
+> >> +.. c:function:: int ioctl( int request_fd, MEDIA_REQUEST_IOC_QUEUE )
+> >> +    :name: MEDIA_REQUEST_IOC_QUEUE
+> >> +
+> >> +
+> >> +Arguments
+> >> +=========
+> >> +
+> >> +``request_fd``
+> >> +    File descriptor returned by :ref:`MEDIA_IOC_REQUEST_ALLOC`.
+> >> +
+> >> +
+> >> +Description
+> >> +===========
+> >> +
+> >> +If the media device supports :ref:`requests <media-request-api>`, then
+> >> +this request ioctl can be used to queue a previously allocated request.
+> >> +
+> >> +If the request was successfully queued, then the file descriptor can be
+> >> +polled to wait for the request to complete.
+> >> +
+> >> +If the request was already queued before, then '`EBUSY'` is returned.
+> >> +Other errors can be returned if the contents of the request contained
+> >> +invalid or inconsistent data.  
+> > 
+> > Are there any "permanent" return error code that would require the
+> > caller to close the file descriptor?
+> > 
+> > I mean, if EBUSY is returned, userspace could just wait for a past
+> > QBUF to be handled and call it again, but what happens if some other
+> > error happens (like -ENOMEM)? Would the entire request descriptor be
+> > trashed or just the current QBUF attempt will fail?  
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- drivers/media/i2c/Kconfig  |   12 +
- drivers/media/i2c/Makefile |    1 +
- drivers/media/i2c/ov2680.c | 1186 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 1199 insertions(+)
- create mode 100644 drivers/media/i2c/ov2680.c
+Just to be clear about that: I expect that the questions I asked are
+somehow answered inside the documentation, in order to
+be a guideline for both Kernel and userspace app developers. So, once
+we reach an agreement about the expected behavior, please add it
+to the documentation patch.
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 541f0d28afd8..3a815825ad1b 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -606,6 +606,18 @@ config VIDEO_OV2659
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ov2659.
- 
-+config VIDEO_OV2680
-+	tristate "OmniVision OV2680 sensor support"
-+	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
-+	depends on MEDIA_CAMERA_SUPPORT
-+	select V4L2_FWNODE
-+	---help---
-+	  This is a Video4Linux2 sensor-level driver for the OmniVision
-+	  OV2680 camera.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ov2680.
-+
- config VIDEO_OV2685
- 	tristate "OmniVision OV2685 sensor support"
- 	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index ea34aee1a85a..9539c0855e63 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -63,6 +63,7 @@ obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
- obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
- obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
- obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
-+obj-$(CONFIG_VIDEO_OV2680) += ov2680.o
- obj-$(CONFIG_VIDEO_OV2685) += ov2685.o
- obj-$(CONFIG_VIDEO_OV5640) += ov5640.o
- obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
-diff --git a/drivers/media/i2c/ov2680.c b/drivers/media/i2c/ov2680.c
-new file mode 100644
-index 000000000000..f753a1c333ef
---- /dev/null
-+++ b/drivers/media/i2c/ov2680.c
-@@ -0,0 +1,1186 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Omnivision OV2680 CMOS Image Sensor driver
-+ *
-+ * Copyright (C) 2018 Linaro Ltd
-+ *
-+ * Based on OV5640 Sensor Driver
-+ * Copyright (C) 2011-2013 Freescale Semiconductor, Inc. All Rights Reserved.
-+ * Copyright (C) 2014-2017 Mentor Graphics Inc.
-+ *
-+ */
-+
-+#include <asm/unaligned.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/regulator/consumer.h>
-+
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-subdev.h>
-+
-+#define OV2680_XVCLK_VALUE	24000000
-+
-+#define OV2680_CHIP_ID		0x2680
-+
-+#define OV2680_REG_STREAM_CTRL		0x0100
-+#define OV2680_REG_SOFT_RESET		0x0103
-+
-+#define OV2680_REG_CHIP_ID_HIGH		0x300a
-+#define OV2680_REG_CHIP_ID_LOW		0x300b
-+
-+#define OV2680_REG_R_MANUAL		0x3503
-+#define OV2680_REG_GAIN_PK		0x350a
-+#define OV2680_REG_EXPOSURE_PK_HIGH	0x3500
-+#define OV2680_REG_TIMING_HTS		0x380c
-+#define OV2680_REG_TIMING_VTS		0x380e
-+#define OV2680_REG_FORMAT1		0x3820
-+#define OV2680_REG_FORMAT2		0x3821
-+
-+#define OV2680_REG_ISP_CTRL00		0x5080
-+
-+#define OV2680_FRAME_RATE		30
-+
-+#define OV2680_REG_VALUE_8BIT		1
-+#define OV2680_REG_VALUE_16BIT		2
-+#define OV2680_REG_VALUE_24BIT		3
-+
-+#define OV2680_WIDTH_MAX		1600
-+#define OV2680_HEIGHT_MAX		1200
-+
-+enum ov2680_mode_id {
-+	OV2680_MODE_QUXGA_800_600,
-+	OV2680_MODE_720P_1280_720,
-+	OV2680_MODE_UXGA_1600_1200,
-+	OV2680_MODE_MAX,
-+};
-+
-+struct reg_value {
-+	u16 reg_addr;
-+	u8 val;
-+};
-+
-+static const char * const ov2680_supply_name[] = {
-+	"DOVDD",
-+	"DVDD",
-+	"AVDD",
-+};
-+
-+#define OV2680_NUM_SUPPLIES ARRAY_SIZE(ov2680_supply_name)
-+
-+struct ov2680_mode_info {
-+	const char *name;
-+	enum ov2680_mode_id id;
-+	u32 width;
-+	u32 height;
-+	const struct reg_value *reg_data;
-+	u32 reg_data_size;
-+};
-+
-+struct ov2680_ctrls {
-+	struct v4l2_ctrl_handler handler;
-+	struct {
-+		struct v4l2_ctrl *auto_exp;
-+		struct v4l2_ctrl *exposure;
-+	};
-+	struct {
-+		struct v4l2_ctrl *auto_gain;
-+		struct v4l2_ctrl *gain;
-+	};
-+
-+	struct v4l2_ctrl *hflip;
-+	struct v4l2_ctrl *vflip;
-+	struct v4l2_ctrl *test_pattern;
-+};
-+
-+struct ov2680_dev {
-+	struct i2c_client		*i2c_client;
-+	struct v4l2_subdev		sd;
-+
-+	struct media_pad		pad;
-+	struct clk			*xvclk;
-+	u32				xvclk_freq;
-+	struct regulator_bulk_data	supplies[OV2680_NUM_SUPPLIES];
-+
-+	struct gpio_desc		*reset_gpio;
-+	struct mutex			lock; /* protect members */
-+
-+	bool				mode_pending_changes;
-+	bool				is_enabled;
-+	bool				is_streaming;
-+
-+	struct ov2680_ctrls		ctrls;
-+	struct v4l2_mbus_framefmt	fmt;
-+	struct v4l2_fract		frame_interval;
-+
-+	const struct ov2680_mode_info	*current_mode;
-+};
-+
-+static const char * const test_pattern_menu[] = {
-+	"Disabled",
-+	"Color Bars",
-+	"Random Data",
-+	"Square",
-+	"Black Image",
-+};
-+
-+static const int ov2680_hv_flip_bayer_order[] = {
-+	MEDIA_BUS_FMT_SBGGR10_1X10,
-+	MEDIA_BUS_FMT_SGRBG10_1X10,
-+	MEDIA_BUS_FMT_SGBRG10_1X10,
-+	MEDIA_BUS_FMT_SRGGB10_1X10,
-+};
-+
-+static const struct reg_value ov2680_setting_30fps_QUXGA_800_600[] = {
-+	{0x3086, 0x01}, {0x370a, 0x23}, {0x3808, 0x03}, {0x3809, 0x20},
-+	{0x380a, 0x02}, {0x380b, 0x58}, {0x380c, 0x06}, {0x380d, 0xac},
-+	{0x380e, 0x02}, {0x380f, 0x84}, {0x3811, 0x04}, {0x3813, 0x04},
-+	{0x3814, 0x31}, {0x3815, 0x31}, {0x3820, 0xc0}, {0x4008, 0x00},
-+	{0x4009, 0x03}, {0x4837, 0x1e}, {0x3501, 0x4e}, {0x3502, 0xe0},
-+};
-+
-+static const struct reg_value ov2680_setting_30fps_720P_1280_720[] = {
-+	{0x3086, 0x00}, {0x3808, 0x05}, {0x3809, 0x00}, {0x380a, 0x02},
-+	{0x380b, 0xd0}, {0x380c, 0x06}, {0x380d, 0xa8}, {0x380e, 0x05},
-+	{0x380f, 0x0e}, {0x3811, 0x08}, {0x3813, 0x06}, {0x3814, 0x11},
-+	{0x3815, 0x11}, {0x3820, 0xc0}, {0x4008, 0x00},
-+};
-+
-+static const struct reg_value ov2680_setting_30fps_UXGA_1600_1200[] = {
-+	{0x3086, 0x00}, {0x3501, 0x4e}, {0x3502, 0xe0}, {0x3808, 0x06},
-+	{0x3809, 0x40}, {0x380a, 0x04}, {0x380b, 0xb0}, {0x380c, 0x06},
-+	{0x380d, 0xa8}, {0x380e, 0x05}, {0x380f, 0x0e}, {0x3811, 0x00},
-+	{0x3813, 0x00}, {0x3814, 0x11}, {0x3815, 0x11}, {0x3820, 0xc0},
-+	{0x4008, 0x00}, {0x4837, 0x18}
-+};
-+
-+static const struct ov2680_mode_info ov2680_mode_init_data = {
-+	"mode_quxga_800_600", OV2680_MODE_QUXGA_800_600, 800, 600,
-+	ov2680_setting_30fps_QUXGA_800_600,
-+	ARRAY_SIZE(ov2680_setting_30fps_QUXGA_800_600),
-+};
-+
-+static const struct ov2680_mode_info ov2680_mode_data[OV2680_MODE_MAX] = {
-+	{"mode_quxga_800_600", OV2680_MODE_QUXGA_800_600,
-+	 800, 600, ov2680_setting_30fps_QUXGA_800_600,
-+	 ARRAY_SIZE(ov2680_setting_30fps_QUXGA_800_600)},
-+	{"mode_720p_1280_720", OV2680_MODE_720P_1280_720,
-+	 1280, 720, ov2680_setting_30fps_720P_1280_720,
-+	 ARRAY_SIZE(ov2680_setting_30fps_720P_1280_720)},
-+	{"mode_uxga_1600_1200", OV2680_MODE_UXGA_1600_1200,
-+	 1600, 1200, ov2680_setting_30fps_UXGA_1600_1200,
-+	 ARRAY_SIZE(ov2680_setting_30fps_UXGA_1600_1200)},
-+};
-+
-+static struct ov2680_dev *to_ov2680_dev(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct ov2680_dev, sd);
-+}
-+
-+static struct device *ov2680_to_dev(struct ov2680_dev *sensor)
-+{
-+	return &sensor->i2c_client->dev;
-+}
-+
-+static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct ov2680_dev,
-+			     ctrls.handler)->sd;
-+}
-+
-+static int __ov2680_write_reg(struct ov2680_dev *sensor, u16 reg,
-+			      unsigned int len, u32 val)
-+{
-+	struct i2c_client *client = sensor->i2c_client;
-+	u8 buf[6];
-+	int ret;
-+
-+	if (len > 4)
-+		return -EINVAL;
-+
-+	put_unaligned_be16(reg, buf);
-+	put_unaligned_be32(val << (8 * (4 - len)), buf + 2);
-+	ret = i2c_master_send(client, buf, len + 2);
-+	if (ret != len + 2) {
-+		dev_err(&client->dev, "write error: reg=0x%4x: %d\n", reg, ret);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+#define ov2680_write_reg(s, r, v) \
-+	__ov2680_write_reg(s, r, OV2680_REG_VALUE_8BIT, v)
-+
-+#define ov2680_write_reg16(s, r, v) \
-+	__ov2680_write_reg(s, r, OV2680_REG_VALUE_16BIT, v)
-+
-+#define ov2680_write_reg24(s, r, v) \
-+	__ov2680_write_reg(s, r, OV2680_REG_VALUE_24BIT, v)
-+
-+static int __ov2680_read_reg(struct ov2680_dev *sensor, u16 reg,
-+			     unsigned int len, u32 *val)
-+{
-+	struct i2c_client *client = sensor->i2c_client;
-+	struct i2c_msg msgs[2];
-+	u8 addr_buf[2] = { reg >> 8, reg & 0xff };
-+	u8 data_buf[4] = { 0, };
-+	int ret;
-+
-+	if (len > 4)
-+		return -EINVAL;
-+
-+	msgs[0].addr = client->addr;
-+	msgs[0].flags = 0;
-+	msgs[0].len = ARRAY_SIZE(addr_buf);
-+	msgs[0].buf = addr_buf;
-+
-+	msgs[1].addr = client->addr;
-+	msgs[1].flags = I2C_M_RD;
-+	msgs[1].len = len;
-+	msgs[1].buf = &data_buf[4 - len];
-+
-+	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (ret != ARRAY_SIZE(msgs)) {
-+		dev_err(&client->dev, "read error: reg=0x%4x: %d\n", reg, ret);
-+		return -EIO;
-+	}
-+
-+	*val = get_unaligned_be32(data_buf);
-+
-+	return 0;
-+}
-+
-+#define ov2680_read_reg(s, r, v) \
-+	__ov2680_read_reg(s, r, OV2680_REG_VALUE_8BIT, v)
-+
-+#define ov2680_read_reg16(s, r, v) \
-+	__ov2680_read_reg(s, r, OV2680_REG_VALUE_16BIT, v)
-+
-+#define ov2680_read_reg24(s, r, v) \
-+	__ov2680_read_reg(s, r, OV2680_REG_VALUE_24BIT, v)
-+
-+static int ov2680_mod_reg(struct ov2680_dev *sensor, u16 reg, u8 mask, u8 val)
-+{
-+	u32 readval;
-+	int ret;
-+
-+	ret = ov2680_read_reg(sensor, reg, &readval);
-+	if (ret < 0)
-+		return ret;
-+
-+	readval &= ~mask;
-+	val &= mask;
-+	val |= readval;
-+
-+	return ov2680_write_reg(sensor, reg, val);
-+}
-+
-+static int ov2680_load_regs(struct ov2680_dev *sensor,
-+			    const struct ov2680_mode_info *mode)
-+{
-+	const struct reg_value *regs = mode->reg_data;
-+	unsigned int i;
-+	int ret = 0;
-+	u16 reg_addr;
-+	u8 val;
-+
-+	for (i = 0; i < mode->reg_data_size; ++i, ++regs) {
-+		reg_addr = regs->reg_addr;
-+		val = regs->val;
-+
-+		ret = ov2680_write_reg(sensor, reg_addr, val);
-+		if (ret)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
-+static void ov2680_power_up(struct ov2680_dev *sensor)
-+{
-+	if (!sensor->reset_gpio)
-+		return;
-+
-+	gpiod_set_value(sensor->reset_gpio, 0);
-+	usleep_range(5000, 10000);
-+}
-+
-+static void ov2680_power_down(struct ov2680_dev *sensor)
-+{
-+	if (!sensor->reset_gpio)
-+		return;
-+
-+	gpiod_set_value(sensor->reset_gpio, 1);
-+	usleep_range(5000, 10000);
-+}
-+
-+static int ov2680_bayer_order(struct ov2680_dev *sensor)
-+{
-+	u32 format1;
-+	u32 format2;
-+	u32 hv_flip;
-+	int ret;
-+
-+	ret = ov2680_read_reg(sensor, OV2680_REG_FORMAT1, &format1);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov2680_read_reg(sensor, OV2680_REG_FORMAT2, &format2);
-+	if (ret < 0)
-+		return ret;
-+
-+	hv_flip = (format2 & BIT(2)  << 1) | (format1 & BIT(2));
-+
-+	sensor->fmt.code = ov2680_hv_flip_bayer_order[hv_flip];
-+
-+	return 0;
-+}
-+
-+static int ov2680_vflip_enable(struct ov2680_dev *sensor)
-+{
-+	int ret;
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_FORMAT1, BIT(2), BIT(2));
-+	if (ret < 0)
-+		return ret;
-+
-+	return ov2680_bayer_order(sensor);
-+}
-+
-+static int ov2680_vflip_disable(struct ov2680_dev *sensor)
-+{
-+	int ret;
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_FORMAT1, BIT(2), BIT(0));
-+	if (ret < 0)
-+		return ret;
-+
-+	return ov2680_bayer_order(sensor);
-+}
-+
-+static int ov2680_hflip_enable(struct ov2680_dev *sensor)
-+{
-+	int ret;
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_FORMAT2, BIT(2), BIT(2));
-+	if (ret < 0)
-+		return ret;
-+
-+	return ov2680_bayer_order(sensor);
-+}
-+
-+static int ov2680_hflip_disable(struct ov2680_dev *sensor)
-+{
-+	int ret;
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_FORMAT2, BIT(2), BIT(0));
-+	if (ret < 0)
-+		return ret;
-+
-+	return ov2680_bayer_order(sensor);
-+}
-+
-+static int ov2680_test_pattern_set(struct ov2680_dev *sensor, int value)
-+{
-+	int ret;
-+
-+	if (!value)
-+		return ov2680_mod_reg(sensor, OV2680_REG_ISP_CTRL00, BIT(7), 0);
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_ISP_CTRL00, 0x03, value - 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_ISP_CTRL00, BIT(7), BIT(7));
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int ov2680_gain_set(struct ov2680_dev *sensor, bool auto_gain)
-+{
-+	struct ov2680_ctrls *ctrls = &sensor->ctrls;
-+	u32 gain;
-+	int ret;
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_R_MANUAL, BIT(1),
-+			     auto_gain ? 0 : BIT(1));
-+	if (ret < 0)
-+		return ret;
-+
-+	if (auto_gain || !ctrls->gain->is_new)
-+		return 0;
-+
-+	gain = ctrls->gain->val;
-+
-+	ret = ov2680_write_reg16(sensor, OV2680_REG_GAIN_PK, gain);
-+
-+	return 0;
-+}
-+
-+static int ov2680_gain_get(struct ov2680_dev *sensor)
-+{
-+	u32 gain;
-+	int ret;
-+
-+	ret = ov2680_read_reg16(sensor, OV2680_REG_GAIN_PK, &gain);
-+	if (ret)
-+		return ret;
-+
-+	return gain;
-+}
-+
-+static int ov2680_exposure_set(struct ov2680_dev *sensor, bool auto_exp)
-+{
-+	struct ov2680_ctrls *ctrls = &sensor->ctrls;
-+	u32 exp;
-+	int ret;
-+
-+	ret = ov2680_mod_reg(sensor, OV2680_REG_R_MANUAL, BIT(0),
-+			     auto_exp ? 0 : BIT(0));
-+	if (ret < 0)
-+		return ret;
-+
-+	if (auto_exp || !ctrls->exposure->is_new)
-+		return 0;
-+
-+	exp = (u32)ctrls->exposure->val;
-+	exp <<= 4;
-+
-+	return ov2680_write_reg24(sensor, OV2680_REG_EXPOSURE_PK_HIGH, exp);
-+}
-+
-+static int ov2680_exposure_get(struct ov2680_dev *sensor)
-+{
-+	int ret;
-+	u32 exp;
-+
-+	ret = ov2680_read_reg24(sensor, OV2680_REG_EXPOSURE_PK_HIGH, &exp);
-+	if (ret)
-+		return ret;
-+
-+	return exp >> 4;
-+}
-+
-+static int ov2680_stream_enable(struct ov2680_dev *sensor)
-+{
-+	return ov2680_write_reg(sensor, OV2680_REG_STREAM_CTRL, 1);
-+}
-+
-+static int ov2680_stream_disable(struct ov2680_dev *sensor)
-+{
-+	return ov2680_write_reg(sensor, OV2680_REG_STREAM_CTRL, 0);
-+}
-+
-+static int ov2680_mode_set(struct ov2680_dev *sensor)
-+{
-+	struct ov2680_ctrls *ctrls = &sensor->ctrls;
-+	int ret;
-+
-+	ret = ov2680_gain_set(sensor, false);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov2680_exposure_set(sensor, false);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov2680_load_regs(sensor, sensor->current_mode);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (ctrls->auto_gain->val) {
-+		ret = ov2680_gain_set(sensor, true);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (ctrls->auto_exp->val == V4L2_EXPOSURE_AUTO) {
-+		ret = ov2680_exposure_set(sensor, true);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	sensor->mode_pending_changes = false;
-+
-+	return 0;
-+}
-+
-+static int ov2680_mode_restore(struct ov2680_dev *sensor)
-+{
-+	int ret;
-+
-+	ret = ov2680_load_regs(sensor, &ov2680_mode_init_data);
-+	if (ret < 0)
-+		return ret;
-+
-+	return ov2680_mode_set(sensor);
-+}
-+
-+static int ov2680_power_off(struct ov2680_dev *sensor)
-+{
-+	if (!sensor->is_enabled)
-+		return 0;
-+
-+	clk_disable_unprepare(sensor->xvclk);
-+	ov2680_power_down(sensor);
-+	regulator_bulk_disable(OV2680_NUM_SUPPLIES, sensor->supplies);
-+	sensor->is_enabled = false;
-+
-+	return 0;
-+}
-+
-+static int ov2680_power_on(struct ov2680_dev *sensor)
-+{
-+	struct device *dev = ov2680_to_dev(sensor);
-+	int ret;
-+
-+	if (sensor->is_enabled)
-+		return 0;
-+
-+	ret = regulator_bulk_enable(OV2680_NUM_SUPPLIES, sensor->supplies);
-+	if (ret < 0) {
-+		dev_err(dev, "failed to enable regulators: %d\n", ret);
-+		return ret;
-+	}
-+
-+	if (!sensor->reset_gpio) {
-+		ret = ov2680_write_reg(sensor, OV2680_REG_SOFT_RESET, 0x01);
-+		if (ret != 0) {
-+			dev_err(dev, "sensor soft reset failed\n");
-+			return ret;
-+		}
-+		usleep_range(1000, 2000);
-+	} else {
-+		ov2680_power_down(sensor);
-+		ov2680_power_up(sensor);
-+	}
-+
-+	ret = clk_prepare_enable(sensor->xvclk);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov2680_mode_restore(sensor);
-+	if (ret < 0)
-+		goto disable;
-+
-+	sensor->is_enabled = true;
-+
-+	/* Set clock lane into LP-11 state */
-+	ov2680_stream_enable(sensor);
-+	usleep_range(1000, 2000);
-+	ov2680_stream_disable(sensor);
-+
-+	return 0;
-+
-+disable:
-+	dev_err(dev, "failed to enable sensor: %d\n", ret);
-+	ov2680_power_off(sensor);
-+
-+	return ret;
-+}
-+
-+static int ov2680_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&sensor->lock);
-+
-+	if (on)
-+		ret = ov2680_power_on(sensor);
-+	else
-+		ret = ov2680_power_off(sensor);
-+
-+	mutex_unlock(&sensor->lock);
-+
-+	if (on && ret == 0) {
-+		ret = v4l2_ctrl_handler_setup(&sensor->ctrls.handler);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+static int ov2680_s_g_frame_interval(struct v4l2_subdev *sd,
-+				     struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+
-+	mutex_lock(&sensor->lock);
-+	fi->interval = sensor->frame_interval;
-+	mutex_unlock(&sensor->lock);
-+
-+	return 0;
-+}
-+
-+static int ov2680_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&sensor->lock);
-+
-+	if (sensor->is_streaming == !!enable)
-+		goto unlock;
-+
-+	if (enable && sensor->mode_pending_changes) {
-+		ret = ov2680_mode_set(sensor);
-+		if (ret < 0)
-+			goto unlock;
-+	}
-+
-+	if (enable)
-+		ret = ov2680_stream_enable(sensor);
-+	else
-+		ret = ov2680_stream_disable(sensor);
-+
-+	sensor->is_streaming = !!enable;
-+
-+unlock:
-+	mutex_unlock(&sensor->lock);
-+
-+	return ret;
-+}
-+
-+static int ov2680_enum_mbus_code(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+
-+	if (code->pad != 0 || code->index != 0)
-+		return -EINVAL;
-+
-+	code->code = sensor->fmt.code;
-+
-+	return 0;
-+}
-+
-+static int ov2680_get_fmt(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *format)
-+{
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+	struct v4l2_mbus_framefmt *fmt = NULL;
-+	int ret = 0;
-+
-+	if (format->pad != 0)
-+		return -EINVAL;
-+
-+	mutex_lock(&sensor->lock);
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+		fmt = v4l2_subdev_get_try_format(&sensor->sd, cfg, format->pad);
-+#else
-+		ret = -ENOTTY;
-+#endif
-+	} else {
-+		fmt = &sensor->fmt;
-+	}
-+
-+	if (fmt)
-+		format->format = *fmt;
-+
-+	mutex_unlock(&sensor->lock);
-+
-+	return ret;
-+}
-+
-+static int ov2680_set_fmt(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *format)
-+{
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+	struct v4l2_mbus_framefmt *fmt = &format->format;
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+	struct v4l2_mbus_framefmt *try_fmt;
-+#endif
-+	const struct ov2680_mode_info *mode;
-+	int ret = 0;
-+
-+	if (format->pad != 0)
-+		return -EINVAL;
-+
-+	mutex_lock(&sensor->lock);
-+
-+	if (sensor->is_streaming) {
-+		ret = -EBUSY;
-+		goto unlock;
-+	}
-+
-+	mode = v4l2_find_nearest_size(ov2680_mode_data,
-+				      ARRAY_SIZE(ov2680_mode_data), width,
-+				      height, fmt->width, fmt->height);
-+	if (!mode) {
-+		ret = -EINVAL;
-+		goto unlock;
-+	}
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+		try_fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-+		format->format = *try_fmt;
-+#else
-+		ret = -ENOTTY;
-+#endif
-+
-+		goto unlock;
-+	}
-+
-+	fmt->width = mode->width;
-+	fmt->height = mode->height;
-+	fmt->code = sensor->fmt.code;
-+	fmt->colorspace = sensor->fmt.colorspace;
-+
-+	sensor->current_mode = mode;
-+	sensor->fmt = format->format;
-+	sensor->mode_pending_changes = true;
-+
-+unlock:
-+	mutex_unlock(&sensor->lock);
-+
-+	return ret;
-+}
-+
-+static int ov2680_init_cfg(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_pad_config *cfg)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = cfg ? V4L2_SUBDEV_FORMAT_TRY
-+				: V4L2_SUBDEV_FORMAT_ACTIVE,
-+		.format = {
-+			.width = 800,
-+			.height = 600,
-+		}
-+	};
-+
-+	return ov2680_set_fmt(sd, cfg, &fmt);
-+}
-+
-+static int ov2680_enum_frame_size(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	int index = fse->index;
-+
-+	if (index >= OV2680_MODE_MAX || index < 0)
-+		return -EINVAL;
-+
-+	fse->min_width = ov2680_mode_data[index].width;
-+	fse->min_height = ov2680_mode_data[index].height;
-+	fse->max_width = ov2680_mode_data[index].width;
-+	fse->max_height = ov2680_mode_data[index].height;
-+
-+	return 0;
-+}
-+
-+static int ov2680_enum_frame_interval(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_frame_interval_enum *fie)
-+{
-+	struct v4l2_fract tpf;
-+
-+	if (fie->index >= OV2680_MODE_MAX || fie->width > OV2680_WIDTH_MAX ||
-+	    fie->height > OV2680_HEIGHT_MAX ||
-+	    fie->which > V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return -EINVAL;
-+
-+	tpf.denominator = OV2680_FRAME_RATE;
-+	tpf.numerator = 1;
-+
-+	fie->interval = tpf;
-+
-+	return 0;
-+}
-+
-+static int ov2680_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+	struct ov2680_ctrls *ctrls = &sensor->ctrls;
-+	int val;
-+
-+	if (!sensor->is_enabled)
-+		return 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_GAIN:
-+		val = ov2680_gain_get(sensor);
-+		if (val < 0)
-+			return val;
-+		ctrls->gain->val = val;
-+		break;
-+	case V4L2_CID_EXPOSURE:
-+		val = ov2680_exposure_get(sensor);
-+		if (val < 0)
-+			return val;
-+		ctrls->exposure->val = val;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov2680_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = ctrl_to_sd(ctrl);
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+	struct ov2680_ctrls *ctrls = &sensor->ctrls;
-+
-+	if (!sensor->is_enabled)
-+		return 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUTOGAIN:
-+		return ov2680_gain_set(sensor, !!ctrl->val);
-+	case V4L2_CID_GAIN:
-+		return ov2680_gain_set(sensor, !!ctrls->auto_gain->val);
-+	case V4L2_CID_EXPOSURE_AUTO:
-+		return ov2680_exposure_set(sensor, !!ctrl->val);
-+	case V4L2_CID_EXPOSURE:
-+		return ov2680_exposure_set(sensor, !!ctrls->auto_exp->val);
-+	case V4L2_CID_VFLIP:
-+		if (sensor->is_streaming)
-+			return -EBUSY;
-+		if (ctrl->val)
-+			return ov2680_vflip_enable(sensor);
-+		else
-+			return ov2680_vflip_disable(sensor);
-+	case V4L2_CID_HFLIP:
-+		if (sensor->is_streaming)
-+			return -EBUSY;
-+		if (ctrl->val)
-+			return ov2680_hflip_enable(sensor);
-+		else
-+			return ov2680_hflip_disable(sensor);
-+	case V4L2_CID_TEST_PATTERN:
-+		return ov2680_test_pattern_set(sensor, ctrl->val);
-+	default:
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops ov2680_ctrl_ops = {
-+	.g_volatile_ctrl = ov2680_g_volatile_ctrl,
-+	.s_ctrl = ov2680_s_ctrl,
-+};
-+
-+static const struct v4l2_subdev_core_ops ov2680_core_ops = {
-+	.s_power = ov2680_s_power,
-+};
-+
-+static const struct v4l2_subdev_video_ops ov2680_video_ops = {
-+	.g_frame_interval	= ov2680_s_g_frame_interval,
-+	.s_frame_interval	= ov2680_s_g_frame_interval,
-+	.s_stream		= ov2680_s_stream,
-+};
-+
-+static const struct v4l2_subdev_pad_ops ov2680_pad_ops = {
-+	.init_cfg		= ov2680_init_cfg,
-+	.enum_mbus_code		= ov2680_enum_mbus_code,
-+	.get_fmt		= ov2680_get_fmt,
-+	.set_fmt		= ov2680_set_fmt,
-+	.enum_frame_size	= ov2680_enum_frame_size,
-+	.enum_frame_interval	= ov2680_enum_frame_interval,
-+};
-+
-+static const struct v4l2_subdev_ops ov2680_subdev_ops = {
-+	.core	= &ov2680_core_ops,
-+	.video	= &ov2680_video_ops,
-+	.pad	= &ov2680_pad_ops,
-+};
-+
-+static int ov2680_mode_init(struct ov2680_dev *sensor)
-+{
-+	const struct ov2680_mode_info *init_mode;
-+
-+	/* set initial mode */
-+	sensor->fmt.code = MEDIA_BUS_FMT_SBGGR10_1X10;
-+	sensor->fmt.width = 800;
-+	sensor->fmt.height = 600;
-+	sensor->fmt.field = V4L2_FIELD_NONE;
-+	sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	sensor->frame_interval.denominator = OV2680_FRAME_RATE;
-+	sensor->frame_interval.numerator = 1;
-+
-+	init_mode = &ov2680_mode_init_data;
-+
-+	sensor->current_mode = init_mode;
-+
-+	sensor->mode_pending_changes = true;
-+
-+	return 0;
-+}
-+
-+static int ov2680_v4l2_init(struct ov2680_dev *sensor)
-+{
-+	const struct v4l2_ctrl_ops *ops = &ov2680_ctrl_ops;
-+	struct ov2680_ctrls *ctrls = &sensor->ctrls;
-+	struct v4l2_ctrl_handler *hdl = &ctrls->handler;
-+	int ret = 0;
-+
-+	v4l2_i2c_subdev_init(&sensor->sd, sensor->i2c_client,
-+			     &ov2680_subdev_ops);
-+
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+	sensor->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-+#endif
-+	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	sensor->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-+
-+	ret = media_entity_pads_init(&sensor->sd.entity, 1, &sensor->pad);
-+	if (ret < 0)
-+		return ret;
-+
-+	v4l2_ctrl_handler_init(hdl, 7);
-+
-+	hdl->lock = &sensor->lock;
-+
-+	ctrls->vflip = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	ctrls->hflip = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_HFLIP, 0, 1, 1, 0);
-+
-+	ctrls->test_pattern = v4l2_ctrl_new_std_menu_items(hdl,
-+					&ov2680_ctrl_ops, V4L2_CID_TEST_PATTERN,
-+					ARRAY_SIZE(test_pattern_menu) - 1,
-+					0, 0, test_pattern_menu);
-+
-+	ctrls->auto_exp = v4l2_ctrl_new_std_menu(hdl, ops,
-+						 V4L2_CID_EXPOSURE_AUTO,
-+						 V4L2_EXPOSURE_MANUAL, 0,
-+						 V4L2_EXPOSURE_AUTO);
-+
-+	ctrls->exposure = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_EXPOSURE,
-+					    0, 32767, 1, 0);
-+
-+	ctrls->auto_gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_AUTOGAIN,
-+					     0, 1, 1, 1);
-+	ctrls->gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_GAIN, 0, 2047, 1, 0);
-+
-+	if (hdl->error) {
-+		ret = hdl->error;
-+		goto cleanup_entity;
-+	}
-+
-+	ctrls->gain->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+	ctrls->exposure->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+
-+	v4l2_ctrl_auto_cluster(2, &ctrls->auto_gain, 0, true);
-+	v4l2_ctrl_auto_cluster(2, &ctrls->auto_exp, 1, true);
-+
-+	sensor->sd.ctrl_handler = hdl;
-+
-+	ret = v4l2_async_register_subdev(&sensor->sd);
-+	if (ret < 0)
-+		goto cleanup_entity;
-+
-+	return 0;
-+
-+cleanup_entity:
-+	media_entity_cleanup(&sensor->sd.entity);
-+	v4l2_ctrl_handler_free(hdl);
-+
-+	return ret;
-+}
-+
-+static int ov2680_get_regulators(struct ov2680_dev *sensor)
-+{
-+	int i;
-+
-+	for (i = 0; i < OV2680_NUM_SUPPLIES; i++)
-+		sensor->supplies[i].supply = ov2680_supply_name[i];
-+
-+	return devm_regulator_bulk_get(&sensor->i2c_client->dev,
-+				       OV2680_NUM_SUPPLIES,
-+				       sensor->supplies);
-+}
-+
-+static int ov2680_check_id(struct ov2680_dev *sensor)
-+{
-+	struct device *dev = ov2680_to_dev(sensor);
-+	u32 chip_id;
-+	int ret;
-+
-+	ov2680_power_on(sensor);
-+
-+	ret = ov2680_read_reg16(sensor, OV2680_REG_CHIP_ID_HIGH, &chip_id);
-+	if (ret < 0) {
-+		dev_err(dev, "failed to read chip id high\n");
-+		return -ENODEV;
-+	}
-+
-+	if (chip_id != OV2680_CHIP_ID) {
-+		dev_err(dev, "chip id: 0x%04x does not match expected 0x%04x\n",
-+			chip_id, OV2680_CHIP_ID);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov2860_parse_dt(struct ov2680_dev *sensor)
-+{
-+	struct device *dev = ov2680_to_dev(sensor);
-+	int ret;
-+
-+	sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset",
-+						     GPIOD_OUT_HIGH);
-+	ret = PTR_ERR_OR_ZERO(sensor->reset_gpio);
-+	if (ret < 0) {
-+		dev_dbg(dev, "error while getting reset gpio: %d\n", ret);
-+		return ret;
-+	}
-+
-+	sensor->xvclk = devm_clk_get(dev, "xvclk");
-+	if (IS_ERR(sensor->xvclk)) {
-+		dev_err(dev, "xvclk clock missing or invalid\n");
-+		return PTR_ERR(sensor->xvclk);
-+	}
-+
-+	sensor->xvclk_freq = clk_get_rate(sensor->xvclk);
-+	if (sensor->xvclk_freq != OV2680_XVCLK_VALUE) {
-+		dev_err(dev, "wrong xvclk frequency %d HZ, expected: %d Hz\n",
-+			sensor->xvclk_freq, OV2680_XVCLK_VALUE);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov2680_probe(struct i2c_client *client)
-+{
-+	struct device *dev = &client->dev;
-+	struct ov2680_dev *sensor;
-+	int ret;
-+
-+	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-+	if (!sensor)
-+		return -ENOMEM;
-+
-+	sensor->i2c_client = client;
-+
-+	ret = ov2860_parse_dt(sensor);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	ret = ov2680_mode_init(sensor);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov2680_get_regulators(sensor);
-+	if (ret < 0) {
-+		dev_err(dev, "failed to get regulators\n");
-+		return ret;
-+	}
-+
-+	mutex_init(&sensor->lock);
-+
-+	ret = ov2680_v4l2_init(sensor);
-+	if (ret < 0)
-+		goto lock_destroy;
-+
-+	ret = ov2680_check_id(sensor);
-+	if (ret < 0)
-+		goto error_cleanup;
-+
-+	dev_info(dev, "ov2680 init correctly\n");
-+
-+	return 0;
-+
-+error_cleanup:
-+	dev_err(dev, "ov2680 init fail: %d\n", ret);
-+
-+	media_entity_cleanup(&sensor->sd.entity);
-+	v4l2_async_unregister_subdev(&sensor->sd);
-+	v4l2_ctrl_handler_free(&sensor->ctrls.handler);
-+
-+lock_destroy:
-+	mutex_destroy(&sensor->lock);
-+
-+	return ret;
-+}
-+
-+static int ov2680_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+
-+	v4l2_async_unregister_subdev(&sensor->sd);
-+	mutex_destroy(&sensor->lock);
-+	media_entity_cleanup(&sensor->sd.entity);
-+	v4l2_ctrl_handler_free(&sensor->ctrls.handler);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused ov2680_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+
-+	if (sensor->is_streaming)
-+		ov2680_stream_disable(sensor);
-+
-+	return 0;
-+}
-+
-+static int __maybe_unused ov2680_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov2680_dev *sensor = to_ov2680_dev(sd);
-+	int ret;
-+
-+	if (sensor->is_streaming) {
-+		ret = ov2680_stream_enable(sensor);
-+		if (ret < 0)
-+			goto stream_disable;
-+	}
-+
-+	return 0;
-+
-+stream_disable:
-+	ov2680_stream_disable(sensor);
-+	sensor->is_streaming = false;
-+
-+	return ret;
-+}
-+
-+static const struct dev_pm_ops ov2680_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(ov2680_suspend, ov2680_resume)
-+};
-+
-+static const struct of_device_id ov2680_dt_ids[] = {
-+	{ .compatible = "ovti,ov2680" },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, ov2680_dt_ids);
-+
-+static struct i2c_driver ov2680_i2c_driver = {
-+	.driver = {
-+		.name  = "ov2680",
-+		.pm = &ov2680_pm_ops,
-+		.of_match_table	= of_match_ptr(ov2680_dt_ids),
-+	},
-+	.probe_new	= ov2680_probe,
-+	.remove		= ov2680_remove,
-+};
-+module_i2c_driver(ov2680_i2c_driver);
-+
-+MODULE_AUTHOR("Rui Miguel Silva <rui.silva@linaro.org>");
-+MODULE_DESCRIPTION("OV2680 CMOS Image Sensor driver");
-+MODULE_LICENSE("GPL v2");
--- 
-2.18.0
+> Any error means that the application did something wrong and you would
+> just exit the application. Errors mean that either the content of the
+> request couldn't be validated, or (with EBUSY) the request is already in
+> use (clearly an application bug in that case).
+> 
+> In the case of codecs there is not much you can do wrong,
+
+So, IMHO, it makes sense to document what errors could be generated
+with the current implementation, as the above description sounded
+too vague to me. Is it just EINVAL errors?
+
+> but things
+> get a lot more complicated when you want to use this with complex
+> camera pipelines. I expect that we need a new request ioctl in the
+> future that can return useful error information about what was wrong in
+> the request.
+> 
+> That is out-of-scope for the codec support, though.
+
+Yes.
+
+> 
+> >   
+> >> +
+> >> +Return Value
+> >> +============
+> >> +
+> >> +On success 0 is returned, on error -1 and the ``errno`` variable is set
+> >> +appropriately. The generic error codes are described at the
+> >> +:ref:`Generic Error Codes <gen-errors>` chapter.
+> >> +
+> >> +EBUSY
+> >> +    The request was already queued.
+> >> diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst b/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
+> >> new file mode 100644
+> >> index 000000000000..7cbb7eb5d73e
+> >> --- /dev/null
+> >> +++ b/Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
+> >> @@ -0,0 +1,51 @@
+> >> +.. SPDX-License-Identifier: GPL-2.0-only
+> >> +
+> >> +.. _media_request_ioc_reinit:
+> >> +
+> >> +******************************
+> >> +ioctl MEDIA_REQUEST_IOC_REINIT
+> >> +******************************
+> >> +
+> >> +Name
+> >> +====
+> >> +
+> >> +MEDIA_REQUEST_IOC_REINIT - Re-initialize a request
+> >> +
+> >> +
+> >> +Synopsis
+> >> +========
+> >> +
+> >> +.. c:function:: int ioctl( int request_fd, MEDIA_REQUEST_IOC_REINIT )
+> >> +    :name: MEDIA_REQUEST_IOC_REINIT
+> >> +
+> >> +
+> >> +Arguments
+> >> +=========
+> >> +
+> >> +``request_fd``
+> >> +    File descriptor returned by :ref:`MEDIA_IOC_REQUEST_ALLOC`.
+> >> +
+> >> +Description
+> >> +===========
+> >> +
+> >> +If the media device supports :ref:`requests <media-request-api>`, then
+> >> +this request ioctl can be used to re-initialize a previously allocated
+> >> +request.
+> >> +
+> >> +Re-initializing a request will clear any existing data from the request.
+> >> +This avoids having to close() a completed request and allocate a new
+> >> +request. Instead the completed request can just be re-initialized and
+> >> +it is ready to be used again.
+> >> +
+> >> +A request can only be re-initialized if it either has not been queued
+> >> +yet, or if it was queued and completed.
+> >> +
+> >> +Return Value
+> >> +============
+> >> +
+> >> +On success 0 is returned, on error -1 and the ``errno`` variable is set
+> >> +appropriately. The generic error codes are described at the
+> >> +:ref:`Generic Error Codes <gen-errors>` chapter.
+> >> +
+> >> +EBUSY
+> >> +    The request is queued but not yet completed.  
+> > 
+> > Same question here: are there any "permanent" return error code that would
+> > require the caller to close the file descriptor?  
+> 
+> Same answer really, any error indicates that the application did something
+> wrong. 
+
+I suspect that, in this case, it could be also a Kernel problem (for 
+instance, lack of memory). IMHO, it is also worth to mention what errors 
+can happen here.
+
+> Strictly speaking you could retry if you get EBUSY, but you really
+> shouldn't use that and instead poll for the request to be completed.
+
+Yeah, sure, but an application could be smart enough to "survive"
+in case of failures. I can see a lot of scenarios where apps will
+try to keep alive despite any errors, like on industrial cameras.
+
+After watching some speeches in Japan for automotive Linux[1], I can
+even think on some scenarios that can be really critical to be
+error-pruned. For example, imagine that a camera is used by some
+auto-driver system inside a car. Stopping the application can
+cause severe injuries to people.
+
+[1] Before someone asks me, no, I'm not aware of any real use cases
+for the request API on auto-pilot car systems. Just doing a
+little of speculation here about possible future usage scenarios.
+
+The thing is that request API may lead into some complex and
+hard to identify issues, on both Kernel and userspace. So, better
+to make sure that the documentation (and implementation) will
+have, as much as possible, a deterministic behavior.
+
+> >   
+> >> diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
+> >> new file mode 100644
+> >> index 000000000000..4d10f18181a4
+> >> --- /dev/null
+> >> +++ b/Documentation/media/uapi/mediactl/request-api.rst
+> >> @@ -0,0 +1,219 @@
+> >> +.. -*- coding: utf-8; mode: rst -*-
+> >> +
+> >> +.. _media-request-api:
+> >> +
+> >> +Request API
+> >> +===========
+> >> +
+> >> +The Request API has been designed to allow V4L2 to deal with requirements of
+> >> +modern devices (stateless codecs, complex camera pipelines, ...) and APIs
+> >> +(Android Codec v2). One such requirement is the ability for devices belonging to
+> >> +the same pipeline to reconfigure and collaborate closely on a per-frame basis.
+> >> +Another is efficient support of stateless codecs, which need per-frame controls
+> >> +to be set synchronously in order to be used efficiently.
+> >> +
+> >> +Supporting these features without the Request API is not always possible and if
+> >> +it is, it is terribly inefficient: user-space would have to flush all activity
+> >> +on the media pipeline, reconfigure it for the next frame, queue the buffers to
+> >> +be processed with that configuration, and wait until they are all available for
+> >> +dequeuing before considering the next frame. This defeats the purpose of having
+> >> +buffer queues since in practice only one buffer would be queued at a time.
+> >> +
+> >> +The Request API allows a specific configuration of the pipeline (media
+> >> +controller topology + controls for each media entity) to be associated with
+> >> +specific buffers. The parameters are applied by each participating device as
+> >> +buffers associated to a request flow in. This allows user-space to schedule
+> >> +several tasks ("requests") with different parameters in advance, knowing that
+> >> +the parameters will be applied when needed to get the expected result. Control
+> >> +values at the time of request completion are also available for reading.
+> >> +
+> >> +Usage
+> >> +=====
+> >> +
+> >> +The Request API is used on top of standard media controller and V4L2 calls,
+> >> +which are augmented with an extra ``request_fd`` parameter. Requests themselves
+> >> +are allocated from the supporting media controller node.
+> >> +
+> >> +Request Allocation
+> >> +------------------
+> >> +
+> >> +User-space allocates requests using :ref:`MEDIA_IOC_REQUEST_ALLOC`
+> >> +for the media device node. This returns a file descriptor representing the
+> >> +request. Typically, several such requests will be allocated.
+> >> +
+> >> +Request Preparation
+> >> +-------------------
+> >> +
+> >> +Standard V4L2 ioctls can then receive a request file descriptor to express the
+> >> +fact that the ioctl is part of said request, and is not to be applied
+> >> +immediately. See :ref:`MEDIA_IOC_REQUEST_ALLOC` for a list of ioctls that
+> >> +support this. Controls set with a ``request_fd`` parameter are stored instead
+> >> +of being immediately applied, and buffers queued to a request do not enter the
+> >> +regular buffer queue until the request itself is queued.
+> >> +
+> >> +Request Submission
+> >> +------------------
+> >> +
+> >> +Once the parameters and buffers of the request are specified, it can be
+> >> +queued by calling :ref:`MEDIA_REQUEST_IOC_QUEUE` on the request FD.
+> >> +This will make the buffers associated to the request available to their driver,
+> >> +which can then apply the associated controls as buffers are processed. A queued
+> >> +request cannot be modified anymore.  
+> > 
+> > What happens if one closes a file descriptor while a request is pending?
+> > Would the close() ops wait until the request to finish? If so, what happens
+> > when FD is opened in non-blocking mode?  
+> 
+> It doesn't block, it just decrements the internal refcount of the request. The
+> request won't be freed until the request completes. Of course, once it is closed
+> the application has no way to access the request anymore.
+
+Ok. Please document it at the close() documentation for the request API.
+
+> 
+> >   
+> >> +
+> >> +If the request contains parameters for multiple entities, individual drivers may
+> >> +synchronize so the requested pipeline's topology is applied before the buffers
+> >> +are processed. Media controller drivers do a best effort implementation since
+> >> +perfect atomicity may not be possible due to hardware limitations.
+> >> +
+> >> +Once buffers are added to a request for the first time it is no longer possible  
+> > 
+> > Nitpick: missing comma:
+> > 	Once buffers are added to a request for the first time,  
+> 
+> ack
+> 
+> >   
+> >> +to queue non-request buffers of that buffer type until
+> >> +:ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` is called.  
+> > 
+> > Not even after closing the request fd? My past understanding is that 
+> > closing a file descriptor would be enough to free the request.  
+> 
+> No, once you start using requests, you have to keep using it. As mentioned
+> above, closing the request fd doesn't free the request, unless the request
+> was already completed.
+> 
+> The problem is that things become very complex when you start mixing requests
+> and VIDIOC_QBUF. For now (and likely forever) this is prohibited.
+> 
+> > 
+> > If that's not the case, and STREAMOFF is indeed required to free the
+> > buffer, please document it also at MEDIA_IOC_REQUEST_ALLOC.  
+> 
+> This has nothing to do with freeing buffers. It is about whether the
+> streaming mode: are you using QBUF or requests? Once you start using
+> requests while streaming, you have to keep doing that until you stop
+> streaming.
+
+
+I might have missed it, but I don't remember any part of the docs
+saying that it is forbidden to mix request/non-request QBUFs.
+
+Ok, after re-reading what's written there, one might understand that,
+but, I had a different understanding the first time I read, as 
+"a request" made me thing that a buffer number would be sticked
+forever to a certain request_id.
+
+After your comments, I guess that what it is intended to be said
+is, instead, something similar to:
+
+"It is forbidden to have some VIDIOC_QBUF calls with the request_id
+ filled with other VIDIOC_QBUF calls without it.
+
+ So, if the first successful call to a VIDIOC_QBUF after start
+ streaming has request_id filled, all other calls should also
+ have it filed, otherwise -EBUSY will be returned."              
+
+For coherency, I would also add (and enforce):
+
+"The reverse is also true: if the first successful call after start
+ streaming to a VIDIOC_QBUF without request_id fields is used, any
+ attempt to queue a buffer with it filled will return -EBUSY."
+
+As probably the behavior of having the first "n" buffers without
+request, with controls being changed in runtime, followed by all
+others with request could produce unexpected behavior, specially
+if buffers are delivered out of order.
+
+> >   
+> >> +
+> >> +Controls can still be set without a request and are applied immediately,
+> >> +regardless of whether a request is in use or not.  
+> >   
+> >> Setting the same control
+> >> +through a request and directly can lead to undefined behavior!  
+> > 
+> > I would place it as a caution note:
+> > 
+> > .. caution::
+> > 
+> >    Setting the same control through a request and directly can
+> >    lead to undefined behavior!  
+> 
+> Right.
+> 
+> >   
+> >> +
+> >> +User-space can ``poll()`` a request FD in order to wait until the request  
+> > 
+> > Hmm... ``poll`` is probably not what you want here. Same applies to ``close``,
+> > ``open``, etc. We actually define syscalls per subsystem (v4l2, dvb, ...), as
+> > the syscall behavior is somewhat dependent on how the dev ops are implemented.
+> > IMO, the best would be to add a page for poll() and close() for request API,
+> > explaining their differences with regards to the "common" behavior.
+> > 
+> > For example, Documentation/media/uapi/cec/cec-func-close.rst references it
+> > with:
+> > 	::c:func:`close() <cec-close>`
+> >   
+> 
+> OK.
+> 
+> >> +completes. A request is considered complete once all its associated buffers are
+> >> +available for dequeuing and all the associated controls have been updated with
+> >> +the values at the time of completion. Note that user-space does not need to wait
+> >> +for the request to complete to dequeue its buffers: buffers that are available
+> >> +halfway through a request can be dequeued independently of the request's state.
+> >> +
+> >> +A completed request contains the state of the request at the time of the
+> >> +request completion. User-space can query that state by calling
+> >> +:ref:`ioctl VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` with the request FD.  
+> > 
+> > What happens if one calls VIDIOC_G_EXT_CTRLS after DQBUF but before
+> > the complete request to be handled? Undefined behavior or will it
+> > reflect the control changes applied to that dequeued buffer?  
+> 
+> Good point. It is basically undefined: it can either return the control as
+> was set by the application for this request, but if the driver also updates
+> this control before the request is completed it might return that new value
+> instead.
+> 
+> I think it might be best that EBUSY is returned while the request is in
+> flight (queued but not yet completed).
+
+Makes sense to me. Please document it (and be sure implementation will
+follow the docs).
+
+> 
+> >   
+> >> +
+> >> +Recycling and Destruction
+> >> +-------------------------
+> >> +
+> >> +Finally, completed request can either be discarded or be reused. Calling
+> >> +``close()`` on a request FD will make that FD unusable, freeing the request if
+> >> +it is not in use by the kernel. That is, if the request is queued and then the
+> >> +FD is closed, then it won't be freed until the driver completed the request.
+> >> +
+> >> +The :ref:`MEDIA_REQUEST_IOC_REINIT` will clear a request's state and make it
+> >> +available again. No state is retained by this operation: the request is as
+> >> +if it had just been allocated.
+> >> +
+> >> +Example for a Memory-to-Memory Device
+> >> +-------------------------------------
+> >> +
+> >> +M2M devices are single-node V4L2 devices providing one OUTPUT queue (for
+> >> +user-space to provide input buffers) and one CAPTURE queue (to retrieve
+> >> +processed data). These devices are commonly used for frame processors or
+> >> +stateless codecs.  
+> > 
+> > Hmm... describing what is a M2M device here doesn't sound right. It
+> > should be described elsewhere, and a xref to such description should
+> > be added here instead, pointing to some specific chapter at the V4L2
+> > docs for M2M.  
+> 
+> Right.
+> 
+> > That reminds that I have a series of patches adding a glossary that
+> > needs rework. I'll see if I can respin it this week, in order to allow
+> > adding M2M to the glossary too.
+> >   
+> >> +
+> >> +In this use-case, the request API can be used to associate specific controls to
+> >> +be applied by the driver for the OUTPUT buffer, allowing user-space
+> >> +to queue many such buffers in advance. It can also take advantage of requests'
+> >> +ability to capture the state of controls when the request completes to read back
+> >> +information that may be subject to change.
+> >> +
+> >> +Put into code, after obtaining a request, user-space can assign controls and one
+> >> +OUTPUT buffer to it:
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	struct v4l2_buffer buf;
+> >> +	struct v4l2_ext_controls ctrls;
+> >> +	struct media_request_alloc alloc = { 0 };
+> >> +	int req_fd;
+> >> +	...
+> >> +	ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &alloc);
+> >> +	req_fd = alloc.fd;
+> >> +	...
+> >> +	ctrls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
+> >> +	ctrls.request_fd = req_fd;
+> >> +	ioctl(codec_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
+> >> +	...
+> >> +	buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> >> +	buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
+> >> +	buf.request_fd = req_fd;
+> >> +	ioctl(codec_fd, VIDIOC_QBUF, &buf);  
+> > 
+> > Hmm... I understand that you want an example to be as simple and as
+> > shorter as possible, but I don't like adding a code example without 
+> > proper error handling code, as one might just copy-and-paste it
+> > without adding the required error handling.
+> > 
+> > I would do, at least, something like:
+> > 
+> > 	assert (!ioctl(...));
+> > 
+> > in order to make clearer that errors should be checked, and, on worse
+> > case scenario of a cut-and-paste code, the app will abort if errors
+> > are found, printing some errors.  
+> 
+> I can add something along these lines.
+> 
+> >   
+> >> +
+> >> +Note that there is typically no need to use the Request API for CAPTURE buffers
+> >> +since there are no per-frame settings to report there.
+> >> +
+> >> +Once the request is fully prepared, it can be queued to the driver:
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	ioctl(req_fd, MEDIA_REQUEST_IOC_QUEUE);  
+> > 
+> > Same here. I would code this as:
+> > 
+> > .. code-block:: c
+> > 
+> > 	rc = ioctl(req_fd, MEDIA_REQUEST_IOC_QUEUE);
+> > 	if (rc)
+> > 		perror("MEDIA_REQUEST_IOC_QUEUE");
+> > 
+> > in order to give a hint about a more realistic error handling code.
+> > 
+> > (same comments about error handling apply to other examples below)
+> >   
+> >> +
+> >> +User-space can then either wait for the request to complete by calling poll() on
+> >> +its file descriptor, or start dequeuing CAPTURE buffers. Most likely, it will
+> >> +want to get CAPTURE buffers as soon as possible and this can be done using a
+> >> +regular DQBUF:
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	struct v4l2_buffer buf;
+> >> +
+> >> +	memset(&buf, 0, sizeof(buf));
+> >> +	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> +	ioctl(codec_fd, VIDIOC_DQBUF, &buf);
+> >> +
+> >> +Note that this example assumes for simplicity that for every OUTPUT buffer
+> >> +there will be one CAPTURE buffer, but this does not have to be the case.
+> >> +
+> >> +We can then, after ensuring that the request is completed via polling the
+> >> +request FD, query control values at the time of its completion via an
+> >> +annotated call to G_EXT_CTRLS. This is particularly useful for volatile controls
+> >> +for which we want to query values as soon as the capture buffer is produced.
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	struct pollfd pfd = { .events = POLLPRI, .fd = request_fd };
+> >> +	poll(&pfd, 1, -1);
+> >> +	...
+> >> +	ctrls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
+> >> +	ctrls.request_fd = req_fd;
+> >> +	ioctl(codec_fd, VIDIOC_G_EXT_CTRLS, &ctrls);
+> >> +
+> >> +Once we don't need the request anymore, we can either recycle it for reuse with
+> >> +:ref:`MEDIA_REQUEST_IOC_REINIT`...
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	ioctl(req_fd, MEDIA_REQUEST_IOC_REINIT);
+> >> +
+> >> +... or close its file descriptor to completely dispose of it.
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	close(req_fd);
+> >> +
+> >> +Example for a Simple Capture Device
+> >> +-----------------------------------
+> >> +
+> >> +With a simple capture device, requests can be used to specify controls to apply
+> >> +for a given CAPTURE buffer.
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	struct v4l2_buffer buf;
+> >> +	struct v4l2_ext_controls ctrls;
+> >> +	struct media_request_alloc alloc = { 0 };
+> >> +	int req_fd;
+> >> +	...
+> >> +	ioctl(media_fd, MEDIA_IOC_REQUEST_ALLOC, &alloc);
+> >> +	req_fd = alloc.fd;
+> >> +	...
+> >> +	ctrls.which = V4L2_CTRL_WHICH_REQUEST_VAL;
+> >> +	ctrls.request_fd = req_fd;
+> >> +	ioctl(camera_fd, VIDIOC_S_EXT_CTRLS, &ctrls);
+> >> +	...
+> >> +	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> +	buf.flags |= V4L2_BUF_FLAG_REQUEST_FD;
+> >> +	buf.request_fd = req_fd;
+> >> +	ioctl(camera_fd, VIDIOC_QBUF, &buf);
+> >> +
+> >> +Once the request is fully prepared, it can be queued to the driver:
+> >> +
+> >> +.. code-block:: c
+> >> +
+> >> +	ioctl(req_fd, MEDIA_REQUEST_IOC_QUEUE);
+> >> +
+> >> +User-space can then dequeue buffers, wait for the request completion, query
+> >> +controls and recycle the request as in the M2M example above.
+> >> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> >> index e2c85ddc990b..8059fc0ed520 100644
+> >> --- a/Documentation/media/uapi/v4l/buffer.rst
+> >> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> >> @@ -306,10 +306,12 @@ struct v4l2_buffer
+> >>        - A place holder for future extensions. Drivers and applications
+> >>  	must set this to 0.
+> >>      * - __u32
+> >> -      - ``reserved``
+> >> +      - ``request_fd``
+> >>        -
+> >> -      - A place holder for future extensions. Drivers and applications
+> >> -	must set this to 0.
+> >> +      - The file descriptor of the request to queue the buffer to. If specified
+> >> +        and flag ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
+> >> +	queued to that request. This is set by the user when calling
+> >> +	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.  
+> > 
+> > What happens if userspace uses an invalid request_fd is filled here?  
+> 
+> -EPERM if the driver doesn't support requests at all.
+> -ENOENT if the driver supports requests, but the fd doesn't map to a valid request.
+
+Ok. Please document it, as it can help app developers to debug issues
+there.
+
+> 
+> >   
+> >>  
+> >>  
+> >>  
+> >> @@ -514,6 +516,11 @@ Buffer Flags
+> >>  	streaming may continue as normal and the buffer may be reused
+> >>  	normally. Drivers set this flag when the ``VIDIOC_DQBUF`` ioctl is
+> >>  	called.
+> >> +    * .. _`V4L2-BUF-FLAG-IN-REQUEST`:
+> >> +
+> >> +      - ``V4L2_BUF_FLAG_IN_REQUEST``
+> >> +      - 0x00000080
+> >> +      - This buffer is part of a request that hasn't been queued yet.
+> >>      * .. _`V4L2-BUF-FLAG-KEYFRAME`:
+> >>  
+> >>        - ``V4L2_BUF_FLAG_KEYFRAME``
+> >> @@ -589,6 +596,11 @@ Buffer Flags
+> >>  	the format. Any Any subsequent call to the
+> >>  	:ref:`VIDIOC_DQBUF <VIDIOC_QBUF>` ioctl will not block anymore,
+> >>  	but return an ``EPIPE`` error code.
+> >> +    * .. _`V4L2-BUF-FLAG-REQUEST-FD`:
+> >> +
+> >> +      - ``V4L2_BUF_FLAG_REQUEST_FD``
+> >> +      - 0x00800000
+> >> +      - The ``request_fd`` field contains a valid file descriptor.
+> >>      * .. _`V4L2-BUF-FLAG-TIMESTAMP-MASK`:
+> >>  
+> >>        - ``V4L2_BUF_FLAG_TIMESTAMP_MASK``
+> >> diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+> >> index 2011c2b2ee67..3d0e861ad4a1 100644
+> >> --- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+> >> +++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+> >> @@ -95,6 +95,22 @@ appropriate. In the first case the new value is set in struct
+> >>  is inappropriate (e.g. the given menu index is not supported by the menu
+> >>  control), then this will also result in an ``EINVAL`` error code error.
+> >>  
+> >> +If ``request_fd`` is set to a not-yet-queued :ref:`request <media-request-api>`
+> >> +file descriptor and ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``,
+> >> +then the controls are not applied immediately when calling
+> >> +:ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, but instead are applied by
+> >> +the driver for the buffer associated with the same request.  
+> > 
+> > Same note here: what happens if request_fd is invalid?  
+> 
+> Same answer.
+
+Ok. Please document.
+
+> 
+> >   
+> >> +
+> >> +An attempt to call :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` for a
+> >> +request that has already been queued will result in an ``EBUSY`` error.
+> >> +
+> >> +If ``request_fd`` is specified and ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``
+> >> +during a call to :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then the
+> >> +returned values will be the values currently set for the request (or the
+> >> +hardware value if none is set) if the request has not yet completed, or the
+> >> +values of the controls at the time of request completion if it has already
+> >> +completed.
+> >> +
+> >>  The driver will only set/get these controls if all control values are
+> >>  correct. This prevents the situation where only some of the controls
+> >>  were set/get. Only low-level errors (e. g. a failed i2c command) can
+> >> @@ -209,8 +225,10 @@ still cause this situation.
+> >>        - ``which``
+> >>        - Which value of the control to get/set/try.
+> >>  	``V4L2_CTRL_WHICH_CUR_VAL`` will return the current value of the
+> >> -	control and ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
+> >> -	value of the control.
+> >> +	control, ``V4L2_CTRL_WHICH_DEF_VAL`` will return the default
+> >> +	value of the control and ``V4L2_CTRL_WHICH_REQUEST_VAL`` indicates that
+> >> +	these controls have to be retrieved from a request or tried/set for
+> >> +	a request.  
+> > 
+> > I didn't like the text above, as it assumes that all calls will contain
+> > a request_id. You need either to rewrite it or add two paragraphs, one
+> > describing the "normal" non-req-api case, and the other one for "req-api"
+> > one.  
+> 
+> OK
+> 
+> >   
+> >>  
+> >>  	.. note::
+> >>  
+> >> @@ -272,8 +290,12 @@ still cause this situation.
+> >>  	then you can call :ref:`VIDIOC_TRY_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` to try to discover the
+> >>  	actual control that failed the validation step. Unfortunately,
+> >>  	there is no ``TRY`` equivalent for :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`.
+> >> +    * - __s32
+> >> +      - ``request_fd``
+> >> +	File descriptor of the request to be used by this operation. Only
+> >> +	valid if ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``.
+> >>      * - __u32
+> >> -      - ``reserved``\ [2]
+> >> +      - ``reserved``\ [1]
+> >>        - Reserved for future extensions.
+> >>  
+> >>  	Drivers and applications must set the array to zero.
+> >> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> >> index 9e448a4aa3aa..7ac99be1dd48 100644
+> >> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> >> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> >> @@ -98,6 +98,17 @@ dequeued, until the :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or
+> >>  :ref:`VIDIOC_REQBUFS` ioctl is called, or until the
+> >>  device is closed.
+> >>  
+> >> +The ``request_fd`` field can be used when queuing to specify the file
+> >> +descriptor of a :ref:`request <media-request-api>`, if requests are
+> >> +in use. Setting it means that the buffer will not be passed to the driver
+> >> +until the request itself is queued. Also, the driver will apply any
+> >> +settings associated with the request for this buffer. This field will
+> >> +be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD`` flag is set.  
+> > 
+> > What happens if request_fd is invalid?
+> >   
+> >> +
+> >> +For :ref:`memory-to-memory devices <codec>` you can specify the
+> >> +``request_fd`` only for output buffers, not for capture buffers. Attempting
+> >> +to specify this for a capture buffer will result in an ``EINVAL`` error.
+> >> +
+> >>  Applications call the ``VIDIOC_DQBUF`` ioctl to dequeue a filled
+> >>  (capturing) or displayed (output) buffer from the driver's outgoing
+> >>  queue. They just set the ``type``, ``memory`` and ``reserved`` fields of
+> >> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+> >> index a5cb0a8686ac..5a5a1c772053 100644
+> >> --- a/Documentation/media/videodev2.h.rst.exceptions
+> >> +++ b/Documentation/media/videodev2.h.rst.exceptions
+> >> @@ -514,6 +514,7 @@ ignore define V4L2_CTRL_DRIVER_PRIV
+> >>  ignore define V4L2_CTRL_MAX_DIMS
+> >>  ignore define V4L2_CTRL_WHICH_CUR_VAL
+> >>  ignore define V4L2_CTRL_WHICH_DEF_VAL
+> >> +ignore define V4L2_CTRL_WHICH_REQUEST_VAL
+> >>  ignore define V4L2_OUT_CAP_CUSTOM_TIMINGS
+> >>  ignore define V4L2_CID_MAX_CTRLS
+> >>    
+> > 
+> > 
+> > 
+> > Thanks,
+> > Mauro
+> >   
+> 
+> Regards,
+> 
+> 	Hans
+
+
+
+Thanks,
+Mauro
