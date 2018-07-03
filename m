@@ -1,152 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:33820 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752251AbeGCMwk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2018 08:52:40 -0400
-Received: by mail-ed1-f67.google.com with SMTP id d3-v6so1553928edi.1
-        for <linux-media@vger.kernel.org>; Tue, 03 Jul 2018 05:52:39 -0700 (PDT)
-Date: Tue, 3 Jul 2018 14:52:35 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>, sumit.semwal@linaro.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org
+Received: from mail-dm3nam03on0081.outbound.protection.outlook.com ([104.47.41.81]:47966
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753068AbeGCNb2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Jul 2018 09:31:28 -0400
 Subject: Re: [PATCH 2/4] dma-buf: lock the reservation object during
  (un)map_dma_buf v2
-Message-ID: <20180703125235.GB3891@phenom.ffwll.local>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: sumit.semwal@linaro.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        intel-gfx@lists.freedesktop.org
 References: <20180622141103.1787-1-christian.koenig@amd.com>
  <20180622141103.1787-3-christian.koenig@amd.com>
  <20180625082231.GM2958@phenom.ffwll.local>
  <20180625091217.GO2958@phenom.ffwll.local>
  <2ebff18b-414d-c971-1b7f-f6a21aacf196@gmail.com>
+ <20180703125235.GB3891@phenom.ffwll.local>
+ <35187534-cc89-3e31-5428-2700c3f8a90b@amd.com>
+ <20180703131115.GE3891@phenom.ffwll.local>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <f2ca6dc5-1977-f504-ffd8-be6238c59590@amd.com>
+Date: Tue, 3 Jul 2018 15:31:11 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20180703131115.GE3891@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <2ebff18b-414d-c971-1b7f-f6a21aacf196@gmail.com>
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 03, 2018 at 01:46:44PM +0200, Christian König wrote:
-> Am 25.06.2018 um 11:12 schrieb Daniel Vetter:
-> > On Mon, Jun 25, 2018 at 10:22:31AM +0200, Daniel Vetter wrote:
-> > > On Fri, Jun 22, 2018 at 04:11:01PM +0200, Christian König wrote:
-> > > > First step towards unpinned DMA buf operation.
-> > > > 
-> > > > I've checked the DRM drivers to potential locking of the reservation
-> > > > object, but essentially we need to audit all implementations of the
-> > > > dma_buf _ops for this to work.
-> > > > 
-> > > > v2: reordered
-> > > > 
-> > > > Signed-off-by: Christian König <christian.koenig@amd.com>
-> > > Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> > Ok I did review drivers a bit, but apparently not well enough by far. i915
-> > CI is unhappy:
-> > 
-> > https://intel-gfx-ci.01.org/tree/drm-tip/Patchwork_9400/fi-whl-u/igt@gem_mmap_gtt@basic-small-bo-tiledx.html
-> > 
-> > So yeah inserting that lock in there isn't the most trivial thing :-/
-> > 
-> > I kinda assume that other drivers will have similar issues, e.g. omapdrm's
-> > use of dev->struct_mutex also very much looks like it'll result in a new
-> > locking inversion.
-> 
-> Ah, crap. Already feared that this wouldn't be easy, but yeah that it is as
-> bad as this is rather disappointing.
-> 
-> Thanks for the info, going to keep thinking about how to solve those issues.
+Am 03.07.2018 um 15:11 schrieb Daniel Vetter:
+> On Tue, Jul 03, 2018 at 03:02:11PM +0200, Christian KÃ¶nig wrote:
+>> Am 03.07.2018 um 14:52 schrieb Daniel Vetter:
+>>> On Tue, Jul 03, 2018 at 01:46:44PM +0200, Christian KÃ¶nig wrote:
+>>>> Am 25.06.2018 um 11:12 schrieb Daniel Vetter:
+>>>>> On Mon, Jun 25, 2018 at 10:22:31AM +0200, Daniel Vetter wrote:
+>>>>>> On Fri, Jun 22, 2018 at 04:11:01PM +0200, Christian KÃ¶nig wrote:
+>>>>>>> First step towards unpinned DMA buf operation.
+>>>>>>>
+>>>>>>> I've checked the DRM drivers to potential locking of the reservation
+>>>>>>> object, but essentially we need to audit all implementations of the
+>>>>>>> dma_buf _ops for this to work.
+>>>>>>>
+>>>>>>> v2: reordered
+>>>>>>>
+>>>>>>> Signed-off-by: Christian KÃ¶nig <christian.koenig@amd.com>
+>>>>>> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+>>>>> Ok I did review drivers a bit, but apparently not well enough by far. i915
+>>>>> CI is unhappy:
+>>>>>
+>>>>> https://intel-gfx-ci.01.org/tree/drm-tip/Patchwork_9400/fi-whl-u/igt@gem_mmap_gtt@basic-small-bo-tiledx.html
+>>>>>
+>>>>> So yeah inserting that lock in there isn't the most trivial thing :-/
+>>>>>
+>>>>> I kinda assume that other drivers will have similar issues, e.g. omapdrm's
+>>>>> use of dev->struct_mutex also very much looks like it'll result in a new
+>>>>> locking inversion.
+>>>> Ah, crap. Already feared that this wouldn't be easy, but yeah that it is as
+>>>> bad as this is rather disappointing.
+>>>>
+>>>> Thanks for the info, going to keep thinking about how to solve those issues.
+>>> Side note: We want to make sure that drivers don't get the reservation_obj
+>>> locking hierarchy wrong in other places (using dev->struct_mutex is kinda
+>>> a pre-existing mis-use that we can't wish away retroactively
+>>> unfortunately). One really important thing is that shrinker vs resv_obj
+>>> must work with trylocks in the shrinker, so that you can allocate memory
+>>> while holding reservation objects.
+>>>
+>>> One neat trick to teach lockdep about this would be to have a dummy
+>>>
+>>> if (IS_ENABLED(CONFIG_PROVE_LOCKING)) {
+>>> 	ww_mutex_lock(dma_buf->resv_obj);
+>>> 	fs_reclaim_acquire(GFP_KERNEL);
+>>> 	fs_reclaim_release(GFP_KERNEL);
+>>> 	ww_mutex_unlock(dma_buf->resv_obj);
+>>> }
+>>>
+>>> in dma_buf_init(). We're using the fs_reclaim_acquire/release check very
+>>> successfully to improve our igt test coverage for i915.ko in other areas.
+>>>
+>>> Totally unrelated to dev->struct_mutex, but thoughts? Well for
+>>> dev->struct_mutex we could at least decide on one true way to nest
+>>> resv_obj vs. dev->struct_mutex as maybe an interim step, but not sure how
+>>> much that would help.
+>> I don't think that would help. As far as I can see we only have two choices:
+>>
+>> 1. Either have a big patch which fixes all DMA-buf implementations to allow
+>> the reservation lock to be held during map/unmap (unrealistic).
+>>
+>> 2. Add a flag to at least in the mid term tell the DMA-buf helper functions
+>> what to do. E.g. create the mapping without the reservation lock held.
+>>
+>>
+>> How about moving the SGL caching from the DRM layer into the DMA-buf layer
+>> and add a flag if the exporter wants/needs this caching?
+>>
+>> Then only the implementations which can deal with dynamic invalidation
+>> disable SGL caching and with it enable creating the sgl with the reservation
+>> object locked.
+>>
+>> This way we can kill two birds with one stone by both avoiding the SGL
+>> caching in the DRM layer as well as having a sane handling for the locking.
+>>
+>> Thoughts?
+> I don't see how the SGL stuff factors into neither the dev->struct_mutex
+> nor into the need to do allocations while holding resv_obj. Neither
+> changes by moving that piece around. At least as far as I can see it SGL
+> caching is fully orthogonal to any kind of locking fun.
+>
+> Why do you see a connection here?
 
-Side note: We want to make sure that drivers don't get the reservation_obj
-locking hierarchy wrong in other places (using dev->struct_mutex is kinda
-a pre-existing mis-use that we can't wish away retroactively
-unfortunately). One really important thing is that shrinker vs resv_obj
-must work with trylocks in the shrinker, so that you can allocate memory
-while holding reservation objects.
+When the exporter's map_dma_buf() callback can't be called with the 
+reservation lock held we must call it before taking the lock.
 
-One neat trick to teach lockdep about this would be to have a dummy
+Now importers able to deal with dynamic invalidation always want to call 
+the callback with the reservation lock held. Otherwise they would have 
+two different code paths, one for the dynamic invalidation and one for 
+the pinning.
 
-if (IS_ENABLED(CONFIG_PROVE_LOCKING)) {
-	ww_mutex_lock(dma_buf->resv_obj);
-	fs_reclaim_acquire(GFP_KERNEL);
-	fs_reclaim_release(GFP_KERNEL);
-	ww_mutex_unlock(dma_buf->resv_obj);
-}
+One possibility to solve that problem is to call map_dma_buf() during 
+the attach phase and cache the resulting sg_table in the attach object.
 
-in dma_buf_init(). We're using the fs_reclaim_acquire/release check very
-successfully to improve our igt test coverage for i915.ko in other areas.
+Only when the exporter says: Ok I can deal with the reservation lock 
+held during the map_dma_buf() callback we disable the caching.
 
-Totally unrelated to dev->struct_mutex, but thoughts? Well for
-dev->struct_mutex we could at least decide on one true way to nest
-resv_obj vs. dev->struct_mutex as maybe an interim step, but not sure how
-much that would help.
--Daniel
+The only possible drawback I can see is that we now always cache the 
+sg_table in the DMA-buf handling, while previously we have done it in 
+the DRM midlayer.
 
-> 
-> Christian.
-> 
-> > -Daniel
-> > 
-> > > > ---
-> > > >   drivers/dma-buf/dma-buf.c | 9 ++++++---
-> > > >   include/linux/dma-buf.h   | 4 ++++
-> > > >   2 files changed, 10 insertions(+), 3 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> > > > index dc94e76e2e2a..49f23b791eb8 100644
-> > > > --- a/drivers/dma-buf/dma-buf.c
-> > > > +++ b/drivers/dma-buf/dma-buf.c
-> > > > @@ -665,7 +665,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
-> > > >   	if (WARN_ON(!attach || !attach->dmabuf))
-> > > >   		return ERR_PTR(-EINVAL);
-> > > > -	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-> > > > +	reservation_object_lock(attach->dmabuf->resv, NULL);
-> > > > +	sg_table = dma_buf_map_attachment_locked(attach, direction);
-> > > > +	reservation_object_unlock(attach->dmabuf->resv);
-> > > >   	if (!sg_table)
-> > > >   		sg_table = ERR_PTR(-ENOMEM);
-> > > > @@ -715,8 +717,9 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
-> > > >   	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
-> > > >   		return;
-> > > > -	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
-> > > > -						direction);
-> > > > +	reservation_object_lock(attach->dmabuf->resv, NULL);
-> > > > +	dma_buf_unmap_attachment_locked(attach, sg_table, direction);
-> > > > +	reservation_object_unlock(attach->dmabuf->resv);
-> > > >   }
-> > > >   EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
-> > > > diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> > > > index a25e754ae2f7..024658d1f22e 100644
-> > > > --- a/include/linux/dma-buf.h
-> > > > +++ b/include/linux/dma-buf.h
-> > > > @@ -118,6 +118,8 @@ struct dma_buf_ops {
-> > > >   	 * any other kind of sharing that the exporter might wish to make
-> > > >   	 * available to buffer-users.
-> > > >   	 *
-> > > > +	 * This is called with the dmabuf->resv object locked.
-> > > > +	 *
-> > > >   	 * Returns:
-> > > >   	 *
-> > > >   	 * A &sg_table scatter list of or the backing storage of the DMA buffer,
-> > > > @@ -138,6 +140,8 @@ struct dma_buf_ops {
-> > > >   	 * It should also unpin the backing storage if this is the last mapping
-> > > >   	 * of the DMA buffer, it the exporter supports backing storage
-> > > >   	 * migration.
-> > > > +	 *
-> > > > +	 * This is called with the dmabuf->resv object locked.
-> > > >   	 */
-> > > >   	void (*unmap_dma_buf)(struct dma_buf_attachment *,
-> > > >   			      struct sg_table *,
-> > > > -- 
-> > > > 2.14.1
-> > > > 
-> > > -- 
-> > > Daniel Vetter
-> > > Software Engineer, Intel Corporation
-> > > http://blog.ffwll.ch
-> 
+Christian.
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+> -Daniel
