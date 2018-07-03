@@ -1,97 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:59296 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752494AbeGCNAl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2018 09:00:41 -0400
-Date: Tue, 3 Jul 2018 16:00:24 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Joe Perches <joe@perches.com>, linux-usb@vger.kernel.org,
-        Chengguang Xu <cgxu519@gmx.com>,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] cast sizeof to int for comparison
-Message-ID: <20180702091834.etunideivmb6p2sf@mwanda>
-References: <1530466325-1678-1-git-send-email-Julia.Lawall@lip6.fr>
- <653914f26dc8433a3f682b5e7eb850ab94bd431d.camel@perches.com>
- <alpine.DEB.2.20.1807012050530.2494@hadrien>
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:33820 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752251AbeGCMwk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jul 2018 08:52:40 -0400
+Received: by mail-ed1-f67.google.com with SMTP id d3-v6so1553928edi.1
+        for <linux-media@vger.kernel.org>; Tue, 03 Jul 2018 05:52:39 -0700 (PDT)
+Date: Tue, 3 Jul 2018 14:52:35 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: christian.koenig@amd.com
+Cc: Daniel Vetter <daniel@ffwll.ch>, sumit.semwal@linaro.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org
+Subject: Re: [PATCH 2/4] dma-buf: lock the reservation object during
+ (un)map_dma_buf v2
+Message-ID: <20180703125235.GB3891@phenom.ffwll.local>
+References: <20180622141103.1787-1-christian.koenig@amd.com>
+ <20180622141103.1787-3-christian.koenig@amd.com>
+ <20180625082231.GM2958@phenom.ffwll.local>
+ <20180625091217.GO2958@phenom.ffwll.local>
+ <2ebff18b-414d-c971-1b7f-f6a21aacf196@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1807012050530.2494@hadrien>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2ebff18b-414d-c971-1b7f-f6a21aacf196@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 01, 2018 at 08:51:55PM +0200, Julia Lawall wrote:
+On Tue, Jul 03, 2018 at 01:46:44PM +0200, Christian König wrote:
+> Am 25.06.2018 um 11:12 schrieb Daniel Vetter:
+> > On Mon, Jun 25, 2018 at 10:22:31AM +0200, Daniel Vetter wrote:
+> > > On Fri, Jun 22, 2018 at 04:11:01PM +0200, Christian König wrote:
+> > > > First step towards unpinned DMA buf operation.
+> > > > 
+> > > > I've checked the DRM drivers to potential locking of the reservation
+> > > > object, but essentially we need to audit all implementations of the
+> > > > dma_buf _ops for this to work.
+> > > > 
+> > > > v2: reordered
+> > > > 
+> > > > Signed-off-by: Christian König <christian.koenig@amd.com>
+> > > Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> > Ok I did review drivers a bit, but apparently not well enough by far. i915
+> > CI is unhappy:
+> > 
+> > https://intel-gfx-ci.01.org/tree/drm-tip/Patchwork_9400/fi-whl-u/igt@gem_mmap_gtt@basic-small-bo-tiledx.html
+> > 
+> > So yeah inserting that lock in there isn't the most trivial thing :-/
+> > 
+> > I kinda assume that other drivers will have similar issues, e.g. omapdrm's
+> > use of dev->struct_mutex also very much looks like it'll result in a new
+> > locking inversion.
 > 
+> Ah, crap. Already feared that this wouldn't be easy, but yeah that it is as
+> bad as this is rather disappointing.
 > 
-> On Sun, 1 Jul 2018, Joe Perches wrote:
+> Thanks for the info, going to keep thinking about how to solve those issues.
+
+Side note: We want to make sure that drivers don't get the reservation_obj
+locking hierarchy wrong in other places (using dev->struct_mutex is kinda
+a pre-existing mis-use that we can't wish away retroactively
+unfortunately). One really important thing is that shrinker vs resv_obj
+must work with trylocks in the shrinker, so that you can allocate memory
+while holding reservation objects.
+
+One neat trick to teach lockdep about this would be to have a dummy
+
+if (IS_ENABLED(CONFIG_PROVE_LOCKING)) {
+	ww_mutex_lock(dma_buf->resv_obj);
+	fs_reclaim_acquire(GFP_KERNEL);
+	fs_reclaim_release(GFP_KERNEL);
+	ww_mutex_unlock(dma_buf->resv_obj);
+}
+
+in dma_buf_init(). We're using the fs_reclaim_acquire/release check very
+successfully to improve our igt test coverage for i915.ko in other areas.
+
+Totally unrelated to dev->struct_mutex, but thoughts? Well for
+dev->struct_mutex we could at least decide on one true way to nest
+resv_obj vs. dev->struct_mutex as maybe an interim step, but not sure how
+much that would help.
+-Daniel
+
 > 
-> > On Sun, 2018-07-01 at 19:32 +0200, Julia Lawall wrote:
-> > > Comparing an int to a size, which is unsigned, causes the int to become
-> > > unsigned, giving the wrong result.
-> > >
-> > > The semantic match that finds this problem is as follows:
-> > > (http://coccinelle.lip6.fr/)
-> >
-> > Great, thanks.
-> >
-> > But what about the ones in net/smc like:
-> >
-> > > net/smc/smc_clc.c:
-> > >
-> > >         len = kernel_sendmsg(smc->clcsock, &msg, &vec, 1,
-> > >                              sizeof(struct smc_clc_msg_decline));
-> > >         if (len < sizeof(struct smc_clc_msg_decline))
-> >
-> > Are those detected by the semantic match and ignored?
+> Christian.
 > 
-> I wasn't sure how to justify that kernel_sendmsg returns a negative value.
-> If it is the case, I can send the patch.  I only found this in one file,
-> but there were multiple occurrences.
+> > -Daniel
+> > 
+> > > > ---
+> > > >   drivers/dma-buf/dma-buf.c | 9 ++++++---
+> > > >   include/linux/dma-buf.h   | 4 ++++
+> > > >   2 files changed, 10 insertions(+), 3 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> > > > index dc94e76e2e2a..49f23b791eb8 100644
+> > > > --- a/drivers/dma-buf/dma-buf.c
+> > > > +++ b/drivers/dma-buf/dma-buf.c
+> > > > @@ -665,7 +665,9 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+> > > >   	if (WARN_ON(!attach || !attach->dmabuf))
+> > > >   		return ERR_PTR(-EINVAL);
+> > > > -	sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
+> > > > +	reservation_object_lock(attach->dmabuf->resv, NULL);
+> > > > +	sg_table = dma_buf_map_attachment_locked(attach, direction);
+> > > > +	reservation_object_unlock(attach->dmabuf->resv);
+> > > >   	if (!sg_table)
+> > > >   		sg_table = ERR_PTR(-ENOMEM);
+> > > > @@ -715,8 +717,9 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+> > > >   	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
+> > > >   		return;
+> > > > -	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
+> > > > -						direction);
+> > > > +	reservation_object_lock(attach->dmabuf->resv, NULL);
+> > > > +	dma_buf_unmap_attachment_locked(attach, sg_table, direction);
+> > > > +	reservation_object_unlock(attach->dmabuf->resv);
+> > > >   }
+> > > >   EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
+> > > > diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> > > > index a25e754ae2f7..024658d1f22e 100644
+> > > > --- a/include/linux/dma-buf.h
+> > > > +++ b/include/linux/dma-buf.h
+> > > > @@ -118,6 +118,8 @@ struct dma_buf_ops {
+> > > >   	 * any other kind of sharing that the exporter might wish to make
+> > > >   	 * available to buffer-users.
+> > > >   	 *
+> > > > +	 * This is called with the dmabuf->resv object locked.
+> > > > +	 *
+> > > >   	 * Returns:
+> > > >   	 *
+> > > >   	 * A &sg_table scatter list of or the backing storage of the DMA buffer,
+> > > > @@ -138,6 +140,8 @@ struct dma_buf_ops {
+> > > >   	 * It should also unpin the backing storage if this is the last mapping
+> > > >   	 * of the DMA buffer, it the exporter supports backing storage
+> > > >   	 * migration.
+> > > > +	 *
+> > > > +	 * This is called with the dmabuf->resv object locked.
+> > > >   	 */
+> > > >   	void (*unmap_dma_buf)(struct dma_buf_attachment *,
+> > > >   			      struct sg_table *,
+> > > > -- 
+> > > > 2.14.1
+> > > > 
+> > > -- 
+> > > Daniel Vetter
+> > > Software Engineer, Intel Corporation
+> > > http://blog.ffwll.ch
 > 
 
-In theory, Smatch is supposed to know return values but kernel_sendmsg()
-is too complicated for Smatch.  It's a tricky thing...  That particular
-check is correct and deliberate, but there is another check which is
-wrong.
-
-net/smc/smc_clc.c
-   369          len = kernel_sendmsg(smc->clcsock, &msg, &vec, 1,
-   370                               sizeof(struct smc_clc_msg_decline));
-   371          if (len < sizeof(struct smc_clc_msg_decline))
-   372                  smc->sk.sk_err = EPROTO;
-   373          if (len < 0)
-   374                  smc->sk.sk_err = -len;
-
-If it's invalid we set an error code, if it's already an error we
-preserve the error code.
-
-   375          return sock_error(&smc->sk);
-
-[ snip ]
-
-   442          /* due to the few bytes needed for clc-handshake this cannot block */
-   443          len = kernel_sendmsg(smc->clcsock, &msg, vec, i, plen);
-   444          if (len < sizeof(pclc)) {
-   445                  if (len >= 0) {
-                            ^^^^^^^^
-This is always true.
-
-   446                          reason_code = -ENETUNREACH;
-   447                          smc->sk.sk_err = -reason_code;
-   448                  } else {
-   449                          smc->sk.sk_err = smc->clcsock->sk->sk_err;
-   450                          reason_code = -smc->sk.sk_err;
-   451                  }
-   452          }
-
-The other two checks are not type promoted so they also work as
-intended.
-
-This is an interesting sort of bug I've written a Smatch script inspired
-by your work here.  One for the type promotion and one for the
-impossible condition.  I'll let you know how it goes.
-
-regards,
-dan carpenter
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
