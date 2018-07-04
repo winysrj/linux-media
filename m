@@ -1,90 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46008 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934034AbeGDIAH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Jul 2018 04:00:07 -0400
-Date: Wed, 4 Jul 2018 10:00:05 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Shuah Khan <shuah@kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>, Zach Reizner <zachr@google.com>,
-        Daniel Stone <daniels@collabora.com>
-Subject: Re: [PATCH v6] Add udmabuf misc device
-Message-ID: <20180704080005.juutrwri4kxm7yim@sirius.home.kraxel.org>
-References: <20180703075359.30349-1-kraxel@redhat.com>
- <20180703083757.GG7880@phenom.ffwll.local>
- <20180704055338.n3b7oexltaejqmcd@sirius.home.kraxel.org>
- <9818b301-9c9d-c703-d4fe-7c2d4d43ed66@collabora.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:56500 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933862AbeGDH7f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 03:59:35 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9818b301-9c9d-c703-d4fe-7c2d4d43ed66@collabora.com>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 04 Jul 2018 13:29:33 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: Re: [PATCH v2 2/5] media: venus: add a routine to set venus state
+In-Reply-To: <CAAFQd5DH2i+8ZJ+s2XUnmFHwxXKLF6z_=w0Z-RFs=W9oVvrJgw@mail.gmail.com>
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+ <1527884768-22392-3-git-send-email-vgarodia@codeaurora.org>
+ <20180601212117.GD11565@jcrouse-lnx.qualcomm.com>
+ <CAAFQd5DH2i+8ZJ+s2XUnmFHwxXKLF6z_=w0Z-RFs=W9oVvrJgw@mail.gmail.com>
+Message-ID: <ca7567c1df773f1223d919fab28f1460@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 04, 2018 at 09:26:39AM +0200, Tomeu Vizoso wrote:
-> On 07/04/2018 07:53 AM, Gerd Hoffmann wrote:
-> > On Tue, Jul 03, 2018 at 10:37:57AM +0200, Daniel Vetter wrote:
-> > > On Tue, Jul 03, 2018 at 09:53:58AM +0200, Gerd Hoffmann wrote:
-> > > > A driver to let userspace turn memfd regions into dma-bufs.
-> > > > 
-> > > > Use case:  Allows qemu create dmabufs for the vga framebuffer or
-> > > > virtio-gpu ressources.  Then they can be passed around to display
-> > > > those guest things on the host.  To spice client for classic full
-> > > > framebuffer display, and hopefully some day to wayland server for
-> > > > seamless guest window display.
-> > > > 
-> > > > qemu test branch:
-> > > >    https://git.kraxel.org/cgit/qemu/log/?h=sirius/udmabuf
-> > > > 
-> > > > Cc: David Airlie <airlied@linux.ie>
-> > > > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > Cc: Daniel Vetter <daniel@ffwll.ch>
-> > > > Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-> > > 
-> > > I think some ack for a 2nd use-case, like virtio-wl or whatever would be
-> > > really cool. To give us some assurance that this is generically useful.
-> > 
-> > Tomeu?  Laurent?
+Hi Jordan, Tomasz,
+
+Thanks for your valuable review comments.
+
+On 2018-06-04 18:24, Tomasz Figa wrote:
+> Hi Jordan, Vikash,
 > 
-> Sorry, but I think I will need some help to understand how this could help
-> in the virtio-wl case [adding Zach Reizner to CC].
+> On Sat, Jun 2, 2018 at 6:21 AM Jordan Crouse <jcrouse@codeaurora.org> 
+> wrote:
+>> 
+>> On Sat, Jun 02, 2018 at 01:56:05AM +0530, Vikash Garodia wrote:
+> [snip]
+>> > +int venus_set_hw_state(enum tzbsp_video_state state, struct venus_core *core)
+>> > +{
+>> > +     int ret;
+>> > +     struct device *dev = core->dev;
+>> 
+>> If you get rid of the log message as you should, you don't need this.
+
+Would prefer to keep the log for cases when enum is expanded while the 
+switch does
+not handle it.
+
+>> > +     void __iomem *reg_base = core->base;
+>> > +
+>> > +     switch (state) {
+>> > +     case TZBSP_VIDEO_SUSPEND:
+>> > +             if (qcom_scm_is_available())
+>> > +                     ret = qcom_scm_set_remote_state(TZBSP_VIDEO_SUSPEND, 0);
+>> > +             else
+>> > +                     writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
+>> 
+>> You can just use core->base here and not bother making a local 
+>> variable for it.
+Ok.
+
+>> > +             break;
+>> > +     case TZBSP_VIDEO_RESUME:
+>> > +             if (qcom_scm_is_available())
+>> > +                     ret = qcom_scm_set_remote_state(TZBSP_VIDEO_RESUME, 0);
+>> > +             else
+>> > +                     venus_reset_hw(core);
+>> > +             break;
+>> > +     default:
+>> > +             dev_err(dev, "invalid state\n");
+>> 
+>> state is a enum - you are highly unlikely to be calling it in your own 
+>> code with
+>> a random value.  It is smart to have the default, but you don't need 
+>> the log
+>> message - that is just wasted space in the binary.
+
+Incase enum is expanded while the switch does not handle it, default 
+will be useful.
+
+>> > +             break;
+>> > +     }
+>> 
+>> There are three paths in the switch statement that could end up with 
+>> 'ret' being
+>> uninitialized here.  Set it to 0 when you declare it.
+
+> Does this actually compile? The compiler should detect that ret is
+> used uninitialized. Setting it to 0 at declaration time actually
+> prevents compiler from doing that and makes it impossible to catch
+> cases when the ret should actually be non-zero, e.g. the invalid enum
+> value case.
+
+It does compile while it gave me failure while doing the functional 
+validation.
+I have fixed it in next series of patch.
+
+> Given that this function is supposed to substitute existing calls into
+> qcom_scm_set_remote_state(), why not just do something like this:
 > 
-> Any graphics buffers that are allocated with memfd will be shared with the
-> compositor via wl_shm, without need for dmabufs.
+>         if (qcom_scm_is_available())
+>                 return qcom_scm_set_remote_state(state, 0);
+> 
+>         switch (state) {
+>         case TZBSP_VIDEO_SUSPEND:
+>                 writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
+>                 break;
+>         case TZBSP_VIDEO_RESUME:
+>                 venus_reset_hw(core);
+>                 break;
+>         }
+> 
+>         return 0;
+This will not work as driver will write on the register irrespective of 
+scm
+availability.
 
-Within one machine, yes.  Once virtualization is added to the mix things
-become more complicated ...
-
-When using virtio-gpu the guest will allocate graphics buffers from
-normal (guest) ram, then register these buffers (which are allowed to be
-scattered) with the host as resource.
-
-qemu can use memfd to allocate guest ram.  Now, with the help of
-udmabuf, qemu can create a *host* dma-buf for the *guest* graphics
-buffer.
-
-That dma-buf can be used by qemu internally (mmap it to get a linear
-mapping of the resource, to avoid copying).  It can be passed on to
-spice-client, to display the guest framebuffer.
-
-And I think it could also be quite useful to pass guest wayland windows
-to the host compositor, without mapping host-allocated buffers into the
-guest, so we don't have do deal with the "find some address space for
-the mapping" issue in the first place.  There are more things needed to
-complete this of course, but it's a building block ...
-
-cheers,
-  Gerd
+> Best regards,
+> Tomasz
