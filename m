@@ -1,173 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:49467 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933560AbeGDII1 (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:39784 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933581AbeGDII1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 04:08:27 -0400
-Date: Wed, 4 Jul 2018 10:08:22 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Simon Horman <horms@verge.net.au>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: Re: [PATCH v6 10/10] media: rcar-vin: Add support for R-Car R8A77995
- SoC
-Message-ID: <20180704080822.GB1240@w540>
-References: <1528796612-7387-1-git-send-email-jacopo+renesas@jmondi.org>
- <1528796612-7387-11-git-send-email-jacopo+renesas@jmondi.org>
- <1fc42981-2269-d6f5-921d-6730661542c7@xs4all.nl>
- <20180704074946.GA1240@w540>
- <CAMuHMdWK-1q-gkCMRkWJPMoeYgn1RoJC=Xjey3TA+ipiQzmFpQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="v9Ux+11Zm5mwPlX6"
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdWK-1q-gkCMRkWJPMoeYgn1RoJC=Xjey3TA+ipiQzmFpQ@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 04 Jul 2018 13:38:26 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org, robh@kernel.org,
+        mark.rutland@arm.com, andy.gross@linaro.org,
+        bjorn.andersson@linaro.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        acourbot@chromium.org
+Subject: Re: [PATCH v2 2/5] media: venus: add a routine to set venus state
+In-Reply-To: <be5cc865-608b-dabb-2a3c-b5864c387d64@mm-sol.com>
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+ <1527884768-22392-3-git-send-email-vgarodia@codeaurora.org>
+ <be5cc865-608b-dabb-2a3c-b5864c387d64@mm-sol.com>
+Message-ID: <1b9ba366cc8484e4f2ef1510a8f57b38@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Stanimir,
 
---v9Ux+11Zm5mwPlX6
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for your valuable comments.
 
-Hi Geert,
+On 2018-06-04 19:20, Stanimir Varbanov wrote:
+> Hi Vikash,
+> 
+> Thanks for the patch!
+> 
+> On  1.06.2018 23:26, Vikash Garodia wrote:
+>> Add a new routine which abstracts the TZ call to
+> 
+> Actually the new routine abstracts Venus CPU state, Isn't it?
 
-On Wed, Jul 04, 2018 at 10:00:56AM +0200, Geert Uytterhoeven wrote:
-> Hi Jacopo,
->
-> On Wed, Jul 4, 2018 at 9:49 AM jacopo mondi <jacopo@jmondi.org> wrote:
-> > On Wed, Jul 04, 2018 at 09:36:34AM +0200, Hans Verkuil wrote:
-> > > On 12/06/18 11:43, Jacopo Mondi wrote:
-> > > > Add R-Car R8A77995 SoC to the rcar-vin supported ones.
-> > > >
-> > > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > > > Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnat=
-ech.se>
-> > > > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > >
-> > > Checkpatch reports:
-> > >
-> > > WARNING: DT compatible string "renesas,vin-r8a77995" appears un-docum=
-ented -- check ./Documentation/devicetree/bindings/
-> > > #29: FILE: drivers/media/platform/rcar-vin/rcar-core.c:1150:
-> > > +               .compatible =3D "renesas,vin-r8a77995",
-> > >
-> > > I'll still accept this series since this compatible string is already=
- used in
-> > > a dtsi, but if someone can document this for the bindings?
-> >
-> > A patch has been sent on May 21st for this
-> > https://patchwork.kernel.org/patch/10415587/
-> >
-> > Bindings documentation usually gets in a release later than bindings
-> > users, to give time to bindings to be changed eventually before
-> > being documented.
-> >
-> > Simon, Geert, is this correct?
->
-> Hmm, not 100% ;-)
->
-> Usually the binding update for a trivial one like this goes in _in parall=
-el_
-> with its user in a .dtsi.  So it happens from time to time that the bindi=
-ng
-> update is delayed by one kernel release (or more).
->
+Yes, its a Venus CPU state controlled by TZ. I can mention it as
+an abstraction of venus CPU state.
 
-Thanks for clarifying
+>> set the video hardware state.
+>> 
+>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>> ---
+>>   drivers/media/platform/qcom/venus/core.h      |  5 +++++
+>>   drivers/media/platform/qcom/venus/firmware.c  | 28 
+>> +++++++++++++++++++++++++++
+>>   drivers/media/platform/qcom/venus/firmware.h  |  1 +
+>>   drivers/media/platform/qcom/venus/hfi_venus.c | 13 ++++---------
+>>   4 files changed, 38 insertions(+), 9 deletions(-)
+>> 
+>> diff --git a/drivers/media/platform/qcom/venus/core.h 
+>> b/drivers/media/platform/qcom/venus/core.h
+>> index 85e66e2..e7bfb63 100644
+>> --- a/drivers/media/platform/qcom/venus/core.h
+>> +++ b/drivers/media/platform/qcom/venus/core.h
+>> @@ -35,6 +35,11 @@ struct reg_val {
+>>   	u32 value;
+>>   };
+>> 
+>> +enum tzbsp_video_state {
+>> +	TZBSP_VIDEO_SUSPEND = 0,
+>> +	TZBSP_VIDEO_RESUME
+>> +};
+> 
+> please move this in firmware.c, for more see below.
+> 
+>> +
+>>   struct venus_resources {
+>>   	u64 dma_mask;
+>>   	const struct freq_tbl *freq_tbl;
+>> diff --git a/drivers/media/platform/qcom/venus/firmware.c 
+>> b/drivers/media/platform/qcom/venus/firmware.c
+>> index 7d89b5a..b4664ed 100644
+>> --- a/drivers/media/platform/qcom/venus/firmware.c
+>> +++ b/drivers/media/platform/qcom/venus/firmware.c
+>> @@ -53,6 +53,34 @@ static void venus_reset_hw(struct venus_core *core)
+>>   	/* Bring Arm9 out of reset */
+>>   	writel_relaxed(0, reg_base + WRAPPER_A9SS_SW_RESET);
+>>   }
+>> +
+>> +int venus_set_hw_state(enum tzbsp_video_state state, struct 
+>> venus_core *core)
+> 
+> can we put this function this way:
+> 
+> venus_set_state(struct venus_core *core, bool on)
+> 
+> so we set the state to On when we are power-up the venus CPU and Off
+> when we power-down.
+> 
+> by this way we really abstract the state, IMO.
 
-> This one is a bit special, as it seems a driver update is needed, too?
-> So I'd expect the binding update would be part of this series.
-> But that may be a bit too naive on my side, as I don't follow multimedia
-> development that closely.
+Good point. Will do in similar way.
 
-I sent dts and driver updates in two different series, and this last
-patch is the only one that was not collected.
-https://patchwork.kernel.org/patch/10415587/
+>> +{
+>> +	int ret;
+>> +	struct device *dev = core->dev;
+>> +	void __iomem *reg_base = core->base;
+> 
+> just 'base' should be enough.
 
-Hans is taking care of taking the driver updates, should I notify you
-and Simon once those patches land on the media master branch ?
+Infact, comment from Jordan, we can remove it altogether.
 
-Thanks
-  j
+>> +
+>> +	switch (state) {
+>> +	case TZBSP_VIDEO_SUSPEND:
+>> +		if (qcom_scm_is_available())
+> 
+> You really shouldn't rely on this function (see the comment from Bjorn
+> on first version of this patch series).
+> 
+> I think we have to replace qcom_scm_is_available() with some flag which
+> is reflecting does the firmware subnode is exist or not. In case it is
+> not exist the we have to go with TZ scm calls.
 
->
-> > > > --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> > > > +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> > > > @@ -1045,6 +1045,18 @@ static const struct rvin_info rcar_info_r8a7=
-7970 =3D {
-> > > >     .routes =3D rcar_info_r8a77970_routes,
-> > > >  };
-> > > >
-> > > > +static const struct rvin_group_route rcar_info_r8a77995_routes[] =
-=3D {
-> > > > +   { /* Sentinel */ }
-> > > > +};
-> > > > +
-> > > > +static const struct rvin_info rcar_info_r8a77995 =3D {
-> > > > +   .model =3D RCAR_GEN3,
-> > > > +   .use_mc =3D true,
-> > > > +   .max_width =3D 4096,
-> > > > +   .max_height =3D 4096,
-> > > > +   .routes =3D rcar_info_r8a77995_routes,
-> > > > +};
-> > > > +
-> > > >  static const struct of_device_id rvin_of_id_table[] =3D {
-> > > >     {
-> > > >             .compatible =3D "renesas,vin-r8a7778",
-> > > > @@ -1086,6 +1098,10 @@ static const struct of_device_id rvin_of_id_=
-table[] =3D {
-> > > >             .compatible =3D "renesas,vin-r8a77970",
-> > > >             .data =3D &rcar_info_r8a77970,
-> > > >     },
-> > > > +   {
-> > > > +           .compatible =3D "renesas,vin-r8a77995",
-> > > > +           .data =3D &rcar_info_r8a77995,
-> > > > +   },
-> > > >     { /* Sentinel */ },
-> > > >  };
-> > > >  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
->
-> Gr{oetje,eeting}s,
->
->                         Geert
->
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m6=
-8k.org
->
-> In personal conversations with technical people, I call myself a hacker. =
-But
-> when I'm talking to journalists I just say "programmer" or something like=
- that.
->                                 -- Linus Torvalds
+As we discussed, will keep it under the check for a valid firmware 
+device.
+We can avoid the extra flag in that way.
 
---v9Ux+11Zm5mwPlX6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbPIB2AAoJEHI0Bo8WoVY86aMP+wfLNWZcMUIJI1AiXM/HuXzi
-zVB7SC7iiniwLucRklmc52IFcq/fopDdkReHKdftz4VIgcofh3RP0NiC4dSbzkml
-vu5iJE86soNlKG7saoa0dMfgtyLI3B7Y6Q4irxUYekClMz0AXaoCZiapl2zUA1y5
-hO8M7Xjhv07rdR1VKTtxzMtQVziWuaoXxSJfl6AFqqz+OFVN6Hz+uKCIOJTaybmA
-0ZEHD5rohBW0ahE7171Di54jLXwcdJcIUTzzqCa2D6xF1rxwcaimt3EW4h+CJeFo
-eted95pZmyM7EBUdA8+YLmjKuZNMI6ecxi9pofdWDthXDxK7YpkPKCkw/735x9NZ
-LDIWjQQpzCZFRuMoEadk7hg3e+EdXTyYo3xAtqhuyWTsvKdNZWrKNNfFuQ8s8G8O
-sLV+7CjeR+IkqzNf2fXo62lnusoi38wyIDmTvPJm3PgkVK1TjGPsOpkhUUfuUsLb
-TcecJTijB20elNbeVsMimsMSUXIkVaqOmE7ShCCAm8On1m5Bk3gOC9IFBZ369bfV
-JBKvkDlGbiywzX+M2dyDfORrN9QzBCqW3jwccDr2RjvrKfk6vTkb1PG4yBGiyjev
-LiUfL/4256U9JfoCMtaHK5mxFKrjZzA7u6fvj6AhWrOI8QevEFI9KTTFeigL8l/i
-YLXVtIJBkR0GvdykN7QG
-=ymoj
------END PGP SIGNATURE-----
-
---v9Ux+11Zm5mwPlX6--
+>> +			ret = qcom_scm_set_remote_state(TZBSP_VIDEO_SUSPEND, 0);
+>> +		else
+>> +			writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
+>> +		break;
+>> +	case TZBSP_VIDEO_RESUME:
+>> +		if (qcom_scm_is_available())
+>> +			ret = qcom_scm_set_remote_state(TZBSP_VIDEO_RESUME, 0);
+>> +		else
+>> +			venus_reset_hw(core);
+>> +		break;
+>> +	default:
+>> +		dev_err(dev, "invalid state\n");
+>> +		break;
+>> +	}
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(venus_set_hw_state);
+>> +
+> 
+> regards,
+> Stan
