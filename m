@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:39477 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752897AbeGDPI2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 11:08:28 -0400
-Received: by mail-wm0-f48.google.com with SMTP id p11-v6so6215361wmc.4
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 08:08:27 -0700 (PDT)
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35081 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752755AbeGDPI3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 11:08:29 -0400
+Received: by mail-wm0-f65.google.com with SMTP id v3-v6so2648062wmh.0
+        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 08:08:29 -0700 (PDT)
 From: Neil Armstrong <narmstrong@baylibre.com>
 To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
         olof@lixom.net, seanpaul@google.com
@@ -13,153 +13,139 @@ Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
         marcheu@chromium.org, fparent@baylibre.com,
         dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
         intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        ville.syrjala@linux.intel.com, rodrigo.vivi@intel.com
-Subject: [PATCH v8 2/6] drm/i915: hdmi: add CEC notifier to intel_hdmi
-Date: Wed,  4 Jul 2018 17:08:17 +0200
-Message-Id: <1530716901-30164-3-git-send-email-narmstrong@baylibre.com>
+        eballetbo@gmail.com, Stefan Adolfsson <sadolfsson@chromium.org>
+Subject: [PATCH v8 3/6] mfd: cros-ec: Increase maximum mkbp event size
+Date: Wed,  4 Jul 2018 17:08:18 +0200
+Message-Id: <1530716901-30164-4-git-send-email-narmstrong@baylibre.com>
 In-Reply-To: <1530716901-30164-1-git-send-email-narmstrong@baylibre.com>
 References: <1530716901-30164-1-git-send-email-narmstrong@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchs adds the cec_notifier feature to the intel_hdmi part
-of the i915 DRM driver. It uses the HDMI DRM connector name to differentiate
-between each HDMI ports.
-The changes will allow the i915 HDMI code to notify EDID and HPD changes
-to an eventual CEC adapter.
+Having a 16 byte mkbp event size makes it possible to send CEC
+messages from the EC to the AP directly inside the mkbp event
+instead of first doing a notification and then a read.
 
+Signed-off-by: Stefan Adolfsson <sadolfsson@chromium.org>
 Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
-Acked-by: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Tested-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/gpu/drm/i915/Kconfig         |  1 +
- drivers/gpu/drm/i915/intel_display.h | 24 ++++++++++++++++++++++++
- drivers/gpu/drm/i915/intel_drv.h     |  2 ++
- drivers/gpu/drm/i915/intel_hdmi.c    | 13 +++++++++++++
- 4 files changed, 40 insertions(+)
+ drivers/platform/chrome/cros_ec_proto.c | 40 +++++++++++++++++++++++++--------
+ include/linux/mfd/cros_ec.h             |  2 +-
+ include/linux/mfd/cros_ec_commands.h    | 16 +++++++++++++
+ 3 files changed, 48 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-index dfd9588..2d65d56 100644
---- a/drivers/gpu/drm/i915/Kconfig
-+++ b/drivers/gpu/drm/i915/Kconfig
-@@ -23,6 +23,7 @@ config DRM_I915
- 	select SYNC_FILE
- 	select IOSF_MBI
- 	select CRC32
-+	select CEC_CORE if CEC_NOTIFIER
- 	help
- 	  Choose this option if you have a system that has "Intel Graphics
- 	  Media Accelerator" or "HD Graphics" integrated graphics,
-diff --git a/drivers/gpu/drm/i915/intel_display.h b/drivers/gpu/drm/i915/intel_display.h
-index 2ef3161..1f176a71 100644
---- a/drivers/gpu/drm/i915/intel_display.h
-+++ b/drivers/gpu/drm/i915/intel_display.h
-@@ -126,6 +126,30 @@ enum port {
+diff --git a/drivers/platform/chrome/cros_ec_proto.c b/drivers/platform/chrome/cros_ec_proto.c
+index 8350ca2..398393a 100644
+--- a/drivers/platform/chrome/cros_ec_proto.c
++++ b/drivers/platform/chrome/cros_ec_proto.c
+@@ -506,10 +506,31 @@ int cros_ec_cmd_xfer_status(struct cros_ec_device *ec_dev,
+ }
+ EXPORT_SYMBOL(cros_ec_cmd_xfer_status);
  
- #define port_name(p) ((p) + 'A')
- 
-+/*
-+ * Ports identifier referenced from other drivers.
-+ * Expected to remain stable over time
-+ */
-+static inline const char *port_identifier(enum port port)
++static int get_next_event_xfer(struct cros_ec_device *ec_dev,
++			       struct cros_ec_command *msg,
++			       int version, uint32_t size)
 +{
-+	switch (port) {
-+	case PORT_A:
-+		return "Port A";
-+	case PORT_B:
-+		return "Port B";
-+	case PORT_C:
-+		return "Port C";
-+	case PORT_D:
-+		return "Port D";
-+	case PORT_E:
-+		return "Port E";
-+	case PORT_F:
-+		return "Port F";
-+	default:
-+		return "<invalid>";
++	int ret;
++
++	msg->version = version;
++	msg->command = EC_CMD_GET_NEXT_EVENT;
++	msg->insize = size;
++	msg->outsize = 0;
++
++	ret = cros_ec_cmd_xfer(ec_dev, msg);
++	if (ret > 0) {
++		ec_dev->event_size = ret - 1;
++		memcpy(&ec_dev->event_data, msg->data, ec_dev->event_size);
 +	}
++
++	return ret;
 +}
 +
- enum dpio_channel {
- 	DPIO_CH0,
- 	DPIO_CH1
-diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
-index 0361130..cfbeee1 100644
---- a/drivers/gpu/drm/i915/intel_drv.h
-+++ b/drivers/gpu/drm/i915/intel_drv.h
-@@ -39,6 +39,7 @@
- #include <drm/drm_dp_mst_helper.h>
- #include <drm/drm_rect.h>
- #include <drm/drm_atomic.h>
-+#include <media/cec-notifier.h>
+ static int get_next_event(struct cros_ec_device *ec_dev)
+ {
+ 	u8 buffer[sizeof(struct cros_ec_command) + sizeof(ec_dev->event_data)];
+ 	struct cros_ec_command *msg = (struct cros_ec_command *)&buffer;
++	static int cmd_version = 1;
+ 	int ret;
  
- /**
-  * __wait_for - magic wait macro
-@@ -1017,6 +1018,7 @@ struct intel_hdmi {
- 	bool has_audio;
- 	bool rgb_quant_range_selectable;
- 	struct intel_connector *attached_connector;
-+	struct cec_notifier *cec_notifier;
+ 	if (ec_dev->suspended) {
+@@ -517,18 +538,19 @@ static int get_next_event(struct cros_ec_device *ec_dev)
+ 		return -EHOSTDOWN;
+ 	}
+ 
+-	msg->version = 0;
+-	msg->command = EC_CMD_GET_NEXT_EVENT;
+-	msg->insize = sizeof(ec_dev->event_data);
+-	msg->outsize = 0;
++	if (cmd_version == 1) {
++		ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++				sizeof(struct ec_response_get_next_event_v1));
++		if (ret < 0 || msg->result != EC_RES_INVALID_VERSION)
++			return ret;
+ 
+-	ret = cros_ec_cmd_xfer(ec_dev, msg);
+-	if (ret > 0) {
+-		ec_dev->event_size = ret - 1;
+-		memcpy(&ec_dev->event_data, msg->data,
+-		       sizeof(ec_dev->event_data));
++		/* Fallback to version 0 for future send attempts */
++		cmd_version = 0;
+ 	}
+ 
++	ret = get_next_event_xfer(ec_dev, msg, cmd_version,
++				  sizeof(struct ec_response_get_next_event));
++
+ 	return ret;
+ }
+ 
+diff --git a/include/linux/mfd/cros_ec.h b/include/linux/mfd/cros_ec.h
+index 32421df..20949dd 100644
+--- a/include/linux/mfd/cros_ec.h
++++ b/include/linux/mfd/cros_ec.h
+@@ -147,7 +147,7 @@ struct cros_ec_device {
+ 	bool mkbp_event_supported;
+ 	struct blocking_notifier_head event_notifier;
+ 
+-	struct ec_response_get_next_event event_data;
++	struct ec_response_get_next_event_v1 event_data;
+ 	int event_size;
+ 	u32 host_event_wake_mask;
  };
+diff --git a/include/linux/mfd/cros_ec_commands.h b/include/linux/mfd/cros_ec_commands.h
+index f2edd99..c4f0caa 100644
+--- a/include/linux/mfd/cros_ec_commands.h
++++ b/include/linux/mfd/cros_ec_commands.h
+@@ -2093,12 +2093,28 @@ union ec_response_get_next_data {
+ 	uint32_t   sysrq;
+ } __packed;
  
- struct intel_dp_mst_encoder;
-diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
-index ee929f3..c21b7dd 100644
---- a/drivers/gpu/drm/i915/intel_hdmi.c
-+++ b/drivers/gpu/drm/i915/intel_hdmi.c
-@@ -1868,6 +1868,8 @@ intel_hdmi_set_edid(struct drm_connector *connector)
- 		connected = true;
- 	}
- 
-+	cec_notifier_set_phys_addr_from_edid(intel_hdmi->cec_notifier, edid);
++union ec_response_get_next_data_v1 {
++	uint8_t key_matrix[16];
++	uint32_t host_event;
++	uint32_t buttons;
++	uint32_t switches;
++	uint32_t sysrq;
++	uint32_t cec_events;
++	uint8_t cec_message[16];
++} __packed;
 +
- 	return connected;
- }
+ struct ec_response_get_next_event {
+ 	uint8_t event_type;
+ 	/* Followed by event data if any */
+ 	union ec_response_get_next_data data;
+ } __packed;
  
-@@ -1876,6 +1878,7 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
- {
- 	enum drm_connector_status status;
- 	struct drm_i915_private *dev_priv = to_i915(connector->dev);
-+	struct intel_hdmi *intel_hdmi = intel_attached_hdmi(connector);
- 
- 	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n",
- 		      connector->base.id, connector->name);
-@@ -1891,6 +1894,9 @@ intel_hdmi_detect(struct drm_connector *connector, bool force)
- 
- 	intel_display_power_put(dev_priv, POWER_DOMAIN_GMBUS);
- 
-+	if (status != connector_status_connected)
-+		cec_notifier_phys_addr_invalidate(intel_hdmi->cec_notifier);
++struct ec_response_get_next_event_v1 {
++	uint8_t event_type;
++	/* Followed by event data if any */
++	union ec_response_get_next_data_v1 data;
++} __packed;
 +
- 	return status;
- }
- 
-@@ -2031,6 +2037,8 @@ static void chv_hdmi_pre_enable(struct intel_encoder *encoder,
- 
- static void intel_hdmi_destroy(struct drm_connector *connector)
- {
-+	if (intel_attached_hdmi(connector)->cec_notifier)
-+		cec_notifier_put(intel_attached_hdmi(connector)->cec_notifier);
- 	kfree(to_intel_connector(connector)->detect_edid);
- 	drm_connector_cleanup(connector);
- 	kfree(connector);
-@@ -2350,6 +2358,11 @@ void intel_hdmi_init_connector(struct intel_digital_port *intel_dig_port,
- 		u32 temp = I915_READ(PEG_BAND_GAP_DATA);
- 		I915_WRITE(PEG_BAND_GAP_DATA, (temp & ~0xf) | 0xd);
- 	}
-+
-+	intel_hdmi->cec_notifier = cec_notifier_get_conn(dev->dev,
-+							 port_identifier(port));
-+	if (!intel_hdmi->cec_notifier)
-+		DRM_DEBUG_KMS("CEC notifier get failed\n");
- }
- 
- void intel_hdmi_init(struct drm_i915_private *dev_priv,
+ /* Bit indices for buttons and switches.*/
+ /* Buttons */
+ #define EC_MKBP_POWER_BUTTON	0
 -- 
 2.7.4
