@@ -1,71 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f196.google.com ([209.85.213.196]:44233 "EHLO
-        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932376AbeGDJBM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 05:01:12 -0400
-Received: by mail-yb0-f196.google.com with SMTP id a2-v6so1811988ybe.11
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 02:01:12 -0700 (PDT)
-Received: from mail-yb0-f181.google.com (mail-yb0-f181.google.com. [209.85.213.181])
-        by smtp.gmail.com with ESMTPSA id s67-v6sm1155455ywe.74.2018.07.04.02.01.11
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 04 Jul 2018 02:01:12 -0700 (PDT)
-Received: by mail-yb0-f181.google.com with SMTP id e9-v6so1817208ybq.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 02:01:11 -0700 (PDT)
+Received: from mail-eopbgr720052.outbound.protection.outlook.com ([40.107.72.52]:55752
+        "EHLO NAM05-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932517AbeGDJbJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Jul 2018 05:31:09 -0400
+Subject: Re: [PATCH] dma-buf: Move BUG_ON from _add_shared_fence to
+ _add_shared_inplace
+To: =?UTF-8?Q?Michel_D=c3=a4nzer?= <michel@daenzer.net>,
+        Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        linux-media@vger.kernel.org
+References: <20180626143147.14296-1-michel@daenzer.net>
+ <249b84ea-affe-2e27-abdd-81d61da9cce6@gmail.com>
+ <f6100513-d31b-b7a2-cc9f-104a60127277@daenzer.net>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <7fdac4e4-0d99-049e-6eda-58b766448e55@amd.com>
+Date: Wed, 4 Jul 2018 11:30:53 +0200
 MIME-Version: 1.0
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-3-git-send-email-vgarodia@codeaurora.org>
- <20180601212117.GD11565@jcrouse-lnx.qualcomm.com> <CAAFQd5DH2i+8ZJ+s2XUnmFHwxXKLF6z_=w0Z-RFs=W9oVvrJgw@mail.gmail.com>
- <ca7567c1df773f1223d919fab28f1460@codeaurora.org>
-In-Reply-To: <ca7567c1df773f1223d919fab28f1460@codeaurora.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 4 Jul 2018 18:00:59 +0900
-Message-ID: <CAAFQd5BvTNhafus4WcoPLiBTN8X3Ls+YA0OgpfnyadDayvVQxA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/5] media: venus: add a routine to set venus state
-To: vgarodia@codeaurora.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Andy Gross <andy.gross@linaro.org>, bjorn.andersson@linaro.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <f6100513-d31b-b7a2-cc9f-104a60127277@daenzer.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 4, 2018 at 4:59 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
-> On 2018-06-04 18:24, Tomasz Figa wrote:
-> > On Sat, Jun 2, 2018 at 6:21 AM Jordan Crouse <jcrouse@codeaurora.org>
-> > wrote:
-> >> On Sat, Jun 02, 2018 at 01:56:05AM +0530, Vikash Garodia wrote:
-> > Given that this function is supposed to substitute existing calls into
-> > qcom_scm_set_remote_state(), why not just do something like this:
-> >
-> >         if (qcom_scm_is_available())
-> >                 return qcom_scm_set_remote_state(state, 0);
-> >
-> >         switch (state) {
-> >         case TZBSP_VIDEO_SUSPEND:
-> >                 writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
-> >                 break;
-> >         case TZBSP_VIDEO_RESUME:
-> >                 venus_reset_hw(core);
-> >                 break;
-> >         }
-> >
-> >         return 0;
-> This will not work as driver will write on the register irrespective of
-> scm
-> availability.
+Am 04.07.2018 um 11:09 schrieb Michel Dänzer:
+> On 2018-07-04 10:31 AM, Christian König wrote:
+>> Am 26.06.2018 um 16:31 schrieb Michel Dänzer:
+>>> From: Michel Dänzer <michel.daenzer@amd.com>
+>>>
+>>> Fixes the BUG_ON spuriously triggering under the following
+>>> circumstances:
+>>>
+>>> * ttm_eu_reserve_buffers processes a list containing multiple BOs using
+>>>     the same reservation object, so it calls
+>>>     reservation_object_reserve_shared with that reservation object once
+>>>     for each such BO.
+>>> * In reservation_object_reserve_shared, old->shared_count ==
+>>>     old->shared_max - 1, so obj->staged is freed in preparation of an
+>>>     in-place update.
+>>> * ttm_eu_fence_buffer_objects calls reservation_object_add_shared_fence
+>>>     once for each of the BOs above, always with the same fence.
+>>> * The first call adds the fence in the remaining free slot, after which
+>>>     old->shared_count == old->shared_max.
+>> Well, the explanation here is not correct. For multiple BOs using the
+>> same reservation object we won't call
+>> reservation_object_add_shared_fence() multiple times because we move
+>> those to the duplicates list in ttm_eu_reserve_buffers().
+>>
+>> But this bug can still happen because we call
+>> reservation_object_add_shared_fence() manually with fences for the same
+>> context in a couple of places.
+>>
+>> One prominent case which comes to my mind are for the VM BOs during
+>> updates. Another possibility are VRAM BOs which need to be cleared.
+> Thanks. How about the following:
+>
+> * ttm_eu_reserve_buffers calls reservation_object_reserve_shared.
+> * In reservation_object_reserve_shared, shared_count == shared_max - 1,
+>    so obj->staged is freed in preparation of an in-place update.
+> * ttm_eu_fence_buffer_objects calls reservation_object_add_shared_fence,
+>    after which shared_count == shared_max.
+> * The amdgpu driver also calls reservation_object_add_shared_fence for
+>    the same reservation object, and the BUG_ON triggers.
 
-I'm sorry, where would it do so? The second line returns from the
-function inf SCM is available, so the rest of the function wouldn't be
-executed.
+I would rather completely drop the reference to the ttm_eu_* functions, 
+cause those wrappers are completely unrelated to the problem.
 
-Best regards,
-Tomasz
+Instead let's just note something like the following:
+
+* When reservation_object_reserve_shared is called with shared_count == 
+shared_max - 1,
+   so obj->staged is freed in preparation of an in-place update.
+
+* Now reservation_object_add_shared_fence is called with the first fence 
+and after that shared_count == shared_max.
+
+* After that  reservation_object_add_shared_fence can be called with 
+follow up fences from the same context, but since shared_count == 
+shared_max we would run into this BUG_ON.
+
+> However, nothing bad would happen in
+> reservation_object_add_shared_inplace, since all fences use the same
+> context, so they can only occupy a single slot.
+>
+> Prevent this by moving the BUG_ON to where an overflow would actually
+> happen (e.g. if a buggy caller didn't call
+> reservation_object_reserve_shared before).
+>
+>
+> Also, I'll add a reference to https://bugs.freedesktop.org/106418 in v2,
+> as I suspect this fix is necessary under the circumstances described
+> there as well.
+
+The rest sounds good to me.
+
+Regards,
+Christian.
