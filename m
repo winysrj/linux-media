@@ -1,40 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:58015 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934075AbeGDKQU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 06:16:20 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, mchehab@kernel.org, ysato@users.sourceforge.jp,
-        dalias@libc.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 9/9] sh: migor: Remove stale soc_camera include
-Date: Wed,  4 Jul 2018 12:15:46 +0200
-Message-Id: <1530699346-3235-10-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1530699346-3235-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1530699346-3235-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:42104 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753262AbeGDKJO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 06:09:14 -0400
+Received: by mail-yw0-f196.google.com with SMTP id y203-v6so1749042ywd.9
+        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 03:09:14 -0700 (PDT)
+Received: from mail-yb0-f181.google.com (mail-yb0-f181.google.com. [209.85.213.181])
+        by smtp.gmail.com with ESMTPSA id o126-v6sm1171948ywf.102.2018.07.04.03.09.11
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 04 Jul 2018 03:09:12 -0700 (PDT)
+Received: by mail-yb0-f181.google.com with SMTP id x10-v6so1877682ybl.10
+        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 03:09:11 -0700 (PDT)
+MIME-Version: 1.0
+References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
+ <1527884768-22392-3-git-send-email-vgarodia@codeaurora.org>
+ <20180601212117.GD11565@jcrouse-lnx.qualcomm.com> <CAAFQd5DH2i+8ZJ+s2XUnmFHwxXKLF6z_=w0Z-RFs=W9oVvrJgw@mail.gmail.com>
+ <ca7567c1df773f1223d919fab28f1460@codeaurora.org> <CAAFQd5BvTNhafus4WcoPLiBTN8X3Ls+YA0OgpfnyadDayvVQxA@mail.gmail.com>
+ <5560573ed426b03ad7676ac14a291e70@codeaurora.org>
+In-Reply-To: <5560573ed426b03ad7676ac14a291e70@codeaurora.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 4 Jul 2018 19:08:59 +0900
+Message-ID: <CAAFQd5Bsh22v7jp8CAO-qQEa6kLk4Qws37DmLZUytAJbUjOCWw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/5] media: venus: add a routine to set venus state
+To: vgarodia@codeaurora.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Andy Gross <andy.gross@linaro.org>, bjorn.andersson@linaro.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>,
+        linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove a stale inclusion for the soc_camera header.
+On Wed, Jul 4, 2018 at 6:41 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>
+> On 2018-07-04 14:30, Tomasz Figa wrote:
+> > On Wed, Jul 4, 2018 at 4:59 PM Vikash Garodia <vgarodia@codeaurora.org>
+> > wrote:
+> >> On 2018-06-04 18:24, Tomasz Figa wrote:
+> >> > On Sat, Jun 2, 2018 at 6:21 AM Jordan Crouse <jcrouse@codeaurora.org>
+> >> > wrote:
+> >> >> On Sat, Jun 02, 2018 at 01:56:05AM +0530, Vikash Garodia wrote:
+> >> > Given that this function is supposed to substitute existing calls into
+> >> > qcom_scm_set_remote_state(), why not just do something like this:
+> >> >
+> >> >         if (qcom_scm_is_available())
+> >> >                 return qcom_scm_set_remote_state(state, 0);
+> >> >
+> >> >         switch (state) {
+> >> >         case TZBSP_VIDEO_SUSPEND:
+> >> >                 writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
+> >> >                 break;
+> >> >         case TZBSP_VIDEO_RESUME:
+> >> >                 venus_reset_hw(core);
+> >> >                 break;
+> >> >         }
+> >> >
+> >> >         return 0;
+> >> This will not work as driver will write on the register irrespective
+> >> of
+> >> scm
+> >> availability.
+> >
+> > I'm sorry, where would it do so? The second line returns from the
+> > function inf SCM is available, so the rest of the function wouldn't be
+> > executed.
+>
+> Ah!! you are right. That would work as well.
+> I am ok with either way, but would recommend to keep it the existing way
+> as it makes it little more readable.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- arch/sh/boards/mach-migor/setup.c | 1 -
- 1 file changed, 1 deletion(-)
+I personally think the early exit is more readable, as it clearly
+separates the SCM and non-SCM part.
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 26543cc..254f2c6 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -28,7 +28,6 @@
- #include <video/sh_mobile_lcdc.h>
- #include <media/drv-intf/renesas-ceu.h>
- #include <media/i2c/ov772x.h>
--#include <media/soc_camera.h>
- #include <media/i2c/tw9910.h>
- #include <asm/clock.h>
- #include <asm/machvec.h>
--- 
-2.7.4
+Best regards,
+Tomasz
