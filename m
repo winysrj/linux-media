@@ -1,89 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43640 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:53288 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752609AbeGDQIh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 12:08:37 -0400
-Date: Wed, 4 Jul 2018 13:08:31 -0300
+        with ESMTP id S1752173AbeGDQPi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 12:15:38 -0400
+Date: Wed, 4 Jul 2018 13:15:32 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, Jonathan Corbet <corbet@lwn.net>,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v3 0/3] IOCTLs in ddbridge.
-Message-ID: <20180704130831.1073f094@coco.lan>
-In-Reply-To: <20180512112432.30887-1-d.scheller.oss@gmail.com>
-References: <20180512112432.30887-1-d.scheller.oss@gmail.com>
+To: Thomas Hollstegge <thomas.hollstegge@gmail.com>
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stefan =?UTF-8?B?QnLDvG5z?= <stefan.bruens@rwth-aachen.de>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] si2168: Set TS clock mode and frequency
+Message-ID: <20180704131532.628ee1c6@coco.lan>
+In-Reply-To: <1526149500-9256-1-git-send-email-thomas.hollstegge@gmail.com>
+References: <1526149500-9256-1-git-send-email-thomas.hollstegge@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Em Sat, 12 May 2018 20:24:58 +0200
+Thomas Hollstegge <thomas.hollstegge@gmail.com> escreveu:
 
-Em Sat, 12 May 2018 13:24:29 +0200
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-
-> From: Daniel Scheller <d.scheller@gmx.net>
+> Some devices require a higher TS clock frequency to demodulate some
+> muxes. This adds two optional parameters to control the TS clock
+> frequency mode as well as the frequency.
 > 
-> Third iteration of the IOCTL patches for ddbridge, split into multiple
-> patches:
+> Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
+> ---
+>  drivers/media/dvb-frontends/si2168.c      | 20 +++++++++++++++++++-
+>  drivers/media/dvb-frontends/si2168.h      |  8 ++++++++
+>  drivers/media/dvb-frontends/si2168_priv.h |  2 ++
+>  3 files changed, 29 insertions(+), 1 deletion(-)
 > 
-> Patch 1 just adds the reservation/information of the used IOCTLs into
-> ioctl-numbers.txt in the Docs dir. Doc, s390 and LKML are Cc'ed on
-> this patch.
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index 324493e..b05e677 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -92,13 +92,15 @@ static int si2168_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
+>  	dev_dbg(&client->dev, "%s acquire: %d\n", __func__, acquire);
+>  
+>  	/* set TS_MODE property */
+> -	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
+> +	memcpy(cmd.args, "\x14\x00\x01\x10\x00\x00", 6);
+>  	if (acquire)
+>  		cmd.args[4] |= dev->ts_mode;
+>  	else
+>  		cmd.args[4] |= SI2168_TS_TRISTATE;
+>  	if (dev->ts_clock_gapped)
+>  		cmd.args[4] |= 0x40;
+> +	cmd.args[4] |= (dev->ts_clock_mode & 0x03) << 4;
+> +
 
-Patch looks ok, although it would be great to get some acks there.
-I don't know who currently maintains Documentation/ioctl/ioctl-number.txt.
 
-Just in case, I would explicitly c/c LKML, Andrew Morton and Jonathan Corbet.
-Please c/c them on a next respin.
+Hmm... looking at this patch and on the next one, it seems that the
+clock mode is either 1 (AUTO) or 2 (MANUAL), right?
 
-> Patch 2 adds the header which defines the IOCTLs in include/uapi/ so
-> userspace applications can directly reuse the IOCTL definitions by
-> including this file.
-> 
-> Patch 3 (re)implements the IOCTL handling into ddbridge. This is
-> basically code that was there since literally forever, but had to be
-> removed along with the initial ddbridge-0.9.x bump.
+If so, I would just do, instead:
 
-Also looked ok.
+	if (dev->ts_clock_freq)
+		cmd.args[4] = SI2168_TS_CLOCK_MODE_AUTO_ADAPT << 4;
+	else
+		cmd.args[4] = SI2168_TS_CLOCK_MODE_MANUAL << 4;
 
-What I miss here is a forth patch to Documentation/media/dvb-drivers/,
-adding a documentation for ddbridge, in special explaining those new
-ioctls.
+And get rid of dev->ts_clock_mode parameter.
 
-> The whole functionality gets more important these days since ie. the
-> new MaxSX8 cards may require updating from time to time since these
-> cards implement the demod/tuner communication in their FPGA (which
-> normally I2C drivers exist for). Also, the CineS2v7 and derivatives
-> received some important updates and the possibility to receive higher
-> bitrate transponders these days, so users should be able to update
-> their cards.
-> 
-> Changes since the last versions:
-> - Docs, headers and code split apart and sent out separately to
->   the subsystems.
-> - Only the two absolutely necessary IOCTLs (DDB_FLASHIO and DDB_ID)
->   are implemented for now.
-> 
-> Daniel Scheller (3):
->   Documentation: ioctl-number: add ddbridge IOCTLs
->   [media] ddbridge: uAPI header for IOCTL definitions and related data
->     structs
->   [media] ddbridge: implement IOCTL handling
-> 
->  Documentation/ioctl/ioctl-number.txt        |   1 +
->  MAINTAINERS                                 |   1 +
->  drivers/media/pci/ddbridge/Makefile         |   3 +-
->  drivers/media/pci/ddbridge/ddbridge-core.c  | 111 +----------------
->  drivers/media/pci/ddbridge/ddbridge-ioctl.c | 179 ++++++++++++++++++++++++++++
->  drivers/media/pci/ddbridge/ddbridge-ioctl.h |  32 +++++
->  include/uapi/linux/ddbridge-ioctl.h         |  61 ++++++++++
->  7 files changed, 278 insertions(+), 110 deletions(-)
->  create mode 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.c
->  create mode 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.h
->  create mode 100644 include/uapi/linux/ddbridge-ioctl.h
+That seems more error-prune, as just specifying ts_clock_freq is
+enough for the driver to do the right thing.
+
+>  	cmd.wlen = 6;
+>  	cmd.rlen = 4;
+>  	ret = si2168_cmd_execute(client, &cmd);
+> @@ -398,6 +400,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
+>  	if (ret)
+>  		goto err;
+>  
+> +	/* set TS frequency */
+> +	if (dev->ts_clock_freq) {
+> +		memcpy(cmd.args, "\x14\x00\x0d\x10", 4);
+> +		cmd.args[4] = ((dev->ts_clock_freq / 10000) >> 0) & 0xff;
+> +		cmd.args[5] = ((dev->ts_clock_freq / 10000) >> 8) & 0xff;
+> +		cmd.wlen = 6;
+> +		cmd.rlen = 4;
+> +		ret = si2168_cmd_execute(client, &cmd);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+>  	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
+>  	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
+>  	cmd.wlen = 6;
+> @@ -806,6 +820,10 @@ static int si2168_probe(struct i2c_client *client,
+>  	dev->ts_mode = config->ts_mode;
+>  	dev->ts_clock_inv = config->ts_clock_inv;
+>  	dev->ts_clock_gapped = config->ts_clock_gapped;
+> +	dev->ts_clock_mode = config->ts_clock_mode;
+> +	if (dev->ts_clock_mode == 0)
+> +		dev->ts_clock_mode = SI2168_TS_CLOCK_MODE_AUTO_ADAPT;
+> +	dev->ts_clock_freq = config->ts_clock_freq;
+>  	dev->spectral_inversion = config->spectral_inversion;
+>  
+>  	dev_info(&client->dev, "Silicon Labs Si2168-%c%d%d successfully identified\n",
+> diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
+> index d519edd..3f52ee8 100644
+> --- a/drivers/media/dvb-frontends/si2168.h
+> +++ b/drivers/media/dvb-frontends/si2168.h
+> @@ -47,6 +47,14 @@ struct si2168_config {
+>  	/* TS clock gapped */
+>  	bool ts_clock_gapped;
+>  
+> +	/* TS clock mode */
+> +#define SI2168_TS_CLOCK_MODE_AUTO_ADAPT	0x01
+> +#define SI2168_TS_CLOCK_MODE_MANUAL	0x02
+> +	u8 ts_clock_mode;
+> +
+> +	/* TS clock frequency (for manual mode) */
+> +	u32 ts_clock_freq;
+> +
+>  	/* Inverted spectrum */
+>  	bool spectral_inversion;
+>  };
+> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+> index 2d362e1..8173d6c 100644
+> --- a/drivers/media/dvb-frontends/si2168_priv.h
+> +++ b/drivers/media/dvb-frontends/si2168_priv.h
+> @@ -48,6 +48,8 @@ struct si2168_dev {
+>  	u8 ts_mode;
+>  	bool ts_clock_inv;
+>  	bool ts_clock_gapped;
+> +	u8 ts_clock_mode;
+> +	u32 ts_clock_freq;
+>  	bool spectral_inversion;
+>  };
+>  
+
+
 
 Thanks,
 Mauro
