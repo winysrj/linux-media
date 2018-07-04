@@ -1,140 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:38423 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752997AbeGDPwC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 11:52:02 -0400
-Received: by mail-wm0-f68.google.com with SMTP id 69-v6so6476538wmf.3
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 08:52:02 -0700 (PDT)
-References: <20180703140803.19580-1-rui.silva@linaro.org> <20180703140803.19580-2-rui.silva@linaro.org> <20180704085801.GB4463@w540>
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, Fabio Estevam <fabio.estevam@nxp.com>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v7 1/2] media: ov2680: dt: Add bindings for OV2680
-In-reply-to: <20180704085801.GB4463@w540>
-Date: Wed, 04 Jul 2018 16:51:59 +0100
-Message-ID: <m3a7r7robk.fsf@linaro.org>
+Received: from gofer.mess.org ([88.97.38.141]:49269 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752881AbeGDVhu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Jul 2018 17:37:50 -0400
+Date: Wed, 4 Jul 2018 22:37:48 +0100
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT FIXES FOR v4.18] leaking bpf programs after detach
+Message-ID: <20180704213748.c6m64e4xkqykcyht@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-Hope your fine.
-Thanks for the review.
+Hi Mauro,
 
-On Wed 04 Jul 2018 at 09:58, jacopo mondi wrote:
-> Hi Rui,
->    sorry, I'm a bit late, you're already at v7 and I don't want 
->    to
-> slow down inclusion with a few minor comments.
->
-> Please bear with me and see below...
->
-> On Tue, Jul 03, 2018 at 03:08:02PM +0100, Rui Miguel Silva 
-> wrote:
->> Add device tree binding documentation for the OV2680 camera 
->> sensor.
->>
->> CC: devicetree@vger.kernel.org
->> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
->> ---
->>  .../devicetree/bindings/media/i2c/ov2680.txt  | 46 
->>  +++++++++++++++++++
->>  1 file changed, 46 insertions(+)
->>  create mode 100644 
->>  Documentation/devicetree/bindings/media/i2c/ov2680.txt
->>
->> diff --git 
->> a/Documentation/devicetree/bindings/media/i2c/ov2680.txt 
->> b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
->> new file mode 100644
->> index 000000000000..11e925ed9dad
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
->> @@ -0,0 +1,46 @@
->> +* Omnivision OV2680 MIPI CSI-2 sensor
->> +
->> +Required Properties:
->> +- compatible: should be "ovti,ov2680".
->> +- clocks: reference to the xvclk input clock.
->> +- clock-names: should be "xvclk".
->
-> Having a single clock source I think you can omit 'clock-names' 
-> (or at
-> least not marking it as required)
+With the syscall bpf(BPF_PROG_ATTACH), a bpf program can be attached to a
+lirc device; that should increase the refcount so that the program is not
+freed. However, when we detach the bpf program, we don't decrease the
+refcount, so the bpf program will never be freed.
 
-yeah, I see you point, but really all other OV sensors share this 
-and
-the bellow clock/data-lanes properties as required, I will let Rob 
-or
-Sakari take a call in this one.
+Tested with kasan and ubsan. The list of bpf programs can be using the
+bpftool (in the kernel tree), command line "bpftool prog list".
 
----
-Cheers,
-	Rui
+Thanks,
 
->
->> +- DOVDD-supply: Digital I/O voltage supply.
->> +- DVDD-supply: Digital core voltage supply.
->> +- AVDD-supply: Analog voltage supply.
->> +
->> +Optional Properties:
->> +- reset-gpios: reference to the GPIO connected to the 
->> powerdown/reset pin,
->> +               if any. This is an active low signal to the 
->> OV2680.
->> +
->> +The device node must contain one 'port' child node for its 
->> digital output
->> +video port, and this port must have a single endpoint in 
->> accordance with
->> + the video interface bindings defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +Endpoint node required properties for CSI-2 connection are:
->> +- remote-endpoint: a phandle to the bus receiver's endpoint 
->> node.
->> +- clock-lanes: should be set to <0> (clock lane on hardware 
->> lane 0).
->> +- data-lanes: should be set to <1> (one CSI-2 lane supported).
->
-> What is the value of marking as required two properties which 
-> can only have
-> default values (the sensor does not support clock on different 
-> lanes,
-> nor it supports more than 1 data lane) ?
->
-> Thanks
->    j
->
->> +
->> +Example:
->> +
->> +&i2c2 {
->> +	ov2680: camera-sensor@36 {
->> +		compatible = "ovti,ov2680";
->> +		reg = <0x36>;
->> +		clocks = <&osc>;
->> +		clock-names = "xvclk";
->> +		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
->> +		DOVDD-supply = <&sw2_reg>;
->> +		DVDD-supply = <&sw2_reg>;
->> +		AVDD-supply = <&reg_peri_3p15v>;
->> +
->> +		port {
->> +			ov2680_to_mipi: endpoint {
->> +				remote-endpoint = 
->> <&mipi_from_sensor>;
->> +				clock-lanes = <0>;
->> +				data-lanes = <1>;
->> +			};
->> +		};
->> +	};
->> +};
->> --
->> 2.18.0
->>
+Sean
+
+The following changes since commit 0ca54b29054151b7a52cbb8904732280afe5a302:
+
+  media: rc: be less noisy when driver misbehaves (2018-06-27 10:03:45 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v4.18f
+
+for you to fetch changes up to ff003645581b1ee4a0ac80fefdc262a5933b7007:
+
+  media: bpf: ensure bpf program is freed on detach (2018-07-04 20:48:29 +0100)
+
+----------------------------------------------------------------
+Sean Young (1):
+      media: bpf: ensure bpf program is freed on detach
+
+ drivers/media/rc/bpf-lirc.c | 1 +
+ 1 file changed, 1 insertion(+)
