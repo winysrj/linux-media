@@ -1,65 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:36346 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752451AbeGDOQx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Jul 2018 10:16:53 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media.h: add encoder/decoder functions for codecs
-Message-ID: <98a07de1-1301-9eff-b149-9412714c1401@xs4all.nl>
-Date: Wed, 4 Jul 2018 16:16:50 +0200
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:44006 "EHLO
+        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750855AbeGDO0p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 10:26:45 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAMty3ZCLwqBs46z5TJ+rqtuWA+-ickBf94jrJpy+b-QA1pYGDw@mail.gmail.com>
+References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
+ <20180531190659.xdp4q2cjro33aihq@pengutronix.de> <CAMty3ZCeR3uEx8oy18-Ur7ma7pciKUf_myDk6_SpWvxc6DvygQ@mail.gmail.com>
+ <CAOMZO5AOpOSAx=L4tOU1Na6hm8Tex3PHNxCYDB81C0+NPHzTZQ@mail.gmail.com>
+ <20180703184117.GC5611@w540> <CAMty3ZCWztkM2oEaKQRVmMkA0C1V6b9Oj59DBX9XAWAybZbRAw@mail.gmail.com>
+ <CAMty3ZCLwqBs46z5TJ+rqtuWA+-ickBf94jrJpy+b-QA1pYGDw@mail.gmail.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Wed, 4 Jul 2018 11:26:43 -0300
+Message-ID: <CAOMZO5BmEZ4dbtm3ZsT86ZoOMj-8oMKOZSmskUJf4n6LGkkFSg@mail.gmail.com>
+Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
+To: Jagan Teki <jagan@amarulasolutions.com>
+Cc: jacopo mondi <jacopo@jmondi.org>,
+        Philipp Zabel <pza@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Discussion of the development of and with GStreamer
+        <gstreamer-devel@lists.freedesktop.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add MEDIA_ENT_F_PROC_VIDEO_EN/DECODER to be used for the encoder
-and decoder entities of codec hardware.
+Hi Jagan,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/mediactl/media-types.rst | 10 ++++++++++
- include/uapi/linux/media.h                        |  2 ++
- 2 files changed, 12 insertions(+)
+On Wed, Jul 4, 2018 at 3:57 AM, Jagan Teki <jagan@amarulasolutions.com> wrote:
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 96910cf2eaaa..825920c2f57f 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -188,6 +188,16 @@ Types and flags used to represent the media graph elements
- 	  received on its sink pad and outputs the statistics data on
- 	  its source pad.
+> I have similar issue, it doesn't work.
 
-+
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_ENCODER``
-+       -  Video (MPEG, HEVC, VPx, etc.) encoder. An entity capable of
-+          compressing video frames must have one sink pad and one source pad.
-+
-+    *  -  ``MEDIA_ENT_F_PROC_VIDEO_DECODER``
-+       -  Video (MPEG, HEVC, VPx, etc.) decoder. An entity capable of
-+          decompressing a compressed video stream into uncompressed video
-+	  frames must have one sink pad and one source pad.
-+
-     *  -  ``MEDIA_ENT_F_VID_MUX``
-        - Video multiplexer. An entity capable of multiplexing must have at
-          least two sink pads and one source pad, and must pass the video
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 86c7dcc9cba3..9004d0c5560c 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -132,6 +132,8 @@ struct media_device_info {
- #define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
- #define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
- #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
-+#define MEDIA_ENT_F_PROC_VIDEO_ENCODER		(MEDIA_ENT_F_BASE + 0x4007)
-+#define MEDIA_ENT_F_PROC_VIDEO_DECODER		(MEDIA_ENT_F_BASE + 0x4008)
+What is the error? Is it still the LP11 timeout?
 
- /*
-  * Switch and bridge entity functions
--- 
-2.18.0
+Does this error go away if you undo the changes from commit 476dec012f4c654 ?
