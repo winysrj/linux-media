@@ -1,159 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:54830 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752565AbeGDPI0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 11:08:26 -0400
-Received: by mail-wm0-f68.google.com with SMTP id i139-v6so6308567wmf.4
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 08:08:26 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: airlied@linux.ie, hans.verkuil@cisco.com, lee.jones@linaro.org,
-        olof@lixom.net, seanpaul@google.com
-Cc: Neil Armstrong <narmstrong@baylibre.com>, sadolfsson@google.com,
-        felixe@google.com, bleung@google.com, darekm@google.com,
-        marcheu@chromium.org, fparent@baylibre.com,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        eballetbo@gmail.com
-Subject: [PATCH v8 1/6] media: cec-notifier: Get notifier by device and connector name
-Date: Wed,  4 Jul 2018 17:08:16 +0200
-Message-Id: <1530716901-30164-2-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1530716901-30164-1-git-send-email-narmstrong@baylibre.com>
-References: <1530716901-30164-1-git-send-email-narmstrong@baylibre.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:34399 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752435AbeGDPaN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Jul 2018 11:30:13 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: jacopo mondi <jacopo@jmondi.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: Re: [PATCH 3/5] media: ov5640: fix wrong binning value in exposure
+ calculation
+Date: Wed, 4 Jul 2018 15:29:56 +0000
+Message-ID: <0ea27226-3aa5-0ce9-ad35-9d2019c71169@st.com>
+References: <1530709123-12445-1-git-send-email-hugues.fruchet@st.com>
+ <1530709123-12445-4-git-send-email-hugues.fruchet@st.com>
+ <20180704143808.GC1240@w540>
+In-Reply-To: <20180704143808.GC1240@w540>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <D6BBE19665D4564F9CB352D2F8155962@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In non device-tree world, we can need to get the notifier by the driver
-name directly and eventually defer probe if not yet created.
-
-This patch adds a variant of the get function by using the device name
-instead and will not create a notifier if not yet created.
-
-But the i915 driver exposes at least 2 HDMI connectors, this patch also
-adds the possibility to add a connector name tied to the notifier device
-to form a tuple and associate different CEC controllers for each HDMI
-connectors.
-
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-notifier.c | 11 ++++++++---
- include/media/cec-notifier.h     | 27 ++++++++++++++++++++++++---
- 2 files changed, 32 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/cec/cec-notifier.c b/drivers/media/cec/cec-notifier.c
-index 16dffa0..dd2078b 100644
---- a/drivers/media/cec/cec-notifier.c
-+++ b/drivers/media/cec/cec-notifier.c
-@@ -21,6 +21,7 @@ struct cec_notifier {
- 	struct list_head head;
- 	struct kref kref;
- 	struct device *dev;
-+	const char *conn;
- 	struct cec_adapter *cec_adap;
- 	void (*callback)(struct cec_adapter *adap, u16 pa);
- 
-@@ -30,13 +31,14 @@ struct cec_notifier {
- static LIST_HEAD(cec_notifiers);
- static DEFINE_MUTEX(cec_notifiers_lock);
- 
--struct cec_notifier *cec_notifier_get(struct device *dev)
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev, const char *conn)
- {
- 	struct cec_notifier *n;
- 
- 	mutex_lock(&cec_notifiers_lock);
- 	list_for_each_entry(n, &cec_notifiers, head) {
--		if (n->dev == dev) {
-+		if (n->dev == dev &&
-+		    (!conn || !strcmp(n->conn, conn))) {
- 			kref_get(&n->kref);
- 			mutex_unlock(&cec_notifiers_lock);
- 			return n;
-@@ -46,6 +48,8 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	if (!n)
- 		goto unlock;
- 	n->dev = dev;
-+	if (conn)
-+		n->conn = kstrdup(conn, GFP_KERNEL);
- 	n->phys_addr = CEC_PHYS_ADDR_INVALID;
- 	mutex_init(&n->lock);
- 	kref_init(&n->kref);
-@@ -54,7 +58,7 @@ struct cec_notifier *cec_notifier_get(struct device *dev)
- 	mutex_unlock(&cec_notifiers_lock);
- 	return n;
- }
--EXPORT_SYMBOL_GPL(cec_notifier_get);
-+EXPORT_SYMBOL_GPL(cec_notifier_get_conn);
- 
- static void cec_notifier_release(struct kref *kref)
- {
-@@ -62,6 +66,7 @@ static void cec_notifier_release(struct kref *kref)
- 		container_of(kref, struct cec_notifier, kref);
- 
- 	list_del(&n->head);
-+	kfree(n->conn);
- 	kfree(n);
- }
- 
-diff --git a/include/media/cec-notifier.h b/include/media/cec-notifier.h
-index cf0add7..814eeef 100644
---- a/include/media/cec-notifier.h
-+++ b/include/media/cec-notifier.h
-@@ -20,8 +20,10 @@ struct cec_notifier;
- #if IS_REACHABLE(CONFIG_CEC_CORE) && IS_ENABLED(CONFIG_CEC_NOTIFIER)
- 
- /**
-- * cec_notifier_get - find or create a new cec_notifier for the given device.
-+ * cec_notifier_get_conn - find or create a new cec_notifier for the given
-+ * device and connector tuple.
-  * @dev: device that sends the events.
-+ * @conn: the connector name from which the event occurs
-  *
-  * If a notifier for device @dev already exists, then increase the refcount
-  * and return that notifier.
-@@ -31,7 +33,8 @@ struct cec_notifier;
-  *
-  * Return NULL if the memory could not be allocated.
-  */
--struct cec_notifier *cec_notifier_get(struct device *dev);
-+struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+					   const char *conn);
- 
- /**
-  * cec_notifier_put - decrease refcount and delete when the refcount reaches 0.
-@@ -85,7 +88,8 @@ void cec_register_cec_notifier(struct cec_adapter *adap,
- 			       struct cec_notifier *notifier);
- 
- #else
--static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+static inline struct cec_notifier *cec_notifier_get_conn(struct device *dev,
-+							 const char *conn)
- {
- 	/* A non-NULL pointer is expected on success */
- 	return (struct cec_notifier *)0xdeadfeed;
-@@ -121,6 +125,23 @@ static inline void cec_register_cec_notifier(struct cec_adapter *adap,
- #endif
- 
- /**
-+ * cec_notifier_get - find or create a new cec_notifier for the given device.
-+ * @dev: device that sends the events.
-+ *
-+ * If a notifier for device @dev already exists, then increase the refcount
-+ * and return that notifier.
-+ *
-+ * If it doesn't exist, then allocate a new notifier struct and return a
-+ * pointer to that new struct.
-+ *
-+ * Return NULL if the memory could not be allocated.
-+ */
-+static inline struct cec_notifier *cec_notifier_get(struct device *dev)
-+{
-+	return cec_notifier_get_conn(dev, NULL);
-+}
-+
-+/**
-  * cec_notifier_phys_addr_invalidate() - set the physical address to INVALID
-  *
-  * @n: the CEC notifier
--- 
-2.7.4
+SGkgSmFjb3BvLA0KDQpNYW55IHRoYW5rcyBmb3IgeW91IHZhbHVhYmxlIGNvbW1lbnRzLCBJIGhh
+cmRseSB1bmRlcnN0YW5kIHRoaXMgZXhwb3N1cmUgDQpjb2RlLCBhbmQgc3RpbGwgc29tZSB3cm9u
+Z2x5IGV4cG9zZWQgaW1hZ2VzIGFyZSBvYnNlcnZlZCBzd2l0Y2hpbmcgZnJvbSANCnN1YnNhbXBs
+aW5nIHRvIHNjYWxpbmcgbW9kZXMuDQpTdGV2ZSwgZG8geW91IGhhdmUgbW9yZSBpbnNpZ2h0IHRv
+IHNoYXJlIHdpdGggdXMgb24gdGhpcyBjb2RlID8NCg0KT24gMDcvMDQvMjAxOCAwNDozOCBQTSwg
+amFjb3BvIG1vbmRpIHdyb3RlOg0KPiBIaSBIdWd1ZXMsDQo+IA0KPiBPbiBXZWQsIEp1bCAwNCwg
+MjAxOCBhdCAwMjo1ODo0MVBNICswMjAwLCBIdWd1ZXMgRnJ1Y2hldCB3cm90ZToNCj4+IG92NTY0
+MF9zZXRfbW9kZV9leHBvc3VyZV9jYWxjKCkgaXMgY2hlY2tpbmcgYmlubmluZyB2YWx1ZSBidXQN
+Cj4+IGJpbm5pbmcgdmFsdWUgcmVhZCBpcyBidWdneSBhbmQgYmlubmluZyB2YWx1ZSBzZXQgaXMg
+ZG9uZQ0KPj4gYWZ0ZXIgY2FsbGluZyBvdjU2NDBfc2V0X21vZGVfZXhwb3N1cmVfY2FsYygpLCBm
+aXggYWxsIG9mIHRoaXMuDQo+IA0KPiBUaGUgb3Y1NjQwX2Jpbm5pbmdfb24oKSBmdW5jdGlvbiB3
+YXMgaW5kZWVkIHdyb25nIChzaWRlIG5vdGU6IHRoYXQNCj4gbmFtZSBpcyBjb25mdXNpbmcsIGl0
+IHNob3VsZCBiZSAwdjU2NDBfZ2V0X2Jpbm5pbmcoKSB0byBjb21wbHkgd2l0aA0KPiBvdGhlcnMu
+LikgYW5kIGFsd2F5cyByZXR1cm5lZCAwLCBidXQgSSBkb24ndCBzZWUgYSBmaXggaGVyZSBmb3Ig
+dGhlDQo+IHNlY29uZCBwYXJ0IG9mIHRoZSBpc3N1ZS4NCk1pc3Rha2UgZnJvbSBtZSBoZXJlLCBJ
+IHNob3VsZCBoYXZlIHJlbW92ZWQgImFuZCBiaW5uaW5nIHZhbHVlIHNldCBpcyANCmRvbmUgYWZ0
+ZXIgY2FsbGluZyBvdjU2NDBfc2V0X21vZGVfZXhwb3N1cmVfY2FsYygpIiBpbiBjb21taXQgbWVz
+c2FnZS4NCg0KPiBJbiBmYWN0cywgZHVyaW5nIHRoZSBsZW5naHR5IGV4cG9zdXJlDQo+IGNhbGN1
+bGF0aW9uIHByb2Nlc3MsIGJpbm5pbmcgaXMgY2hlY2tlZCB0byBkZWNpZGUgaWYgdGhlIHByZXZp
+ZXcNCj4gc2h1dHRlciB0aW1lIHNob3VsZCBiZSBkb3VibGVkIG9yIG5vdA0KPiANCj4gc3RhdGlj
+IGludCBvdjU2NDBfc2V0X21vZGVfZXhwb3N1cmVfY2FsYyhzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vu
+c29yLA0KPiAJCQkJCSBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqbW9kZSkNCj4gew0K
+PiAgICAgICAgICAuLi4NCj4gDQo+IAkvKiByZWFkIHByZXZpZXcgc2h1dHRlciAqLw0KPiAJcmV0
+ID0gb3Y1NjQwX2dldF9leHBvc3VyZShzZW5zb3IpOw0KPiAJaWYgKHJldCA8IDApDQo+IAkJcmV0
+dXJuIHJldDsNCj4gCXByZXZfc2h1dHRlciA9IHJldDsNCj4gCXJldCA9IG92NTY0MF9iaW5uaW5n
+X29uKHNlbnNvcik7DQo+IAlpZiAocmV0IDwgMCkNCj4gCQlyZXR1cm4gcmV0Ow0KPiAJaWYgKHJl
+dCAmJiBtb2RlLT5pZCAhPSBPVjU2NDBfTU9ERV83MjBQXzEyODBfNzIwICYmDQo+IAkgICAgbW9k
+ZS0+aWQgIT0gT1Y1NjQwX01PREVfMTA4MFBfMTkyMF8xMDgwKQ0KPiAJCXByZXZfc2h1dHRlciAq
+PSAyOw0KPiAgICAgICAgICAuLi4NCj4gfQ0KPiANCj4gTXkgdW5kZXJzdGFuZGluZyBpcyB0aGF0
+IHJlYWRpbmcgdGhlIHZhbHVlIGZyb20gdGhlIHJlZ2lzdGVyIHJldHVybnMNCj4gdGhlIGJpbm5p
+bmcgc2V0dGluZ3MgZm9yIHRoZSBwcmV2aW91c2x5IGNvbmZpZ3VyZWQgbW9kZSwgd2hpbGUgdGhl
+ID4gYmlubmluZyB2YWx1ZSBpcyBsYXRlciB1cGRhdGVkIGZvciB0aGUgY3VycmVudCBtb2RlIGlu
+DQo+IG92NTY0MF9zZXRfbW9kZSgpLCBhZnRlciAnb3Y1NjQwX3NldF9tb2RlX2V4cG9zdXJlX2Nh
+bGMoKScgaGFzIGFscmVhZHkNCj4gYmVlbiBjYWxsZWQuIElzIHRoaXMgb2s/DQoNClRoaXMgaXMg
+YWxzbyBteSB1bmRlcnN0YW5kaW5nLg0KDQo+IA0KPiBBbHNvLCBJIGFzc3VtZSB0aGUgY29kZSBj
+aGVja3MgZm9yIG1vZGUtPmlkIHRvIGZpZ3VyZSBvdXQgaWYgdGhlIG1vZGUNCj4gdXNlcyBzdWJz
+YW1wbGluZyBvciBzY2FsaW5nLiBCZSBhd2FyZSB0aGF0IGZvciAxMjgweDcyMCBtb2RlLCB0aGUN
+Cj4gc2VsZWN0ZWQgc2NhbGluZyBtb2RlIGRlcGVuZHMgb24gdGhlIEZQUywgbm90IG9ubHkgb24g
+dGhlIG1vZGUgaWQgYXMNCj4gaXQgaXMgYXNzdW1lZCBoZXJlLg0KDQpUaGlzIGlzIG5vdCB3aGF0
+IEkgdW5kZXJzdGFuZCBmcm9tIHRoaXMgYXJyYXk6DQpzdGF0aWMgY29uc3Qgc3RydWN0IG92NTY0
+MF9tb2RlX2luZm8NCm92NTY0MF9tb2RlX2RhdGFbT1Y1NjQwX05VTV9GUkFNRVJBVEVTXVtPVjU2
+NDBfTlVNX01PREVTXSA9IHsNClsxNWZwc10NCgkJe09WNTY0MF9NT0RFXzcyMFBfMTI4MF83MjAs
+IFNVQlNBTVBMSU5HLA0KCQkgMTI4MCwgMTg5MiwgNzIwLCA3NDAsDQoJCSBvdjU2NDBfc2V0dGlu
+Z18xNWZwc183MjBQXzEyODBfNzIwLA0KCQkgQVJSQVlfU0laRShvdjU2NDBfc2V0dGluZ18xNWZw
+c183MjBQXzEyODBfNzIwKX0sDQpbMzBmcHNdDQoJCXtPVjU2NDBfTU9ERV83MjBQXzEyODBfNzIw
+LCBTVUJTQU1QTElORywNCgkJIDEyODAsIDE4OTIsIDcyMCwgNzQwLA0KCQkgb3Y1NjQwX3NldHRp
+bmdfMzBmcHNfNzIwUF8xMjgwXzcyMCwNCgkJIEFSUkFZX1NJWkUob3Y1NjQwX3NldHRpbmdfMzBm
+cHNfNzIwUF8xMjgwXzcyMCl9LA0KDQo9PiBib3RoIG1vZGVzIHVzZXMgc3Vic2FtcGxpbmcgaGVy
+ZQ0KDQo+IA0KPiBBIGZpbmFsIG5vdGUsIHRoZSAnb3Y1NjQwX3NldF9tb2RlX2V4cG9zdXJlX2Nh
+bGMoKScgYWxzbyB3cml0ZXMgVlRTIHRvDQo+IHVwZGF0ZSB0aGUgc2h1dHRlciB0aW1lIHRvIHRo
+ZSBuZXdseSBjYWxjdWxhdGVkIHZhbHVlLg0KPiANCj4gCS8qIHdyaXRlIGNhcHR1cmUgc2h1dHRl
+ciAqLw0KPiAJaWYgKGNhcF9zaHV0dGVyID4gKGNhcF92dHMgLSA0KSkgew0KPiAJCWNhcF92dHMg
+PSBjYXBfc2h1dHRlciArIDQ7DQo+IAkJcmV0ID0gb3Y1NjQwX3NldF92dHMoc2Vuc29yLCBjYXBf
+dnRzKTsNCj4gCQlpZiAocmV0IDwgMCkNCj4gCQkJcmV0dXJuIHJldDsNCj4gCX0NCj4gDQo+IEJl
+IGF3YXJlIGFnYWluIHRoYXQgVlRTIGlzIGxhdGVyIHJlc3RvcmVkIHRvIHRoZSBtb2RlLT52dG90
+IHZhbHVlIGJ5DQo+IHRoZSAnb3Y1NjQwX3NldF90aW1pbmdzKCknIGZ1bmN0aW9ucywgd2hpY2gg
+YWdhaW4sIGlzIGNhbGxlZCBsYXRlcg0KPiB0aGFuICdvdjU2NDBfc2V0X21vZGVfZXhwb3N1cmVf
+Y2FsYygpJy4NCj4gDQo+IFdvdWxkbid0IGl0IGJlIGJldHRlciB0byBwb3N0cG9uZSBleHBvc3Vy
+ZSBjYWxjdWxhdGlvbiBhZnRlciB0aW1pbmdzDQo+IGFuZCBiaW5uaW5ncyBoYXZlIGJlZW4gc2V0
+ID8NCg0KQXMgc2FpZCwgSSdtIG5ldyBvbiBhbGwgb2YgdGhpcyBidXQgSSBjYW4gZ2l2ZSBpdCBh
+IHRyeS4NCg0KPiANCj4gVGhhbmtzDQo+ICAgICBqDQo+IA0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6
+IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+PiAtLS0NCj4+ICAgZHJp
+dmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgfCA0ICsrLS0NCj4+ICAgMSBmaWxlIGNoYW5nZWQsIDIg
+aW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9tZWRpYS9pMmMvb3Y1NjQwLmMgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4gaW5k
+ZXggN2M1NjlkZS4uZjliMjU2ZSAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvaTJjL292
+NTY0MC5jDQo+PiArKysgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4gQEAgLTEzNTcs
+OCArMTM1Nyw4IEBAIHN0YXRpYyBpbnQgb3Y1NjQwX2Jpbm5pbmdfb24oc3RydWN0IG92NTY0MF9k
+ZXYgKnNlbnNvcikNCj4+ICAgCXJldCA9IG92NTY0MF9yZWFkX3JlZyhzZW5zb3IsIE9WNTY0MF9S
+RUdfVElNSU5HX1RDX1JFRzIxLCAmdGVtcCk7DQo+PiAgIAlpZiAocmV0KQ0KPj4gICAJCXJldHVy
+biByZXQ7DQo+PiAtCXRlbXAgJj0gMHhmZTsNCj4+IC0JcmV0dXJuIHRlbXAgPyAxIDogMDsNCj4+
+ICsNCj4+ICsJcmV0dXJuIHRlbXAgJiBCSVQoMCk7DQo+PiAgIH0NCj4+DQo+PiAgIHN0YXRpYyBp
+bnQgb3Y1NjQwX3NldF9iaW5uaW5nKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsIGJvb2wgZW5h
+YmxlKQ0KPj4gLS0NCj4+IDEuOS4xDQo+Pg0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMu
