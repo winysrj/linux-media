@@ -1,143 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53288 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:44334 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752173AbeGDQPi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 12:15:38 -0400
-Date: Wed, 4 Jul 2018 13:15:32 -0300
+        with ESMTP id S1752568AbeGDQ6L (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 12:58:11 -0400
+Date: Wed, 4 Jul 2018 13:58:06 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stefan =?UTF-8?B?QnLDvG5z?= <stefan.bruens@rwth-aachen.de>,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] si2168: Set TS clock mode and frequency
-Message-ID: <20180704131532.628ee1c6@coco.lan>
-In-Reply-To: <1526149500-9256-1-git-send-email-thomas.hollstegge@gmail.com>
-References: <1526149500-9256-1-git-send-email-thomas.hollstegge@gmail.com>
+To: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+Cc: linux-media@vger.kernel.org,
+        Masami Hiramatsu <masami.hiramatsu@linaro.org>,
+        Jassi Brar <jaswinder.singh@linaro.org>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+ demodulator driver
+Message-ID: <20180704135657.3fd607cb@coco.lan>
+In-Reply-To: <20180621031748.21703-1-suzuki.katsuhiro@socionext.com>
+References: <20180621031748.21703-1-suzuki.katsuhiro@socionext.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 12 May 2018 20:24:58 +0200
-Thomas Hollstegge <thomas.hollstegge@gmail.com> escreveu:
+Hi Katsuhiro-san,
 
-> Some devices require a higher TS clock frequency to demodulate some
-> muxes. This adds two optional parameters to control the TS clock
-> frequency mode as well as the frequency.
+Em Thu, 21 Jun 2018 12:17:48 +0900
+Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com> escreveu:
+
+> This patch adds a frontend driver for the Socionext SC1501A series
+> and Socionext MN88443x ISDB-S/T demodulators.
+
+Sorry for taking so long to review it. We're missing a sub-maintainer
+for DVB, with would otherwise speed up reviews of DVB patches.
 > 
-> Signed-off-by: Thomas Hollstegge <thomas.hollstegge@gmail.com>
-> ---
->  drivers/media/dvb-frontends/si2168.c      | 20 +++++++++++++++++++-
->  drivers/media/dvb-frontends/si2168.h      |  8 ++++++++
->  drivers/media/dvb-frontends/si2168_priv.h |  2 ++
->  3 files changed, 29 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index 324493e..b05e677 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -92,13 +92,15 @@ static int si2168_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
->  	dev_dbg(&client->dev, "%s acquire: %d\n", __func__, acquire);
->  
->  	/* set TS_MODE property */
-> -	memcpy(cmd.args, "\x14\x00\x01\x10\x10\x00", 6);
-> +	memcpy(cmd.args, "\x14\x00\x01\x10\x00\x00", 6);
->  	if (acquire)
->  		cmd.args[4] |= dev->ts_mode;
->  	else
->  		cmd.args[4] |= SI2168_TS_TRISTATE;
->  	if (dev->ts_clock_gapped)
->  		cmd.args[4] |= 0x40;
-> +	cmd.args[4] |= (dev->ts_clock_mode & 0x03) << 4;
+> The maximum and minimum frequency of Socionext SC1501A comes from
+> ISDB-S and ISDB-T so frequency range is the following:
+>   - ISDB-S (BS/CS110 IF frequency in kHz, Local freq 10.678GHz)
+>     - Min: BS-1: 1032000 => 1032.23MHz
+>     - Max: ND24: 2701000 => 2070.25MHz
+>   - ISDB-T (in Hz)
+>     - Min: ch13: 470000000 => 470.357857MHz
+>     - Max: ch62: 770000000 => 769.927857MHz
+
+There is actually an error on that part of the driver. Right now,
+the DVB core expects Satellite frequencies (DVB-S, ISDB-S, ...)
+in kHz. For all other delivery systems, it is in Hz.
+
+It is this way due to historic reasons. While it won't be hard to
+change the core, that would require to touch all Satellite drivers.
+
+As there are very few frontend drivers that accept both Satellite
+and Terrestrial standards, what we do, instead, is to setup
+two frontends. See, for example, drivers/media/dvb-frontends/helene.c.
+
+...
+> +static const struct dvb_frontend_ops sc1501a_ops = {
+> +	.delsys = { SYS_ISDBS, SYS_ISDBT },
+> +	.info = {
+> +		.name          = "Socionext SC1501A",
+> +		.frequency_min = 1032000,
+> +		.frequency_max = 770000000,
+> +		.caps = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_AUTO |
+> +			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+> +			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
+> +	},
 > +
+> +	.sleep                   = sc1501a_sleep,
+> +	.set_frontend            = sc1501a_set_frontend,
+> +	.get_tune_settings       = sc1501a_get_tune_settings,
+> +	.read_status             = sc1501a_read_status,
+> +};
 
+In other words, you'll need to declare two structs here, one for ISDB-T
+and another one for ISDB-S.
 
-Hmm... looking at this patch and on the next one, it seems that the
-clock mode is either 1 (AUTO) or 2 (MANUAL), right?
-
-If so, I would just do, instead:
-
-	if (dev->ts_clock_freq)
-		cmd.args[4] = SI2168_TS_CLOCK_MODE_AUTO_ADAPT << 4;
-	else
-		cmd.args[4] = SI2168_TS_CLOCK_MODE_MANUAL << 4;
-
-And get rid of dev->ts_clock_mode parameter.
-
-That seems more error-prune, as just specifying ts_clock_freq is
-enough for the driver to do the right thing.
-
->  	cmd.wlen = 6;
->  	cmd.rlen = 4;
->  	ret = si2168_cmd_execute(client, &cmd);
-> @@ -398,6 +400,18 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
->  	if (ret)
->  		goto err;
->  
-> +	/* set TS frequency */
-> +	if (dev->ts_clock_freq) {
-> +		memcpy(cmd.args, "\x14\x00\x0d\x10", 4);
-> +		cmd.args[4] = ((dev->ts_clock_freq / 10000) >> 0) & 0xff;
-> +		cmd.args[5] = ((dev->ts_clock_freq / 10000) >> 8) & 0xff;
-> +		cmd.wlen = 6;
-> +		cmd.rlen = 4;
-> +		ret = si2168_cmd_execute(client, &cmd);
-> +		if (ret)
-> +			goto err;
-> +	}
-> +
->  	memcpy(cmd.args, "\x14\x00\x08\x10\xd7\x05", 6);
->  	cmd.args[5] |= dev->ts_clock_inv ? 0x00 : 0x10;
->  	cmd.wlen = 6;
-> @@ -806,6 +820,10 @@ static int si2168_probe(struct i2c_client *client,
->  	dev->ts_mode = config->ts_mode;
->  	dev->ts_clock_inv = config->ts_clock_inv;
->  	dev->ts_clock_gapped = config->ts_clock_gapped;
-> +	dev->ts_clock_mode = config->ts_clock_mode;
-> +	if (dev->ts_clock_mode == 0)
-> +		dev->ts_clock_mode = SI2168_TS_CLOCK_MODE_AUTO_ADAPT;
-> +	dev->ts_clock_freq = config->ts_clock_freq;
->  	dev->spectral_inversion = config->spectral_inversion;
->  
->  	dev_info(&client->dev, "Silicon Labs Si2168-%c%d%d successfully identified\n",
-> diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-> index d519edd..3f52ee8 100644
-> --- a/drivers/media/dvb-frontends/si2168.h
-> +++ b/drivers/media/dvb-frontends/si2168.h
-> @@ -47,6 +47,14 @@ struct si2168_config {
->  	/* TS clock gapped */
->  	bool ts_clock_gapped;
->  
-> +	/* TS clock mode */
-> +#define SI2168_TS_CLOCK_MODE_AUTO_ADAPT	0x01
-> +#define SI2168_TS_CLOCK_MODE_MANUAL	0x02
-> +	u8 ts_clock_mode;
-> +
-> +	/* TS clock frequency (for manual mode) */
-> +	u32 ts_clock_freq;
-> +
->  	/* Inverted spectrum */
->  	bool spectral_inversion;
->  };
-> diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-> index 2d362e1..8173d6c 100644
-> --- a/drivers/media/dvb-frontends/si2168_priv.h
-> +++ b/drivers/media/dvb-frontends/si2168_priv.h
-> @@ -48,6 +48,8 @@ struct si2168_dev {
->  	u8 ts_mode;
->  	bool ts_clock_inv;
->  	bool ts_clock_gapped;
-> +	u8 ts_clock_mode;
-> +	u32 ts_clock_freq;
->  	bool spectral_inversion;
->  };
->  
-
-
+Yeah, I know that this sucks. If you are in the mood of touching the
+DVB core, I'm willing to consider a patch that would fix this, provided
+that it won't break backward compatibility with other drivers (or would
+convert the other satellite drivers to use the new way).
 
 Thanks,
 Mauro
