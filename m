@@ -1,62 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:43565 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932538AbeGDKQB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 06:16:01 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, mchehab@kernel.org, ysato@users.sourceforge.jp,
-        dalias@libc.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 0/9] sh: Remove soc_camera from defconfigs
-Date: Wed,  4 Jul 2018 12:15:37 +0200
-Message-Id: <1530699346-3235-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-it0-f49.google.com ([209.85.214.49]:36571 "EHLO
+        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751826AbeGDFSd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 01:18:33 -0400
+Received: by mail-it0-f49.google.com with SMTP id j185-v6so6037937ite.1
+        for <linux-media@vger.kernel.org>; Tue, 03 Jul 2018 22:18:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180703184117.GC5611@w540>
+References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
+ <20180531190659.xdp4q2cjro33aihq@pengutronix.de> <CAMty3ZCeR3uEx8oy18-Ur7ma7pciKUf_myDk6_SpWvxc6DvygQ@mail.gmail.com>
+ <CAOMZO5AOpOSAx=L4tOU1Na6hm8Tex3PHNxCYDB81C0+NPHzTZQ@mail.gmail.com> <20180703184117.GC5611@w540>
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Wed, 4 Jul 2018 10:48:32 +0530
+Message-ID: <CAMty3ZCWztkM2oEaKQRVmMkA0C1V6b9Oj59DBX9XAWAybZbRAw@mail.gmail.com>
+Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Fabio Estevam <festevam@gmail.com>,
+        Philipp Zabel <pza@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Discussion of the development of and with GStreamer
+        <gstreamer-devel@lists.freedesktop.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-   this series removes the last occurrencies of soc_camera from arch/sh, this
-time hopefully for real :)
+On Wed, Jul 4, 2018 at 12:11 AM, jacopo mondi <jacopo@jmondi.org> wrote:
+> Hi Fabio,
+>   thanks for pointing Jagan to my series, but..
+>
+> On Fri, Jun 29, 2018 at 06:46:39PM -0300, Fabio Estevam wrote:
+>> Hi Jagan,
+>>
+>> On Fri, Jun 1, 2018 at 2:19 AM, Jagan Teki <jagan@amarulasolutions.com> wrote:
+>>
+>> > I actually tried even on video0 which I forgot to post the log [4].
+>> > Now I understand I'm trying for wrong device to capture look like
+>> > video0 which is ipu1 prepenc firing kernel oops. I'm trying to debug
+>> > this and let me know if have any suggestion to look into.
+>> >
+>> > [   56.800074] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x000002b0
+>> > [   57.369660] ipu1_ic_prpenc: EOF timeout
+>> > [   57.849692] ipu1_ic_prpenc: wait last EOF timeout
+>> > [   57.855703] ipu1_ic_prpenc: pipeline start failed with -110
+>>
+>> Could you please test this series from Jacopo?
+>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg133191.html
 
-I have updated defconfigs of the following boards to the last v4.18-rc2:
-- Migo-R
-- Ecovec24
-- SE7724
-- AP325RXA
+Will verify this on my board and let you know the result.
 
-and then enabled in defconfigs the new CEU driver with the associated image
-sensor and video decoder driver.
+>>
+>> It seems that it would fix this problem.
+>
+> ... unfortunately it does not :(
+>
+> I've been able to test on the same platform where Jagan has reported
+> this issue, and the CSI-2 bus still fails to startup properly...
+>
+> I do not have CSI-2 receiver driver documentation for the other platform
+> I am testing on and where my patches improved stability, but the i.MX6 error
+> reported by Jagan could be useful to help debugging what's wrong with the
+> serial bus initialization on that platform.
+>
+> The error comes from register MIPI_CSI_PHY_STATE of the i.MX6 MIPI_CSI-2
+> interface and reads as:
+>
+> 0x2b0 : BIT(9) -> clock in ULPS state
+>         BIT(7) -> lane3 in stop state
+>         BIT(5) -> lane1 in stop state
+>         BIT(4) -> lane0 in stop state
+>
+> The i.MX6 driver wants instead that register to be:
+>
+> 0x430 : BIT(10) -> clock in stop state
+>         BIT(5) -> lane1 in stop state
+>         BIT(4) -> lane0 in stop state
+>
+> So indeed it represents a useful debugging tool to have an idea of what's going
+> on there.
+>
+> I'm a bit puzzled by the BIT(7) as lane3 is not connected, as ov5640 is a 2
+> lanes sensor, and I would have a question for Jagan here: has the sensor been
+> validated with BSP/vendor kernels on that platform? There's a flat cable
+> connecting the camera module to the main board, and for high speed
+> differential signals that's maybe not the best possible solution...
 
-Finally, I removed a stale include from Migo-R board file to which you pointed
-me.
+Yes, I've validated through engicam Linux, [1] before verifying to
+Mainline. I have similar board which posted on the website on J5 point
+20-Polig connector attached to bus to sensor[2]
 
-Boot-tested on Migo-R, compile tested only for other platforms.
+[1] https://github.com/engicam-stable/engicam-kernel-4.1.15/blob/som_release/arch/arm/boot/dts/icoremx6q-icore-mipi.dts
+[2] https://www.engicam.com/vis-prod/101145
 
-As usual, I'll let you pick this patches up, as this is work sparkled from
-multimedia related issues, or either have them get in though the SH
-maintainers tree if they prefer to.
+Jagan.
 
-Thanks
-   j
-
-Jacopo Mondi (9):
-  sh: defconfig: migor: Update defconfig
-  sh: defconfig: migor: Enable CEU and sensor drivers
-  sh: defconfig: ecovec: Update defconfig
-  sh: defconfig: ecovec: Enable CEU and video drivers
-  sh: defconfig: se7724: Update defconfig
-  sh: defconfig: se7724: Enable CEU and sensor driver
-  sh: defconfig: ap325rxa: Update defconfig
-  sh: defconfig: ap325rxa: Enable CEU and sensor driver
-  sh: migor: Remove stale soc_camera include
-
- arch/sh/boards/mach-migor/setup.c  |  1 -
- arch/sh/configs/ap325rxa_defconfig | 29 +++++++----------------------
- arch/sh/configs/ecovec24_defconfig | 35 ++++++++---------------------------
- arch/sh/configs/migor_defconfig    | 31 ++++++++-----------------------
- arch/sh/configs/se7724_defconfig   | 30 ++++++------------------------
- 5 files changed, 29 insertions(+), 97 deletions(-)
-
---
-2.7.4
+-- 
+Jagan Teki
+Senior Linux Kernel Engineer | Amarula Solutions
+U-Boot, Linux | Upstream Maintainer
+Hyderabad, India.
