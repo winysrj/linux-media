@@ -1,100 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:59830 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932346AbeGDIEX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Jul 2018 04:04:23 -0400
-Subject: Re: [PATCH v2 2/3] s5p-g2d: Remove unrequired wait in .job_abort
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
-        Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-References: <20180618043852.13293-1-ezequiel@collabora.com>
- <20180618043852.13293-3-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0c63d9ee-88c4-c09d-ec36-cc0ee3ca3d8f@xs4all.nl>
-Date: Wed, 4 Jul 2018 10:04:20 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:46008 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934034AbeGDIAH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Jul 2018 04:00:07 -0400
+Date: Wed, 4 Jul 2018 10:00:05 +0200
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK"
+        <linux-kselftest@vger.kernel.org>, Zach Reizner <zachr@google.com>,
+        Daniel Stone <daniels@collabora.com>
+Subject: Re: [PATCH v6] Add udmabuf misc device
+Message-ID: <20180704080005.juutrwri4kxm7yim@sirius.home.kraxel.org>
+References: <20180703075359.30349-1-kraxel@redhat.com>
+ <20180703083757.GG7880@phenom.ffwll.local>
+ <20180704055338.n3b7oexltaejqmcd@sirius.home.kraxel.org>
+ <9818b301-9c9d-c703-d4fe-7c2d4d43ed66@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <20180618043852.13293-3-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9818b301-9c9d-c703-d4fe-7c2d4d43ed66@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/06/18 06:38, Ezequiel Garcia wrote:
-> As per the documentation, job_abort is not required
-> to wait until the current job finishes. It is redundant
-> to do so, as the core will perform the wait operation.
+On Wed, Jul 04, 2018 at 09:26:39AM +0200, Tomeu Vizoso wrote:
+> On 07/04/2018 07:53 AM, Gerd Hoffmann wrote:
+> > On Tue, Jul 03, 2018 at 10:37:57AM +0200, Daniel Vetter wrote:
+> > > On Tue, Jul 03, 2018 at 09:53:58AM +0200, Gerd Hoffmann wrote:
+> > > > A driver to let userspace turn memfd regions into dma-bufs.
+> > > > 
+> > > > Use case:  Allows qemu create dmabufs for the vga framebuffer or
+> > > > virtio-gpu ressources.  Then they can be passed around to display
+> > > > those guest things on the host.  To spice client for classic full
+> > > > framebuffer display, and hopefully some day to wayland server for
+> > > > seamless guest window display.
+> > > > 
+> > > > qemu test branch:
+> > > >    https://git.kraxel.org/cgit/qemu/log/?h=sirius/udmabuf
+> > > > 
+> > > > Cc: David Airlie <airlied@linux.ie>
+> > > > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > Cc: Daniel Vetter <daniel@ffwll.ch>
+> > > > Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+> > > 
+> > > I think some ack for a 2nd use-case, like virtio-wl or whatever would be
+> > > really cool. To give us some assurance that this is generically useful.
+> > 
+> > Tomeu?  Laurent?
 > 
-> Remove the wait infrastructure completely.
-
-Sylwester, can you review this?
-
-Thanks!
-
-	Hans
-
+> Sorry, but I think I will need some help to understand how this could help
+> in the virtio-wl case [adding Zach Reizner to CC].
 > 
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Kamil Debski <kamil@wypas.org>
-> Cc: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/platform/s5p-g2d/g2d.c | 11 -----------
->  drivers/media/platform/s5p-g2d/g2d.h |  1 -
->  2 files changed, 12 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-> index 66aa8cf1d048..e98708883413 100644
-> --- a/drivers/media/platform/s5p-g2d/g2d.c
-> +++ b/drivers/media/platform/s5p-g2d/g2d.c
-> @@ -483,15 +483,6 @@ static int vidioc_s_crop(struct file *file, void *prv, const struct v4l2_crop *c
->  
->  static void job_abort(void *prv)
->  {
-> -	struct g2d_ctx *ctx = prv;
-> -	struct g2d_dev *dev = ctx->dev;
-> -
-> -	if (dev->curr == NULL) /* No job currently running */
-> -		return;
-> -
-> -	wait_event_timeout(dev->irq_queue,
-> -			   dev->curr == NULL,
-> -			   msecs_to_jiffies(G2D_TIMEOUT));
->  }
->  
->  static void device_run(void *prv)
-> @@ -563,7 +554,6 @@ static irqreturn_t g2d_isr(int irq, void *prv)
->  	v4l2_m2m_job_finish(dev->m2m_dev, ctx->fh.m2m_ctx);
->  
->  	dev->curr = NULL;
-> -	wake_up(&dev->irq_queue);
->  	return IRQ_HANDLED;
->  }
->  
-> @@ -633,7 +623,6 @@ static int g2d_probe(struct platform_device *pdev)
->  	spin_lock_init(&dev->ctrl_lock);
->  	mutex_init(&dev->mutex);
->  	atomic_set(&dev->num_inst, 0);
-> -	init_waitqueue_head(&dev->irq_queue);
->  
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  
-> diff --git a/drivers/media/platform/s5p-g2d/g2d.h b/drivers/media/platform/s5p-g2d/g2d.h
-> index dd812b557e87..9ffb458a1b93 100644
-> --- a/drivers/media/platform/s5p-g2d/g2d.h
-> +++ b/drivers/media/platform/s5p-g2d/g2d.h
-> @@ -31,7 +31,6 @@ struct g2d_dev {
->  	struct g2d_ctx		*curr;
->  	struct g2d_variant	*variant;
->  	int irq;
-> -	wait_queue_head_t	irq_queue;
->  };
->  
->  struct g2d_frame {
-> 
+> Any graphics buffers that are allocated with memfd will be shared with the
+> compositor via wl_shm, without need for dmabufs.
+
+Within one machine, yes.  Once virtualization is added to the mix things
+become more complicated ...
+
+When using virtio-gpu the guest will allocate graphics buffers from
+normal (guest) ram, then register these buffers (which are allowed to be
+scattered) with the host as resource.
+
+qemu can use memfd to allocate guest ram.  Now, with the help of
+udmabuf, qemu can create a *host* dma-buf for the *guest* graphics
+buffer.
+
+That dma-buf can be used by qemu internally (mmap it to get a linear
+mapping of the resource, to avoid copying).  It can be passed on to
+spice-client, to display the guest framebuffer.
+
+And I think it could also be quite useful to pass guest wayland windows
+to the host compositor, without mapping host-allocated buffers into the
+guest, so we don't have do deal with the "find some address space for
+the mapping" issue in the first place.  There are more things needed to
+complete this of course, but it's a building block ...
+
+cheers,
+  Gerd
