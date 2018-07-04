@@ -1,127 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:56500 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933862AbeGDH7f (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 03:59:35 -0400
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:44001 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933324AbeGDIIL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 04:08:11 -0400
+Received: by mail-ed1-f68.google.com with SMTP id u11-v6so3387506eds.10
+        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 01:08:11 -0700 (PDT)
+Date: Wed, 4 Jul 2018 10:08:07 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Gerd Hoffmann <kraxel@redhat.com>
+Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK"
+        <linux-kselftest@vger.kernel.org>
+Subject: Re: [PATCH v6] Add udmabuf misc device
+Message-ID: <20180704080807.GH3891@phenom.ffwll.local>
+References: <20180703075359.30349-1-kraxel@redhat.com>
+ <20180703083757.GG7880@phenom.ffwll.local>
+ <20180704055338.n3b7oexltaejqmcd@sirius.home.kraxel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Wed, 04 Jul 2018 13:29:33 +0530
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, andy.gross@linaro.org,
-        bjorn.andersson@linaro.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        linux-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: Re: [PATCH v2 2/5] media: venus: add a routine to set venus state
-In-Reply-To: <CAAFQd5DH2i+8ZJ+s2XUnmFHwxXKLF6z_=w0Z-RFs=W9oVvrJgw@mail.gmail.com>
-References: <1527884768-22392-1-git-send-email-vgarodia@codeaurora.org>
- <1527884768-22392-3-git-send-email-vgarodia@codeaurora.org>
- <20180601212117.GD11565@jcrouse-lnx.qualcomm.com>
- <CAAFQd5DH2i+8ZJ+s2XUnmFHwxXKLF6z_=w0Z-RFs=W9oVvrJgw@mail.gmail.com>
-Message-ID: <ca7567c1df773f1223d919fab28f1460@codeaurora.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180704055338.n3b7oexltaejqmcd@sirius.home.kraxel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jordan, Tomasz,
-
-Thanks for your valuable review comments.
-
-On 2018-06-04 18:24, Tomasz Figa wrote:
-> Hi Jordan, Vikash,
+On Wed, Jul 04, 2018 at 07:53:38AM +0200, Gerd Hoffmann wrote:
+> On Tue, Jul 03, 2018 at 10:37:57AM +0200, Daniel Vetter wrote:
+> > On Tue, Jul 03, 2018 at 09:53:58AM +0200, Gerd Hoffmann wrote:
+> > > A driver to let userspace turn memfd regions into dma-bufs.
+> > > 
+> > > Use case:  Allows qemu create dmabufs for the vga framebuffer or
+> > > virtio-gpu ressources.  Then they can be passed around to display
+> > > those guest things on the host.  To spice client for classic full
+> > > framebuffer display, and hopefully some day to wayland server for
+> > > seamless guest window display.
+> > > 
+> > > qemu test branch:
+> > >   https://git.kraxel.org/cgit/qemu/log/?h=sirius/udmabuf
+> > > 
+> > > Cc: David Airlie <airlied@linux.ie>
+> > > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Cc: Daniel Vetter <daniel@ffwll.ch>
+> > > Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+> > 
+> > I think some ack for a 2nd use-case, like virtio-wl or whatever would be
+> > really cool. To give us some assurance that this is generically useful.
 > 
-> On Sat, Jun 2, 2018 at 6:21 AM Jordan Crouse <jcrouse@codeaurora.org> 
-> wrote:
->> 
->> On Sat, Jun 02, 2018 at 01:56:05AM +0530, Vikash Garodia wrote:
-> [snip]
->> > +int venus_set_hw_state(enum tzbsp_video_state state, struct venus_core *core)
->> > +{
->> > +     int ret;
->> > +     struct device *dev = core->dev;
->> 
->> If you get rid of the log message as you should, you don't need this.
-
-Would prefer to keep the log for cases when enum is expanded while the 
-switch does
-not handle it.
-
->> > +     void __iomem *reg_base = core->base;
->> > +
->> > +     switch (state) {
->> > +     case TZBSP_VIDEO_SUSPEND:
->> > +             if (qcom_scm_is_available())
->> > +                     ret = qcom_scm_set_remote_state(TZBSP_VIDEO_SUSPEND, 0);
->> > +             else
->> > +                     writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
->> 
->> You can just use core->base here and not bother making a local 
->> variable for it.
-Ok.
-
->> > +             break;
->> > +     case TZBSP_VIDEO_RESUME:
->> > +             if (qcom_scm_is_available())
->> > +                     ret = qcom_scm_set_remote_state(TZBSP_VIDEO_RESUME, 0);
->> > +             else
->> > +                     venus_reset_hw(core);
->> > +             break;
->> > +     default:
->> > +             dev_err(dev, "invalid state\n");
->> 
->> state is a enum - you are highly unlikely to be calling it in your own 
->> code with
->> a random value.  It is smart to have the default, but you don't need 
->> the log
->> message - that is just wasted space in the binary.
-
-Incase enum is expanded while the switch does not handle it, default 
-will be useful.
-
->> > +             break;
->> > +     }
->> 
->> There are three paths in the switch statement that could end up with 
->> 'ret' being
->> uninitialized here.  Set it to 0 when you declare it.
-
-> Does this actually compile? The compiler should detect that ret is
-> used uninitialized. Setting it to 0 at declaration time actually
-> prevents compiler from doing that and makes it impossible to catch
-> cases when the ret should actually be non-zero, e.g. the invalid enum
-> value case.
-
-It does compile while it gave me failure while doing the functional 
-validation.
-I have fixed it in next series of patch.
-
-> Given that this function is supposed to substitute existing calls into
-> qcom_scm_set_remote_state(), why not just do something like this:
+> Tomeu?  Laurent?
 > 
->         if (qcom_scm_is_available())
->                 return qcom_scm_set_remote_state(state, 0);
+> > Plus an ack from dma-buf folks (nag them on irc, you don't have them on Cc
+> > here).
 > 
->         switch (state) {
->         case TZBSP_VIDEO_SUSPEND:
->                 writel_relaxed(1, reg_base + WRAPPER_A9SS_SW_RESET);
->                 break;
->         case TZBSP_VIDEO_RESUME:
->                 venus_reset_hw(core);
->                 break;
->         }
-> 
->         return 0;
-This will not work as driver will write on the register irrespective of 
-scm
-availability.
+> Hmm, does MAINTAINERS need an update then?  Maintainer and mailing lists
+> listed in the "DMA BUFFER SHARING FRAMEWORK" entry are on Cc.
 
-> Best regards,
-> Tomasz
+Yeah, maintainers entry with you as maintainer plus dri-devel as mailing
+list plus drm-misc as repo would be good. Just grep for drm-misc.git for
+tons of examples.
+
+> Who should be Cc'ed?
+
+dim add-missing-cc ftw :-)
+
+Cheers, Daniel
+> 
+> > Then this is imo good to go.
+> > 
+> > I assume you'll push it to drm-misc, like all the other dma-buf stuff?
+> 
+> Can do that, sure, after collecting the acks ...
+> 
+> thanks,
+>   Gerd
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
