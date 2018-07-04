@@ -1,76 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33452 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753520AbeGDHEg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 03:04:36 -0400
-Received: by mail-wm0-f67.google.com with SMTP id z6-v6so12239500wma.0
-        for <linux-media@vger.kernel.org>; Wed, 04 Jul 2018 00:04:36 -0700 (PDT)
-Date: Wed, 4 Jul 2018 08:04:32 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Gregory Fong <gregory.0xf0@gmail.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Sekhar Nori <nsekhar@ti.com>,
-        Kevin Hilman <khilman@kernel.org>,
-        Haavard Skinnemoen <hskinnemoen@gmail.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang@linaro.org>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Guenter Roeck <linux@roeck-us.net>, Crt Mori <cmo@melexis.com>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Hartmut Knaack <knaack.h@gmx.de>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Peter Meerwald-Stadler <pmeerw@pmeerw.net>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        linux-integrity@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 09/10] mfd: 88pm860x-i2c: switch to i2c_lock_bus(...,
- I2C_LOCK_SEGMENT)
-Message-ID: <20180704070432.GF20176@dell>
-References: <20180620051803.12206-1-peda@axentia.se>
- <20180620051803.12206-10-peda@axentia.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180620051803.12206-10-peda@axentia.se>
+Received: from mail-pl0-f44.google.com ([209.85.160.44]:36135 "EHLO
+        mail-pl0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932363AbeGDHLq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 03:11:46 -0400
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 11.4 \(3445.8.2\))
+Subject: Re: i.MX6 MIPI-CSI2 OV5640 Camera testing on Mainline Linux
+From: chain256 <tonu.jaansoo@gmail.com>
+In-Reply-To: <CAMty3ZAkSTO-GXK7tjMMY6fjWV=R_mvT_Qe=wO5iJy5NvLwBEw@mail.gmail.com>
+Date: Wed, 4 Jul 2018 00:11:43 -0700
+Cc: jacopo mondi <jacopo@jmondi.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Philipp Zabel <pza@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <24630740-5F47-458A-86A3-F84C151473D1@gmail.com>
+References: <CAMty3ZAMjCKv1BtLnobRZUzp=9Xu1gY5+R3Zi-JuobAJZQrXxg@mail.gmail.com>
+ <20180531190659.xdp4q2cjro33aihq@pengutronix.de>
+ <CAMty3ZCeR3uEx8oy18-Ur7ma7pciKUf_myDk6_SpWvxc6DvygQ@mail.gmail.com>
+ <CAOMZO5AOpOSAx=L4tOU1Na6hm8Tex3PHNxCYDB81C0+NPHzTZQ@mail.gmail.com>
+ <20180703184117.GC5611@w540>
+ <CAMty3ZCWztkM2oEaKQRVmMkA0C1V6b9Oj59DBX9XAWAybZbRAw@mail.gmail.com>
+ <588A2275-4D45-442D-8B38-7A17C27BED10@gmail.com>
+ <CAMty3ZAkSTO-GXK7tjMMY6fjWV=R_mvT_Qe=wO5iJy5NvLwBEw@mail.gmail.com>
+To: Discussion of the development of and with GStreamer
+        <gstreamer-devel@lists.freedesktop.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 20 Jun 2018, Peter Rosin wrote:
+Sorry, can=E2=80=99t do it for next two weeks. Is this platform =
+developed in your company? Maybe you can blame the hardware guys... I =
+have had problems with them getting it right in my past experience :)
 
-> Locking the root adapter for __i2c_transfer will deadlock if the
-> device sits behind a mux-locked I2C mux. Switch to the finer-grained
-> i2c_lock_bus with the I2C_LOCK_SEGMENT flag. If the device does not
-> sit behind a mux-locked mux, the two locking variants are equivalent.
-> 
-> Signed-off-by: Peter Rosin <peda@axentia.se>
-> ---
->  drivers/mfd/88pm860x-i2c.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+T=C3=B5nu
 
-If Wolfram is happy with this, then I am.
-
-Since this file sees few changes - please merge through the I2C tree.
-
-Acked-by: Lee Jones <lee.jones@linaro.org>
-
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+> On 3 Jul 2018, at 23:59, Jagan Teki <jagan@amarulasolutions.com> =
+wrote:
+>=20
+> On Wed, Jul 4, 2018 at 12:14 PM, chain256 <tonu.jaansoo@gmail.com> =
+wrote:
+>> Hi!
+>>=20
+>> Just to let you know, I have same sensor working on Variscite iMX6 =
+DART.
+>> Using Yocto Morty release (
+>> =
+http://variwiki.com/index.php?title=3DVAR-SOM-MX6_Yocto&release=3DRELEASE_=
+MORTY_V1.0_VAR-SOM-MX6
+>> )
+>> Had to hack device tree abit and that was about it. Hope you find =
+something
+>> useful on that page.
+>=20
+> Thanks for the link. Can you confirm is your sensor working with
+> Mainline? we are trying to verify mainline ov5640 sensor here.
+> _______________________________________________
+> gstreamer-devel mailing list
+> gstreamer-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/gstreamer-devel
