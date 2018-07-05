@@ -1,121 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38450 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753988AbeGEQDn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Jul 2018 12:03:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv16 06/34] media-request: add media_request_object_find
-Date: Thu,  5 Jul 2018 18:03:09 +0200
-Message-Id: <20180705160337.54379-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180705160337.54379-1-hverkuil@xs4all.nl>
-References: <20180705160337.54379-1-hverkuil@xs4all.nl>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:39376 "EHLO
+        mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753819AbeGEPAk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 11:00:40 -0400
+Received: by mail-io0-f178.google.com with SMTP id e13-v6so8013629iof.6
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 08:00:39 -0700 (PDT)
+Received: from mail-it0-f52.google.com (mail-it0-f52.google.com. [209.85.214.52])
+        by smtp.gmail.com with ESMTPSA id l82-v6sm3305553itl.25.2018.07.05.08.00.37
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 05 Jul 2018 08:00:37 -0700 (PDT)
+Received: by mail-it0-f52.google.com with SMTP id o5-v6so12402920itc.1
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 08:00:37 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
+ <CAAFQd5CQCF=QvTgq8v6K6W6C0Cy27CzHsMxQn+FnML97w9xnCw@mail.gmail.com>
+ <150eb3b4-8b64-6050-6a4e-e06cfaf113cc@xs4all.nl> <6abf8da2-b2e1-1b4f-2727-f9d074081c30@linaro.org>
+In-Reply-To: <6abf8da2-b2e1-1b4f-2727-f9d074081c30@linaro.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Fri, 6 Jul 2018 00:00:24 +0900
+Message-ID: <CAPBb6MWoysaL_i8i7HaegRCsfF29bnOy2L5ZHgEwDuSJ7HVO2w@mail.gmail.com>
+Subject: Re: [PATCH v5 00/27] Venus updates
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Jul 5, 2018 at 11:52 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi,
+>
+> On 07/05/2018 05:08 PM, Hans Verkuil wrote:
+> > On 05/07/18 16:07, Tomasz Figa wrote:
+> >> Hi Stanimir,
+> >>
+> >> On Thu, Jul 5, 2018 at 10:05 PM Stanimir Varbanov
+> >> <stanimir.varbanov@linaro.org> wrote:
+> >>>
+> >>> Hi,
+> >>>
+> >>> Changes since v4:
+> >>>  * 02/27 re-write intbufs_alloc as suggested by Alex, and
+> >>>    moved new structures in 03/27 where they are used
+> >>>  * 11/27 exit early if error occur in vdec_runtime_suspend
+> >>>    venc_runtime_suspend and avoid ORing ret variable
+> >>>  * 12/27 fixed typo in patch description
+> >>>  * added a const when declare ptype variable
+> >>>
+> >>> Previous v4 can be found at https://lkml.org/lkml/2018/6/27/404
+> >>
+> >> Thanks for the patches!
+> >>
+> >> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+>
+> Thanks Tomasz!
+>
+> >
+> > Are we waiting for anything else? Otherwise I plan to make a pull request for
+> > this tomorrow.
+>
+> I think we are done.
 
-Add media_request_object_find to find a request object inside a
-request based on ops and priv values.
-
-Objects of the same type (vb2 buffer, control handler) will have
-the same ops value. And objects that refer to the same 'parent'
-object (e.g. the v4l2_ctrl_handler that has the current driver
-state) will have the same priv value.
-
-The caller has to call media_request_object_put() for the returned
-object since this function increments the refcount.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-request.c | 25 +++++++++++++++++++++++++
- include/media/media-request.h | 28 ++++++++++++++++++++++++++++
- 2 files changed, 53 insertions(+)
-
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 4b523f3a03a3..a5b70a4e613b 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -344,6 +344,31 @@ static void media_request_object_release(struct kref *kref)
- 	obj->ops->release(obj);
- }
- 
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
-+{
-+	struct media_request_object *obj;
-+	struct media_request_object *found = NULL;
-+	unsigned long flags;
-+
-+	if (WARN_ON(!ops || !priv))
-+		return NULL;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (obj->ops == ops && obj->priv == priv) {
-+			media_request_object_get(obj);
-+			found = obj;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	return found;
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_find);
-+
- void media_request_object_put(struct media_request_object *obj)
- {
- 	kref_put(&obj->kref, media_request_object_release);
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index 66ec9d09fcd8..fd08d7a431a1 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -253,6 +253,26 @@ static inline void media_request_object_get(struct media_request_object *obj)
-  */
- void media_request_object_put(struct media_request_object *obj);
- 
-+/**
-+ * media_request_object_find - Find an object in a request
-+ *
-+ * @req: The media request
-+ * @ops: Find an object with this ops value
-+ * @priv: Find an object with this priv value
-+ *
-+ * Both @ops and @priv must be non-NULL.
-+ *
-+ * Returns the object pointer or NULL if not found. The caller must
-+ * call media_request_object_put() once it finished using the object.
-+ *
-+ * Since this function needs to walk the list of objects it takes
-+ * the @req->lock spin lock to make this safe.
-+ */
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv);
-+
- /**
-  * media_request_object_init - Initialise a media request object
-  *
-@@ -324,6 +344,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
- {
- }
- 
-+static inline struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
-+{
-+	return NULL;
-+}
-+
- static inline void media_request_object_init(struct media_request_object *obj)
- {
- 	obj->ops = NULL;
--- 
-2.18.0
+I would just like to give this one last test - will be done by tomorrow JST.
