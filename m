@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:53173 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754306AbeGENFP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:05:15 -0400
-Received: by mail-wm0-f68.google.com with SMTP id w16-v6so10968872wmc.2
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:05:15 -0700 (PDT)
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:54997 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754207AbeGENFM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:05:12 -0400
+Received: by mail-wm0-f66.google.com with SMTP id i139-v6so10960556wmf.4
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:05:11 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,65 +14,101 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Tomasz Figa <tfiga@chromium.org>,
         Alexandre Courbot <acourbot@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v5 07/27] venus: hfi_venus: add halt AXI support for Venus 4xx
-Date: Thu,  5 Jul 2018 16:03:41 +0300
-Message-Id: <20180705130401.24315-8-stanimir.varbanov@linaro.org>
+Subject: [PATCH v5 04/27] venus: hfi_cmds: add set_properties for 4xx version
+Date: Thu,  5 Jul 2018 16:03:38 +0300
+Message-Id: <20180705130401.24315-5-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
 References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add AXI halt support for version 4xx by using venus wrapper
-registers.
+Adds set_properties method to handle newer 4xx properties and
+fall-back to 3xx for the rest.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/qcom/venus/hfi_venus.c    | 18 ++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_venus_io.h |  2 ++
- 2 files changed, 20 insertions(+)
+ drivers/media/platform/qcom/venus/hfi_cmds.c | 62 +++++++++++++++++++++++++++-
+ 1 file changed, 61 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
-index 734ce11b0ed0..784b3ad1a9f6 100644
---- a/drivers/media/platform/qcom/venus/hfi_venus.c
-+++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-@@ -532,6 +532,24 @@ static int venus_halt_axi(struct venus_hfi_device *hdev)
- 	u32 val;
- 	int ret;
+diff --git a/drivers/media/platform/qcom/venus/hfi_cmds.c b/drivers/media/platform/qcom/venus/hfi_cmds.c
+index 1cfeb7743041..e8389d8d8c48 100644
+--- a/drivers/media/platform/qcom/venus/hfi_cmds.c
++++ b/drivers/media/platform/qcom/venus/hfi_cmds.c
+@@ -1166,6 +1166,63 @@ pkt_session_set_property_3xx(struct hfi_session_set_property_pkt *pkt,
+ 	return ret;
+ }
  
-+	if (IS_V4(hdev->core)) {
-+		val = venus_readl(hdev, WRAPPER_CPU_AXI_HALT);
-+		val |= WRAPPER_CPU_AXI_HALT_HALT;
-+		venus_writel(hdev, WRAPPER_CPU_AXI_HALT, val);
++static int
++pkt_session_set_property_4xx(struct hfi_session_set_property_pkt *pkt,
++			     void *cookie, u32 ptype, void *pdata)
++{
++	void *prop_data;
 +
-+		ret = readl_poll_timeout(base + WRAPPER_CPU_AXI_HALT_STATUS,
-+					 val,
-+					 val & WRAPPER_CPU_AXI_HALT_STATUS_IDLE,
-+					 POLL_INTERVAL_US,
-+					 VBIF_AXI_HALT_ACK_TIMEOUT_US);
-+		if (ret) {
-+			dev_err(dev, "AXI bus port halt timeout\n");
-+			return ret;
-+		}
++	if (!pkt || !cookie || !pdata)
++		return -EINVAL;
 +
-+		return 0;
++	prop_data = &pkt->data[1];
++
++	pkt->shdr.hdr.size = sizeof(*pkt);
++	pkt->shdr.hdr.pkt_type = HFI_CMD_SESSION_SET_PROPERTY;
++	pkt->shdr.session_id = hash32_ptr(cookie);
++	pkt->num_properties = 1;
++	pkt->data[0] = ptype;
++
++	/*
++	 * Any session set property which is different in 3XX packetization
++	 * should be added as a new case below. All unchanged session set
++	 * properties will be handled in the default case.
++	 */
++	switch (ptype) {
++	case HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL: {
++		struct hfi_buffer_count_actual *in = pdata;
++		struct hfi_buffer_count_actual_4xx *count = prop_data;
++
++		count->count_actual = in->count_actual;
++		count->type = in->type;
++		count->count_min_host = in->count_actual;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*count);
++		break;
++	}
++	case HFI_PROPERTY_PARAM_WORK_MODE: {
++		struct hfi_video_work_mode *in = pdata, *wm = prop_data;
++
++		wm->video_work_mode = in->video_work_mode;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*wm);
++		break;
++	}
++	case HFI_PROPERTY_CONFIG_VIDEOCORES_USAGE: {
++		struct hfi_videocores_usage_type *in = pdata, *cu = prop_data;
++
++		cu->video_core_enable_mask = in->video_core_enable_mask;
++		pkt->shdr.hdr.size += sizeof(u32) + sizeof(*cu);
++		break;
++	}
++	case HFI_PROPERTY_CONFIG_VENC_MAX_BITRATE:
++		/* not implemented on Venus 4xx */
++		break;
++	default:
++		return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
 +	}
 +
- 	/* Halt AXI and AXI IMEM VBIF Access */
- 	val = venus_readl(hdev, VBIF_AXI_HALT_CTRL0);
- 	val |= VBIF_AXI_HALT_CTRL0_HALT_REQ;
-diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-index d327b5cea334..c0b18de1e396 100644
---- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
-+++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-@@ -104,7 +104,9 @@
++	return 0;
++}
++
+ int pkt_session_get_property(struct hfi_session_get_property_pkt *pkt,
+ 			     void *cookie, u32 ptype)
+ {
+@@ -1181,7 +1238,10 @@ int pkt_session_set_property(struct hfi_session_set_property_pkt *pkt,
+ 	if (hfi_ver == HFI_VERSION_1XX)
+ 		return pkt_session_set_property_1x(pkt, cookie, ptype, pdata);
  
- #define WRAPPER_CPU_CLOCK_CONFIG		(WRAPPER_BASE + 0x2000)
- #define WRAPPER_CPU_AXI_HALT			(WRAPPER_BASE + 0x2008)
-+#define WRAPPER_CPU_AXI_HALT_HALT		BIT(16)
- #define WRAPPER_CPU_AXI_HALT_STATUS		(WRAPPER_BASE + 0x200c)
-+#define WRAPPER_CPU_AXI_HALT_STATUS_IDLE	BIT(24)
+-	return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
++	if (hfi_ver == HFI_VERSION_3XX)
++		return pkt_session_set_property_3xx(pkt, cookie, ptype, pdata);
++
++	return pkt_session_set_property_4xx(pkt, cookie, ptype, pdata);
+ }
  
- #define WRAPPER_CPU_CGC_DIS			(WRAPPER_BASE + 0x2010)
- #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
+ void pkt_set_version(enum hfi_version version)
 -- 
 2.14.1
