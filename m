@@ -1,109 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41567 "EHLO
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:47017 "EHLO
         lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753640AbeGEQDn (ORCPT
+        by vger.kernel.org with ESMTP id S1753992AbeGEQDn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 12:03:43 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv16 09/34] videodev2.h: add request_fd field to v4l2_ext_controls
-Date: Thu,  5 Jul 2018 18:03:12 +0200
-Message-Id: <20180705160337.54379-10-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCHv16 08/34] v4l2-dev: lock req_queue_mutex
+Date: Thu,  5 Jul 2018 18:03:11 +0200
+Message-Id: <20180705160337.54379-9-hverkuil@xs4all.nl>
 In-Reply-To: <20180705160337.54379-1-hverkuil@xs4all.nl>
 References: <20180705160337.54379-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
-can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
+We need to serialize streamon/off with queueing new requests.
+These ioctls may trigger the cancellation of a streaming
+operation, and that should not be mixed with queuing a new
+request at the same time.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Finally close() needs this lock since that too can trigger the
+cancellation of a streaming operation.
+
+We take the req_queue_mutex here before any other locks since
+it is a very high-level lock.
+
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
- drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
- include/uapi/linux/videodev2.h                | 4 +++-
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/media/v4l2-core/v4l2-dev.c   | 13 +++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c | 22 +++++++++++++++++++++-
+ 2 files changed, 34 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 6481212fda77..dcce86c1fe40 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
- 	__u32 which;
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
- };
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 69e775930fc4..53018e4a4c78 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -444,8 +444,21 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	struct video_device *vdev = video_devdata(filp);
+ 	int ret = 0;
  
-@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &p32->count) ||
- 	    put_user(count, &p64->count) ||
- 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
-+	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
- 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
- 		return -EFAULT;
- 
-@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &p64->count) ||
- 	    put_user(count, &p32->count) ||
- 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
-+	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
- 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
- 	    get_user(kcontrols, &p64->controls))
- 		return -EFAULT;
++	/*
++	 * We need to serialize the release() with queueing new requests.
++	 * The release() may trigger the cancellation of a streaming
++	 * operation, and that should not be mixed with queueing a new
++	 * request at the same time.
++	 */
++	if (v4l2_device_supports_requests(vdev->v4l2_dev))
++		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
++
+ 	if (vdev->fops->release)
+ 		ret = vdev->fops->release(filp);
++
++	if (v4l2_device_supports_requests(vdev->v4l2_dev))
++		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
++
+ 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		dprintk("%s: release\n",
+ 			video_device_node_name(vdev));
 diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 702ec4453790..cb3a7cf5d9d5 100644
+index 01670567641a..702ec4453790 100644
 --- a/drivers/media/v4l2-core/v4l2-ioctl.c
 +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -590,8 +590,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
- 	const struct v4l2_ext_controls *p = arg;
- 	int i;
+@@ -2774,6 +2774,7 @@ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vfd = video_devdata(file);
++	struct mutex *req_queue_lock = NULL;
+ 	struct mutex *lock; /* ioctl serialization mutex */
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool write_only = false;
+@@ -2793,10 +2794,27 @@ static long __video_do_ioctl(struct file *file,
+ 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
  
--	pr_cont("which=0x%x, count=%d, error_idx=%d",
--			p->which, p->count, p->error_idx);
-+	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
-+			p->which, p->count, p->error_idx, p->request_fd);
- 	for (i = 0; i < p->count; i++) {
- 		if (!p->controls[i].size)
- 			pr_cont(", id/val=0x%x/0x%x",
-@@ -907,7 +907,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	__u32 i;
++	/*
++	 * We need to serialize streamon/off with queueing new requests.
++	 * These ioctls may trigger the cancellation of a streaming
++	 * operation, and that should not be mixed with queueing a new
++	 * request at the same time.
++	 */
++	if (v4l2_device_supports_requests(vfd->v4l2_dev) &&
++	    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF)) {
++		req_queue_lock = &vfd->v4l2_dev->mdev->req_queue_mutex;
++
++		if (mutex_lock_interruptible(req_queue_lock))
++			return -ERESTARTSYS;
++	}
++
+ 	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
  
- 	/* zero the reserved fields */
--	c->reserved[0] = c->reserved[1] = 0;
-+	c->reserved[0] = 0;
- 	for (i = 0; i < c->count; i++)
- 		c->controls[i].reserved2[0] = 0;
+-	if (lock && mutex_lock_interruptible(lock))
++	if (lock && mutex_lock_interruptible(lock)) {
++		if (req_queue_lock)
++			mutex_unlock(req_queue_lock);
+ 		return -ERESTARTSYS;
++	}
  
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 600877be5c22..16b53b82496c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
- 	};
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	struct v4l2_ext_control *controls;
- };
+ 	if (!video_is_registered(vfd)) {
+ 		ret = -ENODEV;
+@@ -2855,6 +2873,8 @@ static long __video_do_ioctl(struct file *file,
+ unlock:
+ 	if (lock)
+ 		mutex_unlock(lock);
++	if (req_queue_lock)
++		mutex_unlock(req_queue_lock);
+ 	return ret;
+ }
  
-@@ -1605,6 +1606,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_MAX_DIMS	  (4)
- #define V4L2_CTRL_WHICH_CUR_VAL   0
- #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
-+#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
- 
- enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_INTEGER	     = 1,
 -- 
 2.18.0
