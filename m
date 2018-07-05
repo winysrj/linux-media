@@ -1,83 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:41314 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:41315 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753715AbeGENdV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1753716AbeGENdV (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 09:33:21 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 10/34] media: camss: csid: Configure data type and decode format properly
-Date: Thu,  5 Jul 2018 16:32:41 +0300
-Message-Id: <1530797585-8555-11-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH v2 09/34] media: camss: csiphy: Update settle count calculation
+Date: Thu,  5 Jul 2018 16:32:40 +0300
+Message-Id: <1530797585-8555-10-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 References: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CSID decodes the input data stream. When the input comes from
-the Test Generator the format of the stream is set on the source
-media pad. When the input comes from the CSIPHY the format is the
-one on the sink media pad. Use the proper format for each case.
+Update settle count calculation as per specification.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/camss-csid.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/media/platform/qcom/camss/camss-csiphy.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
-index c0fef17..3cde07e 100644
---- a/drivers/media/platform/qcom/camss/camss-csid.c
-+++ b/drivers/media/platform/qcom/camss/camss-csid.c
-@@ -384,9 +384,6 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 		    !media_entity_remote_pad(&csid->pads[MSM_CSID_PAD_SINK]))
- 			return -ENOLINK;
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
+index 2a9adcd..6158ffd 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
+@@ -329,7 +329,7 @@ static u8 csiphy_settle_cnt_calc(struct csiphy_device *csiphy)
+ 	t_hs_settle = (t_hs_prepare_max + t_hs_prepare_zero_min) / 2;
  
--		dt = csid_get_fmt_entry(csid->fmt[MSM_CSID_PAD_SRC].code)->
--								data_type;
--
- 		if (tg->enabled) {
- 			/* Config Test Generator */
- 			struct v4l2_mbus_framefmt *f =
-@@ -408,6 +405,9 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 			writel_relaxed(val, csid->base +
- 				       CAMSS_CSID_TG_DT_n_CGG_0(0));
+ 	timer_period = div_u64(1000000000000LL, csiphy->timer_clk_rate);
+-	settle_cnt = t_hs_settle / timer_period;
++	settle_cnt = t_hs_settle / timer_period - 1;
  
-+			dt = csid_get_fmt_entry(
-+				csid->fmt[MSM_CSID_PAD_SRC].code)->data_type;
-+
- 			/* 5:0 data type */
- 			val = dt;
- 			writel_relaxed(val, csid->base +
-@@ -417,6 +417,9 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 			val = tg->payload_mode;
- 			writel_relaxed(val, csid->base +
- 				       CAMSS_CSID_TG_DT_n_CGG_2(0));
-+
-+			df = csid_get_fmt_entry(
-+				csid->fmt[MSM_CSID_PAD_SRC].code)->decode_format;
- 		} else {
- 			struct csid_phy_config *phy = &csid->phy;
- 
-@@ -431,13 +434,16 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 
- 			writel_relaxed(val,
- 				       csid->base + CAMSS_CSID_CORE_CTRL_1);
-+
-+			dt = csid_get_fmt_entry(
-+				csid->fmt[MSM_CSID_PAD_SINK].code)->data_type;
-+			df = csid_get_fmt_entry(
-+				csid->fmt[MSM_CSID_PAD_SINK].code)->decode_format;
- 		}
- 
- 		/* Config LUT */
- 
- 		dt_shift = (cid % 4) * 8;
--		df = csid_get_fmt_entry(csid->fmt[MSM_CSID_PAD_SINK].code)->
--								decode_format;
- 
- 		val = readl_relaxed(csid->base + CAMSS_CSID_CID_LUT_VC_n(vc));
- 		val &= ~(0xff << dt_shift);
+ 	return settle_cnt;
+ }
 -- 
 2.7.4
