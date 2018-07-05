@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45543 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48733 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754044AbeGEQDp (ORCPT
+        by vger.kernel.org with ESMTP id S1754071AbeGEQDp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 12:03:45 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv16 25/34] videobuf2-v4l2: add vb2_request_queue/validate helpers
-Date: Thu,  5 Jul 2018 18:03:28 +0200
-Message-Id: <20180705160337.54379-26-hverkuil@xs4all.nl>
+Subject: [PATCHv16 32/34] vivid: add mc
+Date: Thu,  5 Jul 2018 18:03:35 +0200
+Message-Id: <20180705160337.54379-33-hverkuil@xs4all.nl>
 In-Reply-To: <20180705160337.54379-1-hverkuil@xs4all.nl>
 References: <20180705160337.54379-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,80 +17,160 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The generic vb2_request_validate helper function checks if
-there are buffers in the request and if so, prepares (validates)
-all objects in the request.
-
-The generic vb2_request_queue helper function queues all buffer
-objects in the validated request.
+Add support for the media_device to vivid. This is a prerequisite
+for request support.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../media/common/videobuf2/videobuf2-v4l2.c   | 38 +++++++++++++++++++
- include/media/videobuf2-v4l2.h                |  4 ++
- 2 files changed, 42 insertions(+)
+ drivers/media/platform/vivid/vivid-core.c | 61 +++++++++++++++++++++++
+ drivers/media/platform/vivid/vivid-core.h |  8 +++
+ 2 files changed, 69 insertions(+)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 9c652afa62ab..0b07c349eb20 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -1100,6 +1100,44 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
- }
- EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 31db363602e5..1c448529be04 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -657,6 +657,15 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
  
-+int vb2_request_validate(struct media_request *req)
-+{
-+	struct media_request_object *obj;
-+	int ret = 0;
+ 	dev->inst = inst;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->v4l2_dev.mdev = &dev->mdev;
 +
-+	if (!vb2_request_has_buffers(req))
-+		return -ENOENT;
++	/* Initialize media device */
++	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
++	dev->mdev.dev = &pdev->dev;
++	media_device_init(&dev->mdev);
++#endif
 +
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (!obj->ops->prepare)
-+			continue;
-+
-+		ret = obj->ops->prepare(obj);
+ 	/* register v4l2_device */
+ 	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
+ 			"%s-%03d", VIVID_MODULE_NAME, inst);
+@@ -1174,6 +1183,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vid_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_cap_pad);
 +		if (ret)
-+			break;
-+	}
++			goto unreg_dev;
++#endif
 +
-+	if (ret) {
-+		list_for_each_entry_continue_reverse(obj, &req->objects, list)
-+			if (obj->ops->unprepare)
-+				obj->ops->unprepare(obj);
-+		return ret;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_request_validate);
-+
-+void vb2_request_queue(struct media_request *req)
-+{
-+	struct media_request_object *obj, *obj_safe;
-+
-+	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
-+		if (obj->ops->queue)
-+			obj->ops->queue(obj);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(vb2_request_queue);
-+
- MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 91a2b3e1a642..727855463838 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -303,4 +303,8 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
-  */
- void vb2_ops_wait_finish(struct vb2_queue *vq);
+ #ifdef CONFIG_VIDEO_VIVID_CEC
+ 		if (in_type_counter[HDMI]) {
+ 			struct cec_adapter *adap;
+@@ -1226,6 +1242,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
  
-+struct media_request;
-+int vb2_request_validate(struct media_request *req);
-+void vb2_request_queue(struct media_request *req);
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vid_out_pad.flags = MEDIA_PAD_FL_SOURCE;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_out_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
 +
- #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
+ #ifdef CONFIG_VIDEO_VIVID_CEC
+ 		for (i = 0; i < dev->num_outputs; i++) {
+ 			struct cec_adapter *adap;
+@@ -1275,6 +1298,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->tvnorms = tvnorms_cap;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vbi_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_cap_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1300,6 +1330,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->tvnorms = tvnorms_out;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->vbi_out_pad.flags = MEDIA_PAD_FL_SOURCE;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_out_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_out_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1323,6 +1360,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->lock = &dev->mutex;
+ 		video_set_drvdata(vfd, dev);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		dev->sdr_cap_pad.flags = MEDIA_PAD_FL_SINK;
++		ret = media_entity_pads_init(&vfd->entity, 1, &dev->sdr_cap_pad);
++		if (ret)
++			goto unreg_dev;
++#endif
++
+ 		ret = video_register_device(vfd, VFL_TYPE_SDR, sdr_cap_nr[inst]);
+ 		if (ret < 0)
+ 			goto unreg_dev;
+@@ -1369,12 +1413,25 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 					  video_device_node_name(vfd));
+ 	}
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	/* Register the media device */
++	ret = media_device_register(&dev->mdev);
++	if (ret) {
++		dev_err(dev->mdev.dev,
++			"media device register failed (err=%d)\n", ret);
++		goto unreg_dev;
++	}
++#endif
++
+ 	/* Now that everything is fine, let's add it to device list */
+ 	vivid_devs[inst] = dev;
+ 
+ 	return 0;
+ 
+ unreg_dev:
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_device_unregister(&dev->mdev);
++#endif
+ 	video_unregister_device(&dev->radio_tx_dev);
+ 	video_unregister_device(&dev->radio_rx_dev);
+ 	video_unregister_device(&dev->sdr_cap_dev);
+@@ -1445,6 +1502,10 @@ static int vivid_remove(struct platform_device *pdev)
+ 		if (!dev)
+ 			continue;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++		media_device_unregister(&dev->mdev);
++#endif
++
+ 		if (dev->has_vid_cap) {
+ 			v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
+ 				video_device_node_name(&dev->vid_cap_dev));
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 477c80a4d44c..6ccd1f5c1d91 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -136,6 +136,14 @@ struct vivid_cec_work {
+ struct vivid_dev {
+ 	unsigned			inst;
+ 	struct v4l2_device		v4l2_dev;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device		mdev;
++	struct media_pad		vid_cap_pad;
++	struct media_pad		vid_out_pad;
++	struct media_pad		vbi_cap_pad;
++	struct media_pad		vbi_out_pad;
++	struct media_pad		sdr_cap_pad;
++#endif
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_gen;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_vid;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_user_aud;
 -- 
 2.18.0
