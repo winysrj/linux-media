@@ -1,89 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:43907 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753887AbeGENE7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:04:59 -0400
-Received: by mail-wr1-f67.google.com with SMTP id b15-v6so1134916wrv.10
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:04:59 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v5 00/27] Venus updates
-Date: Thu,  5 Jul 2018 16:03:34 +0300
-Message-Id: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
+Received: from smtp.220.in.ua ([89.184.67.205]:49571 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753935AbeGENfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Jul 2018 09:35:37 -0400
+Subject: Re: Video capturing
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: DVB_Linux_Media <linux-media@vger.kernel.org>
+References: <7a41465a-483b-9ce5-4e8f-1f005e2060f9@kaa.org.ua>
+ <CAKQmDh-ALkK+6HkzN1SjXgeoGsZNUZYkb__N4063M7U5aRsAnw@mail.gmail.com>
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+Message-ID: <b1e0a06c-ee55-252a-ded5-22b421e2a7e5@kaa.org.ua>
+Date: Thu, 5 Jul 2018 16:35:20 +0300
+MIME-Version: 1.0
+In-Reply-To: <CAKQmDh-ALkK+6HkzN1SjXgeoGsZNUZYkb__N4063M7U5aRsAnw@mail.gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="pzHxIRT0v1M9AJYAwK9PuZE5cAOATDs7F"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--pzHxIRT0v1M9AJYAwK9PuZE5cAOATDs7F
+Content-Type: multipart/mixed; boundary="nQ5qY0QIaafWVuUerdiFbRrAOnZ7wSZw8";
+ protected-headers="v1"
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: DVB_Linux_Media <linux-media@vger.kernel.org>
+Message-ID: <b1e0a06c-ee55-252a-ded5-22b421e2a7e5@kaa.org.ua>
+Subject: Re: Video capturing
+References: <7a41465a-483b-9ce5-4e8f-1f005e2060f9@kaa.org.ua>
+ <CAKQmDh-ALkK+6HkzN1SjXgeoGsZNUZYkb__N4063M7U5aRsAnw@mail.gmail.com>
+In-Reply-To: <CAKQmDh-ALkK+6HkzN1SjXgeoGsZNUZYkb__N4063M7U5aRsAnw@mail.gmail.com>
 
-Changes since v4:
- * 02/27 re-write intbufs_alloc as suggested by Alex, and
-   moved new structures in 03/27 where they are used
- * 11/27 exit early if error occur in vdec_runtime_suspend
-   venc_runtime_suspend and avoid ORing ret variable
- * 12/27 fixed typo in patch description
- * added a const when declare ptype variable
+--nQ5qY0QIaafWVuUerdiFbRrAOnZ7wSZw8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Content-Language: en-GB
 
-Previous v4 can be found at https://lkml.org/lkml/2018/6/27/404
+Hello Nicolas,
 
-regards,
-Stan
+On 05.07.18 15:57, Nicolas Dufresne wrote:
+>
+>
+> Le jeu. 5 juil. 2018 05:28, Oleh Kravchenko <oleg@kaa.org.ua
+> <mailto:oleg@kaa.org.ua>> a =C3=A9crit=C2=A0:
+>
+>     Hello!
+>
+>     Yesterday I tried to capture video from old game console (PAL) and
+>     got an image like this
+>     https://www.kaa.org.ua/images/EvromediaUSBFullHybridFullHD/mplayer_=
+nes.png
+>
+>
+> Can you describe how this image was captured ? Can you give some
+> details about your tv tuner? Do you also use GStreamer on RPi?
 
-Stanimir Varbanov (27):
-  venus: hfi_msgs: correct pointer increment
-  venus: hfi: preparation to support venus 4xx
-  venus: hfi: update sequence event to handle more properties
-  venus: hfi_cmds: add set_properties for 4xx version
-  venus: hfi: support session continue for 4xx version
-  venus: hfi: handle buffer output2 type as well
-  venus: hfi_venus: add halt AXI support for Venus 4xx
-  venus: hfi_venus: fix suspend function for venus 3xx versions
-  venus: hfi_venus: move set of default properties to core init
-  venus: hfi_venus: add suspend functionality for Venus 4xx
-  venus: core,helpers: add two more clocks found in Venus 4xx
-  venus: hfi_parser: add common capability parser
-  venus: helpers: rename a helper function and use buffer mode from caps
-  venus: helpers: add a helper function to set dynamic buffer mode
-  venus: helpers: add helper function to set actual buffer size
-  venus: core: delete not used buffer mode flags
-  venus: helpers: add buffer type argument to a helper
-  venus: helpers: add a new helper to set raw format
-  venus: helpers,vdec,venc: add helpers to set work mode and core usage
-  venus: helpers: extend set_num_bufs helper with one more argument
-  venus: helpers: add a helper to return opb buffer sizes
-  venus: vdec: get required input buffers as well
-  venus: vdec: a new function for output configuration
-  venus: helpers: move frame size calculations on common place
-  venus: implementing multi-stream support
-  venus: core: add sdm845 DT compatible and resource data
-  venus: add HEVC codec support
+I have those TV tuners:
+=C2=A0=C2=A0=C2=A0 AVerTV Hybrid Express Slim HC81R
+=C2=A0=C2=A0=C2=A0 Evromedia USB Full Hybrid Full HD
+=C2=A0=C2=A0=C2=A0 Astrometa T2hybrid
 
- .../devicetree/bindings/media/qcom,venus.txt       |   1 +
- drivers/media/platform/qcom/venus/Makefile         |   3 +-
- drivers/media/platform/qcom/venus/core.c           | 107 ++++
- drivers/media/platform/qcom/venus/core.h           | 100 ++--
- drivers/media/platform/qcom/venus/helpers.c        | 568 +++++++++++++++++++--
- drivers/media/platform/qcom/venus/helpers.h        |  23 +-
- drivers/media/platform/qcom/venus/hfi.c            |  12 +-
- drivers/media/platform/qcom/venus/hfi.h            |  10 +
- drivers/media/platform/qcom/venus/hfi_cmds.c       |  62 ++-
- drivers/media/platform/qcom/venus/hfi_helper.h     | 112 +++-
- drivers/media/platform/qcom/venus/hfi_msgs.c       | 407 +++------------
- drivers/media/platform/qcom/venus/hfi_parser.c     | 278 ++++++++++
- drivers/media/platform/qcom/venus/hfi_parser.h     |  45 ++
- drivers/media/platform/qcom/venus/hfi_venus.c      | 108 +++-
- drivers/media/platform/qcom/venus/hfi_venus_io.h   |  10 +
- drivers/media/platform/qcom/venus/vdec.c           | 326 +++++++-----
- drivers/media/platform/qcom/venus/venc.c           | 220 ++++----
- 17 files changed, 1702 insertions(+), 690 deletions(-)
- create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.h
+Here examples with mplayer and mpv:
+=C2=A0=C2=A0=C2=A0 mplayer tv:///1 -tv
+width=3D720:height=3D576:adevice=3Dhw.2:alsa=3D1:amode=3D0:forceaudio=3D1=
+:immediatemode=3D0:norm=3Dpal
+=C2=A0=C2=A0=C2=A0 mpv tv:///1 --tv-width=3D720 --tv-height=3D576 --tv-ad=
+evice=3Dhw.2
+--tv-alsa --tv-amode=3D0 --tv-forceaudio=3Dyes --tv-immediatemode=3Dno
+--tv-norm=3Dpal
 
--- 
-2.14.1
+I didn't use GStreamer on RPi, because in my case RPi is a source of
+video signal for TV tuner.
+
+>
+>
+>
+>     I tried different TV norms, but no success.
+>     At the same time that video console works fine with my TV!
+>     My TV tuners works fine with Nokia N900 (PAL, NTSC), Raspberry Pi
+>     (PAL),
+>     PlayStation 3 (PAL).
+>
+>     Any idea what it can be?
+>
+>     PS:
+>     By the way, is allowed to send screenshots and photos as
+>     attachments in
+>     this mail list?
+>
+>     --=20
+>     Best regards,
+>     Oleh Kravchenko
+>
+>
+
+--=20
+Best regards,
+Oleh Kravchenko
+
+
+
+--nQ5qY0QIaafWVuUerdiFbRrAOnZ7wSZw8--
+
+--pzHxIRT0v1M9AJYAwK9PuZE5cAOATDs7F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEC/TM5t+2NenFhW0Q0xNJm20pl4wFAls+HpsACgkQ0xNJm20p
+l4zerQ/+Ma4EnhwgMPXamQ0f6CsKfhvVrv8U7QaLA2bx+C0+zn7/6PjquthjLkGd
+tauiDlJUahtwyn4iHB2gGrucW+T/Dn+eYu0XEMj40h106ICtuJooJheH0tfrHBop
+F18kqEiOFRW/f6zYP+9tMwk1ZOOKKTNh4iCebpOQ9zbnirpMfIIJHwq0AIPRMu32
+kJrOIgNbZjetzF87p5x2c8ZN3DltycVD1CvJCfH7uO27xUjAf36YJ4WlyfDpehj3
+EgVD96I3TTc6IxLcLpgzv21ueCmDAQX2d5HFoMbafC+9ZeAp56I/Y9FQ0WFKKa08
+fCbknkOLRfOegMYjZmReuc8pfpMB+DrbMaiDRsVmxz5RbNrSFKb47xfWS69DiZBy
+LiwQV8wpGoIkMFJ/jZUiRpY09TaVP/MJiXs1bcgdYgN9DxWsa2F4V6A4kiOR9K2g
+ZL8m7P9pMmxsIaoMCPxHxvInT7E7o4PYO1kImVWFTihs89VtsguIsJrJV46XoF2a
+y0t0bWAilTOAcBCg3T4h8orKMXB8KdNKGQis2+SV3b0BNzF6HUdJ0LiZFpqEUgc7
+4M+HTAiq488FS6gnhfFXby06Ebz6pkJ82CJ1PUtG+IuX1s6g5QBYJDU6SFBpmvLJ
+GuY4Z9c97KiJD+UvczYl3ODan8/7IKijFVZ44KoYXh71fBhpfbs=
+=km+x
+-----END PGP SIGNATURE-----
+
+--pzHxIRT0v1M9AJYAwK9PuZE5cAOATDs7F--
