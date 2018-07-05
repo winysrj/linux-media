@@ -1,16 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:47017 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753992AbeGEQDn (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:39618 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753984AbeGEQDn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 12:03:43 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCHv16 08/34] v4l2-dev: lock req_queue_mutex
-Date: Thu,  5 Jul 2018 18:03:11 +0200
-Message-Id: <20180705160337.54379-9-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv16 13/34] v4l2-ctrls: use ref in helper instead of ctrl
+Date: Thu,  5 Jul 2018 18:03:16 +0200
+Message-Id: <20180705160337.54379-14-hverkuil@xs4all.nl>
 In-Reply-To: <20180705160337.54379-1-hverkuil@xs4all.nl>
 References: <20180705160337.54379-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,99 +17,98 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-We need to serialize streamon/off with queueing new requests.
-These ioctls may trigger the cancellation of a streaming
-operation, and that should not be mixed with queuing a new
-request at the same time.
-
-Finally close() needs this lock since that too can trigger the
-cancellation of a streaming operation.
-
-We take the req_queue_mutex here before any other locks since
-it is a very high-level lock.
+The next patch needs the reference to a control instead of the
+control itself, so change struct v4l2_ctrl_helper accordingly.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c   | 13 +++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c | 22 +++++++++++++++++++++-
- 2 files changed, 34 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 69e775930fc4..53018e4a4c78 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -444,8 +444,21 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 	struct video_device *vdev = video_devdata(filp);
- 	int ret = 0;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 171ab389afdd..570b6f8ae46a 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -37,8 +37,8 @@
+ struct v4l2_ctrl_helper {
+ 	/* Pointer to the control reference of the master control */
+ 	struct v4l2_ctrl_ref *mref;
+-	/* The control corresponding to the v4l2_ext_control ID field. */
+-	struct v4l2_ctrl *ctrl;
++	/* The control ref corresponding to the v4l2_ext_control ID field. */
++	struct v4l2_ctrl_ref *ref;
+ 	/* v4l2_ext_control index of the next control belonging to the
+ 	   same cluster, or 0 if there isn't any. */
+ 	u32 next;
+@@ -2908,6 +2908,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		ref = find_ref_lock(hdl, id);
+ 		if (ref == NULL)
+ 			return -EINVAL;
++		h->ref = ref;
+ 		ctrl = ref->ctrl;
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
+ 			return -EINVAL;
+@@ -2930,7 +2931,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		}
+ 		/* Store the ref to the master control of the cluster */
+ 		h->mref = ref;
+-		h->ctrl = ctrl;
+ 		/* Initially set next to 0, meaning that there is no other
+ 		   control in this helper array belonging to the same
+ 		   cluster */
+@@ -3015,7 +3015,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	cs->error_idx = cs->count;
  
-+	/*
-+	 * We need to serialize the release() with queueing new requests.
-+	 * The release() may trigger the cancellation of a streaming
-+	 * operation, and that should not be mixed with queueing a new
-+	 * request at the same time.
-+	 */
-+	if (v4l2_device_supports_requests(vdev->v4l2_dev))
-+		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-+
- 	if (vdev->fops->release)
- 		ret = vdev->fops->release(filp);
-+
-+	if (v4l2_device_supports_requests(vdev->v4l2_dev))
-+		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-+
- 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
- 		dprintk("%s: release\n",
- 			video_device_node_name(vdev));
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 01670567641a..702ec4453790 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2774,6 +2774,7 @@ static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
-+	struct mutex *req_queue_lock = NULL;
- 	struct mutex *lock; /* ioctl serialization mutex */
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool write_only = false;
-@@ -2793,10 +2794,27 @@ static long __video_do_ioctl(struct file *file,
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
- 		vfh = file->private_data;
+ 	for (i = 0; !ret && i < cs->count; i++)
+-		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
++		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+ 			ret = -EACCES;
  
-+	/*
-+	 * We need to serialize streamon/off with queueing new requests.
-+	 * These ioctls may trigger the cancellation of a streaming
-+	 * operation, and that should not be mixed with queueing a new
-+	 * request at the same time.
-+	 */
-+	if (v4l2_device_supports_requests(vfd->v4l2_dev) &&
-+	    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF)) {
-+		req_queue_lock = &vfd->v4l2_dev->mdev->req_queue_mutex;
-+
-+		if (mutex_lock_interruptible(req_queue_lock))
-+			return -ERESTARTSYS;
-+	}
-+
- 	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
+ 	for (i = 0; !ret && i < cs->count; i++) {
+@@ -3050,7 +3050,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
  
--	if (lock && mutex_lock_interruptible(lock))
-+	if (lock && mutex_lock_interruptible(lock)) {
-+		if (req_queue_lock)
-+			mutex_unlock(req_queue_lock);
- 		return -ERESTARTSYS;
-+	}
+ 			do {
+ 				ret = ctrl_to_user(cs->controls + idx,
+-						   helpers[idx].ctrl);
++						   helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+@@ -3202,7 +3202,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
  
- 	if (!video_is_registered(vfd)) {
- 		ret = -ENODEV;
-@@ -2855,6 +2873,8 @@ static long __video_do_ioctl(struct file *file,
- unlock:
- 	if (lock)
- 		mutex_unlock(lock);
-+	if (req_queue_lock)
-+		mutex_unlock(req_queue_lock);
- 	return ret;
- }
+ 	cs->error_idx = cs->count;
+ 	for (i = 0; i < cs->count; i++) {
+-		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
++		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
+ 		union v4l2_ctrl_ptr p_new;
  
+ 		cs->error_idx = i;
+@@ -3314,7 +3314,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			do {
+ 				/* Check if the auto control is part of the
+ 				   list, and remember the new value. */
+-				if (helpers[tmp_idx].ctrl == master)
++				if (helpers[tmp_idx].ref->ctrl == master)
+ 					new_auto_val = cs->controls[tmp_idx].value;
+ 				tmp_idx = helpers[tmp_idx].next;
+ 			} while (tmp_idx);
+@@ -3327,7 +3327,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
+-			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
++			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
+ 
+ 			ret = user_to_new(cs->controls + idx, ctrl);
+ 			if (!ret && ctrl->is_ptr)
+@@ -3343,7 +3343,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			idx = i;
+ 			do {
+ 				ret = new_to_user(cs->controls + idx,
+-						helpers[idx].ctrl);
++						helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
 -- 
 2.18.0
