@@ -1,57 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:41499 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754037AbeGEQDo (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:44243 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754052AbeGEQDp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Jul 2018 12:03:44 -0400
+        Thu, 5 Jul 2018 12:03:45 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv16 21/34] videobuf2-core: embed media_request_object
-Date: Thu,  5 Jul 2018 18:03:24 +0200
-Message-Id: <20180705160337.54379-22-hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCHv16 28/34] v4l2-mem2mem: Simplify exiting the function in v4l2_m2m_try_schedule
+Date: Thu,  5 Jul 2018 18:03:31 +0200
+Message-Id: <20180705160337.54379-29-hverkuil@xs4all.nl>
 In-Reply-To: <20180705160337.54379-1-hverkuil@xs4all.nl>
 References: <20180705160337.54379-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Make vb2_buffer a request object.
+The v4l2_m2m_try_schedule function acquires and releases multiple
+spinlocks; simplify unlocking the job lock by adding a label to unlock the
+job lock and exit the function.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/media/videobuf2-core.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index cbda3968d018..df92dcdeabb3 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -17,6 +17,7 @@
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
- #include <linux/bitops.h>
-+#include <media/media-request.h>
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 9bfe1c456046..114d50cf22c5 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -252,15 +252,13 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
  
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -236,6 +237,8 @@ struct vb2_queue;
-  * @num_planes:		number of planes in the buffer
-  *			on an internal driver queue.
-  * @timestamp:		frame timestamp in ns.
-+ * @req_obj:		used to bind this buffer to a request. This
-+ *			request object has a refcount.
-  */
- struct vb2_buffer {
- 	struct vb2_queue	*vb2_queue;
-@@ -244,6 +247,7 @@ struct vb2_buffer {
- 	unsigned int		memory;
- 	unsigned int		num_planes;
- 	u64			timestamp;
-+	struct media_request_object	req_obj;
+ 	/* If the context is aborted then don't schedule it */
+ 	if (m2m_ctx->job_flags & TRANS_ABORT) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("Aborted context\n");
+-		return;
++		goto out_unlock;
+ 	}
  
- 	/* private: internal use only
- 	 *
+ 	if (m2m_ctx->job_flags & TRANS_QUEUED) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("On job queue already\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 
+ 	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+@@ -268,9 +266,8 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	    && !m2m_ctx->out_q_ctx.buffered) {
+ 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+ 					flags_out);
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No input buffers available\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
+@@ -279,18 +276,16 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 					flags_cap);
+ 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+ 					flags_out);
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No output buffers available\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+ 
+ 	if (m2m_dev->m2m_ops->job_ready
+ 		&& (!m2m_dev->m2m_ops->job_ready(m2m_ctx->priv))) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("Driver not ready\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 
+ 	list_add_tail(&m2m_ctx->queue, &m2m_dev->job_queue);
+@@ -299,6 +294,13 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 
+ 	v4l2_m2m_try_run(m2m_dev);
++
++	return;
++
++out_unlock:
++	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
++
++	return;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+ 
 -- 
 2.18.0
