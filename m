@@ -1,89 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:39957 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753782AbeGENwF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:52:05 -0400
-Received: by mail-qk0-f182.google.com with SMTP id b129-v6so4487427qke.7
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:52:04 -0700 (PDT)
-Message-ID: <849d57db07c1c1825f0d215a7e55682d36dd2298.camel@ndufresne.ca>
-Subject: Re: Video capturing
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Oleh Kravchenko <oleg@kaa.org.ua>
-Cc: DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Thu, 05 Jul 2018 09:52:02 -0400
-In-Reply-To: <b1e0a06c-ee55-252a-ded5-22b421e2a7e5@kaa.org.ua>
-References: <7a41465a-483b-9ce5-4e8f-1f005e2060f9@kaa.org.ua>
-         <CAKQmDh-ALkK+6HkzN1SjXgeoGsZNUZYkb__N4063M7U5aRsAnw@mail.gmail.com>
-         <b1e0a06c-ee55-252a-ded5-22b421e2a7e5@kaa.org.ua>
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:42253 "EHLO
+        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753397AbeGEOHW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 10:07:22 -0400
+Received: by mail-yb0-f194.google.com with SMTP id c10-v6so1513038ybf.9
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 07:07:22 -0700 (PDT)
+Received: from mail-yw0-f170.google.com (mail-yw0-f170.google.com. [209.85.161.170])
+        by smtp.gmail.com with ESMTPSA id r132-v6sm2293280ywh.94.2018.07.05.07.07.19
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 05 Jul 2018 07:07:20 -0700 (PDT)
+Received: by mail-yw0-f170.google.com with SMTP id 139-v6so2988137ywg.12
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 07:07:19 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 5 Jul 2018 23:07:07 +0900
+Message-ID: <CAAFQd5CQCF=QvTgq8v6K6W6C0Cy27CzHsMxQn+FnML97w9xnCw@mail.gmail.com>
+Subject: Re: [PATCH v5 00/27] Venus updates
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        vgarodia@codeaurora.org, Alexandre Courbot <acourbot@chromium.org>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le jeudi 05 juillet 2018 à 16:35 +0300, Oleh Kravchenko a écrit :
-> Hello Nicolas,
-> 
-> On 05.07.18 15:57, Nicolas Dufresne wrote:
-> > 
-> > 
-> > Le jeu. 5 juil. 2018 05:28, Oleh Kravchenko <oleg@kaa.org.ua
-> > <mailto:oleg@kaa.org.ua>> a écrit :
-> > 
-> >     Hello!
-> > 
-> >     Yesterday I tried to capture video from old game console (PAL)
-> > and
-> >     got an image like this
-> >     https://www.kaa.org.ua/images/EvromediaUSBFullHybridFullHD/mpla
-> > yer_nes.png
-> > 
-> > 
-> > Can you describe how this image was captured ? Can you give some
-> > details about your tv tuner? Do you also use GStreamer on RPi?
-> 
-> I have those TV tuners:
->     AVerTV Hybrid Express Slim HC81R
->     Evromedia USB Full Hybrid Full HD
->     Astrometa T2hybrid
-> 
-> Here examples with mplayer and mpv:
->     mplayer tv:///1 -tv
-> width=720:height=576:adevice=hw.2:alsa=1:amode=0:forceaudio=1:immedia
-> temode=0:norm=pal
->     mpv tv:///1 --tv-width=720 --tv-height=576 --tv-adevice=hw.2
-> --tv-alsa --tv-amode=0 --tv-forceaudio=yes --tv-immediatemode=no
-> --tv-norm=pal
+Hi Stanimir,
 
-And do you get the same with GStreamer ?
+On Thu, Jul 5, 2018 at 10:05 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi,
+>
+> Changes since v4:
+>  * 02/27 re-write intbufs_alloc as suggested by Alex, and
+>    moved new structures in 03/27 where they are used
+>  * 11/27 exit early if error occur in vdec_runtime_suspend
+>    venc_runtime_suspend and avoid ORing ret variable
+>  * 12/27 fixed typo in patch description
+>  * added a const when declare ptype variable
+>
+> Previous v4 can be found at https://lkml.org/lkml/2018/6/27/404
 
-gst-launch-1.0 v4l2src device=/dev/video1 norm=PAL ! videoconvert ! autovideosink
+Thanks for the patches!
 
-> 
-> I didn't use GStreamer on RPi, because in my case RPi is a source of
-> video signal for TV tuner.
-> 
-> > 
-> > 
-> > 
-> >     I tried different TV norms, but no success.
-> >     At the same time that video console works fine with my TV!
-> >     My TV tuners works fine with Nokia N900 (PAL, NTSC), Raspberry
-> > Pi
-> >     (PAL),
-> >     PlayStation 3 (PAL).
-> > 
-> >     Any idea what it can be?
-> > 
-> >     PS:
-> >     By the way, is allowed to send screenshots and photos as
-> >     attachments in
-> >     this mail list?
-> > 
-> >     -- 
-> >     Best regards,
-> >     Oleh Kravchenko
-> > 
-> > 
-> 
-> 
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+
+Best regards,
+Tomasz
