@@ -1,147 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:41286 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:41327 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753750AbeGENdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Jul 2018 09:33:22 -0400
+        id S1753429AbeGENdV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Jul 2018 09:33:21 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
-Subject: [PATCH v2 15/34] media: dt-bindings: media: qcom,camss: Add 8996 bindings
-Date: Thu,  5 Jul 2018 16:32:46 +0300
-Message-Id: <1530797585-8555-16-git-send-email-todor.tomov@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v2 12/34] media: camss: vfe: Get line pointer as container of video_out
+Date: Thu,  5 Jul 2018 16:32:43 +0300
+Message-Id: <1530797585-8555-13-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 References: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update binding document for MSM8996.
+Simplify getting of the line pointer by using the container_of
+macro instead of traversing media controller links.
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: Mark Rutland <mark.rutland@arm.com>
-CC: devicetree@vger.kernel.org
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- .../devicetree/bindings/media/qcom,camss.txt       | 44 +++++++++++++++++++---
- 1 file changed, 38 insertions(+), 6 deletions(-)
+ drivers/media/platform/qcom/camss/camss-vfe.c | 38 +++------------------------
+ 1 file changed, 4 insertions(+), 34 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
-index e938eb0..09eb6ed 100644
---- a/Documentation/devicetree/bindings/media/qcom,camss.txt
-+++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
-@@ -5,8 +5,9 @@ Qualcomm Camera Subsystem
- - compatible:
- 	Usage: required
- 	Value type: <stringlist>
--	Definition: Should contain:
-+	Definition: Should contain one of:
- 		- "qcom,msm8916-camss"
-+		- "qcom,msm8996-camss"
- - reg:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-@@ -19,11 +20,16 @@ Qualcomm Camera Subsystem
- 		- "csiphy0_clk_mux"
- 		- "csiphy1"
- 		- "csiphy1_clk_mux"
-+		- "csiphy2"		(8996 only)
-+		- "csiphy2_clk_mux"	(8996 only)
- 		- "csid0"
- 		- "csid1"
-+		- "csid2"		(8996 only)
-+		- "csid3"		(8996 only)
- 		- "ispif"
- 		- "csi_clk_mux"
- 		- "vfe0"
-+		- "vfe1"		(8996 only)
- - interrupts:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-@@ -34,10 +40,14 @@ Qualcomm Camera Subsystem
- 	Definition: Should contain the following entries:
- 		- "csiphy0"
- 		- "csiphy1"
-+		- "csiphy2"		(8996 only)
- 		- "csid0"
- 		- "csid1"
-+		- "csid2"		(8996 only)
-+		- "csid3"		(8996 only)
- 		- "ispif"
- 		- "vfe0"
-+		- "vfe1"		(8996 only)
- - power-domains:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-@@ -57,6 +67,7 @@ Qualcomm Camera Subsystem
- 		- "ispif_ahb"
- 		- "csiphy0_timer"
- 		- "csiphy1_timer"
-+		- "csiphy2_timer"	(8996 only)
- 		- "csi0_ahb"
- 		- "csi0"
- 		- "csi0_phy"
-@@ -67,9 +78,25 @@ Qualcomm Camera Subsystem
- 		- "csi1_phy"
- 		- "csi1_pix"
- 		- "csi1_rdi"
-+		- "csi2_ahb"		(8996 only)
-+		- "csi2"		(8996 only)
-+		- "csi2_phy"		(8996 only)
-+		- "csi2_pix"		(8996 only)
-+		- "csi2_rdi"		(8996 only)
-+		- "csi3_ahb"		(8996 only)
-+		- "csi3"		(8996 only)
-+		- "csi3_phy"		(8996 only)
-+		- "csi3_pix"		(8996 only)
-+		- "csi3_rdi"		(8996 only)
- 		- "ahb"
- 		- "vfe0"
- 		- "csi_vfe0"
-+		- "vfe0_ahb",		(8996 only)
-+		- "vfe0_stream",	(8996 only)
-+		- "vfe1",		(8996 only)
-+		- "csi_vfe1",		(8996 only)
-+		- "vfe1_ahb",		(8996 only)
-+		- "vfe1_stream",	(8996 only)
- 		- "vfe_ahb"
- 		- "vfe_axi"
- - vdda-supply:
-@@ -90,14 +117,18 @@ Qualcomm Camera Subsystem
- 		- reg:
- 			Usage: required
- 			Value type: <u32>
--			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
-+			Definition: Selects CSI2 PHY interface - PHY0, PHY1
-+				    or PHY2 (8996 only)
- 	Endpoint node properties:
- 		- clock-lanes:
- 			Usage: required
- 			Value type: <u32>
--			Definition: The physical clock lane index. The value
--				    must always be <1> as the physical clock
--				    lane is lane 1.
-+			Definition: The physical clock lane index. On 8916
-+				    the value must always be <1> as the physical
-+				    clock lane is lane 1. On 8996 the value must
-+				    always be <7> as the hardware supports D-PHY
-+				    and C-PHY, indexes are in a common set and
-+				    D-PHY physical clock lane is labeled as 7.
- 		- data-lanes:
- 			Usage: required
- 			Value type: <prop-encoded-array>
-@@ -105,7 +136,8 @@ Qualcomm Camera Subsystem
- 				    Position of an entry determines the logical
- 				    lane number, while the value of an entry
- 				    indicates physical lane index. Lane swapping
--				    is supported.
-+				    is supported. Physical lane indexes for
-+				    8916: 0, 2, 3, 4; for 8996: 0, 1, 2, 3.
+diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
+index 51ad3f8..77167f1 100644
+--- a/drivers/media/platform/qcom/camss/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss/camss-vfe.c
+@@ -2038,26 +2038,6 @@ static void vfe_put(struct vfe_device *vfe)
+ }
  
- * An Example
+ /*
+- * vfe_video_pad_to_line - Get pointer to VFE line by media pad
+- * @pad: Media pad
+- *
+- * Return pointer to vfe line structure
+- */
+-static struct vfe_line *vfe_video_pad_to_line(struct media_pad *pad)
+-{
+-	struct media_pad *vfe_pad;
+-	struct v4l2_subdev *subdev;
+-
+-	vfe_pad = media_entity_remote_pad(pad);
+-	if (vfe_pad == NULL)
+-		return NULL;
+-
+-	subdev = media_entity_to_v4l2_subdev(vfe_pad->entity);
+-
+-	return container_of(subdev, struct vfe_line, subdev);
+-}
+-
+-/*
+  * vfe_queue_buffer - Add empty buffer
+  * @vid: Video device structure
+  * @buf: Buffer to be enqueued
+@@ -2070,16 +2050,11 @@ static struct vfe_line *vfe_video_pad_to_line(struct media_pad *pad)
+ static int vfe_queue_buffer(struct camss_video *vid,
+ 			    struct camss_buffer *buf)
+ {
+-	struct vfe_device *vfe = &vid->camss->vfe;
+-	struct vfe_line *line;
++	struct vfe_line *line = container_of(vid, struct vfe_line, video_out);
++	struct vfe_device *vfe = to_vfe(line);
+ 	struct vfe_output *output;
+ 	unsigned long flags;
  
+-	line = vfe_video_pad_to_line(&vid->pad);
+-	if (!line) {
+-		dev_err(to_device(vfe), "Can not queue buffer\n");
+-		return -1;
+-	}
+ 	output = &line->output;
+ 
+ 	spin_lock_irqsave(&vfe->output_lock, flags);
+@@ -2104,16 +2079,11 @@ static int vfe_queue_buffer(struct camss_video *vid,
+ static int vfe_flush_buffers(struct camss_video *vid,
+ 			     enum vb2_buffer_state state)
+ {
+-	struct vfe_device *vfe = &vid->camss->vfe;
+-	struct vfe_line *line;
++	struct vfe_line *line = container_of(vid, struct vfe_line, video_out);
++	struct vfe_device *vfe = to_vfe(line);
+ 	struct vfe_output *output;
+ 	unsigned long flags;
+ 
+-	line = vfe_video_pad_to_line(&vid->pad);
+-	if (!line) {
+-		dev_err(to_device(vfe),	"Can not flush buffers\n");
+-		return -1;
+-	}
+ 	output = &line->output;
+ 
+ 	spin_lock_irqsave(&vfe->output_lock, flags);
 -- 
 2.7.4
