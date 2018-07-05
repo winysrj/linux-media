@@ -1,60 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:41286 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:41291 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753566AbeGENdU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1753655AbeGENdU (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 09:33:20 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 06/34] media: camss: Fix OF node usage
-Date: Thu,  5 Jul 2018 16:32:37 +0300
-Message-Id: <1530797585-8555-7-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH v2 07/34] media: camss: csiphy: Ensure clock mux config is done before the rest
+Date: Thu,  5 Jul 2018 16:32:38 +0300
+Message-Id: <1530797585-8555-8-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 References: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-of_graph_get_next_endpoint increases the refcount of the returned
-node and decreases the refcount of the passed node. Take this into
-account and use of_node_put properly.
+Add a write memory barier after clock mux config and before the rest
+of the csiphy config.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/camss.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/platform/qcom/camss/camss-csiphy.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/qcom/camss/camss.c b/drivers/media/platform/qcom/camss/camss.c
-index 45285eb..abf6184 100644
---- a/drivers/media/platform/qcom/camss/camss.c
-+++ b/drivers/media/platform/qcom/camss/camss.c
-@@ -296,6 +296,7 @@ static int camss_of_parse_ports(struct device *dev,
- 		if (of_device_is_available(node))
- 			notifier->num_subdevs++;
- 
-+	of_node_put(node);
- 	size = sizeof(*notifier->subdevs) * notifier->num_subdevs;
- 	notifier->subdevs = devm_kzalloc(dev, size, GFP_KERNEL);
- 	if (!notifier->subdevs) {
-@@ -326,16 +327,16 @@ static int camss_of_parse_ports(struct device *dev,
- 		}
- 
- 		remote = of_graph_get_remote_port_parent(node);
--		of_node_put(node);
--
- 		if (!remote) {
- 			dev_err(dev, "Cannot get remote parent\n");
-+			of_node_put(node);
- 			return -EINVAL;
- 		}
- 
- 		csd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
- 		csd->asd.match.fwnode = of_fwnode_handle(remote);
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
+index b37e691..2a9adcd 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
+@@ -364,6 +364,7 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
+ 		val |= cfg->csid_id;
  	}
-+	of_node_put(node);
+ 	writel_relaxed(val, csiphy->base_clk_mux);
++	wmb();
  
- 	return notifier->num_subdevs;
- }
+ 	writel_relaxed(0x1, csiphy->base +
+ 		       CAMSS_CSI_PHY_GLBL_T_INIT_CFG0);
 -- 
 2.7.4
