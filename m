@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44059 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753170AbeGEIZV (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:49181 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752458AbeGEJCo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Jul 2018 04:25:21 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] videobuf2-core: check for q->error in vb2_core_qbuf()
-Message-ID: <ab3d5aa7-c06b-9918-235e-ff983cb5cce7@xs4all.nl>
-Date: Thu, 5 Jul 2018 10:25:19 +0200
+        Thu, 5 Jul 2018 05:02:44 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH] MAINTAINERS: Add entry for STM32 DCMI media driver
+Date: Thu, 5 Jul 2018 11:01:42 +0200
+Message-ID: <1530781302-6675-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vb2_core_qbuf() function didn't check if q->error was set. It is checked in
-__buf_prepare(), but that function isn't called if the buffer was already
-prepared before with VIDIOC_PREPARE_BUF.
+Add an entry to make myself a maintainer of STM32 DCMI media driver.
 
-So check it at the start of vb2_core_qbuf() as well.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index d3501cd604cb..5d7946ec80d8 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1484,6 +1484,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
- 	struct vb2_buffer *vb;
- 	int ret;
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-+	if (q->error) {
-+		dprintk(1, "fatal error occurred on queue\n");
-+		return -EIO;
-+	}
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 07d1576..1032c05 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8955,6 +8955,14 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/dvb-frontends/stv6111*
+ 
++MEDIA DRIVERS FOR STM32 - DCMI
++M:	Hugues Fruchet <hugues.fruchet@st.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Supported
++F:	Documentation/devicetree/bindings/media/st,stm32-dcmi.txt
++F:	drivers/media/platform/stm32/stm32-dcmi.c
 +
- 	vb = q->bufs[index];
-
- 	if ((req && q->uses_qbuf) ||
+ MEDIA DRIVERS FOR NVIDIA TEGRA - VDE
+ M:	Dmitry Osipenko <digetx@gmail.com>
+ L:	linux-media@vger.kernel.org
+-- 
+1.9.1
