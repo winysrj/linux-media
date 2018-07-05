@@ -1,199 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:41214 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:41222 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753372AbeGENdS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1753347AbeGENdS (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 09:33:18 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH v2 01/34] doc-rst: Add packed Bayer raw14 pixel formats
-Date: Thu,  5 Jul 2018 16:32:32 +0300
-Message-Id: <1530797585-8555-2-git-send-email-todor.tomov@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v2 04/34] media: Rename CAMSS driver path
+Date: Thu,  5 Jul 2018 16:32:35 +0300
+Message-Id: <1530797585-8555-5-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 References: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Support for camera subsystem on QComm MSM8996/APQ8096 is to be added
+so remove hardware version from CAMSS driver's path.
 
-These formats are compressed 14-bit raw bayer formats with four different
-pixel orders. They are similar to 10-bit variants. The formats added by
-this patch are
-
-	V4L2_PIX_FMT_SBGGR14P
-	V4L2_PIX_FMT_SGBRG14P
-	V4L2_PIX_FMT_SGRBG14P
-	V4L2_PIX_FMT_SRGGB14P
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- Documentation/media/uapi/v4l/pixfmt-rgb.rst      |   1 +
- Documentation/media/uapi/v4l/pixfmt-srggb14p.rst | 127 +++++++++++++++++++++++
- include/uapi/linux/videodev2.h                   |   5 +
- 3 files changed, 133 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
+ MAINTAINERS                                                      | 2 +-
+ drivers/media/platform/Kconfig                                   | 2 +-
+ drivers/media/platform/Makefile                                  | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/Makefile       | 0
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.c   | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.h   | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.c | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.h | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.c  | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.h  | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-vfe.c    | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-vfe.h    | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.c  | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.h  | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss.c        | 2 +-
+ drivers/media/platform/qcom/{camss-8x16 => camss}/camss.h        | 2 +-
+ 16 files changed, 15 insertions(+), 15 deletions(-)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/Makefile (100%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.c (99%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.h (98%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.c (99%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.h (97%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.c (99%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.h (98%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-vfe.c (99%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-vfe.h (98%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.c (99%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.h (98%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss.c (99%)
+ rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss.h (98%)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-index cf2ef7d..1f9a7e3 100644
---- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
-@@ -19,4 +19,5 @@ RGB Formats
-     pixfmt-srggb10-ipu3
-     pixfmt-srggb12
-     pixfmt-srggb12p
-+    pixfmt-srggb14p
-     pixfmt-srggb16
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
-new file mode 100644
-index 0000000..88d20c0
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
-@@ -0,0 +1,127 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-SRGGB14P:
-+.. _v4l2-pix-fmt-sbggr14p:
-+.. _v4l2-pix-fmt-sgbrg14p:
-+.. _v4l2-pix-fmt-sgrbg14p:
-+
-+*******************************************************************************************************************************
-+V4L2_PIX_FMT_SRGGB14P ('pRCC'), V4L2_PIX_FMT_SGRBG14P ('pgCC'), V4L2_PIX_FMT_SGBRG14P ('pGCC'), V4L2_PIX_FMT_SBGGR14P ('pBCC'),
-+*******************************************************************************************************************************
-+
-+*man V4L2_PIX_FMT_SRGGB14P(2)*
-+
-+V4L2_PIX_FMT_SGRBG14P
-+V4L2_PIX_FMT_SGBRG14P
-+V4L2_PIX_FMT_SBGGR14P
-+14-bit packed Bayer formats
-+
-+
-+Description
-+===========
-+
-+These four pixel formats are packed raw sRGB / Bayer formats with 14
-+bits per colour. Every four consecutive samples are packed into seven
-+bytes. Each of the first four bytes contain the eight high order bits
-+of the pixels, and the three following bytes contains the six least
-+significants bits of each pixel, in the same order.
-+
-+Each n-pixel row contains n/2 green samples and n/2 blue or red samples,
-+with alternating green-red and green-blue rows. They are conventionally
-+described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example
-+of one of these formats:
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       2 1 1 1 1 1 1 1
-+
-+
-+    -  .. row 1
-+
-+       -  start + 0:
-+
-+       -  B\ :sub:`00high`
-+
-+       -  G\ :sub:`01high`
-+
-+       -  B\ :sub:`02high`
-+
-+       -  G\ :sub:`03high`
-+
-+       -  G\ :sub:`01low bits 1--0`\ (bits 7--6)
-+	  B\ :sub:`00low bits 5--0`\ (bits 5--0)
-+
-+       -  R\ :sub:`02low bits 3--0`\ (bits 7--4)
-+	  G\ :sub:`01low bits 5--2`\ (bits 3--0)
-+
-+       -  G\ :sub:`03low bits 5--0`\ (bits 7--2)
-+	  R\ :sub:`02low bits 5--4`\ (bits 1--0)
-+
-+    -  .. row 2
-+
-+       -  start + 7:
-+
-+       -  G\ :sub:`00high`
-+
-+       -  R\ :sub:`01high`
-+
-+       -  G\ :sub:`02high`
-+
-+       -  R\ :sub:`03high`
-+
-+       -  R\ :sub:`01low bits 1--0`\ (bits 7--6)
-+	  G\ :sub:`00low bits 5--0`\ (bits 5--0)
-+
-+       -  G\ :sub:`02low bits 3--0`\ (bits 7--4)
-+	  R\ :sub:`01low bits 5--2`\ (bits 3--0)
-+
-+       -  R\ :sub:`03low bits 5--0`\ (bits 7--2)
-+	  G\ :sub:`02low bits 5--4`\ (bits 1--0)
-+
-+    -  .. row 3
-+
-+       -  start + 14
-+
-+       -  B\ :sub:`20high`
-+
-+       -  G\ :sub:`21high`
-+
-+       -  B\ :sub:`22high`
-+
-+       -  G\ :sub:`23high`
-+
-+       -  G\ :sub:`21low bits 1--0`\ (bits 7--6)
-+	  B\ :sub:`20low bits 5--0`\ (bits 5--0)
-+
-+       -  R\ :sub:`22low bits 3--0`\ (bits 7--4)
-+	  G\ :sub:`21low bits 5--2`\ (bits 3--0)
-+
-+       -  G\ :sub:`23low bits 5--0`\ (bits 7--2)
-+	  R\ :sub:`22low bits 5--4`\ (bits 1--0)
-+
-+    -  .. row 4
-+
-+       -  start + 21
-+
-+       -  G\ :sub:`30high`
-+
-+       -  R\ :sub:`31high`
-+
-+       -  G\ :sub:`32high`
-+
-+       -  R\ :sub:`33high`
-+
-+       -  R\ :sub:`31low bits 1--0`\ (bits 7--6)
-+	  G\ :sub:`30low bits 5--0`\ (bits 5--0)
-+
-+       -  G\ :sub:`32low bits 3--0`\ (bits 7--4)
-+	  R\ :sub:`31low bits 5--2`\ (bits 3--0)
-+
-+       -  R\ :sub:`33low bits 5--0`\ (bits 7--2)
-+	  G\ :sub:`32low bits 5--4`\ (bits 1--0)
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 600877b..a15e03b 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -609,6 +609,11 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
- #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
- #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
-+	/* 14bit raw bayer packed, 7 bytes for every 4 pixels */
-+#define V4L2_PIX_FMT_SBGGR14P v4l2_fourcc('p', 'B', 'E', 'E')
-+#define V4L2_PIX_FMT_SGBRG14P v4l2_fourcc('p', 'G', 'E', 'E')
-+#define V4L2_PIX_FMT_SGRBG14P v4l2_fourcc('p', 'g', 'E', 'E')
-+#define V4L2_PIX_FMT_SRGGB14P v4l2_fourcc('p', 'R', 'E', 'E')
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
- #define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 10fd4c0..7a77757 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11866,7 +11866,7 @@ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/devicetree/bindings/media/qcom,camss.txt
+ F:	Documentation/media/v4l-drivers/qcom_camss.rst
+-F:	drivers/media/platform/qcom/camss-8x16/
++F:	drivers/media/platform/qcom/camss/
+ 
+ QUALCOMM CPUFREQ DRIVER MSM8996/APQ8096
+ M:  Ilia Lin <ilia.lin@gmail.com>
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 210b44a..870b175 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -90,7 +90,7 @@ config VIDEO_PXA27x
+ 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
+ 
+ config VIDEO_QCOM_CAMSS
+-	tristate "Qualcomm 8x16 V4L2 Camera Subsystem driver"
++	tristate "Qualcomm V4L2 Camera Subsystem driver"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on (ARCH_QCOM && IOMMU_DMA) || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_SG
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 04bc150..20a7b64 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -88,7 +88,7 @@ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+ 
+ obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
+ 
+-obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
++obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss/
+ 
+ obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+ 
+diff --git a/drivers/media/platform/qcom/camss-8x16/Makefile b/drivers/media/platform/qcom/camss/Makefile
+similarity index 100%
+rename from drivers/media/platform/qcom/camss-8x16/Makefile
+rename to drivers/media/platform/qcom/camss/Makefile
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
+similarity index 99%
+rename from drivers/media/platform/qcom/camss-8x16/camss-csid.c
+rename to drivers/media/platform/qcom/camss/camss-csid.c
+index 226f36e..39ea27b 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-csid.c
++++ b/drivers/media/platform/qcom/camss/camss-csid.c
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - CSID (CSI Decoder) Module
+  *
+  * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csid.h b/drivers/media/platform/qcom/camss/camss-csid.h
+similarity index 98%
+rename from drivers/media/platform/qcom/camss-8x16/camss-csid.h
+rename to drivers/media/platform/qcom/camss/camss-csid.h
+index 8682d30..8012222 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-csid.h
++++ b/drivers/media/platform/qcom/camss/camss-csid.h
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - CSID (CSI Decoder) Module
+  *
+  * Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
+similarity index 99%
+rename from drivers/media/platform/qcom/camss-8x16/camss-csiphy.c
+rename to drivers/media/platform/qcom/camss/camss-csiphy.c
+index 7e61cab..642de25 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-csiphy.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - CSIPHY Module
+  *
+  * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2016-2017 Linaro Ltd.
++ * Copyright (C) 2016-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-csiphy.h b/drivers/media/platform/qcom/camss/camss-csiphy.h
+similarity index 97%
+rename from drivers/media/platform/qcom/camss-8x16/camss-csiphy.h
+rename to drivers/media/platform/qcom/camss/camss-csiphy.h
+index ba87811..9a42209 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-csiphy.h
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.h
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - CSIPHY Module
+  *
+  * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2016-2017 Linaro Ltd.
++ * Copyright (C) 2016-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
+similarity index 99%
+rename from drivers/media/platform/qcom/camss-8x16/camss-ispif.c
+rename to drivers/media/platform/qcom/camss/camss-ispif.c
+index 9d1af93..636d5e7 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-ispif.c
++++ b/drivers/media/platform/qcom/camss/camss-ispif.c
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - ISPIF (ISP Interface) Module
+  *
+  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-ispif.h b/drivers/media/platform/qcom/camss/camss-ispif.h
+similarity index 98%
+rename from drivers/media/platform/qcom/camss-8x16/camss-ispif.h
+rename to drivers/media/platform/qcom/camss/camss-ispif.h
+index f668306..c90e159 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-ispif.h
++++ b/drivers/media/platform/qcom/camss/camss-ispif.h
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - ISPIF (ISP Interface) Module
+  *
+  * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
+similarity index 99%
+rename from drivers/media/platform/qcom/camss-8x16/camss-vfe.c
+rename to drivers/media/platform/qcom/camss/camss-vfe.c
+index a6329a8..380b90b 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss/camss-vfe.c
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - VFE (Video Front End) Module
+  *
+  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h b/drivers/media/platform/qcom/camss/camss-vfe.h
+similarity index 98%
+rename from drivers/media/platform/qcom/camss-8x16/camss-vfe.h
+rename to drivers/media/platform/qcom/camss/camss-vfe.h
+index 53d5b66..5aa7407 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.h
++++ b/drivers/media/platform/qcom/camss/camss-vfe.h
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - VFE (Video Front End) Module
+  *
+  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-video.c b/drivers/media/platform/qcom/camss/camss-video.c
+similarity index 99%
+rename from drivers/media/platform/qcom/camss-8x16/camss-video.c
+rename to drivers/media/platform/qcom/camss/camss-video.c
+index ffaa284..0e7b842 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-video.c
++++ b/drivers/media/platform/qcom/camss/camss-video.c
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - V4L2 device node
+  *
+  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss-video.h b/drivers/media/platform/qcom/camss/camss-video.h
+similarity index 98%
+rename from drivers/media/platform/qcom/camss-8x16/camss-video.h
+rename to drivers/media/platform/qcom/camss/camss-video.h
+index 38bd1f2..821c1ef 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss-video.h
++++ b/drivers/media/platform/qcom/camss/camss-video.h
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - V4L2 device node
+  *
+  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss/camss.c
+similarity index 99%
+rename from drivers/media/platform/qcom/camss-8x16/camss.c
+rename to drivers/media/platform/qcom/camss/camss.c
+index 23fda62..d1d27fc 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss.c
++++ b/drivers/media/platform/qcom/camss/camss.c
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - Core
+  *
+  * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+diff --git a/drivers/media/platform/qcom/camss-8x16/camss.h b/drivers/media/platform/qcom/camss/camss.h
+similarity index 98%
+rename from drivers/media/platform/qcom/camss-8x16/camss.h
+rename to drivers/media/platform/qcom/camss/camss.h
+index 4ad2234..0e7cfe6 100644
+--- a/drivers/media/platform/qcom/camss-8x16/camss.h
++++ b/drivers/media/platform/qcom/camss/camss.h
+@@ -4,7 +4,7 @@
+  * Qualcomm MSM Camera Subsystem - Core
+  *
+  * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+- * Copyright (C) 2015-2017 Linaro Ltd.
++ * Copyright (C) 2015-2018 Linaro Ltd.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
 -- 
 2.7.4
