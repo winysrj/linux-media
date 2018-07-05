@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:50235 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754364AbeGENFY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:05:24 -0400
-Received: by mail-wm0-f66.google.com with SMTP id v25-v6so11042374wmc.0
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:05:24 -0700 (PDT)
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:56142 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754547AbeGENFi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:05:38 -0400
+Received: by mail-wm0-f51.google.com with SMTP id v16-v6so11020850wmv.5
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:05:37 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,88 +14,158 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Tomasz Figa <tfiga@chromium.org>,
         Alexandre Courbot <acourbot@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v5 15/27] venus: helpers: add helper function to set actual buffer size
-Date: Thu,  5 Jul 2018 16:03:49 +0300
-Message-Id: <20180705130401.24315-16-stanimir.varbanov@linaro.org>
+Subject: [PATCH v5 27/27] venus: add HEVC codec support
+Date: Thu,  5 Jul 2018 16:04:01 +0300
+Message-Id: <20180705130401.24315-28-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
 References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add and use a helper function to set actual buffer size for
-particular buffer type. This is also preparation to use
-the second decoder output.
+This add HEVC codec support for venus versions 3xx and 4xx.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/platform/qcom/venus/helpers.c | 12 ++++++++++++
- drivers/media/platform/qcom/venus/helpers.h |  1 +
- drivers/media/platform/qcom/venus/vdec.c    | 10 ++--------
- 3 files changed, 15 insertions(+), 8 deletions(-)
+ drivers/media/platform/qcom/venus/core.h    |  2 ++
+ drivers/media/platform/qcom/venus/helpers.c |  3 ++
+ drivers/media/platform/qcom/venus/hfi.c     |  2 ++
+ drivers/media/platform/qcom/venus/vdec.c    |  4 +++
+ drivers/media/platform/qcom/venus/venc.c    | 49 +++++++++++++++++++++++++++++
+ 5 files changed, 60 insertions(+)
 
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index 8cc49f30a363..2f02365f4818 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -190,10 +190,12 @@ struct venc_controls {
+ 		u32 mpeg4;
+ 		u32 h264;
+ 		u32 vpx;
++		u32 hevc;
+ 	} profile;
+ 	struct {
+ 		u32 mpeg4;
+ 		u32 h264;
++		u32 hevc;
+ 	} level;
+ };
+ 
 diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
-index 29cc84777125..6fd7458f390a 100644
+index cea5b506dd51..cd3b96e6f24b 100644
 --- a/drivers/media/platform/qcom/venus/helpers.c
 +++ b/drivers/media/platform/qcom/venus/helpers.c
-@@ -546,6 +546,18 @@ int venus_helper_set_dyn_bufmode(struct venus_inst *inst)
- }
- EXPORT_SYMBOL_GPL(venus_helper_set_dyn_bufmode);
- 
-+int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype)
-+{
-+	const u32 ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
-+	struct hfi_buffer_size_actual bufsz;
-+
-+	bufsz.type = buftype;
-+	bufsz.size = bufsize;
-+
-+	return hfi_session_set_property(inst, ptype, &bufsz);
-+}
-+EXPORT_SYMBOL_GPL(venus_helper_set_bufsize);
-+
- static void delayed_process_buf_func(struct work_struct *work)
- {
- 	struct venus_buffer *buf, *n;
-diff --git a/drivers/media/platform/qcom/venus/helpers.h b/drivers/media/platform/qcom/venus/helpers.h
-index 52b961ed491e..cd306bd8978f 100644
---- a/drivers/media/platform/qcom/venus/helpers.h
-+++ b/drivers/media/platform/qcom/venus/helpers.h
-@@ -41,6 +41,7 @@ int venus_helper_set_num_bufs(struct venus_inst *inst, unsigned int input_bufs,
- 			      unsigned int output_bufs);
- int venus_helper_set_color_format(struct venus_inst *inst, u32 fmt);
- int venus_helper_set_dyn_bufmode(struct venus_inst *inst);
-+int venus_helper_set_bufsize(struct venus_inst *inst, u32 bufsize, u32 buftype);
- void venus_helper_acquire_buf_ref(struct vb2_v4l2_buffer *vbuf);
- void venus_helper_release_buf_ref(struct venus_inst *inst, unsigned int idx);
- void venus_helper_init_instance(struct venus_inst *inst);
+@@ -71,6 +71,9 @@ bool venus_helper_check_codec(struct venus_inst *inst, u32 v4l2_pixfmt)
+ 	case V4L2_PIX_FMT_XVID:
+ 		codec = HFI_VIDEO_CODEC_DIVX;
+ 		break;
++	case V4L2_PIX_FMT_HEVC:
++		codec = HFI_VIDEO_CODEC_HEVC;
++		break;
+ 	default:
+ 		return false;
+ 	}
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index 94ca27b0bb99..24207829982f 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -49,6 +49,8 @@ static u32 to_codec_type(u32 pixfmt)
+ 		return HFI_VIDEO_CODEC_VP9;
+ 	case V4L2_PIX_FMT_XVID:
+ 		return HFI_VIDEO_CODEC_DIVX;
++	case V4L2_PIX_FMT_HEVC:
++		return HFI_VIDEO_CODEC_HEVC;
+ 	default:
+ 		return 0;
+ 	}
 diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index c37779d82fec..d2a53c0eab86 100644
+index d53e487e3dfa..eeaf99380e3e 100644
 --- a/drivers/media/platform/qcom/venus/vdec.c
 +++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -710,7 +710,6 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
- {
- 	struct venus_inst *inst = vb2_get_drv_priv(q);
- 	struct venus_core *core = inst->core;
--	u32 ptype;
- 	int ret;
+@@ -77,6 +77,10 @@ static const struct venus_format vdec_formats[] = {
+ 		.pixfmt = V4L2_PIX_FMT_XVID,
+ 		.num_planes = 1,
+ 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_HEVC,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+ 	},
+ };
  
- 	mutex_lock(&inst->lock);
-@@ -740,13 +739,8 @@ static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
- 		goto deinit_sess;
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 5973bf1f8174..67e895965c93 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -59,6 +59,10 @@ static const struct venus_format venc_formats[] = {
+ 		.pixfmt = V4L2_PIX_FMT_VP8,
+ 		.num_planes = 1,
+ 		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_HEVC,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+ 	},
+ };
  
- 	if (core->res->hfi_version == HFI_VERSION_3XX) {
--		struct hfi_buffer_size_actual buf_sz;
--
--		ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
--		buf_sz.type = HFI_BUFFER_OUTPUT;
--		buf_sz.size = inst->output_buf_size;
--
--		ret = hfi_session_set_property(inst, ptype, &buf_sz);
-+		ret = venus_helper_set_bufsize(inst, inst->output_buf_size,
-+					       HFI_BUFFER_OUTPUT);
- 		if (ret)
- 			goto deinit_sess;
+@@ -220,6 +224,46 @@ static int venc_v4l2_to_hfi(int id, int value)
+ 		case V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY:
+ 			return HFI_H264_DB_MODE_SKIP_SLICE_BOUNDARY;
+ 		}
++	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
++		switch (value) {
++		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN:
++		default:
++			return HFI_HEVC_PROFILE_MAIN;
++		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE:
++			return HFI_HEVC_PROFILE_MAIN_STILL_PIC;
++		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_10:
++			return HFI_HEVC_PROFILE_MAIN10;
++		}
++	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
++		switch (value) {
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_1:
++		default:
++			return HFI_HEVC_LEVEL_1;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_2:
++			return HFI_HEVC_LEVEL_2;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1:
++			return HFI_HEVC_LEVEL_21;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_3:
++			return HFI_HEVC_LEVEL_3;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1:
++			return HFI_HEVC_LEVEL_31;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_4:
++			return HFI_HEVC_LEVEL_4;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1:
++			return HFI_HEVC_LEVEL_41;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_5:
++			return HFI_HEVC_LEVEL_5;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1:
++			return HFI_HEVC_LEVEL_51;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2:
++			return HFI_HEVC_LEVEL_52;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_6:
++			return HFI_HEVC_LEVEL_6;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1:
++			return HFI_HEVC_LEVEL_61;
++		case V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2:
++			return HFI_HEVC_LEVEL_62;
++		}
  	}
+ 
+ 	return 0;
+@@ -744,6 +788,11 @@ static int venc_set_properties(struct venus_inst *inst)
+ 	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H263) {
+ 		profile = 0;
+ 		level = 0;
++	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_HEVC) {
++		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_HEVC_PROFILE,
++					   ctr->profile.hevc);
++		level = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_HEVC_LEVEL,
++					 ctr->level.hevc);
+ 	}
+ 
+ 	ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
 -- 
 2.14.1
