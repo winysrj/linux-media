@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:34101 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754525AbeGENFh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:05:37 -0400
-Received: by mail-wr1-f67.google.com with SMTP id c13-v6so1100621wrt.1
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:05:36 -0700 (PDT)
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:51988 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754499AbeGENFc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 09:05:32 -0400
+Received: by mail-wm0-f65.google.com with SMTP id s12-v6so11041348wmc.1
+        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 06:05:31 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
@@ -14,71 +14,114 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Tomasz Figa <tfiga@chromium.org>,
         Alexandre Courbot <acourbot@chromium.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v5 26/27] venus: core: add sdm845 DT compatible and resource data
-Date: Thu,  5 Jul 2018 16:04:00 +0300
-Message-Id: <20180705130401.24315-27-stanimir.varbanov@linaro.org>
+Subject: [PATCH v5 22/27] venus: vdec: get required input buffers as well
+Date: Thu,  5 Jul 2018 16:03:56 +0300
+Message-Id: <20180705130401.24315-23-stanimir.varbanov@linaro.org>
 In-Reply-To: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
 References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds sdm845 DT compatible string with it's resource
-data table.
+Rework and rename vdec_cap_num_buffers() to get the number of
+input buffers too.
 
 Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- .../devicetree/bindings/media/qcom,venus.txt       |  1 +
- drivers/media/platform/qcom/venus/core.c           | 22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+)
+ drivers/media/platform/qcom/venus/vdec.c | 41 +++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-index 2693449daf73..00d0d1bf7647 100644
---- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-+++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-@@ -6,6 +6,7 @@
- 	Definition: Value should contain one of:
- 		- "qcom,msm8916-venus"
- 		- "qcom,msm8996-venus"
-+		- "qcom,sdm845-venus"
- - reg:
- 	Usage: required
- 	Value type: <prop-encoded-array>
-diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index 381bfdd688db..bb6add9d340e 100644
---- a/drivers/media/platform/qcom/venus/core.c
-+++ b/drivers/media/platform/qcom/venus/core.c
-@@ -450,9 +450,31 @@ static const struct venus_resources msm8996_res = {
- 	.fwname = "qcom/venus-4.2/venus.mdt",
- };
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index 3af1fb81cc32..c98084f51e5e 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -603,19 +603,32 @@ static int vdec_init_session(struct venus_inst *inst)
+ 	return ret;
+ }
  
-+static const struct freq_tbl sdm845_freq_table[] = {
-+	{ 1944000, 380000000 },	/* 4k UHD @ 60 */
-+	{  972000, 320000000 },	/* 4k UHD @ 30 */
-+	{  489600, 200000000 },	/* 1080p @ 60 */
-+	{  244800, 100000000 },	/* 1080p @ 30 */
-+};
+-static int vdec_cap_num_buffers(struct venus_inst *inst, unsigned int *num)
++static int vdec_num_buffers(struct venus_inst *inst, unsigned int *in_num,
++			    unsigned int *out_num)
+ {
++	enum hfi_version ver = inst->core->res->hfi_version;
+ 	struct hfi_buffer_requirements bufreq;
+ 	int ret;
+ 
++	*in_num = *out_num = 0;
 +
-+static const struct venus_resources sdm845_res = {
-+	.freq_tbl = sdm845_freq_table,
-+	.freq_tbl_size = ARRAY_SIZE(sdm845_freq_table),
-+	.clks = {"core", "iface", "bus" },
-+	.clks_num = 3,
-+	.max_load = 2563200,
-+	.hfi_version = HFI_VERSION_4XX,
-+	.vmem_id = VIDC_RESOURCE_NONE,
-+	.vmem_size = 0,
-+	.vmem_addr = 0,
-+	.dma_mask = 0xe0000000 - 1,
-+	.fwname = "qcom/venus-5.2/venus.mdt",
-+};
+ 	ret = vdec_init_session(inst);
+ 	if (ret)
+ 		return ret;
+ 
++	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
++	if (ret)
++		goto deinit;
 +
- static const struct of_device_id venus_dt_match[] = {
- 	{ .compatible = "qcom,msm8916-venus", .data = &msm8916_res, },
- 	{ .compatible = "qcom,msm8996-venus", .data = &msm8996_res, },
-+	{ .compatible = "qcom,sdm845-venus", .data = &sdm845_res, },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, venus_dt_match);
++	*in_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
++
+ 	ret = venus_helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
++	if (ret)
++		goto deinit;
+ 
+-	*num = bufreq.count_actual;
++	*out_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
+ 
++deinit:
+ 	hfi_session_deinit(inst);
+ 
+ 	return ret;
+@@ -626,7 +639,7 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 			    unsigned int sizes[], struct device *alloc_devs[])
+ {
+ 	struct venus_inst *inst = vb2_get_drv_priv(q);
+-	unsigned int p, num;
++	unsigned int p, in_num, out_num;
+ 	int ret = 0;
+ 
+ 	if (*num_planes) {
+@@ -649,35 +662,29 @@ static int vdec_queue_setup(struct vb2_queue *q,
+ 		return 0;
+ 	}
+ 
++	ret = vdec_num_buffers(inst, &in_num, &out_num);
++	if (ret)
++		return ret;
++
+ 	switch (q->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 		*num_planes = inst->fmt_out->num_planes;
+ 		sizes[0] = get_framesize_compressed(inst->out_width,
+ 						    inst->out_height);
+ 		inst->input_buf_size = sizes[0];
++		*num_buffers = max(*num_buffers, in_num);
+ 		inst->num_input_bufs = *num_buffers;
+-
+-		ret = vdec_cap_num_buffers(inst, &num);
+-		if (ret)
+-			break;
+-
+-		inst->num_output_bufs = num;
++		inst->num_output_bufs = out_num;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 		*num_planes = inst->fmt_cap->num_planes;
+ 
+-		ret = vdec_cap_num_buffers(inst, &num);
+-		if (ret)
+-			break;
+-
+-		*num_buffers = max(*num_buffers, num);
+-
+ 		for (p = 0; p < *num_planes; p++)
+ 			sizes[p] = get_framesize_uncompressed(p, inst->width,
+ 							      inst->height);
+-
+-		inst->num_output_bufs = *num_buffers;
+ 		inst->output_buf_size = sizes[0];
++		*num_buffers = max(*num_buffers, out_num);
++		inst->num_output_bufs = *num_buffers;
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
 -- 
 2.14.1
