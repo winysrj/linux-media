@@ -1,84 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:59692 "EHLO bues.ch"
+Received: from mail.kernel.org ([198.145.29.99]:33078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754070AbeGEUBL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Jul 2018 16:01:11 -0400
-Date: Thu, 5 Jul 2018 21:16:06 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>,
-        Antti Palosaari <crope@iki.fi>, Sergey Kozlov <serjk@netup.ru>,
-        Abylay Ospan <aospan@netup.ru>,
-        Malcolm Priestley <tvboxspy@gmail.com>,
-        Daniel Scheller <d.scheller.oss@gmail.com>,
-        Olli Salonen <olli.salonen@iki.fi>,
-        Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [PATCH 1/2] media: dvb: convert tuner_info frequencies to Hz
-Message-ID: <20180705211606.79a96d22@wiggum>
-In-Reply-To: <2a369e8faf3b277baff4026371f298e95c84fbb2.1530740760.git.mchehab+samsung@kernel.org>
-References: <cover.1530740760.git.mchehab+samsung@kernel.org>
- <2a369e8faf3b277baff4026371f298e95c84fbb2.1530740760.git.mchehab+samsung@kernel.org>
+        id S1754048AbeGEULl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Jul 2018 16:11:41 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- boundary="Sig_/NIYOq_0/6TravqEW+Ov+Q=9"; protocol="application/pgp-signature"
+References: <20180703140803.19580-1-rui.silva@linaro.org> <20180703140803.19580-2-rui.silva@linaro.org>
+ <20180704085801.GB4463@w540> <m3a7r7robk.fsf@linaro.org>
+In-Reply-To: <m3a7r7robk.fsf@linaro.org>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 5 Jul 2018 14:11:28 -0600
+Message-ID: <CAL_JsqLEO6DBpSes30Wk++2MOyypDt_N=yU_H00GyQzJMY-A3g@mail.gmail.com>
+Subject: Re: [PATCH v7 1/2] media: ov2680: dt: Add bindings for OV2680
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: jmondi <jacopo@jmondi.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Ryan Harkin <ryan.harkin@linaro.org>,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/NIYOq_0/6TravqEW+Ov+Q=9
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jul 4, 2018 at 9:52 AM Rui Miguel Silva <rui.silva@linaro.org> wrote:
+>
+> Hi Jacopo,
+> Hope your fine.
+> Thanks for the review.
+>
+> On Wed 04 Jul 2018 at 09:58, jacopo mondi wrote:
+> > Hi Rui,
+> >    sorry, I'm a bit late, you're already at v7 and I don't want
+> >    to
+> > slow down inclusion with a few minor comments.
+> >
+> > Please bear with me and see below...
+> >
+> > On Tue, Jul 03, 2018 at 03:08:02PM +0100, Rui Miguel Silva
+> > wrote:
+> >> Add device tree binding documentation for the OV2680 camera
+> >> sensor.
+> >>
+> >> CC: devicetree@vger.kernel.org
+> >> Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+> >> ---
+> >>  .../devicetree/bindings/media/i2c/ov2680.txt  | 46
+> >>  +++++++++++++++++++
+> >>  1 file changed, 46 insertions(+)
+> >>  create mode 100644
+> >>  Documentation/devicetree/bindings/media/i2c/ov2680.txt
+> >>
+> >> diff --git
+> >> a/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+> >> b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+> >> new file mode 100644
+> >> index 000000000000..11e925ed9dad
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/i2c/ov2680.txt
+> >> @@ -0,0 +1,46 @@
+> >> +* Omnivision OV2680 MIPI CSI-2 sensor
+> >> +
+> >> +Required Properties:
+> >> +- compatible: should be "ovti,ov2680".
+> >> +- clocks: reference to the xvclk input clock.
+> >> +- clock-names: should be "xvclk".
+> >
+> > Having a single clock source I think you can omit 'clock-names'
+> > (or at
+> > least not marking it as required)
+>
+> yeah, I see you point, but really all other OV sensors share this
+> and
+> the bellow clock/data-lanes properties as required, I will let Rob
+> or
+> Sakari take a call in this one.
 
-On Wed,  4 Jul 2018 23:46:56 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
+I generally tell folks that *-names is not needed when there's only 1,
+but having alignment across bindings is good too.
 
-> diff --git a/drivers/media/tuners/fc0011.c b/drivers/media/tuners/fc0011.c
-> index 145407dee3db..a983899c6b0b 100644
-> --- a/drivers/media/tuners/fc0011.c
-> +++ b/drivers/media/tuners/fc0011.c
-> @@ -472,10 +472,10 @@ static int fc0011_get_bandwidth(struct dvb_frontend=
- *fe, u32 *bandwidth)
-> =20
->  static const struct dvb_tuner_ops fc0011_tuner_ops =3D {
->  	.info =3D {
-> -		.name		=3D "Fitipower FC0011",
-> +		.name		  =3D "Fitipower FC0011",
-> =20
-> -		.frequency_min	=3D 45000000,
-> -		.frequency_max	=3D 1000000000,
-> +		.frequency_min_hz =3D   45 * MHz,
-> +		.frequency_max_hz =3D 1000 * MHz,
->  	},
-> =20
->  	.release		=3D fc0011_release,
-
-Acked-by: Michael B=C3=BCsch <m@bues.ch>
-
-What about a GHz definition for 1000 * MHz?
-
---=20
-Michael
-
---Sig_/NIYOq_0/6TravqEW+Ov+Q=9
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEEihRzkKVZOnT2ipsS9TK+HZCNiw4FAls+bnYACgkQ9TK+HZCN
-iw5c5w//VYXsmuTefQuyln+RqGlTVZ1IkKOXKkOufZCo5NvJQ1D9XV7Xpk6wSdRA
-3Ril9Q4u0CIwJHwKLPM0Y1G2Na7ZlNhtX8Wm2wgYJbAdWs4Nbsx6rE6t/Pddf9M1
-jn/G9CVuvp4ohnOUTt+S8vqufvJ0X12nNNQga3GhfXAPKbKpvy2GIu3Xaz+dHpF1
-MARP2b5DdVpieWJye5Cya9QjFGtjpUFRwX9lPCPKITAIQ9WFFIim1GZ0R81F9W8t
-RFfIhN4SBehVWzLutdNnDLfmJT6/JGTzdSCjfYFx1xDWmqM9nJ723JdAdtfL7Nd9
-w8+396yp7t4cnp5RfanUTI4CPVvPkShkVvq7yO6ZF8yzzj2wza4r01zFrt04zaXN
-Jq0TL/lWazaKxHmDj44xsMH2mQd1T6/Ny7qP2DkrcInbcJWnPZ96lqWSRgCfGyuG
-CXK9t/mI45TQ4nEwRYGZH/M1BOe8ycSnulEGgTWcNpifiW9Pi7qrG65hjKO/8Vda
-oBipTBhrTT+gGLnCWJw46u1tdks4X9uSMjRXBcBxZIraW9Nk37tqQu1wjdB14HuA
-bCD6Z/0WztyPO6s1BEXPcBSIk6d3LL5xFqx71/obs6a2NYJUZBlD4kvzTLnNxZO8
-8oo3mNnqH785je/qQgh1/PAIK9lk87hEwPwMiIT0VuibyCcofFk=
-=j00R
------END PGP SIGNATURE-----
-
---Sig_/NIYOq_0/6TravqEW+Ov+Q=9--
+Rob
