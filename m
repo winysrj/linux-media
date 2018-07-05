@@ -1,98 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:43043 "EHLO
-        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750711AbeGFEA5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 00:00:57 -0400
+Received: from mx.socionext.com ([202.248.49.38]:57432 "EHLO mx.socionext.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750904AbeGEFny (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Jul 2018 01:43:54 -0400
+From: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
+To: "'Mauro Carvalho Chehab'" <mchehab+samsung@kernel.org>,
+        =?utf-8?B?U3V6dWtpLCBLYXRzdWhpcm8v6Yi05pyoIOWLneWNmg==?=
+        <suzuki.katsuhiro@socionext.com>
+Cc: <linux-media@vger.kernel.org>,
+        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
+        "Jassi Brar" <jaswinder.singh@linaro.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20180621031748.21703-1-suzuki.katsuhiro@socionext.com>     <20180704135657.3fd607cb@coco.lan>      <000401d41403$b33db490$19b91db0$@socionext.com> <20180704234244.32d20f6b@coco.lan>
+In-Reply-To: <20180704234244.32d20f6b@coco.lan>
+Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T demodulator driver
+Date: Thu, 5 Jul 2018 14:43:49 +0900
+Message-ID: <000501d41423$265013a0$72f03ae0$@socionext.com>
 MIME-Version: 1.0
-In-Reply-To: <20180704080005.juutrwri4kxm7yim@sirius.home.kraxel.org>
-References: <20180703075359.30349-1-kraxel@redhat.com> <20180703083757.GG7880@phenom.ffwll.local>
- <20180704055338.n3b7oexltaejqmcd@sirius.home.kraxel.org> <9818b301-9c9d-c703-d4fe-7c2d4d43ed66@collabora.com>
- <20180704080005.juutrwri4kxm7yim@sirius.home.kraxel.org>
-From: Dave Airlie <airlied@gmail.com>
-Date: Fri, 6 Jul 2018 14:00:55 +1000
-Message-ID: <CAPM=9tyRRSPa2xk1ZjWLVYG2mro=wMNFK3T70m0TtME-wg9dBA@mail.gmail.com>
-Subject: Re: [PATCH v6] Add udmabuf misc device
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        Daniel Stone <daniels@collabora.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        David Airlie <airlied@linux.ie>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>, Shuah Khan <shuah@kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: ja
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 4 July 2018 at 18:00, Gerd Hoffmann <kraxel@redhat.com> wrote:
-> On Wed, Jul 04, 2018 at 09:26:39AM +0200, Tomeu Vizoso wrote:
->> On 07/04/2018 07:53 AM, Gerd Hoffmann wrote:
->> > On Tue, Jul 03, 2018 at 10:37:57AM +0200, Daniel Vetter wrote:
->> > > On Tue, Jul 03, 2018 at 09:53:58AM +0200, Gerd Hoffmann wrote:
->> > > > A driver to let userspace turn memfd regions into dma-bufs.
->> > > >
->> > > > Use case:  Allows qemu create dmabufs for the vga framebuffer or
->> > > > virtio-gpu ressources.  Then they can be passed around to display
->> > > > those guest things on the host.  To spice client for classic full
->> > > > framebuffer display, and hopefully some day to wayland server for
->> > > > seamless guest window display.
->> > > >
->> > > > qemu test branch:
->> > > >    https://git.kraxel.org/cgit/qemu/log/?h=sirius/udmabuf
->> > > >
->> > > > Cc: David Airlie <airlied@linux.ie>
->> > > > Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->> > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> > > > Cc: Daniel Vetter <daniel@ffwll.ch>
->> > > > Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
->> > >
->> > > I think some ack for a 2nd use-case, like virtio-wl or whatever would be
->> > > really cool. To give us some assurance that this is generically useful.
->> >
->> > Tomeu?  Laurent?
->>
->> Sorry, but I think I will need some help to understand how this could help
->> in the virtio-wl case [adding Zach Reizner to CC].
->>
->> Any graphics buffers that are allocated with memfd will be shared with the
->> compositor via wl_shm, without need for dmabufs.
->
-> Within one machine, yes.  Once virtualization is added to the mix things
-> become more complicated ...
->
-> When using virtio-gpu the guest will allocate graphics buffers from
-> normal (guest) ram, then register these buffers (which are allowed to be
-> scattered) with the host as resource.
->
-> qemu can use memfd to allocate guest ram.  Now, with the help of
-> udmabuf, qemu can create a *host* dma-buf for the *guest* graphics
-> buffer.
->
-> That dma-buf can be used by qemu internally (mmap it to get a linear
-> mapping of the resource, to avoid copying).  It can be passed on to
-> spice-client, to display the guest framebuffer.
->
-> And I think it could also be quite useful to pass guest wayland windows
-> to the host compositor, without mapping host-allocated buffers into the
-> guest, so we don't have do deal with the "find some address space for
-> the mapping" issue in the first place.  There are more things needed to
-> complete this of course, but it's a building block ...
+Hi Mauro,
 
-There is a use case where I think we have to deal with the "find some address
-space" problem. For GL4.4 ARB_buffer_storage and Vulkan memory mangement
-there is the concept of coherent buffers between GPU and CPU. From the
-virgl point of view, we'd create a host buffer in GL, and then create
-a mapping from
-it on the host that we'd need to present in the guest userspace as a
-linear buffer.
+Thank you very much! Great works.
+Your patches works fine with my driver (modified max/min frequencies).
 
-Just in case we think this can solve all our problems :-)
+Tested-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
 
-Dave.
+
+And I have one question in the below.
+
+
+> -----Original Message-----
+> From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> Sent: Thursday, July 5, 2018 11:43 AM
+> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> Cc: linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
+> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infradead.org;
+> linux-kernel@vger.kernel.org
+> Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+> demodulator driver
+> 
+> Em Thu, 5 Jul 2018 10:58:42 +0900
+> "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
+> 
+> > Hi Mauro,
+> >
+> > > -----Original Message-----
+> > > From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> > > Sent: Thursday, July 5, 2018 1:58 AM
+> > > To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> > > Cc: linux-media@vger.kernel.org; Masami Hiramatsu
+> > <masami.hiramatsu@linaro.org>;
+> > > Jassi Brar <jaswinder.singh@linaro.org>;
+> linux-arm-kernel@lists.infradead.org;
+> > > linux-kernel@vger.kernel.org
+> > > Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+> > > demodulator driver
+> > >
+> > > Hi Katsuhiro-san,
+> > >
+> > > Em Thu, 21 Jun 2018 12:17:48 +0900
+> > > Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com> escreveu:
+> > >
+> > > > This patch adds a frontend driver for the Socionext SC1501A series
+> > > > and Socionext MN88443x ISDB-S/T demodulators.
+> > >
+> > > Sorry for taking so long to review it. We're missing a sub-maintainer
+> > > for DVB, with would otherwise speed up reviews of DVB patches.
+> >
+> > No problem, thank you for reviewing! I appreciate it.
+> >
+> >
+> > > >
+> > > > The maximum and minimum frequency of Socionext SC1501A comes from
+> > > > ISDB-S and ISDB-T so frequency range is the following:
+> > > >   - ISDB-S (BS/CS110 IF frequency in kHz, Local freq 10.678GHz)
+> > > >     - Min: BS-1: 1032000 => 1032.23MHz
+> > > >     - Max: ND24: 2701000 => 2070.25MHz
+> > > >   - ISDB-T (in Hz)
+> > > >     - Min: ch13: 470000000 => 470.357857MHz
+> > > >     - Max: ch62: 770000000 => 769.927857MHz
+> > >
+> > > There is actually an error on that part of the driver. Right now,
+> > > the DVB core expects Satellite frequencies (DVB-S, ISDB-S, ...)
+> > > in kHz. For all other delivery systems, it is in Hz.
+> > >
+> > > It is this way due to historic reasons. While it won't be hard to
+> > > change the core, that would require to touch all Satellite drivers.
+> > >
+> > > As there are very few frontend drivers that accept both Satellite
+> > > and Terrestrial standards, what we do, instead, is to setup
+> > > two frontends. See, for example, drivers/media/dvb-frontends/helene.c.
+> > >
+> >
+> > Thank you for describing it. I understand our device is rare case, and
+> > the reason why Helene has Terrestrial and Satellite structures.
+> >
+> > I'm using MN884434 device that has 2 cores. I want to setup DVB adapter
+> > devices (/dev/dvb/adapter0/*) for our frontend system as the following:
+> >
+> >   - adapter0: for core 0, ISDB-T, ISDB-S
+> >   - adapter1: for core 1, ISDB-T, ISDB-S
+> 
+> Yeah, that is what it was supposed to work, if the core was ready for it.
+> 
+> > But it seems one DVB adapter device support only ISDB-T or only ISDB-S
+> > if I divide structures. So I define the adapters as the following:
+> >
+> >   - adapter0: for core 0, ISDB-T
+> >   - adapter1: for core 0, ISDB-S
+> >   - adapter2: for core 1, ISDB-T
+> >   - adapter3: for core 1, ISDB-S
+> >
+> > Is this correct?
+> 
+> That's the way the current driver with uses helene does.
+> 
+> >
+> >
+> > > ...
+> > > > +static const struct dvb_frontend_ops sc1501a_ops = {
+> > > > +	.delsys = { SYS_ISDBS, SYS_ISDBT },
+> > > > +	.info = {
+> > > > +		.name          = "Socionext SC1501A",
+> > > > +		.frequency_min = 1032000,
+> > > > +		.frequency_max = 770000000,
+> > > > +		.caps = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_AUTO |
+> > > > +			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+> > > > +			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
+> > > > +	},
+> > > > +
+> > > > +	.sleep                   = sc1501a_sleep,
+> > > > +	.set_frontend            = sc1501a_set_frontend,
+> > > > +	.get_tune_settings       = sc1501a_get_tune_settings,
+> > > > +	.read_status             = sc1501a_read_status,
+> > > > +};
+> > >
+> > > In other words, you'll need to declare two structs here, one for ISDB-T
+> > > and another one for ISDB-S.
+> > >
+> >
+> > OK, I'm going to divide this structure for Terrestrial and Satellite. And
+> > add attach functions same as Helene driver.
+> >
+> > I'll send v4 patch.
+> 
+> I ended by writing two patches that should be solving the issues
+> inside the core. With them[1], it will work the way you want.
+> 
+> There is a catch: you'll need to convert Helene to have a single
+> entry and be sure that the driver that currently uses it (netup_unidvb)
+> will keep working. I guess I have one such hardware here for testing.
+> 
+> [1] after tested/reviewed - I didn't test them yet. Feel free to test.
+> 
+
+Thank you!!
+
+I try to fix '[PATCH v4] media: helene: add I2C device probe function' 
+patch but I have a question...
+
+My idea is adding new dvb_tuner_ops structure and I2C probe function for 
+supporting multiple systems. Current drivers (netup) continue to use 
+helene_attach_t() and helene_attach_s(), so no need to change netup.
+It's conservative but prevent the degrade, I think.
+
+Newer added struct dvb_frontend_internal_info has one pair of max/min 
+frequency. What is the best way to declare the frequency range for
+multiple systems?
+
+For example, Helene uses these info for only Ter or Sat freq ranges:
+
+		.name = "Sony HELENE Ter tuner",
+		.frequency_min_hz  =    1 * MHz,
+		.frequency_max_hz  = 1200 * MHz,
+		.frequency_step_hz =   25 * kHz,
+
+		.name = "Sony HELENE Sat tuner",
+		.frequency_min_hz  =  500 * MHz,
+		.frequency_max_hz  = 2500 * MHz,
+		.frequency_step_hz =    1 * MHz,
+
+Is this better to add new info for both system?
+
+		.name = "Sony HELENE Sat/Ter tuner",
+		.frequency_min_hz  =    1 * MHz,
+		.frequency_max_hz  = 2500 * MHz,
+		.frequency_step_hz =   25 * kHz, // Is this correct...?
+
+
+> So, please look at the two patches I sent today to the mailing list.
+> 
+> (not sure why, they're taking a long time to arrive there - perhaps
+> vger has some issues).
+> 
+> I added them on this tree:
+> 	https://git.linuxtv.org/mchehab/experimental.git/log/?h=dvb_freq_hz
+> 
+> it is the last two patches there:
+> 	-
+> https://git.linuxtv.org/mchehab/experimental.git/commit/?h=dvb_freq_hz&id=b3d63
+> a8f038d136b26692bc3a14554960e767f4a
+> 	-
+> https://git.linuxtv.org/mchehab/experimental.git/commit/?h=dvb_freq_hz&id=2a369
+> e8faf3b277baff4026371f298e95c84fbb2
+> 
+> I'm not sure if all applications will do the right thing, though, as
+> it will depend  if they query the capabilities before or after switching
+> to a different delivery system. If it get caps before and store them
+> in Hz, apps will work, but tests are required.
+> 
+
+Ah, indeed. You mean,
+
+  - Application want to tune Terrestrial system
+  - Driver is in Satellite system
+  - Application query max/min frequency
+  - DVB API returns max/min frequency in 'kHz'
+  - Some application will get something wrong
+    (ex. app specific range check)
+
+Unfortunately, I don't know applications that do such scenario.
+My test application does not query max/min range...
+
+
+> >
+> >
+> > > Yeah, I know that this sucks. If you are in the mood of touching the
+> > > DVB core, I'm willing to consider a patch that would fix this, provided
+> > > that it won't break backward compatibility with other drivers (or would
+> > > convert the other satellite drivers to use the new way).
+> > >
+> > > Thanks,
+> > > Mauro
+> >
+> > Hmm, I don't know the details of DVB core, I try to investigate it.
+> >
+> >
+> > Regards,
+> > --
+> > Katsuhiro Suzuki
+> >
+> >
+> >
+> 
+> 
+> 
+> Thanks,
+> Mauro
+
+
+Regards,
+--
+Katsuhiro Suzuki
