@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48985 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754025AbeGEQDo (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42306 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754010AbeGEQDo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 12:03:44 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv16 16/34] vb2: store userspace data in vb2_v4l2_buffer
-Date: Thu,  5 Jul 2018 18:03:19 +0200
-Message-Id: <20180705160337.54379-17-hverkuil@xs4all.nl>
+Subject: [PATCHv16 15/34] v4l2-ctrls: support g/s_ext_ctrls for requests
+Date: Thu,  5 Jul 2018 18:03:18 +0200
+Message-Id: <20180705160337.54379-16-hverkuil@xs4all.nl>
 In-Reply-To: <20180705160337.54379-1-hverkuil@xs4all.nl>
 References: <20180705160337.54379-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,553 +17,323 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The userspace-provided plane data needs to be stored in
-vb2_v4l2_buffer. Currently this information is applied by
-__fill_vb2_buffer() which is called by the core prepare_buf
-and qbuf functions, but when using requests these functions
-aren't called yet since the buffer won't be prepared until
-the media request is actually queued.
+The v4l2_g/s_ext_ctrls functions now support control handlers that
+represent requests.
 
-In the meantime this information has to be stored somewhere
-and vb2_v4l2_buffer is a good place for it.
-
-The __fill_vb2_buffer callback now just copies the relevant
-information from vb2_v4l2_buffer into the planes array.
+The v4l2_ctrls_find_req_obj() function is responsible for finding the
+request from the fd.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../media/common/videobuf2/videobuf2-core.c   |  43 +--
- .../media/common/videobuf2/videobuf2-v4l2.c   | 327 ++++++++++--------
- drivers/media/dvb-core/dvb_vb2.c              |   3 +-
- include/media/videobuf2-core.h                |   3 +-
- include/media/videobuf2-v4l2.h                |   2 +
- 5 files changed, 209 insertions(+), 169 deletions(-)
+ drivers/media/platform/omap3isp/ispvideo.c |   2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c       | 138 +++++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-ioctl.c       |  12 +-
+ drivers/media/v4l2-core/v4l2-subdev.c      |   9 +-
+ include/media/v4l2-ctrls.h                 |   7 +-
+ 5 files changed, 149 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index f32ec7342ef0..c25bad134ba3 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -967,20 +967,19 @@ EXPORT_SYMBOL_GPL(vb2_discard_done);
- /*
-  * __prepare_mmap() - prepare an MMAP buffer
-  */
--static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_mmap(struct vb2_buffer *vb)
- {
- 	int ret = 0;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 9d228eac24ea..674e7fd3ad99 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1028,7 +1028,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 	ctrls.count = 1;
+ 	ctrls.controls = &ctrl;
  
--	if (pb)
--		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
--				 vb, pb, vb->planes);
-+	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+			 vb, vb->planes);
- 	return ret ? ret : call_vb_qop(vb, buf_prepare, vb);
+-	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
++	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, NULL, &ctrls);
+ 	if (ret < 0) {
+ 		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
+ 			 pipe->external->name);
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b8ff6d6b14cd..86a6ae54ccaa 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3140,7 +3140,8 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
  }
  
- /*
-  * __prepare_userptr() - prepare a USERPTR buffer
-  */
--static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_userptr(struct vb2_buffer *vb)
+ /* Get extended controls. Allocates the helpers array if needed. */
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
++int __v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++		       struct v4l2_ext_controls *cs)
  {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -991,12 +990,10 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
- 	/* Copy relevant information provided by the userspace */
--	if (pb) {
--		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
--				 vb, pb, planes);
--		if (ret)
--			return ret;
--	}
-+	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+			 vb, planes);
-+	if (ret)
-+		return ret;
- 
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		/* Skip the plane if already verified */
-@@ -1096,7 +1093,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- /*
-  * __prepare_dmabuf() - prepare a DMABUF buffer
-  */
--static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_dmabuf(struct vb2_buffer *vb)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1107,12 +1104,10 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- 
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
- 	/* Copy relevant information provided by the userspace */
--	if (pb) {
--		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
--				 vb, pb, planes);
--		if (ret)
--			return ret;
--	}
-+	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+			 vb, planes);
-+	if (ret)
-+		return ret;
- 
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
-@@ -1241,7 +1236,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 	call_void_vb_qop(vb, buf_queue, vb);
+ 	struct v4l2_ctrl_helper helper[4];
+ 	struct v4l2_ctrl_helper *helpers = helper;
+@@ -3220,6 +3221,83 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 		kvfree(helpers);
+ 	return ret;
  }
- 
--static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-+static int __buf_prepare(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned int plane;
-@@ -1256,13 +1251,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 
- 	switch (q->memory) {
- 	case VB2_MEMORY_MMAP:
--		ret = __prepare_mmap(vb, pb);
-+		ret = __prepare_mmap(vb);
- 		break;
- 	case VB2_MEMORY_USERPTR:
--		ret = __prepare_userptr(vb, pb);
-+		ret = __prepare_userptr(vb);
- 		break;
- 	case VB2_MEMORY_DMABUF:
--		ret = __prepare_dmabuf(vb, pb);
-+		ret = __prepare_dmabuf(vb);
- 		break;
- 	default:
- 		WARN(1, "Invalid queue type\n");
-@@ -1296,7 +1291,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- 		return -EINVAL;
- 	}
- 
--	ret = __buf_prepare(vb, pb);
-+	ret = __buf_prepare(vb);
- 	if (ret)
- 		return ret;
- 
-@@ -1381,7 +1376,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
--		ret = __buf_prepare(vb, pb);
-+		ret = __buf_prepare(vb);
- 		if (ret)
- 			return ret;
- 		break;
-diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-index 886a2d8d5c6c..360dc4e7d413 100644
---- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-+++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-@@ -154,9 +154,177 @@ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
- 		pr_warn("use the actual size instead.\n");
- }
- 
-+static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
++
++static struct media_request_object *
++v4l2_ctrls_find_req_obj(struct v4l2_ctrl_handler *hdl,
++			struct media_request *req, bool set)
 +{
-+	struct vb2_queue *q = vb->vb2_queue;
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct vb2_plane *planes = vbuf->planes;
-+	unsigned int plane;
++	struct media_request_object *obj;
++	struct v4l2_ctrl_handler *new_hdl;
 +	int ret;
 +
-+	ret = __verify_length(vb, b);
-+	if (ret < 0) {
-+		dprintk(1, "plane parameters verification failed: %d\n", ret);
-+		return ret;
-+	}
-+	if (b->field == V4L2_FIELD_ALTERNATE && q->is_output) {
-+		/*
-+		 * If the format's field is ALTERNATE, then the buffer's field
-+		 * should be either TOP or BOTTOM, not ALTERNATE since that
-+		 * makes no sense. The driver has to know whether the
-+		 * buffer represents a top or a bottom field in order to
-+		 * program any DMA correctly. Using ALTERNATE is wrong, since
-+		 * that just says that it is either a top or a bottom field,
-+		 * but not which of the two it is.
-+		 */
-+		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
-+		return -EINVAL;
-+	}
-+	vbuf->sequence = 0;
++	if (IS_ERR(req))
++		return ERR_CAST(req);
 +
-+	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-+		switch (b->memory) {
-+		case VB2_MEMORY_USERPTR:
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				planes[plane].m.userptr =
-+					b->m.planes[plane].m.userptr;
-+				planes[plane].length =
-+					b->m.planes[plane].length;
-+			}
-+			break;
-+		case VB2_MEMORY_DMABUF:
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				planes[plane].m.fd =
-+					b->m.planes[plane].m.fd;
-+				planes[plane].length =
-+					b->m.planes[plane].length;
-+			}
-+			break;
-+		default:
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				planes[plane].m.offset =
-+					vb->planes[plane].m.offset;
-+				planes[plane].length =
-+					vb->planes[plane].length;
-+			}
-+			break;
-+		}
++	if (set && WARN_ON(req->state != MEDIA_REQUEST_STATE_UPDATING))
++		return ERR_PTR(-EBUSY);
 +
-+		/* Fill in driver-provided information for OUTPUT types */
-+		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+			/*
-+			 * Will have to go up to b->length when API starts
-+			 * accepting variable number of planes.
-+			 *
-+			 * If bytesused == 0 for the output buffer, then fall
-+			 * back to the full buffer size. In that case
-+			 * userspace clearly never bothered to set it and
-+			 * it's a safe assumption that they really meant to
-+			 * use the full plane sizes.
-+			 *
-+			 * Some drivers, e.g. old codec drivers, use bytesused == 0
-+			 * as a way to indicate that streaming is finished.
-+			 * In that case, the driver should use the
-+			 * allow_zero_bytesused flag to keep old userspace
-+			 * applications working.
-+			 */
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				struct vb2_plane *pdst = &planes[plane];
-+				struct v4l2_plane *psrc = &b->m.planes[plane];
++	obj = media_request_object_find(req, &req_ops, hdl);
++	if (obj)
++		return obj;
++	if (!set)
++		return ERR_PTR(-ENOENT);
 +
-+				if (psrc->bytesused == 0)
-+					vb2_warn_zero_bytesused(vb);
++	new_hdl = kzalloc(sizeof(*new_hdl), GFP_KERNEL);
++	if (!new_hdl)
++		return ERR_PTR(-ENOMEM);
 +
-+				if (vb->vb2_queue->allow_zero_bytesused)
-+					pdst->bytesused = psrc->bytesused;
-+				else
-+					pdst->bytesused = psrc->bytesused ?
-+						psrc->bytesused : pdst->length;
-+				pdst->data_offset = psrc->data_offset;
-+			}
-+		}
-+	} else {
-+		/*
-+		 * Single-planar buffers do not use planes array,
-+		 * so fill in relevant v4l2_buffer struct fields instead.
-+		 * In videobuf we use our internal V4l2_planes struct for
-+		 * single-planar buffers as well, for simplicity.
-+		 *
-+		 * If bytesused == 0 for the output buffer, then fall back
-+		 * to the full buffer size as that's a sensible default.
-+		 *
-+		 * Some drivers, e.g. old codec drivers, use bytesused == 0 as
-+		 * a way to indicate that streaming is finished. In that case,
-+		 * the driver should use the allow_zero_bytesused flag to keep
-+		 * old userspace applications working.
-+		 */
-+		switch (b->memory) {
-+		case VB2_MEMORY_USERPTR:
-+			planes[0].m.userptr = b->m.userptr;
-+			planes[0].length = b->length;
-+			break;
-+		case VB2_MEMORY_DMABUF:
-+			planes[0].m.fd = b->m.fd;
-+			planes[0].length = b->length;
-+			break;
-+		default:
-+			planes[0].m.offset = vb->planes[0].m.offset;
-+			planes[0].length = vb->planes[0].length;
-+			break;
-+		}
++	obj = &new_hdl->req_obj;
++	ret = v4l2_ctrl_handler_init(new_hdl, (hdl->nr_of_buckets - 1) * 8);
++	if (!ret)
++		ret = v4l2_ctrl_request_bind(req, new_hdl, hdl);
++	if (ret) {
++		kfree(new_hdl);
 +
-+		planes[0].data_offset = 0;
-+		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+			if (b->bytesused == 0)
-+				vb2_warn_zero_bytesused(vb);
-+
-+			if (vb->vb2_queue->allow_zero_bytesused)
-+				planes[0].bytesused = b->bytesused;
-+			else
-+				planes[0].bytesused = b->bytesused ?
-+					b->bytesused : planes[0].length;
-+		} else
-+			planes[0].bytesused = 0;
-+
++		return ERR_PTR(ret);
 +	}
 +
-+	/* Zero flags that we handle */
-+	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
-+	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		/*
-+		 * Non-COPY timestamps and non-OUTPUT queues will get
-+		 * their timestamp and timestamp source flags from the
-+		 * queue.
-+		 */
-+		vbuf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	}
-+
-+	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-+		/*
-+		 * For output buffers mask out the timecode flag:
-+		 * this will be handled later in vb2_qbuf().
-+		 * The 'field' is valid metadata for this output buffer
-+		 * and so that needs to be copied here.
-+		 */
-+		vbuf->flags &= ~V4L2_BUF_FLAG_TIMECODE;
-+		vbuf->field = b->field;
-+	} else {
-+		/* Zero any output buffer flags as this is a capture buffer */
-+		vbuf->flags &= ~V4L2_BUFFER_OUT_FLAGS;
-+		/* Zero last flag, this is a signal from driver to userspace */
-+		vbuf->flags &= ~V4L2_BUF_FLAG_LAST;
-+	}
-+
-+	return 0;
++	media_request_object_get(obj);
++	return obj;
 +}
 +
- static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 				    const char *opname)
- {
-+	struct vb2_v4l2_buffer *vbuf;
-+	struct vb2_buffer *vb;
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++		     struct v4l2_ext_controls *cs)
++{
++	struct media_request_object *obj = NULL;
 +	int ret;
 +
- 	if (b->type != q->type) {
- 		dprintk(1, "%s: invalid buffer type\n", opname);
- 		return -EINVAL;
-@@ -178,7 +346,15 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
- 
--	return __verify_planes_array(q->bufs[b->index], b);
-+	vb = q->bufs[b->index];
-+	vbuf = to_vb2_v4l2_buffer(vb);
-+	ret = __verify_planes_array(vb, b);
-+	if (ret)
-+		return ret;
++	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
++		struct media_request *req;
 +
-+	/* Copy relevant information provided by the userspace */
-+	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
-+	return vb2_fill_vb2_v4l2_buffer(vb, b);
++		if (!mdev || cs->request_fd < 0)
++			return -EINVAL;
++
++		req = media_request_get_by_fd(mdev, cs->request_fd);
++		if (IS_ERR(req))
++			return PTR_ERR(req);
++
++		if (req->state != MEDIA_REQUEST_STATE_IDLE &&
++		    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
++			media_request_put(req);
++			return -EBUSY;
++		}
++
++		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
++		/* Reference to the request held through obj */
++		media_request_put(req);
++		if (IS_ERR(obj))
++			return PTR_ERR(obj);
++
++		hdl = container_of(obj, struct v4l2_ctrl_handler,
++				   req_obj);
++	}
++
++	ret = __v4l2_g_ext_ctrls(hdl, cs);
++
++	if (obj)
++		media_request_object_put(obj);
++	return ret;
++}
+ EXPORT_SYMBOL(v4l2_g_ext_ctrls);
+ 
+ /* Helper function to get a single control */
+@@ -3408,9 +3486,9 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
  }
  
- /*
-@@ -291,153 +467,22 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-  * v4l2_buffer by the userspace. It also verifies that struct
-  * v4l2_buffer has a valid number of planes.
-  */
--static int __fill_vb2_buffer(struct vb2_buffer *vb,
--		const void *pb, struct vb2_plane *planes)
-+static int __fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
+ /* Try or try-and-set controls */
+-static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+-			     struct v4l2_ext_controls *cs,
+-			     bool set)
++static int __try_set_ext_ctrls(struct v4l2_fh *fh,
++			       struct v4l2_ctrl_handler *hdl,
++			       struct v4l2_ext_controls *cs, bool set)
  {
--	struct vb2_queue *q = vb->vb2_queue;
--	const struct v4l2_buffer *b = pb;
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	unsigned int plane;
--	int ret;
--
--	ret = __verify_length(vb, b);
--	if (ret < 0) {
--		dprintk(1, "plane parameters verification failed: %d\n", ret);
--		return ret;
--	}
--	if (b->field == V4L2_FIELD_ALTERNATE && q->is_output) {
--		/*
--		 * If the format's field is ALTERNATE, then the buffer's field
--		 * should be either TOP or BOTTOM, not ALTERNATE since that
--		 * makes no sense. The driver has to know whether the
--		 * buffer represents a top or a bottom field in order to
--		 * program any DMA correctly. Using ALTERNATE is wrong, since
--		 * that just says that it is either a top or a bottom field,
--		 * but not which of the two it is.
--		 */
--		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
--		return -EINVAL;
--	}
--	vb->timestamp = 0;
--	vbuf->sequence = 0;
--
--	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
--		if (b->memory == VB2_MEMORY_USERPTR) {
--			for (plane = 0; plane < vb->num_planes; ++plane) {
--				planes[plane].m.userptr =
--					b->m.planes[plane].m.userptr;
--				planes[plane].length =
--					b->m.planes[plane].length;
--			}
--		}
--		if (b->memory == VB2_MEMORY_DMABUF) {
--			for (plane = 0; plane < vb->num_planes; ++plane) {
--				planes[plane].m.fd =
--					b->m.planes[plane].m.fd;
--				planes[plane].length =
--					b->m.planes[plane].length;
--			}
--		}
--
--		/* Fill in driver-provided information for OUTPUT types */
--		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
--			/*
--			 * Will have to go up to b->length when API starts
--			 * accepting variable number of planes.
--			 *
--			 * If bytesused == 0 for the output buffer, then fall
--			 * back to the full buffer size. In that case
--			 * userspace clearly never bothered to set it and
--			 * it's a safe assumption that they really meant to
--			 * use the full plane sizes.
--			 *
--			 * Some drivers, e.g. old codec drivers, use bytesused == 0
--			 * as a way to indicate that streaming is finished.
--			 * In that case, the driver should use the
--			 * allow_zero_bytesused flag to keep old userspace
--			 * applications working.
--			 */
--			for (plane = 0; plane < vb->num_planes; ++plane) {
--				struct vb2_plane *pdst = &planes[plane];
--				struct v4l2_plane *psrc = &b->m.planes[plane];
--
--				if (psrc->bytesused == 0)
--					vb2_warn_zero_bytesused(vb);
- 
--				if (vb->vb2_queue->allow_zero_bytesused)
--					pdst->bytesused = psrc->bytesused;
--				else
--					pdst->bytesused = psrc->bytesused ?
--						psrc->bytesused : pdst->length;
--				pdst->data_offset = psrc->data_offset;
--			}
--		}
--	} else {
--		/*
--		 * Single-planar buffers do not use planes array,
--		 * so fill in relevant v4l2_buffer struct fields instead.
--		 * In videobuf we use our internal V4l2_planes struct for
--		 * single-planar buffers as well, for simplicity.
--		 *
--		 * If bytesused == 0 for the output buffer, then fall back
--		 * to the full buffer size as that's a sensible default.
--		 *
--		 * Some drivers, e.g. old codec drivers, use bytesused == 0 as
--		 * a way to indicate that streaming is finished. In that case,
--		 * the driver should use the allow_zero_bytesused flag to keep
--		 * old userspace applications working.
--		 */
--		if (b->memory == VB2_MEMORY_USERPTR) {
--			planes[0].m.userptr = b->m.userptr;
--			planes[0].length = b->length;
--		}
-+	if (!vb->vb2_queue->is_output || !vb->vb2_queue->copy_timestamp)
-+		vb->timestamp = 0;
- 
--		if (b->memory == VB2_MEMORY_DMABUF) {
--			planes[0].m.fd = b->m.fd;
--			planes[0].length = b->length;
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		if (vb->vb2_queue->memory != VB2_MEMORY_MMAP) {
-+			planes[plane].m = vbuf->planes[plane].m;
-+			planes[plane].length = vbuf->planes[plane].length;
- 		}
--
--		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
--			if (b->bytesused == 0)
--				vb2_warn_zero_bytesused(vb);
--
--			if (vb->vb2_queue->allow_zero_bytesused)
--				planes[0].bytesused = b->bytesused;
--			else
--				planes[0].bytesused = b->bytesused ?
--					b->bytesused : planes[0].length;
--		} else
--			planes[0].bytesused = 0;
--
--	}
--
--	/* Zero flags that the vb2 core handles */
--	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
--	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
--		/*
--		 * Non-COPY timestamps and non-OUTPUT queues will get
--		 * their timestamp and timestamp source flags from the
--		 * queue.
--		 */
--		vbuf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		planes[plane].bytesused = vbuf->planes[plane].bytesused;
-+		planes[plane].data_offset = vbuf->planes[plane].data_offset;
- 	}
--
--	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
--		/*
--		 * For output buffers mask out the timecode flag:
--		 * this will be handled later in vb2_qbuf().
--		 * The 'field' is valid metadata for this output buffer
--		 * and so that needs to be copied here.
--		 */
--		vbuf->flags &= ~V4L2_BUF_FLAG_TIMECODE;
--		vbuf->field = b->field;
--	} else {
--		/* Zero any output buffer flags as this is a capture buffer */
--		vbuf->flags &= ~V4L2_BUFFER_OUT_FLAGS;
--		/* Zero last flag, this is a signal from driver to userspace */
--		vbuf->flags &= ~V4L2_BUF_FLAG_LAST;
--	}
--
- 	return 0;
+ 	struct v4l2_ctrl_helper helper[4];
+ 	struct v4l2_ctrl_helper *helpers = helper;
+@@ -3523,16 +3601,60 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	return ret;
  }
  
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-index b811adf88afa..da6a8cec7d42 100644
---- a/drivers/media/dvb-core/dvb_vb2.c
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -146,8 +146,7 @@ static void _fill_dmx_buffer(struct vb2_buffer *vb, void *pb)
- 	dprintk(3, "[%s]\n", ctx->name);
- }
- 
--static int _fill_vb2_buffer(struct vb2_buffer *vb,
--			    const void *pb, struct vb2_plane *planes)
-+static int _fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
+-int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
++static int try_set_ext_ctrls(struct v4l2_fh *fh,
++			     struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++			     struct v4l2_ext_controls *cs, bool set)
++{
++	struct media_request_object *obj = NULL;
++	struct media_request *req = NULL;
++	int ret;
++
++	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
++		if (!mdev || cs->request_fd < 0)
++			return -EINVAL;
++
++		req = media_request_get_by_fd(mdev, cs->request_fd);
++		if (IS_ERR(req))
++			return PTR_ERR(req);
++
++		ret = media_request_lock_for_update(req);
++		if (ret) {
++			media_request_put(req);
++			return ret;
++		}
++
++		obj = v4l2_ctrls_find_req_obj(hdl, req, set);
++		/* Reference to the request held through obj */
++		media_request_put(req);
++		if (IS_ERR(obj)) {
++			media_request_unlock_for_update(req);
++			return PTR_ERR(obj);
++		}
++		hdl = container_of(obj, struct v4l2_ctrl_handler,
++				   req_obj);
++	}
++
++	ret = __try_set_ext_ctrls(fh, hdl, cs, set);
++
++	if (obj) {
++		media_request_unlock_for_update(obj->req);
++		media_request_object_put(obj);
++	}
++
++	return ret;
++}
++
++int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
++		       struct v4l2_ext_controls *cs)
  {
- 	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+-	return try_set_ext_ctrls(NULL, hdl, cs, false);
++	return try_set_ext_ctrls(NULL, hdl, mdev, cs, false);
+ }
+ EXPORT_SYMBOL(v4l2_try_ext_ctrls);
  
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f6818f732f34..224c4820a044 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -417,8 +417,7 @@ struct vb2_ops {
- struct vb2_buf_ops {
- 	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
- 	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
--	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
--				struct vb2_plane *planes);
-+	int (*fill_vb2_buffer)(struct vb2_buffer *vb, struct vb2_plane *planes);
- 	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
- };
+ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+-					struct v4l2_ext_controls *cs)
++		     struct media_device *mdev, struct v4l2_ext_controls *cs)
+ {
+-	return try_set_ext_ctrls(fh, hdl, cs, true);
++	return try_set_ext_ctrls(fh, hdl, mdev, cs, true);
+ }
+ EXPORT_SYMBOL(v4l2_s_ext_ctrls);
  
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 3d5e2d739f05..097bf3e6951d 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -32,6 +32,7 @@
-  *		&enum v4l2_field.
-  * @timecode:	frame timecode.
-  * @sequence:	sequence count of this frame.
-+ * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index cb3a7cf5d9d5..cc657e5261b7 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2103,9 +2103,9 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
++		return v4l2_g_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_g_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
+@@ -2122,9 +2122,9 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
++		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
++		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_s_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
+@@ -2141,9 +2141,9 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 
+ 	p->error_idx = p->count;
+ 	if (vfh && vfh->ctrl_handler)
+-		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
++		return v4l2_try_ext_ctrls(vfh->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (vfd->ctrl_handler)
+-		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
++		return v4l2_try_ext_ctrls(vfd->ctrl_handler, vfd->v4l2_dev->mdev, p);
+ 	if (ops->vidioc_try_ext_ctrls == NULL)
+ 		return -ENOTTY;
+ 	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 6a7f7f75dfd7..b9cff2389eae 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -222,17 +222,20 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_G_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
++		return v4l2_g_ext_ctrls(vfh->ctrl_handler,
++					sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_S_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
++		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler,
++					sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_TRY_EXT_CTRLS:
+ 		if (!vfh->ctrl_handler)
+ 			return -ENOTTY;
+-		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
++		return v4l2_try_ext_ctrls(vfh->ctrl_handler,
++					  sd->v4l2_dev->mdev, arg);
+ 
+ 	case VIDIOC_DQEVENT:
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 65eade646156..de70cc3a1b80 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -1179,11 +1179,12 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+  *	:ref:`VIDIOC_G_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
   *
-  * Should contain enough information to be able to cover all the fields
-  * of &struct v4l2_buffer at ``videodev2.h``.
-@@ -43,6 +44,7 @@ struct vb2_v4l2_buffer {
- 	__u32			field;
- 	struct v4l2_timecode	timecode;
- 	__u32			sequence;
-+	struct vb2_plane	planes[VB2_MAX_PLANES];
- };
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+-int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+ 		     struct v4l2_ext_controls *c);
  
- /*
+ /**
+@@ -1191,11 +1192,13 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+  *	:ref:`VIDIOC_TRY_EXT_CTRLS <vidioc_g_ext_ctrls>` ioctl
+  *
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
++		       struct media_device *mdev,
+ 		       struct v4l2_ext_controls *c);
+ 
+ /**
+@@ -1204,11 +1207,13 @@ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+  *
+  * @fh: pointer to &struct v4l2_fh
+  * @hdl: pointer to &struct v4l2_ctrl_handler
++ * @mdev: pointer to &struct media_device
+  * @c: pointer to &struct v4l2_ext_controls
+  *
+  * If hdl == NULL then they will all return -EINVAL.
+  */
+ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
++		     struct media_device *mdev,
+ 		     struct v4l2_ext_controls *c);
+ 
+ /**
 -- 
 2.18.0
