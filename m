@@ -1,211 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:41286 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:41378 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753829AbeGENdX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Jul 2018 09:33:23 -0400
+        id S1753851AbeGENdY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 5 Jul 2018 09:33:24 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v2 31/34] media: camss: Add support for 10-bit grayscale formats
-Date: Thu,  5 Jul 2018 16:33:02 +0300
-Message-Id: <1530797585-8555-32-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH v2 32/34] media: doc: media/v4l-drivers: Update Qualcomm CAMSS driver document for 8x96
+Date: Thu,  5 Jul 2018 16:33:03 +0300
+Message-Id: <1530797585-8555-33-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 References: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for 10-bit packed V4L2_PIX_FMT_Y10P (on 8x16 and 8x96)
-and unpacked V4L2_PIX_FMT_Y10 (on 8x96 only) pixel formats.
+Update the document to describe the support of Camera Subsystem
+on MSM8996/APQ8096.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/camss-csid.c   | 50 +++++++++++++++++++-----
- drivers/media/platform/qcom/camss/camss-csiphy.c |  2 +
- drivers/media/platform/qcom/camss/camss-ispif.c  |  6 ++-
- drivers/media/platform/qcom/camss/camss-vfe.c    |  3 ++
- drivers/media/platform/qcom/camss/camss-video.c  |  6 +++
- 5 files changed, 56 insertions(+), 11 deletions(-)
+ Documentation/media/v4l-drivers/qcom_camss.rst     |  93 +++++++++++-------
+ .../media/v4l-drivers/qcom_camss_8x96_graph.dot    | 104 +++++++++++++++++++++
+ 2 files changed, 164 insertions(+), 33 deletions(-)
+ create mode 100644 Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
 
-diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
-index 0b7f90d..a581377 100644
---- a/drivers/media/platform/qcom/camss/camss-csid.c
-+++ b/drivers/media/platform/qcom/camss/camss-csid.c
-@@ -193,7 +193,14 @@ static const struct csid_format csid_formats_8x16[] = {
- 		DECODE_FORMAT_UNCOMPRESSED_12_BIT,
- 		12,
- 		1,
--	}
-+	},
-+	{
-+		MEDIA_BUS_FMT_Y10_1X10,
-+		DATA_TYPE_RAW_10BIT,
-+		DECODE_FORMAT_UNCOMPRESSED_10_BIT,
-+		10,
-+		1,
-+	},
- };
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+index 9e66b7b..f27c8df 100644
+--- a/Documentation/media/v4l-drivers/qcom_camss.rst
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -7,34 +7,34 @@ Introduction
+ ------------
  
- static const struct csid_format csid_formats_8x96[] = {
-@@ -336,7 +343,14 @@ static const struct csid_format csid_formats_8x96[] = {
- 		DECODE_FORMAT_UNCOMPRESSED_14_BIT,
- 		14,
- 		1,
--	}
-+	},
-+	{
-+		MEDIA_BUS_FMT_Y10_1X10,
-+		DATA_TYPE_RAW_10BIT,
-+		DECODE_FORMAT_UNCOMPRESSED_10_BIT,
-+		10,
-+		1,
-+	},
- };
+ This file documents the Qualcomm Camera Subsystem driver located under
+-drivers/media/platform/qcom/camss-8x16.
++drivers/media/platform/qcom/camss.
  
- static u32 csid_find_code(u32 *code, unsigned int n_code,
-@@ -379,6 +393,16 @@ static u32 csid_src_pad_code(struct csid_device *csid, u32 sink_code,
- 			return csid_find_code(src_code, ARRAY_SIZE(src_code),
- 					      index, src_req_code);
- 		}
-+		case MEDIA_BUS_FMT_Y10_1X10:
-+		{
-+			u32 src_code[] = {
-+				MEDIA_BUS_FMT_Y10_1X10,
-+				MEDIA_BUS_FMT_Y10_2X8_PADHI_LE,
-+			};
+ The current version of the driver supports the Camera Subsystem found on
+-Qualcomm MSM8916 and APQ8016 processors.
++Qualcomm MSM8916/APQ8016 and MSM8996/APQ8096 processors.
+ 
+ The driver implements V4L2, Media controller and V4L2 subdev interfaces.
+ Camera sensor using V4L2 subdev interface in the kernel is supported.
+ 
+ The driver is implemented using as a reference the Qualcomm Camera Subsystem
+-driver for Android as found in Code Aurora [#f1]_.
++driver for Android as found in Code Aurora [#f1]_ [#f2]_.
+ 
+ 
+ Qualcomm Camera Subsystem hardware
+ ----------------------------------
+ 
+-The Camera Subsystem hardware found on 8x16 processors and supported by the
+-driver consists of:
++The Camera Subsystem hardware found on 8x16 / 8x96 processors and supported by
++the driver consists of:
+ 
+-- 2 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
++- 2 / 3 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
+   A separate camera sensor can be connected to each of the CSIPHY module;
+-- 2 CSID (CSI Decoder) modules. They handle the Protocol and Application layer
+-  of the CSI2 receivers. A CSID can decode data stream from any of the CSIPHY.
+-  Each CSID also contains a TG (Test Generator) block which can generate
++- 2 / 4 CSID (CSI Decoder) modules. They handle the Protocol and Application
++  layer of the CSI2 receivers. A CSID can decode data stream from any of the
++  CSIPHY. Each CSID also contains a TG (Test Generator) block which can generate
+   artificial input data for test purposes;
+ - ISPIF (ISP Interface) module. Handles the routing of the data streams from
+   the CSIDs to the inputs of the VFE;
+-- VFE (Video Front End) module. Contains a pipeline of image processing hardware
+-  blocks. The VFE has different input interfaces. The PIX (Pixel) input
++- 1 / 2 VFE (Video Front End) module(s). Contain a pipeline of image processing
++  hardware blocks. The VFE has different input interfaces. The PIX (Pixel) input
+   interface feeds the input data to the image processing pipeline. The image
+   processing pipeline contains also a scale and crop module at the end. Three
+   RDI (Raw Dump Interface) input interfaces bypass the image processing
+@@ -49,18 +49,33 @@ The current version of the driver supports:
+ 
+ - Input from camera sensor via CSIPHY;
+ - Generation of test input data by the TG in CSID;
+-- RDI interface of VFE - raw dump of the input data to memory.
++- RDI interface of VFE
+ 
+-  Supported formats:
++  - Raw dump of the input data to memory.
+ 
+-  - YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2 - V4L2_PIX_FMT_YUYV /
+-    V4L2_PIX_FMT_UYVY / V4L2_PIX_FMT_YVYU / V4L2_PIX_FMT_VYUY);
+-  - MIPI RAW8 (8bit Bayer RAW - V4L2_PIX_FMT_SRGGB8 /
+-    V4L2_PIX_FMT_SGRBG8 / V4L2_PIX_FMT_SGBRG8 / V4L2_PIX_FMT_SBGGR8);
+-  - MIPI RAW10 (10bit packed Bayer RAW - V4L2_PIX_FMT_SBGGR10P /
+-    V4L2_PIX_FMT_SGBRG10P / V4L2_PIX_FMT_SGRBG10P / V4L2_PIX_FMT_SRGGB10P);
+-  - MIPI RAW12 (12bit packed Bayer RAW - V4L2_PIX_FMT_SRGGB12P /
+-    V4L2_PIX_FMT_SGBRG12P / V4L2_PIX_FMT_SGRBG12P / V4L2_PIX_FMT_SRGGB12P).
++    Supported formats:
 +
-+			return csid_find_code(src_code, ARRAY_SIZE(src_code),
-+					      index, src_req_code);
-+		}
- 		default:
- 			if (index > 0)
- 				return 0;
-@@ -682,15 +706,21 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 		val |= CAMSS_CSID_CID_n_CFG_RDI_EN;
- 		val |= df << CAMSS_CSID_CID_n_CFG_DECODE_FORMAT_SHIFT;
- 		val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_RAW_DUMP;
--		if (csid->camss->version == CAMSS_8x96 &&
--			csid->fmt[MSM_CSID_PAD_SINK].code ==
--					MEDIA_BUS_FMT_SBGGR10_1X10 &&
--			csid->fmt[MSM_CSID_PAD_SRC].code ==
--					MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) {
--			val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_PLAIN_PACKING;
--			val |= CAMSS_CSID_CID_n_CFG_PLAIN_FORMAT_16;
--			val |= CAMSS_CSID_CID_n_CFG_PLAIN_ALIGNMENT_LSB;
++    - YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2 - V4L2_PIX_FMT_YUYV /
++      V4L2_PIX_FMT_UYVY / V4L2_PIX_FMT_YVYU / V4L2_PIX_FMT_VYUY);
++    - MIPI RAW8 (8bit Bayer RAW - V4L2_PIX_FMT_SRGGB8 /
++      V4L2_PIX_FMT_SGRBG8 / V4L2_PIX_FMT_SGBRG8 / V4L2_PIX_FMT_SBGGR8);
++    - MIPI RAW10 (10bit packed Bayer RAW - V4L2_PIX_FMT_SBGGR10P /
++      V4L2_PIX_FMT_SGBRG10P / V4L2_PIX_FMT_SGRBG10P / V4L2_PIX_FMT_SRGGB10P /
++      V4L2_PIX_FMT_Y10P);
++    - MIPI RAW12 (12bit packed Bayer RAW - V4L2_PIX_FMT_SRGGB12P /
++      V4L2_PIX_FMT_SGBRG12P / V4L2_PIX_FMT_SGRBG12P / V4L2_PIX_FMT_SRGGB12P).
++    - (8x96 only) MIPI RAW14 (14bit packed Bayer RAW - V4L2_PIX_FMT_SRGGB14P /
++      V4L2_PIX_FMT_SGBRG14P / V4L2_PIX_FMT_SGRBG14P / V4L2_PIX_FMT_SRGGB14P).
 +
-+		if (csid->camss->version == CAMSS_8x96) {
-+			u32 sink_code = csid->fmt[MSM_CSID_PAD_SINK].code;
-+			u32 src_code = csid->fmt[MSM_CSID_PAD_SRC].code;
++  - (8x96 only) Format conversion of the input data.
 +
-+			if ((sink_code == MEDIA_BUS_FMT_SBGGR10_1X10 &&
-+			     src_code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) ||
-+			    (sink_code == MEDIA_BUS_FMT_Y10_1X10 &&
-+			     src_code == MEDIA_BUS_FMT_Y10_2X8_PADHI_LE)) {
-+				val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_PLAIN_PACKING;
-+				val |= CAMSS_CSID_CID_n_CFG_PLAIN_FORMAT_16;
-+				val |= CAMSS_CSID_CID_n_CFG_PLAIN_ALIGNMENT_LSB;
-+			}
- 		}
++    Supported input formats:
 +
- 		writel_relaxed(val, csid->base +
- 			       CAMSS_CSID_CID_n_CFG(ver, cid));
++    - MIPI RAW10 (10bit packed Bayer RAW - V4L2_PIX_FMT_SBGGR10P / V4L2_PIX_FMT_Y10P).
++
++    Supported output formats:
++
++    - Plain16 RAW10 (10bit unpacked Bayer RAW - V4L2_PIX_FMT_SBGGR10 / V4L2_PIX_FMT_Y10).
  
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
-index 0b7bf1e..924f854 100644
---- a/drivers/media/platform/qcom/camss/camss-csiphy.c
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
-@@ -48,6 +48,7 @@ static const struct csiphy_format csiphy_formats_8x16[] = {
- 	{ MEDIA_BUS_FMT_SGBRG12_1X12, 12 },
- 	{ MEDIA_BUS_FMT_SGRBG12_1X12, 12 },
- 	{ MEDIA_BUS_FMT_SRGGB12_1X12, 12 },
-+	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
- };
+ - PIX interface of VFE
  
- static const struct csiphy_format csiphy_formats_8x96[] = {
-@@ -71,6 +72,7 @@ static const struct csiphy_format csiphy_formats_8x96[] = {
- 	{ MEDIA_BUS_FMT_SGBRG14_1X14, 14 },
- 	{ MEDIA_BUS_FMT_SGRBG14_1X14, 14 },
- 	{ MEDIA_BUS_FMT_SRGGB14_1X14, 14 },
-+	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
- };
+@@ -75,14 +90,16 @@ The current version of the driver supports:
  
- /*
-diff --git a/drivers/media/platform/qcom/camss/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
-index 649596a..02f84bc 100644
---- a/drivers/media/platform/qcom/camss/camss-ispif.c
-+++ b/drivers/media/platform/qcom/camss/camss-ispif.c
-@@ -120,6 +120,7 @@ static const u32 ispif_formats_8x16[] = {
- 	MEDIA_BUS_FMT_SGBRG12_1X12,
- 	MEDIA_BUS_FMT_SGRBG12_1X12,
- 	MEDIA_BUS_FMT_SRGGB12_1X12,
-+	MEDIA_BUS_FMT_Y10_1X10,
- };
+     - NV12/NV21 (two plane YUV 4:2:0 - V4L2_PIX_FMT_NV12 / V4L2_PIX_FMT_NV21);
+     - NV16/NV61 (two plane YUV 4:2:2 - V4L2_PIX_FMT_NV16 / V4L2_PIX_FMT_NV61).
++    - (8x96 only) YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2 - V4L2_PIX_FMT_YUYV /
++      V4L2_PIX_FMT_UYVY / V4L2_PIX_FMT_YVYU / V4L2_PIX_FMT_VYUY).
  
- static const u32 ispif_formats_8x96[] = {
-@@ -144,6 +145,8 @@ static const u32 ispif_formats_8x96[] = {
- 	MEDIA_BUS_FMT_SGBRG14_1X14,
- 	MEDIA_BUS_FMT_SGRBG14_1X14,
- 	MEDIA_BUS_FMT_SRGGB14_1X14,
-+	MEDIA_BUS_FMT_Y10_1X10,
-+	MEDIA_BUS_FMT_Y10_2X8_PADHI_LE,
- };
+   - Scaling support. Configuration of the VFE Encoder Scale module
+     for downscalling with ratio up to 16x.
  
- /*
-@@ -687,7 +690,8 @@ static void ispif_config_pack(struct ispif_device *ispif, u32 code,
- {
- 	u32 addr, val;
+   - Cropping support. Configuration of the VFE Encoder Crop module.
  
--	if (code != MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE)
-+	if (code != MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE &&
-+	    code != MEDIA_BUS_FMT_Y10_2X8_PADHI_LE)
- 		return;
+-- Concurrent and independent usage of two data inputs - could be camera sensors
+-  and/or TG.
++- Concurrent and independent usage of two (8x96: three) data inputs -
++  could be camera sensors and/or TG.
  
- 	switch (intf) {
-diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
-index 269b7c8..053e55d 100644
---- a/drivers/media/platform/qcom/camss/camss-vfe.c
-+++ b/drivers/media/platform/qcom/camss/camss-vfe.c
-@@ -70,6 +70,7 @@ static const struct vfe_format formats_rdi_8x16[] = {
- 	{ MEDIA_BUS_FMT_SGBRG12_1X12, 12 },
- 	{ MEDIA_BUS_FMT_SGRBG12_1X12, 12 },
- 	{ MEDIA_BUS_FMT_SRGGB12_1X12, 12 },
-+	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
- };
  
- static const struct vfe_format formats_pix_8x16[] = {
-@@ -101,6 +102,8 @@ static const struct vfe_format formats_rdi_8x96[] = {
- 	{ MEDIA_BUS_FMT_SGBRG14_1X14, 14 },
- 	{ MEDIA_BUS_FMT_SGRBG14_1X14, 14 },
- 	{ MEDIA_BUS_FMT_SRGGB14_1X14, 14 },
-+	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
-+	{ MEDIA_BUS_FMT_Y10_2X8_PADHI_LE, 16 },
- };
+ Driver Architecture and Design
+@@ -90,14 +107,14 @@ Driver Architecture and Design
  
- static const struct vfe_format formats_pix_8x96[] = {
-diff --git a/drivers/media/platform/qcom/camss/camss-video.c b/drivers/media/platform/qcom/camss/camss-video.c
-index 2e19bc8..c9bb0d0 100644
---- a/drivers/media/platform/qcom/camss/camss-video.c
-+++ b/drivers/media/platform/qcom/camss/camss-video.c
-@@ -74,6 +74,8 @@ static const struct camss_format_info formats_rdi_8x16[] = {
- 	  { { 1, 1 } }, { { 1, 1 } }, { 12 } },
- 	{ MEDIA_BUS_FMT_SRGGB12_1X12, V4L2_PIX_FMT_SRGGB12P, 1,
- 	  { { 1, 1 } }, { { 1, 1 } }, { 12 } },
-+	{ MEDIA_BUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10P, 1,
-+	  { { 1, 1 } }, { { 1, 1 } }, { 10 } },
- };
+ The driver implements the V4L2 subdev interface. With the goal to model the
+ hardware links between the modules and to expose a clean, logical and usable
+-interface, the driver is split into V4L2 sub-devices as follows:
++interface, the driver is split into V4L2 sub-devices as follows (8x16 / 8x96):
  
- static const struct camss_format_info formats_rdi_8x96[] = {
-@@ -119,6 +121,10 @@ static const struct camss_format_info formats_rdi_8x96[] = {
- 	  { { 1, 1 } }, { { 1, 1 } }, { 14 } },
- 	{ MEDIA_BUS_FMT_SRGGB14_1X14, V4L2_PIX_FMT_SRGGB14P, 1,
- 	  { { 1, 1 } }, { { 1, 1 } }, { 14 } },
-+	{ MEDIA_BUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10P, 1,
-+	  { { 1, 1 } }, { { 1, 1 } }, { 10 } },
-+	{ MEDIA_BUS_FMT_Y10_2X8_PADHI_LE, V4L2_PIX_FMT_Y10, 1,
-+	  { { 1, 1 } }, { { 1, 1 } }, { 16 } },
- };
+-- 2 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
+-- 2 CSID sub-devices - each CSID is represented by a single sub-device;
+-- 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
+-  to the number of CSID sub-devices;
+-- 4 VFE sub-devices - VFE is represented by a number of sub-devices equal to
+-  the number of the input interfaces (3 RDI and 1 PIX).
++- 2 / 3 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
++- 2 / 4 CSID sub-devices - each CSID is represented by a single sub-device;
++- 2 / 4 ISPIF sub-devices - ISPIF is represented by a number of sub-devices
++  equal to the number of CSID sub-devices;
++- 4 / 8 VFE sub-devices - VFE is represented by a number of sub-devices equal to
++  the number of the input interfaces (3 RDI and 1 PIX for each VFE).
  
- static const struct camss_format_info formats_pix_8x16[] = {
+ The considerations to split the driver in this particular way are as follows:
+ 
+@@ -115,8 +132,8 @@ The considerations to split the driver in this particular way are as follows:
+ 
+ Each VFE sub-device is linked to a separate video device node.
+ 
+-The media controller pipeline graph is as follows (with connected two OV5645
+-camera sensors):
++The media controller pipeline graph is as follows (with connected two / three
++OV5645 camera sensors):
+ 
+ .. _qcom_camss_graph:
+ 
+@@ -124,7 +141,13 @@ camera sensors):
+     :alt:   qcom_camss_graph.dot
+     :align: center
+ 
+-    Media pipeline graph
++    Media pipeline graph 8x16
++
++.. kernel-figure:: qcom_camss_8x96_graph.dot
++    :alt:   qcom_camss_8x96_graph.dot
++    :align: center
++
++    Media pipeline graph 8x96
+ 
+ 
+ Implementation
+@@ -149,8 +172,12 @@ APQ8016 Specification:
+ https://developer.qualcomm.com/download/sd410/snapdragon-410-processor-device-specification.pdf
+ Referenced 2016-11-24.
+ 
++APQ8096 Specification:
++https://developer.qualcomm.com/download/sd820e/qualcomm-snapdragon-820e-processor-apq8096sge-device-specification.pdf
++Referenced 2018-06-22.
+ 
+ References
+ ----------
+ 
+ .. [#f1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
++.. [#f2] https://source.codeaurora.org/quic/la/kernel/msm-3.18/
+diff --git a/Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot b/Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
+new file mode 100644
+index 0000000..de34f0a
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
+@@ -0,0 +1,104 @@
++digraph board {
++	rankdir=TB
++	n00000001 [label="{{<port0> 0} | msm_csiphy0\n/dev/v4l-subdev0 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000001:port1 -> n0000000a:port0 [style=dashed]
++	n00000001:port1 -> n0000000d:port0 [style=dashed]
++	n00000001:port1 -> n00000010:port0 [style=dashed]
++	n00000001:port1 -> n00000013:port0 [style=dashed]
++	n00000004 [label="{{<port0> 0} | msm_csiphy1\n/dev/v4l-subdev1 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000004:port1 -> n0000000a:port0 [style=dashed]
++	n00000004:port1 -> n0000000d:port0 [style=dashed]
++	n00000004:port1 -> n00000010:port0 [style=dashed]
++	n00000004:port1 -> n00000013:port0 [style=dashed]
++	n00000007 [label="{{<port0> 0} | msm_csiphy2\n/dev/v4l-subdev2 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000007:port1 -> n0000000a:port0 [style=dashed]
++	n00000007:port1 -> n0000000d:port0 [style=dashed]
++	n00000007:port1 -> n00000010:port0 [style=dashed]
++	n00000007:port1 -> n00000013:port0 [style=dashed]
++	n0000000a [label="{{<port0> 0} | msm_csid0\n/dev/v4l-subdev3 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000a:port1 -> n00000016:port0 [style=dashed]
++	n0000000a:port1 -> n00000019:port0 [style=dashed]
++	n0000000a:port1 -> n0000001c:port0 [style=dashed]
++	n0000000a:port1 -> n0000001f:port0 [style=dashed]
++	n0000000d [label="{{<port0> 0} | msm_csid1\n/dev/v4l-subdev4 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000d:port1 -> n00000016:port0 [style=dashed]
++	n0000000d:port1 -> n00000019:port0 [style=dashed]
++	n0000000d:port1 -> n0000001c:port0 [style=dashed]
++	n0000000d:port1 -> n0000001f:port0 [style=dashed]
++	n00000010 [label="{{<port0> 0} | msm_csid2\n/dev/v4l-subdev5 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000010:port1 -> n00000016:port0 [style=dashed]
++	n00000010:port1 -> n00000019:port0 [style=dashed]
++	n00000010:port1 -> n0000001c:port0 [style=dashed]
++	n00000010:port1 -> n0000001f:port0 [style=dashed]
++	n00000013 [label="{{<port0> 0} | msm_csid3\n/dev/v4l-subdev6 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000013:port1 -> n00000016:port0 [style=dashed]
++	n00000013:port1 -> n00000019:port0 [style=dashed]
++	n00000013:port1 -> n0000001c:port0 [style=dashed]
++	n00000013:port1 -> n0000001f:port0 [style=dashed]
++	n00000016 [label="{{<port0> 0} | msm_ispif0\n/dev/v4l-subdev7 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000016:port1 -> n00000022:port0 [style=dashed]
++	n00000016:port1 -> n0000002b:port0 [style=dashed]
++	n00000016:port1 -> n00000034:port0 [style=dashed]
++	n00000016:port1 -> n0000003d:port0 [style=dashed]
++	n00000016:port1 -> n00000046:port0 [style=dashed]
++	n00000016:port1 -> n0000004f:port0 [style=dashed]
++	n00000016:port1 -> n00000058:port0 [style=dashed]
++	n00000016:port1 -> n00000061:port0 [style=dashed]
++	n00000019 [label="{{<port0> 0} | msm_ispif1\n/dev/v4l-subdev8 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000019:port1 -> n00000022:port0 [style=dashed]
++	n00000019:port1 -> n0000002b:port0 [style=dashed]
++	n00000019:port1 -> n00000034:port0 [style=dashed]
++	n00000019:port1 -> n0000003d:port0 [style=dashed]
++	n00000019:port1 -> n00000046:port0 [style=dashed]
++	n00000019:port1 -> n0000004f:port0 [style=dashed]
++	n00000019:port1 -> n00000058:port0 [style=dashed]
++	n00000019:port1 -> n00000061:port0 [style=dashed]
++	n0000001c [label="{{<port0> 0} | msm_ispif2\n/dev/v4l-subdev9 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000001c:port1 -> n00000022:port0 [style=dashed]
++	n0000001c:port1 -> n0000002b:port0 [style=dashed]
++	n0000001c:port1 -> n00000034:port0 [style=dashed]
++	n0000001c:port1 -> n0000003d:port0 [style=dashed]
++	n0000001c:port1 -> n00000046:port0 [style=dashed]
++	n0000001c:port1 -> n0000004f:port0 [style=dashed]
++	n0000001c:port1 -> n00000058:port0 [style=dashed]
++	n0000001c:port1 -> n00000061:port0 [style=dashed]
++	n0000001f [label="{{<port0> 0} | msm_ispif3\n/dev/v4l-subdev10 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000001f:port1 -> n00000022:port0 [style=dashed]
++	n0000001f:port1 -> n0000002b:port0 [style=dashed]
++	n0000001f:port1 -> n00000034:port0 [style=dashed]
++	n0000001f:port1 -> n0000003d:port0 [style=dashed]
++	n0000001f:port1 -> n00000046:port0 [style=dashed]
++	n0000001f:port1 -> n0000004f:port0 [style=dashed]
++	n0000001f:port1 -> n00000058:port0 [style=dashed]
++	n0000001f:port1 -> n00000061:port0 [style=dashed]
++	n00000022 [label="{{<port0> 0} | msm_vfe0_rdi0\n/dev/v4l-subdev11 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000022:port1 -> n00000025 [style=bold]
++	n00000025 [label="msm_vfe0_video0\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
++	n0000002b [label="{{<port0> 0} | msm_vfe0_rdi1\n/dev/v4l-subdev12 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000002b:port1 -> n0000002e [style=bold]
++	n0000002e [label="msm_vfe0_video1\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
++	n00000034 [label="{{<port0> 0} | msm_vfe0_rdi2\n/dev/v4l-subdev13 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000034:port1 -> n00000037 [style=bold]
++	n00000037 [label="msm_vfe0_video2\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
++	n0000003d [label="{{<port0> 0} | msm_vfe0_pix\n/dev/v4l-subdev14 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000003d:port1 -> n00000040 [style=bold]
++	n00000040 [label="msm_vfe0_video3\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
++	n00000046 [label="{{<port0> 0} | msm_vfe1_rdi0\n/dev/v4l-subdev15 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000046:port1 -> n00000049 [style=bold]
++	n00000049 [label="msm_vfe1_video0\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
++	n0000004f [label="{{<port0> 0} | msm_vfe1_rdi1\n/dev/v4l-subdev16 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000004f:port1 -> n00000052 [style=bold]
++	n00000052 [label="msm_vfe1_video1\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
++	n00000058 [label="{{<port0> 0} | msm_vfe1_rdi2\n/dev/v4l-subdev17 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000058:port1 -> n0000005b [style=bold]
++	n0000005b [label="msm_vfe1_video2\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
++	n00000061 [label="{{<port0> 0} | msm_vfe1_pix\n/dev/v4l-subdev18 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000061:port1 -> n00000064 [style=bold]
++	n00000064 [label="msm_vfe1_video3\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
++	n000000e2 [label="{{} | ov5645 3-0039\n/dev/v4l-subdev19 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n000000e2:port0 -> n00000004:port0 [style=bold]
++	n000000e4 [label="{{} | ov5645 3-003a\n/dev/v4l-subdev20 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n000000e4:port0 -> n00000007:port0 [style=bold]
++	n000000e6 [label="{{} | ov5645 3-003b\n/dev/v4l-subdev21 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n000000e6:port0 -> n00000001:port0 [style=bold]
++}
 -- 
 2.7.4
