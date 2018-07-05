@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54179 "EHLO
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34774 "EHLO
         lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754062AbeGEQDp (ORCPT
+        by vger.kernel.org with ESMTP id S1754060AbeGEQDp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 5 Jul 2018 12:03:45 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv16 31/34] vim2m: support requests
-Date: Thu,  5 Jul 2018 18:03:34 +0200
-Message-Id: <20180705160337.54379-32-hverkuil@xs4all.nl>
+Subject: [PATCHv16 30/34] vim2m: use workqueue
+Date: Thu,  5 Jul 2018 18:03:33 +0200
+Message-Id: <20180705160337.54379-31-hverkuil@xs4all.nl>
 In-Reply-To: <20180705160337.54379-1-hverkuil@xs4all.nl>
 References: <20180705160337.54379-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,85 +17,108 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add support for requests to vim2m.
+v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
+interrupt context. Switch to a workqueue instead and drop the timer.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vim2m.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ drivers/media/platform/vim2m.c | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 6f87ef025ff1..3b8df2c9d24a 100644
+index 462099a141e4..6f87ef025ff1 100644
 --- a/drivers/media/platform/vim2m.c
 +++ b/drivers/media/platform/vim2m.c
-@@ -379,8 +379,18 @@ static void device_run(void *priv)
- 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+@@ -3,7 +3,8 @@
+  *
+  * This is a virtual device driver for testing mem-to-mem videobuf framework.
+  * It simulates a device that uses memory buffers for both source and
+- * destination, processes the data and issues an "irq" (simulated by a timer).
++ * destination, processes the data and issues an "irq" (simulated by a delayed
++ * workqueue).
+  * The device is capable of multi-instance, multi-buffer-per-transaction
+  * operation (via the mem2mem framework).
+  *
+@@ -19,7 +20,6 @@
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+-#include <linux/timer.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
  
-+	/* Apply request controls if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
+@@ -148,7 +148,7 @@ struct vim2m_dev {
+ 	struct mutex		dev_mutex;
+ 	spinlock_t		irqlock;
+ 
+-	struct timer_list	timer;
++	struct delayed_work	work_run;
+ 
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ };
+@@ -336,12 +336,6 @@ static int device_process(struct vim2m_ctx *ctx,
+ 	return 0;
+ }
+ 
+-static void schedule_irq(struct vim2m_dev *dev, int msec_timeout)
+-{
+-	dprintk(dev, "Scheduling a simulated irq\n");
+-	mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
+-}
+-
+ /*
+  * mem2mem callbacks
+  */
+@@ -387,13 +381,14 @@ static void device_run(void *priv)
+ 
  	device_process(ctx, src_buf, dst_buf);
  
-+	/* Complete request controls if needed */
-+	if (src_buf->vb2_buf.req_obj.req)
-+		v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
-+					&ctx->hdl);
-+
- 	/* Run delayed work, which simulates a hardware irq  */
- 	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
- }
-@@ -808,12 +818,21 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 		if (vbuf == NULL)
- 			return;
-+		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
-+					   &ctx->hdl);
- 		spin_lock_irqsave(&ctx->dev->irqlock, flags);
- 		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
- 		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
- 	}
+-	/* Run a timer, which simulates a hardware irq  */
+-	schedule_irq(dev, ctx->transtime);
++	/* Run delayed work, which simulates a hardware irq  */
++	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
  }
  
-+static void vim2m_buf_request_complete(struct vb2_buffer *vb)
-+{
-+	struct vim2m_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	v4l2_ctrl_request_complete(vb->req_obj.req, &ctx->hdl);
-+}
-+
- static const struct vb2_ops vim2m_qops = {
- 	.queue_setup	 = vim2m_queue_setup,
- 	.buf_prepare	 = vim2m_buf_prepare,
-@@ -822,6 +841,7 @@ static const struct vb2_ops vim2m_qops = {
- 	.stop_streaming  = vim2m_stop_streaming,
- 	.wait_prepare	 = vb2_ops_wait_prepare,
- 	.wait_finish	 = vb2_ops_wait_finish,
-+	.buf_request_complete = vim2m_buf_request_complete,
- };
- 
- static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
-@@ -988,6 +1008,11 @@ static const struct v4l2_m2m_ops m2m_ops = {
- 	.job_abort	= job_abort,
- };
- 
-+static const struct media_device_ops m2m_media_ops = {
-+	.req_validate = vb2_request_validate,
-+	.req_queue = vb2_m2m_request_queue,
-+};
-+
- static int vim2m_probe(struct platform_device *pdev)
+-static void device_isr(struct timer_list *t)
++static void device_work(struct work_struct *w)
  {
- 	struct vim2m_dev *dev;
-@@ -1036,6 +1061,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	dev->mdev.dev = &pdev->dev;
- 	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
- 	media_device_init(&dev->mdev);
-+	dev->mdev.ops = &m2m_media_ops;
- 	dev->v4l2_dev.mdev = &dev->mdev;
+-	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++	struct vim2m_dev *vim2m_dev =
++		container_of(w, struct vim2m_dev, work_run.work);
+ 	struct vim2m_ctx *curr_ctx;
+ 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+ 	unsigned long flags;
+@@ -805,6 +800,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	unsigned long flags;
  
- 	ret = v4l2_m2m_register_media_controller(dev->m2m_dev,
++	flush_scheduled_work();
+ 	for (;;) {
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type))
+ 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+@@ -1015,6 +1011,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	vfd = &dev->vfd;
+ 	vfd->lock = &dev->dev_mutex;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
++	INIT_DELAYED_WORK(&dev->work_run, device_work);
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+@@ -1026,7 +1023,6 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	v4l2_info(&dev->v4l2_dev,
+ 			"Device registered as /dev/video%d\n", vfd->num);
+ 
+-	timer_setup(&dev->timer, device_isr, 0);
+ 	platform_set_drvdata(pdev, dev);
+ 
+ 	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+@@ -1083,7 +1079,6 @@ static int vim2m_remove(struct platform_device *pdev)
+ 	media_device_cleanup(&dev->mdev);
+ #endif
+ 	v4l2_m2m_release(dev->m2m_dev);
+-	del_timer_sync(&dev->timer);
+ 	video_unregister_device(&dev->vfd);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
 -- 
 2.18.0
