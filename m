@@ -1,333 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49304 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932345AbeGFPLm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 11:11:42 -0400
-Message-ID: <08fad69870b4681c9039b77f778cac209556623d.camel@collabora.com>
-Subject: Re: [PATCH v6 04/17] omap3isp: Add vb2_queue lock
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        kernel@collabora.com, sakari.ailus@iki.fi
-Date: Fri, 06 Jul 2018 12:11:35 -0300
-In-Reply-To: <6029643.salQ5qCJpz@avalon>
-References: <20180620174255.20304-1-ezequiel@collabora.com>
-         <20180622035358.28649-1-ezequiel@collabora.com> <6029643.salQ5qCJpz@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35144 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932612AbeGFO6z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 10:58:55 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v3 1/2] drm: Add generic colorkey properties for DRM planes
+Date: Fri, 06 Jul 2018 17:58:50 +0300
+Message-ID: <2295190.xHWjP7Ltc3@dimapc>
+In-Reply-To: <20180706141010.GJ5565@intel.com>
+References: <20180603220059.17670-1-digetx@gmail.com> <a2e6e02b-bc6c-a411-0797-99e1bdb6674a@gmail.com> <20180706141010.GJ5565@intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-07-02 at 19:49 +0300, Laurent Pinchart wrote:
-> Hi Ezequiel,
-> 
-> (CC'ing Sakari)
-> 
-> Thank you for the patch.
-> 
-> On Friday, 22 June 2018 06:53:58 EEST Ezequiel Garcia wrote:
-> > vb2_queue locks is now mandatory. Add it, remove driver ad-hoc
-> > locks,
-> > and implement wait_{prepare, finish}.
-> > 
-> > Also, remove stream_lock mutex. Since the ioctls operations
-> > are now protected by the queue mutex, the stream_lock mutex is
-> > not needed.
-> > 
-> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > ---
-> >  drivers/media/platform/omap3isp/ispvideo.c | 65 ++++------------
-> > ------
-> >  drivers/media/platform/omap3isp/ispvideo.h |  1 -
-> >  2 files changed, 11 insertions(+), 55 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> > b/drivers/media/platform/omap3isp/ispvideo.c index
-> > 9d228eac24ea..f835aeb9ddc5 100644
-> > --- a/drivers/media/platform/omap3isp/ispvideo.c
-> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> > @@ -496,6 +496,8 @@ static const struct vb2_ops isp_video_queue_ops
-> > = {
-> >  	.buf_prepare = isp_video_buffer_prepare,
-> >  	.buf_queue = isp_video_buffer_queue,
-> >  	.start_streaming = isp_video_start_streaming,
-> > +	.wait_prepare = vb2_ops_wait_prepare,
-> > +	.wait_finish = vb2_ops_wait_finish,
-> >  };
-> > 
-> >  /*
-> > @@ -628,11 +630,8 @@ void omap3isp_video_resume(struct isp_video
-> > *video, int
-> > continuous) {
-> >  	struct isp_buffer *buf = NULL;
-> > 
-> > -	if (continuous && video->type ==
-> > V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> > -		mutex_lock(&video->queue_lock);
-> > +	if (continuous && video->type ==
-> > V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >  		vb2_discard_done(video->queue);
-> > -		mutex_unlock(&video->queue_lock);
-> > -	}
-> 
-> Why can locking be removed here ? As far as I know the lock isn't
-> taken by the 
-> caller. It would help to explain the rationale in the commit message.
-> 
+On Friday, 6 July 2018 17:10:10 MSK Ville Syrj=E4l=E4 wrote:
+> On Fri, Jul 06, 2018 at 04:05:21PM +0300, Dmitry Osipenko wrote:
+> > On 06.07.2018 15:23, Ville Syrj=E4l=E4 wrote:
+> > > On Fri, Jul 06, 2018 at 02:11:44PM +0200, Maarten Lankhorst wrote:
+> > >> Hey,
+> > >>=20
+> > >> Op 04-06-18 om 00:00 schreef Dmitry Osipenko:
+> > >>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> > >>>=20
+> > >>> Color keying is the action of replacing pixels matching a given col=
+or
+> > >>> (or range of colors) with transparent pixels in an overlay when
+> > >>> performing blitting. Depending on the hardware capabilities, the
+> > >>> matching pixel can either become fully transparent or gain adjustme=
+nt
+> > >>> of the pixels component values.
+> > >>>=20
+> > >>> Color keying is found in a large number of devices whose capabiliti=
+es
+> > >>> often differ, but they still have enough common features in range to
+> > >>> standardize color key properties. This commit adds three generic DRM
+> > >>> plane
+> > >>> properties related to the color keying, providing initial color key=
+ing
+> > >>> support.
+> > >>>=20
+> > >>> Signed-off-by: Laurent Pinchart
+> > >>> <laurent.pinchart+renesas@ideasonboard.com>
+> > >>> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+> > >>> ---
+> > >>>=20
+> > >>>  drivers/gpu/drm/drm_atomic.c | 12 +++++
+> > >>>  drivers/gpu/drm/drm_blend.c  | 99
+> > >>>  ++++++++++++++++++++++++++++++++++++
+> > >>>  include/drm/drm_blend.h      |  3 ++
+> > >>>  include/drm/drm_plane.h      | 53 +++++++++++++++++++
+> > >>>  4 files changed, 167 insertions(+)
+> > >>>=20
+> > >>> diff --git a/drivers/gpu/drm/drm_atomic.c
+> > >>> b/drivers/gpu/drm/drm_atomic.c
+> > >>> index 895741e9cd7d..b322cbed319b 100644
+> > >>> --- a/drivers/gpu/drm/drm_atomic.c
+> > >>> +++ b/drivers/gpu/drm/drm_atomic.c
+> > >>> @@ -799,6 +799,12 @@ static int drm_atomic_plane_set_property(struct
+> > >>> drm_plane *plane,> >>>=20
+> > >>>  		state->rotation =3D val;
+> > >>>  =09
+> > >>>  	} else if (property =3D=3D plane->zpos_property) {
+> > >>>  =09
+> > >>>  		state->zpos =3D val;
+> > >>>=20
+> > >>> +	} else if (property =3D=3D plane->colorkey.mode_property) {
+> > >>> +		state->colorkey.mode =3D val;
+> > >>> +	} else if (property =3D=3D plane->colorkey.min_property) {
+> > >>> +		state->colorkey.min =3D val;
+> > >>> +	} else if (property =3D=3D plane->colorkey.max_property) {
+> > >>> +		state->colorkey.max =3D val;
+> > >>>=20
+> > >>>  	} else if (property =3D=3D plane->color_encoding_property) {
+> > >>>  =09
+> > >>>  		state->color_encoding =3D val;
+> > >>>  =09
+> > >>>  	} else if (property =3D=3D plane->color_range_property) {
+> > >>>=20
+> > >>> @@ -864,6 +870,12 @@ drm_atomic_plane_get_property(struct drm_plane
+> > >>> *plane,
+> > >>>=20
+> > >>>  		*val =3D state->rotation;
+> > >>>  =09
+> > >>>  	} else if (property =3D=3D plane->zpos_property) {
+> > >>>  =09
+> > >>>  		*val =3D state->zpos;
+> > >>>=20
+> > >>> +	} else if (property =3D=3D plane->colorkey.mode_property) {
+> > >>> +		*val =3D state->colorkey.mode;
+> > >>> +	} else if (property =3D=3D plane->colorkey.min_property) {
+> > >>> +		*val =3D state->colorkey.min;
+> > >>> +	} else if (property =3D=3D plane->colorkey.max_property) {
+> > >>> +		*val =3D state->colorkey.max;
+> > >>>=20
+> > >>>  	} else if (property =3D=3D plane->color_encoding_property) {
+> > >>>  =09
+> > >>>  		*val =3D state->color_encoding;
+> > >>>  =09
+> > >>>  	} else if (property =3D=3D plane->color_range_property) {
+> > >>>=20
+> > >>> diff --git a/drivers/gpu/drm/drm_blend.c b/drivers/gpu/drm/drm_blen=
+d.c
+> > >>> index a16a74d7e15e..12fed2ff65c8 100644
+> > >>> --- a/drivers/gpu/drm/drm_blend.c
+> > >>> +++ b/drivers/gpu/drm/drm_blend.c
+> > >>> @@ -107,6 +107,11 @@
+> > >>>=20
+> > >>>   *	planes. Without this property the primary plane is always below
+> > >>>   the cursor *	plane, and ordering between all other planes is
+> > >>>   undefined.
+> > >>>   *
+> > >>>=20
+> > >>> + * colorkey:
+> > >>> + *	Color keying is set up with
+> > >>> drm_plane_create_colorkey_properties().
+> > >>> + *	It adds support for replacing a range of colors with a=20
+transparent
+> > >>> + *	color in the plane.
+> > >>> + *
+> > >>>=20
+> > >>>   * Note that all the property extensions described here apply eith=
+er
+> > >>>   to the
+> > >>>   * plane or the CRTC (e.g. for the background color, which current=
+ly
+> > >>>   is not
+> > >>>   * exposed and assumed to be black).
+> > >>>=20
+> > >>> @@ -448,3 +453,97 @@ int drm_atomic_normalize_zpos(struct drm_device
+> > >>> *dev,
+> > >>>=20
+> > >>>  	return 0;
+> > >>> =20
+> > >>>  }
+> > >>>  EXPORT_SYMBOL(drm_atomic_normalize_zpos);
+> > >>>=20
+> > >>> +
+> > >>> +static const char * const plane_colorkey_mode_name[] =3D {
+> > >>> +	[DRM_PLANE_COLORKEY_MODE_DISABLED] =3D "disabled",
+> > >>> +	[DRM_PLANE_COLORKEY_MODE_FOREGROUND_CLIP] =3D "foreground-clip",
+> > >>> +};
+> > >>> +
+> > >>> +/**
+> > >>> + * drm_plane_create_colorkey_properties - create colorkey properti=
+es
+> > >>> + * @plane: drm plane
+> > >>> + * @supported_modes: bitmask of supported color keying modes
+> > >>> + *
+> > >>> + * This function creates the generic color keying properties and
+> > >>> attach them to + * the plane to enable color keying control for
+> > >>> blending operations. + *
+> > >>> + * Color keying is controlled by these properties:
+> > >>> + *
+> > >>> + * colorkey.mode:
+> > >>> + *	The mode is an enumerated property that controls how color keyi=
+ng
+> > >>> + *	operates.
+> > >>> + *
+> > >>> + * colorkey.min, colorkey.max:
+> > >>> + *	These two properties specify the colors that are treated as the
+> > >>> color
+> > >>> + *	key. Pixel whose value is in the [min, max] range is the color=
+=20
+key
+> > >>> + *	matching pixel. The minimum and maximum values are expressed as=
+ a
+> > >>> + *	64-bit integer in ARGB16161616 format, where A is the alpha val=
+ue
+> > >>> and
+> > >>> + *	R, G and B correspond to the color components. Drivers shall
+> > >>> convert
+> > >>> + *	ARGB16161616 value into appropriate format within planes atomic
+> > >>> check.
+> > >>> + *
+> > >>> + *	When a single color key is desired instead of a range, userspace
+> > >>> shall
+> > >>> + *	set the min and max properties to the same value.
+> > >>> + *
+> > >>> + *	Drivers return an error from their plane atomic check if range
+> > >>> can't be
+> > >>> + *	handled.
+> > >>> + *
+> > >>> + * Returns:
+> > >>> + * Zero on success, negative errno on failure.
+> > >>> + */
+> > >>> +int drm_plane_create_colorkey_properties(struct drm_plane *plane,
+> > >>> +					 u32 supported_modes)
+> > >>> +{
+> > >>> +	struct drm_prop_enum_list=20
+modes_list[DRM_PLANE_COLORKEY_MODES_NUM];
+> > >>> +	struct drm_property *mode_prop;
+> > >>> +	struct drm_property *min_prop;
+> > >>> +	struct drm_property *max_prop;
+> > >>> +	unsigned int modes_num =3D 0;
+> > >>> +	unsigned int i;
+> > >>> +
+> > >>> +	/* modes are driver-specific, build the list of supported modes=20
+*/
+> > >>> +	for (i =3D 0; i < DRM_PLANE_COLORKEY_MODES_NUM; i++) {
+> > >>> +		if (!(supported_modes & BIT(i)))
+> > >>> +			continue;
+> > >>> +
+> > >>> +		modes_list[modes_num].name =3D plane_colorkey_mode_name[i];
+> > >>> +		modes_list[modes_num].type =3D i;
+> > >>> +		modes_num++;
+> > >>> +	}
+> > >>> +
+> > >>> +	/* at least one mode should be supported */
+> > >>> +	if (!modes_num)
+> > >>> +		return -EINVAL;
+> > >>> +
+> > >>> +	mode_prop =3D drm_property_create_enum(plane->dev, 0,=20
+"colorkey.mode",
+> > >>> +					     modes_list, modes_num);
+> > >>> +	if (!mode_prop)
+> > >>> +		return -ENOMEM;
+> > >>> +
+> > >>> +	min_prop =3D drm_property_create_range(plane->dev, 0,=20
+"colorkey.min",
+> > >>> +					     0, U64_MAX);
+> > >>> +	if (!min_prop)
+> > >>> +		goto err_destroy_mode_prop;
+> > >>> +
+> > >>> +	max_prop =3D drm_property_create_range(plane->dev, 0,=20
+"colorkey.max",
+> > >>> +					     0, U64_MAX);
+> > >>> +	if (!max_prop)
+> > >>> +		goto err_destroy_min_prop;
+> > >>> +
+> > >>> +	drm_object_attach_property(&plane->base, mode_prop, 0);
+> > >>> +	drm_object_attach_property(&plane->base, min_prop, 0);
+> > >>> +	drm_object_attach_property(&plane->base, max_prop, 0);
+> > >>> +
+> > >>> +	plane->colorkey.mode_property =3D mode_prop;
+> > >>> +	plane->colorkey.min_property =3D min_prop;
+> > >>> +	plane->colorkey.max_property =3D max_prop;
+> > >>> +
+> > >>> +	return 0;
+> > >>> +
+> > >>> +err_destroy_min_prop:
+> > >>> +	drm_property_destroy(plane->dev, min_prop);
+> > >>> +err_destroy_mode_prop:
+> > >>> +	drm_property_destroy(plane->dev, mode_prop);
+> > >>> +
+> > >>> +	return -ENOMEM;
+> > >>> +}
+> > >>> +EXPORT_SYMBOL(drm_plane_create_colorkey_properties);
+> > >>> diff --git a/include/drm/drm_blend.h b/include/drm/drm_blend.h
+> > >>> index 330c561c4c11..8e80d33b643e 100644
+> > >>> --- a/include/drm/drm_blend.h
+> > >>> +++ b/include/drm/drm_blend.h
+> > >>> @@ -52,4 +52,7 @@ int drm_plane_create_zpos_immutable_property(stru=
+ct
+> > >>> drm_plane *plane,> >>>=20
+> > >>>  					     unsigned int zpos);
+> > >>> =20
+> > >>>  int drm_atomic_normalize_zpos(struct drm_device *dev,
+> > >>> =20
+> > >>>  			      struct drm_atomic_state *state);
+> > >>>=20
+> > >>> +
+> > >>> +int drm_plane_create_colorkey_properties(struct drm_plane *plane,
+> > >>> +					 u32 supported_modes);
+> > >>>=20
+> > >>>  #endif
+> > >>>=20
+> > >>> diff --git a/include/drm/drm_plane.h b/include/drm/drm_plane.h
+> > >>> index 26fa50c2a50e..9a621e1ccc47 100644
+> > >>> --- a/include/drm/drm_plane.h
+> > >>> +++ b/include/drm/drm_plane.h
+> > >>> @@ -32,6 +32,48 @@ struct drm_crtc;
+> > >>>=20
+> > >>>  struct drm_printer;
+> > >>>  struct drm_modeset_acquire_ctx;
+> > >>>=20
+> > >>> +/**
+> > >>> + * enum drm_plane_colorkey_mode - uapi plane colorkey mode
+> > >>> enumeration
+> > >>> + */
+> > >>> +enum drm_plane_colorkey_mode {
+> > >>> +	/**
+> > >>> +	 * @DRM_PLANE_COLORKEY_MODE_DISABLED:
+> > >>> +	 *
+> > >>> +	 * No color matching performed in this mode.
+> > >>> +	 */
+> > >>> +	DRM_PLANE_COLORKEY_MODE_DISABLED,
+> > >>> +
+> > >>> +	/**
+> > >>> +	 * @DRM_PLANE_COLORKEY_MODE_FOREGROUND_CLIP:
+> > >>> +	 *
+> > >>> +	 * This mode is also known as a "green screen". Plane pixels are
+> > >>> +	 * transparent in areas where pixels match a given color key=20
+range
+> > >>> +	 * and there is a bottom (background) plane, in other cases plane
+> > >>> +	 * pixels are unaffected.
+> > >>> +	 *
+> > >>> +	 */
+> > >>> +	DRM_PLANE_COLORKEY_MODE_FOREGROUND_CLIP,
+> > >>=20
+> > >> Could we add background clip as well?
+> >=20
+> > Sure, but I think adding a new mode should be a distinct change made on
+> > top of the initial series.
+> >=20
+> > > Also could we just name them "src" and "dst" (or some variation of
+> > > those). I'm betting no one has any kind of idea what these proposed
+> > > names mean without looking up the docs, whereas pretty much everyone
+> > > knows immediately what src/dst colorkeying means.
+> >=20
+> > Okay, I'll rename the mode to DRM_PLANE_COLORKEY_MODE_SRC in the next
+> > revision.>=20
+> > >> Would be nice if we could map i915's legacy ioctl handler to the new
+> > >> color key mode.> >>=20
+> > >>> +	/**
+> > >>> +	 * @DRM_PLANE_COLORKEY_MODES_NUM:
+> > >>> +	 *
+> > >>> +	 * Total number of color keying modes.
+> > >>> +	 */
+> > >>> +	DRM_PLANE_COLORKEY_MODES_NUM,
+> > >>> +};
+> > >>> +
+> > >>> +/**
+> > >>> + * struct drm_plane_colorkey_state - plane color keying state
+> > >>> + * @colorkey.mode: color keying mode
+> > >>> + * @colorkey.min: color key range minimum (in ARGB16161616 format)
+> > >>> + * @colorkey.max: color key range maximum (in ARGB16161616 format)
+> > >>> + */
+> > >>> +struct drm_plane_colorkey_state {
+> > >>> +	enum drm_plane_colorkey_mode mode;
+> > >>> +	u64 min;
+> > >>> +	u64 max;
+> > >>> +};
+> > >>=20
+> > >> Could we have some macros to extract the components for min/max?
+> > >> A, R, G, B.
+> >=20
+> > I'll add the macros in the next revision.
+> >=20
+> > > And where did we lose the value+mask?
+> >=20
+> > There is no use for the mask on Tegra. I'd prefer to keep initial patch=
+es
+> > simple and minimal, other modes and additional properties could be added
+> > in the further patches on by as-needed basis. Mask could be added later
+> > with the default value of 0xffffffffffffffff. Does it sound good for yo=
+u?
+>=20
+> IIRC my earlier idea was to have different colorkey modes for the
+> min+max and value+mask modes. That way userspace might actually have
+> some chance of figuring out which bits of state actually do something.
+> Although for Intel hw I think the general rule is that min+max for YUV,
+> value+mask for RGB, so it's still not 100% clear what to pick if the
+> plane supports both.
+>=20
+> I guess one alternative would be to have min+max only, and the driver
+> would reject 'min !=3D max' if it only uses a single value?
+>=20
 
-AFAICS, vb2_discard_done() simply iterates over a list, and it's
-protected by a spinlock. It's already thread-safe.
+You should pick both and reject unsupported property values based on the=20
+planes framebuffer format. So it will be possible to set unsupported values=
+=20
+while plane is disabled because it doesn't have an associated framebuffer a=
+nd=20
+then atomic check will fail to enable plane if property values are invalid =
+for=20
+the given format.
 
-> >  	if (!list_empty(&video->dmaqueue)) {
-> >  		buf = list_first_entry(&video->dmaqueue,
-> > @@ -909,13 +908,8 @@ isp_video_reqbufs(struct file *file, void *fh,
-> > struct
-> > v4l2_requestbuffers *rb) {
-> >  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> >  	struct isp_video *video = video_drvdata(file);
-> 
-> The video variable isn't used anymore. Didn't gcc warn you ?
-> 
+> And maybe we should have the mask always? IIRC Intel hw generally has a
+> one bit enable/disable "mask" per channel in the min+max mode (I think
+> there's one exception where it has only a 1 bit mask in the value+mask
+> mode as well). So we could accept 0 and 0xffff mask values in this case
+> and reject everything else.
 
-Hm, I don't remember getting warnings.
+Sounds good to me. Actually there is a place for the mask on Tegra, older=20
+generation doesn't support matching of the alpha channel and the alpha chan=
+nel=20
+matching is simply ignored, so colorkeying could be support for the=20
+framebuffer formats that have an alpha channel if the alpha channel matchin=
+g=20
+is disabled by the mask value.
 
-> > -	int ret;
-> > -
-> > -	mutex_lock(&video->queue_lock);
-> > -	ret = vb2_reqbufs(&vfh->queue, rb);
-> > -	mutex_unlock(&video->queue_lock);
-> > 
-> > -	return ret;
-> > +	return vb2_reqbufs(&vfh->queue, rb);
-> >  }
-> > 
-> >  static int
-> > @@ -923,13 +917,8 @@ isp_video_querybuf(struct file *file, void
-> > *fh, struct
-> > v4l2_buffer *b) {
-> >  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> >  	struct isp_video *video = video_drvdata(file);
-> 
-> Same here and in other functions below.
-> 
-> > -	int ret;
-> > 
-> > -	mutex_lock(&video->queue_lock);
-> > -	ret = vb2_querybuf(&vfh->queue, b);
-> > -	mutex_unlock(&video->queue_lock);
-> > -
-> > -	return ret;
-> > +	return vb2_querybuf(&vfh->queue, b);
-> >  }
-> > 
-> >  static int
-> > @@ -937,13 +926,8 @@ isp_video_qbuf(struct file *file, void *fh,
-> > struct
-> > v4l2_buffer *b) {
-> >  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> >  	struct isp_video *video = video_drvdata(file);
-> > -	int ret;
-> > 
-> > -	mutex_lock(&video->queue_lock);
-> > -	ret = vb2_qbuf(&vfh->queue, b);
-> > -	mutex_unlock(&video->queue_lock);
-> > -
-> > -	return ret;
-> > +	return vb2_qbuf(&vfh->queue, b);
-> >  }
-> > 
-> >  static int
-> > @@ -951,13 +935,8 @@ isp_video_dqbuf(struct file *file, void *fh,
-> > struct
-> > v4l2_buffer *b) {
-> >  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> >  	struct isp_video *video = video_drvdata(file);
-> > -	int ret;
-> > 
-> > -	mutex_lock(&video->queue_lock);
-> > -	ret = vb2_dqbuf(&vfh->queue, b, file->f_flags &
-> > O_NONBLOCK);
-> > -	mutex_unlock(&video->queue_lock);
-> > -
-> > -	return ret;
-> > +	return vb2_dqbuf(&vfh->queue, b, file->f_flags &
-> > O_NONBLOCK);
-> >  }
-> > 
-> >  static int isp_video_check_external_subdevs(struct isp_video
-> > *video,
-> > @@ -1096,8 +1075,6 @@ isp_video_streamon(struct file *file, void
-> > *fh, enum
-> > v4l2_buf_type type) if (type != video->type)
-> >  		return -EINVAL;
-> > 
-> > -	mutex_lock(&video->stream_lock);
-> > -
-> >  	/* Start streaming on the pipeline. No link touching an
-> > entity in the
-> >  	 * pipeline can be activated or deactivated once streaming
-> > is started.
-> >  	 */
-> > @@ -1106,7 +1083,7 @@ isp_video_streamon(struct file *file, void
-> > *fh, enum
-> > v4l2_buf_type type)
-> > 
-> >  	ret = media_entity_enum_init(&pipe->ent_enum, &video->isp-
-> > >media_dev);
-> >  	if (ret)
-> > -		goto err_enum_init;
-> > +		return ret;
-> > 
-> >  	/* TODO: Implement PM QoS */
-> >  	pipe->l3_ick = clk_get_rate(video->isp-
-> > >clock[ISP_CLK_L3_ICK]);
-> > @@ -1158,14 +1135,10 @@ isp_video_streamon(struct file *file, void
-> > *fh, enum
-> > v4l2_buf_type type) atomic_set(&pipe->frame_number, -1);
-> >  	pipe->field = vfh->format.fmt.pix.field;
-> > 
-> > -	mutex_lock(&video->queue_lock);
-> >  	ret = vb2_streamon(&vfh->queue, type);
-> > -	mutex_unlock(&video->queue_lock);
-> >  	if (ret < 0)
-> >  		goto err_check_format;
-> > 
-> > -	mutex_unlock(&video->stream_lock);
-> > -
-> >  	return 0;
-> > 
-> >  err_check_format:
-> > @@ -1184,9 +1157,6 @@ isp_video_streamon(struct file *file, void
-> > *fh, enum
-> > v4l2_buf_type type)
-> > 
-> >  	media_entity_enum_cleanup(&pipe->ent_enum);
-> > 
-> > -err_enum_init:
-> > -	mutex_unlock(&video->stream_lock);
-> > -
-> >  	return ret;
-> >  }
-> > 
-> > @@ -1203,15 +1173,10 @@ isp_video_streamoff(struct file *file, void
-> > *fh,
-> > enum v4l2_buf_type type) if (type != video->type)
-> >  		return -EINVAL;
-> > 
-> > -	mutex_lock(&video->stream_lock);
-> > -
-> >  	/* Make sure we're not streaming yet. */
-> > -	mutex_lock(&video->queue_lock);
-> >  	streaming = vb2_is_streaming(&vfh->queue);
-> > -	mutex_unlock(&video->queue_lock);
-> > -
-> >  	if (!streaming)
-> > -		goto done;
-> > +		return 0;
-> > 
-> >  	/* Update the pipeline state. */
-> >  	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > @@ -1229,19 +1194,13 @@ isp_video_streamoff(struct file *file, void
-> > *fh,
-> > enum v4l2_buf_type type)
-> >  	omap3isp_pipeline_set_stream(pipe,
-> > ISP_PIPELINE_STREAM_STOPPED);
-> 
-> With this patch, the omap3isp_pipeline_set_stream() function will
-> wait for the 
-> pipeline to stop with the queue lock held. This means that all
-> concurrent 
-> access to buffer-related functions (and in particular DQBUF and and
-> poll()) 
-> will potentially wait for much longer than they do now. Could this be
-> a 
-> problem ? Could waiting for the pipeline to stop with the lock held
-> also cause 
-> other problems than that ?
-> 
+> The alternative might be to enable the
+> keying for the channel if 'min <=3D max' and disable it if 'min > max'.
+> But not sure if that's slightly too magicy.
 
-Yes, I can see that now. It will only cause problems if the subdev
-calls, then try to take the queue lock, either directly or by re-
-entering into the driver.
-
-I don't have access to this hardware, so I do not have other answers.
-
-> >  	omap3isp_video_cancel_stream(video);
-> > 
-> > -	mutex_lock(&video->queue_lock);
-> >  	vb2_streamoff(&vfh->queue, type);
-> > -	mutex_unlock(&video->queue_lock);
-> >  	video->queue = NULL;
-> >  	video->error = false;
-> > 
-> >  	/* TODO: Implement PM QoS */
-> >  	media_pipeline_stop(&video->video.entity);
-> > -
-> >  	media_entity_enum_cleanup(&pipe->ent_enum);
-> > -
-> > -done:
-> > -	mutex_unlock(&video->stream_lock);
-> >  	return 0;
-> >  }
-> > 
-> > @@ -1333,6 +1292,7 @@ static int isp_video_open(struct file *file)
-> >  	queue->buf_struct_size = sizeof(struct isp_buffer);
-> >  	queue->timestamp_flags =
-> > V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> >  	queue->dev = video->isp->dev;
-> > +	queue->lock = &video->queue_lock;
-> > 
-> >  	ret = vb2_queue_init(&handle->queue);
-> >  	if (ret < 0) {
-> > @@ -1363,10 +1323,9 @@ static int isp_video_release(struct file
-> > *file)
-> >  	struct v4l2_fh *vfh = file->private_data;
-> >  	struct isp_video_fh *handle = to_isp_video_fh(vfh);
-> > 
-> > +	mutex_lock(&video->queue_lock);
-> >  	/* Disable streaming and free the buffers queue resources.
-> > */
-> >  	isp_video_streamoff(file, vfh, video->type);
-> > -
-> > -	mutex_lock(&video->queue_lock);
-> >  	vb2_queue_release(&handle->queue);
-> >  	mutex_unlock(&video->queue_lock);
-> > 
-> > @@ -1449,7 +1408,6 @@ int omap3isp_video_init(struct isp_video
-> > *video, const
-> > char *name) atomic_set(&video->active, 0);
-> > 
-> >  	spin_lock_init(&video->pipe.lock);
-> > -	mutex_init(&video->stream_lock);
-> >  	mutex_init(&video->queue_lock);
-> >  	spin_lock_init(&video->irqlock);
-> > 
-> > @@ -1474,7 +1432,6 @@ void omap3isp_video_cleanup(struct isp_video
-> > *video)
-> >  {
-> >  	media_entity_cleanup(&video->video.entity);
-> >  	mutex_destroy(&video->queue_lock);
-> > -	mutex_destroy(&video->stream_lock);
-> >  	mutex_destroy(&video->mutex);
-> >  }
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/ispvideo.h
-> > b/drivers/media/platform/omap3isp/ispvideo.h index
-> > f6a2082b4a0a..5a8fba85e0eb 100644
-> > --- a/drivers/media/platform/omap3isp/ispvideo.h
-> > +++ b/drivers/media/platform/omap3isp/ispvideo.h
-> > @@ -167,7 +167,6 @@ struct isp_video {
-> > 
-> >  	/* Pipeline state */
-> >  	struct isp_pipeline pipe;
-> > -	struct mutex stream_lock;	/* pipeline and stream
-> > states */
-> 
-> The queue_lock now covers more than just the queue, please update the
-> comment 
-> to list the fields that are protected by the mutex.
-> 
-> 
-
-Right.
+The mask property should suit well your case, I don't think there is any ne=
+ed=20
+for the magic.
