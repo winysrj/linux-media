@@ -1,214 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:56117 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754118AbeGFLAu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 07:00:50 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
-        steve_longerbeam@mentor.com, hugues.fruchet@st.com,
-        loic.poulain@linaro.org, daniel@zonque.org
-Cc: Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
-Subject: [PATCH] media: i2c: ov5640: Re-work MIPI startup sequence
-Date: Fri,  6 Jul 2018 13:00:36 +0200
-Message-Id: <1530874836-12750-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:33946 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753528AbeGFLQK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 07:16:10 -0400
+Date: Fri, 6 Jul 2018 08:16:03 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
+Cc: <linux-media@vger.kernel.org>,
+        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
+        "Jassi Brar" <jaswinder.singh@linaro.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, "Abylay Ospan" <aospan@netup.ru>
+Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+ demodulator driver
+Message-ID: <20180706081603.2d8451c9@coco.lan>
+In-Reply-To: <001f01d414ef$27145450$753cfcf0$@socionext.com>
+References: <20180621031748.21703-1-suzuki.katsuhiro@socionext.com>
+        <20180704135657.3fd607cb@coco.lan>
+        <000401d41403$b33db490$19b91db0$@socionext.com>
+        <20180704234244.32d20f6b@coco.lan>
+        <000501d41423$265013a0$72f03ae0$@socionext.com>
+        <20180705212723.2856f064@coco.lan>
+        <001f01d414ef$27145450$753cfcf0$@socionext.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacopo Mondi <jacopo@jmondi.org>
+Em Fri, 6 Jul 2018 15:04:08 +0900
+"Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
 
-Rework the MIPI interface startup sequence with the following changes:
+> Here is the log of dvb-fe-tool on my environment.
+> 
+> --------------------
+> # ./utils/dvb/.libs/dvb-fe-tool -d isdbs
+> Changing delivery system to: ISDBS
+> ERROR    FE_SET_VOLTAGE: Unknown error 524
 
-- Remove MIPI bus initialization from the initial settings blob
-- At set_power(1) time power up MIPI Tx/Rx and set data and clock lanes in
-  LP11 during 'sleep' and 'idle' with MIPI clock in non-continuous mode.
-- At s_stream time enable/disable the MIPI interface output.
-- Restore default settings at set_power(0) time.
+Hmm... ENOTSUPP. Doesn't the device supposed to be able to power on the
+LNBf?
 
-Before this commit the sensor MIPI interface was initialized with settings
-that require a start/stop sequence at power-up time in order to force lanes
-into LP11 state, as they were initialized in LP00 when in 'sleep mode',
-which is assumed to be the sensor manual definition for the D-PHY defined
-stop mode.
+Anyway, I changed the error print message to be clearer, displaying 
+instead:
 
-The stream start/stop was performed by enabling disabling clock gating,
-and had the side effect to change the lanes sleep mode configuration when
-stream was stopped.
+  ERROR    FE_SET_VOLTAGE: driver doesn't support it!
 
-Clock gating/ungating:
--       ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
--                            on ? 0 : BIT(5));
--       if (ret)
+> 
+> # ./utils/dvb/.libs/dvb-fe-tool
+> Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabilities:
+>      CAN_FEC_AUTO
+>      CAN_GUARD_INTERVAL_AUTO
+>      CAN_HIERARCHY_AUTO
+>      CAN_INVERSION_AUTO
+>      CAN_QAM_AUTO
+>      CAN_TRANSMISSION_MODE_AUTO
+> DVB API Version 5.11, Current v5 delivery system: ISDBS
+> Supported delivery systems:
+>     [ISDBS]
+>      ISDBT
+> Frequency range for the current standard:
+> From:             470 MHz
+> To:              2.07 GHz
+> Step:            25.0 kHz
+> Symbol rate ranges for the current standard:
+> From:                 0Bauds
+> To:                   0Bauds
 
-Set lanes in LP11 when in 'sleep mode':
--       ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
--                              on ? 0x00 : 0x70);
+That seems a driver issue. The ISDB-S ops.info should be
+filling both symbol_rate_min and symbol_rate_max.
 
-This commit fixes an issue reported by Jagan Teki on i.MX6 platforms that
-prevents the host interface from powering up correctly:
-https://lkml.org/lkml/2018/6/1/38
+I suspect that both should be filled with 28860000.
 
-It also improves MIPI capture operations stability on my testing platform
-where MIPI capture often (silently) failed and returned all-purple frames.
+The dvb_frontend.c core might hardcode it, but, IMHO,
+it is better to keep those information inside the 
+tuner/frontend ops.info.
 
-fixes: f22996db44e2 ("media: ov5640: add support of DVP parallel interface")
-Reported-by: Jagan Teki <jagan@amarulasolutions.com>
-Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+> SEC: set voltage to OFF
+> ERROR    FE_SET_VOLTAGE: Operation not permitted
+> 
+> 
+> # ./utils/dvb/.libs/dvb-fe-tool -d isdbt
+> Changing delivery system to: ISDBT
+> ERROR    FE_SET_VOLTAGE: Unknown error 524
+> 
+> # ./utils/dvb/.libs/dvb-fe-tool
+> Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabilities:
+>      CAN_FEC_AUTO
+>      CAN_GUARD_INTERVAL_AUTO
+>      CAN_HIERARCHY_AUTO
+>      CAN_INVERSION_AUTO
+>      CAN_QAM_AUTO
+>      CAN_TRANSMISSION_MODE_AUTO
+> DVB API Version 5.11, Current v5 delivery system: ISDBT
+> Supported delivery systems:
+>      ISDBS
+>     [ISDBT]
+> Frequency range for the current standard:
+> From:             470 MHz
+> To:              2.07 GHz
+> Step:            25.0 kHz
 
----
+The rest looks OK for me.
 
-Hello,
-  I'm sending this one as new patch instead of a v2 of the previously sent
-series "media: i2c: ov5640: Re-work MIPI interface configuration" as the
-previous one was not working on the Engicam i.Mx6 platform where Jagan
-initially reported issues on.
+> > > For example, Helene uses these info for only Ter or Sat freq ranges:
+> > >
+> > > 		.name = "Sony HELENE Ter tuner",
+> > > 		.frequency_min_hz  =    1 * MHz,
+> > > 		.frequency_max_hz  = 1200 * MHz,
+> > > 		.frequency_step_hz =   25 * kHz,
+> > >
+> > > 		.name = "Sony HELENE Sat tuner",
+> > > 		.frequency_min_hz  =  500 * MHz,
+> > > 		.frequency_max_hz  = 2500 * MHz,
+> > > 		.frequency_step_hz =    1 * MHz,
+> > >
+> > > Is this better to add new info for both system?
+> > >
+> > > 		.name = "Sony HELENE Sat/Ter tuner",
+> > > 		.frequency_min_hz  =    1 * MHz,
+> > > 		.frequency_max_hz  = 2500 * MHz,
+> > > 		.frequency_step_hz =   25 * kHz, // Is this correct...?  
+> > 
+> > That is indeed a very good question, and maybe a reason why we
+> > may need other approaches.
+> > 
+> > See, if the tuner is capable of tuning from 1 MHz to 2500 MHz,
+> > the frequency range should be ok. It would aget_frontend_algoctually be pretty cool
+> > to use a tuner with such wide range for SDR, if the hardware supports
+> > raw I/Q collect :-D
+> > 
+> > The frequency step is a different issue. If the tuner driver uses
+> > DVBFE_ALGO_SW (e. g. if ops.get_frontend_algo() returns it, or if
+> > this function is not defined), then the step will be used to adjust
+> > the zigzag interactions. If it is too small, the tuning will lose
+> > channels if the signal is not strong.
+> >   
+> 
+> Thank you for describing. It's difficult problem...
 
-I've been able to test that capture now starts on said platform, but I've not
-been able to visually verify any of the image content as I have no way yet to
-transfer the raw images to my development host and verify their content (network
-still not working for me on that platform :/ )
+I double-checked the implementation. We don't need to worry about
+zigzag, provided that the ISDB-S implementation at the core is correct.
 
-On my other testing platform images are correct, but they already were with the
-previous version of this patches too, so I assume the CSI-2 receiver is far more
-tolerant there.
+For satellite/cable standards, the zigzag logic takes the symbol
+rate into account, and not the stepsize:
 
-Jagan, is there any way you could verify images? I would appreciate your
-Tested-by tag in case they're correct.
+                case SYS_DVBS:
+                case SYS_DVBS2:
+                case SYS_ISDBS:
+                case SYS_TURBO:
+                case SYS_DVBC_ANNEX_A:
+                case SYS_DVBC_ANNEX_C:
+                        fepriv->min_delay = HZ / 20;
+                        fepriv->step_size = c->symbol_rate / 16000;
+                        fepriv->max_drift = c->symbol_rate / 2000;
+                        break;
 
-Also, as there seems to be a lot of people interested in ov5640 these days, I
-have expanded the receivers list. Anyone that could give these patches a spin?
-(ie. Sam reported issues too with the current MIPI startup sequence in a patch
-series he shared on dropbox iirc...)
+For terrestrial standards, it uses the stepsize:
 
-Thanks
-   j
----
- drivers/media/i2c/ov5640.c | 91 ++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 71 insertions(+), 20 deletions(-)
+                case SYS_DVBT:
+                case SYS_DVBT2:
+                case SYS_ISDBT:
+                case SYS_DTMB:
+                        fepriv->min_delay = HZ / 20;
+                        fepriv->step_size = dvb_frontend_get_stepsize(fe) * 2;
+                        fepriv->max_drift = (dvb_frontend_get_stepsize(fe) * 2) + 1;
+                        break;
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 1ecbb7a..7bbd1d7 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -286,10 +286,10 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
- 	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
- 	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x3000, 0x00, 0, 0},
- 	{0x3002, 0x1c, 0, 0}, {0x3004, 0xff, 0, 0}, {0x3006, 0xc3, 0, 0},
--	{0x300e, 0x45, 0, 0}, {0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
-+	{0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
- 	{0x501f, 0x00, 0, 0}, {0x4713, 0x03, 0, 0}, {0x4407, 0x04, 0, 0},
- 	{0x440e, 0x00, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
--	{0x4837, 0x0a, 0, 0}, {0x4800, 0x04, 0, 0}, {0x3824, 0x02, 0, 0},
-+	{0x4837, 0x0a, 0, 0}, {0x3824, 0x02, 0, 0},
- 	{0x5000, 0xa7, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x5180, 0xff, 0, 0},
- 	{0x5181, 0xf2, 0, 0}, {0x5182, 0x00, 0, 0}, {0x5183, 0x14, 0, 0},
- 	{0x5184, 0x25, 0, 0}, {0x5185, 0x24, 0, 0}, {0x5186, 0x09, 0, 0},
-@@ -1102,12 +1102,18 @@ static int ov5640_set_stream_mipi(struct ov5640_dev *sensor, bool on)
- {
- 	int ret;
+So, having a value of 25 kHz there won't affect the zigzag algorithm
+for ISDB-S, as it will be used only for ISDB-T.
 
--	ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
--			     on ? 0 : BIT(5));
--	if (ret)
--		return ret;
--	ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
--			       on ? 0x00 : 0x70);
-+	/*
-+	 * Enable/disable the MIPI interface
-+	 *
-+	 * 0x300e = on ? 0x45 : 0x40
-+	 * [7:5] = 001	: 2 data lanes mode
-+	 * [4] = 0	: Power up MIPI HS Tx
-+	 * [3] = 0	: Power up MIPI LS Rx
-+	 * [2] = 1/0	: MIPI interface enable/disable
-+	 * [1:0] = 01/00: FIXME: 'debug'
-+	 */
-+	ret = ov5640_write_reg(sensor, OV5640_REG_IO_MIPI_CTRL00,
-+			       on ? 0x45 : 0x40);
- 	if (ret)
- 		return ret;
+> > In the specific case of helene, it doesn't have a get_frontend_algo,
+> > so it will use the step frequency.
+> > 
+> > I'm not sure how to solve this issue. Maybe Abylay may shed a light
+> > here, if helene does sigzag in hardware or not.
+> >   
+> 
+> As far as I know, Helene does not have automatic scan mechanism in 
+> hardware.
 
-@@ -1786,23 +1792,68 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
- 		if (ret)
- 			goto power_off;
+Ok, so the driver is doing the right thing here.
 
-+		/* We're done here for DVP bus, while CSI-2 needs setup. */
-+		if (sensor->ep.bus_type != V4L2_MBUS_CSI2)
-+			return 0;
-+
-+		/*
-+		 * Power up MIPI HS Tx and LS Rx; 2 data lanes mode
-+		 *
-+		 * 0x300e = 0x40
-+		 * [7:5] = 001	: 2 data lanes mode
-+		 * [4] = 0	: Power up MIPI HS Tx
-+		 * [3] = 0	: Power up MIPI LS Rx
-+		 * [2] = 0	: MIPI interface disabled
-+		 */
-+		ret = ov5640_write_reg(sensor,
-+				       OV5640_REG_IO_MIPI_CTRL00, 0x40);
-+		if (ret)
-+			goto power_off;
-+
-+		/*
-+		 * Gate clock and set LP11 in 'no packets mode' (idle)
-+		 *
-+		 * 0x4800 = 0x24
-+		 * [5] = 1	: Gate clock when 'no packets'
-+		 * [2] = 1	: MIPI bus in LP11 when 'no packets'
-+		 */
-+		ret = ov5640_write_reg(sensor,
-+				       OV5640_REG_MIPI_CTRL00, 0x24);
-+		if (ret)
-+			goto power_off;
-+
-+		/*
-+		 * Set data lanes and clock in LP11 when 'sleeping'
-+		 *
-+		 * 0x3019 = 0x70
-+		 * [6] = 1	: MIPI data lane 2 in LP11 when 'sleeping'
-+		 * [5] = 1	: MIPI data lane 1 in LP11 when 'sleeping'
-+		 * [4] = 1	: MIPI clock lane in LP11 when 'sleeping'
-+		 */
-+		ret = ov5640_write_reg(sensor,
-+				       OV5640_REG_PAD_OUTPUT00, 0x70);
-+		if (ret)
-+			goto power_off;
-+
-+		/* Give lanes some time to coax into LP11 state. */
-+		usleep_range(500, 1000);
-+
-+	} else {
- 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
--			/*
--			 * start streaming briefly followed by stream off in
--			 * order to coax the clock lane into LP-11 state.
--			 */
--			ret = ov5640_set_stream_mipi(sensor, true);
--			if (ret)
--				goto power_off;
--			usleep_range(1000, 2000);
--			ret = ov5640_set_stream_mipi(sensor, false);
--			if (ret)
--				goto power_off;
-+			/* Reset MIPI bus settings to their default values. */
-+			ov5640_write_reg(sensor,
-+					 OV5640_REG_IO_MIPI_CTRL00, 0x58);
-+			ov5640_write_reg(sensor,
-+					 OV5640_REG_MIPI_CTRL00, 0x04);
-+			ov5640_write_reg(sensor,
-+					 OV5640_REG_PAD_OUTPUT00, 0x00);
- 		}
+> > If it does in hardware, you could add a get_frontend_algo() routine
+> > at helene driver and return DVBFE_ALGO_HW. The tuning zigzag software
+> > algorithm in the Kernel will stop, as it will rely at the hardware.
+> > 
+> > Please notice that, if the hardware doesn't do zigzag itself, this
+> > will make it lose channels. On the other hand, if the hardware does
+> > have sigzag, changing to DVBFE_ALGO_HW will speedup tuning, as the
+> > Kernel won't try to do sigzag itself.
+> >   
+> 
+> ISDB-T uses 6MHz bandwidth per channel (in Japan), ISDB-S for 
+> BS/CS110 uses 38.36MHz bandwidth. Maybe 1MHz zigzag step is large for 
+> ISDB-T system and 25kHz is small for ISDB-S system.
 
--		return 0;
-+		ov5640_set_power_off(sensor);
- 	}
+Yeah, but, after double-checking the logic, for ISDB-S, it will
+use:
 
-+	return 0;
-+
- power_off:
- 	ov5640_set_power_off(sensor);
- 	return ret;
---
-2.7.4
+	c->symbol_rate = 28860000;
+	c->rolloff = ROLLOFF_35;
+	c->bandwidth_hz = c->symbol_rate / 100 * 135;
+
+That would actually set the ISDB-S channel separation to 38.961 MHz.
+
+By setting symbol_rate like that, the zigzag for ISDB-S will
+be defined by:
+
+       fepriv->step_size = c->symbol_rate / 16000; /* 38.961MHz / 16000 = .002435 - e. g. steps of ~25 kHz */
+       fepriv->max_drift = c->symbol_rate / 2000;  /* 38.961MHz / 2000 = .0194805 - e. g. max drift of ~195 kHz */
+
+Funny enough, it will be using about 25 kHz as step size for ISDB-S.
+
+I have no idea if the ISDB-S standard defines the zigzag logic,
+but I would be expecting a higher value for it. So, perhaps
+the ISDB-S zigzag could be optimized.
+
+Thanks,
+Mauro
