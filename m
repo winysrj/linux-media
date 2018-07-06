@@ -1,283 +1,1357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:48190 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932502AbeGFMXf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Jul 2018 08:23:35 -0400
-Date: Fri, 6 Jul 2018 15:23:18 +0300
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Dmitry Osipenko <digetx@gmail.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v3 1/2] drm: Add generic colorkey properties for DRM
- planes
-Message-ID: <20180706122318.GI5565@intel.com>
-References: <20180603220059.17670-1-digetx@gmail.com>
- <20180603220059.17670-2-digetx@gmail.com>
- <8b80e766-be05-b5be-5a0f-102a5135d230@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <8b80e766-be05-b5be-5a0f-102a5135d230@linux.intel.com>
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:44221 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933101AbeGFMsu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 08:48:50 -0400
+Received: by mail-wr1-f67.google.com with SMTP id r16-v6so4089272wrt.11
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 05:48:49 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Vikash Garodia <vgarodia@codeaurora.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v6 12/27] venus: hfi_parser: add common capability parser
+Date: Fri,  6 Jul 2018 15:47:58 +0300
+Message-Id: <20180706124758.23759-1-stanimir.varbanov@linaro.org>
+In-Reply-To: <20180705130401.24315-13-stanimir.varbanov@linaro.org>
+References: <20180705130401.24315-13-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 06, 2018 at 02:11:44PM +0200, Maarten Lankhorst wrote:
-> Hey,
-> 
-> Op 04-06-18 om 00:00 schreef Dmitry Osipenko:
-> > From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> >
-> > Color keying is the action of replacing pixels matching a given color
-> > (or range of colors) with transparent pixels in an overlay when
-> > performing blitting. Depending on the hardware capabilities, the
-> > matching pixel can either become fully transparent or gain adjustment
-> > of the pixels component values.
-> >
-> > Color keying is found in a large number of devices whose capabilities
-> > often differ, but they still have enough common features in range to
-> > standardize color key properties. This commit adds three generic DRM plane
-> > properties related to the color keying, providing initial color keying
-> > support.
-> >
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> > Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
-> > ---
-> >  drivers/gpu/drm/drm_atomic.c | 12 +++++
-> >  drivers/gpu/drm/drm_blend.c  | 99 ++++++++++++++++++++++++++++++++++++
-> >  include/drm/drm_blend.h      |  3 ++
-> >  include/drm/drm_plane.h      | 53 +++++++++++++++++++
-> >  4 files changed, 167 insertions(+)
-> >
-> > diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
-> > index 895741e9cd7d..b322cbed319b 100644
-> > --- a/drivers/gpu/drm/drm_atomic.c
-> > +++ b/drivers/gpu/drm/drm_atomic.c
-> > @@ -799,6 +799,12 @@ static int drm_atomic_plane_set_property(struct drm_plane *plane,
-> >  		state->rotation = val;
-> >  	} else if (property == plane->zpos_property) {
-> >  		state->zpos = val;
-> > +	} else if (property == plane->colorkey.mode_property) {
-> > +		state->colorkey.mode = val;
-> > +	} else if (property == plane->colorkey.min_property) {
-> > +		state->colorkey.min = val;
-> > +	} else if (property == plane->colorkey.max_property) {
-> > +		state->colorkey.max = val;
-> >  	} else if (property == plane->color_encoding_property) {
-> >  		state->color_encoding = val;
-> >  	} else if (property == plane->color_range_property) {
-> > @@ -864,6 +870,12 @@ drm_atomic_plane_get_property(struct drm_plane *plane,
-> >  		*val = state->rotation;
-> >  	} else if (property == plane->zpos_property) {
-> >  		*val = state->zpos;
-> > +	} else if (property == plane->colorkey.mode_property) {
-> > +		*val = state->colorkey.mode;
-> > +	} else if (property == plane->colorkey.min_property) {
-> > +		*val = state->colorkey.min;
-> > +	} else if (property == plane->colorkey.max_property) {
-> > +		*val = state->colorkey.max;
-> >  	} else if (property == plane->color_encoding_property) {
-> >  		*val = state->color_encoding;
-> >  	} else if (property == plane->color_range_property) {
-> > diff --git a/drivers/gpu/drm/drm_blend.c b/drivers/gpu/drm/drm_blend.c
-> > index a16a74d7e15e..12fed2ff65c8 100644
-> > --- a/drivers/gpu/drm/drm_blend.c
-> > +++ b/drivers/gpu/drm/drm_blend.c
-> > @@ -107,6 +107,11 @@
-> >   *	planes. Without this property the primary plane is always below the cursor
-> >   *	plane, and ordering between all other planes is undefined.
-> >   *
-> > + * colorkey:
-> > + *	Color keying is set up with drm_plane_create_colorkey_properties().
-> > + *	It adds support for replacing a range of colors with a transparent
-> > + *	color in the plane.
-> > + *
-> >   * Note that all the property extensions described here apply either to the
-> >   * plane or the CRTC (e.g. for the background color, which currently is not
-> >   * exposed and assumed to be black).
-> > @@ -448,3 +453,97 @@ int drm_atomic_normalize_zpos(struct drm_device *dev,
-> >  	return 0;
-> >  }
-> >  EXPORT_SYMBOL(drm_atomic_normalize_zpos);
-> > +
-> > +static const char * const plane_colorkey_mode_name[] = {
-> > +	[DRM_PLANE_COLORKEY_MODE_DISABLED] = "disabled",
-> > +	[DRM_PLANE_COLORKEY_MODE_FOREGROUND_CLIP] = "foreground-clip",
-> > +};
-> > +
-> > +/**
-> > + * drm_plane_create_colorkey_properties - create colorkey properties
-> > + * @plane: drm plane
-> > + * @supported_modes: bitmask of supported color keying modes
-> > + *
-> > + * This function creates the generic color keying properties and attach them to
-> > + * the plane to enable color keying control for blending operations.
-> > + *
-> > + * Color keying is controlled by these properties:
-> > + *
-> > + * colorkey.mode:
-> > + *	The mode is an enumerated property that controls how color keying
-> > + *	operates.
-> > + *
-> > + * colorkey.min, colorkey.max:
-> > + *	These two properties specify the colors that are treated as the color
-> > + *	key. Pixel whose value is in the [min, max] range is the color key
-> > + *	matching pixel. The minimum and maximum values are expressed as a
-> > + *	64-bit integer in ARGB16161616 format, where A is the alpha value and
-> > + *	R, G and B correspond to the color components. Drivers shall convert
-> > + *	ARGB16161616 value into appropriate format within planes atomic check.
-> > + *
-> > + *	When a single color key is desired instead of a range, userspace shall
-> > + *	set the min and max properties to the same value.
-> > + *
-> > + *	Drivers return an error from their plane atomic check if range can't be
-> > + *	handled.
-> > + *
-> > + * Returns:
-> > + * Zero on success, negative errno on failure.
-> > + */
-> > +int drm_plane_create_colorkey_properties(struct drm_plane *plane,
-> > +					 u32 supported_modes)
-> > +{
-> > +	struct drm_prop_enum_list modes_list[DRM_PLANE_COLORKEY_MODES_NUM];
-> > +	struct drm_property *mode_prop;
-> > +	struct drm_property *min_prop;
-> > +	struct drm_property *max_prop;
-> > +	unsigned int modes_num = 0;
-> > +	unsigned int i;
-> > +
-> > +	/* modes are driver-specific, build the list of supported modes */
-> > +	for (i = 0; i < DRM_PLANE_COLORKEY_MODES_NUM; i++) {
-> > +		if (!(supported_modes & BIT(i)))
-> > +			continue;
-> > +
-> > +		modes_list[modes_num].name = plane_colorkey_mode_name[i];
-> > +		modes_list[modes_num].type = i;
-> > +		modes_num++;
-> > +	}
-> > +
-> > +	/* at least one mode should be supported */
-> > +	if (!modes_num)
-> > +		return -EINVAL;
-> > +
-> > +	mode_prop = drm_property_create_enum(plane->dev, 0, "colorkey.mode",
-> > +					     modes_list, modes_num);
-> > +	if (!mode_prop)
-> > +		return -ENOMEM;
-> > +
-> > +	min_prop = drm_property_create_range(plane->dev, 0, "colorkey.min",
-> > +					     0, U64_MAX);
-> > +	if (!min_prop)
-> > +		goto err_destroy_mode_prop;
-> > +
-> > +	max_prop = drm_property_create_range(plane->dev, 0, "colorkey.max",
-> > +					     0, U64_MAX);
-> > +	if (!max_prop)
-> > +		goto err_destroy_min_prop;
-> > +
-> > +	drm_object_attach_property(&plane->base, mode_prop, 0);
-> > +	drm_object_attach_property(&plane->base, min_prop, 0);
-> > +	drm_object_attach_property(&plane->base, max_prop, 0);
-> > +
-> > +	plane->colorkey.mode_property = mode_prop;
-> > +	plane->colorkey.min_property = min_prop;
-> > +	plane->colorkey.max_property = max_prop;
-> > +
-> > +	return 0;
-> > +
-> > +err_destroy_min_prop:
-> > +	drm_property_destroy(plane->dev, min_prop);
-> > +err_destroy_mode_prop:
-> > +	drm_property_destroy(plane->dev, mode_prop);
-> > +
-> > +	return -ENOMEM;
-> > +}
-> > +EXPORT_SYMBOL(drm_plane_create_colorkey_properties);
-> > diff --git a/include/drm/drm_blend.h b/include/drm/drm_blend.h
-> > index 330c561c4c11..8e80d33b643e 100644
-> > --- a/include/drm/drm_blend.h
-> > +++ b/include/drm/drm_blend.h
-> > @@ -52,4 +52,7 @@ int drm_plane_create_zpos_immutable_property(struct drm_plane *plane,
-> >  					     unsigned int zpos);
-> >  int drm_atomic_normalize_zpos(struct drm_device *dev,
-> >  			      struct drm_atomic_state *state);
-> > +
-> > +int drm_plane_create_colorkey_properties(struct drm_plane *plane,
-> > +					 u32 supported_modes);
-> >  #endif
-> > diff --git a/include/drm/drm_plane.h b/include/drm/drm_plane.h
-> > index 26fa50c2a50e..9a621e1ccc47 100644
-> > --- a/include/drm/drm_plane.h
-> > +++ b/include/drm/drm_plane.h
-> > @@ -32,6 +32,48 @@ struct drm_crtc;
-> >  struct drm_printer;
-> >  struct drm_modeset_acquire_ctx;
-> >  
-> > +/**
-> > + * enum drm_plane_colorkey_mode - uapi plane colorkey mode enumeration
-> > + */
-> > +enum drm_plane_colorkey_mode {
-> > +	/**
-> > +	 * @DRM_PLANE_COLORKEY_MODE_DISABLED:
-> > +	 *
-> > +	 * No color matching performed in this mode.
-> > +	 */
-> > +	DRM_PLANE_COLORKEY_MODE_DISABLED,
-> > +
-> > +	/**
-> > +	 * @DRM_PLANE_COLORKEY_MODE_FOREGROUND_CLIP:
-> > +	 *
-> > +	 * This mode is also known as a "green screen". Plane pixels are
-> > +	 * transparent in areas where pixels match a given color key range
-> > +	 * and there is a bottom (background) plane, in other cases plane
-> > +	 * pixels are unaffected.
-> > +	 *
-> > +	 */
-> > +	DRM_PLANE_COLORKEY_MODE_FOREGROUND_CLIP,
-> Could we add background clip as well?
+This adds common capability parser for all supported Venus
+versions. Having it will help to enumerate better the supported
+raw formats and codecs and also the capabilities for every
+codec like max/min width/height, framerate, bitrate and so on.
 
-Also could we just name them "src" and "dst" (or some variation of
-those). I'm betting no one has any kind of idea what these proposed
-names mean without looking up the docs, whereas pretty much everyone
-knows immediately what src/dst colorkeying means.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+---
 
-> 
-> Would be nice if we could map i915's legacy ioctl handler to the new color key mode.
-> > +	/**
-> > +	 * @DRM_PLANE_COLORKEY_MODES_NUM:
-> > +	 *
-> > +	 * Total number of color keying modes.
-> > +	 */
-> > +	DRM_PLANE_COLORKEY_MODES_NUM,
-> > +};
-> > +
-> > +/**
-> > + * struct drm_plane_colorkey_state - plane color keying state
-> > + * @colorkey.mode: color keying mode
-> > + * @colorkey.min: color key range minimum (in ARGB16161616 format)
-> > + * @colorkey.max: color key range maximum (in ARGB16161616 format)
-> > + */
-> > +struct drm_plane_colorkey_state {
-> > +	enum drm_plane_colorkey_mode mode;
-> > +	u64 min;
-> > +	u64 max;
-> > +};
-> Could we have some macros to extract the components for min/max?
-> A, R, G, B.
+fixed smatch errors in hfi_parser.h
 
-And where did we lose the value+mask?
+ drivers/media/platform/qcom/venus/Makefile     |   3 +-
+ drivers/media/platform/qcom/venus/core.c       |  85 ++++++
+ drivers/media/platform/qcom/venus/core.h       |  74 ++---
+ drivers/media/platform/qcom/venus/hfi.c        |   5 +-
+ drivers/media/platform/qcom/venus/hfi_helper.h |  28 +-
+ drivers/media/platform/qcom/venus/hfi_msgs.c   | 356 ++-----------------------
+ drivers/media/platform/qcom/venus/hfi_parser.c | 283 ++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_parser.h | 110 ++++++++
+ drivers/media/platform/qcom/venus/vdec.c       |  38 +--
+ drivers/media/platform/qcom/venus/venc.c       |  52 ++--
+ 10 files changed, 590 insertions(+), 444 deletions(-)
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.h
 
+diff --git a/drivers/media/platform/qcom/venus/Makefile b/drivers/media/platform/qcom/venus/Makefile
+index bfd4edf7c83f..b44b11b03e12 100644
+--- a/drivers/media/platform/qcom/venus/Makefile
++++ b/drivers/media/platform/qcom/venus/Makefile
+@@ -2,7 +2,8 @@
+ # Makefile for Qualcomm Venus driver
+ 
+ venus-core-objs += core.o helpers.o firmware.o \
+-		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o
++		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o \
++		   hfi_parser.o
+ 
+ venus-dec-objs += vdec.o vdec_ctrls.o
+ venus-enc-objs += venc.o venc_ctrls.o
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 41eef376eb2d..381bfdd688db 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -152,6 +152,83 @@ static void venus_clks_disable(struct venus_core *core)
+ 		clk_disable_unprepare(core->clks[i]);
+ }
+ 
++static u32 to_v4l2_codec_type(u32 codec)
++{
++	switch (codec) {
++	case HFI_VIDEO_CODEC_H264:
++		return V4L2_PIX_FMT_H264;
++	case HFI_VIDEO_CODEC_H263:
++		return V4L2_PIX_FMT_H263;
++	case HFI_VIDEO_CODEC_MPEG1:
++		return V4L2_PIX_FMT_MPEG1;
++	case HFI_VIDEO_CODEC_MPEG2:
++		return V4L2_PIX_FMT_MPEG2;
++	case HFI_VIDEO_CODEC_MPEG4:
++		return V4L2_PIX_FMT_MPEG4;
++	case HFI_VIDEO_CODEC_VC1:
++		return V4L2_PIX_FMT_VC1_ANNEX_G;
++	case HFI_VIDEO_CODEC_VP8:
++		return V4L2_PIX_FMT_VP8;
++	case HFI_VIDEO_CODEC_VP9:
++		return V4L2_PIX_FMT_VP9;
++	case HFI_VIDEO_CODEC_DIVX:
++	case HFI_VIDEO_CODEC_DIVX_311:
++		return V4L2_PIX_FMT_XVID;
++	default:
++		return 0;
++	}
++}
++
++static int venus_enumerate_codecs(struct venus_core *core, u32 type)
++{
++	const struct hfi_inst_ops dummy_ops = {};
++	struct venus_inst *inst;
++	u32 codec, codecs;
++	unsigned int i;
++	int ret;
++
++	if (core->res->hfi_version != HFI_VERSION_1XX)
++		return 0;
++
++	inst = kzalloc(sizeof(*inst), GFP_KERNEL);
++	if (!inst)
++		return -ENOMEM;
++
++	mutex_init(&inst->lock);
++	inst->core = core;
++	inst->session_type = type;
++	if (type == VIDC_SESSION_TYPE_DEC)
++		codecs = core->dec_codecs;
++	else
++		codecs = core->enc_codecs;
++
++	ret = hfi_session_create(inst, &dummy_ops);
++	if (ret)
++		goto err;
++
++	for (i = 0; i < MAX_CODEC_NUM; i++) {
++		codec = (1 << i) & codecs;
++		if (!codec)
++			continue;
++
++		ret = hfi_session_init(inst, to_v4l2_codec_type(codec));
++		if (ret)
++			goto done;
++
++		ret = hfi_session_deinit(inst);
++		if (ret)
++			goto done;
++	}
++
++done:
++	hfi_session_destroy(inst);
++err:
++	mutex_destroy(&inst->lock);
++	kfree(inst);
++
++	return ret;
++}
++
+ static int venus_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -219,6 +296,14 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_venus_shutdown;
+ 
++	ret = venus_enumerate_codecs(core, VIDC_SESSION_TYPE_DEC);
++	if (ret)
++		goto err_venus_shutdown;
++
++	ret = venus_enumerate_codecs(core, VIDC_SESSION_TYPE_ENC);
++	if (ret)
++		goto err_venus_shutdown;
++
+ 	ret = v4l2_device_register(dev, &core->v4l2_dev);
+ 	if (ret)
+ 		goto err_core_deinit;
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index 2bf8839784fa..b995d1601c87 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -57,6 +57,30 @@ struct venus_format {
+ 	u32 type;
+ };
+ 
++#define MAX_PLANES		4
++#define MAX_FMT_ENTRIES		32
++#define MAX_CAP_ENTRIES		32
++#define MAX_ALLOC_MODE_ENTRIES	16
++#define MAX_CODEC_NUM		32
++
++struct raw_formats {
++	u32 buftype;
++	u32 fmt;
++};
++
++struct venus_caps {
++	u32 codec;
++	u32 domain;
++	bool cap_bufs_mode_dynamic;
++	unsigned int num_caps;
++	struct hfi_capability caps[MAX_CAP_ENTRIES];
++	unsigned int num_pl;
++	struct hfi_profile_level pl[HFI_MAX_PROFILE_COUNT];
++	unsigned int num_fmts;
++	struct raw_formats fmts[MAX_FMT_ENTRIES];
++	bool valid;	/* used only for Venus v1xx */
++};
++
+ /**
+  * struct venus_core - holds core parameters valid for all instances
+  *
+@@ -113,8 +137,8 @@ struct venus_core {
+ 	unsigned int error;
+ 	bool sys_error;
+ 	const struct hfi_core_ops *core_ops;
+-	u32 enc_codecs;
+-	u32 dec_codecs;
++	unsigned long enc_codecs;
++	unsigned long dec_codecs;
+ 	unsigned int max_sessions_supported;
+ #define ENC_ROTATION_CAPABILITY		0x1
+ #define ENC_SCALING_CAPABILITY		0x2
+@@ -124,6 +148,8 @@ struct venus_core {
+ 	void *priv;
+ 	const struct hfi_ops *ops;
+ 	struct delayed_work work;
++	struct venus_caps caps[MAX_CODEC_NUM];
++	unsigned int codecs_count;
+ };
+ 
+ struct vdec_controls {
+@@ -216,6 +242,7 @@ struct venus_buffer {
+  * @reconfig:	a flag raised by decoder when the stream resolution changed
+  * @reconfig_width:	holds the new width
+  * @reconfig_height:	holds the new height
++ * @hfi_codec:		current codec for this instance in HFI space
+  * @sequence_cap:	a sequence counter for capture queue
+  * @sequence_out:	a sequence counter for output queue
+  * @m2m_dev:	a reference to m2m device structure
+@@ -228,22 +255,8 @@ struct venus_buffer {
+  * @priv:	a private for HFI operations callbacks
+  * @session_type:	the type of the session (decoder or encoder)
+  * @hprop:	a union used as a holder by get property
+- * @cap_width:	width capability
+- * @cap_height:	height capability
+- * @cap_mbs_per_frame:	macroblocks per frame capability
+- * @cap_mbs_per_sec:	macroblocks per second capability
+- * @cap_framerate:	framerate capability
+- * @cap_scale_x:		horizontal scaling capability
+- * @cap_scale_y:		vertical scaling capability
+- * @cap_bitrate:		bitrate capability
+- * @cap_hier_p:		hier capability
+- * @cap_ltr_count:	LTR count capability
+- * @cap_secure_output2_threshold: secure OUTPUT2 threshold capability
+  * @cap_bufs_mode_static:	buffers allocation mode capability
+  * @cap_bufs_mode_dynamic:	buffers allocation mode capability
+- * @pl_count:	count of supported profiles/levels
+- * @pl:		supported profiles/levels
+- * @bufreq:	holds buffer requirements
+  */
+ struct venus_inst {
+ 	struct list_head list;
+@@ -280,6 +293,7 @@ struct venus_inst {
+ 	bool reconfig;
+ 	u32 reconfig_width;
+ 	u32 reconfig_height;
++	u32 hfi_codec;
+ 	u32 sequence_cap;
+ 	u32 sequence_out;
+ 	struct v4l2_m2m_dev *m2m_dev;
+@@ -291,22 +305,8 @@ struct venus_inst {
+ 	const struct hfi_inst_ops *ops;
+ 	u32 session_type;
+ 	union hfi_get_property hprop;
+-	struct hfi_capability cap_width;
+-	struct hfi_capability cap_height;
+-	struct hfi_capability cap_mbs_per_frame;
+-	struct hfi_capability cap_mbs_per_sec;
+-	struct hfi_capability cap_framerate;
+-	struct hfi_capability cap_scale_x;
+-	struct hfi_capability cap_scale_y;
+-	struct hfi_capability cap_bitrate;
+-	struct hfi_capability cap_hier_p;
+-	struct hfi_capability cap_ltr_count;
+-	struct hfi_capability cap_secure_output2_threshold;
+ 	bool cap_bufs_mode_static;
+ 	bool cap_bufs_mode_dynamic;
+-	unsigned int pl_count;
+-	struct hfi_profile_level pl[HFI_MAX_PROFILE_COUNT];
+-	struct hfi_buffer_requirements bufreq[HFI_BUFFER_TYPE_MAX];
+ };
+ 
+ #define IS_V1(core)	((core)->res->hfi_version == HFI_VERSION_1XX)
+@@ -326,4 +326,18 @@ static inline void *to_hfi_priv(struct venus_core *core)
+ 	return core->priv;
+ }
+ 
++static inline struct venus_caps *
++venus_caps_by_codec(struct venus_core *core, u32 codec, u32 domain)
++{
++	unsigned int c;
++
++	for (c = 0; c < core->codecs_count; c++) {
++		if (core->caps[c].codec == codec &&
++		    core->caps[c].domain == domain)
++			return &core->caps[c];
++	}
++
++	return NULL;
++}
++
+ #endif
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index a570fdad0de0..94ca27b0bb99 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -203,13 +203,12 @@ int hfi_session_init(struct venus_inst *inst, u32 pixfmt)
+ {
+ 	struct venus_core *core = inst->core;
+ 	const struct hfi_ops *ops = core->ops;
+-	u32 codec;
+ 	int ret;
+ 
+-	codec = to_codec_type(pixfmt);
++	inst->hfi_codec = to_codec_type(pixfmt);
+ 	reinit_completion(&inst->done);
+ 
+-	ret = ops->session_init(inst, inst->session_type, codec);
++	ret = ops->session_init(inst, inst->session_type, inst->hfi_codec);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/drivers/media/platform/qcom/venus/hfi_helper.h b/drivers/media/platform/qcom/venus/hfi_helper.h
+index 1bc5aab1ce6b..15804ad7e65d 100644
+--- a/drivers/media/platform/qcom/venus/hfi_helper.h
++++ b/drivers/media/platform/qcom/venus/hfi_helper.h
+@@ -858,10 +858,23 @@ struct hfi_uncompressed_format_select {
+ 	u32 format;
+ };
+ 
++struct hfi_uncompressed_plane_constraints {
++	u32 stride_multiples;
++	u32 max_stride;
++	u32 min_plane_buffer_height_multiple;
++	u32 buffer_alignment;
++};
++
++struct hfi_uncompressed_plane_info {
++	u32 format;
++	u32 num_planes;
++	struct hfi_uncompressed_plane_constraints plane_constraints[1];
++};
++
+ struct hfi_uncompressed_format_supported {
+ 	u32 buffer_type;
+ 	u32 format_entries;
+-	u32 format_info[1];
++	struct hfi_uncompressed_plane_info plane_info[1];
+ };
+ 
+ struct hfi_uncompressed_plane_actual {
+@@ -875,19 +888,6 @@ struct hfi_uncompressed_plane_actual_info {
+ 	struct hfi_uncompressed_plane_actual plane_format[1];
+ };
+ 
+-struct hfi_uncompressed_plane_constraints {
+-	u32 stride_multiples;
+-	u32 max_stride;
+-	u32 min_plane_buffer_height_multiple;
+-	u32 buffer_alignment;
+-};
+-
+-struct hfi_uncompressed_plane_info {
+-	u32 format;
+-	u32 num_planes;
+-	struct hfi_uncompressed_plane_constraints plane_format[1];
+-};
+-
+ struct hfi_uncompressed_plane_actual_constraints_info {
+ 	u32 buffer_type;
+ 	u32 num_planes;
+diff --git a/drivers/media/platform/qcom/venus/hfi_msgs.c b/drivers/media/platform/qcom/venus/hfi_msgs.c
+index c0f3bef8299f..0ecdaa15c296 100644
+--- a/drivers/media/platform/qcom/venus/hfi_msgs.c
++++ b/drivers/media/platform/qcom/venus/hfi_msgs.c
+@@ -21,6 +21,7 @@
+ #include "hfi.h"
+ #include "hfi_helper.h"
+ #include "hfi_msgs.h"
++#include "hfi_parser.h"
+ 
+ static void event_seq_changed(struct venus_core *core, struct venus_inst *inst,
+ 			      struct hfi_msg_event_notify_pkt *pkt)
+@@ -217,81 +218,28 @@ static void hfi_sys_init_done(struct venus_core *core, struct venus_inst *inst,
+ 			      void *packet)
+ {
+ 	struct hfi_msg_sys_init_done_pkt *pkt = packet;
+-	u32 rem_bytes, read_bytes = 0, num_properties;
+-	u32 error, ptype;
+-	u8 *data;
++	int rem_bytes;
++	u32 error;
+ 
+ 	error = pkt->error_type;
+ 	if (error != HFI_ERR_NONE)
+-		goto err_no_prop;
+-
+-	num_properties = pkt->num_properties;
++		goto done;
+ 
+-	if (!num_properties) {
++	if (!pkt->num_properties) {
+ 		error = HFI_ERR_SYS_INVALID_PARAMETER;
+-		goto err_no_prop;
++		goto done;
+ 	}
+ 
+ 	rem_bytes = pkt->hdr.size - sizeof(*pkt) + sizeof(u32);
+-
+-	if (!rem_bytes) {
++	if (rem_bytes <= 0) {
+ 		/* missing property data */
+ 		error = HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
+-		goto err_no_prop;
++		goto done;
+ 	}
+ 
+-	data = (u8 *)&pkt->data[0];
+-
+-	if (core->res->hfi_version == HFI_VERSION_3XX)
+-		goto err_no_prop;
+-
+-	while (num_properties && rem_bytes >= sizeof(u32)) {
+-		ptype = *((u32 *)data);
+-		data += sizeof(u32);
+-
+-		switch (ptype) {
+-		case HFI_PROPERTY_PARAM_CODEC_SUPPORTED: {
+-			struct hfi_codec_supported *prop;
+-
+-			prop = (struct hfi_codec_supported *)data;
+-
+-			if (rem_bytes < sizeof(*prop)) {
+-				error = HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
+-				break;
+-			}
+-
+-			read_bytes += sizeof(*prop) + sizeof(u32);
+-			core->dec_codecs = prop->dec_codecs;
+-			core->enc_codecs = prop->enc_codecs;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_MAX_SESSIONS_SUPPORTED: {
+-			struct hfi_max_sessions_supported *prop;
+-
+-			if (rem_bytes < sizeof(*prop)) {
+-				error = HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
+-				break;
+-			}
+-
+-			prop = (struct hfi_max_sessions_supported *)data;
+-			read_bytes += sizeof(*prop) + sizeof(u32);
+-			core->max_sessions_supported = prop->max_sessions;
+-			break;
+-		}
+-		default:
+-			error = HFI_ERR_SYS_INVALID_PARAMETER;
+-			break;
+-		}
+-
+-		if (error)
+-			break;
++	error = hfi_parser(core, inst, pkt->data, rem_bytes);
+ 
+-		rem_bytes -= read_bytes;
+-		data += read_bytes;
+-		num_properties--;
+-	}
+-
+-err_no_prop:
++done:
+ 	core->error = error;
+ 	complete(&core->done);
+ }
+@@ -369,51 +317,6 @@ static void hfi_sys_pc_prepare_done(struct venus_core *core,
+ 	dev_dbg(core->dev, "pc prepare done (error %x)\n", pkt->error_type);
+ }
+ 
+-static void
+-hfi_copy_cap_prop(struct hfi_capability *in, struct venus_inst *inst)
+-{
+-	if (!in || !inst)
+-		return;
+-
+-	switch (in->capability_type) {
+-	case HFI_CAPABILITY_FRAME_WIDTH:
+-		inst->cap_width = *in;
+-		break;
+-	case HFI_CAPABILITY_FRAME_HEIGHT:
+-		inst->cap_height = *in;
+-		break;
+-	case HFI_CAPABILITY_MBS_PER_FRAME:
+-		inst->cap_mbs_per_frame = *in;
+-		break;
+-	case HFI_CAPABILITY_MBS_PER_SECOND:
+-		inst->cap_mbs_per_sec = *in;
+-		break;
+-	case HFI_CAPABILITY_FRAMERATE:
+-		inst->cap_framerate = *in;
+-		break;
+-	case HFI_CAPABILITY_SCALE_X:
+-		inst->cap_scale_x = *in;
+-		break;
+-	case HFI_CAPABILITY_SCALE_Y:
+-		inst->cap_scale_y = *in;
+-		break;
+-	case HFI_CAPABILITY_BITRATE:
+-		inst->cap_bitrate = *in;
+-		break;
+-	case HFI_CAPABILITY_HIER_P_NUM_ENH_LAYERS:
+-		inst->cap_hier_p = *in;
+-		break;
+-	case HFI_CAPABILITY_ENC_LTR_COUNT:
+-		inst->cap_ltr_count = *in;
+-		break;
+-	case HFI_CAPABILITY_CP_OUTPUT2_THRESH:
+-		inst->cap_secure_output2_threshold = *in;
+-		break;
+-	default:
+-		break;
+-	}
+-}
+-
+ static unsigned int
+ session_get_prop_profile_level(struct hfi_msg_session_property_info_pkt *pkt,
+ 			       struct hfi_profile_level *profile_level)
+@@ -503,248 +406,27 @@ static void hfi_session_prop_info(struct venus_core *core,
+ 	complete(&inst->done);
+ }
+ 
+-static u32 init_done_read_prop(struct venus_core *core, struct venus_inst *inst,
+-			       struct hfi_msg_session_init_done_pkt *pkt)
+-{
+-	struct device *dev = core->dev;
+-	u32 rem_bytes, num_props;
+-	u32 ptype, next_offset = 0;
+-	u32 err;
+-	u8 *data;
+-
+-	rem_bytes = pkt->shdr.hdr.size - sizeof(*pkt) + sizeof(u32);
+-	if (!rem_bytes) {
+-		dev_err(dev, "%s: missing property info\n", __func__);
+-		return HFI_ERR_SESSION_INSUFFICIENT_RESOURCES;
+-	}
+-
+-	err = pkt->error_type;
+-	if (err)
+-		return err;
+-
+-	data = (u8 *)&pkt->data[0];
+-	num_props = pkt->num_properties;
+-
+-	while (err == HFI_ERR_NONE && num_props && rem_bytes >= sizeof(u32)) {
+-		ptype = *((u32 *)data);
+-		next_offset = sizeof(u32);
+-
+-		switch (ptype) {
+-		case HFI_PROPERTY_PARAM_CODEC_MASK_SUPPORTED: {
+-			struct hfi_codec_mask_supported *masks =
+-				(struct hfi_codec_mask_supported *)
+-				(data + next_offset);
+-
+-			next_offset += sizeof(*masks);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_CAPABILITY_SUPPORTED: {
+-			struct hfi_capabilities *caps;
+-			struct hfi_capability *cap;
+-			u32 num_caps;
+-
+-			if ((rem_bytes - next_offset) < sizeof(*cap)) {
+-				err = HFI_ERR_SESSION_INVALID_PARAMETER;
+-				break;
+-			}
+-
+-			caps = (struct hfi_capabilities *)(data + next_offset);
+-
+-			num_caps = caps->num_capabilities;
+-			cap = &caps->data[0];
+-			next_offset += sizeof(u32);
+-
+-			while (num_caps &&
+-			       (rem_bytes - next_offset) >= sizeof(u32)) {
+-				hfi_copy_cap_prop(cap, inst);
+-				cap++;
+-				next_offset += sizeof(*cap);
+-				num_caps--;
+-			}
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SUPPORTED: {
+-			struct hfi_uncompressed_format_supported *prop =
+-				(struct hfi_uncompressed_format_supported *)
+-				(data + next_offset);
+-			u32 num_fmt_entries;
+-			u8 *fmt;
+-			struct hfi_uncompressed_plane_info *inf;
+-
+-			if ((rem_bytes - next_offset) < sizeof(*prop)) {
+-				err = HFI_ERR_SESSION_INVALID_PARAMETER;
+-				break;
+-			}
+-
+-			num_fmt_entries = prop->format_entries;
+-			next_offset = sizeof(*prop) - sizeof(u32);
+-			fmt = (u8 *)&prop->format_info[0];
+-
+-			dev_dbg(dev, "uncomm format support num entries:%u\n",
+-				num_fmt_entries);
+-
+-			while (num_fmt_entries) {
+-				struct hfi_uncompressed_plane_constraints *cnts;
+-				u32 bytes_to_skip;
+-
+-				inf = (struct hfi_uncompressed_plane_info *)fmt;
+-
+-				if ((rem_bytes - next_offset) < sizeof(*inf)) {
+-					err = HFI_ERR_SESSION_INVALID_PARAMETER;
+-					break;
+-				}
+-
+-				dev_dbg(dev, "plane info: fmt:%x, planes:%x\n",
+-					inf->format, inf->num_planes);
+-
+-				cnts = &inf->plane_format[0];
+-				dev_dbg(dev, "%u %u %u %u\n",
+-					cnts->stride_multiples,
+-					cnts->max_stride,
+-					cnts->min_plane_buffer_height_multiple,
+-					cnts->buffer_alignment);
+-
+-				bytes_to_skip = sizeof(*inf) - sizeof(*cnts) +
+-						inf->num_planes * sizeof(*cnts);
+-
+-				fmt += bytes_to_skip;
+-				next_offset += bytes_to_skip;
+-				num_fmt_entries--;
+-			}
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_PROPERTIES_SUPPORTED: {
+-			struct hfi_properties_supported *prop =
+-				(struct hfi_properties_supported *)
+-				(data + next_offset);
+-
+-			next_offset += sizeof(*prop) - sizeof(u32)
+-					+ prop->num_properties * sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_PROFILE_LEVEL_SUPPORTED: {
+-			struct hfi_profile_level_supported *prop =
+-				(struct hfi_profile_level_supported *)
+-				(data + next_offset);
+-			struct hfi_profile_level *pl;
+-			unsigned int prop_count = 0;
+-			unsigned int count = 0;
+-			u8 *ptr;
+-
+-			ptr = (u8 *)&prop->profile_level[0];
+-			prop_count = prop->profile_count;
+-
+-			if (prop_count > HFI_MAX_PROFILE_COUNT)
+-				prop_count = HFI_MAX_PROFILE_COUNT;
+-
+-			while (prop_count) {
+-				ptr++;
+-				pl = (struct hfi_profile_level *)ptr;
+-
+-				inst->pl[count].profile = pl->profile;
+-				inst->pl[count].level = pl->level;
+-				prop_count--;
+-				count++;
+-				ptr += sizeof(*pl) / sizeof(u32);
+-			}
+-
+-			inst->pl_count = count;
+-			next_offset += sizeof(*prop) - sizeof(*pl) +
+-				       prop->profile_count * sizeof(*pl);
+-
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_INTERLACE_FORMAT_SUPPORTED: {
+-			next_offset +=
+-				sizeof(struct hfi_interlace_format_supported);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_NAL_STREAM_FORMAT_SUPPORTED: {
+-			struct hfi_nal_stream_format *nal =
+-				(struct hfi_nal_stream_format *)
+-				(data + next_offset);
+-			dev_dbg(dev, "NAL format: %x\n", nal->format);
+-			next_offset += sizeof(*nal);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_NAL_STREAM_FORMAT_SELECT: {
+-			next_offset += sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_MAX_SEQUENCE_HEADER_SIZE: {
+-			u32 *max_seq_sz = (u32 *)(data + next_offset);
+-
+-			dev_dbg(dev, "max seq header sz: %x\n", *max_seq_sz);
+-			next_offset += sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_VENC_INTRA_REFRESH: {
+-			next_offset += sizeof(struct hfi_intra_refresh);
+-			num_props--;
+-			break;
+-		}
+-		case HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE_SUPPORTED: {
+-			struct hfi_buffer_alloc_mode_supported *prop =
+-				(struct hfi_buffer_alloc_mode_supported *)
+-				(data + next_offset);
+-			unsigned int i;
+-
+-			for (i = 0; i < prop->num_entries; i++) {
+-				if (prop->buffer_type == HFI_BUFFER_OUTPUT ||
+-				    prop->buffer_type == HFI_BUFFER_OUTPUT2) {
+-					switch (prop->data[i]) {
+-					case HFI_BUFFER_MODE_STATIC:
+-						inst->cap_bufs_mode_static = true;
+-						break;
+-					case HFI_BUFFER_MODE_DYNAMIC:
+-						inst->cap_bufs_mode_dynamic = true;
+-						break;
+-					default:
+-						break;
+-					}
+-				}
+-			}
+-			next_offset += sizeof(*prop) -
+-				sizeof(u32) + prop->num_entries * sizeof(u32);
+-			num_props--;
+-			break;
+-		}
+-		default:
+-			dev_dbg(dev, "%s: default case %#x\n", __func__, ptype);
+-			break;
+-		}
+-
+-		rem_bytes -= next_offset;
+-		data += next_offset;
+-	}
+-
+-	return err;
+-}
+-
+ static void hfi_session_init_done(struct venus_core *core,
+ 				  struct venus_inst *inst, void *packet)
+ {
+ 	struct hfi_msg_session_init_done_pkt *pkt = packet;
+-	unsigned int error;
++	int rem_bytes;
++	u32 error;
+ 
+ 	error = pkt->error_type;
+ 	if (error != HFI_ERR_NONE)
+ 		goto done;
+ 
+-	if (core->res->hfi_version != HFI_VERSION_1XX)
++	if (!IS_V1(core))
+ 		goto done;
+ 
+-	error = init_done_read_prop(core, inst, pkt);
++	rem_bytes = pkt->shdr.hdr.size - sizeof(*pkt) + sizeof(u32);
++	if (rem_bytes <= 0) {
++		error = HFI_ERR_SESSION_INSUFFICIENT_RESOURCES;
++		goto done;
++	}
+ 
++	error = hfi_parser(core, inst, pkt->data, rem_bytes);
+ done:
+ 	inst->error = error;
+ 	complete(&inst->done);
+diff --git a/drivers/media/platform/qcom/venus/hfi_parser.c b/drivers/media/platform/qcom/venus/hfi_parser.c
+new file mode 100644
+index 000000000000..afc0db3b5dc3
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/hfi_parser.c
+@@ -0,0 +1,283 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2018 Linaro Ltd.
++ *
++ * Author: Stanimir Varbanov <stanimir.varbanov@linaro.org>
++ */
++#include <linux/bitops.h>
++#include <linux/kernel.h>
++
++#include "core.h"
++#include "hfi_helper.h"
++#include "hfi_parser.h"
++
++typedef void (*func)(struct venus_caps *cap, const void *data,
++		     unsigned int size);
++
++static void init_codecs(struct venus_core *core)
++{
++	struct venus_caps *caps = core->caps, *cap;
++	unsigned long bit;
++
++	for_each_set_bit(bit, &core->dec_codecs, MAX_CODEC_NUM) {
++		cap = &caps[core->codecs_count++];
++		cap->codec = BIT(bit);
++		cap->domain = VIDC_SESSION_TYPE_DEC;
++		cap->valid = false;
++	}
++
++	for_each_set_bit(bit, &core->enc_codecs, MAX_CODEC_NUM) {
++		cap = &caps[core->codecs_count++];
++		cap->codec = BIT(bit);
++		cap->domain = VIDC_SESSION_TYPE_ENC;
++		cap->valid = false;
++	}
++}
++
++static void for_each_codec(struct venus_caps *caps, unsigned int caps_num,
++			   u32 codecs, u32 domain, func cb, void *data,
++			   unsigned int size)
++{
++	struct venus_caps *cap;
++	unsigned int i;
++
++	for (i = 0; i < caps_num; i++) {
++		cap = &caps[i];
++		if (cap->valid && cap->domain == domain)
++			continue;
++		if (cap->codec & codecs && cap->domain == domain)
++			cb(cap, data, size);
++	}
++}
++
++static void
++fill_buf_mode(struct venus_caps *cap, const void *data, unsigned int num)
++{
++	const u32 *type = data;
++
++	if (*type == HFI_BUFFER_MODE_DYNAMIC)
++		cap->cap_bufs_mode_dynamic = true;
++}
++
++static void
++parse_alloc_mode(struct venus_core *core, struct venus_inst *inst, u32 codecs,
++		 u32 domain, void *data)
++{
++	struct hfi_buffer_alloc_mode_supported *mode = data;
++	u32 num_entries = mode->num_entries;
++	u32 *type;
++
++	if (num_entries > MAX_ALLOC_MODE_ENTRIES)
++		return;
++
++	type = mode->data;
++
++	while (num_entries--) {
++		if (mode->buffer_type == HFI_BUFFER_OUTPUT ||
++		    mode->buffer_type == HFI_BUFFER_OUTPUT2) {
++			if (*type == HFI_BUFFER_MODE_DYNAMIC && inst)
++				inst->cap_bufs_mode_dynamic = true;
++
++			for_each_codec(core->caps, ARRAY_SIZE(core->caps),
++				       codecs, domain, fill_buf_mode, type, 1);
++		}
++
++		type++;
++	}
++}
++
++static void fill_profile_level(struct venus_caps *cap, const void *data,
++			       unsigned int num)
++{
++	const struct hfi_profile_level *pl = data;
++
++	memcpy(&cap->pl[cap->num_pl], pl, num * sizeof(*pl));
++	cap->num_pl += num;
++}
++
++static void
++parse_profile_level(struct venus_core *core, u32 codecs, u32 domain, void *data)
++{
++	struct hfi_profile_level_supported *pl = data;
++	struct hfi_profile_level *proflevel = pl->profile_level;
++	struct hfi_profile_level pl_arr[HFI_MAX_PROFILE_COUNT] = {};
++
++	if (pl->profile_count > HFI_MAX_PROFILE_COUNT)
++		return;
++
++	memcpy(pl_arr, proflevel, pl->profile_count * sizeof(*proflevel));
++
++	for_each_codec(core->caps, ARRAY_SIZE(core->caps), codecs, domain,
++		       fill_profile_level, pl_arr, pl->profile_count);
++}
++
++static void
++fill_caps(struct venus_caps *cap, const void *data, unsigned int num)
++{
++	const struct hfi_capability *caps = data;
++
++	memcpy(&cap->caps[cap->num_caps], caps, num * sizeof(*caps));
++	cap->num_caps += num;
++}
++
++static void
++parse_caps(struct venus_core *core, u32 codecs, u32 domain, void *data)
++{
++	struct hfi_capabilities *caps = data;
++	struct hfi_capability *cap = caps->data;
++	u32 num_caps = caps->num_capabilities;
++	struct hfi_capability caps_arr[MAX_CAP_ENTRIES] = {};
++
++	if (num_caps > MAX_CAP_ENTRIES)
++		return;
++
++	memcpy(caps_arr, cap, num_caps * sizeof(*cap));
++
++	for_each_codec(core->caps, ARRAY_SIZE(core->caps), codecs, domain,
++		       fill_caps, caps_arr, num_caps);
++}
++
++static void fill_raw_fmts(struct venus_caps *cap, const void *fmts,
++			  unsigned int num_fmts)
++{
++	const struct raw_formats *formats = fmts;
++
++	memcpy(&cap->fmts[cap->num_fmts], formats, num_fmts * sizeof(*formats));
++	cap->num_fmts += num_fmts;
++}
++
++static void
++parse_raw_formats(struct venus_core *core, u32 codecs, u32 domain, void *data)
++{
++	struct hfi_uncompressed_format_supported *fmt = data;
++	struct hfi_uncompressed_plane_info *pinfo = fmt->plane_info;
++	struct hfi_uncompressed_plane_constraints *constr;
++	struct raw_formats rawfmts[MAX_FMT_ENTRIES] = {};
++	u32 entries = fmt->format_entries;
++	unsigned int i = 0;
++	u32 num_planes;
++
++	while (entries) {
++		num_planes = pinfo->num_planes;
++
++		rawfmts[i].fmt = pinfo->format;
++		rawfmts[i].buftype = fmt->buffer_type;
++		i++;
++
++		if (pinfo->num_planes > MAX_PLANES)
++			break;
++
++		pinfo = (void *)pinfo + sizeof(*constr) * num_planes +
++			2 * sizeof(u32);
++		entries--;
++	}
++
++	for_each_codec(core->caps, ARRAY_SIZE(core->caps), codecs, domain,
++		       fill_raw_fmts, rawfmts, i);
++}
++
++static void parse_codecs(struct venus_core *core, void *data)
++{
++	struct hfi_codec_supported *codecs = data;
++
++	core->dec_codecs = codecs->dec_codecs;
++	core->enc_codecs = codecs->enc_codecs;
++
++	if (IS_V1(core)) {
++		core->dec_codecs &= ~HFI_VIDEO_CODEC_HEVC;
++		core->dec_codecs &= ~HFI_VIDEO_CODEC_SPARK;
++	}
++}
++
++static void parse_max_sessions(struct venus_core *core, const void *data)
++{
++	const struct hfi_max_sessions_supported *sessions = data;
++
++	core->max_sessions_supported = sessions->max_sessions;
++}
++
++static void parse_codecs_mask(u32 *codecs, u32 *domain, void *data)
++{
++	struct hfi_codec_mask_supported *mask = data;
++
++	*codecs = mask->codecs;
++	*domain = mask->video_domains;
++}
++
++static void parser_init(struct venus_inst *inst, u32 *codecs, u32 *domain)
++{
++	if (!inst || !IS_V1(inst->core))
++		return;
++
++	*codecs = inst->hfi_codec;
++	*domain = inst->session_type;
++}
++
++static void parser_fini(struct venus_inst *inst, u32 codecs, u32 domain)
++{
++	struct venus_caps *caps, *cap;
++	unsigned int i;
++	u32 dom;
++
++	if (!inst || !IS_V1(inst->core))
++		return;
++
++	caps = inst->core->caps;
++	dom = inst->session_type;
++
++	for (i = 0; i < MAX_CODEC_NUM; i++) {
++		cap = &caps[i];
++		if (cap->codec & codecs && cap->domain == dom)
++			cap->valid = true;
++	}
++}
++
++u32 hfi_parser(struct venus_core *core, struct venus_inst *inst, void *buf,
++	       u32 size)
++{
++	unsigned int words_count = size >> 2;
++	u32 *word = buf, *data, codecs = 0, domain = 0;
++
++	if (size % 4)
++		return HFI_ERR_SYS_INSUFFICIENT_RESOURCES;
++
++	parser_init(inst, &codecs, &domain);
++
++	while (words_count) {
++		data = word + 1;
++
++		switch (*word) {
++		case HFI_PROPERTY_PARAM_CODEC_SUPPORTED:
++			parse_codecs(core, data);
++			init_codecs(core);
++			break;
++		case HFI_PROPERTY_PARAM_MAX_SESSIONS_SUPPORTED:
++			parse_max_sessions(core, data);
++			break;
++		case HFI_PROPERTY_PARAM_CODEC_MASK_SUPPORTED:
++			parse_codecs_mask(&codecs, &domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SUPPORTED:
++			parse_raw_formats(core, codecs, domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_CAPABILITY_SUPPORTED:
++			parse_caps(core, codecs, domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_PROFILE_LEVEL_SUPPORTED:
++			parse_profile_level(core, codecs, domain, data);
++			break;
++		case HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE_SUPPORTED:
++			parse_alloc_mode(core, inst, codecs, domain, data);
++			break;
++		default:
++			break;
++		}
++
++		word++;
++		words_count--;
++	}
++
++	parser_fini(inst, codecs, domain);
++
++	return HFI_ERR_NONE;
++}
+diff --git a/drivers/media/platform/qcom/venus/hfi_parser.h b/drivers/media/platform/qcom/venus/hfi_parser.h
+new file mode 100644
+index 000000000000..3e931c747e19
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/hfi_parser.h
+@@ -0,0 +1,110 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Linaro Ltd. */
++#ifndef __VENUS_HFI_PARSER_H__
++#define __VENUS_HFI_PARSER_H__
++
++#include "core.h"
++
++u32 hfi_parser(struct venus_core *core, struct venus_inst *inst,
++	       void *buf, u32 size);
++
++#define WHICH_CAP_MIN	0
++#define WHICH_CAP_MAX	1
++#define WHICH_CAP_STEP	2
++
++static inline u32 get_cap(struct venus_inst *inst, u32 type, u32 which)
++{
++	struct venus_core *core = inst->core;
++	struct hfi_capability *cap = NULL;
++	struct venus_caps *caps;
++	unsigned int i;
++
++	caps = venus_caps_by_codec(core, inst->hfi_codec, inst->session_type);
++	if (!caps)
++		return 0;
++
++	for (i = 0; i < caps->num_caps; i++) {
++		if (caps->caps[i].capability_type == type) {
++			cap = &caps->caps[i];
++			break;
++		}
++	}
++
++	if (!cap)
++		return 0;
++
++	switch (which) {
++	case WHICH_CAP_MIN:
++		return cap->min;
++	case WHICH_CAP_MAX:
++		return cap->max;
++	case WHICH_CAP_STEP:
++		return cap->step_size;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static inline u32 cap_min(struct venus_inst *inst, u32 type)
++{
++	return get_cap(inst, type, WHICH_CAP_MIN);
++}
++
++static inline u32 cap_max(struct venus_inst *inst, u32 type)
++{
++	return get_cap(inst, type, WHICH_CAP_MAX);
++}
++
++static inline u32 cap_step(struct venus_inst *inst, u32 type)
++{
++	return get_cap(inst, type, WHICH_CAP_STEP);
++}
++
++static inline u32 frame_width_min(struct venus_inst *inst)
++{
++	return cap_min(inst, HFI_CAPABILITY_FRAME_WIDTH);
++}
++
++static inline u32 frame_width_max(struct venus_inst *inst)
++{
++	return cap_max(inst, HFI_CAPABILITY_FRAME_WIDTH);
++}
++
++static inline u32 frame_width_step(struct venus_inst *inst)
++{
++	return cap_step(inst, HFI_CAPABILITY_FRAME_WIDTH);
++}
++
++static inline u32 frame_height_min(struct venus_inst *inst)
++{
++	return cap_min(inst, HFI_CAPABILITY_FRAME_HEIGHT);
++}
++
++static inline u32 frame_height_max(struct venus_inst *inst)
++{
++	return cap_max(inst, HFI_CAPABILITY_FRAME_HEIGHT);
++}
++
++static inline u32 frame_height_step(struct venus_inst *inst)
++{
++	return cap_step(inst, HFI_CAPABILITY_FRAME_HEIGHT);
++}
++
++static inline u32 frate_min(struct venus_inst *inst)
++{
++	return cap_min(inst, HFI_CAPABILITY_FRAMERATE);
++}
++
++static inline u32 frate_max(struct venus_inst *inst)
++{
++	return cap_max(inst, HFI_CAPABILITY_FRAMERATE);
++}
++
++static inline u32 frate_step(struct venus_inst *inst)
++{
++	return cap_step(inst, HFI_CAPABILITY_FRAMERATE);
++}
++
++#endif
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+index d22969d2758a..c6d5905c02a0 100644
+--- a/drivers/media/platform/qcom/venus/vdec.c
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -24,6 +24,7 @@
+ #include <media/videobuf2-dma-sg.h>
+ 
+ #include "hfi_venus_io.h"
++#include "hfi_parser.h"
+ #include "core.h"
+ #include "helpers.h"
+ #include "vdec.h"
+@@ -177,10 +178,10 @@ vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 		pixmp->height = 720;
+ 	}
+ 
+-	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
+-			     inst->cap_width.max);
+-	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
+-			      inst->cap_height.max);
++	pixmp->width = clamp(pixmp->width, frame_width_min(inst),
++			     frame_width_max(inst));
++	pixmp->height = clamp(pixmp->height, frame_height_min(inst),
++			      frame_height_max(inst));
+ 
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+ 		pixmp->height = ALIGN(pixmp->height, 32);
+@@ -442,12 +443,12 @@ static int vdec_enum_framesizes(struct file *file, void *fh,
+ 
+ 	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
+ 
+-	fsize->stepwise.min_width = inst->cap_width.min;
+-	fsize->stepwise.max_width = inst->cap_width.max;
+-	fsize->stepwise.step_width = inst->cap_width.step_size;
+-	fsize->stepwise.min_height = inst->cap_height.min;
+-	fsize->stepwise.max_height = inst->cap_height.max;
+-	fsize->stepwise.step_height = inst->cap_height.step_size;
++	fsize->stepwise.min_width = frame_width_min(inst);
++	fsize->stepwise.max_width = frame_width_max(inst);
++	fsize->stepwise.step_width = frame_width_step(inst);
++	fsize->stepwise.min_height = frame_height_min(inst);
++	fsize->stepwise.max_height = frame_height_max(inst);
++	fsize->stepwise.step_height = frame_height_step(inst);
+ 
+ 	return 0;
+ }
+@@ -902,22 +903,7 @@ static void vdec_inst_init(struct venus_inst *inst)
+ 	inst->fps = 30;
+ 	inst->timeperframe.numerator = 1;
+ 	inst->timeperframe.denominator = 30;
+-
+-	inst->cap_width.min = 64;
+-	inst->cap_width.max = 1920;
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_width.max = 3840;
+-	inst->cap_width.step_size = 1;
+-	inst->cap_height.min = 64;
+-	inst->cap_height.max = ALIGN(1080, 32);
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_height.max = ALIGN(2160, 32);
+-	inst->cap_height.step_size = 1;
+-	inst->cap_framerate.min = 1;
+-	inst->cap_framerate.max = 30;
+-	inst->cap_framerate.step_size = 1;
+-	inst->cap_mbs_per_frame.min = 16;
+-	inst->cap_mbs_per_frame.max = 8160;
++	inst->hfi_codec = HFI_VIDEO_CODEC_H264;
+ }
+ 
+ static const struct v4l2_m2m_ops vdec_m2m_ops = {
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 596539d433c9..e9896c28f7e3 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -24,6 +24,7 @@
+ #include <media/v4l2-ctrls.h>
+ 
+ #include "hfi_venus_io.h"
++#include "hfi_parser.h"
+ #include "core.h"
+ #include "helpers.h"
+ #include "venc.h"
+@@ -301,10 +302,10 @@ venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
+ 		pixmp->height = 720;
+ 	}
+ 
+-	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
+-			     inst->cap_width.max);
+-	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
+-			      inst->cap_height.max);
++	pixmp->width = clamp(pixmp->width, frame_width_min(inst),
++			     frame_width_max(inst));
++	pixmp->height = clamp(pixmp->height, frame_height_min(inst),
++			      frame_height_max(inst));
+ 
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+ 		pixmp->height = ALIGN(pixmp->height, 32);
+@@ -553,12 +554,12 @@ static int venc_enum_framesizes(struct file *file, void *fh,
+ 	if (fsize->index)
+ 		return -EINVAL;
+ 
+-	fsize->stepwise.min_width = inst->cap_width.min;
+-	fsize->stepwise.max_width = inst->cap_width.max;
+-	fsize->stepwise.step_width = inst->cap_width.step_size;
+-	fsize->stepwise.min_height = inst->cap_height.min;
+-	fsize->stepwise.max_height = inst->cap_height.max;
+-	fsize->stepwise.step_height = inst->cap_height.step_size;
++	fsize->stepwise.min_width = frame_width_min(inst);
++	fsize->stepwise.max_width = frame_width_max(inst);
++	fsize->stepwise.step_width = frame_width_step(inst);
++	fsize->stepwise.min_height = frame_height_min(inst);
++	fsize->stepwise.max_height = frame_height_max(inst);
++	fsize->stepwise.step_height = frame_height_step(inst);
+ 
+ 	return 0;
+ }
+@@ -586,18 +587,18 @@ static int venc_enum_frameintervals(struct file *file, void *fh,
+ 	if (!fival->width || !fival->height)
+ 		return -EINVAL;
+ 
+-	if (fival->width > inst->cap_width.max ||
+-	    fival->width < inst->cap_width.min ||
+-	    fival->height > inst->cap_height.max ||
+-	    fival->height < inst->cap_height.min)
++	if (fival->width > frame_width_max(inst) ||
++	    fival->width < frame_width_min(inst) ||
++	    fival->height > frame_height_max(inst) ||
++	    fival->height < frame_height_min(inst))
+ 		return -EINVAL;
+ 
+ 	fival->stepwise.min.numerator = 1;
+-	fival->stepwise.min.denominator = inst->cap_framerate.max;
++	fival->stepwise.min.denominator = frate_max(inst);
+ 	fival->stepwise.max.numerator = 1;
+-	fival->stepwise.max.denominator = inst->cap_framerate.min;
++	fival->stepwise.max.denominator = frate_min(inst);
+ 	fival->stepwise.step.numerator = 1;
+-	fival->stepwise.step.denominator = inst->cap_framerate.max;
++	fival->stepwise.step.denominator = frate_max(inst);
+ 
+ 	return 0;
+ }
+@@ -1091,22 +1092,7 @@ static void venc_inst_init(struct venus_inst *inst)
+ 	inst->fps = 15;
+ 	inst->timeperframe.numerator = 1;
+ 	inst->timeperframe.denominator = 15;
+-
+-	inst->cap_width.min = 96;
+-	inst->cap_width.max = 1920;
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_width.max = 3840;
+-	inst->cap_width.step_size = 2;
+-	inst->cap_height.min = 64;
+-	inst->cap_height.max = ALIGN(1080, 32);
+-	if (inst->core->res->hfi_version == HFI_VERSION_3XX)
+-		inst->cap_height.max = ALIGN(2160, 32);
+-	inst->cap_height.step_size = 2;
+-	inst->cap_framerate.min = 1;
+-	inst->cap_framerate.max = 30;
+-	inst->cap_framerate.step_size = 1;
+-	inst->cap_mbs_per_frame.min = 24;
+-	inst->cap_mbs_per_frame.max = 8160;
++	inst->hfi_codec = HFI_VIDEO_CODEC_H264;
+ }
+ 
+ static int venc_open(struct file *file)
 -- 
-Ville Syrjälä
-Intel
+2.14.1
