@@ -1,106 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:56468 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932751AbeGFTPD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Jul 2018 15:15:03 -0400
-Subject: Re: [PATCH v2 2/3] media: dvb: represent min/max/step/tolerance freqs
- in Hz
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Antti Palosaari <crope@iki.fi>,
-        Jemma Denson <jdenson@gmail.com>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>,
-        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
-        Malcolm Priestley <tvboxspy@gmail.com>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Daniel Scheller <d.scheller.oss@gmail.com>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Jaedon Shin <jaedon.shin@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>, Sean Young <sean@mess.org>,
-        Kees Cook <keescook@chromium.org>,
-        Dan Gopstein <dgopstein@nyu.edu>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Brad Love <brad@nextdimension.cc>,
-        Thomas Meyer <thomas@m3y3r.de>, Arnd Bergmann <arnd@arndb.de>,
-        Ralph Metzler <rjkm@metzlerbros.de>,
-        Athanasios Oikonomou <athoik@gmail.com>,
-        Akihiro Tsukada <tskd08@gmail.com>, Michael Buesch <m@bues.ch>,
-        =?UTF-8?Q?J=c3=a9r=c3=a9my_Lefaure?= <jeremy.lefaure@lse.epita.fr>,
-        linux1394-devel@lists.sourceforge.net
-References: <cover.1530830503.git.mchehab+samsung@kernel.org>
- <0ea966e5313043b1b9e6d658ad356841fb961e84.1530830503.git.mchehab+samsung@kernel.org>
-From: Matthias Schwarzott <zzam@gentoo.org>
-Message-ID: <8552051d-e9ab-5a16-489f-fb4c16814620@gentoo.org>
-Date: Fri, 6 Jul 2018 21:14:52 +0200
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:39093 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934654AbeGFTsj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 15:48:39 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Ville =?ISO-8859-1?Q?Syrj=E4l=E4?=
+        <ville.syrjala@linux.intel.com>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        dri-devel@lists.freedesktop.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v3 1/2] drm: Add generic colorkey properties for DRM planes
+Date: Fri, 06 Jul 2018 22:48:26 +0300
+Message-ID: <1862420.zvYl24lURK@dimapc>
+In-Reply-To: <20180706170136.GC17271@n2100.armlinux.org.uk>
+References: <20180603220059.17670-1-digetx@gmail.com> <2513788.CeRymH5ehq@dimapc> <20180706170136.GC17271@n2100.armlinux.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <0ea966e5313043b1b9e6d658ad356841fb961e84.1530830503.git.mchehab+samsung@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 06.07.2018 um 00:59 schrieb Mauro Carvalho Chehab:
+On Friday, 6 July 2018 20:01:36 MSK Russell King - ARM Linux wrote:
+> On Fri, Jul 06, 2018 at 07:33:14PM +0300, Dmitry Osipenko wrote:
+> > On Friday, 6 July 2018 18:40:27 MSK Russell King - ARM Linux wrote:
+> > > On Fri, Jul 06, 2018 at 05:58:50PM +0300, Dmitry Osipenko wrote:
+> > > > On Friday, 6 July 2018 17:10:10 MSK Ville Syrj=E4l=E4 wrote:
+> > > > > IIRC my earlier idea was to have different colorkey modes for the
+> > > > > min+max and value+mask modes. That way userspace might actually h=
+ave
+> > > > > some chance of figuring out which bits of state actually do
+> > > > > something.
+> > > > > Although for Intel hw I think the general rule is that min+max for
+> > > > > YUV,
+> > > > > value+mask for RGB, so it's still not 100% clear what to pick if =
+the
+> > > > > plane supports both.
+> > > > >=20
+> > > > > I guess one alternative would be to have min+max only, and the
+> > > > > driver
+> > > > > would reject 'min !=3D max' if it only uses a single value?
+> > > >=20
+> > > > You should pick both and reject unsupported property values based on
+> > > > the
+> > > > planes framebuffer format. So it will be possible to set unsupported
+> > > > values
+> > > > while plane is disabled because it doesn't have an associated
+> > > > framebuffer
+> > > > and then atomic check will fail to enable plane if property values =
+are
+> > > > invalid for the given format.
+> > >=20
+> > > The colorkey which is attached to a plane 'A' is not applied to plane
+> > > 'A', so the format of plane 'A' is not relevant.  The colorkey is
+> > > applied to some other plane which will be below this plane in terms
+> > > of the plane blending operation.
+> > >=20
+> > > What if you have several planes below plane 'A' with differing
+> > > framebuffer formats - maybe an ARGB8888 plane and a ARGB1555 plane -
+> > > do you decide to limit the colorkey to 8bits per channel, or to
+> > > ARGB1555 format?
+> > >=20
+> > > The answer is, of course, hardware dependent - generic code can't
+> > > know the details of the colorkey implementation, which could be one
+> > >=20
+> > > of:
+> > >   lower plane data -> expand to 8bpc -> match ARGB8888 colorkey
+> > >   lower plane data -> match ARGB8888 reduced to plane compatible
+> > >   colorkey
+> > >=20
+> > > which will give different results depending on the format of the
+> > > lower plane data.
+> >=20
+> > All unsupportable cases should be rejected in the atomic check. If your=
+ HW
+> > can't handle the case where multiple bottom planes have a different
+> > format,
+> > then in the planes atomic check you'll have to walk up all the bottom
+> > planes and verify their formats.
+>=20
+> That is *not* what I'm trying to point out.
+>=20
+> You are claiming that we should check the validity of the colorkey
+> format in relation to the lower planes, and it sounds like you're
+> suggesting it in generic code.  I'm trying to get you to think a
+> bit more about what you're suggesting by considering a theoretical
+> (or maybe not so theoretical) case.
+>=20
+> We do have hardware out there which can have multiple planes that
+> are merged together - I seem to remember that Tegra? hardware has
+> that ability, but it isn't implemented in the driver yet.
+>=20
 
-Hi Mauro,
+I'm not sure what you're meaning by planes "merging", could you please=20
+elaborate?
 
-I have one comment below.
+> So, I'm asking how you forsee the validity check working in the
+> presence of different formats for multiple lower planes.
+>=20
+> I'm not talking about whether the hardware supports it or not - I'm
+> assuming that the hardware _does_ support multiple lower planes with
+> differing formats.
+>=20
+> From what I understand, to take the simple case of one lower plane,
+> you are proposing:
+>=20
+> - if the lower plane is ARGB1555, then specifying a colorkey with
+>   an alpha of anything except 0 or 0xffff would be invalid and should
+>   be rejected.
+>=20
+> - if a lower plane is ARGB8888, then specifying a colorkey which
+>   is anything except 0...0xffff in 0x101 (65535 / 255) steps would
+>   be invalid and should be rejected.
+>=20
+> Now consider the case I mentioned above.  What if there are two lower
+> planes, one with ARGB1555 and the other with ARGB8888.  Does this mean
+> that (eg) the alpha colorkey component should be rejected if:
+>=20
+> - the alpha in the colorkey is not 0 or 0xffff, or
+> - it's anything except 0...0xffff in 0x101 steps?
+>=20
+> My assertion is that this is only a decision that can be made by the
+> driver and not by generic code, because it is hardware dependent.
+>=20
 
-> Right now, satellite frontend drivers specify frequencies in kHz,
-> while terrestrial/cable ones specify in Hz. That's confusing
-> for developers.
-> 
-> However, the main problem is that universal frontends capable
-> of handling both satellite and non-satelite delivery systems
-> are appearing. We end by needing to hack the drivers in
-> order to support such hybrid frontends.
-> 
-> So, convert everything to specify frontend frequencies in Hz.
-> 
-> Tested-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
+Definitely the conversion rule must be defined explicitly, otherwise colork=
+ey=20
+property values can't be considered generic. Thank you for pointing at it. =
+I=20
+think rounding to a closest value should be the generic conversion rule.
 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index 75e95b56f8b3..3b9dca7d7d02 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-[...]
-> @@ -2391,9 +2417,19 @@ static int dvb_frontend_handle_ioctl(struct file *file,
->  
->  	case FE_GET_INFO: {
->  		struct dvb_frontend_info *info = parg;
-> +		memset(info, 0, sizeof(*info));
->  
-> -		memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
-> -		dvb_frontend_get_frequency_limits(fe, &info->frequency_min, &info->frequency_max);
-> +		strcpy(info->name, fe->ops.info.name);
-> +		info->frequency_stepsize = fe->ops.info.frequency_stepsize_hz;
-> +		info->frequency_tolerance = fe->ops.info.frequency_tolerance_hz;
+I'll document the conversion rule in the next revision. Please let me know =
+if=20
+you see any problems with the rounding to a closest value.
 
-The variables frequency_stepsize and frequency_tolerance are assigned
-again some lines below.
+The final decision will be made by the driver, but driver and userspace wil=
+l=20
+have to take into account the defined generic conversion rule.
 
-> +		info->symbol_rate_min = fe->ops.info.symbol_rate_min;
-> +		info->symbol_rate_max = fe->ops.info.symbol_rate_max;
-> +		info->symbol_rate_tolerance = fe->ops.info.symbol_rate_tolerance;
-> +		info->caps = fe->ops.info.caps;
-> +		info->frequency_stepsize = dvb_frontend_get_stepsize(fe);
-> +		dvb_frontend_get_frequency_limits(fe, &info->frequency_min,
-> +						  &info->frequency_max,
-> +						  &info->frequency_tolerance);
->  
->  		/*
->  		 * Associate the 4 delivery systems supported by DVBv3
+> I am _not_ disagreeing with the general principle of validating that
+> the requested state is possible with the hardware.
 
-Matthias
+Thank you for the clarification.
