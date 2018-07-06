@@ -1,130 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:45986 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933949AbeGFRB7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 13:01:59 -0400
-Date: Fri, 6 Jul 2018 18:01:36 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Dmitry Osipenko <digetx@gmail.com>
-Cc: Ville =?iso-8859-1?Q?Syrj=E4l=E4?=
-        <ville.syrjala@linux.intel.com>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v3 1/2] drm: Add generic colorkey properties for DRM
- planes
-Message-ID: <20180706170136.GC17271@n2100.armlinux.org.uk>
-References: <20180603220059.17670-1-digetx@gmail.com>
- <2295190.xHWjP7Ltc3@dimapc>
- <20180706154027.GB17271@n2100.armlinux.org.uk>
- <2513788.CeRymH5ehq@dimapc>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:38933 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933274AbeGFRJc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 13:09:32 -0400
+Received: by mail-it0-f66.google.com with SMTP id p185-v6so18089254itp.4
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 10:09:32 -0700 (PDT)
+Received: from mail-io0-f174.google.com (mail-io0-f174.google.com. [209.85.223.174])
+        by smtp.gmail.com with ESMTPSA id o64-v6sm4687054ioe.30.2018.07.06.10.09.30
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 06 Jul 2018 10:09:30 -0700 (PDT)
+Received: by mail-io0-f174.google.com with SMTP id l14-v6so1515621iob.7
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 10:09:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2513788.CeRymH5ehq@dimapc>
+References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
+ <CAPBb6MUBi+Dn5v4PKngxztFgKd6CA7bC1pKvWd1GMY9NJFoyZQ@mail.gmail.com> <b26cb8df-fac3-5941-9941-a6b3ca8af62e@linaro.org>
+In-Reply-To: <b26cb8df-fac3-5941-9941-a6b3ca8af62e@linaro.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Sat, 7 Jul 2018 02:09:17 +0900
+Message-ID: <CAPBb6MW0RryRBHCNMS71MJy7Dy6wyiJMoPRwPCQOK3Ui8CfKOg@mail.gmail.com>
+Subject: Re: [PATCH] venus: vdec: fix decoded data size
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: vgarodia@codeaurora.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 06, 2018 at 07:33:14PM +0300, Dmitry Osipenko wrote:
-> On Friday, 6 July 2018 18:40:27 MSK Russell King - ARM Linux wrote:
-> > On Fri, Jul 06, 2018 at 05:58:50PM +0300, Dmitry Osipenko wrote:
-> > > On Friday, 6 July 2018 17:10:10 MSK Ville Syrjälä wrote:
-> > > > IIRC my earlier idea was to have different colorkey modes for the
-> > > > min+max and value+mask modes. That way userspace might actually have
-> > > > some chance of figuring out which bits of state actually do something.
-> > > > Although for Intel hw I think the general rule is that min+max for YUV,
-> > > > value+mask for RGB, so it's still not 100% clear what to pick if the
-> > > > plane supports both.
-> > > > 
-> > > > I guess one alternative would be to have min+max only, and the driver
-> > > > would reject 'min != max' if it only uses a single value?
-> > > 
-> > > You should pick both and reject unsupported property values based on the
-> > > planes framebuffer format. So it will be possible to set unsupported
-> > > values
-> > > while plane is disabled because it doesn't have an associated framebuffer
-> > > and then atomic check will fail to enable plane if property values are
-> > > invalid for the given format.
-> > 
-> > The colorkey which is attached to a plane 'A' is not applied to plane
-> > 'A', so the format of plane 'A' is not relevant.  The colorkey is
-> > applied to some other plane which will be below this plane in terms
-> > of the plane blending operation.
-> > 
-> > What if you have several planes below plane 'A' with differing
-> > framebuffer formats - maybe an ARGB8888 plane and a ARGB1555 plane -
-> > do you decide to limit the colorkey to 8bits per channel, or to
-> > ARGB1555 format?
-> > 
-> > The answer is, of course, hardware dependent - generic code can't
-> > know the details of the colorkey implementation, which could be one
-> > of:
-> > 
-> >   lower plane data -> expand to 8bpc -> match ARGB8888 colorkey
-> >   lower plane data -> match ARGB8888 reduced to plane compatible colorkey
-> > 
-> > which will give different results depending on the format of the
-> > lower plane data.
-> 
-> All unsupportable cases should be rejected in the atomic check. If your HW 
-> can't handle the case where multiple bottom planes have a different format, 
-> then in the planes atomic check you'll have to walk up all the bottom planes 
-> and verify their formats.
+On Sat, Jul 7, 2018, 00:12 Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi Alex,
+>
+> On 07/02/2018 11:51 AM, Alexandre Courbot wrote:
+> > On Mon, Jul 2, 2018 at 4:44 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+> >>
+> >> Exisiting code returns the max of the decoded
+> >
+> > s/Exisiting/Existing
+> >
+> > Also the lines of your commit message look pretty short - I think the
+> > standard for kernel log messges is 72 chars?
+> >
+> >> size and buffer size. It turns out that buffer
+> >> size is always greater due to hardware alignment
+> >> requirement. As a result, payload size given to
+> >> client is incorrect. This change ensures that
+> >> the bytesused is assigned to actual payload size.
+> >>
+> >> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
+> >> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> >> ---
+> >>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> >> index d079aeb..ada1d2f 100644
+> >> --- a/drivers/media/platform/qcom/venus/vdec.c
+> >> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> >> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
+> >>
+> >>                 vb = &vbuf->vb2_buf;
+> >>                 vb->planes[0].bytesused =
+> >> -                       max_t(unsigned int, opb_sz, bytesused);
+> >> +                       min_t(unsigned int, opb_sz, bytesused);
+> >
+> > Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
+> > Tested-by: Alexandre Courbot <acourbot@chromium.org>
+> >
+> > This indeed reports the correct size to the client. If bytesused were
+> > larger than the size of the buffer we would be having some trouble
+> > anyway.
+> >
+> > Actually in my tree I was using the following patch:
+> >
+> > --- a/drivers/media/platform/qcom/venus/vdec.c
+> > +++ b/drivers/media/platform/qcom/venus/vdec.c
+> > @@ -924,13 +924,12 @@ static void vdec_buf_done(struct venus_inst
+> > *inst, unsigned int buf_type,
+> >
+> >                vb = &vbuf->vb2_buf;
+> >                vb->planes[0].bytesused =
+> > -                       max_t(unsigned int, opb_sz, bytesused);
+> > +                       min_t(unsigned int, opb_sz, bytesused);
+> >                vb->planes[0].data_offset = data_offset;
+> >                vb->timestamp = timestamp_us * NSEC_PER_USEC;
+> >                vbuf->sequence = inst->sequence_cap++;
+> >                if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
+> >                        const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
+> > -                       vb->planes[0].bytesused = bytesused;
+>
+> Actually this line doesn't exist in mainline driver. And I don't see a
+> reason why to set bytesused twice.
 
-That is *not* what I'm trying to point out.
+Apologies for being careless - this came from an out-of-tree patch.
 
-You are claiming that we should check the validity of the colorkey
-format in relation to the lower planes, and it sounds like you're
-suggesting it in generic code.  I'm trying to get you to think a
-bit more about what you're suggesting by considering a theoretical
-(or maybe not so theoretical) case.
-
-We do have hardware out there which can have multiple planes that
-are merged together - I seem to remember that Tegra? hardware has
-that ability, but it isn't implemented in the driver yet.
-
-So, I'm asking how you forsee the validity check working in the
-presence of different formats for multiple lower planes.
-
-I'm not talking about whether the hardware supports it or not - I'm
-assuming that the hardware _does_ support multiple lower planes with
-differing formats.
-
->From what I understand, to take the simple case of one lower plane,
-you are proposing:
-
-- if the lower plane is ARGB1555, then specifying a colorkey with
-  an alpha of anything except 0 or 0xffff would be invalid and should
-  be rejected.
-
-- if a lower plane is ARGB8888, then specifying a colorkey which
-  is anything except 0...0xffff in 0x101 (65535 / 255) steps would
-  be invalid and should be rejected.
-
-Now consider the case I mentioned above.  What if there are two lower
-planes, one with ARGB1555 and the other with ARGB8888.  Does this mean
-that (eg) the alpha colorkey component should be rejected if:
-
-- the alpha in the colorkey is not 0 or 0xffff, or
-- it's anything except 0...0xffff in 0x101 steps?
-
-My assertion is that this is only a decision that can be made by the
-driver and not by generic code, because it is hardware dependent.
-
-I am _not_ disagreeing with the general principle of validating that
-the requested state is possible with the hardware.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 13.8Mbps down 630kbps up
-According to speedtest.net: 13Mbps down 490kbps up
+>
+> >                        v4l2_event_queue_fh(&inst->fh, &ev);
+> >
+> > Given that we are now taking the minimum of these two values, it seems
+> > to me that we don't need to set bytesused again in case we are dealing
+> > with the last buffer? Stanimir, what do you think?
+> >
+>
+> --
+> regards,
+> Stan
