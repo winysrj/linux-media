@@ -1,109 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:38933 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933274AbeGFRJc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 13:09:32 -0400
-Received: by mail-it0-f66.google.com with SMTP id p185-v6so18089254itp.4
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 10:09:32 -0700 (PDT)
-Received: from mail-io0-f174.google.com (mail-io0-f174.google.com. [209.85.223.174])
-        by smtp.gmail.com with ESMTPSA id o64-v6sm4687054ioe.30.2018.07.06.10.09.30
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 06 Jul 2018 10:09:30 -0700 (PDT)
-Received: by mail-io0-f174.google.com with SMTP id l14-v6so1515621iob.7
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 10:09:30 -0700 (PDT)
+Received: from smtp.gentoo.org ([140.211.166.183]:56468 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932751AbeGFTPD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Jul 2018 15:15:03 -0400
+Subject: Re: [PATCH v2 2/3] media: dvb: represent min/max/step/tolerance freqs
+ in Hz
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Antti Palosaari <crope@iki.fi>,
+        Jemma Denson <jdenson@gmail.com>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>,
+        Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>,
+        Malcolm Priestley <tvboxspy@gmail.com>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Daniel Scheller <d.scheller.oss@gmail.com>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Jaedon Shin <jaedon.shin@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>, Sean Young <sean@mess.org>,
+        Kees Cook <keescook@chromium.org>,
+        Dan Gopstein <dgopstein@nyu.edu>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Brad Love <brad@nextdimension.cc>,
+        Thomas Meyer <thomas@m3y3r.de>, Arnd Bergmann <arnd@arndb.de>,
+        Ralph Metzler <rjkm@metzlerbros.de>,
+        Athanasios Oikonomou <athoik@gmail.com>,
+        Akihiro Tsukada <tskd08@gmail.com>, Michael Buesch <m@bues.ch>,
+        =?UTF-8?Q?J=c3=a9r=c3=a9my_Lefaure?= <jeremy.lefaure@lse.epita.fr>,
+        linux1394-devel@lists.sourceforge.net
+References: <cover.1530830503.git.mchehab+samsung@kernel.org>
+ <0ea966e5313043b1b9e6d658ad356841fb961e84.1530830503.git.mchehab+samsung@kernel.org>
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <8552051d-e9ab-5a16-489f-fb4c16814620@gentoo.org>
+Date: Fri, 6 Jul 2018 21:14:52 +0200
 MIME-Version: 1.0
-References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
- <CAPBb6MUBi+Dn5v4PKngxztFgKd6CA7bC1pKvWd1GMY9NJFoyZQ@mail.gmail.com> <b26cb8df-fac3-5941-9941-a6b3ca8af62e@linaro.org>
-In-Reply-To: <b26cb8df-fac3-5941-9941-a6b3ca8af62e@linaro.org>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Sat, 7 Jul 2018 02:09:17 +0900
-Message-ID: <CAPBb6MW0RryRBHCNMS71MJy7Dy6wyiJMoPRwPCQOK3Ui8CfKOg@mail.gmail.com>
-Subject: Re: [PATCH] venus: vdec: fix decoded data size
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: vgarodia@codeaurora.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <0ea966e5313043b1b9e6d658ad356841fb961e84.1530830503.git.mchehab+samsung@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 7, 2018, 00:12 Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
->
-> Hi Alex,
->
-> On 07/02/2018 11:51 AM, Alexandre Courbot wrote:
-> > On Mon, Jul 2, 2018 at 4:44 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
-> >>
-> >> Exisiting code returns the max of the decoded
-> >
-> > s/Exisiting/Existing
-> >
-> > Also the lines of your commit message look pretty short - I think the
-> > standard for kernel log messges is 72 chars?
-> >
-> >> size and buffer size. It turns out that buffer
-> >> size is always greater due to hardware alignment
-> >> requirement. As a result, payload size given to
-> >> client is incorrect. This change ensures that
-> >> the bytesused is assigned to actual payload size.
-> >>
-> >> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
-> >> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> >> ---
-> >>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> >> index d079aeb..ada1d2f 100644
-> >> --- a/drivers/media/platform/qcom/venus/vdec.c
-> >> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> >> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
-> >>
-> >>                 vb = &vbuf->vb2_buf;
-> >>                 vb->planes[0].bytesused =
-> >> -                       max_t(unsigned int, opb_sz, bytesused);
-> >> +                       min_t(unsigned int, opb_sz, bytesused);
-> >
-> > Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
-> > Tested-by: Alexandre Courbot <acourbot@chromium.org>
-> >
-> > This indeed reports the correct size to the client. If bytesused were
-> > larger than the size of the buffer we would be having some trouble
-> > anyway.
-> >
-> > Actually in my tree I was using the following patch:
-> >
-> > --- a/drivers/media/platform/qcom/venus/vdec.c
-> > +++ b/drivers/media/platform/qcom/venus/vdec.c
-> > @@ -924,13 +924,12 @@ static void vdec_buf_done(struct venus_inst
-> > *inst, unsigned int buf_type,
-> >
-> >                vb = &vbuf->vb2_buf;
-> >                vb->planes[0].bytesused =
-> > -                       max_t(unsigned int, opb_sz, bytesused);
-> > +                       min_t(unsigned int, opb_sz, bytesused);
-> >                vb->planes[0].data_offset = data_offset;
-> >                vb->timestamp = timestamp_us * NSEC_PER_USEC;
-> >                vbuf->sequence = inst->sequence_cap++;
-> >                if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
-> >                        const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
-> > -                       vb->planes[0].bytesused = bytesused;
->
-> Actually this line doesn't exist in mainline driver. And I don't see a
-> reason why to set bytesused twice.
+Am 06.07.2018 um 00:59 schrieb Mauro Carvalho Chehab:
 
-Apologies for being careless - this came from an out-of-tree patch.
+Hi Mauro,
 
->
-> >                        v4l2_event_queue_fh(&inst->fh, &ev);
-> >
-> > Given that we are now taking the minimum of these two values, it seems
-> > to me that we don't need to set bytesused again in case we are dealing
-> > with the last buffer? Stanimir, what do you think?
-> >
->
-> --
-> regards,
-> Stan
+I have one comment below.
+
+> Right now, satellite frontend drivers specify frequencies in kHz,
+> while terrestrial/cable ones specify in Hz. That's confusing
+> for developers.
+> 
+> However, the main problem is that universal frontends capable
+> of handling both satellite and non-satelite delivery systems
+> are appearing. We end by needing to hack the drivers in
+> order to support such hybrid frontends.
+> 
+> So, convert everything to specify frontend frequencies in Hz.
+> 
+> Tested-by: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> ---
+
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 75e95b56f8b3..3b9dca7d7d02 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+[...]
+> @@ -2391,9 +2417,19 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+>  
+>  	case FE_GET_INFO: {
+>  		struct dvb_frontend_info *info = parg;
+> +		memset(info, 0, sizeof(*info));
+>  
+> -		memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
+> -		dvb_frontend_get_frequency_limits(fe, &info->frequency_min, &info->frequency_max);
+> +		strcpy(info->name, fe->ops.info.name);
+> +		info->frequency_stepsize = fe->ops.info.frequency_stepsize_hz;
+> +		info->frequency_tolerance = fe->ops.info.frequency_tolerance_hz;
+
+The variables frequency_stepsize and frequency_tolerance are assigned
+again some lines below.
+
+> +		info->symbol_rate_min = fe->ops.info.symbol_rate_min;
+> +		info->symbol_rate_max = fe->ops.info.symbol_rate_max;
+> +		info->symbol_rate_tolerance = fe->ops.info.symbol_rate_tolerance;
+> +		info->caps = fe->ops.info.caps;
+> +		info->frequency_stepsize = dvb_frontend_get_stepsize(fe);
+> +		dvb_frontend_get_frequency_limits(fe, &info->frequency_min,
+> +						  &info->frequency_max,
+> +						  &info->frequency_tolerance);
+>  
+>  		/*
+>  		 * Associate the 4 delivery systems supported by DVBv3
+
+Matthias
