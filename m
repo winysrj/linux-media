@@ -1,97 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:39498 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753702AbeGFOQ5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 10:16:57 -0400
-Received: by mail-wr1-f66.google.com with SMTP id h10-v6so4362609wre.6
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 07:16:57 -0700 (PDT)
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39623 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753630AbeGFOfG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Jul 2018 10:35:06 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.19] Various fixes
+Message-ID: <f786d856-f6e4-bf05-1ae9-fd687bbeb0de@xs4all.nl>
+Date: Fri, 6 Jul 2018 16:35:04 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180618043852.13293-2-ezequiel@collabora.com>
-References: <20180618043852.13293-1-ezequiel@collabora.com> <20180618043852.13293-2-ezequiel@collabora.com>
-From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Date: Fri, 6 Jul 2018 17:16:55 +0300
-Message-ID: <CALi4nhqQCWLP4ErBn9dqn=1dszGSy2+A8i35qy5e+1hM96Pb6A@mail.gmail.com>
-Subject: Re: [PATCH v2 1/3] rcar_jpu: Remove unrequired wait in .job_abort
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Andrzej Hajda <a.hajda@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+The following changes since commit 666e994aa2278e948e2492ee9d81b4df241e7222:
 
-On Mon, Jun 18, 2018 at 7:38 AM, Ezequiel Garcia <ezequiel@collabora.com> wrote:
-> As per the documentation, job_abort is not required
-> to wait until the current job finishes. It is redundant
-> to do so, as the core will perform the wait operation.
->
-> Remove the wait infrastructure completely.
->
-> Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/platform/rcar_jpu.c | 11 -----------
->  1 file changed, 11 deletions(-)
->
-> diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
-> index 469a326838aa..dec696e6b974 100644
-> --- a/drivers/media/platform/rcar_jpu.c
-> +++ b/drivers/media/platform/rcar_jpu.c
-> @@ -198,7 +198,6 @@
->   * @vfd_decoder: video device node for decoder mem2mem mode
->   * @m2m_dev: v4l2 mem2mem device data
->   * @curr: pointer to current context
-> - * @irq_queue: interrupt handler waitqueue
->   * @regs: JPEG IP registers mapping
->   * @irq: JPEG IP irq
->   * @clk: JPEG IP clock
-> @@ -213,7 +212,6 @@ struct jpu {
->         struct video_device     vfd_decoder;
->         struct v4l2_m2m_dev     *m2m_dev;
->         struct jpu_ctx          *curr;
-> -       wait_queue_head_t       irq_queue;
->
->         void __iomem            *regs;
->         unsigned int            irq;
-> @@ -1494,11 +1492,6 @@ static void jpu_device_run(void *priv)
->
->  static void jpu_job_abort(void *priv)
->  {
-> -       struct jpu_ctx *ctx = priv;
-> -
-> -       if (!wait_event_timeout(ctx->jpu->irq_queue, !ctx->jpu->curr,
-> -                               msecs_to_jiffies(JPU_JOB_TIMEOUT)))
-> -               jpu_cleanup(ctx, true);
->  }
->
->  static const struct v4l2_m2m_ops jpu_m2m_ops = {
-> @@ -1584,9 +1577,6 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
->
->         v4l2_m2m_job_finish(jpu->m2m_dev, curr_ctx->fh.m2m_ctx);
->
-> -       /* ...wakeup abort routine if needed */
-> -       wake_up(&jpu->irq_queue);
-> -
->         return IRQ_HANDLED;
->
->  handled:
-> @@ -1620,7 +1610,6 @@ static int jpu_probe(struct platform_device *pdev)
->         if (!jpu)
->                 return -ENOMEM;
->
-> -       init_waitqueue_head(&jpu->irq_queue);
->         mutex_init(&jpu->mutex);
->         spin_lock_init(&jpu->lock);
->         jpu->dev = &pdev->dev;
-> --
-> 2.16.3
->
+  media: platform: s5p-mfc: simplify getting .drvdata (2018-07-04 11:45:40 -0400)
 
+are available in the Git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.19i
 
--- 
-W.B.R, Mikhail.
+for you to fetch changes up to 894d81fed117fc49906e64b085f3607cf694de92:
+
+  media: v4l2-ctrls.h: fix v4l2_ctrl field description typos (2018-07-06 15:48:16 +0200)
+
+----------------------------------------------------------------
+Baruch Siach (1):
+      media: v4l2-ctrls.h: fix v4l2_ctrl field description typos
+
+Hugues Fruchet (1):
+      MAINTAINERS: Add entry for STM32 DCMI media driver
+
+Julia Lawall (1):
+      gspca_kinect: cast sizeof to int for comparison
+
+Krzysztof Ha?asa (1):
+      tw686x: Fix oops on buffer alloc failure
+
+Matt Ranostay (1):
+      media: video-i2c: add hwmon support for amg88xx
+
+Philipp Zabel (4):
+      media: coda: move framebuffer size calculation out of loop
+      media: coda: streamline framebuffer size calculation a bit
+      media: coda: use encoder crop rectangle to set visible width and height
+      media: coda: add missing h.264 levels
+
+ MAINTAINERS                               |  8 +++++++
+ drivers/media/i2c/Kconfig                 |  1 +
+ drivers/media/i2c/video-i2c.c             | 81 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw686x/tw686x-video.c   | 11 ++++++---
+ drivers/media/platform/coda/coda-bit.c    | 45 ++++++++++++++++------------------
+ drivers/media/platform/coda/coda-common.c | 45 ++++++++++++++++++++++++++++++----
+ drivers/media/platform/coda/coda-h264.c   |  3 +++
+ drivers/media/usb/gspca/kinect.c          |  2 +-
+ include/media/v4l2-ctrls.h                |  4 ++--
+ 9 files changed, 165 insertions(+), 35 deletions(-)
