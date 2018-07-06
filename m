@@ -1,153 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:39093 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934654AbeGFTsj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 15:48:39 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Ville =?ISO-8859-1?Q?Syrj=E4l=E4?=
-        <ville.syrjala@linux.intel.com>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v3 1/2] drm: Add generic colorkey properties for DRM planes
-Date: Fri, 06 Jul 2018 22:48:26 +0300
-Message-ID: <1862420.zvYl24lURK@dimapc>
-In-Reply-To: <20180706170136.GC17271@n2100.armlinux.org.uk>
-References: <20180603220059.17670-1-digetx@gmail.com> <2513788.CeRymH5ehq@dimapc> <20180706170136.GC17271@n2100.armlinux.org.uk>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:38847 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754102AbeGFU2f (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 16:28:35 -0400
+Received: by mail-wm0-f68.google.com with SMTP id 69-v6so15404075wmf.3
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 13:28:34 -0700 (PDT)
+Subject: Re: [PATCH v2 2/3] s5p-g2d: Remove unrequired wait in .job_abort
+To: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        kernel@collabora.com,
+        Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Andrzej Hajda <a.hajda@samsung.com>
+References: <20180618043852.13293-1-ezequiel@collabora.com>
+ <20180618043852.13293-3-ezequiel@collabora.com>
+ <0c63d9ee-88c4-c09d-ec36-cc0ee3ca3d8f@xs4all.nl>
+ <7a4debab-717e-c99b-778f-fc9bdc99775e@kernel.org>
+ <d84d6dc29cfb53eaf55e92bbf51dc36b72c7d6b9.camel@collabora.com>
+From: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
+Message-ID: <6060ee01-a772-735b-0161-1d776ee17eb7@gmail.com>
+Date: Fri, 6 Jul 2018 22:28:32 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <d84d6dc29cfb53eaf55e92bbf51dc36b72c7d6b9.camel@collabora.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, 6 July 2018 20:01:36 MSK Russell King - ARM Linux wrote:
-> On Fri, Jul 06, 2018 at 07:33:14PM +0300, Dmitry Osipenko wrote:
-> > On Friday, 6 July 2018 18:40:27 MSK Russell King - ARM Linux wrote:
-> > > On Fri, Jul 06, 2018 at 05:58:50PM +0300, Dmitry Osipenko wrote:
-> > > > On Friday, 6 July 2018 17:10:10 MSK Ville Syrj=E4l=E4 wrote:
-> > > > > IIRC my earlier idea was to have different colorkey modes for the
-> > > > > min+max and value+mask modes. That way userspace might actually h=
-ave
-> > > > > some chance of figuring out which bits of state actually do
-> > > > > something.
-> > > > > Although for Intel hw I think the general rule is that min+max for
-> > > > > YUV,
-> > > > > value+mask for RGB, so it's still not 100% clear what to pick if =
-the
-> > > > > plane supports both.
-> > > > >=20
-> > > > > I guess one alternative would be to have min+max only, and the
-> > > > > driver
-> > > > > would reject 'min !=3D max' if it only uses a single value?
-> > > >=20
-> > > > You should pick both and reject unsupported property values based on
-> > > > the
-> > > > planes framebuffer format. So it will be possible to set unsupported
-> > > > values
-> > > > while plane is disabled because it doesn't have an associated
-> > > > framebuffer
-> > > > and then atomic check will fail to enable plane if property values =
-are
-> > > > invalid for the given format.
-> > >=20
-> > > The colorkey which is attached to a plane 'A' is not applied to plane
-> > > 'A', so the format of plane 'A' is not relevant.  The colorkey is
-> > > applied to some other plane which will be below this plane in terms
-> > > of the plane blending operation.
-> > >=20
-> > > What if you have several planes below plane 'A' with differing
-> > > framebuffer formats - maybe an ARGB8888 plane and a ARGB1555 plane -
-> > > do you decide to limit the colorkey to 8bits per channel, or to
-> > > ARGB1555 format?
-> > >=20
-> > > The answer is, of course, hardware dependent - generic code can't
-> > > know the details of the colorkey implementation, which could be one
-> > >=20
-> > > of:
-> > >   lower plane data -> expand to 8bpc -> match ARGB8888 colorkey
-> > >   lower plane data -> match ARGB8888 reduced to plane compatible
-> > >   colorkey
-> > >=20
-> > > which will give different results depending on the format of the
-> > > lower plane data.
-> >=20
-> > All unsupportable cases should be rejected in the atomic check. If your=
- HW
-> > can't handle the case where multiple bottom planes have a different
-> > format,
-> > then in the planes atomic check you'll have to walk up all the bottom
-> > planes and verify their formats.
->=20
-> That is *not* what I'm trying to point out.
->=20
-> You are claiming that we should check the validity of the colorkey
-> format in relation to the lower planes, and it sounds like you're
-> suggesting it in generic code.  I'm trying to get you to think a
-> bit more about what you're suggesting by considering a theoretical
-> (or maybe not so theoretical) case.
->=20
-> We do have hardware out there which can have multiple planes that
-> are merged together - I seem to remember that Tegra? hardware has
-> that ability, but it isn't implemented in the driver yet.
->=20
+On 07/06/2018 03:43 PM, Ezequiel Garcia wrote:
 
-I'm not sure what you're meaning by planes "merging", could you please=20
-elaborate?
+>> Could you elaborate how the core ensures DMA operation is not in
+>> progress
+>> after VIDIOC_STREAMOFF, VIDIOC_DQBUF with this patch applied?
+>>
+> 
+> Well, .streamoff is handled by v4l2_m2m_streamoff, which
+> guarantees that no job is running by calling v4l2_m2m_cancel_job.
+> 
+> The call chain goes like this:
+> 
+> vidioc_streamoff
+>    v4l2_m2m_ioctl_streamoff
+>      v4l2_m2m_streamoff
+>        v4l2_m2m_cancel_job
+>          wait_event(m2m_ctx->finished, ...);
+> 
+> The wait_event() wakes up by v4l2_m2m_job_finish(),
+> which is called by g2d_isr after marking the buffers
+> as done.
+> 
+> The reason why I haven't elaborated this in the commit log
+> is because it's documented in .job_abort declaration.
 
-> So, I'm asking how you forsee the validity check working in the
-> presence of different formats for multiple lower planes.
->=20
-> I'm not talking about whether the hardware supports it or not - I'm
-> assuming that the hardware _does_ support multiple lower planes with
-> differing formats.
->=20
-> From what I understand, to take the simple case of one lower plane,
-> you are proposing:
->=20
-> - if the lower plane is ARGB1555, then specifying a colorkey with
->   an alpha of anything except 0 or 0xffff would be invalid and should
->   be rejected.
->=20
-> - if a lower plane is ARGB8888, then specifying a colorkey which
->   is anything except 0...0xffff in 0x101 (65535 / 255) steps would
->   be invalid and should be rejected.
->=20
-> Now consider the case I mentioned above.  What if there are two lower
-> planes, one with ARGB1555 and the other with ARGB8888.  Does this mean
-> that (eg) the alpha colorkey component should be rejected if:
->=20
-> - the alpha in the colorkey is not 0 or 0xffff, or
-> - it's anything except 0...0xffff in 0x101 steps?
->=20
-> My assertion is that this is only a decision that can be made by the
-> driver and not by generic code, because it is hardware dependent.
->=20
+Indeed, you are right, job_abort implementation can be safely removed
+in this case. As it is it doesn't help to handle cases when the HW gets
+stuck and refuses to generate an interrupt. The rcar_jpu seems to be
+addressing such situation properly though.
 
-Definitely the conversion rule must be defined explicitly, otherwise colork=
-ey=20
-property values can't be considered generic. Thank you for pointing at it. =
-I=20
-think rounding to a closest value should be the generic conversion rule.
+>>>> diff --git a/drivers/media/platform/s5p-g2d/g2d.c
+>>>> b/drivers/media/platform/s5p-g2d/g2d.c
+>>>> index 66aa8cf1d048..e98708883413 100644
+>>>> --- a/drivers/media/platform/s5p-g2d/g2d.c
+>>>> +++ b/drivers/media/platform/s5p-g2d/g2d.c
+>>>> @@ -483,15 +483,6 @@ static int vidioc_s_crop(struct file *file,
+>>>> void *prv, const struct v4l2_crop *c
+>>>>    
+>>>>    static void job_abort(void *prv)
+>>>>    {
+>>>> -	struct g2d_ctx *ctx = prv;
+>>>> -	struct g2d_dev *dev = ctx->dev;
+>>>> -
+>>>> -	if (dev->curr == NULL) /* No job currently running */
+>>>> -		return;
+>>>> -
+>>>> -	wait_event_timeout(dev->irq_queue,
+>>>> -			   dev->curr == NULL,
+>>>> -			   msecs_to_jiffies(G2D_TIMEOUT));
+>>
+>> I think after this patch there will be a potential race condition
+>> possible,
+>> we could have the hardware DMA and CPU writing to same buffer with
+>> sequence like:
+>> ...
+>> QBUF
+>> STREAMON
+>> STREAMOFF
+>> DQBUF
+>> CPU accessing the buffer  <--  at this point G2D DMA could still be
+>> writing
+>> to an already dequeued buffer. Image processing can take few
+>> miliseconds, it should
+>> be fairly easy to trigger such a condition.
+>>
+> 
+> I don't think this is the case, as I've explained above. This commit
+> merely removes a redundant wait, as job_abort simply waits the
+> interrupt handler to complete, and that is the purpose of
+> v4l2_m2m_job_finish.
+> 
+> It only makes sense to implement job_abort if you can actually stop
+> the current DMA. If you can only wait for it to complete, then it's not
+> needed.
 
-I'll document the conversion rule in the next revision. Please let me know =
-if=20
-you see any problems with the rounding to a closest value.
+Agreed.
 
-The final decision will be made by the driver, but driver and userspace wil=
-l=20
-have to take into account the defined generic conversion rule.
+> The intention of this series is simply to make job_abort optional,
+> and remove those drivers that implement job_abort as a wait-for-
+> current-job.
 
-> I am _not_ disagreeing with the general principle of validating that
-> the requested state is possible with the hardware.
+Sure, thanks for your effort.
 
-Thank you for the clarification.
+--
+Regards,
+Sylwester
