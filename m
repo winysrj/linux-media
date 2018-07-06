@@ -1,138 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42578 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932174AbeGFLVK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Jul 2018 07:21:10 -0400
-Subject: Re: [PATCH v5 12/27] venus: hfi_parser: add common capability parser
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Vikash Garodia <vgarodia@codeaurora.org>,
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:41143 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753612AbeGFHLJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 03:11:09 -0400
+Received: by mail-wr1-f66.google.com with SMTP id h10-v6so3087191wrq.8
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 00:11:09 -0700 (PDT)
+Subject: Re: [PATCH v5 00/27] Venus updates
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
         Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
 References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
- <20180705130401.24315-13-stanimir.varbanov@linaro.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7866a592-1764-a7e6-1149-52d4f070dfd4@xs4all.nl>
-Date: Fri, 6 Jul 2018 13:21:07 +0200
+ <CAAFQd5CQCF=QvTgq8v6K6W6C0Cy27CzHsMxQn+FnML97w9xnCw@mail.gmail.com>
+ <150eb3b4-8b64-6050-6a4e-e06cfaf113cc@xs4all.nl>
+ <6abf8da2-b2e1-1b4f-2727-f9d074081c30@linaro.org>
+ <CAPBb6MWoysaL_i8i7HaegRCsfF29bnOy2L5ZHgEwDuSJ7HVO2w@mail.gmail.com>
+ <CAPBb6MXoiGLdSuufbJ39va4emswC20VZq+U4X8+_PUa++yh=AQ@mail.gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <b0d3c876-9f3c-7af9-0b4c-cc8293aa6437@linaro.org>
+Date: Fri, 6 Jul 2018 10:11:03 +0300
 MIME-Version: 1.0
-In-Reply-To: <20180705130401.24315-13-stanimir.varbanov@linaro.org>
+In-Reply-To: <CAPBb6MXoiGLdSuufbJ39va4emswC20VZq+U4X8+_PUa++yh=AQ@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stanimir,
+Hi,
 
-While preparing a pull request I ran smatch and I found some issues with
-hfi_parser.h:
-
-On 05/07/18 15:03, Stanimir Varbanov wrote:
-> This adds common capability parser for all supported Venus
-> versions. Having it will help to enumerate better the supported
-> raw formats and codecs and also the capabilities for every
-> codec like max/min width/height, framerate, bitrate and so on.
+On 07/06/2018 06:55 AM, Alexandre Courbot wrote:
+> On Fri, Jul 6, 2018 at 12:00 AM Alexandre Courbot <acourbot@chromium.org> wrote:
+>>
+>> On Thu, Jul 5, 2018 at 11:52 PM Stanimir Varbanov
+>> <stanimir.varbanov@linaro.org> wrote:
+>>>
+>>> Hi,
+>>>
+>>> On 07/05/2018 05:08 PM, Hans Verkuil wrote:
+>>>> On 05/07/18 16:07, Tomasz Figa wrote:
+>>>>> Hi Stanimir,
+>>>>>
+>>>>> On Thu, Jul 5, 2018 at 10:05 PM Stanimir Varbanov
+>>>>> <stanimir.varbanov@linaro.org> wrote:
+>>>>>>
+>>>>>> Hi,
+>>>>>>
+>>>>>> Changes since v4:
+>>>>>>  * 02/27 re-write intbufs_alloc as suggested by Alex, and
+>>>>>>    moved new structures in 03/27 where they are used
+>>>>>>  * 11/27 exit early if error occur in vdec_runtime_suspend
+>>>>>>    venc_runtime_suspend and avoid ORing ret variable
+>>>>>>  * 12/27 fixed typo in patch description
+>>>>>>  * added a const when declare ptype variable
+>>>>>>
+>>>>>> Previous v4 can be found at https://lkml.org/lkml/2018/6/27/404
+>>>>>
+>>>>> Thanks for the patches!
+>>>>>
+>>>>> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+>>>
+>>> Thanks Tomasz!
+>>>
+>>>>
+>>>> Are we waiting for anything else? Otherwise I plan to make a pull request for
+>>>> this tomorrow.
+>>>
+>>> I think we are done.
+>>
+>> I would just like to give this one last test - will be done by tomorrow JST.
 > 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-> ---
->  drivers/media/platform/qcom/venus/Makefile     |   3 +-
->  drivers/media/platform/qcom/venus/core.c       |  85 ++++++
->  drivers/media/platform/qcom/venus/core.h       |  74 ++---
->  drivers/media/platform/qcom/venus/hfi.c        |   5 +-
->  drivers/media/platform/qcom/venus/hfi_helper.h |  28 +-
->  drivers/media/platform/qcom/venus/hfi_msgs.c   | 356 ++-----------------------
->  drivers/media/platform/qcom/venus/hfi_parser.c | 283 ++++++++++++++++++++
->  drivers/media/platform/qcom/venus/hfi_parser.h |  45 ++++
->  drivers/media/platform/qcom/venus/vdec.c       |  38 +--
->  drivers/media/platform/qcom/venus/venc.c       |  52 ++--
->  10 files changed, 525 insertions(+), 444 deletions(-)
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_parser.h
+> Confirmed my unit tests were still running with this version and had a
+> quick look at the changes.
 > 
+> The series,
+> 
+> Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
+> Tested-by: Alexandre Courbot <acourbot@chromium.org>
 
-<snip>
+Thanks Alex!
 
-> diff --git a/drivers/media/platform/qcom/venus/hfi_parser.h b/drivers/media/platform/qcom/venus/hfi_parser.h
-> new file mode 100644
-> index 000000000000..2fa4a345a3eb
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/venus/hfi_parser.h
-> @@ -0,0 +1,45 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* Copyright (C) 2018 Linaro Ltd. */
-> +#ifndef __VENUS_HFI_PARSER_H__
-> +#define __VENUS_HFI_PARSER_H__
-> +
-> +#include "core.h"
-> +
-> +u32 hfi_parser(struct venus_core *core, struct venus_inst *inst,
-> +	       void *buf, u32 size);
-> +
-> +static inline struct hfi_capability *get_cap(struct venus_inst *inst, u32 type)
-> +{
-> +	struct venus_core *core = inst->core;
-> +	struct venus_caps *caps;
-> +	unsigned int i;
-> +
-> +	caps = venus_caps_by_codec(core, inst->hfi_codec, inst->session_type);
-> +	if (!caps)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	for (i = 0; i < caps->num_caps; i++) {
-> +		if (caps->caps[i].capability_type == type)
-> +			return &caps->caps[i];
-> +	}
-> +
-> +	return ERR_PTR(-EINVAL);
-> +}
-> +
-> +#define CAP_MIN(inst, type)	((get_cap(inst, type))->min)
-> +#define CAP_MAX(inst, type)	((get_cap(inst, type))->max)
-> +#define CAP_STEP(inst, type)	((get_cap(inst, type))->step_size)
-> +
-> +#define FRAME_WIDTH_MIN(inst)	CAP_MIN(inst, HFI_CAPABILITY_FRAME_WIDTH)
-> +#define FRAME_WIDTH_MAX(inst)	CAP_MAX(inst, HFI_CAPABILITY_FRAME_WIDTH)
-> +#define FRAME_WIDTH_STEP(inst)	CAP_STEP(inst, HFI_CAPABILITY_FRAME_WIDTH)
-> +
-> +#define FRAME_HEIGHT_MIN(inst)	CAP_MIN(inst, HFI_CAPABILITY_FRAME_HEIGHT)
-> +#define FRAME_HEIGHT_MAX(inst)	CAP_MAX(inst, HFI_CAPABILITY_FRAME_HEIGHT)
-> +#define FRAME_HEIGHT_STEP(inst)	CAP_STEP(inst, HFI_CAPABILITY_FRAME_HEIGHT)
-> +
-> +#define FRATE_MIN(inst)		CAP_MIN(inst, HFI_CAPABILITY_FRAMERATE)
-> +#define FRATE_MAX(inst)		CAP_MAX(inst, HFI_CAPABILITY_FRAMERATE)
-> +#define FRATE_STEP(inst)	CAP_STEP(inst, HFI_CAPABILITY_FRAMERATE)
-> +
-> +#endif
-
-When compiling vdec.c and venc.c with smatch I get a whole bunch of:
-
-drivers/media/platform/qcom/venus/hfi_parser.h:17:14: error: not an lvalue
-drivers/media/platform/qcom/venus/hfi_parser.h:21:16: error: not an lvalue
-drivers/media/platform/qcom/venus/hfi_parser.h:17:14: error: not an lvalue
-drivers/media/platform/qcom/venus/hfi_parser.h:21:16: error: not an lvalue
-
-To be honest I don't quite understand what is happening here.
-
-What I DO see is that get_cap can return ERR_PTR, but the CAP_MIN/MAX/STEP macros
-do not test for that. It doesn't feel right, I think it might be better if you
-move get_cap into the source and provide little cap_min/max/step inlines that
-properly test the return code of get_cap and return 0 or something on error.
-
-This is the command line I use to test with smatch:
-
-make W=1 C=1 CHECK="smatch -p=kernel" drivers/media/platform/qcom/venus/
-
-I use smatch from here:
-
-https://git.linuxtv.org/mchehab/smatch.git/
-
-Otherwise everything looked good for this series, but I think this needs to
-be fixed.
-
-Regards,
-
-	Hans
+-- 
+regards,
+Stan
