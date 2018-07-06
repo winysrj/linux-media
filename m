@@ -1,88 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:41143 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753612AbeGFHLJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 03:11:09 -0400
-Received: by mail-wr1-f66.google.com with SMTP id h10-v6so3087191wrq.8
-        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 00:11:09 -0700 (PDT)
-Subject: Re: [PATCH v5 00/27] Venus updates
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
-References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
- <CAAFQd5CQCF=QvTgq8v6K6W6C0Cy27CzHsMxQn+FnML97w9xnCw@mail.gmail.com>
- <150eb3b4-8b64-6050-6a4e-e06cfaf113cc@xs4all.nl>
- <6abf8da2-b2e1-1b4f-2727-f9d074081c30@linaro.org>
- <CAPBb6MWoysaL_i8i7HaegRCsfF29bnOy2L5ZHgEwDuSJ7HVO2w@mail.gmail.com>
- <CAPBb6MXoiGLdSuufbJ39va4emswC20VZq+U4X8+_PUa++yh=AQ@mail.gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <b0d3c876-9f3c-7af9-0b4c-cc8293aa6437@linaro.org>
-Date: Fri, 6 Jul 2018 10:11:03 +0300
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:47151 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753056AbeGFHsg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Jul 2018 03:48:36 -0400
+Subject: [PATCHv16.1 29/34] v4l2-mem2mem: add vb2_m2m_request_queue
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180705160337.54379-1-hverkuil@xs4all.nl>
+ <20180705160337.54379-30-hverkuil@xs4all.nl>
+Message-ID: <424120e6-7f86-ff43-0a0d-872e46de6dbb@xs4all.nl>
+Date: Fri, 6 Jul 2018 09:48:33 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAPBb6MXoiGLdSuufbJ39va4emswC20VZq+U4X8+_PUa++yh=AQ@mail.gmail.com>
+In-Reply-To: <20180705160337.54379-30-hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+For mem2mem devices we have to make sure that v4l2_m2m_try_schedule()
+is called whenever a request is queued.
 
-On 07/06/2018 06:55 AM, Alexandre Courbot wrote:
-> On Fri, Jul 6, 2018 at 12:00 AM Alexandre Courbot <acourbot@chromium.org> wrote:
->>
->> On Thu, Jul 5, 2018 at 11:52 PM Stanimir Varbanov
->> <stanimir.varbanov@linaro.org> wrote:
->>>
->>> Hi,
->>>
->>> On 07/05/2018 05:08 PM, Hans Verkuil wrote:
->>>> On 05/07/18 16:07, Tomasz Figa wrote:
->>>>> Hi Stanimir,
->>>>>
->>>>> On Thu, Jul 5, 2018 at 10:05 PM Stanimir Varbanov
->>>>> <stanimir.varbanov@linaro.org> wrote:
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>> Changes since v4:
->>>>>>  * 02/27 re-write intbufs_alloc as suggested by Alex, and
->>>>>>    moved new structures in 03/27 where they are used
->>>>>>  * 11/27 exit early if error occur in vdec_runtime_suspend
->>>>>>    venc_runtime_suspend and avoid ORing ret variable
->>>>>>  * 12/27 fixed typo in patch description
->>>>>>  * added a const when declare ptype variable
->>>>>>
->>>>>> Previous v4 can be found at https://lkml.org/lkml/2018/6/27/404
->>>>>
->>>>> Thanks for the patches!
->>>>>
->>>>> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
->>>
->>> Thanks Tomasz!
->>>
->>>>
->>>> Are we waiting for anything else? Otherwise I plan to make a pull request for
->>>> this tomorrow.
->>>
->>> I think we are done.
->>
->> I would just like to give this one last test - will be done by tomorrow JST.
-> 
-> Confirmed my unit tests were still running with this version and had a
-> quick look at the changes.
-> 
-> The series,
-> 
-> Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
-> Tested-by: Alexandre Courbot <acourbot@chromium.org>
+We do that by creating a vb2_m2m_request_queue() helper that should
+be used instead of the 'normal' vb2_request_queue() helper. The m2m
+helper function will call v4l2_m2m_try_schedule() as needed.
 
-Thanks Alex!
+In addition we also avoid calling v4l2_m2m_try_schedule() when preparing
+or queueing a buffer for a request since that is no longer needed.
+Instead this helper function will do that when the request is actually
+queued.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+I realized that is it important that buffers are queued last when processing a
+request. Queuing a buffer is what triggers the processing of the request, so
+all non-buffer information must be in place before you can queue buffers.
+
+This v16.1 does just that.
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 59 ++++++++++++++++++++++----
+ include/media/v4l2-mem2mem.h           |  4 ++
+ 2 files changed, 55 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 114d50cf22c5..79e1d5e8b371 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -325,7 +325,7 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
+ 	if (m2m_ctx->job_flags & TRANS_RUNNING) {
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+ 		m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
+-		dprintk("m2m_ctx %p running, will wait to complete", m2m_ctx);
++		dprintk("m2m_ctx %p running, will wait to complete\n", m2m_ctx);
+ 		wait_event(m2m_ctx->finished,
+ 				!(m2m_ctx->job_flags & TRANS_RUNNING));
+ 	} else if (m2m_ctx->job_flags & TRANS_QUEUED) {
+@@ -416,8 +416,14 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 	int ret;
+
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
++	if (!V4L2_TYPE_IS_OUTPUT(vq->type) &&
++	    (buf->flags & V4L2_BUF_FLAG_REQUEST_FD)) {
++		dprintk("%s: requests cannot be used with capture buffers\n",
++			__func__);
++		return -EPERM;
++	}
+ 	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
+-	if (!ret)
++	if (!ret && !(buf->flags & V4L2_BUF_FLAG_IN_REQUEST))
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+
+ 	return ret;
+@@ -439,14 +445,9 @@ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct vb2_queue *vq;
+-	int ret;
+
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+-	ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+-	if (!ret)
+-		v4l2_m2m_try_schedule(m2m_ctx);
+-
+-	return ret;
++	return vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_prepare_buf);
+
+@@ -891,6 +892,48 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
+
++void vb2_m2m_request_queue(struct media_request *req)
++{
++	struct media_request_object *obj, *obj_safe;
++	struct v4l2_m2m_ctx *m2m_ctx = NULL;
++
++	/* Queue all non-buffer objects */
++	list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
++		if (obj->ops->queue && !vb2_request_object_is_buffer(obj))
++			obj->ops->queue(obj);
++
++	/* Queue all buffer objects */
++	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
++		struct v4l2_m2m_ctx *m2m_ctx_obj;
++		struct vb2_buffer *vb;
++
++		if (!obj->ops->queue || !vb2_request_object_is_buffer(obj))
++			continue;
++
++		/* Sanity checks */
++		vb = container_of(obj, struct vb2_buffer, req_obj);
++		WARN_ON(!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type));
++		m2m_ctx_obj = container_of(vb->vb2_queue,
++					   struct v4l2_m2m_ctx,
++					   out_q_ctx.q);
++		WARN_ON(m2m_ctx && m2m_ctx_obj != m2m_ctx);
++		m2m_ctx = m2m_ctx_obj;
++
++		/*
++		 * The buffer we queue here can in theory be immediately
++		 * unbound, hence the use of list_for_each_entry_safe()
++		 * above and why we call the queue op last.
++		 */
++		obj->ops->queue(obj);
++	}
++
++	WARN_ON(!m2m_ctx);
++
++	if (m2m_ctx)
++		v4l2_m2m_try_schedule(m2m_ctx);
++}
++EXPORT_SYMBOL_GPL(vb2_m2m_request_queue);
++
+ /* Videobuf2 ioctl helpers */
+
+ int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index af48b1eca025..2807e7c466ce 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -593,6 +593,10 @@ v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
+ 	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
+ }
+
++/* v4l2 request helper */
++
++void vb2_m2m_request_queue(struct media_request *req);
++
+ /* v4l2 ioctl helpers */
+
+ int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
 -- 
-regards,
-Stan
+2.18.0
