@@ -1,62 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39623 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753630AbeGFOfG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Jul 2018 10:35:06 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.19] Various fixes
-Message-ID: <f786d856-f6e4-bf05-1ae9-fd687bbeb0de@xs4all.nl>
-Date: Fri, 6 Jul 2018 16:35:04 +0200
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:54135 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932429AbeGFPMc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jul 2018 11:12:32 -0400
+Received: by mail-wm0-f66.google.com with SMTP id b188-v6so15246955wme.3
+        for <linux-media@vger.kernel.org>; Fri, 06 Jul 2018 08:12:32 -0700 (PDT)
+Subject: Re: [PATCH] venus: vdec: fix decoded data size
+To: Alexandre Courbot <acourbot@chromium.org>, vgarodia@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
+ <CAPBb6MUBi+Dn5v4PKngxztFgKd6CA7bC1pKvWd1GMY9NJFoyZQ@mail.gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <b26cb8df-fac3-5941-9941-a6b3ca8af62e@linaro.org>
+Date: Fri, 6 Jul 2018 18:12:29 +0300
 MIME-Version: 1.0
+In-Reply-To: <CAPBb6MUBi+Dn5v4PKngxztFgKd6CA7bC1pKvWd1GMY9NJFoyZQ@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 666e994aa2278e948e2492ee9d81b4df241e7222:
+Hi Alex,
 
-  media: platform: s5p-mfc: simplify getting .drvdata (2018-07-04 11:45:40 -0400)
+On 07/02/2018 11:51 AM, Alexandre Courbot wrote:
+> On Mon, Jul 2, 2018 at 4:44 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>>
+>> Exisiting code returns the max of the decoded
+> 
+> s/Exisiting/Existing
+> 
+> Also the lines of your commit message look pretty short - I think the
+> standard for kernel log messges is 72 chars?
+> 
+>> size and buffer size. It turns out that buffer
+>> size is always greater due to hardware alignment
+>> requirement. As a result, payload size given to
+>> client is incorrect. This change ensures that
+>> the bytesused is assigned to actual payload size.
+>>
+>> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
+>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+>> index d079aeb..ada1d2f 100644
+>> --- a/drivers/media/platform/qcom/venus/vdec.c
+>> +++ b/drivers/media/platform/qcom/venus/vdec.c
+>> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
+>>
+>>                 vb = &vbuf->vb2_buf;
+>>                 vb->planes[0].bytesused =
+>> -                       max_t(unsigned int, opb_sz, bytesused);
+>> +                       min_t(unsigned int, opb_sz, bytesused);
+> 
+> Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
+> Tested-by: Alexandre Courbot <acourbot@chromium.org>
+> 
+> This indeed reports the correct size to the client. If bytesused were
+> larger than the size of the buffer we would be having some trouble
+> anyway.
+> 
+> Actually in my tree I was using the following patch:
+> 
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -924,13 +924,12 @@ static void vdec_buf_done(struct venus_inst
+> *inst, unsigned int buf_type,
+> 
+>                vb = &vbuf->vb2_buf;
+>                vb->planes[0].bytesused =
+> -                       max_t(unsigned int, opb_sz, bytesused);
+> +                       min_t(unsigned int, opb_sz, bytesused);
+>                vb->planes[0].data_offset = data_offset;
+>                vb->timestamp = timestamp_us * NSEC_PER_USEC;
+>                vbuf->sequence = inst->sequence_cap++;
+>                if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
+>                        const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
+> -                       vb->planes[0].bytesused = bytesused;
 
-are available in the Git repository at:
+Actually this line doesn't exist in mainline driver. And I don't see a
+reason why to set bytesused twice.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.19i
+>                        v4l2_event_queue_fh(&inst->fh, &ev);
+> 
+> Given that we are now taking the minimum of these two values, it seems
+> to me that we don't need to set bytesused again in case we are dealing
+> with the last buffer? Stanimir, what do you think?
+> 
 
-for you to fetch changes up to 894d81fed117fc49906e64b085f3607cf694de92:
-
-  media: v4l2-ctrls.h: fix v4l2_ctrl field description typos (2018-07-06 15:48:16 +0200)
-
-----------------------------------------------------------------
-Baruch Siach (1):
-      media: v4l2-ctrls.h: fix v4l2_ctrl field description typos
-
-Hugues Fruchet (1):
-      MAINTAINERS: Add entry for STM32 DCMI media driver
-
-Julia Lawall (1):
-      gspca_kinect: cast sizeof to int for comparison
-
-Krzysztof Ha?asa (1):
-      tw686x: Fix oops on buffer alloc failure
-
-Matt Ranostay (1):
-      media: video-i2c: add hwmon support for amg88xx
-
-Philipp Zabel (4):
-      media: coda: move framebuffer size calculation out of loop
-      media: coda: streamline framebuffer size calculation a bit
-      media: coda: use encoder crop rectangle to set visible width and height
-      media: coda: add missing h.264 levels
-
- MAINTAINERS                               |  8 +++++++
- drivers/media/i2c/Kconfig                 |  1 +
- drivers/media/i2c/video-i2c.c             | 81 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/pci/tw686x/tw686x-video.c   | 11 ++++++---
- drivers/media/platform/coda/coda-bit.c    | 45 ++++++++++++++++------------------
- drivers/media/platform/coda/coda-common.c | 45 ++++++++++++++++++++++++++++++----
- drivers/media/platform/coda/coda-h264.c   |  3 +++
- drivers/media/usb/gspca/kinect.c          |  2 +-
- include/media/v4l2-ctrls.h                |  4 ++--
- 9 files changed, 165 insertions(+), 35 deletions(-)
+-- 
+regards,
+Stan
