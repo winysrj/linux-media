@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay9-d.mail.gandi.net ([217.70.183.199]:32893 "EHLO
-        relay9-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933045AbeGIOTx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 10:19:53 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
-        horms@verge.net.au, geert@glider.be
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        robh+dt@kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v5 6/6] media: rcar-vin: Handle data-enable polarity
-Date: Mon,  9 Jul 2018 16:19:21 +0200
-Message-Id: <1531145962-1540-7-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1531145962-1540-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1531145962-1540-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:36850 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754302AbeGGVHD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 7 Jul 2018 17:07:03 -0400
+Subject: Re: [PATCH v5 15/17] media: platform: Switch to
+ v4l2_async_notifier_add_subdev
+To: Dan Carpenter <dan.carpenter@oracle.com>, kbuild@01.org,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20180702060907.xlghcxtsj5eepdxu@mwanda>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <eb8fbaae-6ab3-e1fa-9575-fbadb8d55342@gmail.com>
+Date: Sat, 7 Jul 2018 14:06:59 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180702060907.xlghcxtsj5eepdxu@mwanda>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Handle data-enable signal polarity. If the polarity is not specifically
-requested to be active low, use the active high default.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 1de5981..9146f63 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -123,6 +123,7 @@
- /* Video n Data Mode Register 2 bits */
- #define VNDMR2_VPS		(1 << 30)
- #define VNDMR2_HPS		(1 << 29)
-+#define VNDMR2_CES		(1 << 28)
- #define VNDMR2_FTEV		(1 << 17)
- #define VNDMR2_VLV(n)		((n & 0xf) << 12)
- 
-@@ -698,6 +699,10 @@ static int rvin_setup(struct rvin_dev *vin)
- 		/* Vsync Signal Polarity Select */
- 		if (!(vin->parallel->mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 			dmr2 |= VNDMR2_VPS;
-+
-+		/* Data Enable Polarity Select */
-+		if (vin->parallel->mbus_flags & V4L2_MBUS_DATA_ENABLE_LOW)
-+			dmr2 |= VNDMR2_CES;
- 	}
- 
- 	/*
--- 
-2.7.4
+On 07/01/2018 11:09 PM, Dan Carpenter wrote:
+> Hi Steve,
+>
+> I love your patch! Perhaps something to improve:
+>
+> url:    https://github.com/0day-ci/linux/commits/Steve-Longerbeam/media-imx-Switch-to-subdev-notifiers/20180630-035625
+> base:   git://linuxtv.org/media_tree.git master
+>
+> New smatch warnings:
+> drivers/media/platform/xilinx/xilinx-vipp.c:97 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'struct fwnode_handle*'
+> drivers/media/platform/xilinx/xilinx-vipp.c:335 xvip_graph_notify_bound() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'struct fwnode_handle*'
+>
+> Old smatch warnings:
+> drivers/media/platform/xilinx/xilinx-vipp.c:106 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'struct fwnode_handle*'
+> drivers/media/platform/xilinx/xilinx-vipp.c:133 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 3 has type 'struct fwnode_handle*'
+> drivers/media/platform/xilinx/xilinx-vipp.c:143 xvip_graph_build_one() error: '%pOF' expects argument of type 'struct device_node*', argument 4 has type 'struct fwnode_handle*'
+
+Thanks for the report. Will fix for v8.
+
+Steve
