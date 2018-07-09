@@ -1,73 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:52419 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754474AbeGINrm (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42449 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754492AbeGINof (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jul 2018 09:47:42 -0400
-Subject: Re: [PATCHv5 11/12] media-ioc-enum-links.rst: improve pad index
- description
+        Mon, 9 Jul 2018 09:44:35 -0400
+Subject: Re: [PATCHv5 08/12] ad9389b/adv7511: set proper media entity function
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
 References: <20180629114331.7617-1-hverkuil@xs4all.nl>
- <20180629114331.7617-12-hverkuil@xs4all.nl> <3247616.pqdvV2kJkN@avalon>
+ <20180629114331.7617-9-hverkuil@xs4all.nl> <16467558.2TVdu2jfZS@avalon>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6c1e215e-c3b9-c294-23a8-31a5395c2720@xs4all.nl>
-Date: Mon, 9 Jul 2018 15:47:39 +0200
+Message-ID: <27b3ff6c-6f43-4bd2-ff0d-f5933c78c868@xs4all.nl>
+Date: Mon, 9 Jul 2018 15:44:33 +0200
 MIME-Version: 1.0
-In-Reply-To: <3247616.pqdvV2kJkN@avalon>
+In-Reply-To: <16467558.2TVdu2jfZS@avalon>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/18 15:10, Laurent Pinchart wrote:
+On 09/07/18 15:04, Laurent Pinchart wrote:
 > Hi Hans,
 > 
 > Thank you for the patch.
 > 
-> On Friday, 29 June 2018 14:43:30 EEST Hans Verkuil wrote:
->> From: Hans Verkuil <hansverk@cisco.com>
+> On Friday, 29 June 2018 14:43:27 EEST Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
 >>
->> Make it clearer that the index starts at 0, and that it won't change
->> since future new pads will be added at the end.
+>> These two drivers both have function MEDIA_ENT_F_DV_ENCODER.
 >>
->> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->> ---
->>  Documentation/media/uapi/mediactl/media-ioc-enum-links.rst | 4 +++-
->>  1 file changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
->> b/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst index
->> 17abdeed1a9c..4cceeb8a6f73 100644
->> --- a/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
->> +++ b/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
->> @@ -92,7 +92,9 @@ returned during the enumeration process.
->>
->>      *  -  __u16
->>         -  ``index``
->> -       -  0-based pad index.
->> +       -  Pad index, starts at 0. Pad indices are stable. If new pads are
->> added
->> +	  for an entity in the future, then those will be added at the end of the
->> +	  entity's pad array.
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > 
-> Is that true strictly speaking ? We do mandate pad indices to be stable, but 
-> couldn't new pads still be inserted in the array ? The array wouldn't be 
-> sorted by pad index anymore, but I don't think we require that. If we want to 
-> I don't have any objection, but it should then be documented.
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> As this patch is separate from 06/12, I think it would make sense to split the 
+> driver changes from 05/12 to a separate patch.
 
-You are right, you might have two pads with indices 0 and 3, then add a new pad
-at index 2. As long as existing pad indices remain stable (i.e. are never renumbered)
-you are fine.
+MEDIA_ENT_F_DV_ENCODER is new and hasn't been used before, so I can split
+it in two patches.
 
-I'll rephrase this.
+MEDIA_ENT_F_DTV_DECODER however was already in use, and since this old define
+disappeared under #ifndef __KERNEL__ drivers had to be changed in the same
+patch to prevent bisect fails.
 
 Regards,
 
 	Hans
 
 > 
->>      *  -  __u32
->>         -  ``flags``
+>> ---
+>>  drivers/media/i2c/ad9389b.c | 1 +
+>>  drivers/media/i2c/adv7511.c | 1 +
+>>  2 files changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+>> index 91ff06088572..5b008b0002c0 100644
+>> --- a/drivers/media/i2c/ad9389b.c
+>> +++ b/drivers/media/i2c/ad9389b.c
+>> @@ -1134,6 +1134,7 @@ static int ad9389b_probe(struct i2c_client *client,
+>> const struct i2c_device_id * goto err_hdl;
+>>  	}
+>>  	state->pad.flags = MEDIA_PAD_FL_SINK;
+>> +	sd->entity.function = MEDIA_ENT_F_DV_ENCODER;
+>>  	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
+>>  	if (err)
+>>  		goto err_hdl;
+>> diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+>> index 5731751d3f2a..55c2ea0720d9 100644
+>> --- a/drivers/media/i2c/adv7511.c
+>> +++ b/drivers/media/i2c/adv7511.c
+>> @@ -1847,6 +1847,7 @@ static int adv7511_probe(struct i2c_client *client,
+>> const struct i2c_device_id * goto err_hdl;
+>>  	}
+>>  	state->pad.flags = MEDIA_PAD_FL_SINK;
+>> +	sd->entity.function = MEDIA_ENT_F_DV_ENCODER;
+>>  	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
+>>  	if (err)
+>>  		goto err_hdl;
+> 
 > 
