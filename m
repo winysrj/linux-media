@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33926 "EHLO
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:43747 "EHLO
         mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932699AbeGIPl3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 11:41:29 -0400
+        with ESMTP id S932699AbeGIPle (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 11:41:34 -0400
 From: Akinobu Mita <akinobu.mita@gmail.com>
 To: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
 Cc: Akinobu Mita <akinobu.mita@gmail.com>,
@@ -14,32 +14,26 @@ Cc: Akinobu Mita <akinobu.mita@gmail.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH -next v3 0/2] introduce SCCB helpers
-Date: Tue, 10 Jul 2018 00:41:12 +0900
-Message-Id: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
+Subject: [PATCH -next v3 1/2] i2c: add SCCB helpers
+Date: Tue, 10 Jul 2018 00:41:13 +0900
+Message-Id: <1531150874-4595-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
+References: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset introduces Serial Camera Control Bus (SCCB) helper functions
-and convert ov772x driver to use the helpers.
+This adds Serial Camera Control Bus (SCCB) helpers (sccb_is_available,
+sccb_read_byte, and sccb_write_byte) that are intended to be used by some
+of Omnivision sensor drivers.
 
-* v3
-- Rewrite the helpers based on the code provided by Wolfram
-- Convert ov772x driver to use SCCB helpers
+The ov772x driver is going to use these helpers.
 
- v2
-- Convert all helpers into static inline functions, and remove C source
-  and Kconfig option.
-- Acquire i2c adapter lock while issuing two requests for sccb_read_byte
-
-Akinobu Mita (2):
-  i2c: add SCCB helpers
-  media: ov772x: use SCCB helpers
-
- drivers/media/i2c/ov772x.c | 20 +++---------
- include/linux/i2c-sccb.h   | 77 ++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 82 insertions(+), 15 deletions(-)
- create mode 100644 include/linux/i2c-sccb.h
+It was previously only worked with the i2c controller drivers that support
+I2C_FUNC_PROTOCOL_MANGLING, because the ov772x device doesn't support
+repeated starts.  After commit 0b964d183cbf ("media: ov772x: allow i2c
+controllers without I2C_FUNC_PROTOCOL_MANGLING"), reading ov772x register
+is replaced with issuing two separated i2c messages in order to avoid
+repeated start.  Using SCCB helpers hides the implementation detail.
 
 Cc: Peter Rosin <peda@axentia.se>
 Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
@@ -49,5 +43,94 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ include/linux/i2c-sccb.h | 77 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
+ create mode 100644 include/linux/i2c-sccb.h
+
+diff --git a/include/linux/i2c-sccb.h b/include/linux/i2c-sccb.h
+new file mode 100644
+index 0000000..61dece9
+--- /dev/null
++++ b/include/linux/i2c-sccb.h
+@@ -0,0 +1,77 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Serial Camera Control Bus (SCCB) helper functions
++ */
++
++#ifndef _LINUX_I2C_SCCB_H
++#define _LINUX_I2C_SCCB_H
++
++#include <linux/i2c.h>
++
++/**
++ * sccb_is_available - Check if the adapter supports SCCB protocol
++ * @adap: I2C adapter
++ *
++ * Return true if the I2C adapter is capable of using SCCB helper functions,
++ * false otherwise.
++ */
++static inline bool sccb_is_available(struct i2c_adapter *adap)
++{
++	u32 needed_funcs = I2C_FUNC_SMBUS_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA;
++
++#if 0
++	/*
++	 * sccb_xfer not needed yet, since there is no driver support currently.
++	 * Just showing how it should be done if we ever need it.
++	 */
++	if (adap->algo->sccb_xfer)
++		return true;
++#endif
++
++	return (i2c_get_functionality(adap) & needed_funcs) == needed_funcs;
++}
++
++/**
++ * sccb_read_byte - Read data from SCCB slave device
++ * @client: Handle to slave device
++ * @addr: Register to be read from
++ *
++ * This executes the 2-phase write transmission cycle that is followed by a
++ * 2-phase read transmission cycle, returning negative errno else a data byte
++ * received from the device.
++ */
++static inline int sccb_read_byte(struct i2c_client *client, u8 addr)
++{
++	int ret;
++	union i2c_smbus_data data;
++
++	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
++
++	ret = __i2c_smbus_xfer(client->adapter, client->addr, client->flags,
++				I2C_SMBUS_WRITE, addr, I2C_SMBUS_BYTE, NULL);
++	if (ret < 0)
++		goto out;
++
++	ret = __i2c_smbus_xfer(client->adapter, client->addr, client->flags,
++				I2C_SMBUS_READ, 0, I2C_SMBUS_BYTE, &data);
++out:
++	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
++
++	return ret < 0 ? ret : data.byte;
++}
++
++/**
++ * sccb_write_byte - Write data to SCCB slave device
++ * @client: Handle to slave device
++ * @addr: Register to write to
++ * @data: Value to be written
++ *
++ * This executes the SCCB 3-phase write transmission cycle, returning negative
++ * errno else zero on success.
++ */
++static inline int sccb_write_byte(struct i2c_client *client, u8 addr, u8 data)
++{
++	return i2c_smbus_write_byte_data(client, addr, data);
++}
++
++#endif /* _LINUX_I2C_SCCB_H */
 -- 
 2.7.4
