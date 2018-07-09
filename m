@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:35148 "EHLO pokefinder.org"
+Received: from sauhun.de ([88.99.104.3]:35038 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933396AbeGIQOp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jul 2018 12:14:45 -0400
-Date: Mon, 9 Jul 2018 18:14:43 +0200
+        id S1754593AbeGIQMC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Jul 2018 12:12:02 -0400
+Date: Mon, 9 Jul 2018 18:11:59 +0200
 From: Wolfram Sang <wsa@the-dreams.de>
 To: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
@@ -14,73 +14,92 @@ Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v3 2/2] media: ov772x: use SCCB helpers
-Message-ID: <20180709161443.ubxu4el6bp6zgerj@ninjato>
+Subject: Re: [PATCH -next v3 1/2] i2c: add SCCB helpers
+Message-ID: <20180709161159.ksdm5qr4azonrpnl@ninjato>
 References: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
- <1531150874-4595-3-git-send-email-akinobu.mita@gmail.com>
+ <1531150874-4595-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="q6bhdtnqnhemclct"
+        protocol="application/pgp-signature"; boundary="aa63gyolfet235xv"
 Content-Disposition: inline
-In-Reply-To: <1531150874-4595-3-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1531150874-4595-2-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---q6bhdtnqnhemclct
+--aa63gyolfet235xv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+yes! From a first look this nails it for me. Thanks for doing it.
+
+Minor comments follow...
+
+> +#if 0
+> +	/*
+> +	 * sccb_xfer not needed yet, since there is no driver support currently.
+> +	 * Just showing how it should be done if we ever need it.
+> +	 */
+> +	if (adap->algo->sccb_xfer)
+> +		return true;
+> +#endif
+
+I think this should be a more generic comment in the header, like
+
+/*
+ * If we ever want support for hardware doing SCCB natively, we will
+ * introduce a sccb_xfer() callback to struct i2c_algorithm and check
+ * for it here.
+ */
+
+> +/**
+> + * sccb_read_byte - Read data from SCCB slave device
+> + * @client: Handle to slave device
+> + * @addr: Register to be read from
+
+I think 'addr' is too easy to confuse with client->addr. SMBus uses
+'command' but I am also fine with 'reg' because we will deal with
+registers.
+
+> + * This executes the 2-phase write transmission cycle that is followed by a
+> + * 2-phase read transmission cycle, returning negative errno else a data byte
+> + * received from the device.
+> + */
+
+Nice docs!
+
+> +/**
+> + * sccb_write_byte - Write data to SCCB slave device
+> + * @client: Handle to slave device
+> + * @addr: Register to write to
+
+'reg'?
+
+Kind regards,
+
+   Wolfram
 
 
->  static int ov772x_read(struct i2c_client *client, u8 addr)
->  {
-> -	int ret;
-> -	u8 val;
-> -
-> -	ret =3D i2c_master_send(client, &addr, 1);
-> -	if (ret < 0)
-> -		return ret;
-> -	ret =3D i2c_master_recv(client, &val, 1);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	return val;
-> +	return sccb_read_byte(client, addr);
->  }
-> =20
->  static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 va=
-lue)
->  {
-> -	return i2c_smbus_write_byte_data(client, addr, value);
-> +	return sccb_write_byte(client, addr, value);
->  }
-
-Minor nit: I'd rather drop these two functions and use the
-sccb-accessors directly.
-
-However, I really like how this looks here: It is totally clear we are
-doing SCCB and hide away all the details.
-
-
---q6bhdtnqnhemclct
+--aa63gyolfet235xv
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltDifMACgkQFA3kzBSg
-KbaPVRAAlDy/Uxnqx+KsTV9vZm8aYx4F2fiUQMYhQRO5EfT/SL9aVRJbSG7qfAPd
-OsR8pJvvRcRMK+fsqwsQwMO5d34llJxTMtQxVDzESI5CQOn6tK0+kGhh0FaRJHPP
-T4E4bbyvmge3QUbz++RUqrB40eVr2QuUY/5vXl7w99p54NhpOjOSrjvjGZR3p7Mq
-lAzuihyDfFSabnb8XXGBgE8WVDfj8HN22Ub0QgwET1vD8LU5l+GDOPgnbmjGI4SM
-ZK9UOB3breq1M1TVUrO7rOVs1iNrMb/S+FUfJWUk0WgPDtfBRB7udzcLsVaVDolL
-LBnpjzdMfb2xehvXTnCLctWr0CeWy9iyqBooSQaBIfnCVo4F3SjpbaVqyXg7rihK
-x9UjsFZ/Y9EtB1VldRRPa+bRUtYNTJSt/+EMG1KXLH12SM1LCjda/lkxsPnTWO3u
-z8hLdahM4ubsVzhwIWM5I5RP7woQumY9mTS2KShIZx29C57ui5VK+OWiW1VrUW/f
-YLCjf9ndPgfCQxhhk9KX5ckblD8QWYY1MWEaYbZEDUWk8mqQCXRVRzo3KjgjwOIH
-acaoxXwL60r2WI+t7sXxyHS6u1AVYcofgl64ZnhnhEV8pmWfk+hJY+OtdUIw90rG
-f/RbjVYKRJJjn++ebNwJxuLv0lxBfesDGpBafyBSy1BftHAQETQ=
-=kt5+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltDiU8ACgkQFA3kzBSg
+KbYzrw/+JTGeBcrfzF1zjYV18SH7HTQX00exeyIzeEHYRLfCaKuGVKEN3gRAdNzx
+L+4vfI6mdDgA/IrvWFpAOUjOubzxY7JCuafbHzi9voV7xLVYU7THp3eWIwToS3gi
+dkm0rlS/bUDs7pvelPA+Lm8YwiJWEYPXdA5mW0aOQC15dYfSyw+WEhoaGv/GuoW1
+DcM5M92ZCgG52Bcxk5g3o2EcEU4SNTBG3p8+3DLEyXPtSLtZuMaYvwJluBsVG6d2
+Q/92E3B+d70u+lpYYpALlBFx6EAS6kpGEGFlhf8+kuxHwA/avCur1YlSUWIvlRW6
+nEz7Zu2Kvz7hv/EtfnxFpZYEthjc3CsXKAzZqDfD0Mrcwos3D0MhzdiXohGrV+z4
+BAjAeM+ZgmnQSF/Ov9LrOfo4inK9LZt5xEkagTh6Te9fNQMjTdndF4K/g50SXVdl
+hIY0mZecyZxYbWriAeWJcwBMMGqMeHdswypuMii+qs+Gp/YoF7denTjQ1flXIaXS
+yJIUhhEP12N1r1R0TxPAGpujhIvxEted8+JVuNlSBIjXwRV3e3ERYe3FtG+AeDpt
+rHVwhtrO761QbHb2dHZWwBu9fSx93Bda3ejsr4DZw14Gh+sxowya2KXq2eda84iy
+RlkqfzOPr5gc0aTTrjZ/l5JuyzMMLypGxK7IPiRTgaWbD9dg+Ls=
+=ZZtx
 -----END PGP SIGNATURE-----
 
---q6bhdtnqnhemclct--
+--aa63gyolfet235xv--
