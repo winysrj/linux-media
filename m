@@ -1,82 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:35612 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753927AbeGFDzw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jul 2018 23:55:52 -0400
-Received: by mail-it0-f68.google.com with SMTP id l16-v6so15340167ita.0
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 20:55:52 -0700 (PDT)
-Received: from mail-it0-f50.google.com (mail-it0-f50.google.com. [209.85.214.50])
-        by smtp.gmail.com with ESMTPSA id 16-v6sm3880015itv.19.2018.07.05.20.55.50
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 05 Jul 2018 20:55:50 -0700 (PDT)
-Received: by mail-it0-f50.google.com with SMTP id j185-v6so15029944ite.1
-        for <linux-media@vger.kernel.org>; Thu, 05 Jul 2018 20:55:50 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34878 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932645AbeGINCQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 09:02:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCHv5 07/12] media.h: reorder video en/decoder functions
+Date: Mon, 09 Jul 2018 16:02:49 +0300
+Message-ID: <1634280.zYXzp3WPWZ@avalon>
+In-Reply-To: <20180629114331.7617-8-hverkuil@xs4all.nl>
+References: <20180629114331.7617-1-hverkuil@xs4all.nl> <20180629114331.7617-8-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-References: <20180705130401.24315-1-stanimir.varbanov@linaro.org>
- <CAAFQd5CQCF=QvTgq8v6K6W6C0Cy27CzHsMxQn+FnML97w9xnCw@mail.gmail.com>
- <150eb3b4-8b64-6050-6a4e-e06cfaf113cc@xs4all.nl> <6abf8da2-b2e1-1b4f-2727-f9d074081c30@linaro.org>
- <CAPBb6MWoysaL_i8i7HaegRCsfF29bnOy2L5ZHgEwDuSJ7HVO2w@mail.gmail.com>
-In-Reply-To: <CAPBb6MWoysaL_i8i7HaegRCsfF29bnOy2L5ZHgEwDuSJ7HVO2w@mail.gmail.com>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Fri, 6 Jul 2018 12:55:38 +0900
-Message-ID: <CAPBb6MXoiGLdSuufbJ39va4emswC20VZq+U4X8+_PUa++yh=AQ@mail.gmail.com>
-Subject: Re: [PATCH v5 00/27] Venus updates
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 6, 2018 at 12:00 AM Alexandre Courbot <acourbot@chromium.org> wrote:
->
-> On Thu, Jul 5, 2018 at 11:52 PM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
-> >
-> > Hi,
-> >
-> > On 07/05/2018 05:08 PM, Hans Verkuil wrote:
-> > > On 05/07/18 16:07, Tomasz Figa wrote:
-> > >> Hi Stanimir,
-> > >>
-> > >> On Thu, Jul 5, 2018 at 10:05 PM Stanimir Varbanov
-> > >> <stanimir.varbanov@linaro.org> wrote:
-> > >>>
-> > >>> Hi,
-> > >>>
-> > >>> Changes since v4:
-> > >>>  * 02/27 re-write intbufs_alloc as suggested by Alex, and
-> > >>>    moved new structures in 03/27 where they are used
-> > >>>  * 11/27 exit early if error occur in vdec_runtime_suspend
-> > >>>    venc_runtime_suspend and avoid ORing ret variable
-> > >>>  * 12/27 fixed typo in patch description
-> > >>>  * added a const when declare ptype variable
-> > >>>
-> > >>> Previous v4 can be found at https://lkml.org/lkml/2018/6/27/404
-> > >>
-> > >> Thanks for the patches!
-> > >>
-> > >> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-> >
-> > Thanks Tomasz!
-> >
-> > >
-> > > Are we waiting for anything else? Otherwise I plan to make a pull request for
-> > > this tomorrow.
-> >
-> > I think we are done.
->
-> I would just like to give this one last test - will be done by tomorrow JST.
+Hi Hans,
 
-Confirmed my unit tests were still running with this version and had a
-quick look at the changes.
+Thank you for the patch.
 
-The series,
+On Friday, 29 June 2018 14:43:26 EEST Hans Verkuil wrote:
+> From: Hans Verkuil <hansverk@cisco.com>
+> 
+> Keep the function defines in numerical order: 0x6000 comes after
+> 0x2000, so move it back.
+> 
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 
-Reviewed-by: Alexandre Courbot <acourbot@chromium.org>
-Tested-by: Alexandre Courbot <acourbot@chromium.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  include/uapi/linux/media.h | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 6f594fa238c2..76d9bd64c116 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -89,13 +89,6 @@ struct media_device_info {
+>  #define MEDIA_ENT_F_FLASH			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
+>  #define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+> 
+> -/*
+> - * Video decoder/encoder functions
+> - */
+> -#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+> -#define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
+> -#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
+> -
+>  /*
+>   * Digital TV, analog TV, radio and/or software defined radio tuner
+> functions. *
+> @@ -140,6 +133,13 @@ struct media_device_info {
+>  #define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
+>  #define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
+> 
+> +/*
+> + * Video decoder/encoder functions
+> + */
+> +#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+> +#define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
+> +#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
+> +
+>  /* Entity flags */
+>  #define MEDIA_ENT_FL_DEFAULT			(1 << 0)
+>  #define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
+
+
+-- 
+Regards,
+
+Laurent Pinchart
