@@ -1,83 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42449 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754492AbeGINof (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53424 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932436AbeGINmN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jul 2018 09:44:35 -0400
-Subject: Re: [PATCHv5 08/12] ad9389b/adv7511: set proper media entity function
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+        Mon, 9 Jul 2018 09:42:13 -0400
+Subject: Re: [PATCHv5 05/12] media: rename MEDIA_ENT_F_DTV_DECODER to
+ MEDIA_ENT_F_DV_DECODER
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hansverk@cisco.com>
 References: <20180629114331.7617-1-hverkuil@xs4all.nl>
- <20180629114331.7617-9-hverkuil@xs4all.nl> <16467558.2TVdu2jfZS@avalon>
+ <20180629114331.7617-6-hverkuil@xs4all.nl>
+ <CAAEAJfAmHZD2sjw9NF2Fyv6j+Z-usKJL4YNG5pgfZuyBSqLZkQ@mail.gmail.com>
+ <2187896.B0EHAgUiIi@avalon>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <27b3ff6c-6f43-4bd2-ff0d-f5933c78c868@xs4all.nl>
-Date: Mon, 9 Jul 2018 15:44:33 +0200
+Message-ID: <0304525b-17cb-e92a-4c38-2c356dacffa2@xs4all.nl>
+Date: Mon, 9 Jul 2018 15:42:09 +0200
 MIME-Version: 1.0
-In-Reply-To: <16467558.2TVdu2jfZS@avalon>
+In-Reply-To: <2187896.B0EHAgUiIi@avalon>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/18 15:04, Laurent Pinchart wrote:
-> Hi Hans,
+On 09/07/18 15:00, Laurent Pinchart wrote:
+> Hello,
 > 
-> Thank you for the patch.
-> 
-> On Friday, 29 June 2018 14:43:27 EEST Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+> On Friday, 29 June 2018 20:40:49 EEST Ezequiel Garcia wrote:
+>> On 29 June 2018 at 08:43, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> From: Hans Verkuil <hansverk@cisco.com>
+>>>
+>>> The use of 'DTV' is very confusing since it normally refers to Digital
+>>> TV e.g. DVB etc.
+>>>
+>>> Instead use 'DV' (Digital Video), which nicely corresponds to the
+>>> DV Timings API used to configure such receivers and transmitters.
+>>>
+>>> We keep an alias to avoid breaking userspace applications.
+>>>
+>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>>> ---
+>>>
+>>>  Documentation/media/uapi/mediactl/media-types.rst | 2 +-
+>>>  drivers/media/i2c/adv7604.c                       | 1 +
+>>>  drivers/media/i2c/adv7842.c                       | 1 +
 >>
->> These two drivers both have function MEDIA_ENT_F_DV_ENCODER.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> It would be nice to mention in the commit log
+>> that this patch also sets the function for these drivers.
 > 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> That's also my only concern with this patch (alternatively that change could 
+> be split to a separate patch).
 > 
-> As this patch is separate from 06/12, I think it would make sense to split the 
-> driver changes from 05/12 to a separate patch.
 
-MEDIA_ENT_F_DV_ENCODER is new and hasn't been used before, so I can split
-it in two patches.
-
-MEDIA_ENT_F_DTV_DECODER however was already in use, and since this old define
-disappeared under #ifndef __KERNEL__ drivers had to be changed in the same
-patch to prevent bisect fails.
+I'll clarify the commit log. I can't split up this patch since the old define
+is only available under #ifndef __KERNEL__, to prevent drivers from accidentally
+using it in the kernel in the future.
 
 Regards,
 
 	Hans
-
-> 
->> ---
->>  drivers/media/i2c/ad9389b.c | 1 +
->>  drivers/media/i2c/adv7511.c | 1 +
->>  2 files changed, 2 insertions(+)
->>
->> diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
->> index 91ff06088572..5b008b0002c0 100644
->> --- a/drivers/media/i2c/ad9389b.c
->> +++ b/drivers/media/i2c/ad9389b.c
->> @@ -1134,6 +1134,7 @@ static int ad9389b_probe(struct i2c_client *client,
->> const struct i2c_device_id * goto err_hdl;
->>  	}
->>  	state->pad.flags = MEDIA_PAD_FL_SINK;
->> +	sd->entity.function = MEDIA_ENT_F_DV_ENCODER;
->>  	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
->>  	if (err)
->>  		goto err_hdl;
->> diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
->> index 5731751d3f2a..55c2ea0720d9 100644
->> --- a/drivers/media/i2c/adv7511.c
->> +++ b/drivers/media/i2c/adv7511.c
->> @@ -1847,6 +1847,7 @@ static int adv7511_probe(struct i2c_client *client,
->> const struct i2c_device_id * goto err_hdl;
->>  	}
->>  	state->pad.flags = MEDIA_PAD_FL_SINK;
->> +	sd->entity.function = MEDIA_ENT_F_DV_ENCODER;
->>  	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
->>  	if (err)
->>  		goto err_hdl;
-> 
-> 
