@@ -2,22 +2,18 @@ Return-path: <SRS0=Se8P=JZ=qq.com=zrlw@kernel.org>
 From: Lao Wei <zrlw@qq.com>
 To: linux-media@vger.kernel.org
 Cc: mchehab@kernel.org,
-	zrlw@qq.com,
-	Lao Wei <zrlw@sina.com>
-Subject: [PATCH v1] media: pci: meye: validate offset to avoid arbitrary access
-Date: Mon,  9 Jul 2018 19:52:46 +0800
-Message-Id: <1531137166-11325-1-git-send-email-zrlw@qq.com>
+	zrlw@qq.com
+Subject: [PATCH v1] fix: media: pci: meye: validate offset to avoid arbitrary access
+Date: Mon,  9 Jul 2018 20:03:43 +0800
+Message-Id: <1531137823-11485-1-git-send-email-zrlw@qq.com>
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lao Wei <zrlw@sina.com>
-
-Motion eye video4linux driver for Sony Vaio PictureBook desn't validate
-user-controlled parameter 'vma->vm_pgoff', a malicious process might 
-access all of kernel memory from user space by trying pass different 
-arbitrary address.
+Motion eye video4linux driver for Sony Vaio PictureBook desn't validate user-controlled parameter
+'vma->vm_pgoff', a malicious process might access all of kernel memory from user space by trying
+pass different arbitrary address. 
 Discussion: http://www.openwall.com/lists/oss-security/2018/07/06/1
 
-Signed-off-by: Lao Wei <zrlw@sina.com>
+Signed-off-by: Lao Wei <zrlw@qq.com>
 ---
  drivers/media/pci/meye/meye.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
