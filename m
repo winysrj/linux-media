@@ -1,142 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:59656 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S933537AbeGIRrz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jul 2018 13:47:55 -0400
-Date: Mon, 9 Jul 2018 20:47:52 +0300
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Gabriel Somlo <somlo@cmu.edu>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Zha Qipeng <qipeng.zha@intel.com>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        =?iso-8859-1?Q?Marc-Andr=E9?= Lureau
-        <marcandre.lureau@redhat.com>, qemu-devel@nongnu.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH] headers: fix linux/mod_devicetable.h inclusions
-Message-ID: <20180709204747-mutt-send-email-mst@kernel.org>
-References: <20180709151947.940759-1-arnd@arndb.de>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40320 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932994AbeGIVXL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 17:23:11 -0400
+Date: Mon, 9 Jul 2018 23:23:06 +0200
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        linux-i2c@vger.kernel.org, Peter Rosin <peda@axentia.se>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH -next v3 2/2] media: ov772x: use SCCB helpers
+Message-ID: <20180709212306.47xsduu3b5qpq72h@earth.universe>
+References: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
+ <1531150874-4595-3-git-send-email-akinobu.mita@gmail.com>
+ <20180709161443.ubxu4el6bp6zgerj@ninjato>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="ymylls6cogp4km77"
 Content-Disposition: inline
-In-Reply-To: <20180709151947.940759-1-arnd@arndb.de>
+In-Reply-To: <20180709161443.ubxu4el6bp6zgerj@ninjato>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 09, 2018 at 05:19:02PM +0200, Arnd Bergmann wrote:
-> A couple of drivers produced build errors after the mod_devicetable.h
-> header was split out from the platform_device one, e.g.
-> 
-> drivers/media/platform/davinci/vpbe_osd.c:42:40: error: array type has incomplete element type 'struct platform_device_id'
-> drivers/media/platform/davinci/vpbe_venc.c:42:40: error: array type has incomplete element type 'struct platform_device_id'
-> 
-> This adds the inclusion where needed.
-> 
-> Fixes: ac3167257b9f ("headers: separate linux/mod_devicetable.h from linux/platform_device.h")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
+--ymylls6cogp4km77
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->  drivers/firmware/qemu_fw_cfg.c             | 1 +
->  drivers/media/platform/davinci/vpbe_osd.c  | 1 +
->  drivers/media/platform/davinci/vpbe_venc.c | 1 +
->  drivers/media/platform/qcom/venus/vdec.c   | 1 +
->  drivers/media/platform/qcom/venus/venc.c   | 1 +
->  drivers/media/platform/sti/hva/hva-v4l2.c  | 1 +
->  drivers/platform/x86/intel_punit_ipc.c     | 1 +
->  7 files changed, 7 insertions(+)
-> 
-> diff --git a/drivers/firmware/qemu_fw_cfg.c b/drivers/firmware/qemu_fw_cfg.c
-> index 14fedbeca724..039e0f91dba8 100644
-> --- a/drivers/firmware/qemu_fw_cfg.c
-> +++ b/drivers/firmware/qemu_fw_cfg.c
-> @@ -28,6 +28,7 @@
->   */
->  
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/acpi.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-> index 7f610320426d..c551a25d90d9 100644
-> --- a/drivers/media/platform/davinci/vpbe_osd.c
-> +++ b/drivers/media/platform/davinci/vpbe_osd.c
-> @@ -18,6 +18,7 @@
->   *
->   */
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/kernel.h>
->  #include <linux/interrupt.h>
->  #include <linux/platform_device.h>
-> diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
-> index ba157827192c..ddcad7b3e76c 100644
-> --- a/drivers/media/platform/davinci/vpbe_venc.c
-> +++ b/drivers/media/platform/davinci/vpbe_venc.c
-> @@ -11,6 +11,7 @@
->   * GNU General Public License for more details.
->   */
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/ctype.h>
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> index f89a91d43cc9..d4e23c7df347 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -14,6 +14,7 @@
->   */
->  #include <linux/clk.h>
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-> index f7a87a3dbb46..0522cf202b75 100644
-> --- a/drivers/media/platform/qcom/venus/venc.c
-> +++ b/drivers/media/platform/qcom/venus/venc.c
-> @@ -14,6 +14,7 @@
->   */
->  #include <linux/clk.h>
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
-> index 15080cb00fa7..5a807c7c5e79 100644
-> --- a/drivers/media/platform/sti/hva/hva-v4l2.c
-> +++ b/drivers/media/platform/sti/hva/hva-v4l2.c
-> @@ -6,6 +6,7 @@
->   */
->  
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <media/v4l2-event.h>
-> diff --git a/drivers/platform/x86/intel_punit_ipc.c b/drivers/platform/x86/intel_punit_ipc.c
-> index b5b890127479..f1afc0ebbc68 100644
-> --- a/drivers/platform/x86/intel_punit_ipc.c
-> +++ b/drivers/platform/x86/intel_punit_ipc.c
-> @@ -12,6 +12,7 @@
->   */
->  
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/acpi.h>
->  #include <linux/delay.h>
->  #include <linux/bitops.h>
-> -- 
-> 2.9.0
+Hi,
+
+On Mon, Jul 09, 2018 at 06:14:43PM +0200, Wolfram Sang wrote:
+> >  static int ov772x_read(struct i2c_client *client, u8 addr)
+> >  {
+> > -	int ret;
+> > -	u8 val;
+> > -
+> > -	ret =3D i2c_master_send(client, &addr, 1);
+> > -	if (ret < 0)
+> > -		return ret;
+> > -	ret =3D i2c_master_recv(client, &val, 1);
+> > -	if (ret < 0)
+> > -		return ret;
+> > -
+> > -	return val;
+> > +	return sccb_read_byte(client, addr);
+> >  }
+> > =20
+> >  static inline int ov772x_write(struct i2c_client *client, u8 addr, u8 =
+value)
+> >  {
+> > -	return i2c_smbus_write_byte_data(client, addr, value);
+> > +	return sccb_write_byte(client, addr, value);
+> >  }
+
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+> Minor nit: I'd rather drop these two functions and use the
+> sccb-accessors directly.
+>=20
+> However, I really like how this looks here: It is totally clear we are
+> doing SCCB and hide away all the details.
+
+I think it would be even better to introduce a SSCB regmap layer
+and use that.
+
+-- Sebastian
+
+--ymylls6cogp4km77
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAltD0jcACgkQ2O7X88g7
++prVKA/+O4PdWFFtXqfzDrzg/seb4to9SN7OH/IaFtNIXadp2dco0isjla3cqBr6
+nJ+1lAkOk53RwdJK/mUaqkep8JwNw6ZSMIHKQg4zDmAK3eoSgwgKgk2H3LO1y/t/
+ZTr1BeQ22M+wIsU75xxdx2zltrxOMnAo00es1Slv+uijGiccpgX02rSDKDzj5kA+
+CF1Te06HMzQTffE4K790rWDWQIx11i+0pU77KwOlNmAWt3UbXaAAPX73j4/e8Z1+
+f1dX6BjwenX+3qfm551Khv8lLXyu3IPEozriQGOmDo6/wMzITnWvf2secTxI1lu3
+iXPR3JtfrnE0sTkUAcATpHi7dRTJ+V9Jx9+n0eUJLKQnxrH9TZU/oAfW+XlSApGZ
+tAUkISVg5X7gH8Od3dkVe4ztmerYmhFgxlKkvpA1Zt8Mq8sx0maQLZKXO4Fno0ga
+60Sl6mkzpclYQ5dhJw4UXYyPj0QRTeno8zKAE/lDHPhjdCrsWYzBu3WgLOGhwiff
+W/OQMnbi3zOwusZhi2HGQDUt9+BmAak8NcVvrSgBHSoDRZhRxWHpDO1aca425uLo
+t3/OIcMNeD4vXlBtqEl1sqaH7u5Aq7QmJhxiGJo+Fr59Bm9MaRg5oY/T4DliHWmx
+iL2MLBUeWafXbOKJE/fQVzFeV5IH6rDJzrT00+Y5Kxs+zi26DPc=
+=QNBu
+-----END PGP SIGNATURE-----
+
+--ymylls6cogp4km77--
