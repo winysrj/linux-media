@@ -1,64 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:38948 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932278AbeGII6E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 04:58:04 -0400
-Date: Mon, 9 Jul 2018 10:58:01 +0200
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Dmitry Osipenko <digetx@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 2/2] ARM: dts: tegra30: Add Memory Client reset to VDE
-Message-ID: <20180709085801.GC13963@ulmo>
-References: <20180520134846.31046-1-digetx@gmail.com>
- <20180520134846.31046-3-digetx@gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34808 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754492AbeGIM4g (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 08:56:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv5 02/12] media-ioc-g-topology.rst: document new 'index' field
+Date: Mon, 09 Jul 2018 15:57:08 +0300
+Message-ID: <7583578.SNIIlXvzgM@avalon>
+In-Reply-To: <20180629114331.7617-3-hverkuil@xs4all.nl>
+References: <20180629114331.7617-1-hverkuil@xs4all.nl> <20180629114331.7617-3-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5G06lTa6Jq83wMTw"
-Content-Disposition: inline
-In-Reply-To: <20180520134846.31046-3-digetx@gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---5G06lTa6Jq83wMTw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-On Sun, May 20, 2018 at 04:48:46PM +0300, Dmitry Osipenko wrote:
-> Hook up Memory Client reset of the Video Decoder to the decoders DT node.
->=20
-> Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+On Friday, 29 June 2018 14:43:21 EEST Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Document the new struct media_v2_pad 'index' field.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  arch/arm/boot/dts/tegra30.dtsi | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  .../media/uapi/mediactl/media-ioc-g-topology.rst     | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst index
+> a3f259f83b25..bae2b4db89cc 100644
+> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> @@ -176,7 +176,7 @@ desired arrays with the media graph elements.
+>      *  -  struct media_v2_intf_devnode
+>         -  ``devnode``
+>         -  Used only for device node interfaces. See
+> -	  :c:type:`media_v2_intf_devnode` for details..
+> +	  :c:type:`media_v2_intf_devnode` for details.
+> 
+> 
+>  .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
+> @@ -218,7 +218,15 @@ desired arrays with the media graph elements.
+>         -  Pad flags, see :ref:`media-pad-flag` for more details.
+> 
+>      *  -  __u32
+> -       -  ``reserved``\ [5]
+> +       -  ``index``
+> +       -  Pad index, starts at 0. Only valid if
+> ``MEDIA_V2_PAD_HAS_INDEX(media_version)`` +	  returns true. The
+> ``media_version`` is defined in struct
+> +	  :c:type:`media_device_info` and can be retrieved using
+> +	  :ref:`MEDIA_IOC_DEVICE_INFO`. Pad indices are stable. If new pads are
+> added
+> +	  for an entity in the future, then those will be added at the end.
 
-Applied, thanks.
+Same comment as for 01/12, I don't think we need to care about backward 
+compatibility as this API clearly could not have been used by application. 
+Apart from that the documentation update looks good to me.
 
-Thierry
+> +    *  -  __u32
+> +       -  ``reserved``\ [4]
+>         -  Reserved for future extensions. Drivers and applications must set
+> this array to zero.
 
---5G06lTa6Jq83wMTw
-Content-Type: application/pgp-signature; name="signature.asc"
+-- 
+Regards,
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAltDI5YACgkQ3SOs138+
-s6G2JhAApdcg7IFWFMgqlbOLmpx2EiHprBIO5z2l0xJrC5l+f/h9apDygmRdO9h4
-JK6REB7VXt62Ayjmm00n82XEwt9hwtnDxQngwDI9ILjdNYb/wU2IpvNEBEJVx2Zh
-72+axVijaTvmZlhpx6V6BvRpHjd0RzsQhC1GiKJSBkszdaK4n6Es/bCtpZjPRFpo
-Ptyay0KMjEf4yvuW1noxJHEZrIjdP4Zn5+TuLCEyVivpu/w8xAABAwqUMR3SMOts
-JtEY5of4+ETl/ob/HsadvN3vjpxiKUUzkDjlysXcKhsQCBPqBtiEc48WHzngW8VX
-TEOHotePbuEzmxmpEuy39btr+GzGNcX6eK2tJ23xm4hFaXU5pfP/ppUPM8ZY/gNj
-H7BjGD3O/k0odkhigmL3p59tSafDbe/Ff3dOpqjx1FKOjzjIvEXBnfU/Osy0cbfp
-SE0neBcWEv7RSoaptnz/Vd+VwM/e0JqKFTMlqFhTMW8yX4MPBo79Hi6A6EpgaCG1
-uTDuIOTiKMGiTaitWziKJw7zQo8As915yJPadrKqpnW3Hgbka06bKa1aVmdKGMXn
-VuTrhaEHhV4shLkbD4pV5PkWGlJwP65i9liubZ9RK27qv3q6NXxo3iFr7thxGiAs
-koh+O+O9L1/3fzN4ccJbmp9Dngc+EqD+A40DY7tAAAXbfpmAsF0=
-=h8rp
------END PGP SIGNATURE-----
-
---5G06lTa6Jq83wMTw--
+Laurent Pinchart
