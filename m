@@ -1,195 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:43691 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932798AbeGIWjl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 18:39:41 -0400
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:43695 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933366AbeGIWjt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 18:39:49 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Sebastian Reichel <sre@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v6 04/17] media: v4l2: async: Add convenience functions to allocate and add asd's
-Date: Mon,  9 Jul 2018 15:39:04 -0700
-Message-Id: <1531175957-1973-5-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v6 06/17] media: v4l2-fwnode: Add a convenience function for registering subdevs with notifiers
+Date: Mon,  9 Jul 2018 15:39:06 -0700
+Message-Id: <1531175957-1973-7-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add these convenience functions, which allocate an asd of match type
-fwnode, i2c, or device-name, of size asd_struct_size, and then adds
-them to the notifier asd_list.
+Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
+for parsing a sub-device's fwnode port endpoints for connected remote
+sub-devices, registering a sub-device notifier, and then registering
+the sub-device itself.
 
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 76 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h           | 62 +++++++++++++++++++++++++++++
- 2 files changed, 138 insertions(+)
+Changes since v5:
+- add call to v4l2_async_notifier_init().
+Changes since v4:
+- none
+Changes since v3:
+- remove support for port sub-devices, such sub-devices will have to
+  role their own.
+Changes since v2:
+- fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
+  to put device.
+Changes since v1:
+- add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
+  'struct v4l2_subdev' declaration.
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 64 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           | 38 +++++++++++++++++++++
+ 2 files changed, 102 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 8e52df2..e60a82a 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -646,6 +646,82 @@ int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 67ad333..94d867a 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -872,6 +872,70 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
  }
- EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_subdev);
+ EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
  
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
-+				      struct fwnode_handle *fwnode,
-+				      unsigned int asd_struct_size)
++int v4l2_async_register_fwnode_subdev(
++	struct v4l2_subdev *sd, size_t asd_struct_size,
++	unsigned int *ports, unsigned int num_ports,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd))
 +{
-+	struct v4l2_async_subdev *asd;
++	struct v4l2_async_notifier *notifier;
++	struct device *dev = sd->dev;
++	struct fwnode_handle *fwnode;
 +	int ret;
 +
-+	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return ERR_PTR(-ENOMEM);
++	if (WARN_ON(!dev))
++		return -ENODEV;
 +
-+	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	asd->match.fwnode = fwnode;
++	fwnode = dev_fwnode(dev);
++	if (!fwnode_device_is_available(fwnode))
++		return -ENODEV;
 +
-+	ret = v4l2_async_notifier_add_subdev(notifier, asd);
-+	if (ret) {
-+		kfree(asd);
-+		return ERR_PTR(ret);
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	v4l2_async_notifier_init(notifier);
++
++	if (!ports) {
++		ret = v4l2_async_notifier_parse_fwnode_endpoints(
++			dev, notifier, asd_struct_size, parse_endpoint);
++		if (ret < 0)
++			goto out_cleanup;
++	} else {
++		unsigned int i;
++
++		for (i = 0; i < num_ports; i++) {
++			ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++				dev, notifier, asd_struct_size,
++				ports[i], parse_endpoint);
++			if (ret < 0)
++				goto out_cleanup;
++		}
 +	}
 +
-+	return asd;
++	ret = v4l2_async_subdev_notifier_register(sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	sd->subdev_notifier = notifier;
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++	kfree(notifier);
++
++	return ret;
 +}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_fwnode_subdev);
++EXPORT_SYMBOL_GPL(v4l2_async_register_fwnode_subdev);
 +
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_i2c_subdev(struct v4l2_async_notifier *notifier,
-+				   int adapter_id, unsigned short address,
-+				   unsigned int asd_struct_size)
-+{
-+	struct v4l2_async_subdev *asd;
-+	int ret;
-+
-+	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return ERR_PTR(-ENOMEM);
-+
-+	asd->match_type = V4L2_ASYNC_MATCH_I2C;
-+	asd->match.i2c.adapter_id = adapter_id;
-+	asd->match.i2c.address = address;
-+
-+	ret = v4l2_async_notifier_add_subdev(notifier, asd);
-+	if (ret) {
-+		kfree(asd);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return asd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_i2c_subdev);
-+
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_devname_subdev(struct v4l2_async_notifier *notifier,
-+				       const char *device_name,
-+				       unsigned int asd_struct_size)
-+{
-+	struct v4l2_async_subdev *asd;
-+	int ret;
-+
-+	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return ERR_PTR(-ENOMEM);
-+
-+	asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
-+	asd->match.device_name = device_name;
-+
-+	ret = v4l2_async_notifier_add_subdev(notifier, asd);
-+	if (ret) {
-+		kfree(asd);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return asd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_devname_subdev);
-+
- int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- {
- 	struct v4l2_async_notifier *subdev_notifier;
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index ab4d7ac..3489e4c 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -175,6 +175,68 @@ int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_async_subdev *asd);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index ea7a8b2..031ebb0 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -23,6 +23,7 @@
+ #include <linux/types.h>
  
- /**
-+ * v4l2_async_notifier_add_fwnode_subdev - Allocate and add a fwnode async
-+ *				subdev to the notifier's master asd_list.
+ #include <media/v4l2-mediabus.h>
++#include <media/v4l2-subdev.h>
+ 
+ struct fwnode_handle;
+ struct v4l2_async_notifier;
+@@ -360,4 +361,41 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+ int v4l2_async_notifier_parse_fwnode_sensor_common(
+ 	struct device *dev, struct v4l2_async_notifier *notifier);
+ 
++/**
++ * v4l2_async_register_fwnode_subdev - registers a sub-device to the
++ *					asynchronous sub-device framework
++ *					and parses fwnode endpoints
 + *
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ * @fwnode: fwnode handle of the sub-device to be matched
++ * @sd: pointer to struct &v4l2_subdev
 + * @asd_struct_size: size of the driver's async sub-device struct, including
 + *		     sizeof(struct v4l2_async_subdev). The &struct
 + *		     v4l2_async_subdev shall be the first member of
 + *		     the driver's async sub-device struct, i.e. both
 + *		     begin at the same memory address.
++ * @ports: array of port id's to parse for fwnode endpoints. If NULL, will
++ *	   parse all ports owned by the sub-device.
++ * @num_ports: number of ports in @ports array. Ignored if @ports is NULL.
++ * @parse_endpoint: Driver's callback function called on each V4L2 fwnode
++ *		    endpoint. Optional.
 + *
-+ * This can be used before registering a notifier to add a
-+ * fwnode-matched asd to the notifiers master asd_list. If the caller
-+ * uses this method to compose an asd list, it must never allocate
-+ * or place asd's in the @subdevs array.
++ * This function is just like v4l2_async_register_subdev() with the
++ * exception that calling it will also allocate a notifier for the
++ * sub-device, parse the sub-device's firmware node endpoints using
++ * v4l2_async_notifier_parse_fwnode_endpoints() or
++ * v4l2_async_notifier_parse_fwnode_endpoints_by_port(), and
++ * registers the sub-device notifier. The sub-device is similarly
++ * unregistered by calling v4l2_async_unregister_subdev().
++ *
++ * While registered, the subdev module is marked as in-use.
++ *
++ * An error is returned if the module is no longer loaded on any attempts
++ * to register it.
 + */
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
-+				      struct fwnode_handle *fwnode,
-+				      unsigned int asd_struct_size);
++int v4l2_async_register_fwnode_subdev(
++	struct v4l2_subdev *sd, size_t asd_struct_size,
++	unsigned int *ports, unsigned int num_ports,
++	int (*parse_endpoint)(struct device *dev,
++			      struct v4l2_fwnode_endpoint *vep,
++			      struct v4l2_async_subdev *asd));
 +
-+/**
-+ * v4l2_async_notifier_add_i2c_subdev - Allocate and add an i2c async
-+ *				subdev to the notifier's master asd_list.
-+ *
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ * @adapter_id: I2C adapter ID to be matched
-+ * @address: I2C address of sub-device to be matched
-+ * @asd_struct_size: size of the driver's async sub-device struct, including
-+ *		     sizeof(struct v4l2_async_subdev). The &struct
-+ *		     v4l2_async_subdev shall be the first member of
-+ *		     the driver's async sub-device struct, i.e. both
-+ *		     begin at the same memory address.
-+ *
-+ * Same as above but for I2C matched sub-devices.
-+ */
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_i2c_subdev(struct v4l2_async_notifier *notifier,
-+				   int adapter_id, unsigned short address,
-+				   unsigned int asd_struct_size);
-+
-+/**
-+ * v4l2_async_notifier_add_devname_subdev - Allocate and add a device-name
-+ *				async subdev to the notifier's master asd_list.
-+ *
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ * @device_name: device name string to be matched
-+ * @asd_struct_size: size of the driver's async sub-device struct, including
-+ *		     sizeof(struct v4l2_async_subdev). The &struct
-+ *		     v4l2_async_subdev shall be the first member of
-+ *		     the driver's async sub-device struct, i.e. both
-+ *		     begin at the same memory address.
-+ *
-+ * Same as above but for device-name matched sub-devices.
-+ */
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_devname_subdev(struct v4l2_async_notifier *notifier,
-+				       const char *device_name,
-+				       unsigned int asd_struct_size);
-+
-+
-+/**
-  * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
-  *
-  * @v4l2_dev: pointer to &struct v4l2_device
+ #endif /* _V4L2_FWNODE_H */
 -- 
 2.7.4
