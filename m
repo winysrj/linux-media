@@ -1,35 +1,177 @@
-Return-path: <SRS0=Se8P=JZ=qq.com=zrlw@kernel.org>
-From: Lao Wei <zrlw@qq.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:44149 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932798AbeGIWjf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 18:39:35 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@kernel.org,
-	zrlw@qq.com
-Subject: [PATCH v1] fix: media: pci: meye: validate offset to avoid arbitrary access
-Date: Mon,  9 Jul 2018 20:15:53 +0800
-Message-Id: <1531138553-11560-1-git-send-email-zrlw@qq.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v6 02/17] media: v4l2: async: Allow searching for asd of any type
+Date: Mon,  9 Jul 2018 15:39:02 -0700
+Message-Id: <1531175957-1973-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Motion eye video4linux driver for Sony Vaio PictureBook desn't validate user-controlled parameter
-'vma->vm_pgoff', a malicious process might access all of kernel memory from user space by trying
-pass different arbitrary address. 
-Discussion: http://www.openwall.com/lists/oss-security/2018/07/06/1
+Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
+searching for any type of async subdev, not just fwnodes. Rename to
+v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
 
-Signed-off-by: Lao Wei <zrlw@qq.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/pci/meye/meye.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes since v5:
+- none
+Changes since v4:
+- none
+Changes since v3:
+- removed TODO to support asd compare with CUSTOM match type in
+  asd_equal().
+Changes since v2:
+- code optimization in asd_equal(), and remove unneeded braces,
+  suggested by Sakari Ailus.
+Changes since v1:
+- none
+---
+ drivers/media/v4l2-core/v4l2-async.c | 73 +++++++++++++++++++++---------------
+ 1 file changed, 43 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-index 8001d3e..db2a7ad 100644
---- a/drivers/media/pci/meye/meye.c
-+++ b/drivers/media/pci/meye/meye.c
-@@ -1460,7 +1460,7 @@ static int meye_mmap(struct file *file, struct vm_area_struct *vma)
- 	unsigned long page, pos;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 2b08d03..0e7e529 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -124,6 +124,31 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+ 	return NULL;
+ }
  
- 	mutex_lock(&meye.lock);
--	if (size > gbuffers * gbufsize) {
-+	if (size > gbuffers * gbufsize || offset > gbuffers * gbufsize - size) {
- 		mutex_unlock(&meye.lock);
- 		return -EINVAL;
++/* Compare two asd's for equivalence */
++static bool asd_equal(struct v4l2_async_subdev *asd_x,
++		      struct v4l2_async_subdev *asd_y)
++{
++	if (asd_x->match_type != asd_y->match_type)
++		return false;
++
++	switch (asd_x->match_type) {
++	case V4L2_ASYNC_MATCH_DEVNAME:
++		return strcmp(asd_x->match.device_name,
++			      asd_y->match.device_name) == 0;
++	case V4L2_ASYNC_MATCH_I2C:
++		return asd_x->match.i2c.adapter_id ==
++			asd_y->match.i2c.adapter_id &&
++			asd_x->match.i2c.address ==
++			asd_y->match.i2c.address;
++	case V4L2_ASYNC_MATCH_FWNODE:
++		return asd_x->match.fwnode == asd_y->match.fwnode;
++	default:
++		break;
++	}
++
++	return false;
++}
++
+ /* Find the sub-device notifier registered by a sub-device driver. */
+ static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+ 	struct v4l2_subdev *sd)
+@@ -308,29 +333,22 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	notifier->parent = NULL;
+ }
+ 
+-/* See if an fwnode can be found in a notifier's lists. */
+-static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+-	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
++/* See if an async sub-device can be found in a notifier's lists. */
++static bool __v4l2_async_notifier_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
+ {
+-	struct v4l2_async_subdev *asd;
++	struct v4l2_async_subdev *asd_y;
+ 	struct v4l2_subdev *sd;
+ 
+-	list_for_each_entry(asd, &notifier->waiting, list) {
+-		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+-			continue;
+-
+-		if (asd->match.fwnode == fwnode)
++	list_for_each_entry(asd_y, &notifier->waiting, list)
++		if (asd_equal(asd, asd_y))
+ 			return true;
+-	}
+ 
+ 	list_for_each_entry(sd, &notifier->done, async_list) {
+ 		if (WARN_ON(!sd->asd))
+ 			continue;
+ 
+-		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+-			continue;
+-
+-		if (sd->asd->match.fwnode == fwnode)
++		if (asd_equal(asd, sd->asd))
+ 			return true;
  	}
+ 
+@@ -338,32 +356,28 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+ }
+ 
+ /*
+- * Find out whether an async sub-device was set up for an fwnode already or
++ * Find out whether an async sub-device was set up already or
+  * whether it exists in a given notifier before @this_index.
+  */
+-static bool v4l2_async_notifier_fwnode_has_async_subdev(
+-	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
++static bool v4l2_async_notifier_has_async_subdev(
++	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
+ 	unsigned int this_index)
+ {
+ 	unsigned int j;
+ 
+ 	lockdep_assert_held(&list_lock);
+ 
+-	/* Check that an fwnode is not being added more than once. */
++	/* Check that an asd is not being added more than once. */
+ 	for (j = 0; j < this_index; j++) {
+-		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+-		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
++		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
+ 
+-		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+-		    asd->match.fwnode ==
+-		    other_asd->match.fwnode)
++		if (asd_equal(asd, asd_y))
+ 			return true;
+ 	}
+ 
+-	/* Check than an fwnode did not exist in other notifiers. */
++	/* Check that an asd does not exist in other notifiers. */
+ 	list_for_each_entry(notifier, &notifier_list, list)
+-		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+-			    notifier, fwnode))
++		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
+ 			return true;
+ 
+ 	return false;
+@@ -392,12 +406,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+-			break;
+ 		case V4L2_ASYNC_MATCH_FWNODE:
+-			if (v4l2_async_notifier_fwnode_has_async_subdev(
+-				    notifier, asd->match.fwnode, i)) {
++			if (v4l2_async_notifier_has_async_subdev(
++				    notifier, asd, i)) {
+ 				dev_err(dev,
+-					"fwnode has already been registered or in notifier's subdev list\n");
++					"asd has already been registered or in notifier's subdev list\n");
+ 				ret = -EEXIST;
+ 				goto err_unlock;
+ 			}
 -- 
-1.8.5.6
+2.7.4
