@@ -4,8 +4,8 @@ To: linux-media@vger.kernel.org
 Cc: mchehab@kernel.org,
 	zrlw@qq.com
 Subject: [PATCH v1] fix: media: pci: meye: validate offset to avoid arbitrary access
-Date: Mon,  9 Jul 2018 20:03:43 +0800
-Message-Id: <1531137823-11485-1-git-send-email-zrlw@qq.com>
+Date: Mon,  9 Jul 2018 20:15:53 +0800
+Message-Id: <1531138553-11560-1-git-send-email-zrlw@qq.com>
 List-ID: <linux-media.vger.kernel.org>
 
 Motion eye video4linux driver for Sony Vaio PictureBook desn't validate user-controlled parameter
