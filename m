@@ -1,68 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:39536 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932798AbeGIWjd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 18:39:33 -0400
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:41979 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933399AbeGIWjv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 18:39:51 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sebastian Reichel <sre@kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v6 01/17] media: v4l2-fwnode: ignore endpoints that have no remote port parent
-Date: Mon,  9 Jul 2018 15:39:01 -0700
-Message-Id: <1531175957-1973-2-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v6 07/17] media: platform: video-mux: Register a subdev notifier
+Date: Mon,  9 Jul 2018 15:39:07 -0700
+Message-Id: <1531175957-1973-8-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation/devicetree/bindings/media/video-interfaces.txt states that
-the 'remote-endpoint' property is optional.
-
-So v4l2_async_notifier_fwnode_parse_endpoint() should not return error
-if the endpoint has no remote port parent. Just ignore the endpoint,
-skip adding an asd to the notifier and return 0.
-__v4l2_async_notifier_parse_fwnode_endpoints() will then continue
-parsing the remaining port endpoints of the device.
+Parse neighbor remote devices on the video muxes input ports, add them to a
+subdev notifier, and register the subdev notifier for the video mux, by
+calling v4l2_async_register_fwnode_subdev().
 
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
 Changes since v5:
-- none
+- add missing select V4L2_FWNODE to Kconfig for VIDEO_MUX
 Changes since v4:
 - none
 Changes since v3:
-- none
+- pass num_pads - 1 (num_input_pads) to video_mux_async_register().
 Changes since v2:
 - none
 Changes since v1:
-- don't pass an empty endpoint to the parse_endpoint callback,
-  v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
-  and returns success. The current users of
-  v4l2_async_notifier_parse_fwnode_endpoints() (omap3isp, rcar-vin,
-  intel-ipu3) no longer need modification.
+- add #include <linux/slab.h> for kcalloc() declaration.
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/Kconfig     |  1 +
+ drivers/media/platform/video-mux.c | 36 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 3f77aa3..3240c2a 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -363,7 +363,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
- 		fwnode_graph_get_remote_port_parent(endpoint);
- 	if (!asd->match.fwnode) {
- 		dev_warn(dev, "bad remote port parent\n");
--		ret = -EINVAL;
-+		ret = -ENOTCONN;
- 		goto out_err;
- 	}
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 210b44a..6c3b2b7 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -58,6 +58,7 @@ config VIDEO_MUX
+ 	select MULTIPLEXER
+ 	depends on VIDEO_V4L2 && OF && VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
+ 	select REGMAP
++	select V4L2_FWNODE
+ 	help
+ 	  This driver provides support for N:1 video bus multiplexers.
  
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index 1fb8872..e54a719 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -21,8 +21,10 @@
+ #include <linux/of.h>
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
++#include <linux/slab.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
+ struct video_mux {
+@@ -207,6 +209,38 @@ static const struct v4l2_subdev_ops video_mux_subdev_ops = {
+ 	.video = &video_mux_subdev_video_ops,
+ };
+ 
++static int video_mux_parse_endpoint(struct device *dev,
++				    struct v4l2_fwnode_endpoint *vep,
++				    struct v4l2_async_subdev *asd)
++{
++	/*
++	 * it's not an error if remote is missing on a video-mux
++	 * input port, return -ENOTCONN to skip this endpoint with
++	 * no error.
++	 */
++	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -ENOTCONN;
++}
++
++static int video_mux_async_register(struct video_mux *vmux,
++				    unsigned int num_input_pads)
++{
++	unsigned int i, *ports;
++	int ret;
++
++	ports = kcalloc(num_input_pads, sizeof(*ports), GFP_KERNEL);
++	if (!ports)
++		return -ENOMEM;
++	for (i = 0; i < num_input_pads; i++)
++		ports[i] = i;
++
++	ret = v4l2_async_register_fwnode_subdev(
++		&vmux->subdev, sizeof(struct v4l2_async_subdev),
++		ports, num_input_pads, video_mux_parse_endpoint);
++
++	kfree(ports);
++	return ret;
++}
++
+ static int video_mux_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+@@ -272,7 +306,7 @@ static int video_mux_probe(struct platform_device *pdev)
+ 
+ 	vmux->subdev.entity.ops = &video_mux_ops;
+ 
+-	return v4l2_async_register_subdev(&vmux->subdev);
++	return video_mux_async_register(vmux, num_pads - 1);
+ }
+ 
+ static int video_mux_remove(struct platform_device *pdev)
 -- 
 2.7.4
