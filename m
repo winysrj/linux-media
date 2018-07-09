@@ -1,63 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53424 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932436AbeGINmN (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:35395 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932666AbeGINkx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jul 2018 09:42:13 -0400
-Subject: Re: [PATCHv5 05/12] media: rename MEDIA_ENT_F_DTV_DECODER to
- MEDIA_ENT_F_DV_DECODER
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Hans Verkuil <hansverk@cisco.com>
+        Mon, 9 Jul 2018 09:40:53 -0400
+Subject: Re: [PATCHv5 01/12] media: add 'index' to struct media_v2_pad
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
 References: <20180629114331.7617-1-hverkuil@xs4all.nl>
- <20180629114331.7617-6-hverkuil@xs4all.nl>
- <CAAEAJfAmHZD2sjw9NF2Fyv6j+Z-usKJL4YNG5pgfZuyBSqLZkQ@mail.gmail.com>
- <2187896.B0EHAgUiIi@avalon>
+ <20180629114331.7617-2-hverkuil@xs4all.nl> <4833769.fujQdFkPkF@avalon>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0304525b-17cb-e92a-4c38-2c356dacffa2@xs4all.nl>
-Date: Mon, 9 Jul 2018 15:42:09 +0200
+Message-ID: <360b9ee9-8e29-1c34-0887-182f5c91be38@xs4all.nl>
+Date: Mon, 9 Jul 2018 15:40:51 +0200
 MIME-Version: 1.0
-In-Reply-To: <2187896.B0EHAgUiIi@avalon>
+In-Reply-To: <4833769.fujQdFkPkF@avalon>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/18 15:00, Laurent Pinchart wrote:
-> Hello,
+On 09/07/18 14:55, Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> On Friday, 29 June 2018 20:40:49 EEST Ezequiel Garcia wrote:
->> On 29 June 2018 at 08:43, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> From: Hans Verkuil <hansverk@cisco.com>
->>>
->>> The use of 'DTV' is very confusing since it normally refers to Digital
->>> TV e.g. DVB etc.
->>>
->>> Instead use 'DV' (Digital Video), which nicely corresponds to the
->>> DV Timings API used to configure such receivers and transmitters.
->>>
->>> We keep an alias to avoid breaking userspace applications.
->>>
->>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->>> ---
->>>
->>>  Documentation/media/uapi/mediactl/media-types.rst | 2 +-
->>>  drivers/media/i2c/adv7604.c                       | 1 +
->>>  drivers/media/i2c/adv7842.c                       | 1 +
+> Thank you for the patch.
+> 
+> On Friday, 29 June 2018 14:43:20 EEST Hans Verkuil wrote:
+>> From: Hans Verkuil <hansverk@cisco.com>
 >>
->> It would be nice to mention in the commit log
->> that this patch also sets the function for these drivers.
+>> The v2 pad structure never exposed the pad index, which made it impossible
+>> to call the MEDIA_IOC_SETUP_LINK ioctl, which needs that information.
+>>
+>> It is really trivial to just expose this information, so implement this.
+>>
+>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>  drivers/media/media-device.c |  1 +
+>>  include/uapi/linux/media.h   | 12 +++++++++++-
+>>  2 files changed, 12 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>> index 47bb2254fbfd..047d38372a27 100644
+>> --- a/drivers/media/media-device.c
+>> +++ b/drivers/media/media-device.c
+>> @@ -331,6 +331,7 @@ static long media_device_get_topology(struct
+>> media_device *mdev, void *arg) kpad.id = pad->graph_obj.id;
+>>  		kpad.entity_id = pad->entity->graph_obj.id;
+>>  		kpad.flags = pad->flags;
+>> +		kpad.index = pad->index;
+>>
+>>  		if (copy_to_user(upad, &kpad, sizeof(kpad)))
+>>  			ret = -EFAULT;
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index 86c7dcc9cba3..f6338bd57929 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -305,11 +305,21 @@ struct media_v2_interface {
+>>  	};
+>>  } __attribute__ ((packed));
+>>
+>> +/*
+>> + * Appeared in 4.19.0.
+>> + *
+>> + * The media_version argument comes from the media_version field in
+>> + * struct media_device_info.
+>> + */
+>> +#define MEDIA_V2_PAD_HAS_INDEX(media_version) \
+>> +	((media_version) >= ((4 << 16) | (19 << 8) | 0))
 > 
-> That's also my only concern with this patch (alternatively that change could 
-> be split to a separate patch).
-> 
+> I agree that we need tn index field, but I don't think we need to care about 
+> backward compatibility. The lack of an index field makes it clear that the API 
+> has never been properly used, as it was impossible to do so.
 
-I'll clarify the commit log. I can't split up this patch since the old define
-is only available under #ifndef __KERNEL__, to prevent drivers from accidentally
-using it in the kernel in the future.
+We do need to care: there is no reason why a v4l2 application can't be used on
+an older kernel. Most v4l2 applications copy the V4L2 headers to the application
+(in fact, that's what v4l-utils does) and so they need to know if a field is
+actually filled in by whatever kernel is used. In most cases they can just check
+against 0, but that happens to be a valid index :-(
+
+So this is really needed. Same for the flags field.
 
 Regards,
 
 	Hans
+
+> 
+>>  struct media_v2_pad {
+>>  	__u32 id;
+>>  	__u32 entity_id;
+>>  	__u32 flags;
+>> -	__u32 reserved[5];
+>> +	__u32 index;
+>> +	__u32 reserved[4];
+>>  } __attribute__ ((packed));
+>>
+>>  struct media_v2_link {
+> 
