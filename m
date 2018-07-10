@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:40009 "EHLO
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:44698 "EHLO
         lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751649AbeGJIpO (ORCPT
+        by vger.kernel.org with ESMTP id S1751715AbeGJIpO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 10 Jul 2018 04:45:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 02/12] media-ioc-g-topology.rst: document new 'index' field
-Date: Tue, 10 Jul 2018 10:45:02 +0200
-Message-Id: <20180710084512.99238-3-hverkuil@xs4all.nl>
+Subject: [PATCHv6 06/12] media.h: add MEDIA_ENT_F_DV_ENCODER
+Date: Tue, 10 Jul 2018 10:45:06 +0200
+Message-Id: <20180710084512.99238-7-hverkuil@xs4all.nl>
 In-Reply-To: <20180710084512.99238-1-hverkuil@xs4all.nl>
 References: <20180710084512.99238-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,43 +17,50 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Document the new struct media_v2_pad 'index' field.
+Add a new function for digital video encoders such as HDMI transmitters.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- .../media/uapi/mediactl/media-ioc-g-topology.rst     | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ Documentation/media/uapi/mediactl/media-types.rst | 7 +++++++
+ include/uapi/linux/media.h                        | 3 ++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index a3f259f83b25..bae2b4db89cc 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -176,7 +176,7 @@ desired arrays with the media graph elements.
-     *  -  struct media_v2_intf_devnode
-        -  ``devnode``
-        -  Used only for device node interfaces. See
--	  :c:type:`media_v2_intf_devnode` for details..
-+	  :c:type:`media_v2_intf_devnode` for details.
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index c11b0c7e890b..e90d4d0a7f8b 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -206,6 +206,13 @@ Types and flags used to represent the media graph elements
+ 	  and output it in some digital video standard, with appropriate
+ 	  timing signals.
  
- 
- .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
-@@ -218,7 +218,15 @@ desired arrays with the media graph elements.
-        -  Pad flags, see :ref:`media-pad-flag` for more details.
- 
-     *  -  __u32
--       -  ``reserved``\ [5]
-+       -  ``index``
-+       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
-+	  returns true. The ``media_version`` is defined in struct
-+	  :c:type:`media_device_info` and can be retrieved using
-+	  :ref:`MEDIA_IOC_DEVICE_INFO`. Pad indices are stable. If new pads are added
-+	  for an entity in the future, then those will be added at the end.
++    *  -  ``MEDIA_ENT_F_DV_ENCODER``
++       -  Digital video encoder. The basic function of the video encoder is
++	  to accept digital video from some digital video standard with
++	  appropriate timing signals (usually a parallel video bus with sync
++	  signals) and output this to a digital video output connector such
++	  as HDMI or DisplayPort.
 +
-+    *  -  __u32
-+       -  ``reserved``\ [4]
-        -  Reserved for future extensions. Drivers and applications must set
- 	  this array to zero.
+ ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
  
+ .. _media-entity-flag:
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 99f5e0978ebb..6f594fa238c2 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -90,10 +90,11 @@ struct media_device_info {
+ #define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+ 
+ /*
+- * Video decoder functions
++ * Video decoder/encoder functions
+  */
+ #define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+ #define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
++#define MEDIA_ENT_F_DV_ENCODER			(MEDIA_ENT_F_BASE + 0x6002)
+ 
+ /*
+  * Digital TV, analog TV, radio and/or software defined radio tuner functions.
 -- 
 2.18.0
