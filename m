@@ -1,81 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:43499 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732205AbeGJVL5 (ORCPT
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:38684 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732309AbeGJVPq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 17:11:57 -0400
-Subject: Re: [PATCH v2 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
-To: Jacopo Mondi <jacopo@jmondi.org>, <mchehab@kernel.org>,
-        <laurent.pinchart@ideasonboard.com>, <maxime.ripard@bootlin.com>,
-        <sam@elite-embedded.com>, <jagan@amarulasolutions.com>,
-        <festevam@gmail.com>, <pza@pengutronix.de>,
-        <hugues.fruchet@st.com>, <loic.poulain@linaro.org>,
-        <daniel@zonque.org>
-CC: <linux-media@vger.kernel.org>
-References: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
-Date: Tue, 10 Jul 2018 14:10:54 -0700
+        Tue, 10 Jul 2018 17:15:46 -0400
+Received: by mail-pl0-f67.google.com with SMTP id b1-v6so8164021pls.5
+        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2018 14:14:51 -0700 (PDT)
+Received: from [192.168.0.6] ([103.6.157.159])
+        by smtp.gmail.com with ESMTPSA id i188-v6sm30022365pfc.3.2018.07.10.14.14.48
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 10 Jul 2018 14:14:49 -0700 (PDT)
+To: linux-media@vger.kernel.org
+Subject: Wine Enthusiasts List
+From: Sofia Thomas <sofiat@aimdigitalpros.com>
+Message-ID: <7d4bf214-dc42-d5de-3a1e-8f282f56f147@aimdigitalpros.com>
+Date: Tue, 10 Jul 2018 17:06:04 -0400
 MIME-Version: 1.0
-In-Reply-To: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
 
-Sorry to report my testing on SabreSD has same result
-as last time. This series fixes the LP-11 timeout at stream
-on but captured images are still blank. I tried the 640x480
-mode with UYVY2X8. Here is the pad config:
+-- 
+Hi,
 
-# media-ctl --get-v4l2 "'ov5640 1-003c':0"
-         [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb 
-xfer:srgb ycbcr:601 quantization:full-range]
+Would you be interested in reaching out to "Wine Drinkers list " from USA?
 
-Steve
+Our Databases:-    1.Beer Drinkers List                 2.Alcohol Drinkers List
 
-On 07/10/2018 11:36 AM, Jacopo Mondi wrote:
-> Hello,
->     this series fixes capture operations on i.MX6Q platforms (and possible other
-> platforms reported not working) using MIPI CSI-2 interface.
->
-> This iteration expands the v1 version with an additional fix, initially
-> submitted by Maxime in his series:
-> [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
-> https://www.spinics.net/lists/linux-media/msg134436.html
->
-> The original patch has been reported not fully fixing the issues by Daniel Mack
-> in his comment here below (on a Qualcomm platform if I'm not wrong):
-> https://www.spinics.net/lists/linux-media/msg134524.html
-> On my i.MX6Q testing platform that patch alone does not fix MIPI capture
-> neither.
->
-> The version I'm sending here re-introduces some of the timings parameters in the
-> initial configuration blob (not in the single mode ones), which apparently has
-> to be at least initially programmed to allow the driver to later program them
-> singularly in the 'set_timings()' function. Unfortunately I do not have a real
-> rationale behind this which explains why it has to be done this way :(
->
-> For the MIPI startup sequence re-work patch, no changes compared to v1.
-> Steve reported he has verified the LP-11 timout issue is solved on his testing
-> platform too. For more details, please refer to the v1 cover letter:
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg133352.html
->
-> Thanks
->     j
->
-> Jacopo Mondi (1):
->    media: i2c: ov5640: Re-work MIPI startup sequence
->
-> Samuel Bobrowicz (1):
->    media: ov5640: Fix timings setup code
->
->   drivers/media/i2c/ov5640.c | 107 ++++++++++++++++++++++++++++++++++-----------
->   1 file changed, 82 insertions(+), 25 deletions(-)
->
-> --
-> 2.7.4
->
+                     3.Beverage Consumers                 4.Liquor  Drinkers List
+
+                     5.Food Enthusiasts List              6.Gift Buyers List
+
+                     7.Luxury Brand Buyers List           8.Home Owners List
+
+                     9.Spa and Resort Visitors and many more.
+
+All the contacts are opt-in verified, 100 percent permission based and can be used for unlimited multi-channel marketing.
+
+Please let me know your thoughts towards procuring the Wine Drinkers list.
+
+Best Regards,
+Sofia Thoma
+
+We respect your privacy, if you do not wish to receive any further emails from our end, please reply with a subject ³Leave Out².
