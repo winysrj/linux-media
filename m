@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:57773 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751903AbeGJIpO (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:40009 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751649AbeGJIpO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 10 Jul 2018 04:45:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 09/12] adv7180/tvp514x/tvp7002: fix entity function
-Date: Tue, 10 Jul 2018 10:45:09 +0200
-Message-Id: <20180710084512.99238-10-hverkuil@xs4all.nl>
+Subject: [PATCHv6 02/12] media-ioc-g-topology.rst: document new 'index' field
+Date: Tue, 10 Jul 2018 10:45:02 +0200
+Message-Id: <20180710084512.99238-3-hverkuil@xs4all.nl>
 In-Reply-To: <20180710084512.99238-1-hverkuil@xs4all.nl>
 References: <20180710084512.99238-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,56 +17,43 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The entity function was ORed with the flags field instead of
-assigned to the function field. Correct this.
+Document the new struct media_v2_pad 'index' field.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/i2c/adv7180.c | 2 +-
- drivers/media/i2c/tvp514x.c | 2 +-
- drivers/media/i2c/tvp7002.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ .../media/uapi/mediactl/media-ioc-g-topology.rst     | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 25d24a3f10a7..a727d7f806a1 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -1335,7 +1335,7 @@ static int adv7180_probe(struct i2c_client *client,
- 		goto err_unregister_vpp_client;
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+index a3f259f83b25..bae2b4db89cc 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+@@ -176,7 +176,7 @@ desired arrays with the media graph elements.
+     *  -  struct media_v2_intf_devnode
+        -  ``devnode``
+        -  Used only for device node interfaces. See
+-	  :c:type:`media_v2_intf_devnode` for details..
++	  :c:type:`media_v2_intf_devnode` for details.
  
- 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 	ret = media_entity_pads_init(&sd->entity, 1, &state->pad);
- 	if (ret)
- 		goto err_free_ctrl;
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 6a9890531d01..675b9ae212ab 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -1084,7 +1084,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	decoder->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	decoder->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
  
- 	ret = media_entity_pads_init(&decoder->sd.entity, 1, &decoder->pad);
- 	if (ret < 0) {
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 4599b7e28a8d..4f5c627579c7 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -1010,7 +1010,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	device->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	device->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
-+	device->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
+ .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
+@@ -218,7 +218,15 @@ desired arrays with the media graph elements.
+        -  Pad flags, see :ref:`media-pad-flag` for more details.
  
- 	error = media_entity_pads_init(&device->sd.entity, 1, &device->pad);
- 	if (error < 0)
+     *  -  __u32
+-       -  ``reserved``\ [5]
++       -  ``index``
++       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
++	  returns true. The ``media_version`` is defined in struct
++	  :c:type:`media_device_info` and can be retrieved using
++	  :ref:`MEDIA_IOC_DEVICE_INFO`. Pad indices are stable. If new pads are added
++	  for an entity in the future, then those will be added at the end.
++
++    *  -  __u32
++       -  ``reserved``\ [4]
+        -  Reserved for future extensions. Drivers and applications must set
+ 	  this array to zero.
+ 
 -- 
 2.18.0
