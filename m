@@ -1,89 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:56168 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729670AbeGMPim (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48750 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751289AbeGJKuV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jul 2018 11:38:42 -0400
-Date: Fri, 13 Jul 2018 12:23:34 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv6 02/12] media-ioc-g-topology.rst: document new 'index'
- field
-Message-ID: <20180713122334.68661b55@coco.lan>
-In-Reply-To: <20180710084512.99238-3-hverkuil@xs4all.nl>
-References: <20180710084512.99238-1-hverkuil@xs4all.nl>
-        <20180710084512.99238-3-hverkuil@xs4all.nl>
+        Tue, 10 Jul 2018 06:50:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        Peter Rosin <peda@axentia.se>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH -next v3 1/2] i2c: add SCCB helpers
+Date: Tue, 10 Jul 2018 13:50:51 +0300
+Message-ID: <5320256.KVvq6sUnyz@avalon>
+In-Reply-To: <1531150874-4595-2-git-send-email-akinobu.mita@gmail.com>
+References: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com> <1531150874-4595-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Jul 2018 10:45:02 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Akinobu,
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Thank you for the patch.
+
+On Monday, 9 July 2018 18:41:13 EEST Akinobu Mita wrote:
+> This adds Serial Camera Control Bus (SCCB) helpers (sccb_is_available,
+> sccb_read_byte, and sccb_write_byte) that are intended to be used by some
+> of Omnivision sensor drivers.
 > 
-> Document the new struct media_v2_pad 'index' field.
+> The ov772x driver is going to use these helpers.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> It was previously only worked with the i2c controller drivers that support
+> I2C_FUNC_PROTOCOL_MANGLING, because the ov772x device doesn't support
+> repeated starts.  After commit 0b964d183cbf ("media: ov772x: allow i2c
+> controllers without I2C_FUNC_PROTOCOL_MANGLING"), reading ov772x register
+> is replaced with issuing two separated i2c messages in order to avoid
+> repeated start.  Using SCCB helpers hides the implementation detail.
+> 
+> Cc: Peter Rosin <peda@axentia.se>
+> Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 > ---
->  .../media/uapi/mediactl/media-ioc-g-topology.rst     | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
+>  include/linux/i2c-sccb.h | 77 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 77 insertions(+)
+>  create mode 100644 include/linux/i2c-sccb.h
 > 
-> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-> index a3f259f83b25..bae2b4db89cc 100644
-> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-> @@ -176,7 +176,7 @@ desired arrays with the media graph elements.
->      *  -  struct media_v2_intf_devnode
->         -  ``devnode``
->         -  Used only for device node interfaces. See
-> -	  :c:type:`media_v2_intf_devnode` for details..
-> +	  :c:type:`media_v2_intf_devnode` for details.
->  
->  
->  .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
-> @@ -218,7 +218,15 @@ desired arrays with the media graph elements.
->         -  Pad flags, see :ref:`media-pad-flag` for more details.
->  
->      *  -  __u32
-> -       -  ``reserved``\ [5]
-> +       -  ``index``
-> +       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
-> +	  returns true. The ``media_version`` is defined in struct
-> +	  :c:type:`media_device_info` and can be retrieved using
-> +	  :ref:`MEDIA_IOC_DEVICE_INFO`. Pad indices are stable. If new pads are added
-> +	  for an entity in the future, then those will be added at the end.
+> diff --git a/include/linux/i2c-sccb.h b/include/linux/i2c-sccb.h
+> new file mode 100644
+> index 0000000..61dece9
+> --- /dev/null
+> +++ b/include/linux/i2c-sccb.h
+> @@ -0,0 +1,77 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * Serial Camera Control Bus (SCCB) helper functions
+> + */
+> +
+> +#ifndef _LINUX_I2C_SCCB_H
+> +#define _LINUX_I2C_SCCB_H
+> +
+> +#include <linux/i2c.h>
+> +
+> +/**
+> + * sccb_is_available - Check if the adapter supports SCCB protocol
+> + * @adap: I2C adapter
+> + *
+> + * Return true if the I2C adapter is capable of using SCCB helper
+> functions, + * false otherwise.
+> + */
+> +static inline bool sccb_is_available(struct i2c_adapter *adap)
+> +{
+> +	u32 needed_funcs = I2C_FUNC_SMBUS_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA;
+> +
+> +#if 0
+> +	/*
+> +	 * sccb_xfer not needed yet, since there is no driver support currently.
+> +	 * Just showing how it should be done if we ever need it.
+> +	 */
+> +	if (adap->algo->sccb_xfer)
+> +		return true;
+> +#endif
+> +
+> +	return (i2c_get_functionality(adap) & needed_funcs) == needed_funcs;
+> +}
+> +
+> +/**
+> + * sccb_read_byte - Read data from SCCB slave device
+> + * @client: Handle to slave device
+> + * @addr: Register to be read from
+> + *
+> + * This executes the 2-phase write transmission cycle that is followed by a
+> + * 2-phase read transmission cycle, returning negative errno else a data
+> byte
+> + * received from the device.
+> + */
+> +static inline int sccb_read_byte(struct i2c_client *client, u8 addr)
+> +{
+> +	int ret;
+> +	union i2c_smbus_data data;
+> +
+> +	i2c_lock_bus(client->adapter, I2C_LOCK_SEGMENT);
+> +
+> +	ret = __i2c_smbus_xfer(client->adapter, client->addr, client->flags,
+> +				I2C_SMBUS_WRITE, addr, I2C_SMBUS_BYTE, NULL);
+> +	if (ret < 0)
+> +		goto out;
+> +
+> +	ret = __i2c_smbus_xfer(client->adapter, client->addr, client->flags,
+> +				I2C_SMBUS_READ, 0, I2C_SMBUS_BYTE, &data);
+> +out:
+> +	i2c_unlock_bus(client->adapter, I2C_LOCK_SEGMENT);
+> +
+> +	return ret < 0 ? ret : data.byte;
+> +}
 
-Hmm... Pad indexes may not be stable. That's by the way why we
-need a better way to enum it, and the Properties API was thinking
-to solve (and why we didn't add PAD index to this ioctl at the
-first place). 
+I think I mentioned in a previous review of this patch that the function is 
+too big to be a static inline. It should instead be moved to a .c file.
 
-The problem happens for example on TV demods and tuners:
-different models may have different kinds of output PADs:
+> +/**
+> + * sccb_write_byte - Write data to SCCB slave device
+> + * @client: Handle to slave device
+> + * @addr: Register to write to
+> + * @data: Value to be written
+> + *
+> + * This executes the SCCB 3-phase write transmission cycle, returning
+> negative
+> + * errno else zero on success.
+> + */
+> +static inline int sccb_write_byte(struct i2c_client *client, u8 addr, u8
+> data)
+> +{
+> +	return i2c_smbus_write_byte_data(client, addr, data);
+> +}
+> +
+> +#endif /* _LINUX_I2C_SCCB_H */
 
-	- analog luminance carrier samples;
-	- analog chrominance sub-carrier samples;
-	- sliced VBI data;
-	- audio RF sub-carrier samples;
-	- audio mono data;
-	- audio stereo data.
+-- 
+Regards,
 
-The same bridge chip can live with different demods, but need to
-setup the pipelines according with the type of the PAD. As right now
-we don't have any way to associate a PAD with an specific type of
-output, what happens is that the V4L2 core associates a pad number
-with an specific type of output. So, drivers may be exposing
-PADs that don't exist, in practice, just to make them compatible
-with similar subdevs.
-
-Once we add a properties API (or something equivalent), the
-PAD numbers will change and subdevs will only expose the ones
-that really exists.
-
-Thanks,
-Mauro
+Laurent Pinchart
