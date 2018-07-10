@@ -1,17 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:46404 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933336AbeGJODC (ORCPT
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:37227 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754260AbeGJOxC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 10:03:02 -0400
+        Tue, 10 Jul 2018 10:53:02 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180710080114.31469-4-paul.kocialkowski@bootlin.com>
-References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com> <20180710080114.31469-4-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180710080114.31469-9-paul.kocialkowski@bootlin.com>
+References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com> <20180710080114.31469-9-paul.kocialkowski@bootlin.com>
 From: Chen-Yu Tsai <wens@csie.org>
-Date: Tue, 10 Jul 2018 22:02:39 +0800
-Message-ID: <CAGb2v661JHS7r=6LE1em18owSUwk8VXbAGCAVez7=2u5P2R4Jg@mail.gmail.com>
-Subject: Re: [PATCH v5 03/22] dt-bindings: sram: sunxi: Introduce new A10
- binding for system-control
+Date: Tue, 10 Jul 2018 22:52:39 +0800
+Message-ID: <CAGb2v65JP8fBvD6Sbexjg2cv5AXVufWxjMVuOPa7J1A9qQjZ2g@mail.gmail.com>
+Subject: Re: [PATCH v5 08/22] ARM: dts: sun4i-a10: Use system-control compatible
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         devicetree <devicetree@vger.kernel.org>,
@@ -57,17 +56,50 @@ Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 10, 2018 at 4:00 PM, Paul Kocialkowski
+On Tue, Jul 10, 2018 at 4:01 PM, Paul Kocialkowski
 <paul.kocialkowski@bootlin.com> wrote:
-> Following-up on the introduction of a new binding for the A64, this
-> introduces a system-control binding for the A10 as a replacement of
-> the sram-controller binding.
+
+Subject prefix should be "ARM: dts: sun4i:"
+
+We don't need the "a10" part since the A10 owns into this category
+all by itself.
+
+Also, it doesn't say what the system control compatible is for.
+"Switch to new system control compatible string" would be slightly
+better.
+
+> This switches the sun4i-a10 dtsi to use the new compatible for the
+> system-control block (previously named SRAM controller) instead of
+> the deprecated one.
 >
-> This change is motivated by consistency with the Allwinner literature,
-> that mentions system control over SRAM controller. Moreover, the system
-> control block is sometimes used for more than SRAM (e.g. for muxing
-> related to the ethernet PHY).
+> The phandle is also updated to reflect the fact that the controller
+
+The label actually.
+
+ChenYu
+
+> described is really about system control rather than SRAM control.
 >
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-
-Reviewed-by: Chen-Yu Tsai <wens@csie.org>
+> ---
+>  arch/arm/boot/dts/sun4i-a10.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/sun4i-a10.dtsi b/arch/arm/boot/dts/sun4i-a10.dtsi
+> index 3a1c6b45c9a1..82f81f06f201 100644
+> --- a/arch/arm/boot/dts/sun4i-a10.dtsi
+> +++ b/arch/arm/boot/dts/sun4i-a10.dtsi
+> @@ -190,8 +190,8 @@
+>                 #size-cells = <1>;
+>                 ranges;
+>
+> -               sram-controller@1c00000 {
+> -                       compatible = "allwinner,sun4i-a10-sram-controller";
+> +               system-control@1c00000 {
+> +                       compatible = "allwinner,sun4i-a10-system-control";
+>                         reg = <0x01c00000 0x30>;
+>                         #address-cells = <1>;
+>                         #size-cells = <1>;
+> --
+> 2.17.1
+>
