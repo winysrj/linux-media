@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:53011 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:52752 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933176AbeGJICM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 04:02:12 -0400
+        id S1751248AbeGJICE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jul 2018 04:02:04 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
@@ -44,80 +44,52 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: [PATCH v5 16/22] media: v4l: Add definition for Allwinner's MB32-tiled NV12 format
-Date: Tue, 10 Jul 2018 10:01:08 +0200
-Message-Id: <20180710080114.31469-17-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v5 03/22] dt-bindings: sram: sunxi: Introduce new A10 binding for system-control
+Date: Tue, 10 Jul 2018 10:00:55 +0200
+Message-Id: <20180710080114.31469-4-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces support for Allwinner's MB32-tiled NV12 format, where
-each plane is divided into macroblocks of 32x32 pixels. Hence, the size
-of each plane has to be aligned to 32 bytes. The pixels inside each
-macroblock are coded as they would be if the macroblock was a single
-plane, line after line.
+Following-up on the introduction of a new binding for the A64, this
+introduces a system-control binding for the A10 as a replacement of
+the sram-controller binding.
 
-The MB32-tiled NV12 format is used by the video engine on Allwinner
-platforms: it is the default format for decoded frames (and the only one
-available in the oldest supported platforms).
+This change is motivated by consistency with the Allwinner literature,
+that mentions system control over SRAM controller. Moreover, the system
+control block is sometimes used for more than SRAM (e.g. for muxing
+related to the ethernet PHY).
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- Documentation/media/uapi/v4l/pixfmt-reserved.rst | 15 ++++++++++++++-
- drivers/media/v4l2-core/v4l2-ioctl.c             |  1 +
- include/uapi/linux/videodev2.h                   |  1 +
- 3 files changed, 16 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/sram/sunxi-sram.txt | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-index 38af1472a4b4..9a68b6a787bf 100644
---- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-@@ -243,7 +243,20 @@ please make a proposal on the linux-media mailing list.
- 	It is an opaque intermediate format and the MDP hardware must be
- 	used to convert ``V4L2_PIX_FMT_MT21C`` to ``V4L2_PIX_FMT_NV12M``,
- 	``V4L2_PIX_FMT_YUV420M`` or ``V4L2_PIX_FMT_YVU420``.
--
-+    * .. _V4L2-PIX-FMT-MB32-NV12:
-+
-+      - ``V4L2_PIX_FMT_MB32_NV12``
-+      - 'MN12'
-+      - Two-planar NV12-based format used by the Allwinner video engine
-+        hardware, with 32x32 tiles for the luminance plane and 32x64 tiles
-+        for the chrominance plane. Each tile is a linear pixel data
-+        representation within its own bounds. Each tile follows the previous
-+        one linearly (as in, from left to right, top to bottom).
-+
-+        The frame dimensions are aligned to match an integer number of
-+        tiles, resulting in 32-aligned resolutions for the luminance plane
-+        and 16-aligned resolutions for the chrominance plane (with 2x2
-+        subsampling).
+diff --git a/Documentation/devicetree/bindings/sram/sunxi-sram.txt b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
+index 9ef40e2e0a48..d7dd1a393011 100644
+--- a/Documentation/devicetree/bindings/sram/sunxi-sram.txt
++++ b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
+@@ -10,7 +10,8 @@ Controller Node
  
- .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+ Required properties:
+ - compatible : should be:
+-    - "allwinner,sun4i-a10-sram-controller"
++    - "allwinner,sun4i-a10-sram-controller" (deprecated)
++    - "allwinner,sun4i-a10-system-control"
+     - "allwinner,sun50i-a64-sram-controller" (deprecated)
+     - "allwinner,sun50i-a64-system-control"
+ - reg : sram controller register offset + length
+@@ -48,8 +49,8 @@ This valid values for this argument are:
  
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 68e914b83a03..7e1c200de10d 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1331,6 +1331,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
- 		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
- 		case V4L2_PIX_FMT_MT21C:	descr = "Mediatek Compressed Format"; break;
-+		case V4L2_PIX_FMT_MB32_NV12:	descr = "Allwinner tiled NV12 format"; break;
- 		default:
- 			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
- 			if (fmt->description[0])
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index bbfe95e3fba8..35bc9304a762 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -670,6 +670,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
-+#define V4L2_PIX_FMT_MB32_NV12 v4l2_fourcc('M', 'N', '1', '2') /* Allwinner tiled NV12 format */
- 
- /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
- #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
+ Example
+ -------
+-sram-controller@1c00000 {
+-	compatible = "allwinner,sun4i-a10-sram-controller";
++system-control@1c00000 {
++	compatible = "allwinner,sun4i-a10-system-control";
+ 	reg = <0x01c00000 0x30>;
+ 	#address-cells = <1>;
+ 	#size-cells = <1>;
 -- 
 2.17.1
