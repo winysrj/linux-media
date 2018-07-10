@@ -1,29 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:36983 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934265AbeGJQSq (ORCPT
+Received: from mail-pl0-f54.google.com ([209.85.160.54]:40502 "EHLO
+        mail-pl0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933313AbeGJQgW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 12:18:46 -0400
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: linux-media@vger.kernel.org
-Cc: tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-usb@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 2nd REPOST 0/5] media: use irqsave() in USB's complete callback
-Date: Tue, 10 Jul 2018 18:18:28 +0200
-Message-Id: <20180710161833.2435-1-bigeasy@linutronix.de>
+        Tue, 10 Jul 2018 12:36:22 -0400
 MIME-Version: 1.0
+References: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
+ <1531150874-4595-3-git-send-email-akinobu.mita@gmail.com> <20180709161443.ubxu4el6bp6zgerj@ninjato>
+ <20180709212306.47xsduu3b5qpq72h@earth.universe>
+In-Reply-To: <20180709212306.47xsduu3b5qpq72h@earth.universe>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Wed, 11 Jul 2018 01:36:09 +0900
+Message-ID: <CAC5umyhOsyYZqdgkZDuBwwWUwAHi2y_dizRr=hy8WRfpAr5UGA@mail.gmail.com>
+Subject: Re: [PATCH -next v3 2/2] media: ov772x: use SCCB helpers
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-media@vger.kernel.org,
+        linux-i2c@vger.kernel.org, Peter Rosin <peda@axentia.se>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the second repost of the "please use _irqsave() primitives in the
-completion callback in order to get rid of local_irq_save() in
-__usb_hcd_giveback_urb()" series for the media subsystem. I saw no
-feedback from Mauro so far.
+2018=E5=B9=B47=E6=9C=8810=E6=97=A5(=E7=81=AB) 6:23 Sebastian Reichel <sebas=
+tian.reichel@collabora.co.uk>:
+>
+> Hi,
+>
+> On Mon, Jul 09, 2018 at 06:14:43PM +0200, Wolfram Sang wrote:
+> > >  static int ov772x_read(struct i2c_client *client, u8 addr)
+> > >  {
+> > > -   int ret;
+> > > -   u8 val;
+> > > -
+> > > -   ret =3D i2c_master_send(client, &addr, 1);
+> > > -   if (ret < 0)
+> > > -           return ret;
+> > > -   ret =3D i2c_master_recv(client, &val, 1);
+> > > -   if (ret < 0)
+> > > -           return ret;
+> > > -
+> > > -   return val;
+> > > +   return sccb_read_byte(client, addr);
+> > >  }
+> > >
+> > >  static inline int ov772x_write(struct i2c_client *client, u8 addr, u=
+8 value)
+> > >  {
+> > > -   return i2c_smbus_write_byte_data(client, addr, value);
+> > > +   return sccb_write_byte(client, addr, value);
+> > >  }
+>
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+>
+> > Minor nit: I'd rather drop these two functions and use the
+> > sccb-accessors directly.
+> >
+> > However, I really like how this looks here: It is totally clear we are
+> > doing SCCB and hide away all the details.
+>
+> I think it would be even better to introduce a SSCB regmap layer
+> and use that.
 
-The other patches were successfully routed through their subsystems so
-far and pop up in linux-next (except for the ath9k but it is merged in
-its ath9k tree so it is okay).
+I'm fine with introducing a SCCB regmap layer.
 
-Sebastian
+But do we need to provide both a SCCB regmap and these SCCB helpers?
+
+If we have a regmap_init_sccb(), I feel these three SCCB helper functions
+don't need to be exported anymore.
