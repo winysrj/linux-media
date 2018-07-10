@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:52752 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:52788 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751248AbeGJICE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1751263AbeGJICE (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Tue, 10 Jul 2018 04:02:04 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -44,52 +44,43 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: [PATCH v5 03/22] dt-bindings: sram: sunxi: Introduce new A10 binding for system-control
-Date: Tue, 10 Jul 2018 10:00:55 +0200
-Message-Id: <20180710080114.31469-4-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v5 04/22] dt-bindings: sram: sunxi: Add A13, A20, A23 and H3 dedicated bindings
+Date: Tue, 10 Jul 2018 10:00:56 +0200
+Message-Id: <20180710080114.31469-5-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Following-up on the introduction of a new binding for the A64, this
-introduces a system-control binding for the A10 as a replacement of
-the sram-controller binding.
+This introduces dedicated bindings for the system control blocks found
+on the A13, A20, A23 and H3 sunxi platforms.
 
-This change is motivated by consistency with the Allwinner literature,
-that mentions system control over SRAM controller. Moreover, the system
-control block is sometimes used for more than SRAM (e.g. for muxing
-related to the ethernet PHY).
+Since the controllers on the A33 are the very same as those on the A23,
+no specific compatible is introduced for it.
+
+These bindings are introduced to allow reflecting the differences that
+exist between these controllers, that may become significant to driver
+implementations.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- Documentation/devicetree/bindings/sram/sunxi-sram.txt | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/devicetree/bindings/sram/sunxi-sram.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/Documentation/devicetree/bindings/sram/sunxi-sram.txt b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
-index 9ef40e2e0a48..d7dd1a393011 100644
+index d7dd1a393011..156a02ab6b54 100644
 --- a/Documentation/devicetree/bindings/sram/sunxi-sram.txt
 +++ b/Documentation/devicetree/bindings/sram/sunxi-sram.txt
-@@ -10,7 +10,8 @@ Controller Node
- 
- Required properties:
+@@ -12,6 +12,10 @@ Required properties:
  - compatible : should be:
--    - "allwinner,sun4i-a10-sram-controller"
-+    - "allwinner,sun4i-a10-sram-controller" (deprecated)
-+    - "allwinner,sun4i-a10-system-control"
+     - "allwinner,sun4i-a10-sram-controller" (deprecated)
+     - "allwinner,sun4i-a10-system-control"
++    - "allwinner,sun5i-a13-system-control"
++    - "allwinner,sun7i-a20-system-control"
++    - "allwinner,sun8i-a23-system-control"
++    - "allwinner,sun8i-h3-system-control"
      - "allwinner,sun50i-a64-sram-controller" (deprecated)
      - "allwinner,sun50i-a64-system-control"
  - reg : sram controller register offset + length
-@@ -48,8 +49,8 @@ This valid values for this argument are:
- 
- Example
- -------
--sram-controller@1c00000 {
--	compatible = "allwinner,sun4i-a10-sram-controller";
-+system-control@1c00000 {
-+	compatible = "allwinner,sun4i-a10-system-control";
- 	reg = <0x01c00000 0x30>;
- 	#address-cells = <1>;
- 	#size-cells = <1>;
 -- 
 2.17.1
