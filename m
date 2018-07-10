@@ -1,77 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:41888 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932998AbeGJNCt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 09:02:49 -0400
-Date: Tue, 10 Jul 2018 15:02:47 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        linux-i2c@vger.kernel.org, Peter Rosin <peda@axentia.se>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v3 1/2] i2c: add SCCB helpers
-Message-ID: <20180710130247.grmrxl4srctpyygg@ninjato>
-References: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
- <5320256.KVvq6sUnyz@avalon>
- <20180710120747.s7yg36moaw2xsrim@tetsubishi>
- <30027540.g4E5J49NzT@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jv5cd4m6y3lbgcon"
-Content-Disposition: inline
-In-Reply-To: <30027540.g4E5J49NzT@avalon>
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:34697 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933216AbeGJNpD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jul 2018 09:45:03 -0400
+Received: by mail-wr1-f65.google.com with SMTP id c13-v6so14651128wrt.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2018 06:45:02 -0700 (PDT)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: mchehab@kernel.org
+Cc: Neil Armstrong <narmstrong@baylibre.com>,
+        linux-media@lists.freedesktop.org,
+        linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: platform: meson-ao-cec: make busy TX warning silent
+Date: Tue, 10 Jul 2018 15:44:57 +0200
+Message-Id: <1531230297-30921-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Switch to dev_dbg for the busy TX message to avoid having a flood of:
+[  228.064570] meson-ao-cec c8100100.cec: meson_ao_cec_transmit: busy TX: aborting
+[  230.368489] meson-ao-cec c8100100.cec: meson_ao_cec_transmit: busy TX: aborting
+[  234.208655] meson-ao-cec c8100100.cec: meson_ao_cec_transmit: busy TX: aborting
+[  236.512558] meson-ao-cec c8100100.cec: meson_ao_cec_transmit: busy TX: aborting
 
---jv5cd4m6y3lbgcon
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This message is only a debug hint and not an error.
 
+Fixes: 7ec2c0f72cb1 ("media: platform: Add Amlogic Meson AO CEC Controller driver")
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+---
+ drivers/media/platform/meson/ao-cec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> even when not used. I think it will also cause the compiler to emit warni=
-ngs=20
-> for unused functions. I don't think that's a good idea.
-
-Where is my brown paper bag? :/
-
-> > But if you insist on drivers/i2c/i2c-sccb.c, then it should be a
-> > seperate module, I'd think?
->=20
-> Given how small the functions are, I wouldn't request that, as it would=
-=20
-> introduce another Kconfig symbol, but I'm not opposed to such a new modul=
-e=20
-> either.
-
-OK, let's keep it simple for now and introduce
-drivers/i2c/i2c-core-sccb.c and link it into the core module. It can
-still be factored out later if the need arises.
-
-
---jv5cd4m6y3lbgcon
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltErnMACgkQFA3kzBSg
-KbbTdxAAjLgO10sgxo6bf3sRh5o6ybrsWqkyGYoAzBXDBeB22wQNILQ3bOeK/VK/
-eSgOXLRqWxS8HVwUHlNvFKxiew8L+XM0IIwu4WndNK0Owz9YBehzbInsvJUCkA8x
-28hHtcp77BnfZ/C2IeYw7mv9aOpi30icVln59ypYu/4IEnwT0cMOM10DYzhGd4aU
-NvwgLEIWWs9N/HEMH8wFQGUxR6uOUpSCrDagMMe2A9G/ZqOSvoOXKdNxn3Pgy6+o
-iw/lJiSfV5ty39q72RqLJYYFGOfIE7Pq4q9Xkwo/Nd2tHdM2HEKVJG1E/vhYr4cQ
-fRo8SRaTcSmeqLpUS7PDloFweR3DGYPqeFnBZMGkjJpwOe4n99aW5loShTkNx/e1
-B4AarT2X1aRbWTebP70vuRwXESbbZW9HNsQfjap4ZXdn6VnnsPueFUAvGO1Y5dYO
-UR80AM5bts1hEy9005vRADJENFHjRG8j/ACD6uzn4Mbt3fgh1ywULxggmEU38UKG
-+5vTmqYA2frSdkvtdGKp2tfic1k7AXJAORxbWMiWz3G9mcqHfOkhwwI68qoq3uYy
-65bDHjalwM+snXoeV/bOeb96zMaZoQBCC4IqOUzHLs/EeRuEJVjv9rY/Mefvxrr7
-iPgbIDjWhJ2pTeeZu6NclC5zqCqy3XFBxj5YsZtwwgt0VcrwOBo=
-=uzr3
------END PGP SIGNATURE-----
-
---jv5cd4m6y3lbgcon--
+diff --git a/drivers/media/platform/meson/ao-cec.c b/drivers/media/platform/meson/ao-cec.c
+index 8040a62..cd4be38 100644
+--- a/drivers/media/platform/meson/ao-cec.c
++++ b/drivers/media/platform/meson/ao-cec.c
+@@ -524,7 +524,7 @@ static int meson_ao_cec_transmit(struct cec_adapter *adap, u8 attempts,
+ 		return ret;
+ 
+ 	if (reg == TX_BUSY) {
+-		dev_err(&ao_cec->pdev->dev, "%s: busy TX: aborting\n",
++		dev_dbg(&ao_cec->pdev->dev, "%s: busy TX: aborting\n",
+ 			__func__);
+ 		meson_ao_cec_write(ao_cec, CEC_TX_MSG_CMD, TX_ABORT, &ret);
+ 	}
+-- 
+2.7.4
