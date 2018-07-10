@@ -1,104 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59141 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751129AbeGJIgk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 04:36:40 -0400
-Date: Tue, 10 Jul 2018 09:36:37 +0100
-From: Sean Young <sean@mess.org>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: Re: [RESEND PATCH v5 0/6] IR support for A83T
-Message-ID: <20180710083637.6s36rfbi2old5uxo@gofer.mess.org>
-References: <20180213122952.8420-1-embed3d@gmail.com>
- <85ddc129-d0f8-6299-dca0-81f79f3d04a9@gmail.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52724 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751153AbeGJIqr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jul 2018 04:46:47 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.19] media/mc: fix inconsistencies
+Message-ID: <fe3bc5a2-7231-b434-5e22-1c72f6c87c51@xs4all.nl>
+Date: Tue, 10 Jul 2018 10:46:45 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <85ddc129-d0f8-6299-dca0-81f79f3d04a9@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 02, 2018 at 01:11:34PM +0100, Philipp Rossak wrote:
-> 
-> 
-> On 13.02.2018 13:29, Philipp Rossak wrote:
-> > This patch series adds support for the sunxi A83T ir module and enhances
-> > the sunxi-ir driver. Right now the base clock frequency for the ir driver
-> > is a hard coded define and is set to 8 MHz.
-> > This works for the most common ir receivers. On the Sinovoip Bananapi M3
-> > the ir receiver needs, a 3 MHz base clock frequency to work without
-> > problems with this driver.
-> > 
-> > This patch series adds support for an optinal property that makes it able
-> > to override the default base clock frequency and enables the ir interface
-> > on the a83t and the Bananapi M3.
-> > 
-> > changes since v4:
-> > * rename cir pin from cir_pins to r_cir_pin
-> > * drop unit-adress from r_cir_pin
-> > * add a83t compatible to the cir node
-> > * move muxing options to dtsi
-> > * rename cir label and reorder it in the bananpim3.dts file
-> > 
-> > changes since v3:
-> > * collecting all acks & reviewd by
-> > * fixed typos
-> > 
-> > changes since v2:
-> > * reorder cir pin (alphabetical)
-> > * fix typo in documentation
-> > 
-> > changes since v1:
-> > * fix typos, reword Documentation
-> > * initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
-> > * change dev_info() to dev_dbg()
-> > * change naming to cir* in dts/dtsi
-> > * Added acked Ackedi-by to related patch
-> > * use whole memory block instead of registers needed + fix for h3/h5
-> > 
-> > changes since rfc:
-> > * The property is now optinal. If the property is not available in
-> >    the dtb the driver uses the default base clock frequency.
-> > * the driver prints out the the selected base clock frequency.
-> > * changed devicetree property from base-clk-frequency to clock-frequency
-> > 
-> > Regards,
-> > Philipp
-> > 
-> > Philipp Rossak (6):
-> >    media: rc: update sunxi-ir driver to get base clock frequency from
-> >      devicetree
-> >    media: dt: bindings: Update binding documentation for sunxi IR
-> >      controller
-> >    arm: dts: sun8i: a83t: Add the cir pin for the A83T
-> >    arm: dts: sun8i: a83t: Add support for the cir interface
-> >    arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
-> >    arm: dts: sun8i: h3-h5: ir register size should be the whole memory
-> >      block
-> > 
-> >   Documentation/devicetree/bindings/media/sunxi-ir.txt |  3 +++
-> >   arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  5 +++++
-> >   arch/arm/boot/dts/sun8i-a83t.dtsi                    | 18 ++++++++++++++++++
-> >   arch/arm/boot/dts/sunxi-h3-h5.dtsi                   |  2 +-
-> >   drivers/media/rc/sunxi-cir.c                         | 19 +++++++++++--------
-> >   5 files changed, 38 insertions(+), 9 deletions(-)
-> > 
-> 
-> I talked yesterday with Maxime about this patch series. And he told me if
-> the first to patches got merged, he will apply the dts patches to the sunxi
-> tree.
-> 
-> Sean, can you merge the first two patches through the rc-core?
+This is the pull request of v6 of my patch series to fix the mc inconsistencies.
 
-So I merged the first two patches, but the rest never made it upstream.
+Regards,
 
-Should they be resubmitted?
+	Hans
 
-Thanks,
+The following changes since commit 666e994aa2278e948e2492ee9d81b4df241e7222:
 
-Sean
+  media: platform: s5p-mfc: simplify getting .drvdata (2018-07-04 11:45:40 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git media-missing2
+
+for you to fetch changes up to 607488f06efa4e87be5eb229759105d990f7df18:
+
+  media-ioc-enum-entities.rst/-g-topology.rst: clarify ID/name usage (2018-07-10 10:40:19 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (12):
+      media: add 'index' to struct media_v2_pad
+      media-ioc-g-topology.rst: document new 'index' field
+      media: add flags field to struct media_v2_entity
+      media-ioc-g-topology.rst: document new 'flags' field
+      media: rename MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER
+      media.h: add MEDIA_ENT_F_DV_ENCODER
+      media.h: reorder video en/decoder functions
+      ad9389b/adv7511: set proper media entity function
+      adv7180/tvp514x/tvp7002: fix entity function
+      media/i2c: add missing entity functions
+      media-ioc-enum-links.rst: improve pad index description
+      media-ioc-enum-entities.rst/-g-topology.rst: clarify ID/name usage
+
+ Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst |  9 ++++++---
+ Documentation/media/uapi/mediactl/media-ioc-enum-links.rst    |  4 +++-
+ Documentation/media/uapi/mediactl/media-ioc-g-topology.rst    | 42 ++++++++++++++++++++++++++++++++++--------
+ Documentation/media/uapi/mediactl/media-types.rst             |  9 ++++++++-
+ drivers/media/i2c/ad9389b.c                                   |  1 +
+ drivers/media/i2c/adv7180.c                                   |  2 +-
+ drivers/media/i2c/adv7511.c                                   |  1 +
+ drivers/media/i2c/adv7604.c                                   |  1 +
+ drivers/media/i2c/adv7842.c                                   |  1 +
+ drivers/media/i2c/et8ek8/et8ek8_driver.c                      |  1 +
+ drivers/media/i2c/mt9m032.c                                   |  1 +
+ drivers/media/i2c/mt9p031.c                                   |  1 +
+ drivers/media/i2c/mt9t001.c                                   |  1 +
+ drivers/media/i2c/mt9v032.c                                   |  1 +
+ drivers/media/i2c/tda1997x.c                                  |  2 +-
+ drivers/media/i2c/tvp514x.c                                   |  2 +-
+ drivers/media/i2c/tvp7002.c                                   |  2 +-
+ drivers/media/media-device.c                                  |  2 ++
+ include/uapi/linux/media.h                                    | 39 +++++++++++++++++++++++++++++++--------
+ 19 files changed, 97 insertions(+), 25 deletions(-)
