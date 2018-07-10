@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:52844 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:52898 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932752AbeGJICH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 04:02:07 -0400
+        id S932875AbeGJICI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jul 2018 04:02:08 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
@@ -44,36 +44,40 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: [PATCH v5 06/22] soc: sunxi: sram: Add dt match for the A10 system-control compatible
-Date: Tue, 10 Jul 2018 10:00:58 +0200
-Message-Id: <20180710080114.31469-7-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v5 08/22] ARM: dts: sun4i-a10: Use system-control compatible
+Date: Tue, 10 Jul 2018 10:01:00 +0200
+Message-Id: <20180710080114.31469-9-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This binds the new A10 system-control compatible to the associated
-driver, with the same driver data as the previous compatible.
+This switches the sun4i-a10 dtsi to use the new compatible for the
+system-control block (previously named SRAM controller) instead of
+the deprecated one.
+
+The phandle is also updated to reflect the fact that the controller
+described is really about system control rather than SRAM control.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- drivers/soc/sunxi/sunxi_sram.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/sun4i-a10.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/soc/sunxi/sunxi_sram.c b/drivers/soc/sunxi/sunxi_sram.c
-index 7fec1b160dbb..236f34307c0f 100644
---- a/drivers/soc/sunxi/sunxi_sram.c
-+++ b/drivers/soc/sunxi/sunxi_sram.c
-@@ -355,6 +355,10 @@ static const struct of_device_id sunxi_sram_dt_match[] = {
- 		.compatible = "allwinner,sun4i-a10-sram-controller",
- 		.data = &sun4i_a10_sramc_variant,
- 	},
-+	{
-+		.compatible = "allwinner,sun4i-a10-system-control",
-+		.data = &sun4i_a10_sramc_variant,
-+	},
- 	{
- 		.compatible = "allwinner,sun50i-a64-sram-controller",
- 		.data = &sun50i_a64_sramc_variant,
+diff --git a/arch/arm/boot/dts/sun4i-a10.dtsi b/arch/arm/boot/dts/sun4i-a10.dtsi
+index 3a1c6b45c9a1..82f81f06f201 100644
+--- a/arch/arm/boot/dts/sun4i-a10.dtsi
++++ b/arch/arm/boot/dts/sun4i-a10.dtsi
+@@ -190,8 +190,8 @@
+ 		#size-cells = <1>;
+ 		ranges;
+ 
+-		sram-controller@1c00000 {
+-			compatible = "allwinner,sun4i-a10-sram-controller";
++		system-control@1c00000 {
++			compatible = "allwinner,sun4i-a10-system-control";
+ 			reg = <0x01c00000 0x30>;
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
 -- 
 2.17.1
