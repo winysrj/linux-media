@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:56994 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:58746 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751099AbeGJImf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 04:42:35 -0400
-Date: Tue, 10 Jul 2018 10:42:23 +0200
+        id S1751235AbeGJJXW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jul 2018 05:23:22 -0400
+Date: Tue, 10 Jul 2018 11:23:10 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -44,151 +44,34 @@ Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v5 18/22] media: platform: Add Sunxi-Cedrus VPU decoder
- driver
-Message-ID: <20180710084223.jguogmvlwloi2utf@flea>
+Subject: Re: [PATCH v5 20/22] ARM: dts: sun7i-a20: Add Video Engine and
+ reserved memory nodes
+Message-ID: <20180710092310.2hzoc7shmfykr3n5@flea>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
- <20180710080114.31469-19-paul.kocialkowski@bootlin.com>
+ <20180710080114.31469-21-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="okv6qmpowge4nc7u"
+        protocol="application/pgp-signature"; boundary="mu7kkrbfxwnu6dth"
 Content-Disposition: inline
-In-Reply-To: <20180710080114.31469-19-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180710080114.31469-21-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---okv6qmpowge4nc7u
+--mu7kkrbfxwnu6dth
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 10, 2018 at 10:01:10AM +0200, Paul Kocialkowski wrote:
-> +static int cedrus_remove(struct platform_device *pdev)
-> +{
-> +       struct cedrus_dev *dev =3D platform_get_drvdata(pdev);
+On Tue, Jul 10, 2018 at 10:01:12AM +0200, Paul Kocialkowski wrote:
+> +		vpu: video-codec@1c0e000 {
+> +			compatible =3D "allwinner,sun7i-a20-video-engine";
+> +			reg =3D <0x01c0e000 0x1000>;
 > +
-> +       v4l2_info(&dev->v4l2_dev, "Removing " CEDRUS_NAME);
 
-That log is kind of pointless.
+The issue is here with all your patches, but you should drop the node
+label and the extra new line.
 
-> +static void cedrus_hw_set_capabilities(struct cedrus_dev *dev)
-> +{
-> +	unsigned int engine_version;
-> +
-> +	engine_version =3D cedrus_read(dev, VE_VERSION) >> VE_VERSION_SHIFT;
-> +
-> +	if (engine_version >=3D 0x1667)
-> +		dev->capabilities |=3D CEDRUS_CAPABILITY_UNTILED;
-
-The version used here would need a define, but I'm wondering if this
-is the right solution here. You are using at the same time the version
-ID returned by the register and the compatible in various places, and
-they are both redundant. If you want to base the capabilities on the
-compatible, then you can do it for all of those properties and
-capabilities, and if you want to use the version register, then you
-don't need all those compatibles but just one.
-
-I think that basing all our capabilities on the compatible makes more
-sense, since you need to have access to the registers in order to read
-the version register, and this changes from one SoC generation to the
-other (for example, keeping the reset line asserted would prevent you
-=66rom reading it, and the fact that there is a reset line depends on
-the SoC).
-
-> +int cedrus_hw_probe(struct cedrus_dev *dev)
-> +{
-> +	struct resource *res;
-> +	int irq_dec;
-> +	int ret;
-> +
-> +	irq_dec =3D platform_get_irq(dev->pdev, 0);
-> +	if (irq_dec <=3D 0) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to get IRQ\n");
-> +		return -ENXIO;
-> +	}
-
-You already have an error code returned by platform_get_irq, there's
-no point in masking it and returning -ENXIO. This can even lead to
-some bugs, for example when the error code is EPROBE_DEFER.
-
-(and please add a new line there).
-
-> +	ret =3D devm_request_threaded_irq(dev->dev, irq_dec, cedrus_irq,
-> +					cedrus_bh, 0, dev_name(dev->dev),
-> +					dev);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to request IRQ\n");
-> +		return -ENXIO;
-> +	}
-
-Same thing here, you're masking the actual error code.
-
-> +	res =3D platform_get_resource(dev->pdev, IORESOURCE_MEM, 0);
-> +	dev->base =3D devm_ioremap_resource(dev->dev, res);
-> +	if (!dev->base) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to map registers\n");
-> +
-> +		ret =3D -EFAULT;
-
-ENOMEM is usually returned in such a case.
-
-> +		goto err_sram;
-> +	}
-> +
-> +	ret =3D clk_set_rate(dev->mod_clk, CEDRUS_CLOCK_RATE_DEFAULT);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to set clock rate\n");
-> +		goto err_sram;
-> +	}
-> +
-> +	ret =3D clk_prepare_enable(dev->ahb_clk);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to enable AHB clock\n");
-> +
-> +		ret =3D -EFAULT;
-> +		goto err_sram;
-
-Same thing for the error code.
-
-> +	}
-> +
-> +	ret =3D clk_prepare_enable(dev->mod_clk);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to enable MOD clock\n");
-> +
-> +		ret =3D -EFAULT;
-> +		goto err_ahb_clk;
-
-Ditto.
-
-> +	}
-> +
-> +	ret =3D clk_prepare_enable(dev->ram_clk);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to enable RAM clock\n");
-> +
-> +		ret =3D -EFAULT;
-> +		goto err_mod_clk;
-
-Ditto.
-
-> +	}
-> +
-> +	ret =3D reset_control_reset(dev->rstc);
-> +	if (ret) {
-> +		v4l2_err(&dev->v4l2_dev, "Failed to apply reset\n");
-> +
-> +		ret =3D -EFAULT;
-
-Ditto.
-
-There's also a bunch of warnings/checks reported by checkpatch that
-should be fixed in the next iteration: the spaces after a cast, the
-NULL comparison, macros arguments precedence, parenthesis alignments
-issues, etc.)
-
-Thanks!
 Maxime
 
 --=20
@@ -196,24 +79,24 @@ Maxime Ripard, Bootlin (formerly Free Electrons)
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---okv6qmpowge4nc7u
+--mu7kkrbfxwnu6dth
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltEcW4ACgkQ0rTAlCFN
-r3TqrQ//XlmctO0y2jW0/UHLJ/Ercl7EzUQBNk7890aXUuJHEpLwN9CTyWZUWyJ/
-JTQux7Vrf2x7RxBjlzThdeyZ6LFfQotPI7+bal1H30QQxuClVHeZcIPxng5bzSiE
-BmyKirQLr/A1iR0mG+G9ZbzSl3JzGu3UdvxW44CfVuOHiWIFHHteUIKpgJ6o/HZl
-j8aIlBqqp3buurPyr2jN34fRcoOCFvItfYgIHhO8a09+Vye1KWzrhkA/hitsHISN
-IxE6WzAf6KKxeSUyRFU/O2hE3tTFigts8P0InfzZ9LfMdFs3pFsCY8ViJTUM1Kga
-Tb5thhFY6CkMX3duHUnK2LeEvPtvrRpeVTqY4sX3b31wmgc0u+Iw15tD2zQkiylT
-rVJVnqUBHUg3bLfzmdpgAKS+fMpgn0ufoYne7wkfAiXF49du1PUd5KRaB5/MYwXZ
-o9l3YREqbUYLY+6FL2Fe+sZ1MTzOIw7h4jZMP9PJuE1ILVPLjWIyDrHTSUs2rfp+
-7oXBZDjpiyv1II8cnaODT+9sD0FEvMYOOh2936GaRv7kObWJFqG/XghFeieKVFjL
-nFoVuytSsvUNqxF42HLS6FrDYp3yYrYYGlYCiGGoqUlNUScEU0b1a6kkRfmYvx0T
-uIB56yZSXZ8DJtWmLQIg27XULzzMj0Qc9s5qMVi+mZuoXc44Sek=
-=7Hqq
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltEev0ACgkQ0rTAlCFN
+r3QVjw/9GP7WTsxJr7ZffNM5gks3/vDZk7PDA9r+sXYULxhFDuv5YEUUtdMLfnxU
+6LBw+dWz9IduAC1noxk2kLKBq5D7HFM9iE7uAprS5KyGRHqd71GtayufeKao/0Xh
+3KfGTMckfFufa/WUqF/lDeiREsGGjZjvtOcu0Gh2kFefYipTTl7VJ51XBdxaaPeH
+4Ypmg1j1ia/C9jsfDYZqKwlfgyY+yUyLriOFp1FVm5dmpLWURZV8YxDf0VDVjZ8c
+nZp/2xooW3cdfeAY1pZgwtPudJHZ7XpoZ/FeKLat/IbeBpekm1ZBBYL+U3fN8XvG
+K46IODEv+bPz446L4lYYXUXGNp+1fmZviByygVCedmf3TQ1yvEC6xz0dxmzCgUwL
+JqhZvn+MaucbAakeRYVawZLXoCYMj7puhPPYTqj4vu6YtzrW+hF5zhArD2kaFXop
+d44aJh2aacgVJRoStjhpfKh2WdOMNVx0lRNeqUW4VpEDPxu6rVF7l8kuWjBJCsAL
+6qelyWvMGRSWCVboOB6sHIIShLd6nW9vdhsFGtj/84Nvh2y/M9vLBaWciMbrlpyI
+mWsdT3bee/ogxWKzFrj5bDu6jGZnBmZIz7bq3r9TAxLLbzOQDzdPNuPWCz3jcV1Z
+cX1+71ja20JucZQHpiROJkXjIGgKLofeJWTUS03v67Iw2t+QJ9E=
+=1FOP
 -----END PGP SIGNATURE-----
 
---okv6qmpowge4nc7u--
+--mu7kkrbfxwnu6dth--
