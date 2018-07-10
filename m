@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:53034 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:53011 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933036AbeGJICK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S933023AbeGJICK (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Tue, 10 Jul 2018 04:02:10 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -44,9 +44,9 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: [PATCH v5 13/22] ARM: sun8i-a23-a33: Add SRAM controller node and C1 SRAM region
-Date: Tue, 10 Jul 2018 10:01:05 +0200
-Message-Id: <20180710080114.31469-14-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v5 12/22] ARM: sun7i-a20: Add support for the C1 SRAM region with the SRAM controller
+Date: Tue, 10 Jul 2018 10:01:04 +0200
+Message-Id: <20180710080114.31469-13-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -54,30 +54,24 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 
-This adds a SRAM controller node for the A23 and A33, with support for
-the C1 SRAM region that is shared between the Video Engine and the CPU.
+This adds support for the C1 SRAM region (to be used with the SRAM
+controller driver) for the A20 platform. The region is shared
+between the Video Engine and the CPU.
 
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- arch/arm/boot/dts/sun8i-a23-a33.dtsi | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/arm/boot/dts/sun7i-a20.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun8i-a23-a33.dtsi b/arch/arm/boot/dts/sun8i-a23-a33.dtsi
-index 44f3cad3de75..ad2dd62205d6 100644
---- a/arch/arm/boot/dts/sun8i-a23-a33.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a23-a33.dtsi
-@@ -124,6 +124,29 @@
- 		#size-cells = <1>;
- 		ranges;
- 
-+		system-control@1c00000 {
-+			compatible = "allwinner,sun8i-a23-system-control",
-+				     "allwinner,sun4i-a10-system-control";
-+			reg = <0x01c00000 0x30>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 59abb623b249..38999d791cb5 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -276,6 +276,20 @@
+ 					status = "disabled";
+ 				};
+ 			};
 +
 +			sram_c: sram@1d00000 {
 +				compatible = "mmio-sram";
@@ -87,15 +81,13 @@ index 44f3cad3de75..ad2dd62205d6 100644
 +				ranges = <0 0x01d00000 0x80000>;
 +
 +				ve_sram: sram-section@0 {
-+					compatible = "allwinner,sun8i-a23-sram-c1",
++					compatible = "allwinner,sun7i-a20-sram-c1",
 +						     "allwinner,sun4i-a10-sram-c1";
 +					reg = <0x000000 0x80000>;
 +				};
 +			};
-+		};
-+
- 		dma: dma-controller@1c02000 {
- 			compatible = "allwinner,sun8i-a23-dma";
- 			reg = <0x01c02000 0x1000>;
+ 		};
+ 
+ 		nmi_intc: interrupt-controller@1c00030 {
 -- 
 2.17.1
