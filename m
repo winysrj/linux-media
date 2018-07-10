@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:38476 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933353AbeGJOnR (ORCPT
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:37080 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933508AbeGJPDF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 10:43:17 -0400
+        Tue, 10 Jul 2018 11:03:05 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180710080114.31469-5-paul.kocialkowski@bootlin.com>
-References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com> <20180710080114.31469-5-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180710080114.31469-11-paul.kocialkowski@bootlin.com>
+References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com> <20180710080114.31469-11-paul.kocialkowski@bootlin.com>
 From: Chen-Yu Tsai <wens@csie.org>
-Date: Tue, 10 Jul 2018 22:36:19 +0800
-Message-ID: <CAGb2v65MO9xmKQz5LuydwqwvVB-_bbM=FeqbsRwJbh-5km9XCQ@mail.gmail.com>
-Subject: Re: [PATCH v5 04/22] dt-bindings: sram: sunxi: Add A13, A20, A23 and
- H3 dedicated bindings
+Date: Tue, 10 Jul 2018 22:54:30 +0800
+Message-ID: <CAGb2v67APUGDu=KM8opavOEKCjorXRyzshdqzZAifPkQzJHNjQ@mail.gmail.com>
+Subject: Re: [linux-sunxi] [PATCH v5 10/22] ARM: dts: sun7i-a20: Use
+ most-qualified system control compatibles
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         devicetree <devicetree@vger.kernel.org>,
@@ -57,21 +57,19 @@ Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 10, 2018 at 4:00 PM, Paul Kocialkowski
+On Tue, Jul 10, 2018 at 4:01 PM, Paul Kocialkowski
 <paul.kocialkowski@bootlin.com> wrote:
-> This introduces dedicated bindings for the system control blocks found
-> on the A13, A20, A23 and H3 sunxi platforms.
+> This switches the sun7i-a20 dtsi to use the most qualified compatibles
+> for the system-control block (previously named SRAM controller) as well
+> as the SRAM blocks. The sun4i-a10 compatibles are kept since these
+> hardware blocks are backward-compatible.
 >
-> Since the controllers on the A33 are the very same as those on the A23,
-> no specific compatible is introduced for it.
->
-> These bindings are introduced to allow reflecting the differences that
-> exist between these controllers, that may become significant to driver
-> implementations.
+> The phandle for system control is also updated to reflect the fact that
+> the controller described is really about system control rather than SRAM
+> control.
 >
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-Not sure if there's a difference between A10 and A20, if you don't count
-the NMI that we have a separate node for. But anyway,
-
 Reviewed-by: Chen-Yu Tsai <wens@csie.org>
+
+But see discussion about the SRAM mapping compatibles.
