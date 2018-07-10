@@ -1,278 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:57479 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751047AbeGJHdg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 03:33:36 -0400
-Date: Tue, 10 Jul 2018 09:33:31 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        laurent.pinchart@ideasonboard.com, maxime.ripard@bootlin.com,
-        sam@elite-embedded.com, jagan@amarulasolutions.com,
-        festevam@gmail.com, pza@pengutronix.de, hugues.fruchet@st.com,
-        loic.poulain@linaro.org, daniel@zonque.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: ov5640: Re-work MIPI startup sequence
-Message-ID: <20180710073331.GD23629@w540>
-References: <1530874836-12750-1-git-send-email-jacopo+renesas@jmondi.org>
- <cdef1c78-fe0e-3ed4-aca7-99c2c3955795@gmail.com>
+Received: from mga12.intel.com ([192.55.52.136]:35377 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751041AbeGJHkY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jul 2018 03:40:24 -0400
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: "Chen, Ping-chung" <ping-chung.chen@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "grundler@chromium.org" <grundler@chromium.org>,
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>
+Subject: RE: [PATCH] media: imx208: Add imx208 camera sensor driver
+Date: Tue, 10 Jul 2018 07:37:54 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D704217@PGSMSX111.gar.corp.intel.com>
+References: <1531206936-31447-1-git-send-email-ping-chung.chen@intel.com>
+In-Reply-To: <1531206936-31447-1-git-send-email-ping-chung.chen@intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="n/aVsWSeQ4JHkrmm"
-Content-Disposition: inline
-In-Reply-To: <cdef1c78-fe0e-3ed4-aca7-99c2c3955795@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi PC,
 
---n/aVsWSeQ4JHkrmm
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Thanks for the patch.
 
-Hi Steve,
-   thanks for testing!
+Cc in Grant, and Intel Jim/Jason
 
-On Mon, Jul 09, 2018 at 02:52:09PM -0700, Steve Longerbeam wrote:
-> Hi Jacopo,
->
-> I tested this patch on the i.MX6Q SabreSD with the OV5640 module.
-> It fixes the LP-11 timeout at stream on, but the captured images
-> are completely blank/black.
+> -----Original Message-----
+> From: Chen, Ping-chung
+> Sent: Tuesday, July 10, 2018 3:16 PM
+> To: linux-media@vger.kernel.org
+> Cc: sakari.ailus@linux.intel.com; Yeh, Andy <andy.yeh@intel.com>;
+> tfiga@chromium.org; Chen, Ping-chung <ping-chung.chen@intel.com>
+> Subject: [PATCH] media: imx208: Add imx208 camera sensor driver
+> +};
+> +
+> +static int imx208_enum_mbus_code(struct v4l2_subdev *sd,
+> +				  struct v4l2_subdev_pad_config *cfg,
+> +				  struct v4l2_subdev_mbus_code_enum *code) {
+> +	/* Only one bayer order(GRBG) is supported */
+> +	if (code->index > 0)
+> +		return -EINVAL;
+> +
 
-Intersting that the module was not starting up properly on other
-(all?) i.MX6Q platforms, not only on Engicam's one. I didn't get this
-initially.
+There is no limitation on using GRBG bayer order now. You can refer to imx355 driver as well.
 
-Ok, so that's a step forward, but not enough probably. I'll keep
-looking into this and get back!
+	+static int imx355_enum_frame_size(struct v4l2_subdev *sd,
+	+				   struct v4l2_subdev_pad_config *cfg,
+	+				   struct v4l2_subdev_frame_size_enum *fse)
+	+{	
+	+	struct imx355 *imx355 = to_imx355(sd);
 
-Thanks
-   j
+> +	code->code = MEDIA_BUS_FMT_SRGGB10_1X10;
+> +
+> +	return 0;
+> +}
+> +
+> +static int imx208_enum_frame_size(struct v4l2_subdev *sd,
+> +				   struct v4l2_subdev_pad_config *cfg,
+> +				   struct v4l2_subdev_frame_size_enum *fse) {
+> +	if (fse->index >= ARRAY_SIZE(supported_modes))
+> +		return -EINVAL;
+> +
+> +	if (fse->code != MEDIA_BUS_FMT_SRGGB10_1X10)
+> +		return -EINVAL;
+> +
+> +	fse->min_width = supported_modes[fse->index].width;
+> +	fse->max_width = fse->min_width;
+> +	fse->min_height = supported_modes[fse->index].height;
+> +	fse->max_height = fse->min_height;
+> +
+> +	return 0;
+> +}
+> +
+> +static void imx208_update_pad_format(const struct imx208_mode *mode,
+> +				      struct v4l2_subdev_format *fmt) {
+> +	fmt->format.width = mode->width;
+> +	fmt->format.height = mode->height;
+> +	fmt->format.code = MEDIA_BUS_FMT_SRGGB10_1X10;
+> +	fmt->format.field = V4L2_FIELD_NONE;
+> +}
+> +
+> +
+> +static int imx208_probe(struct i2c_client *client) {
+> +	struct imx208 *imx208;
+> +	int ret;
+> +	u32 val = 0;
+> +
+> +	device_property_read_u32(&client->dev, "clock-frequency", &val);
+> +	if (val != 19200000)
+> +		return -EINVAL;
+> +
+> +	imx208 = devm_kzalloc(&client->dev, sizeof(*imx208), GFP_KERNEL);
+> +	if (!imx208)
+> +		return -ENOMEM;
+> +
+> +	/* Initialize subdev */
+> +	v4l2_i2c_subdev_init(&imx208->sd, client, &imx208_subdev_ops);
+> +
+> +	/* Check module identity */
+> +	ret = imx208_identify_module(imx208);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Set default mode to max resolution */
+> +	imx208->cur_mode = &supported_modes[0];
+> +
+> +	ret = imx208_init_controls(imx208);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Initialize subdev */
+> +	imx208->sd.internal_ops = &imx208_internal_ops;
+> +	imx208->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	imx208->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> +
+> +	/* Initialize source pad */
+> +	imx208->pad.flags = MEDIA_PAD_FL_SOURCE;
 
->
-> Steve
->
->
-> On 07/06/2018 04:00 AM, Jacopo Mondi wrote:
-> >From: Jacopo Mondi <jacopo@jmondi.org>
-> >
-> >Rework the MIPI interface startup sequence with the following changes:
-> >
-> >- Remove MIPI bus initialization from the initial settings blob
-> >- At set_power(1) time power up MIPI Tx/Rx and set data and clock lanes in
-> >   LP11 during 'sleep' and 'idle' with MIPI clock in non-continuous mode.
-> >- At s_stream time enable/disable the MIPI interface output.
-> >- Restore default settings at set_power(0) time.
-> >
-> >Before this commit the sensor MIPI interface was initialized with settings
-> >that require a start/stop sequence at power-up time in order to force lanes
-> >into LP11 state, as they were initialized in LP00 when in 'sleep mode',
-> >which is assumed to be the sensor manual definition for the D-PHY defined
-> >stop mode.
-> >
-> >The stream start/stop was performed by enabling disabling clock gating,
-> >and had the side effect to change the lanes sleep mode configuration when
-> >stream was stopped.
-> >
-> >Clock gating/ungating:
-> >-       ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
-> >-                            on ? 0 : BIT(5));
-> >-       if (ret)
-> >
-> >Set lanes in LP11 when in 'sleep mode':
-> >-       ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
-> >-                              on ? 0x00 : 0x70);
-> >
-> >This commit fixes an issue reported by Jagan Teki on i.MX6 platforms that
-> >prevents the host interface from powering up correctly:
-> >https://lkml.org/lkml/2018/6/1/38
-> >
-> >It also improves MIPI capture operations stability on my testing platform
-> >where MIPI capture often (silently) failed and returned all-purple frames.
-> >
-> >fixes: f22996db44e2 ("media: ov5640: add support of DVP parallel interface")
-> >Reported-by: Jagan Teki <jagan@amarulasolutions.com>
-> >Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
-> >
-> >---
-> >
-> >Hello,
-> >   I'm sending this one as new patch instead of a v2 of the previously sent
-> >series "media: i2c: ov5640: Re-work MIPI interface configuration" as the
-> >previous one was not working on the Engicam i.Mx6 platform where Jagan
-> >initially reported issues on.
-> >
-> >I've been able to test that capture now starts on said platform, but I've not
-> >been able to visually verify any of the image content as I have no way yet to
-> >transfer the raw images to my development host and verify their content (network
-> >still not working for me on that platform :/ )
-> >
-> >On my other testing platform images are correct, but they already were with the
-> >previous version of this patches too, so I assume the CSI-2 receiver is far more
-> >tolerant there.
-> >
-> >Jagan, is there any way you could verify images? I would appreciate your
-> >Tested-by tag in case they're correct.
-> >
-> >Also, as there seems to be a lot of people interested in ov5640 these days, I
-> >have expanded the receivers list. Anyone that could give these patches a spin?
-> >(ie. Sam reported issues too with the current MIPI startup sequence in a patch
-> >series he shared on dropbox iirc...)
-> >
-> >Thanks
-> >    j
-> >---
-> >  drivers/media/i2c/ov5640.c | 91 ++++++++++++++++++++++++++++++++++++----------
-> >  1 file changed, 71 insertions(+), 20 deletions(-)
-> >
-> >diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> >index 1ecbb7a..7bbd1d7 100644
-> >--- a/drivers/media/i2c/ov5640.c
-> >+++ b/drivers/media/i2c/ov5640.c
-> >@@ -286,10 +286,10 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
-> >  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> >  	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x3000, 0x00, 0, 0},
-> >  	{0x3002, 0x1c, 0, 0}, {0x3004, 0xff, 0, 0}, {0x3006, 0xc3, 0, 0},
-> >-	{0x300e, 0x45, 0, 0}, {0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
-> >+	{0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
-> >  	{0x501f, 0x00, 0, 0}, {0x4713, 0x03, 0, 0}, {0x4407, 0x04, 0, 0},
-> >  	{0x440e, 0x00, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
-> >-	{0x4837, 0x0a, 0, 0}, {0x4800, 0x04, 0, 0}, {0x3824, 0x02, 0, 0},
-> >+	{0x4837, 0x0a, 0, 0}, {0x3824, 0x02, 0, 0},
-> >  	{0x5000, 0xa7, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x5180, 0xff, 0, 0},
-> >  	{0x5181, 0xf2, 0, 0}, {0x5182, 0x00, 0, 0}, {0x5183, 0x14, 0, 0},
-> >  	{0x5184, 0x25, 0, 0}, {0x5185, 0x24, 0, 0}, {0x5186, 0x09, 0, 0},
-> >@@ -1102,12 +1102,18 @@ static int ov5640_set_stream_mipi(struct ov5640_dev *sensor, bool on)
-> >  {
-> >  	int ret;
-> >
-> >-	ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
-> >-			     on ? 0 : BIT(5));
-> >-	if (ret)
-> >-		return ret;
-> >-	ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
-> >-			       on ? 0x00 : 0x70);
-> >+	/*
-> >+	 * Enable/disable the MIPI interface
-> >+	 *
-> >+	 * 0x300e = on ? 0x45 : 0x40
-> >+	 * [7:5] = 001	: 2 data lanes mode
-> >+	 * [4] = 0	: Power up MIPI HS Tx
-> >+	 * [3] = 0	: Power up MIPI LS Rx
-> >+	 * [2] = 1/0	: MIPI interface enable/disable
-> >+	 * [1:0] = 01/00: FIXME: 'debug'
-> >+	 */
-> >+	ret = ov5640_write_reg(sensor, OV5640_REG_IO_MIPI_CTRL00,
-> >+			       on ? 0x45 : 0x40);
-> >  	if (ret)
-> >  		return ret;
-> >
-> >@@ -1786,23 +1792,68 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
-> >  		if (ret)
-> >  			goto power_off;
-> >
-> >+		/* We're done here for DVP bus, while CSI-2 needs setup. */
-> >+		if (sensor->ep.bus_type != V4L2_MBUS_CSI2)
-> >+			return 0;
-> >+
-> >+		/*
-> >+		 * Power up MIPI HS Tx and LS Rx; 2 data lanes mode
-> >+		 *
-> >+		 * 0x300e = 0x40
-> >+		 * [7:5] = 001	: 2 data lanes mode
-> >+		 * [4] = 0	: Power up MIPI HS Tx
-> >+		 * [3] = 0	: Power up MIPI LS Rx
-> >+		 * [2] = 0	: MIPI interface disabled
-> >+		 */
-> >+		ret = ov5640_write_reg(sensor,
-> >+				       OV5640_REG_IO_MIPI_CTRL00, 0x40);
-> >+		if (ret)
-> >+			goto power_off;
-> >+
-> >+		/*
-> >+		 * Gate clock and set LP11 in 'no packets mode' (idle)
-> >+		 *
-> >+		 * 0x4800 = 0x24
-> >+		 * [5] = 1	: Gate clock when 'no packets'
-> >+		 * [2] = 1	: MIPI bus in LP11 when 'no packets'
-> >+		 */
-> >+		ret = ov5640_write_reg(sensor,
-> >+				       OV5640_REG_MIPI_CTRL00, 0x24);
-> >+		if (ret)
-> >+			goto power_off;
-> >+
-> >+		/*
-> >+		 * Set data lanes and clock in LP11 when 'sleeping'
-> >+		 *
-> >+		 * 0x3019 = 0x70
-> >+		 * [6] = 1	: MIPI data lane 2 in LP11 when 'sleeping'
-> >+		 * [5] = 1	: MIPI data lane 1 in LP11 when 'sleeping'
-> >+		 * [4] = 1	: MIPI clock lane in LP11 when 'sleeping'
-> >+		 */
-> >+		ret = ov5640_write_reg(sensor,
-> >+				       OV5640_REG_PAD_OUTPUT00, 0x70);
-> >+		if (ret)
-> >+			goto power_off;
-> >+
-> >+		/* Give lanes some time to coax into LP11 state. */
-> >+		usleep_range(500, 1000);
-> >+
-> >+	} else {
-> >  		if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
-> >-			/*
-> >-			 * start streaming briefly followed by stream off in
-> >-			 * order to coax the clock lane into LP-11 state.
-> >-			 */
-> >-			ret = ov5640_set_stream_mipi(sensor, true);
-> >-			if (ret)
-> >-				goto power_off;
-> >-			usleep_range(1000, 2000);
-> >-			ret = ov5640_set_stream_mipi(sensor, false);
-> >-			if (ret)
-> >-				goto power_off;
-> >+			/* Reset MIPI bus settings to their default values. */
-> >+			ov5640_write_reg(sensor,
-> >+					 OV5640_REG_IO_MIPI_CTRL00, 0x58);
-> >+			ov5640_write_reg(sensor,
-> >+					 OV5640_REG_MIPI_CTRL00, 0x04);
-> >+			ov5640_write_reg(sensor,
-> >+					 OV5640_REG_PAD_OUTPUT00, 0x00);
-> >  		}
-> >
-> >-		return 0;
-> >+		ov5640_set_power_off(sensor);
-> >  	}
-> >
-> >+	return 0;
-> >+
-> >  power_off:
-> >  	ov5640_set_power_off(sensor);
-> >  	return ret;
-> >--
-> >2.7.4
-> >
->
+Please refer to IMX355 to change below code to new API on upstreamed kernel.
+https://patchwork.linuxtv.org/patch/50028/
 
---n/aVsWSeQ4JHkrmm
-Content-Type: application/pgp-signature; name="signature.asc"
+	+	/* Initialize subdev */
+	+	imx355->sd.internal_ops = &imx355_internal_ops;
+	+	imx355->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+	+		V4L2_SUBDEV_FL_HAS_EVENTS;
+	+	imx355->sd.entity.ops = &imx355_subdev_entity_ops;
+	+	imx355->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+	+	ret = media_entity_pads_init(&imx355->sd.entity, 1, &imx355->pad);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbRGFKAAoJEHI0Bo8WoVY8kPwP+QFyIeK+HraZ/FP3FrNYdlg1
-uDRoZn3GxkbA9x2uEsAgFW1MYQg/nfTQgGxyNrAaFhx7NVA56uM/Z9l8YxLjRfAx
-g815l5VkRYeygzl0EqJ8/dDX6/eJtnNA67L8mDYozJ7QG9If52WsVNBTFpY7Hh44
-8+rs7DRzUOPKyZxUgXQ3FN4sOGBQPUtysIjSiJwUYHX2lb+qIbeoTMzmrjNePvfy
-HZtlm6t9ldfW8EeWR4a62dYp1RExP/uEw/Q8cmG8Bhh6BU58nNPJFYv8AUQnJrSe
-Ol16dFx32j/RmzOYgc308FjTbazhUCPLLD6e4fqPNIDNS6PCSUO1rkzjbIUVyRNG
-H2BSoc4zI2LYsnR7EmvHeDTP/ggm+olf23aOli55HhPa+VCBQXNctXAsflRc1/GM
-8K5CziF2N3B0S35akfhwf8tzYZFvvd1DCUDcG+mMXXAQdPeWVmTHcGxlnB1ef6kG
-OttYad7my7ugGibvXexw7JmgKurdtI7WxMYr5PcEVFCSKt7ZatEYkSSQGCC2dGnj
-aMmCStSmFHqWTUNmO1Izns18LXmhrJzwjiUbIpDfCCv93SCOeRY4xrD42oHYXO+x
-LSFAbC2oP0h2M8k6aVT9i6WIOUfWtcfMJsZGEuDihf5ev6kGht/h5JCgX3Gr8B7g
-mUDl7wt+hAG57TeWmMJH
-=JBDH
------END PGP SIGNATURE-----
-
---n/aVsWSeQ4JHkrmm--
+> +	ret = media_entity_init(&imx208->sd.entity, 1, &imx208->pad, 0);
+> +	if (ret) {
+> +		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
+> +		goto error_handler_free;
+> +	}
+> +
+> +	ret = v4l2_async_register_subdev_sensor_common(&imx208->sd);
+> +	if (ret < 0)
+> +		goto error_media_entity;
+> +
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+> +	pm_runtime_idle(&client->dev);
+> +
+> +	return 0;
+> +
+> +error_media_entity:
+> +	media_entity_cleanup(&imx208->sd.entity);
+> +
+> +error_handler_free:
+> +	imx208_free_controls(imx208);
+> +
+> +	return ret;
+> +}
+> +
+> +static int imx208_remove(struct i2c_client *client) {
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct imx208 *imx208 = to_imx208(sd);
+> +
+> +	v4l2_async_unregister_subdev(sd);
+> +	media_entity_cleanup(&sd->entity);
+> +	imx208_free_controls(imx208);
+> +
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops imx208_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(imx208_suspend, imx208_resume) };
+> +
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id imx208_acpi_ids[] = {
+> +	{ "INT3478" },
+> +	{ /* sentinel */ }
+> +};
+> +
+> +MODULE_DEVICE_TABLE(acpi, imx208_acpi_ids); #endif
+> +
+> +static struct i2c_driver imx208_i2c_driver = {
+> +	.driver = {
+> +		.name = "imx208",
+> +		.pm = &imx208_pm_ops,
+> +		.acpi_match_table = ACPI_PTR(imx208_acpi_ids),
+> +	},
+> +	.probe_new = imx208_probe,
+> +	.remove = imx208_remove,
+> +};
+> +
+> +module_i2c_driver(imx208_i2c_driver);
+> +
+> +MODULE_AUTHOR("Yeh, Andy <andy.yeh@intel.com>");
+> MODULE_AUTHOR("Chen,
+> +Ping-chung <ping-chung.chen@intel.com>"); MODULE_DESCRIPTION("Sony
+> +IMX208 sensor driver"); MODULE_LICENSE("GPL v2");
+> --
+> 1.9.1
