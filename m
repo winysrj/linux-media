@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:37080 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933508AbeGJPDF (ORCPT
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:33966 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933688AbeGJPDF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 10 Jul 2018 11:03:05 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180710080114.31469-11-paul.kocialkowski@bootlin.com>
-References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com> <20180710080114.31469-11-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180710080114.31469-12-paul.kocialkowski@bootlin.com>
+References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com> <20180710080114.31469-12-paul.kocialkowski@bootlin.com>
 From: Chen-Yu Tsai <wens@csie.org>
-Date: Tue, 10 Jul 2018 22:54:30 +0800
-Message-ID: <CAGb2v67APUGDu=KM8opavOEKCjorXRyzshdqzZAifPkQzJHNjQ@mail.gmail.com>
-Subject: Re: [linux-sunxi] [PATCH v5 10/22] ARM: dts: sun7i-a20: Use
- most-qualified system control compatibles
+Date: Tue, 10 Jul 2018 22:56:23 +0800
+Message-ID: <CAGb2v65swXpLwAo3M9X=MJeVmUrjT=FPFZxp=eCzMrfopqHKjA@mail.gmail.com>
+Subject: Re: [PATCH v5 11/22] ARM: sun5i: Add support for the C1 SRAM region
+ with the SRAM controller
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         devicetree <devicetree@vger.kernel.org>,
@@ -59,17 +59,15 @@ List-ID: <linux-media.vger.kernel.org>
 
 On Tue, Jul 10, 2018 at 4:01 PM, Paul Kocialkowski
 <paul.kocialkowski@bootlin.com> wrote:
-> This switches the sun7i-a20 dtsi to use the most qualified compatibles
-> for the system-control block (previously named SRAM controller) as well
-> as the SRAM blocks. The sun4i-a10 compatibles are kept since these
-> hardware blocks are backward-compatible.
+> From: Maxime Ripard <maxime.ripard@bootlin.com>
 >
-> The phandle for system control is also updated to reflect the fact that
-> the controller described is really about system control rather than SRAM
-> control.
+> This adds support for the C1 SRAM region (to be used with the SRAM
+> controller driver) for sun5i-based platforms. The region is shared
+> between the Video Engine and the CPU.
 >
+> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
 Reviewed-by: Chen-Yu Tsai <wens@csie.org>
 
-But see discussion about the SRAM mapping compatibles.
+But again, see discussion about SRAM compatibles.
