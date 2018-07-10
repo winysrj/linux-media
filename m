@@ -1,49 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:38684 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732309AbeGJVPq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 17:15:46 -0400
-Received: by mail-pl0-f67.google.com with SMTP id b1-v6so8164021pls.5
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2018 14:14:51 -0700 (PDT)
-Received: from [192.168.0.6] ([103.6.157.159])
-        by smtp.gmail.com with ESMTPSA id i188-v6sm30022365pfc.3.2018.07.10.14.14.48
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 10 Jul 2018 14:14:49 -0700 (PDT)
-To: linux-media@vger.kernel.org
-Subject: Wine Enthusiasts List
-From: Sofia Thomas <sofiat@aimdigitalpros.com>
-Message-ID: <7d4bf214-dc42-d5de-3a1e-8f282f56f147@aimdigitalpros.com>
-Date: Tue, 10 Jul 2018 17:06:04 -0400
+Received: from sauhun.de ([88.99.104.3]:45228 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732205AbeGJVRw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jul 2018 17:17:52 -0400
+Date: Tue, 10 Jul 2018 22:59:19 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        Peter Rosin <peda@axentia.se>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH -next v3 2/2] media: ov772x: use SCCB helpers
+Message-ID: <20180710205919.xu6yizd2k7f65shp@ninjato>
+References: <1531150874-4595-1-git-send-email-akinobu.mita@gmail.com>
+ <1531150874-4595-3-git-send-email-akinobu.mita@gmail.com>
+ <20180709161443.ubxu4el6bp6zgerj@ninjato>
+ <20180709212306.47xsduu3b5qpq72h@earth.universe>
+ <CAC5umyhOsyYZqdgkZDuBwwWUwAHi2y_dizRr=hy8WRfpAr5UGA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="73r6hmqqtwkouwdr"
+Content-Disposition: inline
+In-Reply-To: <CAC5umyhOsyYZqdgkZDuBwwWUwAHi2y_dizRr=hy8WRfpAr5UGA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
--- 
-Hi,
+--73r6hmqqtwkouwdr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Would you be interested in reaching out to "Wine Drinkers list " from USA?
 
-Our Databases:-    1.Beer Drinkers List                 2.Alcohol Drinkers List
+> > I think it would be even better to introduce a SSCB regmap layer
+> > and use that.
+>=20
+> I'm fine with introducing a SCCB regmap layer.
 
-                     3.Beverage Consumers                 4.Liquor  Drinkers List
+I am fine with this approach, too.
 
-                     5.Food Enthusiasts List              6.Gift Buyers List
+> But do we need to provide both a SCCB regmap and these SCCB helpers?
 
-                     7.Luxury Brand Buyers List           8.Home Owners List
+I don't know much about the OV sensor drivers. I'd think they would
+benefit from regmap, so a-kind-of enforced conversion to regmap doesn't
+sound too bad to me.
 
-                     9.Spa and Resort Visitors and many more.
+> If we have a regmap_init_sccb(), I feel these three SCCB helper functions
+> don't need to be exported anymore.
 
-All the contacts are opt-in verified, 100 percent permission based and can be used for unlimited multi-channel marketing.
+Might be true. But other media guys are probably in a better position to
+comment on this?
 
-Please let me know your thoughts towards procuring the Wine Drinkers list.
+Note that I found SCCB devices with 16 bit regs: ov2659 & ov 2685. I
+think we can cover those with SMBus word accesses. regmap is probably
+also the cleanest way to hide this detail?
 
-Best Regards,
-Sofia Thoma
 
-We respect your privacy, if you do not wish to receive any further emails from our end, please reply with a subject ³Leave Out².
+--73r6hmqqtwkouwdr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltFHiMACgkQFA3kzBSg
+KbaQwg//Ymmw7qH90Lr7/yQ6e/fNn8TjbNatI1mavKiPDykp2tYy6xkhuiW65eft
+m1klKM8rZAkihXDSSA9FLouvEPTh2nUNOqLgqGbAfFuEz2CwHUTi6PW8SOhTCacc
+DNfaLRHHYfwhyPKoCmSJs6hqCTO69ISJQQ8WeYanCN8ogG/wdNmzEfKt+qvloMTR
+DhCEi9emgycoPMOvvXG23R7QfwC1T+Y9irwD9XFt+qyuIYIrCGpR2e7tPiyqhSvx
+OvT8sDx2ZhQi7qp+CF5vU7h9CsoiTIJDbECZzxWzkMvI5JRb8WPpE1BN3JGiEScY
+4jDrYIutH2TpXNYzWlvUH3y/oZyXosJQxbN4xwBe8q8Auw7Sfz0HrxwRWYM248dc
+CujWxG02GRg+dlahnfSU/9As1d5IZLtYIJDCZ8G9VlnKVqbjP07IL2+he59cUK7U
+ofyppRjjRl8++NoehFZlwT7ef6t6PS1La+kTVKNahAyAuD5Gj7LshyhynhvPa6q7
+qTlID5uwkh0nVcOWDd2qC0tdNmJcf8IwjWuXR5lWqnmU1x8NxLOU9t21D481m5k8
+kJF1VfeoY/jRdb1JxaZ6+JuqfTaAY2cy2DEE9KkjuCl1TROu4UREsY8stsrQuafP
+RLiIFHqu7GrL+QvZ1ipypxH4oJJUrfQYXddXIvLHO4Rc5N9rQ+4=
+=2SID
+-----END PGP SIGNATURE-----
+
+--73r6hmqqtwkouwdr--
