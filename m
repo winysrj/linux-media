@@ -1,71 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52724 "EHLO
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:57773 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751153AbeGJIqr (ORCPT
+        by vger.kernel.org with ESMTP id S1751903AbeGJIpO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 04:46:47 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+        Tue, 10 Jul 2018 04:45:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.19] media/mc: fix inconsistencies
-Message-ID: <fe3bc5a2-7231-b434-5e22-1c72f6c87c51@xs4all.nl>
-Date: Tue, 10 Jul 2018 10:46:45 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv6 09/12] adv7180/tvp514x/tvp7002: fix entity function
+Date: Tue, 10 Jul 2018 10:45:09 +0200
+Message-Id: <20180710084512.99238-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180710084512.99238-1-hverkuil@xs4all.nl>
+References: <20180710084512.99238-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the pull request of v6 of my patch series to fix the mc inconsistencies.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Regards,
+The entity function was ORed with the flags field instead of
+assigned to the function field. Correct this.
 
-	Hans
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/adv7180.c | 2 +-
+ drivers/media/i2c/tvp514x.c | 2 +-
+ drivers/media/i2c/tvp7002.c | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-The following changes since commit 666e994aa2278e948e2492ee9d81b4df241e7222:
-
-  media: platform: s5p-mfc: simplify getting .drvdata (2018-07-04 11:45:40 -0400)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git media-missing2
-
-for you to fetch changes up to 607488f06efa4e87be5eb229759105d990f7df18:
-
-  media-ioc-enum-entities.rst/-g-topology.rst: clarify ID/name usage (2018-07-10 10:40:19 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (12):
-      media: add 'index' to struct media_v2_pad
-      media-ioc-g-topology.rst: document new 'index' field
-      media: add flags field to struct media_v2_entity
-      media-ioc-g-topology.rst: document new 'flags' field
-      media: rename MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER
-      media.h: add MEDIA_ENT_F_DV_ENCODER
-      media.h: reorder video en/decoder functions
-      ad9389b/adv7511: set proper media entity function
-      adv7180/tvp514x/tvp7002: fix entity function
-      media/i2c: add missing entity functions
-      media-ioc-enum-links.rst: improve pad index description
-      media-ioc-enum-entities.rst/-g-topology.rst: clarify ID/name usage
-
- Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst |  9 ++++++---
- Documentation/media/uapi/mediactl/media-ioc-enum-links.rst    |  4 +++-
- Documentation/media/uapi/mediactl/media-ioc-g-topology.rst    | 42 ++++++++++++++++++++++++++++++++++--------
- Documentation/media/uapi/mediactl/media-types.rst             |  9 ++++++++-
- drivers/media/i2c/ad9389b.c                                   |  1 +
- drivers/media/i2c/adv7180.c                                   |  2 +-
- drivers/media/i2c/adv7511.c                                   |  1 +
- drivers/media/i2c/adv7604.c                                   |  1 +
- drivers/media/i2c/adv7842.c                                   |  1 +
- drivers/media/i2c/et8ek8/et8ek8_driver.c                      |  1 +
- drivers/media/i2c/mt9m032.c                                   |  1 +
- drivers/media/i2c/mt9p031.c                                   |  1 +
- drivers/media/i2c/mt9t001.c                                   |  1 +
- drivers/media/i2c/mt9v032.c                                   |  1 +
- drivers/media/i2c/tda1997x.c                                  |  2 +-
- drivers/media/i2c/tvp514x.c                                   |  2 +-
- drivers/media/i2c/tvp7002.c                                   |  2 +-
- drivers/media/media-device.c                                  |  2 ++
- include/uapi/linux/media.h                                    | 39 +++++++++++++++++++++++++++++++--------
- 19 files changed, 97 insertions(+), 25 deletions(-)
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 25d24a3f10a7..a727d7f806a1 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -1335,7 +1335,7 @@ static int adv7180_probe(struct i2c_client *client,
+ 		goto err_unregister_vpp_client;
+ 
+ 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
+-	sd->entity.flags |= MEDIA_ENT_F_ATV_DECODER;
++	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 	ret = media_entity_pads_init(&sd->entity, 1, &state->pad);
+ 	if (ret)
+ 		goto err_free_ctrl;
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index 6a9890531d01..675b9ae212ab 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -1084,7 +1084,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	decoder->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
++	decoder->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+ 	ret = media_entity_pads_init(&decoder->sd.entity, 1, &decoder->pad);
+ 	if (ret < 0) {
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 4599b7e28a8d..4f5c627579c7 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -1010,7 +1010,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	device->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	device->sd.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
++	device->sd.entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+ 	error = media_entity_pads_init(&device->sd.entity, 1, &device->pad);
+ 	if (error < 0)
+-- 
+2.18.0
