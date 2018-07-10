@@ -1,99 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35863 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751335AbeGJIpO (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56739 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752464AbeGJIpP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 04:45:14 -0400
+        Tue, 10 Jul 2018 04:45:15 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCHv6 00/12] media/mc: fix inconsistencies
-Date: Tue, 10 Jul 2018 10:45:00 +0200
-Message-Id: <20180710084512.99238-1-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv6 05/12] media: rename MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER
+Date: Tue, 10 Jul 2018 10:45:05 +0200
+Message-Id: <20180710084512.99238-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180710084512.99238-1-hverkuil@xs4all.nl>
+References: <20180710084512.99238-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-This series is v6 of my previous attempt:
+The use of 'DTV' is very confusing since it normally refers to Digital
+TV e.g. DVB etc.
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg133178.html
+Instead use 'DV' (Digital Video), which nicely corresponds to the
+DV Timings API used to configure such receivers and transmitters.
 
-The goal is to fix the inconsistencies between the 'old' and 'new' 
-MC API. I hate the terms 'old' and 'new', there is nothing wrong IMHO with 
-using an 'old' API if it meets the needs of the application.
+We keep an alias to avoid breaking userspace applications.
 
-Making G_TOPOLOGY useful is urgently needed since I think that will be
-very helpful for the work we want to do on library support for complex
-cameras.
+Since this alias is only available if __KERNEL__ is *not* defined
+(i.e. it is only available for userspace, not kernelspace), any
+drivers that use it also have to be converted to the new define.
+These drivers are adv7604, adv7842 and tda1997x.
 
-Changes since v5:
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ Documentation/media/uapi/mediactl/media-types.rst | 2 +-
+ drivers/media/i2c/adv7604.c                       | 1 +
+ drivers/media/i2c/adv7842.c                       | 1 +
+ drivers/media/i2c/tda1997x.c                      | 2 +-
+ include/uapi/linux/media.h                        | 4 +++-
+ 5 files changed, 7 insertions(+), 3 deletions(-)
 
-- Added Reviewed-by tags from Laurent.
-- Improved the commit log of patch 05/12 mentioning that it also modifies
-  drivers.
-- Rephrased the pad index explanation in patch 11/12: new pad indices do
-  not necessarily have to be added to the end. The key is that existing pad
-  indices should never be renumbered. Since there can be holes in the pad
-  indices it is always possible that a new pad uses one of those unused
-  indices.
-
-Changes since v4:
-
-- Improve documentation of the new index field in patch 2.
-- Added patch 11 to sync the index field documentation in media-ioc-enum-links.rst
-  with the index field documentation from media-ioc-g-topology.rst.
-- Added patch 12 that clarifies that you should not hardcode ID values
-  in applications since they can change between instances of the device.
-  Also document that the entity name is unique within the media topology.
-
-Changes since v3:
-
-- Renamed MEDIA_ENT_F_DTV_ENCODER to MEDIA_ENT_F_DV_ENCODER
-- Added a new patch renaming MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER.
-- Added a new patch that reorders the function defines in media.h so that they
-  are in increasing numerical order (the en/decoder functions where not in
-  order).
-- Added Sakari's Acks (except for the two new patches).
-
-Regards,
-
-        Hans
-
-
-Hans Verkuil (12):
-  media: add 'index' to struct media_v2_pad
-  media-ioc-g-topology.rst: document new 'index' field
-  media: add flags field to struct media_v2_entity
-  media-ioc-g-topology.rst: document new 'flags' field
-  media: rename MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER
-  media.h: add MEDIA_ENT_F_DV_ENCODER
-  media.h: reorder video en/decoder functions
-  ad9389b/adv7511: set proper media entity function
-  adv7180/tvp514x/tvp7002: fix entity function
-  media/i2c: add missing entity functions
-  media-ioc-enum-links.rst: improve pad index description
-  media-ioc-enum-entities.rst/-g-topology.rst: clarify ID/name usage
-
- .../uapi/mediactl/media-ioc-enum-entities.rst |  9 ++--
- .../uapi/mediactl/media-ioc-enum-links.rst    |  4 +-
- .../uapi/mediactl/media-ioc-g-topology.rst    | 42 +++++++++++++++----
- .../media/uapi/mediactl/media-types.rst       |  9 +++-
- drivers/media/i2c/ad9389b.c                   |  1 +
- drivers/media/i2c/adv7180.c                   |  2 +-
- drivers/media/i2c/adv7511.c                   |  1 +
- drivers/media/i2c/adv7604.c                   |  1 +
- drivers/media/i2c/adv7842.c                   |  1 +
- drivers/media/i2c/et8ek8/et8ek8_driver.c      |  1 +
- drivers/media/i2c/mt9m032.c                   |  1 +
- drivers/media/i2c/mt9p031.c                   |  1 +
- drivers/media/i2c/mt9t001.c                   |  1 +
- drivers/media/i2c/mt9v032.c                   |  1 +
- drivers/media/i2c/tda1997x.c                  |  2 +-
- drivers/media/i2c/tvp514x.c                   |  2 +-
- drivers/media/i2c/tvp7002.c                   |  2 +-
- drivers/media/media-device.c                  |  2 +
- include/uapi/linux/media.h                    | 39 +++++++++++++----
- 19 files changed, 97 insertions(+), 25 deletions(-)
-
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 96910cf2eaaa..c11b0c7e890b 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -200,7 +200,7 @@ Types and flags used to represent the media graph elements
+          MIPI CSI-2, etc.), and outputs them on its source pad to an output
+          video bus of another type (eDP, MIPI CSI-2, parallel, etc.).
+ 
+-    *  -  ``MEDIA_ENT_F_DTV_DECODER``
++    *  -  ``MEDIA_ENT_F_DV_DECODER``
+        -  Digital video decoder. The basic function of the video decoder is
+ 	  to accept digital video from a wide variety of sources
+ 	  and output it in some digital video standard, with appropriate
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 1a3b2c04d9f9..668be2bca57a 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -3499,6 +3499,7 @@ static int adv76xx_probe(struct i2c_client *client,
+ 	for (i = 0; i < state->source_pad; ++i)
+ 		state->pads[i].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[state->source_pad].flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_DV_DECODER;
+ 
+ 	err = media_entity_pads_init(&sd->entity, state->source_pad + 1,
+ 				state->pads);
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index fddac32e5051..99d781343fb1 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -3541,6 +3541,7 @@ static int adv7842_probe(struct i2c_client *client,
+ 	INIT_DELAYED_WORK(&state->delayed_work_enable_hotplug,
+ 			adv7842_delayed_work_enable_hotplug);
+ 
++	sd->entity.function = MEDIA_ENT_F_DV_DECODER;
+ 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
+ 	if (err)
+diff --git a/drivers/media/i2c/tda1997x.c b/drivers/media/i2c/tda1997x.c
+index 039a92c3294a..d114ac5243ec 100644
+--- a/drivers/media/i2c/tda1997x.c
++++ b/drivers/media/i2c/tda1997x.c
+@@ -2570,7 +2570,7 @@ static int tda1997x_probe(struct i2c_client *client,
+ 		 id->name, i2c_adapter_id(client->adapter),
+ 		 client->addr);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+-	sd->entity.function = MEDIA_ENT_F_DTV_DECODER;
++	sd->entity.function = MEDIA_ENT_F_DV_DECODER;
+ 	sd->entity.ops = &tda1997x_media_ops;
+ 
+ 	/* set allowed mbus modes based on chip, bus-type, and bus-width */
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index ebd2cda67833..99f5e0978ebb 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -93,7 +93,7 @@ struct media_device_info {
+  * Video decoder functions
+  */
+ #define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+-#define MEDIA_ENT_F_DTV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
++#define MEDIA_ENT_F_DV_DECODER			(MEDIA_ENT_F_BASE + 0x6001)
+ 
+ /*
+  * Digital TV, analog TV, radio and/or software defined radio tuner functions.
+@@ -400,6 +400,8 @@ struct media_v2_topology {
+ #define MEDIA_ENT_T_V4L2_SUBDEV_DECODER		MEDIA_ENT_F_ATV_DECODER
+ #define MEDIA_ENT_T_V4L2_SUBDEV_TUNER		MEDIA_ENT_F_TUNER
+ 
++#define MEDIA_ENT_F_DTV_DECODER			MEDIA_ENT_F_DV_DECODER
++
+ /*
+  * There is still no ALSA support in the media controller. These
+  * defines should not have been added and we leave them here only
 -- 
 2.18.0
