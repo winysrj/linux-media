@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:40368 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:40488 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726384AbeGKIhu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 04:37:50 -0400
-Date: Wed, 11 Jul 2018 10:34:38 +0200
+        id S1726314AbeGKIiT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jul 2018 04:38:19 -0400
+Date: Wed, 11 Jul 2018 10:35:08 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -44,34 +44,28 @@ Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v5 03/22] dt-bindings: sram: sunxi: Introduce new A10
- binding for system-control
-Message-ID: <20180711083438.o2nwi3czsm2ku6p6@flea>
+Subject: Re: [PATCH v5 06/22] soc: sunxi: sram: Add dt match for the A10
+ system-control compatible
+Message-ID: <20180711083508.je6qfwzabera2lxm@flea>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
- <20180710080114.31469-4-paul.kocialkowski@bootlin.com>
+ <20180710080114.31469-7-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6b6xkqqnehiflbtw"
+        protocol="application/pgp-signature"; boundary="6ab5fsrzgygz3dpu"
 Content-Disposition: inline
-In-Reply-To: <20180710080114.31469-4-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180710080114.31469-7-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---6b6xkqqnehiflbtw
+--6ab5fsrzgygz3dpu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 10, 2018 at 10:00:55AM +0200, Paul Kocialkowski wrote:
-> Following-up on the introduction of a new binding for the A64, this
-> introduces a system-control binding for the A10 as a replacement of
-> the sram-controller binding.
->=20
-> This change is motivated by consistency with the Allwinner literature,
-> that mentions system control over SRAM controller. Moreover, the system
-> control block is sometimes used for more than SRAM (e.g. for muxing
-> related to the ethernet PHY).
+On Tue, Jul 10, 2018 at 10:00:58AM +0200, Paul Kocialkowski wrote:
+> This binds the new A10 system-control compatible to the associated
+> driver, with the same driver data as the previous compatible.
 >=20
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
@@ -83,24 +77,24 @@ Maxime Ripard, Bootlin (formerly Free Electrons)
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---6b6xkqqnehiflbtw
+--6ab5fsrzgygz3dpu
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFwR0ACgkQ0rTAlCFN
-r3TilQ/9G9dgx0ypcWSh/Xvt1YkGOaD+eqJBtlSeC/qdcKj3Ozrlk0TyA+hfXeHg
-svJDrjUFYExxH5CV0Bk2DjNLuFH1tV74cembOuVfi/YXma27TDkyGXRnx2TtOD3b
-f8Jbe/aKLR2JUeGQqW/fvqEc71ImhStbRQguGyxdfsU2GemZ9/G5uT1ky+O9DLZE
-gD/1p6NSuBhO1or25ZVdyoA/ZBeTzQ0Vum37iqbHn5BDvLChSn9o8abR35W0UfxS
-TfICKGejqGdQBD3zF9BNXthpEfDeynvGLw/be/MYAu7XngSYC+2C69Yjmz2MPs1m
-+Zod1Mxdev3rFmgxdDXyi2DhYUWY5z+/9yCJgkTJCv2JCGD2h86DLH5e8gJN4SHd
-puZYPW4L0On+W+OUc/KQszjiHvnHe4aR20aU9pKTwoGyarpXUlI1t9iGy5QV82AR
-B6/IEXWI5Ka5WX0900qccmKROcMJcUFmA4v+Vjed0w/vcxId+pzStzi2ZJZdCRwG
-/rZD/hwhQIJDJTLK2inzsV3CjfdFxYafWw7wy7HtHaSfK3rR9DxyuegINff8wzBX
-p8AipAlZ0NQZUcArA61WxXzyEUInSJP4pkLU8ys3Hk5frlQhu863VHvBi/RqR48U
-jnhIuRONZsTWU0sVW9SPErCoZtbsfcSwjauIy4vPXQaNR6SGT/U=
-=Q1/M
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFwTsACgkQ0rTAlCFN
+r3SkkQ//VyQZb9qaTxz5pPdfwMiTo34+NGRvoZBuwD5D5gmN1X3k1Eg598krib3a
+4LlUE/ts6T49XQ3BYolAqLSv+xiJUkhxcUnEDc2ezthmdCGUC51FyZEHDh5IVHHs
+BcmXK+KFY3D8+GYHFyTlQ0UJH3xoXTa8U3iAKW/mJPbjiXqlDjr44wFJ0H3/5bDS
+3jXCuTRu7OI5+INxHMmajMuXkv5F7M4peZ6Jzh2sF/Yl3QhBcBKmw04v2Q4On11v
+ASkcxiPsnAFo/S5bN9YTxnWOHJ+ZBDWYD+aMMxQ2dOrrUL/vR/4jJ9RjQpXtUH8I
+Lr3RRhNOM0g1zHqn4glihIlq/+Z4CAC5U6hd+uFi4RVCLUfnGhanQMDngbtuILTd
+3vgb4WlMaYXn+XteGq/wXWKYPOpuVluSEyWhY5QkLWNywpj9R9exFzHlQJuzDgLF
+EvIR4ltjBV9BwbfXKuMQ01wFTCCuV/7eSV13BDg+IG0PWaveVxNbP/qjCF8/W0Js
+NYksi6ZrYCPFdVJAAK1ymyRO551gxTPoEcBQOz0fxExbGsOkDlx0LB4gYN89UTyZ
+6ELZTO1I7+o1FYuDptD3D4gTFSdL409iy221XB64eOm3QnYSt2Gn1WfFO4P7uef1
+jz/fUWgJQUUnIH5Tf0h17r1Tl9TsUahpGrAUAO2EIrRXtj7aaZQ=
+=Mcss
 -----END PGP SIGNATURE-----
 
---6b6xkqqnehiflbtw--
+--6ab5fsrzgygz3dpu--
