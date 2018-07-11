@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:41145 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:41871 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726319AbeGKIuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 04:50:11 -0400
-Date: Wed, 11 Jul 2018 10:46:56 +0200
+        id S1726289AbeGKJFQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jul 2018 05:05:16 -0400
+Date: Wed, 11 Jul 2018 11:01:57 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Chen-Yu Tsai <wens@csie.org>
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
@@ -46,73 +46,63 @@ Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v5 04/22] dt-bindings: sram: sunxi: Add A13, A20, A23 and
- H3 dedicated bindings
-Message-ID: <20180711084656.4y3m7maiszewzgsz@flea>
+Subject: Re: [linux-sunxi] [PATCH v5 09/22] ARM: dts: sun5i: Use
+ most-qualified system control compatibles
+Message-ID: <20180711090157.bs435c4k6knb6bqv@flea>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
- <20180710080114.31469-5-paul.kocialkowski@bootlin.com>
- <CAGb2v65MO9xmKQz5LuydwqwvVB-_bbM=FeqbsRwJbh-5km9XCQ@mail.gmail.com>
+ <20180710080114.31469-10-paul.kocialkowski@bootlin.com>
+ <CAGb2v64HbpvJhy5KQOepc61nU7NECaWMPvhZ16dk5hJXiPBHxA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="7xak3bjnuzaq4fcl"
+        protocol="application/pgp-signature"; boundary="4xdjxhmgjufzuifr"
 Content-Disposition: inline
-In-Reply-To: <CAGb2v65MO9xmKQz5LuydwqwvVB-_bbM=FeqbsRwJbh-5km9XCQ@mail.gmail.com>
+In-Reply-To: <CAGb2v64HbpvJhy5KQOepc61nU7NECaWMPvhZ16dk5hJXiPBHxA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---7xak3bjnuzaq4fcl
+--4xdjxhmgjufzuifr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 10, 2018 at 10:36:19PM +0800, Chen-Yu Tsai wrote:
-> On Tue, Jul 10, 2018 at 4:00 PM, Paul Kocialkowski
+On Tue, Jul 10, 2018 at 10:53:44PM +0800, Chen-Yu Tsai wrote:
+> On Tue, Jul 10, 2018 at 4:01 PM, Paul Kocialkowski
 > <paul.kocialkowski@bootlin.com> wrote:
-> > This introduces dedicated bindings for the system control blocks found
-> > on the A13, A20, A23 and H3 sunxi platforms.
-> >
-> > Since the controllers on the A33 are the very same as those on the A23,
-> > no specific compatible is introduced for it.
-> >
-> > These bindings are introduced to allow reflecting the differences that
-> > exist between these controllers, that may become significant to driver
-> > implementations.
-> >
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> > This switches the sun5i dtsi to use the most qualified compatibles for
+> > the system-control block (previously named SRAM controller) as well as
+> > the SRAM blocks. The sun4i-a10 compatibles are kept since these hardware
+> > blocks are backward-compatible.
 >=20
-> Not sure if there's a difference between A10 and A20, if you don't count
-> the NMI that we have a separate node for. But anyway,
->=20
-> Reviewed-by: Chen-Yu Tsai <wens@csie.org>
+> Not quite sure why they are backward-compatible. The A13 has less SRAM
+> mapping controls than the A10.
 
-I've applied it, adding the A10 fallback compatible for the A20.
-
-Maxime
+I've applied this patch, and removed that compatible (and its mention
+in the commit log).
 
 --=20
 Maxime Ripard, Bootlin (formerly Free Electrons)
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---7xak3bjnuzaq4fcl
+--4xdjxhmgjufzuifr
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFw/8ACgkQ0rTAlCFN
-r3RG2Q//UY8tKZzpQY3u34hE+DqO8V2dQE8TFa25BgqlqD/R48vYooRoCjQiOMIF
-GPAu5hZjAUxcUfx2G5A8vKXF1eZQRAPLJm8iRHMpdYztcpBCvDsvbpc7Wr2oly3t
-zrS/f9l3t4lMbyx07oLU8b7WsQ1k5CmtNxpjKDbWJr2QfiVa0DoIECpx1LPfSdyM
-jp5KJeDoiH3XwBPaSoojWmWX2GxiMQ4lHWLXwSwf++s8RxLTftZhRej0OJCAuAKK
-Ax/wx60j3BcxvAoMtUy7wPHcvRhNOlmgKYUmynweJjqZwQfRmoh5Lr0Ec3in6hXy
-ZETtN+aEx0yjzZpswRZGlsTwu2+pNwwLUlSmNkGOZscJt0r0/ncBG4Sej80P2nbb
-0jbhr8v9UlJ4Ot8qsjij3ZvUX0uV4UrkK2TlMVa8Qxj5riRKQq4wclKZBqaGbP5D
-C54qSJ30V7pvl3v29PmAtJudst2TMCeIP7ZB5QIhFQrK3g2OJA480hdnMo/MbIIp
-OFRhhbrzEayJqqDYg8QxklpUZXAIMvOrD+8PusQsVIPyNjomwtR8ZG9fE4SFpjmq
-J8Ng5/FwheWHLUYme0EkOKOn5Pmng7Y77XXR9E3VPg63a2/GYwSmLGikUFyePgAc
-jBKhA3VLMsGrB5bjMpxRF4+jo4r/0yZ8qJOD2SzPx3yJi1EmpMY=
-=ooSy
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFx4QACgkQ0rTAlCFN
+r3T5hw/+LrwtplgQOGWsmip+88WJ28Kyyjgcza8XqQa4MXn75qKAhuqdHSlPLJ8b
+stcNMEWB81LhHzEqabOjltriCEz6sYOLoCZB7deZfV0VO2QuNYBir6scl770b+c3
+Pv1HqpZe4vZv8tnY7U/jUI3b35H7bXl+zFlAxu8O7TGTwtOjL4Bt01EM5h5Ox9ut
+lTRPX5WUphSgUMkMJzo0BrO7FNHZXb6LhIzmOE3bYvJf62jRLkSF7pwhcqPI8ZtA
+jSAp0YlbDcUgb4Q1nkDZmpsvtXFMQdIoDtBUhwGBGbLlUNuY7N9WdK0NehTCB5jA
+oSL6XBBiOg8/i5VqXUglSLHaaxE3OMzr5A4QGxrxXCWilV2chbvAfaOpFH7GPOsQ
+ijibhtej60bZ7Nii0cL9afzWNVbgRjS7ox78i4MEkMd3V5+3tWodZdED3lcg53RJ
+m4fb3m1DyMEZWj3EERFD9khsvb76yIA2/jvq8jzRI4yV4nBgE0bD83XEcKL5x1Pz
+i+UYbNPo9JO78q2/gSatoJzVyxZ9CR/j/LTZ+XA2APBqeUEegvK4bXpD0nrC4P+C
+j+gqFwLa/AltYU2Tsfh/xVaLYVOfOezAjetht3TfJHecDRc+VXus/AJOftAE2Sfc
+1GK5Q6PCU4SYUpj7JtHBaUNFr+Yie+c5YtzJDcdIH/w3TzRXt44=
+=MV4R
 -----END PGP SIGNATURE-----
 
---7xak3bjnuzaq4fcl--
+--4xdjxhmgjufzuifr--
