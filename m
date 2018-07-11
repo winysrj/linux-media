@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42477 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:42643 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726384AbeGKJR1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 05:17:27 -0400
-Date: Wed, 11 Jul 2018 11:14:06 +0200
+        id S1726632AbeGKJTG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jul 2018 05:19:06 -0400
+Date: Wed, 11 Jul 2018 11:15:43 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
@@ -44,36 +44,32 @@ Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v5 13/22] ARM: sun8i-a23-a33: Add SRAM controller node
- and C1 SRAM region
-Message-ID: <20180711091405.mkhzamcmimhofryo@flea>
+Subject: Re: [PATCH v5 14/22] ARM: sun8i-h3: Add SRAM controller node and C1
+ SRAM region
+Message-ID: <20180711091543.f36t3llqz6ptlcir@flea>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
- <20180710080114.31469-14-paul.kocialkowski@bootlin.com>
+ <20180710080114.31469-15-paul.kocialkowski@bootlin.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="7gn7zc3tutiqnnqt"
+        protocol="application/pgp-signature"; boundary="rg7scobloivjv74w"
 Content-Disposition: inline
-In-Reply-To: <20180710080114.31469-14-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180710080114.31469-15-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---7gn7zc3tutiqnnqt
+--rg7scobloivjv74w
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 10, 2018 at 10:01:05AM +0200, Paul Kocialkowski wrote:
-> From: Maxime Ripard <maxime.ripard@bootlin.com>
+On Tue, Jul 10, 2018 at 10:01:06AM +0200, Paul Kocialkowski wrote:
+> This adds a SRAM controller node for the H3, with support for the C1
+> SRAM region that is shared between the Video Engine and the CPU.
 >=20
-> This adds a SRAM controller node for the A23 and A33, with support for
-> the C1 SRAM region that is shared between the Video Engine and the CPU.
->=20
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-Fixed the compatible and the commit prefix and applied.
-
+Fixed the commit prefix and the compatible and applied, thanks!
 Maxime
 
 --=20
@@ -81,24 +77,24 @@ Maxime Ripard, Bootlin (formerly Free Electrons)
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---7gn7zc3tutiqnnqt
+--rg7scobloivjv74w
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFyl0ACgkQ0rTAlCFN
-r3R+Yw/+MJEg67M6HlThebPjS7qiYOcx73WG571ioM0oj9J8iZVduxmHR5kuCVv/
-0CdWEe7KV3Af80YtCKMs7hWBD1+Oly1PsXUIV3WZa6+r7vMBuyBqf9TUh5O41F0L
-G6KeYnNXNGpRaMRFXRp6bxAKEOESSYjlSk0nUKTx70HtS0WPEuRjLyTID19tgGX0
-qG9gDSdbnqHueVQSbx6c4/EuBEO2MdgoqNr8DC/iKMHEsGGVX9pmrRRUu+nil1T7
-6vT3ZVUSku9ElBhnLLLtPX6MWQDJ0h0Ct9u8UFg/ylU7ZYzZ8/l/w4vSwgdYq0t3
-wwV9T4tuEgV8/tS8LVQN5SMaPmmqHygXx3unslxwI8XiOkTapNmCTPITDW+NeSu1
-a3CLyTpHQ+1S5poIpNCbi0dn5Rp70LZkKjn9qCq83yORwk8b0xJL72AOovOLZ2CA
-qYE6d7QJcUVlZebY+zWiLzUgUuJdOI6XOLhq1tx9ch9mVE9QCGBkNtX3oi7dPEwa
-LqC4IxSLYM4IGKyUBXFJuN48nPIsZHsZJnMGCBtAz1ajG4WINkK/IoJI2Dfu9ZbS
-eq/10Uwc/HoqhWYZT6JMC6rL5VSi8ojiSt2dhT11LeEuoow81Mb0U/gXwLBVtyaz
-eXa1vTaL0GdA+YAwXULDx1AbcUTq5mkwYHGA6ucgencLzprFdhM=
-=sk20
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFyr4ACgkQ0rTAlCFN
+r3Sf9hAAgADGeEd0CSQqNNVggcxUAx8nGT3VrADg3BZ0EumKrYoYaQugNSoxIJHv
+PORIDOMUvA2fzEcwufNcoJEUHPsXA51dJN8pVnv5Ybo3HOX4h5jOUdXZTZIH5ktm
+2l2GfIr7Fq3z/BDLIM2wYX7d0JzsJK7wcDiI0skb/pQQbrUMVMIbyFXRpFDFkinl
+A7nteOSVigB74scZDS6vOjpcKZ72ivCz4OXt2cqc6BZ0VPYCf0T4/2Y//c/jiRKw
+a7plk3KzRksPdKwA/noykQDNT0653qxYfmmD2I+7d7GNB5ctdlYlbmf9VmRRp0W2
+OHtYZDem4IQS2HfdBhTp6ToQSQc6jrVu4fgcENyNaTVUS/uWfkPQSzbTvNiVZwv9
+iWdJc4lzN2bENFOjI24/BSpa7U5Ti4LD6y8Qc6+Fw5dZcHYMuJ9rn9zTARQTx2J3
+lAquLM+1K1n7KyDc3xWhvDUSJonMxWqpE/S7T4yFIoO7A53Ax0B49PNRuE7tId4d
+Gtle1EyW1Oq4ZSy+xvcwtzOap4RxgRiuyC9VdwyaGCNgcVGrOzJplT0MO6n43rff
+uPXm8cd/LqrTTD6jrCrwbDFyfGUgaqUXBgWAHzNMFnVA+3hgxGqOes9bXhdBmPXh
+4G1V0f/+ntFzjLC3t/n36aL3RfjR+Uh03NmjoPU/PVbQNXzIgbo=
+=/dKn
 -----END PGP SIGNATURE-----
 
---7gn7zc3tutiqnnqt--
+--rg7scobloivjv74w--
