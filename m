@@ -1,276 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:55015 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726606AbeGKKnr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 06:43:47 -0400
-Date: Wed, 11 Jul 2018 12:39:58 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: Javier Martinez Canillas <javierm@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
-Message-ID: <20180711103958.gd6szkgfljjnr44w@pengutronix.de>
-References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
- <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
- <20180705094421.0bad52e2@coco.lan>
- <2f4121bb-1774-410c-5425-f9977d38a02e@xs4all.nl>
- <7efd92ca-1891-4054-29d5-dca5813b37d6@redhat.com>
+Received: from mail.bootlin.com ([62.4.15.54]:47510 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732387AbeGKLQb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jul 2018 07:16:31 -0400
+Date: Wed, 11 Jul 2018 13:12:30 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v10 2/2] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20180711111230.gpv7ww2nhaha5hou@flea>
+References: <1525417745-37964-1-git-send-email-yong.deng@magewell.com>
+ <20180626110821.wkal6fcnoncsze6y@valkosipuli.retiisi.org.uk>
+ <20180705154802.03604f156709be11892b19c0@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="wbnyxjafmaafjrkv"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <7efd92ca-1891-4054-29d5-dca5813b37d6@redhat.com>
+In-Reply-To: <20180705154802.03604f156709be11892b19c0@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
 
-On 18-07-08 15:11, Javier Martinez Canillas wrote:
-> [adding Marco Felsch since he has been working on this driver]
-> 
-> On 07/05/2018 03:12 PM, Hans Verkuil wrote:
-> > On 05/07/18 14:44, Mauro Carvalho Chehab wrote:
-> >> Javier,
-> >>
-> >> How standard settings work with the current OMAP3 drivers with tvp5150?
-> > 
-> > It looks like tvp5150 uses autodetect of the standard, which in general is
-> 
-> That's correct, the driver uses standard autodetect.
-> 
-> > not a good thing to do since different standards have different buffer
-> > sizes. But this chip can scale, so it might scale PAL to NTSC or vice versa
-> > if the standard switches mid-stream. Or it only detects the standard when
-> > it starts streaming, I'm not sure.
-> >
-> 
-> Not sure about this either, IIUC switching the standard mid-stream won't work.
+--wbnyxjafmaafjrkv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As far as I know, the detection happens after a sync lost event.
+Hi Sakari,
 
-> > In any case, this is not normal behavior, for almost all analog video
-> > receivers you need to be able to set the std explicitly.
-> >
-> 
-> Indeed. I see that Marco's recent series [0] add supports for the .querystd [1]
-> and .g_std [2] callbacks to the tvp5150 driver, so that way user-space can get
-> back the detected standard.
-> 
-> [0]: https://www.spinics.net/lists/linux-media/msg136869.html
-> [1]: https://www.spinics.net/lists/linux-media/msg136872.html
-> [2]: https://www.spinics.net/lists/linux-media/msg136875.html
+On Thu, Jul 05, 2018 at 03:48:02PM +0800, Yong wrote:
+> > > +
+> > > +/* -----------------------------------------------------------------=
+------------
+> > > + * Media Operations
+> > > + */
+> > > +static int sun6i_video_formats_init(struct sun6i_video *video,
+> > > +				    const struct media_pad *remote)
+> > > +{
+> > > +	struct v4l2_subdev_mbus_code_enum mbus_code =3D { 0 };
+> > > +	struct sun6i_csi *csi =3D video->csi;
+> > > +	struct v4l2_format format;
+> > > +	struct v4l2_subdev *subdev;
+> > > +	u32 pad;
+> > > +	const u32 *pixformats;
+> > > +	int pixformat_count =3D 0;
+> > > +	u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
+> > > +	int codes_count =3D 0;
+> > > +	int num_fmts =3D 0;
+> > > +	int i, j;
+> > > +
+> > > +	pad =3D remote->index;
+> > > +	subdev =3D media_entity_to_v4l2_subdev(remote->entity);
+> > > +	if (subdev =3D=3D NULL)
+> > > +		return -ENXIO;
+> > > +
+> > > +	/* Get supported pixformats of CSI */
+> > > +	pixformat_count =3D sun6i_csi_get_supported_pixformats(csi, &pixfor=
+mats);
+> > > +	if (pixformat_count <=3D 0)
+> > > +		return -ENXIO;
+> > > +
+> > > +	/* Get subdev formats codes */
+> > > +	mbus_code.pad =3D pad;
+> > > +	mbus_code.which =3D V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > +	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
+> > > +				 &mbus_code)) {
+> >=20
+> > The formats supported by the external sub-device may depend on horizont=
+al
+> > and vertical flipping. You shouldn't assume any particular configuration
+> > here: instead, bridge drivers generally just need to make sure the form=
+ats
+> > match in link validation when streaming is started. At least the CSI-2
+> > receiver driver and the DMA engine driver (video device) should check t=
+he
+> > configuration is valid. See e.g. the IPU3 driver:
+> > drivers/media/pci/intel/ipu3/ipu3-cio2.c .
+>=20
+> Can mbus_code be added dynamically ?
+> The code here only enum the mbus code and get the possible supported
+> pairs of pixformat and mbus by SoC. Not try to check if the formats
+> (width height ...) is valid or not. The formats validation will be=20
+> in link validation when streaming is started as per your advise.=20
 
-I tought the std will be set by the v4l2_subdev_video_ops.s_std()
-operation. If the user change the std manually, the autodection is
-disabled.
+Can you reply to this so that Yong has a chance to resubmit his serie
+before the 4.19 merge window starts?
 
-> > Regards,
-> > 
-> > 	Hans
-> >
-> 
-> Best regards,
+Or alternatively, is this something we can fix later on, once it's
+merged?
 
-Best regards,
-Marco
+Thanks!
+Maxime
 
-> -- 
-> Javier Martinez Canillas
-> Software Engineer - Desktop Hardware Enablement
-> Red Hat
-> 
-> >>
-> >> Regards,
-> >> Mauro
-> >>
-> >>
-> >> Em Thu, 17 May 2018 16:30:16 +0200
-> >> Niklas Söderlund         <niklas.soderlund+renesas@ragnatech.se> escreveu:
-> >>
-> >>> There is no way to control the standard of subdevices which are part of
-> >>> a media device. The ioctls which exists all target video devices
-> >>> explicitly and the idea is that the video device should talk to the
-> >>> subdevice. For subdevices part of a media graph this is not possible and
-> >>> the standard must be controlled on the subdev device directly.
-> >>>
-> >>> Add four new ioctls to be able to directly interact with subdevices and
-> >>> control the video standard; VIDIOC_SUBDEV_ENUMSTD, VIDIOC_SUBDEV_G_STD,
-> >>> VIDIOC_SUBDEV_S_STD and VIDIOC_SUBDEV_QUERYSTD.
-> >>>
-> >>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> >>>
-> >>> ---
-> >>>
-> >>> * Changes since v1
-> >>> - Added VIDIOC_SUBDEV_ENUMSTD.
-> >>> ---
-> >>>  .../media/uapi/v4l/vidioc-enumstd.rst         | 11 ++++++----
-> >>>  Documentation/media/uapi/v4l/vidioc-g-std.rst | 14 ++++++++----
-> >>>  .../media/uapi/v4l/vidioc-querystd.rst        | 11 ++++++----
-> >>>  drivers/media/v4l2-core/v4l2-subdev.c         | 22 +++++++++++++++++++
-> >>>  include/uapi/linux/v4l2-subdev.h              |  4 ++++
-> >>>  5 files changed, 50 insertions(+), 12 deletions(-)
-> >>>
-> >>> diff --git a/Documentation/media/uapi/v4l/vidioc-enumstd.rst b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-> >>> index b7fda29f46a139a0..2644a62acd4b6822 100644
-> >>> --- a/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-> >>> +++ b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
-> >>> @@ -2,14 +2,14 @@
-> >>>  
-> >>>  .. _VIDIOC_ENUMSTD:
-> >>>  
-> >>> -********************
-> >>> -ioctl VIDIOC_ENUMSTD
-> >>> -********************
-> >>> +*******************************************
-> >>> +ioctl VIDIOC_ENUMSTD, VIDIOC_SUBDEV_ENUMSTD
-> >>> +*******************************************
-> >>>  
-> >>>  Name
-> >>>  ====
-> >>>  
-> >>> -VIDIOC_ENUMSTD - Enumerate supported video standards
-> >>> +VIDIOC_ENUMSTD - VIDIOC_SUBDEV_ENUMSTD - Enumerate supported video standards
-> >>>  
-> >>>  
-> >>>  Synopsis
-> >>> @@ -18,6 +18,9 @@ Synopsis
-> >>>  .. c:function:: int ioctl( int fd, VIDIOC_ENUMSTD, struct v4l2_standard *argp )
-> >>>      :name: VIDIOC_ENUMSTD
-> >>>  
-> >>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_ENUMSTD, struct v4l2_standard *argp )
-> >>> +    :name: VIDIOC_SUBDEV_ENUMSTD
-> >>> +
-> >>>  
-> >>>  Arguments
-> >>>  =========
-> >>> diff --git a/Documentation/media/uapi/v4l/vidioc-g-std.rst b/Documentation/media/uapi/v4l/vidioc-g-std.rst
-> >>> index 90791ab51a5371b8..8d94f0404df270db 100644
-> >>> --- a/Documentation/media/uapi/v4l/vidioc-g-std.rst
-> >>> +++ b/Documentation/media/uapi/v4l/vidioc-g-std.rst
-> >>> @@ -2,14 +2,14 @@
-> >>>  
-> >>>  .. _VIDIOC_G_STD:
-> >>>  
-> >>> -********************************
-> >>> -ioctl VIDIOC_G_STD, VIDIOC_S_STD
-> >>> -********************************
-> >>> +**************************************************************************
-> >>> +ioctl VIDIOC_G_STD, VIDIOC_S_STD, VIDIOC_SUBDEV_G_STD, VIDIOC_SUBDEV_S_STD
-> >>> +**************************************************************************
-> >>>  
-> >>>  Name
-> >>>  ====
-> >>>  
-> >>> -VIDIOC_G_STD - VIDIOC_S_STD - Query or select the video standard of the current input
-> >>> +VIDIOC_G_STD - VIDIOC_S_STD - VIDIOC_SUBDEV_G_STD - VIDIOC_SUBDEV_S_STD - Query or select the video standard of the current input
-> >>>  
-> >>>  
-> >>>  Synopsis
-> >>> @@ -21,6 +21,12 @@ Synopsis
-> >>>  .. c:function:: int ioctl( int fd, VIDIOC_S_STD, const v4l2_std_id *argp )
-> >>>      :name: VIDIOC_S_STD
-> >>>  
-> >>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_G_STD, v4l2_std_id *argp )
-> >>> +    :name: VIDIOC_SUBDEV_G_STD
-> >>> +
-> >>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_S_STD, const v4l2_std_id *argp )
-> >>> +    :name: VIDIOC_SUBDEV_S_STD
-> >>> +
-> >>>  
-> >>>  Arguments
-> >>>  =========
-> >>> diff --git a/Documentation/media/uapi/v4l/vidioc-querystd.rst b/Documentation/media/uapi/v4l/vidioc-querystd.rst
-> >>> index cf40bca19b9f8665..a8385cc7481869dd 100644
-> >>> --- a/Documentation/media/uapi/v4l/vidioc-querystd.rst
-> >>> +++ b/Documentation/media/uapi/v4l/vidioc-querystd.rst
-> >>> @@ -2,14 +2,14 @@
-> >>>  
-> >>>  .. _VIDIOC_QUERYSTD:
-> >>>  
-> >>> -*********************
-> >>> -ioctl VIDIOC_QUERYSTD
-> >>> -*********************
-> >>> +*********************************************
-> >>> +ioctl VIDIOC_QUERYSTD, VIDIOC_SUBDEV_QUERYSTD
-> >>> +*********************************************
-> >>>  
-> >>>  Name
-> >>>  ====
-> >>>  
-> >>> -VIDIOC_QUERYSTD - Sense the video standard received by the current input
-> >>> +VIDIOC_QUERYSTD - VIDIOC_SUBDEV_QUERYSTD - Sense the video standard received by the current input
-> >>>  
-> >>>  
-> >>>  Synopsis
-> >>> @@ -18,6 +18,9 @@ Synopsis
-> >>>  .. c:function:: int ioctl( int fd, VIDIOC_QUERYSTD, v4l2_std_id *argp )
-> >>>      :name: VIDIOC_QUERYSTD
-> >>>  
-> >>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_QUERYSTD, v4l2_std_id *argp )
-> >>> +    :name: VIDIOC_SUBDEV_QUERYSTD
-> >>> +
-> >>>  
-> >>>  Arguments
-> >>>  =========
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> >>> index f9eed938d3480b74..27a2c633f2323f5f 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> >>> @@ -494,6 +494,28 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
-> >>>  
-> >>>  	case VIDIOC_SUBDEV_S_DV_TIMINGS:
-> >>>  		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
-> >>> +
-> >>> +	case VIDIOC_SUBDEV_G_STD:
-> >>> +		return v4l2_subdev_call(sd, video, g_std, arg);
-> >>> +
-> >>> +	case VIDIOC_SUBDEV_S_STD: {
-> >>> +		v4l2_std_id *std = arg;
-> >>> +
-> >>> +		return v4l2_subdev_call(sd, video, s_std, *std);
-> >>> +	}
-> >>> +
-> >>> +	case VIDIOC_SUBDEV_ENUMSTD: {
-> >>> +		struct v4l2_standard *p = arg;
-> >>> +		v4l2_std_id id;
-> >>> +
-> >>> +		if (v4l2_subdev_call(sd, video, g_tvnorms, &id))
-> >>> +			return -EINVAL;
-> >>> +
-> >>> +		return v4l_video_std_enumstd(p, id);
-> >>> +	}
-> >>> +
-> >>> +	case VIDIOC_SUBDEV_QUERYSTD:
-> >>> +		return v4l2_subdev_call(sd, video, querystd, arg);
-> >>>  #endif
-> >>>  	default:
-> >>>  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-> >>> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-> >>> index c95a53e6743cb040..03970ce3074193e6 100644
-> >>> --- a/include/uapi/linux/v4l2-subdev.h
-> >>> +++ b/include/uapi/linux/v4l2-subdev.h
-> >>> @@ -170,8 +170,12 @@ struct v4l2_subdev_selection {
-> >>>  #define VIDIOC_SUBDEV_G_SELECTION		_IOWR('V', 61, struct v4l2_subdev_selection)
-> >>>  #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
-> >>>  /* The following ioctls are identical to the ioctls in videodev2.h */
-> >>> +#define VIDIOC_SUBDEV_G_STD			_IOR('V', 23, v4l2_std_id)
-> >>> +#define VIDIOC_SUBDEV_S_STD			_IOW('V', 24, v4l2_std_id)
-> >>> +#define VIDIOC_SUBDEV_ENUMSTD			_IOWR('V', 25, struct v4l2_standard)
-> >>>  #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_edid)
-> >>>  #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_edid)
-> >>> +#define VIDIOC_SUBDEV_QUERYSTD			_IOR('V', 63, v4l2_std_id)
-> >>>  #define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 87, struct v4l2_dv_timings)
-> >>>  #define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 88, struct v4l2_dv_timings)
-> >>>  #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
-> >>
-> >>
-> >>
-> >> Thanks,
-> >> Mauro
-> >>
-> > 
+--=20
+Maxime Ripard, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--wbnyxjafmaafjrkv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltF5gwACgkQ0rTAlCFN
+r3TWNw/+KtCfTkV+mWO7syASSLV3TlKy+Uac+vNGvjw9EqP+7JKvxvosSriQMs8D
+Q2CFOLZam7c0+oTqMl8t+QXkW0Z2B54akBlcAGa2hSAd01mquQ3nEzI/BJlMx2Sm
+0N9G2QQO4u440h2Nzi2wvEfj30Qc7P6x5dpir8vAlXYU870JRTPnUOIMwGZRn/a8
+ZhBJ6TSxn572FFkyC7IcPWJBuCY8ZaJlGiiriIpF6MKq57WIDqyQ7lIT5zxbtry3
+x68EPuGyRrjSaWcM08RVzjnVNEtNH9C2bN1WvjRldE00PmYJxLiskCOVN+ZHHrLE
+qNbRDGJOG1yMwSaRPEFJxs0bb7/lsmRZgsA7ZUnuTrLZnLIfe7vbfnBdTDcOgCxG
+cO/1kH/ub5l81UqPgGUjg5Q0ZohurUd5BzmUoR/x9EutW21m1rHLaJB/CYYaB37a
+pT+xKktQpFO5GLQDLKK2qsUw0jtv8WiL5PRsi8dnCHfGHUH1YUZ5RiCXZ5BBX4+2
+giIlT91cIWKIcBsRdDfDAS9AMfAXiNS47VdFlb6rcXFBLQ/cK9LItSuLKc7yXVcS
+OJGoQPt8m985lFwIGIpZ8KLzsupee3gbvHy8RCvAdhGM6sdCi6SnZ0O8b1/86pMM
+OZGXDI9bfwI1vU4azLEoKBHe5x6GSkjhF8amdyPMUMrDZLw4Slo=
+=NKp6
+-----END PGP SIGNATURE-----
+
+--wbnyxjafmaafjrkv--
