@@ -1,54 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:37480 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726843AbeGKMc2 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:60794 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726457AbeGKMLv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 08:32:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, daniel.vetter@ffwll.ch,
-        intel-gfx@lists.freedesktop.org, ville.syrjala@linux.intel.com
-Subject: [PATCHv9 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Wed, 11 Jul 2018 14:28:16 +0200
-Message-Id: <20180711122819.80457-1-hverkuil@xs4all.nl>
+        Wed, 11 Jul 2018 08:11:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Carlos Garnacho <carlosg@gnome.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Devices with a front and back webcam represented as a single UVC device
+Date: Wed, 11 Jul 2018 15:08:20 +0300
+Message-ID: <2208320.5nHJhHVTzE@avalon>
+In-Reply-To: <CAEiaqW3i4OM5C3srSi8E_3MSOmMjkTq-nNGB=FqSVOHjdYL5NA@mail.gmail.com>
+References: <8804dcb3-1aca-3679-6a96-bbe554f188d0@redhat.com> <5105002.ahX3nrg0vu@avalon> <CAEiaqW3i4OM5C3srSi8E_3MSOmMjkTq-nNGB=FqSVOHjdYL5NA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Carlos,
 
-This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
-feature. This patch series is based on the current media master branch
-(https://git.linuxtv.org/media_tree.git/log/) but it applies fine on top
-of the current mainline tree.
+On Wednesday, 11 July 2018 14:36:48 EEST Carlos Garnacho wrote:
+> On Wed, Jul 11, 2018 at 1:00 PM, Laurent Pinchart wrote:
+> > On Wednesday, 11 July 2018 11:37:14 EEST Hans de Goede wrote:
+> >> Hi Laurent,
+> >> 
+> >> At Guadec Carlos (in the Cc) told me that on his Acer 2-in-1 only
+> >> the frontcam is working and it seems both are represented by a
+> >> single UVC USB device. I've told him to check for some v4l control
+> >> to flip between front and back.
+> >> 
+> >> Carlos, as I mentioned you can try gtk-v4l
+> >> ("sudo dnf install gtk-v4l") or qv4l2
+> >> ("sudo dnf install qv4l2") these will both show
+> >> you various controls for the camera. One of those might do the trick.
+> >> 
+> >> But I recently bought a 2nd second hand Cherry Trail based HP
+> >> X2 2-in-1 and much to my surprise that is actually using an UVC
+> >> cam, rather then the usual ATOMISP crap and it has the same issue.
+> >> 
+> >> This device does not seem to have a control to flip between the
+> >> 2 cams, instead it registers 2 /dev/video? nodes but the second
+> >> node does not work
+> > 
+> > The second node is there to expose metadata to userspace, not image data.
+> > That's a recent addition to the uvcvideo driver.
+> > 
+> >> and dmesg contains:
+> >> 
+> >> [   26.079868] uvcvideo: Found UVC 1.00 device HP TrueVision HD
+> >> (05c8:03a3)
+> >> [   26.095485] uvcvideo 1-4.2:1.0: Entity type for entity Extension 4 was
+> >> not initialized!
+> >> [   26.095492] uvcvideo 1-4.2:1.0: Entity type for entity Processing 2
+> >> was
+> >> not initialized!
+> >> [   26.095496] uvcvideo 1-4.2:1.0: Entity type for entity Camera 1 was
+> >> not
+> >> initialized!
+> > 
+> > You can safely ignore those messages. I need to submit a patch to get rid
+> > of them.
+> > 
+> >> Laurent, I've attached lsusb -v output so that you can check the
+> >> descriptors.
+> > 
+> > Thank you.
+> > 
+> > It's funny how UVC specifies a standard way to describe a device with two
+> > camera sensors with dynamic selection of one of them at runtime, and
+> > vendors instead implement vendor-specific crap :-(
+> > 
+> > The interesting part in the descriptors is
+> > 
+> >       VideoControl Interface Descriptor:
+> >         bLength                27
+> >         bDescriptorType        36
+> >         bDescriptorSubtype      6 (EXTENSION_UNIT)
+> >         bUnitID                 4
+> >         guidExtensionCode         {1229a78c-47b4-4094-b0ce-db07386fb938}
+> >         bNumControl             2
+> >         bNrPins                 1
+> >         baSourceID( 0)          2
+> >         bControlSize            2
+> >         bmControls( 0)       0x00
+> >         bmControls( 1)       0x06
+> >         iExtension              0
+> > 
+> > The extension unit exposes two controls (bmControls is a bitmask). They
+> > can be accessed from userspace through the UVCIOC_CTRL_QUERY ioctl, or
+> > mapped to V4L2 controls through the UVCIOC_CTRL_MAP ioctl, in which case
+> > they will be exposed to standard V4L2 applications.
+> > 
+> > If you want to experiment with this, I would advise querying both controls
+> > with UVCIOC_CTRL_QUERY. You can use the UVC_GET_CUR, UVC_GET_MIN,
+> > UVC_GET_MAX, UVC_GET_DEF and UVC_GET_RES requests to get the control
+> > current, minimum, maximum, default and resolution values, and UVC_GET_LEN
+> > and UVC_GET_INFO to get the control size (in bytes) and flags. Based on
+> > that you can start experimenting with UVC_SET_CUR to set semi-random
+> > values.
+> > 
+> > I'm however worried that those two controls would be a register address
+> > and a register value, for indirect access to all hardware registers in
+> > the device. In that case, you would likely need information from the
+> > device vendor, or possibly a USB traffic dump from a Windows machine when
+> > switching between the front and back cameras.
+> > 
+> >> Carlos, it might be good to get Laurent your descriptors too, to do
+> >> this do "lsusb", note what is the <vid>:<pid> for your camera and then
+> >> run:
+> >> 
+> >> sudo lsusb -v -d <vid>:<pid>  > lsusb.log
+> >> 
+> >> And send Laurent a mail with the generated lsusb
+> > 
+> > That would be appreciated, but I expect the same issue :-(
+> 
+> Please find it attached. IIUC your last email, it might not be the
+> exact same issue, but you can definitely judge better.
 
-The v9 is identical to v8, the only change is that it is now also CCed to
-intel-gfx@lists.freedesktop.org.
+Your device is similar in the sense that it doesn't use the standard UVC 
+support for multiple camera sensors. It instead exposes two extension units:
 
-The cover letter of v8 can be found here:
+      VideoControl Interface Descriptor:
+        bLength                27
+        bDescriptorType        36
+        bDescriptorSubtype      6 (EXTENSION_UNIT)
+        bUnitID                 4
+        guidExtensionCode         {1229a78c-47b4-4094-b0ce-db07386fb938}
+        bNumControl             2
+        bNrPins                 1
+        baSourceID( 0)          2
+        bControlSize            2
+        bmControls( 0)       0x00
+        bmControls( 1)       0x06
+        iExtension              0
+      VideoControl Interface Descriptor:
+        bLength                29
+        bDescriptorType        36
+        bDescriptorSubtype      6 (EXTENSION_UNIT)
+        bUnitID                 6
+        guidExtensionCode         {26b8105a-0713-4870-979d-da79444bb68e}
+        bNumControl             9
+        bNrPins                 1
+        baSourceID( 0)          4
+        bControlSize            4
+        bmControls( 0)       0x1f
+        bmControls( 1)       0x01
+        bmControls( 2)       0x38
+        bmControls( 3)       0x00
+        iExtension              6 Realtek Extended Controls Unit
 
-https://www.spinics.net/lists/dri-devel/msg181688.html
-
-Regards,
-
-	Hans
-
-Hans Verkuil (3):
-  drm: add support for DisplayPort CEC-Tunneling-over-AUX
-  drm-kms-helpers.rst: document the DP CEC helpers
-  drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
-
- Documentation/gpu/drm-kms-helpers.rst |   9 +
- drivers/gpu/drm/Kconfig               |  10 +
- drivers/gpu/drm/Makefile              |   1 +
- drivers/gpu/drm/drm_dp_cec.c          | 427 ++++++++++++++++++++++++++
- drivers/gpu/drm/drm_dp_helper.c       |   1 +
- drivers/gpu/drm/i915/intel_dp.c       |  17 +-
- include/drm/drm_dp_helper.h           |  56 ++++
- 7 files changed, 519 insertions(+), 2 deletions(-)
- create mode 100644 drivers/gpu/drm/drm_dp_cec.c
+The first one is identical to Hans', and I expect it to offer indirect access 
+to internal device registers. The second one exposes 9 controls, and I expect 
+at least some of those to have direct effects on the device. What they do and 
+how they operate is unfortunately unknown.
 
 -- 
-2.18.0
+Regards,
+
+Laurent Pinchart
