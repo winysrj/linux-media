@@ -1,54 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:58943 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387634AbeGKNdd (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:50684 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732530AbeGKN1W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 09:33:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Wed, 11 Jul 2018 09:27:22 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, daniel.vetter@ffwll.ch,
-        intel-gfx@lists.freedesktop.org, ville.syrjala@linux.intel.com,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv10 2/3] drm-kms-helpers.rst: document the DP CEC helpers
-Date: Wed, 11 Jul 2018 15:29:08 +0200
-Message-Id: <20180711132909.25409-3-hverkuil@xs4all.nl>
-In-Reply-To: <20180711132909.25409-1-hverkuil@xs4all.nl>
-References: <20180711132909.25409-1-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Peter Korsgaard <jacmet@sunsite.dk>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] libv4l: fixup lfs mismatch in preload libraries
+Date: Wed, 11 Jul 2018 10:22:51 -0300
+Message-Id: <20180711132251.13172-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
 
-Document the Display Port CEC helper functions.
+Ensure that the lfs variants are not transparently used instead of the !lfs
+ones so both can be wrapped, independently of any custom CFLAGS/CPPFLAGS.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Without this patch, the following assembler errors appear
+during cross-compiling with Buildroot:
+
+/tmp/ccc3gdJg.s: Assembler messages:
+/tmp/ccc3gdJg.s:67: Error: symbol `open64' is already defined
+/tmp/ccc3gdJg.s:130: Error: symbol `mmap64' is already defined
+
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- Documentation/gpu/drm-kms-helpers.rst | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ lib/libv4l1/v4l1compat.c  | 3 +++
+ lib/libv4l2/v4l2convert.c | 3 +++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/Documentation/gpu/drm-kms-helpers.rst b/Documentation/gpu/drm-kms-helpers.rst
-index e37557b30f62..62de583e9efe 100644
---- a/Documentation/gpu/drm-kms-helpers.rst
-+++ b/Documentation/gpu/drm-kms-helpers.rst
-@@ -169,6 +169,15 @@ Display Port Helper Functions Reference
- .. kernel-doc:: drivers/gpu/drm/drm_dp_helper.c
-    :export:
+diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+index cb79629ff88f..e5c9e56261e2 100644
+--- a/lib/libv4l1/v4l1compat.c
++++ b/lib/libv4l1/v4l1compat.c
+@@ -19,6 +19,9 @@
+ # Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
+  */
  
-+Display Port CEC Helper Functions Reference
-+===========================================
-+
-+.. kernel-doc:: drivers/gpu/drm/drm_dp_cec.c
-+   :doc: dp cec helpers
-+
-+.. kernel-doc:: drivers/gpu/drm/drm_dp_cec.c
-+   :export:
-+
- Display Port Dual Mode Adaptor Helper Functions Reference
- =========================================================
++/* ensure we see *64 variants and they aren't transparently used */
++#undef _LARGEFILE_SOURCE
++#undef _FILE_OFFSET_BITS
+ #define _LARGEFILE64_SOURCE 1
  
+ #include <config.h>
+diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+index 7c9a04c086ed..13ca4cfb1b08 100644
+--- a/lib/libv4l2/v4l2convert.c
++++ b/lib/libv4l2/v4l2convert.c
+@@ -23,6 +23,9 @@
+ /* prevent GCC 4.7 inlining error */
+ #undef _FORTIFY_SOURCE
+ 
++/* ensure we see *64 variants and they aren't transparently used */
++#undef _LARGEFILE_SOURCE
++#undef _FILE_OFFSET_BITS
+ #define _LARGEFILE64_SOURCE 1
+ 
+ #ifdef ANDROID
 -- 
-2.18.0
+2.18.0.rc2
