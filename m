@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:41871 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:42175 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726289AbeGKJFQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 05:05:16 -0400
-Date: Wed, 11 Jul 2018 11:01:57 +0200
+        id S1726289AbeGKJMD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jul 2018 05:12:03 -0400
+Date: Wed, 11 Jul 2018 11:08:42 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Chen-Yu Tsai <wens@csie.org>
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
@@ -46,63 +46,69 @@ Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Randy Li <ayaka@soulik.info>
-Subject: Re: [linux-sunxi] [PATCH v5 09/22] ARM: dts: sun5i: Use
- most-qualified system control compatibles
-Message-ID: <20180711090157.bs435c4k6knb6bqv@flea>
+Subject: Re: [PATCH v5 11/22] ARM: sun5i: Add support for the C1 SRAM region
+ with the SRAM controller
+Message-ID: <20180711090842.q3q3lvnuwj52nnjx@flea>
 References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
- <20180710080114.31469-10-paul.kocialkowski@bootlin.com>
- <CAGb2v64HbpvJhy5KQOepc61nU7NECaWMPvhZ16dk5hJXiPBHxA@mail.gmail.com>
+ <20180710080114.31469-12-paul.kocialkowski@bootlin.com>
+ <CAGb2v65swXpLwAo3M9X=MJeVmUrjT=FPFZxp=eCzMrfopqHKjA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4xdjxhmgjufzuifr"
+        protocol="application/pgp-signature"; boundary="fvh5gzw54i3rynrk"
 Content-Disposition: inline
-In-Reply-To: <CAGb2v64HbpvJhy5KQOepc61nU7NECaWMPvhZ16dk5hJXiPBHxA@mail.gmail.com>
+In-Reply-To: <CAGb2v65swXpLwAo3M9X=MJeVmUrjT=FPFZxp=eCzMrfopqHKjA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---4xdjxhmgjufzuifr
+--fvh5gzw54i3rynrk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 10, 2018 at 10:53:44PM +0800, Chen-Yu Tsai wrote:
+On Tue, Jul 10, 2018 at 10:56:23PM +0800, Chen-Yu Tsai wrote:
 > On Tue, Jul 10, 2018 at 4:01 PM, Paul Kocialkowski
 > <paul.kocialkowski@bootlin.com> wrote:
-> > This switches the sun5i dtsi to use the most qualified compatibles for
-> > the system-control block (previously named SRAM controller) as well as
-> > the SRAM blocks. The sun4i-a10 compatibles are kept since these hardware
-> > blocks are backward-compatible.
+> > From: Maxime Ripard <maxime.ripard@bootlin.com>
+> >
+> > This adds support for the C1 SRAM region (to be used with the SRAM
+> > controller driver) for sun5i-based platforms. The region is shared
+> > between the Video Engine and the CPU.
+> >
+> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 >=20
-> Not quite sure why they are backward-compatible. The A13 has less SRAM
-> mapping controls than the A10.
+> Reviewed-by: Chen-Yu Tsai <wens@csie.org>
+>=20
+> But again, see discussion about SRAM compatibles.
 
-I've applied this patch, and removed that compatible (and its mention
-in the commit log).
+I've fixed the SRAM C size (which is 0xd0000 and not 0x80000) and
+applied, thanks!
+Maxime
 
 --=20
 Maxime Ripard, Bootlin (formerly Free Electrons)
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---4xdjxhmgjufzuifr
+--fvh5gzw54i3rynrk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFx4QACgkQ0rTAlCFN
-r3T5hw/+LrwtplgQOGWsmip+88WJ28Kyyjgcza8XqQa4MXn75qKAhuqdHSlPLJ8b
-stcNMEWB81LhHzEqabOjltriCEz6sYOLoCZB7deZfV0VO2QuNYBir6scl770b+c3
-Pv1HqpZe4vZv8tnY7U/jUI3b35H7bXl+zFlAxu8O7TGTwtOjL4Bt01EM5h5Ox9ut
-lTRPX5WUphSgUMkMJzo0BrO7FNHZXb6LhIzmOE3bYvJf62jRLkSF7pwhcqPI8ZtA
-jSAp0YlbDcUgb4Q1nkDZmpsvtXFMQdIoDtBUhwGBGbLlUNuY7N9WdK0NehTCB5jA
-oSL6XBBiOg8/i5VqXUglSLHaaxE3OMzr5A4QGxrxXCWilV2chbvAfaOpFH7GPOsQ
-ijibhtej60bZ7Nii0cL9afzWNVbgRjS7ox78i4MEkMd3V5+3tWodZdED3lcg53RJ
-m4fb3m1DyMEZWj3EERFD9khsvb76yIA2/jvq8jzRI4yV4nBgE0bD83XEcKL5x1Pz
-i+UYbNPo9JO78q2/gSatoJzVyxZ9CR/j/LTZ+XA2APBqeUEegvK4bXpD0nrC4P+C
-j+gqFwLa/AltYU2Tsfh/xVaLYVOfOezAjetht3TfJHecDRc+VXus/AJOftAE2Sfc
-1GK5Q6PCU4SYUpj7JtHBaUNFr+Yie+c5YtzJDcdIH/w3TzRXt44=
-=MV4R
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltFyRkACgkQ0rTAlCFN
+r3SN8Q/+IbrK/5h4vviNqCywlxuLaonZMSaHbqHRNgnoonzYg4n+VSmeiOyeRE0K
+pVaRh1eTMuBD0DyaiOPO0SMOOI4IWmIwA/5m6qics74qZ7gCD4Up3nKuPlUitdn/
+xST/fJtRtriXqnCruDcTRdXcwwABE5VVrTP7krZeZG0wgjWXTbAUlxbIoOu5wk0H
+jdmJFpVqSmFOTh/Me9hPZdu8NjI3iosYGrlSXZvbDcGKLjKjKPZmjxpoVxfjMEvA
+Lc2o5TBj8xF/jkS89hLqGIG6WkTdA4FE7joPZI6aaGV7GxJjxuV1LalHLJKVWRTd
+VHhaAa0eWjKCIfSQae8W1X0nDItMF1zWzBsJXiMQPwVdcbAmxIANgql7a44d5UIE
+fG+RENeRRTEqT9/pD8HQJd7NdtFK5Si2PDG6aIUDkJG5vpeHEAvM49fMU1fge7PS
+9x8hNJQX2f5neytgLSoE/XbkqXjn6+r3tFUgBxwOlVAUqIIqTOnAr7ndnyAtesl/
+9tJC+o9l3iX9kafwiYUK7JDgCv6a4+5/P4AriOUIa/flcMT+l0mF4dKdKvxgQ66n
+L4LRlN8xjmeamTN/tebJ82psS42GZDStLfjZJRW7tHvF6uHsBAzrggKbewWSBMQR
+Ol+xRbVS0MD+uHuAcLBAlcgKQ9yFL6lmL4mzbg352q2u0KwiZ6M=
+=geDY
 -----END PGP SIGNATURE-----
 
---4xdjxhmgjufzuifr--
+--fvh5gzw54i3rynrk--
