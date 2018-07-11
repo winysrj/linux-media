@@ -1,306 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mslow2.mail.gandi.net ([217.70.178.242]:42386 "EHLO
-        slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2389804AbeGJSgT (ORCPT
+Received: from mail-wr1-f44.google.com ([209.85.221.44]:35971 "EHLO
+        mail-wr1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732921AbeGKT5c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 14:36:19 -0400
-Received: from relay12.mail.gandi.net (unknown [217.70.178.232])
-        by slow1-d.mail.gandi.net (Postfix) with ESMTP id 775833A5024
-        for <linux-media@vger.kernel.org>; Tue, 10 Jul 2018 19:53:00 +0200 (CEST)
-Date: Tue, 10 Jul 2018 19:52:55 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, mchehab@kernel.org,
-        laurent.pinchart@ideasonboard.com, maxime.ripard@bootlin.com,
-        sam@elite-embedded.com, jagan@amarulasolutions.com,
-        festevam@gmail.com, pza@pengutronix.de, hugues.fruchet@st.com,
-        loic.poulain@linaro.org, daniel@zonque.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: i2c: ov5640: Re-work MIPI startup sequence
-Message-ID: <20180710175255.GC8180@w540>
-References: <1530874836-12750-1-git-send-email-jacopo+renesas@jmondi.org>
- <cdef1c78-fe0e-3ed4-aca7-99c2c3955795@gmail.com>
- <20180710073331.GD23629@w540>
+        Wed, 11 Jul 2018 15:57:32 -0400
+Received: by mail-wr1-f44.google.com with SMTP id h9-v6so19344201wro.3
+        for <linux-media@vger.kernel.org>; Wed, 11 Jul 2018 12:51:39 -0700 (PDT)
+Subject: Re: Devices with a front and back webcam represented as a single UVC
+ device
+To: Carlos Garnacho <carlosg@gnome.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <8804dcb3-1aca-3679-6a96-bbe554f188d0@redhat.com>
+ <5105002.ahX3nrg0vu@avalon>
+ <CAEiaqW3i4OM5C3srSi8E_3MSOmMjkTq-nNGB=FqSVOHjdYL5NA@mail.gmail.com>
+ <2208320.5nHJhHVTzE@avalon> <1a5ac0f3-9acd-1b8f-7354-b2147aa5636f@redhat.com>
+ <CAEiaqW19WyYLQFV8MyRPB=FFy_GYYLXajK2yJ7m7nWBcfCS8TQ@mail.gmail.com>
+ <b1a78ae4-8d12-5093-1e2e-bc646419e1be@redhat.com>
+ <CAEiaqW14DKgq7ShSYXB=boHiza=xsM9wOQTF1Cu+k5MyHCACaA@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <3fa89302-51ba-ecfb-cdfd-72e075acf2f0@redhat.com>
+Date: Wed, 11 Jul 2018 21:51:37 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Pk6IbRAofICFmK5e"
-Content-Disposition: inline
-In-Reply-To: <20180710073331.GD23629@w540>
+In-Reply-To: <CAEiaqW14DKgq7ShSYXB=boHiza=xsM9wOQTF1Cu+k5MyHCACaA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---Pk6IbRAofICFmK5e
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+On 11-07-18 20:26, Carlos Garnacho wrote:
+> Hi!,
+> 
+> On Wed, Jul 11, 2018 at 7:41 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> Hi,
+>>
+>>
+>> On 11-07-18 18:07, Carlos Garnacho wrote:
+>>>
+>>> Hi!,
+>>>
+>>> On Wed, Jul 11, 2018 at 2:41 PM, Hans de Goede <hdegoede@redhat.com>
+>>> wrote:
+>>>>
+>>>> HI,
+>>>>
+>>>>
+>>>> On 11-07-18 14:08, Laurent Pinchart wrote:
+>>>>>
+>>>>>
+>>>>> Hi Carlos,
+>>>>>
+>>>>> On Wednesday, 11 July 2018 14:36:48 EEST Carlos Garnacho wrote:
+>>>>>>
+>>>>>>
+>>>>>> On Wed, Jul 11, 2018 at 1:00 PM, Laurent Pinchart wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> On Wednesday, 11 July 2018 11:37:14 EEST Hans de Goede wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Hi Laurent,
+>>>>>>>>
+>>>>>>>> At Guadec Carlos (in the Cc) told me that on his Acer 2-in-1 only
+>>>>>>>> the frontcam is working and it seems both are represented by a
+>>>>>>>> single UVC USB device. I've told him to check for some v4l control
+>>>>>>>> to flip between front and back.
+>>>>>>>>
+>>>>>>>> Carlos, as I mentioned you can try gtk-v4l
+>>>>>>>> ("sudo dnf install gtk-v4l") or qv4l2
+>>>>>>>> ("sudo dnf install qv4l2") these will both show
+>>>>>>>> you various controls for the camera. One of those might do the trick.
+>>>>>>>>
+>>>>>>>> But I recently bought a 2nd second hand Cherry Trail based HP
+>>>>>>>> X2 2-in-1 and much to my surprise that is actually using an UVC
+>>>>>>>> cam, rather then the usual ATOMISP crap and it has the same issue.
+>>>>>>>>
+>>>>>>>> This device does not seem to have a control to flip between the
+>>>>>>>> 2 cams, instead it registers 2 /dev/video? nodes but the second
+>>>>>>>> node does not work
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> The second node is there to expose metadata to userspace, not image
+>>>>>>> data.
+>>>>>>> That's a recent addition to the uvcvideo driver.
+>>>>>>>
+>>>>>>>> and dmesg contains:
+>>>>>>>>
+>>>>>>>> [   26.079868] uvcvideo: Found UVC 1.00 device HP TrueVision HD
+>>>>>>>> (05c8:03a3)
+>>>>>>>> [   26.095485] uvcvideo 1-4.2:1.0: Entity type for entity Extension 4
+>>>>>>>> was
+>>>>>>>> not initialized!
+>>>>>>>> [   26.095492] uvcvideo 1-4.2:1.0: Entity type for entity Processing
+>>>>>>>> 2
+>>>>>>>> was
+>>>>>>>> not initialized!
+>>>>>>>> [   26.095496] uvcvideo 1-4.2:1.0: Entity type for entity Camera 1
+>>>>>>>> was
+>>>>>>>> not
+>>>>>>>> initialized!
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> You can safely ignore those messages. I need to submit a patch to get
+>>>>>>> rid
+>>>>>>> of them.
+>>>>>>>
+>>>>>>>> Laurent, I've attached lsusb -v output so that you can check the
+>>>>>>>> descriptors.
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Thank you.
+>>>>>>>
+>>>>>>> It's funny how UVC specifies a standard way to describe a device with
+>>>>>>> two
+>>>>>>> camera sensors with dynamic selection of one of them at runtime, and
+>>>>>>> vendors instead implement vendor-specific crap :-(
+>>>>>>>
+>>>>>>> The interesting part in the descriptors is
+>>>>>>>
+>>>>>>>          VideoControl Interface Descriptor:
+>>>>>>>            bLength                27
+>>>>>>>            bDescriptorType        36
+>>>>>>>            bDescriptorSubtype      6 (EXTENSION_UNIT)
+>>>>>>>            bUnitID                 4
+>>>>>>>            guidExtensionCode
+>>>>>>> {1229a78c-47b4-4094-b0ce-db07386fb938}
+>>>>>>>            bNumControl             2
+>>>>>>>            bNrPins                 1
+>>>>>>>            baSourceID( 0)          2
+>>>>>>>            bControlSize            2
+>>>>>>>            bmControls( 0)       0x00
+>>>>>>>            bmControls( 1)       0x06
+>>>>>>>            iExtension              0
+>>>>>>>
+>>>>>>> The extension unit exposes two controls (bmControls is a bitmask).
+>>>>>>> They
+>>>>>>> can be accessed from userspace through the UVCIOC_CTRL_QUERY ioctl, or
+>>>>>>> mapped to V4L2 controls through the UVCIOC_CTRL_MAP ioctl, in which
+>>>>>>> case
+>>>>>>> they will be exposed to standard V4L2 applications.
+>>>>>>>
+>>>>>>> If you want to experiment with this, I would advise querying both
+>>>>>>> controls
+>>>>>>> with UVCIOC_CTRL_QUERY. You can use the UVC_GET_CUR, UVC_GET_MIN,
+>>>>>>> UVC_GET_MAX, UVC_GET_DEF and UVC_GET_RES requests to get the control
+>>>>>>> current, minimum, maximum, default and resolution values, and
+>>>>>>> UVC_GET_LEN
+>>>>>>> and UVC_GET_INFO to get the control size (in bytes) and flags. Based
+>>>>>>> on
+>>>>>>> that you can start experimenting with UVC_SET_CUR to set semi-random
+>>>>>>> values.
+>>>>>>>
+>>>>>>> I'm however worried that those two controls would be a register
+>>>>>>> address
+>>>>>>> and a register value, for indirect access to all hardware registers in
+>>>>>>> the device. In that case, you would likely need information from the
+>>>>>>> device vendor, or possibly a USB traffic dump from a Windows machine
+>>>>>>> when
+>>>>>>> switching between the front and back cameras.
+>>>>>>>
+>>>>>>>> Carlos, it might be good to get Laurent your descriptors too, to do
+>>>>>>>> this do "lsusb", note what is the <vid>:<pid> for your camera and
+>>>>>>>> then
+>>>>>>>> run:
+>>>>>>>>
+>>>>>>>> sudo lsusb -v -d <vid>:<pid>  > lsusb.log
+>>>>>>>>
+>>>>>>>> And send Laurent a mail with the generated lsusb
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> That would be appreciated, but I expect the same issue :-(
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Please find it attached. IIUC your last email, it might not be the
+>>>>>> exact same issue, but you can definitely judge better.
+>>>>>
+>>>>>
+>>>>>
+>>>>> Your device is similar in the sense that it doesn't use the standard UVC
+>>>>> support for multiple camera sensors. It instead exposes two extension
+>>>>> units:
+>>>>>
+>>>>>          VideoControl Interface Descriptor:
+>>>>>            bLength                27
+>>>>>            bDescriptorType        36
+>>>>>            bDescriptorSubtype      6 (EXTENSION_UNIT)
+>>>>>            bUnitID                 4
+>>>>>            guidExtensionCode
+>>>>> {1229a78c-47b4-4094-b0ce-db07386fb938}
+>>>>>            bNumControl             2
+>>>>>            bNrPins                 1
+>>>>>            baSourceID( 0)          2
+>>>>>            bControlSize            2
+>>>>>            bmControls( 0)       0x00
+>>>>>            bmControls( 1)       0x06
+>>>>>            iExtension              0
+>>>>>          VideoControl Interface Descriptor:
+>>>>>            bLength                29
+>>>>>            bDescriptorType        36
+>>>>>            bDescriptorSubtype      6 (EXTENSION_UNIT)
+>>>>>            bUnitID                 6
+>>>>>            guidExtensionCode
+>>>>> {26b8105a-0713-4870-979d-da79444bb68e}
+>>>>>            bNumControl             9
+>>>>>            bNrPins                 1
+>>>>>            baSourceID( 0)          4
+>>>>>            bControlSize            4
+>>>>>            bmControls( 0)       0x1f
+>>>>>            bmControls( 1)       0x01
+>>>>>            bmControls( 2)       0x38
+>>>>>            bmControls( 3)       0x00
+>>>>>            iExtension              6 Realtek Extended Controls Unit
+>>>>>
+>>>>> The first one is identical to Hans', and I expect it to offer indirect
+>>>>> access
+>>>>> to internal device registers. The second one exposes 9 controls, and I
+>>>>> expect
+>>>>> at least some of those to have direct effects on the device. What they
+>>>>> do
+>>>>> and
+>>>>> how they operate is unfortunately unknown.
+>>>>
+>>>>
+>>>>
+>>>> Laurent, thank you for your input on this. I thought it was a bit weird
+>>>> that
+>>>> the cam on my HP X2 only had what appears to be the debug controls, so I
+>>>> opened it up and as I suspect (after your analysis) it is using a USB
+>>>> module
+>>>> for the front camera, but the back camera is a sensor directly hooked
+>>>> with
+>>>> its
+>>>> CSI/MIPI bus to the PCB, so very likely it is using the ATOMISP stuff.
+>>>>
+>>>> So I think that we can consider this "solved" for my 2-in-1.
+>>>>
+>>>> Carlos, your Acer is using a Core CPU (not an Atom) right ? And the front
+>>>
+>>>
+>>> Indeed, it is an i5...
+>>>
+>>>> and
+>>>> rear cams are both centered at the same edge I guess ?  (mine had one in
+>>>> the
+>>>> corner and the other centered which already was a hint)
+>>>
+>>>
+>>> ...but now that you mention this, I have front camera centered and
+>>> rear camera on a corner too. Is there any other info I may need to
+>>> fetch? I assume ATOMISP is irrelevant here.
+>>
+>>
+>> Skylake and kabylake also have an ATOMISP like device. What is the
+>> output of lspci ?  And what is your CPU model number? (cat /proc/cpuinfo)
+> 
+> Oh I see, this is Skylake indeed, so I guess the issue is similar.
 
-Hi Steve,
-   I've done some more testing, and finally got MIPI capture work
-properly on the i.MX6Q platform I'm testing on.
+I think that your CPU does have integrated camera support, but that does
+not necessarily mean it is used. If it is used it should show up in
+lspci.
 
-Apparently commit:
-476dec012f4c6545b0b7599cd9adba2ed819ad3b
-("media: ov5640: Add horizontal and vertical totals")
-which several people, Jagan included, has reported introducing
-regressions on MIPI actually breaks image capture.
+Can you provide lspci output ?   And is there any output for:
 
-I have a fix based on Maxime's and Sam's
-[PATCH v3 01/12] media: ov5640: Fix timings setup code
+lsmod | grep ipu3
 
-I will send the two patches out soon.
+Regards,
 
-If you and other people are eager to test them it would be awesome to
-have a confirmation MIPI capture works for you too.
-
-Thanks
-   j
-
-On Tue, Jul 10, 2018 at 09:33:31AM +0200, jacopo mondi wrote:
-> Hi Steve,
->    thanks for testing!
->
-> On Mon, Jul 09, 2018 at 02:52:09PM -0700, Steve Longerbeam wrote:
-> > Hi Jacopo,
-> >
-> > I tested this patch on the i.MX6Q SabreSD with the OV5640 module.
-> > It fixes the LP-11 timeout at stream on, but the captured images
-> > are completely blank/black.
->
-> Intersting that the module was not starting up properly on other
-> (all?) i.MX6Q platforms, not only on Engicam's one. I didn't get this
-> initially.
->
-> Ok, so that's a step forward, but not enough probably. I'll keep
-> looking into this and get back!
->
-> Thanks
->    j
->
-> >
-> > Steve
-> >
-> >
-> > On 07/06/2018 04:00 AM, Jacopo Mondi wrote:
-> > >From: Jacopo Mondi <jacopo@jmondi.org>
-> > >
-> > >Rework the MIPI interface startup sequence with the following changes:
-> > >
-> > >- Remove MIPI bus initialization from the initial settings blob
-> > >- At set_power(1) time power up MIPI Tx/Rx and set data and clock lanes in
-> > >   LP11 during 'sleep' and 'idle' with MIPI clock in non-continuous mode.
-> > >- At s_stream time enable/disable the MIPI interface output.
-> > >- Restore default settings at set_power(0) time.
-> > >
-> > >Before this commit the sensor MIPI interface was initialized with settings
-> > >that require a start/stop sequence at power-up time in order to force lanes
-> > >into LP11 state, as they were initialized in LP00 when in 'sleep mode',
-> > >which is assumed to be the sensor manual definition for the D-PHY defined
-> > >stop mode.
-> > >
-> > >The stream start/stop was performed by enabling disabling clock gating,
-> > >and had the side effect to change the lanes sleep mode configuration when
-> > >stream was stopped.
-> > >
-> > >Clock gating/ungating:
-> > >-       ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
-> > >-                            on ? 0 : BIT(5));
-> > >-       if (ret)
-> > >
-> > >Set lanes in LP11 when in 'sleep mode':
-> > >-       ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
-> > >-                              on ? 0x00 : 0x70);
-> > >
-> > >This commit fixes an issue reported by Jagan Teki on i.MX6 platforms that
-> > >prevents the host interface from powering up correctly:
-> > >https://lkml.org/lkml/2018/6/1/38
-> > >
-> > >It also improves MIPI capture operations stability on my testing platform
-> > >where MIPI capture often (silently) failed and returned all-purple frames.
-> > >
-> > >fixes: f22996db44e2 ("media: ov5640: add support of DVP parallel interface")
-> > >Reported-by: Jagan Teki <jagan@amarulasolutions.com>
-> > >Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
-> > >
-> > >---
-> > >
-> > >Hello,
-> > >   I'm sending this one as new patch instead of a v2 of the previously sent
-> > >series "media: i2c: ov5640: Re-work MIPI interface configuration" as the
-> > >previous one was not working on the Engicam i.Mx6 platform where Jagan
-> > >initially reported issues on.
-> > >
-> > >I've been able to test that capture now starts on said platform, but I've not
-> > >been able to visually verify any of the image content as I have no way yet to
-> > >transfer the raw images to my development host and verify their content (network
-> > >still not working for me on that platform :/ )
-> > >
-> > >On my other testing platform images are correct, but they already were with the
-> > >previous version of this patches too, so I assume the CSI-2 receiver is far more
-> > >tolerant there.
-> > >
-> > >Jagan, is there any way you could verify images? I would appreciate your
-> > >Tested-by tag in case they're correct.
-> > >
-> > >Also, as there seems to be a lot of people interested in ov5640 these days, I
-> > >have expanded the receivers list. Anyone that could give these patches a spin?
-> > >(ie. Sam reported issues too with the current MIPI startup sequence in a patch
-> > >series he shared on dropbox iirc...)
-> > >
-> > >Thanks
-> > >    j
-> > >---
-> > >  drivers/media/i2c/ov5640.c | 91 ++++++++++++++++++++++++++++++++++++----------
-> > >  1 file changed, 71 insertions(+), 20 deletions(-)
-> > >
-> > >diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> > >index 1ecbb7a..7bbd1d7 100644
-> > >--- a/drivers/media/i2c/ov5640.c
-> > >+++ b/drivers/media/i2c/ov5640.c
-> > >@@ -286,10 +286,10 @@ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
-> > >  	{0x3a0d, 0x04, 0, 0}, {0x3a14, 0x03, 0, 0}, {0x3a15, 0xd8, 0, 0},
-> > >  	{0x4001, 0x02, 0, 0}, {0x4004, 0x02, 0, 0}, {0x3000, 0x00, 0, 0},
-> > >  	{0x3002, 0x1c, 0, 0}, {0x3004, 0xff, 0, 0}, {0x3006, 0xc3, 0, 0},
-> > >-	{0x300e, 0x45, 0, 0}, {0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
-> > >+	{0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
-> > >  	{0x501f, 0x00, 0, 0}, {0x4713, 0x03, 0, 0}, {0x4407, 0x04, 0, 0},
-> > >  	{0x440e, 0x00, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
-> > >-	{0x4837, 0x0a, 0, 0}, {0x4800, 0x04, 0, 0}, {0x3824, 0x02, 0, 0},
-> > >+	{0x4837, 0x0a, 0, 0}, {0x3824, 0x02, 0, 0},
-> > >  	{0x5000, 0xa7, 0, 0}, {0x5001, 0xa3, 0, 0}, {0x5180, 0xff, 0, 0},
-> > >  	{0x5181, 0xf2, 0, 0}, {0x5182, 0x00, 0, 0}, {0x5183, 0x14, 0, 0},
-> > >  	{0x5184, 0x25, 0, 0}, {0x5185, 0x24, 0, 0}, {0x5186, 0x09, 0, 0},
-> > >@@ -1102,12 +1102,18 @@ static int ov5640_set_stream_mipi(struct ov5640_dev *sensor, bool on)
-> > >  {
-> > >  	int ret;
-> > >
-> > >-	ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
-> > >-			     on ? 0 : BIT(5));
-> > >-	if (ret)
-> > >-		return ret;
-> > >-	ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
-> > >-			       on ? 0x00 : 0x70);
-> > >+	/*
-> > >+	 * Enable/disable the MIPI interface
-> > >+	 *
-> > >+	 * 0x300e = on ? 0x45 : 0x40
-> > >+	 * [7:5] = 001	: 2 data lanes mode
-> > >+	 * [4] = 0	: Power up MIPI HS Tx
-> > >+	 * [3] = 0	: Power up MIPI LS Rx
-> > >+	 * [2] = 1/0	: MIPI interface enable/disable
-> > >+	 * [1:0] = 01/00: FIXME: 'debug'
-> > >+	 */
-> > >+	ret = ov5640_write_reg(sensor, OV5640_REG_IO_MIPI_CTRL00,
-> > >+			       on ? 0x45 : 0x40);
-> > >  	if (ret)
-> > >  		return ret;
-> > >
-> > >@@ -1786,23 +1792,68 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
-> > >  		if (ret)
-> > >  			goto power_off;
-> > >
-> > >+		/* We're done here for DVP bus, while CSI-2 needs setup. */
-> > >+		if (sensor->ep.bus_type != V4L2_MBUS_CSI2)
-> > >+			return 0;
-> > >+
-> > >+		/*
-> > >+		 * Power up MIPI HS Tx and LS Rx; 2 data lanes mode
-> > >+		 *
-> > >+		 * 0x300e = 0x40
-> > >+		 * [7:5] = 001	: 2 data lanes mode
-> > >+		 * [4] = 0	: Power up MIPI HS Tx
-> > >+		 * [3] = 0	: Power up MIPI LS Rx
-> > >+		 * [2] = 0	: MIPI interface disabled
-> > >+		 */
-> > >+		ret = ov5640_write_reg(sensor,
-> > >+				       OV5640_REG_IO_MIPI_CTRL00, 0x40);
-> > >+		if (ret)
-> > >+			goto power_off;
-> > >+
-> > >+		/*
-> > >+		 * Gate clock and set LP11 in 'no packets mode' (idle)
-> > >+		 *
-> > >+		 * 0x4800 = 0x24
-> > >+		 * [5] = 1	: Gate clock when 'no packets'
-> > >+		 * [2] = 1	: MIPI bus in LP11 when 'no packets'
-> > >+		 */
-> > >+		ret = ov5640_write_reg(sensor,
-> > >+				       OV5640_REG_MIPI_CTRL00, 0x24);
-> > >+		if (ret)
-> > >+			goto power_off;
-> > >+
-> > >+		/*
-> > >+		 * Set data lanes and clock in LP11 when 'sleeping'
-> > >+		 *
-> > >+		 * 0x3019 = 0x70
-> > >+		 * [6] = 1	: MIPI data lane 2 in LP11 when 'sleeping'
-> > >+		 * [5] = 1	: MIPI data lane 1 in LP11 when 'sleeping'
-> > >+		 * [4] = 1	: MIPI clock lane in LP11 when 'sleeping'
-> > >+		 */
-> > >+		ret = ov5640_write_reg(sensor,
-> > >+				       OV5640_REG_PAD_OUTPUT00, 0x70);
-> > >+		if (ret)
-> > >+			goto power_off;
-> > >+
-> > >+		/* Give lanes some time to coax into LP11 state. */
-> > >+		usleep_range(500, 1000);
-> > >+
-> > >+	} else {
-> > >  		if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
-> > >-			/*
-> > >-			 * start streaming briefly followed by stream off in
-> > >-			 * order to coax the clock lane into LP-11 state.
-> > >-			 */
-> > >-			ret = ov5640_set_stream_mipi(sensor, true);
-> > >-			if (ret)
-> > >-				goto power_off;
-> > >-			usleep_range(1000, 2000);
-> > >-			ret = ov5640_set_stream_mipi(sensor, false);
-> > >-			if (ret)
-> > >-				goto power_off;
-> > >+			/* Reset MIPI bus settings to their default values. */
-> > >+			ov5640_write_reg(sensor,
-> > >+					 OV5640_REG_IO_MIPI_CTRL00, 0x58);
-> > >+			ov5640_write_reg(sensor,
-> > >+					 OV5640_REG_MIPI_CTRL00, 0x04);
-> > >+			ov5640_write_reg(sensor,
-> > >+					 OV5640_REG_PAD_OUTPUT00, 0x00);
-> > >  		}
-> > >
-> > >-		return 0;
-> > >+		ov5640_set_power_off(sensor);
-> > >  	}
-> > >
-> > >+	return 0;
-> > >+
-> > >  power_off:
-> > >  	ov5640_set_power_off(sensor);
-> > >  	return ret;
-> > >--
-> > >2.7.4
-> > >
-> >
-
-
-
---Pk6IbRAofICFmK5e
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbRPJ3AAoJEHI0Bo8WoVY8H/YP/Ro/p26VbTt4DP7cOlmlat6c
-U0Riva4shnllopj4DcuDXuTsCE5vzQ6AJuS06I43SUKOdhXkwkUacj7F1KNZUMWX
-5UaNMmUTbUO/H76GGImYrxKd7UiQrN7Y4ExuKu56rQlmM4vaAmVlqINaCWovLB40
-ubJP9eVyUzLDkkYdO5wHiWPmqN96+laMHD4MdP9X/EtveaHnyv/DIob/bZQjPf5f
-3N/gSWBYtLx6QALEGGLPwcSIAMy9DqLdJCuxK5GRUYlyZ/suDsq7FGvB73q3njD/
-nPpCADkepN26jbXbTrmMej2WX1NsLWp6oeLtyHFqmgdeVDukVlo432vOZpg7ElvT
-pXue8Kv38x1gWIIzdJhPrAFZk4ZpG9qamZMBJf4dIsdB2vOgAjHRymZKIX94UTEW
-H/NQJDdYzAZOfW5GV9EyxSZ+0MNShiwW/N0SX/l8m6L9OqPVQ2C1CyfSQbM09SYU
-HBo5JypnRxZPmY7/o1x7Bzbc8ixaeMCvMdTHdk34OYhJtD6b1wbZeHV1htSy5BnP
-IHJ7sZuhMvJWnFH/zz1bpurYa36IfK8WefqV0heVALtdHkA45Rsd0FVl+k6cLH9r
-P5zq/DKYxaUOLK8WbCZDrKwUhoxmp51WGsBb13XoIcvSki4/QPt5tXFDMGcZxrKj
-O4ZNPlsw0+TdBgv3n5BK
-=dKns
------END PGP SIGNATURE-----
-
---Pk6IbRAofICFmK5e--
+Hans
