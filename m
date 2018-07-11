@@ -1,52 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from laurent.telenet-ops.be ([195.130.137.89]:43574 "EHLO
-        laurent.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388007AbeGKO2J (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:56124 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732461AbeGKO77 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 10:28:09 -0400
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: [PATCH] v4l: rcar_fdp1: Enable compilation on Gen2 platforms
-Date: Wed, 11 Jul 2018 16:23:32 +0200
-Message-Id: <20180711142332.4324-1-geert+renesas@glider.be>
+        Wed, 11 Jul 2018 10:59:59 -0400
+Date: Wed, 11 Jul 2018 11:55:05 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH] libv4l: fixup lfs mismatch in preload libraries
+Message-ID: <20180711115505.5b93de93@coco.lan>
+In-Reply-To: <20180711132251.13172-1-ezequiel@collabora.com>
+References: <20180711132251.13172-1-ezequiel@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Em Wed, 11 Jul 2018 10:22:51 -0300
+Ezequiel Garcia <ezequiel@collabora.com> escreveu:
 
-Commit 1d3897143815 ("[media] v4l: rcar_fdp1: add FCP dependency") fixed
-a compilation breakage when the optional VIDEO_RENESAS_FCP dependency is
-compiled as a module while the rcar_fdp1 driver is built in. As a side
-effect it disabled compilation on Gen2 by disallowing the valid
-combination ARCH_RENESAS && !VIDEO_RENESAS_FCP. Fix it by handling the
-dependency the same way the vsp1 driver did in commit 199946731fa4
-("[media] vsp1: clarify FCP dependency").
+> From: Peter Korsgaard <jacmet@sunsite.dk>
+> 
+> Ensure that the lfs variants are not transparently used instead of the !lfs
+> ones so both can be wrapped, independently of any custom CFLAGS/CPPFLAGS.
+> 
+> Without this patch, the following assembler errors appear
+> during cross-compiling with Buildroot:
+> 
+> /tmp/ccc3gdJg.s: Assembler messages:
+> /tmp/ccc3gdJg.s:67: Error: symbol `open64' is already defined
+> /tmp/ccc3gdJg.s:130: Error: symbol `mmap64' is already defined
+> 
+> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  lib/libv4l1/v4l1compat.c  | 3 +++
+>  lib/libv4l2/v4l2convert.c | 3 +++
+>  2 files changed, 6 insertions(+)
+> 
+> diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+> index cb79629ff88f..e5c9e56261e2 100644
+> --- a/lib/libv4l1/v4l1compat.c
+> +++ b/lib/libv4l1/v4l1compat.c
+> @@ -19,6 +19,9 @@
+>  # Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
+>   */
+>  
+> +/* ensure we see *64 variants and they aren't transparently used */
+> +#undef _LARGEFILE_SOURCE
+> +#undef _FILE_OFFSET_BITS
 
-Fixes: 1d3897143815 ("[media] v4l: rcar_fdp1: add FCP dependency")
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hmm... shouldn't this be autodetected? I didn't check anything,
+but I would be expecting that different distros (and BSD) may be
+doing different things here, specially if they use different gcc
+versions or even different libc implementations.
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 210b44a457eb66f0..84cb97eccb2a52bc 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -385,7 +385,7 @@ config VIDEO_RENESAS_FDP1
- 	tristate "Renesas Fine Display Processor"
- 	depends on VIDEO_DEV && VIDEO_V4L2
- 	depends on ARCH_RENESAS || COMPILE_TEST
--	depends on (!ARCH_RENESAS && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
-+	depends on (!ARM64 && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
--- 
-2.17.1
+
+>  #define _LARGEFILE64_SOURCE 1
+>  
+>  #include <config.h>
+> diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+> index 7c9a04c086ed..13ca4cfb1b08 100644
+> --- a/lib/libv4l2/v4l2convert.c
+> +++ b/lib/libv4l2/v4l2convert.c
+> @@ -23,6 +23,9 @@
+>  /* prevent GCC 4.7 inlining error */
+>  #undef _FORTIFY_SOURCE
+>  
+> +/* ensure we see *64 variants and they aren't transparently used */
+> +#undef _LARGEFILE_SOURCE
+> +#undef _FILE_OFFSET_BITS
+>  #define _LARGEFILE64_SOURCE 1
+>  
+>  #ifdef ANDROID
+
+
+
+Thanks,
+Mauro
