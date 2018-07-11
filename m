@@ -1,142 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48704 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732388AbeGKDw7 (ORCPT
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:34801 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726444AbeGKHYp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 23:52:59 -0400
-Message-ID: <40c8dc9b199a3ef21b493cbd9c8a5d6c@smtp-cloud8.xs4all.net>
-Date: Wed, 11 Jul 2018 05:50:41 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Wed, 11 Jul 2018 03:24:45 -0400
+Date: Wed, 11 Jul 2018 09:21:48 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        maxime.ripard@bootlin.com, sam@elite-embedded.com,
+        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
+        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
+Message-ID: <20180711072148.GH8180@w540>
+References: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
+ <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="jRdC2OsRnuV8iIl8"
+Content-Disposition: inline
+In-Reply-To: <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--jRdC2OsRnuV8iIl8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Wed Jul 11 05:00:11 CEST 2018
-media-tree git hash:	666e994aa2278e948e2492ee9d81b4df241e7222
-media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
-v4l-utils git hash:	07ab94cbdd5b19725ae3e76ad9ca03bd42e4e963
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Hi Steve,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.101-i686: OK
-linux-3.2.101-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.56-i686: OK
-linux-3.16.56-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.102-i686: OK
-linux-3.18.102-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.51-i686: OK
-linux-4.1.51-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.109-i686: OK
-linux-4.4.109-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.91-i686: OK
-linux-4.9.91-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.42-i686: OK
-linux-4.14.42-x86_64: OK
-linux-4.15.14-i686: OK
-linux-4.15.14-x86_64: OK
-linux-4.16.8-i686: OK
-linux-4.16.8-x86_64: OK
-linux-4.17.2-i686: OK
-linux-4.17.2-x86_64: OK
-linux-4.18-rc1-i686: OK
-linux-4.18-rc1-x86_64: OK
-apps: OK
-spec-git: OK
+On Tue, Jul 10, 2018 at 02:10:54PM -0700, Steve Longerbeam wrote:
+> Hi Jacopo,
+>
+> Sorry to report my testing on SabreSD has same result
+> as last time. This series fixes the LP-11 timeout at stream
+> on but captured images are still blank. I tried the 640x480
+> mode with UYVY2X8. Here is the pad config:
 
-Detailed results are available here:
+This saddens me :(
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+I'm capturing with the same format and sizes... this shouldn't be the
+issue
 
-Full logs are available here:
+Could you confirm this matches what you have in your tree?
+5dc2c80 media: ov5640: Fix timings setup code
+b35e757 media: i2c: ov5640: Re-work MIPI startup sequence
+3c4a737 media: ov5640: fix frame interval enumeration
+41cb1c7 media: ov5640: adjust xclk_max
+c3f3ba3 media: ov5640: add support of module orientation
+ce85705 media: ov5640: add HFLIP/VFLIP controls support
+8663341 media: ov5640: Program the visible resolution
+476dec0 media: ov5640: Add horizontal and vertical totals
+dba13a0 media: ov5640: Change horizontal and vertical resolutions name
+8f57c2f media: ov5640: Init properly the SCLK dividers
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Thanks
+   j
 
-The Media Infrastructure API from this daily build is here:
+>
+> # media-ctl --get-v4l2 "'ov5640 1-003c':0"
+> =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 [fmt:UYVY8_2X8/640x480@1/30 field:n=
+one colorspace:srgb xfer:srgb
+> ycbcr:601 quantization:full-range]
+>
+> Steve
+>
+> On 07/10/2018 11:36 AM, Jacopo Mondi wrote:
+> >Hello,
+> >    this series fixes capture operations on i.MX6Q platforms (and possib=
+le other
+> >platforms reported not working) using MIPI CSI-2 interface.
+> >
+> >This iteration expands the v1 version with an additional fix, initially
+> >submitted by Maxime in his series:
+> >[PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
+> >https://www.spinics.net/lists/linux-media/msg134436.html
+> >
+> >The original patch has been reported not fully fixing the issues by Dani=
+el Mack
+> >in his comment here below (on a Qualcomm platform if I'm not wrong):
+> >https://www.spinics.net/lists/linux-media/msg134524.html
+> >On my i.MX6Q testing platform that patch alone does not fix MIPI capture
+> >neither.
+> >
+> >The version I'm sending here re-introduces some of the timings parameter=
+s in the
+> >initial configuration blob (not in the single mode ones), which apparent=
+ly has
+> >to be at least initially programmed to allow the driver to later program=
+ them
+> >singularly in the 'set_timings()' function. Unfortunately I do not have =
+a real
+> >rationale behind this which explains why it has to be done this way :(
+> >
+> >For the MIPI startup sequence re-work patch, no changes compared to v1.
+> >Steve reported he has verified the LP-11 timout issue is solved on his t=
+esting
+> >platform too. For more details, please refer to the v1 cover letter:
+> >https://www.mail-archive.com/linux-media@vger.kernel.org/msg133352.html
+> >
+> >Thanks
+> >    j
+> >
+> >Jacopo Mondi (1):
+> >   media: i2c: ov5640: Re-work MIPI startup sequence
+> >
+> >Samuel Bobrowicz (1):
+> >   media: ov5640: Fix timings setup code
+> >
+> >  drivers/media/i2c/ov5640.c | 107 ++++++++++++++++++++++++++++++++++---=
+--------
+> >  1 file changed, 82 insertions(+), 25 deletions(-)
+> >
+> >--
+> >2.7.4
+> >
+>
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--jRdC2OsRnuV8iIl8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbRbAMAAoJEHI0Bo8WoVY8Y5IP/jtQ6KA+F82HNzs+BKMEkfaa
+KhxuWyr9l/9vPuvILTryIjKHCHSworp/tljpBxzuVUe4IIYbY5hmUSHsBWQldl2q
+3+h/lwS6AnmHSvfFEkKKwVCqBxSqMudPSfoMxtYuzxkzWLMtjG3rMzAmyZQmNaCM
+ET3eUe3Gu4osradwt97m14aM/xNEGlW0KEmZIT1gIMo35Hbgaw4H+cq/7ilQnFLY
+mnyhKluKS7RDrRNfjzbRWP0kQs/b/lf2cvUlf/m/R4I2H+Imwj/WR5NKcFYFyIxx
+KhB/UD+C8WhRCAo4gCKFjJsqnG14jY3puuQnrKnUYEUrq9n7anjtXdfcl4ongRbi
+a/E0YGFmKHg222pyzEK0KcHB2Xdi+iXXfL/DGbz2v6Ze8rOu7SnlEs45CgGWhqBy
+bPJLd1nem0StBodK/d6hem4ZqmqOlpHlPcW+uft7rE+G8U1YN8596oVzgDq1vARk
+v4owmEOV4GOgUVlYgqBt3ZbJxG0iCC7D89H9Qc910Nle7TXuuYUVlwdpaBWIhCpu
+gCYZBBrHz4xGiLOr5H7AVsPVRXykxrIVQkISibujyKkNJbLfD/YQ4tqCvraUQaUf
+kB5zi8c4m0B2DJU+O7IAluJL7cVLN5nx3tNWj86NFZRBpdtsonea6JUYmgVlzad+
+YAaXSJw6RhDzebikhNHp
+=qY6P
+-----END PGP SIGNATURE-----
+
+--jRdC2OsRnuV8iIl8--
