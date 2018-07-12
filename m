@@ -1,68 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps0.lunn.ch ([185.16.172.187]:60644 "EHLO vps0.lunn.ch"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726906AbeGLQ6J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jul 2018 12:58:09 -0400
-Date: Thu, 12 Jul 2018 18:47:27 +0200
-From: Andrew Lunn <andrew@lunn.ch>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-arm-kernel@lists.infradead.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        acourbot@chromium.org, jenskuske@gmail.com,
-        linux-sunxi@googlegroups.com, linux-kernel@vger.kernel.org,
-        tfiga@chromium.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>, hans.verkuil@cisco.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        sakari.ailus@linux.intel.com, Guenter Roeck <groeck@chromium.org>,
-        nicolas.dufresne@collabora.com, posciak@chromium.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/9] CHROMIUM: v4l: Add H264 low-level decoder API
- compound controls.
-Message-ID: <20180712164727.GB10740@lunn.ch>
-References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
- <20180613140714.1686-2-maxime.ripard@bootlin.com>
- <9c80de4e-c070-1051-2089-2d53826c6fc7@xs4all.nl>
- <20180712163821.np57u46m7akpubht@flea>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:36824 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726351AbeGLTYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jul 2018 15:24:49 -0400
+References: <20180711132251.13172-1-ezequiel@collabora.com> <20180711115505.5b93de93@coco.lan> <878t6h5zqn.fsf@tkos.co.il> <20180712055428.0d853914@coco.lan>
+From: Baruch Siach <baruch@tkos.co.il>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Peter Korsgaard <peter@korsgaard.com>
+Subject: Re: [PATCH] libv4l: fixup lfs mismatch in preload libraries
+In-reply-to: <20180712055428.0d853914@coco.lan>
+Date: Thu, 12 Jul 2018 22:13:53 +0300
+Message-ID: <87tvp4fery.fsf@tkos.co.il>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180712163821.np57u46m7akpubht@flea>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 12, 2018 at 06:38:21PM +0200, Maxime Ripard wrote:
-> Hi Hans,
-> 
-> Thanks for your feedback, I have a few things I'm not really sure
-> about though.
-> 
-> On Fri, Jun 15, 2018 at 01:59:58PM +0200, Hans Verkuil wrote:
-> > > +struct v4l2_ctrl_h264_sps {
-> > > +	__u8 profile_idc;
-> > > +	__u8 constraint_set_flags;
-> > > +	__u8 level_idc;
-> > > +	__u8 seq_parameter_set_id;
-> > > +	__u8 chroma_format_idc;
-> > > +	__u8 bit_depth_luma_minus8;
-> > > +	__u8 bit_depth_chroma_minus8;
-> > > +	__u8 log2_max_frame_num_minus4;
-> > > +	__u8 pic_order_cnt_type;
-> > > +	__u8 log2_max_pic_order_cnt_lsb_minus4;
-> > 
-> > There is a hole in the struct here. Is that OK? Are there alignment
-> > requirements?
-> 
-> This structure represents an equivalent structure in the H264
-> bitstream, but it's not a 1:1 mapping, so I don't think there's any
-> alignment issues.
-> 
-> As of the padding, is it an issue? Isn't it defined by the ABI, and
-> therefore the userspace will have the same padding rules?
 
-Hi Maxime
+Mauro Carvalho Chehab writes:
 
-It gets interesting when you have a 64 bit kernel and a 32 bit userspace.
+> Em Wed, 11 Jul 2018 22:38:56 +0300
+> Baruch Siach <baruch@tkos.co.il> escreveu:
+>> Added Peter's updated address to Cc.
+>>
+>> Mauro Carvalho Chehab writes:
+>> > Em Wed, 11 Jul 2018 10:22:51 -0300
+>> > Ezequiel Garcia <ezequiel@collabora.com> escreveu:
+>> >
+>> >> From: Peter Korsgaard <jacmet@sunsite.dk>
+>> >>
+>> >> Ensure that the lfs variants are not transparently used instead of the !lfs
+>> >> ones so both can be wrapped, independently of any custom CFLAGS/CPPFLAGS.
+>> >>
+>> >> Without this patch, the following assembler errors appear
+>> >> during cross-compiling with Buildroot:
+>> >>
+>> >> /tmp/ccc3gdJg.s: Assembler messages:
+>> >> /tmp/ccc3gdJg.s:67: Error: symbol `open64' is already defined
+>> >> /tmp/ccc3gdJg.s:130: Error: symbol `mmap64' is already defined
+>> >>
+>> >> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+>> >> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+>> >> ---
+>> >>  lib/libv4l1/v4l1compat.c  | 3 +++
+>> >>  lib/libv4l2/v4l2convert.c | 3 +++
+>> >>  2 files changed, 6 insertions(+)
+>> >>
+>> >> diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+>> >> index cb79629ff88f..e5c9e56261e2 100644
+>> >> --- a/lib/libv4l1/v4l1compat.c
+>> >> +++ b/lib/libv4l1/v4l1compat.c
+>> >> @@ -19,6 +19,9 @@
+>> >>  # Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
+>> >>   */
+>> >>
+>> >> +/* ensure we see *64 variants and they aren't transparently used */
+>> >> +#undef _LARGEFILE_SOURCE
+>> >> +#undef _FILE_OFFSET_BITS
+>> >
+>> > Hmm... shouldn't this be autodetected? I didn't check anything,
+>> > but I would be expecting that different distros (and BSD) may be
+>> > doing different things here, specially if they use different gcc
+>> > versions or even different libc implementations.
+>>
+>> See Peter's explanation here:
+>>
+>>   http://lists.busybox.net/pipermail/buildroot/2017-December/210067.html
+>
+> The link Peter provided seems to be specific to glibc. The main
+> point I want to bring is: would this change affect users with
+> other setups? There are some users that compile it against FreeBSD
+> and Android. Some compile using dietlibc or uclibc. Also, people
+> build it against 32-bits and 64-bits on x86, arm and other archs.
+>
+> So, the question is: are you sure that the above change is also valid for
+> *all* other environments? If not, I would be expecting it to be
+> attached to some automake test, to be sure that it will be applied
+> only to the affected setups.
 
-   Andrew
+Buildroot has been carrying this patch since 2012[1] with no one
+complaining. Buildroot supports glibc, uClibc, and musl libc on a wide
+range of architectures (x86, ARM, MIPS, PowerPC, Sparc, xtensa, arc, and
+more) both 32-bit and 64-bit.
+
+I don't know about FreeBSD.
+
+baruch
+
+[1] https://git.buildroot.org/buildroot/commit/?id=d059b1cc61dcafde47723c45b834409026a39dbe
+
+>> >>  #define _LARGEFILE64_SOURCE 1
+>> >>
+>> >>  #include <config.h>
+>> >> diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+>> >> index 7c9a04c086ed..13ca4cfb1b08 100644
+>> >> --- a/lib/libv4l2/v4l2convert.c
+>> >> +++ b/lib/libv4l2/v4l2convert.c
+>> >> @@ -23,6 +23,9 @@
+>> >>  /* prevent GCC 4.7 inlining error */
+>> >>  #undef _FORTIFY_SOURCE
+>> >>
+>> >> +/* ensure we see *64 variants and they aren't transparently used */
+>> >> +#undef _LARGEFILE_SOURCE
+>> >> +#undef _FILE_OFFSET_BITS
+>> >>  #define _LARGEFILE64_SOURCE 1
+>> >>
+>> >>  #ifdef ANDROID
+
+--
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
