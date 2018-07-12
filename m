@@ -1,246 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:54534 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726663AbeGLMm7 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:56568 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727076AbeGLNKQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jul 2018 08:42:59 -0400
-Date: Thu, 12 Jul 2018 09:33:32 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sean Young <sean@mess.org>
-Cc: "Michael Kerrisk (man-opages)" <mtk.manpages@gmail.com>,
-        linux-man@vger.kernel.org, linux-media@vger.kernel.org,
-        Alec Leamas <leamas.alec@gmail.com>
-Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never
- implemented
-Message-ID: <20180712093332.682fa518@coco.lan>
-In-Reply-To: <20180518152529.eunu6e6735z62bug@gofer.mess.org>
-References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
-        <6b531be3-56ea-b534-3493-d64c98b3f6c5@gmail.com>
-        <20180518152529.eunu6e6735z62bug@gofer.mess.org>
+        Thu, 12 Jul 2018 09:10:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Carlos Garnacho <carlosg@gnome.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Devices with a front and back webcam represented as a single UVC device
+Date: Thu, 12 Jul 2018 16:01:19 +0300
+Message-ID: <1762892.v9kic1zYKq@avalon>
+In-Reply-To: <1a5ac0f3-9acd-1b8f-7354-b2147aa5636f@redhat.com>
+References: <8804dcb3-1aca-3679-6a96-bbe554f188d0@redhat.com> <2208320.5nHJhHVTzE@avalon> <1a5ac0f3-9acd-1b8f-7354-b2147aa5636f@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael/Alec,
+Hi Hans,
 
-Em Fri, 18 May 2018 16:25:29 +0100
-Sean Young <sean@mess.org> escreveu:
-
-> On Sun, May 06, 2018 at 12:34:53PM +0200, Michael Kerrisk (man-opages) wrote:
-> > [CCing original author of this page]
+On Wednesday, 11 July 2018 15:41:10 EEST Hans de Goede wrote:
+> On 11-07-18 14:08, Laurent Pinchart wrote:
+> > On Wednesday, 11 July 2018 14:36:48 EEST Carlos Garnacho wrote:
+> >> On Wed, Jul 11, 2018 at 1:00 PM, Laurent Pinchart wrote:
+> >>> On Wednesday, 11 July 2018 11:37:14 EEST Hans de Goede wrote:
+> >>>> Hi Laurent,
+> >>>> 
+> >>>> At Guadec Carlos (in the Cc) told me that on his Acer 2-in-1 only
+> >>>> the frontcam is working and it seems both are represented by a
+> >>>> single UVC USB device. I've told him to check for some v4l control
+> >>>> to flip between front and back.
+> >>>> 
+> >>>> Carlos, as I mentioned you can try gtk-v4l
+> >>>> ("sudo dnf install gtk-v4l") or qv4l2
+> >>>> ("sudo dnf install qv4l2") these will both show
+> >>>> you various controls for the camera. One of those might do the trick.
+> >>>> 
+> >>>> But I recently bought a 2nd second hand Cherry Trail based HP
+> >>>> X2 2-in-1 and much to my surprise that is actually using an UVC
+> >>>> cam, rather then the usual ATOMISP crap and it has the same issue.
+> >>>> 
+> >>>> This device does not seem to have a control to flip between the
+> >>>> 2 cams, instead it registers 2 /dev/video? nodes but the second
+> >>>> node does not work
+> >>> 
+> >>> The second node is there to expose metadata to userspace, not image
+> >>> data. That's a recent addition to the uvcvideo driver.
+> >>> 
+> >>>> and dmesg contains:
+> >>>> 
+> >>>> [   26.079868] uvcvideo: Found UVC 1.00 device HP TrueVision HD
+> >>>> (05c8:03a3)
+> >>>> [   26.095485] uvcvideo 1-4.2:1.0: Entity type for entity Extension 4
+> >>>> was not initialized!
+> >>>> [   26.095492] uvcvideo 1-4.2:1.0: Entity type for entity Processing 2
+> >>>> was not initialized!
+> >>>> [   26.095496] uvcvideo 1-4.2:1.0: Entity type for entity Camera 1 was
+> >>>> not initialized!
+> >>> 
+> >>> You can safely ignore those messages. I need to submit a patch to get
+> >>> rid of them.
+> >>> 
+> >>>> Laurent, I've attached lsusb -v output so that you can check the
+> >>>> descriptors.
+> >>> 
+> >>> Thank you.
+> >>> 
+> >>> It's funny how UVC specifies a standard way to describe a device with
+> >>> two camera sensors with dynamic selection of one of them at runtime, and
+> >>> vendors instead implement vendor-specific crap :-(
+> >>> 
+> >>> The interesting part in the descriptors is
+> >>> 
+> >>>        VideoControl Interface Descriptor:
+> >>>          bLength                27
+> >>>          bDescriptorType        36
+> >>>          bDescriptorSubtype      6 (EXTENSION_UNIT)
+> >>>          bUnitID                 4
+> >>>          guidExtensionCode        
+> >>>          {1229a78c-47b4-4094-b0ce-db07386fb938}
+> >>>          bNumControl             2
+> >>>          bNrPins                 1
+> >>>          baSourceID( 0)          2
+> >>>          bControlSize            2
+> >>>          bmControls( 0)       0x00
+> >>>          bmControls( 1)       0x06
+> >>>          iExtension              0
+> >>> 
+> >>> The extension unit exposes two controls (bmControls is a bitmask). They
+> >>> can be accessed from userspace through the UVCIOC_CTRL_QUERY ioctl, or
+> >>> mapped to V4L2 controls through the UVCIOC_CTRL_MAP ioctl, in which case
+> >>> they will be exposed to standard V4L2 applications.
+> >>> 
+> >>> If you want to experiment with this, I would advise querying both
+> >>> controls with UVCIOC_CTRL_QUERY. You can use the UVC_GET_CUR,
+> >>> UVC_GET_MIN, UVC_GET_MAX, UVC_GET_DEF and UVC_GET_RES requests to get
+> >>> the control current, minimum, maximum, default and resolution values,
+> >>> and UVC_GET_LEN and UVC_GET_INFO to get the control size (in bytes) and
+> >>> flags. Based on that you can start experimenting with UVC_SET_CUR to set
+> >>> semi-random values.
+> >>> 
+> >>> I'm however worried that those two controls would be a register address
+> >>> and a register value, for indirect access to all hardware registers in
+> >>> the device. In that case, you would likely need information from the
+> >>> device vendor, or possibly a USB traffic dump from a Windows machine
+> >>> when switching between the front and back cameras.
+> >>> 
+> >>>> Carlos, it might be good to get Laurent your descriptors too, to do
+> >>>> this do "lsusb", note what is the <vid>:<pid> for your camera and then
+> >>>> run:
+> >>>> 
+> >>>> sudo lsusb -v -d <vid>:<pid>  > lsusb.log
+> >>>> 
+> >>>> And send Laurent a mail with the generated lsusb
+> >>> 
+> >>> That would be appreciated, but I expect the same issue :-(
+> >> 
+> >> Please find it attached. IIUC your last email, it might not be the
+> >> exact same issue, but you can definitely judge better.
 > > 
+> > Your device is similar in the sense that it doesn't use the standard UVC
 > > 
-> > On 04/23/2018 12:26 PM, Sean Young wrote:  
-> > > The lirc header file included ioctls and feature bits which were never
-> > > implemented by any driver. They were removed in commit:
-> > > 
-> > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6  
+> > support for multiple camera sensors. It instead exposes two extension
+> > units:
+> >        VideoControl Interface Descriptor:
+> >          bLength                27
+> >          bDescriptorType        36
+> >          bDescriptorSubtype      6 (EXTENSION_UNIT)
+> >          bUnitID                 4
+> >          guidExtensionCode         {1229a78c-47b4-4094-b0ce-db07386fb938}
+> >          bNumControl             2
+> >          bNrPins                 1
+> >          baSourceID( 0)          2
+> >          bControlSize            2
+> >          bmControls( 0)       0x00
+> >          bmControls( 1)       0x06
+> >          iExtension              0
+> >        
+> >        VideoControl Interface Descriptor:
+> >          bLength                29
+> >          bDescriptorType        36
+> >          bDescriptorSubtype      6 (EXTENSION_UNIT)
+> >          bUnitID                 6
+> >          guidExtensionCode         {26b8105a-0713-4870-979d-da79444bb68e}
+> >          bNumControl             9
+> >          bNrPins                 1
+> >          baSourceID( 0)          4
+> >          bControlSize            4
+> >          bmControls( 0)       0x1f
+> >          bmControls( 1)       0x01
+> >          bmControls( 2)       0x38
+> >          bmControls( 3)       0x00
+> >          iExtension              6 Realtek Extended Controls Unit
 > > 
-> > Alec, does this patch look okay to you? 
-
-Sean is the sub-maintainer responsible for the LIRC code at the
-media subsystem. He knows more about the current implementation
-than anyone else, as he's working hard to improve it, and got
-rid of all legacy LIRC drivers from staging (either fixing them
-or removing the few ones nobody uses anymore).
-
-As part of his work, some ioctls got removed, in order to make
-the LIRC interface to match the real implementation.
- 
-> Mauro, as Alec is not responding, would you be able to sign this off?
-
-Most of the patch looks ok on my eyes. I noticed that some flags
-still exists at include/uapi/linux/lirc.h:
-
-	LIRC_CAN_REC_RAW, LIRC_CAN_REC_PULSE, LIRC_CAN_SET_REC_FILTER
-	and LIRC_CAN_SEND_MODE2
-
-Maybe instead of just removing, you would need to add some
-explanation about them (or at the patch itself, explaining
-why you're removing the descriptions for them).
-
-> Alternatively, what can be done to progress this?
+> > The first one is identical to Hans', and I expect it to offer indirect
+> > access to internal device registers. The second one exposes 9 controls,
+> > and I expect at least some of those to have direct effects on the device.
+> > What they do and how they operate is unfortunately unknown.
 > 
-> There is some new functionality in lirc which should be added to this man
-> page too, so I have more to come (when I get round to writing it).
+> Laurent, thank you for your input on this. I thought it was a bit weird that
+> the cam on my HP X2 only had what appears to be the debug controls, so I
+> opened it up and as I suspect (after your analysis) it is using a USB
+> module for the front camera, but the back camera is a sensor directly
+> hooked with its CSI/MIPI bus to the PCB, so very likely it is using the
+> ATOMISP stuff.
+> 
+> So I think that we can consider this "solved" for my 2-in-1.
 
-Yeah, making it reflect upstream sounds the right thing to do.
+Great, I'll add you to the list of potential testers for an ATOMISP solution 
+:-)
 
+> Carlos, your Acer is using a Core CPU (not an Atom) right ? And the front
+> and rear cams are both centered at the same edge I guess ?  (mine had one
+> in the corner and the other centered which already was a hint)
+
+-- 
 Regards,
-Mauro
 
-> 
-> Thanks,
-> 
-> Sean
-> > 
-> > Cheers,
-> > 
-> > Michael
-> >   
-> > > Signed-off-by: Sean Young <sean@mess.org>
-> > > ---
-> > >   man4/lirc.4 | 92 ++-----------------------------------------------------------
-> > >   1 file changed, 2 insertions(+), 90 deletions(-)
-> > > 
-> > > diff --git a/man4/lirc.4 b/man4/lirc.4
-> > > index 1e94a7163..3adff55f1 100644
-> > > --- a/man4/lirc.4
-> > > +++ b/man4/lirc.4
-> > > @@ -78,9 +78,7 @@ The package reflects a timeout; see the
-> > >   .B LIRC_SET_REC_TIMEOUT_REPORTS
-> > >   ioctl.
-> > >   .\"
-> > > -.SS Reading input with the
-> > > -.B LIRC_MODE_LIRCCODE
-> > > -drivers
-> > > +.SS Reading input with the LIRC_MODE_LIRCCODE drivers
-> > >   .PP
-> > >   In the \fBLIRC_MODE_LIRCCODE\fR
-> > >   mode, the data returned by
-> > > @@ -204,17 +202,11 @@ Currently serves no purpose since only
-> > >   .BR LIRC_MODE_PULSE
-> > >   is supported.
-> > >   .TP
-> > > -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
-> > > -Get the modulation frequency (Hz).
-> > > -.TP
-> > >   .BR LIRC_SET_SEND_CARRIER " (\fIint\fP)"
-> > >   Set the modulation frequency.
-> > >   The argument is the frequency (Hz).
-> > >   .TP
-> > > -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
-> > > -Get the modulation frequency used when decoding (Hz).
-> > > -.TP
-> > > -.BR SET_SEND_DUTY_CYCLE " (\fIint\fP)"
-> > > +.BR LIRC_SET_SEND_DUTY_CYCLE " (\fIint\fP)"
-> > >   Set the carrier duty cycle.
-> > >   .I val
-> > >   is a number in the range [0,100] which
-> > > @@ -284,36 +276,6 @@ By default this should be turned off.
-> > >   .BR LIRC_GET_REC_RESOLUTION " (\fIvoid\fP)"
-> > >   Return the driver resolution (microseconds).
-> > >   .TP
-> > > -.BR LIRC_GET_MIN_FILTER_PULSE " (\fIvoid\fP)", " " \
-> > > -LIRC_GET_MAX_FILTER_PULSE " (\fIvoid\fP)"
-> > > -Some devices are able to filter out spikes in the incoming signal
-> > > -using given filter rules.
-> > > -These ioctls return the hardware capabilities that describe the bounds
-> > > -of the possible filters.
-> > > -Filter settings depend on the IR protocols that are expected.
-> > > -.BR lircd (8)
-> > > -derives the settings from all protocols definitions found in its
-> > > -.BR lircd.conf (5)
-> > > -config file.
-> > > -.TP
-> > > -.BR LIRC_GET_MIN_FILTER_SPACE " (\fIvoid\fP)", " " \
-> > > -LIRC_GET_MAX_FILTER_SPACE " (\fIvoid\fP)"
-> > > -See
-> > > -.BR LIRC_GET_MIN_FILTER_PULSE .
-> > > -.TP
-> > > -.BR LIRC_SET_REC_FILTER " (\fIint\fP)"
-> > > -Pulses/spaces shorter than this (microseconds) are filtered out by
-> > > -hardware.
-> > > -.TP
-> > > -.BR LIRC_SET_REC_FILTER_PULSE " (\fIint\fP)", " " \
-> > > -LIRC_SET_REC_FILTER_SPACE " (\fIint\fP)"
-> > > -Pulses/spaces shorter than this (microseconds) are filtered out by
-> > > -hardware.
-> > > -If filters cannot be set independently for pulse/space, the
-> > > -corresponding ioctls must return an error and
-> > > -.BR LIRC_SET_REC_FILTER
-> > > -should be used instead.
-> > > -.TP
-> > >   .BR LIRC_SET_TRANSMITTER_MASK
-> > >   Enable the set of transmitters specified in
-> > >   .IR val ,
-> > > @@ -343,32 +305,6 @@ carrier reports.
-> > >   In that case, it will be disabled as soon as you disable carrier reports.
-> > >   Trying to disable a wide band receiver while carrier reports are active
-> > >   will do nothing.
-> > > -.TP
-> > > -.BR LIRC_SETUP_START " (\fIvoid\fP), " LIRC_SETUP_END " (\fIvoid\fP)"
-> > > -Setting of several driver parameters can be optimized by bracketing
-> > > -the actual ioctl calls
-> > > -.BR LIRC_SETUP_START
-> > > -and
-> > > -.BR LIRC_SETUP_END .
-> > > -When a driver receives a
-> > > -.BR LIRC_SETUP_START
-> > > -ioctl, it can choose to not commit further setting changes to the
-> > > -hardware until a
-> > > -.BR LIRC_SETUP_END
-> > > -is received.
-> > > -But this is open to the driver implementation and every driver
-> > > -must also handle parameter changes which are not encapsulated by
-> > > -.BR LIRC_SETUP_START
-> > > -and
-> > > -.BR LIRC_SETUP_END .
-> > > -Drivers can also choose to ignore these ioctls.
-> > > -.TP
-> > > -.BR LIRC_NOTIFY_DECODE " (\fIvoid\fP)"
-> > > -This ioctl is called by
-> > > -.BR lircd (8)
-> > > -whenever a successful decoding of an incoming IR signal is possible.
-> > > -This can be used by supporting hardware to give visual user
-> > > -feedback, for example by flashing an LED.
-> > >   .\"
-> > >   .SH FEATURES
-> > >   .PP
-> > > @@ -378,14 +314,6 @@ The
-> > >   ioctl returns a bit mask describing features of the driver.
-> > >   The following bits may be returned in the mask:
-> > >   .TP
-> > > -.BR LIRC_CAN_REC_RAW
-> > > -The driver is capable of receiving using
-> > > -.BR LIRC_MODE_RAW .
-> > > -.TP
-> > > -.BR LIRC_CAN_REC_PULSE
-> > > -The driver is capable of receiving using
-> > > -.BR LIRC_MODE_PULSE .
-> > > -.TP
-> > >   .BR LIRC_CAN_REC_MODE2
-> > >   The driver is capable of receiving using
-> > >   .BR LIRC_MODE_MODE2 .
-> > > @@ -426,10 +354,6 @@ The driver supports
-> > >   The driver supports
-> > >   .BR LIRC_SET_REC_TIMEOUT .
-> > >   .TP
-> > > -.BR LIRC_CAN_SET_REC_FILTER
-> > > -The driver supports
-> > > -.BR LIRC_SET_REC_FILTER .
-> > > -.TP
-> > >   .BR LIRC_CAN_MEASURE_CARRIER
-> > >   The driver supports measuring of the modulation frequency using
-> > >   .BR LIRC_SET_MEASURE_CARRIER_MODE .
-> > > @@ -438,22 +362,10 @@ The driver supports measuring of the modulation frequency using
-> > >   The driver supports learning mode using
-> > >   .BR LIRC_SET_WIDEBAND_RECEIVER .
-> > >   .TP
-> > > -.BR LIRC_CAN_NOTIFY_DECODE
-> > > -The driver supports
-> > > -.BR LIRC_NOTIFY_DECODE .
-> > > -.TP
-> > > -.BR LIRC_CAN_SEND_RAW
-> > > -The driver supports sending using
-> > > -.BR LIRC_MODE_RAW .
-> > > -.TP
-> > >   .BR LIRC_CAN_SEND_PULSE
-> > >   The driver supports sending using
-> > >   .BR LIRC_MODE_PULSE .
-> > >   .TP
-> > > -.BR LIRC_CAN_SEND_MODE2
-> > > -The driver supports sending using
-> > > -.BR LIRC_MODE_MODE2 .
-> > > -.TP
-> > >   .BR LIRC_CAN_SEND_LIRCCODE
-> > >   The driver supports sending.
-> > >   (This is uncommon, since
-> > >   
-
-
-
-Thanks,
-Mauro
+Laurent Pinchart
