@@ -1,138 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35434 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727463AbeGLMwZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:54534 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726663AbeGLMm7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jul 2018 08:52:25 -0400
-Received: by mail-wm0-f67.google.com with SMTP id v3-v6so5918749wmh.0
-        for <linux-media@vger.kernel.org>; Thu, 12 Jul 2018 05:42:59 -0700 (PDT)
-Subject: Re: [PATCH v8 0/6] Add ChromeOS EC CEC Support
-To: Lee Jones <lee.jones@linaro.org>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, olof@lixom.net,
-        seanpaul@google.com, sadolfsson@google.com, felixe@google.com,
-        bleung@google.com, darekm@google.com, marcheu@chromium.org,
-        fparent@baylibre.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, eballetbo@gmail.com
-References: <1530716901-30164-1-git-send-email-narmstrong@baylibre.com>
- <20180712122645.GE4641@dell>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <35fcf84e-f8a3-af79-013a-1c54ed5063ae@baylibre.com>
-Date: Thu, 12 Jul 2018 14:42:56 +0200
+        Thu, 12 Jul 2018 08:42:59 -0400
+Date: Thu, 12 Jul 2018 09:33:32 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sean Young <sean@mess.org>
+Cc: "Michael Kerrisk (man-opages)" <mtk.manpages@gmail.com>,
+        linux-man@vger.kernel.org, linux-media@vger.kernel.org,
+        Alec Leamas <leamas.alec@gmail.com>
+Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never
+ implemented
+Message-ID: <20180712093332.682fa518@coco.lan>
+In-Reply-To: <20180518152529.eunu6e6735z62bug@gofer.mess.org>
+References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
+        <6b531be3-56ea-b534-3493-d64c98b3f6c5@gmail.com>
+        <20180518152529.eunu6e6735z62bug@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <20180712122645.GE4641@dell>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lee,
+Hi Michael/Alec,
 
-On 12/07/2018 14:26, Lee Jones wrote:
-> On Wed, 04 Jul 2018, Neil Armstrong wrote:
+Em Fri, 18 May 2018 16:25:29 +0100
+Sean Young <sean@mess.org> escreveu:
+
+> On Sun, May 06, 2018 at 12:34:53PM +0200, Michael Kerrisk (man-opages) wrote:
+> > [CCing original author of this page]
+> > 
+> > 
+> > On 04/23/2018 12:26 PM, Sean Young wrote:  
+> > > The lirc header file included ioctls and feature bits which were never
+> > > implemented by any driver. They were removed in commit:
+> > > 
+> > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6  
+> > 
+> > Alec, does this patch look okay to you? 
+
+Sean is the sub-maintainer responsible for the LIRC code at the
+media subsystem. He knows more about the current implementation
+than anyone else, as he's working hard to improve it, and got
+rid of all legacy LIRC drivers from staging (either fixing them
+or removing the few ones nobody uses anymore).
+
+As part of his work, some ioctls got removed, in order to make
+the LIRC interface to match the real implementation.
+ 
+> Mauro, as Alec is not responding, would you be able to sign this off?
+
+Most of the patch looks ok on my eyes. I noticed that some flags
+still exists at include/uapi/linux/lirc.h:
+
+	LIRC_CAN_REC_RAW, LIRC_CAN_REC_PULSE, LIRC_CAN_SET_REC_FILTER
+	and LIRC_CAN_SEND_MODE2
+
+Maybe instead of just removing, you would need to add some
+explanation about them (or at the patch itself, explaining
+why you're removing the descriptions for them).
+
+> Alternatively, what can be done to progress this?
 > 
->> Hi All,
->>
->> The new Google "Fizz" Intel-based ChromeOS device is gaining CEC support
->> through it's Embedded Controller, to enable the Linux CEC Core to communicate
->> with it and get the CEC Physical Address from the correct HDMI Connector, the
->> following must be added/changed:
->> - Add the CEC sub-device registration in the ChromeOS EC MFD Driver
->> - Add the CEC related commands and events definitions into the EC MFD driver
->> - Add a way to get a CEC notifier with it's (optional) connector name
->> - Add the CEC notifier to the i915 HDMI driver
->> - Add the proper ChromeOS EC CEC Driver
->>
->> The CEC notifier with the connector name is the tricky point, since even on
->> Device-Tree platforms, there is no way to distinguish between multiple HDMI
->> connectors from the same DRM driver. The solution I implemented is pretty
->> simple and only adds an optional connector name to eventually distinguish
->> an HDMI connector notifier from another if they share the same device.
->>
->> Feel free to comment this patchset !
->>
->> Changes since v7:
->> - rebased on v4.18-rc1
->> - Fixed whitespace issues on patch 3
->> - Added Lee's tags
->>
->> Changes since v6:
->> - Added stable identifier comment in intel_display.h
->> - Renamed to cec_notifier in intel_hdmi.c/intel_drv.h
->> - Added Acked-by/Reviewed-By tags
->>
->> Changes since v5:
->>  - Small fixups on include/linux/mfd/cros_ec_commands.h
->>  - Fixed on cros-ec-cec driver accordingly
->>  - Added Reviewed-By tags
->>
->> Changes since v4:
->>  - Split patch 3 to move the mkbp event size change into a separate patch
->>
->> Changes since v3 (incorrectly reported as v2):
->>  - Renamed "Chrome OS" to "ChromeOS"
->>  - Updated cros_ec_commands.h new structs definitions to kernel doc format
->>  - Added Reviewed-By tags
->>
->> Changes since v2:
->>  - Add i915 port_identifier() and use this stable name as cec_notifier conn name
->>  - Fixed and cleaned up the CEC commands and events handling
->>  - Rebased the CEC sub-device registration on top of Enric's serie
->>  - Fixed comments typo on cec driver
->>  - Protected the DMI match only with PCI and DMI Kconfigs
->>
->> Changes since v1:
->>  - Added cec_notifier_put to intel_hdmi
->>  - Fixed all small reported issues on the EC CEC driver
->>  - Moved the cec_notifier_get out of the #if .. #else .. #endif
->>
->> Changes since RFC:
->>  - Moved CEC sub-device registration after CEC commands and events definitions patch
->>  - Removed get_notifier_get_byname
->>  - Added CEC_CORE select into i915 Kconfig
->>  - Removed CEC driver fallback if notifier is not configured on HW, added explicit warn
->>  - Fixed CEC core return type on error
->>  - Moved to cros-ec-cec media platform directory
->>  - Use bus_find_device() to find the pci i915 device instead of get_notifier_get_byname()
->>  - Fix Logical Address setup
->>  - Added comment about HW support
->>  - Removed memset of msg structures
->>
->> Neil Armstrong (6):
->>   media: cec-notifier: Get notifier by device and connector name
->>   drm/i915: hdmi: add CEC notifier to intel_hdmi
->>   mfd: cros-ec: Increase maximum mkbp event size
->>   mfd: cros-ec: Introduce CEC commands and events definitions.
->>   mfd: cros_ec_dev: Add CEC sub-device registration
->>   media: platform: Add ChromeOS EC CEC driver
->>
->>  drivers/gpu/drm/i915/Kconfig                     |   1 +
->>  drivers/gpu/drm/i915/intel_display.h             |  24 ++
->>  drivers/gpu/drm/i915/intel_drv.h                 |   2 +
->>  drivers/gpu/drm/i915/intel_hdmi.c                |  13 +
->>  drivers/media/cec/cec-notifier.c                 |  11 +-
->>  drivers/media/platform/Kconfig                   |  11 +
->>  drivers/media/platform/Makefile                  |   2 +
->>  drivers/media/platform/cros-ec-cec/Makefile      |   1 +
->>  drivers/media/platform/cros-ec-cec/cros-ec-cec.c | 347 +++++++++++++++++++++++
->>  drivers/mfd/cros_ec_dev.c                        |  16 ++
->>  drivers/platform/chrome/cros_ec_proto.c          |  40 ++-
->>  include/linux/mfd/cros_ec.h                      |   2 +-
->>  include/linux/mfd/cros_ec_commands.h             |  97 +++++++
->>  include/media/cec-notifier.h                     |  27 +-
->>  14 files changed, 578 insertions(+), 16 deletions(-)
->>  create mode 100644 drivers/media/platform/cros-ec-cec/Makefile
->>  create mode 100644 drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+> There is some new functionality in lirc which should be added to this man
+> page too, so I have more to come (when I get round to writing it).
+
+Yeah, making it reflect upstream sounds the right thing to do.
+
+Regards,
+Mauro
+
 > 
-> How would you like to handle this set?
+> Thanks,
 > 
+> Sean
+> > 
+> > Cheers,
+> > 
+> > Michael
+> >   
+> > > Signed-off-by: Sean Young <sean@mess.org>
+> > > ---
+> > >   man4/lirc.4 | 92 ++-----------------------------------------------------------
+> > >   1 file changed, 2 insertions(+), 90 deletions(-)
+> > > 
+> > > diff --git a/man4/lirc.4 b/man4/lirc.4
+> > > index 1e94a7163..3adff55f1 100644
+> > > --- a/man4/lirc.4
+> > > +++ b/man4/lirc.4
+> > > @@ -78,9 +78,7 @@ The package reflects a timeout; see the
+> > >   .B LIRC_SET_REC_TIMEOUT_REPORTS
+> > >   ioctl.
+> > >   .\"
+> > > -.SS Reading input with the
+> > > -.B LIRC_MODE_LIRCCODE
+> > > -drivers
+> > > +.SS Reading input with the LIRC_MODE_LIRCCODE drivers
+> > >   .PP
+> > >   In the \fBLIRC_MODE_LIRCCODE\fR
+> > >   mode, the data returned by
+> > > @@ -204,17 +202,11 @@ Currently serves no purpose since only
+> > >   .BR LIRC_MODE_PULSE
+> > >   is supported.
+> > >   .TP
+> > > -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
+> > > -Get the modulation frequency (Hz).
+> > > -.TP
+> > >   .BR LIRC_SET_SEND_CARRIER " (\fIint\fP)"
+> > >   Set the modulation frequency.
+> > >   The argument is the frequency (Hz).
+> > >   .TP
+> > > -.BR LIRC_GET_SEND_CARRIER " (\fIvoid\fP)"
+> > > -Get the modulation frequency used when decoding (Hz).
+> > > -.TP
+> > > -.BR SET_SEND_DUTY_CYCLE " (\fIint\fP)"
+> > > +.BR LIRC_SET_SEND_DUTY_CYCLE " (\fIint\fP)"
+> > >   Set the carrier duty cycle.
+> > >   .I val
+> > >   is a number in the range [0,100] which
+> > > @@ -284,36 +276,6 @@ By default this should be turned off.
+> > >   .BR LIRC_GET_REC_RESOLUTION " (\fIvoid\fP)"
+> > >   Return the driver resolution (microseconds).
+> > >   .TP
+> > > -.BR LIRC_GET_MIN_FILTER_PULSE " (\fIvoid\fP)", " " \
+> > > -LIRC_GET_MAX_FILTER_PULSE " (\fIvoid\fP)"
+> > > -Some devices are able to filter out spikes in the incoming signal
+> > > -using given filter rules.
+> > > -These ioctls return the hardware capabilities that describe the bounds
+> > > -of the possible filters.
+> > > -Filter settings depend on the IR protocols that are expected.
+> > > -.BR lircd (8)
+> > > -derives the settings from all protocols definitions found in its
+> > > -.BR lircd.conf (5)
+> > > -config file.
+> > > -.TP
+> > > -.BR LIRC_GET_MIN_FILTER_SPACE " (\fIvoid\fP)", " " \
+> > > -LIRC_GET_MAX_FILTER_SPACE " (\fIvoid\fP)"
+> > > -See
+> > > -.BR LIRC_GET_MIN_FILTER_PULSE .
+> > > -.TP
+> > > -.BR LIRC_SET_REC_FILTER " (\fIint\fP)"
+> > > -Pulses/spaces shorter than this (microseconds) are filtered out by
+> > > -hardware.
+> > > -.TP
+> > > -.BR LIRC_SET_REC_FILTER_PULSE " (\fIint\fP)", " " \
+> > > -LIRC_SET_REC_FILTER_SPACE " (\fIint\fP)"
+> > > -Pulses/spaces shorter than this (microseconds) are filtered out by
+> > > -hardware.
+> > > -If filters cannot be set independently for pulse/space, the
+> > > -corresponding ioctls must return an error and
+> > > -.BR LIRC_SET_REC_FILTER
+> > > -should be used instead.
+> > > -.TP
+> > >   .BR LIRC_SET_TRANSMITTER_MASK
+> > >   Enable the set of transmitters specified in
+> > >   .IR val ,
+> > > @@ -343,32 +305,6 @@ carrier reports.
+> > >   In that case, it will be disabled as soon as you disable carrier reports.
+> > >   Trying to disable a wide band receiver while carrier reports are active
+> > >   will do nothing.
+> > > -.TP
+> > > -.BR LIRC_SETUP_START " (\fIvoid\fP), " LIRC_SETUP_END " (\fIvoid\fP)"
+> > > -Setting of several driver parameters can be optimized by bracketing
+> > > -the actual ioctl calls
+> > > -.BR LIRC_SETUP_START
+> > > -and
+> > > -.BR LIRC_SETUP_END .
+> > > -When a driver receives a
+> > > -.BR LIRC_SETUP_START
+> > > -ioctl, it can choose to not commit further setting changes to the
+> > > -hardware until a
+> > > -.BR LIRC_SETUP_END
+> > > -is received.
+> > > -But this is open to the driver implementation and every driver
+> > > -must also handle parameter changes which are not encapsulated by
+> > > -.BR LIRC_SETUP_START
+> > > -and
+> > > -.BR LIRC_SETUP_END .
+> > > -Drivers can also choose to ignore these ioctls.
+> > > -.TP
+> > > -.BR LIRC_NOTIFY_DECODE " (\fIvoid\fP)"
+> > > -This ioctl is called by
+> > > -.BR lircd (8)
+> > > -whenever a successful decoding of an incoming IR signal is possible.
+> > > -This can be used by supporting hardware to give visual user
+> > > -feedback, for example by flashing an LED.
+> > >   .\"
+> > >   .SH FEATURES
+> > >   .PP
+> > > @@ -378,14 +314,6 @@ The
+> > >   ioctl returns a bit mask describing features of the driver.
+> > >   The following bits may be returned in the mask:
+> > >   .TP
+> > > -.BR LIRC_CAN_REC_RAW
+> > > -The driver is capable of receiving using
+> > > -.BR LIRC_MODE_RAW .
+> > > -.TP
+> > > -.BR LIRC_CAN_REC_PULSE
+> > > -The driver is capable of receiving using
+> > > -.BR LIRC_MODE_PULSE .
+> > > -.TP
+> > >   .BR LIRC_CAN_REC_MODE2
+> > >   The driver is capable of receiving using
+> > >   .BR LIRC_MODE_MODE2 .
+> > > @@ -426,10 +354,6 @@ The driver supports
+> > >   The driver supports
+> > >   .BR LIRC_SET_REC_TIMEOUT .
+> > >   .TP
+> > > -.BR LIRC_CAN_SET_REC_FILTER
+> > > -The driver supports
+> > > -.BR LIRC_SET_REC_FILTER .
+> > > -.TP
+> > >   .BR LIRC_CAN_MEASURE_CARRIER
+> > >   The driver supports measuring of the modulation frequency using
+> > >   .BR LIRC_SET_MEASURE_CARRIER_MODE .
+> > > @@ -438,22 +362,10 @@ The driver supports measuring of the modulation frequency using
+> > >   The driver supports learning mode using
+> > >   .BR LIRC_SET_WIDEBAND_RECEIVER .
+> > >   .TP
+> > > -.BR LIRC_CAN_NOTIFY_DECODE
+> > > -The driver supports
+> > > -.BR LIRC_NOTIFY_DECODE .
+> > > -.TP
+> > > -.BR LIRC_CAN_SEND_RAW
+> > > -The driver supports sending using
+> > > -.BR LIRC_MODE_RAW .
+> > > -.TP
+> > >   .BR LIRC_CAN_SEND_PULSE
+> > >   The driver supports sending using
+> > >   .BR LIRC_MODE_PULSE .
+> > >   .TP
+> > > -.BR LIRC_CAN_SEND_MODE2
+> > > -The driver supports sending using
+> > > -.BR LIRC_MODE_MODE2 .
+> > > -.TP
+> > >   .BR LIRC_CAN_SEND_LIRCCODE
+> > >   The driver supports sending.
+> > >   (This is uncommon, since
+> > >   
 
-Hans proposed you take all the patches throught mfd,
-then drm-intel could merge your immutable branch to avoid any conflicts.
 
-Rodrigo Vivi gave an ack to merge it through other trees on the v6 patchset.
 
-Hans, should the media tree also merge the branch ?
-
-Neil
+Thanks,
+Mauro
