@@ -1,285 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:60740 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732252AbeGJVs7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 17:48:59 -0400
-Subject: Re: [PATCH v7 3/6] cx25840: add pin to pad mapping and output format
- configuration
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org
-References: <cover.1530565770.git.mail@maciej.szmigiero.name>
- <984fbf6359a896f156ddf64b1fb8211c3cca54e3.1530565770.git.mail@maciej.szmigiero.name>
- <3421f58a-3a60-28f1-830c-66f5d1bf5517@xs4all.nl>
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Message-ID: <b9ab4947-b306-3f9e-1951-a4fd62987f8f@maciej.szmigiero.name>
-Date: Tue, 10 Jul 2018 23:47:53 +0200
-MIME-Version: 1.0
-In-Reply-To: <3421f58a-3a60-28f1-830c-66f5d1bf5517@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:57418 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726703AbeGLPxl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jul 2018 11:53:41 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        paul.kocialkowski@bootlin.com, maxime.ripard@bootlin.com,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 2/2] v4l2-mem2mem: Avoid calling .device_run in v4l2_m2m_job_finish
+Date: Thu, 12 Jul 2018 12:43:22 -0300
+Message-Id: <20180712154322.30237-3-ezequiel@collabora.com>
+In-Reply-To: <20180712154322.30237-1-ezequiel@collabora.com>
+References: <20180712154322.30237-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+v4l2_m2m_job_finish() is typically called in interrupt context.
 
-On 04.07.2018 11:05, Hans Verkuil wrote:
-> On 02/07/18 23:23, Maciej S. Szmigiero wrote:
-(..)
->> @@ -316,6 +319,260 @@ static int cx23885_s_io_pin_config(struct v4l2_subdev *sd, size_t n,
->>  	return 0;
->>  }
->>  
->> +static u8 cx25840_function_to_pad(struct i2c_client *client, u8 function)
->> +{
->> +	switch (function) {
->> +	case CX25840_PAD_ACTIVE:
->> +		return 1;
->> +
->> +	case CX25840_PAD_VACTIVE:
->> +		return 2;
->> +
->> +	case CX25840_PAD_CBFLAG:
->> +		return 3;
->> +
->> +	case CX25840_PAD_VID_DATA_EXT0:
->> +		return 4;
->> +
->> +	case CX25840_PAD_VID_DATA_EXT1:
->> +		return 5;
->> +
->> +	case CX25840_PAD_GPO0:
->> +		return 6;
->> +
->> +	case CX25840_PAD_GPO1:
->> +		return 7;
->> +
->> +	case CX25840_PAD_GPO2:
->> +		return 8;
->> +
->> +	case CX25840_PAD_GPO3:
->> +		return 9;
->> +
->> +	case CX25840_PAD_IRQ_N:
->> +		return 10;
->> +
->> +	case CX25840_PAD_AC_SYNC:
->> +		return 11;
->> +
->> +	case CX25840_PAD_AC_SDOUT:
->> +		return 12;
->> +
->> +	case CX25840_PAD_PLL_CLK:
->> +		return 13;
->> +
->> +	case CX25840_PAD_VRESET:
->> +		return 14;
->> +
->> +	default:
->> +		if (function != CX25840_PAD_DEFAULT)
->> +			v4l_err(client,
->> +				"invalid function %u, assuming default\n",
->> +				(unsigned int)function);
->> +		return 0;
->> +	}
-> 
-> Unless I am mistaken this function boils down to:
-> 
-> static u8 cx25840_function_to_pad(struct i2c_client *client, u8 function)
-> {
-> 	return function > CX25840_PAD_VRESET ? 0 : function;
-> }
+Some implementation of .device_run might sleep, and so it's
+desirable to avoid calling it directly from
+v4l2_m2m_job_finish(), thus avoiding .device_run from running
+in interrupt context.
 
-Yes, you are right these functions are equivalent (sans a warning when
-a caller passes an invalid function).
+Implement a deferred context that gets scheduled by
+v4l2_m2m_job_finish().
 
-However, these values (CX25840_PAD_*) were meant to be driver-internal.
-If we use them also as register value constants (which is what
-cx25840_function_to_pad() is supposed to return) then we'll need to add
-a comment to their enum cx25840_io_pad so nobody shuffles them or changes
-their values by mistake.
+The worker calls v4l2_m2m_try_schedule(), which makes sure
+a single job is running at the same time, so it's safe to
+call it from different executions context.
 
->> @@ -1647,6 +1924,119 @@ static void log_audio_status(struct i2c_client *client)
->>  	}
->>  }
->>  
->> +#define CX25840_VCONFIG_OPTION(state, cfg_in, opt_msk)			\
->> +	do {								\
->> +		if ((cfg_in) & (opt_msk)) {				\
->> +			(state)->vid_config &= ~(opt_msk);		\
->> +			(state)->vid_config |= (cfg_in) & (opt_msk);	\
->> +		}							\
->> +	} while (0)
->> +
->> +#define CX25840_VCONFIG_SET_BIT(state, opt_msk, voc, idx, bit, oneval)	\
->> +	do {								\
->> +		if ((state)->vid_config & (opt_msk)) {			\
->> +			if (((state)->vid_config & (opt_msk)) ==	\
->> +			    (oneval))					\
->> +				(voc)[idx] |= BIT(bit);		\
->> +			else						\
->> +				(voc)[idx] &= ~BIT(bit);		\
->> +		}							\
->> +	} while (0)
->> +
->> +int cx25840_vconfig(struct i2c_client *client, u32 cfg_in)
->> +{
->> +	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
->> +	u8 voutctrl[3];
->> +	unsigned int i;
->> +
->> +	/* apply incoming options to the current state */
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_FMT_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_RES_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_VBIRAW_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_ANCDATA_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_TASKBIT_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_ACTIVE_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_VALID_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_HRESETW_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_CLKGATE_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_DCMODE_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_IDID0S_MASK);
->> +	CX25840_VCONFIG_OPTION(state, cfg_in, CX25840_VCONFIG_VIPCLAMP_MASK);
-> 
-> This appears to be a very complex way of saying:
-> 
-> 	state->vid_config = cfg_in;
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 14 +++++++++++++-
+ include/media/v4l2-mem2mem.h           |  2 ++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-This is supposed to change in vid_config only these options that are set
-in the incoming cfg_in, leaving the rest as-is.
-
-If the code simply assigns cfg_in to vid_config it will also clear all the
-existing options.
-
-> 
->> +
->> +	for (i = 0; i < 3; i++)
->> +		voutctrl[i] = cx25840_read(client, 0x404 + i);
->> +
->> +	/* apply state to hardware regs */
->> +	if (state->vid_config & CX25840_VCONFIG_FMT_MASK)
->> +		voutctrl[0] &= ~3;
->> +	switch (state->vid_config & CX25840_VCONFIG_FMT_MASK) {
->> +	case CX25840_VCONFIG_FMT_BT656:
->> +		voutctrl[0] |= 1;
->> +		break;
->> +
->> +	case CX25840_VCONFIG_FMT_VIP11:
->> +		voutctrl[0] |= 2;
->> +		break;
->> +
->> +	case CX25840_VCONFIG_FMT_VIP2:
->> +		voutctrl[0] |= 3;
->> +		break;
->> +
->> +	case CX25840_VCONFIG_FMT_BT601:
->> +		/* zero */
->> +	default:
->> +		break;
->> +	}
->> +
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_RES_MASK, voutctrl,
->> +				0, 2, CX25840_VCONFIG_RES_10BIT);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_VBIRAW_MASK, voutctrl,
->> +				0, 3, CX25840_VCONFIG_VBIRAW_ENABLED);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_ANCDATA_MASK, voutctrl,
->> +				0, 4, CX25840_VCONFIG_ANCDATA_ENABLED);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_TASKBIT_MASK, voutctrl,
->> +				0, 5, CX25840_VCONFIG_TASKBIT_ONE);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_ACTIVE_MASK, voutctrl,
->> +				1, 2, CX25840_VCONFIG_ACTIVE_HORIZONTAL);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_VALID_MASK, voutctrl,
->> +				1, 3, CX25840_VCONFIG_VALID_ANDACTIVE);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_HRESETW_MASK, voutctrl,
->> +				1, 4, CX25840_VCONFIG_HRESETW_PIXCLK);
->> +
->> +	if (state->vid_config & CX25840_VCONFIG_CLKGATE_MASK)
->> +		voutctrl[1] &= ~(3 << 6);
->> +	switch (state->vid_config & CX25840_VCONFIG_CLKGATE_MASK) {
->> +	case CX25840_VCONFIG_CLKGATE_VALID:
->> +		voutctrl[1] |= 2;
->> +		break;
->> +
->> +	case CX25840_VCONFIG_CLKGATE_VALIDACTIVE:
->> +		voutctrl[1] |= 3;
->> +		break;
->> +
->> +	case CX25840_VCONFIG_CLKGATE_NONE:
->> +		/* zero */
->> +	default:
->> +		break;
->> +	}
->> +
->> +
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_DCMODE_MASK, voutctrl,
->> +				2, 0, CX25840_VCONFIG_DCMODE_BYTES);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_IDID0S_MASK, voutctrl,
->> +				2, 1, CX25840_VCONFIG_IDID0S_LINECNT);
->> +	CX25840_VCONFIG_SET_BIT(state, CX25840_VCONFIG_VIPCLAMP_MASK, voutctrl,
->> +				2, 4, CX25840_VCONFIG_VIPCLAMP_ENABLED);
->> +
->> +	for (i = 0; i < 3; i++)
->> +		cx25840_write(client, 0x404 + i, voutctrl[i]);
->> +
->> +	return 0;
->> +}
->> +
->> +#undef CX25840_VCONFIG_SET_BIT
->> +#undef CX25840_VCONFIG_OPTION
-> 
-> Why #undef? You would normally never do that.
-
-The idea here is to catch (unintended) other users of these macros, other
-than cx25840_vconfig() and to not pollute the macro namespace.
-But these #undefs can be removed if they are against the coding style.
-
-> 
->> +
->>  /* ----------------------------------------------------------------------- */
->>  
->>  /* This load_fw operation must be called to load the driver's firmware.
->> @@ -1836,6 +2226,9 @@ static int cx25840_s_video_routing(struct v4l2_subdev *sd,
->>  	if (is_cx23888(state))
->>  		cx23888_std_setup(client);
->>  
->> +	if (is_cx2584x(state) && state->generic_mode)
->> +		cx25840_vconfig(client, config);
->> +
-> 
-> You do the vconfig configuration when the video routing changes. But isn't this
-> configuration a one-time thing? E.g. something you do only when initializing the
-> board?
-> 
-> At least in the cxusb code the cfg_in value is constant and not dependent on what
-> input is chosen.
-> 
-> If this is true, then you should add the core init op instead. And as a bonus you
-> can turn on generic_mode if the init op is called instead of having to add it
-> to the platform data.
-> 
-
-The problem here is that the Medion MD95700 has two modes:
-digital (DVB-T) and analog.
-When it is operating in the digital mode the device analog components
-(including the cx25840 chip) have their power cut by the hardware.
-
-This means that the cx25840 has to be fully reinitialized (firmware
-loaded, format set, etc.) every time the user opens the Medion's v4l2
-video or radio device node if the device has previously operated in the
-DVB-T mode.
-Mode switching is supported transparently by the driver without needing
-to reload the module or reconnect the device.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-
-Thanks and best regards,
-Maciej
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index c2e9c2b7dcd1..1d0e20809ffe 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -258,6 +258,17 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+ 
++/**
++ * v4l2_m2m_try_schedule_work() - run pending jobs for the context
++ * @work: Work structure used for scheduling the execution of this function.
++ */
++static void v4l2_m2m_try_schedule_work(struct work_struct *work)
++{
++	struct v4l2_m2m_ctx *m2m_ctx =
++		container_of(work, struct v4l2_m2m_ctx, job_work);
++	v4l2_m2m_try_schedule(m2m_ctx);
++}
++
+ /**
+  * v4l2_m2m_cancel_job() - cancel pending jobs for the context
+  * @m2m_ctx: m2m context with jobs to be canceled
+@@ -316,7 +327,7 @@ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+ 	/* This instance might have more buffers ready, but since we do not
+ 	 * allow more than one job on the job_queue per instance, each has
+ 	 * to be scheduled separately after the previous one finishes. */
+-	v4l2_m2m_try_schedule(m2m_ctx);
++	schedule_work(&m2m_ctx->job_work);
+ }
+ EXPORT_SYMBOL(v4l2_m2m_job_finish);
+ 
+@@ -614,6 +625,7 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+ 	m2m_ctx->priv = drv_priv;
+ 	m2m_ctx->m2m_dev = m2m_dev;
+ 	init_waitqueue_head(&m2m_ctx->finished);
++	INIT_WORK(&m2m_ctx->job_work, v4l2_m2m_try_schedule_work);
+ 
+ 	out_q_ctx = &m2m_ctx->out_q_ctx;
+ 	cap_q_ctx = &m2m_ctx->cap_q_ctx;
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 3d07ba3a8262..2543fbfdd2b1 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -89,6 +89,7 @@ struct v4l2_m2m_queue_ctx {
+  * @job_flags: Job queue flags, used internally by v4l2-mem2mem.c:
+  *		%TRANS_QUEUED, %TRANS_RUNNING and %TRANS_ABORT.
+  * @finished: Wait queue used to signalize when a job queue finished.
++ * @job_work: Worker to run queued jobs.
+  * @priv: Instance private data
+  *
+  * The memory to memory context is specific to a file handle, NOT to e.g.
+@@ -109,6 +110,7 @@ struct v4l2_m2m_ctx {
+ 	struct list_head		queue;
+ 	unsigned long			job_flags;
+ 	wait_queue_head_t		finished;
++	struct work_struct		job_work;
+ 
+ 	void				*priv;
+ };
+-- 
+2.18.0.rc2
