@@ -1,102 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:58746 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751235AbeGJJXW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jul 2018 05:23:22 -0400
-Date: Tue, 10 Jul 2018 11:23:10 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Marco Franchi <marco.franchi@nxp.com>,
-        Icenowy Zheng <icenowy@aosc.io>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Tom Saeger <tom.saeger@oracle.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-sunxi@googlegroups.com,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Randy Li <ayaka@soulik.info>
-Subject: Re: [PATCH v5 20/22] ARM: dts: sun7i-a20: Add Video Engine and
- reserved memory nodes
-Message-ID: <20180710092310.2hzoc7shmfykr3n5@flea>
-References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
- <20180710080114.31469-21-paul.kocialkowski@bootlin.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:41616 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726434AbeGLJDO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jul 2018 05:03:14 -0400
+Date: Thu, 12 Jul 2018 05:54:28 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Peter Korsgaard <jacmet@sunsite.dk>,
+        Peter Korsgaard <peter@korsgaard.com>
+Subject: Re: [PATCH] libv4l: fixup lfs mismatch in preload libraries
+Message-ID: <20180712055428.0d853914@coco.lan>
+In-Reply-To: <878t6h5zqn.fsf@tkos.co.il>
+References: <20180711132251.13172-1-ezequiel@collabora.com>
+        <20180711115505.5b93de93@coco.lan>
+        <878t6h5zqn.fsf@tkos.co.il>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mu7kkrbfxwnu6dth"
-Content-Disposition: inline
-In-Reply-To: <20180710080114.31469-21-paul.kocialkowski@bootlin.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 11 Jul 2018 22:38:56 +0300
+Baruch Siach <baruch@tkos.co.il> escreveu:
 
---mu7kkrbfxwnu6dth
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Hi Mauro,
+> 
+> Added Peter's updated address to Cc.
+> 
+> Mauro Carvalho Chehab writes:
+> > Em Wed, 11 Jul 2018 10:22:51 -0300
+> > Ezequiel Garcia <ezequiel@collabora.com> escreveu:
+> >  
+> >> From: Peter Korsgaard <jacmet@sunsite.dk>
+> >> 
+> >> Ensure that the lfs variants are not transparently used instead of the !lfs
+> >> ones so both can be wrapped, independently of any custom CFLAGS/CPPFLAGS.
+> >> 
+> >> Without this patch, the following assembler errors appear
+> >> during cross-compiling with Buildroot:
+> >> 
+> >> /tmp/ccc3gdJg.s: Assembler messages:
+> >> /tmp/ccc3gdJg.s:67: Error: symbol `open64' is already defined
+> >> /tmp/ccc3gdJg.s:130: Error: symbol `mmap64' is already defined
+> >> 
+> >> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+> >> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> >> ---
+> >>  lib/libv4l1/v4l1compat.c  | 3 +++
+> >>  lib/libv4l2/v4l2convert.c | 3 +++
+> >>  2 files changed, 6 insertions(+)
+> >> 
+> >> diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+> >> index cb79629ff88f..e5c9e56261e2 100644
+> >> --- a/lib/libv4l1/v4l1compat.c
+> >> +++ b/lib/libv4l1/v4l1compat.c
+> >> @@ -19,6 +19,9 @@
+> >>  # Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
+> >>   */
+> >>  
+> >> +/* ensure we see *64 variants and they aren't transparently used */
+> >> +#undef _LARGEFILE_SOURCE
+> >> +#undef _FILE_OFFSET_BITS  
+> >
+> > Hmm... shouldn't this be autodetected? I didn't check anything,
+> > but I would be expecting that different distros (and BSD) may be
+> > doing different things here, specially if they use different gcc
+> > versions or even different libc implementations.  
+> 
+> See Peter's explanation here:
+> 
+>   http://lists.busybox.net/pipermail/buildroot/2017-December/210067.html
 
-On Tue, Jul 10, 2018 at 10:01:12AM +0200, Paul Kocialkowski wrote:
-> +		vpu: video-codec@1c0e000 {
-> +			compatible =3D "allwinner,sun7i-a20-video-engine";
-> +			reg =3D <0x01c0e000 0x1000>;
-> +
+The link Peter provided seems to be specific to glibc. The main
+point I want to bring is: would this change affect users with
+other setups? There are some users that compile it against FreeBSD
+and Android. Some compile using dietlibc or uclibc. Also, people
+build it against 32-bits and 64-bits on x86, arm and other archs.
 
-The issue is here with all your patches, but you should drop the node
-label and the extra new line.
+So, the question is: are you sure that the above change is also valid for
+*all* other environments? If not, I would be expecting it to be
+attached to some automake test, to be sure that it will be applied
+only to the affected setups.
 
-Maxime
 
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
+> 
+> baruch
+> 
+> >>  #define _LARGEFILE64_SOURCE 1
+> >>  
+> >>  #include <config.h>
+> >> diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+> >> index 7c9a04c086ed..13ca4cfb1b08 100644
+> >> --- a/lib/libv4l2/v4l2convert.c
+> >> +++ b/lib/libv4l2/v4l2convert.c
+> >> @@ -23,6 +23,9 @@
+> >>  /* prevent GCC 4.7 inlining error */
+> >>  #undef _FORTIFY_SOURCE
+> >>  
+> >> +/* ensure we see *64 variants and they aren't transparently used */
+> >> +#undef _LARGEFILE_SOURCE
+> >> +#undef _FILE_OFFSET_BITS
+> >>  #define _LARGEFILE64_SOURCE 1
+> >>  
+> >>  #ifdef ANDROID  
+> 
+> 
 
---mu7kkrbfxwnu6dth
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAltEev0ACgkQ0rTAlCFN
-r3QVjw/9GP7WTsxJr7ZffNM5gks3/vDZk7PDA9r+sXYULxhFDuv5YEUUtdMLfnxU
-6LBw+dWz9IduAC1noxk2kLKBq5D7HFM9iE7uAprS5KyGRHqd71GtayufeKao/0Xh
-3KfGTMckfFufa/WUqF/lDeiREsGGjZjvtOcu0Gh2kFefYipTTl7VJ51XBdxaaPeH
-4Ypmg1j1ia/C9jsfDYZqKwlfgyY+yUyLriOFp1FVm5dmpLWURZV8YxDf0VDVjZ8c
-nZp/2xooW3cdfeAY1pZgwtPudJHZ7XpoZ/FeKLat/IbeBpekm1ZBBYL+U3fN8XvG
-K46IODEv+bPz446L4lYYXUXGNp+1fmZviByygVCedmf3TQ1yvEC6xz0dxmzCgUwL
-JqhZvn+MaucbAakeRYVawZLXoCYMj7puhPPYTqj4vu6YtzrW+hF5zhArD2kaFXop
-d44aJh2aacgVJRoStjhpfKh2WdOMNVx0lRNeqUW4VpEDPxu6rVF7l8kuWjBJCsAL
-6qelyWvMGRSWCVboOB6sHIIShLd6nW9vdhsFGtj/84Nvh2y/M9vLBaWciMbrlpyI
-mWsdT3bee/ogxWKzFrj5bDu6jGZnBmZIz7bq3r9TAxLLbzOQDzdPNuPWCz3jcV1Z
-cX1+71ja20JucZQHpiROJkXjIGgKLofeJWTUS03v67Iw2t+QJ9E=
-=1FOP
------END PGP SIGNATURE-----
-
---mu7kkrbfxwnu6dth--
+Thanks,
+Mauro
