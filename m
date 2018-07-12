@@ -1,95 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:55178 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726812AbeGLNqk (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:57412 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726703AbeGLPxj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jul 2018 09:46:40 -0400
-Date: Thu, 12 Jul 2018 10:36:59 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sean Young <sean@mess.org>
-Cc: "Michael Kerrisk (man-opages)" <mtk.manpages@gmail.com>,
-        linux-man@vger.kernel.org, linux-media@vger.kernel.org,
-        Alec Leamas <leamas.alec@gmail.com>
-Subject: Re: [PATCH] lirc.4: remove ioctls and feature bits which were never
- implemented
-Message-ID: <20180712103659.282c42e9@coco.lan>
-In-Reply-To: <20180712132118.t5umg7z7qchpok7j@gofer.mess.org>
-References: <20180423102637.xtcjidetxo6iaslx@gofer.mess.org>
-        <6b531be3-56ea-b534-3493-d64c98b3f6c5@gmail.com>
-        <20180518152529.eunu6e6735z62bug@gofer.mess.org>
-        <20180712093332.682fa518@coco.lan>
-        <20180712132118.t5umg7z7qchpok7j@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Thu, 12 Jul 2018 11:53:39 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        paul.kocialkowski@bootlin.com, maxime.ripard@bootlin.com,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 1/2] v4l2-core: Simplify v4l2_m2m_try_{schedule,run}
+Date: Thu, 12 Jul 2018 12:43:21 -0300
+Message-Id: <20180712154322.30237-2-ezequiel@collabora.com>
+In-Reply-To: <20180712154322.30237-1-ezequiel@collabora.com>
+References: <20180712154322.30237-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 12 Jul 2018 14:21:18 +0100
-Sean Young <sean@mess.org> escreveu:
+v4l2_m2m_try_run() has only one caller and so it's possible
+to move its contents.
 
-> On Thu, Jul 12, 2018 at 09:33:32AM -0300, Mauro Carvalho Chehab wrote:
-> > Hi Michael/Alec,
-> > 
-> > Em Fri, 18 May 2018 16:25:29 +0100
-> > Sean Young <sean@mess.org> escreveu:
-> >   
-> > > On Sun, May 06, 2018 at 12:34:53PM +0200, Michael Kerrisk (man-opages) wrote:  
-> > > > [CCing original author of this page]
-> > > > 
-> > > > 
-> > > > On 04/23/2018 12:26 PM, Sean Young wrote:    
-> > > > > The lirc header file included ioctls and feature bits which were never
-> > > > > implemented by any driver. They were removed in commit:
-> > > > > 
-> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d55f09abe24b4dfadab246b6f217da547361cdb6    
-> > > > 
-> > > > Alec, does this patch look okay to you?   
-> > 
-> > Sean is the sub-maintainer responsible for the LIRC code at the
-> > media subsystem. He knows more about the current implementation
-> > than anyone else, as he's working hard to improve it, and got
-> > rid of all legacy LIRC drivers from staging (either fixing them
-> > or removing the few ones nobody uses anymore).
-> > 
-> > As part of his work, some ioctls got removed, in order to make
-> > the LIRC interface to match the real implementation.
-> >    
-> > > Mauro, as Alec is not responding, would you be able to sign this off?  
-> > 
-> > Most of the patch looks ok on my eyes. I noticed that some flags
-> > still exists at include/uapi/linux/lirc.h:
-> > 
-> > 	LIRC_CAN_REC_RAW, LIRC_CAN_REC_PULSE, LIRC_CAN_SET_REC_FILTER
-> > 	and LIRC_CAN_SEND_MODE2
-> > 
-> > Maybe instead of just removing, you would need to add some
-> > explanation about them (or at the patch itself, explaining
-> > why you're removing the descriptions for them).  
-> 
-> Those flags do still exist in the header file, we decided to keep them
-> so that code does not suddenly fail to build. These flags either never
-> had implementations or only had out-of-tree implementations. So, I do
-> not think they belong in the man page.
+Although this de-modularization change could reduce clarity,
+in this case it allows to remove a spinlock lock/unlock pair
+and an unneeded sanity check.
 
-Ok, makes sense to me.
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 44 ++++++--------------------
+ 1 file changed, 10 insertions(+), 34 deletions(-)
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-
-> 
-> > > Alternatively, what can be done to progress this?
-> > > 
-> > > There is some new functionality in lirc which should be added to this man
-> > > page too, so I have more to come (when I get round to writing it).  
-> > 
-> > Yeah, making it reflect upstream sounds the right thing to do.  
-> 
-> Absolutely, when kernel v4.18 is released there is more to add.
-> 
-> 
-> Sean
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 6bce8dcd182a..c2e9c2b7dcd1 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -181,37 +181,6 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev)
+ }
+ EXPORT_SYMBOL(v4l2_m2m_get_curr_priv);
+ 
+-/**
+- * v4l2_m2m_try_run() - select next job to perform and run it if possible
+- * @m2m_dev: per-device context
+- *
+- * Get next transaction (if present) from the waiting jobs list and run it.
+- */
+-static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
+-	if (NULL != m2m_dev->curr_ctx) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+-		dprintk("Another instance is running, won't run now\n");
+-		return;
+-	}
+-
+-	if (list_empty(&m2m_dev->job_queue)) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+-		dprintk("No job pending\n");
+-		return;
+-	}
+-
+-	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
+-				   struct v4l2_m2m_ctx, queue);
+-	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
+-	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+-
+-	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
+-}
+-
+ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+ 	struct v4l2_m2m_dev *m2m_dev;
+@@ -269,15 +238,22 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	list_add_tail(&m2m_ctx->queue, &m2m_dev->job_queue);
+ 	m2m_ctx->job_flags |= TRANS_QUEUED;
+ 
+-	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
++	if (NULL != m2m_dev->curr_ctx) {
++		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
++		dprintk("Another instance is running, won't run now\n");
++		return;
++	}
+ 
+-	v4l2_m2m_try_run(m2m_dev);
++	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
++				   struct v4l2_m2m_ctx, queue);
++	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
++	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 
++	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
+ 	return;
+ 
+ out_unlock:
+ 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+-
+ 	return;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+-- 
+2.18.0.rc2
