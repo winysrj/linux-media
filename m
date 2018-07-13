@@ -1,78 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:39280 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727582AbeGMH7t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jul 2018 03:59:49 -0400
-Received: by mail-wr1-f68.google.com with SMTP id h10-v6so24099328wre.6
-        for <linux-media@vger.kernel.org>; Fri, 13 Jul 2018 00:46:23 -0700 (PDT)
-Date: Fri, 13 Jul 2018 08:46:20 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Neil Armstrong <narmstrong@baylibre.com>
-Cc: airlied@linux.ie, hans.verkuil@cisco.com, olof@lixom.net,
-        seanpaul@google.com, sadolfsson@google.com, felixe@google.com,
-        bleung@google.com, darekm@google.com, marcheu@chromium.org,
-        fparent@baylibre.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, eballetbo@gmail.com
-Subject: [GIT PULL] Immutable branch between MFD and DRM/i915, Media and
- Platform due for the v4.19 merge window
-Message-ID: <20180713074620.GW4641@dell>
-References: <1530716901-30164-1-git-send-email-narmstrong@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1530716901-30164-1-git-send-email-narmstrong@baylibre.com>
+Received: from mail.bootlin.com ([62.4.15.54]:52129 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726161AbeGMIl4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Jul 2018 04:41:56 -0400
+Message-ID: <d9cc498c058b34b46eaf910de2f6ba4dd4ca4838.camel@bootlin.com>
+Subject: Re: [PATCH v5 20/22] ARM: dts: sun7i-a20: Add Video Engine and
+ reserved memory nodes
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Marco Franchi <marco.franchi@nxp.com>,
+        Icenowy Zheng <icenowy@aosc.io>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Tom Saeger <tom.saeger@oracle.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Sami Tolvanen <samitolvanen@google.com>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Randy Li <ayaka@soulik.info>
+Date: Fri, 13 Jul 2018 10:28:17 +0200
+In-Reply-To: <20180710092310.2hzoc7shmfykr3n5@flea>
+References: <20180710080114.31469-1-paul.kocialkowski@bootlin.com>
+         <20180710080114.31469-21-paul.kocialkowski@bootlin.com>
+         <20180710092310.2hzoc7shmfykr3n5@flea>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-mUToiGCHY1cIrP6GveCh"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enjoy!
 
-The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
+--=-mUToiGCHY1cIrP6GveCh
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-  Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
+Hi,
 
-are available in the Git repository at:
+On Tue, 2018-07-10 at 11:23 +0200, Maxime Ripard wrote:
+> On Tue, Jul 10, 2018 at 10:01:12AM +0200, Paul Kocialkowski wrote:
+> > +		vpu: video-codec@1c0e000 {
+> > +			compatible =3D "allwinner,sun7i-a20-video-engine";
+> > +			reg =3D <0x01c0e000 0x1000>;
+> > +
+>=20
+> The issue is here with all your patches, but you should drop the node
+> label and the extra new line.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-i915-media-platform-v4.19
+Noted, this will be fixed in the next revision.
 
-for you to fetch changes up to cd70de2d356ee692477276bd5d6bc88c71a48733:
+Cheers,
 
-  media: platform: Add ChromeOS EC CEC driver (2018-07-13 08:44:46 +0100)
+Paul
 
-----------------------------------------------------------------
-Immutable branch between MFD and DRM/i915, Media and Platform due for the v4.19 merge window
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+--=-mUToiGCHY1cIrP6GveCh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-----------------------------------------------------------------
-Neil Armstrong (6):
-      media: cec-notifier: Get notifier by device and connector name
-      drm/i915: hdmi: add CEC notifier to intel_hdmi
-      mfd: cros-ec: Increase maximum mkbp event size
-      mfd: cros-ec: Introduce CEC commands and events definitions.
-      mfd: cros_ec_dev: Add CEC sub-device registration
-      media: platform: Add ChromeOS EC CEC driver
+-----BEGIN PGP SIGNATURE-----
 
- drivers/gpu/drm/i915/Kconfig                     |   1 +
- drivers/gpu/drm/i915/intel_display.h             |  24 ++
- drivers/gpu/drm/i915/intel_drv.h                 |   2 +
- drivers/gpu/drm/i915/intel_hdmi.c                |  13 +
- drivers/media/cec/cec-notifier.c                 |  11 +-
- drivers/media/platform/Kconfig                   |  11 +
- drivers/media/platform/Makefile                  |   2 +
- drivers/media/platform/cros-ec-cec/Makefile      |   1 +
- drivers/media/platform/cros-ec-cec/cros-ec-cec.c | 347 +++++++++++++++++++++++
- drivers/mfd/cros_ec_dev.c                        |  16 ++
- drivers/platform/chrome/cros_ec_proto.c          |  40 ++-
- include/linux/mfd/cros_ec.h                      |   2 +-
- include/linux/mfd/cros_ec_commands.h             |  97 +++++++
- include/media/cec-notifier.h                     |  27 +-
- 14 files changed, 578 insertions(+), 16 deletions(-)
- create mode 100644 drivers/media/platform/cros-ec-cec/Makefile
- create mode 100644 drivers/media/platform/cros-ec-cec/cros-ec-cec.c
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltIYqEACgkQ3cLmz3+f
+v9GeIwgAhY9paW0UIC3+V24nTHQH8+8lA/opmAUTwA+Gz60Gvant9jsvI439XAuH
+uHCtrFeuNQ7e8xeZA2le+ecCqaKSc4z3iP3lnxJolxgeX9y7TBl5fAaayhfYEdz3
+jdB4kGUpneQnHFxfzfhma2gaQoSfSNUhd/kSED/z41PZOugQYe4Nau1D1xzSL/fh
+kj10peBit3e0+XSYUKEErbjLMzXv1QUZhY1gNp1mMhxH5N0/o4fCYXjHBT8Y2Bzg
+idE+bKRnr3V677yKk+tTw7iSAthtkETlkRqxfcvOhKoQztSlW6dDRAJumnDrI3g/
+/3kBKyUCZEr2B/K0SklRj5qZ40itbg==
+=L+cQ
+-----END PGP SIGNATURE-----
 
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+--=-mUToiGCHY1cIrP6GveCh--
