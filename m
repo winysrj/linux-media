@@ -1,109 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:40829 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726626AbeGMJEM (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36055 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727071AbeGMJch (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jul 2018 05:04:12 -0400
-Date: Fri, 13 Jul 2018 10:50:26 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Simon Horman <horms@verge.net.au>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, hverkuil@xs4all.nl,
-        geert@linux-m68k.org, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND] dt-bindings: media: rcar-vin: Add R8A77995 support
-Message-ID: <20180713085026.GH23629@w540>
-References: <1530694296-6417-1-git-send-email-jacopo+renesas@jmondi.org>
- <20180713073159.6q6xlfkpteiaj35e@verge.net.au>
+        Fri, 13 Jul 2018 05:32:37 -0400
+Received: by mail-wm0-f66.google.com with SMTP id s14-v6so8730077wmc.1
+        for <linux-media@vger.kernel.org>; Fri, 13 Jul 2018 02:18:49 -0700 (PDT)
+Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
+ <20180705094421.0bad52e2@coco.lan>
+ <2f4121bb-1774-410c-5425-f9977d38a02e@xs4all.nl>
+ <7efd92ca-1891-4054-29d5-dca5813b37d6@redhat.com>
+ <20180711103958.gd6szkgfljjnr44w@pengutronix.de>
+From: Javier Martinez Canillas <javierm@redhat.com>
+Message-ID: <94a592f4-a130-b210-a461-9a4f758164a8@redhat.com>
+Date: Fri, 13 Jul 2018 11:18:45 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="bpVaumkpfGNUagdU"
-Content-Disposition: inline
-In-Reply-To: <20180713073159.6q6xlfkpteiaj35e@verge.net.au>
+In-Reply-To: <20180711103958.gd6szkgfljjnr44w@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---bpVaumkpfGNUagdU
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Simon,
-
-On Fri, Jul 13, 2018 at 09:31:59AM +0200, Simon Horman wrote:
-> On Wed, Jul 04, 2018 at 10:51:36AM +0200, Jacopo Mondi wrote:
-> > Add compatible string for R-Car D3 R8A7795 to list of SoCs supported by
-> > rcar-vin driver.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > Acked-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.se>
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
-> > ---
-> >
-> > Re-sending to have this collected with the following series:
-> > [PATCH v6 0/10] rcar-vin: Add support for parallel input on Gen3
+On 07/11/2018 12:39 PM, Marco Felsch wrote:
+> Hi Javier,
+> 
+> On 18-07-08 15:11, Javier Martinez Canillas wrote:
+>> [adding Marco Felsch since he has been working on this driver]
+>>
+>> On 07/05/2018 03:12 PM, Hans Verkuil wrote:
+>>> On 05/07/18 14:44, Mauro Carvalho Chehab wrote:
+>>>> Javier,
+>>>>
+>>>> How standard settings work with the current OMAP3 drivers with tvp5150?
+>>>
+>>> It looks like tvp5150 uses autodetect of the standard, which in general is
+>>
+>> That's correct, the driver uses standard autodetect.
+>>
+>>> not a good thing to do since different standards have different buffer
+>>> sizes. But this chip can scale, so it might scale PAL to NTSC or vice versa
+>>> if the standard switches mid-stream. Or it only detects the standard when
+>>> it starts streaming, I'm not sure.
+>>>
+>>
+>> Not sure about this either, IIUC switching the standard mid-stream won't work.
+> 
+> As far as I know, the detection happens after a sync lost event.
 >
-> Jacopo,
+
+Ah, good to know.
+ 
+>>> In any case, this is not normal behavior, for almost all analog video
+>>> receivers you need to be able to set the std explicitly.
+>>>
+>>
+>> Indeed. I see that Marco's recent series [0] add supports for the .querystd [1]
+>> and .g_std [2] callbacks to the tvp5150 driver, so that way user-space can get
+>> back the detected standard.
+>>
+>> [0]: https://www.spinics.net/lists/linux-media/msg136869.html
+>> [1]: https://www.spinics.net/lists/linux-media/msg136872.html
+>> [2]: https://www.spinics.net/lists/linux-media/msg136875.html
+> 
+> I tought the std will be set by the v4l2_subdev_video_ops.s_std()
+> operation. If the user change the std manually, the autodection is
+> disabled.
 >
-> Can I pick up the related DTS patches once this one is accepted
-> into the media-tree? If so, please ping me once that happens.
->
 
-Yes, please.
+Yes, what I tried to say is that user-space won't have a way to know which std
+to set without a .querystd, or know what std was autodetected withou a .g_std.
 
-Hans collected this one already and it's now in the media tree master
-branch.
-
-Thanks
-   j
-
-
-
-> >
-> > Thanks
-> >   j
-> > ---
-> >  Documentation/devicetree/bindings/media/rcar_vin.txt | 1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Doc=
-umentation/devicetree/bindings/media/rcar_vin.txt
-> > index a19517e1..5c6f2a7 100644
-> > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> > @@ -22,6 +22,7 @@ on Gen3 platforms to a CSI-2 receiver.
-> >     - "renesas,vin-r8a7795" for the R8A7795 device
-> >     - "renesas,vin-r8a7796" for the R8A7796 device
-> >     - "renesas,vin-r8a77970" for the R8A77970 device
-> > +   - "renesas,vin-r8a77995" for the R8A77995 device
-> >     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compati=
-ble
-> >       device.
-> >
-> > --
-> > 2.7.4
-> >
-
---bpVaumkpfGNUagdU
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbSGfPAAoJEHI0Bo8WoVY8X5IQALJ+QwMzmftaGlq+vYrAH47W
-M6TuYO+fLBu6lG03jlQUxiH6C8ZCtZw2BXy6i439lcUwLlfKl4A2e5tvJdt/HO2M
-Mxp5fRf1YWVSVmHBz9AqU2IR47m4x8IhGcYQMeDdWu1kOY4rw8O92Mir+IO8my67
-8gpXjWNj1lTUa1LOVLPkCLppiR0mbfUjnESZZJ2elCzn5ppsDUlcCvloKkCyoXjN
-7Jny1zmVClCN/KCgnmsYiNb+EepD0R5P4D38jupcuLGjIvKbP98iPwyCjMiUnBzs
-VhJak0d8QmW/m36gJN3SZ7O5AHc3fQyNHXSKBKZ1UZZgx9wVub87IqhGykIvUR/x
-ryNufkbmdfjgVrlIVvIwEPBeF7mhbkueFCbzhsZO6mZqUNPMWM9c3IJz0muvgh4p
-Yuip26Btso0o/UmvGG47H9oAbwvsZvXXAHEv7faO09tunvavbU62vemDCyor4Aoa
-jgTUCpYPNNEKuceDx22sI/5qHQk2N6UfGQCx5ZjveLZ6J1kNeNmExqzOC0A1MW4M
-3kV241u0NC0RPOTd206vb5BUX4BXZc5QUJNapbSB3eOCMj1cRzsFeluRXOblkTUe
-6M3LHzPY/3m5oHucS5knQOqpCwP3UiE636VwaDW5ro5aXhKb+YcYgtDs4yb0t8Ab
-pfVmq6V3Fvp+6f2V2EnA
-=aeNZ
------END PGP SIGNATURE-----
-
---bpVaumkpfGNUagdU--
+Best regards,
+-- 
+Javier Martinez Canillas
+Software Engineer - Desktop Hardware Enablement
+Red Hat
