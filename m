@@ -1,115 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:41616 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:56168 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726434AbeGLJDO (ORCPT
+        with ESMTP id S1729670AbeGMPim (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jul 2018 05:03:14 -0400
-Date: Thu, 12 Jul 2018 05:54:28 -0300
+        Fri, 13 Jul 2018 11:38:42 -0400
+Date: Fri, 13 Jul 2018 12:23:34 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Peter Korsgaard <jacmet@sunsite.dk>,
-        Peter Korsgaard <peter@korsgaard.com>
-Subject: Re: [PATCH] libv4l: fixup lfs mismatch in preload libraries
-Message-ID: <20180712055428.0d853914@coco.lan>
-In-Reply-To: <878t6h5zqn.fsf@tkos.co.il>
-References: <20180711132251.13172-1-ezequiel@collabora.com>
-        <20180711115505.5b93de93@coco.lan>
-        <878t6h5zqn.fsf@tkos.co.il>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv6 02/12] media-ioc-g-topology.rst: document new 'index'
+ field
+Message-ID: <20180713122334.68661b55@coco.lan>
+In-Reply-To: <20180710084512.99238-3-hverkuil@xs4all.nl>
+References: <20180710084512.99238-1-hverkuil@xs4all.nl>
+        <20180710084512.99238-3-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 11 Jul 2018 22:38:56 +0300
-Baruch Siach <baruch@tkos.co.il> escreveu:
+Em Tue, 10 Jul 2018 10:45:02 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> Hi Mauro,
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Added Peter's updated address to Cc.
+> Document the new struct media_v2_pad 'index' field.
 > 
-> Mauro Carvalho Chehab writes:
-> > Em Wed, 11 Jul 2018 10:22:51 -0300
-> > Ezequiel Garcia <ezequiel@collabora.com> escreveu:
-> >  
-> >> From: Peter Korsgaard <jacmet@sunsite.dk>
-> >> 
-> >> Ensure that the lfs variants are not transparently used instead of the !lfs
-> >> ones so both can be wrapped, independently of any custom CFLAGS/CPPFLAGS.
-> >> 
-> >> Without this patch, the following assembler errors appear
-> >> during cross-compiling with Buildroot:
-> >> 
-> >> /tmp/ccc3gdJg.s: Assembler messages:
-> >> /tmp/ccc3gdJg.s:67: Error: symbol `open64' is already defined
-> >> /tmp/ccc3gdJg.s:130: Error: symbol `mmap64' is already defined
-> >> 
-> >> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
-> >> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> >> ---
-> >>  lib/libv4l1/v4l1compat.c  | 3 +++
-> >>  lib/libv4l2/v4l2convert.c | 3 +++
-> >>  2 files changed, 6 insertions(+)
-> >> 
-> >> diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
-> >> index cb79629ff88f..e5c9e56261e2 100644
-> >> --- a/lib/libv4l1/v4l1compat.c
-> >> +++ b/lib/libv4l1/v4l1compat.c
-> >> @@ -19,6 +19,9 @@
-> >>  # Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA  02110-1335  USA
-> >>   */
-> >>  
-> >> +/* ensure we see *64 variants and they aren't transparently used */
-> >> +#undef _LARGEFILE_SOURCE
-> >> +#undef _FILE_OFFSET_BITS  
-> >
-> > Hmm... shouldn't this be autodetected? I didn't check anything,
-> > but I would be expecting that different distros (and BSD) may be
-> > doing different things here, specially if they use different gcc
-> > versions or even different libc implementations.  
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  .../media/uapi/mediactl/media-ioc-g-topology.rst     | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
 > 
-> See Peter's explanation here:
-> 
->   http://lists.busybox.net/pipermail/buildroot/2017-December/210067.html
+> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> index a3f259f83b25..bae2b4db89cc 100644
+> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> @@ -176,7 +176,7 @@ desired arrays with the media graph elements.
+>      *  -  struct media_v2_intf_devnode
+>         -  ``devnode``
+>         -  Used only for device node interfaces. See
+> -	  :c:type:`media_v2_intf_devnode` for details..
+> +	  :c:type:`media_v2_intf_devnode` for details.
+>  
+>  
+>  .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
+> @@ -218,7 +218,15 @@ desired arrays with the media graph elements.
+>         -  Pad flags, see :ref:`media-pad-flag` for more details.
+>  
+>      *  -  __u32
+> -       -  ``reserved``\ [5]
+> +       -  ``index``
+> +       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
+> +	  returns true. The ``media_version`` is defined in struct
+> +	  :c:type:`media_device_info` and can be retrieved using
+> +	  :ref:`MEDIA_IOC_DEVICE_INFO`. Pad indices are stable. If new pads are added
+> +	  for an entity in the future, then those will be added at the end.
 
-The link Peter provided seems to be specific to glibc. The main
-point I want to bring is: would this change affect users with
-other setups? There are some users that compile it against FreeBSD
-and Android. Some compile using dietlibc or uclibc. Also, people
-build it against 32-bits and 64-bits on x86, arm and other archs.
+Hmm... Pad indexes may not be stable. That's by the way why we
+need a better way to enum it, and the Properties API was thinking
+to solve (and why we didn't add PAD index to this ioctl at the
+first place). 
 
-So, the question is: are you sure that the above change is also valid for
-*all* other environments? If not, I would be expecting it to be
-attached to some automake test, to be sure that it will be applied
-only to the affected setups.
+The problem happens for example on TV demods and tuners:
+different models may have different kinds of output PADs:
 
+	- analog luminance carrier samples;
+	- analog chrominance sub-carrier samples;
+	- sliced VBI data;
+	- audio RF sub-carrier samples;
+	- audio mono data;
+	- audio stereo data.
 
-> 
-> baruch
-> 
-> >>  #define _LARGEFILE64_SOURCE 1
-> >>  
-> >>  #include <config.h>
-> >> diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
-> >> index 7c9a04c086ed..13ca4cfb1b08 100644
-> >> --- a/lib/libv4l2/v4l2convert.c
-> >> +++ b/lib/libv4l2/v4l2convert.c
-> >> @@ -23,6 +23,9 @@
-> >>  /* prevent GCC 4.7 inlining error */
-> >>  #undef _FORTIFY_SOURCE
-> >>  
-> >> +/* ensure we see *64 variants and they aren't transparently used */
-> >> +#undef _LARGEFILE_SOURCE
-> >> +#undef _FILE_OFFSET_BITS
-> >>  #define _LARGEFILE64_SOURCE 1
-> >>  
-> >>  #ifdef ANDROID  
-> 
-> 
+The same bridge chip can live with different demods, but need to
+setup the pipelines according with the type of the PAD. As right now
+we don't have any way to associate a PAD with an specific type of
+output, what happens is that the V4L2 core associates a pad number
+with an specific type of output. So, drivers may be exposing
+PADs that don't exist, in practice, just to make them compatible
+with similar subdevs.
 
-
+Once we add a properties API (or something equivalent), the
+PAD numbers will change and subdevs will only expose the ones
+that really exists.
 
 Thanks,
 Mauro
