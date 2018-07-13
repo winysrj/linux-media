@@ -1,86 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36055 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727071AbeGMJch (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:50061 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726380AbeGMJnw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jul 2018 05:32:37 -0400
-Received: by mail-wm0-f66.google.com with SMTP id s14-v6so8730077wmc.1
-        for <linux-media@vger.kernel.org>; Fri, 13 Jul 2018 02:18:49 -0700 (PDT)
-Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
- <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
- <20180705094421.0bad52e2@coco.lan>
- <2f4121bb-1774-410c-5425-f9977d38a02e@xs4all.nl>
- <7efd92ca-1891-4054-29d5-dca5813b37d6@redhat.com>
- <20180711103958.gd6szkgfljjnr44w@pengutronix.de>
-From: Javier Martinez Canillas <javierm@redhat.com>
-Message-ID: <94a592f4-a130-b210-a461-9a4f758164a8@redhat.com>
-Date: Fri, 13 Jul 2018 11:18:45 +0200
+        Fri, 13 Jul 2018 05:43:52 -0400
+Subject: Re: [PATCH] ARM: multi_v7_defconfig: enable STM32 DCMI media support
+To: Hugues Fruchet <hugues.fruchet@st.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>
+References: <1530781532-7125-1-git-send-email-hugues.fruchet@st.com>
+From: Alexandre Torgue <alexandre.torgue@st.com>
+Message-ID: <605b6b51-a17a-eda3-4767-67c175ddcde2@st.com>
+Date: Fri, 13 Jul 2018 11:29:30 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180711103958.gd6szkgfljjnr44w@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1530781532-7125-1-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/11/2018 12:39 PM, Marco Felsch wrote:
-> Hi Javier,
-> 
-> On 18-07-08 15:11, Javier Martinez Canillas wrote:
->> [adding Marco Felsch since he has been working on this driver]
->>
->> On 07/05/2018 03:12 PM, Hans Verkuil wrote:
->>> On 05/07/18 14:44, Mauro Carvalho Chehab wrote:
->>>> Javier,
->>>>
->>>> How standard settings work with the current OMAP3 drivers with tvp5150?
->>>
->>> It looks like tvp5150 uses autodetect of the standard, which in general is
->>
->> That's correct, the driver uses standard autodetect.
->>
->>> not a good thing to do since different standards have different buffer
->>> sizes. But this chip can scale, so it might scale PAL to NTSC or vice versa
->>> if the standard switches mid-stream. Or it only detects the standard when
->>> it starts streaming, I'm not sure.
->>>
->>
->> Not sure about this either, IIUC switching the standard mid-stream won't work.
-> 
-> As far as I know, the detection happens after a sync lost event.
->
+Hi Hugues,
 
-Ah, good to know.
- 
->>> In any case, this is not normal behavior, for almost all analog video
->>> receivers you need to be able to set the std explicitly.
->>>
->>
->> Indeed. I see that Marco's recent series [0] add supports for the .querystd [1]
->> and .g_std [2] callbacks to the tvp5150 driver, so that way user-space can get
->> back the detected standard.
->>
->> [0]: https://www.spinics.net/lists/linux-media/msg136869.html
->> [1]: https://www.spinics.net/lists/linux-media/msg136872.html
->> [2]: https://www.spinics.net/lists/linux-media/msg136875.html
+On 07/05/2018 11:05 AM, Hugues Fruchet wrote:
+> Enables support of STM32 DCMI V4L2 media driver.
 > 
-> I tought the std will be set by the v4l2_subdev_video_ops.s_std()
-> operation. If the user change the std manually, the autodection is
-> disabled.
->
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>   arch/arm/configs/multi_v7_defconfig | 1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+> index 8f6be19..42ad73f76 100644
+> --- a/arch/arm/configs/multi_v7_defconfig
+> +++ b/arch/arm/configs/multi_v7_defconfig
+> @@ -578,6 +578,7 @@ CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC=m
+>   CONFIG_VIDEO_STI_BDISP=m
+>   CONFIG_VIDEO_STI_HVA=m
+>   CONFIG_VIDEO_STI_DELTA=m
+> +CONFIG_VIDEO_STM32_DCMI=m
+>   CONFIG_VIDEO_RENESAS_JPU=m
+>   CONFIG_VIDEO_RENESAS_VSP1=m
+>   CONFIG_V4L_TEST_DRIVERS=y
+> 
 
-Yes, what I tried to say is that user-space won't have a way to know which std
-to set without a .querystd, or know what std was autodetected withou a .g_std.
+Applied on stm32-next.
 
-Best regards,
--- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+Thanks.
+Alex
