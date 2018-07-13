@@ -1,123 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:57698 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729754AbeGQVcD (ORCPT
+Received: from 107-172-0-167-host.colocrossing.com ([107.172.0.167]:37662 "EHLO
+        nowblitz.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729765AbeGMQ1l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 17:32:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v8 3/3] uvcvideo: handle control pipe protocol STALLs
-Date: Tue, 17 Jul 2018 23:58:03 +0300
-Message-ID: <7129850.vz39VDuykc@avalon>
-In-Reply-To: <1525792064-30836-4-git-send-email-guennadi.liakhovetski@intel.com>
-References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com> <1525792064-30836-4-git-send-email-guennadi.liakhovetski@intel.com>
+        Fri, 13 Jul 2018 12:27:41 -0400
+To: linux-media@vger.kernel.org
+Subject: urgent for
+Message-ID: <a836a52a91f1ab18282dfc119be72303@comparaboo.com>
+Date: Fri, 13 Jul 2018 17:31:20 +0200
+From: "Simon" <djemantins@southlandtool.com>
+Reply-To: yahyisen@sina.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+We are a team, we can process 300+ images per day for you.
 
-Thank you for the patch.
+If you need any image editing, please let us know.
 
-On Tuesday, 8 May 2018 18:07:44 EEST Guennadi Liakhovetski wrote:
-> When a command ends up in a STALL on the control pipe, use the Request
-> Error Code control to provide a more precise error information to the
-> user. For example, if a camera is still busy processing a control,
-> when the same or an interrelated control set request arrives, the
-> camera can react with a STALL and then return the "Not ready" status
-> in response to a UVC_VC_REQUEST_ERROR_CODE_CONTROL command. With this
-> patch the user would then get an EBUSY error code instead of a
-> generic EPIPE.
-> 
-> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Photos cut out;
+Photos clipping path;
+Photos masking;
+Photo shadow creation;
+Photos retouching;
+Beauty Model retouching on skin, face, body;
+Glamour retouching;
+Products retouching.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+We can give you editing test on your photos.
 
-> ---
-> 
-> v8:
-> 
-> * restrict UVC_VC_REQUEST_ERROR_CODE_CONTROL to the control interface
-> * fix the wIndex value
-> * improve error codes
-> * cosmetic changes
-> 
->  drivers/media/usb/uvc/uvc_video.c | 52 +++++++++++++++++++++++++++++++-----
->  1 file changed, 46 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index aa0082f..ce65cd6 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -73,17 +73,57 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8
-> unit, u8 intfnum, u8 cs, void *data, u16 size)
->  {
->  	int ret;
-> +	u8 error;
-> +	u8 tmp;
-> 
->  	ret = __uvc_query_ctrl(dev, query, unit, intfnum, cs, data, size,
->  				UVC_CTRL_CONTROL_TIMEOUT);
-> -	if (ret != size) {
-> -		uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
-> -			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
-> -			unit, ret, size);
-> -		return -EIO;
-> +	if (likely(ret == size))
-> +		return 0;
-> +
-> +	uvc_printk(KERN_ERR,
-> +		   "Failed to query (%s) UVC control %u on unit %u: %d (exp. %u).\n",
-> +		   uvc_query_name(query), cs, unit, ret, size);
-> +
-> +	if (ret != -EPIPE)
-> +		return ret;
-> +
-> +	tmp = *(u8 *)data;
-> +
-> +	ret = __uvc_query_ctrl(dev, UVC_GET_CUR, 0, intfnum,
-> +			       UVC_VC_REQUEST_ERROR_CODE_CONTROL, data, 1,
-> +			       UVC_CTRL_CONTROL_TIMEOUT);
-> +
-> +	error = *(u8 *)data;
-> +	*(u8 *)data = tmp;
-> +
-> +	if (ret != 1)
-> +		return ret < 0 ? ret : -EPIPE;
-> +
-> +	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
-> +
-> +	switch (error) {
-> +	case 0:
-> +		/* Cannot happen - we received a STALL */
-> +		return -EPIPE;
-> +	case 1: /* Not ready */
-> +		return -EBUSY;
-> +	case 2: /* Wrong state */
-> +		return -EILSEQ;
-> +	case 3: /* Power */
-> +		return -EREMOTE;
-> +	case 4: /* Out of range */
-> +		return -ERANGE;
-> +	case 5: /* Invalid unit */
-> +	case 6: /* Invalid control */
-> +	case 7: /* Invalid Request */
-> +	case 8: /* Invalid value within range */
-> +		return -EINVAL;
-> +	default: /* reserved or unknown */
-> +		break;
->  	}
-> 
-> -	return 0;
-> +	return -EPIPE;
->  }
-> 
->  static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
+Turnaround time fast
+7/24/365 available
 
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Simon
