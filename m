@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:45055 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729323AbeGMHpZ (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44000 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726655AbeGMHmt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jul 2018 03:45:25 -0400
-Date: Fri, 13 Jul 2018 09:31:59 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: hverkuil@xs4all.nl, geert@linux-m68k.org,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND] dt-bindings: media: rcar-vin: Add R8A77995 support
-Message-ID: <20180713073159.6q6xlfkpteiaj35e@verge.net.au>
-References: <1530694296-6417-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 13 Jul 2018 03:42:49 -0400
+Date: Fri, 13 Jul 2018 09:29:23 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-usb@vger.kernel.org, tglx@linutronix.de,
+        Takashi Iwai <tiwai@suse.de>
+Subject: Re: [PATCH RFC] usb: add usb_fill_iso_urb()
+Message-ID: <20180713072923.GA31191@kroah.com>
+References: <20180620164945.xb24m7wlbtb6cys5@linutronix.de>
+ <Pine.LNX.4.44L0.1806201322260.1758-100000@iolanthe.rowland.org>
+ <20180712223527.5nmxndignujo7smt@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1530694296-6417-1-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <20180712223527.5nmxndignujo7smt@linutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 04, 2018 at 10:51:36AM +0200, Jacopo Mondi wrote:
-> Add compatible string for R-Car D3 R8A7795 to list of SoCs supported by
-> rcar-vin driver.
+On Fri, Jul 13, 2018 at 12:35:27AM +0200, Sebastian Andrzej Siewior wrote:
+> Provide usb_fill_iso_urb() for the initialisation of isochronous URBs.
+> We already have one of this helpers for control, bulk and interruptible
+> URB types. This helps to keep the initialisation of the URB members in
+> one place.
+> Update the documentation by adding this to the available init functions
+> and remove the suggestion to use the `_int_' helper which might provide
+> wrong encoding for the `interval' member.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+> This looks like it would cover most users nicely. The sound subsystem
+> initialises the ->iso_frame_desc[].offset + length member (often) at a
+> different location and I'm not sure ->interval will work always as
+> expected. So we might need to overwrite those two in worst case.
+> 
+> Some users also initialise ->iso_frame_desc[].actual_length but I don't
+> this is required since it is the return value.
+> 
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 > ---
-> 
-> Re-sending to have this collected with the following series:
-> [PATCH v6 0/10] rcar-vin: Add support for parallel input on Gen3
+>  Documentation/driver-api/usb/URB.rst | 12 +++----
+>  include/linux/usb.h                  | 53 ++++++++++++++++++++++++++++
+>  2 files changed, 59 insertions(+), 6 deletions(-)
 
-Jacopo,
+Do you have a few example patches of using this new function?  Many many
+years ago we tried to create this function, but we gave up as it just
+didn't seem to work for the majority of the users of ISO packets.  Maybe
+things have changed since then and people do it all more in a "standard"
+way and we can take advantage of this.  But it would be nice to see
+proof it can be used before taking this patch.
 
-Can I pick up the related DTS patches once this one is accepted
-into the media-tree? If so, please ping me once that happens.
+thanks,
 
-> 
-> Thanks
->   j
-> ---
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> index a19517e1..5c6f2a7 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -22,6 +22,7 @@ on Gen3 platforms to a CSI-2 receiver.
->     - "renesas,vin-r8a7795" for the R8A7795 device
->     - "renesas,vin-r8a7796" for the R8A7796 device
->     - "renesas,vin-r8a77970" for the R8A77970 device
-> +   - "renesas,vin-r8a77995" for the R8A77995 device
->     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
->       device.
-> 
-> --
-> 2.7.4
-> 
+greg k-h
