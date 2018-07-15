@@ -1,121 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:37441 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727315AbeGNUWo (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:46505 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725745AbeGOELe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Jul 2018 16:22:44 -0400
-Received: by mail-pf0-f193.google.com with SMTP id a26-v6so2301725pfo.4
-        for <linux-media@vger.kernel.org>; Sat, 14 Jul 2018 13:02:35 -0700 (PDT)
-Subject: Re: [PATCH v2 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
-        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org,
-        linux-media@vger.kernel.org
-References: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
- <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
- <20180711072148.GH8180@w540> <bc50c3d7-d6ba-e73f-6156-341e1ce3099a@gmail.com>
- <b1369576-2193-bc57-0716-ca08098a2eca@gmail.com>
-Message-ID: <71f4b589-2c82-7e87-22fe-8b6373947b13@gmail.com>
-Date: Sat, 14 Jul 2018 13:02:32 -0700
-MIME-Version: 1.0
-In-Reply-To: <b1369576-2193-bc57-0716-ca08098a2eca@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Sun, 15 Jul 2018 00:11:34 -0400
+Message-ID: <303692156b5aec93c2d5a2f31a8243c2@smtp-cloud7.xs4all.net>
+Date: Sun, 15 Jul 2018 05:50:07 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 07/14/2018 12:41 PM, Steve Longerbeam wrote:
-> Hi Jacopo,
->
->
-> On 07/14/2018 11:57 AM, Steve Longerbeam wrote:
->> Hi Jacopo,
->>
->> Pardon the late reply, see below.
->>
->> On 07/11/2018 12:21 AM, jacopo mondi wrote:
->>> Hi Steve,
->>>
->>> On Tue, Jul 10, 2018 at 02:10:54PM -0700, Steve Longerbeam wrote:
->>>> Hi Jacopo,
->>>>
->>>> Sorry to report my testing on SabreSD has same result
->>>> as last time. This series fixes the LP-11 timeout at stream
->>>> on but captured images are still blank. I tried the 640x480
->>>> mode with UYVY2X8. Here is the pad config:
->>> This saddens me :(
->>>
->>> I'm capturing with the same format and sizes... this shouldn't be the
->>> issue
->>>
->>> Could you confirm this matches what you have in your tree?
->>> 5dc2c80 media: ov5640: Fix timings setup code
->>> b35e757 media: i2c: ov5640: Re-work MIPI startup sequence
->>> 3c4a737 media: ov5640: fix frame interval enumeration
->>> 41cb1c7 media: ov5640: adjust xclk_max
->>> c3f3ba3 media: ov5640: add support of module orientation
->>> ce85705 media: ov5640: add HFLIP/VFLIP controls support
->>> 8663341 media: ov5640: Program the visible resolution
->>> 476dec0 media: ov5640: Add horizontal and vertical totals
->>> dba13a0 media: ov5640: Change horizontal and vertical resolutions name
->>> 8f57c2f media: ov5640: Init properly the SCLK dividers
->>
->> Yes, I have that commit sequence.
->>
->> FWIW, I can verify what Jagan Teki reported earlier, that the driver 
->> still
->> works on the SabreSD platform at:
->>
->> dba13a0 media: ov5640: Change horizontal and vertical resolutions name
->>
->> and is broken at:
->>
->> 476dec0 media: ov5640: Add horizontal and vertical totals
->>
->> with LP-11 timeout at the mipi csi-2 receiver:
->>
->> [   80.763189] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000230
->> [   80.769599] ipu1_csi1: pipeline start failed with -110
->
-> And I discovered the bug in 476dec0 "media: ov5640: Add horizontal and
-> vertical totals". The call to ov5640_set_timings() needs to be moved 
-> before the
-> calls to ov5640_get_vts() and ov5640_get_hts(). But I see you have 
-> discovered
-> that as well, and fixed in the second patch in your series.
->
+date:			Sun Jul 15 05:00:11 CEST 2018
+media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
+media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
+v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-But strangely, if I revert to 476dec0, and then move the call to 
-ov5640_set_timings()
-to just after ov5640_load_regs() in ov5640_set_mode_exposure_calc() and
-ov5640_set_mode_direct(), the LP-11 timeouts are still present. So I can 
-confirm
-this strangeness which you already pointed out below [1].
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.140-i686: OK
+linux-4.4.140-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.112-i686: OK
+linux-4.9.112-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.55-i686: OK
+linux-4.14.55-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.6-i686: OK
+linux-4.17.6-x86_64: OK
+linux-4.18-rc4-i686: OK
+linux-4.18-rc4-x86_64: OK
+apps: OK
+spec-git: OK
 
+Detailed results are available here:
 
->
->>
->>>
->>>>
->>>>>
->>>>> The version I'm sending here re-introduces some of the timings 
->>>>> parameters in the
->>>>> initial configuration blob (not in the single mode ones), which 
->>>>> apparently has
->>>>> to be at least initially programmed to allow the driver to later 
->>>>> program them
->>>>> singularly in the 'set_timings()' function. Unfortunately I do not 
->>>>> have a real
->>>>> rationale behind this which explains why it has to be done this 
->>>>> way :(
->>>>>
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-[1] here :)
+Full logs are available here:
 
-Steve
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
