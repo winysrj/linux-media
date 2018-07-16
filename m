@@ -1,170 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:44806 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732433AbeGKQMR (ORCPT
+Received: from relay11.mail.gandi.net ([217.70.178.231]:35285 "EHLO
+        relay11.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730828AbeGPIzz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jul 2018 12:12:17 -0400
-Date: Wed, 11 Jul 2018 10:07:13 -0600
-From: Rob Herring <robh@kernel.org>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 08/34] media: camss: Unify the clock names
-Message-ID: <20180711160713.GA29354@rob-hp-laptop>
-References: <1530797585-8555-1-git-send-email-todor.tomov@linaro.org>
- <1530797585-8555-9-git-send-email-todor.tomov@linaro.org>
+        Mon, 16 Jul 2018 04:55:55 -0400
+Date: Mon, 16 Jul 2018 10:29:29 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        maxime.ripard@bootlin.com, sam@elite-embedded.com,
+        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
+        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
+Message-ID: <20180716082929.GM8180@w540>
+References: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
+ <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
+ <20180711072148.GH8180@w540>
+ <bc50c3d7-d6ba-e73f-6156-341e1ce3099a@gmail.com>
+ <b1369576-2193-bc57-0716-ca08098a2eca@gmail.com>
+ <71f4b589-2c82-7e87-22fe-8b6373947b13@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Ll0BBk1HBk/f94B0"
 Content-Disposition: inline
-In-Reply-To: <1530797585-8555-9-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <71f4b589-2c82-7e87-22fe-8b6373947b13@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 05, 2018 at 04:32:39PM +0300, Todor Tomov wrote:
-> Unify the clock names - use names closer to the clock
-> definitions.
 
-Why? You can't just change names. You are breaking an ABI.
+--Ll0BBk1HBk/f94B0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> CC: Rob Herring <robh+dt@kernel.org>
-> CC: Mark Rutland <mark.rutland@arm.com>
-> CC: devicetree@vger.kernel.org
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  .../devicetree/bindings/media/qcom,camss.txt       | 24 +++++++++++-----------
+Hi Steve,
+   thanks for keep testing it
 
-Bindings should be a separate patch.
+On Sat, Jul 14, 2018 at 01:02:32PM -0700, Steve Longerbeam wrote:
+>
+>
+> On 07/14/2018 12:41 PM, Steve Longerbeam wrote:
+> >Hi Jacopo,
+> >
+> >
+> >On 07/14/2018 11:57 AM, Steve Longerbeam wrote:
+> >>Hi Jacopo,
+> >>
+> >>Pardon the late reply, see below.
+> >>
+> >>On 07/11/2018 12:21 AM, jacopo mondi wrote:
+> >>>Hi Steve,
+> >>>
+> >>>On Tue, Jul 10, 2018 at 02:10:54PM -0700, Steve Longerbeam wrote:
+> >>>>Hi Jacopo,
+> >>>>
+> >>>>Sorry to report my testing on SabreSD has same result
+> >>>>as last time. This series fixes the LP-11 timeout at stream
+> >>>>on but captured images are still blank. I tried the 640x480
+> >>>>mode with UYVY2X8. Here is the pad config:
+> >>>This saddens me :(
+> >>>
+> >>>I'm capturing with the same format and sizes... this shouldn't be the
+> >>>issue
+> >>>
+> >>>Could you confirm this matches what you have in your tree?
+> >>>5dc2c80 media: ov5640: Fix timings setup code
+> >>>b35e757 media: i2c: ov5640: Re-work MIPI startup sequence
+> >>>3c4a737 media: ov5640: fix frame interval enumeration
+> >>>41cb1c7 media: ov5640: adjust xclk_max
+> >>>c3f3ba3 media: ov5640: add support of module orientation
+> >>>ce85705 media: ov5640: add HFLIP/VFLIP controls support
+> >>>8663341 media: ov5640: Program the visible resolution
+> >>>476dec0 media: ov5640: Add horizontal and vertical totals
+> >>>dba13a0 media: ov5640: Change horizontal and vertical resolutions name
+> >>>8f57c2f media: ov5640: Init properly the SCLK dividers
+> >>
+> >>Yes, I have that commit sequence.
+> >>
+> >>FWIW, I can verify what Jagan Teki reported earlier, that the driver
+> >>still
+> >>works on the SabreSD platform at:
+> >>
+> >>dba13a0 media: ov5640: Change horizontal and vertical resolutions name
+> >>
+> >>and is broken at:
+> >>
+> >>476dec0 media: ov5640: Add horizontal and vertical totals
+> >>
+> >>with LP-11 timeout at the mipi csi-2 receiver:
+> >>
+> >>[=C2=A0=C2=A0 80.763189] imx6-mipi-csi2: LP-11 timeout, phy_state =3D 0=
+x00000230
+> >>[=C2=A0=C2=A0 80.769599] ipu1_csi1: pipeline start failed with -110
+> >
+> >And I discovered the bug in 476dec0 "media: ov5640: Add horizontal and
+> >vertical totals". The call to ov5640_set_timings() needs to be moved
+> >before the
+> >calls to ov5640_get_vts() and ov5640_get_hts(). But I see you have
+> >discovered
+> >that as well, and fixed in the second patch in your series.
+> >
 
->  drivers/media/platform/qcom/camss/camss.c          | 20 ++++++++----------
->  2 files changed, 20 insertions(+), 24 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
-> index cadeceb..032e8ed 100644
-> --- a/Documentation/devicetree/bindings/media/qcom,camss.txt
-> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
-> @@ -53,7 +53,7 @@ Qualcomm Camera Subsystem
->  	Usage: required
->  	Value type: <stringlist>
->  	Definition: Should contain the following entries:
-> -                - "camss_top_ahb"
-> +                - "top_ahb"
->                  - "ispif_ahb"
->                  - "csiphy0_timer"
->                  - "csiphy1_timer"
-> @@ -67,11 +67,11 @@ Qualcomm Camera Subsystem
->                  - "csi1_phy"
->                  - "csi1_pix"
->                  - "csi1_rdi"
-> -                - "camss_ahb"
-> -                - "camss_vfe_vfe"
-> -                - "camss_csi_vfe"
-> -                - "iface"
-> -                - "bus"
-> +                - "ahb"
-> +                - "vfe0"
-> +                - "csi_vfe0"
-> +                - "vfe_ahb"
-> +                - "vfe_axi"
->  - vdda-supply:
->  	Usage: required
->  	Value type: <phandle>
-> @@ -161,7 +161,7 @@ Qualcomm Camera Subsystem
->  			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
->  			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
->  			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
-> -                clock-names = "camss_top_ahb",
-> +                clock-names = "top_ahb",
->                          "ispif_ahb",
->                          "csiphy0_timer",
->                          "csiphy1_timer",
-> @@ -175,11 +175,11 @@ Qualcomm Camera Subsystem
->                          "csi1_phy",
->                          "csi1_pix",
->                          "csi1_rdi",
-> -                        "camss_ahb",
-> -                        "camss_vfe_vfe",
-> -                        "camss_csi_vfe",
-> -                        "iface",
-> -                        "bus";
-> +                        "ahb",
-> +                        "vfe0",
-> +                        "csi_vfe0",
-> +                        "vfe_ahb",
-> +                        "vfe_axi";
->  		vdda-supply = <&pm8916_l2>;
->  		iommus = <&apps_iommu 3>;
->  		ports {
-> diff --git a/drivers/media/platform/qcom/camss/camss.c b/drivers/media/platform/qcom/camss/camss.c
-> index abf6184..0b663e0 100644
-> --- a/drivers/media/platform/qcom/camss/camss.c
-> +++ b/drivers/media/platform/qcom/camss/camss.c
-> @@ -32,8 +32,7 @@ static const struct resources csiphy_res[] = {
->  	/* CSIPHY0 */
->  	{
->  		.regulator = { NULL },
-> -		.clock = { "camss_top_ahb", "ispif_ahb",
-> -			   "camss_ahb", "csiphy0_timer" },
-> +		.clock = { "top_ahb", "ispif_ahb", "ahb", "csiphy0_timer" },
->  		.clock_rate = { { 0 },
->  				{ 0 },
->  				{ 0 },
-> @@ -45,8 +44,7 @@ static const struct resources csiphy_res[] = {
->  	/* CSIPHY1 */
->  	{
->  		.regulator = { NULL },
-> -		.clock = { "camss_top_ahb", "ispif_ahb",
-> -			   "camss_ahb", "csiphy1_timer" },
-> +		.clock = { "top_ahb", "ispif_ahb", "ahb", "csiphy1_timer" },
->  		.clock_rate = { { 0 },
->  				{ 0 },
->  				{ 0 },
-> @@ -60,8 +58,7 @@ static const struct resources csid_res[] = {
->  	/* CSID0 */
->  	{
->  		.regulator = { "vdda" },
-> -		.clock = { "camss_top_ahb", "ispif_ahb",
-> -			   "csi0_ahb", "camss_ahb",
-> +		.clock = { "top_ahb", "ispif_ahb", "csi0_ahb", "ahb",
->  			   "csi0", "csi0_phy", "csi0_pix", "csi0_rdi" },
->  		.clock_rate = { { 0 },
->  				{ 0 },
-> @@ -78,8 +75,7 @@ static const struct resources csid_res[] = {
->  	/* CSID1 */
->  	{
->  		.regulator = { "vdda" },
-> -		.clock = { "camss_top_ahb", "ispif_ahb",
-> -			   "csi1_ahb", "camss_ahb",
-> +		.clock = { "top_ahb", "ispif_ahb", "csi1_ahb", "ahb",
->  			   "csi1", "csi1_phy", "csi1_pix", "csi1_rdi" },
->  		.clock_rate = { { 0 },
->  				{ 0 },
-> @@ -96,10 +92,10 @@ static const struct resources csid_res[] = {
->  
->  static const struct resources_ispif ispif_res = {
->  	/* ISPIF */
-> -	.clock = { "camss_top_ahb", "camss_ahb", "ispif_ahb",
-> +	.clock = { "top_ahb", "ahb", "ispif_ahb",
->  		   "csi0", "csi0_pix", "csi0_rdi",
->  		   "csi1", "csi1_pix", "csi1_rdi" },
-> -	.clock_for_reset = { "camss_vfe_vfe", "camss_csi_vfe" },
-> +	.clock_for_reset = { "vfe0", "csi_vfe0" },
->  	.reg = { "ispif", "csi_clk_mux" },
->  	.interrupt = "ispif"
->  
-> @@ -108,8 +104,8 @@ static const struct resources_ispif ispif_res = {
->  static const struct resources vfe_res = {
->  	/* VFE0 */
->  	.regulator = { NULL },
-> -	.clock = { "camss_top_ahb", "camss_vfe_vfe", "camss_csi_vfe",
-> -		   "iface", "bus", "camss_ahb" },
-> +	.clock = { "top_ahb", "vfe0", "csi_vfe0",
-> +		   "vfe_ahb", "vfe_axi", "ahb" },
->  	.clock_rate = { { 0 },
->  			{ 50000000, 80000000, 100000000, 160000000,
->  			  177780000, 200000000, 266670000, 320000000,
-> -- 
-> 2.7.4
-> 
+I'm sorry I'm not sur I'm following. Does this mean that with that bug
+you are referring to up here fixed by my last patch you have capture
+working?
+
+Thanks
+   j
+
+>
+> But strangely, if I revert to 476dec0, and then move the call to
+> ov5640_set_timings()
+> to just after ov5640_load_regs() in ov5640_set_mode_exposure_calc() and
+> ov5640_set_mode_direct(), the LP-11 timeouts are still present. So I can
+> confirm
+> this strangeness which you already pointed out below [1].
+>
+>
+> >
+> >>
+> >>>
+> >>>>
+> >>>>>
+> >>>>>The version I'm sending here re-introduces some of the timings
+> >>>>>parameters in the
+> >>>>>initial configuration blob (not in the single mode ones), which
+> >>>>>apparently has
+> >>>>>to be at least initially programmed to allow the driver to later
+> >>>>>program them
+> >>>>>singularly in the 'set_timings()' function. Unfortunately I do not
+> >>>>>have a real
+> >>>>>rationale behind this which explains why it has to be done this
+> >>>>>way :(
+> >>>>>
+>
+> [1] here :)
+>
+> Steve
+>
+>
+
+--Ll0BBk1HBk/f94B0
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbTFdpAAoJEHI0Bo8WoVY8LIIQAL14/2n5sTHJVycfaK3db19q
+qsJcuCN09761yNIeHXM/41ZD4OzXgSu6zXhOr1wAYlL/erLTrjPwc12Pe3yLwPEK
+cAzvwMPQ317PbGKFtWdnC2iB8HDP6wATvgj5YuVZtTHlSFIAIO2kKFHMWXHR9QbA
+cclkFXTkC5/J2HXw77OqkDIRyiCmeR57LoHCo5hwSQqIE70qY8j+DojdrbBQnEvu
+pb9cAThP2XuKQ4K2wtYShGO52n8FhJvke+hG4qTE4xT0RjDF+rpd2qyxecCkF4vb
+WHfM97Vssldbx9cSK0zzD125gIxsYwPaT8Z8DvyQETeBV0LA+VQmU1OeNvKm3c4d
+mJYVv4RWI8iaRQH5GxubTtPJYxOSzd80dLppoHp7cpYtvKFrIV0OtWQ9h54ZT7Iv
+GwUaEXRlJHl9vJztW/4mmg2tSdc51An7cn9TFn04SCQaB6CaLlZrDRGDcENN0tSS
+3q4GRXm9gdfEYJwemXo7HxegINvu4K0/S+GokBXfcm9cWWdlVaLuMBKKaC8b5a9B
+7UyONYNIkJK/HaPiGsvvbnHo28au4DvUKczc89FuJFguSXi5/JP+9ReQa0ABJf0K
+n2+t3m4q4q3oyhXHo8tXIChZ+khxeIep6kDLdJ6QdQeD3hD89yF6XLeChzLNI7IF
+xGkACQwi7jtih0F2FMnU
+=FqFY
+-----END PGP SIGNATURE-----
+
+--Ll0BBk1HBk/f94B0--
