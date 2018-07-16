@@ -1,74 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:47103 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726522AbeGOPlN (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:44069 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726012AbeGPEPi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Jul 2018 11:41:13 -0400
-Received: by mail-wr1-f67.google.com with SMTP id s11-v6so29430470wra.13
-        for <linux-media@vger.kernel.org>; Sun, 15 Jul 2018 08:17:55 -0700 (PDT)
-Date: Sun, 15 Jul 2018 17:17:53 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        Pavel Machek <pavel@ucw.cz>,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/2] media: rc: remove ir-rx51 in favour of generic
- pwm-ir-tx
-Message-ID: <20180715151753.2rfv5qht63romadr@pali>
-References: <20180713122230.19278-1-sean@mess.org>
- <20180713122230.19278-2-sean@mess.org>
- <f44eb6ba-c94f-a397-1577-da647b880ac1@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="p5s5h7j54zszpyl6"
-Content-Disposition: inline
-In-Reply-To: <f44eb6ba-c94f-a397-1577-da647b880ac1@gmail.com>
+        Mon, 16 Jul 2018 00:15:38 -0400
+Message-ID: <e4cffe539e5a6c6c5df4f882161f35de@smtp-cloud7.xs4all.net>
+Date: Mon, 16 Jul 2018 05:50:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---p5s5h7j54zszpyl6
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-On Friday 13 July 2018 17:38:25 Ivaylo Dimitrov wrote:
-> Hi,
->=20
-> On 13.07.2018 15:22, Sean Young wrote:
-> > The ir-rx51 is a pwm-based TX driver specific to the N900. This can be
-> > handled entirely by the generic pwm-ir-tx driver.
-> >=20
-> > Note that the suspend code in the ir-rx51 driver is unnecessary, since
-> > during transmit, the process is not in interruptable sleep. The process
-> > is not put to sleep until the transmit completes.
-> >=20
-> > Compile tested only.
-> >=20
->=20
-> I would like to see this being tested on a real HW, however I am on a
-> holiday for the next week so won't be able to test till I am back.
->=20
-> @Pali - do you have n900 with fremantle, upstream kernel and pierogi to t=
-est
-> pwm-ir-tx on it?
+date:			Mon Jul 16 05:00:11 CEST 2018
+media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
+media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
+v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Hi! Currently on my N900 with Maemo Fremantle is 2.6.28 and 3.12
-kernels. And 3.12 is a far away from current upstream kernel.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.140-i686: OK
+linux-4.4.140-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.112-i686: OK
+linux-4.9.112-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.55-i686: OK
+linux-4.14.55-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.6-i686: OK
+linux-4.17.6-x86_64: OK
+linux-4.18-rc4-i686: OK
+linux-4.18-rc4-x86_64: OK
+apps: OK
+spec-git: OK
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Detailed results are available here:
 
---p5s5h7j54zszpyl6
-Content-Type: application/pgp-signature; name="signature.asc"
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
------BEGIN PGP SIGNATURE-----
+Full logs are available here:
 
-iF0EABECAB0WIQS4VrIQdKium2krgIWL8Mk9A+RDUgUCW0tlnQAKCRCL8Mk9A+RD
-UrylAJsFTCNUop4EulbO8I0xpEXbugOhfACgqv9/Y1Z0KkC2WxYB/pyw9oytilI=
-=H7g+
------END PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
---p5s5h7j54zszpyl6--
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
