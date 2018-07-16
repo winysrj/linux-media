@@ -1,74 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58889 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727405AbeGPQm5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jul 2018 12:42:57 -0400
-Message-ID: <1531757689.18173.24.camel@pengutronix.de>
-Subject: Re: [PATCH] media: coda: add SPS fixup code for frame sizes that
- are not multiples of 16
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de
-Date: Mon, 16 Jul 2018 18:14:49 +0200
-In-Reply-To: <00c884f5-3a7e-9515-ec4b-e9aa3bf64532@xs4all.nl>
-References: <20180628164701.26936-1-p.zabel@pengutronix.de>
-         <00c884f5-3a7e-9515-ec4b-e9aa3bf64532@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:39023 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727402AbeGPQbS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Jul 2018 12:31:18 -0400
+Date: Mon, 16 Jul 2018 19:03:11 +0300
+From: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: "Yeh, Andy" <andy.yeh@intel.com>
+Cc: "Chen, Ping-chung" <ping-chung.chen@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "grundler@chromium.org" <grundler@chromium.org>,
+        "Chen, JasonX Z" <jasonx.z.chen@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>
+Subject: Re: [PATCH] media: imx208: Add imx208 camera sensor driver
+Message-ID: <20180716160311.4m4pehiwsm5krmgn@paasikivi.fi.intel.com>
+References: <1531206936-31447-1-git-send-email-ping-chung.chen@intel.com>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D704217@PGSMSX111.gar.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D704217@PGSMSX111.gar.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-07-02 at 10:53 +0200, Hans Verkuil wrote:
-> On 28/06/18 18:47, Philipp Zabel wrote:
-> > The CODA firmware does not set the VUI frame cropping fields to properly
-> > describe coded h.264 streams with frame sizes that are not a multiple of
-> > the macroblock size.
-> > This adds RBSP parsing code and a SPS fixup routine to manually replace
-> > the cropping information in the headers produced by the firmware with
-> > the correct values.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/platform/coda/coda-bit.c  |  11 +
-> >  drivers/media/platform/coda/coda-h264.c | 302 ++++++++++++++++++++++++
-> >  drivers/media/platform/coda/coda.h      |   2 +
-> >  3 files changed, 315 insertions(+)
-> > 
-> > diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-> > index 94ba3cc3bf14..d6380a10fa2c 100644
-> > --- a/drivers/media/platform/coda/coda-bit.c
-> > +++ b/drivers/media/platform/coda/coda-bit.c
-> > @@ -1197,6 +1197,17 @@ static int coda_start_encoding(struct coda_ctx *ctx)
-> >  		if (ret < 0)
-> >  			goto out;
-> >  
-> > +		if ((q_data_src->rect.width % 16) ||
-> > +		    (q_data_src->rect.height % 16)) {
-> > +			ret = coda_sps_fixup(ctx, q_data_src->rect.width,
-> > +					     q_data_src->rect.height,
-> > +					     &ctx->vpu_header[0][0],
-> > +					     &ctx->vpu_header_size[0],
-> > +					     sizeof(ctx->vpu_header[0]));
+On Tue, Jul 10, 2018 at 07:37:54AM +0000, Yeh, Andy wrote:
+> Hi PC,
 > 
-> You need to add a comment here why this is needed.
-[...]
-> > +int coda_sps_fixup(struct coda_ctx *ctx, int width, int height, char *buf,
-> > +		   int *size, int max_size)
+> Thanks for the patch.
 > 
-> Same here: why it is needed and what does it do.
+> Cc in Grant, and Intel Jim/Jason
+> 
+> > -----Original Message-----
+> > From: Chen, Ping-chung
+> > Sent: Tuesday, July 10, 2018 3:16 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: sakari.ailus@linux.intel.com; Yeh, Andy <andy.yeh@intel.com>;
+> > tfiga@chromium.org; Chen, Ping-chung <ping-chung.chen@intel.com>
+> > Subject: [PATCH] media: imx208: Add imx208 camera sensor driver
+> > +};
+> > +
+> > +static int imx208_enum_mbus_code(struct v4l2_subdev *sd,
+> > +				  struct v4l2_subdev_pad_config *cfg,
+> > +				  struct v4l2_subdev_mbus_code_enum *code) {
+> > +	/* Only one bayer order(GRBG) is supported */
+> > +	if (code->index > 0)
+> > +		return -EINVAL;
+> > +
+> 
+> There is no limitation on using GRBG bayer order now. You can refer to imx355 driver as well.
 
-Thank you, I'll send a v2 with this fixed.
+It seems the rest of the driver uses RGGB.
 
-This function rewrites the h.264 SPS header to set the crop_right and
-crop_bottom fields correctly, as these are always set to 0 by the
-CODA7541 firmware.
+The enumeration should only contain what is possible using the current
+flipping configuration.
 
-Setting the crop_* fields is important for frame sizes that are not
-multiples of the macroblock size: those fields are used together with
-the pic_width_in_mbs_minus1 and pic_height_in_map_units_minus1 fields
-to determine the visible frame width and height.
-
-regards
-Philipp
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
