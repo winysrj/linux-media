@@ -1,353 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43556 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727479AbeGPStn (ORCPT
+Received: from Galois.linutronix.de ([146.0.238.70]:53711 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728787AbeGPXXh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jul 2018 14:49:43 -0400
-Reply-To: kieran.bingham+renesas@ideasonboard.com
-Subject: Re: [PATCH v4 10/11] media: vsp1: Support Interlaced display
- pipelines
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
- <8e320ac8861b7fdd657a66138780c18fd66b1a19.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
- <2663986.uvcnutGSNp@avalon>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <f794f4d6-f524-293b-3df6-097f42bef372@ideasonboard.com>
-Date: Mon, 16 Jul 2018 19:21:00 +0100
+        Mon, 16 Jul 2018 19:23:37 -0400
+Date: Tue, 17 Jul 2018 00:53:57 +0200
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-usb@vger.kernel.org, tglx@linutronix.de,
+        Takashi Iwai <tiwai@suse.de>
+Subject: Re: [PATCH RFC] usb: add usb_fill_iso_urb()
+Message-ID: <20180716225357.v25f6rurz56q4yes@linutronix.de>
+References: <20180620164945.xb24m7wlbtb6cys5@linutronix.de>
+ <Pine.LNX.4.44L0.1806201322260.1758-100000@iolanthe.rowland.org>
+ <20180712223527.5nmxndignujo7smt@linutronix.de>
+ <20180713072923.GA31191@kroah.com>
+ <20180713074728.itw7ua7zygazotuk@linutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <2663986.uvcnutGSNp@avalon>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20180713074728.itw7ua7zygazotuk@linutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Some questions here too :)
-
-On 24/05/18 13:51, Laurent Pinchart wrote:
-> Hi Kieran,
+On 2018-07-13 09:47:28 [+0200], To Greg Kroah-Hartman wrote:
 > 
-> Thank you for the patch.
-> 
-> On Thursday, 3 May 2018 16:36:21 EEST Kieran Bingham wrote:
->> Calculate the top and bottom fields for the interlaced frames and
->> utilise the extended display list command feature to implement the
->> auto-field operations. This allows the DU to update the VSP2 registers
->> dynamically based upon the currently processing field.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> ---
->> v3:
->>  - Pass DL through partition calls to allow autocmd's to be retrieved
->>  - Document interlaced field in struct vsp1_du_atomic_config
->>
->> v2:
->>  - fix erroneous BIT value which enabled interlaced
->>  - fix field handling at frame_end interrupt
->> ---
->>  drivers/media/platform/vsp1/vsp1_dl.c   | 10 ++++-
->>  drivers/media/platform/vsp1/vsp1_drm.c  | 11 ++++-
->>  drivers/media/platform/vsp1/vsp1_regs.h |  1 +-
->>  drivers/media/platform/vsp1/vsp1_rpf.c  | 71 ++++++++++++++++++++++++--
->>  drivers/media/platform/vsp1/vsp1_rwpf.h |  1 +-
->>  include/media/vsp1.h                    |  2 +-
->>  6 files changed, 93 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
->> b/drivers/media/platform/vsp1/vsp1_dl.c index d33ae5f125bd..bbe9f3006f71
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_dl.c
->> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
->> @@ -906,6 +906,8 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool
->> internal) */
->>  unsigned int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
->>  {
->> +	struct vsp1_device *vsp1 = dlm->vsp1;
->> +	u32 status = vsp1_read(vsp1, VI6_STATUS);
->>  	unsigned int flags = 0;
->>
->>  	spin_lock(&dlm->lock);
->> @@ -931,6 +933,14 @@ unsigned int vsp1_dlm_irq_frame_end(struct
->> vsp1_dl_manager *dlm) goto done;
->>
->>  	/*
->> +	 * Progressive streams report only TOP fields. If we have a BOTTOM
->> +	 * field, we are interlaced, and expect the frame to complete on the
->> +	 * next frame end interrupt.
->> +	 */
->> +	if (status & VI6_STATUS_FLD_STD(dlm->index))
->> +		goto done;
->> +
->> +	/*
->>  	 * The device starts processing the queued display list right after the
->>  	 * frame end interrupt. The display list thus becomes active.
->>  	 */
->> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
->> b/drivers/media/platform/vsp1/vsp1_drm.c index 2c3db8b8adce..cc29c9d96bb7
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_drm.c
->> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
->> @@ -811,6 +811,17 @@ int vsp1_du_atomic_update(struct device *dev, unsigned
->> int pipe_index, return -EINVAL;
->>  	}
->>
->> +	if (!(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) && cfg->interlaced) {
-> 
-> Nitpicking, writing the condition as
-> 
-> 	if (cfg->interlaced && !(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)))
+> sure. Let me refresh my old usb_fill_int_urb() series with this instead.
 
-Done.
+The series is at
+   https://git.kernel.org/pub/scm/linux/kernel/git/bigeasy/staging.git/log/?h=usb-iso
 
-> 
-> would match the comment better. You can also drop the parentheses around the 
-> vsp1_feature() call.
-> 
->> +		/*
->> +		 * Interlaced support requires extended display lists to
->> +		 * provide the auto-fld feature with the DU.
->> +		 */
->> +		dev_dbg(vsp1->dev, "Interlaced unsupported on this output\n");
-> 
-> Could we catch this in the DU driver to fail atomic test ?
+and needs double checking before it can be posted (and addressing the
+few comments I had so far). Here are just the highlights:
+- usb_fill_iso_urb() itself:
 
-Ugh - I thought moving the configuration to vsp1_du_setup_lif() would
-give us this, but that return value is not checked in the DU.
++static inline void usb_fill_iso_urb(struct urb *urb,
++                                   struct usb_device *dev,
++                                   unsigned int pipe,
++                                   void *transfer_buffer,
++                                   int buffer_length,
++                                   usb_complete_t complete_fn,
++                                   void *context,
++                                   int interval,
++                                   unsigned int packets,
++                                   unsigned int packet_size)
++{
++       unsigned int i;
++
++       urb->dev = dev;
++       urb->pipe = pipe;
++       urb->transfer_buffer = transfer_buffer;
++       urb->transfer_buffer_length = buffer_length;
++       urb->complete = complete_fn;
++       urb->context = context;
++
++       interval = clamp(interval, 1, 16);
++       urb->interval = 1 << (interval - 1);
++       urb->start_frame = -1;
++
++       if (packets)
++               urb->number_of_packets = packets;
++
++       if (packet_size) {
++               for (i = 0; i < packets; i++) {
++                       urb->iso_frame_desc[i].offset = packet_size * i;
++                       urb->iso_frame_desc[i].length = packet_size;
++               }
++       }
++}
 
-How can we interogate the VSP1 to ask it if it supports interlaced from
-rcar_du_vsp_plane_atomic_check()?
+My understanding is that ->start_frame is only a return parameter. The
+value is either implicit zero (via kzalloc()/memset()) or explicit
+assignment to 0 or -1. So since it is a return value an init to 0 would
+not be required and an initialisation to -1 (like for INT) would be
+okay. Am I wrong?
 
+sound/ is (almost) the only part where struct usb_iso_packet_descriptor
+init does not fit. It looks like it is done just before urb_submit() and
+could be avoided there (moved to the init funtcion instead). However I
+avoided changing it and added a zero check for `packet_size' so it can
+be skipped. I also need to check if the `interval' value here to see if
+it works as expected. Two examples:
 
-Some dummy call to vsp1_du_setup_lif() to check the return value ? Or
-should we implement a hook to call through to perform checks in the VSP1
-DRM API?
+diff --git a/sound/usb/endpoint.c b/sound/usb/endpoint.c
+index c90607ebe155..f1d4e90e1d23 100644
+--- a/sound/usb/endpoint.c
++++ b/sound/usb/endpoint.c
+@@ -772,6 +772,8 @@ static int data_ep_set_params(struct snd_usb_endpoint *ep,
+ 	/* allocate and initialize data urbs */
+ 	for (i = 0; i < ep->nurbs; i++) {
+ 		struct snd_urb_ctx *u = &ep->urb[i];
++		void *buf;
++
+ 		u->index = i;
+ 		u->ep = ep;
+ 		u->packets = urb_packs;
+@@ -783,16 +785,14 @@ static int data_ep_set_params(struct snd_usb_endpoint *ep,
+ 		if (!u->urb)
+ 			goto out_of_memory;
+ 
+-		u->urb->transfer_buffer =
+-			usb_alloc_coherent(ep->chip->dev, u->buffer_size,
+-					   GFP_KERNEL, &u->urb->transfer_dma);
+-		if (!u->urb->transfer_buffer)
++		buf = usb_alloc_coherent(ep->chip->dev, u->buffer_size,
++					 GFP_KERNEL, &u->urb->transfer_dma);
++		if (!buf)
+ 			goto out_of_memory;
+-		u->urb->pipe = ep->pipe;
++		usb_fill_iso_urb(u->urb, NULL, ep->pipe, buf, u->buffer_size,
++				 snd_complete_urb, u, ep->datainterval + 1, 0,
++				 0);
+ 		u->urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
+-		u->urb->interval = 1 << ep->datainterval;
+-		u->urb->context = u;
+-		u->urb->complete = snd_complete_urb;
+ 		INIT_LIST_HEAD(&u->ready_list);
+ 	}
+ 
+@@ -823,15 +823,12 @@ static int sync_ep_set_params(struct snd_usb_endpoint *ep)
+ 		u->urb = usb_alloc_urb(1, GFP_KERNEL);
+ 		if (!u->urb)
+ 			goto out_of_memory;
+-		u->urb->transfer_buffer = ep->syncbuf + i * 4;
++		usb_fill_iso_urb(u->urb, NULL, ep->pipe, ep->syncbuf + i * 4, 4,
++				 snd_complete_urb, u, ep->syncinterval + 1, 1,
++				 0);
++
+ 		u->urb->transfer_dma = ep->sync_dma + i * 4;
+-		u->urb->transfer_buffer_length = 4;
+-		u->urb->pipe = ep->pipe;
+ 		u->urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
+-		u->urb->number_of_packets = 1;
+-		u->urb->interval = 1 << ep->syncinterval;
+-		u->urb->context = u;
+-		u->urb->complete = snd_complete_urb;
+ 	}
+ 
+ 	ep->nurbs = SYNC_URBS;
 
+diff --git a/sound/usb/usx2y/usx2yhwdeppcm.c b/sound/usb/usx2y/usx2yhwdeppcm.c
+index 4fd9276b8e50..3928d0d50028 100644
+--- a/sound/usb/usx2y/usx2yhwdeppcm.c
++++ b/sound/usb/usx2y/usx2yhwdeppcm.c
+@@ -325,6 +325,8 @@ static int usX2Y_usbpcm_urbs_allocate(struct snd_usX2Y_substream *subs)
+ 	/* allocate and initialize data urbs */
+ 	for (i = 0; i < NRURBS; i++) {
+ 		struct urb **purb = subs->urb + i;
++		void *buf;
++
+ 		if (*purb) {
+ 			usb_kill_urb(*purb);
+ 			continue;
+@@ -334,18 +336,18 @@ static int usX2Y_usbpcm_urbs_allocate(struct snd_usX2Y_substream *subs)
+ 			usX2Y_usbpcm_urbs_release(subs);
+ 			return -ENOMEM;
+ 		}
+-		(*purb)->transfer_buffer = is_playback ?
+-			subs->usX2Y->hwdep_pcm_shm->playback : (
+-				subs->endpoint == 0x8 ?
+-				subs->usX2Y->hwdep_pcm_shm->capture0x8 :
+-				subs->usX2Y->hwdep_pcm_shm->capture0xA);
+-
+-		(*purb)->dev = dev;
+-		(*purb)->pipe = pipe;
+-		(*purb)->number_of_packets = nr_of_packs();
+-		(*purb)->context = subs;
+-		(*purb)->interval = 1;
+-		(*purb)->complete = i_usX2Y_usbpcm_subs_startup;
++		if (is_playback) {
++			buf = subs->usX2Y->hwdep_pcm_shm->playback;
++		} else {
++			if (subs->endpoint == 0x8)
++				buf = subs->usX2Y->hwdep_pcm_shm->capture0x8;
++			else
++				buf = subs->usX2Y->hwdep_pcm_shm->capture0xA;
++		}
++		usb_fill_iso_urb(*purb, dev, pipe, buf,
++				 subs->maxpacksize * nr_of_packs(),
++				 i_usX2Y_usbpcm_subs_startup, subs, 1,
++				 nr_of_packs(), 0);
+ 	}
+ 	return 0;
+ }
 
+The users in media/ look almost always the same, a random one:
 
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 54b036d39c5b..2e60d6257596 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -358,7 +358,7 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+ {
+ 	struct usb_device *udev;
+ 	struct urb *urb;
+-	int i, j, ret;
++	int i, ret;
+ 	struct usb_interface *intf;
+ 	struct usb_host_interface *idesc = NULL;
+ 	int compression = 0; /* 0..3 = uncompressed..high */
+@@ -409,6 +409,8 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+ 
+ 	/* Allocate and init Isochronuous urbs */
+ 	for (i = 0; i < MAX_ISO_BUFS; i++) {
++		void *buf;
++
+ 		urb = usb_alloc_urb(ISO_FRAMES_PER_DESC, GFP_KERNEL);
+ 		if (urb == NULL) {
+ 			pwc_isoc_cleanup(pdev);
+@@ -416,29 +418,19 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+ 		}
+ 		pdev->urbs[i] = urb;
+ 		PWC_DEBUG_MEMORY("Allocated URB at 0x%p\n", urb);
+-
+-		urb->interval = 1; // devik
+-		urb->dev = udev;
+-		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+ 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = usb_alloc_coherent(udev,
+-							  ISO_BUFFER_SIZE,
+-							  GFP_KERNEL,
+-							  &urb->transfer_dma);
+-		if (urb->transfer_buffer == NULL) {
++		buf = usb_alloc_coherent(udev, ISO_BUFFER_SIZE, GFP_KERNEL,
++					 &urb->transfer_dma);
++		if (buf == NULL) {
+ 			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
+ 			pwc_isoc_cleanup(pdev);
+ 			return -ENOMEM;
+ 		}
+-		urb->transfer_buffer_length = ISO_BUFFER_SIZE;
+-		urb->complete = pwc_isoc_handler;
+-		urb->context = pdev;
+-		urb->start_frame = 0;
+-		urb->number_of_packets = ISO_FRAMES_PER_DESC;
+-		for (j = 0; j < ISO_FRAMES_PER_DESC; j++) {
+-			urb->iso_frame_desc[j].offset = j * ISO_MAX_FRAME_SIZE;
+-			urb->iso_frame_desc[j].length = pdev->vmax_packet_size;
+-		}
++		usb_fill_iso_urb(urb, udev,
++				 usb_rcvisocpipe(udev, pdev->vendpoint),
++				 buf, ISO_BUFFER_SIZE, pwc_isoc_handler, pdev,
++				 1, ISO_FRAMES_PER_DESC,
++				 pdev->vmax_packet_size);
+ 	}
+ 
+ 	/* link */
 
-> 
->> +		return -EINVAL;
->> +	}
->> +
->> +	rpf->interlaced = cfg->interlaced;
->> +
->>  	rpf->fmtinfo = fmtinfo;
->>  	rpf->format.num_planes = fmtinfo->planes;
->>  	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
->> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h
->> b/drivers/media/platform/vsp1/vsp1_regs.h index d054767570c1..a2ac65cc5155
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_regs.h
->> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
->> @@ -28,6 +28,7 @@
->>  #define VI6_SRESET_SRTS(n)		(1 << (n))
->>
->>  #define VI6_STATUS			0x0038
->> +#define VI6_STATUS_FLD_STD(n)		(1 << ((n) + 28))
->>  #define VI6_STATUS_SYS_ACT(n)		(1 << ((n) + 8))
->>
->>  #define VI6_WPF_IRQ_ENB(n)		(0x0048 + (n) * 12)
->> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c
->> b/drivers/media/platform/vsp1/vsp1_rpf.c index 8fae7c485642..511b2e127820
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
->> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
->> @@ -20,6 +20,20 @@
->>  #define RPF_MAX_WIDTH				8190
->>  #define RPF_MAX_HEIGHT				8190
->>
->> +/* Pre extended display list command data structure */
->> +struct vsp1_extcmd_auto_fld_body {
->> +	u32 top_y0;
->> +	u32 bottom_y0;
->> +	u32 top_c0;
->> +	u32 bottom_c0;
->> +	u32 top_c1;
->> +	u32 bottom_c1;
->> +	u32 reserved0;
->> +	u32 reserved1;
->> +} __packed;
->> +
->> +#define VSP1_DL_EXT_AUTOFLD_INT		BIT(0)
-> 
-> Should the bit definition be moved to vsp1_regs.h ?
+I remember Alan asked to mention that the `.length' value is always set
+to the same value by the proposed function while it could have different
+values (like [0].offset = 0, [0].length = 8, [1].offset = 8, [1].length
+= 16, [2].offset = 24, …). Unless I missed something, everyone using the
+same value for length. Except for usbfs which uses what userland passes:
 
-Moved, (and renamed s/VSP1_/VI6_/)
+diff --git a/drivers/usb/core/devio.c b/drivers/usb/core/devio.c
+index 476dcc5f2da3..54294f1a6ce5 100644
+--- a/drivers/usb/core/devio.c
++++ b/drivers/usb/core/devio.c
+@@ -1436,7 +1436,8 @@ static int proc_do_submiturb(struct usb_dev_state *ps, struct usbdevfs_urb *uurb
+ 	int i, ret, is_in, num_sgs = 0, ifnum = -1;
+ 	int number_of_packets = 0;
+ 	unsigned int stream_id = 0;
+-	void *buf;
++	int pipe;
++	void *buf = NULL;
+ 	unsigned long mask =	USBDEVFS_URB_SHORT_NOT_OK |
+ 				USBDEVFS_URB_BULK_CONTINUATION |
+ 				USBDEVFS_URB_NO_FSBR |
+@@ -1631,22 +1632,20 @@ static int proc_do_submiturb(struct usb_dev_state *ps, struct usbdevfs_urb *uurb
+ 			}
+ 			totlen -= u;
+ 		}
++		buf = NULL;
+ 	} else if (uurb->buffer_length > 0) {
+ 		if (as->usbm) {
+ 			unsigned long uurb_start = (unsigned long)uurb->buffer;
+ 
+-			as->urb->transfer_buffer = as->usbm->mem +
+-					(uurb_start - as->usbm->vm_start);
++			buf = as->usbm->mem + (uurb_start - as->usbm->vm_start);
+ 		} else {
+-			as->urb->transfer_buffer = kmalloc(uurb->buffer_length,
+-					GFP_KERNEL);
+-			if (!as->urb->transfer_buffer) {
++			buf = kmalloc(uurb->buffer_length, GFP_KERNEL);
++			if (!buf) {
+ 				ret = -ENOMEM;
+ 				goto error;
+ 			}
+ 			if (!is_in) {
+-				if (copy_from_user(as->urb->transfer_buffer,
+-						   uurb->buffer,
++				if (copy_from_user(buf, uurb->buffer,
+ 						   uurb->buffer_length)) {
+ 					ret = -EFAULT;
+ 					goto error;
+@@ -1658,16 +1657,10 @@ static int proc_do_submiturb(struct usb_dev_state *ps, struct usbdevfs_urb *uurb
+ 				 * short. Clear the buffer so that the gaps
+ 				 * don't leak kernel data to userspace.
+ 				 */
+-				memset(as->urb->transfer_buffer, 0,
+-						uurb->buffer_length);
++				memset(buf, 0, uurb->buffer_length);
+ 			}
+ 		}
+ 	}
+-	as->urb->dev = ps->dev;
+-	as->urb->pipe = (uurb->type << 30) |
+-			__create_pipe(ps->dev, uurb->endpoint & 0xf) |
+-			(uurb->endpoint & USB_DIR_IN);
+-
+ 	/* This tedious sequence is necessary because the URB_* flags
+ 	 * are internal to the kernel and subject to change, whereas
+ 	 * the USBDEVFS_URB_* flags are a user API and must not be changed.
+@@ -1683,30 +1676,42 @@ static int proc_do_submiturb(struct usb_dev_state *ps, struct usbdevfs_urb *uurb
+ 		u |= URB_NO_INTERRUPT;
+ 	as->urb->transfer_flags = u;
+ 
+-	as->urb->transfer_buffer_length = uurb->buffer_length;
+-	as->urb->setup_packet = (unsigned char *)dr;
+-	dr = NULL;
++	pipe = (uurb->type << 30) | (uurb->endpoint & USB_DIR_IN) |
++		__create_pipe(ps->dev, uurb->endpoint & 0xf);
++	switch (uurb->type) {
++	case USBDEVFS_URB_TYPE_CONTROL:
++		usb_fill_control_urb(as->urb, ps->dev, pipe, (u8 *)dr, buf,
++				     uurb->buffer_length, async_completed, as);
++		dr = NULL;
++		break;
++
++	case USBDEVFS_URB_TYPE_BULK:
++		usb_fill_bulk_urb(as->urb, ps->dev, pipe, buf,
++				  uurb->buffer_length, async_completed, as);
++		break;
++
++	case USBDEVFS_URB_TYPE_INTERRUPT:
++		usb_fill_int_urb(as->urb, ps->dev, pipe, buf,
++				 uurb->buffer_length, async_completed, as,
++				 ep->desc.bInterval);
++		break;
++
++	case USBDEVFS_URB_TYPE_ISO:
++		usb_fill_iso_urb(as->urb, ps->dev, pipe, buf,
++				 uurb->buffer_length, async_completed, as,
++				 ep->desc.bInterval, number_of_packets, 0);
++		for (totlen = u = 0; u < number_of_packets; u++) {
++			as->urb->iso_frame_desc[u].offset = totlen;
++			as->urb->iso_frame_desc[u].length = isopkt[u].length;
++			totlen += isopkt[u].length;
++		}
++		break;
++
++	}
++	buf = NULL;
+ 	as->urb->start_frame = uurb->start_frame;
+-	as->urb->number_of_packets = number_of_packets;
+ 	as->urb->stream_id = stream_id;
+ 
+-	if (ep->desc.bInterval) {
+-		if (uurb->type == USBDEVFS_URB_TYPE_ISO ||
+-				ps->dev->speed == USB_SPEED_HIGH ||
+-				ps->dev->speed >= USB_SPEED_SUPER)
+-			as->urb->interval = 1 <<
+-					min(15, ep->desc.bInterval - 1);
+-		else
+-			as->urb->interval = ep->desc.bInterval;
+-	}
+-
+-	as->urb->context = as;
+-	as->urb->complete = async_completed;
+-	for (totlen = u = 0; u < number_of_packets; u++) {
+-		as->urb->iso_frame_desc[u].offset = totlen;
+-		as->urb->iso_frame_desc[u].length = isopkt[u].length;
+-		totlen += isopkt[u].length;
+-	}
+ 	kfree(isopkt);
+ 	isopkt = NULL;
+ 	as->ps = ps;
+@@ -1777,6 +1782,7 @@ static int proc_do_submiturb(struct usb_dev_state *ps, struct usbdevfs_urb *uurb
+ 		dec_usb_memory_use_count(as->usbm, &as->usbm->urb_use_count);
+ 	kfree(isopkt);
+ 	kfree(dr);
++	kfree(buf);
+ 	if (as)
+ 		free_async(as);
+ 	return ret;
 
-> 
->>  /* ------------------------------------------------------------------------
->>   * Device Access
->>   */
->> @@ -64,6 +78,14 @@ static void rpf_configure_stream(struct vsp1_entity
->> *entity, pstride |= format->plane_fmt[1].bytesperline
->>  			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
->>
->> +	/*
->> +	 * pstride has both STRIDE_Y and STRIDE_C, but multiplying the whole
->> +	 * of pstride by 2 is conveniently OK here as we are multiplying both
->> +	 * values.
->> +	 */
->> +	if (rpf->interlaced)
->> +		pstride *= 2;
->> +
->>  	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_PSTRIDE, pstride);
->>
->>  	/* Format */
->> @@ -100,6 +122,9 @@ static void rpf_configure_stream(struct vsp1_entity
->> *entity, top = compose->top;
->>  	}
->>
->> +	if (rpf->interlaced)
->> +		top /= 2;
->> +
->>  	vsp1_rpf_write(rpf, dlb, VI6_RPF_LOC,
->>  		       (left << VI6_RPF_LOC_HCOORD_SHIFT) |
->>  		       (top << VI6_RPF_LOC_VCOORD_SHIFT));
->> @@ -169,6 +194,31 @@ static void rpf_configure_stream(struct vsp1_entity
->> *entity,
->>
->>  }
->>
->> +static void vsp1_rpf_configure_autofld(struct vsp1_rwpf *rpf,
->> +				       struct vsp1_dl_ext_cmd *cmd)
->> +{
->> +	const struct v4l2_pix_format_mplane *format = &rpf->format;
->> +	struct vsp1_extcmd_auto_fld_body *auto_fld = cmd->data;
->> +	u32 offset_y, offset_c;
->> +
->> +	/* Re-index our auto_fld to match the current RPF */
-> 
-> s/RPF/RPF./
+> > thanks,
+> > 
+> > greg k-h
 
-Fixed.
-
-> 
->> +	auto_fld = &auto_fld[rpf->entity.index];
->> +
->> +	auto_fld->top_y0 = rpf->mem.addr[0];
->> +	auto_fld->top_c0 = rpf->mem.addr[1];
->> +	auto_fld->top_c1 = rpf->mem.addr[2];
->> +
->> +	offset_y = format->plane_fmt[0].bytesperline;
->> +	offset_c = format->plane_fmt[1].bytesperline;
->> +
->> +	auto_fld->bottom_y0 = rpf->mem.addr[0] + offset_y;
->> +	auto_fld->bottom_c0 = rpf->mem.addr[1] + offset_c;
->> +	auto_fld->bottom_c1 = rpf->mem.addr[2] + offset_c;
->> +
->> +	cmd->flags |= VSP1_DL_EXT_AUTOFLD_INT;
->> +	cmd->flags |= BIT(16 + rpf->entity.index);
-> 
-> Do you expect some flags to already be set ? If not, couldn't we assign the 
-> value to the field instead of OR'ing it ?
-No, I think you are correct. Moved to a single expression setting the
-cmd->flags in one line.
-
-
-> 
->> +}
->> +
->>  static void rpf_configure_frame(struct vsp1_entity *entity,
->>  				struct vsp1_pipeline *pipe,
->>  				struct vsp1_dl_list *dl,
->> @@ -192,6 +242,7 @@ static void rpf_configure_partition(struct vsp1_entity
->> *entity, struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
->>  	struct vsp1_rwpf_memory mem = rpf->mem;
->>  	struct vsp1_device *vsp1 = rpf->entity.vsp1;
->> +	struct vsp1_dl_ext_cmd *cmd;
->>  	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
->>  	const struct v4l2_pix_format_mplane *format = &rpf->format;
->>  	struct v4l2_rect crop;
->> @@ -220,6 +271,11 @@ static void rpf_configure_partition(struct vsp1_entity
->> *entity, crop.left += pipe->partition->rpf.left;
->>  	}
->>
->> +	if (rpf->interlaced) {
->> +		crop.height = round_down(crop.height / 2, fmtinfo->vsub);
->> +		crop.top = round_down(crop.top / 2, fmtinfo->vsub);
->> +	}
->> +
->>  	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRC_BSIZE,
->>  		       (crop.width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
->>  		       (crop.height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
->> @@ -248,9 +304,18 @@ static void rpf_configure_partition(struct vsp1_entity
->> *entity, fmtinfo->swap_uv)
->>  		swap(mem.addr[1], mem.addr[2]);
->>
->> -	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
->> -	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
->> -	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
->> +	/*
->> +	 * Interlaced pipelines will use the extended pre-cmd to process
->> +	 * SRCM_ADDR_{Y,C0,C1}
->> +	 */
->> +	if (rpf->interlaced) {
->> +		cmd = vsp1_dlm_get_autofld_cmd(dl);
-> 
-> How about moving this call to vsp1_rpf_configure_autofld() ?
-
-Done.
-
-> 
->> +		vsp1_rpf_configure_autofld(rpf, cmd);
->> +	} else {
->> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
->> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
->> +		vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
->> +	}
->>  }
->>
->>  static void rpf_partition(struct vsp1_entity *entity,
->> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h
->> b/drivers/media/platform/vsp1/vsp1_rwpf.h index 70742ecf766f..8d6e42f27908
->> 100644
->> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
->> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
->> @@ -42,6 +42,7 @@ struct vsp1_rwpf {
->>  	struct v4l2_pix_format_mplane format;
->>  	const struct vsp1_format_info *fmtinfo;
->>  	unsigned int brx_input;
->> +	bool interlaced;
-> 
-> Shouldn't this be stored in the pipeline instead ? Interlacing is a property 
-> of the whole pipeline, not of each input individually.
-> 
-
-Moved.
-
->>  	unsigned int alpha;
->>
->> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
->> index 678c24de1ac6..c10883f30980 100644
->> --- a/include/media/vsp1.h
->> +++ b/include/media/vsp1.h
->> @@ -50,6 +50,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int
->> pipe_index,
->>   * @dst: destination rectangle on the display (integer coordinates)
->>   * @alpha: alpha value (0: fully transparent, 255: fully opaque)
->>   * @zpos: Z position of the plane (from 0 to number of planes minus 1)
->> + * @interlaced: true for interlaced pipelines
->>   */
->>  struct vsp1_du_atomic_config {
->>  	u32 pixelformat;
->> @@ -59,6 +60,7 @@ struct vsp1_du_atomic_config {
->>  	struct v4l2_rect dst;
->>  	unsigned int alpha;
->>  	unsigned int zpos;
->> +	bool interlaced;
-> 
-> For the same reason shouldn't the interlaced flag be moved to 
-> vsp1_du_lif_config ?
-> 
-
-Moved.
-
->>  };
->>
->>  /**
-> 
+Sebastian
