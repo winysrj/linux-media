@@ -1,86 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35058 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727182AbeGPJen (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58778 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727522AbeGPNQ0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jul 2018 05:34:43 -0400
-Date: Mon, 16 Jul 2018 11:08:14 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, sre@kernel.org,
-        nekit1000@gmail.com, mpartap@gmx.net, merlijn@wizzup.org,
-        gshark.jeong@gmail.com, m.chehab@samsung.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org
-Subject: [PATCH v2] media: i2c: lm3560: use conservative defaults
-Message-ID: <20180716090814.GA4505@amd>
-References: <20180506080250.GA24114@amd>
+        Mon, 16 Jul 2018 09:16:26 -0400
+Date: Mon, 16 Jul 2018 15:49:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] videobuf2-core: check for q->error in vb2_core_qbuf()
+Message-ID: <20180716124906.hi34a2u5xftakx76@valkosipuli.retiisi.org.uk>
+References: <ab3d5aa7-c06b-9918-235e-ff983cb5cce7@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180506080250.GA24114@amd>
+In-Reply-To: <ab3d5aa7-c06b-9918-235e-ff983cb5cce7@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---XsQoSWH+UP9D9v3l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jul 05, 2018 at 10:25:19AM +0200, Hans Verkuil wrote:
+> The vb2_core_qbuf() function didn't check if q->error was set. It is checked in
+> __buf_prepare(), but that function isn't called if the buffer was already
+> prepared before with VIDIOC_PREPARE_BUF.
+> 
+> So check it at the start of vb2_core_qbuf() as well.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index d3501cd604cb..5d7946ec80d8 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -1484,6 +1484,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+>  	struct vb2_buffer *vb;
+>  	int ret;
+> 
+> +	if (q->error) {
+> +		dprintk(1, "fatal error occurred on queue\n");
+> +		return -EIO;
+> +	}
+> +
+>  	vb = q->bufs[index];
+> 
+>  	if ((req && q->uses_qbuf) ||
 
-If no pdata is found, we should use lowest current settings, not highest.
+How long has this problem existed? It looks like something that should go
+to the stable branches, too...
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
----
-
-v2: I got notification from patchwork that patch no longer applies, so
-I'm rediffing the patch.
-
-diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-index b600e03a..c4e5ed5 100644
---- a/drivers/media/i2c/lm3560.c
-+++ b/drivers/media/i2c/lm3560.c
-@@ -420,14 +434,14 @@ static int lm3560_probe(struct i2c_client *client,
- 		pdata =3D devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
- 		if (pdata =3D=3D NULL)
- 			return -ENODEV;
--		pdata->peak =3D LM3560_PEAK_3600mA;
--		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MAX;
-+		pdata->peak =3D LM3560_PEAK_1600mA;
-+		pdata->max_flash_timeout =3D LM3560_FLASH_TOUT_MIN;
- 		/* led 1 */
--		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED0] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED0] =3D LM3560_TORCH_BRT_MIN;
- 		/* led 2 */
--		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MAX;
--		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MAX;
-+		pdata->max_flash_brt[LM3560_LED1] =3D LM3560_FLASH_BRT_MIN;
-+		pdata->max_torch_brt[LM3560_LED1] =3D LM3560_TORCH_BRT_MIN;
- 	}
- 	flash->pdata =3D pdata;
- 	flash->dev =3D &client->dev;
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---XsQoSWH+UP9D9v3l
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAltMYH4ACgkQMOfwapXb+vKsegCggcZUJYFiZWFzxBzDTN6kap2b
-YsEAnjdMLGatnsTzSchv4dd+8REfgtkz
-=Y7Pd
------END PGP SIGNATURE-----
-
---XsQoSWH+UP9D9v3l--
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
