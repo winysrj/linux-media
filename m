@@ -1,36 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59274 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1731008AbeGSN6w (ORCPT
+Received: from mail-it0-f52.google.com ([209.85.214.52]:35804 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727226AbeGPGb1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jul 2018 09:58:52 -0400
-Date: Thu, 19 Jul 2018 16:15:44 +0300
-From: sakari.ailus@iki.fi
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Tom aan de Wiel <tom.aandewiel@gmail.com>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH 2/5] videodev.h: add PIX_FMT_FWHT for use with vicodec
-Message-ID: <20180719131544.kxbwpzssskepwple@lanttu.localdomain>
-References: <20180719121353.20021-1-hverkuil@xs4all.nl>
- <20180719121353.20021-3-hverkuil@xs4all.nl>
+        Mon, 16 Jul 2018 02:31:27 -0400
+Received: by mail-it0-f52.google.com with SMTP id l16-v6so19512426ita.0
+        for <linux-media@vger.kernel.org>; Sun, 15 Jul 2018 23:05:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180719121353.20021-3-hverkuil@xs4all.nl>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Sun, 15 Jul 2018 23:05:42 -0700
+Message-ID: <CAJCx=g=+GWrPTWpU_AgGKLKWtXY57c=7i-1ijMVdJP=scRqyYw@mail.gmail.com>
+Subject: [RFC] media: thermal I2C cameras metadata
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 19, 2018 at 02:13:50PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hansverk@cisco.com>
-> 
-> Add a new pixelformat for the vicodec software codec using the
-> Fast Walsh Hadamard Transform.
-> 
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Hello et all,
 
-Could you add documentation for this format, please?
+So currently working with some thermal sensors that have coefficients
+that needs to be passed back to userspace that aren't related to the
+pixel data but are required to normalize to remove scan patterns and
+temp gradients. Was wondering the best way to do this, and hope it
+isn't some is kludge of the close captioning, or just passing raw data
+as another column line.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Datasheet: https://www.melexis.com/en/product/MLX90640/Far-Infrared-Thermal-Sensor-Array
+
+Thanks,
+
+Matt
