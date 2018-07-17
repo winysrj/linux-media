@@ -1,68 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:33783 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729754AbeGQWLl (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:49242 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729741AbeGQW4J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 18:11:41 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180709151947.940759-1-arnd@arndb.de>
-References: <20180709151947.940759-1-arnd@arndb.de>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Wed, 18 Jul 2018 00:37:05 +0300
-Message-ID: <CAHp75VdHZ4jCMLZn3RwhQ3ZCabZVsPMMUUOeXLvKT1y=m_z+WQ@mail.gmail.com>
-Subject: Re: [PATCH] headers: fix linux/mod_devicetable.h inclusions
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>,
+        Tue, 17 Jul 2018 18:56:09 -0400
+Date: Wed, 18 Jul 2018 07:21:07 +0900
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: hannah@marvell.com, Jonathan Corbet <corbet@lwn.net>,
+        David Miller <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Gabriel Somlo <somlo@cmu.edu>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Zha Qipeng <qipeng.zha@intel.com>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        =?UTF-8?B?TWFyYy1BbmRyw6kgTHVyZWF1?= <marcandre.lureau@redhat.com>,
-        qemu-devel@nongnu.org,
+        Josef Griebichler <griebichler.josef@gmx.at>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org,
-        Platform Driver <platform-driver-x86@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        USB list <linux-usb@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Ingo Molnar <mingo@kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Rik van Riel <riel@redhat.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        dma <dmaengine@vger.kernel.org>, vkoul@kernel.org,
+        Dan Williams <dan.j.williams@intel.com>, nadavh@marvell.com,
+        thomas.petazzoni@bootlin.com, omrii@marvell.com
+Subject: Re: dvb usb issues since kernel 4.9
+Message-ID: <20180718072107.0bfdece8@vela.lan>
+In-Reply-To: <CA+55aFwb5hPtPFbB02SSn+wTkqTDSgHGFkiw7LB57mj42VzyZQ@mail.gmail.com>
+References: <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
+        <1d3d0fe3-bc02-7720-15ac-6bc06e00067c@marvell.com>
+        <CA+55aFwb5hPtPFbB02SSn+wTkqTDSgHGFkiw7LB57mj42VzyZQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 9, 2018 at 6:19 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> A couple of drivers produced build errors after the mod_devicetable.h
-> header was split out from the platform_device one, e.g.
->
-> drivers/media/platform/davinci/vpbe_osd.c:42:40: error: array type has incomplete element type 'struct platform_device_id'
-> drivers/media/platform/davinci/vpbe_venc.c:42:40: error: array type has incomplete element type 'struct platform_device_id'
->
-> This adds the inclusion where needed.
->
-> Fixes: ac3167257b9f ("headers: separate linux/mod_devicetable.h from linux/platform_device.h")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Hi Linus,
 
->  drivers/platform/x86/intel_punit_ipc.c     | 1 +
+Em Tue, 17 Jul 2018 10:09:28 -0700
+Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
+> On Tue, Jul 17, 2018 at 4:58 AM Hanna Hawa <hannah@marvell.com> wrote:
+> >
+> > After some debug/bisect/diff, found that patch "softirq: Let ksoftirqd
+> > do its job" is problematic patch.  
+> 
+> Ok, this thread died down without any resolution.
+> 
+> >- Using v4.14.0 (including softirq patch) and the additional fix
+> > proposed by Linus - no timeout issue.  
+> 
+> Are you talking about the patch that made HI_SOFTIRQ and
+> TASKLET_SOFTIRQ special, and had this:
+> 
+>   #define SOFTIRQ_NOW_MASK ((1 << HI_SOFTIRQ) | (1 << TASKLET_SOFTIRQ))
+> 
+> in it?
+> 
+> I think I'll just commit the damn thing. It's hacky, but it's simple,
+> and it never got applied because we had smarter suggestions. But the
+> smarter suggestions never ended up being applied either, so..
 
-> --- a/drivers/platform/x86/intel_punit_ipc.c
-> +++ b/drivers/platform/x86/intel_punit_ipc.c
-> @@ -12,6 +12,7 @@
->   */
->
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/acpi.h>
->  #include <linux/delay.h>
->  #include <linux/bitops.h>
+Yeah, IMHO the best would be to apply your patch[1], c/c stable up to
+4.9. Nothing prevents applying a better/smarter solution once we
+have it. From my side, I can keep testing whatever smart suggestions
+people propose. Yet, better to have one fix on our hand than two
+fixes flying around.
 
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+[1] e. g. 
+	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=v4.15%2bmedia%2bdwc2&id=ccf833fd4a5b99c3d3cf2c09c065670f74a230a7
 
-for the above bits.
-
--- 
-With Best Regards,
-Andy Shevchenko
+Regards,
+Mauro
