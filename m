@@ -1,115 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:47959 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731117AbeGQMan (ORCPT
+Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:33042 "EHLO
+        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731117AbeGQMao (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 08:30:43 -0400
-Subject: Re: [PATCHv6 02/12] media-ioc-g-topology.rst: document new 'index'
- field
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180710084512.99238-1-hverkuil@xs4all.nl>
- <20180710084512.99238-3-hverkuil@xs4all.nl>
- <20180713122334.68661b55@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a0f914f6-d165-f63b-1e0c-2bc107c3bf17@xs4all.nl>
-Date: Tue, 17 Jul 2018 13:58:22 +0200
+        Tue, 17 Jul 2018 08:30:44 -0400
+To: <torvalds@linux-foundation.org>
+References: <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
+Subject: Re: dvb usb issues since kernel 4.9
+CC: <corbet@lwn.net>, <davem@davemloft.net>, <edumazet@google.com>,
+        <gregkh@linuxfoundation.org>, <griebichler.josef@gmx.at>,
+        <hannes@redhat.com>, <jbrouer@redhat.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-usb@vger.kernel.org>, <mchehab@s-opensource.com>,
+        <mingo@kernel.org>, <netdev@vger.kernel.org>, <pabeni@redhat.com>,
+        <peterz@infradead.org>, <riel@redhat.com>,
+        <stern@rowland.harvard.edu>, <dmaengine@vger.kernel.org>,
+        <vkoul@kernel.org>, <dan.j.williams@intel.com>,
+        <nadavh@marvell.com>, <thomas.petazzoni@bootlin.com>,
+        Omri Itach <omrii@marvell.com>
+From: Hanna Hawa <hannah@marvell.com>
+Message-ID: <1d3d0fe3-bc02-7720-15ac-6bc06e00067c@marvell.com>
+Date: Tue, 17 Jul 2018 14:54:20 +0300
 MIME-Version: 1.0
-In-Reply-To: <20180713122334.68661b55@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/07/18 17:23, Mauro Carvalho Chehab wrote:
-> Em Tue, 10 Jul 2018 10:45:02 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Document the new struct media_v2_pad 'index' field.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>  .../media/uapi/mediactl/media-ioc-g-topology.rst     | 12 ++++++++++--
->>  1 file changed, 10 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
->> index a3f259f83b25..bae2b4db89cc 100644
->> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
->> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
->> @@ -176,7 +176,7 @@ desired arrays with the media graph elements.
->>      *  -  struct media_v2_intf_devnode
->>         -  ``devnode``
->>         -  Used only for device node interfaces. See
->> -	  :c:type:`media_v2_intf_devnode` for details..
->> +	  :c:type:`media_v2_intf_devnode` for details.
->>  
->>  
->>  .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
->> @@ -218,7 +218,15 @@ desired arrays with the media graph elements.
->>         -  Pad flags, see :ref:`media-pad-flag` for more details.
->>  
->>      *  -  __u32
->> -       -  ``reserved``\ [5]
->> +       -  ``index``
->> +       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
->> +	  returns true. The ``media_version`` is defined in struct
->> +	  :c:type:`media_device_info` and can be retrieved using
->> +	  :ref:`MEDIA_IOC_DEVICE_INFO`. Pad indices are stable. If new pads are added
->> +	  for an entity in the future, then those will be added at the end.
-> 
-> Hmm... Pad indexes may not be stable. That's by the way why we
-> need a better way to enum it, and the Properties API was thinking
-> to solve (and why we didn't add PAD index to this ioctl at the
-> first place). 
-> 
-> The problem happens for example on TV demods and tuners:
-> different models may have different kinds of output PADs:
-> 
-> 	- analog luminance carrier samples;
-> 	- analog chrominance sub-carrier samples;
-> 	- sliced VBI data;
-> 	- audio RF sub-carrier samples;
-> 	- audio mono data;
-> 	- audio stereo data.
-> 
-> The same bridge chip can live with different demods, but need to
-> setup the pipelines according with the type of the PAD. As right now
-> we don't have any way to associate a PAD with an specific type of
-> output, what happens is that the V4L2 core associates a pad number
-> with an specific type of output. So, drivers may be exposing
-> PADs that don't exist, in practice, just to make them compatible
-> with similar subdevs.
-> 
-> Once we add a properties API (or something equivalent), the
-> PAD numbers will change and subdevs will only expose the ones
-> that really exists.
+Hi,
 
-So what do you suggest I do? There are two things here: you need the
-pad index in order to use the SETUP_LINK ioctl, so adding this to
-G_TOPOLOGY makes sense. The second is whether or not pad numbers
-are stable. Currently they are, since there is no other way to
-associate a pad with the type of signal it can carry.
+I'm a software developer working in Marvell SoC team.
+I'm facing kernel panic issue while running raid 5 on sata disks 
+connected to Macchiatobin (Marvell community board with Armada-8040 SoC 
+with 4 ARMv8 cores of CA72)
+Raid 5 built with Marvell DMA engine and async_tx mechanism 
+(ASYNC_TX_DMA [=y]); the DMA driver (mv_xor_v2) uses a tasklet to clean 
+the done descriptors from the queue.
 
-Note that the index is already exposed with the older API, so changing
-the pad index in the future will already potentially cause problems.
+The panic (see below) occurs while building the RAID-5 (mdadm) or while 
+writing/reading to the raid partition.
 
-I am inclined to just remove the last two sentences of the description
-above, so this becomes:
+After some debug/bisect/diff, found that patch "softirq: Let ksoftirqd 
+do its job" is problematic patch.
 
-+       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
-+	  returns true. The ``media_version`` is defined in struct
-+	  :c:type:`media_device_info` and can be retrieved using
-+	  :ref:`MEDIA_IOC_DEVICE_INFO`.
+- Using v4.14.0 and problematic patch reverted - no timout issue.
+- Using v4.14.0 (including softirq patch) and the additional fix 
+proposed by Linus - no timeout issue.
 
-And we'll figure out what to do with this once we finally get properties.
+As others have reported in this thread, the softirq change is causing 
+some regression.
+Would it be possible to either revert the patch or apply a fix such as 
+the one proposed by Linus ?
 
-That's something I might actually work on myself, but not before we get
-the current API consistent.
+Below panic message:
+[   25.371495] mv_xor_v2 f0400000.xor: dma_sync_wait: timeout!
+[   25.377101] Kernel panic - not syncing: async_tx_quiesce: DMA error 
+waiting for transaction
+[   25.377101]
+[   25.386973] CPU: 0 PID: 1417 Comm: md0_raid5 Not tainted 4.14.0 #16
+[   25.393264] Hardware name: Marvell Armada 8040 DB board (DT)
+[   25.398946] Call trace:
+[   25.401410] [<ffff000008089310>] dump_backtrace+0x0/0x380
+[   25.406831] [<ffff0000080896a4>] show_stack+0x14/0x20
+[   25.411904] [<ffff00000890fa78>] dump_stack+0x98/0xb8
+[   25.416976] [<ffff0000080c8ef0>] panic+0x118/0x280
+[   25.421788] [<ffff000008386a44>] async_tx_quiesce+0x74/0x78
+[   25.427382] [<ffff000008386ca4>] async_memcpy+0x1a4/0x2a0
+[   25.432806] [<ffff000008747f9c>] async_copy_data.isra.16+0x1b4/0x280
+[   25.439186] [<ffff00000874b6fc>] raid_run_ops+0x514/0x1320
+[   25.444694] [<ffff000008751550>] handle_stripe+0x1040/0x2848
+[   25.450377] [<ffff000008752f98>] 
+handle_active_stripes.isra.28+0x240/0x460
+[   25.457279] [<ffff000008753468>] raid5d+0x2b0/0x450
+[   25.462177] [<ffff00000875ead4>] md_thread+0x104/0x160
+[   25.467338] [<ffff0000080e638c>] kthread+0xfc/0x128
+[   25.472234] [<ffff000008085354>] ret_from_fork+0x10/0x1c
+[   25.477571] Kernel Offset: disabled
+[   25.481073] CPU features: 0x002000
+[   25.484487] Memory Limit: none
+[   25.487556] ---[ end Kernel panic - not syncing: async_tx_quiesce: 
+DMA error waiting for transaction
+[   25.487556]
 
-Regards,
-
-	Hans
+Thanks,
+Hanna
