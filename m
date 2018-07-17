@@ -1,110 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55364 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731700AbeGQOXQ (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35067 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731551AbeGQO2X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 10:23:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham+renesas@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v4 11/11] drm: rcar-du: Support interlaced video output through vsp1
-Date: Tue, 17 Jul 2018 16:51:02 +0300
-Message-ID: <11186195.Bn5zmcZr3a@avalon>
-In-Reply-To: <6039245e-122c-b1fb-c0f9-09911784216e@ideasonboard.com>
-References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com> <10463435.CoRpyeppX3@avalon> <6039245e-122c-b1fb-c0f9-09911784216e@ideasonboard.com>
+        Tue, 17 Jul 2018 10:28:23 -0400
+Subject: Re: [PATCH 1/2] adv7180: fix field type to V4L2_FIELD_ALTERNATE
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-renesas-soc@vger.kernel.org
+References: <20180717123041.2862-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180717123041.2862-2-niklas.soderlund+renesas@ragnatech.se>
+ <9541cdb4-fb87-e0bb-85cb-667fd16d3804@xs4all.nl>
+ <20180717134001.GK10087@bigcity.dyn.berto.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <922e658f-bd6d-1589-a429-37980f77a653@xs4all.nl>
+Date: Tue, 17 Jul 2018 15:55:33 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20180717134001.GK10087@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+On 17/07/18 15:40, Niklas Söderlund wrote:
+> Hi Hans,
+> 
+> Thanks for your feedback.
+> 
+> On 2018-07-17 15:12:41 +0200, Hans Verkuil wrote:
+>> On 17/07/18 14:30, Niklas Söderlund wrote:
+>>> The ADV7180 and ADV7182 transmit whole fields, bottom field followed
+>>> by top (or vice-versa, depending on detected video standard). So
+>>> for chips that do not have support for explicitly setting the field
+>>> mode via I2P, set the field mode to V4L2_FIELD_ALTERNATE.
+>>
+>> What does I2P do? I know it was explained before, but that's a long time
+>> ago :-)
+> 
+> The best explanation I have is that I2P is interlaced to progressive and 
+> in my research I stopped at commit 851a54effbd808da ("[media] adv7180: 
+> Add I2P support").
+> 
+> I also vaguely remember reading somewhere that I2P support is planed to 
+> be removed.
 
-On Monday, 16 July 2018 20:20:30 EEST Kieran Bingham wrote:
-> On 24/05/18 12:50, Laurent Pinchart wrote:
-> > On Thursday, 3 May 2018 16:36:22 EEST Kieran Bingham wrote:
-> >> Use the newly exposed VSP1 interface to enable interlaced frame support
-> >> through the VSP1 lif pipelines.
-> > 
-> > s/lif/LIF/
-> 
-> Fixed.
-> 
-> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> ---
-> >> 
-> >>  drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 1 +
-> >>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 3 +++
-> >>  2 files changed, 4 insertions(+)
-> >> 
-> >> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> >> b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c index d71d709fe3d9..206532959ec9
-> >> 100644
-> >> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> >> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-> >> @@ -289,6 +289,7 @@ static void rcar_du_crtc_set_display_timing(struct
-> >> rcar_du_crtc *rcrtc)
-> >>  	/* Signal polarities */
-> >>  	value = ((mode->flags & DRM_MODE_FLAG_PVSYNC) ? DSMR_VSL : 0)
-> >>  	      | ((mode->flags & DRM_MODE_FLAG_PHSYNC) ? DSMR_HSL : 0)
-> >> +	      | ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? DSMR_ODEV : 0)
-> > 
-> > How will this affect Gen2 ?.
-> 
-> The bit is documented identically for Gen2. Potentially / Probably it
-> 'might' reverse the fields... I'm not certain yet. I don't have access
-> to a Gen2 platform to test.
-> 
-> I'll see if this change can be dropped, but I think it is playing a role
-> in ensuring that the field detection occurs in VSP1 through the
-> VI6_STATUS_FLD_STD() field. (see vsp1_dlm_irq_frame_end())
-> 
-> > Could you document what this change does in the
-> > commit message ?
-> 
-> This sets the position in the buffer of the ODDF. With this set, the ODD
-> field is located in the second half (BOTTOM) of the same frame of the
-> interlace display.
-> 
-> Otherwise, it's in the first half (TOP)
-> 
-> I faced some issues as to the ordering when testing, so I suspect this
-> might actually be related to that. (re VI6_STATUS_FLD_STD in
-> vsp1_dlm_irq_frame_end()).
-> 
-> As you mention - this may have a negative effect on the Gen2
-> implementation - so it needs considering with that.
-> 
-> 
-> /me to investigate further.
+I would just add a line saying:
 
-Thank you. I don't object to this change, but I'd like to know what its 
-implications are on Gen2. It might even fix a bug :-) Let me know if you'd 
-like me to run tests on a Lager board.
+"I2P converts fields into frames using an edge adaptive algorithm. The
+frame rate is the same as the 'field rate': e.g. X fields per second
+are now X frames per second."
 
-> >>  	      | DSMR_DIPM_DISP | DSMR_CSPM;
-> >>  	
-> >>  	rcar_du_crtc_write(rcrtc, DSMR, value);
-> >> 
-> >> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> >> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index af7822a66dee..c7b37232ee91
-> >> 100644
-> >> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> >> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-> >> @@ -186,6 +186,9 @@ static void rcar_du_vsp_plane_setup(struct
-> >> rcar_du_vsp_plane *plane)
-> >>  	};
-> >>  	unsigned int i;
-> >> 
-> >> +	cfg.interlaced = !!(plane->plane.state->crtc->mode.flags
-> >> +			    & DRM_MODE_FLAG_INTERLACE);
-> >> +
-> >>  	cfg.src.left = state->state.src.x1 >> 16;
-> >>  	cfg.src.top = state->state.src.y1 >> 16;
-> >>  	cfg.src.width = drm_rect_width(&state->state.src) >> 16;
+BTW, does 'v4l2-compliance -f' pass with this patch series? Before running
+this you should first select the correct input.
 
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+>>
+>> In any case, it should be explained in the commit log as well.
+>>
+>> I faintly remember that it was just line-doubling of each field, in which
+>> case this code seems correct.
+> 
+> If you still think I2P needs to be explained in the commit message I 
+> will do so in the next version.
+> 
+>>
+>> Have you checked other drivers that use this subdev? Are they affected by
+>> this change?
+> 
+> I did a quick check what other users there are and in tree dts indicates 
+> imx6 and the sun9i-a80-cubieboard4 in addition to the Renesas boards. As 
+> I can only test on the Renesas hardware I have access to I had to 
+> trusted the acks from the patch from Steve which I dug out of patchwork 
+> [1]. His work stopped with a few comments on the code but it was acked 
+> by Lars-Peter who maintains the driver.
+> 
+> 1. https://patchwork.linuxtv.org/patch/36193/
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>> ---
+>>>  drivers/media/i2c/adv7180.c | 13 ++++++++-----
+>>>  1 file changed, 8 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>>> index 25d24a3f10a7cb4d..c2e24132e8c21d38 100644
+>>> --- a/drivers/media/i2c/adv7180.c
+>>> +++ b/drivers/media/i2c/adv7180.c
+>>> @@ -644,6 +644,9 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
+>>>  	fmt->width = 720;
+>>>  	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+>>>  
+>>> +	if (state->field == V4L2_FIELD_ALTERNATE)
+>>> +		fmt->height /= 2;
+>>> +
+>>>  	return 0;
+>>>  }
+>>>  
+>>> @@ -711,11 +714,11 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+>>>  
+>>>  	switch (format->format.field) {
+>>>  	case V4L2_FIELD_NONE:
+>>> -		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+>>> -			format->format.field = V4L2_FIELD_INTERLACED;
+>>> -		break;
+>>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
+>>> +			break;
+>>> +		/* fall through */
+>>>  	default:
+>>> -		format->format.field = V4L2_FIELD_INTERLACED;
+>>> +		format->format.field = V4L2_FIELD_ALTERNATE;
+>>>  		break;
+>>>  	}
+>>>  
+>>> @@ -1291,7 +1294,7 @@ static int adv7180_probe(struct i2c_client *client,
+>>>  		return -ENOMEM;
+>>>  
+>>>  	state->client = client;
+>>> -	state->field = V4L2_FIELD_INTERLACED;
+>>> +	state->field = V4L2_FIELD_ALTERNATE;
+>>>  	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
+>>>  
+>>>  	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
+>>>
+>>
+> 
