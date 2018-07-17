@@ -1,380 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f196.google.com ([209.85.208.196]:39849 "EHLO
-        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729663AbeGQQIR (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:56136 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729863AbeGQQmK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 12:08:17 -0400
-Received: by mail-lj1-f196.google.com with SMTP id l15-v6so1383094lji.6
-        for <linux-media@vger.kernel.org>; Tue, 17 Jul 2018 08:35:03 -0700 (PDT)
-Date: Tue, 17 Jul 2018 17:35:01 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 1/2] adv7180: fix field type to V4L2_FIELD_ALTERNATE
-Message-ID: <20180717153501.GM10087@bigcity.dyn.berto.se>
-References: <20180717123041.2862-1-niklas.soderlund+renesas@ragnatech.se>
- <20180717123041.2862-2-niklas.soderlund+renesas@ragnatech.se>
- <9541cdb4-fb87-e0bb-85cb-667fd16d3804@xs4all.nl>
- <20180717134001.GK10087@bigcity.dyn.berto.se>
- <922e658f-bd6d-1589-a429-37980f77a653@xs4all.nl>
+        Tue, 17 Jul 2018 12:42:10 -0400
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [PATCH v4 10/11] media: vsp1: Support Interlaced display
+ pipelines
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <2663986.uvcnutGSNp@avalon>
+ <f794f4d6-f524-293b-3df6-097f42bef372@ideasonboard.com>
+ <5111021.qdhzlld4I3@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <08fd7b2c-f725-6018-b96e-72ce62dc21d7@ideasonboard.com>
+Date: Tue, 17 Jul 2018 17:08:44 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <922e658f-bd6d-1589-a429-37980f77a653@xs4all.nl>
+In-Reply-To: <5111021.qdhzlld4I3@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Laurent,
 
-On 2018-07-17 15:55:33 +0200, Hans Verkuil wrote:
-> On 17/07/18 15:40, Niklas Söderlund wrote:
-> > Hi Hans,
-> > 
-> > Thanks for your feedback.
-> > 
-> > On 2018-07-17 15:12:41 +0200, Hans Verkuil wrote:
-> >> On 17/07/18 14:30, Niklas Söderlund wrote:
-> >>> The ADV7180 and ADV7182 transmit whole fields, bottom field followed
-> >>> by top (or vice-versa, depending on detected video standard). So
-> >>> for chips that do not have support for explicitly setting the field
-> >>> mode via I2P, set the field mode to V4L2_FIELD_ALTERNATE.
-> >>
-> >> What does I2P do? I know it was explained before, but that's a long time
-> >> ago :-)
-> > 
-> > The best explanation I have is that I2P is interlaced to progressive and 
-> > in my research I stopped at commit 851a54effbd808da ("[media] adv7180: 
-> > Add I2P support").
-> > 
-> > I also vaguely remember reading somewhere that I2P support is planed to 
-> > be removed.
+On 17/07/18 13:52, Laurent Pinchart wrote:
+> Hi Kieran,
 > 
-> I would just add a line saying:
+> On Monday, 16 July 2018 21:21:00 EEST Kieran Bingham wrote:
+>> On 24/05/18 13:51, Laurent Pinchart wrote:
+>>> On Thursday, 3 May 2018 16:36:21 EEST Kieran Bingham wrote:
+>>>> Calculate the top and bottom fields for the interlaced frames and
+>>>> utilise the extended display list command feature to implement the
+>>>> auto-field operations. This allows the DU to update the VSP2 registers
+>>>> dynamically based upon the currently processing field.
+>>>>
+>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>>
+>>>> ---
+>>>>
+>>>> v3:
+>>>>  - Pass DL through partition calls to allow autocmd's to be retrieved
+>>>>  - Document interlaced field in struct vsp1_du_atomic_config
+>>>>
+>>>> v2:
+>>>>  - fix erroneous BIT value which enabled interlaced
+>>>>  - fix field handling at frame_end interrupt
+>>>>
+>>>> ---
+>>>>
+>>>>  drivers/media/platform/vsp1/vsp1_dl.c   | 10 ++++-
+>>>>  drivers/media/platform/vsp1/vsp1_drm.c  | 11 ++++-
+>>>>  drivers/media/platform/vsp1/vsp1_regs.h |  1 +-
+>>>>  drivers/media/platform/vsp1/vsp1_rpf.c  | 71 ++++++++++++++++++++++++--
+>>>>  drivers/media/platform/vsp1/vsp1_rwpf.h |  1 +-
+>>>>  include/media/vsp1.h                    |  2 +-
+>>>>  6 files changed, 93 insertions(+), 3 deletions(-)
 > 
-> "I2P converts fields into frames using an edge adaptive algorithm. The
-> frame rate is the same as the 'field rate': e.g. X fields per second
-> are now X frames per second."
-
-Thanks, I will add this for v2.
-
+> [snip]
 > 
-> BTW, does 'v4l2-compliance -f' pass with this patch series? Before running
-> this you should first select the correct input.
+>>>> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+>>>> b/drivers/media/platform/vsp1/vsp1_drm.c index 2c3db8b8adce..cc29c9d96bb7
+>>>> 100644
+>>>> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+>>>> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+>>>> @@ -811,6 +811,17 @@ int vsp1_du_atomic_update(struct device *dev,
+>>>> unsigned
+>>>> int pipe_index, return -EINVAL;
+>>>>
+>>>>  	}
+>>>>
+>>>> +	if (!(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) && cfg->interlaced) {
+>>>
+>>> Nitpicking, writing the condition as
+>>>
+>>> 	if (cfg->interlaced && !(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)))
+>>
+>> Done.
+>>
+>>> would match the comment better. You can also drop the parentheses around
+>>> the vsp1_feature() call.
+>>>
+>>>> +		/*
+>>>> +		 * Interlaced support requires extended display lists to
+>>>> +		 * provide the auto-fld feature with the DU.
+>>>> +		 */
+>>>> +		dev_dbg(vsp1->dev, "Interlaced unsupported on this output\n");
+>>>
+>>> Could we catch this in the DU driver to fail atomic test ?
+>>
+>> Ugh - I thought moving the configuration to vsp1_du_setup_lif() would
+>> give us this, but that return value is not checked in the DU.
+>>
+>> How can we interogate the VSP1 to ask it if it supports interlaced from
+>> rcar_du_vsp_plane_atomic_check()?
+>>
+>>
+>> Some dummy call to vsp1_du_setup_lif() to check the return value ? Or
+>> should we implement a hook to call through to perform checks in the VSP1
+>> DRM API?
+> 
+> Would it be possible to just infer that from the DU compatible string, without 
+> querying the VSP driver ? Of course that's a bit of a layering violation, but 
+> as we know what type of VSP instance is present in each SoC, such a small hack 
+> wouldn't hurt in my opinion. If the need arises later we can introduce an API 
+> to query the information from the VSP driver.
 
-I'm not sure I understand what you mean by selecting the correct input.  
-I test this on Koelsch which is a Renesas Gen2 board and use the video 
-node centric approach, so there are no MC magic involved in selecting 
-the input.
+I'm not sure what there is to match on currently.
 
-Running 'v4l2-compliance -f' works as I expect it do do with these two 
-patches applied.
+I thought that we had restrictions on which display pipelines supported
+interlaced. (i.e. D3/E3 might not) - but they seem to support extended
+display lists ...
 
-# v4l2-compliance -f -d /dev/video26
-v4l2-compliance SHA   : 5a870c8e3b55ba4ea255fde68c505a46bfee4e4e
+So isn't it the case that any pipeline which we connect to DRM supports
+interlaced? (currently) - we can't / don't physically connect other VSP
+entities to the DRM pipes...
 
-Compliance test for device /dev/video26:
-
-Driver Info:
-	Driver name      : rcar_vin
-	Card type        : R_Car_VIN
-	Bus info         : platform:e6ef1000.video
-	Driver version   : 4.18.0
-	Capabilities     : 0x85200001
-		Video Capture
-		Read/Write
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps      : 0x05200001
-		Video Capture
-		Read/Write
-		Streaming
-		Extended Pix Format
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second /dev/video26 open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Control ioctls (Input 0):
-	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-	test VIDIOC_QUERYCTRL: OK
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 5 Private Controls: 1
-
-Format ioctls (Input 0):
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-	test VIDIOC_TRY_FMT: OK
-	test VIDIOC_S_FMT: OK
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-	test Cropping: OK
-	test Composing: OK
-	test Scaling: OK
-
-Codec ioctls (Input 0):
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls (Input 0):
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-	test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Stream using all formats:
-	test MMAP for Format NV16, Frame Size 2x4:
-		Crop 720x480@0x0, Compose 6x4@0x0, Stride 32, Field None: OK   
-		Crop 720x480@0x0, Compose 6x4@0x0, Stride 32, Field Top: OK   
-		Crop 720x480@0x0, Compose 6x4@0x0, Stride 32, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 6x4@0x0, Stride 32, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 6x4@0x0, Stride 32, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 6x4@0x0, Stride 32, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format NV16, Frame Size 2048x2048:
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 2048, Field None: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 2048, Field Top: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 2048, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 2048, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 2048, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 2048, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format NV16, Frame Size 736x480:
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 736, Field None: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 736, Field Top: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 736, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 736, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 736, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 736, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format YUYV, Frame Size 32x4:
-		Crop 720x480@0x0, Compose 32x4@0x0, Stride 64, Field None: OK   
-		Crop 720x480@0x0, Compose 32x4@0x0, Stride 64, Field Top: OK   
-		Crop 720x480@0x0, Compose 32x4@0x0, Stride 64, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 32x4@0x0, Stride 64, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 32x4@0x0, Stride 64, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 32x4@0x0, Stride 64, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format YUYV, Frame Size 2048x2048:
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format YUYV, Frame Size 736x480:
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 1472, Field None: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 1472, Field Top: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 1472, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 1472, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 1472, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 736x480@0x0, Stride 1472, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format UYVY, Frame Size 2x4:
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field None: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Top: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format UYVY, Frame Size 2048x2048:
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format UYVY, Frame Size 720x480:
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field None: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Top: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format RGBP, Frame Size 2x4:
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field None: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Top: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format RGBP, Frame Size 2048x2048:
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format RGBP, Frame Size 720x480:
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field None: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Top: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format XR15, Frame Size 2x4:
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field None: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Top: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 4, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format XR15, Frame Size 2048x2048:
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field None: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Top: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 4096, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format XR15, Frame Size 720x480:
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field None: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Top: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 1440, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format XR24, Frame Size 2x4:
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 8, Field None: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 8, Field Top: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 8, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 8, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 8, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2x4@0x0, Stride 8, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format XR24, Frame Size 2048x2048:
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 8192, Field None: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 8192, Field Top: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 8192, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 8192, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 8192, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 2048x2048@0x0, Stride 8192, Field Interlaced Bottom-Top: OK   
-	test MMAP for Format XR24, Frame Size 720x480:
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 2880, Field None: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 2880, Field Top: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 2880, Field Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 2880, Field Interlaced: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 2880, Field Interlaced Top-Bottom: OK   
-		Crop 720x480@0x0, Compose 720x480@0x0, Stride 2880, Field Interlaced Bottom-Top: OK   
-Total: 151, Succeeded: 151, Failed: 0, Warnings: 0
 
 > 
-> Regards,
+>>>> +		return -EINVAL;
+>>>> +	}
+>>>> +
+>>>> +	rpf->interlaced = cfg->interlaced;
+>>>> +
+>>>>  	rpf->fmtinfo = fmtinfo;
+>>>>  	rpf->format.num_planes = fmtinfo->planes;
+>>>>  	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
 > 
-> 	Hans
-> 
-> > 
-> >>
-> >> In any case, it should be explained in the commit log as well.
-> >>
-> >> I faintly remember that it was just line-doubling of each field, in which
-> >> case this code seems correct.
-> > 
-> > If you still think I2P needs to be explained in the commit message I 
-> > will do so in the next version.
-> > 
-> >>
-> >> Have you checked other drivers that use this subdev? Are they affected by
-> >> this change?
-> > 
-> > I did a quick check what other users there are and in tree dts indicates 
-> > imx6 and the sun9i-a80-cubieboard4 in addition to the Renesas boards. As 
-> > I can only test on the Renesas hardware I have access to I had to 
-> > trusted the acks from the patch from Steve which I dug out of patchwork 
-> > [1]. His work stopped with a few comments on the code but it was acked 
-> > by Lars-Peter who maintains the driver.
-> > 
-> > 1. https://patchwork.linuxtv.org/patch/36193/
-> > 
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >>>
-> >>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> >>> ---
-> >>>  drivers/media/i2c/adv7180.c | 13 ++++++++-----
-> >>>  1 file changed, 8 insertions(+), 5 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> >>> index 25d24a3f10a7cb4d..c2e24132e8c21d38 100644
-> >>> --- a/drivers/media/i2c/adv7180.c
-> >>> +++ b/drivers/media/i2c/adv7180.c
-> >>> @@ -644,6 +644,9 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
-> >>>  	fmt->width = 720;
-> >>>  	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> >>>  
-> >>> +	if (state->field == V4L2_FIELD_ALTERNATE)
-> >>> +		fmt->height /= 2;
-> >>> +
-> >>>  	return 0;
-> >>>  }
-> >>>  
-> >>> @@ -711,11 +714,11 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
-> >>>  
-> >>>  	switch (format->format.field) {
-> >>>  	case V4L2_FIELD_NONE:
-> >>> -		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
-> >>> -			format->format.field = V4L2_FIELD_INTERLACED;
-> >>> -		break;
-> >>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
-> >>> +			break;
-> >>> +		/* fall through */
-> >>>  	default:
-> >>> -		format->format.field = V4L2_FIELD_INTERLACED;
-> >>> +		format->format.field = V4L2_FIELD_ALTERNATE;
-> >>>  		break;
-> >>>  	}
-> >>>  
-> >>> @@ -1291,7 +1294,7 @@ static int adv7180_probe(struct i2c_client *client,
-> >>>  		return -ENOMEM;
-> >>>  
-> >>>  	state->client = client;
-> >>> -	state->field = V4L2_FIELD_INTERLACED;
-> >>> +	state->field = V4L2_FIELD_ALTERNATE;
-> >>>  	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
-> >>>  
-> >>>  	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
-> >>>
-> >>
-> > 
-> 
-
--- 
-Regards,
-Niklas Söderlund
+> [snip]
