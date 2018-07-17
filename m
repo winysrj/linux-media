@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
 Received: from perceval.ideasonboard.com ([213.167.242.64]:57500 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730128AbeGQVK0 (ORCPT
+        with ESMTP id S1729802AbeGQVK2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 17:10:26 -0400
+        Tue, 17 Jul 2018 17:10:28 -0400
 From: Kieran Bingham <kieran@ksquared.org.uk>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>
 Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
         dri-devel@lists.freedesktop.org,
         Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v5 07/11] media: vsp1: Use header display lists for all WPF outputs linked to the DU
-Date: Tue, 17 Jul 2018 21:35:49 +0100
-Message-Id: <fc4b72e7dabbe372ee994d06e358ce9e6e28cfca.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v5 09/11] media: vsp1: Provide support for extended command pools
+Date: Tue, 17 Jul 2018 21:35:51 +0100
+Message-Id: <8b2969c3371d9b132dd492cdddaf11d0bf5b659f.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
 In-Reply-To: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
 References: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
 In-Reply-To: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
@@ -22,252 +22,312 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Header mode display lists are now supported on all WPF outputs. To
-support extended headers and auto-fld capabilities for interlaced mode
-handling only header mode display lists can be used.
+VSPD and VSP-DL devices can provide extended display lists supporting
+extended command display list objects.
 
-Disable the headerless display list configuration, and remove the dead
-code.
+These extended commands require their own dma memory areas for a header
+and body specific to the command type.
+
+Implement a command pool to allocate all necessary memory in a single
+DMA allocation to reduce pressure on the TLB, and provide convenient
+re-usable command objects for the entities to utilise.
 
 Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 ---
-v5:
- - Fixed comments
- - Re-aligned header_offset calculation
+v2:
+ - Fix spelling typo in commit message
+ - constify, and staticify the instantiation of vsp1_extended_commands
+ - s/autfld_cmds/autofld_cmds/
+ - staticify cmd pool functions (Thanks kbuild-bot)
 
- drivers/media/platform/vsp1/vsp1_dl.c | 108 ++++++---------------------
- 1 file changed, 27 insertions(+), 81 deletions(-)
+v5:
+ - Rename vsp1_dl_ext_cmd_header -> vsp1_pre_ext_dl_body
+ - fixup vsp1_cmd_pool structure documentation
+ - Rename dlm->autofld_cmds dlm->cmdpool
+ - Separate out the instatiation of vsp1_extended_commands
+ - Move initialisation of lock, and lists in vsp1_dl_cmd_pool_create to
+   immediately after allocation
+ - simplify vsp1_dlm_get_autofld_cmd
+ - Rename vsp1_dl_get_autofld_cmd() to vsp1_dl_get_pre_cmd() and moved
+   to "Display List Extended Command Management" section of vsp1_dl
+
+ drivers/media/platform/vsp1/vsp1_dl.c | 194 +++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_dl.h |   3 +-
+ 2 files changed, 197 insertions(+)
 
 diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 3bf5b0b871b6..90e0a11c29b5 100644
+index 2fffe977aa35..d5b3c24d160c 100644
 --- a/drivers/media/platform/vsp1/vsp1_dl.c
 +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -94,7 +94,7 @@ struct vsp1_dl_body_pool {
+@@ -141,6 +141,30 @@ struct vsp1_dl_body_pool {
+ };
+ 
+ /**
++ * struct vsp1_cmd_pool - Display List commands pool
++ * @dma: DMA address of the entries
++ * @size: size of the full DMA memory pool in bytes
++ * @mem: CPU memory pointer for the pool
++ * @cmds: Array of command structures for the pool
++ * @free: Free pool entries
++ * @lock: Protects the free list
++ * @vsp1: the VSP1 device
++ */
++struct vsp1_dl_cmd_pool {
++	/* DMA allocation */
++	dma_addr_t dma;
++	size_t size;
++	void *mem;
++
++	struct vsp1_dl_ext_cmd *cmds;
++	struct list_head free;
++
++	spinlock_t lock;
++
++	struct vsp1_device *vsp1;
++};
++
++/**
   * struct vsp1_dl_list - Display list
   * @list: entry in the display list manager lists
   * @dlm: the display list manager
-- * @header: display list header, NULL for headerless lists
-+ * @header: display list header
-  * @dma: DMA address for the header
-  * @body0: first display list body
-  * @bodies: list of extra display list bodies
-@@ -118,15 +118,9 @@ struct vsp1_dl_list {
- 	bool internal;
- };
- 
--enum vsp1_dl_mode {
--	VSP1_DL_MODE_HEADER,
--	VSP1_DL_MODE_HEADERLESS,
--};
--
- /**
-  * struct vsp1_dl_manager - Display List manager
-  * @index: index of the related WPF
-- * @mode: display list operation mode (header or headerless)
-  * @singleshot: execute the display list in single-shot mode
-  * @vsp1: the VSP1 device
-  * @lock: protects the free, active, queued, and pending lists
-@@ -138,7 +132,6 @@ enum vsp1_dl_mode {
+@@ -186,6 +210,7 @@ struct vsp1_dl_list {
+  * @queued: list queued to the hardware (written to the DL registers)
+  * @pending: list waiting to be queued to the hardware
+  * @pool: body pool for the display list bodies
++ * @autofld_cmds: command pool to support auto-fld interlaced mode
   */
  struct vsp1_dl_manager {
  	unsigned int index;
--	enum vsp1_dl_mode mode;
- 	bool singleshot;
- 	struct vsp1_device *vsp1;
+@@ -199,6 +224,7 @@ struct vsp1_dl_manager {
+ 	struct vsp1_dl_list *pending;
  
-@@ -318,6 +311,7 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
- static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- {
- 	struct vsp1_dl_list *dl;
-+	size_t header_offset;
+ 	struct vsp1_dl_body_pool *pool;
++	struct vsp1_dl_cmd_pool *cmdpool;
+ };
  
- 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
- 	if (!dl)
-@@ -330,16 +324,14 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- 	dl->body0 = vsp1_dl_body_get(dlm->pool);
- 	if (!dl->body0)
- 		return NULL;
--	if (dlm->mode == VSP1_DL_MODE_HEADER) {
--		size_t header_offset = dl->body0->max_entries
--				     * sizeof(*dl->body0->entries);
+ /* -----------------------------------------------------------------------------
+@@ -362,6 +388,157 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ }
  
--		dl->header = ((void *)dl->body0->entries) + header_offset;
--		dl->dma = dl->body0->dma + header_offset;
-+	header_offset = dl->body0->max_entries * sizeof(*dl->body0->entries);
- 
--		memset(dl->header, 0, sizeof(*dl->header));
--		dl->header->lists[0].addr = dl->body0->dma;
--	}
-+	dl->header = ((void *)dl->body0->entries) + header_offset;
-+	dl->dma = dl->body0->dma + header_offset;
+ /* -----------------------------------------------------------------------------
++ * Display List Extended Command Management
++ */
 +
-+	memset(dl->header, 0, sizeof(*dl->header));
-+	dl->header->lists[0].addr = dl->body0->dma;
- 
- 	return dl;
- }
-@@ -471,16 +463,9 @@ struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl)
-  *
-  * The reference must be explicitly released by a call to vsp1_dl_body_put()
-  * when the body isn't needed anymore.
-- *
-- * Additional bodies are only usable for display lists in header mode.
-- * Attempting to add a body to a header-less display list will return an error.
++enum vsp1_extcmd_type {
++	VSP1_EXTCMD_AUTODISP,
++	VSP1_EXTCMD_AUTOFLD,
++};
++
++struct vsp1_extended_command_info {
++	u16 opcode;
++	size_t body_size;
++};
++
++static const struct vsp1_extended_command_info vsp1_extended_commands[] = {
++	[VSP1_EXTCMD_AUTODISP] = { 0x02, 96 },
++	[VSP1_EXTCMD_AUTOFLD]  = { 0x03, 160 },
++};
++
++/**
++ * vsp1_dl_cmd_pool_create - Create a pool of commands from a single allocation
++ * @vsp1: The VSP1 device
++ * @type: The command pool type
++ * @num_cmds: The number of commands to allocate
++ *
++ * Allocate a pool of commands each with enough memory to contain the private
++ * data of each command. The allocation sizes are dependent upon the command
++ * type.
++ *
++ * Return a pointer to the pool on success or NULL if memory can't be allocated.
++ */
++static struct vsp1_dl_cmd_pool *
++vsp1_dl_cmd_pool_create(struct vsp1_device *vsp1, enum vsp1_extcmd_type type,
++			unsigned int num_cmds)
++{
++	struct vsp1_dl_cmd_pool *pool;
++	unsigned int i;
++	size_t cmd_size;
++
++	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
++	if (!pool)
++		return NULL;
++
++	spin_lock_init(&pool->lock);
++	INIT_LIST_HEAD(&pool->free);
++
++	pool->cmds = kcalloc(num_cmds, sizeof(*pool->cmds), GFP_KERNEL);
++	if (!pool->cmds) {
++		kfree(pool);
++		return NULL;
++	}
++
++	cmd_size = sizeof(struct vsp1_pre_ext_dl_body) +
++		   vsp1_extended_commands[type].body_size;
++	cmd_size = ALIGN(cmd_size, 16);
++
++	pool->size = cmd_size * num_cmds;
++	pool->mem = dma_alloc_wc(vsp1->bus_master, pool->size, &pool->dma,
++				 GFP_KERNEL);
++	if (!pool->mem) {
++		kfree(pool->cmds);
++		kfree(pool);
++		return NULL;
++	}
++
++	for (i = 0; i < num_cmds; ++i) {
++		struct vsp1_dl_ext_cmd *cmd = &pool->cmds[i];
++		size_t cmd_offset = i * cmd_size;
++		/* data_offset must be 16 byte aligned for DMA. */
++		size_t data_offset = sizeof(struct vsp1_pre_ext_dl_body) +
++				     cmd_offset;
++
++		cmd->pool = pool;
++		cmd->opcode = vsp1_extended_commands[type].opcode;
++
++		/*
++		 * TODO: Auto-disp can utilise more than one extended body
++		 * command per cmd.
++		 */
++		cmd->num_cmds = 1;
++		cmd->cmds = pool->mem + cmd_offset;
++		cmd->cmd_dma = pool->dma + cmd_offset;
++
++		cmd->data = pool->mem + data_offset;
++		cmd->data_dma = pool->dma + data_offset;
++
++		list_add_tail(&cmd->free, &pool->free);
++	}
++
++	return pool;
++}
++
++static
++struct vsp1_dl_ext_cmd *vsp1_dl_ext_cmd_get(struct vsp1_dl_cmd_pool *pool)
++{
++	struct vsp1_dl_ext_cmd *cmd = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->lock, flags);
++
++	if (!list_empty(&pool->free)) {
++		cmd = list_first_entry(&pool->free, struct vsp1_dl_ext_cmd,
++				       free);
++		list_del(&cmd->free);
++	}
++
++	spin_unlock_irqrestore(&pool->lock, flags);
++
++	return cmd;
++}
++
++static void vsp1_dl_ext_cmd_put(struct vsp1_dl_ext_cmd *cmd)
++{
++	unsigned long flags;
++
++	if (!cmd)
++		return;
++
++	/* Reset flags, these mark data usage. */
++	cmd->flags = 0;
++
++	spin_lock_irqsave(&cmd->pool->lock, flags);
++	list_add_tail(&cmd->free, &cmd->pool->free);
++	spin_unlock_irqrestore(&cmd->pool->lock, flags);
++}
++
++static void vsp1_dl_ext_cmd_pool_destroy(struct vsp1_dl_cmd_pool *pool)
++{
++	if (!pool)
++		return;
++
++	if (pool->mem)
++		dma_free_wc(pool->vsp1->bus_master, pool->size, pool->mem,
++			    pool->dma);
++
++	kfree(pool->cmds);
++	kfree(pool);
++}
++
++struct vsp1_dl_ext_cmd *vsp1_dl_get_pre_cmd(struct vsp1_dl_list *dl)
++{
++	struct vsp1_dl_manager *dlm = dl->dlm;
++
++	if (dl->pre_cmd)
++		return dl->pre_cmd;
++
++	dl->pre_cmd = vsp1_dl_ext_cmd_get(dlm->cmdpool);
++
++	return dl->pre_cmd;
++}
++
++/* ----------------------------------------------------------------------------
+  * Display List Transaction Management
   */
- int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
- {
--	/* Multi-body lists are only available in header mode. */
--	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
--		return -EINVAL;
--
- 	refcount_inc(&dlb->refcnt);
  
- 	list_add_tail(&dlb->list, &dl->bodies);
-@@ -501,17 +486,10 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
-  * Adding a display list to a chain passes ownership of the display list to
-  * the head display list item. The chain is released when the head dl item is
-  * put back with __vsp1_dl_list_put().
-- *
-- * Chained display lists are only usable in header mode. Attempts to add a
-- * display list to a chain in header-less mode will return an error.
-  */
- int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
- 			   struct vsp1_dl_list *dl)
- {
--	/* Chained lists are only available in header mode. */
--	if (head->dlm->mode != VSP1_DL_MODE_HEADER)
--		return -EINVAL;
--
- 	head->has_chain = true;
- 	list_add_tail(&dl->chain, &head->chain);
- 	return 0;
-@@ -579,17 +557,10 @@ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
- 		return false;
+@@ -463,6 +640,12 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
  
+ 	vsp1_dl_list_bodies_put(dl);
+ 
++	vsp1_dl_ext_cmd_put(dl->pre_cmd);
++	vsp1_dl_ext_cmd_put(dl->post_cmd);
++
++	dl->pre_cmd = NULL;
++	dl->post_cmd = NULL;
++
  	/*
--	 * Check whether the VSP1 has taken the update. In headerless mode the
--	 * hardware indicates this by clearing the UPD bit in the DL_BODY_SIZE
--	 * register, and in header mode by clearing the UPDHDR bit in the CMD
--	 * register.
-+	 * Check whether the VSP1 has taken the update. The hardware indicates
-+	 * this by clearing the UPDHDR bit in the CMD register.
- 	 */
--	if (dlm->mode == VSP1_DL_MODE_HEADERLESS)
--		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
--			  & VI6_DL_BODY_SIZE_UPD);
--	else
--		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
--			  & VI6_CMD_UPDHDR);
-+	return !!(vsp1_read(vsp1, VI6_CMD(dlm->index)) & VI6_CMD_UPDHDR);
- }
- 
- static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
-@@ -597,26 +568,14 @@ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
- 	struct vsp1_dl_manager *dlm = dl->dlm;
- 	struct vsp1_device *vsp1 = dlm->vsp1;
- 
--	if (dlm->mode == VSP1_DL_MODE_HEADERLESS) {
--		/*
--		 * In headerless mode, program the hardware directly with the
--		 * display list body address and size and set the UPD bit. The
--		 * bit will be cleared by the hardware when the display list
--		 * processing starts.
--		 */
--		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0->dma);
--		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
--			(dl->body0->num_entries * sizeof(*dl->header->lists)));
--	} else {
--		/*
--		 * In header mode, program the display list header address. If
--		 * the hardware is idle (single-shot mode or first frame in
--		 * continuous mode) it will then be started independently. If
--		 * the hardware is operating, the VI6_DL_HDR_REF_ADDR register
--		 * will be updated with the display list address.
--		 */
--		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
--	}
-+	/*
-+	 * Program the display list header address. If the hardware is idle
-+	 * (single-shot mode or first frame in continuous mode) it will then be
-+	 * started independently. If the hardware is operating, the
-+	 * VI6_DL_HDR_REF_ADDR register will be updated with the display list
-+	 * address.
-+	 */
-+	vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
- }
- 
- static void vsp1_dl_list_commit_continuous(struct vsp1_dl_list *dl)
-@@ -674,15 +633,13 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
- 	struct vsp1_dl_list *dl_next;
- 	unsigned long flags;
- 
--	if (dlm->mode == VSP1_DL_MODE_HEADER) {
--		/* Fill the header for the head and chained display lists. */
--		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
-+	/* Fill the header for the head and chained display lists. */
-+	vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
- 
--		list_for_each_entry(dl_next, &dl->chain, chain) {
--			bool last = list_is_last(&dl_next->chain, &dl->chain);
-+	list_for_each_entry(dl_next, &dl->chain, chain) {
-+		bool last = list_is_last(&dl_next->chain, &dl->chain);
- 
--			vsp1_dl_list_fill_header(dl_next, last);
--		}
-+		vsp1_dl_list_fill_header(dl_next, last);
+ 	 * body0 is reused as as an optimisation as presently every display list
+ 	 * has at least one body, thus we reinitialise the entries list.
+@@ -913,6 +1096,15 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 		list_add_tail(&dl->list, &dlm->free);
  	}
  
- 	dl->internal = internal;
-@@ -711,7 +668,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
-  * has completed at frame end. If the flag is not returned display list
-  * completion has been delayed by one frame because the display list commit
-  * raced with the frame end interrupt. The function always returns with the flag
-- * set in header mode as display list processing is then not continuous and
-+ * set in single-shot mode as display list processing is then not continuous and
-  * races never occur.
-  *
-  * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the previous display list
-@@ -783,13 +740,6 @@ void vsp1_dlm_setup(struct vsp1_device *vsp1)
- 		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
- 		 | VI6_DL_CTRL_DLE;
- 
--	/*
--	 * The DRM pipeline operates with display lists in Continuous Frame
--	 * Mode, all other pipelines use manual start.
--	 */
--	if (vsp1->drm)
--		ctrl |= VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
--
- 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
- 	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
++	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) {
++		dlm->cmdpool = vsp1_dl_cmd_pool_create(vsp1,
++					VSP1_EXTCMD_AUTOFLD, prealloc);
++		if (!dlm->cmdpool) {
++			vsp1_dlm_destroy(dlm);
++			return NULL;
++		}
++	}
++
+ 	return dlm;
  }
-@@ -829,8 +779,6 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 		return NULL;
  
- 	dlm->index = index;
--	dlm->mode = index == 0 && !vsp1->info->uapi
--		  ? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
- 	dlm->singleshot = vsp1->info->uapi;
- 	dlm->vsp1 = vsp1;
+@@ -929,4 +1121,6 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
+ 	}
  
-@@ -839,14 +787,12 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 	vsp1_dl_body_pool_destroy(dlm->pool);
++	vsp1_dl_ext_cmd_pool_destroy(dlm->cmdpool);
+ }
++
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index afefd5bfa136..125750dc8b5c 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -22,6 +22,7 @@ struct vsp1_dl_manager;
  
- 	/*
- 	 * Initialize the display list body and allocate DMA memory for the body
--	 * and the optional header. Both are allocated together to avoid memory
-+	 * and the header. Both are allocated together to avoid memory
- 	 * fragmentation, with the header located right after the body in
- 	 * memory. An extra body is allocated on top of the prealloc to account
- 	 * for the cached body used by the vsp1_pipeline object.
- 	 */
--	header_size = dlm->mode == VSP1_DL_MODE_HEADER
--		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
--		    : 0;
-+	header_size = ALIGN(sizeof(struct vsp1_dl_header), 8);
+ /**
+  * struct vsp1_dl_ext_cmd - Extended Display command
++ * @pool: pool to which this command belongs
+  * @free: entry in the pool of free commands list
+  * @opcode: command type opcode
+  * @flags: flags used by the command
+@@ -32,6 +33,7 @@ struct vsp1_dl_manager;
+  * @data_dma: DMA address for command-specific data
+  */
+ struct vsp1_dl_ext_cmd {
++	struct vsp1_dl_cmd_pool *pool;
+ 	struct list_head free;
  
- 	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc + 1,
- 					     VSP1_DL_NUM_ENTRIES, header_size);
+ 	u8 opcode;
+@@ -58,6 +60,7 @@ struct vsp1_dl_body *vsp1_dlm_dl_body_get(struct vsp1_dl_manager *dlm);
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+ struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl);
++struct vsp1_dl_ext_cmd *vsp1_dl_get_pre_cmd(struct vsp1_dl_list *dl);
+ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal);
+ 
+ struct vsp1_dl_body_pool *
 -- 
 git-series 0.9.1
