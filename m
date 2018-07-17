@@ -1,87 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0b-0016f401.pphosted.com ([67.231.156.173]:33042 "EHLO
-        mx0b-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731117AbeGQMao (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:33027 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729659AbeGQMqG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 08:30:44 -0400
-To: <torvalds@linux-foundation.org>
-References: <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
-Subject: Re: dvb usb issues since kernel 4.9
-CC: <corbet@lwn.net>, <davem@davemloft.net>, <edumazet@google.com>,
-        <gregkh@linuxfoundation.org>, <griebichler.josef@gmx.at>,
-        <hannes@redhat.com>, <jbrouer@redhat.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-usb@vger.kernel.org>, <mchehab@s-opensource.com>,
-        <mingo@kernel.org>, <netdev@vger.kernel.org>, <pabeni@redhat.com>,
-        <peterz@infradead.org>, <riel@redhat.com>,
-        <stern@rowland.harvard.edu>, <dmaengine@vger.kernel.org>,
-        <vkoul@kernel.org>, <dan.j.williams@intel.com>,
-        <nadavh@marvell.com>, <thomas.petazzoni@bootlin.com>,
-        Omri Itach <omrii@marvell.com>
-From: Hanna Hawa <hannah@marvell.com>
-Message-ID: <1d3d0fe3-bc02-7720-15ac-6bc06e00067c@marvell.com>
-Date: Tue, 17 Jul 2018 14:54:20 +0300
+        Tue, 17 Jul 2018 08:46:06 -0400
+Date: Tue, 17 Jul 2018 14:13:38 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Subject: Re: [RFC PATCH v1 1/4] media: dt-bindings: max9286: add device tree
+ binding
+Message-ID: <20180717121338.GO8180@w540>
+References: <20180605233435.18102-1-kieran.bingham+renesas@ideasonboard.com>
+ <20180605233435.18102-2-kieran.bingham+renesas@ideasonboard.com>
+ <CAMuHMdUYbEK36E4hD+nVDfM5_nuY8SubkgBCtcYuSy+eZLNt5Q@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Sk71+Upln2BLuDmg"
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdUYbEK36E4hD+nVDfM5_nuY8SubkgBCtcYuSy+eZLNt5Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-I'm a software developer working in Marvell SoC team.
-I'm facing kernel panic issue while running raid 5 on sata disks 
-connected to Macchiatobin (Marvell community board with Armada-8040 SoC 
-with 4 ARMv8 cores of CA72)
-Raid 5 built with Marvell DMA engine and async_tx mechanism 
-(ASYNC_TX_DMA [=y]); the DMA driver (mv_xor_v2) uses a tasklet to clean 
-the done descriptors from the queue.
+--Sk71+Upln2BLuDmg
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-The panic (see below) occurs while building the RAID-5 (mdadm) or while 
-writing/reading to the raid partition.
+Hi Geert,
+   I'm replying here, even if a new version of the bindings for this
+chip has been posted[1], as they have the same ports layout.
 
-After some debug/bisect/diff, found that patch "softirq: Let ksoftirqd 
-do its job" is problematic patch.
+[1] https://www.spinics.net/lists/linux-renesas-soc/msg29307.html
 
-- Using v4.14.0 and problematic patch reverted - no timout issue.
-- Using v4.14.0 (including softirq patch) and the additional fix 
-proposed by Linus - no timeout issue.
+On Wed, Jun 06, 2018 at 08:34:41AM +0200, Geert Uytterhoeven wrote:
+> Hi Kieran,
+>
+> On Wed, Jun 6, 2018 at 1:34 AM, Kieran Bingham
+> <kieran.bingham+renesas@ideasonboard.com> wrote:
+> > Provide device tree binding documentation for the MAX9286 Quad GMSL
+> > deserialiser.
+> >
+> > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>
+> Thanks for your patch!
+>
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/max9286.txt
+> > @@ -0,0 +1,75 @@
+> > +* Maxim Integrated MAX9286 GMSL Quad 1.5Gbps GMSL Deserializer
+> > +
+> > +Required Properties:
+> > + - compatible: Shall be "maxim,max9286"
+> > +
+> > +The following required properties are defined externally in
+> > +Documentation/devicetree/bindings/i2c/i2c-mux.txt:
+> > + - Standard I2C mux properties.
+> > + - I2C child bus nodes.
+> > +
+> > +A maximum of 4 I2C child nodes can be specified on the MAX9286, to
+> > +correspond with a maximum of 4 input devices.
+> > +
+> > +The device node must contain one 'port' child node per device input and output
+> > +port, in accordance with the video interface bindings defined in
+> > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+> > +are numbered as follows.
+> > +
+> > +      Port        Type
+> > +    ----------------------
+> > +       0          sink
+> > +       1          sink
+> > +       2          sink
+> > +       3          sink
+> > +       4          source
+>
+> I assume the source and at least one sink are thus mandatory?
+>
+> Would it make sense to use port 0 for the source?
+> This would simplify extending the binding to devices with more input
+> ports later.
 
-As others have reported in this thread, the softirq change is causing 
-some regression.
-Would it be possible to either revert the patch or apply a fix such as 
-the one proposed by Linus ?
+I see your point, but as someone that has no idea how future chips could look
+like, I wonder why having multiple outputs it's more un-likely to
+happen than having more inputs added.
 
-Below panic message:
-[   25.371495] mv_xor_v2 f0400000.xor: dma_sync_wait: timeout!
-[   25.377101] Kernel panic - not syncing: async_tx_quiesce: DMA error 
-waiting for transaction
-[   25.377101]
-[   25.386973] CPU: 0 PID: 1417 Comm: md0_raid5 Not tainted 4.14.0 #16
-[   25.393264] Hardware name: Marvell Armada 8040 DB board (DT)
-[   25.398946] Call trace:
-[   25.401410] [<ffff000008089310>] dump_backtrace+0x0/0x380
-[   25.406831] [<ffff0000080896a4>] show_stack+0x14/0x20
-[   25.411904] [<ffff00000890fa78>] dump_stack+0x98/0xb8
-[   25.416976] [<ffff0000080c8ef0>] panic+0x118/0x280
-[   25.421788] [<ffff000008386a44>] async_tx_quiesce+0x74/0x78
-[   25.427382] [<ffff000008386ca4>] async_memcpy+0x1a4/0x2a0
-[   25.432806] [<ffff000008747f9c>] async_copy_data.isra.16+0x1b4/0x280
-[   25.439186] [<ffff00000874b6fc>] raid_run_ops+0x514/0x1320
-[   25.444694] [<ffff000008751550>] handle_stripe+0x1040/0x2848
-[   25.450377] [<ffff000008752f98>] 
-handle_active_stripes.isra.28+0x240/0x460
-[   25.457279] [<ffff000008753468>] raid5d+0x2b0/0x450
-[   25.462177] [<ffff00000875ead4>] md_thread+0x104/0x160
-[   25.467338] [<ffff0000080e638c>] kthread+0xfc/0x128
-[   25.472234] [<ffff000008085354>] ret_from_fork+0x10/0x1c
-[   25.477571] Kernel Offset: disabled
-[   25.481073] CPU features: 0x002000
-[   25.484487] Memory Limit: none
-[   25.487556] ---[ end Kernel panic - not syncing: async_tx_quiesce: 
-DMA error waiting for transaction
-[   25.487556]
+Do you have any suggestion on how we can handle both cases?
 
-Thanks,
-Hanna
+Thanks
+   j
+
+>
+> Gr{oetje,eeting}s,
+>
+>                         Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+
+--Sk71+Upln2BLuDmg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbTd1yAAoJEHI0Bo8WoVY8Fk4P/jYkQQQts/UOCm/xCDtz8dya
+GKRFdzyp9ZGIPx4MlUWPp7smxNBcnYP6/uVEXmzpilTjOr5hheovbE7B821QN7L8
+jGRp/S2odB5iAPcgvjuWRb6Vac44wjkBzP98Bgz3Ro6MZ1NxzeLOg/ce3cCZkCY+
+W5iaozSkh/P9X75pK0/z9YDyml+aXQ7GKqpDlKzczpgcjALsxg2axwWY4D6kTjLW
+m/9lRXvev/B6QYe4SpbjjfGYYDqPrfvCjhwIz9yzDnUAgHqBW0DATtaAp7L6Sqpc
+GSJU0OpXfY41emQ/tybVdsVB5npyxmMipc2m7Te3s7HVHlNsSd+UBvkOcxzQTRbs
+cZqHnu0axN6Irixm9KiMW6RsyP2V6V2b8yP7V0KdMWqcK16lfNzA64JcbMPJ1w33
++EC8sjNRwBLAW9+zgZ9nhscND9y6ePKVbWH3kFdZKeoxgU40uKjhktdZHfvuuz+s
+3ivP9wZEOAYuoRC+hOpwyWcdwWQB+HD8lygIvMgjvkbcayRxsypuvD+vl7QFbUvm
+TCZgIjphATVqm4MxhiQvJf6h7LlFwaZ84Zisl6kwUg1QxhSv6nP9gBX//8AQC+fD
+0T+0y/8OspAkOHu7cTigXo2xPoOM0rn9Y8wUeP9K0Exzj0LIXyVPkeNmv8btRQUw
+8ro9BgGQw/jO6BOGNw1K
+=Bl78
+-----END PGP SIGNATURE-----
+
+--Sk71+Upln2BLuDmg--
