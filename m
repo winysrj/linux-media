@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:55780 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731533AbeGQOBx (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40174 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731470AbeGQOBw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 10:01:53 -0400
+        Tue, 17 Jul 2018 10:01:52 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 5/5] cec-gpio: support 5v testing
-Date: Tue, 17 Jul 2018 15:29:09 +0200
-Message-Id: <20180717132909.92158-6-hverkuil@xs4all.nl>
+Subject: [PATCH 1/5] cec-gpio.txt: add v5-gpios for testing the 5V line
+Date: Tue, 17 Jul 2018 15:29:05 +0200
+Message-Id: <20180717132909.92158-2-hverkuil@xs4all.nl>
 In-Reply-To: <20180717132909.92158-1-hverkuil@xs4all.nl>
 References: <20180717132909.92158-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,121 +18,52 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add support for the new (optional) 5V gpio in order to debug 5V
-changes. Some displays turn off CEC if the 5V is not detected,
-so it is useful to be able to monitor this line.
+In order to debug the HDMI 5V line we need to add a new v5-gpios
+property.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/cec-gpio/cec-gpio.c | 54 ++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ .../devicetree/bindings/media/cec-gpio.txt      | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/cec-gpio/cec-gpio.c b/drivers/media/platform/cec-gpio/cec-gpio.c
-index 69f8242209c2..d2861749d640 100644
---- a/drivers/media/platform/cec-gpio/cec-gpio.c
-+++ b/drivers/media/platform/cec-gpio/cec-gpio.c
-@@ -23,6 +23,11 @@ struct cec_gpio {
- 	int			hpd_irq;
- 	bool			hpd_is_high;
- 	ktime_t			hpd_ts;
-+
-+	struct gpio_desc	*v5_gpio;
-+	int			v5_irq;
-+	bool			v5_is_high;
-+	ktime_t			v5_ts;
+diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
+index 12fcd55ed153..1d53ce89da74 100644
+--- a/Documentation/devicetree/bindings/media/cec-gpio.txt
++++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
+@@ -4,8 +4,8 @@ The HDMI CEC GPIO module supports CEC implementations where the CEC line
+ is hooked up to a pull-up GPIO line and - optionally - the HPD line is
+ hooked up to another GPIO line.
+ 
+-Please note: the maximum voltage for the CEC line is 3.63V, for the HPD
+-line it is 5.3V. So you may need some sort of level conversion circuitry
++Please note: the maximum voltage for the CEC line is 3.63V, for the HPD and
++5V lines it is 5.3V. So you may need some sort of level conversion circuitry
+ when connecting them to a GPIO line.
+ 
+ Required properties:
+@@ -22,15 +22,18 @@ If the CEC line is not associated with an HDMI receiver/transmitter, then
+ the following property is optional:
+ 
+   - hpd-gpios: gpio that the HPD line is connected to.
++  - v5-gpios: gpio that the 5V line is connected to.
+ 
+ Example for the Raspberry Pi 3 where the CEC line is connected to
+-pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
+-connected to pin 11 aka BCM17 (some level shifter is needed for this!):
++pin 26 aka BCM7 aka CE1 on the GPIO pin header, the HPD line is
++connected to pin 11 aka BCM17 and the 5V line is connected to pin
++15 aka BCM22 (some level shifter is needed for the HPD and 5V lines!):
+ 
+ #include <dt-bindings/gpio/gpio.h>
+ 
+ cec-gpio {
+-       compatible = "cec-gpio";
+-       cec-gpios = <&gpio 7 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
+-       hpd-gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
++	compatible = "cec-gpio";
++	cec-gpios = <&gpio 7 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
++	hpd-gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
++	v5-gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
  };
- 
- static bool cec_gpio_read(struct cec_adapter *adap)
-@@ -65,6 +70,26 @@ static irqreturn_t cec_hpd_gpio_irq_handler_thread(int irq, void *priv)
- 	return IRQ_HANDLED;
- }
- 
-+static irqreturn_t cec_5v_gpio_irq_handler(int irq, void *priv)
-+{
-+	struct cec_gpio *cec = priv;
-+	bool is_high = gpiod_get_value(cec->v5_gpio);
-+
-+	if (is_high == cec->v5_is_high)
-+		return IRQ_HANDLED;
-+	cec->v5_ts = ktime_get();
-+	cec->v5_is_high = is_high;
-+	return IRQ_WAKE_THREAD;
-+}
-+
-+static irqreturn_t cec_5v_gpio_irq_handler_thread(int irq, void *priv)
-+{
-+	struct cec_gpio *cec = priv;
-+
-+	cec_queue_pin_5v_event(cec->adap, cec->v5_is_high, cec->v5_ts);
-+	return IRQ_HANDLED;
-+}
-+
- static irqreturn_t cec_hpd_gpio_irq_handler(int irq, void *priv)
- {
- 	struct cec_gpio *cec = priv;
-@@ -119,6 +144,9 @@ static void cec_gpio_status(struct cec_adapter *adap, struct seq_file *file)
- 	if (cec->hpd_gpio)
- 		seq_printf(file, "hpd: %s\n",
- 			   cec->hpd_is_high ? "high" : "low");
-+	if (cec->v5_gpio)
-+		seq_printf(file, "5V: %s\n",
-+			   cec->v5_is_high ? "high" : "low");
- }
- 
- static int cec_gpio_read_hpd(struct cec_adapter *adap)
-@@ -130,6 +158,15 @@ static int cec_gpio_read_hpd(struct cec_adapter *adap)
- 	return gpiod_get_value(cec->hpd_gpio);
- }
- 
-+static int cec_gpio_read_5v(struct cec_adapter *adap)
-+{
-+	struct cec_gpio *cec = cec_get_drvdata(adap);
-+
-+	if (!cec->v5_gpio)
-+		return -ENOTTY;
-+	return gpiod_get_value(cec->v5_gpio);
-+}
-+
- static void cec_gpio_free(struct cec_adapter *adap)
- {
- 	cec_gpio_disable_irq(adap);
-@@ -144,6 +181,7 @@ static const struct cec_pin_ops cec_gpio_pin_ops = {
- 	.status = cec_gpio_status,
- 	.free = cec_gpio_free,
- 	.read_hpd = cec_gpio_read_hpd,
-+	.read_5v = cec_gpio_read_5v,
- };
- 
- static int cec_gpio_probe(struct platform_device *pdev)
-@@ -167,6 +205,10 @@ static int cec_gpio_probe(struct platform_device *pdev)
- 	if (IS_ERR(cec->hpd_gpio))
- 		return PTR_ERR(cec->hpd_gpio);
- 
-+	cec->v5_gpio = devm_gpiod_get_optional(dev, "v5", GPIOD_IN);
-+	if (IS_ERR(cec->v5_gpio))
-+		return PTR_ERR(cec->v5_gpio);
-+
- 	cec->adap = cec_pin_allocate_adapter(&cec_gpio_pin_ops,
- 		cec, pdev->name, CEC_CAP_DEFAULTS | CEC_CAP_PHYS_ADDR |
- 				 CEC_CAP_MONITOR_ALL | CEC_CAP_MONITOR_PIN);
-@@ -185,6 +227,18 @@ static int cec_gpio_probe(struct platform_device *pdev)
- 			return ret;
- 	}
- 
-+	if (cec->v5_gpio) {
-+		cec->v5_irq = gpiod_to_irq(cec->v5_gpio);
-+		ret = devm_request_threaded_irq(dev, cec->v5_irq,
-+			cec_5v_gpio_irq_handler,
-+			cec_5v_gpio_irq_handler_thread,
-+			IRQF_ONESHOT |
-+			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
-+			"v5-gpio", cec);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	ret = cec_register_adapter(cec->adap, &pdev->dev);
- 	if (ret) {
- 		cec_delete_adapter(cec->adap);
 -- 
 2.18.0
