@@ -1,185 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:57426 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:57448 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729728AbeGQVAs (ORCPT
+        with ESMTP id S1729754AbeGQVHU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 17:00:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 2/3] uvcvideo: send a control event when a Control Change interrupt arrives
-Date: Tue, 17 Jul 2018 23:26:59 +0300
-Message-ID: <3815510.uz0YmiiscJ@avalon>
-In-Reply-To: <alpine.DEB.2.20.1807120834060.24638@axis700.grange>
-References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com> <20995022.aCQirgtdj8@avalon> <alpine.DEB.2.20.1807120834060.24638@axis700.grange>
+        Tue, 17 Jul 2018 17:07:20 -0400
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [PATCH v4 11/11] drm: rcar-du: Support interlaced video output
+ through vsp1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <10463435.CoRpyeppX3@avalon>
+ <6039245e-122c-b1fb-c0f9-09911784216e@ideasonboard.com>
+ <11186195.Bn5zmcZr3a@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <14ede71e-fa99-01d3-eb27-f171e5f3d082@ideasonboard.com>
+Date: Tue, 17 Jul 2018 21:32:56 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <11186195.Bn5zmcZr3a@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Laurent,
 
-On Thursday, 12 July 2018 10:30:46 EEST Guennadi Liakhovetski wrote:
-> On Thu, 12 Jul 2018, Laurent Pinchart wrote:
-> > On Tuesday, 8 May 2018 18:07:43 EEST Guennadi Liakhovetski wrote:
-> >> UVC defines a method of handling asynchronous controls, which sends a
-> >> USB packet over the interrupt pipe. This patch implements support for
-> >> such packets by sending a control event to the user. Since this can
-> >> involve USB traffic and, therefore, scheduling, this has to be done
-> >> in a work queue.
-> >> 
-> >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> >> ---
-> >> 
-> >> v8:
-> >> 
-> >> * avoid losing events by delaying the status URB resubmission until
-> >>   after completion of the current event
-> >> * extract control value calculation into __uvc_ctrl_get_value()
-> >> * do not proactively return EBUSY if the previous control hasn't
-> >>   completed yet, let the camera handle such cases
-> >> * multiple cosmetic changes
-> >> 
-> >>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 ++++++++++++++++++++++++-------
-> >>  drivers/media/usb/uvc/uvc_status.c | 112 ++++++++++++++++++++++---
-> >>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
-> >>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
-> >>  include/uapi/linux/uvcvideo.h      |   2 +
-> >>  5 files changed, 255 insertions(+), 44 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> >> b/drivers/media/usb/uvc/uvc_ctrl.c index 2a213c8..796f86a 100644
-> >> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> >> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+On 17/07/18 14:51, Laurent Pinchart wrote:
+> Hi Kieran,
 > 
-> [snip]
+> On Monday, 16 July 2018 20:20:30 EEST Kieran Bingham wrote:
+>> On 24/05/18 12:50, Laurent Pinchart wrote:
+>>> On Thursday, 3 May 2018 16:36:22 EEST Kieran Bingham wrote:
+>>>> Use the newly exposed VSP1 interface to enable interlaced frame support
+>>>> through the VSP1 lif pipelines.
+>>>
+>>> s/lif/LIF/
+>>
+>> Fixed.
+>>
+>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>> ---
+>>>>
+>>>>  drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 1 +
+>>>>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 3 +++
+>>>>  2 files changed, 4 insertions(+)
+>>>>
+>>>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>>>> b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c index d71d709fe3d9..206532959ec9
+>>>> 100644
+>>>> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>>>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>>>> @@ -289,6 +289,7 @@ static void rcar_du_crtc_set_display_timing(struct
+>>>> rcar_du_crtc *rcrtc)
+>>>>  	/* Signal polarities */
+>>>>  	value = ((mode->flags & DRM_MODE_FLAG_PVSYNC) ? DSMR_VSL : 0)
+>>>>  	      | ((mode->flags & DRM_MODE_FLAG_PHSYNC) ? DSMR_HSL : 0)
+>>>> +	      | ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? DSMR_ODEV : 0)
+>>>
+>>> How will this affect Gen2 ?.
+>>
+>> The bit is documented identically for Gen2. Potentially / Probably it
+>> 'might' reverse the fields... I'm not certain yet. I don't have access
+>> to a Gen2 platform to test.
+>>
+>> I'll see if this change can be dropped, but I think it is playing a role
+>> in ensuring that the field detection occurs in VSP1 through the
+>> VI6_STATUS_FLD_STD() field. (see vsp1_dlm_irq_frame_end())
+>>
+>>> Could you document what this change does in the
+>>> commit message ?
+>>
+>> This sets the position in the buffer of the ODDF. With this set, the ODD
+>> field is located in the second half (BOTTOM) of the same frame of the
+>> interlace display.
+>>
+>> Otherwise, it's in the first half (TOP)
+>>
+>> I faced some issues as to the ordering when testing, so I suspect this
+>> might actually be related to that. (re VI6_STATUS_FLD_STD in
+>> vsp1_dlm_irq_frame_end()).
+>>
+>> As you mention - this may have a negative effect on the Gen2
+>> implementation - so it needs considering with that.
+>>
+>>
+>> /me to investigate further.
 > 
-> >> +static void uvc_ctrl_status_event_work(struct work_struct *work)
-> >> +{
-> >> +	struct uvc_device *dev = container_of(work, struct uvc_device,
-> >> +					      async_ctrl.work);
-> >> +	struct uvc_ctrl_work *w = &dev->async_ctrl;
-> >> +	struct uvc_control_mapping *mapping;
-> >> +	struct uvc_control *ctrl = w->ctrl;
-> >> +	unsigned int i;
-> >> +	int ret;
-> >> +
-> >> +	mutex_lock(&w->chain->ctrl_mutex);
-> >> +
-> >> +	list_for_each_entry(mapping, &ctrl->info.mappings, list) {
-> >> +		s32 value = __uvc_ctrl_get_value(mapping, w->data);
-> >> +
-> >> +		/*
-> >> +		 * So far none of the auto-update controls in the uvc_ctrls[]
-> >> +		 * table is mapped to a V4L control with slaves in the
-> >> +		 * uvc_ctrl_mappings[] list, so slave controls so far never have
-> >> +		 * handle == NULL, but this can change in the future
-> >> +		 */
-> >> +		for (i = 0; i < ARRAY_SIZE(mapping->slave_ids); ++i) {
-> >> +			if (!mapping->slave_ids[i])
-> >> +				break;
-> >> +
-> >> +			__uvc_ctrl_send_slave_event(ctrl->handle, w->chain,
-> >> +						ctrl, mapping->slave_ids[i]);
-> >> +		}
-> >> +
-> >> +		uvc_ctrl_send_event(ctrl->handle, ctrl, mapping, value,
-> >> +				    V4L2_EVENT_CTRL_CH_VALUE);
-> >> +	}
-> >> +
-> >> +	mutex_unlock(&w->chain->ctrl_mutex);
-> >> +
-> >> +	ctrl->handle = NULL;
-> > 
-> > Can't this race with a uvc_ctrl_set() call, resulting in ctrl->handle
-> > being NULL after the control gets set ?
+> Thank you. I don't object to this change, but I'd like to know what its 
+> implications are on Gen2. It might even fix a bug :-) Let me know if you'd 
+> like me to run tests on a Lager board.
+
+I've done some testing with this (removing the DSMR change, and
+inverting the VI6_STATUS_FLD_STD handling) and had some odd results.
+Perhaps my testing needs refinement.
+
+So, yes please - I think I'd really like to know what the effects are on
+a Lager platform.
+
+Would you (or anyone with a Gen2 and interest in vsp1/du) be able to
+test my latest vsp1/du/interlaced branch/tag on your local Gen2 platform
+please?
+
+I'm testing interlaced with:
+
+kmstest # sanity test.
+kmstest -c 1 -r 1920x1080i --flip
+
+Any (easy) other methods for testing interlaced pipelines are welcome.
+
+Is it possible to set the mode for kmscube? (--help doesn't look promising)
+
+I have various test streams of interlaced media content in my media
+library, but not an easy way of decoding and presenting these on the
+screen on the Gen3.
+
+I believe GStreamer now has a drm/kms sink ... Perhaps I should get that
+recompiled. (That would help me with other tasks too actually)
+
+
 > 
-> Right, it's better to set .handle to NULL before sending events. Something
-> like
+>>>>  	      | DSMR_DIPM_DISP | DSMR_CSPM;
+>>>>  	
+>>>>  	rcar_du_crtc_write(rcrtc, DSMR, value);
+>>>>
+>>>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>>>> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index af7822a66dee..c7b37232ee91
+>>>> 100644
+>>>> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>>>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>>>> @@ -186,6 +186,9 @@ static void rcar_du_vsp_plane_setup(struct
+>>>> rcar_du_vsp_plane *plane)
+>>>>  	};
+>>>>  	unsigned int i;
+>>>>
+>>>> +	cfg.interlaced = !!(plane->plane.state->crtc->mode.flags
+>>>> +			    & DRM_MODE_FLAG_INTERLACE);
+>>>> +
+>>>>  	cfg.src.left = state->state.src.x1 >> 16;
+>>>>  	cfg.src.top = state->state.src.y1 >> 16;
+>>>>  	cfg.src.width = drm_rect_width(&state->state.src) >> 16;
 > 
-> mutex_lock();
-> 
-> handle = ctrl->handle;
-> ctrl->handle = NULL;
-> 
-> list_for_each_entry() {
-> 	...
-> 	uvc_ctrl_send_event(handle,...);
-> }
-> 
-> mutex_unlock();
-> 
-> ?
-
-I think you also have to take the same lock in the uvc_ctrl_set() function to 
-fix the problem, otherwise the ctrl->handle = NULL line could still be 
-executed after the ctrl->handle assignment in uvc_ctrl_set(), resulting in 
-ctrl->handle being NULL while the control is being set.
-
-> >> +	/* Resubmit the URB. */
-> >> +	w->urb->interval = dev->int_ep->desc.bInterval;
-> >> +	ret = usb_submit_urb(w->urb, GFP_KERNEL);
-> >> +	if (ret < 0)
-> >> +		uvc_printk(KERN_ERR, "Failed to resubmit status URB (%d).\n",
-> >> +			   ret);
-> >> +}
-
-[snip]
-
-> >> diff --git a/drivers/media/usb/uvc/uvc_status.c
-> >> b/drivers/media/usb/uvc/uvc_status.c index 7b71041..a0f2fea 100644
-> >> --- a/drivers/media/usb/uvc/uvc_status.c
-> >> +++ b/drivers/media/usb/uvc/uvc_status.c
-
-[snip]
-
-> >> +static struct uvc_control *uvc_event_find_ctrl(struct uvc_device *dev,
-> >> +					const struct uvc_control_status *status,
-> >> +					struct uvc_video_chain **chain)
-> >> +{
-> >> +	list_for_each_entry((*chain), &dev->chains, list) {
-> >> +		struct uvc_entity *entity;
-> >> +		struct uvc_control *ctrl;
-> >> +
-> >> +		list_for_each_entry(entity, &(*chain)->entities, chain) {
-> >> +			if (entity->id != status->bOriginator)
-> >> +				continue;
-> >> +
-> >> +			ctrl = uvc_event_entity_find_ctrl(entity,
-> >> +							  status->bSelector);
-> >> +			if (ctrl && (!ctrl->handle ||
-> >> +				     ctrl->handle->chain == *chain))
-> > 
-> > I'm afraid I still don't understand why you need the chain check :-(
-> > Unless I'm mistaken, ctrl->handle is set in uvc_ctrl_set(), where the
-> > control is looked up from the chain corresponding to handle->chain. How
-> > can the check be false here ?
-> 
-> I think you're right, the bOriginator check should be enough.
-> 
-> > Those are my two major concerns. Apart from that I have other small
-> > concerns that I propose addressing myself to avoid further delays. I've
-> > been slow enough when it comes to reviewing this series, if we can clear
-> > the two issues above, I'll handle the rest.
-> 
-> Once I get your review of patch #3, I'll fix these two issues and
-> resubmit, so you can also tell me your "minor concerns," since I'll be
-> resubmitting anyway.
-
-Do you mind if I send them as a diff on top of your patch ? I'll of course add 
-explanations where they are needed.
-
-> >> +				return ctrl;
-> >> +		}
-> >> +	}
-> >> +
-> >> +	return NULL;
-> >> +}
-
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
