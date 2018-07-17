@@ -1,78 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:49242 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729741AbeGQW4J (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:58118 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730180AbeGQXv4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 18:56:09 -0400
-Date: Wed, 18 Jul 2018 07:21:07 +0900
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: hannah@marvell.com, Jonathan Corbet <corbet@lwn.net>,
-        David Miller <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Josef Griebichler <griebichler.josef@gmx.at>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        USB list <linux-usb@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Rik van Riel <riel@redhat.com>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        dma <dmaengine@vger.kernel.org>, vkoul@kernel.org,
-        Dan Williams <dan.j.williams@intel.com>, nadavh@marvell.com,
-        thomas.petazzoni@bootlin.com, omrii@marvell.com
-Subject: Re: dvb usb issues since kernel 4.9
-Message-ID: <20180718072107.0bfdece8@vela.lan>
-In-Reply-To: <CA+55aFwb5hPtPFbB02SSn+wTkqTDSgHGFkiw7LB57mj42VzyZQ@mail.gmail.com>
-References: <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
-        <1d3d0fe3-bc02-7720-15ac-6bc06e00067c@marvell.com>
-        <CA+55aFwb5hPtPFbB02SSn+wTkqTDSgHGFkiw7LB57mj42VzyZQ@mail.gmail.com>
+        Tue, 17 Jul 2018 19:51:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v8 3/3] uvcvideo: handle control pipe protocol STALLs
+Date: Wed, 18 Jul 2018 02:17:29 +0300
+Message-ID: <15478343.qxZ17KchLc@avalon>
+In-Reply-To: <7129850.vz39VDuykc@avalon>
+References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com> <1525792064-30836-4-git-send-email-guennadi.liakhovetski@intel.com> <7129850.vz39VDuykc@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi Guennadi,
 
-Em Tue, 17 Jul 2018 10:09:28 -0700
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+On Tuesday, 17 July 2018 23:58:03 EEST Laurent Pinchart wrote:
+> On Tuesday, 8 May 2018 18:07:44 EEST Guennadi Liakhovetski wrote:
+> > When a command ends up in a STALL on the control pipe, use the Request
+> > Error Code control to provide a more precise error information to the
+> > user. For example, if a camera is still busy processing a control,
+> > when the same or an interrelated control set request arrives, the
+> > camera can react with a STALL and then return the "Not ready" status
+> > in response to a UVC_VC_REQUEST_ERROR_CODE_CONTROL command. With this
+> > patch the user would then get an EBUSY error code instead of a
+> > generic EPIPE.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> On Tue, Jul 17, 2018 at 4:58 AM Hanna Hawa <hannah@marvell.com> wrote:
-> >
-> > After some debug/bisect/diff, found that patch "softirq: Let ksoftirqd
-> > do its job" is problematic patch.  
-> 
-> Ok, this thread died down without any resolution.
-> 
-> >- Using v4.14.0 (including softirq patch) and the additional fix
-> > proposed by Linus - no timeout issue.  
-> 
-> Are you talking about the patch that made HI_SOFTIRQ and
-> TASKLET_SOFTIRQ special, and had this:
-> 
->   #define SOFTIRQ_NOW_MASK ((1 << HI_SOFTIRQ) | (1 << TASKLET_SOFTIRQ))
-> 
-> in it?
-> 
-> I think I'll just commit the damn thing. It's hacky, but it's simple,
-> and it never got applied because we had smarter suggestions. But the
-> smarter suggestions never ended up being applied either, so..
+Can I push this patch already before 2/3 is ready ?
 
-Yeah, IMHO the best would be to apply your patch[1], c/c stable up to
-4.9. Nothing prevents applying a better/smarter solution once we
-have it. From my side, I can keep testing whatever smart suggestions
-people propose. Yet, better to have one fix on our hand than two
-fixes flying around.
+> > ---
+> > 
+> > v8:
+> > 
+> > * restrict UVC_VC_REQUEST_ERROR_CODE_CONTROL to the control interface
+> > * fix the wIndex value
+> > * improve error codes
+> > * cosmetic changes
+> > 
+> >  drivers/media/usb/uvc/uvc_video.c | 52 +++++++++++++++++++++++++++++-----
+> >  1 file changed, 46 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_video.c
+> > b/drivers/media/usb/uvc/uvc_video.c index aa0082f..ce65cd6 100644
+> > --- a/drivers/media/usb/uvc/uvc_video.c
+> > +++ b/drivers/media/usb/uvc/uvc_video.c
+> > @@ -73,17 +73,57 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query,
+> > u8
+> > unit, u8 intfnum, u8 cs, void *data, u16 size)
+> > 
+> >  {
+> >  
+> >  	int ret;
+> > 
+> > +	u8 error;
+> > +	u8 tmp;
+> > 
+> >  	ret = __uvc_query_ctrl(dev, query, unit, intfnum, cs, data, size,
+> >  	
+> >  				UVC_CTRL_CONTROL_TIMEOUT);
+> > 
+> > -	if (ret != size) {
+> > -		uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
+> > -			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
+> > -			unit, ret, size);
+> > -		return -EIO;
+> > +	if (likely(ret == size))
+> > +		return 0;
+> > +
+> > +	uvc_printk(KERN_ERR,
+> > +		   "Failed to query (%s) UVC control %u on unit %u: %d (exp. %u).
+\n",
+> > +		   uvc_query_name(query), cs, unit, ret, size);
+> > +
+> > +	if (ret != -EPIPE)
+> > +		return ret;
+> > +
+> > +	tmp = *(u8 *)data;
+> > +
+> > +	ret = __uvc_query_ctrl(dev, UVC_GET_CUR, 0, intfnum,
+> > +			       UVC_VC_REQUEST_ERROR_CODE_CONTROL, data, 1,
+> > +			       UVC_CTRL_CONTROL_TIMEOUT);
+> > +
+> > +	error = *(u8 *)data;
+> > +	*(u8 *)data = tmp;
+> > +
+> > +	if (ret != 1)
+> > +		return ret < 0 ? ret : -EPIPE;
+> > +
+> > +	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
+> > +
+> > +	switch (error) {
+> > +	case 0:
+> > +		/* Cannot happen - we received a STALL */
+> > +		return -EPIPE;
+> > +	case 1: /* Not ready */
+> > +		return -EBUSY;
+> > +	case 2: /* Wrong state */
+> > +		return -EILSEQ;
+> > +	case 3: /* Power */
+> > +		return -EREMOTE;
+> > +	case 4: /* Out of range */
+> > +		return -ERANGE;
+> > +	case 5: /* Invalid unit */
+> > +	case 6: /* Invalid control */
+> > +	case 7: /* Invalid Request */
+> > +	case 8: /* Invalid value within range */
+> > +		return -EINVAL;
+> > +	default: /* reserved or unknown */
+> > +		break;
+> > 
+> >  	}
+> > 
+> > -	return 0;
+> > +	return -EPIPE;
+> > 
+> >  }
+> >  
+> >  static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
 
-[1] e. g. 
-	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=v4.15%2bmedia%2bdwc2&id=ccf833fd4a5b99c3d3cf2c09c065670f74a230a7
 
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
