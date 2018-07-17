@@ -1,70 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:57500 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729802AbeGQVKa (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:46550 "HELO
+        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1729757AbeGQVZf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 17:10:30 -0400
-From: Kieran Bingham <kieran@ksquared.org.uk>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v5 11/11] drm: rcar-du: Support interlaced video output through vsp1
-Date: Tue, 17 Jul 2018 21:35:53 +0100
-Message-Id: <0c4309e0e053bdad2221aeee49c763568a304dbd.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Tue, 17 Jul 2018 17:25:35 -0400
+Date: Tue, 17 Jul 2018 16:51:10 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Ezequiel Garcia <ezequiel@collabora.com>
+cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Hans de Goede <hdegoede@redhat.com>, <hverkuil@xs4all.nl>,
+        <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        <rostedt@goodmis.org>, <mingo@redhat.com>, <isely@pobox.com>,
+        <bhumirks@gmail.com>, <colin.king@canonical.com>,
+        <linux-media@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
+ ISO transfer
+In-Reply-To: <eb2b495fe7e8bbeaf3f9e2814be4923583482852.camel@collabora.com>
+Message-ID: <Pine.LNX.4.44L0.1807171643120.1344-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Tue, 17 Jul 2018, Ezequiel Garcia wrote:
 
-Use the newly exposed VSP1 interface to enable interlaced frame support
-through the VSP1 LIF pipelines.
+> Hi Matwey,
+> 
+> First of all, sorry for the delay.
+> 
+> Adding Alan and Hans. Guys, do you have any feedback here?
 
-The DSMR register is updated to set the ODEV flag on interlaced
-pipelines, thus defining an interlaced stream as having the ODD field
-located in the second half (BOTTOM) of the frame buffer.
+...
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > > So, what is the benefit of using consistent
+> > > for these URBs, as opposed to streaming?
+> > 
+> > I don't know, I think there is no real benefit and all we see is a
+> > consequence of copy-pasta when some webcam drivers were inspired by
+> > others and development priparily was going at x86 platforms.
+> 
+> You are probably right about the copy-pasta.
+> 
+> >  It would
+> > be great if somebody corrected me here. DMA Coherence is quite strong
+> > property and I cannot figure out how can it help when streaming video.
+> > The CPU host always reads from the buffer and never writes to.
+> > Hardware perepherial always writes to and never reads from. Moreover,
+> > buffer access is mutually exclusive and separated in time by Interrupt
+> > fireing and URB starting (when we reuse existing URB for new request).
+> > Only single one memory barrier is really required here.
+> > 
+> 
+> Yeah, and not setting URB_NO_TRANSFER_DMA_MAP makes the USB core
+> create DMA mappings and use the streaming API. Which makes more
+> sense in hardware without hardware coherency.
 
----
-v5
- - Fix commit title
- - Document change to DSMR
- - Configure through vsp1_du_setup_lif(), rather than
-   vsp1_du_atomic_update()
+As far as I know, the _only_ advantage to using coherent DMA in this
+situation is that you then do not have to pay the overhead of
+constantly setting up and tearing down the streaming mappings.  So it
+depends very much on the platform: If coherent buffers are cached then
+it's a slight win and otherwise it's a big lose.
 
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 1 +
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index 15dc9caa128b..b52b3e817b93 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -289,6 +289,7 @@ static void rcar_du_crtc_set_display_timing(struct rcar_du_crtc *rcrtc)
- 	/* Signal polarities */
- 	value = ((mode->flags & DRM_MODE_FLAG_PVSYNC) ? DSMR_VSL : 0)
- 	      | ((mode->flags & DRM_MODE_FLAG_PHSYNC) ? DSMR_HSL : 0)
-+	      | ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? DSMR_ODEV : 0)
- 	      | DSMR_DIPM_DISP | DSMR_CSPM;
- 	rcar_du_crtc_write(rcrtc, DSMR, value);
- 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index 72eebeda518e..a042f116731b 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -52,6 +52,7 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
- 	struct vsp1_du_lif_config cfg = {
- 		.width = mode->hdisplay,
- 		.height = mode->vdisplay,
-+		.interlaced = mode->flags & DRM_MODE_FLAG_INTERLACE,
- 		.callback = rcar_du_vsp_complete,
- 		.callback_data = crtc,
- 	};
--- 
-git-series 0.9.1
+Alan Stern
