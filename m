@@ -1,95 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43802 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:57698 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729770AbeGMQRQ (ORCPT
+        with ESMTP id S1729754AbeGQVcD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jul 2018 12:17:16 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: rcar-du/vsp1: possible recursive locking detected
-Message-ID: <97d625f6-9eb5-d08a-0222-f1cb244f5089@ideasonboard.com>
-Date: Fri, 13 Jul 2018 17:01:55 +0100
+        Tue, 17 Jul 2018 17:32:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v8 3/3] uvcvideo: handle control pipe protocol STALLs
+Date: Tue, 17 Jul 2018 23:58:03 +0300
+Message-ID: <7129850.vz39VDuykc@avalon>
+In-Reply-To: <1525792064-30836-4-git-send-email-guennadi.liakhovetski@intel.com>
+References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com> <1525792064-30836-4-git-send-email-guennadi.liakhovetski@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Observing this on linux-media/master branch, while running a simple
-kmstest with dual outputs (HDMI, VGA)
+Hi Guennadi,
 
+Thank you for the patch.
 
-Just reporting for the moment. We'll have to look at bisecting to see if
-it was introduced recently.
+On Tuesday, 8 May 2018 18:07:44 EEST Guennadi Liakhovetski wrote:
+> When a command ends up in a STALL on the control pipe, use the Request
+> Error Code control to provide a more precise error information to the
+> user. For example, if a camera is still busy processing a control,
+> when the same or an interrelated control set request arrives, the
+> camera can react with a STALL and then return the "Not ready" status
+> in response to a UVC_VC_REQUEST_ERROR_CODE_CONTROL command. With this
+> patch the user would then get an EBUSY error code instead of a
+> generic EPIPE.
+> 
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-[   31.644076] ============================================
-[   31.649412] WARNING: possible recursive locking detected
-[   31.654752] 4.18.0-rc2-arm64-renesas-12862-g666e994aa227 #25 Not tainted
-[   31.661483] --------------------------------------------
-[   31.666818] kmstest/986 is trying to acquire lock:
-[   31.671631] 000000008bb5ef8e (&vsp1->drm->lock){+.+.}, at:
-vsp1_du_setup_lif+0x90/0x438
-[   31.679693]
-[   31.679693] but task is already holding lock:
-[   31.685551] 00000000ef2edc5c (&vsp1->drm->lock){+.+.}, at:
-vsp1_du_atomic_begin+0x1c/0x28
-[   31.693775]
-[   31.693775] other info that might help us debug this:
-[   31.700331]  Possible unsafe locking scenario:
-[   31.700331]
-[   31.706276]        CPU0
-[   31.708731]        ----
-[   31.711185]   lock(&vsp1->drm->lock);
-[   31.714864]   lock(&vsp1->drm->lock);
-[   31.718543]
-[   31.718543]  *** DEADLOCK ***
-[   31.718543]
-[   31.724489]  May be due to missing lock nesting notation
-[   31.724489]
-[   31.731308] 3 locks held by kmstest/986:
-[   31.735246]  #0: 0000000073af26f9 (crtc_ww_class_acquire){+.+.}, at:
-drm_mode_atomic_ioctl+0xa0/0xa50
-[   31.744523]  #1: 000000007a933c3a (crtc_ww_class_mutex){+.+.}, at:
-drm_modeset_lock+0x64/0x118
-[   31.753184]  #2: 00000000ef2edc5c (&vsp1->drm->lock){+.+.}, at:
-vsp1_du_atomic_begin+0x1c/0x28
-[   31.761844]
-[   31.761844] stack backtrace:
-[   31.766223] CPU: 1 PID: 986 Comm: kmstest Not tainted
-4.18.0-rc2-arm64-renesas-12862-g666e994aa227 #25
-[   31.775571] Hardware name: Renesas Salvator-X 2nd version board based
-on r8a7795 ES2.0+ (DT)
-[   31.784047] Call trace:
-[   31.786509]  dump_backtrace+0x0/0x1c8
-[   31.790187]  show_stack+0x14/0x20
-[   31.793521]  dump_stack+0xbc/0xf4
-[   31.796853]  __lock_acquire+0x964/0x1888
-[   31.800792]  lock_acquire+0x48/0x64
-[   31.804297]  __mutex_lock+0x70/0x838
-[   31.807887]  mutex_lock_nested+0x1c/0x28
-[   31.811826]  vsp1_du_setup_lif+0x90/0x438
-[   31.815856]  rcar_du_vsp_enable+0x108/0x138
-[   31.820057]  rcar_du_crtc_setup+0x3d8/0x548
-[   31.824258]  rcar_du_crtc_atomic_begin+0x5c/0x70
-[   31.828899]  drm_atomic_helper_commit_planes+0x70/0x208
-[   31.834147]  rcar_du_atomic_commit_tail+0x30/0x68
-[   31.838871]  commit_tail+0x44/0x78
-[   31.842287]  drm_atomic_helper_commit+0xe8/0x160
-[   31.846925]  drm_atomic_commit+0x48/0x58
-[   31.850865]  drm_mode_atomic_ioctl+0x850/0xa50
-[   31.855328]  drm_ioctl_kernel+0x88/0x108
-[   31.859267]  drm_ioctl+0x1b8/0x400
-[   31.862686]  do_vfs_ioctl+0xb8/0xa20
-[   31.866276]  ksys_ioctl+0x44/0x90
-[   31.869605]  sys_ioctl+0xc/0x18
-[   31.872759]  el0_svc_naked+0x30/0x34
+> ---
+> 
+> v8:
+> 
+> * restrict UVC_VC_REQUEST_ERROR_CODE_CONTROL to the control interface
+> * fix the wIndex value
+> * improve error codes
+> * cosmetic changes
+> 
+>  drivers/media/usb/uvc/uvc_video.c | 52 +++++++++++++++++++++++++++++++-----
+>  1 file changed, 46 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index aa0082f..ce65cd6 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -73,17 +73,57 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8
+> unit, u8 intfnum, u8 cs, void *data, u16 size)
+>  {
+>  	int ret;
+> +	u8 error;
+> +	u8 tmp;
+> 
+>  	ret = __uvc_query_ctrl(dev, query, unit, intfnum, cs, data, size,
+>  				UVC_CTRL_CONTROL_TIMEOUT);
+> -	if (ret != size) {
+> -		uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
+> -			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
+> -			unit, ret, size);
+> -		return -EIO;
+> +	if (likely(ret == size))
+> +		return 0;
+> +
+> +	uvc_printk(KERN_ERR,
+> +		   "Failed to query (%s) UVC control %u on unit %u: %d (exp. %u).\n",
+> +		   uvc_query_name(query), cs, unit, ret, size);
+> +
+> +	if (ret != -EPIPE)
+> +		return ret;
+> +
+> +	tmp = *(u8 *)data;
+> +
+> +	ret = __uvc_query_ctrl(dev, UVC_GET_CUR, 0, intfnum,
+> +			       UVC_VC_REQUEST_ERROR_CODE_CONTROL, data, 1,
+> +			       UVC_CTRL_CONTROL_TIMEOUT);
+> +
+> +	error = *(u8 *)data;
+> +	*(u8 *)data = tmp;
+> +
+> +	if (ret != 1)
+> +		return ret < 0 ? ret : -EPIPE;
+> +
+> +	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
+> +
+> +	switch (error) {
+> +	case 0:
+> +		/* Cannot happen - we received a STALL */
+> +		return -EPIPE;
+> +	case 1: /* Not ready */
+> +		return -EBUSY;
+> +	case 2: /* Wrong state */
+> +		return -EILSEQ;
+> +	case 3: /* Power */
+> +		return -EREMOTE;
+> +	case 4: /* Out of range */
+> +		return -ERANGE;
+> +	case 5: /* Invalid unit */
+> +	case 6: /* Invalid control */
+> +	case 7: /* Invalid Request */
+> +	case 8: /* Invalid value within range */
+> +		return -EINVAL;
+> +	default: /* reserved or unknown */
+> +		break;
+>  	}
+> 
+> -	return 0;
+> +	return -EPIPE;
+>  }
+> 
+>  static void uvc_fixup_video_ctrl(struct uvc_streaming *stream,
 
 -- 
-Regards
---
-Kieran
+Regards,
+
+Laurent Pinchart
