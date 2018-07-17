@@ -1,148 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:44602 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728330AbeGQMzf (ORCPT
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:40644 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731439AbeGQMzx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 08:55:35 -0400
+        Tue, 17 Jul 2018 08:55:53 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180709151947.940759-1-arnd@arndb.de>
-References: <20180709151947.940759-1-arnd@arndb.de>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 17 Jul 2018 13:22:37 +0100
-Message-ID: <CA+V-a8vw_4t7srk2wxp_W7QDN8-Vwj=OC8bvyvpzyTyhXnHLEA@mail.gmail.com>
-Subject: Re: [PATCH] headers: fix linux/mod_devicetable.h inclusions
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Gabriel Somlo <somlo@cmu.edu>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Zha Qipeng <qipeng.zha@intel.com>,
-        Darren Hart <dvhart@infradead.org>,
-        Andy Shevchenko <andy@infradead.org>,
-        =?UTF-8?B?TWFyYy1BbmRyw6kgTHVyZWF1?= <marcandre.lureau@redhat.com>,
-        qemu-devel@nongnu.org, LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, platform-driver-x86@vger.kernel.org
+References: <20180605233435.18102-1-kieran.bingham+renesas@ideasonboard.com>
+ <20180605233435.18102-2-kieran.bingham+renesas@ideasonboard.com>
+ <CAMuHMdUYbEK36E4hD+nVDfM5_nuY8SubkgBCtcYuSy+eZLNt5Q@mail.gmail.com> <20180717121338.GO8180@w540>
+In-Reply-To: <20180717121338.GO8180@w540>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 17 Jul 2018 14:23:16 +0200
+Message-ID: <CAMuHMdVLe3P0GBP9z=S2+a1SDsBe3zmUnS32J-yd4tYsP99qaQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v1 1/4] media: dt-bindings: max9286: add device tree binding
+To: Jacopo Mondi <jacopo@jmondi.org>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 9, 2018 at 4:19 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> A couple of drivers produced build errors after the mod_devicetable.h
-> header was split out from the platform_device one, e.g.
->
-> drivers/media/platform/davinci/vpbe_osd.c:42:40: error: array type has incomplete element type 'struct platform_device_id'
-> drivers/media/platform/davinci/vpbe_venc.c:42:40: error: array type has incomplete element type 'struct platform_device_id'
->
+Hi Jacopo,
 
-For the above fixes,
+On Tue, Jul 17, 2018 at 2:13 PM jacopo mondi <jacopo@jmondi.org> wrote:
+>    I'm replying here, even if a new version of the bindings for this
+> chip has been posted[1], as they have the same ports layout.
+>
+> [1] https://www.spinics.net/lists/linux-renesas-soc/msg29307.html
+>
+> On Wed, Jun 06, 2018 at 08:34:41AM +0200, Geert Uytterhoeven wrote:
+> > Hi Kieran,
+> >
+> > On Wed, Jun 6, 2018 at 1:34 AM, Kieran Bingham
+> > <kieran.bingham+renesas@ideasonboard.com> wrote:
+> > > Provide device tree binding documentation for the MAX9286 Quad GMSL
+> > > deserialiser.
+> > >
+> > > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >
+> > Thanks for your patch!
+> >
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/media/i2c/max9286.txt
+> > > @@ -0,0 +1,75 @@
+> > > +* Maxim Integrated MAX9286 GMSL Quad 1.5Gbps GMSL Deserializer
+> > > +
+> > > +Required Properties:
+> > > + - compatible: Shall be "maxim,max9286"
+> > > +
+> > > +The following required properties are defined externally in
+> > > +Documentation/devicetree/bindings/i2c/i2c-mux.txt:
+> > > + - Standard I2C mux properties.
+> > > + - I2C child bus nodes.
+> > > +
+> > > +A maximum of 4 I2C child nodes can be specified on the MAX9286, to
+> > > +correspond with a maximum of 4 input devices.
+> > > +
+> > > +The device node must contain one 'port' child node per device input and output
+> > > +port, in accordance with the video interface bindings defined in
+> > > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+> > > +are numbered as follows.
+> > > +
+> > > +      Port        Type
+> > > +    ----------------------
+> > > +       0          sink
+> > > +       1          sink
+> > > +       2          sink
+> > > +       3          sink
+> > > +       4          source
+> >
+> > I assume the source and at least one sink are thus mandatory?
+> >
+> > Would it make sense to use port 0 for the source?
+> > This would simplify extending the binding to devices with more input
+> > ports later.
+>
+> I see your point, but as someone that has no idea how future chips could look
+> like, I wonder why having multiple outputs it's more un-likely to
+> happen than having more inputs added.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+I also don't know.
+I was just thinking "What if another chip has less or more sinks?".
 
-Regards,
---Prabhakar Lad
+> Do you have any suggestion on how we can handle both cases?
 
-> This adds the inclusion where needed.
->
-> Fixes: ac3167257b9f ("headers: separate linux/mod_devicetable.h from linux/platform_device.h")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/firmware/qemu_fw_cfg.c             | 1 +
->  drivers/media/platform/davinci/vpbe_osd.c  | 1 +
->  drivers/media/platform/davinci/vpbe_venc.c | 1 +
->  drivers/media/platform/qcom/venus/vdec.c   | 1 +
->  drivers/media/platform/qcom/venus/venc.c   | 1 +
->  drivers/media/platform/sti/hva/hva-v4l2.c  | 1 +
->  drivers/platform/x86/intel_punit_ipc.c     | 1 +
->  7 files changed, 7 insertions(+)
->
-> diff --git a/drivers/firmware/qemu_fw_cfg.c b/drivers/firmware/qemu_fw_cfg.c
-> index 14fedbeca724..039e0f91dba8 100644
-> --- a/drivers/firmware/qemu_fw_cfg.c
-> +++ b/drivers/firmware/qemu_fw_cfg.c
-> @@ -28,6 +28,7 @@
->   */
->
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/acpi.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-> index 7f610320426d..c551a25d90d9 100644
-> --- a/drivers/media/platform/davinci/vpbe_osd.c
-> +++ b/drivers/media/platform/davinci/vpbe_osd.c
-> @@ -18,6 +18,7 @@
->   *
->   */
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/kernel.h>
->  #include <linux/interrupt.h>
->  #include <linux/platform_device.h>
-> diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
-> index ba157827192c..ddcad7b3e76c 100644
-> --- a/drivers/media/platform/davinci/vpbe_venc.c
-> +++ b/drivers/media/platform/davinci/vpbe_venc.c
-> @@ -11,6 +11,7 @@
->   * GNU General Public License for more details.
->   */
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/ctype.h>
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> index f89a91d43cc9..d4e23c7df347 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -14,6 +14,7 @@
->   */
->  #include <linux/clk.h>
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-> index f7a87a3dbb46..0522cf202b75 100644
-> --- a/drivers/media/platform/qcom/venus/venc.c
-> +++ b/drivers/media/platform/qcom/venus/venc.c
-> @@ -14,6 +14,7 @@
->   */
->  #include <linux/clk.h>
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
-> index 15080cb00fa7..5a807c7c5e79 100644
-> --- a/drivers/media/platform/sti/hva/hva-v4l2.c
-> +++ b/drivers/media/platform/sti/hva/hva-v4l2.c
-> @@ -6,6 +6,7 @@
->   */
->
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  #include <media/v4l2-event.h>
-> diff --git a/drivers/platform/x86/intel_punit_ipc.c b/drivers/platform/x86/intel_punit_ipc.c
-> index b5b890127479..f1afc0ebbc68 100644
-> --- a/drivers/platform/x86/intel_punit_ipc.c
-> +++ b/drivers/platform/x86/intel_punit_ipc.c
-> @@ -12,6 +12,7 @@
->   */
->
->  #include <linux/module.h>
-> +#include <linux/mod_devicetable.h>
->  #include <linux/acpi.h>
->  #include <linux/delay.h>
->  #include <linux/bitops.h>
-> --
-> 2.9.0
->
+Instead of having a single "ports" subnode, you could split it in two subnodes,
+"sinks" and "sources"? I don't know if that's feasible.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
