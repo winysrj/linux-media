@@ -1,83 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:51224 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733128AbeGTSy4 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:50552 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726357AbeGQEUm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jul 2018 14:54:56 -0400
-Date: Fri, 20 Jul 2018 12:05:30 -0600
-From: Rob Herring <robh@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/5] cec-gpio.txt: add v5-gpios for testing the 5V line
-Message-ID: <20180720180530.GA21569@rob-hp-laptop>
-References: <20180717132909.92158-1-hverkuil@xs4all.nl>
- <20180717132909.92158-2-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180717132909.92158-2-hverkuil@xs4all.nl>
+        Tue, 17 Jul 2018 00:20:42 -0400
+Message-ID: <24ac4b0bc96b769da40aa6f0ffe98b00@smtp-cloud7.xs4all.net>
+Date: Tue, 17 Jul 2018 05:50:12 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 17, 2018 at 03:29:05PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> In order to debug the HDMI 5V line we need to add a new v5-gpios
-> property.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../devicetree/bindings/media/cec-gpio.txt      | 17 ++++++++++-------
->  1 file changed, 10 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
-> index 12fcd55ed153..1d53ce89da74 100644
-> --- a/Documentation/devicetree/bindings/media/cec-gpio.txt
-> +++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
-> @@ -4,8 +4,8 @@ The HDMI CEC GPIO module supports CEC implementations where the CEC line
->  is hooked up to a pull-up GPIO line and - optionally - the HPD line is
->  hooked up to another GPIO line.
->  
-> -Please note: the maximum voltage for the CEC line is 3.63V, for the HPD
-> -line it is 5.3V. So you may need some sort of level conversion circuitry
-> +Please note: the maximum voltage for the CEC line is 3.63V, for the HPD and
-> +5V lines it is 5.3V. So you may need some sort of level conversion circuitry
->  when connecting them to a GPIO line.
->  
->  Required properties:
-> @@ -22,15 +22,18 @@ If the CEC line is not associated with an HDMI receiver/transmitter, then
->  the following property is optional:
->  
->    - hpd-gpios: gpio that the HPD line is connected to.
-> +  - v5-gpios: gpio that the 5V line is connected to.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This is a bit strange without the context of debugging. So can you 
-mention that here.
+Results of the daily build of media_tree:
 
-With that,
+date:			Tue Jul 17 05:00:10 CEST 2018
+media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
+media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
+v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.140-i686: OK
+linux-4.4.140-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.112-i686: OK
+linux-4.9.112-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.55-i686: OK
+linux-4.14.55-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.6-i686: OK
+linux-4.17.6-x86_64: OK
+linux-4.18-rc4-i686: OK
+linux-4.18-rc4-x86_64: OK
+apps: OK
+spec-git: OK
 
->  
->  Example for the Raspberry Pi 3 where the CEC line is connected to
-> -pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
-> -connected to pin 11 aka BCM17 (some level shifter is needed for this!):
-> +pin 26 aka BCM7 aka CE1 on the GPIO pin header, the HPD line is
-> +connected to pin 11 aka BCM17 and the 5V line is connected to pin
-> +15 aka BCM22 (some level shifter is needed for the HPD and 5V lines!):
->  
->  #include <dt-bindings/gpio/gpio.h>
->  
->  cec-gpio {
-> -       compatible = "cec-gpio";
-> -       cec-gpios = <&gpio 7 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
-> -       hpd-gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
-> +	compatible = "cec-gpio";
-> +	cec-gpios = <&gpio 7 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
-> +	hpd-gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
-> +	v5-gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
->  };
-> -- 
-> 2.18.0
-> 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
