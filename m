@@ -1,483 +1,571 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:56898 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726635AbeGQLbK (ORCPT
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:42714 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730310AbeGQLkR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 07:31:10 -0400
-Date: Tue, 17 Jul 2018 19:58:53 +0900
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
-Cc: <linux-media@vger.kernel.org>,
-        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
-        "Jassi Brar" <jaswinder.singh@linaro.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, "Abylay Ospan" <aospan@netup.ru>
-Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
- demodulator driver
-Message-ID: <20180717195853.07b2b42b@vela.lan>
-In-Reply-To: <001201d41d94$7370e1d0$5a52a570$@socionext.com>
-References: <20180621031748.21703-1-suzuki.katsuhiro@socionext.com>
-        <20180704135657.3fd607cb@coco.lan>
-        <000401d41403$b33db490$19b91db0$@socionext.com>
-        <20180704234244.32d20f6b@coco.lan>
-        <000501d41423$265013a0$72f03ae0$@socionext.com>
-        <20180705212723.2856f064@coco.lan>
-        <001f01d414ef$27145450$753cfcf0$@socionext.com>
-        <20180706081603.2d8451c9@coco.lan>
-        <002c01d41729$2ff6fa00$8fe4ee00$@socionext.com>
-        <20180709105938.3d2f8391@coco.lan>
-        <004501d417f8$c83a01c0$58ae0540$@socionext.com>
-        <001201d41d94$7370e1d0$5a52a570$@socionext.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Tue, 17 Jul 2018 07:40:17 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] media: staging: tegra-vde: Replace debug messages with trace points
+Date: Tue, 17 Jul 2018 14:07:38 +0300
+Message-Id: <20180717110738.23769-1-digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 17 Jul 2018 15:07:32 +0900
-"Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
+Trace points are much more efficient than debug messages for extensive
+tracing and could be conveniently enabled / disabled dynamically, hence
+let's replace debug messages with the trace points.
 
-> Hello Mauro,
->=20
-> I want to send next version (v4) of this patch (just fix wrong max/min ra=
-nge of=20
-> frequency, fix symbol rate). But it depends your patches for DVB cores.
->=20
-> Which way is better?
->=20
->   - Send next version now
->   - Send next version after your DVB cores patches applied
->=20
-> I want to try to solve LNB problem after current codes applied. I think L=
-NB IC=20
-> will be defined as regulator device. Please tell me if you have comments =
-about
-> it.
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+---
 
-I'm out of the town this week, but you can send it. No need to wait for
-my patches. Just add a notice that the patch depends on them. I'll
-handle after returning back from my trip.
+Changelog:
 
->=20
->=20
-> Regards,
-> --
-> Katsuhiro Suzuki
->=20
->=20
-> > -----Original Message-----
-> > From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
-> > Sent: Tuesday, July 10, 2018 11:51 AM
-> > To: 'Mauro Carvalho Chehab' <mchehab+samsung@kernel.org>; Suzuki, Katsu=
-hiro/=E9=88=B4=E6=9C=A8
-> > =E5=8B=9D=E5=8D=9A <suzuki.katsuhiro@socionext.com>
-> > Cc: linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@lin=
-aro.org>;
-> > Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infrade=
-ad.org;
-> > linux-kernel@vger.kernel.org; Abylay Ospan <aospan@netup.ru>
-> > Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISD=
-B-S/T
-> > demodulator driver
-> >=20
-> > Hello Mauro,
-> >  =20
-> > > -----Original Message-----
-> > > From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > > Sent: Monday, July 9, 2018 11:00 PM
-> > > To: Suzuki, Katsuhiro/=E9=88=B4=E6=9C=A8 =E5=8B=9D=E5=8D=9A <suzuki.k=
-atsuhiro@socionext.com>
-> > > Cc: linux-media@vger.kernel.org; Masami Hiramatsu =20
-> > <masami.hiramatsu@linaro.org>; =20
-> > > Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infra=
-dead.org;
-> > > linux-kernel@vger.kernel.org; Abylay Ospan <aospan@netup.ru>
-> > > Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A I=
-SDB-S/T
-> > > demodulator driver
-> > >
-> > > Em Mon, 9 Jul 2018 11:04:36 +0900
-> > > "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
-> > > =20
-> > > > Hello Mauro,
-> > > > =20
-> > > > > -----Original Message-----
-> > > > > From: linux-media-owner@vger.kernel.org <linux-media-owner@vger.k=
-ernel.org> =20
-> > > On =20
-> > > > > Behalf Of Mauro Carvalho Chehab
-> > > > > Sent: Friday, July 6, 2018 8:16 PM
-> > > > > To: Suzuki, Katsuhiro/=E9=88=B4=E6=9C=A8 =E5=8B=9D=E5=8D=9A <suzu=
-ki.katsuhiro@socionext.com>
-> > > > > Cc: linux-media@vger.kernel.org; Masami Hiramatsu =20
-> > > > <masami.hiramatsu@linaro.org>; =20
-> > > > > Jassi Brar <jaswinder.singh@linaro.org>; =20
-> > > linux-arm-kernel@lists.infradead.org; =20
-> > > > > linux-kernel@vger.kernel.org; Abylay Ospan <aospan@netup.ru>
-> > > > > Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC150=
-1A ISDB-S/T
-> > > > > demodulator driver
-> > > > >
-> > > > > Em Fri, 6 Jul 2018 15:04:08 +0900
-> > > > > "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
-> > > > > =20
-> > > > > > Here is the log of dvb-fe-tool on my environment.
-> > > > > >
-> > > > > > --------------------
-> > > > > > # ./utils/dvb/.libs/dvb-fe-tool -d isdbs
-> > > > > > Changing delivery system to: ISDBS
-> > > > > > ERROR    FE_SET_VOLTAGE: Unknown error 524 =20
-> > > > >
-> > > > > Hmm... ENOTSUPP. Doesn't the device supposed to be able to power =
-on the
-> > > > > LNBf? =20
-> > > >
-> > > > Ah, maybe it's not implemented yet in Helene driver. =20
-> > >
-> > > That depends on how the hardware works. On some hardware, the
-> > > LNBf power supply and control is at the demod; on others, it is
-> > > supported by a separate chipset. See, for example, isl642.c for
-> > > an example of such external hardware.
-> > >
-> > > I don't know much about ISDB-S, but, as far as what was
-> > > implemented on v4l-utils dvb-sat.c for Japan 110BS/CS LNBf,
-> > > the LNBf voltage is not used to switch the polarity.
-> > >
-> > > So, the control here is simpler than on DVB-S/S2, as the only
-> > > control is either to send 18V to power on the LNBf/Dish, or
-> > > zero in order to save power.
-> > > =20
-> >=20
-> > Thank you, I misunderstood about LNB. I checked circuit of evaluation
-> > board, the board has discrete LNB IC (ST micro LNBH29) for supplying
-> > voltage to Helene. This IC is controlled by I2C.
-> >=20
-> > The standard (ARIB STD-B21) says DC 15V power is needed to drive the
-> > converter (BS freq -> BS-IF freq) of BS dish antenna. This power
-> > can be supplied via antenna line.
-> >=20
-> > It seems,
-> >   LNBH29 --(LNB_PWR)--> Helene --> BS antenna
-> >=20
-> > I don't know enough about Helene, but it maybe supply 15V power to
-> > converter of BS dish via antenna line if it receive 15V LNB_PWR...
-> >=20
-> >=20
-> > I don't have idea about controlling this IC. Should I write some
-> > driver for LNBH29, and pass the phandle to demodulator via device
-> > tree??
-> >=20
-> >  =20
-> > > >
-> > > > =20
-> > > > >
-> > > > > Anyway, I changed the error print message to be clearer, displayi=
-ng
-> > > > > instead:
-> > > > >
-> > > > >   ERROR    FE_SET_VOLTAGE: driver doesn't support it!
-> > > > > =20
-> > > >
-> > > > It's nice for users. Thanks!
-> > > >
-> > > > =20
-> > > > > >
-> > > > > > # ./utils/dvb/.libs/dvb-fe-tool
-> > > > > > Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabili=
-ties:
-> > > > > >      CAN_FEC_AUTO
-> > > > > >      CAN_GUARD_INTERVAL_AUTO
-> > > > > >      CAN_HIERARCHY_AUTO
-> > > > > >      CAN_INVERSION_AUTO
-> > > > > >      CAN_QAM_AUTO
-> > > > > >      CAN_TRANSMISSION_MODE_AUTO
-> > > > > > DVB API Version 5.11, Current v5 delivery system: ISDBS
-> > > > > > Supported delivery systems:
-> > > > > >     [ISDBS]
-> > > > > >      ISDBT
-> > > > > > Frequency range for the current standard:
-> > > > > > From:             470 MHz
-> > > > > > To:              2.07 GHz
-> > > > > > Step:            25.0 kHz
-> > > > > > Symbol rate ranges for the current standard:
-> > > > > > From:                 0Bauds
-> > > > > > To:                   0Bauds =20
-> > > > >
-> > > > > That seems a driver issue. The ISDB-S ops.info should be
-> > > > > filling both symbol_rate_min and symbol_rate_max.
-> > > > >
-> > > > > I suspect that both should be filled with 28860000.
-> > > > >
-> > > > > The dvb_frontend.c core might hardcode it, but, IMHO,
-> > > > > it is better to keep those information inside the
-> > > > > tuner/frontend ops.info.
-> > > > > =20
-> > > >
-> > > > Indeed, thank you for reviewing. I fixed my driver. It seems works =
-fine.
-> > > >
-> > > > ----
-> > > > # utils/dvb/.libs/dvb-fe-tool -a 0
-> > > > Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabilities:
-> > > >      CAN_FEC_AUTO
-> > > >      CAN_GUARD_INTERVAL_AUTO
-> > > >      CAN_HIERARCHY_AUTO
-> > > >      CAN_INVERSION_AUTO
-> > > >      CAN_QAM_AUTO
-> > > >      CAN_TRANSMISSION_MODE_AUTO
-> > > > DVB API Version 5.11, Current v5 delivery system: ISDBS
-> > > > Supported delivery systems:
-> > > >     [ISDBS]
-> > > >      ISDBT
-> > > > Frequency range for the current standard:
-> > > > From:             470 MHz
-> > > > To:              2.07 GHz
-> > > > Step:            25.0 kHz
-> > > > Symbol rate ranges for the current standard:
-> > > > From:            28.9 MBauds
-> > > > To:              28.9 MBauds
-> > > > SEC: set voltage to OFF
-> > > > ERROR    FE_SET_VOLTAGE: Operation not permitted
-> > > > ---- =20
-> > >
-> > > That sounds ok.
-> > > =20
-> > > >
-> > > > =20
-> > > > > > SEC: set voltage to OFF
-> > > > > > ERROR    FE_SET_VOLTAGE: Operation not permitted
-> > > > > >
-> > > > > >
-> > > > > > # ./utils/dvb/.libs/dvb-fe-tool -d isdbt
-> > > > > > Changing delivery system to: ISDBT
-> > > > > > ERROR    FE_SET_VOLTAGE: Unknown error 524
-> > > > > >
-> > > > > > # ./utils/dvb/.libs/dvb-fe-tool
-> > > > > > Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabili=
-ties:
-> > > > > >      CAN_FEC_AUTO
-> > > > > >      CAN_GUARD_INTERVAL_AUTO
-> > > > > >      CAN_HIERARCHY_AUTO
-> > > > > >      CAN_INVERSION_AUTO
-> > > > > >      CAN_QAM_AUTO
-> > > > > >      CAN_TRANSMISSION_MODE_AUTO
-> > > > > > DVB API Version 5.11, Current v5 delivery system: ISDBT
-> > > > > > Supported delivery systems:
-> > > > > >      ISDBS
-> > > > > >     [ISDBT]
-> > > > > > Frequency range for the current standard:
-> > > > > > From:             470 MHz
-> > > > > > To:              2.07 GHz
-> > > > > > Step:            25.0 kHz =20
-> > > > >
-> > > > > The rest looks OK for me.
-> > > > > =20
-> > > > > > > > For example, Helene uses these info for only Ter or Sat fre=
-q ranges:
-> > > > > > > >
-> > > > > > > > 		.name =3D "Sony HELENE Ter tuner",
-> > > > > > > > 		.frequency_min_hz  =3D    1 * MHz,
-> > > > > > > > 		.frequency_max_hz  =3D 1200 * MHz,
-> > > > > > > > 		.frequency_step_hz =3D   25 * kHz,
-> > > > > > > >
-> > > > > > > > 		.name =3D "Sony HELENE Sat tuner",
-> > > > > > > > 		.frequency_min_hz  =3D  500 * MHz,
-> > > > > > > > 		.frequency_max_hz  =3D 2500 * MHz,
-> > > > > > > > 		.frequency_step_hz =3D    1 * MHz,
-> > > > > > > >
-> > > > > > > > Is this better to add new info for both system?
-> > > > > > > >
-> > > > > > > > 		.name =3D "Sony HELENE Sat/Ter tuner",
-> > > > > > > > 		.frequency_min_hz  =3D    1 * MHz,
-> > > > > > > > 		.frequency_max_hz  =3D 2500 * MHz,
-> > > > > > > > 		.frequency_step_hz =3D   25 * kHz, // Is this correct...?=
- =20
-> > > > > > >
-> > > > > > > That is indeed a very good question, and maybe a reason why we
-> > > > > > > may need other approaches.
-> > > > > > >
-> > > > > > > See, if the tuner is capable of tuning from 1 MHz to 2500 MHz,
-> > > > > > > the frequency range should be ok. It would aget_frontend_algo=
-ctually be =20
-> > > > pretty =20
-> > > > > cool =20
-> > > > > > > to use a tuner with such wide range for SDR, if the hardware =
-supports
-> > > > > > > raw I/Q collect :-D
-> > > > > > >
-> > > > > > > The frequency step is a different issue. If the tuner driver =
-uses
-> > > > > > > DVBFE_ALGO_SW (e. g. if ops.get_frontend_algo() returns it, o=
-r if
-> > > > > > > this function is not defined), then the step will be used to =
-adjust
-> > > > > > > the zigzag interactions. If it is too small, the tuning will =
-lose
-> > > > > > > channels if the signal is not strong.
-> > > > > > > =20
-> > > > > >
-> > > > > > Thank you for describing. It's difficult problem... =20
-> > > > >
-> > > > > I double-checked the implementation. We don't need to worry about
-> > > > > zigzag, provided that the ISDB-S implementation at the core is co=
-rrect.
-> > > > >
-> > > > > For satellite/cable standards, the zigzag logic takes the symbol
-> > > > > rate into account, and not the stepsize:
-> > > > >
-> > > > >                 case SYS_DVBS:
-> > > > >                 case SYS_DVBS2:
-> > > > >                 case SYS_ISDBS:
-> > > > >                 case SYS_TURBO:
-> > > > >                 case SYS_DVBC_ANNEX_A:
-> > > > >                 case SYS_DVBC_ANNEX_C:
-> > > > >                         fepriv->min_delay =3D HZ / 20;
-> > > > >                         fepriv->step_size =3D c->symbol_rate / 16=
-000;
-> > > > >                         fepriv->max_drift =3D c->symbol_rate / 20=
-00;
-> > > > >                         break;
-> > > > >
-> > > > > For terrestrial standards, it uses the stepsize:
-> > > > >
-> > > > >                 case SYS_DVBT:
-> > > > >                 case SYS_DVBT2:
-> > > > >                 case SYS_ISDBT:
-> > > > >                 case SYS_DTMB:
-> > > > >                         fepriv->min_delay =3D HZ / 20;
-> > > > >                         fepriv->step_size =3D dvb_frontend_get_st=
-epsize(fe) * =20
-> > > 2; =20
-> > > > >                         fepriv->max_drift =3D (dvb_frontend_get_s=
-tepsize(fe) =20
-> > * =20
-> > > 2) =20
-> > > > + =20
-> > > > > 1;
-> > > > >                         break;
-> > > > >
-> > > > > So, having a value of 25 kHz there won't affect the zigzag algori=
-thm
-> > > > > for ISDB-S, as it will be used only for ISDB-T.
-> > > > > =20
-> > > >
-> > > > Thank you for checking and describing. I checked it too.
-> > > >
-> > > > Default value is fine as you said, and we can use get_tune_settings=
-()
-> > > > callback if we face the problem or need different settings for each
-> > > > delivery systems in the future.
-> > > >
-> > > >         /* get frontend-specific tuning settings */
-> > > >         memset(&fetunesettings, 0, sizeof(struct =20
-> > dvb_frontend_tune_settings)); =20
-> > > >         if (fe->ops.get_tune_settings && (fe->ops.get_tune_settings=
-(fe,
-> > > > &fetunesettings) =3D=3D 0)) {
-> > > >                 fepriv->min_delay =3D (fetunesettings.min_delay_ms =
-* HZ) / 1000;
-> > > >                 fepriv->max_drift =3D fetunesettings.max_drift;
-> > > >                 fepriv->step_size =3D fetunesettings.step_size;
-> > > >         } else {
-> > > >                 /* default values */
-> > > >                 ... =20
-> > >
-> > > Sure.
-> > > =20
-> > > >
-> > > > =20
-> > > > > > > In the specific case of helene, it doesn't have a get_fronten=
-d_algo,
-> > > > > > > so it will use the step frequency.
-> > > > > > >
-> > > > > > > I'm not sure how to solve this issue. Maybe Abylay may shed a=
- light
-> > > > > > > here, if helene does sigzag in hardware or not.
-> > > > > > > =20
-> > > > > >
-> > > > > > As far as I know, Helene does not have automatic scan mechanism=
- in
-> > > > > > hardware. =20
-> > > > >
-> > > > > Ok, so the driver is doing the right thing here.
-> > > > > =20
-> > > > > > > If it does in hardware, you could add a get_frontend_algo() r=
-outine
-> > > > > > > at helene driver and return DVBFE_ALGO_HW. The tuning zigzag =
-software
-> > > > > > > algorithm in the Kernel will stop, as it will rely at the har=
-dware.
-> > > > > > >
-> > > > > > > Please notice that, if the hardware doesn't do zigzag itself,=
- this
-> > > > > > > will make it lose channels. On the other hand, if the hardwar=
-e does
-> > > > > > > have sigzag, changing to DVBFE_ALGO_HW will speedup tuning, a=
-s the
-> > > > > > > Kernel won't try to do sigzag itself.
-> > > > > > > =20
-> > > > > >
-> > > > > > ISDB-T uses 6MHz bandwidth per channel (in Japan), ISDB-S for
-> > > > > > BS/CS110 uses 38.36MHz bandwidth. Maybe 1MHz zigzag step is lar=
-ge for
-> > > > > > ISDB-T system and 25kHz is small for ISDB-S system. =20
-> > > > >
-> > > > > Yeah, but, after double-checking the logic, for ISDB-S, it will
-> > > > > use:
-> > > > >
-> > > > > 	c->symbol_rate =3D 28860000;
-> > > > > 	c->rolloff =3D ROLLOFF_35;
-> > > > > 	c->bandwidth_hz =3D c->symbol_rate / 100 * 135;
-> > > > >
-> > > > > That would actually set the ISDB-S channel separation to 38.961 M=
-Hz.
-> > > > >
-> > > > > By setting symbol_rate like that, the zigzag for ISDB-S will
-> > > > > be defined by:
-> > > > >
-> > > > >        fepriv->step_size =3D c->symbol_rate / 16000; /* 38.961MHz=
- / 16000 =3D =20
-> > > > .002435 =20
-> > > > > - e. g. steps of ~25 kHz */
-> > > > >        fepriv->max_drift =3D c->symbol_rate / 2000;  /* 38.961MHz=
- / 2000 =3D =20
-> > > > .0194805 =20
-> > > > > - e. g. max drift of ~195 kHz */
-> > > > >
-> > > > > Funny enough, it will be using about 25 kHz as step size for ISDB=
--S.
-> > > > >
-> > > > > I have no idea if the ISDB-S standard defines the zigzag logic,
-> > > > > but I would be expecting a higher value for it. So, perhaps
-> > > > > the ISDB-S zigzag could be optimized.
-> > > > >
-> > > > > Thanks,
-> > > > > Mauro =20
-> > > >
-> > > > Hmm, interesting. I don't know zigzag for ISDB-S too, sorry...
-> > > >
-> > > > Anyway, I don't worry about that. I said in above, we can use
-> > > > get_tune_settings() for fine tuning.
-> > > >
-> > > >
-> > > > Regards,
-> > > > --
-> > > > Katsuhiro Suzuki
-> > > >
-> > > >
-> > > > =20
-> > >
-> > >
-> > >
-> > > Thanks,
-> > > Mauro =20
-> >  =20
->=20
->=20
->=20
+v2:
+	- Use __assign_str() for copying of HW sub-engine name during of
+	  tracing. There is no functional changes since V1, that's just a
+	  bit better variant of the patch that doesn't rely on stopping
+	  tracing before releasing of managed resources (struct tegra_vde).
 
+ drivers/staging/media/tegra-vde/tegra-vde.c | 221 +++++++++++---------
+ drivers/staging/media/tegra-vde/trace.h     |  98 +++++++++
+ 2 files changed, 224 insertions(+), 95 deletions(-)
+ create mode 100644 drivers/staging/media/tegra-vde/trace.h
 
-
-
-Cheers,
-Mauro
+diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
+index 6f06061a40d9..3f71b46d287b 100644
+--- a/drivers/staging/media/tegra-vde/tegra-vde.c
++++ b/drivers/staging/media/tegra-vde/tegra-vde.c
+@@ -24,6 +24,8 @@
+ 
+ #include <soc/tegra/pmc.h>
+ 
++#define CREATE_TRACE_POINTS
++#include "trace.h"
+ #include "uapi.h"
+ 
+ #define ICMDQUE_WR		0x00
+@@ -35,14 +37,6 @@
+ #define BSE_ICMDQUE_EMPTY	BIT(3)
+ #define BSE_DMA_BUSY		BIT(23)
+ 
+-#define VDE_WR(__data, __addr)				\
+-do {							\
+-	dev_dbg(vde->miscdev.parent,			\
+-		"%s: %d: 0x%08X => " #__addr ")\n",	\
+-		__func__, __LINE__, (u32)(__data));	\
+-	writel_relaxed(__data, __addr);			\
+-} while (0)
+-
+ struct video_frame {
+ 	struct dma_buf_attachment *y_dmabuf_attachment;
+ 	struct dma_buf_attachment *cb_dmabuf_attachment;
+@@ -81,12 +75,63 @@ struct tegra_vde {
+ 	u32 *iram;
+ };
+ 
++static __maybe_unused
++char const *tegra_vde_reg_base_name(struct tegra_vde *vde, void __iomem *base)
++{
++	if (vde->sxe == base)
++		return "SXE";
++
++	if (vde->bsev == base)
++		return "BSEV";
++
++	if (vde->mbe == base)
++		return "MBE";
++
++	if (vde->ppe == base)
++		return "PPE";
++
++	if (vde->mce == base)
++		return "MCE";
++
++	if (vde->tfe == base)
++		return "TFE";
++
++	if (vde->ppb == base)
++		return "PPB";
++
++	if (vde->vdma == base)
++		return "VDMA";
++
++	if (vde->frameid == base)
++		return "FRAMEID";
++
++	return "???";
++}
++
++static void tegra_vde_writel(struct tegra_vde *vde,
++			     u32 value, void __iomem *base, u32 offset)
++{
++	trace_vde_writel(vde, base, offset, value);
++
++	writel_relaxed(value, base + offset);
++}
++
++static u32 tegra_vde_readl(struct tegra_vde *vde,
++			   void __iomem *base, u32 offset)
++{
++	u32 value = readl_relaxed(base + offset);
++
++	trace_vde_readl(vde, base, offset, value);
++
++	return value;
++}
++
+ static void tegra_vde_set_bits(struct tegra_vde *vde,
+-			       u32 mask, void __iomem *regs)
++			       u32 mask, void __iomem *base, u32 offset)
+ {
+-	u32 value = readl_relaxed(regs);
++	u32 value = tegra_vde_readl(vde, base, offset);
+ 
+-	VDE_WR(value | mask, regs);
++	tegra_vde_writel(vde, value | mask, base, offset);
+ }
+ 
+ static int tegra_vde_wait_mbe(struct tegra_vde *vde)
+@@ -107,8 +152,8 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 	unsigned int idx;
+ 	int err;
+ 
+-	VDE_WR(0xD0000000 | (0 << 23), vde->mbe + 0x80);
+-	VDE_WR(0xD0200000 | (0 << 23), vde->mbe + 0x80);
++	tegra_vde_writel(vde, 0xD0000000 | (0 << 23), vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0xD0200000 | (0 << 23), vde->mbe, 0x80);
+ 
+ 	err = tegra_vde_wait_mbe(vde);
+ 	if (err)
+@@ -118,8 +163,10 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 		return 0;
+ 
+ 	for (idx = 0, frame_idx = 1; idx < refs_nb; idx++, frame_idx++) {
+-		VDE_WR(0xD0000000 | (frame_idx << 23), vde->mbe + 0x80);
+-		VDE_WR(0xD0200000 | (frame_idx << 23), vde->mbe + 0x80);
++		tegra_vde_writel(vde, 0xD0000000 | (frame_idx << 23),
++				 vde->mbe, 0x80);
++		tegra_vde_writel(vde, 0xD0200000 | (frame_idx << 23),
++				 vde->mbe, 0x80);
+ 
+ 		frame_idx_enb_mask |= frame_idx << (6 * (idx % 4));
+ 
+@@ -128,7 +175,7 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 			value |= (idx >> 2) << 24;
+ 			value |= frame_idx_enb_mask;
+ 
+-			VDE_WR(value, vde->mbe + 0x80);
++			tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 			err = tegra_vde_wait_mbe(vde);
+ 			if (err)
+@@ -143,8 +190,10 @@ static int tegra_vde_setup_mbe_frame_idx(struct tegra_vde *vde,
+ 
+ static void tegra_vde_mbe_set_0xa_reg(struct tegra_vde *vde, int reg, u32 val)
+ {
+-	VDE_WR(0xA0000000 | (reg << 24) | (val & 0xFFFF), vde->mbe + 0x80);
+-	VDE_WR(0xA0000000 | ((reg + 1) << 24) | (val >> 16), vde->mbe + 0x80);
++	tegra_vde_writel(vde, 0xA0000000 | (reg << 24) | (val & 0xFFFF),
++			 vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0xA0000000 | ((reg + 1) << 24) | (val >> 16),
++			 vde->mbe, 0x80);
+ }
+ 
+ static int tegra_vde_wait_bsev(struct tegra_vde *vde, bool wait_dma)
+@@ -183,7 +232,7 @@ static int tegra_vde_wait_bsev(struct tegra_vde *vde, bool wait_dma)
+ static int tegra_vde_push_to_bsev_icmdqueue(struct tegra_vde *vde,
+ 					    u32 value, bool wait_dma)
+ {
+-	VDE_WR(value, vde->bsev + ICMDQUE_WR);
++	tegra_vde_writel(vde, value, vde->bsev, ICMDQUE_WR);
+ 
+ 	return tegra_vde_wait_bsev(vde, wait_dma);
+ }
+@@ -199,11 +248,11 @@ static void tegra_vde_setup_frameid(struct tegra_vde *vde,
+ 	u32 value1 = frame ? ((mbs_width << 16) | mbs_height) : 0;
+ 	u32 value2 = frame ? ((((mbs_width + 1) >> 1) << 6) | 1) : 0;
+ 
+-	VDE_WR(y_addr  >> 8, vde->frameid + 0x000 + frameid * 4);
+-	VDE_WR(cb_addr >> 8, vde->frameid + 0x100 + frameid * 4);
+-	VDE_WR(cr_addr >> 8, vde->frameid + 0x180 + frameid * 4);
+-	VDE_WR(value1,       vde->frameid + 0x080 + frameid * 4);
+-	VDE_WR(value2,       vde->frameid + 0x280 + frameid * 4);
++	tegra_vde_writel(vde, y_addr  >> 8, vde->frameid, 0x000 + frameid * 4);
++	tegra_vde_writel(vde, cb_addr >> 8, vde->frameid, 0x100 + frameid * 4);
++	tegra_vde_writel(vde, cr_addr >> 8, vde->frameid, 0x180 + frameid * 4);
++	tegra_vde_writel(vde, value1,       vde->frameid, 0x080 + frameid * 4);
++	tegra_vde_writel(vde, value2,       vde->frameid, 0x280 + frameid * 4);
+ }
+ 
+ static void tegra_setup_frameidx(struct tegra_vde *vde,
+@@ -228,8 +277,7 @@ static void tegra_vde_setup_iram_entry(struct tegra_vde *vde,
+ {
+ 	u32 *iram_tables = vde->iram;
+ 
+-	dev_dbg(vde->miscdev.parent, "IRAM table %u: row %u: 0x%08X 0x%08X\n",
+-		table, row, value1, value2);
++	trace_vde_setup_iram_entry(table, row, value1, value2);
+ 
+ 	iram_tables[0x20 * table + row * 2] = value1;
+ 	iram_tables[0x20 * table + row * 2 + 1] = value2;
+@@ -245,10 +293,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 	int with_later_poc_nb;
+ 	unsigned int i, k;
+ 
+-	dev_dbg(vde->miscdev.parent, "DPB: Frame 0: frame_num = %d\n",
+-		dpb_frames[0].frame_num);
+-
+-	dev_dbg(vde->miscdev.parent, "REF L0:\n");
++	trace_vde_ref_l0(dpb_frames[0].frame_num);
+ 
+ 	for (i = 0; i < 16; i++) {
+ 		if (i < ref_frames_nb) {
+@@ -260,11 +305,6 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 			value |= !(frame->flags & FLAG_B_FRAME) << 25;
+ 			value |= 1 << 24;
+ 			value |= frame->frame_num;
+-
+-			dev_dbg(vde->miscdev.parent,
+-				"\tFrame %d: frame_num = %d B_frame = %d\n",
+-				i + 1, frame->frame_num,
+-				(frame->flags & FLAG_B_FRAME));
+ 		} else {
+ 			aux_addr = 0x6ADEAD00;
+ 			value = 0;
+@@ -284,9 +324,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 
+ 	with_later_poc_nb = ref_frames_nb - with_earlier_poc_nb;
+ 
+-	dev_dbg(vde->miscdev.parent,
+-		"REF L1: with_later_poc_nb %d with_earlier_poc_nb %d\n",
+-		 with_later_poc_nb, with_earlier_poc_nb);
++	trace_vde_ref_l1(with_later_poc_nb, with_earlier_poc_nb);
+ 
+ 	for (i = 0, k = with_earlier_poc_nb; i < with_later_poc_nb; i++, k++) {
+ 		frame = &dpb_frames[k + 1];
+@@ -298,10 +336,6 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 		value |= 1 << 24;
+ 		value |= frame->frame_num;
+ 
+-		dev_dbg(vde->miscdev.parent,
+-			"\tFrame %d: frame_num = %d\n",
+-			k + 1, frame->frame_num);
+-
+ 		tegra_vde_setup_iram_entry(vde, 2, i, value, aux_addr);
+ 	}
+ 
+@@ -315,10 +349,6 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 		value |= 1 << 24;
+ 		value |= frame->frame_num;
+ 
+-		dev_dbg(vde->miscdev.parent,
+-			"\tFrame %d: frame_num = %d\n",
+-			k + 1, frame->frame_num);
+-
+ 		tegra_vde_setup_iram_entry(vde, 2, i, value, aux_addr);
+ 	}
+ }
+@@ -334,32 +364,32 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	u32 value;
+ 	int err;
+ 
+-	tegra_vde_set_bits(vde, 0x000A, vde->sxe + 0xF0);
+-	tegra_vde_set_bits(vde, 0x000B, vde->bsev + CMDQUE_CONTROL);
+-	tegra_vde_set_bits(vde, 0x8002, vde->mbe + 0x50);
+-	tegra_vde_set_bits(vde, 0x000A, vde->mbe + 0xA0);
+-	tegra_vde_set_bits(vde, 0x000A, vde->ppe + 0x14);
+-	tegra_vde_set_bits(vde, 0x000A, vde->ppe + 0x28);
+-	tegra_vde_set_bits(vde, 0x0A00, vde->mce + 0x08);
+-	tegra_vde_set_bits(vde, 0x000A, vde->tfe + 0x00);
+-	tegra_vde_set_bits(vde, 0x0005, vde->vdma + 0x04);
+-
+-	VDE_WR(0x00000000, vde->vdma + 0x1C);
+-	VDE_WR(0x00000000, vde->vdma + 0x00);
+-	VDE_WR(0x00000007, vde->vdma + 0x04);
+-	VDE_WR(0x00000007, vde->frameid + 0x200);
+-	VDE_WR(0x00000005, vde->tfe + 0x04);
+-	VDE_WR(0x00000000, vde->mbe + 0x84);
+-	VDE_WR(0x00000010, vde->sxe + 0x08);
+-	VDE_WR(0x00000150, vde->sxe + 0x54);
+-	VDE_WR(0x0000054C, vde->sxe + 0x58);
+-	VDE_WR(0x00000E34, vde->sxe + 0x5C);
+-	VDE_WR(0x063C063C, vde->mce + 0x10);
+-	VDE_WR(0x0003FC00, vde->bsev + INTR_STATUS);
+-	VDE_WR(0x0000150D, vde->bsev + BSE_CONFIG);
+-	VDE_WR(0x00000100, vde->bsev + BSE_INT_ENB);
+-	VDE_WR(0x00000000, vde->bsev + 0x98);
+-	VDE_WR(0x00000060, vde->bsev + 0x9C);
++	tegra_vde_set_bits(vde, 0x000A, vde->sxe, 0xF0);
++	tegra_vde_set_bits(vde, 0x000B, vde->bsev, CMDQUE_CONTROL);
++	tegra_vde_set_bits(vde, 0x8002, vde->mbe, 0x50);
++	tegra_vde_set_bits(vde, 0x000A, vde->mbe, 0xA0);
++	tegra_vde_set_bits(vde, 0x000A, vde->ppe, 0x14);
++	tegra_vde_set_bits(vde, 0x000A, vde->ppe, 0x28);
++	tegra_vde_set_bits(vde, 0x0A00, vde->mce, 0x08);
++	tegra_vde_set_bits(vde, 0x000A, vde->tfe, 0x00);
++	tegra_vde_set_bits(vde, 0x0005, vde->vdma, 0x04);
++
++	tegra_vde_writel(vde, 0x00000000, vde->vdma, 0x1C);
++	tegra_vde_writel(vde, 0x00000000, vde->vdma, 0x00);
++	tegra_vde_writel(vde, 0x00000007, vde->vdma, 0x04);
++	tegra_vde_writel(vde, 0x00000007, vde->frameid, 0x200);
++	tegra_vde_writel(vde, 0x00000005, vde->tfe, 0x04);
++	tegra_vde_writel(vde, 0x00000000, vde->mbe, 0x84);
++	tegra_vde_writel(vde, 0x00000010, vde->sxe, 0x08);
++	tegra_vde_writel(vde, 0x00000150, vde->sxe, 0x54);
++	tegra_vde_writel(vde, 0x0000054C, vde->sxe, 0x58);
++	tegra_vde_writel(vde, 0x00000E34, vde->sxe, 0x5C);
++	tegra_vde_writel(vde, 0x063C063C, vde->mce, 0x10);
++	tegra_vde_writel(vde, 0x0003FC00, vde->bsev, INTR_STATUS);
++	tegra_vde_writel(vde, 0x0000150D, vde->bsev, BSE_CONFIG);
++	tegra_vde_writel(vde, 0x00000100, vde->bsev, BSE_INT_ENB);
++	tegra_vde_writel(vde, 0x00000000, vde->bsev, 0x98);
++	tegra_vde_writel(vde, 0x00000060, vde->bsev, 0x9C);
+ 
+ 	memset(vde->iram + 128, 0, macroblocks_nb / 2);
+ 
+@@ -376,13 +406,13 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	 */
+ 	wmb();
+ 
+-	VDE_WR(0x00000000, vde->bsev + 0x8C);
+-	VDE_WR(bitstream_data_addr + bitstream_data_size,
+-	       vde->bsev + 0x54);
++	tegra_vde_writel(vde, 0x00000000, vde->bsev, 0x8C);
++	tegra_vde_writel(vde, bitstream_data_addr + bitstream_data_size,
++			 vde->bsev, 0x54);
+ 
+ 	value = ctx->pic_width_in_mbs << 11 | ctx->pic_height_in_mbs << 3;
+ 
+-	VDE_WR(value, vde->bsev + 0x88);
++	tegra_vde_writel(vde, value, vde->bsev, 0x88);
+ 
+ 	err = tegra_vde_wait_bsev(vde, false);
+ 	if (err)
+@@ -417,7 +447,7 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	value |= ctx->pic_width_in_mbs << 11;
+ 	value |= ctx->pic_height_in_mbs << 3;
+ 
+-	VDE_WR(value, vde->sxe + 0x10);
++	tegra_vde_writel(vde, value, vde->sxe, 0x10);
+ 
+ 	value = !ctx->baseline_profile << 17;
+ 	value |= ctx->level_idc << 13;
+@@ -425,54 +455,54 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	value |= ctx->pic_order_cnt_type << 5;
+ 	value |= ctx->log2_max_frame_num;
+ 
+-	VDE_WR(value, vde->sxe + 0x40);
++	tegra_vde_writel(vde, value, vde->sxe, 0x40);
+ 
+ 	value = ctx->pic_init_qp << 25;
+ 	value |= !!(ctx->deblocking_filter_control_present_flag) << 2;
+ 	value |= !!ctx->pic_order_present_flag;
+ 
+-	VDE_WR(value, vde->sxe + 0x44);
++	tegra_vde_writel(vde, value, vde->sxe, 0x44);
+ 
+ 	value = ctx->chroma_qp_index_offset;
+ 	value |= ctx->num_ref_idx_l0_active_minus1 << 5;
+ 	value |= ctx->num_ref_idx_l1_active_minus1 << 10;
+ 	value |= !!ctx->constrained_intra_pred_flag << 15;
+ 
+-	VDE_WR(value, vde->sxe + 0x48);
++	tegra_vde_writel(vde, value, vde->sxe, 0x48);
+ 
+ 	value = 0x0C000000;
+ 	value |= !!(dpb_frames[0].flags & FLAG_B_FRAME) << 24;
+ 
+-	VDE_WR(value, vde->sxe + 0x4C);
++	tegra_vde_writel(vde, value, vde->sxe, 0x4C);
+ 
+ 	value = 0x03800000;
+ 	value |= bitstream_data_size & GENMASK(19, 15);
+ 
+-	VDE_WR(value, vde->sxe + 0x68);
++	tegra_vde_writel(vde, value, vde->sxe, 0x68);
+ 
+-	VDE_WR(bitstream_data_addr, vde->sxe + 0x6C);
++	tegra_vde_writel(vde, bitstream_data_addr, vde->sxe, 0x6C);
+ 
+ 	value = 0x10000005;
+ 	value |= ctx->pic_width_in_mbs << 11;
+ 	value |= ctx->pic_height_in_mbs << 3;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 	value = 0x26800000;
+ 	value |= ctx->level_idc << 4;
+ 	value |= !ctx->baseline_profile << 1;
+ 	value |= !!ctx->direct_8x8_inference_flag;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+-	VDE_WR(0xF4000001, vde->mbe + 0x80);
+-	VDE_WR(0x20000000, vde->mbe + 0x80);
+-	VDE_WR(0xF4000101, vde->mbe + 0x80);
++	tegra_vde_writel(vde, 0xF4000001, vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0x20000000, vde->mbe, 0x80);
++	tegra_vde_writel(vde, 0xF4000101, vde->mbe, 0x80);
+ 
+ 	value = 0x20000000;
+ 	value |= ctx->chroma_qp_index_offset << 8;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 	err = tegra_vde_setup_mbe_frame_idx(vde,
+ 					    ctx->dpb_frames_nb - 1,
+@@ -494,7 +524,7 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	if (!ctx->baseline_profile)
+ 		value |= !!(dpb_frames[0].flags & FLAG_REFERENCE) << 1;
+ 
+-	VDE_WR(value, vde->mbe + 0x80);
++	tegra_vde_writel(vde, value, vde->mbe, 0x80);
+ 
+ 	err = tegra_vde_wait_mbe(vde);
+ 	if (err) {
+@@ -510,8 +540,9 @@ static void tegra_vde_decode_frame(struct tegra_vde *vde,
+ {
+ 	reinit_completion(&vde->decode_completion);
+ 
+-	VDE_WR(0x00000001, vde->bsev + 0x8C);
+-	VDE_WR(0x20000000 | (macroblocks_nb - 1), vde->sxe + 0x00);
++	tegra_vde_writel(vde, 0x00000001, vde->bsev, 0x8C);
++	tegra_vde_writel(vde, 0x20000000 | (macroblocks_nb - 1),
++			 vde->sxe, 0x00);
+ }
+ 
+ static void tegra_vde_detach_and_put_dmabuf(struct dma_buf_attachment *a,
+@@ -883,8 +914,8 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 	timeout = wait_for_completion_interruptible_timeout(
+ 			&vde->decode_completion, msecs_to_jiffies(1000));
+ 	if (timeout == 0) {
+-		bsev_ptr = readl_relaxed(vde->bsev + 0x10);
+-		macroblocks_nb = readl_relaxed(vde->sxe + 0xC8) & 0x1FFF;
++		bsev_ptr = tegra_vde_readl(vde, vde->bsev, 0x10);
++		macroblocks_nb = tegra_vde_readl(vde, vde->sxe, 0xC8) & 0x1FFF;
+ 		read_bytes = bsev_ptr ? bsev_ptr - bitstream_data_addr : 0;
+ 
+ 		dev_err(dev, "Decoding failed: read 0x%X bytes, %u macroblocks parsed\n",
+@@ -962,7 +993,7 @@ static irqreturn_t tegra_vde_isr(int irq, void *data)
+ 	if (completion_done(&vde->decode_completion))
+ 		return IRQ_NONE;
+ 
+-	tegra_vde_set_bits(vde, 0, vde->frameid + 0x208);
++	tegra_vde_set_bits(vde, 0, vde->frameid, 0x208);
+ 	complete(&vde->decode_completion);
+ 
+ 	return IRQ_HANDLED;
+diff --git a/drivers/staging/media/tegra-vde/trace.h b/drivers/staging/media/tegra-vde/trace.h
+new file mode 100644
+index 000000000000..9b7ebd8fc2c0
+--- /dev/null
++++ b/drivers/staging/media/tegra-vde/trace.h
+@@ -0,0 +1,98 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM tegra_vde
++
++#if !defined(TEGRA_VDE_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
++#define TEGRA_VDE_TRACE_H
++
++#include <linux/tracepoint.h>
++
++struct tegra_vde;
++
++static char const *tegra_vde_reg_base_name(struct tegra_vde *vde,
++					   void __iomem *base);
++
++DECLARE_EVENT_CLASS(register_access,
++	TP_PROTO(struct tegra_vde *vde, void __iomem *base,
++		 u32 offset, u32 value),
++	TP_ARGS(vde, base, offset, value),
++	TP_STRUCT__entry(
++		__string(hw_name, tegra_vde_reg_base_name(vde, base))
++		__field(u32, offset)
++		__field(u32, value)
++	),
++	TP_fast_assign(
++		__assign_str(hw_name, tegra_vde_reg_base_name(vde, base));
++		__entry->offset = offset;
++		__entry->value = value;
++	),
++	TP_printk("%s:0x%03x 0x%08x", __get_str(hw_name), __entry->offset,
++		  __entry->value)
++);
++
++DEFINE_EVENT(register_access, vde_writel,
++	TP_PROTO(struct tegra_vde *vde, void __iomem *base,
++		 u32 offset, u32 value),
++	TP_ARGS(vde, base, offset, value));
++DEFINE_EVENT(register_access, vde_readl,
++	TP_PROTO(struct tegra_vde *vde, void __iomem *base,
++		 u32 offset, u32 value),
++	TP_ARGS(vde, base, offset, value));
++
++TRACE_EVENT(vde_setup_iram_entry,
++	TP_PROTO(unsigned int table, unsigned int row, u32 value, u32 aux_addr),
++	TP_ARGS(table, row, value, aux_addr),
++	TP_STRUCT__entry(
++		__field(unsigned int, table)
++		__field(unsigned int, row)
++		__field(u32, value)
++		__field(u32, aux_addr)
++	),
++	TP_fast_assign(
++		__entry->table = table;
++		__entry->row = row;
++		__entry->value = value;
++		__entry->aux_addr = aux_addr;
++	),
++	TP_printk("[%u][%u] = { 0x%08x (flags = \"%s\", frame_num = %u); 0x%08x }",
++		  __entry->table, __entry->row, __entry->value,
++		  __print_flags(__entry->value, " ", { (1 << 25), "B" }),
++		  __entry->value & 0x7FFFFF, __entry->aux_addr)
++);
++
++TRACE_EVENT(vde_ref_l0,
++	TP_PROTO(unsigned int frame_num),
++	TP_ARGS(frame_num),
++	TP_STRUCT__entry(
++		__field(unsigned int, frame_num)
++	),
++	TP_fast_assign(
++		__entry->frame_num = frame_num;
++	),
++	TP_printk("REF L0: DPB: Frame 0: frame_num = %u", __entry->frame_num)
++);
++
++TRACE_EVENT(vde_ref_l1,
++	TP_PROTO(unsigned int with_later_poc_nb,
++		 unsigned int with_earlier_poc_nb),
++	TP_ARGS(with_later_poc_nb, with_earlier_poc_nb),
++	TP_STRUCT__entry(
++		__field(unsigned int, with_later_poc_nb)
++		__field(unsigned int, with_earlier_poc_nb)
++	),
++	TP_fast_assign(
++		__entry->with_later_poc_nb = with_later_poc_nb;
++		__entry->with_earlier_poc_nb = with_earlier_poc_nb;
++	),
++	TP_printk("REF L1: with_later_poc_nb %u, with_earlier_poc_nb %u",
++		  __entry->with_later_poc_nb, __entry->with_earlier_poc_nb)
++);
++
++#endif /* TEGRA_VDE_TRACE_H */
++
++/* This part must be outside protection */
++#undef TRACE_INCLUDE_PATH
++#define TRACE_INCLUDE_PATH ../../drivers/staging/media/tegra-vde
++#define TRACE_INCLUDE_FILE trace
++#include <trace/define_trace.h>
+-- 
+2.18.0
