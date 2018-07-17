@@ -1,137 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35067 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731551AbeGQO2X (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:55546 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731607AbeGQO4T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 10:28:23 -0400
-Subject: Re: [PATCH 1/2] adv7180: fix field type to V4L2_FIELD_ALTERNATE
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-renesas-soc@vger.kernel.org
-References: <20180717123041.2862-1-niklas.soderlund+renesas@ragnatech.se>
- <20180717123041.2862-2-niklas.soderlund+renesas@ragnatech.se>
- <9541cdb4-fb87-e0bb-85cb-667fd16d3804@xs4all.nl>
- <20180717134001.GK10087@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <922e658f-bd6d-1589-a429-37980f77a653@xs4all.nl>
-Date: Tue, 17 Jul 2018 15:55:33 +0200
+        Tue, 17 Jul 2018 10:56:19 -0400
+Subject: Re: [PATCH v4 10/11] media: vsp1: Support Interlaced display
+ pipelines
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Reply-To: kieran.bingham+renesas@ideasonboard.com,
+          kieran.bingham+renesas@ideasonboard.com
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <8e320ac8861b7fdd657a66138780c18fd66b1a19.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <2663986.uvcnutGSNp@avalon>
+ <f794f4d6-f524-293b-3df6-097f42bef372@ideasonboard.com>
+Message-ID: <9dbdfd31-c899-85e7-63a6-f2c55344a549@ideasonboard.com>
+Date: Tue, 17 Jul 2018 15:23:21 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180717134001.GK10087@bigcity.dyn.berto.se>
+In-Reply-To: <f794f4d6-f524-293b-3df6-097f42bef372@ideasonboard.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/07/18 15:40, Niklas Söderlund wrote:
-> Hi Hans,
-> 
-> Thanks for your feedback.
-> 
-> On 2018-07-17 15:12:41 +0200, Hans Verkuil wrote:
->> On 17/07/18 14:30, Niklas Söderlund wrote:
->>> The ADV7180 and ADV7182 transmit whole fields, bottom field followed
->>> by top (or vice-versa, depending on detected video standard). So
->>> for chips that do not have support for explicitly setting the field
->>> mode via I2P, set the field mode to V4L2_FIELD_ALTERNATE.
->>
->> What does I2P do? I know it was explained before, but that's a long time
->> ago :-)
-> 
-> The best explanation I have is that I2P is interlaced to progressive and 
-> in my research I stopped at commit 851a54effbd808da ("[media] adv7180: 
-> Add I2P support").
-> 
-> I also vaguely remember reading somewhere that I2P support is planed to 
-> be removed.
+Hi Laurent,
 
-I would just add a line saying:
+<snip>
 
-"I2P converts fields into frames using an edge adaptive algorithm. The
-frame rate is the same as the 'field rate': e.g. X fields per second
-are now X frames per second."
-
-BTW, does 'v4l2-compliance -f' pass with this patch series? Before running
-this you should first select the correct input.
-
-Regards,
-
-	Hans
-
-> 
->>
->> In any case, it should be explained in the commit log as well.
->>
->> I faintly remember that it was just line-doubling of each field, in which
->> case this code seems correct.
-> 
-> If you still think I2P needs to be explained in the commit message I 
-> will do so in the next version.
-> 
->>
->> Have you checked other drivers that use this subdev? Are they affected by
->> this change?
-> 
-> I did a quick check what other users there are and in tree dts indicates 
-> imx6 and the sun9i-a80-cubieboard4 in addition to the Renesas boards. As 
-> I can only test on the Renesas hardware I have access to I had to 
-> trusted the acks from the patch from Steve which I dug out of patchwork 
-> [1]. His work stopped with a few comments on the code but it was acked 
-> by Lars-Peter who maintains the driver.
-> 
-> 1. https://patchwork.linuxtv.org/patch/36193/
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>> ---
->>>  drivers/media/i2c/adv7180.c | 13 ++++++++-----
->>>  1 file changed, 8 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
->>> index 25d24a3f10a7cb4d..c2e24132e8c21d38 100644
->>> --- a/drivers/media/i2c/adv7180.c
->>> +++ b/drivers/media/i2c/adv7180.c
->>> @@ -644,6 +644,9 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
->>>  	fmt->width = 720;
->>>  	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
->>>  
->>> +	if (state->field == V4L2_FIELD_ALTERNATE)
->>> +		fmt->height /= 2;
+>>> +static void vsp1_rpf_configure_autofld(struct vsp1_rwpf *rpf,
+>>> +				       struct vsp1_dl_ext_cmd *cmd)
+>>> +{
+>>> +	const struct v4l2_pix_format_mplane *format = &rpf->format;
+>>> +	struct vsp1_extcmd_auto_fld_body *auto_fld = cmd->data;
+>>> +	u32 offset_y, offset_c;
 >>> +
->>>  	return 0;
->>>  }
->>>  
->>> @@ -711,11 +714,11 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
->>>  
->>>  	switch (format->format.field) {
->>>  	case V4L2_FIELD_NONE:
->>> -		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
->>> -			format->format.field = V4L2_FIELD_INTERLACED;
->>> -		break;
->>> +		if (state->chip_info->flags & ADV7180_FLAG_I2P)
->>> +			break;
->>> +		/* fall through */
->>>  	default:
->>> -		format->format.field = V4L2_FIELD_INTERLACED;
->>> +		format->format.field = V4L2_FIELD_ALTERNATE;
->>>  		break;
->>>  	}
->>>  
->>> @@ -1291,7 +1294,7 @@ static int adv7180_probe(struct i2c_client *client,
->>>  		return -ENOMEM;
->>>  
->>>  	state->client = client;
->>> -	state->field = V4L2_FIELD_INTERLACED;
->>> +	state->field = V4L2_FIELD_ALTERNATE;
->>>  	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
->>>  
->>>  	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
->>>
+>>> +	/* Re-index our auto_fld to match the current RPF */
 >>
+>> s/RPF/RPF./
 > 
+> Fixed.
+> 
+>>
+>>> +	auto_fld = &auto_fld[rpf->entity.index];
+>>> +
+>>> +	auto_fld->top_y0 = rpf->mem.addr[0];
+>>> +	auto_fld->top_c0 = rpf->mem.addr[1];
+>>> +	auto_fld->top_c1 = rpf->mem.addr[2];
+>>> +
+>>> +	offset_y = format->plane_fmt[0].bytesperline;
+>>> +	offset_c = format->plane_fmt[1].bytesperline;
+>>> +
+>>> +	auto_fld->bottom_y0 = rpf->mem.addr[0] + offset_y;
+>>> +	auto_fld->bottom_c0 = rpf->mem.addr[1] + offset_c;
+>>> +	auto_fld->bottom_c1 = rpf->mem.addr[2] + offset_c;
+>>> +
+>>> +	cmd->flags |= VSP1_DL_EXT_AUTOFLD_INT;
+>>> +	cmd->flags |= BIT(16 + rpf->entity.index);
+>>
+>> Do you expect some flags to already be set ? If not, couldn't we assign the 
+>> value to the field instead of OR'ing it ?
+
+> No, I think you are correct. Moved to a single expression setting the
+> cmd->flags in one line.
+
+Ahem.... no - of course these flags have to be OR-ed in. Because it
+potentially updates a single command object for multiple RPFs.
+
+The flags get reset to 0 when the command object is discarded in
+vsp1_dl_ext_cmd_put()
+
+
+> 
+>>
+>>> +}
+
+<snip>
+
+--
+Kieran
