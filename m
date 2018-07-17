@@ -1,130 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:37893 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729671AbeGQNh1 (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:45647 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729741AbeGQNkL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 09:37:27 -0400
+        Tue, 17 Jul 2018 09:40:11 -0400
+Date: Tue, 17 Jul 2018 15:07:30 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v6 0/10] rcar-vin: Add support for parallel input on Gen3
+Message-ID: <20180717130730.GQ8180@w540>
+References: <1528796612-7387-1-git-send-email-jacopo+renesas@jmondi.org>
+ <20180702181104.GZ5237@bigcity.dyn.berto.se>
+ <20180703180210.GB5611@w540>
+ <e941e6c9-9509-2128-c2ea-8a78cee515bd@xs4all.nl>
 MIME-Version: 1.0
-References: <20180605233435.18102-1-kieran.bingham+renesas@ideasonboard.com>
- <20180605233435.18102-2-kieran.bingham+renesas@ideasonboard.com>
- <CAMuHMdUYbEK36E4hD+nVDfM5_nuY8SubkgBCtcYuSy+eZLNt5Q@mail.gmail.com>
- <20180717121338.GO8180@w540> <CAMuHMdVLe3P0GBP9z=S2+a1SDsBe3zmUnS32J-yd4tYsP99qaQ@mail.gmail.com>
- <20180717125930.GP8180@w540>
-In-Reply-To: <20180717125930.GP8180@w540>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 17 Jul 2018 15:04:38 +0200
-Message-ID: <CAMuHMdXkkjuug2ogBaXnWniP2xv5=J71dhMndnjDfUWm3Ogjig@mail.gmail.com>
-Subject: Re: [RFC PATCH v1 1/4] media: dt-bindings: max9286: add device tree binding
-To: Jacopo Mondi <jacopo@jmondi.org>
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="r7tUYVWcdYzDJoZW"
+Content-Disposition: inline
+In-Reply-To: <e941e6c9-9509-2128-c2ea-8a78cee515bd@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
 
-On Tue, Jul 17, 2018 at 2:59 PM jacopo mondi <jacopo@jmondi.org> wrote:
-> On Tue, Jul 17, 2018 at 02:23:16PM +0200, Geert Uytterhoeven wrote:
-> > On Tue, Jul 17, 2018 at 2:13 PM jacopo mondi <jacopo@jmondi.org> wrote:
-> > >    I'm replying here, even if a new version of the bindings for this
-> > > chip has been posted[1], as they have the same ports layout.
-> > >
-> > > [1] https://www.spinics.net/lists/linux-renesas-soc/msg29307.html
-> > >
-> > > On Wed, Jun 06, 2018 at 08:34:41AM +0200, Geert Uytterhoeven wrote:
-> > > > Hi Kieran,
-> > > >
-> > > > On Wed, Jun 6, 2018 at 1:34 AM, Kieran Bingham
-> > > > <kieran.bingham+renesas@ideasonboard.com> wrote:
-> > > > > Provide device tree binding documentation for the MAX9286 Quad GMSL
-> > > > > deserialiser.
-> > > > >
-> > > > > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> > > >
-> > > > Thanks for your patch!
-> > > >
-> > > > > --- /dev/null
-> > > > > +++ b/Documentation/devicetree/bindings/media/i2c/max9286.txt
-> > > > > @@ -0,0 +1,75 @@
-> > > > > +* Maxim Integrated MAX9286 GMSL Quad 1.5Gbps GMSL Deserializer
-> > > > > +
-> > > > > +Required Properties:
-> > > > > + - compatible: Shall be "maxim,max9286"
-> > > > > +
-> > > > > +The following required properties are defined externally in
-> > > > > +Documentation/devicetree/bindings/i2c/i2c-mux.txt:
-> > > > > + - Standard I2C mux properties.
-> > > > > + - I2C child bus nodes.
-> > > > > +
-> > > > > +A maximum of 4 I2C child nodes can be specified on the MAX9286, to
-> > > > > +correspond with a maximum of 4 input devices.
-> > > > > +
-> > > > > +The device node must contain one 'port' child node per device input and output
-> > > > > +port, in accordance with the video interface bindings defined in
-> > > > > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
-> > > > > +are numbered as follows.
-> > > > > +
-> > > > > +      Port        Type
-> > > > > +    ----------------------
-> > > > > +       0          sink
-> > > > > +       1          sink
-> > > > > +       2          sink
-> > > > > +       3          sink
-> > > > > +       4          source
-> > > >
-> > > > I assume the source and at least one sink are thus mandatory?
-> > > >
-> > > > Would it make sense to use port 0 for the source?
-> > > > This would simplify extending the binding to devices with more input
-> > > > ports later.
-> > >
-> > > I see your point, but as someone that has no idea how future chips could look
-> > > like, I wonder why having multiple outputs it's more un-likely to
-> > > happen than having more inputs added.
+--r7tUYVWcdYzDJoZW
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+HI Hans,
+
+On Tue, Jul 17, 2018 at 03:00:20PM +0200, Hans Verkuil wrote:
+> On 03/07/18 20:02, jacopo mondi wrote:
+> > Hi Hans,
+> >    As the VIN driver went through your tree, could you please pick
+> > this series up now that all patches have been acked-by/reviewed-by and
+> > tested on several platforms?
 > >
-> > I also don't know.
-> > I was just thinking "What if another chip has less or more sinks?".
-> >
-> > > Do you have any suggestion on how we can handle both cases?
-> >
-> > Instead of having a single "ports" subnode, you could split it in two subnodes,
-> > "sinks" and "sources"? I don't know if that's feasible.
-> >
-> Maybe I didn't get you here, and sorry to repeat something obvious for
-> you but, that would be against basic assumptions both in fwnode/of framework
-> and in media framework too. See the graph.txt documentation and
-> video_interfaces.txt, the layout with a single 'ports' node with
-> multiple 'port' sub-nodes is not avoidable, afaik.
+> > Thank you...
 >
-> What is not -theoretically- forbidden is to have port subnodes with
-> multiple endpoints, which is also used as an example in multiple
-> places in the documentation files I mentioned above. Unfortunately, as
-> we experienced with the ADV748x and the R-Car CSI-2 receiver
-> upstreaming effort, the v4l2-async framework relies on matching on the
-> remote endpoint's parent device node, and Kieran and Niklas had to use
-> a custom endpoint matching logic for the R-Car CSI-2 and adv748x
-> combo, something I'm sure nobody wants to repeat here.
+> This got merged about 2 weeks ago. You were CC-ed on my pull request...
+
+In facts, my original email was from 3rd of July :D
+
 >
-> We said that multiple times that we would like to tackle this
-> limitation (if that's limitation) in the v4l2_async framework, maybe
-> if GMSL-like devices with multiple input/output ports comes out, we
-> might have enough motivation to do that ;) ?
+> Regards,
+>
+> 	Hans
+>
+> >
+> > On Mon, Jul 02, 2018 at 08:11:04PM +0200, Niklas S=C3=B6derlund wrote:
+> >> Hi Jacopo,
+> >>
+> >> Nice work, I'm happy with the work you have done thanks!
+> >>
+> >> I have tested this series on M3-N to make sure it don't break anything
+> >> on existing Gen3. Tested on V3M to make sure you can switch between
+> >> CSI-2 and parallel input at runtime. And last I tested it on Koelsch to
+> >> make sure Gen2 still works. All tests looks good.
+> >>
+> >> Thanks for your effort!
+> >
+> > Thanks for doing this Niklas...
+> >
+> > With your recent testing this series has been tested on:
+> >
+> > D3: parallel input
+> > M3W: parallel and CSI-2
+> > M3N: CSI-2
+> > V3M: parallel and CSI-2
+> > Gen2 Koelsch: parallel
+> >
+> > I guess is then good to go.
+> >
+> > Thanks
+> >    j
+> >
+> >
+> >>
+> >> On 2018-06-12 11:43:22 +0200, Jacopo Mondi wrote:
+> >>> Hello,
+> >>>    this series adds support for parallel video input to the Gen3 vers=
+ion of
+> >>> rcar-vin driver.
+> >>>
+> >>> Few changes compared to v5, closing a few comments from Kieran and Ni=
+klas,
+> >>> and fixed the label names I forgot to change in previous version.
+> >>>
+> >>> Changlog in the individual patches when relevant.
+> >>>
+> >>> A few patches have not yet been acked-by, but things look smooth and =
+we
+> >>> should be close to have this finalized.
+> >>>
+> >>> Thanks
+> >>>    j
+> >>>
+> >>> Jacopo Mondi (10):
+> >>>   media: rcar-vin: Rename 'digital' to 'parallel'
+> >>>   media: rcar-vin: Remove two empty lines
+> >>>   media: rcar-vin: Create a group notifier
+> >>>   media: rcar-vin: Cleanup notifier in error path
+> >>>   media: rcar-vin: Cache the mbus configuration flags
+> >>>   media: rcar-vin: Parse parallel input on Gen3
+> >>>   media: rcar-vin: Link parallel input media entities
+> >>>   media: rcar-vin: Handle parallel subdev in link_notify
+> >>>   media: rcar-vin: Rename _rcar_info to rcar_info
+> >>>   media: rcar-vin: Add support for R-Car R8A77995 SoC
+> >>>
+> >>>  drivers/media/platform/rcar-vin/rcar-core.c | 265 ++++++++++++++++++=
+----------
+> >>>  drivers/media/platform/rcar-vin/rcar-dma.c  |  36 ++--
+> >>>  drivers/media/platform/rcar-vin/rcar-v4l2.c |  12 +-
+> >>>  drivers/media/platform/rcar-vin/rcar-vin.h  |  29 +--
+> >>>  4 files changed, 223 insertions(+), 119 deletions(-)
+> >>>
+> >>> --
+> >>> 2.7.4
+> >>>
+> >>
+> >> --
+> >> Regards,
+> >> Niklas S=C3=B6derlund
+>
 
-I'm totally ignorant w.r.t. multimedia endpoints, hence the "... don't
-know if that's
-feasible".
+--r7tUYVWcdYzDJoZW
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Gr{oetje,eeting}s,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-                        Geert
+iQIcBAEBAgAGBQJbTeoSAAoJEHI0Bo8WoVY8pvgP/1ENkTRYVzAjGWtihOlZQO6z
+9USTOZLiT1KVnLmb5yMjllQWLt1AnEhxt0zKyejSA5CgwfeQu8d0DKq5Ux9mZjE8
+8hlkHaaFeGmzNuqreTwbZ//0aBbDtZtN0L9bC34YZSTstapbIaRhn/8Rj0SP3N23
+hd7TCyLP4xA6gB9aIkmE/QGuvaf6ZHy9MFO0SJORhLsyiObp6qPZhWn9UxR6Bz+S
+0hG2sGQuNz86/LWmmkxD0K8Rjx/5xDG3W6jdoATj1UicVKmUyFOP9aKfG/tUvyXl
+pi17B+lJxP/rr0yxlmK96mHRC7xQI8Ow9GutGcndfCoq7J/4oiTv1+EPFP2ZlNIx
++o20DI+TlxLrXEwZ1FgvJvroJM/ffTjNQASGScP+q/kb0UAB0IWf/s7PVtFWRjaJ
+pr7gujmPm1zuq99pvyfEfcpqVreb+RtkfMKxM7GGziywyorLXQxRnRPXGb43iFDv
+Gu1hcK4wZLJvw8D/vYBpLc+/ki6k1cYnjB1ygh52YA/KvMUDzhCRQvG0zG3ZRmnE
+ma2LybbEzo1Kq/RmvDrau1rDLnCJA9K+wSbJa7gq+dd12FIMUJr+c/6KP+UpDFo+
+61+IMNbMHS2bi5l1nSjtObnWfg3GuNXiodv8PI5lbe0RaonErflmADeBzdeCF5cH
+YQ6n3hQWMF8nc+n8+XZN
+=IRk+
+-----END PGP SIGNATURE-----
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+--r7tUYVWcdYzDJoZW--
