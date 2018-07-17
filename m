@@ -1,70 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:62807 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731256AbeGQNKQ (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54976 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731341AbeGQNYZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 09:10:16 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 2/2] adv7180: add g_frame_interval support
-Date: Tue, 17 Jul 2018 14:30:41 +0200
-Message-Id: <20180717123041.2862-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180717123041.2862-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180717123041.2862-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 17 Jul 2018 09:24:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kieran.bingham+renesas@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v4 10/11] media: vsp1: Support Interlaced display pipelines
+Date: Tue, 17 Jul 2018 15:52:24 +0300
+Message-ID: <5111021.qdhzlld4I3@avalon>
+In-Reply-To: <f794f4d6-f524-293b-3df6-097f42bef372@ideasonboard.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com> <2663986.uvcnutGSNp@avalon> <f794f4d6-f524-293b-3df6-097f42bef372@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement g_frame_interval to return the current standard's frame
-interval.
+Hi Kieran,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/i2c/adv7180.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+On Monday, 16 July 2018 21:21:00 EEST Kieran Bingham wrote:
+> On 24/05/18 13:51, Laurent Pinchart wrote:
+> > On Thursday, 3 May 2018 16:36:21 EEST Kieran Bingham wrote:
+> >> Calculate the top and bottom fields for the interlaced frames and
+> >> utilise the extended display list command feature to implement the
+> >> auto-field operations. This allows the DU to update the VSP2 registers
+> >> dynamically based upon the currently processing field.
+> >> 
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >> 
+> >> ---
+> >> 
+> >> v3:
+> >>  - Pass DL through partition calls to allow autocmd's to be retrieved
+> >>  - Document interlaced field in struct vsp1_du_atomic_config
+> >> 
+> >> v2:
+> >>  - fix erroneous BIT value which enabled interlaced
+> >>  - fix field handling at frame_end interrupt
+> >> 
+> >> ---
+> >> 
+> >>  drivers/media/platform/vsp1/vsp1_dl.c   | 10 ++++-
+> >>  drivers/media/platform/vsp1/vsp1_drm.c  | 11 ++++-
+> >>  drivers/media/platform/vsp1/vsp1_regs.h |  1 +-
+> >>  drivers/media/platform/vsp1/vsp1_rpf.c  | 71 ++++++++++++++++++++++++--
+> >>  drivers/media/platform/vsp1/vsp1_rwpf.h |  1 +-
+> >>  include/media/vsp1.h                    |  2 +-
+> >>  6 files changed, 93 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index c2e24132e8c21d38..f72312efc471acd9 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -461,6 +461,22 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
- 	return 0;
- }
- 
-+static int adv7180_g_frame_interval(struct v4l2_subdev *sd,
-+				    struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+
-+	if (state->curr_norm & V4L2_STD_525_60) {
-+		fi->interval.numerator = 1001;
-+		fi->interval.denominator = 30000;
-+	} else {
-+		fi->interval.numerator = 1;
-+		fi->interval.denominator = 25;
-+	}
-+
-+	return 0;
-+}
-+
- static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
- {
- 	if (!state->pwdn_gpio)
-@@ -820,6 +836,7 @@ static int adv7180_subscribe_event(struct v4l2_subdev *sd,
- static const struct v4l2_subdev_video_ops adv7180_video_ops = {
- 	.s_std = adv7180_s_std,
- 	.g_std = adv7180_g_std,
-+	.g_frame_interval = adv7180_g_frame_interval,
- 	.querystd = adv7180_querystd,
- 	.g_input_status = adv7180_g_input_status,
- 	.s_routing = adv7180_s_routing,
+[snip]
+
+> >> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> >> b/drivers/media/platform/vsp1/vsp1_drm.c index 2c3db8b8adce..cc29c9d96bb7
+> >> 100644
+> >> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> >> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> >> @@ -811,6 +811,17 @@ int vsp1_du_atomic_update(struct device *dev,
+> >> unsigned
+> >> int pipe_index, return -EINVAL;
+> >> 
+> >>  	}
+> >> 
+> >> +	if (!(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)) && cfg->interlaced) {
+> > 
+> > Nitpicking, writing the condition as
+> > 
+> > 	if (cfg->interlaced && !(vsp1_feature(vsp1, VSP1_HAS_EXT_DL)))
+> 
+> Done.
+> 
+> > would match the comment better. You can also drop the parentheses around
+> > the vsp1_feature() call.
+> > 
+> >> +		/*
+> >> +		 * Interlaced support requires extended display lists to
+> >> +		 * provide the auto-fld feature with the DU.
+> >> +		 */
+> >> +		dev_dbg(vsp1->dev, "Interlaced unsupported on this output\n");
+> > 
+> > Could we catch this in the DU driver to fail atomic test ?
+> 
+> Ugh - I thought moving the configuration to vsp1_du_setup_lif() would
+> give us this, but that return value is not checked in the DU.
+> 
+> How can we interogate the VSP1 to ask it if it supports interlaced from
+> rcar_du_vsp_plane_atomic_check()?
+> 
+> 
+> Some dummy call to vsp1_du_setup_lif() to check the return value ? Or
+> should we implement a hook to call through to perform checks in the VSP1
+> DRM API?
+
+Would it be possible to just infer that from the DU compatible string, without 
+querying the VSP driver ? Of course that's a bit of a layering violation, but 
+as we know what type of VSP instance is present in each SoC, such a small hack 
+wouldn't hurt in my opinion. If the need arises later we can introduce an API 
+to query the information from the VSP driver.
+
+> >> +		return -EINVAL;
+> >> +	}
+> >> +
+> >> +	rpf->interlaced = cfg->interlaced;
+> >> +
+> >>  	rpf->fmtinfo = fmtinfo;
+> >>  	rpf->format.num_planes = fmtinfo->planes;
+> >>  	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
+
+[snip]
+
 -- 
-2.18.0
+Regards,
+
+Laurent Pinchart
