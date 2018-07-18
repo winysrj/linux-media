@@ -1,110 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:22368 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726064AbeGRKc1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 06:32:27 -0400
-Date: Wed, 18 Jul 2018 12:55:14 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Yong <yong.deng@magewell.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Thierry Reding <treding@nvidia.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v10 2/2] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
-References: <1525417745-37964-1-git-send-email-yong.deng@magewell.com>
- <20180626110821.wkal6fcnoncsze6y@valkosipuli.retiisi.org.uk>
- <20180705154802.03604f156709be11892b19c0@magewell.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:58434 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726064AbeGRKdK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Jul 2018 06:33:10 -0400
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [PATCH v4 11/11] drm: rcar-du: Support interlaced video output
+ through vsp1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Ulrich Hecht <ulrich.hecht@gmail.com>
+References: <cover.bd2eb66d11f8094114941107dbc78dc02c9c7fdd.1525354194.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <11186195.Bn5zmcZr3a@avalon>
+ <14ede71e-fa99-01d3-eb27-f171e5f3d082@ideasonboard.com>
+ <6606380.Aa3oybNsgi@avalon>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <af188f90-3c76-0946-2837-cb2d3d2c2367@ideasonboard.com>
+Date: Wed, 18 Jul 2018 10:55:58 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180705154802.03604f156709be11892b19c0@magewell.com>
+In-Reply-To: <6606380.Aa3oybNsgi@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
++ MM Team.
 
-On Thu, Jul 05, 2018 at 03:48:02PM +0800, Yong wrote:
-> > > +
-> > > +/* -----------------------------------------------------------------------------
-> > > + * Media Operations
-> > > + */
-> > > +static int sun6i_video_formats_init(struct sun6i_video *video,
-> > > +				    const struct media_pad *remote)
-> > > +{
-> > > +	struct v4l2_subdev_mbus_code_enum mbus_code = { 0 };
-> > > +	struct sun6i_csi *csi = video->csi;
-> > > +	struct v4l2_format format;
-> > > +	struct v4l2_subdev *subdev;
-> > > +	u32 pad;
-> > > +	const u32 *pixformats;
-> > > +	int pixformat_count = 0;
-> > > +	u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
-> > > +	int codes_count = 0;
-> > > +	int num_fmts = 0;
-> > > +	int i, j;
-> > > +
-> > > +	pad = remote->index;
-> > > +	subdev = media_entity_to_v4l2_subdev(remote->entity);
-> > > +	if (subdev == NULL)
-> > > +		return -ENXIO;
-> > > +
-> > > +	/* Get supported pixformats of CSI */
-> > > +	pixformat_count = sun6i_csi_get_supported_pixformats(csi, &pixformats);
-> > > +	if (pixformat_count <= 0)
-> > > +		return -ENXIO;
-> > > +
-> > > +	/* Get subdev formats codes */
-> > > +	mbus_code.pad = pad;
-> > > +	mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > +	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
-> > > +				 &mbus_code)) {
-> > 
-> > The formats supported by the external sub-device may depend on horizontal
-> > and vertical flipping. You shouldn't assume any particular configuration
-> > here: instead, bridge drivers generally just need to make sure the formats
-> > match in link validation when streaming is started. At least the CSI-2
-> > receiver driver and the DMA engine driver (video device) should check the
-> > configuration is valid. See e.g. the IPU3 driver:
-> > drivers/media/pci/intel/ipu3/ipu3-cio2.c .
+On 18/07/18 09:55, Laurent Pinchart wrote:
+> Hi Kieran,
 > 
-> Can mbus_code be added dynamically ?
-> The code here only enum the mbus code and get the possible supported
-> pairs of pixformat and mbus by SoC. Not try to check if the formats
-> (width height ...) is valid or not. The formats validation will be 
-> in link validation when streaming is started as per your advise. 
+> On Tuesday, 17 July 2018 23:32:56 EEST Kieran Bingham wrote:
+>> On 17/07/18 14:51, Laurent Pinchart wrote:
+>>> On Monday, 16 July 2018 20:20:30 EEST Kieran Bingham wrote:
+>>>> On 24/05/18 12:50, Laurent Pinchart wrote:
+>>>>> On Thursday, 3 May 2018 16:36:22 EEST Kieran Bingham wrote:
+>>>>>> Use the newly exposed VSP1 interface to enable interlaced frame support
+>>>>>> through the VSP1 lif pipelines.
+>>>>>
+>>>>> s/lif/LIF/
+>>>>
+>>>> Fixed.
+>>>>
+>>>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>>>> ---
+>>>>>>
+>>>>>>  drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 1 +
+>>>>>>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 3 +++
+>>>>>>  2 files changed, 4 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>>>>>> b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c index
+>>>>>> d71d709fe3d9..206532959ec9
+>>>>>> 100644
+>>>>>> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>>>>>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>>>>>> @@ -289,6 +289,7 @@ static void rcar_du_crtc_set_display_timing(struct
+>>>>>> rcar_du_crtc *rcrtc)
+>>>>>>
+>>>>>>  	/* Signal polarities */
+>>>>>>  	value = ((mode->flags & DRM_MODE_FLAG_PVSYNC) ? DSMR_VSL : 0)
+>>>>>>  	
+>>>>>>  	      | ((mode->flags & DRM_MODE_FLAG_PHSYNC) ? DSMR_HSL : 0)
+>>>>>>
+>>>>>> +	      | ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? DSMR_ODEV : 0)
+>>>>>
+>>>>> How will this affect Gen2 ?.
+>>>>
+>>>> The bit is documented identically for Gen2. Potentially / Probably it
+>>>> 'might' reverse the fields... I'm not certain yet. I don't have access
+>>>> to a Gen2 platform to test.
+>>>>
+>>>> I'll see if this change can be dropped, but I think it is playing a role
+>>>> in ensuring that the field detection occurs in VSP1 through the
+>>>> VI6_STATUS_FLD_STD() field. (see vsp1_dlm_irq_frame_end())
+>>>>
+>>>>> Could you document what this change does in the
+>>>>> commit message ?
+>>>>
+>>>> This sets the position in the buffer of the ODDF. With this set, the ODD
+>>>> field is located in the second half (BOTTOM) of the same frame of the
+>>>> interlace display.
+>>>>
+>>>> Otherwise, it's in the first half (TOP)
+>>>>
+>>>> I faced some issues as to the ordering when testing, so I suspect this
+>>>> might actually be related to that. (re VI6_STATUS_FLD_STD in
+>>>> vsp1_dlm_irq_frame_end()).
+>>>>
+>>>> As you mention - this may have a negative effect on the Gen2
+>>>> implementation - so it needs considering with that.
+>>>>
+>>>>
+>>>> /me to investigate further.
+>>>
+>>> Thank you. I don't object to this change, but I'd like to know what its
+>>> implications are on Gen2. It might even fix a bug :-) Let me know if you'd
+>>> like me to run tests on a Lager board.
+>>
+>> I've done some testing with this (removing the DSMR change, and
+>> inverting the VI6_STATUS_FLD_STD handling) and had some odd results.
+>> Perhaps my testing needs refinement.
+>>
+>> So, yes please - I think I'd really like to know what the effects are on
+>> a Lager platform.
+>>
+>> Would you (or anyone with a Gen2 and interest in vsp1/du) be able to
+>> test my latest vsp1/du/interlaced branch/tag on your local Gen2 platform
+>> please?
+> 
+> I can test it when I'll come back home on the 24th (or rather on the next day 
+> as I'll land in the evening). Could you please ping me on the 25th ?
+> 
+>> I'm testing interlaced with:
+>>
+>> kmstest # sanity test.
+>> kmstest -c 1 -r 1920x1080i --flip
 
-The formats that can be enumerated from the sensor here are those settable
-using SUBDEV_S_FMT. The enumeration will change on raw sensors if you use
-the flipping controls. As the bridge driver implements MC as well as subdev
-APIs, generally the sensor configuration is out of scope of this driver
-since it's directly configured from the user space.
+ ## -c 1 may have to change to be the right CRTC number
 
-Just check that the pipeline is valid before starting streaming in your
-driver.
+> 
+> My monitors don't support interlaced modes, so this won't be easy :-/
 
--- 
-Kind regards,
+More than that - I suspect "won't be possible"?
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Perhaps Niklas, Jacopo, or Uli could help ?
+
+Do any of you have a Gen2 platform - and a monitor/TV capable of showing
+interlaced display output?
+
+
+
+> Also, what's the expected outcome of the above command in the working and non-
+> working cases ?
+
+Expected outcome ... a clean output of the standard kmstest pattern for
+the sanity test.
+
+For:
+kmstest -c 1 -r 1920x1080i --flip
+
+
+Good:
+  A clean view of the usual 'flip' bar moving from left to right across
+the screen.
+ Must visually check the following for good result:
+  - No 'tearing' on the vertical bar
+  - A full height bar, showing the colours, red, green, and blue,
+followed by 3 shades of grey; each separated by a white block.
+  - cleanly drawn frame numbers
+
+
+
+Bad symptoms
+ - Half height frames
+   (only RGB, or 3 Grey shades showing in the flip bar)
+
+ - Tearing or image racing of any kind (check the frame numbers as they
+overdraw on the moving bar. Any blurring of the numbers as the bar
+travels past is a fail)
+
+
+> 
+>> Any (easy) other methods for testing interlaced pipelines are welcome.
+>>
+>> Is it possible to set the mode for kmscube? (--help doesn't look promising)
+> 
+> Not that I know of, but I think that shouldn't be too difficult to add.
+> 
+>> I have various test streams of interlaced media content in my media
+>> library, but not an easy way of decoding and presenting these on the
+>> screen on the Gen3.
+>>
+>> I believe GStreamer now has a drm/kms sink ... Perhaps I should get that
+>> recompiled. (That would help me with other tasks too actually)
+>>
+>>>>>>  	      | DSMR_DIPM_DISP | DSMR_CSPM;
+>>>>>>  	
+>>>>>>  	rcar_du_crtc_write(rcrtc, DSMR, value);
+>>>>>>
+>>>>>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>>>>>> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index
+>>>>>> af7822a66dee..c7b37232ee91
+>>>>>> 100644
+>>>>>> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>>>>>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>>>>>> @@ -186,6 +186,9 @@ static void rcar_du_vsp_plane_setup(struct
+>>>>>> rcar_du_vsp_plane *plane)
+>>>>>>  	};
+>>>>>>  	unsigned int i;
+>>>>>>
+>>>>>> +	cfg.interlaced = !!(plane->plane.state->crtc->mode.flags
+>>>>>> +			    & DRM_MODE_FLAG_INTERLACE);
+>>>>>> +
+>>>>>>  	cfg.src.left = state->state.src.x1 >> 16;
+>>>>>>  	cfg.src.top = state->state.src.y1 >> 16;
+>>>>>>  	cfg.src.width = drm_rect_width(&state->state.src) >> 16;
+> 
