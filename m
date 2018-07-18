@@ -1,72 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:42776 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388420AbeGYC3n (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:37883 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730015AbeGRL4v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 22:29:43 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1] media: staging: tegra-vde: Replace debug messages with trace points
-Date: Wed, 25 Jul 2018 04:20:29 +0300
-Message-ID: <1779889.gZoAajBteF@dimapc>
-In-Reply-To: <20180724213733.6c8b6b4b@coco.lan>
-References: <20180707162049.20407-1-digetx@gmail.com> <3929419.8vW2TRoUPb@dimapc> <20180724213733.6c8b6b4b@coco.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 18 Jul 2018 07:56:51 -0400
+From: Jacopo Mondi <jacopo@jmondi.org>
+To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        maxime.ripard@bootlin.com, sam@elite-embedded.com,
+        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
+        steve_longerbeam@mentor.com, hugues.fruchet@st.com,
+        loic.poulain@linaro.org, daniel@zonque.org
+Cc: Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
+Subject: [PATCH 2/2] media: ov5640: Fix auto-exposure disabling
+Date: Wed, 18 Jul 2018 13:19:03 +0200
+Message-Id: <1531912743-24767-3-git-send-email-jacopo@jmondi.org>
+In-Reply-To: <1531912743-24767-1-git-send-email-jacopo@jmondi.org>
+References: <1531912743-24767-1-git-send-email-jacopo@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, 25 July 2018 03:37:33 MSK Mauro Carvalho Chehab wrote:
-> Em Wed, 25 Jul 2018 01:38:37 +0300
-> 
-> Dmitry Osipenko <digetx@gmail.com> escreveu:
-> > On Wednesday, 25 July 2018 01:06:52 MSK Mauro Carvalho Chehab wrote:
-> > > Em Sat,  7 Jul 2018 19:20:49 +0300
-> > > 
-> > > Dmitry Osipenko <digetx@gmail.com> escreveu:
-> > > > Trace points are much more efficient than debug messages for extensive
-> > > > tracing and could be conveniently enabled / disabled dynamically,
-> > > > hence
-> > > > let's replace debug messages with the trace points.
-> > > 
-> > > This patch require some work:
-> > > 
-> > > $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y
-> > > C=1
-> > > W=1 CHECK='compile_checks' M=drivers/staging/media
-> > > 
-> > > ./include/linux/slab.h:631:13: error: undefined identifier
-> > > '__builtin_mul_overflow' ./include/linux/slab.h:631:13: warning: call
-> > > with
-> > > no type!
-> > > fixdep: error opening file: drivers/staging/media/tegra-vde/trace.h: No
-> > > such file or directory
-> > > 
-> >   CHECK   drivers/staging/media/tegra-vde/tegra-vde.c
-> > 
-> > /bin/sh: compile_checks: command not found
-> > 
-> > Upstream kernel doesn't have "compile_checks" script and I can't find it
-> > anywhere else.
-> 
-> This is just a call for smatch/sparse:
-> 
-> #!/bin/bash
-> /devel/smatch/smatch -p=kernel $@
-> # This is too pedantic and produce lots of false-positives
-> #/devel/smatch/smatch --two-passes -- -p=kernel $@
-> /devel/sparse/sparse $@
-> 
-> However, the problem here is that you're doing a 64 bits division.
-> That causes compilation to break with 32 bits. you need to use
-> do_div & friends.
+As of:
+commit bf4a4b518c20 ("media: ov5640: Don't force the auto exposure state at
+start time") auto-exposure got disabled before programming new capture modes to
+the sensor. Unfortunately the function used to do that (ov5640_set_exposure())
+does not enable/disable auto-exposure engine through register 0x3503[0] bit, but
+programs registers [0x3500 - 0x3502] which represent the desired exposure time
+when running with manual exposure. As a result, auto-exposure was not actually
+disabled at all.
 
-The tegra-vde driver code is fine, it is a known issue with the kernels 
-checker [0]. Unfortunately the patch for the checker haven't been applied yet.
+To actually disable auto-exposure, go through the control framework instead of
+calling ov5640_set_exposure() function directly.
 
-[0] https://www.spinics.net/lists/kernel/msg2824058.html
+Also, as auto-gain and auto-exposure are disabled un-conditionally but only
+restored to their previous values in ov5640_set_mode_direct() function, move
+controls restoring so that their value is re-programmed opportunely after
+either ov5640_set_mode_direct() or ov5640_set_mode_exposure_calc() have been
+executed.
+
+Fixes: bf4a4b518c20 ("media: ov5640: Don't force the auto exposure state at start time")
+Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+
+---
+Is it worth doing with auto-gain what we're doing with auto-exposure? Cache the
+value and then re-program it instead of unconditionally disable/enable it?
+
+Thanks
+  j
+---
+---
+ drivers/media/i2c/ov5640.c | 29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 12b3496..bc75cb7 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1588,25 +1588,13 @@ static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
+  * change mode directly
+  */
+ static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
+-				  const struct ov5640_mode_info *mode,
+-				  s32 exposure)
++				  const struct ov5640_mode_info *mode)
+ {
+-	int ret;
+-
+ 	if (!mode->reg_data)
+ 		return -EINVAL;
+ 
+ 	/* Write capture setting */
+-	ret = ov5640_load_regs(sensor, mode);
+-	if (ret < 0)
+-		return ret;
+-
+-	/* turn auto gain/exposure back on for direct mode */
+-	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
+-	if (ret)
+-		return ret;
+-
+-	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure);
++	return  ov5640_load_regs(sensor, mode);
+ }
+ 
+ static int ov5640_set_mode(struct ov5640_dev *sensor,
+@@ -1626,7 +1614,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ 		return ret;
+ 
+ 	exposure = sensor->ctrls.auto_exp->val;
+-	ret = ov5640_set_exposure(sensor, V4L2_EXPOSURE_MANUAL);
++	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, V4L2_EXPOSURE_MANUAL);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1642,12 +1630,21 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ 		 * change inside subsampling or scaling
+ 		 * download firmware directly
+ 		 */
+-		ret = ov5640_set_mode_direct(sensor, mode, exposure);
++		ret = ov5640_set_mode_direct(sensor, mode);
+ 	}
+ 
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* Restore auto-gain and auto-exposure after mode has changed. */
++	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
++	if (ret)
++		return ret;
++
++	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure)
++	if (ret)
++		return ret;
++
+ 	ret = ov5640_set_binning(sensor, dn_mode != SCALING);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+2.7.4
