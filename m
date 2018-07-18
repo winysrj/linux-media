@@ -1,84 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from heliosphere.sirena.org.uk ([172.104.155.198]:55936 "EHLO
-        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730426AbeGRPZp (ORCPT
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:47006 "EHLO
+        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731064AbeGRPbz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 11:25:45 -0400
-Date: Wed, 18 Jul 2018 15:47:24 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Peter Rosin <peda@axentia.se>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v4 1/3] regmap: add SCCB support
-Message-ID: <20180718144723.GM5700@sirena.org.uk>
-References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
- <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
+        Wed, 18 Jul 2018 11:31:55 -0400
+Received: by mail-yb0-f194.google.com with SMTP id c3-v6so1935398ybi.13
+        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2018 07:53:38 -0700 (PDT)
+Received: from mail-yb0-f180.google.com (mail-yb0-f180.google.com. [209.85.213.180])
+        by smtp.gmail.com with ESMTPSA id j83-v6sm3298021ywg.96.2018.07.18.07.53.35
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 18 Jul 2018 07:53:36 -0700 (PDT)
+Received: by mail-yb0-f180.google.com with SMTP id x10-v6so1937067ybl.10
+        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2018 07:53:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="nrXiCraHbXeog9mY"
-Content-Disposition: inline
-In-Reply-To: <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
+References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com> <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 18 Jul 2018 23:53:22 +0900
+Message-ID: <CAAFQd5AH3voHmJq3h1AqULJTFWH=BTWmB76k7f78q9FHaDMXfg@mail.gmail.com>
+Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Yong Zhi <yong.zhi@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>, chao.c.li@intel.com,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro, Hans,
 
---nrXiCraHbXeog9mY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, Jun 15, 2018 at 12:30 PM Yong Zhi <yong.zhi@intel.com> wrote:
+>
+> These meta formats are used on Intel IPU3 ImgU video queues
+> to carry 3A statistics and ISP pipeline parameters.
+>
+> V4L2_META_FMT_IPU3_3A
+> V4L2_META_FMT_IPU3_PARAMS
+>
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> Signed-off-by: Chao C Li <chao.c.li@intel.com>
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> ---
+>  Documentation/media/uapi/v4l/meta-formats.rst      |    1 +
+>  .../media/uapi/v4l/pixfmt-meta-intel-ipu3.rst      |  174 ++
+>  include/uapi/linux/intel-ipu3.h                    | 2816 ++++++++++++++++++++
 
-On Tue, Jul 17, 2018 at 12:47:48AM +0900, Akinobu Mita wrote:
-> This adds Serial Camera Control Bus (SCCB) support for regmap API that
-> is intended to be used by some of Omnivision sensor drivers.
+The documentation seems to be quite extensive in current version. Do
+you think it's more acceptable now? Would you be able to take a look?
 
-The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
+We obviously need to keep working on the user space framework (and
+we're in process of figuring out how we can proceed further), but
+having the driver bit-rotting downstream might not be a very
+encouraging factor. ;)
 
-  Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
-
-are available in the Git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regmap.git tags/regmap-sccb
-
-for you to fetch changes up to bcf7eac3d97f49d8400ba52c71bee5934bf20093:
-
-  regmap: add SCCB support (2018-07-18 15:45:23 +0100)
-
-----------------------------------------------------------------
-regmap: Add support for SCCB
-
-This is an I2C subset.
-
-----------------------------------------------------------------
-Akinobu Mita (1):
-      regmap: add SCCB support
-
- drivers/base/regmap/Kconfig       |   4 ++
- drivers/base/regmap/Makefile      |   1 +
- drivers/base/regmap/regmap-sccb.c | 128 ++++++++++++++++++++++++++++++++++++++
- include/linux/regmap.h            |  35 +++++++++++
- 4 files changed, 168 insertions(+)
- create mode 100644 drivers/base/regmap/regmap-sccb.c
-
---nrXiCraHbXeog9mY
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAltPUvsACgkQJNaLcl1U
-h9CHfwf/WlS+6f05pFZez91zy/MYpUBD++y4VxOnJn3t7kUo4VaFyYGLVXG9cx+e
-b2LEyr52WkvjL/K61SeY1GDvo+ANBGcA26VTD6S22DIVBSekDEe4hh9tbkRcBMHE
-kfLrSC+hdLX+bAv8Ws0kcKyNm5pOLTZPdNr0CoIo7yGK2nmH/54mOAfMroIS4RNb
-xFjAGGoWbH7xXRrXuhe5PNdbzXecrE/pmKl/3IG6IN5gu2GYLd+niTgiM+X2Rv69
-P29kD9izCb2rd8O1xl1UfudAGeJsZeerjtVqV7fc0YSIYNW3vQNbcC8pWvMmZ7Gb
-W0iwocfPy2uzSnv8Jgz54PnROPubJg==
-=CKOC
------END PGP SIGNATURE-----
-
---nrXiCraHbXeog9mY--
+Best regards,
+Tomasz
