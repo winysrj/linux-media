@@ -1,149 +1,458 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58172 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730180AbeGRASn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 20:18:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 2/3] uvcvideo: send a control event when a Control Change interrupt arrives
-Date: Wed, 18 Jul 2018 02:44:14 +0300
-Message-ID: <5107098.C36SyUDqOn@avalon>
-In-Reply-To: <alpine.DEB.2.20.1807172328180.19083@axis700.grange>
-References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com> <3815510.uz0YmiiscJ@avalon> <alpine.DEB.2.20.1807172328180.19083@axis700.grange>
+Received: from mx.socionext.com ([202.248.49.38]:15872 "EHLO mx.socionext.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729934AbeGRBOd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 17 Jul 2018 21:14:33 -0400
+From: "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com>
+To: "'Mauro Carvalho Chehab'" <mchehab+samsung@kernel.org>,
+        =?utf-8?B?U3V6dWtpLCBLYXRzdWhpcm8v6Yi05pyoIOWLneWNmg==?=
+        <suzuki.katsuhiro@socionext.com>
+Cc: <linux-media@vger.kernel.org>,
+        "Masami Hiramatsu" <masami.hiramatsu@linaro.org>,
+        "Jassi Brar" <jaswinder.singh@linaro.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, "Abylay Ospan" <aospan@netup.ru>
+References: <20180621031748.21703-1-suzuki.katsuhiro@socionext.com>     <20180704135657.3fd607cb@coco.lan>      <000401d41403$b33db490$19b91db0$@socionext.com> <20180704234244.32d20f6b@coco.lan>      <000501d41423$265013a0$72f03ae0$@socionext.com> <20180705212723.2856f064@coco.lan>      <001f01d414ef$27145450$753cfcf0$@socionext.com> <20180706081603.2d8451c9@coco.lan>      <002c01d41729$2ff6fa00$8fe4ee00$@socionext.com> <20180709105938.3d2f8391@coco.lan>      <004501d417f8$c83a01c0$58ae0540$@socionext.com> <001201d41d94$7370e1d0$5a52a570$@socionext.com> <20180717195853.07b2b42b@vela.lan>
+In-Reply-To: <20180717195853.07b2b42b@vela.lan>
+Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T demodulator driver
+Date: Wed, 18 Jul 2018 09:39:18 +0900
+Message-ID: <001301d41e2f$c3169400$4943bc00$@socionext.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: ja
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hello Mauro,
 
-On Wednesday, 18 July 2018 00:30:45 EEST Guennadi Liakhovetski wrote:
-> On Tue, 17 Jul 2018, Laurent Pinchart wrote:
-> > On Thursday, 12 July 2018 10:30:46 EEST Guennadi Liakhovetski wrote:
-> >> On Thu, 12 Jul 2018, Laurent Pinchart wrote:
-> >>> On Tuesday, 8 May 2018 18:07:43 EEST Guennadi Liakhovetski wrote:
-> >>>> UVC defines a method of handling asynchronous controls, which sends a
-> >>>> USB packet over the interrupt pipe. This patch implements support for
-> >>>> such packets by sending a control event to the user. Since this can
-> >>>> involve USB traffic and, therefore, scheduling, this has to be done
-> >>>> in a work queue.
-> >>>> 
-> >>>> Signed-off-by: Guennadi Liakhovetski
-> >>>> <guennadi.liakhovetski@intel.com>
-> >>>> ---
-> >>>> 
-> >>>> v8:
-> >>>> 
-> >>>> * avoid losing events by delaying the status URB resubmission until
-> >>>>   after completion of the current event
-> >>>> * extract control value calculation into __uvc_ctrl_get_value()
-> >>>> * do not proactively return EBUSY if the previous control hasn't
-> >>>>   completed yet, let the camera handle such cases
-> >>>> * multiple cosmetic changes
-> >>>> 
-> >>>>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++------
-> >>>>  drivers/media/usb/uvc/uvc_status.c | 112 ++++++++++++++++++++++---
-> >>>>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
-> >>>>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
-> >>>>  include/uapi/linux/uvcvideo.h      |   2 +
-> >>>>  5 files changed, 255 insertions(+), 44 deletions(-)
-> >>>> 
-> >>>> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> >>>> b/drivers/media/usb/uvc/uvc_ctrl.c index 2a213c8..796f86a 100644
-> >>>> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> >>>> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> >> 
-> >> [snip]
-> >> 
-> >>>> +static void uvc_ctrl_status_event_work(struct work_struct *work)
-> >>>> +{
-> >>>> +	struct uvc_device *dev = container_of(work, struct uvc_device,
-> >>>> +					      async_ctrl.work);
-> >>>> +	struct uvc_ctrl_work *w = &dev->async_ctrl;
-> >>>> +	struct uvc_control_mapping *mapping;
-> >>>> +	struct uvc_control *ctrl = w->ctrl;
-> >>>> +	unsigned int i;
-> >>>> +	int ret;
-> >>>> +
-> >>>> +	mutex_lock(&w->chain->ctrl_mutex);
-> >>>> +
-> >>>> +	list_for_each_entry(mapping, &ctrl->info.mappings, list) {
-> >>>> +		s32 value = __uvc_ctrl_get_value(mapping, w->data);
-> >>>> +
-> >>>> +		/*
-> >>>> +		 * So far none of the auto-update controls in the uvc_ctrls[]
-> >>>> +		 * table is mapped to a V4L control with slaves in the
-> >>>> +		 * uvc_ctrl_mappings[] list, so slave controls so far never have
-> >>>> +		 * handle == NULL, but this can change in the future
-> >>>> +		 */
-> >>>> +		for (i = 0; i < ARRAY_SIZE(mapping->slave_ids); ++i) {
-> >>>> +			if (!mapping->slave_ids[i])
-> >>>> +				break;
-> >>>> +
-> >>>> +			__uvc_ctrl_send_slave_event(ctrl->handle, w->chain,
-> >>>> +						ctrl, mapping->slave_ids[i]);
-> >>>> +		}
-> >>>> +
-> >>>> +		uvc_ctrl_send_event(ctrl->handle, ctrl, mapping, value,
-> >>>> +				    V4L2_EVENT_CTRL_CH_VALUE);
-> >>>> +	}
-> >>>> +
-> >>>> +	mutex_unlock(&w->chain->ctrl_mutex);
-> >>>> +
-> >>>> +	ctrl->handle = NULL;
-> >>> 
-> >>> Can't this race with a uvc_ctrl_set() call, resulting in ctrl->handle
-> >>> being NULL after the control gets set ?
-> >> 
-> >> Right, it's better to set .handle to NULL before sending events.
-> >> Something like
-> >> 
-> >> mutex_lock();
-> >> 
-> >> handle = ctrl->handle;
-> >> ctrl->handle = NULL;
-> >> 
-> >> list_for_each_entry() {
-> >> 
-> >> 	...
-> >> 	uvc_ctrl_send_event(handle,...);
-> >> 
-> >> }
-> >> 
-> >> mutex_unlock();
-> >> 
-> >> ?
-> > 
-> > I think you also have to take the same lock in the uvc_ctrl_set() function
-> > to fix the problem, otherwise the ctrl->handle = NULL line could still be
-> > executed after the ctrl->handle assignment in uvc_ctrl_set(), resulting
-> > in ctrl->handle being NULL while the control is being set.
+> -----Original Message-----
+> From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> Sent: Tuesday, July 17, 2018 7:59 PM
+> To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> Cc: linux-media@vger.kernel.org; Masami Hiramatsu <masami.hiramatsu@linaro.org>;
+> Jassi Brar <jaswinder.singh@linaro.org>; linux-arm-kernel@lists.infradead.org;
+> linux-kernel@vger.kernel.org; Abylay Ospan <aospan@netup.ru>
+> Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+> demodulator driver
 > 
-> Doesn't this mean, that you're attempting to send a new instance of the
-> same control before the previous has completed? In which case also taking
-> the lock in uvc_ctrl_set() wouldn't help either, because you can anyway do
-> that immediately after the first instance, before the completion even has
-> fired.
+> Em Tue, 17 Jul 2018 15:07:32 +0900
+> "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
+> 
+> > Hello Mauro,
+> >
+> > I want to send next version (v4) of this patch (just fix wrong max/min range of
+> > frequency, fix symbol rate). But it depends your patches for DVB cores.
+> >
+> > Which way is better?
+> >
+> >   - Send next version now
+> >   - Send next version after your DVB cores patches applied
+> >
+> > I want to try to solve LNB problem after current codes applied. I think LNB IC
+> > will be defined as regulator device. Please tell me if you have comments about
+> > it.
+> 
+> I'm out of the town this week, but you can send it. No need to wait for
+> my patches. Just add a notice that the patch depends on them. I'll
+> handle after returning back from my trip.
+> 
 
-You're right that it won't solve the race completely, but wouldn't it at least 
-prevent ctrl->handle from being NULL ? We can't guarantee which of the old and 
-new handle will be used for events when multiple control set operations are 
-invoked, but we should try to guarantee that the handle won't be NULL.
+Thank you, I see. Have a nice trip!
 
-> >>>> +	/* Resubmit the URB. */
-> >>>> +	w->urb->interval = dev->int_ep->desc.bInterval;
-> >>>> +	ret = usb_submit_urb(w->urb, GFP_KERNEL);
-> >>>> +	if (ret < 0)
-> >>>> +		uvc_printk(KERN_ERR, "Failed to resubmit status URB (%d).\n",
-> >>>> +			   ret);
-> >>>> +}
 
-[snip]
-
--- 
 Regards,
+--
+Katsuhiro Suzuki
 
-Laurent Pinchart
+
+> >
+> >
+> > Regards,
+> > --
+> > Katsuhiro Suzuki
+> >
+> >
+> > > -----Original Message-----
+> > > From: Katsuhiro Suzuki <suzuki.katsuhiro@socionext.com>
+> > > Sent: Tuesday, July 10, 2018 11:51 AM
+> > > To: 'Mauro Carvalho Chehab' <mchehab+samsung@kernel.org>; Suzuki, Katsuhiro/
+> 鈴木
+> > > 勝博 <suzuki.katsuhiro@socionext.com>
+> > > Cc: linux-media@vger.kernel.org; Masami Hiramatsu
+> <masami.hiramatsu@linaro.org>;
+> > > Jassi Brar <jaswinder.singh@linaro.org>;
+> linux-arm-kernel@lists.infradead.org;
+> > > linux-kernel@vger.kernel.org; Abylay Ospan <aospan@netup.ru>
+> > > Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+> > > demodulator driver
+> > >
+> > > Hello Mauro,
+> > >
+> > > > -----Original Message-----
+> > > > From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> > > > Sent: Monday, July 9, 2018 11:00 PM
+> > > > To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> > > > Cc: linux-media@vger.kernel.org; Masami Hiramatsu
+> > > <masami.hiramatsu@linaro.org>;
+> > > > Jassi Brar <jaswinder.singh@linaro.org>;
+> linux-arm-kernel@lists.infradead.org;
+> > > > linux-kernel@vger.kernel.org; Abylay Ospan <aospan@netup.ru>
+> > > > Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+> > > > demodulator driver
+> > > >
+> > > > Em Mon, 9 Jul 2018 11:04:36 +0900
+> > > > "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
+> > > >
+> > > > > Hello Mauro,
+> > > > >
+> > > > > > -----Original Message-----
+> > > > > > From: linux-media-owner@vger.kernel.org
+> <linux-media-owner@vger.kernel.org>
+> > > > On
+> > > > > > Behalf Of Mauro Carvalho Chehab
+> > > > > > Sent: Friday, July 6, 2018 8:16 PM
+> > > > > > To: Suzuki, Katsuhiro/鈴木 勝博 <suzuki.katsuhiro@socionext.com>
+> > > > > > Cc: linux-media@vger.kernel.org; Masami Hiramatsu
+> > > > > <masami.hiramatsu@linaro.org>;
+> > > > > > Jassi Brar <jaswinder.singh@linaro.org>;
+> > > > linux-arm-kernel@lists.infradead.org;
+> > > > > > linux-kernel@vger.kernel.org; Abylay Ospan <aospan@netup.ru>
+> > > > > > Subject: Re: [PATCH v3] media: dvb-frontends: add Socionext SC1501A ISDB-S/T
+> > > > > > demodulator driver
+> > > > > >
+> > > > > > Em Fri, 6 Jul 2018 15:04:08 +0900
+> > > > > > "Katsuhiro Suzuki" <suzuki.katsuhiro@socionext.com> escreveu:
+> > > > > >
+> > > > > > > Here is the log of dvb-fe-tool on my environment.
+> > > > > > >
+> > > > > > > --------------------
+> > > > > > > # ./utils/dvb/.libs/dvb-fe-tool -d isdbs
+> > > > > > > Changing delivery system to: ISDBS
+> > > > > > > ERROR    FE_SET_VOLTAGE: Unknown error 524
+> > > > > >
+> > > > > > Hmm... ENOTSUPP. Doesn't the device supposed to be able to power on the
+> > > > > > LNBf?
+> > > > >
+> > > > > Ah, maybe it's not implemented yet in Helene driver.
+> > > >
+> > > > That depends on how the hardware works. On some hardware, the
+> > > > LNBf power supply and control is at the demod; on others, it is
+> > > > supported by a separate chipset. See, for example, isl642.c for
+> > > > an example of such external hardware.
+> > > >
+> > > > I don't know much about ISDB-S, but, as far as what was
+> > > > implemented on v4l-utils dvb-sat.c for Japan 110BS/CS LNBf,
+> > > > the LNBf voltage is not used to switch the polarity.
+> > > >
+> > > > So, the control here is simpler than on DVB-S/S2, as the only
+> > > > control is either to send 18V to power on the LNBf/Dish, or
+> > > > zero in order to save power.
+> > > >
+> > >
+> > > Thank you, I misunderstood about LNB. I checked circuit of evaluation
+> > > board, the board has discrete LNB IC (ST micro LNBH29) for supplying
+> > > voltage to Helene. This IC is controlled by I2C.
+> > >
+> > > The standard (ARIB STD-B21) says DC 15V power is needed to drive the
+> > > converter (BS freq -> BS-IF freq) of BS dish antenna. This power
+> > > can be supplied via antenna line.
+> > >
+> > > It seems,
+> > >   LNBH29 --(LNB_PWR)--> Helene --> BS antenna
+> > >
+> > > I don't know enough about Helene, but it maybe supply 15V power to
+> > > converter of BS dish via antenna line if it receive 15V LNB_PWR...
+> > >
+> > >
+> > > I don't have idea about controlling this IC. Should I write some
+> > > driver for LNBH29, and pass the phandle to demodulator via device
+> > > tree??
+> > >
+> > >
+> > > > >
+> > > > >
+> > > > > >
+> > > > > > Anyway, I changed the error print message to be clearer, displaying
+> > > > > > instead:
+> > > > > >
+> > > > > >   ERROR    FE_SET_VOLTAGE: driver doesn't support it!
+> > > > > >
+> > > > >
+> > > > > It's nice for users. Thanks!
+> > > > >
+> > > > >
+> > > > > > >
+> > > > > > > # ./utils/dvb/.libs/dvb-fe-tool
+> > > > > > > Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabilities:
+> > > > > > >      CAN_FEC_AUTO
+> > > > > > >      CAN_GUARD_INTERVAL_AUTO
+> > > > > > >      CAN_HIERARCHY_AUTO
+> > > > > > >      CAN_INVERSION_AUTO
+> > > > > > >      CAN_QAM_AUTO
+> > > > > > >      CAN_TRANSMISSION_MODE_AUTO
+> > > > > > > DVB API Version 5.11, Current v5 delivery system: ISDBS
+> > > > > > > Supported delivery systems:
+> > > > > > >     [ISDBS]
+> > > > > > >      ISDBT
+> > > > > > > Frequency range for the current standard:
+> > > > > > > From:             470 MHz
+> > > > > > > To:              2.07 GHz
+> > > > > > > Step:            25.0 kHz
+> > > > > > > Symbol rate ranges for the current standard:
+> > > > > > > From:                 0Bauds
+> > > > > > > To:                   0Bauds
+> > > > > >
+> > > > > > That seems a driver issue. The ISDB-S ops.info should be
+> > > > > > filling both symbol_rate_min and symbol_rate_max.
+> > > > > >
+> > > > > > I suspect that both should be filled with 28860000.
+> > > > > >
+> > > > > > The dvb_frontend.c core might hardcode it, but, IMHO,
+> > > > > > it is better to keep those information inside the
+> > > > > > tuner/frontend ops.info.
+> > > > > >
+> > > > >
+> > > > > Indeed, thank you for reviewing. I fixed my driver. It seems works fine.
+> > > > >
+> > > > > ----
+> > > > > # utils/dvb/.libs/dvb-fe-tool -a 0
+> > > > > Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabilities:
+> > > > >      CAN_FEC_AUTO
+> > > > >      CAN_GUARD_INTERVAL_AUTO
+> > > > >      CAN_HIERARCHY_AUTO
+> > > > >      CAN_INVERSION_AUTO
+> > > > >      CAN_QAM_AUTO
+> > > > >      CAN_TRANSMISSION_MODE_AUTO
+> > > > > DVB API Version 5.11, Current v5 delivery system: ISDBS
+> > > > > Supported delivery systems:
+> > > > >     [ISDBS]
+> > > > >      ISDBT
+> > > > > Frequency range for the current standard:
+> > > > > From:             470 MHz
+> > > > > To:              2.07 GHz
+> > > > > Step:            25.0 kHz
+> > > > > Symbol rate ranges for the current standard:
+> > > > > From:            28.9 MBauds
+> > > > > To:              28.9 MBauds
+> > > > > SEC: set voltage to OFF
+> > > > > ERROR    FE_SET_VOLTAGE: Operation not permitted
+> > > > > ----
+> > > >
+> > > > That sounds ok.
+> > > >
+> > > > >
+> > > > >
+> > > > > > > SEC: set voltage to OFF
+> > > > > > > ERROR    FE_SET_VOLTAGE: Operation not permitted
+> > > > > > >
+> > > > > > >
+> > > > > > > # ./utils/dvb/.libs/dvb-fe-tool -d isdbt
+> > > > > > > Changing delivery system to: ISDBT
+> > > > > > > ERROR    FE_SET_VOLTAGE: Unknown error 524
+> > > > > > >
+> > > > > > > # ./utils/dvb/.libs/dvb-fe-tool
+> > > > > > > Device Socionext SC1501A (/dev/dvb/adapter0/frontend0) capabilities:
+> > > > > > >      CAN_FEC_AUTO
+> > > > > > >      CAN_GUARD_INTERVAL_AUTO
+> > > > > > >      CAN_HIERARCHY_AUTO
+> > > > > > >      CAN_INVERSION_AUTO
+> > > > > > >      CAN_QAM_AUTO
+> > > > > > >      CAN_TRANSMISSION_MODE_AUTO
+> > > > > > > DVB API Version 5.11, Current v5 delivery system: ISDBT
+> > > > > > > Supported delivery systems:
+> > > > > > >      ISDBS
+> > > > > > >     [ISDBT]
+> > > > > > > Frequency range for the current standard:
+> > > > > > > From:             470 MHz
+> > > > > > > To:              2.07 GHz
+> > > > > > > Step:            25.0 kHz
+> > > > > >
+> > > > > > The rest looks OK for me.
+> > > > > >
+> > > > > > > > > For example, Helene uses these info for only Ter or Sat freq ranges:
+> > > > > > > > >
+> > > > > > > > > 		.name = "Sony HELENE Ter tuner",
+> > > > > > > > > 		.frequency_min_hz  =    1 * MHz,
+> > > > > > > > > 		.frequency_max_hz  = 1200 * MHz,
+> > > > > > > > > 		.frequency_step_hz =   25 * kHz,
+> > > > > > > > >
+> > > > > > > > > 		.name = "Sony HELENE Sat tuner",
+> > > > > > > > > 		.frequency_min_hz  =  500 * MHz,
+> > > > > > > > > 		.frequency_max_hz  = 2500 * MHz,
+> > > > > > > > > 		.frequency_step_hz =    1 * MHz,
+> > > > > > > > >
+> > > > > > > > > Is this better to add new info for both system?
+> > > > > > > > >
+> > > > > > > > > 		.name = "Sony HELENE Sat/Ter tuner",
+> > > > > > > > > 		.frequency_min_hz  =    1 * MHz,
+> > > > > > > > > 		.frequency_max_hz  = 2500 * MHz,
+> > > > > > > > > 		.frequency_step_hz =   25 * kHz, // Is this
+> correct...?
+> > > > > > > >
+> > > > > > > > That is indeed a very good question, and maybe a reason why we
+> > > > > > > > may need other approaches.
+> > > > > > > >
+> > > > > > > > See, if the tuner is capable of tuning from 1 MHz to 2500 MHz,
+> > > > > > > > the frequency range should be ok. It would aget_frontend_algoctually
+> be
+> > > > > pretty
+> > > > > > cool
+> > > > > > > > to use a tuner with such wide range for SDR, if the hardware supports
+> > > > > > > > raw I/Q collect :-D
+> > > > > > > >
+> > > > > > > > The frequency step is a different issue. If the tuner driver uses
+> > > > > > > > DVBFE_ALGO_SW (e. g. if ops.get_frontend_algo() returns it, or if
+> > > > > > > > this function is not defined), then the step will be used to adjust
+> > > > > > > > the zigzag interactions. If it is too small, the tuning will lose
+> > > > > > > > channels if the signal is not strong.
+> > > > > > > >
+> > > > > > >
+> > > > > > > Thank you for describing. It's difficult problem...
+> > > > > >
+> > > > > > I double-checked the implementation. We don't need to worry about
+> > > > > > zigzag, provided that the ISDB-S implementation at the core is correct.
+> > > > > >
+> > > > > > For satellite/cable standards, the zigzag logic takes the symbol
+> > > > > > rate into account, and not the stepsize:
+> > > > > >
+> > > > > >                 case SYS_DVBS:
+> > > > > >                 case SYS_DVBS2:
+> > > > > >                 case SYS_ISDBS:
+> > > > > >                 case SYS_TURBO:
+> > > > > >                 case SYS_DVBC_ANNEX_A:
+> > > > > >                 case SYS_DVBC_ANNEX_C:
+> > > > > >                         fepriv->min_delay = HZ / 20;
+> > > > > >                         fepriv->step_size = c->symbol_rate / 16000;
+> > > > > >                         fepriv->max_drift = c->symbol_rate / 2000;
+> > > > > >                         break;
+> > > > > >
+> > > > > > For terrestrial standards, it uses the stepsize:
+> > > > > >
+> > > > > >                 case SYS_DVBT:
+> > > > > >                 case SYS_DVBT2:
+> > > > > >                 case SYS_ISDBT:
+> > > > > >                 case SYS_DTMB:
+> > > > > >                         fepriv->min_delay = HZ / 20;
+> > > > > >                         fepriv->step_size =
+> dvb_frontend_get_stepsize(fe) *
+> > > > 2;
+> > > > > >                         fepriv->max_drift =
+> (dvb_frontend_get_stepsize(fe)
+> > > *
+> > > > 2)
+> > > > > +
+> > > > > > 1;
+> > > > > >                         break;
+> > > > > >
+> > > > > > So, having a value of 25 kHz there won't affect the zigzag algorithm
+> > > > > > for ISDB-S, as it will be used only for ISDB-T.
+> > > > > >
+> > > > >
+> > > > > Thank you for checking and describing. I checked it too.
+> > > > >
+> > > > > Default value is fine as you said, and we can use get_tune_settings()
+> > > > > callback if we face the problem or need different settings for each
+> > > > > delivery systems in the future.
+> > > > >
+> > > > >         /* get frontend-specific tuning settings */
+> > > > >         memset(&fetunesettings, 0, sizeof(struct
+> > > dvb_frontend_tune_settings));
+> > > > >         if (fe->ops.get_tune_settings && (fe->ops.get_tune_settings(fe,
+> > > > > &fetunesettings) == 0)) {
+> > > > >                 fepriv->min_delay = (fetunesettings.min_delay_ms * HZ) /
+> 1000;
+> > > > >                 fepriv->max_drift = fetunesettings.max_drift;
+> > > > >                 fepriv->step_size = fetunesettings.step_size;
+> > > > >         } else {
+> > > > >                 /* default values */
+> > > > >                 ...
+> > > >
+> > > > Sure.
+> > > >
+> > > > >
+> > > > >
+> > > > > > > > In the specific case of helene, it doesn't have a get_frontend_algo,
+> > > > > > > > so it will use the step frequency.
+> > > > > > > >
+> > > > > > > > I'm not sure how to solve this issue. Maybe Abylay may shed a light
+> > > > > > > > here, if helene does sigzag in hardware or not.
+> > > > > > > >
+> > > > > > >
+> > > > > > > As far as I know, Helene does not have automatic scan mechanism in
+> > > > > > > hardware.
+> > > > > >
+> > > > > > Ok, so the driver is doing the right thing here.
+> > > > > >
+> > > > > > > > If it does in hardware, you could add a get_frontend_algo() routine
+> > > > > > > > at helene driver and return DVBFE_ALGO_HW. The tuning zigzag software
+> > > > > > > > algorithm in the Kernel will stop, as it will rely at the hardware.
+> > > > > > > >
+> > > > > > > > Please notice that, if the hardware doesn't do zigzag itself, this
+> > > > > > > > will make it lose channels. On the other hand, if the hardware does
+> > > > > > > > have sigzag, changing to DVBFE_ALGO_HW will speedup tuning, as the
+> > > > > > > > Kernel won't try to do sigzag itself.
+> > > > > > > >
+> > > > > > >
+> > > > > > > ISDB-T uses 6MHz bandwidth per channel (in Japan), ISDB-S for
+> > > > > > > BS/CS110 uses 38.36MHz bandwidth. Maybe 1MHz zigzag step is large for
+> > > > > > > ISDB-T system and 25kHz is small for ISDB-S system.
+> > > > > >
+> > > > > > Yeah, but, after double-checking the logic, for ISDB-S, it will
+> > > > > > use:
+> > > > > >
+> > > > > > 	c->symbol_rate = 28860000;
+> > > > > > 	c->rolloff = ROLLOFF_35;
+> > > > > > 	c->bandwidth_hz = c->symbol_rate / 100 * 135;
+> > > > > >
+> > > > > > That would actually set the ISDB-S channel separation to 38.961 MHz.
+> > > > > >
+> > > > > > By setting symbol_rate like that, the zigzag for ISDB-S will
+> > > > > > be defined by:
+> > > > > >
+> > > > > >        fepriv->step_size = c->symbol_rate / 16000; /* 38.961MHz / 16000
+> =
+> > > > > .002435
+> > > > > > - e. g. steps of ~25 kHz */
+> > > > > >        fepriv->max_drift = c->symbol_rate / 2000;  /* 38.961MHz / 2000
+> =
+> > > > > .0194805
+> > > > > > - e. g. max drift of ~195 kHz */
+> > > > > >
+> > > > > > Funny enough, it will be using about 25 kHz as step size for ISDB-S.
+> > > > > >
+> > > > > > I have no idea if the ISDB-S standard defines the zigzag logic,
+> > > > > > but I would be expecting a higher value for it. So, perhaps
+> > > > > > the ISDB-S zigzag could be optimized.
+> > > > > >
+> > > > > > Thanks,
+> > > > > > Mauro
+> > > > >
+> > > > > Hmm, interesting. I don't know zigzag for ISDB-S too, sorry...
+> > > > >
+> > > > > Anyway, I don't worry about that. I said in above, we can use
+> > > > > get_tune_settings() for fine tuning.
+> > > > >
+> > > > >
+> > > > > Regards,
+> > > > > --
+> > > > > Katsuhiro Suzuki
+> > > > >
+> > > > >
+> > > > >
+> > > >
+> > > >
+> > > >
+> > > > Thanks,
+> > > > Mauro
+> > >
+> >
+> >
+> >
+> 
+> 
+> 
+> 
+> Cheers,
+> Mauro
