@@ -1,142 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48367 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726317AbeGRE0G (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 00:26:06 -0400
-Message-ID: <5394d970e8feb21df3566f55e530e11e@smtp-cloud7.xs4all.net>
-Date: Wed, 18 Jul 2018 05:50:16 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mout.gmx.net ([212.227.17.22]:54499 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725958AbeGRHbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Jul 2018 03:31:53 -0400
+Date: Wed, 18 Jul 2018 08:55:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 2/3] uvcvideo: send a control event when a Control
+ Change interrupt arrives
+In-Reply-To: <5107098.C36SyUDqOn@avalon>
+Message-ID: <alpine.DEB.2.20.1807180848240.21012@axis700.grange>
+References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com> <3815510.uz0YmiiscJ@avalon> <alpine.DEB.2.20.1807172328180.19083@axis700.grange> <5107098.C36SyUDqOn@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+On Wed, 18 Jul 2018, Laurent Pinchart wrote:
 
-date:			Wed Jul 18 05:00:15 CEST 2018
-media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
-media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
-v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+> Hi Guennadi,
+> 
+> On Wednesday, 18 July 2018 00:30:45 EEST Guennadi Liakhovetski wrote:
+> > On Tue, 17 Jul 2018, Laurent Pinchart wrote:
+> > > On Thursday, 12 July 2018 10:30:46 EEST Guennadi Liakhovetski wrote:
+> > >> On Thu, 12 Jul 2018, Laurent Pinchart wrote:
+> > >>> On Tuesday, 8 May 2018 18:07:43 EEST Guennadi Liakhovetski wrote:
+> > >>>> UVC defines a method of handling asynchronous controls, which sends a
+> > >>>> USB packet over the interrupt pipe. This patch implements support for
+> > >>>> such packets by sending a control event to the user. Since this can
+> > >>>> involve USB traffic and, therefore, scheduling, this has to be done
+> > >>>> in a work queue.
+> > >>>> 
+> > >>>> Signed-off-by: Guennadi Liakhovetski
+> > >>>> <guennadi.liakhovetski@intel.com>
+> > >>>> ---
+> > >>>> 
+> > >>>> v8:
+> > >>>> 
+> > >>>> * avoid losing events by delaying the status URB resubmission until
+> > >>>>   after completion of the current event
+> > >>>> * extract control value calculation into __uvc_ctrl_get_value()
+> > >>>> * do not proactively return EBUSY if the previous control hasn't
+> > >>>>   completed yet, let the camera handle such cases
+> > >>>> * multiple cosmetic changes
+> > >>>> 
+> > >>>>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++------
+> > >>>>  drivers/media/usb/uvc/uvc_status.c | 112 ++++++++++++++++++++++---
+> > >>>>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+> > >>>>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+> > >>>>  include/uapi/linux/uvcvideo.h      |   2 +
+> > >>>>  5 files changed, 255 insertions(+), 44 deletions(-)
+> > >>>> 
+> > >>>> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
+> > >>>> b/drivers/media/usb/uvc/uvc_ctrl.c index 2a213c8..796f86a 100644
+> > >>>> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+> > >>>> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+> > >> 
+> > >> [snip]
+> > >> 
+> > >>>> +static void uvc_ctrl_status_event_work(struct work_struct *work)
+> > >>>> +{
+> > >>>> +	struct uvc_device *dev = container_of(work, struct uvc_device,
+> > >>>> +					      async_ctrl.work);
+> > >>>> +	struct uvc_ctrl_work *w = &dev->async_ctrl;
+> > >>>> +	struct uvc_control_mapping *mapping;
+> > >>>> +	struct uvc_control *ctrl = w->ctrl;
+> > >>>> +	unsigned int i;
+> > >>>> +	int ret;
+> > >>>> +
+> > >>>> +	mutex_lock(&w->chain->ctrl_mutex);
+> > >>>> +
+> > >>>> +	list_for_each_entry(mapping, &ctrl->info.mappings, list) {
+> > >>>> +		s32 value = __uvc_ctrl_get_value(mapping, w->data);
+> > >>>> +
+> > >>>> +		/*
+> > >>>> +		 * So far none of the auto-update controls in the uvc_ctrls[]
+> > >>>> +		 * table is mapped to a V4L control with slaves in the
+> > >>>> +		 * uvc_ctrl_mappings[] list, so slave controls so far never have
+> > >>>> +		 * handle == NULL, but this can change in the future
+> > >>>> +		 */
+> > >>>> +		for (i = 0; i < ARRAY_SIZE(mapping->slave_ids); ++i) {
+> > >>>> +			if (!mapping->slave_ids[i])
+> > >>>> +				break;
+> > >>>> +
+> > >>>> +			__uvc_ctrl_send_slave_event(ctrl->handle, w->chain,
+> > >>>> +						ctrl, mapping->slave_ids[i]);
+> > >>>> +		}
+> > >>>> +
+> > >>>> +		uvc_ctrl_send_event(ctrl->handle, ctrl, mapping, value,
+> > >>>> +				    V4L2_EVENT_CTRL_CH_VALUE);
+> > >>>> +	}
+> > >>>> +
+> > >>>> +	mutex_unlock(&w->chain->ctrl_mutex);
+> > >>>> +
+> > >>>> +	ctrl->handle = NULL;
+> > >>> 
+> > >>> Can't this race with a uvc_ctrl_set() call, resulting in ctrl->handle
+> > >>> being NULL after the control gets set ?
+> > >> 
+> > >> Right, it's better to set .handle to NULL before sending events.
+> > >> Something like
+> > >> 
+> > >> mutex_lock();
+> > >> 
+> > >> handle = ctrl->handle;
+> > >> ctrl->handle = NULL;
+> > >> 
+> > >> list_for_each_entry() {
+> > >> 
+> > >> 	...
+> > >> 	uvc_ctrl_send_event(handle,...);
+> > >> 
+> > >> }
+> > >> 
+> > >> mutex_unlock();
+> > >> 
+> > >> ?
+> > > 
+> > > I think you also have to take the same lock in the uvc_ctrl_set() function
+> > > to fix the problem, otherwise the ctrl->handle = NULL line could still be
+> > > executed after the ctrl->handle assignment in uvc_ctrl_set(), resulting
+> > > in ctrl->handle being NULL while the control is being set.
+> > 
+> > Doesn't this mean, that you're attempting to send a new instance of the
+> > same control before the previous has completed? In which case also taking
+> > the lock in uvc_ctrl_set() wouldn't help either, because you can anyway do
+> > that immediately after the first instance, before the completion even has
+> > fired.
+> 
+> You're right that it won't solve the race completely, but wouldn't it at least 
+> prevent ctrl->handle from being NULL ? We can't guarantee which of the old and 
+> new handle will be used for events when multiple control set operations are 
+> invoked, but we should try to guarantee that the handle won't be NULL.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.140-i686: OK
-linux-4.4.140-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.112-i686: OK
-linux-4.9.112-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.55-i686: OK
-linux-4.14.55-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.6-i686: OK
-linux-4.17.6-x86_64: OK
-linux-4.18-rc4-i686: OK
-linux-4.18-rc4-x86_64: OK
-apps: OK
-spec-git: OK
+Sorry, I'm probably misunderstanding something. What exactly are you 
+proposing to lock and what and how is it supposed to protect? Wouldn't the 
+following flow still be possible, if you protect setting .handle = NULL in 
+uvc_set_ctrl():
 
-Detailed results are available here:
+CPU 1                                 CPU 2
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+control completion interrupt
+(.handle = HANDLE_1)
+work scheduled
+                                      uvc_set_ctrl()
+                                      .handle = HANDLE_2
+uvc_ctrl_status_event_work()
+.handle = NULL
+usb_submit_urb()
 
-Full logs are available here:
+control completion interrupt
+(.handle = NULL)
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+?
 
-The Media Infrastructure API from this daily build is here:
+Thanks
+Guennadi
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> > >>>> +	/* Resubmit the URB. */
+> > >>>> +	w->urb->interval = dev->int_ep->desc.bInterval;
+> > >>>> +	ret = usb_submit_urb(w->urb, GFP_KERNEL);
+> > >>>> +	if (ret < 0)
+> > >>>> +		uvc_printk(KERN_ERR, "Failed to resubmit status URB (%d).\n",
+> > >>>> +			   ret);
+> > >>>> +}
+> 
+> [snip]
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
+> 
