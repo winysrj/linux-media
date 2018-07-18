@@ -1,21 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54062 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726865AbeGRLAe (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34151 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726243AbeGRK7D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 07:00:34 -0400
-Subject: Re: [PATCH 1/2] v4l2-core: Simplify v4l2_m2m_try_{schedule,run}
+        Wed, 18 Jul 2018 06:59:03 -0400
+Subject: Re: [PATCH 2/2] v4l2-mem2mem: Avoid calling .device_run in
+ v4l2_m2m_job_finish
 To: Ezequiel Garcia <ezequiel@collabora.com>,
         linux-media@vger.kernel.org
 Cc: kernel@collabora.com, paul.kocialkowski@bootlin.com,
         maxime.ripard@bootlin.com, Hans Verkuil <hans.verkuil@cisco.com>
 References: <20180712154322.30237-1-ezequiel@collabora.com>
- <20180712154322.30237-2-ezequiel@collabora.com>
+ <20180712154322.30237-3-ezequiel@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1a9c086f-c664-70cd-62c1-59ca24d6b2a0@xs4all.nl>
-Date: Wed, 18 Jul 2018 12:23:19 +0200
+Message-ID: <2c6a3f3c-e936-2f12-303d-f2358bcbcc94@xs4all.nl>
+Date: Wed, 18 Jul 2018 12:21:48 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180712154322.30237-2-ezequiel@collabora.com>
+In-Reply-To: <20180712154322.30237-3-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -23,91 +24,96 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 On 12/07/18 17:43, Ezequiel Garcia wrote:
-> v4l2_m2m_try_run() has only one caller and so it's possible
-> to move its contents.
+> v4l2_m2m_job_finish() is typically called in interrupt context.
 > 
-> Although this de-modularization change could reduce clarity,
-> in this case it allows to remove a spinlock lock/unlock pair
-> and an unneeded sanity check.
+> Some implementation of .device_run might sleep, and so it's
+> desirable to avoid calling it directly from
+> v4l2_m2m_job_finish(), thus avoiding .device_run from running
+> in interrupt context.
 > 
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> Implement a deferred context that gets scheduled by
+> v4l2_m2m_job_finish().
+> 
+> The worker calls v4l2_m2m_try_schedule(), which makes sure
+> a single job is running at the same time, so it's safe to
+> call it from different executions context.
 
-This patch no longer applies, can you respin?
+I am not sure about this. I think that the only thing that needs to
+run in the work queue is the call to device_run. Everything else
+up to that point runs fine in interrupt context.
+
+While we're on it: I see that v4l2_m2m_prepare_buf() also calls
+v4l2_m2m_try_schedule(): I don't think it should do that since
+prepare_buf does not actually queue a new buffer to the driver.
 
 Regards,
 
 	Hans
 
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 > ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 44 ++++++--------------------
->  1 file changed, 10 insertions(+), 34 deletions(-)
+>  drivers/media/v4l2-core/v4l2-mem2mem.c | 14 +++++++++++++-
+>  include/media/v4l2-mem2mem.h           |  2 ++
+>  2 files changed, 15 insertions(+), 1 deletion(-)
 > 
 > diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 6bce8dcd182a..c2e9c2b7dcd1 100644
+> index c2e9c2b7dcd1..1d0e20809ffe 100644
 > --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
 > +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -181,37 +181,6 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev)
->  }
->  EXPORT_SYMBOL(v4l2_m2m_get_curr_priv);
->  
-> -/**
-> - * v4l2_m2m_try_run() - select next job to perform and run it if possible
-> - * @m2m_dev: per-device context
-> - *
-> - * Get next transaction (if present) from the waiting jobs list and run it.
-> - */
-> -static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
-> -{
-> -	unsigned long flags;
-> -
-> -	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
-> -	if (NULL != m2m_dev->curr_ctx) {
-> -		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
-> -		dprintk("Another instance is running, won't run now\n");
-> -		return;
-> -	}
-> -
-> -	if (list_empty(&m2m_dev->job_queue)) {
-> -		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
-> -		dprintk("No job pending\n");
-> -		return;
-> -	}
-> -
-> -	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
-> -				   struct v4l2_m2m_ctx, queue);
-> -	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
-> -	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
-> -
-> -	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
-> -}
-> -
->  void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
->  {
->  	struct v4l2_m2m_dev *m2m_dev;
-> @@ -269,15 +238,22 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
->  	list_add_tail(&m2m_ctx->queue, &m2m_dev->job_queue);
->  	m2m_ctx->job_flags |= TRANS_QUEUED;
->  
-> -	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
-> +	if (NULL != m2m_dev->curr_ctx) {
-> +		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
-> +		dprintk("Another instance is running, won't run now\n");
-> +		return;
-> +	}
->  
-> -	v4l2_m2m_try_run(m2m_dev);
-> +	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
-> +				   struct v4l2_m2m_ctx, queue);
-> +	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
-> +	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
->  
-> +	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
->  	return;
->  
->  out_unlock:
->  	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
-> -
->  	return;
+> @@ -258,6 +258,17 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
 >  }
 >  EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+>  
+> +/**
+> + * v4l2_m2m_try_schedule_work() - run pending jobs for the context
+> + * @work: Work structure used for scheduling the execution of this function.
+> + */
+> +static void v4l2_m2m_try_schedule_work(struct work_struct *work)
+> +{
+> +	struct v4l2_m2m_ctx *m2m_ctx =
+> +		container_of(work, struct v4l2_m2m_ctx, job_work);
+> +	v4l2_m2m_try_schedule(m2m_ctx);
+> +}
+> +
+>  /**
+>   * v4l2_m2m_cancel_job() - cancel pending jobs for the context
+>   * @m2m_ctx: m2m context with jobs to be canceled
+> @@ -316,7 +327,7 @@ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+>  	/* This instance might have more buffers ready, but since we do not
+>  	 * allow more than one job on the job_queue per instance, each has
+>  	 * to be scheduled separately after the previous one finishes. */
+> -	v4l2_m2m_try_schedule(m2m_ctx);
+> +	schedule_work(&m2m_ctx->job_work);
+>  }
+>  EXPORT_SYMBOL(v4l2_m2m_job_finish);
+>  
+> @@ -614,6 +625,7 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+>  	m2m_ctx->priv = drv_priv;
+>  	m2m_ctx->m2m_dev = m2m_dev;
+>  	init_waitqueue_head(&m2m_ctx->finished);
+> +	INIT_WORK(&m2m_ctx->job_work, v4l2_m2m_try_schedule_work);
+>  
+>  	out_q_ctx = &m2m_ctx->out_q_ctx;
+>  	cap_q_ctx = &m2m_ctx->cap_q_ctx;
+> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+> index 3d07ba3a8262..2543fbfdd2b1 100644
+> --- a/include/media/v4l2-mem2mem.h
+> +++ b/include/media/v4l2-mem2mem.h
+> @@ -89,6 +89,7 @@ struct v4l2_m2m_queue_ctx {
+>   * @job_flags: Job queue flags, used internally by v4l2-mem2mem.c:
+>   *		%TRANS_QUEUED, %TRANS_RUNNING and %TRANS_ABORT.
+>   * @finished: Wait queue used to signalize when a job queue finished.
+> + * @job_work: Worker to run queued jobs.
+>   * @priv: Instance private data
+>   *
+>   * The memory to memory context is specific to a file handle, NOT to e.g.
+> @@ -109,6 +110,7 @@ struct v4l2_m2m_ctx {
+>  	struct list_head		queue;
+>  	unsigned long			job_flags;
+>  	wait_queue_head_t		finished;
+> +	struct work_struct		job_work;
+>  
+>  	void				*priv;
+>  };
 > 
