@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:37883 "EHLO
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:56421 "EHLO
         relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730015AbeGRL4v (ORCPT
+        with ESMTP id S1730015AbeGRL4r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 07:56:51 -0400
+        Wed, 18 Jul 2018 07:56:47 -0400
 From: Jacopo Mondi <jacopo@jmondi.org>
 To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
         maxime.ripard@bootlin.com, sam@elite-embedded.com,
@@ -11,107 +11,135 @@ To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
         steve_longerbeam@mentor.com, hugues.fruchet@st.com,
         loic.poulain@linaro.org, daniel@zonque.org
 Cc: Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
-Subject: [PATCH 2/2] media: ov5640: Fix auto-exposure disabling
-Date: Wed, 18 Jul 2018 13:19:03 +0200
-Message-Id: <1531912743-24767-3-git-send-email-jacopo@jmondi.org>
+Subject: [PATCH 1/2] media: ov5640: Fix timings setup code
+Date: Wed, 18 Jul 2018 13:19:02 +0200
+Message-Id: <1531912743-24767-2-git-send-email-jacopo@jmondi.org>
 In-Reply-To: <1531912743-24767-1-git-send-email-jacopo@jmondi.org>
 References: <1531912743-24767-1-git-send-email-jacopo@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 As of:
-commit bf4a4b518c20 ("media: ov5640: Don't force the auto exposure state at
-start time") auto-exposure got disabled before programming new capture modes to
-the sensor. Unfortunately the function used to do that (ov5640_set_exposure())
-does not enable/disable auto-exposure engine through register 0x3503[0] bit, but
-programs registers [0x3500 - 0x3502] which represent the desired exposure time
-when running with manual exposure. As a result, auto-exposure was not actually
-disabled at all.
+commit 476dec012f4c ("media: ov5640: Add horizontal and vertical totals")
+the timings parameters gets programmed separately from the static register
+values array.
 
-To actually disable auto-exposure, go through the control framework instead of
-calling ov5640_set_exposure() function directly.
+When changing capture mode, the vertical and horizontal totals gets inspected
+by the set_mode_exposure_calc() functions, and only later programmed with the
+new values. This means exposure, light banding filter and shutter gain are
+calculated using the previous timings, and are thus not correct.
 
-Also, as auto-gain and auto-exposure are disabled un-conditionally but only
-restored to their previous values in ov5640_set_mode_direct() function, move
-controls restoring so that their value is re-programmed opportunely after
-either ov5640_set_mode_direct() or ov5640_set_mode_exposure_calc() have been
-executed.
+Fix this by programming timings right after the static register value table
+has been sent to the sensor in the ov5640_load_regs() function.
 
-Fixes: bf4a4b518c20 ("media: ov5640: Don't force the auto exposure state at start time")
+Fixes: 476dec012f4c ("media: ov5640: Add horizontal and vertical totals")
+Signed-off-by: Samuel Bobrowicz <sam@elite-embedded.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
 
 ---
-Is it worth doing with auto-gain what we're doing with auto-exposure? Cache the
-value and then re-program it instead of unconditionally disable/enable it?
+This fix has been circulating around for quite some time now, in Maxime clock
+tree patches, in Sam dropbox patches and in my latest MIPI fixes patches.
+While the rest of the series have not yet been accepted, there is general
+consensus this is an actual fix that has to be collected.
+
+I've slightly modified Sam's and Maxime's version I previously sent,
+programming timings directly in ov5640_load_regs() function.
+You can find Sam's previous version here:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg131654.html
+and mine here, with an additional change that aimed to fix MIPI mode, which
+I've left out in this version:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg133422.html
+
+Sam, Maxime, I took the liberty of taking your Signed-off-by from the previous
+patch, as this was spotted by you first. Is this ok with you?
 
 Thanks
-  j
+   j
 ---
 ---
- drivers/media/i2c/ov5640.c | 29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+ drivers/media/i2c/ov5640.c | 50 +++++++++++++++++++---------------------------
+ 1 file changed, 21 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 12b3496..bc75cb7 100644
+index 1ecbb7a..12b3496 100644
 --- a/drivers/media/i2c/ov5640.c
 +++ b/drivers/media/i2c/ov5640.c
-@@ -1588,25 +1588,13 @@ static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
-  * change mode directly
-  */
- static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
--				  const struct ov5640_mode_info *mode,
--				  s32 exposure)
-+				  const struct ov5640_mode_info *mode)
+@@ -908,6 +908,26 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
+ }
+ 
+ /* download ov5640 settings to sensor through i2c */
++static int ov5640_set_timings(struct ov5640_dev *sensor,
++			      const struct ov5640_mode_info *mode)
++{
++	int ret;
++
++	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPHO, mode->hact);
++	if (ret < 0)
++		return ret;
++
++	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPVO, mode->vact);
++	if (ret < 0)
++		return ret;
++
++	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_HTS, mode->htot);
++	if (ret < 0)
++		return ret;
++
++	return ov5640_write_reg16(sensor, OV5640_REG_TIMING_VTS, mode->vtot);
++}
++
+ static int ov5640_load_regs(struct ov5640_dev *sensor,
+ 			    const struct ov5640_mode_info *mode)
  {
+@@ -935,7 +955,7 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
+ 			usleep_range(1000 * delay_ms, 1000 * delay_ms + 100);
+ 	}
+ 
+-	return ret;
++	return ov5640_set_timings(sensor, mode);
+ }
+ 
+ /* read exposure, in number of line periods */
+@@ -1385,30 +1405,6 @@ static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
+ 	return ov5640_write_reg(sensor, OV5640_REG_DEBUG_MODE, temp);
+ }
+ 
+-static int ov5640_set_timings(struct ov5640_dev *sensor,
+-			      const struct ov5640_mode_info *mode)
+-{
 -	int ret;
 -
- 	if (!mode->reg_data)
- 		return -EINVAL;
- 
- 	/* Write capture setting */
--	ret = ov5640_load_regs(sensor, mode);
+-	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPHO, mode->hact);
 -	if (ret < 0)
 -		return ret;
 -
--	/* turn auto gain/exposure back on for direct mode */
--	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
--	if (ret)
+-	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_DVPVO, mode->vact);
+-	if (ret < 0)
 -		return ret;
 -
--	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure);
-+	return  ov5640_load_regs(sensor, mode);
- }
- 
- static int ov5640_set_mode(struct ov5640_dev *sensor,
-@@ -1626,7 +1614,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
- 		return ret;
- 
- 	exposure = sensor->ctrls.auto_exp->val;
--	ret = ov5640_set_exposure(sensor, V4L2_EXPOSURE_MANUAL);
-+	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, V4L2_EXPOSURE_MANUAL);
- 	if (ret)
- 		return ret;
- 
-@@ -1642,12 +1630,21 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
- 		 * change inside subsampling or scaling
- 		 * download firmware directly
- 		 */
--		ret = ov5640_set_mode_direct(sensor, mode, exposure);
-+		ret = ov5640_set_mode_direct(sensor, mode);
- 	}
- 
+-	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_HTS, mode->htot);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = ov5640_write_reg16(sensor, OV5640_REG_TIMING_VTS, mode->vtot);
+-	if (ret < 0)
+-		return ret;
+-
+-	return 0;
+-}
+-
+ static const struct ov5640_mode_info *
+ ov5640_find_mode(struct ov5640_dev *sensor, enum ov5640_frame_rate fr,
+ 		 int width, int height, bool nearest)
+@@ -1652,10 +1648,6 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
  	if (ret < 0)
  		return ret;
  
-+	/* Restore auto-gain and auto-exposure after mode has changed. */
-+	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
-+	if (ret)
-+		return ret;
-+
-+	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure)
-+	if (ret)
-+		return ret;
-+
+-	ret = ov5640_set_timings(sensor, mode);
+-	if (ret < 0)
+-		return ret;
+-
  	ret = ov5640_set_binning(sensor, dn_mode != SCALING);
  	if (ret < 0)
  		return ret;
