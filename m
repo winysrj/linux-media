@@ -1,89 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55892 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730707AbeGRKOB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 06:14:01 -0400
-Subject: Re: [PATCH 1/3] media: Add JPEG_RAW format
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-References: <20180705172819.5588-1-ezequiel@collabora.com>
- <20180705172819.5588-2-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <314411f4-b237-d05d-c0d8-62a564e30c1c@xs4all.nl>
-Date: Wed, 18 Jul 2018 11:36:56 +0200
+Received: from mga05.intel.com ([192.55.52.43]:22368 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726064AbeGRKc1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Jul 2018 06:32:27 -0400
+Date: Wed, 18 Jul 2018 12:55:14 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v10 2/2] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
+References: <1525417745-37964-1-git-send-email-yong.deng@magewell.com>
+ <20180626110821.wkal6fcnoncsze6y@valkosipuli.retiisi.org.uk>
+ <20180705154802.03604f156709be11892b19c0@magewell.com>
 MIME-Version: 1.0
-In-Reply-To: <20180705172819.5588-2-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180705154802.03604f156709be11892b19c0@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/07/18 19:28, Ezequiel Garcia wrote:
-> From: Shunqian Zheng <zhengsq@rock-chips.com>
-> 
-> Add V4L2_PIX_FMT_JPEG_RAW format that does not contain
-> JPEG header in the output frame.
-> 
-> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> ---
->  Documentation/media/uapi/v4l/pixfmt-compressed.rst | 5 +++++
->  drivers/media/v4l2-core/v4l2-ioctl.c               | 1 +
->  include/uapi/linux/videodev2.h                     | 1 +
->  3 files changed, 7 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> index abec03937bb3..ebfc3cb7399c 100644
-> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> @@ -23,6 +23,11 @@ Compressed Formats
->        - 'JPEG'
->        - TBD. See also :ref:`VIDIOC_G_JPEGCOMP <VIDIOC_G_JPEGCOMP>`,
->  	:ref:`VIDIOC_S_JPEGCOMP <VIDIOC_G_JPEGCOMP>`.
-> +    * .. _V4L2-PIX-FMT-JPEG-RAW:
-> +
-> +      - ``V4L2_PIX_FMT_JPEG_RAW``
-> +      - 'Raw JPEG'
-> +      - JPEG without any headers.
+Hi Yong,
 
-This really needs to be more specific and explain which headers you are talking about.
-with some reference to the spec perhaps. And perhaps point to the luma/chroma quantization
-controls on how the header information should be passed in this case.
-
-Regards,
-
-	Hans
-
->      * .. _V4L2-PIX-FMT-MPEG:
->  
->        - ``V4L2_PIX_FMT_MPEG``
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index dd210067151f..9f0c76ec7c2c 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1259,6 +1259,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  		/* Max description length mask:	descr = "0123456789012345678901234567890" */
->  		case V4L2_PIX_FMT_MJPEG:	descr = "Motion-JPEG"; break;
->  		case V4L2_PIX_FMT_JPEG:		descr = "JFIF JPEG"; break;
-> +		case V4L2_PIX_FMT_JPEG_RAW:	descr = "Raw JPEG"; break;
->  		case V4L2_PIX_FMT_DV:		descr = "1394"; break;
->  		case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
->  		case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 600877be5c22..934e91af1b40 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -621,6 +621,7 @@ struct v4l2_pix_format {
->  /* compressed formats */
->  #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
->  #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
-> +#define V4L2_PIX_FMT_JPEG_RAW v4l2_fourcc('J', 'P', 'G', 'R') /* JFIF JPEG RAW without headers */
->  #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
->  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
->  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
+On Thu, Jul 05, 2018 at 03:48:02PM +0800, Yong wrote:
+> > > +
+> > > +/* -----------------------------------------------------------------------------
+> > > + * Media Operations
+> > > + */
+> > > +static int sun6i_video_formats_init(struct sun6i_video *video,
+> > > +				    const struct media_pad *remote)
+> > > +{
+> > > +	struct v4l2_subdev_mbus_code_enum mbus_code = { 0 };
+> > > +	struct sun6i_csi *csi = video->csi;
+> > > +	struct v4l2_format format;
+> > > +	struct v4l2_subdev *subdev;
+> > > +	u32 pad;
+> > > +	const u32 *pixformats;
+> > > +	int pixformat_count = 0;
+> > > +	u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
+> > > +	int codes_count = 0;
+> > > +	int num_fmts = 0;
+> > > +	int i, j;
+> > > +
+> > > +	pad = remote->index;
+> > > +	subdev = media_entity_to_v4l2_subdev(remote->entity);
+> > > +	if (subdev == NULL)
+> > > +		return -ENXIO;
+> > > +
+> > > +	/* Get supported pixformats of CSI */
+> > > +	pixformat_count = sun6i_csi_get_supported_pixformats(csi, &pixformats);
+> > > +	if (pixformat_count <= 0)
+> > > +		return -ENXIO;
+> > > +
+> > > +	/* Get subdev formats codes */
+> > > +	mbus_code.pad = pad;
+> > > +	mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > +	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
+> > > +				 &mbus_code)) {
+> > 
+> > The formats supported by the external sub-device may depend on horizontal
+> > and vertical flipping. You shouldn't assume any particular configuration
+> > here: instead, bridge drivers generally just need to make sure the formats
+> > match in link validation when streaming is started. At least the CSI-2
+> > receiver driver and the DMA engine driver (video device) should check the
+> > configuration is valid. See e.g. the IPU3 driver:
+> > drivers/media/pci/intel/ipu3/ipu3-cio2.c .
 > 
+> Can mbus_code be added dynamically ?
+> The code here only enum the mbus code and get the possible supported
+> pairs of pixformat and mbus by SoC. Not try to check if the formats
+> (width height ...) is valid or not. The formats validation will be 
+> in link validation when streaming is started as per your advise. 
+
+The formats that can be enumerated from the sensor here are those settable
+using SUBDEV_S_FMT. The enumeration will change on raw sensors if you use
+the flipping controls. As the bridge driver implements MC as well as subdev
+APIs, generally the sensor configuration is out of scope of this driver
+since it's directly configured from the user space.
+
+Just check that the pipeline is valid before starting streaming in your
+driver.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
