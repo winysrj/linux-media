@@ -1,14 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from heliosphere.sirena.org.uk ([172.104.155.198]:45446 "EHLO
-        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729776AbeGRQKL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 12:10:11 -0400
-Date: Wed, 18 Jul 2018 16:31:40 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+Received: from sauhun.de ([88.99.104.3]:43374 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731193AbeGRQPR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Jul 2018 12:15:17 -0400
+Date: Wed, 18 Jul 2018 17:36:48 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
         Peter Rosin <peda@axentia.se>,
         Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
         Sylwester Nawrocki <s.nawrocki@samsung.com>,
@@ -17,51 +16,62 @@ Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v4 1/3] regmap: add SCCB support
-Message-ID: <20180718153140.GP5700@sirena.org.uk>
+Subject: Re: [PATCH -next v4 3/3] media: ov9650: use SCCB regmap
+Message-ID: <20180718153648.afjc7uflae2fryh2@ninjato>
 References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
- <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
- <20180718152832.ylu6rlcsaom2q4xm@ninjato>
+ <1531756070-8560-4-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="GIP5y49pbaVPin6k"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ajmgruggxs5tkc2q"
 Content-Disposition: inline
-In-Reply-To: <20180718152832.ylu6rlcsaom2q4xm@ninjato>
+In-Reply-To: <1531756070-8560-4-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---GIP5y49pbaVPin6k
+--ajmgruggxs5tkc2q
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 18, 2018 at 05:28:32PM +0200, Wolfram Sang wrote:
-> On Tue, Jul 17, 2018 at 12:47:48AM +0900, Akinobu Mita wrote:
+On Tue, Jul 17, 2018 at 12:47:50AM +0900, Akinobu Mita wrote:
+> Convert ov965x register access to use SCCB regmap.
+>=20
+> Cc: Mark Brown <broonie@kernel.org>
+> Cc: Peter Rosin <peda@axentia.se>
+> Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
-> > +	ret = __i2c_smbus_xfer(i2c->adapter, i2c->addr, i2c->flags,
-> > +			       I2C_SMBUS_WRITE, reg, I2C_SMBUS_BYTE, NULL);
+Again, for the I2C parts:
 
-> Mark: __i2c_smbus_xfer is a dependency on i2c/for-next. Do you want an
-> immutable branch for that?
+Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-Oh dear, that dependency wasn't mentioned anywhere I can see in the
-submissions and I already applied this and created a signed tag :( .
-I'll need a branch to pull in if I'm going to apply this (which I'd
-prefer, it tends to make life easier).
 
---GIP5y49pbaVPin6k
+--ajmgruggxs5tkc2q
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAltPXVsACgkQJNaLcl1U
-h9DjXgf/axsR8NQUNk9IvtOlgTc/b9f/inR7NzaGZITDNx/h9Xt59O+lR7c/7k9x
-8FrzAFuWll0JMhJhDtFHEV9IeraaxByMbIiVffaP0fVh1JWOeoG4jur/aQOvGiov
-cEBrpudcsjyqlKvQHor2SqQz+GrCGuuK0zuFcv5Jpe0UV8C02zwGTiy7fAzJSvTC
-pPAu/YnExqNOk/p8dj9xlWhBk77OrAS7d4PRDHoMIb0OSOazg0UJc6i/CiJfR2Go
-EVRFNCIG+9hBOWEyXS0IBMmFI6tObVUztAmmlGQm5LrYPhNJQPw73O71MRcOy2vs
-M5G4s54lbQ8B4D/gipZGKWI6QddT2Q==
-=iQ+9
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltPXo8ACgkQFA3kzBSg
+KbazUQ/9E4kN278MPTq57ySF7VFeiZnvZxzDikIwtuO4MboxLecxiZpMA7sb8Diy
+P9tr+t6daN4OptBb2QGQs010vu4ynITPczxm/4XLoBUPwFWbjFIQfipmwdSIAX9Y
+4fek+/Q4LRfLubRlYkjEz9TegKQFypbIHKw/jmYqqkgfILR08LeOISFsXIWcv534
+nSyZCdzsEirYOK/gRSnRI8+ShMhEAbfgopfW8n/iofTBDC4J9VLEGohpTJYE/BNC
+TidSDbRGUdqUe5706KsNAq3ZZ+P/DUKywntj55sGgWHoxImc/dE67fkd6vVZYT/h
+TFqMLG6GULtwj/u+f6SEL8RCz8JHnQCKu+O1b06OJe8uiB1KcPy4lkt0C78SAhWa
+HpPd1WhPxNGcigsukLsTstC13JtMwaU+I75RcsJq1dxZsZcUS6CtlnRVTWjqiq/n
+D8wfGxLAi3UJrUwJ6bzwtKq71MEn8BKJ/yJKk3EwOI5zf2qG8M4Cthn52ovIeDWM
+MNCEIb6zr0Q/MCZih5la0Dldejz/C/xd/ikbN35GqKCxiBB/qHsjIVYRcONZB7/2
+1vSQ1Z22h9ECIIMBuy9vgLNX1s+043i+CKSJSRn62MRkyYnHpGqkvb2sExFdh4zy
+R/6aW5w/nmdUTUtk+HQZOGydHb8B5OcFWZ9LlpbjxwD1MliCgXk=
+=p+4x
 -----END PGP SIGNATURE-----
 
---GIP5y49pbaVPin6k--
+--ajmgruggxs5tkc2q--
