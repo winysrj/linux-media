@@ -1,80 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36138 "EHLO
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54062 "EHLO
         lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730782AbeGRKpe (ORCPT
+        by vger.kernel.org with ESMTP id S1726865AbeGRLAe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 06:45:34 -0400
-Subject: Re: [PATCH] videobuf2-core: check for q->error in vb2_core_qbuf()
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <ab3d5aa7-c06b-9918-235e-ff983cb5cce7@xs4all.nl>
- <20180716124906.hi34a2u5xftakx76@valkosipuli.retiisi.org.uk>
- <147321b3-d0fe-6ec3-f914-d53ec270c4a7@xs4all.nl>
- <20180718100641.pl7477es5ujohgj4@valkosipuli.retiisi.org.uk>
+        Wed, 18 Jul 2018 07:00:34 -0400
+Subject: Re: [PATCH 1/2] v4l2-core: Simplify v4l2_m2m_try_{schedule,run}
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: kernel@collabora.com, paul.kocialkowski@bootlin.com,
+        maxime.ripard@bootlin.com, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180712154322.30237-1-ezequiel@collabora.com>
+ <20180712154322.30237-2-ezequiel@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <df78f2a6-d98d-2286-7a8b-7bc15b75d87b@xs4all.nl>
-Date: Wed, 18 Jul 2018 12:08:22 +0200
+Message-ID: <1a9c086f-c664-70cd-62c1-59ca24d6b2a0@xs4all.nl>
+Date: Wed, 18 Jul 2018 12:23:19 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180718100641.pl7477es5ujohgj4@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180712154322.30237-2-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/07/18 12:06, Sakari Ailus wrote:
-> On Wed, Jul 18, 2018 at 11:29:01AM +0200, Hans Verkuil wrote:
->> On 16/07/18 14:49, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> On Thu, Jul 05, 2018 at 10:25:19AM +0200, Hans Verkuil wrote:
->>>> The vb2_core_qbuf() function didn't check if q->error was set. It is checked in
->>>> __buf_prepare(), but that function isn't called if the buffer was already
->>>> prepared before with VIDIOC_PREPARE_BUF.
->>>>
->>>> So check it at the start of vb2_core_qbuf() as well.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
->>>> index d3501cd604cb..5d7946ec80d8 100644
->>>> --- a/drivers/media/common/videobuf2/videobuf2-core.c
->>>> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
->>>> @@ -1484,6 +1484,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
->>>>  	struct vb2_buffer *vb;
->>>>  	int ret;
->>>>
->>>> +	if (q->error) {
->>>> +		dprintk(1, "fatal error occurred on queue\n");
->>>> +		return -EIO;
->>>> +	}
->>>> +
->>>>  	vb = q->bufs[index];
->>>>
->>>>  	if ((req && q->uses_qbuf) ||
->>>
->>> How long has this problem existed? It looks like something that should go
->>> to the stable branches, too...
->>
->> It's always been there, but I don't think it is worth backporting. The use of
->> VIDIOC_PREPARE_BUF is very rare, let alone the combination with vb2_queue_error().
->>
->> I came across it while reviewing code.
+On 12/07/18 17:43, Ezequiel Garcia wrote:
+> v4l2_m2m_try_run() has only one caller and so it's possible
+> to move its contents.
 > 
-> What's the effect of the missing check? That the user may queue a buffer
-> when the driver thinks the hardware won't be able to complete it? At least
-> that doesn't seem like a security issue.
+> Although this de-modularization change could reduce clarity,
+> in this case it allows to remove a spinlock lock/unlock pair
+> and an unneeded sanity check.
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 
-Right. But e.g. dqbuf will still return EIO in this case, so normally apps
-will discover this error condition when dequeueing and not when enqueueing
-buffers.
+This patch no longer applies, can you respin?
 
-> 
-> Anyway,
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-
-Thanks,
+Regards,
 
 	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-mem2mem.c | 44 ++++++--------------------
+>  1 file changed, 10 insertions(+), 34 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index 6bce8dcd182a..c2e9c2b7dcd1 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -181,37 +181,6 @@ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev)
+>  }
+>  EXPORT_SYMBOL(v4l2_m2m_get_curr_priv);
+>  
+> -/**
+> - * v4l2_m2m_try_run() - select next job to perform and run it if possible
+> - * @m2m_dev: per-device context
+> - *
+> - * Get next transaction (if present) from the waiting jobs list and run it.
+> - */
+> -static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+> -{
+> -	unsigned long flags;
+> -
+> -	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
+> -	if (NULL != m2m_dev->curr_ctx) {
+> -		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+> -		dprintk("Another instance is running, won't run now\n");
+> -		return;
+> -	}
+> -
+> -	if (list_empty(&m2m_dev->job_queue)) {
+> -		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+> -		dprintk("No job pending\n");
+> -		return;
+> -	}
+> -
+> -	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
+> -				   struct v4l2_m2m_ctx, queue);
+> -	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
+> -	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+> -
+> -	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
+> -}
+> -
+>  void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+>  {
+>  	struct v4l2_m2m_dev *m2m_dev;
+> @@ -269,15 +238,22 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+>  	list_add_tail(&m2m_ctx->queue, &m2m_dev->job_queue);
+>  	m2m_ctx->job_flags |= TRANS_QUEUED;
+>  
+> -	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+> +	if (NULL != m2m_dev->curr_ctx) {
+> +		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+> +		dprintk("Another instance is running, won't run now\n");
+> +		return;
+> +	}
+>  
+> -	v4l2_m2m_try_run(m2m_dev);
+> +	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
+> +				   struct v4l2_m2m_ctx, queue);
+> +	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
+> +	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+>  
+> +	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
+>  	return;
+>  
+>  out_unlock:
+>  	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+> -
+>  	return;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+> 
