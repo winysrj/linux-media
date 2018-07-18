@@ -1,74 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:41065 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730543AbeGRPQO (ORCPT
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:55936 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730426AbeGRPZp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 11:16:14 -0400
-Received: by mail-wr1-f66.google.com with SMTP id j5-v6so4927346wrr.8
-        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2018 07:38:00 -0700 (PDT)
-Subject: Re: [PATCH] venus: vdec: fix decoded data size
-To: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Vikash Garodia <vgarodia@codeaurora.org>
-Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-kernel@vger.kernel.org, acourbot@chromium.org
-References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
- <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org>
- <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org>
-Date: Wed, 18 Jul 2018 17:37:55 +0300
+        Wed, 18 Jul 2018 11:25:45 -0400
+Date: Wed, 18 Jul 2018 15:47:24 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Peter Rosin <peda@axentia.se>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH -next v4 1/3] regmap: add SCCB support
+Message-ID: <20180718144723.GM5700@sirena.org.uk>
+References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
+ <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="nrXiCraHbXeog9mY"
+Content-Disposition: inline
+In-Reply-To: <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-On 07/18/2018 04:26 PM, Nicolas Dufresne wrote:
-> Le mercredi 18 juillet 2018 à 14:31 +0300, Stanimir Varbanov a écrit :
->> Hi Vikash,
->>
->> On 07/02/2018 10:44 AM, Vikash Garodia wrote:
->>> Exisiting code returns the max of the decoded
->>> size and buffer size. It turns out that buffer
->>> size is always greater due to hardware alignment
->>> requirement. As a result, payload size given to
->>> client is incorrect. This change ensures that
->>> the bytesused is assigned to actual payload size.
->>>
->>> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
->>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->>> ---
->>>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/platform/qcom/venus/vdec.c
->>> b/drivers/media/platform/qcom/venus/vdec.c
->>> index d079aeb..ada1d2f 100644
->>> --- a/drivers/media/platform/qcom/venus/vdec.c
->>> +++ b/drivers/media/platform/qcom/venus/vdec.c
->>> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst
->>> *inst, unsigned int buf_type,
->>>  
->>>  		vb = &vbuf->vb2_buf;
->>>  		vb->planes[0].bytesused =
->>> -			max_t(unsigned int, opb_sz, bytesused);
->>> +			min_t(unsigned int, opb_sz, bytesused);
->>
->> Most probably my intension was to avoid bytesused == 0, but that is
->> allowed from v4l2 driver -> userspace direction
-> 
-> It remains bad practice since it was used by decoders to indicate the
-> last buffer. Some userspace (some GStreamer versions) will stop working
-> if you start returning 0.
+--nrXiCraHbXeog9mY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I think it is legal v4l2 driver to return bytesused = 0 when userspace
-issues streamoff on both queues before EOS, no? Simply because the
-capture buffers are empty.
+On Tue, Jul 17, 2018 at 12:47:48AM +0900, Akinobu Mita wrote:
+> This adds Serial Camera Control Bus (SCCB) support for regmap API that
+> is intended to be used by some of Omnivision sensor drivers.
 
--- 
-regards,
-Stan
+The following changes since commit ce397d215ccd07b8ae3f71db689aedb85d56ab40:
+
+  Linux 4.18-rc1 (2018-06-17 08:04:49 +0900)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regmap.git tags/regmap-sccb
+
+for you to fetch changes up to bcf7eac3d97f49d8400ba52c71bee5934bf20093:
+
+  regmap: add SCCB support (2018-07-18 15:45:23 +0100)
+
+----------------------------------------------------------------
+regmap: Add support for SCCB
+
+This is an I2C subset.
+
+----------------------------------------------------------------
+Akinobu Mita (1):
+      regmap: add SCCB support
+
+ drivers/base/regmap/Kconfig       |   4 ++
+ drivers/base/regmap/Makefile      |   1 +
+ drivers/base/regmap/regmap-sccb.c | 128 ++++++++++++++++++++++++++++++++++++++
+ include/linux/regmap.h            |  35 +++++++++++
+ 4 files changed, 168 insertions(+)
+ create mode 100644 drivers/base/regmap/regmap-sccb.c
+
+--nrXiCraHbXeog9mY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAltPUvsACgkQJNaLcl1U
+h9CHfwf/WlS+6f05pFZez91zy/MYpUBD++y4VxOnJn3t7kUo4VaFyYGLVXG9cx+e
+b2LEyr52WkvjL/K61SeY1GDvo+ANBGcA26VTD6S22DIVBSekDEe4hh9tbkRcBMHE
+kfLrSC+hdLX+bAv8Ws0kcKyNm5pOLTZPdNr0CoIo7yGK2nmH/54mOAfMroIS4RNb
+xFjAGGoWbH7xXRrXuhe5PNdbzXecrE/pmKl/3IG6IN5gu2GYLd+niTgiM+X2Rv69
+P29kD9izCb2rd8O1xl1UfudAGeJsZeerjtVqV7fc0YSIYNW3vQNbcC8pWvMmZ7Gb
+W0iwocfPy2uzSnv8Jgz54PnROPubJg==
+=CKOC
+-----END PGP SIGNATURE-----
+
+--nrXiCraHbXeog9mY--
