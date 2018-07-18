@@ -1,119 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34151 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51227 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726243AbeGRK7D (ORCPT
+        by vger.kernel.org with ESMTP id S1726996AbeGRLQS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 06:59:03 -0400
-Subject: Re: [PATCH 2/2] v4l2-mem2mem: Avoid calling .device_run in
- v4l2_m2m_job_finish
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-Cc: kernel@collabora.com, paul.kocialkowski@bootlin.com,
-        maxime.ripard@bootlin.com, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180712154322.30237-1-ezequiel@collabora.com>
- <20180712154322.30237-3-ezequiel@collabora.com>
+        Wed, 18 Jul 2018 07:16:18 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2c6a3f3c-e936-2f12-303d-f2358bcbcc94@xs4all.nl>
-Date: Wed, 18 Jul 2018 12:21:48 +0200
+Subject: [GIT PULL FOR v4.19] Various fixes
+Message-ID: <a9296b29-09ad-9379-0786-de282b71abf2@xs4all.nl>
+Date: Wed, 18 Jul 2018 12:38:58 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180712154322.30237-3-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/07/18 17:43, Ezequiel Garcia wrote:
-> v4l2_m2m_job_finish() is typically called in interrupt context.
-> 
-> Some implementation of .device_run might sleep, and so it's
-> desirable to avoid calling it directly from
-> v4l2_m2m_job_finish(), thus avoiding .device_run from running
-> in interrupt context.
-> 
-> Implement a deferred context that gets scheduled by
-> v4l2_m2m_job_finish().
-> 
-> The worker calls v4l2_m2m_try_schedule(), which makes sure
-> a single job is running at the same time, so it's safe to
-> call it from different executions context.
+Hi Mauro,
 
-I am not sure about this. I think that the only thing that needs to
-run in the work queue is the call to device_run. Everything else
-up to that point runs fine in interrupt context.
-
-While we're on it: I see that v4l2_m2m_prepare_buf() also calls
-v4l2_m2m_try_schedule(): I don't think it should do that since
-prepare_buf does not actually queue a new buffer to the driver.
+Various fixes. Please note that I re-added the 'Add support for STD ioctls on subdev nodes'
+patch. It really is needed.
 
 Regards,
 
 	Hans
 
-> 
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 14 +++++++++++++-
->  include/media/v4l2-mem2mem.h           |  2 ++
->  2 files changed, 15 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index c2e9c2b7dcd1..1d0e20809ffe 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -258,6 +258,17 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
->  }
->  EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
->  
-> +/**
-> + * v4l2_m2m_try_schedule_work() - run pending jobs for the context
-> + * @work: Work structure used for scheduling the execution of this function.
-> + */
-> +static void v4l2_m2m_try_schedule_work(struct work_struct *work)
-> +{
-> +	struct v4l2_m2m_ctx *m2m_ctx =
-> +		container_of(work, struct v4l2_m2m_ctx, job_work);
-> +	v4l2_m2m_try_schedule(m2m_ctx);
-> +}
-> +
->  /**
->   * v4l2_m2m_cancel_job() - cancel pending jobs for the context
->   * @m2m_ctx: m2m context with jobs to be canceled
-> @@ -316,7 +327,7 @@ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
->  	/* This instance might have more buffers ready, but since we do not
->  	 * allow more than one job on the job_queue per instance, each has
->  	 * to be scheduled separately after the previous one finishes. */
-> -	v4l2_m2m_try_schedule(m2m_ctx);
-> +	schedule_work(&m2m_ctx->job_work);
->  }
->  EXPORT_SYMBOL(v4l2_m2m_job_finish);
->  
-> @@ -614,6 +625,7 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
->  	m2m_ctx->priv = drv_priv;
->  	m2m_ctx->m2m_dev = m2m_dev;
->  	init_waitqueue_head(&m2m_ctx->finished);
-> +	INIT_WORK(&m2m_ctx->job_work, v4l2_m2m_try_schedule_work);
->  
->  	out_q_ctx = &m2m_ctx->out_q_ctx;
->  	cap_q_ctx = &m2m_ctx->cap_q_ctx;
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-> index 3d07ba3a8262..2543fbfdd2b1 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -89,6 +89,7 @@ struct v4l2_m2m_queue_ctx {
->   * @job_flags: Job queue flags, used internally by v4l2-mem2mem.c:
->   *		%TRANS_QUEUED, %TRANS_RUNNING and %TRANS_ABORT.
->   * @finished: Wait queue used to signalize when a job queue finished.
-> + * @job_work: Worker to run queued jobs.
->   * @priv: Instance private data
->   *
->   * The memory to memory context is specific to a file handle, NOT to e.g.
-> @@ -109,6 +110,7 @@ struct v4l2_m2m_ctx {
->  	struct list_head		queue;
->  	unsigned long			job_flags;
->  	wait_queue_head_t		finished;
-> +	struct work_struct		job_work;
->  
->  	void				*priv;
->  };
-> 
+The following changes since commit 39fbb88165b2bbbc77ea7acab5f10632a31526e6:
+
+  media: bpf: ensure bpf program is freed on detach (2018-07-13 11:07:29 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.19m
+
+for you to fetch changes up to 38630cde092e3fd66e18fc8752d7dd6b32947ca7:
+
+  media: staging: tegra-vde: Replace debug messages with trace points (2018-07-18 12:15:18 +0200)
+
+----------------------------------------------------------------
+Dmitry Osipenko (1):
+      media: staging: tegra-vde: Replace debug messages with trace points
+
+Ezequiel Garcia (3):
+      rcar_jpu: Remove unrequired wait in .job_abort
+      s5p-g2d: Remove unrequired wait in .job_abort
+      mem2mem: Make .job_abort optional
+
+Hans Verkuil (1):
+      videobuf2-core: check for q->error in vb2_core_qbuf()
+
+Jacopo Mondi (9):
+      sh: defconfig: migor: Update defconfig
+      sh: defconfig: migor: Enable CEU and sensor drivers
+      sh: defconfig: ecovec: Update defconfig
+      sh: defconfig: ecovec: Enable CEU and video drivers
+      sh: defconfig: se7724: Update defconfig
+      sh: defconfig: se7724: Enable CEU and sensor driver
+      sh: defconfig: ap325rxa: Update defconfig
+      sh: defconfig: ap325rxa: Enable CEU and sensor driver
+      sh: migor: Remove stale soc_camera include
+
+Laurent Pinchart (1):
+      v4l: rcar_fdp1: Enable compilation on Gen2 platforms
+
+Neil Armstrong (1):
+      media: platform: meson-ao-cec: make busy TX warning silent
+
+Niklas Söderlund (1):
+      v4l: Add support for STD ioctls on subdev nodes
+
+Philipp Zabel (1):
+      media: video-mux: fix compliance failures
+
+ Documentation/media/uapi/v4l/vidioc-enumstd.rst  |  11 ++-
+ Documentation/media/uapi/v4l/vidioc-g-std.rst    |  14 +++-
+ Documentation/media/uapi/v4l/vidioc-querystd.rst |  11 ++-
+ arch/sh/boards/mach-migor/setup.c                |   1 -
+ arch/sh/configs/ap325rxa_defconfig               |  29 ++-----
+ arch/sh/configs/ecovec24_defconfig               |  35 ++-------
+ arch/sh/configs/migor_defconfig                  |  31 ++------
+ arch/sh/configs/se7724_defconfig                 |  30 ++------
+ drivers/media/common/videobuf2/videobuf2-core.c  |   5 ++
+ drivers/media/platform/Kconfig                   |   2 +-
+ drivers/media/platform/meson/ao-cec.c            |   2 +-
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c  |   5 --
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c     |   5 --
+ drivers/media/platform/rcar_jpu.c                |  16 ----
+ drivers/media/platform/rockchip/rga/rga.c        |   6 --
+ drivers/media/platform/s5p-g2d/g2d.c             |  16 ----
+ drivers/media/platform/s5p-g2d/g2d.h             |   1 -
+ drivers/media/platform/s5p-jpeg/jpeg-core.c      |   7 --
+ drivers/media/platform/video-mux.c               | 119 ++++++++++++++++++++++++++++-
+ drivers/media/v4l2-core/v4l2-mem2mem.c           |   6 +-
+ drivers/media/v4l2-core/v4l2-subdev.c            |  22 ++++++
+ drivers/staging/media/tegra-vde/tegra-vde.c      | 221 +++++++++++++++++++++++++++++++-----------------------
+ drivers/staging/media/tegra-vde/trace.h          |  98 ++++++++++++++++++++++++
+ include/media/v4l2-mem2mem.h                     |   2 +-
+ include/uapi/linux/v4l2-subdev.h                 |   4 +
+ 25 files changed, 429 insertions(+), 270 deletions(-)
+ create mode 100644 drivers/staging/media/tegra-vde/trace.h
