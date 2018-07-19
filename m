@@ -1,70 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:48390 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726475AbeGSLxi (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:32924 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727459AbeGSMdS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jul 2018 07:53:38 -0400
-Subject: Re: [PATCH] media: coda: add missing h.264 levels
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de
-References: <20180628110147.24428-1-p.zabel@pengutronix.de>
- <1531996340.3755.5.camel@pengutronix.de>
- <e35a9f6a-4704-29ad-66c5-b17bc71d18ac@xs4all.nl>
- <1531997437.3755.7.camel@pengutronix.de>
+        Thu, 19 Jul 2018 08:33:18 -0400
+Subject: Re: [PATCH 1/3] media: Add JPEG_RAW format
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56c8dda9-1fe4-c299-5178-6051f7b0f628@xs4all.nl>
-Date: Thu, 19 Jul 2018 13:10:53 +0200
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+References: <20180705172819.5588-1-ezequiel@collabora.com>
+ <20180705172819.5588-2-ezequiel@collabora.com>
+ <454afcf7-6047-5c32-3a57-05d32383bf1c@xs4all.nl>
+Message-ID: <79b7c550-f90c-5286-4804-b54aaecd55ca@xs4all.nl>
+Date: Thu, 19 Jul 2018 13:50:25 +0200
 MIME-Version: 1.0
-In-Reply-To: <1531997437.3755.7.camel@pengutronix.de>
+In-Reply-To: <454afcf7-6047-5c32-3a57-05d32383bf1c@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/19/18 12:50, Philipp Zabel wrote:
-> On Thu, 2018-07-19 at 12:39 +0200, Hans Verkuil wrote:
->> On 07/19/18 12:32, Philipp Zabel wrote:
->>> Hi,
->>>
->>> On Thu, 2018-06-28 at 13:01 +0200, Philipp Zabel wrote:
->>>> This enables reordering support for h.264 main profile level 4.2,
->>>> 5.0, and 5.1 streams. Even though we likely can't play back such
->>>> streams at full speed, we should still recognize them correctly.
->>>>
->>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
->>>> ---
->>>>  drivers/media/platform/coda/coda-h264.c | 3 +++
->>>>  1 file changed, 3 insertions(+)
->>>>
->>>> diff --git a/drivers/media/platform/coda/coda-h264.c b/drivers/media/platform/coda/coda-h264.c
->>>> index 0e27412e01f5..07b4c706504f 100644
->>>> --- a/drivers/media/platform/coda/coda-h264.c
->>>> +++ b/drivers/media/platform/coda/coda-h264.c
->>>> @@ -108,6 +108,9 @@ int coda_h264_level(int level_idc)
->>>>  	case 32: return V4L2_MPEG_VIDEO_H264_LEVEL_3_2;
->>>>  	case 40: return V4L2_MPEG_VIDEO_H264_LEVEL_4_0;
->>>>  	case 41: return V4L2_MPEG_VIDEO_H264_LEVEL_4_1;
->>>> +	case 42: return V4L2_MPEG_VIDEO_H264_LEVEL_4_2;
->>>> +	case 50: return V4L2_MPEG_VIDEO_H264_LEVEL_5_0;
->>>> +	case 51: return V4L2_MPEG_VIDEO_H264_LEVEL_5_1;
->>>>  	default: return -EINVAL;
->>>>  	}
->>>>  }
->>>
->>> I've seen that some newer coda patches have been accepted already,
->>> maybe this fell through the cracks?
+On 07/18/18 11:51, Hans Verkuil wrote:
+> On 05/07/18 19:28, Ezequiel Garcia wrote:
+>> From: Shunqian Zheng <zhengsq@rock-chips.com>
 >>
->> No, this was part of a pull request of mine posted July 6th which hasn't
->> been merged yet (Mauro is traveling with poor internet connectivity). I
->> think he's back next week, so hopefully we'll see these pull request merged.
+>> Add V4L2_PIX_FMT_JPEG_RAW format that does not contain
+>> JPEG header in the output frame.
+>>
+>> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+>> ---
+>>  Documentation/media/uapi/v4l/pixfmt-compressed.rst | 5 +++++
+>>  drivers/media/v4l2-core/v4l2-ioctl.c               | 1 +
+>>  include/uapi/linux/videodev2.h                     | 1 +
+>>  3 files changed, 7 insertions(+)
+>>
+>> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+>> index abec03937bb3..ebfc3cb7399c 100644
+>> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+>> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+>> @@ -23,6 +23,11 @@ Compressed Formats
+>>        - 'JPEG'
+>>        - TBD. See also :ref:`VIDIOC_G_JPEGCOMP <VIDIOC_G_JPEGCOMP>`,
+>>  	:ref:`VIDIOC_S_JPEGCOMP <VIDIOC_G_JPEGCOMP>`.
+>> +    * .. _V4L2-PIX-FMT-JPEG-RAW:
+>> +
+>> +      - ``V4L2_PIX_FMT_JPEG_RAW``
+>> +      - 'Raw JPEG'
+>> +      - JPEG without any headers.
+>>      * .. _V4L2-PIX-FMT-MPEG:
+>>  
+>>        - ``V4L2_PIX_FMT_MPEG``
+>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> index dd210067151f..9f0c76ec7c2c 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -1259,6 +1259,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+>>  		/* Max description length mask:	descr = "0123456789012345678901234567890" */
+>>  		case V4L2_PIX_FMT_MJPEG:	descr = "Motion-JPEG"; break;
+>>  		case V4L2_PIX_FMT_JPEG:		descr = "JFIF JPEG"; break;
+>> +		case V4L2_PIX_FMT_JPEG_RAW:	descr = "Raw JPEG"; break;
+>>  		case V4L2_PIX_FMT_DV:		descr = "1394"; break;
+>>  		case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
+>>  		case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
 > 
-> Oh, I have to keep a closer look on the pull requests.
-> I only checked patchwork. Thank you!
+> You missed one more case: JPEG_RAW should also set the COMPRESSED flag.
 
-The patch status is "Under Review". I use that state to indicate that I made
-a pull request that is waiting for Mauro for the final review before he accepts
-it.
+Sorry, ignore this. This is actually correct.
 
 Regards,
 
