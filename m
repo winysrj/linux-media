@@ -1,71 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59180 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59256 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1731126AbeGSNx3 (ORCPT
+        by vger.kernel.org with ESMTP id S1731113AbeGSN5y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jul 2018 09:53:29 -0400
-Date: Thu, 19 Jul 2018 16:10:20 +0300
+        Thu, 19 Jul 2018 09:57:54 -0400
+Date: Thu, 19 Jul 2018 16:14:45 +0300
 From: sakari.ailus@iki.fi
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, jacopo mondi <jacopo@jmondi.org>,
-        Akinobu Mita <akinobu.mita@gmail.com>,
-        linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
-        Peter Rosin <peda@axentia.se>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v4 2/3] media: ov772x: use SCCB regmap
-Message-ID: <20180719131019.2kolodvc4r5ewqic@lanttu.localdomain>
-References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
- <20180719074736.GA6784@w540>
- <20180719084208.4zdwt4vzcop4hve7@ninjato>
- <2173334.CLADOdgFxd@avalon>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Tom aan de Wiel <tom.aandewiel@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/5] media.h: add encoder/decoder functions for codecs
+Message-ID: <20180719131445.pc6udhlrsp3cydrh@lanttu.localdomain>
+References: <20180719121353.20021-1-hverkuil@xs4all.nl>
+ <20180719121353.20021-2-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2173334.CLADOdgFxd@avalon>
+In-Reply-To: <20180719121353.20021-2-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 19, 2018 at 03:14:06PM +0300, Laurent Pinchart wrote:
-> On Thursday, 19 July 2018 11:42:08 EEST Wolfram Sang wrote:
-> > > > -static int ov772x_mask_set(struct i2c_client *client, u8  command, u8 
-> > > > mask,
-> > > > -			   u8  set)
-> > > > -{
-> > > > -	s32 val = ov772x_read(client, command);
-> > > > -
-> > > > -	if (val < 0)
-> > > > -		return val;
-> > > > -
-> > > > -	val &= ~mask;
-> > > > -	val |= set & mask;
-> > > > -
-> > > > -	return ov772x_write(client, command, val);
-> > > > -}
-> > > > -
-> > > 
-> > > If I were you I would have kept these functions and wrapped the regmap
-> > > operations there. This is not an issue though if you prefer it this
-> > > way :)
-> > 
-> > I have suggested this way. It is not a show stopper issue, but I still
-> > like this version better.
+Hi Hans,
+
+On Thu, Jul 19, 2018 at 02:13:49PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Wrapping the regmap functions minimizes the diff and makes it easier to 
-> backport the driver.
+> Add MEDIA_ENT_F_PROC_VIDEO_EN/DECODER to be used for the encoder
+> and decoder entities of codec hardware.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/media/uapi/mediactl/media-types.rst | 11 +++++++++++
+>  include/uapi/linux/media.h                        |  2 ++
+>  2 files changed, 13 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+> index 96910cf2eaaa..8aea7661e243 100644
+> --- a/Documentation/media/uapi/mediactl/media-types.rst
+> +++ b/Documentation/media/uapi/mediactl/media-types.rst
+> @@ -40,6 +40,8 @@ Types and flags used to represent the media graph elements
+>  .. _MEDIA-ENT-F-VID-MUX:
+>  .. _MEDIA-ENT-F-VID-IF-BRIDGE:
+>  .. _MEDIA-ENT-F-DTV-DECODER:
+> +.. _MEDIA-ENT-F-PROC-VIDEO-ENCODER:
+> +.. _MEDIA-ENT-F-PROC-VIDEO-DECODER:
+>  
+>  .. cssclass:: longtable
+>  
+> @@ -188,6 +190,15 @@ Types and flags used to represent the media graph elements
+>  	  received on its sink pad and outputs the statistics data on
+>  	  its source pad.
+>  
+> +    *  -  ``MEDIA_ENT_F_PROC_VIDEO_ENCODER``
+> +       -  Video (MPEG, HEVC, VPx, etc.) encoder. An entity capable of
+> +          compressing video frames must have one sink pad and one source pad.
+> +
+> +    *  -  ``MEDIA_ENT_F_PROC_VIDEO_DECODER``
+> +       -  Video (MPEG, HEVC, VPx, etc.) decoder. An entity capable of
+> +          decompressing a compressed video stream into uncompressed video
+> +	  frames must have one sink pad and one source pad.
+> +
 
-May be, but using the regmap functions directly makes the driver cleaner.
-Most drivers have some kind of wrappers around the I²C framework (or
-regmap) functions; this one is one of the few to get rid of them.
+It'd be nice to keep the same ordering in the two lists (this one and the
+one above).
 
-The two could be done in a separate patch, too, albeit I think the current
-one seems fine as such.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+>      *  -  ``MEDIA_ENT_F_VID_MUX``
+>         - Video multiplexer. An entity capable of multiplexing must have at
+>           least two sink pads and one source pad, and must pass the video
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 86c7dcc9cba3..9004d0c5560c 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -132,6 +132,8 @@ struct media_device_info {
+>  #define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
+>  #define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
+>  #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+> +#define MEDIA_ENT_F_PROC_VIDEO_ENCODER		(MEDIA_ENT_F_BASE + 0x4007)
+> +#define MEDIA_ENT_F_PROC_VIDEO_DECODER		(MEDIA_ENT_F_BASE + 0x4008)
+>  
+>  /*
+>   * Switch and bridge entity functions
+> -- 
+> 2.17.0
+> 
 
 -- 
 Sakari Ailus
