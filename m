@@ -1,169 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:35574 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729836AbeGYRv1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 13:51:27 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 22/34] media: camss: csid: Add support for 8x96
-Date: Wed, 25 Jul 2018 19:38:31 +0300
-Message-Id: <1532536723-19062-23-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
-References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
+Received: from out20-38.mail.aliyun.com ([115.124.20.38]:39236 "EHLO
+        out20-38.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725739AbeGSEYd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Jul 2018 00:24:33 -0400
+Date: Thu, 19 Jul 2018 11:43:06 +0800
+From: Yong <yong.deng@magewell.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v10 2/2] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20180719114306.55b2e5f9e9a140a8922a2785@magewell.com>
+In-Reply-To: <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
+References: <1525417745-37964-1-git-send-email-yong.deng@magewell.com>
+        <20180626110821.wkal6fcnoncsze6y@valkosipuli.retiisi.org.uk>
+        <20180705154802.03604f156709be11892b19c0@magewell.com>
+        <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CSID hardware modules on 8x16 and 8x96 are similar. There is no
-need to duplicate the code by adding separate versions. Just
-update the register macros to return the correct register
-addresses.
+On Wed, 18 Jul 2018 12:55:14 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
----
- drivers/media/platform/qcom/camss/camss-csid.c | 60 ++++++++++++++++----------
- 1 file changed, 37 insertions(+), 23 deletions(-)
+> Hi Yong,
+> 
+> On Thu, Jul 05, 2018 at 03:48:02PM +0800, Yong wrote:
+> > > > +
+> > > > +/* -----------------------------------------------------------------------------
+> > > > + * Media Operations
+> > > > + */
+> > > > +static int sun6i_video_formats_init(struct sun6i_video *video,
+> > > > +				    const struct media_pad *remote)
+> > > > +{
+> > > > +	struct v4l2_subdev_mbus_code_enum mbus_code = { 0 };
+> > > > +	struct sun6i_csi *csi = video->csi;
+> > > > +	struct v4l2_format format;
+> > > > +	struct v4l2_subdev *subdev;
+> > > > +	u32 pad;
+> > > > +	const u32 *pixformats;
+> > > > +	int pixformat_count = 0;
+> > > > +	u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
+> > > > +	int codes_count = 0;
+> > > > +	int num_fmts = 0;
+> > > > +	int i, j;
+> > > > +
+> > > > +	pad = remote->index;
+> > > > +	subdev = media_entity_to_v4l2_subdev(remote->entity);
+> > > > +	if (subdev == NULL)
+> > > > +		return -ENXIO;
+> > > > +
+> > > > +	/* Get supported pixformats of CSI */
+> > > > +	pixformat_count = sun6i_csi_get_supported_pixformats(csi, &pixformats);
+> > > > +	if (pixformat_count <= 0)
+> > > > +		return -ENXIO;
+> > > > +
+> > > > +	/* Get subdev formats codes */
+> > > > +	mbus_code.pad = pad;
+> > > > +	mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > > +	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
+> > > > +				 &mbus_code)) {
+> > > 
+> > > The formats supported by the external sub-device may depend on horizontal
+> > > and vertical flipping. You shouldn't assume any particular configuration
+> > > here: instead, bridge drivers generally just need to make sure the formats
+> > > match in link validation when streaming is started. At least the CSI-2
+> > > receiver driver and the DMA engine driver (video device) should check the
+> > > configuration is valid. See e.g. the IPU3 driver:
+> > > drivers/media/pci/intel/ipu3/ipu3-cio2.c .
+> > 
+> > Can mbus_code be added dynamically ?
+> > The code here only enum the mbus code and get the possible supported
+> > pairs of pixformat and mbus by SoC. Not try to check if the formats
+> > (width height ...) is valid or not. The formats validation will be 
+> > in link validation when streaming is started as per your advise. 
+> 
+> The formats that can be enumerated from the sensor here are those settable
+> using SUBDEV_S_FMT. The enumeration will change on raw sensors if you use
+> the flipping controls. As the bridge driver implements MC as well as subdev
+> APIs, generally the sensor configuration is out of scope of this driver
+> since it's directly configured from the user space.
+> 
+> Just check that the pipeline is valid before starting streaming in your
+> driver.
 
-diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
-index 3ba087f..915835e 100644
---- a/drivers/media/platform/qcom/camss/camss-csid.c
-+++ b/drivers/media/platform/qcom/camss/camss-csid.c
-@@ -27,21 +27,26 @@
- #define CAMSS_CSID_HW_VERSION		0x0
- #define CAMSS_CSID_CORE_CTRL_0		0x004
- #define CAMSS_CSID_CORE_CTRL_1		0x008
--#define CAMSS_CSID_RST_CMD		0x00c
--#define CAMSS_CSID_CID_LUT_VC_n(n)	(0x010 + 0x4 * (n))
--#define CAMSS_CSID_CID_n_CFG(n)		(0x020 + 0x4 * (n))
--#define CAMSS_CSID_IRQ_CLEAR_CMD	0x060
--#define CAMSS_CSID_IRQ_MASK		0x064
--#define CAMSS_CSID_IRQ_STATUS		0x068
--#define CAMSS_CSID_TG_CTRL		0x0a0
-+#define CAMSS_CSID_RST_CMD(v)		((v) == CAMSS_8x16 ? 0x00c : 0x010)
-+#define CAMSS_CSID_CID_LUT_VC_n(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x010 : 0x014) + 0x4 * (n))
-+#define CAMSS_CSID_CID_n_CFG(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x020 : 0x024) + 0x4 * (n))
-+#define CAMSS_CSID_IRQ_CLEAR_CMD(v)	((v) == CAMSS_8x16 ? 0x060 : 0x064)
-+#define CAMSS_CSID_IRQ_MASK(v)		((v) == CAMSS_8x16 ? 0x064 : 0x068)
-+#define CAMSS_CSID_IRQ_STATUS(v)	((v) == CAMSS_8x16 ? 0x068 : 0x06c)
-+#define CAMSS_CSID_TG_CTRL(v)		((v) == CAMSS_8x16 ? 0x0a0 : 0x0a8)
- #define CAMSS_CSID_TG_CTRL_DISABLE	0xa06436
- #define CAMSS_CSID_TG_CTRL_ENABLE	0xa06437
--#define CAMSS_CSID_TG_VC_CFG		0x0a4
-+#define CAMSS_CSID_TG_VC_CFG(v)		((v) == CAMSS_8x16 ? 0x0a4 : 0x0ac)
- #define CAMSS_CSID_TG_VC_CFG_H_BLANKING		0x3ff
- #define CAMSS_CSID_TG_VC_CFG_V_BLANKING		0x7f
--#define CAMSS_CSID_TG_DT_n_CGG_0(n)	(0x0ac + 0xc * (n))
--#define CAMSS_CSID_TG_DT_n_CGG_1(n)	(0x0b0 + 0xc * (n))
--#define CAMSS_CSID_TG_DT_n_CGG_2(n)	(0x0b4 + 0xc * (n))
-+#define CAMSS_CSID_TG_DT_n_CGG_0(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x0ac : 0x0b4) + 0xc * (n))
-+#define CAMSS_CSID_TG_DT_n_CGG_1(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x0b0 : 0x0b8) + 0xc * (n))
-+#define CAMSS_CSID_TG_DT_n_CGG_2(v, n)	\
-+			(((v) == CAMSS_8x16 ? 0x0b4 : 0x0bc) + 0xc * (n))
- 
- #define DATA_TYPE_EMBEDDED_DATA_8BIT	0x12
- #define DATA_TYPE_YUV422_8BIT		0x1e
-@@ -203,10 +208,11 @@ static const struct csid_fmts *csid_get_fmt_entry(u32 code)
- static irqreturn_t csid_isr(int irq, void *dev)
- {
- 	struct csid_device *csid = dev;
-+	enum camss_version ver = csid->camss->version;
- 	u32 value;
- 
--	value = readl_relaxed(csid->base + CAMSS_CSID_IRQ_STATUS);
--	writel_relaxed(value, csid->base + CAMSS_CSID_IRQ_CLEAR_CMD);
-+	value = readl_relaxed(csid->base + CAMSS_CSID_IRQ_STATUS(ver));
-+	writel_relaxed(value, csid->base + CAMSS_CSID_IRQ_CLEAR_CMD(ver));
- 
- 	if ((value >> 11) & 0x1)
- 		complete(&csid->reset_complete);
-@@ -289,7 +295,8 @@ static int csid_reset(struct csid_device *csid)
- 
- 	reinit_completion(&csid->reset_complete);
- 
--	writel_relaxed(0x7fff, csid->base + CAMSS_CSID_RST_CMD);
-+	writel_relaxed(0x7fff, csid->base +
-+		       CAMSS_CSID_RST_CMD(csid->camss->version));
- 
- 	time = wait_for_completion_timeout(&csid->reset_complete,
- 		msecs_to_jiffies(CSID_RESET_TIMEOUT_MS));
-@@ -377,6 +384,7 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct csid_device *csid = v4l2_get_subdevdata(sd);
- 	struct csid_testgen_config *tg = &csid->testgen;
-+	enum camss_version ver = csid->camss->version;
- 	u32 val;
- 
- 	if (enable) {
-@@ -409,13 +417,14 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 			/* 1:0 VC */
- 			val = ((CAMSS_CSID_TG_VC_CFG_V_BLANKING & 0xff) << 24) |
- 			      ((CAMSS_CSID_TG_VC_CFG_H_BLANKING & 0x7ff) << 13);
--			writel_relaxed(val, csid->base + CAMSS_CSID_TG_VC_CFG);
-+			writel_relaxed(val, csid->base +
-+				       CAMSS_CSID_TG_VC_CFG(ver));
- 
- 			/* 28:16 bytes per lines, 12:0 num of lines */
- 			val = ((num_bytes_per_line & 0x1fff) << 16) |
- 			      (num_lines & 0x1fff);
- 			writel_relaxed(val, csid->base +
--				       CAMSS_CSID_TG_DT_n_CGG_0(0));
-+				       CAMSS_CSID_TG_DT_n_CGG_0(ver, 0));
- 
- 			dt = csid_get_fmt_entry(
- 				csid->fmt[MSM_CSID_PAD_SRC].code)->data_type;
-@@ -423,12 +432,12 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 			/* 5:0 data type */
- 			val = dt;
- 			writel_relaxed(val, csid->base +
--				       CAMSS_CSID_TG_DT_n_CGG_1(0));
-+				       CAMSS_CSID_TG_DT_n_CGG_1(ver, 0));
- 
- 			/* 2:0 output test pattern */
- 			val = tg->payload_mode;
- 			writel_relaxed(val, csid->base +
--				       CAMSS_CSID_TG_DT_n_CGG_2(0));
-+				       CAMSS_CSID_TG_DT_n_CGG_2(ver, 0));
- 
- 			df = csid_get_fmt_entry(
- 				csid->fmt[MSM_CSID_PAD_SRC].code)->decode_format;
-@@ -457,22 +466,27 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
- 
- 		dt_shift = (cid % 4) * 8;
- 
--		val = readl_relaxed(csid->base + CAMSS_CSID_CID_LUT_VC_n(vc));
-+		val = readl_relaxed(csid->base +
-+				    CAMSS_CSID_CID_LUT_VC_n(ver, vc));
- 		val &= ~(0xff << dt_shift);
- 		val |= dt << dt_shift;
--		writel_relaxed(val, csid->base + CAMSS_CSID_CID_LUT_VC_n(vc));
-+		writel_relaxed(val, csid->base +
-+			       CAMSS_CSID_CID_LUT_VC_n(ver, vc));
- 
- 		val = (df << 4) | 0x3;
--		writel_relaxed(val, csid->base + CAMSS_CSID_CID_n_CFG(cid));
-+		writel_relaxed(val, csid->base +
-+			       CAMSS_CSID_CID_n_CFG(ver, cid));
- 
- 		if (tg->enabled) {
- 			val = CAMSS_CSID_TG_CTRL_ENABLE;
--			writel_relaxed(val, csid->base + CAMSS_CSID_TG_CTRL);
-+			writel_relaxed(val, csid->base +
-+				       CAMSS_CSID_TG_CTRL(ver));
- 		}
- 	} else {
- 		if (tg->enabled) {
- 			val = CAMSS_CSID_TG_CTRL_DISABLE;
--			writel_relaxed(val, csid->base + CAMSS_CSID_TG_CTRL);
-+			writel_relaxed(val, csid->base +
-+				       CAMSS_CSID_TG_CTRL(ver));
- 		}
- 	}
- 
--- 
-2.7.4
+OK. I will take some time to change these code.
+
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+
+
+Thanks,
+Yong
