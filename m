@@ -1,70 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:42449 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:47113 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732161AbeGSQOe (ORCPT
+        with ESMTP id S1732170AbeGSQOe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 19 Jul 2018 12:14:34 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Subject: [PATCH v2 06/16] gpu: ipu-v3: image-convert: calculate tile dimensions and offsets outside fill_image
-Date: Thu, 19 Jul 2018 17:30:32 +0200
-Message-Id: <20180719153042.533-7-p.zabel@pengutronix.de>
+Subject: [PATCH v2 15/16] gpu: ipu-v3: image-convert: disable double buffering if necessary
+Date: Thu, 19 Jul 2018 17:30:41 +0200
+Message-Id: <20180719153042.533-16-p.zabel@pengutronix.de>
 In-Reply-To: <20180719153042.533-1-p.zabel@pengutronix.de>
 References: <20180719153042.533-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will allow to calculate seam positions after initializing the
-ipu_image base structure but before calculating tile dimensions.
+Double-buffering only works if tile sizes are the same and the resizing
+coefficient does not change between tiles, even for non-planar formats.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 27 ++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index c3358e83bcc1..06d65c63262d 100644
+index 93eaeacf777e..1ea1ad0e8d66 100644
 --- a/drivers/gpu/ipu-v3/ipu-image-convert.c
 +++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -1447,9 +1447,6 @@ static int fill_image(struct ipu_image_convert_ctx *ctx,
- 	else
- 		ic_image->stride  = ic_image->base.pix.bytesperline;
+@@ -1939,6 +1939,7 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
+ 	struct ipu_image_convert_chan *chan;
+ 	struct ipu_image_convert_ctx *ctx;
+ 	unsigned long flags;
++	unsigned int i;
+ 	bool get_res;
+ 	int ret;
  
--	calc_tile_dimensions(ctx, ic_image);
--	calc_tile_offsets(ctx, ic_image);
--
- 	return 0;
- }
+@@ -2022,15 +2023,37 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
+ 	 * for every tile, and therefore would have to be updated for
+ 	 * each buffer which is not possible. So double-buffering is
+ 	 * impossible when either the source or destination images are
+-	 * a planar format (YUV420, YUV422P, etc.).
++	 * a planar format (YUV420, YUV422P, etc.). Further, differently
++	 * sized tiles or different resizing coefficients per tile
++	 * prevent double-buffering as well.
+ 	 */
+ 	ctx->double_buffering = (ctx->num_tiles > 1 &&
+ 				 !s_image->fmt->planar &&
+ 				 !d_image->fmt->planar);
++	for (i = 1; i < ctx->num_tiles; i++) {
++		if (ctx->in.tile[i].width != ctx->in.tile[0].width ||
++		    ctx->in.tile[i].height != ctx->in.tile[0].height ||
++		    ctx->out.tile[i].width != ctx->out.tile[0].width ||
++		    ctx->out.tile[i].height != ctx->out.tile[0].height) {
++			ctx->double_buffering = false;
++			break;
++		}
++	}
++	for (i = 1; i < ctx->in.num_cols; i++) {
++		if (ctx->resize_coeffs_h[i] != ctx->resize_coeffs_h[0]) {
++			ctx->double_buffering = false;
++			break;
++		}
++	}
++	for (i = 1; i < ctx->in.num_rows; i++) {
++		if (ctx->resize_coeffs_v[i] != ctx->resize_coeffs_v[0]) {
++			ctx->double_buffering = false;
++			break;
++		}
++	}
  
-@@ -1654,10 +1651,6 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
- 	ctx->num_tiles = d_image->num_cols * d_image->num_rows;
- 	ctx->rot_mode = rot_mode;
+ 	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
+ 		unsigned long intermediate_size = d_image->tile[0].size;
+-		unsigned int i;
  
--	ret = calc_image_resize_coefficients(ctx, in, out);
--	if (ret)
--		goto out_free;
--
- 	ret = fill_image(ctx, s_image, in, IMAGE_CONVERT_IN);
- 	if (ret)
- 		goto out_free;
-@@ -1665,6 +1658,16 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
- 	if (ret)
- 		goto out_free;
- 
-+	ret = calc_image_resize_coefficients(ctx, in, out);
-+	if (ret)
-+		goto out_free;
-+
-+	calc_tile_dimensions(ctx, s_image);
-+	calc_tile_offsets(ctx, s_image);
-+
-+	calc_tile_dimensions(ctx, d_image);
-+	calc_tile_offsets(ctx, d_image);
-+
- 	calc_out_tile_map(ctx);
- 	calc_tile_resize_coefficients(ctx);
- 
+ 		for (i = 1; i < ctx->num_tiles; i++) {
+ 			if (d_image->tile[i].size > intermediate_size)
 -- 
 2.18.0
