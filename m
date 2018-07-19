@@ -1,68 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60732 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727575AbeGSQWr (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:57453 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732168AbeGSQOe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jul 2018 12:22:47 -0400
-Date: Thu, 19 Jul 2018 18:39:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Tom aan de Wiel <tom.aandewiel@gmail.com>
-Subject: Re: [PATCH 2/5] videodev.h: add PIX_FMT_FWHT for use with vicodec
-Message-ID: <20180719153900.mybhstbhiaegtunn@valkosipuli.retiisi.org.uk>
-References: <20180719121353.20021-1-hverkuil@xs4all.nl>
- <20180719121353.20021-3-hverkuil@xs4all.nl>
- <20180719131544.kxbwpzssskepwple@lanttu.localdomain>
- <d912d4c6-90ec-ed89-31fa-6a5243a7b0de@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d912d4c6-90ec-ed89-31fa-6a5243a7b0de@cisco.com>
+        Thu, 19 Jul 2018 12:14:34 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
+Subject: [PATCH v2 11/16] gpu: ipu-v3: image-convert: relax input alignment restrictions
+Date: Thu, 19 Jul 2018 17:30:37 +0200
+Message-Id: <20180719153042.533-12-p.zabel@pengutronix.de>
+In-Reply-To: <20180719153042.533-1-p.zabel@pengutronix.de>
+References: <20180719153042.533-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 19, 2018 at 03:20:22PM +0200, Hans Verkuil wrote:
-> On 07/19/18 15:15, sakari.ailus@iki.fi wrote:
-> > On Thu, Jul 19, 2018 at 02:13:50PM +0200, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hansverk@cisco.com>
-> >>
-> >> Add a new pixelformat for the vicodec software codec using the
-> >> Fast Walsh Hadamard Transform.
-> >>
-> >> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> > 
-> > Could you add documentation for this format, please?
-> > 
-> 
-> ??? It's part of the patch:
-> 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> index abec03937bb3..e5419f046b59 100644
-> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> @@ -95,3 +95,10 @@ Compressed Formats
->        - ``V4L2_PIX_FMT_HEVC``
->        - 'HEVC'
->        - HEVC/H.265 video elementary stream.
-> +    * .. _V4L2-PIX-FMT-FWHT:
-> +
-> +      - ``V4L2_PIX_FMT_FWHT``
-> +      - 'FWHT'
-> +      - Video elementary stream using a codec based on the Fast Walsh Hadamard
-> +        Transform. This codec is implemented by the vicodec ('Virtual Codec')
-> +	driver.
-> 
-> Since the whole codec is implemented in the vicodec source I didn't think it
-> necessary to say more about it.
+If we allow the 8-pixel DMA bursts to overshoot the end of the line, the
+only input alignment restrictions are dictated by the pixel format and
+8-byte aligned line start address.
 
-Oh, well. The source is there but user space developers shouldn't need to
-read it. OTOH it might be that they're also not the primary audience for
-this driver either. If there's a Wikipedia article you could refer to or
-such that'd be fine IMO, too.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-Up to you.
-
+diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
+index 1a8fc29e278f..bae8d6042333 100644
+--- a/drivers/gpu/ipu-v3/ipu-image-convert.c
++++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
+@@ -1856,13 +1856,6 @@ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
+ 		num_in_cols = num_out_cols;
+ 	}
+ 
+-	/* align input width/height */
+-	w_align = ilog2(tile_width_align(infmt) * num_in_cols);
+-	h_align = ilog2(tile_height_align(IMAGE_CONVERT_IN, rot_mode) *
+-			num_in_rows);
+-	in->pix.width = clamp_align(in->pix.width, MIN_W, MAX_W, w_align);
+-	in->pix.height = clamp_align(in->pix.height, MIN_H, MAX_H, h_align);
+-
+ 	/* align output width/height */
+ 	w_align = ilog2(tile_width_align(outfmt) * num_out_cols);
+ 	h_align = ilog2(tile_height_align(IMAGE_CONVERT_OUT, rot_mode) *
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.18.0
