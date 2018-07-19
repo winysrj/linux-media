@@ -1,80 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:47113 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:49685 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732170AbeGSQOe (ORCPT
+        with ESMTP id S1732169AbeGSQOe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 19 Jul 2018 12:14:34 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Subject: [PATCH v2 15/16] gpu: ipu-v3: image-convert: disable double buffering if necessary
-Date: Thu, 19 Jul 2018 17:30:41 +0200
-Message-Id: <20180719153042.533-16-p.zabel@pengutronix.de>
+Subject: [PATCH v2 12/16] gpu: ipu-v3: image-convert: relax output alignment restrictions
+Date: Thu, 19 Jul 2018 17:30:38 +0200
+Message-Id: <20180719153042.533-13-p.zabel@pengutronix.de>
 In-Reply-To: <20180719153042.533-1-p.zabel@pengutronix.de>
 References: <20180719153042.533-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Double-buffering only works if tile sizes are the same and the resizing
-coefficient does not change between tiles, even for non-planar formats.
+If we allow different tile sizes, the output tile with / height
+alignment doesn't need to be multiplied by number of columns / rows.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 27 ++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index 93eaeacf777e..1ea1ad0e8d66 100644
+index bae8d6042333..a8d7939d58d9 100644
 --- a/drivers/gpu/ipu-v3/ipu-image-convert.c
 +++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -1939,6 +1939,7 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
- 	struct ipu_image_convert_chan *chan;
- 	struct ipu_image_convert_ctx *ctx;
- 	unsigned long flags;
-+	unsigned int i;
- 	bool get_res;
- 	int ret;
+@@ -1857,9 +1857,8 @@ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
+ 	}
  
-@@ -2022,15 +2023,37 @@ ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
- 	 * for every tile, and therefore would have to be updated for
- 	 * each buffer which is not possible. So double-buffering is
- 	 * impossible when either the source or destination images are
--	 * a planar format (YUV420, YUV422P, etc.).
-+	 * a planar format (YUV420, YUV422P, etc.). Further, differently
-+	 * sized tiles or different resizing coefficients per tile
-+	 * prevent double-buffering as well.
- 	 */
- 	ctx->double_buffering = (ctx->num_tiles > 1 &&
- 				 !s_image->fmt->planar &&
- 				 !d_image->fmt->planar);
-+	for (i = 1; i < ctx->num_tiles; i++) {
-+		if (ctx->in.tile[i].width != ctx->in.tile[0].width ||
-+		    ctx->in.tile[i].height != ctx->in.tile[0].height ||
-+		    ctx->out.tile[i].width != ctx->out.tile[0].width ||
-+		    ctx->out.tile[i].height != ctx->out.tile[0].height) {
-+			ctx->double_buffering = false;
-+			break;
-+		}
-+	}
-+	for (i = 1; i < ctx->in.num_cols; i++) {
-+		if (ctx->resize_coeffs_h[i] != ctx->resize_coeffs_h[0]) {
-+			ctx->double_buffering = false;
-+			break;
-+		}
-+	}
-+	for (i = 1; i < ctx->in.num_rows; i++) {
-+		if (ctx->resize_coeffs_v[i] != ctx->resize_coeffs_v[0]) {
-+			ctx->double_buffering = false;
-+			break;
-+		}
-+	}
+ 	/* align output width/height */
+-	w_align = ilog2(tile_width_align(outfmt) * num_out_cols);
+-	h_align = ilog2(tile_height_align(IMAGE_CONVERT_OUT, rot_mode) *
+-			num_out_rows);
++	w_align = ilog2(tile_width_align(outfmt));
++	h_align = ilog2(tile_height_align(IMAGE_CONVERT_OUT, rot_mode));
+ 	out->pix.width = clamp_align(out->pix.width, MIN_W, MAX_W, w_align);
+ 	out->pix.height = clamp_align(out->pix.height, MIN_H, MAX_H, h_align);
  
- 	if (ipu_rot_mode_is_irt(ctx->rot_mode)) {
- 		unsigned long intermediate_size = d_image->tile[0].size;
--		unsigned int i;
- 
- 		for (i = 1; i < ctx->num_tiles; i++) {
- 			if (d_image->tile[i].size > intermediate_size)
 -- 
 2.18.0
