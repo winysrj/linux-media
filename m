@@ -1,93 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45109 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:47755 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732156AbeGSQOd (ORCPT
+        with ESMTP id S1732165AbeGSQOe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jul 2018 12:14:33 -0400
+        Thu, 19 Jul 2018 12:14:34 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Subject: [PATCH v2 00/16]  i.MX media mem2mem scaler
-Date: Thu, 19 Jul 2018 17:30:26 +0200
-Message-Id: <20180719153042.533-1-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH v2 09/16] gpu: ipu-v3: image-convert: fix debug output for varying tile sizes
+Date: Thu, 19 Jul 2018 17:30:35 +0200
+Message-Id: <20180719153042.533-10-p.zabel@pengutronix.de>
+In-Reply-To: <20180719153042.533-1-p.zabel@pengutronix.de>
+References: <20180719153042.533-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Since tile dimensions now vary between tiles, add debug output for each
+tile's position and dimensions.
 
-this is the second version of the i.MX mem2mem scaler series.
-Patches 8 and 16 have been modified.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-Changes since v1:
- - Fix inverted allow_overshoot logic
- - Correctly switch horizontal / vertical tile alignment when
-   determining seam positions with the 90° rotator active.
- - Fix SPDX-License-Identifier and remove superfluous license
-   text.
- - Fix uninitialized walign in try_fmt
-
-Previous cover letter:
-
-we have image conversion code for scaling and colorspace conversion in
-the IPUv3 base driver for a while. Since the IC hardware can only write
-up to 1024x1024 pixel buffers, it scales to larger output buffers by
-splitting the input and output frame into similarly sized tiles.
-
-This causes the issue that the bilinear interpolation resets at the tile
-boundary: instead of smoothly interpolating across the seam, there is a
-jump in the input sample position that is very apparent for high
-upscaling factors. This can be avoided by slightly changing the scaling
-coefficients to let the left/top tiles overshoot their input sampling
-into the first pixel / line of their right / bottom neighbors. The error
-can be further reduced by letting tiles be differently sized and by
-selecting seam positions that minimize the input sampling position error
-at tile boundaries.
-This is complicated by different DMA start address, burst size, and
-rotator block size alignment requirements, depending on the input and
-output pixel formats, and the fact that flipping happens in different
-places depending on the rotation.
-
-This series implements optimal seam position selection and seam hiding
-with per-tile resizing coefficients and adds a scaling mem2mem device
-to the imx-media driver.
-
-regards
-Philipp
-
-Philipp Zabel (16):
-  gpu: ipu-v3: ipu-ic: allow to manually set resize coefficients
-  gpu: ipu-v3: image-convert: prepare for per-tile configuration
-  gpu: ipu-v3: image-convert: calculate per-tile resize coefficients
-  gpu: ipu-v3: image-convert: reconfigure IC per tile
-  gpu: ipu-v3: image-convert: store tile top/left position
-  gpu: ipu-v3: image-convert: calculate tile dimensions and offsets
-    outside fill_image
-  gpu: ipu-v3: image-convert: move tile alignment helpers
-  gpu: ipu-v3: image-convert: select optimal seam positions
-  gpu: ipu-v3: image-convert: fix debug output for varying tile sizes
-  gpu: ipu-v3: image-convert: relax tile width alignment for NV12 and
-    NV16
-  gpu: ipu-v3: image-convert: relax input alignment restrictions
-  gpu: ipu-v3: image-convert: relax output alignment restrictions
-  gpu: ipu-v3: image-convert: fix bytesperline adjustment
-  gpu: ipu-v3: image-convert: add some ASCII art to the exposition
-  gpu: ipu-v3: image-convert: disable double buffering if necessary
-  media: imx: add mem2mem device
-
- drivers/gpu/ipu-v3/ipu-ic.c                   |  52 +-
- drivers/gpu/ipu-v3/ipu-image-convert.c        | 870 +++++++++++++---
- drivers/staging/media/imx/Kconfig             |   1 +
- drivers/staging/media/imx/Makefile            |   1 +
- drivers/staging/media/imx/imx-media-dev.c     |  11 +
- drivers/staging/media/imx/imx-media-mem2mem.c | 946 ++++++++++++++++++
- drivers/staging/media/imx/imx-media.h         |  10 +
- include/video/imx-ipu-v3.h                    |   6 +
- 8 files changed, 1758 insertions(+), 139 deletions(-)
- create mode 100644 drivers/staging/media/imx/imx-media-mem2mem.c
-
+diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
+index 6615cea694ed..69cc307f932d 100644
+--- a/drivers/gpu/ipu-v3/ipu-image-convert.c
++++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
+@@ -302,12 +302,11 @@ static void dump_format(struct ipu_image_convert_ctx *ctx,
+ 	struct ipu_image_convert_priv *priv = chan->priv;
+ 
+ 	dev_dbg(priv->ipu->dev,
+-		"task %u: ctx %p: %s format: %dx%d (%dx%d tiles of size %dx%d), %c%c%c%c\n",
++		"task %u: ctx %p: %s format: %dx%d (%dx%d tiles), %c%c%c%c\n",
+ 		chan->ic_task, ctx,
+ 		ic_image->type == IMAGE_CONVERT_OUT ? "Output" : "Input",
+ 		ic_image->base.pix.width, ic_image->base.pix.height,
+ 		ic_image->num_cols, ic_image->num_rows,
+-		ic_image->tile[0].width, ic_image->tile[0].height,
+ 		ic_image->fmt->fourcc & 0xff,
+ 		(ic_image->fmt->fourcc >> 8) & 0xff,
+ 		(ic_image->fmt->fourcc >> 16) & 0xff,
+@@ -760,6 +759,8 @@ static void find_seams(struct ipu_image_convert_ctx *ctx,
+ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
+ 				 struct ipu_image_convert_image *image)
+ {
++	struct ipu_image_convert_chan *chan = ctx->chan;
++	struct ipu_image_convert_priv *priv = chan->priv;
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < ctx->num_tiles; i++) {
+@@ -784,6 +785,13 @@ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
+ 			tile->rot_stride =
+ 				(image->fmt->bpp * tile->height) >> 3;
+ 		}
++
++		dev_dbg(priv->ipu->dev,
++			"task %u: ctx %p: %s@[%u,%u]: %ux%u@%u,%u\n",
++			chan->ic_task, ctx,
++			image->type == IMAGE_CONVERT_IN ? "Input" : "Output",
++			row, col,
++			tile->width, tile->height, tile->left, tile->top);
+ 	}
+ }
+ 
 -- 
 2.18.0
