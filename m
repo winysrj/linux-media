@@ -1,369 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:42667 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728830AbeGTJ0t (ORCPT
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:42298 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727243AbeGTJtR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jul 2018 05:26:49 -0400
-Received: by mail-lj1-f193.google.com with SMTP id f1-v6so8824144ljc.9
-        for <linux-media@vger.kernel.org>; Fri, 20 Jul 2018 01:39:35 -0700 (PDT)
+        Fri, 20 Jul 2018 05:49:17 -0400
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, boris.ostrovsky@oracle.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, andr2000@gmail.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [PATCH v5 0/8] xen: dma-buf support for grant device
+Date: Fri, 20 Jul 2018 12:01:42 +0300
+Message-Id: <20180720090150.24560-1-andr2000@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <bb261d65-ef34-cac2-b05b-5c60aee95a18@xs4all.nl>
-References: <20180719121353.20021-1-hverkuil@xs4all.nl> <20180720065901.56269-1-keiichiw@chromium.org>
- <bb261d65-ef34-cac2-b05b-5c60aee95a18@xs4all.nl>
-From: Keiichi Watanabe <keiichiw@chromium.org>
-Date: Fri, 20 Jul 2018 17:39:34 +0900
-Message-ID: <CAD90VcZqHh8Zh2cuT3T+w5rAGDJyEYMbZExwwPn6spKHC8xDDA@mail.gmail.com>
-Subject: Re: [PATCH 6/5] vicodec: Support multi-planar APIs
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tom aan de Wiel <tom.aandewiel@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 20, 2018 at 5:30 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 07/20/2018 08:59 AM, Keiichi Watanabe wrote:
->> Support multi-planar APIs in the virtual codec driver.
->> Multi-planar APIs are enabled by the module parameter 'multiplanar'.
->>
->> Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
->
-> Thank you for contributing this code! I've folded it into patch series
-> (I just posted v2) and added a Co-Developed-by tag.
->
-Thanks, Hans! That sounds good.
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-> BTW, for future reference: always run v4l2-compliance after making driver
-> changes. It caught a bunch of missing checks in this code. I've fixed those,
-> but you should always check V4L2 driver changes with v4l2-compliance.
->
-Sorry for the inconvenience. I'll use v4l2-compliance next time.
+This work is in response to my previous attempt to introduce Xen/DRM
+zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
+frontends/backends. There is also an existing hyper_dmabuf approach
+available [3] which, if reworked to utilize the proposed solution,
+can greatly benefit as well.
 
-Best regards,
-Keiichi
+RFC for this series was published and discussed [9], comments addressed.
 
-> Regards,
->
->         Hans
->
->> ---
->>  drivers/media/platform/vicodec/vicodec-core.c | 219 ++++++++++++++----
->>  1 file changed, 171 insertions(+), 48 deletions(-)
->>
->> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
->> index 12c12cb0c1c0..1717f44e1743 100644
->> --- a/drivers/media/platform/vicodec/vicodec-core.c
->> +++ b/drivers/media/platform/vicodec/vicodec-core.c
->> @@ -29,6 +29,11 @@ MODULE_DESCRIPTION("Virtual codec device");
->>  MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
->>  MODULE_LICENSE("GPL v2");
->>
->> +static bool multiplanar;
->> +module_param(multiplanar, bool, 0444);
->> +MODULE_PARM_DESC(multiplanar,
->> +              " use multi-planar API instead of single-planar API");
->> +
->>  static unsigned int debug;
->>  module_param(debug, uint, 0644);
->>  MODULE_PARM_DESC(debug, "activates debug info");
->> @@ -135,8 +140,10 @@ static struct vicodec_q_data *get_q_data(struct vicodec_ctx *ctx,
->>  {
->>       switch (type) {
->>       case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->>               return &ctx->q_data[V4L2_M2M_SRC];
->>       case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->>               return &ctx->q_data[V4L2_M2M_DST];
->>       default:
->>               WARN_ON(1);
->> @@ -530,7 +537,10 @@ static int vidioc_querycap(struct file *file, void *priv,
->>       strncpy(cap->card, VICODEC_NAME, sizeof(cap->card) - 1);
->>       snprintf(cap->bus_info, sizeof(cap->bus_info),
->>                       "platform:%s", VICODEC_NAME);
->> -     cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
->> +     cap->device_caps =  V4L2_CAP_STREAMING |
->> +                         (multiplanar ?
->> +                          V4L2_CAP_VIDEO_M2M_MPLANE :
->> +                          V4L2_CAP_VIDEO_M2M);
->>       cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
->>       return 0;
->>  }
->> @@ -576,20 +586,44 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
->>
->>       q_data = get_q_data(ctx, f->type);
->>
->> -     f->fmt.pix.width        = q_data->width;
->> -     f->fmt.pix.height       = q_data->height;
->> -     f->fmt.pix.field        = V4L2_FIELD_NONE;
->> -     f->fmt.pix.pixelformat  = q_data->fourcc;
->> -     if (q_data->fourcc == V4L2_PIX_FMT_FWHT)
->> -             f->fmt.pix.bytesperline = 0;
->> -     else
->> -             f->fmt.pix.bytesperline = q_data->width;
->> -     f->fmt.pix.sizeimage    = q_data->sizeimage;
->> -     f->fmt.pix.colorspace   = ctx->colorspace;
->> -     f->fmt.pix.xfer_func    = ctx->xfer_func;
->> -     f->fmt.pix.ycbcr_enc    = ctx->ycbcr_enc;
->> -     f->fmt.pix.quantization = ctx->quantization;
->> +     switch (f->type) {
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->> +             f->fmt.pix.width        = q_data->width;
->> +             f->fmt.pix.height       = q_data->height;
->> +             f->fmt.pix.field        = V4L2_FIELD_NONE;
->> +             f->fmt.pix.pixelformat  = q_data->fourcc;
->> +             if (q_data->fourcc == V4L2_PIX_FMT_FWHT)
->> +                     f->fmt.pix.bytesperline = 0;
->> +             else
->> +                     f->fmt.pix.bytesperline = q_data->width;
->> +             f->fmt.pix.sizeimage    = q_data->sizeimage;
->> +             f->fmt.pix.colorspace   = ctx->colorspace;
->> +             f->fmt.pix.xfer_func    = ctx->xfer_func;
->> +             f->fmt.pix.ycbcr_enc    = ctx->ycbcr_enc;
->> +             f->fmt.pix.quantization = ctx->quantization;
->> +             break;
->>
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->> +             f->fmt.pix_mp.width     = q_data->width;
->> +             f->fmt.pix_mp.height    = q_data->height;
->> +             f->fmt.pix_mp.field     = V4L2_FIELD_NONE;
->> +             f->fmt.pix_mp.pixelformat       = q_data->fourcc;
->> +             f->fmt.pix_mp.num_planes        = 1;
->> +             if (q_data->fourcc == V4L2_PIX_FMT_FWHT)
->> +                     f->fmt.pix_mp.plane_fmt[0].bytesperline = 0;
->> +             else
->> +                     f->fmt.pix_mp.plane_fmt[0].bytesperline = q_data->width;
->> +             f->fmt.pix_mp.plane_fmt[0].sizeimage = q_data->sizeimage;
->> +             f->fmt.pix_mp.colorspace        = ctx->colorspace;
->> +             f->fmt.pix_mp.xfer_func = ctx->xfer_func;
->> +             f->fmt.pix_mp.ycbcr_enc = ctx->ycbcr_enc;
->> +             f->fmt.pix_mp.quantization      = ctx->quantization;
->> +             break;
->> +     default:
->> +             return -EINVAL;
->> +     }
->>       return 0;
->>  }
->>
->> @@ -607,16 +641,41 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->>
->>  static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
->>  {
->> -     struct v4l2_pix_format *pix = &f->fmt.pix;
->> -
->> -     pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH) & ~7;
->> -     pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
->> -     pix->bytesperline = pix->width;
->> -     pix->sizeimage = pix->width * pix->height * 3 / 2;
->> -     pix->field = V4L2_FIELD_NONE;
->> -     if (pix->pixelformat == V4L2_PIX_FMT_FWHT) {
->> -             pix->bytesperline = 0;
->> -             pix->sizeimage += sizeof(struct cframe_hdr);
->> +     struct v4l2_pix_format *pix;
->> +     struct v4l2_pix_format_mplane *pix_mp;
->> +
->> +     switch (f->type) {
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->> +             pix = &f->fmt.pix;
->> +             pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH) & ~7;
->> +             pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
->> +             pix->bytesperline = pix->width;
->> +             pix->sizeimage = pix->width * pix->height * 3 / 2;
->> +             pix->field = V4L2_FIELD_NONE;
->> +             if (pix->pixelformat == V4L2_PIX_FMT_FWHT) {
->> +                     pix->bytesperline = 0;
->> +                     pix->sizeimage += sizeof(struct cframe_hdr);
->> +             }
->> +             break;
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->> +             pix_mp = &f->fmt.pix_mp;
->> +             pix_mp->width = clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH) & ~7;
->> +             pix_mp->height =
->> +                     clamp(pix_mp->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
->> +             pix_mp->plane_fmt[0].bytesperline = pix_mp->width;
->> +             pix_mp->plane_fmt[0].sizeimage =
->> +                     pix_mp->width * pix_mp->height * 3 / 2;
->> +             pix_mp->field = V4L2_FIELD_NONE;
->> +             if (pix_mp->pixelformat == V4L2_PIX_FMT_FWHT) {
->> +                     pix_mp->plane_fmt[0].bytesperline = 0;
->> +                     pix_mp->plane_fmt[0].sizeimage +=
->> +                                     sizeof(struct cframe_hdr);
->> +             }
->> +             break;
->> +     default:
->> +             return -EINVAL;
->>       }
->>
->>       return 0;
->> @@ -627,12 +686,26 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->>  {
->>       struct vicodec_ctx *ctx = file2ctx(file);
->>
->> -     f->fmt.pix.pixelformat = ctx->is_enc ? V4L2_PIX_FMT_FWHT :
->> -                             find_fmt(f->fmt.pix.pixelformat);
->> -     f->fmt.pix.colorspace = ctx->colorspace;
->> -     f->fmt.pix.xfer_func = ctx->xfer_func;
->> -     f->fmt.pix.ycbcr_enc = ctx->ycbcr_enc;
->> -     f->fmt.pix.quantization = ctx->quantization;
->> +     switch (f->type) {
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->> +             f->fmt.pix.pixelformat = ctx->is_enc ? V4L2_PIX_FMT_FWHT :
->> +                                     find_fmt(f->fmt.pix.pixelformat);
->> +             f->fmt.pix.colorspace = ctx->colorspace;
->> +             f->fmt.pix.xfer_func = ctx->xfer_func;
->> +             f->fmt.pix.ycbcr_enc = ctx->ycbcr_enc;
->> +             f->fmt.pix.quantization = ctx->quantization;
->> +             break;
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->> +             f->fmt.pix_mp.pixelformat = ctx->is_enc ? V4L2_PIX_FMT_FWHT :
->> +             find_fmt(f->fmt.pix_mp.pixelformat);
->> +             f->fmt.pix_mp.colorspace = ctx->colorspace;
->> +             f->fmt.pix_mp.xfer_func = ctx->xfer_func;
->> +             f->fmt.pix_mp.ycbcr_enc = ctx->ycbcr_enc;
->> +             f->fmt.pix_mp.quantization = ctx->quantization;
->> +             break;
->> +     default:
->> +             return -EINVAL;
->> +     }
->>
->>       return vidioc_try_fmt(ctx, f);
->>  }
->> @@ -642,10 +715,22 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
->>  {
->>       struct vicodec_ctx *ctx = file2ctx(file);
->>
->> -     f->fmt.pix.pixelformat = !ctx->is_enc ? V4L2_PIX_FMT_FWHT :
->> -                             find_fmt(f->fmt.pix.pixelformat);
->> -     if (!f->fmt.pix.colorspace)
->> -             f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
->> +     switch (f->type) {
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->> +             f->fmt.pix.pixelformat = !ctx->is_enc ? V4L2_PIX_FMT_FWHT :
->> +                                     find_fmt(f->fmt.pix.pixelformat);
->> +             if (!f->fmt.pix.colorspace)
->> +                     f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
->> +             break;
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->> +             f->fmt.pix_mp.pixelformat = !ctx->is_enc ? V4L2_PIX_FMT_FWHT :
->> +                                     find_fmt(f->fmt.pix_mp.pixelformat);
->> +             if (!f->fmt.pix_mp.colorspace)
->> +                     f->fmt.pix_mp.colorspace = V4L2_COLORSPACE_REC709;
->> +             break;
->> +     default:
->> +             return -EINVAL;
->> +     }
->>
->>       return vidioc_try_fmt(ctx, f);
->>  }
->> @@ -664,18 +749,42 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
->>       if (!q_data)
->>               return -EINVAL;
->>
->> -     if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
->> -             fmt_changed = q_data->fourcc != f->fmt.pix.pixelformat ||
->> -                           q_data->width != f->fmt.pix.width ||
->> -                           q_data->height != f->fmt.pix.height;
->> -
->> -     if (vb2_is_busy(vq) && fmt_changed)
->> -             return -EBUSY;
->> -
->> -     q_data->fourcc          = f->fmt.pix.pixelformat;
->> -     q_data->width           = f->fmt.pix.width;
->> -     q_data->height          = f->fmt.pix.height;
->> -     q_data->sizeimage       = f->fmt.pix.sizeimage;
->> +     switch (f->type) {
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->> +             if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
->> +                     fmt_changed =
->> +                             q_data->fourcc != f->fmt.pix.pixelformat ||
->> +                             q_data->width != f->fmt.pix.width ||
->> +                             q_data->height != f->fmt.pix.height;
->> +
->> +             if (vb2_is_busy(vq) && fmt_changed)
->> +                     return -EBUSY;
->> +
->> +             q_data->fourcc          = f->fmt.pix.pixelformat;
->> +             q_data->width           = f->fmt.pix.width;
->> +             q_data->height          = f->fmt.pix.height;
->> +             q_data->sizeimage       = f->fmt.pix.sizeimage;
->> +             break;
->> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->> +             if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
->> +                     fmt_changed =
->> +                             q_data->fourcc != f->fmt.pix_mp.pixelformat ||
->> +                             q_data->width != f->fmt.pix_mp.width ||
->> +                             q_data->height != f->fmt.pix_mp.height;
->> +
->> +             if (vb2_is_busy(vq) && fmt_changed)
->> +                     return -EBUSY;
->> +
->> +             q_data->fourcc          = f->fmt.pix_mp.pixelformat;
->> +             q_data->width           = f->fmt.pix_mp.width;
->> +             q_data->height          = f->fmt.pix_mp.height;
->> +             q_data->sizeimage       = f->fmt.pix_mp.plane_fmt[0].sizeimage;
->> +             break;
->> +     default:
->> +             return -EINVAL;
->> +     }
->>
->>       dprintk(ctx->dev,
->>               "Setting format for type %d, wxh: %dx%d, fourcc: %08x\n",
->> @@ -832,11 +941,21 @@ static const struct v4l2_ioctl_ops vicodec_ioctl_ops = {
->>       .vidioc_try_fmt_vid_cap = vidioc_try_fmt_vid_cap,
->>       .vidioc_s_fmt_vid_cap   = vidioc_s_fmt_vid_cap,
->>
->> +     .vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap,
->> +     .vidioc_g_fmt_vid_cap_mplane    = vidioc_g_fmt_vid_cap,
->> +     .vidioc_try_fmt_vid_cap_mplane  = vidioc_try_fmt_vid_cap,
->> +     .vidioc_s_fmt_vid_cap_mplane    = vidioc_s_fmt_vid_cap,
->> +
->>       .vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
->>       .vidioc_g_fmt_vid_out   = vidioc_g_fmt_vid_out,
->>       .vidioc_try_fmt_vid_out = vidioc_try_fmt_vid_out,
->>       .vidioc_s_fmt_vid_out   = vidioc_s_fmt_vid_out,
->>
->> +     .vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out,
->> +     .vidioc_g_fmt_vid_out_mplane    = vidioc_g_fmt_vid_out,
->> +     .vidioc_try_fmt_vid_out_mplane  = vidioc_try_fmt_vid_out,
->> +     .vidioc_s_fmt_vid_out_mplane    = vidioc_s_fmt_vid_out,
->> +
->>       .vidioc_reqbufs         = v4l2_m2m_ioctl_reqbufs,
->>       .vidioc_querybuf        = v4l2_m2m_ioctl_querybuf,
->>       .vidioc_qbuf            = v4l2_m2m_ioctl_qbuf,
->> @@ -1002,7 +1121,9 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->>       struct vicodec_ctx *ctx = priv;
->>       int ret;
->>
->> -     src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
->> +     src_vq->type = (multiplanar ?
->> +                     V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
->> +                     V4L2_BUF_TYPE_VIDEO_OUTPUT);
->>       src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
->>       src_vq->drv_priv = ctx;
->>       src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->> @@ -1016,7 +1137,9 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
->>       if (ret)
->>               return ret;
->>
->> -     dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->> +     dst_vq->type = (multiplanar ?
->> +                     V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
->> +                     V4L2_BUF_TYPE_VIDEO_CAPTURE);
->>       dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
->>       dst_vq->drv_priv = ctx;
->>       dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->> --
->> 2.18.0.233.g985f88cf7e-goog
->>
->> This is an additional patch to Hans's patch series of the new vicodec driver.
->> This patch adds multi-planar API support. I confirmed that v4l2-ctl uses
->> multi-planar APIs to decode a FWHT format video when vicodec module is loaded
->> with module parameter 'multiplanar'.
->>
->
+The original rationale behind this work was to enable zero-copying
+use-cases while working with Xen para-virtual display driver [4]:
+when using Xen PV DRM frontend driver then on backend side one will
+need to do copying of display buffers' contents (filled by the
+frontend's user-space) into buffers allocated at the backend side.
+Taking into account the size of display buffers and frames per
+second it may result in unneeded huge data bus occupation and
+performance loss.
+
+The helper driver [4] allows implementing zero-copying use-cases
+when using Xen para-virtualized frontend display driver by implementing
+a DRM/KMS helper driver running on backend's side.
+It utilizes PRIME buffers API (implemented on top of Linux dma-buf)
+to share frontend's buffers with physical device drivers on
+backend's side:
+
+ - a dumb buffer created on backend's side can be shared
+   with the Xen PV frontend driver, so it directly writes
+   into backend's domain memory (into the buffer exported from
+   DRM/KMS driver of a physical display device)
+ - a dumb buffer allocated by the frontend can be imported
+   into physical device DRM/KMS driver, thus allowing to
+   achieve no copying as well
+
+Finally, it was discussed and decided ([1], [5]) that it is worth
+implementing such use-cases via extension of the existing Xen gntdev
+driver instead of introducing new DRM specific driver.
+Please note, that the support of dma-buf is Linux only,
+as dma-buf is a Linux only thing.
+
+Now to the proposed solution. The changes  to the existing Xen drivers
+in the Linux kernel fall into 2 categories:
+1. DMA-able memory buffer allocation and increasing/decreasing memory
+   reservation of the pages of such a buffer.
+   This is required if we are about to share dma-buf with the hardware
+   that does require those to be allocated with dma_alloc_xxx API.
+   (It is still possible to allocate a dma-buf from any system memory,
+   e.g. system pages).
+2. Extension of the gntdev driver to enable it to import/export dma-buf’s.
+
+The first five patches are in preparation for Xen dma-buf support,
+but I consider those usable regardless of the dma-buf use-case,
+e.g. other frontend/backend kernel modules may also benefit from these
+for better code reuse:
+    0001-xen-grant-table-Make-set-clear-page-private-code-sha.patch
+    0002-xen-balloon-Share-common-memory-reservation-routines.patch
+    0003-xen-grant-table-Allow-allocating-buffers-suitable-fo.patch
+    0004-xen-gntdev-Allow-mappings-for-DMA-buffers.patch
+    0005-xen-gntdev-Make-private-routines-structures-accessib.patch
+
+The next three patches are Xen implementation of dma-buf as part of
+the grant device:
+    0006-xen-gntdev-Add-initial-support-for-dma-buf-UAPI.patch
+    0007-xen-gntdev-Implement-dma-buf-export-functionality.patch
+    0008-xen-gntdev-Implement-dma-buf-import-functionality.patch
+
+The corresponding libxengnttab changes are available at [6].
+
+All the above was tested with display backend [7] and its accompanying
+helper library [8] on Renesas ARM64 based board.
+Basic balloon tests on x86.
+
+*To all the communities*: I would like to ask you to review the proposed
+solution and give feedback on it, so I can improve and send final
+patches for review (this is still work in progress, but enough to start
+discussing the implementation).
+
+Thank you in advance,
+Oleksandr Andrushchenko
+
+[1] https://lists.freedesktop.org/archives/dri-devel/2018-April/173163.html
+[2] https://elixir.bootlin.com/linux/v4.17-rc5/source/Documentation/driver-api/dma-buf.rst
+[3] https://lists.xenproject.org/archives/html/xen-devel/2018-02/msg01202.html
+[4] https://cgit.freedesktop.org/drm/drm-misc/tree/drivers/gpu/drm/xen
+[5] https://patchwork.kernel.org/patch/10279681/
+[6] https://github.com/andr2000/xen/tree/xen_dma_buf_v1
+[7] https://github.com/andr2000/displ_be/tree/xen_dma_buf_v1
+[8] https://github.com/andr2000/libxenbe/tree/xen_dma_buf_v1
+[9] https://lkml.org/lkml/2018/5/17/215
+
+Changes since v4:
+*****************
+- added r-b tags
+- rebased onto v4.18-rc5
+
+Changes since v3:
+*****************
+- added r-b tags
+- minor fixes
+- removed gntdev_remove_map as it can be coded directly now
+- moved IOCTL code to gntdev-dmabuf.c
+- removed usless wait list walks and changed some walks to use
+  normal version of list iterators instead of safe ones as
+  we run under a lock anyways
+- cleaned up comments, descriptions, pr_debug messages
+
+Changes since v2:
+*****************
+- fixed missed break in dmabuf_exp_wait_obj_signal
+- re-worked debug and error messages, be less verbose
+- removed patch for making gntdev functions available to other drivers
+- removed WARN_ON's in dma-buf code
+- moved all dma-buf related code into gntdev-dmabuf
+- introduced gntdev-common.h with common structures and function prototypes
+- added additional checks for number of grants in IOCTLs
+- gnttab patch cleanup
+- made xenmem_reservation_scrub_page defined in the header as inline
+- fixed __pfn_to_mfn use to pfn_to_bfn
+- no changes to patches 1-2
+
+Changes since v1:
+*****************
+- Define GNTDEV_DMA_FLAG_XXX starting from bit 0
+- Rename mem_reservation.h to mem-reservation.h
+- Remove usless comments
+- Change licenses from GPLv2 OR MIT to GPLv2 only
+- Make xenmem_reservation_va_mapping_{update|clear} inline
+- Change EXPORT_SYMBOL to EXPORT_SYMBOL_GPL for new functions
+- Make gnttab_dma_{alloc|free}_pages to request frames array
+  be allocated outside
+- Fixe gnttab_dma_alloc_pages fail path (added xenmem_reservation_increase)
+- Move most of dma-buf from gntdev.c to gntdev-dmabuf.c
+- Add required dependencies to Kconfig
+- Rework "#ifdef CONFIG_XEN_XXX" for if/else
+- Export gnttab_{alloc|free}_pages as GPL symbols (patch 1)
+
+Oleksandr Andrushchenko (8):
+  xen/grant-table: Make set/clear page private code shared
+  xen/balloon: Share common memory reservation routines
+  xen/grant-table: Allow allocating buffers suitable for DMA
+  xen/gntdev: Allow mappings for DMA buffers
+  xen/gntdev: Make private routines/structures accessible
+  xen/gntdev: Add initial support for dma-buf UAPI
+  xen/gntdev: Implement dma-buf export functionality
+  xen/gntdev: Implement dma-buf import functionality
+
+ drivers/xen/Kconfig           |  24 +
+ drivers/xen/Makefile          |   2 +
+ drivers/xen/balloon.c         |  75 +--
+ drivers/xen/gntdev-common.h   |  94 ++++
+ drivers/xen/gntdev-dmabuf.c   | 855 ++++++++++++++++++++++++++++++++++
+ drivers/xen/gntdev-dmabuf.h   |  33 ++
+ drivers/xen/gntdev.c          | 220 ++++++---
+ drivers/xen/grant-table.c     | 151 +++++-
+ drivers/xen/mem-reservation.c | 118 +++++
+ include/uapi/xen/gntdev.h     | 106 +++++
+ include/xen/grant_table.h     |  21 +
+ include/xen/mem-reservation.h |  59 +++
+ 12 files changed, 1599 insertions(+), 159 deletions(-)
+ create mode 100644 drivers/xen/gntdev-common.h
+ create mode 100644 drivers/xen/gntdev-dmabuf.c
+ create mode 100644 drivers/xen/gntdev-dmabuf.h
+ create mode 100644 drivers/xen/mem-reservation.c
+ create mode 100644 include/xen/mem-reservation.h
+
+-- 
+2.18.0
