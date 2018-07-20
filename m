@@ -1,343 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:37023 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726918AbeGTHqw (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:41219 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727160AbeGTIZ1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jul 2018 03:46:52 -0400
-Received: by mail-pl0-f67.google.com with SMTP id 31-v6so4781592plc.4
-        for <linux-media@vger.kernel.org>; Fri, 20 Jul 2018 00:00:07 -0700 (PDT)
-From: Keiichi Watanabe <keiichiw@chromium.org>
-To: hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, tom.aandewiel@gmail.com,
-        Keiichi Watanabe <keiichiw@chromium.org>
-Subject: [PATCH 6/5] vicodec: Support multi-planar APIs
-Date: Fri, 20 Jul 2018 15:59:01 +0900
-Message-Id: <20180720065901.56269-1-keiichiw@chromium.org>
-In-Reply-To: <20180719121353.20021-1-hverkuil@xs4all.nl>
-References: <20180719121353.20021-1-hverkuil@xs4all.nl>
+        Fri, 20 Jul 2018 04:25:27 -0400
+Date: Fri, 20 Jul 2018 09:38:20 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: sakari.ailus@iki.fi
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Peter Rosin <peda@axentia.se>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH -next v4 2/3] media: ov772x: use SCCB regmap
+Message-ID: <20180720073820.GF6784@w540>
+References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
+ <20180719074736.GA6784@w540>
+ <20180719084208.4zdwt4vzcop4hve7@ninjato>
+ <2173334.CLADOdgFxd@avalon>
+ <20180719131019.2kolodvc4r5ewqic@lanttu.localdomain>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="JSkcQAAxhB1h8DcT"
+Content-Disposition: inline
+In-Reply-To: <20180719131019.2kolodvc4r5ewqic@lanttu.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support multi-planar APIs in the virtual codec driver.
-Multi-planar APIs are enabled by the module parameter 'multiplanar'.
 
-Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
----
- drivers/media/platform/vicodec/vicodec-core.c | 219 ++++++++++++++----
- 1 file changed, 171 insertions(+), 48 deletions(-)
+--JSkcQAAxhB1h8DcT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-index 12c12cb0c1c0..1717f44e1743 100644
---- a/drivers/media/platform/vicodec/vicodec-core.c
-+++ b/drivers/media/platform/vicodec/vicodec-core.c
-@@ -29,6 +29,11 @@ MODULE_DESCRIPTION("Virtual codec device");
- MODULE_AUTHOR("Hans Verkuil <hans.verkuil@cisco.com>");
- MODULE_LICENSE("GPL v2");
+Hi all,
 
-+static bool multiplanar;
-+module_param(multiplanar, bool, 0444);
-+MODULE_PARM_DESC(multiplanar,
-+		 " use multi-planar API instead of single-planar API");
-+
- static unsigned int debug;
- module_param(debug, uint, 0644);
- MODULE_PARM_DESC(debug, "activates debug info");
-@@ -135,8 +140,10 @@ static struct vicodec_q_data *get_q_data(struct vicodec_ctx *ctx,
- {
- 	switch (type) {
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		return &ctx->q_data[V4L2_M2M_SRC];
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		return &ctx->q_data[V4L2_M2M_DST];
- 	default:
- 		WARN_ON(1);
-@@ -530,7 +537,10 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, VICODEC_NAME, sizeof(cap->card) - 1);
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
- 			"platform:%s", VICODEC_NAME);
--	cap->device_caps = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
-+	cap->device_caps =  V4L2_CAP_STREAMING |
-+			    (multiplanar ?
-+			     V4L2_CAP_VIDEO_M2M_MPLANE :
-+			     V4L2_CAP_VIDEO_M2M);
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
-@@ -576,20 +586,44 @@ static int vidioc_g_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
+On Thu, Jul 19, 2018 at 04:10:20PM +0300, sakari.ailus@iki.fi wrote:
+> On Thu, Jul 19, 2018 at 03:14:06PM +0300, Laurent Pinchart wrote:
+> > On Thursday, 19 July 2018 11:42:08 EEST Wolfram Sang wrote:
+> > > > > -static int ov772x_mask_set(struct i2c_client *client, u8  comman=
+d, u8
+> > > > > mask,
+> > > > > -			   u8  set)
+> > > > > -{
+> > > > > -	s32 val =3D ov772x_read(client, command);
+> > > > > -
+> > > > > -	if (val < 0)
+> > > > > -		return val;
+> > > > > -
+> > > > > -	val &=3D ~mask;
+> > > > > -	val |=3D set & mask;
+> > > > > -
+> > > > > -	return ov772x_write(client, command, val);
+> > > > > -}
+> > > > > -
+> > > >
+> > > > If I were you I would have kept these functions and wrapped the reg=
+map
+> > > > operations there. This is not an issue though if you prefer it this
+> > > > way :)
+> > >
+> > > I have suggested this way. It is not a show stopper issue, but I still
+> > > like this version better.
+> >
+> > Wrapping the regmap functions minimizes the diff and makes it easier to
+> > backport the driver.
 
- 	q_data = get_q_data(ctx, f->type);
+This was my reasoning too, but I'm happy with the current
+implementation. Thanks Akinobu for handling this!
 
--	f->fmt.pix.width	= q_data->width;
--	f->fmt.pix.height	= q_data->height;
--	f->fmt.pix.field	= V4L2_FIELD_NONE;
--	f->fmt.pix.pixelformat	= q_data->fourcc;
--	if (q_data->fourcc == V4L2_PIX_FMT_FWHT)
--		f->fmt.pix.bytesperline	= 0;
--	else
--		f->fmt.pix.bytesperline	= q_data->width;
--	f->fmt.pix.sizeimage	= q_data->sizeimage;
--	f->fmt.pix.colorspace	= ctx->colorspace;
--	f->fmt.pix.xfer_func	= ctx->xfer_func;
--	f->fmt.pix.ycbcr_enc	= ctx->ycbcr_enc;
--	f->fmt.pix.quantization	= ctx->quantization;
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		f->fmt.pix.width	= q_data->width;
-+		f->fmt.pix.height	= q_data->height;
-+		f->fmt.pix.field	= V4L2_FIELD_NONE;
-+		f->fmt.pix.pixelformat	= q_data->fourcc;
-+		if (q_data->fourcc == V4L2_PIX_FMT_FWHT)
-+			f->fmt.pix.bytesperline	= 0;
-+		else
-+			f->fmt.pix.bytesperline	= q_data->width;
-+		f->fmt.pix.sizeimage	= q_data->sizeimage;
-+		f->fmt.pix.colorspace	= ctx->colorspace;
-+		f->fmt.pix.xfer_func	= ctx->xfer_func;
-+		f->fmt.pix.ycbcr_enc	= ctx->ycbcr_enc;
-+		f->fmt.pix.quantization	= ctx->quantization;
-+		break;
+>
+> May be, but using the regmap functions directly makes the driver cleaner.
+> Most drivers have some kind of wrappers around the I=C2=B2C framework (or
+> regmap) functions; this one is one of the few to get rid of them.
+>
+> The two could be done in a separate patch, too, albeit I think the current
+> one seems fine as such.
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
 
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		f->fmt.pix_mp.width	= q_data->width;
-+		f->fmt.pix_mp.height	= q_data->height;
-+		f->fmt.pix_mp.field	= V4L2_FIELD_NONE;
-+		f->fmt.pix_mp.pixelformat	= q_data->fourcc;
-+		f->fmt.pix_mp.num_planes	= 1;
-+		if (q_data->fourcc == V4L2_PIX_FMT_FWHT)
-+			f->fmt.pix_mp.plane_fmt[0].bytesperline	= 0;
-+		else
-+			f->fmt.pix_mp.plane_fmt[0].bytesperline	= q_data->width;
-+		f->fmt.pix_mp.plane_fmt[0].sizeimage = q_data->sizeimage;
-+		f->fmt.pix_mp.colorspace	= ctx->colorspace;
-+		f->fmt.pix_mp.xfer_func	= ctx->xfer_func;
-+		f->fmt.pix_mp.ycbcr_enc	= ctx->ycbcr_enc;
-+		f->fmt.pix_mp.quantization	= ctx->quantization;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 	return 0;
- }
+--JSkcQAAxhB1h8DcT
+Content-Type: application/pgp-signature; name="signature.asc"
 
-@@ -607,16 +641,41 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
- static int vidioc_try_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
- {
--	struct v4l2_pix_format *pix = &f->fmt.pix;
--
--	pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH) & ~7;
--	pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
--	pix->bytesperline = pix->width;
--	pix->sizeimage = pix->width * pix->height * 3 / 2;
--	pix->field = V4L2_FIELD_NONE;
--	if (pix->pixelformat == V4L2_PIX_FMT_FWHT) {
--		pix->bytesperline = 0;
--		pix->sizeimage += sizeof(struct cframe_hdr);
-+	struct v4l2_pix_format *pix;
-+	struct v4l2_pix_format_mplane *pix_mp;
-+
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		pix = &f->fmt.pix;
-+		pix->width = clamp(pix->width, MIN_WIDTH, MAX_WIDTH) & ~7;
-+		pix->height = clamp(pix->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
-+		pix->bytesperline = pix->width;
-+		pix->sizeimage = pix->width * pix->height * 3 / 2;
-+		pix->field = V4L2_FIELD_NONE;
-+		if (pix->pixelformat == V4L2_PIX_FMT_FWHT) {
-+			pix->bytesperline = 0;
-+			pix->sizeimage += sizeof(struct cframe_hdr);
-+		}
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		pix_mp = &f->fmt.pix_mp;
-+		pix_mp->width = clamp(pix_mp->width, MIN_WIDTH, MAX_WIDTH) & ~7;
-+		pix_mp->height =
-+			clamp(pix_mp->height, MIN_HEIGHT, MAX_HEIGHT) & ~7;
-+		pix_mp->plane_fmt[0].bytesperline = pix_mp->width;
-+		pix_mp->plane_fmt[0].sizeimage =
-+			pix_mp->width * pix_mp->height * 3 / 2;
-+		pix_mp->field = V4L2_FIELD_NONE;
-+		if (pix_mp->pixelformat == V4L2_PIX_FMT_FWHT) {
-+			pix_mp->plane_fmt[0].bytesperline = 0;
-+			pix_mp->plane_fmt[0].sizeimage +=
-+					sizeof(struct cframe_hdr);
-+		}
-+		break;
-+	default:
-+		return -EINVAL;
- 	}
+iQIcBAEBAgAGBQJbUZFsAAoJEHI0Bo8WoVY8xYUP/R6e5qUtBgY0rxxzzGt6l+Gh
++ANvSsmeZX0cAIzdTjTdj2DPOlDMv0enciKjO0enwDZTAXiyPU1Wn8n6XUext7s+
+I7o2hsoMf1w1NIyOPAXlISvnZ0Dc8iFeNA3E0M/rck/cz/d3tUjc/7ZWX0oC4ZeZ
+stOKf0PRa/vjv3jQjqIEK6QnA41EP8VzKIiSh9+HMWoasiiN0FiZsPwF51nwgzsR
+pi/T4gS1NdYSBeN3JkmsCDcM/wjk81FuuvHLVrtj6U4zHUYwqZ+MWiC6l1AjpdCe
+Cx6n/To52os5R+XPJstZxUoZwDEeAYHGq0sHAZBoPYsp442t8sixH5AO9rE/sbLc
+DvM5VYksoiBkem4k+M6oTxMGXrIdtXRlSUWRDmpCavfJRLLtWa91FRme7l6iPJKo
+m6y1YxbpPkGhvj+I3lPXyuNn3jwLGgLOj/BScGMyBnG2vCzvjLnTi4bBWRwo+JQV
+aDQGXiyFpM5UqwVWIIuE8g+60ItT/9ap96rixrVfDsLN2yyvjUNAUi5nfJ207Ocj
+9WyIkrzgKDxUn/9/R/sPUpxDRyQji2OlyCyZ3wKAyNe1EWmfl7rZkuaovpvQ5oBu
+LtRibGdJpVxSglX8k7fmrDfO5frFzyciZeQNr8Ny/p88ttKFZbGb5ToeWFF1WDuP
+iPnhbP6hx1VJv7hZ9XG4
+=qXJo
+-----END PGP SIGNATURE-----
 
- 	return 0;
-@@ -627,12 +686,26 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- {
- 	struct vicodec_ctx *ctx = file2ctx(file);
-
--	f->fmt.pix.pixelformat = ctx->is_enc ? V4L2_PIX_FMT_FWHT :
--				find_fmt(f->fmt.pix.pixelformat);
--	f->fmt.pix.colorspace = ctx->colorspace;
--	f->fmt.pix.xfer_func = ctx->xfer_func;
--	f->fmt.pix.ycbcr_enc = ctx->ycbcr_enc;
--	f->fmt.pix.quantization = ctx->quantization;
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+		f->fmt.pix.pixelformat = ctx->is_enc ? V4L2_PIX_FMT_FWHT :
-+					find_fmt(f->fmt.pix.pixelformat);
-+		f->fmt.pix.colorspace = ctx->colorspace;
-+		f->fmt.pix.xfer_func = ctx->xfer_func;
-+		f->fmt.pix.ycbcr_enc = ctx->ycbcr_enc;
-+		f->fmt.pix.quantization = ctx->quantization;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		f->fmt.pix_mp.pixelformat = ctx->is_enc ? V4L2_PIX_FMT_FWHT :
-+		find_fmt(f->fmt.pix_mp.pixelformat);
-+		f->fmt.pix_mp.colorspace = ctx->colorspace;
-+		f->fmt.pix_mp.xfer_func = ctx->xfer_func;
-+		f->fmt.pix_mp.ycbcr_enc = ctx->ycbcr_enc;
-+		f->fmt.pix_mp.quantization = ctx->quantization;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-
- 	return vidioc_try_fmt(ctx, f);
- }
-@@ -642,10 +715,22 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
- {
- 	struct vicodec_ctx *ctx = file2ctx(file);
-
--	f->fmt.pix.pixelformat = !ctx->is_enc ? V4L2_PIX_FMT_FWHT :
--				find_fmt(f->fmt.pix.pixelformat);
--	if (!f->fmt.pix.colorspace)
--		f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		f->fmt.pix.pixelformat = !ctx->is_enc ? V4L2_PIX_FMT_FWHT :
-+					find_fmt(f->fmt.pix.pixelformat);
-+		if (!f->fmt.pix.colorspace)
-+			f->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		f->fmt.pix_mp.pixelformat = !ctx->is_enc ? V4L2_PIX_FMT_FWHT :
-+					find_fmt(f->fmt.pix_mp.pixelformat);
-+		if (!f->fmt.pix_mp.colorspace)
-+			f->fmt.pix_mp.colorspace = V4L2_COLORSPACE_REC709;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-
- 	return vidioc_try_fmt(ctx, f);
- }
-@@ -664,18 +749,42 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
- 	if (!q_data)
- 		return -EINVAL;
-
--	if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
--		fmt_changed = q_data->fourcc != f->fmt.pix.pixelformat ||
--			      q_data->width != f->fmt.pix.width ||
--			      q_data->height != f->fmt.pix.height;
--
--	if (vb2_is_busy(vq) && fmt_changed)
--		return -EBUSY;
--
--	q_data->fourcc		= f->fmt.pix.pixelformat;
--	q_data->width		= f->fmt.pix.width;
--	q_data->height		= f->fmt.pix.height;
--	q_data->sizeimage	= f->fmt.pix.sizeimage;
-+	switch (f->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
-+			fmt_changed =
-+				q_data->fourcc != f->fmt.pix.pixelformat ||
-+				q_data->width != f->fmt.pix.width ||
-+				q_data->height != f->fmt.pix.height;
-+
-+		if (vb2_is_busy(vq) && fmt_changed)
-+			return -EBUSY;
-+
-+		q_data->fourcc		= f->fmt.pix.pixelformat;
-+		q_data->width		= f->fmt.pix.width;
-+		q_data->height		= f->fmt.pix.height;
-+		q_data->sizeimage	= f->fmt.pix.sizeimage;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type))
-+			fmt_changed =
-+				q_data->fourcc != f->fmt.pix_mp.pixelformat ||
-+				q_data->width != f->fmt.pix_mp.width ||
-+				q_data->height != f->fmt.pix_mp.height;
-+
-+		if (vb2_is_busy(vq) && fmt_changed)
-+			return -EBUSY;
-+
-+		q_data->fourcc		= f->fmt.pix_mp.pixelformat;
-+		q_data->width		= f->fmt.pix_mp.width;
-+		q_data->height		= f->fmt.pix_mp.height;
-+		q_data->sizeimage	= f->fmt.pix_mp.plane_fmt[0].sizeimage;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-
- 	dprintk(ctx->dev,
- 		"Setting format for type %d, wxh: %dx%d, fourcc: %08x\n",
-@@ -832,11 +941,21 @@ static const struct v4l2_ioctl_ops vicodec_ioctl_ops = {
- 	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
-
-+	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_cap_mplane	= vidioc_g_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap_mplane	= vidioc_try_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap_mplane	= vidioc_s_fmt_vid_cap,
-+
- 	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
- 	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
- 	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
- 	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
-
-+	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out,
-+	.vidioc_g_fmt_vid_out_mplane	= vidioc_g_fmt_vid_out,
-+	.vidioc_try_fmt_vid_out_mplane	= vidioc_try_fmt_vid_out,
-+	.vidioc_s_fmt_vid_out_mplane	= vidioc_s_fmt_vid_out,
-+
- 	.vidioc_reqbufs		= v4l2_m2m_ioctl_reqbufs,
- 	.vidioc_querybuf	= v4l2_m2m_ioctl_querybuf,
- 	.vidioc_qbuf		= v4l2_m2m_ioctl_qbuf,
-@@ -1002,7 +1121,9 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	struct vicodec_ctx *ctx = priv;
- 	int ret;
-
--	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	src_vq->type = (multiplanar ?
-+			V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
-+			V4L2_BUF_TYPE_VIDEO_OUTPUT);
- 	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	src_vq->drv_priv = ctx;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-@@ -1016,7 +1137,9 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	if (ret)
- 		return ret;
-
--	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	dst_vq->type = (multiplanar ?
-+			V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
-+			V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
---
-2.18.0.233.g985f88cf7e-goog
-
-This is an additional patch to Hans's patch series of the new vicodec driver.
-This patch adds multi-planar API support. I confirmed that v4l2-ctl uses
-multi-planar APIs to decode a FWHT format video when vicodec module is loaded
-with module parameter 'multiplanar'.
+--JSkcQAAxhB1h8DcT--
