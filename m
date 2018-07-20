@@ -1,170 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:39636 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728018AbeGTAWP (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:39186 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726359AbeGTEgr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jul 2018 20:22:15 -0400
-Message-ID: <31826cf1b99fa2372cd4cf0b6cee8ba0ba4288f1.camel@collabora.com>
-Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
- ISO transfer
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-        Hans de Goede <hdegoede@redhat.com>, hverkuil@xs4all.nl,
-        mchehab@kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        linux-media@vger.kernel.org,
-        open list <linux-kernel@vger.kernel.org>
-Date: Thu, 19 Jul 2018 20:36:40 -0300
-In-Reply-To: <CAJs94EZjTLLCN=oy3aapMsbLEHU69iO9yq=hXdm4_G1H2UMcyQ@mail.gmail.com>
-References: <20180617143625.32133-1-matwey@sai.msu.ru>
-         <20180617143625.32133-2-matwey@sai.msu.ru>
-         <c02f92a8998fc62d3e3d48aa154fbaa7e223dd10.camel@collabora.com>
-         <CAJs94EavBDcFHpd0KcCZJTgWf0JC=AEDY=X8b3P2nZvt8mBCPA@mail.gmail.com>
-         <eb2b495fe7e8bbeaf3f9e2814be4923583482852.camel@collabora.com>
-         <CAJs94EZjTLLCN=oy3aapMsbLEHU69iO9yq=hXdm4_G1H2UMcyQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Fri, 20 Jul 2018 00:36:47 -0400
+Message-ID: <55fadd17a961aca2c6c5f2b478ecea48@smtp-cloud7.xs4all.net>
+Date: Fri, 20 Jul 2018 05:50:35 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2018-07-18 at 15:10 +0300, Matwey V. Kornilov wrote:
-> 2018-07-17 23:10 GMT+03:00 Ezequiel Garcia <ezequiel@collabora.com>:
-> > Hi Matwey,
-> > 
-> > First of all, sorry for the delay.
-> > 
-> > Adding Alan and Hans. Guys, do you have any feedback here?
-> > 
-> > See below for some feedback on my side.
-> > 
-> > On Mon, 2018-06-18 at 10:10 +0300, Matwey V. Kornilov wrote:
-> > > Hi Ezequiel,
-> > > 
-> > > 2018-06-18 8:11 GMT+03:00 Ezequiel Garcia <ezequiel@collabora.com>:
-> > > > + Laurent
-> > > > 
-> > > > On Sun, 2018-06-17 at 17:36 +0300, Matwey V. Kornilov wrote:
-> > > > > DMA cocherency slows the transfer down on systems without hardware
-> > > > > coherent DMA.
-> > > > > 
-> > > > > Based on previous commit the following performance benchmarks have been
-> > > > > carried out. Average memcpy() data transfer rate (rate) and handler
-> > > > > completion time (time) have been measured when running video stream at
-> > > > > 640x480 resolution at 10fps.
-> > > > > 
-> > > > > x86_64 based system (Intel Core i5-3470). This platform has hardware
-> > > > > coherent DMA support and proposed change doesn't make big difference here.
-> > > > > 
-> > > > >  * kmalloc:            rate = (4.4 +- 1.0) GBps
-> > > > >                        time = (2.4 +- 1.2) usec
-> > > > >  * usb_alloc_coherent: rate = (4.1 +- 0.9) GBps
-> > > > >                        time = (2.5 +- 1.0) usec
-> > > > > 
-> > > > > We see that the measurements agree well within error ranges in this case.
-> > > > > So no performance downgrade is introduced.
-> > > > > 
-> > > > > armv7l based system (TI AM335x BeagleBone Black). This platform has no
-> > > > > hardware coherent DMA support. DMA coherence is implemented via disabled
-> > > > > page caching that slows down memcpy() due to memory controller behaviour.
-> > > > > 
-> > > > >  * kmalloc:            rate =  (190 +-  30) MBps
-> > > > >                        time =   (50 +-  10) usec
-> > > > >  * usb_alloc_coherent: rate =   (33 +-   4) MBps
-> > > > >                        time = (3000 +- 400) usec
-> > > > > 
-> > > > > Note, that quantative difference leads (this commit leads to 5 times
-> > > > > acceleration) to qualitative behavior change in this case. As it was
-> > > > > stated before, the video stream can not be successfully received at AM335x
-> > > > > platforms with MUSB based USB host controller due to performance issues
-> > > > > [1].
-> > > > > 
-> > > > > [1] https://www.spinics.net/lists/linux-usb/msg165735.html
-> > > > > 
-> > > > 
-> > > > This is quite interesting! I have receive similar complaints
-> > > > from users wanting to use stk1160 on BBB and Raspberrys,
-> > > > without much luck on either, due to insufficient isoc bandwidth.
-> > > > 
-> > > > I'm guessing other ARM platforms could be suffering
-> > > > from the same issue.
-> > > > 
-> > > > Note that stk1160 and uvcvideo drivers use kmalloc on platforms
-> > > > where DMA_NONCOHERENT is defined, but this is not the case
-> > > > on ARM platforms.
-> > > 
-> > > There are some ARMv7 platforms that have coherent DMA (for instance
-> > > Broadcome Horthstar Plus series), but the most of them don't have. It
-> > > is defined in device tree file, and there is no way to recover this
-> > > information at runtime in USB perepherial driver.
-> > > 
-> > > > 
-> > > > So, what is the benefit of using consistent
-> > > > for these URBs, as opposed to streaming?
-> > > 
-> > > I don't know, I think there is no real benefit and all we see is a
-> > > consequence of copy-pasta when some webcam drivers were inspired by
-> > > others and development priparily was going at x86 platforms.
-> > 
-> > You are probably right about the copy-pasta.
-> > 
-> > >  It would
-> > > be great if somebody corrected me here. DMA Coherence is quite strong
-> > > property and I cannot figure out how can it help when streaming video.
-> > > The CPU host always reads from the buffer and never writes to.
-> > > Hardware perepherial always writes to and never reads from. Moreover,
-> > > buffer access is mutually exclusive and separated in time by Interrupt
-> > > fireing and URB starting (when we reuse existing URB for new request).
-> > > Only single one memory barrier is really required here.
-> > > 
-> > 
-> > Yeah, and not setting URB_NO_TRANSFER_DMA_MAP makes the USB core
-> > create DMA mappings and use the streaming API. Which makes more
-> > sense in hardware without hardware coherency.
-> > 
-> > The only thing that bothers me with this patch is that it's not
-> > really something specific to this driver. If this fix is valid
-> > for pwc, then it's valid for all the drivers allocating coherent
-> > memory.
-> > 
-> > And also, this path won't prevent further copy-paste spread
-> > of the coherent allocation.
-> > 
-> > Is there any chance we can introduce a helper to allocate
-> > isoc URBs, and then change all drivers to use it? No need
-> > to do all of them now, but it would be good to at least have
-> > a plan for it.
-> 
-> Well, basically I am agree with you.
-> However, I don't have all possible hardware to test, so I can't fix
-> all possible drivers.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Sure. And keep in mind this is more about the USB host controller,
-than about this specific driver. So it's the controller what we
-would have to test!
+Results of the daily build of media_tree:
 
-> Also I can not figure out how could the helper looked like. What do
-> you think about usb_alloc() (c.f. usb_alloc_coherent()) ?
-> 
+date:			Fri Jul 20 05:00:12 CEST 2018
+media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
+media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
+v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-I do not know that either. But it's something we can think about.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.140-i686: OK
+linux-4.4.140-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.112-i686: OK
+linux-4.9.112-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.55-i686: OK
+linux-4.14.55-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.6-i686: OK
+linux-4.17.6-x86_64: OK
+linux-4.18-rc4-i686: OK
+linux-4.18-rc4-x86_64: OK
+apps: OK
+spec-git: OK
 
-Meanwhile, it would be a shame to loose or stall this excellent
-effort (which is effectively enabling a cameras on a bunch of devices).
+Detailed results are available here:
 
-How about you introduce a driver parameter (or device attribute),
-to avoid changing the behavior for USB host controllers we don't know
-about?
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Something like 'alloc_coherent_urbs=y/n'. Perhaps set that
-to 'yes' by default in x86, and 'no' by default in the rest?
+Full logs are available here:
 
-We can think about a generic solution later.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Thanks,
-Eze
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
