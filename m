@@ -1,142 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:51276 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726542AbeGUElh (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:36563 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728287AbeGUQhQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Jul 2018 00:41:37 -0400
-Message-ID: <dc497c5f0ee27c862df384da2550abf0@smtp-cloud8.xs4all.net>
-Date: Sat, 21 Jul 2018 05:50:25 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sat, 21 Jul 2018 12:37:16 -0400
+Received: by mail-oi0-f65.google.com with SMTP id n21-v6so10937832oig.3
+        for <linux-media@vger.kernel.org>; Sat, 21 Jul 2018 08:44:06 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: yostinbellamohammad@hotmail.com
+From: Mrs Bella Yostin Mohammad <henryonyejekwe@gmail.com>
+Date: Sat, 21 Jul 2018 08:44:04 -0700
+Message-ID: <CAGdq2yYH8-ODw_mENA=y62ZmhoCCsn9WEQYwih96o+6OHm6_=g@mail.gmail.com>
+Subject: RE: MY NAME IS MRS BELLA YOSTIN MOHAMMAD
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello Dear.
+My Name is Mrs. Bella Yostin Mohammad, I got your contact from a
+business directory search and I decided to contact you directly. well
+am originally from South Africa, but based in London, i am searching
+for a reliable and honest and understanding person to go into
+partnership in investing or to guide me in setting up a lucrative
+business in the Middle east countries or the Arab countries,UAE or
+OMAN and Kuwait, my plan is for my Son to fly to your country to meet
+with you for the discussion and process of the investment.
 
-Results of the daily build of media_tree:
+So am only soliciting for your guidance for partnership or to help me
+in investing in any lucrative business if you are interested.
 
-date:			Sat Jul 21 05:00:13 CEST 2018
-media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
-media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
-v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+My Idea of business is to invest into Tourism business or Medical
+business or Real Estates business, this is my plan and i will be happy
+if you will help in explaining more of either of this business which
+is better for me to invest into in your country.all i want is to
+invest into a good business that will bring higher profit.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.140-i686: OK
-linux-4.4.140-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.112-i686: OK
-linux-4.9.112-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.55-i686: OK
-linux-4.14.55-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.6-i686: OK
-linux-4.17.6-x86_64: OK
-linux-4.18-rc4-i686: OK
-linux-4.18-rc4-x86_64: OK
-apps: OK
-spec-git: OK
+like i explained above my plan is to send my Son down to meet with you
+so both of you will meet face to face and discuss more so we will know
+how to go about the process for the investment..
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+If you are willing to assist you will never regret assisting i and my son.
+mean why if you are interested reply back to me with your mobile
+number so that you and my son can discuss more in details.
+And also for my Son to make his arrangement to fly down to your
+country to meet with you over discussing about the investment.
+I look forward for your reply.
+Thanks with regards
+Mrs. Bella Yostin Mohammad
