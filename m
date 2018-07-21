@@ -1,50 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36563 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728287AbeGUQhQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 21 Jul 2018 12:37:16 -0400
-Received: by mail-oi0-f65.google.com with SMTP id n21-v6so10937832oig.3
-        for <linux-media@vger.kernel.org>; Sat, 21 Jul 2018 08:44:06 -0700 (PDT)
+Received: from mail.horus.com ([78.46.148.228]:59799 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727458AbeGUTPs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 21 Jul 2018 15:15:48 -0400
+Date: Sat, 21 Jul 2018 20:13:27 +0200
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, VDR User <user.vdr@gmail.com>
+Subject: Re: [PATCH v3 0/5] Add BPF decoders to ir-keytable
+Message-ID: <20180721181327.llrx2zqpindohrkt@camel2.lan>
+References: <cover.1531491415.git.sean@mess.org>
 MIME-Version: 1.0
-Reply-To: yostinbellamohammad@hotmail.com
-From: Mrs Bella Yostin Mohammad <henryonyejekwe@gmail.com>
-Date: Sat, 21 Jul 2018 08:44:04 -0700
-Message-ID: <CAGdq2yYH8-ODw_mENA=y62ZmhoCCsn9WEQYwih96o+6OHm6_=g@mail.gmail.com>
-Subject: RE: MY NAME IS MRS BELLA YOSTIN MOHAMMAD
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1531491415.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dear.
-My Name is Mrs. Bella Yostin Mohammad, I got your contact from a
-business directory search and I decided to contact you directly. well
-am originally from South Africa, but based in London, i am searching
-for a reliable and honest and understanding person to go into
-partnership in investing or to guide me in setting up a lucrative
-business in the Middle east countries or the Arab countries,UAE or
-OMAN and Kuwait, my plan is for my Son to fly to your country to meet
-with you for the discussion and process of the investment.
+Hi Sean,
 
-So am only soliciting for your guidance for partnership or to help me
-in investing in any lucrative business if you are interested.
+thanks a lot, this is a really nice new feature!
 
-My Idea of business is to invest into Tourism business or Medical
-business or Real Estates business, this is my plan and i will be happy
-if you will help in explaining more of either of this business which
-is better for me to invest into in your country.all i want is to
-invest into a good business that will bring higher profit.
+On Fri, Jul 13, 2018 at 03:30:06PM +0100, Sean Young wrote:
+> Once kernel v4.18 is released with IR BPF decoding, this can be merged
+> to v4l-utils.
+> 
+> The idea is that IR decoders can be written in C, compiled to BPF relocatable
+> object file. Any global variables can overriden, so we can supports lots
+> of variants of similiar protocols (just like in the lircd.conf file).
+> 
+> The existing rc_keymap file format can't be used for variables, so I've
+> converted the format to toml. An alternative would be to use the existing
+> lircd.conf file format, but it's a very awkward file to parse in C and it
+> contains many features which are irrelevant to us.
+> 
+> We use libelf to load the bpf relocatable object file.
+> 
+> After loading our example grundig keymap with bpf decoder, the output of
+> ir-keytable is:
+> 
+> Found /sys/class/rc/rc0/ (/dev/input/event8) with:
+>         Name: Winbond CIR
+>         Driver: winbond-cir, table: rc-rc6-mce
+>         LIRC device: /dev/lirc0
+>         Attached BPF protocols: grundig
+>         Supported kernel protocols: lirc rc-5 rc-5-sz jvc sony nec sanyo mce_kbd rc-6 sharp xmp imon
+>         Enabled protocols: lirc
+>         bus: 25, vendor/product: 10ad:00f1, version: 0x0004
+>         Repeat delay = 500 ms, repeat period = 125 ms
+> 
+> Alternatively, you simply specify the path to the object file on the command
+> line:
+> 
+> $ ir-keytable -e header_pulse=9000,header_space=4500 -p ./pulse_distance.o
+> 
+> Derek, please note that you can now convert the dish lircd.conf to toml
+> and load the keymap; it should just work. It would be great to have your
+> feedback, thank you.
 
-like i explained above my plan is to send my Son down to meet with you
-so both of you will meet face to face and discuss more so we will know
-how to go about the process for the investment..
+I did a few tests with one of my RC-5 remotes, this lircd.conf file
+https://github.com/PiSupply/JustBoom/blob/master/LIRC/lircd.conf
+and kernel 4.18-rc5 on RPi2, with the 32bit ARM kernel and
+gpio-ir-recv, and on LePotato / aarch64 with meson-ir.
 
-If you are willing to assist you will never regret assisting i and my son.
-mean why if you are interested reply back to me with your mobile
-number so that you and my son can discuss more in details.
-And also for my Son to make his arrangement to fly down to your
-country to meet with you over discussing about the investment.
-I look forward for your reply.
-Thanks with regards
-Mrs. Bella Yostin Mohammad
+lircd2toml.py did a really good job on converting it, the only
+thing missing was the toggle_bit.
+
+When testing the converted toml (with "toggle_bit = 11" added
+and the obvious volume keycode fixes) I noticed a couple of issues:
+
+Buttons seem to be "stuck". The scancode is decoded, key_down
+event is generated, but after release the key_down events repeat
+indefinitely - with the built-in rc-5 decoder this works fine.
+
+root@upstream:/home/hias/ir-test# ir-keytable -c -w justboom.toml -t
+Old keytable cleared
+Wrote 12 keycode(s) to driver
+Protocols changed to
+Loaded BPF protocol manchester
+Testing events. Please, press CTRL-C to abort.
+29.065820: lirc protocol(66): scancode = 0x141b
+29.065890: event type EV_MSC(0x04): scancode = 0x141b
+29.065890: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+29.065890: event type EV_SYN(0x00).
+29.570059: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+29.570059: event type EV_SYN(0x00).
+29.710062: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+29.710062: event type EV_SYN(0x00).
+29.850057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+29.850057: event type EV_SYN(0x00).
+29.990057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+29.990057: event type EV_SYN(0x00).
+30.130055: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+30.130055: event type EV_SYN(0x00).
+...
+
+Even scancodes, eg KEY_UP / scancode 0x141a, aren't decoded at
+all, only odd scancodes work. My guess is the manchester decoder
+could have a problem when the last bit is zero and the message
+doesn't end with a pulse, but a (rather long) timeout.
+
+(Re-)loading a bpf decoder only works 8 times. The 9th attempt
+gives an error message.
+
+# for i in `seq 1 9` ; do ir-keytable -p manchester ; done
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+Loaded BPF protocol manchester
+Protocols changed to
+failed to create a map: 1 Operation not permitted
+Loaded BPF protocol manchester
+
+so long,
+
+Hias
