@@ -1,80 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:59570 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728326AbeGTWn4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jul 2018 18:43:56 -0400
-Date: Fri, 20 Jul 2018 23:53:44 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Mark Brown <broonie@kernel.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Peter Rosin <peda@axentia.se>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v4 1/3] regmap: add SCCB support
-Message-ID: <20180720215344.6it2k5wckxvwx25p@ninjato>
-References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
- <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
- <20180718152832.ylu6rlcsaom2q4xm@ninjato>
- <20180718153140.GP5700@sirena.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="thlbihjlzr3hfduh"
-Content-Disposition: inline
-In-Reply-To: <20180718153140.GP5700@sirena.org.uk>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:51276 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726542AbeGUElh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 21 Jul 2018 00:41:37 -0400
+Message-ID: <dc497c5f0ee27c862df384da2550abf0@smtp-cloud8.xs4all.net>
+Date: Sat, 21 Jul 2018 05:50:25 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---thlbihjlzr3hfduh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-On Wed, Jul 18, 2018 at 04:31:40PM +0100, Mark Brown wrote:
-> On Wed, Jul 18, 2018 at 05:28:32PM +0200, Wolfram Sang wrote:
-> > On Tue, Jul 17, 2018 at 12:47:48AM +0900, Akinobu Mita wrote:
->=20
-> > > +	ret =3D __i2c_smbus_xfer(i2c->adapter, i2c->addr, i2c->flags,
-> > > +			       I2C_SMBUS_WRITE, reg, I2C_SMBUS_BYTE, NULL);
->=20
-> > Mark: __i2c_smbus_xfer is a dependency on i2c/for-next. Do you want an
-> > immutable branch for that?
->=20
-> Oh dear, that dependency wasn't mentioned anywhere I can see in the
-> submissions and I already applied this and created a signed tag :( .
-> I'll need a branch to pull in if I'm going to apply this (which I'd
-> prefer, it tends to make life easier).
+date:			Sat Jul 21 05:00:13 CEST 2018
+media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
+media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
+v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Here is it:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.140-i686: OK
+linux-4.4.140-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.112-i686: OK
+linux-4.9.112-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.55-i686: OK
+linux-4.14.55-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.6-i686: OK
+linux-4.17.6-x86_64: OK
+linux-4.18-rc4-i686: OK
+linux-4.18-rc4-x86_64: OK
+apps: OK
+spec-git: OK
 
-git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/smbus_xfer_=
-unlock-immutable
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
---thlbihjlzr3hfduh
-Content-Type: application/pgp-signature; name="signature.asc"
+Full logs are available here:
 
------BEGIN PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltSWeQACgkQFA3kzBSg
-KbalqQ//eXO5qwL/dvh6/tCimdspOB4VsuYGxqQTNHnaUpio9dbQRB7SWETV4Rrb
-2PGkl9lMXEuiDe2HcWACPOXEYdrS9O/vit6T1QS5iLuiGfuY2GCyR9B2VbiACvQn
-+yMy81wZ5wS8MKB+QbyFjvxzzVt67+nYPvQioQdLsWK/y/ZyqT9a4IZFBJeFyvPN
-v2MPGcpNcQ0Ea5mPNsrpadILrwrZBXsUfnmvGwhu/qG+lTOAx+GCR7LlQmsM/e7+
-d8oR3doGcYkRVmQYELhqVnamGsWGARub4ex8ijsUCNb9IrXiMo30IIW9xEnpUs5P
-bTeJOoL+S6NVpthAaTF4ghAzlTSS4eYYKa03xjSXA/+jFJ4jKa7dQI4Lr1xyGuiJ
-Mx1i9fA+wEh84eG5LzVfKH5833R6L/ye3CY0OdyWB3XYjNw8a+jF5JCW1cfoe6n+
-YSq4Cn14PHuqyVYJeWoU3BqbcRwtJnYYwHwMeJzzis+poutBsyttamT+sbWKX29E
-zIlLX91HDH9Iz9fiTiPN12xnQpdxpOf3sCJl4Y3+KPOIrtG+0wr1KoBm6knDoBzg
-It+F0MtXzDCzO+mnU4DdwsB7DZugIklpfSKFvgaLaiudijOqa9clE0bkIqdQo9mY
-iwLcbQnAExnszZSwSl9Kk580Tg2RcoWsrNr2IjQeghPUdngpSbY=
-=wFYq
------END PGP SIGNATURE-----
+The Media Infrastructure API from this daily build is here:
 
---thlbihjlzr3hfduh--
+http://www.xs4all.nl/~hverkuil/spec/index.html
