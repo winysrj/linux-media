@@ -1,142 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44581 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727724AbeGVEpW (ORCPT
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:44838 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729235AbeGVQnG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Jul 2018 00:45:22 -0400
-Message-ID: <dca5922af74465d869d7ea873c5da26d@smtp-cloud7.xs4all.net>
-Date: Sun, 22 Jul 2018 05:50:11 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sun, 22 Jul 2018 12:43:06 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        Mark Brown <broonie@kernel.org>
+Subject: [PATCH -next] regmap: sccb: fix typo and sort headers alphabetically
+Date: Mon, 23 Jul 2018 00:45:46 +0900
+Message-Id: <1532274346-16952-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Fix typos 's/wit/with/' in the comments and sort headers alphabetically
+in order to avoid duplicate includes in future.
 
-Results of the daily build of media_tree:
+Fixes: bcf7eac3d97f ("regmap: add SCCB support")
+Reported-by: Wolfram Sang <wsa@the-dreams.de>
+Cc: Wolfram Sang <wsa@the-dreams.de>
+Cc: Mark Brown <broonie@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ drivers/base/regmap/regmap-sccb.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-date:			Sun Jul 22 05:00:10 CEST 2018
-media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
-media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
-v4l-utils git hash:	e4df0e3cd3a84570714defe279d13eae894cb1fa
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.140-i686: OK
-linux-4.4.140-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.112-i686: OK
-linux-4.9.112-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.55-i686: OK
-linux-4.14.55-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.6-i686: OK
-linux-4.17.6-x86_64: OK
-linux-4.18-rc4-i686: OK
-linux-4.18-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/base/regmap/regmap-sccb.c b/drivers/base/regmap/regmap-sccb.c
+index b6eb876..597042e2 100644
+--- a/drivers/base/regmap/regmap-sccb.c
++++ b/drivers/base/regmap/regmap-sccb.c
+@@ -1,9 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0
+ // Register map access API - SCCB support
+ 
+-#include <linux/regmap.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
++#include <linux/regmap.h>
+ 
+ #include "internal.h"
+ 
+@@ -29,7 +29,7 @@ static bool sccb_is_available(struct i2c_adapter *adap)
+ 
+ /**
+  * regmap_sccb_read - Read data from SCCB slave device
+- * @context: Device that will be interacted wit
++ * @context: Device that will be interacted with
+  * @reg: Register to be read from
+  * @val: Pointer to store read value
+  *
+@@ -65,7 +65,7 @@ static int regmap_sccb_read(void *context, unsigned int reg, unsigned int *val)
+ 
+ /**
+  * regmap_sccb_write - Write data to SCCB slave device
+- * @context: Device that will be interacted wit
++ * @context: Device that will be interacted with
+  * @reg: Register to write to
+  * @val: Value to be written
+  *
+-- 
+2.7.4
