@@ -1,71 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.zeus03.de ([194.117.254.33]:40126 "EHLO mail.zeus03.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730090AbeGVSfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 22 Jul 2018 14:35:22 -0400
-Date: Sun, 22 Jul 2018 19:37:54 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH -next] regmap: sccb: fix typo and sort headers
- alphabetically
-Message-ID: <20180722173753.ckor2rqeqcnfe667@katana>
-References: <1532274346-16952-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:32791 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730139AbeGVTAV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 22 Jul 2018 15:00:21 -0400
+Received: by mail-pg1-f196.google.com with SMTP id r5-v6so10577888pgv.0
+        for <linux-media@vger.kernel.org>; Sun, 22 Jul 2018 11:02:51 -0700 (PDT)
+Subject: Re: [PATCH 16/16] media: imx: add mem2mem device
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de
+References: <20180622155217.29302-1-p.zabel@pengutronix.de>
+ <20180622155217.29302-17-p.zabel@pengutronix.de>
+ <8b4ea4ab-0500-9daa-e6e1-031e7d7a0517@mentor.com>
+ <1531750331.18173.21.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <0d10c8dc-1406-1ba6-f615-d60ae9c20c58@gmail.com>
+Date: Sun, 22 Jul 2018 11:02:47 -0700
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5xxzovl5lozpz5qj"
-Content-Disposition: inline
-In-Reply-To: <1532274346-16952-1-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1531750331.18173.21.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---5xxzovl5lozpz5qj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 23, 2018 at 12:45:46AM +0900, Akinobu Mita wrote:
-> Fix typos 's/wit/with/' in the comments and sort headers alphabetically
-> in order to avoid duplicate includes in future.
->=20
-> Fixes: bcf7eac3d97f ("regmap: add SCCB support")
-> Reported-by: Wolfram Sang <wsa@the-dreams.de>
+On 07/16/2018 07:12 AM, Philipp Zabel wrote:
+> Hi Steve,
+>
+> On Thu, 2018-07-05 at 15:09 -0700, Steve Longerbeam wrote:
+> [...]
+> [...]
+>>> +		halign = 0;
+>>> +		break;
+>>> +	}
+>>> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>>> +		/*
+>>> +		 * The IC burst reads 8 pixels at a time. Reading beyond the
+>>> +		 * end of the line is usually acceptable. Those pixels are
+>>> +		 * ignored, unless the IC has to write the scaled line in
+>>> +		 * reverse.
+>>> +		 */
+>>> +		if (!ipu_rot_mode_is_irt(ctx->rot_mode) &&
+>>> +		    ctx->rot_mode && IPU_ROT_BIT_HFLIP)
+>>> +			walign = 3;
+>> This looks wrong. Do you mean:
+>>
+>> if (ipu_rot_mode_is_irt(ctx->rot_mode) || (ctx->rot_mode & IPU_ROT_BIT_HFLIP))
+>>       walign = 3;
+>> else
+>>       walign = 1;
+> The input DMA burst width alignment is only necessary if the lines are
+> scanned from right to left (that is, if HF is enabled) in the scaling
+> step.
 
-Could this be replaced with (as I did this in my work time):
+Ok, thanks for the explanation, that makes sense.
 
-Reported-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> If the rotator is used, the flipping is done in the rotation step
+> instead,
 
-?
+Ah, I missed or forgot about that detail in the ref manual,
+I reviewed it again and you are right...
 
-> Cc: Wolfram Sang <wsa@the-dreams.de>
-> Cc: Mark Brown <broonie@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+>   so the alignment restriction would be on the width of the
+> intermediate tile (and thus on the output height). This is already
+> covered by the rotator 8x8 pixel block alignment.
 
-Looks good, thanks!
+so this makes sense too.
 
-Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+>
+>> That is, require 8 byte width alignment for IRT or if HFLIP is enabled.
+> No, I specifically meant (!IRT && HFLIP).
+
+Right, but there is still a typo:
+
+if (!ipu_rot_mode_is_irt(ctx->rot_mode) && ctx->rot_mode && IPU_ROT_BIT_HFLIP)
+
+should be:
+
+if (!ipu_rot_mode_is_irt(ctx->rot_mode) && (ctx->rot_mode & IPU_ROT_BIT_HFLIP))
 
 
---5xxzovl5lozpz5qj
-Content-Type: application/pgp-signature; name="signature.asc"
+>
+> The rotator itself doesn't cause any input alignment restrictions, we
+> just have to make sure that the intermediate tiles after scaling are 8x8
+> aligned.
+>
+>> Also, why not simply call ipu_image_convert_adjust() in
+>> mem2mem_try_fmt()? If there is something missing in the former
+>> function, then it should be added there, instead of adding the
+>> missing checks in mem2mem_try_fmt().
+> ipu_image_convert_adjust tries to adjust both input and output image at
+> the same time, here we just have the format of either input or output
+> image. Do you suggest to split this function into an input and an output
+> version?
 
------BEGIN PGP SIGNATURE-----
+See b4362162c0 ("media: imx: mem2mem: Use ipu_image_convert_adjust
+in try format")
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltUwO0ACgkQFA3kzBSg
-KbYNTg/7BsB/OjEkWPmeZb6zmaaF37ZesLy+nXLAK3uf5+l5hwHfFh39oJk8vL5w
-op43UX4PmRElzAVkdKuwJOlMR8Vq3HVg2ehN6vyih5xOG/dymu7/iAn+pKTUm/Qa
-Q9X7cQ5GD5OsY14UIUnxpRyNz5hjJYezCXXf1q9vf19xT4p+OBskaTh3ia4BSkrr
-Oi4nSQTBNxsFym6AYu/k09NV/l9lopCm9vj1zRKmY8AM83Jo/lmSAO2vhv+lCavj
-zkfGs8tcMym/o7D3WuV2Ryy9CfRgHuE9A1EWoyQsRB9cBKpqmgm10KGx84S2o+ht
-HPgHT+mW7zPs6/5p7u2McKDbnMJz42WbM/7QzzBGskKCGAc6uSm+HN7MKRyWzyHo
-/1FzVBz6TPu/d/INciETVCVIr+oVI7has/Buxx72WeUBlt3RfNfe2Oe0SkGJFwkQ
-TbhEoEjDWLaqD51NsDmuzjyk/7pf9v3cJMBwtVsoOvxreKrd0bkBWzUAhAX0COji
-yu7csCyP3fW3faE0HqBABH0t1CyDvaiV+w1MDKvAfM5tfBFQ+UI2SHzqtqCiH8l0
-FB7Np+URoEOPGswGysTA3DEXpyrl1Tm9xUEoKVAQNWFREI6w5TNQutSjkRYDfCPE
-LHS5sfqfA+cuaUK9GWfYWwQTM6wlPEuAp0oqQhq2F03Ut+PlA4I=
-=eXU7
------END PGP SIGNATURE-----
+in my mediatree fork at git@github.com:slongerbeam/mediatree.git.
 
---5xxzovl5lozpz5qj--
+Let's discuss this further in the v2 patches.
+
+Steve
