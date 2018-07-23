@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:35014 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388060AbeGWQBU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57338 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2388091AbeGWQOp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 12:01:20 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Mon, 23 Jul 2018 12:14:45 -0400
+Date: Mon, 23 Jul 2018 18:13:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Peter Rosin <peda@axentia.se>,
+        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
         Wolfram Sang <wsa@the-dreams.de>,
-        Mark Brown <broonie@kernel.org>
-Subject: [PATCH -next v2] regmap: sccb: fix typo and sort headers alphabetically
-Date: Mon, 23 Jul 2018 23:59:29 +0900
-Message-Id: <1532357969-10612-1-git-send-email-akinobu.mita@gmail.com>
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH -next v4 2/3] media: ov772x: use SCCB regmap
+Message-ID: <20180723151302.7uhfsm7fyrlq62qq@valkosipuli.retiisi.org.uk>
+References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
+ <1531756070-8560-3-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1531756070-8560-3-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix typos 's/wit/with/' in the comments and sort headers alphabetically
-in order to avoid duplicate includes in future.
+Hi Mita-san,
 
-Fixes: bcf7eac3d97f ("regmap: add SCCB support")
-Reported-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>
-Cc: Mark Brown <broonie@kernel.org>
-Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v2
-- Replace Wolfram's address for Reported-by tag
-- Add Reviewed-by tag
+On Tue, Jul 17, 2018 at 12:47:49AM +0900, Akinobu Mita wrote:
+> Convert ov772x register access to use SCCB regmap.
+> 
+> Cc: Mark Brown <broonie@kernel.org>
+> Cc: Peter Rosin <peda@axentia.se>
+> Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+>  drivers/media/i2c/Kconfig  |   1 +
+>  drivers/media/i2c/ov772x.c | 192 +++++++++++++++++++--------------------------
+>  2 files changed, 82 insertions(+), 111 deletions(-)
 
- drivers/base/regmap/regmap-sccb.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I'll pick the two patches up when the SCCB regmap support has reached media
+tree master. Thanks.
 
-diff --git a/drivers/base/regmap/regmap-sccb.c b/drivers/base/regmap/regmap-sccb.c
-index b6eb876..597042e2 100644
---- a/drivers/base/regmap/regmap-sccb.c
-+++ b/drivers/base/regmap/regmap-sccb.c
-@@ -1,9 +1,9 @@
- // SPDX-License-Identifier: GPL-2.0
- // Register map access API - SCCB support
- 
--#include <linux/regmap.h>
- #include <linux/i2c.h>
- #include <linux/module.h>
-+#include <linux/regmap.h>
- 
- #include "internal.h"
- 
-@@ -29,7 +29,7 @@ static bool sccb_is_available(struct i2c_adapter *adap)
- 
- /**
-  * regmap_sccb_read - Read data from SCCB slave device
-- * @context: Device that will be interacted wit
-+ * @context: Device that will be interacted with
-  * @reg: Register to be read from
-  * @val: Pointer to store read value
-  *
-@@ -65,7 +65,7 @@ static int regmap_sccb_read(void *context, unsigned int reg, unsigned int *val)
- 
- /**
-  * regmap_sccb_write - Write data to SCCB slave device
-- * @context: Device that will be interacted wit
-+ * @context: Device that will be interacted with
-  * @reg: Register to write to
-  * @val: Value to be written
-  *
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
