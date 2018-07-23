@@ -1,118 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr10045.outbound.protection.outlook.com ([40.107.1.45]:53664
-        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387986AbeGWO14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 10:27:56 -0400
-Subject: Re: [PATCH v5 0/8] xen: dma-buf support for grant device
-From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180720090150.24560-1-andr2000@gmail.com>
- <019c0eb6-8185-d888-ae6f-305ea2d44124@oracle.com>
- <df3e8c07-c8b4-cb12-32ad-119498be114b@epam.com>
-Message-ID: <80a074ac-91db-82db-d094-660d859cf903@epam.com>
-Date: Mon, 23 Jul 2018 16:26:30 +0300
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56294 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2388091AbeGWOs2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 10:48:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
+        niklas.soderlund@ragnatech.se
+Subject: [PATCH 01/21] v4l: fwnode: Add debug prints for V4L2 endpoint property parsing
+Date: Mon, 23 Jul 2018 16:46:46 +0300
+Message-Id: <20180723134706.15334-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
+References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <df3e8c07-c8b4-cb12-32ad-119498be114b@epam.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2018 11:38 AM, Oleksandr Andrushchenko wrote:
-> On 07/20/2018 05:08 PM, Boris Ostrovsky wrote:
->> On 07/20/2018 05:01 AM, Oleksandr Andrushchenko wrote:
->>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>
->>> This work is in response to my previous attempt to introduce Xen/DRM
->>> zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
->>> frontends/backends. There is also an existing hyper_dmabuf approach
->>> available [3] which, if reworked to utilize the proposed solution,
->>> can greatly benefit as well.
->>
->> Lot of warnings on  i386 build:
->>
->> In file included from
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.c:24:
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h: In
->> function ‘xen_drm_front_fb_to_cookie’:
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h:129:9:
->> warning: cast from pointer to integer of different size
->> [-Wpointer-to-int-cast]
->>    return (u64)fb;
->>           ^
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h: In
->> function ‘xen_drm_front_dbuf_to_cookie’:
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h:134:9:
->> warning: cast from pointer to integer of different size
->> [-Wpointer-to-int-cast]
->>    return (u64)gem_obj;
->>           ^
->>    CC [M]  net/netfilter/ipset/ip_set_hash_ipport.o
->>    CC      drivers/media/rc/keymaps/rc-tango.o
->>    CC [M]  drivers/gpu/drm/vmwgfx/vmwgfx_fifo.o
->>    AR      drivers/misc/built-in.a
->> In file included from
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front_kms.c:20:
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h: In
->> function ‘xen_drm_front_fb_to_cookie’:
->>    CC [M]  drivers/gpu/drm/xen/xen_drm_front_conn.o
->> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h:129:9:
->> warning: cast from pointer to integer of different size
->> [-Wpointer-to-int-cast]
->>    return (u64)fb;
->> (and more)
->>
-> The above warnings already have a fix [1] which is expected in 4.19
->>
->> and then
->>
->> data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c: In function
->> ‘gntdev_ioctl_dmabuf_exp_from_refs’:
->> /data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c:503:6: warning:
->> ‘args.fd’ may be used uninitialized in this function 
->> [-Wmaybe-uninitialized]
->>    *fd = args.fd;
->>    ~~~~^~~~~~~~~
->> /data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c:467:35: note:
->> ‘args.fd’ was declared here
->>    struct gntdev_dmabuf_export_args args;
->>                                     ^~~~
-> Strangely, but my i386 build goes smooth.
-> Which version of gcc you use and could you please give me your
-> .config, so I can test the same?
-Now I see this warning which seems to be a false positive.
-Boris, could you please apply the following:
+Print debug info as standard V4L2 endpoint are parsed.
 
-diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
-index e4c9f1f74476..0680dbcba616 100644
---- a/drivers/xen/gntdev-dmabuf.c
-+++ b/drivers/xen/gntdev-dmabuf.c
-@@ -495,6 +495,7 @@ static int dmabuf_exp_from_refs(struct gntdev_priv 
-*priv, int flags,
-         args.dmabuf_priv = priv->dmabuf_priv;
-         args.count = map->count;
-         args.pages = map->pages;
-+       args.fd = -1;
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 108 ++++++++++++++++++++++++++--------
+ 1 file changed, 85 insertions(+), 23 deletions(-)
 
-         ret = dmabuf_exp_from_pages(&args);
-         if (ret < 0)
-
-or please let me know if you want me to resend with this fix?
->>
->> -boris
-> Thank you,
-> Oleksandr
->
-> [1] 
-> https://cgit.freedesktop.org/drm/drm-misc/commit/?id=9eece5d9c6e0316f17091e37ff3ec87331bdedf3
-
-Thank you,
-Oleksandr
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 5a65ca19ba05..dae01d5f570e 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -66,6 +66,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 			lanes_used |= BIT(array[i]);
+ 
+ 			bus->data_lanes[i] = array[i];
++			pr_debug("lane %u position %u\n", i, array[i]);
+ 		}
+ 
+ 		rval = fwnode_property_read_u32_array(fwnode,
+@@ -82,8 +83,13 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 						       "lane-polarities", array,
+ 						       1 + bus->num_data_lanes);
+ 
+-			for (i = 0; i < 1 + bus->num_data_lanes; i++)
++			for (i = 0; i < 1 + bus->num_data_lanes; i++) {
+ 				bus->lane_polarities[i] = array[i];
++				pr_debug("lane %u polarity %sinverted",
++					 i, array[i] ? "" : "not ");
++			}
++		} else {
++			pr_debug("no lane polarities defined, assuming not inverted\n");
+ 		}
+ 
+ 	}
+@@ -95,12 +101,15 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 
+ 		bus->clock_lane = v;
+ 		have_clk_lane = true;
++		pr_debug("clock lane position %u\n", v);
+ 	}
+ 
+-	if (fwnode_property_present(fwnode, "clock-noncontinuous"))
++	if (fwnode_property_present(fwnode, "clock-noncontinuous")) {
+ 		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+-	else if (have_clk_lane || bus->num_data_lanes > 0)
++		pr_debug("non-continuous clock\n");
++	} else if (have_clk_lane || bus->num_data_lanes > 0) {
+ 		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++	}
+ 
+ 	bus->flags = flags;
+ 	vep->bus_type = V4L2_MBUS_CSI2;
+@@ -115,48 +124,69 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+ 	unsigned int flags = 0;
+ 	u32 v;
+ 
+-	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v))
++	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v)) {
+ 		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
+ 			V4L2_MBUS_HSYNC_ACTIVE_LOW;
++		pr_debug("hsync-active %s\n", v ? "high" : "low");
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v))
++	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v)) {
+ 		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
+ 			V4L2_MBUS_VSYNC_ACTIVE_LOW;
++		pr_debug("vsync-active %s\n", v ? "high" : "low");
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v))
++	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v)) {
+ 		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
+ 			V4L2_MBUS_FIELD_EVEN_LOW;
++		pr_debug("field-even-active %s\n", v ? "high" : "low");
++	}
++
+ 	if (flags)
+ 		vep->bus_type = V4L2_MBUS_PARALLEL;
+ 	else
+ 		vep->bus_type = V4L2_MBUS_BT656;
+ 
+-	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v))
++	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v)) {
+ 		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
+ 			V4L2_MBUS_PCLK_SAMPLE_FALLING;
++		pr_debug("pclk-sample %s\n", v ? "high" : "low");
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "data-active", &v))
++	if (!fwnode_property_read_u32(fwnode, "data-active", &v)) {
+ 		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
+ 			V4L2_MBUS_DATA_ACTIVE_LOW;
++		pr_debug("data-active %s\n", v ? "high" : "low");
++	}
+ 
+-	if (fwnode_property_present(fwnode, "slave-mode"))
++	if (fwnode_property_present(fwnode, "slave-mode")) {
++		pr_debug("slave mode\n");
+ 		flags |= V4L2_MBUS_SLAVE;
+-	else
++	} else {
+ 		flags |= V4L2_MBUS_MASTER;
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "bus-width", &v))
++	if (!fwnode_property_read_u32(fwnode, "bus-width", &v)) {
+ 		bus->bus_width = v;
++		pr_debug("bus-width %u\n", v);
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "data-shift", &v))
++	if (!fwnode_property_read_u32(fwnode, "data-shift", &v)) {
+ 		bus->data_shift = v;
++		pr_debug("data-shift %u\n", v);
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v))
++	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v)) {
+ 		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
+ 			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
++		pr_debug("sync-on-green-active %s\n", v ? "high" : "low");
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "data-enable-active", &v))
++	if (!fwnode_property_read_u32(fwnode, "data-enable-active", &v)) {
+ 		flags |= v ? V4L2_MBUS_DATA_ENABLE_HIGH :
+ 			V4L2_MBUS_DATA_ENABLE_LOW;
++		pr_debug("data-enable-active %s\n", v ? "high" : "low");
++	}
+ 
+ 	bus->flags = flags;
+ 
+@@ -170,17 +200,25 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
+ 	struct v4l2_fwnode_bus_mipi_csi1 *bus = &vep->bus.mipi_csi1;
+ 	u32 v;
+ 
+-	if (!fwnode_property_read_u32(fwnode, "clock-inv", &v))
++	if (!fwnode_property_read_u32(fwnode, "clock-inv", &v)) {
+ 		bus->clock_inv = v;
++		pr_debug("clock-inv %u\n", v);
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "strobe", &v))
++	if (!fwnode_property_read_u32(fwnode, "strobe", &v)) {
+ 		bus->strobe = v;
++		pr_debug("strobe %u\n", v);
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "data-lanes", &v))
++	if (!fwnode_property_read_u32(fwnode, "data-lanes", &v)) {
+ 		bus->data_lane = v;
++		pr_debug("data-lanes %u\n", v);
++	}
+ 
+-	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v))
++	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v)) {
+ 		bus->clock_lane = v;
++		pr_debug("clock-lanes %u\n", v);
++	}
+ 
+ 	if (bus_type == V4L2_FWNODE_BUS_TYPE_CCP2)
+ 		vep->bus_type = V4L2_MBUS_CCP2;
+@@ -188,12 +226,14 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
+ 		vep->bus_type = V4L2_MBUS_CSI1;
+ }
+ 
+-int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+-			       struct v4l2_fwnode_endpoint *vep)
++static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
++					struct v4l2_fwnode_endpoint *vep)
+ {
+ 	u32 bus_type = 0;
+ 	int rval;
+ 
++	pr_debug("===== begin V4L2 endpoint properties\n");
++
+ 	fwnode_graph_parse_endpoint(fwnode, &vep->base);
+ 
+ 	/* Zero fields from bus_type to until the end */
+@@ -214,16 +254,30 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 		if (vep->bus.mipi_csi2.flags == 0)
+ 			v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep);
+ 
+-		return 0;
++		break;
+ 	case V4L2_FWNODE_BUS_TYPE_CCP2:
+ 	case V4L2_FWNODE_BUS_TYPE_CSI1:
+ 		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, bus_type);
+ 
+-		return 0;
++		break;
+ 	default:
+ 		pr_warn("unsupported bus type %u\n", bus_type);
+ 		return -EINVAL;
+ 	}
++
++	return 0;
++}
++
++int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
++			       struct v4l2_fwnode_endpoint *vep)
++{
++	int ret;
++
++	ret = __v4l2_fwnode_endpoint_parse(fwnode, vep);
++
++	pr_debug("===== end V4L2 endpoint properties\n");
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
+ 
+@@ -247,13 +301,15 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+ 	if (!vep)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	rval = v4l2_fwnode_endpoint_parse(fwnode, vep);
++	rval = __v4l2_fwnode_endpoint_parse(fwnode, vep);
+ 	if (rval < 0)
+ 		goto out_err;
+ 
+ 	rval = fwnode_property_read_u64_array(fwnode, "link-frequencies",
+ 					      NULL, 0);
+ 	if (rval > 0) {
++		unsigned int i;
++
+ 		vep->link_frequencies =
+ 			kmalloc_array(rval, sizeof(*vep->link_frequencies),
+ 				      GFP_KERNEL);
+@@ -269,8 +325,14 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+ 			vep->nr_of_link_frequencies);
+ 		if (rval < 0)
+ 			goto out_err;
++
++		for (i = 0; i < vep->nr_of_link_frequencies; i++)
++			pr_info("link-frequencies %u value %llu\n", i,
++				vep->link_frequencies[i]);
+ 	}
+ 
++	pr_debug("===== end V4L2 endpoint properties\n");
++
+ 	return vep;
+ 
+ out_err:
+-- 
+2.11.0
