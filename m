@@ -1,66 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56340 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56362 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2388334AbeGWOsc (ORCPT
+        by vger.kernel.org with ESMTP id S2388309AbeGWOsc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 23 Jul 2018 10:48:32 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
         niklas.soderlund@ragnatech.se
-Subject: [PATCH 19/21] v4l: fwnode: Support parsing of CSI-2 C-PHY endpoints
-Date: Mon, 23 Jul 2018 16:47:04 +0300
-Message-Id: <20180723134706.15334-20-sakari.ailus@linux.intel.com>
+Subject: [PATCH 13/21] v4l: fwnode: Parse the graph endpoint as last
+Date: Mon, 23 Jul 2018 16:46:58 +0300
+Message-Id: <20180723134706.15334-14-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
 References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 fwnode framework only parsed CSI-2 D-PHY endpoints while C-PHY
-support wasn't there. Also parse endpoints for media bus type
-V4L2_MBUS_CSI2_CPHY.
+Parsing the graph endpoint is always successful; therefore parse it as
+last.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 56e3b6395171..04ddac86aec2 100644
+index 19f4e331c7d8..1e64182b74dd 100644
 --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -145,7 +145,8 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 	u32 v;
- 	int rval;
+@@ -308,7 +308,11 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
  
--	if (bus_type == V4L2_MBUS_CSI2_DPHY) {
-+	if (bus_type == V4L2_MBUS_CSI2_DPHY ||
-+	    bus_type == V4L2_MBUS_CSI2_CPHY) {
- 		use_default_lane_mapping = true;
+ 	pr_debug("===== begin V4L2 endpoint properties\n");
  
- 		num_data_lanes = min_t(u32, bus->num_data_lanes,
-@@ -221,10 +222,12 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+-	fwnode_graph_parse_endpoint(fwnode, &vep->base);
++	/*
++	 * Zero the fwnode graph endpoint memory in case we don't end up parsing
++	 * the endpoint.
++	 */
++	memset(&vep->base, 0, sizeof(vep->base));
+ 
+ 	/* Zero fields from bus_type to until the end */
+ 	memset(&vep->bus_type, 0, sizeof(*vep) -
+@@ -327,25 +331,37 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 			v4l2_fwnode_endpoint_parse_parallel_bus(
+ 				fwnode, vep, V4L2_MBUS_UNKNOWN);
+ 
+-		return vep->bus_type == V4L2_MBUS_UNKNOWN ? -EINVAL : 0;
++		if (vep->bus_type == V4L2_MBUS_UNKNOWN)
++			return -EINVAL;
++
++		break;
++
+ 	case V4L2_FWNODE_BUS_TYPE_CCP2:
+ 	case V4L2_FWNODE_BUS_TYPE_CSI1:
+ 		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, bus_type);
++		break;
+ 
+-		return 0;
+ 	case V4L2_FWNODE_BUS_TYPE_CSI2_DPHY:
+ 		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
+-		return v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep,
++		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep,
+ 							   bus_type);
++		if (rval)
++			return rval;
++
++		break;
+ 	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
+ 	case V4L2_FWNODE_BUS_TYPE_BT656:
+ 		v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep, bus_type);
+ 
+-		return 0;
++		break;
+ 	default:
+ 		pr_warn("unsupported bus type %u\n", bus_type);
+ 		return -EINVAL;
  	}
++
++	fwnode_graph_parse_endpoint(fwnode, &vep->base);
++
++	return 0;
+ }
  
--	if (bus_type == V4L2_MBUS_CSI2_DPHY || lanes_used ||
-+	if (bus_type == V4L2_MBUS_CSI2_DPHY ||
-+	    bus_type == V4L2_MBUS_CSI2_CPHY || lanes_used ||
- 	    have_clk_lane || (flags & ~V4L2_MBUS_CSI2_CONTINUOUS_CLOCK)) {
- 		bus->flags = flags;
--		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
-+		if (bus_type == V4L2_MBUS_UNKNOWN)
-+			vep->bus_type = V4L2_MBUS_CSI2_DPHY;
- 		bus->num_data_lanes = num_data_lanes;
- 
- 		if (use_default_lane_mapping) {
-@@ -472,6 +475,7 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 		break;
- 
- 	case V4L2_MBUS_CSI2_DPHY:
-+	case V4L2_MBUS_CSI2_CPHY:
- 		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep,
- 							   vep->bus_type);
- 		if (rval)
+ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
 -- 
 2.11.0
