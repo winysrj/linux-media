@@ -1,153 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:39962 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:39899 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388115AbeGWMEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S2388084AbeGWMEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Mon, 23 Jul 2018 08:04:46 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
-Subject: [PATCH v3 15/35] media: dt-bindings: media: qcom,camss: Fix whitespaces
-Date: Mon, 23 Jul 2018 14:02:32 +0300
-Message-Id: <1532343772-27382-16-git-send-email-todor.tomov@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 13/35] media: camss: vfe: Get line pointer as container of video_out
+Date: Mon, 23 Jul 2018 14:02:30 +0300
+Message-Id: <1532343772-27382-14-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
 References: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use tabs.
+Simplify getting of the line pointer by using the container_of
+macro instead of traversing media controller links.
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: Mark Rutland <mark.rutland@arm.com>
-CC: devicetree@vger.kernel.org
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- .../devicetree/bindings/media/qcom,camss.txt       | 92 +++++++++++-----------
- 1 file changed, 46 insertions(+), 46 deletions(-)
+ drivers/media/platform/qcom/camss/camss-vfe.c | 38 +++------------------------
+ 1 file changed, 4 insertions(+), 34 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
-index 032e8ed..e938eb0 100644
---- a/Documentation/devicetree/bindings/media/qcom,camss.txt
-+++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
-@@ -53,25 +53,25 @@ Qualcomm Camera Subsystem
- 	Usage: required
- 	Value type: <stringlist>
- 	Definition: Should contain the following entries:
--                - "top_ahb"
--                - "ispif_ahb"
--                - "csiphy0_timer"
--                - "csiphy1_timer"
--                - "csi0_ahb"
--                - "csi0"
--                - "csi0_phy"
--                - "csi0_pix"
--                - "csi0_rdi"
--                - "csi1_ahb"
--                - "csi1"
--                - "csi1_phy"
--                - "csi1_pix"
--                - "csi1_rdi"
--                - "ahb"
--                - "vfe0"
--                - "csi_vfe0"
--                - "vfe_ahb"
--                - "vfe_axi"
-+		- "top_ahb"
-+		- "ispif_ahb"
-+		- "csiphy0_timer"
-+		- "csiphy1_timer"
-+		- "csi0_ahb"
-+		- "csi0"
-+		- "csi0_phy"
-+		- "csi0_pix"
-+		- "csi0_rdi"
-+		- "csi1_ahb"
-+		- "csi1"
-+		- "csi1_phy"
-+		- "csi1_pix"
-+		- "csi1_rdi"
-+		- "ahb"
-+		- "vfe0"
-+		- "csi_vfe0"
-+		- "vfe_ahb"
-+		- "vfe_axi"
- - vdda-supply:
- 	Usage: required
- 	Value type: <phandle>
-@@ -95,17 +95,17 @@ Qualcomm Camera Subsystem
- 		- clock-lanes:
- 			Usage: required
- 			Value type: <u32>
--                        Definition: The physical clock lane index. The value
--                                    must always be <1> as the physical clock
--                                    lane is lane 1.
-+			Definition: The physical clock lane index. The value
-+				    must always be <1> as the physical clock
-+				    lane is lane 1.
- 		- data-lanes:
- 			Usage: required
- 			Value type: <prop-encoded-array>
--                        Definition: An array of physical data lanes indexes.
--                                    Position of an entry determines the logical
--                                    lane number, while the value of an entry
--                                    indicates physical lane index. Lane swapping
--                                    is supported.
-+			Definition: An array of physical data lanes indexes.
-+				    Position of an entry determines the logical
-+				    lane number, while the value of an entry
-+				    indicates physical lane index. Lane swapping
-+				    is supported.
+diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
+index 51ad3f8..77167f1 100644
+--- a/drivers/media/platform/qcom/camss/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss/camss-vfe.c
+@@ -2038,26 +2038,6 @@ static void vfe_put(struct vfe_device *vfe)
+ }
  
- * An Example
+ /*
+- * vfe_video_pad_to_line - Get pointer to VFE line by media pad
+- * @pad: Media pad
+- *
+- * Return pointer to vfe line structure
+- */
+-static struct vfe_line *vfe_video_pad_to_line(struct media_pad *pad)
+-{
+-	struct media_pad *vfe_pad;
+-	struct v4l2_subdev *subdev;
+-
+-	vfe_pad = media_entity_remote_pad(pad);
+-	if (vfe_pad == NULL)
+-		return NULL;
+-
+-	subdev = media_entity_to_v4l2_subdev(vfe_pad->entity);
+-
+-	return container_of(subdev, struct vfe_line, subdev);
+-}
+-
+-/*
+  * vfe_queue_buffer - Add empty buffer
+  * @vid: Video device structure
+  * @buf: Buffer to be enqueued
+@@ -2070,16 +2050,11 @@ static struct vfe_line *vfe_video_pad_to_line(struct media_pad *pad)
+ static int vfe_queue_buffer(struct camss_video *vid,
+ 			    struct camss_buffer *buf)
+ {
+-	struct vfe_device *vfe = &vid->camss->vfe;
+-	struct vfe_line *line;
++	struct vfe_line *line = container_of(vid, struct vfe_line, video_out);
++	struct vfe_device *vfe = to_vfe(line);
+ 	struct vfe_output *output;
+ 	unsigned long flags;
  
-@@ -161,25 +161,25 @@ Qualcomm Camera Subsystem
- 			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
- 			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
- 			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
--                clock-names = "top_ahb",
--                        "ispif_ahb",
--                        "csiphy0_timer",
--                        "csiphy1_timer",
--                        "csi0_ahb",
--                        "csi0",
--                        "csi0_phy",
--                        "csi0_pix",
--                        "csi0_rdi",
--                        "csi1_ahb",
--                        "csi1",
--                        "csi1_phy",
--                        "csi1_pix",
--                        "csi1_rdi",
--                        "ahb",
--                        "vfe0",
--                        "csi_vfe0",
--                        "vfe_ahb",
--                        "vfe_axi";
-+		clock-names = "top_ahb",
-+			"ispif_ahb",
-+			"csiphy0_timer",
-+			"csiphy1_timer",
-+			"csi0_ahb",
-+			"csi0",
-+			"csi0_phy",
-+			"csi0_pix",
-+			"csi0_rdi",
-+			"csi1_ahb",
-+			"csi1",
-+			"csi1_phy",
-+			"csi1_pix",
-+			"csi1_rdi",
-+			"ahb",
-+			"vfe0",
-+			"csi_vfe0",
-+			"vfe_ahb",
-+			"vfe_axi";
- 		vdda-supply = <&pm8916_l2>;
- 		iommus = <&apps_iommu 3>;
- 		ports {
+-	line = vfe_video_pad_to_line(&vid->pad);
+-	if (!line) {
+-		dev_err(to_device(vfe), "Can not queue buffer\n");
+-		return -1;
+-	}
+ 	output = &line->output;
+ 
+ 	spin_lock_irqsave(&vfe->output_lock, flags);
+@@ -2104,16 +2079,11 @@ static int vfe_queue_buffer(struct camss_video *vid,
+ static int vfe_flush_buffers(struct camss_video *vid,
+ 			     enum vb2_buffer_state state)
+ {
+-	struct vfe_device *vfe = &vid->camss->vfe;
+-	struct vfe_line *line;
++	struct vfe_line *line = container_of(vid, struct vfe_line, video_out);
++	struct vfe_device *vfe = to_vfe(line);
+ 	struct vfe_output *output;
+ 	unsigned long flags;
+ 
+-	line = vfe_video_pad_to_line(&vid->pad);
+-	if (!line) {
+-		dev_err(to_device(vfe),	"Can not flush buffers\n");
+-		return -1;
+-	}
+ 	output = &line->output;
+ 
+ 	spin_lock_irqsave(&vfe->output_lock, flags);
 -- 
 2.7.4
