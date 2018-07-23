@@ -1,338 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:39898 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:40018 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388002AbeGWMEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 08:04:45 -0400
+        id S2388213AbeGWMEs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 08:04:48 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v3 05/35] media: camss: Use SPDX license headers
-Date: Mon, 23 Jul 2018 14:02:22 +0300
-Message-Id: <1532343772-27382-6-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH v3 32/35] media: camss: Add support for 10-bit grayscale formats
+Date: Mon, 23 Jul 2018 14:02:49 +0300
+Message-Id: <1532343772-27382-33-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
 References: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use SPDX license headers for all files of the Qualcomm CAMSS driver.
+Add support for 10-bit packed V4L2_PIX_FMT_Y10P (on 8x16 and 8x96)
+and unpacked V4L2_PIX_FMT_Y10 (on 8x96 only) pixel formats.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/camss-csid.c   | 10 +---------
- drivers/media/platform/qcom/camss/camss-csid.h   | 10 +---------
- drivers/media/platform/qcom/camss/camss-csiphy.c | 10 +---------
- drivers/media/platform/qcom/camss/camss-csiphy.h | 10 +---------
- drivers/media/platform/qcom/camss/camss-ispif.c  | 10 +---------
- drivers/media/platform/qcom/camss/camss-ispif.h  | 10 +---------
- drivers/media/platform/qcom/camss/camss-vfe.c    | 10 +---------
- drivers/media/platform/qcom/camss/camss-vfe.h    | 10 +---------
- drivers/media/platform/qcom/camss/camss-video.c  | 10 +---------
- drivers/media/platform/qcom/camss/camss-video.h  | 10 +---------
- drivers/media/platform/qcom/camss/camss.c        | 10 +---------
- drivers/media/platform/qcom/camss/camss.h        | 10 +---------
- 12 files changed, 12 insertions(+), 108 deletions(-)
+ drivers/media/platform/qcom/camss/camss-csid.c   | 50 +++++++++++++++++++-----
+ drivers/media/platform/qcom/camss/camss-csiphy.c |  2 +
+ drivers/media/platform/qcom/camss/camss-ispif.c  |  6 ++-
+ drivers/media/platform/qcom/camss/camss-vfe.c    |  3 ++
+ drivers/media/platform/qcom/camss/camss-video.c  |  6 +++
+ 5 files changed, 56 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
-index 39ea27b..c0fef17 100644
+index 0b7f90d..a581377 100644
 --- a/drivers/media/platform/qcom/camss/camss-csid.c
 +++ b/drivers/media/platform/qcom/camss/camss-csid.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * camss-csid.c
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/clk.h>
- #include <linux/completion.h>
-diff --git a/drivers/media/platform/qcom/camss/camss-csid.h b/drivers/media/platform/qcom/camss/camss-csid.h
-index 8012222..ae1d045 100644
---- a/drivers/media/platform/qcom/camss/camss-csid.h
-+++ b/drivers/media/platform/qcom/camss/camss-csid.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * camss-csid.h
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef QC_MSM_CAMSS_CSID_H
- #define QC_MSM_CAMSS_CSID_H
+@@ -193,7 +193,14 @@ static const struct csid_format csid_formats_8x16[] = {
+ 		DECODE_FORMAT_UNCOMPRESSED_12_BIT,
+ 		12,
+ 		1,
+-	}
++	},
++	{
++		MEDIA_BUS_FMT_Y10_1X10,
++		DATA_TYPE_RAW_10BIT,
++		DECODE_FORMAT_UNCOMPRESSED_10_BIT,
++		10,
++		1,
++	},
+ };
+ 
+ static const struct csid_format csid_formats_8x96[] = {
+@@ -336,7 +343,14 @@ static const struct csid_format csid_formats_8x96[] = {
+ 		DECODE_FORMAT_UNCOMPRESSED_14_BIT,
+ 		14,
+ 		1,
+-	}
++	},
++	{
++		MEDIA_BUS_FMT_Y10_1X10,
++		DATA_TYPE_RAW_10BIT,
++		DECODE_FORMAT_UNCOMPRESSED_10_BIT,
++		10,
++		1,
++	},
+ };
+ 
+ static u32 csid_find_code(u32 *code, unsigned int n_code,
+@@ -379,6 +393,16 @@ static u32 csid_src_pad_code(struct csid_device *csid, u32 sink_code,
+ 			return csid_find_code(src_code, ARRAY_SIZE(src_code),
+ 					      index, src_req_code);
+ 		}
++		case MEDIA_BUS_FMT_Y10_1X10:
++		{
++			u32 src_code[] = {
++				MEDIA_BUS_FMT_Y10_1X10,
++				MEDIA_BUS_FMT_Y10_2X8_PADHI_LE,
++			};
++
++			return csid_find_code(src_code, ARRAY_SIZE(src_code),
++					      index, src_req_code);
++		}
+ 		default:
+ 			if (index > 0)
+ 				return 0;
+@@ -682,15 +706,21 @@ static int csid_set_stream(struct v4l2_subdev *sd, int enable)
+ 		val |= CAMSS_CSID_CID_n_CFG_RDI_EN;
+ 		val |= df << CAMSS_CSID_CID_n_CFG_DECODE_FORMAT_SHIFT;
+ 		val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_RAW_DUMP;
+-		if (csid->camss->version == CAMSS_8x96 &&
+-			csid->fmt[MSM_CSID_PAD_SINK].code ==
+-					MEDIA_BUS_FMT_SBGGR10_1X10 &&
+-			csid->fmt[MSM_CSID_PAD_SRC].code ==
+-					MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) {
+-			val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_PLAIN_PACKING;
+-			val |= CAMSS_CSID_CID_n_CFG_PLAIN_FORMAT_16;
+-			val |= CAMSS_CSID_CID_n_CFG_PLAIN_ALIGNMENT_LSB;
++
++		if (csid->camss->version == CAMSS_8x96) {
++			u32 sink_code = csid->fmt[MSM_CSID_PAD_SINK].code;
++			u32 src_code = csid->fmt[MSM_CSID_PAD_SRC].code;
++
++			if ((sink_code == MEDIA_BUS_FMT_SBGGR10_1X10 &&
++			     src_code == MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE) ||
++			    (sink_code == MEDIA_BUS_FMT_Y10_1X10 &&
++			     src_code == MEDIA_BUS_FMT_Y10_2X8_PADHI_LE)) {
++				val |= CAMSS_CSID_CID_n_CFG_RDI_MODE_PLAIN_PACKING;
++				val |= CAMSS_CSID_CID_n_CFG_PLAIN_FORMAT_16;
++				val |= CAMSS_CSID_CID_n_CFG_PLAIN_ALIGNMENT_LSB;
++			}
+ 		}
++
+ 		writel_relaxed(val, csid->base +
+ 			       CAMSS_CSID_CID_n_CFG(ver, cid));
+ 
 diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
-index 642de25..b37e691 100644
+index 0b7bf1e..924f854 100644
 --- a/drivers/media/platform/qcom/camss/camss-csiphy.c
 +++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
+@@ -48,6 +48,7 @@ static const struct csiphy_format csiphy_formats_8x16[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SGRBG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SRGGB12_1X12, 12 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
+ };
+ 
+ static const struct csiphy_format csiphy_formats_8x96[] = {
+@@ -71,6 +72,7 @@ static const struct csiphy_format csiphy_formats_8x96[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SGRBG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SRGGB14_1X14, 14 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
+ };
+ 
  /*
-  * camss-csiphy.c
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2016-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/clk.h>
- #include <linux/delay.h>
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.h b/drivers/media/platform/qcom/camss/camss-csiphy.h
-index 9a42209..76fa239 100644
---- a/drivers/media/platform/qcom/camss/camss-csiphy.h
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * camss-csiphy.h
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2016-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef QC_MSM_CAMSS_CSIPHY_H
- #define QC_MSM_CAMSS_CSIPHY_H
 diff --git a/drivers/media/platform/qcom/camss/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
-index 636d5e7..5ad719d 100644
+index 649596a..02f84bc 100644
 --- a/drivers/media/platform/qcom/camss/camss-ispif.c
 +++ b/drivers/media/platform/qcom/camss/camss-ispif.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
+@@ -120,6 +120,7 @@ static const u32 ispif_formats_8x16[] = {
+ 	MEDIA_BUS_FMT_SGBRG12_1X12,
+ 	MEDIA_BUS_FMT_SGRBG12_1X12,
+ 	MEDIA_BUS_FMT_SRGGB12_1X12,
++	MEDIA_BUS_FMT_Y10_1X10,
+ };
+ 
+ static const u32 ispif_formats_8x96[] = {
+@@ -144,6 +145,8 @@ static const u32 ispif_formats_8x96[] = {
+ 	MEDIA_BUS_FMT_SGBRG14_1X14,
+ 	MEDIA_BUS_FMT_SGRBG14_1X14,
+ 	MEDIA_BUS_FMT_SRGGB14_1X14,
++	MEDIA_BUS_FMT_Y10_1X10,
++	MEDIA_BUS_FMT_Y10_2X8_PADHI_LE,
+ };
+ 
  /*
-  * camss-ispif.c
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/clk.h>
- #include <linux/completion.h>
-diff --git a/drivers/media/platform/qcom/camss/camss-ispif.h b/drivers/media/platform/qcom/camss/camss-ispif.h
-index c90e159..a5dfb4f 100644
---- a/drivers/media/platform/qcom/camss/camss-ispif.h
-+++ b/drivers/media/platform/qcom/camss/camss-ispif.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * camss-ispif.h
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef QC_MSM_CAMSS_ISPIF_H
- #define QC_MSM_CAMSS_ISPIF_H
+@@ -687,7 +690,8 @@ static void ispif_config_pack(struct ispif_device *ispif, u32 code,
+ {
+ 	u32 addr, val;
+ 
+-	if (code != MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE)
++	if (code != MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE &&
++	    code != MEDIA_BUS_FMT_Y10_2X8_PADHI_LE)
+ 		return;
+ 
+ 	switch (intf) {
 diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
-index 380b90b..256dc2d 100644
+index 269b7c8..053e55d 100644
 --- a/drivers/media/platform/qcom/camss/camss-vfe.c
 +++ b/drivers/media/platform/qcom/camss/camss-vfe.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * camss-vfe.c
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/clk.h>
- #include <linux/completion.h>
-diff --git a/drivers/media/platform/qcom/camss/camss-vfe.h b/drivers/media/platform/qcom/camss/camss-vfe.h
-index 5aa7407..6b4258d 100644
---- a/drivers/media/platform/qcom/camss/camss-vfe.h
-+++ b/drivers/media/platform/qcom/camss/camss-vfe.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * camss-vfe.h
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef QC_MSM_CAMSS_VFE_H
- #define QC_MSM_CAMSS_VFE_H
+@@ -70,6 +70,7 @@ static const struct vfe_format formats_rdi_8x16[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SGRBG12_1X12, 12 },
+ 	{ MEDIA_BUS_FMT_SRGGB12_1X12, 12 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
+ };
+ 
+ static const struct vfe_format formats_pix_8x16[] = {
+@@ -101,6 +102,8 @@ static const struct vfe_format formats_rdi_8x96[] = {
+ 	{ MEDIA_BUS_FMT_SGBRG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SGRBG14_1X14, 14 },
+ 	{ MEDIA_BUS_FMT_SRGGB14_1X14, 14 },
++	{ MEDIA_BUS_FMT_Y10_1X10, 10 },
++	{ MEDIA_BUS_FMT_Y10_2X8_PADHI_LE, 16 },
+ };
+ 
+ static const struct vfe_format formats_pix_8x96[] = {
 diff --git a/drivers/media/platform/qcom/camss/camss-video.c b/drivers/media/platform/qcom/camss/camss-video.c
-index 0e7b842..16e74b2 100644
+index 2e19bc8..c9bb0d0 100644
 --- a/drivers/media/platform/qcom/camss/camss-video.c
 +++ b/drivers/media/platform/qcom/camss/camss-video.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * camss-video.c
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/slab.h>
- #include <media/media-entity.h>
-diff --git a/drivers/media/platform/qcom/camss/camss-video.h b/drivers/media/platform/qcom/camss/camss-video.h
-index 821c1ef..aa35e8c 100644
---- a/drivers/media/platform/qcom/camss/camss-video.h
-+++ b/drivers/media/platform/qcom/camss/camss-video.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * camss-video.h
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef QC_MSM_CAMSS_VIDEO_H
- #define QC_MSM_CAMSS_VIDEO_H
-diff --git a/drivers/media/platform/qcom/camss/camss.c b/drivers/media/platform/qcom/camss/camss.c
-index d1d27fc..45285eb 100644
---- a/drivers/media/platform/qcom/camss/camss.c
-+++ b/drivers/media/platform/qcom/camss/camss.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * camss.c
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #include <linux/clk.h>
- #include <linux/media-bus-format.h>
-diff --git a/drivers/media/platform/qcom/camss/camss.h b/drivers/media/platform/qcom/camss/camss.h
-index 0e7cfe6..fb1c2f9 100644
---- a/drivers/media/platform/qcom/camss/camss.h
-+++ b/drivers/media/platform/qcom/camss/camss.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * camss.h
-  *
-@@ -5,15 +6,6 @@
-  *
-  * Copyright (c) 2015, The Linux Foundation. All rights reserved.
-  * Copyright (C) 2015-2018 Linaro Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 and
-- * only version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-  */
- #ifndef QC_MSM_CAMSS_H
- #define QC_MSM_CAMSS_H
+@@ -74,6 +74,8 @@ static const struct camss_format_info formats_rdi_8x16[] = {
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 12 } },
+ 	{ MEDIA_BUS_FMT_SRGGB12_1X12, V4L2_PIX_FMT_SRGGB12P, 1,
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 12 } },
++	{ MEDIA_BUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10P, 1,
++	  { { 1, 1 } }, { { 1, 1 } }, { 10 } },
+ };
+ 
+ static const struct camss_format_info formats_rdi_8x96[] = {
+@@ -119,6 +121,10 @@ static const struct camss_format_info formats_rdi_8x96[] = {
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 14 } },
+ 	{ MEDIA_BUS_FMT_SRGGB14_1X14, V4L2_PIX_FMT_SRGGB14P, 1,
+ 	  { { 1, 1 } }, { { 1, 1 } }, { 14 } },
++	{ MEDIA_BUS_FMT_Y10_1X10, V4L2_PIX_FMT_Y10P, 1,
++	  { { 1, 1 } }, { { 1, 1 } }, { 10 } },
++	{ MEDIA_BUS_FMT_Y10_2X8_PADHI_LE, V4L2_PIX_FMT_Y10, 1,
++	  { { 1, 1 } }, { { 1, 1 } }, { 16 } },
+ };
+ 
+ static const struct camss_format_info formats_pix_8x16[] = {
 -- 
 2.7.4
