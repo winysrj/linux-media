@@ -1,102 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:40644 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731439AbeGQMzx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jul 2018 08:55:53 -0400
-MIME-Version: 1.0
-References: <20180605233435.18102-1-kieran.bingham+renesas@ideasonboard.com>
- <20180605233435.18102-2-kieran.bingham+renesas@ideasonboard.com>
- <CAMuHMdUYbEK36E4hD+nVDfM5_nuY8SubkgBCtcYuSy+eZLNt5Q@mail.gmail.com> <20180717121338.GO8180@w540>
-In-Reply-To: <20180717121338.GO8180@w540>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 17 Jul 2018 14:23:16 +0200
-Message-ID: <CAMuHMdVLe3P0GBP9z=S2+a1SDsBe3zmUnS32J-yd4tYsP99qaQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v1 1/4] media: dt-bindings: max9286: add device tree binding
-To: Jacopo Mondi <jacopo@jmondi.org>
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Content-Type: text/plain; charset="UTF-8"
+Received: from ns.mm-sol.com ([37.157.136.199]:39985 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2388002AbeGWMEs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 08:04:48 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v3 23/35] media: camss: ispif: Add support for 8x96
+Date: Mon, 23 Jul 2018 14:02:40 +0300
+Message-Id: <1532343772-27382-24-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
+References: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+ISPIF hardware modules on 8x16 and 8x96 are similar. However on
+8x96 the ISPIF routes data to two VFE hardware modules. Add
+separate interrupt handler for 8x96 to handle the additional
+interrupts.
 
-On Tue, Jul 17, 2018 at 2:13 PM jacopo mondi <jacopo@jmondi.org> wrote:
->    I'm replying here, even if a new version of the bindings for this
-> chip has been posted[1], as they have the same ports layout.
->
-> [1] https://www.spinics.net/lists/linux-renesas-soc/msg29307.html
->
-> On Wed, Jun 06, 2018 at 08:34:41AM +0200, Geert Uytterhoeven wrote:
-> > Hi Kieran,
-> >
-> > On Wed, Jun 6, 2018 at 1:34 AM, Kieran Bingham
-> > <kieran.bingham+renesas@ideasonboard.com> wrote:
-> > > Provide device tree binding documentation for the MAX9286 Quad GMSL
-> > > deserialiser.
-> > >
-> > > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >
-> > Thanks for your patch!
-> >
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/i2c/max9286.txt
-> > > @@ -0,0 +1,75 @@
-> > > +* Maxim Integrated MAX9286 GMSL Quad 1.5Gbps GMSL Deserializer
-> > > +
-> > > +Required Properties:
-> > > + - compatible: Shall be "maxim,max9286"
-> > > +
-> > > +The following required properties are defined externally in
-> > > +Documentation/devicetree/bindings/i2c/i2c-mux.txt:
-> > > + - Standard I2C mux properties.
-> > > + - I2C child bus nodes.
-> > > +
-> > > +A maximum of 4 I2C child nodes can be specified on the MAX9286, to
-> > > +correspond with a maximum of 4 input devices.
-> > > +
-> > > +The device node must contain one 'port' child node per device input and output
-> > > +port, in accordance with the video interface bindings defined in
-> > > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
-> > > +are numbered as follows.
-> > > +
-> > > +      Port        Type
-> > > +    ----------------------
-> > > +       0          sink
-> > > +       1          sink
-> > > +       2          sink
-> > > +       3          sink
-> > > +       4          source
-> >
-> > I assume the source and at least one sink are thus mandatory?
-> >
-> > Would it make sense to use port 0 for the source?
-> > This would simplify extending the binding to devices with more input
-> > ports later.
->
-> I see your point, but as someone that has no idea how future chips could look
-> like, I wonder why having multiple outputs it's more un-likely to
-> happen than having more inputs added.
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ drivers/media/platform/qcom/camss/camss-ispif.c | 76 ++++++++++++++++++++++++-
+ 1 file changed, 73 insertions(+), 3 deletions(-)
 
-I also don't know.
-I was just thinking "What if another chip has less or more sinks?".
-
-> Do you have any suggestion on how we can handle both cases?
-
-Instead of having a single "ports" subnode, you could split it in two subnodes,
-"sinks" and "sources"? I don't know if that's feasible.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
+diff --git a/drivers/media/platform/qcom/camss/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
+index 8b04f8a..b124cd3 100644
+--- a/drivers/media/platform/qcom/camss/camss-ispif.c
++++ b/drivers/media/platform/qcom/camss/camss-ispif.c
+@@ -116,13 +116,77 @@ static const u32 ispif_formats[] = {
+ };
+ 
+ /*
+- * ispif_isr - ISPIF module interrupt handler
++ * ispif_isr_8x96 - ISPIF module interrupt handler for 8x96
+  * @irq: Interrupt line
+  * @dev: ISPIF device
+  *
+  * Return IRQ_HANDLED on success
+  */
+-static irqreturn_t ispif_isr(int irq, void *dev)
++static irqreturn_t ispif_isr_8x96(int irq, void *dev)
++{
++	struct ispif_device *ispif = dev;
++	u32 value0, value1, value2, value3, value4, value5;
++
++	value0 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_0(0));
++	value1 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_1(0));
++	value2 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_2(0));
++	value3 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_0(1));
++	value4 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_1(1));
++	value5 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_2(1));
++
++	writel_relaxed(value0, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_0(0));
++	writel_relaxed(value1, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_1(0));
++	writel_relaxed(value2, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_2(0));
++	writel_relaxed(value3, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_0(1));
++	writel_relaxed(value4, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_1(1));
++	writel_relaxed(value5, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_2(1));
++
++	writel(0x1, ispif->base + ISPIF_IRQ_GLOBAL_CLEAR_CMD);
++
++	if ((value0 >> 27) & 0x1)
++		complete(&ispif->reset_complete);
++
++	if (unlikely(value0 & ISPIF_VFE_m_IRQ_STATUS_0_PIX0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 pix0 overflow\n");
++
++	if (unlikely(value0 & ISPIF_VFE_m_IRQ_STATUS_0_RDI0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 rdi0 overflow\n");
++
++	if (unlikely(value1 & ISPIF_VFE_m_IRQ_STATUS_1_PIX1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 pix1 overflow\n");
++
++	if (unlikely(value1 & ISPIF_VFE_m_IRQ_STATUS_1_RDI1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 rdi1 overflow\n");
++
++	if (unlikely(value2 & ISPIF_VFE_m_IRQ_STATUS_2_RDI2_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 rdi2 overflow\n");
++
++	if (unlikely(value3 & ISPIF_VFE_m_IRQ_STATUS_0_PIX0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 pix0 overflow\n");
++
++	if (unlikely(value3 & ISPIF_VFE_m_IRQ_STATUS_0_RDI0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 rdi0 overflow\n");
++
++	if (unlikely(value4 & ISPIF_VFE_m_IRQ_STATUS_1_PIX1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 pix1 overflow\n");
++
++	if (unlikely(value4 & ISPIF_VFE_m_IRQ_STATUS_1_RDI1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 rdi1 overflow\n");
++
++	if (unlikely(value5 & ISPIF_VFE_m_IRQ_STATUS_2_RDI2_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 rdi2 overflow\n");
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * ispif_isr_8x16 - ISPIF module interrupt handler for 8x16
++ * @irq: Interrupt line
++ * @dev: ISPIF device
++ *
++ * Return IRQ_HANDLED on success
++ */
++static irqreturn_t ispif_isr_8x16(int irq, void *dev)
+ {
+ 	struct ispif_device *ispif = dev;
+ 	u32 value0, value1, value2;
+@@ -954,8 +1018,14 @@ int msm_ispif_subdev_init(struct ispif_device *ispif,
+ 	ispif->irq = r->start;
+ 	snprintf(ispif->irq_name, sizeof(ispif->irq_name), "%s_%s",
+ 		 dev_name(dev), MSM_ISPIF_NAME);
+-	ret = devm_request_irq(dev, ispif->irq, ispif_isr,
++	if (to_camss(ispif)->version == CAMSS_8x16)
++		ret = devm_request_irq(dev, ispif->irq, ispif_isr_8x16,
+ 			       IRQF_TRIGGER_RISING, ispif->irq_name, ispif);
++	else if (to_camss(ispif)->version == CAMSS_8x96)
++		ret = devm_request_irq(dev, ispif->irq, ispif_isr_8x96,
++			       IRQF_TRIGGER_RISING, ispif->irq_name, ispif);
++	else
++		ret = -EINVAL;
+ 	if (ret < 0) {
+ 		dev_err(dev, "request_irq failed: %d\n", ret);
+ 		return ret;
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.7.4
