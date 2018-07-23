@@ -1,58 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49922 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729368AbeG1TQs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Jul 2018 15:16:48 -0400
-Subject: Re: [PATCH] media: vimc: Remove redundant free
-To: Anton Vasilyev <vasilyev@ispras.ru>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        ldv-project@linuxtesting.org
-References: <20180727114759.10601-1-vasilyev@ispras.ru>
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <653fb6f2-a7a6-c123-7df0-1b1c8ab34fbf@collabora.com>
-Date: Sat, 28 Jul 2018 14:49:03 -0300
+Received: from [183.12.194.174] ([183.12.194.174]:7896 "HELO a.yock.com"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1728378AbeGWFeG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 01:34:06 -0400
+Date: Mon, 23 Jul 2018 12:29:47 +0800
+From: "vip" <nm18@a.yock.com>
+Reply-To: fangzumu@163.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: =?GB2312?B?sruyztW5o6zSssTc1dK1vdPQ1srBv7XEv827p7y/wak=?=
+Message-ID: <201807231229478671357@a.yock.com>
 MIME-Version: 1.0
-In-Reply-To: <20180727114759.10601-1-vasilyev@ispras.ru>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/html;
+        charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Anton,
-
-Thanks for the patch
-
-On 07/27/2018 08:47 AM, Anton Vasilyev wrote:
-> Commit 4a29b7090749 ("[media] vimc: Subdevices as modules") removes
-> vimc allocation from vimc_probe(), so corresponding deallocation
-> on the error path tries to free static memory.
-> 
-> Found by Linux Driver Verification project (linuxtesting.org).
-> 
-> Signed-off-by: Anton Vasilyev <vasilyev@ispras.ru>
-
-Acked-by: Helen Koike <helen.koike@collabora.com>
-
-> ---
->  drivers/media/platform/vimc/vimc-core.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
-> index fe088a953860..9246f265de31 100644
-> --- a/drivers/media/platform/vimc/vimc-core.c
-> +++ b/drivers/media/platform/vimc/vimc-core.c
-> @@ -328,7 +328,6 @@ static int vimc_probe(struct platform_device *pdev)
->  	if (ret) {
->  		media_device_cleanup(&vimc->mdev);
->  		vimc_rm_subdevs(vimc);
-> -		kfree(vimc);
->  		return ret;
->  	}
->  
-> 
-
-Regards,
-Helen
+PGh0bWw+DQogIDxoZWFkPg0KICAgIDx0aXRsZT48L3RpdGxlPg0KICAgIDxtZXRhIGNvbnRlbnQ9
+InRleHQvaHRtbDsgY2hhcnNldD1nYjIzMTIiIGh0dHAtZXF1aXY9IkNvbnRlbnQtVHlwZSIgLz4N
+CiAgPC9oZWFkPg0KICA8Ym9keT4NCiAgICA8ZGl2Pjxmb250IGNvbG9yPSIjMDAwMGZmIiBzaXpl
+PSI1IiBmYWNlPSLOosjt0cW62iI+bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnPC9mb250Pjwv
+ZGl2Pg0KICAgIDxkaXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhpYyI+PHN0cm9uZz4m
+IzM4NzU0OyYjMjM1NDU7JiMzMTQ1NDsmIzIwMTA1OyYjMjg2MDg7JiMyODg3MjsmIzMwMzQwOyYj
+MjI4MDY7JiMzNjE1MjsmIzI5NjE1OyYjMjI2NTk7JiM2NTI5MjsmIzI4MDIzOyYjMjI4MDY7JiMy
+MzQ1ODsmIzI1MTQzOyYjMzYxNjQ7JiMyODMwNDsmIzMwMzQwOyYjMjAxMDU7JiMyMjg0MjsmIzY1
+MjkyOyYjMjAyNDg7JiMzNjEzNjsmIzIzNDU4OyYjMjUxNDM7JiMzNjE2NDsmIzI4MzA0OyYjMzAz
+NDA7JiMyMDEwNTsmIzIyODQyOyYjMTIyOTA7PC9zdHJvbmc+PC9mb250PjwvZGl2Pg0KICAgIDxk
+aXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhpYyI+PHN0cm9uZz4mIzIxMzMzOyYjMTk5
+Njg7JiMzMDM0MDsmIzI4MDIzOyYjMjI4MDY7JiMyNDMyMDsmIzIxNDU3OyYjMjcxNjk7JiMyNDMz
+NTsmIzI0MDUwOyYjMzI0NjM7JiMyODEyMDsmIzI3NzYwOyAmIzY1MjkyOyYjMTk5ODI7JiMyNjEw
+MjsmIzIwNDY1OyYjMzY4Mjc7JiMyMjgyMzsmIzMyOTY2OyYjMjM1ODE7JiMzNTc5NzsmIzI1MTY1
+OyYjMzMwMjE7JiMxOTk4MTsmIzI2MDI5OyYjMzAzNDA7JiMyMTAxOTsmIzI2MDMyOyYjMTIyOTA7
+IDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1T
+IFBHb3RoaWMiPjxzdHJvbmc+JiMyMjgwNjsmIzM2MTUyOyYjMjM0NTg7JiMyNTE0MzsmIzI0MzIw
+OyYjMjE0NTc7JiMzMTk5NTsmIzMyNDc5OyYjMjQxMTA7JiMyMDMyMDsmIzI0NTU1OyYjMzY4OTU7
+JiMyNTk3MjsmIzIxNTEyOyYjMjAzMjA7JiMyMDIwNDsmIzM0ODkyOyYjMTk5OTQ7JiMzMDM0MDsm
+IzIwODQwOyYjMjk2OTk7JiMzMDM0MDsmIzMwNDQ2OyYjMjY2MzE7JiMyMzQ1ODsmIzI1MTQzOyYj
+MzYxNjQ7JiMyODMwNDsmIzY1MjkyOyYjMjUzMTc7JiMyNjM3NzsmIzM2MTY0OyYjMjgzMDQ7JiMy
+MDI0ODsmIzIxMTgzOyYjNjUyOTI7JiMyNTEwNTsmIzIwMjA0OyYjMjYzNTY7JiMyMjY4NjsmIzIx
+MTUyOyYjMjAxMDI7JiMyNTM2NjsmIzI1NDk2OyYjMzk2NDA7JiMzNjEzNjsmIzM3MzI3OyYjMzAz
+NDA7JiMyMzQ1ODsmIzI1MTQzOyYjMzAzNDA7JiMzMTYwOTsmIzMwNzIxOyYjMTIyOTA7PC9zdHJv
+bmc+PC9mb250PjwvZGl2Pg0KICAgIDxkaXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhp
+YyI+PHN0cm9uZz4mIzE5OTY4OyYjMjI4NzE7JiMyMDAyNzsmIzIxMTYwOyYjMjA5ODY7JiMyMDk4
+NzsmIzI0MzIwOyYjMjE0NTc7JiMyMzQ1ODsmIzI1MTQzOyYjMzAzNDA7JiMzMTk5NTsmIzMyNDc5
+OyYjNjUyOTI7JiMzMzAyMTsmIzIwMDI2OyYjMjQ3NDQ7JiMyNDEwMjsmIzI2NDY5OyYjMTk5ODE7
+JiMxOTk2ODsmIzI2Njc5OyYjMzAzNDA7JiMyNDc3ODsmIzIxOTE2OyYjNjUyODE7IDwvc3Ryb25n
+PjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMi
+PjxzdHJvbmc+JiMyMDI0ODsmIzIxMTgzOyYjMjM1NDU7JiMyNzYwNDsmIzY1MzA2OyA8L3N0cm9u
+Zz48L2ZvbnQ+PC9kaXY+DQogICAgPGRpdj48Zm9udCBzaXplPSI0IiBmYWNlPSJNUyBQR290aGlj
+Ij48c3Ryb25nPkIyQiYjMjQxNzk7JiMyMTQ4ODsmIzY1MzA2Ozwvc3Ryb25nPjwvZm9udD48L2Rp
+dj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+JiMx
+OTk3ODtCMkImIzMwMzQwOyYjMjYxNTk7JiMxOTk2ODsmIzIwMTIzOyYjMjc2MDQ7JiMzNjczOTsm
+IzIwMTAyOyYjMzUyOTk7JiMyMDAxMzsmIzIyMjY5OyYjMzAzNDA7JiMyMDAxMzsmIzM4Mzg4OyYj
+MjE4MzA7JiM2NTI5MjsmIzMyNjc2OyYjMjE0NTc7JiMzNTgxMDsmIzMwNDI0OyYjMzI0NzM7JiMy
+NTE1MjsmIzI2Mzc3OyYjMjE1MTY7JiMzNDg5MjsmIzM2ODk2OyYjMjUxMDQ7JiMzNTgxMDsmIzMw
+NDI0OyYjMjI4MTA7JiMyMDIxNTsmIzI2Njg0OyYjMjAzMDI7JiM2NTI5MjsmIzIwMjE1OyYjMjY2
+ODQ7JiMyMDAyNjsmIzI5NTc5OyYjMjM0NTg7JiMyNTE0MzsmIzI0NTQ0OyYjMzU4MDI7JiMyNDIz
+MDsmIzIwMzAyOyYjMTIyOTA7JiM2NTI4ODsmIzIwMjE1OyYjMjY2ODQ7MyYjMTk5NzU7LTEwJiMx
+OTk3NTsmIzY1Mjg5OyA8L3N0cm9uZz48L2ZvbnQ+PC9kaXY+DQogICAgPGRpdj48Zm9udCBzaXpl
+PSI0IiBmYWNlPSJNUyBQR290aGljIj48c3Ryb25nPiYjMjM2Mzc7JiMyMDI1MDsmIzY1MzA2Ozwv
+c3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBH
+b3RoaWMiPjxzdHJvbmc+JiMyMDIxNTsmIzI2Njg0OyYjMzk2NDA7JiM2NTI5MjsmIzI1MjM3OyYj
+MzYxNjQ7JiMzOTExODsmIzM4NTA1OyYjMjI4MjM7JiM2NTI5MjsmIzM1MjY1OyYjMjU5Mjg7JiMy
+MTYwODsmIzI2Mzk5OyYjMzA3MDE7JiMxMjI5MDsmIzY1Mjg4OyYjMjAyMTU7JiMyNjY4NDszJiMx
+OTk3NTstMTAwJiMxOTk3NTspIDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250
+IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+JiMyMjgwNjsmIzM2MTUyOyYjMjM0
+NTg7JiMyNTE0MzsmIzI0MzIwOyYjMjE0NTc7JiMzMTk5NTsmIzMyNDc5OyYjMjAwMjc7JiMyMTE2
+MDsmIzI0MzM1OyYjMzM4Mjk7JiMzODE0NDs6PC9zdHJvbmc+PC9mb250PjwvZGl2Pg0KICAgIDxk
+aXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhpYyI+PHN0cm9uZz4xJiM2NTI4OTsmIzI1
+ODA1OyYjMjAzMTY7JiMzMTYxNjsmIzIxMzMzOyYjNjUyOTI7JiMyNjIyMjsmIzM2ODkwOyYjMTk5
+OTQ7JiMyMTE1MzsmIzIxNTkyOyYjMzI0NjM7JiMzNjgwNzsmIzMxNjE2OyYjMjEzMzM7JiMyMjUy
+MTsmIzM1NzU3OyYjMjEzNjM7JiMyMTQ4NzsmIzE5OTc4OyYjMjUxNjM7JiMyNTgwNTsmIzIwMzE2
+OyYjMTIyOTA7IDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQi
+IGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+MiYjNjUyODk7JiMyNTk2ODsmIzI1NDU0OyYjMjYz
+NTY7JiMyNjAzMjsmIzI0NTU1OyYjNjUyOTI7JiMyMzQ1ODsmIzI1MTQzOyYjMjU5Njg7JiMyNTQ1
+NDsmIzI2NDY5OyYjMjgzMDQ7JiMxOTk4MjsmIzIxNDYyOyYjMjAwNDM7JiMxOTk4MTsmIzIzNjEz
+OyYjMzAzNDA7JiMyMDg0MDsmIzI5Njk5OyYjMjAxMTQ7JiMzMjg1MjsmIzMyNTkzOyYjMTIyOTA7
+IDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1T
+IFBHb3RoaWMiPjxzdHJvbmc+MyYjNjUyODk7JiMxOTk2ODsmIzIzNTQ1OyYjMTk5Njg7JiMzNTgx
+MDsmIzMwNDI0OyYjNjUyOTI7JiMyMTQ4NzsmIzI1NjI4OyYjMzIwMzQ7JiMyMDIxOTsmIzI0ODQ3
+OyYjMjEzMDY7JiMyMjQ5NTsmIzIyMjY5OyYjMjM0Nzg7JiMyODUwODsmIzIyMzEyOyYjMjM0NTg7
+JiMyNTE0MzsmIzY1MjkyOyYjMjU5MTA7JiMyMTA0MDsmIzIzNDU4OyYjMjUxNDM7JiMzNzMxOTsm
+IzM2MTQxOyYjMjQ4NDc7JiMyMTUyMTsmIzM1ODEwOyYjMzA0MjQ7JiMzNzExNzsmIzI2MTU5OyYj
+MTk5Njg7JiMyMzU0NTsmIzE5OTY4OyYjMzU4MTA7JiMzMDQyNDsmIzEyMjkwOyA8L3N0cm9uZz48
+L2ZvbnQ+PC9kaXY+DQogICAgPGRpdj48Zm9udCBzaXplPSI0IiBmYWNlPSJNUyBQR290aGljIj48
+c3Ryb25nPjQmIzY1Mjg5OyYjMjM0NTg7JiMyNTE0MzsmIzI0NTQ0OyYjMzU4MDI7JiMyNDIzMDsm
+IzM5NjQwOyYjNjUyOTI7JiMyMTQ4NzsmIzIwMTk3OyYjMzY5OTE7JiMyNDMyMDsmIzIwMDEzOyYj
+MzgzODg7JiMyMTgzMDsmIzMwNDUyOyYjMjU1MDk7JiMyNDMyMDsmIzIxNDU3OyYjMzI0NTY7JiMz
+MTQ3MTsmIzIzNDU4OyYjMjUxNDM7JiM2NTI5MjsmIzIzNDU4OyYjMjUxNDM7JiMzMTI4MzsmIzIz
+NDUwOyYjNjUyOTI7JiMyMTAzMzsmIzI4MDcwOyYjMzk2NDA7JiMxMjI5MDsgKCYjMjAyMTU7JiMy
+NjY4NDsmIzIwOTYwOyYjMjEzMTU7JiMyMDgwMzspIDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAg
+ICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+JiMyMDgxMzsm
+IzM2MTUzOyYjMjIzMTI7JiMzMjQ0NzsmIzI4NDM2OyYjMzEwMzQ7Jm5ic3A7IDxmb250IGNvbG9y
+PSIjMDAwMGZmIiBzaXplPSI1Ij5xcSYjNjUzMDY7PGZvbnQgc2l6ZT0iNiI+Mjc1NTM2NTA0Mzwv
+Zm9udD4mbmJzcDsmbmJzcDsmbmJzcDsgJm5ic3A7dGVsJiM2NTMwNjsxODAzODA2ODY4MCZuYnNw
+OyZuYnNwOyAmbmJzcDswNzU1LTM2MzAwNzUwPC9mb250Pjwvc3Ryb25nPjwvZm9udD48L2Rpdj4N
+CiAgPC9ib2R5Pg0KPC9odG1sPg==
