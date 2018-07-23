@@ -1,75 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr40040.outbound.protection.outlook.com ([40.107.4.40]:46495
-        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387968AbeGWQxR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 12:53:17 -0400
-Subject: Re: [PATCH v5 0/8] xen: dma-buf support for grant device
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com
-References: <20180720090150.24560-1-andr2000@gmail.com>
- <019c0eb6-8185-d888-ae6f-305ea2d44124@oracle.com>
- <df3e8c07-c8b4-cb12-32ad-119498be114b@epam.com>
- <80a074ac-91db-82db-d094-660d859cf903@epam.com>
- <9d2889f6-32d3-03d7-2a6d-341e691287b3@oracle.com>
-From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-Message-ID: <5fc34b4b-3587-791a-d17c-7da955b393bd@epam.com>
-Date: Mon, 23 Jul 2018 18:50:56 +0300
+Received: from mail-pf1-f194.google.com ([209.85.210.194]:44231 "EHLO
+        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388574AbeGWRrE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 13:47:04 -0400
+Subject: Re: [PATCH v6 16/17] media: v4l2: async: Remove notifier subdevs
+ array
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        open list <linux-kernel@vger.kernel.org>
+References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+ <1531175957-1973-17-git-send-email-steve_longerbeam@mentor.com>
+ <20180723123557.bfxxsqqhlaj3ccwc@valkosipuli.retiisi.org.uk>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <a040c77f-2bee-5d0d-57ec-852ff30448e9@gmail.com>
+Date: Mon, 23 Jul 2018 09:44:57 -0700
 MIME-Version: 1.0
-In-Reply-To: <9d2889f6-32d3-03d7-2a6d-341e691287b3@oracle.com>
+In-Reply-To: <20180723123557.bfxxsqqhlaj3ccwc@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/23/2018 06:22 PM, Boris Ostrovsky wrote:
-> On 07/23/2018 09:26 AM, Oleksandr Andrushchenko wrote:
->> On 07/23/2018 11:38 AM, Oleksandr Andrushchenko wrote:
->>>> data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c: In function
->>>> ‘gntdev_ioctl_dmabuf_exp_from_refs’:
->>>> /data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c:503:6: warning:
->>>> ‘args.fd’ may be used uninitialized in this function
->>>> [-Wmaybe-uninitialized]
->>>>     *fd = args.fd;
->>>>     ~~~~^~~~~~~~~
->>>> /data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c:467:35: note:
->>>> ‘args.fd’ was declared here
->>>>     struct gntdev_dmabuf_export_args args;
->>>>                                      ^~~~
->>> Strangely, but my i386 build goes smooth.
->>> Which version of gcc you use and could you please give me your
->>> .config, so I can test the same?
->> Now I see this warning which seems to be a false positive.
->> Boris, could you please apply the following:
->>
->> diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
->> index e4c9f1f74476..0680dbcba616 100644
->> --- a/drivers/xen/gntdev-dmabuf.c
->> +++ b/drivers/xen/gntdev-dmabuf.c
->> @@ -495,6 +495,7 @@ static int dmabuf_exp_from_refs(struct gntdev_priv
->> *priv, int flags,
->>          args.dmabuf_priv = priv->dmabuf_priv;
->>          args.count = map->count;
->>          args.pages = map->pages;
->> +       args.fd = -1;
->>
->>          ret = dmabuf_exp_from_pages(&args);
->>          if (ret < 0)
->>
->> or please let me know if you want me to resend with this fix?
+
+
+On 07/23/2018 05:35 AM, Sakari Ailus wrote:
+> Hi Steve,
 >
-> Missed this message. Yes, this obviously fixes the problem. And it is
-> due to the code fragment that I mentioned in the earlier response.
+> Thanks for the update.
 >
-> Which patch is this for? I can add this when committing.
-Thank you, this is for "[PATCH v5 7/8] xen/gntdev: Implement dma-buf 
-export functionality"
-> -boris
-Thank you,
-Oleksandr
+> On Mon, Jul 09, 2018 at 03:39:16PM -0700, Steve Longerbeam wrote:
+>> All platform drivers have been converted to use
+>> v4l2_async_notifier_add_subdev(), in place of adding
+>> asd's to the notifier subdevs array. So the subdevs
+>> array can now be removed from struct v4l2_async_notifier,
+>> and remove the backward compatibility support for that
+>> array in v4l2-async.c.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> This set removes the subdevs and num_subdevs fieldsfrom the notifier (as
+> discussed previously) but it doesn't include the corresponding
+> driver changes. Is there a patch missing from the set?
+
+Hi Sakari, yes somehow patch 15/17 (the large patch to all drivers)
+got dropped by the ML, maybe because the cc-list was too big?
+
+I will resend with only linux-media and cc: you.
+
+Steve
