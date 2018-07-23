@@ -1,215 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56330 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56368 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2388317AbeGWOsb (ORCPT
+        by vger.kernel.org with ESMTP id S2388311AbeGWOsb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 23 Jul 2018 10:48:31 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
         niklas.soderlund@ragnatech.se
-Subject: [PATCH 16/21] v4l: fwnode: Use media bus type for bus parser selection
-Date: Mon, 23 Jul 2018 16:47:01 +0300
-Message-Id: <20180723134706.15334-17-sakari.ailus@linux.intel.com>
+Subject: [PATCH 14/21] v4l: fwnode: Use default parallel flags
+Date: Mon, 23 Jul 2018 16:46:59 +0300
+Message-Id: <20180723134706.15334-15-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
 References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the media bus types instead of the fwnode bus types internally. This
-is the interface to the drivers as well, making the use of the fwnode bus
-types more localised to the V4L2 fwnode framework.
+The caller may provide default flags for the endpoint. Change the
+configuration based on what is available through the fwnode property API.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 98 ++++++++++++++++++++++++++++-------
- 1 file changed, 79 insertions(+), 19 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
 diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index d9d4e84c45be..0a9d85b3892f 100644
+index 1e64182b74dd..539f7ca940fd 100644
 --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -42,9 +42,66 @@ enum v4l2_fwnode_bus_type {
- 	NR_OF_V4L2_FWNODE_BUS_TYPE,
- };
- 
-+static const struct v4l2_fwnode_bus_conv {
-+	enum v4l2_fwnode_bus_type fwnode_bus_type;
-+	enum v4l2_mbus_type mbus_type;
-+	const char *name;
-+} busses[] = {
-+	{
-+		V4L2_FWNODE_BUS_TYPE_GUESS,
-+		V4L2_MBUS_UNKNOWN,
-+		"not specified",
-+	}, {
-+		V4L2_FWNODE_BUS_TYPE_CSI2_CPHY,
-+		V4L2_MBUS_CSI2_CPHY,
-+		"MIPI CSI-2 C-PHY",
-+	}, {
-+		V4L2_FWNODE_BUS_TYPE_CSI1,
-+		V4L2_MBUS_CSI1,
-+		"MIPI CSI-1",
-+	}, {
-+		V4L2_FWNODE_BUS_TYPE_CCP2,
-+		V4L2_MBUS_CCP2,
-+		"compact camera port 2",
-+	}, {
-+		V4L2_FWNODE_BUS_TYPE_CSI2_DPHY,
-+		V4L2_MBUS_CSI2_DPHY,
-+		"MIPI CSI-2 D-PHY",
-+	}, {
-+		V4L2_FWNODE_BUS_TYPE_PARALLEL,
-+		V4L2_MBUS_PARALLEL,
-+		"parallel",
-+	}, {
-+		V4L2_FWNODE_BUS_TYPE_BT656,
-+		V4L2_MBUS_BT656,
-+		"Bt.656",
-+	}
-+};
-+
-+static const struct v4l2_fwnode_bus_conv *
-+get_v4l2_fwnode_bus_conv_by_fwnode_bus(enum v4l2_fwnode_bus_type type)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(busses); i++)
-+		if (busses[i].fwnode_bus_type == type)
-+			return &busses[i];
-+
-+	return NULL;
-+}
-+
-+static enum v4l2_mbus_type
-+v4l2_fwnode_bus_type_to_mbus(enum v4l2_fwnode_bus_type type)
-+{
-+	const struct v4l2_fwnode_bus_conv *conv =
-+		get_v4l2_fwnode_bus_conv_by_fwnode_bus(type);
-+
-+	return conv ? conv->mbus_type : V4L2_MBUS_UNKNOWN;
-+}
-+
- static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 					       struct v4l2_fwnode_endpoint *vep,
--					       enum v4l2_fwnode_bus_type bus_type)
-+					       enum v4l2_mbus_type bus_type)
- {
- 	struct v4l2_fwnode_bus_mipi_csi2 *bus = &vep->bus.mipi_csi2;
- 	bool have_clk_lane = false, have_data_lanes = false,
-@@ -58,7 +115,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+@@ -184,31 +184,44 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+ 	bool is_parallel = false;
  	u32 v;
- 	int rval;
  
--	if (bus_type == V4L2_FWNODE_BUS_TYPE_CSI2_DPHY) {
-+	if (bus_type == V4L2_MBUS_CSI2_DPHY) {
- 		use_default_lane_mapping = true;
- 
- 		num_data_lanes = min_t(u32, bus->num_data_lanes,
-@@ -134,7 +191,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++	if (bus_type == V4L2_MBUS_PARALLEL || bus_type == V4L2_MBUS_BT656)
++		flags = bus->flags;
++
+ 	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v)) {
++		flags &= ~(V4L2_MBUS_HSYNC_ACTIVE_HIGH |
++			   V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
+ 			V4L2_MBUS_HSYNC_ACTIVE_LOW;
+ 		pr_debug("hsync-active %s\n", v ? "high" : "low");
  	}
  
--	if (bus_type == V4L2_FWNODE_BUS_TYPE_CSI2_DPHY || lanes_used ||
-+	if (bus_type == V4L2_MBUS_CSI2_DPHY || lanes_used ||
- 	    have_clk_lane || (flags & ~V4L2_MBUS_CSI2_CONTINUOUS_CLOCK)) {
- 		bus->flags = flags;
- 		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
-@@ -177,7 +234,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 
- static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep,
--	enum v4l2_fwnode_bus_type bus_type)
-+	enum v4l2_mbus_type bus_type)
- {
- 	struct v4l2_fwnode_bus_parallel *bus = &vep->bus.parallel;
- 	unsigned int flags = 0;
-@@ -274,11 +331,11 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 				vep->bus_type = V4L2_MBUS_BT656;
- 		}
- 		break;
--	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
-+	case V4L2_MBUS_PARALLEL:
- 		vep->bus_type = V4L2_MBUS_PARALLEL;
- 		bus->flags = flags;
- 		break;
--	case V4L2_FWNODE_BUS_TYPE_BT656:
-+	case V4L2_MBUS_BT656:
- 		vep->bus_type = V4L2_MBUS_BT656;
- 		bus->flags = flags & ~PARALLEL_MBUS_FLAGS;
- 		break;
-@@ -288,7 +345,7 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- static void
- v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
- 				    struct v4l2_fwnode_endpoint *vep,
--				    enum v4l2_fwnode_bus_type bus_type)
-+				    enum v4l2_mbus_type bus_type)
- {
- 	struct v4l2_fwnode_bus_mipi_csi1 *bus = &vep->bus.mipi_csi1;
- 	u32 v;
-@@ -313,7 +370,7 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
- 		pr_debug("clock-lanes %u\n", v);
+ 	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v)) {
++		flags &= ~(V4L2_MBUS_VSYNC_ACTIVE_HIGH |
++			   V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
+ 			V4L2_MBUS_VSYNC_ACTIVE_LOW;
+ 		pr_debug("vsync-active %s\n", v ? "high" : "low");
  	}
  
--	if (bus_type == V4L2_FWNODE_BUS_TYPE_CCP2)
-+	if (bus_type == V4L2_MBUS_CCP2)
- 		vep->bus_type = V4L2_MBUS_CCP2;
- 	else
- 		vep->bus_type = V4L2_MBUS_CSI1;
-@@ -323,6 +380,7 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 					struct v4l2_fwnode_endpoint *vep)
- {
- 	u32 bus_type = 0;
-+	enum v4l2_mbus_type mbus_type;
- 	int rval;
+ 	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v)) {
++		flags &= ~(V4L2_MBUS_FIELD_EVEN_HIGH |
++			   V4L2_MBUS_FIELD_EVEN_LOW);
+ 		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
+ 			V4L2_MBUS_FIELD_EVEN_LOW;
+ 		pr_debug("field-even-active %s\n", v ? "high" : "low");
+ 	}
  
- 	if (vep->bus_type == V4L2_MBUS_UNKNOWN) {
-@@ -341,10 +399,12 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v)) {
++		flags &= ~(V4L2_MBUS_PCLK_SAMPLE_RISING |
++			   V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
+ 			V4L2_MBUS_PCLK_SAMPLE_FALLING;
+ 		pr_debug("pclk-sample %s\n", v ? "high" : "low");
+ 	}
  
- 	fwnode_property_read_u32(fwnode, "bus-type", &bus_type);
+ 	if (!fwnode_property_read_u32(fwnode, "data-active", &v)) {
++		flags &= ~(V4L2_MBUS_PCLK_SAMPLE_RISING |
++			   V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
+ 			V4L2_MBUS_DATA_ACTIVE_LOW;
+ 		pr_debug("data-active %s\n", v ? "high" : "low");
+@@ -216,8 +229,10 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
  
--	switch (bus_type) {
--	case V4L2_FWNODE_BUS_TYPE_GUESS:
-+	mbus_type = v4l2_fwnode_bus_type_to_mbus(bus_type);
-+
-+	switch (mbus_type) {
-+	case V4L2_MBUS_UNKNOWN:
- 		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep,
--							   bus_type);
-+							   mbus_type);
- 		if (rval)
- 			return rval;
+ 	if (fwnode_property_present(fwnode, "slave-mode")) {
+ 		pr_debug("slave mode\n");
++		flags &= ~V4L2_MBUS_MASTER;
+ 		flags |= V4L2_MBUS_SLAVE;
+ 	} else {
++		flags &= ~V4L2_MBUS_SLAVE;
+ 		flags |= V4L2_MBUS_MASTER;
+ 	}
  
-@@ -357,22 +417,22 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+@@ -234,12 +249,16 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+ 	}
  
- 		break;
+ 	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v)) {
++		flags &= ~(V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH |
++			   V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW);
+ 		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
+ 			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
+ 		pr_debug("sync-on-green-active %s\n", v ? "high" : "low");
+ 	}
  
--	case V4L2_FWNODE_BUS_TYPE_CCP2:
--	case V4L2_FWNODE_BUS_TYPE_CSI1:
--		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, bus_type);
-+	case V4L2_MBUS_CCP2:
-+	case V4L2_MBUS_CSI1:
-+		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, mbus_type);
- 		break;
- 
--	case V4L2_FWNODE_BUS_TYPE_CSI2_DPHY:
-+	case V4L2_MBUS_CSI2_DPHY:
- 		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
- 		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep,
--							   bus_type);
-+							   mbus_type);
- 		if (rval)
- 			return rval;
- 
- 		break;
--	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
--	case V4L2_FWNODE_BUS_TYPE_BT656:
--		v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep, bus_type);
-+	case V4L2_MBUS_PARALLEL:
-+	case V4L2_MBUS_BT656:
-+		v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep, mbus_type);
- 
- 		break;
- 	default:
+ 	if (!fwnode_property_read_u32(fwnode, "data-enable-active", &v)) {
++		flags &= ~(V4L2_MBUS_DATA_ENABLE_HIGH |
++			   V4L2_MBUS_DATA_ENABLE_LOW);
+ 		flags |= v ? V4L2_MBUS_DATA_ENABLE_HIGH :
+ 			V4L2_MBUS_DATA_ENABLE_LOW;
+ 		pr_debug("data-enable-active %s\n", v ? "high" : "low");
 -- 
 2.11.0
