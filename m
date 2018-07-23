@@ -1,84 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:55931 "EHLO
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:58939 "EHLO
         lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387925AbeGWJaU (ORCPT
+        by vger.kernel.org with ESMTP id S2387951AbeGWJbc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 05:30:20 -0400
-Subject: [PATCHv2 1/5] cec-gpio.txt: add v5-gpios for testing the 5V line
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180717132909.92158-1-hverkuil@xs4all.nl>
- <20180717132909.92158-2-hverkuil@xs4all.nl>
- <20180720180530.GA21569@rob-hp-laptop>
+        Mon, 23 Jul 2018 05:31:32 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <edfab202-743e-8b9a-332c-18cedf8fc64d@xs4all.nl>
-Date: Mon, 23 Jul 2018 10:30:14 +0200
+Subject: [GIT PULL FOR v4.19] cec/cec-gpio: add support for 5V testing
+Message-ID: <438460b2-2eb4-a23e-d8a3-9e085109bfea@xs4all.nl>
+Date: Mon, 23 Jul 2018 10:31:26 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180720180530.GA21569@rob-hp-laptop>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to debug the HDMI 5V line we need to add a new v5-gpios
-property.
+Some displays disable CEC if the HDMI 5V is not detected. In order
+to test issues related to this you want to be able to optionally
+detect when the 5V line changes in the cec-gpio driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
----
-Changes since v1:
-- Document that hpd-gpios and 5v-gpios are meant for debugging those lines.
----
- .../devicetree/bindings/media/cec-gpio.txt    | 22 ++++++++++++-------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+This patch series adds support for this feature.
 
-diff --git a/Documentation/devicetree/bindings/media/cec-gpio.txt b/Documentation/devicetree/bindings/media/cec-gpio.txt
-index 12fcd55ed153..47e8d73d32a3 100644
---- a/Documentation/devicetree/bindings/media/cec-gpio.txt
-+++ b/Documentation/devicetree/bindings/media/cec-gpio.txt
-@@ -4,8 +4,8 @@ The HDMI CEC GPIO module supports CEC implementations where the CEC line
- is hooked up to a pull-up GPIO line and - optionally - the HPD line is
- hooked up to another GPIO line.
+Regards,
 
--Please note: the maximum voltage for the CEC line is 3.63V, for the HPD
--line it is 5.3V. So you may need some sort of level conversion circuitry
-+Please note: the maximum voltage for the CEC line is 3.63V, for the HPD and
-+5V lines it is 5.3V. So you may need some sort of level conversion circuitry
- when connecting them to a GPIO line.
+	Hans
 
- Required properties:
-@@ -19,18 +19,24 @@ following property is also required:
-   - hdmi-phandle - phandle to the HDMI controller, see also cec.txt.
+The following changes since commit 39fbb88165b2bbbc77ea7acab5f10632a31526e6:
 
- If the CEC line is not associated with an HDMI receiver/transmitter, then
--the following property is optional:
-+the following property is optional and can be used for debugging HPD changes:
+  media: bpf: ensure bpf program is freed on detach (2018-07-13 11:07:29 -0400)
 
-   - hpd-gpios: gpio that the HPD line is connected to.
+are available in the Git repository at:
 
-+This property is optional and can be used for debugging changes on the 5V line:
-+
-+  - v5-gpios: gpio that the 5V line is connected to.
-+
- Example for the Raspberry Pi 3 where the CEC line is connected to
--pin 26 aka BCM7 aka CE1 on the GPIO pin header and the HPD line is
--connected to pin 11 aka BCM17 (some level shifter is needed for this!):
-+pin 26 aka BCM7 aka CE1 on the GPIO pin header, the HPD line is
-+connected to pin 11 aka BCM17 and the 5V line is connected to pin
-+15 aka BCM22 (some level shifter is needed for the HPD and 5V lines!):
+  git://linuxtv.org/hverkuil/media_tree.git cec-5v
 
- #include <dt-bindings/gpio/gpio.h>
+for you to fetch changes up to d2c3c626897322f5a343347e805a35e31f7ca08b:
 
- cec-gpio {
--       compatible = "cec-gpio";
--       cec-gpios = <&gpio 7 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
--       hpd-gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
-+	compatible = "cec-gpio";
-+	cec-gpios = <&gpio 7 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
-+	hpd-gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
-+	v5-gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
- };
--- 
-2.18.0
+  cec-gpio: support 5v testing (2018-07-23 10:27:40 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (5):
+      cec-gpio.txt: add v5-gpios for testing the 5V line
+      cec-ioc-dqevent.rst: document the new 5V events
+      uapi/linux/cec.h: add 5V events
+      cec: add support for 5V signal testing
+      cec-gpio: support 5v testing
+
+ Documentation/devicetree/bindings/media/cec-gpio.txt | 22 +++++++++++++--------
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst     | 18 +++++++++++++++++
+ drivers/media/cec/cec-adap.c                         | 18 ++++++++++++++++-
+ drivers/media/cec/cec-api.c                          |  8 ++++++++
+ drivers/media/platform/cec-gpio/cec-gpio.c           | 54 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec-pin.h                              |  4 ++++
+ include/media/cec.h                                  | 12 +++++++++++-
+ include/uapi/linux/cec.h                             |  2 ++
+ 8 files changed, 128 insertions(+), 10 deletions(-)
