@@ -1,30 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f194.google.com ([209.85.210.194]:44231 "EHLO
-        mail-pf1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388574AbeGWRrE (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:47024 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388652AbeGWR5G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 13:47:04 -0400
-Subject: Re: [PATCH v6 16/17] media: v4l2: async: Remove notifier subdevs
- array
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        open list <linux-kernel@vger.kernel.org>
-References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
- <1531175957-1973-17-git-send-email-steve_longerbeam@mentor.com>
- <20180723123557.bfxxsqqhlaj3ccwc@valkosipuli.retiisi.org.uk>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <a040c77f-2bee-5d0d-57ec-852ff30448e9@gmail.com>
-Date: Mon, 23 Jul 2018 09:44:57 -0700
+        Mon, 23 Jul 2018 13:57:06 -0400
+Subject: Re: [PATCH 16/16] media: imx: add mem2mem device
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        <linux-media@vger.kernel.org>
+CC: <kernel@pengutronix.de>
+References: <20180622155217.29302-1-p.zabel@pengutronix.de>
+ <20180622155217.29302-17-p.zabel@pengutronix.de>
+ <8b4ea4ab-0500-9daa-e6e1-031e7d7a0517@mentor.com>
+ <1531750331.18173.21.camel@pengutronix.de>
+ <0d10c8dc-1406-1ba6-f615-d60ae9c20c58@gmail.com>
+ <1532331117.3501.2.camel@pengutronix.de>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <4605540f-5050-87b0-d938-2d2822b3ed73@mentor.com>
+Date: Mon, 23 Jul 2018 09:54:53 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180723123557.bfxxsqqhlaj3ccwc@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <1532331117.3501.2.camel@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
@@ -32,27 +28,24 @@ List-ID: <linux-media.vger.kernel.org>
 
 
 
-On 07/23/2018 05:35 AM, Sakari Ailus wrote:
-> Hi Steve,
->
-> Thanks for the update.
->
-> On Mon, Jul 09, 2018 at 03:39:16PM -0700, Steve Longerbeam wrote:
->> All platform drivers have been converted to use
->> v4l2_async_notifier_add_subdev(), in place of adding
->> asd's to the notifier subdevs array. So the subdevs
->> array can now be removed from struct v4l2_async_notifier,
->> and remove the backward compatibility support for that
->> array in v4l2-async.c.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> This set removes the subdevs and num_subdevs fieldsfrom the notifier (as
-> discussed previously) but it doesn't include the corresponding
-> driver changes. Is there a patch missing from the set?
+On 07/23/2018 12:31 AM, Philipp Zabel wrote:
+>>>
+>>> ipu_image_convert_adjust tries to adjust both input and output image at
+>>> the same time, here we just have the format of either input or output
+>>> image. Do you suggest to split this function into an input and an output
+>>> version?
+>> See b4362162c0 ("media: imx: mem2mem: Use ipu_image_convert_adjust
+>> in try format")
+> Alright, this looks fine to me. I was worried about inter-format
+> limitations, but the only one seems to be the output size lower bound to
+> 1/4 of the input size. Should S_FMT(OUT) also update the capture format
+> if adjustments were made to keep a consistent state?
 
-Hi Sakari, yes somehow patch 15/17 (the large patch to all drivers)
-got dropped by the ML, maybe because the cc-list was too big?
+That's a good question, I don't know if the mem2mem API allows for
+that, but if it does we should do that for consistent state as you said.
 
-I will resend with only linux-media and cc: you.
+In b4362162c0, the current capture format is used to adjust output
+format during S_FMT(OUT) but any capture format changes are
+dropped, and vice-versa.
 
 Steve
