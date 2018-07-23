@@ -1,104 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:23853 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726506AbeG3Nqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 09:46:44 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56332 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2388091AbeGWOsa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 10:48:30 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: tfiga@chromium.org, andy.yeh@intel.com, rajmohan.mani@intel.com,
-        ping-chung.chen@intel.com, jim.lai@intel.com, grundler@chromium.org
-Subject: [PATCH 1/1] i2c: Fix pm_runtime_get_if_in_use() usage in sensor drivers
-Date: Mon, 30 Jul 2018 15:10:57 +0300
-Message-Id: <20180730121057.31798-1-sakari.ailus@linux.intel.com>
+Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
+        niklas.soderlund@ragnatech.se
+Subject: [PATCH 05/21] dt-bindings: media: Specify bus type for MIPI D-PHY, others, explicitly
+Date: Mon, 23 Jul 2018 16:46:50 +0300
+Message-Id: <20180723134706.15334-6-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
+References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pm_runtime_get_if_in_use() returns -EINVAL if runtime PM is disabled. This
-should not be considered an error. Generally the driver has enabled
-runtime PM already so getting this error due to runtime PM being disabled
-will not happen.
+Allow specifying the bus type explicitly for MIPI D-PHY, parallel and
+Bt.656 busses. This is useful for devices that can make use of different
+bus types. There are CSI-2 transmitters and receivers but the PHY
+selection needs to be made between C-PHY and D-PHY; many devices also
+support parallel and Bt.656 interfaces but the means to pass that
+information to software wasn't there.
 
-Instead of checking for lesser or equal to zero, check for zero only.
-Address this for drivers where this pattern exists.
-
-This patch has been produced using the following command:
-
-$ git grep -l pm_runtime_get_if_in_use -- drivers/media/i2c/ | \
-  xargs perl -i -pe 's/(pm_runtime_get_if_in_use\(.*\)) \<\= 0/!$1/'
+Autodetection (value 0) is removed as an option as the property could be
+simply omitted in that case.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/ov13858.c | 2 +-
- drivers/media/i2c/ov2685.c  | 2 +-
- drivers/media/i2c/ov5670.c  | 2 +-
- drivers/media/i2c/ov5695.c  | 2 +-
- drivers/media/i2c/ov7740.c  | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-index a66f6201f53c7..0e7a85c4996c7 100644
---- a/drivers/media/i2c/ov13858.c
-+++ b/drivers/media/i2c/ov13858.c
-@@ -1230,7 +1230,7 @@ static int ov13858_set_ctrl(struct v4l2_ctrl *ctrl)
- 	 * Applying V4L2 control value only happens
- 	 * when power is up for streaming
- 	 */
--	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-+	if (!pm_runtime_get_if_in_use(&client->dev))
- 		return 0;
- 
- 	ret = 0;
-diff --git a/drivers/media/i2c/ov2685.c b/drivers/media/i2c/ov2685.c
-index 385c1886a9470..98a1f2e312b58 100644
---- a/drivers/media/i2c/ov2685.c
-+++ b/drivers/media/i2c/ov2685.c
-@@ -549,7 +549,7 @@ static int ov2685_set_ctrl(struct v4l2_ctrl *ctrl)
- 		break;
- 	}
- 
--	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-+	if (!pm_runtime_get_if_in_use(&client->dev))
- 		return 0;
- 
- 	switch (ctrl->id) {
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index 7b7c74d773707..53dd30d96e691 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -2016,7 +2016,7 @@ static int ov5670_set_ctrl(struct v4l2_ctrl *ctrl)
- 	}
- 
- 	/* V4L2 controls values will be applied only when power is already up */
--	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-+	if (!pm_runtime_get_if_in_use(&client->dev))
- 		return 0;
- 
- 	switch (ctrl->id) {
-diff --git a/drivers/media/i2c/ov5695.c b/drivers/media/i2c/ov5695.c
-index 9a80decd93d3c..5d107c53364d6 100644
---- a/drivers/media/i2c/ov5695.c
-+++ b/drivers/media/i2c/ov5695.c
-@@ -1110,7 +1110,7 @@ static int ov5695_set_ctrl(struct v4l2_ctrl *ctrl)
- 		break;
- 	}
- 
--	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-+	if (!pm_runtime_get_if_in_use(&client->dev))
- 		return 0;
- 
- 	switch (ctrl->id) {
-diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
-index 605f3e25ad82b..6e9c233cfbe35 100644
---- a/drivers/media/i2c/ov7740.c
-+++ b/drivers/media/i2c/ov7740.c
-@@ -510,7 +510,7 @@ static int ov7740_set_ctrl(struct v4l2_ctrl *ctrl)
- 	int ret;
- 	u8 val = 0;
- 
--	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-+	if (!pm_runtime_get_if_in_use(&client->dev))
- 		return 0;
- 
- 	switch (ctrl->id) {
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index baf9d9756b3c..f884ada0bffc 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -100,10 +100,12 @@ Optional endpoint properties
+   slave device (data source) by the master device (data sink). In the master
+   mode the data source device is also the source of the synchronization signals.
+ - bus-type: data bus type. Possible values are:
+-  0 - autodetect based on other properties (MIPI CSI-2 D-PHY, parallel or Bt656)
+   1 - MIPI CSI-2 C-PHY
+   2 - MIPI CSI1
+   3 - CCP2
++  4 - MIPI CSI-2 D-PHY
++  5 - Parallel
++  6 - Bt.656
+ - bus-width: number of data lines actively used, valid for the parallel busses.
+ - data-shift: on the parallel data busses, if bus-width is used to specify the
+   number of data lines, data-shift can be used to specify which data lines are
 -- 
 2.11.0
