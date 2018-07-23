@@ -1,60 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58395 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388005AbeGWO1a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 10:27:30 -0400
-Message-ID: <1532352373.3501.10.camel@pengutronix.de>
-Subject: Re: [PATCH v2 00/16] i.MX media mem2mem scaler
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Date: Mon, 23 Jul 2018 15:26:13 +0200
-In-Reply-To: <38565a74-7c79-1af6-6ed6-b44a20c9266c@gmail.com>
-References: <20180719153042.533-1-p.zabel@pengutronix.de>
-         <38565a74-7c79-1af6-6ed6-b44a20c9266c@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-eopbgr10045.outbound.protection.outlook.com ([40.107.1.45]:53664
+        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2387986AbeGWO14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 10:27:56 -0400
+Subject: Re: [PATCH v5 0/8] xen: dma-buf support for grant device
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        jgross@suse.com, konrad.wilk@oracle.com
+Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
+        matthew.d.roper@intel.com
+References: <20180720090150.24560-1-andr2000@gmail.com>
+ <019c0eb6-8185-d888-ae6f-305ea2d44124@oracle.com>
+ <df3e8c07-c8b4-cb12-32ad-119498be114b@epam.com>
+Message-ID: <80a074ac-91db-82db-d094-660d859cf903@epam.com>
+Date: Mon, 23 Jul 2018 16:26:30 +0300
+MIME-Version: 1.0
+In-Reply-To: <df3e8c07-c8b4-cb12-32ad-119498be114b@epam.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+On 07/23/2018 11:38 AM, Oleksandr Andrushchenko wrote:
+> On 07/20/2018 05:08 PM, Boris Ostrovsky wrote:
+>> On 07/20/2018 05:01 AM, Oleksandr Andrushchenko wrote:
+>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>>
+>>> This work is in response to my previous attempt to introduce Xen/DRM
+>>> zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
+>>> frontends/backends. There is also an existing hyper_dmabuf approach
+>>> available [3] which, if reworked to utilize the proposed solution,
+>>> can greatly benefit as well.
+>>
+>> Lot of warnings on  i386 build:
+>>
+>> In file included from
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.c:24:
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h: In
+>> function ‘xen_drm_front_fb_to_cookie’:
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h:129:9:
+>> warning: cast from pointer to integer of different size
+>> [-Wpointer-to-int-cast]
+>>    return (u64)fb;
+>>           ^
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h: In
+>> function ‘xen_drm_front_dbuf_to_cookie’:
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h:134:9:
+>> warning: cast from pointer to integer of different size
+>> [-Wpointer-to-int-cast]
+>>    return (u64)gem_obj;
+>>           ^
+>>    CC [M]  net/netfilter/ipset/ip_set_hash_ipport.o
+>>    CC      drivers/media/rc/keymaps/rc-tango.o
+>>    CC [M]  drivers/gpu/drm/vmwgfx/vmwgfx_fifo.o
+>>    AR      drivers/misc/built-in.a
+>> In file included from
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front_kms.c:20:
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h: In
+>> function ‘xen_drm_front_fb_to_cookie’:
+>>    CC [M]  drivers/gpu/drm/xen/xen_drm_front_conn.o
+>> /data/upstream/linux-xen/drivers/gpu/drm/xen/xen_drm_front.h:129:9:
+>> warning: cast from pointer to integer of different size
+>> [-Wpointer-to-int-cast]
+>>    return (u64)fb;
+>> (and more)
+>>
+> The above warnings already have a fix [1] which is expected in 4.19
+>>
+>> and then
+>>
+>> data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c: In function
+>> ‘gntdev_ioctl_dmabuf_exp_from_refs’:
+>> /data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c:503:6: warning:
+>> ‘args.fd’ may be used uninitialized in this function 
+>> [-Wmaybe-uninitialized]
+>>    *fd = args.fd;
+>>    ~~~~^~~~~~~~~
+>> /data/upstream/linux-xen/drivers/xen/gntdev-dmabuf.c:467:35: note:
+>> ‘args.fd’ was declared here
+>>    struct gntdev_dmabuf_export_args args;
+>>                                     ^~~~
+> Strangely, but my i386 build goes smooth.
+> Which version of gcc you use and could you please give me your
+> .config, so I can test the same?
+Now I see this warning which seems to be a false positive.
+Boris, could you please apply the following:
 
-On Sun, 2018-07-22 at 11:30 -0700, Steve Longerbeam wrote:
-[...]
-> To aid in debugging this I created branch 'imx-mem2mem.stevel' in my
-> mediatree fork on github. I moved the mem2mem driver to the beginning
-> and added a few patches:
-> 
-> d317a7771c ("gpu: ipu-cpmem: add WARN_ON_ONCE() for unaligned dma buffers")
-> b4362162c0 ("media: imx: mem2mem: Use ipu_image_convert_adjust in try 
-> format")
-> 4758be0cf8 ("gpu: ipu-v3: image-convert: Fix width/height alignment")
-> d069163c7f ("gpu: ipu-v3: image-convert: Fix input bytesperline clamp in 
-> adjust")
-> 
-> (feel free to squash some of those if you agree with them for v3).
+diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
+index e4c9f1f74476..0680dbcba616 100644
+--- a/drivers/xen/gntdev-dmabuf.c
++++ b/drivers/xen/gntdev-dmabuf.c
+@@ -495,6 +495,7 @@ static int dmabuf_exp_from_refs(struct gntdev_priv 
+*priv, int flags,
+         args.dmabuf_priv = priv->dmabuf_priv;
+         args.count = map->count;
+         args.pages = map->pages;
++       args.fd = -1;
 
-Thank you, I've squashed them where it made sense:
+         ret = dmabuf_exp_from_pages(&args);
+         if (ret < 0)
 
-- "media: imx: mem2mem: Use ipu_image_convert_adjust in try format"
-  into "media: imx: add mem2mem device" so it could be merged
-  independently,
-- "gpu: ipu-v3: image-convert: Fix width/height alignment" into
-  "gpu: ipu-v3: image-convert: relax alignment restrictions", which
-  itself is squashed together from "gpu: ipu-v3: image-convert: relax
-  input alignment restrictions" and "gpu: ipu-v3: image-convert: relax
-  output alignment restrictions", and
-- "gpu: ipu-v3: image-convert: Fix input bytesperline clamp in adjust"
-  into "gpu: ipu-v3: image-convert: fix bytesperline adjustment".
+or please let me know if you want me to resend with this fix?
+>>
+>> -boris
+> Thank you,
+> Oleksandr
+>
+> [1] 
+> https://cgit.freedesktop.org/drm/drm-misc/commit/?id=9eece5d9c6e0316f17091e37ff3ec87331bdedf3
 
-I've added some fixes and limited output tile top/left alignment to 8x8
-IRT block size if the rotator is being used, and dropped the current
-state into this branch:
-
-  git://git.pengutronix.de/pza/linux imx-mem2mem
-
-regards
-Philipp
+Thank you,
+Oleksandr
