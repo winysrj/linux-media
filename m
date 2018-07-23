@@ -1,98 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [183.12.194.174] ([183.12.194.174]:7896 "HELO a.yock.com"
-        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1728378AbeGWFeG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 01:34:06 -0400
-Date: Mon, 23 Jul 2018 12:29:47 +0800
-From: "vip" <nm18@a.yock.com>
-Reply-To: fangzumu@163.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: =?GB2312?B?sruyztW5o6zSssTc1dK1vdPQ1srBv7XEv827p7y/wak=?=
-Message-ID: <201807231229478671357@a.yock.com>
-MIME-Version: 1.0
-Content-Type: text/html;
-        charset="GB2312"
-Content-Transfer-Encoding: base64
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:48287 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387840AbeGWIbu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jul 2018 04:31:50 -0400
+Message-ID: <1532331117.3501.2.camel@pengutronix.de>
+Subject: Re: [PATCH 16/16] media: imx: add mem2mem device
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de
+Date: Mon, 23 Jul 2018 09:31:57 +0200
+In-Reply-To: <0d10c8dc-1406-1ba6-f615-d60ae9c20c58@gmail.com>
+References: <20180622155217.29302-1-p.zabel@pengutronix.de>
+         <20180622155217.29302-17-p.zabel@pengutronix.de>
+         <8b4ea4ab-0500-9daa-e6e1-031e7d7a0517@mentor.com>
+         <1531750331.18173.21.camel@pengutronix.de>
+         <0d10c8dc-1406-1ba6-f615-d60ae9c20c58@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PGh0bWw+DQogIDxoZWFkPg0KICAgIDx0aXRsZT48L3RpdGxlPg0KICAgIDxtZXRhIGNvbnRlbnQ9
-InRleHQvaHRtbDsgY2hhcnNldD1nYjIzMTIiIGh0dHAtZXF1aXY9IkNvbnRlbnQtVHlwZSIgLz4N
-CiAgPC9oZWFkPg0KICA8Ym9keT4NCiAgICA8ZGl2Pjxmb250IGNvbG9yPSIjMDAwMGZmIiBzaXpl
-PSI1IiBmYWNlPSLOosjt0cW62iI+bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnPC9mb250Pjwv
-ZGl2Pg0KICAgIDxkaXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhpYyI+PHN0cm9uZz4m
-IzM4NzU0OyYjMjM1NDU7JiMzMTQ1NDsmIzIwMTA1OyYjMjg2MDg7JiMyODg3MjsmIzMwMzQwOyYj
-MjI4MDY7JiMzNjE1MjsmIzI5NjE1OyYjMjI2NTk7JiM2NTI5MjsmIzI4MDIzOyYjMjI4MDY7JiMy
-MzQ1ODsmIzI1MTQzOyYjMzYxNjQ7JiMyODMwNDsmIzMwMzQwOyYjMjAxMDU7JiMyMjg0MjsmIzY1
-MjkyOyYjMjAyNDg7JiMzNjEzNjsmIzIzNDU4OyYjMjUxNDM7JiMzNjE2NDsmIzI4MzA0OyYjMzAz
-NDA7JiMyMDEwNTsmIzIyODQyOyYjMTIyOTA7PC9zdHJvbmc+PC9mb250PjwvZGl2Pg0KICAgIDxk
-aXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhpYyI+PHN0cm9uZz4mIzIxMzMzOyYjMTk5
-Njg7JiMzMDM0MDsmIzI4MDIzOyYjMjI4MDY7JiMyNDMyMDsmIzIxNDU3OyYjMjcxNjk7JiMyNDMz
-NTsmIzI0MDUwOyYjMzI0NjM7JiMyODEyMDsmIzI3NzYwOyAmIzY1MjkyOyYjMTk5ODI7JiMyNjEw
-MjsmIzIwNDY1OyYjMzY4Mjc7JiMyMjgyMzsmIzMyOTY2OyYjMjM1ODE7JiMzNTc5NzsmIzI1MTY1
-OyYjMzMwMjE7JiMxOTk4MTsmIzI2MDI5OyYjMzAzNDA7JiMyMTAxOTsmIzI2MDMyOyYjMTIyOTA7
-IDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1T
-IFBHb3RoaWMiPjxzdHJvbmc+JiMyMjgwNjsmIzM2MTUyOyYjMjM0NTg7JiMyNTE0MzsmIzI0MzIw
-OyYjMjE0NTc7JiMzMTk5NTsmIzMyNDc5OyYjMjQxMTA7JiMyMDMyMDsmIzI0NTU1OyYjMzY4OTU7
-JiMyNTk3MjsmIzIxNTEyOyYjMjAzMjA7JiMyMDIwNDsmIzM0ODkyOyYjMTk5OTQ7JiMzMDM0MDsm
-IzIwODQwOyYjMjk2OTk7JiMzMDM0MDsmIzMwNDQ2OyYjMjY2MzE7JiMyMzQ1ODsmIzI1MTQzOyYj
-MzYxNjQ7JiMyODMwNDsmIzY1MjkyOyYjMjUzMTc7JiMyNjM3NzsmIzM2MTY0OyYjMjgzMDQ7JiMy
-MDI0ODsmIzIxMTgzOyYjNjUyOTI7JiMyNTEwNTsmIzIwMjA0OyYjMjYzNTY7JiMyMjY4NjsmIzIx
-MTUyOyYjMjAxMDI7JiMyNTM2NjsmIzI1NDk2OyYjMzk2NDA7JiMzNjEzNjsmIzM3MzI3OyYjMzAz
-NDA7JiMyMzQ1ODsmIzI1MTQzOyYjMzAzNDA7JiMzMTYwOTsmIzMwNzIxOyYjMTIyOTA7PC9zdHJv
-bmc+PC9mb250PjwvZGl2Pg0KICAgIDxkaXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhp
-YyI+PHN0cm9uZz4mIzE5OTY4OyYjMjI4NzE7JiMyMDAyNzsmIzIxMTYwOyYjMjA5ODY7JiMyMDk4
-NzsmIzI0MzIwOyYjMjE0NTc7JiMyMzQ1ODsmIzI1MTQzOyYjMzAzNDA7JiMzMTk5NTsmIzMyNDc5
-OyYjNjUyOTI7JiMzMzAyMTsmIzIwMDI2OyYjMjQ3NDQ7JiMyNDEwMjsmIzI2NDY5OyYjMTk5ODE7
-JiMxOTk2ODsmIzI2Njc5OyYjMzAzNDA7JiMyNDc3ODsmIzIxOTE2OyYjNjUyODE7IDwvc3Ryb25n
-PjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMi
-PjxzdHJvbmc+JiMyMDI0ODsmIzIxMTgzOyYjMjM1NDU7JiMyNzYwNDsmIzY1MzA2OyA8L3N0cm9u
-Zz48L2ZvbnQ+PC9kaXY+DQogICAgPGRpdj48Zm9udCBzaXplPSI0IiBmYWNlPSJNUyBQR290aGlj
-Ij48c3Ryb25nPkIyQiYjMjQxNzk7JiMyMTQ4ODsmIzY1MzA2Ozwvc3Ryb25nPjwvZm9udD48L2Rp
-dj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+JiMx
-OTk3ODtCMkImIzMwMzQwOyYjMjYxNTk7JiMxOTk2ODsmIzIwMTIzOyYjMjc2MDQ7JiMzNjczOTsm
-IzIwMTAyOyYjMzUyOTk7JiMyMDAxMzsmIzIyMjY5OyYjMzAzNDA7JiMyMDAxMzsmIzM4Mzg4OyYj
-MjE4MzA7JiM2NTI5MjsmIzMyNjc2OyYjMjE0NTc7JiMzNTgxMDsmIzMwNDI0OyYjMzI0NzM7JiMy
-NTE1MjsmIzI2Mzc3OyYjMjE1MTY7JiMzNDg5MjsmIzM2ODk2OyYjMjUxMDQ7JiMzNTgxMDsmIzMw
-NDI0OyYjMjI4MTA7JiMyMDIxNTsmIzI2Njg0OyYjMjAzMDI7JiM2NTI5MjsmIzIwMjE1OyYjMjY2
-ODQ7JiMyMDAyNjsmIzI5NTc5OyYjMjM0NTg7JiMyNTE0MzsmIzI0NTQ0OyYjMzU4MDI7JiMyNDIz
-MDsmIzIwMzAyOyYjMTIyOTA7JiM2NTI4ODsmIzIwMjE1OyYjMjY2ODQ7MyYjMTk5NzU7LTEwJiMx
-OTk3NTsmIzY1Mjg5OyA8L3N0cm9uZz48L2ZvbnQ+PC9kaXY+DQogICAgPGRpdj48Zm9udCBzaXpl
-PSI0IiBmYWNlPSJNUyBQR290aGljIj48c3Ryb25nPiYjMjM2Mzc7JiMyMDI1MDsmIzY1MzA2Ozwv
-c3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBH
-b3RoaWMiPjxzdHJvbmc+JiMyMDIxNTsmIzI2Njg0OyYjMzk2NDA7JiM2NTI5MjsmIzI1MjM3OyYj
-MzYxNjQ7JiMzOTExODsmIzM4NTA1OyYjMjI4MjM7JiM2NTI5MjsmIzM1MjY1OyYjMjU5Mjg7JiMy
-MTYwODsmIzI2Mzk5OyYjMzA3MDE7JiMxMjI5MDsmIzY1Mjg4OyYjMjAyMTU7JiMyNjY4NDszJiMx
-OTk3NTstMTAwJiMxOTk3NTspIDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250
-IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+JiMyMjgwNjsmIzM2MTUyOyYjMjM0
-NTg7JiMyNTE0MzsmIzI0MzIwOyYjMjE0NTc7JiMzMTk5NTsmIzMyNDc5OyYjMjAwMjc7JiMyMTE2
-MDsmIzI0MzM1OyYjMzM4Mjk7JiMzODE0NDs6PC9zdHJvbmc+PC9mb250PjwvZGl2Pg0KICAgIDxk
-aXY+PGZvbnQgc2l6ZT0iNCIgZmFjZT0iTVMgUEdvdGhpYyI+PHN0cm9uZz4xJiM2NTI4OTsmIzI1
-ODA1OyYjMjAzMTY7JiMzMTYxNjsmIzIxMzMzOyYjNjUyOTI7JiMyNjIyMjsmIzM2ODkwOyYjMTk5
-OTQ7JiMyMTE1MzsmIzIxNTkyOyYjMzI0NjM7JiMzNjgwNzsmIzMxNjE2OyYjMjEzMzM7JiMyMjUy
-MTsmIzM1NzU3OyYjMjEzNjM7JiMyMTQ4NzsmIzE5OTc4OyYjMjUxNjM7JiMyNTgwNTsmIzIwMzE2
-OyYjMTIyOTA7IDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQi
-IGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+MiYjNjUyODk7JiMyNTk2ODsmIzI1NDU0OyYjMjYz
-NTY7JiMyNjAzMjsmIzI0NTU1OyYjNjUyOTI7JiMyMzQ1ODsmIzI1MTQzOyYjMjU5Njg7JiMyNTQ1
-NDsmIzI2NDY5OyYjMjgzMDQ7JiMxOTk4MjsmIzIxNDYyOyYjMjAwNDM7JiMxOTk4MTsmIzIzNjEz
-OyYjMzAzNDA7JiMyMDg0MDsmIzI5Njk5OyYjMjAxMTQ7JiMzMjg1MjsmIzMyNTkzOyYjMTIyOTA7
-IDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAgICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1T
-IFBHb3RoaWMiPjxzdHJvbmc+MyYjNjUyODk7JiMxOTk2ODsmIzIzNTQ1OyYjMTk5Njg7JiMzNTgx
-MDsmIzMwNDI0OyYjNjUyOTI7JiMyMTQ4NzsmIzI1NjI4OyYjMzIwMzQ7JiMyMDIxOTsmIzI0ODQ3
-OyYjMjEzMDY7JiMyMjQ5NTsmIzIyMjY5OyYjMjM0Nzg7JiMyODUwODsmIzIyMzEyOyYjMjM0NTg7
-JiMyNTE0MzsmIzY1MjkyOyYjMjU5MTA7JiMyMTA0MDsmIzIzNDU4OyYjMjUxNDM7JiMzNzMxOTsm
-IzM2MTQxOyYjMjQ4NDc7JiMyMTUyMTsmIzM1ODEwOyYjMzA0MjQ7JiMzNzExNzsmIzI2MTU5OyYj
-MTk5Njg7JiMyMzU0NTsmIzE5OTY4OyYjMzU4MTA7JiMzMDQyNDsmIzEyMjkwOyA8L3N0cm9uZz48
-L2ZvbnQ+PC9kaXY+DQogICAgPGRpdj48Zm9udCBzaXplPSI0IiBmYWNlPSJNUyBQR290aGljIj48
-c3Ryb25nPjQmIzY1Mjg5OyYjMjM0NTg7JiMyNTE0MzsmIzI0NTQ0OyYjMzU4MDI7JiMyNDIzMDsm
-IzM5NjQwOyYjNjUyOTI7JiMyMTQ4NzsmIzIwMTk3OyYjMzY5OTE7JiMyNDMyMDsmIzIwMDEzOyYj
-MzgzODg7JiMyMTgzMDsmIzMwNDUyOyYjMjU1MDk7JiMyNDMyMDsmIzIxNDU3OyYjMzI0NTY7JiMz
-MTQ3MTsmIzIzNDU4OyYjMjUxNDM7JiM2NTI5MjsmIzIzNDU4OyYjMjUxNDM7JiMzMTI4MzsmIzIz
-NDUwOyYjNjUyOTI7JiMyMTAzMzsmIzI4MDcwOyYjMzk2NDA7JiMxMjI5MDsgKCYjMjAyMTU7JiMy
-NjY4NDsmIzIwOTYwOyYjMjEzMTU7JiMyMDgwMzspIDwvc3Ryb25nPjwvZm9udD48L2Rpdj4NCiAg
-ICA8ZGl2Pjxmb250IHNpemU9IjQiIGZhY2U9Ik1TIFBHb3RoaWMiPjxzdHJvbmc+JiMyMDgxMzsm
-IzM2MTUzOyYjMjIzMTI7JiMzMjQ0NzsmIzI4NDM2OyYjMzEwMzQ7Jm5ic3A7IDxmb250IGNvbG9y
-PSIjMDAwMGZmIiBzaXplPSI1Ij5xcSYjNjUzMDY7PGZvbnQgc2l6ZT0iNiI+Mjc1NTM2NTA0Mzwv
-Zm9udD4mbmJzcDsmbmJzcDsmbmJzcDsgJm5ic3A7dGVsJiM2NTMwNjsxODAzODA2ODY4MCZuYnNw
-OyZuYnNwOyAmbmJzcDswNzU1LTM2MzAwNzUwPC9mb250Pjwvc3Ryb25nPjwvZm9udD48L2Rpdj4N
-CiAgPC9ib2R5Pg0KPC9odG1sPg==
+On Sun, 2018-07-22 at 11:02 -0700, Steve Longerbeam wrote:
+> On 07/16/2018 07:12 AM, Philipp Zabel wrote:
+[...]
+> > > > +		/*
+> > > > +		 * The IC burst reads 8 pixels at a time. Reading beyond the
+> > > > +		 * end of the line is usually acceptable. Those pixels are
+> > > > +		 * ignored, unless the IC has to write the scaled line in
+> > > > +		 * reverse.
+> > > > +		 */
+> > > > +		if (!ipu_rot_mode_is_irt(ctx->rot_mode) &&
+> > > > +		    ctx->rot_mode && IPU_ROT_BIT_HFLIP)
+> > > > +			walign = 3;
+> > > 
+> > > This looks wrong. Do you mean:
+> > > 
+> > > if (ipu_rot_mode_is_irt(ctx->rot_mode) || (ctx->rot_mode & IPU_ROT_BIT_HFLIP))
+> > >       walign = 3;
+> > > else
+> > >       walign = 1;
+[...]
+> > No, I specifically meant (!IRT && HFLIP).
+> 
+> Right, but there is still a typo:
+> 
+> if (!ipu_rot_mode_is_irt(ctx->rot_mode) && ctx->rot_mode && IPU_ROT_BIT_HFLIP)
+>
+> should be:
+> 
+> if (!ipu_rot_mode_is_irt(ctx->rot_mode) && (ctx->rot_mode & IPU_ROT_BIT_HFLIP))
+
+Ow, yes, thank you.
+
+> > The rotator itself doesn't cause any input alignment restrictions, we
+> > just have to make sure that the intermediate tiles after scaling are 8x8
+> > aligned.
+> > 
+> > > Also, why not simply call ipu_image_convert_adjust() in
+> > > mem2mem_try_fmt()? If there is something missing in the former
+> > > function, then it should be added there, instead of adding the
+> > > missing checks in mem2mem_try_fmt().
+> > 
+> > ipu_image_convert_adjust tries to adjust both input and output image at
+> > the same time, here we just have the format of either input or output
+> > image. Do you suggest to split this function into an input and an output
+> > version?
+> 
+> See b4362162c0 ("media: imx: mem2mem: Use ipu_image_convert_adjust
+> in try format")
+
+Alright, this looks fine to me. I was worried about inter-format
+limitations, but the only one seems to be the output size lower bound to
+1/4 of the input size. Should S_FMT(OUT) also update the capture format
+if adjustments were made to keep a consistent state?
+
+regards
+Philipp
