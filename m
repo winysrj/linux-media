@@ -1,70 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:59118 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388012AbeGWTjj (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:35632 "HELO
+        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S2388038AbeGWT76 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 15:39:39 -0400
-Date: Mon, 23 Jul 2018 15:36:57 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        clayton@craftyguy.net, martijn@brixit.nl,
-        sakari.ailus@linux.intel.com,
-        Filip =?UTF-8?B?TWF0aWpldmnEhw==?= <filip.matijevic.pz@gmail.com>,
-        mchehab@s-opensource.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
- pipeline
-Message-ID: <20180723153649.73337c0f@coco.lan>
-In-Reply-To: <20180719205344.GA12098@amd>
-References: <20180708213258.GA18217@amd>
-        <20180719205344.GA12098@amd>
+        Mon, 23 Jul 2018 15:59:58 -0400
+Date: Mon, 23 Jul 2018 14:57:23 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+cc: Tomasz Figa <tfiga@chromium.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steven Rostedt <rostedt@goodmis.org>, <mingo@redhat.com>,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        <keiichiw@chromium.org>
+Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
+ ISO transfer
+In-Reply-To: <CAJs94EZEqWEscECp7bsJ3DvqoU83_Y2WQ55jPaG4MyoG-hvLFQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.44L0.1807231444150.1328-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
 
-Em Thu, 19 Jul 2018 22:53:44 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
-
-> On Sun 2018-07-08 23:32:58, Pavel Machek wrote:
-> > 
-> > Add support for opening multiple devices in v4l2_open(), and for
-> > mapping controls between devices.
-> > 
-> > This is necessary for complex devices, such as Nokia N900.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>  
+> I've tried to strategies:
 > 
-> Ping?
+> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
+> similar to how USB core does when there is no URB_NO_TRANSFER_DMA_MAP)
+
+Yes.
+
+> 2) Use sync_cpu and sync_device inside the handler (and dma_map only
+> once at memory allocation)
 > 
-> There's a lot of work to do on libv4l2... timely patch handling would
-> be nice.
+> It is interesting that dma_unmap/dma_map pair leads to the lower
+> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64 platform.
+> At armv7l platform using dma_unmap/dma_map  leads to ~50 usec in the
+> handler, and sync_cpu/sync_device - ~65 usec.
+> 
+> However, I am not sure is it mandatory to call
+> dma_sync_single_for_device for FROM_DEVICE direction?
 
-As we're be start working at the new library in order to support
-complex cameras, and I don't want to prevent you keeping doing your
-work, IMHO the best way to keep doing it would be to create two
-libv4l2 forks:
+According to Documentation/DMA-API-HOWTO.txt, the CPU should not write 
+to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
+not needed.
 
-	- one to be used by you - meant to support N900 camera;
-	- another one to be used by Google/Intel people that will
-	  be working at the Complex camera.
-
-This way, we can proceed with the development without causing
-instability to v4l-utils. Once we have the projects done at the
-separate repositories, we can work on merging them back upstream.
-
-So, please send me, in priv, a .ssh key for me to add you an
-account at linuxtv.org. I'll send you instructions about how to
-use the new account.
-
-Thanks,
-Mauro
+Alan Stern
