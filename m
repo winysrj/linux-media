@@ -1,57 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:35632 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S2388038AbeGWT76 (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:42093 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388135AbeGWWmq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 15:59:58 -0400
-Date: Mon, 23 Jul 2018 14:57:23 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-cc: Tomasz Figa <tfiga@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Steven Rostedt <rostedt@goodmis.org>, <mingo@redhat.com>,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        <keiichiw@chromium.org>
-Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
- ISO transfer
-In-Reply-To: <CAJs94EZEqWEscECp7bsJ3DvqoU83_Y2WQ55jPaG4MyoG-hvLFQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.44L0.1807231444150.1328-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+        Mon, 23 Jul 2018 18:42:46 -0400
+From: Guenter Roeck <linux@roeck-us.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        David Miller <davem@davemloft.net>,
+        Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH] media: staging: omap4iss: Include asm/cacheflush.h after generic includes
+Date: Mon, 23 Jul 2018 14:39:33 -0700
+Message-Id: <1532381973-11856-1-git-send-email-linux@roeck-us.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
+Including asm/cacheflush.h first results in the following build error when
+trying to build sparc32:allmodconfig.
 
-> I've tried to strategies:
-> 
-> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
-> similar to how USB core does when there is no URB_NO_TRANSFER_DMA_MAP)
+In file included from arch/sparc/include/asm/page.h:10:0,
+                 from arch/sparc/include/asm/string_32.h:13,
+                 from arch/sparc/include/asm/string.h:7,
+                 from include/linux/string.h:20,
+                 from include/linux/bitmap.h:9,
+                 from include/linux/cpumask.h:12,
+                 from arch/sparc/include/asm/smp_32.h:15,
+                 from arch/sparc/include/asm/smp.h:7,
+                 from arch/sparc/include/asm/switch_to_32.h:5,
+                 from arch/sparc/include/asm/switch_to.h:7,
+                 from arch/sparc/include/asm/ptrace.h:120,
+                 from arch/sparc/include/asm/thread_info_32.h:19,
+                 from arch/sparc/include/asm/thread_info.h:7,
+                 from include/linux/thread_info.h:38,
+                 from arch/sparc/include/asm/current.h:15,
+                 from include/linux/mutex.h:14,
+                 from include/linux/notifier.h:14,
+                 from include/linux/clk.h:17,
+                 from drivers/staging/media/omap4iss/iss_video.c:15:
+include/linux/highmem.h: In function 'clear_user_highpage':
+include/linux/highmem.h:137:31: error:
+	passing argument 1 of 'sparc_flush_page_to_ram' from incompatible
+	pointer type
 
-Yes.
+Include generic includes files first to fix the problem.
 
-> 2) Use sync_cpu and sync_device inside the handler (and dma_map only
-> once at memory allocation)
-> 
-> It is interesting that dma_unmap/dma_map pair leads to the lower
-> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64 platform.
-> At armv7l platform using dma_unmap/dma_map  leads to ~50 usec in the
-> handler, and sync_cpu/sync_device - ~65 usec.
-> 
-> However, I am not sure is it mandatory to call
-> dma_sync_single_for_device for FROM_DEVICE direction?
+Fixes: fc96d58c10162 ("[media] v4l: omap4iss: Add support for OMAP4 camera interface - Video devices")
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/staging/media/omap4iss/iss_video.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-According to Documentation/DMA-API-HOWTO.txt, the CPU should not write 
-to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
-not needed.
-
-Alan Stern
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index a3a83424a926..16478fe9e3f8 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -11,7 +11,6 @@
+  * (at your option) any later version.
+  */
+ 
+-#include <asm/cacheflush.h>
+ #include <linux/clk.h>
+ #include <linux/mm.h>
+ #include <linux/pagemap.h>
+@@ -24,6 +23,8 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-mc.h>
+ 
++#include <asm/cacheflush.h>
++
+ #include "iss_video.h"
+ #include "iss.h"
+ 
+-- 
+2.7.4
