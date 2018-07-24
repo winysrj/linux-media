@@ -1,52 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:41737 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726367AbeGXKmP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:48386 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388308AbeGXL7m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 06:42:15 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Lee Jones <lee.jones@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: platform: cros-ec-cec: fix dependency on MFD_CROS_EC
-Date: Tue, 24 Jul 2018 11:35:59 +0200
-Message-Id: <20180724093624.1670671-1-arnd@arndb.de>
+        Tue, 24 Jul 2018 07:59:42 -0400
+Date: Tue, 24 Jul 2018 07:53:45 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv6 02/12] media-ioc-g-topology.rst: document new 'index'
+ field
+Message-ID: <20180724075345.20414b5e@coco.lan>
+In-Reply-To: <a0f914f6-d165-f63b-1e0c-2bc107c3bf17@xs4all.nl>
+References: <20180710084512.99238-1-hverkuil@xs4all.nl>
+        <20180710084512.99238-3-hverkuil@xs4all.nl>
+        <20180713122334.68661b55@coco.lan>
+        <a0f914f6-d165-f63b-1e0c-2bc107c3bf17@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without the MFD driver, we run into a link error:
+Em Tue, 17 Jul 2018 13:58:22 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_transmit':
-cros-ec-cec.c:(.text+0x474): undefined reference to `cros_ec_cmd_xfer_status'
-drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_set_log_addr':
-cros-ec-cec.c:(.text+0x60b): undefined reference to `cros_ec_cmd_xfer_status'
-drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_adap_enable':
-cros-ec-cec.c:(.text+0x77d): undefined reference to `cros_ec_cmd_xfer_status'
+> On 13/07/18 17:23, Mauro Carvalho Chehab wrote:
+> > Em Tue, 10 Jul 2018 10:45:02 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Document the new struct media_v2_pad 'index' field.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> ---
+> >>  .../media/uapi/mediactl/media-ioc-g-topology.rst     | 12 ++++++++++--
+> >>  1 file changed, 10 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> >> index a3f259f83b25..bae2b4db89cc 100644
+> >> --- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> >> +++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+> >> @@ -176,7 +176,7 @@ desired arrays with the media graph elements.
+> >>      *  -  struct media_v2_intf_devnode
+> >>         -  ``devnode``
+> >>         -  Used only for device node interfaces. See
+> >> -	  :c:type:`media_v2_intf_devnode` for details..
+> >> +	  :c:type:`media_v2_intf_devnode` for details.
+> >>  
+> >>  
+> >>  .. tabularcolumns:: |p{1.6cm}|p{3.2cm}|p{12.7cm}|
+> >> @@ -218,7 +218,15 @@ desired arrays with the media graph elements.
+> >>         -  Pad flags, see :ref:`media-pad-flag` for more details.
+> >>  
+> >>      *  -  __u32
+> >> -       -  ``reserved``\ [5]
+> >> +       -  ``index``
+> >> +       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
+> >> +	  returns true. The ``media_version`` is defined in struct
+> >> +	  :c:type:`media_device_info` and can be retrieved using
+> >> +	  :ref:`MEDIA_IOC_DEVICE_INFO`. Pad indices are stable. If new pads are added
+> >> +	  for an entity in the future, then those will be added at the end.  
+> > 
+> > Hmm... Pad indexes may not be stable. That's by the way why we
+> > need a better way to enum it, and the Properties API was thinking
+> > to solve (and why we didn't add PAD index to this ioctl at the
+> > first place). 
+> > 
+> > The problem happens for example on TV demods and tuners:
+> > different models may have different kinds of output PADs:
+> > 
+> > 	- analog luminance carrier samples;
+> > 	- analog chrominance sub-carrier samples;
+> > 	- sliced VBI data;
+> > 	- audio RF sub-carrier samples;
+> > 	- audio mono data;
+> > 	- audio stereo data.
+> > 
+> > The same bridge chip can live with different demods, but need to
+> > setup the pipelines according with the type of the PAD. As right now
+> > we don't have any way to associate a PAD with an specific type of
+> > output, what happens is that the V4L2 core associates a pad number
+> > with an specific type of output. So, drivers may be exposing
+> > PADs that don't exist, in practice, just to make them compatible
+> > with similar subdevs.
+> > 
+> > Once we add a properties API (or something equivalent), the
+> > PAD numbers will change and subdevs will only expose the ones
+> > that really exists.  
+> 
+> So what do you suggest I do? There are two things here: you need the
+> pad index in order to use the SETUP_LINK ioctl, so adding this to
+> G_TOPOLOGY makes sense. The second is whether or not pad numbers
+> are stable. Currently they are, since there is no other way to
+> associate a pad with the type of signal it can carry.
+> 
+> Note that the index is already exposed with the older API, so changing
+> the pad index in the future will already potentially cause problems.
+> 
+> I am inclined to just remove the last two sentences of the description
+> above, so this becomes:
+> 
+> +       -  Pad index, starts at 0. Only valid if ``MEDIA_V2_PAD_HAS_INDEX(media_version)``
+> +	  returns true. The ``media_version`` is defined in struct
+> +	  :c:type:`media_device_info` and can be retrieved using
+> +	  :ref:`MEDIA_IOC_DEVICE_INFO`.
+> 
+> And we'll figure out what to do with this once we finally get properties.
 
-As we can compile-test all the dependency, the extra '| COMPILE_TEST' is
-not needed to get the build coverage, and we can simply turn MFD_CROS_EC
-into a hard dependency to make it build in all configurations.
+Ok, perhaps this is the best way. It was never said at the API
+documents that pad index are stable. 
 
-Fixes: cd70de2d356e ("media: platform: Add ChromeOS EC CEC driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> That's something I might actually work on myself, but not before we get
+> the current API consistent.
+> 
+> Regards,
+> 
+> 	Hans
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 92b182da8e4d..018fcbed82e4 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -535,7 +535,7 @@ if CEC_PLATFORM_DRIVERS
- 
- config VIDEO_CROS_EC_CEC
- 	tristate "ChromeOS EC CEC driver"
--	depends on MFD_CROS_EC || COMPILE_TEST
-+	depends on MFD_CROS_EC
- 	select CEC_CORE
- 	select CEC_NOTIFIER
- 	---help---
--- 
-2.18.0
+
+
+Thanks,
+Mauro
