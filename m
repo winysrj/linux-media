@@ -1,118 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:49336 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388142AbeGXEps (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43430 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2388151AbeGXEyl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 00:45:48 -0400
-Date: Tue, 24 Jul 2018 00:41:15 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        David Miller <davem@davemloft.net>,
-        Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH] media: staging: omap4iss: Include asm/cacheflush.h
- after generic includes
-Message-ID: <20180724004110.37d0e5dc@coco.lan>
-In-Reply-To: <1532381973-11856-1-git-send-email-linux@roeck-us.net>
-References: <1532381973-11856-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Tue, 24 Jul 2018 00:54:41 -0400
+Message-ID: <5c15f2ca58329aacfa65ff37da4d6b32@smtp-cloud8.xs4all.net>
+Date: Tue, 24 Jul 2018 05:50:15 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Jul 2018 14:39:33 -0700
-Guenter Roeck <linux@roeck-us.net> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Including asm/cacheflush.h first results in the following build error when
-> trying to build sparc32:allmodconfig.
-> 
-> In file included from arch/sparc/include/asm/page.h:10:0,
->                  from arch/sparc/include/asm/string_32.h:13,
->                  from arch/sparc/include/asm/string.h:7,
->                  from include/linux/string.h:20,
->                  from include/linux/bitmap.h:9,
->                  from include/linux/cpumask.h:12,
->                  from arch/sparc/include/asm/smp_32.h:15,
->                  from arch/sparc/include/asm/smp.h:7,
->                  from arch/sparc/include/asm/switch_to_32.h:5,
->                  from arch/sparc/include/asm/switch_to.h:7,
->                  from arch/sparc/include/asm/ptrace.h:120,
->                  from arch/sparc/include/asm/thread_info_32.h:19,
->                  from arch/sparc/include/asm/thread_info.h:7,
->                  from include/linux/thread_info.h:38,
->                  from arch/sparc/include/asm/current.h:15,
->                  from include/linux/mutex.h:14,
->                  from include/linux/notifier.h:14,
->                  from include/linux/clk.h:17,
->                  from drivers/staging/media/omap4iss/iss_video.c:15:
-> include/linux/highmem.h: In function 'clear_user_highpage':
-> include/linux/highmem.h:137:31: error:
-> 	passing argument 1 of 'sparc_flush_page_to_ram' from incompatible
-> 	pointer type
-> 
-> Include generic includes files first to fix the problem.
-> 
-> Fixes: fc96d58c10162 ("[media] v4l: omap4iss: Add support for OMAP4 camera interface - Video devices")
-> Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: David Miller <davem@davemloft.net>
-> Cc: Randy Dunlap <rdunlap@infradead.org>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/staging/media/omap4iss/iss_video.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-> index a3a83424a926..16478fe9e3f8 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.c
-> +++ b/drivers/staging/media/omap4iss/iss_video.c
-> @@ -11,7 +11,6 @@
->   * (at your option) any later version.
->   */
->  
-> -#include <asm/cacheflush.h>
->  #include <linux/clk.h>
->  #include <linux/mm.h>
->  #include <linux/pagemap.h>
-> @@ -24,6 +23,8 @@
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-mc.h>
->  
-> +#include <asm/cacheflush.h>
-> +
->  #include "iss_video.h"
->  #include "iss.h"
+Results of the daily build of media_tree:
 
-While I won't be against merging it, IMHO a better fix would be to
-add the includes asm/cacheflush.h needs inside it, e. g. something
-like adding:
+date:			Tue Jul 24 05:00:11 CEST 2018
+media-tree git hash:	39fbb88165b2bbbc77ea7acab5f10632a31526e6
+media_build git hash:	f3b64e45d2f2ef45cd4ae5b90a8f2a4fb284e43c
+v4l-utils git hash:	5a99dc69d0bf79bedadd5c9675033a8815fceb0e
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-	#include <linux/highmem.h>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.140-i686: OK
+linux-4.4.140-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.112-i686: OK
+linux-4.9.112-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.55-i686: OK
+linux-4.14.55-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.6-i686: OK
+linux-4.17.6-x86_64: OK
+linux-4.18-rc4-i686: OK
+linux-4.18-rc4-x86_64: OK
+apps: OK
+spec-git: OK
 
-at the sparc32 variant of it. Btw, ./arch/sparc/include/asm/cacheflush_64.h
-seems to include linux/mm.h... So, I guess the right fix would
-be something like:
+Detailed results are available here:
 
-diff --git a/arch/sparc/include/asm/cacheflush_32.h b/arch/sparc/include/asm/cacheflush_32.h
-index fb66094a2c30..daeccbdc371a 100644
---- a/arch/sparc/include/asm/cacheflush_32.h
-+++ b/arch/sparc/include/asm/cacheflush_32.h
-@@ -2,6 +2,8 @@
- #ifndef _SPARC_CACHEFLUSH_H
- #define _SPARC_CACHEFLUSH_H
- 
-+#include <linux/mm.h>
-+
- #include <asm/cachetlb_32.h>
- 
- #define flush_cache_all() \
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Thanks,
-Mauro
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
