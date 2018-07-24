@@ -1,51 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f43.google.com ([209.85.214.43]:37030 "EHLO
-        mail-it0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388256AbeGXNlf (ORCPT
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:38757 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726270AbeGXNvw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 09:41:35 -0400
-Received: by mail-it0-f43.google.com with SMTP id h20-v6so2254017itf.2
-        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2018 05:35:18 -0700 (PDT)
+        Tue, 24 Jul 2018 09:51:52 -0400
+Received: by mail-wr1-f66.google.com with SMTP id v14-v6so4017380wro.5
+        for <linux-media@vger.kernel.org>; Tue, 24 Jul 2018 05:45:32 -0700 (PDT)
+Subject: Re: [PATCH v3 00/35] Qualcomm Camera Subsystem driver - 8x96 support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
+ <d548ed20-23ac-0ef9-9cbe-67da42cde19a@xs4all.nl>
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <a102905e-8dd1-935d-1e50-57c42d949feb@linaro.org>
+Date: Tue, 24 Jul 2018 15:45:28 +0300
 MIME-Version: 1.0
-In-Reply-To: <1762892.v9kic1zYKq@avalon>
-References: <8804dcb3-1aca-3679-6a96-bbe554f188d0@redhat.com>
- <2208320.5nHJhHVTzE@avalon> <1a5ac0f3-9acd-1b8f-7354-b2147aa5636f@redhat.com> <1762892.v9kic1zYKq@avalon>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Tue, 24 Jul 2018 14:35:17 +0200
-Message-ID: <CABxcv=kTDtmFy=FDmJGLvu6NZk9iHuQBGZR7T9tvSs03Q8dYcA@mail.gmail.com>
-Subject: Re: Devices with a front and back webcam represented as a single UVC device
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-        Carlos Garnacho <carlosg@gnome.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <d548ed20-23ac-0ef9-9cbe-67da42cde19a@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans,
 
-On Thu, Jul 12, 2018 at 3:01 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-
-[snip]
-
+On 24.07.2018 14:22, Hans Verkuil wrote:
+> Hi Todor,
+> 
+> On 23/07/18 13:02, Todor Tomov wrote:
+>> Changelog v3:
+>> - split patch 08 to device tree binding patch and driver patch and
+>>   improve commit message.
 >>
->> Laurent, thank you for your input on this. I thought it was a bit weird that
->> the cam on my HP X2 only had what appears to be the debug controls, so I
->> opened it up and as I suspect (after your analysis) it is using a USB
->> module for the front camera, but the back camera is a sensor directly
->> hooked with its CSI/MIPI bus to the PCB, so very likely it is using the
->> ATOMISP stuff.
+>> --------------------------------------------------------------------------------
 >>
->> So I think that we can consider this "solved" for my 2-in-1.
->
-> Great, I'll add you to the list of potential testers for an ATOMISP solution
-> :-)
->
+>> This patchset adds support for the Qualcomm Camera Subsystem found
+>> on Qualcomm MSM8996 and APQ8096 SoC to the existing driver which
+>> used to support MSM8916 and APQ8016.
+>>
+>> The camera subsystem hardware on 8x96 is similar to 8x16 but
+>> supports more cameras and features. More details are added in the
+>> driver document by the last patch.
+>>
+>> The first 3 patches are dependencies which have already been on
+>> the mainling list but I'm adding them here for completeness.
+>>
+>> The following 12 patches add general updates and fixes to the driver.
+>> Then the rest add the support for the new hardware.
+>>
+>> The driver is tested on Dragonboard 410c (APQ8016) and Dragonboard 820c
+>> (APQ8096) with OV5645 camera sensors. media-ctl [1], yavta [2] and
+>> GStreamer were used for testing.
+>>
+>> [1] https://git.linuxtv.org//v4l-utils.git
+>> [2] http://git.ideasonboard.org/yavta.git
+> 
+> Unless I am mistaken the only thing we're waiting for is an Ack from Rob for
+> patch 8 (dt bindings), right?
 
-The ATOMISP driver was removed from staging by commit 51b8dc5163d
-("media: staging: atomisp: Remove driver"). Do you mean that there's a
-plan to bring that driver back?
+We are definitely waiting for Rob's feedback. If there are more comments
+meanwhile I will take care of them too but I think we don't have any so
+far (or at least didn't have any until some minutes ago :)).
 
+> 
+> If I get that this week, then I can make a pull request in time for 4.19.
+
+This will be really nice if we can do it. Thanks!
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+
+-- 
 Best regards,
-Javier
+Todor Tomov
