@@ -1,66 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:46701 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388366AbeGXT4T (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:46944 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388402AbeGXUEV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 15:56:19 -0400
+        Tue, 24 Jul 2018 16:04:21 -0400
 MIME-Version: 1.0
-References: <1532381973-11856-1-git-send-email-linux@roeck-us.net>
- <20180724004110.37d0e5dc@coco.lan> <CA+55aFyV=5QNJXn+t_ZDCigGi+HjM6N94DRb_E50_xUsk+VTFA@mail.gmail.com>
- <20180724153923.0f1b9f56@coco.lan>
-In-Reply-To: <20180724153923.0f1b9f56@coco.lan>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Tue, 24 Jul 2018 11:48:19 -0700
-Message-ID: <CA+55aFwVVQcbpH=3Qf8hfGhx_Dz-Xp0N+gbAoaFhqLkVD-+WtA@mail.gmail.com>
-Subject: Re: [PATCH] media: staging: omap4iss: Include asm/cacheflush.h after
- generic includes
-To: mchehab+samsung@kernel.org
-Cc: Guenter Roeck <linux@roeck-us.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+In-Reply-To: <Pine.LNX.4.44L0.1807231444150.1328-100000@iolanthe.rowland.org>
+References: <CAJs94EZEqWEscECp7bsJ3DvqoU83_Y2WQ55jPaG4MyoG-hvLFQ@mail.gmail.com>
+ <Pine.LNX.4.44L0.1807231444150.1328-100000@iolanthe.rowland.org>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Tue, 24 Jul 2018 21:56:09 +0300
+Message-ID: <CAJs94EahjbkJRWKR=2QeD=tOMR=kznwXbQgTbKvSuTg4jBk1ew@mail.gmail.com>
+Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
+ ISO transfer
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Staging subsystem List <devel@driverdev.osuosl.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Randy Dunlap <rdunlap@infradead.org>
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 24, 2018 at 11:39 AM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
+2018-07-23 21:57 GMT+03:00 Alan Stern <stern@rowland.harvard.edu>:
+> On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
 >
-> Works for me. Do you intend to apply it directly?
+>> I've tried to strategies:
+>>
+>> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
+>> similar to how USB core does when there is no URB_NO_TRANSFER_DMA_MAP)
+>
+> Yes.
+>
+>> 2) Use sync_cpu and sync_device inside the handler (and dma_map only
+>> once at memory allocation)
+>>
+>> It is interesting that dma_unmap/dma_map pair leads to the lower
+>> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64 platform.
+>> At armv7l platform using dma_unmap/dma_map  leads to ~50 usec in the
+>> handler, and sync_cpu/sync_device - ~65 usec.
+>>
+>> However, I am not sure is it mandatory to call
+>> dma_sync_single_for_device for FROM_DEVICE direction?
+>
+> According to Documentation/DMA-API-HOWTO.txt, the CPU should not write
+> to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
+> not needed.
 
-Yes, I took it and it should be pushed out.
+Well, I measured the following at armv7l. The handler execution time
+(URB_NO_TRANSFER_DMA_MAP is used for all cases):
 
-> Yeah, some time ago mailing lists got flooded with some janitorial's
-> patchset adding includes (some claiming to be needed on some archs or
-> under some random Kconfigs)... Compile-test ended by adding more such
-> stuff (for a good reason, IMHO). I wonder if are there a better way to
-> handle includes without slowing builds.
+1) coherent DMA: ~3000 usec (pwc is not functional)
+2) explicit dma_unmap and dma_map in the handler: ~52 usec
+3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device): ~56 usec
 
-It's a nightmare to do by hand, with all the different architectures
-having slightly different header file requirements.
+So, I suppose that unfortunately Tomasz suggestion doesn't work. There
+is no performance improvement when dma_sync_single is used.
 
-The scheduler people did it last year (roughly Feb-2017 timeframe),
-and it was painful and involved a lot of build testing. Basically some
-<linux/sched.h> was split up into <linux/sched/*.h>
+At x86_64 the following happens:
 
-I wouldn't encourage people to do that again without some tooling to
-actually look at "what symbols might get defined by header file
-collection XYZ, what symbols might I need with any config option" kind
-of logic.
+1) coherent DMA: ~2 usec
+2) explicit dma_unmap and dma_map in the handler: ~3.5 usec
+3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device): ~4 usec
 
-But it would be lovely if somebody *could* do tooling like that.
+So, whats to do next? Personally, I think that DMA streaming API
+introduces not so great overhead.
+Does anybody happy with turning to streaming DMA or I'll introduce
+module-level switch as Ezequiel suggested?
 
-Just having something you can run on C files that says "these headers
-are completely unused under all possibly config options and
-architectures" might be interesting.
 
-Because right now, most people tend to just copy a big set of headers,
-whether they need it or not. And they almost never shrink, but new
-ones get added as people add uses.
+>
+> Alan Stern
+>
 
-            Linus
+
+
+-- 
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119234, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
