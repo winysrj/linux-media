@@ -1,88 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:46402 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S2388748AbeGXWDm (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:50834 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388494AbeGXW5s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 18:03:42 -0400
-Date: Tue, 24 Jul 2018 16:55:24 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-cc: Tomasz Figa <tfiga@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Steven Rostedt <rostedt@goodmis.org>, <mingo@redhat.com>,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        <keiichiw@chromium.org>
-Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
- ISO transfer
-In-Reply-To: <CAJs94EahjbkJRWKR=2QeD=tOMR=kznwXbQgTbKvSuTg4jBk1ew@mail.gmail.com>
-Message-ID: <Pine.LNX.4.44L0.1807241652550.1311-100000@iolanthe.rowland.org>
+        Tue, 24 Jul 2018 18:57:48 -0400
+Date: Tue, 24 Jul 2018 18:49:08 -0300
+From: Mauro Carvalho Chehab <mchehab+kde@kernel.org>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: hverkuil@xs4all.nl, mchehab@kernel.org, ysato@users.sourceforge.jp,
+        dalias@libc.org, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/9] sh: defconfig: migor: Update defconfig
+Message-ID: <20180724184908.28b4f27b@coco.lan>
+In-Reply-To: <1530699346-3235-2-git-send-email-jacopo+renesas@jmondi.org>
+References: <1530699346-3235-1-git-send-email-jacopo+renesas@jmondi.org>
+        <1530699346-3235-2-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 24 Jul 2018, Matwey V. Kornilov wrote:
+Em Wed,  4 Jul 2018 12:15:38 +0200
+Jacopo Mondi <jacopo+renesas@jmondi.org> escreveu:
 
-> 2018-07-23 21:57 GMT+03:00 Alan Stern <stern@rowland.harvard.edu>:
-> > On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
-> >
-> >> I've tried to strategies:
-> >>
-> >> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
-> >> similar to how USB core does when there is no URB_NO_TRANSFER_DMA_MAP)
-> >
-> > Yes.
-> >
-> >> 2) Use sync_cpu and sync_device inside the handler (and dma_map only
-> >> once at memory allocation)
-> >>
-> >> It is interesting that dma_unmap/dma_map pair leads to the lower
-> >> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64 platform.
-> >> At armv7l platform using dma_unmap/dma_map  leads to ~50 usec in the
-> >> handler, and sync_cpu/sync_device - ~65 usec.
-> >>
-> >> However, I am not sure is it mandatory to call
-> >> dma_sync_single_for_device for FROM_DEVICE direction?
-> >
-> > According to Documentation/DMA-API-HOWTO.txt, the CPU should not write
-> > to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
-> > not needed.
+> Update defconfig to Linux v4.18-rc2.
 > 
-> Well, I measured the following at armv7l. The handler execution time
-> (URB_NO_TRANSFER_DMA_MAP is used for all cases):
-> 
-> 1) coherent DMA: ~3000 usec (pwc is not functional)
-> 2) explicit dma_unmap and dma_map in the handler: ~52 usec
-> 3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device): ~56 usec
-> 
-> So, I suppose that unfortunately Tomasz suggestion doesn't work. There
-> is no performance improvement when dma_sync_single is used.
-> 
-> At x86_64 the following happens:
-> 
-> 1) coherent DMA: ~2 usec
-> 2) explicit dma_unmap and dma_map in the handler: ~3.5 usec
-> 3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device): ~4 usec
-> 
-> So, whats to do next? Personally, I think that DMA streaming API
-> introduces not so great overhead.
-> Does anybody happy with turning to streaming DMA or I'll introduce
-> module-level switch as Ezequiel suggested?
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-How about using the dma_unmap and dma_map calls in the USB core?  If 
-they add the same overhead as putting them in the handler, I think it 
-would be acceptable for x86_64.
+Why do you want to apply this via the media tree?
 
-It certainly is odd that the dma_sync_single APIs take longer than 
-simply mapping and unmapping.
+IMO, the natural path would be to submit this to the SUPERH
+maintainer. If there is a good reason for merging via media,
+I'd expect an ack from the maintainer to do it so.
 
-Alan Stern
+Regards,
+Mauro
+
+> 
+> ---
+> The updated config file generated by:
+> 
+> make ARCH=sh migor_defconfig
+> make ARCH=sh menuconfig
+> make ARCH=sh savedefconfig
+> cp defconfig arch/sh/configs/migor_defconfig
+> ---
+> ---
+>  arch/sh/configs/migor_defconfig | 25 ++-----------------------
+>  1 file changed, 2 insertions(+), 23 deletions(-)
+> 
+> diff --git a/arch/sh/configs/migor_defconfig b/arch/sh/configs/migor_defconfig
+> index e04f21b..a85a327 100644
+> --- a/arch/sh/configs/migor_defconfig
+> +++ b/arch/sh/configs/migor_defconfig
+> @@ -3,8 +3,6 @@ CONFIG_IKCONFIG=y
+>  CONFIG_IKCONFIG_PROC=y
+>  CONFIG_LOG_BUF_SHIFT=14
+>  CONFIG_BLK_DEV_INITRD=y
+> -# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+> -# CONFIG_SYSCTL_SYSCALL is not set
+>  CONFIG_SLAB=y
+>  CONFIG_PROFILING=y
+>  CONFIG_OPROFILE=y
+> @@ -13,9 +11,7 @@ CONFIG_MODULES=y
+>  CONFIG_CPU_SUBTYPE_SH7722=y
+>  CONFIG_MEMORY_START=0x0c000000
+>  CONFIG_NUMA=y
+> -# CONFIG_MIGRATION is not set
+>  CONFIG_SH_MIGOR=y
+> -# CONFIG_SH_TIMER_CMT is not set
+>  CONFIG_SECCOMP=y
+>  CONFIG_CMDLINE_OVERWRITE=y
+>  CONFIG_CMDLINE="console=tty0 console=ttySC0,115200 earlyprintk=serial ip=on root=/dev/nfs ip=dhcp"
+> @@ -27,7 +23,6 @@ CONFIG_IP_PNP=y
+>  CONFIG_IP_PNP_DHCP=y
+>  # CONFIG_IPV6 is not set
+>  CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+> -CONFIG_FW_LOADER=m
+>  CONFIG_MTD=y
+>  CONFIG_MTD_CMDLINE_PARTS=y
+>  CONFIG_MTD_BLOCK=y
+> @@ -40,9 +35,7 @@ CONFIG_BLK_DEV_RAM=y
+>  CONFIG_SCSI=y
+>  CONFIG_BLK_DEV_SD=y
+>  CONFIG_NETDEVICES=y
+> -CONFIG_NET_ETHERNET=y
+>  CONFIG_SMC91X=y
+> -# CONFIG_INPUT_MOUSEDEV is not set
+>  CONFIG_INPUT_EVDEV=y
+>  # CONFIG_KEYBOARD_ATKBD is not set
+>  CONFIG_KEYBOARD_SH_KEYSC=y
+> @@ -50,30 +43,16 @@ CONFIG_KEYBOARD_SH_KEYSC=y
+>  CONFIG_INPUT_TOUCHSCREEN=y
+>  CONFIG_TOUCHSCREEN_MIGOR=y
+>  # CONFIG_SERIO is not set
+> -CONFIG_VT_HW_CONSOLE_BINDING=y
+>  CONFIG_SERIAL_SH_SCI=y
+> -CONFIG_SERIAL_SH_SCI_NR_UARTS=3
+> -CONFIG_SERIAL_SH_SCI_CONSOLE=y
+>  CONFIG_HW_RANDOM=y
+>  CONFIG_I2C=y
+>  CONFIG_I2C_SH_MOBILE=y
+>  # CONFIG_HWMON is not set
+>  CONFIG_MEDIA_SUPPORT=y
+> -CONFIG_VIDEO_DEV=y
+> -# CONFIG_VIDEO_ALLOW_V4L1 is not set
+> -# CONFIG_MEDIA_TUNER_CUSTOMISE is not set
+> -CONFIG_VIDEO_HELPER_CHIPS_AUTO=y
+> -CONFIG_SOC_CAMERA=y
+> -CONFIG_SOC_CAMERA_TW9910=y
+> -CONFIG_SOC_CAMERA_OV772X=y
+> -CONFIG_VIDEO_SH_MOBILE_CEU=y
+> -# CONFIG_RADIO_ADAPTERS is not set
+>  CONFIG_FB=y
+>  CONFIG_FB_SH_MOBILE_LCDC=y
+>  CONFIG_FRAMEBUFFER_CONSOLE=y
+>  CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
+> -CONFIG_FONTS=y
+> -CONFIG_FONT_MINI_4x6=y
+>  CONFIG_LOGO=y
+>  # CONFIG_LOGO_LINUX_MONO is not set
+>  # CONFIG_LOGO_LINUX_VGA16 is not set
+> @@ -81,7 +60,6 @@ CONFIG_LOGO=y
+>  # CONFIG_LOGO_SUPERH_MONO is not set
+>  # CONFIG_LOGO_SUPERH_CLUT224 is not set
+>  CONFIG_USB_GADGET=y
+> -CONFIG_USB_GADGET_M66592=y
+>  CONFIG_USB_G_SERIAL=m
+>  CONFIG_RTC_CLASS=y
+>  CONFIG_RTC_DRV_RS5C372=y
+> @@ -95,6 +73,7 @@ CONFIG_NFS_FS=y
+>  CONFIG_ROOT_NFS=y
+>  CONFIG_DEBUG_FS=y
+>  CONFIG_CRYPTO_MANAGER=y
+> -# CONFIG_CRYPTO_ANSI_CPRNG is not set
+>  # CONFIG_CRYPTO_HW is not set
+>  CONFIG_CRC_T10DIF=y
+> +CONFIG_FONTS=y
+> +CONFIG_FONT_MINI_4x6=y
+
+
+
+Thanks,
+Mauro
