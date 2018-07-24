@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44545 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2388315AbeGXMVo (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:55059 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2388256AbeGXMrI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 08:21:44 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+        Tue, 24 Jul 2018 08:47:08 -0400
+Subject: Re: [PATCH v3 00/35] Qualcomm Camera Subsystem driver - 8x96 support
+To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+References: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.19] v2: media/mc: fix inconsistencies
-Message-ID: <03964063-7400-20a3-e689-cdb1de4e5b17@xs4all.nl>
-Date: Tue, 24 Jul 2018 13:15:44 +0200
+Message-ID: <717da3cd-7afe-9aeb-352a-898e12f2b1bc@xs4all.nl>
+Date: Tue, 24 Jul 2018 13:41:02 +0200
 MIME-Version: 1.0
+In-Reply-To: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the pull request of v6 of my patch series to fix the mc inconsistencies,
-with patches 2 and 11 replaced by the v6.1 version (dropping the text about
-stable index values).
+On 23/07/18 13:02, Todor Tomov wrote:
+> Changelog v3:
+> - split patch 08 to device tree binding patch and driver patch and
+>   improve commit message.
+> 
+> --------------------------------------------------------------------------------
+> 
+> This patchset adds support for the Qualcomm Camera Subsystem found
+> on Qualcomm MSM8996 and APQ8096 SoC to the existing driver which
+> used to support MSM8916 and APQ8016.
+> 
+> The camera subsystem hardware on 8x96 is similar to 8x16 but
+> supports more cameras and features. More details are added in the
+> driver document by the last patch.
+> 
+> The first 3 patches are dependencies which have already been on
+> the mainling list but I'm adding them here for completeness.
+> 
+> The following 12 patches add general updates and fixes to the driver.
+> Then the rest add the support for the new hardware.
+> 
+> The driver is tested on Dragonboard 410c (APQ8016) and Dragonboard 820c
+> (APQ8096) with OV5645 camera sensors. media-ctl [1], yavta [2] and
+> GStreamer were used for testing.
+> 
+> [1] https://git.linuxtv.org//v4l-utils.git
+> [2] http://git.ideasonboard.org/yavta.git
+> 
+> --------------------------------------------------------------------------------
+
+When running sparse I get these warnings:
+
+camss/camss-csiphy-2ph-1-0.c:170:28: warning: symbol 'csiphy_ops_2ph_1_0' was not declared. Should it be static?
+camss/camss-csiphy-3ph-1-0.c:250:28: warning: symbol 'csiphy_ops_3ph_1_0' was not declared. Should it be static?
+camss/camss-vfe-4-1.c:976:25: warning: symbol 'vfe_ops_4_1' was not declared. Should it be static?
+camss/camss-vfe-4-7.c:1098:25: warning: symbol 'vfe_ops_4_7' was not declared. Should it be static?
+
+checkpatch.pl complains about this as well.
+
+There are externs in vfe.c, but those should probably be moved to camss-vfe.h.
+
+It should solves both checkpatch and sparse.
 
 Regards,
 
 	Hans
-
-The following changes since commit 39fbb88165b2bbbc77ea7acab5f10632a31526e6:
-
-  media: bpf: ensure bpf program is freed on detach (2018-07-13 11:07:29 -0400)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git media-missing2
-
-for you to fetch changes up to ff8d3722d295af44d75f4dce55e518d5258a2c0a:
-
-  media-ioc-enum-entities.rst/-g-topology.rst: clarify ID/name usage (2018-07-24 13:05:53 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (12):
-      media: add 'index' to struct media_v2_pad
-      media-ioc-g-topology.rst: document new 'index' field
-      media: add flags field to struct media_v2_entity
-      media-ioc-g-topology.rst: document new 'flags' field
-      media: rename MEDIA_ENT_F_DTV_DECODER to MEDIA_ENT_F_DV_DECODER
-      media.h: add MEDIA_ENT_F_DV_ENCODER
-      media.h: reorder video en/decoder functions
-      ad9389b/adv7511: set proper media entity function
-      adv7180/tvp514x/tvp7002: fix entity function
-      media/i2c: add missing entity functions
-      media-ioc-enum-links.rst: improve pad index description
-      media-ioc-enum-entities.rst/-g-topology.rst: clarify ID/name usage
-
- Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst |  9 ++++++---
- Documentation/media/uapi/mediactl/media-ioc-enum-links.rst    |  2 +-
- Documentation/media/uapi/mediactl/media-ioc-g-topology.rst    | 40 ++++++++++++++++++++++++++++++++--------
- Documentation/media/uapi/mediactl/media-types.rst             |  9 ++++++++-
- drivers/media/i2c/ad9389b.c                                   |  1 +
- drivers/media/i2c/adv7180.c                                   |  2 +-
- drivers/media/i2c/adv7511.c                                   |  1 +
- drivers/media/i2c/adv7604.c                                   |  1 +
- drivers/media/i2c/adv7842.c                                   |  1 +
- drivers/media/i2c/et8ek8/et8ek8_driver.c                      |  1 +
- drivers/media/i2c/mt9m032.c                                   |  1 +
- drivers/media/i2c/mt9p031.c                                   |  1 +
- drivers/media/i2c/mt9t001.c                                   |  1 +
- drivers/media/i2c/mt9v032.c                                   |  1 +
- drivers/media/i2c/tda1997x.c                                  |  2 +-
- drivers/media/i2c/tvp514x.c                                   |  2 +-
- drivers/media/i2c/tvp7002.c                                   |  2 +-
- drivers/media/media-device.c                                  |  2 ++
- include/uapi/linux/media.h                                    | 39 +++++++++++++++++++++++++++++++--------
- 19 files changed, 93 insertions(+), 25 deletions(-)
