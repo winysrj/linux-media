@@ -1,94 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:44769 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728358AbeGYOjx (ORCPT
+Received: from unassigned.psychz.net ([45.35.86.50]:48531 "EHLO
+        anthropologie.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1728308AbeGYO7c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 10:39:53 -0400
-Message-ID: <1532525286.4879.5.camel@pengutronix.de>
-Subject: Re: [PATCH 0/2] Document memory-to-memory video codec interfaces
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
-        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        jtp.park@samsung.com,
-        Tiffany Lin =?UTF-8?Q?=28=E6=9E=97=E6=85=A7=E7=8F=8A=29?=
-        <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
-        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
-        nicolas@ndufresne.ca,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        ezequiel@collabora.com
-Date: Wed, 25 Jul 2018 15:28:06 +0200
-In-Reply-To: <20180724140621.59624-1-tfiga@chromium.org>
-References: <20180724140621.59624-1-tfiga@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Wed, 25 Jul 2018 10:59:32 -0400
+To: linux-media@vger.kernel.org
+Subject: custom printed logo USB flash drives
+Message-ID: <656b109cc10bf509aa44da658b2be6a9@psdvault.com>
+Date: Wed, 25 Jul 2018 10:30:42 +0200
+From: "Vanessa" <sarakohene@solarpassion.com>
+Reply-To: loudaogute@aliyun.com
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+How are you?
 
-On Tue, 2018-07-24 at 23:06 +0900, Tomasz Figa wrote:
-> This series attempts to add the documentation of what was discussed
-> during Media Workshops at LinuxCon Europe 2012 in Barcelona and then
-> later Embedded Linux Conference Europe 2014 in Düsseldorf and then
-> eventually written down by Pawel Osciak and tweaked a bit by Chrome OS
-> video team (but mostly in a cosmetic way or making the document more
-> precise), during the several years of Chrome OS using the APIs in
-> production.
-> 
-> Note that most, if not all, of the API is already implemented in
-> existing mainline drivers, such as s5p-mfc or mtk-vcodec. Intention of
-> this series is just to formalize what we already have.
->
-> It is an initial conversion from Google Docs to RST, so formatting is
-> likely to need some further polishing. It is also the first time for me
-> to create such long RST documention. I could not find any other instance
-> of similar userspace sequence specifications among our Media documents,
-> so I mostly followed what was there in the source. Feel free to suggest
-> a better format.
-> 
-> Much of credits should go to Pawel Osciak, for writing most of the
-> original text of the initial RFC.
-> 
-> Changes since RFC:
-> (https://lore.kernel.org/patchwork/project/lkml/list/?series=348588)
->  - The number of changes is too big to list them all here. Thanks to
->    a huge number of very useful comments from everyone (Philipp, Hans,
->    Nicolas, Dave, Stanimir, Alexandre) we should have the interfaces much
->    more specified now. The issues collected since previous revisions and
->    answers leading to this revision are listed below.
+I would like to speak with the person in charge of purchasing your branded
+promotional products for your company?
 
-Thanks a lot for the update, and especially for the nice Q&A summary of
-the discussions so far.
+We create custom LOGO USB flash drives for our clients throughout the US.
+We can print your logo, and load your digital images, videos and files!
+If you need marketing, advertising, gifts or incentives, USB flash drives
+are the solution!
 
-[...]
-> Decoder issues
-> 
-[...]
->   How should ENUM_FRAMESIZES be affected by profiles and levels?
-> 
->   Answer: Not in current specification - the logic is too complicated and
->   it might make more sense to actually handle this in user space.  (In
->   theory, level implies supported frame sizes + other factors.)
+Here is what we include:
+-All Memory Sizes from 64MB up to 128GB!
+-Second Side Printing
+-Low Minimum Quantities
+-Rush Service Available
+-Full color Printing
 
-For decoding I think it makes more sense to let the hardware decode them
-from the stream and present them as read-only controls, such as:
+NEW:   We can make a custom shaped USB drive to look like your Logo or
+product!
+Send us your product image or logo files; we will create a design mock up
+for you at no cost!
+We are always running a new deals; email to get pricing!
 
-42a68012e67c ("media: coda: add read-only h.264 decoder profile/level
-controls")
+Ask about the “Double Your Memory” upgrade promotion going on right
+now!
+Pricing is low right now, so let us know what you need and we will get you
+a quick quote.
 
-if possible. For encoding, the coda firmware determines level from
-bitrate and coded resolution, itself, so I agree not making this part of
-the spec is a good idea for now.
+We will beat any competitors pricing, send us your last invoice and we will
+beat it!
 
-regards
-Philipp
+We always offer great rates for schools and nonprofits as well.
+Regards,
+
+Vanessa Kellen
+Logo USB Account Manager
