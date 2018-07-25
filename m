@@ -1,153 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:35609 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:35591 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729820AbeGYRv1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 13:51:27 -0400
+        id S1729821AbeGYRv0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 13:51:26 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
-Subject: [PATCH v4 15/34] media: dt-bindings: media: qcom,camss: Fix whitespaces
-Date: Wed, 25 Jul 2018 19:38:24 +0300
-Message-Id: <1532536723-19062-16-git-send-email-todor.tomov@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 20/34] media: camss: csiphy: Unify lane handling
+Date: Wed, 25 Jul 2018 19:38:29 +0300
+Message-Id: <1532536723-19062-21-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use tabs.
+Restructure lane configuration so it is simpler and will allow
+similar (although not the same) handling for different hardware
+versions.
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: Mark Rutland <mark.rutland@arm.com>
-CC: devicetree@vger.kernel.org
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- .../devicetree/bindings/media/qcom,camss.txt       | 92 +++++++++++-----------
- 1 file changed, 46 insertions(+), 46 deletions(-)
+ .../platform/qcom/camss/camss-csiphy-2ph-1-0.c     | 48 ++++++++++++----------
+ drivers/media/platform/qcom/camss/camss-csiphy.c   |  4 +-
+ drivers/media/platform/qcom/camss/camss-csiphy.h   |  3 +-
+ 3 files changed, 29 insertions(+), 26 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
-index 032e8ed..e938eb0 100644
---- a/Documentation/devicetree/bindings/media/qcom,camss.txt
-+++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
-@@ -53,25 +53,25 @@ Qualcomm Camera Subsystem
- 	Usage: required
- 	Value type: <stringlist>
- 	Definition: Should contain the following entries:
--                - "top_ahb"
--                - "ispif_ahb"
--                - "csiphy0_timer"
--                - "csiphy1_timer"
--                - "csi0_ahb"
--                - "csi0"
--                - "csi0_phy"
--                - "csi0_pix"
--                - "csi0_rdi"
--                - "csi1_ahb"
--                - "csi1"
--                - "csi1_phy"
--                - "csi1_pix"
--                - "csi1_rdi"
--                - "ahb"
--                - "vfe0"
--                - "csi_vfe0"
--                - "vfe_ahb"
--                - "vfe_axi"
-+		- "top_ahb"
-+		- "ispif_ahb"
-+		- "csiphy0_timer"
-+		- "csiphy1_timer"
-+		- "csi0_ahb"
-+		- "csi0"
-+		- "csi0_phy"
-+		- "csi0_pix"
-+		- "csi0_rdi"
-+		- "csi1_ahb"
-+		- "csi1"
-+		- "csi1_phy"
-+		- "csi1_pix"
-+		- "csi1_rdi"
-+		- "ahb"
-+		- "vfe0"
-+		- "csi_vfe0"
-+		- "vfe_ahb"
-+		- "vfe_axi"
- - vdda-supply:
- 	Usage: required
- 	Value type: <phandle>
-@@ -95,17 +95,17 @@ Qualcomm Camera Subsystem
- 		- clock-lanes:
- 			Usage: required
- 			Value type: <u32>
--                        Definition: The physical clock lane index. The value
--                                    must always be <1> as the physical clock
--                                    lane is lane 1.
-+			Definition: The physical clock lane index. The value
-+				    must always be <1> as the physical clock
-+				    lane is lane 1.
- 		- data-lanes:
- 			Usage: required
- 			Value type: <prop-encoded-array>
--                        Definition: An array of physical data lanes indexes.
--                                    Position of an entry determines the logical
--                                    lane number, while the value of an entry
--                                    indicates physical lane index. Lane swapping
--                                    is supported.
-+			Definition: An array of physical data lanes indexes.
-+				    Position of an entry determines the logical
-+				    lane number, while the value of an entry
-+				    indicates physical lane index. Lane swapping
-+				    is supported.
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+index 7325906..5f499be 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+@@ -86,7 +86,7 @@ static void csiphy_lanes_enable(struct csiphy_device *csiphy,
+ {
+ 	struct csiphy_lanes_cfg *c = &cfg->csi2->lane_cfg;
+ 	u8 settle_cnt;
+-	u8 val;
++	u8 val, l = 0;
+ 	int i = 0;
  
- * An Example
+ 	settle_cnt = csiphy_settle_cnt_calc(pixel_clock, bpp, c->num_data,
+@@ -104,34 +104,38 @@ static void csiphy_lanes_enable(struct csiphy_device *csiphy,
+ 	val = cfg->combo_mode << 4;
+ 	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
  
-@@ -161,25 +161,25 @@ Qualcomm Camera Subsystem
- 			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
- 			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
- 			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
--                clock-names = "top_ahb",
--                        "ispif_ahb",
--                        "csiphy0_timer",
--                        "csiphy1_timer",
--                        "csi0_ahb",
--                        "csi0",
--                        "csi0_phy",
--                        "csi0_pix",
--                        "csi0_rdi",
--                        "csi1_ahb",
--                        "csi1",
--                        "csi1_phy",
--                        "csi1_pix",
--                        "csi1_rdi",
--                        "ahb",
--                        "vfe0",
--                        "csi_vfe0",
--                        "vfe_ahb",
--                        "vfe_axi";
-+		clock-names = "top_ahb",
-+			"ispif_ahb",
-+			"csiphy0_timer",
-+			"csiphy1_timer",
-+			"csi0_ahb",
-+			"csi0",
-+			"csi0_phy",
-+			"csi0_pix",
-+			"csi0_rdi",
-+			"csi1_ahb",
-+			"csi1",
-+			"csi1_phy",
-+			"csi1_pix",
-+			"csi1_rdi",
-+			"ahb",
-+			"vfe0",
-+			"csi_vfe0",
-+			"vfe_ahb",
-+			"vfe_axi";
- 		vdda-supply = <&pm8916_l2>;
- 		iommus = <&apps_iommu 3>;
- 		ports {
+-	while (lane_mask) {
+-		if (lane_mask & 0x1) {
+-			writel_relaxed(0x10, csiphy->base +
+-				       CAMSS_CSI_PHY_LNn_CFG2(i));
+-			writel_relaxed(settle_cnt, csiphy->base +
+-				       CAMSS_CSI_PHY_LNn_CFG3(i));
+-			writel_relaxed(0x3f, csiphy->base +
+-				       CAMSS_CSI_PHY_INTERRUPT_MASKn(i));
+-			writel_relaxed(0x3f, csiphy->base +
+-				       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
+-		}
+-
+-		lane_mask >>= 1;
+-		i++;
++	for (i = 0; i <= c->num_data; i++) {
++		if (i == c->num_data)
++			l = c->clk.pos;
++		else
++			l = c->data[i].pos;
++
++		writel_relaxed(0x10, csiphy->base +
++			       CAMSS_CSI_PHY_LNn_CFG2(l));
++		writel_relaxed(settle_cnt, csiphy->base +
++			       CAMSS_CSI_PHY_LNn_CFG3(l));
++		writel_relaxed(0x3f, csiphy->base +
++			       CAMSS_CSI_PHY_INTERRUPT_MASKn(l));
++		writel_relaxed(0x3f, csiphy->base +
++			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(l));
+ 	}
+ }
+ 
+-static void csiphy_lanes_disable(struct csiphy_device *csiphy, u8 lane_mask)
++static void csiphy_lanes_disable(struct csiphy_device *csiphy,
++				 struct csiphy_config *cfg)
+ {
++	struct csiphy_lanes_cfg *c = &cfg->csi2->lane_cfg;
++	u8 l = 0;
+ 	int i = 0;
+ 
+-	while (lane_mask) {
+-		if (lane_mask & 0x1)
+-			writel_relaxed(0x0, csiphy->base +
+-				       CAMSS_CSI_PHY_LNn_CFG2(i));
++	for (i = 0; i <= c->num_data; i++) {
++		if (i == c->num_data)
++			l = c->clk.pos;
++		else
++			l = c->data[i].pos;
+ 
+-		lane_mask >>= 1;
+-		i++;
++		writel_relaxed(0x0, csiphy->base +
++			       CAMSS_CSI_PHY_LNn_CFG2(l));
+ 	}
+ 
+ 	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
+index 8d10e85..d35eea0 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
+@@ -296,9 +296,7 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
+  */
+ static void csiphy_stream_off(struct csiphy_device *csiphy)
+ {
+-	u8 lane_mask = csiphy_get_lane_mask(&csiphy->cfg.csi2->lane_cfg);
+-
+-	csiphy->ops->lanes_disable(csiphy, lane_mask);
++	csiphy->ops->lanes_disable(csiphy, &csiphy->cfg);
+ }
+ 
+ 
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.h b/drivers/media/platform/qcom/camss/camss-csiphy.h
+index edad941..e3dd257 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy.h
++++ b/drivers/media/platform/qcom/camss/camss-csiphy.h
+@@ -51,7 +51,8 @@ struct csiphy_hw_ops {
+ 	void (*lanes_enable)(struct csiphy_device *csiphy,
+ 			     struct csiphy_config *cfg,
+ 			     u32 pixel_clock, u8 bpp, u8 lane_mask);
+-	void (*lanes_disable)(struct csiphy_device *csiphy, u8 lane_mask);
++	void (*lanes_disable)(struct csiphy_device *csiphy,
++			      struct csiphy_config *cfg);
+ 	irqreturn_t (*isr)(int irq, void *dev);
+ };
+ 
 -- 
 2.7.4
