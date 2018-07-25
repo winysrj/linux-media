@@ -1,532 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:35612 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:35491 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729882AbeGYRv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 13:51:29 -0400
+        id S1729121AbeGYRvW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 13:51:22 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 19/34] media: camss: csiphy: Split to hardware dependent and independent parts
-Date: Wed, 25 Jul 2018 19:38:28 +0300
-Message-Id: <1532536723-19062-20-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH v4 01/34] doc-rst: Add packed Bayer raw14 pixel formats
+Date: Wed, 25 Jul 2018 19:38:10 +0300
+Message-Id: <1532536723-19062-2-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will allow to add support for different hardware.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
+These formats are compressed 14-bit raw bayer formats with four different
+pixel orders. They are similar to 10-bit variants. The formats added by
+this patch are
+
+	V4L2_PIX_FMT_SBGGR14P
+	V4L2_PIX_FMT_SGBRG14P
+	V4L2_PIX_FMT_SGRBG14P
+	V4L2_PIX_FMT_SRGGB14P
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/Makefile         |   1 +
- .../platform/qcom/camss/camss-csiphy-2ph-1-0.c     | 173 +++++++++++++++++++++
- drivers/media/platform/qcom/camss/camss-csiphy.c   | 171 +++-----------------
- drivers/media/platform/qcom/camss/camss-csiphy.h   |  17 ++
- 4 files changed, 214 insertions(+), 148 deletions(-)
- create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst      |   1 +
+ Documentation/media/uapi/v4l/pixfmt-srggb14p.rst | 127 +++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c             |   4 +
+ include/uapi/linux/videodev2.h                   |   5 +
+ 4 files changed, 137 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
 
-diff --git a/drivers/media/platform/qcom/camss/Makefile b/drivers/media/platform/qcom/camss/Makefile
-index 3c4024f..0446b24 100644
---- a/drivers/media/platform/qcom/camss/Makefile
-+++ b/drivers/media/platform/qcom/camss/Makefile
-@@ -3,6 +3,7 @@
- qcom-camss-objs += \
- 		camss.o \
- 		camss-csid.o \
-+		camss-csiphy-2ph-1-0.o \
- 		camss-csiphy.o \
- 		camss-ispif.o \
- 		camss-vfe.o \
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+diff --git a/Documentation/media/uapi/v4l/pixfmt-rgb.rst b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+index cf2ef7d..1f9a7e3 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-rgb.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-rgb.rst
+@@ -19,4 +19,5 @@ RGB Formats
+     pixfmt-srggb10-ipu3
+     pixfmt-srggb12
+     pixfmt-srggb12p
++    pixfmt-srggb14p
+     pixfmt-srggb16
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
 new file mode 100644
-index 0000000..7325906
+index 0000000..88d20c0
 --- /dev/null
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
-@@ -0,0 +1,173 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * camss-csiphy-2ph-1-0.c
-+ *
-+ * Qualcomm MSM Camera Subsystem - CSIPHY Module 2phase v1.0
-+ *
-+ * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2016-2018 Linaro Ltd.
-+ */
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
+@@ -0,0 +1,127 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+#include "camss-csiphy.h"
++.. _V4L2-PIX-FMT-SRGGB14P:
++.. _v4l2-pix-fmt-sbggr14p:
++.. _v4l2-pix-fmt-sgbrg14p:
++.. _v4l2-pix-fmt-sgrbg14p:
 +
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
++*******************************************************************************************************************************
++V4L2_PIX_FMT_SRGGB14P ('pRCC'), V4L2_PIX_FMT_SGRBG14P ('pgCC'), V4L2_PIX_FMT_SGBRG14P ('pGCC'), V4L2_PIX_FMT_SBGGR14P ('pBCC'),
++*******************************************************************************************************************************
 +
-+#define CAMSS_CSI_PHY_LNn_CFG2(n)		(0x004 + 0x40 * (n))
-+#define CAMSS_CSI_PHY_LNn_CFG3(n)		(0x008 + 0x40 * (n))
-+#define CAMSS_CSI_PHY_GLBL_RESET		0x140
-+#define CAMSS_CSI_PHY_GLBL_PWR_CFG		0x144
-+#define CAMSS_CSI_PHY_GLBL_IRQ_CMD		0x164
-+#define CAMSS_CSI_PHY_HW_VERSION		0x188
-+#define CAMSS_CSI_PHY_INTERRUPT_STATUSn(n)	(0x18c + 0x4 * (n))
-+#define CAMSS_CSI_PHY_INTERRUPT_MASKn(n)	(0x1ac + 0x4 * (n))
-+#define CAMSS_CSI_PHY_INTERRUPT_CLEARn(n)	(0x1cc + 0x4 * (n))
-+#define CAMSS_CSI_PHY_GLBL_T_INIT_CFG0		0x1ec
-+#define CAMSS_CSI_PHY_T_WAKEUP_CFG0		0x1f4
++*man V4L2_PIX_FMT_SRGGB14P(2)*
 +
-+static void csiphy_hw_version_read(struct csiphy_device *csiphy,
-+				   struct device *dev)
-+{
-+	u8 hw_version = readl_relaxed(csiphy->base +
-+				      CAMSS_CSI_PHY_HW_VERSION);
++V4L2_PIX_FMT_SGRBG14P
++V4L2_PIX_FMT_SGBRG14P
++V4L2_PIX_FMT_SBGGR14P
++14-bit packed Bayer formats
 +
-+	dev_dbg(dev, "CSIPHY HW Version = 0x%02x\n", hw_version);
-+}
 +
-+/*
-+ * csiphy_reset - Perform software reset on CSIPHY module
-+ * @csiphy: CSIPHY device
-+ */
-+static void csiphy_reset(struct csiphy_device *csiphy)
-+{
-+	writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
-+	usleep_range(5000, 8000);
-+	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
-+}
++Description
++===========
 +
-+/*
-+ * csiphy_settle_cnt_calc - Calculate settle count value
-+ *
-+ * Helper function to calculate settle count value. This is
-+ * based on the CSI2 T_hs_settle parameter which in turn
-+ * is calculated based on the CSI2 transmitter pixel clock
-+ * frequency.
-+ *
-+ * Return settle count value or 0 if the CSI2 pixel clock
-+ * frequency is not available
-+ */
-+static u8 csiphy_settle_cnt_calc(u32 pixel_clock, u8 bpp, u8 num_lanes,
-+				 u32 timer_clk_rate)
-+{
-+	u32 mipi_clock; /* Hz */
-+	u32 ui; /* ps */
-+	u32 timer_period; /* ps */
-+	u32 t_hs_prepare_max; /* ps */
-+	u32 t_hs_prepare_zero_min; /* ps */
-+	u32 t_hs_settle; /* ps */
-+	u8 settle_cnt;
++These four pixel formats are packed raw sRGB / Bayer formats with 14
++bits per colour. Every four consecutive samples are packed into seven
++bytes. Each of the first four bytes contain the eight high order bits
++of the pixels, and the three following bytes contains the six least
++significants bits of each pixel, in the same order.
 +
-+	mipi_clock = pixel_clock * bpp / (2 * num_lanes);
-+	ui = div_u64(1000000000000LL, mipi_clock);
-+	ui /= 2;
-+	t_hs_prepare_max = 85000 + 6 * ui;
-+	t_hs_prepare_zero_min = 145000 + 10 * ui;
-+	t_hs_settle = (t_hs_prepare_max + t_hs_prepare_zero_min) / 2;
++Each n-pixel row contains n/2 green samples and n/2 blue or red samples,
++with alternating green-red and green-blue rows. They are conventionally
++described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example
++of one of these formats:
 +
-+	timer_period = div_u64(1000000000000LL, timer_clk_rate);
-+	settle_cnt = t_hs_settle / timer_period - 1;
++**Byte Order.**
++Each cell is one byte.
 +
-+	return settle_cnt;
-+}
 +
-+static void csiphy_lanes_enable(struct csiphy_device *csiphy,
-+				struct csiphy_config *cfg,
-+				u32 pixel_clock, u8 bpp, u8 lane_mask)
-+{
-+	struct csiphy_lanes_cfg *c = &cfg->csi2->lane_cfg;
-+	u8 settle_cnt;
-+	u8 val;
-+	int i = 0;
 +
-+	settle_cnt = csiphy_settle_cnt_calc(pixel_clock, bpp, c->num_data,
-+					    csiphy->timer_clk_rate);
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       2 1 1 1 1 1 1 1
 +
-+	writel_relaxed(0x1, csiphy->base +
-+		       CAMSS_CSI_PHY_GLBL_T_INIT_CFG0);
-+	writel_relaxed(0x1, csiphy->base +
-+		       CAMSS_CSI_PHY_T_WAKEUP_CFG0);
 +
-+	val = 0x1;
-+	val |= lane_mask << 1;
-+	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
++    -  .. row 1
 +
-+	val = cfg->combo_mode << 4;
-+	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
++       -  start + 0:
 +
-+	while (lane_mask) {
-+		if (lane_mask & 0x1) {
-+			writel_relaxed(0x10, csiphy->base +
-+				       CAMSS_CSI_PHY_LNn_CFG2(i));
-+			writel_relaxed(settle_cnt, csiphy->base +
-+				       CAMSS_CSI_PHY_LNn_CFG3(i));
-+			writel_relaxed(0x3f, csiphy->base +
-+				       CAMSS_CSI_PHY_INTERRUPT_MASKn(i));
-+			writel_relaxed(0x3f, csiphy->base +
-+				       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
-+		}
++       -  B\ :sub:`00high`
 +
-+		lane_mask >>= 1;
-+		i++;
-+	}
-+}
++       -  G\ :sub:`01high`
 +
-+static void csiphy_lanes_disable(struct csiphy_device *csiphy, u8 lane_mask)
-+{
-+	int i = 0;
++       -  B\ :sub:`02high`
 +
-+	while (lane_mask) {
-+		if (lane_mask & 0x1)
-+			writel_relaxed(0x0, csiphy->base +
-+				       CAMSS_CSI_PHY_LNn_CFG2(i));
++       -  G\ :sub:`03high`
 +
-+		lane_mask >>= 1;
-+		i++;
-+	}
++       -  G\ :sub:`01low bits 1--0`\ (bits 7--6)
++	  B\ :sub:`00low bits 5--0`\ (bits 5--0)
 +
-+	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
-+}
++       -  R\ :sub:`02low bits 3--0`\ (bits 7--4)
++	  G\ :sub:`01low bits 5--2`\ (bits 3--0)
 +
-+/*
-+ * csiphy_isr - CSIPHY module interrupt handler
-+ * @irq: Interrupt line
-+ * @dev: CSIPHY device
-+ *
-+ * Return IRQ_HANDLED on success
-+ */
-+static irqreturn_t csiphy_isr(int irq, void *dev)
-+{
-+	struct csiphy_device *csiphy = dev;
-+	u8 i;
++       -  G\ :sub:`03low bits 5--0`\ (bits 7--2)
++	  R\ :sub:`02low bits 5--4`\ (bits 1--0)
 +
-+	for (i = 0; i < 8; i++) {
-+		u8 val = readl_relaxed(csiphy->base +
-+				       CAMSS_CSI_PHY_INTERRUPT_STATUSn(i));
-+		writel_relaxed(val, csiphy->base +
-+			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
-+		writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
-+		writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
-+		writel_relaxed(0x0, csiphy->base +
-+			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
-+	}
++    -  .. row 2
 +
-+	return IRQ_HANDLED;
-+}
++       -  start + 7:
 +
-+const struct csiphy_hw_ops csiphy_ops_2ph_1_0 = {
-+	.hw_version_read = csiphy_hw_version_read,
-+	.reset = csiphy_reset,
-+	.lanes_enable = csiphy_lanes_enable,
-+	.lanes_disable = csiphy_lanes_disable,
-+	.isr = csiphy_isr,
-+};
++       -  G\ :sub:`00high`
 +
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
-index 4aeaedb..8d10e85 100644
---- a/drivers/media/platform/qcom/camss/camss-csiphy.c
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
-@@ -23,18 +23,6 @@
- 
- #define MSM_CSIPHY_NAME "msm_csiphy"
- 
--#define CAMSS_CSI_PHY_LNn_CFG2(n)		(0x004 + 0x40 * (n))
--#define CAMSS_CSI_PHY_LNn_CFG3(n)		(0x008 + 0x40 * (n))
--#define CAMSS_CSI_PHY_GLBL_RESET		0x140
--#define CAMSS_CSI_PHY_GLBL_PWR_CFG		0x144
--#define CAMSS_CSI_PHY_GLBL_IRQ_CMD		0x164
--#define CAMSS_CSI_PHY_HW_VERSION		0x188
--#define CAMSS_CSI_PHY_INTERRUPT_STATUSn(n)	(0x18c + 0x4 * (n))
--#define CAMSS_CSI_PHY_INTERRUPT_MASKn(n)	(0x1ac + 0x4 * (n))
--#define CAMSS_CSI_PHY_INTERRUPT_CLEARn(n)	(0x1cc + 0x4 * (n))
--#define CAMSS_CSI_PHY_GLBL_T_INIT_CFG0		0x1ec
--#define CAMSS_CSI_PHY_T_WAKEUP_CFG0		0x1f4
--
- static const struct {
- 	u32 code;
- 	u8 bpp;
-@@ -125,32 +113,6 @@ static u8 csiphy_get_bpp(u32 code)
- }
- 
- /*
-- * csiphy_isr - CSIPHY module interrupt handler
-- * @irq: Interrupt line
-- * @dev: CSIPHY device
-- *
-- * Return IRQ_HANDLED on success
-- */
--static irqreturn_t csiphy_isr(int irq, void *dev)
--{
--	struct csiphy_device *csiphy = dev;
--	u8 i;
--
--	for (i = 0; i < 8; i++) {
--		u8 val = readl_relaxed(csiphy->base +
--				       CAMSS_CSI_PHY_INTERRUPT_STATUSn(i));
--		writel_relaxed(val, csiphy->base +
--			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
--		writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
--		writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_IRQ_CMD);
--		writel_relaxed(0x0, csiphy->base +
--			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
--	}
--
--	return IRQ_HANDLED;
--}
--
--/*
-  * csiphy_set_clock_rates - Calculate and set clock rates on CSIPHY module
-  * @csiphy: CSIPHY device
-  */
-@@ -215,17 +177,6 @@ static int csiphy_set_clock_rates(struct csiphy_device *csiphy)
- }
- 
- /*
-- * csiphy_reset - Perform software reset on CSIPHY module
-- * @csiphy: CSIPHY device
-- */
--static void csiphy_reset(struct csiphy_device *csiphy)
--{
--	writel_relaxed(0x1, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
--	usleep_range(5000, 8000);
--	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
--}
--
--/*
-  * csiphy_set_power - Power on/off CSIPHY module
-  * @sd: CSIPHY V4L2 subdevice
-  * @on: Requested power state
-@@ -238,7 +189,6 @@ static int csiphy_set_power(struct v4l2_subdev *sd, int on)
- 	struct device *dev = csiphy->camss->dev;
- 
- 	if (on) {
--		u8 hw_version;
- 		int ret;
- 
- 		ret = pm_runtime_get_sync(dev);
-@@ -259,11 +209,9 @@ static int csiphy_set_power(struct v4l2_subdev *sd, int on)
- 
- 		enable_irq(csiphy->irq);
- 
--		csiphy_reset(csiphy);
-+		csiphy->ops->reset(csiphy);
- 
--		hw_version = readl_relaxed(csiphy->base +
--					   CAMSS_CSI_PHY_HW_VERSION);
--		dev_dbg(dev, "CSIPHY HW Version = 0x%02x\n", hw_version);
-+		csiphy->ops->hw_version_read(csiphy, dev);
- 	} else {
- 		disable_irq(csiphy->irq);
- 
-@@ -295,77 +243,34 @@ static u8 csiphy_get_lane_mask(struct csiphy_lanes_cfg *lane_cfg)
- }
- 
- /*
-- * csiphy_settle_cnt_calc - Calculate settle count value
-+ * csiphy_stream_on - Enable streaming on CSIPHY module
-  * @csiphy: CSIPHY device
-  *
-- * Helper function to calculate settle count value. This is
-- * based on the CSI2 T_hs_settle parameter which in turn
-- * is calculated based on the CSI2 transmitter pixel clock
-- * frequency.
-+ * Helper function to enable streaming on CSIPHY module.
-+ * Main configuration of CSIPHY module is also done here.
-  *
-- * Return settle count value or 0 if the CSI2 pixel clock
-- * frequency is not available
-+ * Return 0 on success or a negative error code otherwise
-  */
--static u8 csiphy_settle_cnt_calc(struct csiphy_device *csiphy)
-+static int csiphy_stream_on(struct csiphy_device *csiphy)
- {
--	u8 bpp = csiphy_get_bpp(
--			csiphy->fmt[MSM_CSIPHY_PAD_SINK].code);
--	u8 num_lanes = csiphy->cfg.csi2->lane_cfg.num_data;
--	u32 pixel_clock; /* Hz */
--	u32 mipi_clock; /* Hz */
--	u32 ui; /* ps */
--	u32 timer_period; /* ps */
--	u32 t_hs_prepare_max; /* ps */
--	u32 t_hs_prepare_zero_min; /* ps */
--	u32 t_hs_settle; /* ps */
--	u8 settle_cnt;
-+	struct csiphy_config *cfg = &csiphy->cfg;
-+	u32 pixel_clock;
-+	u8 lane_mask = csiphy_get_lane_mask(&cfg->csi2->lane_cfg);
-+	u8 bpp = csiphy_get_bpp(csiphy->fmt[MSM_CSIPHY_PAD_SINK].code);
-+	u8 val;
- 	int ret;
- 
- 	ret = camss_get_pixel_clock(&csiphy->subdev.entity, &pixel_clock);
- 	if (ret) {
- 		dev_err(csiphy->camss->dev,
- 			"Cannot get CSI2 transmitter's pixel clock\n");
--		return 0;
-+		return -EINVAL;
- 	}
- 	if (!pixel_clock) {
- 		dev_err(csiphy->camss->dev,
- 			"Got pixel clock == 0, cannot continue\n");
--		return 0;
--	}
--
--	mipi_clock = pixel_clock * bpp / (2 * num_lanes);
--	ui = div_u64(1000000000000LL, mipi_clock);
--	ui /= 2;
--	t_hs_prepare_max = 85000 + 6 * ui;
--	t_hs_prepare_zero_min = 145000 + 10 * ui;
--	t_hs_settle = (t_hs_prepare_max + t_hs_prepare_zero_min) / 2;
--
--	timer_period = div_u64(1000000000000LL, csiphy->timer_clk_rate);
--	settle_cnt = t_hs_settle / timer_period - 1;
--
--	return settle_cnt;
--}
--
--/*
-- * csiphy_stream_on - Enable streaming on CSIPHY module
-- * @csiphy: CSIPHY device
-- *
-- * Helper function to enable streaming on CSIPHY module.
-- * Main configuration of CSIPHY module is also done here.
-- *
-- * Return 0 on success or a negative error code otherwise
-- */
--static int csiphy_stream_on(struct csiphy_device *csiphy)
--{
--	struct csiphy_config *cfg = &csiphy->cfg;
--	u8 lane_mask = csiphy_get_lane_mask(&cfg->csi2->lane_cfg);
--	u8 settle_cnt;
--	u8 val;
--	int i = 0;
--
--	settle_cnt = csiphy_settle_cnt_calc(csiphy);
--	if (!settle_cnt)
- 		return -EINVAL;
-+	}
- 
- 	val = readl_relaxed(csiphy->base_clk_mux);
- 	if (cfg->combo_mode && (lane_mask & 0x18) == 0x18) {
-@@ -378,33 +283,7 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
- 	writel_relaxed(val, csiphy->base_clk_mux);
- 	wmb();
- 
--	writel_relaxed(0x1, csiphy->base +
--		       CAMSS_CSI_PHY_GLBL_T_INIT_CFG0);
--	writel_relaxed(0x1, csiphy->base +
--		       CAMSS_CSI_PHY_T_WAKEUP_CFG0);
--
--	val = 0x1;
--	val |= lane_mask << 1;
--	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
--
--	val = cfg->combo_mode << 4;
--	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
--
--	while (lane_mask) {
--		if (lane_mask & 0x1) {
--			writel_relaxed(0x10, csiphy->base +
--				       CAMSS_CSI_PHY_LNn_CFG2(i));
--			writel_relaxed(settle_cnt, csiphy->base +
--				       CAMSS_CSI_PHY_LNn_CFG3(i));
--			writel_relaxed(0x3f, csiphy->base +
--				       CAMSS_CSI_PHY_INTERRUPT_MASKn(i));
--			writel_relaxed(0x3f, csiphy->base +
--				       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
--		}
--
--		lane_mask >>= 1;
--		i++;
--	}
-+	csiphy->ops->lanes_enable(csiphy, cfg, pixel_clock, bpp, lane_mask);
- 
- 	return 0;
- }
-@@ -418,18 +297,8 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
- static void csiphy_stream_off(struct csiphy_device *csiphy)
- {
- 	u8 lane_mask = csiphy_get_lane_mask(&csiphy->cfg.csi2->lane_cfg);
--	int i = 0;
- 
--	while (lane_mask) {
--		if (lane_mask & 0x1)
--			writel_relaxed(0x0, csiphy->base +
--				       CAMSS_CSI_PHY_LNn_CFG2(i));
--
--		lane_mask >>= 1;
--		i++;
--	}
--
--	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
-+	csiphy->ops->lanes_disable(csiphy, lane_mask);
- }
- 
- 
-@@ -696,6 +565,11 @@ int msm_csiphy_subdev_init(struct camss *camss,
- 	csiphy->id = id;
- 	csiphy->cfg.combo_mode = 0;
- 
-+	if (camss->version == CAMSS_8x16)
-+		csiphy->ops = &csiphy_ops_2ph_1_0;
-+	else
-+		return -EINVAL;
++       -  R\ :sub:`01high`
 +
- 	/* Memory */
- 
- 	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, res->reg[0]);
-@@ -724,7 +598,8 @@ int msm_csiphy_subdev_init(struct camss *camss,
- 	csiphy->irq = r->start;
- 	snprintf(csiphy->irq_name, sizeof(csiphy->irq_name), "%s_%s%d",
- 		 dev_name(dev), MSM_CSIPHY_NAME, csiphy->id);
--	ret = devm_request_irq(dev, csiphy->irq, csiphy_isr,
++       -  G\ :sub:`02high`
 +
-+	ret = devm_request_irq(dev, csiphy->irq, csiphy->ops->isr,
- 			       IRQF_TRIGGER_RISING, csiphy->irq_name, csiphy);
- 	if (ret < 0) {
- 		dev_err(dev, "request_irq failed: %d\n", ret);
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.h b/drivers/media/platform/qcom/camss/camss-csiphy.h
-index 728dfef..edad941 100644
---- a/drivers/media/platform/qcom/camss/camss-csiphy.h
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy.h
-@@ -11,6 +11,7 @@
- #define QC_MSM_CAMSS_CSIPHY_H
- 
- #include <linux/clk.h>
-+#include <linux/interrupt.h>
- #include <media/media-entity.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-mediabus.h>
-@@ -41,6 +42,19 @@ struct csiphy_config {
- 	struct csiphy_csi2_cfg *csi2;
- };
- 
-+struct csiphy_device;
++       -  R\ :sub:`03high`
 +
-+struct csiphy_hw_ops {
-+	void (*hw_version_read)(struct csiphy_device *csiphy,
-+				struct device *dev);
-+	void (*reset)(struct csiphy_device *csiphy);
-+	void (*lanes_enable)(struct csiphy_device *csiphy,
-+			     struct csiphy_config *cfg,
-+			     u32 pixel_clock, u8 bpp, u8 lane_mask);
-+	void (*lanes_disable)(struct csiphy_device *csiphy, u8 lane_mask);
-+	irqreturn_t (*isr)(int irq, void *dev);
-+};
++       -  R\ :sub:`01low bits 1--0`\ (bits 7--6)
++	  G\ :sub:`00low bits 5--0`\ (bits 5--0)
 +
- struct csiphy_device {
- 	struct camss *camss;
- 	u8 id;
-@@ -55,6 +69,7 @@ struct csiphy_device {
- 	u32 timer_clk_rate;
- 	struct csiphy_config cfg;
- 	struct v4l2_mbus_framefmt fmt[MSM_CSIPHY_PADS_NUM];
-+	const struct csiphy_hw_ops *ops;
- };
- 
- struct resources;
-@@ -68,4 +83,6 @@ int msm_csiphy_register_entity(struct csiphy_device *csiphy,
- 
- void msm_csiphy_unregister_entity(struct csiphy_device *csiphy);
- 
-+extern const struct csiphy_hw_ops csiphy_ops_2ph_1_0;
++       -  G\ :sub:`02low bits 3--0`\ (bits 7--4)
++	  R\ :sub:`01low bits 5--2`\ (bits 3--0)
 +
- #endif /* QC_MSM_CAMSS_CSIPHY_H */
++       -  R\ :sub:`03low bits 5--0`\ (bits 7--2)
++	  G\ :sub:`02low bits 5--4`\ (bits 1--0)
++
++    -  .. row 3
++
++       -  start + 14
++
++       -  B\ :sub:`20high`
++
++       -  G\ :sub:`21high`
++
++       -  B\ :sub:`22high`
++
++       -  G\ :sub:`23high`
++
++       -  G\ :sub:`21low bits 1--0`\ (bits 7--6)
++	  B\ :sub:`20low bits 5--0`\ (bits 5--0)
++
++       -  R\ :sub:`22low bits 3--0`\ (bits 7--4)
++	  G\ :sub:`21low bits 5--2`\ (bits 3--0)
++
++       -  G\ :sub:`23low bits 5--0`\ (bits 7--2)
++	  R\ :sub:`22low bits 5--4`\ (bits 1--0)
++
++    -  .. row 4
++
++       -  start + 21
++
++       -  G\ :sub:`30high`
++
++       -  R\ :sub:`31high`
++
++       -  G\ :sub:`32high`
++
++       -  R\ :sub:`33high`
++
++       -  R\ :sub:`31low bits 1--0`\ (bits 7--6)
++	  G\ :sub:`30low bits 5--0`\ (bits 5--0)
++
++       -  G\ :sub:`32low bits 3--0`\ (bits 7--4)
++	  R\ :sub:`31low bits 5--2`\ (bits 3--0)
++
++       -  R\ :sub:`33low bits 5--0`\ (bits 7--2)
++	  G\ :sub:`32low bits 5--4`\ (bits 1--0)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 0167056..04e1231 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1259,6 +1259,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_SGBRG12P:	descr = "12-bit Bayer GBGB/RGRG Packed"; break;
+ 	case V4L2_PIX_FMT_SGRBG12P:	descr = "12-bit Bayer GRGR/BGBG Packed"; break;
+ 	case V4L2_PIX_FMT_SRGGB12P:	descr = "12-bit Bayer RGRG/GBGB Packed"; break;
++	case V4L2_PIX_FMT_SBGGR14P:	descr = "14-bit Bayer BGBG/GRGR Packed"; break;
++	case V4L2_PIX_FMT_SGBRG14P:	descr = "14-bit Bayer GBGB/RGRG Packed"; break;
++	case V4L2_PIX_FMT_SGRBG14P:	descr = "14-bit Bayer GRGR/BGBG Packed"; break;
++	case V4L2_PIX_FMT_SRGGB14P:	descr = "14-bit Bayer RGRG/GBGB Packed"; break;
+ 	case V4L2_PIX_FMT_SBGGR16:	descr = "16-bit Bayer BGBG/GRGR"; break;
+ 	case V4L2_PIX_FMT_SGBRG16:	descr = "16-bit Bayer GBGB/RGRG"; break;
+ 	case V4L2_PIX_FMT_SGRBG16:	descr = "16-bit Bayer GRGR/BGBG"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 600877b..a15e03b 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -609,6 +609,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
+ #define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
+ #define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
++	/* 14bit raw bayer packed, 7 bytes for every 4 pixels */
++#define V4L2_PIX_FMT_SBGGR14P v4l2_fourcc('p', 'B', 'E', 'E')
++#define V4L2_PIX_FMT_SGBRG14P v4l2_fourcc('p', 'G', 'E', 'E')
++#define V4L2_PIX_FMT_SGRBG14P v4l2_fourcc('p', 'g', 'E', 'E')
++#define V4L2_PIX_FMT_SRGGB14P v4l2_fourcc('p', 'R', 'E', 'E')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
 -- 
 2.7.4
