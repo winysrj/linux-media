@@ -1,111 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:43250 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730996AbeGRQHA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 12:07:00 -0400
-Date: Wed, 18 Jul 2018 17:28:32 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
-        Peter Rosin <peda@axentia.se>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+Received: from bombadil.infradead.org ([198.137.202.133]:38898 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728222AbeGYLF6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 07:05:58 -0400
+Date: Wed, 25 Jul 2018 06:54:53 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v4 1/3] regmap: add SCCB support
-Message-ID: <20180718152832.ylu6rlcsaom2q4xm@ninjato>
-References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
- <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Niklas =?UTF-8?B?U8O2ZGVybHVu?= =?UTF-8?B?ZA==?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        ysato@users.sourceforge.jp, dalias@libc.org,
+        linux-sh@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.19] Various fixes
+Message-ID: <20180725065445.01e9b80a@coco.lan>
+In-Reply-To: <20180725071853.GN6784@w540>
+References: <a9296b29-09ad-9379-0786-de282b71abf2@xs4all.nl>
+        <20180724190413.77025078@coco.lan>
+        <20180725071853.GN6784@w540>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="vom6revifzdsh7p6"
-Content-Disposition: inline
-In-Reply-To: <1531756070-8560-2-git-send-email-akinobu.mita@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Jacopo,
 
---vom6revifzdsh7p6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Please don't do top posting! I reordered the thread for it to be at
+the way it should be.
 
-On Tue, Jul 17, 2018 at 12:47:48AM +0900, Akinobu Mita wrote:
-> This adds Serial Camera Control Bus (SCCB) support for regmap API that
-> is intended to be used by some of Omnivision sensor drivers.
+Em Wed, 25 Jul 2018 09:18:53 +0200
+jacopo mondi <jacopo@jmondi.org> escreveu:
+
+> On Tue, Jul 24, 2018 at 07:04:13PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Wed, 18 Jul 2018 12:38:58 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > =20
+> > > Hi Mauro,
+> > >
+> > > Various fixes. Please note that I re-added the 'Add support for STD i=
+octls on subdev nodes'
+> > > patch. It really is needed.
+> > >
+> > > Regards,
+> > >
+> > > 	Hans
+> > > =20
+> > =20
+> > > Jacopo Mondi (9):
+> > >       sh: defconfig: migor: Update defconfig
+> > >       sh: defconfig: migor: Enable CEU and sensor drivers
+> > >       sh: defconfig: ecovec: Update defconfig
+> > >       sh: defconfig: ecovec: Enable CEU and video drivers
+> > >       sh: defconfig: se7724: Update defconfig
+> > >       sh: defconfig: se7724: Enable CEU and sensor driver
+> > >       sh: defconfig: ap325rxa: Update defconfig
+> > >       sh: defconfig: ap325rxa: Enable CEU and sensor driver =20
+> >
+> > I didn't apply the above ones. I understand you want to enable
+> > the sensor drivers there, but It should either go via SUPERH
+> > tree or we would need his ack to merge on our tree.
+> > =20
+> > >       sh: migor: Remove stale soc_camera include =20
+> >
+> > It caused me lots of doubts if we should either apply this one
+> > via the media tree or not. I ended by applying, as we're maintaining
+> > the soc_camera stuff, with are being removed. So, it makes more sense
+> > to merge it via our tree.
+> >
+> > Still, it would be nicer if we had the SUPERH maintainer's ack on
+> > it.
+> >
+> >
+> > Thanks,
+> > Mauro =20
+>
+>
+> Mauro,
+>    I understand, and I failed to cc the SH people initially.
 >=20
-> The ov772x and ov9650 drivers are going to use this SCCB regmap API.
+> Roping in Sato-san, Rich and the SH list.
+> Could you guys please have a look here? I've gone through the media
+> tree as all these changes sparkled from soc_camera removal, and while
+> I was there I updated the defconfigs before enabling CEU and disabling
+> soc_camera.
 >=20
-> The ov772x driver was previously only worked with the i2c controller
-> drivers that support I2C_FUNC_PROTOCOL_MANGLING, because the ov772x
-> device doesn't support repeated starts.  After commit 0b964d183cbf
-> ("media: ov772x: allow i2c controllers without
-> I2C_FUNC_PROTOCOL_MANGLING"), reading ov772x register is replaced with
-> issuing two separated i2c messages in order to avoid repeated start.
-> Using this SCCB regmap hides the implementation detail.
+> How long before we miss v4.19 Mauro?
+
+That depends on the policies SH people have. This is just build config
+stuff, so I guess it could be applied anytime without much issues.
+
+=46rom my side, I'm planning to apply the latest patches for 4.19 along
+this week, reserving the next week for bug fixes only and janitorial
+work.
+
 >=20
-> The ov9650 driver also issues two separated i2c messages to read the
-> registers as the device doesn't support repeated start.  So it can
-> make use of this SCCB regmap.
-
-Cool, this series really gets better and better each time. Thank you for
-keeping at it! And thanks to everyone for their suggestions. I really
-like how we do not introduce a couple of i2c_sccb_* functions with a
-need to export them. And given the nature of regmap, I'd think it should
-be fairly easy to add support for ov2659 somewhen which has 16 bit
-registers? Only minor nits:
-
-> +#include <linux/regmap.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-
-Sort these?
-
-> +/**
-> + * regmap_sccb_read - Read data from SCCB slave device
-> + * @context: Device that will be interacted wit
-
-"with"
-
-> +	ret =3D __i2c_smbus_xfer(i2c->adapter, i2c->addr, i2c->flags,
-> +			       I2C_SMBUS_WRITE, reg, I2C_SMBUS_BYTE, NULL);
-
-Mark: __i2c_smbus_xfer is a dependency on i2c/for-next. Do you want an
-immutable branch for that?
-
-> +/**
-> + * regmap_sccb_write - Write data to SCCB slave device
-> + * @context: Device that will be interacted wit
-
-"with"
-
-But in general (especially for the I2C parts):
-
-Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> Thanks
+>    j
+>=20
 
 
---vom6revifzdsh7p6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltPXJwACgkQFA3kzBSg
-KbaMww/8CxZhHTEM02/4oJgatS4pz9I/9AqBgUxNgIYWF32BEPKBVMr3Td8Z3pI7
-L2B00WYTbgvqQ16zOFEHpPtkFGnPXPbdIpxnNeDM5IEw+rNe2igVUdcVRmN8Bdpi
-SKakv7pn4GyUUnrE5RslT4GoORbKG1lwood6GHUIMNd0dUt80AmjDYq35RSsSzpD
-4JKTeH+EwYsd+CxuZj9z5g/CMpUdO6ikyLaBLbB0BggY/yVWC3tRtOUE/lfkh1yv
-7SAn5zhbDseDZGd7WbYnRgNOU33OzPvjfNV4GWen+pqbJl9JfxiGOGz7PAzqJGNv
-201UD3D5bEYBf8XhVUim2hOfhXydE8BBW2AMVRcBx/4X1HC9aaP7rzqU0SqZNvKq
-F5K5Eix6yUwCTTU1kXMA+jc/HRqx/oS7jaM3hP1JcegXFVYeOTWPCbhwSekazHW2
-zGsKkUBxGuawTOCLQHfIQajUZt1wa8tnvvhwf3xzN82YxVcGW9hs46aecVy/3mFG
-FbL8dwf4vl8rRDU7Di5Qlx3M6FuVS8Q4XZ8ZiGoZCMDlhy3ls9AWs2+wH8fzoh66
-hFKMYmZsJJNvrjt8TNm3YbV3Q7KzpPzm5c/zZCXwZ4p3+y3F6WqY+r1Xl2bctHin
-hXyNsYL+JWaIhL/m5FeWY65Ku6tPL1568jHFdnyL50vImZCFAUw=
-=Ar7Y
------END PGP SIGNATURE-----
-
---vom6revifzdsh7p6--
+Thanks,
+Mauro
