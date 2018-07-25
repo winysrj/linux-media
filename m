@@ -1,133 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:35591 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:35626 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729821AbeGYRv0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1730023AbeGYRv0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Wed, 25 Jul 2018 13:51:26 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 20/34] media: camss: csiphy: Unify lane handling
-Date: Wed, 25 Jul 2018 19:38:29 +0300
-Message-Id: <1532536723-19062-21-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH v4 23/34] media: camss: ispif: Add support for 8x96
+Date: Wed, 25 Jul 2018 19:38:32 +0300
+Message-Id: <1532536723-19062-24-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Restructure lane configuration so it is simpler and will allow
-similar (although not the same) handling for different hardware
-versions.
+ISPIF hardware modules on 8x16 and 8x96 are similar. However on
+8x96 the ISPIF routes data to two VFE hardware modules. Add
+separate interrupt handler for 8x96 to handle the additional
+interrupts.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- .../platform/qcom/camss/camss-csiphy-2ph-1-0.c     | 48 ++++++++++++----------
- drivers/media/platform/qcom/camss/camss-csiphy.c   |  4 +-
- drivers/media/platform/qcom/camss/camss-csiphy.h   |  3 +-
- 3 files changed, 29 insertions(+), 26 deletions(-)
+ drivers/media/platform/qcom/camss/camss-ispif.c | 76 ++++++++++++++++++++++++-
+ 1 file changed, 73 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
-index 7325906..5f499be 100644
---- a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
-@@ -86,7 +86,7 @@ static void csiphy_lanes_enable(struct csiphy_device *csiphy,
- {
- 	struct csiphy_lanes_cfg *c = &cfg->csi2->lane_cfg;
- 	u8 settle_cnt;
--	u8 val;
-+	u8 val, l = 0;
- 	int i = 0;
- 
- 	settle_cnt = csiphy_settle_cnt_calc(pixel_clock, bpp, c->num_data,
-@@ -104,34 +104,38 @@ static void csiphy_lanes_enable(struct csiphy_device *csiphy,
- 	val = cfg->combo_mode << 4;
- 	writel_relaxed(val, csiphy->base + CAMSS_CSI_PHY_GLBL_RESET);
- 
--	while (lane_mask) {
--		if (lane_mask & 0x1) {
--			writel_relaxed(0x10, csiphy->base +
--				       CAMSS_CSI_PHY_LNn_CFG2(i));
--			writel_relaxed(settle_cnt, csiphy->base +
--				       CAMSS_CSI_PHY_LNn_CFG3(i));
--			writel_relaxed(0x3f, csiphy->base +
--				       CAMSS_CSI_PHY_INTERRUPT_MASKn(i));
--			writel_relaxed(0x3f, csiphy->base +
--				       CAMSS_CSI_PHY_INTERRUPT_CLEARn(i));
--		}
--
--		lane_mask >>= 1;
--		i++;
-+	for (i = 0; i <= c->num_data; i++) {
-+		if (i == c->num_data)
-+			l = c->clk.pos;
-+		else
-+			l = c->data[i].pos;
-+
-+		writel_relaxed(0x10, csiphy->base +
-+			       CAMSS_CSI_PHY_LNn_CFG2(l));
-+		writel_relaxed(settle_cnt, csiphy->base +
-+			       CAMSS_CSI_PHY_LNn_CFG3(l));
-+		writel_relaxed(0x3f, csiphy->base +
-+			       CAMSS_CSI_PHY_INTERRUPT_MASKn(l));
-+		writel_relaxed(0x3f, csiphy->base +
-+			       CAMSS_CSI_PHY_INTERRUPT_CLEARn(l));
- 	}
- }
- 
--static void csiphy_lanes_disable(struct csiphy_device *csiphy, u8 lane_mask)
-+static void csiphy_lanes_disable(struct csiphy_device *csiphy,
-+				 struct csiphy_config *cfg)
- {
-+	struct csiphy_lanes_cfg *c = &cfg->csi2->lane_cfg;
-+	u8 l = 0;
- 	int i = 0;
- 
--	while (lane_mask) {
--		if (lane_mask & 0x1)
--			writel_relaxed(0x0, csiphy->base +
--				       CAMSS_CSI_PHY_LNn_CFG2(i));
-+	for (i = 0; i <= c->num_data; i++) {
-+		if (i == c->num_data)
-+			l = c->clk.pos;
-+		else
-+			l = c->data[i].pos;
- 
--		lane_mask >>= 1;
--		i++;
-+		writel_relaxed(0x0, csiphy->base +
-+			       CAMSS_CSI_PHY_LNn_CFG2(l));
- 	}
- 
- 	writel_relaxed(0x0, csiphy->base + CAMSS_CSI_PHY_GLBL_PWR_CFG);
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
-index 8d10e85..d35eea0 100644
---- a/drivers/media/platform/qcom/camss/camss-csiphy.c
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
-@@ -296,9 +296,7 @@ static int csiphy_stream_on(struct csiphy_device *csiphy)
-  */
- static void csiphy_stream_off(struct csiphy_device *csiphy)
- {
--	u8 lane_mask = csiphy_get_lane_mask(&csiphy->cfg.csi2->lane_cfg);
--
--	csiphy->ops->lanes_disable(csiphy, lane_mask);
-+	csiphy->ops->lanes_disable(csiphy, &csiphy->cfg);
- }
- 
- 
-diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.h b/drivers/media/platform/qcom/camss/camss-csiphy.h
-index edad941..e3dd257 100644
---- a/drivers/media/platform/qcom/camss/camss-csiphy.h
-+++ b/drivers/media/platform/qcom/camss/camss-csiphy.h
-@@ -51,7 +51,8 @@ struct csiphy_hw_ops {
- 	void (*lanes_enable)(struct csiphy_device *csiphy,
- 			     struct csiphy_config *cfg,
- 			     u32 pixel_clock, u8 bpp, u8 lane_mask);
--	void (*lanes_disable)(struct csiphy_device *csiphy, u8 lane_mask);
-+	void (*lanes_disable)(struct csiphy_device *csiphy,
-+			      struct csiphy_config *cfg);
- 	irqreturn_t (*isr)(int irq, void *dev);
+diff --git a/drivers/media/platform/qcom/camss/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
+index 2c6c0d2..ae80732 100644
+--- a/drivers/media/platform/qcom/camss/camss-ispif.c
++++ b/drivers/media/platform/qcom/camss/camss-ispif.c
+@@ -116,13 +116,77 @@ static const u32 ispif_formats[] = {
  };
  
+ /*
+- * ispif_isr - ISPIF module interrupt handler
++ * ispif_isr_8x96 - ISPIF module interrupt handler for 8x96
+  * @irq: Interrupt line
+  * @dev: ISPIF device
+  *
+  * Return IRQ_HANDLED on success
+  */
+-static irqreturn_t ispif_isr(int irq, void *dev)
++static irqreturn_t ispif_isr_8x96(int irq, void *dev)
++{
++	struct ispif_device *ispif = dev;
++	u32 value0, value1, value2, value3, value4, value5;
++
++	value0 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_0(0));
++	value1 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_1(0));
++	value2 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_2(0));
++	value3 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_0(1));
++	value4 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_1(1));
++	value5 = readl_relaxed(ispif->base + ISPIF_VFE_m_IRQ_STATUS_2(1));
++
++	writel_relaxed(value0, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_0(0));
++	writel_relaxed(value1, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_1(0));
++	writel_relaxed(value2, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_2(0));
++	writel_relaxed(value3, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_0(1));
++	writel_relaxed(value4, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_1(1));
++	writel_relaxed(value5, ispif->base + ISPIF_VFE_m_IRQ_CLEAR_2(1));
++
++	writel(0x1, ispif->base + ISPIF_IRQ_GLOBAL_CLEAR_CMD);
++
++	if ((value0 >> 27) & 0x1)
++		complete(&ispif->reset_complete);
++
++	if (unlikely(value0 & ISPIF_VFE_m_IRQ_STATUS_0_PIX0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 pix0 overflow\n");
++
++	if (unlikely(value0 & ISPIF_VFE_m_IRQ_STATUS_0_RDI0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 rdi0 overflow\n");
++
++	if (unlikely(value1 & ISPIF_VFE_m_IRQ_STATUS_1_PIX1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 pix1 overflow\n");
++
++	if (unlikely(value1 & ISPIF_VFE_m_IRQ_STATUS_1_RDI1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 rdi1 overflow\n");
++
++	if (unlikely(value2 & ISPIF_VFE_m_IRQ_STATUS_2_RDI2_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE0 rdi2 overflow\n");
++
++	if (unlikely(value3 & ISPIF_VFE_m_IRQ_STATUS_0_PIX0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 pix0 overflow\n");
++
++	if (unlikely(value3 & ISPIF_VFE_m_IRQ_STATUS_0_RDI0_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 rdi0 overflow\n");
++
++	if (unlikely(value4 & ISPIF_VFE_m_IRQ_STATUS_1_PIX1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 pix1 overflow\n");
++
++	if (unlikely(value4 & ISPIF_VFE_m_IRQ_STATUS_1_RDI1_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 rdi1 overflow\n");
++
++	if (unlikely(value5 & ISPIF_VFE_m_IRQ_STATUS_2_RDI2_OVERFLOW))
++		dev_err_ratelimited(to_device(ispif), "VFE1 rdi2 overflow\n");
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * ispif_isr_8x16 - ISPIF module interrupt handler for 8x16
++ * @irq: Interrupt line
++ * @dev: ISPIF device
++ *
++ * Return IRQ_HANDLED on success
++ */
++static irqreturn_t ispif_isr_8x16(int irq, void *dev)
+ {
+ 	struct ispif_device *ispif = dev;
+ 	u32 value0, value1, value2;
+@@ -959,8 +1023,14 @@ int msm_ispif_subdev_init(struct ispif_device *ispif,
+ 	ispif->irq = r->start;
+ 	snprintf(ispif->irq_name, sizeof(ispif->irq_name), "%s_%s",
+ 		 dev_name(dev), MSM_ISPIF_NAME);
+-	ret = devm_request_irq(dev, ispif->irq, ispif_isr,
++	if (to_camss(ispif)->version == CAMSS_8x16)
++		ret = devm_request_irq(dev, ispif->irq, ispif_isr_8x16,
+ 			       IRQF_TRIGGER_RISING, ispif->irq_name, ispif);
++	else if (to_camss(ispif)->version == CAMSS_8x96)
++		ret = devm_request_irq(dev, ispif->irq, ispif_isr_8x96,
++			       IRQF_TRIGGER_RISING, ispif->irq_name, ispif);
++	else
++		ret = -EINVAL;
+ 	if (ret < 0) {
+ 		dev_err(dev, "request_irq failed: %d\n", ret);
+ 		return ret;
 -- 
 2.7.4
