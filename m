@@ -1,100 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:47589 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732163AbeGSQOf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jul 2018 12:14:35 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Subject: [PATCH v2 07/16] gpu: ipu-v3: image-convert: move tile alignment helpers
-Date: Thu, 19 Jul 2018 17:30:33 +0200
-Message-Id: <20180719153042.533-8-p.zabel@pengutronix.de>
-In-Reply-To: <20180719153042.533-1-p.zabel@pengutronix.de>
-References: <20180719153042.533-1-p.zabel@pengutronix.de>
+Received: from ns.mm-sol.com ([37.157.136.199]:35602 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729502AbeGYRvZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 13:51:25 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 12/34] media: camss: vfe: Fix to_vfe() macro member name
+Date: Wed, 25 Jul 2018 19:38:21 +0300
+Message-Id: <1532536723-19062-13-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
+References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move tile_width_align and tile_height_align up so they
-can be used by the tile edge position calculation code.
+Use the member name which is "line" instead of the pointer argument.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 54 +++++++++++++-------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ drivers/media/platform/qcom/camss/camss-vfe.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index 06d65c63262d..da6f18475b6b 100644
---- a/drivers/gpu/ipu-v3/ipu-image-convert.c
-+++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -426,6 +426,33 @@ static int calc_image_resize_coefficients(struct ipu_image_convert_ctx *ctx,
- 	return 0;
- }
+diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
+index 256dc2d..51ad3f8 100644
+--- a/drivers/media/platform/qcom/camss/camss-vfe.c
++++ b/drivers/media/platform/qcom/camss/camss-vfe.c
+@@ -30,7 +30,7 @@
+ 	((const struct vfe_line (*)[]) &(ptr_line[-(ptr_line->id)]))
  
-+/*
-+ * We have to adjust the tile width such that the tile physaddrs and
-+ * U and V plane offsets are multiples of 8 bytes as required by
-+ * the IPU DMA Controller. For the planar formats, this corresponds
-+ * to a pixel alignment of 16 (but use a more formal equation since
-+ * the variables are available). For all the packed formats, 8 is
-+ * good enough.
-+ */
-+static inline u32 tile_width_align(const struct ipu_image_pixfmt *fmt)
-+{
-+	return fmt->planar ? 8 * fmt->uv_width_dec : 8;
-+}
-+
-+/*
-+ * For tile height alignment, we have to ensure that the output tile
-+ * heights are multiples of 8 lines if the IRT is required by the
-+ * given rotation mode (the IRT performs rotations on 8x8 blocks
-+ * at a time). If the IRT is not used, or for input image tiles,
-+ * 2 lines are good enough.
-+ */
-+static inline u32 tile_height_align(enum ipu_image_convert_type type,
-+				    enum ipu_rotate_mode rot_mode)
-+{
-+	return (type == IMAGE_CONVERT_OUT &&
-+		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
-+}
-+
- static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
- 				 struct ipu_image_convert_image *image)
- {
-@@ -1467,33 +1494,6 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
- 	return x;
- }
+ #define to_vfe(ptr_line)	\
+-	container_of(vfe_line_array(ptr_line), struct vfe_device, ptr_line)
++	container_of(vfe_line_array(ptr_line), struct vfe_device, line)
  
--/*
-- * We have to adjust the tile width such that the tile physaddrs and
-- * U and V plane offsets are multiples of 8 bytes as required by
-- * the IPU DMA Controller. For the planar formats, this corresponds
-- * to a pixel alignment of 16 (but use a more formal equation since
-- * the variables are available). For all the packed formats, 8 is
-- * good enough.
-- */
--static inline u32 tile_width_align(const struct ipu_image_pixfmt *fmt)
--{
--	return fmt->planar ? 8 * fmt->uv_width_dec : 8;
--}
--
--/*
-- * For tile height alignment, we have to ensure that the output tile
-- * heights are multiples of 8 lines if the IRT is required by the
-- * given rotation mode (the IRT performs rotations on 8x8 blocks
-- * at a time). If the IRT is not used, or for input image tiles,
-- * 2 lines are good enough.
-- */
--static inline u32 tile_height_align(enum ipu_image_convert_type type,
--				    enum ipu_rotate_mode rot_mode)
--{
--	return (type == IMAGE_CONVERT_OUT &&
--		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
--}
--
- /* Adjusts input/output images to IPU restrictions */
- void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
- 			      enum ipu_rotate_mode rot_mode)
+ #define VFE_0_HW_VERSION		0x000
+ 
 -- 
-2.18.0
+2.7.4
