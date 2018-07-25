@@ -1,221 +1,436 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35494 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728629AbeGYKqX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 06:46:23 -0400
-Received: by mail-wm0-f66.google.com with SMTP id o18-v6so5318392wmc.0
-        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2018 02:35:31 -0700 (PDT)
-Subject: Re: [PATCH v3 1/4] venus: firmware: add routine to reset ARM9
-To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
-        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org
-References: <1530731212-30474-1-git-send-email-vgarodia@codeaurora.org>
- <1530731212-30474-2-git-send-email-vgarodia@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <8635f09f-a464-2ec6-a29d-9c2fc7601a36@linaro.org>
-Date: Wed, 25 Jul 2018 12:35:25 +0300
-MIME-Version: 1.0
-In-Reply-To: <1530731212-30474-2-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.bootlin.com ([62.4.15.54]:57780 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728679AbeGYLPc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 07:15:32 -0400
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-sunxi@googlegroups.com,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Randy Li <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v6 1/8] media: v4l: Add definitions for MPEG2 slice format and metadata
+Date: Wed, 25 Jul 2018 12:02:49 +0200
+Message-Id: <20180725100256.22833-2-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
+References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
+Stateless video decoding engines require both the MPEG slices and
+associated metadata from the video stream in order to decode frames.
 
-On 07/04/2018 10:06 PM, Vikash Garodia wrote:
-> Add routine to reset the ARM9 and brings it out of reset. Also
-> abstract the Venus CPU state handling with a new function. This
-> is in preparation to add PIL functionality in venus driver.
-> 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/core.h         |  1 +
->  drivers/media/platform/qcom/venus/firmware.c     | 36 ++++++++++++++++++++++++
->  drivers/media/platform/qcom/venus/firmware.h     |  1 +
->  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++------
->  drivers/media/platform/qcom/venus/hfi_venus_io.h |  5 ++++
->  5 files changed, 47 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-> index 2f02365..eb5ee66 100644
-> --- a/drivers/media/platform/qcom/venus/core.h
-> +++ b/drivers/media/platform/qcom/venus/core.h
-> @@ -129,6 +129,7 @@ struct venus_core {
->  	struct device *dev;
->  	struct device *dev_dec;
->  	struct device *dev_enc;
-> +	bool no_tz;
->  	struct mutex lock;
->  	struct list_head instances;
->  	atomic_t insts_count;
-> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-> index 521d4b3..3968553d 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.c
-> +++ b/drivers/media/platform/qcom/venus/firmware.c
-> @@ -22,11 +22,47 @@
->  #include <linux/sizes.h>
->  #include <linux/soc/qcom/mdt_loader.h>
->  
-> +#include "core.h"
->  #include "firmware.h"
-> +#include "hfi_venus_io.h"
->  
->  #define VENUS_PAS_ID			9
->  #define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
->  
-> +static void venus_reset_cpu(struct venus_core *core)
-> +{
-> +	void __iomem *base = core->base;
-> +
-> +	writel(0, base + WRAPPER_FW_START_ADDR);
-> +	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_FW_END_ADDR);
-> +	writel(0, base + WRAPPER_CPA_START_ADDR);
-> +	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
-> +	writel(0x0, base + WRAPPER_CPU_CGC_DIS);
-> +	writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
-> +
-> +	/* Make sure all register writes are committed. */
-> +	mb();
-> +
-> +	/* Bring ARM9 out of reset */
-> +	writel_relaxed(0, base + WRAPPER_A9SS_SW_RESET);
+This introduces definitions for a new pixel format, describing buffers
+with MPEG2 slice data, as well as a control structure for passing the
+frame metadata to drivers.
 
-replace writel_relaxed with writel and drop above mb. The writel has wmb
-just before writing so I think using writel here is better choice.
+This is based on work from both Florent Revest and Hugues Fruchet.
 
-> +}
-> +
-> +int venus_set_hw_state(struct venus_core *core, bool resume)
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+---
+ .../media/uapi/v4l/extended-controls.rst      | 122 ++++++++++++++++++
+ .../media/uapi/v4l/pixfmt-compressed.rst      |   5 +
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  54 ++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+ include/media/v4l2-ctrls.h                    |  18 ++-
+ include/uapi/linux/v4l2-controls.h            |  43 ++++++
+ include/uapi/linux/videodev2.h                |   5 +
+ 7 files changed, 241 insertions(+), 7 deletions(-)
 
-s/resume/suspend as it is done in the function prototype in firmware.h.
-
-> +{
-> +	void __iomem *base = core->base;
-> +
-> +	if (!core->no_tz)
-> +		return qcom_scm_set_remote_state(resume, 0);
-> +
-> +	if (resume)
-> +		venus_reset_cpu(core);
-> +	else
-> +		writel(1, base + WRAPPER_A9SS_SW_RESET);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(venus_set_hw_state);
-> +
->  int venus_boot(struct device *dev, const char *fwname)
->  {
->  	const struct firmware *mdt;
-> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
-> index 428efb5..ff2e70e 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.h
-> +++ b/drivers/media/platform/qcom/venus/firmware.h
-> @@ -18,5 +18,6 @@
->  
->  int venus_boot(struct device *dev, const char *fwname);
->  int venus_shutdown(struct device *dev);
-> +int venus_set_hw_state(struct venus_core *core, bool suspend);
-
-could you make two inline functions here, call them
-venus_set_hw_state_suspend() and venus_set_hw_state_resume() which just
-call venus_set_hw_state with the right state.
-
->  
->  #endif
-> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
-> index 9366dae..5b56925 100644
-> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
-> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
-> @@ -19,7 +19,6 @@
->  #include <linux/interrupt.h>
->  #include <linux/iopoll.h>
->  #include <linux/kernel.h>
-> -#include <linux/qcom_scm.h>
->  #include <linux/slab.h>
->  
->  #include "core.h"
-> @@ -27,6 +26,7 @@
->  #include "hfi_msgs.h"
->  #include "hfi_venus.h"
->  #include "hfi_venus_io.h"
-> +#include "firmware.h"
->  
->  #define HFI_MASK_QHDR_TX_TYPE		0xff000000
->  #define HFI_MASK_QHDR_RX_TYPE		0x00ff0000
-> @@ -55,11 +55,6 @@
->  #define IFACEQ_VAR_LARGE_PKT_SIZE	512
->  #define IFACEQ_VAR_HUGE_PKT_SIZE	(1024 * 12)
->  
-> -enum tzbsp_video_state {
-> -	TZBSP_VIDEO_STATE_SUSPEND = 0,
-> -	TZBSP_VIDEO_STATE_RESUME
-> -};
-> -
->  struct hfi_queue_table_header {
->  	u32 version;
->  	u32 size;
-> @@ -575,7 +570,7 @@ static int venus_power_off(struct venus_hfi_device *hdev)
->  	if (!hdev->power_enabled)
->  		return 0;
->  
-> -	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
-> +	ret = venus_set_hw_state(hdev->core, false);
-
-... and use venus_set_hw_state_suspend()
-
->  	if (ret)
->  		return ret;
->  
-> @@ -595,7 +590,7 @@ static int venus_power_on(struct venus_hfi_device *hdev)
->  	if (hdev->power_enabled)
->  		return 0;
->  
-> -	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_RESUME, 0);
-> +	ret = venus_set_hw_state(hdev->core, true);
-
-... and use venus_set_hw_state_resume()
-
->  	if (ret)
->  		goto err;
->  
-> @@ -608,7 +603,7 @@ static int venus_power_on(struct venus_hfi_device *hdev)
->  	return 0;
->  
->  err_suspend:
-> -	qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
-> +	venus_set_hw_state(hdev->core, false);
->  err:
->  	hdev->power_enabled = false;
->  	return ret;
-> diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-> index def0926..0a4210f 100644
-> --- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
-> +++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-> @@ -112,6 +112,11 @@
->  #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
->  #define WRAPPER_CPU_STATUS_WFI			BIT(0)
->  #define WRAPPER_SW_RESET			(WRAPPER_BASE + 0x3000)
-> +#define WRAPPER_CPA_START_ADDR	(WRAPPER_BASE + 0x1020)
-> +#define WRAPPER_CPA_END_ADDR		(WRAPPER_BASE + 0x1024)
-> +#define WRAPPER_FW_START_ADDR	(WRAPPER_BASE + 0x1028)
-> +#define WRAPPER_FW_END_ADDR			(WRAPPER_BASE + 0x102C)
-> +#define WRAPPER_A9SS_SW_RESET	(WRAPPER_BASE + 0x3000)
-
-something is wrong with tabs/indentation could you check? seems only
-WRAPPER_FW_END_ADDR is fine.
-
->  
->  /* Venus 4xx */
->  #define WRAPPER_VCODEC0_MMCC_POWER_STATUS	(WRAPPER_BASE + 0x90)
-> 
-
+diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+index 9f7312bf3365..4a29d89fd9ac 100644
+--- a/Documentation/media/uapi/v4l/extended-controls.rst
++++ b/Documentation/media/uapi/v4l/extended-controls.rst
+@@ -1497,6 +1497,128 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type -
+ 
+ 
+ 
++.. _v4l2-mpeg-mpeg2:
++
++``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS (struct)``
++    Specifies the slice parameters (also known as slice header) for the
++    associated MPEG-2 slice data. This includes all the necessary
++    parameters for configuring a hardware decoder pipeline for MPEG-2.
++
++.. tabularcolumns:: |p{2.0cm}|p{4.0cm}|p{11.0cm}|
++
++.. c:type:: v4l2_ctrl_mpeg2_slice_params
++
++.. cssclass:: longtable
++
++.. flat-table:: struct v4l2_ctrl_mpeg2_slice_params
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 1 2
++
++    * - __u32
++      - ``slice_len``
++      - Length (in bits) of the current slice data.
++    * - __u32
++      - ``slice_pos``
++      - Position (in bits) of the current slice data, relative to the
++        frame start.
++    * - __u16
++      - ``width``
++      - Width of the corresponding output frame for the current slice.
++    * - __u16
++      - ``height``
++      - Height of the corresponding output frame for the current slice.
++    * - __u8
++      - ``slice_type``
++      - Picture coding type for the frame covered by the current slice
++        (V4L2_MPEG2_SLICE_TYPE_I, V4L2_MPEG2_SLICE_TYPE_P or
++        V4L2_MPEG2_SLICE_PCT_B).
++    * - __u8
++      - ``f_code[2][2]``
++      - Motion vector codes.
++    * - __u8
++      - ``intra_dc_precision``
++      - Precision of Discrete Cosine transform (0: 8 bits precision,
++        1: 9 bits precision, 2: 10 bits precision, 11: 11 bits precision).
++    * - __u8
++      - ``picture_structure``
++      - Picture structure (1: interlaced top field,
++        2: interlaced bottom field, 3: progressive frame).
++    * - __u8
++      - ``top_field_first``
++      - If set to 1 and interlaced stream, top field is output first.
++    * - __u8
++      - ``frame_pred_frame_dct``
++      - If set to 1, only frame-DCT and frame prediction are used.
++    * - __u8
++      - ``concealment_motion_vectors``
++      -  If set to 1, motion vectors are coded for intra macroblocks.
++    * - __u8
++      - ``q_scale_type``
++      - This flag affects the inverse quantisation process.
++    * - __u8
++      - ``intra_vlc_format``
++      - This flag affects the decoding of transform coefficient data.
++    * - __u8
++      - ``alternate_scan``
++      - This flag affects the decoding of transform coefficient data.
++    * - __u8
++      - ``backward_ref_index``
++      - Index for the V4L2 buffer to use as backward reference, used with
++        B-coded and P-coded frames.
++    * - __u8
++      - ``forward_ref_index``
++      - Index for the V4L2 buffer to use as forward reference, used with
++        P-coded frames.
++    * - :cspan:`2`
++
++``V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION (struct)``
++    Specifies quantization matrices for the associated MPEG-2 slice data.
++
++.. tabularcolumns:: |p{2.0cm}|p{4.0cm}|p{11.0cm}|
++
++.. c:type:: v4l2_ctrl_mpeg2_quantization
++
++.. cssclass:: longtable
++
++.. flat-table:: struct v4l2_ctrl_mpeg2_quantization
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 1 2
++
++    * - __u8
++      - ``load_intra_quantiser_matrix``
++      - One bit to indicate whether to load the intra quantiser matrix.
++    * - __u32
++      - ``load_non_intra_quantiser_matrix``
++      - One bit to indicate whether to load the non-intra quantiser matrix.
++    * - __u32
++      - ``load_chroma_intra_quantiser_matrix``
++      - One bit to indicate whether to load the chroma intra quantiser matrix,
++        only relevant for non-4:2:0 YUV formats.
++    * - __u32
++      - ``load_chroma_non_intra_quantiser_matrix``
++      - One bit to indicate whether to load the non-chroma intra quantiser
++        matrix, only relevant for non-4:2:0 YUV formats.
++    * - __u32
++      - ``intra_quantiser_matrix[64]``
++      - The intra quantiser matrix coefficients, in zigzag scanning order.
++        It is relevant for both luma and chroma components, although it can be
++        superseded by the chroma-specific matrix for non-4:2:0 YUV formats.
++    * - __u32
++      - ``non_intra_quantiser_matrix[64]``
++      - The non-intra quantiser matrix coefficients, in zigzag scanning order.
++        It is relevant for both luma and chroma components, although it can be
++        superseded by the chroma-specific matrix for non-4:2:0 YUV formats.
++    * - __u32
++      - ``chroma_intra_quantiser_matrix[64]``
++      - The intra quantiser matrix coefficients for the chroma YUV component,
++        in zigzag scanning order. Only relevant for non-4:2:0 YUV formats.
++    * - __u32
++      - ``chroma_non_intra_quantiser_matrix[64]``
++      - The non-intra quantiser matrix coefficients for the chroma YUV component,
++        in zigzag scanning order. Only relevant for non-4:2:0 YUV formats.
++    * - :cspan:`2`
+ 
+ MFC 5.1 MPEG Controls
+ ---------------------
+diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+index abec03937bb3..4e73f62b5163 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+@@ -60,6 +60,11 @@ Compressed Formats
+       - ``V4L2_PIX_FMT_MPEG2``
+       - 'MPG2'
+       - MPEG2 video elementary stream.
++    * .. _V4L2-PIX-FMT-MPEG2-SLICE:
++
++      - ``V4L2_PIX_FMT_MPEG2_SLICE``
++      - 'MG2S'
++      - MPEG2 parsed slice data, as extracted from the MPEG2 bitstream.
+     * .. _V4L2-PIX-FMT-MPEG4:
+ 
+       - ``V4L2_PIX_FMT_MPEG4``
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 3610dce3a4f8..22483d894259 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -844,6 +844,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
+ 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
+ 	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:		return "Force Key Frame";
++	case V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS:		return "MPEG2 Slice Header";
++	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:		return "MPEG2 Quantization Matrices";
+ 
+ 	/* VPX controls */
+ 	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
+@@ -1292,6 +1294,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_ALT_FREQS:
+ 		*type = V4L2_CTRL_TYPE_U32;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS:
++		*type = V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS;
++		break;
++	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:
++		*type = V4L2_CTRL_TYPE_MPEG2_QUANTIZATION;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -1550,6 +1558,7 @@ static void std_log(const struct v4l2_ctrl *ctrl)
+ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			union v4l2_ctrl_ptr ptr)
+ {
++	struct v4l2_ctrl_mpeg2_slice_params *p_mpeg2_slice_params;
+ 	size_t len;
+ 	u64 offset;
+ 	s64 val;
+@@ -1612,6 +1621,45 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			return -ERANGE;
+ 		return 0;
+ 
++	case V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS:
++		p_mpeg2_slice_params = ptr.p;
++
++		switch (p_mpeg2_slice_params->intra_dc_precision) {
++		case 0: /* 8 bits */
++		case 1: /* 9 bits */
++		case 11: /* 11 bits */
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		switch (p_mpeg2_slice_params->picture_structure) {
++		case 1: /* interlaced top field */
++		case 2: /* interlaced bottom field */
++		case 3: /* progressive */
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		switch (p_mpeg2_slice_params->slice_type) {
++		case V4L2_MPEG2_SLICE_TYPE_I:
++		case V4L2_MPEG2_SLICE_TYPE_P:
++		case V4L2_MPEG2_SLICE_TYPE_B:
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		if (p_mpeg2_slice_params->backward_ref_index > VIDEO_MAX_FRAME ||
++		    p_mpeg2_slice_params->forward_ref_index > VIDEO_MAX_FRAME)
++			return -EINVAL;
++
++		return 0;
++
++	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
++		return 0;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -2186,6 +2234,12 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	case V4L2_CTRL_TYPE_U32:
+ 		elem_size = sizeof(u32);
+ 		break;
++	case V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS:
++		elem_size = sizeof(struct v4l2_ctrl_mpeg2_slice_params);
++		break;
++	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
++		elem_size = sizeof(struct v4l2_ctrl_mpeg2_quantization);
++		break;
+ 	default:
+ 		if (type < V4L2_CTRL_COMPOUND_TYPES)
+ 			elem_size = sizeof(s32);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 44fc0102221f..68e914b83a03 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1304,6 +1304,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_H263:		descr = "H.263"; break;
+ 		case V4L2_PIX_FMT_MPEG1:	descr = "MPEG-1 ES"; break;
+ 		case V4L2_PIX_FMT_MPEG2:	descr = "MPEG-2 ES"; break;
++		case V4L2_PIX_FMT_MPEG2_SLICE:	descr = "MPEG-2 parsed slice data"; break;
+ 		case V4L2_PIX_FMT_MPEG4:	descr = "MPEG-4 part 2 ES"; break;
+ 		case V4L2_PIX_FMT_XVID:		descr = "Xvid"; break;
+ 		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 34ee3167d7dd..83eff6f91ed2 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -35,13 +35,15 @@ struct poll_table_struct;
+ 
+ /**
+  * union v4l2_ctrl_ptr - A pointer to a control value.
+- * @p_s32:	Pointer to a 32-bit signed value.
+- * @p_s64:	Pointer to a 64-bit signed value.
+- * @p_u8:	Pointer to a 8-bit unsigned value.
+- * @p_u16:	Pointer to a 16-bit unsigned value.
+- * @p_u32:	Pointer to a 32-bit unsigned value.
+- * @p_char:	Pointer to a string.
+- * @p:		Pointer to a compound value.
++ * @p_s32:			Pointer to a 32-bit signed value.
++ * @p_s64:			Pointer to a 64-bit signed value.
++ * @p_u8:			Pointer to a 8-bit unsigned value.
++ * @p_u16:			Pointer to a 16-bit unsigned value.
++ * @p_u32:			Pointer to a 32-bit unsigned value.
++ * @p_char:			Pointer to a string.
++ * @p_mpeg2_slice_params:	Pointer to a MPEG2 slice parameters structure.
++ * @p_mpeg2_quantization:	Pointer to a MPEG2 quantization data structure.
++ * @p:				Pointer to a compound value.
+  */
+ union v4l2_ctrl_ptr {
+ 	s32 *p_s32;
+@@ -50,6 +52,8 @@ union v4l2_ctrl_ptr {
+ 	u16 *p_u16;
+ 	u32 *p_u32;
+ 	char *p_char;
++	struct v4l2_ctrl_mpeg2_slice_params *p_mpeg2_slice_params;
++	struct v4l2_ctrl_mpeg2_quantization *p_mpeg2_quantization;
+ 	void *p;
+ };
+ 
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index e4ee10ee917d..ce6de781037a 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -557,6 +557,9 @@ enum v4l2_mpeg_video_mpeg4_profile {
+ };
+ #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
+ 
++#define V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS	(V4L2_CID_MPEG_BASE+450)
++#define V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION	(V4L2_CID_MPEG_BASE+451)
++
+ /*  Control IDs for VP8 streams
+  *  Although VP8 is not part of MPEG we add these controls to the MPEG class
+  *  as that class is already handling other video compression standards
+@@ -1092,4 +1095,44 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+ #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+ 
++#define V4L2_MPEG2_SLICE_TYPE_I			1
++#define V4L2_MPEG2_SLICE_TYPE_P			2
++#define V4L2_MPEG2_SLICE_TYPE_B			3
++#define V4L2_MPEG2_SLICE_TYPE_D			4
++
++struct v4l2_ctrl_mpeg2_slice_params {
++	__u32	slice_len;
++	__u32	slice_pos;
++
++	__u16	width;
++	__u16	height;
++
++	__u8	slice_type;
++	__u8	f_code[2][2];
++
++	__u8	intra_dc_precision;
++	__u8	picture_structure;
++	__u8	top_field_first;
++	__u8	frame_pred_frame_dct;
++	__u8	concealment_motion_vectors;
++	__u8	q_scale_type;
++	__u8	intra_vlc_format;
++	__u8	alternate_scan;
++
++	__u8	backward_ref_index;
++	__u8	forward_ref_index;
++};
++
++struct v4l2_ctrl_mpeg2_quantization {
++	__u8	load_intra_quantiser_matrix : 1;
++	__u8	load_non_intra_quantiser_matrix : 1;
++	__u8	load_chroma_intra_quantiser_matrix : 1;
++	__u8	load_chroma_non_intra_quantiser_matrix : 1;
++
++	__u8	intra_quantiser_matrix[64];
++	__u8	non_intra_quantiser_matrix[64];
++	__u8	chroma_intra_quantiser_matrix[64];
++	__u8	chroma_non_intra_quantiser_matrix[64];
++};
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1f6c4b52baae..d171361ed9b3 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -629,6 +629,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
+ #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
+ #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
++#define V4L2_PIX_FMT_MPEG2_SLICE v4l2_fourcc('M', 'G', '2', 'S') /* MPEG-2 parsed slice data */
+ #define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 part 2 ES */
+ #define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
+ #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
+@@ -1587,6 +1588,8 @@ struct v4l2_ext_control {
+ 		__u8 __user *p_u8;
+ 		__u16 __user *p_u16;
+ 		__u32 __user *p_u32;
++		struct v4l2_ctrl_mpeg2_slice_params __user *p_mpeg2_slice_params;
++		struct v4l2_ctrl_mpeg2_quantization __user *p_mpeg2_quantization;
+ 		void __user *ptr;
+ 	};
+ } __attribute__ ((packed));
+@@ -1632,6 +1635,8 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++	V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS = 0x0103,
++	V4L2_CTRL_TYPE_MPEG2_QUANTIZATION = 0x0104,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
 -- 
-regards,
-Stan
+2.18.0
