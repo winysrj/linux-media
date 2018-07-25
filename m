@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from unassigned.psychz.net ([45.35.86.50]:36902 "EHLO
-        anthropologie.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1730260AbeGYVmh (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37734 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730594AbeGYWPB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 17:42:37 -0400
+        Wed, 25 Jul 2018 18:15:01 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
-Subject: USB Drives - custom made with your logo
-Message-ID: <6c15b3ec88f1dfa052bbecb331a80585@galttech.com>
-Date: Wed, 25 Jul 2018 10:42:00 +0200
-From: "Vanessa" <sarakohene@solarpassion.com>
-Reply-To: loudaogute@aliyun.com
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Cc: Heiko Stuebner <heiko@sntech.de>,
+        Jacob chen <jacob2.chen@rock-chips.com>,
+        linux-rockchip@lists.infradead.org,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH] rockchip/rga: Fix bad dma_free_attrs() parameter
+Date: Wed, 25 Jul 2018 18:01:23 -0300
+Message-Id: <20180725210123.10836-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-How are you?
+In rga_remove(), dma_free_attrs is being passed the wrong
+cpu address, which triggers an exception if the driver is
+removed. Fix it.
 
-I would like to speak with the person in charge of purchasing your branded
-promotional products for your company?
+Tested on a RK3399 platform, with a bind/unbind cycle.
 
-We create custom LOGO USB flash drives for our clients throughout the US.
-We can print your logo, and load your digital images, videos and files!
-If you need marketing, advertising, gifts or incentives, USB flash drives
-are the solution!
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/platform/rockchip/rga/rga.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Here is what we include:
--All Memory Sizes from 64MB up to 128GB!
--Second Side Printing
--Low Minimum Quantities
--Rush Service Available
--Full color Printing
-
-NEW:   We can make a custom shaped USB drive to look like your Logo or
-product!
-Send us your product image or logo files; we will create a design mock up
-for you at no cost!
-We are always running a new deals; email to get pricing!
-
-Ask about the “Double Your Memory” upgrade promotion going on right
-now!
-Pricing is low right now, so let us know what you need and we will get you
-a quick quote.
-
-We will beat any competitors pricing, send us your last invoice and we will
-beat it!
-
-We always offer great rates for schools and nonprofits as well.
-Regards,
-
-Vanessa Kellen
-Logo USB Account Manager
+diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
+index 8ace1873202a..850da4b34e12 100644
+--- a/drivers/media/platform/rockchip/rga/rga.c
++++ b/drivers/media/platform/rockchip/rga/rga.c
+@@ -931,7 +931,7 @@ static int rga_remove(struct platform_device *pdev)
+ {
+ 	struct rockchip_rga *rga = platform_get_drvdata(pdev);
+ 
+-	dma_free_attrs(rga->dev, RGA_CMDBUF_SIZE, &rga->cmdbuf_virt,
++	dma_free_attrs(rga->dev, RGA_CMDBUF_SIZE, rga->cmdbuf_virt,
+ 		       rga->cmdbuf_phy, DMA_ATTR_WRITE_COMBINE);
+ 
+ 	free_pages((unsigned long)rga->src_mmu_pages, 3);
+-- 
+2.18.0
