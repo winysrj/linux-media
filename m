@@ -1,61 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34960 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729251AbeGRMIl (ORCPT
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:59657 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728444AbeGYI3U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jul 2018 08:08:41 -0400
-Received: by mail-wm0-f66.google.com with SMTP id y22-v6so2522597wma.0
-        for <linux-media@vger.kernel.org>; Wed, 18 Jul 2018 04:31:12 -0700 (PDT)
-Subject: Re: [PATCH] venus: vdec: fix decoded data size
-To: Vikash Garodia <vgarodia@codeaurora.org>
-Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-kernel@vger.kernel.org, acourbot@chromium.org
-References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org>
-Date: Wed, 18 Jul 2018 14:31:10 +0300
+        Wed, 25 Jul 2018 04:29:20 -0400
+Date: Wed, 25 Jul 2018 09:18:53 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        ysato@users.sourceforge.jp, dalias@libc.org,
+        linux-sh@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.19] Various fixes
+Message-ID: <20180725071853.GN6784@w540>
+References: <a9296b29-09ad-9379-0786-de282b71abf2@xs4all.nl>
+ <20180724190413.77025078@coco.lan>
 MIME-Version: 1.0
-In-Reply-To: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ztcJpsdPpsnnlAp8"
+Content-Disposition: inline
+In-Reply-To: <20180724190413.77025078@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
 
-On 07/02/2018 10:44 AM, Vikash Garodia wrote:
-> Exisiting code returns the max of the decoded
-> size and buffer size. It turns out that buffer
-> size is always greater due to hardware alignment
-> requirement. As a result, payload size given to
-> client is incorrect. This change ensures that
-> the bytesused is assigned to actual payload size.
-> 
-> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/vdec.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-> index d079aeb..ada1d2f 100644
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
->  
->  		vb = &vbuf->vb2_buf;
->  		vb->planes[0].bytesused =
-> -			max_t(unsigned int, opb_sz, bytesused);
-> +			min_t(unsigned int, opb_sz, bytesused);
+--ztcJpsdPpsnnlAp8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Most probably my intension was to avoid bytesused == 0, but that is
-allowed from v4l2 driver -> userspace direction
+Hi Mauro,
+   I understand, and I failed to cc the SH people initially.
 
-Could you drop min/max_t macros at all and use bytesused directly i.e.
+Roping in Sato-san, Rich and the SH list.
+Could you guys please have a look here? I've gone through the media
+tree as all these changes sparkled from soc_camera removal, and while
+I was there I updated the defconfigs before enabling CEU and disabling
+soc_camera.
 
-vb2_set_plane_payload(vb, 0, bytesused)
+How long before we miss v4.19 Mauro?
 
--- 
-regards,
-Stan
+Thanks
+   j
+
+On Tue, Jul 24, 2018 at 07:04:13PM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 18 Jul 2018 12:38:58 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>
+> > Hi Mauro,
+> >
+> > Various fixes. Please note that I re-added the 'Add support for STD ioctls on subdev nodes'
+> > patch. It really is needed.
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+>
+> > Jacopo Mondi (9):
+> >       sh: defconfig: migor: Update defconfig
+> >       sh: defconfig: migor: Enable CEU and sensor drivers
+> >       sh: defconfig: ecovec: Update defconfig
+> >       sh: defconfig: ecovec: Enable CEU and video drivers
+> >       sh: defconfig: se7724: Update defconfig
+> >       sh: defconfig: se7724: Enable CEU and sensor driver
+> >       sh: defconfig: ap325rxa: Update defconfig
+> >       sh: defconfig: ap325rxa: Enable CEU and sensor driver
+>
+> I didn't apply the above ones. I understand you want to enable
+> the sensor drivers there, but It should either go via SUPERH
+> tree or we would need his ack to merge on our tree.
+>
+> >       sh: migor: Remove stale soc_camera include
+>
+> It caused me lots of doubts if we should either apply this one
+> via the media tree or not. I ended by applying, as we're maintaining
+> the soc_camera stuff, with are being removed. So, it makes more sense
+> to merge it via our tree.
+>
+> Still, it would be nicer if we had the SUPERH maintainer's ack on
+> it.
+>
+>
+> Thanks,
+> Mauro
+
+--ztcJpsdPpsnnlAp8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbWCRdAAoJEHI0Bo8WoVY8qCIP/2ayuVwc7QXaZOlIHL1JnM7o
+uOyuVGWi8pRACnieYLjPxHdLgGAUySnOvjb9vEXbxQFo3U39K8ReFjAoOb64y4Nm
+R5T91AqAX182MJu1u3HGAdJqnHKFXrneEVex/Jrp+YjpsAe7fmQkU2dsl1K0mvIa
+aMncDaM46WOLKPbCT9y2xXTxHTkqVrrSYsg7czLw5fSdRadiNYYXrq4r/UdeOJhg
+h8aYF9LMRE37sWNr3ahadAULd/WvXTk1VYPuCzcKxts8vdCAjN0p2jWIoRzTu0Iv
+blrZYJ7tjXzFZ5Wv8k48mZ1kb1R7Wqp7UCqlYjwnrnDvATK2QatL/1yqYJjZtz5I
+RhBkQkOH2ibjsVYUBhzy4R0BYsWtu5A5s0xxnVbyBkVOTzRmJEBFtVvWfLDi9gfx
+3Kkp5o/HN26HTlBeFFWCk7oySRUSqi7eERxBwNx7EASkkBMUd51V8hgrKCD3CIaY
+KXaU3Zz8oZ6QMmulmK6Z0OXiONdGG6Y2dLZgI4JBi9u8UUNkp+rPg873v4YUtvEm
+jUNbw/D1xuPj1s7jzSZT1aqKCu54Q5eSnNgXi1BNCTwcpg7YxpF9T+1jQrzjklva
+8OMLyiLs1adoVaD7ELqDzdLoTdAAv/LRdFK9MWNeyD02cGRf7asYyv8Sva3EkV6d
+E/7wdii9FVeYCBsGWh3a
+=7ubM
+-----END PGP SIGNATURE-----
+
+--ztcJpsdPpsnnlAp8--
