@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:37734 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730594AbeGYWPB (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38710 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731437AbeGZATZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 18:15:01 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org
-Cc: Heiko Stuebner <heiko@sntech.de>,
-        Jacob chen <jacob2.chen@rock-chips.com>,
-        linux-rockchip@lists.infradead.org,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH] rockchip/rga: Fix bad dma_free_attrs() parameter
-Date: Wed, 25 Jul 2018 18:01:23 -0300
-Message-Id: <20180725210123.10836-1-ezequiel@collabora.com>
+        Wed, 25 Jul 2018 20:19:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+        Carlos Garnacho <carlosg@gnome.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Devices with a front and back webcam represented as a single UVC device
+Date: Thu, 26 Jul 2018 02:06:06 +0300
+Message-ID: <10745005.DZ8nYEgB6R@avalon>
+In-Reply-To: <CABxcv=kTDtmFy=FDmJGLvu6NZk9iHuQBGZR7T9tvSs03Q8dYcA@mail.gmail.com>
+References: <8804dcb3-1aca-3679-6a96-bbe554f188d0@redhat.com> <1762892.v9kic1zYKq@avalon> <CABxcv=kTDtmFy=FDmJGLvu6NZk9iHuQBGZR7T9tvSs03Q8dYcA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In rga_remove(), dma_free_attrs is being passed the wrong
-cpu address, which triggers an exception if the driver is
-removed. Fix it.
+Hi Javier,
 
-Tested on a RK3399 platform, with a bind/unbind cycle.
+On Tuesday, 24 July 2018 15:35:17 EEST Javier Martinez Canillas wrote:
+> On Thu, Jul 12, 2018 at 3:01 PM, Laurent Pinchart wrote:
+> 
+> [snip]
+> 
+> >> Laurent, thank you for your input on this. I thought it was a bit weird
+> >> that the cam on my HP X2 only had what appears to be the debug controls,
+> >> so I opened it up and as I suspect (after your analysis) it is using a
+> >> USB module for the front camera, but the back camera is a sensor
+> >> directly hooked with its CSI/MIPI bus to the PCB, so very likely it is
+> >> using the ATOMISP stuff.
+> >> 
+> >> So I think that we can consider this "solved" for my 2-in-1.
+> > 
+> > Great, I'll add you to the list of potential testers for an ATOMISP
+> > solution :-)
+> 
+> The ATOMISP driver was removed from staging by commit 51b8dc5163d
+> ("media: staging: atomisp: Remove driver"). Do you mean that there's a
+> plan to bring that driver back?
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- drivers/media/platform/rockchip/rga/rga.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I don't think so, unless someone is willing to invest the time it would need 
+to bring it back.
 
-diff --git a/drivers/media/platform/rockchip/rga/rga.c b/drivers/media/platform/rockchip/rga/rga.c
-index 8ace1873202a..850da4b34e12 100644
---- a/drivers/media/platform/rockchip/rga/rga.c
-+++ b/drivers/media/platform/rockchip/rga/rga.c
-@@ -931,7 +931,7 @@ static int rga_remove(struct platform_device *pdev)
- {
- 	struct rockchip_rga *rga = platform_get_drvdata(pdev);
- 
--	dma_free_attrs(rga->dev, RGA_CMDBUF_SIZE, &rga->cmdbuf_virt,
-+	dma_free_attrs(rga->dev, RGA_CMDBUF_SIZE, rga->cmdbuf_virt,
- 		       rga->cmdbuf_phy, DMA_ATTR_WRITE_COMBINE);
- 
- 	free_pages((unsigned long)rga->src_mmu_pages, 3);
 -- 
-2.18.0
+Regards,
+
+Laurent Pinchart
