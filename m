@@ -1,127 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-39.mail.aliyun.com ([115.124.20.39]:35322 "EHLO
-        out20-39.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728740AbeGYLyY (ORCPT
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:38209 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728499AbeGYM0G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 07:54:24 -0400
-Date: Wed, 25 Jul 2018 18:42:24 +0800
-From: Yong <yong.deng@magewell.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Thierry Reding <treding@nvidia.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v10 2/2] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20180725184224.cab5172f8558162cc74bde9e@magewell.com>
-In-Reply-To: <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
-References: <1525417745-37964-1-git-send-email-yong.deng@magewell.com>
-        <20180626110821.wkal6fcnoncsze6y@valkosipuli.retiisi.org.uk>
-        <20180705154802.03604f156709be11892b19c0@magewell.com>
-        <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Wed, 25 Jul 2018 08:26:06 -0400
+Received: by mail-wr1-f67.google.com with SMTP id v14-v6so7043249wro.5
+        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2018 04:14:53 -0700 (PDT)
+Subject: Re: [PATCH v3 1/4] venus: firmware: add routine to reset ARM9
+To: Vikash Garodia <vgarodia@codeaurora.org>,
+        stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
+        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org
+References: <1530731212-30474-1-git-send-email-vgarodia@codeaurora.org>
+ <1530731212-30474-2-git-send-email-vgarodia@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <a9e7aee2-7320-affa-4887-c090b3ce289d@linaro.org>
+Date: Wed, 25 Jul 2018 14:14:47 +0300
+MIME-Version: 1.0
+In-Reply-To: <1530731212-30474-2-git-send-email-vgarodia@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-On Wed, 18 Jul 2018 12:55:14 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
-
-> Hi Yong,
+On 07/04/2018 10:06 PM, Vikash Garodia wrote:
+> Add routine to reset the ARM9 and brings it out of reset. Also
+> abstract the Venus CPU state handling with a new function. This
+> is in preparation to add PIL functionality in venus driver.
 > 
-> On Thu, Jul 05, 2018 at 03:48:02PM +0800, Yong wrote:
-> > > > +
-> > > > +/* -----------------------------------------------------------------------------
-> > > > + * Media Operations
-> > > > + */
-> > > > +static int sun6i_video_formats_init(struct sun6i_video *video,
-> > > > +				    const struct media_pad *remote)
-> > > > +{
-> > > > +	struct v4l2_subdev_mbus_code_enum mbus_code = { 0 };
-> > > > +	struct sun6i_csi *csi = video->csi;
-> > > > +	struct v4l2_format format;
-> > > > +	struct v4l2_subdev *subdev;
-> > > > +	u32 pad;
-> > > > +	const u32 *pixformats;
-> > > > +	int pixformat_count = 0;
-> > > > +	u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
-> > > > +	int codes_count = 0;
-> > > > +	int num_fmts = 0;
-> > > > +	int i, j;
-> > > > +
-> > > > +	pad = remote->index;
-> > > > +	subdev = media_entity_to_v4l2_subdev(remote->entity);
-> > > > +	if (subdev == NULL)
-> > > > +		return -ENXIO;
-> > > > +
-> > > > +	/* Get supported pixformats of CSI */
-> > > > +	pixformat_count = sun6i_csi_get_supported_pixformats(csi, &pixformats);
-> > > > +	if (pixformat_count <= 0)
-> > > > +		return -ENXIO;
-> > > > +
-> > > > +	/* Get subdev formats codes */
-> > > > +	mbus_code.pad = pad;
-> > > > +	mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > > +	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
-> > > > +				 &mbus_code)) {
-> > > 
-> > > The formats supported by the external sub-device may depend on horizontal
-> > > and vertical flipping. You shouldn't assume any particular configuration
-> > > here: instead, bridge drivers generally just need to make sure the formats
-> > > match in link validation when streaming is started. At least the CSI-2
-> > > receiver driver and the DMA engine driver (video device) should check the
-> > > configuration is valid. See e.g. the IPU3 driver:
-> > > drivers/media/pci/intel/ipu3/ipu3-cio2.c .
-> > 
-> > Can mbus_code be added dynamically ?
-> > The code here only enum the mbus code and get the possible supported
-> > pairs of pixformat and mbus by SoC. Not try to check if the formats
-> > (width height ...) is valid or not. The formats validation will be 
-> > in link validation when streaming is started as per your advise. 
+> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/core.h         |  1 +
+>  drivers/media/platform/qcom/venus/firmware.c     | 36 ++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/firmware.h     |  1 +
+>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++------
+>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  5 ++++
+>  5 files changed, 47 insertions(+), 9 deletions(-)
 > 
-> The formats that can be enumerated from the sensor here are those settable
-> using SUBDEV_S_FMT. The enumeration will change on raw sensors if you use
-> the flipping controls. As the bridge driver implements MC as well as subdev
-> APIs, generally the sensor configuration is out of scope of this driver
-> since it's directly configured from the user space.
-> 
-> Just check that the pipeline is valid before starting streaming in your
-> driver.
+> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+> index 2f02365..eb5ee66 100644
+> --- a/drivers/media/platform/qcom/venus/core.h
+> +++ b/drivers/media/platform/qcom/venus/core.h
+> @@ -129,6 +129,7 @@ struct venus_core {
+>  	struct device *dev;
+>  	struct device *dev_dec;
+>  	struct device *dev_enc;
+> +	bool no_tz;
+>  	struct mutex lock;
+>  	struct list_head instances;
+>  	atomic_t insts_count;
+> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+> index 521d4b3..3968553d 100644
+> --- a/drivers/media/platform/qcom/venus/firmware.c
+> +++ b/drivers/media/platform/qcom/venus/firmware.c
+> @@ -22,11 +22,47 @@
+>  #include <linux/sizes.h>
+>  #include <linux/soc/qcom/mdt_loader.h>
+>  
+> +#include "core.h"
+>  #include "firmware.h"
+> +#include "hfi_venus_io.h"
+>  
+>  #define VENUS_PAS_ID			9
+>  #define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
+>  
+> +static void venus_reset_cpu(struct venus_core *core)
+> +{
+> +	void __iomem *base = core->base;
+> +
+> +	writel(0, base + WRAPPER_FW_START_ADDR);
+> +	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_FW_END_ADDR);
+> +	writel(0, base + WRAPPER_CPA_START_ADDR);
+> +	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
+> +	writel(0x0, base + WRAPPER_CPU_CGC_DIS);
+> +	writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
+> +
+> +	/* Make sure all register writes are committed. */
+> +	mb();
+> +
+> +	/* Bring ARM9 out of reset */
+> +	writel_relaxed(0, base + WRAPPER_A9SS_SW_RESET);
+> +}
+> +
+> +int venus_set_hw_state(struct venus_core *core, bool resume)
+> +{
+> +	void __iomem *base = core->base;
+> +
+> +	if (!core->no_tz)
+> +		return qcom_scm_set_remote_state(resume, 0);
+> +
+> +	if (resume)
+> +		venus_reset_cpu(core);
+> +	else
+> +		writel(1, base + WRAPPER_A9SS_SW_RESET);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(venus_set_hw_state);
 
-Sorry. I am still confused.
-As the CSI driver does not enum the formats supported by sensor.
-How to get a valid format if I do not want to open the subdev? 
-Many applications still only open /dev/video*.
+This export_symbol shouldn't be needed
 
-> 
-> -- 
-> Kind regards,
-> 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
-
-
-Thanks,
-Yong
+-- 
+regards,
+Stan
