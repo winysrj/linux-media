@@ -1,412 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:35602 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:35656 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730065AbeGYRv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 13:51:29 -0400
+        id S1728653AbeGYRvb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 13:51:31 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 28/34] media: camss: vfe: Add support for UYVY output from VFE on 8x96
-Date: Wed, 25 Jul 2018 19:38:37 +0300
-Message-Id: <1532536723-19062-29-git-send-email-todor.tomov@linaro.org>
+Subject: [PATCH v4 33/34] media: doc: media/v4l-drivers: Update Qualcomm CAMSS driver document for 8x96
+Date: Wed, 25 Jul 2018 19:38:42 +0300
+Message-Id: <1532536723-19062-34-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support to output UYVY formats from the VFE (via the PIX interface).
-A configuration for the realign module in the VFE is added. As the
-realign module is present on 8x96 but not on 8x16, this is supported
-on 8x96 only.
+Update the document to describe the support of Camera Subsystem
+on MSM8996/APQ8096.
 
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
- drivers/media/platform/qcom/camss/camss-vfe-4-1.c |   6 +
- drivers/media/platform/qcom/camss/camss-vfe-4-7.c | 129 ++++++++++++++++++----
- drivers/media/platform/qcom/camss/camss-vfe.c     |  31 +++++-
- drivers/media/platform/qcom/camss/camss-vfe.h     |   2 +
- drivers/media/platform/qcom/camss/camss-video.c   |   8 ++
- 5 files changed, 152 insertions(+), 24 deletions(-)
+ Documentation/media/v4l-drivers/qcom_camss.rst     |  93 +++++++++++-------
+ .../media/v4l-drivers/qcom_camss_8x96_graph.dot    | 104 +++++++++++++++++++++
+ 2 files changed, 164 insertions(+), 33 deletions(-)
+ create mode 100644 Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
 
-diff --git a/drivers/media/platform/qcom/camss/camss-vfe-4-1.c b/drivers/media/platform/qcom/camss/camss-vfe-4-1.c
-index 41184dc..da3a9fe 100644
---- a/drivers/media/platform/qcom/camss/camss-vfe-4-1.c
-+++ b/drivers/media/platform/qcom/camss/camss-vfe-4-1.c
-@@ -542,6 +542,11 @@ static void vfe_set_xbar_cfg(struct vfe_device *vfe, struct vfe_output *output,
- 	}
- }
+diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
+index 9e66b7b..f27c8df 100644
+--- a/Documentation/media/v4l-drivers/qcom_camss.rst
++++ b/Documentation/media/v4l-drivers/qcom_camss.rst
+@@ -7,34 +7,34 @@ Introduction
+ ------------
  
-+static void vfe_set_realign_cfg(struct vfe_device *vfe, struct vfe_line *line,
-+				u8 enable)
-+{
-+	/* empty */
+ This file documents the Qualcomm Camera Subsystem driver located under
+-drivers/media/platform/qcom/camss-8x16.
++drivers/media/platform/qcom/camss.
+ 
+ The current version of the driver supports the Camera Subsystem found on
+-Qualcomm MSM8916 and APQ8016 processors.
++Qualcomm MSM8916/APQ8016 and MSM8996/APQ8096 processors.
+ 
+ The driver implements V4L2, Media controller and V4L2 subdev interfaces.
+ Camera sensor using V4L2 subdev interface in the kernel is supported.
+ 
+ The driver is implemented using as a reference the Qualcomm Camera Subsystem
+-driver for Android as found in Code Aurora [#f1]_.
++driver for Android as found in Code Aurora [#f1]_ [#f2]_.
+ 
+ 
+ Qualcomm Camera Subsystem hardware
+ ----------------------------------
+ 
+-The Camera Subsystem hardware found on 8x16 processors and supported by the
+-driver consists of:
++The Camera Subsystem hardware found on 8x16 / 8x96 processors and supported by
++the driver consists of:
+ 
+-- 2 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
++- 2 / 3 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
+   A separate camera sensor can be connected to each of the CSIPHY module;
+-- 2 CSID (CSI Decoder) modules. They handle the Protocol and Application layer
+-  of the CSI2 receivers. A CSID can decode data stream from any of the CSIPHY.
+-  Each CSID also contains a TG (Test Generator) block which can generate
++- 2 / 4 CSID (CSI Decoder) modules. They handle the Protocol and Application
++  layer of the CSI2 receivers. A CSID can decode data stream from any of the
++  CSIPHY. Each CSID also contains a TG (Test Generator) block which can generate
+   artificial input data for test purposes;
+ - ISPIF (ISP Interface) module. Handles the routing of the data streams from
+   the CSIDs to the inputs of the VFE;
+-- VFE (Video Front End) module. Contains a pipeline of image processing hardware
+-  blocks. The VFE has different input interfaces. The PIX (Pixel) input
++- 1 / 2 VFE (Video Front End) module(s). Contain a pipeline of image processing
++  hardware blocks. The VFE has different input interfaces. The PIX (Pixel) input
+   interface feeds the input data to the image processing pipeline. The image
+   processing pipeline contains also a scale and crop module at the end. Three
+   RDI (Raw Dump Interface) input interfaces bypass the image processing
+@@ -49,18 +49,33 @@ The current version of the driver supports:
+ 
+ - Input from camera sensor via CSIPHY;
+ - Generation of test input data by the TG in CSID;
+-- RDI interface of VFE - raw dump of the input data to memory.
++- RDI interface of VFE
+ 
+-  Supported formats:
++  - Raw dump of the input data to memory.
+ 
+-  - YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2 - V4L2_PIX_FMT_YUYV /
+-    V4L2_PIX_FMT_UYVY / V4L2_PIX_FMT_YVYU / V4L2_PIX_FMT_VYUY);
+-  - MIPI RAW8 (8bit Bayer RAW - V4L2_PIX_FMT_SRGGB8 /
+-    V4L2_PIX_FMT_SGRBG8 / V4L2_PIX_FMT_SGBRG8 / V4L2_PIX_FMT_SBGGR8);
+-  - MIPI RAW10 (10bit packed Bayer RAW - V4L2_PIX_FMT_SBGGR10P /
+-    V4L2_PIX_FMT_SGBRG10P / V4L2_PIX_FMT_SGRBG10P / V4L2_PIX_FMT_SRGGB10P);
+-  - MIPI RAW12 (12bit packed Bayer RAW - V4L2_PIX_FMT_SRGGB12P /
+-    V4L2_PIX_FMT_SGBRG12P / V4L2_PIX_FMT_SGRBG12P / V4L2_PIX_FMT_SRGGB12P).
++    Supported formats:
++
++    - YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2 - V4L2_PIX_FMT_YUYV /
++      V4L2_PIX_FMT_UYVY / V4L2_PIX_FMT_YVYU / V4L2_PIX_FMT_VYUY);
++    - MIPI RAW8 (8bit Bayer RAW - V4L2_PIX_FMT_SRGGB8 /
++      V4L2_PIX_FMT_SGRBG8 / V4L2_PIX_FMT_SGBRG8 / V4L2_PIX_FMT_SBGGR8);
++    - MIPI RAW10 (10bit packed Bayer RAW - V4L2_PIX_FMT_SBGGR10P /
++      V4L2_PIX_FMT_SGBRG10P / V4L2_PIX_FMT_SGRBG10P / V4L2_PIX_FMT_SRGGB10P /
++      V4L2_PIX_FMT_Y10P);
++    - MIPI RAW12 (12bit packed Bayer RAW - V4L2_PIX_FMT_SRGGB12P /
++      V4L2_PIX_FMT_SGBRG12P / V4L2_PIX_FMT_SGRBG12P / V4L2_PIX_FMT_SRGGB12P).
++    - (8x96 only) MIPI RAW14 (14bit packed Bayer RAW - V4L2_PIX_FMT_SRGGB14P /
++      V4L2_PIX_FMT_SGBRG14P / V4L2_PIX_FMT_SGRBG14P / V4L2_PIX_FMT_SRGGB14P).
++
++  - (8x96 only) Format conversion of the input data.
++
++    Supported input formats:
++
++    - MIPI RAW10 (10bit packed Bayer RAW - V4L2_PIX_FMT_SBGGR10P / V4L2_PIX_FMT_Y10P).
++
++    Supported output formats:
++
++    - Plain16 RAW10 (10bit unpacked Bayer RAW - V4L2_PIX_FMT_SBGGR10 / V4L2_PIX_FMT_Y10).
+ 
+ - PIX interface of VFE
+ 
+@@ -75,14 +90,16 @@ The current version of the driver supports:
+ 
+     - NV12/NV21 (two plane YUV 4:2:0 - V4L2_PIX_FMT_NV12 / V4L2_PIX_FMT_NV21);
+     - NV16/NV61 (two plane YUV 4:2:2 - V4L2_PIX_FMT_NV16 / V4L2_PIX_FMT_NV61).
++    - (8x96 only) YUYV/UYVY/YVYU/VYUY (packed YUV 4:2:2 - V4L2_PIX_FMT_YUYV /
++      V4L2_PIX_FMT_UYVY / V4L2_PIX_FMT_YVYU / V4L2_PIX_FMT_VYUY).
+ 
+   - Scaling support. Configuration of the VFE Encoder Scale module
+     for downscalling with ratio up to 16x.
+ 
+   - Cropping support. Configuration of the VFE Encoder Crop module.
+ 
+-- Concurrent and independent usage of two data inputs - could be camera sensors
+-  and/or TG.
++- Concurrent and independent usage of two (8x96: three) data inputs -
++  could be camera sensors and/or TG.
+ 
+ 
+ Driver Architecture and Design
+@@ -90,14 +107,14 @@ Driver Architecture and Design
+ 
+ The driver implements the V4L2 subdev interface. With the goal to model the
+ hardware links between the modules and to expose a clean, logical and usable
+-interface, the driver is split into V4L2 sub-devices as follows:
++interface, the driver is split into V4L2 sub-devices as follows (8x16 / 8x96):
+ 
+-- 2 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
+-- 2 CSID sub-devices - each CSID is represented by a single sub-device;
+-- 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
+-  to the number of CSID sub-devices;
+-- 4 VFE sub-devices - VFE is represented by a number of sub-devices equal to
+-  the number of the input interfaces (3 RDI and 1 PIX).
++- 2 / 3 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
++- 2 / 4 CSID sub-devices - each CSID is represented by a single sub-device;
++- 2 / 4 ISPIF sub-devices - ISPIF is represented by a number of sub-devices
++  equal to the number of CSID sub-devices;
++- 4 / 8 VFE sub-devices - VFE is represented by a number of sub-devices equal to
++  the number of the input interfaces (3 RDI and 1 PIX for each VFE).
+ 
+ The considerations to split the driver in this particular way are as follows:
+ 
+@@ -115,8 +132,8 @@ The considerations to split the driver in this particular way are as follows:
+ 
+ Each VFE sub-device is linked to a separate video device node.
+ 
+-The media controller pipeline graph is as follows (with connected two OV5645
+-camera sensors):
++The media controller pipeline graph is as follows (with connected two / three
++OV5645 camera sensors):
+ 
+ .. _qcom_camss_graph:
+ 
+@@ -124,7 +141,13 @@ camera sensors):
+     :alt:   qcom_camss_graph.dot
+     :align: center
+ 
+-    Media pipeline graph
++    Media pipeline graph 8x16
++
++.. kernel-figure:: qcom_camss_8x96_graph.dot
++    :alt:   qcom_camss_8x96_graph.dot
++    :align: center
++
++    Media pipeline graph 8x96
+ 
+ 
+ Implementation
+@@ -149,8 +172,12 @@ APQ8016 Specification:
+ https://developer.qualcomm.com/download/sd410/snapdragon-410-processor-device-specification.pdf
+ Referenced 2016-11-24.
+ 
++APQ8096 Specification:
++https://developer.qualcomm.com/download/sd820e/qualcomm-snapdragon-820e-processor-apq8096sge-device-specification.pdf
++Referenced 2018-06-22.
+ 
+ References
+ ----------
+ 
+ .. [#f1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
++.. [#f2] https://source.codeaurora.org/quic/la/kernel/msm-3.18/
+diff --git a/Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot b/Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
+new file mode 100644
+index 0000000..de34f0a
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
+@@ -0,0 +1,104 @@
++digraph board {
++	rankdir=TB
++	n00000001 [label="{{<port0> 0} | msm_csiphy0\n/dev/v4l-subdev0 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000001:port1 -> n0000000a:port0 [style=dashed]
++	n00000001:port1 -> n0000000d:port0 [style=dashed]
++	n00000001:port1 -> n00000010:port0 [style=dashed]
++	n00000001:port1 -> n00000013:port0 [style=dashed]
++	n00000004 [label="{{<port0> 0} | msm_csiphy1\n/dev/v4l-subdev1 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000004:port1 -> n0000000a:port0 [style=dashed]
++	n00000004:port1 -> n0000000d:port0 [style=dashed]
++	n00000004:port1 -> n00000010:port0 [style=dashed]
++	n00000004:port1 -> n00000013:port0 [style=dashed]
++	n00000007 [label="{{<port0> 0} | msm_csiphy2\n/dev/v4l-subdev2 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000007:port1 -> n0000000a:port0 [style=dashed]
++	n00000007:port1 -> n0000000d:port0 [style=dashed]
++	n00000007:port1 -> n00000010:port0 [style=dashed]
++	n00000007:port1 -> n00000013:port0 [style=dashed]
++	n0000000a [label="{{<port0> 0} | msm_csid0\n/dev/v4l-subdev3 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000a:port1 -> n00000016:port0 [style=dashed]
++	n0000000a:port1 -> n00000019:port0 [style=dashed]
++	n0000000a:port1 -> n0000001c:port0 [style=dashed]
++	n0000000a:port1 -> n0000001f:port0 [style=dashed]
++	n0000000d [label="{{<port0> 0} | msm_csid1\n/dev/v4l-subdev4 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000000d:port1 -> n00000016:port0 [style=dashed]
++	n0000000d:port1 -> n00000019:port0 [style=dashed]
++	n0000000d:port1 -> n0000001c:port0 [style=dashed]
++	n0000000d:port1 -> n0000001f:port0 [style=dashed]
++	n00000010 [label="{{<port0> 0} | msm_csid2\n/dev/v4l-subdev5 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000010:port1 -> n00000016:port0 [style=dashed]
++	n00000010:port1 -> n00000019:port0 [style=dashed]
++	n00000010:port1 -> n0000001c:port0 [style=dashed]
++	n00000010:port1 -> n0000001f:port0 [style=dashed]
++	n00000013 [label="{{<port0> 0} | msm_csid3\n/dev/v4l-subdev6 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000013:port1 -> n00000016:port0 [style=dashed]
++	n00000013:port1 -> n00000019:port0 [style=dashed]
++	n00000013:port1 -> n0000001c:port0 [style=dashed]
++	n00000013:port1 -> n0000001f:port0 [style=dashed]
++	n00000016 [label="{{<port0> 0} | msm_ispif0\n/dev/v4l-subdev7 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000016:port1 -> n00000022:port0 [style=dashed]
++	n00000016:port1 -> n0000002b:port0 [style=dashed]
++	n00000016:port1 -> n00000034:port0 [style=dashed]
++	n00000016:port1 -> n0000003d:port0 [style=dashed]
++	n00000016:port1 -> n00000046:port0 [style=dashed]
++	n00000016:port1 -> n0000004f:port0 [style=dashed]
++	n00000016:port1 -> n00000058:port0 [style=dashed]
++	n00000016:port1 -> n00000061:port0 [style=dashed]
++	n00000019 [label="{{<port0> 0} | msm_ispif1\n/dev/v4l-subdev8 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000019:port1 -> n00000022:port0 [style=dashed]
++	n00000019:port1 -> n0000002b:port0 [style=dashed]
++	n00000019:port1 -> n00000034:port0 [style=dashed]
++	n00000019:port1 -> n0000003d:port0 [style=dashed]
++	n00000019:port1 -> n00000046:port0 [style=dashed]
++	n00000019:port1 -> n0000004f:port0 [style=dashed]
++	n00000019:port1 -> n00000058:port0 [style=dashed]
++	n00000019:port1 -> n00000061:port0 [style=dashed]
++	n0000001c [label="{{<port0> 0} | msm_ispif2\n/dev/v4l-subdev9 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000001c:port1 -> n00000022:port0 [style=dashed]
++	n0000001c:port1 -> n0000002b:port0 [style=dashed]
++	n0000001c:port1 -> n00000034:port0 [style=dashed]
++	n0000001c:port1 -> n0000003d:port0 [style=dashed]
++	n0000001c:port1 -> n00000046:port0 [style=dashed]
++	n0000001c:port1 -> n0000004f:port0 [style=dashed]
++	n0000001c:port1 -> n00000058:port0 [style=dashed]
++	n0000001c:port1 -> n00000061:port0 [style=dashed]
++	n0000001f [label="{{<port0> 0} | msm_ispif3\n/dev/v4l-subdev10 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000001f:port1 -> n00000022:port0 [style=dashed]
++	n0000001f:port1 -> n0000002b:port0 [style=dashed]
++	n0000001f:port1 -> n00000034:port0 [style=dashed]
++	n0000001f:port1 -> n0000003d:port0 [style=dashed]
++	n0000001f:port1 -> n00000046:port0 [style=dashed]
++	n0000001f:port1 -> n0000004f:port0 [style=dashed]
++	n0000001f:port1 -> n00000058:port0 [style=dashed]
++	n0000001f:port1 -> n00000061:port0 [style=dashed]
++	n00000022 [label="{{<port0> 0} | msm_vfe0_rdi0\n/dev/v4l-subdev11 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000022:port1 -> n00000025 [style=bold]
++	n00000025 [label="msm_vfe0_video0\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
++	n0000002b [label="{{<port0> 0} | msm_vfe0_rdi1\n/dev/v4l-subdev12 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000002b:port1 -> n0000002e [style=bold]
++	n0000002e [label="msm_vfe0_video1\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
++	n00000034 [label="{{<port0> 0} | msm_vfe0_rdi2\n/dev/v4l-subdev13 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000034:port1 -> n00000037 [style=bold]
++	n00000037 [label="msm_vfe0_video2\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
++	n0000003d [label="{{<port0> 0} | msm_vfe0_pix\n/dev/v4l-subdev14 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000003d:port1 -> n00000040 [style=bold]
++	n00000040 [label="msm_vfe0_video3\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
++	n00000046 [label="{{<port0> 0} | msm_vfe1_rdi0\n/dev/v4l-subdev15 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000046:port1 -> n00000049 [style=bold]
++	n00000049 [label="msm_vfe1_video0\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
++	n0000004f [label="{{<port0> 0} | msm_vfe1_rdi1\n/dev/v4l-subdev16 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n0000004f:port1 -> n00000052 [style=bold]
++	n00000052 [label="msm_vfe1_video1\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
++	n00000058 [label="{{<port0> 0} | msm_vfe1_rdi2\n/dev/v4l-subdev17 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000058:port1 -> n0000005b [style=bold]
++	n0000005b [label="msm_vfe1_video2\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
++	n00000061 [label="{{<port0> 0} | msm_vfe1_pix\n/dev/v4l-subdev18 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
++	n00000061:port1 -> n00000064 [style=bold]
++	n00000064 [label="msm_vfe1_video3\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
++	n000000e2 [label="{{} | ov5645 3-0039\n/dev/v4l-subdev19 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n000000e2:port0 -> n00000004:port0 [style=bold]
++	n000000e4 [label="{{} | ov5645 3-003a\n/dev/v4l-subdev20 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n000000e4:port0 -> n00000007:port0 [style=bold]
++	n000000e6 [label="{{} | ov5645 3-003b\n/dev/v4l-subdev21 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
++	n000000e6:port0 -> n00000001:port0 [style=bold]
 +}
- static void vfe_set_rdi_cid(struct vfe_device *vfe, enum vfe_line_id id, u8 cid)
- {
- 	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(id),
-@@ -989,6 +994,7 @@ const struct vfe_hw_ops vfe_ops_4_1 = {
- 	.wm_set_subsample = vfe_wm_set_subsample,
- 	.bus_disconnect_wm_from_rdi = vfe_bus_disconnect_wm_from_rdi,
- 	.set_xbar_cfg = vfe_set_xbar_cfg,
-+	.set_realign_cfg = vfe_set_realign_cfg,
- 	.set_rdi_cid = vfe_set_rdi_cid,
- 	.reg_update = vfe_reg_update,
- 	.reg_update_clear = vfe_reg_update_clear,
-diff --git a/drivers/media/platform/qcom/camss/camss-vfe-4-7.c b/drivers/media/platform/qcom/camss/camss-vfe-4-7.c
-index 45e6711..4c584bf 100644
---- a/drivers/media/platform/qcom/camss/camss-vfe-4-7.c
-+++ b/drivers/media/platform/qcom/camss/camss-vfe-4-7.c
-@@ -34,6 +34,7 @@
- #define VFE_0_MODULE_ZOOM_EN		0x04c
- #define VFE_0_MODULE_ZOOM_EN_SCALE_ENC		BIT(1)
- #define VFE_0_MODULE_ZOOM_EN_CROP_ENC		BIT(2)
-+#define VFE_0_MODULE_ZOOM_EN_REALIGN_BUF	BIT(9)
- 
- #define VFE_0_CORE_CFG			0x050
- #define VFE_0_CORE_CFG_PIXEL_PATTERN_YCBYCR	0x4
-@@ -87,6 +88,9 @@
- 
- #define VFE_0_BUS_XBAR_CFG_x(x)		(0x90 + 0x4 * ((x) / 2))
- #define VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN			BIT(2)
-+#define VFE_0_BUS_XBAR_CFG_x_M_REALIGN_BUF_EN			BIT(3)
-+#define VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTRA		(0x1 << 4)
-+#define VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER		(0x2 << 4)
- #define VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA	(0x3 << 4)
- #define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT		8
- #define VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_LUMA		0x0
-@@ -221,6 +225,11 @@
- #define VFE_0_CLAMP_ENC_MIN_CFG_CH1		(0x0 << 8)
- #define VFE_0_CLAMP_ENC_MIN_CFG_CH2		(0x0 << 16)
- 
-+#define VFE_0_REALIGN_BUF_CFG			0xaac
-+#define VFE_0_REALIGN_BUF_CFG_CB_ODD_PIXEL     BIT(2)
-+#define VFE_0_REALIGN_BUF_CFG_CR_ODD_PIXEL     BIT(3)
-+#define VFE_0_REALIGN_BUF_CFG_HSUB_ENABLE      BIT(4)
-+
- #define CAMIF_TIMEOUT_SLEEP_US 1000
- #define CAMIF_TIMEOUT_ALL_US 1000000
- 
-@@ -311,7 +320,7 @@ static void vfe_wm_frame_based(struct vfe_device *vfe, u8 wm, u8 enable)
- 
- #define CALC_WORD(width, M, N) (((width) * (M) + (N) - 1) / (N))
- 
--static int vfe_word_per_line(u32 format, u32 pixel_per_line)
-+static int vfe_word_per_line_by_pixel(u32 format, u32 pixel_per_line)
- {
- 	int val = 0;
- 
-@@ -333,6 +342,11 @@ static int vfe_word_per_line(u32 format, u32 pixel_per_line)
- 	return val;
- }
- 
-+static int vfe_word_per_line_by_bytes(u32 bytes_per_line)
-+{
-+	return CALC_WORD(bytes_per_line, 1, 8);
-+}
-+
- static void vfe_get_wm_sizes(struct v4l2_pix_format_mplane *pix, u8 plane,
- 			     u16 *width, u16 *height, u16 *bytesperline)
- {
-@@ -351,6 +365,15 @@ static void vfe_get_wm_sizes(struct v4l2_pix_format_mplane *pix, u8 plane,
- 		*height = pix->height;
- 		*bytesperline = pix->plane_fmt[0].bytesperline;
- 		break;
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_VYUY:
-+	case V4L2_PIX_FMT_UYVY:
-+		*width = pix->width;
-+		*height = pix->height;
-+		*bytesperline = pix->plane_fmt[plane].bytesperline;
-+		break;
-+
- 	}
- }
- 
-@@ -365,7 +388,7 @@ static void vfe_wm_line_based(struct vfe_device *vfe, u32 wm,
- 
- 		vfe_get_wm_sizes(pix, plane, &width, &height, &bytesperline);
- 
--		wpl = vfe_word_per_line(pix->pixelformat, width);
-+		wpl = vfe_word_per_line_by_pixel(pix->pixelformat, width);
- 
- 		reg = height - 1;
- 		reg |= ((wpl + 3) / 4 - 1) << 16;
-@@ -373,7 +396,7 @@ static void vfe_wm_line_based(struct vfe_device *vfe, u32 wm,
- 		writel_relaxed(reg, vfe->base +
- 			       VFE_0_BUS_IMAGE_MASTER_n_WR_IMAGE_SIZE(wm));
- 
--		wpl = vfe_word_per_line(pix->pixelformat, bytesperline);
-+		wpl = vfe_word_per_line_by_bytes(bytesperline);
- 
- 		reg = 0x3;
- 		reg |= (height - 1) << 2;
-@@ -536,32 +559,97 @@ static void vfe_set_xbar_cfg(struct vfe_device *vfe, struct vfe_output *output,
- 	struct vfe_line *line = container_of(output, struct vfe_line, output);
- 	u32 p = line->video_out.active_fmt.fmt.pix_mp.pixelformat;
- 	u32 reg;
--	unsigned int i;
- 
--	for (i = 0; i < output->wm_num; i++) {
--		if (i == 0) {
--			reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_LUMA <<
--				VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
--		} else if (i == 1) {
--			reg = VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN;
--			if (p == V4L2_PIX_FMT_NV12 || p == V4L2_PIX_FMT_NV16)
--				reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA;
--		}
-+	switch (p) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+	case V4L2_PIX_FMT_NV16:
-+	case V4L2_PIX_FMT_NV61:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_LUMA <<
-+			VFE_0_BUS_XBAR_CFG_x_M_SINGLE_STREAM_SEL_SHIFT;
-+
-+		if (output->wm_idx[0] % 2 == 1)
-+			reg <<= 16;
-+
-+		if (enable)
-+			vfe_reg_set(vfe,
-+				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[0]),
-+				    reg);
-+		else
-+			vfe_reg_clr(vfe,
-+				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[0]),
-+				    reg);
-+
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN;
-+		if (p == V4L2_PIX_FMT_NV12 || p == V4L2_PIX_FMT_NV16)
-+			reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA;
-+
-+		if (output->wm_idx[1] % 2 == 1)
-+			reg <<= 16;
- 
--		if (output->wm_idx[i] % 2 == 1)
-+		if (enable)
-+			vfe_reg_set(vfe,
-+				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[1]),
-+				    reg);
-+		else
-+			vfe_reg_clr(vfe,
-+				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[1]),
-+				    reg);
-+		break;
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_VYUY:
-+	case V4L2_PIX_FMT_UYVY:
-+		reg = VFE_0_BUS_XBAR_CFG_x_M_REALIGN_BUF_EN;
-+		reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN;
-+
-+		if (p == V4L2_PIX_FMT_YUYV || p == V4L2_PIX_FMT_YVYU)
-+			reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA;
-+
-+		if (output->wm_idx[0] % 2 == 1)
- 			reg <<= 16;
- 
- 		if (enable)
- 			vfe_reg_set(vfe,
--				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[i]),
-+				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[0]),
- 				    reg);
- 		else
- 			vfe_reg_clr(vfe,
--				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[i]),
-+				    VFE_0_BUS_XBAR_CFG_x(output->wm_idx[0]),
- 				    reg);
-+		break;
-+	default:
-+		break;
- 	}
- }
- 
-+static void vfe_set_realign_cfg(struct vfe_device *vfe, struct vfe_line *line,
-+				u8 enable)
-+{
-+	u32 p = line->video_out.active_fmt.fmt.pix_mp.pixelformat;
-+	u32 val = VFE_0_MODULE_ZOOM_EN_REALIGN_BUF;
-+
-+	if (p != V4L2_PIX_FMT_YUYV && p != V4L2_PIX_FMT_YVYU &&
-+			p != V4L2_PIX_FMT_VYUY && p != V4L2_PIX_FMT_UYVY)
-+		return;
-+
-+	if (enable) {
-+		vfe_reg_set(vfe, VFE_0_MODULE_ZOOM_EN, val);
-+	} else {
-+		vfe_reg_clr(vfe, VFE_0_MODULE_ZOOM_EN, val);
-+		return;
-+	}
-+
-+	val = VFE_0_REALIGN_BUF_CFG_HSUB_ENABLE;
-+
-+	if (p == V4L2_PIX_FMT_UYVY || p == V4L2_PIX_FMT_YUYV)
-+		val |= VFE_0_REALIGN_BUF_CFG_CR_ODD_PIXEL;
-+	else
-+		val |= VFE_0_REALIGN_BUF_CFG_CB_ODD_PIXEL;
-+
-+	writel_relaxed(val, vfe->base + VFE_0_REALIGN_BUF_CFG);
-+}
-+
- static void vfe_set_rdi_cid(struct vfe_device *vfe, enum vfe_line_id id, u8 cid)
- {
- 	vfe_reg_clr(vfe, VFE_0_RDI_CFG_x(id),
-@@ -911,11 +999,11 @@ static void vfe_set_module_cfg(struct vfe_device *vfe, u8 enable)
- 		       VFE_0_MODULE_ZOOM_EN_CROP_ENC;
- 
- 	if (enable) {
--		writel_relaxed(val_lens, vfe->base + VFE_0_MODULE_LENS_EN);
--		writel_relaxed(val_zoom, vfe->base + VFE_0_MODULE_ZOOM_EN);
-+		vfe_reg_set(vfe, VFE_0_MODULE_LENS_EN, val_lens);
-+		vfe_reg_set(vfe, VFE_0_MODULE_ZOOM_EN, val_zoom);
- 	} else {
--		writel_relaxed(0x0, vfe->base + VFE_0_MODULE_LENS_EN);
--		writel_relaxed(0x0, vfe->base + VFE_0_MODULE_ZOOM_EN);
-+		vfe_reg_clr(vfe, VFE_0_MODULE_LENS_EN, val_lens);
-+		vfe_reg_clr(vfe, VFE_0_MODULE_ZOOM_EN, val_zoom);
- 	}
- }
- 
-@@ -1028,6 +1116,7 @@ const struct vfe_hw_ops vfe_ops_4_7 = {
- 	.wm_set_subsample = vfe_wm_set_subsample,
- 	.bus_disconnect_wm_from_rdi = vfe_bus_disconnect_wm_from_rdi,
- 	.set_xbar_cfg = vfe_set_xbar_cfg,
-+	.set_realign_cfg = vfe_set_realign_cfg,
- 	.set_rdi_cid = vfe_set_rdi_cid,
- 	.reg_update = vfe_reg_update,
- 	.reg_update_clear = vfe_reg_update_clear,
-diff --git a/drivers/media/platform/qcom/camss/camss-vfe.c b/drivers/media/platform/qcom/camss/camss-vfe.c
-index dc353d6..d85d663 100644
---- a/drivers/media/platform/qcom/camss/camss-vfe.c
-+++ b/drivers/media/platform/qcom/camss/camss-vfe.c
-@@ -203,6 +203,9 @@ static u32 vfe_src_pad_code(struct vfe_line *line, u32 sink_code,
- 		{
- 			u32 src_code[] = {
- 				MEDIA_BUS_FMT_YUYV8_2X8,
-+				MEDIA_BUS_FMT_YVYU8_2X8,
-+				MEDIA_BUS_FMT_UYVY8_2X8,
-+				MEDIA_BUS_FMT_VYUY8_2X8,
- 				MEDIA_BUS_FMT_YUYV8_1_5X8,
- 			};
- 
-@@ -213,6 +216,9 @@ static u32 vfe_src_pad_code(struct vfe_line *line, u32 sink_code,
- 		{
- 			u32 src_code[] = {
- 				MEDIA_BUS_FMT_YVYU8_2X8,
-+				MEDIA_BUS_FMT_YUYV8_2X8,
-+				MEDIA_BUS_FMT_UYVY8_2X8,
-+				MEDIA_BUS_FMT_VYUY8_2X8,
- 				MEDIA_BUS_FMT_YVYU8_1_5X8,
- 			};
- 
-@@ -223,6 +229,9 @@ static u32 vfe_src_pad_code(struct vfe_line *line, u32 sink_code,
- 		{
- 			u32 src_code[] = {
- 				MEDIA_BUS_FMT_UYVY8_2X8,
-+				MEDIA_BUS_FMT_YUYV8_2X8,
-+				MEDIA_BUS_FMT_YVYU8_2X8,
-+				MEDIA_BUS_FMT_VYUY8_2X8,
- 				MEDIA_BUS_FMT_UYVY8_1_5X8,
- 			};
- 
-@@ -233,6 +242,9 @@ static u32 vfe_src_pad_code(struct vfe_line *line, u32 sink_code,
- 		{
- 			u32 src_code[] = {
- 				MEDIA_BUS_FMT_VYUY8_2X8,
-+				MEDIA_BUS_FMT_YUYV8_2X8,
-+				MEDIA_BUS_FMT_YVYU8_2X8,
-+				MEDIA_BUS_FMT_UYVY8_2X8,
- 				MEDIA_BUS_FMT_VYUY8_1_5X8,
- 			};
- 
-@@ -308,10 +320,6 @@ static void vfe_init_outputs(struct vfe_device *vfe)
- 		output->buf[0] = NULL;
- 		output->buf[1] = NULL;
- 		INIT_LIST_HEAD(&output->pending_bufs);
--
--		output->wm_num = 1;
--		if (vfe->line[i].id == VFE_LINE_PIX)
--			output->wm_num = 2;
- 	}
- }
- 
-@@ -567,6 +575,7 @@ static int vfe_get_output(struct vfe_line *line)
- {
- 	struct vfe_device *vfe = to_vfe(line);
- 	struct vfe_output *output;
-+	struct v4l2_format *f = &line->video_out.active_fmt;
- 	unsigned long flags;
- 	int i;
- 	int wm_idx;
-@@ -582,6 +591,18 @@ static int vfe_get_output(struct vfe_line *line)
- 
- 	output->active_buf = 0;
- 
-+	switch (f->fmt.pix_mp.pixelformat) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+	case V4L2_PIX_FMT_NV16:
-+	case V4L2_PIX_FMT_NV61:
-+		output->wm_num = 2;
-+		break;
-+	default:
-+		output->wm_num = 1;
-+		break;
-+	}
-+
- 	for (i = 0; i < output->wm_num; i++) {
- 		wm_idx = vfe_reserve_wm(vfe, line->id);
- 		if (wm_idx < 0) {
-@@ -712,6 +733,7 @@ static int vfe_enable_output(struct vfe_line *line)
- 		ops->enable_irq_pix_line(vfe, 0, line->id, 1);
- 		ops->set_module_cfg(vfe, 1);
- 		ops->set_camif_cfg(vfe, line);
-+		ops->set_realign_cfg(vfe, line, 1);
- 		ops->set_xbar_cfg(vfe, output, 1);
- 		ops->set_demux_cfg(vfe, line);
- 		ops->set_scale_cfg(vfe, line);
-@@ -776,6 +798,7 @@ static int vfe_disable_output(struct vfe_line *line)
- 
- 		ops->enable_irq_pix_line(vfe, 0, line->id, 0);
- 		ops->set_module_cfg(vfe, 0);
-+		ops->set_realign_cfg(vfe, line, 0);
- 		ops->set_xbar_cfg(vfe, output, 0);
- 
- 		ops->set_camif_cmd(vfe, 0);
-diff --git a/drivers/media/platform/qcom/camss/camss-vfe.h b/drivers/media/platform/qcom/camss/camss-vfe.h
-index 71f6c97..0d10071 100644
---- a/drivers/media/platform/qcom/camss/camss-vfe.h
-+++ b/drivers/media/platform/qcom/camss/camss-vfe.h
-@@ -107,6 +107,8 @@ struct vfe_hw_ops {
- 			     u8 enable);
- 	void (*set_rdi_cid)(struct vfe_device *vfe, enum vfe_line_id id,
- 			    u8 cid);
-+	void (*set_realign_cfg)(struct vfe_device *vfe, struct vfe_line *line,
-+				u8 enable);
- 	void (*reg_update)(struct vfe_device *vfe, enum vfe_line_id line_id);
- 	void (*reg_update_clear)(struct vfe_device *vfe,
- 				 enum vfe_line_id line_id);
-diff --git a/drivers/media/platform/qcom/camss/camss-video.c b/drivers/media/platform/qcom/camss/camss-video.c
-index ba7d0c4..e6e114a 100644
---- a/drivers/media/platform/qcom/camss/camss-video.c
-+++ b/drivers/media/platform/qcom/camss/camss-video.c
-@@ -179,6 +179,14 @@ static const struct camss_format_info formats_pix_8x96[] = {
- 	  { { 1, 1 } }, { { 1, 2 } }, { 8 } },
- 	{ MEDIA_BUS_FMT_VYUY8_2X8, V4L2_PIX_FMT_NV61, 1,
- 	  { { 1, 1 } }, { { 1, 2 } }, { 8 } },
-+	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_PIX_FMT_UYVY, 1,
-+	  { { 1, 1 } }, { { 1, 1 } }, { 16 } },
-+	{ MEDIA_BUS_FMT_VYUY8_2X8, V4L2_PIX_FMT_VYUY, 1,
-+	  { { 1, 1 } }, { { 1, 1 } }, { 16 } },
-+	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_PIX_FMT_YUYV, 1,
-+	  { { 1, 1 } }, { { 1, 1 } }, { 16 } },
-+	{ MEDIA_BUS_FMT_YVYU8_2X8, V4L2_PIX_FMT_YVYU, 1,
-+	  { { 1, 1 } }, { { 1, 1 } }, { 16 } },
- };
- 
- /* -----------------------------------------------------------------------------
 -- 
 2.7.4
