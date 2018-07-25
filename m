@@ -1,35 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47796 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728927AbeGYOZ7 (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:58348 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728998AbeGYOhr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 10:25:59 -0400
-Date: Wed, 25 Jul 2018 16:14:19 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media.h: remove linux/version.h include
-Message-ID: <20180725131419.csrytmdjmwewtqnm@valkosipuli.retiisi.org.uk>
-References: <7f418498-14ae-c127-61a6-31071e042631@xs4all.nl>
+        Wed, 25 Jul 2018 10:37:47 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for v4.19] media-types.rst: codec entities can have more than
+ one source pad
+Message-ID: <50f8081f-e9cc-6bc5-2e21-53867cdedd87@xs4all.nl>
+Date: Wed, 25 Jul 2018 15:26:04 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7f418498-14ae-c127-61a6-31071e042631@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 25, 2018 at 02:51:39PM +0200, Hans Verkuil wrote:
-> The media.h public header is one of only three public headers that include
-> linux/version.h. Drop it from media.h. It was only used for an obsolete
-> define.
-> 
-> It has to be added to media-device.c, since that source relied on media.h
-> to include it.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Some decoders and encoders can potentially have more than one source pad,
+so update the description to say 'at least one source pad'.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 7b17acc049cf..0e9adc7869b8 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -192,12 +192,13 @@ Types and flags used to represent the media graph elements
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+     *  -  ``MEDIA_ENT_F_PROC_VIDEO_ENCODER``
+        -  Video (MPEG, HEVC, VPx, etc.) encoder. An entity capable of
+-          compressing video frames. Must have one sink pad and one source pad.
++          compressing video frames. Must have one sink pad and at least
++	  one source pad.
+
+     *  -  ``MEDIA_ENT_F_PROC_VIDEO_DECODER``
+        -  Video (MPEG, HEVC, VPx, etc.) decoder. An entity capable of
+           decompressing a compressed video stream into uncompressed video
+-	  frames. Must have one sink pad and one source pad.
++	  frames. Must have one sink pad and at least one source pad.
+
+     *  -  ``MEDIA_ENT_F_VID_MUX``
+        - Video multiplexer. An entity capable of multiplexing must have at
