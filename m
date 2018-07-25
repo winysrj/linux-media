@@ -1,137 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:35649 "EHLO extserv.mm-sol.com"
+Received: from ns.mm-sol.com ([37.157.136.199]:35609 "EHLO extserv.mm-sol.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730269AbeGYRv2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 13:51:28 -0400
+        id S1729820AbeGYRv1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 13:51:27 -0400
 From: Todor Tomov <todor.tomov@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
         linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v4 29/34] media: camss: csid: Different format support on source pad
-Date: Wed, 25 Jul 2018 19:38:38 +0300
-Message-Id: <1532536723-19062-30-git-send-email-todor.tomov@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
+Subject: [PATCH v4 15/34] media: dt-bindings: media: qcom,camss: Fix whitespaces
+Date: Wed, 25 Jul 2018 19:38:24 +0300
+Message-Id: <1532536723-19062-16-git-send-email-todor.tomov@linaro.org>
 In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Usually the format on the source pad is the same as on the sink pad.
-However the CSID is able to do some format conversions. To support
-this make the format on the source pad selectable amongst a list
-of formats. This list can be different for each sink pad format.
-This is still not used but will be when the format conversions
-are implemented.
+Use tabs.
 
+CC: Rob Herring <robh+dt@kernel.org>
+CC: Mark Rutland <mark.rutland@arm.com>
+CC: devicetree@vger.kernel.org
 Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/platform/qcom/camss/camss-csid.c | 69 +++++++++++++++++++++-----
- 1 file changed, 56 insertions(+), 13 deletions(-)
+ .../devicetree/bindings/media/qcom,camss.txt       | 92 +++++++++++-----------
+ 1 file changed, 46 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
-index db960da..cf543fa 100644
---- a/drivers/media/platform/qcom/camss/camss-csid.c
-+++ b/drivers/media/platform/qcom/camss/camss-csid.c
-@@ -300,6 +300,47 @@ static const struct csid_format csid_formats_8x96[] = {
- 	}
- };
+diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+index 032e8ed..e938eb0 100644
+--- a/Documentation/devicetree/bindings/media/qcom,camss.txt
++++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+@@ -53,25 +53,25 @@ Qualcomm Camera Subsystem
+ 	Usage: required
+ 	Value type: <stringlist>
+ 	Definition: Should contain the following entries:
+-                - "top_ahb"
+-                - "ispif_ahb"
+-                - "csiphy0_timer"
+-                - "csiphy1_timer"
+-                - "csi0_ahb"
+-                - "csi0"
+-                - "csi0_phy"
+-                - "csi0_pix"
+-                - "csi0_rdi"
+-                - "csi1_ahb"
+-                - "csi1"
+-                - "csi1_phy"
+-                - "csi1_pix"
+-                - "csi1_rdi"
+-                - "ahb"
+-                - "vfe0"
+-                - "csi_vfe0"
+-                - "vfe_ahb"
+-                - "vfe_axi"
++		- "top_ahb"
++		- "ispif_ahb"
++		- "csiphy0_timer"
++		- "csiphy1_timer"
++		- "csi0_ahb"
++		- "csi0"
++		- "csi0_phy"
++		- "csi0_pix"
++		- "csi0_rdi"
++		- "csi1_ahb"
++		- "csi1"
++		- "csi1_phy"
++		- "csi1_pix"
++		- "csi1_rdi"
++		- "ahb"
++		- "vfe0"
++		- "csi_vfe0"
++		- "vfe_ahb"
++		- "vfe_axi"
+ - vdda-supply:
+ 	Usage: required
+ 	Value type: <phandle>
+@@ -95,17 +95,17 @@ Qualcomm Camera Subsystem
+ 		- clock-lanes:
+ 			Usage: required
+ 			Value type: <u32>
+-                        Definition: The physical clock lane index. The value
+-                                    must always be <1> as the physical clock
+-                                    lane is lane 1.
++			Definition: The physical clock lane index. The value
++				    must always be <1> as the physical clock
++				    lane is lane 1.
+ 		- data-lanes:
+ 			Usage: required
+ 			Value type: <prop-encoded-array>
+-                        Definition: An array of physical data lanes indexes.
+-                                    Position of an entry determines the logical
+-                                    lane number, while the value of an entry
+-                                    indicates physical lane index. Lane swapping
+-                                    is supported.
++			Definition: An array of physical data lanes indexes.
++				    Position of an entry determines the logical
++				    lane number, while the value of an entry
++				    indicates physical lane index. Lane swapping
++				    is supported.
  
-+static u32 csid_find_code(u32 *code, unsigned int n_code,
-+			  unsigned int index, u32 req_code)
-+{
-+	int i;
-+
-+	if (!req_code && (index >= n_code))
-+		return 0;
-+
-+	for (i = 0; i < n_code; i++)
-+		if (req_code) {
-+			if (req_code == code[i])
-+				return req_code;
-+		} else {
-+			if (i == index)
-+				return code[i];
-+		}
-+
-+	return code[0];
-+}
-+
-+static u32 csid_src_pad_code(struct csid_device *csid, u32 sink_code,
-+			     unsigned int index, u32 src_req_code)
-+{
-+	if (csid->camss->version == CAMSS_8x16) {
-+		if (index > 0)
-+			return 0;
-+
-+		return sink_code;
-+	} else if (csid->camss->version == CAMSS_8x96) {
-+		switch (sink_code) {
-+		default:
-+			if (index > 0)
-+				return 0;
-+
-+			return sink_code;
-+		}
-+	} else {
-+		return 0;
-+	}
-+}
-+
- static const struct csid_format *csid_get_fmt_entry(
- 					const struct csid_format *formats,
- 					unsigned int nformat,
-@@ -674,15 +715,15 @@ static void csid_try_format(struct csid_device *csid,
+ * An Example
  
- 	case MSM_CSID_PAD_SRC:
- 		if (csid->testgen_mode->cur.val == 0) {
--			/* Test generator is disabled, keep pad formats */
--			/* in sync - set and return a format same as sink pad */
--			struct v4l2_mbus_framefmt format;
-+			/* Test generator is disabled, */
-+			/* keep pad formats in sync */
-+			u32 code = fmt->code;
- 
--			format = *__csid_get_format(csid, cfg,
--						    MSM_CSID_PAD_SINK, which);
--			*fmt = format;
-+			*fmt = *__csid_get_format(csid, cfg,
-+						      MSM_CSID_PAD_SINK, which);
-+			fmt->code = csid_src_pad_code(csid, fmt->code, 0, code);
- 		} else {
--			/* Test generator is enabled, set format on source*/
-+			/* Test generator is enabled, set format on source */
- 			/* pad to allow test generator usage */
- 
- 			for (i = 0; i < csid->nformats; i++)
-@@ -716,7 +757,6 @@ static int csid_enum_mbus_code(struct v4l2_subdev *sd,
- 			       struct v4l2_subdev_mbus_code_enum *code)
- {
- 	struct csid_device *csid = v4l2_get_subdevdata(sd);
--	struct v4l2_mbus_framefmt *format;
- 
- 	if (code->pad == MSM_CSID_PAD_SINK) {
- 		if (code->index >= csid->nformats)
-@@ -725,13 +765,16 @@ static int csid_enum_mbus_code(struct v4l2_subdev *sd,
- 		code->code = csid->formats[code->index].code;
- 	} else {
- 		if (csid->testgen_mode->cur.val == 0) {
--			if (code->index > 0)
--				return -EINVAL;
-+			struct v4l2_mbus_framefmt *sink_fmt;
- 
--			format = __csid_get_format(csid, cfg, MSM_CSID_PAD_SINK,
--						   code->which);
-+			sink_fmt = __csid_get_format(csid, cfg,
-+						     MSM_CSID_PAD_SINK,
-+						     code->which);
- 
--			code->code = format->code;
-+			code->code = csid_src_pad_code(csid, sink_fmt->code,
-+						       code->index, 0);
-+			if (!code->code)
-+				return -EINVAL;
- 		} else {
- 			if (code->index >= csid->nformats)
- 				return -EINVAL;
+@@ -161,25 +161,25 @@ Qualcomm Camera Subsystem
+ 			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
+ 			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
+ 			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
+-                clock-names = "top_ahb",
+-                        "ispif_ahb",
+-                        "csiphy0_timer",
+-                        "csiphy1_timer",
+-                        "csi0_ahb",
+-                        "csi0",
+-                        "csi0_phy",
+-                        "csi0_pix",
+-                        "csi0_rdi",
+-                        "csi1_ahb",
+-                        "csi1",
+-                        "csi1_phy",
+-                        "csi1_pix",
+-                        "csi1_rdi",
+-                        "ahb",
+-                        "vfe0",
+-                        "csi_vfe0",
+-                        "vfe_ahb",
+-                        "vfe_axi";
++		clock-names = "top_ahb",
++			"ispif_ahb",
++			"csiphy0_timer",
++			"csiphy1_timer",
++			"csi0_ahb",
++			"csi0",
++			"csi0_phy",
++			"csi0_pix",
++			"csi0_rdi",
++			"csi1_ahb",
++			"csi1",
++			"csi1_phy",
++			"csi1_pix",
++			"csi1_rdi",
++			"ahb",
++			"vfe0",
++			"csi_vfe0",
++			"vfe_ahb",
++			"vfe_axi";
+ 		vdda-supply = <&pm8916_l2>;
+ 		iommus = <&apps_iommu 3>;
+ 		ports {
 -- 
 2.7.4
