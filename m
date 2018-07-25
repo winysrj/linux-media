@@ -1,87 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:60267 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730292AbeGYVeS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 17:34:18 -0400
-Date: Wed, 25 Jul 2018 21:21:00 +0100
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Logspam with "two consecutive events of type space" on
- gpio-ir-recv and meson-ir
-Message-ID: <20180725202100.vctkcuok7thxmmcq@gofer.mess.org>
-References: <20180721190421.5m4jfgvknglv5ii4@camel2.lan>
+Received: from unassigned.psychz.net ([45.35.86.50]:36622 "EHLO
+        anthropologie.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1729904AbeGYVj4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 17:39:56 -0400
+To: linux-media@vger.kernel.org
+Subject: USB Drives - custom made with your logo
+Message-ID: <dfbc7066d31b0fa053e0c3a155416d86@galttech.com>
+Date: Wed, 25 Jul 2018 10:27:44 +0200
+From: "Vanessa" <sarakohene@solarpassion.com>
+Reply-To: loudaogute@aliyun.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180721190421.5m4jfgvknglv5ii4@camel2.lan>
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hias,
+How are you?
 
-On Sat, Jul 21, 2018 at 09:04:21PM +0200, Matthias Reichl wrote:
-> Hi Sean,
-> 
-> I noticed that on 4.18-rc5 I get dmesg logspam with
-> "rc rc0: two consecutive events of type space" on gpio-ir-recv
-> and meson-ir - mceusb seems to be fine (haven't tested with
-> other IR receivers yet).
-> 
-> With the default, short IR timeout I get these messages on each
-> IR message, which is rather spammy on longer button presses:
-> 
-> [ 1988.053215] rc rc0: two consecutive events of type space
-> [ 1988.173189] rc rc0: two consecutive events of type space
-> [ 1988.283188] rc rc0: two consecutive events of type space
-> [ 1988.403185] rc rc0: two consecutive events of type space
-> [ 1988.513193] rc rc0: two consecutive events of type space
-> [ 1988.623190] rc rc0: two consecutive events of type space
-> [ 1988.743190] rc rc0: two consecutive events of type space
-> [ 1988.853193] rc rc0: two consecutive events of type space
-> [ 1988.973193] rc rc0: two consecutive events of type space
-> [ 1989.083193] rc rc0: two consecutive events of type space
-> [ 1989.193196] rc rc0: two consecutive events of type space
-> [ 1989.313216] rc rc0: two consecutive events of type space
-> [ 1989.423197] rc rc0: two consecutive events of type space
-> ...
-> 
-> With a longer timeout (eg 125ms and testing with a RC-5 remote) I get
-> these messages once per button press.
-> 
-> Eg on 2 shorter button presses:
-> # ir-keytable -t
-> Testing events. Please, press CTRL-C to abort.
-> 2045.990064: lirc protocol(rc5): scancode = 0x101b
-> 2045.990123: event type EV_MSC(0x04): scancode = 0x101b
-> 2045.990123: event type EV_SYN(0x00).
-> 2046.100077: lirc protocol(rc5): scancode = 0x101b
-> 2046.100126: event type EV_MSC(0x04): scancode = 0x101b
-> 2046.100126: event type EV_SYN(0x00).
-> 2046.230075: lirc protocol(rc5): scancode = 0x101b
-> 2046.230118: event type EV_MSC(0x04): scancode = 0x101b
-> 2046.230118: event type EV_SYN(0x00).
-> 2050.970078: lirc protocol(rc5): scancode = 0x101b toggle=1
-> 2050.970137: event type EV_MSC(0x04): scancode = 0x101b
-> 2050.970137: event type EV_SYN(0x00).
-> 2051.080071: lirc protocol(rc5): scancode = 0x101b toggle=1
-> 2051.080119: event type EV_MSC(0x04): scancode = 0x101b
-> 2051.080119: event type EV_SYN(0x00).
-> 2051.210056: lirc protocol(rc5): scancode = 0x101b toggle=1
-> 2051.210099: event type EV_MSC(0x04): scancode = 0x101b
-> 2051.210099: event type EV_SYN(0x00).
-> 
-> I get this in dmesg:
-> [ 2045.933635] rc rc0: two consecutive events of type space
-> [ 2050.923689] rc rc0: two consecutive events of type space
-> 
-> So it looks like that might be a timeout-related issue with
-> these 2 drivers.
+I would like to speak with the person in charge of purchasing your branded
+promotional products for your company?
 
-This does not have a proper fix yet, however we have a workaround
-here:
+We create custom LOGO USB flash drives for our clients throughout the US.
+We can print your logo, and load your digital images, videos and files!
+If you need marketing, advertising, gifts or incentives, USB flash drives
+are the solution!
 
-https://git.linuxtv.org/media_tree.git/commit/?h=fixes&id=0ca54b29054151b7a52cbb8904732280afe5a302
+Here is what we include:
+-All Memory Sizes from 64MB up to 128GB!
+-Second Side Printing
+-Low Minimum Quantities
+-Rush Service Available
+-Full color Printing
 
+NEW:   We can make a custom shaped USB drive to look like your Logo or
+product!
+Send us your product image or logo files; we will create a design mock up
+for you at no cost!
+We are always running a new deals; email to get pricing!
 
-Sean
+Ask about the “Double Your Memory” upgrade promotion going on right
+now!
+Pricing is low right now, so let us know what you need and we will get you
+a quick quote.
+
+We will beat any competitors pricing, send us your last invoice and we will
+beat it!
+
+We always offer great rates for schools and nonprofits as well.
+Regards,
+
+Vanessa Kellen
+Logo USB Account Manager
