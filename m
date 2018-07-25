@@ -1,135 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:35597 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728527AbeGYLMc (ORCPT
+Received: from out20-39.mail.aliyun.com ([115.124.20.39]:35322 "EHLO
+        out20-39.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728740AbeGYLyY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jul 2018 07:12:32 -0400
-Received: by mail-wr1-f67.google.com with SMTP id a3-v6so6813949wrt.2
-        for <linux-media@vger.kernel.org>; Wed, 25 Jul 2018 03:01:33 -0700 (PDT)
-Subject: Re: [PATCH v3 18/35] media: camss: Add basic runtime PM support
+        Wed, 25 Jul 2018 07:54:24 -0400
+Date: Wed, 25 Jul 2018 18:42:24 +0800
+From: Yong <yong.deng@magewell.com>
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: mchehab@kernel.org, hans.verkuil@cisco.com,
-        laurent.pinchart+renesas@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1532343772-27382-1-git-send-email-todor.tomov@linaro.org>
- <1532343772-27382-19-git-send-email-todor.tomov@linaro.org>
- <20180724124916.iyanzu3nux35cudg@paasikivi.fi.intel.com>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <096a3fb4-01b8-3096-116f-8562cfb8b6b8@linaro.org>
-Date: Wed, 25 Jul 2018 13:01:31 +0300
-MIME-Version: 1.0
-In-Reply-To: <20180724124916.iyanzu3nux35cudg@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v10 2/2] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20180725184224.cab5172f8558162cc74bde9e@magewell.com>
+In-Reply-To: <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
+References: <1525417745-37964-1-git-send-email-yong.deng@magewell.com>
+        <20180626110821.wkal6fcnoncsze6y@valkosipuli.retiisi.org.uk>
+        <20180705154802.03604f156709be11892b19c0@magewell.com>
+        <20180718095513.4cm77g2iuilvfmd6@paasikivi.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Sakari,
 
-Thank you for review.
+On Wed, 18 Jul 2018 12:55:14 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
 
-On 24.07.2018 15:49, Sakari Ailus wrote:
-> Hi Todor,
+> Hi Yong,
 > 
-> On Mon, Jul 23, 2018 at 02:02:35PM +0300, Todor Tomov wrote:
->> There is a PM domain for each of the VFE hardware modules. Add
->> support for basic runtime PM support to be able to control the
->> PM domains. When a PM domain needs to be powered on - a device
->> link is created. When a PM domain needs to be powered off -
->> its device link is removed. This allows separate and
->> independent control of the PM domains.
->>
->> Suspend/Resume is still not supported.
->>
->> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/camss/camss-csid.c   |  4 ++
->>  drivers/media/platform/qcom/camss/camss-csiphy.c |  5 ++
->>  drivers/media/platform/qcom/camss/camss-ispif.c  | 19 ++++++-
->>  drivers/media/platform/qcom/camss/camss-vfe.c    | 13 +++++
->>  drivers/media/platform/qcom/camss/camss.c        | 63 ++++++++++++++++++++++++
->>  drivers/media/platform/qcom/camss/camss.h        | 11 +++++
->>  6 files changed, 113 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/qcom/camss/camss-csid.c b/drivers/media/platform/qcom/camss/camss-csid.c
->> index 627ef44..ea2b0ba 100644
->> --- a/drivers/media/platform/qcom/camss/camss-csid.c
->> +++ b/drivers/media/platform/qcom/camss/camss-csid.c
->> @@ -13,6 +13,7 @@
->>  #include <linux/kernel.h>
->>  #include <linux/of.h>
->>  #include <linux/platform_device.h>
->> +#include <linux/pm_runtime.h>
->>  #include <linux/regulator/consumer.h>
->>  #include <media/media-entity.h>
->>  #include <media/v4l2-device.h>
->> @@ -316,6 +317,8 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
->>  	if (on) {
->>  		u32 hw_version;
->>  
->> +		pm_runtime_get_sync(dev);
->> +
->>  		ret = regulator_enable(csid->vdda);
+> On Thu, Jul 05, 2018 at 03:48:02PM +0800, Yong wrote:
+> > > > +
+> > > > +/* -----------------------------------------------------------------------------
+> > > > + * Media Operations
+> > > > + */
+> > > > +static int sun6i_video_formats_init(struct sun6i_video *video,
+> > > > +				    const struct media_pad *remote)
+> > > > +{
+> > > > +	struct v4l2_subdev_mbus_code_enum mbus_code = { 0 };
+> > > > +	struct sun6i_csi *csi = video->csi;
+> > > > +	struct v4l2_format format;
+> > > > +	struct v4l2_subdev *subdev;
+> > > > +	u32 pad;
+> > > > +	const u32 *pixformats;
+> > > > +	int pixformat_count = 0;
+> > > > +	u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
+> > > > +	int codes_count = 0;
+> > > > +	int num_fmts = 0;
+> > > > +	int i, j;
+> > > > +
+> > > > +	pad = remote->index;
+> > > > +	subdev = media_entity_to_v4l2_subdev(remote->entity);
+> > > > +	if (subdev == NULL)
+> > > > +		return -ENXIO;
+> > > > +
+> > > > +	/* Get supported pixformats of CSI */
+> > > > +	pixformat_count = sun6i_csi_get_supported_pixformats(csi, &pixformats);
+> > > > +	if (pixformat_count <= 0)
+> > > > +		return -ENXIO;
+> > > > +
+> > > > +	/* Get subdev formats codes */
+> > > > +	mbus_code.pad = pad;
+> > > > +	mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > > +	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
+> > > > +				 &mbus_code)) {
+> > > 
+> > > The formats supported by the external sub-device may depend on horizontal
+> > > and vertical flipping. You shouldn't assume any particular configuration
+> > > here: instead, bridge drivers generally just need to make sure the formats
+> > > match in link validation when streaming is started. At least the CSI-2
+> > > receiver driver and the DMA engine driver (video device) should check the
+> > > configuration is valid. See e.g. the IPU3 driver:
+> > > drivers/media/pci/intel/ipu3/ipu3-cio2.c .
+> > 
+> > Can mbus_code be added dynamically ?
+> > The code here only enum the mbus code and get the possible supported
+> > pairs of pixformat and mbus by SoC. Not try to check if the formats
+> > (width height ...) is valid or not. The formats validation will be 
+> > in link validation when streaming is started as per your advise. 
 > 
-> Shouldn't the regulator be enabled in the runtime_resume callback instead?
+> The formats that can be enumerated from the sensor here are those settable
+> using SUBDEV_S_FMT. The enumeration will change on raw sensors if you use
+> the flipping controls. As the bridge driver implements MC as well as subdev
+> APIs, generally the sensor configuration is out of scope of this driver
+> since it's directly configured from the user space.
+> 
+> Just check that the pipeline is valid before starting streaming in your
+> driver.
 
-Ideally - yes, but it becomes more complex (different pipelines are possible
-and we have only one callback) so (at least for now) I have left it as it is
-and stated in the commit message that suspend/resume is still not supported.
+Sorry. I am still confused.
+As the CSI driver does not enum the formats supported by sensor.
+How to get a valid format if I do not want to open the subdev? 
+Many applications still only open /dev/video*.
 
 > 
->>  		if (ret < 0)
->>  			return ret;
+> -- 
+> Kind regards,
 > 
-> Note that you'll need pm_runtime_put() in in error handling here. Perhaps
-> elsewhere, too.
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
 
-Yes, I'll add it here and on all other places.
 
-> 
-> Can powering on the device (i.e. pm_runtime_get_sync() call)  fail?
-
-I'd really like to say that it cannot fail :) at least the callback is
-empty for now and cannot fail, but the logic in pm_runtime_get_sync()
-is not that simple and I'm really not sure. I'll add checks in the code
-in case it fails.
-
-> 
->> @@ -348,6 +351,7 @@ static int csid_set_power(struct v4l2_subdev *sd, int on)
->>  		disable_irq(csid->irq);
->>  		camss_disable_clocks(csid->nclocks, csid->clock);
->>  		ret = regulator_disable(csid->vdda);
->> +		pm_runtime_put_sync(dev);
->>  	}
->>  
->>  	return ret;
->> diff --git a/drivers/media/platform/qcom/camss/camss-csiphy.c b/drivers/media/platform/qcom/camss/camss-csiphy.c
->> index 0383e94..2db78791 100644
->> --- a/drivers/media/platform/qcom/camss/camss-csiphy.c
->> +++ b/drivers/media/platform/qcom/camss/camss-csiphy.c
->> @@ -13,6 +13,7 @@
->>  #include <linux/kernel.h>
->>  #include <linux/of.h>
->>  #include <linux/platform_device.h>
->> +#include <linux/pm_runtime.h>
->>  #include <media/media-entity.h>
->>  #include <media/v4l2-device.h>
->>  #include <media/v4l2-subdev.h>
->> @@ -240,6 +241,8 @@ static int csiphy_set_power(struct v4l2_subdev *sd, int on)
->>  		u8 hw_version;
->>  		int ret;
->>  
->> +		pm_runtime_get_sync(dev);
->> +
->>  		ret = csiphy_set_clock_rates(csiphy);
->>  		if (ret < 0)
->>  			return ret;
-> 
-> Like here.
-
-Yes, I'll add it here too.
-
--- 
-Best regards,
-Todor Tomov
+Thanks,
+Yong
