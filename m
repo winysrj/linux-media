@@ -1,112 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:41219 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727160AbeGTIZ1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jul 2018 04:25:27 -0400
-Date: Fri, 20 Jul 2018 09:38:20 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: sakari.ailus@iki.fi
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Akinobu Mita <akinobu.mita@gmail.com>,
-        linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
-        Peter Rosin <peda@axentia.se>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v4 2/3] media: ov772x: use SCCB regmap
-Message-ID: <20180720073820.GF6784@w540>
-References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
- <20180719074736.GA6784@w540>
- <20180719084208.4zdwt4vzcop4hve7@ninjato>
- <2173334.CLADOdgFxd@avalon>
- <20180719131019.2kolodvc4r5ewqic@lanttu.localdomain>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="JSkcQAAxhB1h8DcT"
-Content-Disposition: inline
-In-Reply-To: <20180719131019.2kolodvc4r5ewqic@lanttu.localdomain>
+Received: from ns.mm-sol.com ([37.157.136.199]:35501 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729130AbeGYRvW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 25 Jul 2018 13:51:22 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v4 03/34] media: v4l: Add new 10-bit packed grayscale format
+Date: Wed, 25 Jul 2018 19:38:12 +0300
+Message-Id: <1532536723-19062-4-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
+References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The new format will be called V4L2_PIX_FMT_Y10P.
+It is similar to the V4L2_PIX_FMT_SBGGR10P family formats
+but V4L2_PIX_FMT_Y10P is a grayscale format.
 
---JSkcQAAxhB1h8DcT
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ Documentation/media/uapi/v4l/pixfmt-y10p.rst | 33 ++++++++++++++++++++++++++++
+ Documentation/media/uapi/v4l/yuv-formats.rst |  1 +
+ drivers/media/v4l2-core/v4l2-ioctl.c         |  1 +
+ include/uapi/linux/videodev2.h               |  1 +
+ 4 files changed, 36 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-y10p.rst
 
-Hi all,
-
-On Thu, Jul 19, 2018 at 04:10:20PM +0300, sakari.ailus@iki.fi wrote:
-> On Thu, Jul 19, 2018 at 03:14:06PM +0300, Laurent Pinchart wrote:
-> > On Thursday, 19 July 2018 11:42:08 EEST Wolfram Sang wrote:
-> > > > > -static int ov772x_mask_set(struct i2c_client *client, u8  comman=
-d, u8
-> > > > > mask,
-> > > > > -			   u8  set)
-> > > > > -{
-> > > > > -	s32 val =3D ov772x_read(client, command);
-> > > > > -
-> > > > > -	if (val < 0)
-> > > > > -		return val;
-> > > > > -
-> > > > > -	val &=3D ~mask;
-> > > > > -	val |=3D set & mask;
-> > > > > -
-> > > > > -	return ov772x_write(client, command, val);
-> > > > > -}
-> > > > > -
-> > > >
-> > > > If I were you I would have kept these functions and wrapped the reg=
-map
-> > > > operations there. This is not an issue though if you prefer it this
-> > > > way :)
-> > >
-> > > I have suggested this way. It is not a show stopper issue, but I still
-> > > like this version better.
-> >
-> > Wrapping the regmap functions minimizes the diff and makes it easier to
-> > backport the driver.
-
-This was my reasoning too, but I'm happy with the current
-implementation. Thanks Akinobu for handling this!
-
->
-> May be, but using the regmap functions directly makes the driver cleaner.
-> Most drivers have some kind of wrappers around the I=C2=B2C framework (or
-> regmap) functions; this one is one of the few to get rid of them.
->
-> The two could be done in a separate patch, too, albeit I think the current
-> one seems fine as such.
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
-
---JSkcQAAxhB1h8DcT
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbUZFsAAoJEHI0Bo8WoVY8xYUP/R6e5qUtBgY0rxxzzGt6l+Gh
-+ANvSsmeZX0cAIzdTjTdj2DPOlDMv0enciKjO0enwDZTAXiyPU1Wn8n6XUext7s+
-I7o2hsoMf1w1NIyOPAXlISvnZ0Dc8iFeNA3E0M/rck/cz/d3tUjc/7ZWX0oC4ZeZ
-stOKf0PRa/vjv3jQjqIEK6QnA41EP8VzKIiSh9+HMWoasiiN0FiZsPwF51nwgzsR
-pi/T4gS1NdYSBeN3JkmsCDcM/wjk81FuuvHLVrtj6U4zHUYwqZ+MWiC6l1AjpdCe
-Cx6n/To52os5R+XPJstZxUoZwDEeAYHGq0sHAZBoPYsp442t8sixH5AO9rE/sbLc
-DvM5VYksoiBkem4k+M6oTxMGXrIdtXRlSUWRDmpCavfJRLLtWa91FRme7l6iPJKo
-m6y1YxbpPkGhvj+I3lPXyuNn3jwLGgLOj/BScGMyBnG2vCzvjLnTi4bBWRwo+JQV
-aDQGXiyFpM5UqwVWIIuE8g+60ItT/9ap96rixrVfDsLN2yyvjUNAUi5nfJ207Ocj
-9WyIkrzgKDxUn/9/R/sPUpxDRyQji2OlyCyZ3wKAyNe1EWmfl7rZkuaovpvQ5oBu
-LtRibGdJpVxSglX8k7fmrDfO5frFzyciZeQNr8Ny/p88ttKFZbGb5ToeWFF1WDuP
-iPnhbP6hx1VJv7hZ9XG4
-=qXJo
------END PGP SIGNATURE-----
-
---JSkcQAAxhB1h8DcT--
+diff --git a/Documentation/media/uapi/v4l/pixfmt-y10p.rst b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
+new file mode 100644
+index 0000000..13b5713
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-y10p.rst
+@@ -0,0 +1,33 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-PIX-FMT-Y10P:
++
++******************************
++V4L2_PIX_FMT_Y10P ('Y10P')
++******************************
++
++Grey-scale image as a MIPI RAW10 packed array
++
++
++Description
++===========
++
++This is a packed grey-scale image format with a depth of 10 bits per
++pixel. Every four consecutive pixels are packed into 5 bytes. Each of
++the first 4 bytes contain the 8 high order bits of the pixels, and
++the 5th byte contains the 2 least significants bits of each pixel,
++in the same order.
++
++**Bit-packed representation.**
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths: 8 8 8 8 64
++
++    * - Y'\ :sub:`00[9:2]`
++      - Y'\ :sub:`01[9:2]`
++      - Y'\ :sub:`02[9:2]`
++      - Y'\ :sub:`03[9:2]`
++      - Y'\ :sub:`03[1:0]`\ (bits 7--6) Y'\ :sub:`02[1:0]`\ (bits 5--4)
++	Y'\ :sub:`01[1:0]`\ (bits 3--2) Y'\ :sub:`00[1:0]`\ (bits 1--0)
+diff --git a/Documentation/media/uapi/v4l/yuv-formats.rst b/Documentation/media/uapi/v4l/yuv-formats.rst
+index 3334ea4..9ab0592 100644
+--- a/Documentation/media/uapi/v4l/yuv-formats.rst
++++ b/Documentation/media/uapi/v4l/yuv-formats.rst
+@@ -29,6 +29,7 @@ to brightness information.
+     pixfmt-y10
+     pixfmt-y12
+     pixfmt-y10b
++    pixfmt-y10p
+     pixfmt-y16
+     pixfmt-y16-be
+     pixfmt-y8i
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 04e1231..e8f7c89 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1184,6 +1184,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y16_BE:	descr = "16-bit Greyscale BE"; break;
+ 	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
++	case V4L2_PIX_FMT_Y10P:		descr = "10-bit Greyscale (MIPI Packed)"; break;
+ 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index a15e03b..fc177d8 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -522,6 +522,7 @@ struct v4l2_pix_format {
+ 
+ /* Grey bit-packed formats */
+ #define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
++#define V4L2_PIX_FMT_Y10P    v4l2_fourcc('Y', '1', '0', 'P') /* 10  Greyscale, MIPI RAW10 packed */
+ 
+ /* Palette formats */
+ #define V4L2_PIX_FMT_PAL8    v4l2_fourcc('P', 'A', 'L', '8') /*  8  8-bit palette */
+-- 
+2.7.4
