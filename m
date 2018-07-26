@@ -1,24 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:53890 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729852AbeGZOLM (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:36156 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729915AbeGZOS1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jul 2018 10:11:12 -0400
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id D50A21817
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2018 14:54:26 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.19] uvcvideo changes
-Date: Thu, 26 Jul 2018 15:55:04 +0300
-Message-ID: <1936008.o9qq4RlplV@avalon>
+        Thu, 26 Jul 2018 10:18:27 -0400
+Received: by mail-qk0-f194.google.com with SMTP id a132-v6so907945qkg.3
+        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2018 06:01:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+References: <CAOcJUby=JgT4pju8oo6rX_AB2pz8-zid-0TwOad3pUpP5_iG5g@mail.gmail.com>
+In-Reply-To: <CAOcJUby=JgT4pju8oo6rX_AB2pz8-zid-0TwOad3pUpP5_iG5g@mail.gmail.com>
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+Date: Thu, 26 Jul 2018 09:01:29 -0400
+Message-ID: <CAOcJUbytVC6LeMPrn9_dmz4a+GTetSzV8jkNdeag3Urh-nL0UQ@mail.gmail.com>
+Subject: [GIT PULL] [RESEND] urgent em28xx bug fixes for immediate merge
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        mchehab+samsung@kernel.org, Brad Love <brad@nextdimension.cc>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+...previous email failed to indicate `em28xx` branch.  My bad.  Please merge.
 
 The following changes since commit 7ba2eb72f843fb79de1857a39f9a7e8006f8133b:
 
@@ -26,38 +28,52 @@ The following changes since commit 7ba2eb72f843fb79de1857a39f9a7e8006f8133b:
 
 are available in the Git repository at:
 
-  git://linuxtv.org/pinchartl/media.git uvc/next
+  ssh://mkrufky@linuxtv.org:/home/mkrufky/git/dvb.git em28xx
 
-for you to fetch changes up to 3c3ffa7cbccc4dbb689adaf87e5186e2a71ea0fa:
+for you to fetch changes up to f7869d3cd1705c1d7f883d364a1fe52085d219c4:
 
-  uvcvideo: Send a control event when a Control Change interrupt arrives 
-(2018-07-26 15:54:22 +0300)
+  em28xx: Remove duplicate PID (2018-07-26 07:42:52 -0400)
 
 ----------------------------------------------------------------
-Guennadi Liakhovetski (3):
-      uvcvideo: Remove a redundant check
-      uvcvideo: Handle control pipe protocol STALLs
-      uvcvideo: Send a control event when a Control Change interrupt arrives
+Brad Love (3):
+      em28xx: Fix dual transport stream operation
+      em28xx: Fix DualHD disconnect oops
+      em28xx: Remove duplicate PID
 
-Kieran Bingham (1):
-      uvcvideo: Fix minor spelling
-
-Laurent Pinchart (1):
-      uvcvideo: Add KSMedia 8-bit IR format support
-
-Nicolas Dufresne (1):
-      uvcvideo: Also validate buffers in BULK mode
-
- drivers/media/usb/uvc/uvc_ctrl.c   | 215 +++++++++++++++++++++++++++---------
- drivers/media/usb/uvc/uvc_driver.c |   5 ++
- drivers/media/usb/uvc/uvc_status.c | 121 ++++++++++++++++++++++---
- drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
- drivers/media/usb/uvc/uvc_video.c  |  62 ++++++++++---
- drivers/media/usb/uvc/uvcvideo.h   |  18 +++-
- include/uapi/linux/uvcvideo.h      |   2 +
- 7 files changed, 346 insertions(+), 81 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+ drivers/media/usb/em28xx/em28xx-cards.c | 6 +++---
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 4 +++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+On Thu, Jul 26, 2018 at 8:27 AM Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
+>
+> This is a resend of https://patchwork.linuxtv.org/patch/51227/ - I
+> forgot to include an email subject in the pull request :-/
+>
+> Hello Mauro,
+>
+> The following three patches from Brad Love are urgently needed for
+> merge ASAP.  One just removes a duplicated PID, so it's not as
+> important but should be merged ASAP nonetheless.  The other two fix an
+> OOPS along with broken dual transport streaming operation.  Please
+> merge ASAP.
+>
+> The following changes since commit 7ba2eb72f843fb79de1857a39f9a7e8006f8133b:
+>
+>   media: dib0700: add code comment (2018-07-25 14:55:59 -0400)
+>
+> are available in the Git repository at:
+>
+>   ssh://linuxtv.org:/home/mkrufky/git/dvb.git
+>
+> for you to fetch changes up to f7869d3cd1705c1d7f883d364a1fe52085d219c4:
+>
+>   em28xx: Remove duplicate PID (2018-07-26 07:42:52 -0400)
+>
+> ----------------------------------------------------------------
+> Brad Love (3):
+>       em28xx: Fix dual transport stream operation
+>       em28xx: Fix DualHD disconnect oops
+>       em28xx: Remove duplicate PID
+>
+>  drivers/media/usb/em28xx/em28xx-cards.c | 6 +++---
+>  drivers/media/usb/em28xx/em28xx-dvb.c   | 4 +++-
+>  2 files changed, 6 insertions(+), 4 deletions(-)
