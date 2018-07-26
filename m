@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:55252 "EHLO
-        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729097AbeGZLn6 (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:55225 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729056AbeGZLn6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 26 Jul 2018 07:43:58 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
@@ -12,9 +12,9 @@ To: Lars-Peter Clausen <lars@metafoo.de>,
 Cc: linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 2/2] adv7180: add g_frame_interval support
-Date: Thu, 26 Jul 2018 12:27:16 +0200
-Message-Id: <20180726102716.1390-3-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 1/2] adv7180: fix field type to V4L2_FIELD_ALTERNATE
+Date: Thu, 26 Jul 2018 12:27:15 +0200
+Message-Id: <20180726102716.1390-2-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20180726102716.1390-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20180726102716.1390-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
@@ -23,48 +23,58 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement g_frame_interval to return the current standard's frame
-interval.
+The ADV7180 and ADV7182 transmit whole fields, bottom field followed
+by top (or vice-versa, depending on detected video standard). So
+for chips that do not have support for explicitly setting the field
+mode via I2P, set the field mode to V4L2_FIELD_ALTERNATE.
+
+I2P converts fields into frames using an edge adaptive algorithm. The
+frame rate is the same as the 'field rate': e.g. X fields per second
+are now X frames per second.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/i2c/adv7180.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/media/i2c/adv7180.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index c2e24132e8c21d38..f72312efc471acd9 100644
+index 25d24a3f10a7cb4d..c2e24132e8c21d38 100644
 --- a/drivers/media/i2c/adv7180.c
 +++ b/drivers/media/i2c/adv7180.c
-@@ -461,6 +461,22 @@ static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
+@@ -644,6 +644,9 @@ static int adv7180_mbus_fmt(struct v4l2_subdev *sd,
+ 	fmt->width = 720;
+ 	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+ 
++	if (state->field == V4L2_FIELD_ALTERNATE)
++		fmt->height /= 2;
++
  	return 0;
  }
  
-+static int adv7180_g_frame_interval(struct v4l2_subdev *sd,
-+				    struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+
-+	if (state->curr_norm & V4L2_STD_525_60) {
-+		fi->interval.numerator = 1001;
-+		fi->interval.denominator = 30000;
-+	} else {
-+		fi->interval.numerator = 1;
-+		fi->interval.denominator = 25;
-+	}
-+
-+	return 0;
-+}
-+
- static void adv7180_set_power_pin(struct adv7180_state *state, bool on)
- {
- 	if (!state->pwdn_gpio)
-@@ -820,6 +836,7 @@ static int adv7180_subscribe_event(struct v4l2_subdev *sd,
- static const struct v4l2_subdev_video_ops adv7180_video_ops = {
- 	.s_std = adv7180_s_std,
- 	.g_std = adv7180_g_std,
-+	.g_frame_interval = adv7180_g_frame_interval,
- 	.querystd = adv7180_querystd,
- 	.g_input_status = adv7180_g_input_status,
- 	.s_routing = adv7180_s_routing,
+@@ -711,11 +714,11 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
+ 
+ 	switch (format->format.field) {
+ 	case V4L2_FIELD_NONE:
+-		if (!(state->chip_info->flags & ADV7180_FLAG_I2P))
+-			format->format.field = V4L2_FIELD_INTERLACED;
+-		break;
++		if (state->chip_info->flags & ADV7180_FLAG_I2P)
++			break;
++		/* fall through */
+ 	default:
+-		format->format.field = V4L2_FIELD_INTERLACED;
++		format->format.field = V4L2_FIELD_ALTERNATE;
+ 		break;
+ 	}
+ 
+@@ -1291,7 +1294,7 @@ static int adv7180_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	state->client = client;
+-	state->field = V4L2_FIELD_INTERLACED;
++	state->field = V4L2_FIELD_ALTERNATE;
+ 	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
+ 
+ 	state->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
 -- 
 2.18.0
