@@ -1,219 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:58903 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726978AbeGZIT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jul 2018 04:19:26 -0400
-Date: Thu, 26 Jul 2018 09:03:57 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 2/3] uvcvideo: send a control event when a Control
- Change interrupt arrives
-In-Reply-To: <5725000.vVOmZIDdzG@avalon>
-Message-ID: <alpine.DEB.2.20.1807260859550.7546@axis700.grange>
-References: <1525792064-30836-1-git-send-email-guennadi.liakhovetski@intel.com> <1822344.XhrjdFXG7R@avalon> <alpine.DEB.2.20.1807251916030.23630@axis700.grange> <5725000.vVOmZIDdzG@avalon>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:49244 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726600AbeGZISP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Jul 2018 04:18:15 -0400
+Subject: Re: [PATCH 05/11] media: rcar_fdp1: convert to SPDX identifiers
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Charles Keepax <ckeepax@opensource.wolfsonmicro.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <87h8kmd938.wl-kuninori.morimoto.gx@renesas.com>
+ <87a7qed8zj.wl-kuninori.morimoto.gx@renesas.com>
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <5ad6e577-29cb-ae1b-5d94-ded763a03e12@ideasonboard.com>
+Date: Thu, 26 Jul 2018 08:02:44 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <87a7qed8zj.wl-kuninori.morimoto.gx@renesas.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 26/07/18 03:36, Kuninori Morimoto wrote:
+> 
+> From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+> 
+> Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-Thanks for the diff. I'm about to go over it and check your comments, but 
-I cannot seem to find a git tree with your current stack. Particularly, 
-you wanted to apply patches 1 and 3 from this series before applying this 
-one, so, I'd prefer to work on top of the same tree as you to make sure to 
-avoid rejects.
+Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Thanks
-Guennaddi
 
-On Wed, 25 Jul 2018, Laurent Pinchart wrote:
-
-> Hi Guennadi,
+> ---
+>  drivers/media/platform/rcar_fdp1.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
 > 
-> On Wednesday, 25 July 2018 20:21:54 EEST Guennadi Liakhovetski wrote:
-> > On Wed, 25 Jul 2018, Laurent Pinchart wrote:
-> > > On Wednesday, 18 July 2018 09:55:27 EEST Guennadi Liakhovetski wrote:
-> > >> On Wed, 18 Jul 2018, Laurent Pinchart wrote:
-> > >>> On Wednesday, 18 July 2018 00:30:45 EEST Guennadi Liakhovetski wrote:
-> > >>>> On Tue, 17 Jul 2018, Laurent Pinchart wrote:
-> > >>>>> On Thursday, 12 July 2018 10:30:46 EEST Guennadi Liakhovetski wrote:
-> > >>>>>> On Thu, 12 Jul 2018, Laurent Pinchart wrote:
-> > >>>>>>> On Tuesday, 8 May 2018 18:07:43 EEST Guennadi Liakhovetski wrote:
-> > >>>>>>>> UVC defines a method of handling asynchronous controls, which
-> > >>>>>>>> sends a USB packet over the interrupt pipe. This patch implements
-> > >>>>>>>> support for such packets by sending a control event to the user.
-> > >>>>>>>> Since this can involve USB traffic and, therefore, scheduling, this
-> > >>>>>>>> has to be done in a work queue.
-> > >>>>>>>> 
-> > >>>>>>>> Signed-off-by: Guennadi Liakhovetski
-> > >>>>>>>> <guennadi.liakhovetski@intel.com>
-> > >>>>>>>> ---
-> > >>>>>>>> 
-> > >>>>>>>> v8:
-> > >>>>>>>> 
-> > >>>>>>>> * avoid losing events by delaying the status URB resubmission
-> > >>>>>>>>   until after completion of the current event
->  >>>>>>>> * extract control value calculation into __uvc_ctrl_get_value()
-> > >>>>>>>> * do not proactively return EBUSY if the previous control hasn't
-> > >>>>>>>>   completed yet, let the camera handle such cases
-> > >>>>>>>> * multiple cosmetic changes
-> > >>>>>>>> 
-> > >>>>>>>>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++------
-> > >>>>>>>>  drivers/media/usb/uvc/uvc_status.c | 112 ++++++++++++++++++++++---
-> > >>>>>>>>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
-> > >>>>>>>>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
-> > >>>>>>>>  include/uapi/linux/uvcvideo.h      |   2 +
-> > >>>>>>>>  5 files changed, 255 insertions(+), 44 deletions(-)
-> > >>>>>>>> 
-> > >>>>>>>> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> > >>>>>>>> b/drivers/media/usb/uvc/uvc_ctrl.c index 2a213c8..796f86a 100644
-> > >>>>>>>> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> > >>>>>>>> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> > >>>>>> 
-> > >>>>>> [snip]
-> > >>>>>> 
-> > >>>>>>>> +static void uvc_ctrl_status_event_work(struct work_struct *work)
-> > >>>>>>>> +{
-> > >>>>>>>> +	struct uvc_device *dev = container_of(work, struct uvc_device,
-> > >>>>>>>> +					      async_ctrl.work);
-> > >>>>>>>> +	struct uvc_ctrl_work *w = &dev->async_ctrl;
-> > >>>>>>>> +	struct uvc_control_mapping *mapping;
-> > >>>>>>>> +	struct uvc_control *ctrl = w->ctrl;
-> > >>>>>>>> +	unsigned int i;
-> > >>>>>>>> +	int ret;
-> > >>>>>>>> +
-> > >>>>>>>> +	mutex_lock(&w->chain->ctrl_mutex);
-> > >>>>>>>> +
-> > >>>>>>>> +	list_for_each_entry(mapping, &ctrl->info.mappings, list) {
-> > >>>>>>>> +		s32 value = __uvc_ctrl_get_value(mapping, w->data);
-> > >>>>>>>> +
-> > >>>>>>>> +		/*
-> > >>>>>>>> +		 * So far none of the auto-update controls in the uvc_ctrls[]
-> > >>>>>>>> +		 * table is mapped to a V4L control with slaves in the
-> > >>>>>>>> +		 * uvc_ctrl_mappings[] list, so slave controls so far never
-> > >>>>>>>> have
-> > >>>>>>>> +		 * handle == NULL, but this can change in the future
-> > >>>>>>>> +		 */
-> > >>>>>>>> +		for (i = 0; i < ARRAY_SIZE(mapping->slave_ids); ++i) {
-> > >>>>>>>> +			if (!mapping->slave_ids[i])
-> > >>>>>>>> +				break;
-> > >>>>>>>> +
-> > >>>>>>>> +			__uvc_ctrl_send_slave_event(ctrl->handle, w->chain,
-> > >>>>>>>> +						ctrl, mapping->slave_ids[i]);
-> > >>>>>>>> +		}
-> > >>>>>>>> +
-> > >>>>>>>> +		uvc_ctrl_send_event(ctrl->handle, ctrl, mapping, value,
-> > >>>>>>>> +				    V4L2_EVENT_CTRL_CH_VALUE);
-> > >>>>>>>> +	}
-> > >>>>>>>> +
-> > >>>>>>>> +	mutex_unlock(&w->chain->ctrl_mutex);
-> > >>>>>>>> +
-> > >>>>>>>> +	ctrl->handle = NULL;
-> > >>>>>>> 
-> > >>>>>>> Can't this race with a uvc_ctrl_set() call, resulting in
-> > >>>>>>> ctrl->handle being NULL after the control gets set ?
-> > >>>>>> 
-> > >>>>>> Right, it's better to set .handle to NULL before sending events.
-> > >>>>>> Something like
-> > >>>>>> 
-> > >>>>>> mutex_lock();
-> > >>>>>> 
-> > >>>>>> handle = ctrl->handle;
-> > >>>>>> ctrl->handle = NULL;
-> > >>>>>> 
-> > >>>>>> list_for_each_entry() {
-> > >>>>>> 
-> > >>>>>> 	...
-> > >>>>>> 	uvc_ctrl_send_event(handle,...);
-> > >>>>>> 
-> > >>>>>> }
-> > >>>>>> 
-> > >>>>>> mutex_unlock();
-> > >>>>>> 
-> > >>>>>> ?
-> > >>>>> 
-> > >>>>> I think you also have to take the same lock in the uvc_ctrl_set()
-> > >>>>> function to fix the problem, otherwise the ctrl->handle = NULL line
-> > >>>>> could still be executed after the ctrl->handle assignment in
-> > >>>>> uvc_ctrl_set(), resulting in ctrl->handle being NULL while the
-> > >>>>> control is being set.
-> > >>>> 
-> > >>>> Doesn't this mean, that you're attempting to send a new instance of
-> > >>>> the same control before the previous has completed? In which case also
-> > >>>> taking the lock in uvc_ctrl_set() wouldn't help either, because you
-> > >>>> can anyway do that immediately after the first instance, before the
-> > >>>> completion even has fired.
-> > >>> 
-> > >>> You're right that it won't solve the race completely, but wouldn't it
-> > >>> at least prevent ctrl->handle from being NULL ? We can't guarantee
-> > >>> which of the old and new handle will be used for events when multiple
-> > >>> control set operations are invoked, but we should try to guarantee
-> > >>> that the handle won't be NULL.
-> > >> 
-> > >> Sorry, I'm probably misunderstanding something. What exactly are you
-> > >> proposing to lock and what and how is it supposed to protect? Wouldn't
-> > >> the following flow still be possible, if you protect setting .handle =
-> > >> NULL in uvc_set_ctrl():
-> > >> 
-> > >> CPU 1                                 CPU 2
-> > >> 
-> > >> control completion interrupt
-> > >> (.handle = HANDLE_1)
-> > >> work scheduled
-> > >> 
-> > >>                                       uvc_set_ctrl()
-> > >>                                       .handle = HANDLE_2
-> > >> 
-> > >> uvc_ctrl_status_event_work()
-> > >> .handle = NULL
-> > >> usb_submit_urb()
-> > >> 
-> > >> control completion interrupt
-> > >> (.handle = NULL)
-> > >> 
-> > >> ?
-> > > 
-> > > You're absolutely right, there's no easy way to guard against this with a
-> > > mere lock. I think we can ignore the issue for now and address it later
-> > > if really needed, as the only adverse effect would be a spurious control
-> > > change event sent to a file handle that hasn't set the
-> > > V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK flag.
-> > 
-> > Ok, but I still think the above change - setting .handle to NULL before
-> > sending the event - should be useful?
-> 
-> You're right, it's useful. It will help in case userspace calls S_CTRL on CPU 
-> 2 in response to the event. I forgot to include this change in the patch I've 
-> just sent. Maybe something like
-> 
->     mutex_lock(&chain->ctrl_mutex);
->         
->     /*
->      * Set ctrl->handle to NULL before sending events, to avoid a race with
->      * userspace setting the control in response to the event.
->      */
->     handle = ctrl->handle;
->     ctrl->handle = NULL;
->         
->     list_for_each_entry(mapping, &ctrl->info.mappings, list) {
->     ...
-> 
-> > >>>>>>>> +	/* Resubmit the URB. */
-> > >>>>>>>> +	w->urb->interval = dev->int_ep->desc.bInterval;
-> > >>>>>>>> +	ret = usb_submit_urb(w->urb, GFP_KERNEL);
-> > >>>>>>>> +	if (ret < 0)
-> > >>>>>>>> +		uvc_printk(KERN_ERR, "Failed to resubmit status URB (%d).\n",
-> > >>>>>>>> +			   ret);
-> > >>>>>>>> +}
-> > >>> 
-> > >>> [snip]
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
+> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+> index b13dec3..2a15b7c 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -1,3 +1,4 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+>  /*
+>   * Renesas R-Car Fine Display Processor
+>   *
+> @@ -8,11 +9,6 @@
+>   *
+>   * This code is developed and inspired from the vim2m, rcar_jpu,
+>   * m2m-deinterlace, and vsp1 drivers.
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by the
+> - * Free Software Foundation; either version 2 of the
+> - * License, or (at your option) any later version
+>   */
+>  
+>  #include <linux/clk.h>
 > 
