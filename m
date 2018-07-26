@@ -1,84 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:51102 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:60600 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730106AbeGZUh2 (ORCPT
+        with ESMTP id S1730269AbeGZUo0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jul 2018 16:37:28 -0400
-Date: Thu, 26 Jul 2018 16:18:49 -0300
+        Thu, 26 Jul 2018 16:44:26 -0400
+Date: Thu, 26 Jul 2018 16:26:07 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
-        <niklas.soderlund@ragnatech.se>,
-        Kieran Bingham <kieran@ksquared.org.uk>,
-        Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Charles Keepax <ckeepax@opensource.wolfsonmicro.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 01/11] media: soc_camera_platform: convert to SPDX
- identifiers
-Message-ID: <20180726161756.1096cda4@coco.lan>
-In-Reply-To: <1781313.1NpYYvqXTV@avalon>
-References: <87h8kmd938.wl-kuninori.morimoto.gx@renesas.com>
-        <87fu06d91u.wl-kuninori.morimoto.gx@renesas.com>
-        <1781313.1NpYYvqXTV@avalon>
+To: Ivan Bornyakov <brnkv.i1@gmail.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: stv090x: fix if-else order
+Message-ID: <20180726162607.2de43b84@coco.lan>
+In-Reply-To: <20180601161221.24807-1-brnkv.i1@gmail.com>
+References: <20180601161221.24807-1-brnkv.i1@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 26 Jul 2018 18:10:32 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Em Fri,  1 Jun 2018 19:12:21 +0300
+Ivan Bornyakov <brnkv.i1@gmail.com> escreveu:
 
-> Hi Morimoto-san,
+> There is this code:
 > 
-> On Thursday, 26 July 2018 05:34:42 EEST Kuninori Morimoto wrote:
-> > From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-> > 
-> > Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-> > ---
-> >  drivers/media/platform/soc_camera/soc_camera_platform.c | 5 +----
-> >  1 file changed, 1 insertion(+), 4 deletions(-)  
+> 	if (v >= 0x20) {
+> 		...
+> 	} else if (v < 0x20) {
+> 		...
+> 	} else if (v > 0x30) {
+> 		/* this branch is impossible */
+> 	}
 > 
-> I have second thoughts about this one. Is it worth switching to SPDX as we're 
-> in the process of removing soc-camera from the kernel ? If it is, shouldn't 
-> you also address the other soc-camera source files ? I would personally prefer 
-> not touching soc-camera as it won't be there for much longer.
+> It would be sensibly for last branch to be on the top.
 
-I'd say that, if there are code there that will be converted and will stay
-at the Kernel, the SPDX patchset is a good thing, as it makes easier for 
-the conversion, as it would mean one less thing to be concerned with.
+Have you tested it and check at the datasheets if dev_ver > 0x30 makes
+sense?
 
-So, I'm inclined to apply this patch series.
+If not, I would prefer, instead, to remove the dead code, as this
+patch may cause regressions (adding a FIXME comment about this
+special case).
 
 > 
-> > diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c
-> > b/drivers/media/platform/soc_camera/soc_camera_platform.c index
-> > ce00e90..6745a6e 100644
-> > --- a/drivers/media/platform/soc_camera/soc_camera_platform.c
-> > +++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
-> > @@ -1,13 +1,10 @@
-> > +// SPDX-License-Identifier: GPL-2.0
-> >  /*
-> >   * Generic Platform Camera Driver
-> >   *
-> >   * Copyright (C) 2008 Magnus Damm
-> >   * Based on mt9m001 driver,
-> >   * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-> > - *
-> > - * This program is free software; you can redistribute it and/or modify
-> > - * it under the terms of the GNU General Public License version 2 as
-> > - * published by the Free Software Foundation.
-> >   */
-> > 
-> >  #include <linux/init.h>  
+> Signed-off-by: Ivan Bornyakov <brnkv.i1@gmail.com>
+> ---
+>  drivers/media/dvb-frontends/stv090x.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 > 
+> diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+> index 9133f65d4623..d70eb311ebaf 100644
+> --- a/drivers/media/dvb-frontends/stv090x.c
+> +++ b/drivers/media/dvb-frontends/stv090x.c
+> @@ -4841,7 +4841,11 @@ static int stv090x_setup(struct dvb_frontend *fe)
+>  	}
+>  
+>  	state->internal->dev_ver = stv090x_read_reg(state, STV090x_MID);
+> -	if (state->internal->dev_ver >= 0x20) {
+> +	if (state->internal->dev_ver > 0x30) {
+> +		/* we shouldn't bail out from here */
+> +		dprintk(FE_ERROR, 1, "INFO: Cut: 0x%02x probably incomplete support!",
+> +			state->internal->dev_ver);
+> +	} else if (state->internal->dev_ver >= 0x20) {
+>  		if (stv090x_write_reg(state, STV090x_TSGENERAL, 0x0c) < 0)
+>  			goto err;
+>  
+> @@ -4857,10 +4861,6 @@ static int stv090x_setup(struct dvb_frontend *fe)
+>  			state->internal->dev_ver);
+>  
+>  		goto err;
+> -	} else if (state->internal->dev_ver > 0x30) {
+> -		/* we shouldn't bail out from here */
+> -		dprintk(FE_ERROR, 1, "INFO: Cut: 0x%02x probably incomplete support!",
+> -			state->internal->dev_ver);
+>  	}
+>  
+>  	/* ADC1 range */
 
 
 
