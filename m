@@ -1,52 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:36134 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730599AbeGZNn4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jul 2018 09:43:56 -0400
-Received: by mail-qk0-f194.google.com with SMTP id a132-v6so837410qkg.3
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2018 05:27:19 -0700 (PDT)
+Received: from mga04.intel.com ([192.55.52.120]:62551 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729364AbeGZN5O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Jul 2018 09:57:14 -0400
+Date: Thu, 26 Jul 2018 15:40:22 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, hans.verkuil@cisco.com,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 00/34] Qualcomm Camera Subsystem driver - 8x96 support
+Message-ID: <20180726124022.ezuv3dcqtiajljto@paasikivi.fi.intel.com>
+References: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 MIME-Version: 1.0
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-Date: Thu, 26 Jul 2018 08:27:08 -0400
-Message-ID: <CAOcJUby=JgT4pju8oo6rX_AB2pz8-zid-0TwOad3pUpP5_iG5g@mail.gmail.com>
-Subject: [PULL] urgent em28xx bug fixes for immediate merge
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        mchehab+samsung@kernel.org, Brad Love <brad@nextdimension.cc>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1532536723-19062-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a resend of https://patchwork.linuxtv.org/patch/51227/ - I
-forgot to include an email subject in the pull request :-/
+On Wed, Jul 25, 2018 at 07:38:09PM +0300, Todor Tomov wrote:
+> Changelog v4:
+> - patch 17: use unsigned int for line_num;
+> - patch 18: fix error handling on s_power;
+> - patch 19, 21, 24, 25: fix extern usage (extern moved to header files);
+> - patch 34: add acked tag;
+> - patch 35: merge into patch 01.
 
-Hello Mauro,
+For patches 2 and 3:
 
-The following three patches from Brad Love are urgently needed for
-merge ASAP.  One just removes a duplicated PID, so it's not as
-important but should be merged ASAP nonetheless.  The other two fix an
-OOPS along with broken dual transport streaming operation.  Please
-merge ASAP.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-The following changes since commit 7ba2eb72f843fb79de1857a39f9a7e8006f8133b:
-
-  media: dib0700: add code comment (2018-07-25 14:55:59 -0400)
-
-are available in the Git repository at:
-
-  ssh://linuxtv.org:/home/mkrufky/git/dvb.git
-
-for you to fetch changes up to f7869d3cd1705c1d7f883d364a1fe52085d219c4:
-
-  em28xx: Remove duplicate PID (2018-07-26 07:42:52 -0400)
-
-----------------------------------------------------------------
-Brad Love (3):
-      em28xx: Fix dual transport stream operation
-      em28xx: Fix DualHD disconnect oops
-      em28xx: Remove duplicate PID
-
- drivers/media/usb/em28xx/em28xx-cards.c | 6 +++---
- drivers/media/usb/em28xx/em28xx-dvb.c   | 4 +++-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
