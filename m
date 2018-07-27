@@ -1,40 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:40244 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731933AbeG0DG7 (ORCPT
+Received: from mail-pg1-f174.google.com ([209.85.215.174]:46294 "EHLO
+        mail-pg1-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732000AbeG0DUG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jul 2018 23:06:59 -0400
-Received: by mail-pl0-f68.google.com with SMTP id s17-v6so1604899plp.7
-        for <linux-media@vger.kernel.org>; Thu, 26 Jul 2018 18:47:31 -0700 (PDT)
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-To: linux-media@vger.kernel.org
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-Subject: [PATCH] media: video-i2c: hwmon: fix return value from amg88xx_hwmon_init()
-Date: Thu, 26 Jul 2018 18:47:24 -0700
-Message-Id: <20180727014724.5933-1-matt.ranostay@konsulko.com>
+        Thu, 26 Jul 2018 23:20:06 -0400
+Subject: Re: media: dvb-usb-v2/gl861: ensure USB message buffers DMA'able
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Colin Ian King <colin.king@canonical.com>,
+        linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        mika.batsman@gmail.com
+References: <8308d9f0-2257-101c-69e3-8fe165de9348@canonical.com>
+ <d2465376-4b3e-7d3d-86d2-0cd8d7543520@gmail.com>
+ <20180725105701.4f3b429b@coco.lan>
+From: Akihiro TSUKADA <tskd08@gmail.com>
+Message-ID: <75be710b-3eda-e077-7c90-beec059d83b2@gmail.com>
+Date: Fri, 27 Jul 2018 11:00:25 +0900
+MIME-Version: 1.0
+In-Reply-To: <20180725105701.4f3b429b@coco.lan>
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Language: en-US-large
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PTR_ERR was making any pointer passed an error pointer, and should be
-replaced with PTR_ERR_OR_ZERO which checks if is an actual error condition.
+Hi,
 
-Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
----
- drivers/media/i2c/video-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 2018年07月25日 22:57, Mauro Carvalho Chehab wrote:
+...
+> There was another patch proposed to fix this issue with does the
+> right thing when rlen == 0. I rebased it on the top of the current
+> tree:
+> 	https://git.linuxtv.org/media_tree.git/commit/?id=0b666e1c8120c0b17a8a68aaed58e22011f06ab3
+> 
+> That should cover both cases.
 
-diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-index 7dc9338502e5..06d29d8f6be8 100644
---- a/drivers/media/i2c/video-i2c.c
-+++ b/drivers/media/i2c/video-i2c.c
-@@ -167,7 +167,7 @@ static int amg88xx_hwmon_init(struct video_i2c_data *data)
- 	void *hwmon = devm_hwmon_device_register_with_info(&data->client->dev,
- 				"amg88xx", data, &amg88xx_chip_info, NULL);
- 
--	return PTR_ERR(hwmon);
-+	return PTR_ERR_OR_ZERO(hwmon);
- }
- #else
- #define	amg88xx_hwmon_init	NULL
--- 
-2.17.1
+When wlen is checked to be <= 2 and
+wbuf[0],wbuf[1] are already used in 'index','value',
+why this patch copys wbuf and passes it again in usb_control_msg when wo==1 ?
+(just to silence static analiyzers?)
+
+Furthermore, 
+I am afraid that a static analyzer might warn on a possible
+buffer overrun in usb_control_msg in the case of rbuf == NULL && rlen > 2,
+since buf's length is passed as rlen but is actually wlen.
+
+regards,
+Akihiro 
