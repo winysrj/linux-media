@@ -1,95 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41612 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729568AbeG0LHB (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:33513 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729539AbeG0LaF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jul 2018 07:07:01 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.19] v2: Various fixes
-Message-ID: <6e87a176-b17c-8480-0ec2-665f0ec65be8@xs4all.nl>
-Date: Fri, 27 Jul 2018 11:45:53 +0200
+        Fri, 27 Jul 2018 07:30:05 -0400
+Received: by mail-it0-f67.google.com with SMTP id d16-v6so2060930itj.0
+        for <linux-media@vger.kernel.org>; Fri, 27 Jul 2018 03:08:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Reply-To: albertchebe@gmail.com
+From: Albert Chebe <jerrydonsin03@gmail.com>
+Date: Fri, 27 Jul 2018 10:08:53 +0000
+Message-ID: <CALoiWBfaCkjYdSSwj2-2SHgy9FE8xxwnkJhh008UFDGYkXkriQ@mail.gmail.com>
+Subject: Good day.
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 343b23a7c6b6680ef949e6112a4ee60688acf39d:
+ATTN:
 
-  media: gpu: ipu-v3: Allow negative offsets for interlaced scanning (2018-07-26 15:21:50 -0400)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.19n
-
-for you to fetch changes up to cfc3de9d4ae9cef3df1141a532d1fe88a54813c3:
-
-  media: pci: ivtv: Replace GFP_ATOMIC with GFP_KERNEL (2018-07-27 11:43:55 +0200)
-
-Various fixes for 4.19.
-
-Same as https://patchwork.linuxtv.org/patch/51246/, but dropped the
-"rcar-csi2: update stream start for V3M" patch since Laurent had some
-review comments about that one.
-
+I am MR.Albert Chebe, writing you in respect of my deceased client,I
+have been trying to locate any member of his family to assist in
+repatriating his fund he deposited in finance house valued at
+US$10.500.000 .Contact me with your full names, occupation, country of
+residence and direct telephone number for full details regards this
+claim. I await your urgent response today.
 Regards,
-
-	Hans
-
-----------------------------------------------------------------
-Ezequiel Garcia (1):
-      rockchip/rga: Fix bad dma_free_attrs() parameter
-
-Hans Verkuil (1):
-      media.h: remove linux/version.h include
-
-Jia-Ju Bai (10):
-      media: i2c: adv7842: Replace mdelay() with msleep() and usleep_range() in adv7842_ddr_ram_test()
-      media: i2c: vs6624: Replace mdelay() with msleep() and usleep_range() in vs6624_probe()
-      media: pci: cobalt: Replace GFP_ATOMIC with GFP_KERNEL in cobalt_probe()
-      media: pci: cx23885: Replace mdelay() with msleep() and usleep_range() in altera_ci_slot_reset()
-      media: pci: cx23885: Replace mdelay() with msleep() and usleep_range() in cx23885_gpio_setup()
-      media: pci: cx23885: Replace mdelay() with msleep() in cx23885_reset()
-      media: pci: cx25821: Replace mdelay() with msleep()
-      media: pci: cx88: Replace mdelay() with msleep() in cx88_card_setup_pre_i2c()
-      media: pci: cx88: Replace mdelay() with msleep() in dvb_register()
-      media: pci: ivtv: Replace GFP_ATOMIC with GFP_KERNEL
-
-Matt Ranostay (1):
-      media: video-i2c: hwmon: fix return value from amg88xx_hwmon_init()
-
-Nicolas Dufresne (1):
-      vivid: Fix V4L2_FIELD_ALTERNATE new frame check
-
-Niklas Söderlund (2):
-      adv7180: fix field type to V4L2_FIELD_ALTERNATE
-      adv7180: add g_frame_interval support
-
-Philipp Zabel (2):
-      media: coda: let CODA960 firmware set frame cropping in SPS header
-      media: coda: add SPS fixup code for frame sizes that are not multiples of 16
-
- drivers/media/i2c/adv7180.c                      |  30 +++++-
- drivers/media/i2c/adv7842.c                      |   8 +-
- drivers/media/i2c/video-i2c.c                    |   2 +-
- drivers/media/i2c/vs6624.c                       |   4 +-
- drivers/media/media-device.c                     |   1 +
- drivers/media/pci/cobalt/cobalt-driver.c         |   2 +-
- drivers/media/pci/cx23885/altera-ci.c            |   2 +-
- drivers/media/pci/cx23885/cx23885-cards.c        |  82 +++++++-------
- drivers/media/pci/cx23885/cx23885-core.c         |   2 +-
- drivers/media/pci/cx25821/cx25821-core.c         |   4 +-
- drivers/media/pci/cx25821/cx25821-gpio.c         |   2 +-
- drivers/media/pci/cx88/cx88-cards.c              |   4 +-
- drivers/media/pci/cx88/cx88-dvb.c                |  20 ++--
- drivers/media/pci/ivtv/ivtv-driver.c             |   2 +-
- drivers/media/pci/ivtv/ivtvfb.c                  |   2 +-
- drivers/media/platform/coda/coda-bit.c           |  40 +++++++
- drivers/media/platform/coda/coda-h264.c          | 316 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/coda/coda.h               |   2 +
- drivers/media/platform/rockchip/rga/rga.c        |   2 +-
- drivers/media/platform/vivid/vivid-kthread-cap.c |   2 +-
- include/uapi/linux/media.h                       |   3 +-
- 21 files changed, 455 insertions(+), 77 deletions(-)
+MR.Albert Chebe Esq
+ALTERVATIVE EMAIL albertchebe@gmail.com
