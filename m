@@ -1,263 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:43481 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754197AbeGHNLt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Jul 2018 09:11:49 -0400
-Received: by mail-wr1-f65.google.com with SMTP id b15-v6so8244468wrv.10
-        for <linux-media@vger.kernel.org>; Sun, 08 Jul 2018 06:11:49 -0700 (PDT)
-Subject: Re: [PATCH v2 2/2] v4l: Add support for STD ioctls on subdev nodes
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Marco Felsch <m.felsch@pengutronix.de>
-References: <20180517143016.13501-1-niklas.soderlund+renesas@ragnatech.se>
- <20180517143016.13501-3-niklas.soderlund+renesas@ragnatech.se>
- <20180705094421.0bad52e2@coco.lan>
- <2f4121bb-1774-410c-5425-f9977d38a02e@xs4all.nl>
-From: Javier Martinez Canillas <javierm@redhat.com>
-Message-ID: <7efd92ca-1891-4054-29d5-dca5813b37d6@redhat.com>
-Date: Sun, 8 Jul 2018 15:11:33 +0200
+Received: from bombadil.infradead.org ([198.137.202.133]:50446 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728384AbeG0OJF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jul 2018 10:09:05 -0400
+Date: Fri, 27 Jul 2018 09:47:08 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        clayton@craftyguy.net, martijn@brixit.nl,
+        sakari.ailus@linux.intel.com,
+        Filip =?UTF-8?B?TWF0aWpldmnEhw==?= <filip.matijevic.pz@gmail.com>,
+        mchehab@s-opensource.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180727094708.18ef4e4e@coco.lan>
+In-Reply-To: <20180708213258.GA18217@amd>
+References: <20180708213258.GA18217@amd>
 MIME-Version: 1.0
-In-Reply-To: <2f4121bb-1774-410c-5425-f9977d38a02e@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[adding Marco Felsch since he has been working on this driver]
+Em Sun, 8 Jul 2018 23:32:58 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
 
-On 07/05/2018 03:12 PM, Hans Verkuil wrote:
-> On 05/07/18 14:44, Mauro Carvalho Chehab wrote:
->> Javier,
->>
->> How standard settings work with the current OMAP3 drivers with tvp5150?
+> Add support for opening multiple devices in v4l2_open(), and for
+> mapping controls between devices.
 > 
-> It looks like tvp5150 uses autodetect of the standard, which in general is
+> This is necessary for complex devices, such as Nokia N900.
 
-That's correct, the driver uses standard autodetect.
+Hi Pavel,
 
-> not a good thing to do since different standards have different buffer
-> sizes. But this chip can scale, so it might scale PAL to NTSC or vice versa
-> if the standard switches mid-stream. Or it only detects the standard when
-> it starts streaming, I'm not sure.
->
+I tried to apply it here, but it seems that there are something
+wrong with the patch:
 
-Not sure about this either, IIUC switching the standard mid-stream won't work.
+$ quilt push -f --merge
+Applying patch patches/lmml_50901_libv4l_make_libv4l2_usable_on_devices_with_complex_pipeline.patch
+patching file lib/include/libv4l2.h
+patching file lib/libv4l2/libv4l2-priv.h
+patching file lib/libv4l2/libv4l2.c
+Hunk #6 NOT MERGED at 1830-1857.
+misordered hunks! output would be garbled
+Hunk #7 FAILED at 1224.
+Hunk #8 NOT MERGED at 1858-2057.
+1 out of 8 hunks FAILED -- saving rejects to file lib/libv4l2/libv4l2.c.rej
+patching file lib/libv4lconvert/control/libv4lcontrol.c
+Applied patch patches/lmml_50901_libv4l_make_libv4l2_usable_on_devices_with_complex_pipeline.patch (forced; needs refresh)
 
-> In any case, this is not normal behavior, for almost all analog video
-> receivers you need to be able to set the std explicitly.
->
+I even tried to reset the tree to a patchset earlier than July, 8.
+Same issue.
 
-Indeed. I see that Marco's recent series [0] add supports for the .querystd [1]
-and .g_std [2] callbacks to the tvp5150 driver, so that way user-space can get
-back the detected standard.
+I could manually try to fix it, but that misordered hunks
+warning is weird. Makes me wonder if the patch is not mangled.
 
-[0]: https://www.spinics.net/lists/linux-media/msg136869.html
-[1]: https://www.spinics.net/lists/linux-media/msg136872.html
-[2]: https://www.spinics.net/lists/linux-media/msg136875.html
+Could you please re-send it on the top of upstream? Better to use
+git send-email, as it won't mangle your patch.
 
-> Regards,
-> 
-> 	Hans
->
+Alternatively, please send me a ssh public key in private, and I'll
+give you access to the repository where you can store those patches.
 
-Best regards,
--- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+Thanks!
+Mauro
 
->>
->> Regards,
->> Mauro
->>
->>
->> Em Thu, 17 May 2018 16:30:16 +0200
->> Niklas Söderlund         <niklas.soderlund+renesas@ragnatech.se> escreveu:
->>
->>> There is no way to control the standard of subdevices which are part of
->>> a media device. The ioctls which exists all target video devices
->>> explicitly and the idea is that the video device should talk to the
->>> subdevice. For subdevices part of a media graph this is not possible and
->>> the standard must be controlled on the subdev device directly.
->>>
->>> Add four new ioctls to be able to directly interact with subdevices and
->>> control the video standard; VIDIOC_SUBDEV_ENUMSTD, VIDIOC_SUBDEV_G_STD,
->>> VIDIOC_SUBDEV_S_STD and VIDIOC_SUBDEV_QUERYSTD.
->>>
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>>
->>> ---
->>>
->>> * Changes since v1
->>> - Added VIDIOC_SUBDEV_ENUMSTD.
->>> ---
->>>  .../media/uapi/v4l/vidioc-enumstd.rst         | 11 ++++++----
->>>  Documentation/media/uapi/v4l/vidioc-g-std.rst | 14 ++++++++----
->>>  .../media/uapi/v4l/vidioc-querystd.rst        | 11 ++++++----
->>>  drivers/media/v4l2-core/v4l2-subdev.c         | 22 +++++++++++++++++++
->>>  include/uapi/linux/v4l2-subdev.h              |  4 ++++
->>>  5 files changed, 50 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/Documentation/media/uapi/v4l/vidioc-enumstd.rst b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
->>> index b7fda29f46a139a0..2644a62acd4b6822 100644
->>> --- a/Documentation/media/uapi/v4l/vidioc-enumstd.rst
->>> +++ b/Documentation/media/uapi/v4l/vidioc-enumstd.rst
->>> @@ -2,14 +2,14 @@
->>>  
->>>  .. _VIDIOC_ENUMSTD:
->>>  
->>> -********************
->>> -ioctl VIDIOC_ENUMSTD
->>> -********************
->>> +*******************************************
->>> +ioctl VIDIOC_ENUMSTD, VIDIOC_SUBDEV_ENUMSTD
->>> +*******************************************
->>>  
->>>  Name
->>>  ====
->>>  
->>> -VIDIOC_ENUMSTD - Enumerate supported video standards
->>> +VIDIOC_ENUMSTD - VIDIOC_SUBDEV_ENUMSTD - Enumerate supported video standards
->>>  
->>>  
->>>  Synopsis
->>> @@ -18,6 +18,9 @@ Synopsis
->>>  .. c:function:: int ioctl( int fd, VIDIOC_ENUMSTD, struct v4l2_standard *argp )
->>>      :name: VIDIOC_ENUMSTD
->>>  
->>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_ENUMSTD, struct v4l2_standard *argp )
->>> +    :name: VIDIOC_SUBDEV_ENUMSTD
->>> +
->>>  
->>>  Arguments
->>>  =========
->>> diff --git a/Documentation/media/uapi/v4l/vidioc-g-std.rst b/Documentation/media/uapi/v4l/vidioc-g-std.rst
->>> index 90791ab51a5371b8..8d94f0404df270db 100644
->>> --- a/Documentation/media/uapi/v4l/vidioc-g-std.rst
->>> +++ b/Documentation/media/uapi/v4l/vidioc-g-std.rst
->>> @@ -2,14 +2,14 @@
->>>  
->>>  .. _VIDIOC_G_STD:
->>>  
->>> -********************************
->>> -ioctl VIDIOC_G_STD, VIDIOC_S_STD
->>> -********************************
->>> +**************************************************************************
->>> +ioctl VIDIOC_G_STD, VIDIOC_S_STD, VIDIOC_SUBDEV_G_STD, VIDIOC_SUBDEV_S_STD
->>> +**************************************************************************
->>>  
->>>  Name
->>>  ====
->>>  
->>> -VIDIOC_G_STD - VIDIOC_S_STD - Query or select the video standard of the current input
->>> +VIDIOC_G_STD - VIDIOC_S_STD - VIDIOC_SUBDEV_G_STD - VIDIOC_SUBDEV_S_STD - Query or select the video standard of the current input
->>>  
->>>  
->>>  Synopsis
->>> @@ -21,6 +21,12 @@ Synopsis
->>>  .. c:function:: int ioctl( int fd, VIDIOC_S_STD, const v4l2_std_id *argp )
->>>      :name: VIDIOC_S_STD
->>>  
->>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_G_STD, v4l2_std_id *argp )
->>> +    :name: VIDIOC_SUBDEV_G_STD
->>> +
->>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_S_STD, const v4l2_std_id *argp )
->>> +    :name: VIDIOC_SUBDEV_S_STD
->>> +
->>>  
->>>  Arguments
->>>  =========
->>> diff --git a/Documentation/media/uapi/v4l/vidioc-querystd.rst b/Documentation/media/uapi/v4l/vidioc-querystd.rst
->>> index cf40bca19b9f8665..a8385cc7481869dd 100644
->>> --- a/Documentation/media/uapi/v4l/vidioc-querystd.rst
->>> +++ b/Documentation/media/uapi/v4l/vidioc-querystd.rst
->>> @@ -2,14 +2,14 @@
->>>  
->>>  .. _VIDIOC_QUERYSTD:
->>>  
->>> -*********************
->>> -ioctl VIDIOC_QUERYSTD
->>> -*********************
->>> +*********************************************
->>> +ioctl VIDIOC_QUERYSTD, VIDIOC_SUBDEV_QUERYSTD
->>> +*********************************************
->>>  
->>>  Name
->>>  ====
->>>  
->>> -VIDIOC_QUERYSTD - Sense the video standard received by the current input
->>> +VIDIOC_QUERYSTD - VIDIOC_SUBDEV_QUERYSTD - Sense the video standard received by the current input
->>>  
->>>  
->>>  Synopsis
->>> @@ -18,6 +18,9 @@ Synopsis
->>>  .. c:function:: int ioctl( int fd, VIDIOC_QUERYSTD, v4l2_std_id *argp )
->>>      :name: VIDIOC_QUERYSTD
->>>  
->>> +.. c:function:: int ioctl( int fd, VIDIOC_SUBDEV_QUERYSTD, v4l2_std_id *argp )
->>> +    :name: VIDIOC_SUBDEV_QUERYSTD
->>> +
->>>  
->>>  Arguments
->>>  =========
->>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
->>> index f9eed938d3480b74..27a2c633f2323f5f 100644
->>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
->>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
->>> @@ -494,6 +494,28 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->>>  
->>>  	case VIDIOC_SUBDEV_S_DV_TIMINGS:
->>>  		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
->>> +
->>> +	case VIDIOC_SUBDEV_G_STD:
->>> +		return v4l2_subdev_call(sd, video, g_std, arg);
->>> +
->>> +	case VIDIOC_SUBDEV_S_STD: {
->>> +		v4l2_std_id *std = arg;
->>> +
->>> +		return v4l2_subdev_call(sd, video, s_std, *std);
->>> +	}
->>> +
->>> +	case VIDIOC_SUBDEV_ENUMSTD: {
->>> +		struct v4l2_standard *p = arg;
->>> +		v4l2_std_id id;
->>> +
->>> +		if (v4l2_subdev_call(sd, video, g_tvnorms, &id))
->>> +			return -EINVAL;
->>> +
->>> +		return v4l_video_std_enumstd(p, id);
->>> +	}
->>> +
->>> +	case VIDIOC_SUBDEV_QUERYSTD:
->>> +		return v4l2_subdev_call(sd, video, querystd, arg);
->>>  #endif
->>>  	default:
->>>  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
->>> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
->>> index c95a53e6743cb040..03970ce3074193e6 100644
->>> --- a/include/uapi/linux/v4l2-subdev.h
->>> +++ b/include/uapi/linux/v4l2-subdev.h
->>> @@ -170,8 +170,12 @@ struct v4l2_subdev_selection {
->>>  #define VIDIOC_SUBDEV_G_SELECTION		_IOWR('V', 61, struct v4l2_subdev_selection)
->>>  #define VIDIOC_SUBDEV_S_SELECTION		_IOWR('V', 62, struct v4l2_subdev_selection)
->>>  /* The following ioctls are identical to the ioctls in videodev2.h */
->>> +#define VIDIOC_SUBDEV_G_STD			_IOR('V', 23, v4l2_std_id)
->>> +#define VIDIOC_SUBDEV_S_STD			_IOW('V', 24, v4l2_std_id)
->>> +#define VIDIOC_SUBDEV_ENUMSTD			_IOWR('V', 25, struct v4l2_standard)
->>>  #define VIDIOC_SUBDEV_G_EDID			_IOWR('V', 40, struct v4l2_edid)
->>>  #define VIDIOC_SUBDEV_S_EDID			_IOWR('V', 41, struct v4l2_edid)
->>> +#define VIDIOC_SUBDEV_QUERYSTD			_IOR('V', 63, v4l2_std_id)
->>>  #define VIDIOC_SUBDEV_S_DV_TIMINGS		_IOWR('V', 87, struct v4l2_dv_timings)
->>>  #define VIDIOC_SUBDEV_G_DV_TIMINGS		_IOWR('V', 88, struct v4l2_dv_timings)
->>>  #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
->>
->>
->>
->> Thanks,
->> Mauro
->>
-> 
+
+
+Thanks,
+Mauro
