@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:43202 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725861AbeG0EY7 (ORCPT
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:34997 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725861AbeG0E0y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jul 2018 00:24:59 -0400
+        Fri, 27 Jul 2018 00:26:54 -0400
 From: Jia-Ju Bai <baijiaju1990@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@kernel.org
+To: awalls@md.metrocast.net, mchehab@kernel.org
 Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Jia-Ju Bai <baijiaju1990@gmail.com>
 Subject: [PATCH] media: pci: cobalt: Replace GFP_ATOMIC with GFP_KERNEL in cobalt_probe()
-Date: Fri, 27 Jul 2018 11:05:09 +0800
-Message-Id: <20180727030509.2668-1-baijiaju1990@gmail.com>
+Date: Fri, 27 Jul 2018 11:07:04 +0800
+Message-Id: <20180727030704.2784-1-baijiaju1990@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
