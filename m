@@ -1,30 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:33513 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729539AbeG0LaF (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:50748 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729519AbeG0MCH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jul 2018 07:30:05 -0400
-Received: by mail-it0-f67.google.com with SMTP id d16-v6so2060930itj.0
-        for <linux-media@vger.kernel.org>; Fri, 27 Jul 2018 03:08:54 -0700 (PDT)
+        Fri, 27 Jul 2018 08:02:07 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] media-types.rst: fix doc warnings
+Message-ID: <11e91b1e-e527-1601-a04c-d04c0a39974a@xs4all.nl>
+Date: Fri, 27 Jul 2018 12:40:45 +0200
 MIME-Version: 1.0
-Reply-To: albertchebe@gmail.com
-From: Albert Chebe <jerrydonsin03@gmail.com>
-Date: Fri, 27 Jul 2018 10:08:53 +0000
-Message-ID: <CALoiWBfaCkjYdSSwj2-2SHgy9FE8xxwnkJhh008UFDGYkXkriQ@mail.gmail.com>
-Subject: Good day.
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ATTN:
+Fix these warnings when building the documentation:
 
-I am MR.Albert Chebe, writing you in respect of my deceased client,I
-have been trying to locate any member of his family to assist in
-repatriating his fund he deposited in finance house valued at
-US$10.500.000 .Contact me with your full names, occupation, country of
-residence and direct telephone number for full details regards this
-claim. I await your urgent response today.
-Regards,
-MR.Albert Chebe Esq
-ALTERVATIVE EMAIL albertchebe@gmail.com
+media.h.rst:6: WARNING: undefined label: media-ent-f-dv-decoder (if the link has no caption the label must precede a section header)
+media.h.rst:6: WARNING: undefined label: media-ent-f-dv-encoder (if the link has no caption the label must precede a section header)
+media.h.rst:6: WARNING: undefined label: media-ent-f-dv-decoder (if the link has no caption the label must precede a section header)
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 0e9adc7869b8..e4c57c8f4553 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -41,7 +41,8 @@ Types and flags used to represent the media graph elements
+ .. _MEDIA-ENT-F-PROC-VIDEO-DECODER:
+ .. _MEDIA-ENT-F-VID-MUX:
+ .. _MEDIA-ENT-F-VID-IF-BRIDGE:
+-.. _MEDIA-ENT-F-DTV-DECODER:
++.. _MEDIA-ENT-F-DV-DECODER:
++.. _MEDIA-ENT-F-DV-ENCODER:
+
+ .. cssclass:: longtable
