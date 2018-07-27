@@ -1,76 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:34537 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729472AbeG0Jmg (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:59232 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729445AbeG0KVU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jul 2018 05:42:36 -0400
-Received: from epcas5p4.samsung.com (unknown [182.195.41.42])
-        by mailout1.samsung.com (KnoxPortal) with ESMTP id 20180727082148epoutp013b9ef7c41cee33cc944ca8e87eae913c~FLBMFhIft2073820738epoutp013
-        for <linux-media@vger.kernel.org>; Fri, 27 Jul 2018 08:21:48 +0000 (GMT)
-From: Satendra Singh Thakur <satendra.t@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: vineet.j@samsung.com, hemanshu.s@samsung.com, sst2005@gmail.com
-Subject: [PATCH] videobuf2/vb2_buffer_done: Changing the position of
- spinlock to protect only the required code
-Date: Fri, 27 Jul 2018 13:51:36 +0530
-Message-Id: <20180727082146epcas5p10374c04f0767dbbe409c8171c49d7c9a~FLBKL7utW2249922499epcas5p1c@epcas5p1.samsung.com>
-Content-Type: text/plain; charset="utf-8"
-References: <CGME20180727082146epcas5p10374c04f0767dbbe409c8171c49d7c9a@epcas5p1.samsung.com>
+        Fri, 27 Jul 2018 06:21:20 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?Windows-1252?Q?=22Niklas_S=F6derlund=22?=
+        <niklas.soderlund@ragnatech.se>,
+        Kieran Bingham <kieran@ksquared.org.uk>,
+        Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Charles Keepax <ckeepax@opensource.wolfsonmicro.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>
+Subject: RE: [PATCH 04/11] media: rcar_drif: convert to SPDX identifiers
+Date: Fri, 27 Jul 2018 09:00:18 +0000
+Message-ID: <TY2PR01MB1962C868735DBDBE8C4AAF7CC32A0@TY2PR01MB1962.jpnprd01.prod.outlook.com>
+References: <87h8kmd938.wl-kuninori.morimoto.gx@renesas.com>
+ <87bmaud8zy.wl-kuninori.morimoto.gx@renesas.com>
+In-Reply-To: <87bmaud8zy.wl-kuninori.morimoto.gx@renesas.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-1.Currently, in the func vb2_buffer_done, spinlock protects
-following code
-vb->state = VB2_BUF_STATE_QUEUED;
-list_add_tail(&vb->done_entry, &q->done_list);
-spin_unlock_irqrestore(&q->done_lock, flags);
-vb->state = state;
-atomic_dec(&q->owned_by_drv_count);
-2.The spinlock is mainly needed to protect list related ops and
-vb->state = STATE_ERROR or STATE_DONE as in other funcs
-vb2_discard_done
-__vb2_get_done_vb
-vb2_core_poll.
-3. Therefore, spinlock is mainly needed for
-   list_add, list_del, list_first_entry ops
-   and state = STATE_DONE and STATE_ERROR to protect
-   done_list queue.
-3. Hence, state = STATE_QUEUED doesn't need spinlock protection.
-4. Also atomic_dec dones't require the same as its already atomic.
+Hi Morimoto-san,
 
-Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
----
- drivers/media/common/videobuf2/videobuf2-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thank you for the patch and the information on MODULE_LICENSE.
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index f32ec73..968b403 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -923,17 +923,17 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
- 	}
- 
--	spin_lock_irqsave(&q->done_lock, flags);
- 	if (state == VB2_BUF_STATE_QUEUED ||
- 	    state == VB2_BUF_STATE_REQUEUEING) {
- 		vb->state = VB2_BUF_STATE_QUEUED;
- 	} else {
- 		/* Add the buffer to the done buffers list */
-+		spin_lock_irqsave(&q->done_lock, flags);
- 		list_add_tail(&vb->done_entry, &q->done_list);
- 		vb->state = state;
-+		spin_unlock_irqrestore(&q->done_lock, flags);
- 	}
- 	atomic_dec(&q->owned_by_drv_count);
--	spin_unlock_irqrestore(&q->done_lock, flags);
- 
- 	trace_vb2_buf_done(q, vb);
- 
--- 
-2.7.4
+> -----Original Message-----
+> From: Kuninori Morimoto
+> Sent: Thursday, July 26, 2018 3:36 AM
+> To: Mauro Carvalho Chehab <mchehab@kernel.org>; Hans Verkuil
+> <hans.verkuil@cisco.com>
+> Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>;
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com>; "Niklas S=F6derlund=
+"
+> <niklas.soderlund@ragnatech.se>; Kieran Bingham <kieran@bingham.xyz>;
+> Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>; Gustavo A. R. Silva
+> <gustavo@embeddedor.com>; Al Viro <viro@zeniv.linux.org.uk>; Charles
+> Keepax <ckeepax@opensource.wolfsonmicro.com>; Jacopo Mondi
+> <jacopo+renesas@jmondi.org>; linux-media@vger.kernel.org; linux-renesas-
+> soc@vger.kernel.org
+> Subject: [PATCH 04/11] media: rcar_drif: convert to SPDX identifiers
+>=20
+>=20
+> From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+>=20
+> As original license mentioned, it is GPL-2.0+ in SPDX.
+> Then, MODULE_LICENSE() should be "GPL" instead of "GPL v2".
+> See ${LINUX}/include/linux/module.h
+>=20
+> 	"GPL"		[GNU Public License v2 or later]
+> 	"GPL v2"	[GNU Public License v2]
+>=20
+> Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+
+Acked-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+
+> ---
+>  drivers/media/platform/rcar_drif.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar_drif.c
+> b/drivers/media/platform/rcar_drif.c
+> index dc7e280..81413ab 100644
+> --- a/drivers/media/platform/rcar_drif.c
+> +++ b/drivers/media/platform/rcar_drif.c
+> @@ -1,13 +1,9 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+>  /*
+>   * R-Car Gen3 Digital Radio Interface (DRIF) driver
+>   *
+>   * Copyright (C) 2017 Renesas Electronics Corporation
+>   *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by
+> - * the Free Software Foundation; either version 2 of the License, or
+> - * (at your option) any later version.
+> - *
+>   * This program is distributed in the hope that it will be useful,
+>   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> @@ -1499,5 +1495,5 @@ module_platform_driver(rcar_drif_driver);
+>=20
+>  MODULE_DESCRIPTION("Renesas R-Car Gen3 DRIF driver");
+>  MODULE_ALIAS("platform:" RCAR_DRIF_DRV_NAME);
+> -MODULE_LICENSE("GPL v2");
+> +MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Ramesh Shanmugasundaram
+> <ramesh.shanmugasundaram@bp.renesas.com>");
+> --
+> 2.7.4
+
+Thanks,
+Ramesh
