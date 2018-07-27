@@ -1,38 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 93521.net ([185.232.65.148]:44083 "EHLO flyracing.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2388901AbeG0QWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jul 2018 12:22:08 -0400
-To: linux-media@vger.kernel.org
-Subject: company photos
-Message-ID: <6435d569e32c308ffa688eb720e0f9fd@gotoilsupplies.com>
-Date: Fri, 27 Jul 2018 13:03:35 +0200
-From: "Jeremy" <dinsingi@arvindguptatoys.com>
-Reply-To: juhutanl@sina.com
-MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45560 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730561AbeG0Qiv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jul 2018 12:38:51 -0400
+Message-ID: <280a403a8c00eb99c50e98e636ab5d32647411d9.camel@collabora.com>
+Subject: Re: [PATCH v2 1/5] v4l2-mem2mem: Fix missing v4l2_m2m_try_run call
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: kernel@collabora.com, paul.kocialkowski@bootlin.com,
+        maxime.ripard@bootlin.com, Hans Verkuil <hans.verkuil@cisco.com>,
+        Shuah Khan <shuah@kernel.org>, linux-kselftest@vger.kernel.org
+Date: Fri, 27 Jul 2018 12:16:18 -0300
+In-Reply-To: <d50d043a-0624-c697-147c-7a7a10d81d4c@xs4all.nl>
+References: <20180725171516.11210-1-ezequiel@collabora.com>
+         <20180725171516.11210-2-ezequiel@collabora.com>
+         <c0cf528b-103a-9a92-527d-e80508734c72@xs4all.nl>
+         <d50d043a-0624-c697-147c-7a7a10d81d4c@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I would like to contact the person who manages your images for your
-company?
+On Fri, 2018-07-27 at 15:41 +0200, Hans Verkuil wrote:
+> On 27/07/18 15:35, Hans Verkuil wrote:
+> > On 25/07/18 19:15, Ezequiel Garcia wrote:
+> > > Commit 34dbb848d5e4 ("media: mem2mem: Remove excessive try_run call")
+> > > removed a redundant call to v4l2_m2m_try_run but instead introduced
+> > > a bug. Consider the following case:
+> > > 
+> > >  1) Context A schedules, queues and runs job A.
+> > >  2) While the m2m device is running, context B schedules
+> > >     and queues job B. Job B cannot run, because it has to
+> > >     wait for job A.
+> > >  3) Job A completes, calls v4l2_m2m_job_finish, and tries
+> > >     to queue a job for context A, but since the context is
+> > >     empty it won't do anything.
+> > > 
+> > > In this scenario, queued job B will never run. Fix this by calling
+> > > v4l2_m2m_try_run from v4l2_m2m_try_schedule.
+> > > 
+> > > While here, add more documentation to these functions.
+> > > 
+> > > Fixes: 34dbb848d5e4 ("media: mem2mem: Remove excessive try_run call")
+> > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > 
+> > So just to be clear: this first patch fixes a regression and can be applied
+> > separately from the other patches?
+> > 
 
-We services such as background image cut out, clipping path, shadow adding
-(drop shadow, reflection shadow, natural shadow, mirror effect), image
-masking, product image editing.
+That is correct, it's a regression and can be applied independently.
 
-The following are the kind of services together:
-Clipping Path Service
-Cut out image,Image Clipping, Clip image
-Photo Masking Service
-Crop image, Photo cut out
-Beauty Retouching, Model retouching
+This patch has been tested independently of the rest of the series,
+using the test introduced in "selftests: media_tests: Add a
+memory-to-memory concurrent stress test".
 
-We can give you editing test on your photos.
+Without this patch, the test fails.
 
-Also, we also use the most recent application as well as techniques such as
-Adobe Photoshop.
+> > > ---
+> > >  drivers/media/v4l2-core/v4l2-mem2mem.c | 32 +++++++++++++++++++++++---
+> > >  1 file changed, 29 insertions(+), 3 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> > > index 5f9cd5b74cda..dfd796621b06 100644
+> > > --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> > > +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> > > @@ -209,15 +209,23 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+> > >  	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
+> > >  	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+> > >  
+> > > +	dprintk("Running job on m2m_ctx: %p\n", m2m_dev->curr_ctx);
+> > 
+> > Is this intended? It feels out of place in this patch.
+> > 
 
-Thanks,
-Jeremy
+It was intended :) Since the patch is adding some more documentation,
+it felt OK to add this debug message, as it also helps the testing.
+
+But I can drop it if you think it's out of place.
+
+> > >  	m2m_dev->m2m_ops->device_run(m2m_dev->curr_ctx->priv);
+> > >  }
+> > >  
+> > > -void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+> > > +/*
+> > > + * __v4l2_m2m_try_queue() - queue a job
+> > > + * @m2m_dev: m2m device
+> > > + * @m2m_ctx: m2m context
+> > > + *
+> > > + * Check if this context is ready to queue a job.
+> > > + *
+> > > + * This function can run in interrupt context.
+> > > + */
+> > > +static void __v4l2_m2m_try_queue(struct v4l2_m2m_dev *m2m_dev, struct v4l2_m2m_ctx *m2m_ctx)
+> > >  {
+> > > -	struct v4l2_m2m_dev *m2m_dev;
+> > >  	unsigned long flags_job, flags_out, flags_cap;
+> > >  
+> > > -	m2m_dev = m2m_ctx->m2m_dev;
+> > >  	dprintk("Trying to schedule a job for m2m_ctx: %p\n", m2m_ctx);
+> > >  
+> > >  	if (!m2m_ctx->out_q_ctx.q.streaming
+> > > @@ -275,7 +283,25 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+> > >  	m2m_ctx->job_flags |= TRANS_QUEUED;
+> > >  
+> > >  	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+> > > +}
+> > > +
+> > > +/**
+> > > + * v4l2_m2m_try_schedule() - schedule and possibly run a job for any context
+> > > + * @m2m_ctx: m2m context
+> > > + *
+> > > + * Check if this context is ready to queue a job. If suitable,
+> > > + * run the next queued job on the mem2mem device.
+> > > + *
+> > > + * This function shouldn't run in interrupt context.
+> > > + *
+> > > + * Note that v4l2_m2m_try_schedule() can schedule one job for this context,
+> > > + * and then run another job for another context.
+> > > + */
+> > > +void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+> > > +{
+> > > +	struct v4l2_m2m_dev *m2m_dev = m2m_ctx->m2m_dev;
+> > >  
+> > > +	__v4l2_m2m_try_queue(m2m_dev, m2m_ctx);
+> > 
+> > Why introduce __v4l2_m2m_try_queue? Why not keep it in here?
+> > 
+
+Well, specifically we need to make sure xxx_try_run is called
+even if no job was queued. After a lot of back and forth, I ended
+up thinking the queue and run operations were different and needed
+different functions.
+
+If we were to keep the code in try_schedule, we would have to use
+some extra conditionals or gotos to make sure try_run is called even
+if no job was queued.
+
+The important thing to keep in mind here is that these functions
+could be called on a given context, but then actually run a job
+for another context.
+
+> > >  	v4l2_m2m_try_run(m2m_dev);
+> 
+> I'm completely confused: v4l2_m2m_try_schedule() already calls v4l2_m2m_try_run()!
+> 
+> Either my brain has crashed due to the heatwave I'm suffering through, or there
+> is something amiss with this patch.
+> 
+> 
+
+Right, v4l2_m2m_try_schedule calls v4l2_m2m_try_run *if* a job was queued.
+This might not always be the case.
+
+Consider you schedule two jobs, both will be queued but only one will run.
+When will the second job run? Answer: never :)
+
+Hope it's clear now!
+Eze
