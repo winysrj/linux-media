@@ -1,130 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:49948 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729431AbeG0Kpi (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41612 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729568AbeG0LHB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jul 2018 06:45:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] rcar-csi2: update stream start for V3M
-Date: Fri, 27 Jul 2018 12:25:13 +0300
-Message-ID: <2085902.EcbZgA7qhr@avalon>
-In-Reply-To: <20180726223657.26340-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180726223657.26340-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 27 Jul 2018 07:07:01 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.19] v2: Various fixes
+Message-ID: <6e87a176-b17c-8480-0ec2-665f0ec65be8@xs4all.nl>
+Date: Fri, 27 Jul 2018 11:45:53 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+The following changes since commit 343b23a7c6b6680ef949e6112a4ee60688acf39d:
 
-Thank you for the patch.
+  media: gpu: ipu-v3: Allow negative offsets for interlaced scanning (2018-07-26 15:21:50 -0400)
 
-On Friday, 27 July 2018 01:36:57 EEST Niklas S=F6derlund wrote:
-> Latest errata document updates the start procedure for V3M. This change
-> in addition to adhering to the datasheet update fixes capture on early
-> revisions of V3M.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
->=20
-> ---
->=20
-> Hi Hans, Mauro and Sakari
->=20
-> I know this is late for v4.19 but if possible can it be considered? It
-> fixes a real issue on R-Car V3M boards. I'm sorry for the late
-> submission, the errata document accesses unfortunate did not align with
-> the release schedule.
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> b/drivers/media/platform/rcar-vin/rcar-csi2.c index
-> daef72d410a3425d..dc5ae8025832ab6e 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -339,6 +339,7 @@ enum rcar_csi2_pads {
->=20
->  struct rcar_csi2_info {
->  	int (*init_phtw)(struct rcar_csi2 *priv, unsigned int mbps);
-> +	int (*confirm_start)(struct rcar_csi2 *priv);
->  	const struct rcsi2_mbps_reg *hsfreqrange;
->  	unsigned int csi0clkfreqrange;
->  	bool clear_ulps;
-> @@ -545,6 +546,13 @@ static int rcsi2_start(struct rcar_csi2 *priv)
->  	if (ret)
->  		return ret;
->=20
-> +	/* Confirm start */
-> +	if (priv->info->confirm_start) {
-> +		ret =3D priv->info->confirm_start(priv);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
+are available in the Git repository at:
 
-While PHTW has to be written in the "Confirmation of PHY start" sequence, t=
-he=20
-operation doesn't seem to be related to confirmation of PHY start, it inste=
-ad=20
-looks like a shuffle of the configuration sequence. I would thus not name t=
-he=20
-operation .confirm_start() as that's not what it does.
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.19n
 
->  	/* Clear Ultra Low Power interrupt. */
->  	if (priv->info->clear_ulps)
->  		rcsi2_write(priv, INTSTATE_REG,
-> @@ -880,6 +888,11 @@ static int rcsi2_init_phtw_h3_v3h_m3n(struct rcar_cs=
-i2
-> *priv, unsigned int mbps) }
->=20
->  static int rcsi2_init_phtw_v3m_e3(struct rcar_csi2 *priv, unsigned int
-> mbps)
-> +{
-> +	return rcsi2_phtw_write_mbps(priv, mbps, phtw_mbps_v3m_e3, 0x44);
-> +}
-> +
-> +static int rcsi2_confirm_start_v3m_e3(struct rcar_csi2 *priv)
->  {
->  	static const struct phtw_value step1[] =3D {
->  		{ .data =3D 0xed, .code =3D 0x34 },
-> @@ -890,12 +903,6 @@ static int rcsi2_init_phtw_v3m_e3(struct rcar_csi2
-> *priv, unsigned int mbps) { /* sentinel */ },
->  	};
->=20
-> -	int ret;
-> -
-> -	ret =3D rcsi2_phtw_write_mbps(priv, mbps, phtw_mbps_v3m_e3, 0x44);
-> -	if (ret)
-> -		return ret;
-> -
+for you to fetch changes up to cfc3de9d4ae9cef3df1141a532d1fe88a54813c3:
 
-There's something I don't get here. According to the errata, it's the step1=
-=20
-array write sequence that need to be moved from "Start of PHY" to=20
-"Confirmation of PHY start". This patch moves the PHTW frequency configurat=
-ion=20
-instead.
+  media: pci: ivtv: Replace GFP_ATOMIC with GFP_KERNEL (2018-07-27 11:43:55 +0200)
 
->  	return rcsi2_phtw_write_array(priv, step1);
->  }
->=20
-> @@ -949,6 +956,7 @@ static const struct rcar_csi2_info
-> rcar_csi2_info_r8a77965 =3D {
->=20
->  static const struct rcar_csi2_info rcar_csi2_info_r8a77970 =3D {
->  	.init_phtw =3D rcsi2_init_phtw_v3m_e3,
-> +	.confirm_start =3D rcsi2_confirm_start_v3m_e3,
->  };
->=20
->  static const struct of_device_id rcar_csi2_of_table[] =3D {
+Various fixes for 4.19.
 
-=2D-=20
+Same as https://patchwork.linuxtv.org/patch/51246/, but dropped the
+"rcar-csi2: update stream start for V3M" patch since Laurent had some
+review comments about that one.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+----------------------------------------------------------------
+Ezequiel Garcia (1):
+      rockchip/rga: Fix bad dma_free_attrs() parameter
+
+Hans Verkuil (1):
+      media.h: remove linux/version.h include
+
+Jia-Ju Bai (10):
+      media: i2c: adv7842: Replace mdelay() with msleep() and usleep_range() in adv7842_ddr_ram_test()
+      media: i2c: vs6624: Replace mdelay() with msleep() and usleep_range() in vs6624_probe()
+      media: pci: cobalt: Replace GFP_ATOMIC with GFP_KERNEL in cobalt_probe()
+      media: pci: cx23885: Replace mdelay() with msleep() and usleep_range() in altera_ci_slot_reset()
+      media: pci: cx23885: Replace mdelay() with msleep() and usleep_range() in cx23885_gpio_setup()
+      media: pci: cx23885: Replace mdelay() with msleep() in cx23885_reset()
+      media: pci: cx25821: Replace mdelay() with msleep()
+      media: pci: cx88: Replace mdelay() with msleep() in cx88_card_setup_pre_i2c()
+      media: pci: cx88: Replace mdelay() with msleep() in dvb_register()
+      media: pci: ivtv: Replace GFP_ATOMIC with GFP_KERNEL
+
+Matt Ranostay (1):
+      media: video-i2c: hwmon: fix return value from amg88xx_hwmon_init()
+
+Nicolas Dufresne (1):
+      vivid: Fix V4L2_FIELD_ALTERNATE new frame check
+
+Niklas Söderlund (2):
+      adv7180: fix field type to V4L2_FIELD_ALTERNATE
+      adv7180: add g_frame_interval support
+
+Philipp Zabel (2):
+      media: coda: let CODA960 firmware set frame cropping in SPS header
+      media: coda: add SPS fixup code for frame sizes that are not multiples of 16
+
+ drivers/media/i2c/adv7180.c                      |  30 +++++-
+ drivers/media/i2c/adv7842.c                      |   8 +-
+ drivers/media/i2c/video-i2c.c                    |   2 +-
+ drivers/media/i2c/vs6624.c                       |   4 +-
+ drivers/media/media-device.c                     |   1 +
+ drivers/media/pci/cobalt/cobalt-driver.c         |   2 +-
+ drivers/media/pci/cx23885/altera-ci.c            |   2 +-
+ drivers/media/pci/cx23885/cx23885-cards.c        |  82 +++++++-------
+ drivers/media/pci/cx23885/cx23885-core.c         |   2 +-
+ drivers/media/pci/cx25821/cx25821-core.c         |   4 +-
+ drivers/media/pci/cx25821/cx25821-gpio.c         |   2 +-
+ drivers/media/pci/cx88/cx88-cards.c              |   4 +-
+ drivers/media/pci/cx88/cx88-dvb.c                |  20 ++--
+ drivers/media/pci/ivtv/ivtv-driver.c             |   2 +-
+ drivers/media/pci/ivtv/ivtvfb.c                  |   2 +-
+ drivers/media/platform/coda/coda-bit.c           |  40 +++++++
+ drivers/media/platform/coda/coda-h264.c          | 316 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/coda/coda.h               |   2 +
+ drivers/media/platform/rockchip/rga/rga.c        |   2 +-
+ drivers/media/platform/vivid/vivid-kthread-cap.c |   2 +-
+ include/uapi/linux/media.h                       |   3 +-
+ 21 files changed, 455 insertions(+), 77 deletions(-)
