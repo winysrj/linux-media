@@ -1,113 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:55824 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728696AbeG3OD4 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58663 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728296AbeG1VEN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 10:03:56 -0400
-Date: Mon, 30 Jul 2018 09:29:06 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] v4l: vsp1: Fix deadlock in VSPDL DRM pipelines
-Message-ID: <20180730092906.4da35890@coco.lan>
-In-Reply-To: <3163968a-e24a-b8ad-5b3c-0a94aef12755@ideasonboard.com>
-References: <20180727171945.25603-1-laurent.pinchart+renesas@ideasonboard.com>
-        <3163968a-e24a-b8ad-5b3c-0a94aef12755@ideasonboard.com>
+        Sat, 28 Jul 2018 17:04:13 -0400
+Date: Sat, 28 Jul 2018 21:36:32 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        clayton@craftyguy.net, martijn@brixit.nl,
+        sakari.ailus@linux.intel.com,
+        Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>,
+        mchehab@s-opensource.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [PATCH, libv4l]: Make libv4l2 usable on devices with complex
+ pipeline
+Message-ID: <20180728193632.GB29593@amd>
+References: <20180708213258.GA18217@amd>
+ <20180719205344.GA12098@amd>
+ <20180723153649.73337c0f@coco.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="QRj9sO5tAVLaXnSD"
+Content-Disposition: inline
+In-Reply-To: <20180723153649.73337c0f@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 28 Jul 2018 20:13:05 +0100
-Kieran Bingham <kieran.bingham@ideasonboard.com> escreveu:
 
-> Hi Laurent, Mauro,
-> 
-> I've cast my eyes through this, and the driver code it affects
-> 
-> On 27/07/18 18:19, Laurent Pinchart wrote:
-> > The VSP uses a lock to protect the BRU and BRS assignment when
-> > configuring pipelines. The lock is taken in vsp1_du_atomic_begin() and
-> > released in vsp1_du_atomic_flush(), as well as taken and released in
-> > vsp1_du_setup_lif(). This guards against multiple pipelines trying to
-> > assign the same BRU and BRS at the same time.
-> > 
-> > The DRM framework calls the .atomic_begin() operations in a loop over
-> > all CRTCs included in an atomic commit. On a VSPDL (the only VSP type
-> > where this matters), a single VSP instance handles two CRTCs, with a
-> > single lock. This results in a deadlock when the .atomic_begin()
-> > operation is called on the second CRTC.
-> > 
-> > The DRM framework serializes atomic commits that affect the same CRTCs,
-> > but doesn't know about two CRTCs sharing the same VSPDL. Two commits
-> > affecting the VSPDL LIF0 and LIF1 respectively can thus race each other,
-> > hence the need for a lock.
-> > 
-> > This could be fixed on the DRM side by forcing serialization of commits
-> > affecting CRTCs backed by the same VSPDL, but that would negatively
-> > affect performances, as the locking is only needed when the BRU and BRS
-> > need to be reassigned, which is an uncommon case.
-> > 
-> > The lock protects the whole .atomic_begin() to .atomic_flush() sequence.
-> > The only operation that can occur in-between is vsp1_du_atomic_update(),
-> > which doesn't touch the BRU and BRS, and thus doesn't need to be
-> > protected by the lock. We can thus only take the lock around the  
-> 
-> And I almost replied to say ... but what about vsp1_du_atomic_update()
-> before re-reading this paragraph :)
-> 
-> 
-> > pipeline setup calls in vsp1_du_atomic_flush(), which fixes the
-> > deadlock.
-> > 
-> > Fixes: f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines dynamically")
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>  
-> 
-> It makes me very happy to see the lock/unlock across separate functions
-> removed :)
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> 
-> > ---
-> >  drivers/media/platform/vsp1/vsp1_drm.c | 4 +---
-> >  1 file changed, 1 insertion(+), 3 deletions(-)
-> > 
-> > I've successfully tested the patch with kmstest --flip running with four
-> > outputs on a Salvator-XS board, as well as with the DU kms-test-brxalloc.py
-> > test. The deadlock is gone, and no race has been observed.
-> > 
-> > Mauro, this is a v4.18 regression fix. I'm sorry for sending it so late,
-> > I haven't noticed the issue earlier. Once Kieran reviews it (which should
-> > happen in the next few days), could you send it to Linus ? The breakage is
-> > pretty bad otherwise for people using both the VGA and LVDS outputs at the
-> > same time.
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> > index edb35a5c57ea..a99fc0ced7a7 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > @@ -728,9 +728,6 @@ EXPORT_SYMBOL_GPL(vsp1_du_setup_lif);
-> >   */
-> >  void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index)
-> >  {
-> > -	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-> > -
-> > -	mutex_lock(&vsp1->drm->lock);
-> >  }
+--QRj9sO5tAVLaXnSD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As this is a regression fix, I'll apply it.
+Hi!
 
-However, this function now does nothing. Please remove it on a next
-Kernel version, if it is not needed anymore (or add whatever it is
-needed to replace the lock).
+> > > Add support for opening multiple devices in v4l2_open(), and for
+> > > mapping controls between devices.
+> > >=20
+> > > This is necessary for complex devices, such as Nokia N900.
+> > >=20
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz> =20
+> >=20
+> > Ping?
+> >=20
+> > There's a lot of work to do on libv4l2... timely patch handling would
+> > be nice.
+>=20
+> As we're be start working at the new library in order to support
+> complex cameras, and I don't want to prevent you keeping doing your
+> work, IMHO the best way to keep doing it would be to create two
+> libv4l2 forks:
+>=20
+> 	- one to be used by you - meant to support N900 camera;
+> 	- another one to be used by Google/Intel people that will
+> 	  be working at the Complex camera.
 
-Regards,
-Mauro
+Actually, I guess it would be better to share branches. N900 really
+has Complex camera :-). Yes, there are some details that are different
+(IPU3 will need to pass data between sensor and processing pipeline),
+but it
 
-Thanks,
-Mauro
+1) will probably need to "propagate controls"
+2) will need autofocus
+3) would benefit from same autogain improvements
+4) [probably most difficult] figure out how to support more than
+8-bits depth.
+
+> So, please send me, in priv, a .ssh key for me to add you an
+> account at linuxtv.org. I'll send you instructions about how to
+> use the new account.
+
+Done, you should have key in your inbox.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--QRj9sO5tAVLaXnSD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAltcxcAACgkQMOfwapXb+vJApwCfQyG3CEdJ6KlUH7AhFLUYDo+X
+D3AAmwQzndzK2wARwniCevlN8Vtjdy9R
+=A45F
+-----END PGP SIGNATURE-----
+
+--QRj9sO5tAVLaXnSD--
