@@ -1,51 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:40578 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730154AbeG1UVI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Jul 2018 16:21:08 -0400
-Received: by mail-qt0-f194.google.com with SMTP id h4-v6so8369565qtj.7
-        for <linux-media@vger.kernel.org>; Sat, 28 Jul 2018 11:53:43 -0700 (PDT)
-Date: Sat, 28 Jul 2018 15:53:38 -0300
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Ville =?iso-8859-1?Q?Syrj=E4l=E4?=
-        <ville.syrjala@linux.intel.com>
-Subject: Re: [PATCH for v4.19] drm_dp_cec.c: fix formatting typo: %pdH -> %phD
-Message-ID: <20180728185338.GA14560@juma>
-References: <f3720ddf-ec0f-cd22-46b6-720a5e2098f2@xs4all.nl>
+Received: from gofer.mess.org ([88.97.38.141]:49837 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726426AbeG1KzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Jul 2018 06:55:23 -0400
+Date: Sat, 28 Jul 2018 10:29:31 +0100
+From: Sean Young <sean@mess.org>
+To: Matthias Reichl <hias@horus.com>
+Cc: linux-media@vger.kernel.org, VDR User <user.vdr@gmail.com>
+Subject: Re: [PATCH v3 0/5] Add BPF decoders to ir-keytable
+Message-ID: <20180728092930.wbokwgdfze7dyfa5@gofer.mess.org>
+References: <cover.1531491415.git.sean@mess.org>
+ <20180721181327.llrx2zqpindohrkt@camel2.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <f3720ddf-ec0f-cd22-46b6-720a5e2098f2@xs4all.nl>
+In-Reply-To: <20180721181327.llrx2zqpindohrkt@camel2.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 24, 2018 at 09:20:28PM +0200, Hans Verkuil wrote:
-> This caused a kernel oops since %pdH interpreted the pointer
-> as a struct file.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/gpu/drm/drm_dp_cec.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
-> index 87b67cc1ea58..a6cac47f6248 100644
-> --- a/drivers/gpu/drm/drm_dp_cec.c
-> +++ b/drivers/gpu/drm/drm_dp_cec.c
-> @@ -157,7 +157,7 @@ static void drm_dp_cec_adap_status(struct cec_adapter *adap,
-> 
->  	if (drm_dp_read_desc(aux, &desc, true))
->  		return;
-> -	seq_printf(file, "OUI: %*pdH\n",
-> +	seq_printf(file, "OUI: %*phD\n",
->  		   (int)sizeof(id->oui), id->oui);
->  	seq_printf(file, "ID: %*pE\n",
->  		   (int)strnlen(id->device_id, sizeof(id->device_id)),
+Hi Hias,
 
-pushed to drm-misc-next-fixes for 4.19. Thanks.
+On Sat, Jul 21, 2018 at 08:13:27PM +0200, Matthias Reichl wrote:
+> Hi Sean,
+> 
+> thanks a lot, this is a really nice new feature!
 
-Gustavo
+Thank you for testing it and finding all those issues, it has become much
+better from your testing.
+
+> On Fri, Jul 13, 2018 at 03:30:06PM +0100, Sean Young wrote:
+> > Once kernel v4.18 is released with IR BPF decoding, this can be merged
+> > to v4l-utils.
+> > 
+> > The idea is that IR decoders can be written in C, compiled to BPF relocatable
+> > object file. Any global variables can overriden, so we can supports lots
+> > of variants of similiar protocols (just like in the lircd.conf file).
+> > 
+> > The existing rc_keymap file format can't be used for variables, so I've
+> > converted the format to toml. An alternative would be to use the existing
+> > lircd.conf file format, but it's a very awkward file to parse in C and it
+> > contains many features which are irrelevant to us.
+> > 
+> > We use libelf to load the bpf relocatable object file.
+> > 
+> > After loading our example grundig keymap with bpf decoder, the output of
+> > ir-keytable is:
+> > 
+> > Found /sys/class/rc/rc0/ (/dev/input/event8) with:
+> >         Name: Winbond CIR
+> >         Driver: winbond-cir, table: rc-rc6-mce
+> >         LIRC device: /dev/lirc0
+> >         Attached BPF protocols: grundig
+> >         Supported kernel protocols: lirc rc-5 rc-5-sz jvc sony nec sanyo mce_kbd rc-6 sharp xmp imon
+> >         Enabled protocols: lirc
+> >         bus: 25, vendor/product: 10ad:00f1, version: 0x0004
+> >         Repeat delay = 500 ms, repeat period = 125 ms
+> > 
+> > Alternatively, you simply specify the path to the object file on the command
+> > line:
+> > 
+> > $ ir-keytable -e header_pulse=9000,header_space=4500 -p ./pulse_distance.o
+> > 
+> > Derek, please note that you can now convert the dish lircd.conf to toml
+> > and load the keymap; it should just work. It would be great to have your
+> > feedback, thank you.
+> 
+> I did a few tests with one of my RC-5 remotes, this lircd.conf file
+> https://github.com/PiSupply/JustBoom/blob/master/LIRC/lircd.conf
+> and kernel 4.18-rc5 on RPi2, with the 32bit ARM kernel and
+> gpio-ir-recv, and on LePotato / aarch64 with meson-ir.
+> 
+> lircd2toml.py did a really good job on converting it, the only
+> thing missing was the toggle_bit.
+
+Right, there was a bug in lirc2html.py. I've added a fix to my bpf branch:
+
+https://git.linuxtv.org/syoung/v4l-utils.git/log/?h=bpf
+
+> When testing the converted toml (with "toggle_bit = 11" added
+> and the obvious volume keycode fixes) I noticed a couple of issues:
+> 
+> Buttons seem to be "stuck". The scancode is decoded, key_down
+> event is generated, but after release the key_down events repeat
+> indefinitely - with the built-in rc-5 decoder this works fine.
+> 
+> root@upstream:/home/hias/ir-test# ir-keytable -c -w justboom.toml -t
+> Old keytable cleared
+> Wrote 12 keycode(s) to driver
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Testing events. Please, press CTRL-C to abort.
+> 29.065820: lirc protocol(66): scancode = 0x141b
+> 29.065890: event type EV_MSC(0x04): scancode = 0x141b
+> 29.065890: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+> 29.065890: event type EV_SYN(0x00).
+> 29.570059: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+> 29.570059: event type EV_SYN(0x00).
+> 29.710062: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+> 29.710062: event type EV_SYN(0x00).
+> 29.850057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+> 29.850057: event type EV_SYN(0x00).
+> 29.990057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+> 29.990057: event type EV_SYN(0x00).
+> 30.130055: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
+> 30.130055: event type EV_SYN(0x00).
+> ...
+
+Thanks, I had not seen this yet either. There is a fix here:
+
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg133813.html
+
+> Even scancodes, eg KEY_UP / scancode 0x141a, aren't decoded at
+> all, only odd scancodes work. My guess is the manchester decoder
+> could have a problem when the last bit is zero and the message
+> doesn't end with a pulse, but a (rather long) timeout.
+
+Yep, yet another bug! I'v added a fix here:
+
+https://git.linuxtv.org/syoung/v4l-utils.git/log/?h=bpf
+
+> (Re-)loading a bpf decoder only works 8 times. The 9th attempt
+> gives an error message.
+> 
+> # for i in `seq 1 9` ; do ir-keytable -p manchester ; done
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> Loaded BPF protocol manchester
+> Protocols changed to
+> failed to create a map: 1 Operation not permitted
+> Loaded BPF protocol manchester
+
+There was a bug where bpf programs were leaked on detach. Unfortunately
+the fix had not made it to the branch when you were testing.
+
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg133273.html
+
+
+Sean
