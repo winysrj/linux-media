@@ -1,326 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:51794 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726196AbeG2J2A (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33954 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726335AbeG2SN5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Jul 2018 05:28:00 -0400
-From: Jernej =?utf-8?B?xaBrcmFiZWM=?= <jernej.skrabec@gmail.com>
-To: linux-sunxi@googlegroups.com, paul.kocialkowski@bootlin.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devel@driverdev.osuosl.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Randy Li <ayaka@soulik.info>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [linux-sunxi] [PATCH v6 4/8] media: platform: Add Cedrus VPU decoder driver
-Date: Sun, 29 Jul 2018 09:58:21 +0200
-Message-ID: <1703875.6APCh3GEgq@jernej-laptop>
-In-Reply-To: <20180725100256.22833-5-paul.kocialkowski@bootlin.com>
-References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com> <20180725100256.22833-5-paul.kocialkowski@bootlin.com>
+        Sun, 29 Jul 2018 14:13:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] uvcvideo: add a D4M camera description
+Date: Sun, 29 Jul 2018 19:43:28 +0300
+Message-ID: <5991411.ejCQOIbS9u@avalon>
+In-Reply-To: <alpine.DEB.2.20.1712231208440.21222@axis700.grange>
+References: <alpine.DEB.2.20.1712231208440.21222@axis700.grange>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Guennadi,
 
-Dne sreda, 25. julij 2018 ob 12:02:52 CEST je Paul Kocialkowski napisal(a):
-> This introduces the Cedrus VPU driver that supports the VPU found in
-> Allwinner SoCs, also known as Video Engine. It is implemented through
-> a v4l2 m2m decoder device and a media device (used for media requests).
-> So far, it only supports MPEG2 decoding.
+Thank you for the patch.
+
+On Saturday, 23 December 2017 13:11:00 EEST Guennadi Liakhovetski wrote:
+> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 > 
-> Since this VPU is stateless, synchronization with media requests is
-> required in order to ensure consistency between frame headers that
-> contain metadata about the frame to process and the raw slice data that
-> is used to generate the frame.
+> D4M is a mobile model from the D4XX family of Intel RealSense cameras.
+> This patch adds a descriptor for it, which enables reading per-frame
+> metadata from it.
 > 
-> This driver was made possible thanks to the long-standing effort
-> carried out by the linux-sunxi community in the interest of reverse
-> engineering, documenting and implementing support for Allwinner VPU.
-> 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 > ---
-
-<snip>
-
-> diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-> b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c new file mode 100644
-> index 000000000000..ca329c0d4699
+>  Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 202 +++++++++++++++++++
+>  drivers/media/usb/uvc/uvc_driver.c                |  11 ++
+>  include/uapi/linux/videodev2.h                    |   1 +
+>  3 files changed, 214 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst new file mode 100644
+> index 0000000..950780d
 > --- /dev/null
-> +++ b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
-> @@ -0,0 +1,240 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Sunxi-Cedrus VPU driver
-> + *
-> + * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> + * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-> + *
-> + * Based on the vim2m driver, that is:
-> + *
-> + * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-> + * Pawel Osciak, <pawel@osciak.com>
-> + * Marek Szyprowski, <m.szyprowski@samsung.com>
-> + */
+> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> @@ -0,0 +1,202 @@
+> +.. -*- coding: utf-8; mode: rst -*-
 > +
-> +#include <media/videobuf2-dma-contig.h>
+> +.. _v4l2-meta-fmt-d4xx:
 > +
-> +#include "cedrus.h"
-> +#include "cedrus_hw.h"
-> +#include "cedrus_regs.h"
+> +*******************************
+> +V4L2_META_FMT_D4XX ('D4XX')
+> +*******************************
 > +
-> +static const u8 intra_quantization_matrix_default[64] = {
-> +	8,  16, 16, 19, 16, 19, 22, 22,
-> +	22, 22, 22, 22, 26, 24, 26, 27,
-> +	27, 27, 26, 26, 26, 26, 27, 27,
-> +	27, 29, 29, 29, 34, 34, 34, 29,
-> +	29, 29, 27, 27, 29, 29, 32, 32,
-> +	34, 34, 37, 38, 37, 35, 35, 34,
-> +	35, 38, 38, 40, 40, 40, 48, 48,
-> +	46, 46, 56, 56, 58, 69, 69, 83
-> +};
-> +
-> +static const u8 non_intra_quantization_matrix_default[64] = {
-> +	16, 16, 16, 16, 16, 16, 16, 16,
-> +	16, 16, 16, 16, 16, 16, 16, 16,
-> +	16, 16, 16, 16, 16, 16, 16, 16,
-> +	16, 16, 16, 16, 16, 16, 16, 16,
-> +	16, 16, 16, 16, 16, 16, 16, 16,
-> +	16, 16, 16, 16, 16, 16, 16, 16,
-> +	16, 16, 16, 16, 16, 16, 16, 16,
-> +	16, 16, 16, 16, 16, 16, 16, 16
-> +};
-> +
-> +static enum cedrus_irq_status cedrus_mpeg2_irq_status(struct cedrus_ctx
-> *ctx) +{
-> +	struct cedrus_dev *dev = ctx->dev;
-> +	u32 reg;
-> +
-> +	reg = cedrus_read(dev, VE_DEC_MPEG_STATUS);
-> +	reg &= VE_DEC_MPEG_STATUS_CHECK_MASK;
-> +
-> +	if (!reg)
-> +		return CEDRUS_IRQ_NONE;
-> +
-> +	if (reg & VE_DEC_MPEG_STATUS_CHECK_ERROR ||
-> +	    !(reg & VE_DEC_MPEG_STATUS_SUCCESS))
-> +		return CEDRUS_IRQ_ERROR;
-> +
-> +	return CEDRUS_IRQ_OK;
-> +}
-> +
-> +static void cedrus_mpeg2_irq_clear(struct cedrus_ctx *ctx)
-> +{
-> +	struct cedrus_dev *dev = ctx->dev;
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_STATUS, VE_DEC_MPEG_STATUS_CHECK_MASK);
-> +}
-> +
-> +static void cedrus_mpeg2_irq_disable(struct cedrus_ctx *ctx)
-> +{
-> +	struct cedrus_dev *dev = ctx->dev;
-> +	u32 reg = cedrus_read(dev, VE_DEC_MPEG_CTRL);
-> +
-> +	reg &= ~VE_DEC_MPEG_CTRL_IRQ_MASK;
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_CTRL, reg);
-> +}
-> +
-> +static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run
-> *run) +{
-> +	const struct v4l2_ctrl_mpeg2_slice_params *slice_params;
-> +	const struct v4l2_ctrl_mpeg2_quantization *quantization;
-> +	dma_addr_t src_buf_addr, dst_luma_addr, dst_chroma_addr;
-> +	dma_addr_t fwd_luma_addr, fwd_chroma_addr;
-> +	dma_addr_t bwd_luma_addr, bwd_chroma_addr;
-> +	struct cedrus_dev *dev = ctx->dev;
-> +	u32 vld_end, vld_len;
-> +	const u8 *matrix;
-> +	unsigned int i;
-> +	u32 reg;
-> +
-> +	slice_params = run->mpeg2.slice_params;
-> +	quantization = run->mpeg2.quantization;
-> +
-> +	/* Activate MPEG engine. */
-> +	cedrus_engine_enable(dev, CEDRUS_CODEC_MPEG2);
-> +
-> +	/* Set intra quantization matrix. */
-> +
-> +	if (quantization && quantization->load_intra_quantiser_matrix)
-> +		matrix = quantization->intra_quantiser_matrix;
-> +	else
-> +		matrix = intra_quantization_matrix_default;
-> +
-> +	for (i = 0; i < 64; i++) {
-> +		reg = VE_DEC_MPEG_IQMINPUT_WEIGHT(i, matrix[i]);
-> +		reg |= VE_DEC_MPEG_IQMINPUT_FLAG_INTRA;
-> +
-> +		cedrus_write(dev, VE_DEC_MPEG_IQMINPUT, reg);
-> +	}
-> +
-> +	/* Set non-intra quantization matrix. */
-> +
-> +	if (quantization && quantization->load_non_intra_quantiser_matrix)
-> +		matrix = quantization->non_intra_quantiser_matrix;
-> +	else
-> +		matrix = non_intra_quantization_matrix_default;
-> +
-> +	for (i = 0; i < 64; i++) {
-> +		reg = VE_DEC_MPEG_IQMINPUT_WEIGHT(i, matrix[i]);
-> +		reg |= VE_DEC_MPEG_IQMINPUT_FLAG_NON_INTRA;
-> +
-> +		cedrus_write(dev, VE_DEC_MPEG_IQMINPUT, reg);
-> +	}
-> +
-> +	/* Set MPEG picture header. */
-> +
-> +	reg = VE_DEC_MPEG_MP12HDR_SLICE_TYPE(slice_params->slice_type);
-> +	reg |= VE_DEC_MPEG_MP12HDR_F_CODE(0, 0, slice_params->f_code[0][0]);
-> +	reg |= VE_DEC_MPEG_MP12HDR_F_CODE(0, 1, slice_params->f_code[0][1]);
-> +	reg |= VE_DEC_MPEG_MP12HDR_F_CODE(1, 0, slice_params->f_code[1][0]);
-> +	reg |= VE_DEC_MPEG_MP12HDR_F_CODE(1, 1, slice_params->f_code[1][1]);
-> +	reg |=
-> VE_DEC_MPEG_MP12HDR_INTRA_DC_PRECISION(slice_params->intra_dc_precision);
-> +	reg |=
-> VE_DEC_MPEG_MP12HDR_INTRA_PICTURE_STRUCTURE(slice_params->picture_structure
-> ); +	reg |=
-> VE_DEC_MPEG_MP12HDR_TOP_FIELD_FIRST(slice_params->top_field_first); +	reg
-> |=
-> VE_DEC_MPEG_MP12HDR_FRAME_PRED_FRAME_DCT(slice_params->frame_pred_frame_dct
-> ); +	reg |=
-> VE_DEC_MPEG_MP12HDR_CONCEALMENT_MOTION_VECTORS(slice_params->concealment_mo
-> tion_vectors); +	reg |=
-> VE_DEC_MPEG_MP12HDR_Q_SCALE_TYPE(slice_params->q_scale_type); +	reg |=
-> VE_DEC_MPEG_MP12HDR_INTRA_VLC_FORMAT(slice_params->intra_vlc_format); +	
-reg
-> |= VE_DEC_MPEG_MP12HDR_ALTERNATE_SCAN(slice_params->alternate_scan); +	reg
-> |= VE_DEC_MPEG_MP12HDR_FULL_PEL_FORWARD_VECTOR(0);
-> +	reg |= VE_DEC_MPEG_MP12HDR_FULL_PEL_BACKWARD_VECTOR(0);
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_MP12HDR, reg);
-> +
-> +	/* Set frame dimensions. */
-> +
-> +	reg = VE_DEC_MPEG_PICCODEDSIZE_WIDTH(slice_params->width);
-> +	reg |= VE_DEC_MPEG_PICCODEDSIZE_HEIGHT(slice_params->height);
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_PICCODEDSIZE, reg);
-> +
-> +	reg = VE_DEC_MPEG_PICBOUNDSIZE_WIDTH(slice_params->width);
-> +	reg |= VE_DEC_MPEG_PICBOUNDSIZE_HEIGHT(slice_params->height);
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_PICBOUNDSIZE, reg);
-> +
-> +	/* Forward and backward prediction reference buffers. */
-> +
-> +	fwd_luma_addr = cedrus_dst_buf_addr(ctx, slice_params->forward_ref_index,
-> 0); +	fwd_chroma_addr = cedrus_dst_buf_addr(ctx,
-> slice_params->forward_ref_index, 1); +
-> +	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
-> +	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
-> +
-> +	bwd_luma_addr = cedrus_dst_buf_addr(ctx, slice_params->backward_ref_index,
-> 0); +	bwd_chroma_addr = cedrus_dst_buf_addr(ctx,
-> slice_params->backward_ref_index, 1); +
-> +	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_LUMA_ADDR, bwd_luma_addr);
-> +	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_CHROMA_ADDR, bwd_chroma_addr);
-> +
-> +	/* Destination luma and chroma buffers. */
-> +
-> +	dst_luma_addr = cedrus_dst_buf_addr(ctx, run->dst->vb2_buf.index, 0);
-> +	dst_chroma_addr = cedrus_dst_buf_addr(ctx, run->dst->vb2_buf.index, 1);
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_REC_LUMA, dst_luma_addr);
-> +	cedrus_write(dev, VE_DEC_MPEG_REC_CHROMA, dst_chroma_addr);
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_ROT_LUMA, dst_luma_addr);
-> +	cedrus_write(dev, VE_DEC_MPEG_ROT_CHROMA, dst_chroma_addr);
+> +D4XX Metadata
 
-It seems that above ROT buffers are not required at all, if (please see next 
-comment)
+How about "Intel D4xx UVC Cameras Metadata" ?
 
 > +
-> +	/* Source offset and length in bits. */
 > +
-> +	cedrus_write(dev, VE_DEC_MPEG_VLD_OFFSET, slice_params->slice_pos);
+> +Description
+> +===========
 > +
-> +	vld_len = slice_params->slice_len - slice_params->slice_pos;
-> +	cedrus_write(dev, VE_DEC_MPEG_VLD_LEN, vld_len);
-> +
-> +	/* Source beginning and end addresses. */
-> +
-> +	src_buf_addr = vb2_dma_contig_plane_dma_addr(&run->src->vb2_buf, 0);
-> +
-> +	reg = VE_DEC_MPEG_VLD_ADDR_BASE(src_buf_addr);
-> +	reg |= VE_DEC_MPEG_VLD_ADDR_VALID_PIC_DATA;
-> +	reg |= VE_DEC_MPEG_VLD_ADDR_LAST_PIC_DATA;
-> +	reg |= VE_DEC_MPEG_VLD_ADDR_FIRST_PIC_DATA;
-> +
-> +	cedrus_write(dev, VE_DEC_MPEG_VLD_ADDR, reg);
-> +
-> +	vld_end = src_buf_addr + DIV_ROUND_UP(slice_params->slice_len, 8);
-> +	cedrus_write(dev, VE_DEC_MPEG_VLD_END, vld_end);
-> +
-> +	/* Macroblock address: start at the beginning. */
-> +	reg = VE_DEC_MPEG_MBADDR_Y(0) | VE_DEC_MPEG_MBADDR_X(0);
-> +	cedrus_write(dev, VE_DEC_MPEG_MBADDR, reg);
-> +
-> +	/* Clear previous errors. */
-> +	cedrus_write(dev, VE_DEC_MPEG_ERROR, 0);
-> +
-> +	/* Clear correct macroblocks register. */
-> +	cedrus_write(dev, VE_DEC_MPEG_CRTMBADDR, 0);
-> +
-> +	/* Enable appropriate interruptions and components. */
-> +
-> +	reg = VE_DEC_MPEG_CTRL_IRQ_MASK | VE_DEC_MPEG_CTRL_MC_NO_WRITEBACK |
-> +	      VE_DEC_MPEG_CTRL_ROTATE_SCALE_OUT_EN |
-> +	      VE_DEC_MPEG_CTRL_MC_CACHE_EN;
+> +D4XX (D435 and other) cameras include per-frame metadata in their UVC
+> payload
 
-... if you remove VE_DEC_MPEG_CTRL_ROTATE_SCALE_OUT_EN. Everything gets still 
-correctly decoded. media-codec code for mpeg2 from AW doesn't use that at all. 
-I think that VE_DEC_MPEG_CTRL_MC_NO_WRITEBACK flag actually disables rotate/
-scale operation.
+Should this be "Intel D4XX" ?
 
-Best regards,
-Jernej
+> +headers, following the Microsoft(R) UVC extension proposal [1_]. That
+> means,
+> +that the private D4XX metadata, following the standard UVC header, is
+> organised
+> +in blocks. D4XX cameras implement several standard block types, proposed by
+> +Microsoft, and several proprietary ones. Supported standard metadata types
+> +include MetadataId_CaptureStats (ID 3), MetadataId_CameraExtrinsics (ID 4),
+> and
+> +MetadataId_CameraIntrinsics (ID 5). For their description see [1_].
+
+Does "including" mean that the list isn't exhaustive and that other standard 
+types could be returned too ? If so, would it be possible to get an exhaustive 
+list ? And if the list is exhaustive, could you word this paragraph to make 
+that clear ?
+
+> This
+> +document describes proprietary metadata types, used by DS4XX cameras.
+
+Is it D4XX or DS4XX ?
+
+> +V4L2_META_FMT_D4XX buffers follow the metadata buffer layout of
+> +V4L2_META_FMT_UVC with the only difference, that it also includes
+> proprietary
+> +payload header data. D4XX cameras use bulk transfers and only send one
+> payload
+> +per frame, therefore their headers cannot be larger than 255 bytes.
+> +
+> +Below are proprietary Microsoft style metadata types, used by D4XX cameras,
+> +where all fields are in little endian order:
+> +
+> +.. flat-table:: D4XX metadata
+> +    :widths: 1 4
+> +    :header-rows:  1
+> +    :stub-columns: 0
+> +
+> +    * - Field
+> +      - Description
+> +    * - :cspan:`1` *Depth Control*
+> +    * - __u32 ID
+> +      - 0x80000000
+> +    * - __u32 Size
+> +      - Size in bytes (currently 56)
+> +    * - __u32 Version
+> +      - Version of the struct
+
+What is this field used for ?
+
+> +    * - __u32 Flags
+> +      - A bitmask of flags: see [2_] below
+> +    * - __u32 Gain
+> +      - Manual gain value
+
+What is the gain unit ?
+
+> +    * - __u32 Exposure
+> +      - Manual exposure time in microseconds
+
+When auto-exposure is enabled, does this reflect the actual exposure time used 
+to capture the image ? If so I'd name the field just "exposure time", and 
+expand the document to explain this. Maybe something like
+
+"Exposure time (in microseconds) that was used to capture the frame."
+
+It would also be useful to explain what happens when auto-exposure is 
+disabled.
+
+This comment applies to the gain as well.
+
+> +    * - __u32 Laser power
+> +      - Power of the laser LED 0-360, used for depth measurement
+> +    * - __u32 AE mode
+> +      - 0: manual; 1: automatic exposure
+> +    * - __u32 Exposure priority
+> +      - Exposure priority value: 0 - constant frameerate
+
+s/frameerate/frame rate/
+
+No other value than 0 is valid ?
+
+> +    * - __u32 AE ROI left
+> +      - Left border of the AE Region of Interest
+> +    * - __u32 AE ROI right
+> +      - Right border of the AE Region of Interest
+> +    * - __u32 AE ROI top
+> +      - Top border of the AE Region of Interest
+> +    * - __u32 AE ROI bottom
+> +      - Bottom border of the AE Region of Interest
+
+What are the units and range for those fields ?
+
+> +    * - __u32 Preset
+> +      - Preset selector value
+
+Could you elaborate a bit on what the preset selector value is ?
+
+> +    * - __u32 Laser mode
+> +      - 0: off, 1: on
+> +    * - :cspan:`1` *Capture Timing*
+> +    * - __u32 ID
+> +      - 0x80000001
+> +    * - __u32 Size
+> +      - Size in bytes (currently 40)
+> +    * - __u32 Version
+> +      - Version of the struct
+> +    * - __u32 Flags
+> +      - A bitmask of flags: see [3_] below
+> +    * - __u32 Frame counter
+> +      - Monotonically increasing counter
+
+That's interesting. Does it increase by exactly one for every frame ? I think 
+it would be useful to document that.
+
+> +    * - __u32 Optical time
+> +      - Time in microseconds from the beginning of a frame till its middle
+
+That's interesting too. Just for my information, is that exactly half the time 
+between the beginning of a frame and its end, or can exposure vary through the 
+frame ?
+
+> +    * - __u32 Readout time
+> +      - Time, used to read out a frame in microseconds
+> +    * - __u32 Exposure time
+> +      - Frame exposure time in microseconds
+
+Is that the same as the above manual exposure time ? Or does the first one 
+apply to the depth image only ? It would be useful to document that.
+
+> +    * - __u32 Frame interval
+> +      - In microseconds = 1000000 / framerate
+> +    * - __u32 Pipe latency
+> +      - Time in microseconds from start of frame to data in USB buffer
+> +    * - :cspan:`1` *Configuration*
+> +    * - __u32 ID
+> +      - 0x80000002
+> +    * - __u32 Size
+> +      - Size in bytes (currently 40)
+> +    * - __u32 Version
+> +      - Version of the struct
+> +    * - __u32 Flags
+> +      - A bitmask of flags: see [4_] below
+> +    * - __u8 Hardware type
+> +      - Camera hardware version [5_]
+> +    * - __u8 SKU ID
+> +      - Camera hardware configuration [6_]
+> +    * - __u32 Cookie
+> +      - Internal synchronisation
+
+Internal synchronisation with what ? :-)
+
+> +    * - __u16 Format
+> +      - Image format code [7_]
+> +    * - __u16 Width
+> +      - Width in pixels
+> +    * - __u16 Height
+> +      - Height in pixels
+> +    * - __u16 Framerate
+> +      - Requested framerate
+
+What's the unit of this value ?
+
+> +    * - __u16 Trigger
+> +      - Byte 0: bit 0:  depth and RGB are synchronised, bit 1: external
+> trigger
+> +
+> +.. _1:
+> +
+> +[1]
+> https://docs.microsoft.com/en-us/windows-hardware/drivers/stream/uvc-extens
+> ions-1-5
+
+Should we at some point replicate that documentation in the V4L2 spec ? 
+Without copying it of course, as that would be a copyright violation.
+
+> +.. _2:
+> +
+> +[2] Depth Control flags specify, which fields are valid: ::
+
+s/specify,/specify/ or s/ specify,/, specify/
+
+Same comment for the other locations below.
 
 > +
-> +	cedrus_write(dev, VE_DEC_MPEG_CTRL, reg);
-> +}
+> +  0x00000001 Gain
+> +  0x00000002 Manual exposure
+> +  0x00000004 Laser power
+> +  0x00000008 AE mode
+> +  0x00000010 Exposure priority
+> +  0x00000020 AE ROI
+> +  0x00000040 Preset
+
+What happens to the corresponding field when a bit isn't set, will it be zero 
+?
+
+> +.. _3:
 > +
-> +static void cedrus_mpeg2_trigger(struct cedrus_ctx *ctx)
-> +{
-> +	struct cedrus_dev *dev = ctx->dev;
-> +	u32 reg;
+> +[3] Capture Timing flags specify, which fields are valid: ::
 > +
-> +	/* Trigger MPEG engine. */
-> +	reg = VE_DEC_MPEG_TRIGGER_HW_MPEG_VLD | VE_DEC_MPEG_TRIGGER_MPEG2 |
-> +	      VE_DEC_MPEG_TRIGGER_MB_BOUNDARY;
+> +  0x00000001 Frame counter
+> +  0x00000002 Optical time
+> +  0x00000004 Readout time
+> +  0x00000008 Exposure time
+> +  0x00000010 Frame interval
+> +  0x00000020 Pipe latency
 > +
-> +	cedrus_write(dev, VE_DEC_MPEG_TRIGGER, reg);
-> +}
+> +.. _4:
 > +
-> +struct cedrus_dec_ops cedrus_dec_ops_mpeg2 = {
-> +	.irq_clear	= cedrus_mpeg2_irq_clear,
-> +	.irq_disable	= cedrus_mpeg2_irq_disable,
-> +	.irq_status	= cedrus_mpeg2_irq_status,
-> +	.setup		= cedrus_mpeg2_setup,
-> +	.trigger	= cedrus_mpeg2_trigger,
-> +};
+> +[4] Configuration flags specify, which fields are valid: ::
+> +
+> +  0x00000001 Hardware type
+> +  0x00000002 SKU ID
+> +  0x00000004 Cookie
+> +  0x00000008 Format
+> +  0x00000010 Width
+> +  0x00000020 Height
+> +  0x00000040 Framerate
+> +  0x00000080 Trigger
+> +  0x00000100 Cal count
+> +
+> +.. _5:
+> +
+> +[5] Camera model: ::
+> +
+> +  0 DS5
+> +  1 IVCAM2
+> +
+> +.. _6:
+> +
+> +[6] 8-bit camera hardware configuration bitfield: ::
+> +
+> +  [1:0] depthCamera
+> +	00: no depth
+> +	01: standard depth
+> +	10: wide depth
+> +	11: reserved
+> +  [2]   depthIsActive - has a laser projector
+> +  [3]   RGB presence
+> +  [4]   IMU presence
+
+What does IMU mean ?
+
+> +  [5]   projectorType
+> +	0: HPTG
+> +	1: Princeton
+
+What does this mean ?
+
+> +  [6]   0: a projector, 1: an LED
+
+This would also benefit from a bit more explanation.
+
+> +  [7]   reserved
+> +
+> +.. _7:
+> +
+> +[7] Image format codes per camera interface:
+> +
+> +Depth: ::
+> +
+> +  1 Z16
+> +  2 Z
+> +
+> +Left sensor: ::
+> +
+> +  1 Y8
+> +  2 UYVY
+> +  3 R8L8
+> +  4 Calibration
+> +  5 W10
+> +
+> +Fish Eye sensor: ::
+> +
+> +  1 RAW8
+
+There's a single field in the above structures that references this. When 
+should it be interpreted as depth, left sensor or fish eye sensor format ?
+
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 36061f3..30dbbbf 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -2346,6 +2346,8 @@ static int uvc_clock_param_set(const char *val, struct
+> kernel_param *kp) };
+> 
+>  #define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct uvc_device_info){.quirks
+> = q}
+> +#define UVC_QUIRK_META(m) (kernel_ulong_t)&(struct uvc_device_info) \
+> +	{.meta_format = m}
+
+I'd name this macro UVC_INFO_META as it doesn't define a quirk. Should we also 
+rename UVC_QUIRK_INFO to UVC_INFO_QUIRK ?
+
+>  /*
+>   * The Logitech cameras listed below have their interface class set to
+> @@ -2810,6 +2812,15 @@ static int uvc_clock_param_set(const char *val,
+> struct kernel_param *kp)
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+>  	  .driver_info		= (kernel_ulong_t)&uvc_quirk_force_y8 },
+> +	/* Intel RealSense D4M */
+> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> +				| USB_DEVICE_ID_MATCH_INT_INFO,
+> +	  .idVendor		= 0x8086,
+> +	  .idProduct		= 0x0b03,
+> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
+> +	  .bInterfaceSubClass	= 1,
+> +	  .bInterfaceProtocol	= 0,
+> +	  .driver_info		= UVC_QUIRK_META(V4L2_META_FMT_D4XX) },
+>  	/* Generic USB Video Class */
+>  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
+>  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 0d07b2d..7d3fbc6 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -688,6 +688,7 @@ struct v4l2_pix_format {
+>  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car
+> VSP1 1-D Histogram */
+>  #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car
+> VSP1 2-D Histogram */
+>  #define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC
+> Payload Header metadata */
+> +#define V4L2_META_FMT_D4XX        v4l2_fourcc('D', '4', 'X', 'X') /* D4XX
+> Payload Header metadata */
+> 
+>  /* priv field value to indicates that subsequent fields are valid. */
+>  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+
+-- 
+Regards,
+
+Laurent Pinchart
