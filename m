@@ -1,204 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41950 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753061AbeGDTH5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jul 2018 15:07:57 -0400
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
-        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org,
-        vgarodia@codeaurora.org
-Subject: [PATCH v3 4/4] venus: firmware: register separate driver for firmware device
-Date: Thu,  5 Jul 2018 00:36:52 +0530
-Message-Id: <1530731212-30474-5-git-send-email-vgarodia@codeaurora.org>
-In-Reply-To: <1530731212-30474-1-git-send-email-vgarodia@codeaurora.org>
-References: <1530731212-30474-1-git-send-email-vgarodia@codeaurora.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:60120 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726808AbeG3TzG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jul 2018 15:55:06 -0400
+Date: Mon, 30 Jul 2018 15:18:42 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        p.zabel@pengutronix.de, afshin.nasser@gmail.com,
+        javierm@redhat.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 18/22] partial revert of "[media] tvp5150: add HW input
+ connectors support"
+Message-ID: <20180730151842.0fd99d01@coco.lan>
+In-Reply-To: <20180628162054.25613-19-m.felsch@pengutronix.de>
+References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+        <20180628162054.25613-19-m.felsch@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A separate child device is added for video firmware.
-This is needed to
-[1] configure the firmware context bank with the desired SID.
-[2] ensure that the iova for firmware region is from 0x0.
+Em Thu, 28 Jun 2018 18:20:50 +0200
+Marco Felsch <m.felsch@pengutronix.de> escreveu:
 
-Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
----
- .../devicetree/bindings/media/qcom,venus.txt       | 17 +++++++-
- drivers/media/platform/qcom/venus/core.c           | 49 +++++++++++++++++++---
- drivers/media/platform/qcom/venus/firmware.c       | 18 ++++++++
- drivers/media/platform/qcom/venus/firmware.h       |  2 +
- 4 files changed, 80 insertions(+), 6 deletions(-)
+> From: Javier Martinez Canillas <javierm@redhat.com>
+> 
+> Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
+> added input signals support for the tvp5150, but the approach was found
+> to be incorrect so the corresponding DT binding commit 82c2ffeb217a
+> ("[media] tvp5150: document input connectors DT bindings") was reverted.
+> 
+> This left the driver with an undocumented (and wrong) DT parsing logic,
+> so lets get rid of this code as well until the input connectors support
+> is implemented properly.
+> 
+> It's a partial revert due other patches added on top of mentioned commit
+> not allowing the commit to be reverted cleanly anymore. But all the code
+> related to the DT parsing logic and input entities creation are removed.
+> 
+> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> [m.felsch@pengutronix.de: rm TVP5150_INPUT_NUM define]
+> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> ---
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-index 00d0d1b..975fb12 100644
---- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-+++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-@@ -53,7 +53,7 @@
- 
- * Subnodes
- The Venus video-codec node must contain two subnodes representing
--video-decoder and video-encoder.
-+video-decoder and video-encoder, one optional firmware subnode.
- 
- Every of video-encoder or video-decoder subnode should have:
- 
-@@ -79,6 +79,17 @@ Every of video-encoder or video-decoder subnode should have:
- 		    power domain which is responsible for collapsing
- 		    and restoring power to the subcore.
- 
-+The firmware sub node must have:
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain "venus-firmware"
-+- iommus:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A list of phandle and IOMMU specifier pairs.
-+
- * An Example
- 	video-codec@1d00000 {
- 		compatible = "qcom,msm8916-venus";
-@@ -105,4 +116,8 @@ Every of video-encoder or video-decoder subnode should have:
- 			clock-names = "core";
- 			power-domains = <&mmcc VENUS_CORE1_GDSC>;
- 		};
-+		venus-firmware {
-+			compatible = "qcom,venus-firmware";
-+			iommus = <&apps_smmu 0x10b2 0x0>;
-+		}
- 	};
-diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index 393994e..420dca3 100644
---- a/drivers/media/platform/qcom/venus/core.c
-+++ b/drivers/media/platform/qcom/venus/core.c
-@@ -179,6 +179,20 @@ static u32 to_v4l2_codec_type(u32 codec)
- 	}
- }
- 
-+static int store_firmware_dev(struct device *dev, void *data)
-+{
-+	struct venus_core *core = data;
-+	if (!core)
-+		return -EINVAL;
-+
-+	if (of_device_is_compatible(dev->of_node, "qcom,venus-firmware")) {
-+		core->fw.dev = dev;
-+		core->no_tz = true;
-+	}
-+
-+	return 0;
-+}
-+
- static int venus_enumerate_codecs(struct venus_core *core, u32 type)
- {
- 	const struct hfi_inst_ops dummy_ops = {};
-@@ -284,6 +298,13 @@ static int venus_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto err_runtime_disable;
- 
-+	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-+	if (ret)
-+		goto err_runtime_disable;
-+
-+	/* Attempt to store firmware device */
-+	device_for_each_child(dev, core, store_firmware_dev);
-+
- 	ret = venus_boot(core);
- 	if (ret)
- 		goto err_runtime_disable;
-@@ -308,10 +329,6 @@ static int venus_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_core_deinit;
- 
--	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
--	if (ret)
--		goto err_dev_unregister;
--
- 	ret = pm_runtime_put_sync(dev);
- 	if (ret)
- 		goto err_dev_unregister;
-@@ -488,7 +505,29 @@ static __maybe_unused int venus_runtime_resume(struct device *dev)
- 		.pm = &venus_pm_ops,
- 	},
- };
--module_platform_driver(qcom_venus_driver);
-+
-+static int __init venus_init(void)
-+{
-+	int ret;
-+
-+	ret = platform_driver_register(&qcom_video_firmware_driver);
-+	if (ret)
-+		return ret;
-+
-+	ret = platform_driver_register(&qcom_venus_driver);
-+	if (ret)
-+		platform_driver_unregister(&qcom_video_firmware_driver);
-+
-+	return ret;
-+}
-+module_init(venus_init);
-+
-+static void __exit venus_exit(void)
-+{
-+	platform_driver_unregister(&qcom_venus_driver);
-+	platform_driver_unregister(&qcom_video_firmware_driver);
-+}
-+module_exit(venus_exit);
- 
- MODULE_ALIAS("platform:qcom-venus");
- MODULE_DESCRIPTION("Qualcomm Venus video encoder and decoder driver");
-diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-index 2a98d9e..4c0d808 100644
---- a/drivers/media/platform/qcom/venus/firmware.c
-+++ b/drivers/media/platform/qcom/venus/firmware.c
-@@ -12,6 +12,7 @@
-  *
-  */
- 
-+#include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/device.h>
- #include <linux/firmware.h>
-@@ -231,3 +232,20 @@ int venus_shutdown(struct venus_core *core)
- 
- 	return ret;
- }
-+
-+static const struct of_device_id firmware_dt_match[] = {
-+	{ .compatible = "qcom,venus-firmware" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, firmware_dt_match);
-+
-+struct platform_driver qcom_video_firmware_driver = {
-+	.driver = {
-+			.name = "qcom-video-firmware",
-+			.of_match_table = firmware_dt_match,
-+	},
-+};
-+
-+MODULE_ALIAS("platform:qcom-video-firmware");
-+MODULE_DESCRIPTION("Qualcomm Venus firmware driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
-index 92736d6..8f4848f 100644
---- a/drivers/media/platform/qcom/venus/firmware.h
-+++ b/drivers/media/platform/qcom/venus/firmware.h
-@@ -16,6 +16,8 @@
- 
- struct device;
- 
-+extern struct platform_driver qcom_video_firmware_driver;
-+
- int venus_boot(struct venus_core *core);
- int venus_shutdown(struct venus_core *core);
- int venus_set_hw_state(struct venus_core *core, bool suspend);
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+...
+
+> -static int tvp5150_registered(struct v4l2_subdev *sd)
+> -{
+> -#ifdef CONFIG_MEDIA_CONTROLLER
+> -	struct tvp5150 *decoder = to_tvp5150(sd);
+> -	int ret = 0;
+> -	int i;
+> -
+> -	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
+> -		struct media_entity *input = &decoder->input_ent[i];
+> -		struct media_pad *pad = &decoder->input_pad[i];
+> -
+> -		if (!input->name)
+> -			continue;
+> -
+> -		decoder->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
+> -
+> -		ret = media_entity_pads_init(input, 1, pad);
+> -		if (ret < 0)
+> -			return ret;
+> -
+> -		ret = media_device_register_entity(sd->v4l2_dev->mdev, input);
+> -		if (ret < 0)
+> -			return ret;
+> -
+> -		ret = media_create_pad_link(input, 0, &sd->entity,
+> -					    DEMOD_PAD_IF_INPUT, 0);
+> -		if (ret < 0) {
+> -			media_device_unregister_entity(input);
+> -			return ret;
+> -		}
+> -	}
+> -#endif
+
+Hmm... I suspect that reverting this part may cause problems for drivers
+like em28xx when compiled with MC, as they rely that the supported demods
+will have 3 pads (DEMOD_NUM_PADS).
+
+Thanks,
+Mauro
