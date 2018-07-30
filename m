@@ -1,169 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:60618 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729315AbeG3Vgh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 17:36:37 -0400
-Date: Mon, 30 Jul 2018 21:59:58 +0200
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, VDR User <user.vdr@gmail.com>
-Subject: Re: [PATCH v3 0/5] Add BPF decoders to ir-keytable
-Message-ID: <20180730195958.x7mnoqpbpahhv3j6@lenny.lan>
-References: <cover.1531491415.git.sean@mess.org>
- <20180721181327.llrx2zqpindohrkt@camel2.lan>
- <20180728092930.wbokwgdfze7dyfa5@gofer.mess.org>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:44418 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726378AbeG3WPR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jul 2018 18:15:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>
+Subject: Re: [RFT PATCH v3 5/6] uvcvideo: queue: Support asynchronous buffer handling
+Date: Mon, 30 Jul 2018 23:39:11 +0300
+Message-ID: <3798015.Xi7JQnpzAg@avalon>
+In-Reply-To: <2758747.xKSIVS8Vp6@avalon>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com> <f72afd5e873791800bc9d5aba52c2a1952b6b770.1515748369.git-series.kieran.bingham@ideasonboard.com> <2758747.xKSIVS8Vp6@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180728092930.wbokwgdfze7dyfa5@gofer.mess.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Hi Kieran
 
-On Sat, Jul 28, 2018 at 10:29:31AM +0100, Sean Young wrote:
-> Hi Hias,
-> 
-> On Sat, Jul 21, 2018 at 08:13:27PM +0200, Matthias Reichl wrote:
-> > Hi Sean,
+I think your v4 doesn't take the review comments below into account.
+
+On Wednesday, 17 January 2018 01:45:33 EEST Laurent Pinchart wrote:
+> On Friday, 12 January 2018 11:19:26 EET Kieran Bingham wrote:
+> > The buffer queue interface currently operates sequentially, processing
+> > buffers after they have fully completed.
 > > 
-> > thanks a lot, this is a really nice new feature!
-> 
-> Thank you for testing it and finding all those issues, it has become much
-> better from your testing.
-> 
-> > On Fri, Jul 13, 2018 at 03:30:06PM +0100, Sean Young wrote:
-> > > Once kernel v4.18 is released with IR BPF decoding, this can be merged
-> > > to v4l-utils.
-> > > 
-> > > The idea is that IR decoders can be written in C, compiled to BPF relocatable
-> > > object file. Any global variables can overriden, so we can supports lots
-> > > of variants of similiar protocols (just like in the lircd.conf file).
-> > > 
-> > > The existing rc_keymap file format can't be used for variables, so I've
-> > > converted the format to toml. An alternative would be to use the existing
-> > > lircd.conf file format, but it's a very awkward file to parse in C and it
-> > > contains many features which are irrelevant to us.
-> > > 
-> > > We use libelf to load the bpf relocatable object file.
-> > > 
-> > > After loading our example grundig keymap with bpf decoder, the output of
-> > > ir-keytable is:
-> > > 
-> > > Found /sys/class/rc/rc0/ (/dev/input/event8) with:
-> > >         Name: Winbond CIR
-> > >         Driver: winbond-cir, table: rc-rc6-mce
-> > >         LIRC device: /dev/lirc0
-> > >         Attached BPF protocols: grundig
-> > >         Supported kernel protocols: lirc rc-5 rc-5-sz jvc sony nec sanyo mce_kbd rc-6 sharp xmp imon
-> > >         Enabled protocols: lirc
-> > >         bus: 25, vendor/product: 10ad:00f1, version: 0x0004
-> > >         Repeat delay = 500 ms, repeat period = 125 ms
-> > > 
-> > > Alternatively, you simply specify the path to the object file on the command
-> > > line:
-> > > 
-> > > $ ir-keytable -e header_pulse=9000,header_space=4500 -p ./pulse_distance.o
-> > > 
-> > > Derek, please note that you can now convert the dish lircd.conf to toml
-> > > and load the keymap; it should just work. It would be great to have your
-> > > feedback, thank you.
+> > In preparation for supporting parallel tasks operating on the buffers,
+> > we will need to support buffers being processed on multiple CPUs.
 > > 
-> > I did a few tests with one of my RC-5 remotes, this lircd.conf file
-> > https://github.com/PiSupply/JustBoom/blob/master/LIRC/lircd.conf
-> > and kernel 4.18-rc5 on RPi2, with the 32bit ARM kernel and
-> > gpio-ir-recv, and on LePotato / aarch64 with meson-ir.
+> > Adapt the uvc_queue_next_buffer() such that a reference count tracks the
+> > active use of the buffer, returning the buffer to the VB2 stack at
+> > completion.
 > > 
-> > lircd2toml.py did a really good job on converting it, the only
-> > thing missing was the toggle_bit.
-> 
-> Right, there was a bug in lirc2html.py. I've added a fix to my bpf branch:
-> 
-> https://git.linuxtv.org/syoung/v4l-utils.git/log/?h=bpf
-
-Thanks a lot, lircd2toml.py now also seems to detect that the lircd.conf
-uses the rc-5 protocol and uses the rc-5 decoder - that's really nice!
-
-> > When testing the converted toml (with "toggle_bit = 11" added
-> > and the obvious volume keycode fixes) I noticed a couple of issues:
+> > Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> > ---
 > > 
-> > Buttons seem to be "stuck". The scancode is decoded, key_down
-> > event is generated, but after release the key_down events repeat
-> > indefinitely - with the built-in rc-5 decoder this works fine.
+> >  drivers/media/usb/uvc/uvc_queue.c | 61 ++++++++++++++++++++++++++------
+> >  drivers/media/usb/uvc/uvcvideo.h  |  4 ++-
+> >  2 files changed, 54 insertions(+), 11 deletions(-)
 > > 
-> > root@upstream:/home/hias/ir-test# ir-keytable -c -w justboom.toml -t
-> > Old keytable cleared
-> > Wrote 12 keycode(s) to driver
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Testing events. Please, press CTRL-C to abort.
-> > 29.065820: lirc protocol(66): scancode = 0x141b
-> > 29.065890: event type EV_MSC(0x04): scancode = 0x141b
-> > 29.065890: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> > 29.065890: event type EV_SYN(0x00).
-> > 29.570059: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> > 29.570059: event type EV_SYN(0x00).
-> > 29.710062: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> > 29.710062: event type EV_SYN(0x00).
-> > 29.850057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> > 29.850057: event type EV_SYN(0x00).
-> > 29.990057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> > 29.990057: event type EV_SYN(0x00).
-> > 30.130055: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> > 30.130055: event type EV_SYN(0x00).
-> > ...
-> 
-> Thanks, I had not seen this yet either. There is a fix here:
-> 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg133813.html
-
-Thanks, the patch seems to fix it, I posted a small nit in the thread.
-
-> > Even scancodes, eg KEY_UP / scancode 0x141a, aren't decoded at
-> > all, only odd scancodes work. My guess is the manchester decoder
-> > could have a problem when the last bit is zero and the message
-> > doesn't end with a pulse, but a (rather long) timeout.
-> 
-> Yep, yet another bug! I'v added a fix here:
-> 
-> https://git.linuxtv.org/syoung/v4l-utils.git/log/?h=bpf
-
-Thanks, using the manchester decoder with rc-5 looks fine now!
-
-> > (Re-)loading a bpf decoder only works 8 times. The 9th attempt
-> > gives an error message.
+> > diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> > b/drivers/media/usb/uvc/uvc_queue.c index ddac4d89a291..5a9987e547d3
+> > 100644
+> > --- a/drivers/media/usb/uvc/uvc_queue.c
+> > +++ b/drivers/media/usb/uvc/uvc_queue.c
+> > @@ -131,6 +131,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
 > > 
-> > # for i in `seq 1 9` ; do ir-keytable -p manchester ; done
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > Loaded BPF protocol manchester
-> > Protocols changed to
-> > failed to create a map: 1 Operation not permitted
-> > Loaded BPF protocol manchester
+> >  	spin_lock_irqsave(&queue->irqlock, flags);
+> >  	if (likely(!(queue->flags & UVC_QUEUE_DISCONNECTED))) {
+> > 
+> > +		kref_init(&buf->ref);
+> > 
+> >  		list_add_tail(&buf->queue, &queue->irqqueue);
+> >  	
+> >  	} else {
+> >  	
+> >  		/* If the device is disconnected return the buffer to userspace
+> > 
+> > @@ -424,28 +425,66 @@ struct uvc_buffer
+> > *uvc_queue_get_current_buffer(struct uvc_video_queue *queue) return
+> > nextbuf;
+> > 
+> >  }
+> > 
+> > -struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+> > +/*
+> > + * uvc_queue_requeue: Requeue a buffer on our internal irqqueue
+> > + *
+> > + * Reuse a buffer through our internal queue without the need to
+> > 'prepare'
+> > + * The buffer will be returned to userspace through the uvc_buffer_queue
+> > call if
+> > + * the device has been disconnected
+
+Additionally, periods are messing at the end of sentences.
+
+> > + */
+> > +static void uvc_queue_requeue(struct uvc_video_queue *queue,
+> > 
+> >  		struct uvc_buffer *buf)
+> >  
+> >  {
+> > 
+> > -	struct uvc_buffer *nextbuf;
+> > -	unsigned long flags;
+> > +	buf->error = 0;
+> > +	buf->state = UVC_BUF_STATE_QUEUED;
+> > +	buf->bytesused = 0;
+> > +	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, 0);
+> > +
+> > +	uvc_buffer_queue(&buf->buf.vb2_buf);
+> > +}
 > 
-> There was a bug where bpf programs were leaked on detach. Unfortunately
-> the fix had not made it to the branch when you were testing.
+> You could have inlined this in uvc_queue_buffer_complete(), but the above
+> documentation is useful, so I'm fine if you prefer keeping it as a separate
+> function. Maybe you could call it uvc_queue_buffer_requeue() to be
+> consistent with the other functions ?
 > 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg133273.html
+> > +static void uvc_queue_buffer_complete(struct kref *ref)
+> > +{
+> > +	struct uvc_buffer *buf = container_of(ref, struct uvc_buffer, ref);
+> > +	struct vb2_buffer *vb = &buf->buf.vb2_buf;
+> > +	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+> > 
+> >  	if ((queue->flags & UVC_QUEUE_DROP_CORRUPTED) && buf->error) {
+> > 
+> > -		buf->error = 0;
+> > -		buf->state = UVC_BUF_STATE_QUEUED;
+> > -		buf->bytesused = 0;
+> > -		vb2_set_plane_payload(&buf->buf.vb2_buf, 0, 0);
+> > -		return buf;
+> > +		uvc_queue_requeue(queue, buf);
+> > +		return;
+> 
+> This changes the behaviour of the driver. Currently when an erroneous buffer
+> is encountered, it will be immediately reused. With this patch applied it
+> will be pushed to the back of the queue for later reuse. This will result
+> in buffers being reordered, possibly causing issues later when we'll
+> implement fences support (or possibly even today).
+> 
+> I think the whole drop corrupted buffers mechanism was a bad idea in the
+> first place and I'd like to remove it at some point, buffers in the error
+> state should be handled by applications. However, until that's done, I
+> wonder whether it would be possible to keep the current order. I
+> unfortunately don't see an easy option to do so at the moment, but maybe
+> you would. Otherwise I suppose we'll have to leave it as is.
+> 
+> I'm tempted to flip the driver to not drop corrupted buffers by default.
+> I've done so on my computer, I'll see if I run into any issue. It could be
+> useful if you could set the nodrop parameter to 1 on your systems too when
+> performing tests.
+> 
+> >  	}
+> > 
+> > +	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
+> > +	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, buf->bytesused);
+> > +	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
+> > +}
+> > +
+> > +/*
+> > + * Release a reference on the buffer. Complete the buffer when the last
+> > + * reference is released
+> > + */
+> > +void uvc_queue_buffer_release(struct uvc_buffer *buf)
+> > +{
+> > +	kref_put(&buf->ref, uvc_queue_buffer_complete);
+> > +}
+> > +
+> > +/*
+> > + * Remove this buffer from the queue. Lifetime will persist while async
+> > actions
+> > + * are still running (if any), and uvc_queue_buffer_release will give the
+> > buffer
+> > + * back to VB2 when all users have completed.
+> > + */
+> > +struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+> > +		struct uvc_buffer *buf)
+> > +{
+> > +	struct uvc_buffer *nextbuf;
+> > +	unsigned long flags;
+> > +
+> > 
+> >  	spin_lock_irqsave(&queue->irqlock, flags);
+> >  	list_del(&buf->queue);
+> >  	nextbuf = __uvc_queue_get_current_buffer(queue);
+> >  	spin_unlock_irqrestore(&queue->irqlock, flags);
+> > 
+> > -	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
+> > -	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, buf->bytesused);
+> > -	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
+> > +	uvc_queue_buffer_release(buf);
+> > 
+> >  	return nextbuf;
+> >  
+> >  }
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> > b/drivers/media/usb/uvc/uvcvideo.h index 5caa1f4de3cb..6a18dbfc3e5b 100644
+> > --- a/drivers/media/usb/uvc/uvcvideo.h
+> > +++ b/drivers/media/usb/uvc/uvcvideo.h
+> > @@ -404,6 +404,9 @@ struct uvc_buffer {
+> > 
+> >  	unsigned int bytesused;
+> >  	
+> >  	u32 pts;
+> > 
+> > +
+> > +	/* asynchronous buffer handling */
+> 
+> Please capitalize the first word to match other comments in the driver.
+> 
+> > +	struct kref ref;
+> > 
+> >  };
+> >  
+> >  #define UVC_QUEUE_DISCONNECTED		(1 << 0)
+> > 
+> > @@ -696,6 +699,7 @@ extern struct uvc_buffer *
+> > 
+> >  		uvc_queue_get_current_buffer(struct uvc_video_queue *queue);
+> >  
+> >  extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue
+> > 
+> > *queue, struct uvc_buffer *buf);
+> > +extern void uvc_queue_buffer_release(struct uvc_buffer *buf);
+> 
+> No need for the extern keyboard. I'll submit a patch to drop it for all
+> functions.
+> 
+> >  extern int uvc_queue_mmap(struct uvc_video_queue *queue,
+> >  
+> >  		struct vm_area_struct *vma);
+> >  
+> >  extern unsigned int uvc_queue_poll(struct uvc_video_queue *queue,
 
-Thanks, this fixed worked, too!
+-- 
+Regards,
 
-Work is keeping me busy ATM but I'll see if I find some time to do
-a few more tests. So far it's already looking very good!
-
-so long,
-
-Hias
+Laurent Pinchart
