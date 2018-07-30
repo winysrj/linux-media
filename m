@@ -1,71 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56350 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2388300AbeGWOsa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 10:48:30 -0400
+Received: from mga05.intel.com ([192.55.52.43]:23853 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726506AbeG3Nqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jul 2018 09:46:44 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
-        niklas.soderlund@ragnatech.se
-Subject: [PATCH 11/21] v4l: fwnode: Support driver-defined lane mapping defaults
-Date: Mon, 23 Jul 2018 16:46:56 +0300
-Message-Id: <20180723134706.15334-12-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
-References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
+Cc: tfiga@chromium.org, andy.yeh@intel.com, rajmohan.mani@intel.com,
+        ping-chung.chen@intel.com, jim.lai@intel.com, grundler@chromium.org
+Subject: [PATCH 1/1] i2c: Fix pm_runtime_get_if_in_use() usage in sensor drivers
+Date: Mon, 30 Jul 2018 15:10:57 +0300
+Message-Id: <20180730121057.31798-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make use of the default CSI-2 lane mapping from caller-passed
-configuration.
+pm_runtime_get_if_in_use() returns -EINVAL if runtime PM is disabled. This
+should not be considered an error. Generally the driver has enabled
+runtime PM already so getting this error due to runtime PM being disabled
+will not happen.
+
+Instead of checking for lesser or equal to zero, check for zero only.
+Address this for drivers where this pattern exists.
+
+This patch has been produced using the following command:
+
+$ git grep -l pm_runtime_get_if_in_use -- drivers/media/i2c/ | \
+  xargs perl -i -pe 's/(pm_runtime_get_if_in_use\(.*\)) \<\= 0/!$1/'
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/media/i2c/ov13858.c | 2 +-
+ drivers/media/i2c/ov2685.c  | 2 +-
+ drivers/media/i2c/ov5670.c  | 2 +-
+ drivers/media/i2c/ov5695.c  | 2 +-
+ drivers/media/i2c/ov7740.c  | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 7c6513625f13..ed147b6fd315 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -55,10 +55,14 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 	u32 v;
- 	int rval;
+diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
+index a66f6201f53c7..0e7a85c4996c7 100644
+--- a/drivers/media/i2c/ov13858.c
++++ b/drivers/media/i2c/ov13858.c
+@@ -1230,7 +1230,7 @@ static int ov13858_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	 * Applying V4L2 control value only happens
+ 	 * when power is up for streaming
+ 	 */
+-	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++	if (!pm_runtime_get_if_in_use(&client->dev))
+ 		return 0;
  
--	if (bus_type == V4L2_FWNODE_BUS_TYPE_CSI2_DPHY)
-+	if (bus_type == V4L2_FWNODE_BUS_TYPE_CSI2_DPHY) {
- 		num_data_lanes = min_t(u32, bus->num_data_lanes,
- 				       V4L2_FWNODE_CSI2_MAX_DATA_LANES);
- 
-+		for (i = 0; i < num_data_lanes; i++)
-+			array[i] = bus->data_lanes[i];
-+	}
-+
- 	rval = fwnode_property_read_u32_array(fwnode, "data-lanes", NULL, 0);
- 	if (rval > 0) {
- 		num_data_lanes =
-@@ -66,15 +70,15 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 
- 		fwnode_property_read_u32_array(fwnode, "data-lanes", array,
- 					       num_data_lanes);
-+	}
- 
--		for (i = 0; i < num_data_lanes; i++) {
--			if (lanes_used & BIT(array[i]))
--				pr_warn("duplicated lane %u in data-lanes\n",
--					array[i]);
--			lanes_used |= BIT(array[i]);
-+	for (i = 0; i < num_data_lanes; i++) {
-+		if (lanes_used & BIT(array[i]))
-+			pr_warn("duplicated lane %u in data-lanes\n",
-+				array[i]);
-+		lanes_used |= BIT(array[i]);
- 
--			pr_debug("lane %u position %u\n", i, array[i]);
--		}
-+		pr_debug("lane %u position %u\n", i, array[i]);
+ 	ret = 0;
+diff --git a/drivers/media/i2c/ov2685.c b/drivers/media/i2c/ov2685.c
+index 385c1886a9470..98a1f2e312b58 100644
+--- a/drivers/media/i2c/ov2685.c
++++ b/drivers/media/i2c/ov2685.c
+@@ -549,7 +549,7 @@ static int ov2685_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
  	}
  
- 	rval = fwnode_property_read_u32_array(fwnode, "lane-polarities", NULL,
+-	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++	if (!pm_runtime_get_if_in_use(&client->dev))
+ 		return 0;
+ 
+ 	switch (ctrl->id) {
+diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
+index 7b7c74d773707..53dd30d96e691 100644
+--- a/drivers/media/i2c/ov5670.c
++++ b/drivers/media/i2c/ov5670.c
+@@ -2016,7 +2016,7 @@ static int ov5670_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	}
+ 
+ 	/* V4L2 controls values will be applied only when power is already up */
+-	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++	if (!pm_runtime_get_if_in_use(&client->dev))
+ 		return 0;
+ 
+ 	switch (ctrl->id) {
+diff --git a/drivers/media/i2c/ov5695.c b/drivers/media/i2c/ov5695.c
+index 9a80decd93d3c..5d107c53364d6 100644
+--- a/drivers/media/i2c/ov5695.c
++++ b/drivers/media/i2c/ov5695.c
+@@ -1110,7 +1110,7 @@ static int ov5695_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
+ 	}
+ 
+-	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++	if (!pm_runtime_get_if_in_use(&client->dev))
+ 		return 0;
+ 
+ 	switch (ctrl->id) {
+diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
+index 605f3e25ad82b..6e9c233cfbe35 100644
+--- a/drivers/media/i2c/ov7740.c
++++ b/drivers/media/i2c/ov7740.c
+@@ -510,7 +510,7 @@ static int ov7740_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	int ret;
+ 	u8 val = 0;
+ 
+-	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++	if (!pm_runtime_get_if_in_use(&client->dev))
+ 		return 0;
+ 
+ 	switch (ctrl->id) {
 -- 
 2.11.0
