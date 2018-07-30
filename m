@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:42467 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726429AbeG3JZM (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:49237 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726370AbeG3J0G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 05:25:12 -0400
-Date: Mon, 30 Jul 2018 09:51:25 +0200
+        Mon, 30 Jul 2018 05:26:06 -0400
+Date: Mon, 30 Jul 2018 09:52:19 +0200
 From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] mt9v111: Fix compiler warning by initialising a
- variable
-Message-ID: <20180730075125.GE7615@w540>
-References: <20180730072627.32014-1-sakari.ailus@linux.intel.com>
+To: "Jasmin J." <jasmin@anw.at>
+Cc: linux-media@vger.kernel.org, mchehab+samsung@kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: Re: [PATCH] media: i2c: fix warning in Aptina MT9V111
+Message-ID: <20180730075219.GF7615@w540>
+References: <1532786089-15015-1-git-send-email-jasmin@anw.at>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="CXFpZVxO6m2Ol4tQ"
+        protocol="application/pgp-signature"; boundary="Cgrdyab2wu3Akvjd"
 Content-Disposition: inline
-In-Reply-To: <20180730072627.32014-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <1532786089-15015-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---CXFpZVxO6m2Ol4tQ
+--Cgrdyab2wu3Akvjd
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
-Hi Sakari,
+Hi Jasmin,
 
-On Mon, Jul 30, 2018 at 10:26:27AM +0300, Sakari Ailus wrote:
-> While this isn't a bug, initialise the variable to quash the warning.
+On Sat, Jul 28, 2018 at 03:54:49PM +0200, Jasmin J. wrote:
+> From: Jasmin Jessich <jasmin@anw.at>
 >
-> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> This fixes the "'idx' may be used uninitialized in this function"
+> warning.
+>
+> Cc:  Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+
+Thanks for the patch
+
+Acked-by: Jacopo Mondi <jacopo@jmondi.org>
+
+Thanks
+   j
+
 > ---
 >  drivers/media/i2c/mt9v111.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 > diff --git a/drivers/media/i2c/mt9v111.c b/drivers/media/i2c/mt9v111.c
-> index da8f6ab91307..58d5f2224bff 100644
+> index da8f6ab..58d5f22 100644
 > --- a/drivers/media/i2c/mt9v111.c
 > +++ b/drivers/media/i2c/mt9v111.c
 > @@ -884,7 +884,7 @@ static int mt9v111_set_format(struct v4l2_subdev *subdev,
@@ -48,36 +59,30 @@ On Mon, Jul 30, 2018 at 10:26:27AM +0300, Sakari Ailus wrote:
 > +	unsigned int idx = 0;
 >  	unsigned int i;
 >
-
-Thanks for this, but there is already a patch sent on Friday by Jasmin
-addressing the warning
-
-https://patchwork.kernel.org/patch/10547983/
-
 >  	mutex_lock(&mt9v111->stream_mutex);
 > --
-> 2.11.0
+> 2.7.4
 >
 
---CXFpZVxO6m2Ol4tQ
+--Cgrdyab2wu3Akvjd
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbXsN9AAoJEHI0Bo8WoVY8TWkQAKWwI1KuMYK9peOgWl/Zklat
-g08dWsY4YHjB4qtJpRu8kvJLargduQaijjkRG2zH9NBbI55q++vrW1Zz7GLUS2Ie
-prt+Lz/3a11GkrQUirtSSnMK2ZpF4qbfqXgmpQNdNdWn+R4rlN5fZObZN6d/Rs4r
-gTGTy+03nu8tfPFhhHcxxQQRP0lFESjgvsoVplklOBTPp0rANqGBOryR5huMBBfg
-9whTaQwx45vnNUtmNM1Y8HqQMZcMIsQRGWwaiBOLLFW7XzWseo/6esVUAYAjfYMs
-Bxzpz0AqdQrKhA0V0f8iizIxuSVFAPCkH2pN91V51ZKxBq8X197438DYWRvPRb5u
-LJOrkyXASkU9TNLmAc9ncE6JMxAfgBhSgpGtlYE/7luemq+ScJrws7s6Ek2DMX+6
-z0kwJUfkj4S82XwrKHLWjaIVcCkIGQ99fKIw7VcqfcjDPiYeP+n++ZO5ZlXLtd3Z
-cQm58DkuM75NTe3Mq13KdAKgNQ4iv6JX6mwP/EZpk1DWECJiUoUsV9okzwr6BwEx
-oQYbNIKpndd4lYZoLvfdqLuOB2oP565Jgq/45eWcHmUbHU9hcMSqgSK5rmpUqnrR
-BybSf8FYWHDbCG/xzCtL1hmLdQbpLZah+gRLeieeI+jN8mN6JNoMt48H8mWgVJmc
-NLOAg/ZPkRFW+WhJnEF4
-=VM0R
+iQIcBAEBAgAGBQJbXsOzAAoJEHI0Bo8WoVY8/igQAIRZFfZIMUp4FRdXX23jn6Uw
+NdWM0AvQkQEY8YKuQhe775NZPVnnmucR6YsE58YGkHLoPJDggHQ6v9/J+M49qF0X
+pnYM50gl+LRsM1qUcHGjtK07iec0C/ejqfleiECk/80TFFxK4kqrS/GzGcphf+Ls
+35aMQAUBHhIIf5g8u3ZZTkEzuZkguM/S2+wXypWjpulZSL4wEDseCIq+acTM67QB
+hXhq4JXsO6XzGsIT3ZYCh1X9ybri4akFy5dM4koaZuRJuH7vd4iQN9Req/Em9Rm3
+daUC719nuvJJq6ahqvpe7xnjWGDSjOqw+cUDo/6MZpY0aYjVICqq7Q/2M2/mMz0L
+Kibh8I8cbBydpwXtkdfoG+Yn2850vbDwlxH+GPO2tIlXHBEvuaVjnsATScNCvwRm
+LQYsX6Qx3BezhGzVcXlJXvtzfBOf7N9ZFXHowTmo+2Wqszt7aSh/NBz0eF2dB+cu
+41UzM2heIDXNCndvvLnYvE34BDJBrZBlg+OxwHQ4xzDVXYRkwkMzFtdKGDgybIWe
+FJV7IKzqwMEfGmIPWaBuoFCDetZ88s92IiCmhMH91wOawFGa1OH0rWs0BZo/8olf
+eg9MO8OZ5xIcmxf93npU9fGBKmp1uIMNRvNkVHgNzp3MgltVlRfPK3qVhrepoX1F
+dWyfPwuMXfjupL6eJrtK
+=VF/p
 -----END PGP SIGNATURE-----
 
---CXFpZVxO6m2Ol4tQ--
+--Cgrdyab2wu3Akvjd--
