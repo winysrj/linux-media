@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f193.google.com ([209.85.213.193]:42151 "EHLO
-        mail-yb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727517AbeG3Ndn (ORCPT
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:44234 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728965AbeG3OG1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 09:33:43 -0400
-Received: by mail-yb0-f193.google.com with SMTP id c10-v6so4613831ybf.9
-        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2018 04:59:04 -0700 (PDT)
-Received: from mail-yb0-f182.google.com (mail-yb0-f182.google.com. [209.85.213.182])
-        by smtp.gmail.com with ESMTPSA id r69-v6sm4827486ywh.44.2018.07.30.04.59.02
+        Mon, 30 Jul 2018 10:06:27 -0400
+Received: by mail-yw0-f195.google.com with SMTP id k18-v6so4266237ywm.11
+        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2018 05:31:41 -0700 (PDT)
+Received: from mail-yb0-f173.google.com (mail-yb0-f173.google.com. [209.85.213.173])
+        by smtp.gmail.com with ESMTPSA id n3-v6sm4385216ywb.70.2018.07.30.05.31.39
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 30 Jul 2018 04:59:02 -0700 (PDT)
-Received: by mail-yb0-f182.google.com with SMTP id r3-v6so4617691ybo.4
-        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2018 04:59:02 -0700 (PDT)
+        Mon, 30 Jul 2018 05:31:39 -0700 (PDT)
+Received: by mail-yb0-f173.google.com with SMTP id s8-v6so4654161ybe.8
+        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2018 05:31:39 -0700 (PDT)
 MIME-Version: 1.0
-References: <1532942799-25289-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5D33wzALT+0KkfXKzKs68cYKy05GbHe_SnLakpfJyry3w@mail.gmail.com> <20180730113900.hqgoujmyqxxzdtcd@paasikivi.fi.intel.com>
-In-Reply-To: <20180730113900.hqgoujmyqxxzdtcd@paasikivi.fi.intel.com>
+References: <20180730121057.31798-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180730121057.31798-1-sakari.ailus@linux.intel.com>
 From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 30 Jul 2018 20:58:50 +0900
-Message-ID: <CAAFQd5A=+c8n6_Us==PuN2+niVZAJ_L6wOGHDjY81MEHTf0sKA@mail.gmail.com>
-Subject: Re: [PATCH v2] media: imx208: Add imx208 camera sensor driver
+Date: Mon, 30 Jul 2018 21:31:27 +0900
+Message-ID: <CAAFQd5D=MDhtLC-rJHcJj+BaBE2LgNBboJrtjXONKeN4zvOxAQ@mail.gmail.com>
+Subject: Re: [PATCH 1/1] i2c: Fix pm_runtime_get_if_in_use() usage in sensor drivers
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: ping-chung.chen@intel.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Yeh, Andy" <andy.yeh@intel.com>, "Lai, Jim" <jim.lai@intel.com>,
-        Grant Grundler <grundler@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Yeh, Andy" <andy.yeh@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        ping-chung.chen@intel.com, "Lai, Jim" <jim.lai@intel.com>,
+        Grant Grundler <grundler@chromium.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 30, 2018 at 8:39 PM Sakari Ailus
+On Mon, Jul 30, 2018 at 9:12 PM Sakari Ailus
 <sakari.ailus@linux.intel.com> wrote:
 >
-> Hi Tomasz,
+> pm_runtime_get_if_in_use() returns -EINVAL if runtime PM is disabled. This
+> should not be considered an error. Generally the driver has enabled
+> runtime PM already so getting this error due to runtime PM being disabled
+> will not happen.
 >
-> On Mon, Jul 30, 2018 at 07:19:56PM +0900, Tomasz Figa wrote:
-> ...
-> > > +static int imx208_set_ctrl(struct v4l2_ctrl *ctrl)
-> > > +{
-> > > +       struct imx208 *imx208 =
-> > > +               container_of(ctrl->handler, struct imx208, ctrl_handler);
-> > > +       struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
-> > > +       int ret;
-> > > +
-> > > +       /*
-> > > +        * Applying V4L2 control value only happens
-> > > +        * when power is up for streaming
-> > > +        */
-> > > +       if (pm_runtime_get_if_in_use(&client->dev) <= 0)
-> >
-> > This is buggy, because it won't handle the case of runtime PM disabled
-> > in kernel config. The check should be
-> > (!pm_runtime_get_if_in_use(&client->dev)).
+> Instead of checking for lesser or equal to zero, check for zero only.
+> Address this for drivers where this pattern exists.
 >
-> Good find. This seems to be the case for most other sensor drivers that
-> make use of the function. I can submit a fix for those as well.
+> This patch has been produced using the following command:
 >
-> I suppose most people use these with runtime PM enabled as this hasn't been
-> spotted previously.
+> $ git grep -l pm_runtime_get_if_in_use -- drivers/media/i2c/ | \
+>   xargs perl -i -pe 's/(pm_runtime_get_if_in_use\(.*\)) \<\= 0/!$1/'
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/i2c/ov13858.c | 2 +-
+>  drivers/media/i2c/ov2685.c  | 2 +-
+>  drivers/media/i2c/ov5670.c  | 2 +-
+>  drivers/media/i2c/ov5695.c  | 2 +-
+>  drivers/media/i2c/ov7740.c  | 2 +-
+>  5 files changed, 5 insertions(+), 5 deletions(-)
 
-Yeah, I spotted it first with imx258 and it took us few emails to get
-to the right code. :)
+Thanks!
 
-These drivers probably don't have too many users yet in general, so I
-guess this didn't manage to cause any problems yet, but it became a
-good example of bug propagation via copy/paste. ;)
-
-Fixing would be appreciated indeed!
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 
 Best regards,
 Tomasz
