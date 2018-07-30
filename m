@@ -1,152 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:49837 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726426AbeG1KzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Jul 2018 06:55:23 -0400
-Date: Sat, 28 Jul 2018 10:29:31 +0100
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: linux-media@vger.kernel.org, VDR User <user.vdr@gmail.com>
-Subject: Re: [PATCH v3 0/5] Add BPF decoders to ir-keytable
-Message-ID: <20180728092930.wbokwgdfze7dyfa5@gofer.mess.org>
-References: <cover.1531491415.git.sean@mess.org>
- <20180721181327.llrx2zqpindohrkt@camel2.lan>
+Received: from bombadil.infradead.org ([198.137.202.133]:55824 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728696AbeG3OD4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jul 2018 10:03:56 -0400
+Date: Mon, 30 Jul 2018 09:29:06 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] v4l: vsp1: Fix deadlock in VSPDL DRM pipelines
+Message-ID: <20180730092906.4da35890@coco.lan>
+In-Reply-To: <3163968a-e24a-b8ad-5b3c-0a94aef12755@ideasonboard.com>
+References: <20180727171945.25603-1-laurent.pinchart+renesas@ideasonboard.com>
+        <3163968a-e24a-b8ad-5b3c-0a94aef12755@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180721181327.llrx2zqpindohrkt@camel2.lan>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hias,
+Em Sat, 28 Jul 2018 20:13:05 +0100
+Kieran Bingham <kieran.bingham@ideasonboard.com> escreveu:
 
-On Sat, Jul 21, 2018 at 08:13:27PM +0200, Matthias Reichl wrote:
-> Hi Sean,
+> Hi Laurent, Mauro,
 > 
-> thanks a lot, this is a really nice new feature!
-
-Thank you for testing it and finding all those issues, it has become much
-better from your testing.
-
-> On Fri, Jul 13, 2018 at 03:30:06PM +0100, Sean Young wrote:
-> > Once kernel v4.18 is released with IR BPF decoding, this can be merged
-> > to v4l-utils.
-> > 
-> > The idea is that IR decoders can be written in C, compiled to BPF relocatable
-> > object file. Any global variables can overriden, so we can supports lots
-> > of variants of similiar protocols (just like in the lircd.conf file).
-> > 
-> > The existing rc_keymap file format can't be used for variables, so I've
-> > converted the format to toml. An alternative would be to use the existing
-> > lircd.conf file format, but it's a very awkward file to parse in C and it
-> > contains many features which are irrelevant to us.
-> > 
-> > We use libelf to load the bpf relocatable object file.
-> > 
-> > After loading our example grundig keymap with bpf decoder, the output of
-> > ir-keytable is:
-> > 
-> > Found /sys/class/rc/rc0/ (/dev/input/event8) with:
-> >         Name: Winbond CIR
-> >         Driver: winbond-cir, table: rc-rc6-mce
-> >         LIRC device: /dev/lirc0
-> >         Attached BPF protocols: grundig
-> >         Supported kernel protocols: lirc rc-5 rc-5-sz jvc sony nec sanyo mce_kbd rc-6 sharp xmp imon
-> >         Enabled protocols: lirc
-> >         bus: 25, vendor/product: 10ad:00f1, version: 0x0004
-> >         Repeat delay = 500 ms, repeat period = 125 ms
-> > 
-> > Alternatively, you simply specify the path to the object file on the command
-> > line:
-> > 
-> > $ ir-keytable -e header_pulse=9000,header_space=4500 -p ./pulse_distance.o
-> > 
-> > Derek, please note that you can now convert the dish lircd.conf to toml
-> > and load the keymap; it should just work. It would be great to have your
-> > feedback, thank you.
+> I've cast my eyes through this, and the driver code it affects
 > 
-> I did a few tests with one of my RC-5 remotes, this lircd.conf file
-> https://github.com/PiSupply/JustBoom/blob/master/LIRC/lircd.conf
-> and kernel 4.18-rc5 on RPi2, with the 32bit ARM kernel and
-> gpio-ir-recv, and on LePotato / aarch64 with meson-ir.
+> On 27/07/18 18:19, Laurent Pinchart wrote:
+> > The VSP uses a lock to protect the BRU and BRS assignment when
+> > configuring pipelines. The lock is taken in vsp1_du_atomic_begin() and
+> > released in vsp1_du_atomic_flush(), as well as taken and released in
+> > vsp1_du_setup_lif(). This guards against multiple pipelines trying to
+> > assign the same BRU and BRS at the same time.
+> > 
+> > The DRM framework calls the .atomic_begin() operations in a loop over
+> > all CRTCs included in an atomic commit. On a VSPDL (the only VSP type
+> > where this matters), a single VSP instance handles two CRTCs, with a
+> > single lock. This results in a deadlock when the .atomic_begin()
+> > operation is called on the second CRTC.
+> > 
+> > The DRM framework serializes atomic commits that affect the same CRTCs,
+> > but doesn't know about two CRTCs sharing the same VSPDL. Two commits
+> > affecting the VSPDL LIF0 and LIF1 respectively can thus race each other,
+> > hence the need for a lock.
+> > 
+> > This could be fixed on the DRM side by forcing serialization of commits
+> > affecting CRTCs backed by the same VSPDL, but that would negatively
+> > affect performances, as the locking is only needed when the BRU and BRS
+> > need to be reassigned, which is an uncommon case.
+> > 
+> > The lock protects the whole .atomic_begin() to .atomic_flush() sequence.
+> > The only operation that can occur in-between is vsp1_du_atomic_update(),
+> > which doesn't touch the BRU and BRS, and thus doesn't need to be
+> > protected by the lock. We can thus only take the lock around the  
 > 
-> lircd2toml.py did a really good job on converting it, the only
-> thing missing was the toggle_bit.
-
-Right, there was a bug in lirc2html.py. I've added a fix to my bpf branch:
-
-https://git.linuxtv.org/syoung/v4l-utils.git/log/?h=bpf
-
-> When testing the converted toml (with "toggle_bit = 11" added
-> and the obvious volume keycode fixes) I noticed a couple of issues:
+> And I almost replied to say ... but what about vsp1_du_atomic_update()
+> before re-reading this paragraph :)
 > 
-> Buttons seem to be "stuck". The scancode is decoded, key_down
-> event is generated, but after release the key_down events repeat
-> indefinitely - with the built-in rc-5 decoder this works fine.
 > 
-> root@upstream:/home/hias/ir-test# ir-keytable -c -w justboom.toml -t
-> Old keytable cleared
-> Wrote 12 keycode(s) to driver
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Testing events. Please, press CTRL-C to abort.
-> 29.065820: lirc protocol(66): scancode = 0x141b
-> 29.065890: event type EV_MSC(0x04): scancode = 0x141b
-> 29.065890: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 29.065890: event type EV_SYN(0x00).
-> 29.570059: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 29.570059: event type EV_SYN(0x00).
-> 29.710062: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 29.710062: event type EV_SYN(0x00).
-> 29.850057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 29.850057: event type EV_SYN(0x00).
-> 29.990057: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 29.990057: event type EV_SYN(0x00).
-> 30.130055: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 30.130055: event type EV_SYN(0x00).
-> ...
-
-Thanks, I had not seen this yet either. There is a fix here:
-
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg133813.html
-
-> Even scancodes, eg KEY_UP / scancode 0x141a, aren't decoded at
-> all, only odd scancodes work. My guess is the manchester decoder
-> could have a problem when the last bit is zero and the message
-> doesn't end with a pulse, but a (rather long) timeout.
-
-Yep, yet another bug! I'v added a fix here:
-
-https://git.linuxtv.org/syoung/v4l-utils.git/log/?h=bpf
-
-> (Re-)loading a bpf decoder only works 8 times. The 9th attempt
-> gives an error message.
+> > pipeline setup calls in vsp1_du_atomic_flush(), which fixes the
+> > deadlock.
+> > 
+> > Fixes: f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines dynamically")
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>  
 > 
-> # for i in `seq 1 9` ; do ir-keytable -p manchester ; done
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> Loaded BPF protocol manchester
-> Protocols changed to
-> failed to create a map: 1 Operation not permitted
-> Loaded BPF protocol manchester
+> It makes me very happy to see the lock/unlock across separate functions
+> removed :)
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> 
+> > ---
+> >  drivers/media/platform/vsp1/vsp1_drm.c | 4 +---
+> >  1 file changed, 1 insertion(+), 3 deletions(-)
+> > 
+> > I've successfully tested the patch with kmstest --flip running with four
+> > outputs on a Salvator-XS board, as well as with the DU kms-test-brxalloc.py
+> > test. The deadlock is gone, and no race has been observed.
+> > 
+> > Mauro, this is a v4.18 regression fix. I'm sorry for sending it so late,
+> > I haven't noticed the issue earlier. Once Kieran reviews it (which should
+> > happen in the next few days), could you send it to Linus ? The breakage is
+> > pretty bad otherwise for people using both the VGA and LVDS outputs at the
+> > same time.
+> > 
+> > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+> > index edb35a5c57ea..a99fc0ced7a7 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> > @@ -728,9 +728,6 @@ EXPORT_SYMBOL_GPL(vsp1_du_setup_lif);
+> >   */
+> >  void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index)
+> >  {
+> > -	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> > -
+> > -	mutex_lock(&vsp1->drm->lock);
+> >  }
 
-There was a bug where bpf programs were leaked on detach. Unfortunately
-the fix had not made it to the branch when you were testing.
+As this is a regression fix, I'll apply it.
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg133273.html
+However, this function now does nothing. Please remove it on a next
+Kernel version, if it is not needed anymore (or add whatever it is
+needed to replace the lock).
 
+Regards,
+Mauro
 
-Sean
+Thanks,
+Mauro
