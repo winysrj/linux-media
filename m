@@ -1,80 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:35046 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726703AbeG3LFs (ORCPT
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:41223 "EHLO
+        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726705AbeG3LHi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 07:05:48 -0400
-Date: Mon, 30 Jul 2018 06:31:30 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        clayton@craftyguy.net, martijn@brixit.nl,
-        sakari.ailus@linux.intel.com,
-        Filip =?UTF-8?B?TWF0aWpldmnEhw==?= <filip.matijevic.pz@gmail.com>,
-        mchehab@s-opensource.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: new libv4l2 (was Re: [PATCH, libv4l]: Make libv4l2 usable on
- devices with complex pipeline)
-Message-ID: <20180730063122.73a20c55@coco.lan>
-In-Reply-To: <20180728211110.GB1152@amd>
-References: <20180708213258.GA18217@amd>
-        <20180719205344.GA12098@amd>
-        <20180723153649.73337c0f@coco.lan>
-        <20180728211110.GB1152@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 30 Jul 2018 07:07:38 -0400
+From: Jia-Ju Bai <baijiaju1990@gmail.com>
+To: crope@iki.fi, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jia-Ju Bai <baijiaju1990@gmail.com>
+Subject: [PATCH] media: usb: hackrf: Replace GFP_ATOMIC with GFP_KERNEL
+Date: Mon, 30 Jul 2018 17:33:20 +0800
+Message-Id: <20180730093320.8007-1-baijiaju1990@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 28 Jul 2018 23:11:10 +0200
-Pavel Machek <pavel@ucw.cz> escreveu:
+hackrf_submit_urbs(), hackrf_alloc_stream_bufs() and hackrf_alloc_urbs() 
+are never called in atomic context.
+They call usb_submit_urb(), usb_alloc_coherent() and usb_alloc_urb() 
+with GFP_ATOMIC, which is not necessary.
+GFP_ATOMIC can be replaced with GFP_KERNEL.
 
-> Hi!
-> 
-> > > > Add support for opening multiple devices in v4l2_open(), and for
-> > > > mapping controls between devices.
-> > > > 
-> > > > This is necessary for complex devices, such as Nokia N900.
-> > > > 
-> > > > Signed-off-by: Pavel Machek <pavel@ucw.cz>    
-> > > 
-> > > Ping?
-> > > 
-> > > There's a lot of work to do on libv4l2... timely patch handling would
-> > > be nice.  
-> > 
-> > As we're be start working at the new library in order to support
-> > complex cameras, and I don't want to prevent you keeping doing your
-> > work, IMHO the best way to keep doing it would be to create two
-> > libv4l2 forks:  
-> 
-> BTW.. new library. Was there decision what langauge to use? I know C
-> is obvious choice, but while working on libv4l2, I wished it would be
-> Rust...
-> 
-> Rewriting same routine over and over, with slightly different types
-> was not too much fun, and it looked like textbook example for
-> generics...
+This is found by a static analysis tool named DCNS written by myself.
 
-Whatever language it uses, the library should provide a standard C API
-interface and avoid using libraries that may not be available on
-the systems supported by the v4l-utils package, as other packages
-and a libv4l-compatible interface should be linked using it.
+Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
+---
+ drivers/media/usb/hackrf/hackrf.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-It should also be something that the existing v4l-utils developers are
-familiar with. Right now, we have only C and C++ code inside v4l-utils.
-
-So, I'd say that the language should be either C (the obvious choice)
-or C++.
-
-It should also be licensed using the same terms as v4l-utils libraries,
-e. g. LGPL 2.1+.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index 7eb53517a82f..520a3c6dee43 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -597,7 +597,7 @@ static int hackrf_submit_urbs(struct hackrf_dev *dev)
+ 
+ 	for (i = 0; i < dev->urbs_initialized; i++) {
+ 		dev_dbg(dev->dev, "submit urb=%d\n", i);
+-		ret = usb_submit_urb(dev->urb_list[i], GFP_ATOMIC);
++		ret = usb_submit_urb(dev->urb_list[i], GFP_KERNEL);
+ 		if (ret) {
+ 			dev_err(dev->dev, "Could not submit URB no. %d - get them all back\n",
+ 					i);
+@@ -636,7 +636,7 @@ static int hackrf_alloc_stream_bufs(struct hackrf_dev *dev)
+ 
+ 	for (dev->buf_num = 0; dev->buf_num < MAX_BULK_BUFS; dev->buf_num++) {
+ 		dev->buf_list[dev->buf_num] = usb_alloc_coherent(dev->udev,
+-				BULK_BUFFER_SIZE, GFP_ATOMIC,
++				BULK_BUFFER_SIZE, GFP_KERNEL,
+ 				&dev->dma_addr[dev->buf_num]);
+ 		if (!dev->buf_list[dev->buf_num]) {
+ 			dev_dbg(dev->dev, "alloc buf=%d failed\n",
+@@ -689,7 +689,7 @@ static int hackrf_alloc_urbs(struct hackrf_dev *dev, bool rcv)
+ 	/* allocate the URBs */
+ 	for (i = 0; i < MAX_BULK_BUFS; i++) {
+ 		dev_dbg(dev->dev, "alloc urb=%d\n", i);
+-		dev->urb_list[i] = usb_alloc_urb(0, GFP_ATOMIC);
++		dev->urb_list[i] = usb_alloc_urb(0, GFP_KERNEL);
+ 		if (!dev->urb_list[i]) {
+ 			for (j = 0; j < i; j++)
+ 				usb_free_urb(dev->urb_list[j]);
+-- 
+2.17.0
