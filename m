@@ -1,114 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51436 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728991AbeG1Ukk (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49945 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729104AbeG3O1b (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Jul 2018 16:40:40 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH] v4l: vsp1: Fix deadlock in VSPDL DRM pipelines
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-References: <20180727171945.25603-1-laurent.pinchart+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <3163968a-e24a-b8ad-5b3c-0a94aef12755@ideasonboard.com>
-Date: Sat, 28 Jul 2018 20:13:05 +0100
+        Mon, 30 Jul 2018 10:27:31 -0400
+Subject: Re: [PATCH 1/2] media: docs-rst: Document memory-to-memory video
+ decoder interface
+To: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
+        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        jtp.park@samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
+        nicolas@ndufresne.ca,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Dave Stevenson <dave.stevenson@raspberrypi.org>,
+        ezequiel@collabora.com
+References: <20180724140621.59624-1-tfiga@chromium.org>
+ <20180724140621.59624-2-tfiga@chromium.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <318f609c-7a28-ef65-e8be-08107981b623@xs4all.nl>
+Date: Mon, 30 Jul 2018 14:52:32 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180727171945.25603-1-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20180724140621.59624-2-tfiga@chromium.org>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent, Mauro,
-
-I've cast my eyes through this, and the driver code it affects
-
-On 27/07/18 18:19, Laurent Pinchart wrote:
-> The VSP uses a lock to protect the BRU and BRS assignment when
-> configuring pipelines. The lock is taken in vsp1_du_atomic_begin() and
-> released in vsp1_du_atomic_flush(), as well as taken and released in
-> vsp1_du_setup_lif(). This guards against multiple pipelines trying to
-> assign the same BRU and BRS at the same time.
+On 07/24/2018 04:06 PM, Tomasz Figa wrote:
+> Due to complexity of the video decoding process, the V4L2 drivers of
+> stateful decoder hardware require specific sequences of V4L2 API calls
+> to be followed. These include capability enumeration, initialization,
+> decoding, seek, pause, dynamic resolution change, drain and end of
+> stream.
 > 
-> The DRM framework calls the .atomic_begin() operations in a loop over
-> all CRTCs included in an atomic commit. On a VSPDL (the only VSP type
-> where this matters), a single VSP instance handles two CRTCs, with a
-> single lock. This results in a deadlock when the .atomic_begin()
-> operation is called on the second CRTC.
+> Specifics of the above have been discussed during Media Workshops at
+> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
+> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
+> originated at those events was later implemented by the drivers we already
+> have merged in mainline, such as s5p-mfc or coda.
 > 
-> The DRM framework serializes atomic commits that affect the same CRTCs,
-> but doesn't know about two CRTCs sharing the same VSPDL. Two commits
-> affecting the VSPDL LIF0 and LIF1 respectively can thus race each other,
-> hence the need for a lock.
+> The only thing missing was the real specification included as a part of
+> Linux Media documentation. Fix it now and document the decoder part of
+> the Codec API.
 > 
-> This could be fixed on the DRM side by forcing serialization of commits
-> affecting CRTCs backed by the same VSPDL, but that would negatively
-> affect performances, as the locking is only needed when the BRU and BRS
-> need to be reassigned, which is an uncommon case.
-> 
-> The lock protects the whole .atomic_begin() to .atomic_flush() sequence.
-> The only operation that can occur in-between is vsp1_du_atomic_update(),
-> which doesn't touch the BRU and BRS, and thus doesn't need to be
-> protected by the lock. We can thus only take the lock around the
-
-And I almost replied to say ... but what about vsp1_du_atomic_update()
-before re-reading this paragraph :)
-
-
-> pipeline setup calls in vsp1_du_atomic_flush(), which fixes the
-> deadlock.
-> 
-> Fixes: f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines dynamically")
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-It makes me very happy to see the lock/unlock across separate functions
-removed :)
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-
+> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
 > ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  Documentation/media/uapi/v4l/dev-decoder.rst | 872 +++++++++++++++++++
+>  Documentation/media/uapi/v4l/devices.rst     |   1 +
+>  Documentation/media/uapi/v4l/v4l2.rst        |  10 +-
+>  3 files changed, 882 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/media/uapi/v4l/dev-decoder.rst
 > 
-> I've successfully tested the patch with kmstest --flip running with four
-> outputs on a Salvator-XS board, as well as with the DU kms-test-brxalloc.py
-> test. The deadlock is gone, and no race has been observed.
-> 
-> Mauro, this is a v4.18 regression fix. I'm sorry for sending it so late,
-> I haven't noticed the issue earlier. Once Kieran reviews it (which should
-> happen in the next few days), could you send it to Linus ? The breakage is
-> pretty bad otherwise for people using both the VGA and LVDS outputs at the
-> same time.
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index edb35a5c57ea..a99fc0ced7a7 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -728,9 +728,6 @@ EXPORT_SYMBOL_GPL(vsp1_du_setup_lif);
->   */
->  void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index)
->  {
-> -	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-> -
-> -	mutex_lock(&vsp1->drm->lock);
->  }
->  EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
->  
-> @@ -846,6 +843,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
->  
->  	drm_pipe->crc = cfg->crc;
->  
-> +	mutex_lock(&vsp1->drm->lock);
->  	vsp1_du_pipeline_setup_inputs(vsp1, pipe);
->  	vsp1_du_pipeline_configure(pipe);
->  	mutex_unlock(&vsp1->drm->lock);
-> 
+> diff --git a/Documentation/media/uapi/v4l/dev-decoder.rst b/Documentation/media/uapi/v4l/dev-decoder.rst
+> new file mode 100644
+> index 000000000000..f55d34d2f860
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/dev-decoder.rst
+> @@ -0,0 +1,872 @@
 
--- 
-Regards
---
-Kieran
+<snip>
+
+> +6.  This step only applies to coded formats that contain resolution
+> +    information in the stream. Continue queuing/dequeuing bitstream
+> +    buffers to/from the ``OUTPUT`` queue via :c:func:`VIDIOC_QBUF` and
+> +    :c:func:`VIDIOC_DQBUF`. The driver must keep processing and returning
+> +    each buffer to the client until required metadata to configure the
+> +    ``CAPTURE`` queue are found. This is indicated by the driver sending
+> +    a ``V4L2_EVENT_SOURCE_CHANGE`` event with
+> +    ``V4L2_EVENT_SRC_CH_RESOLUTION`` source change type. There is no
+> +    requirement to pass enough data for this to occur in the first buffer
+> +    and the driver must be able to process any number.
+> +
+> +    * If data in a buffer that triggers the event is required to decode
+> +      the first frame, the driver must not return it to the client,
+> +      but must retain it for further decoding.
+> +
+> +    * If the client set width and height of ``OUTPUT`` format to 0, calling
+> +      :c:func:`VIDIOC_G_FMT` on the ``CAPTURE`` queue will return -EPERM,
+> +      until the driver configures ``CAPTURE`` format according to stream
+> +      metadata.
+
+What about calling TRY/S_FMT on the capture queue: will this also return -EPERM?
+I assume so.
+
+Regards,
+
+	Hans
