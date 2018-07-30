@@ -1,77 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:59886 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730613AbeG3TqF (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43290 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727474AbeG3Vc6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 15:46:05 -0400
-Date: Mon, 30 Jul 2018 15:09:45 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        p.zabel@pengutronix.de, afshin.nasser@gmail.com,
-        javierm@redhat.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 16/22] [media] tvp5150: add querystd
-Message-ID: <20180730150945.3301864f@coco.lan>
-In-Reply-To: <20180628162054.25613-17-m.felsch@pengutronix.de>
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
-        <20180628162054.25613-17-m.felsch@pengutronix.de>
+        Mon, 30 Jul 2018 17:32:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 4/6] media: uvcvideo: queue: Simplify spin-lock usage
+Date: Mon, 30 Jul 2018 22:57:00 +0300
+Message-ID: <18698388.LcrgILxgHI@avalon>
+In-Reply-To: <ec54c7e1cfc4d1846c3dc09f27f609e7cf82b45c.1522168131.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com> <ec54c7e1cfc4d1846c3dc09f27f609e7cf82b45c.1522168131.git-series.kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 28 Jun 2018 18:20:48 +0200
-Marco Felsch <m.felsch@pengutronix.de> escreveu:
+Hi Kieran,
 
-> From: Philipp Zabel <p.zabel@pengutronix.de>
+Thank you for the patch.
+
+On Tuesday, 27 March 2018 19:46:01 EEST Kieran Bingham wrote:
+> Both uvc_start_streaming(), and uvc_stop_streaming() are called from
+> userspace context, with interrupts enabled. As such, they do not need to
+> save the IRQ state, and can use spin_lock_irq() and spin_unlock_irq()
+> respectively.
 > 
-> Add the querystd video_op and make it return V4L2_STD_UNKNOWN while the
-> TVP5150 is not locked to a signal.
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
 > 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 > ---
->  drivers/media/i2c/tvp5150.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
 > 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 99d887936ea0..1990aaa17749 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -796,6 +796,15 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
->  	}
+> v4:
+>  - Rebase to v4.16 (linux-media/master)
+> 
+>  drivers/media/usb/uvc/uvc_queue.c | 10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index adcc4928fae4..698d9a5a5aae 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -169,7 +169,6 @@ static int uvc_start_streaming(struct vb2_queue *vq,
+> unsigned int count) {
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+> -	unsigned long flags;
+>  	int ret;
+> 
+>  	queue->buf_used = 0;
+> @@ -178,9 +177,9 @@ static int uvc_start_streaming(struct vb2_queue *vq,
+> unsigned int count) if (ret == 0)
+>  		return 0;
+> 
+> -	spin_lock_irqsave(&queue->irqlock, flags);
+> +	spin_lock_irq(&queue->irqlock);
+>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_QUEUED);
+> -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> +	spin_unlock_irq(&queue->irqlock);
+> 
+>  	return ret;
 >  }
->  
-> +static int tvp5150_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
-> +{
-> +	struct tvp5150 *decoder = to_tvp5150(sd);
-> +
-> +	*std_id = decoder->lock ? tvp5150_read_std(sd) : V4L2_STD_UNKNOWN;
+> @@ -188,14 +187,13 @@ static int uvc_start_streaming(struct vb2_queue *vq,
+> unsigned int count) static void uvc_stop_streaming(struct vb2_queue *vq)
+>  {
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+> -	unsigned long flags;
+> 
+>  	if (vq->type != V4L2_BUF_TYPE_META_CAPTURE)
+>  		uvc_video_enable(uvc_queue_to_stream(queue), 0);
+> 
+> -	spin_lock_irqsave(&queue->irqlock, flags);
+> +	spin_lock_irq(&queue->irqlock);
+>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+> -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> +	spin_unlock_irq(&queue->irqlock);
+>  }
 
-This patch requires rework. What happens when a device doesn't have
-IRQ enabled? Perhaps it should, instead, read some register in order
-to check for the locking status, as this would work on both cases.
+I think you missed my comment that stated
 
-> +
-> +	return 0;
-> +}
-> +
->  static const struct v4l2_event tvp5150_ev_fmt = {
->  	.type = V4L2_EVENT_SOURCE_CHANGE,
->  	.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
-> @@ -1408,6 +1417,7 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
->  
->  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
->  	.s_std = tvp5150_s_std,
-> +	.querystd = tvp5150_querystd,
->  	.s_stream = tvp5150_s_stream,
->  	.s_routing = tvp5150_s_routing,
->  	.g_mbus_config = tvp5150_g_mbus_config,
+> Please add a one-line comment above both functions to state
+>
+> /* Must be called with interrupts enabled. */
 
+Philipp Zabel commented that you could also add lockdep_assert_irqs_enabled(), 
+and I think that's a good idea. I'll let you decide whether to do both, or 
+only add lockdep_assert_irqs_enabled(), I'm fine with either option.
 
+With this fixed,
 
-Thanks,
-Mauro
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  static const struct vb2_ops uvc_queue_qops = {
+
+-- 
+Regards,
+
+Laurent Pinchart
