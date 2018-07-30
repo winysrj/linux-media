@@ -1,143 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:38705 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725858AbeG3F1K (ORCPT
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:46328 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725845AbeG3Frs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jul 2018 01:27:10 -0400
-Message-ID: <f45c1f17c092ee6625a8e544a78e82b0@smtp-cloud8.xs4all.net>
-Date: Mon, 30 Jul 2018 05:54:09 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 30 Jul 2018 01:47:48 -0400
+Received: by mail-yw0-f195.google.com with SMTP id e23-v6so3890934ywe.13
+        for <linux-media@vger.kernel.org>; Sun, 29 Jul 2018 21:14:46 -0700 (PDT)
+Received: from mail-yw0-f176.google.com (mail-yw0-f176.google.com. [209.85.161.176])
+        by smtp.gmail.com with ESMTPSA id l62-v6sm4566503ywb.29.2018.07.29.21.14.44
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 29 Jul 2018 21:14:44 -0700 (PDT)
+Received: by mail-yw0-f176.google.com with SMTP id k18-v6so3896374ywm.11
+        for <linux-media@vger.kernel.org>; Sun, 29 Jul 2018 21:14:44 -0700 (PDT)
+MIME-Version: 1.0
+References: <CAJs94EahjbkJRWKR=2QeD=tOMR=kznwXbQgTbKvSuTg4jBk1ew@mail.gmail.com>
+ <Pine.LNX.4.44L0.1807241652550.1311-100000@iolanthe.rowland.org> <CAJs94EZpJgDg0j8sVgOd56OY53mv7VxSODbhtR5MsZnFUoJA+g@mail.gmail.com>
+In-Reply-To: <CAJs94EZpJgDg0j8sVgOd56OY53mv7VxSODbhtR5MsZnFUoJA+g@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Mon, 30 Jul 2018 13:14:32 +0900
+Message-ID: <CAAFQd5AKJrCAAFiis-YjKFULPb1zqboPVSgT8Uepg-C561fgeg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
+ ISO transfer
+To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        rostedt@goodmis.org, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, Jul 25, 2018 at 10:47 PM Matwey V. Kornilov <matwey@sai.msu.ru> wrote:
+>
+> 2018-07-24 23:55 GMT+03:00 Alan Stern <stern@rowland.harvard.edu>:
+> > On Tue, 24 Jul 2018, Matwey V. Kornilov wrote:
+> >
+> >> 2018-07-23 21:57 GMT+03:00 Alan Stern <stern@rowland.harvard.edu>:
+> >> > On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
+> >> >
+> >> >> I've tried to strategies:
+> >> >>
+> >> >> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
+> >> >> similar to how USB core does when there is no URB_NO_TRANSFER_DMA_MAP)
+> >> >
+> >> > Yes.
+> >> >
+> >> >> 2) Use sync_cpu and sync_device inside the handler (and dma_map only
+> >> >> once at memory allocation)
+> >> >>
+> >> >> It is interesting that dma_unmap/dma_map pair leads to the lower
+> >> >> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64 platform.
+> >> >> At armv7l platform using dma_unmap/dma_map  leads to ~50 usec in the
+> >> >> handler, and sync_cpu/sync_device - ~65 usec.
+> >> >>
+> >> >> However, I am not sure is it mandatory to call
+> >> >> dma_sync_single_for_device for FROM_DEVICE direction?
+> >> >
+> >> > According to Documentation/DMA-API-HOWTO.txt, the CPU should not write
+> >> > to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
+> >> > not needed.
+> >>
+> >> Well, I measured the following at armv7l. The handler execution time
+> >> (URB_NO_TRANSFER_DMA_MAP is used for all cases):
+> >>
+> >> 1) coherent DMA: ~3000 usec (pwc is not functional)
+> >> 2) explicit dma_unmap and dma_map in the handler: ~52 usec
+> >> 3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device): ~56 usec
 
-Results of the daily build of media_tree:
+That's very strange because on ARM dma_unmap_single() does exactly the
+same thing as dma_sync_single_for_cpu():
 
-date:			Mon Jul 30 05:00:10 CEST 2018
-media-tree git hash:	4faeaf9c0f4581667ce5826f9c90c4fd463ef086
-media_build git hash:	5d2bedd1c9c770d03c3e95282f55fe9979d26248
-v4l-utils git hash:	5e8d31abc6f531ef0bc0fc563d5311602a395685
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+arm_dma_map_page()
+https://elixir.bootlin.com/linux/v4.18-rc7/source/arch/arm/mm/dma-mapping.c#L129
+arm_dma_unmap_page()
+https://elixir.bootlin.com/linux/v4.18-rc7/source/arch/arm/mm/dma-mapping.c#L159
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: ERRORS
-linux-3.2.102-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.140-i686: OK
-linux-4.4.140-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.112-i686: OK
-linux-4.9.112-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.55-i686: OK
-linux-4.14.55-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.6-i686: OK
-linux-4.17.6-x86_64: OK
-linux-4.18-rc4-i686: OK
-linux-4.18-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+arm_dma_sync_single_for_cpu()
+https://elixir.bootlin.com/linux/v4.18-rc7/source/arch/arm/mm/dma-mapping.c#L167
 
-Detailed results are available here:
+Could you post the code you used for testing of cases 2) and 3)?
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
