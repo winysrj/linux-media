@@ -1,283 +1,535 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:60314 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388241AbeGXMJw (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:34016 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728666AbeG3UGD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jul 2018 08:09:52 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [RFC PATCH v1] media: uvcvideo: Cache URB header data before
- processing
-To: Keiichi Watanabe <keiichiw@chromium.org>,
-        linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, tfiga@chromium.org,
-        dianders@chromium.org
-References: <20180627103408.33003-1-keiichiw@chromium.org>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <7e39029e-4066-26d3-6ca9-e84bb0f4a498@ideasonboard.com>
-Date: Tue, 24 Jul 2018 12:03:53 +0100
+        Mon, 30 Jul 2018 16:06:03 -0400
+Date: Mon, 30 Jul 2018 15:29:38 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        p.zabel@pengutronix.de, afshin.nasser@gmail.com,
+        javierm@redhat.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 19/22] [media] tvp5150: add input source selection
+ of_graph support
+Message-ID: <20180730152938.50e69143@coco.lan>
+In-Reply-To: <20180628162054.25613-20-m.felsch@pengutronix.de>
+References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+        <20180628162054.25613-20-m.felsch@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <20180627103408.33003-1-keiichiw@chromium.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Keiichi
+Em Thu, 28 Jun 2018 18:20:51 +0200
+Marco Felsch <m.felsch@pengutronix.de> escreveu:
 
-On 27/06/18 11:34, Keiichi Watanabe wrote:
-> On some platforms with non-coherent DMA (e.g. ARM), USB drivers use
-> uncached memory allocation methods. In such situations, it sometimes
-> takes a long time to access URB buffers.  This can be a cause of video
-> flickering problems if a resolution is high and a USB controller has
-> a very tight time limit. (e.g. dwc2) To avoid this problem, we copy
-> header data from (uncached) URB buffer into (cached) local buffer.
+> The currrent driver layout had the following layout:
+>                +----------------+
+>  +-------+     |    TVP5150     |
+>  | Comp0 +--+  |                |
+>  +-------+  |  |          +-----+
+>  +-------+  |  +------+   | Src |
+>  | Comp1 +--+--|Sink  |   +-----+
+>  +-------+  |  +------+   +-----+
+> +--------+  |  |          | Src |
+> | SVideo +--+  |          +-----+
+> +--------+     +----------------+
 > 
-> This change should make the elapsed time of the interrupt handler
-> shorter on platforms with non-coherent DMA. We measured the elapsed
-> time of each callback of uvc_video_complete without/with this patch
-> while capturing Full HD video in
-> https://webrtc.github.io/samples/src/content/getusermedia/resolution/.
-> I tested it on the top of Kieran Bingham's Asynchronous UVC series
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg128359.html.
-
-I've nudged Laurent to get my Async patches reviewed - but I don't think
-it's going to make it into v4.19 at the moment :(
-
-
-> The test device was Jerry Chromebook (RK3288) with Logitech Brio 4K.
-> I collected data for 5 seconds. (There were around 480 callbacks in
-> this case.) The following result shows that this patch makes
-> uvc_video_complete about 2x faster.
->            | average | median  | min     | max     | standard deviation
-> w/o caching| 45319ns | 40250ns | 33834ns | 142625ns| 16611ns
-> w/  caching| 20620ns | 19250ns | 12250ns | 56583ns | 6285ns
+> Since the device tree abstracts the real hardware this layout is not
+> correct, because the TVP5150 has 3 physical ports (2 input, 1 output).
+> Furthermore this layout assumes that there is an additional external mux
+> in front of the TVP5150. This is not correct because the TVP5150 does
+> the muxing work. The corresponding of_graph layout will look like:
+> 	tvp5150 {
+> 		....
+> 		port {
+> 			reg = <0>;
+> 			endpoint@0 {...};
+> 			endpoint@1 {...};
+> 			endpoint@2 {...};
+> 		};
 > 
-> In addition, we confirmed that this patch doesn't make it worse on
-> coherent DMA architecture by performing the same measurements on a
-> Broadwell Chromebox with the same camera.
+> 	};
 > 
->            | average | median  | min     | max     | standard deviation
-> w/o caching| 21026ns | 21424ns | 12263ns | 23956ns | 1932ns
-> w/  caching| 20728ns | 20398ns |  8922ns | 45120ns | 3368ns
-
-Uhm .... what happened there though. The Max has increased?
-
-This is technically still faster than the Chromebook, - but slower than
-the "w/o caching" line of the same test. Will this have any impact on
-any other use-cases?
-
-
-> Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
+> This patch change the layout to:
+>              +----------------+
+>              |    TVP5150     |
+>  +-------+   +------+         |
+>  | Comp0 +---+ Sink |         |
+>  +-------+   +------+         |
+>  +-------+   +------+   +-----+
+>  | Comp1 +---+ Sink |   | Src |
+>  +-------+   +------+   +-----+
+> +--------+   +------+         |
+> | SVideo +---+ Sink |         |
+> +--------+   +------+         |
+>              +----------------+
+> 
+> To keep things easy an additional 'virtual' S-Video port is added. More
+> information about the port mapping can be found in the device tree
+> binding documentation. The connector entities Comp0/1, SVideo are created
+> only if they are connected to the correct port. If more than one connector
+> is available the media_entity_operations.link_setup() callback ensures that
+> only one connector is active. To change the input src the link between
+> the TVP5150 pad and the connector must be disabled, then a new link can
+> be enabled.
+> 
+> The patch tries to reduce the '#ifdef CONFIG_MEDIA_CONTROLLER' usage to
+> a minimum.
+> 
+> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 > ---
+>  drivers/media/i2c/tvp5150.c | 322 ++++++++++++++++++++++++++++++++----
+>  1 file changed, 287 insertions(+), 35 deletions(-)
 > 
-> After applying 6 patches in
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg128359.html,
-> I measured elapsed time by adding the following code to
-> /drivers/media/usb/uvc/uvc_video.c
-> 
-> @@ -XXXX,6 +XXXX,9 @@ static void uvc_video_complete(struct urb *urb)
->         struct uvc_video_queue *queue = &stream->queue;
->  	struct uvc_buffer *buf = NULL;
->  	int ret;
-> +	ktime_t start, end;
-> +	int elapsed_time;
-> +	start = ktime_get();
->  	switch (urb->status) {
->  	case 0:
-> 
-> @@ -XXXX,6 +XXXX,10 @@ static void uvc_video_complete(struct urb *urb)
-> 
->  	INIT_WORK(&uvc_urb->work, uvc_video_copy_data_work);
->  	queue_work(stream->async_wq, &uvc_urb->work);
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index a6fec569a610..6ac29c62d99b 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -44,10 +44,30 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+>  
+>  #define dprintk0(__dev, __arg...) dev_dbg_lvl(__dev, 0, 0, __arg)
+>  
+> +enum tvp5150_ports {
+> +	TVP5150_PORT_AIP1A = TVP5150_COMPOSITE0,
+> +	TVP5150_PORT_AIP1B,
+> +	/* s-video port is a virtual port */
+> +	TVP5150_PORT_SVIDEO,
+> +	TVP5150_PORT_YOUT,
+> +	TVP5150_PORT_NUM,
+> +};
 > +
-> +	end = ktime_get();
-> +	elapsed_time = ktime_to_ns(ktime_sub(end, start));
-> +	pr_err("elapsed time: %d ns", elapsed_time);
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +struct tvp5150_connector {
+> +	struct media_entity con;
+> +	struct media_pad pad;
+> +	unsigned int port_num;
+> +};
+> +#endif
+> +
+>  struct tvp5150 {
+>  	struct v4l2_subdev sd;
+> +	struct device_node *endpoints[TVP5150_PORT_NUM];
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+> -	struct media_pad pads[DEMOD_NUM_PADS];
+> +	struct media_pad pads[TVP5150_PORT_NUM];
+
+This will cause problems with the current code.
+
+When we designed the MC version 2 code, the idea were to allow
+set properties to entities and to the inputs, but the code
+was never submitted upstream.
+
+A decoder may have several different types of inputs and outputs.
+Several designs allow using different types of decoders, being
+saa711x and tvp5150 the most popular ones. Well, depending on
+the device, the number of PADs and the signals they carry can
+be different.
+
+Without a way to "taint" a pad to the signal it contains, 
+while waiting for the properties API, we added a code that
+"fixed" the PADs to a certain number. This way, Kernelspace could
+use the pad "number" as a way to identify the type of signal a
+PAD carries.
+
+The PC consumer drivers use those numbers in order to build the
+MC graph[1].
+
+A change on this would require adding a property to the pad, in
+order to indicate the type of signal it provides (RF, luminance IF,
+chroma IF, audio IF, I2S audio, ...), and to change
+v4l2_mc_create_media_graph() accordingly.
+
+
+[1] See drivers/media/v4l2-core/v4l2-mc.c at v4l2_mc_create_media_graph() func.
+
+
+
+> +	struct tvp5150_connector *connectors;
+> +	int active;
+>  #endif
+>  	struct v4l2_ctrl_handler hdl;
+>  	struct v4l2_rect rect;
+> @@ -990,7 +1010,7 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+>  	struct v4l2_rect *__crop;
+>  	struct tvp5150 *decoder = to_tvp5150(sd);
+>  
+> -	if (!format || (format->pad != DEMOD_PAD_VID_OUT))
+> +	if (!format || (format->pad != TVP5150_PORT_YOUT))
+>  		return -EINVAL;
+>  
+>  	f = &format->format;
+> @@ -1189,6 +1209,62 @@ static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
+>  	return 0;
 >  }
-> 
->  /*
-> 
-> 
->  drivers/media/usb/uvc/uvc_video.c | 92 +++++++++++++++----------------
->  1 file changed, 43 insertions(+), 49 deletions(-)
-> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-> index a88b2e51a666..ff2eddc55530 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -391,36 +391,15 @@ static inline ktime_t uvc_video_get_time(void)
-> 
->  static void
->  uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
-> -		       const u8 *data, int len)
-> +		       const u8 *data, int len, unsigned int header_size,
-> +		       bool has_pts, bool has_scr)
->  {
->  	struct uvc_clock_sample *sample;
-> -	unsigned int header_size;
-> -	bool has_pts = false;
-> -	bool has_scr = false;
->  	unsigned long flags;
->  	ktime_t time;
->  	u16 host_sof;
->  	u16 dev_sof;
-> 
-> -	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
-> -	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-> -		header_size = 12;
-> -		has_pts = true;
-> -		has_scr = true;
-> -		break;
-> -	case UVC_STREAM_PTS:
-> -		header_size = 6;
-> -		has_pts = true;
-> -		break;
-> -	case UVC_STREAM_SCR:
-> -		header_size = 8;
-> -		has_scr = true;
-> -		break;
-> -	default:
-> -		header_size = 2;
-> -		break;
-> -	}
-> -
->  	/* Check for invalid headers. */
->  	if (len < header_size)
->  		return;
-> @@ -717,11 +696,10 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
->   */
-> 
->  static void uvc_video_stats_decode(struct uvc_streaming *stream,
-> -		const u8 *data, int len)
-> +				   const u8 *data, int len,
-> +				   unsigned int header_size, bool has_pts,
-> +				   bool has_scr)
->  {
-> -	unsigned int header_size;
-> -	bool has_pts = false;
-> -	bool has_scr = false;
->  	u16 uninitialized_var(scr_sof);
->  	u32 uninitialized_var(scr_stc);
->  	u32 uninitialized_var(pts);
-> @@ -730,25 +708,6 @@ static void uvc_video_stats_decode(struct uvc_streaming *stream,
->  	    stream->stats.frame.nb_packets == 0)
->  		stream->stats.stream.start_ts = ktime_get();
-> 
-> -	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
-> -	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-> -		header_size = 12;
-> -		has_pts = true;
-> -		has_scr = true;
-> -		break;
-> -	case UVC_STREAM_PTS:
-> -		header_size = 6;
-> -		has_pts = true;
-> -		break;
-> -	case UVC_STREAM_SCR:
-> -		header_size = 8;
-> -		has_scr = true;
-> -		break;
-> -	default:
-> -		header_size = 2;
-> -		break;
-> -	}
-> -
->  	/* Check for invalid headers. */
->  	if (len < header_size || data[0] < header_size) {
->  		stream->stats.frame.nb_invalid++;
-> @@ -957,10 +916,41 @@ static void uvc_video_stats_stop(struct uvc_streaming *stream)
->   * to be called with a NULL buf parameter. uvc_video_decode_data and
->   * uvc_video_decode_end will never be called with a NULL buffer.
->   */
-> +static void uvc_video_decode_header_size(const u8 *data, int *header_size,
-> +					 bool *has_pts, bool *has_scr)
-
-Rather than passing in pointers, could/should we add these fields to the
-struct uvc_buffer? I think they are properties of the buffer object so
-they could live there. Then the function prototypes would be kept cleaner.
-
-Although, actually there might be multiple packets with timestamps per
-uvc_buffer object, so maybe it needs it's own struct. Or perhaps it's
-more appropriate to the stream object, as they refernce the 'last known
-time' ?
-
-
-
+>  
+> +/****************************************************************************
+> + *			Media entity ops
+> + ****************************************************************************/
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +static int tvp5150_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
+> +			     u32 config);
+> +static int tvp5150_link_setup(struct media_entity *entity,
+> +			      const struct media_pad *local,
+> +			      const struct media_pad *remote, u32 flags)
 > +{
-> +	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
-> +	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-> +		*header_size = 12;
-> +		*has_pts = true;
-> +		*has_scr = true;
-> +		break;
-> +	case UVC_STREAM_PTS:
-> +		*header_size = 6;
-> +		*has_pts = true;
-> +		break;
-> +	case UVC_STREAM_SCR:
-> +		*header_size = 8;
-> +		*has_scr = true;
-> +		break;
-> +	default:
-> +		*header_size = 2;
+> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> +	struct tvp5150 *decoder = to_tvp5150(sd);
+> +	int ret = 0;
+> +
+> +	/*
+> +	 * The tvp state is determined by the enabled sink pad link.
+> +	 * Enabling or disabling the source pad link has no effect.
+> +	 */
+> +	if (local->flags & MEDIA_PAD_FL_SOURCE)
+> +		return 0;
+> +
+> +	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
+> +		remote->entity->name, remote->index, local->entity->name,
+> +		local->index, flags & MEDIA_LNK_FL_ENABLED);
+> +
+> +	if (flags & MEDIA_LNK_FL_ENABLED) {
+> +		if (decoder->active == local->index)
+> +			goto out;
+> +		if (decoder->active >= 0) {
+> +			ret = -EBUSY;
+> +			goto out;
+> +		}
+> +
+> +		dev_dbg(sd->dev, "Setting %d active\n", local->index);
+> +		decoder->active = local->index;
+> +		tvp5150_s_routing(sd, local->index, TVP5150_NORMAL, 0);
+> +	} else {
+> +		if (decoder->active != local->index)
+> +			goto out;
+> +
+> +		dev_dbg(sd->dev, "going inactive\n");
+> +		decoder->active = -1;
+> +		/*
+> +		 * Output black screen for deselected input if TVP5150 variant
+> +		 * supports this.
+> +		 */
+> +		tvp5150_s_routing(sd, local->index, TVP5150_BLACK_SCREEN, 0);
 > +	}
-
-It looks like we are also extracting the pts, and scr multiple times for
-both the clock handling and the stats handling.
-
-As we use "get_unaligned_leXX" macro's for that - I wonder if that's a
-slow path that aught to be done only once where possible too?
-
-
-
+> +out:
+> +	return ret;
 > +}
 > +
->  static int uvc_video_decode_start(struct uvc_streaming *stream,
-> -		struct uvc_buffer *buf, const u8 *data, int len)
-> +				  struct uvc_buffer *buf, const u8 *urb_data,
-> +				  int len)
+> +static const struct media_entity_operations tvp5150_sd_media_ops = {
+> +	.link_setup = tvp5150_link_setup,
+> +};
+> +#endif
+>  /****************************************************************************
+>  			I2C Command
+>   ****************************************************************************/
+> @@ -1333,6 +1409,50 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  	return 0;
+>  }
+>  
+> +static int tvp5150_get_con_num(struct tvp5150 *decoder)
+> +{
+> +	unsigned int i, num = 0;
+> +
+> +	for (i = 0; i < TVP5150_PORT_NUM - 1; i++)
+> +		if (decoder->endpoints[i])
+> +			num++;
+> +	return num;
+> +}
+> +
+> +static int tvp5150_registered(struct v4l2_subdev *sd)
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct tvp5150 *decoder = to_tvp5150(sd);
+> +	unsigned int i, con_num;
+> +	int ret;
+> +
+> +	con_num = tvp5150_get_con_num(decoder);
+> +	for (i = 0; i < con_num; i++) {
+> +		struct media_entity *con = &decoder->connectors[i].con;
+> +		struct media_pad *pad = &decoder->connectors[i].pad;
+> +		unsigned int port = decoder->connectors[i].port_num;
+> +
+> +		pad->flags = MEDIA_PAD_FL_SOURCE;
+> +		ret = media_entity_pads_init(con, 1, pad);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		ret = media_device_register_entity(sd->v4l2_dev->mdev, con);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		ret = media_create_pad_link(con, 0, &sd->entity, port, 0);
+> +		if (ret < 0) {
+> +			media_device_unregister_entity(con);
+> +			return ret;
+> +		}
+> +
+> +	}
+> +#endif
+> +	return 0;
+> +}
+> +
+> +
+>  /* ----------------------------------------------------------------------- */
+>  
+>  static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
+> @@ -1386,6 +1506,10 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
+>  	.pad = &tvp5150_pad_ops,
+>  };
+>  
+> +static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
+> +	.registered = tvp5150_registered,
+> +};
+> +
+>  /****************************************************************************
+>  			I2C Client & Driver
+>   ****************************************************************************/
+> @@ -1534,38 +1658,171 @@ static int tvp5150_init(struct i2c_client *c)
+>  	return 0;
+>  }
+>  
+> +static int tvp5150_mc_init(struct v4l2_subdev *sd)
+> +{
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	struct tvp5150 *decoder = to_tvp5150(sd);
+> +	struct device *dev = decoder->sd.dev;
+> +	struct device_node *rp;
+> +	unsigned int con_num = 0;
+> +	unsigned int i, j;
+> +	int ret;
+> +
+> +	sd->entity.ops = &tvp5150_sd_media_ops;
+> +	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+> +
+> +	/* Initialize all TVP5150 pads */
+> +	for (i = 0; i < TVP5150_PORT_NUM; i++)
+> +		decoder->pads[i].flags = (i < TVP5150_PORT_NUM - 1) ?
+> +							MEDIA_PAD_FL_SINK :
+> +							MEDIA_PAD_FL_SOURCE;
+> +	ret = media_entity_pads_init(&sd->entity, TVP5150_PORT_NUM,
+> +				     decoder->pads);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* Allocate and initialize all available input connectors */
+> +	con_num = tvp5150_get_con_num(decoder);
+> +	if (!con_num)
+> +		return 0;
+> +	decoder->connectors = devm_kcalloc(dev, con_num,
+> +					   sizeof(*decoder->connectors),
+> +					   GFP_KERNEL);
+> +	if (!decoder->connectors)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0, j = 0; i < TVP5150_PORT_NUM - 1; i++) {
+> +		if (!decoder->endpoints[i])
+> +			continue;
+> +
+> +		switch (i) {
+> +		case TVP5150_PORT_AIP1A:
+> +		case TVP5150_PORT_AIP1B:
+> +			decoder->connectors[j].con.function =
+> +						MEDIA_ENT_F_CONN_COMPOSITE;
+> +			break;
+> +		case TVP5150_PORT_SVIDEO:
+> +			decoder->connectors[j].con.function =
+> +						MEDIA_ENT_F_CONN_SVIDEO;
+> +			break;
+> +		}
+> +
+> +		decoder->connectors[j].con.flags = MEDIA_ENT_FL_CONNECTOR;
+> +		rp = of_graph_get_remote_port_parent(decoder->endpoints[i]);
+> +		ret = of_property_read_string(rp, "label",
+> +					      &decoder->connectors[j].con.name);
+> +		if (ret < 0)
+> +			return ret;
+> +		decoder->connectors[j].port_num = i;
+> +
+> +		j++;
+> +	}
+> +#endif
+> +	return 0;
+> +}
+> +
+> +static bool tvp5150_valid_input(struct device_node *endpoint,
+> +				unsigned int port)
+> +{
+> +	struct device_node *rp = of_graph_get_remote_port_parent(endpoint);
+> +	const char *input;
+> +	int ret;
+> +
+> +	switch (port) {
+> +	case TVP5150_PORT_AIP1A:
+> +	case TVP5150_PORT_AIP1B:
+> +		ret = of_device_is_compatible(rp, "composite-video-connector");
+> +		if (!ret)
+> +			return false;
+> +		break;
+> +	case TVP5150_PORT_SVIDEO:
+> +		ret = of_device_is_compatible(rp, "svideo-connector");
+> +		if (!ret)
+> +			return false;
+> +	}
+> +
+> +	ret = of_property_read_string(rp, "label", &input);
+> +	if (ret < 0)
+> +		return false;
+> +
+> +	return true;
+> +}
+> +
+>  static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
 >  {
->  	u8 fid;
-> +	u8 data[12];
-> +	unsigned int header_size;
-> +	bool has_pts = false, has_scr = false;
+> +	struct device *dev = decoder->sd.dev;
+>  	struct v4l2_fwnode_endpoint bus_cfg;
+> -	struct device_node *ep;
+> +	struct device_node *ep_np;
+>  	unsigned int flags;
+> -	int ret = 0;
+> +	int ret;
+> +	bool found = false;
+>  
+> -	ep = of_graph_get_next_endpoint(np, NULL);
+> -	if (!ep)
+> -		return -EINVAL;
+> +	for_each_endpoint_of_node(np, ep_np) {
+> +		struct of_endpoint ep;
+>  
+> -	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &bus_cfg);
+> -	if (ret)
+> -		goto err;
+> -
+> -	flags = bus_cfg.bus.parallel.flags;
+> +		of_graph_parse_endpoint(ep_np, &ep);
+> +		if (decoder->endpoints[ep.port]) {
+> +			dev_warn(dev,
+> +				 "Multiple port endpoints are not supported\n");
+> +			continue;
+> +		}
+>  
+> -	if (bus_cfg.bus_type == V4L2_MBUS_PARALLEL &&
+> -	    !(flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH &&
+> -	      flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH &&
+> -	      flags & V4L2_MBUS_FIELD_EVEN_LOW)) {
+> -		ret = -EINVAL;
+> -		goto err;
+> -	}
+> +		switch (ep.port) {
+> +		     /* Use common tvp5150_valid_input() for all inputs */
+> +		case TVP5150_PORT_AIP1A:
+> +		case TVP5150_PORT_AIP1B:
+> +		case TVP5150_PORT_SVIDEO:
+> +			if (!tvp5150_valid_input(ep_np, ep.port)) {
+> +				dev_err(dev,
+> +					"Invalid endpoint %pOF on port %d\n",
+> +					ep.local_node, ep.port);
+> +				ret = -EINVAL;
+> +				goto err;
+> +			}
+> +			break;
+> +		case TVP5150_PORT_YOUT:
+> +			ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep_np),
+> +							 &bus_cfg);
+> +			if (ret)
+> +				goto err;
 > +
-> +	/* Cache the header since urb_data is uncached memory. The size of
-> +	 * header is at most 12 bytes.
-> +	 */
-> +	memcpy(data, urb_data, min(len, 12));
-> 
->  	/* Sanity checks:
->  	 * - packet must be at least 2 bytes long
-> @@ -983,8 +973,12 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
->  			uvc_video_stats_update(stream);
+> +			flags = bus_cfg.bus.parallel.flags;
+> +
+> +			if (bus_cfg.bus_type == V4L2_MBUS_PARALLEL &&
+> +			    !(flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH &&
+> +			      flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH &&
+> +			      flags & V4L2_MBUS_FIELD_EVEN_LOW)) {
+> +				ret = -EINVAL;
+> +				goto err;
+> +			}
+> +
+> +			decoder->mbus_type = bus_cfg.bus_type;
+> +			break;
+> +		default:
+> +			dev_err(dev, "Invalid port %d for endpoint %pOF\n",
+> +				ep.port, ep.local_node);
+> +			ret = -EINVAL;
+> +			goto err;
+> +		}
+>  
+> -	decoder->mbus_type = bus_cfg.bus_type;
+> +		of_node_get(ep_np);
+> +		decoder->endpoints[ep.port] = ep_np;
+>  
+> +		found = true;
+> +	}
+> +	return found ? 0 : -ENODEV;
+>  err:
+> -	of_node_put(ep);
+>  	return ret;
+>  }
+>  
+> +static void tvp5150_dt_cleanup(struct tvp5150 *decoder)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < TVP5150_PORT_NUM; i++)
+> +		of_node_put(decoder->endpoints[i]);
+> +}
+> +
+>  static const char * const tvp5150_test_patterns[2] = {
+>  	"Disabled",
+>  	"Black screen"
+> @@ -1604,7 +1861,7 @@ static int tvp5150_probe(struct i2c_client *c,
+>  		res = tvp5150_parse_dt(core, np);
+>  		if (res) {
+>  			dev_err(sd->dev, "DT parsing error: %d\n", res);
+> -			return res;
+> +			goto err_cleanup_dt;
+>  		}
+>  	} else {
+>  		/* Default to BT.656 embedded sync */
+> @@ -1612,24 +1869,16 @@ static int tvp5150_probe(struct i2c_client *c,
 >  	}
-> 
-> -	uvc_video_clock_decode(stream, buf, data, len);
-> -	uvc_video_stats_decode(stream, data, len);
-> +	uvc_video_decode_header_size(data, &header_size, &has_pts, &has_scr);
+>  
+>  	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+> +	sd->internal_ops = &tvp5150_internal_ops;
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  
+> -#if defined(CONFIG_MEDIA_CONTROLLER)
+> -	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+> -	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> -	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> -
+> -	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+> -
+> -	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
+> -	if (res < 0)
+> -		return res;
+> -
+> -#endif
+> +	res = tvp5150_mc_init(sd);
+> +	if (res)
+> +		goto err_cleanup_dt;
+>  
+>  	res = tvp5150_detect_version(core);
+>  	if (res < 0)
+> -		return res;
+> +		goto err_cleanup_dt;
+>  
+>  	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
+>  	core->detected_norm = V4L2_STD_UNKNOWN;
+> @@ -1683,6 +1932,9 @@ static int tvp5150_probe(struct i2c_client *c,
+>  err:
+>  	v4l2_ctrl_handler_free(&core->hdl);
+>  	return res;
+> +err_cleanup_dt:
+> +	tvp5150_dt_cleanup(core);
+> +	return res;
+>  }
+>  
+>  static int tvp5150_remove(struct i2c_client *c)
 
-Perhaps just "uvc_video_decode_header()", or to match the style of the
-other functions:
-
-	"uvc_video_header_decode()"?
 
 
-> +
-> +	uvc_video_clock_decode(stream, buf, data, len, header_size, has_pts,
-> +			       has_scr);
-> +	uvc_video_stats_decode(stream, data, len, header_size, has_pts,
-> +			       has_scr);
-> 
->  	/* Store the payload FID bit and return immediately when the buffer is
->  	 * NULL.
-> --
-> 2.18.0.rc2.346.g013aa6912e-goog
-> 
-
--- 
-Regards
---
-Kieran
+Thanks,
+Mauro
