@@ -1,87 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:56150 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729645AbeGaURl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 16:17:41 -0400
-Date: Tue, 31 Jul 2018 21:35:54 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: jacopo+renesas@jmondi.org
-Cc: linux-media@vger.kernel.org
-Subject: [bug report] media: i2c: Add driver for Aptina MT9V111
-Message-ID: <20180731183554.wggi4jxrgrwfos64@kili.mountain>
+Received: from smtp2.macqel.be ([109.135.2.61]:62606 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731818AbeGaUyh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jul 2018 16:54:37 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.macqel.be (Postfix) with ESMTP id ECC50130D3A
+        for <linux-media@vger.kernel.org>; Tue, 31 Jul 2018 21:05:32 +0200 (CEST)
+Received: from smtp2.macqel.be ([127.0.0.1])
+        by localhost (mail.macqel.be [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id Ar20dHWrh9AH for <linux-media@vger.kernel.org>;
+        Tue, 31 Jul 2018 21:05:31 +0200 (CEST)
+Received: from frolo.macqel.be (frolo.macqel [10.1.40.73])
+        by smtp2.macqel.be (Postfix) with ESMTP id 4EFC3130D33
+        for <linux-media@vger.kernel.org>; Tue, 31 Jul 2018 21:05:31 +0200 (CEST)
+Date: Tue, 31 Jul 2018 21:05:31 +0200
+From: Philippe De Muyter <phdm@macq.eu>
+To: linux-media@vger.kernel.org
+Subject: v4l2_spi_subdev_init vs v4l2_i2c_subdev_init
+Message-ID: <20180731190531.GA26152@frolo.macqel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jacopo Mondi,
+Hello v4l2 gurus,
 
-The patch aab7ed1c3927: "media: i2c: Add driver for Aptina MT9V111"
-from Jul 25, 2018, leads to the following static checker warning:
+Documentation/media/kapi/v4l2-subdev.rst states :
 
-drivers/media/i2c/mt9v111.c:1163 mt9v111_probe() warn: passing zero to 'PTR_ERR'
-drivers/media/i2c/mt9v111.c:1173 mt9v111_probe() warn: passing zero to 'PTR_ERR'
-drivers/media/i2c/mt9v111.c:1184 mt9v111_probe() warn: passing zero to 'PTR_ERR'
-drivers/media/i2c/mt9v111.c:1194 mt9v111_probe() warn: passing zero to 'PTR_ERR'
+"Afterwards you need to initialize :c:type:`sd <v4l2_subdev>`->name with a
+unique name and set the module owner. This is done for you if you use the
+i2c helper functions"
 
-drivers/media/i2c/mt9v111.c
-  1155          v4l2_ctrl_handler_init(&mt9v111->ctrls, 5);
-  1156  
-  1157          mt9v111->auto_awb = v4l2_ctrl_new_std(&mt9v111->ctrls,
-  1158                                                &mt9v111_ctrl_ops,
-  1159                                                V4L2_CID_AUTO_WHITE_BALANCE,
-  1160                                                0, 1, 1,
-  1161                                                V4L2_WHITE_BALANCE_AUTO);
-  1162          if (IS_ERR_OR_NULL(mt9v111->auto_awb)) {
-  1163                  ret = PTR_ERR(mt9v111->auto_awb);
+I try to write a v4l2 spi driver and use hence v4l2_spi_subdev_init, not
+v4l2_i2c_subdev_init.
 
-This just returns success because v4l2_ctrl_new_std() only return NULL
-on error, it never returns error pointers.  I guess we should set ret to
-EINVAL?
+In v4l2_i2c_subdev_init, subdev name is initialised by
 
-		if (!mt9v111->auto_awb) {
-			ret = -EINVAL;
-			goto error_free_ctrls;
-		}
+        snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
+                client->dev.driver->name, i2c_adapter_id(client->adapter),
+                client->addr);
 
-  1164                  goto error_free_ctrls;
-  1165          }
-  1166  
-  1167          mt9v111->auto_exp = v4l2_ctrl_new_std_menu(&mt9v111->ctrls,
-  1168                                                     &mt9v111_ctrl_ops,
-  1169                                                     V4L2_CID_EXPOSURE_AUTO,
-  1170                                                     V4L2_EXPOSURE_MANUAL,
-  1171                                                     0, V4L2_EXPOSURE_AUTO);
-  1172          if (IS_ERR_OR_NULL(mt9v111->auto_exp)) {
-  1173                  ret = PTR_ERR(mt9v111->auto_exp);
-  1174                  goto error_free_ctrls;
-  1175          }
-  1176  
-  1177          /* Initialize timings */
-  1178          mt9v111->hblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
-  1179                                              V4L2_CID_HBLANK,
-  1180                                              MT9V111_CORE_R05_MIN_HBLANK,
-  1181                                              MT9V111_CORE_R05_MAX_HBLANK, 1,
-  1182                                              MT9V111_CORE_R05_DEF_HBLANK);
-  1183          if (IS_ERR_OR_NULL(mt9v111->hblank)) {
-  1184                  ret = PTR_ERR(mt9v111->hblank);
-  1185                  goto error_free_ctrls;
-  1186          }
-  1187  
-  1188          mt9v111->vblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
-  1189                                              V4L2_CID_VBLANK,
-  1190                                              MT9V111_CORE_R06_MIN_VBLANK,
-  1191                                              MT9V111_CORE_R06_MAX_VBLANK, 1,
-  1192                                              MT9V111_CORE_R06_DEF_VBLANK);
-  1193          if (IS_ERR_OR_NULL(mt9v111->vblank)) {
-  1194                  ret = PTR_ERR(mt9v111->vblank);
-  1195                  goto error_free_ctrls;
-  1196          }
-  1197  
-  1198          /* PIXEL_RATE is fixed: just expose it to user space. */
-  1199          v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
+In v4l2_spi_subdev_init, subdev name is initialised by
 
-regards,
-dan carpenter
+        strlcpy(sd->name, spi->dev.driver->name, sizeof(sd->name));
+
+This does not give similar results :(
+
+with i2c, subdev name is set as "xxx %d-%04x", giving a unique name to the
+subdev.
+
+with spi, subdev name is set as "xxx", giving the same name to all similar
+subdevs on the same host
+
+Is that intentional or an oversight, and if so, how should that be fixed ?
+
+Best regards
+
+Philippe
+
+-- 
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
