@@ -1,63 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from unassigned.psychz.net ([104.216.146.28]:58529 "EHLO
-        monogram.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1732127AbeGaPEi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 11:04:38 -0400
-To: linux-media@vger.kernel.org
-Subject: Need mobile apps development?
-Message-ID: <af6ee8c5468a556b46876d3815b14c6e@medygateinc.com>
-Date: Tue, 31 Jul 2018 10:50:43 +0200
-From: "Vivek Shah" <viektian@elderluxe.com>
-Reply-To: cengjaos@aliyun.com
+Received: from parrot.pmhahn.de ([88.198.50.102]:45056 "EHLO parrot.pmhahn.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727409AbeGaMSy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jul 2018 08:18:54 -0400
+Subject: Re: [PATCH] MAINTAINERS: mark ddbridge, stv0910, stv6111 and mxl5xx
+ orphan
+To: Daniel Scheller <d.scheller.oss@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+References: <20180714175634.29827-1-d.scheller.oss@gmail.com>
+From: Philipp Hahn <pmhahn+video@pmhahn.de>
+Message-ID: <38607707-5a77-0382-7160-0131afb8a2e3@pmhahn.de>
+Date: Tue, 31 Jul 2018 12:29:42 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180714175634.29827-1-d.scheller.oss@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hello Daniel,
 
-Are you in search of a suitable app development agency to nurture and
-transform your creative app idea into reality?
+Am 14.07.2018 um 19:56 schrieb Daniel Scheller:
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> I'm definitely not interested to try to maintain drivers in a subsystem/
+> tree anymore where the subsystem maintainer prefers to have changes
+> bitrot for months, rejects patches for idiotic reasons and, ontop, simply
+> ignores emails (lots of) with ie. questions to any requested changes, or
+> questions in general.
+> 
+> I'd happily continue taking care of these drivers (it's fun and I surely
+> have time for this, albeit everything being hobbyist, volunteer and
+> unpaid work). Though recalling all the latest actions and the fact that
+> the initial series that got the ball rolling at all being ignored for
+> over four(!) months, I'm now out of this business. This is not about
+> "getting work done".
 
-Well, your search ends here.
+Thank you for getting ddbridge and related drivers into shape. As an
+owner of that DVB card I very much appreciated your work. Thank you allot.
+I own you a drink.
 
-We are based in India. We are in the mobile app development domain for last
-seven years and with
-a team of 120+ web and mobile app development professionals, we have served
-the global clientele.
-
-Talking about the mobile apps, we have built over 350 mobile apps ranging
-from a simple business
-app to complex enterprise app to date.
-
-Our expertise in iOS, Android, Ionic, and PhoneGap-based platforms and
-various libraries can help
-you reach a huge smartphone-using audience with the following services:
-
-• Mobile App Consulting
-• Mobile App UI/UX Designing
-• Mobile App Development
-• Mobile App Maintenance & Support
-• Website and eCommerce portal Development
-
-We render our enterprise-grade app development services across different
-industry sectors including
-retail, games and entertainment, lifestyle, social media, healthcare and
-hospitality, BFSI, eCommerce
-(m-commerce), food and beverages, and the like.
-
-We will gladly share the references of our work on your demand.
-
-Here is how you can start expanding your business online:
-1. Respond to this email
-2. We will provide an Action Plan and Quote
-3. Get your Mobile App Development started
-
-That's it for now! Thanks for your time.
-
-Awaiting your reply,
-
-Regards,
-Vivek Shah
+Philipp
