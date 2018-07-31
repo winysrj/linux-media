@@ -1,82 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:39018 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732448AbeGaRNd (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:36648 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732074AbeGaSna (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 13:13:33 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1] media: staging: tegra-vde: Replace debug messages with trace points
-Date: Tue, 31 Jul 2018 18:32:38 +0300
-Message-ID: <5286387.GJUI5Hs7VI@dimapc>
-In-Reply-To: <1779889.gZoAajBteF@dimapc>
-References: <20180707162049.20407-1-digetx@gmail.com> <20180724213733.6c8b6b4b@coco.lan> <1779889.gZoAajBteF@dimapc>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Tue, 31 Jul 2018 14:43:30 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC 4/4] media: dvb: use signals to discover pads
+Date: Tue, 31 Jul 2018 14:02:13 -0300
+Message-Id: <012ee8bc9d1832843ee2c410f05bfb29560f1e42.1533055990.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1533055990.git.mchehab+samsung@kernel.org>
+References: <cover.1533055990.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1533055990.git.mchehab+samsung@kernel.org>
+References: <cover.1533055990.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, 25 July 2018 04:20:29 MSK Dmitry Osipenko wrote:
-> On Wednesday, 25 July 2018 03:37:33 MSK Mauro Carvalho Chehab wrote:
-> > Em Wed, 25 Jul 2018 01:38:37 +0300
-> > 
-> > Dmitry Osipenko <digetx@gmail.com> escreveu:
-> > > On Wednesday, 25 July 2018 01:06:52 MSK Mauro Carvalho Chehab wrote:
-> > > > Em Sat,  7 Jul 2018 19:20:49 +0300
-> > > > 
-> > > > Dmitry Osipenko <digetx@gmail.com> escreveu:
-> > > > > Trace points are much more efficient than debug messages for
-> > > > > extensive
-> > > > > tracing and could be conveniently enabled / disabled dynamically,
-> > > > > hence
-> > > > > let's replace debug messages with the trace points.
-> > > > 
-> > > > This patch require some work:
-> > > > 
-> > > > $ make ARCH=i386  CF=-D__CHECK_ENDIAN__
-> > > > CONFIG_DEBUG_SECTION_MISMATCH=y
-> > > > C=1
-> > > > W=1 CHECK='compile_checks' M=drivers/staging/media
-> > > > 
-> > > > ./include/linux/slab.h:631:13: error: undefined identifier
-> > > > '__builtin_mul_overflow' ./include/linux/slab.h:631:13: warning: call
-> > > > with
-> > > > no type!
-> > > > fixdep: error opening file: drivers/staging/media/tegra-vde/trace.h:
-> > > > No
-> > > > such file or directory
-> > > > 
-> > >   CHECK   drivers/staging/media/tegra-vde/tegra-vde.c
-> > > 
-> > > /bin/sh: compile_checks: command not found
-> > > 
-> > > Upstream kernel doesn't have "compile_checks" script and I can't find it
-> > > anywhere else.
-> > 
-> > This is just a call for smatch/sparse:
-> > 
-> > #!/bin/bash
-> > /devel/smatch/smatch -p=kernel $@
-> > # This is too pedantic and produce lots of false-positives
-> > #/devel/smatch/smatch --two-passes -- -p=kernel $@
-> > /devel/sparse/sparse $@
-> > 
-> > However, the problem here is that you're doing a 64 bits division.
-> > That causes compilation to break with 32 bits. you need to use
-> > do_div & friends.
-> 
-> The tegra-vde driver code is fine, it is a known issue with the kernels
-> checker [0]. Unfortunately the patch for the checker haven't been applied
-> yet.
-> 
-> [0] https://www.spinics.net/lists/kernel/msg2824058.html
+On tuner pads, multiple signals are present. Be sure to get
+the right PAD by using them.
 
-Mauro, are you going to un-reject patch [0] and apply it or there is some 
-action needed from my side now?
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/dvb-core/dvbdev.c | 37 +++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
-[0] https://patchwork.linuxtv.org/patch/51002/
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 787fe06df217..5c39bd328835 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -607,6 +607,28 @@ static int dvb_create_io_intf_links(struct dvb_adapter *adap,
+ 	return 0;
+ }
+ 
++static int get_pad_index(struct media_entity *entity, bool is_sink,
++			 enum media_pad_signal_type sig_type)
++{
++	int i;
++	bool pad_is_sink;
++
++	for (i = 0; i < entity->num_pads; i++) {
++		if (entity->pads[i].flags == MEDIA_PAD_FL_SINK)
++			pad_is_sink = true;
++		else if (entity->pads[i].flags == MEDIA_PAD_FL_SOURCE)
++			pad_is_sink = false;
++		else
++			continue;	/* This is an error! */
++
++		if (pad_is_sink != is_sink)
++			continue;
++		if (entity->pads[i].sig_type == sig_type)
++			return i;
++	}
++	return -EINVAL;
++}
++
+ int dvb_create_media_graph(struct dvb_adapter *adap,
+ 			   bool create_rf_connector)
+ {
+@@ -618,7 +640,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
+ 	unsigned demux_pad = 0;
+ 	unsigned dvr_pad = 0;
+ 	unsigned ntuner = 0, ndemod = 0;
+-	int ret;
++	int ret, pad_source, pad_sink;
+ 	static const char *connector_name = "Television";
+ 
+ 	if (!mdev)
+@@ -678,7 +700,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
+ 		if (ret)
+ 			return ret;
+ 
+-		if (!ntuner)
++		if (!ntuner) {
+ 			ret = media_create_pad_links(mdev,
+ 						     MEDIA_ENT_F_CONN_RF,
+ 						     conn, 0,
+@@ -686,19 +708,26 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
+ 						     demod, 0,
+ 						     MEDIA_LNK_FL_ENABLED,
+ 						     false);
+-		else
++		} else {
++			pad_sink = get_pad_index(tuner, true, PAD_SIGNAL_RF);
++			if (pad_sink < 0)
++				return -EINVAL;
+ 			ret = media_create_pad_links(mdev,
+ 						     MEDIA_ENT_F_CONN_RF,
+ 						     conn, 0,
+ 						     MEDIA_ENT_F_TUNER,
+-						     tuner, TUNER_PAD_RF_INPUT,
++						     tuner, pad_sink,
+ 						     MEDIA_LNK_FL_ENABLED,
+ 						     false);
++		}
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+ 	if (ntuner && ndemod) {
++		pad_source = get_pad_index(tuner, true, PAD_SIGNAL_RF);
++		if (pad_source)
++			return -EINVAL;
+ 		ret = media_create_pad_links(mdev,
+ 					     MEDIA_ENT_F_TUNER,
+ 					     tuner, TUNER_PAD_OUTPUT,
+-- 
+2.17.1
