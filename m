@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:45868 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727269AbeGaSp5 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:39032 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728968AbeGaT62 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 14:45:57 -0400
-Subject: Re: [PATCH v5 0/8] xen: dma-buf support for grant device
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        jgross@suse.com, konrad.wilk@oracle.com
-Cc: daniel.vetter@intel.com, dongwon.kim@intel.com,
-        matthew.d.roper@intel.com,
-        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180720090150.24560-1-andr2000@gmail.com>
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Message-ID: <b321da31-24ea-7bfd-769c-0cdec85844c8@oracle.com>
-Date: Tue, 31 Jul 2018 13:04:48 -0400
+        Tue, 31 Jul 2018 15:58:28 -0400
+Date: Tue, 31 Jul 2018 11:16:56 -0700
+From: Matthew Wilcox <willy@infradead.org>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 14/26] media: Convert entity ID allocation to new IDA API
+Message-ID: <20180731181656.GB16794@bombadil.infradead.org>
+References: <20180621212835.5636-1-willy@infradead.org>
+ <20180621212835.5636-15-willy@infradead.org>
+ <20180724110507.idyjc3vbbivwbxtb@valkosipuli.retiisi.org.uk>
+ <20180730115521.23f7afa9@coco.lan>
 MIME-Version: 1.0
-In-Reply-To: <20180720090150.24560-1-andr2000@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180730115521.23f7afa9@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/20/2018 05:01 AM, Oleksandr Andrushchenko wrote:
-> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->
-> This work is in response to my previous attempt to introduce Xen/DRM
-> zero-copy driver [1] to enable Linux dma-buf API [2] for Xen based
-> frontends/backends. There is also an existing hyper_dmabuf approach
-> available [3] which, if reworked to utilize the proposed solution,
-> can greatly benefit as well.
->
+On Mon, Jul 30, 2018 at 11:55:21AM -0300, Mauro Carvalho Chehab wrote:
+> Em Tue, 24 Jul 2018 14:05:07 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > On Thu, Jun 21, 2018 at 02:28:23PM -0700, Matthew Wilcox wrote:
+> > > Removes a call to ida_pre_get().
+> > > 
+> > > Signed-off-by: Matthew Wilcox <willy@infradead.org>  
+> > 
+> > Reviewed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> I'm assuming that the entire series will be applied together via some
+> other tree. So:
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-
-Applied to for-linus-4.19.
-
--boris
+Yep, thanks.  It's in linux-next and it's all going in via my 'ida'
+branch.
