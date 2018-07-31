@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57338 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2388091AbeGWQOp (ORCPT
+Received: from unassigned.psychz.net ([172.107.96.234]:50889 "EHLO
+        monogram.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1725886AbeGaWQQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jul 2018 12:14:45 -0400
-Date: Mon, 23 Jul 2018 18:13:02 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>,
-        Peter Rosin <peda@axentia.se>,
-        Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH -next v4 2/3] media: ov772x: use SCCB regmap
-Message-ID: <20180723151302.7uhfsm7fyrlq62qq@valkosipuli.retiisi.org.uk>
-References: <1531756070-8560-1-git-send-email-akinobu.mita@gmail.com>
- <1531756070-8560-3-git-send-email-akinobu.mita@gmail.com>
+        Tue, 31 Jul 2018 18:16:16 -0400
+To: linux-media@vger.kernel.org
+Subject: web and mobile app development
+Message-ID: <4fb2b570f92dc6dd61533611f9031985@tigermedical.com>
+Date: Tue, 31 Jul 2018 09:48:38 +0200
+From: "Vivek Shah" <tekofoter@kellyshomecenter.com>
+Reply-To: cengjaos@aliyun.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1531756070-8560-3-git-send-email-akinobu.mita@gmail.com>
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mita-san,
+Hello,
 
-On Tue, Jul 17, 2018 at 12:47:49AM +0900, Akinobu Mita wrote:
-> Convert ov772x register access to use SCCB regmap.
-> 
-> Cc: Mark Brown <broonie@kernel.org>
-> Cc: Peter Rosin <peda@axentia.se>
-> Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> Cc: Wolfram Sang <wsa@the-dreams.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  drivers/media/i2c/Kconfig  |   1 +
->  drivers/media/i2c/ov772x.c | 192 +++++++++++++++++++--------------------------
->  2 files changed, 82 insertions(+), 111 deletions(-)
+Are you in search of a suitable app development agency to nurture and
+transform your creative app idea into reality?
 
-I'll pick the two patches up when the SCCB regmap support has reached media
-tree master. Thanks.
+Well, your search ends here.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+We are based in India. We are in the mobile app development domain for last
+seven years and with
+a team of 120+ web and mobile app development professionals, we have served
+the global clientele.
+
+Talking about the mobile apps, we have built over 350 mobile apps ranging
+from a simple business
+app to complex enterprise app to date.
+
+Our expertise in iOS, Android, Ionic, and PhoneGap-based platforms and
+various libraries can help
+you reach a huge smartphone-using audience with the following services:
+
+• Mobile App Consulting
+• Mobile App UI/UX Designing
+• Mobile App Development
+• Mobile App Maintenance & Support
+• Website and eCommerce portal Development
+
+We render our enterprise-grade app development services across different
+industry sectors including
+retail, games and entertainment, lifestyle, social media, healthcare and
+hospitality, BFSI, eCommerce
+(m-commerce), food and beverages, and the like.
+
+We will gladly share the references of our work on your demand.
+
+Here is how you can start expanding your business online:
+1. Respond to this email
+2. We will provide an Action Plan and Quote
+3. Get your Mobile App Development started
+
+That's it for now! Thanks for your time.
+
+Awaiting your reply,
+
+Regards,
+Vivek Shah
