@@ -1,92 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:48557 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732173AbeGaPmZ (ORCPT
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:39018 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732448AbeGaRNd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 11:42:25 -0400
-Date: Tue, 31 Jul 2018 16:01:53 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Colin Ian King <colin.king@canonical.com>
+        Tue, 31 Jul 2018 13:13:33 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][media-next] media: i2c: mt9v111: fix off-by-one array
- bounds check
-Message-ID: <20180731140153.GE370@w540>
-References: <20180731133343.22337-1-colin.king@canonical.com>
- <20180731135341.GD370@w540>
- <c2684aa2-71d7-b82e-df18-65ea3f026d97@canonical.com>
+        linux-tegra@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1] media: staging: tegra-vde: Replace debug messages with trace points
+Date: Tue, 31 Jul 2018 18:32:38 +0300
+Message-ID: <5286387.GJUI5Hs7VI@dimapc>
+In-Reply-To: <1779889.gZoAajBteF@dimapc>
+References: <20180707162049.20407-1-digetx@gmail.com> <20180724213733.6c8b6b4b@coco.lan> <1779889.gZoAajBteF@dimapc>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="cPi+lWm09sJ+d57q"
-Content-Disposition: inline
-In-Reply-To: <c2684aa2-71d7-b82e-df18-65ea3f026d97@canonical.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wednesday, 25 July 2018 04:20:29 MSK Dmitry Osipenko wrote:
+> On Wednesday, 25 July 2018 03:37:33 MSK Mauro Carvalho Chehab wrote:
+> > Em Wed, 25 Jul 2018 01:38:37 +0300
+> > 
+> > Dmitry Osipenko <digetx@gmail.com> escreveu:
+> > > On Wednesday, 25 July 2018 01:06:52 MSK Mauro Carvalho Chehab wrote:
+> > > > Em Sat,  7 Jul 2018 19:20:49 +0300
+> > > > 
+> > > > Dmitry Osipenko <digetx@gmail.com> escreveu:
+> > > > > Trace points are much more efficient than debug messages for
+> > > > > extensive
+> > > > > tracing and could be conveniently enabled / disabled dynamically,
+> > > > > hence
+> > > > > let's replace debug messages with the trace points.
+> > > > 
+> > > > This patch require some work:
+> > > > 
+> > > > $ make ARCH=i386  CF=-D__CHECK_ENDIAN__
+> > > > CONFIG_DEBUG_SECTION_MISMATCH=y
+> > > > C=1
+> > > > W=1 CHECK='compile_checks' M=drivers/staging/media
+> > > > 
+> > > > ./include/linux/slab.h:631:13: error: undefined identifier
+> > > > '__builtin_mul_overflow' ./include/linux/slab.h:631:13: warning: call
+> > > > with
+> > > > no type!
+> > > > fixdep: error opening file: drivers/staging/media/tegra-vde/trace.h:
+> > > > No
+> > > > such file or directory
+> > > > 
+> > >   CHECK   drivers/staging/media/tegra-vde/tegra-vde.c
+> > > 
+> > > /bin/sh: compile_checks: command not found
+> > > 
+> > > Upstream kernel doesn't have "compile_checks" script and I can't find it
+> > > anywhere else.
+> > 
+> > This is just a call for smatch/sparse:
+> > 
+> > #!/bin/bash
+> > /devel/smatch/smatch -p=kernel $@
+> > # This is too pedantic and produce lots of false-positives
+> > #/devel/smatch/smatch --two-passes -- -p=kernel $@
+> > /devel/sparse/sparse $@
+> > 
+> > However, the problem here is that you're doing a 64 bits division.
+> > That causes compilation to break with 32 bits. you need to use
+> > do_div & friends.
+> 
+> The tegra-vde driver code is fine, it is a known issue with the kernels
+> checker [0]. Unfortunately the patch for the checker haven't been applied
+> yet.
+> 
+> [0] https://www.spinics.net/lists/kernel/msg2824058.html
 
---cPi+lWm09sJ+d57q
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Mauro, are you going to un-reject patch [0] and apply it or there is some 
+action needed from my side now?
 
-Hi Colin,
-
-On Tue, Jul 31, 2018 at 02:55:25PM +0100, Colin Ian King wrote:
-> On 31/07/18 14:53, jacopo mondi wrote:
-> > Hi Colin,
-> >    thanks for the patch.
-> >
-> > On Tue, Jul 31, 2018 at 02:33:43PM +0100, Colin King wrote:
-> >> From: Colin Ian King <colin.king@canonical.com>
-> >>
-> >> The check of fse->index is off-by-one and should be using >= rather
-> >> than > to check the maximum allowed array index. Fix this.
-> >>
-> >> Detected by CoverityScan, CID#172122 ("Out-of-bounds read")
-> >>
-> >> Fixes: aab7ed1c3927 ("media: i2c: Add driver for Aptina MT9V111")
-> >> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> >
-> > Acked-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >
-> > Thanks
-> >   j
-> >
->
-> Just to note, I also got a build warning on this driver, so that's
-> something that should be fixed up too.
->
-> drivers/media/i2c/mt9v111.c:887:15: warning: 'idx' may be used
-> uninitialized in this function [-Wmaybe-uninitialized]
->   unsigned int idx;
-
-Yes, that's false positive but indeed gcc doesn't know about that.
-
-A patch has already been sent and will hopefully be collected soon:
-https://patchwork.linuxtv.org/patch/51259/
-
-Thanks for noticing
-   j
-
---cPi+lWm09sJ+d57q
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbYGvRAAoJEHI0Bo8WoVY8rS8QAJOIcceLmLJW2x1mtyw4zFJ4
-sn6jRcKEzBgWjTT2FuLgKXyGXCeDXCy3q0oqLhWjAOd0EwXP6DBEr9AHfDVuCpAj
-ZFQEJ41Whvq63wBDtCOZaJH9a/A3SSp6Jy7uOTYL1xdmZQrwbcS4y+eodhm9aFcE
-2klEOc4wfGanUjwLI4yUVNMQS7J694j4PyA+7gCXU01bh0vtJ6VuAudscTvWIr99
-pn7XY8yYwSWl/6MIWCWTOXpxeq7ujRRcmg6N5VZFNowkD2xGUE1skfEQaunSPMZ9
-U1bDaglzbB7NhXqQB/T3u6BiD/Y/dM2ICC+gDsw6/hpr1z0gEtRqSLqZPefDJC6R
-8BQdneF1uNDZRB7LrBlbn1qbRCBpQ3tKreJXmw6tce9OA3KZcM8lJqzKZhVJey2+
-pA+JGZo/Ukdk3DkbpPGglDcrZgxKBS75H999h0CgMImAy1PsRs8hIwgy/ltr6lgR
-vfheY6q2vKofHioXs3xUHaATeIxdG/gioQtwdnyKQ+Qwh7ImNy46sUgICxoCFHBj
-De5N2AcYqU9NdZQVXQYwzGy8GlRs1UOdcar5gvTbJ+3VEpZxmtG3jMD4TQozeemI
-2lGDLJCCsr7m1IdO0gxXBdf69iDaFBP6RNP/PG+l/Y8iHcb6PdNYJ4Yr9yFqmarU
-FLhsFNiQmeFvwcAQafq8
-=FtHl
------END PGP SIGNATURE-----
-
---cPi+lWm09sJ+d57q--
+[0] https://patchwork.linuxtv.org/patch/51002/
