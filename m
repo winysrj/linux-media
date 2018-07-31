@@ -1,104 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45919 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727241AbeGaIkg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 04:40:36 -0400
-Date: Tue, 31 Jul 2018 09:01:36 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        p.zabel@pengutronix.de, afshin.nasser@gmail.com,
-        javierm@redhat.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 18/22] partial revert of "[media] tvp5150: add HW input
- connectors support"
-Message-ID: <20180731070136.fvh5c2rnmttmpcfv@pengutronix.de>
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
- <20180628162054.25613-19-m.felsch@pengutronix.de>
- <20180730151842.0fd99d01@coco.lan>
+Received: from mga14.intel.com ([192.55.52.115]:45074 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727135AbeGaJZX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jul 2018 05:25:23 -0400
+Date: Tue, 31 Jul 2018 10:46:18 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Satendra Singh Thakur <satendra.t@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, vineet.j@samsung.com,
+        hemanshu.s@samsung.com, sst2005@gmail.com
+Subject: Re: [PATCH] videobuf2/vb2_buffer_done: Changing the position of
+ spinlock to protect only the required code
+Message-ID: <20180731074618.ef6n7qulhlhoqwxb@paasikivi.fi.intel.com>
+References: <CGME20180727082146epcas5p10374c04f0767dbbe409c8171c49d7c9a@epcas5p1.samsung.com>
+ <20180727082146epcas5p10374c04f0767dbbe409c8171c49d7c9a~FLBKL7utW2249922499epcas5p1c@epcas5p1.samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180730151842.0fd99d01@coco.lan>
+In-Reply-To: <20180727082146epcas5p10374c04f0767dbbe409c8171c49d7c9a~FLBKL7utW2249922499epcas5p1c@epcas5p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Satendra,
 
-On 18-07-30 15:18, Mauro Carvalho Chehab wrote:
-> Em Thu, 28 Jun 2018 18:20:50 +0200
-> Marco Felsch <m.felsch@pengutronix.de> escreveu:
-> 
-> > From: Javier Martinez Canillas <javierm@redhat.com>
-> > 
-> > Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
-> > added input signals support for the tvp5150, but the approach was found
-> > to be incorrect so the corresponding DT binding commit 82c2ffeb217a
-> > ("[media] tvp5150: document input connectors DT bindings") was reverted.
-> > 
-> > This left the driver with an undocumented (and wrong) DT parsing logic,
-> > so lets get rid of this code as well until the input connectors support
-> > is implemented properly.
-> > 
-> > It's a partial revert due other patches added on top of mentioned commit
-> > not allowing the commit to be reverted cleanly anymore. But all the code
-> > related to the DT parsing logic and input entities creation are removed.
-> > 
-> > Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > [m.felsch@pengutronix.de: rm TVP5150_INPUT_NUM define]
-> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > ---
-> 
-> ...
-> 
-> > -static int tvp5150_registered(struct v4l2_subdev *sd)
-> > -{
-> > -#ifdef CONFIG_MEDIA_CONTROLLER
-> > -	struct tvp5150 *decoder = to_tvp5150(sd);
-> > -	int ret = 0;
-> > -	int i;
-> > -
-> > -	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
-> > -		struct media_entity *input = &decoder->input_ent[i];
-> > -		struct media_pad *pad = &decoder->input_pad[i];
-> > -
-> > -		if (!input->name)
-> > -			continue;
-> > -
-> > -		decoder->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
-> > -
-> > -		ret = media_entity_pads_init(input, 1, pad);
-> > -		if (ret < 0)
-> > -			return ret;
-> > -
-> > -		ret = media_device_register_entity(sd->v4l2_dev->mdev, input);
-> > -		if (ret < 0)
-> > -			return ret;
-> > -
-> > -		ret = media_create_pad_link(input, 0, &sd->entity,
-> > -					    DEMOD_PAD_IF_INPUT, 0);
-> > -		if (ret < 0) {
-> > -			media_device_unregister_entity(input);
-> > -			return ret;
-> > -		}
-> > -	}
-> > -#endif
-> 
-> Hmm... I suspect that reverting this part may cause problems for drivers
-> like em28xx when compiled with MC, as they rely that the supported demods
-> will have 3 pads (DEMOD_NUM_PADS).
+Thanks for the patch.
 
-Please, can you test this for me? I have no such usb device.
-Using the DEMOD_NUM_PADS looked wrong to me since the tvp5150 has more
-than one input pad.
-
-Thanks,
-Marco
-
-> Thanks,
-> Mauro
+On Fri, Jul 27, 2018 at 01:51:36PM +0530, Satendra Singh Thakur wrote:
+> 1.Currently, in the func vb2_buffer_done, spinlock protects
+> following code
+> vb->state = VB2_BUF_STATE_QUEUED;
+> list_add_tail(&vb->done_entry, &q->done_list);
+> spin_unlock_irqrestore(&q->done_lock, flags);
+> vb->state = state;
+> atomic_dec(&q->owned_by_drv_count);
+> 2.The spinlock is mainly needed to protect list related ops and
+> vb->state = STATE_ERROR or STATE_DONE as in other funcs
+> vb2_discard_done
+> __vb2_get_done_vb
+> vb2_core_poll.
+> 3. Therefore, spinlock is mainly needed for
+>    list_add, list_del, list_first_entry ops
+>    and state = STATE_DONE and STATE_ERROR to protect
+>    done_list queue.
+> 3. Hence, state = STATE_QUEUED doesn't need spinlock protection.
+> 4. Also atomic_dec dones't require the same as its already atomic.
 > 
+> Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
+> ---
+>  drivers/media/common/videobuf2/videobuf2-core.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index f32ec73..968b403 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -923,17 +923,17 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+>  	}
+>  
+> -	spin_lock_irqsave(&q->done_lock, flags);
+>  	if (state == VB2_BUF_STATE_QUEUED ||
+>  	    state == VB2_BUF_STATE_REQUEUEING) {
+>  		vb->state = VB2_BUF_STATE_QUEUED;
+>  	} else {
+
+You could move flags here as well. I wonder what others think.
+
+>  		/* Add the buffer to the done buffers list */
+> +		spin_lock_irqsave(&q->done_lock, flags);
+>  		list_add_tail(&vb->done_entry, &q->done_list);
+>  		vb->state = state;
+
+The state could be assigned without holding the lock here.
+
+> +		spin_unlock_irqrestore(&q->done_lock, flags);
+>  	}
+>  	atomic_dec(&q->owned_by_drv_count);
+> -	spin_unlock_irqrestore(&q->done_lock, flags);
+>  
+>  	trace_vb2_buf_done(q, vb);
+>  
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
