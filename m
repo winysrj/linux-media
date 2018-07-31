@@ -1,41 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:63025 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727161AbeGaFcg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 01:32:36 -0400
-From: "Chen, Ping-chung" <ping-chung.chen@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mail-yb0-f196.google.com ([209.85.213.196]:46207 "EHLO
+        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725853AbeGaFjm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jul 2018 01:39:42 -0400
+Received: by mail-yb0-f196.google.com with SMTP id c3-v6so5632948ybi.13
+        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2018 21:01:30 -0700 (PDT)
+Received: from mail-yb0-f176.google.com (mail-yb0-f176.google.com. [209.85.213.176])
+        by smtp.gmail.com with ESMTPSA id v185-v6sm6160500ywc.94.2018.07.30.21.01.28
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 30 Jul 2018 21:01:29 -0700 (PDT)
+Received: by mail-yb0-f176.google.com with SMTP id s1-v6so5641590ybk.3
+        for <linux-media@vger.kernel.org>; Mon, 30 Jul 2018 21:01:28 -0700 (PDT)
+MIME-Version: 1.0
+References: <1532942799-25289-1-git-send-email-ping-chung.chen@intel.com>
+ <CAAFQd5D33wzALT+0KkfXKzKs68cYKy05GbHe_SnLakpfJyry3w@mail.gmail.com> <5E40A82D0551C84FA2888225EDABBE093FAA3EE3@PGSMSX105.gar.corp.intel.com>
+In-Reply-To: <5E40A82D0551C84FA2888225EDABBE093FAA3EE3@PGSMSX105.gar.corp.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 31 Jul 2018 13:01:17 +0900
+Message-ID: <CAAFQd5DCrT=uUJ02LDzruEK_Cjf0DiT5tdFhxeNNYub--Fr4XQ@mail.gmail.com>
+Subject: Re: [PATCH v2] media: imx208: Add imx208 camera sensor driver
+To: ping-chung.chen@intel.com
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         "Yeh, Andy" <andy.yeh@intel.com>, "Lai, Jim" <jim.lai@intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Grant Grundler <grundler@chromium.org>,
         "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v2] media: imx208: Add imx208 camera sensor driver
-Date: Tue, 31 Jul 2018 03:54:23 +0000
-Message-ID: <5E40A82D0551C84FA2888225EDABBE093FAA3EE3@PGSMSX105.gar.corp.intel.com>
-References: <1532942799-25289-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5D33wzALT+0KkfXKzKs68cYKy05GbHe_SnLakpfJyry3w@mail.gmail.com>
-In-Reply-To: <CAAFQd5D33wzALT+0KkfXKzKs68cYKy05GbHe_SnLakpfJyry3w@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgVG9tYXN6LA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gKy8qIEdldCBiYXll
-ciBvcmRlciBiYXNlZCBvbiBmbGlwIHNldHRpbmcuICovIHN0YXRpYyBfX3UzMiANCj4gK2lteDIw
-OF9nZXRfZm9ybWF0X2NvZGUoc3RydWN0IGlteDIwOCAqaW14MjA4KQ0KDQo+V2h5IG5vdCBqdXN0
-ICJ1MzIiPw0KDQpJdHMgcmV0dXJuIHZhbHVlIHdpbGwgYmUgYXNzaWduZWQgdG8gdGhlIHZhcmlh
-YmxlIGNvZGUgd2hpY2ggYmVsb25ncyB0byB0aGUgc3RydWN0dXJlIA0KdjRsMl9zdWJkZXZfbWJ1
-c19jb2RlX2VudW0sIGFuZCB0aGUgdHlwZSBvZiB0aGlzIHZhcmlhYmxlIGlzIF9fdTMyLg0Kc3Ry
-dWN0IHY0bDJfc3ViZGV2X21idXNfY29kZV9lbnVtIHsNCglfX3UzMiBwYWQ7DQoJX191MzIgaW5k
-ZXg7DQoJX191MzIgY29kZTsNCglfX3UzMiB3aGljaDsNCglfX3UzMiByZXNlcnZlZFs4XTsNCn07
-DQoNCj4gK3sNCj4gKyAgICAgICAvKg0KPiArICAgICAgICAqIE9ubHkgb25lIGJheWVyIG9yZGVy
-IGlzIHN1cHBvcnRlZC4NCj4gKyAgICAgICAgKiBJdCBkZXBlbmRzIG9uIHRoZSBmbGlwIHNldHRp
-bmdzLg0KPiArICAgICAgICAqLw0KPiArICAgICAgIHN0YXRpYyBjb25zdCBfX3UzMiBjb2Rlc1sy
-XVsyXSA9IHsNCg0KPkRpdHRvLg0KDQo+ICsgICAgICAgICAgICAgICB7IE1FRElBX0JVU19GTVRf
-U1JHR0IxMF8xWDEwLCBNRURJQV9CVVNfRk1UX1NHUkJHMTBfMVgxMCwgfSwNCj4gKyAgICAgICAg
-ICAgICAgIHsgTUVESUFfQlVTX0ZNVF9TR0JSRzEwXzFYMTAsIE1FRElBX0JVU19GTVRfU0JHR1Ix
-MF8xWDEwLCB9LA0KPiArICAgICAgIH07DQo+ICsNCj4gKyAgICAgICByZXR1cm4gY29kZXNbaW14
-MjA4LT52ZmxpcC0+dmFsXVtpbXgyMDgtPmhmbGlwLT52YWxdOw0KPiArfQ0KPiArDQo=
+On Tue, Jul 31, 2018 at 12:54 PM Chen, Ping-chung
+<ping-chung.chen@intel.com> wrote:
+>
+> Hi Tomasz,
+>
+> >-----Original Message-----
+> > +/* Get bayer order based on flip setting. */ static __u32
+> > +imx208_get_format_code(struct imx208 *imx208)
+>
+> >Why not just "u32"?
+>
+> Its return value will be assigned to the variable code which belongs to the structure
+> v4l2_subdev_mbus_code_enum, and the type of this variable is __u32.
+> struct v4l2_subdev_mbus_code_enum {
+>         __u32 pad;
+>         __u32 index;
+>         __u32 code;
+>         __u32 which;
+>         __u32 reserved[8];
+> };
+>
+> > +{
+> > +       /*
+> > +        * Only one bayer order is supported.
+> > +        * It depends on the flip settings.
+> > +        */
+> > +       static const __u32 codes[2][2] = {
+>
+> >Ditto.
+>
+> > +               { MEDIA_BUS_FMT_SRGGB10_1X10, MEDIA_BUS_FMT_SGRBG10_1X10, },
+> > +               { MEDIA_BUS_FMT_SGBRG10_1X10, MEDIA_BUS_FMT_SBGGR10_1X10, },
+> > +       };
+> > +
+> > +       return codes[imx208->vflip->val][imx208->hflip->val];
+> > +}
+> > +
+
+That's okay. __u32 is an equivalent of u32 defined to be used in UAPI
+headers. Inside of kernel-only code, u32 should be used.
+
+Best regards,
+Tomasz
