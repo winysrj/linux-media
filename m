@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:36842 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:40208 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732144AbeGaPCv (ORCPT
+        with ESMTP id S1727524AbeGaLqo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jul 2018 11:02:51 -0400
-Date: Tue, 31 Jul 2018 10:22:22 -0300
+        Tue, 31 Jul 2018 07:46:44 -0400
+Date: Tue, 31 Jul 2018 07:06:59 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Javier Martinez Canillas <javierm@redhat.com>
 Cc: Marco Felsch <m.felsch@pengutronix.de>, mchehab@kernel.org,
@@ -14,300 +14,185 @@ Cc: Marco Felsch <m.felsch@pengutronix.de>, mchehab@kernel.org,
         devicetree@vger.kernel.org, kernel@pengutronix.de
 Subject: Re: [PATCH 18/22] partial revert of "[media] tvp5150: add HW input
  connectors support"
-Message-ID: <20180731102222.698c7206@coco.lan>
-In-Reply-To: <20180731070659.43afe417@coco.lan>
+Message-ID: <20180731070659.43afe417@coco.lan>
+In-Reply-To: <3a9f8715-a3a6-b250-82ad-6f2df6500767@redhat.com>
 References: <20180628162054.25613-1-m.felsch@pengutronix.de>
         <20180628162054.25613-19-m.felsch@pengutronix.de>
         <20180730151842.0fd99d01@coco.lan>
         <3a9f8715-a3a6-b250-82ad-6f2df6500767@redhat.com>
-        <20180731070659.43afe417@coco.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 31 Jul 2018 07:06:59 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+Em Tue, 31 Jul 2018 10:52:56 +0200
+Javier Martinez Canillas <javierm@redhat.com> escreveu:
 
-> Em Tue, 31 Jul 2018 10:52:56 +0200
-> Javier Martinez Canillas <javierm@redhat.com> escreveu:
+> Hello Mauro,
 > 
-
-> The graph is not built correct, as it is linking tvp5150's input pads as
-> if they were output ones.
+> On 07/30/2018 08:18 PM, Mauro Carvalho Chehab wrote:
+> > Em Thu, 28 Jun 2018 18:20:50 +0200
+> > Marco Felsch <m.felsch@pengutronix.de> escreveu:
+> >   
+> >> From: Javier Martinez Canillas <javierm@redhat.com>
+> >>
+> >> Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
+> >> added input signals support for the tvp5150, but the approach was found
+> >> to be incorrect so the corresponding DT binding commit 82c2ffeb217a
+> >> ("[media] tvp5150: document input connectors DT bindings") was reverted.
+> >>
+> >> This left the driver with an undocumented (and wrong) DT parsing logic,
+> >> so lets get rid of this code as well until the input connectors support
+> >> is implemented properly.
+> >>
+> >> It's a partial revert due other patches added on top of mentioned commit
+> >> not allowing the commit to be reverted cleanly anymore. But all the code
+> >> related to the DT parsing logic and input entities creation are removed.
+> >>
+> >> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+> >> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> [m.felsch@pengutronix.de: rm TVP5150_INPUT_NUM define]
+> >> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> >> ---  
+> > 
+> > ...
+> >   
+> >> -static int tvp5150_registered(struct v4l2_subdev *sd)
+> >> -{
+> >> -#ifdef CONFIG_MEDIA_CONTROLLER
+> >> -	struct tvp5150 *decoder = to_tvp5150(sd);
+> >> -	int ret = 0;
+> >> -	int i;
+> >> -
+> >> -	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
+> >> -		struct media_entity *input = &decoder->input_ent[i];
+> >> -		struct media_pad *pad = &decoder->input_pad[i];
+> >> -
+> >> -		if (!input->name)
+> >> -			continue;
+> >> -
+> >> -		decoder->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
+> >> -
+> >> -		ret = media_entity_pads_init(input, 1, pad);
+> >> -		if (ret < 0)
+> >> -			return ret;
+> >> -
+> >> -		ret = media_device_register_entity(sd->v4l2_dev->mdev, input);
+> >> -		if (ret < 0)
+> >> -			return ret;
+> >> -
+> >> -		ret = media_create_pad_link(input, 0, &sd->entity,
+> >> -					    DEMOD_PAD_IF_INPUT, 0);
+> >> -		if (ret < 0) {
+> >> -			media_device_unregister_entity(input);
+> >> -			return ret;
+> >> -		}
+> >> -	}
+> >> -#endif  
+> > 
+> > Hmm... I suspect that reverting this part may cause problems for drivers
+> > like em28xx when compiled with MC, as they rely that the supported demods
+> > will have 3 pads (DEMOD_NUM_PADS).
+> >  
 > 
-> The problem is that now you need to teach drivers/media/v4l2-core/v4l2-mc.c
-> to do the proper wiring for tvp5150.
+> I don't see how this change could affect em28xx and other drivers. The function
+> tvp5150_registered() being removed here, only register the media entity and add
+> a link if input->name was set. This is set in tvp5150_parse_dt() and only if a
+> input connector as defined in the Device Tree file.
 > 
-> I suspect that fixing v4l2-mc for doing that is not hard, but it may
-> require changes at the other demods. Thankfully there aren't many
-> demod drivers, but such patch should be applied before patch 19/22.
+> In other words, all the code removed by this patch is DT-only and isn't used by
+> any media driver that makes use of the tvp5151.
 > 
-> In the specific case of demods that don't support sliced VBI (or
-> where sliced VBI is not coded), there should be just one source pad.
-> 
-> On demods with sliced VBI, there are actually two source pads,
-> although, for simplicity, maybe we could map them as just one.
-> 
-> If we map as just one source pad, it is probably easy to change the
-> code at v4l2-mc to do the right thing.
-> 
-> I'll do some tests here and try to code it.
+> As mentioned in the commit message, this code has never been used (besides from
+> my testings) and should had been removed when the DT binding was reverted, but
+> for some reasons the first patch landed and the second didn't at the time.
 
-Ok, did some coding. The way to make it more robust and allow having
-a different number of PADs for different demods/tuners is with an
-approach like the one below.
+Short answer: 
 
-This is just a RFC sort of patch, as it is incomplete, not covering the
-dvbdev.c pipeline setup logic.
+Yeah, you're right. Yet, patch 19/22 will cause regressions.
 
-Anyway, it should be useful for further discussions, but some work
-is needed.
+Long answer:
 
-Regards,
-Mauro
+That's easy enough to test.
 
+Without this patch, a em28xx-based board (Terratec Grabster AV350) reports:
 
-[RFC] media: v4l2: taint pads with the signal types for consumer devices
+$ ./mc_nextgen_test -D
+digraph board {
+	rankdir=TB
+	colorscheme=x11
+	labelloc="t"
+	label="Grabster AV 350
+ driver:em28xx, bus: usb-0000:00:14.0-2
+"
+	intf_devnode_7 [label="intf_devnode_7\nvideo\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
+	intf_devnode_10 [label="intf_devnode_10\nvbi\n/dev/vbi0", shape=box, style=filled, fillcolor=yellow]
+	entity_1 [label="{{<pad_2> 0} | entity_1\nATV decoder\ntvp5150 0-005c | {<pad_3> 1 | <pad_4> 2}}", shape=Mrecord, style=filled, fillcolor=lightblue]
+	entity_6 [label="{{<pad_12> 0} | entity_6\nV4L I/O\n2-2:1.0 video}", shape=Mrecord, style=filled, fillcolor=aquamarine]
+	entity_9 [label="{{<pad_13> 0} | entity_9\nVBI I/O\n2-2:1.0 vbi}", shape=Mrecord, style=filled, fillcolor=aquamarine]
+	entity_14 [label="{entity_14\nunknown entity type\nComposite | {<pad_15> 0}}", shape=Mrecord, style=filled, fillcolor=cadetblue]
+	entity_16 [label="{entity_16\nunknown entity type\nS-Video | {<pad_17> 0}}", shape=Mrecord, style=filled, fillcolor=cadetblue]
+	intf_devnode_7 -> entity_6 [dir="none" color="orange"]
+	intf_devnode_10 -> entity_9 [dir="none" color="orange"]
+	entity_1:pad_3 -> entity_6:pad_12 [color=blue]
+	entity_1:pad_4 -> entity_9:pad_13 [color=blue]
+	entity_14:pad_15 -> entity_1:pad_2 [color=blue]
+	entity_16:pad_17 -> entity_1:pad_2 [color=blue style="dashed"]
+}
 
-Consumer devices are provided with a wide diferent range of types
-supported by the same driver, allowing different configutations.
+tvp5150 reports 3 pads (one input, two output pads), and media core
+properly connects the source pads.
 
-In order to make easier to setup media controller links, "taint"
-pads with the signal type it carries.
+With patch 18/22, I got the same graph. So, yeah, applying this patch
+won't cause regressions.
 
-While here, get rid of DEMOD_PAD_VBI_OUT, as the signal it carries
-is actually the same as the normal video output.
+However, when we apply patch 19/22:
 
-The difference happens at the video/VBI interface:
-        - for VBI, only the hidden lines are streamed;
-        - for video, the stream is usually cropped to hide the
-          vbi lines.
+$ mc_nextgen_test -D
+digraph board {
+	rankdir=TB
+	colorscheme=x11
+	labelloc="t"
+	label="Grabster AV 350
+ driver:em28xx, bus: usb-0000:00:14.0-2
+"
+	intf_devnode_7 [label="intf_devnode_7\nvideo\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
+	intf_devnode_10 [label="intf_devnode_10\nvbi\n/dev/vbi0", shape=box, style=filled, fillcolor=yellow]
+	entity_1 [label="{{<pad_2> 0 | <pad_3> 1 | <pad_4> 2} | entity_1\nATV decoder\ntvp5150 0-005c | {<pad_5> 3}}", shape=Mrecord, style=filled, fillcolor=lightblue]
+	entity_6 [label="{{<pad_12> 0} | entity_6\nV4L I/O\n2-2:1.0 video}", shape=Mrecord, style=filled, fillcolor=aquamarine]
+	entity_9 [label="{{<pad_13> 0} | entity_9\nVBI I/O\n2-2:1.0 vbi}", shape=Mrecord, style=filled, fillcolor=aquamarine]
+	entity_14 [label="{entity_14\nunknown entity type\nComposite | {<pad_15> 0}}", shape=Mrecord, style=filled, fillcolor=cadetblue]
+	entity_16 [label="{entity_16\nunknown entity type\nS-Video | {<pad_17> 0}}", shape=Mrecord, style=filled, fillcolor=cadetblue]
+	intf_devnode_7 -> entity_6 [dir="none" color="orange"]
+	intf_devnode_10 -> entity_9 [dir="none" color="orange"]
+	entity_1:pad_3 -> entity_6:pad_12 [color=blue]
+	entity_1:pad_4 -> entity_9:pad_13 [color=blue]
+	entity_14:pad_15 -> entity_1:pad_2 [color=blue]
+	entity_16:pad_17 -> entity_1:pad_2 [color=blue style="dashed"]
+}
 
-Compile-tested only and incomplete: the dvbdev.c should have a similar
-change like the one done at v4l2-mc.c.
+The graph is not built correct, as it is linking tvp5150's input pads as
+if they were output ones.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+The problem is that now you need to teach drivers/media/v4l2-core/v4l2-mc.c
+to do the proper wiring for tvp5150.
 
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 343dc92ef54e..f4df9ab3d8b0 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -721,9 +721,11 @@ static int au8522_probe(struct i2c_client *client,
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 
- 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_RF;
- 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_ATV_VIDEO;
- 	state->pads[DEMOD_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[DEMOD_PAD_AUDIO_OUT].sig_type = PAD_SIGNAL_AUDIO;
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
- 	ret = media_entity_pads_init(&sd->entity, ARRAY_SIZE(state->pads),
-diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
-index 3db966db83eb..3b9c729fbd52 100644
---- a/drivers/media/i2c/msp3400-driver.c
-+++ b/drivers/media/i2c/msp3400-driver.c
-@@ -704,7 +704,9 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	state->pads[IF_AUD_DEC_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[IF_AUD_DEC_PAD_IF_INPUT].sig_type = PAD_SIGNAL_AUDIO;
- 	state->pads[IF_AUD_DEC_PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[IF_AUD_DEC_PAD_OUT].sig_type = PAD_SIGNAL_AUDIO;
- 
- 	sd->entity.function = MEDIA_ENT_F_IF_AUD_DECODER;
- 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index b07114b5efb2..0b298aa34a7c 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -1835,8 +1835,9 @@ static int saa711x_probe(struct i2c_client *client,
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_RF;
- 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_ATV_VIDEO;
- 
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 1734ed4ede33..dab83a774e73 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1495,8 +1495,9 @@ static int tvp5150_probe(struct i2c_client *c,
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	core->pads[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_RF;
- 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	core->pads[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_ATV_VIDEO;
- 
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index 9e76de2411ae..322e2ac00066 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -846,8 +846,9 @@ static void saa7134_create_entities(struct saa7134_dev *dev)
- 	if (!decoder) {
- 		dev->demod.name = "saa713x";
- 		dev->demod_pad[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		dev->demod_pad[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_RF;
- 		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--		dev->demod_pad[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->demod_pad[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_ATV_VIDEO;
- 		dev->demod.function = MEDIA_ENT_F_ATV_DECODER;
- 
- 		ret = media_entity_pads_init(&dev->demod, DEMOD_NUM_PADS,
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 9e34d31d724d..85e9ea9059a3 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -469,8 +469,11 @@ static int si2157_probe(struct i2c_client *client,
- 		dev->ent.function = MEDIA_ENT_F_TUNER;
- 
- 		dev->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		dev->pad[TUNER_PAD_RF_INPUT].sig_type = PAD_SIGNAL_RF;
- 		dev->pad[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->pad[TUNER_PAD_OUTPUT].sig_type = PAD_SIGNAL_CARRIERS;
- 		dev->pad[TUNER_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->pad[TUNER_PAD_AUD_OUT].sig_type = PAD_SIGNAL_AUDIO;
- 
- 		ret = media_entity_pads_init(&dev->ent, TUNER_NUM_PADS,
- 					     &dev->pad[0]);
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-index 67953360fda5..9161064b7718 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-@@ -893,7 +893,9 @@ static int mxl111sf_attach_tuner(struct dvb_usb_adapter *adap)
- 	state->tuner.function = MEDIA_ENT_F_TUNER;
- 	state->tuner.name = "mxl111sf tuner";
- 	state->tuner_pads[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->tuner_pads[TUNER_PAD_RF_INPUT].sig_type = PAD_SIGNAL_RF;
- 	state->tuner_pads[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->tuner_pads[TUNER_PAD_OUTPUT].sig_type = PAD_SIGNAL_CARRIERS;
- 
- 	ret = media_entity_pads_init(&state->tuner,
- 				     TUNER_NUM_PADS, state->tuner_pads);
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index 7f858c39753c..4c09c30e6ea1 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -685,15 +685,20 @@ static int tuner_probe(struct i2c_client *client,
- 	 */
- 	if (t->type == TUNER_TDA9887) {
- 		t->pad[IF_VID_DEC_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		t->pad[IF_VID_DEC_PAD_IF_INPUT].sig_type = PAD_SIGNAL_RF;
- 		t->pad[IF_VID_DEC_PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		t->pad[IF_VID_DEC_PAD_OUT].sig_type = PAD_SIGNAL_ATV_VIDEO;
- 		ret = media_entity_pads_init(&t->sd.entity,
- 					     IF_VID_DEC_PAD_NUM_PADS,
- 					     &t->pad[0]);
- 		t->sd.entity.function = MEDIA_ENT_F_IF_VID_DECODER;
- 	} else {
- 		t->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		t->pad[TUNER_PAD_RF_INPUT].sig_type = PAD_SIGNAL_RF;
- 		t->pad[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
-+		t->pad[TUNER_PAD_OUTPUT].sig_type = PAD_SIGNAL_CARRIERS;
- 		t->pad[TUNER_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		t->pad[TUNER_PAD_AUD_OUT].sig_type = PAD_SIGNAL_AUDIO;
- 		ret = media_entity_pads_init(&t->sd.entity, TUNER_NUM_PADS,
- 					     &t->pad[0]);
- 		t->sd.entity.function = MEDIA_ENT_F_TUNER;
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 0fc185a2ce90..982bab3530f6 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -147,7 +147,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	}
- 
- 	if (io_vbi) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VBI_OUT,
-+		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
- 					    io_vbi, 0,
- 					    MEDIA_LNK_FL_ENABLED);
- 		if (ret)
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index a732af1dbba0..bf0604d315ef 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -155,6 +155,38 @@ struct media_link {
- 	bool is_backlink;
- };
- 
-+/**
-+ * struct media_pad_signal_type - type of the signal inside a media pad
-+ *
-+ * @PAD_SIGNAL_DEFAULT
-+ *	Default signal. Use this when all inputs or all outputs are
-+ *	uniquely identified by just its number and all carries the same
-+ *	signal type
-+ * @PAD_SIGNAL_RF
-+ *	The pad contains a Radio Frequency, Intermediate Frequency or
-+ *	baseband signal.
-+ *	All Tuner sinks should use it.
-+ *	On tuner sources, this is used for digital TV demodulators and for
-+ *	IF-PLL demodulator like tda9887.
-+ * @PAD_SIGNAL_CARRIERS
-+ *	The pad contains analog signals carrying either a digital or an analog
-+ *	modulated (or baseband) signal. This is provided by tuner source
-+ *	pads and used by analog TV standard decoders and by digital tv demods.
-+ * @PAD_SIGNAL_ATV_VIDEO
-+ *	Contains a bitstream of samples from an analog TV video source, with
-+ *	usually contains the VBI data on it.
-+ * @PAD_SIGNAL_AUDIO
-+ *	Contains an Intermediate Frequency analog signal from an audio
-+ *	sub-carrier or an audio bitstream. Provided by tuners and consumed by audio AM/FM decoders.
-+ */
-+enum media_pad_signal_type {
-+	PAD_SIGNAL_DEFAULT = 0,
-+	PAD_SIGNAL_RF,
-+	PAD_SIGNAL_CARRIERS,
-+	PAD_SIGNAL_ATV_VIDEO,
-+	PAD_SIGNAL_AUDIO,
-+};
-+
- /**
-  * struct media_pad - A media pad graph object.
-  *
-@@ -169,6 +201,7 @@ struct media_pad {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	struct media_entity *entity;
- 	u16 index;
-+	enum media_pad_signal_type sig_type;
- 	unsigned long flags;
- };
- 
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-index 2634d9dc9916..7c9c781b16a9 100644
---- a/include/media/v4l2-mc.h
-+++ b/include/media/v4l2-mc.h
-@@ -89,14 +89,12 @@ enum if_aud_dec_pad_index {
-  *
-  * @DEMOD_PAD_IF_INPUT:	IF input sink pad.
-  * @DEMOD_PAD_VID_OUT:	Video output source pad.
-- * @DEMOD_PAD_VBI_OUT:	Vertical Blank Interface (VBI) output source pad.
-  * @DEMOD_PAD_AUDIO_OUT: Audio output source pad.
-  * @DEMOD_NUM_PADS:	Maximum number of output pads.
-  */
- enum demod_pad_index {
- 	DEMOD_PAD_IF_INPUT,
- 	DEMOD_PAD_VID_OUT,
--	DEMOD_PAD_VBI_OUT,
- 	DEMOD_PAD_AUDIO_OUT,
- 	DEMOD_NUM_PADS
- };
+I suspect that fixing v4l2-mc for doing that is not hard, but it may
+require changes at the other demods. Thankfully there aren't many
+demod drivers, but such patch should be applied before patch 19/22.
 
+In the specific case of demods that don't support sliced VBI (or
+where sliced VBI is not coded), there should be just one source pad.
 
+On demods with sliced VBI, there are actually two source pads,
+although, for simplicity, maybe we could map them as just one.
 
+If we map as just one source pad, it is probably easy to change the
+code at v4l2-mc to do the right thing.
 
+I'll do some tests here and try to code it.
 
 Thanks,
 Mauro
