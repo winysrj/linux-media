@@ -1,323 +1,1101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:3627 "EHLO mga18.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:39298 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725872AbeHAEOa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Aug 2018 00:14:30 -0400
-From: "Chen, Ping-chung" <ping-chung.chen@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Yeh, Andy" <andy.yeh@intel.com>, "Lai, Jim" <jim.lai@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Grant Grundler <grundler@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v2] media: imx208: Add imx208 camera sensor driver
-Date: Wed, 1 Aug 2018 02:31:12 +0000
-Message-ID: <5E40A82D0551C84FA2888225EDABBE093FAA41C3@PGSMSX105.gar.corp.intel.com>
-References: <1532942799-25289-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5D33wzALT+0KkfXKzKs68cYKy05GbHe_SnLakpfJyry3w@mail.gmail.com>
-In-Reply-To: <CAAFQd5D33wzALT+0KkfXKzKs68cYKy05GbHe_SnLakpfJyry3w@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        id S1725885AbeHAEOb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Aug 2018 00:14:31 -0400
+From: Ping-chung Chen <ping-chung.chen@intel.com>
+To: linux-media@vger.kernel.org
+Cc: andy.yeh@intel.com, jim.lai@intel.com, ping-chung.chen@intel.com,
+        sakari.ailus@linux.intel.com, tfiga@chromium.org,
+        grundler@chromium.org, rajmohan.mani@intel.com
+Subject: [PATCH v3] media: imx208: Add imx208 camera sensor driver
+Date: Wed,  1 Aug 2018 10:39:06 +0800
+Message-Id: <1533091146-29235-1-git-send-email-ping-chung.chen@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgVG9tYXN6LA0KDQpQbGVhc2UgY2hlY2sgbXkgY29tbWVudHMgYmVsb3cuDQoNCj5IaSBQaW5n
-LWNodW5nLA0KDQo+T24gTW9uLCBKdWwgMzAsIDIwMTggYXQgNjoxOSBQTSBQaW5nLWNodW5nIENo
-ZW4gPHBpbmctY2h1bmcuY2hlbkBpbnRlbC5jb20+IHdyb3RlOg0KPg0KPiBGcm9tOiAiQ2hlbiwg
-UGluZy1jaHVuZyIgPHBpbmctY2h1bmcuY2hlbkBpbnRlbC5jb20+DQo+DQo+IEFkZCBhIFY0TDIg
-c3ViLWRldmljZSBkcml2ZXIgZm9yIHRoZSBTb255IElNWDIwOCBpbWFnZSBzZW5zb3IuDQo+IFRo
-aXMgaXMgYSBjYW1lcmEgc2Vuc29yIHVzaW5nIHRoZSBJMkMgYnVzIGZvciBjb250cm9sIGFuZCB0
-aGUNCj4gQ1NJLTIgYnVzIGZvciBkYXRhLg0KPg0KDQo+UGxlYXNlIHNlZSBteSBjb21tZW50cyBp
-bmxpbmUuDQoNCj5bc25pcF0NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvaTJjL2lteDIw
-OC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvaW14MjA4LmMgDQo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0
-IGluZGV4IDAwMDAwMDAuLjVhZGZiNzkNCj4gLS0tIC9kZXYvbnVsbA0KPiArKysgYi9kcml2ZXJz
-L21lZGlhL2kyYy9pbXgyMDguYw0KPiBAQCAtMCwwICsxLDk4NCBAQA0KPiArLy8gU1BEWC1MaWNl
-bnNlLUlkZW50aWZpZXI6IEdQTC0yLjANCj4gKy8vIENvcHlyaWdodCAoQykgMjAxOCBJbnRlbCBD
-b3Jwb3JhdGlvbg0KPiArDQo+ICsjaW5jbHVkZSA8bGludXgvYWNwaS5oPg0KPiArI2luY2x1ZGUg
-PGxpbnV4L2RlbGF5Lmg+DQo+ICsjaW5jbHVkZSA8bGludXgvaTJjLmg+DQo+ICsjaW5jbHVkZSA8
-bGludXgvbW9kdWxlLmg+DQo+ICsjaW5jbHVkZSA8bGludXgvcG1fcnVudGltZS5oPg0KPiArI2lu
-Y2x1ZGUgPG1lZGlhL3Y0bDItY3RybHMuaD4NCj4gKyNpbmNsdWRlIDxtZWRpYS92NGwyLWRldmlj
-ZS5oPg0KPiArI2luY2x1ZGUgPGFzbS91bmFsaWduZWQuaD4NCj4gKw0KPiArI2RlZmluZSBJTVgy
-MDhfUkVHX1ZBTFVFXzA4QklUICAgICAgICAgMQ0KPiArI2RlZmluZSBJTVgyMDhfUkVHX1ZBTFVF
-XzE2QklUICAgICAgICAgMg0KDQo+V2UgZG9uJ3QgbmVlZCB0byBkZWZpbmUgdGhlc2UuIEl0J3Mg
-b2J2aW91cyB0aGF0IDggYml0cyBpcyAxIGJ5dGUgYW5kDQo+MTYgYml0cyBhcmUgMiBieXRlcy4N
-Cg0KRG9uZS4NCg0KPiArDQo+ICsjZGVmaW5lIElNWDIwOF9SRUdfTU9ERV9TRUxFQ1QgICAgICAg
-ICAweDAxMDANCj4gKyNkZWZpbmUgSU1YMjA4X01PREVfU1RBTkRCWSAgICAgICAgICAgIDB4MDAN
-Cj4gKyNkZWZpbmUgSU1YMjA4X01PREVfU1RSRUFNSU5HICAgICAgICAgIDB4MDENCj5bc25pcF0N
-Cj4gKy8qIFRlc3QgUGF0dGVybiBDb250cm9sICovDQo+ICsjZGVmaW5lIElNWDIwOF9SRUdfVEVT
-VF9QQVRURVJOX01PREUgICAweDA2MDANCj4gKyNkZWZpbmUgSU1YMjA4X1RFU1RfUEFUVEVSTl9E
-SVNBQkxFICAgIDANCj4gKyNkZWZpbmUgSU1YMjA4X1RFU1RfUEFUVEVSTl9TT0xJRF9DT0xPUiAg
-ICAgICAgMQ0KPiArI2RlZmluZSBJTVgyMDhfVEVTVF9QQVRURVJOX0NPTE9SX0JBUlMgMiAjZGVm
-aW5lIA0KPiArSU1YMjA4X1RFU1RfUEFUVEVSTl9HUkVZX0NPTE9SIDMNCj4gKyNkZWZpbmUgSU1Y
-MjA4X1RFU1RfUEFUVEVSTl9QTjkgICAgICAgICAgICAgICAgNA0KDQo+UGxlYXNlIHVzZSBoZXhh
-ZGVjaW1hbCBub3RhdGlvbiBmb3IgcmVnaXN0ZXIgdmFsdWVzIChhcyBhbHJlYWR5IGRvbmUgYmVs
-b3cpLg0KDQpEb25lLg0KDQo+ICsjZGVmaW5lIElNWDIwOF9URVNUX1BBVFRFUk5fRklYXzEgICAg
-ICAweDEwMA0KPiArI2RlZmluZSBJTVgyMDhfVEVTVF9QQVRURVJOX0ZJWF8yICAgICAgMHgxMDEN
-Cj4gKyNkZWZpbmUgSU1YMjA4X1RFU1RfUEFUVEVSTl9GSVhfMyAgICAgIDB4MTAyDQo+ICsjZGVm
-aW5lIElNWDIwOF9URVNUX1BBVFRFUk5fRklYXzQgICAgICAweDEwMw0KPiArI2RlZmluZSBJTVgy
-MDhfVEVTVF9QQVRURVJOX0ZJWF81ICAgICAgMHgxMDQNCj4gKyNkZWZpbmUgSU1YMjA4X1RFU1Rf
-UEFUVEVSTl9GSVhfNiAgICAgIDB4MTA1DQo+W3NuaXBdDQo+ICtzdGF0aWMgY29uc3QgaW50IGlt
-eDIwOF90ZXN0X3BhdHRlcm5fdmFsW10gPSB7DQo+ICsgICAgICAgSU1YMjA4X1RFU1RfUEFUVEVS
-Tl9ESVNBQkxFLA0KPiArICAgICAgIElNWDIwOF9URVNUX1BBVFRFUk5fU09MSURfQ09MT1IsDQo+
-ICsgICAgICAgSU1YMjA4X1RFU1RfUEFUVEVSTl9DT0xPUl9CQVJTLA0KPiArICAgICAgIElNWDIw
-OF9URVNUX1BBVFRFUk5fR1JFWV9DT0xPUiwNCj4gKyAgICAgICBJTVgyMDhfVEVTVF9QQVRURVJO
-X1BOOSwNCj4gKyAgICAgICBJTVgyMDhfVEVTVF9QQVRURVJOX0ZJWF8xLA0KPiArICAgICAgIElN
-WDIwOF9URVNUX1BBVFRFUk5fRklYXzIsDQo+ICsgICAgICAgSU1YMjA4X1RFU1RfUEFUVEVSTl9G
-SVhfMywNCj4gKyAgICAgICBJTVgyMDhfVEVTVF9QQVRURVJOX0ZJWF80LA0KPiArICAgICAgIElN
-WDIwOF9URVNUX1BBVFRFUk5fRklYXzUsDQo+ICsgICAgICAgSU1YMjA4X1RFU1RfUEFUVEVSTl9G
-SVhfNiwNCj4gK307DQo+ICsNCj4gKy8qIENvbmZpZ3VyYXRpb25zIGZvciBzdXBwb3J0ZWQgbGlu
-ayBmcmVxdWVuY2llcyAqLw0KPiArI2RlZmluZSBJTVgyMDhfTElOS19GUkVRXzM4NE1IWiAgICAg
-ICAgMzg0MDAwMDAwVUxMDQo+ICsjZGVmaW5lIElNWDIwOF9MSU5LX0ZSRVFfOTZNSFogIDk2MDAw
-MDAwVUxMDQoNCj5uaXQ6IElmIHdlIHJlYWxseSBuZWVkIGRlZmluZXMgZm9yIHRoZXNlLCB0aGVu
-IGF0IGxlYXN0IHRoZXkgc2hvdWxkIGJlIHNvbWVob3cgdXNlZnVsLCBlLmcuDQoNCj4jZGVmaW5l
-IE1IWiAoMTAwMCoxMDAwVUxMKQ0KPiNkZWZpbmUgSU1YMjA4X0xJTktfRlJFUV8zODRNSFogKDM4
-NFVMTCAqIE1IWikNCg0KPlRoaXMgYXQgbGVhc3QgbWFrZXMgaXQgZWFzeSB0byBzZWUgdGhhdCB0
-aGVyZSBhcmUgbm8gbWlzdGFrZXMgaW4gdGhlIG51bWJlciwgZS5nLiB3cm9uZyBudW1iZXIgb2Yg
-emVyb2VzLg0KDQpTdXJlLCBkb25lLg0KDQo+ICsNCj4gK2VudW0gew0KPiArICAgICAgIElNWDIw
-OF9MSU5LX0ZSRVFfMzg0TUhaX0lOREVYLA0KPiArICAgICAgIElNWDIwOF9MSU5LX0ZSRVFfOTZN
-SFpfSU5ERVgsDQo+ICt9Ow0KPiArDQo+ICsvKg0KPiArICogcGl4ZWxfcmF0ZSA9IGxpbmtfZnJl
-cSAqIGRhdGEtcmF0ZSAqIG5yX29mX2xhbmVzIC8gYml0c19wZXJfc2FtcGxlDQo+ICsgKiBkYXRh
-IHJhdGUgPT4gZG91YmxlIGRhdGEgcmF0ZTsgbnVtYmVyIG9mIGxhbmVzID0+IDI7IGJpdHMgcGVy
-IA0KPiArcGl4ZWwgPT4gMTAgICovIHN0YXRpYyB1NjQgbGlua19mcmVxX3RvX3BpeGVsX3JhdGUo
-dTY0IGYpIHsNCj4gKyAgICAgICBmICo9IDIgKiAyOw0KPiArICAgICAgIGRvX2RpdihmLCAxMCk7
-DQoNCj5QbGVhc2UgYWRkIG1hY3JvcyBmb3IgdGhvc2UgbWFnaWMgbnVtYmVycy4NCg0KRG9uZS4N
-Cg0KPiArDQo+ICsgICAgICAgcmV0dXJuIGY7DQo+ICt9DQo+ICsNCj4gKy8qIE1lbnUgaXRlbXMg
-Zm9yIExJTktfRlJFUSBWNEwyIGNvbnRyb2wgKi8gc3RhdGljIGNvbnN0IHM2NCANCj4gK2xpbmtf
-ZnJlcV9tZW51X2l0ZW1zW10gPSB7DQo+ICsgICAgICAgSU1YMjA4X0xJTktfRlJFUV8zODRNSFos
-DQo+ICsgICAgICAgSU1YMjA4X0xJTktfRlJFUV85Nk1IWiwNCg0KPlNpbmNlIHdlIGhhdmUgYW4g
-ZW51bSBhbHJlYWR5LCBwbGVhc2UgdXNlIGl0IGZvciBleHBsaWNpdCBpbmRpY2VzLCB0byBlbnN1
-cmUgdGhpbmdzIGFyZSBjb25zaXN0ZW50IGFuZCBhY3R1YWxseSBlYXNpZXIgdG8gcmVhZCwgaS5l
-Lg0KDQo+W0lNWDIwOF9MSU5LX0ZSRVFfMzg0TUhaX0lOREVYXSA9IElNWDIwOF9MSU5LX0ZSRVFf
-Mzg0TUhaLA0KDQpEb25lLg0KDQo+ICt9Ow0KPiArDQo+ICsvKiBMaW5rIGZyZXF1ZW5jeSBjb25m
-aWdzICovDQo+ICtzdGF0aWMgY29uc3Qgc3RydWN0IGlteDIwOF9saW5rX2ZyZXFfY29uZmlnIGxp
-bmtfZnJlcV9jb25maWdzW10gPSB7DQo+ICsgICAgICAgew0KDQo+RXhwbGljaXQgaW5kaWNlcywg
-aS5lLg0KDQo+W0lNWDIwOF9MSU5LX0ZSRVFfMzg0TUhaX0lOREVYXSA9IHsNCg0KRG9uZS4NCg0K
-PiArICAgICAgICAgICAgICAgLnBpeGVsc19wZXJfbGluZSA9IElNWDIwOF9QUExfMzg0TUhaLA0K
-PiArICAgICAgICAgICAgICAgLnJlZ19saXN0ID0gew0KPiArICAgICAgICAgICAgICAgICAgICAg
-ICAubnVtX29mX3JlZ3MgPSBBUlJBWV9TSVpFKG1pcGlfZGF0YV9yYXRlKSwNCj4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgLnJlZ3MgPSBtaXBpX2RhdGFfcmF0ZSwNCj4gKyAgICAgICAgICAgICAg
-IH0NCj4gKyAgICAgICB9LA0KPiArICAgICAgIHsNCg0KPkRpdHRvLg0KDQo+ICsgICAgICAgICAg
-ICAgICAucGl4ZWxzX3Blcl9saW5lID0gSU1YMjA4X1BQTF85Nk1IWiwNCj4gKyAgICAgICAgICAg
-ICAgIC5yZWdfbGlzdCA9IHsNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgLm51bV9vZl9yZWdz
-ID0gQVJSQVlfU0laRShtaXBpX2RhdGFfcmF0ZSksDQo+ICsgICAgICAgICAgICAgICAgICAgICAg
-IC5yZWdzID0gbWlwaV9kYXRhX3JhdGUsDQoNCj5Ib3cgY29tZXMgdGhhdCBib3RoIGxpbmsgZnJl
-cXVlbmNpZXMgaGF2ZSB0aGUgc2FtZSByZWdpc3RlciB2YWx1ZXMgZm9yIE1JUEkgZGF0YSByYXRl
-Pw0KDQpXZSBoYXZlIHJlbmFtZWQgaXQgYXMgcGxsX2N0cmxfcmVnLg0KDQo+ICsgICAgICAgICAg
-ICAgICB9DQo+ICsgICAgICAgfSwNCj4gK307DQo+ICsNCj4gKy8qIE1vZGUgY29uZmlncyAqLw0K
-PiArc3RhdGljIGNvbnN0IHN0cnVjdCBpbXgyMDhfbW9kZSBzdXBwb3J0ZWRfbW9kZXNbXSA9IHsN
-Cj4gKyAgICAgICB7DQo+ICsgICAgICAgICAgICAgICAud2lkdGggPSAxOTM2LA0KPiArICAgICAg
-ICAgICAgICAgLmhlaWdodCA9IDEwOTYsDQo+ICsgICAgICAgICAgICAgICAudnRzX2RlZiA9IElN
-WDIwOF9WVFNfNjBGUFMsDQo+ICsgICAgICAgICAgICAgICAudnRzX21pbiA9IElNWDIwOF9WVFNf
-NjBGUFNfTUlOLA0KPiArICAgICAgICAgICAgICAgLnJlZ19saXN0ID0gew0KPiArICAgICAgICAg
-ICAgICAgICAgICAgICAubnVtX29mX3JlZ3MgPSBBUlJBWV9TSVpFKG1vZGVfMTkzNngxMDk2XzYw
-ZnBzX3JlZ3MpLA0KPiArICAgICAgICAgICAgICAgICAgICAgICAucmVncyA9IG1vZGVfMTkzNngx
-MDk2XzYwZnBzX3JlZ3MsDQo+ICsgICAgICAgICAgICAgICB9LA0KPiArICAgICAgICAgICAgICAg
-LmxpbmtfZnJlcV9pbmRleCA9IDAsDQoNCj5QbGVhc2UgdXNlIHRoZSBpbmRleCB0aGF0IHdhcyBk
-ZWZpbmVkIGJlZm9yZSAtIElNWDIwOF9MSU5LX0ZSRVFfMzg0TUhaX0lOREVYLg0KDQpEb25lLg0K
-DQo+ICsgICAgICAgfSwNCj4gKyAgICAgICB7DQo+ICsgICAgICAgICAgICAgICAud2lkdGggPSA5
-NjgsDQo+ICsgICAgICAgICAgICAgICAuaGVpZ2h0ID0gNTQ4LA0KPiArICAgICAgICAgICAgICAg
-LnZ0c19kZWYgPSBJTVgyMDhfVlRTX0JJTk5JTkcsDQo+ICsgICAgICAgICAgICAgICAudnRzX21p
-biA9IElNWDIwOF9WVFNfQklOTklOR19NSU4sDQo+ICsgICAgICAgICAgICAgICAucmVnX2xpc3Qg
-PSB7DQo+ICsgICAgICAgICAgICAgICAgICAgICAgIC5udW1fb2ZfcmVncyA9IEFSUkFZX1NJWkUo
-bW9kZV85NjhfNTQ4XzYwZnBzX3JlZ3MpLA0KPiArICAgICAgICAgICAgICAgICAgICAgICAucmVn
-cyA9IG1vZGVfOTY4XzU0OF82MGZwc19yZWdzLA0KPiArICAgICAgICAgICAgICAgfSwNCj4gKyAg
-ICAgICAgICAgICAgIC5saW5rX2ZyZXFfaW5kZXggPSBJTVgyMDhfTElOS19GUkVRXzk2TUhaX0lO
-REVYLA0KPiArICAgICAgIH0sDQo+ICt9Ow0KPiArDQo+ICtzdHJ1Y3QgaW14MjA4IHsNCj4gKyAg
-ICAgICBzdHJ1Y3QgdjRsMl9zdWJkZXYgc2Q7DQo+ICsgICAgICAgc3RydWN0IG1lZGlhX3BhZCBw
-YWQ7DQo+ICsNCj4gKyAgICAgICBzdHJ1Y3QgdjRsMl9jdHJsX2hhbmRsZXIgY3RybF9oYW5kbGVy
-Ow0KPiArICAgICAgIC8qIFY0TDIgQ29udHJvbHMgKi8NCj4gKyAgICAgICBzdHJ1Y3QgdjRsMl9j
-dHJsICpsaW5rX2ZyZXE7DQo+ICsgICAgICAgc3RydWN0IHY0bDJfY3RybCAqcGl4ZWxfcmF0ZTsN
-Cj4gKyAgICAgICBzdHJ1Y3QgdjRsMl9jdHJsICp2Ymxhbms7DQo+ICsgICAgICAgc3RydWN0IHY0
-bDJfY3RybCAqaGJsYW5rOw0KPiArICAgICAgIHN0cnVjdCB2NGwyX2N0cmwgKnZmbGlwOw0KPiAr
-ICAgICAgIHN0cnVjdCB2NGwyX2N0cmwgKmhmbGlwOw0KPiArDQo+ICsgICAgICAgLyogQ3VycmVu
-dCBtb2RlICovDQo+ICsgICAgICAgY29uc3Qgc3RydWN0IGlteDIwOF9tb2RlICpjdXJfbW9kZTsN
-Cj4gKw0KPiArICAgICAgIC8qIE11dGV4IGZvciBzZXJpYWxpemVkIGFjY2VzcyAqLw0KDQo+VGhl
-IGNvbW1lbnQgZG9lc24ndCBzYXkgYWNjZXNzIHRvIHdoYXQgaXMgc2VyaWFsaXplZC4NCg0KV2Ug
-d2lsbCBhZGQgbW9yZSBjb21tZW50cy4NCgkvKg0KCSAqIE11dGV4IGZvciBzZXJpYWxpemVkIGFj
-Y2VzczoNCgkgKiBQcm90ZWN0IHNlbnNvciBzZXQgcGFkIGZvcm1hdCBhbmQgc3RhcnQvc3RvcCBz
-dHJlYW1pbmcgc2FmZWx5Lg0KCSAqIFByb3RlY3QgYWNjZXNzIHRvIHNlbnNvciB2NGwyIGNvbnRy
-b2xzLg0KCSAqLw0KDQo+ICsgICAgICAgc3RydWN0IG11dGV4IGlteDIwOF9teDsNCj4gKw0KPiAr
-ICAgICAgIC8qIFN0cmVhbWluZyBvbi9vZmYgKi8NCj4gKyAgICAgICBib29sIHN0cmVhbWluZzsN
-Cj4gK307DQo+ICsNCj4gK3N0YXRpYyBpbmxpbmUgc3RydWN0IGlteDIwOCAqdG9faW14MjA4KHN0
-cnVjdCB2NGwyX3N1YmRldiAqX3NkKSB7DQo+ICsgICAgICAgcmV0dXJuIGNvbnRhaW5lcl9vZihf
-c2QsIHN0cnVjdCBpbXgyMDgsIHNkKTsgfQ0KPiArDQo+ICsvKiBHZXQgYmF5ZXIgb3JkZXIgYmFz
-ZWQgb24gZmxpcCBzZXR0aW5nLiAqLyBzdGF0aWMgX191MzIgDQo+ICtpbXgyMDhfZ2V0X2Zvcm1h
-dF9jb2RlKHN0cnVjdCBpbXgyMDggKmlteDIwOCkNCg0KPldoeSBub3QganVzdCAidTMyIj8NCg0K
-Rml4ZWQuDQoNCj4gK3sNCj4gKyAgICAgICAvKg0KPiArICAgICAgICAqIE9ubHkgb25lIGJheWVy
-IG9yZGVyIGlzIHN1cHBvcnRlZC4NCj4gKyAgICAgICAgKiBJdCBkZXBlbmRzIG9uIHRoZSBmbGlw
-IHNldHRpbmdzLg0KPiArICAgICAgICAqLw0KPiArICAgICAgIHN0YXRpYyBjb25zdCBfX3UzMiBj
-b2Rlc1syXVsyXSA9IHsNCg0KPkRpdHRvLg0KDQo+ICsgICAgICAgICAgICAgICB7IE1FRElBX0JV
-U19GTVRfU1JHR0IxMF8xWDEwLCBNRURJQV9CVVNfRk1UX1NHUkJHMTBfMVgxMCwgfSwNCj4gKyAg
-ICAgICAgICAgICAgIHsgTUVESUFfQlVTX0ZNVF9TR0JSRzEwXzFYMTAsIE1FRElBX0JVU19GTVRf
-U0JHR1IxMF8xWDEwLCB9LA0KPiArICAgICAgIH07DQo+ICsNCj4gKyAgICAgICByZXR1cm4gY29k
-ZXNbaW14MjA4LT52ZmxpcC0+dmFsXVtpbXgyMDgtPmhmbGlwLT52YWxdOw0KPiArfQ0KPiArDQo+
-ICsvKiBSZWFkIHJlZ2lzdGVycyB1cCB0byAyIGF0IGEgdGltZSAqLw0KDQo+VGhlIGZ1bmN0aW9u
-IHNlZW1zIHRvIGJlIGhhbmRsaW5nIHVwIHRvIDQgKHdoaWNoIEkgZ3Vlc3MgaXMgb2theSwgYnV0
-IHRoZSBjb21tZW50IGlzIG9mZikuDQoNCkZpeGVkLg0KDQo+ICtzdGF0aWMgaW50IGlteDIwOF9y
-ZWFkX3JlZyhzdHJ1Y3QgaW14MjA4ICppbXgyMDgsIHUxNiByZWcsIHUzMiBsZW4sIA0KPiArdTMy
-ICp2YWwpIHsNCj4gKyAgICAgICBzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdjRsMl9nZXRf
-c3ViZGV2ZGF0YSgmaW14MjA4LT5zZCk7DQo+ICsgICAgICAgc3RydWN0IGkyY19tc2cgbXNnc1sy
-XTsNCj4gKyAgICAgICB1OCBhZGRyX2J1ZlsyXSA9IHsgcmVnID4+IDgsIHJlZyAmIDB4ZmYgfTsN
-Cj4gKyAgICAgICB1OCBkYXRhX2J1Zls0XSA9IHsgMCwgfTsNCj4gKyAgICAgICBpbnQgcmV0Ow0K
-PiArDQo+ICsgICAgICAgaWYgKGxlbiA+IDQpDQo+ICsgICAgICAgICAgICAgICByZXR1cm4gLUVJ
-TlZBTDsNCj4gKw0KPiArICAgICAgIC8qIFdyaXRlIHJlZ2lzdGVyIGFkZHJlc3MgKi8NCj4gKyAg
-ICAgICBtc2dzWzBdLmFkZHIgPSBjbGllbnQtPmFkZHI7DQo+ICsgICAgICAgbXNnc1swXS5mbGFn
-cyA9IDA7DQo+ICsgICAgICAgbXNnc1swXS5sZW4gPSBBUlJBWV9TSVpFKGFkZHJfYnVmKTsNCj4g
-KyAgICAgICBtc2dzWzBdLmJ1ZiA9IGFkZHJfYnVmOw0KPiArDQo+ICsgICAgICAgLyogUmVhZCBk
-YXRhIGZyb20gcmVnaXN0ZXIgKi8NCj4gKyAgICAgICBtc2dzWzFdLmFkZHIgPSBjbGllbnQtPmFk
-ZHI7DQo+ICsgICAgICAgbXNnc1sxXS5mbGFncyA9IEkyQ19NX1JEOw0KPiArICAgICAgIG1zZ3Nb
-MV0ubGVuID0gbGVuOw0KPiArICAgICAgIG1zZ3NbMV0uYnVmID0gJmRhdGFfYnVmWzQgLSBsZW5d
-Ow0KPiArDQo+ICsgICAgICAgcmV0ID0gaTJjX3RyYW5zZmVyKGNsaWVudC0+YWRhcHRlciwgbXNn
-cywgQVJSQVlfU0laRShtc2dzKSk7DQo+ICsgICAgICAgaWYgKHJldCAhPSBBUlJBWV9TSVpFKG1z
-Z3MpKQ0KPiArICAgICAgICAgICAgICAgcmV0dXJuIC1FSU87DQo+ICsNCj4gKyAgICAgICAqdmFs
-ID0gZ2V0X3VuYWxpZ25lZF9iZTMyKGRhdGFfYnVmKTsNCj4gKw0KPiArICAgICAgIHJldHVybiAw
-Ow0KPiArfQ0KPltzbmlwXQ0KPiArc3RhdGljIGludCBpbXgyMDhfc2V0X2N0cmwoc3RydWN0IHY0
-bDJfY3RybCAqY3RybCkgew0KPiArICAgICAgIHN0cnVjdCBpbXgyMDggKmlteDIwOCA9DQo+ICsg
-ICAgICAgICAgICAgICBjb250YWluZXJfb2YoY3RybC0+aGFuZGxlciwgc3RydWN0IGlteDIwOCwg
-Y3RybF9oYW5kbGVyKTsNCj4gKyAgICAgICBzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdjRs
-Ml9nZXRfc3ViZGV2ZGF0YSgmaW14MjA4LT5zZCk7DQo+ICsgICAgICAgaW50IHJldDsNCj4gKw0K
-PiArICAgICAgIC8qDQo+ICsgICAgICAgICogQXBwbHlpbmcgVjRMMiBjb250cm9sIHZhbHVlIG9u
-bHkgaGFwcGVucw0KPiArICAgICAgICAqIHdoZW4gcG93ZXIgaXMgdXAgZm9yIHN0cmVhbWluZw0K
-PiArICAgICAgICAqLw0KPiArICAgICAgIGlmIChwbV9ydW50aW1lX2dldF9pZl9pbl91c2UoJmNs
-aWVudC0+ZGV2KSA8PSAwKQ0KDQo+VGhpcyBpcyBidWdneSwgYmVjYXVzZSBpdCB3b24ndCBoYW5k
-bGUgdGhlIGNhc2Ugb2YgcnVudGltZSBQTSBkaXNhYmxlZCBpbiBrZXJuZWwgY29uZmlnLiBUaGUg
-Y2hlY2sgc2hvdWxkIGJlICghcG1fcnVudGltZV9nZXRfaWZfaW5fdXNlKCZjbGllbnQtPmRldikp
-Lg0KDQpGaXhlZCBpdCBieSB5b3VyIHN1Z2dlc3Rpb24uDQoNCj4gKyAgICAgICAgICAgICAgIHJl
-dHVybiAwOw0KPiArDQo+ICsgICAgICAgc3dpdGNoIChjdHJsLT5pZCkgew0KPiArICAgICAgIGNh
-c2UgVjRMMl9DSURfQU5BTE9HVUVfR0FJTjoNCj4gKyAgICAgICAgICAgICAgIHJldCA9IGlteDIw
-OF93cml0ZV9yZWcoaW14MjA4LCBJTVgyMDhfUkVHX0FOQUxPR19HQUlOLA0KPiArICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBJTVgyMDhfUkVHX1ZBTFVFXzE2QklULCBjdHJs
-LT52YWwpOw0KPiArICAgICAgICAgICAgICAgYnJlYWs7DQo+ICsgICAgICAgY2FzZSBWNEwyX0NJ
-RF9FWFBPU1VSRToNCj4gKyAgICAgICAgICAgICAgIHJldCA9IGlteDIwOF93cml0ZV9yZWcoaW14
-MjA4LCBJTVgyMDhfUkVHX0VYUE9TVVJFLA0KPiArICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBJTVgyMDhfUkVHX1ZBTFVFXzE2QklULCBjdHJsLT52YWwpOw0KPiArICAgICAg
-ICAgICAgICAgYnJlYWs7DQo+ICsgICAgICAgY2FzZSBWNEwyX0NJRF9ESUdJVEFMX0dBSU46DQo+
-ICsgICAgICAgICAgICAgICByZXQgPSBpbXgyMDhfdXBkYXRlX2RpZ2l0YWxfZ2FpbihpbXgyMDgs
-IElNWDIwOF9SRUdfVkFMVUVfMTZCSVQsDQo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgY3RybC0+dmFsKTsNCg0KPm5pdDogVGhlIGxpbmUgbG9va3MgbWlzYWxpZ25lZC4NCg0KRml4
-ZWQuDQoNCj4gKyAgICAgICAgICAgICAgIGJyZWFrOw0KPiArICAgICAgIGNhc2UgVjRMMl9DSURf
-VkJMQU5LOg0KPiArICAgICAgICAgICAgICAgLyogVXBkYXRlIFZUUyB0aGF0IG1lZXRzIGV4cGVj
-dGVkIHZlcnRpY2FsIGJsYW5raW5nICovDQo+ICsgICAgICAgICAgICAgICByZXQgPSBpbXgyMDhf
-d3JpdGVfcmVnKGlteDIwOCwgSU1YMjA4X1JFR19WVFMsDQo+ICsgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIElNWDIwOF9SRUdfVkFMVUVfMTZCSVQsDQo+ICsgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlteDIwOC0+Y3VyX21vZGUtPmhlaWdodCArIGN0
-cmwtPnZhbCk7DQo+ICsgICAgICAgICAgICAgICBicmVhazsNCj4gKyAgICAgICBjYXNlIFY0TDJf
-Q0lEX1RFU1RfUEFUVEVSTjoNCj4gKyAgICAgICAgICAgICAgIHJldCA9IGlteDIwOF93cml0ZV9y
-ZWcoaW14MjA4LCBJTVgyMDhfUkVHX1RFU1RfUEFUVEVSTl9NT0RFLA0KPiArICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBJTVgyMDhfUkVHX1ZBTFVFXzE2QklULA0KPiArICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpbXgyMDhfdGVzdF9wYXR0ZXJuX3Zh
-bFtjdHJsLT52YWxdKTsNCj4gKyAgICAgICAgICAgICAgIGJyZWFrOw0KPiArICAgICAgIGNhc2Ug
-VjRMMl9DSURfSEZMSVA6DQo+ICsgICAgICAgY2FzZSBWNEwyX0NJRF9WRkxJUDoNCj4gKyAgICAg
-ICAgICAgICAgIHJldCA9IGlteDIwOF93cml0ZV9yZWcoaW14MjA4LCBJTVgyMDhfUkVHX09SSUVO
-VEFUSU9OX0NPTlRST0wsDQo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IElNWDIwOF9SRUdfVkFMVUVfMDhCSVQsDQo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIGlteDIwOC0+aGZsaXAtPnZhbCB8DQo+ICsgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIGlteDIwOC0+dmZsaXAtPnZhbCA8PCAxKTsNCj4gKyAgICAgICAgICAg
-ICAgIGJyZWFrOw0KPiArICAgICAgIGRlZmF1bHQ6DQo+ICsgICAgICAgICAgICAgICByZXQgPSAt
-RUlOVkFMOw0KPiArICAgICAgICAgICAgICAgZGV2X2luZm8oJmNsaWVudC0+ZGV2LA0KDQo+VGhp
-cyBpcyBhbiBlcnJvciwgc28gZGV2X2VycigpLg0KDQpEb25lLg0KDQo+ICsgICAgICAgICAgICAg
-ICAgICAgICAgICJjdHJsKGlkOjB4JXgsdmFsOjB4JXgpIGlzIG5vdCBoYW5kbGVkXG4iLA0KPiAr
-ICAgICAgICAgICAgICAgICAgICAgICBjdHJsLT5pZCwgY3RybC0+dmFsKTsNCj4gKyAgICAgICAg
-ICAgICAgIGJyZWFrOw0KPiArICAgICAgIH0NCj4gKw0KPiArICAgICAgIHBtX3J1bnRpbWVfcHV0
-KCZjbGllbnQtPmRldik7DQo+ICsNCj4gKyAgICAgICByZXR1cm4gcmV0Ow0KPiArfQ0KPltzbmlw
-XQ0KPiArLyogSW5pdGlhbGl6ZSBjb250cm9sIGhhbmRsZXJzICovDQo+ICtzdGF0aWMgaW50IGlt
-eDIwOF9pbml0X2NvbnRyb2xzKHN0cnVjdCBpbXgyMDggKmlteDIwOCkgew0KPiArICAgICAgIHN0
-cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKCZpbXgyMDgtPnNk
-KTsNCj4gKyAgICAgICBzdHJ1Y3QgdjRsMl9jdHJsX2hhbmRsZXIgKmN0cmxfaGRsciA9ICZpbXgy
-MDgtPmN0cmxfaGFuZGxlcjsNCj4gKyAgICAgICBzNjQgZXhwb3N1cmVfbWF4Ow0KPiArICAgICAg
-IHM2NCB2YmxhbmtfZGVmOw0KPiArICAgICAgIHM2NCB2YmxhbmtfbWluOw0KPiArICAgICAgIHM2
-NCBwaXhlbF9yYXRlX21pbjsNCj4gKyAgICAgICBzNjQgcGl4ZWxfcmF0ZV9tYXg7DQo+ICsgICAg
-ICAgaW50IHJldDsNCj4gKw0KPiArICAgICAgIHJldCA9IHY0bDJfY3RybF9oYW5kbGVyX2luaXQo
-Y3RybF9oZGxyLCA4KTsNCj4gKyAgICAgICBpZiAocmV0KQ0KPiArICAgICAgICAgICAgICAgcmV0
-dXJuIHJldDsNCj4gKw0KPiArICAgICAgIG11dGV4X2luaXQoJmlteDIwOC0+aW14MjA4X214KTsN
-Cj4gKyAgICAgICBjdHJsX2hkbHItPmxvY2sgPSAmaW14MjA4LT5pbXgyMDhfbXg7DQo+ICsgICAg
-ICAgaW14MjA4LT5saW5rX2ZyZXEgPSB2NGwyX2N0cmxfbmV3X2ludF9tZW51KGN0cmxfaGRsciwN
-Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAmaW14MjA4X2N0cmxfb3BzLA0KPiAr
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFY0TDJfQ0lEX0xJTktfRlJFUSwNCj4gKyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBBUlJBWV9TSVpFKGxpbmtfZnJlcV9tZW51X2l0
-ZW1zKSAtIDEsDQo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgMCwNCj4gKyAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBsaW5rX2ZyZXFfbWVudV9pdGVtcyk7DQo+ICsNCj4g
-KyAgICAgICBpZiAoaW14MjA4LT5saW5rX2ZyZXEpDQo+ICsgICAgICAgICAgICAgICBpbXgyMDgt
-PmxpbmtfZnJlcS0+ZmxhZ3MgfD0gVjRMMl9DVFJMX0ZMQUdfUkVBRF9PTkxZOw0KPiArDQo+ICsg
-ICAgICAgcGl4ZWxfcmF0ZV9tYXggPSBsaW5rX2ZyZXFfdG9fcGl4ZWxfcmF0ZShsaW5rX2ZyZXFf
-bWVudV9pdGVtc1swXSk7DQo+ICsgICAgICAgcGl4ZWxfcmF0ZV9taW4gPSANCj4gKyBsaW5rX2Zy
-ZXFfdG9fcGl4ZWxfcmF0ZShsaW5rX2ZyZXFfbWVudV9pdGVtc1sxXSk7DQoNCj5QbGVhc2UgcmVw
-bGFjZSBbMV0gd2l0aCBbQVJSQVlfU0laRShsaW5rX2ZyZXFfbWVudV9pdGVtcykgLSAxXS4gQWxz
-byBwbGVhc2UgYWRkIGEgY29tbWVudCBzYXlpbmcgdGhhdCBsaW5rX2ZyZXFfbWVudV9pdGVtc1td
-IG11c3QgYmUgc29ydGVkIGJ5IGxpbmsgZnJlcSBkZXNjZW5kaW5nLCBhYm92ZSB0aGUgYXJyYXku
-DQoNCkRvbmUuDQoNCj4gKyAgICAgICAvKiBCeSBkZWZhdWx0LCBQSVhFTF9SQVRFIGlzIHJlYWQg
-b25seSAqLw0KPiArICAgICAgIGlteDIwOC0+cGl4ZWxfcmF0ZSA9IHY0bDJfY3RybF9uZXdfc3Rk
-KGN0cmxfaGRsciwgJmlteDIwOF9jdHJsX29wcywNCj4gKyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIFY0TDJfQ0lEX1BJWEVMX1JBVEUsDQo+ICsgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBwaXhlbF9yYXRlX21pbiwgcGl4ZWxfcmF0ZV9tYXgsDQo+
-ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAxLCBwaXhlbF9yYXRlX21h
-eCk7DQo+ICsNCj4gKyAgICAgICB2YmxhbmtfZGVmID0gaW14MjA4LT5jdXJfbW9kZS0+dnRzX2Rl
-ZiAtIGlteDIwOC0+Y3VyX21vZGUtPmhlaWdodDsNCj4gKyAgICAgICB2YmxhbmtfbWluID0gaW14
-MjA4LT5jdXJfbW9kZS0+dnRzX21pbiAtIGlteDIwOC0+Y3VyX21vZGUtPmhlaWdodDsNCj4gKyAg
-ICAgICBpbXgyMDgtPnZibGFuayA9IHY0bDJfY3RybF9uZXdfc3RkKA0KPiArICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIGN0cmxfaGRsciwgJmlteDIwOF9jdHJsX29wcywgVjRMMl9DSURf
-VkJMQU5LLA0KPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZibGFua19taW4sDQo+
-ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSU1YMjA4X1ZUU19NQVggLSBpbXgyMDgt
-PmN1cl9tb2RlLT5oZWlnaHQsIDEsDQo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-dmJsYW5rX2RlZik7DQo+ICsNCj4gKyAgICAgICBpbXgyMDgtPmhibGFuayA9IHY0bDJfY3RybF9u
-ZXdfc3RkKA0KPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGN0cmxfaGRsciwgJmlt
-eDIwOF9jdHJsX29wcywgVjRMMl9DSURfSEJMQU5LLA0KPiArICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIElNWDIwOF9QUExfMzg0TUhaIC0gaW14MjA4LT5jdXJfbW9kZS0+d2lkdGgsDQo+
-ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSU1YMjA4X1BQTF8zODRNSFogLSBpbXgy
-MDgtPmN1cl9tb2RlLT53aWR0aCwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAx
-LA0KPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIElNWDIwOF9QUExfMzg0TUhaIC0g
-DQo+ICsgaW14MjA4LT5jdXJfbW9kZS0+d2lkdGgpOw0KPiArDQo+ICsgICAgICAgaWYgKGlteDIw
-OC0+aGJsYW5rKQ0KPiArICAgICAgICAgICAgICAgaW14MjA4LT5oYmxhbmstPmZsYWdzIHw9IFY0
-TDJfQ1RSTF9GTEFHX1JFQURfT05MWTsNCj4gKw0KPiArICAgICAgIGV4cG9zdXJlX21heCA9IGlt
-eDIwOC0+Y3VyX21vZGUtPnZ0c19kZWYgLSA4Ow0KPiArICAgICAgIHY0bDJfY3RybF9uZXdfc3Rk
-KGN0cmxfaGRsciwgJmlteDIwOF9jdHJsX29wcywgVjRMMl9DSURfRVhQT1NVUkUsDQo+ICsgICAg
-ICAgICAgICAgICAgICAgICAgIElNWDIwOF9FWFBPU1VSRV9NSU4sIElNWDIwOF9FWFBPU1VSRV9N
-QVgsDQo+ICsgICAgICAgICAgICAgICAgICAgICAgIElNWDIwOF9FWFBPU1VSRV9TVEVQLCANCj4g
-KyBJTVgyMDhfRVhQT1NVUkVfREVGQVVMVCk7DQo+ICsNCj4gKyAgICAgICBpbXgyMDgtPmhmbGlw
-ID0gdjRsMl9jdHJsX25ld19zdGQoY3RybF9oZGxyLCAmaW14MjA4X2N0cmxfb3BzLA0KPiArICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBWNEwyX0NJRF9IRkxJUCwgMCwg
-MSwgMSwgMCk7DQo+ICsgICAgICAgaW14MjA4LT52ZmxpcCA9IHY0bDJfY3RybF9uZXdfc3RkKGN0
-cmxfaGRsciwgJmlteDIwOF9jdHJsX29wcywNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgVjRMMl9DSURfVkZMSVAsIDAsIDEsIDEsIDApOw0KPiArDQo+ICsgICAg
-ICAgdjRsMl9jdHJsX25ld19zdGQoY3RybF9oZGxyLCAmaW14MjA4X2N0cmxfb3BzLCBWNEwyX0NJ
-RF9BTkFMT0dVRV9HQUlOLA0KPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIElNWDIw
-OF9BTkFfR0FJTl9NSU4sIElNWDIwOF9BTkFfR0FJTl9NQVgsDQo+ICsgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgSU1YMjA4X0FOQV9HQUlOX1NURVAsIA0KPiArIElNWDIwOF9BTkFfR0FJ
-Tl9ERUZBVUxUKTsNCj4gKw0KPiArICAgICAgIHY0bDJfY3RybF9uZXdfc3RkKGN0cmxfaGRsciwg
-JmlteDIwOF9jdHJsX29wcywgVjRMMl9DSURfRElHSVRBTF9HQUlOLA0KPiArICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIElNWDIwOF9ER1RMX0dBSU5fTUlOLCBJTVgyMDhfREdUTF9HQUlO
-X01BWCwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBJTVgyMDhfREdUTF9HQUlO
-X1NURVAsDQo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSU1YMjA4X0RHVExfR0FJ
-Tl9ERUZBVUxUKTsNCj4gKw0KPiArICAgICAgIHY0bDJfY3RybF9uZXdfc3RkX21lbnVfaXRlbXMo
-Y3RybF9oZGxyLCAmaW14MjA4X2N0cmxfb3BzLA0KPiArICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgVjRMMl9DSURfVEVTVF9QQVRURVJOLA0KPiArICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgQVJSQVlfU0laRShpbXgyMDhfdGVzdF9wYXR0ZXJuX21lbnUpIC0g
-MSwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDAsIDAsIGlteDIwOF90
-ZXN0X3BhdHRlcm5fbWVudSk7DQo+ICsNCj4gKyAgICAgICBpZiAoY3RybF9oZGxyLT5lcnJvcikg
-ew0KPiArICAgICAgICAgICAgICAgcmV0ID0gY3RybF9oZGxyLT5lcnJvcjsNCj4gKyAgICAgICAg
-ICAgICAgIGRldl9lcnIoJmNsaWVudC0+ZGV2LCAiJXMgY29udHJvbCBpbml0IGZhaWxlZCAoJWQp
-XG4iLA0KPiArICAgICAgICAgICAgICAgICAgICAgICBfX2Z1bmNfXywgcmV0KTsNCj4gKyAgICAg
-ICAgICAgICAgIGdvdG8gZXJyb3I7DQo+ICsgICAgICAgfQ0KPiArDQo+ICsgICAgICAgaW14MjA4
-LT5zZC5jdHJsX2hhbmRsZXIgPSBjdHJsX2hkbHI7DQo+ICsNCj4gKyAgICAgICByZXR1cm4gMDsN
-Cj4gKw0KPiArZXJyb3I6DQo+ICsgICAgICAgdjRsMl9jdHJsX2hhbmRsZXJfZnJlZShjdHJsX2hk
-bHIpOw0KPiArICAgICAgIG11dGV4X2Rlc3Ryb3koJmlteDIwOC0+aW14MjA4X214KTsNCj4gKw0K
-PiArICAgICAgIHJldHVybiByZXQ7DQo+ICt9DQo+ICsNCj4gK3N0YXRpYyB2b2lkIGlteDIwOF9m
-cmVlX2NvbnRyb2xzKHN0cnVjdCBpbXgyMDggKmlteDIwOCkgew0KPiArICAgICAgIHY0bDJfY3Ry
-bF9oYW5kbGVyX2ZyZWUoaW14MjA4LT5zZC5jdHJsX2hhbmRsZXIpOw0KPiArICAgICAgIG11dGV4
-X2Rlc3Ryb3koJmlteDIwOC0+aW14MjA4X214KTsNCg0KPlRoaXMgbXV0ZXggaXMgbm90IHJlbGF0
-ZWQgdG8gY29udHJvbHMuIFBsZWFzZSBqdXN0IHBhc3RlIHRoZSAyIGxpbmVzIGFib3ZlIHRvIHdo
-ZXJlIHRoZXkgYXJlIGNhbGxlZCwgYXMgdGhpcyBmdW5jdGlvbiBhZGRzIG1vcmUgbGluZXMgdGhh
-biBpdCBzYXZlcy4NCg0KbXV0ZXhfZGVzdHJveSgpIHdpbGwgYmUgcmVtb3ZlZCBoZXJlLiBXZSB3
-aWxsIGNhbGwgdGhpcyBmdW5jdGlvbiBhZnRlciBjYWxsaW5nIGlteDIwOF9mcmVlX2NvbnRyb2xz
-KCkuDQoNCj4gK30NCj4gKw0KPiArc3RhdGljIGludCBpbXgyMDhfcHJvYmUoc3RydWN0IGkyY19j
-bGllbnQgKmNsaWVudCkgew0KPiArICAgICAgIHN0cnVjdCBpbXgyMDggKmlteDIwODsNCj4gKyAg
-ICAgICBpbnQgcmV0Ow0KPiArICAgICAgIHUzMiB2YWwgPSAwOw0KPiArDQo+ICsgICAgICAgZGV2
-aWNlX3Byb3BlcnR5X3JlYWRfdTMyKCZjbGllbnQtPmRldiwgImNsb2NrLWZyZXF1ZW5jeSIsICZ2
-YWwpOw0KPiArICAgICAgIGlmICh2YWwgIT0gMTkyMDAwMDApDQoNCj5QbGVhc2UgcHJpbnQgYW4g
-ZXJyb3IgbWVzc2FnZSwgZS5nLg0KDQo+ZGV2X2VycigmY2xpZW50LT5kZXYsICJVbnN1cHBvcnRl
-ZCB2YWx1ZSBvZiAnY2xvY2stZnJlcXVlbmN5JyAoJXUpLg0KPkV4cGVjdGVkIDE5MjAwMDAwLlxu
-IiwNCj4gICAgICAgIHZhbCk7DQoNCj5QLlMuIFBsZWFzZSB1c2UgbXkgQGNocm9taXVtLm9yZyBh
-ZGRyZXNzIGluIHRoZSBmdXR1cmUsIGlmIHBvc3RpbmcgdXBzdHJlYW0uDQoNCk9rYXkuDQoNCkJl
-c3QgcmVnYXJkcywNClRvbWFzeg0K
+From: "Chen, Ping-chung" <ping-chung.chen@intel.com>
+
+Add a V4L2 sub-device driver for the Sony IMX208 image sensor.
+This is a camera sensor using the I2C bus for control and the
+CSI-2 bus for data.
+
+Signed-off-by: Ping-Chung Chen <ping-chung.chen@intel.com>
+---
+since v1:
+-- Update the function media_entity_pads_init for upstreaming.
+-- Change the structure name mutex as imx208_mx.
+-- Refine the control flow of test pattern function.
+-- vflip/hflip control support (will impact the output bayer order)
+-- support 4 bayer orders output (via change v/hflip)
+    - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
+-- Simplify error handling in the set_stream function.
+since v2:
+-- Refine coding style.
+-- Fix the if statement to use pm_runtime_get_if_in_use().
+-- Print more error log during error handling.
+-- Remove mutex_destroy() from imx208_free_controls().
+-- Add more comments.
+
+ MAINTAINERS                |   7 +
+ drivers/media/i2c/Kconfig  |  11 +
+ drivers/media/i2c/Makefile |   1 +
+ drivers/media/i2c/imx208.c | 995 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1014 insertions(+)
+ create mode 100644 drivers/media/i2c/imx208.c
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index bbd9b9b..896c1df 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13268,6 +13268,13 @@ S:	Maintained
+ F:	drivers/ssb/
+ F:	include/linux/ssb/
+ 
++SONY IMX208 SENSOR DRIVER
++M:	Sakari Ailus <sakari.ailus@linux.intel.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/imx208.c
++
+ SONY IMX258 SENSOR DRIVER
+ M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 8669853..ae11f1e 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -595,6 +595,17 @@ config VIDEO_APTINA_PLL
+ config VIDEO_SMIAPP_PLL
+ 	tristate
+ 
++config VIDEO_IMX208
++	tristate "Sony IMX208 sensor support"
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor driver for the Sony
++	  IMX208 camera.
++
++          To compile this driver as a module, choose M here: the
++          module will be called imx208.
++
+ config VIDEO_IMX258
+ 	tristate "Sony IMX258 sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 837c428..47604c2 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -104,6 +104,7 @@ obj-$(CONFIG_VIDEO_I2C)		+= video-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
++obj-$(CONFIG_VIDEO_IMX208)	+= imx208.o
+ obj-$(CONFIG_VIDEO_IMX258)	+= imx258.o
+ obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
+ 
+diff --git a/drivers/media/i2c/imx208.c b/drivers/media/i2c/imx208.c
+new file mode 100644
+index 0000000..e997193
+--- /dev/null
++++ b/drivers/media/i2c/imx208.c
+@@ -0,0 +1,995 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2018 Intel Corporation
++
++#include <linux/acpi.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <asm/unaligned.h>
++
++#define IMX208_REG_MODE_SELECT		0x0100
++#define IMX208_MODE_STANDBY		0x00
++#define IMX208_MODE_STREAMING		0x01
++
++/* Chip ID */
++#define IMX208_REG_CHIP_ID		0x0000
++#define IMX208_CHIP_ID			0x0208
++
++/* V_TIMING internal */
++#define IMX208_REG_VTS			0x0340
++#define IMX208_VTS_60FPS		0x0472
++#define IMX208_VTS_BINNING		0x0239
++#define IMX208_VTS_60FPS_MIN		0x0458
++#define IMX208_VTS_BINNING_MIN		0x0230
++#define IMX208_VTS_MAX			0xffff
++
++/* HBLANK control - read only */
++#define IMX208_PPL_384MHZ		2248
++#define IMX208_PPL_96MHZ		2248
++
++/* Exposure control */
++#define IMX208_REG_EXPOSURE		0x0202
++#define IMX208_EXPOSURE_MIN		4
++#define IMX208_EXPOSURE_STEP		1
++#define IMX208_EXPOSURE_DEFAULT		0x190
++#define IMX208_EXPOSURE_MAX		65535
++
++/* Analog gain control */
++#define IMX208_REG_ANALOG_GAIN		0x0204
++#define IMX208_ANA_GAIN_MIN		0
++#define IMX208_ANA_GAIN_MAX		0x00e0
++#define IMX208_ANA_GAIN_STEP		1
++#define IMX208_ANA_GAIN_DEFAULT		0x0
++
++/* Digital gain control */
++#define IMX208_REG_GR_DIGITAL_GAIN	0x020e
++#define IMX208_REG_R_DIGITAL_GAIN	0x0210
++#define IMX208_REG_B_DIGITAL_GAIN	0x0212
++#define IMX208_REG_GB_DIGITAL_GAIN	0x0214
++#define IMX208_DGTL_GAIN_MIN		0
++#define IMX208_DGTL_GAIN_MAX		4096
++#define IMX208_DGTL_GAIN_DEFAULT	0x100
++#define IMX208_DGTL_GAIN_STEP           1
++
++/* Orientation */
++#define IMX208_REG_ORIENTATION_CONTROL	0x0101
++
++/* Test Pattern Control */
++#define IMX208_REG_TEST_PATTERN_MODE	0x0600
++#define IMX208_TEST_PATTERN_DISABLE	0x0
++#define IMX208_TEST_PATTERN_SOLID_COLOR	0x1
++#define IMX208_TEST_PATTERN_COLOR_BARS	0x2
++#define IMX208_TEST_PATTERN_GREY_COLOR	0x3
++#define IMX208_TEST_PATTERN_PN9		0x4
++#define IMX208_TEST_PATTERN_FIX_1	0x100
++#define IMX208_TEST_PATTERN_FIX_2	0x101
++#define IMX208_TEST_PATTERN_FIX_3	0x102
++#define IMX208_TEST_PATTERN_FIX_4	0x103
++#define IMX208_TEST_PATTERN_FIX_5	0x104
++#define IMX208_TEST_PATTERN_FIX_6	0x105
++
++struct imx208_reg {
++	u16 address;
++	u8 val;
++};
++
++struct imx208_reg_list {
++	u32 num_of_regs;
++	const struct imx208_reg *regs;
++};
++
++/* Link frequency config */
++struct imx208_link_freq_config {
++	u32 pixels_per_line;
++
++	/* PLL registers for this link frequency */
++	struct imx208_reg_list reg_list;
++};
++
++/* Mode : resolution and related config&values */
++struct imx208_mode {
++	/* Frame width */
++	u32 width;
++	/* Frame height */
++	u32 height;
++
++	/* V-timing */
++	u32 vts_def;
++	u32 vts_min;
++
++	/* Index of Link frequency config to be used */
++	u32 link_freq_index;
++	/* Default register values */
++	struct imx208_reg_list reg_list;
++};
++
++static const struct imx208_reg pll_ctrl_reg[] = {
++	{0x0305, 0x02},
++	{0x0307, 0x50},
++	{0x303C, 0x3C},
++};
++
++static const struct imx208_reg mode_1936x1096_60fps_regs[] = {
++	{0x0340, 0x04},
++	{0x0341, 0x72},
++	{0x0342, 0x04},
++	{0x0343, 0x64},
++	{0x034C, 0x07},
++	{0x034D, 0x90},
++	{0x034E, 0x04},
++	{0x034F, 0x48},
++	{0x0381, 0x01},
++	{0x0383, 0x01},
++	{0x0385, 0x01},
++	{0x0387, 0x01},
++	{0x3048, 0x00},
++	{0x3050, 0x01},
++	{0x30D5, 0x00},
++	{0x3301, 0x00},
++	{0x3318, 0x62},
++	{0x0202, 0x01},
++	{0x0203, 0x90},
++	{0x0205, 0x00},
++};
++
++static const struct imx208_reg mode_968_548_60fps_regs[] = {
++	{0x0340, 0x02},
++	{0x0341, 0x39},
++	{0x0342, 0x08},
++	{0x0343, 0xC8},
++	{0x034C, 0x03},
++	{0x034D, 0xC8},
++	{0x034E, 0x02},
++	{0x034F, 0x24},
++	{0x0381, 0x01},
++	{0x0383, 0x03},
++	{0x0385, 0x01},
++	{0x0387, 0x03},
++	{0x3048, 0x01},
++	{0x3050, 0x02},
++	{0x30D5, 0x03},
++	{0x3301, 0x10},
++	{0x3318, 0x75},
++	{0x0202, 0x01},
++	{0x0203, 0x90},
++	{0x0205, 0x00},
++};
++
++static const char * const imx208_test_pattern_menu[] = {
++	"Disabled",
++	"Solid Color",
++	"100% Color Bar",
++	"Fade to Grey Color Bar",
++	"PN9",
++	"Fixed Pattern1",
++	"Fixed Pattern2",
++	"Fixed Pattern3",
++	"Fixed Pattern4",
++	"Fixed Pattern5",
++	"Fixed Pattern6"
++};
++
++static const int imx208_test_pattern_val[] = {
++	IMX208_TEST_PATTERN_DISABLE,
++	IMX208_TEST_PATTERN_SOLID_COLOR,
++	IMX208_TEST_PATTERN_COLOR_BARS,
++	IMX208_TEST_PATTERN_GREY_COLOR,
++	IMX208_TEST_PATTERN_PN9,
++	IMX208_TEST_PATTERN_FIX_1,
++	IMX208_TEST_PATTERN_FIX_2,
++	IMX208_TEST_PATTERN_FIX_3,
++	IMX208_TEST_PATTERN_FIX_4,
++	IMX208_TEST_PATTERN_FIX_5,
++	IMX208_TEST_PATTERN_FIX_6,
++};
++
++/* Configurations for supported link frequencies */
++#define IMX208_MHZ			(1000*1000ULL)
++#define IMX208_LINK_FREQ_384MHZ		(384ULL * IMX208_MHZ)
++#define IMX208_LINK_FREQ_96MHZ		(96ULL * IMX208_MHZ)
++
++#define IMX208_DATA_RATE_DOUBLE		2
++#define IMX208_NUM_OF_LANES		2
++#define IMX208_PIXEL_BITS		10
++
++enum {
++	IMX208_LINK_FREQ_384MHZ_INDEX,
++	IMX208_LINK_FREQ_96MHZ_INDEX,
++};
++
++/*
++ * pixel_rate = link_freq * data-rate * nr_of_lanes / bits_per_sample
++ * data rate => double data rate; number of lanes => 2; bits per pixel => 10
++ */
++static u64 link_freq_to_pixel_rate(u64 f)
++{
++	f *= IMX208_DATA_RATE_DOUBLE * IMX208_NUM_OF_LANES;
++	do_div(f, IMX208_PIXEL_BITS);
++
++	return f;
++}
++
++/* Menu items for LINK_FREQ V4L2 control */
++static const s64 link_freq_menu_items[] = {
++	IMX208_LINK_FREQ_384MHZ,
++	IMX208_LINK_FREQ_96MHZ,
++};
++
++/* Link frequency configs */
++static const struct imx208_link_freq_config link_freq_configs[] = {
++	[IMX208_LINK_FREQ_384MHZ_INDEX] = {
++		.pixels_per_line = IMX208_PPL_384MHZ,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(pll_ctrl_reg),
++			.regs = pll_ctrl_reg,
++		}
++	},
++	[IMX208_LINK_FREQ_96MHZ_INDEX] = {
++		.pixels_per_line = IMX208_PPL_96MHZ,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(pll_ctrl_reg),
++			.regs = pll_ctrl_reg,
++		}
++	},
++};
++
++/* Mode configs */
++static const struct imx208_mode supported_modes[] = {
++	[IMX208_LINK_FREQ_384MHZ_INDEX] = {
++		.width = 1936,
++		.height = 1096,
++		.vts_def = IMX208_VTS_60FPS,
++		.vts_min = IMX208_VTS_60FPS_MIN,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_1936x1096_60fps_regs),
++			.regs = mode_1936x1096_60fps_regs,
++		},
++		.link_freq_index = IMX208_LINK_FREQ_384MHZ_INDEX,
++	},
++	[IMX208_LINK_FREQ_96MHZ_INDEX] = {
++		.width = 968,
++		.height = 548,
++		.vts_def = IMX208_VTS_BINNING,
++		.vts_min = IMX208_VTS_BINNING_MIN,
++		.reg_list = {
++			.num_of_regs = ARRAY_SIZE(mode_968_548_60fps_regs),
++			.regs = mode_968_548_60fps_regs,
++		},
++		.link_freq_index = IMX208_LINK_FREQ_96MHZ_INDEX,
++	},
++};
++
++struct imx208 {
++	struct v4l2_subdev sd;
++	struct media_pad pad;
++
++	struct v4l2_ctrl_handler ctrl_handler;
++	/* V4L2 Controls */
++	struct v4l2_ctrl *link_freq;
++	struct v4l2_ctrl *pixel_rate;
++	struct v4l2_ctrl *vblank;
++	struct v4l2_ctrl *hblank;
++	struct v4l2_ctrl *vflip;
++	struct v4l2_ctrl *hflip;
++
++	/* Current mode */
++	const struct imx208_mode *cur_mode;
++
++	/*
++	 * Mutex for serialized access:
++	 * Protect sensor set pad format and start/stop streaming safely.
++	 * Protect access to sensor v4l2 controls.
++	 */
++	struct mutex imx208_mx;
++
++	/* Streaming on/off */
++	bool streaming;
++};
++
++static inline struct imx208 *to_imx208(struct v4l2_subdev *_sd)
++{
++	return container_of(_sd, struct imx208, sd);
++}
++
++/* Get bayer order based on flip setting. */
++static u32 imx208_get_format_code(struct imx208 *imx208)
++{
++	/*
++	 * Only one bayer order is supported.
++	 * It depends on the flip settings.
++	 */
++	static const u32 codes[2][2] = {
++		{ MEDIA_BUS_FMT_SRGGB10_1X10, MEDIA_BUS_FMT_SGRBG10_1X10, },
++		{ MEDIA_BUS_FMT_SGBRG10_1X10, MEDIA_BUS_FMT_SBGGR10_1X10, },
++	};
++
++	return codes[imx208->vflip->val][imx208->hflip->val];
++}
++
++/* Read registers up to 4 at a time */
++static int imx208_read_reg(struct imx208 *imx208, u16 reg, u32 len, u32 *val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	struct i2c_msg msgs[2];
++	u8 addr_buf[2] = { reg >> 8, reg & 0xff };
++	u8 data_buf[4] = { 0, };
++	int ret;
++
++	if (len > 4)
++		return -EINVAL;
++
++	/* Write register address */
++	msgs[0].addr = client->addr;
++	msgs[0].flags = 0;
++	msgs[0].len = ARRAY_SIZE(addr_buf);
++	msgs[0].buf = addr_buf;
++
++	/* Read data from register */
++	msgs[1].addr = client->addr;
++	msgs[1].flags = I2C_M_RD;
++	msgs[1].len = len;
++	msgs[1].buf = &data_buf[4 - len];
++
++	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
++	if (ret != ARRAY_SIZE(msgs))
++		return -EIO;
++
++	*val = get_unaligned_be32(data_buf);
++
++	return 0;
++}
++
++/* Write registers up to 4 at a time */
++static int imx208_write_reg(struct imx208 *imx208, u16 reg, u32 len, u32 val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	u8 buf[6];
++
++	if (len > 4)
++		return -EINVAL;
++
++	put_unaligned_be16(reg, buf);
++	put_unaligned_be32(val << (8 * (4 - len)), buf + 2);
++	if (i2c_master_send(client, buf, len + 2) != len + 2)
++		return -EIO;
++
++	return 0;
++}
++
++/* Write a list of registers */
++static int imx208_write_regs(struct imx208 *imx208,
++			      const struct imx208_reg *regs, u32 len)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < len; i++) {
++		ret = imx208_write_reg(imx208, regs[i].address, 1,
++				       regs[i].val);
++		if (ret) {
++			dev_err_ratelimited(
++				&client->dev,
++				"Failed to write reg 0x%4.4x. error = %d\n",
++				regs[i].address, ret);
++
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++/* Open sub-device */
++static int imx208_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_mbus_framefmt *try_fmt =
++		v4l2_subdev_get_try_format(sd, fh->pad, 0);
++
++	/* Initialize try_fmt */
++	try_fmt->width = supported_modes[0].width;
++	try_fmt->height = supported_modes[0].height;
++	try_fmt->code = MEDIA_BUS_FMT_SRGGB10_1X10;
++	try_fmt->field = V4L2_FIELD_NONE;
++
++	return 0;
++}
++
++
++static int imx208_update_digital_gain(struct imx208 *imx208, u32 len, u32 val)
++{
++	int ret;
++
++	ret = imx208_write_reg(imx208, IMX208_REG_GR_DIGITAL_GAIN, 2, val);
++	if (ret)
++		return ret;
++
++	ret = imx208_write_reg(imx208, IMX208_REG_GB_DIGITAL_GAIN, 2, val);
++	if (ret)
++		return ret;
++
++	ret = imx208_write_reg(imx208, IMX208_REG_R_DIGITAL_GAIN, 2, val);
++	if (ret)
++		return ret;
++
++	return imx208_write_reg(imx208, IMX208_REG_B_DIGITAL_GAIN, 2, val);
++}
++
++static int imx208_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct imx208 *imx208 =
++		container_of(ctrl->handler, struct imx208, ctrl_handler);
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	int ret;
++
++	/*
++	 * Applying V4L2 control value only happens
++	 * when power is up for streaming
++	 */
++	if (!pm_runtime_get_if_in_use(&client->dev))
++		return 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_ANALOGUE_GAIN:
++		ret = imx208_write_reg(imx208, IMX208_REG_ANALOG_GAIN,
++				       2, ctrl->val);
++		break;
++	case V4L2_CID_EXPOSURE:
++		ret = imx208_write_reg(imx208, IMX208_REG_EXPOSURE,
++				       2, ctrl->val);
++		break;
++	case V4L2_CID_DIGITAL_GAIN:
++		ret = imx208_update_digital_gain(imx208, 2, ctrl->val);
++		break;
++	case V4L2_CID_VBLANK:
++		/* Update VTS that meets expected vertical blanking */
++		ret = imx208_write_reg(imx208, IMX208_REG_VTS, 2,
++				       imx208->cur_mode->height + ctrl->val);
++		break;
++	case V4L2_CID_TEST_PATTERN:
++		ret = imx208_write_reg(imx208, IMX208_REG_TEST_PATTERN_MODE,
++				       2, imx208_test_pattern_val[ctrl->val]);
++		break;
++	case V4L2_CID_HFLIP:
++	case V4L2_CID_VFLIP:
++		ret = imx208_write_reg(imx208, IMX208_REG_ORIENTATION_CONTROL,
++				       1,
++				       imx208->hflip->val |
++				       imx208->vflip->val << 1);
++		break;
++	default:
++		ret = -EINVAL;
++		dev_err(&client->dev,
++			"ctrl(id:0x%x,val:0x%x) is not handled\n",
++			ctrl->id, ctrl->val);
++		break;
++	}
++
++	pm_runtime_put(&client->dev);
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops imx208_ctrl_ops = {
++	.s_ctrl = imx208_set_ctrl,
++};
++
++static int imx208_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct imx208 *imx208 = to_imx208(sd);
++
++	if (code->index > 0)
++		return -EINVAL;
++
++	code->code = imx208_get_format_code(imx208);
++
++	return 0;
++}
++
++static int imx208_enum_frame_size(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_frame_size_enum *fse)
++{
++	struct imx208 *imx208 = to_imx208(sd);
++
++	if (fse->index >= ARRAY_SIZE(supported_modes))
++		return -EINVAL;
++
++	if (fse->code != imx208_get_format_code(imx208))
++		return -EINVAL;
++
++	fse->min_width = supported_modes[fse->index].width;
++	fse->max_width = fse->min_width;
++	fse->min_height = supported_modes[fse->index].height;
++	fse->max_height = fse->min_height;
++
++	return 0;
++}
++
++static void imx208_mode_to_pad_format(struct imx208 *imx208,
++					const struct imx208_mode *mode,
++					struct v4l2_subdev_format *fmt)
++{
++	fmt->format.width = mode->width;
++	fmt->format.height = mode->height;
++	fmt->format.code = imx208_get_format_code(imx208);
++	fmt->format.field = V4L2_FIELD_NONE;
++}
++
++static int __imx208_get_pad_format(struct imx208 *imx208,
++				     struct v4l2_subdev_pad_config *cfg,
++				     struct v4l2_subdev_format *fmt)
++{
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
++		fmt->format = *v4l2_subdev_get_try_format(&imx208->sd, cfg,
++							  fmt->pad);
++	else
++		imx208_mode_to_pad_format(imx208, imx208->cur_mode, fmt);
++
++	return 0;
++}
++
++static int imx208_get_pad_format(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_format *fmt)
++{
++	struct imx208 *imx208 = to_imx208(sd);
++	int ret;
++
++	mutex_lock(&imx208->imx208_mx);
++	ret = __imx208_get_pad_format(imx208, cfg, fmt);
++	mutex_unlock(&imx208->imx208_mx);
++
++	return ret;
++}
++
++static int imx208_set_pad_format(struct v4l2_subdev *sd,
++		       struct v4l2_subdev_pad_config *cfg,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct imx208 *imx208 = to_imx208(sd);
++	const struct imx208_mode *mode;
++	s32 vblank_def;
++	s32 vblank_min;
++	s64 h_blank;
++	s64 pixel_rate;
++	s64 link_freq;
++
++	mutex_lock(&imx208->imx208_mx);
++
++	fmt->format.code = imx208_get_format_code(imx208);
++	mode = v4l2_find_nearest_size(
++		supported_modes, ARRAY_SIZE(supported_modes), width, height,
++		fmt->format.width, fmt->format.height);
++	imx208_mode_to_pad_format(imx208, mode, fmt);
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		*v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
++	} else {
++		imx208->cur_mode = mode;
++		__v4l2_ctrl_s_ctrl(imx208->link_freq, mode->link_freq_index);
++		link_freq = link_freq_menu_items[mode->link_freq_index];
++		pixel_rate = link_freq_to_pixel_rate(link_freq);
++		__v4l2_ctrl_s_ctrl_int64(imx208->pixel_rate, pixel_rate);
++		/* Update limits and set FPS to default */
++		vblank_def = imx208->cur_mode->vts_def -
++			     imx208->cur_mode->height;
++		vblank_min = imx208->cur_mode->vts_min -
++			     imx208->cur_mode->height;
++		__v4l2_ctrl_modify_range(
++			imx208->vblank, vblank_min,
++			IMX208_VTS_MAX - imx208->cur_mode->height, 1,
++			vblank_def);
++		__v4l2_ctrl_s_ctrl(imx208->vblank, vblank_def);
++		h_blank =
++			link_freq_configs[mode->link_freq_index].pixels_per_line
++			 - imx208->cur_mode->width;
++		__v4l2_ctrl_modify_range(imx208->hblank, h_blank,
++					 h_blank, 1, h_blank);
++	}
++
++	mutex_unlock(&imx208->imx208_mx);
++
++	return 0;
++}
++
++/* Start streaming */
++static int imx208_start_streaming(struct imx208 *imx208)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	const struct imx208_reg_list *reg_list;
++	int ret, link_freq_index;
++
++	/* Setup PLL */
++	link_freq_index = imx208->cur_mode->link_freq_index;
++	reg_list = &link_freq_configs[link_freq_index].reg_list;
++	ret = imx208_write_regs(imx208, reg_list->regs, reg_list->num_of_regs);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set plls\n", __func__);
++		return ret;
++	}
++
++	/* Apply default values of current mode */
++	reg_list = &imx208->cur_mode->reg_list;
++	ret = imx208_write_regs(imx208, reg_list->regs, reg_list->num_of_regs);
++	if (ret) {
++		dev_err(&client->dev, "%s failed to set mode\n", __func__);
++		return ret;
++	}
++
++	/* Apply customized values from user */
++	ret =  __v4l2_ctrl_handler_setup(imx208->sd.ctrl_handler);
++	if (ret)
++		return ret;
++
++	/* set stream on register */
++	return imx208_write_reg(imx208, IMX208_REG_MODE_SELECT,
++				1, IMX208_MODE_STREAMING);
++}
++
++/* Stop streaming */
++static int imx208_stop_streaming(struct imx208 *imx208)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	int ret;
++
++	/* set stream off register */
++	ret = imx208_write_reg(imx208, IMX208_REG_MODE_SELECT,
++			       1, IMX208_MODE_STANDBY);
++	if (ret)
++		dev_err(&client->dev, "%s failed to set stream\n", __func__);
++
++	/*
++	 * Return success even if it was an error, as there is nothing the
++	 * caller can do about it.
++	 */
++	return 0;
++}
++
++static int imx208_set_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct imx208 *imx208 = to_imx208(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret = 0;
++
++	mutex_lock(&imx208->imx208_mx);
++	if (imx208->streaming == enable) {
++		mutex_unlock(&imx208->imx208_mx);
++		return 0;
++	}
++
++	if (enable) {
++		ret = pm_runtime_get_sync(&client->dev);
++		if (ret < 0)
++			goto err_rpm_put;
++
++		/*
++		 * Apply default & customized values
++		 * and then start streaming.
++		 */
++		ret = imx208_start_streaming(imx208);
++		if (ret)
++			goto err_rpm_put;
++	} else {
++		imx208_stop_streaming(imx208);
++		pm_runtime_put(&client->dev);
++	}
++
++	imx208->streaming = enable;
++	mutex_unlock(&imx208->imx208_mx);
++
++	/* vflip and hflip cannot change during streaming */
++	v4l2_ctrl_grab(imx208->vflip, enable);
++	v4l2_ctrl_grab(imx208->hflip, enable);
++
++	return ret;
++
++err_rpm_put:
++	pm_runtime_put(&client->dev);
++	mutex_unlock(&imx208->imx208_mx);
++
++	return ret;
++}
++
++static int __maybe_unused imx208_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct imx208 *imx208 = to_imx208(sd);
++
++	if (imx208->streaming)
++		imx208_stop_streaming(imx208);
++
++	return 0;
++}
++
++static int __maybe_unused imx208_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct imx208 *imx208 = to_imx208(sd);
++	int ret;
++
++	if (imx208->streaming) {
++		ret = imx208_start_streaming(imx208);
++		if (ret)
++			goto error;
++	}
++
++	return 0;
++
++error:
++	imx208_stop_streaming(imx208);
++	imx208->streaming = 0;
++
++	return ret;
++}
++
++/* Verify chip ID */
++static int imx208_identify_module(struct imx208 *imx208)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	int ret;
++	u32 val;
++
++	ret = imx208_read_reg(imx208, IMX208_REG_CHIP_ID,
++			      2, &val);
++	if (ret) {
++		dev_err(&client->dev, "failed to read chip id %x\n",
++			IMX208_CHIP_ID);
++		return ret;
++	}
++
++	if (val != IMX208_CHIP_ID) {
++		dev_err(&client->dev, "chip id mismatch: %x!=%x\n",
++			IMX208_CHIP_ID, val);
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops imx208_video_ops = {
++	.s_stream = imx208_set_stream,
++};
++
++static const struct v4l2_subdev_pad_ops imx208_pad_ops = {
++	.enum_mbus_code = imx208_enum_mbus_code,
++	.get_fmt = imx208_get_pad_format,
++	.set_fmt = imx208_set_pad_format,
++	.enum_frame_size = imx208_enum_frame_size,
++};
++
++static const struct v4l2_subdev_ops imx208_subdev_ops = {
++	.video = &imx208_video_ops,
++	.pad = &imx208_pad_ops,
++};
++
++static const struct v4l2_subdev_internal_ops imx208_internal_ops = {
++	.open = imx208_open,
++};
++
++/* Initialize control handlers */
++static int imx208_init_controls(struct imx208 *imx208)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&imx208->sd);
++	struct v4l2_ctrl_handler *ctrl_hdlr = &imx208->ctrl_handler;
++	s64 exposure_max;
++	s64 vblank_def;
++	s64 vblank_min;
++	s64 pixel_rate_min;
++	s64 pixel_rate_max;
++	int ret;
++
++	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 8);
++	if (ret)
++		return ret;
++
++	mutex_init(&imx208->imx208_mx);
++	ctrl_hdlr->lock = &imx208->imx208_mx;
++	imx208->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
++				&imx208_ctrl_ops,
++				V4L2_CID_LINK_FREQ,
++				ARRAY_SIZE(link_freq_menu_items) - 1,
++				0, link_freq_menu_items);
++
++	if (imx208->link_freq)
++		imx208->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	pixel_rate_max = link_freq_to_pixel_rate(link_freq_menu_items[0]);
++	pixel_rate_min = link_freq_to_pixel_rate(
++			 link_freq_menu_items[ARRAY_SIZE(
++			 link_freq_menu_items) - 1]);
++	/* By default, PIXEL_RATE is read only */
++	imx208->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops,
++					V4L2_CID_PIXEL_RATE,
++					pixel_rate_min, pixel_rate_max,
++					1, pixel_rate_max);
++
++	vblank_def = imx208->cur_mode->vts_def - imx208->cur_mode->height;
++	vblank_min = imx208->cur_mode->vts_min - imx208->cur_mode->height;
++	imx208->vblank = v4l2_ctrl_new_std(
++				ctrl_hdlr, &imx208_ctrl_ops, V4L2_CID_VBLANK,
++				vblank_min,
++				IMX208_VTS_MAX - imx208->cur_mode->height, 1,
++				vblank_def);
++
++	imx208->hblank = v4l2_ctrl_new_std(
++				ctrl_hdlr, &imx208_ctrl_ops, V4L2_CID_HBLANK,
++				IMX208_PPL_384MHZ - imx208->cur_mode->width,
++				IMX208_PPL_384MHZ - imx208->cur_mode->width,
++				1,
++				IMX208_PPL_384MHZ - imx208->cur_mode->width);
++
++	if (imx208->hblank)
++		imx208->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++
++	exposure_max = imx208->cur_mode->vts_def - 8;
++	v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops, V4L2_CID_EXPOSURE,
++			  IMX208_EXPOSURE_MIN, IMX208_EXPOSURE_MAX,
++			  IMX208_EXPOSURE_STEP, IMX208_EXPOSURE_DEFAULT);
++
++	imx208->hflip = v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops,
++					  V4L2_CID_HFLIP, 0, 1, 1, 0);
++	imx208->vflip = v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops,
++					  V4L2_CID_VFLIP, 0, 1, 1, 0);
++
++	v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
++			  IMX208_ANA_GAIN_MIN, IMX208_ANA_GAIN_MAX,
++			  IMX208_ANA_GAIN_STEP, IMX208_ANA_GAIN_DEFAULT);
++
++	v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
++			  IMX208_DGTL_GAIN_MIN, IMX208_DGTL_GAIN_MAX,
++			  IMX208_DGTL_GAIN_STEP,
++			  IMX208_DGTL_GAIN_DEFAULT);
++
++	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx208_ctrl_ops,
++				     V4L2_CID_TEST_PATTERN,
++				     ARRAY_SIZE(imx208_test_pattern_menu) - 1,
++				     0, 0, imx208_test_pattern_menu);
++
++	if (ctrl_hdlr->error) {
++		ret = ctrl_hdlr->error;
++		dev_err(&client->dev, "%s control init failed (%d)\n",
++			__func__, ret);
++		goto error;
++	}
++
++	imx208->sd.ctrl_handler = ctrl_hdlr;
++
++	return 0;
++
++error:
++	v4l2_ctrl_handler_free(ctrl_hdlr);
++	mutex_destroy(&imx208->imx208_mx);
++
++	return ret;
++}
++
++static void imx208_free_controls(struct imx208 *imx208)
++{
++	v4l2_ctrl_handler_free(imx208->sd.ctrl_handler);
++}
++
++static int imx208_probe(struct i2c_client *client)
++{
++	struct imx208 *imx208;
++	int ret;
++	u32 val = 0;
++
++	device_property_read_u32(&client->dev, "clock-frequency", &val);
++	if (val != 19200000) {
++		dev_err(&client->dev,
++			"Unsupported clock-frequency %u. Expected 19200000.\n",
++			val);
++		return -EINVAL;
++	}
++
++	imx208 = devm_kzalloc(&client->dev, sizeof(*imx208), GFP_KERNEL);
++	if (!imx208)
++		return -ENOMEM;
++
++	/* Initialize subdev */
++	v4l2_i2c_subdev_init(&imx208->sd, client, &imx208_subdev_ops);
++
++	/* Check module identity */
++	ret = imx208_identify_module(imx208);
++	if (ret) {
++		dev_err(&client->dev, "failed to find sensor: %d", ret);
++		goto error_probe;
++	}
++
++	/* Set default mode to max resolution */
++	imx208->cur_mode = &supported_modes[0];
++
++	ret = imx208_init_controls(imx208);
++	if (ret) {
++		dev_err(&client->dev, "failed to init controls: %d", ret);
++		goto error_probe;
++	}
++
++	/* Initialize subdev */
++	imx208->sd.internal_ops = &imx208_internal_ops;
++	imx208->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	imx208->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++
++	/* Initialize source pad */
++	imx208->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_pads_init(&imx208->sd.entity, 1, &imx208->pad);
++	if (ret) {
++		dev_err(&client->dev, "%s failed:%d\n", __func__, ret);
++		goto error_handler_free;
++	}
++
++	ret = v4l2_async_register_subdev_sensor_common(&imx208->sd);
++	if (ret < 0)
++		goto error_media_entity;
++
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
++
++	return 0;
++
++error_media_entity:
++	media_entity_cleanup(&imx208->sd.entity);
++
++error_handler_free:
++	imx208_free_controls(imx208);
++
++error_probe:
++	mutex_destroy(&imx208->imx208_mx);
++
++	return ret;
++}
++
++static int imx208_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct imx208 *imx208 = to_imx208(sd);
++
++	v4l2_async_unregister_subdev(sd);
++	media_entity_cleanup(&sd->entity);
++	imx208_free_controls(imx208);
++
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++
++	mutex_destroy(&imx208->imx208_mx);
++
++	return 0;
++}
++
++static const struct dev_pm_ops imx208_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(imx208_suspend, imx208_resume)
++};
++
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id imx208_acpi_ids[] = {
++	{ "INT3478" },
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(acpi, imx208_acpi_ids);
++#endif
++
++static struct i2c_driver imx208_i2c_driver = {
++	.driver = {
++		.name = "imx208",
++		.pm = &imx208_pm_ops,
++		.acpi_match_table = ACPI_PTR(imx208_acpi_ids),
++	},
++	.probe_new = imx208_probe,
++	.remove = imx208_remove,
++};
++
++module_i2c_driver(imx208_i2c_driver);
++
++MODULE_AUTHOR("Yeh, Andy <andy.yeh@intel.com>");
++MODULE_AUTHOR("Chen, Ping-chung <ping-chung.chen@intel.com>");
++MODULE_DESCRIPTION("Sony IMX208 sensor driver");
++MODULE_LICENSE("GPL v2");
+-- 
+1.9.1
