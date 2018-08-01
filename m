@@ -1,16 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:56476 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:56514 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389864AbeHARln (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 13:41:43 -0400
+        with ESMTP id S2389932AbeHARlo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 13:41:44 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 10/13] media: si2157: declare its own pads
-Date: Wed,  1 Aug 2018 12:55:12 -0300
-Message-Id: <f7b1765b0883479f8013365dcec63b782760c2e5.1533138685.git.mchehab+samsung@kernel.org>
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Brian Warner <brian.warner@samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Nasser Afshin <afshin.nasser@gmail.com>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Kees Cook <keescook@chromium.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Pravin Shedge <pravin.shedge4linux@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 01/13] media: v4l2: remove VBI output pad
+Date: Wed,  1 Aug 2018 12:55:03 -0300
+Message-Id: <5a5b24eb632c949c316c79b0c647a6754cb40834.1533138685.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1533138685.git.mchehab+samsung@kernel.org>
 References: <cover.1533138685.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1533138685.git.mchehab+samsung@kernel.org>
@@ -18,68 +30,100 @@ References: <cover.1533138685.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we don't need anymore to share pad numbers with similar
-drivers, use its own pad definition instead of a global
-model.
+The signal there is the same as the video output (well,
+except for sliced VBI, but let's simplify the model and ignore
+it, at least for now - as it is routed together with raw
+VBI).
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/tuners/si2157.c      | 14 +++++++-------
- drivers/media/tuners/si2157_priv.h |  9 ++++++++-
- 2 files changed, 15 insertions(+), 8 deletions(-)
+ drivers/media/dvb-frontends/au8522_decoder.c | 1 -
+ drivers/media/i2c/saa7115.c                  | 1 -
+ drivers/media/i2c/tvp5150.c                  | 1 -
+ drivers/media/pci/saa7134/saa7134-core.c     | 1 -
+ drivers/media/v4l2-core/v4l2-mc.c            | 2 +-
+ include/media/v4l2-mc.h                      | 2 --
+ 6 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index d222912662d7..dc21a86c0175 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -468,14 +468,14 @@ static int si2157_probe(struct i2c_client *client,
- 		dev->ent.name = KBUILD_MODNAME;
- 		dev->ent.function = MEDIA_ENT_F_TUNER;
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index f285096a48f0..198dd2b6f326 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -720,7 +720,6 @@ static int au8522_probe(struct i2c_client *client,
  
--		dev->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
--		dev->pad[TUNER_PAD_RF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
--		dev->pad[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
--		dev->pad[TUNER_PAD_OUTPUT].sig_type = PAD_SIGNAL_TV_CARRIERS;
--		dev->pad[TUNER_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
--		dev->pad[TUNER_PAD_AUD_OUT].sig_type = PAD_SIGNAL_AUDIO;
-+		dev->pad[SI2157_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		dev->pad[SI2157_PAD_RF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
-+		dev->pad[SI2157_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->pad[SI2157_PAD_VID_OUT].sig_type = PAD_SIGNAL_TV_CARRIERS;
-+		dev->pad[SI2157_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->pad[SI2157_PAD_AUD_OUT].sig_type = PAD_SIGNAL_AUDIO;
+ 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	state->pads[DEMOD_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
  
--		ret = media_entity_pads_init(&dev->ent, TUNER_NUM_PADS,
-+		ret = media_entity_pads_init(&dev->ent, SI2157_NUM_PADS,
- 					     &dev->pad[0]);
- 
- 		if (ret)
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index e6436f74abaa..129a35e4e11b 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -21,6 +21,13 @@
- #include <media/v4l2-mc.h>
- #include "si2157.h"
- 
-+enum si2157_pads {
-+       SI2157_PAD_RF_INPUT,
-+       SI2157_PAD_VID_OUT,
-+       SI2157_PAD_AUD_OUT,
-+       SI2157_NUM_PADS
-+};
-+
- /* state struct */
- struct si2157_dev {
- 	struct mutex i2c_mutex;
-@@ -35,7 +42,7 @@ struct si2157_dev {
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index b07114b5efb2..4c72db58dfd2 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1836,7 +1836,6 @@ static int saa711x_probe(struct i2c_client *client,
  #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_device	*mdev;
- 	struct media_entity	ent;
--	struct media_pad	pad[TUNER_NUM_PADS];
-+	struct media_pad	pad[SI2157_NUM_PADS];
- #endif
+ 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
  
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 76e6bed5a1da..66235e10acdd 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1501,7 +1501,6 @@ static int tvp5150_probe(struct i2c_client *c,
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index 9e76de2411ae..267d143c3a48 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -847,7 +847,6 @@ static void saa7134_create_entities(struct saa7134_dev *dev)
+ 		dev->demod.name = "saa713x";
+ 		dev->demod_pad[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-		dev->demod_pad[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 		dev->demod.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+ 		ret = media_entity_pads_init(&dev->demod, DEMOD_NUM_PADS,
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 0fc185a2ce90..982bab3530f6 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -147,7 +147,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	}
+ 
+ 	if (io_vbi) {
+-		ret = media_create_pad_link(decoder, DEMOD_PAD_VBI_OUT,
++		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+ 					    io_vbi, 0,
+ 					    MEDIA_LNK_FL_ENABLED);
+ 		if (ret)
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index 2634d9dc9916..7c9c781b16a9 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -89,14 +89,12 @@ enum if_aud_dec_pad_index {
+  *
+  * @DEMOD_PAD_IF_INPUT:	IF input sink pad.
+  * @DEMOD_PAD_VID_OUT:	Video output source pad.
+- * @DEMOD_PAD_VBI_OUT:	Vertical Blank Interface (VBI) output source pad.
+  * @DEMOD_PAD_AUDIO_OUT: Audio output source pad.
+  * @DEMOD_NUM_PADS:	Maximum number of output pads.
+  */
+ enum demod_pad_index {
+ 	DEMOD_PAD_IF_INPUT,
+ 	DEMOD_PAD_VID_OUT,
+-	DEMOD_PAD_VBI_OUT,
+ 	DEMOD_PAD_AUDIO_OUT,
+ 	DEMOD_NUM_PADS
  };
 -- 
 2.17.1
