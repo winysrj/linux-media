@@ -1,66 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:64414 "EHLO smtp2.macqel.be"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732437AbeHAK6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Aug 2018 06:58:30 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.macqel.be (Postfix) with ESMTP id 06FFB130D33
-        for <linux-media@vger.kernel.org>; Wed,  1 Aug 2018 11:13:43 +0200 (CEST)
-Received: from smtp2.macqel.be ([127.0.0.1])
-        by localhost (mail.macqel.be [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id 9e9msJHoUvoP for <linux-media@vger.kernel.org>;
-        Wed,  1 Aug 2018 11:13:41 +0200 (CEST)
-Received: from frolo.macqel.be (frolo.macqel [10.1.40.73])
-        by smtp2.macqel.be (Postfix) with ESMTP id 659E5130D0F
-        for <linux-media@vger.kernel.org>; Wed,  1 Aug 2018 11:13:41 +0200 (CEST)
-Date: Wed, 1 Aug 2018 11:13:41 +0200
-From: Philippe De Muyter <phdm@macq.eu>
-To: linux-media@vger.kernel.org
-Subject: BUG ? v4l2_spi_subdev_init does not produce unique names
-Message-ID: <20180801091341.GA32341@frolo.macqel>
+Received: from szxga07-in.huawei.com ([45.249.212.35]:51832 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1732437AbeHALEx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Aug 2018 07:04:53 -0400
+From: Wei Yongjun <weiyongjun1@huawei.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        "Nasser Afshin" <afshin.nasser@gmail.com>
+CC: Wei Yongjun <weiyongjun1@huawei.com>,
+        <linux-media@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+Subject: [PATCH -next] media: tvp5150: make function tvp5150_volatile_reg() static
+Date: Wed, 1 Aug 2018 09:27:45 +0000
+Message-ID: <1533115665-90439-1-git-send-email-weiyongjun1@huawei.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello v4l2 gurus,
+Fixes the following sparse warning:
 
-Sorry for the people who already have read my previous mail.  I changed
-the subject to make it more sexy :)
+drivers/media/i2c/tvp5150.c:1457:6: warning:
+ symbol 'tvp5150_volatile_reg' was not declared. Should it be static?
 
-Documentation/media/kapi/v4l2-subdev.rst states :
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ drivers/media/i2c/tvp5150.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-"Afterwards you need to initialize :c:type:`sd <v4l2_subdev>`->name with a
-unique name and set the module owner. This is done for you if you use the
-i2c helper functions"
-
-I try to write a v4l2 spi driver and use hence v4l2_spi_subdev_init, not
-v4l2_i2c_subdev_init.
-
-In v4l2_i2c_subdev_init, subdev name is initialised by
-
-        snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
-                client->dev.driver->name, i2c_adapter_id(client->adapter),
-                client->addr);
-
-In v4l2_spi_subdev_init, subdev name is initialised by
-
-        strlcpy(sd->name, spi->dev.driver->name, sizeof(sd->name));
-
-This does not give similar results :(
-
-with i2c, subdev name is set as "xxx %d-%04x", giving a unique name to the
-subdev.
-
-with spi, subdev name is set as "xxx", giving the same name to all similar
-subdevs on the same host
-
-Is that intentional or an oversight, and if so, how should that be fixed ?
-
-Best regards
-
-Philippe
-
--- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 7b0d42b..ad3b728 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1454,7 +1454,7 @@ static int tvp5150_registered(struct v4l2_subdev *sd)
+ 	},
+ };
+ 
+-bool tvp5150_volatile_reg(struct device *dev, unsigned int reg)
++static bool tvp5150_volatile_reg(struct device *dev, unsigned int reg)
+ {
+ 	switch (reg) {
+ 	case TVP5150_VERT_LN_COUNT_MSB:
