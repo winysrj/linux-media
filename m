@@ -1,241 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:56484 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389906AbeHARln (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 13:41:43 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pravin Shedge <pravin.shedge4linux@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Shuah Khan <shuah@kernel.org>
-Subject: [PATCH 03/13] v4l2-mc: switch it to use the new approach to setup pipelines
-Date: Wed,  1 Aug 2018 12:55:05 -0300
-Message-Id: <f3a56b9bb4210885f005c96cddf5773c2c4e0cd1.1533138685.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1533138685.git.mchehab+samsung@kernel.org>
-References: <cover.1533138685.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1533138685.git.mchehab+samsung@kernel.org>
-References: <cover.1533138685.git.mchehab+samsung@kernel.org>
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:33051 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387714AbeHAVAN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 17:00:13 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v3 13/14] media: imx: Allow interweave with top/bottom lines swapped
+Date: Wed,  1 Aug 2018 12:12:26 -0700
+Message-Id: <1533150747-30677-14-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of relying on a static map for pids, use the new sig_type
-"taint" type to setup the pipelines with the same tipe between
-different entities.
+Allow sequential->interlaced interweaving but with top/bottom
+lines swapped to the output buffer.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+This can be accomplished by adding one line length to IDMAC output
+channel address, with a negative line length for the interlace offset.
+
+This is to allow the seq-bt -> interlaced-bt transformation, where
+bottom lines are still dominant (older in time) but with top lines
+first in the interweaved output buffer.
+
+With this support, the CSI can now allow seq-bt at its source pads,
+e.g. the following transformations are allowed in CSI from sink to
+source:
+
+seq-tb -> seq-bt
+seq-bt -> seq-bt
+alternate -> seq-bt
+
+Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/media-entity.c      | 26 +++++++++++
- drivers/media/v4l2-core/v4l2-mc.c | 73 ++++++++++++++++++++++++-------
- include/media/media-entity.h      | 19 ++++++++
- 3 files changed, 101 insertions(+), 17 deletions(-)
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 17 ++++++++++-
+ drivers/staging/media/imx/imx-media-csi.c   | 46 +++++++++++++++++++++++------
+ 2 files changed, 53 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 3498551e618e..0b1cb3559140 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -662,6 +662,32 @@ static void __media_entity_remove_link(struct media_entity *entity,
- 	kfree(link);
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index cf76b04..1499b0c 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -106,6 +106,8 @@ struct prp_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;  /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	u32 interweave_offset; /* interweave line offset to swap
++				  top/bottom lines */
+ 	struct completion last_eof_comp;
+ };
+ 
+@@ -235,6 +237,9 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
+ 	if (ipu_idmac_buffer_is_ready(ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(ch, priv->ipu_buf_num);
+ 
++	if (ch == priv->out_ch)
++		phys += priv->interweave_offset;
++
+ 	ipu_cpmem_set_buffer(ch, priv->ipu_buf_num, phys);
  }
  
-+int media_get_pad_index(struct media_entity *entity, bool is_sink,
-+			enum media_pad_signal_type sig_type)
-+{
-+	int i;
-+	bool pad_is_sink;
+@@ -388,6 +393,13 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 			(image.pix.width * outcc->bpp) >> 3;
+ 	}
+ 
++	priv->interweave_offset = 0;
 +
-+	if (!entity)
-+		return -EINVAL;
-+
-+	for (i = 0; i < entity->num_pads; i++) {
-+		if (entity->pads[i].flags == MEDIA_PAD_FL_SINK)
-+			pad_is_sink = true;
-+		else if (entity->pads[i].flags == MEDIA_PAD_FL_SOURCE)
-+			pad_is_sink = false;
-+		else
-+			continue;	/* This is an error! */
-+
-+		if (pad_is_sink != is_sink)
-+			continue;
-+		if (entity->pads[i].sig_type == sig_type)
-+			return i;
++	if (interweave && image.pix.field == V4L2_FIELD_INTERLACED_BT) {
++		image.rect.top = 1;
++		priv->interweave_offset = image.pix.bytesperline;
 +	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(media_get_pad_index);
 +
- int
- media_create_pad_link(struct media_entity *source, u16 source_pad,
- 			 struct media_entity *sink, u16 sink_pad, u32 flags)
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 982bab3530f6..1925e1a3b861 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -28,7 +28,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
- 	bool is_webcam = false;
- 	u32 flags;
--	int ret;
-+	int ret, pad_sink, pad_source;
+ 	image.phys0 = addr0;
+ 	image.phys1 = addr1;
  
- 	if (!mdev)
- 		return 0;
-@@ -97,29 +97,52 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	/* Link the tuner and IF video output pads */
- 	if (tuner) {
- 		if (if_vid) {
--			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
--						    if_vid,
--						    IF_VID_DEC_PAD_IF_INPUT,
-+			pad_source = media_get_pad_index(tuner, false,
-+							 PAD_SIGNAL_ANALOG);
-+			pad_sink = media_get_pad_index(if_vid, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(tuner, pad_source,
-+						    if_vid, pad_sink,
- 						    MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
--			ret = media_create_pad_link(if_vid, IF_VID_DEC_PAD_OUT,
--						decoder, DEMOD_PAD_IF_INPUT,
-+
-+			pad_source = media_get_pad_index(if_vid, false,
-+							 PAD_SIGNAL_DV);
-+			pad_sink = media_get_pad_index(decoder, true,
-+						       PAD_SIGNAL_DV);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(if_vid, pad_source,
-+						decoder, pad_sink,
- 						MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
- 		} else {
--			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
--						decoder, DEMOD_PAD_IF_INPUT,
-+			pad_source = media_get_pad_index(tuner, false,
-+							 PAD_SIGNAL_ANALOG);
-+			pad_sink = media_get_pad_index(decoder, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(tuner, pad_source,
-+						decoder, pad_sink,
- 						MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
- 		}
+@@ -425,7 +437,10 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 		ipu_cpmem_set_rotation(channel, rot_mode);
  
- 		if (if_aud) {
--			ret = media_create_pad_link(tuner, TUNER_PAD_AUD_OUT,
--						    if_aud,
--						    IF_AUD_DEC_PAD_IF_INPUT,
-+			pad_source = media_get_pad_index(tuner, false,
-+							 PAD_SIGNAL_AUDIO);
-+			pad_sink = media_get_pad_index(decoder, true,
-+						       PAD_SIGNAL_AUDIO);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(tuner, pad_source,
-+						    if_aud, pad_sink,
- 						    MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
-@@ -131,7 +154,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	if (interweave)
+-		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline,
++		ipu_cpmem_interlaced_scan(channel,
++					  priv->interweave_offset ?
++					  -image.pix.bytesperline :
++					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
  
- 	/* Create demod to V4L, VBI and SDR radio links */
- 	if (io_v4l) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-+		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-+		if (pad_source < 0)
-+			return -EINVAL;
-+		ret = media_create_pad_link(decoder, pad_source,
- 					io_v4l, 0,
- 					MEDIA_LNK_FL_ENABLED);
- 		if (ret)
-@@ -139,7 +165,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	ret = ipu_ic_task_idma_init(priv->ic, channel,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 6f24b3b..a5f88ae 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -114,6 +114,8 @@ struct csi_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;   /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	u32 interweave_offset; /* interweave line offset to swap
++				  top/bottom lines */
+ 	struct completion last_eof_comp;
+ };
+ 
+@@ -283,7 +285,8 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+ 	if (ipu_idmac_buffer_is_ready(priv->idmac_ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(priv->idmac_ch, priv->ipu_buf_num);
+ 
+-	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num, phys);
++	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num,
++			     phys + priv->interweave_offset);
+ }
+ 
+ static irqreturn_t csi_idmac_eof_interrupt(int irq, void *dev_id)
+@@ -393,10 +396,10 @@ static void csi_idmac_unsetup_vb2_buf(struct csi_priv *priv,
+ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ {
+ 	struct imx_media_video_dev *vdev = priv->vdev;
++	bool passthrough, interweave, interweave_swap;
+ 	const struct imx_media_pixfmt *incc;
+ 	struct v4l2_mbus_framefmt *infmt;
+ 	struct v4l2_mbus_framefmt *outfmt;
+-	bool passthrough, interweave;
+ 	struct ipu_image image;
+ 	u32 passthrough_bits;
+ 	u32 passthrough_cycles;
+@@ -430,6 +433,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	 */
+ 	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+ 		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
++	interweave_swap = interweave &&
++		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+ 
+ 	switch (image.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_SBGGR8:
+@@ -483,15 +488,25 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
  	}
  
- 	if (io_swradio) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-+		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-+		if (pad_source < 0)
-+			return -EINVAL;
-+		ret = media_create_pad_link(decoder, pad_source,
- 					io_swradio, 0,
- 					MEDIA_LNK_FL_ENABLED);
- 		if (ret)
-@@ -147,7 +176,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	}
- 
- 	if (io_vbi) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-+		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-+		if (pad_source < 0)
-+			return -EINVAL;
-+		ret = media_create_pad_link(decoder, pad_source,
- 					    io_vbi, 0,
- 					    MEDIA_LNK_FL_ENABLED);
- 		if (ret)
-@@ -161,15 +193,22 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 		case MEDIA_ENT_F_CONN_RF:
- 			if (!tuner)
- 				continue;
--
-+			pad_source = media_get_pad_index(tuner, false,
-+							 PAD_SIGNAL_ANALOG);
-+			if (pad_source < 0)
-+				return -EINVAL;
- 			ret = media_create_pad_link(entity, 0, tuner,
--						    TUNER_PAD_RF_INPUT,
-+						    pad_source,
- 						    flags);
- 			break;
- 		case MEDIA_ENT_F_CONN_SVIDEO:
- 		case MEDIA_ENT_F_CONN_COMPOSITE:
-+			pad_sink = media_get_pad_index(decoder, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_sink < 0)
-+				return -EINVAL;
- 			ret = media_create_pad_link(entity, 0, decoder,
--						    DEMOD_PAD_IF_INPUT,
-+						    pad_sink,
- 						    flags);
- 			break;
- 		default:
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8bfbe6b59fa9..ac8b93e46167 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -675,6 +675,25 @@ static inline void media_entity_cleanup(struct media_entity *entity) {}
- #define media_entity_cleanup(entity) do { } while (false)
- #endif
- 
+ 	if (passthrough) {
++		priv->interweave_offset = interweave_swap ?
++			image.pix.bytesperline : 0;
+ 		ipu_cpmem_set_resolution(priv->idmac_ch,
+ 					 image.rect.width * passthrough_cycles,
+ 					 image.rect.height);
+ 		ipu_cpmem_set_stride(priv->idmac_ch, image.pix.bytesperline);
+-		ipu_cpmem_set_buffer(priv->idmac_ch, 0, image.phys0);
+-		ipu_cpmem_set_buffer(priv->idmac_ch, 1, image.phys1);
++		ipu_cpmem_set_buffer(priv->idmac_ch, 0,
++				     image.phys0 + priv->interweave_offset);
++		ipu_cpmem_set_buffer(priv->idmac_ch, 1,
++				     image.phys1 + priv->interweave_offset);
+ 		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
+ 						 passthrough_bits);
+ 	} else {
++		priv->interweave_offset = 0;
++		if (interweave_swap) {
++			image.rect.top = 1;
++			priv->interweave_offset = image.pix.bytesperline;
++		}
 +
-+/**
-+ * media_get_pad_index() - retrieves a pad index from an entity
-+ *
-+ * @entity:	entity where the pads belong
-+ * @is_sink:	true if the pad is a sink, false if it is a source
-+ * @sig_type:	type of signal of the pad to be search
-+ *
-+ * This helper function finds the first pad index inside an entity that
-+ * satisfies both @is_sink and @sig_type conditions.
-+ *
-+ * Return:
-+ *
-+ * On success, return the pad number. If the pad was not found or the media
-+ * entity is a NULL pointer, return -EINVAL.
-+ */
-+int media_get_pad_index(struct media_entity *entity, bool is_sink,
-+			enum media_pad_signal_type sig_type);
-+
- /**
-  * media_create_pad_link() - creates a link between two entities.
-  *
+ 		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
+ 		if (ret)
+ 			goto unsetup_vb2;
+@@ -523,6 +538,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 
+ 	if (interweave)
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
++					  priv->interweave_offset ?
++					  -image.pix.bytesperline :
+ 					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
+ 
+@@ -1331,16 +1348,27 @@ static void csi_try_field(struct csi_priv *priv,
+ 	switch (infmt->field) {
+ 	case V4L2_FIELD_SEQ_TB:
+ 	case V4L2_FIELD_SEQ_BT:
++		/*
++		 * If the user requests sequential at the source pad,
++		 * allow it (along with possibly inverting field order).
++		 * Otherwise passthrough the field type.
++		 */
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = infmt->field;
++		break;
+ 	case V4L2_FIELD_ALTERNATE:
+ 		/*
+-		 * If the sink is sequential or alternating fields,
+-		 * allow only SEQ_TB at the source.
+-		 *
+ 		 * This driver does not support alternate field mode, and
+ 		 * the CSI captures a whole frame, so the CSI never presents
+-		 * alternate mode at its source pads.
++		 * alternate mode at its source pads. If user has not
++		 * already requested sequential, translate ALTERNATE at
++		 * sink pad to SEQ_TB or SEQ_BT at the source pad depending
++		 * on input height (assume NTSC BT order if 480 total active
++		 * frame lines, otherwise PAL TB order).
+ 		 */
+-		sdformat->format.field = V4L2_FIELD_SEQ_TB;
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = (infmt->height == 480 / 2) ?
++				V4L2_FIELD_SEQ_BT : V4L2_FIELD_SEQ_TB;
+ 		break;
+ 	default:
+ 		/* Passthrough for all other input field types */
 -- 
-2.17.1
+2.7.4
