@@ -1,114 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49242 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387576AbeHANCY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Aug 2018 09:02:24 -0400
-Date: Wed, 1 Aug 2018 14:16:27 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se
-Subject: Re: [PATCH 05/21] dt-bindings: media: Specify bus type for MIPI
- D-PHY, others, explicitly
-Message-ID: <20180801111627.gtvnhzo2b2j4haa2@paasikivi.fi.intel.com>
-References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
- <20180723134706.15334-6-sakari.ailus@linux.intel.com>
- <20180731213210.GA28374@rob-hp-laptop>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:38295 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388778AbeHAN41 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 09:56:27 -0400
+Date: Wed, 1 Aug 2018 14:10:47 +0200
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Javier Martinez Canillas <javierm@redhat.com>, mchehab@kernel.org,
+        robh+dt@kernel.org, mark.rutland@arm.com, p.zabel@pengutronix.de,
+        afshin.nasser@gmail.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 18/22] partial revert of "[media] tvp5150: add HW input
+ connectors support"
+Message-ID: <20180801121047.qgl7w3msasscacrm@pengutronix.de>
+References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+ <20180628162054.25613-19-m.felsch@pengutronix.de>
+ <20180730151842.0fd99d01@coco.lan>
+ <3a9f8715-a3a6-b250-82ad-6f2df6500767@redhat.com>
+ <20180731070659.43afe417@coco.lan>
+ <759d76b0-dab2-17bb-970c-38233bafc708@redhat.com>
+ <20180731123652.r23m4zlkdulet22z@pengutronix.de>
+ <7c849709-f3e4-98bb-fad9-a85f6e90bb71@redhat.com>
+ <20180731133056.rqaolpoz7lea4y4f@pengutronix.de>
+ <20180731165600.25831676@coco.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180731213210.GA28374@rob-hp-laptop>
+In-Reply-To: <20180731165600.25831676@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hi Mauro,
 
-Thanks for the review.
-
-On Tue, Jul 31, 2018 at 03:32:10PM -0600, Rob Herring wrote:
-> On Mon, Jul 23, 2018 at 04:46:50PM +0300, Sakari Ailus wrote:
-> > Allow specifying the bus type explicitly for MIPI D-PHY, parallel and
-> > Bt.656 busses. This is useful for devices that can make use of different
-> > bus types. There are CSI-2 transmitters and receivers but the PHY
-> > selection needs to be made between C-PHY and D-PHY; many devices also
-> > support parallel and Bt.656 interfaces but the means to pass that
-> > information to software wasn't there.
+On 18-07-31 16:56, Mauro Carvalho Chehab wrote:
+> Em Tue, 31 Jul 2018 15:30:56 +0200
+> Marco Felsch <m.felsch@pengutronix.de> escreveu:
+> 
+> > Hi Javier,
 > > 
-> > Autodetection (value 0) is removed as an option as the property could be
-> > simply omitted in that case.
-> 
-> Presumably there are users, so you can't remove it. But documenting 
-> behavior when absent would be good.
-
-Well, it's effectively the same as having no such property at all: the type
-is not specified. Generally there are two possibilities: the hardware
-supports just a single bus or it supports more than one. If there's just
-one, the type can be known by the driver. In that case there's no use for
-autodetection.
-
-The second case is a bit more complicated: the bus type detection is solely
-based on properties available in the endpoint, and I think that may have
-been feasible approach when there were just parallel and Bt.656 busses that
-were supported, but with the additional busses, the V4L2 fwnode framework
-may no longer guess the bus in any meaningful way from the available
-properties. I'd think the only known-good option here is to specify the
-type explicitly in that case: there's no room for guessing. (This patchset
-makes it possible for drivers to explicitly define the bus type, but the
-autodetection support is maintained for backwards compatibility.)
-
-One of the existing issues is that there are combined parallel/Bt.656
-receivers that need to know the type of the bus. This is based on the
-existence parallel interface only properties: if any of these exist, then
-the interface is parallel, otherwise it is Bt.656. The DT bindings for the
-same devices also define the defaults for the parallel interface. This
-leaves the end result ambiguous: is it the parallel interface with the
-default configuration or is it Bt.656?
-
-There will likely be similar issues for CSI-2 D-PHY and CSI-2 C-PHY. The
-question there would be: is this CSI-2 C-PHY or CSI-2 D-PHY with default
-clock lane configuration?
-
-In either case the autodetection option for the bus type provides no useful
-information. If it exists in DT source, that's fine, there's just no use
-for it.
-
-Let me know if you still think it should be maintained in binding
-documentation.
-
-> 
+> > On 18-07-31 14:52, Javier Martinez Canillas wrote:
+> > > Hi Marco,
+> > > 
+> > > On 07/31/2018 02:36 PM, Marco Felsch wrote:
+> > > 
+> > > [snip]
+> > >   
+> > > >>
+> > > >> Yes, another thing that patch 19/22 should take into account is DTs that
+> > > >> don't have input connectors defined. So probably TVP5150_PORT_YOUT should
+> > > >> be 0 instead of TVP5150_PORT_NUM - 1 as is the case in the current patch.
+> > > >>
+> > > >> In other words, it should work both when input connectors are defined in
+> > > >> the DT and when these are not defined and only an output port is defined.  
+> > > > 
+> > > > Yes, it would be a approach to map the output port dynamicaly to the
+> > > > highest port number. I tried to keep things easy by a static mapping.
+> > > > Maybe a follow up patch can change this behaviour.
+> > > > 
+> > > > Anyway, input connectors aren't required. There must be at least one
+> > > > port child node with a correct port-number in the DT.
+> > > >  
+> > > 
+> > > Yes, that was my point. But your patch uses the port child reg property as
+> > > the index for the struct device_node *endpoints[TVP5150_PORT_NUM] array.
+> > > 
+> > > If there's only one port child (for the output) then the DT binding says
+> > > that the reg property isn't required, so this will be 0 and your patch will
+> > > wrongly map it to TVP5150_PORT_AIP1A. That's why I said that the output port
+> > > should be the first one in your enum tvp5150_ports and not the last one.  
 > > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
+> > Yes, now I got you. I implemted this in such a way in my first apporach.
+> > But at the moment I don't know why I changed this. Maybe to keep the
+> > decoder->input number in sync with the em28xx devices, which will set the
+> > port by the s_routing() callback.
 > > 
-> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > index baf9d9756b3c..f884ada0bffc 100644
-> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > @@ -100,10 +100,12 @@ Optional endpoint properties
-> >    slave device (data source) by the master device (data sink). In the master
-> >    mode the data source device is also the source of the synchronization signals.
-> >  - bus-type: data bus type. Possible values are:
-> > -  0 - autodetect based on other properties (MIPI CSI-2 D-PHY, parallel or Bt656)
-> >    1 - MIPI CSI-2 C-PHY
-> >    2 - MIPI CSI1
-> >    3 - CCP2
-> > +  4 - MIPI CSI-2 D-PHY
-> > +  5 - Parallel
-> 
-> Is that really specific enough to be useful?
+> > Let me check this.
 
-Yes; see above.
+I will prepare a follow up patch wich fix this behaviour, if possible.
 
 > 
-> > +  6 - Bt.656
-> >  - bus-width: number of data lines actively used, valid for the parallel busses.
-> >  - data-shift: on the parallel data busses, if bus-width is used to specify the
-> >    number of data lines, data-shift can be used to specify which data lines are
+> Anyway, with the patchset I sent (with one fix), it will do the right
+> thing with regards to the pad output:
+> 	https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150
 
--- 
-Kind regards,
+Thanks for your work :)
+I have just one question. Is it correct to set the .sig_type only for the
+tvp5150 'main' entity or should it be set for the dynamical connector
+entities too?
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> 
+> $ mc_nextgen_test -D 
+> digraph board {
+> 	rankdir=TB
+> 	colorscheme=x11
+> 	labelloc="t"
+> 	label="Grabster AV 350
+>  driver:em28xx, bus: usb-0000:00:14.0-2
+> "
+> 	intf_devnode_7 [label="intf_devnode_7\nvideo\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
+> 	intf_devnode_10 [label="intf_devnode_10\nvbi\n/dev/vbi0", shape=box, style=filled, fillcolor=yellow]
+> 	entity_1 [label="{{<pad_2> 0 | <pad_3> 1 | <pad_4> 2} | entity_1\nATV decoder\ntvp5150 0-005c | {<pad_5> 3}}", shape=Mrecord, style=filled, fillcolor=lightblue]
+> 	entity_6 [label="{{<pad_12> 0} | entity_6\nV4L I/O\n2-2:1.0 video}", shape=Mrecord, style=filled, fillcolor=aquamarine]
+> 	entity_9 [label="{{<pad_13> 0} | entity_9\nVBI I/O\n2-2:1.0 vbi}", shape=Mrecord, style=filled, fillcolor=aquamarine]
+> 	entity_14 [label="{entity_14\nunknown entity type\nComposite | {<pad_15> 0}}", shape=Mrecord, style=filled, fillcolor=cadetblue]
+> 	entity_16 [label="{entity_16\nunknown entity type\nS-Video | {<pad_17> 0}}", shape=Mrecord, style=filled, fillcolor=cadetblue]
+> 	intf_devnode_7 -> entity_6 [dir="none" color="orange"]
+> 	intf_devnode_10 -> entity_9 [dir="none" color="orange"]
+> 	entity_1:pad_5 -> entity_6:pad_12 [color=blue]
+> 	entity_1:pad_5 -> entity_9:pad_13 [color=blue]
+> 	entity_14:pad_15 -> entity_1:pad_2 [color=blue]
+> 	entity_16:pad_17 -> entity_1:pad_2 [color=blue style="dashed"]
+> }
+> 
+> It won't do the right thing with regards to the input, though, as
+> the code at v4l2-mc.c expects just one input. So, both composite and
+> S-Video connectors (created outside tvp5150, based on the input entries
+> at em28xx cards table) are linked to pad 0. 
+
+Should we add comment for this behaviour in v4l2-mc.c? Since the
+MEDIA_ENT_F_CONN_RF case updates the pad number.
+
+> 
+> Thanks,
+> Mauro
+> 
+
+Regards,
+Marco
