@@ -1,135 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:2394 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1733249AbeHAMSQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 08:18:16 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Todor Tomov <todor.tomov@linaro.org>
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [GIT PULL FOR v4.18 or v4.19] Qualcomm Camera Subsystem driver - 8x96
- support
-Message-ID: <aaaabfff-391a-f36c-d6aa-6c3684408fe7@cisco.com>
-Date: Wed, 1 Aug 2018 12:33:07 +0200
+Received: from mga01.intel.com ([192.55.52.88]:49242 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387576AbeHANCY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Aug 2018 09:02:24 -0400
+Date: Wed, 1 Aug 2018 14:16:27 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Rob Herring <robh@kernel.org>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se
+Subject: Re: [PATCH 05/21] dt-bindings: media: Specify bus type for MIPI
+ D-PHY, others, explicitly
+Message-ID: <20180801111627.gtvnhzo2b2j4haa2@paasikivi.fi.intel.com>
+References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
+ <20180723134706.15334-6-sakari.ailus@linux.intel.com>
+ <20180731213210.GA28374@rob-hp-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180731213210.GA28374@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Rob,
 
-This pull request adds camera support for Qualcomm's 8x96.
+Thanks for the review.
 
-Since 4.18 is delayed by another week (see lwn.net) I am hoping this can still
-be applied for 4.18. If not, then it can go to 4.19.
+On Tue, Jul 31, 2018 at 03:32:10PM -0600, Rob Herring wrote:
+> On Mon, Jul 23, 2018 at 04:46:50PM +0300, Sakari Ailus wrote:
+> > Allow specifying the bus type explicitly for MIPI D-PHY, parallel and
+> > Bt.656 busses. This is useful for devices that can make use of different
+> > bus types. There are CSI-2 transmitters and receivers but the PHY
+> > selection needs to be made between C-PHY and D-PHY; many devices also
+> > support parallel and Bt.656 interfaces but the means to pass that
+> > information to software wasn't there.
+> > 
+> > Autodetection (value 0) is removed as an option as the property could be
+> > simply omitted in that case.
+> 
+> Presumably there are users, so you can't remove it. But documenting 
+> behavior when absent would be good.
 
-Regards,
+Well, it's effectively the same as having no such property at all: the type
+is not specified. Generally there are two possibilities: the hardware
+supports just a single bus or it supports more than one. If there's just
+one, the type can be known by the driver. In that case there's no use for
+autodetection.
 
-	Hans
+The second case is a bit more complicated: the bus type detection is solely
+based on properties available in the endpoint, and I think that may have
+been feasible approach when there were just parallel and Bt.656 busses that
+were supported, but with the additional busses, the V4L2 fwnode framework
+may no longer guess the bus in any meaningful way from the available
+properties. I'd think the only known-good option here is to specify the
+type explicitly in that case: there's no room for guessing. (This patchset
+makes it possible for drivers to explicitly define the bus type, but the
+autodetection support is maintained for backwards compatibility.)
 
-The following changes since commit 1d06352e18ef502e30837cedfe618298816fb48c:
+One of the existing issues is that there are combined parallel/Bt.656
+receivers that need to know the type of the bus. This is based on the
+existence parallel interface only properties: if any of these exist, then
+the interface is parallel, otherwise it is Bt.656. The DT bindings for the
+same devices also define the defaults for the parallel interface. This
+leaves the end result ambiguous: is it the parallel interface with the
+default configuration or is it Bt.656?
 
-  media: tvp5150: add g_std callback (2018-07-30 20:04:33 -0400)
+There will likely be similar issues for CSI-2 D-PHY and CSI-2 C-PHY. The
+question there would be: is this CSI-2 C-PHY or CSI-2 D-PHY with default
+clock lane configuration?
 
-are available in the git repository at:
+In either case the autodetection option for the bus type provides no useful
+information. If it exists in DT source, that's fine, there's just no use
+for it.
 
-  git://linuxtv.org/hverkuil/media_tree.git camss
+Let me know if you still think it should be maintained in binding
+documentation.
 
-for you to fetch changes up to d0151162ad654a9999a2d8be51f6cf08f108f976:
+> 
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  Documentation/devicetree/bindings/media/video-interfaces.txt | 4 +++-
+> >  1 file changed, 3 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > index baf9d9756b3c..f884ada0bffc 100644
+> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> > @@ -100,10 +100,12 @@ Optional endpoint properties
+> >    slave device (data source) by the master device (data sink). In the master
+> >    mode the data source device is also the source of the synchronization signals.
+> >  - bus-type: data bus type. Possible values are:
+> > -  0 - autodetect based on other properties (MIPI CSI-2 D-PHY, parallel or Bt656)
+> >    1 - MIPI CSI-2 C-PHY
+> >    2 - MIPI CSI1
+> >    3 - CCP2
+> > +  4 - MIPI CSI-2 D-PHY
+> > +  5 - Parallel
+> 
+> Is that really specific enough to be useful?
 
-  media: camss: csid: Add support for events triggered by user controls (2018-08-01 12:30:01 +0200)
+Yes; see above.
 
-----------------------------------------------------------------
-Sakari Ailus (1):
-      doc-rst: Add packed Bayer raw14 pixel formats
+> 
+> > +  6 - Bt.656
+> >  - bus-width: number of data lines actively used, valid for the parallel busses.
+> >  - data-shift: on the parallel data busses, if bus-width is used to specify the
+> >    number of data lines, data-shift can be used to specify which data lines are
 
-Todor Tomov (33):
-      media: v4l: Add new 2X8 10-bit grayscale media bus code
-      media: v4l: Add new 10-bit packed grayscale format
-      media: Rename CAMSS driver path
-      media: camss: Use SPDX license headers
-      media: camss: Fix OF node usage
-      media: camss: csiphy: Ensure clock mux config is done before the rest
-      media: dt-bindings: media: qcom, camss: Unify the clock names
-      media: camss: Unify the clock names
-      media: camss: csiphy: Update settle count calculation
-      media: camss: csid: Configure data type and decode format properly
-      media: camss: vfe: Fix to_vfe() macro member name
-      media: camss: vfe: Get line pointer as container of video_out
-      media: camss: vfe: Do not disable CAMIF when clearing its status
-      media: dt-bindings: media: qcom,camss: Fix whitespaces
-      media: dt-bindings: media: qcom,camss: Add 8996 bindings
-      media: camss: Add 8x96 resources
-      media: camss: Add basic runtime PM support
-      media: camss: csiphy: Split to hardware dependent and independent parts
-      media: camss: csiphy: Unify lane handling
-      media: camss: csiphy: Add support for 8x96
-      media: camss: csid: Add support for 8x96
-      media: camss: ispif: Add support for 8x96
-      media: camss: vfe: Split to hardware dependent and independent parts
-      media: camss: vfe: Add support for 8x96
-      media: camss: Format configuration per hardware version
-      media: camss: vfe: Different format support on source pad
-      media: camss: vfe: Add support for UYVY output from VFE on 8x96
-      media: camss: csid: Different format support on source pad
-      media: camss: csid: MIPI10 to Plain16 format conversion
-      media: camss: Add support for RAW MIPI14 on 8x96
-      media: camss: Add support for 10-bit grayscale formats
-      media: doc: media/v4l-drivers: Update Qualcomm CAMSS driver document for 8x96
-      media: camss: csid: Add support for events triggered by user controls
+-- 
+Kind regards,
 
- Documentation/devicetree/bindings/media/qcom,camss.txt           |  128 ++--
- Documentation/media/uapi/v4l/pixfmt-rgb.rst                      |    1 +
- Documentation/media/uapi/v4l/pixfmt-srggb14p.rst                 |  127 ++++
- Documentation/media/uapi/v4l/pixfmt-y10p.rst                     |   33 +
- Documentation/media/uapi/v4l/subdev-formats.rst                  |   72 ++
- Documentation/media/uapi/v4l/yuv-formats.rst                     |    1 +
- Documentation/media/v4l-drivers/qcom_camss.rst                   |   93 ++-
- Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot        |  104 +++
- MAINTAINERS                                                      |    2 +-
- drivers/media/platform/Kconfig                                   |    2 +-
- drivers/media/platform/Makefile                                  |    2 +-
- drivers/media/platform/qcom/camss-8x16/camss-vfe.h               |  123 ----
- drivers/media/platform/qcom/{camss-8x16 => camss}/Makefile       |    4 +
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.c   |  471 ++++++++++---
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.h   |   17 +-
- drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c         |  176 +++++
- drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c         |  256 +++++++
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.c |  363 ++++------
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.h |   37 +-
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.c  |  264 ++++++-
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.h  |   23 +-
- drivers/media/platform/qcom/camss/camss-vfe-4-1.c                | 1018 +++++++++++++++++++++++++++
- drivers/media/platform/qcom/camss/camss-vfe-4-7.c                | 1140 ++++++++++++++++++++++++++++++
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-vfe.c    | 1569 +++++++++++-------------------------------
- drivers/media/platform/qcom/camss/camss-vfe.h                    |  186 +++++
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.c  |  133 +++-
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.h  |   12 +-
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss.c        |  450 +++++++++---
- drivers/media/platform/qcom/{camss-8x16 => camss}/camss.h        |   43 +-
- drivers/media/v4l2-core/v4l2-ioctl.c                             |    5 +
- include/uapi/linux/media-bus-format.h                            |    3 +-
- include/uapi/linux/videodev2.h                                   |    6 +
- 32 files changed, 4960 insertions(+), 1904 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb14p.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-y10p.rst
- create mode 100644 Documentation/media/v4l-drivers/qcom_camss_8x96_graph.dot
- delete mode 100644 drivers/media/platform/qcom/camss-8x16/camss-vfe.h
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/Makefile (68%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.c (69%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csid.h (74%)
- create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.c (71%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-csiphy.h (60%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.c (80%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-ispif.h (68%)
- create mode 100644 drivers/media/platform/qcom/camss/camss-vfe-4-1.c
- create mode 100644 drivers/media/platform/qcom/camss/camss-vfe-4-7.c
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-vfe.c (54%)
- create mode 100644 drivers/media/platform/qcom/camss/camss-vfe.h
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.c (81%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss-video.h (74%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss.c (61%)
- rename drivers/media/platform/qcom/{camss-8x16 => camss}/camss.h (75%)
+Sakari Ailus
+sakari.ailus@linux.intel.com
