@@ -1,155 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:47517 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46413 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389498AbeHAQfn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 12:35:43 -0400
-Date: Wed, 1 Aug 2018 16:49:26 +0200
+        with ESMTP id S2389690AbeHARft (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 13:35:49 -0400
+Date: Wed, 1 Aug 2018 17:49:17 +0200
 From: Marco Felsch <m.felsch@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+To: Javier Martinez Canillas <javierm@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
         p.zabel@pengutronix.de, afshin.nasser@gmail.com,
-        javierm@redhat.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 16/22] [media] tvp5150: add querystd
-Message-ID: <20180801144926.ijqotetin4uhtxw6@pengutronix.de>
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: Re: [PATCH 18/22] partial revert of "[media] tvp5150: add HW input
+ connectors support"
+Message-ID: <20180801154917.dtopi2ubmqff7ru2@pengutronix.de>
 References: <20180628162054.25613-1-m.felsch@pengutronix.de>
- <20180628162054.25613-17-m.felsch@pengutronix.de>
- <20180730150945.3301864f@coco.lan>
- <20180801132125.j4725kthupcc7fnd@pengutronix.de>
- <20180801112212.4f450528@coco.lan>
+ <20180628162054.25613-19-m.felsch@pengutronix.de>
+ <20180730151842.0fd99d01@coco.lan>
+ <3a9f8715-a3a6-b250-82ad-6f2df6500767@redhat.com>
+ <20180731070659.43afe417@coco.lan>
+ <759d76b0-dab2-17bb-970c-38233bafc708@redhat.com>
+ <20180731123652.r23m4zlkdulet22z@pengutronix.de>
+ <7c849709-f3e4-98bb-fad9-a85f6e90bb71@redhat.com>
+ <20180731133056.rqaolpoz7lea4y4f@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180801112212.4f450528@coco.lan>
+In-Reply-To: <20180731133056.rqaolpoz7lea4y4f@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Javier,
 
-On 18-08-01 11:22, Mauro Carvalho Chehab wrote:
-> Em Wed, 1 Aug 2018 15:21:25 +0200
-> Marco Felsch <m.felsch@pengutronix.de> escreveu:
+On 18-07-31 15:30, Marco Felsch wrote:
+> Hi Javier,
 > 
-> > Hi Mauro,
+> On 18-07-31 14:52, Javier Martinez Canillas wrote:
+> > Hi Marco,
 > > 
-> > On 18-07-30 15:09, Mauro Carvalho Chehab wrote:
-> > > Em Thu, 28 Jun 2018 18:20:48 +0200
-> > > Marco Felsch <m.felsch@pengutronix.de> escreveu:
-> > >   
-> > > > From: Philipp Zabel <p.zabel@pengutronix.de>
-> > > > 
-> > > > Add the querystd video_op and make it return V4L2_STD_UNKNOWN while the
-> > > > TVP5150 is not locked to a signal.
-> > > > 
-> > > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > > > ---
-> > > >  drivers/media/i2c/tvp5150.c | 10 ++++++++++
-> > > >  1 file changed, 10 insertions(+)
-> > > > 
-> > > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> > > > index 99d887936ea0..1990aaa17749 100644
-> > > > --- a/drivers/media/i2c/tvp5150.c
-> > > > +++ b/drivers/media/i2c/tvp5150.c
-> > > > @@ -796,6 +796,15 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
-> > > >  	}
-> > > >  }
-> > > >  
-> > > > +static int tvp5150_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
-> > > > +{
-> > > > +	struct tvp5150 *decoder = to_tvp5150(sd);
-> > > > +
-> > > > +	*std_id = decoder->lock ? tvp5150_read_std(sd) : V4L2_STD_UNKNOWN;  
+> > On 07/31/2018 02:36 PM, Marco Felsch wrote:
+> > 
+> > [snip]
+> > 
+> > >>
+> > >> Yes, another thing that patch 19/22 should take into account is DTs that
+> > >> don't have input connectors defined. So probably TVP5150_PORT_YOUT should
+> > >> be 0 instead of TVP5150_PORT_NUM - 1 as is the case in the current patch.
+> > >>
+> > >> In other words, it should work both when input connectors are defined in
+> > >> the DT and when these are not defined and only an output port is defined.
 > > > 
-> > > This patch requires rework. What happens when a device doesn't have
-> > > IRQ enabled? Perhaps it should, instead, read some register in order
-> > > to check for the locking status, as this would work on both cases.  
+> > > Yes, it would be a approach to map the output port dynamicaly to the
+> > > highest port number. I tried to keep things easy by a static mapping.
+> > > Maybe a follow up patch can change this behaviour.
+> > > 
+> > > Anyway, input connectors aren't required. There must be at least one
+> > > port child node with a correct port-number in the DT.
+> > >
 > > 
-> > If IRQ isn't enabled, decoder->lock is set to always true during
-> > probe(). So this case should be fine.
+> > Yes, that was my point. But your patch uses the port child reg property as
+> > the index for the struct device_node *endpoints[TVP5150_PORT_NUM] array.
+> > 
+> > If there's only one port child (for the output) then the DT binding says
+> > that the reg property isn't required, so this will be 0 and your patch will
+> > wrongly map it to TVP5150_PORT_AIP1A. That's why I said that the output port
+> > should be the first one in your enum tvp5150_ports and not the last one.
 > 
-> Not sure if tvp5150_read_std() will do the right thing. If it does,
-> the above could simply be:
-> 	std_id = tvp5150_read_std(sd);
+> Yes, now I got you. I implemted this in such a way in my first apporach.
+> But at the moment I don't know why I changed this. Maybe to keep the
+> decoder->input number in sync with the em28xx devices, which will set the
+> port by the s_routing() callback.
 > 
-> But, as there are 3 variants of this chipset, it sounds safer to check
-> if the device is locked before calling tvp5150_read_std().
+> Let me check this.
 
-Yes, I'm with you.
+I checked it again. Your're right, it should be doable but IMHO it isn't
+the right solution. I checked some drivers which use of_graph and all of
+them put the output at the end. So the tvp5150 will be the only one
+which maps the out put to the first pad and it isn't intuitive.
+
+I discused it with a colleague. We think a better solution would be to fix
+the v4l2-core parser code to allow a independent dt-port<->pad mapping.
+Since now the pad's correspond to the port number. This mapping should
+be done by a driver callback, so each driver can do it's own custom
+mapping.
+
+Regards,
+Marco
 
 > 
-> IMHO, the best would be to have a patch like the one below.
+> Best Regards,
+> Marco
 > 
-> Regards,
-> Mauro
-> 
-> [PATCH] media: tvp5150: implement decoder lock when irq is not used
-> 
-> When irq is used, the lock is set via IRQ code. When it isn't,
-> the driver just assumes it is always locked. Instead, read the
-> lock status from the status register.
-
-Yes, that is a better solution.
-
-> 
-> Compile-tested only.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 75e5ffc6573d..e07020d4053d 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -811,11 +811,24 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
->  	}
->  }
->  
-> +static int query_lock(struct v4l2_subdev *sd)
-> +{
-> +	struct tvp5150 *decoder = to_tvp5150(sd);
-> +	int status;
-> +
-> +	if (decoder->irq)
-> +		return decoder->lock;
-> +
-> +	regmap_read(map, TVP5150_INT_STATUS_REG_A, &status);
-> +
-> +	return (status & 0x06) == 0x06;
-
-Typo? It should be 0x80, as described in the datasheet (SLES209E) or
-just use the TVP5150_INT_A_LOCK_STATUS define. This avoid datasheet
-cross check during reading.
-
-> +}
-> +
->  static int tvp5150_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
->  {
->  	struct tvp5150 *decoder = to_tvp5150(sd);
->  
-> -	*std_id = decoder->lock ? tvp5150_read_std(sd) : V4L2_STD_UNKNOWN;
-> +	*std_id = query_lock(sd) ? tvp5150_read_std(sd) : V4L2_STD_UNKNOWN;
->  
->  	return 0;
->  }
-> @@ -1247,7 +1260,7 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
->  		tvp5150_enable(sd);
->  
->  		/* Enable outputs if decoder is locked */
-> -		val = decoder->lock ? decoder->oe : 0;
-> +		val = query_lock(sd) ? decoder->oe : 0;
->  		int_val = TVP5150_INT_A_LOCK;
->  		v4l2_subdev_notify_event(&decoder->sd, &tvp5150_ev_fmt);
->  	}
-> @@ -1816,8 +1829,6 @@ static int tvp5150_probe(struct i2c_client *c,
->  						IRQF_ONESHOT, "tvp5150", core);
->  		if (res)
->  			return res;
-> -	} else {
-> -		core->lock = true;
->  	}
->  
->  	res = v4l2_async_register_subdev(sd);
-> 
-> 
+> > > Regards,
+> > > Marco
+> > > 
+> > 
+> > Best regards,
 > 
