@@ -1,137 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:40848 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389234AbeHAQIV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 12:08:21 -0400
-Date: Wed, 1 Aug 2018 11:22:12 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        p.zabel@pengutronix.de, afshin.nasser@gmail.com,
-        javierm@redhat.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 16/22] [media] tvp5150: add querystd
-Message-ID: <20180801112212.4f450528@coco.lan>
-In-Reply-To: <20180801132125.j4725kthupcc7fnd@pengutronix.de>
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
-        <20180628162054.25613-17-m.felsch@pengutronix.de>
-        <20180730150945.3301864f@coco.lan>
-        <20180801132125.j4725kthupcc7fnd@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:45113 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389449AbeHAQM0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 12:12:26 -0400
+Message-ID: <1533133585.5491.2.camel@pengutronix.de>
+Subject: Re: [PATCH] media: coda: don't overwrite h.264 profile_idc on
+ decoder instance
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Lucas Stach <l.stach@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, kernel@pengutronix.de,
+        patchwork-lst@pengutronix.de
+Date: Wed, 01 Aug 2018 16:26:25 +0200
+In-Reply-To: <20180801141804.19684-1-l.stach@pengutronix.de>
+References: <20180801141804.19684-1-l.stach@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 1 Aug 2018 15:21:25 +0200
-Marco Felsch <m.felsch@pengutronix.de> escreveu:
-
-> Hi Mauro,
+On Wed, 2018-08-01 at 16:18 +0200, Lucas Stach wrote:
+> On a decoder instance, after the profile has been parsed from the stream
+> __v4l2_ctrl_s_ctrl() is called to notify userspace about changes in the
+> read-only profile control. This ends up calling back into the CODA driver
+> where a mssing check on the s_ctrl caused the profile information that has
+> just been parsed from the stream to be overwritten with the default
+> baseline profile.
 > 
-> On 18-07-30 15:09, Mauro Carvalho Chehab wrote:
-> > Em Thu, 28 Jun 2018 18:20:48 +0200
-> > Marco Felsch <m.felsch@pengutronix.de> escreveu:
-> >   
-> > > From: Philipp Zabel <p.zabel@pengutronix.de>
-> > > 
-> > > Add the querystd video_op and make it return V4L2_STD_UNKNOWN while the
-> > > TVP5150 is not locked to a signal.
-> > > 
-> > > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > > ---
-> > >  drivers/media/i2c/tvp5150.c | 10 ++++++++++
-> > >  1 file changed, 10 insertions(+)
-> > > 
-> > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> > > index 99d887936ea0..1990aaa17749 100644
-> > > --- a/drivers/media/i2c/tvp5150.c
-> > > +++ b/drivers/media/i2c/tvp5150.c
-> > > @@ -796,6 +796,15 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
-> > >  	}
-> > >  }
-> > >  
-> > > +static int tvp5150_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
-> > > +{
-> > > +	struct tvp5150 *decoder = to_tvp5150(sd);
-> > > +
-> > > +	*std_id = decoder->lock ? tvp5150_read_std(sd) : V4L2_STD_UNKNOWN;  
-> > 
-> > This patch requires rework. What happens when a device doesn't have
-> > IRQ enabled? Perhaps it should, instead, read some register in order
-> > to check for the locking status, as this would work on both cases.  
+> Later on the driver fails to enable frame reordering, based on the wrong
+> profile information.
 > 
-> If IRQ isn't enabled, decoder->lock is set to always true during
-> probe(). So this case should be fine.
+> Fixes: 347de126d1da (media: coda: add read-only h.264 decoder
+>                      profile/level controls)
+> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 
-Not sure if tvp5150_read_std() will do the right thing. If it does,
-the above could simply be:
-	std_id = tvp5150_read_std(sd);
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-But, as there are 3 variants of this chipset, it sounds safer to check
-if the device is locked before calling tvp5150_read_std().
+> ---
+>  drivers/media/platform/coda/coda-common.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index c7631e117dd3..1ae15d4ec5ed 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -1719,7 +1719,8 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+>  		/* TODO: switch between baseline and constrained baseline */
+> -		ctx->params.h264_profile_idc = 66;
+> +		if (ctx->inst_type == CODA_INST_ENCODER)
+> +			ctx->params.h264_profile_idc = 66;
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+>  		/* nothing to do, this is set by the encoder */
 
-IMHO, the best would be to have a patch like the one below.
-
-Regards,
-Mauro
-
-[PATCH] media: tvp5150: implement decoder lock when irq is not used
-
-When irq is used, the lock is set via IRQ code. When it isn't,
-the driver just assumes it is always locked. Instead, read the
-lock status from the status register.
-
-Compile-tested only.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 75e5ffc6573d..e07020d4053d 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -811,11 +811,24 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
- 	}
- }
- 
-+static int query_lock(struct v4l2_subdev *sd)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	int status;
-+
-+	if (decoder->irq)
-+		return decoder->lock;
-+
-+	regmap_read(map, TVP5150_INT_STATUS_REG_A, &status);
-+
-+	return (status & 0x06) == 0x06;
-+}
-+
- static int tvp5150_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
- {
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 
--	*std_id = decoder->lock ? tvp5150_read_std(sd) : V4L2_STD_UNKNOWN;
-+	*std_id = query_lock(sd) ? tvp5150_read_std(sd) : V4L2_STD_UNKNOWN;
- 
- 	return 0;
- }
-@@ -1247,7 +1260,7 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
- 		tvp5150_enable(sd);
- 
- 		/* Enable outputs if decoder is locked */
--		val = decoder->lock ? decoder->oe : 0;
-+		val = query_lock(sd) ? decoder->oe : 0;
- 		int_val = TVP5150_INT_A_LOCK;
- 		v4l2_subdev_notify_event(&decoder->sd, &tvp5150_ev_fmt);
- 	}
-@@ -1816,8 +1829,6 @@ static int tvp5150_probe(struct i2c_client *c,
- 						IRQF_ONESHOT, "tvp5150", core);
- 		if (res)
- 			return res;
--	} else {
--		core->lock = true;
- 	}
- 
- 	res = v4l2_async_register_subdev(sd);
+regards
+Philipp
