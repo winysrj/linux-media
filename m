@@ -1,84 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f49.google.com ([209.85.160.49]:42518 "EHLO
-        mail-pl0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732120AbeHAU7t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 16:59:49 -0400
-Received: by mail-pl0-f49.google.com with SMTP id z7-v6so9226285plo.9
-        for <linux-media@vger.kernel.org>; Wed, 01 Aug 2018 12:12:36 -0700 (PDT)
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:40277 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387714AbeHAVAK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 17:00:10 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 00/14] imx-media: Fixes for interlaced capture
-Date: Wed,  1 Aug 2018 12:12:13 -0700
-Message-Id: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v3 12/14] media: imx-csi: Move crop/compose reset after filling default mbus fields
+Date: Wed,  1 Aug 2018 12:12:25 -0700
+Message-Id: <1533150747-30677-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A set of patches that fixes some bugs with capturing from an
-interlaced source, and incompatibilites between IDMAC interlace
-interweaving and 4:2:0 data write reduction.
+If caller passes un-initialized field type V4L2_FIELD_ANY to CSI
+sink pad, the reset CSI crop window would not be correct, because
+the crop window depends on a valid input field type. To fix move
+the reset of crop and compose windows to after the call to
+imx_media_fill_default_mbus_fields().
 
-History:
-v3:
-- add support for/fix interweaved scan with YUV planar output.
-- fix bug in 4:2:0 U/V offset macros.
-- add patch that generalizes behavior of field swap in
-  ipu_csi_init_interface().
-- add support for interweaved scan with field order swap.
-  Suggested by Philipp Zabel.
-- in v2, inteweave scan was determined using field types of
-  CSI (and PRPENCVF) at the sink and source pads. In v3, this
-  has been moved one hop downstream: interweave is now determined
-  using field type at source pad, and field type selected at
-  capture interface. Suggested by Philipp.
-- make sure to double CSI crop target height when input field
-  type in alternate.
-- more updates to media driver doc to reflect above.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-v2:
-- update media driver doc.
-- enable idmac interweave only if input field is sequential/alternate,
-  and output field is 'interlaced*'.
-- move field try logic out of *try_fmt and into separate function.
-- fix bug with resetting crop/compose rectangles.
-- add a patch that fixes a field order bug in VDIC indirect mode.
-- remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
-  Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
-- add macro V4L2_FIELD_IS_INTERLACED().
-
-
-Philipp Zabel (1):
-  gpu: ipu-v3: Allow negative offsets for interlaced scanning
-
-Steve Longerbeam (13):
-  media: videodev2.h: Add more field helper macros
-  gpu: ipu-csi: Check for field type alternate
-  gpu: ipu-csi: Swap fields according to input/output field types
-  gpu: ipu-v3: Fix U/V offset macros for planar 4:2:0
-  gpu: ipu-v3: Add planar support to interlaced scan
-  media: imx: Fix field negotiation
-  media: imx-csi: Double crop height for alternate fields at sink
-  media: imx: interweave and odd-chroma-row skip are incompatible
-  media: imx-csi: Allow skipping odd chroma rows for YVU420
-  media: imx: vdic: rely on VDIC for correct field order
-  media: imx-csi: Move crop/compose reset after filling default mbus
-    fields
-  media: imx: Allow interweave with top/bottom lines swapped
-  media: imx.rst: Update doc to reflect fixes to interlaced capture
-
- Documentation/media/v4l-drivers/imx.rst       |  93 ++++++++++-----
- drivers/gpu/ipu-v3/ipu-cpmem.c                |  45 ++++++-
- drivers/gpu/ipu-v3/ipu-csi.c                  | 136 ++++++++++++++-------
- drivers/staging/media/imx/imx-ic-prpencvf.c   |  48 ++++++--
- drivers/staging/media/imx/imx-media-capture.c |  14 +++
- drivers/staging/media/imx/imx-media-csi.c     | 166 ++++++++++++++++++--------
- drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
- include/uapi/linux/videodev2.h                |   7 ++
- include/video/imx-ipu-v3.h                    |   6 +-
- 9 files changed, 377 insertions(+), 150 deletions(-)
-
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 139c694..6f24b3b 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1402,19 +1402,6 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 				      W_ALIGN, &sdformat->format.height,
+ 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
+ 
+-		/* Reset crop and compose rectangles */
+-		crop->left = 0;
+-		crop->top = 0;
+-		crop->width = sdformat->format.width;
+-		crop->height = sdformat->format.height;
+-		if (sdformat->format.field == V4L2_FIELD_ALTERNATE)
+-			crop->height *= 2;
+-		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
+-		compose->left = 0;
+-		compose->top = 0;
+-		compose->width = crop->width;
+-		compose->height = crop->height;
+-
+ 		*cc = imx_media_find_mbus_format(sdformat->format.code,
+ 						 CS_SEL_ANY, true);
+ 		if (!*cc) {
+@@ -1430,6 +1417,20 @@ static void csi_try_fmt(struct csi_priv *priv,
+ 		imx_media_fill_default_mbus_fields(
+ 			&sdformat->format, infmt,
+ 			priv->active_output_pad == CSI_SRC_PAD_DIRECT);
++
++		/* Reset crop and compose rectangles */
++		crop->left = 0;
++		crop->top = 0;
++		crop->width = sdformat->format.width;
++		crop->height = sdformat->format.height;
++		if (sdformat->format.field == V4L2_FIELD_ALTERNATE)
++			crop->height *= 2;
++		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
++		compose->left = 0;
++		compose->top = 0;
++		compose->width = crop->width;
++		compose->height = crop->height;
++
+ 		break;
+ 	}
+ }
 -- 
 2.7.4
