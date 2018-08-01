@@ -1,49 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34037 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729769AbeHAIjO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 04:39:14 -0400
-Subject: Re: [PATCH v6 0/4] IR support for A83T
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
-        p.zabel@pengutronix.de, andi.shyti@samsung.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-References: <20180731092258.2279-1-embed3d@gmail.com>
- <20180731123452.74jyxc4q3ewig35z@flea>
-From: Philipp Rossak <embed3d@gmail.com>
-Message-ID: <92b74230-285e-74c3-c89a-e194a8eabc52@gmail.com>
-Date: Wed, 1 Aug 2018 08:55:00 +0200
+Received: from smtp2.macqel.be ([109.135.2.61]:64414 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732437AbeHAK6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Aug 2018 06:58:30 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.macqel.be (Postfix) with ESMTP id 06FFB130D33
+        for <linux-media@vger.kernel.org>; Wed,  1 Aug 2018 11:13:43 +0200 (CEST)
+Received: from smtp2.macqel.be ([127.0.0.1])
+        by localhost (mail.macqel.be [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id 9e9msJHoUvoP for <linux-media@vger.kernel.org>;
+        Wed,  1 Aug 2018 11:13:41 +0200 (CEST)
+Received: from frolo.macqel.be (frolo.macqel [10.1.40.73])
+        by smtp2.macqel.be (Postfix) with ESMTP id 659E5130D0F
+        for <linux-media@vger.kernel.org>; Wed,  1 Aug 2018 11:13:41 +0200 (CEST)
+Date: Wed, 1 Aug 2018 11:13:41 +0200
+From: Philippe De Muyter <phdm@macq.eu>
+To: linux-media@vger.kernel.org
+Subject: BUG ? v4l2_spi_subdev_init does not produce unique names
+Message-ID: <20180801091341.GA32341@frolo.macqel>
 MIME-Version: 1.0
-In-Reply-To: <20180731123452.74jyxc4q3ewig35z@flea>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks,
-I will fix this today.
+Hello v4l2 gurus,
 
-Philipp
+Sorry for the people who already have read my previous mail.  I changed
+the subject to make it more sexy :)
 
-On 31.07.2018 14:34, Maxime Ripard wrote:
-> On Tue, Jul 31, 2018 at 11:22:54AM +0200, Philipp Rossak wrote:
->> This patch series adds support for the sunxi A83T ir module and enhances
->> the sunxi-ir driver. Right now the base clock frequency for the ir driver
->> is a hard coded define and is set to 8 MHz.
->> This works for the most common ir receivers. On the Sinovoip Bananapi M3
->> the ir receiver needs, a 3 MHz base clock frequency to work without
->> problems with this driver.
->>
->> This patch series adds support for an optinal property that makes it able
->> to override the default base clock frequency and enables the ir interface
->> on the a83t and the Bananapi M3.
-> 
-> Once the minor comment on patch 2 has been fixed,
-> Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> 
-> Maxime
-> 
+Documentation/media/kapi/v4l2-subdev.rst states :
+
+"Afterwards you need to initialize :c:type:`sd <v4l2_subdev>`->name with a
+unique name and set the module owner. This is done for you if you use the
+i2c helper functions"
+
+I try to write a v4l2 spi driver and use hence v4l2_spi_subdev_init, not
+v4l2_i2c_subdev_init.
+
+In v4l2_i2c_subdev_init, subdev name is initialised by
+
+        snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
+                client->dev.driver->name, i2c_adapter_id(client->adapter),
+                client->addr);
+
+In v4l2_spi_subdev_init, subdev name is initialised by
+
+        strlcpy(sd->name, spi->dev.driver->name, sizeof(sd->name));
+
+This does not give similar results :(
+
+with i2c, subdev name is set as "xxx %d-%04x", giving a unique name to the
+subdev.
+
+with spi, subdev name is set as "xxx", giving the same name to all similar
+subdevs on the same host
+
+Is that intentional or an oversight, and if so, how should that be fixed ?
+
+Best regards
+
+Philippe
+
+-- 
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
