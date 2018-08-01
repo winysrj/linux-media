@@ -1,64 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:50242 "EHLO smtp2.macqel.be"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726979AbeHHLCS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Aug 2018 07:02:18 -0400
-Date: Wed, 8 Aug 2018 10:43:34 +0200
-From: Philippe De Muyter <phdm@macqel.be>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [PATCH 2/2] media: v4l2-common: simplify v4l2_i2c_subdev_init
-        name generation
-Message-ID: <20180808084333.GA21052@frolo.macqel>
-References: <1533158457-15831-1-git-send-email-phdm@macqel.be> <1533158457-15831-2-git-send-email-phdm@macqel.be> <20180803124315.i4vcpdnha42nw3lh@valkosipuli.retiisi.org.uk>
+Received: from mail-pl0-f49.google.com ([209.85.160.49]:42518 "EHLO
+        mail-pl0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732120AbeHAU7t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 16:59:49 -0400
+Received: by mail-pl0-f49.google.com with SMTP id z7-v6so9226285plo.9
+        for <linux-media@vger.kernel.org>; Wed, 01 Aug 2018 12:12:36 -0700 (PDT)
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 00/14] imx-media: Fixes for interlaced capture
+Date: Wed,  1 Aug 2018 12:12:13 -0700
+Message-Id: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180803124315.i4vcpdnha42nw3lh@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 03, 2018 at 03:43:15PM +0300, Sakari Ailus wrote:
-> Hi Philippe,
-> 
-> On Wed, Aug 01, 2018 at 11:20:57PM +0200, Philippe De Muyter wrote:
-> > When v4l2_i2c_subdev_init is called, dev_name(&client->dev) has already
-> > been set.  Use it to generate subdev's name instead of recreating it
-> > with "%d-%04x".  This improves the similarity in subdev's name creation
-> > between v4l2_i2c_subdev_init and v4l2_spi_subdev_init.
-> > 
-> > Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-common.c | 5 ++---
-> >  1 file changed, 2 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> > index 5471c6d..b062111 100644
-> > --- a/drivers/media/v4l2-core/v4l2-common.c
-> > +++ b/drivers/media/v4l2-core/v4l2-common.c
-> > @@ -121,9 +121,8 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> >  	v4l2_set_subdevdata(sd, client);
-> >  	i2c_set_clientdata(client, sd);
-> >  	/* initialize name */
-> > -	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
-> > -		client->dev.driver->name, i2c_adapter_id(client->adapter),
-> > -		client->addr);
-> > +	snprintf(sd->name, sizeof(sd->name), "%s %s",
-> > +		client->dev.driver->name, dev_name(&client->dev));
-> >  }
-> >  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
-> >  
-> 
-> I like the patch in principle. But what's the effect of this on the actual
-> sub-device (and entity) names? Looking at i2c_dev_set_name(), this will be
-> different. We can't change the existing entity naming in drivers, this will
-> break applications that expect them to be named in a certain way.
+A set of patches that fixes some bugs with capturing from an
+interlaced source, and incompatibilites between IDMAC interlace
+interweaving and 4:2:0 data write reduction.
 
-Does your comment also prevent patch 1/2
-"media: v4l2-common: v4l2_spi_subdev_init : generate unique name"
-to be accepted ?
+History:
+v3:
+- add support for/fix interweaved scan with YUV planar output.
+- fix bug in 4:2:0 U/V offset macros.
+- add patch that generalizes behavior of field swap in
+  ipu_csi_init_interface().
+- add support for interweaved scan with field order swap.
+  Suggested by Philipp Zabel.
+- in v2, inteweave scan was determined using field types of
+  CSI (and PRPENCVF) at the sink and source pads. In v3, this
+  has been moved one hop downstream: interweave is now determined
+  using field type at source pad, and field type selected at
+  capture interface. Suggested by Philipp.
+- make sure to double CSI crop target height when input field
+  type in alternate.
+- more updates to media driver doc to reflect above.
 
-Philippe
+v2:
+- update media driver doc.
+- enable idmac interweave only if input field is sequential/alternate,
+  and output field is 'interlaced*'.
+- move field try logic out of *try_fmt and into separate function.
+- fix bug with resetting crop/compose rectangles.
+- add a patch that fixes a field order bug in VDIC indirect mode.
+- remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
+  Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
+- add macro V4L2_FIELD_IS_INTERLACED().
+
+
+Philipp Zabel (1):
+  gpu: ipu-v3: Allow negative offsets for interlaced scanning
+
+Steve Longerbeam (13):
+  media: videodev2.h: Add more field helper macros
+  gpu: ipu-csi: Check for field type alternate
+  gpu: ipu-csi: Swap fields according to input/output field types
+  gpu: ipu-v3: Fix U/V offset macros for planar 4:2:0
+  gpu: ipu-v3: Add planar support to interlaced scan
+  media: imx: Fix field negotiation
+  media: imx-csi: Double crop height for alternate fields at sink
+  media: imx: interweave and odd-chroma-row skip are incompatible
+  media: imx-csi: Allow skipping odd chroma rows for YVU420
+  media: imx: vdic: rely on VDIC for correct field order
+  media: imx-csi: Move crop/compose reset after filling default mbus
+    fields
+  media: imx: Allow interweave with top/bottom lines swapped
+  media: imx.rst: Update doc to reflect fixes to interlaced capture
+
+ Documentation/media/v4l-drivers/imx.rst       |  93 ++++++++++-----
+ drivers/gpu/ipu-v3/ipu-cpmem.c                |  45 ++++++-
+ drivers/gpu/ipu-v3/ipu-csi.c                  | 136 ++++++++++++++-------
+ drivers/staging/media/imx/imx-ic-prpencvf.c   |  48 ++++++--
+ drivers/staging/media/imx/imx-media-capture.c |  14 +++
+ drivers/staging/media/imx/imx-media-csi.c     | 166 ++++++++++++++++++--------
+ drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
+ include/uapi/linux/videodev2.h                |   7 ++
+ include/video/imx-ipu-v3.h                    |   6 +-
+ 9 files changed, 377 insertions(+), 150 deletions(-)
 
 -- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+2.7.4
