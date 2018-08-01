@@ -1,60 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:37089 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727684AbeHAU76 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 16:59:58 -0400
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:36307 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727684AbeHAU75 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 16:59:57 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         dri-devel@lists.freedesktop.org (open list:DRM DRIVERS FOR FREESCALE
         IMX), linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v3 05/14] gpu: ipu-v3: Allow negative offsets for interlaced scanning
-Date: Wed,  1 Aug 2018 12:12:18 -0700
-Message-Id: <1533150747-30677-6-git-send-email-steve_longerbeam@mentor.com>
+Subject: [PATCH v3 04/14] gpu: ipu-v3: Fix U/V offset macros for planar 4:2:0
+Date: Wed,  1 Aug 2018 12:12:17 -0700
+Message-Id: <1533150747-30677-5-git-send-email-steve_longerbeam@mentor.com>
 In-Reply-To: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+The U and V offset macros for planar 4:2:0 (U_OFFSET, V_OFFSET, and
+UV_OFFSET), are not correct. The height component to the offset was
+calculated as:
 
-The IPU also supports interlaced buffers that start with the bottom field.
-To achieve this, the the base address EBA has to be increased by a stride
-length and the interlace offset ILO has to be set to the negative stride.
+(pix->width * y / 4)
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+But this does not produce correct offsets for odd values of y (luma
+line #). The luma line # must be decimated by two to produce the
+correct U/V line #, so the correct formula is:
+
+(pix->width * (y / 2) / 2)
+
 Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/gpu/ipu-v3/ipu-cpmem.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/gpu/ipu-v3/ipu-cpmem.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-index e68e473..8cd9e37 100644
+index 9f2d9ec..e68e473 100644
 --- a/drivers/gpu/ipu-v3/ipu-cpmem.c
 +++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-@@ -269,9 +269,20 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
+@@ -530,17 +530,17 @@ static const struct ipu_rgb def_bgra_16 = {
  
- void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
- {
-+	u32 ilo, sly;
-+
-+	if (stride < 0) {
-+		stride = -stride;
-+		ilo = 0x100000 - (stride / 8);
-+	} else {
-+		ilo = stride / 8;
-+	}
-+
-+	sly = (stride * 2) - 1;
-+
- 	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
--	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, stride / 8);
--	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, (stride * 2) - 1);
-+	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, ilo);
-+	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, sly);
- };
- EXPORT_SYMBOL_GPL(ipu_cpmem_interlaced_scan);
+ #define Y_OFFSET(pix, x, y)	((x) + pix->width * (y))
+ #define U_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
+-				 (pix->width * (y) / 4) + (x) / 2)
++				 (pix->width * ((y) / 2) / 2) + (x) / 2)
+ #define V_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
+ 				 (pix->width * pix->height / 4) +	\
+-				 (pix->width * (y) / 4) + (x) / 2)
++				 (pix->width * ((y) / 2) / 2) + (x) / 2)
+ #define U2_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
+ 				 (pix->width * (y) / 2) + (x) / 2)
+ #define V2_OFFSET(pix, x, y)	((pix->width * pix->height) +		\
+ 				 (pix->width * pix->height / 2) +	\
+ 				 (pix->width * (y) / 2) + (x) / 2)
+ #define UV_OFFSET(pix, x, y)	((pix->width * pix->height) +	\
+-				 (pix->width * (y) / 2) + (x))
++				 (pix->width * ((y) / 2)) + (x))
+ #define UV2_OFFSET(pix, x, y)	((pix->width * pix->height) +	\
+ 				 (pix->width * y) + (x))
  
 -- 
 2.7.4
