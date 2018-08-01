@@ -1,70 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:37644 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727009AbeHFNRh (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45593 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726657AbeHAFeZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Aug 2018 09:17:37 -0400
-Subject: Re: [RFC PATCH 0/3] Media Controller Properties
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org
-References: <20180803143626.48191-1-hverkuil@xs4all.nl>
- <15936983-465a-2fa1-e14a-6d348cbffc06@xs4all.nl>
- <20180803122339.63c148f0@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <de8522fb-e1ba-e899-d1cb-3a91ba19b7e8@xs4all.nl>
-Date: Mon, 6 Aug 2018 13:08:59 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180803122339.63c148f0@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 1 Aug 2018 01:34:25 -0400
+Message-ID: <538969649dd024de5d90ca37b9171886@smtp-cloud7.xs4all.net>
+Date: Wed, 01 Aug 2018 05:50:53 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2018 05:23 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 3 Aug 2018 17:03:20 +0200
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-<snip>
+Results of the daily build of media_tree:
 
->>> I'm not sure about the G_TOPOLOGY ioctl handling: I went with the quickest
->>> option by renaming the old ioctl and adding a new one with property support.
-> 
-> Why? No need for that at the public header. Just add the needed fields at the
-> end of the code and check for struct size at the ioctl handler.
-> 
-> It could make sense to have the old struct inside media-device.c, just
-> to allow using sizeof() there.
+date:			Wed Aug  1 05:00:10 CEST 2018
+media-tree git hash:	1d06352e18ef502e30837cedfe618298816fb48c
+media_build git hash:	e75fbc93fc427f769c3ce5a020bf204e02a45852
+v4l-utils git hash:	5583f43ef1a4814c2bd3c43cb06461b7f532b141
+edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-Sorry, you need the old struct. The application may be newer than the kernel,
-so if the new topology struct (with props support) doesn't work, then it has
-to fall back to the old ioctl.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.140-i686: OK
+linux-4.4.140-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.112-i686: OK
+linux-4.9.112-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.55-i686: OK
+linux-4.14.55-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.6-i686: OK
+linux-4.17.6-x86_64: OK
+linux-4.18-rc4-i686: OK
+linux-4.18-rc4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-So applications will need to know the old size.
+Detailed results are available here:
 
-That said, it would be sufficient in this case to just export the old ioctl
-define since the old struct layout is identical to the new (except of course
-for the new fields added to the end).
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-E.g. add just this to media.h:
+Full logs are available here:
 
-/* Old MEDIA_IOC_G_TOPOLOGY ioctl without props support */
-#define MEDIA_IOC_G_TOPOLOGY_OLD 0xc0487c04
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-This brings me to another related question:
+The Media Infrastructure API from this daily build is here:
 
-I can easily support both the old and new G_TOPOLOGY ioctls in media-device.c.
-But what should I do if we add still more fields to the topology struct in
-the future and so we might be called by a newer application with a G_TOPOLOGY
-ioctl that has a size larger than we have now. We can either reject this
-(that's what we do today in fact, hence the need for the TOPOLOGY_OLD), or we
-can just accept it and zero the unknown fields at the end of the larger struct.
-
-I think we need to do the latter, otherwise we will have to keep adding new
-ioctl variants whenever we add a field.
-
-Alternatively, we can just add a pile of reserved fields to struct media_v2_topology
-which should last us for many years based on past experience with reserved fields.
-
-Regards,
-
-	Hans
+http://www.xs4all.nl/~hverkuil/spec/index.html
