@@ -1,177 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:44149 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932798AbeGIWjf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jul 2018 18:39:35 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v6 02/17] media: v4l2: async: Allow searching for asd of any type
-Date: Mon,  9 Jul 2018 15:39:02 -0700
-Message-Id: <1531175957-1973-3-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36094 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2387833AbeHALc7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 07:32:59 -0400
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH v7 0/4] IR support for A83T
+Date: Wed,  1 Aug 2018 11:47:57 +0200
+Message-Id: <20180801094801.26627-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
-searching for any type of async subdev, not just fwnodes. Rename to
-v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
+This patch series adds support for the sunxi A83T ir module and enhances 
+the sunxi-ir driver. Right now the base clock frequency for the ir driver
+is a hard coded define and is set to 8 MHz.
+This works for the most common ir receivers. On the Sinovoip Bananapi M3 
+the ir receiver needs, a 3 MHz base clock frequency to work without
+problems with this driver.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
-Changes since v5:
-- none
-Changes since v4:
-- none
-Changes since v3:
-- removed TODO to support asd compare with CUSTOM match type in
-  asd_equal().
-Changes since v2:
-- code optimization in asd_equal(), and remove unneeded braces,
-  suggested by Sakari Ailus.
-Changes since v1:
-- none
----
- drivers/media/v4l2-core/v4l2-async.c | 73 +++++++++++++++++++++---------------
- 1 file changed, 43 insertions(+), 30 deletions(-)
+This patch series adds support for an optinal property that makes it able
+to override the default base clock frequency and enables the ir interface 
+on the a83t and the Bananapi M3.
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 2b08d03..0e7e529 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -124,6 +124,31 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
- 
-+/* Compare two asd's for equivalence */
-+static bool asd_equal(struct v4l2_async_subdev *asd_x,
-+		      struct v4l2_async_subdev *asd_y)
-+{
-+	if (asd_x->match_type != asd_y->match_type)
-+		return false;
-+
-+	switch (asd_x->match_type) {
-+	case V4L2_ASYNC_MATCH_DEVNAME:
-+		return strcmp(asd_x->match.device_name,
-+			      asd_y->match.device_name) == 0;
-+	case V4L2_ASYNC_MATCH_I2C:
-+		return asd_x->match.i2c.adapter_id ==
-+			asd_y->match.i2c.adapter_id &&
-+			asd_x->match.i2c.address ==
-+			asd_y->match.i2c.address;
-+	case V4L2_ASYNC_MATCH_FWNODE:
-+		return asd_x->match.fwnode == asd_y->match.fwnode;
-+	default:
-+		break;
-+	}
-+
-+	return false;
-+}
-+
- /* Find the sub-device notifier registered by a sub-device driver. */
- static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
- 	struct v4l2_subdev *sd)
-@@ -308,29 +333,22 @@ static void v4l2_async_notifier_unbind_all_subdevs(
- 	notifier->parent = NULL;
- }
- 
--/* See if an fwnode can be found in a notifier's lists. */
--static bool __v4l2_async_notifier_fwnode_has_async_subdev(
--	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-+/* See if an async sub-device can be found in a notifier's lists. */
-+static bool __v4l2_async_notifier_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
- {
--	struct v4l2_async_subdev *asd;
-+	struct v4l2_async_subdev *asd_y;
- 	struct v4l2_subdev *sd;
- 
--	list_for_each_entry(asd, &notifier->waiting, list) {
--		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
--			continue;
--
--		if (asd->match.fwnode == fwnode)
-+	list_for_each_entry(asd_y, &notifier->waiting, list)
-+		if (asd_equal(asd, asd_y))
- 			return true;
--	}
- 
- 	list_for_each_entry(sd, &notifier->done, async_list) {
- 		if (WARN_ON(!sd->asd))
- 			continue;
- 
--		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
--			continue;
--
--		if (sd->asd->match.fwnode == fwnode)
-+		if (asd_equal(asd, sd->asd))
- 			return true;
- 	}
- 
-@@ -338,32 +356,28 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
- }
- 
- /*
-- * Find out whether an async sub-device was set up for an fwnode already or
-+ * Find out whether an async sub-device was set up already or
-  * whether it exists in a given notifier before @this_index.
-  */
--static bool v4l2_async_notifier_fwnode_has_async_subdev(
--	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-+static bool v4l2_async_notifier_has_async_subdev(
-+	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd,
- 	unsigned int this_index)
- {
- 	unsigned int j;
- 
- 	lockdep_assert_held(&list_lock);
- 
--	/* Check that an fwnode is not being added more than once. */
-+	/* Check that an asd is not being added more than once. */
- 	for (j = 0; j < this_index; j++) {
--		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
--		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
-+		struct v4l2_async_subdev *asd_y = notifier->subdevs[j];
- 
--		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
--		    asd->match.fwnode ==
--		    other_asd->match.fwnode)
-+		if (asd_equal(asd, asd_y))
- 			return true;
- 	}
- 
--	/* Check than an fwnode did not exist in other notifiers. */
-+	/* Check that an asd does not exist in other notifiers. */
- 	list_for_each_entry(notifier, &notifier_list, list)
--		if (__v4l2_async_notifier_fwnode_has_async_subdev(
--			    notifier, fwnode))
-+		if (__v4l2_async_notifier_has_async_subdev(notifier, asd))
- 			return true;
- 
- 	return false;
-@@ -392,12 +406,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 		case V4L2_ASYNC_MATCH_CUSTOM:
- 		case V4L2_ASYNC_MATCH_DEVNAME:
- 		case V4L2_ASYNC_MATCH_I2C:
--			break;
- 		case V4L2_ASYNC_MATCH_FWNODE:
--			if (v4l2_async_notifier_fwnode_has_async_subdev(
--				    notifier, asd->match.fwnode, i)) {
-+			if (v4l2_async_notifier_has_async_subdev(
-+				    notifier, asd, i)) {
- 				dev_err(dev,
--					"fwnode has already been registered or in notifier's subdev list\n");
-+					"asd has already been registered or in notifier's subdev list\n");
- 				ret = -EEXIST;
- 				goto err_unlock;
- 			}
+changes since v6:
+* update Acked-by
+* add missing a83t compatile on patch 2
+
+changes since v5:
+* removed already merged patches
+* adapt patch 2 to be applyable to current rc-1
+
+changes since v4:
+* rename cir pin from cir_pins to r_cir_pin
+* drop unit-address from r_cir_pin
+* add a83t compatible to the cir node
+* move muxing options to dtsi
+* rename cir label and reorder it in the bananpim3.dts file
+
+changes since v3:
+* collecting all acks & reviewd by
+* fixed typos
+
+changes since v2:
+* reorder cir pin (alphabetical)
+* fix typo in documentation
+
+changes since v1:
+* fix typos, reword Documentation
+* initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
+* change dev_info() to dev_dbg()
+* change naming to cir* in dts/dtsi
+* Added acked Ackedi-by to related patch
+* use whole memory block instead of registers needed + fix for h3/h5
+
+changes since rfc:
+* The property is now optinal. If the property is not available in 
+  the dtb the driver uses the default base clock frequency.
+* the driver prints out the the selected base clock frequency.
+* changed devicetree property from base-clk-frequency to clock-frequency
+
+Regards,
+Philipp
+
+
+Philipp Rossak (4):
+  ARM: dts: sun8i: a83t: Add the cir pin for the A83T
+  ARM: dts: sun8i: a83t: Add support for the cir interface
+  ARM: dts: sun8i: a83t: bananapi-m3: Enable IR controller
+  ARM: dts: sun8i: h3-h5: ir register size should be the whole memory
+    block
+
+ arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts |  5 +++++
+ arch/arm/boot/dts/sun8i-a83t.dtsi            | 18 ++++++++++++++++++
+ arch/arm/boot/dts/sunxi-h3-h5.dtsi           |  2 +-
+ 3 files changed, 24 insertions(+), 1 deletion(-)
+
 -- 
-2.7.4
+2.11.0
