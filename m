@@ -1,68 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:51860 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:57070 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727002AbeHCAwA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 20:52:00 -0400
-Date: Thu, 2 Aug 2018 19:58:24 -0300
+        with ESMTP id S1727369AbeHCB3e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 21:29:34 -0400
+Date: Thu, 2 Aug 2018 20:36:04 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Lee Jones <lee.jones@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: platform: cros-ec-cec: fix dependency on
- MFD_CROS_EC
-Message-ID: <20180802195824.26a9720a@coco.lan>
-In-Reply-To: <20180724093624.1670671-1-arnd@arndb.de>
-References: <20180724093624.1670671-1-arnd@arndb.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.18-rc8] media fixes
+Message-ID: <20180802203604.1d219a10@coco.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 24 Jul 2018 11:35:59 +0200
-Arnd Bergmann <arnd@arndb.de> escreveu:
+Hi Linus,
 
-> Without the MFD driver, we run into a link error:
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.18-3
 
-Weird... I'm not seeing this driver at the media tree... was it merged via
-some other tree?
+For:
 
-> 
-> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_transmit':
-> cros-ec-cec.c:(.text+0x474): undefined reference to `cros_ec_cmd_xfer_status'
-> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_set_log_addr':
-> cros-ec-cec.c:(.text+0x60b): undefined reference to `cros_ec_cmd_xfer_status'
-> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_adap_enable':
-> cros-ec-cec.c:(.text+0x77d): undefined reference to `cros_ec_cmd_xfer_status'
-> 
-> As we can compile-test all the dependency, the extra '| COMPILE_TEST' is
-> not needed to get the build coverage, and we can simply turn MFD_CROS_EC
-> into a hard dependency to make it build in all configurations.
-> 
-> Fixes: cd70de2d356e ("media: platform: Add ChromeOS EC CEC driver")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/platform/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 92b182da8e4d..018fcbed82e4 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -535,7 +535,7 @@ if CEC_PLATFORM_DRIVERS
->  
->  config VIDEO_CROS_EC_CEC
->  	tristate "ChromeOS EC CEC driver"
-> -	depends on MFD_CROS_EC || COMPILE_TEST
-> +	depends on MFD_CROS_EC
->  	select CEC_CORE
->  	select CEC_NOTIFIER
->  	---help---
+  - a dead lock regression at vsp1 driver;
+  - some Remote Controller fixes related to the new BPF filter
+    logic added on it for Kernel 4.18.
 
-
-
-Thanks,
+Thanks!
 Mauro
+
+-
+
+The following changes since commit 7daf201d7fe8334e2d2364d4e8ed3394ec9af819:
+
+  Linux 4.18-rc2 (2018-06-24 20:54:29 +0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.18-3
+
+for you to fetch changes up to 8eb0e6421958e9777db98448a4030d8ae940c9a0:
+
+  media: v4l: vsp1: Fix deadlock in VSPDL DRM pipelines (2018-07-30 08:22:59 -0400)
+
+----------------------------------------------------------------
+media fixes for v4.18-rc8
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      media: v4l: vsp1: Fix deadlock in VSPDL DRM pipelines
+
+Sean Young (3):
+      media: rc: be less noisy when driver misbehaves
+      media: bpf: ensure bpf program is freed on detach
+      media: rc: read out of bounds if bpf reports high protocol number
+
+ drivers/media/platform/vsp1/vsp1_drm.c |  4 +---
+ drivers/media/rc/bpf-lirc.c            |  1 +
+ drivers/media/rc/rc-ir-raw.c           |  8 ++++----
+ drivers/media/rc/rc-main.c             | 12 ++++++++++--
+ 4 files changed, 16 insertions(+), 9 deletions(-)
