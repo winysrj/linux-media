@@ -1,119 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:57493 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726239AbeHBLCp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Aug 2018 07:02:45 -0400
-Subject: Re: [PATCH 00/13] Better handle pads for tuning/decoder part of the
- devices
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kees Cook <keescook@chromium.org>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Pravin Shedge <pravin.shedge4linux@gmail.com>,
-        Brian Warner <brian.warner@samsung.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Nasser Afshin <afshin.nasser@gmail.com>,
-        Marco Felsch <m.felsch@pengutronix.de>,
-        Javier Martinez Canillas <javierm@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-References: <cover.1533138685.git.mchehab+samsung@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2a14ce78-8a5d-be0d-1ff4-614fe128814f@xs4all.nl>
-Date: Thu, 2 Aug 2018 11:12:23 +0200
-MIME-Version: 1.0
-In-Reply-To: <cover.1533138685.git.mchehab+samsung@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Received: from mail-wr1-f50.google.com ([209.85.221.50]:45826 "EHLO
+        mail-wr1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726952AbeHBLFO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 07:05:14 -0400
+Received: by mail-wr1-f50.google.com with SMTP id f12-v6so1325623wrv.12
+        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2018 02:14:57 -0700 (PDT)
+Message-ID: <80eb63eee4ad1927a617ce526e7aba2342ac66f8.camel@baylibre.com>
+Subject: Re: [RFC 0/4] media: meson: add video decoder driver
+From: Jerome Brunet <jbrunet@baylibre.com>
+To: Maxime Jourdan <maxi.jourdan@wanadoo.fr>,
+        linux-media@vger.kernel.org
+Cc: linux-amlogic@lists.infradead.org
+Date: Thu, 02 Aug 2018 11:14:55 +0200
+In-Reply-To: <20180801193320.25313-1-maxi.jourdan@wanadoo.fr>
+References: <20180801193320.25313-1-maxi.jourdan@wanadoo.fr>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/01/18 17:55, Mauro Carvalho Chehab wrote:
-> At PC consumer devices, it is very common that the bridge same driver 
-> to be attached to different types of tuners and demods. We need a way
-> for the Kernel to properly identify what kind of signal is provided by each
-> PAD, in order to properly setup the pipelines.
+On Wed, 2018-08-01 at 21:33 +0200, Maxime Jourdan wrote:
+> This is a Request for Comments for the amlogic (meson) video decoder driver.
+> It is written around the V4L2 M2M framework without using the Request
+> API as there are a hardware bitstream parser and firmwares.
 > 
-> The previous approach were to hardcode a fixed number of PADs for all
-> elements of the same type. This is not good, as different devices may 
-> actually have a different number of pads.
+> It features decoding for:
+> - MPEG 1/2/4, H.263, H.264, MJPEG, HEVC 8-bit (partial)
 > 
-> It was acceptable in the past, as there were a promisse of adding "soon"
-> a properties API that would allow to identify the type for each PADs, but
-> this was never merged (or even a patchset got submitted).
+> Even though they are supported in hardware, it doesn't leverage support for:
+> - HEVC 10-bit, VP9, VC1 (all those are in TODOs)
 > 
-> So, replace this approach by another one: add a "taint" mark to pads that
-> contain different types of signals.
+> The output is multiplanar NV12 (V4L2_PIX_FMT_NV12M).
+> Supported SoCs are: GXBB (S905), GXL (S905X/W/D), GXM (S912)
+> It was tested primarily with FFmpeg, GStreamer and kodi.
 > 
-> I tried to minimize the number of signals, in order to make it simpler to
-> convert from the past way.
+> The file hierarchy can be boiled down to:
 > 
-> For now, it is tested only with a simple grabber device. I intend to do
-> more tests before merging it, but it would be interesting to have this
-> merged for Kernel 4.19, as we'll now be exposing the pad index via
-> the MC API version 2.
+> 			| codec_h264.c
+> 			| codec_mjpeg.c
+> 			| codec_mpeg4.c
+>           | vdec_1.c -->| codec_mpeg12.c
+> vdec.c -->| vdec_hevc.c -->| codec_hevc.c
+> 	  | esparser.c
+> 
+> The V4L2 code is handled mostly in vdec.c.
+> Each VDEC and CODEC unit is accessed via ops structs to facilitate the code.
+> 
+> The arrangement between vdecs and codecs can be seen in vdec_platform.c
+> This file also declares things like pixfmts, min/max buffers and firmware paths
+> for each SoC.
+> 
+> Specific questions about the code:
+> 
+> - While I do use the platform's general clks and resets tied to the vdec in
+> a nice way (dts + clock/reset controller with clk/reset frameworks),
+> there are some subclocks and resets that I use in the driver by writing
+> directly to registers. e.g:
+> 
+> 	- writel_relaxed((1<<7) | (1<<6), core->dos_base + DOS_SW_RESET0);
+> 	- writel_relaxed(0x3ff, core->dos_base + DOS_GCLK_EN0);
 
-Other than a small comment for the last patch I didn't see anything
-problematical in this series. It doesn't touch on the public API or
-on any of the non-tuner drivers. So for patches 1-12:
+Answering for the clocks here:
+- There is no obligation to use the clock framework to model your clocks. It is
+just very convenient when we need to handle clk parenting (rate, enable) because
+you don't need to worry about setting the whole tree (It is not the only reason
+to use CCF of course) ... but this is assuming you have been able to model this
+tree in CCF.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-And after adding back the documentation for the enums in patch 13 you
-can add my Ack to that one as well.
-
-Regards,
-
-	Hans
+If you know nothing about the clock and you just know that you need to flip this
+bit to 'make it work' then don't bother with CCF for now.
 
 > 
-> Mauro Carvalho Chehab (13):
->   media: v4l2: remove VBI output pad
->   media: v4l2: taint pads with the signal types for consumer devices
->   v4l2-mc: switch it to use the new approach to setup pipelines
->   media: dvb: use signals to discover pads
->   media: au0828: use signals instead of hardcoding a pad number
->   media: au8522: declare its own pads
->   media: msp3400: declare its own pads
->   media: saa7115: declare its own pads
->   media: tvp5150: declare its own pads
->   media: si2157: declare its own pads
->   media: saa7134: declare its own pads
->   media: mxl111sf: declare its own pads
->   media: v4l2-mc: get rid of global pad indexes
+> and a few other instances where that happens.
 > 
->  drivers/media/dvb-core/dvbdev.c              | 19 +++--
->  drivers/media/dvb-frontends/au8522_decoder.c | 10 ++-
->  drivers/media/dvb-frontends/au8522_priv.h    |  9 ++-
->  drivers/media/i2c/msp3400-driver.c           |  6 +-
->  drivers/media/i2c/msp3400-driver.h           |  8 +-
->  drivers/media/i2c/saa7115.c                  | 18 +++--
->  drivers/media/i2c/tvp5150.c                  | 21 ++++--
->  drivers/media/media-entity.c                 | 26 +++++++
->  drivers/media/pci/saa7134/saa7134-core.c     |  9 ++-
->  drivers/media/pci/saa7134/saa7134.h          |  8 +-
->  drivers/media/tuners/si2157.c                | 11 ++-
->  drivers/media/tuners/si2157_priv.h           |  9 ++-
->  drivers/media/usb/au0828/au0828-core.c       | 12 +--
->  drivers/media/usb/dvb-usb-v2/mxl111sf.c      |  8 +-
->  drivers/media/usb/dvb-usb-v2/mxl111sf.h      |  8 +-
->  drivers/media/v4l2-core/tuner-core.c         | 18 +++++
->  drivers/media/v4l2-core/v4l2-mc.c            | 73 +++++++++++++-----
->  include/media/media-entity.h                 | 54 ++++++++++++++
->  include/media/v4l2-mc.h                      | 78 --------------------
->  19 files changed, 266 insertions(+), 139 deletions(-)
+> Is it okay to not create specific controllers for those ?
+
+It depends what you mean by controller:
+
+- Any device may add a clk to CCF (call clk(_hw)_register()). the clk pointer
+will just be available to the related driver. As described above, this might be
+useful to propagate your changes to the rest of the tree.
+
+- A device may also be a provider. After registering, it may call
+of_clk_add_hw_provider() (or any similar function). Other devices will then be
+able to request the clocks this device has registered. This is useful when the
+clock is in region by one device and used by another device.
+
+
+> The main issue is
+> the lack of documentation so I don't know which resets/clocks are impacted by
+> those writes.
+> The only thing I'm certain of is that they only apply to the vdec/esparser.
+> 
+> - I tend to call vdec_* functions from the codec handlers.
+> 
+> For instance, codec_h264 will call vdec_dst_buf_done_idx to DONE
+> a capture buffer. vdec_dst_buf_done_idx is as such a public symbol.
+> 
+> Should I use an ops struct for those instead, so that the codec handlers
+> don't depend directly on the vdec general code ?
+> 
+> - Naming: my public symbols either start with vdec_* or esparser_*
+> 
+> Should I change that to something meson/amlogic specific ?
+
+That what we tend to do yes.
+
+If the symbol is not static, you should probably have a prefix like 'meson_gx_'
+... maybe 'meson_gx_vdec'. Another (amlogic) platform may come along someday,
+with another 'type' of vdec.
+
+If the symbol is static, then maybe vdec_ is enough.
+
+> 
+> - I have a _lot_ of writel_relaxed calls.
+> 
+> Can I leave them be or is there a nicer way to do it ?
+> 
+> - Since the decoder is single instance, I only allow one _open at a time.
+> 
+> However the v4l2 compliance suite complains about this.
+> How should I safely make it single instance ? Not allowing multiple start_streaming ?
+> 
+> - I am getting these 2 fails, but unsure what they are about:
+> 
+> Buffer ioctls:
+> 	fail: ../../../v4l-utils-1.12.3/utils/v4l2-compliance/v4l2-test-buffers.cpp(428): node->node2 == NULL
+> 	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
+> 	fail: ../../../v4l-utils-1.12.3/utils/v4l2-compliance/v4l2-test-buffers.cpp(571): q.has_expbuf(node)
+> 	test VIDIOC_EXPBUF: FAIL
+> 
+> 
+> 
+> And of course, I will gladly accept any kind of other feedback you would have.
+> 
+> Thanks!
+> 
+> 
+> Maxime Jourdan (4):
+>   media: meson: add v4l2 m2m video decoder driver
+>   ARM64: dts: meson-gx: add vdec entry
+>   ARM64: dts: meson: add vdec entries
+>   dt-bindings: media: add Amlogic Meson Video Decoder Bindings
+> 
+>  .../bindings/media/amlogic,meson-vdec.txt     |   60 +
+>  arch/arm64/boot/dts/amlogic/meson-gx.dtsi     |   14 +
+>  arch/arm64/boot/dts/amlogic/meson-gxbb.dtsi   |    8 +
+>  arch/arm64/boot/dts/amlogic/meson-gxl.dtsi    |    8 +
+>  arch/arm64/boot/dts/amlogic/meson-gxm.dtsi    |    4 +
+>  drivers/media/platform/Kconfig                |   10 +
+>  drivers/media/platform/meson/Makefile         |    1 +
+>  drivers/media/platform/meson/vdec/Makefile    |    7 +
+>  drivers/media/platform/meson/vdec/canvas.c    |   69 +
+>  drivers/media/platform/meson/vdec/canvas.h    |   42 +
+>  .../media/platform/meson/vdec/codec_h264.c    |  376 +++++
+>  .../media/platform/meson/vdec/codec_h264.h    |   13 +
+>  .../media/platform/meson/vdec/codec_helpers.c |   45 +
+>  .../media/platform/meson/vdec/codec_helpers.h |    8 +
+>  .../media/platform/meson/vdec/codec_hevc.c    | 1383 +++++++++++++++++
+>  .../media/platform/meson/vdec/codec_hevc.h    |   13 +
+>  .../media/platform/meson/vdec/codec_mjpeg.c   |  203 +++
+>  .../media/platform/meson/vdec/codec_mjpeg.h   |   13 +
+>  .../media/platform/meson/vdec/codec_mpeg12.c  |  183 +++
+>  .../media/platform/meson/vdec/codec_mpeg12.h  |   13 +
+>  .../media/platform/meson/vdec/codec_mpeg4.c   |  213 +++
+>  .../media/platform/meson/vdec/codec_mpeg4.h   |   13 +
+>  drivers/media/platform/meson/vdec/esparser.c  |  320 ++++
+>  drivers/media/platform/meson/vdec/esparser.h  |   16 +
+>  drivers/media/platform/meson/vdec/hevc_regs.h |  742 +++++++++
+>  drivers/media/platform/meson/vdec/vdec.c      | 1009 ++++++++++++
+>  drivers/media/platform/meson/vdec/vdec.h      |  152 ++
+>  drivers/media/platform/meson/vdec/vdec_1.c    |  266 ++++
+>  drivers/media/platform/meson/vdec/vdec_1.h    |   13 +
+>  drivers/media/platform/meson/vdec/vdec_hevc.c |  188 +++
+>  drivers/media/platform/meson/vdec/vdec_hevc.h |   22 +
+>  .../media/platform/meson/vdec/vdec_platform.c |  273 ++++
+>  .../media/platform/meson/vdec/vdec_platform.h |   29 +
+>  33 files changed, 5729 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/amlogic,meson-vdec.txt
+>  create mode 100644 drivers/media/platform/meson/vdec/Makefile
+>  create mode 100644 drivers/media/platform/meson/vdec/canvas.c
+>  create mode 100644 drivers/media/platform/meson/vdec/canvas.h
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_h264.c
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_h264.h
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_helpers.c
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_helpers.h
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_hevc.c
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_hevc.h
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mjpeg.c
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mjpeg.h
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg12.c
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg12.h
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg4.c
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg4.h
+>  create mode 100644 drivers/media/platform/meson/vdec/esparser.c
+>  create mode 100644 drivers/media/platform/meson/vdec/esparser.h
+>  create mode 100644 drivers/media/platform/meson/vdec/hevc_regs.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_1.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_1.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_hevc.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_hevc.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_platform.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_platform.h
 > 
