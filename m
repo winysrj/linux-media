@@ -1,47 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp13.smtpout.orange.fr ([80.12.242.135]:48185 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1732110AbeHBOra (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 10:47:30 -0400
-Received: by mail-qt0-f179.google.com with SMTP id n6-v6so2119929qtl.4
-        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2018 05:56:23 -0700 (PDT)
+Received: from bombadil.infradead.org ([198.137.202.133]:42892 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730351AbeHBXPA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 19:15:00 -0400
+Date: Thu, 2 Aug 2018 18:22:00 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-media@vger.kernel.org, tglx@linutronix.de,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-usb@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 2nd REPOST 0/5] media: use irqsave() in USB's complete
+ callback
+Message-ID: <20180802182200.3b3cbbd0@coco.lan>
+In-Reply-To: <20180802203948.d4cwty7uz6i6ijyw@linutronix.de>
+References: <20180710161833.2435-1-bigeasy@linutronix.de>
+        <20180802144743.38fc779b@coco.lan>
+        <20180802203948.d4cwty7uz6i6ijyw@linutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <80eb63eee4ad1927a617ce526e7aba2342ac66f8.camel@baylibre.com>
-References: <20180801193320.25313-1-maxi.jourdan@wanadoo.fr> <80eb63eee4ad1927a617ce526e7aba2342ac66f8.camel@baylibre.com>
-From: Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-Date: Thu, 2 Aug 2018 14:56:22 +0200
-Message-ID: <CAHStOZ4pt4ECYcLkv8mXZkB5JvUm0NVp9sD6mfQofDLgpUHMiA@mail.gmail.com>
-Subject: Re: [RFC 0/4] media: meson: add video decoder driver
-To: Jerome Brunet <jbrunet@baylibre.com>,
-        Neil <narmstrong@baylibre.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Maxime Jourdan <maxi.jourdan@wanadoo.fr>,
-        linux-media@vger.kernel.org,
-        linux-amlogic <linux-amlogic@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jerome, Neil, Hans,
+Em Thu, 2 Aug 2018 22:39:49 +0200
+Sebastian Andrzej Siewior <bigeasy@linutronix.de> escreveu:
 
-Thanks a lot for all the insights.
+> On 2018-08-02 14:47:43 [-0300], Mauro Carvalho Chehab wrote:
+> > Sorry for the long wait... has been busy those days with two international
+> > trips to the opposite side of the world.  
+> 
+> No worries. At some point I wasn't if you are receiving my emails.
 
-2018-08-02 8:59 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
->>       fail: ../../../v4l-utils-1.12.3/utils/v4l2-compliance/v4l2-test-buffers.cpp(571): q.has_expbuf(node)
->>       test VIDIOC_EXPBUF: FAIL
->
-> Not sure, might well be a knock-on result of the 'one open' problem.
->
-> BTW, always get the latest code from the v4l-utils git repo, don't use a released
-> version for v4l2-compliance: it's always evolving and you don't want to use an
-> old version. Also for the next version of this patch series add the output of
-> v4l2-compliance to this cover letter, I want to see it.
+The risk of losing patches is now... media workflow is based on
+patchwork:
+	https://patchwork.linuxtv.org/project/linux-media/list/
 
-Will do.
+If the patch sent to linux-media@vger.kernel.org is stored there,
+we should be handling it sooner or later ;-)
 
-> Finally, are you aware of the work Tomasz Figa on specifying the codec behavior?
->
-> https://lkml.org/lkml/2018/7/24/539
->
-> The final version will be close to what was posted there.
-
-I wasn't, thanks for pointing it out.
+Regards,
+Mauro
