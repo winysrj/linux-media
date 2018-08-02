@@ -1,135 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga17.intel.com ([192.55.52.151]:35904 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387418AbeHBOav (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Aug 2018 10:30:51 -0400
-Date: Thu, 2 Aug 2018 15:39:48 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: jasonx.z.chen@intel.com
-Cc: linux-media@vger.kernel.org, andy.yeh@intel.com, tfiga@chromium.org
-Subject: Re: [PATCH] media: imx258: remove test pattern map from driver
-Message-ID: <20180802123948.uvcgwaxsfxwbovzn@paasikivi.fi.intel.com>
-References: <1533197820-19176-1-git-send-email-jasonx.z.chen@intel.com>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:50849 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732169AbeHBO3B (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Aug 2018 10:29:01 -0400
+Subject: Re: [PATCH v6 00/13] media: staging/imx7: add i.MX7 media driver
+To: Rui Miguel Silva <rui.silva@linaro.org>, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>, linux-clk@vger.kernel.org
+References: <20180522145245.3143-1-rui.silva@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <267173c9-7235-6008-7248-ee06c0db3780@xs4all.nl>
+Date: Thu, 2 Aug 2018 14:37:54 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1533197820-19176-1-git-send-email-jasonx.z.chen@intel.com>
+In-Reply-To: <20180522145245.3143-1-rui.silva@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jason,
+Hi Rui,
 
-On Thu, Aug 02, 2018 at 04:17:00PM +0800, jasonx.z.chen@intel.com wrote:
-> From: "Chen, JasonX Z" <jasonx.z.chen@intel.com>
+On 05/22/18 16:52, Rui Miguel Silva wrote:
+> Hi,
+> This series introduces the Media driver to work with the i.MX7 SoC. it uses the
+> already existing imx media core drivers but since the i.MX7, contrary to
+> i.MX5/6, do not have an IPU and because of that some changes in the imx media
+> core are made along this series to make it support that case.
 > 
-> Test Pattern mode be picked at HAL instead of driver.
-> do a FLIP when userspace use test pattern mode.
-> add entity_ops for validating imx258 link.
-
-Hmm. I think this would be changed based on my comments anyway, but please
-explain what you're doing and *why*. HAL is not relevant in this context
-I'd say.
-
+> This patches adds CSI and MIPI-CSI2 drivers for i.MX7, along with several
+> configurations changes for this to work as a capture subsystem. Some bugs are
+> also fixed along the line. And necessary documentation.
 > 
-> Signed-off-by: Chen, JasonX Z <jasonx.z.chen@intel.com>
-> ---
->  drivers/media/i2c/imx258.c | 28 ++++++++--------------------
->  1 file changed, 8 insertions(+), 20 deletions(-)
+> For a more detailed view of the capture paths, pads links in the i.MX7 please
+> take a look at the documentation in PATCH 14.
 > 
-> diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-> index 31a1e22..71f9875 100644
-> --- a/drivers/media/i2c/imx258.c
-> +++ b/drivers/media/i2c/imx258.c
-> @@ -62,11 +62,6 @@
->  
->  /* Test Pattern Control */
->  #define IMX258_REG_TEST_PATTERN		0x0600
-> -#define IMX258_TEST_PATTERN_DISABLE	0
-> -#define IMX258_TEST_PATTERN_SOLID_COLOR	1
-> -#define IMX258_TEST_PATTERN_COLOR_BARS	2
-> -#define IMX258_TEST_PATTERN_GREY_COLOR	3
-> -#define IMX258_TEST_PATTERN_PN9		4
->  
->  /* Orientation */
->  #define REG_MIRROR_FLIP_CONTROL		0x0101
-> @@ -504,20 +499,12 @@ struct imx258_mode {
->  
->  static const char * const imx258_test_pattern_menu[] = {
->  	"Disabled",
-> -	"Color Bars",
->  	"Solid Color",
-> +	"Color Bars",
->  	"Grey Color Bars",
->  	"PN9"
->  };
->  
-> -static const int imx258_test_pattern_val[] = {
-> -	IMX258_TEST_PATTERN_DISABLE,
-> -	IMX258_TEST_PATTERN_COLOR_BARS,
-> -	IMX258_TEST_PATTERN_SOLID_COLOR,
-> -	IMX258_TEST_PATTERN_GREY_COLOR,
-> -	IMX258_TEST_PATTERN_PN9,
-> -};
-> -
->  /* Configurations for supported link frequencies */
->  #define IMX258_LINK_FREQ_634MHZ	633600000ULL
->  #define IMX258_LINK_FREQ_320MHZ	320000000ULL
-> @@ -752,7 +739,6 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
->  		container_of(ctrl->handler, struct imx258, ctrl_handler);
->  	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
->  	int ret = 0;
-> -
+> The system used to test and develop this was the Warp7 board with an OV2680
+> sensor, which output format is 10-bit bayer. So, only MIPI interface was
+> tested, a scenario with an parallel input would nice to have.
+> 
+> *Important note*, this code depends on Steve Longerbeam series [0]:
+> [PATCH v4 00/13] media: imx: Switch to subdev notifiers
+> which the merging status is not clear to me, but the changes in there make
+> senses to this series
+> 
+> Bellow goes an example of the output of the pads and links and the output of
+> v4l2-compliance testing.
+> 
+> The v4l-utils version used is:
+> v4l2-compliance SHA   : 47d43b130dc6e9e0edc900759fb37649208371e4 from Apr 4th.
+> 
+> The Media Driver fail some tests but this failures are coming from code out of
+> scope of this series (video-mux, imx-capture), and some from the sensor OV2680
+> but that I think not related with the sensor driver but with the testing and
+> core.
+> 
+> The csi and mipi-csi entities pass all compliance tests.
+> 
+> Cheers,
+>     Rui
+> 
+> [0]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg131186.html
 
-I think this newline is where it should be.
+This patch series was delayed quite a bit since the patch series above
+it depends on is still not merged.
 
->  	/*
->  	 * Applying V4L2 control value only happens
->  	 * when power is up for streaming
-> @@ -778,13 +764,10 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_TEST_PATTERN:
->  		ret = imx258_write_reg(imx258, IMX258_REG_TEST_PATTERN,
->  				IMX258_REG_VALUE_16BIT,
-> -				imx258_test_pattern_val[ctrl->val]);
-> -
-> +				ctrl->val);
->  		ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
->  				IMX258_REG_VALUE_08BIT,
-> -				ctrl->val == imx258_test_pattern_val
-> -				[IMX258_TEST_PATTERN_DISABLE] ?
-> -				REG_CONFIG_MIRROR_FLIP :
-> +				!ctrl->val?REG_CONFIG_MIRROR_FLIP :
+But the v6 version of that series will be merged once the 4.20 cycle opens:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg133391.html
 
-Spaces around "?".
+Sakari has a branch with that series on top of the latest media_tree master:
+https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-fwnode
 
->  				REG_CONFIG_FLIP_TEST_PATTERN);
->  		break;
->  	default:
-> @@ -1105,6 +1088,10 @@ static int imx258_identify_module(struct imx258 *imx258)
->  	.pad = &imx258_pad_ops,
->  };
->  
-> +static const struct media_entity_operations imx258_subdev_entity_ops = {
-> +	.link_validate = v4l2_subdev_link_validate,
+Can you rebase this imx7 series on top of that? And test it again with the
+*latest* v4l2-compliance? (I've added new checks recently, so you need to
+update this utility)
 
-The sensor only has a source pad while the link validate is only needed for
-sink pads.
+Please post the output of the v4l2-compliance test (after fixing any issues
+it raises of course), either as a reply to this post or in the cover letter
+of a v7 version of this series if you had to make changes.
 
-> +};
-> +
->  static const struct v4l2_subdev_internal_ops imx258_internal_ops = {
->  	.open = imx258_open,
->  };
-> @@ -1250,6 +1237,7 @@ static int imx258_probe(struct i2c_client *client)
->  
->  	/* Initialize subdev */
->  	imx258->sd.internal_ops = &imx258_internal_ops;
-> +	imx258->sd.entity.ops  = &imx258_subdev_entity_ops;
->  	imx258->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->  	imx258->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
->  
+This should expedite merging this series for 4.20.
 
--- 
-Regards,
+Thanks!
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
