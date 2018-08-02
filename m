@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:33370 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727062AbeHHSyZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 14:54:25 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: mchehab@kernel.org, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Michal=20Vok=C3=A1=C4=8D?= <michal.vokac@ysoft.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2] dt-bindings: media: adv7604: Fix slave map documentation
-Date: Wed,  8 Aug 2018 17:33:51 +0100
-Message-Id: <20180808163351.28852-1-kieran.bingham@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:51860 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727002AbeHCAwA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 20:52:00 -0400
+Date: Thu, 2 Aug 2018 19:58:24 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Lee Jones <lee.jones@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: platform: cros-ec-cec: fix dependency on
+ MFD_CROS_EC
+Message-ID: <20180802195824.26a9720a@coco.lan>
+In-Reply-To: <20180724093624.1670671-1-arnd@arndb.de>
+References: <20180724093624.1670671-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The reg-names property in the documentation is missing an '='. Add it.
+Em Tue, 24 Jul 2018 11:35:59 +0200
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Fixes: 9feb786876c7 ("media: dt-bindings: media: adv7604: Extend
-bindings to allow specifying slave map addresses")
+> Without the MFD driver, we run into a link error:
 
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Weird... I'm not seeing this driver at the media tree... was it merged via
+some other tree?
 
----
-v2:
- - Commit title changed to prefix as "dt-bindings: media:"
+> 
+> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_transmit':
+> cros-ec-cec.c:(.text+0x474): undefined reference to `cros_ec_cmd_xfer_status'
+> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_set_log_addr':
+> cros-ec-cec.c:(.text+0x60b): undefined reference to `cros_ec_cmd_xfer_status'
+> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_adap_enable':
+> cros-ec-cec.c:(.text+0x77d): undefined reference to `cros_ec_cmd_xfer_status'
+> 
+> As we can compile-test all the dependency, the extra '| COMPILE_TEST' is
+> not needed to get the build coverage, and we can simply turn MFD_CROS_EC
+> into a hard dependency to make it build in all configurations.
+> 
+> Fixes: cd70de2d356e ("media: platform: Add ChromeOS EC CEC driver")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/platform/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 92b182da8e4d..018fcbed82e4 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -535,7 +535,7 @@ if CEC_PLATFORM_DRIVERS
+>  
+>  config VIDEO_CROS_EC_CEC
+>  	tristate "ChromeOS EC CEC driver"
+> -	depends on MFD_CROS_EC || COMPILE_TEST
+> +	depends on MFD_CROS_EC
+>  	select CEC_CORE
+>  	select CEC_NOTIFIER
+>  	---help---
 
-If this is collected through a DT tree, I assume therefore this will be
-fine, but if it is to go through the media-tree, please update as
-necessaary to prevent the redundant dual "media:" tagging.
 
-(I'll leave it to the maintainers to decide whose tree thise should go
-through)
 
-Thanks
-
-Kieran
-
- Documentation/devicetree/bindings/media/i2c/adv7604.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index dcf57e7c60eb..b3e688b77a38 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -66,7 +66,7 @@ Example:
- 		 * other maps will retain their default addresses.
- 		 */
- 		reg = <0x4c>, <0x66>;
--		reg-names "main", "edid";
-+		reg-names = "main", "edid";
- 
- 		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
- 		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
--- 
-2.17.1
+Thanks,
+Mauro
