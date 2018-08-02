@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:50316 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:50326 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729763AbeHBWlz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 18:41:55 -0400
+        with ESMTP id S1729763AbeHBWl6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 18:41:58 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
@@ -10,89 +10,44 @@ Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Shuah Khan <shuah@kernel.org>, linux-kselftest@vger.kernel.org,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v4 2/6] v4l2-ioctl.c: simplify locking for m2m devices
-Date: Thu,  2 Aug 2018 17:48:46 -0300
-Message-Id: <20180802204850.31633-3-ezequiel@collabora.com>
+Subject: [PATCH v4 3/6] v4l2-mem2mem: Avoid v4l2_m2m_prepare_buf from scheduling a job
+Date: Thu,  2 Aug 2018 17:48:47 -0300
+Message-Id: <20180802204850.31633-4-ezequiel@collabora.com>
 In-Reply-To: <20180802204850.31633-1-ezequiel@collabora.com>
 References: <20180802204850.31633-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the mutexes for output and capture vb2 queues match,
-it is possible to refer to the context q_lock as the
-m2m lock for a given m2m context.
+There is no need for v4l2_m2m_prepare_buf to try to schedule a job,
+as it only prepares a buffer, but does not queue or changes the
+state of the queue.
 
-Remove the output/capture lock selection.
+Remove the call to v4l2_m2m_try_schedule from v4l2_m2m_prepare_buf.
 
 Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 47 ++--------------------------
- 1 file changed, 2 insertions(+), 45 deletions(-)
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 54afc9c7ee6e..c46c455df652 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2677,45 +2677,6 @@ static bool v4l2_is_known_ioctl(unsigned int cmd)
- 	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
- }
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index b7005894292c..6bdbdbfa8e6c 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -481,14 +481,9 @@ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 			 struct v4l2_buffer *buf)
+ {
+ 	struct vb2_queue *vq;
+-	int ret;
  
--#if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
--static bool v4l2_ioctl_m2m_queue_is_output(unsigned int cmd, void *arg)
--{
--	switch (cmd) {
--	case VIDIOC_CREATE_BUFS: {
--		struct v4l2_create_buffers *cbufs = arg;
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+-	ret = vb2_prepare_buf(vq, buf);
+-	if (!ret)
+-		v4l2_m2m_try_schedule(m2m_ctx);
 -
--		return V4L2_TYPE_IS_OUTPUT(cbufs->format.type);
--	}
--	case VIDIOC_REQBUFS: {
--		struct v4l2_requestbuffers *rbufs = arg;
--
--		return V4L2_TYPE_IS_OUTPUT(rbufs->type);
--	}
--	case VIDIOC_QBUF:
--	case VIDIOC_DQBUF:
--	case VIDIOC_QUERYBUF:
--	case VIDIOC_PREPARE_BUF: {
--		struct v4l2_buffer *buf = arg;
--
--		return V4L2_TYPE_IS_OUTPUT(buf->type);
--	}
--	case VIDIOC_EXPBUF: {
--		struct v4l2_exportbuffer *expbuf = arg;
--
--		return V4L2_TYPE_IS_OUTPUT(expbuf->type);
--	}
--	case VIDIOC_STREAMON:
--	case VIDIOC_STREAMOFF: {
--		int *type = arg;
--
--		return V4L2_TYPE_IS_OUTPUT(*type);
--	}
--	default:
--		return false;
--	}
--}
--#endif
--
- static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
- 					 struct v4l2_fh *vfh, unsigned int cmd,
- 					 void *arg)
-@@ -2725,12 +2686,8 @@ static struct mutex *v4l2_ioctl_get_lock(struct video_device *vdev,
- #if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
- 	if (vfh && vfh->m2m_ctx &&
- 	    (v4l2_ioctls[_IOC_NR(cmd)].flags & INFO_FL_QUEUE)) {
--		bool is_output = v4l2_ioctl_m2m_queue_is_output(cmd, arg);
--		struct v4l2_m2m_queue_ctx *ctx = is_output ?
--			&vfh->m2m_ctx->out_q_ctx : &vfh->m2m_ctx->cap_q_ctx;
--
--		if (ctx->q.lock)
--			return ctx->q.lock;
-+		if (vfh->m2m_ctx->q_lock)
-+			return vfh->m2m_ctx->q_lock;
- 	}
- #endif
- 	if (vdev->queue && vdev->queue->lock &&
+-	return ret;
++	return vb2_prepare_buf(vq, buf);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_prepare_buf);
+ 
 -- 
 2.18.0
