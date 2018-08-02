@@ -1,75 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:33500 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732267AbeHBOjt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 10:39:49 -0400
-Received: by mail-qt0-f178.google.com with SMTP id h4-v6so2072760qtj.7
-        for <linux-media@vger.kernel.org>; Thu, 02 Aug 2018 05:48:44 -0700 (PDT)
+Received: from mga17.intel.com ([192.55.52.151]:35904 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387418AbeHBOav (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Aug 2018 10:30:51 -0400
+Date: Thu, 2 Aug 2018 15:39:48 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jasonx.z.chen@intel.com
+Cc: linux-media@vger.kernel.org, andy.yeh@intel.com, tfiga@chromium.org
+Subject: Re: [PATCH] media: imx258: remove test pattern map from driver
+Message-ID: <20180802123948.uvcgwaxsfxwbovzn@paasikivi.fi.intel.com>
+References: <1533197820-19176-1-git-send-email-jasonx.z.chen@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <a5c8d552eaf567a09ba9d3cbc50771c5128cd805.camel@baylibre.com>
-References: <20180801193320.25313-1-maxi.jourdan@wanadoo.fr>
- <20180801193320.25313-5-maxi.jourdan@wanadoo.fr> <a5c8d552eaf567a09ba9d3cbc50771c5128cd805.camel@baylibre.com>
-From: Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-Date: Thu, 2 Aug 2018 14:48:43 +0200
-Message-ID: <CAHStOZ6Buk2JbT5A-sJsrJTTHLNb6omGpVCeYEZ6bpqSxqsZAQ@mail.gmail.com>
-Subject: Re: [RFC 4/4] dt-bindings: media: add Amlogic Meson Video Decoder Bindings
-To: Jerome Brunet <jbrunet@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Cc: Maxime Jourdan <maxi.jourdan@wanadoo.fr>,
-        linux-media@vger.kernel.org,
-        linux-amlogic <linux-amlogic@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1533197820-19176-1-git-send-email-jasonx.z.chen@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin & Jerome,
+Hi Jason,
 
-2018-08-02 12:33 GMT+02:00 Jerome Brunet <jbrunet@baylibre.com>:
-> Maxime, when formatting your patchset, remember to put the bindings
-> documentation before actually using them. This patch could be the first one of
-> your series.
+On Thu, Aug 02, 2018 at 04:17:00PM +0800, jasonx.z.chen@intel.com wrote:
+> From: "Chen, JasonX Z" <jasonx.z.chen@intel.com>
+> 
+> Test Pattern mode be picked at HAL instead of driver.
+> do a FLIP when userspace use test pattern mode.
+> add entity_ops for validating imx258 link.
 
-Noted, thanks.
+Hmm. I think this would be changed based on my comments anyway, but please
+explain what you're doing and *why*. HAL is not relevant in this context
+I'd say.
 
-2018-08-01 22:13 GMT+02:00 Martin Blumenstingl
-<martin.blumenstingl@googlemail.com>:
->> +- VDEC_2 is used as a helper for corner cases like H.264 4K on older SoCs.
->> +It is not handled by this driver.
-> is it currently not handled or will it never be?
+> 
+> Signed-off-by: Chen, JasonX Z <jasonx.z.chen@intel.com>
+> ---
+>  drivers/media/i2c/imx258.c | 28 ++++++++--------------------
+>  1 file changed, 8 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+> index 31a1e22..71f9875 100644
+> --- a/drivers/media/i2c/imx258.c
+> +++ b/drivers/media/i2c/imx258.c
+> @@ -62,11 +62,6 @@
+>  
+>  /* Test Pattern Control */
+>  #define IMX258_REG_TEST_PATTERN		0x0600
+> -#define IMX258_TEST_PATTERN_DISABLE	0
+> -#define IMX258_TEST_PATTERN_SOLID_COLOR	1
+> -#define IMX258_TEST_PATTERN_COLOR_BARS	2
+> -#define IMX258_TEST_PATTERN_GREY_COLOR	3
+> -#define IMX258_TEST_PATTERN_PN9		4
+>  
+>  /* Orientation */
+>  #define REG_MIRROR_FLIP_CONTROL		0x0101
+> @@ -504,20 +499,12 @@ struct imx258_mode {
+>  
+>  static const char * const imx258_test_pattern_menu[] = {
+>  	"Disabled",
+> -	"Color Bars",
+>  	"Solid Color",
+> +	"Color Bars",
+>  	"Grey Color Bars",
+>  	"PN9"
+>  };
+>  
+> -static const int imx258_test_pattern_val[] = {
+> -	IMX258_TEST_PATTERN_DISABLE,
+> -	IMX258_TEST_PATTERN_COLOR_BARS,
+> -	IMX258_TEST_PATTERN_SOLID_COLOR,
+> -	IMX258_TEST_PATTERN_GREY_COLOR,
+> -	IMX258_TEST_PATTERN_PN9,
+> -};
+> -
+>  /* Configurations for supported link frequencies */
+>  #define IMX258_LINK_FREQ_634MHZ	633600000ULL
+>  #define IMX258_LINK_FREQ_320MHZ	320000000ULL
+> @@ -752,7 +739,6 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
+>  		container_of(ctrl->handler, struct imx258, ctrl_handler);
+>  	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+>  	int ret = 0;
+> -
 
-I don't think it will ever be, at least from me. This VDEC unit is
-rarely used and only for a few corner cases on SoCs like meson8b, and
-I have no intention of supporting them for now as there are other
-limitations.
+I think this newline is where it should be.
 
-> any reason why you are not using the DMC syscon (as added in your
-> patch "dt-bindings: soc: amlogic: add meson-canvas documentation")
-> instead of mapping the DMC region again?
+>  	/*
+>  	 * Applying V4L2 control value only happens
+>  	 * when power is up for streaming
+> @@ -778,13 +764,10 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
+>  	case V4L2_CID_TEST_PATTERN:
+>  		ret = imx258_write_reg(imx258, IMX258_REG_TEST_PATTERN,
+>  				IMX258_REG_VALUE_16BIT,
+> -				imx258_test_pattern_val[ctrl->val]);
+> -
+> +				ctrl->val);
+>  		ret = imx258_write_reg(imx258, REG_MIRROR_FLIP_CONTROL,
+>  				IMX258_REG_VALUE_08BIT,
+> -				ctrl->val == imx258_test_pattern_val
+> -				[IMX258_TEST_PATTERN_DISABLE] ?
+> -				REG_CONFIG_MIRROR_FLIP :
+> +				!ctrl->val?REG_CONFIG_MIRROR_FLIP :
 
-To answer you and Jerome, I didn't use it because I wanted to keep
-both patchsets separate in case of testing. In hindsight though, I
-should have used the canvas module in the vdec in the RFC.
-So yeah, this will definitely be used by the final product.
+Spaces around "?".
 
->> +- interrupts: should contain the vdec and esparser IRQs.
-> are these two IRQs the "currently supported" ones or are there more
-> for the whole IP block (but just not implemented yet)?
+>  				REG_CONFIG_FLIP_TEST_PATTERN);
+>  		break;
+>  	default:
+> @@ -1105,6 +1088,10 @@ static int imx258_identify_module(struct imx258 *imx258)
+>  	.pad = &imx258_pad_ops,
+>  };
+>  
+> +static const struct media_entity_operations imx258_subdev_entity_ops = {
+> +	.link_validate = v4l2_subdev_link_validate,
 
-There are more IRQs within the VDEC but they are not used at the
-moment. Some are for the demuxer, VDEC_2, etc..
+The sensor only has a source pad while the link validate is only needed for
+sink pads.
 
-> AFAIK the "correct" format is (just like you've done for the clocks below):
->        reg = <0x0 0xc8820000 0x0 0x10000>,
->                  <0x0 0xc110a580 0x0 0xe4>,
->                  <0x0 0xc8838000 0x0 0x60>;
->
+> +};
+> +
+>  static const struct v4l2_subdev_internal_ops imx258_internal_ops = {
+>  	.open = imx258_open,
+>  };
+> @@ -1250,6 +1237,7 @@ static int imx258_probe(struct i2c_client *client)
+>  
+>  	/* Initialize subdev */
+>  	imx258->sd.internal_ops = &imx258_internal_ops;
+> +	imx258->sd.entity.ops  = &imx258_subdev_entity_ops;
+>  	imx258->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  	imx258->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+>  
 
-> AFAIK the "correct" format is (just like you've done for the clocks below):
->        interrupts = <GIC_SPI 44 IRQ_TYPE_EDGE_RISING>,
->                            <GIC_SPI 32 IRQ_TYPE_EDGE_RISING>;
->
+-- 
+Regards,
 
->> +       amlogic,ao-sysctrl = <&sysctrl_AO>;
-> this is not documented above - is it needed?
-
-Duly noted, thanks.
+Sakari Ailus
+sakari.ailus@linux.intel.com
