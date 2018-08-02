@@ -1,115 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:49586 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:49944 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729733AbeHBUjt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 16:39:49 -0400
-Message-ID: <01cb750a08de4ab0c17c31da6bfe40851caa6267.camel@collabora.com>
-Subject: Re: [PATCH 3/3] media: add Rockchip VPU driver
+        with ESMTP id S1726828AbeHBVxD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 17:53:03 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: kernel@collabora.com,
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
         Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 02 Aug 2018 15:47:17 -0300
-In-Reply-To: <2d8ab5c1-d932-9fee-d2bd-b31d285eb802@xs4all.nl>
-References: <20180705172819.5588-1-ezequiel@collabora.com>
-         <20180705172819.5588-4-ezequiel@collabora.com>
-         <3ea4cbc3-d7df-5860-46ec-9302b19bd713@xs4all.nl>
-         <901b48718fa525b6bb8f868bb8cf93f1a3e78413.camel@collabora.com>
-         <2d8ab5c1-d932-9fee-d2bd-b31d285eb802@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tomasz Figa <tfiga@chromium.org>,
+        linux-rockchip@lists.infradead.org, devicetree@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v2 0/6] Add Rockchip VPU JPEG encoder
+Date: Thu,  2 Aug 2018 17:00:04 -0300
+Message-Id: <20180802200010.24365-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-08-02 at 09:30 +0200, Hans Verkuil wrote:
-> On 07/27/2018 07:13 PM, Ezequiel Garcia wrote:
-> > Hi Hans,
-> > 
-> > Thanks a lot for the review.
-> > 
-> > On Wed, 2018-07-18 at 11:58 +0200, Hans Verkuil wrote:
-> > > > 
-> > > > +
-> > > > +static int
-> > > > +queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
-> > > > +{
-> > > > +	struct rockchip_vpu_ctx *ctx = priv;
-> > > > +	int ret;
-> > > > +
-> > > > +	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> > > > +	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-> > > 
-> > > Any reason for setting USERPTR?
-> > > 
-> > > > +	src_vq->drv_priv = ctx;
-> > > > +	src_vq->ops = &rockchip_vpu_enc_queue_ops;
-> > > > +	src_vq->mem_ops = &vb2_dma_contig_memops;
-> > > 
-> > > It isn't really useful in combination with dma_contig.
-> > > 
-> > 
-> > Right! I think I just missed it.
-> > 
-> > > > 
-> > > > +
-> > > > +fallback:
-> > > > +	/* Default to full frame for incorrect settings. */
-> > > > +	ctx->src_crop.width = fmt->width;
-> > > > +	ctx->src_crop.height = fmt->height;
-> > > > +	return 0;
-> > > > +}
-> > > 
-> > > Replace crop by the selection API. The old crop API is no longer allowed
-> > > in new drivers.
-> > 
-> > I have a question about the selection API. There is a comment that says
-> > MPLANE types shouldn't be used:
-> > 
-> > /**
-> >  * struct v4l2_selection - selection info
-> >  * @type:       buffer type (do not use *_MPLANE types)
-> > 
-> > What is the meaning of that?
-> 
-> Easiest is to look in v4l2-ioctl.c. Search for g_selection. You'll see that
-> if the user passes in an _MPLANE buftype it is replaced by the regular non-mplane
-> buftype. So drivers only see that type.
-> 
-> It used to be that applications also had to be specific about what buftype to
-> pass to G/S_SELECTION, but these days either type can be passed in.
-> 
-> > 
-> > [..]
-> > > 
-> > > I skipped the review of the colorspace handling. I'll see if I can come back
-> > > to that later today. I'm not sure if it is correct, but to be honest I doubt
-> > > that there is any JPEG encoder that does this right anyway.
-> > > 
-> > 
-> > And I'd say it's probably wrong, since we let the user change the colorspace,
-> > but we do not use that for anything.
-> 
-> So strictly speaking a JPEG encoder doesn't care about colorspace, xfer_func and
-> ycbcr_enc. It might care about quantization. It is my understanding that a JPEG
-> encoder expects full range Y'CbCr instead of limited range Y'CbCr. Does the HW
-> support limited range as well? I.e. can it convert from limited to full range
-> in hardware?
-> 
-> It might also be that it doesn't care so passing a limited range Y'CbCr image will
-> create a limited range JPEG file and software will have to know that it contains
-> limited range data when decoding it.
-> 
-> In any case, colorspace, xfer_func and ycbcr_enc can just be passed from the
-> output to the capture side, just like other codecs. What to do with 'quantization'
-> depends on the hardware: if it can convert from limited to full range on the fly,
-> then it should be handled by the driver. If not, then copy it like the other fields.
-> 
+This series adds support for JPEG encoding via the VPU block
+present in Rockchip platforms. Currently, support for RK3288
+and RK3399 is included.
 
-I see no mention of the encoding range in the TRM, but reviewing the registers
-it doesn't seem it's supporting conversion from limited to full range, so it should
-be fine to pass-thru the output value.
+The hardware produces a Raw JPEG format (i.e. works as a
+JPEG accelerator). It requires quantization tables provided
+by the application, and uses standard huffman tables,
+as recommended by the JPEG specification.
 
-Thanks,
-Eze
+In order to support this, the series introduces a new pixel format,
+and a new pair of controls, V4L2_CID_JPEG_{LUMA,CHROMA}_QUANTIZATION
+allowing userspace to specify the quantization tables.
+
+Userspace is then responsible to add the required headers
+and tables to the produced raw payload, to produce a JPEG image.
+
+Compliance
+==========
+
+There is an outstanding compliance issue, related to a blocking
+dqbuf, but I cannot see where is the issue, nor if the issue is
+in the core or in the driver.
+
+# v4l2-compliance -d 0 -s 
+v4l2-compliance SHA: 81ea4a243b63d7bb1fec580910c553af4ae072c1, 64 bits
+
+Compliance test for device /dev/video0:
+
+Driver Info:
+	Driver name      : rockchip-vpu
+	Card type        : rockchip-vpu
+	Bus info         : platform: rockchip-vpu
+	Driver version   : 4.18.0
+	Capabilities     : 0x84204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x04204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second /dev/video0 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 2 Private Controls: 0
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK (Not Supported)
+		fail: v4l2-test-buffers.cpp(1225): pid != pid_streamoff
+		fail: v4l2-test-buffers.cpp(1258): testBlockingDQBuf(node, q)
+	test blocking wait: FAIL
+	test MMAP: OK                                     
+	test USERPTR: OK (Not Supported)
+	test DMABUF: Cannot test, specify --expbuf-device
+
+Total: 47, Succeeded: 46, Failed: 1, Warnings: 0
+
+v2:
+  - Add devicetree binding documentation and devicetree changes
+  - Add documentation to added pixel format and controls
+  - Address Hans' review comments
+  - Get rid of unused running_ctx field
+  - Fix wrong planar pixel format depths
+  - Other minor changes for v4l2-compliance
+  - Drop .crop support, we will add support for the
+    selector API later, if needed.
+
+Ezequiel Garcia (4):
+  dt-bindings: Document the Rockchip VPU bindings
+  ARM: dts: rockchip: add VPU device node for RK3288
+  arm64: dts: rockchip: add VPU device node for RK3399
+  media: add Rockchip VPU driver
+
+Shunqian Zheng (2):
+  media: Add JPEG_RAW format
+  media: Add controls for jpeg quantization tables
+
+ .../bindings/media/rockchip-vpu.txt           |  30 +
+ .../media/uapi/v4l/extended-controls.rst      |   9 +
+ .../media/uapi/v4l/pixfmt-compressed.rst      |   9 +
+ MAINTAINERS                                   |   7 +
+ arch/arm/boot/dts/rk3288.dtsi                 |  13 +-
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi      |  12 +
+ drivers/media/platform/Kconfig                |  13 +
+ drivers/media/platform/Makefile               |   1 +
+ drivers/media/platform/rockchip/vpu/Makefile  |   8 +
+ .../platform/rockchip/vpu/rk3288_vpu_hw.c     | 122 +++
+ .../rockchip/vpu/rk3288_vpu_hw_jpege.c        | 154 ++++
+ .../platform/rockchip/vpu/rk3288_vpu_regs.h   | 442 +++++++++++
+ .../platform/rockchip/vpu/rk3399_vpu_hw.c     | 122 +++
+ .../rockchip/vpu/rk3399_vpu_hw_jpege.c        | 181 +++++
+ .../platform/rockchip/vpu/rk3399_vpu_regs.h   | 601 +++++++++++++++
+ .../platform/rockchip/vpu/rockchip_vpu.h      | 272 +++++++
+ .../platform/rockchip/vpu/rockchip_vpu_drv.c  | 404 ++++++++++
+ .../platform/rockchip/vpu/rockchip_vpu_enc.c  | 715 ++++++++++++++++++
+ .../platform/rockchip/vpu/rockchip_vpu_enc.h  |  25 +
+ .../platform/rockchip/vpu/rockchip_vpu_hw.h   |  67 ++
+ drivers/media/v4l2-core/v4l2-ctrls.c          |   4 +
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+ include/uapi/linux/v4l2-controls.h            |   3 +
+ include/uapi/linux/videodev2.h                |   1 +
+ 24 files changed, 3215 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
+ create mode 100644 drivers/media/platform/rockchip/vpu/Makefile
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_hw.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_hw_jpege.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_regs.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_hw.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_hw_jpege.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_regs.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_drv.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_enc.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_enc.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_hw.h
+
+-- 
+2.18.0
