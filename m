@@ -1,70 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:49971 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726246AbeHBLgp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 07:36:45 -0400
-Message-ID: <1533203182.3516.12.camel@pengutronix.de>
-Subject: Re: [PATCH v3 05/14] gpu: ipu-v3: Allow negative offsets for
- interlaced scanning
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        "open list:DRM DRIVERS FOR FREESCALE IMX"
-        <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>
-Date: Thu, 02 Aug 2018 11:46:22 +0200
-In-Reply-To: <1533150747-30677-6-git-send-email-steve_longerbeam@mentor.com>
-References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
-         <1533150747-30677-6-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:37015 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726769AbeHBLmr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 07:42:47 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180727115220.10991-1-vasilyev@ispras.ru>
+References: <20180727115220.10991-1-vasilyev@ispras.ru>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Thu, 2 Aug 2018 10:51:51 +0100
+Message-ID: <CA+V-a8vXEiZ6widPZRdiw-0QejFHwDcTtMz5iKfkHc9gZLZ79Q@mail.gmail.com>
+Subject: Re: [PATCH] media: davinci: vpif_display: Mix memory leak on probe
+ error path
+To: Anton Vasilyev <vasilyev@ispras.ru>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, ldv-project@linuxtesting.org
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2018-08-01 at 12:12 -0700, Steve Longerbeam wrote:
-> From: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> The IPU also supports interlaced buffers that start with the bottom field.
-> To achieve this, the the base address EBA has to be increased by a stride
-> length and the interlace offset ILO has to be set to the negative stride.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Hi,
+
+thank you for the patch.
+
+On Fri, Jul 27, 2018 at 12:52 PM, Anton Vasilyev <vasilyev@ispras.ru> wrote:
+> If vpif_probe() fails on v4l2_device_register() then memory allocated
+> at initialize_vpif() for global vpif_obj.dev[i] become unreleased.
+>
+> The patch adds deallocation of vpif_obj.dev[i] on the error path and
+> removes duplicated check on platform_data presence.
+>
+> Found by Linux Driver Verification project (linuxtesting.org).
+>
+> Signed-off-by: Anton Vasilyev <vasilyev@ispras.ru>
 > ---
->  drivers/gpu/ipu-v3/ipu-cpmem.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-> index e68e473..8cd9e37 100644
-> --- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-> +++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-> @@ -269,9 +269,20 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
->  
->  void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
->  {
-> +	u32 ilo, sly;
+>  drivers/media/platform/davinci/vpif_display.c | 24 ++++++++++++-------
+>  1 file changed, 16 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+> index 7be636237acf..0f324055cc9f 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -1114,6 +1114,14 @@ static int initialize_vpif(void)
+>         return err;
+>  }
+>
+> +static void free_vpif_objs(void)
+> +{
+> +       int i;
 > +
-> +	if (stride < 0) {
-> +		stride = -stride;
-> +		ilo = 0x100000 - (stride / 8);
-> +	} else {
-> +		ilo = stride / 8;
-> +	}
+> +       for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
+> +               kfree(vpif_obj.dev[i]);
+> +}
 > +
-> +	sly = (stride * 2) - 1;
-> +
->  	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
-> -	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, stride / 8);
-> -	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, (stride * 2) - 1);
-> +	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, ilo);
-> +	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, sly);
->  };
->  EXPORT_SYMBOL_GPL(ipu_cpmem_interlaced_scan);
+>  static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+>                             struct v4l2_subdev *subdev,
+>                             struct v4l2_async_subdev *asd)
+> @@ -1255,11 +1263,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+>                 return -EINVAL;
+>         }
+>
+> -       if (!pdev->dev.platform_data) {
+> -               dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
+> -               return -EINVAL;
+> -       }
+> -
+Could make this as a separate patch.
 
-This patch is merged in drm-next: 4e3c5d7e05be ("gpu: ipu-v3: Allow
-negative offsets for interlaced scanning")
+>         vpif_dev = &pdev->dev;
+>         err = initialize_vpif();
+>
+> @@ -1271,7 +1274,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+>         err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
+>         if (err) {
+>                 v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
+> -               return err;
+> +               goto vpif_free;
+>         }
+>
+>         while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+> @@ -1314,7 +1317,10 @@ static __init int vpif_probe(struct platform_device *pdev)
+>                         if (vpif_obj.sd[i])
+>                                 vpif_obj.sd[i]->grp_id = 1 << i;
+>                 }
+> -               vpif_probe_complete();
+> +               err = vpif_probe_complete();
+> +               if (err) {
+> +                       goto probe_subdev_out;
+> +               }
 
-regards
-Philipp
+{} braces are not needed
+
+>         } else {
+>                 vpif_obj.notifier.subdevs = vpif_obj.config->asd;
+>                 vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
+> @@ -1334,6 +1340,8 @@ static __init int vpif_probe(struct platform_device *pdev)
+>         kfree(vpif_obj.sd);
+>  vpif_unregister:
+>         v4l2_device_unregister(&vpif_obj.v4l2_dev);
+> +vpif_free:
+> +       free_vpif_objs();
+>
+Just put the for loop here instead.
+
+>         return err;
+>  }
+> @@ -1355,8 +1363,8 @@ static int vpif_remove(struct platform_device *device)
+>                 ch = vpif_obj.dev[i];
+>                 /* Unregister video device */
+>                 video_unregister_device(&ch->video_dev);
+> -               kfree(vpif_obj.dev[i]);
+>         }
+> +       free_vpif_objs();
+>
+Just leave this as is, as its already looping and freeing up the objects.
+
+>         return 0;
+>  }
+> --
+> 2.18.0
+>
+
+Cheers,
+--Prabhakar Lad
