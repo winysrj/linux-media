@@ -1,89 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:48399 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725954AbeHBHZk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Aug 2018 03:25:40 -0400
-From: "Chen, Ping-chung" <ping-chung.chen@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Yeh, Andy" <andy.yeh@intel.com>, "Lai, Jim" <jim.lai@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Grant Grundler <grundler@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v3] media: imx208: Add imx208 camera sensor driver
-Date: Thu, 2 Aug 2018 05:35:48 +0000
-Message-ID: <5E40A82D0551C84FA2888225EDABBE093FAA46AB@PGSMSX105.gar.corp.intel.com>
-References: <1533091146-29235-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5CS801SLWmZMD07Qm=ZpL9bVcBq03-8t6tekP8c69RTQg@mail.gmail.com>
-In-Reply-To: <CAAFQd5CS801SLWmZMD07Qm=ZpL9bVcBq03-8t6tekP8c69RTQg@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:36711 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726260AbeHBLmU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Aug 2018 07:42:20 -0400
+Message-ID: <1533203515.3516.13.camel@pengutronix.de>
+Subject: Re: [PATCH v3 04/14] gpu: ipu-v3: Fix U/V offset macros for planar
+ 4:2:0
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        "open list:DRM DRIVERS FOR FREESCALE IMX"
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>
+Date: Thu, 02 Aug 2018 11:51:55 +0200
+In-Reply-To: <1533150747-30677-5-git-send-email-steve_longerbeam@mentor.com>
+References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
+         <1533150747-30677-5-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgVG9tYXN6LA0KDQpQbGVhc2Ugc2VlIG15IGNvbW1lbnRzLg0KDQotLS0tLU9yaWdpbmFsIE1l
-c3NhZ2UtLS0tLQ0KPkhpIFBpbmctY2h1bmcsDQoNCj5PbiBXZWQsIEF1ZyAxLCAyMDE4IGF0IDEx
-OjMxIEFNIFBpbmctY2h1bmcgQ2hlbiA8cGluZy1jaHVuZy5jaGVuQGludGVsLmNvbT4gd3JvdGU6
-DQo+DQo+IEZyb206ICJDaGVuLCBQaW5nLWNodW5nIiA8cGluZy1jaHVuZy5jaGVuQGludGVsLmNv
-bT4NCj4NCj4gQWRkIGEgVjRMMiBzdWItZGV2aWNlIGRyaXZlciBmb3IgdGhlIFNvbnkgSU1YMjA4
-IGltYWdlIHNlbnNvci4NCj4gVGhpcyBpcyBhIGNhbWVyYSBzZW5zb3IgdXNpbmcgdGhlIEkyQyBi
-dXMgZm9yIGNvbnRyb2wgYW5kIHRoZQ0KPiBDU0ktMiBidXMgZm9yIGRhdGEuDQo+DQo+IFNpZ25l
-ZC1vZmYtYnk6IFBpbmctQ2h1bmcgQ2hlbiA8cGluZy1jaHVuZy5jaGVuQGludGVsLmNvbT4NCj4g
-LS0tDQo+IHNpbmNlIHYxOg0KPiAtLSBVcGRhdGUgdGhlIGZ1bmN0aW9uIG1lZGlhX2VudGl0eV9w
-YWRzX2luaXQgZm9yIHVwc3RyZWFtaW5nLg0KPiAtLSBDaGFuZ2UgdGhlIHN0cnVjdHVyZSBuYW1l
-IG11dGV4IGFzIGlteDIwOF9teC4NCj4gLS0gUmVmaW5lIHRoZSBjb250cm9sIGZsb3cgb2YgdGVz
-dCBwYXR0ZXJuIGZ1bmN0aW9uLg0KPiAtLSB2ZmxpcC9oZmxpcCBjb250cm9sIHN1cHBvcnQgKHdp
-bGwgaW1wYWN0IHRoZSBvdXRwdXQgYmF5ZXIgb3JkZXIpDQo+IC0tIHN1cHBvcnQgNCBiYXllciBv
-cmRlcnMgb3V0cHV0ICh2aWEgY2hhbmdlIHYvaGZsaXApDQo+ICAgICAtIFNSR0dCMTAoZGVmYXVs
-dCksIFNHUkJHMTAsIFNHQlJHMTAsIFNCR0dSMTANCj4gLS0gU2ltcGxpZnkgZXJyb3IgaGFuZGxp
-bmcgaW4gdGhlIHNldF9zdHJlYW0gZnVuY3Rpb24uDQo+IHNpbmNlIHYyOg0KPiAtLSBSZWZpbmUg
-Y29kaW5nIHN0eWxlLg0KPiAtLSBGaXggdGhlIGlmIHN0YXRlbWVudCB0byB1c2UgcG1fcnVudGlt
-ZV9nZXRfaWZfaW5fdXNlKCkuDQo+IC0tIFByaW50IG1vcmUgZXJyb3IgbG9nIGR1cmluZyBlcnJv
-ciBoYW5kbGluZy4NCj4gLS0gUmVtb3ZlIG11dGV4X2Rlc3Ryb3koKSBmcm9tIGlteDIwOF9mcmVl
-X2NvbnRyb2xzKCkuDQo+IC0tIEFkZCBtb3JlIGNvbW1lbnRzLg0KDQo+VGhhbmtzIGZvciBhZGRy
-ZXNzaW5nIHRoZSBjb21tZW50cy4gVGhlcmUgYXJlIHN0aWxsIGZldyByZW1haW5pbmcsIHRob3Vn
-aC4gUGxlYXNlIHNlZSBpbmxpbmUuDQoNCltzbmlwXQ0KPiArZW51bSB7DQo+ICsgICAgICAgSU1Y
-MjA4X0xJTktfRlJFUV8zODRNSFpfSU5ERVgsDQo+ICsgICAgICAgSU1YMjA4X0xJTktfRlJFUV85
-Nk1IWl9JTkRFWCwNCj4gK307DQo+ICsNCj4gKy8qDQo+ICsgKiBwaXhlbF9yYXRlID0gbGlua19m
-cmVxICogZGF0YS1yYXRlICogbnJfb2ZfbGFuZXMgLyBiaXRzX3Blcl9zYW1wbGUNCj4gKyAqIGRh
-dGEgcmF0ZSA9PiBkb3VibGUgZGF0YSByYXRlOyBudW1iZXIgb2YgbGFuZXMgPT4gMjsgYml0cyBw
-ZXIgDQo+ICtwaXhlbCA9PiAxMCAgKi8gc3RhdGljIHU2NCBsaW5rX2ZyZXFfdG9fcGl4ZWxfcmF0
-ZSh1NjQgZikgew0KPiArICAgICAgIGYgKj0gSU1YMjA4X0RBVEFfUkFURV9ET1VCTEUgKiBJTVgy
-MDhfTlVNX09GX0xBTkVTOw0KPiArICAgICAgIGRvX2RpdihmLCBJTVgyMDhfUElYRUxfQklUUyk7
-DQo+ICsNCj4gKyAgICAgICByZXR1cm4gZjsNCj4gK30NCj4gKw0KPiArLyogTWVudSBpdGVtcyBm
-b3IgTElOS19GUkVRIFY0TDIgY29udHJvbCAqLyBzdGF0aWMgY29uc3QgczY0IA0KPiArbGlua19m
-cmVxX21lbnVfaXRlbXNbXSA9IHsNCj4gKyAgICAgICBJTVgyMDhfTElOS19GUkVRXzM4NE1IWiwN
-Cj4gKyAgICAgICBJTVgyMDhfTElOS19GUkVRXzk2TUhaLA0KDQo+SSBhc2tlZCBmb3IgaGF2aW5n
-IGV4cGxpY2l0IGluZGljZXMgdXNpbmcgSU1YMjA4X0xJTktfRlJFUV8qX0lOREVYIGVudW0gdXNl
-ZCBoZXJlIHRvby4NCg0KU29ycnkgSSBmb3Jnb3QgdGhpcyBvbmUsIGZpeGVkLg0KDQo+ICt9Ow0K
-PiArDQo+ICsvKiBMaW5rIGZyZXF1ZW5jeSBjb25maWdzICovDQo+ICtzdGF0aWMgY29uc3Qgc3Ry
-dWN0IGlteDIwOF9saW5rX2ZyZXFfY29uZmlnIGxpbmtfZnJlcV9jb25maWdzW10gPSB7DQo+ICsg
-ICAgICAgW0lNWDIwOF9MSU5LX0ZSRVFfMzg0TUhaX0lOREVYXSA9IHsNCj4gKyAgICAgICAgICAg
-ICAgIC5waXhlbHNfcGVyX2xpbmUgPSBJTVgyMDhfUFBMXzM4NE1IWiwNCj4gKyAgICAgICAgICAg
-ICAgIC5yZWdfbGlzdCA9IHsNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgLm51bV9vZl9yZWdz
-ID0gQVJSQVlfU0laRShwbGxfY3RybF9yZWcpLA0KPiArICAgICAgICAgICAgICAgICAgICAgICAu
-cmVncyA9IHBsbF9jdHJsX3JlZywNCj4gKyAgICAgICAgICAgICAgIH0NCj4gKyAgICAgICB9LA0K
-PiArICAgICAgIFtJTVgyMDhfTElOS19GUkVRXzk2TUhaX0lOREVYXSA9IHsNCj4gKyAgICAgICAg
-ICAgICAgIC5waXhlbHNfcGVyX2xpbmUgPSBJTVgyMDhfUFBMXzk2TUhaLA0KPiArICAgICAgICAg
-ICAgICAgLnJlZ19saXN0ID0gew0KPiArICAgICAgICAgICAgICAgICAgICAgICAubnVtX29mX3Jl
-Z3MgPSBBUlJBWV9TSVpFKHBsbF9jdHJsX3JlZyksDQo+ICsgICAgICAgICAgICAgICAgICAgICAg
-IC5yZWdzID0gcGxsX2N0cmxfcmVnLA0KPiArICAgICAgICAgICAgICAgfQ0KPiArICAgICAgIH0s
-DQo+ICt9Ow0KPiArDQo+ICsvKiBNb2RlIGNvbmZpZ3MgKi8NCj4gK3N0YXRpYyBjb25zdCBzdHJ1
-Y3QgaW14MjA4X21vZGUgc3VwcG9ydGVkX21vZGVzW10gPSB7DQo+ICsgICAgICAgW0lNWDIwOF9M
-SU5LX0ZSRVFfMzg0TUhaX0lOREVYXSA9IHsNCg0KPlRoaXMgaXMgbm90IHRoZSByaWdodCBpbmRl
-eCBmb3IgdGhpcyBhcnJheSAoZXZlbiBpZiBudW1lcmljYWxseSB0aGUgc2FtZS4gVGhpcyBhcnJh
-eSBpcyBqdXN0IGEgbGlzdCBvZiBhdmFpbGFibGUgbW9kZXMgKHJlc29sdXRpb25zKSBhbmQgdGhl
-cmUgaXMgbm8gb3RoZXIgZGF0YSBzdHJ1Y3R1cmUgcmVmZXJyaW5nIHRvIHBhcnRpY3VsYXIgZW50
-cmllcyBvZiBpdCwgc28gaXQgZG9lc24ndCBuZWVkIGV4cGxpY2l0IGluZGV4aW5nLg0KDQpEb25l
-Lg0KDQo+ICsgICAgICAgICAgICAgICAud2lkdGggPSAxOTM2LA0KPiArICAgICAgICAgICAgICAg
-LmhlaWdodCA9IDEwOTYsDQo+ICsgICAgICAgICAgICAgICAudnRzX2RlZiA9IElNWDIwOF9WVFNf
-NjBGUFMsDQo+ICsgICAgICAgICAgICAgICAudnRzX21pbiA9IElNWDIwOF9WVFNfNjBGUFNfTUlO
-LA0KPiArICAgICAgICAgICAgICAgLnJlZ19saXN0ID0gew0KPiArICAgICAgICAgICAgICAgICAg
-ICAgICAubnVtX29mX3JlZ3MgPSBBUlJBWV9TSVpFKG1vZGVfMTkzNngxMDk2XzYwZnBzX3JlZ3Mp
-LA0KPiArICAgICAgICAgICAgICAgICAgICAgICAucmVncyA9IG1vZGVfMTkzNngxMDk2XzYwZnBz
-X3JlZ3MsDQo+ICsgICAgICAgICAgICAgICB9LA0KPiArICAgICAgICAgICAgICAgLmxpbmtfZnJl
-cV9pbmRleCA9IElNWDIwOF9MSU5LX0ZSRVFfMzg0TUhaX0lOREVYLA0KPiArICAgICAgIH0sDQo+
-ICsgICAgICAgW0lNWDIwOF9MSU5LX0ZSRVFfOTZNSFpfSU5ERVhdID0gew0KDQo+RGl0dG8uDQoN
-CkJlc3QgcmVnYXJkcywNClRvbWFzeg0K
+On Wed, 2018-08-01 at 12:12 -0700, Steve Longerbeam wrote:
+> The U and V offset macros for planar 4:2:0 (U_OFFSET, V_OFFSET, and
+> UV_OFFSET), are not correct. The height component to the offset was
+> calculated as:
+> 
+> (pix->width * y / 4)
+> 
+> But this does not produce correct offsets for odd values of y (luma
+> line #). The luma line # must be decimated by two to produce the
+> correct U/V line #, so the correct formula is:
+> 
+> (pix->width * (y / 2) / 2)
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+
+Thank you this patch is applied to imx-drm/fixes now.
+
+regards
+Philipp
