@@ -1,99 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:38744 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731015AbeHIA4Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 20:56:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        kieran.bingham@ideasonboard.com,
-        Douglas Anderson <dianders@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>, matwey@sai.msu.ru
-Subject: Re: [RFC PATCH v1] media: uvcvideo: Cache URB header data before processing
-Date: Thu, 09 Aug 2018 01:35:13 +0300
-Message-ID: <2864865.ZqDiYThxxv@avalon>
-In-Reply-To: <CAAEAJfASOfP5tMuiBtufVbH91MNHgeTqpbmyc42igSnEKMxO1Q@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1808081015110.1466-100000@iolanthe.rowland.org> <1959555.Z0pJAWgXVZ@avalon> <CAAEAJfASOfP5tMuiBtufVbH91MNHgeTqpbmyc42igSnEKMxO1Q@mail.gmail.com>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:38281 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727682AbeHCJZD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 05:25:03 -0400
+Date: Fri, 3 Aug 2018 09:29:53 +0200
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: Rob Herring <robh@kernel.org>
+Cc: mchehab@kernel.org, mark.rutland@arm.com, p.zabel@pengutronix.de,
+        afshin.nasser@gmail.com, javierm@redhat.com,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: Re: [PATCH 20/22] [media] tvp5150: Add input port connectors DT
+ bindings
+Message-ID: <20180803072953.gwla7i6pcw2s3zo7@pengutronix.de>
+References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+ <20180628162054.25613-21-m.felsch@pengutronix.de>
+ <20180703232320.GA18319@rob-hp-laptop>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180703232320.GA18319@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+Hi Rob,
 
-On Wednesday, 8 August 2018 19:29:56 EEST Ezequiel Garcia wrote:
-> On 8 August 2018 at 13:22, Laurent Pinchart wrote:
-> > On Wednesday, 8 August 2018 17:20:21 EEST Alan Stern wrote:
-> >> On Wed, 8 Aug 2018, Keiichi Watanabe wrote:
-> >>> Hi Laurent, Kieran, Tomasz,
-> >>> 
-> >>> Thank you for reviews and suggestions.
-> >>> I want to do additional measurements for improving the performance.
-> >>> 
-> >>> Let me clarify my understanding:
-> >>> Currently, if the platform doesn't support coherent-DMA (e.g. ARM),
-> >>> urb_buffer is allocated by usb_alloc_coherent with
-> >>> URB_NO_TRANSFER_DMA_MAP flag instead of using kmalloc.
-> >> 
-> >> Not exactly.  You are mixing up allocation with mapping.  The speed of
-> >> the allocation doesn't matter; all that matters is whether the memory
-> >> is cached and when it gets mapped/unmapped.
-> >> 
-> >>> This is because we want to avoid frequent DMA mappings, which are
-> >>> generally expensive. However, memories allocated in this way are not
-> >>> cached.
-> >>> 
-> >>> So, we wonder if using usb_alloc_coherent is really fast.
-> >>> In other words, we want to know which is better:
-> >>> "No DMA mapping/Uncached memory" v.s. "Frequent DMA mapping/Cached
-> >>> memory".
+first of all, thanks for the review. After some discussion with the
+media guys I have a question about the dt-bindings.
+
+On 18-07-03 17:23, Rob Herring wrote:
+> On Thu, Jun 28, 2018 at 06:20:52PM +0200, Marco Felsch wrote:
+> > The TVP5150/1 decoders support different video input sources to their
+> > AIP1A/B pins.
 > > 
-> > The second option should also be split in two:
+> > Possible configurations are as follows:
+> >   - Analog Composite signal connected to AIP1A.
+> >   - Analog Composite signal connected to AIP1B.
+> >   - Analog S-Video Y (luminance) and C (chrominance)
+> >     signals connected to AIP1A and AIP1B respectively.
 > > 
-> > - cached memory with DMA mapping/unmapping around each transfer
-> > - cached memory with DMA mapping/unmapping at allocation/free time, and
-> > DMA sync around each transfer
-> 
-> I agree with this, the second one should be better.
-> 
-> I still wonder if there is anyway we can create a helper for this,
-> as I am under the impression most USB video4linux drivers
-> will want to implement the same.
+> > This patch extends the device tree bindings documentation to describe
+> > how the input connectors for these devices should be defined in a DT.
+> > 
+> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > ---
+> >  .../devicetree/bindings/media/i2c/tvp5150.txt | 118 +++++++++++++++++-
+> >  1 file changed, 113 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> > index 8c0fc1a26bf0..feed8c911c5e 100644
+> > --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> > +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> > @@ -12,11 +12,23 @@ Optional Properties:
+> >  - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
+> >  - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
+> >  
+> > -The device node must contain one 'port' child node for its digital output
+> > -video port, in accordance with the video interface bindings defined in
+> > -Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > +The device node must contain one 'port' child node per device input and output
+> > +port, in accordance with the video interface bindings defined in
+> > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+> > +are numbered as follows
+> >  
+> > -Required Endpoint Properties for parallel synchronization:
+> > +	  Name		Type		Port
+> > +	--------------------------------------
+> > +	  AIP1A		sink		0
+> > +	  AIP1B		sink		1
+> > +	  S-VIDEO	sink		2
+> > +	  Y-OUT		src		3
 
-I agree with you, drivers shouldn't care.
+Do you think it's correct to have a seperate port for each binding?
+Since the S-Video port is a combination of AIP1A and AIP1B. After a
+discussion with Mauro [1] the TVP5150 should have only 3 pads. Since the
+pads are directly mappped to the dt-ports this will correspond to three
+ports (2 in, 1 out). Now the svideo connector will be mapped to a second
+endpoint in each port:
 
-> > The second option should in theory lead to at least slightly better
-> > performances, but tests with the pwc driver have reported contradictory
-> > results. I'd like to know whether that's also the case with the uvcvideo
-> > driver, and if so, why.
-> 
-> I believe that is no longer the case. Matwey measured again and the results
-> are what we expected: a single mapping, and sync in the interrupt handler
-> is a little bit faster. See https://lkml.org/lkml/2018/8/4/44
-> 
-> 2) dma_unmap and dma_map in the handler:
-> 2A) dma_unmap_single call: 28.8 +- 1.5 usec
-> 2B) memcpy and the rest: 58 +- 6 usec
-> 2C) dma_map_single call: 22 +- 2 usec
-> Total: 110 +- 7 usec
-> 
-> 3) dma_sync_single_for_cpu
-> 3A) dma_sync_single_for_cpu call: 29.4 +- 1.7 usec
-> 3B) memcpy and the rest: 59 +- 6 usec
-> 3C) noop (trace events overhead): 5 +- 2 usec
-> Total: 93 +- 7 usec
+port@0			
+	endpoint@0 -----------> Comp0-Con
+	endpoint@1 -----+-----> Svideo-Con
+port@1			|
+	endpoint@0 -----|-----> Comp1-Con
+	endpoint@1 -----+
+port@2
+	endpoint
 
-I hadn't caught up with the pwc e-mail thread, I now have, and I'm happy to 
-see that everything is now properly understood. Thanks again Matwey for your 
-work.
+I don't like that solution that much, since the mapping is now signal
+based. We also don't map each line of a parallel port.
+
+A quick grep shows that currently each device using a svideo connector
+seperates them in a own port as I did. IMHO this is a uncomplicate
+solution, but don't abstract the HW correctly. What is your opinion
+about that? Is it correct to have seperate (virtual) port or should I
+map the svideo connector as shown above?
+
+[1] https://www.spinics.net/lists/devicetree/msg242825.html
+
+Regards,
+Marco
+
+> > +
+> > +The device node must contain at least the Y-OUT port. Each input port must be
+> > +linked to an endpoint defined in
+> > +Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt.
+> > +
+> > +Required Endpoint Properties for parallel synchronization on output port:
+> >  
+> >  - hsync-active: active state of the HSYNC signal. Must be <1> (HIGH).
+> >  - vsync-active: active state of the VSYNC signal. Must be <1> (HIGH).
+> > @@ -26,7 +38,9 @@ Required Endpoint Properties for parallel synchronization:
+> >  If none of hsync-active, vsync-active and field-even-active is specified,
+> >  the endpoint is assumed to use embedded BT.656 synchronization.
+> >  
+> > -Example:
+> > +Examples:
+> > +
+> > +Only Output:
+> >  
+> >  &i2c2 {
+> >  	...
+> > @@ -37,6 +51,100 @@ Example:
+> >  		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
+> >  
+> >  		port {
+> > +			reg = <3>;
+> > +			tvp5150_1: endpoint {
+> > +				remote-endpoint = <&ccdc_ep>;
+> > +			};
+> > +		};
+> > +	};
+> > +};
+> > +
+> > +One Input:
+> > +
+> > +connector@0 {
+> 
+> Drop the unit-address as there is no reg property.
+> 
+> > +	compatible = "composite-video-connector";
+> > +	label = "Composite0";
+> > +
+> > +	port {
+> > +		comp0_out: endpoint {
+> > +			remote-endpoint = <&tvp5150_comp0_in>;
+> > +		};
+> > +	};
+> > +};
+> > +
+> > +&i2c2 {
+> > +	...
+> > +	tvp5150@5c {
+> > +		compatible = "ti,tvp5150";
+> > +		reg = <0x5c>;
+> > +		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
+> > +		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
+> > +
+> > +		port@0 {
+> > +			reg = <0>;
+> > +			tvp5150_comp0_in: endpoint {
+> > +				remote-endpoint = <&comp0_out>;
+> > +			};
+> > +		};
+> > +
+> > +		port@3 {
+> > +			reg = <3>;
+> > +			tvp5150_1: endpoint {
+> > +				remote-endpoint = <&ccdc_ep>;
+> > +			};
+> > +		};
+> > +	};
+> > +};
+> > +
+> > +
+> > +Two Inputs, different connector 12 on input AIP1A:
+> > +
+> > +connector@1 {
+> 
+> ditto
+> 
+> > +	compatible = "svideo-connector";
+> > +	label = "S-Video";
+> > +
+> > +	port {
+> > +		svideo_out: endpoint {
+> > +			remote-endpoint = <&tvp5150_svideo_in>;
+> > +		};
+> > +	};
+> > +};
+> > +
+> > +connector@12 {
+> 
+> ditto
+> 
+> > +	compatible = "composite-video-connector";
+> > +	label = "Composite12";
+> > +
+> > +	port {
+> > +		comp12_out: endpoint {
+> > +			remote-endpoint = <&tvp5150_comp12_in>;
+> > +		};
+> > +	};
+> > +};
+> > +
+> > +&i2c2 {
+> > +	...
+> > +	tvp5150@5c {
+> > +		compatible = "ti,tvp5150";
+> > +		reg = <0x5c>;
+> > +		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
+> > +		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
+> > +
+> > +		port@0 {
+> > +			reg = <0>;
+> > +			tvp5150_comp12_in: endpoint {
+> > +				remote-endpoint = <&comp12_out>;
+> > +			};
+> > +		};
+> > +
+> > +		port@2 {
+> > +			reg = <2>;
+> > +			tvp5150_svideo_in: endpoint {
+> > +				remote-endpoint = <&svideo_out>;
+> > +			};
+> > +		};
+> > +
+> > +		port@3 {
+> > +			reg = <3>;
+> >  			tvp5150_1: endpoint {
+> >  				remote-endpoint = <&ccdc_ep>;
+> >  			};
+> > -- 
+> > 2.17.1
+> > 
+> 
 
 -- 
-Regards,
-
-Laurent Pinchart
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5082 |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
