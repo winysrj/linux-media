@@ -1,166 +1,578 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:40280 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728116AbeHCT1y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 15:27:54 -0400
-Date: Fri, 3 Aug 2018 14:30:30 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: Rob Herring <robh@kernel.org>, mchehab@kernel.org,
-        mark.rutland@arm.com, p.zabel@pengutronix.de,
-        afshin.nasser@gmail.com, javierm@redhat.com,
-        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de
-Subject: Re: [PATCH 20/22] [media] tvp5150: Add input port connectors DT
- bindings
-Message-ID: <20180803143030.3cd43921@coco.lan>
-In-Reply-To: <20180803072953.gwla7i6pcw2s3zo7@pengutronix.de>
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
-        <20180628162054.25613-21-m.felsch@pengutronix.de>
-        <20180703232320.GA18319@rob-hp-laptop>
-        <20180803072953.gwla7i6pcw2s3zo7@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:43561 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732498AbeHCQdK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Aug 2018 12:33:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/3] media: add support for properties
+Date: Fri,  3 Aug 2018 16:36:25 +0200
+Message-Id: <20180803143626.48191-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180803143626.48191-1-hverkuil@xs4all.nl>
+References: <20180803143626.48191-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 3 Aug 2018 09:29:53 +0200
-Marco Felsch <m.felsch@pengutronix.de> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi Rob,
-> 
-> first of all, thanks for the review. After some discussion with the
-> media guys I have a question about the dt-bindings.
-> 
-> On 18-07-03 17:23, Rob Herring wrote:
-> > On Thu, Jun 28, 2018 at 06:20:52PM +0200, Marco Felsch wrote:  
-> > > The TVP5150/1 decoders support different video input sources to their
-> > > AIP1A/B pins.
-> > > 
-> > > Possible configurations are as follows:
-> > >   - Analog Composite signal connected to AIP1A.
-> > >   - Analog Composite signal connected to AIP1B.
-> > >   - Analog S-Video Y (luminance) and C (chrominance)
-> > >     signals connected to AIP1A and AIP1B respectively.
-> > > 
-> > > This patch extends the device tree bindings documentation to describe
-> > > how the input connectors for these devices should be defined in a DT.
-> > > 
-> > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > > ---
-> > >  .../devicetree/bindings/media/i2c/tvp5150.txt | 118 +++++++++++++++++-
-> > >  1 file changed, 113 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > > index 8c0fc1a26bf0..feed8c911c5e 100644
-> > > --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > > +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > > @@ -12,11 +12,23 @@ Optional Properties:
-> > >  - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
-> > >  - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
-> > >  
-> > > -The device node must contain one 'port' child node for its digital output
-> > > -video port, in accordance with the video interface bindings defined in
-> > > -Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > > +The device node must contain one 'port' child node per device input and output
-> > > +port, in accordance with the video interface bindings defined in
-> > > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
-> > > +are numbered as follows
-> > >  
-> > > -Required Endpoint Properties for parallel synchronization:
-> > > +	  Name		Type		Port
-> > > +	--------------------------------------
-> > > +	  AIP1A		sink		0
-> > > +	  AIP1B		sink		1
-> > > +	  S-VIDEO	sink		2
-> > > +	  Y-OUT		src		3  
-> 
-> Do you think it's correct to have a seperate port for each binding?
-> Since the S-Video port is a combination of AIP1A and AIP1B. After a
-> discussion with Mauro [1] the TVP5150 should have only 3 pads. Since the
-> pads are directly mappped to the dt-ports this will correspond to three
-> ports (2 in, 1 out). Now the svideo connector will be mapped to a second
-> endpoint in each port:
-> 
-> port@0			
-> 	endpoint@0 -----------> Comp0-Con
-> 	endpoint@1 -----+-----> Svideo-Con
-> port@1		|
-> 	endpoint@0 -----|-----> Comp1-Con
-> 	endpoint@1 -----+
-> port@2
-> 	endpoint
+Initially support u64/s64 and string properties.
 
-For tvp5150, the model is like the above, so just one port at the
-S-video connector.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-device.c |  98 +++++++++++++++++++-
+ drivers/media/media-entity.c |  65 +++++++++++++
+ include/media/media-device.h |   6 ++
+ include/media/media-entity.h | 172 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 338 insertions(+), 3 deletions(-)
 
-Yet, for more complex devices that would allow switching the
-endpoints at the Svideo connector, the model would be:
-
-port@0			
-	endpoint@0 (AIP1A) -----------> Comp0-Con
-	endpoint@1 (AIP1B) -----------> Svideo-Con  port@0 (luminance)
-port@1
-	endpoint@0 (AIP1A) -----------> Comp1-Con
-	endpoint@1 (AIP1B) -----------> Svideo-Con  port@1 (chrominance)
-port@2
-	endpoint   (video bitstream output)
-
-E. g. the S-Video connector will also have two ports, one for the
-chrominance signal and another one for the luminance one.
-
-> I don't like that solution that much, since the mapping is now signal
-> based. We also don't map each line of a parallel port.
-> 
-> A quick grep shows that currently each device using a svideo connector
-> seperates them in a own port as I did.
-
-No. I've no idea about how you did the grep, but this is not how other
-drivers handle it currently.
-
-Right now, on all hardware where connectors are mapped, there is just one
-input port and multiple connectors linked to it. You can see some examples
-here:
-
-	https://www.infradead.org/~mchehab/mc-next-gen/au0828_hvr950q.png
-	https://www.infradead.org/~mchehab/mc-next-gen/cx231xx_hvr930c_hd.png
-	https://www.infradead.org/~mchehab/mc-next-gen/em28xx_hvr950.png
-	https://www.infradead.org/~mchehab/mc-next-gen/playtv_usb.png
-	https://www.infradead.org/~mchehab/mc-next-gen/saa7134-asus-p7131-dual.png
-	https://www.infradead.org/~mchehab/mc-next-gen/wintv_usb2.png
-
-The problem with this approach is that it doesn't reflect how the
-hardware is actually wired. On some hardware similar to tvp5150,
-it may be possible, for example, to wire the S-Video both ways,
-e. g., something equivalent to (using tvp5150 terminology):
-
-	Luminance   -> AIP1A
-	Chrominance -> AIP1B
-or
-	Luminance   -> AIP1B
-	Chrominance -> AIP1A
-
-So, just one pad wouldn't allow this kind of config.
-
-Having three pads is equally wrong, as there's no S-Video port on
-tvp5150. All it has physically are two inputs: AIP1A and AIP1B.
-
-If you want to see the discussions we had, they are at:
-	https://linuxtv.org/irc/irclogger_log/media-maint?date=2018-08-02,Thu
-
-I'm preparing right now a summary of them. will copy you once I
-finish it.
-
-> IMHO this is a uncomplicate
-> solution, but don't abstract the HW correctly. What is your opinion
-> about that? Is it correct to have seperate (virtual) port or should I
-> map the svideo connector as shown above?
-> 
-> [1] https://www.spinics.net/lists/devicetree/msg242825.html
-
-Anyway, I'm writing a summary of our discussions 
-
-Thanks,
-Mauro
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index fcdf3d5dc4b6..6fa9555a669f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -241,10 +241,15 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
+ 	struct media_interface *intf;
+ 	struct media_pad *pad;
+ 	struct media_link *link;
++	struct media_prop *prop;
+ 	struct media_v2_entity kentity, __user *uentity;
+ 	struct media_v2_interface kintf, __user *uintf;
+ 	struct media_v2_pad kpad, __user *upad;
+ 	struct media_v2_link klink, __user *ulink;
++	struct media_v2_prop kprop, __user *uprop;
++	void __user *uprop_payload;
++	unsigned int payload_size = 0;
++	unsigned int payload_offset = 0;
+ 	unsigned int i;
+ 	int ret = 0;
+ 
+@@ -374,6 +379,73 @@ static long media_device_get_topology(struct media_device *mdev, void *arg)
+ 	topo->num_links = i;
+ 	topo->reserved4 = 0;
+ 
++	/* Get properties and number of properties */
++	i = 0;
++	uprop = media_get_uptr(topo->ptr_props);
++	payload_offset = topo->num_props * sizeof(*uprop);
++	media_device_for_each_prop(prop, mdev) {
++		payload_size += prop->payload_size;
++		i++;
++
++		if (ret || !uprop)
++			continue;
++
++		if (i > topo->num_props) {
++			ret = -ENOSPC;
++			continue;
++		}
++
++		memset(&kprop, 0, sizeof(kprop));
++
++		/* Copy prop fields to userspace struct */
++		kprop.id = prop->graph_obj.id;
++		kprop.owner_id = prop->owner->id;
++		kprop.type = prop->type;
++		kprop.flags = 0;
++		kprop.payload_size = prop->payload_size;
++		if (kprop.payload_size)
++			kprop.payload_offset = payload_offset +
++				payload_size - prop->payload_size;
++		else
++			kprop.payload_offset = 0;
++		payload_offset -= sizeof(*uprop);
++		memcpy(kprop.name, prop->name, sizeof(kprop.name));
++		kprop.uval = prop->uval;
++
++		if (copy_to_user(uprop, &kprop, sizeof(kprop)))
++			ret = -EFAULT;
++		uprop++;
++	}
++	topo->num_props = i;
++	if (uprop && topo->props_payload_size < payload_size)
++		ret = -ENOSPC;
++	topo->props_payload_size = payload_size;
++	if (!uprop || ret)
++		return ret;
++
++	uprop_payload = uprop;
++	media_device_for_each_prop(prop, mdev) {
++		i++;
++
++		if (!prop->payload_size)
++			continue;
++
++		if (copy_to_user(uprop_payload, prop->string, prop->payload_size))
++			return -EFAULT;
++		uprop_payload += prop->payload_size;
++	}
++
++	return 0;
++}
++
++static long media_device_get_topology_1(struct media_device *mdev, void *arg)
++{
++	struct media_v2_topology topo = {};
++	long ret;
++
++	memcpy(&topo, arg, sizeof(struct media_v2_topology_1));
++	ret = media_device_get_topology(mdev, &topo);
++	memcpy(arg, &topo, sizeof(struct media_v2_topology_1));
+ 	return ret;
+ }
+ 
+@@ -424,6 +496,7 @@ static const struct media_ioctl_info ioctl_info[] = {
+ 	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
++	MEDIA_IOC(G_TOPOLOGY_1, media_device_get_topology_1, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+ };
+ 
+@@ -438,12 +511,12 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 	long ret;
+ 
+ 	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+-	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
++	    || (ioctl_info[_IOC_NR(cmd)].cmd != cmd))
+ 		return -ENOIOCTLCMD;
+ 
+ 	info = &ioctl_info[_IOC_NR(cmd)];
+ 
+-	if (_IOC_SIZE(info->cmd) > sizeof(__karg)) {
++	if (_IOC_SIZE(cmd) > sizeof(__karg)) {
+ 		karg = kmalloc(_IOC_SIZE(info->cmd), GFP_KERNEL);
+ 		if (!karg)
+ 			return -ENOMEM;
+@@ -582,6 +655,7 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	WARN_ON(entity->graph_obj.mdev != NULL);
+ 	entity->graph_obj.mdev = mdev;
+ 	INIT_LIST_HEAD(&entity->links);
++	INIT_LIST_HEAD(&entity->props);
+ 	entity->num_links = 0;
+ 	entity->num_backlinks = 0;
+ 
+@@ -635,6 +709,18 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ }
+ EXPORT_SYMBOL_GPL(media_device_register_entity);
+ 
++static void media_device_free_props(struct list_head *list)
++{
++	while (!list_empty(list)) {
++		struct media_prop *prop;
++
++		prop = list_first_entry(list, struct media_prop, list);
++		list_del(&prop->list);
++		media_gobj_destroy(&prop->graph_obj);
++		kfree(prop);
++	}
++}
++
+ static void __media_device_unregister_entity(struct media_entity *entity)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+@@ -656,8 +742,13 @@ static void __media_device_unregister_entity(struct media_entity *entity)
+ 	__media_entity_remove_links(entity);
+ 
+ 	/* Remove all pads that belong to this entity */
+-	for (i = 0; i < entity->num_pads; i++)
++	for (i = 0; i < entity->num_pads; i++) {
++		media_device_free_props(&entity->pads[i].props);
+ 		media_gobj_destroy(&entity->pads[i].graph_obj);
++	}
++
++	/* Remove all props that belong to this entity */
++	media_device_free_props(&entity->props);
+ 
+ 	/* Remove the entity */
+ 	media_gobj_destroy(&entity->graph_obj);
+@@ -696,6 +787,7 @@ void media_device_init(struct media_device *mdev)
+ 	INIT_LIST_HEAD(&mdev->interfaces);
+ 	INIT_LIST_HEAD(&mdev->pads);
+ 	INIT_LIST_HEAD(&mdev->links);
++	INIT_LIST_HEAD(&mdev->props);
+ 	INIT_LIST_HEAD(&mdev->entity_notify);
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 3498551e618e..5c09f1937bc9 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -34,6 +34,8 @@ static inline const char *gobj_type(enum media_gobj_type type)
+ 		return "link";
+ 	case MEDIA_GRAPH_INTF_DEVNODE:
+ 		return "intf-devnode";
++	case MEDIA_GRAPH_PROP:
++		return "prop";
+ 	default:
+ 		return "unknown";
+ 	}
+@@ -147,6 +149,16 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ 			devnode->major, devnode->minor);
+ 		break;
+ 	}
++	case MEDIA_GRAPH_PROP:
++	{
++		struct media_prop *prop = gobj_to_prop(gobj);
++
++		dev_dbg(gobj->mdev->dev,
++			"%s id %u: prop '%s':%u[%u]\n",
++			event_name, media_id(gobj),
++			prop->name, media_id(prop->owner), prop->index);
++		break;
++	}
+ 	}
+ #endif
+ }
+@@ -175,6 +187,9 @@ void media_gobj_create(struct media_device *mdev,
+ 	case MEDIA_GRAPH_INTF_DEVNODE:
+ 		list_add_tail(&gobj->list, &mdev->interfaces);
+ 		break;
++	case MEDIA_GRAPH_PROP:
++		list_add_tail(&gobj->list, &mdev->props);
++		break;
+ 	}
+ 
+ 	mdev->topology_version++;
+@@ -212,6 +227,7 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+ 	if (num_pads >= MEDIA_ENTITY_MAX_PADS)
+ 		return -E2BIG;
+ 
++	INIT_LIST_HEAD(&entity->props);
+ 	entity->num_pads = num_pads;
+ 	entity->pads = pads;
+ 
+@@ -221,6 +237,7 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+ 	for (i = 0; i < num_pads; i++) {
+ 		pads[i].entity = entity;
+ 		pads[i].index = i;
++		INIT_LIST_HEAD(&pads[i].props);
+ 		if (mdev)
+ 			media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+ 					&entity->pads[i].graph_obj);
+@@ -233,6 +250,54 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+ }
+ EXPORT_SYMBOL_GPL(media_entity_pads_init);
+ 
++static struct media_prop *media_create_prop(struct media_gobj *owner, u32 type,
++		const char *name, u64 val, const void *ptr, u32 payload_size)
++{
++	struct media_prop *prop = kzalloc(sizeof(*prop) + payload_size,
++					  GFP_KERNEL);
++
++	if (!prop)
++		return NULL;
++	prop->type = type;
++	strlcpy(prop->name, name, sizeof(prop->name));
++	media_gobj_create(owner->mdev, MEDIA_GRAPH_PROP, &prop->graph_obj);
++	prop->owner = owner;
++	if (payload_size) {
++		prop->string = (char *)&prop[1];
++		memcpy(prop->string, ptr, payload_size);
++		prop->payload_size = payload_size;
++	} else {
++		prop->uval = val;
++	}
++	return prop;
++}
++
++int media_entity_add_prop(struct media_entity *ent, u32 type,
++		const char *name, u64 val, const void *ptr, u32 payload_size)
++{
++	struct media_prop *prop = media_create_prop(&ent->graph_obj, type,
++						name, val, ptr, payload_size);
++
++	if (!prop)
++		return -ENOMEM;
++	list_add_tail(&prop->list, &ent->props);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_entity_add_prop);
++
++int media_pad_add_prop(struct media_pad *pad, u32 type,
++		const char *name, u64 val, const void *ptr, u32 payload_size)
++{
++	struct media_prop *prop = media_create_prop(&pad->graph_obj, type,
++						name, val, ptr, payload_size);
++
++	if (!prop)
++		return -ENOMEM;
++	list_add_tail(&prop->list, &pad->props);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_pad_add_prop);
++
+ /* -----------------------------------------------------------------------------
+  * Graph traversal
+  */
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index bcc6ec434f1f..a30a931df00b 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -78,6 +78,7 @@ struct media_device_ops {
+  * @interfaces:	List of registered interfaces
+  * @pads:	List of registered pads
+  * @links:	List of registered links
++ * @props:	List of registered properties
+  * @entity_notify: List of registered entity_notify callbacks
+  * @graph_mutex: Protects access to struct media_device data
+  * @pm_count_walk: Graph walk for power state walk. Access serialised using
+@@ -144,6 +145,7 @@ struct media_device {
+ 	struct list_head interfaces;
+ 	struct list_head pads;
+ 	struct list_head links;
++	struct list_head props;
+ 
+ 	/* notify callback list invoked when a new entity is registered */
+ 	struct list_head entity_notify;
+@@ -382,6 +384,10 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
+ #define media_device_for_each_link(link, mdev)			\
+ 	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
+ 
++/* Iterate over all props. */
++#define media_device_for_each_prop(prop, mdev)			\
++	list_for_each_entry(prop, &(mdev)->props, graph_obj.list)
++
+ /**
+  * media_device_pci_init() - create and initialize a
+  *	struct &media_device from a PCI device.
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 3aa3d58d1d58..01b13809656d 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -36,12 +36,14 @@
+  * @MEDIA_GRAPH_LINK:		Identify a media link
+  * @MEDIA_GRAPH_INTF_DEVNODE:	Identify a media Kernel API interface via
+  *				a device node
++ * @MEDIA_GRAPH_PROP:		Identify a media property
+  */
+ enum media_gobj_type {
+ 	MEDIA_GRAPH_ENTITY,
+ 	MEDIA_GRAPH_PAD,
+ 	MEDIA_GRAPH_LINK,
+ 	MEDIA_GRAPH_INTF_DEVNODE,
++	MEDIA_GRAPH_PROP,
+ };
+ 
+ #define MEDIA_BITS_PER_TYPE		8
+@@ -164,12 +166,44 @@ struct media_link {
+  * @flags:	Pad flags, as defined in
+  *		:ref:`include/uapi/linux/media.h <media_header>`
+  *		(seek for ``MEDIA_PAD_FL_*``)
++ * @num_props:	Number of pad properties
++ * @props:	The list pad properties
+  */
+ struct media_pad {
+ 	struct media_gobj graph_obj;	/* must be first field in struct */
+ 	struct media_entity *entity;
+ 	u16 index;
+ 	unsigned long flags;
++	u16 num_props;
++	struct list_head props;
++};
++
++/**
++ * struct media_prop - A media property graph object.
++ *
++ * @graph_obj:	Embedded structure containing the media object common data
++ * @list:	Linked list associated with the object that owns the link.
++ * @owner:	Graph object this property belongs to
++ * @index:	Property index for the owner property array, numbered from 0 to n
++ * @type:	Property type
++ * @payload_size: Property payload size (i.e. additional bytes beyond this struct)
++ * @name:	Property name
++ * @uval:	Property value (unsigned)
++ * @sval:	Property value (signed)
++ * @string:	Property string value
++ */
++struct media_prop {
++	struct media_gobj graph_obj;	/* must be first field in struct */
++	struct list_head list;
++	struct media_gobj *owner;
++	u32 type;
++	u32 payload_size;
++	char name[32];
++	union {
++		u64 uval;
++		s64 sval;
++		char *string;
++	};
+ };
+ 
+ /**
+@@ -239,10 +273,12 @@ enum media_entity_type {
+  * @num_pads:	Number of sink and source pads.
+  * @num_links:	Total number of links, forward and back, enabled and disabled.
+  * @num_backlinks: Number of backlinks
++ * @num_props:	Number of entity properties.
+  * @internal_idx: An unique internal entity specific number. The numbers are
+  *		re-used if entities are unregistered or registered again.
+  * @pads:	Pads array with the size defined by @num_pads.
+  * @links:	List of data links.
++ * @props:	List of entity properties.
+  * @ops:	Entity operations.
+  * @stream_count: Stream count for the entity.
+  * @use_count:	Use count for the entity.
+@@ -274,10 +310,12 @@ struct media_entity {
+ 	u16 num_pads;
+ 	u16 num_links;
+ 	u16 num_backlinks;
++	u16 num_props;
+ 	int internal_idx;
+ 
+ 	struct media_pad *pads;
+ 	struct list_head links;
++	struct list_head props;
+ 
+ 	const struct media_entity_operations *ops;
+ 
+@@ -565,6 +603,15 @@ static inline bool media_entity_enum_intersects(
+ #define gobj_to_intf(gobj) \
+ 		container_of(gobj, struct media_interface, graph_obj)
+ 
++/**
++ * gobj_to_prop - returns the struct &media_prop pointer from the
++ *	@gobj contained on it.
++ *
++ * @gobj: Pointer to the struct &media_gobj graph object
++ */
++#define gobj_to_prop(gobj) \
++		container_of(gobj, struct media_prop, graph_obj)
++
+ /**
+  * intf_to_devnode - returns the struct media_intf_devnode pointer from the
+  *	@intf contained on it.
+@@ -727,6 +774,131 @@ int media_create_pad_links(const struct media_device *mdev,
+ 
+ void __media_entity_remove_links(struct media_entity *entity);
+ 
++/**
++ * media_entity_add_prop() - Add property to entity
++ *
++ * @entity:	entity where to add the property
++ * @type:	property type
++ * @name:	property name
++ * @val:	property value: use if payload_size == 0
++ * @ptr:	property pointer to payload
++ * @payload_size: property payload size
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++int media_entity_add_prop(struct media_entity *ent, u32 type,
++		const char *name, u64 val, const void *ptr, u32 payload_size);
++
++/**
++ * media_pad_add_prop() - Add property to pad
++ *
++ * @pad:	pad where to add the property
++ * @type:	property type
++ * @name:	property name
++ * @val:	property value: use if payload_size == 0
++ * @ptr:	property pointer to payload
++ * @payload_size: property payload size
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++int media_pad_add_prop(struct media_pad *pad, u32 type,
++		const char *name, u64 val, const void *ptr, u32 payload_size);
++
++/**
++ * media_entity_add_prop_u64() - Add u64 property to entity
++ *
++ * @entity:	entity where to add the property
++ * @name:	property name
++ * @val:	property value
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++static inline int media_entity_add_prop_u64(struct media_entity *entity,
++					    const char *name, u64 val)
++{
++	return media_entity_add_prop(entity, MEDIA_PROP_TYPE_U64,
++				     name, val, NULL, 0);
++}
++
++/**
++ * media_entity_add_prop_s64() - Add s64 property to entity
++ *
++ * @entity:	entity where to add the property
++ * @name:	property name
++ * @val:	property value
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++static inline int media_entity_add_prop_s64(struct media_entity *entity,
++					    const char *name, s64 val)
++{
++	return media_entity_add_prop(entity, MEDIA_PROP_TYPE_S64,
++				     name, (u64)val, NULL, 0);
++}
++
++/**
++ * media_entity_add_prop_string() - Add string property to entity
++ *
++ * @entity:	entity where to add the property
++ * @name:	property name
++ * @string:	property string value
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++static inline int media_entity_add_prop_string(struct media_entity *entity,
++					const char *name, const char *string)
++{
++	return media_entity_add_prop(entity, MEDIA_PROP_TYPE_STRING,
++				     name, 0, string, strlen(string) + 1);
++}
++
++/**
++ * media_pad_add_prop_u64() - Add u64 property to pad
++ *
++ * @pad:	pad where to add the property
++ * @name:	property name
++ * @val:	property value
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++static inline int media_pad_add_prop_u64(struct media_pad *pad,
++					 const char *name, u64 val)
++{
++	return media_pad_add_prop(pad, MEDIA_PROP_TYPE_U64, name, val, NULL, 0);
++}
++
++/**
++ * media_pad_add_prop_s64() - Add s64 property to pad
++ *
++ * @pad:	pad where to add the property
++ * @name:	property name
++ * @val:	property value
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++static inline int media_pad_add_prop_s64(struct media_pad *pad,
++					 const char *name, s64 val)
++{
++	return media_pad_add_prop(pad, MEDIA_PROP_TYPE_S64,
++				  name, (u64)val, NULL, 0);
++}
++
++/**
++ * media_pad_add_prop_string() - Add string property to pad
++ *
++ * @pad:	pad where to add the property
++ * @name:	property name
++ * @string:	property string value
++ *
++ * Returns 0 on success, or an error on failure.
++ */
++static inline int media_pad_add_prop_string(struct media_pad *pad,
++					const char *name, const char *string)
++{
++	return media_pad_add_prop(pad, MEDIA_PROP_TYPE_STRING,
++				  name, 0, string, strlen(string) + 1);
++}
++
+ /**
+  * media_entity_remove_links() - remove all links associated with an entity
+  *
+-- 
+2.18.0
