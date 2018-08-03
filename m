@@ -1,134 +1,395 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:47907 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727712AbeHCKyV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 06:54:21 -0400
-Date: Fri, 3 Aug 2018 10:58:57 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: jacopo+renesas@jmondi.org, linux-media@vger.kernel.org
-Subject: Re: [bug report] media: i2c: Add driver for Aptina MT9V111
-Message-ID: <20180803085857.GD4528@w540>
-References: <20180731183554.wggi4jxrgrwfos64@kili.mountain>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:45568 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732090AbeHCLnN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 07:43:13 -0400
+Subject: Re: [PATCH v5 08/11] media: vsp1: Add support for extended display
+ list headers
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+References: <cover.6efe8ff8efecd736e2aab039b2cf34d43e849939.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <4c12a88003d585ecc36054a6492357fdd4565d40.1531857988.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <19660073.SniHlcofiQ@avalon>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <73bba362-2818-615e-a3f4-7fec9a0bbbfd@ideasonboard.com>
+Date: Fri, 3 Aug 2018 10:47:35 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tEFtbjk+mNEviIIX"
-Content-Disposition: inline
-In-Reply-To: <20180731183554.wggi4jxrgrwfos64@kili.mountain>
+In-Reply-To: <19660073.SniHlcofiQ@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---tEFtbjk+mNEviIIX
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+On 02/08/18 15:39, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
 
-Hi Dan,
-    thanks for noticing this,
+Thank you for (hopefully the last) review on this series :)
 
-On Tue, Jul 31, 2018 at 09:35:54PM +0300, Dan Carpenter wrote:
-> Hello Jacopo Mondi,
->
-> The patch aab7ed1c3927: "media: i2c: Add driver for Aptina MT9V111"
-> from Jul 25, 2018, leads to the following static checker warning:
->
-> drivers/media/i2c/mt9v111.c:1163 mt9v111_probe() warn: passing zero to 'PTR_ERR'
-> drivers/media/i2c/mt9v111.c:1173 mt9v111_probe() warn: passing zero to 'PTR_ERR'
-> drivers/media/i2c/mt9v111.c:1184 mt9v111_probe() warn: passing zero to 'PTR_ERR'
-> drivers/media/i2c/mt9v111.c:1194 mt9v111_probe() warn: passing zero to 'PTR_ERR'
->
-> drivers/media/i2c/mt9v111.c
->   1155          v4l2_ctrl_handler_init(&mt9v111->ctrls, 5);
->   1156
->   1157          mt9v111->auto_awb = v4l2_ctrl_new_std(&mt9v111->ctrls,
->   1158                                                &mt9v111_ctrl_ops,
->   1159                                                V4L2_CID_AUTO_WHITE_BALANCE,
->   1160                                                0, 1, 1,
->   1161                                                V4L2_WHITE_BALANCE_AUTO);
->   1162          if (IS_ERR_OR_NULL(mt9v111->auto_awb)) {
->   1163                  ret = PTR_ERR(mt9v111->auto_awb);
->
-> This just returns success because v4l2_ctrl_new_std() only return NULL
 
-Correct, sorry, I didn't notice that.
 
-> on error, it never returns error pointers.  I guess we should set ret to
-> EINVAL?
->
-> 		if (!mt9v111->auto_awb) {
-> 			ret = -EINVAL;
-> 			goto error_free_ctrls;
-> 		}
->
+> On Tuesday, 17 July 2018 23:35:50 EEST Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Extended display list headers allow pre and post command lists to be
+>> executed by the VSP pipeline. This provides the base support for
+>> features such as AUTO_FLD (for interlaced support) and AUTO_DISP (for
+>> supporting continuous camera preview pipelines.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> ---
+>>
+>> v2:
+>>  - remove __packed attributes
+>>
+>> v5:
+>>  - Rename vsp1_dl_ext_header field names
+>>  - Rename @extended -> @extension
+>>  - Remove unnecessary VI6_DL_SWAP changes
+>>  - Rename @cmd_opcode -> @opcode
+>>  - Drop unused @data_size field
+>>  - Move iteration of WPF's inside vsp1_dlm_setup
+>>  - Rename vsp1_dl_ext_cmd_header -> vsp1_pre_ext_dl_body
+>>  - Rename vsp1_pre_ext_dl_body->cmd to vsp1_pre_ext_dl_body->opcode
+>>  - Rename vsp1_dl_ext_header->reserved0 to vsp1_dl_ext_header->padding
+>>  - vsp1_pre_ext_dl_body: Rename 'data' to 'address_set'
+>>  - vsp1_pre_ext_dl_body: Add struct documentation
+>>  - Document ordering of 16bit accesses for flags in vsp1_dl_ext_header
+>>
+>>  drivers/media/platform/vsp1/vsp1.h      |   1 +-
+>>  drivers/media/platform/vsp1/vsp1_dl.c   | 104 ++++++++++++++++++++++++-
+>>  drivers/media/platform/vsp1/vsp1_dl.h   |  25 ++++++-
+>>  drivers/media/platform/vsp1/vsp1_drv.c  |   4 +-
+>>  drivers/media/platform/vsp1/vsp1_regs.h |   2 +-
+>>  5 files changed, 132 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1.h
+>> b/drivers/media/platform/vsp1/vsp1.h index f0d21cc8e9ab..56c62122a81a
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1.h
+>> +++ b/drivers/media/platform/vsp1/vsp1.h
+>> @@ -53,6 +53,7 @@ struct vsp1_uif;
+>>  #define VSP1_HAS_HGO		(1 << 7)
+>>  #define VSP1_HAS_HGT		(1 << 8)
+>>  #define VSP1_HAS_BRS		(1 << 9)
+>> +#define VSP1_HAS_EXT_DL		(1 << 10)
+>>
+>>  struct vsp1_device_info {
+>>  	u32 version;
+>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
+>> b/drivers/media/platform/vsp1/vsp1_dl.c index 90e0a11c29b5..2fffe977aa35
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+>> @@ -22,6 +22,9 @@
+>>  #define VSP1_DLH_INT_ENABLE		(1 << 1)
+>>  #define VSP1_DLH_AUTO_START		(1 << 0)
+>>
+>> +#define VSP1_DLH_EXT_PRE_CMD_EXEC	(1 << 9)
+>> +#define VSP1_DLH_EXT_POST_CMD_EXEC	(1 << 8)
+>> +
+>>  struct vsp1_dl_header_list {
+>>  	u32 num_bytes;
+>>  	u32 addr;
+>> @@ -34,12 +37,59 @@ struct vsp1_dl_header {
+>>  	u32 flags;
+>>  };
+>>
+>> +/**
+>> + * struct vsp1_dl_ext_header - Extended display list header
+>> + * @padding: padding zero bytes for alignment
+>> + * @pre_ext_dl_num_cmd: number of pre-extended command bodies to parse
+>> + * @flags: enables or disables execution of the pre and post command
+>> + * @pre_ext_dl_plist: start address of pre-extended display list bodies
+>> + * @post_ext_dl_num_cmd: number of post-extended command bodies to parse
+>> + * @post_ext_dl_plist: start address of post-extended display list bodies
+>> + */
+>> +struct vsp1_dl_ext_header {
+>> +	u32 padding;
+>> +
+>> +	/*
+>> +	 * The datasheet represents flags as stored before pre_ext_dl_num_cmd,
+>> +	 * expecting 32-bit accesses. The flags are appropriate to the whole
+>> +	 * header, not just the pre_ext command, and thus warrant being
+>> +	 * separated out. Due to byte ordering, and representing as 16 bit
+>> +	 * values here, the flags must be positioned after the
+>> +	 * pre_ext_dl_num_cmd.
+>> +	 */
+>> +	u16 pre_ext_dl_num_cmd;
+>> +	u16 flags;
+>> +	u32 pre_ext_dl_plist;
+>> +
+>> +	u32 post_ext_dl_num_cmd;
+>> +	u32 post_ext_dl_plist;
+>> +};
+>> +
+>> +struct vsp1_dl_header_extended {
+>> +	struct vsp1_dl_header header;
+>> +	struct vsp1_dl_ext_header ext;
+>> +};
+>> +
+>>  struct vsp1_dl_entry {
+>>  	u32 addr;
+>>  	u32 data;
+>>  };
+>>
+>>  /**
+>> + * struct vsp1_pre_ext_dl_body - Pre Extended Display List Body
+>> + * @opcode: Extended display list command operation code
+>> + * @flags: Pre-extended command flags. These are specific to each command
+>> + * @address_set: Source address set pointer. Must have 16 byte alignment
+> 
+> s/byte/bytes/
 
-We can do even better than that.
-The v4l2 control handler retains errors in a flag I can inspect after
-having added/created all controls here and here below.
+I've made this "16-byte alignment" - I don't think you can align to a
+plural, or at least it doesn't sound right in my head.
 
-I can return that error flag if something goes wrong.
+It's an interesting grammatical question that I couldn't find the answer
+to, so I've asked online @ ell.stackexchange.com [0]
 
-Thanks
-   j
 
->   1164                  goto error_free_ctrls;
->   1165          }
->   1166
->   1167          mt9v111->auto_exp = v4l2_ctrl_new_std_menu(&mt9v111->ctrls,
->   1168                                                     &mt9v111_ctrl_ops,
->   1169                                                     V4L2_CID_EXPOSURE_AUTO,
->   1170                                                     V4L2_EXPOSURE_MANUAL,
->   1171                                                     0, V4L2_EXPOSURE_AUTO);
->   1172          if (IS_ERR_OR_NULL(mt9v111->auto_exp)) {
->   1173                  ret = PTR_ERR(mt9v111->auto_exp);
->   1174                  goto error_free_ctrls;
->   1175          }
->   1176
->   1177          /* Initialize timings */
->   1178          mt9v111->hblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
->   1179                                              V4L2_CID_HBLANK,
->   1180                                              MT9V111_CORE_R05_MIN_HBLANK,
->   1181                                              MT9V111_CORE_R05_MAX_HBLANK, 1,
->   1182                                              MT9V111_CORE_R05_DEF_HBLANK);
->   1183          if (IS_ERR_OR_NULL(mt9v111->hblank)) {
->   1184                  ret = PTR_ERR(mt9v111->hblank);
->   1185                  goto error_free_ctrls;
->   1186          }
->   1187
->   1188          mt9v111->vblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
->   1189                                              V4L2_CID_VBLANK,
->   1190                                              MT9V111_CORE_R06_MIN_VBLANK,
->   1191                                              MT9V111_CORE_R06_MAX_VBLANK, 1,
->   1192                                              MT9V111_CORE_R06_DEF_VBLANK);
->   1193          if (IS_ERR_OR_NULL(mt9v111->vblank)) {
->   1194                  ret = PTR_ERR(mt9v111->vblank);
->   1195                  goto error_free_ctrls;
->   1196          }
->   1197
->   1198          /* PIXEL_RATE is fixed: just expose it to user space. */
->   1199          v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
->
-> regards,
-> dan carpenter
+[0]
+https://ell.stackexchange.com/questions/175063/what-is-the-correct-use-of-a-plural-term-and-alignment
 
---tEFtbjk+mNEviIIX
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> 
+>> + * @reserved: Zero bits for alignment.
+>> + */
+>> +struct vsp1_pre_ext_dl_body {
+>> +	u32 opcode;
+>> +	u32 flags;
+>> +	u32 address_set;
+>> +	u32 reserved;
+>> +};
+>> +
+>> +/**
+>>   * struct vsp1_dl_body - Display list body
+>>   * @list: entry in the display list list of bodies
+>>   * @free: entry in the pool free body list
+>> @@ -95,9 +145,12 @@ struct vsp1_dl_body_pool {
+>>   * @list: entry in the display list manager lists
+>>   * @dlm: the display list manager
+>>   * @header: display list header
+>> + * @extension: extended display list header. NULL for normal lists
+>>   * @dma: DMA address for the header
+>>   * @body0: first display list body
+>>   * @bodies: list of extra display list bodies
+>> + * @pre_cmd: pre command to be issued through extended dl header
+>> + * @post_cmd: post command to be issued through extended dl header
+>>   * @has_chain: if true, indicates that there's a partition chain
+>>   * @chain: entry in the display list partition chain
+>>   * @internal: whether the display list is used for internal purpose
+>> @@ -107,11 +160,15 @@ struct vsp1_dl_list {
+>>  	struct vsp1_dl_manager *dlm;
+>>
+>>  	struct vsp1_dl_header *header;
+>> +	struct vsp1_dl_ext_header *extension;
+>>  	dma_addr_t dma;
+>>
+>>  	struct vsp1_dl_body *body0;
+>>  	struct list_head bodies;
+>>
+>> +	struct vsp1_dl_ext_cmd *pre_cmd;
+>> +	struct vsp1_dl_ext_cmd *post_cmd;
+>> +
+>>  	bool has_chain;
+>>  	struct list_head chain;
+>>
+>> @@ -495,6 +552,14 @@ int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
+>>  	return 0;
+>>  }
+>>
+>> +static void vsp1_dl_ext_cmd_fill_header(struct vsp1_dl_ext_cmd *cmd)
+>> +{
+>> +	cmd->cmds[0].opcode = cmd->opcode;
+>> +	cmd->cmds[0].flags = cmd->flags;
+>> +	cmd->cmds[0].address_set = cmd->data_dma;
+>> +	cmd->cmds[0].reserved = 0;
+>> +}
+>> +
+>>  static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
+>> {
+>>  	struct vsp1_dl_manager *dlm = dl->dlm;
+>> @@ -547,6 +612,27 @@ static void vsp1_dl_list_fill_header(struct
+>> vsp1_dl_list *dl, bool is_last) */
+>>  		dl->header->flags = VSP1_DLH_INT_ENABLE;
+>>  	}
+>> +
+>> +	if (!dl->extension)
+>> +		return;
+>> +
+>> +	dl->extension->flags = 0;
+>> +
+>> +	if (dl->pre_cmd) {
+>> +		dl->extension->pre_ext_dl_plist = dl->pre_cmd->cmd_dma;
+>> +		dl->extension->pre_ext_dl_num_cmd = dl->pre_cmd->num_cmds;
+>> +		dl->extension->flags |= VSP1_DLH_EXT_PRE_CMD_EXEC;
+>> +
+>> +		vsp1_dl_ext_cmd_fill_header(dl->pre_cmd);
+>> +	}
+>> +
+>> +	if (dl->post_cmd) {
+>> +		dl->extension->post_ext_dl_plist = dl->post_cmd->cmd_dma;
+>> +		dl->extension->post_ext_dl_num_cmd = dl->post_cmd->num_cmds;
+>> +		dl->extension->flags |= VSP1_DLH_EXT_POST_CMD_EXEC;
+>> +
+>> +		vsp1_dl_ext_cmd_fill_header(dl->post_cmd);
+>> +	}
+>>  }
+>>
+>>  static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
+>> @@ -736,9 +822,16 @@ unsigned int vsp1_dlm_irq_frame_end(struct
+>> vsp1_dl_manager *dlm) /* Hardware Setup */
+>>  void vsp1_dlm_setup(struct vsp1_device *vsp1)
+>>  {
+>> +	unsigned int i;
+>>  	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT)
+>>  		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
+>>  		 | VI6_DL_CTRL_DLE;
+>> +	u32 ext_dl = (0x02 << VI6_DL_EXT_CTRL_POLINT_SHIFT) |
+>> +		      VI6_DL_EXT_CTRL_DLPRI | VI6_DL_EXT_CTRL_EXT;
+> 
+> To match the style of the file, can you move the trailing | under the = ?
 
-iQIcBAEBAgAGBQJbZBlRAAoJEHI0Bo8WoVY8ijEP/2x0RQOpZ+DJbz9YOmNivv7R
-p/qFC7UUOcCrtQl/qRhQTpF2w459AiV45YSB3MotyoX0M83NOJWccVyOxb3ObzcU
-YTbhLXlqv3MzPUFOwWqCoIc3xgub7ugBL0EErzWvpPzpzbrTby8rPUXWi8+M6Z29
-dQTA+BNmOHnrIG4YQQX++MfT8RJbR5SS7BHQae+l2Ur3uZ6BybTA1mER8dmDI23d
-Tnc2jjW1FA589ooi/qR1epl+dlq+xMbBowDqqv6jaYAs5+DFMDHTltaI/yo6oTiV
-dnrZ++E4CdxTCLc2SZJPd8mKezCfu1MKXW4lDRXKwvmrzLjKXDQhuENs393WuWqF
-GP+ZehXEyAXzWPkrQlQWYb1mdio2Gr7vCJoRCFmhkeEJjtcnk+e52OTGVRq7luZd
-75i1mmwZTiKMfXnOJOcLe/2tdfEO2wYR02KtgYGdwOCUgqtQTA/OrYUjA4lDXlss
-mYi5rjIou0XkIP5C2guPcTA8/YCdR/iMeWggPyIBrznIrGtk15Jmjwx5ylNw0bI5
-IJ8w4D0nI+zZ5Iqpz4q8ySklqEHmnAScQK2t/1Czou/9hyadI8K6JJOCZpB5RnEn
-v9c/LaYe7Jp49d1mgUjkYDV8aFXOpNK5lN/5AaI5ucswD2z0Dcv4O4E+cM60cNCr
-Q12rZuPutIGRkX+To70m
-=WGzb
------END PGP SIGNATURE-----
+Done.
 
---tEFtbjk+mNEviIIX--
+
+> 
+>> +
+>> +	if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL))
+>> +		for (i = 0; i < vsp1->info->wpf_count; ++i)
+>> +			vsp1_write(vsp1, VI6_DL_EXT_CTRL(i), ext_dl);
+> 
+> And add {} to the if ?
+
+Added.
+
+
+> With these small updates,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Collected.
+
+> 
+> If there's no other issue with v5 that would require a v6, I'll fix this when 
+> applying.
+> 
+>>  	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
+>>  	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
+>> @@ -792,7 +885,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct
+>> vsp1_device *vsp1, * memory. An extra body is allocated on top of the
+>> prealloc to account * for the cached body used by the vsp1_pipeline object.
+>>  	 */
+>> -	header_size = ALIGN(sizeof(struct vsp1_dl_header), 8);
+>> +	header_size = vsp1_feature(vsp1, VSP1_HAS_EXT_DL) ?
+>> +			sizeof(struct vsp1_dl_header_extended) :
+>> +			sizeof(struct vsp1_dl_header);
+>> +
+>> +	header_size = ALIGN(header_size, 8);
+>>
+>>  	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc + 1,
+>>  					     VSP1_DL_NUM_ENTRIES, header_size);
+>> @@ -808,6 +905,11 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct
+>> vsp1_device *vsp1, return NULL;
+>>  		}
+>>
+>> +		/* The extended header immediately follows the header. */
+>> +		if (vsp1_feature(vsp1, VSP1_HAS_EXT_DL))
+>> +			dl->extension = (void *)dl->header
+>> +				      + sizeof(*dl->header);
+>> +
+>>  		list_add_tail(&dl->list, &dlm->free);
+>>  	}
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
+>> b/drivers/media/platform/vsp1/vsp1_dl.h index 7dba0469c92e..afefd5bfa136
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_dl.h
+>> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+>> @@ -20,6 +20,31 @@ struct vsp1_dl_manager;
+>>  #define VSP1_DL_FRAME_END_COMPLETED		BIT(0)
+>>  #define VSP1_DL_FRAME_END_INTERNAL		BIT(1)
+>>
+>> +/**
+>> + * struct vsp1_dl_ext_cmd - Extended Display command
+>> + * @free: entry in the pool of free commands list
+>> + * @opcode: command type opcode
+>> + * @flags: flags used by the command
+>> + * @cmds: array of command bodies for this extended cmd
+>> + * @num_cmds: quantity of commands in @cmds array
+>> + * @cmd_dma: DMA address of the command body
+>> + * @data: memory allocation for command-specific data
+>> + * @data_dma: DMA address for command-specific data
+>> + */
+>> +struct vsp1_dl_ext_cmd {
+>> +	struct list_head free;
+>> +
+>> +	u8 opcode;
+>> +	u32 flags;
+>> +
+>> +	struct vsp1_pre_ext_dl_body *cmds;
+>> +	unsigned int num_cmds;
+>> +	dma_addr_t cmd_dma;
+>> +
+>> +	void *data;
+>> +	dma_addr_t data_dma;
+>> +};
+>> +
+>>  void vsp1_dlm_setup(struct vsp1_device *vsp1);
+>>
+>>  struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+>> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+>> b/drivers/media/platform/vsp1/vsp1_drv.c index 3367c2ba990d..b6619c9c18bb
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+>> @@ -754,7 +754,7 @@ static const struct vsp1_device_info vsp1_device_infos[]
+>> = { .version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
+>>  		.model = "VSP2-D",
+>>  		.gen = 3,
+>> -		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
+>> +		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP | VSP1_HAS_EXT_DL,
+>>  		.lif_count = 1,
+>>  		.rpf_count = 5,
+>>  		.uif_count = 1,
+>> @@ -774,7 +774,7 @@ static const struct vsp1_device_info vsp1_device_infos[]
+>> = { .version = VI6_IP_VERSION_MODEL_VSPDL_GEN3,
+>>  		.model = "VSP2-DL",
+>>  		.gen = 3,
+>> -		.features = VSP1_HAS_BRS | VSP1_HAS_BRU,
+>> +		.features = VSP1_HAS_BRS | VSP1_HAS_BRU | VSP1_HAS_EXT_DL,
+>>  		.lif_count = 2,
+>>  		.rpf_count = 5,
+>>  		.uif_count = 2,
+>> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h
+>> b/drivers/media/platform/vsp1/vsp1_regs.h index 0d249ff9f564..5ea9f9070cf3
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_regs.h
+>> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
+>> @@ -72,7 +72,7 @@
+>>  #define VI6_DL_SWAP_WDS			(1 << 1)
+>>  #define VI6_DL_SWAP_BTS			(1 << 0)
+>>
+>> -#define VI6_DL_EXT_CTRL			0x011c
+>> +#define VI6_DL_EXT_CTRL(n)		(0x011c + (n) * 36)
+>>  #define VI6_DL_EXT_CTRL_NWE		(1 << 16)
+>>  #define VI6_DL_EXT_CTRL_POLINT_MASK	(0x3f << 8)
+>>  #define VI6_DL_EXT_CTRL_POLINT_SHIFT	8
+> 
+> 
+
+
+-- 
+Regards
+--
+Kieran
