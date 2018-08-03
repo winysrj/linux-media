@@ -1,448 +1,446 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:34517 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726698AbeHCNDF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Aug 2018 09:03:05 -0400
-Date: Fri, 3 Aug 2018 13:07:12 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] uvcvideo: add a D4M camera description
-In-Reply-To: <5991411.ejCQOIbS9u@avalon>
-Message-ID: <alpine.DEB.2.20.1807311236290.2248@axis700.grange>
-References: <alpine.DEB.2.20.1712231208440.21222@axis700.grange> <5991411.ejCQOIbS9u@avalon>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:54618 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726698AbeHCNLN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 09:11:13 -0400
+Subject: Re: [PATCH v3 4/4] selftests: media_tests: Add a memory-to-memory
+ concurrent stress test
+To: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@collabora.com, paul.kocialkowski@bootlin.com,
+        maxime.ripard@bootlin.com, Hans Verkuil <hans.verkuil@cisco.com>,
+        Shuah Khan <shuah@kernel.org>, linux-kselftest@vger.kernel.org
+References: <20180801215026.27809-1-ezequiel@collabora.com>
+ <20180801215026.27809-5-ezequiel@collabora.com>
+From: Guillaume Tucker <guillaume.tucker@collabora.com>
+Message-ID: <d37eb312-25ef-c39e-b59e-d75064fdcaec@collabora.com>
+Date: Fri, 3 Aug 2018 12:15:17 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180801215026.27809-5-ezequiel@collabora.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Ezequiel,
 
-Thanks for the review. A general note: I think you're requesting a rather 
-detailed information about many parameters. That isn't a problem by 
-itself, however, it is difficult to obtain some of that information. I'll 
-address whatever comments I can in an updated version, just answering some 
-questions here. I directed youor questions, that I couldn't answer myself 
-to respective people, but I have no idea if and when I get replies. So, 
-it's up to you whether to wait for that additional information or to take 
-at least what we have now.
+On 01/08/18 22:50, Ezequiel Garcia wrote:
+> Add a test for the memory-to-memory framework, to exercise the
+> scheduling of concurrent jobs, using multiple contexts.
+> 
+> This test needs to be run using the vim2m virtual driver,
+> and so needs no hardware.
+> 
+> While here, rework the media_tests suite in order to make it
+> useful for automatic tools. Those tests that need human intervention
+> are now separated from those that can run automatically, needing
+> only virtual drivers to work.
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>   .../testing/selftests/media_tests/.gitignore  |   1 +
+>   tools/testing/selftests/media_tests/Makefile  |   5 +-
+>   .../selftests/media_tests/m2m_job_test.c      | 287 ++++++++++++++++++
+>   .../selftests/media_tests/m2m_job_test.sh     |  32 ++
+>   4 files changed, 324 insertions(+), 1 deletion(-)
+>   create mode 100644 tools/testing/selftests/media_tests/m2m_job_test.c
+>   create mode 100755 tools/testing/selftests/media_tests/m2m_job_test.sh
+> 
+> diff --git a/tools/testing/selftests/media_tests/.gitignore b/tools/testing/selftests/media_tests/.gitignore
+> index 8745eba39012..71c6508348ce 100644
+> --- a/tools/testing/selftests/media_tests/.gitignore
+> +++ b/tools/testing/selftests/media_tests/.gitignore
+> @@ -1,3 +1,4 @@
+>   media_device_test
+>   media_device_open
+>   video_device_test
+> +m2m_job_test
+> diff --git a/tools/testing/selftests/media_tests/Makefile b/tools/testing/selftests/media_tests/Makefile
+> index 60826d7d37d4..d25d4c3eb7d2 100644
+> --- a/tools/testing/selftests/media_tests/Makefile
+> +++ b/tools/testing/selftests/media_tests/Makefile
+> @@ -1,6 +1,9 @@
+>   # SPDX-License-Identifier: GPL-2.0
+>   #
+>   CFLAGS += -I../ -I../../../../usr/include/
+> -TEST_GEN_PROGS := media_device_test media_device_open video_device_test
+> +TEST_GEN_PROGS_EXTENDED := media_device_test media_device_open video_device_test m2m_job_test
+> +TEST_PROGS := m2m_job_test.sh
+>   
+>   include ../lib.mk
+> +
+> +LDLIBS += -lpthread
+> diff --git a/tools/testing/selftests/media_tests/m2m_job_test.c b/tools/testing/selftests/media_tests/m2m_job_test.c
+> new file mode 100644
+> index 000000000000..5800269567e6
+> --- /dev/null
+> +++ b/tools/testing/selftests/media_tests/m2m_job_test.c
+> @@ -0,0 +1,287 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +//
+> +// Copyright (c) Collabora, Ltd.
 
-On Sun, 29 Jul 2018, Laurent Pinchart wrote:
+Add the year (2018), and authors (you).
 
-> Hi Guennadi,
-> 
-> Thank you for the patch.
-> 
-> On Saturday, 23 December 2017 13:11:00 EEST Guennadi Liakhovetski wrote:
-> > From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > 
-> > D4M is a mobile model from the D4XX family of Intel RealSense cameras.
-> > This patch adds a descriptor for it, which enables reading per-frame
-> > metadata from it.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > ---
-> >  Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 202 +++++++++++++++++++
-> >  drivers/media/usb/uvc/uvc_driver.c                |  11 ++
-> >  include/uapi/linux/videodev2.h                    |   1 +
-> >  3 files changed, 214 insertions(+)
-> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> > b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst new file mode 100644
-> > index 0000000..950780d
-> > --- /dev/null
-> > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> > @@ -0,0 +1,202 @@
-> > +.. -*- coding: utf-8; mode: rst -*-
-> > +
-> > +.. _v4l2-meta-fmt-d4xx:
-> > +
-> > +*******************************
-> > +V4L2_META_FMT_D4XX ('D4XX')
-> > +*******************************
-> > +
-> > +D4XX Metadata
-> 
-> How about "Intel D4xx UVC Cameras Metadata" ?
-> 
-> > +
-> > +
-> > +Description
-> > +===========
-> > +
-> > +D4XX (D435 and other) cameras include per-frame metadata in their UVC
-> > payload
-> 
-> Should this be "Intel D4XX" ?
-> 
-> > +headers, following the Microsoft(R) UVC extension proposal [1_]. That
-> > means,
-> > +that the private D4XX metadata, following the standard UVC header, is
-> > organised
-> > +in blocks. D4XX cameras implement several standard block types, proposed by
-> > +Microsoft, and several proprietary ones. Supported standard metadata types
-> > +include MetadataId_CaptureStats (ID 3), MetadataId_CameraExtrinsics (ID 4),
-> > and
-> > +MetadataId_CameraIntrinsics (ID 5). For their description see [1_].
-> 
-> Does "including" mean that the list isn't exhaustive and that other standard 
-> types could be returned too ? If so, would it be possible to get an exhaustive 
-> list ? And if the list is exhaustive, could you word this paragraph to make 
-> that clear ?
-> 
-> > This
-> > +document describes proprietary metadata types, used by DS4XX cameras.
-> 
-> Is it D4XX or DS4XX ?
-> 
-> > +V4L2_META_FMT_D4XX buffers follow the metadata buffer layout of
-> > +V4L2_META_FMT_UVC with the only difference, that it also includes
-> > proprietary
-> > +payload header data. D4XX cameras use bulk transfers and only send one
-> > payload
-> > +per frame, therefore their headers cannot be larger than 255 bytes.
-> > +
-> > +Below are proprietary Microsoft style metadata types, used by D4XX cameras,
-> > +where all fields are in little endian order:
-> > +
-> > +.. flat-table:: D4XX metadata
-> > +    :widths: 1 4
-> > +    :header-rows:  1
-> > +    :stub-columns: 0
-> > +
-> > +    * - Field
-> > +      - Description
-> > +    * - :cspan:`1` *Depth Control*
-> > +    * - __u32 ID
-> > +      - 0x80000000
-> > +    * - __u32 Size
-> > +      - Size in bytes (currently 56)
-> > +    * - __u32 Version
-> > +      - Version of the struct
-> 
-> What is this field used for ?
+> +
+> +/*
+> + * This file adds a test for the memory-to-memory
+> + * framework.
+> + *
+> + * This test opens a user specified video device and then
+> + * queues concurrent jobs. The jobs are totally dummy,
+> + * its purpose is only to verify that each of the queued
+> + * jobs is run, and is run only once.
+> + *
+> + * The vim2m driver is needed in order to run the test.
+> + *
+> + * Usage:
+> + *      ./m2m-job-test -d /dev/videoX
+> + */
+> +
+> +#include <assert.h>
+> +#include <errno.h>
+> +#include <fcntl.h>
+> +#include <unistd.h>
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <string.h>
+> +#include <sys/ioctl.h>
+> +#include <sys/stat.h>
+> +#include <time.h>
+> +#include <pthread.h>
+> +#include <poll.h>
+> +
+> +#include <linux/videodev2.h>
+> +
+> +#include "../kselftest.h"
+> +
+> +#define V4L2_CID_TRANS_TIME_MSEC        (V4L2_CID_USER_BASE + 0x1000)
+> +#define V4L2_CID_TRANS_NUM_BUFS         (V4L2_CID_USER_BASE + 0x1001)
+> +
+> +#define MAX_TRANS_TIME_MSEC 500
+> +#define MAX_COUNT 50
+> +#define MAX_BUFFERS 5
+> +#define W 10
+> +#define H 10
 
-For future changes to this (and all other) struct(s). If in the future a 
-new field is added to this struct, the version will be incremented to 
-inform the user.
+I like short names, but W and H might be a little bit too short
+esp for a macro.
 
-> > +    * - __u32 Flags
-> > +      - A bitmask of flags: see [2_] below
-> > +    * - __u32 Gain
-> > +      - Manual gain value
-> 
-> What is the gain unit ?
+> +#ifndef DEBUG
+> +#define dprintf(fmt, arg...)			\
+> +	do {					\
+> +	} while (0)
+> +#else
+> +#define dprintf(fmt, arg...) printf(fmt, ## arg)
+> +#endif
+> +
+> +static char video_device[256];
+> +static int thread_count;
+> +
+> +struct context {
+> +	int vfd;
+> +	unsigned int width;
+> +	unsigned int height;
+> +	int buffers;
+> +};
+> +
+> +static int req_src_buf(struct context *ctx, int buffers)
+> +{
+> +	struct v4l2_requestbuffers reqbuf;
+> +	struct v4l2_buffer buf;
+> +	int i, ret;
+> +
+> +	memset(&reqbuf, 0, sizeof(reqbuf));
+> +	memset(&buf, 0, sizeof(buf));
+> +
+> +	reqbuf.count	= buffers;
+> +	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> +	reqbuf.memory	= V4L2_MEMORY_MMAP;
+> +	ret = ioctl(ctx->vfd, VIDIOC_REQBUFS, &reqbuf);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (i = 0; i < buffers; i++) {
+> +		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> +		buf.memory	= V4L2_MEMORY_MMAP;
+> +		buf.index	= i;
+> +		ret = ioctl(ctx->vfd, VIDIOC_QUERYBUF, &buf);
+> +		if (ret)
+> +			return ret;
+> +		buf.bytesused = W*H*2;
 
-It's in internal units. I guess librealsense has formulas to convert them 
-to ISO or something else standard. It's the same units as the 
-V4L2_CID_GAIN control.
+Shouldn't you be using ->width and ->height here rather than W
+and H?
 
-> > +    * - __u32 Exposure
-> > +      - Manual exposure time in microseconds
-> 
-> When auto-exposure is enabled, does this reflect the actual exposure time used 
-> to capture the image ? If so I'd name the field just "exposure time", and 
-> expand the document to explain this. Maybe something like
-> 
-> "Exposure time (in microseconds) that was used to capture the frame."
-> 
-> It would also be useful to explain what happens when auto-exposure is 
-> disabled.
-> 
-> This comment applies to the gain as well.
-> 
-> > +    * - __u32 Laser power
-> > +      - Power of the laser LED 0-360, used for depth measurement
-> > +    * - __u32 AE mode
-> > +      - 0: manual; 1: automatic exposure
-> > +    * - __u32 Exposure priority
-> > +      - Exposure priority value: 0 - constant frameerate
-> 
-> s/frameerate/frame rate/
-> 
-> No other value than 0 is valid ?
+In fact, maybe these can actually be set as "static const
+unsigned int WIDTH = 10;" in the main function rather than global
+macros, since you're parring the context around at runtime.
 
-So far - no
+> +		ret = ioctl(ctx->vfd, VIDIOC_QBUF, &buf);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int req_dst_buf(struct context *ctx, int buffers)
+> +{
+> +	struct v4l2_requestbuffers reqbuf;
+> +	struct v4l2_buffer buf;
+> +	int i, ret;
+> +
+> +	memset(&reqbuf, 0, sizeof(reqbuf));
+> +	memset(&buf, 0, sizeof(buf));
+> +
+> +	reqbuf.count	= buffers;
+> +	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	reqbuf.memory	= V4L2_MEMORY_MMAP;
+> +
+> +	ret = ioctl(ctx->vfd, VIDIOC_REQBUFS, &reqbuf);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (i = 0; i < buffers; i++) {
+> +		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +		buf.memory	= V4L2_MEMORY_MMAP;
+> +		buf.index	= i;
+> +		ret = ioctl(ctx->vfd, VIDIOC_QUERYBUF, &buf);
+> +		if (ret)
+> +			return ret;
+> +		ret = ioctl(ctx->vfd, VIDIOC_QBUF, &buf);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int streamon(struct context *ctx)
+> +{
+> +	enum v4l2_buf_type type;
+> +	int ret;
+> +
+> +	type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> +	ret = ioctl(ctx->vfd, VIDIOC_STREAMON, &type);
+> +	if (ret)
+> +		return ret;
+> +
+> +	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	ret = ioctl(ctx->vfd, VIDIOC_STREAMON, &type);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return ret;
+> +}
+> +
+> +static int dqbuf(struct context *ctx)
+> +{
+> +	struct v4l2_buffer buf;
+> +	int i, ret, timeout;
+> +
+> +	struct pollfd fds[] = {
+> +		{ .fd = ctx->vfd, .events = POLLIN },
+> +	};
+> +
+> +	for (i = 0; i < ctx->buffers; i++) {
+> +		timeout = (MAX_TRANS_TIME_MSEC + 10) * thread_count * 2;
+> +		ret = poll(fds, 1, timeout);
+> +		if (-1 == ret) {
+> +			if (errno == EINTR)
+> +				continue;
+> +			return -1;
+> +		}
+> +
+> +		if (ret == 0) {
+> +			dprintf("%s: timeout on %p\n", __func__, ctx);
+> +			return -1;
+> +		}
+> +
+> +		dprintf("%s: event on %p\n", __func__, ctx);
+> +
+> +		memset(&buf, 0, sizeof(buf));
+> +		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> +		buf.memory	= V4L2_MEMORY_MMAP;
+> +		buf.index	= i;
+> +		ret = ioctl(ctx->vfd, VIDIOC_DQBUF, &buf);
+> +		if (ret) {
+> +			dprintf("%s: VIDIOC_DQBUF failed %p\n", __func__, ctx);
+> +			return ret;
+> +		}
+> +
+> +		memset(&buf, 0, sizeof(buf));
+> +		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +		buf.memory	= V4L2_MEMORY_MMAP;
+> +		buf.index	= i;
+> +		ret = ioctl(ctx->vfd, VIDIOC_DQBUF, &buf);
+> +		if (ret) {
+> +			dprintf("%s: VIDIOC_DQBUF failed %p\n", __func__, ctx);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void *job(void *arg)
+> +{
+> +	struct context *ctx = (struct context *)arg;
 
-> 
-> > +    * - __u32 AE ROI left
-> > +      - Left border of the AE Region of Interest
-> > +    * - __u32 AE ROI right
-> > +      - Right border of the AE Region of Interest
-> > +    * - __u32 AE ROI top
-> > +      - Top border of the AE Region of Interest
-> > +    * - __u32 AE ROI bottom
-> > +      - Bottom border of the AE Region of Interest
-> 
-> What are the units and range for those fields ?
+The cast isn't actually required there, coming from a (void *).
+If it's done on purpose for readability reasons then fine.
 
-Pixels, between 0 and max width or height.
+> +	dprintf("%s: %p running\n", __func__, ctx);
+> +
+> +	assert(streamon(ctx) == 0);
+> +	assert(dqbuf(ctx) == 0);
+> +	assert(dqbuf(ctx) != 0);
+> +	close(ctx->vfd);
+> +
+> +	dprintf("%s: %p done\n", __func__, ctx);
+> +	return NULL;
+> +}
+> +
+> +static void init(struct context *ctx)
+> +{
+> +	struct v4l2_ext_controls ext_ctrls;
+> +	struct v4l2_ext_control ctrls[2];
+> +	struct v4l2_capability cap;
+> +	int ret, buffers;
+> +
+> +	memset(ctx, 0, sizeof(*ctx));
+> +
+> +	ctx->vfd = open(video_device, O_RDWR | O_NONBLOCK, 0);
+> +	ctx->width = W;
+> +	ctx->height = H;
+> +	assert(ctx->vfd >= 0);
+> +
+> +	ret = ioctl(ctx->vfd, VIDIOC_QUERYCAP, &cap);
+> +	assert(ret == 0);
+> +	assert(cap.device_caps & V4L2_CAP_VIDEO_M2M);
+> +	if (strcmp((const char *)cap.driver, "vim2m") != 0)
 
-> > +    * - __u32 Preset
-> > +      - Preset selector value
-> 
-> Could you elaborate a bit on what the preset selector value is ?
+This cast isn't needed either, passing non-const to const.
 
-Some cameras can have certain fixed configurations. In those cases it is 
-possible to select one of them, using an XU control, which then will be 
-reflected here.
+> +		ksft_exit_skip("Please run the test as root - Exiting.\n");
+> +
+> +	ctrls[0].id = V4L2_CID_TRANS_TIME_MSEC;
+> +	ctrls[0].value = rand() % MAX_TRANS_TIME_MSEC + 10;
 
-> > +    * - __u32 Laser mode
-> > +      - 0: off, 1: on
-> > +    * - :cspan:`1` *Capture Timing*
-> > +    * - __u32 ID
-> > +      - 0x80000001
-> > +    * - __u32 Size
-> > +      - Size in bytes (currently 40)
-> > +    * - __u32 Version
-> > +      - Version of the struct
-> > +    * - __u32 Flags
-> > +      - A bitmask of flags: see [3_] below
-> > +    * - __u32 Frame counter
-> > +      - Monotonically increasing counter
-> 
-> That's interesting. Does it increase by exactly one for every frame ? I think 
-> it would be useful to document that.
-> 
-> > +    * - __u32 Optical time
-> > +      - Time in microseconds from the beginning of a frame till its middle
-> 
-> That's interesting too. Just for my information, is that exactly half the time 
-> between the beginning of a frame and its end, or can exposure vary through the 
-> frame ?
-> 
-> > +    * - __u32 Readout time
-> > +      - Time, used to read out a frame in microseconds
-> > +    * - __u32 Exposure time
-> > +      - Frame exposure time in microseconds
-> 
-> Is that the same as the above manual exposure time ? Or does the first one 
-> apply to the depth image only ? It would be useful to document that.
-> 
-> > +    * - __u32 Frame interval
-> > +      - In microseconds = 1000000 / framerate
-> > +    * - __u32 Pipe latency
-> > +      - Time in microseconds from start of frame to data in USB buffer
-> > +    * - :cspan:`1` *Configuration*
-> > +    * - __u32 ID
-> > +      - 0x80000002
-> > +    * - __u32 Size
-> > +      - Size in bytes (currently 40)
-> > +    * - __u32 Version
-> > +      - Version of the struct
-> > +    * - __u32 Flags
-> > +      - A bitmask of flags: see [4_] below
-> > +    * - __u8 Hardware type
-> > +      - Camera hardware version [5_]
-> > +    * - __u8 SKU ID
-> > +      - Camera hardware configuration [6_]
-> > +    * - __u32 Cookie
-> > +      - Internal synchronisation
-> 
-> Internal synchronisation with what ? :-)
-> 
-> > +    * - __u16 Format
-> > +      - Image format code [7_]
-> > +    * - __u16 Width
-> > +      - Width in pixels
-> > +    * - __u16 Height
-> > +      - Height in pixels
-> > +    * - __u16 Framerate
-> > +      - Requested framerate
-> 
-> What's the unit of this value ?
+See what I wrote about random factors in tests below, regarding
+the number of threads.  If you need a random series of values
+here, using the pseudo-random function rand() should be fine but
+it might be worth setting the seed with srand() first with a
+fixed value to be sure it always produces the same series so the
+test always does the same thing.
 
-Is anything other than frames per second used in V4L?
+> +	ctrls[1].id =  V4L2_CID_TRANS_NUM_BUFS;
+> +	ctrls[1].value = 1;
+> +
+> +	memset(&ext_ctrls, 0, sizeof(ext_ctrls));
+> +	ext_ctrls.count = 2;
+> +	ext_ctrls.controls = ctrls;
+> +	ret = ioctl(ctx->vfd, VIDIOC_S_EXT_CTRLS, &ext_ctrls);
+> +	assert(ret == 0);
+> +
+> +	buffers = rand() % MAX_BUFFERS + 1;
+> +	assert(req_src_buf(ctx, buffers) == 0);
+> +	assert(req_dst_buf(ctx, buffers) == 0);
+> +	ctx->buffers = buffers;
+> +}
+> +
+> +int main(int argc, char * const argv[])
+> +{
+> +	int i, opt;
+> +
+> +	if (argc < 2) {
+> +		printf("Usage: %s [-d </dev/videoX>]\n", argv[0]);
+> +		exit(-1);
+> +	}
+> +
+> +	/* Process arguments */
+> +	while ((opt = getopt(argc, argv, "d:")) != -1) {
+> +		switch (opt) {
+> +		case 'd':
+> +			strncpy(video_device, optarg, sizeof(video_device) - 1);
+> +			video_device[sizeof(video_device)-1] = '\0';
+> +			break;
+> +		default:
+> +			printf("Usage: %s [-d </dev/videoX>]\n", argv[0]);
+> +			exit(-1);
+> +		}
+> +	}
+> +
+> +	/* Generate random number of interations */
 
-> > +    * - __u16 Trigger
-> > +      - Byte 0: bit 0:  depth and RGB are synchronised, bit 1: external
-> > trigger
-> > +
-> > +.. _1:
-> > +
-> > +[1]
-> > https://docs.microsoft.com/en-us/windows-hardware/drivers/stream/uvc-extens
-> > ions-1-5
-> 
-> Should we at some point replicate that documentation in the V4L2 spec ? 
-> Without copying it of course, as that would be a copyright violation.
+Did you mean iterations?
 
-Well, we don't replicate the UVC itself or any other standards, do we? Of 
-course, that document doesn't have the same status as an official 
-vendor-neutral standard, but still, we don't replicate data sheets either. 
-Besides, I think there are cameras that use this, and windows supports 
-this, so, don't think it will disappear overnight...
+> +	srand((unsigned int) time(NULL));
+> +	thread_count = rand() % MAX_COUNT + 1;
 
-> > +.. _2:
-> > +
-> > +[2] Depth Control flags specify, which fields are valid: ::
-> 
-> s/specify,/specify/ or s/ specify,/, specify/
-> 
-> Same comment for the other locations below.
-> 
-> > +
-> > +  0x00000001 Gain
-> > +  0x00000002 Manual exposure
-> > +  0x00000004 Laser power
-> > +  0x00000008 AE mode
-> > +  0x00000010 Exposure priority
-> > +  0x00000020 AE ROI
-> > +  0x00000040 Preset
-> 
-> What happens to the corresponding field when a bit isn't set, will it be zero 
-> ?
+Having random factors in tests can lead to hard to reproduce
+issues.  I think it would be wiser to set a reasonable default
+value (maybe 50) and add a command line option to override it if
+necessary.  For example, setting a very high value may push the
+system to hit an unexpected limit, or if running automatically on
+slow hardware a lower value may be used to reduce the time it
+takes to run this test case.
 
-It will be invalid, so, I wouldn't rely on it being any specific value 
-like 0 or anything else.
+> +	pthread_t in_thread[thread_count];
+> +	struct context ctx[thread_count];
+> +
+> +	printf("Running %d threads\n", thread_count);
+> +
+> +	for (i = 0; i < thread_count; i++)
+> +		init(&ctx[i]);
+> +
+> +	for (i = 0; i < thread_count; i++)
+> +		pthread_create(&in_thread[i], NULL, job, &ctx[i]);
+> +
+> +	for (i = 0; i < thread_count; i++)
+> +		pthread_join(in_thread[i], NULL);
+> +
+> +	return 0;
+> +}
+> diff --git a/tools/testing/selftests/media_tests/m2m_job_test.sh b/tools/testing/selftests/media_tests/m2m_job_test.sh
+> new file mode 100755
+> index 000000000000..59777a7ac7d8
+> --- /dev/null
+> +++ b/tools/testing/selftests/media_tests/m2m_job_test.sh
+> @@ -0,0 +1,32 @@
+> +#!/bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +TCID="media_device"
+> +
+> +# Kselftest framework requirement - SKIP code is 4.
+> +ksft_skip=4
+> +
+> +echo "-------------------"
+> +echo "running media tests"
+> +echo "-------------------"
+> +
+> +# Not needed, but does not hurt to have it
+> +shopt -s nullglob
+> +
+> +v4l=/sys/class/video4linux
+> +
+> +if [ ! -d $v4l ]; then
+> +        echo "$TCID : video4linux support not present"
+> +        exit $ksft_skip
+> +fi
+> +
+> +if [ -z `ls $v4l` ]; then
+> +	echo "$TCID : no video4linux drivers loaded, vim2m is needed"
+> +	exit $ksft_skip
+> +fi
+> +
+> +for f in $v4l/*; do
+> +	dev_node=/dev/`basename $f`
+> +	if [ -c $dev_node ]; then
+> +		./m2m_job_test -d $dev_node
+> +	fi
+> +done
 
-> > +.. _3:
-> > +
-> > +[3] Capture Timing flags specify, which fields are valid: ::
-> > +
-> > +  0x00000001 Frame counter
-> > +  0x00000002 Optical time
-> > +  0x00000004 Readout time
-> > +  0x00000008 Exposure time
-> > +  0x00000010 Frame interval
-> > +  0x00000020 Pipe latency
-> > +
-> > +.. _4:
-> > +
-> > +[4] Configuration flags specify, which fields are valid: ::
-> > +
-> > +  0x00000001 Hardware type
-> > +  0x00000002 SKU ID
-> > +  0x00000004 Cookie
-> > +  0x00000008 Format
-> > +  0x00000010 Width
-> > +  0x00000020 Height
-> > +  0x00000040 Framerate
-> > +  0x00000080 Trigger
-> > +  0x00000100 Cal count
-> > +
-> > +.. _5:
-> > +
-> > +[5] Camera model: ::
-> > +
-> > +  0 DS5
-> > +  1 IVCAM2
-> > +
-> > +.. _6:
-> > +
-> > +[6] 8-bit camera hardware configuration bitfield: ::
-> > +
-> > +  [1:0] depthCamera
-> > +	00: no depth
-> > +	01: standard depth
-> > +	10: wide depth
-> > +	11: reserved
-> > +  [2]   depthIsActive - has a laser projector
-> > +  [3]   RGB presence
-> > +  [4]   IMU presence
-> 
-> What does IMU mean ?
-
-https://en.wikipedia.org/wiki/Inertial_measurement_unit - it's a common 
-abbreviation.
-
-> 
-> > +  [5]   projectorType
-> > +	0: HPTG
-> > +	1: Princeton
-> 
-> What does this mean ?
-> 
-> > +  [6]   0: a projector, 1: an LED
-> 
-> This would also benefit from a bit more explanation.
-> 
-> > +  [7]   reserved
-> > +
-> > +.. _7:
-> > +
-> > +[7] Image format codes per camera interface:
-> > +
-> > +Depth: ::
-> > +
-> > +  1 Z16
-> > +  2 Z
-> > +
-> > +Left sensor: ::
-> > +
-> > +  1 Y8
-> > +  2 UYVY
-> > +  3 R8L8
-> > +  4 Calibration
-> > +  5 W10
-> > +
-> > +Fish Eye sensor: ::
-> > +
-> > +  1 RAW8
-> 
-> There's a single field in the above structures that references this. When 
-> should it be interpreted as depth, left sensor or fish eye sensor format ?
-
-you get a metadata node per video streaming interface. So, whatever you're 
-streaming on that video node, the respective metadata is available on the 
-respective metadatanode.
-
-> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> > b/drivers/media/usb/uvc/uvc_driver.c index 36061f3..30dbbbf 100644
-> > --- a/drivers/media/usb/uvc/uvc_driver.c
-> > +++ b/drivers/media/usb/uvc/uvc_driver.c
-> > @@ -2346,6 +2346,8 @@ static int uvc_clock_param_set(const char *val, struct
-> > kernel_param *kp) };
-> > 
-> >  #define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct uvc_device_info){.quirks
-> > = q}
-> > +#define UVC_QUIRK_META(m) (kernel_ulong_t)&(struct uvc_device_info) \
-> > +	{.meta_format = m}
-> 
-> I'd name this macro UVC_INFO_META as it doesn't define a quirk. Should we also 
-> rename UVC_QUIRK_INFO to UVC_INFO_QUIRK ?
-> 
-> >  /*
-> >   * The Logitech cameras listed below have their interface class set to
-> > @@ -2810,6 +2812,15 @@ static int uvc_clock_param_set(const char *val,
-> > struct kernel_param *kp)
-> >  	  .bInterfaceSubClass	= 1,
-> >  	  .bInterfaceProtocol	= 0,
-> >  	  .driver_info		= (kernel_ulong_t)&uvc_quirk_force_y8 },
-> > +	/* Intel RealSense D4M */
-> > +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> > +				| USB_DEVICE_ID_MATCH_INT_INFO,
-> > +	  .idVendor		= 0x8086,
-> > +	  .idProduct		= 0x0b03,
-> > +	  .bInterfaceClass	= USB_CLASS_VIDEO,
-> > +	  .bInterfaceSubClass	= 1,
-> > +	  .bInterfaceProtocol	= 0,
-> > +	  .driver_info		= UVC_QUIRK_META(V4L2_META_FMT_D4XX) },
-> >  	/* Generic USB Video Class */
-> >  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
-> >  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 0d07b2d..7d3fbc6 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -688,6 +688,7 @@ struct v4l2_pix_format {
-> >  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car
-> > VSP1 1-D Histogram */
-> >  #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car
-> > VSP1 2-D Histogram */
-> >  #define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC
-> > Payload Header metadata */
-> > +#define V4L2_META_FMT_D4XX        v4l2_fourcc('D', '4', 'X', 'X') /* D4XX
-> > Payload Header metadata */
-> > 
-> >  /* priv field value to indicates that subsequent fields are valid. */
-> >  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
-
-Thanks
-Guennadi
-
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
+Best wishes,
+Guillaume
