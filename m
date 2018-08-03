@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:52637 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732496AbeHCQdI (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:33793 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732497AbeHCQdJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Aug 2018 12:33:08 -0400
+        Fri, 3 Aug 2018 12:33:09 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/3] uapi/linux/media.h: add property support
-Date: Fri,  3 Aug 2018 16:36:24 +0200
-Message-Id: <20180803143626.48191-2-hverkuil@xs4all.nl>
+Subject: [RFC PATCH 3/3] vimc: add test properties
+Date: Fri,  3 Aug 2018 16:36:26 +0200
+Message-Id: <20180803143626.48191-4-hverkuil@xs4all.nl>
 In-Reply-To: <20180803143626.48191-1-hverkuil@xs4all.nl>
 References: <20180803143626.48191-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,99 +17,61 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a new topology struct that includes properties.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/uapi/linux/media.h | 62 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 61 insertions(+), 1 deletion(-)
+ drivers/media/platform/vimc/vimc-common.c | 18 ++++++++++++++++++
+ drivers/media/platform/vimc/vimc-core.c   |  6 +++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 36f76e777ef9..dd8c96a17020 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -342,6 +342,61 @@ struct media_v2_link {
- 	__u32 reserved[6];
- } __attribute__ ((packed));
+diff --git a/drivers/media/platform/vimc/vimc-common.c b/drivers/media/platform/vimc/vimc-common.c
+index 617415c224fe..db8a8d1eca54 100644
+--- a/drivers/media/platform/vimc/vimc-common.c
++++ b/drivers/media/platform/vimc/vimc-common.c
+@@ -452,6 +452,24 @@ int vimc_ent_sd_register(struct vimc_ent_device *ved,
+ 		goto err_clean_m_ent;
+ 	}
  
-+#define MEDIA_PROP_TYPE_U64	1
-+#define MEDIA_PROP_TYPE_S64	2
-+#define MEDIA_PROP_TYPE_STRING	3
++	ret = media_entity_add_prop_u64(&sd->entity, "u64", ~1);
++	if (!ret)
++		ret = media_entity_add_prop_s64(&sd->entity, "s64", -5);
++	if (!ret)
++		ret = media_entity_add_prop_string(&sd->entity, "string",
++						   sd->name);
++	if (!ret)
++		ret = media_pad_add_prop_u64(&sd->entity.pads[num_pads - 1],
++					     "u64", ~1);
++	if (!ret)
++		ret = media_pad_add_prop_s64(&sd->entity.pads[num_pads - 1],
++					     "s64", -5);
++	if (!ret)
++		ret = media_pad_add_prop_string(&sd->entity.pads[0],
++						"string", sd->name);
++	if (ret)
++		goto err_clean_m_ent;
 +
-+/**
-+ * struct media_v2_prop - A media property
-+ *
-+ * @id:		The unique non-zero ID of this property
-+ * @owner_id:	The ID of the object this property belongs to
-+ * @type:	Property type
-+ * @flags:	Property flags
-+ * @payload_size: Property payload size, 0 for U64/S64
-+ * @payload_offset: Property payload starts at this offset from &prop.id.
-+ *		This is 0 for U64/S64.
-+ * @reserved:	Property reserved field, will be zeroed.
-+ * @name:	Property name
-+ * @uval:	Property value (unsigned)
-+ * @sval:	Property value (signed)
-+ */
-+struct media_v2_prop {
-+	__u32 id;
-+	__u32 owner_id;
-+	__u32 type;
-+	__u32 flags;
-+	__u32 payload_size;
-+	__u32 payload_offset;
-+	__u32 reserved[18];
-+	char name[32];
-+	union {
-+		__u64 uval;
-+		__s64 sval;
-+	};
-+} __attribute__ ((packed));
-+
-+/* Old version 1 of this struct */
-+struct media_v2_topology_1 {
-+	__u64 topology_version;
-+
-+	__u32 num_entities;
-+	__u32 reserved1;
-+	__u64 ptr_entities;
-+
-+	__u32 num_interfaces;
-+	__u32 reserved2;
-+	__u64 ptr_interfaces;
-+
-+	__u32 num_pads;
-+	__u32 reserved3;
-+	__u64 ptr_pads;
-+
-+	__u32 num_links;
-+	__u32 reserved4;
-+	__u64 ptr_links;
-+} __attribute__ ((packed));
-+
- struct media_v2_topology {
- 	__u64 topology_version;
+ 	return 0;
  
-@@ -360,6 +415,10 @@ struct media_v2_topology {
- 	__u32 num_links;
- 	__u32 reserved4;
- 	__u64 ptr_links;
+ err_clean_m_ent:
+diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+index 9246f265de31..d8d3803a47f9 100644
+--- a/drivers/media/platform/vimc/vimc-core.c
++++ b/drivers/media/platform/vimc/vimc-core.c
+@@ -309,13 +309,13 @@ static int vimc_probe(struct platform_device *pdev)
+ 	if (!vimc->subdevs)
+ 		return -ENOMEM;
+ 
++	/* Link the media device within the v4l2_device */
++	vimc->v4l2_dev.mdev = &vimc->mdev;
 +
-+	__u32 num_props;
-+	__u32 props_payload_size;
-+	__u64 ptr_props;
- } __attribute__ ((packed));
+ 	match = vimc_add_subdevs(vimc);
+ 	if (IS_ERR(match))
+ 		return PTR_ERR(match);
  
- /* ioctls */
-@@ -368,7 +427,8 @@ struct media_v2_topology {
- #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
- #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
--#define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
-+#define MEDIA_IOC_G_TOPOLOGY_1	_IOWR('|', 0x04, struct media_v2_topology_1)
-+#define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x05, struct media_v2_topology)
- 
- #ifndef __KERNEL__
- 
+-	/* Link the media device within the v4l2_device */
+-	vimc->v4l2_dev.mdev = &vimc->mdev;
+-
+ 	/* Initialize media device */
+ 	strlcpy(vimc->mdev.model, VIMC_MDEV_MODEL_NAME,
+ 		sizeof(vimc->mdev.model));
 -- 
 2.18.0
