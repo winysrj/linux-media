@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:25890 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:27982 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725736AbeHCEPo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Aug 2018 00:15:44 -0400
+        id S1725972AbeHCEvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Aug 2018 00:51:07 -0400
 From: Ping-chung Chen <ping-chung.chen@intel.com>
 To: linux-media@vger.kernel.org
 Cc: andy.yeh@intel.com, jim.lai@intel.com, ping-chung.chen@intel.com,
         sakari.ailus@linux.intel.com, tfiga@chromium.org,
         grundler@chromium.org, rajmohan.mani@intel.com
-Subject: [PATCH v4] media: imx208: Add imx208 camera sensor driver
-Date: Fri,  3 Aug 2018 10:29:43 +0800
-Message-Id: <1533263383-16317-1-git-send-email-ping-chung.chen@intel.com>
+Subject: [RESEND PATCH v4] media: imx208: Add imx208 camera sensor driver
+Date: Fri,  3 Aug 2018 11:04:57 +0800
+Message-Id: <1533265497-16718-1-git-send-email-ping-chung.chen@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -36,6 +36,8 @@ since v2:
 -- Print more error log during error handling.
 -- Remove mutex_destroy() from imx208_free_controls().
 -- Add more comments.
+since v3:
+-- Set explicit indices to link frequencies.
 
  MAINTAINERS                |   7 +
  drivers/media/i2c/Kconfig  |  11 +
