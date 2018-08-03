@@ -1,65 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51654 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731311AbeHCPOt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 11:14:49 -0400
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 19B3E112
-        for <linux-media@vger.kernel.org>; Fri,  3 Aug 2018 15:18:29 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.19] SPDX headers for Renesas media drivers
-Date: Fri, 03 Aug 2018 16:19:10 +0300
-Message-ID: <4114024.G5LE1Ta99a@avalon>
+Received: from smtp2.macqel.be ([109.135.2.61]:60326 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729228AbeHCPnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Aug 2018 11:43:01 -0400
+Date: Fri, 3 Aug 2018 15:46:32 +0200
+From: Philippe De Muyter <phdm@macqel.be>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [PATCH 2/2] media: v4l2-common: simplify v4l2_i2c_subdev_init
+        name generation
+Message-ID: <20180803134632.GA24977@frolo.macqel>
+References: <1533158457-15831-1-git-send-email-phdm@macqel.be> <1533158457-15831-2-git-send-email-phdm@macqel.be> <20180803124315.i4vcpdnha42nw3lh@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180803124315.i4vcpdnha42nw3lh@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sakari,
 
-The following changes since commit 2c3449fb95c318920ca8dc645d918d408db219ac:
+On Fri, Aug 03, 2018 at 03:43:15PM +0300, Sakari Ailus wrote:
+> Hi Philippe,
+> 
+> On Wed, Aug 01, 2018 at 11:20:57PM +0200, Philippe De Muyter wrote:
+> > When v4l2_i2c_subdev_init is called, dev_name(&client->dev) has already
+> > been set.  Use it to generate subdev's name instead of recreating it
+> > with "%d-%04x".  This improves the similarity in subdev's name creation
+> > between v4l2_i2c_subdev_init and v4l2_spi_subdev_init.
+> > 
+> > Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-common.c | 5 ++---
+> >  1 file changed, 2 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> > index 5471c6d..b062111 100644
+> > --- a/drivers/media/v4l2-core/v4l2-common.c
+> > +++ b/drivers/media/v4l2-core/v4l2-common.c
+> > @@ -121,9 +121,8 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+> >  	v4l2_set_subdevdata(sd, client);
+> >  	i2c_set_clientdata(client, sd);
+> >  	/* initialize name */
+> > -	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
+> > -		client->dev.driver->name, i2c_adapter_id(client->adapter),
+> > -		client->addr);
+> > +	snprintf(sd->name, sizeof(sd->name), "%s %s",
+> > +		client->dev.driver->name, dev_name(&client->dev));
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+> >  
+> 
+> I like the patch in principle. But what's the effect of this on the actual
+> sub-device (and entity) names? Looking at i2c_dev_set_name(), this will be
+> different. We can't change the existing entity naming in drivers, this will
+> break applications that expect them to be named in a certain way.
 
-  media: usb: hackrf: Replace GFP_ATOMIC with GFP_KERNEL (2018-08-02 19:16:17 -0400)
+Yeah.  I am 10 years too late.
 
-are available in the Git repository at:
+Maybe adding for a long transition period a kernel message giving the new
+name and the old one if they are different ?
 
-  git://linuxtv.org/pinchartl/media.git v4l2/renesas/spdx
+Thank you
 
-for you to fetch changes up to e4df82294fcd03c22522457c51117092a688805f:
-
-  media: sh_mobile_ceu: convert to SPDX identifiers (2018-08-03 16:17:26 +0300)
-
-----------------------------------------------------------------
-Kuninori Morimoto (9):
-      media: soc_camera_platform: convert to SPDX identifiers
-      media: rcar-vin: convert to SPDX identifiers
-      media: rcar-fcp: convert to SPDX identifiers
-      media: rcar_drif: convert to SPDX identifiers
-      media: rcar_fdp1: convert to SPDX identifiers
-      media: rcar_jpu: convert to SPDX identifiers
-      media: sh_veu: convert to SPDX identifiers
-      media: sh_vou: convert to SPDX identifiers
-      media: sh_mobile_ceu: convert to SPDX identifiers
-
- drivers/media/platform/rcar-fcp.c                        | 6 +-----
- drivers/media/platform/rcar-vin/Kconfig                  | 1 +
- drivers/media/platform/rcar-vin/Makefile                 | 1 +
- drivers/media/platform/rcar-vin/rcar-core.c              | 8 ++------
- drivers/media/platform/rcar-vin/rcar-dma.c               | 6 +-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c              | 6 +-----
- drivers/media/platform/rcar-vin/rcar-vin.h               | 6 +-----
- drivers/media/platform/rcar_drif.c                       | 8 ++------
- drivers/media/platform/rcar_fdp1.c                       | 6 +-----
- drivers/media/platform/rcar_jpu.c                        | 5 +----
- drivers/media/platform/sh_veu.c                          | 5 +----
- drivers/media/platform/sh_vou.c                          | 5 +----
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 6 +-----
- drivers/media/platform/soc_camera/soc_camera_platform.c  | 5 +----
- 14 files changed, 16 insertions(+), 58 deletions(-)
+Philippe
 
 -- 
-Regards,
-
-Laurent Pinchart
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
