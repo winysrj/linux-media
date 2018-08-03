@@ -1,89 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57410 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728477AbeHCWrq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 18:47:46 -0400
-Message-ID: <faa0436aad809ca562b5c152420b1e4d4b6f507b.camel@collabora.com>
-Subject: Re: [PATCH v6 4/8] media: platform: Add Cedrus VPU decoder driver
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devel@driverdev.osuosl.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Randy Li <ayaka@soulik.info>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Fri, 03 Aug 2018 17:49:38 -0300
-In-Reply-To: <20180725100256.22833-5-paul.kocialkowski@bootlin.com>
-References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
-         <20180725100256.22833-5-paul.kocialkowski@bootlin.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39966 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729968AbeHDAEu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Aug 2018 20:04:50 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 020AE634C7D
+        for <linux-media@vger.kernel.org>; Sat,  4 Aug 2018 01:06:39 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1fliDX-0000vL-NI
+        for linux-media@vger.kernel.org; Sat, 04 Aug 2018 01:06:39 +0300
+Date: Sat, 4 Aug 2018 01:06:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.19] Fix for mt9v111 driver
+Message-ID: <20180803220639.j6to6cj6vao3oa2x@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2018-07-25 at 12:02 +0200, Paul Kocialkowski wrote:
-> This introduces the Cedrus VPU driver that supports the VPU found in
-> Allwinner SoCs, also known as Video Engine. It is implemented through
-> a v4l2 m2m decoder device and a media device (used for media requests).
-> So far, it only supports MPEG2 decoding.
-> 
-> Since this VPU is stateless, synchronization with media requests is
-> required in order to ensure consistency between frame headers that
-> contain metadata about the frame to process and the raw slice data that
-> is used to generate the frame.
-> 
-> This driver was made possible thanks to the long-standing effort
-> carried out by the linux-sunxi community in the interest of reverse
-> engineering, documenting and implementing support for Allwinner VPU.
-> 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-[..]
-> +static int cedrus_probe(struct platform_device *pdev)
-> +{
-> +	struct cedrus_dev *dev;
-> +	struct video_device *vfd;
-> +	int ret;
-> +
-> +	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-> +	if (!dev)
-> +		return -ENOMEM;
-> +
-> +	dev->dev = &pdev->dev;
-> +	dev->pdev = pdev;
-> +
-> +	ret = cedrus_hw_probe(dev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Failed to probe hardware\n");
-> +		return ret;
-> +	}
-> +
-> +	dev->dec_ops[CEDRUS_CODEC_MPEG2] = &cedrus_dec_ops_mpeg2;
-> +
-> +	mutex_init(&dev->dev_mutex);
-> +	spin_lock_init(&dev->irq_lock);
-> +
+Hi Mauro,
 
-A minor thing.
+Here's one more patch for 4.19. It's a fix, but the driver isn't in the
+fixes branch so it's on master.
 
-I believe this spinlock is not needed. All the data structures
-it's accessing are already protected, and some operations
-(stop_streaming) are guaranteed to not run at the same
-time as a job.
+Please pull.
 
-Regards,
-Eze
+
+The following changes since commit 2c3449fb95c318920ca8dc645d918d408db219ac:
+
+  media: usb: hackrf: Replace GFP_ATOMIC with GFP_KERNEL (2018-08-02 19:16:17 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.19-5
+
+for you to fetch changes up to 86f2c9ac5248b4a4d784a7af95270567bbb959e3:
+
+  media: i2c: mt9v111: Fix v4l2-ctrl error handling (2018-08-04 01:05:44 +0300)
+
+----------------------------------------------------------------
+Jacopo Mondi (1):
+      media: i2c: mt9v111: Fix v4l2-ctrl error handling
+
+ drivers/media/i2c/mt9v111.c | 41 +++++++++++++----------------------------
+ 1 file changed, 13 insertions(+), 28 deletions(-)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
