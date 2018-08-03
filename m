@@ -1,128 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57528 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:40280 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727171AbeHCRpO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 13:45:14 -0400
-Date: Fri, 3 Aug 2018 12:48:18 -0300
+        with ESMTP id S1728116AbeHCT1y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 15:27:54 -0400
+Date: Fri, 3 Aug 2018 14:30:30 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/3] uapi/linux/media.h: add property support
-Message-ID: <20180803124818.49cb1175@coco.lan>
-In-Reply-To: <20180803143626.48191-2-hverkuil@xs4all.nl>
-References: <20180803143626.48191-1-hverkuil@xs4all.nl>
-        <20180803143626.48191-2-hverkuil@xs4all.nl>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: Rob Herring <robh@kernel.org>, mchehab@kernel.org,
+        mark.rutland@arm.com, p.zabel@pengutronix.de,
+        afshin.nasser@gmail.com, javierm@redhat.com,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: Re: [PATCH 20/22] [media] tvp5150: Add input port connectors DT
+ bindings
+Message-ID: <20180803143030.3cd43921@coco.lan>
+In-Reply-To: <20180803072953.gwla7i6pcw2s3zo7@pengutronix.de>
+References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+        <20180628162054.25613-21-m.felsch@pengutronix.de>
+        <20180703232320.GA18319@rob-hp-laptop>
+        <20180803072953.gwla7i6pcw2s3zo7@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri,  3 Aug 2018 16:36:24 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Fri, 3 Aug 2018 09:29:53 +0200
+Marco Felsch <m.felsch@pengutronix.de> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Hi Rob,
 > 
-> Add a new topology struct that includes properties.
+> first of all, thanks for the review. After some discussion with the
+> media guys I have a question about the dt-bindings.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/media.h | 62 +++++++++++++++++++++++++++++++++++++-
->  1 file changed, 61 insertions(+), 1 deletion(-)
+> On 18-07-03 17:23, Rob Herring wrote:
+> > On Thu, Jun 28, 2018 at 06:20:52PM +0200, Marco Felsch wrote:  
+> > > The TVP5150/1 decoders support different video input sources to their
+> > > AIP1A/B pins.
+> > > 
+> > > Possible configurations are as follows:
+> > >   - Analog Composite signal connected to AIP1A.
+> > >   - Analog Composite signal connected to AIP1B.
+> > >   - Analog S-Video Y (luminance) and C (chrominance)
+> > >     signals connected to AIP1A and AIP1B respectively.
+> > > 
+> > > This patch extends the device tree bindings documentation to describe
+> > > how the input connectors for these devices should be defined in a DT.
+> > > 
+> > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > > ---
+> > >  .../devicetree/bindings/media/i2c/tvp5150.txt | 118 +++++++++++++++++-
+> > >  1 file changed, 113 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> > > index 8c0fc1a26bf0..feed8c911c5e 100644
+> > > --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> > > +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> > > @@ -12,11 +12,23 @@ Optional Properties:
+> > >  - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
+> > >  - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
+> > >  
+> > > -The device node must contain one 'port' child node for its digital output
+> > > -video port, in accordance with the video interface bindings defined in
+> > > -Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > > +The device node must contain one 'port' child node per device input and output
+> > > +port, in accordance with the video interface bindings defined in
+> > > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
+> > > +are numbered as follows
+> > >  
+> > > -Required Endpoint Properties for parallel synchronization:
+> > > +	  Name		Type		Port
+> > > +	--------------------------------------
+> > > +	  AIP1A		sink		0
+> > > +	  AIP1B		sink		1
+> > > +	  S-VIDEO	sink		2
+> > > +	  Y-OUT		src		3  
 > 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 36f76e777ef9..dd8c96a17020 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -342,6 +342,61 @@ struct media_v2_link {
->  	__u32 reserved[6];
->  } __attribute__ ((packed));
->  
-> +#define MEDIA_PROP_TYPE_U64	1
-> +#define MEDIA_PROP_TYPE_S64	2
-> +#define MEDIA_PROP_TYPE_STRING	3
-> +
-> +/**
-> + * struct media_v2_prop - A media property
-> + *
-> + * @id:		The unique non-zero ID of this property
-> + * @owner_id:	The ID of the object this property belongs to
-> + * @type:	Property type
-> + * @flags:	Property flags
-> + * @payload_size: Property payload size, 0 for U64/S64
-> + * @payload_offset: Property payload starts at this offset from &prop.id.
-> + *		This is 0 for U64/S64.
-> + * @reserved:	Property reserved field, will be zeroed.
-> + * @name:	Property name
-> + * @uval:	Property value (unsigned)
-> + * @sval:	Property value (signed)
-> + */
-> +struct media_v2_prop {
-> +	__u32 id;
-> +	__u32 owner_id;
-> +	__u32 type;
-> +	__u32 flags;
-> +	__u32 payload_size;
-> +	__u32 payload_offset;
-> +	__u32 reserved[18];
-> +	char name[32];
-> +	union {
-> +		__u64 uval;
-> +		__s64 sval;
-> +	};
-> +} __attribute__ ((packed));
-> +
-> +/* Old version 1 of this struct */
-> +struct media_v2_topology_1 {
-> +	__u64 topology_version;
-> +
-> +	__u32 num_entities;
-> +	__u32 reserved1;
-> +	__u64 ptr_entities;
-> +
-> +	__u32 num_interfaces;
-> +	__u32 reserved2;
-> +	__u64 ptr_interfaces;
-> +
-> +	__u32 num_pads;
-> +	__u32 reserved3;
-> +	__u64 ptr_pads;
-> +
-> +	__u32 num_links;
-> +	__u32 reserved4;
-> +	__u64 ptr_links;
-> +} __attribute__ ((packed));
-> +
+> Do you think it's correct to have a seperate port for each binding?
+> Since the S-Video port is a combination of AIP1A and AIP1B. After a
+> discussion with Mauro [1] the TVP5150 should have only 3 pads. Since the
+> pads are directly mappped to the dt-ports this will correspond to three
+> ports (2 in, 1 out). Now the svideo connector will be mapped to a second
+> endpoint in each port:
+> 
+> port@0			
+> 	endpoint@0 -----------> Comp0-Con
+> 	endpoint@1 -----+-----> Svideo-Con
+> port@1		|
+> 	endpoint@0 -----|-----> Comp1-Con
+> 	endpoint@1 -----+
+> port@2
+> 	endpoint
 
-As I said at patch 0/3, no need to keep it at the public header. you'll
-need this only at media-device.c, just in order to do:
+For tvp5150, the model is like the above, so just one port at the
+S-video connector.
 
-sizeof(old_struct)
+Yet, for more complex devices that would allow switching the
+endpoints at the Svideo connector, the model would be:
 
->  struct media_v2_topology {
->  	__u64 topology_version;
->  
-> @@ -360,6 +415,10 @@ struct media_v2_topology {
->  	__u32 num_links;
->  	__u32 reserved4;
->  	__u64 ptr_links;
-> +
-> +	__u32 num_props;
-> +	__u32 props_payload_size;
-> +	__u64 ptr_props;
->  } __attribute__ ((packed));
->  
->  /* ioctls */
-> @@ -368,7 +427,8 @@ struct media_v2_topology {
->  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
->  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
->  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
-> -#define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
-> +#define MEDIA_IOC_G_TOPOLOGY_1	_IOWR('|', 0x04, struct media_v2_topology_1)
-> +#define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x05, struct media_v2_topology)
+port@0			
+	endpoint@0 (AIP1A) -----------> Comp0-Con
+	endpoint@1 (AIP1B) -----------> Svideo-Con  port@0 (luminance)
+port@1
+	endpoint@0 (AIP1A) -----------> Comp1-Con
+	endpoint@1 (AIP1B) -----------> Svideo-Con  port@1 (chrominance)
+port@2
+	endpoint   (video bitstream output)
 
-Why renaming it? No need at all. Just keep the original definition,
-and let media-device.c to handle the different ioctl sizes.
+E. g. the S-Video connector will also have two ports, one for the
+chrominance signal and another one for the luminance one.
+
+> I don't like that solution that much, since the mapping is now signal
+> based. We also don't map each line of a parallel port.
+> 
+> A quick grep shows that currently each device using a svideo connector
+> seperates them in a own port as I did.
+
+No. I've no idea about how you did the grep, but this is not how other
+drivers handle it currently.
+
+Right now, on all hardware where connectors are mapped, there is just one
+input port and multiple connectors linked to it. You can see some examples
+here:
+
+	https://www.infradead.org/~mchehab/mc-next-gen/au0828_hvr950q.png
+	https://www.infradead.org/~mchehab/mc-next-gen/cx231xx_hvr930c_hd.png
+	https://www.infradead.org/~mchehab/mc-next-gen/em28xx_hvr950.png
+	https://www.infradead.org/~mchehab/mc-next-gen/playtv_usb.png
+	https://www.infradead.org/~mchehab/mc-next-gen/saa7134-asus-p7131-dual.png
+	https://www.infradead.org/~mchehab/mc-next-gen/wintv_usb2.png
+
+The problem with this approach is that it doesn't reflect how the
+hardware is actually wired. On some hardware similar to tvp5150,
+it may be possible, for example, to wire the S-Video both ways,
+e. g., something equivalent to (using tvp5150 terminology):
+
+	Luminance   -> AIP1A
+	Chrominance -> AIP1B
+or
+	Luminance   -> AIP1B
+	Chrominance -> AIP1A
+
+So, just one pad wouldn't allow this kind of config.
+
+Having three pads is equally wrong, as there's no S-Video port on
+tvp5150. All it has physically are two inputs: AIP1A and AIP1B.
+
+If you want to see the discussions we had, they are at:
+	https://linuxtv.org/irc/irclogger_log/media-maint?date=2018-08-02,Thu
+
+I'm preparing right now a summary of them. will copy you once I
+finish it.
+
+> IMHO this is a uncomplicate
+> solution, but don't abstract the HW correctly. What is your opinion
+> about that? Is it correct to have seperate (virtual) port or should I
+> map the svideo connector as shown above?
+> 
+> [1] https://www.spinics.net/lists/devicetree/msg242825.html
+
+Anyway, I'm writing a summary of our discussions 
 
 Thanks,
 Mauro
