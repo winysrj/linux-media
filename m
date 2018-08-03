@@ -1,244 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:38281 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727682AbeHCJZD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 05:25:03 -0400
-Date: Fri, 3 Aug 2018 09:29:53 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: Rob Herring <robh@kernel.org>
-Cc: mchehab@kernel.org, mark.rutland@arm.com, p.zabel@pengutronix.de,
-        afshin.nasser@gmail.com, javierm@redhat.com,
-        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de
-Subject: Re: [PATCH 20/22] [media] tvp5150: Add input port connectors DT
- bindings
-Message-ID: <20180803072953.gwla7i6pcw2s3zo7@pengutronix.de>
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
- <20180628162054.25613-21-m.felsch@pengutronix.de>
- <20180703232320.GA18319@rob-hp-laptop>
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:47907 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727712AbeHCKyV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 06:54:21 -0400
+Date: Fri, 3 Aug 2018 10:58:57 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: jacopo+renesas@jmondi.org, linux-media@vger.kernel.org
+Subject: Re: [bug report] media: i2c: Add driver for Aptina MT9V111
+Message-ID: <20180803085857.GD4528@w540>
+References: <20180731183554.wggi4jxrgrwfos64@kili.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="tEFtbjk+mNEviIIX"
 Content-Disposition: inline
-In-Reply-To: <20180703232320.GA18319@rob-hp-laptop>
+In-Reply-To: <20180731183554.wggi4jxrgrwfos64@kili.mountain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
 
-first of all, thanks for the review. After some discussion with the
-media guys I have a question about the dt-bindings.
+--tEFtbjk+mNEviIIX
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On 18-07-03 17:23, Rob Herring wrote:
-> On Thu, Jun 28, 2018 at 06:20:52PM +0200, Marco Felsch wrote:
-> > The TVP5150/1 decoders support different video input sources to their
-> > AIP1A/B pins.
-> > 
-> > Possible configurations are as follows:
-> >   - Analog Composite signal connected to AIP1A.
-> >   - Analog Composite signal connected to AIP1B.
-> >   - Analog S-Video Y (luminance) and C (chrominance)
-> >     signals connected to AIP1A and AIP1B respectively.
-> > 
-> > This patch extends the device tree bindings documentation to describe
-> > how the input connectors for these devices should be defined in a DT.
-> > 
-> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > ---
-> >  .../devicetree/bindings/media/i2c/tvp5150.txt | 118 +++++++++++++++++-
-> >  1 file changed, 113 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > index 8c0fc1a26bf0..feed8c911c5e 100644
-> > --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > @@ -12,11 +12,23 @@ Optional Properties:
-> >  - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
-> >  - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
-> >  
-> > -The device node must contain one 'port' child node for its digital output
-> > -video port, in accordance with the video interface bindings defined in
-> > -Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > +The device node must contain one 'port' child node per device input and output
-> > +port, in accordance with the video interface bindings defined in
-> > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
-> > +are numbered as follows
-> >  
-> > -Required Endpoint Properties for parallel synchronization:
-> > +	  Name		Type		Port
-> > +	--------------------------------------
-> > +	  AIP1A		sink		0
-> > +	  AIP1B		sink		1
-> > +	  S-VIDEO	sink		2
-> > +	  Y-OUT		src		3
+Hi Dan,
+    thanks for noticing this,
 
-Do you think it's correct to have a seperate port for each binding?
-Since the S-Video port is a combination of AIP1A and AIP1B. After a
-discussion with Mauro [1] the TVP5150 should have only 3 pads. Since the
-pads are directly mappped to the dt-ports this will correspond to three
-ports (2 in, 1 out). Now the svideo connector will be mapped to a second
-endpoint in each port:
+On Tue, Jul 31, 2018 at 09:35:54PM +0300, Dan Carpenter wrote:
+> Hello Jacopo Mondi,
+>
+> The patch aab7ed1c3927: "media: i2c: Add driver for Aptina MT9V111"
+> from Jul 25, 2018, leads to the following static checker warning:
+>
+> drivers/media/i2c/mt9v111.c:1163 mt9v111_probe() warn: passing zero to 'PTR_ERR'
+> drivers/media/i2c/mt9v111.c:1173 mt9v111_probe() warn: passing zero to 'PTR_ERR'
+> drivers/media/i2c/mt9v111.c:1184 mt9v111_probe() warn: passing zero to 'PTR_ERR'
+> drivers/media/i2c/mt9v111.c:1194 mt9v111_probe() warn: passing zero to 'PTR_ERR'
+>
+> drivers/media/i2c/mt9v111.c
+>   1155          v4l2_ctrl_handler_init(&mt9v111->ctrls, 5);
+>   1156
+>   1157          mt9v111->auto_awb = v4l2_ctrl_new_std(&mt9v111->ctrls,
+>   1158                                                &mt9v111_ctrl_ops,
+>   1159                                                V4L2_CID_AUTO_WHITE_BALANCE,
+>   1160                                                0, 1, 1,
+>   1161                                                V4L2_WHITE_BALANCE_AUTO);
+>   1162          if (IS_ERR_OR_NULL(mt9v111->auto_awb)) {
+>   1163                  ret = PTR_ERR(mt9v111->auto_awb);
+>
+> This just returns success because v4l2_ctrl_new_std() only return NULL
 
-port@0			
-	endpoint@0 -----------> Comp0-Con
-	endpoint@1 -----+-----> Svideo-Con
-port@1			|
-	endpoint@0 -----|-----> Comp1-Con
-	endpoint@1 -----+
-port@2
-	endpoint
+Correct, sorry, I didn't notice that.
 
-I don't like that solution that much, since the mapping is now signal
-based. We also don't map each line of a parallel port.
+> on error, it never returns error pointers.  I guess we should set ret to
+> EINVAL?
+>
+> 		if (!mt9v111->auto_awb) {
+> 			ret = -EINVAL;
+> 			goto error_free_ctrls;
+> 		}
+>
 
-A quick grep shows that currently each device using a svideo connector
-seperates them in a own port as I did. IMHO this is a uncomplicate
-solution, but don't abstract the HW correctly. What is your opinion
-about that? Is it correct to have seperate (virtual) port or should I
-map the svideo connector as shown above?
+We can do even better than that.
+The v4l2 control handler retains errors in a flag I can inspect after
+having added/created all controls here and here below.
 
-[1] https://www.spinics.net/lists/devicetree/msg242825.html
+I can return that error flag if something goes wrong.
 
-Regards,
-Marco
+Thanks
+   j
 
-> > +
-> > +The device node must contain at least the Y-OUT port. Each input port must be
-> > +linked to an endpoint defined in
-> > +Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt.
-> > +
-> > +Required Endpoint Properties for parallel synchronization on output port:
-> >  
-> >  - hsync-active: active state of the HSYNC signal. Must be <1> (HIGH).
-> >  - vsync-active: active state of the VSYNC signal. Must be <1> (HIGH).
-> > @@ -26,7 +38,9 @@ Required Endpoint Properties for parallel synchronization:
-> >  If none of hsync-active, vsync-active and field-even-active is specified,
-> >  the endpoint is assumed to use embedded BT.656 synchronization.
-> >  
-> > -Example:
-> > +Examples:
-> > +
-> > +Only Output:
-> >  
-> >  &i2c2 {
-> >  	...
-> > @@ -37,6 +51,100 @@ Example:
-> >  		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> >  
-> >  		port {
-> > +			reg = <3>;
-> > +			tvp5150_1: endpoint {
-> > +				remote-endpoint = <&ccdc_ep>;
-> > +			};
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +One Input:
-> > +
-> > +connector@0 {
-> 
-> Drop the unit-address as there is no reg property.
-> 
-> > +	compatible = "composite-video-connector";
-> > +	label = "Composite0";
-> > +
-> > +	port {
-> > +		comp0_out: endpoint {
-> > +			remote-endpoint = <&tvp5150_comp0_in>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +&i2c2 {
-> > +	...
-> > +	tvp5150@5c {
-> > +		compatible = "ti,tvp5150";
-> > +		reg = <0x5c>;
-> > +		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-> > +		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> > +
-> > +		port@0 {
-> > +			reg = <0>;
-> > +			tvp5150_comp0_in: endpoint {
-> > +				remote-endpoint = <&comp0_out>;
-> > +			};
-> > +		};
-> > +
-> > +		port@3 {
-> > +			reg = <3>;
-> > +			tvp5150_1: endpoint {
-> > +				remote-endpoint = <&ccdc_ep>;
-> > +			};
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +
-> > +Two Inputs, different connector 12 on input AIP1A:
-> > +
-> > +connector@1 {
-> 
-> ditto
-> 
-> > +	compatible = "svideo-connector";
-> > +	label = "S-Video";
-> > +
-> > +	port {
-> > +		svideo_out: endpoint {
-> > +			remote-endpoint = <&tvp5150_svideo_in>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +connector@12 {
-> 
-> ditto
-> 
-> > +	compatible = "composite-video-connector";
-> > +	label = "Composite12";
-> > +
-> > +	port {
-> > +		comp12_out: endpoint {
-> > +			remote-endpoint = <&tvp5150_comp12_in>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +&i2c2 {
-> > +	...
-> > +	tvp5150@5c {
-> > +		compatible = "ti,tvp5150";
-> > +		reg = <0x5c>;
-> > +		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-> > +		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> > +
-> > +		port@0 {
-> > +			reg = <0>;
-> > +			tvp5150_comp12_in: endpoint {
-> > +				remote-endpoint = <&comp12_out>;
-> > +			};
-> > +		};
-> > +
-> > +		port@2 {
-> > +			reg = <2>;
-> > +			tvp5150_svideo_in: endpoint {
-> > +				remote-endpoint = <&svideo_out>;
-> > +			};
-> > +		};
-> > +
-> > +		port@3 {
-> > +			reg = <3>;
-> >  			tvp5150_1: endpoint {
-> >  				remote-endpoint = <&ccdc_ep>;
-> >  			};
-> > -- 
-> > 2.17.1
-> > 
-> 
+>   1164                  goto error_free_ctrls;
+>   1165          }
+>   1166
+>   1167          mt9v111->auto_exp = v4l2_ctrl_new_std_menu(&mt9v111->ctrls,
+>   1168                                                     &mt9v111_ctrl_ops,
+>   1169                                                     V4L2_CID_EXPOSURE_AUTO,
+>   1170                                                     V4L2_EXPOSURE_MANUAL,
+>   1171                                                     0, V4L2_EXPOSURE_AUTO);
+>   1172          if (IS_ERR_OR_NULL(mt9v111->auto_exp)) {
+>   1173                  ret = PTR_ERR(mt9v111->auto_exp);
+>   1174                  goto error_free_ctrls;
+>   1175          }
+>   1176
+>   1177          /* Initialize timings */
+>   1178          mt9v111->hblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
+>   1179                                              V4L2_CID_HBLANK,
+>   1180                                              MT9V111_CORE_R05_MIN_HBLANK,
+>   1181                                              MT9V111_CORE_R05_MAX_HBLANK, 1,
+>   1182                                              MT9V111_CORE_R05_DEF_HBLANK);
+>   1183          if (IS_ERR_OR_NULL(mt9v111->hblank)) {
+>   1184                  ret = PTR_ERR(mt9v111->hblank);
+>   1185                  goto error_free_ctrls;
+>   1186          }
+>   1187
+>   1188          mt9v111->vblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
+>   1189                                              V4L2_CID_VBLANK,
+>   1190                                              MT9V111_CORE_R06_MIN_VBLANK,
+>   1191                                              MT9V111_CORE_R06_MAX_VBLANK, 1,
+>   1192                                              MT9V111_CORE_R06_DEF_VBLANK);
+>   1193          if (IS_ERR_OR_NULL(mt9v111->vblank)) {
+>   1194                  ret = PTR_ERR(mt9v111->vblank);
+>   1195                  goto error_free_ctrls;
+>   1196          }
+>   1197
+>   1198          /* PIXEL_RATE is fixed: just expose it to user space. */
+>   1199          v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
+>
+> regards,
+> dan carpenter
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5082 |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+--tEFtbjk+mNEviIIX
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbZBlRAAoJEHI0Bo8WoVY8ijEP/2x0RQOpZ+DJbz9YOmNivv7R
+p/qFC7UUOcCrtQl/qRhQTpF2w459AiV45YSB3MotyoX0M83NOJWccVyOxb3ObzcU
+YTbhLXlqv3MzPUFOwWqCoIc3xgub7ugBL0EErzWvpPzpzbrTby8rPUXWi8+M6Z29
+dQTA+BNmOHnrIG4YQQX++MfT8RJbR5SS7BHQae+l2Ur3uZ6BybTA1mER8dmDI23d
+Tnc2jjW1FA589ooi/qR1epl+dlq+xMbBowDqqv6jaYAs5+DFMDHTltaI/yo6oTiV
+dnrZ++E4CdxTCLc2SZJPd8mKezCfu1MKXW4lDRXKwvmrzLjKXDQhuENs393WuWqF
+GP+ZehXEyAXzWPkrQlQWYb1mdio2Gr7vCJoRCFmhkeEJjtcnk+e52OTGVRq7luZd
+75i1mmwZTiKMfXnOJOcLe/2tdfEO2wYR02KtgYGdwOCUgqtQTA/OrYUjA4lDXlss
+mYi5rjIou0XkIP5C2guPcTA8/YCdR/iMeWggPyIBrznIrGtk15Jmjwx5ylNw0bI5
+IJ8w4D0nI+zZ5Iqpz4q8ySklqEHmnAScQK2t/1Czou/9hyadI8K6JJOCZpB5RnEn
+v9c/LaYe7Jp49d1mgUjkYDV8aFXOpNK5lN/5AaI5ucswD2z0Dcv4O4E+cM60cNCr
+Q12rZuPutIGRkX+To70m
+=WGzb
+-----END PGP SIGNATURE-----
+
+--tEFtbjk+mNEviIIX--
