@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:50430 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:50436 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727193AbeHCNdh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 09:33:37 -0400
+        with ESMTP id S1727323AbeHCNdi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 09:33:38 -0400
 From: Kieran Bingham <kieran@ksquared.org.uk>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
 Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v6 06/11] media: vsp1: Provide VSP1 feature helper macro
-Date: Fri,  3 Aug 2018 12:37:25 +0100
-Message-Id: <3855080ea8637dcd0765661b3849dc5ce87e4f41.1533295631.git-series.kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v6 07/11] media: vsp1: Use header display lists for all WPF outputs linked to the DU
+Date: Fri,  3 Aug 2018 12:37:26 +0100
+Message-Id: <72052f6ab0a2b98c27c8a340db586f4c2fc532b7.1533295631.git-series.kieran.bingham+renesas@ideasonboard.com>
 In-Reply-To: <cover.7e4241408f077710d96e0cc06e039d1022fb0c8c.1533295631.git-series.kieran.bingham+renesas@ideasonboard.com>
 References: <cover.7e4241408f077710d96e0cc06e039d1022fb0c8c.1533295631.git-series.kieran.bingham+renesas@ideasonboard.com>
 In-Reply-To: <cover.7e4241408f077710d96e0cc06e039d1022fb0c8c.1533295631.git-series.kieran.bingham+renesas@ideasonboard.com>
@@ -20,138 +20,252 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-The VSP1 devices define their specific capabilities through features
-marked in their device info structure. Various parts of the code read
-this info structure to infer if the features are available.
+Header mode display lists are now supported on all WPF outputs. To
+support extended headers and auto-fld capabilities for interlaced mode
+handling only header mode display lists can be used.
 
-Wrap this into a more readable vsp1_feature(vsp1, f) macro to ensure
-that usage is consistent throughout the driver.
+Disable the headerless display list configuration, and remove the dead
+code.
 
 Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h     |  2 ++
- drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++--------
- drivers/media/platform/vsp1/vsp1_wpf.c |  6 +++---
- 3 files changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 33f632331474..f0d21cc8e9ab 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -68,6 +68,8 @@ struct vsp1_device_info {
- 	bool uapi;
+---
+v5:
+ - Fixed comments
+ - Re-aligned header_offset calculation
+
+ drivers/media/platform/vsp1/vsp1_dl.c | 108 ++++++---------------------
+ 1 file changed, 27 insertions(+), 81 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 64e5b25d1123..e535fee13d54 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -95,7 +95,7 @@ struct vsp1_dl_body_pool {
+  * struct vsp1_dl_list - Display list
+  * @list: entry in the display list manager lists
+  * @dlm: the display list manager
+- * @header: display list header, NULL for headerless lists
++ * @header: display list header
+  * @dma: DMA address for the header
+  * @body0: first display list body
+  * @bodies: list of extra display list bodies
+@@ -119,15 +119,9 @@ struct vsp1_dl_list {
+ 	bool internal;
  };
  
-+#define vsp1_feature(vsp1, f) ((vsp1)->info->features & (f))
+-enum vsp1_dl_mode {
+-	VSP1_DL_MODE_HEADER,
+-	VSP1_DL_MODE_HEADERLESS,
+-};
+-
+ /**
+  * struct vsp1_dl_manager - Display List manager
+  * @index: index of the related WPF
+- * @mode: display list operation mode (header or headerless)
+  * @singleshot: execute the display list in single-shot mode
+  * @vsp1: the VSP1 device
+  * @lock: protects the free, active, queued, and pending lists
+@@ -139,7 +133,6 @@ enum vsp1_dl_mode {
+  */
+ struct vsp1_dl_manager {
+ 	unsigned int index;
+-	enum vsp1_dl_mode mode;
+ 	bool singleshot;
+ 	struct vsp1_device *vsp1;
+ 
+@@ -319,6 +312,7 @@ void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
+ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
+ {
+ 	struct vsp1_dl_list *dl;
++	size_t header_offset;
+ 
+ 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
+ 	if (!dl)
+@@ -331,16 +325,14 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
+ 	dl->body0 = vsp1_dl_body_get(dlm->pool);
+ 	if (!dl->body0)
+ 		return NULL;
+-	if (dlm->mode == VSP1_DL_MODE_HEADER) {
+-		size_t header_offset = dl->body0->max_entries
+-				     * sizeof(*dl->body0->entries);
+ 
+-		dl->header = ((void *)dl->body0->entries) + header_offset;
+-		dl->dma = dl->body0->dma + header_offset;
++	header_offset = dl->body0->max_entries * sizeof(*dl->body0->entries);
+ 
+-		memset(dl->header, 0, sizeof(*dl->header));
+-		dl->header->lists[0].addr = dl->body0->dma;
+-	}
++	dl->header = ((void *)dl->body0->entries) + header_offset;
++	dl->dma = dl->body0->dma + header_offset;
 +
- struct vsp1_device {
- 	struct device *dev;
- 	const struct vsp1_device_info *info;
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 5d82f6ee56ea..3367c2ba990d 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -265,7 +265,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
++	memset(dl->header, 0, sizeof(*dl->header));
++	dl->header->lists[0].addr = dl->body0->dma;
+ 
+ 	return dl;
+ }
+@@ -472,16 +464,9 @@ struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl)
+  *
+  * The reference must be explicitly released by a call to vsp1_dl_body_put()
+  * when the body isn't needed anymore.
+- *
+- * Additional bodies are only usable for display lists in header mode.
+- * Attempting to add a body to a header-less display list will return an error.
+  */
+ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
+ {
+-	/* Multi-body lists are only available in header mode. */
+-	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
+-		return -EINVAL;
+-
+ 	refcount_inc(&dlb->refcnt);
+ 
+ 	list_add_tail(&dlb->list, &dl->bodies);
+@@ -502,17 +487,10 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl, struct vsp1_dl_body *dlb)
+  * Adding a display list to a chain passes ownership of the display list to
+  * the head display list item. The chain is released when the head dl item is
+  * put back with __vsp1_dl_list_put().
+- *
+- * Chained display lists are only usable in header mode. Attempts to add a
+- * display list to a chain in header-less mode will return an error.
+  */
+ int vsp1_dl_list_add_chain(struct vsp1_dl_list *head,
+ 			   struct vsp1_dl_list *dl)
+ {
+-	/* Chained lists are only available in header mode. */
+-	if (head->dlm->mode != VSP1_DL_MODE_HEADER)
+-		return -EINVAL;
+-
+ 	head->has_chain = true;
+ 	list_add_tail(&dl->chain, &head->chain);
+ 	return 0;
+@@ -580,17 +558,10 @@ static bool vsp1_dl_list_hw_update_pending(struct vsp1_dl_manager *dlm)
+ 		return false;
+ 
+ 	/*
+-	 * Check whether the VSP1 has taken the update. In headerless mode the
+-	 * hardware indicates this by clearing the UPD bit in the DL_BODY_SIZE
+-	 * register, and in header mode by clearing the UPDHDR bit in the CMD
+-	 * register.
++	 * Check whether the VSP1 has taken the update. The hardware indicates
++	 * this by clearing the UPDHDR bit in the CMD register.
+ 	 */
+-	if (dlm->mode == VSP1_DL_MODE_HEADERLESS)
+-		return !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE)
+-			  & VI6_DL_BODY_SIZE_UPD);
+-	else
+-		return !!(vsp1_read(vsp1, VI6_CMD(dlm->index))
+-			  & VI6_CMD_UPDHDR);
++	return !!(vsp1_read(vsp1, VI6_CMD(dlm->index)) & VI6_CMD_UPDHDR);
+ }
+ 
+ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
+@@ -598,26 +569,14 @@ static void vsp1_dl_list_hw_enqueue(struct vsp1_dl_list *dl)
+ 	struct vsp1_dl_manager *dlm = dl->dlm;
+ 	struct vsp1_device *vsp1 = dlm->vsp1;
+ 
+-	if (dlm->mode == VSP1_DL_MODE_HEADERLESS) {
+-		/*
+-		 * In headerless mode, program the hardware directly with the
+-		 * display list body address and size and set the UPD bit. The
+-		 * bit will be cleared by the hardware when the display list
+-		 * processing starts.
+-		 */
+-		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0->dma);
+-		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
+-			(dl->body0->num_entries * sizeof(*dl->header->lists)));
+-	} else {
+-		/*
+-		 * In header mode, program the display list header address. If
+-		 * the hardware is idle (single-shot mode or first frame in
+-		 * continuous mode) it will then be started independently. If
+-		 * the hardware is operating, the VI6_DL_HDR_REF_ADDR register
+-		 * will be updated with the display list address.
+-		 */
+-		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
+-	}
++	/*
++	 * Program the display list header address. If the hardware is idle
++	 * (single-shot mode or first frame in continuous mode) it will then be
++	 * started independently. If the hardware is operating, the
++	 * VI6_DL_HDR_REF_ADDR register will be updated with the display list
++	 * address.
++	 */
++	vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
+ }
+ 
+ static void vsp1_dl_list_commit_continuous(struct vsp1_dl_list *dl)
+@@ -675,15 +634,13 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
+ 	struct vsp1_dl_list *dl_next;
+ 	unsigned long flags;
+ 
+-	if (dlm->mode == VSP1_DL_MODE_HEADER) {
+-		/* Fill the header for the head and chained display lists. */
+-		vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
++	/* Fill the header for the head and chained display lists. */
++	vsp1_dl_list_fill_header(dl, list_empty(&dl->chain));
+ 
+-		list_for_each_entry(dl_next, &dl->chain, chain) {
+-			bool last = list_is_last(&dl_next->chain, &dl->chain);
++	list_for_each_entry(dl_next, &dl->chain, chain) {
++		bool last = list_is_last(&dl_next->chain, &dl->chain);
+ 
+-			vsp1_dl_list_fill_header(dl_next, last);
+-		}
++		vsp1_dl_list_fill_header(dl_next, last);
  	}
  
- 	/* Instantiate all the entities. */
--	if (vsp1->info->features & VSP1_HAS_BRS) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_BRS)) {
- 		vsp1->brs = vsp1_brx_create(vsp1, VSP1_ENTITY_BRS);
- 		if (IS_ERR(vsp1->brs)) {
- 			ret = PTR_ERR(vsp1->brs);
-@@ -275,7 +275,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		list_add_tail(&vsp1->brs->entity.list_dev, &vsp1->entities);
- 	}
+ 	dl->internal = internal;
+@@ -712,7 +669,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl, bool internal)
+  * has completed at frame end. If the flag is not returned display list
+  * completion has been delayed by one frame because the display list commit
+  * raced with the frame end interrupt. The function always returns with the flag
+- * set in header mode as display list processing is then not continuous and
++ * set in single-shot mode as display list processing is then not continuous and
+  * races never occur.
+  *
+  * The VSP1_DL_FRAME_END_INTERNAL flag indicates that the previous display list
+@@ -784,13 +741,6 @@ void vsp1_dlm_setup(struct vsp1_device *vsp1)
+ 		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
+ 		 | VI6_DL_CTRL_DLE;
  
--	if (vsp1->info->features & VSP1_HAS_BRU) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_BRU)) {
- 		vsp1->bru = vsp1_brx_create(vsp1, VSP1_ENTITY_BRU);
- 		if (IS_ERR(vsp1->bru)) {
- 			ret = PTR_ERR(vsp1->bru);
-@@ -285,7 +285,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		list_add_tail(&vsp1->bru->entity.list_dev, &vsp1->entities);
- 	}
+-	/*
+-	 * The DRM pipeline operates with display lists in Continuous Frame
+-	 * Mode, all other pipelines use manual start.
+-	 */
+-	if (vsp1->drm)
+-		ctrl |= VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
+-
+ 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
+ 	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
+ }
+@@ -830,8 +780,6 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ 		return NULL;
  
--	if (vsp1->info->features & VSP1_HAS_CLU) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_CLU)) {
- 		vsp1->clu = vsp1_clu_create(vsp1);
- 		if (IS_ERR(vsp1->clu)) {
- 			ret = PTR_ERR(vsp1->clu);
-@@ -311,7 +311,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	dlm->index = index;
+-	dlm->mode = index == 0 && !vsp1->info->uapi
+-		  ? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
+ 	dlm->singleshot = vsp1->info->uapi;
+ 	dlm->vsp1 = vsp1;
  
- 	list_add_tail(&vsp1->hst->entity.list_dev, &vsp1->entities);
+@@ -840,14 +788,12 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
  
--	if (vsp1->info->features & VSP1_HAS_HGO && vsp1->info->uapi) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_HGO) && vsp1->info->uapi) {
- 		vsp1->hgo = vsp1_hgo_create(vsp1);
- 		if (IS_ERR(vsp1->hgo)) {
- 			ret = PTR_ERR(vsp1->hgo);
-@@ -322,7 +322,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 			      &vsp1->entities);
- 	}
+ 	/*
+ 	 * Initialize the display list body and allocate DMA memory for the body
+-	 * and the optional header. Both are allocated together to avoid memory
++	 * and the header. Both are allocated together to avoid memory
+ 	 * fragmentation, with the header located right after the body in
+ 	 * memory. An extra body is allocated on top of the prealloc to account
+ 	 * for the cached body used by the vsp1_pipeline object.
+ 	 */
+-	header_size = dlm->mode == VSP1_DL_MODE_HEADER
+-		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
+-		    : 0;
++	header_size = ALIGN(sizeof(struct vsp1_dl_header), 8);
  
--	if (vsp1->info->features & VSP1_HAS_HGT && vsp1->info->uapi) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_HGT) && vsp1->info->uapi) {
- 		vsp1->hgt = vsp1_hgt_create(vsp1);
- 		if (IS_ERR(vsp1->hgt)) {
- 			ret = PTR_ERR(vsp1->hgt);
-@@ -353,7 +353,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		}
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_LUT) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_LUT)) {
- 		vsp1->lut = vsp1_lut_create(vsp1);
- 		if (IS_ERR(vsp1->lut)) {
- 			ret = PTR_ERR(vsp1->lut);
-@@ -387,7 +387,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		}
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_SRU) {
-+	if (vsp1_feature(vsp1, VSP1_HAS_SRU)) {
- 		vsp1->sru = vsp1_sru_create(vsp1);
- 		if (IS_ERR(vsp1->sru)) {
- 			ret = PTR_ERR(vsp1->sru);
-@@ -537,7 +537,7 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
- 	vsp1_write(vsp1, VI6_DPR_HSI_ROUTE, VI6_DPR_NODE_UNUSED);
- 	vsp1_write(vsp1, VI6_DPR_BRU_ROUTE, VI6_DPR_NODE_UNUSED);
- 
--	if (vsp1->info->features & VSP1_HAS_BRS)
-+	if (vsp1_feature(vsp1, VSP1_HAS_BRS))
- 		vsp1_write(vsp1, VI6_DPR_ILV_BRS_ROUTE, VI6_DPR_NODE_UNUSED);
- 
- 	vsp1_write(vsp1, VI6_DPR_HGO_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 23c8f706b3f2..c2a1a7f97e26 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -141,13 +141,13 @@ static int wpf_init_controls(struct vsp1_rwpf *wpf)
- 	if (wpf->entity.index != 0) {
- 		/* Only WPF0 supports flipping. */
- 		num_flip_ctrls = 0;
--	} else if (vsp1->info->features & VSP1_HAS_WPF_HFLIP) {
-+	} else if (vsp1_feature(vsp1, VSP1_HAS_WPF_HFLIP)) {
- 		/*
- 		 * When horizontal flip is supported the WPF implements three
- 		 * controls (horizontal flip, vertical flip and rotation).
- 		 */
- 		num_flip_ctrls = 3;
--	} else if (vsp1->info->features & VSP1_HAS_WPF_VFLIP) {
-+	} else if (vsp1_feature(vsp1, VSP1_HAS_WPF_VFLIP)) {
- 		/*
- 		 * When only vertical flip is supported the WPF implements a
- 		 * single control (vertical flip).
-@@ -276,7 +276,7 @@ static void wpf_configure_stream(struct vsp1_entity *entity,
- 
- 		vsp1_wpf_write(wpf, dlb, VI6_WPF_DSWAP, fmtinfo->swap);
- 
--		if (vsp1->info->features & VSP1_HAS_WPF_HFLIP &&
-+		if (vsp1_feature(vsp1, VSP1_HAS_WPF_HFLIP) &&
- 		    wpf->entity.index == 0)
- 			vsp1_wpf_write(wpf, dlb, VI6_WPF_ROT_CTRL,
- 				       VI6_WPF_ROT_CTRL_LN16 |
+ 	dlm->pool = vsp1_dl_body_pool_create(vsp1, prealloc + 1,
+ 					     VSP1_DL_NUM_ENTRIES, header_size);
 -- 
 git-series 0.9.1
