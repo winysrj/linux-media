@@ -1,121 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53090 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732298AbeHIRoz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 13:44:55 -0400
-Date: Thu, 9 Aug 2018 12:19:20 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        698668@bugs.debian.org, linux-media <linux-media@vger.kernel.org>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Ralph Metzler <rjkm@metzlerbros.de>,
-        Marcus Metzler <mocm@mocm.de>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] Documentation/media: uapi: Explicitly say there are no
- Invariant Sections
-Message-ID: <20180809121920.60d146bf@coco.lan>
-In-Reply-To: <20180803144153.GA18030@decadent.org.uk>
-References: <20180803144153.GA18030@decadent.org.uk>
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:59998 "EHLO
+        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732266AbeHCQif (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Aug 2018 12:38:35 -0400
+Date: Fri, 3 Aug 2018 15:41:53 +0100
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: 698668@bugs.debian.org, linux-media <linux-media@vger.kernel.org>
+Message-ID: <20180803144153.GA18030@decadent.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
+Content-Disposition: inline
+Subject: [PATCH] Documentation/media: uapi: Explicitly say there are no
+ Invariant Sections
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 3 Aug 2018 15:41:53 +0100
-Ben Hutchings <ben@decadent.org.uk> escreveu:
 
-> The GNU Free Documentation License allows for a work to specify
-> Invariant Sections that are not allowed to be modified.  (Debian
-> considers that this makes such works non-free.)
->=20
-> The Linux Media Infrastructure userspace API documentation does not
-> specify any such sections, but it also doesn't say there are none (as
-> is recommended by the license text).  Make it explicit that there are
-> none.
->=20
-> References: https://bugs.debian.org/698668
-> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-=46rom my side:
+The GNU Free Documentation License allows for a work to specify
+Invariant Sections that are not allowed to be modified.  (Debian
+considers that this makes such works non-free.)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+The Linux Media Infrastructure userspace API documentation does not
+specify any such sections, but it also doesn't say there are none (as
+is recommended by the license text).  Make it explicit that there are
+none.
 
-(I'm waiting for more SoBs before merging this)
+References: https://bugs.debian.org/698668
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ Documentation/media/media_uapi.rst | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I pinged some developers that don't use to listen to the media ML
-as often as they used to do, and to the sub-maintainers, via the
-sub-mainainers ML, and got some SoBs. Let me add them to this thread:
+diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media=
+_uapi.rst
+index 28eb35a1f965..5198ff24a094 100644
+--- a/Documentation/media/media_uapi.rst
++++ b/Documentation/media/media_uapi.rst
+@@ -10,9 +10,9 @@ Linux Media Infrastructure userspace API
+=20
+ Permission is granted to copy, distribute and/or modify this document
+ under the terms of the GNU Free Documentation License, Version 1.1 or
+-any later version published by the Free Software Foundation. A copy of
+-the license is included in the chapter entitled "GNU Free Documentation
+-License".
++any later version published by the Free Software Foundation, with no
++Invariant Sections. A copy of the license is included in the chapter
++entitled "GNU Free Documentation License".
+=20
+ .. only:: html
+=20
 
-Gerd:
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Hans:
+iQIVAwUBW2Rpsee/yOyVhhEJAQocIg//WRG5v+6QYqbBTDGqapTEpTtCY1/2Z6vv
+1sasThrIhcAoKT7TwJIpQVLPF3+GlaV2v5wkVldDrS5mBx0Ty/j8KE21Zho27Rkm
+szERDyDFquBTmForZf646wjDGhu8gaWscU2/Ys/dPITXaDViNs2hSiE82PjJEslM
+dHJWbltXd4rjDX6G3y8G1810kR46tRaZNMXLHT5gY4afECkHGvFthdjSUD6SN0ef
+LbFPFnioKBhAKAr9BO5kd3jo/mE6ys0dX2g3oecJiwFUUdXSNVf6ymjHh7EF+n9I
+8AoDrb5v9VflXtgZgaWjYVKaNBQotM+5RlSwX4svr8g6g5sTzRjfk9fCCBLArbPm
+awWHMeNXR8hSfh6YLcK78mjijwwbKvd/2jctJBsprL+Hh61/VPKyOfZErvSsbS/2
+EOo+JxVuB45eMeb4gsiLC5yLbFGHsy8PvCuTzzRat06bBAe9uhA95uVHiky17AXC
+ZZcQumLtKRWo6MJFMFIjHOdY0V9CcIPBU/tBh2zqAjWYqE5a7VfLQsLlwrmUg8zz
+73LEaFFg56kz8SS5goPEPJgCMN6dzqJXMP2WmVDP7mnto3k9e/Ub6Uj4BSRGW5WT
+MriW5eJuN2+gfRVuBGsdXiIQE+bg/QXTGp1kdT3r4DDO/FJyS93M5n5I9/T8Q0c8
+qzrZwVb+6fQ=
+=19Fm
+-----END PGP SIGNATURE-----
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Sylwester:
-
-Signed-off-by: Sylwester Nawrocki <snawrocki@kernel.org>
-
-Johannes:
-
-"I think I didn't contribute to that documentation?
- Anyway, just in case: I agree with the change to
- forbid adding invariant sections."
-
-Signed-off-by: Johannes Stezenbach <js@linuxtv.org>
-
-Ralph:
-
-"I also do not think there is anything left in there which I contributed.
- The original documentation up to 2002 probably is copyright of Convergence.
-
- But I agree with the change to forbid adding invariant sections regarding
- anything in that documentation that might be my copyright."
-
-Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
-
-Markus:
-
-"Ralph> I also do not think there is anything left in there which I
- Ralph> contributed.  The original documentation up to 2002
- Ralph> probably is copyright of Convergence. =20
- The same is true for me.
-
- I also agree with the change to forbid adding invariant sections
- regarding anything in that documentation that might be my copyright."
-
-Signed-off-by: Marcus Metzler <mocm@metzlerbros.de>
-
-
-> ---
->  Documentation/media/media_uapi.rst | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/med=
-ia_uapi.rst
-> index 28eb35a1f965..5198ff24a094 100644
-> --- a/Documentation/media/media_uapi.rst
-> +++ b/Documentation/media/media_uapi.rst
-> @@ -10,9 +10,9 @@ Linux Media Infrastructure userspace API
-> =20
->  Permission is granted to copy, distribute and/or modify this document
->  under the terms of the GNU Free Documentation License, Version 1.1 or
-> -any later version published by the Free Software Foundation. A copy of
-> -the license is included in the chapter entitled "GNU Free Documentation
-> -License".
-> +any later version published by the Free Software Foundation, with no
-> +Invariant Sections. A copy of the license is included in the chapter
-> +entitled "GNU Free Documentation License".
-> =20
->  .. only:: html
-> =20
-
-
-
-Thanks,
-Mauro
+--EVF5PPMfhYS0aIcm--
