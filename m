@@ -1,139 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:45377 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732233AbeHCMgw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Aug 2018 08:36:52 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        dan.carpenter@oracle.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Subject: [PATCH] media: i2c: mt9v111: Fix v4l2-ctrl error handling
-Date: Fri,  3 Aug 2018 12:40:58 +0200
-Message-Id: <1533292858-28022-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:32992 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726523AbeHCM4t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Aug 2018 08:56:49 -0400
+Subject: Re: [PATCH v6 00/13] media: staging/imx7: add i.MX7 media driver
+To: Rui Miguel Silva <rui.silva@linaro.org>
+Cc: mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, Shawn Guo <shawnguo@kernel.org>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        devicetree@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Ryan Harkin <ryan.harkin@linaro.org>, linux-clk@vger.kernel.org
+References: <20180522145245.3143-1-rui.silva@linaro.org>
+ <267173c9-7235-6008-7248-ee06c0db3780@xs4all.nl> <m3a7q4u38f.fsf@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1308a131-8634-861b-a191-cef24cc4fb95@xs4all.nl>
+Date: Fri, 3 Aug 2018 13:00:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <m3a7q4u38f.fsf@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix error handling of v4l2_ctrl creation by inspecting the ctrl.error flag
-instead of testing for each returned value correctness.
+On 08/02/18 18:45, Rui Miguel Silva wrote:
+> Hi Hans,
+> On Thu 02 Aug 2018 at 13:37, Hans Verkuil wrote:
+>> Hi Rui,
+>>
+>> On 05/22/18 16:52, Rui Miguel Silva wrote:
+>>> Hi,
+>>> This series introduces the Media driver to work with the i.MX7 
+>>> SoC. it uses the
+>>> already existing imx media core drivers but since the i.MX7, 
+>>> contrary to
+>>> i.MX5/6, do not have an IPU and because of that some changes in 
+>>> the imx media
+>>> core are made along this series to make it support that case.
+>>>
+>>> This patches adds CSI and MIPI-CSI2 drivers for i.MX7, along 
+>>> with several
+>>> configurations changes for this to work as a capture subsystem. 
+>>> Some bugs are
+>>> also fixed along the line. And necessary documentation.
+>>>
+>>> For a more detailed view of the capture paths, pads links in 
+>>> the i.MX7 please
+>>> take a look at the documentation in PATCH 14.
+>>>
+>>> The system used to test and develop this was the Warp7 board 
+>>> with an OV2680
+>>> sensor, which output format is 10-bit bayer. So, only MIPI 
+>>> interface was
+>>> tested, a scenario with an parallel input would nice to have.
+>>>
+>>> *Important note*, this code depends on Steve Longerbeam series 
+>>> [0]:
+>>> [PATCH v4 00/13] media: imx: Switch to subdev notifiers
+>>> which the merging status is not clear to me, but the changes in 
+>>> there make
+>>> senses to this series
+>>>
+>>> Bellow goes an example of the output of the pads and links and 
+>>> the output of
+>>> v4l2-compliance testing.
+>>>
+>>> The v4l-utils version used is:
+>>> v4l2-compliance SHA   : 
+>>> 47d43b130dc6e9e0edc900759fb37649208371e4 from Apr 4th.
+>>>
+>>> The Media Driver fail some tests but this failures are coming 
+>>> from code out of
+>>> scope of this series (video-mux, imx-capture), and some from 
+>>> the sensor OV2680
+>>> but that I think not related with the sensor driver but with 
+>>> the testing and
+>>> core.
+>>>
+>>> The csi and mipi-csi entities pass all compliance tests.
+>>>
+>>> Cheers,
+>>>     Rui
+>>>
+>>> [0]: 
+>>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg131186.html
+>>
+>> This patch series was delayed quite a bit since the patch series 
+>> above
+>> it depends on is still not merged.
+>>
+>> But the v6 version of that series will be merged once the 4.20 
+>> cycle opens:
+>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg133391.html
+> 
+> Good news.
+> 
+>>
+>> Sakari has a branch with that series on top of the latest 
+>> media_tree master:
+>> https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-fwnode
+>>
+>> Can you rebase this imx7 series on top of that? And test it 
+>> again with the
+>> *latest* v4l2-compliance? (I've added new checks recently, so 
+>> you need to
+>> update this utility)
+>>
+>> Please post the output of the v4l2-compliance test (after fixing 
+>> any issues
+>> it raises of course), either as a reply to this post or in the 
+>> cover letter
+>> of a v7 version of this series if you had to make changes.
+> 
+> Sure, I will rebase on top of Sakari tree and will update the 
+> compliance
+> tests and run them again.
 
-As reported by Dan Carpenter returning PTR_ERR() on the v4l2_ctrl_new_std()
-return value is also wrong, as that function return NULL on error.
+Oops, forgot to mention: you will likely need to update the
+include/linux/media.h header:
 
-While at there re-order the cleanup path to respect the operation inverse
-order.
+Look for MEDIA_V2_ENTITY_HAS_FLAGS and MEDIA_V2_PAD_HAS_INDEX and
+change 19 to 18 in those defines. This is added for kernel 4.19, but
+since in our master tree the kernel version is still 4.18 the v4l2-compliance
+utility thinks these features are not present when in fact they are.
 
-Fixes: aab7ed1c "media: i2c: Add driver for Aptina MT9V111"
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/i2c/mt9v111.c | 41 +++++++++++++----------------------------
- 1 file changed, 13 insertions(+), 28 deletions(-)
+Without this change (temporarily since this will automatically be fixed
+after the 4.19 merge window closes) v4l2-compliance will fail with an error.
 
-diff --git a/drivers/media/i2c/mt9v111.c b/drivers/media/i2c/mt9v111.c
-index da8f6ab..2b87bf9 100644
---- a/drivers/media/i2c/mt9v111.c
-+++ b/drivers/media/i2c/mt9v111.c
-@@ -1159,41 +1159,21 @@ static int mt9v111_probe(struct i2c_client *client)
- 					      V4L2_CID_AUTO_WHITE_BALANCE,
- 					      0, 1, 1,
- 					      V4L2_WHITE_BALANCE_AUTO);
--	if (IS_ERR_OR_NULL(mt9v111->auto_awb)) {
--		ret = PTR_ERR(mt9v111->auto_awb);
--		goto error_free_ctrls;
--	}
--
- 	mt9v111->auto_exp = v4l2_ctrl_new_std_menu(&mt9v111->ctrls,
- 						   &mt9v111_ctrl_ops,
- 						   V4L2_CID_EXPOSURE_AUTO,
- 						   V4L2_EXPOSURE_MANUAL,
- 						   0, V4L2_EXPOSURE_AUTO);
--	if (IS_ERR_OR_NULL(mt9v111->auto_exp)) {
--		ret = PTR_ERR(mt9v111->auto_exp);
--		goto error_free_ctrls;
--	}
--
--	/* Initialize timings */
- 	mt9v111->hblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
- 					    V4L2_CID_HBLANK,
- 					    MT9V111_CORE_R05_MIN_HBLANK,
- 					    MT9V111_CORE_R05_MAX_HBLANK, 1,
- 					    MT9V111_CORE_R05_DEF_HBLANK);
--	if (IS_ERR_OR_NULL(mt9v111->hblank)) {
--		ret = PTR_ERR(mt9v111->hblank);
--		goto error_free_ctrls;
--	}
--
- 	mt9v111->vblank = v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
- 					    V4L2_CID_VBLANK,
- 					    MT9V111_CORE_R06_MIN_VBLANK,
- 					    MT9V111_CORE_R06_MAX_VBLANK, 1,
- 					    MT9V111_CORE_R06_DEF_VBLANK);
--	if (IS_ERR_OR_NULL(mt9v111->vblank)) {
--		ret = PTR_ERR(mt9v111->vblank);
--		goto error_free_ctrls;
--	}
+Regards,
 
- 	/* PIXEL_RATE is fixed: just expose it to user space. */
- 	v4l2_ctrl_new_std(&mt9v111->ctrls, &mt9v111_ctrl_ops,
-@@ -1201,6 +1181,10 @@ static int mt9v111_probe(struct i2c_client *client)
- 			  DIV_ROUND_CLOSEST(mt9v111->sysclk, 2), 1,
- 			  DIV_ROUND_CLOSEST(mt9v111->sysclk, 2));
-
-+	if (mt9v111->ctrls.error) {
-+		ret = mt9v111->ctrls.error;
-+		goto error_free_ctrls;
-+	}
- 	mt9v111->sd.ctrl_handler = &mt9v111->ctrls;
-
- 	/* Start with default configuration: 640x480 UYVY. */
-@@ -1226,26 +1210,27 @@ static int mt9v111_probe(struct i2c_client *client)
- 	mt9v111->pad.flags	= MEDIA_PAD_FL_SOURCE;
- 	ret = media_entity_pads_init(&mt9v111->sd.entity, 1, &mt9v111->pad);
- 	if (ret)
--		goto error_free_ctrls;
-+		goto error_free_entity;
- #endif
-
- 	ret = mt9v111_chip_probe(mt9v111);
- 	if (ret)
--		goto error_free_ctrls;
-+		goto error_free_entity;
-
- 	ret = v4l2_async_register_subdev(&mt9v111->sd);
- 	if (ret)
--		goto error_free_ctrls;
-+		goto error_free_entity;
-
- 	return 0;
-
--error_free_ctrls:
--	v4l2_ctrl_handler_free(&mt9v111->ctrls);
--
-+error_free_entity:
- #if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
- 	media_entity_cleanup(&mt9v111->sd.entity);
- #endif
-
-+error_free_ctrls:
-+	v4l2_ctrl_handler_free(&mt9v111->ctrls);
-+
- 	mutex_destroy(&mt9v111->pwr_mutex);
- 	mutex_destroy(&mt9v111->stream_mutex);
-
-@@ -1259,12 +1244,12 @@ static int mt9v111_remove(struct i2c_client *client)
-
- 	v4l2_async_unregister_subdev(sd);
-
--	v4l2_ctrl_handler_free(&mt9v111->ctrls);
--
- #if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
- 	media_entity_cleanup(&sd->entity);
- #endif
-
-+	v4l2_ctrl_handler_free(&mt9v111->ctrls);
-+
- 	mutex_destroy(&mt9v111->pwr_mutex);
- 	mutex_destroy(&mt9v111->stream_mutex);
-
---
-2.7.4
+	Hans
