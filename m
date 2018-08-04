@@ -1,95 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34403 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726983AbeHDPu4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 11:50:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC] Request API and V4L2 capabilities
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from netrider.rowland.org ([192.131.102.5]:36577 "HELO
+        netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1727092AbeHDQrc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Aug 2018 12:47:32 -0400
+Date: Sat, 4 Aug 2018 10:46:35 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Message-ID: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
-Date: Sat, 4 Aug 2018 15:50:04 +0200
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, <mingo@redhat.com>,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        <keiichiw@chromium.org>
+Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
+ ISO transfer
+In-Reply-To: <CAJs94EZA=o5=4frPhXs3vnr4x-__gSZ2ximvTyugLoaD6KLcUg@mail.gmail.com>
+Message-ID: <Pine.LNX.4.44L0.1808041045060.25853-100000@netrider.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Sat, 4 Aug 2018, Matwey V. Kornilov wrote:
 
-While the Request API patch series addresses all the core API issues, there
-are some high-level considerations as well:
+> 2018-07-30 18:35 GMT+03:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > Hi Matwey,
+> >
+> > On Tuesday, 24 July 2018 21:56:09 EEST Matwey V. Kornilov wrote:
+> >> 2018-07-23 21:57 GMT+03:00 Alan Stern:
+> >> > On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
+> >> >> I've tried to strategies:
+> >> >>
+> >> >> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
+> >> >> similar to how USB core does when there is no URB_NO_TRANSFER_DMA_MAP)
+> >> >
+> >> > Yes.
+> >> >
+> >> >> 2) Use sync_cpu and sync_device inside the handler (and dma_map only
+> >> >> once at memory allocation)
+> >> >>
+> >> >> It is interesting that dma_unmap/dma_map pair leads to the lower
+> >> >> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64 platform.
+> >> >> At armv7l platform using dma_unmap/dma_map  leads to ~50 usec in the
+> >> >> handler, and sync_cpu/sync_device - ~65 usec.
+> >> >>
+> >> >> However, I am not sure is it mandatory to call
+> >> >> dma_sync_single_for_device for FROM_DEVICE direction?
+> >> >
+> >> > According to Documentation/DMA-API-HOWTO.txt, the CPU should not write
+> >> > to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
+> >> > not needed.
+> >>
+> >> Well, I measured the following at armv7l. The handler execution time
+> >> (URB_NO_TRANSFER_DMA_MAP is used for all cases):
+> >>
+> >> 1) coherent DMA: ~3000 usec (pwc is not functional)
+> >> 2) explicit dma_unmap and dma_map in the handler: ~52 usec
+> >> 3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device): ~56
+> >> usec
+> >
+> > I really don't understand why the sync option is slower. Could you please
+> > investigate ? Before doing anything we need to make sure we have a full
+> > understanding of the problem.
+> 
+> Hi,
+> 
+> I've found one drawback in my measurements. I forgot to fix CPU
+> frequency at lowest state 300MHz. Now, I remeasured
+> 
+> 2) dma_unmap and dma_map in the handler:
+> 2A) dma_unmap_single call: 28.8 +- 1.5 usec
+> 2B) memcpy and the rest: 58 +- 6 usec
+> 2C) dma_map_single call: 22 +- 2 usec
+> Total: 110 +- 7 usec
+> 
+> 3) dma_sync_single_for_cpu
+> 3A) dma_sync_single_for_cpu call: 29.4 +- 1.7 usec
+> 3B) memcpy and the rest: 59 +- 6 usec
+> 3C) noop (trace events overhead): 5 +- 2 usec
+> Total: 93 +- 7 usec
+> 
+> So, now we see that 2A and 3A (as well as 2B and 3B) agree good within
+> error ranges.
 
-1) How can the application tell that the Request API is supported and for
-   which buffer types (capture/output) and pixel formats?
+Taken together, those measurements look like a pretty good argument for 
+always using dma_sync_single_for_cpu in the driver.  Provided results 
+on other platforms aren't too far out of line with these results.
 
-2) How can the application tell if the Request API is required as opposed to being
-   optional?
-
-3) Some controls may be required in each request, how to let userspace know this?
-   Is it even necessary to inform userspace?
-
-4) (For bonus points): How to let the application know which streaming I/O modes
-   are available? That's never been possible before, but it would be very nice
-   indeed if that's made explicit.
-
-Since the Request API associates data with frame buffers it makes sense to expose
-this as a new capability field in struct v4l2_requestbuffers and struct v4l2_create_buffers.
-
-The first struct has 2 reserved fields, the second has 8, so it's not a problem to
-take one for a capability field. Both structs also have a buffer type, so we know
-if this is requested for a capture or output buffer type. The pixel format is known
-in the driver, so HAS/REQUIRES_REQUESTS can be set based on that. I doubt we'll have
-drivers where the request caps would actually depend on the pixel format, but it
-theoretically possible. For both ioctls you can call them with count=0 at the start
-of the application. REQBUFS has of course the side-effect of deleting all buffers,
-but at the start of your application you don't have any yet. CREATE_BUFS has no
-side-effects.
-
-I propose adding these capabilities:
-
-#define V4L2_BUF_CAP_HAS_REQUESTS	0x00000001
-#define V4L2_BUF_CAP_REQUIRES_REQUESTS	0x00000002
-#define V4L2_BUF_CAP_HAS_MMAP		0x00000100
-#define V4L2_BUF_CAP_HAS_USERPTR	0x00000200
-#define V4L2_BUF_CAP_HAS_DMABUF		0x00000400
-
-If REQUIRES_REQUESTS is set, then HAS_REQUESTS is also set.
-
-At this time I think that REQUIRES_REQUESTS would only need to be set for the
-output queue of stateless codecs.
-
-If capabilities is 0, then it's from an old kernel and all you know is that
-requests are certainly not supported, and that MMAP is supported. Whether USERPTR
-or DMABUF are supported isn't known in that case (just try it :-) ).
-
-Strictly speaking we do not need these HAS_MMAP/USERPTR/DMABUF caps, but it is very
-easy to add if we create a new capability field anyway, and it has always annoyed
-the hell out of me that we didn't have a good way to let userspace know what
-streaming I/O modes we support. And with vb2 it's easy to implement.
-
-Regarding point 3: I think this should be documented next to the pixel format. I.e.
-the MPEG-2 Slice format used by the stateless cedrus codec requires the request API
-and that two MPEG-2 controls (slice params and quantization matrices) must be present
-in each request.
-
-I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRED_IN_REQ) is needed here.
-It's really implied by the fact that you use a stateless codec. It doesn't help
-generic applications like v4l2-ctl or qv4l2 either since in order to support
-stateless codecs they will have to know about the details of these controls anyway.
-
-So I am inclined to say that it is not necessary to expose this information in
-the API, but it has to be documented together with the pixel format documentation.
-
-Comments? Ideas?
-
-Regards,
-
-	Hans
+Alan Stern
