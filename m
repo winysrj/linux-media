@@ -1,132 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:54953 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729461AbeHDOqL (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:48574 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729508AbeHDOqN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 10:46:11 -0400
+        Sat, 4 Aug 2018 10:46:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 16/34] v4l2-ctrls: add v4l2_ctrl_request_hdl_find/put/ctrl_find functions
-Date: Sat,  4 Aug 2018 14:45:08 +0200
-Message-Id: <20180804124526.46206-17-hverkuil@xs4all.nl>
+Subject: [PATCHv17 26/34] videobuf2-v4l2: add vb2_request_queue/validate helpers
+Date: Sat,  4 Aug 2018 14:45:18 +0200
+Message-Id: <20180804124526.46206-27-hverkuil@xs4all.nl>
 In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a driver needs to find/inspect the controls set in a request then
-it can use these functions.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-E.g. to check if a required control is set in a request use this in the
-req_validate() implementation:
+The generic vb2_request_validate helper function checks if
+there are buffers in the request and if so, prepares (validates)
+all objects in the request.
 
-	int res = -EINVAL;
-
-	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
-	if (hdl) {
-		if (v4l2_ctrl_request_hdl_ctrl_find(hdl, ctrl_id))
-			res = 0;
-		v4l2_ctrl_request_hdl_put(hdl);
-	}
-	return res;
+The generic vb2_request_queue helper function queues all buffer
+objects in the validated request.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 25 ++++++++++++++++
- include/media/v4l2-ctrls.h           | 44 +++++++++++++++++++++++++++-
- 2 files changed, 68 insertions(+), 1 deletion(-)
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 44 +++++++++++++++++++
+ include/media/videobuf2-v4l2.h                |  4 ++
+ 2 files changed, 48 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 86a6ae54ccaa..2a30be824491 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2976,6 +2976,31 @@ static const struct media_request_object_ops req_ops = {
- 	.release = v4l2_ctrl_request_release,
- };
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 9c652afa62ab..88d8f60c742b 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -1100,6 +1100,50 @@ void vb2_ops_wait_finish(struct vb2_queue *vq)
+ }
+ EXPORT_SYMBOL_GPL(vb2_ops_wait_finish);
  
-+struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
-+					struct v4l2_ctrl_handler *parent)
++int vb2_request_validate(struct media_request *req)
 +{
 +	struct media_request_object *obj;
++	int ret = 0;
 +
-+	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_VALIDATING &&
-+		    req->state != MEDIA_REQUEST_STATE_QUEUED))
-+		return NULL;
++	if (!vb2_request_has_buffers(req))
++		return -ENOENT;
 +
-+	obj = media_request_object_find(req, &req_ops, parent);
-+	if (obj)
-+		return container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+	return NULL;
++	list_for_each_entry(obj, &req->objects, list) {
++		if (!obj->ops->prepare)
++			continue;
++
++		ret = obj->ops->prepare(obj);
++		if (ret)
++			break;
++	}
++
++	if (ret) {
++		list_for_each_entry_continue_reverse(obj, &req->objects, list)
++			if (obj->ops->unprepare)
++				obj->ops->unprepare(obj);
++		return ret;
++	}
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_find);
++EXPORT_SYMBOL_GPL(vb2_request_validate);
 +
-+struct v4l2_ctrl *
-+v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id)
++void vb2_request_queue(struct media_request *req)
 +{
-+	struct v4l2_ctrl_ref *ref = find_ref_lock(hdl, id);
++	struct media_request_object *obj, *obj_safe;
 +
-+	return (ref && ref->req == ref) ? ref->ctrl : NULL;
++	/* Queue all non-buffer objects */
++	list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
++		if (obj->ops->queue && !vb2_request_object_is_buffer(obj))
++			obj->ops->queue(obj);
++
++	/* Queue all buffer objects */
++	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
++		if (obj->ops->queue && vb2_request_object_is_buffer(obj))
++			obj->ops->queue(obj);
++	}
 +}
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_ctrl_find);
++EXPORT_SYMBOL_GPL(vb2_request_queue);
 +
- static int v4l2_ctrl_request_bind(struct media_request *req,
- 			   struct v4l2_ctrl_handler *hdl,
- 			   struct v4l2_ctrl_handler *from)
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 98b1e70a4a46..aeb7f3c24ef7 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -1111,7 +1111,49 @@ void v4l2_ctrl_request_setup(struct media_request *req,
-  * request object.
+ MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 91a2b3e1a642..727855463838 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -303,4 +303,8 @@ void vb2_ops_wait_prepare(struct vb2_queue *vq);
   */
- void v4l2_ctrl_request_complete(struct media_request *req,
--				struct v4l2_ctrl_handler *hdl);
-+				struct v4l2_ctrl_handler *parent);
-+
-+/**
-+ * v4l2_ctrl_request_hdl_find - Find the control handler in the request
-+ *
-+ * @req: The request
-+ * @parent: The parent control handler ('priv' in media_request_object_find())
-+ *
-+ * This function finds the control handler in the request. It may return
-+ * NULL if not found. When done, you must call v4l2_ctrl_request_put_hdl()
-+ * with the returned handler pointer.
-+ *
-+ * If the request is not in state VALIDATING or QUEUED, then this function
-+ * will always return NULL.
-+ */
-+struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
-+					struct v4l2_ctrl_handler *parent);
-+
-+/**
-+ * v4l2_ctrl_request_hdl_put - Put the control handler
-+ *
-+ * @hdl: Put this control handler
-+ *
-+ * This function released the control handler previously obtained from'
-+ * v4l2_ctrl_request_hdl_find().
-+ */
-+static inline void v4l2_ctrl_request_hdl_put(struct v4l2_ctrl_handler *hdl)
-+{
-+	if (hdl)
-+		media_request_object_put(&hdl->req_obj);
-+}
-+
-+/**
-+ * v4l2_ctrl_request_ctrl_find() - Find a control with the given ID.
-+ *
-+ * @hdl: The control handler from the request.
-+ * @id: The ID of the control to find.
-+ *
-+ * This function returns a pointer to the control if this control is
-+ * part of the request or NULL otherwise.
-+ */
-+struct v4l2_ctrl *
-+v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id);
+ void vb2_ops_wait_finish(struct vb2_queue *vq);
  
- /* Helpers for ioctl_ops */
- 
++struct media_request;
++int vb2_request_validate(struct media_request *req);
++void vb2_request_queue(struct media_request *req);
++
+ #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
 -- 
 2.18.0
