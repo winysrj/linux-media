@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:33378 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726550AbeHDNfl (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42306 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726588AbeHDNnN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 09:35:41 -0400
-Subject: Re: [PATCH v6 1/8] media: v4l: Add definitions for MPEG2 slice format
- and metadata
+        Sat, 4 Aug 2018 09:43:13 -0400
+Subject: Re: [PATCH v6 2/8] media: v4l: Add definition for Allwinner's
+ MB32-tiled NV12 format
 To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
@@ -27,469 +27,100 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
 References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
- <20180725100256.22833-2-paul.kocialkowski@bootlin.com>
+ <20180725100256.22833-3-paul.kocialkowski@bootlin.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cf07a5d1-9179-44af-de11-61f02bbcf904@xs4all.nl>
-Date: Sat, 4 Aug 2018 13:35:01 +0200
+Message-ID: <4628cfe1-e42f-67ad-20b3-078c6a96d6ed@xs4all.nl>
+Date: Sat, 4 Aug 2018 13:42:40 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180725100256.22833-2-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180725100256.22833-3-paul.kocialkowski@bootlin.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
-
-Some comments below. It looks pretty good, it's mostly small things that I
-commented upon.
-
 On 07/25/2018 12:02 PM, Paul Kocialkowski wrote:
-> Stateless video decoding engines require both the MPEG slices and
-> associated metadata from the video stream in order to decode frames.
+> This introduces support for Allwinner's MB32-tiled NV12 format, where
+> each plane is divided into macroblocks of 32x32 pixels. Hence, the size
+> of each plane has to be aligned to 32 bytes. The pixels inside each
+> macroblock are coded as they would be if the macroblock was a single
+> plane, line after line.
 > 
-> This introduces definitions for a new pixel format, describing buffers
-> with MPEG2 slice data, as well as a control structure for passing the
-> frame metadata to drivers.
-> 
-> This is based on work from both Florent Revest and Hugues Fruchet.
+> The MB32-tiled NV12 format is used by the video engine on Allwinner
+> platforms: it is the default format for decoded frames (and the only one
+> available in the oldest supported platforms).
 > 
 > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 > ---
->  .../media/uapi/v4l/extended-controls.rst      | 122 ++++++++++++++++++
->  .../media/uapi/v4l/pixfmt-compressed.rst      |   5 +
->  drivers/media/v4l2-core/v4l2-ctrls.c          |  54 ++++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
->  include/media/v4l2-ctrls.h                    |  18 ++-
->  include/uapi/linux/v4l2-controls.h            |  43 ++++++
->  include/uapi/linux/videodev2.h                |   5 +
->  7 files changed, 241 insertions(+), 7 deletions(-)
+>  Documentation/media/uapi/v4l/pixfmt-reserved.rst | 15 ++++++++++++++-
+>  drivers/media/v4l2-core/v4l2-ioctl.c             |  1 +
+>  include/uapi/linux/videodev2.h                   |  1 +
+>  3 files changed, 16 insertions(+), 1 deletion(-)
 > 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index 9f7312bf3365..4a29d89fd9ac 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -1497,6 +1497,128 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type -
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> index 38af1472a4b4..9a68b6a787bf 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> @@ -243,7 +243,20 @@ please make a proposal on the linux-media mailing list.
+>  	It is an opaque intermediate format and the MDP hardware must be
+>  	used to convert ``V4L2_PIX_FMT_MT21C`` to ``V4L2_PIX_FMT_NV12M``,
+>  	``V4L2_PIX_FMT_YUV420M`` or ``V4L2_PIX_FMT_YVU420``.
+> -
+> +    * .. _V4L2-PIX-FMT-MB32-NV12:
+> +
+> +      - ``V4L2_PIX_FMT_MB32_NV12``
+> +      - 'MN12'
+> +      - Two-planar NV12-based format used by the Allwinner video engine
+> +        hardware, with 32x32 tiles for the luminance plane and 32x64 tiles
+> +        for the chrominance plane. Each tile is a linear pixel data
+> +        representation within its own bounds. Each tile follows the previous
+> +        one linearly (as in, from left to right, top to bottom).
+
+as in, -> as in:
+
+> +
+> +        The frame dimensions are aligned to match an integer number of
+> +        tiles, resulting in 32-aligned resolutions for the luminance plane
+> +        and 16-aligned resolutions for the chrominance plane (with 2x2
+> +        subsampling).
 >  
+>  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
 >  
->  
-> +.. _v4l2-mpeg-mpeg2:
-> +
-> +``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS (struct)``
-> +    Specifies the slice parameters (also known as slice header) for the
-> +    associated MPEG-2 slice data. This includes all the necessary
-> +    parameters for configuring a hardware decoder pipeline for MPEG-2.
-
-This seems to be mostly a representation of the MPEG-2 "Picture coding
-extension" (6.2.3.1 in ISO/IEC 13818-2: 1995).
-
-Is that correct? I think some references to the standard should be added
-were appropriate.
-
-> +
-> +.. tabularcolumns:: |p{2.0cm}|p{4.0cm}|p{11.0cm}|
-> +
-> +.. c:type:: v4l2_ctrl_mpeg2_slice_params
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: struct v4l2_ctrl_mpeg2_slice_params
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths:       1 1 2
-> +
-> +    * - __u32
-> +      - ``slice_len``
-> +      - Length (in bits) of the current slice data.
-> +    * - __u32
-> +      - ``slice_pos``
-> +      - Position (in bits) of the current slice data, relative to the
-> +        frame start.
-> +    * - __u16
-> +      - ``width``
-> +      - Width of the corresponding output frame for the current slice.
-> +    * - __u16
-> +      - ``height``
-> +      - Height of the corresponding output frame for the current slice.
-> +    * - __u8
-> +      - ``slice_type``
-> +      - Picture coding type for the frame covered by the current slice
-> +        (V4L2_MPEG2_SLICE_TYPE_I, V4L2_MPEG2_SLICE_TYPE_P or
-> +        V4L2_MPEG2_SLICE_PCT_B).
-> +    * - __u8
-> +      - ``f_code[2][2]``
-> +      - Motion vector codes.
-> +    * - __u8
-> +      - ``intra_dc_precision``
-> +      - Precision of Discrete Cosine transform (0: 8 bits precision,
-> +        1: 9 bits precision, 2: 10 bits precision, 11: 11 bits precision).
-> +    * - __u8
-> +      - ``picture_structure``
-> +      - Picture structure (1: interlaced top field,
-> +        2: interlaced bottom field, 3: progressive frame).
-> +    * - __u8
-> +      - ``top_field_first``
-> +      - If set to 1 and interlaced stream, top field is output first.
-> +    * - __u8
-> +      - ``frame_pred_frame_dct``
-> +      - If set to 1, only frame-DCT and frame prediction are used.
-> +    * - __u8
-> +      - ``concealment_motion_vectors``
-> +      -  If set to 1, motion vectors are coded for intra macroblocks.
-> +    * - __u8
-> +      - ``q_scale_type``
-> +      - This flag affects the inverse quantisation process.
-
-quantization
-
-The american spelling appears to be the standard in our documentation, so
-let's stick to that.
-
-> +    * - __u8
-> +      - ``intra_vlc_format``
-> +      - This flag affects the decoding of transform coefficient data.
-> +    * - __u8
-> +      - ``alternate_scan``
-> +      - This flag affects the decoding of transform coefficient data.
-> +    * - __u8
-> +      - ``backward_ref_index``
-> +      - Index for the V4L2 buffer to use as backward reference, used with
-> +        B-coded and P-coded frames.
-> +    * - __u8
-> +      - ``forward_ref_index``
-> +      - Index for the V4L2 buffer to use as forward reference, used with
-> +        P-coded frames.
-> +    * - :cspan:`2`
-> +
-> +``V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION (struct)``
-> +    Specifies quantization matrices for the associated MPEG-2 slice data.
-> +
-> +.. tabularcolumns:: |p{2.0cm}|p{4.0cm}|p{11.0cm}|
-> +
-> +.. c:type:: v4l2_ctrl_mpeg2_quantization
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: struct v4l2_ctrl_mpeg2_quantization
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths:       1 1 2
-> +
-> +    * - __u8
-> +      - ``load_intra_quantiser_matrix``
-> +      - One bit to indicate whether to load the intra quantiser matrix.
-
-So the MPEG-2 spec appears to follow the British spelling, so for consistency
-with that spec we should stick to that for the field name.
-
-I'm not sure what is better in the description: stick to quantiser or change
-it to the US quantizer. I think we should keep quantiser since it looks weird
-otherwise.
-
-> +    * - __u32
-> +      - ``load_non_intra_quantiser_matrix``
-> +      - One bit to indicate whether to load the non-intra quantiser matrix.
-> +    * - __u32
-> +      - ``load_chroma_intra_quantiser_matrix``
-> +      - One bit to indicate whether to load the chroma intra quantiser matrix,
-> +        only relevant for non-4:2:0 YUV formats.
-> +    * - __u32
-> +      - ``load_chroma_non_intra_quantiser_matrix``
-> +      - One bit to indicate whether to load the non-chroma intra quantiser
-> +        matrix, only relevant for non-4:2:0 YUV formats.
-> +    * - __u32
-> +      - ``intra_quantiser_matrix[64]``
-> +      - The intra quantiser matrix coefficients, in zigzag scanning order.
-> +        It is relevant for both luma and chroma components, although it can be
-> +        superseded by the chroma-specific matrix for non-4:2:0 YUV formats.
-> +    * - __u32
-> +      - ``non_intra_quantiser_matrix[64]``
-> +      - The non-intra quantiser matrix coefficients, in zigzag scanning order.
-> +        It is relevant for both luma and chroma components, although it can be
-> +        superseded by the chroma-specific matrix for non-4:2:0 YUV formats.
-> +    * - __u32
-> +      - ``chroma_intra_quantiser_matrix[64]``
-> +      - The intra quantiser matrix coefficients for the chroma YUV component,
-> +        in zigzag scanning order. Only relevant for non-4:2:0 YUV formats.
-> +    * - __u32
-> +      - ``chroma_non_intra_quantiser_matrix[64]``
-> +      - The non-intra quantiser matrix coefficients for the chroma YUV component,
-> +        in zigzag scanning order. Only relevant for non-4:2:0 YUV formats.
-
-According to the MPEG-2 spec (6.3.11) these are all unsigned 8 bit values, so why
-use __u32?
-
-> +    * - :cspan:`2`
->  
->  MFC 5.1 MPEG Controls
->  ---------------------
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> index abec03937bb3..4e73f62b5163 100644
-> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> @@ -60,6 +60,11 @@ Compressed Formats
->        - ``V4L2_PIX_FMT_MPEG2``
->        - 'MPG2'
->        - MPEG2 video elementary stream.
-> +    * .. _V4L2-PIX-FMT-MPEG2-SLICE:
-> +
-> +      - ``V4L2_PIX_FMT_MPEG2_SLICE``
-> +      - 'MG2S'
-> +      - MPEG2 parsed slice data, as extracted from the MPEG2 bitstream.
->      * .. _V4L2-PIX-FMT-MPEG4:
->  
->        - ``V4L2_PIX_FMT_MPEG4``
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 3610dce3a4f8..22483d894259 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -844,6 +844,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
->  	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
->  	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:		return "Force Key Frame";
-> +	case V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS:		return "MPEG2 Slice Header";
-> +	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:		return "MPEG2 Quantization Matrices";
->  
->  	/* VPX controls */
->  	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
-> @@ -1292,6 +1294,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_RDS_TX_ALT_FREQS:
->  		*type = V4L2_CTRL_TYPE_U32;
->  		break;
-> +	case V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS:
-> +		*type = V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:
-> +		*type = V4L2_CTRL_TYPE_MPEG2_QUANTIZATION;
-> +		break;
->  	default:
->  		*type = V4L2_CTRL_TYPE_INTEGER;
->  		break;
-> @@ -1550,6 +1558,7 @@ static void std_log(const struct v4l2_ctrl *ctrl)
->  static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->  			union v4l2_ctrl_ptr ptr)
->  {
-> +	struct v4l2_ctrl_mpeg2_slice_params *p_mpeg2_slice_params;
->  	size_t len;
->  	u64 offset;
->  	s64 val;
-> @@ -1612,6 +1621,45 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->  			return -ERANGE;
->  		return 0;
->  
-> +	case V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS:
-> +		p_mpeg2_slice_params = ptr.p;
-> +
-> +		switch (p_mpeg2_slice_params->intra_dc_precision) {
-> +		case 0: /* 8 bits */
-> +		case 1: /* 9 bits */
-> +		case 11: /* 11 bits */
-> +			break;
-> +		default:
-> +			return -EINVAL;
-> +		}
-> +
-> +		switch (p_mpeg2_slice_params->picture_structure) {
-> +		case 1: /* interlaced top field */
-> +		case 2: /* interlaced bottom field */
-> +		case 3: /* progressive */
-> +			break;
-> +		default:
-> +			return -EINVAL;
-> +		}
-> +
-> +		switch (p_mpeg2_slice_params->slice_type) {
-> +		case V4L2_MPEG2_SLICE_TYPE_I:
-> +		case V4L2_MPEG2_SLICE_TYPE_P:
-> +		case V4L2_MPEG2_SLICE_TYPE_B:
-> +			break;
-> +		default:
-> +			return -EINVAL;
-> +		}
-> +
-> +		if (p_mpeg2_slice_params->backward_ref_index > VIDEO_MAX_FRAME ||
-> +		    p_mpeg2_slice_params->forward_ref_index > VIDEO_MAX_FRAME)
-
-Should be >=
-
-> +			return -EINVAL;
-> +
-> +		return 0;
-> +
-> +	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
-> +		return 0;
-> +
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -2186,6 +2234,12 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->  	case V4L2_CTRL_TYPE_U32:
->  		elem_size = sizeof(u32);
->  		break;
-> +	case V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS:
-> +		elem_size = sizeof(struct v4l2_ctrl_mpeg2_slice_params);
-> +		break;
-> +	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
-> +		elem_size = sizeof(struct v4l2_ctrl_mpeg2_quantization);
-> +		break;
->  	default:
->  		if (type < V4L2_CTRL_COMPOUND_TYPES)
->  			elem_size = sizeof(s32);
 > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 44fc0102221f..68e914b83a03 100644
+> index 68e914b83a03..7e1c200de10d 100644
 > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
 > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1304,6 +1304,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  		case V4L2_PIX_FMT_H263:		descr = "H.263"; break;
->  		case V4L2_PIX_FMT_MPEG1:	descr = "MPEG-1 ES"; break;
->  		case V4L2_PIX_FMT_MPEG2:	descr = "MPEG-2 ES"; break;
-> +		case V4L2_PIX_FMT_MPEG2_SLICE:	descr = "MPEG-2 parsed slice data"; break;
+> @@ -1331,6 +1331,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+>  		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
+>  		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
+>  		case V4L2_PIX_FMT_MT21C:	descr = "Mediatek Compressed Format"; break;
+> +		case V4L2_PIX_FMT_MB32_NV12:	descr = "Allwinner tiled NV12 format"; break;
 
-"MPEG-2 Parsed Slice Data"
+"Allwinner Tiled NV12 Format"
 
->  		case V4L2_PIX_FMT_MPEG4:	descr = "MPEG-4 part 2 ES"; break;
->  		case V4L2_PIX_FMT_XVID:		descr = "Xvid"; break;
->  		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 34ee3167d7dd..83eff6f91ed2 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -35,13 +35,15 @@ struct poll_table_struct;
->  
->  /**
->   * union v4l2_ctrl_ptr - A pointer to a control value.
-> - * @p_s32:	Pointer to a 32-bit signed value.
-> - * @p_s64:	Pointer to a 64-bit signed value.
-> - * @p_u8:	Pointer to a 8-bit unsigned value.
-> - * @p_u16:	Pointer to a 16-bit unsigned value.
-> - * @p_u32:	Pointer to a 32-bit unsigned value.
-> - * @p_char:	Pointer to a string.
-> - * @p:		Pointer to a compound value.
-> + * @p_s32:			Pointer to a 32-bit signed value.
-> + * @p_s64:			Pointer to a 64-bit signed value.
-> + * @p_u8:			Pointer to a 8-bit unsigned value.
-> + * @p_u16:			Pointer to a 16-bit unsigned value.
-> + * @p_u32:			Pointer to a 32-bit unsigned value.
-> + * @p_char:			Pointer to a string.
-> + * @p_mpeg2_slice_params:	Pointer to a MPEG2 slice parameters structure.
-> + * @p_mpeg2_quantization:	Pointer to a MPEG2 quantization data structure.
-> + * @p:				Pointer to a compound value.
->   */
->  union v4l2_ctrl_ptr {
->  	s32 *p_s32;
-> @@ -50,6 +52,8 @@ union v4l2_ctrl_ptr {
->  	u16 *p_u16;
->  	u32 *p_u32;
->  	char *p_char;
-> +	struct v4l2_ctrl_mpeg2_slice_params *p_mpeg2_slice_params;
-> +	struct v4l2_ctrl_mpeg2_quantization *p_mpeg2_quantization;
->  	void *p;
->  };
->  
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index e4ee10ee917d..ce6de781037a 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -557,6 +557,9 @@ enum v4l2_mpeg_video_mpeg4_profile {
->  };
->  #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
->  
-> +#define V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS	(V4L2_CID_MPEG_BASE+450)
+If it is Allwinner specific, then that should be in the PIX_FMT name as well:
+something like V4L2_PIX_FMT_ALLWINNER_MB32_NV12 or perhaps SUNXI_MB32_NV12.
 
-I would insert this at V4L2_CID_MPEG_BASE+250
+On the other hand, you could also see this as a variant of e.g. V4L2_PIX_FMT_NV12MT
+or V4L2_PIX_FMT_NV12MT_16X16. In that case it is not necessarily Allwinner specific
+since other devices might choose this format. You can go either way, as long
+as it is consistent.
 
-That is close to the existing MPEG2 controls, which makes sense.
-
-> +#define V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION	(V4L2_CID_MPEG_BASE+451)
-
-and this becomes +251 of course.
-
-> +
->  /*  Control IDs for VP8 streams
->   *  Although VP8 is not part of MPEG we add these controls to the MPEG class
->   *  as that class is already handling other video compression standards
-> @@ -1092,4 +1095,44 @@ enum v4l2_detect_md_mode {
->  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->  
-> +#define V4L2_MPEG2_SLICE_TYPE_I			1
-> +#define V4L2_MPEG2_SLICE_TYPE_P			2
-> +#define V4L2_MPEG2_SLICE_TYPE_B			3
-> +#define V4L2_MPEG2_SLICE_TYPE_D			4
-> +
-> +struct v4l2_ctrl_mpeg2_slice_params {
-> +	__u32	slice_len;
-> +	__u32	slice_pos;
-> +
-> +	__u16	width;
-> +	__u16	height;
-> +
-> +	__u8	slice_type;
-> +	__u8	f_code[2][2];
-> +
-> +	__u8	intra_dc_precision;
-> +	__u8	picture_structure;
-> +	__u8	top_field_first;
-> +	__u8	frame_pred_frame_dct;
-> +	__u8	concealment_motion_vectors;
-> +	__u8	q_scale_type;
-> +	__u8	intra_vlc_format;
-> +	__u8	alternate_scan;
-> +
-> +	__u8	backward_ref_index;
-> +	__u8	forward_ref_index;
-
-How certain are you that this is all that's needed? Should we add
-a reserved field?
-
-> +};
-> +
-> +struct v4l2_ctrl_mpeg2_quantization {
-> +	__u8	load_intra_quantiser_matrix : 1;
-> +	__u8	load_non_intra_quantiser_matrix : 1;
-> +	__u8	load_chroma_intra_quantiser_matrix : 1;
-> +	__u8	load_chroma_non_intra_quantiser_matrix : 1;
-
-I wouldn't use bitfields here. It doesn't add anything.
-
-> +
-> +	__u8	intra_quantiser_matrix[64];
-> +	__u8	non_intra_quantiser_matrix[64];
-> +	__u8	chroma_intra_quantiser_matrix[64];
-> +	__u8	chroma_non_intra_quantiser_matrix[64];
-> +};
-> +
->  #endif
+>  		default:
+>  			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
+>  			if (fmt->description[0])
 > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 1f6c4b52baae..d171361ed9b3 100644
+> index d171361ed9b3..453d27142e31 100644
 > --- a/include/uapi/linux/videodev2.h
 > +++ b/include/uapi/linux/videodev2.h
-> @@ -629,6 +629,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
->  #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
->  #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
-> +#define V4L2_PIX_FMT_MPEG2_SLICE v4l2_fourcc('M', 'G', '2', 'S') /* MPEG-2 parsed slice data */
->  #define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 part 2 ES */
->  #define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
->  #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
-> @@ -1587,6 +1588,8 @@ struct v4l2_ext_control {
->  		__u8 __user *p_u8;
->  		__u16 __user *p_u16;
->  		__u32 __user *p_u32;
-> +		struct v4l2_ctrl_mpeg2_slice_params __user *p_mpeg2_slice_params;
-> +		struct v4l2_ctrl_mpeg2_quantization __user *p_mpeg2_quantization;
->  		void __user *ptr;
->  	};
->  } __attribute__ ((packed));
-> @@ -1632,6 +1635,8 @@ enum v4l2_ctrl_type {
->  	V4L2_CTRL_TYPE_U8	     = 0x0100,
->  	V4L2_CTRL_TYPE_U16	     = 0x0101,
->  	V4L2_CTRL_TYPE_U32	     = 0x0102,
-> +	V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS = 0x0103,
-> +	V4L2_CTRL_TYPE_MPEG2_QUANTIZATION = 0x0104,
->  };
+> @@ -670,6 +670,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+>  #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+>  #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
+> +#define V4L2_PIX_FMT_MB32_NV12 v4l2_fourcc('M', 'N', '1', '2') /* Allwinner tiled NV12 format */
 >  
->  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+>  /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
+>  #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
 > 
 
 Regards,
