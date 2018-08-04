@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:55025 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727832AbeHDOqJ (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:42240 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727592AbeHDOqJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Sat, 4 Aug 2018 10:46:09 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 06/34] media-request: add media_request_object_find
-Date: Sat,  4 Aug 2018 14:44:58 +0200
-Message-Id: <20180804124526.46206-7-hverkuil@xs4all.nl>
+Subject: [PATCHv17 07/34] v4l2-device.h: add v4l2_device_supports_requests() helper
+Date: Sat,  4 Aug 2018 14:44:59 +0200
+Message-Id: <20180804124526.46206-8-hverkuil@xs4all.nl>
 In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,105 +17,35 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add media_request_object_find to find a request object inside a
-request based on ops and priv values.
-
-Objects of the same type (vb2 buffer, control handler) will have
-the same ops value. And objects that refer to the same 'parent'
-object (e.g. the v4l2_ctrl_handler that has the current driver
-state) will have the same priv value.
-
-The caller has to call media_request_object_put() for the returned
-object since this function increments the refcount.
+Add a simple helper function that tests if the driver supports
+the request API.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/media-request.c | 25 +++++++++++++++++++++++++
- include/media/media-request.h | 28 ++++++++++++++++++++++++++++
- 2 files changed, 53 insertions(+)
+ include/media/v4l2-device.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 4b523f3a03a3..a5b70a4e613b 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -344,6 +344,31 @@ static void media_request_object_release(struct kref *kref)
- 	obj->ops->release(obj);
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index b330e4a08a6b..ac7677a183ff 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -211,6 +211,17 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
+ 		sd->v4l2_dev->notify(sd, notification, arg);
  }
- 
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
-+{
-+	struct media_request_object *obj;
-+	struct media_request_object *found = NULL;
-+	unsigned long flags;
-+
-+	if (WARN_ON(!ops || !priv))
-+		return NULL;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (obj->ops == ops && obj->priv == priv) {
-+			media_request_object_get(obj);
-+			found = obj;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	return found;
-+}
-+EXPORT_SYMBOL_GPL(media_request_object_find);
-+
- void media_request_object_put(struct media_request_object *obj)
- {
- 	kref_put(&obj->kref, media_request_object_release);
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index 66ec9d09fcd8..fd08d7a431a1 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -253,6 +253,26 @@ static inline void media_request_object_get(struct media_request_object *obj)
-  */
- void media_request_object_put(struct media_request_object *obj);
  
 +/**
-+ * media_request_object_find - Find an object in a request
++ * v4l2_device_supports_requests - Test if requests are supported.
 + *
-+ * @req: The media request
-+ * @ops: Find an object with this ops value
-+ * @priv: Find an object with this priv value
-+ *
-+ * Both @ops and @priv must be non-NULL.
-+ *
-+ * Returns the object pointer or NULL if not found. The caller must
-+ * call media_request_object_put() once it finished using the object.
-+ *
-+ * Since this function needs to walk the list of objects it takes
-+ * the @req->lock spin lock to make this safe.
++ * @v4l2_dev: pointer to struct v4l2_device
 + */
-+struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv);
-+
- /**
-  * media_request_object_init - Initialise a media request object
-  *
-@@ -324,6 +344,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
- {
- }
- 
-+static inline struct media_request_object *
-+media_request_object_find(struct media_request *req,
-+			  const struct media_request_object_ops *ops,
-+			  void *priv)
++static inline bool v4l2_device_supports_requests(struct v4l2_device *v4l2_dev)
 +{
-+	return NULL;
++	return v4l2_dev->mdev && v4l2_dev->mdev->ops &&
++	       v4l2_dev->mdev->ops->req_queue;
 +}
 +
- static inline void media_request_object_init(struct media_request_object *obj)
- {
- 	obj->ops = NULL;
+ /* Helper macros to iterate over all subdevs. */
+ 
+ /**
 -- 
 2.18.0
