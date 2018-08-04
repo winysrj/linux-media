@@ -1,98 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:36577 "HELO
-        netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1727092AbeHDQrc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Aug 2018 12:47:32 -0400
-Date: Sat, 4 Aug 2018 10:46:35 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, <mingo@redhat.com>,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        <keiichiw@chromium.org>
-Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
- ISO transfer
-In-Reply-To: <CAJs94EZA=o5=4frPhXs3vnr4x-__gSZ2ximvTyugLoaD6KLcUg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.44L0.1808041045060.25853-100000@netrider.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:38116 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727803AbeHDR73 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Aug 2018 13:59:29 -0400
+Received: by mail-qk0-f195.google.com with SMTP id 126-v6so6134031qke.5
+        for <linux-media@vger.kernel.org>; Sat, 04 Aug 2018 08:58:21 -0700 (PDT)
+Message-ID: <0121adf26dc5df64a3955253795dc2e04610b1b5.camel@ndufresne.ca>
+Subject: Re: [PATCH v2 1/2] uvcvideo: rename UVC_QUIRK_INFO to UVC_INFO_QUIRK
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Sat, 04 Aug 2018 11:58:18 -0400
+In-Reply-To: <alpine.DEB.2.20.1808031334440.13762@axis700.grange>
+References: <alpine.DEB.2.20.1808031334440.13762@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 4 Aug 2018, Matwey V. Kornilov wrote:
+Le vendredi 03 août 2018 à 13:36 +0200, Guennadi Liakhovetski a écrit :
+> This macro defines "information about quirks," not "quirks for
+> information."
 
-> 2018-07-30 18:35 GMT+03:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > Hi Matwey,
+Does not sound better to me. It's "Quirk's information", vs
+"information about quirks". I prefer the first one. In term of C
+namespace the orignal is also better. So the name space is UVC_QUIRK,
+and the detail is INFO.
+
+If we where to apply your logic, you'd rename driver_info, into
+info_driver, because it's information about the driver.
+
+> 
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com
 > >
-> > On Tuesday, 24 July 2018 21:56:09 EEST Matwey V. Kornilov wrote:
-> >> 2018-07-23 21:57 GMT+03:00 Alan Stern:
-> >> > On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
-> >> >> I've tried to strategies:
-> >> >>
-> >> >> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
-> >> >> similar to how USB core does when there is no URB_NO_TRANSFER_DMA_MAP)
-> >> >
-> >> > Yes.
-> >> >
-> >> >> 2) Use sync_cpu and sync_device inside the handler (and dma_map only
-> >> >> once at memory allocation)
-> >> >>
-> >> >> It is interesting that dma_unmap/dma_map pair leads to the lower
-> >> >> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64 platform.
-> >> >> At armv7l platform using dma_unmap/dma_map  leads to ~50 usec in the
-> >> >> handler, and sync_cpu/sync_device - ~65 usec.
-> >> >>
-> >> >> However, I am not sure is it mandatory to call
-> >> >> dma_sync_single_for_device for FROM_DEVICE direction?
-> >> >
-> >> > According to Documentation/DMA-API-HOWTO.txt, the CPU should not write
-> >> > to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
-> >> > not needed.
-> >>
-> >> Well, I measured the following at armv7l. The handler execution time
-> >> (URB_NO_TRANSFER_DMA_MAP is used for all cases):
-> >>
-> >> 1) coherent DMA: ~3000 usec (pwc is not functional)
-> >> 2) explicit dma_unmap and dma_map in the handler: ~52 usec
-> >> 3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device): ~56
-> >> usec
-> >
-> > I really don't understand why the sync option is slower. Could you please
-> > investigate ? Before doing anything we need to make sure we have a full
-> > understanding of the problem.
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
 > 
-> Hi,
-> 
-> I've found one drawback in my measurements. I forgot to fix CPU
-> frequency at lowest state 300MHz. Now, I remeasured
-> 
-> 2) dma_unmap and dma_map in the handler:
-> 2A) dma_unmap_single call: 28.8 +- 1.5 usec
-> 2B) memcpy and the rest: 58 +- 6 usec
-> 2C) dma_map_single call: 22 +- 2 usec
-> Total: 110 +- 7 usec
-> 
-> 3) dma_sync_single_for_cpu
-> 3A) dma_sync_single_for_cpu call: 29.4 +- 1.7 usec
-> 3B) memcpy and the rest: 59 +- 6 usec
-> 3C) noop (trace events overhead): 5 +- 2 usec
-> Total: 93 +- 7 usec
-> 
-> So, now we see that 2A and 3A (as well as 2B and 3B) agree good within
-> error ranges.
-
-Taken together, those measurements look like a pretty good argument for 
-always using dma_sync_single_for_cpu in the driver.  Provided results 
-on other platforms aren't too far out of line with these results.
-
-Alan Stern
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c
+> index d46dc43..699984b 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -2344,7 +2344,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	.quirks = UVC_QUIRK_FORCE_Y8,
+>  };
+>  
+> -#define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct
+> uvc_device_info){.quirks = q}
+> +#define UVC_INFO_QUIRK(q) (kernel_ulong_t)&(struct
+> uvc_device_info){.quirks = q}
+>  
+>  /*
+>   * The Logitech cameras listed below have their interface class set
+> to
+> @@ -2453,7 +2453,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) },
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) },
+>  	/* Chicony CNF7129 (Asus EEE 100HE) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2462,7 +2462,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_RESTRICT_FRAME_RATE) },
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_RESTRICT_FRAME_RATE) },
+>  	/* Alcor Micro AU3820 (Future Boy PC USB Webcam) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2525,7 +2525,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					| UVC_QUIRK_BUILTIN_ISIGHT) },
+>  	/* Apple Built-In iSight via iBridge */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> @@ -2607,7 +2607,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					| UVC_QUIRK_PROBE_DEF) },
+>  	/* IMC Networks (Medion Akoya) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> @@ -2707,7 +2707,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					| UVC_QUIRK_PROBE_EXTRAFIELDS)
+> },
+>  	/* Aveo Technology USB 2.0 Camera (Tasco USB Microscope) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> @@ -2725,7 +2725,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_PROBE_EXTRAFIELDS) },
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_PROBE_EXTRAFIELDS) },
+>  	/* Manta MM-353 Plako */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2771,7 +2771,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_STATUS_INTERVAL) },
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_STATUS_INTERVAL) },
+>  	/* MSI StarCam 370i */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2798,7 +2798,7 @@ static int uvc_clock_param_set(const char *val,
+> const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		=
+> UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		=
+> UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					|
+> UVC_QUIRK_IGNORE_SELECTOR_UNIT) },
+>  	/* Oculus VR Positional Tracker DK2 */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
