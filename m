@@ -1,258 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:60843 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726744AbeHDMT1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 08:19:27 -0400
-Subject: Re: [PATCHv16 01/34] Documentation: v4l: document request API
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180705160337.54379-1-hverkuil@xs4all.nl>
- <20180705160337.54379-2-hverkuil@xs4all.nl>
- <CAAFQd5C56H3eHoceh9FRM7YqyTfazvbZQv6aifz8nZE4kTu8nw@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b61e3748-7cd9-4d87-1a57-00ec9b704b82@xs4all.nl>
-Date: Sat, 4 Aug 2018 12:19:09 +0200
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:48299 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726576AbeHDMeQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Aug 2018 08:34:16 -0400
+Date: Sat, 4 Aug 2018 12:33:54 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v6 16/17] media: v4l2: async: Remove notifier subdevs
+ array
+Message-ID: <20180804103354.GB9285@w540>
+References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+ <1531175957-1973-17-git-send-email-steve_longerbeam@mentor.com>
+ <20180723123557.bfxxsqqhlaj3ccwc@valkosipuli.retiisi.org.uk>
+ <a040c77f-2bee-5d0d-57ec-852ff30448e9@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5C56H3eHoceh9FRM7YqyTfazvbZQv6aifz8nZE4kTu8nw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="8P1HSweYDcXXzwPJ"
+Content-Disposition: inline
+In-Reply-To: <a040c77f-2bee-5d0d-57ec-852ff30448e9@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
 
-Thank you for your review. Unless stated otherwise I have incorporated your
-suggestions.
+--8P1HSweYDcXXzwPJ
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On 08/03/2018 05:00 PM, Tomasz Figa wrote:
-> Hi Hans,
-> 
-> On Fri, Jul 6, 2018 at 1:04 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> From: Alexandre Courbot <acourbot@chromium.org>
->>
->> Document the request API for V4L2 devices, and amend the documentation
->> of system calls influenced by it.
->>
->> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  .../media/uapi/mediactl/media-controller.rst  |   1 +
->>  .../media/uapi/mediactl/media-funcs.rst       |   6 +
->>  .../uapi/mediactl/media-ioc-request-alloc.rst |  77 ++++++
->>  .../uapi/mediactl/media-request-ioc-queue.rst |  81 ++++++
->>  .../mediactl/media-request-ioc-reinit.rst     |  51 ++++
->>  .../media/uapi/mediactl/request-api.rst       | 247 ++++++++++++++++++
->>  .../uapi/mediactl/request-func-close.rst      |  49 ++++
->>  .../uapi/mediactl/request-func-ioctl.rst      |  68 +++++
->>  .../media/uapi/mediactl/request-func-poll.rst |  74 ++++++
->>  Documentation/media/uapi/v4l/buffer.rst       |  21 +-
->>  .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     |  94 ++++---
->>  Documentation/media/uapi/v4l/vidioc-qbuf.rst  |  32 ++-
->>  .../media/videodev2.h.rst.exceptions          |   1 +
->>  13 files changed, 766 insertions(+), 36 deletions(-)
->>  create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
->>  create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
->>  create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
->>  create mode 100644 Documentation/media/uapi/mediactl/request-api.rst
->>  create mode 100644 Documentation/media/uapi/mediactl/request-func-close.rst
->>  create mode 100644 Documentation/media/uapi/mediactl/request-func-ioctl.rst
->>  create mode 100644 Documentation/media/uapi/mediactl/request-func-poll.rst
->>
-> 
-> Thanks a lot for working on this and sorry for being late to the
-> party. Please see some comments inline. (Mostly wording nits, though.)
-> 
+Hi Steve,
 
-<snip>
+On Mon, Jul 23, 2018 at 09:44:57AM -0700, Steve Longerbeam wrote:
+>
+>
+> On 07/23/2018 05:35 AM, Sakari Ailus wrote:
+> >Hi Steve,
+> >
+> >Thanks for the update.
+> >
+> >On Mon, Jul 09, 2018 at 03:39:16PM -0700, Steve Longerbeam wrote:
+> >>All platform drivers have been converted to use
+> >>v4l2_async_notifier_add_subdev(), in place of adding
+> >>asd's to the notifier subdevs array. So the subdevs
+> >>array can now be removed from struct v4l2_async_notifier,
+> >>and remove the backward compatibility support for that
+> >>array in v4l2-async.c.
+> >>
+> >>Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> >This set removes the subdevs and num_subdevs fieldsfrom the notifier (as
+> >discussed previously) but it doesn't include the corresponding
+> >driver changes. Is there a patch missing from the set?
+>
+> Hi Sakari, yes somehow patch 15/17 (the large patch to all drivers)
+> got dropped by the ML, maybe because the cc-list was too big?
+>
+> I will resend with only linux-media and cc: you.
 
->> diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
->> new file mode 100644
->> index 000000000000..3c49627acb72
->> --- /dev/null
->> +++ b/Documentation/media/uapi/mediactl/request-api.rst
->> @@ -0,0 +1,247 @@
->> +.. -*- coding: utf-8; mode: rst -*-
->> +
->> +.. _media-request-api:
->> +
->> +Request API
->> +===========
->> +
->> +The Request API has been designed to allow V4L2 to deal with requirements of
->> +modern devices (stateless codecs, complex camera pipelines, ...) and APIs
->> +(Android Codec v2). One such requirement is the ability for devices belonging to
->> +the same pipeline to reconfigure and collaborate closely on a per-frame basis.
->> +Another is efficient support of stateless codecs, which need per-frame controls
->> +to be set synchronously in order to be used efficiently.
-> 
-> I think "synchronously" would match what we could do without Request
-> API (wait for 1 frame to be dequeued, set control, queue next frame,
-> etc.) and it would be inefficient. Perhaps "Another is efficient
-> support of stateless codecs, which need controls to be set for exact
-> frames beforehand to be used efficiently."?
+For the Renesas CEU and Renesas R-Car VIN you can add my:
 
-I went with this:
+Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-"Another is support of stateless codecs, which require controls to be applied
-to specific frames (aka 'per-frame controls') in order to be used efficiently."
+I would have a very small comment on the renesas-ceu.c patch. I'm copying
+the hunk here below as the patch didn't reach the mailing list
 
-<snip>
+>@@ -1562,40 +1557,46 @@ static int ceu_parse_dt(struct ceu_device *ceudev)
+>                        dev_err(ceudev->dev,
+>                                "No subdevice connected on endpoint %u.\n", i);
+>                        ret = -ENODEV;
+>-                       goto error_put_node;
+>+                       goto error_cleanup;
+>                }
+>
+>                ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &fw_ep);
+>                if (ret) {
+>                if (ret) {
+>                        dev_err(ceudev->dev,
+>                                "Unable to parse endpoint #%u.\n", i);
+>-                       goto error_put_node;
+>+                       goto error_cleanup;
+>                }
+>
+>                if (fw_ep.bus_type != V4L2_MBUS_PARALLEL) {
+>                        dev_err(ceudev->dev,
+>                                "Only parallel input supported.\n");
+>                        ret = -EINVAL;
+>-                       goto error_put_node;
+>+                       goto error_cleanup;
+>                }
+>
+>                /* Setup the ceu subdevice and the async subdevice. */
+>                ceu_sd = &ceudev->subdevs[i];
+>                INIT_LIST_HEAD(&ceu_sd->asd.list);
+>
+>+               remote = of_graph_get_remote_port_parent(ep);
+>                ceu_sd->mbus_flags = fw_ep.bus.parallel.flags;
+>                ceu_sd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+>-               ceu_sd->asd.match.fwnode =
+>-                       fwnode_graph_get_remote_port_parent(
+>-                                       of_fwnode_handle(ep));
+>+               ceu_sd->asd.match.fwnode = of_fwnode_handle(remote);
+>+
+>+               ret = v4l2_async_notifier_add_subdev(&ceudev->notifier,
+>+                                                    &ceu_sd->asd);
+>+               if (ret) {
+>+                       of_node_put(remote);
 
->> +Once the request is fully prepared, it can be queued to the driver:
->> +
->> +.. code-block:: c
->> +
->> +       if (ioctl(req_fd, MEDIA_REQUEST_IOC_QUEUE))
->> +               return some_error;
-> 
-> This may suggest that it's okay to ignore the error code and just
-> handle all the errors the same way. Perhaps "return some_error; /*
-> check errno for exact error code */"?
+                        ^^^ The 'remote' device node is only put in
+                        the error path
+>
+>+                       goto error_cleanup;
+>+               }
+>
+>-               ceudev->asds[i] = &ceu_sd->asd;
+>                of_node_put(ep);
+>        }
+>
+>        return num_ep;
+>
+>-error_put_node:
+>+error_cleanup:
+>+       v4l2_async_notifier_cleanup(&ceudev->notifier);
+>        of_node_put(ep);
+>        return ret;
+> }
 
-I've just renamed 'some_error' to 'errno'. That makes much more sense.
+Thanks
+   j
 
-<snip>
+--8P1HSweYDcXXzwPJ
+Content-Type: application/pgp-signature; name="signature.asc"
 
->> diff --git a/Documentation/media/uapi/mediactl/request-func-close.rst b/Documentation/media/uapi/mediactl/request-func-close.rst
->> new file mode 100644
->> index 000000000000..1195f493bf05
->> --- /dev/null
->> +++ b/Documentation/media/uapi/mediactl/request-func-close.rst
->> @@ -0,0 +1,49 @@
->> +.. SPDX-License-Identifier: GPL-2.0
->> +.. -*- coding: utf-8; mode: rst -*-
->> +
->> +.. _request-func-close:
->> +
->> +***************
->> +request close()
->> +***************
->> +
->> +Name
->> +====
->> +
->> +request-close - Close a request file descriptor
->> +
->> +
->> +Synopsis
->> +========
->> +
->> +.. code-block:: c
->> +
->> +    #include <unistd.h>
->> +
->> +
->> +.. c:function:: int close( int fd )
->> +    :name: req-close
->> +
->> +Arguments
->> +=========
->> +
->> +``fd``
->> +    File descriptor returned by :ref:`MEDIA_IOC_REQUEST_ALLOC`.
->> +
-> 
-> I guess for now we're not considering exchanging those between
-> processes, but even then, this could be a dup()ed descriptor too.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-I've kept this as-is. We never mention dup() specifically for other
-APIs either and I think it is overkill to do so.
+iQIcBAEBAgAGBQJbZYEHAAoJEHI0Bo8WoVY8D0YP/118mTcv2D47wecQgUINkN8L
+UoNtkZS33DMSupbVeHb6KncVmxZkI2KN93siOp+UT/oxUZLQuSnQOXENojQRkN+E
+7qVYvd7W7jy83vBL0OPuHSH8qnP1EDcgKGCkn+0VDLGRGlP1tCdV2B2fMEIH5lr2
+VQYnIqXjI8DkR2LT5aW7UuUxojsf3NajuvV2JkKJzHtna2JFSw2Fm5G0fyb42/Uo
+IXXDSCU1+vKZXaL5u4zgxYCClpJWjHIid+H+RPLttEUXKIml7TIYbzTYJtIaMzYo
+A51rX8dSYGcb5M2EG6VsRfGok7VKfMMEevU2hBWIzxKqABE+EOcsEKf9lWJ1TGDA
+B6Fe0qeCdmkT07wMwnXAvfhTkO6oO/dpziKzUnbS3odAKLYGIM6o1q2iKYzyDtHF
+GAb0izQs0+4/m+jIz53hWURyDwv8QuGgrpjJkapZPJxaosbgs/Hsi/KJLqbUE35P
+gxL60Q5hWynY7Lgq6+r5hG6xa+01LxxaHQl0gG5t1YxY7W9vU9Z6QQ1n3tmSmW2X
+5yjKpLL4hEksDmqSA1HhPsi+IE/hx2OD7O5FjlSABcudJwpb6zlAeWiFPrNpfjC+
+3M4V9gITTyTs+ObtCpWCEn73EUmlBeMrQkSlq79V+qEol9U1CVNuIyIyXmewf+Iq
+z9A6Pr3Cj/BEaQyaCVQB
+=N+md
+-----END PGP SIGNATURE-----
 
-> 
->> +
->> +Description
->> +===========
->> +
->> +Closes the request file descriptor. Resources associated with the file descriptor
->> +are freed once the driver has completed the request and no longer needs to
->> +reference it.
-> 
-> and any other dup()s of that descriptor are closed too.
-
-I went with this text:
-
-"Closes the request file descriptor. Resources associated with the request
-are freed once all file descriptors associated with the request are closed
-and the driver has completed the request."
-
-<snip>
-
->> diff --git a/Documentation/media/uapi/mediactl/request-func-poll.rst b/Documentation/media/uapi/mediactl/request-func-poll.rst
->> new file mode 100644
->> index 000000000000..930862b702ff
->> --- /dev/null
->> +++ b/Documentation/media/uapi/mediactl/request-func-poll.rst
->> @@ -0,0 +1,74 @@
->> +.. SPDX-License-Identifier: GPL-2.0
->> +.. -*- coding: utf-8; mode: rst -*-
->> +
->> +.. _request-func-poll:
->> +
->> +**************
->> +request poll()
->> +**************
->> +
->> +Name
->> +====
->> +
->> +request-poll - Wait for some event on a file descriptor
->> +
->> +
->> +Synopsis
->> +========
->> +
->> +.. code-block:: c
->> +
->> +    #include <sys/poll.h>
->> +
->> +
->> +.. c:function:: int poll( struct pollfd *ufds, unsigned int nfds, int timeout )
->> +   :name: request-poll
->> +
->> +Arguments
->> +=========
->> +
->> +``ufds``
->> +   List of FD events to be watched
->> +
->> +``nfds``
->> +   Number of FD events at the \*ufds array
->> +
->> +``timeout``
->> +   Timeout to wait for events
->> +
->> +
->> +Description
->> +===========
->> +
->> +With the :c:func:`poll() <request-func-poll>` function applications can wait
->> +for a request to complete.
->> +
->> +On success :c:func:`poll() <request-func-poll>` returns the number of file
->> +descriptors that have been selected (that is, file descriptors for which the
->> +``revents`` field of the respective struct :c:type:`pollfd`
->> +is non-zero). Request file descriptor set the ``POLLPRI`` flag in ``revents``
->> +when the request was completed.  When the function times out it returns
->> +a value of zero, on failure it returns -1 and the ``errno`` variable is
->> +set appropriately.
-> 
-> Should we also reserve POLLERR for error signaling purposes? Given the
-> drivers being expected to apply the state gracefully and also that we
-> could have a failure reported by respective buffer anyway, maybe no
-> need.
-
-Actually, POLLERR is already used. I added this paragraph:
-
-"Attempting to poll for a request that is completed or not yet queued will
-set the ``POLLERR`` flag in ``revents``."
-
-Thanks for all your comments!
-
-Regards,
-
-	Hans
+--8P1HSweYDcXXzwPJ--
