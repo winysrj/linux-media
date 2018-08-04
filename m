@@ -1,129 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:55464 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727104AbeHIWtI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 18:49:08 -0400
-Date: Thu, 9 Aug 2018 17:22:37 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 13/34] v4l2-ctrls: use ref in helper instead of ctrl
-Message-ID: <20180809172237.6479f175@coco.lan>
-In-Reply-To: <20180804124526.46206-14-hverkuil@xs4all.nl>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:46128 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729063AbeHDOqK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Aug 2018 10:46:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv17 12/34] v4l2-ctrls: alloc memory for p_req
+Date: Sat,  4 Aug 2018 14:45:04 +0200
+Message-Id: <20180804124526.46206-13-hverkuil@xs4all.nl>
+In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-14-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  4 Aug 2018 14:45:05 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The next patch needs the reference to a control instead of the
-> control itself, so change struct v4l2_ctrl_helper accordingly.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+To store request data the handler_new_ref() allocates memory
+for it if needed.
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 171ab389afdd..570b6f8ae46a 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -37,8 +37,8 @@
->  struct v4l2_ctrl_helper {
->  	/* Pointer to the control reference of the master control */
->  	struct v4l2_ctrl_ref *mref;
-> -	/* The control corresponding to the v4l2_ext_control ID field. */
-> -	struct v4l2_ctrl *ctrl;
-> +	/* The control ref corresponding to the v4l2_ext_control ID field. */
-> +	struct v4l2_ctrl_ref *ref;
->  	/* v4l2_ext_control index of the next control belonging to the
->  	   same cluster, or 0 if there isn't any. */
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-It sounds a good idea to convert the documentation of this struct to the
-kernel-doc syntax. Suggestion for a future patch (out of this series).
-
->  	u32 next;
-> @@ -2908,6 +2908,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  		ref = find_ref_lock(hdl, id);
->  		if (ref == NULL)
->  			return -EINVAL;
-> +		h->ref = ref;
->  		ctrl = ref->ctrl;
->  		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
->  			return -EINVAL;
-> @@ -2930,7 +2931,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  		}
->  		/* Store the ref to the master control of the cluster */
->  		h->mref = ref;
-> -		h->ctrl = ctrl;
->  		/* Initially set next to 0, meaning that there is no other
->  		   control in this helper array belonging to the same
->  		   cluster */
-> @@ -3015,7 +3015,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
->  	cs->error_idx = cs->count;
->  
->  	for (i = 0; !ret && i < cs->count; i++)
-> -		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
-> +		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
->  			ret = -EACCES;
->  
->  	for (i = 0; !ret && i < cs->count; i++) {
-> @@ -3050,7 +3050,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
->  
->  			do {
->  				ret = ctrl_to_user(cs->controls + idx,
-> -						   helpers[idx].ctrl);
-> +						   helpers[idx].ref->ctrl);
->  				idx = helpers[idx].next;
->  			} while (!ret && idx);
->  		}
-> @@ -3202,7 +3202,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
->  
->  	cs->error_idx = cs->count;
->  	for (i = 0; i < cs->count; i++) {
-> -		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
-> +		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
->  		union v4l2_ctrl_ptr p_new;
->  
->  		cs->error_idx = i;
-> @@ -3314,7 +3314,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  			do {
->  				/* Check if the auto control is part of the
->  				   list, and remember the new value. */
-> -				if (helpers[tmp_idx].ctrl == master)
-> +				if (helpers[tmp_idx].ref->ctrl == master)
->  					new_auto_val = cs->controls[tmp_idx].value;
->  				tmp_idx = helpers[tmp_idx].next;
->  			} while (tmp_idx);
-> @@ -3327,7 +3327,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  		/* Copy the new caller-supplied control values.
->  		   user_to_new() sets 'is_new' to 1. */
->  		do {
-> -			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
-> +			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
->  
->  			ret = user_to_new(cs->controls + idx, ctrl);
->  			if (!ret && ctrl->is_ptr)
-> @@ -3343,7 +3343,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  			idx = i;
->  			do {
->  				ret = new_to_user(cs->controls + idx,
-> -						helpers[idx].ctrl);
-> +						helpers[idx].ref->ctrl);
->  				idx = helpers[idx].next;
->  			} while (!ret && idx);
->  		}
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b33a8bee82b0..171ab389afdd 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2018,13 +2018,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
+ /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
+ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 			   struct v4l2_ctrl *ctrl,
+-			   bool from_other_dev)
++			   struct v4l2_ctrl_ref **ctrl_ref,
++			   bool from_other_dev, bool allocate_req)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+ 	struct v4l2_ctrl_ref *new_ref;
+ 	u32 id = ctrl->id;
+ 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
+ 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
++	unsigned int sz_extra = 0;
++
++	if (ctrl_ref)
++		*ctrl_ref = NULL;
+ 
+ 	/*
+ 	 * Automatically add the control class if it is not yet present and
+@@ -2038,11 +2043,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	if (hdl->error)
+ 		return hdl->error;
+ 
+-	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
++	if (allocate_req)
++		sz_extra = ctrl->elems * ctrl->elem_size;
++	new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
+ 	if (!new_ref)
+ 		return handler_set_err(hdl, -ENOMEM);
+ 	new_ref->ctrl = ctrl;
+ 	new_ref->from_other_dev = from_other_dev;
++	if (sz_extra)
++		new_ref->p_req.p = &new_ref[1];
++
+ 	if (ctrl->handler == hdl) {
+ 		/* By default each control starts in a cluster of its own.
+ 		   new_ref->ctrl is basically a cluster array with one
+@@ -2082,6 +2092,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	/* Insert the control node in the hash */
+ 	new_ref->next = hdl->buckets[bucket];
+ 	hdl->buckets[bucket] = new_ref;
++	if (ctrl_ref)
++		*ctrl_ref = new_ref;
+ 
+ unlock:
+ 	mutex_unlock(hdl->lock);
+@@ -2223,7 +2235,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+ 	}
+ 
+-	if (handler_new_ref(hdl, ctrl, false)) {
++	if (handler_new_ref(hdl, ctrl, NULL, false, false)) {
+ 		kvfree(ctrl);
+ 		return NULL;
+ 	}
+@@ -2416,7 +2428,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 		/* Filter any unwanted controls */
+ 		if (filter && !filter(ctrl))
+ 			continue;
+-		ret = handler_new_ref(hdl, ctrl, from_other_dev);
++		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev, false);
+ 		if (ret)
+ 			break;
+ 	}
+-- 
+2.18.0
