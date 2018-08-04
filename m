@@ -1,127 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57791 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727821AbeHDOqJ (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36168 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726744AbeHDOqK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 10:46:09 -0400
+        Sat, 4 Aug 2018 10:46:10 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 05/34] media-request: add media_request_get_by_fd
-Date: Sat,  4 Aug 2018 14:44:57 +0200
-Message-Id: <20180804124526.46206-6-hverkuil@xs4all.nl>
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv17 09/34] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Sat,  4 Aug 2018 14:45:01 +0200
+Message-Id: <20180804124526.46206-10-hverkuil@xs4all.nl>
 In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Alexandre Courbot <acourbot@chromium.org>
 
-Add media_request_get_by_fd() to find a request based on the file
-descriptor.
+If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
+can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
 
-The caller has to call media_request_put() for the returned
-request since this function increments the refcount.
-
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/media-request.c | 40 +++++++++++++++++++++++++++++++++++
- include/media/media-request.h | 24 +++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+ include/uapi/linux/videodev2.h                | 4 +++-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 253068f51a1f..4b523f3a03a3 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -231,6 +231,46 @@ static const struct file_operations request_fops = {
- 	.release = media_request_close,
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6481212fda77..dcce86c1fe40 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
+ 	__u32 which;
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
  };
  
-+struct media_request *
-+media_request_get_by_fd(struct media_device *mdev, int request_fd)
-+{
-+	struct file *filp;
-+	struct media_request *req;
-+
-+	if (!mdev || !mdev->ops ||
-+	    !mdev->ops->req_validate || !mdev->ops->req_queue)
-+		return ERR_PTR(-EPERM);
-+
-+	filp = fget(request_fd);
-+	if (!filp)
-+		return ERR_PTR(-ENOENT);
-+
-+	if (filp->f_op != &request_fops)
-+		goto err_fput;
-+	req = filp->private_data;
-+	if (req->mdev != mdev)
-+		goto err_fput;
-+
-+	/*
-+	 * Note: as long as someone has an open filehandle of the request,
-+	 * the request can never be released. The fget() above ensures that
-+	 * even if userspace closes the request filehandle, the release()
-+	 * fop won't be called, so the media_request_get() always succeeds
-+	 * and there is no race condition where the request was released
-+	 * before media_request_get() is called.
-+	 */
-+	media_request_get(req);
-+	fput(filp);
-+
-+	return req;
-+
-+err_fput:
-+	fput(filp);
-+
-+	return ERR_PTR(-ENOENT);
-+}
-+EXPORT_SYMBOL_GPL(media_request_get_by_fd);
-+
- int media_request_alloc(struct media_device *mdev,
- 			struct media_request_alloc *alloc)
- {
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index fe5a04fb970c..66ec9d09fcd8 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -143,6 +143,24 @@ static inline void media_request_get(struct media_request *req)
-  */
- void media_request_put(struct media_request *req);
+@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p32->count) ||
+ 	    put_user(count, &p64->count) ||
+ 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
++	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
+ 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+ 		return -EFAULT;
  
-+/**
-+ * media_request_get_by_fd - Get a media request by fd
-+ *
-+ * @mdev: Media device this request belongs to
-+ * @request_fd: The file descriptor of the request
-+ *
-+ * Get the request represented by @request_fd that is owned
-+ * by the media device.
-+ *
-+ * Return a -EPERM error pointer if requests are not supported
-+ * by this driver. Return -ENOENT if the request was not found.
-+ * Return the pointer to the request if found: the caller will
-+ * have to call @media_request_put when it finished using the
-+ * request.
-+ */
-+struct media_request *
-+media_request_get_by_fd(struct media_device *mdev, int request_fd);
-+
- /**
-  * media_request_alloc - Allocate the media request
-  *
-@@ -164,6 +182,12 @@ static inline void media_request_put(struct media_request *req)
- {
- }
+@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p64->count) ||
+ 	    put_user(count, &p32->count) ||
+ 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
++	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+ 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
+ 	    get_user(kcontrols, &p64->controls))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index ea475d833dd6..03241d6b7ef8 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -590,8 +590,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	const struct v4l2_ext_controls *p = arg;
+ 	int i;
  
-+static inline struct media_request *
-+media_request_get_by_fd(struct media_device *mdev, int request_fd)
-+{
-+	return ERR_PTR(-EPERM);
-+}
-+
- #endif
+-	pr_cont("which=0x%x, count=%d, error_idx=%d",
+-			p->which, p->count, p->error_idx);
++	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
++			p->which, p->count, p->error_idx, p->request_fd);
+ 	for (i = 0; i < p->count; i++) {
+ 		if (!p->controls[i].size)
+ 			pr_cont(", id/val=0x%x/0x%x",
+@@ -907,7 +907,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
  
- /**
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved[0] = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
+ 
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 5d1a3685bea9..1df0fa983db6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1599,7 +1599,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
+ 
+@@ -1612,6 +1613,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_MAX_DIMS	  (4)
+ #define V4L2_CTRL_WHICH_CUR_VAL   0
+ #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
++#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
+ 
+ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_INTEGER	     = 1,
 -- 
 2.18.0
