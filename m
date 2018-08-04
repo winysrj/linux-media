@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34033 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729633AbeHDOqN (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:54405 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729656AbeHDOqN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Sat, 4 Aug 2018 10:46:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 25/34] videobuf2-core: add request helper functions
-Date: Sat,  4 Aug 2018 14:45:17 +0200
-Message-Id: <20180804124526.46206-26-hverkuil@xs4all.nl>
+Subject: [PATCHv17 29/34] v4l2-mem2mem: add vb2_m2m_request_queue
+Date: Sat,  4 Aug 2018 14:45:21 +0200
+Message-Id: <20180804124526.46206-30-hverkuil@xs4all.nl>
 In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,75 +17,132 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a new helper function to tell if a request object is a buffer.
+For mem2mem devices we have to make sure that v4l2_m2m_try_schedule()
+is called whenever a request is queued.
 
-Add a new helper function that returns true if a media_request
-contains at least one buffer.
+We do that by creating a vb2_m2m_request_queue() helper that should
+be used instead of the 'normal' vb2_request_queue() helper. The m2m
+helper function will call v4l2_m2m_try_schedule() as needed.
+
+In addition we also avoid calling v4l2_m2m_try_schedule() when preparing
+or queueing a buffer for a request since that is no longer needed.
+Instead this helper function will do that when the request is actually
+queued.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../media/common/videobuf2/videobuf2-core.c   | 24 +++++++++++++++++++
- include/media/videobuf2-core.h                | 15 ++++++++++++
- 2 files changed, 39 insertions(+)
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 59 ++++++++++++++++++++++----
+ include/media/v4l2-mem2mem.h           |  4 ++
+ 2 files changed, 55 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index 3e6db7d30989..f8af7add35ab 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -1362,6 +1362,30 @@ static const struct media_request_object_ops vb2_core_req_ops = {
- 	.release = vb2_req_release,
- };
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index b09494174eb4..56a16cfef6f8 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -369,7 +369,7 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+ 		if (m2m_dev->m2m_ops->job_abort)
+ 			m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
+-		dprintk("m2m_ctx %p running, will wait to complete", m2m_ctx);
++		dprintk("m2m_ctx %p running, will wait to complete\n", m2m_ctx);
+ 		wait_event(m2m_ctx->finished,
+ 				!(m2m_ctx->job_flags & TRANS_RUNNING));
+ 	} else if (m2m_ctx->job_flags & TRANS_QUEUED) {
+@@ -460,8 +460,14 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 	int ret;
  
-+bool vb2_request_object_is_buffer(struct media_request_object *obj)
-+{
-+	return obj->ops == &vb2_core_req_ops;
-+}
-+EXPORT_SYMBOL_GPL(vb2_request_object_is_buffer);
-+
-+bool vb2_request_has_buffers(struct media_request *req)
-+{
-+	struct media_request_object *obj;
-+	unsigned long flags;
-+	bool has_buffers = false;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	list_for_each_entry(obj, &req->objects, list) {
-+		if (vb2_request_object_is_buffer(obj)) {
-+			has_buffers = true;
-+			break;
-+		}
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
++	if (!V4L2_TYPE_IS_OUTPUT(vq->type) &&
++	    (buf->flags & V4L2_BUF_FLAG_REQUEST_FD)) {
++		dprintk("%s: requests cannot be used with capture buffers\n",
++			__func__);
++		return -EPERM;
 +	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+	return has_buffers;
-+}
-+EXPORT_SYMBOL_GPL(vb2_request_has_buffers);
-+
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
+-	if (!ret)
++	if (!ret && !(buf->flags & V4L2_BUF_FLAG_IN_REQUEST))
+ 		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+ 	return ret;
+@@ -483,14 +489,9 @@ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
  {
- 	struct vb2_buffer *vb;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 8a8d7732d182..cad712403d14 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -1168,4 +1168,19 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb);
-  */
- int vb2_verify_memory_type(struct vb2_queue *q,
- 		enum vb2_memory memory, unsigned int type);
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct vb2_queue *vq;
+-	int ret;
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+-	ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+-	if (!ret)
+-		v4l2_m2m_try_schedule(m2m_ctx);
+-
+-	return ret;
++	return vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_prepare_buf);
+ 
+@@ -934,6 +935,48 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
+ 
++void vb2_m2m_request_queue(struct media_request *req)
++{
++	struct media_request_object *obj, *obj_safe;
++	struct v4l2_m2m_ctx *m2m_ctx = NULL;
 +
-+/**
-+ * vb2_request_object_is_buffer() - return true if the object is a buffer
-+ *
-+ * @obj:	the request object.
-+ */
-+bool vb2_request_object_is_buffer(struct media_request_object *obj);
++	/* Queue all non-buffer objects */
++	list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
++		if (obj->ops->queue && !vb2_request_object_is_buffer(obj))
++			obj->ops->queue(obj);
 +
-+/**
-+ * vb2_request_has_buffers() - return true if the request contains buffers
-+ *
-+ * @req:	the request.
-+ */
-+bool vb2_request_has_buffers(struct media_request *req);
++	/* Queue all buffer objects */
++	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
++		struct v4l2_m2m_ctx *m2m_ctx_obj;
++		struct vb2_buffer *vb;
 +
- #endif /* _MEDIA_VIDEOBUF2_CORE_H */
++		if (!obj->ops->queue || !vb2_request_object_is_buffer(obj))
++			continue;
++
++		/* Sanity checks */
++		vb = container_of(obj, struct vb2_buffer, req_obj);
++		WARN_ON(!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type));
++		m2m_ctx_obj = container_of(vb->vb2_queue,
++					   struct v4l2_m2m_ctx,
++					   out_q_ctx.q);
++		WARN_ON(m2m_ctx && m2m_ctx_obj != m2m_ctx);
++		m2m_ctx = m2m_ctx_obj;
++
++		/*
++		 * The buffer we queue here can in theory be immediately
++		 * unbound, hence the use of list_for_each_entry_safe()
++		 * above and why we call the queue op last.
++		 */
++		obj->ops->queue(obj);
++	}
++
++	WARN_ON(!m2m_ctx);
++
++	if (m2m_ctx)
++		v4l2_m2m_try_schedule(m2m_ctx);
++}
++EXPORT_SYMBOL_GPL(vb2_m2m_request_queue);
++
+ /* Videobuf2 ioctl helpers */
+ 
+ int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index d655720e16a1..58c1ecf3d648 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -622,6 +622,10 @@ v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
+ 	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
+ }
+ 
++/* v4l2 request helper */
++
++void vb2_m2m_request_queue(struct media_request *req);
++
+ /* v4l2 ioctl helpers */
+ 
+ int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
 -- 
 2.18.0
