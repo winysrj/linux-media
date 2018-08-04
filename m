@@ -1,81 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:44006 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726744AbeHDOob (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:48574 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727592AbeHDOqI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 10:44:31 -0400
-Subject: Re: [PATCH v6 0/8] Cedrus driver for the Allwinner Video Engine,
- using media requests
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devel@driverdev.osuosl.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Randy Li <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
+        Sat, 4 Aug 2018 10:46:08 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4e8a0286-7e49-5622-1895-ac3268224152@xs4all.nl>
-Date: Sat, 4 Aug 2018 14:43:48 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv17 02/34] uapi/linux/media.h: add request API
+Date: Sat,  4 Aug 2018 14:44:54 +0200
+Message-Id: <20180804124526.46206-3-hverkuil@xs4all.nl>
+In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
+References: <20180804124526.46206-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/25/2018 12:02 PM, Paul Kocialkowski wrote:
-> This is the sixth iteration of the updated Cedrus driver,
-> that supports the Video Engine found in most Allwinner SoCs, starting
-> with the A10. It was tested on the A13, A20, A33 and H3.
-> 
-> The initial version of this driver[0] was originally written and
-> submitted by Florent Revest using a previous version of the request API
-> that is necessary to provide coherency between controls and the buffers
-> they apply to.
-> 
-> The driver was adapted to use the latest version of the media request
-> API[1], as submitted by Hand Verkuil. Media request API support is a
-> hard requirement for the Cedrus driver.
-> 
-> The driver itself currently only supports MPEG2 and more codecs will be
-> added to the driver eventually. The output frames provided by the
-> Video Engine are in a multi-planar 32x32-tiled YUV format, with a plane
-> for luminance (Y) and a plane for chrominance (UV). A specific format is
-> introduced in the V4L2 API to describe it.
-> 
-> This implementation is based on the significant work that was conducted
-> by various members of the linux-sunxi community for understanding and
-> documenting the Video Engine's innards.
-> 
-> In addition to the media requests API, the following series are required
-> for Cedrus:
-> * vicodec: the Virtual Codec driver
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This will appear in for 4.19.
+Define the public request API.
 
-> * allwinner: a64: add SRAM controller / system control
-> * SRAM patches from the Cedrus VPU driver series version 5
+This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
+and two ioctls that operate on a request in order to queue the
+contents of the request to the driver and to re-initialize the
+request.
 
-What about these? Are they queued up for 4.19 as well?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/uapi/linux/media.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-I'll post a rebased reqv17 later today that includes the
-"add v4l2_ctrl_request_hdl_find/put/ctrl_find functions" patch.
-
-Regards,
-
-	Hans
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 36f76e777ef9..cf77f00a0f2d 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -364,11 +364,23 @@ struct media_v2_topology {
+ 
+ /* ioctls */
+ 
++struct __attribute__ ((packed)) media_request_alloc {
++	__s32 fd;
++};
++
+ #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+ #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+ #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
++#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)
++
++/*
++ * These ioctls are called on the request file descriptor as returned
++ * by MEDIA_IOC_REQUEST_ALLOC.
++ */
++#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
++#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
+ 
+ #ifndef __KERNEL__
+ 
+-- 
+2.18.0
