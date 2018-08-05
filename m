@@ -1,47 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:40368 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728547AbeHMRdP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 13:33:15 -0400
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Thierry Reding <thierry.reding@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dmitry Osipenko <digetx@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 06/14] staging: media: tegra-vde: Print out invalid FD
-Date: Mon, 13 Aug 2018 16:50:19 +0200
-Message-Id: <20180813145027.16346-7-thierry.reding@gmail.com>
-In-Reply-To: <20180813145027.16346-1-thierry.reding@gmail.com>
-References: <20180813145027.16346-1-thierry.reding@gmail.com>
+Received: from 23-94-25-199-host.colocrossing.com ([23.94.25.199]:35031 "EHLO
+        metalcraftgear.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1726954AbeHEXbI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2018 19:31:08 -0400
+To: linux-media@vger.kernel.org
+Subject: and for the photos
+Message-ID: <40ad460965f75fd14b7807d5e57b9ab6@miromarlakes.com>
+Date: Sun, 05 Aug 2018 14:18:16 +0200
+From: "Sam Dennis" <rongjami@nccoastalfishing.com>
+Reply-To: luozongpic@aliyun.com
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Thierry Reding <treding@nvidia.com>
+Want to know if you have photos for editing?
+We can edit 300+ images each day.
 
-Include the invalid file descriptor when reporting an error message to
-help diagnosing why importing the buffer failed.
+We can work on ecommerce photos, jewelry photos, and portrait photos.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
----
- drivers/staging/media/tegra-vde/tegra-vde.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+We give cut out and clipping path for different kind of photos, and also we
+provide retouching for
+them.
 
-diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-index 0ce30c7ccb75..0adc603fa437 100644
---- a/drivers/staging/media/tegra-vde/tegra-vde.c
-+++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-@@ -643,7 +643,7 @@ static int tegra_vde_attach_dmabuf(struct device *dev,
- 
- 	dmabuf = dma_buf_get(fd);
- 	if (IS_ERR(dmabuf)) {
--		dev_err(dev, "Invalid dmabuf FD\n");
-+		dev_err(dev, "Invalid dmabuf FD: %d\n", fd);
- 		return PTR_ERR(dmabuf);
- 	}
- 
--- 
-2.17.0
+Send us a test photo and we will do testing for you.
+
+Thanks,
+Sam Dennis
