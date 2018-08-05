@@ -1,62 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:54638 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726100AbeHEKpU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2018 06:45:20 -0400
-Date: Sun, 5 Aug 2018 01:41:16 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Cc: Christoph Hellwig <hch@infradead.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        keiichiw@chromium.org
-Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
- ISO transfer
-Message-ID: <20180805084116.GA15482@infradead.org>
-References: <CAJs94EZA=o5=4frPhXs3vnr4x-__gSZ2ximvTyugLoaD6KLcUg@mail.gmail.com>
- <Pine.LNX.4.44L0.1808041045060.25853-100000@netrider.rowland.org>
- <20180805074946.GA14119@infradead.org>
- <CAJs94Eb_Mzxk6a+_b8ZnutdkBjrk5=UWg0F1X0-iRZK1do5uLg@mail.gmail.com>
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:43197 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726080AbeHELkM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2018 07:40:12 -0400
+Date: Sun, 5 Aug 2018 11:36:05 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: kbuild test robot <lkp@intel.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, kbuild-all@01.org,
+        Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [ragnatech:media-tree 273/382]
+ drivers/media/i2c/mt9v111.c:801:10: error: implicit declaration of function
+ 'v4l2_subdev_get_try_format'; did you mean 'v4l2_subdev_notify_event'?
+Message-ID: <20180805093605.GI4528@w540>
+References: <201808050155.97R8Urh7%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="sl5MdczEF/OU2Miu"
 Content-Disposition: inline
-In-Reply-To: <CAJs94Eb_Mzxk6a+_b8ZnutdkBjrk5=UWg0F1X0-iRZK1do5uLg@mail.gmail.com>
+In-Reply-To: <201808050155.97R8Urh7%fengguang.wu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 05, 2018 at 11:33:38AM +0300, Matwey V. Kornilov wrote:
-> >> Taken together, those measurements look like a pretty good argument for
-> >> always using dma_sync_single_for_cpu in the driver.  Provided results
-> >> on other platforms aren't too far out of line with these results.
-> >
-> > Logically speaking on no-mmio no-swiotlb platforms dma_sync_single_for_cpu
-> > and dma_unmap should always be identical.  With the migration towards
-> > everyone using dma-direct and dma-noncoherent this is actually going to
-> > be enforced, and I plan to move that enforcement to common code in the
-> > next merge window or two.
-> >
-> 
-> I think that Alan means that using dma_sync_single_for_cpu() we save
-> time required for subsequent dma_map() call (which is required when we
-> do dma_unmap()).
 
-The point still stands.  By definition for a correct DMA API
-implementation a dma_sync_single_for_cpu/dma_sync_single_for_device
-pair is always going to be cheaper than a dma_unmap/dma_map pair,
-although for many cases the difference might be so small that it is
-not measureable.
+--sl5MdczEF/OU2Miu
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-If you reuse a buffer using dma_sync_single* is always the right thing
-to do vs unmapping and remapping it.
+On Sun, Aug 05, 2018 at 01:14:58AM +0800, kbuild test robot wrote:
+> tree:   git://git.ragnatech.se/linux media-tree
+> head:   12f336c88090fb8004736fd4329184326a49673b
+> commit: aab7ed1c392703604fbdc5bd5005dfb61a0b32f9 [273/382] media: i2c: Add driver for Aptina MT9V111
+> config: x86_64-randconfig-x010-201831 (attached as .config)
+> compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
+> reproduce:
+>         git checkout aab7ed1c392703604fbdc5bd5005dfb61a0b32f9
+>         # save the attached .config to linux build tree
+>         make ARCH=x86_64
+>
+> All error/warnings (new ones prefixed by >>):
+>
+>    drivers/media/i2c/mt9v111.c: In function '__mt9v111_get_pad_format':
+> >> drivers/media/i2c/mt9v111.c:801:10: error: implicit declaration of function 'v4l2_subdev_get_try_format'; did you mean 'v4l2_subdev_notify_event'? [-Werror=implicit-function-declaration]
+>       return v4l2_subdev_get_try_format(&mt9v111->sd, cfg, pad);
+>              ^~~~~~~~~~~~~~~~~~~~~~~~~~
+
+I have received this notification a few times now, and it comes from
+the test build being run a kernel configured without the
+CONFIG_VIDEO_V4L2_SUBDEV_API symbol.
+
+The mt9v111 driver does not list CONFIG_VIDEO_V4L2_SUBDEV_API as a
+Kconfig dependency and the option does not get selected by the config
+generated by kbuild, I guess.
+
+Should I list CONFIG_VIDEO_V4L2_SUBDEV_API as an mt9v111 dependency
+with an incremental patch?
+
+>              v4l2_subdev_notify_event
+> >> drivers/media/i2c/mt9v111.c:801:10: warning: return makes pointer from integer without a cast [-Wint-conversion]
+>       return v4l2_subdev_get_try_format(&mt9v111->sd, cfg, pad);
+>              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>    drivers/media/i2c/mt9v111.c: In function 'mt9v111_set_format':
+>    drivers/media/i2c/mt9v111.c:887:15: warning: 'idx' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>      unsigned int idx;
+>                   ^~~
+>    cc1: some warnings being treated as errors
+>
+> vim +801 drivers/media/i2c/mt9v111.c
+>
+>    791
+>    792	static struct v4l2_mbus_framefmt *__mt9v111_get_pad_format(
+>    793						struct mt9v111_dev *mt9v111,
+>    794						struct v4l2_subdev_pad_config *cfg,
+>    795						unsigned int pad,
+>    796						enum v4l2_subdev_format_whence which)
+>    797	{
+>    798		switch (which) {
+>    799		case V4L2_SUBDEV_FORMAT_TRY:
+>    800	#if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
+>  > 801			return v4l2_subdev_get_try_format(&mt9v111->sd, cfg, pad);
+>    802	#else
+>    803			return &cfg->try_fmt;
+>    804	#endif
+>    805		case V4L2_SUBDEV_FORMAT_ACTIVE:
+>    806			return &mt9v111->fmt;
+>    807		default:
+>    808			return NULL;
+>    809		}
+>    810	}
+>    811
+>
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+
+
+--sl5MdczEF/OU2Miu
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbZsUFAAoJEHI0Bo8WoVY8JuYP/3az90qzAHxF1zAIDa87QN1l
+xchI/o60f1SD+itdlAs4rFvRBzlf5k38wbm+pCe+nz7AVXrBlIMT7KO/WsgfCuDQ
+jdNzHKa+EUmiCfWKMXvZzRWl3ncjayNhAYIPN0g32Clotq1872CzA2E+UZi0kguQ
+54OJfXOjsUyjUabsXnxVhOli1OhqelI6J7S8Gi3bumKKm70hslgjX92jwFMP/d0o
+N+Hdah05W+yUcZ7iDRe/4qH9Cn4TB/sHYFrSt++tgAcChnXpC34tztWYIjx5H1pS
+J9syy3uEDaoM6CUnvKp42yeHA8wtylTv7GoH6waUTCZEkfqRaE1dvrJwZgW0niTm
+uBli1r1UhETeam5S/My0xVYCqY11iOHcxE25PdKbA9IZCw2DG5+c3eYYL5JyPimX
+yM1LkDTMDi77MaLprepucdVOcHGOwHMIKS1+7Ox3BUGSfscmHshvjzKneCHH/gua
+ES+eanthBS+BOgLM4695oXwLA2sRs4XaR+fRsW0zbb7WlTDsRoLe24/PP0WAZt2P
+OlpH7jEwljVhDxPI4nObMs22F1f/c4k1hZMY4xSr34gsy1kXUfQWDIZJWJUcV3nX
+4sSZh75wlf8bv54ixAOVNzd/YVOd1p3qnzs/3BGN9E7zHg2VA4scoYr6SSakCXrl
+3+n7KSqktgA4QUXWo4QQ
+=Snuf
+-----END PGP SIGNATURE-----
+
+--sl5MdczEF/OU2Miu--
