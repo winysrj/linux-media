@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:56819 "EHLO smtp2.macqel.be"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729736AbeHAXIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Aug 2018 19:08:47 -0400
-From: Philippe De Muyter <phdm@macqel.be>
-To: linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Cc: Philippe De Muyter <phdm@macqel.be>
-Subject: [PATCH 2/2] media: v4l2-common: simplify v4l2_i2c_subdev_init name generation
-Date: Wed,  1 Aug 2018 23:20:57 +0200
-Message-Id: <1533158457-15831-2-git-send-email-phdm@macqel.be>
-In-Reply-To: <1533158457-15831-1-git-send-email-phdm@macqel.be>
-References: <1533158457-15831-1-git-send-email-phdm@macqel.be>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:35504 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731553AbeHFQsf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 12:48:35 -0400
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        kbingham@kernel.org
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 2/4] MAINTAINERS: VSP1: Add co-maintainer
+Date: Mon,  6 Aug 2018 15:39:02 +0100
+Message-Id: <20180806143904.4716-2-kieran.bingham@ideasonboard.com>
+In-Reply-To: <20180806143904.4716-1-kieran.bingham@ideasonboard.com>
+References: <20180806143904.4716-1-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When v4l2_i2c_subdev_init is called, dev_name(&client->dev) has already
-been set.  Use it to generate subdev's name instead of recreating it
-with "%d-%04x".  This improves the similarity in subdev's name creation
-between v4l2_i2c_subdev_init and v4l2_spi_subdev_init.
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Add myself as a co-maintainer for the Renesas VSP driver.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/v4l2-core/v4l2-common.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 5471c6d..b062111 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -121,9 +121,8 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 	v4l2_set_subdevdata(sd, client);
- 	i2c_set_clientdata(client, sd);
- 	/* initialize name */
--	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
--		client->dev.driver->name, i2c_adapter_id(client->adapter),
--		client->addr);
-+	snprintf(sd->name, sizeof(sd->name), "%s %s",
-+		client->dev.driver->name, dev_name(&client->dev));
- }
- EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c7cecb9201b3..6a30a5332b18 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8935,6 +8935,7 @@ F:	drivers/media/platform/rcar-vin/
  
+ MEDIA DRIVERS FOR RENESAS - VSP1
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+ L:	linux-media@vger.kernel.org
+ L:	linux-renesas-soc@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
 -- 
-1.8.4
+2.17.1
