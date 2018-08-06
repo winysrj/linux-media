@@ -1,70 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bran.ispras.ru ([83.149.199.196]:23653 "EHLO smtp.ispras.ru"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728626AbeHFSAh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Aug 2018 14:00:37 -0400
-From: Anton Vasilyev <vasilyev@ispras.ru>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Anton Vasilyev <vasilyev@ispras.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        ldv-project@linuxtesting.org
-Subject: [PATCH v2 1/2] media: davinci: vpif_display: Mix memory leak on probe error path
-Date: Mon,  6 Aug 2018 18:50:24 +0300
-Message-Id: <20180806155025.8912-1-vasilyev@ispras.ru>
-In-Reply-To: <CA+V-a8vXEiZ6widPZRdiw-0QejFHwDcTtMz5iKfkHc9gZLZ79Q@mail.gmail.com>
-References: 
+Received: from mail-lf1-f68.google.com ([209.85.167.68]:42967 "EHLO
+        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728569AbeHFTGa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 15:06:30 -0400
+Received: by mail-lf1-f68.google.com with SMTP id u202-v6so9561380lff.9
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2018 09:56:31 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: [PATCH] rcar-csi2: add R8A77980 support
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
+Message-ID: <f6edfd44-7b08-e467-3486-795251816187@cogentembedded.com>
+Date: Mon, 6 Aug 2018 19:56:27 +0300
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-MW
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If vpif_probe() fails on v4l2_device_register() then memory allocated
-at initialize_vpif() for global vpif_obj.dev[i] become unreleased.
+Add the R-Car V3H (AKA R8A77980) SoC support to the R-Car CSI2 driver.
 
-The patch adds deallocation of vpif_obj.dev[i] on the probe error path.
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Anton Vasilyev <vasilyev@ispras.ru>
 ---
-v2: divided the original patch into two and made stylistic fixes based
-on the Prabhakar's rewiev.
----
- drivers/media/platform/davinci/vpif_display.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+This patch is against the 'media_tree.git' repo's 'master' branch.
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 7be636237acf..d9e578ac79c2 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1271,7 +1271,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
- 	if (err) {
- 		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
--		return err;
-+		goto vpif_free;
- 	}
+ Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt |    1 
+ drivers/media/platform/rcar-vin/rcar-csi2.c                   |   11 ++++++++++
+ 2 files changed, 12 insertions(+)
+
+Index: media_tree/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+===================================================================
+--- media_tree.orig/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
++++ media_tree/Documentation/devicetree/bindings/media/renesas,rcar-csi2.txt
+@@ -12,6 +12,7 @@ Mandatory properties
+    - "renesas,r8a7796-csi2" for the R8A7796 device.
+    - "renesas,r8a77965-csi2" for the R8A77965 device.
+    - "renesas,r8a77970-csi2" for the R8A77970 device.
++   - "renesas,r8a77980-csi2" for the R8A77980 device.
  
- 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
-@@ -1314,7 +1314,9 @@ static __init int vpif_probe(struct platform_device *pdev)
- 			if (vpif_obj.sd[i])
- 				vpif_obj.sd[i]->grp_id = 1 << i;
- 		}
--		vpif_probe_complete();
-+		err = vpif_probe_complete();
-+		if (err)
-+			goto probe_subdev_out;
- 	} else {
- 		vpif_obj.notifier.subdevs = vpif_obj.config->asd;
- 		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
-@@ -1334,6 +1336,9 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	kfree(vpif_obj.sd);
- vpif_unregister:
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-+vpif_free:
-+	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
-+		kfree(vpif_obj.dev[i]);
+  - reg: the register base and size for the device registers
+  - interrupts: the interrupt for the device
+Index: media_tree/drivers/media/platform/rcar-vin/rcar-csi2.c
+===================================================================
+--- media_tree.orig/drivers/media/platform/rcar-vin/rcar-csi2.c
++++ media_tree/drivers/media/platform/rcar-vin/rcar-csi2.c
+@@ -959,6 +959,13 @@ static const struct rcar_csi2_info rcar_
+ 	.confirm_start = rcsi2_confirm_start_v3m_e3,
+ };
  
- 	return err;
- }
--- 
-2.18.0
++static const struct rcar_csi2_info rcar_csi2_info_r8a77980 = {
++	.init_phtw = rcsi2_init_phtw_h3_v3h_m3n,
++	.hsfreqrange = hsfreqrange_h3_v3h_m3n,
++	.csi0clkfreqrange = 0x20,
++	.clear_ulps = true,
++};
++
+ static const struct of_device_id rcar_csi2_of_table[] = {
+ 	{
+ 		.compatible = "renesas,r8a7795-csi2",
+@@ -976,6 +983,10 @@ static const struct of_device_id rcar_cs
+ 		.compatible = "renesas,r8a77970-csi2",
+ 		.data = &rcar_csi2_info_r8a77970,
+ 	},
++	{
++		.compatible = "renesas,r8a77980-csi2",
++		.data = &rcar_csi2_info_r8a77980,
++	},
+ 	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
