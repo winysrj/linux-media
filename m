@@ -1,156 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:45787 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726468AbeHFLVV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Aug 2018 07:21:21 -0400
-Message-ID: <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
-Subject: Re: [RFC] Request API and V4L2 capabilities
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:35566 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726746AbeHFLL2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 07:11:28 -0400
+Received: by mail-lf1-f66.google.com with SMTP id f18-v6so8514895lfc.2
+        for <linux-media@vger.kernel.org>; Mon, 06 Aug 2018 02:03:22 -0700 (PDT)
+Date: Mon, 6 Aug 2018 11:03:20 +0200
+From: =?iso-8859-1?Q?=22Niklas_S=F6derlund=22?=
+        <niklas.soderlund@ragnatech.se>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Date: Mon, 06 Aug 2018 11:13:12 +0200
-In-Reply-To: <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl>
-References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
-         <43c3d4b79377e9481ca29308cf1c160d57902d8c.camel@bootlin.com>
-         <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-+VTkoTexxFsbtNEWLvNM"
-Mime-Version: 1.0
+        Kieran Bingham <kieran@ksquared.org.uk>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 4/8] media: adv748x: convert to SPDX identifiers
+Message-ID: <20180806090320.GB15583@bigcity.dyn.berto.se>
+References: <87h8k8nqcf.wl-kuninori.morimoto.gx@renesas.com>
+ <87bmagnq8d.wl-kuninori.morimoto.gx@renesas.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <87bmagnq8d.wl-kuninori.morimoto.gx@renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Morimoto-san,
 
---=-+VTkoTexxFsbtNEWLvNM
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thanks for your patch.
 
-Hi,
+On 2018-08-06 03:17:48 +0000, Kuninori Morimoto wrote:
+> 
+> From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+> 
+> As original license mentioned, it is GPL-2.0+ in SPDX.
+> Then, MODULE_LICENSE() should be "GPL" instead of "GPL v2".
+> See ${LINUX}/include/linux/module.h
+> 
+> 	"GPL"		[GNU Public License v2 or later]
+> 	"GPL v2"	[GNU Public License v2]
+> 
+> Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-On Mon, 2018-08-06 at 10:32 +0200, Hans Verkuil wrote:
-> On 08/06/2018 10:16 AM, Paul Kocialkowski wrote:
-> > On Sat, 2018-08-04 at 15:50 +0200, Hans Verkuil wrote:
-> > > Regarding point 3: I think this should be documented next to the pixe=
-l format. I.e.
-> > > the MPEG-2 Slice format used by the stateless cedrus codec requires t=
-he request API
-> > > and that two MPEG-2 controls (slice params and quantization matrices)=
- must be present
-> > > in each request.
-> > >=20
-> > > I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRED_IN_REQ) is=
- needed here.
-> > > It's really implied by the fact that you use a stateless codec. It do=
-esn't help
-> > > generic applications like v4l2-ctl or qv4l2 either since in order to =
-support
-> > > stateless codecs they will have to know about the details of these co=
-ntrols anyway.
-> > >=20
-> > > So I am inclined to say that it is not necessary to expose this infor=
-mation in
-> > > the API, but it has to be documented together with the pixel format d=
-ocumentation.
-> >=20
-> > I think this is affected by considerations about codec profile/level
-> > support. More specifically, some controls will only be required for
-> > supporting advanced codec profiles/levels, so they can only be
-> > explicitly marked with appropriate flags by the driver when the target
-> > profile/level is known. And I don't think it would be sane for userspac=
-e
-> > to explicitly set what profile/level it's aiming at. As a result, I
-> > don't think we can explicitly mark controls as required or optional.
-> >=20
-> > I also like the idea that it should instead be implicit and that the
-> > documentation should detail which specific stateless metadata controls
-> > are required for a given profile/level.
-> >=20
-> > As for controls validation, the approach followed in the Cedrus driver
-> > is to check that the most basic controls are filled and allow having
-> > missing controls for those that match advanced profiles.
-> >=20
-> > Since this approach feels somewhat generic enough to be applied to all
-> > stateless VPU drivers, maybe this should be made a helper in the
-> > framework?
->=20
-> Sounds reasonable. Not sure if it will be in the first version, but it is
-> easy to add later.
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Definitely, I don't think this is such a high priority for now either.
+> ---
+>  drivers/media/i2c/adv748x/adv748x-afe.c  | 6 +-----
+>  drivers/media/i2c/adv748x/adv748x-core.c | 8 ++------
+>  drivers/media/i2c/adv748x/adv748x-csi2.c | 6 +-----
+>  drivers/media/i2c/adv748x/adv748x-hdmi.c | 6 +-----
+>  drivers/media/i2c/adv748x/adv748x.h      | 6 +-----
+>  5 files changed, 6 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+> index edd25e8..6e6ea1d 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+> @@ -1,13 +1,9 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+>  /*
+>   * Driver for Analog Devices ADV748X 8 channel analog front end (AFE) receiver
+>   * with standard definition processor (SDP)
+>   *
+>   * Copyright (C) 2017 Renesas Electronics Corp.
+> - *
+> - * This program is free software; you can redistribute  it and/or modify it
+> - * under  the terms of  the GNU General  Public License as published by the
+> - * Free Software Foundation;  either version 2 of the  License, or (at your
+> - * option) any later version.
+>   */
+>  
+>  #include <linux/delay.h>
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index 6ca88daa..85c027b 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -1,13 +1,9 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+>  /*
+>   * Driver for Analog Devices ADV748X HDMI receiver with AFE
+>   *
+>   * Copyright (C) 2017 Renesas Electronics Corp.
+>   *
+> - * This program is free software; you can redistribute  it and/or modify it
+> - * under  the terms of  the GNU General  Public License as published by the
+> - * Free Software Foundation;  either version 2 of the  License, or (at your
+> - * option) any later version.
+> - *
+>   * Authors:
+>   *	Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>   *	Niklas Söderlund <niklas.soderlund@ragnatech.se>
+> @@ -755,4 +751,4 @@ module_i2c_driver(adv748x_driver);
+>  
+>  MODULE_AUTHOR("Kieran Bingham <kieran.bingham@ideasonboard.com>");
+>  MODULE_DESCRIPTION("ADV748X video decoder");
+> -MODULE_LICENSE("GPL v2");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> index 469be87..265d9f5 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> @@ -1,12 +1,8 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+>  /*
+>   * Driver for Analog Devices ADV748X CSI-2 Transmitter
+>   *
+>   * Copyright (C) 2017 Renesas Electronics Corp.
+> - *
+> - * This program is free software; you can redistribute  it and/or modify it
+> - * under  the terms of  the GNU General  Public License as published by the
+> - * Free Software Foundation;  either version 2 of the  License, or (at your
+> - * option) any later version.
+>   */
+>  
+>  #include <linux/module.h>
+> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> index aecc2a8..2641deb 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> @@ -1,12 +1,8 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+>  /*
+>   * Driver for Analog Devices ADV748X HDMI receiver and Component Processor (CP)
+>   *
+>   * Copyright (C) 2017 Renesas Electronics Corp.
+> - *
+> - * This program is free software; you can redistribute  it and/or modify it
+> - * under  the terms of  the GNU General  Public License as published by the
+> - * Free Software Foundation;  either version 2 of the  License, or (at your
+> - * option) any later version.
+>   */
+>  
+>  #include <linux/module.h>
+> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+> index 65f8374..c9016ac 100644
+> --- a/drivers/media/i2c/adv748x/adv748x.h
+> +++ b/drivers/media/i2c/adv748x/adv748x.h
+> @@ -1,13 +1,9 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
+>  /*
+>   * Driver for Analog Devices ADV748X video decoder and HDMI receiver
+>   *
+>   * Copyright (C) 2017 Renesas Electronics Corp.
+>   *
+> - * This program is free software; you can redistribute  it and/or modify it
+> - * under  the terms of  the GNU General  Public License as published by the
+> - * Free Software Foundation;  either version 2 of the  License, or (at your
+> - * option) any later version.
+> - *
+>   * Authors:
+>   *	Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>   *	Niklas Söderlund <niklas.soderlund@ragnatech.se>
+> -- 
+> 2.7.4
+> 
 
-> > In addition, I see a need for exposing the maximum profile/level that
-> > the driver supports for decoding. I would suggest reusing the already-
-> > existing dedicated controls used for encoding for this purpose. For
-> > decoders, they would be used to expose the (read-only) maximum
-> > profile/level that is supported by the hardware and keep using them as =
-a
-> > settable value in a range (matching the level of support) for encoders.
-> >=20
-> > This is necessary for userspace to determine whether a given video can
-> > be decoded in hardware or not. Instead of half-way decoding the video
-> > (ending up in funky results), this would easily allow skipping hardware
-> > decoding and e.g. falling back on software decoding.
->=20
-> I think it might be better to expose this through new read-only bitmask
-> controls: i.e. a bitmask containing the supported profiles and levels.
-
-It seems that this is more or less what the coda driver is doing for
-decoding actually, although it uses a menu control between min/max
-supported profile/levels, with a mask to "blacklist" the unsupported
-values. Then, the V4L2_CTRL_FLAG_READ_ONLY flag is set to keep the
-control read-only.
-
-> Reusing the existing controls for a decoder is odd since there is not
-> really a concept of a 'current' value since you just want to report what
-> is supported. And I am not sure if all decoders can report the profile
-> or level that they detect.
-
-Is that really a problem when the READ_ONLY flag is set? I thought it
-was designed to fit this specific case, when the driver reports a value
-that userspace cannot affect.
-
-Otherwise, I agree that having a bitmask type would be a better fit, but
-I think it would be beneficial to keep the already-defined control and
-associated values, which implies using the menu control type for both
-encoders and decoders.
-
-If this is not an option, I would be in favour of adding per-codec read-
-only bitmask controls (e.g. for H264 something like
-V4L2_CID_MPEG_VIDEO_H264_PROFILE_SUPPORT) that expose the already-
-existing profile/level definitions as bit identifiers (a bit like coda
-is using them to craft a mask for the menu items to blacklist) for
-decoding only.
-
-What do you think?
-
-Cheers,
-
-Paul
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
-
---=-+VTkoTexxFsbtNEWLvNM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltoESgACgkQ3cLmz3+f
-v9H4kQf+JjTLKrtEenbQpOEvhSMC+ifMl8LqKsEUpahWs9sfG3f9xx3sY/FsHF74
-B8K+N5SkzVDhXNeoM9L8Tyc6XNiPHprOI9d7usUgP8uznf6FJU2U/FGoq1XjQeyh
-tOYnOcUj1rmoPGPHnC8dERVUI/NaB0NJhNpRUlW+S9pfdSbgKDcE+BTN5iIvdnx9
-4jh4bcHQdF++Z7echWcJwDMeNh0TEb0PVFugtorgjDU4k7NBgTaHvFXsMKDfw4vA
-71bmr2xl3kjplBBBa5CNR2a0w4lXK6oh6u5aHqRm9+KuqIsIkEU9l+EoyGkkGhyZ
-d+i0WuDayg3bx8kt3wbOWOqT9G9tGg==
-=6By3
------END PGP SIGNATURE-----
-
---=-+VTkoTexxFsbtNEWLvNM--
+-- 
+Regards,
+Niklas Söderlund
