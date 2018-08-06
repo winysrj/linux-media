@@ -1,136 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52401 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726865AbeHFLby (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Aug 2018 07:31:54 -0400
-Subject: Re: [RFC] Request API and V4L2 capabilities
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
- <43c3d4b79377e9481ca29308cf1c160d57902d8c.camel@bootlin.com>
- <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl>
- <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <186fd3ca-7759-7648-6870-4e5274a9680d@xs4all.nl>
-Date: Mon, 6 Aug 2018 11:23:38 +0200
-MIME-Version: 1.0
-In-Reply-To: <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from smtp.codeaurora.org ([198.145.29.96]:54552 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727510AbeHFPhZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 11:37:25 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
+        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+Subject: [PATCH v4 0/4] Venus updates - PIL
+Date: Mon,  6 Aug 2018 18:58:01 +0530
+Message-Id: <1533562085-8773-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/06/2018 11:13 AM, Paul Kocialkowski wrote:
-> Hi,
-> 
-> On Mon, 2018-08-06 at 10:32 +0200, Hans Verkuil wrote:
->> On 08/06/2018 10:16 AM, Paul Kocialkowski wrote:
->>> On Sat, 2018-08-04 at 15:50 +0200, Hans Verkuil wrote:
->>>> Regarding point 3: I think this should be documented next to the pixel format. I.e.
->>>> the MPEG-2 Slice format used by the stateless cedrus codec requires the request API
->>>> and that two MPEG-2 controls (slice params and quantization matrices) must be present
->>>> in each request.
->>>>
->>>> I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRED_IN_REQ) is needed here.
->>>> It's really implied by the fact that you use a stateless codec. It doesn't help
->>>> generic applications like v4l2-ctl or qv4l2 either since in order to support
->>>> stateless codecs they will have to know about the details of these controls anyway.
->>>>
->>>> So I am inclined to say that it is not necessary to expose this information in
->>>> the API, but it has to be documented together with the pixel format documentation.
->>>
->>> I think this is affected by considerations about codec profile/level
->>> support. More specifically, some controls will only be required for
->>> supporting advanced codec profiles/levels, so they can only be
->>> explicitly marked with appropriate flags by the driver when the target
->>> profile/level is known. And I don't think it would be sane for userspace
->>> to explicitly set what profile/level it's aiming at. As a result, I
->>> don't think we can explicitly mark controls as required or optional.
->>>
->>> I also like the idea that it should instead be implicit and that the
->>> documentation should detail which specific stateless metadata controls
->>> are required for a given profile/level.
->>>
->>> As for controls validation, the approach followed in the Cedrus driver
->>> is to check that the most basic controls are filled and allow having
->>> missing controls for those that match advanced profiles.
->>>
->>> Since this approach feels somewhat generic enough to be applied to all
->>> stateless VPU drivers, maybe this should be made a helper in the
->>> framework?
->>
->> Sounds reasonable. Not sure if it will be in the first version, but it is
->> easy to add later.
-> 
-> Definitely, I don't think this is such a high priority for now either.
-> 
->>> In addition, I see a need for exposing the maximum profile/level that
->>> the driver supports for decoding. I would suggest reusing the already-
->>> existing dedicated controls used for encoding for this purpose. For
->>> decoders, they would be used to expose the (read-only) maximum
->>> profile/level that is supported by the hardware and keep using them as a
->>> settable value in a range (matching the level of support) for encoders.
->>>
->>> This is necessary for userspace to determine whether a given video can
->>> be decoded in hardware or not. Instead of half-way decoding the video
->>> (ending up in funky results), this would easily allow skipping hardware
->>> decoding and e.g. falling back on software decoding.
->>
->> I think it might be better to expose this through new read-only bitmask
->> controls: i.e. a bitmask containing the supported profiles and levels.
-> 
-> It seems that this is more or less what the coda driver is doing for
-> decoding actually, although it uses a menu control between min/max
-> supported profile/levels, with a mask to "blacklist" the unsupported
-> values. Then, the V4L2_CTRL_FLAG_READ_ONLY flag is set to keep the
-> control read-only.
-> 
->> Reusing the existing controls for a decoder is odd since there is not
->> really a concept of a 'current' value since you just want to report what
->> is supported. And I am not sure if all decoders can report the profile
->> or level that they detect.
-> 
-> Is that really a problem when the READ_ONLY flag is set? I thought it
-> was designed to fit this specific case, when the driver reports a value
-> that userspace cannot affect.
+Hello,
 
-Well, for read-only menu controls the current value of the control would
-have to indicate what the current profile/level is that is being decoded.
+Here is v4 with following comments addressed:
 
-That's not really relevant since what you want is just to query the
-supported profiles/levels. A read-only bitmask control is the fastest
-method (if only because using a menu control requires the application to
-enumerate all possibilities with QUERYMENU).
+* inline function for setting suspend and resume.
+* keep firmware size as 6 MB.
+* comments related to indentation, cleanup, etc.
 
-> 
-> Otherwise, I agree that having a bitmask type would be a better fit, but
-> I think it would be beneficial to keep the already-defined control and
-> associated values, which implies using the menu control type for both
-> encoders and decoders.
-> 
-> If this is not an option, I would be in favour of adding per-codec read-
-> only bitmask controls (e.g. for H264 something like
-> V4L2_CID_MPEG_VIDEO_H264_PROFILE_SUPPORT) that expose the already-
-> existing profile/level definitions as bit identifiers (a bit like coda
-> is using them to craft a mask for the menu items to blacklist) for
-> decoding only.
+As per comments from Bjorn, qcom_mdt_load_no_init is being used in this
+patch series to align with https://patchwork.kernel.org/patch/10397889/.
 
-That's what I have in mind, yes. I'd like Tomasz' input as well, though.
+Comments are welcome!
 
-Regards,
+Vikash Garodia (4):
+  venus: firmware: add routine to reset ARM9
+  venus: firmware: move load firmware in a separate function
+  venus: firmware: add no TZ boot and shutdown routine
+  venus: firmware: register separate driver for firmware device
 
-	Hans
+ .../devicetree/bindings/media/qcom,venus.txt       |  17 +-
+ drivers/media/platform/qcom/venus/core.c           |  60 +++++--
+ drivers/media/platform/qcom/venus/core.h           |   7 +
+ drivers/media/platform/qcom/venus/firmware.c       | 192 ++++++++++++++++++---
+ drivers/media/platform/qcom/venus/firmware.h       |  17 +-
+ drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |   6 +
+ 7 files changed, 268 insertions(+), 44 deletions(-)
 
-> What do you think?
-> 
-> Cheers,
-> 
-> Paul
-> 
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
