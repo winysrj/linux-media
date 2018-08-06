@@ -1,63 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0056.outbound.protection.outlook.com ([104.47.42.56]:60672
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+Received: from 161640.com ([78.128.99.25]:40300 "EHLO dealsofamerica.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S2387455AbeHGDJw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Aug 2018 23:09:52 -0400
-From: Nadav Amit <namit@vmware.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] usb: fix uvc_alloc_entity() allocation alignment
-Date: Tue, 7 Aug 2018 00:58:05 +0000
-Message-ID: <0B044CD5-B4F5-4614-B97A-E02E5C1E8A17@vmware.com>
-References: <20180604134713.101064-1-namit@vmware.com>
- <15813968.YrTFj7ZbY9@avalon>
-In-Reply-To: <15813968.YrTFj7ZbY9@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <41B96F3C5F277940B428884598F503D6@namprd05.prod.outlook.com>
-Content-Transfer-Encoding: base64
+        id S2387512AbeHGDQU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Aug 2018 23:16:20 -0400
+To: linux-media@vger.kernel.org
+Subject: for editing the photos
+Message-ID: <e795dd2cd190b8621c15de5d866e0879@whitecapsmarine.com>
+Date: Mon, 06 Aug 2018 15:34:02 +0200
+From: "Jason James" <zckfani@acceleratedtruckmounts.com>
+Reply-To: gaosintans@aliyun.com
 MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-YXQgNDo1OCBQTSwgTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9h
-cmQuY29tPiB3cm90ZToNCg0KPiBIaSBOYWRhdiwNCj4gDQo+IFRoYW5rIHlvdSBmb3IgdGhlIHBh
-dGNoLg0KPiANCj4gT24gTW9uZGF5LCA0IEp1bmUgMjAxOCAxNjo0NzoxMyBFRVNUIE5hZGF2IEFt
-aXQgd3JvdGU6DQo+PiBUaGUgdXNlIG9mIEFMSUdOKCkgaW4gdXZjX2FsbG9jX2VudGl0eSgpIGlz
-IGluY29ycmVjdCwgc2luY2UgdGhlIHNpemUgb2YNCj4+IChlbnRpdHktPnBhZHMpIGlzIG5vdCBh
-IHBvd2VyIG9mIHR3by4gQXMgYSBzdG9wLWdhcCwgdW50aWwgYSBiZXR0ZXINCj4+IHNvbHV0aW9u
-IGlzIGFkYXB0ZWQsIHVzZSByb3VuZHVwKCkgaW5zdGVhZC4NCj4+IA0KPj4gRm91bmQgYnkgYSBz
-dGF0aWMgYXNzZXJ0aW9uLiBDb21waWxlLXRlc3RlZCBvbmx5Lg0KPj4gDQo+PiBGaXhlczogNGZm
-YzJkODlmMzhhICgidXZjdmlkZW86IFJlZ2lzdGVyIHN1YmRldmljZXMgZm9yIGVhY2ggZW50aXR5
-IikNCj4+IA0KPj4gQ2M6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNv
-bmJvYXJkLmNvbT4NCj4+IENjOiBNYXVybyBDYXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAa2VybmVs
-Lm9yZz4NCj4+IENjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNCj4+IENjOiBsaW51eC1r
-ZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+PiANCj4+IFNpZ25lZC1vZmYtYnk6IE5hZGF2IEFtaXQg
-PG5hbWl0QHZtd2FyZS5jb20+DQo+PiAtLS0NCj4+IGRyaXZlcnMvbWVkaWEvdXNiL3V2Yy91dmNf
-ZHJpdmVyLmMgfCAyICstDQo+PiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVs
-ZXRpb24oLSkNCj4+IA0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdXNiL3V2Yy91dmNf
-ZHJpdmVyLmMNCj4+IGIvZHJpdmVycy9tZWRpYS91c2IvdXZjL3V2Y19kcml2ZXIuYyBpbmRleCAy
-NDY5YjQ5YjJiMzAuLjZiOTg5ZDQxYzAzNA0KPj4gMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21l
-ZGlhL3VzYi91dmMvdXZjX2RyaXZlci5jDQo+PiArKysgYi9kcml2ZXJzL21lZGlhL3VzYi91dmMv
-dXZjX2RyaXZlci5jDQo+PiBAQCAtOTA5LDcgKzkwOSw3IEBAIHN0YXRpYyBzdHJ1Y3QgdXZjX2Vu
-dGl0eSAqdXZjX2FsbG9jX2VudGl0eSh1MTYgdHlwZSwgdTgNCj4+IGlkLCB1bnNpZ25lZCBpbnQg
-c2l6ZTsNCj4+IAl1bnNpZ25lZCBpbnQgaTsNCj4+IA0KPj4gLQlleHRyYV9zaXplID0gQUxJR04o
-ZXh0cmFfc2l6ZSwgc2l6ZW9mKCplbnRpdHktPnBhZHMpKTsNCj4+ICsJZXh0cmFfc2l6ZSA9IHJv
-dW5kdXAoZXh0cmFfc2l6ZSwgc2l6ZW9mKCplbnRpdHktPnBhZHMpKTsNCj4+IAludW1faW5wdXRz
-ID0gKHR5cGUgJiBVVkNfVEVSTV9PVVRQVVQpID8gbnVtX3BhZHMgOiBudW1fcGFkcyAtIDE7DQo+
-PiAJc2l6ZSA9IHNpemVvZigqZW50aXR5KSArIGV4dHJhX3NpemUgKyBzaXplb2YoKmVudGl0eS0+
-cGFkcykgKiBudW1fcGFkcw0KPj4gCSAgICAgKyBudW1faW5wdXRzOw0KPiANCj4gVGhlIHB1cnBv
-c2Ugb2YgdGhpcyBhbGlnbm1lbnQgaXMgdG8gbWFrZSBzdXJlIHRoYXQgZW50aXR5LT5wYWRzIHdp
-bGwgYmUgDQo+IHByb3Blcmx5IGFsaWduZWQuIEluIHRoZW9yeSB0aGUgc2l6ZSBvZiB1dmNfZW50
-aXR5IHNob3VsZCBiZSB0YWtlbiBpbnRvIA0KPiBhY2NvdW50IHRvbywgYnV0IHRoZSBzdHJ1Y3R1
-cmUgY29udGFpbnMgcG9pbnRlcnMsIHNvIGl0cyBzaXplIHNob3VsZCBhbHJlYWR5IA0KPiBiZSBw
-cm9wZXJseSBhbGlnbmVkLiBUaGlzIHBhdGNoIHRodXMgbG9va3MgZ29vZCB0byBtZS4gV2hhdCBt
-YWRlIHlvdSBzYXkgaXQncyANCj4gYSBzdG9wLWdhcCBtZWFzdXJlID8NCg0KVGhhbmtzLiBJdOKA
-mXMgYmVlbiBhIHdoaWxlLiBBbnlob3csIEkgZG9u4oCZdCBrbm93IGhvdyDigJxob3TigJ0gdGhp
-cyBjb2RlIGlzLCBidXQNCnJvdW5kdXAgdXNlcyBhIGRpdiBvcGVyYXRpb25zLCBzbyBpZiBpdCBp
-cyDigJxob3TigJ0geW91IG1heSB3YW50IGEgZGlmZmVyZW50DQp3YXkgdG8gYWxpZ24gd2l0aCBs
-b3dlciBvdmVyaGVhZC4NCg0KSSBwcmVzdW1lIGl0IGlzIG5vdOKApg0KDQpSZWdhcmRzLA0KTmFk
-YXY=
+Want to follow up the email sent last week.
+Do you have needs for photo editing?
+We can edit 400 images within 24 hours.
+
+We are working on all kinds of ecommerce photos, jewelry photos, and the
+portrait images.
+
+We do cutting out and clipping path and others, and also we provide
+retouching for your photos,
+
+You can throw us a photo and we will do testing for you to check our
+quality.
+
+Thanks,
+Jason
