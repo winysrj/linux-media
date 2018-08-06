@@ -1,47 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:35516 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728626AbeHFQsg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 12:48:36 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        kbingham@kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 3/4] MAINTAINERS: FDP1: Update e-mail address.
-Date: Mon,  6 Aug 2018 15:39:03 +0100
-Message-Id: <20180806143904.4716-3-kieran.bingham@ideasonboard.com>
-In-Reply-To: <20180806143904.4716-1-kieran.bingham@ideasonboard.com>
-References: <20180806143904.4716-1-kieran.bingham@ideasonboard.com>
+Received: from bran.ispras.ru ([83.149.199.196]:23792 "EHLO smtp.ispras.ru"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728626AbeHFSAr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Aug 2018 14:00:47 -0400
+From: Anton Vasilyev <vasilyev@ispras.ru>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Anton Vasilyev <vasilyev@ispras.ru>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ldv-project@linuxtesting.org
+Subject: [PATCH v2 2/2] media: davinci: vpif_display: remove duplicate check
+Date: Mon,  6 Aug 2018 18:50:25 +0300
+Message-Id: <20180806155025.8912-2-vasilyev@ispras.ru>
+In-Reply-To: <20180806155025.8912-1-vasilyev@ispras.ru>
+References: <20180806155025.8912-1-vasilyev@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+The patch removes the duplicate platform_data check from vpif_probe().
 
-This entry was created with my personal e-mail address. Update with
-the correct work related account.
+Fixes: 4a5f8ae50b66 ("[media] davinci: vpif_capture: get subdevs from DT when available")
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Anton Vasilyev <vasilyev@ispras.ru>
 ---
-Cc: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
+v2: divided the original patch into two and made stylistic fixes based
+on the Prabhakar's rewiev.
+---
+ drivers/media/platform/davinci/vpif_display.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 6a30a5332b18..174c0c3da67e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8915,7 +8915,7 @@ F:	drivers/media/platform/rcar-fcp.c
- F:	include/media/rcar-fcp.h
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index d9e578ac79c2..f000fc492ef9 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1255,11 +1255,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
  
- MEDIA DRIVERS FOR RENESAS - FDP1
--M:	Kieran Bingham <kieran@bingham.xyz>
-+M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
- L:	linux-media@vger.kernel.org
- L:	linux-renesas-soc@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
+-	if (!pdev->dev.platform_data) {
+-		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
+-		return -EINVAL;
+-	}
+-
+ 	vpif_dev = &pdev->dev;
+ 	err = initialize_vpif();
+ 
 -- 
-2.17.1
+2.18.0
