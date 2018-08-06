@@ -1,107 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60399 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726003AbeHOGVS (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48226 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728597AbeHOKib (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Aug 2018 02:21:18 -0400
-Message-ID: <16ef8ada1be4df7b28fda928a5ad33db@smtp-cloud7.xs4all.net>
-Date: Wed, 15 Aug 2018 05:31:00 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Wed, 15 Aug 2018 06:38:31 -0400
+Date: Tue, 7 Aug 2018 01:44:36 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv17 01/34] Documentation: v4l: document request API
+Message-ID: <20180806234436.GA28093@xo-6d-61-c0.localdomain>
+References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+ <20180804124526.46206-2-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180804124526.46206-2-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi!
 
-Results of the daily build of media_tree:
+> Document the request API for V4L2 devices, and amend the documentation
+> of system calls influenced by it.
+> 
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-date:			Wed Aug 15 05:00:16 CEST 2018
-media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
-media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
-v4l-utils git hash:	4e160e6dfc8705fbc6867c880f445e69fcedcada
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Cc documentation people?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.18-i686: OK
-linux-4.18-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+> +Synopsis
+> +========
+> +
+> +.. c:function:: int ioctl( int request_fd, MEDIA_REQUEST_IOC_QUEUE )
+> +    :name: MEDIA_REQUEST_IOC_QUEUE
+> +
+> +
+> +Arguments
+> +=========
+> +
+> +``request_fd``
+> +    File descriptor returned by :ref:`MEDIA_IOC_REQUEST_ALLOC`.
+> +
+> +
+> +Description
+> +===========
+> +
+> +If the media device supports :ref:`requests <media-request-api>`, then
+> +this request ioctl can be used to queue a previously allocated request.
+> +
+> +If the request was successfully queued, then the file descriptor can be
+> +:ref:`polled <request-func-poll>` to wait for the request to complete.
 
-Detailed results are available here:
+> +
+> +If the request was already queued before, then ``EBUSY`` is returned.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+I'd expect -1 to be returned and errno set to EBUSY?
 
-Full logs are available here:
+> +============
+> +
+> +On success 0 is returned, on error -1 and the ``errno`` variable is set
+> +appropriately. The generic error codes are described at the
+> +:ref:`Generic Error Codes <gen-errors>` chapter.
+> +
+> +EBUSY
+> +    The request was already queued.
+> +EPERM
+> +    The application queued the first buffer directly, but later attempted
+> +    to use a request. It is not permitted to mix the two APIs.
+> +ENOENT
+> +    The request did not contain any buffers. All requests are required
+> +    to have at least one buffer. This can also be returned if required
+> +    controls are missing.
+> +ENOMEM
+> +    Out of memory when allocating internal data structures for this
+> +    request.
+> +EINVAL
+> +    The request has invalid data.
+> +EIO
+> +    The hardware is in a bad state. To recover, the application needs to
+> +    stop streaming to reset the hardware state and then try to restart
+> +    streaming.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+										Pavel
