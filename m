@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54554 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727450AbeHJJ5K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Aug 2018 05:57:10 -0400
-Subject: Re: [PATCHv17 03/34] media-request: implement media requests
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:47344 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728948AbeHFXNn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 19:13:43 -0400
+Message-ID: <6f89eb878e7c7070401e718122617e92577174e8.camel@collabora.com>
+Subject: Re: [PATCHv17 31/34] vim2m: support requests
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Date: Mon, 06 Aug 2018 18:02:41 -0300
+In-Reply-To: <20180804124526.46206-32-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
- <20180804124526.46206-4-hverkuil@xs4all.nl>
- <20180809153732.7701894c@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b38814c3-bc06-23d3-29c4-94e4a3c72d3c@xs4all.nl>
-Date: Fri, 10 Aug 2018 09:28:28 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180809153732.7701894c@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+         <20180804124526.46206-32-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/09/2018 08:37 PM, Mauro Carvalho Chehab wrote:
->> +	get_task_comm(comm, current);
->> +	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
->> +		 comm, fd);
-> 
-> I'm pretty sure we've discussed about get_task_comm(). I don't think 
-> we should use it, as the task with queues can be different than
-> the one with dequeues. Instead, just give an unique ID for each
-> request. That will allow tracking it in a better way, no matter how
-> the userspace app is encoded.
+Hey Hans,
 
-The original discussion went back-and-forth a bit, but I'll just
-replace it with a unique ID.
+Just a small nit.
 
-> Also, for dynamic debugs, the task ID can easily be obtained by
-> passing a parameter to it, with +t:
+On Sat, 2018-08-04 at 14:45 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> 	echo "file media_request.c +t" > /sys/kernel/debug/dynamic_debug/control
+> Add support for requests to vim2m.
 > 
-> or, at the boot time with:
-> 	dyndbg="file media_request.c +t"
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/vim2m.c | 26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
 > 
-> So, Kernel shouldn't be bothered by having such hacks hardcoded
-> at the code.
+> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+> index 6f87ef025ff1..3b8df2c9d24a 100644
+> --- a/drivers/media/platform/vim2m.c
+> +++ b/drivers/media/platform/vim2m.c
+> @@ -379,8 +379,18 @@ static void device_run(void *priv)
+>  	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+>  	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+>  
+> +	/* Apply request controls if needed */
+> +	if (src_buf->vb2_buf.req_obj.req)
 
-Regards,
+Seems v4l2_ctrl_request_setup checks for null parameters,
+so the check is not needed.
 
-	Hans
+> +		v4l2_ctrl_request_setup(src_buf->vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +
+>  	device_process(ctx, src_buf, dst_buf);
+>  
+> +	/* Complete request controls if needed */
+> +	if (src_buf->vb2_buf.req_obj.req)
+> +		v4l2_ctrl_request_complete(src_buf->vb2_buf.req_obj.req,
+> +					&ctx->hdl);
+> +
+> 
+
+Ditto.
