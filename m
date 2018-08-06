@@ -1,60 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53808 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726081AbeHEJxt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Aug 2018 05:53:49 -0400
-Date: Sun, 5 Aug 2018 00:49:46 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        keiichiw@chromium.org
-Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for
- ISO transfer
-Message-ID: <20180805074946.GA14119@infradead.org>
-References: <CAJs94EZA=o5=4frPhXs3vnr4x-__gSZ2ximvTyugLoaD6KLcUg@mail.gmail.com>
- <Pine.LNX.4.44L0.1808041045060.25853-100000@netrider.rowland.org>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:37644 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727009AbeHFNRh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Aug 2018 09:17:37 -0400
+Subject: Re: [RFC PATCH 0/3] Media Controller Properties
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org
+References: <20180803143626.48191-1-hverkuil@xs4all.nl>
+ <15936983-465a-2fa1-e14a-6d348cbffc06@xs4all.nl>
+ <20180803122339.63c148f0@coco.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <de8522fb-e1ba-e899-d1cb-3a91ba19b7e8@xs4all.nl>
+Date: Mon, 6 Aug 2018 13:08:59 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1808041045060.25853-100000@netrider.rowland.org>
+In-Reply-To: <20180803122339.63c148f0@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 04, 2018 at 10:46:35AM -0400, Alan Stern wrote:
-> > 2) dma_unmap and dma_map in the handler:
-> > 2A) dma_unmap_single call: 28.8 +- 1.5 usec
-> > 2B) memcpy and the rest: 58 +- 6 usec
-> > 2C) dma_map_single call: 22 +- 2 usec
-> > Total: 110 +- 7 usec
-> > 
-> > 3) dma_sync_single_for_cpu
-> > 3A) dma_sync_single_for_cpu call: 29.4 +- 1.7 usec
-> > 3B) memcpy and the rest: 59 +- 6 usec
-> > 3C) noop (trace events overhead): 5 +- 2 usec
-> > Total: 93 +- 7 usec
-> > 
-> > So, now we see that 2A and 3A (as well as 2B and 3B) agree good within
-> > error ranges.
-> 
-> Taken together, those measurements look like a pretty good argument for 
-> always using dma_sync_single_for_cpu in the driver.  Provided results 
-> on other platforms aren't too far out of line with these results.
+On 08/03/2018 05:23 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 3 Aug 2018 17:03:20 +0200
 
-Logically speaking on no-mmio no-swiotlb platforms dma_sync_single_for_cpu
-and dma_unmap should always be identical.  With the migration towards
-everyone using dma-direct and dma-noncoherent this is actually going to
-be enforced, and I plan to move that enforcement to common code in the
-next merge window or two.
+<snip>
+
+>>> I'm not sure about the G_TOPOLOGY ioctl handling: I went with the quickest
+>>> option by renaming the old ioctl and adding a new one with property support.
+> 
+> Why? No need for that at the public header. Just add the needed fields at the
+> end of the code and check for struct size at the ioctl handler.
+> 
+> It could make sense to have the old struct inside media-device.c, just
+> to allow using sizeof() there.
+
+Sorry, you need the old struct. The application may be newer than the kernel,
+so if the new topology struct (with props support) doesn't work, then it has
+to fall back to the old ioctl.
+
+So applications will need to know the old size.
+
+That said, it would be sufficient in this case to just export the old ioctl
+define since the old struct layout is identical to the new (except of course
+for the new fields added to the end).
+
+E.g. add just this to media.h:
+
+/* Old MEDIA_IOC_G_TOPOLOGY ioctl without props support */
+#define MEDIA_IOC_G_TOPOLOGY_OLD 0xc0487c04
+
+This brings me to another related question:
+
+I can easily support both the old and new G_TOPOLOGY ioctls in media-device.c.
+But what should I do if we add still more fields to the topology struct in
+the future and so we might be called by a newer application with a G_TOPOLOGY
+ioctl that has a size larger than we have now. We can either reject this
+(that's what we do today in fact, hence the need for the TOPOLOGY_OLD), or we
+can just accept it and zero the unknown fields at the end of the larger struct.
+
+I think we need to do the latter, otherwise we will have to keep adding new
+ioctl variants whenever we add a field.
+
+Alternatively, we can just add a pile of reserved fields to struct media_v2_topology
+which should last us for many years based on past experience with reserved fields.
+
+Regards,
+
+	Hans
