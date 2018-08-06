@@ -1,70 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46402 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:47046 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732106AbeHGAb2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 20:31:28 -0400
+        with ESMTP id S1732383AbeHGA6t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 20:58:49 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Joe Perches <joe@perches.com>
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: uvcvideo: Make some structs const
-Date: Tue, 07 Aug 2018 01:21:01 +0300
-Message-ID: <5812728.94RVy69Rc3@avalon>
-In-Reply-To: <0e85822616b665b20bc5b883d5be4a1265137f87.1509816184.git.joe@perches.com>
-References: <0e85822616b665b20bc5b883d5be4a1265137f87.1509816184.git.joe@perches.com>
+Subject: Re: [PATCH] usb: uvc_debugfs: remove unnecessary NULL check before debugfs_remove_recursive
+Date: Tue, 07 Aug 2018 01:48:15 +0300
+Message-ID: <1774555.GGbckhaAKE@avalon>
+In-Reply-To: <20171112081859.GA19079@embeddedor.com>
+References: <20171112081859.GA19079@embeddedor.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joe,
+Hi Gustavo,
 
 Thank you for the patch.
 
-On Saturday, 4 November 2017 19:23:29 EEST Joe Perches wrote:
-> Move some data to text
+On Sunday, 12 November 2017 10:18:59 EEST Gustavo A. R. Silva wrote:
+> NULL check before freeing functions like debugfs_remove_recursive
+> is not needed.
+
+"functions like debugfs_remove_recursive" seems a bit vague to me. I'd prefer 
+being more precise here, and say that "debugfs_remove_recursive() accepts a 
+NULL parameter and returns immediately, there's no need for a NULL check in 
+the caller.".
+
 > 
-> $ size drivers/media/usb/uvc/uvc_ctrl.o*
->    text	   data	    bss	    dec	    hex	filename
->   34323	   2364	      0	  36687	   8f4f	drivers/media/usb/uvc/
-uvc_ctrl.o.new
-> 28659	   8028	      0	  36687	   8f4f	drivers/media/usb/uvc/
-uvc_ctrl.o.old
+> This issue was detected with the help of Coccinelle.
 > 
-> Signed-off-by: Joe Perches <joe@perches.com>
+> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+> ---
+>  drivers/media/usb/uvc/uvc_debugfs.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_debugfs.c
+> b/drivers/media/usb/uvc/uvc_debugfs.c index 368f8f8..6995aeb 100644
+> --- a/drivers/media/usb/uvc/uvc_debugfs.c
+> +++ b/drivers/media/usb/uvc/uvc_debugfs.c
+> @@ -128,6 +128,5 @@ void uvc_debugfs_init(void)
+> 
+>  void uvc_debugfs_cleanup(void)
+>  {
+> -	if (uvc_debugfs_root_dir != NULL)
+> -		debugfs_remove_recursive(uvc_debugfs_root_dir);
+> +	debugfs_remove_recursive(uvc_debugfs_root_dir);
+>  }
+
+There's another occurrence in uvc_debugfs_cleanup_stream(). I'll address it as 
+well in this patch. With that change and the commit message update,
 
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-and taken in my tree.
-
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c
-> b/drivers/media/usb/uvc/uvc_ctrl.c index 20397aba6849..44a0554bf62d 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -37,7 +37,7 @@
->   * Controls
->   */
-> 
-> -static struct uvc_control_info uvc_ctrls[] = {
-> +static const struct uvc_control_info uvc_ctrls[] = {
->  	{
->  		.entity		= UVC_GUID_UVC_PROCESSING,
->  		.selector	= UVC_PU_BRIGHTNESS_CONTROL,
-> @@ -420,7 +420,7 @@ static void uvc_ctrl_set_rel_speed(struct
-> uvc_control_mapping *mapping, data[first+1] = min_t(int, abs(value), 0xff);
->  }
-> 
-> -static struct uvc_control_mapping uvc_ctrl_mappings[] = {
-> +static const struct uvc_control_mapping uvc_ctrl_mappings[] = {
->  	{
->  		.id		= V4L2_CID_BRIGHTNESS,
->  		.name		= "Brightness",
-
+and applied to my tree.
 
 -- 
 Regards,
