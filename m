@@ -1,89 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:52160 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:52196 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727669AbeHGLLh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 07:11:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nadav Amit <namit@vmware.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] usb: fix uvc_alloc_entity() allocation alignment
-Date: Tue, 07 Aug 2018 11:59:01 +0300
-Message-ID: <3561796.imRZE4xQI7@avalon>
-In-Reply-To: <0B044CD5-B4F5-4614-B97A-E02E5C1E8A17@vmware.com>
-References: <20180604134713.101064-1-namit@vmware.com> <15813968.YrTFj7ZbY9@avalon> <0B044CD5-B4F5-4614-B97A-E02E5C1E8A17@vmware.com>
+        with ESMTP id S1726879AbeHGLVP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 07:21:15 -0400
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [RFC 2/2] dt-bindings: media: i2c: Add bindings for IMI RDACM20
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <1528543805-23945-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1528543805-23945-3-git-send-email-jacopo+renesas@jmondi.org>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <0a53ce03-34ab-1439-6382-bb6feb7459b3@ideasonboard.com>
+Date: Tue, 7 Aug 2018 10:07:48 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1528543805-23945-3-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nadav,
+Hi Jacopo,
 
-On Tuesday, 7 August 2018 03:58:05 EEST Nadav Amit wrote:
-> at 4:58 PM, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> > On Monday, 4 June 2018 16:47:13 EEST Nadav Amit wrote:
-> >=20
-> >> The use of ALIGN() in uvc_alloc_entity() is incorrect, since the size =
-of
-> >> (entity->pads) is not a power of two. As a stop-gap, until a better
-> >> solution is adapted, use roundup() instead.
-> >>=20
-> >> Found by a static assertion. Compile-tested only.
-> >>=20
-> >> Fixes: 4ffc2d89f38a ("uvcvideo: Register subdevices for each entity")
-> >>=20
-> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> >> Cc: linux-media@vger.kernel.org
-> >> Cc: linux-kernel@vger.kernel.org
-> >>=20
-> >> Signed-off-by: Nadav Amit <namit@vmware.com>
-> >> ---
-> >> drivers/media/usb/uvc/uvc_driver.c | 2 +-
-> >> 1 file changed, 1 insertion(+), 1 deletion(-)
-> >>=20
-> >> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> >> b/drivers/media/usb/uvc/uvc_driver.c index 2469b49b2b30..6b989d41c034
-> >> 100644
-> >> --- a/drivers/media/usb/uvc/uvc_driver.c
-> >> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> >> @@ -909,7 +909,7 @@ static struct uvc_entity *uvc_alloc_entity(u16 typ=
-e,
-> >> u8 id,
-> >>  	unsigned int size;
-> >> 	unsigned int i;
-> >>=20
-> >> -	extra_size =3D ALIGN(extra_size, sizeof(*entity->pads));
-> >> +	extra_size =3D roundup(extra_size, sizeof(*entity->pads));
-> >> 	num_inputs =3D (type & UVC_TERM_OUTPUT) ? num_pads : num_pads - 1;
-> >> 	size =3D sizeof(*entity) + extra_size + sizeof(*entity->pads) * num_p=
-ads
-> >> 	     + num_inputs;
-> >=20
-> > The purpose of this alignment is to make sure that entity->pads will be=
-=20
-> > properly aligned. In theory the size of uvc_entity should be taken into=
-=20
-> > account too, but the structure contains pointers, so its size should
-> > already be properly aligned. This patch thus looks good to me. What
-> > made you say it's a stop-gap measure ?
->=20
->=20
-> Thanks. It=E2=80=99s been a while. Anyhow, I don=E2=80=99t know how =E2=
-=80=9Chot=E2=80=9D this code is, but
-> roundup uses a div operations, so if it is =E2=80=9Chot=E2=80=9D you may =
-want a different
-> way to align with lower overhead.
->=20
-> I presume it is not=E2=80=A6
+Thank you for sending your implementation of this. I'm dropping my DT
+bindings and taking yours.
 
-You're right, it isn't. I'll include this patch in my next pull request for=
-=20
-v4.20.
 
-=2D-=20
-Regards,
+On 09/06/18 12:30, Jacopo Mondi wrote:
+> IMI D&D RDACM20 automotive platform is a Gigabit Multimedia Serial Link
+> (GMSL) camera transmitting video and I2C control messages on coax cable
+> physical link.
+> 
+> Document its device tree binding interface.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  .../devicetree/bindings/media/i2c/imi,rdacm20.txt  | 62 ++++++++++++++++++++++
+>  1 file changed, 62 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
 
-Laurent Pinchart
+There's no update to the vendor-prefixes here to pull in the imi prefix.
+I'll bring over the version in my patch.
+
+--
+Regards
+
+Kieran
+
+
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt b/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
+> new file mode 100644
+> index 0000000..7fda068
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
+> @@ -0,0 +1,62 @@
+> +IMI D&D RDACM20 Automotive Camera Platform
+> +------------------------------------------
+> +
+> +The IMI D&D RDACM20 is a GMSL-compatible camera designed for automotive
+> +applications. It is encloses a Maxim Integrated MAX9271 GMSL serializer, an
+> +Omnivision OV10635 camera sensor and an embedded MCU, and connects to a remote
+> +GMSL endpoint through a coaxial cable.
+> +
+> +                                                     IMI RDACM20
+> + ---------------                               --------------------------------
+> +|      GMSL     |   <---  Video Stream        |       <- Video--------\        |
+> +|               |< ====== GMSL Link ======== >|MAX9271<- I2C bus-> <-->OV10635 |
+> +| de-serializer |   <---  I2C messages --->   |                   \<-->MCU     |
+> + ---------------                               --------------------------------
+
+
+I love the ascii art :D
+
+
+> +
+> +RDACM20 transmits video data generated by the embedded camera sensor on the
+> +GMSL serial channel to a remote GMSL de-serializer, as well as it receives and
+> +transmits I2C messages encapsulated in the GMSL bidirectional control channel.
+> +
+> +All I2C traffic received on the GMSL link not directed to the serializer is
+> +propagated on the local I2C bus to the embedded camera sensor and MCU. All
+> +I2C traffic generated on the local I2C bus not directed to the serializer is
+> +propagated to the remote de-serializer encapsulated in the GMSL control channel.
+> +
+> +Required Properties:
+> +
+> +- compatible: Shall be "imi,rdacm20".
+> +- reg: Pair of I2C device addresses, the first to be assigned to the serializer
+> +  the second to be assigned to the camera sensor.
+> +
+> +Connection to the remote GMSL endpoint are modeled using the OF graph bindings
+
+s/modeled/modelled/
+
+I'll fix that one :)
+
+
+> +in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +The device node contains a single "port" child node with a single "endpoint"
+> +sub-device.
+> +
+> +Required endpoint properties:
+> +
+> +- remote-endpoint: phandle to the remote GMSL endpoint sub-node in the remote
+> +  node port.
+> +
+> +Example:
+> +-------
+> +
+> +	i2c@0 {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		reg = <0>;
+> +
+> +		camera@51 {
+> +			compatible = "imi,rdacm20";
+> +			reg = <0x51 0x61>;
+> +
+> +			port {
+> +				rdacm20_out0: endpoint {
+> +					remote-endpoint = <&max9286_in0>;
+> +				};
+> +			};
+> +
+> +		};
+> +	};
+> 
