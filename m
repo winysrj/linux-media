@@ -1,195 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:35520 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389292AbeHGSzk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Aug 2018 14:55:40 -0400
-Message-ID: <2f2f5721ab5b07e36ec920b9d9c7fa0839b99a95.camel@bootlin.com>
-Subject: Re: [PATCH v6 2/8] media: v4l: Add definition for Allwinner's
- MB32-tiled NV12 format
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Randy Li <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Tue, 07 Aug 2018 18:40:15 +0200
-In-Reply-To: <4628cfe1-e42f-67ad-20b3-078c6a96d6ed@xs4all.nl>
-References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
-         <20180725100256.22833-3-paul.kocialkowski@bootlin.com>
-         <4628cfe1-e42f-67ad-20b3-078c6a96d6ed@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-P8kg2P4hui+LtIFpvQmg"
-Mime-Version: 1.0
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51296 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727286AbeHGTAA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 15:00:00 -0400
+Date: Tue, 7 Aug 2018 18:43:51 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Nick Desaulniers <ndesaulniers@google.com>
+Cc: mchehab+samsung@kernel.org, linux-media@vger.kernel.org,
+        mchehab@infradead.org, slongerbeam@gmail.com,
+        p.zabel@pengutronix.de,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH] media: cleanup fall-through comments
+Message-ID: <20180807164351.GA11621@kroah.com>
+References: <8687b2e6b66e06ca52e138c6fdb6c1f6d5a3f92f.1533643371.git.mchehab+samsung@kernel.org>
+ <CAKwvOdkM+OAWS0SaPBcKpJukTrpbZGTYjYopAS-zRjo09TCFRA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKwvOdkM+OAWS0SaPBcKpJukTrpbZGTYjYopAS-zRjo09TCFRA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---=-P8kg2P4hui+LtIFpvQmg
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Sat, 2018-08-04 at 13:42 +0200, Hans Verkuil wrote:
-> On 07/25/2018 12:02 PM, Paul Kocialkowski wrote:
-> > This introduces support for Allwinner's MB32-tiled NV12 format, where
-> > each plane is divided into macroblocks of 32x32 pixels. Hence, the size
-> > of each plane has to be aligned to 32 bytes. The pixels inside each
-> > macroblock are coded as they would be if the macroblock was a single
-> > plane, line after line.
-> >=20
-> > The MB32-tiled NV12 format is used by the video engine on Allwinner
-> > platforms: it is the default format for decoded frames (and the only on=
-e
-> > available in the oldest supported platforms).
-> >=20
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+On Tue, Aug 07, 2018 at 09:33:03AM -0700, Nick Desaulniers wrote:
+> On Tue, Aug 7, 2018 at 5:07 AM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+> >
+> > As Ian pointed out, adding a '-' to the fallthrough seems to meet
+> > the regex requirements at level 3 of the warning, at least when
+> > the comment fits into a single line.
+> >
+> > So, replace by a single line the comments that were broken into
+> > multiple lines just to make gcc -Wimplicit-fallthrough=3 happy.
+> >
+> > Suggested-by: Ian Arkver <ian.arkver.dev@gmail.com>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 > > ---
-> >  Documentation/media/uapi/v4l/pixfmt-reserved.rst | 15 ++++++++++++++-
-> >  drivers/media/v4l2-core/v4l2-ioctl.c             |  1 +
-> >  include/uapi/linux/videodev2.h                   |  1 +
-> >  3 files changed, 16 insertions(+), 1 deletion(-)
-> >=20
-> > diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documen=
-tation/media/uapi/v4l/pixfmt-reserved.rst
-> > index 38af1472a4b4..9a68b6a787bf 100644
-> > --- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-> > +++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-> > @@ -243,7 +243,20 @@ please make a proposal on the linux-media mailing =
-list.
-> >  	It is an opaque intermediate format and the MDP hardware must be
-> >  	used to convert ``V4L2_PIX_FMT_MT21C`` to ``V4L2_PIX_FMT_NV12M``,
-> >  	``V4L2_PIX_FMT_YUV420M`` or ``V4L2_PIX_FMT_YVU420``.
-> > -
-> > +    * .. _V4L2-PIX-FMT-MB32-NV12:
-> > +
-> > +      - ``V4L2_PIX_FMT_MB32_NV12``
-> > +      - 'MN12'
-> > +      - Two-planar NV12-based format used by the Allwinner video engin=
-e
-> > +        hardware, with 32x32 tiles for the luminance plane and 32x64 t=
-iles
-> > +        for the chrominance plane. Each tile is a linear pixel data
-> > +        representation within its own bounds. Each tile follows the pr=
-evious
-> > +        one linearly (as in, from left to right, top to bottom).
->=20
-> as in, -> as in:
+> >  drivers/media/dvb-frontends/drx39xyj/drxj.c |  3 +--
+> >  drivers/media/dvb-frontends/drxd_hard.c     |  6 ++----
+> >  drivers/media/dvb-frontends/drxk_hard.c     | 18 ++++++------------
+> >  drivers/staging/media/imx/imx-media-csi.c   |  3 +--
+> >  4 files changed, 10 insertions(+), 20 deletions(-)
+> >
+> > diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> > index 2ddb7d218ace..2948d12d7c14 100644
+> > --- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> > +++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> > @@ -2841,8 +2841,7 @@ ctrl_set_cfg_mpeg_output(struct drx_demod_instance *demod, struct drx_cfg_mpeg_o
+> >                         /* coef = 188/204                          */
+> >                         max_bit_rate =
+> >                             (ext_attr->curr_symbol_rate / 8) * nr_bits * 188;
+> > -                       /* pass through as b/c Annex A/c need following settings */
+> > -                       /* fall-through */
+> > +                       /* fall-through - as b/c Annex A/C need following settings */
+> >                 case DRX_STANDARD_ITU_B:
+> >                         rc = drxj_dap_write_reg16(dev_addr, FEC_OC_FCT_USAGE__A, FEC_OC_FCT_USAGE__PRE, 0);
+> >                         if (rc != 0) {
+> > diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
+> > index 11fc259e4383..684d428efb0d 100644
+> > --- a/drivers/media/dvb-frontends/drxd_hard.c
+> > +++ b/drivers/media/dvb-frontends/drxd_hard.c
+> > @@ -1970,8 +1970,7 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+> >                 switch (p->transmission_mode) {
+> >                 default:        /* Not set, detect it automatically */
+> >                         operationMode |= SC_RA_RAM_OP_AUTO_MODE__M;
+> > -                       /* try first guess DRX_FFTMODE_8K */
+> > -                       /* fall through */
+> > +                       /* fall through - try first guess DRX_FFTMODE_8K */
+> >                 case TRANSMISSION_MODE_8K:
+> >                         transmissionParams |= SC_RA_RAM_OP_PARAM_MODE_8K;
+> >                         if (state->type_A) {
+> > @@ -2144,8 +2143,7 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+> >                 switch (p->modulation) {
+> >                 default:
+> >                         operationMode |= SC_RA_RAM_OP_AUTO_CONST__M;
+> > -                       /* try first guess DRX_CONSTELLATION_QAM64 */
+> > -                       /* fall through */
+> > +                       /* fall through - try first guess DRX_CONSTELLATION_QAM64 */
+> >                 case QAM_64:
+> >                         transmissionParams |= SC_RA_RAM_OP_PARAM_CONST_QAM64;
+> >                         if (state->type_A) {
+> > diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+> > index ac10781d3550..f1886945a7bc 100644
+> > --- a/drivers/media/dvb-frontends/drxk_hard.c
+> > +++ b/drivers/media/dvb-frontends/drxk_hard.c
+> > @@ -3270,13 +3270,11 @@ static int dvbt_sc_command(struct drxk_state *state,
+> >         case OFDM_SC_RA_RAM_CMD_SET_PREF_PARAM:
+> >         case OFDM_SC_RA_RAM_CMD_PROGRAM_PARAM:
+> >                 status |= write16(state, OFDM_SC_RA_RAM_PARAM1__A, param1);
+> > -               /* All commands using 1 parameters */
+> > -               /* fall through */
+> > +               /* fall through - All commands using 1 parameters */
+> >         case OFDM_SC_RA_RAM_CMD_SET_ECHO_TIMING:
+> >         case OFDM_SC_RA_RAM_CMD_USER_IO:
+> >                 status |= write16(state, OFDM_SC_RA_RAM_PARAM0__A, param0);
+> > -               /* All commands using 0 parameters */
+> > -               /* fall through */
+> > +               /* fall through - All commands using 0 parameters */
+> >         case OFDM_SC_RA_RAM_CMD_GET_OP_PARAM:
+> >         case OFDM_SC_RA_RAM_CMD_NULL:
+> >                 /* Write command */
+> > @@ -3784,8 +3782,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+> >         case TRANSMISSION_MODE_AUTO:
+> >         default:
+> >                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_MODE__M;
+> > -               /* try first guess DRX_FFTMODE_8K */
+> > -               /* fall through */
+> > +               /* fall through - try first guess DRX_FFTMODE_8K */
+> >         case TRANSMISSION_MODE_8K:
+> >                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_MODE_8K;
+> >                 break;
+> > @@ -3799,8 +3796,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+> >         default:
+> >         case GUARD_INTERVAL_AUTO:
+> >                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_GUARD__M;
+> > -               /* try first guess DRX_GUARD_1DIV4 */
+> > -               /* fall through */
+> > +               /* fall through - try first guess DRX_GUARD_1DIV4 */
+> >         case GUARD_INTERVAL_1_4:
+> >                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_GUARD_4;
+> >                 break;
+> > @@ -3841,8 +3837,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+> >         case QAM_AUTO:
+> >         default:
+> >                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_CONST__M;
+> > -               /* try first guess DRX_CONSTELLATION_QAM64 */
+> > -               /* fall through */
+> > +               /* fall through - try first guess DRX_CONSTELLATION_QAM64 */
+> >         case QAM_64:
+> >                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_CONST_QAM64;
+> >                 break;
+> > @@ -3885,8 +3880,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+> >         case FEC_AUTO:
+> >         default:
+> >                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_RATE__M;
+> > -               /* try first guess DRX_CODERATE_2DIV3 */
+> > -               /* fall through */
+> > +               /* fall through - try first guess DRX_CODERATE_2DIV3 */
+> >         case FEC_2_3:
+> >                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_RATE_2_3;
+> >                 break;
+> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> > index b7ffd231c64b..cd2c291e1e94 100644
+> > --- a/drivers/staging/media/imx/imx-media-csi.c
+> > +++ b/drivers/staging/media/imx/imx-media-csi.c
+> > @@ -460,8 +460,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+> >                         passthrough_cycles = incc->cycles;
+> >                         break;
+> >                 }
+> > -               /* for non-passthrough RGB565 (CSI-2 bus) */
+> > -               /* Falls through */
+> > +               /* fallthrough - non-passthrough RGB565 (CSI-2 bus) */
+> >         default:
+> >                 burst_size = (image.pix.width & 0xf) ? 8 : 16;
+> >                 passthrough_bits = 16;
+> > --
+> > 2.17.1
+> >
+> 
+> Can we use the compiler attribute:
+> 
+> __attribute__((fallthrough))
 
-Thanks!
+If so, you have a lot of the kernel to fix up now, as this has been
+implemented already all over the kernel with comments.  The past few
+months loads of patches have been accepted for this very issue.
 
-> > +
-> > +        The frame dimensions are aligned to match an integer number of
-> > +        tiles, resulting in 32-aligned resolutions for the luminance p=
-lane
-> > +        and 16-aligned resolutions for the chrominance plane (with 2x2
-> > +        subsampling).
-> > =20
-> >  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-> > =20
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-=
-core/v4l2-ioctl.c
-> > index 68e914b83a03..7e1c200de10d 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > @@ -1331,6 +1331,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc =
-*fmt)
-> >  		case V4L2_PIX_FMT_SE401:	descr =3D "GSPCA SE401"; break;
-> >  		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr =3D "S5C73MX interleaved UYVY/=
-JPEG"; break;
-> >  		case V4L2_PIX_FMT_MT21C:	descr =3D "Mediatek Compressed Format"; bre=
-ak;
-> > +		case V4L2_PIX_FMT_MB32_NV12:	descr =3D "Allwinner tiled NV12 format"=
-; break;
->=20
-> "Allwinner Tiled NV12 Format"
->=20
-> If it is Allwinner specific, then that should be in the PIX_FMT name as w=
-ell:
-> something like V4L2_PIX_FMT_ALLWINNER_MB32_NV12 or perhaps SUNXI_MB32_NV1=
-2.
->=20
-> On the other hand, you could also see this as a variant of e.g. V4L2_PIX_=
-FMT_NV12MT
-> or V4L2_PIX_FMT_NV12MT_16X16. In that case it is not necessarily Allwinne=
-r specific
-> since other devices might choose this format. You can go either way, as l=
-ong
-> as it is consistent.
+I don't care either way, as long as we are consistent :)
 
-I think it is fair to say that the format is Allwinner-specific and
-unlikely to be found elsewhere. It is not actually very well described
-by "MB32" since the chroma tiles have a different pixel size than the
-luma tiles (16x64).
+thanks,
 
-It would probably be clearer to just call the format:
-V4L2_PIX_FMT_SUNXI_TILED_NV12
-
-Cheers,
-
-Paul
-
-> >  		default:
-> >  			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
-> >  			if (fmt->description[0])
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videod=
-ev2.h
-> > index d171361ed9b3..453d27142e31 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -670,6 +670,7 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth=
- data 16-bit */
-> >  #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Media=
-tek compressed block mode  */
-> >  #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel=
- Planar Greyscale 10-bit and Depth 16-bit */
-> > +#define V4L2_PIX_FMT_MB32_NV12 v4l2_fourcc('M', 'N', '1', '2') /* Allw=
-inner tiled NV12 format */
-> > =20
-> >  /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bi=
-ts unused */
-> >  #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* I=
-PU3 packed 10-bit BGGR bayer */
-> >=20
->=20
-> Regards,
->=20
-> 	Hans
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
-
---=-P8kg2P4hui+LtIFpvQmg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltpy28ACgkQ3cLmz3+f
-v9HLmAf/RgksuYQ8lngC8+h3sb9hAx5sV8yZIFeYAMGkw0U+TjPf3cbaabQGe/iX
-VLGaBWwk+SCfKeN2e1jF1QxyfX2Qvkf4LITmIgayaNImrzsQLMcgQSsXmPN/2KJF
-t6jsZFxQnT492mZCRMK/Sa/Mrrfbun+pwD+LpqxcWMbVC9NiKB3LXVg3co5dSBPK
-Iz8douPTsNENKXH3CV0h+tGXmmX7aDDrJmNo0KhfCWGGCGPF8K9BtKt5DhjNNe7y
-k3YhSSJji3Tqef/fmr6biiDUFauad6pAF8CzUs+lf402PriQr6+t1wSrXgQsaJPD
-yDE+uI1ETDX6p0GKPCpoUlifNfP1pA==
-=VNOz
------END PGP SIGNATURE-----
-
---=-P8kg2P4hui+LtIFpvQmg--
+greg k-h
