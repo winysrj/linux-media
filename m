@@ -1,46 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:49364 "EHLO
+Received: from merlin.infradead.org ([205.233.59.134]:49454 "EHLO
         merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389181AbeHGR2g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 13:28:36 -0400
+        with ESMTP id S1732639AbeHGRnU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 13:43:20 -0400
 To: linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Cc: Jacopo Mondi <jacopo@jmondi.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
+        "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH -next] media/i2c: fix mt9v111.c build error
-Message-ID: <61037652-d37e-387a-7f32-7730c03e1e45@infradead.org>
-Date: Tue, 7 Aug 2018 08:13:41 -0700
+Subject: [PATCH] Documentation: add ioctl number entry for v4l2-subdev.h
+Message-ID: <7f05c67a-c8a7-e3a0-c76f-3b8acffdf41f@infradead.org>
+Date: Tue, 7 Aug 2018 08:28:25 -0700
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Randy Dunlap <rdunlap@infradead.org>
 
-Fix build error in mt9v111.c when
-# CONFIG_VIDEO_V4L2_SUBDEV_API is not set
-
-../drivers/media/i2c/mt9v111.c: In function ‘__mt9v111_get_pad_format’:
-../drivers/media/i2c/mt9v111.c:801:3: error: implicit declaration of function ‘v4l2_subdev_get_try_format’ [-Werror=implicit-function-declaration]
-   return v4l2_subdev_get_try_format(&mt9v111->sd, cfg, pad);
+Update ioctl-number.txt for ioctl's that are defined in
+<media/v4l2-subdev.h>.
 
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jacopo Mondi <jacopo@jmondi.org>
 ---
- drivers/media/i2c/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/ioctl/ioctl-number.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
---- linux-next-20180807.orig/drivers/media/i2c/Kconfig
-+++ linux-next-20180807/drivers/media/i2c/Kconfig
-@@ -875,7 +875,7 @@ config VIDEO_MT9V032
- 
- config VIDEO_MT9V111
- 	tristate "Aptina MT9V111 sensor support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
- 	help
- 	  This is a Video4Linux2 sensor driver for the Aptina/Micron
+--- lnx-418-rc8.orig/Documentation/ioctl/ioctl-number.txt
++++ lnx-418-rc8/Documentation/ioctl/ioctl-number.txt
+@@ -274,6 +274,7 @@ Code  Seq#(hex)	Include File		Comments
+ 'v'	00-1F	linux/ext2_fs.h		conflict!
+ 'v'	00-1F	linux/fs.h		conflict!
+ 'v'	00-0F	linux/sonypi.h		conflict!
++'v'	00-0F	media/v4l2-subdev.h	conflict!
+ 'v'	C0-FF	linux/meye.h		conflict!
+ 'w'	all				CERN SCI driver
+ 'y'	00-1F				packet based user level communications
