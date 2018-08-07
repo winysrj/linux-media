@@ -1,54 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:47486 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:47488 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
         with ESMTP id S2388940AbeHGOkv (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 10:40:51 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/3] media: tuner-xc2028: don't use casts for printing sizes
-Date: Tue,  7 Aug 2018 08:26:40 -0400
-Message-Id: <7fbc03c87b03ffb9128fe67bcbca6f1c6cc96c5c.1533644783.git.mchehab+samsung@kernel.org>
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Nick Desaulniers <ndesaulniers@google.com>
+Subject: [PATCH 2/3] media: drxj: get rid of uneeded casts
+Date: Tue,  7 Aug 2018 08:26:41 -0400
+Message-Id: <73679ccd7a36de61bd8405e9828989e9dd959bc5.1533644783.git.mchehab+samsung@kernel.org>
+In-Reply-To: <7fbc03c87b03ffb9128fe67bcbca6f1c6cc96c5c.1533644783.git.mchehab+samsung@kernel.org>
+References: <7fbc03c87b03ffb9128fe67bcbca6f1c6cc96c5c.1533644783.git.mchehab+samsung@kernel.org>
+In-Reply-To: <7fbc03c87b03ffb9128fe67bcbca6f1c6cc96c5c.1533644783.git.mchehab+samsung@kernel.org>
+References: <7fbc03c87b03ffb9128fe67bcbca6f1c6cc96c5c.1533644783.git.mchehab+samsung@kernel.org>
 To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Makes smatch happier by using %zd instead of casting sizes:
-	drivers/media/tuners/tuner-xc2028.c:378 load_all_firmwares() warn: argument 4 to %d specifier is cast from pointer
-	drivers/media/tuners/tuner-xc2028.c:619 load_firmware() warn: argument 6 to %d specifier is cast from pointer
+Instead of doing casts, use %zd to print sizes, in order to make
+smatch happier:
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:11814 drx_ctrl_u_code() warn: argument 4 to %u specifier is cast from pointer
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:11845 drx_ctrl_u_code() warn: argument 3 to %u specifier is cast from pointer
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:11869 drx_ctrl_u_code() warn: argument 3 to %u specifier is cast from pointer
+	drivers/media/dvb-frontends/drx39xyj/drxj.c:11878 drx_ctrl_u_code() warn: argument 3 to %u specifier is cast from pointer
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/tuners/tuner-xc2028.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-index 222b93ef31c0..aa6861dcd3fd 100644
---- a/drivers/media/tuners/tuner-xc2028.c
-+++ b/drivers/media/tuners/tuner-xc2028.c
-@@ -376,9 +376,8 @@ static int load_all_firmwares(struct dvb_frontend *fe,
- 			tuner_err("Firmware type ");
- 			dump_firm_type(type);
- 			printk(KERN_CONT
--			       "(%x), id %llx is corrupted (size=%d, expected %d)\n",
--			       type, (unsigned long long)id,
--			       (unsigned)(endp - p), size);
-+			       "(%x), id %llx is corrupted (size=%zd, expected %d)\n",
-+			       type, (unsigned long long)id, (endp - p), size);
- 			goto corrupt;
- 		}
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 2948d12d7c14..9628d4067fe1 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -11810,8 +11810,8 @@ static int drx_ctrl_u_code(struct drx_demod_instance *demod,
+ 		block_hdr.CRC = be16_to_cpu(*(__be16 *)(mc_data));
+ 		mc_data += sizeof(u16);
  
-@@ -616,8 +615,8 @@ static int load_firmware(struct dvb_frontend *fe, unsigned int type,
- 		}
+-		pr_debug("%u: addr %u, size %u, flags 0x%04x, CRC 0x%04x\n",
+-			(unsigned)(mc_data - mc_data_init), block_hdr.addr,
++		pr_debug("%zd: addr %u, size %u, flags 0x%04x, CRC 0x%04x\n",
++			(mc_data - mc_data_init), block_hdr.addr,
+ 			 block_hdr.size, block_hdr.flags, block_hdr.CRC);
  
- 		if ((size + p > endp)) {
--			tuner_err("missing bytes: need %d, have %d\n",
--				   size, (int)(endp - p));
-+			tuner_err("missing bytes: need %d, have %zd\n",
-+				   size, (endp - p));
- 			return -EINVAL;
- 		}
+ 		/* Check block header on:
+@@ -11841,8 +11841,8 @@ static int drx_ctrl_u_code(struct drx_demod_instance *demod,
+ 							mc_block_nr_bytes,
+ 							mc_data, 0x0000)) {
+ 				rc = -EIO;
+-				pr_err("error writing firmware at pos %u\n",
+-				       (unsigned)(mc_data - mc_data_init));
++				pr_err("error writing firmware at pos %zd\n",
++				       mc_data - mc_data_init);
+ 				goto release;
+ 			}
+ 			break;
+@@ -11865,8 +11865,8 @@ static int drx_ctrl_u_code(struct drx_demod_instance *demod,
+ 						    (u16)bytes_to_comp,
+ 						    (u8 *)mc_data_buffer,
+ 						    0x0000)) {
+-					pr_err("error reading firmware at pos %u\n",
+-					       (unsigned)(mc_data - mc_data_init));
++					pr_err("error reading firmware at pos %zd\n",
++					       mc_data - mc_data_init);
+ 					return -EIO;
+ 				}
+ 
+@@ -11874,8 +11874,8 @@ static int drx_ctrl_u_code(struct drx_demod_instance *demod,
+ 						bytes_to_comp);
+ 
+ 				if (result) {
+-					pr_err("error verifying firmware at pos %u\n",
+-					       (unsigned)(mc_data - mc_data_init));
++					pr_err("error verifying firmware at pos %zd\n",
++					       mc_data - mc_data_init);
+ 					return -EIO;
+ 				}
  
 -- 
 2.17.1
