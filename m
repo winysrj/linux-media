@@ -1,75 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:37931 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726419AbeHGNOg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 09:14:36 -0400
-Received: by mail-wr1-f65.google.com with SMTP id v14-v6so15350229wro.5
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 04:00:49 -0700 (PDT)
-Subject: Re: [PATCH] media: imx: shut up a false positive warning
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from bombadil.infradead.org ([198.137.202.133]:53790 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388764AbeHGNVQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 09:21:16 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-References: <132f3c7bb98673f713be9511de16b7622803df36.1533635936.git.mchehab+samsung@kernel.org>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <584aecdc-961a-6d64-147c-f37adaef3bcf@gmail.com>
-Date: Tue, 7 Aug 2018 12:00:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <132f3c7bb98673f713be9511de16b7622803df36.1533635936.git.mchehab+samsung@kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+        Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] media: rtl28xxu: be sure that it won't go past the array size
+Date: Tue,  7 Aug 2018 07:07:24 -0400
+Message-Id: <53cc785104d19c86defea0a9473f07c392390453.1533640042.git.mchehab+samsung@kernel.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+smatch warns that the RC query code could go past the array size:
 
-On 07/08/18 10:58, Mauro Carvalho Chehab wrote:
-> With imx, gcc produces a false positive warning:
-> 
-> 	drivers/staging/media/imx/imx-media-csi.c: In function 'csi_idmac_setup_channel':
-> 	drivers/staging/media/imx/imx-media-csi.c:457:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
-> 	   if (passthrough) {
-> 	      ^
-> 	drivers/staging/media/imx/imx-media-csi.c:464:2: note: here
-> 	  default:
-> 	  ^~~~~~~
-> 
-> That's because the regex it uses for fall trough is not
-> good enough. So, rearrange the fall through comment in a way
-> that gcc will recognize.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->   drivers/staging/media/imx/imx-media-csi.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 4647206f92ca..b7ffd231c64b 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -460,7 +460,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
->   			passthrough_cycles = incc->cycles;
->   			break;
->   		}
-> -		/* fallthrough for non-passthrough RGB565 (CSI-2 bus) */
-> +		/* for non-passthrough RGB565 (CSI-2 bus) */
-> +		/* Falls through */
+	drivers/media/usb/dvb-usb-v2/rtl28xxu.c:1757 rtl2832u_rc_query() error: buffer overflow 'buf' 128 <= 130
+	drivers/media/usb/dvb-usb-v2/rtl28xxu.c:1758 rtl2832u_rc_query() error: buffer overflow 'buf' 128 <= 130
 
-Adding a '-' to the fallthrough seems to meet the regex requirements at 
-level 3 of the warning. Eg...
+The driver logic gets the length of the IR RX buffer with:
 
-/* fallthrough- for non-passthrough RGB565 (CSI-2 bus) */
+        ret = rtl28xxu_rd_reg(d, IR_RX_BC, &buf[0]);
+	...
+        len = buf[0];
 
-Not sure if this is an improvement though.
+In thesis, this could range between 0 and 255 [1].
 
-Regards,
-Ian
+While this should never happen in practice, due to hardware limits,
+smatch is right when it complains about that, as there's nothing at
+the logic that would prevent it. So, if for whatever reason, buf[0]
+gets filled by rtl28xx read functions with a value bigger than 128,
+it will go past the array.
 
->   	default:
->   		burst_size = (image.pix.width & 0xf) ? 8 : 16;
->   		passthrough_bits = 16;
-> 
+So, add an explicit check.
+
+[1] I've no idea why smatch thinks that the maximum value is 130.
+I double-checked the code several times. Was unable to find any
+reason for assuming 130. Perhaps smatch is not properly parsing
+u8 here?
+
+Fixes: b5cbaa43a676 ("[media] rtl28xx: initial support for rtl2832u")
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c76e78f9638a..a970224a94bd 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1732,7 +1732,7 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+ 		goto exit;
+ 
+ 	ret = rtl28xxu_rd_reg(d, IR_RX_BC, &buf[0]);
+-	if (ret)
++	if (ret || buf[0] > sizeof(buf))
+ 		goto err;
+ 
+ 	len = buf[0];
+-- 
+2.17.1
