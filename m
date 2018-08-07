@@ -1,93 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:35276 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732510AbeHGSlE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 14:41:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham+renesas@ideasonboard.com
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: vsp1_dl: add a description for cmdpool field
-Date: Tue, 07 Aug 2018 19:26:42 +0300
-Message-ID: <46485775.Lhs2cjB2RI@avalon>
-In-Reply-To: <446d7cf7-3598-da8a-90c7-8978d0b724b1@ideasonboard.com>
-References: <5cc2f8f81f4c7d1ae693d87980353c725f9a11d3.1533637111.git.mchehab+samsung@kernel.org> <2872557.73pf0dW4Nv@avalon> <446d7cf7-3598-da8a-90c7-8978d0b724b1@ideasonboard.com>
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:35362 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730869AbeHGSsU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 14:48:20 -0400
+Received: by mail-pl0-f67.google.com with SMTP id w3-v6so7343501plq.2
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 09:33:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+References: <8687b2e6b66e06ca52e138c6fdb6c1f6d5a3f92f.1533643371.git.mchehab+samsung@kernel.org>
+In-Reply-To: <8687b2e6b66e06ca52e138c6fdb6c1f6d5a3f92f.1533643371.git.mchehab+samsung@kernel.org>
+From: Nick Desaulniers <ndesaulniers@google.com>
+Date: Tue, 7 Aug 2018 09:33:03 -0700
+Message-ID: <CAKwvOdkM+OAWS0SaPBcKpJukTrpbZGTYjYopAS-zRjo09TCFRA@mail.gmail.com>
+Subject: Re: [PATCH] media: cleanup fall-through comments
+To: mchehab+samsung@kernel.org
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+        slongerbeam@gmail.com, p.zabel@pengutronix.de,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        devel@driverdev.osuosl.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Aug 7, 2018 at 5:07 AM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
+>
+> As Ian pointed out, adding a '-' to the fallthrough seems to meet
+> the regex requirements at level 3 of the warning, at least when
+> the comment fits into a single line.
+>
+> So, replace by a single line the comments that were broken into
+> multiple lines just to make gcc -Wimplicit-fallthrough=3 happy.
+>
+> Suggested-by: Ian Arkver <ian.arkver.dev@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> ---
+>  drivers/media/dvb-frontends/drx39xyj/drxj.c |  3 +--
+>  drivers/media/dvb-frontends/drxd_hard.c     |  6 ++----
+>  drivers/media/dvb-frontends/drxk_hard.c     | 18 ++++++------------
+>  drivers/staging/media/imx/imx-media-csi.c   |  3 +--
+>  4 files changed, 10 insertions(+), 20 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> index 2ddb7d218ace..2948d12d7c14 100644
+> --- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> +++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+> @@ -2841,8 +2841,7 @@ ctrl_set_cfg_mpeg_output(struct drx_demod_instance *demod, struct drx_cfg_mpeg_o
+>                         /* coef = 188/204                          */
+>                         max_bit_rate =
+>                             (ext_attr->curr_symbol_rate / 8) * nr_bits * 188;
+> -                       /* pass through as b/c Annex A/c need following settings */
+> -                       /* fall-through */
+> +                       /* fall-through - as b/c Annex A/C need following settings */
+>                 case DRX_STANDARD_ITU_B:
+>                         rc = drxj_dap_write_reg16(dev_addr, FEC_OC_FCT_USAGE__A, FEC_OC_FCT_USAGE__PRE, 0);
+>                         if (rc != 0) {
+> diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
+> index 11fc259e4383..684d428efb0d 100644
+> --- a/drivers/media/dvb-frontends/drxd_hard.c
+> +++ b/drivers/media/dvb-frontends/drxd_hard.c
+> @@ -1970,8 +1970,7 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+>                 switch (p->transmission_mode) {
+>                 default:        /* Not set, detect it automatically */
+>                         operationMode |= SC_RA_RAM_OP_AUTO_MODE__M;
+> -                       /* try first guess DRX_FFTMODE_8K */
+> -                       /* fall through */
+> +                       /* fall through - try first guess DRX_FFTMODE_8K */
+>                 case TRANSMISSION_MODE_8K:
+>                         transmissionParams |= SC_RA_RAM_OP_PARAM_MODE_8K;
+>                         if (state->type_A) {
+> @@ -2144,8 +2143,7 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+>                 switch (p->modulation) {
+>                 default:
+>                         operationMode |= SC_RA_RAM_OP_AUTO_CONST__M;
+> -                       /* try first guess DRX_CONSTELLATION_QAM64 */
+> -                       /* fall through */
+> +                       /* fall through - try first guess DRX_CONSTELLATION_QAM64 */
+>                 case QAM_64:
+>                         transmissionParams |= SC_RA_RAM_OP_PARAM_CONST_QAM64;
+>                         if (state->type_A) {
+> diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+> index ac10781d3550..f1886945a7bc 100644
+> --- a/drivers/media/dvb-frontends/drxk_hard.c
+> +++ b/drivers/media/dvb-frontends/drxk_hard.c
+> @@ -3270,13 +3270,11 @@ static int dvbt_sc_command(struct drxk_state *state,
+>         case OFDM_SC_RA_RAM_CMD_SET_PREF_PARAM:
+>         case OFDM_SC_RA_RAM_CMD_PROGRAM_PARAM:
+>                 status |= write16(state, OFDM_SC_RA_RAM_PARAM1__A, param1);
+> -               /* All commands using 1 parameters */
+> -               /* fall through */
+> +               /* fall through - All commands using 1 parameters */
+>         case OFDM_SC_RA_RAM_CMD_SET_ECHO_TIMING:
+>         case OFDM_SC_RA_RAM_CMD_USER_IO:
+>                 status |= write16(state, OFDM_SC_RA_RAM_PARAM0__A, param0);
+> -               /* All commands using 0 parameters */
+> -               /* fall through */
+> +               /* fall through - All commands using 0 parameters */
+>         case OFDM_SC_RA_RAM_CMD_GET_OP_PARAM:
+>         case OFDM_SC_RA_RAM_CMD_NULL:
+>                 /* Write command */
+> @@ -3784,8 +3782,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+>         case TRANSMISSION_MODE_AUTO:
+>         default:
+>                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_MODE__M;
+> -               /* try first guess DRX_FFTMODE_8K */
+> -               /* fall through */
+> +               /* fall through - try first guess DRX_FFTMODE_8K */
+>         case TRANSMISSION_MODE_8K:
+>                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_MODE_8K;
+>                 break;
+> @@ -3799,8 +3796,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+>         default:
+>         case GUARD_INTERVAL_AUTO:
+>                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_GUARD__M;
+> -               /* try first guess DRX_GUARD_1DIV4 */
+> -               /* fall through */
+> +               /* fall through - try first guess DRX_GUARD_1DIV4 */
+>         case GUARD_INTERVAL_1_4:
+>                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_GUARD_4;
+>                 break;
+> @@ -3841,8 +3837,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+>         case QAM_AUTO:
+>         default:
+>                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_CONST__M;
+> -               /* try first guess DRX_CONSTELLATION_QAM64 */
+> -               /* fall through */
+> +               /* fall through - try first guess DRX_CONSTELLATION_QAM64 */
+>         case QAM_64:
+>                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_CONST_QAM64;
+>                 break;
+> @@ -3885,8 +3880,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
+>         case FEC_AUTO:
+>         default:
+>                 operation_mode |= OFDM_SC_RA_RAM_OP_AUTO_RATE__M;
+> -               /* try first guess DRX_CODERATE_2DIV3 */
+> -               /* fall through */
+> +               /* fall through - try first guess DRX_CODERATE_2DIV3 */
+>         case FEC_2_3:
+>                 transmission_params |= OFDM_SC_RA_RAM_OP_PARAM_RATE_2_3;
+>                 break;
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index b7ffd231c64b..cd2c291e1e94 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -460,8 +460,7 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+>                         passthrough_cycles = incc->cycles;
+>                         break;
+>                 }
+> -               /* for non-passthrough RGB565 (CSI-2 bus) */
+> -               /* Falls through */
+> +               /* fallthrough - non-passthrough RGB565 (CSI-2 bus) */
+>         default:
+>                 burst_size = (image.pix.width & 0xf) ? 8 : 16;
+>                 passthrough_bits = 16;
+> --
+> 2.17.1
+>
 
-On Tuesday, 7 August 2018 19:19:41 EEST Kieran Bingham wrote:
-> On 07/08/18 17:17, Laurent Pinchart wrote:
-> > On Tuesday, 7 August 2018 13:36:59 EEST Kieran Bingham wrote:
-> >> On 07/08/18 11:18, Mauro Carvalho Chehab wrote:
-> >>> Gets rid of this build warning:
-> >>> drivers/media/platform/vsp1/vsp1_dl.c:229: warning: Function parameter
-> >>> or member 'cmdpool' not described in 'vsp1_dl_manager'>
-> >>> 
-> >>> Fixes: f3b98e3c4d2e ("media: vsp1: Provide support for extended command
-> >>> pools") Signed-off-by: Mauro Carvalho Chehab
-> >>> <mchehab+samsung@kernel.org>
-> >>> ---
-> >>> 
-> >>>  drivers/media/platform/vsp1/vsp1_dl.c | 1 +
-> >>>  1 file changed, 1 insertion(+)
-> >>> 
-> >>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> >>> b/drivers/media/platform/vsp1/vsp1_dl.c index 9255b5ee2cb8..af60d95ec4f8
-> >>> 100644
-> >>> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> >>> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> >>> @@ -211,6 +211,7 @@ struct vsp1_dl_list {
-> >>>   * @queued: list queued to the hardware (written to the DL registers)
-> >>>   * @pending: list waiting to be queued to the hardware
-> >>>   * @pool: body pool for the display list bodies
-> >>> + * @cmdpool: Display List commands pool
-> >> 
-> >> Unfortunately this isn't quite right...
-> >> 
-> >>>   * @autofld_cmds: command pool to support auto-fld interlaced mode
-> >> 
-> >> This ^ was the original documentation line, but it got missed in a
-> >> rename. Sorry about that.
-> >> 
-> >> The pool is now more 'generic' so the line probably should mention the
-> >> auto-fld directly, so your line is worded appropriately enough, We
-> >> probably just# need to remove the autofld_cmds line.
-> > 
-> > And I also wouldn't capitalize display list:
-> > 
-> > 	 * @cmdpool: display list commands pool
-> > 
-> > or possibly a bit more descriptive:
-> > 
-> > 	 * @cmdpool: commands pool for extended display list
-> > 
-> > Kieran, which version do you like best ?
-> 
-> If there's a respin anyway, then
-> 
->  	 * @cmdpool: commands pool for extended display list
-> 
-> is certainly better, because this commands are specific to the extended
-> portion of the display list.
+Can we use the compiler attribute:
 
-I like that better as well. Mauro, could you please use that for v2 ?
+__attribute__((fallthrough))
 
-> >> With that line removed:
-> >> 
-> >> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> >> 
-> >>>   */
-> >>>  
-> >>>  struct vsp1_dl_manager {
+rather than specifically formatted comments?  The thing to be careful
+about with attributes is "what is the first version of the compiler
+that implements these?"
 
+https://developers.redhat.com/blog/2017/03/10/wimplicit-fallthrough-in-gcc-7/
+
+seems to indicate that the comment parsing was implemented in gcc-7
+(and also shows the compiler attribute being used)?
 -- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+~Nick Desaulniers
