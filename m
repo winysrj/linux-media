@@ -1,43 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:45526 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727725AbeHGIix (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 04:38:53 -0400
-MIME-Version: 1.0
-In-Reply-To: <20180801094801.26627-1-embed3d@gmail.com>
-References: <20180801094801.26627-1-embed3d@gmail.com>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Tue, 7 Aug 2018 14:25:44 +0800
-Message-ID: <CAGb2v66oe71CEtqkB2S-AYRzGnTQiJjVPUoRPkefd=9aqK+XbA@mail.gmail.com>
-Subject: Re: [PATCH v7 0/4] IR support for A83T
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Russell King <linux@armlinux.org.uk>, sean@mess.org,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+Received: from bombadil.infradead.org ([198.137.202.133]:59386 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729922AbeHGMMe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 08:12:34 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH] media: imx: shut up a false positive warning
+Date: Tue,  7 Aug 2018 05:58:58 -0400
+Message-Id: <132f3c7bb98673f713be9511de16b7622803df36.1533635936.git.mchehab+samsung@kernel.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 1, 2018 at 5:47 PM, Philipp Rossak <embed3d@gmail.com> wrote:
-> This patch series adds support for the sunxi A83T ir module and enhances
-> the sunxi-ir driver. Right now the base clock frequency for the ir driver
-> is a hard coded define and is set to 8 MHz.
-> This works for the most common ir receivers. On the Sinovoip Bananapi M3
-> the ir receiver needs, a 3 MHz base clock frequency to work without
-> problems with this driver.
->
-> This patch series adds support for an optinal property that makes it able
-> to override the default base clock frequency and enables the ir interface
-> on the a83t and the Bananapi M3.
+With imx, gcc produces a false positive warning:
 
-Queued up for 4.20.
+	drivers/staging/media/imx/imx-media-csi.c: In function 'csi_idmac_setup_channel':
+	drivers/staging/media/imx/imx-media-csi.c:457:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+	   if (passthrough) {
+	      ^
+	drivers/staging/media/imx/imx-media-csi.c:464:2: note: here
+	  default:
+	  ^~~~~~~
 
-Thanks!
+That's because the regex it uses for fall trough is not
+good enough. So, rearrange the fall through comment in a way
+that gcc will recognize.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 4647206f92ca..b7ffd231c64b 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -460,7 +460,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 			passthrough_cycles = incc->cycles;
+ 			break;
+ 		}
+-		/* fallthrough for non-passthrough RGB565 (CSI-2 bus) */
++		/* for non-passthrough RGB565 (CSI-2 bus) */
++		/* Falls through */
+ 	default:
+ 		burst_size = (image.pix.width & 0xf) ? 8 : 16;
+ 		passthrough_bits = 16;
+-- 
+2.17.1
