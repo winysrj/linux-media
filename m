@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:57056 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:57540 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727201AbeHGOWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Aug 2018 10:22:05 -0400
-Message-ID: <3b093c7c5f8503869a94d4065e215439bc5c71ec.camel@bootlin.com>
+        id S2389032AbeHGOai (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Aug 2018 10:30:38 -0400
+Message-ID: <d970f111c3ac800e73b8f47d4f8abc91822c23f8.camel@bootlin.com>
 Subject: Re: [linux-sunxi] [PATCH v6 4/8] media: platform: Add Cedrus VPU
  decoder driver
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
@@ -28,25 +28,25 @@ Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Tue, 07 Aug 2018 14:07:49 +0200
-In-Reply-To: <1703875.6APCh3GEgq@jernej-laptop>
+Date: Tue, 07 Aug 2018 14:16:20 +0200
+In-Reply-To: <1688687.Q0yMyAUrqh@jernej-laptop>
 References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
          <20180725100256.22833-5-paul.kocialkowski@bootlin.com>
-         <1703875.6APCh3GEgq@jernej-laptop>
+         <1688687.Q0yMyAUrqh@jernej-laptop>
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-wYvpBtmUXvfZqdKDv/NV"
+        protocol="application/pgp-signature"; boundary="=-YQJEt7jrQ8Jk2rLv4wrG"
 Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-wYvpBtmUXvfZqdKDv/NV
+--=-YQJEt7jrQ8Jk2rLv4wrG
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, 2018-07-29 at 09:58 +0200, Jernej =C5=A0krabec wrote:
+On Fri, 2018-07-27 at 16:03 +0200, Jernej =C5=A0krabec wrote:
 > Hi!
 >=20
 > Dne sreda, 25. julij 2018 ob 12:02:52 CEST je Paul Kocialkowski napisal(a=
@@ -69,202 +69,114 @@ On Sun, 2018-07-29 at 09:58 +0200, Jernej =C5=A0krabec wrote:
 > > ---
 >=20
 > <snip>
-
-[...]
-
-> > +static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_r=
-un
-> > *run) +{
-> > +	const struct v4l2_ctrl_mpeg2_slice_params *slice_params;
-> > +	const struct v4l2_ctrl_mpeg2_quantization *quantization;
-> > +	dma_addr_t src_buf_addr, dst_luma_addr, dst_chroma_addr;
-> > +	dma_addr_t fwd_luma_addr, fwd_chroma_addr;
-> > +	dma_addr_t bwd_luma_addr, bwd_chroma_addr;
-> > +	struct cedrus_dev *dev =3D ctx->dev;
-> > +	u32 vld_end, vld_len;
-> > +	const u8 *matrix;
-> > +	unsigned int i;
+>=20
+> > +void cedrus_dst_format_set(struct cedrus_dev *dev,
+> > +			   struct v4l2_pix_format_mplane *fmt)
+> > +{
+> > +	unsigned int width =3D fmt->width;
+> > +	unsigned int height =3D fmt->height;
+> > +	u32 chroma_size;
 > > +	u32 reg;
 > > +
-> > +	slice_params =3D run->mpeg2.slice_params;
-> > +	quantization =3D run->mpeg2.quantization;
+> > +	switch (fmt->pixelformat) {
+> > +	case V4L2_PIX_FMT_NV12:
+> > +		chroma_size =3D ALIGN(width, 32) * ALIGN(height / 2, 32);
+>=20
+> After some testing, it turns out that right aligment for untiled format i=
+s 16.
+
+Thanks for looking into it, figuring out the alignment constraints from
+the Allwinner reference code is just a plain headache... I confirm that
+aligning to 16 works and allows properly untiling previously-broken
+videos.
+
+I've also removed the divison factors out of the alignment, like it's
+done in the reference code.
+
 > > +
-> > +	/* Activate MPEG engine. */
-> > +	cedrus_engine_enable(dev, CEDRUS_CODEC_MPEG2);
+> > +		reg =3D VE_PRIMARY_OUT_FMT_NV12 |
+> > +		      VE_SECONDARY_SPECIAL_OUT_FMT_NV12;
+> > +		cedrus_write(dev, VE_PRIMARY_OUT_FMT, reg);
 > > +
-> > +	/* Set intra quantization matrix. */
+> > +		reg =3D VE_CHROMA_BUF_LEN_SDRT(chroma_size / 2) |
+> > +		      VE_SECONDARY_OUT_FMT_SPECIAL;
+> > +		cedrus_write(dev, VE_CHROMA_BUF_LEN, reg);
 > > +
-> > +	if (quantization && quantization->load_intra_quantiser_matrix)
-> > +		matrix =3D quantization->intra_quantiser_matrix;
-> > +	else
-> > +		matrix =3D intra_quantization_matrix_default;
+> > +		reg =3D chroma_size / 2;
+> > +		cedrus_write(dev, VE_PRIMARY_CHROMA_BUF_LEN, reg);
 > > +
-> > +	for (i =3D 0; i < 64; i++) {
-> > +		reg =3D VE_DEC_MPEG_IQMINPUT_WEIGHT(i, matrix[i]);
-> > +		reg |=3D VE_DEC_MPEG_IQMINPUT_FLAG_INTRA;
+> > +		reg =3D VE_PRIMARY_FB_LINE_STRIDE_LUMA(ALIGN(width, 32)) |
+>=20
+> ^ that one should be aligned to 16
+
+Will do in v7.
+
+> > +		      VE_PRIMARY_FB_LINE_STRIDE_CHROMA(ALIGN(width / 2, 16));
+> > +		cedrus_write(dev, VE_PRIMARY_FB_LINE_STRIDE, reg);
 > > +
-> > +		cedrus_write(dev, VE_DEC_MPEG_IQMINPUT, reg);
+> > +		break;
+> > +	case V4L2_PIX_FMT_MB32_NV12:
+> > +	default:
+> > +		reg =3D VE_PRIMARY_OUT_FMT_MB32_NV12;
+> > +		cedrus_write(dev, VE_PRIMARY_OUT_FMT, reg);
+> > +
+> > +		reg =3D VE_SECONDARY_OUT_FMT_MB32_NV12;
+> > +		cedrus_write(dev, VE_CHROMA_BUF_LEN, reg);
+> > +
+> > +		break;
 > > +	}
-> > +
-> > +	/* Set non-intra quantization matrix. */
-> > +
-> > +	if (quantization && quantization->load_non_intra_quantiser_matrix)
-> > +		matrix =3D quantization->non_intra_quantiser_matrix;
-> > +	else
-> > +		matrix =3D non_intra_quantization_matrix_default;
-> > +
-> > +	for (i =3D 0; i < 64; i++) {
-> > +		reg =3D VE_DEC_MPEG_IQMINPUT_WEIGHT(i, matrix[i]);
-> > +		reg |=3D VE_DEC_MPEG_IQMINPUT_FLAG_NON_INTRA;
-> > +
-> > +		cedrus_write(dev, VE_DEC_MPEG_IQMINPUT, reg);
-> > +	}
-> > +
-> > +	/* Set MPEG picture header. */
-> > +
-> > +	reg =3D VE_DEC_MPEG_MP12HDR_SLICE_TYPE(slice_params->slice_type);
-> > +	reg |=3D VE_DEC_MPEG_MP12HDR_F_CODE(0, 0, slice_params->f_code[0][0])=
-;
-> > +	reg |=3D VE_DEC_MPEG_MP12HDR_F_CODE(0, 1, slice_params->f_code[0][1])=
-;
-> > +	reg |=3D VE_DEC_MPEG_MP12HDR_F_CODE(1, 0, slice_params->f_code[1][0])=
-;
-> > +	reg |=3D VE_DEC_MPEG_MP12HDR_F_CODE(1, 1, slice_params->f_code[1][1])=
-;
-> > +	reg |=3D
-> > VE_DEC_MPEG_MP12HDR_INTRA_DC_PRECISION(slice_params->intra_dc_precision=
-);
-> > +	reg |=3D
-> > VE_DEC_MPEG_MP12HDR_INTRA_PICTURE_STRUCTURE(slice_params->picture_struc=
-ture
-> > ); +	reg |=3D
-> > VE_DEC_MPEG_MP12HDR_TOP_FIELD_FIRST(slice_params->top_field_first); +	r=
-eg
-> > > =3D
-> >=20
-> > VE_DEC_MPEG_MP12HDR_FRAME_PRED_FRAME_DCT(slice_params->frame_pred_frame=
-_dct
-> > ); +	reg |=3D
-> > VE_DEC_MPEG_MP12HDR_CONCEALMENT_MOTION_VECTORS(slice_params->concealmen=
-t_mo
-> > tion_vectors); +	reg |=3D
-> > VE_DEC_MPEG_MP12HDR_Q_SCALE_TYPE(slice_params->q_scale_type); +	reg |=
-=3D
-> > VE_DEC_MPEG_MP12HDR_INTRA_VLC_FORMAT(slice_params->intra_vlc_format); +=
-=09
+> > +}
 >=20
-> reg
-> > > =3D VE_DEC_MPEG_MP12HDR_ALTERNATE_SCAN(slice_params->alternate_scan);=
- +	reg
-> > > =3D VE_DEC_MPEG_MP12HDR_FULL_PEL_FORWARD_VECTOR(0);
-> >=20
-> > +	reg |=3D VE_DEC_MPEG_MP12HDR_FULL_PEL_BACKWARD_VECTOR(0);
-> > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_MP12HDR, reg);
-> > +
-> > +	/* Set frame dimensions. */
-> > +
-> > +	reg =3D VE_DEC_MPEG_PICCODEDSIZE_WIDTH(slice_params->width);
-> > +	reg |=3D VE_DEC_MPEG_PICCODEDSIZE_HEIGHT(slice_params->height);
-> > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_PICCODEDSIZE, reg);
-> > +
-> > +	reg =3D VE_DEC_MPEG_PICBOUNDSIZE_WIDTH(slice_params->width);
-> > +	reg |=3D VE_DEC_MPEG_PICBOUNDSIZE_HEIGHT(slice_params->height);
-> > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_PICBOUNDSIZE, reg);
-> > +
-> > +	/* Forward and backward prediction reference buffers. */
-> > +
-> > +	fwd_luma_addr =3D cedrus_dst_buf_addr(ctx, slice_params->forward_ref_=
-index,
-> > 0); +	fwd_chroma_addr =3D cedrus_dst_buf_addr(ctx,
-> > slice_params->forward_ref_index, 1); +
-> > +	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
-> > +	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
-> > +
-> > +	bwd_luma_addr =3D cedrus_dst_buf_addr(ctx, slice_params->backward_ref=
-_index,
-> > 0); +	bwd_chroma_addr =3D cedrus_dst_buf_addr(ctx,
-> > slice_params->backward_ref_index, 1); +
-> > +	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_LUMA_ADDR, bwd_luma_addr);
-> > +	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_CHROMA_ADDR, bwd_chroma_addr);
-> > +
-> > +	/* Destination luma and chroma buffers. */
-> > +
-> > +	dst_luma_addr =3D cedrus_dst_buf_addr(ctx, run->dst->vb2_buf.index, 0=
-);
-> > +	dst_chroma_addr =3D cedrus_dst_buf_addr(ctx, run->dst->vb2_buf.index,=
- 1);
-> > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_REC_LUMA, dst_luma_addr);
-> > +	cedrus_write(dev, VE_DEC_MPEG_REC_CHROMA, dst_chroma_addr);
-> > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_ROT_LUMA, dst_luma_addr);
-> > +	cedrus_write(dev, VE_DEC_MPEG_ROT_CHROMA, dst_chroma_addr);
+> <snip>
 >=20
-> It seems that above ROT buffers are not required at all, if (please see n=
-ext=20
-> comment)
-
-Yes, you're totally right!
-
+> > +static void cedrus_prepare_plane_format(struct cedrus_format *fmt,
+> > +					struct v4l2_format *f,
+> > +					unsigned int i)
+> > +{
+> > +	struct v4l2_plane_pix_format *plane_fmt =3D &f->fmt.pix_mp.plane_fmt[=
+i];
+> > +	unsigned int width =3D f->fmt.pix_mp.width;
+> > +	unsigned int height =3D f->fmt.pix_mp.height;
+> > +	unsigned int sizeimage =3D plane_fmt->sizeimage;
+> > +	unsigned int bytesperline =3D plane_fmt->bytesperline;
 > > +
-> > +	/* Source offset and length in bits. */
+> > +	switch (fmt->pixelformat) {
+> > +	case V4L2_PIX_FMT_MPEG2_SLICE:
+> > +		/* Zero bytes per line. */
+> > +		bytesperline =3D 0;
+> > +		break;
 > > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_VLD_OFFSET, slice_params->slice_pos);
+> > +	case V4L2_PIX_FMT_MB32_NV12:
+> > +		/* 32-aligned stride. */
+> > +		bytesperline =3D ALIGN(width, 32);
 > > +
-> > +	vld_len =3D slice_params->slice_len - slice_params->slice_pos;
-> > +	cedrus_write(dev, VE_DEC_MPEG_VLD_LEN, vld_len);
+> > +		/* 32-aligned (luma) height. */
+> > +		height =3D ALIGN(height, 32);
 > > +
-> > +	/* Source beginning and end addresses. */
+> > +		if (i =3D=3D 0)
+> > +			/* 32-aligned luma size. */
+> > +			sizeimage =3D bytesperline * height;
+> > +		else if (i =3D=3D 1)
+> > +			/* 32-aligned chroma size with 2x2 sub-sampling. */
+> > +			sizeimage =3D bytesperline * ALIGN(height / 2, 32);
 > > +
-> > +	src_buf_addr =3D vb2_dma_contig_plane_dma_addr(&run->src->vb2_buf, 0)=
-;
+> > +		break;
 > > +
-> > +	reg =3D VE_DEC_MPEG_VLD_ADDR_BASE(src_buf_addr);
-> > +	reg |=3D VE_DEC_MPEG_VLD_ADDR_VALID_PIC_DATA;
-> > +	reg |=3D VE_DEC_MPEG_VLD_ADDR_LAST_PIC_DATA;
-> > +	reg |=3D VE_DEC_MPEG_VLD_ADDR_FIRST_PIC_DATA;
-> > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_VLD_ADDR, reg);
-> > +
-> > +	vld_end =3D src_buf_addr + DIV_ROUND_UP(slice_params->slice_len, 8);
-> > +	cedrus_write(dev, VE_DEC_MPEG_VLD_END, vld_end);
-> > +
-> > +	/* Macroblock address: start at the beginning. */
-> > +	reg =3D VE_DEC_MPEG_MBADDR_Y(0) | VE_DEC_MPEG_MBADDR_X(0);
-> > +	cedrus_write(dev, VE_DEC_MPEG_MBADDR, reg);
-> > +
-> > +	/* Clear previous errors. */
-> > +	cedrus_write(dev, VE_DEC_MPEG_ERROR, 0);
-> > +
-> > +	/* Clear correct macroblocks register. */
-> > +	cedrus_write(dev, VE_DEC_MPEG_CRTMBADDR, 0);
-> > +
-> > +	/* Enable appropriate interruptions and components. */
-> > +
-> > +	reg =3D VE_DEC_MPEG_CTRL_IRQ_MASK | VE_DEC_MPEG_CTRL_MC_NO_WRITEBACK =
-|
-> > +	      VE_DEC_MPEG_CTRL_ROTATE_SCALE_OUT_EN |
-> > +	      VE_DEC_MPEG_CTRL_MC_CACHE_EN;
+> > +	case V4L2_PIX_FMT_NV12:
+> > +		/* 32-aligned stride. */
+> > +		bytesperline =3D ALIGN(width, 32);
 >=20
-> ... if you remove VE_DEC_MPEG_CTRL_ROTATE_SCALE_OUT_EN. Everything gets s=
-till=20
-> correctly decoded. media-codec code for mpeg2 from AW doesn't use that at=
- all.=20
-> I think that VE_DEC_MPEG_CTRL_MC_NO_WRITEBACK flag actually disables rota=
-te/
-> scale operation.
+> ^ and that one should be aligned to 16 too.
+>=20
+> This partially fixes some MPEG2 videos I have tested with Kodi. I think t=
+here=20
+> are other aligment issues, but I have to find them first.
 
-I agree with your conclusions here. The rotate and scale output (often
-called 2nd output) is not used in our pipeline so there is indeed no
-need to configure the dst addresses or set its enable bit.
+I also found that the height (used for sizeimage calculation) has to be
+aligned to 16 in this case, otherwise some garbage can be seen on the
+top rows of the untiled frame with non-aligned heights.
 
-Things indeed work just as well without it, so I'll get rid of that in
-v7. Thanks!
-
-Cheers,
+Cheers and thanks again for your findings!
 
 Paul
 
@@ -272,28 +184,496 @@ Paul
 > Jernej
 >=20
 > > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_CTRL, reg);
+> > +		if (i =3D=3D 0)
+> > +			/* Regular luma size. */
+> > +			sizeimage =3D bytesperline * height;
+> > +		else if (i =3D=3D 1)
+> > +			/* Regular chroma size with 2x2 sub-sampling. */
+> > +			sizeimage =3D bytesperline * height / 2;
+> > +
+> > +		break;
+> > +	}
+> > +
+> > +	f->fmt.pix_mp.width =3D width;
+> > +	f->fmt.pix_mp.height =3D height;
+> > +
+> > +	plane_fmt->bytesperline =3D bytesperline;
+> > +	plane_fmt->sizeimage =3D sizeimage;
 > > +}
 > > +
-> > +static void cedrus_mpeg2_trigger(struct cedrus_ctx *ctx)
+> > +static void cedrus_prepare_format(struct cedrus_format *fmt,
+> > +				  struct v4l2_format *f)
 > > +{
-> > +	struct cedrus_dev *dev =3D ctx->dev;
-> > +	u32 reg;
+> > +	unsigned int i;
 > > +
-> > +	/* Trigger MPEG engine. */
-> > +	reg =3D VE_DEC_MPEG_TRIGGER_HW_MPEG_VLD | VE_DEC_MPEG_TRIGGER_MPEG2 |
-> > +	      VE_DEC_MPEG_TRIGGER_MB_BOUNDARY;
+> > +	f->fmt.pix_mp.field =3D V4L2_FIELD_NONE;
+> > +	f->fmt.pix_mp.num_planes =3D fmt->num_planes;
 > > +
-> > +	cedrus_write(dev, VE_DEC_MPEG_TRIGGER, reg);
+> > +	for (i =3D 0; i < fmt->num_planes; i++)
+> > +		cedrus_prepare_plane_format(fmt, f, i);
 > > +}
 > > +
-> > +struct cedrus_dec_ops cedrus_dec_ops_mpeg2 =3D {
-> > +	.irq_clear	=3D cedrus_mpeg2_irq_clear,
-> > +	.irq_disable	=3D cedrus_mpeg2_irq_disable,
-> > +	.irq_status	=3D cedrus_mpeg2_irq_status,
-> > +	.setup		=3D cedrus_mpeg2_setup,
-> > +	.trigger	=3D cedrus_mpeg2_trigger,
+> > +static int cedrus_querycap(struct file *file, void *priv,
+> > +			   struct v4l2_capability *cap)
+> > +{
+> > +	strncpy(cap->driver, CEDRUS_NAME, sizeof(cap->driver) - 1);
+> > +	strncpy(cap->card, CEDRUS_NAME, sizeof(cap->card) - 1);
+> > +	snprintf(cap->bus_info, sizeof(cap->bus_info),
+> > +		 "platform:%s", CEDRUS_NAME);
+> > +
+> > +	cap->device_caps =3D V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+> > +	cap->capabilities =3D cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
+> > +			   u32 direction)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D cedrus_file2ctx(file);
+> > +	struct cedrus_dev *dev =3D ctx->dev;
+> > +	unsigned int capabilities =3D dev->capabilities;
+> > +	struct cedrus_format *fmt;
+> > +	unsigned int i, index;
+> > +
+> > +	/* Index among formats that match the requested direction. */
+> > +	index =3D 0;
+> > +
+> > +	for (i =3D 0; i < CEDRUS_FORMATS_COUNT; i++) {
+> > +		fmt =3D &cedrus_formats[i];
+> > +
+> > +		if (fmt->capabilities && (fmt->capabilities & capabilities) !=3D
+> > +		    fmt->capabilities)
+> > +			continue;
+> > +
+> > +		if (!(cedrus_formats[i].directions & direction))
+> > +			continue;
+> > +
+> > +		if (index =3D=3D f->index)
+> > +			break;
+> > +
+> > +		index++;
+> > +	}
+> > +
+> > +	/* Matched format. */
+> > +	if (i < CEDRUS_FORMATS_COUNT) {
+> > +		f->pixelformat =3D cedrus_formats[i].pixelformat;
+> > +
+> > +		return 0;
+> > +	}
+> > +
+> > +	return -EINVAL;
+> > +}
+> > +
+> > +static int cedrus_enum_fmt_vid_cap(struct file *file, void *priv,
+> > +				   struct v4l2_fmtdesc *f)
+> > +{
+> > +	return cedrus_enum_fmt(file, f, CEDRUS_DECODE_DST);
+> > +}
+> > +
+> > +static int cedrus_enum_fmt_vid_out(struct file *file, void *priv,
+> > +				   struct v4l2_fmtdesc *f)
+> > +{
+> > +	return cedrus_enum_fmt(file, f, CEDRUS_DECODE_SRC);
+> > +}
+> > +
+> > +static int cedrus_g_fmt_vid_cap(struct file *file, void *priv,
+> > +				struct v4l2_format *f)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D cedrus_file2ctx(file);
+> > +
+> > +	if (f->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> > +		return -EINVAL;
+> > +
+> > +	f->fmt.pix_mp =3D ctx->dst_fmt;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_g_fmt_vid_out(struct file *file, void *priv,
+> > +				struct v4l2_format *f)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D cedrus_file2ctx(file);
+> > +
+> > +	if (f->type !=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> > +		return -EINVAL;
+> > +
+> > +	f->fmt.pix_mp =3D ctx->src_fmt;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_try_fmt_vid_cap(struct file *file, void *priv,
+> > +				  struct v4l2_format *f)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D cedrus_file2ctx(file);
+> > +	struct cedrus_dev *dev =3D ctx->dev;
+> > +	struct cedrus_format *fmt;
+> > +
+> > +	fmt =3D cedrus_find_format(f->fmt.pix_mp.pixelformat, CEDRUS_DECODE_D=
+ST,
+> > +				 dev->capabilities);
+> > +	if (!fmt)
+> > +		return -EINVAL;
+> > +
+> > +	cedrus_prepare_format(fmt, f);
+> > +
+> > +	/* Limit to hardware min/max. */
+> > +	f->fmt.pix_mp.width =3D clamp(f->fmt.pix_mp.width, CEDRUS_MIN_WIDTH,
+> > +				    CEDRUS_MAX_WIDTH);
+> > +	f->fmt.pix_mp.height =3D clamp(f->fmt.pix_mp.height, CEDRUS_MIN_HEIGH=
+T,
+> > +				     CEDRUS_MAX_HEIGHT);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_try_fmt_vid_out(struct file *file, void *priv,
+> > +				  struct v4l2_format *f)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D cedrus_file2ctx(file);
+> > +	struct cedrus_dev *dev =3D ctx->dev;
+> > +	struct cedrus_format *fmt;
+> > +	struct v4l2_plane_pix_format *plane_fmt;
+> > +	unsigned int i;
+> > +
+> > +	fmt =3D cedrus_find_format(f->fmt.pix_mp.pixelformat, CEDRUS_DECODE_S=
+RC,
+> > +				 dev->capabilities);
+> > +	if (!fmt)
+> > +		return -EINVAL;
+> > +
+> > +	cedrus_prepare_format(fmt, f);
+> > +
+> > +	for (i =3D 0; i < f->fmt.pix_mp.num_planes; i++) {
+> > +		plane_fmt =3D &f->fmt.pix_mp.plane_fmt[i];
+> > +
+> > +		/* Source image size has to be given by userspace. */
+> > +		if (plane_fmt->sizeimage =3D=3D 0)
+> > +			return -EINVAL;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_s_fmt_vid_cap(struct file *file, void *priv,
+> > +				struct v4l2_format *f)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D cedrus_file2ctx(file);
+> > +	struct cedrus_dev *dev =3D ctx->dev;
+> > +	int ret;
+> > +
+> > +	ret =3D cedrus_try_fmt_vid_cap(file, priv, f);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	ctx->dst_fmt =3D f->fmt.pix_mp;
+> > +
+> > +	cedrus_dst_format_set(dev, &ctx->dst_fmt);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_s_fmt_vid_out(struct file *file, void *priv,
+> > +				struct v4l2_format *f)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D cedrus_file2ctx(file);
+> > +	int ret;
+> > +
+> > +	ret =3D cedrus_try_fmt_vid_out(file, priv, f);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	ctx->src_fmt =3D f->fmt.pix_mp;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +const struct v4l2_ioctl_ops cedrus_ioctl_ops =3D {
+> > +	.vidioc_querycap		=3D cedrus_querycap,
+> > +
+> > +	.vidioc_enum_fmt_vid_cap_mplane	=3D cedrus_enum_fmt_vid_cap,
+> > +	.vidioc_g_fmt_vid_cap_mplane	=3D cedrus_g_fmt_vid_cap,
+> > +	.vidioc_try_fmt_vid_cap_mplane	=3D cedrus_try_fmt_vid_cap,
+> > +	.vidioc_s_fmt_vid_cap_mplane	=3D cedrus_s_fmt_vid_cap,
+> > +
+> > +	.vidioc_enum_fmt_vid_out_mplane =3D cedrus_enum_fmt_vid_out,
+> > +	.vidioc_g_fmt_vid_out_mplane	=3D cedrus_g_fmt_vid_out,
+> > +	.vidioc_try_fmt_vid_out_mplane	=3D cedrus_try_fmt_vid_out,
+> > +	.vidioc_s_fmt_vid_out_mplane	=3D cedrus_s_fmt_vid_out,
+> > +
+> > +	.vidioc_reqbufs			=3D v4l2_m2m_ioctl_reqbufs,
+> > +	.vidioc_querybuf		=3D v4l2_m2m_ioctl_querybuf,
+> > +	.vidioc_qbuf			=3D v4l2_m2m_ioctl_qbuf,
+> > +	.vidioc_dqbuf			=3D v4l2_m2m_ioctl_dqbuf,
+> > +	.vidioc_prepare_buf		=3D v4l2_m2m_ioctl_prepare_buf,
+> > +	.vidioc_create_bufs		=3D v4l2_m2m_ioctl_create_bufs,
+> > +	.vidioc_expbuf			=3D v4l2_m2m_ioctl_expbuf,
+> > +
+> > +	.vidioc_streamon		=3D v4l2_m2m_ioctl_streamon,
+> > +	.vidioc_streamoff		=3D v4l2_m2m_ioctl_streamoff,
+> > +
+> > +	.vidioc_subscribe_event		=3D v4l2_ctrl_subscribe_event,
+> > +	.vidioc_unsubscribe_event	=3D v4l2_event_unsubscribe,
 > > +};
+> > +
+> > +static int cedrus_queue_setup(struct vb2_queue *vq, unsigned int *nbuf=
+s,
+> > +			      unsigned int *nplanes, unsigned int sizes[],
+> > +			      struct device *alloc_devs[])
+> > +{
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(vq);
+> > +	struct cedrus_dev *dev =3D ctx->dev;
+> > +	struct v4l2_pix_format_mplane *mplane_fmt;
+> > +	struct cedrus_format *fmt;
+> > +	unsigned int i;
+> > +
+> > +	switch (vq->type) {
+> > +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> > +		mplane_fmt =3D &ctx->src_fmt;
+> > +		fmt =3D cedrus_find_format(mplane_fmt->pixelformat,
+> > +					 CEDRUS_DECODE_SRC,
+> > +					 dev->capabilities);
+> > +		break;
+> > +
+> > +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> > +		mplane_fmt =3D &ctx->dst_fmt;
+> > +		fmt =3D cedrus_find_format(mplane_fmt->pixelformat,
+> > +					 CEDRUS_DECODE_DST,
+> > +					 dev->capabilities);
+> > +		break;
+> > +
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (!fmt)
+> > +		return -EINVAL;
+> > +
+> > +	if (fmt->num_buffers =3D=3D 1) {
+> > +		sizes[0] =3D 0;
+> > +
+> > +		for (i =3D 0; i < fmt->num_planes; i++)
+> > +			sizes[0] +=3D mplane_fmt->plane_fmt[i].sizeimage;
+> > +	} else if (fmt->num_buffers =3D=3D fmt->num_planes) {
+> > +		for (i =3D 0; i < fmt->num_planes; i++)
+> > +			sizes[i] =3D mplane_fmt->plane_fmt[i].sizeimage;
+> > +	} else {
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	*nplanes =3D fmt->num_buffers;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_buf_init(struct vb2_buffer *vb)
+> > +{
+> > +	struct vb2_queue *vq =3D vb->vb2_queue;
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(vq);
+> > +
+> > +	if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> > +		ctx->dst_bufs[vb->index] =3D vb;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static void cedrus_buf_cleanup(struct vb2_buffer *vb)
+> > +{
+> > +	struct vb2_queue *vq =3D vb->vb2_queue;
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(vq);
+> > +
+> > +	if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> > +		ctx->dst_bufs[vb->index] =3D NULL;
+> > +}
+> > +
+> > +static int cedrus_buf_prepare(struct vb2_buffer *vb)
+> > +{
+> > +	struct vb2_queue *vq =3D vb->vb2_queue;
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(vq);
+> > +	struct v4l2_pix_format_mplane *fmt;
+> > +	unsigned int buffer_size =3D 0;
+> > +	unsigned int format_size =3D 0;
+> > +	unsigned int i;
+> > +
+> > +	if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> > +		fmt =3D &ctx->src_fmt;
+> > +	else if (vq->type =3D=3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> > +		fmt =3D &ctx->dst_fmt;
+> > +	else
+> > +		return -EINVAL;
+> > +
+> > +	for (i =3D 0; i < vb->num_planes; i++)
+> > +		buffer_size +=3D vb2_plane_size(vb, i);
+> > +
+> > +	for (i =3D 0; i < fmt->num_planes; i++)
+> > +		format_size +=3D fmt->plane_fmt[i].sizeimage;
+> > +
+> > +	if (buffer_size < format_size)
+> > +		return -EINVAL;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int cedrus_start_streaming(struct vb2_queue *q, unsigned int co=
+unt)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(q);
+> > +	struct cedrus_dev *dev =3D ctx->dev;
+> > +	int ret =3D 0;
+> > +
+> > +	switch (ctx->src_fmt.pixelformat) {
+> > +	case V4L2_PIX_FMT_MPEG2_SLICE:
+> > +		ctx->current_codec =3D CEDRUS_CODEC_MPEG2;
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (V4L2_TYPE_IS_OUTPUT(q->type) &&
+> > +	    dev->dec_ops[ctx->current_codec]->start)
+> > +		ret =3D dev->dec_ops[ctx->current_codec]->start(ctx);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static void cedrus_stop_streaming(struct vb2_queue *q)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(q);
+> > +	struct cedrus_dev *dev =3D ctx->dev;
+> > +	struct vb2_v4l2_buffer *vbuf;
+> > +	unsigned long flags;
+> > +
+> > +	flush_scheduled_work();
+> > +
+> > +	if (V4L2_TYPE_IS_OUTPUT(q->type) &&
+> > +	    dev->dec_ops[ctx->current_codec]->stop)
+> > +		dev->dec_ops[ctx->current_codec]->stop(ctx);
+> > +
+> > +	for (;;) {
+> > +		spin_lock_irqsave(&ctx->dev->irq_lock, flags);
+> > +
+> > +		if (V4L2_TYPE_IS_OUTPUT(q->type))
+> > +			vbuf =3D v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> > +		else
+> > +			vbuf =3D v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> > +
+> > +		spin_unlock_irqrestore(&ctx->dev->irq_lock, flags);
+> > +
+> > +		if (!vbuf)
+> > +			return;
+> > +
+> > +		v4l2_ctrl_request_complete(vbuf->vb2_buf.req_obj.req,
+> > +					   &ctx->hdl);
+> > +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+> > +	}
+> > +}
+> > +
+> > +static void cedrus_buf_queue(struct vb2_buffer *vb)
+> > +{
+> > +	struct vb2_v4l2_buffer *vbuf =3D to_vb2_v4l2_buffer(vb);
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(vb->vb2_queue);
+> > +
+> > +	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+> > +}
+> > +
+> > +static void cedrus_buf_request_complete(struct vb2_buffer *vb)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D vb2_get_drv_priv(vb->vb2_queue);
+> > +
+> > +	v4l2_ctrl_request_complete(vb->req_obj.req, &ctx->hdl);
+> > +}
+> > +
+> > +static struct vb2_ops cedrus_qops =3D {
+> > +	.queue_setup		=3D cedrus_queue_setup,
+> > +	.buf_prepare		=3D cedrus_buf_prepare,
+> > +	.buf_init		=3D cedrus_buf_init,
+> > +	.buf_cleanup		=3D cedrus_buf_cleanup,
+> > +	.buf_queue		=3D cedrus_buf_queue,
+> > +	.buf_request_complete	=3D cedrus_buf_request_complete,
+> > +	.start_streaming	=3D cedrus_start_streaming,
+> > +	.stop_streaming		=3D cedrus_stop_streaming,
+> > +	.wait_prepare		=3D vb2_ops_wait_prepare,
+> > +	.wait_finish		=3D vb2_ops_wait_finish,
+> > +};
+> > +
+> > +int cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
+> > +		      struct vb2_queue *dst_vq)
+> > +{
+> > +	struct cedrus_ctx *ctx =3D priv;
+> > +	int ret;
+> > +
+> > +	src_vq->type =3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> > +	src_vq->io_modes =3D VB2_MMAP | VB2_DMABUF;
+> > +	src_vq->drv_priv =3D ctx;
+> > +	src_vq->buf_struct_size =3D sizeof(struct cedrus_buffer);
+> > +	src_vq->allow_zero_bytesused =3D 1;
+> > +	src_vq->min_buffers_needed =3D 1;
+> > +	src_vq->ops =3D &cedrus_qops;
+> > +	src_vq->mem_ops =3D &vb2_dma_contig_memops;
+> > +	src_vq->timestamp_flags =3D V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> > +	src_vq->lock =3D &ctx->dev->dev_mutex;
+> > +	src_vq->dev =3D ctx->dev->dev;
+> > +
+> > +	ret =3D vb2_queue_init(src_vq);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	dst_vq->type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> > +	dst_vq->io_modes =3D VB2_MMAP | VB2_DMABUF;
+> > +	dst_vq->drv_priv =3D ctx;
+> > +	dst_vq->buf_struct_size =3D sizeof(struct cedrus_buffer);
+> > +	dst_vq->allow_zero_bytesused =3D 1;
+> > +	dst_vq->min_buffers_needed =3D 1;
+> > +	dst_vq->ops =3D &cedrus_qops;
+> > +	dst_vq->mem_ops =3D &vb2_dma_contig_memops;
+> > +	dst_vq->timestamp_flags =3D V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> > +	dst_vq->lock =3D &ctx->dev->dev_mutex;
+> > +	dst_vq->dev =3D ctx->dev->dev;
+> > +
+> > +	return vb2_queue_init(dst_vq);
+> > +}
+> > diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_video.h
+> > b/drivers/staging/media/sunxi/cedrus/cedrus_video.h new file mode 10064=
+4
+> > index 000000000000..56afcc8c02ba
+> > --- /dev/null
+> > +++ b/drivers/staging/media/sunxi/cedrus/cedrus_video.h
+> > @@ -0,0 +1,31 @@
+> > +/* SPDX-License-Identifier: GPL-2.0 */
+> > +/*
+> > + * Sunxi-Cedrus VPU driver
+> > + *
+> > + * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com=
+>
+> > + * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.co=
+m>
+> > + *
+> > + * Based on the vim2m driver, that is:
+> > + *
+> > + * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
+> > + * Pawel Osciak, <pawel@osciak.com>
+> > + * Marek Szyprowski, <m.szyprowski@samsung.com>
+> > + */
+> > +
+> > +#ifndef _CEDRUS_VIDEO_H_
+> > +#define _CEDRUS_VIDEO_H_
+> > +
+> > +struct cedrus_format {
+> > +	u32		pixelformat;
+> > +	u32		directions;
+> > +	unsigned int	num_planes;
+> > +	unsigned int	num_buffers;
+> > +	unsigned int	capabilities;
+> > +};
+> > +
+> > +extern const struct v4l2_ioctl_ops cedrus_ioctl_ops;
+> > +
+> > +int cedrus_queue_init(void *priv, struct vb2_queue *src_vq,
+> > +		      struct vb2_queue *dst_vq);
+> > +
+> > +#endif
+>=20
 >=20
 >=20
 >=20
@@ -302,21 +682,21 @@ Paul Kocialkowski, Bootlin (formerly Free Electrons)
 Embedded Linux and kernel engineering
 https://bootlin.com
 
---=-wYvpBtmUXvfZqdKDv/NV
+--=-YQJEt7jrQ8Jk2rLv4wrG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltpi5UACgkQ3cLmz3+f
-v9ET4gf/TgawQys7yhf2NseBi01mGErLAqMGYz4+4bzjkeH5JBNhsJNMrdxPKGBh
-tDj5K5mQYDBLRTml+KOAC7XvhgY8nw/QBDgHujiOBcSWayspxz8XsV5a5+1cBi78
-HUHvHAoEGGwsQTVWkARqpmoIYuXQYnZNqVVE0+MIqSdh0ciQ4zzNxla/zOD8kMI0
-QqVXHMCIko62eSopueqVlJ/hp0/6IkCusR2mePAoaUqeHMgFjZ9CEmQtx9Tcik+A
-SD+A+YUInQeXwlun3poa0sNMREBV3lWsQyHppwZp5pr51JB+zcCbBds0KXLKfRq5
-ZVn2IsO2jSM1wutLt5y/Ea9Tn646fQ==
-=Hcxh
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltpjZQACgkQ3cLmz3+f
+v9Ho9QgAlTt+JEujPvj7G+wOfWGMhhnXntlqiTGxb1KE3+zJwHmMD/03+aYmhJNU
+miO2hUb1sOzQNUlOIwEVA+ETyVub1FNugmvug53iCEV514aiQBF7FWW6K/sYWyaU
+aNey/ulP5rQ96K4TRHhmavbpL7boD+FF9CYB4p9lsadKFSro+m/lmpNQ0hbuYYJb
+FoFv355uuOxB6rg4Bc9DZSOb1KOAJIHdnOBLvoArAeE+J/mzlilX7pgjXY2FrwHr
+L41aVjKJYDGkWkMm3D5JxkNW4E6VKSWCwc8zK33LUznyyngLxAxzinmhFqNT5Kdq
+ri3BTiaDr7bPk8thi8ZsaKKFYdUvYA==
+=pyzM
 -----END PGP SIGNATURE-----
 
---=-wYvpBtmUXvfZqdKDv/NV--
+--=-YQJEt7jrQ8Jk2rLv4wrG--
