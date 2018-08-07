@@ -1,138 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:6155 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726951AbeHGLH4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Aug 2018 07:07:56 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Jacopo Mondi <jacopo@jmondi.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "maxime.ripard@bootlin.com" <maxime.ripard@bootlin.com>,
-        "sam@elite-embedded.com" <sam@elite-embedded.com>,
-        "jagan@amarulasolutions.com" <jagan@amarulasolutions.com>,
-        "festevam@gmail.com" <festevam@gmail.com>,
-        "pza@pengutronix.de" <pza@pengutronix.de>,
-        "steve_longerbeam@mentor.com" <steve_longerbeam@mentor.com>,
-        "loic.poulain@linaro.org" <loic.poulain@linaro.org>,
-        "daniel@zonque.org" <daniel@zonque.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/2] media: ov5640: Fix timings setup code
-Date: Tue, 7 Aug 2018 08:53:53 +0000
-Message-ID: <f5e1bcf6-a677-441b-eaec-60901811038e@st.com>
-References: <1531912743-24767-1-git-send-email-jacopo@jmondi.org>
- <1531912743-24767-2-git-send-email-jacopo@jmondi.org>
-In-Reply-To: <1531912743-24767-2-git-send-email-jacopo@jmondi.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <E04B4BECCBCE0F49ABE2A552A08BD3EA@st.com>
-Content-Transfer-Encoding: base64
+Received: from perceval.ideasonboard.com ([213.167.242.64]:52160 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727669AbeHGLLh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 07:11:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nadav Amit <namit@vmware.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] usb: fix uvc_alloc_entity() allocation alignment
+Date: Tue, 07 Aug 2018 11:59:01 +0300
+Message-ID: <3561796.imRZE4xQI7@avalon>
+In-Reply-To: <0B044CD5-B4F5-4614-B97A-E02E5C1E8A17@vmware.com>
+References: <20180604134713.101064-1-namit@vmware.com> <15813968.YrTFj7ZbY9@avalon> <0B044CD5-B4F5-4614-B97A-E02E5C1E8A17@vmware.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSmFjb3BvLA0KDQpUaGFua3MgZm9yIHRoaXMgcGF0Y2gsIHdoZW4gdGVzdGluZyBvbiBteSBz
-aWRlIEkgZG9uJ3Qgc2VlIHNwZWNpYWwgDQpyZWdyZXNzaW9uIG9yIGVuaGFuY2VtZW50IHdpdGgg
-dGhhdCBmaXgsIHBhcnRpY3VsYXJseSBvbiBpbWFnZSBxdWFsaXR5IA0KKGV4cG9zdXJlLCAuLi4p
-LA0KZG8geW91IGhhdmUgYSB0ZXN0IHByb2NlZHVyZSB0aGF0IHVuZGVybGluZSB0aGUgaXNzdWUg
-Pw0KRm9yIGV4YW1wbGUgb24gbXkgc2lkZSB3aGVuIEkgZG8gNU1wIHRoZW4gUVZHQSBjYXB0dXJl
-LCBwaWN0dXJlcyBhcmUgDQpvdmVyZXhwb3NlZC9ncmVlbmlzaDoNCnY0bDItY3RsIC0tc2V0LXBh
-cm09MTU7IHY0bDItY3RsIA0KLS1zZXQtZm10LXZpZGVvPXdpZHRoPTI1OTIsaGVpZ2h0PTE5NDQs
-cGl4ZWxmb3JtYXQ9SlBFRyAtLXN0cmVhbS1tbWFwIA0KLS1zdHJlYW0tY291bnQ9MSAtLXN0cmVh
-bS10bz1waWMtNU1wLmpwZWc7IHY0bDItY3RsIA0KLS1zZXQtcGFybT0zMDt3ZXN0b24taW1hZ2Ug
-cGljLTVNcC5qcGVnICYNCnY0bDItY3RsIC0tc2V0LXBhcm09MTU7IHY0bDItY3RsIA0KLS1zZXQt
-Zm10LXZpZGVvPXdpZHRoPTMyMCxoZWlnaHQ9MjQwLHBpeGVsZm9ybWF0PUpQRUcgLS1zdHJlYW0t
-bW1hcCANCi0tc3RyZWFtLWNvdW50PTEgLS1zdHJlYW0tdG89cGljLVFWR0EuanBlZzsgdjRsMi1j
-dGwgDQotLXNldC1wYXJtPTMwO3dlc3Rvbi1pbWFnZSBwaWMtUVZHQS5qcGVnICYNCg0KSWYgSSBz
-a2lwIHRoZSBmaXJzdCBmcmFtZXMsIGltYWdlcyBjYXB0dXJlZCBhcmUgT0s6DQoNCnY0bDItY3Rs
-IC0tc2V0LXBhcm09MTU7IHY0bDItY3RsIA0KLS1zZXQtZm10LXZpZGVvPXdpZHRoPTI1OTIsaGVp
-Z2h0PTE5NDQscGl4ZWxmb3JtYXQ9SlBFRyAtLXN0cmVhbS1tbWFwIA0KLS1zdHJlYW0tY291bnQ9
-MSAtLXN0cmVhbS1za2lwPTEgLS1zdHJlYW0tdG89cGljLTVNcC5qcGVnOyB2NGwyLWN0bCANCi0t
-c2V0LXBhcm09MzA7d2VzdG9uLWltYWdlIHBpYy01TXAuanBlZyAmDQp2NGwyLWN0bCAtLXNldC1w
-YXJtPTE1OyB2NGwyLWN0bCANCi0tc2V0LWZtdC12aWRlbz13aWR0aD0zMjAsaGVpZ2h0PTI0MCxw
-aXhlbGZvcm1hdD1KUEVHIC0tc3RyZWFtLW1tYXAgDQotLXN0cmVhbS1jb3VudD0xIC0tc3RyZWFt
-LXNraXA9MSAtLXN0cmVhbS10bz1waWMtUVZHQS5qcGVnOyB2NGwyLWN0bCANCi0tc2V0LXBhcm09
-MzA7d2VzdG9uLWltYWdlIHBpYy1RVkdBLmpwZWcgJg0KDQoNCkJlc3QgcmVnYXJkcywNCkh1Z3Vl
-cy4NCg0KT24gMDcvMTgvMjAxOCAwMToxOSBQTSwgSmFjb3BvIE1vbmRpIHdyb3RlOg0KPiBBcyBv
-ZjoNCj4gY29tbWl0IDQ3NmRlYzAxMmY0YyAoIm1lZGlhOiBvdjU2NDA6IEFkZCBob3Jpem9udGFs
-IGFuZCB2ZXJ0aWNhbCB0b3RhbHMiKQ0KPiB0aGUgdGltaW5ncyBwYXJhbWV0ZXJzIGdldHMgcHJv
-Z3JhbW1lZCBzZXBhcmF0ZWx5IGZyb20gdGhlIHN0YXRpYyByZWdpc3Rlcg0KPiB2YWx1ZXMgYXJy
-YXkuDQo+IA0KPiBXaGVuIGNoYW5naW5nIGNhcHR1cmUgbW9kZSwgdGhlIHZlcnRpY2FsIGFuZCBo
-b3Jpem9udGFsIHRvdGFscyBnZXRzIGluc3BlY3RlZA0KPiBieSB0aGUgc2V0X21vZGVfZXhwb3N1
-cmVfY2FsYygpIGZ1bmN0aW9ucywgYW5kIG9ubHkgbGF0ZXIgcHJvZ3JhbW1lZCB3aXRoIHRoZQ0K
-PiBuZXcgdmFsdWVzLiBUaGlzIG1lYW5zIGV4cG9zdXJlLCBsaWdodCBiYW5kaW5nIGZpbHRlciBh
-bmQgc2h1dHRlciBnYWluIGFyZQ0KPiBjYWxjdWxhdGVkIHVzaW5nIHRoZSBwcmV2aW91cyB0aW1p
-bmdzLCBhbmQgYXJlIHRodXMgbm90IGNvcnJlY3QuDQo+IA0KPiBGaXggdGhpcyBieSBwcm9ncmFt
-bWluZyB0aW1pbmdzIHJpZ2h0IGFmdGVyIHRoZSBzdGF0aWMgcmVnaXN0ZXIgdmFsdWUgdGFibGUN
-Cj4gaGFzIGJlZW4gc2VudCB0byB0aGUgc2Vuc29yIGluIHRoZSBvdjU2NDBfbG9hZF9yZWdzKCkg
-ZnVuY3Rpb24uDQo+IA0KPiBGaXhlczogNDc2ZGVjMDEyZjRjICgibWVkaWE6IG92NTY0MDogQWRk
-IGhvcml6b250YWwgYW5kIHZlcnRpY2FsIHRvdGFscyIpDQo+IFNpZ25lZC1vZmYtYnk6IFNhbXVl
-bCBCb2Jyb3dpY3ogPHNhbUBlbGl0ZS1lbWJlZGRlZC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IE1h
-eGltZSBSaXBhcmQgPG1heGltZS5yaXBhcmRAYm9vdGxpbi5jb20+DQo+IFNpZ25lZC1vZmYtYnk6
-IEphY29wbyBNb25kaSA8amFjb3BvQGptb25kaS5vcmc+DQo+IA0KPiAtLS0NCj4gVGhpcyBmaXgg
-aGFzIGJlZW4gY2lyY3VsYXRpbmcgYXJvdW5kIGZvciBxdWl0ZSBzb21lIHRpbWUgbm93LCBpbiBN
-YXhpbWUgY2xvY2sNCj4gdHJlZSBwYXRjaGVzLCBpbiBTYW0gZHJvcGJveCBwYXRjaGVzIGFuZCBp
-biBteSBsYXRlc3QgTUlQSSBmaXhlcyBwYXRjaGVzLg0KPiBXaGlsZSB0aGUgcmVzdCBvZiB0aGUg
-c2VyaWVzIGhhdmUgbm90IHlldCBiZWVuIGFjY2VwdGVkLCB0aGVyZSBpcyBnZW5lcmFsDQo+IGNv
-bnNlbnN1cyB0aGlzIGlzIGFuIGFjdHVhbCBmaXggdGhhdCBoYXMgdG8gYmUgY29sbGVjdGVkLg0K
-PiANCj4gSSd2ZSBzbGlnaHRseSBtb2RpZmllZCBTYW0ncyBhbmQgTWF4aW1lJ3MgdmVyc2lvbiBJ
-IHByZXZpb3VzbHkgc2VudCwNCj4gcHJvZ3JhbW1pbmcgdGltaW5ncyBkaXJlY3RseSBpbiBvdjU2
-NDBfbG9hZF9yZWdzKCkgZnVuY3Rpb24uDQo+IFlvdSBjYW4gZmluZCBTYW0ncyBwcmV2aW91cyB2
-ZXJzaW9uIGhlcmU6DQo+IGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFA
-dmdlci5rZXJuZWwub3JnL21zZzEzMTY1NC5odG1sDQo+IGFuZCBtaW5lIGhlcmUsIHdpdGggYW4g
-YWRkaXRpb25hbCBjaGFuZ2UgdGhhdCBhaW1lZCB0byBmaXggTUlQSSBtb2RlLCB3aGljaA0KPiBJ
-J3ZlIGxlZnQgb3V0IGluIHRoaXMgdmVyc2lvbjoNCj4gaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZl
-LmNvbS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTMzNDIyLmh0bWwNCj4gDQo+IFNh
-bSwgTWF4aW1lLCBJIHRvb2sgdGhlIGxpYmVydHkgb2YgdGFraW5nIHlvdXIgU2lnbmVkLW9mZi1i
-eSBmcm9tIHRoZSBwcmV2aW91cw0KPiBwYXRjaCwgYXMgdGhpcyB3YXMgc3BvdHRlZCBieSB5b3Ug
-Zmlyc3QuIElzIHRoaXMgb2sgd2l0aCB5b3U/DQo+IA0KPiBUaGFua3MNCj4gICAgIGoNCj4gLS0t
-DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgNTAgKysrKysrKysrKysr
-KysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiAgIDEgZmlsZSBjaGFuZ2VkLCAy
-MSBpbnNlcnRpb25zKCspLCAyOSBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyBiL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+IGlu
-ZGV4IDFlY2JiN2EuLjEyYjM0OTYgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbWVkaWEvaTJjL292
-NTY0MC5jDQo+ICsrKyBiL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+IEBAIC05MDgsNiAr
-OTA4LDI2IEBAIHN0YXRpYyBpbnQgb3Y1NjQwX21vZF9yZWcoc3RydWN0IG92NTY0MF9kZXYgKnNl
-bnNvciwgdTE2IHJlZywNCj4gICB9DQo+ICAgDQo+ICAgLyogZG93bmxvYWQgb3Y1NjQwIHNldHRp
-bmdzIHRvIHNlbnNvciB0aHJvdWdoIGkyYyAqLw0KPiArc3RhdGljIGludCBvdjU2NDBfc2V0X3Rp
-bWluZ3Moc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCj4gKwkJCSAgICAgIGNvbnN0IHN0cnVj
-dCBvdjU2NDBfbW9kZV9pbmZvICptb2RlKQ0KPiArew0KPiArCWludCByZXQ7DQo+ICsNCj4gKwly
-ZXQgPSBvdjU2NDBfd3JpdGVfcmVnMTYoc2Vuc29yLCBPVjU2NDBfUkVHX1RJTUlOR19EVlBITywg
-bW9kZS0+aGFjdCk7DQo+ICsJaWYgKHJldCA8IDApDQo+ICsJCXJldHVybiByZXQ7DQo+ICsNCj4g
-KwlyZXQgPSBvdjU2NDBfd3JpdGVfcmVnMTYoc2Vuc29yLCBPVjU2NDBfUkVHX1RJTUlOR19EVlBW
-TywgbW9kZS0+dmFjdCk7DQo+ICsJaWYgKHJldCA8IDApDQo+ICsJCXJldHVybiByZXQ7DQo+ICsN
-Cj4gKwlyZXQgPSBvdjU2NDBfd3JpdGVfcmVnMTYoc2Vuc29yLCBPVjU2NDBfUkVHX1RJTUlOR19I
-VFMsIG1vZGUtPmh0b3QpOw0KPiArCWlmIChyZXQgPCAwKQ0KPiArCQlyZXR1cm4gcmV0Ow0KPiAr
-DQo+ICsJcmV0dXJuIG92NTY0MF93cml0ZV9yZWcxNihzZW5zb3IsIE9WNTY0MF9SRUdfVElNSU5H
-X1ZUUywgbW9kZS0+dnRvdCk7DQo+ICt9DQo+ICsNCj4gICBzdGF0aWMgaW50IG92NTY0MF9sb2Fk
-X3JlZ3Moc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCj4gICAJCQkgICAgY29uc3Qgc3RydWN0
-IG92NTY0MF9tb2RlX2luZm8gKm1vZGUpDQo+ICAgew0KPiBAQCAtOTM1LDcgKzk1NSw3IEBAIHN0
-YXRpYyBpbnQgb3Y1NjQwX2xvYWRfcmVncyhzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLA0KPiAg
-IAkJCXVzbGVlcF9yYW5nZSgxMDAwICogZGVsYXlfbXMsIDEwMDAgKiBkZWxheV9tcyArIDEwMCk7
-DQo+ICAgCX0NCj4gICANCj4gLQlyZXR1cm4gcmV0Ow0KPiArCXJldHVybiBvdjU2NDBfc2V0X3Rp
-bWluZ3Moc2Vuc29yLCBtb2RlKTsNCj4gICB9DQo+ICAgDQo+ICAgLyogcmVhZCBleHBvc3VyZSwg
-aW4gbnVtYmVyIG9mIGxpbmUgcGVyaW9kcyAqLw0KPiBAQCAtMTM4NSwzMCArMTQwNSw2IEBAIHN0
-YXRpYyBpbnQgb3Y1NjQwX3NldF92aXJ0dWFsX2NoYW5uZWwoc3RydWN0IG92NTY0MF9kZXYgKnNl
-bnNvcikNCj4gICAJcmV0dXJuIG92NTY0MF93cml0ZV9yZWcoc2Vuc29yLCBPVjU2NDBfUkVHX0RF
-QlVHX01PREUsIHRlbXApOw0KPiAgIH0NCj4gICANCj4gLXN0YXRpYyBpbnQgb3Y1NjQwX3NldF90
-aW1pbmdzKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQo+IC0JCQkgICAgICBjb25zdCBzdHJ1
-Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqbW9kZSkNCj4gLXsNCj4gLQlpbnQgcmV0Ow0KPiAtDQo+IC0J
-cmV0ID0gb3Y1NjQwX3dyaXRlX3JlZzE2KHNlbnNvciwgT1Y1NjQwX1JFR19USU1JTkdfRFZQSE8s
-IG1vZGUtPmhhY3QpOw0KPiAtCWlmIChyZXQgPCAwKQ0KPiAtCQlyZXR1cm4gcmV0Ow0KPiAtDQo+
-IC0JcmV0ID0gb3Y1NjQwX3dyaXRlX3JlZzE2KHNlbnNvciwgT1Y1NjQwX1JFR19USU1JTkdfRFZQ
-Vk8sIG1vZGUtPnZhY3QpOw0KPiAtCWlmIChyZXQgPCAwKQ0KPiAtCQlyZXR1cm4gcmV0Ow0KPiAt
-DQo+IC0JcmV0ID0gb3Y1NjQwX3dyaXRlX3JlZzE2KHNlbnNvciwgT1Y1NjQwX1JFR19USU1JTkdf
-SFRTLCBtb2RlLT5odG90KTsNCj4gLQlpZiAocmV0IDwgMCkNCj4gLQkJcmV0dXJuIHJldDsNCj4g
-LQ0KPiAtCXJldCA9IG92NTY0MF93cml0ZV9yZWcxNihzZW5zb3IsIE9WNTY0MF9SRUdfVElNSU5H
-X1ZUUywgbW9kZS0+dnRvdCk7DQo+IC0JaWYgKHJldCA8IDApDQo+IC0JCXJldHVybiByZXQ7DQo+
-IC0NCj4gLQlyZXR1cm4gMDsNCj4gLX0NCj4gLQ0KPiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgb3Y1
-NjQwX21vZGVfaW5mbyAqDQo+ICAgb3Y1NjQwX2ZpbmRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2RldiAq
-c2Vuc29yLCBlbnVtIG92NTY0MF9mcmFtZV9yYXRlIGZyLA0KPiAgIAkJIGludCB3aWR0aCwgaW50
-IGhlaWdodCwgYm9vbCBuZWFyZXN0KQ0KPiBAQCAtMTY1MiwxMCArMTY0OCw2IEBAIHN0YXRpYyBp
-bnQgb3Y1NjQwX3NldF9tb2RlKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQo+ICAgCWlmIChy
-ZXQgPCAwKQ0KPiAgIAkJcmV0dXJuIHJldDsNCj4gICANCj4gLQlyZXQgPSBvdjU2NDBfc2V0X3Rp
-bWluZ3Moc2Vuc29yLCBtb2RlKTsNCj4gLQlpZiAocmV0IDwgMCkNCj4gLQkJcmV0dXJuIHJldDsN
-Cj4gLQ0KPiAgIAlyZXQgPSBvdjU2NDBfc2V0X2Jpbm5pbmcoc2Vuc29yLCBkbl9tb2RlICE9IFND
-QUxJTkcpOw0KPiAgIAlpZiAocmV0IDwgMCkNCj4gICAJCXJldHVybiByZXQ7DQo+IA==
+Hi Nadav,
+
+On Tuesday, 7 August 2018 03:58:05 EEST Nadav Amit wrote:
+> at 4:58 PM, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> > On Monday, 4 June 2018 16:47:13 EEST Nadav Amit wrote:
+> >=20
+> >> The use of ALIGN() in uvc_alloc_entity() is incorrect, since the size =
+of
+> >> (entity->pads) is not a power of two. As a stop-gap, until a better
+> >> solution is adapted, use roundup() instead.
+> >>=20
+> >> Found by a static assertion. Compile-tested only.
+> >>=20
+> >> Fixes: 4ffc2d89f38a ("uvcvideo: Register subdevices for each entity")
+> >>=20
+> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> >> Cc: linux-media@vger.kernel.org
+> >> Cc: linux-kernel@vger.kernel.org
+> >>=20
+> >> Signed-off-by: Nadav Amit <namit@vmware.com>
+> >> ---
+> >> drivers/media/usb/uvc/uvc_driver.c | 2 +-
+> >> 1 file changed, 1 insertion(+), 1 deletion(-)
+> >>=20
+> >> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> >> b/drivers/media/usb/uvc/uvc_driver.c index 2469b49b2b30..6b989d41c034
+> >> 100644
+> >> --- a/drivers/media/usb/uvc/uvc_driver.c
+> >> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> >> @@ -909,7 +909,7 @@ static struct uvc_entity *uvc_alloc_entity(u16 typ=
+e,
+> >> u8 id,
+> >>  	unsigned int size;
+> >> 	unsigned int i;
+> >>=20
+> >> -	extra_size =3D ALIGN(extra_size, sizeof(*entity->pads));
+> >> +	extra_size =3D roundup(extra_size, sizeof(*entity->pads));
+> >> 	num_inputs =3D (type & UVC_TERM_OUTPUT) ? num_pads : num_pads - 1;
+> >> 	size =3D sizeof(*entity) + extra_size + sizeof(*entity->pads) * num_p=
+ads
+> >> 	     + num_inputs;
+> >=20
+> > The purpose of this alignment is to make sure that entity->pads will be=
+=20
+> > properly aligned. In theory the size of uvc_entity should be taken into=
+=20
+> > account too, but the structure contains pointers, so its size should
+> > already be properly aligned. This patch thus looks good to me. What
+> > made you say it's a stop-gap measure ?
+>=20
+>=20
+> Thanks. It=E2=80=99s been a while. Anyhow, I don=E2=80=99t know how =E2=
+=80=9Chot=E2=80=9D this code is, but
+> roundup uses a div operations, so if it is =E2=80=9Chot=E2=80=9D you may =
+want a different
+> way to align with lower overhead.
+>=20
+> I presume it is not=E2=80=A6
+
+You're right, it isn't. I'll include this patch in my next pull request for=
+=20
+v4.20.
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
