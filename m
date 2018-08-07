@@ -1,86 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:44654 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:56216 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726555AbeHGNr4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 09:47:56 -0400
+        with ESMTP id S1726902AbeHGOBg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 10:01:36 -0400
+Date: Tue, 7 Aug 2018 08:47:33 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Ian Arkver <ian.arkver.dev@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Jiri Kosina <trivial@kernel.org>
-Subject: [PATCH] media: vivid: shut up warnings due to a non-trivial logic
-Date: Tue,  7 Aug 2018 07:33:58 -0400
-Message-Id: <a399de231b0d762aaed8e37041c09ec6e521eb2c.1533641635.git.mchehab+samsung@kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH] media: imx: shut up a false positive warning
+Message-ID: <20180807084733.7839c883@coco.lan>
+In-Reply-To: <584aecdc-961a-6d64-147c-f37adaef3bcf@gmail.com>
+References: <132f3c7bb98673f713be9511de16b7622803df36.1533635936.git.mchehab+samsung@kernel.org>
+        <584aecdc-961a-6d64-147c-f37adaef3bcf@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vivid driver uses a complex logic to save one kalloc/kfree
-allocation. That non-trivial way of allocating data causes
-smatch to warn:
-	drivers/media/platform/vivid/vivid-core.c:869 vivid_create_instance() warn: potentially one past the end of array 'dev->query_dv_timings_qmenu[dev->query_dv_timings_size]'
-	drivers/media/platform/vivid/vivid-core.c:869 vivid_create_instance() warn: potentially one past the end of array 'dev->query_dv_timings_qmenu[dev->query_dv_timings_size]'
+Em Tue, 7 Aug 2018 12:00:46 +0100
+Ian Arkver <ian.arkver.dev@gmail.com> escreveu:
 
-I also needed to read the code several times in order to understand
-what it was desired there. It turns that the logic was right,
-although confusing to read.
+> Hi Mauro,
+> 
+> On 07/08/18 10:58, Mauro Carvalho Chehab wrote:
+> > With imx, gcc produces a false positive warning:
+> > 
+> > 	drivers/staging/media/imx/imx-media-csi.c: In function 'csi_idmac_setup_channel':
+> > 	drivers/staging/media/imx/imx-media-csi.c:457:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+> > 	   if (passthrough) {
+> > 	      ^
+> > 	drivers/staging/media/imx/imx-media-csi.c:464:2: note: here
+> > 	  default:
+> > 	  ^~~~~~~
+> > 
+> > That's because the regex it uses for fall trough is not
+> > good enough. So, rearrange the fall through comment in a way
+> > that gcc will recognize.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> > ---
+> >   drivers/staging/media/imx/imx-media-csi.c | 3 ++-
+> >   1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> > index 4647206f92ca..b7ffd231c64b 100644
+> > --- a/drivers/staging/media/imx/imx-media-csi.c
+> > +++ b/drivers/staging/media/imx/imx-media-csi.c
+> > @@ -460,7 +460,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+> >   			passthrough_cycles = incc->cycles;
+> >   			break;
+> >   		}
+> > -		/* fallthrough for non-passthrough RGB565 (CSI-2 bus) */
+> > +		/* for non-passthrough RGB565 (CSI-2 bus) */
+> > +		/* Falls through */  
+> 
+> Adding a '-' to the fallthrough seems to meet the regex requirements at 
+> level 3 of the warning. Eg...
+> 
+> /* fallthrough- for non-passthrough RGB565 (CSI-2 bus) */
+> 
+> Not sure if this is an improvement though.
 
-As it is doing allocations on a non-standard way, let's add some
-documentation while shutting up the false positive.
+Hmm... this also works:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/platform/vivid/vivid-core.c | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+/* fallthrough - non-passthrough RGB565 (CSI-2 bus) */
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 31db363602e5..4c235ea27987 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -647,6 +647,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 	unsigned node_type = node_types[inst];
- 	unsigned int allocator = allocators[inst];
- 	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
-+	char *strings_base;
- 	int ret;
- 	int i;
- 
-@@ -859,17 +860,33 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 	/* create a string array containing the names of all the preset timings */
- 	while (v4l2_dv_timings_presets[dev->query_dv_timings_size].bt.width)
- 		dev->query_dv_timings_size++;
-+
-+	/*
-+	 * In order to save one allocation and an extra free, let's optimize
-+	 * the allocation here: we'll use the first elements of the
-+	 * dev->query_dv_timings_qmenu to store the timing strings pointer,
-+	 * adding an extra space there to a store a string up to 32 bytes.
-+	 * So, instead of allocating an array with size of:
-+	 * 	dev->query_dv_timings_size * (sizeof(void *)
-+	 * it will allocate:
-+	 * 	dev->query_dv_timings_size * (sizeof(void *) +
-+	 *	dev->query_dv_timings_size * 32
-+	 */
- 	dev->query_dv_timings_qmenu = kmalloc_array(dev->query_dv_timings_size,
- 						    (sizeof(void *) + 32),
- 						    GFP_KERNEL);
- 	if (dev->query_dv_timings_qmenu == NULL)
- 		goto free_dev;
-+
-+	/* Sets strings_base to be after the space to store the pointers */
-+	strings_base = ((char *)&dev->query_dv_timings_qmenu)
-+		       + dev->query_dv_timings_size * sizeof(void *);
-+
- 	for (i = 0; i < dev->query_dv_timings_size; i++) {
- 		const struct v4l2_bt_timings *bt = &v4l2_dv_timings_presets[i].bt;
--		char *p = (char *)&dev->query_dv_timings_qmenu[dev->query_dv_timings_size];
-+		char *p = strings_base + i * 32;
- 		u32 htot, vtot;
- 
--		p += i * 32;
- 		dev->query_dv_timings_qmenu[i] = p;
- 
- 		htot = V4L2_DV_BT_FRAME_WIDTH(bt);
--- 
-2.17.1
+I would actually prefer a ':' instead of '-', but that works too,
+and it could be better than splitting fall through messages on
+two comments.
+
+Thanks,
+Mauro
