@@ -1,72 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:47740 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728187AbeHGCJQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Aug 2018 22:09:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nadav Amit <namit@vmware.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Received: from mail-by2nam03on0056.outbound.protection.outlook.com ([104.47.42.56]:60672
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S2387455AbeHGDJw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Aug 2018 23:09:52 -0400
+From: Nadav Amit <namit@vmware.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Subject: Re: [PATCH] usb: fix uvc_alloc_entity() allocation alignment
-Date: Tue, 07 Aug 2018 02:58:27 +0300
-Message-ID: <15813968.YrTFj7ZbY9@avalon>
-In-Reply-To: <20180604134713.101064-1-namit@vmware.com>
+Date: Tue, 7 Aug 2018 00:58:05 +0000
+Message-ID: <0B044CD5-B4F5-4614-B97A-E02E5C1E8A17@vmware.com>
 References: <20180604134713.101064-1-namit@vmware.com>
+ <15813968.YrTFj7ZbY9@avalon>
+In-Reply-To: <15813968.YrTFj7ZbY9@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <41B96F3C5F277940B428884598F503D6@namprd05.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nadav,
-
-Thank you for the patch.
-
-On Monday, 4 June 2018 16:47:13 EEST Nadav Amit wrote:
-> The use of ALIGN() in uvc_alloc_entity() is incorrect, since the size of
-> (entity->pads) is not a power of two. As a stop-gap, until a better
-> solution is adapted, use roundup() instead.
-> 
-> Found by a static assertion. Compile-tested only.
-> 
-> Fixes: 4ffc2d89f38a ("uvcvideo: Register subdevices for each entity")
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> 
-> Signed-off-by: Nadav Amit <namit@vmware.com>
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 2469b49b2b30..6b989d41c034
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -909,7 +909,7 @@ static struct uvc_entity *uvc_alloc_entity(u16 type, u8
-> id, unsigned int size;
->  	unsigned int i;
-> 
-> -	extra_size = ALIGN(extra_size, sizeof(*entity->pads));
-> +	extra_size = roundup(extra_size, sizeof(*entity->pads));
->  	num_inputs = (type & UVC_TERM_OUTPUT) ? num_pads : num_pads - 1;
->  	size = sizeof(*entity) + extra_size + sizeof(*entity->pads) * num_pads
->  	     + num_inputs;
-
-The purpose of this alignment is to make sure that entity->pads will be 
-properly aligned. In theory the size of uvc_entity should be taken into 
-account too, but the structure contains pointers, so its size should already 
-be properly aligned. This patch thus looks good to me. What made you say it's 
-a stop-gap measure ?
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
--- 
-Regards,
-
-Laurent Pinchart
+YXQgNDo1OCBQTSwgTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9h
+cmQuY29tPiB3cm90ZToNCg0KPiBIaSBOYWRhdiwNCj4gDQo+IFRoYW5rIHlvdSBmb3IgdGhlIHBh
+dGNoLg0KPiANCj4gT24gTW9uZGF5LCA0IEp1bmUgMjAxOCAxNjo0NzoxMyBFRVNUIE5hZGF2IEFt
+aXQgd3JvdGU6DQo+PiBUaGUgdXNlIG9mIEFMSUdOKCkgaW4gdXZjX2FsbG9jX2VudGl0eSgpIGlz
+IGluY29ycmVjdCwgc2luY2UgdGhlIHNpemUgb2YNCj4+IChlbnRpdHktPnBhZHMpIGlzIG5vdCBh
+IHBvd2VyIG9mIHR3by4gQXMgYSBzdG9wLWdhcCwgdW50aWwgYSBiZXR0ZXINCj4+IHNvbHV0aW9u
+IGlzIGFkYXB0ZWQsIHVzZSByb3VuZHVwKCkgaW5zdGVhZC4NCj4+IA0KPj4gRm91bmQgYnkgYSBz
+dGF0aWMgYXNzZXJ0aW9uLiBDb21waWxlLXRlc3RlZCBvbmx5Lg0KPj4gDQo+PiBGaXhlczogNGZm
+YzJkODlmMzhhICgidXZjdmlkZW86IFJlZ2lzdGVyIHN1YmRldmljZXMgZm9yIGVhY2ggZW50aXR5
+IikNCj4+IA0KPj4gQ2M6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNv
+bmJvYXJkLmNvbT4NCj4+IENjOiBNYXVybyBDYXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAa2VybmVs
+Lm9yZz4NCj4+IENjOiBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcNCj4+IENjOiBsaW51eC1r
+ZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+PiANCj4+IFNpZ25lZC1vZmYtYnk6IE5hZGF2IEFtaXQg
+PG5hbWl0QHZtd2FyZS5jb20+DQo+PiAtLS0NCj4+IGRyaXZlcnMvbWVkaWEvdXNiL3V2Yy91dmNf
+ZHJpdmVyLmMgfCAyICstDQo+PiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVs
+ZXRpb24oLSkNCj4+IA0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdXNiL3V2Yy91dmNf
+ZHJpdmVyLmMNCj4+IGIvZHJpdmVycy9tZWRpYS91c2IvdXZjL3V2Y19kcml2ZXIuYyBpbmRleCAy
+NDY5YjQ5YjJiMzAuLjZiOTg5ZDQxYzAzNA0KPj4gMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21l
+ZGlhL3VzYi91dmMvdXZjX2RyaXZlci5jDQo+PiArKysgYi9kcml2ZXJzL21lZGlhL3VzYi91dmMv
+dXZjX2RyaXZlci5jDQo+PiBAQCAtOTA5LDcgKzkwOSw3IEBAIHN0YXRpYyBzdHJ1Y3QgdXZjX2Vu
+dGl0eSAqdXZjX2FsbG9jX2VudGl0eSh1MTYgdHlwZSwgdTgNCj4+IGlkLCB1bnNpZ25lZCBpbnQg
+c2l6ZTsNCj4+IAl1bnNpZ25lZCBpbnQgaTsNCj4+IA0KPj4gLQlleHRyYV9zaXplID0gQUxJR04o
+ZXh0cmFfc2l6ZSwgc2l6ZW9mKCplbnRpdHktPnBhZHMpKTsNCj4+ICsJZXh0cmFfc2l6ZSA9IHJv
+dW5kdXAoZXh0cmFfc2l6ZSwgc2l6ZW9mKCplbnRpdHktPnBhZHMpKTsNCj4+IAludW1faW5wdXRz
+ID0gKHR5cGUgJiBVVkNfVEVSTV9PVVRQVVQpID8gbnVtX3BhZHMgOiBudW1fcGFkcyAtIDE7DQo+
+PiAJc2l6ZSA9IHNpemVvZigqZW50aXR5KSArIGV4dHJhX3NpemUgKyBzaXplb2YoKmVudGl0eS0+
+cGFkcykgKiBudW1fcGFkcw0KPj4gCSAgICAgKyBudW1faW5wdXRzOw0KPiANCj4gVGhlIHB1cnBv
+c2Ugb2YgdGhpcyBhbGlnbm1lbnQgaXMgdG8gbWFrZSBzdXJlIHRoYXQgZW50aXR5LT5wYWRzIHdp
+bGwgYmUgDQo+IHByb3Blcmx5IGFsaWduZWQuIEluIHRoZW9yeSB0aGUgc2l6ZSBvZiB1dmNfZW50
+aXR5IHNob3VsZCBiZSB0YWtlbiBpbnRvIA0KPiBhY2NvdW50IHRvbywgYnV0IHRoZSBzdHJ1Y3R1
+cmUgY29udGFpbnMgcG9pbnRlcnMsIHNvIGl0cyBzaXplIHNob3VsZCBhbHJlYWR5IA0KPiBiZSBw
+cm9wZXJseSBhbGlnbmVkLiBUaGlzIHBhdGNoIHRodXMgbG9va3MgZ29vZCB0byBtZS4gV2hhdCBt
+YWRlIHlvdSBzYXkgaXQncyANCj4gYSBzdG9wLWdhcCBtZWFzdXJlID8NCg0KVGhhbmtzLiBJdOKA
+mXMgYmVlbiBhIHdoaWxlLiBBbnlob3csIEkgZG9u4oCZdCBrbm93IGhvdyDigJxob3TigJ0gdGhp
+cyBjb2RlIGlzLCBidXQNCnJvdW5kdXAgdXNlcyBhIGRpdiBvcGVyYXRpb25zLCBzbyBpZiBpdCBp
+cyDigJxob3TigJ0geW91IG1heSB3YW50IGEgZGlmZmVyZW50DQp3YXkgdG8gYWxpZ24gd2l0aCBs
+b3dlciBvdmVyaGVhZC4NCg0KSSBwcmVzdW1lIGl0IGlzIG5vdOKApg0KDQpSZWdhcmRzLA0KTmFk
+YXY=
