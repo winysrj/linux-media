@@ -1,126 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:50900 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727360AbeHGJdG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Aug 2018 05:33:06 -0400
-Message-ID: <94e3eaf26ed7d6859d74abad0a0dbc94a3308a2e.camel@bootlin.com>
-Subject: Re: [PATCH v6 4/8] media: platform: Add Cedrus VPU decoder driver
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:32827 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2388730AbeHGJip (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Aug 2018 05:38:45 -0400
+Subject: Re: [PATCH 2/2] media: docs-rst: Document memory-to-memory video
+ encoder interface
 To: Tomasz Figa <tfiga@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
-         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        devel@driverdev.osuosl.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        thomas.petazzoni@bootlin.com, linux-sunxi@googlegroups.com,
-        Hugues FRUCHET <hugues.fruchet@st.com>,
-        ayaka <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
+        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        jtp.park@samsung.com,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
+        nicolas@ndufresne.ca,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Tue, 07 Aug 2018 09:19:54 +0200
-In-Reply-To: <CAAFQd5DgFDFupACthsz1iLpAeYRtUtEfzQC1E5XZQ6gPZAYi1Q@mail.gmail.com>
-References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
-         <20180725100256.22833-5-paul.kocialkowski@bootlin.com>
-         <b45a8a89-1313-7a08-206d-b93017724754@xs4all.nl>
-         <dba0f9496b393c76f355398018b14ae06b2b18c9.camel@bootlin.com>
-         <CAAFQd5DgFDFupACthsz1iLpAeYRtUtEfzQC1E5XZQ6gPZAYi1Q@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-ZkudRXiEFCPQyFqeie9D"
-Mime-Version: 1.0
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>
+References: <20180724140621.59624-1-tfiga@chromium.org>
+ <20180724140621.59624-3-tfiga@chromium.org>
+ <4168da98-fa01-ea2f-8162-385501e666be@xs4all.nl>
+ <CAAFQd5BqtKFeJniNaqahi9h_zKR+rPrWUiyx004Z=MWDj7q++w@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0863717d-debe-09c1-24b0-05eb8e202dc0@xs4all.nl>
+Date: Tue, 7 Aug 2018 09:25:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAAFQd5BqtKFeJniNaqahi9h_zKR+rPrWUiyx004Z=MWDj7q++w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/07/2018 08:54 AM, Tomasz Figa wrote:
+> Hi Hans,
+> 
+> On Wed, Jul 25, 2018 at 10:57 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>> On 24/07/18 16:06, Tomasz Figa wrote:
+>>> Due to complexity of the video encoding process, the V4L2 drivers of
+>>> stateful encoder hardware require specific sequences of V4L2 API calls
+>>> to be followed. These include capability enumeration, initialization,
+>>> encoding, encode parameters change, drain and reset.
+>>>
+>>> Specifics of the above have been discussed during Media Workshops at
+>>> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
+>>> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
+>>> originated at those events was later implemented by the drivers we already
+>>> have merged in mainline, such as s5p-mfc or coda.
+>>>
+>>> The only thing missing was the real specification included as a part of
+>>> Linux Media documentation. Fix it now and document the encoder part of
+>>> the Codec API.
+>>>
+>>> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+>>> ---
+>>>  Documentation/media/uapi/v4l/dev-encoder.rst | 550 +++++++++++++++++++
+>>>  Documentation/media/uapi/v4l/devices.rst     |   1 +
+>>>  Documentation/media/uapi/v4l/v4l2.rst        |   2 +
+>>>  3 files changed, 553 insertions(+)
+>>>  create mode 100644 Documentation/media/uapi/v4l/dev-encoder.rst
+>>>
+>>> diff --git a/Documentation/media/uapi/v4l/dev-encoder.rst b/Documentation/media/uapi/v4l/dev-encoder.rst
+>>> new file mode 100644
+>>> index 000000000000..28be1698e99c
+>>> --- /dev/null
+>>> +++ b/Documentation/media/uapi/v4l/dev-encoder.rst
+>>> @@ -0,0 +1,550 @@
+>>> +.. -*- coding: utf-8; mode: rst -*-
+>>> +
+>>> +.. _encoder:
+>>> +
+>>> +****************************************
+>>> +Memory-to-memory Video Encoder Interface
+>>> +****************************************
+>>> +
+>>> +Input data to a video encoder are raw video frames in display order
+>>> +to be encoded into the output bitstream. Output data are complete chunks of
+>>> +valid bitstream, including all metadata, headers, etc. The resulting stream
+>>> +must not need any further post-processing by the client.
+>>
+>> Due to the confusing use capture and output I wonder if it would be better to
+>> rephrase this as follows:
+>>
+>> "A video encoder takes raw video frames in display order and encodes them into
+>> a bitstream. It generates complete chunks of the bitstream, including
+>> all metadata, headers, etc. The resulting bitstream does not require any further
+>> post-processing by the client."
+>>
+>> Something similar should be done for the decoder documentation.
+>>
+> 
+> First, thanks a lot for review!
+> 
+> Sounds good to me, it indeed feels much easier to read, thanks.
+> 
+> [snip]
+>>> +
+>>> +IDR
+>>> +   a type of a keyframe in H.264-encoded stream, which clears the list of
+>>> +   earlier reference frames (DPBs)
+>>
+>> Same problem as with the previous patch: it doesn't say what IDR stands for.
+>> It also refers to DPBs, but DPB is not part of this glossary.
+> 
+> Ack.
+> 
+>>
+>> Perhaps the glossary of the encoder/decoder should be combined.
+>>
+> 
+> There are some terms that have slightly different nuance between
+> encoder and decoder, so while it would be possible to just include
+> both meanings (as it was in RFC), I wonder if it wouldn't make it more
+> difficult to read, also given that it would move it to a separate
+> page. No strong opinion, though.
 
---=-ZkudRXiEFCPQyFqeie9D
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I don't have a strong opinion either. Let's keep it as is, we can always
+change it later.
 
-Hi,
+>>> +   * Setting the source resolution will reset visible resolution to the
+>>> +     adjusted source resolution rounded up to the closest visible
+>>> +     resolution supported by the driver. Similarly, coded resolution will
+>>
+>> coded -> the coded
+> 
+> Ack.
+> 
+>>
+>>> +     be reset to source resolution rounded up to the closest coded
+>>
+>> reset -> set
+>> source -> the source
+> 
+> Ack.
+> 
+>>
+>>> +     resolution supported by the driver (typically a multiple of
+>>> +     macroblock size).
+>>
+>> The first sentence of this paragraph is very confusing. It needs a bit more work,
+>> I think.
+> 
+> Actually, this applies to all crop rectangles, not just visible
+> resolution. How about the following?
+> 
+>     Setting the source resolution will reset the crop rectangles to
+> default values
 
-On Mon, 2018-08-06 at 23:10 +0900, Tomasz Figa wrote:
-> Hi Paul,
->=20
-> On Mon, Aug 6, 2018 at 10:50 PM Paul Kocialkowski
-> <paul.kocialkowski@bootlin.com> wrote:
-> >=20
-> > Hi Hans and thanks for the review!
-> >=20
-> > On Sat, 2018-08-04 at 14:18 +0200, Hans Verkuil wrote:
-> > > Hi Paul,
-> > >=20
-> > > See below for my review comments. Mostly small fry, the main issue I =
-found is
-> > > that there is no support for VIDIOC_DECODER_CMD. That's the proper wa=
-y of
-> > > stopping a decoder. Don't rely on the deprecated allow_zero_bytesused=
- field.
-> >=20
-> > Mhh, it looks like this was kept around by negligence, but we do expect
-> > that streamoff stops the decoder, not a zero bytesused field.
-> >=20
-> > Is it still required to implement the V4L2_DEC_CMD_STOP
-> > VIDIOC_DECODER_CMD in that case? I read in the doc that this ioctl
-> > should be optional.
->=20
-> If I understand correctly that this decoder is stateless, there should
-> be no need for any special flush sequence, since a 1:1 relation
-> between OUTPUT and CAPTURE buffers is expected, which means that
-> userspace can just stop queuing new OUTPUT buffers and keep dequeuing
-> CAPTURE buffers until it matches all OUTPUT buffers queued before.
+default -> their default
 
-This is indeed a stateless decoder and I don't have any particular need
-for a particular stop command indeed, since flushing remaining buffers
-when stopping is already implemented at streamoff time.
+>     corresponding to the new resolution, as described further in this document.
 
-> By the way, I guess we will also need some documentation for the
-> stateless codec interface. Do you or Maxime (who sent the H264 part)
-> have any plans to work on it? We have some internal documents, which
-> should be convertible to rst using pandoc, but we might need some help
-> with updating to latest request API and further editing. Alexandre
-> (moved from Cc to To) is going to be looking into this.
+Does 'this document' refer to this encoder chapter, or the whole v4l2 spec? It
+might be better to provide an explicit link here.
 
-As far as I'm concerned, I am interested in contributing to this
-documentation although our priorities for the Allwinner VPU effort are
-currently focused on H265 support. This might mean that my contributions
-to this documentation will be made on a best-effort basis (as opposed to
-during the workday). Either way, if someone was to come up with an
-initial draft, I'd be happy to review it!
+>     Similarly, the coded resolution will be reset to match source
 
-Cheers,
+source -> the source
 
-Paul
+> resolution rounded up
+>     to the closest coded resolution supported by the driver (typically
+> a multiple of
 
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
+of -> of the
 
---=-ZkudRXiEFCPQyFqeie9D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+>     macroblock size).
 
------BEGIN PGP SIGNATURE-----
+Anyway, this is much better.
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltpSBoACgkQ3cLmz3+f
-v9FlHQgAif+K3qb4JnoZLXyOrb1AKLTQ2nfVxhYw2FmEAQ7QVRf0syn4vF/2nJpa
-+b5Qe70Mhw8oz7ZmoRaHrFSu3h4y43+rrsE4h0BfBE9in407DM0w95S+0khDSXKl
-Sxyo2uKVxAMoNqkT+/JW02KzkLJECajsigHzHuTPLQSNBY1GnngXLFMez70b4dKU
-fpSn51oGBW8UY0/t5lU7oagLUajMCP0kRlw3Cm7X+dShk4gD/jOMbQj4Iv/Ol7PY
-mBzX54Gq4v4OqM1K8gdT2oyO7U9gxXv/jk+QAvDt3hSClBxVag/glhNjLqmjWGfi
-/idCyK30fT7MO9GqdlvyQ9fiv56N2Q==
-=nmMH
------END PGP SIGNATURE-----
+>>> +Both queues operate independently, following standard behavior of V4L2
+>>> +buffer queues and memory-to-memory devices. In addition, the order of
+>>> +encoded frames dequeued from ``CAPTURE`` queue may differ from the order of
+>>> +queuing raw frames to ``OUTPUT`` queue, due to properties of selected coded
+>>> +format, e.g. frame reordering. The client must not assume any direct
+>>> +relationship between ``CAPTURE`` and ``OUTPUT`` buffers, other than
+>>> +reported by :c:type:`v4l2_buffer` ``timestamp``.
+>>
+>> Same question as for the decoder: are you sure about that?
+>>
+> 
+> I think it's the same answer here. That's why we have the timestamp
+> copy mechanism, right?
 
---=-ZkudRXiEFCPQyFqeie9D--
+See my reply from a few minutes ago. I'm not convinced copying timestamps
+makes sense for codecs.
+
+>>> +3. Once all ``OUTPUT`` buffers queued before ``V4L2_ENC_CMD_STOP`` are
+>>> +   processed:
+>>> +
+>>> +   * Once all decoded frames (if any) are ready to be dequeued on the
+>>> +     ``CAPTURE`` queue the driver must send a ``V4L2_EVENT_EOS``. The
+>>> +     driver must also set ``V4L2_BUF_FLAG_LAST`` in :c:type:`v4l2_buffer`
+>>> +     ``flags`` field on the buffer on the ``CAPTURE`` queue containing the
+>>> +     last frame (if any) produced as a result of processing the ``OUTPUT``
+>>> +     buffers queued before
+>>> +     ``V4L2_ENC_CMD_STOP``.
+>>
+>> Hmm, this is somewhat awkward phrasing. Can you take another look at this?
+>>
+> 
+> How about this?
+> 
+> 3. Once all ``OUTPUT`` buffers queued before ``V4L2_ENC_CMD_STOP`` are
+>    processed:
+> 
+>    * The driver returns all ``CAPTURE`` buffers corresponding to processed
+>      ``OUTPUT`` buffers, if any. The last buffer must have
+> ``V4L2_BUF_FLAG_LAST``
+>      set in its :c:type:`v4l2_buffer` ``flags`` field.
+> 
+>    * The driver sends a ``V4L2_EVENT_EOS`` event.
+
+I'd rephrase that last sentence to:
+
+* Once the last buffer is returned the driver sends a ``V4L2_EVENT_EOS`` event.
+
+>> One general comment:
+>>
+>> you often talk about 'the driver must', e.g.:
+>>
+>> "The driver must process and encode as normal all ``OUTPUT`` buffers
+>> queued by the client before the :c:func:`VIDIOC_ENCODER_CMD` was issued."
+>>
+>> But this is not a driver specification, it is an API specification.
+>>
+>> I think it would be better to phrase it like this:
+>>
+>> "All ``OUTPUT`` buffers queued by the client before the :c:func:`VIDIOC_ENCODER_CMD`
+>> was issued will be processed and encoded as normal."
+>>
+>> (or perhaps even 'shall' if you want to be really formal)
+>>
+>> End-users do not really care what drivers do, they want to know what the API does,
+>> and that implies rules for drivers.
+> 
+> While I see the point, I'm not fully convinced that it makes the
+> documentation easier to read. We defined "client" for the purpose of
+> not using the passive form too much, so possibly we could also define
+> "driver" in the glossary. Maybe it's just me, but I find that
+> referring directly to both sides of the API and using the active form
+> is much easier to read.
+> 
+> Possibly just replacing "driver" with "encoder" would ease your concern?
+
+Actually, yes. I think that would work quite well.
+
+Also, the phrase "the driver must" can be replaced by "the encoder will"
+which describes the behavior of the encoder, which in turn defines what
+the underlying driver must do.
+
+Regards,
+
+	Hans
