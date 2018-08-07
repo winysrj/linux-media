@@ -1,145 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:43916 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732805AbeHGJuk (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:38783 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726951AbeHGLHD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Aug 2018 05:50:40 -0400
-Subject: Re: [PATCH 1/2] media: docs-rst: Document memory-to-memory video
- decoder interface
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
-        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        jtp.park@samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
-        <tiffany.lin@mediatek.com>,
-        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
-        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
-        nicolas@ndufresne.ca,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org,
-        Ezequiel Garcia <ezequiel@collabora.com>
-References: <20180724140621.59624-1-tfiga@chromium.org>
- <20180724140621.59624-2-tfiga@chromium.org>
- <37a8faea-a226-2d52-36d4-f9df194623cc@xs4all.nl>
- <CAAFQd5BgGEBmd8gNGc-qqtUtLo=Mh8U+TVTWRsKYMv1LmeBQMA@mail.gmail.com>
- <a6af3dc9-1d09-a414-ce31-bc1b3e69894f@xs4all.nl>
- <CAAFQd5AnC+hWy4QUGE-s+qgRvvgGC7rMhH6x8koTfYJzTLw8Cg@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f0aa7c84-08e3-9b04-8d1b-95f741d6817b@xs4all.nl>
-Date: Tue, 7 Aug 2018 09:37:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5AnC+hWy4QUGE-s+qgRvvgGC7rMhH6x8koTfYJzTLw8Cg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+        Tue, 7 Aug 2018 07:07:03 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: jacopo mondi <jacopo@jmondi.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "maxime.ripard@bootlin.com" <maxime.ripard@bootlin.com>,
+        "sam@elite-embedded.com" <sam@elite-embedded.com>,
+        "jagan@amarulasolutions.com" <jagan@amarulasolutions.com>,
+        "festevam@gmail.com" <festevam@gmail.com>,
+        "pza@pengutronix.de" <pza@pengutronix.de>,
+        "steve_longerbeam@mentor.com" <steve_longerbeam@mentor.com>,
+        "loic.poulain@linaro.org" <loic.poulain@linaro.org>,
+        "daniel@zonque.org" <daniel@zonque.org>,
+        "Sakari Ailus" <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] media: ov5640: Fix auto-exposure disabling
+Date: Tue, 7 Aug 2018 08:53:23 +0000
+Message-ID: <d7dff287-d02c-38cb-3a73-d0c578cb2758@st.com>
+References: <1531912743-24767-1-git-send-email-jacopo@jmondi.org>
+ <1531912743-24767-3-git-send-email-jacopo@jmondi.org>
+ <20180718130407.GU8180@w540>
+In-Reply-To: <20180718130407.GU8180@w540>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <16F7CF0EC2164141B8D797BC86D4F54F@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/07/2018 09:05 AM, Tomasz Figa wrote:
-> On Thu, Jul 26, 2018 at 7:57 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>> What if you set the format to 0x0 but the stream does not have meta data with
->>>> the resolution? How does userspace know if 0x0 is allowed or not? If this is
->>>> specific to the chosen coded pixel format, should be add a new flag for those
->>>> formats indicating that the coded data contains resolution information?
->>>
->>> Yes, this would definitely be on a per-format basis. Not sure what you
->>> mean by a flag, though? E.g. if the format is set to H264, then it's
->>> bound to include resolution information. If the format doesn't include
->>> it, then userspace is already aware of this fact, because it needs to
->>> get this from some other source (e.g. container).
->>>
->>>>
->>>> That way userspace knows if 0x0 can be used, and the driver can reject 0x0
->>>> for formats that do not support it.
->>>
->>> As above, but I might be misunderstanding your suggestion.
->>
->> So my question is: is this tied to the pixel format, or should we make it
->> explicit with a flag like V4L2_FMT_FLAG_CAN_DECODE_WXH.
->>
->> The advantage of a flag is that you don't need a switch on the format to
->> know whether or not 0x0 is allowed. And the flag can just be set in
->> v4l2-ioctls.c.
-> 
-> As far as my understanding goes, what data is included in the stream
-> is definitely specified by format. For example, a H264 elementary
-> stream will always include those data as a part of SPS.
-> 
-> However, having such flag internally, not exposed to userspace, could
-> indeed be useful to avoid all drivers have such switch. That wouldn't
-> belong to this documentation, though, since it would be just kernel
-> API.
-
-Why would you keep this internally only?
-
->>>> I wonder if we should make these min buffer controls required. It might be easier
->>>> that way.
->>>
->>> Agreed. Although userspace is still free to ignore it, because REQBUFS
->>> would do the right thing anyway.
->>
->> It's never been entirely clear to me what the purpose of those min buffers controls
->> is. REQBUFS ensures that the number of buffers is at least the minimum needed to
->> make the HW work. So why would you need these controls? It only makes sense if they
->> return something different from REQBUFS.
->>
-> 
-> The purpose of those controls is to let the client allocate a number
-> of buffers bigger than minimum, without the need to allocate the
-> minimum number of buffers first (to just learn the number), free them
-> and then allocate a bigger number again.
-
-I don't feel this is particularly useful. One problem with the minimum number
-of buffers as used in the kernel is that it is often the minimum number of
-buffers required to make the hardware work, but it may not be optimal. E.g.
-quite a few capture drivers set the minimum to 2, which is enough for the
-hardware, but it will likely lead to dropped frames. You really need 3
-(one is being DMAed, one is queued and linked into the DMA engine and one is
-being processed by userspace).
-
-I would actually prefer this to be the recommended minimum number of buffers,
-which is >= the minimum REQBUFS uses.
-
-I.e., if you use this number and you have no special requirements, then you'll
-get good performance.
-
-> 
->>>
->>>>
->>>>> +7.  If all the following conditions are met, the client may resume the
->>>>> +    decoding instantly, by using :c:func:`VIDIOC_DECODER_CMD` with
->>>>> +    ``V4L2_DEC_CMD_START`` command, as in case of resuming after the drain
->>>>> +    sequence:
->>>>> +
->>>>> +    * ``sizeimage`` of new format is less than or equal to the size of
->>>>> +      currently allocated buffers,
->>>>> +
->>>>> +    * the number of buffers currently allocated is greater than or equal to
->>>>> +      the minimum number of buffers acquired in step 6.
->>>>
->>>> You might want to mention that if there are insufficient buffers, then
->>>> VIDIOC_CREATE_BUFS can be used to add more buffers.
->>>>
->>>
->>> This might be a bit tricky, since at least s5p-mfc and coda can only
->>> work on a fixed buffer set and one would need to fully reinitialize
->>> the decoding to add one more buffer, which would effectively be the
->>> full resolution change sequence, as below, just with REQBUFS(0),
->>> REQBUFS(N) replaced with CREATE_BUFS.
->>
->> What happens today in those drivers if you try to call CREATE_BUFS?
-> 
-> s5p-mfc doesn't set the .vidioc_create_bufs pointer in its
-> v4l2_ioctl_ops, so I suppose that would be -ENOTTY?
-
-Correct for s5p-mfc.
-
-Regards,
-
-	Hans
+SGkgSmFjb3BvLA0KDQpJbiBzZXJpZSAiW1BBVENIIDAvNV0gRml4IE9WNTY0MCBleHBvc3VyZSAm
+IGdhaW4iDQpodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2Vy
+bmVsLm9yZy9tc2cxMzMyNjkuaHRtbA0KSSd2ZSB0cmllZCB0byBjb2xsZWN0IGZpeGVzIGFyb3Vu
+ZCBleHBvc3VyZS9nYWluLCBub3Qgb25seSB0aGUgZXhwb3N1cmUgDQpyZWdyZXNzaW9uIGFuZCBJ
+IHdvdWxkIHByZWZlciB0byBrZWVwIGl0IGNvbnNpc3RlbnQgd2l0aCB0aGUgYXNzb2NpYXRlZCAN
+CnByb2NlZHVyZSB0ZXN0Lg0KTW9yZW92ZXIgSSBkaXNsaWtlIHRoZSBpbnRlcm5hbCB1c2Ugb2Yg
+Y29udHJvbCBmcmFtZXdvcmsgZnVuY3Rpb25zIHRvIA0KZGlzYWJsZS9lbmFibGUgZXhwb3N1cmUv
+Z2Fpbiwgb24gbXkgb3BpbmlvbiB0aGlzIGhhcyB0byBiZSBrZXB0IHNpbXBsZXINCmJ5IGp1c3Qg
+ZGlzYWJsaW5nL2VuYWJsaW5nIHRoZSByaWdodCByZWdpc3RlcnMuDQpXb3VsZCBpdCBiZSBwb3Nz
+aWJsZSB0aGF0IHlvdSB0ZXN0IG15IDUgcGF0Y2hlcyBzZXJpZSBvbiB5b3VyIHNpZGUgPw0KDQpC
+ZXN0IHJlZ2FyZHMsDQpIdWd1ZXMuDQoNCk9uIDA3LzE4LzIwMTggMDM6MDQgUE0sIGphY29wbyBt
+b25kaSB3cm90ZToNCj4gSGkgYWdhaW4sDQo+IA0KPiBPbiBXZWQsIEp1bCAxOCwgMjAxOCBhdCAw
+MToxOTowM1BNICswMjAwLCBKYWNvcG8gTW9uZGkgd3JvdGU6DQo+PiBBcyBvZjoNCj4+IGNvbW1p
+dCBiZjRhNGI1MThjMjAgKCJtZWRpYTogb3Y1NjQwOiBEb24ndCBmb3JjZSB0aGUgYXV0byBleHBv
+c3VyZSBzdGF0ZSBhdA0KPj4gc3RhcnQgdGltZSIpIGF1dG8tZXhwb3N1cmUgZ290IGRpc2FibGVk
+IGJlZm9yZSBwcm9ncmFtbWluZyBuZXcgY2FwdHVyZSBtb2RlcyB0bw0KPj4gdGhlIHNlbnNvci4g
+VW5mb3J0dW5hdGVseSB0aGUgZnVuY3Rpb24gdXNlZCB0byBkbyB0aGF0IChvdjU2NDBfc2V0X2V4
+cG9zdXJlKCkpDQo+PiBkb2VzIG5vdCBlbmFibGUvZGlzYWJsZSBhdXRvLWV4cG9zdXJlIGVuZ2lu
+ZSB0aHJvdWdoIHJlZ2lzdGVyIDB4MzUwM1swXSBiaXQsIGJ1dA0KPj4gcHJvZ3JhbXMgcmVnaXN0
+ZXJzIFsweDM1MDAgLSAweDM1MDJdIHdoaWNoIHJlcHJlc2VudCB0aGUgZGVzaXJlZCBleHBvc3Vy
+ZSB0aW1lDQo+PiB3aGVuIHJ1bm5pbmcgd2l0aCBtYW51YWwgZXhwb3N1cmUuIEFzIGEgcmVzdWx0
+LCBhdXRvLWV4cG9zdXJlIHdhcyBub3QgYWN0dWFsbHkNCj4+IGRpc2FibGVkIGF0IGFsbC4NCj4+
+DQo+PiBUbyBhY3R1YWxseSBkaXNhYmxlIGF1dG8tZXhwb3N1cmUsIGdvIHRocm91Z2ggdGhlIGNv
+bnRyb2wgZnJhbWV3b3JrIGluc3RlYWQgb2YNCj4+IGNhbGxpbmcgb3Y1NjQwX3NldF9leHBvc3Vy
+ZSgpIGZ1bmN0aW9uIGRpcmVjdGx5Lg0KPj4NCj4+IEFsc28sIGFzIGF1dG8tZ2FpbiBhbmQgYXV0
+by1leHBvc3VyZSBhcmUgZGlzYWJsZWQgdW4tY29uZGl0aW9uYWxseSBidXQgb25seQ0KPj4gcmVz
+dG9yZWQgdG8gdGhlaXIgcHJldmlvdXMgdmFsdWVzIGluIG92NTY0MF9zZXRfbW9kZV9kaXJlY3Qo
+KSBmdW5jdGlvbiwgbW92ZQ0KPj4gY29udHJvbHMgcmVzdG9yaW5nIHNvIHRoYXQgdGhlaXIgdmFs
+dWUgaXMgcmUtcHJvZ3JhbW1lZCBvcHBvcnR1bmVseSBhZnRlcg0KPj4gZWl0aGVyIG92NTY0MF9z
+ZXRfbW9kZV9kaXJlY3QoKSBvciBvdjU2NDBfc2V0X21vZGVfZXhwb3N1cmVfY2FsYygpIGhhdmUg
+YmVlbg0KPj4gZXhlY3V0ZWQuDQo+Pg0KPj4gRml4ZXM6IGJmNGE0YjUxOGMyMCAoIm1lZGlhOiBv
+djU2NDA6IERvbid0IGZvcmNlIHRoZSBhdXRvIGV4cG9zdXJlIHN0YXRlIGF0IHN0YXJ0IHRpbWUi
+KQ0KPj4gU2lnbmVkLW9mZi1ieTogSmFjb3BvIE1vbmRpIDxqYWNvcG9Aam1vbmRpLm9yZz4NCj4+
+DQo+PiAtLS0NCj4+IElzIGl0IHdvcnRoIGRvaW5nIHdpdGggYXV0by1nYWluIHdoYXQgd2UncmUg
+ZG9pbmcgd2l0aCBhdXRvLWV4cG9zdXJlPyBDYWNoZSB0aGUNCj4+IHZhbHVlIGFuZCB0aGVuIHJl
+LXByb2dyYW0gaXQgaW5zdGVhZCBvZiB1bmNvbmRpdGlvbmFsbHkgZGlzYWJsZS9lbmFibGUgaXQ/
+DQo+IA0KPiBJIGhhdmUgbWlzc2VkIHRoaXMgcGF0Y2ggZnJvbSBIdWd1ZXMgdGhhdCBhZGRyZXNz
+IGFsbW9zdCB0aGUgc2FtZQ0KPiBpc3N1ZQ0KPiBodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29t
+L2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cxMzMyNjQuaHRtbA0KPiANCj4gSSBmZWVs
+IHRoaXMgbmV3IG9uZSBpcyBzaW1wbGVyLCBhbmQgdW5sZXNzIHdlIHdhbnQgdG8gYXZvaWQgZ29p
+bmcNCj4gdGhyb3VnaCB0aGUgY29udHJvbCBmcmFtZXdvcmssIGl0IGlzIG5vdCB3b3J0aCBhZGRp
+bmcgbmV3IGZ1bmN0aW9ucyB0bw0KPiBoYW5kbGUgYXV0by1leHBvc3VyZSBhcyBIdWd1ZXMnIHBh
+dGNoIGlzIGRvaW5nLg0KPiANCj4gSHVndWVzLCBkbyB5b3UgaGF2ZSBjb21tZW50cz8gRmVlbCBm
+cmVlIHRvIGFkZCB5b3VyIHNvYiBvciByYiB0YWdzIGlmDQo+IHlvdSBsaWtlIHRvLg0KPiANCj4g
+VGhhbmtzDQo+ICAgICBqDQo+IA0KPj4NCj4+IFRoYW5rcw0KPj4gICAgag0KPj4gLS0tDQo+PiAt
+LS0NCj4+ICAgZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgfCAyOSArKysrKysrKysrKysrLS0t
+LS0tLS0tLS0tLS0tLQ0KPj4gICAxIGZpbGUgY2hhbmdlZCwgMTMgaW5zZXJ0aW9ucygrKSwgMTYg
+ZGVsZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0
+MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IGluZGV4IDEyYjM0OTYuLmJjNzVj
+YjcgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4gKysrIGIv
+ZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IEBAIC0xNTg4LDI1ICsxNTg4LDEzIEBAIHN0
+YXRpYyBpbnQgb3Y1NjQwX3NldF9tb2RlX2V4cG9zdXJlX2NhbGMoc3RydWN0IG92NTY0MF9kZXYg
+KnNlbnNvciwNCj4+ICAgICogY2hhbmdlIG1vZGUgZGlyZWN0bHkNCj4+ICAgICovDQo+PiAgIHN0
+YXRpYyBpbnQgb3Y1NjQwX3NldF9tb2RlX2RpcmVjdChzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29y
+LA0KPj4gLQkJCQkgIGNvbnN0IHN0cnVjdCBvdjU2NDBfbW9kZV9pbmZvICptb2RlLA0KPj4gLQkJ
+CQkgIHMzMiBleHBvc3VyZSkNCj4+ICsJCQkJICBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5m
+byAqbW9kZSkNCj4+ICAgew0KPj4gLQlpbnQgcmV0Ow0KPj4gLQ0KPj4gICAJaWYgKCFtb2RlLT5y
+ZWdfZGF0YSkNCj4+ICAgCQlyZXR1cm4gLUVJTlZBTDsNCj4+DQo+PiAgIAkvKiBXcml0ZSBjYXB0
+dXJlIHNldHRpbmcgKi8NCj4+IC0JcmV0ID0gb3Y1NjQwX2xvYWRfcmVncyhzZW5zb3IsIG1vZGUp
+Ow0KPj4gLQlpZiAocmV0IDwgMCkNCj4+IC0JCXJldHVybiByZXQ7DQo+PiAtDQo+PiAtCS8qIHR1
+cm4gYXV0byBnYWluL2V4cG9zdXJlIGJhY2sgb24gZm9yIGRpcmVjdCBtb2RlICovDQo+PiAtCXJl
+dCA9IF9fdjRsMl9jdHJsX3NfY3RybChzZW5zb3ItPmN0cmxzLmF1dG9fZ2FpbiwgMSk7DQo+PiAt
+CWlmIChyZXQpDQo+PiAtCQlyZXR1cm4gcmV0Ow0KPj4gLQ0KPj4gLQlyZXR1cm4gX192NGwyX2N0
+cmxfc19jdHJsKHNlbnNvci0+Y3RybHMuYXV0b19leHAsIGV4cG9zdXJlKTsNCj4+ICsJcmV0dXJu
+ICBvdjU2NDBfbG9hZF9yZWdzKHNlbnNvciwgbW9kZSk7DQo+PiAgIH0NCj4+DQo+PiAgIHN0YXRp
+YyBpbnQgb3Y1NjQwX3NldF9tb2RlKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQo+PiBAQCAt
+MTYyNiw3ICsxNjE0LDcgQEAgc3RhdGljIGludCBvdjU2NDBfc2V0X21vZGUoc3RydWN0IG92NTY0
+MF9kZXYgKnNlbnNvciwNCj4+ICAgCQlyZXR1cm4gcmV0Ow0KPj4NCj4+ICAgCWV4cG9zdXJlID0g
+c2Vuc29yLT5jdHJscy5hdXRvX2V4cC0+dmFsOw0KPj4gLQlyZXQgPSBvdjU2NDBfc2V0X2V4cG9z
+dXJlKHNlbnNvciwgVjRMMl9FWFBPU1VSRV9NQU5VQUwpOw0KPj4gKwlyZXQgPSBfX3Y0bDJfY3Ry
+bF9zX2N0cmwoc2Vuc29yLT5jdHJscy5hdXRvX2V4cCwgVjRMMl9FWFBPU1VSRV9NQU5VQUwpOw0K
+Pj4gICAJaWYgKHJldCkNCj4+ICAgCQlyZXR1cm4gcmV0Ow0KPj4NCj4+IEBAIC0xNjQyLDEyICsx
+NjMwLDIxIEBAIHN0YXRpYyBpbnQgb3Y1NjQwX3NldF9tb2RlKHN0cnVjdCBvdjU2NDBfZGV2ICpz
+ZW5zb3IsDQo+PiAgIAkJICogY2hhbmdlIGluc2lkZSBzdWJzYW1wbGluZyBvciBzY2FsaW5nDQo+
+PiAgIAkJICogZG93bmxvYWQgZmlybXdhcmUgZGlyZWN0bHkNCj4+ICAgCQkgKi8NCj4+IC0JCXJl
+dCA9IG92NTY0MF9zZXRfbW9kZV9kaXJlY3Qoc2Vuc29yLCBtb2RlLCBleHBvc3VyZSk7DQo+PiAr
+CQlyZXQgPSBvdjU2NDBfc2V0X21vZGVfZGlyZWN0KHNlbnNvciwgbW9kZSk7DQo+PiAgIAl9DQo+
+Pg0KPj4gICAJaWYgKHJldCA8IDApDQo+PiAgIAkJcmV0dXJuIHJldDsNCj4+DQo+PiArCS8qIFJl
+c3RvcmUgYXV0by1nYWluIGFuZCBhdXRvLWV4cG9zdXJlIGFmdGVyIG1vZGUgaGFzIGNoYW5nZWQu
+ICovDQo+PiArCXJldCA9IF9fdjRsMl9jdHJsX3NfY3RybChzZW5zb3ItPmN0cmxzLmF1dG9fZ2Fp
+biwgMSk7DQo+PiArCWlmIChyZXQpDQo+PiArCQlyZXR1cm4gcmV0Ow0KPj4gKw0KPj4gKwlyZXQg
+PSBfX3Y0bDJfY3RybF9zX2N0cmwoc2Vuc29yLT5jdHJscy5hdXRvX2V4cCwgZXhwb3N1cmUpDQo+
+PiArCWlmIChyZXQpDQo+PiArCQlyZXR1cm4gcmV0Ow0KPj4gKw0KPj4gICAJcmV0ID0gb3Y1NjQw
+X3NldF9iaW5uaW5nKHNlbnNvciwgZG5fbW9kZSAhPSBTQ0FMSU5HKTsNCj4+ICAgCWlmIChyZXQg
+PCAwKQ0KPj4gICAJCXJldHVybiByZXQ7DQo+PiAtLQ0KPj4gMi43LjQNCj4+
