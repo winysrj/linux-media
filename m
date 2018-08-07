@@ -1,64 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53790 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:44654 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388764AbeHGNVQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 09:21:16 -0400
+        with ESMTP id S1726555AbeHGNr4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 09:47:56 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] media: rtl28xxu: be sure that it won't go past the array size
-Date: Tue,  7 Aug 2018 07:07:24 -0400
-Message-Id: <53cc785104d19c86defea0a9473f07c392390453.1533640042.git.mchehab+samsung@kernel.org>
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Jiri Kosina <trivial@kernel.org>
+Subject: [PATCH] media: vivid: shut up warnings due to a non-trivial logic
+Date: Tue,  7 Aug 2018 07:33:58 -0400
+Message-Id: <a399de231b0d762aaed8e37041c09ec6e521eb2c.1533641635.git.mchehab+samsung@kernel.org>
 To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-smatch warns that the RC query code could go past the array size:
+The vivid driver uses a complex logic to save one kalloc/kfree
+allocation. That non-trivial way of allocating data causes
+smatch to warn:
+	drivers/media/platform/vivid/vivid-core.c:869 vivid_create_instance() warn: potentially one past the end of array 'dev->query_dv_timings_qmenu[dev->query_dv_timings_size]'
+	drivers/media/platform/vivid/vivid-core.c:869 vivid_create_instance() warn: potentially one past the end of array 'dev->query_dv_timings_qmenu[dev->query_dv_timings_size]'
 
-	drivers/media/usb/dvb-usb-v2/rtl28xxu.c:1757 rtl2832u_rc_query() error: buffer overflow 'buf' 128 <= 130
-	drivers/media/usb/dvb-usb-v2/rtl28xxu.c:1758 rtl2832u_rc_query() error: buffer overflow 'buf' 128 <= 130
+I also needed to read the code several times in order to understand
+what it was desired there. It turns that the logic was right,
+although confusing to read.
 
-The driver logic gets the length of the IR RX buffer with:
+As it is doing allocations on a non-standard way, let's add some
+documentation while shutting up the false positive.
 
-        ret = rtl28xxu_rd_reg(d, IR_RX_BC, &buf[0]);
-	...
-        len = buf[0];
-
-In thesis, this could range between 0 and 255 [1].
-
-While this should never happen in practice, due to hardware limits,
-smatch is right when it complains about that, as there's nothing at
-the logic that would prevent it. So, if for whatever reason, buf[0]
-gets filled by rtl28xx read functions with a value bigger than 128,
-it will go past the array.
-
-So, add an explicit check.
-
-[1] I've no idea why smatch thinks that the maximum value is 130.
-I double-checked the code several times. Was unable to find any
-reason for assuming 130. Perhaps smatch is not properly parsing
-u8 here?
-
-Fixes: b5cbaa43a676 ("[media] rtl28xx: initial support for rtl2832u")
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/vivid/vivid-core.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c76e78f9638a..a970224a94bd 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1732,7 +1732,7 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
- 		goto exit;
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 31db363602e5..4c235ea27987 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -647,6 +647,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 	unsigned node_type = node_types[inst];
+ 	unsigned int allocator = allocators[inst];
+ 	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
++	char *strings_base;
+ 	int ret;
+ 	int i;
  
- 	ret = rtl28xxu_rd_reg(d, IR_RX_BC, &buf[0]);
--	if (ret)
-+	if (ret || buf[0] > sizeof(buf))
- 		goto err;
+@@ -859,17 +860,33 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 	/* create a string array containing the names of all the preset timings */
+ 	while (v4l2_dv_timings_presets[dev->query_dv_timings_size].bt.width)
+ 		dev->query_dv_timings_size++;
++
++	/*
++	 * In order to save one allocation and an extra free, let's optimize
++	 * the allocation here: we'll use the first elements of the
++	 * dev->query_dv_timings_qmenu to store the timing strings pointer,
++	 * adding an extra space there to a store a string up to 32 bytes.
++	 * So, instead of allocating an array with size of:
++	 * 	dev->query_dv_timings_size * (sizeof(void *)
++	 * it will allocate:
++	 * 	dev->query_dv_timings_size * (sizeof(void *) +
++	 *	dev->query_dv_timings_size * 32
++	 */
+ 	dev->query_dv_timings_qmenu = kmalloc_array(dev->query_dv_timings_size,
+ 						    (sizeof(void *) + 32),
+ 						    GFP_KERNEL);
+ 	if (dev->query_dv_timings_qmenu == NULL)
+ 		goto free_dev;
++
++	/* Sets strings_base to be after the space to store the pointers */
++	strings_base = ((char *)&dev->query_dv_timings_qmenu)
++		       + dev->query_dv_timings_size * sizeof(void *);
++
+ 	for (i = 0; i < dev->query_dv_timings_size; i++) {
+ 		const struct v4l2_bt_timings *bt = &v4l2_dv_timings_presets[i].bt;
+-		char *p = (char *)&dev->query_dv_timings_qmenu[dev->query_dv_timings_size];
++		char *p = strings_base + i * 32;
+ 		u32 htot, vtot;
  
- 	len = buf[0];
+-		p += i * 32;
+ 		dev->query_dv_timings_qmenu[i] = p;
+ 
+ 		htot = V4L2_DV_BT_FRAME_WIDTH(bt);
 -- 
 2.17.1
