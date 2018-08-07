@@ -1,73 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:53326 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726951AbeHGMuo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 08:50:44 -0400
-Reply-To: kieran.bingham+renesas@ideasonboard.com
-Subject: Re: [PATCH] media: vsp1_dl: add a description for cmdpool field
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:37931 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726419AbeHGNOg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 09:14:36 -0400
+Received: by mail-wr1-f65.google.com with SMTP id v14-v6so15350229wro.5
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 04:00:49 -0700 (PDT)
+Subject: Re: [PATCH] media: imx: shut up a false positive warning
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org
-References: <5cc2f8f81f4c7d1ae693d87980353c725f9a11d3.1533637111.git.mchehab+samsung@kernel.org>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <8f8df6a2-eb66-dfa1-3c52-e85cac81966c@ideasonboard.com>
-Date: Tue, 7 Aug 2018 11:36:59 +0100
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+References: <132f3c7bb98673f713be9511de16b7622803df36.1533635936.git.mchehab+samsung@kernel.org>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <584aecdc-961a-6d64-147c-f37adaef3bcf@gmail.com>
+Date: Tue, 7 Aug 2018 12:00:46 +0100
 MIME-Version: 1.0
-In-Reply-To: <5cc2f8f81f4c7d1ae693d87980353c725f9a11d3.1533637111.git.mchehab+samsung@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+In-Reply-To: <132f3c7bb98673f713be9511de16b7622803df36.1533635936.git.mchehab+samsung@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US-large
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Mauro,
 
-Thank you for the patch,
-
-On 07/08/18 11:18, Mauro Carvalho Chehab wrote:
-> Gets rid of this build warning:
-> 	drivers/media/platform/vsp1/vsp1_dl.c:229: warning: Function parameter or member 'cmdpool' not described in 'vsp1_dl_manager'
+On 07/08/18 10:58, Mauro Carvalho Chehab wrote:
+> With imx, gcc produces a false positive warning:
 > 
-> Fixes: f3b98e3c4d2e ("media: vsp1: Provide support for extended command pools")
+> 	drivers/staging/media/imx/imx-media-csi.c: In function 'csi_idmac_setup_channel':
+> 	drivers/staging/media/imx/imx-media-csi.c:457:6: warning: this statement may fall through [-Wimplicit-fallthrough=]
+> 	   if (passthrough) {
+> 	      ^
+> 	drivers/staging/media/imx/imx-media-csi.c:464:2: note: here
+> 	  default:
+> 	  ^~~~~~~
+> 
+> That's because the regex it uses for fall trough is not
+> good enough. So, rearrange the fall through comment in a way
+> that gcc will recognize.
+> 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 > ---
->  drivers/media/platform/vsp1/vsp1_dl.c | 1 +
->  1 file changed, 1 insertion(+)
+>   drivers/staging/media/imx/imx-media-csi.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-> index 9255b5ee2cb8..af60d95ec4f8 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -211,6 +211,7 @@ struct vsp1_dl_list {
->   * @queued: list queued to the hardware (written to the DL registers)
->   * @pending: list waiting to be queued to the hardware
->   * @pool: body pool for the display list bodies
-> + * @cmdpool: Display List commands pool
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index 4647206f92ca..b7ffd231c64b 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -460,7 +460,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+>   			passthrough_cycles = incc->cycles;
+>   			break;
+>   		}
+> -		/* fallthrough for non-passthrough RGB565 (CSI-2 bus) */
+> +		/* for non-passthrough RGB565 (CSI-2 bus) */
+> +		/* Falls through */
 
-Unfortunately this isn't quite right...
+Adding a '-' to the fallthrough seems to meet the regex requirements at 
+level 3 of the warning. Eg...
 
+/* fallthrough- for non-passthrough RGB565 (CSI-2 bus) */
 
->   * @autofld_cmds: command pool to support auto-fld interlaced mode
+Not sure if this is an improvement though.
 
-This ^ was the original documentation line, but it got missed in a
-rename. Sorry about that.
+Regards,
+Ian
 
-The pool is now more 'generic' so the line probably should mention the
-auto-fld directly, so your line is worded appropriately enough, We
-probably just# need to remove the autofld_cmds line.
-
-
-With that line removed:
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
---
-Kieran
-
-
-
->   */
->  struct vsp1_dl_manager {
+>   	default:
+>   		burst_size = (image.pix.width & 0xf) ? 8 : 16;
+>   		passthrough_bits = 16;
 > 
