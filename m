@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:46337 "EHLO
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:44845 "EHLO
         mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732383AbeHGUW1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 16:22:27 -0400
+        with ESMTP id S2390003AbeHGUW2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 16:22:28 -0400
 From: Dmitry Osipenko <digetx@gmail.com>
 To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?=
@@ -22,296 +22,380 @@ Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
         Rodrigo Vivi <rodrigo.vivi@intel.com>,
         linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [RFC PATCH v4 2/2] drm/tegra: plane: Add generic colorkey properties for older Tegra's
-Date: Tue,  7 Aug 2018 20:22:02 +0300
-Message-Id: <20180807172202.1961-3-digetx@gmail.com>
+Subject: [RFC PATCH v4 1/2] drm: Add generic colorkey properties for display planes
+Date: Tue,  7 Aug 2018 20:22:01 +0300
+Message-Id: <20180807172202.1961-2-digetx@gmail.com>
 In-Reply-To: <20180807172202.1961-1-digetx@gmail.com>
 References: <20180807172202.1961-1-digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For the starter a minimal color keying support is implemented, which is
-enough to provide userspace like Opentegra Xorg driver with ability to
-support color keying by the XVideo extension. Blending controls interface
-changed on newer Tegra's, this patch provides color keying support for
-Tegra20/30/114 only.
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
+Color keying is the action of replacing pixels matching a given color
+(or range of colors) with transparent pixels in an overlay when
+performing blitting. Depending on the hardware capabilities, the
+matching pixel can either become fully transparent or gain adjustment
+of the pixels component values.
+
+Color keying is found in a large number of devices whose capabilities
+often differ, but they still have enough common features in range to
+standardize color key properties. This commit adds new generic DRM plane
+properties related to the color keying, providing initial color keying
+support.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- drivers/gpu/drm/tegra/dc.c    |  25 ++++++
- drivers/gpu/drm/tegra/dc.h    |   7 ++
- drivers/gpu/drm/tegra/plane.c | 156 ++++++++++++++++++++++++++++++++++
- 3 files changed, 188 insertions(+)
+ drivers/gpu/drm/drm_atomic.c |  20 +++++
+ drivers/gpu/drm/drm_blend.c  | 150 +++++++++++++++++++++++++++++++++++
+ include/drm/drm_blend.h      |   3 +
+ include/drm/drm_plane.h      |  91 +++++++++++++++++++++
+ 4 files changed, 264 insertions(+)
 
-diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
-index 965088afcfad..7e90df036c48 100644
---- a/drivers/gpu/drm/tegra/dc.c
-+++ b/drivers/gpu/drm/tegra/dc.c
-@@ -162,6 +162,7 @@ static void tegra_plane_setup_blending_legacy(struct tegra_plane *plane)
- 	u32 foreground = BLEND_WEIGHT1(255) | BLEND_WEIGHT0(255) |
- 			 BLEND_COLOR_KEY_NONE;
- 	u32 blendnokey = BLEND_WEIGHT1(255) | BLEND_WEIGHT0(255);
-+	enum drm_plane_colorkey_mode mode;
- 	struct tegra_plane_state *state;
- 	u32 blending[2];
- 	unsigned int i;
-@@ -171,7 +172,15 @@ static void tegra_plane_setup_blending_legacy(struct tegra_plane *plane)
- 	tegra_plane_writel(plane, foreground, DC_WIN_BLEND_1WIN);
- 
- 	state = to_tegra_plane_state(plane->base.state);
-+	mode = plane->base.state->colorkey.mode;
- 
-+	/* setup color keying */
-+	if (mode == DRM_PLANE_COLORKEY_MODE_TRANSPARENT) {
-+		/* color key matched areas are transparent */
-+		foreground = background[0] | BLEND_COLOR_KEY_0;
-+	}
-+
-+	/* setup alpha blending */
- 	if (state->opaque) {
- 		/*
- 		 * Since custom fix-weight blending isn't utilized and weight
-@@ -792,6 +801,11 @@ static struct drm_plane *tegra_primary_plane_create(struct drm_device *drm,
- 		dev_err(dc->dev, "failed to create rotation property: %d\n",
- 			err);
- 
-+	if (dc->soc->has_legacy_blending)
-+		drm_plane_create_colorkey_properties(&plane->base,
-+				BIT(DRM_PLANE_COLORKEY_MODE_DISABLED) |
-+				BIT(DRM_PLANE_COLORKEY_MODE_TRANSPARENT));
-+
- 	return &plane->base;
+diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+index 3eb061e11e2e..e97364966f6d 100644
+--- a/drivers/gpu/drm/drm_atomic.c
++++ b/drivers/gpu/drm/drm_atomic.c
+@@ -904,6 +904,16 @@ static int drm_atomic_plane_set_property(struct drm_plane *plane,
+ 		state->rotation = val;
+ 	} else if (property == plane->zpos_property) {
+ 		state->zpos = val;
++	} else if (property == plane->colorkey.plane_mask_property) {
++		state->colorkey.plane_mask = val;
++	} else if (property == plane->colorkey.mode_property) {
++		state->colorkey.mode = val;
++	} else if (property == plane->colorkey.mask_property) {
++		state->colorkey.mask = val;
++	} else if (property == plane->colorkey.min_property) {
++		state->colorkey.min = val;
++	} else if (property == plane->colorkey.max_property) {
++		state->colorkey.max = val;
+ 	} else if (property == plane->color_encoding_property) {
+ 		state->color_encoding = val;
+ 	} else if (property == plane->color_range_property) {
+@@ -972,6 +982,16 @@ drm_atomic_plane_get_property(struct drm_plane *plane,
+ 		*val = state->rotation;
+ 	} else if (property == plane->zpos_property) {
+ 		*val = state->zpos;
++	} else if (property == plane->colorkey.plane_mask_property) {
++		*val = state->colorkey.plane_mask;
++	} else if (property == plane->colorkey.mode_property) {
++		*val = state->colorkey.mode;
++	} else if (property == plane->colorkey.mask_property) {
++		*val = state->colorkey.mask;
++	} else if (property == plane->colorkey.min_property) {
++		*val = state->colorkey.min;
++	} else if (property == plane->colorkey.max_property) {
++		*val = state->colorkey.max;
+ 	} else if (property == plane->color_encoding_property) {
+ 		*val = state->color_encoding;
+ 	} else if (property == plane->color_range_property) {
+diff --git a/drivers/gpu/drm/drm_blend.c b/drivers/gpu/drm/drm_blend.c
+index a16a74d7e15e..13c61dd0d9b7 100644
+--- a/drivers/gpu/drm/drm_blend.c
++++ b/drivers/gpu/drm/drm_blend.c
+@@ -107,6 +107,11 @@
+  *	planes. Without this property the primary plane is always below the cursor
+  *	plane, and ordering between all other planes is undefined.
+  *
++ * colorkey:
++ *	Color keying is set up with drm_plane_create_colorkey_properties().
++ *	It adds support for actions like replacing a range of colors with a
++ *	transparent color in the plane. Color keying is disabled by default.
++ *
+  * Note that all the property extensions described here apply either to the
+  * plane or the CRTC (e.g. for the background color, which currently is not
+  * exposed and assumed to be black).
+@@ -448,3 +453,148 @@ int drm_atomic_normalize_zpos(struct drm_device *dev,
+ 	return 0;
  }
- 
-@@ -1077,6 +1091,11 @@ static struct drm_plane *tegra_dc_overlay_plane_create(struct drm_device *drm,
- 		dev_err(dc->dev, "failed to create rotation property: %d\n",
- 			err);
- 
-+	if (dc->soc->has_legacy_blending)
-+		drm_plane_create_colorkey_properties(&plane->base,
-+				BIT(DRM_PLANE_COLORKEY_MODE_DISABLED) |
-+				BIT(DRM_PLANE_COLORKEY_MODE_TRANSPARENT));
+ EXPORT_SYMBOL(drm_atomic_normalize_zpos);
 +
- 	return &plane->base;
- }
- 
-@@ -1187,6 +1206,7 @@ tegra_crtc_atomic_duplicate_state(struct drm_crtc *crtc)
- 	copy->pclk = state->pclk;
- 	copy->div = state->div;
- 	copy->planes = state->planes;
-+	copy->ckey = state->ckey;
- 
- 	return &copy->base;
- }
-@@ -1917,6 +1937,11 @@ static void tegra_crtc_atomic_flush(struct drm_crtc *crtc,
- 	struct tegra_dc *dc = to_tegra_dc(crtc);
- 	u32 value;
- 
-+	if (dc->soc->has_legacy_blending) {
-+		tegra_dc_writel(dc, state->ckey.min, DC_DISP_COLOR_KEY0_LOWER);
-+		tegra_dc_writel(dc, state->ckey.max, DC_DISP_COLOR_KEY0_UPPER);
-+	}
-+
- 	value = state->planes << 8 | GENERAL_UPDATE;
- 	tegra_dc_writel(dc, value, DC_CMD_STATE_CONTROL);
- 	value = tegra_dc_readl(dc, DC_CMD_STATE_CONTROL);
-diff --git a/drivers/gpu/drm/tegra/dc.h b/drivers/gpu/drm/tegra/dc.h
-index e96f582ca692..14ed31f0ff37 100644
---- a/drivers/gpu/drm/tegra/dc.h
-+++ b/drivers/gpu/drm/tegra/dc.h
-@@ -18,6 +18,11 @@
- 
- struct tegra_output;
- 
-+struct tegra_dc_color_key_state {
-+	u32 min;
-+	u32 max;
++static const char * const plane_colorkey_mode_name[] = {
++	[DRM_PLANE_COLORKEY_MODE_DISABLED] = "disabled",
++	[DRM_PLANE_COLORKEY_MODE_TRANSPARENT] = "transparent",
 +};
 +
- struct tegra_dc_state {
- 	struct drm_crtc_state base;
- 
-@@ -26,6 +31,8 @@ struct tegra_dc_state {
- 	unsigned int div;
- 
- 	u32 planes;
-+
-+	struct tegra_dc_color_key_state ckey;
- };
- 
- static inline struct tegra_dc_state *to_dc_state(struct drm_crtc_state *state)
-diff --git a/drivers/gpu/drm/tegra/plane.c b/drivers/gpu/drm/tegra/plane.c
-index d068e8aa3553..0823deef8d03 100644
---- a/drivers/gpu/drm/tegra/plane.c
-+++ b/drivers/gpu/drm/tegra/plane.c
-@@ -465,6 +465,158 @@ static int tegra_plane_setup_transparency(struct tegra_plane *tegra,
- 	return 0;
- }
- 
-+static u32 tegra_plane_colorkey_to_hw_format(u64 drm_ckey64)
++/**
++ * drm_plane_create_colorkey_properties - create colorkey properties
++ * @plane: drm plane
++ * @supported_modes: bitmask of supported color keying modes
++ *
++ * This function creates the generic color keying properties and attaches them
++ * to the @plane to enable color keying control for blending operations.
++ *
++ * Glossary:
++ *
++ * Destination plane:
++ *	Plane to which color keying properties are applied, this planes takes
++ *	the effect of color keying operation. The effect is determined by a
++ *	given color keying mode.
++ *
++ * Source plane:
++ *	Pixels of this plane are the source for color key matching operation.
++ *
++ * Color keying is controlled by these properties:
++ *
++ * colorkey.plane_mask:
++ *	The mask property specifies which planes participate in color key
++ *	matching process, these planes are the color key sources.
++ *
++ *	Drivers return an error from their plane atomic check if plane can't be
++ *	handled.
++ *
++ * colorkey.mode:
++ *	The mode is an enumerated property that controls how color keying
++ *	operates.
++ *
++ * colorkey.mask:
++ *	This property specifies the pixel components mask. Unmasked pixel
++ *	components are not participating in the matching. This mask value is
++ *	applied to colorkey.min / max values. The mask value is given in a
++ *	64-bit integer in ARGB16161616 format, where A is the alpha value and
++ *	R, G and B correspond to the color components. Drivers shall convert
++ *	ARGB16161616 value into appropriate format within planes atomic check.
++ *
++ *	Drivers return an error from their plane atomic check if mask can't be
++ *	handled.
++ *
++ * colorkey.min, colorkey.max:
++ *	These two properties specify the colors that are treated as the color
++ *	key. Pixel whose value is in the [min, max] range is the color key
++ *	matching pixel. The minimum and maximum values are expressed as a
++ *	64-bit integer in ARGB16161616 format, where A is the alpha value and
++ *	R, G and B correspond to the color components. Drivers shall convert
++ *	ARGB16161616 value into appropriate format within planes atomic check.
++ *	The converted value shall be *rounded up* to the nearest value.
++ *
++ *	When a single color key is desired instead of a range, userspace shall
++ *	set the min and max properties to the same value.
++ *
++ *	Drivers return an error from their plane atomic check if range can't be
++ *	handled.
++ *
++ * Returns:
++ * Zero on success, negative errno on failure.
++ */
++int drm_plane_create_colorkey_properties(struct drm_plane *plane,
++					 u32 supported_modes)
 +{
-+	/* convert ARGB16161616 to ARGB8888 */
-+	u8 a = drm_colorkey_extract_component(drm_ckey64, alpha, 8);
-+	u8 r = drm_colorkey_extract_component(drm_ckey64, red, 8);
-+	u8 g = drm_colorkey_extract_component(drm_ckey64, green, 8);
-+	u8 b = drm_colorkey_extract_component(drm_ckey64, blue, 8);
++	struct drm_prop_enum_list modes_list[DRM_PLANE_COLORKEY_MODES_NUM];
++	struct drm_device *dev = plane->dev;
++	struct drm_property *plane_mask_prop;
++	struct drm_property *mode_prop;
++	struct drm_property *mask_prop;
++	struct drm_property *min_prop;
++	struct drm_property *max_prop;
++	unsigned int modes_num = 0;
++	unsigned int i;
 +
-+	return (a << 24) | (r << 16) | (g << 8) | b;
-+}
++	/* modes are driver-specific, build the list of supported modes */
++	for (i = 0; i < DRM_PLANE_COLORKEY_MODES_NUM; i++) {
++		if (!(supported_modes & BIT(i)))
++			continue;
 +
-+static bool tegra_plane_format_valid_for_colorkey(struct drm_plane_state *state)
-+{
-+	struct tegra_plane_state *tegra_state = to_tegra_plane_state(state);
-+
-+	/*
-+	 * Tegra20 does not support alpha channel matching. Newer Tegra's
-+	 * support the alpha matching, but it is not implemented yet.
-+	 *
-+	 * Formats other than XRGB8888 haven't been tested much, hence they
-+	 * are not supported for now.
-+	 */
-+	switch (tegra_state->format) {
-+	case WIN_COLOR_DEPTH_R8G8B8X8:
-+	case WIN_COLOR_DEPTH_B8G8R8X8:
-+		break;
-+
-+	default:
-+		return false;
-+	};
-+
-+	return true;
-+}
-+
-+static int tegra_plane_setup_colorkey(struct tegra_plane *tegra,
-+				      struct tegra_plane_state *tegra_state)
-+{
-+	enum drm_plane_colorkey_mode mode;
-+	struct drm_crtc_state *crtc_state;
-+	struct tegra_dc_state *dc_state;
-+	struct drm_plane_state *state;
-+	struct drm_plane_state *old;
-+	struct drm_plane_state *new;
-+	struct drm_plane *plane;
-+	unsigned int normalized_zpos;
-+	u32 min_hw, max_hw, mask_hw;
-+	u32 plane_mask;
-+	u64 min, max;
-+	u64 mask;
-+
-+	normalized_zpos = tegra_state->base.normalized_zpos;
-+	plane_mask = tegra_state->base.colorkey.plane_mask;
-+	mode = tegra_state->base.colorkey.mode;
-+	mask = tegra_state->base.colorkey.mask;
-+	min = tegra_state->base.colorkey.min;
-+	max = tegra_state->base.colorkey.max;
-+
-+	/* convert color key values to HW format */
-+	mask_hw = tegra_plane_colorkey_to_hw_format(mask);
-+	min_hw = tegra_plane_colorkey_to_hw_format(min);
-+	max_hw = tegra_plane_colorkey_to_hw_format(max);
-+
-+	state = &tegra_state->base;
-+	old = drm_atomic_get_old_plane_state(state->state, &tegra->base);
-+
-+	/* no need to proceed if color keying state is unchanged */
-+	if (old->colorkey.plane_mask == plane_mask &&
-+	    old->colorkey.mask == mask &&
-+	    old->colorkey.mode == mode &&
-+	    old->colorkey.min == min &&
-+	    old->colorkey.max == max &&
-+	    old->crtc)
-+	{
-+		if (mode == DRM_PLANE_COLORKEY_MODE_DISABLED)
-+			return 0;
-+
-+		crtc_state = drm_atomic_get_crtc_state(state->state,
-+						       state->crtc);
-+		if (IS_ERR(crtc_state))
-+			return PTR_ERR(crtc_state);
-+
-+		if (!crtc_state->zpos_changed) {
-+			dc_state = to_dc_state(crtc_state);
-+
-+			if (dc_state->ckey.min == min_hw &&
-+			    dc_state->ckey.max == max_hw)
-+				return 0;
-+		}
++		modes_list[modes_num].name = plane_colorkey_mode_name[i];
++		modes_list[modes_num].type = i;
++		modes_num++;
 +	}
 +
-+	/*
-+	 * Currently color keying is implemented for the middle plane
-+	 * only (source and destination) to simplify things, validate planes
-+	 * position and mask.
-+	 */
-+	if (state->fb && mode != DRM_PLANE_COLORKEY_MODE_DISABLED) {
-+		/*
-+		 * Tegra does not support color key masking, note that alpha
-+		 * channel mask is ignored because only opaque formats are
-+		 * currently supported.
-+		 */
-+		if ((mask_hw & 0xffffff) != 0xffffff)
-+			return -EINVAL;
++	/* at least one mode should be supported */
++	if (!modes_num)
++		return -EINVAL;
 +
-+		drm_for_each_plane_mask(plane, tegra->base.dev, plane_mask) {
-+			struct tegra_plane *p = to_tegra_plane(plane);
++	plane_mask_prop = drm_property_create_range(dev, 0,
++						    "colorkey.plane_mask",
++						    0, U32_MAX);
++	if (!plane_mask_prop)
++		return -ENOMEM;
 +
-+			/* HW can't access planes on a different CRTC */
-+			if (p->dc != tegra->dc)
-+				return -EINVAL;
++	mode_prop = drm_property_create_enum(dev, 0, "colorkey.mode",
++					     modes_list, modes_num);
++	if (!mode_prop)
++		goto err_destroy_plane_mask_prop;
 +
-+			new = drm_atomic_get_plane_state(state->state, plane);
-+			if (IS_ERR(new))
-+				return PTR_ERR(new);
++	mask_prop = drm_property_create_range(dev, 0, "colorkey.mask",
++					      0, U64_MAX);
++	if (!mask_prop)
++		goto err_destroy_mode_prop;
 +
-+			/* don't care about disabled plane */
-+			if (!new->fb)
-+				continue;
++	min_prop = drm_property_create_range(dev, 0, "colorkey.min",
++					     0, U64_MAX);
++	if (!min_prop)
++		goto err_destroy_mask_prop;
 +
-+			if (!tegra_plane_format_valid_for_colorkey(new))
-+				return -EINVAL;
++	max_prop = drm_property_create_range(dev, 0, "colorkey.max",
++					     0, U64_MAX);
++	if (!max_prop)
++		goto err_destroy_min_prop;
 +
-+			/* middle plane sourcing itself */
-+			if (new->normalized_zpos == 1 &&
-+			    normalized_zpos == 1)
-+				continue;
++	drm_object_attach_property(&plane->base, plane_mask_prop, 0);
++	drm_object_attach_property(&plane->base, mode_prop, 0);
++	drm_object_attach_property(&plane->base, mask_prop, 0);
++	drm_object_attach_property(&plane->base, min_prop, 0);
++	drm_object_attach_property(&plane->base, max_prop, 0);
 +
-+			return -EINVAL;
-+		}
-+	}
-+
-+	/* only middle plane affects the color key state, see comment above */
-+	if (normalized_zpos != 1)
-+		return 0;
-+
-+	/*
-+	 * Tegra's HW has color key values stored within CRTC, hence adjust
-+	 * planes CRTC atomic state.
-+	 */
-+	crtc_state = drm_atomic_get_crtc_state(state->state, state->crtc);
-+	if (IS_ERR(crtc_state))
-+		return PTR_ERR(crtc_state);
-+
-+	dc_state = to_dc_state(crtc_state);
-+
-+	/* update CRTC's color key state */
-+	dc_state->ckey.min = min_hw;
-+	dc_state->ckey.max = max_hw;
++	plane->colorkey.plane_mask_property = plane_mask_prop;
++	plane->colorkey.mode_property = mode_prop;
++	plane->colorkey.mask_property = mask_prop;
++	plane->colorkey.min_property = min_prop;
++	plane->colorkey.max_property = max_prop;
 +
 +	return 0;
++
++err_destroy_min_prop:
++	drm_property_destroy(dev, min_prop);
++err_destroy_mask_prop:
++	drm_property_destroy(dev, mask_prop);
++err_destroy_mode_prop:
++	drm_property_destroy(dev, mode_prop);
++err_destroy_plane_mask_prop:
++	drm_property_destroy(dev, plane_mask_prop);
++
++	return -ENOMEM;
 +}
++EXPORT_SYMBOL(drm_plane_create_colorkey_properties);
+diff --git a/include/drm/drm_blend.h b/include/drm/drm_blend.h
+index 330c561c4c11..8e80d33b643e 100644
+--- a/include/drm/drm_blend.h
++++ b/include/drm/drm_blend.h
+@@ -52,4 +52,7 @@ int drm_plane_create_zpos_immutable_property(struct drm_plane *plane,
+ 					     unsigned int zpos);
+ int drm_atomic_normalize_zpos(struct drm_device *dev,
+ 			      struct drm_atomic_state *state);
 +
- int tegra_plane_setup_legacy_state(struct tegra_plane *tegra,
- 				   struct tegra_plane_state *state)
- {
-@@ -478,5 +630,9 @@ int tegra_plane_setup_legacy_state(struct tegra_plane *tegra,
- 	if (err < 0)
- 		return err;
++int drm_plane_create_colorkey_properties(struct drm_plane *plane,
++					 u32 supported_modes);
+ #endif
+diff --git a/include/drm/drm_plane.h b/include/drm/drm_plane.h
+index 8a152dc16ea5..ab6a91e6b54e 100644
+--- a/include/drm/drm_plane.h
++++ b/include/drm/drm_plane.h
+@@ -25,6 +25,7 @@
  
-+	err = tegra_plane_setup_colorkey(tegra, state);
-+	if (err < 0)
-+		return err;
+ #include <linux/list.h>
+ #include <linux/ctype.h>
++#include <linux/kernel.h>
+ #include <drm/drm_mode_object.h>
+ #include <drm/drm_color_mgmt.h>
+ 
+@@ -32,6 +33,52 @@ struct drm_crtc;
+ struct drm_printer;
+ struct drm_modeset_acquire_ctx;
+ 
++/**
++ * enum drm_plane_colorkey_mode - uapi plane colorkey mode enumeration
++ */
++enum drm_plane_colorkey_mode {
++	/**
++	 * @DRM_PLANE_COLORKEY_MODE_DISABLED:
++	 *
++	 * No color matching performed in this mode.
++	 */
++	DRM_PLANE_COLORKEY_MODE_DISABLED,
 +
- 	return 0;
- }
++	/**
++	 * @DRM_PLANE_COLORKEY_MODE_TRANSPARENT:
++	 *
++	 * Destination plane pixels are completely transparent in areas
++	 * where pixels of a source plane are matching a given color key
++	 * range, in other cases pixels of a destination plane are unaffected.
++	 * In areas where two or more source planes overlap, the topmost
++	 * plane takes precedence.
++	 */
++	DRM_PLANE_COLORKEY_MODE_TRANSPARENT,
++
++	/**
++	 * @DRM_PLANE_COLORKEY_MODES_NUM:
++	 *
++	 * Total number of color keying modes.
++	 */
++	DRM_PLANE_COLORKEY_MODES_NUM,
++};
++
++/**
++ * struct drm_plane_colorkey_state - plane color keying state
++ * @mode: color keying mode
++ * @plane_mask: source planes that participate in color key matching
++ * @mask: color key mask (in ARGB16161616 format)
++ * @min: color key range minimum (in ARGB16161616 format)
++ * @max: color key range maximum (in ARGB16161616 format)
++ */
++struct drm_plane_colorkey_state {
++	enum drm_plane_colorkey_mode mode;
++	u64 plane_mask;
++	u64 mask;
++	u64 min;
++	u64 max;
++};
++
+ /**
+  * struct drm_plane_state - mutable plane state
+  *
+@@ -148,6 +195,13 @@ struct drm_plane_state {
+ 	 */
+ 	unsigned int normalized_zpos;
+ 
++	/**
++	 * @colorkey:
++	 * Color keying of the plane. See drm_plane_create_colorkey_properties()
++	 * for more details.
++	 */
++	struct drm_plane_colorkey_state colorkey;
++
+ 	/**
+ 	 * @color_encoding:
+ 	 *
+@@ -660,6 +714,19 @@ struct drm_plane {
+ 	 */
+ 	struct drm_property *rotation_property;
+ 
++	/**
++	 * @colorkey:
++	 * Optional color keying properties for this plane. See
++	 * drm_plane_create_colorkey_properties().
++	 */
++	struct {
++		struct drm_property *plane_mask_property;
++		struct drm_property *mode_property;
++		struct drm_property *mask_property;
++		struct drm_property *min_property;
++		struct drm_property *max_property;
++	} colorkey;
++
+ 	/**
+ 	 * @color_encoding_property:
+ 	 *
+@@ -779,5 +846,29 @@ static inline struct drm_plane *drm_plane_find(struct drm_device *dev,
+ #define drm_for_each_plane(plane, dev) \
+ 	list_for_each_entry(plane, &(dev)->mode_config.plane_list, head)
+ 
++/**
++ * drm_colorkey_extract_component - get color key component value
++ * @ckey64: 64bit color key value
++ * @comp_name: name of 16bit color component to extract
++ * @nbits: size in bits of extracted component value
++ *
++ * Extract 16bit color component of @ckey64 given by @comp_name (alpha, red,
++ * green or blue) and convert it to an unsigned integer that has bit-width
++ * of @nbits (result is rounded-up).
++ */
++#define drm_colorkey_extract_component(ckey64, comp_name, nbits) \
++	__DRM_CKEY_CLAMP(__DRM_CKEY_CONV(ckey64, comp_name, nbits), nbits)
++
++#define __drm_ckey_alpha_shift	48
++#define __drm_ckey_red_shift	32
++#define __drm_ckey_green_shift	16
++#define __drm_ckey_blue_shift	0
++
++#define __DRM_CKEY_CONV(ckey64, comp_name, nbits) \
++	DIV_ROUND_UP((u16)((ckey64) >> __drm_ckey_ ## comp_name ## _shift), \
++		     1 << (16 - (nbits)))
++
++#define __DRM_CKEY_CLAMP(value, nbits) \
++	min_t(u16, (value), (1 << (nbits)) - 1)
+ 
+ #endif
 -- 
 2.18.0
