@@ -1,42 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:60426 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:32928 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2403877AbeHGSJz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 14:09:55 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH] media: dt: adv7604: Fix slave map documentation
-Date: Tue,  7 Aug 2018 16:54:52 +0100
-Message-Id: <20180807155452.797-1-kieran.bingham@ideasonboard.com>
+        with ESMTP id S1727675AbeHGSZy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Aug 2018 14:25:54 -0400
+Subject: Re: [PATCH] media: vsp1_dl: add a description for cmdpool field
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org
+Reply-To: kieran.bingham+renesas@ideasonboard.com,
+          kieran.bingham+renesas@ideasonboard.com
+References: <5cc2f8f81f4c7d1ae693d87980353c725f9a11d3.1533637111.git.mchehab+samsung@kernel.org>
+ <8f8df6a2-eb66-dfa1-3c52-e85cac81966c@ideasonboard.com>
+Message-ID: <e89ba327-557f-5b53-27e7-4f9315e0e442@ideasonboard.com>
+Date: Tue, 7 Aug 2018 17:10:50 +0100
+MIME-Version: 1.0
+In-Reply-To: <8f8df6a2-eb66-dfa1-3c52-e85cac81966c@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The reg-names property in the documentation is missing an '='. Add it.
+On 07/08/18 11:36, Kieran Bingham wrote:
+> Hi Mauro,
+> 
+> Thank you for the patch,
+> 
+> On 07/08/18 11:18, Mauro Carvalho Chehab wrote:
+>> Gets rid of this build warning:
+>> 	drivers/media/platform/vsp1/vsp1_dl.c:229: warning: Function parameter or member 'cmdpool' not described in 'vsp1_dl_manager'
+>>
+>> Fixes: f3b98e3c4d2e ("media: vsp1: Provide support for extended command pools")
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_dl.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+>> index 9255b5ee2cb8..af60d95ec4f8 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+>> @@ -211,6 +211,7 @@ struct vsp1_dl_list {
+>>   * @queued: list queued to the hardware (written to the DL registers)
+>>   * @pending: list waiting to be queued to the hardware
+>>   * @pool: body pool for the display list bodies
+>> + * @cmdpool: Display List commands pool
+> 
+> Unfortunately this isn't quite right...
+> 
+> 
+>>   * @autofld_cmds: command pool to support auto-fld interlaced mode
+> 
+> This ^ was the original documentation line, but it got missed in a
+> rename. Sorry about that.
+> 
+> The pool is now more 'generic' so the line probably should mention the
 
-Fixes: 9feb786876c7 ("media: dt-bindings: media: adv7604: Extend
-bindings to allow specifying slave map addresses")
+Ahem, clearly I meant "shouldn't" mention.
 
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
----
- Documentation/devicetree/bindings/media/i2c/adv7604.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index dcf57e7c60eb..b3e688b77a38 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -66,7 +66,7 @@ Example:
- 		 * other maps will retain their default addresses.
- 		 */
- 		reg = <0x4c>, <0x66>;
--		reg-names "main", "edid";
-+		reg-names = "main", "edid";
- 
- 		reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
- 		hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
--- 
-2.17.1
+> auto-fld directly, so your line is worded appropriately enough, We
+> probably just# need to remove the autofld_cmds line.
+> 
+> 
+> With that line removed:
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> --
+> Kieran
+> 
+> 
+> 
+>>   */
+>>  struct vsp1_dl_manager {
+>>
+> 
