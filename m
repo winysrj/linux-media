@@ -1,143 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:33186 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726733AbeHHFnx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Aug 2018 01:43:53 -0400
-Message-ID: <c0fe84d2b7bdab7e5fa8ac230a043dd3@smtp-cloud8.xs4all.net>
-Date: Wed, 08 Aug 2018 05:26:19 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-yw1-f67.google.com ([209.85.161.67]:43666 "EHLO
+        mail-yw1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726697AbeHHGI3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 02:08:29 -0400
+Received: by mail-yw1-f67.google.com with SMTP id l189-v6so583738ywb.10
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 20:50:53 -0700 (PDT)
+Received: from mail-yw1-f48.google.com (mail-yw1-f48.google.com. [209.85.161.48])
+        by smtp.gmail.com with ESMTPSA id y133-v6sm3708774ywy.31.2018.08.07.20.50.50
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 07 Aug 2018 20:50:51 -0700 (PDT)
+Received: by mail-yw1-f48.google.com with SMTP id j68-v6so604869ywg.1
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 20:50:50 -0700 (PDT)
+MIME-Version: 1.0
+References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+ <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
+ <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com> <15196240.O2E9MK7q6s@avalon>
+In-Reply-To: <15196240.O2E9MK7q6s@avalon>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 8 Aug 2018 12:50:37 +0900
+Message-ID: <CAAFQd5B613JJLK4drTRYT=qP+wZriMt4afAgXKvBgEU4H0vtOA@mail.gmail.com>
+Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process context
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        olivier.braun@stereolabs.com, troy.kisky@boundarydevices.com,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+On Wed, Aug 8, 2018 at 8:12 AM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Tomasz,
+>
+> On Tuesday, 7 August 2018 12:54:02 EEST Tomasz Figa wrote:
+> > On Wed, Mar 28, 2018 at 1:47 AM Kieran Bingham wrote:
+>
+> [snip]
+>
+> > In our testing, this function ends up being called twice
+>
+> In your testing, has this patch series brought noticeable performance
+> improvements ? Is there a particular reason you tested it, beside general
+> support of UVC devices in ChromeOS ?
 
-date:			Wed Aug  8 05:00:10 CEST 2018
-media-tree git hash:	4effa8bfe4f6bacd041f98775f49cdc550502dc2
-media_build git hash:	a0cd9105aaeb5af5af36117af923a3d1de4b76d7
-v4l-utils git hash:	90905c2e4b17d7595256f3824e2d30d19b0df1a1
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Some of our older ARM devices have external USB ports wired to a low
+end dwc2 controller, which puts quite strict timing requirements on
+interrupt handling. For some cameras that produce bigger payloads (in
+our testing that was Logitech BRIO, running at 1080p), almost half of
+every frame would be dropped, due to the memcpy from uncached memory
+taking too much time. With this series, it goes down to bottom ~10% of
+only a part of the frames. With one more optimization from Keiichi
+[1], the problem disappears almost completely.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.101-i686: ERRORS
-linux-3.0.101-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.102-i686: ERRORS
-linux-3.2.102-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.113-i686: ERRORS
-linux-3.4.113-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.10-i686: ERRORS
-linux-3.7.10-x86_64: ERRORS
-linux-3.8.13-i686: ERRORS
-linux-3.8.13-x86_64: ERRORS
-linux-3.9.11-i686: ERRORS
-linux-3.9.11-x86_64: ERRORS
-linux-3.10.108-i686: ERRORS
-linux-3.10.108-x86_64: ERRORS
-linux-3.11.10-i686: ERRORS
-linux-3.11.10-x86_64: ERRORS
-linux-3.12.74-i686: ERRORS
-linux-3.12.74-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.79-i686: ERRORS
-linux-3.14.79-x86_64: ERRORS
-linux-3.15.10-i686: ERRORS
-linux-3.15.10-x86_64: ERRORS
-linux-3.16.57-i686: ERRORS
-linux-3.16.57-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.115-i686: ERRORS
-linux-3.18.115-x86_64: ERRORS
-linux-3.19.8-i686: ERRORS
-linux-3.19.8-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.52-i686: ERRORS
-linux-4.1.52-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.140-i686: ERRORS
-linux-4.4.140-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.10-i686: ERRORS
-linux-4.7.10-x86_64: ERRORS
-linux-4.8.17-i686: ERRORS
-linux-4.8.17-x86_64: ERRORS
-linux-4.9.112-i686: ERRORS
-linux-4.9.112-x86_64: ERRORS
-linux-4.10.17-i686: ERRORS
-linux-4.10.17-x86_64: ERRORS
-linux-4.11.12-i686: ERRORS
-linux-4.11.12-x86_64: ERRORS
-linux-4.12.14-i686: ERRORS
-linux-4.12.14-x86_64: ERRORS
-linux-4.13.16-i686: ERRORS
-linux-4.13.16-x86_64: ERRORS
-linux-4.14.55-i686: ERRORS
-linux-4.14.55-x86_64: ERRORS
-linux-4.15.18-i686: ERRORS
-linux-4.15.18-x86_64: ERRORS
-linux-4.16.18-i686: ERRORS
-linux-4.16.18-x86_64: ERRORS
-linux-4.17.6-i686: ERRORS
-linux-4.17.6-x86_64: ERRORS
-linux-4.18-rc4-i686: ERRORS
-linux-4.18-rc4-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+[1] https://lore.kernel.org/patchwork/patch/956388/
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
