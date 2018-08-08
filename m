@@ -1,31 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f68.google.com ([209.85.161.68]:45749 "EHLO
-        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726371AbeHHFEO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 01:04:14 -0400
-Received: by mail-yw1-f68.google.com with SMTP id 139-v6so499394ywg.12
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 19:46:52 -0700 (PDT)
-Received: from mail-yw1-f52.google.com (mail-yw1-f52.google.com. [209.85.161.52])
-        by smtp.gmail.com with ESMTPSA id b135-v6sm3424744ywh.24.2018.08.07.19.46.50
+Received: from mail-yw1-f66.google.com ([209.85.161.66]:45358 "EHLO
+        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726643AbeHHFNa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 01:13:30 -0400
+Received: by mail-yw1-f66.google.com with SMTP id 139-v6so511160ywg.12
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 19:56:05 -0700 (PDT)
+Received: from mail-yw1-f48.google.com (mail-yw1-f48.google.com. [209.85.161.48])
+        by smtp.gmail.com with ESMTPSA id l204-v6sm1213098ywe.50.2018.08.07.19.56.02
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 07 Aug 2018 19:46:50 -0700 (PDT)
-Received: by mail-yw1-f52.google.com with SMTP id j68-v6so526408ywg.1
-        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 19:46:50 -0700 (PDT)
+        Tue, 07 Aug 2018 19:56:03 -0700 (PDT)
+Received: by mail-yw1-f48.google.com with SMTP id r3-v6so528846ywc.5
+        for <linux-media@vger.kernel.org>; Tue, 07 Aug 2018 19:56:02 -0700 (PDT)
 MIME-Version: 1.0
 References: <20180724140621.59624-1-tfiga@chromium.org> <20180724140621.59624-2-tfiga@chromium.org>
-In-Reply-To: <20180724140621.59624-2-tfiga@chromium.org>
+ <37a8faea-a226-2d52-36d4-f9df194623cc@xs4all.nl> <CAAFQd5BgGEBmd8gNGc-qqtUtLo=Mh8U+TVTWRsKYMv1LmeBQMA@mail.gmail.com>
+ <a6af3dc9-1d09-a414-ce31-bc1b3e69894f@xs4all.nl> <CAAFQd5AnC+hWy4QUGE-s+qgRvvgGC7rMhH6x8koTfYJzTLw8Cg@mail.gmail.com>
+ <f0aa7c84-08e3-9b04-8d1b-95f741d6817b@xs4all.nl>
+In-Reply-To: <f0aa7c84-08e3-9b04-8d1b-95f741d6817b@xs4all.nl>
 From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 8 Aug 2018 11:46:38 +0900
-Message-ID: <CAAFQd5Ays_3EEDNDrNn2JFzVA7f7+hOzxFNBdYYKMw+uHZvqog@mail.gmail.com>
+Date: Wed, 8 Aug 2018 11:55:50 +0900
+Message-ID: <CAAFQd5ACWO0FxzZdxf-N-GStCMOSWzxKxhcpCRUh=BqT7jLJWw@mail.gmail.com>
 Subject: Re: [PATCH 1/2] media: docs-rst: Document memory-to-memory video
  decoder interface
-To: Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
         Pawel Osciak <posciak@chromium.org>,
         Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
         a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
@@ -40,140 +42,123 @@ Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         dave.stevenson@raspberrypi.org,
         Ezequiel Garcia <ezequiel@collabora.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+On Tue, Aug 7, 2018 at 4:37 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On 08/07/2018 09:05 AM, Tomasz Figa wrote:
+> > On Thu, Jul 26, 2018 at 7:57 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >>>> What if you set the format to 0x0 but the stream does not have meta data with
+> >>>> the resolution? How does userspace know if 0x0 is allowed or not? If this is
+> >>>> specific to the chosen coded pixel format, should be add a new flag for those
+> >>>> formats indicating that the coded data contains resolution information?
+> >>>
+> >>> Yes, this would definitely be on a per-format basis. Not sure what you
+> >>> mean by a flag, though? E.g. if the format is set to H264, then it's
+> >>> bound to include resolution information. If the format doesn't include
+> >>> it, then userspace is already aware of this fact, because it needs to
+> >>> get this from some other source (e.g. container).
+> >>>
+> >>>>
+> >>>> That way userspace knows if 0x0 can be used, and the driver can reject 0x0
+> >>>> for formats that do not support it.
+> >>>
+> >>> As above, but I might be misunderstanding your suggestion.
+> >>
+> >> So my question is: is this tied to the pixel format, or should we make it
+> >> explicit with a flag like V4L2_FMT_FLAG_CAN_DECODE_WXH.
+> >>
+> >> The advantage of a flag is that you don't need a switch on the format to
+> >> know whether or not 0x0 is allowed. And the flag can just be set in
+> >> v4l2-ioctls.c.
+> >
+> > As far as my understanding goes, what data is included in the stream
+> > is definitely specified by format. For example, a H264 elementary
+> > stream will always include those data as a part of SPS.
+> >
+> > However, having such flag internally, not exposed to userspace, could
+> > indeed be useful to avoid all drivers have such switch. That wouldn't
+> > belong to this documentation, though, since it would be just kernel
+> > API.
+>
+> Why would you keep this internally only?
+>
 
-On Tue, Aug 7, 2018 at 5:32 AM Maxime Jourdan <maxi.jourdan@wanadoo.fr> wro=
-te:
->
-> Hi Tomasz,
->
-> Sorry for sending this email only to you, I subscribed to linux-media
-> after you posted this and I'm not sure how to respond to everybody.
->
+Well, either keep it internal or make it read-only for the user space,
+since the behavior is already defined by selected pixel format.
 
-No worries. Let me reply with other recipients added back. Thanks for
-your comments.
-
-> I'm currently developing a V4L2 M2M decoder driver for Amlogic SoCs so
-> my comments are somewhat biased towards it
-> (https://github.com/Elyotna/linux)
+> >>>> I wonder if we should make these min buffer controls required. It might be easier
+> >>>> that way.
+> >>>
+> >>> Agreed. Although userspace is still free to ignore it, because REQBUFS
+> >>> would do the right thing anyway.
+> >>
+> >> It's never been entirely clear to me what the purpose of those min buffers controls
+> >> is. REQBUFS ensures that the number of buffers is at least the minimum needed to
+> >> make the HW work. So why would you need these controls? It only makes sense if they
+> >> return something different from REQBUFS.
+> >>
+> >
+> > The purpose of those controls is to let the client allocate a number
+> > of buffers bigger than minimum, without the need to allocate the
+> > minimum number of buffers first (to just learn the number), free them
+> > and then allocate a bigger number again.
 >
-> > +Seek
-> > +=3D=3D=3D=3D
-> > +
-> > +Seek is controlled by the ``OUTPUT`` queue, as it is the source of
-> > +bitstream data. ``CAPTURE`` queue remains unchanged/unaffected.
-> > +
-> > +1. Stop the ``OUTPUT`` queue to begin the seek sequence via
-> > +   :c:func:`VIDIOC_STREAMOFF`.
-> > +
-> > +   * **Required fields:**
-> > +
-> > +     ``type``
-> > +         a ``V4L2_BUF_TYPE_*`` enum appropriate for ``OUTPUT``
-> > +
-> > +   * The driver must drop all the pending ``OUTPUT`` buffers and they =
-are
-> > +     treated as returned to the client (following standard semantics).
-> > +
-> > +2. Restart the ``OUTPUT`` queue via :c:func:`VIDIOC_STREAMON`
-> > +
-> > +   * **Required fields:**
-> > +
-> > +     ``type``
-> > +         a ``V4L2_BUF_TYPE_*`` enum appropriate for ``OUTPUT``
-> > +
-> > +   * The driver must be put in a state after seek and be ready to
-> > +     accept new source bitstream buffers.
-> > +
-> > +3. Start queuing buffers to ``OUTPUT`` queue containing stream data af=
-ter
-> > +   the seek until a suitable resume point is found.
-> > +
-> > +   .. note::
-> > +
-> > +      There is no requirement to begin queuing stream starting exactly=
- from
-> > +      a resume point (e.g. SPS or a keyframe). The driver must handle =
-any
-> > +      data queued and must keep processing the queued buffers until it
-> > +      finds a suitable resume point. While looking for a resume point,=
- the
-> > +      driver processes ``OUTPUT`` buffers and returns them to the clie=
-nt
-> > +      without producing any decoded frames.
-> > +
-> > +      For hardware known to be mishandling seeks to a non-resume point=
-,
-> > +      e.g. by returning corrupted decoded frames, the driver must be a=
-ble
-> > +      to handle such seeks without a crash or any fatal decode error.
+> I don't feel this is particularly useful. One problem with the minimum number
+> of buffers as used in the kernel is that it is often the minimum number of
+> buffers required to make the hardware work, but it may not be optimal. E.g.
+> quite a few capture drivers set the minimum to 2, which is enough for the
+> hardware, but it will likely lead to dropped frames. You really need 3
+> (one is being DMAed, one is queued and linked into the DMA engine and one is
+> being processed by userspace).
 >
-> This is unfortunately my case, apart from parsing the bitstream
-> manually - which is a no-no -, there is no way to know when I'll be
-> writing in an IDR frame to the HW bitstream parser. I think it would
-> be much preferable that the client starts sending in an IDR frame for
-> sure.
+> I would actually prefer this to be the recommended minimum number of buffers,
+> which is >= the minimum REQBUFS uses.
+>
+> I.e., if you use this number and you have no special requirements, then you'll
+> get good performance.
 
-Most of the hardware, which have upstream drivers, deal with this
-correctly and there is existing user space that relies on this, so we
-cannot simply add such requirement. However, when sending your driver
-upstream, feel free to include a patch that adds a read-only control
-that tells the user space that it needs to do seeks to resume points.
-Obviously this will work only with user space aware of this
-requirement, but I don't think we can do anything better here.
+I guess we could make it so. It would make existing user space request
+more buffers than it used to with the original meaning, but I guess it
+shouldn't be a big problem.
 
 >
-> > +4. After a resume point is found, the driver will start returning
-> > +   ``CAPTURE`` buffers with decoded frames.
-> > +
-> > +   * There is no precise specification for ``CAPTURE`` queue of when i=
-t
-> > +     will start producing buffers containing decoded data from buffers
-> > +     queued after the seek, as it operates independently
-> > +     from ``OUTPUT`` queue.
-> > +
-> > +     * The driver is allowed to and may return a number of remaining
-> > +       ``CAPTURE`` buffers containing decoded frames from before the s=
-eek
-> > +       after the seek sequence (STREAMOFF-STREAMON) is performed.
-> > +
-> > +     * The driver is also allowed to and may not return all decoded fr=
-ames
-> > +       queued but not decode before the seek sequence was initiated. F=
-or
-> > +       example, given an ``OUTPUT`` queue sequence: QBUF(A), QBUF(B),
-> > +       STREAMOFF(OUT), STREAMON(OUT), QBUF(G), QBUF(H), any of the
-> > +       following results on the ``CAPTURE`` queue is allowed: {A=E2=80=
-=99, B=E2=80=99, G=E2=80=99,
-> > +       H=E2=80=99}, {A=E2=80=99, G=E2=80=99, H=E2=80=99}, {G=E2=80=99,=
- H=E2=80=99}.
-> > +
-> > +   .. note::
-> > +
-> > +      To achieve instantaneous seek, the client may restart streaming =
-on
-> > +      ``CAPTURE`` queue to discard decoded, but not yet dequeued buffe=
-rs.
+> >
+> >>>
+> >>>>
+> >>>>> +7.  If all the following conditions are met, the client may resume the
+> >>>>> +    decoding instantly, by using :c:func:`VIDIOC_DECODER_CMD` with
+> >>>>> +    ``V4L2_DEC_CMD_START`` command, as in case of resuming after the drain
+> >>>>> +    sequence:
+> >>>>> +
+> >>>>> +    * ``sizeimage`` of new format is less than or equal to the size of
+> >>>>> +      currently allocated buffers,
+> >>>>> +
+> >>>>> +    * the number of buffers currently allocated is greater than or equal to
+> >>>>> +      the minimum number of buffers acquired in step 6.
+> >>>>
+> >>>> You might want to mention that if there are insufficient buffers, then
+> >>>> VIDIOC_CREATE_BUFS can be used to add more buffers.
+> >>>>
+> >>>
+> >>> This might be a bit tricky, since at least s5p-mfc and coda can only
+> >>> work on a fixed buffer set and one would need to fully reinitialize
+> >>> the decoding to add one more buffer, which would effectively be the
+> >>> full resolution change sequence, as below, just with REQBUFS(0),
+> >>> REQBUFS(N) replaced with CREATE_BUFS.
+> >>
+> >> What happens today in those drivers if you try to call CREATE_BUFS?
+> >
+> > s5p-mfc doesn't set the .vidioc_create_bufs pointer in its
+> > v4l2_ioctl_ops, so I suppose that would be -ENOTTY?
 >
-> Overall, I think Drain followed by V4L2_DEC_CMD_START is a more
-> applicable scenario for seeking.
-> Heck, simply starting to queue buffers at the seek - starting with an
-> IDR - without doing any kind of streamon/off or cmd_start(stop) will
-> do the trick.
+> Correct for s5p-mfc.
 
-Why do you think so?
-
-For a seek, as expected by a typical device user, the result should be
-discarding anything already queued and just start decoding new frames
-as soon as possible.
-
-Actually, this section doesn't describe any specific sequence, just
-possible ways to do a seek using existing primitives.
+As Philipp clarified, coda supports adding buffers on the fly. I
+briefly looked at venus and mtk-vcodec and they seem to use m2m
+implementation of CREATE_BUFS. Not sure if anyone tested that, though.
+So the only hardware I know for sure cannot support this is s5p-mfc.
 
 Best regards,
 Tomasz
