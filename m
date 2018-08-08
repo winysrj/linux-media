@@ -1,80 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:56468 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389825AbeHARln (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Aug 2018 13:41:43 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 07/13] media: msp3400: declare its own pads
-Date: Wed,  1 Aug 2018 12:55:09 -0300
-Message-Id: <8839fb63e761749123fc20d43875f1484c7c4346.1533138685.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1533138685.git.mchehab+samsung@kernel.org>
-References: <cover.1533138685.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1533138685.git.mchehab+samsung@kernel.org>
-References: <cover.1533138685.git.mchehab+samsung@kernel.org>
+Received: from smtp2.macqel.be ([109.135.2.61]:50242 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726979AbeHHLCS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Aug 2018 07:02:18 -0400
+Date: Wed, 8 Aug 2018 10:43:34 +0200
+From: Philippe De Muyter <phdm@macqel.be>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [PATCH 2/2] media: v4l2-common: simplify v4l2_i2c_subdev_init
+        name generation
+Message-ID: <20180808084333.GA21052@frolo.macqel>
+References: <1533158457-15831-1-git-send-email-phdm@macqel.be> <1533158457-15831-2-git-send-email-phdm@macqel.be> <20180803124315.i4vcpdnha42nw3lh@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180803124315.i4vcpdnha42nw3lh@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we don't need anymore to share pad numbers with similar
-drivers, use its own pad definition instead of a global
-model.
+On Fri, Aug 03, 2018 at 03:43:15PM +0300, Sakari Ailus wrote:
+> Hi Philippe,
+> 
+> On Wed, Aug 01, 2018 at 11:20:57PM +0200, Philippe De Muyter wrote:
+> > When v4l2_i2c_subdev_init is called, dev_name(&client->dev) has already
+> > been set.  Use it to generate subdev's name instead of recreating it
+> > with "%d-%04x".  This improves the similarity in subdev's name creation
+> > between v4l2_i2c_subdev_init and v4l2_spi_subdev_init.
+> > 
+> > Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-common.c | 5 ++---
+> >  1 file changed, 2 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> > index 5471c6d..b062111 100644
+> > --- a/drivers/media/v4l2-core/v4l2-common.c
+> > +++ b/drivers/media/v4l2-core/v4l2-common.c
+> > @@ -121,9 +121,8 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+> >  	v4l2_set_subdevdata(sd, client);
+> >  	i2c_set_clientdata(client, sd);
+> >  	/* initialize name */
+> > -	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
+> > -		client->dev.driver->name, i2c_adapter_id(client->adapter),
+> > -		client->addr);
+> > +	snprintf(sd->name, sizeof(sd->name), "%s %s",
+> > +		client->dev.driver->name, dev_name(&client->dev));
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+> >  
+> 
+> I like the patch in principle. But what's the effect of this on the actual
+> sub-device (and entity) names? Looking at i2c_dev_set_name(), this will be
+> different. We can't change the existing entity naming in drivers, this will
+> break applications that expect them to be named in a certain way.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/i2c/msp3400-driver.c | 8 ++++----
- drivers/media/i2c/msp3400-driver.h | 8 +++++++-
- 2 files changed, 11 insertions(+), 5 deletions(-)
+Does your comment also prevent patch 1/2
+"media: v4l2-common: v4l2_spi_subdev_init : generate unique name"
+to be accepted ?
 
-diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
-index 3b9c729fbd52..ef70fe0c77a1 100644
---- a/drivers/media/i2c/msp3400-driver.c
-+++ b/drivers/media/i2c/msp3400-driver.c
-@@ -703,10 +703,10 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	v4l2_i2c_subdev_init(sd, client, &msp_ops);
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	state->pads[IF_AUD_DEC_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
--	state->pads[IF_AUD_DEC_PAD_IF_INPUT].sig_type = PAD_SIGNAL_AUDIO;
--	state->pads[IF_AUD_DEC_PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	state->pads[IF_AUD_DEC_PAD_OUT].sig_type = PAD_SIGNAL_AUDIO;
-+	state->pads[MSP3400_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[MSP3400_PAD_IF_INPUT].sig_type = PAD_SIGNAL_AUDIO;
-+	state->pads[MSP3400_PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[MSP3400_PAD_OUT].sig_type = PAD_SIGNAL_AUDIO;
- 
- 	sd->entity.function = MEDIA_ENT_F_IF_AUD_DECODER;
- 
-diff --git a/drivers/media/i2c/msp3400-driver.h b/drivers/media/i2c/msp3400-driver.h
-index b6c7698bce5a..2bb9d5ff1bbd 100644
---- a/drivers/media/i2c/msp3400-driver.h
-+++ b/drivers/media/i2c/msp3400-driver.h
-@@ -52,6 +52,12 @@ extern int msp_standard;
- extern bool msp_dolby;
- extern int msp_stereo_thresh;
- 
-+enum msp3400_pads {
-+	MSP3400_PAD_IF_INPUT,
-+	MSP3400_PAD_OUT,
-+	MSP3400_NUM_PADS
-+};
-+
- struct msp_state {
- 	struct v4l2_subdev sd;
- 	struct v4l2_ctrl_handler hdl;
-@@ -106,7 +112,7 @@ struct msp_state {
- 	unsigned int         watch_stereo:1;
- 
- #if IS_ENABLED(CONFIG_MEDIA_CONTROLLER)
--	struct media_pad pads[IF_AUD_DEC_PAD_NUM_PADS];
-+	struct media_pad pads[MSP3400_NUM_PADS];
- #endif
- };
- 
+Philippe
+
 -- 
-2.17.1
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
