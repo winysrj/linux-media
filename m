@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:4367 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731781AbeHCQLH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Aug 2018 12:11:07 -0400
-Date: Fri, 3 Aug 2018 17:14:29 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Ping-chung Chen <ping-chung.chen@intel.com>
-Cc: linux-media@vger.kernel.org, andy.yeh@intel.com, jim.lai@intel.com,
-        tfiga@chromium.org, grundler@chromium.org, rajmohan.mani@intel.com
-Subject: Re: [RESEND PATCH v4] media: imx208: Add imx208 camera sensor driver
-Message-ID: <20180803141428.jno2jgjo5xqca7gg@kekkonen.localdomain>
-References: <1533265497-16718-1-git-send-email-ping-chung.chen@intel.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:54770 "HELO
+        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1727050AbeHHQkO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 12:40:14 -0400
+Date: Wed, 8 Aug 2018 10:20:21 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Keiichi Watanabe <keiichiw@chromium.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        <kieran.bingham@ideasonboard.com>,
+        Douglas Anderson <dianders@chromium.org>,
+        <ezequiel@collabora.com>, <matwey@sai.msu.ru>
+Subject: Re: [RFC PATCH v1] media: uvcvideo: Cache URB header data before
+ processing
+In-Reply-To: <CAD90VcbpeVatm33h2QwGnq_him5KkL1b6n8j0D_RyUyRi3osaQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.44L0.1808081015110.1466-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1533265497-16718-1-git-send-email-ping-chung.chen@intel.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ping-chung,
+On Wed, 8 Aug 2018, Keiichi Watanabe wrote:
 
-On Fri, Aug 03, 2018 at 11:04:57AM +0800, Ping-chung Chen wrote:
-> From: "Chen, Ping-chung" <ping-chung.chen@intel.com>
+> Hi Laurent, Kieran, Tomasz,
 > 
-> Add a V4L2 sub-device driver for the Sony IMX208 image sensor.
-> This is a camera sensor using the I2C bus for control and the
-> CSI-2 bus for data.
+> Thank you for reviews and suggestions.
+> I want to do additional measurements for improving the performance.
 > 
-> Signed-off-by: Ping-Chung Chen <ping-chung.chen@intel.com>
-> ---
-> since v1:
-> -- Update the function media_entity_pads_init for upstreaming.
-> -- Change the structure name mutex as imx208_mx.
-> -- Refine the control flow of test pattern function.
-> -- vflip/hflip control support (will impact the output bayer order)
-> -- support 4 bayer orders output (via change v/hflip)
->     - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
-> -- Simplify error handling in the set_stream function.
-> since v2:
-> -- Refine coding style.
-> -- Fix the if statement to use pm_runtime_get_if_in_use().
-> -- Print more error log during error handling.
-> -- Remove mutex_destroy() from imx208_free_controls().
-> -- Add more comments.
-> since v3:
-> -- Set explicit indices to link frequencies.
+> Let me clarify my understanding:
+> Currently, if the platform doesn't support coherent-DMA (e.g. ARM),
+> urb_buffer is allocated by usb_alloc_coherent with
+> URB_NO_TRANSFER_DMA_MAP flag instead of using kmalloc.
 
-Could you add support for obtaining the link frequencies from firmware,
-please?
+Not exactly.  You are mixing up allocation with mapping.  The speed of 
+the allocation doesn't matter; all that matters is whether the memory 
+is cached and when it gets mapped/unmapped.
 
--- 
-Kind regards,
+> This is because we want to avoid frequent DMA mappings, which are
+> generally expensive.
+> However, memories allocated in this way are not cached.
+> 
+> So, we wonder if using usb_alloc_coherent is really fast.
+> In other words, we want to know which is better:
+> "No DMA mapping/Uncached memory" v.s. "Frequent DMA mapping/Cached memory".
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+There is no need to wonder.  "Frequent DMA mapping/Cached memory" is 
+always faster than "No DMA mapping/Uncached memory".
+
+The only issue is that on some platform (such as x86) but not others,
+there is a third option: "No DMA mapping/Cached memory".  On platforms 
+which support it, this is the fastest option.
+
+Alan Stern
