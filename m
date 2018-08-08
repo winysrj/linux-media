@@ -1,176 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59020 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:59272 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727104AbeHHP1U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 11:27:20 -0400
+        with ESMTP id S1726869AbeHHQJX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 12:09:23 -0400
 Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [RFC PATCH v1] media: uvcvideo: Cache URB header data before
- processing
-To: Keiichi Watanabe <keiichiw@chromium.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process
+ context
+To: Tomasz Figa <tfiga@google.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Douglas Anderson <dianders@chromium.org>,
-        stern@rowland.harvard.edu, ezequiel@collabora.com,
-        matwey@sai.msu.ru
-References: <20180627103408.33003-1-keiichiw@chromium.org>
- <11886963.8nkeRH3xvi@avalon>
- <CAAFQd5CM63BQ1oxmrhZuxTVj7pc=6XUJKa-cJ3gFBHxiF3HPfQ@mail.gmail.com>
- <3411643.50e8mdYzJX@avalon>
- <CAD90VcbpeVatm33h2QwGnq_him5KkL1b6n8j0D_RyUyRi3osaQ@mail.gmail.com>
+        g.liakhovetski@gmx.de, olivier.braun@stereolabs.com,
+        troy.kisky@boundarydevices.com,
+        Randy Dunlap <rdunlap@infradead.org>, philipp.zabel@gmail.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
+ <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
+ <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
 From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <febb65c6-e4f0-5c78-952f-ae8bbb74d3c0@ideasonboard.com>
-Date: Wed, 8 Aug 2018 14:07:37 +0100
+Message-ID: <2b71a365-ce3b-8eaa-67d7-7577bac2d5b0@ideasonboard.com>
+Date: Wed, 8 Aug 2018 14:49:32 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAD90VcbpeVatm33h2QwGnq_him5KkL1b6n8j0D_RyUyRi3osaQ@mail.gmail.com>
+In-Reply-To: <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Hi Tomasz,
 
-On 08/08/18 13:45, Keiichi Watanabe wrote:
-> Hi Laurent, Kieran, Tomasz,
+On 07/08/18 10:54, Tomasz Figa wrote:
+> Hi Kieran,
 > 
-> Thank you for reviews and suggestions.
-> I want to do additional measurements for improving the performance.
+> On Wed, Mar 28, 2018 at 1:47 AM Kieran Bingham
+> <kieran.bingham@ideasonboard.com> wrote:
+> [snip]
+>> @@ -1544,25 +1594,29 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
+>>   */
+>>  static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
+>>  {
+>> -       struct urb *urb;
+>> -       unsigned int i;
+>> +       struct uvc_urb *uvc_urb;
+>>
+>>         uvc_video_stats_stop(stream);
+>>
+>> -       for (i = 0; i < UVC_URBS; ++i) {
+>> -               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
+>> +       /*
+>> +        * We must poison the URBs rather than kill them to ensure that even
+>> +        * after the completion handler returns, any asynchronous workqueues
+>> +        * will be prevented from resubmitting the URBs
+>> +        */
+>> +       for_each_uvc_urb(uvc_urb, stream)
+>> +               usb_poison_urb(uvc_urb->urb);
+>>
+>> -               urb = uvc_urb->urb;
+>> -               if (urb == NULL)
+>> -                       continue;
+>> +       flush_workqueue(stream->async_wq);
+>>
+>> -               usb_kill_urb(urb);
+>> -               usb_free_urb(urb);
+>> +       for_each_uvc_urb(uvc_urb, stream) {
+>> +               usb_free_urb(uvc_urb->urb);
+>>                 uvc_urb->urb = NULL;
+>>         }
+>>
+>>         if (free_buffers)
+>>                 uvc_free_urb_buffers(stream);
+>> +
+>> +       destroy_workqueue(stream->async_wq);
 > 
-> Let me clarify my understanding:
-> Currently, if the platform doesn't support coherent-DMA (e.g. ARM),
-> urb_buffer is allocated by usb_alloc_coherent with
-> URB_NO_TRANSFER_DMA_MAP flag instead of using kmalloc.
-> This is because we want to avoid frequent DMA mappings, which are
-> generally expensive.
-> However, memories allocated in this way are not cached.
+> In our testing, this function ends up being called twice, if before
+> suspend the camera is streaming and if the camera disconnects between
+> suspend and resume. This is because uvc_video_suspend() calls this
+> function (with free_buffers = 0), but uvc_video_resume() wouldn't call
+> uvc_init_video() due to an earlier failure and uvc_v4l2_release()
+> would end up calling this function again, while the workqueue is
+> already destroyed.
 > 
-> So, we wonder if using usb_alloc_coherent is really fast.
-> In other words, we want to know which is better:
-> "No DMA mapping/Uncached memory" v.s. "Frequent DMA mapping/Cached memory".
-> 
-> For this purpose, I'm planning to measure performance on ARM
-> Chromebooks in the following conditions:
-> 1. Current implementation with Kieran's patches
-> 2. 1. + my patch
-> 3. Use kmalloc instead
-> 
-> 1 and 2 are the same conditions I reported in the first mail on this thread.
-> For condition 3, I only have to add "#define CONFIG_DMA_NONCOHERENT"
-> at the beginning of uvc_video.c.
+> The following diff seems to take care of it:
 
-I'd be interested in numbers/performances both with and without my async
-if possible too.
+Thank you for the investigation and patch report ;D
 
-The async path can be easily disabled temporarily with the following
-change: (perhaps this should be a module option?)
+I think moving the workqueue allocation might be a reasonable option as
+suggested by Laurent in his review.
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c
-b/drivers/media/usb/uvc/uvc_video.c
-index 8bb6e90f3483..f9fbdc9bfa4b 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1505,7 +1505,8 @@ static void uvc_video_complete(struct urb *urb)
-        }
-
-        INIT_WORK(&uvc_urb->work, uvc_video_copy_data_work);
--       queue_work(stream->async_wq, &uvc_urb->work);
-+//     queue_work(stream->async_wq, &uvc_urb->work);
-+       uvc_video_copy_data_work(&uvc_urb->work);
- }
-
- /*
-
-
-I do suspect that even with cached buffers, it's probably likely we
-should still consider the async patches to move the memcopy out of
-interrupt context.
-
---
-Regards
-
-Kieran
-
-
+I'll look further into this when I get to another spin of the series.
 
 
 > 
-> Does this plan sound reasonable?
+> 8<~~~
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c
+> index c5e0ab564b1a..6fb890c8ba67 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1493,10 +1493,11 @@ static void uvc_uninit_video(struct
+> uvc_streaming *stream, int free_buffers)
+>                uvc_urb->urb = NULL;
+>        }
+> 
+> -       if (free_buffers)
+> +       if (free_buffers) {
+>                uvc_free_urb_buffers(stream);
+> -
+> -       destroy_workqueue(stream->async_wq);
+> +               destroy_workqueue(stream->async_wq);
+> +               stream->async_wq = NULL;
+> +       }
+> }
+> 
+> /*
+> @@ -1648,10 +1649,12 @@ static int uvc_init_video(struct uvc_streaming
+> *stream, gfp_t gfp_flags)
+> 
+>        uvc_video_stats_start(stream);
+> 
+> -       stream->async_wq = alloc_workqueue("uvcvideo", WQ_UNBOUND | WQ_HIGHPRI,
+> -                       0);
+> -       if (!stream->async_wq)
+> -               return -ENOMEM;
+> +       if (!stream->async_wq) {
+> +               stream->async_wq = alloc_workqueue("uvcvideo",
+> +                                                  WQ_UNBOUND | WQ_HIGHPRI, 0);
+> +               if (!stream->async_wq)
+> +                       return -ENOMEM;
+> +       }
+> 
+>        if (intf->num_altsetting > 1) {
+>                struct usb_host_endpoint *best_ep = NULL;
+> ~~~>8
 > 
 > Best regards,
-> Keiichi
-> On Wed, Aug 8, 2018 at 5:42 PM Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->>
->> Hi Tomasz,
->>
->> On Wednesday, 8 August 2018 07:08:59 EEST Tomasz Figa wrote:
->>> On Tue, Jul 31, 2018 at 1:00 AM Laurent Pinchart wrote:
->>>> On Wednesday, 27 June 2018 13:34:08 EEST Keiichi Watanabe wrote:
->>>>> On some platforms with non-coherent DMA (e.g. ARM), USB drivers use
->>>>> uncached memory allocation methods. In such situations, it sometimes
->>>>> takes a long time to access URB buffers.  This can be a cause of video
->>>>> flickering problems if a resolution is high and a USB controller has
->>>>> a very tight time limit. (e.g. dwc2) To avoid this problem, we copy
->>>>> header data from (uncached) URB buffer into (cached) local buffer.
->>>>>
->>>>> This change should make the elapsed time of the interrupt handler
->>>>> shorter on platforms with non-coherent DMA. We measured the elapsed
->>>>> time of each callback of uvc_video_complete without/with this patch
->>>>> while capturing Full HD video in
->>>>> https://webrtc.github.io/samples/src/content/getusermedia/resolution/.
->>>>> I tested it on the top of Kieran Bingham's Asynchronous UVC series
->>>>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg128359.html.
->>>>> The test device was Jerry Chromebook (RK3288) with Logitech Brio 4K.
->>>>> I collected data for 5 seconds. (There were around 480 callbacks in
->>>>> this case.) The following result shows that this patch makes
->>>>> uvc_video_complete about 2x faster.
->>>>>
->>>>>            | average | median  | min     | max     | standard deviation
->>>>> w/o caching| 45319ns | 40250ns | 33834ns | 142625ns| 16611ns
->>>>> w/  caching| 20620ns | 19250ns | 12250ns | 56583ns | 6285ns
->>>>>
->>>>> In addition, we confirmed that this patch doesn't make it worse on
->>>>> coherent DMA architecture by performing the same measurements on a
->>>>> Broadwell Chromebox with the same camera.
->>>>>
->>>>>            | average | median  | min     | max     | standard deviation
->>>>> w/o caching| 21026ns | 21424ns | 12263ns | 23956ns | 1932ns
->>>>> w/  caching| 20728ns | 20398ns |  8922ns | 45120ns | 3368ns
->>>>
->>>> This is very interesting, and it seems related to https://
->>>> patchwork.kernel.org/patch/10468937/. You might have seen that discussion
->>>> as you got CC'ed at some point.
->>>>
->>>> I wonder whether performances couldn't be further improved by allocating
->>>> the URB buffers cached, as that would speed up the memcpy() as well. Have
->>>> you tested that by any chance ?
->>>
->>> We haven't measure it, but the issue being solved here was indeed
->>> significantly reduced by using cached URB buffers, even without
->>> Kieran's async series. After we discovered the latter, we just
->>> backported it and decided to further tweak the last remaining bit, to
->>> avoid playing too much with the DMA API in code used in production on
->>> several different platforms (including both ARM and x86).
->>>
->>> If you think we could change the driver to use cached buffers instead
->>> (as the pwc driver mentioned in another thread), I wouldn't have
->>> anything against it obviously.
->>
->> I think there's a chance that performances could be further improved.
->> Furthermore, it would lean to simpler code as we wouldn't need to deal with
->> caching headers manually. I would however like to see numbers before making a
->> decision.
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
->>
->>
+> Tomasz
+> 
 
 -- 
 Regards
