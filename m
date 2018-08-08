@@ -1,144 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:59272 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726869AbeHHQJX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 12:09:23 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v4 6/6] media: uvcvideo: Move decode processing to process
- context
-To: Tomasz Figa <tfiga@google.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        g.liakhovetski@gmx.de, olivier.braun@stereolabs.com,
-        troy.kisky@boundarydevices.com,
-        Randy Dunlap <rdunlap@infradead.org>, philipp.zabel@gmail.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <cover.3cb9065dabdf5d455da508fb4109201e626d5ee7.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <cae511f90085701e7093ce39dc8dabf8fc16b844.1522168131.git-series.kieran.bingham@ideasonboard.com>
- <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <2b71a365-ce3b-8eaa-67d7-7577bac2d5b0@ideasonboard.com>
-Date: Wed, 8 Aug 2018 14:49:32 +0100
+Received: from bombadil.infradead.org ([198.137.202.133]:56102 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727048AbeHHQSM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 12:18:12 -0400
+Date: Wed, 8 Aug 2018 10:58:20 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: vsp1: cleanup a false positive warning
+Message-ID: <20180808105820.67469806@coco.lan>
+In-Reply-To: <20180507122103.40048014@vento.lan>
+References: <a1bedd480c31bcc2f48cd6d965a9bb853e8786ee.1525436031.git.mchehab+samsung@kernel.org>
+        <3223850.s1aV98ALtZ@avalon>
+        <20180507122103.40048014@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5CQEhmuLbs0dmGfu66x1Xq1V_kOT0bV_DoPitkkOX5Q4A@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Em Mon, 7 May 2018 12:21:03 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 
-On 07/08/18 10:54, Tomasz Figa wrote:
-> Hi Kieran,
+> Em Mon, 07 May 2018 17:05:24 +0300
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 > 
-> On Wed, Mar 28, 2018 at 1:47 AM Kieran Bingham
-> <kieran.bingham@ideasonboard.com> wrote:
-> [snip]
->> @@ -1544,25 +1594,29 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
->>   */
->>  static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
->>  {
->> -       struct urb *urb;
->> -       unsigned int i;
->> +       struct uvc_urb *uvc_urb;
->>
->>         uvc_video_stats_stop(stream);
->>
->> -       for (i = 0; i < UVC_URBS; ++i) {
->> -               struct uvc_urb *uvc_urb = &stream->uvc_urb[i];
->> +       /*
->> +        * We must poison the URBs rather than kill them to ensure that even
->> +        * after the completion handler returns, any asynchronous workqueues
->> +        * will be prevented from resubmitting the URBs
->> +        */
->> +       for_each_uvc_urb(uvc_urb, stream)
->> +               usb_poison_urb(uvc_urb->urb);
->>
->> -               urb = uvc_urb->urb;
->> -               if (urb == NULL)
->> -                       continue;
->> +       flush_workqueue(stream->async_wq);
->>
->> -               usb_kill_urb(urb);
->> -               usb_free_urb(urb);
->> +       for_each_uvc_urb(uvc_urb, stream) {
->> +               usb_free_urb(uvc_urb->urb);
->>                 uvc_urb->urb = NULL;
->>         }
->>
->>         if (free_buffers)
->>                 uvc_free_urb_buffers(stream);
->> +
->> +       destroy_workqueue(stream->async_wq);
+> > Hi Mauro,
+> > 
+> > Thank you for the patch.
+> > 
+> > On Friday, 4 May 2018 15:13:58 EEST Mauro Carvalho Chehab wrote:  
+> > > With the new vsp1 code changes introduced by changeset
+> > > f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines
+> > > dynamically"), smatch complains with:
+> > > 	drivers/media/platform/vsp1/vsp1_drm.c:262 vsp1_du_pipeline_setup_bru()
+> > > error: we previously assumed 'pipe->bru' could be null (see line 180)
+> > > 
+> > > This is a false positive, as, if pipe->bru is NULL, the brx
+> > > var will be different, with ends by calling a code that will
+> > > set pipe->bru to another value.
+> > > 
+> > > Yet, cleaning this false positive is as easy as adding an explicit
+> > > check if pipe->bru is NULL.    
+> > 
+> > It's not very difficult indeed, but it really is a false positive. I think the 
+> > proposed change decreases readability, the condition currently reads as "if 
+> > (new brx != old brx)", why does smatch even flag that as an error ?  
 > 
-> In our testing, this function ends up being called twice, if before
-> suspend the camera is streaming and if the camera disconnects between
-> suspend and resume. This is because uvc_video_suspend() calls this
-> function (with free_buffers = 0), but uvc_video_resume() wouldn't call
-> uvc_init_video() due to an earlier failure and uvc_v4l2_release()
-> would end up calling this function again, while the workqueue is
-> already destroyed.
-> 
-> The following diff seems to take care of it:
+> I've no idea. Never studied smatch code. If you don't think that
+> this is a fix for it, do you have an alternative patch (either to
+> smatch or to vsp1)?
 
-Thank you for the investigation and patch report ;D
+Ping.
 
-I think moving the workqueue allocation might be a reasonable option as
-suggested by Laurent in his review.
-
-I'll look further into this when I get to another spin of the series.
-
+We're carrying this warning since the latest Kernel release. If you
+don't have a better fix, let's apply it for 4.19. You may work on
+a different solution if you think you'll be able to either patch
+smatch in order to identify such complex logic or do something else
+at the vsp1 code to simplify the logic on future Kernel revisions.
 
 > 
-> 8<~~~
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c
-> index c5e0ab564b1a..6fb890c8ba67 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1493,10 +1493,11 @@ static void uvc_uninit_video(struct
-> uvc_streaming *stream, int free_buffers)
->                uvc_urb->urb = NULL;
->        }
+> Regards,
+> Mauro
 > 
-> -       if (free_buffers)
-> +       if (free_buffers) {
->                uvc_free_urb_buffers(stream);
-> -
-> -       destroy_workqueue(stream->async_wq);
-> +               destroy_workqueue(stream->async_wq);
-> +               stream->async_wq = NULL;
-> +       }
-> }
+> >   
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> > > ---
+> > >  drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> > > b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
+> > > 100644
+> > > --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> > > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> > > @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
+> > > *vsp1, brx = &vsp1->brs->entity;
+> > > 
+> > >  	/* Switch BRx if needed. */
+> > > -	if (brx != pipe->brx) {
+> > > +	if (brx != pipe->brx || !pipe->brx) {
+> > >  		struct vsp1_entity *released_brx = NULL;
+> > > 
+> > >  		/* Release our BRx if we have one. */    
+> >   
 > 
-> /*
-> @@ -1648,10 +1649,12 @@ static int uvc_init_video(struct uvc_streaming
-> *stream, gfp_t gfp_flags)
 > 
->        uvc_video_stats_start(stream);
 > 
-> -       stream->async_wq = alloc_workqueue("uvcvideo", WQ_UNBOUND | WQ_HIGHPRI,
-> -                       0);
-> -       if (!stream->async_wq)
-> -               return -ENOMEM;
-> +       if (!stream->async_wq) {
-> +               stream->async_wq = alloc_workqueue("uvcvideo",
-> +                                                  WQ_UNBOUND | WQ_HIGHPRI, 0);
-> +               if (!stream->async_wq)
-> +                       return -ENOMEM;
-> +       }
-> 
->        if (intf->num_altsetting > 1) {
->                struct usb_host_endpoint *best_ep = NULL;
-> ~~~>8
-> 
-> Best regards,
-> Tomasz
-> 
+> Thanks,
+> Mauro
 
--- 
-Regards
---
-Kieran
+
+
+Thanks,
+Mauro
