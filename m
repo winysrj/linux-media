@@ -1,129 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:42935 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726756AbeHHPFD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 11:05:03 -0400
-Received: by mail-lj1-f193.google.com with SMTP id f1-v6so1590173ljc.9
-        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2018 05:45:29 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([213.167.242.64]:58950 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726971AbeHHPLY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 11:11:24 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH] media: dt: adv7604: Fix slave map documentation
+To: =?UTF-8?B?TWljaGFsIFZva8OhxI0=?= <michal.vokac@ysoft.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20180807155452.797-1-kieran.bingham@ideasonboard.com>
+ <505904fb-7bfc-c455-740e-b72a14731eb9@ysoft.com>
+ <b5b25641-f898-577b-7762-d72dd64272cf@ideasonboard.com>
+ <5273911.bCJl0SVgzf@avalon> <bc69dca9-89c7-2df7-3dea-d6ee6651677e@ysoft.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <4e8e3546-21f0-33c2-42b2-db0bbe9ed11d@ideasonboard.com>
+Date: Wed, 8 Aug 2018 13:51:44 +0100
 MIME-Version: 1.0
-References: <20180627103408.33003-1-keiichiw@chromium.org> <11886963.8nkeRH3xvi@avalon>
- <CAAFQd5CM63BQ1oxmrhZuxTVj7pc=6XUJKa-cJ3gFBHxiF3HPfQ@mail.gmail.com> <3411643.50e8mdYzJX@avalon>
-In-Reply-To: <3411643.50e8mdYzJX@avalon>
-From: Keiichi Watanabe <keiichiw@chromium.org>
-Date: Wed, 8 Aug 2018 21:45:17 +0900
-Message-ID: <CAD90VcbpeVatm33h2QwGnq_him5KkL1b6n8j0D_RyUyRi3osaQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v1] media: uvcvideo: Cache URB header data before processing
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        kieran.bingham@ideasonboard.com,
-        Douglas Anderson <dianders@chromium.org>,
-        stern@rowland.harvard.edu, ezequiel@collabora.com,
-        matwey@sai.msu.ru
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <bc69dca9-89c7-2df7-3dea-d6ee6651677e@ysoft.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent, Kieran, Tomasz,
+Hi Michal,
 
-Thank you for reviews and suggestions.
-I want to do additional measurements for improving the performance.
+On 08/08/18 13:33, Michal Vokáč wrote:
+> On 8.8.2018 12:25, Laurent Pinchart wrote:
+>> Hi Kieran,
+>>
+>> On Wednesday, 8 August 2018 13:23:32 EEST Kieran Bingham wrote:
+>>> Hi Michal,
+>>>
+>>> Thank you for your review.
+>>>
+>>> +Rob, +Mark, +Laurent asking for opinions if anyone has any on prefixes
+>>> through media tree.
+>>>
+>>> On 08/08/18 08:48, Michal Vokáč wrote:
+>>>> On 7.8.2018 17:54, Kieran Bingham wrote:
+>>>> Hi Kieran,
+>>>>
+>>>>> The reg-names property in the documentation is missing an '='. Add it.
+>>>>>
+>>>>> Fixes: 9feb786876c7 ("media: dt-bindings: media: adv7604: Extend
+>>>>> bindings to allow specifying slave map addresses")
+>>>>
+>>>> "dt-bindings: media: " is preferred for the subject.
+>>>
+>>> This patch will go through the media-tree as far as I am aware, and
+>>> Mauro prefixes all commits through the media tree with "media:" if they
+>>> are not already prefixed.
+> 
+> OK, I did not know about that practice with the prefix.
 
-Let me clarify my understanding:
-Currently, if the platform doesn't support coherent-DMA (e.g. ARM),
-urb_buffer is allocated by usb_alloc_coherent with
-URB_NO_TRANSFER_DMA_MAP flag instead of using kmalloc.
-This is because we want to avoid frequent DMA mappings, which are
-generally expensive.
-However, memories allocated in this way are not cached.
+It's media specific. It used to be [media], but now changed to "media:"
 
-So, we wonder if using usb_alloc_coherent is really fast.
-In other words, we want to know which is better:
-"No DMA mapping/Uncached memory" v.s. "Frequent DMA mapping/Cached memory".
 
-For this purpose, I'm planning to measure performance on ARM
-Chromebooks in the following conditions:
-1. Current implementation with Kieran's patches
-2. 1. + my patch
-3. Use kmalloc instead
+> Anyway, why should this patch go through media-tree when it is a single
+> patch affecting device tree binding only? I would expect it to be picked
+> by Rob or Mark.
 
-1 and 2 are the same conditions I reported in the first mail on this thread.
-For condition 3, I only have to add "#define CONFIG_DMA_NONCOHERENT"
-at the beginning of uvc_video.c.
 
-Does this plan sound reasonable?
+My change 9feb786876c7 went through the media tree, because it directly
+affected a media driver. This change affects the same thing, so I
+assumed it's a media-tree patch, but I could be wrong. I'll await to be
+told :)
 
-Best regards,
-Keiichi
-On Wed, Aug 8, 2018 at 5:42 PM Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->
-> Hi Tomasz,
->
-> On Wednesday, 8 August 2018 07:08:59 EEST Tomasz Figa wrote:
-> > On Tue, Jul 31, 2018 at 1:00 AM Laurent Pinchart wrote:
-> > > On Wednesday, 27 June 2018 13:34:08 EEST Keiichi Watanabe wrote:
-> > >> On some platforms with non-coherent DMA (e.g. ARM), USB drivers use
-> > >> uncached memory allocation methods. In such situations, it sometimes
-> > >> takes a long time to access URB buffers.  This can be a cause of video
-> > >> flickering problems if a resolution is high and a USB controller has
-> > >> a very tight time limit. (e.g. dwc2) To avoid this problem, we copy
-> > >> header data from (uncached) URB buffer into (cached) local buffer.
-> > >>
-> > >> This change should make the elapsed time of the interrupt handler
-> > >> shorter on platforms with non-coherent DMA. We measured the elapsed
-> > >> time of each callback of uvc_video_complete without/with this patch
-> > >> while capturing Full HD video in
-> > >> https://webrtc.github.io/samples/src/content/getusermedia/resolution/.
-> > >> I tested it on the top of Kieran Bingham's Asynchronous UVC series
-> > >> https://www.mail-archive.com/linux-media@vger.kernel.org/msg128359.html.
-> > >> The test device was Jerry Chromebook (RK3288) with Logitech Brio 4K.
-> > >> I collected data for 5 seconds. (There were around 480 callbacks in
-> > >> this case.) The following result shows that this patch makes
-> > >> uvc_video_complete about 2x faster.
-> > >>
-> > >>            | average | median  | min     | max     | standard deviation
-> > >> w/o caching| 45319ns | 40250ns | 33834ns | 142625ns| 16611ns
-> > >> w/  caching| 20620ns | 19250ns | 12250ns | 56583ns | 6285ns
-> > >>
-> > >> In addition, we confirmed that this patch doesn't make it worse on
-> > >> coherent DMA architecture by performing the same measurements on a
-> > >> Broadwell Chromebox with the same camera.
-> > >>
-> > >>            | average | median  | min     | max     | standard deviation
-> > >> w/o caching| 21026ns | 21424ns | 12263ns | 23956ns | 1932ns
-> > >> w/  caching| 20728ns | 20398ns |  8922ns | 45120ns | 3368ns
-> > >
-> > > This is very interesting, and it seems related to https://
-> > > patchwork.kernel.org/patch/10468937/. You might have seen that discussion
-> > > as you got CC'ed at some point.
-> > >
-> > > I wonder whether performances couldn't be further improved by allocating
-> > > the URB buffers cached, as that would speed up the memcpy() as well. Have
-> > > you tested that by any chance ?
-> >
-> > We haven't measure it, but the issue being solved here was indeed
-> > significantly reduced by using cached URB buffers, even without
-> > Kieran's async series. After we discovered the latter, we just
-> > backported it and decided to further tweak the last remaining bit, to
-> > avoid playing too much with the DMA API in code used in production on
-> > several different platforms (including both ARM and x86).
-> >
-> > If you think we could change the driver to use cached buffers instead
-> > (as the pwc driver mentioned in another thread), I wouldn't have
-> > anything against it obviously.
->
-> I think there's a chance that performances could be further improved.
-> Furthermore, it would lean to simpler code as we wouldn't need to deal with
-> caching headers manually. I would however like to see numbers before making a
-> decision.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
+
+
+>>> Thus this would then become "media: dt-bindings: media: adv7604: ...."
+>>> as per my commit: 9feb786876c7 which seems a bit redundant.
+> 
+> Agree that this seems redundant. Absolutely no offense, just a curious
+> newbee question - why is the "media:" prefix added later on to *all* the
+> patches at all?
+
+Mauro's tree style choice as far as I know.
+
+
+> I understand that each subsystem has it own convenience what subject
+> prefix to use. Given that all patches are propperly formated after
+> the review process is finished I do not see a reason why the subject
+> should be changed.
+> 
+> So patches to "drivers/media/xxx" should land as "media: xxx: ..." and
+> patches to "Documentation/devicetree/bindings/xxx" should land as
+> "dt-bindings: media: xxx".
+> 
+> This allows easier git log browsing.
+>>>
+>>> Is it still desired ? If so I'll send a V2. (perhaps needed anyway, as I
+>>> seem to have erroneously shortened dt-bindings: to just dt: which wasn't
+>>> intentional.
+> 
+> I do not know. Some time ago I tripped over a patch from Rob explaining
+> how to properly format dt-binding related patches. I also read a bunch
+> of his replies to emails that were kind of "out of bounds" in this regard.
+> So I got an impression that he is starting to be upset that people still
+> make the same mistakes and do not read
+> devicetree/bindings/submitting-patches.txt
+
+Well - I didn't know that existed :) So I've learnt something new.
+
+Seems we now have three "submitting-patches" files to read:
+
+find | grep submitting-patches
+./Documentation/process/submitting-patches.rst
+./Documentation/hwmon/submitting-patches
+./Documentation/devicetree/bindings/submitting-patches.txt
+
+
+Perhaps adding some rules into checkpatch.pl is the way forward to
+enforce prefixes where necessary ?
+
+> I deeply memorized that "rules" and once a while I go through the DT list
+> and reply to some emails that does not fit. Just because I am sure
+> that all maintainers are overloaded and surely have something more useful
+> to do than commenting on trivial mistakes.
+Absolutely! I believe that is a worthwhile thing to do :) and certainly
+eases the strain on maintainers.
+
+
+> Next time I will choose more wisely what emails I reply to :)
+>>>
+>>>> I think you should also add device tree maintainers to the recipients.
+>>>
+>>> Added to this mail to ask opinions on patch prefixes above.
+>>>
+>>> Originally, I believed the list was sufficient as this is a trivial
+>>> patch, and it goes through the media tree.
+>>>
+>>> But, it turned out to be more controversial :)
+>>>
+>>> Rob, Mark, should I add you to all patches affecting DT? Or is the list
+>>> sufficient?
+>>
+>> Given the insane amount of patches received by DT maintainers, I
+>> personally
+>> try to use common sense and only disturb them when needed. Such a typo
+>> fix
+>> doesn't qualify for a full CC list in my opinion.
+> 
+> OK, sorry you spent your time discussing such a trivial thing folks.
+> I am still learning how to efficiently contribute and I still very much
+> depend on get_maintainers.pl output and other great tools others created ;)
+
+Yes, the difficulty is having so many lists, and subsystems with
+different preferences. I've been told off for blindly including all
+recipients from get_maintainers. Otherwise I'd just always use
+ "git send-email --cc-cmd ./scripts/get_maintainers.pl ..."
+
+
+> Thank you for your time,
+
+And yours :)
+
+> Michal
+
+Kieran
+
+
+> 
+>>>>> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>>>>> ---
+>>>>>    Documentation/devicetree/bindings/media/i2c/adv7604.txt | 2 +-
+>>>>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+>>>>> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+>>>>> index dcf57e7c60eb..b3e688b77a38 100644
+>>>>> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+>>>>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
+>>>>> @@ -66,7 +66,7 @@ Example:
+>>>>>             * other maps will retain their default addresses.
+>>>>>             */
+>>>>>            reg = <0x4c>, <0x66>;
+>>>>> -        reg-names "main", "edid";
+>>>>> +        reg-names = "main", "edid";
+>>>>>              reset-gpios = <&ioexp 0 GPIO_ACTIVE_LOW>;
+>>>>>            hpd-gpios = <&ioexp 2 GPIO_ACTIVE_HIGH>;
+>>
+> 
+
+-- 
+Regards
+--
+Kieran
