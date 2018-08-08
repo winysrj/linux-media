@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:57891 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:58142 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726733AbeHHORA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Aug 2018 10:17:00 -0400
-Message-ID: <cc8a91347e03d85ecbb9ff2dcb765cc4e2411284.camel@bootlin.com>
+        id S1726733AbeHHOZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Aug 2018 10:25:08 -0400
+Message-ID: <d10ae3939e0559cbb0ce9584513d1499962d46c9.camel@bootlin.com>
 Subject: Re: [PATCH v6 1/8] media: v4l: Add definitions for MPEG2 slice
  format and metadata
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
@@ -26,251 +26,29 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Wed, 08 Aug 2018 13:57:25 +0200
-In-Reply-To: <cf07a5d1-9179-44af-de11-61f02bbcf904@xs4all.nl>
+Date: Wed, 08 Aug 2018 14:05:31 +0200
+In-Reply-To: <57d8c895-ad9f-5105-e923-9666fdf909d9@xs4all.nl>
 References: <20180725100256.22833-1-paul.kocialkowski@bootlin.com>
          <20180725100256.22833-2-paul.kocialkowski@bootlin.com>
-         <cf07a5d1-9179-44af-de11-61f02bbcf904@xs4all.nl>
+         <57d8c895-ad9f-5105-e923-9666fdf909d9@xs4all.nl>
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-D31xMAXsK/g9Q3eW+EJt"
+        protocol="application/pgp-signature"; boundary="=-9LjEtgDN/MgaN2wTRtzY"
 Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-D31xMAXsK/g9Q3eW+EJt
+--=-9LjEtgDN/MgaN2wTRtzY
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Hans,
+Hi,
 
-On Sat, 2018-08-04 at 13:35 +0200, Hans Verkuil wrote:
-> Hi Paul,
->=20
-> Some comments below. It looks pretty good, it's mostly small things that =
-I
-> commented upon.
-
-And thanks for the review!
-
+On Sat, 2018-08-04 at 15:30 +0200, Hans Verkuil wrote:
 > On 07/25/2018 12:02 PM, Paul Kocialkowski wrote:
-> > Stateless video decoding engines require both the MPEG slices and
-> > associated metadata from the video stream in order to decode frames.
-> >=20
-> > This introduces definitions for a new pixel format, describing buffers
-> > with MPEG2 slice data, as well as a control structure for passing the
-> > frame metadata to drivers.
-> >=20
-> > This is based on work from both Florent Revest and Hugues Fruchet.
-> >=20
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > ---
-> >  .../media/uapi/v4l/extended-controls.rst      | 122 ++++++++++++++++++
-> >  .../media/uapi/v4l/pixfmt-compressed.rst      |   5 +
-> >  drivers/media/v4l2-core/v4l2-ctrls.c          |  54 ++++++++
-> >  drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
-> >  include/media/v4l2-ctrls.h                    |  18 ++-
-> >  include/uapi/linux/v4l2-controls.h            |  43 ++++++
-> >  include/uapi/linux/videodev2.h                |   5 +
-> >  7 files changed, 241 insertions(+), 7 deletions(-)
-> >=20
-> > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Docum=
-entation/media/uapi/v4l/extended-controls.rst
-> > index 9f7312bf3365..4a29d89fd9ac 100644
-> > --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> > @@ -1497,6 +1497,128 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_t=
-ype -
-> > =20
-> > =20
-> > =20
-> > +.. _v4l2-mpeg-mpeg2:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS (struct)``
-> > +    Specifies the slice parameters (also known as slice header) for th=
-e
-> > +    associated MPEG-2 slice data. This includes all the necessary
-> > +    parameters for configuring a hardware decoder pipeline for MPEG-2.
->=20
-> This seems to be mostly a representation of the MPEG-2 "Picture coding
-> extension" (6.2.3.1 in ISO/IEC 13818-2: 1995).
-> ISO/IEC 13818-2
-> Is that correct? I think some references to the standard should be added
-> were appropriate.
 
-The structure does contain fields from the picture coding extension, but
-also takes some bits from other parts of the bitstream. I have added
-references to the specs and split out the different parts of the
-structure for the next revision. I also took the occasion to add/rename
-some fields to stick closer to the bitstream fields.
+[...]
 
-> > +
-> > +.. tabularcolumns:: |p{2.0cm}|p{4.0cm}|p{11.0cm}|
-> > +
-> > +.. c:type:: v4l2_ctrl_mpeg2_slice_params
-> > +
-> > +.. cssclass:: longtable
-> > +
-> > +.. flat-table:: struct v4l2_ctrl_mpeg2_slice_params
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +    :widths:       1 1 2
-> > +
-> > +    * - __u32
-> > +      - ``slice_len``
-> > +      - Length (in bits) of the current slice data.
-> > +    * - __u32
-> > +      - ``slice_pos``
-> > +      - Position (in bits) of the current slice data, relative to the
-> > +        frame start.
-> > +    * - __u16
-> > +      - ``width``
-> > +      - Width of the corresponding output frame for the current slice.
-> > +    * - __u16
-> > +      - ``height``
-> > +      - Height of the corresponding output frame for the current slice=
-.
-> > +    * - __u8
-> > +      - ``slice_type``
-> > +      - Picture coding type for the frame covered by the current slice
-> > +        (V4L2_MPEG2_SLICE_TYPE_I, V4L2_MPEG2_SLICE_TYPE_P or
-> > +        V4L2_MPEG2_SLICE_PCT_B).
-> > +    * - __u8
-> > +      - ``f_code[2][2]``
-> > +      - Motion vector codes.
-> > +    * - __u8
-> > +      - ``intra_dc_precision``
-> > +      - Precision of Discrete Cosine transform (0: 8 bits precision,
-> > +        1: 9 bits precision, 2: 10 bits precision, 11: 11 bits precisi=
-on).
-> > +    * - __u8
-> > +      - ``picture_structure``
-> > +      - Picture structure (1: interlaced top field,
-> > +        2: interlaced bottom field, 3: progressive frame).
-> > +    * - __u8
-> > +      - ``top_field_first``
-> > +      - If set to 1 and interlaced stream, top field is output first.
-> > +    * - __u8
-> > +      - ``frame_pred_frame_dct``
-> > +      - If set to 1, only frame-DCT and frame prediction are used.
-> > +    * - __u8
-> > +      - ``concealment_motion_vectors``
-> > +      -  If set to 1, motion vectors are coded for intra macroblocks.
-> > +    * - __u8
-> > +      - ``q_scale_type``
-> > +      - This flag affects the inverse quantisation process.
->=20
-> quantization
->=20
-> The american spelling appears to be the standard in our documentation, so
-> let's stick to that.
-
-I see, that makes sense.
-
-> > +    * - __u8
-> > +      - ``intra_vlc_format``
-> > +      - This flag affects the decoding of transform coefficient data.
-> > +    * - __u8
-> > +      - ``alternate_scan``
-> > +      - This flag affects the decoding of transform coefficient data.
-> > +    * - __u8
-> > +      - ``backward_ref_index``
-> > +      - Index for the V4L2 buffer to use as backward reference, used w=
-ith
-> > +        B-coded and P-coded frames.
-> > +    * - __u8
-> > +      - ``forward_ref_index``
-> > +      - Index for the V4L2 buffer to use as forward reference, used wi=
-th
-> > +        P-coded frames.
-> > +    * - :cspan:`2`
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION (struct)``
-> > +    Specifies quantization matrices for the associated MPEG-2 slice da=
-ta.
-> > +
-> > +.. tabularcolumns:: |p{2.0cm}|p{4.0cm}|p{11.0cm}|
-> > +
-> > +.. c:type:: v4l2_ctrl_mpeg2_quantization
-> > +
-> > +.. cssclass:: longtable
-> > +
-> > +.. flat-table:: struct v4l2_ctrl_mpeg2_quantization
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +    :widths:       1 1 2
-> > +
-> > +    * - __u8
-> > +      - ``load_intra_quantiser_matrix``
-> > +      - One bit to indicate whether to load the intra quantiser matrix=
-.
->=20
-> So the MPEG-2 spec appears to follow the British spelling, so for consist=
-ency
-> with that spec we should stick to that for the field name.
->=20
-> I'm not sure what is better in the description: stick to quantiser or cha=
-nge
-> it to the US quantizer. I think we should keep quantiser since it looks w=
-eird
-> otherwise.
-
-Or I could just reformulate it to mention the ``intra_quantiser_matrix``
-field directly, instead of breaking it down into words.
-
-> > +    * - __u32
-> > +      - ``load_non_intra_quantiser_matrix``
-> > +      - One bit to indicate whether to load the non-intra quantiser ma=
-trix.
-> > +    * - __u32
-> > +      - ``load_chroma_intra_quantiser_matrix``
-> > +      - One bit to indicate whether to load the chroma intra quantiser=
- matrix,
-> > +        only relevant for non-4:2:0 YUV formats.
-> > +    * - __u32
-> > +      - ``load_chroma_non_intra_quantiser_matrix``
-> > +      - One bit to indicate whether to load the non-chroma intra quant=
-iser
-> > +        matrix, only relevant for non-4:2:0 YUV formats.
-> > +    * - __u32
-> > +      - ``intra_quantiser_matrix[64]``
-> > +      - The intra quantiser matrix coefficients, in zigzag scanning or=
-der.
-> > +        It is relevant for both luma and chroma components, although i=
-t can be
-> > +        superseded by the chroma-specific matrix for non-4:2:0 YUV for=
-mats.
-> > +    * - __u32
-> > +      - ``non_intra_quantiser_matrix[64]``
-> > +      - The non-intra quantiser matrix coefficients, in zigzag scannin=
-g order.
-> > +        It is relevant for both luma and chroma components, although i=
-t can be
-> > +        superseded by the chroma-specific matrix for non-4:2:0 YUV for=
-mats.
-> > +    * - __u32
-> > +      - ``chroma_intra_quantiser_matrix[64]``
-> > +      - The intra quantiser matrix coefficients for the chroma YUV com=
-ponent,
-> > +        in zigzag scanning order. Only relevant for non-4:2:0 YUV form=
-ats.
-> > +    * - __u32
-> > +      - ``chroma_non_intra_quantiser_matrix[64]``
-> > +      - The non-intra quantiser matrix coefficients for the chroma YUV=
- component,
-> > +        in zigzag scanning order. Only relevant for non-4:2:0 YUV form=
-ats.
->=20
-> According to the MPEG-2 spec (6.3.11) these are all unsigned 8 bit values=
-, so why
-> use __u32?
-
-Woops, that was purely a mistake. It's all __u8 indeed.
-
-> > +    * - :cspan:`2`
-> > =20
-> >  MFC 5.1 MPEG Controls
-> >  ---------------------
 > > diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Docum=
 entation/media/uapi/v4l/pixfmt-compressed.rst
 > > index abec03937bb3..4e73f62b5163 100644
@@ -286,6 +64,14 @@ entation/media/uapi/v4l/pixfmt-compressed.rst
 > > +      - 'MG2S'
 > > +      - MPEG2 parsed slice data, as extracted from the MPEG2 bitstream=
 .
+>=20
+> This does not mention that this requires the use of the Request API and w=
+hich controls
+> are compulsory in the request.
+
+Right, so I will add a more extensive description regarding the intended
+use case for this format, covering what controls are required.
+
 > >      * .. _V4L2-PIX-FMT-MPEG4:
 > > =20
 > >        - ``V4L2_PIX_FMT_MPEG4``
@@ -304,6 +90,19 @@ Header";
 der";
 > > +	case V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION:		return "MPEG2 Quantizat=
 ion Matrices";
+>=20
+> Use MPEG-2 instead of MPEG2 in these two descriptions.
+
+Will do!
+
+Cheers,
+
+Paul
+
+> Regards,
+>=20
+> 	Hans
+>=20
 > > =20
 > >  	/* VPX controls */
 > >  	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of P=
@@ -367,11 +166,6 @@ ctrl, u32 idx,
 > > +
 > > +		if (p_mpeg2_slice_params->backward_ref_index > VIDEO_MAX_FRAME ||
 > > +		    p_mpeg2_slice_params->forward_ref_index > VIDEO_MAX_FRAME)
->=20
-> Should be >=3D
-
-Noted, thanks.
-
 > > +			return -EINVAL;
 > > +
 > > +		return 0;
@@ -408,11 +202,6 @@ core/v4l2-ioctl.c
 > >  		case V4L2_PIX_FMT_MPEG2:	descr =3D "MPEG-2 ES"; break;
 > > +		case V4L2_PIX_FMT_MPEG2_SLICE:	descr =3D "MPEG-2 parsed slice data";=
  break;
->=20
-> "MPEG-2 Parsed Slice Data"
-
-Will do.
-
 > >  		case V4L2_PIX_FMT_MPEG4:	descr =3D "MPEG-4 part 2 ES"; break;
 > >  		case V4L2_PIX_FMT_XVID:		descr =3D "Xvid"; break;
 > >  		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr =3D "VC-1 (SMPTE 412M Annex G)"=
@@ -466,18 +255,8 @@ l2-controls.h
 > > =20
 > > +#define V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS	(V4L2_CID_MPEG_BASE+450=
 )
->=20
-> I would insert this at V4L2_CID_MPEG_BASE+250
->=20
-> That is close to the existing MPEG2 controls, which makes sense.
-
-Agreed, will change for the next version.
-
 > > +#define V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION	(V4L2_CID_MPEG_BASE+451=
 )
->=20
-> and this becomes +251 of course.
->=20
 > > +
 > >  /*  Control IDs for VP8 streams
 > >   *  Although VP8 is not part of MPEG we add these controls to the MPEG=
@@ -516,28 +295,6 @@ s
 > > +
 > > +	__u8	backward_ref_index;
 > > +	__u8	forward_ref_index;
->=20
-> How certain are you that this is all that's needed? Should we add
-> a reserved field?
-
-There is a limited number of parameters that the bitstream offers and
-only a subset of these parameters affects the decoding process.
-
-VAAPI defines such a subset, so we used it as a base to figure out what
-fields from the bitstream are involved. I also went through the
-specification in detail to check whether we missed some relevant fields
-(and I found a few while preparing the next revision of this series).
-
-Still, I doubt that the result is perfect and it's hard to know whether
-a future decoder driver will require some specific field not required by
-Cedrus and that we missed, so adding reserved fields seems like the
-safest approach.
-
-On the other hand, I think that specific extensions should be added as
-separate controls, like it's done for the quantization matrices, so this
-should limit the relevant number of reserved fields to add. Something
-like 4-6 __u8 values seems reasonable IMO.
-
 > > +};
 > > +
 > > +struct v4l2_ctrl_mpeg2_quantization {
@@ -545,15 +302,6 @@ like 4-6 __u8 values seems reasonable IMO.
 > > +	__u8	load_non_intra_quantiser_matrix : 1;
 > > +	__u8	load_chroma_intra_quantiser_matrix : 1;
 > > +	__u8	load_chroma_non_intra_quantiser_matrix : 1;
->=20
-> I wouldn't use bitfields here. It doesn't add anything.
-
-Okay, then I'll drop bitfields from future patches as well.
-
-Cheers,
-
-Paul
-
 > > +
 > > +	__u8	intra_quantiser_matrix[64];
 > > +	__u8	non_intra_quantiser_matrix[64];
@@ -599,31 +347,30 @@ PTE 421M Annex G compliant stream */
 > > +	V4L2_CTRL_TYPE_MPEG2_QUANTIZATION =3D 0x0104,
 > >  };
 > > =20
+> >  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
 > >=20
-
-> Regards,
 >=20
-> 	Hans
+>=20
 --=20
 Paul Kocialkowski, Bootlin (formerly Free Electrons)
 Embedded Linux and kernel engineering
 https://bootlin.com
 
---=-D31xMAXsK/g9Q3eW+EJt
+--=-9LjEtgDN/MgaN2wTRtzY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltq2qUACgkQ3cLmz3+f
-v9EfUgf7B8T73oWHPJUPAweoLWOZfNrqlhsdLvxvpp4s9LwcOgsR19V2IVGUfXGZ
-9tKd9IaQ8Lketv0XEbSGl/JgWPfFJwYptdeBXWSo4PKMPmbnttsH9e9R6gMiZ1vS
-6QDnQJhASji9zPo2YZRjN1kGgMGdHCjSOyty600CmWD/PsxLXTAqPWBH/P3xHHmS
-AJ+xgCRsXFXbbSAqhM7JEfwSfAYt45UcFbeB/VWNP4Tp11ZNkyAOTjUxo/CXQ9Ie
-JFWgoRl76JvIBDpHLCiGOxYWSviQ/dOroYzVHZo28A931bYFVRWSHMzaR0ocmaB+
-d4p3DUcEG8tQFgkfJ0kLMf7XqYs3bA==
-=NO3U
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAltq3IsACgkQ3cLmz3+f
+v9GEfwf/W/yceBDnliYJBcQgKtKpvpiGQDSbZeOE2zr+qK+18C+AV6Veu51G87VC
+SKGsBAZEqtKXEB+WUYqyjDOnKYyo1m8GIueeJwCM0tB6o3JSSQqx787sfQM5ORck
+glSRHPl7fi09JAPEMY9iCRLdUybDVXnJOXjneXqpaL+VCKvDymf1r9738kF27kF2
+BmynjBwj+ZOtJqJgywd0PxzG+3nEBF1cdd6krGSwHX7/BvUTEK0EldGqwCu++9pC
+gbptdYxCKfnuMTRYFN30R2u2IIcZJwTvETUJ+fmDV1TTAN/Q5lFOJVOC01rfPU6h
+nLQD6b0M1bYb+lHUKc1n36pN6QIMog==
+=T/wA
 -----END PGP SIGNATURE-----
 
---=-D31xMAXsK/g9Q3eW+EJt--
+--=-9LjEtgDN/MgaN2wTRtzY--
