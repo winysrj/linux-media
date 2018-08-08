@@ -1,92 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:33954 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726979AbeHHKfK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 06:35:10 -0400
-Date: Wed, 8 Aug 2018 09:16:09 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Dmitry Osipenko <digetx@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Ville =?iso-8859-1?Q?Syrj=E4l=E4?=
-        <ville.syrjala@linux.intel.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        dri-devel@lists.freedesktop.org,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH v4 1/2] drm: Add generic colorkey properties for
- display planes
-Message-ID: <20180808081608.GK30658@n2100.armlinux.org.uk>
-References: <20180807172202.1961-1-digetx@gmail.com>
- <20180807172202.1961-2-digetx@gmail.com>
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:44173 "EHLO
+        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727026AbeHHKpi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 06:45:38 -0400
+Received: by mail-ed1-f65.google.com with SMTP id f23-v6so820936edr.11
+        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2018 01:27:00 -0700 (PDT)
+Date: Wed, 8 Aug 2018 10:26:57 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Gerd Hoffmann <kraxel@redhat.com>
+Cc: dri-devel@lists.freedesktop.org,
+        open list <linux-kernel@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] dma-buf: fix sanity check in dma_buf_export
+Message-ID: <20180808082657.GJ3008@phenom.ffwll.local>
+References: <20180808062540.13545-1-kraxel@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180807172202.1961-2-digetx@gmail.com>
+In-Reply-To: <20180808062540.13545-1-kraxel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 07, 2018 at 08:22:01PM +0300, Dmitry Osipenko wrote:
-> + * Glossary:
-> + *
-> + * Destination plane:
-> + *	Plane to which color keying properties are applied, this planes takes
-> + *	the effect of color keying operation. The effect is determined by a
-> + *	given color keying mode.
-> + *
-> + * Source plane:
-> + *	Pixels of this plane are the source for color key matching operation.
-...
-> +	/**
-> +	 * @DRM_PLANE_COLORKEY_MODE_TRANSPARENT:
-> +	 *
-> +	 * Destination plane pixels are completely transparent in areas
-> +	 * where pixels of a source plane are matching a given color key
-> +	 * range, in other cases pixels of a destination plane are unaffected.
-> +	 * In areas where two or more source planes overlap, the topmost
-> +	 * plane takes precedence.
-> +	 */
+On Wed, Aug 08, 2018 at 08:25:40AM +0200, Gerd Hoffmann wrote:
+> Commit 09ea0dfbf972 made map_atomic and map function pointers optional,
+> but didn't adapt the sanity check in dma_buf_export.  Fix that.
+> 
+> Note that the atomic map interface has been removed altogether meanwhile
+> (commit f664a52695), therefore we have to remove the map check only.
+> 
+> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
 
-This seems confusing to me.
+Chris Wilson just submitted the exact same patch ...
+-Daniel
 
-What you seem to be saying is that the "destination" plane would be the
-one which is (eg0 the graphic plane, and the "source" plane would be the
-the plane containing (eg) the video.  You seem to be saying that the
-colorkey matches the video and determines whether the pixels in the
-graphic plane are opaque or transparent.
-
-Surely that is the wrong way round - in video overlay, you want to
-colorkey match the contents of the graphic plane to determine which
-pixels from the video plane to overlay.
-
-If it's the other way around (source is the graphic, destination is the
-video) it makes less sense to use the "source" and "destination" terms,
-I can't see how you could describe a plane that is being overlaid on
-top of another plane as a "destination".
-
-I guess the terminology has come from a thought about using a GPU to
-physically do the colorkeying when combining two planes - if the GPU
-were to write to the "destination" plane, then this would be the wrong
-way around.  For starters, taking the above example, the video plane
-may well be smaller than the graphic plane.  If it's the other way
-around, that has other problems, like destroying the colorkey in the
-graphic plane when writing the video plane's contents to it.
-
-So, in summary, I don't think "destination" and "source" are
-particularly good terms to describe the operation, and I think you have
-them swapped in your description of
-"DRM_PLANE_COLORKEY_MODE_TRANSPARENT".
+> ---
+>  drivers/dma-buf/dma-buf.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 13884474d1..02f7f9a899 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -405,7 +405,6 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
+>  			  || !exp_info->ops->map_dma_buf
+>  			  || !exp_info->ops->unmap_dma_buf
+>  			  || !exp_info->ops->release
+> -			  || !exp_info->ops->map
+>  			  || !exp_info->ops->mmap)) {
+>  		return ERR_PTR(-EINVAL);
+>  	}
+> -- 
+> 2.9.3
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 13.8Mbps down 630kbps up
-According to speedtest.net: 13Mbps down 490kbps up
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
