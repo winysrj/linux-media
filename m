@@ -1,83 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58326 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729946AbeHCIYS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Aug 2018 04:24:18 -0400
-Subject: Re: [PATCH] media: platform: cros-ec-cec: fix dependency on
- MFD_CROS_EC
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>
-Cc: Lee Jones <lee.jones@linaro.org>,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38744 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731015AbeHIA4Q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 20:56:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20180724093624.1670671-1-arnd@arndb.de>
- <20180802195824.26a9720a@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cb43f8ab-ea10-b847-7724-ee9a87f88ca2@xs4all.nl>
-Date: Fri, 3 Aug 2018 08:29:26 +0200
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        kieran.bingham@ideasonboard.com,
+        Douglas Anderson <dianders@chromium.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>, matwey@sai.msu.ru
+Subject: Re: [RFC PATCH v1] media: uvcvideo: Cache URB header data before processing
+Date: Thu, 09 Aug 2018 01:35:13 +0300
+Message-ID: <2864865.ZqDiYThxxv@avalon>
+In-Reply-To: <CAAEAJfASOfP5tMuiBtufVbH91MNHgeTqpbmyc42igSnEKMxO1Q@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1808081015110.1466-100000@iolanthe.rowland.org> <1959555.Z0pJAWgXVZ@avalon> <CAAEAJfASOfP5tMuiBtufVbH91MNHgeTqpbmyc42igSnEKMxO1Q@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180802195824.26a9720a@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2018 12:58 AM, Mauro Carvalho Chehab wrote:
-> Em Tue, 24 Jul 2018 11:35:59 +0200
-> Arnd Bergmann <arnd@arndb.de> escreveu:
-> 
->> Without the MFD driver, we run into a link error:
-> 
-> Weird... I'm not seeing this driver at the media tree... was it merged via
-> some other tree?
+Hi Ezequiel,
 
-Yes, it's going via the mfd subsystem. This driver touched on the mfd, drm and
-media subsystems, in the end it was decided to let the mfd subsystem take this
-since it had the most impact on that subsystem.
+On Wednesday, 8 August 2018 19:29:56 EEST Ezequiel Garcia wrote:
+> On 8 August 2018 at 13:22, Laurent Pinchart wrote:
+> > On Wednesday, 8 August 2018 17:20:21 EEST Alan Stern wrote:
+> >> On Wed, 8 Aug 2018, Keiichi Watanabe wrote:
+> >>> Hi Laurent, Kieran, Tomasz,
+> >>> 
+> >>> Thank you for reviews and suggestions.
+> >>> I want to do additional measurements for improving the performance.
+> >>> 
+> >>> Let me clarify my understanding:
+> >>> Currently, if the platform doesn't support coherent-DMA (e.g. ARM),
+> >>> urb_buffer is allocated by usb_alloc_coherent with
+> >>> URB_NO_TRANSFER_DMA_MAP flag instead of using kmalloc.
+> >> 
+> >> Not exactly.  You are mixing up allocation with mapping.  The speed of
+> >> the allocation doesn't matter; all that matters is whether the memory
+> >> is cached and when it gets mapped/unmapped.
+> >> 
+> >>> This is because we want to avoid frequent DMA mappings, which are
+> >>> generally expensive. However, memories allocated in this way are not
+> >>> cached.
+> >>> 
+> >>> So, we wonder if using usb_alloc_coherent is really fast.
+> >>> In other words, we want to know which is better:
+> >>> "No DMA mapping/Uncached memory" v.s. "Frequent DMA mapping/Cached
+> >>> memory".
+> > 
+> > The second option should also be split in two:
+> > 
+> > - cached memory with DMA mapping/unmapping around each transfer
+> > - cached memory with DMA mapping/unmapping at allocation/free time, and
+> > DMA sync around each transfer
+> 
+> I agree with this, the second one should be better.
+> 
+> I still wonder if there is anyway we can create a helper for this,
+> as I am under the impression most USB video4linux drivers
+> will want to implement the same.
 
+I agree with you, drivers shouldn't care.
+
+> > The second option should in theory lead to at least slightly better
+> > performances, but tests with the pwc driver have reported contradictory
+> > results. I'd like to know whether that's also the case with the uvcvideo
+> > driver, and if so, why.
+> 
+> I believe that is no longer the case. Matwey measured again and the results
+> are what we expected: a single mapping, and sync in the interrupt handler
+> is a little bit faster. See https://lkml.org/lkml/2018/8/4/44
+> 
+> 2) dma_unmap and dma_map in the handler:
+> 2A) dma_unmap_single call: 28.8 +- 1.5 usec
+> 2B) memcpy and the rest: 58 +- 6 usec
+> 2C) dma_map_single call: 22 +- 2 usec
+> Total: 110 +- 7 usec
+> 
+> 3) dma_sync_single_for_cpu
+> 3A) dma_sync_single_for_cpu call: 29.4 +- 1.7 usec
+> 3B) memcpy and the rest: 59 +- 6 usec
+> 3C) noop (trace events overhead): 5 +- 2 usec
+> Total: 93 +- 7 usec
+
+I hadn't caught up with the pwc e-mail thread, I now have, and I'm happy to 
+see that everything is now properly understood. Thanks again Matwey for your 
+work.
+
+-- 
 Regards,
 
-	Hans
-
-> 
->>
->> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_transmit':
->> cros-ec-cec.c:(.text+0x474): undefined reference to `cros_ec_cmd_xfer_status'
->> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_set_log_addr':
->> cros-ec-cec.c:(.text+0x60b): undefined reference to `cros_ec_cmd_xfer_status'
->> drivers/media/platform/cros-ec-cec/cros-ec-cec.o: In function `cros_ec_cec_adap_enable':
->> cros-ec-cec.c:(.text+0x77d): undefined reference to `cros_ec_cmd_xfer_status'
->>
->> As we can compile-test all the dependency, the extra '| COMPILE_TEST' is
->> not needed to get the build coverage, and we can simply turn MFD_CROS_EC
->> into a hard dependency to make it build in all configurations.
->>
->> Fixes: cd70de2d356e ("media: platform: Add ChromeOS EC CEC driver")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->>  drivers/media/platform/Kconfig | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
->> index 92b182da8e4d..018fcbed82e4 100644
->> --- a/drivers/media/platform/Kconfig
->> +++ b/drivers/media/platform/Kconfig
->> @@ -535,7 +535,7 @@ if CEC_PLATFORM_DRIVERS
->>  
->>  config VIDEO_CROS_EC_CEC
->>  	tristate "ChromeOS EC CEC driver"
->> -	depends on MFD_CROS_EC || COMPILE_TEST
->> +	depends on MFD_CROS_EC
->>  	select CEC_CORE
->>  	select CEC_NOTIFIER
->>  	---help---
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+Laurent Pinchart
