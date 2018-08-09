@@ -1,109 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:36168 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726744AbeHDOqK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 10:46:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 09/34] videodev2.h: add request_fd field to v4l2_ext_controls
-Date: Sat,  4 Aug 2018 14:45:01 +0200
-Message-Id: <20180804124526.46206-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
-References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.133]:52882 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730634AbeHISaG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 14:30:06 -0400
+Date: Thu, 9 Aug 2018 13:04:21 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        p.zabel@pengutronix.de, afshin.nasser@gmail.com,
+        javierm@redhat.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 19/22] [media] tvp5150: add input source selection
+ of_graph support
+Message-ID: <20180809130421.5fdac04d@coco.lan>
+In-Reply-To: <20180809143520.e2fwsuztfazmyl7e@pengutronix.de>
+References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+        <20180628162054.25613-20-m.felsch@pengutronix.de>
+        <20180730152938.50e69143@coco.lan>
+        <20180808152949.h7mpqb7evnvqiy5n@pengutronix.de>
+        <20180808155251.4062ff1f@coco.lan>
+        <20180809125507.4mxopx4yowjd3zgw@pengutronix.de>
+        <20180809103653.0f81de01@coco.lan>
+        <20180809143520.e2fwsuztfazmyl7e@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+Em Thu, 9 Aug 2018 16:35:20 +0200
+Marco Felsch <m.felsch@pengutronix.de> escreveu:
 
-If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
-can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
+> Hi Mauro,
+> 
+> Thanks for your feedback.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
- drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
- include/uapi/linux/videodev2.h                | 4 +++-
- 3 files changed, 10 insertions(+), 5 deletions(-)
+> > > > > +	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
+> > > > > +		remote->entity->name, remote->index, local->entity->name,
+> > > > > +		local->index, flags & MEDIA_LNK_FL_ENABLED);    
+> > > > 
+> > > > Hmm... the remote is the connector, right? I would switch the
+> > > > print message to point from the connector to tvp5150, as this is
+> > > > the signal flow.    
+> > > 
+> > > I don't know what you mean, I tought that's what I'm already do. If I
+> > > change it it will print something like: tvp5150 2-005d :0 -> Comp0 :0[1]  
+> > 
+> > Hmm... then "local" actually means the connector and "remote"
+> > is the tvp5150?  
+> 
+> Nope, local is the tvp and remote is the connector. Actual the output
+> looks as follows
+> 
+> [   26.339939] tvp5150 2-005d: link setup 'Comp0':0->'tvp5150 2-005d':0[1]
+> [   26.346606] tvp5150 2-005d: Setting 0 active [composite]
+> 
+> I think this is what you mean with '... point from the connector to
+> tvp5150 ...'.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 6481212fda77..dcce86c1fe40 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
- 	__u32 which;
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
- };
- 
-@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &p32->count) ||
- 	    put_user(count, &p64->count) ||
- 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
-+	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
- 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
- 		return -EFAULT;
- 
-@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &p64->count) ||
- 	    put_user(count, &p32->count) ||
- 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
-+	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
- 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
- 	    get_user(kcontrols, &p64->controls))
- 		return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ea475d833dd6..03241d6b7ef8 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -590,8 +590,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
- 	const struct v4l2_ext_controls *p = arg;
- 	int i;
- 
--	pr_cont("which=0x%x, count=%d, error_idx=%d",
--			p->which, p->count, p->error_idx);
-+	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
-+			p->which, p->count, p->error_idx, p->request_fd);
- 	for (i = 0; i < p->count; i++) {
- 		if (!p->controls[i].size)
- 			pr_cont(", id/val=0x%x/0x%x",
-@@ -907,7 +907,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	__u32 i;
- 
- 	/* zero the reserved fields */
--	c->reserved[0] = c->reserved[1] = 0;
-+	c->reserved[0] = 0;
- 	for (i = 0; i < c->count; i++)
- 		c->controls[i].reserved2[0] = 0;
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 5d1a3685bea9..1df0fa983db6 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1599,7 +1599,8 @@ struct v4l2_ext_controls {
- 	};
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	struct v4l2_ext_control *controls;
- };
- 
-@@ -1612,6 +1613,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_MAX_DIMS	  (4)
- #define V4L2_CTRL_WHICH_CUR_VAL   0
- #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
-+#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
- 
- enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_INTEGER	     = 1,
--- 
-2.18.0
+Yes.
+
+> 
+> >   
+> > >   
+> > > > 
+> > > > Btw, it would likely be better to call it "connector" or "conn_entity",
+> > > > to make it clearer.    
+> > > 
+> > > I tought remote is the common nomenclature. Also the remote mustn't be a
+> > > connector. In my case it's a soldered camera. With this in mind, you think
+> > > it should be still changed?  
+> > 
+> > I see your point.
+> > 
+> > Yeah, remote is a common nomenclature. Yet, as it can be seen from
+> > the above comment (and your answer), common nomenclature may lead
+> > in to mistakes :-)  
+> 
+> Yeah, I know what you mean ^^
+> 
+> > 
+> > It would be good to have either one of sides better named (either
+> > the connectors side or the tvp5150 side - or both), in order to be
+> > clearer and avoid confusion of someone else touches that part of
+> > the code.  
+> 
+> Yes, I'm with you. Since the local always points to the tvp5150, I will
+> change the local to tvp5150 or tvp5150_pad. Renaming the remote isn't
+> that good since it can be anything.
+
+OK!
+
+> 
+> > 
+> > In this specific case, both connectors and tvp5150 are created by
+> > the tvp5150, so both are "local" in the sense that both are
+> > created by this driver.
+> >  
+> 
+> I know.. Maybe there should be a 'common' svideo-/composite-connector
+> code and some helpers to create and link those. Then we can drop the
+> 'local' connectors.
+
+Yeah, that could be a good idea.
+
+> > > > > +static int tvp5150_registered(struct v4l2_subdev *sd)
+> > > > > +{
+> > > > > +#ifdef CONFIG_MEDIA_CONTROLLER
+> > > > > +	struct tvp5150 *decoder = to_tvp5150(sd);
+> > > > > +	unsigned int i;
+> > > > > +	int ret;
+> > > > > +
+> > > > > +	for (i = 0; i < decoder->connectors_num; i++) {
+> > > > > +		struct media_entity *con = &decoder->connectors[i].ent;
+> > > > > +		struct media_pad *pad = &decoder->connectors[i].pad;
+> > > > > +		unsigned int port = decoder->connectors[i].port_num;
+> > > > > +		bool is_svideo = decoder->connectors[i].is_svideo;
+> > > > > +
+> > > > > +		pad->flags = MEDIA_PAD_FL_SOURCE;
+> > > > > +		ret = media_entity_pads_init(con, 1, pad);
+> > > > > +		if (ret < 0)
+> > > > > +			return ret;
+> > > > > +
+> > > > > +		ret = media_device_register_entity(sd->v4l2_dev->mdev, con);
+> > > > > +		if (ret < 0)
+> > > > > +			return ret;
+> > > > > +
+> > > > > +		ret = media_create_pad_link(con, 0, &sd->entity, port, 0);
+> > > > > +		if (ret < 0) {
+> > > > > +			media_device_unregister_entity(con);
+> > > > > +			return ret;
+> > > > > +		}
+> > > > > +
+> > > > > +		if (is_svideo) {
+> > > > > +			/* svideo links to both aip1a and aip1b */
+> > > > > +			ret = media_create_pad_link(con, 0, &sd->entity,
+> > > > > +						    port + 1, 0);
+> > > > > +			if (ret < 0) {
+> > > > > +				media_device_unregister_entity(con);
+> > > > > +				return ret;
+> > > > > +			}
+> > > > > +		}
+> > > > > +
+> > > > > +	}    
+> > > > 
+> > > > IMO, it should route to the first available connector.    
+> > > 
+> > > Did you mean to set the link status to enabled?   
+> > 
+> > Yes.
+> >   
+> > > If so I have one
+> > > question else can you tell me what you mean?
+> > > 
+> > > Should I use the media_entity_setup_link() helper or should I mark it as
+> > > enabled during media_create_pad_link()? Now I did something like:
+> > > 
+> > > if (i == 0) {
+> > > 	list_for_each_entry(link, &con->links, list) {
+> > > 		media_entity_setup_link(link, MEDIA_LNK_FL_ENABLED);
+> > > 	}
+> > > }  
+> > 
+> > yeah, I guess this should work for both the cases where the first
+> > connector is a comp or a svideo input.
+> > 
+> > I would prefer coding it differently, e. g. something like:
+> > 
+> > 	
+> > 	for (i = 0; i < decoder->connectors_num; i++) {
+> > 		int flags = i ? 0 : MEDIA_LNK_FL_ENABLED;
+> > 
+> > and then use the flags var as the last argument for media_create_pad_link()
+> > calls. That would avoid an extra loop and would likely reduce a little bit
+> > the code size.  
+> 
+> Sorry for the ambiguous code example. I did the 'if (i == 0)' in the same
+> loop, so no extra loop. I can do it your way, but than unnecessary
+> media_entity_setup_link() are made.
+
+I got that, but:
+
+	list_for_each_entry(link, &con->links, list) {
+		media_entity_setup_link(link, MEDIA_LNK_FL_ENABLED);
+	}
+
+would be a second loop inside it :-)
+
+What do you mean by an unnecessary media_entity_setup_link()?
+
+What I was thinking is something like:
+
+	static int tvp5150_registered(struct v4l2_subdev *sd)
+	{
+	#ifdef CONFIG_MEDIA_CONTROLLER
+		struct tvp5150 *decoder = to_tvp5150(sd);
+		unsigned int i;
+		int ret;
+
+		for (i = 0; i < decoder->connectors_num; i++) {
+			struct media_entity *con = &decoder->connectors[i].ent;
+			struct media_pad *pad = &decoder->connectors[i].pad;
+			unsigned int port = decoder->connectors[i].port_num;
+			bool is_svideo = decoder->connectors[i].is_svideo;
++			int link_flags = i ? 0 : MEDIA_LNK_FL_ENABLED;
+
+			pad->flags = MEDIA_PAD_FL_SOURCE;
+			ret = media_entity_pads_init(con, 1, pad);
+			if (ret < 0)
+				return ret;
+
+			ret = media_device_register_entity(sd->v4l2_dev->mdev, con);
+			if (ret < 0)
+				return ret;
+
+-			ret = media_create_pad_link(con, 0, &sd->entity, port, 0);
++			ret = media_create_pad_link(con, 0, &sd->entity, port, link_flags);
+			if (ret < 0) {
+				media_device_unregister_entity(con);
+				return ret;
+			}
+
+			if (is_svideo) {
+				/* svideo links to both aip1a and aip1b */
+				ret = media_create_pad_link(con, 0, &sd->entity,
+-							    port + 1, 0);
++							    port + 1, link_flags);
+				if (ret < 0) {
+					media_device_unregister_entity(con);
+					return ret;
+				}
+			}
+		}    
+
+
+Thanks,
+Mauro
