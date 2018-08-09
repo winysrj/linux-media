@@ -1,92 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:59004 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730191AbeHIL3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Aug 2018 07:29:16 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devel@driverdev.osuosl.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v7 6/8] ARM: dts: sun7i-a20: Add Video Engine and reserved memory nodes
-Date: Thu,  9 Aug 2018 11:04:33 +0200
-Message-Id: <20180809090435.17248-7-paul.kocialkowski@bootlin.com>
-In-Reply-To: <20180809090435.17248-1-paul.kocialkowski@bootlin.com>
-References: <20180809090435.17248-1-paul.kocialkowski@bootlin.com>
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:41699 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727579AbeHIL5e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 07:57:34 -0400
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>, tfiga@chromium.org,
+        laurent.pinchart@ideasonboard.com, stern@rowland.harvard.edu,
+        ezequiel@collabora.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
+        mchehab@kernel.org, rostedt@goodmis.org, mingo@redhat.com,
+        isely@pobox.com, bhumirks@gmail.com, colin.king@canonical.com,
+        kieran.bingham@ideasonboard.com, keiichiw@chromium.org
+Subject: [PATCH v3 2/2] media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
+Date: Thu,  9 Aug 2018 12:33:07 +0300
+Message-Id: <20180809093307.6001-3-matwey@sai.msu.ru>
+In-Reply-To: <20180809093307.6001-1-matwey@sai.msu.ru>
+References: <20180809093307.6001-1-matwey@sai.msu.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds nodes for the Video Engine and the associated reserved memory
-for the A20. Up to 96 MiB of memory are dedicated to the CMA pool.
+DMA cocherency slows the transfer down on systems without hardware
+coherent DMA.
+Instead we use noncocherent DMA memory and explicit sync at data receive
+handler.
 
-The VPU can only map the first 256 MiB of DRAM, so the reserved memory
-pool has to be located in that area. Following Allwinner's decision in
-downstream software, the last 96 MiB of the first 256 MiB of RAM are
-reserved for this purpose.
+Based on previous commit the following performance benchmarks have been
+carried out. Average memcpy() data transfer rate (rate) and handler
+completion time (time) have been measured when running video stream at
+640x480 resolution at 10fps.
 
-Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+x86_64 based system (Intel Core i5-3470). This platform has hardware
+coherent DMA support and proposed change doesn't make big difference here.
+
+ * kmalloc:            rate = (2.0 +- 0.4) GBps
+                       time = (5.0 +- 3.0) usec
+ * usb_alloc_coherent: rate = (3.4 +- 1.2) GBps
+                       time = (3.5 +- 3.0) usec
+
+We see that the measurements agree within error ranges in this case.
+So theoretically predicted performance downgrade cannot be reliably measured here.
+
+armv7l based system (TI AM335x BeagleBone Black @ 300MHz). This platform has no
+hardware coherent DMA support. DMA coherence is implemented via disabled
+page caching that slows down memcpy() due to memory controller behaviour.
+
+ * kmalloc:            rate =  (114 +- 5) MBps
+                       time =   (84 +- 4) usec
+ * usb_alloc_coherent: rate = (28.1 +- 0.1) MBps
+                       time =  (341 +- 2) usec
+
+Note, that quantative difference leads (this commit leads to 4 times
+acceleration) to qualitative behavior change in this case. As it was
+stated before, the video stream cannot be successfully received at AM335x
+platforms with MUSB based USB host controller due to performance issues
+[1].
+
+[1] https://www.spinics.net/lists/linux-usb/msg165735.html
+
+Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
 ---
- arch/arm/boot/dts/sun7i-a20.dtsi | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ drivers/media/usb/pwc/pwc-if.c | 47 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
-index 38999d791cb5..55517b068009 100644
---- a/arch/arm/boot/dts/sun7i-a20.dtsi
-+++ b/arch/arm/boot/dts/sun7i-a20.dtsi
-@@ -161,6 +161,21 @@
- 		reg = <0x40000000 0x80000000>;
- 	};
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 72d2897a4b9f..17f2015a75bb 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -159,6 +159,31 @@ static const struct video_device pwc_template = {
+ /***************************************************************************/
+ /* Private functions */
  
-+	reserved-memory {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
++static void* pwc_alloc_urb_buffer(struct device *dev, size_t size, dma_addr_t *dma_handle) {
++	void* buffer = kmalloc(size, GFP_KERNEL);
 +
-+		/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
-+		cma_pool: cma@4a000000 {
-+			compatible = "shared-dma-pool";
-+			size = <0x6000000>;
-+			alloc-ranges = <0x4a000000 0x6000000>;
-+			reusable;
-+			linux,cma-default;
-+		};
-+	};
++	if (buffer == NULL) {
++		goto fail_kmalloc;
++	}
 +
- 	timer {
- 		compatible = "arm,armv7-timer";
- 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-@@ -466,6 +481,17 @@
- 			};
- 		};
++	*dma_handle = dma_map_single(dev, buffer, size, DMA_FROM_DEVICE);
++	if (dma_mapping_error(dev, *dma_handle)) {
++		goto fail_dma_map_single;
++	}
++
++	return buffer;
++
++fail_dma_map_single:
++	kfree(buffer);
++fail_kmalloc:
++	return NULL;
++}
++
++static void pwc_free_urb_buffer(struct device *dev, size_t size, void* buffer, dma_addr_t dma_handle) {
++	dma_unmap_single(dev, dma_handle, size, DMA_FROM_DEVICE);
++	kfree(buffer);
++}
++
+ static struct pwc_frame_buf *pwc_get_next_fill_buf(struct pwc_device *pdev)
+ {
+ 	unsigned long flags = 0;
+@@ -306,6 +331,8 @@ static void pwc_isoc_handler(struct urb *urb)
+ 	/* Reset ISOC error counter. We did get here, after all. */
+ 	pdev->visoc_errors = 0;
  
-+		video-codec@1c0e000 {
-+			compatible = "allwinner,sun7i-a20-video-engine";
-+			reg = <0x01c0e000 0x1000>;
-+			clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
-+				 <&ccu CLK_DRAM_VE>;
-+			clock-names = "ahb", "mod", "ram";
-+			resets = <&ccu RST_VE>;
-+			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
-+			allwinner,sram = <&ve_sram 1>;
-+		};
++	dma_sync_single_for_cpu(&urb->dev->dev, urb->transfer_dma, urb->transfer_buffer_length, DMA_FROM_DEVICE);
 +
- 		mmc0: mmc@1c0f000 {
- 			compatible = "allwinner,sun7i-a20-mmc";
- 			reg = <0x01c0f000 0x1000>;
+ 	/* vsync: 0 = don't copy data
+ 		  1 = sync-hunt
+ 		  2 = synched
+@@ -428,16 +455,13 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+ 		urb->dev = udev;
+ 		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+ 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = usb_alloc_coherent(udev,
+-							  ISO_BUFFER_SIZE,
+-							  GFP_KERNEL,
+-							  &urb->transfer_dma);
++		urb->transfer_buffer_length = ISO_BUFFER_SIZE;
++		urb->transfer_buffer = pwc_alloc_urb_buffer(&udev->dev, urb->transfer_buffer_length, &urb->transfer_dma);
+ 		if (urb->transfer_buffer == NULL) {
+ 			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
+ 			pwc_isoc_cleanup(pdev);
+ 			return -ENOMEM;
+ 		}
+-		urb->transfer_buffer_length = ISO_BUFFER_SIZE;
+ 		urb->complete = pwc_isoc_handler;
+ 		urb->context = pdev;
+ 		urb->start_frame = 0;
+@@ -488,15 +512,14 @@ static void pwc_iso_free(struct pwc_device *pdev)
+ 
+ 	/* Freeing ISOC buffers one by one */
+ 	for (i = 0; i < MAX_ISO_BUFS; i++) {
+-		if (pdev->urbs[i]) {
++		struct urb* urb = pdev->urbs[i];
++
++		if (urb) {
+ 			PWC_DEBUG_MEMORY("Freeing URB\n");
+-			if (pdev->urbs[i]->transfer_buffer) {
+-				usb_free_coherent(pdev->udev,
+-					pdev->urbs[i]->transfer_buffer_length,
+-					pdev->urbs[i]->transfer_buffer,
+-					pdev->urbs[i]->transfer_dma);
++			if (urb->transfer_buffer) {
++				pwc_free_urb_buffer(&urb->dev->dev, urb->transfer_buffer_length, urb->transfer_buffer, urb->transfer_dma);
+ 			}
+-			usb_free_urb(pdev->urbs[i]);
++			usb_free_urb(urb);
+ 			pdev->urbs[i] = NULL;
+ 		}
+ 	}
 -- 
-2.18.0
+2.16.4
