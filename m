@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:49500 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:60716 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730488AbeHNLp0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 07:45:26 -0400
-Date: Tue, 14 Aug 2018 05:59:09 -0300
+        with ESMTP id S1727129AbeHIVJr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 17:09:47 -0400
+Date: Thu, 9 Aug 2018 15:43:37 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 14/34] v4l2-ctrls: add core request support
-Message-ID: <20180814055909.358c19f9@coco.lan>
-In-Reply-To: <18a32cb5-0cb8-164b-2112-8b76760a01fa@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv17 04/34] media: doc: Add media-request.h header to
+ documentation build
+Message-ID: <20180809154337.5feeb1b6@coco.lan>
+In-Reply-To: <20180804124526.46206-5-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-15-hverkuil@xs4all.nl>
-        <20180813075530.1b3c7fe7@coco.lan>
-        <18a32cb5-0cb8-164b-2112-8b76760a01fa@xs4all.nl>
+        <20180804124526.46206-5-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 10:34:47 +0200
+Em Sat,  4 Aug 2018 14:44:56 +0200
 Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> >> +void v4l2_ctrl_request_setup(struct media_request *req,
-> >> +			     struct v4l2_ctrl_handler *main_hdl)
-> >> +{
-> >> +	struct media_request_object *obj;
-> >> +	struct v4l2_ctrl_handler *hdl;
-> >> +	struct v4l2_ctrl_ref *ref;
-> >> +
-> >> +	if (!req || !main_hdl)
-> >> +		return;
-> >> +
-> >> +	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_QUEUED))
-> >> +		return;
-> >> +
-> >> +	obj = media_request_object_find(req, &req_ops, main_hdl);
-> >> +	if (!obj)
-> >> +		return;  
-> > 
-> > Shouldn't the above checks produce an error or print something at
-> > the logs?  
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
 > 
-> Good question.
-> 
-> I think not. This situation would occur if the applications makes a request
-> with only a buffer but no controls, thus making no changes to the controls in
-> this request.
-> 
-> This is perfectly legal, so nothing needs to be logged here.
+> media-request.h has been recently added; add it to the documentation build
+> as well.
 
-Ok, makes sense.
+Looks good. Please add my reviewed-by:
 
-Please add a note at the source code explaining that, as this is
-not obvious for a casual code reviewer.
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+
+(from now on, if I find a patch without anything to comment in this series,
+I'll add my reviewed by - please remove it if you do changes that aren't
+simply trivial rebase conflict solving).
+
+
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/media/kapi/mc-core.rst | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+> index 0c05503eaf1f..69362b3135c2 100644
+> --- a/Documentation/media/kapi/mc-core.rst
+> +++ b/Documentation/media/kapi/mc-core.rst
+> @@ -262,3 +262,5 @@ in the end provide a way to use driver-specific callbacks.
+>  .. kernel-doc:: include/media/media-devnode.h
+>  
+>  .. kernel-doc:: include/media/media-entity.h
+> +
+> +.. kernel-doc:: include/media/media-request.h
+
 
 
 Thanks,
