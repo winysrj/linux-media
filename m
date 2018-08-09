@@ -1,69 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:45748 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:50176 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728314AbeHNLes (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 07:34:48 -0400
-Date: Tue, 14 Aug 2018 05:48:33 -0300
+        with ESMTP id S1726894AbeHIWbV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 18:31:21 -0400
+Date: Thu, 9 Aug 2018 17:04:52 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org,
         Alexandre Courbot <acourbot@chromium.org>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 01/34] Documentation: v4l: document request API
-Message-ID: <20180814054833.69d4cc41@coco.lan>
-In-Reply-To: <18b31024-2cf0-58b3-4df5-fcb89b77e50f@xs4all.nl>
+Subject: Re: [PATCHv17 09/34] videodev2.h: add request_fd field to
+ v4l2_ext_controls
+Message-ID: <20180809170452.59179334@coco.lan>
+In-Reply-To: <20180804124526.46206-10-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-2-hverkuil@xs4all.nl>
-        <20180809144300.6ea1d040@coco.lan>
-        <18b31024-2cf0-58b3-4df5-fcb89b77e50f@xs4all.nl>
+        <20180804124526.46206-10-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 09:57:27 +0200
+Em Sat,  4 Aug 2018 14:45:01 +0200
 Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On 09/08/18 19:43, Mauro Carvalho Chehab wrote:
-> >> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >> index 9e448a4aa3aa..0e415f2551b2 100644
-> >> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> >> @@ -65,7 +65,7 @@ To enqueue a :ref:`memory mapped <mmap>` buffer applications set the
-> >>  with a pointer to this structure the driver sets the
-> >>  ``V4L2_BUF_FLAG_MAPPED`` and ``V4L2_BUF_FLAG_QUEUED`` flags and clears
-> >>  the ``V4L2_BUF_FLAG_DONE`` flag in the ``flags`` field, or it returns an
-> >> -EINVAL error code.
-> >> +``EINVAL`` error code.  
-> > 
-> > Side note: we should likely do a similar replacement on all other places
-> > inside the media uAPI docs.
-> >   
-> >>  
-> >>  To enqueue a :ref:`user pointer <userp>` buffer applications set the
-> >>  ``memory`` field to ``V4L2_MEMORY_USERPTR``, the ``m.userptr`` field to
-> >> @@ -98,6 +98,25 @@ dequeued, until the :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or
-> >>  :ref:`VIDIOC_REQBUFS` ioctl is called, or until the
-> >>  device is closed.
-> >>  
-> >> +The ``request_fd`` field can be used with the ``VIDIOC_QBUF`` ioctl to specify  
-> > 
-> > Please prefer using :ref: for QBUF too, e. g.: 
-> > 	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>`  
+> From: Alexandre Courbot <acourbot@chromium.org>
 > 
-> Does this make sense when you are in the QBUF documentation itself? Using :ref: will
-> just link back to the same page.
+> If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
+> can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
 > 
-> We need some guidelines here. I personally don't think this makes sense.
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'm almost sure we're doing the same on every other place within media docs.
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+>  drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+>  include/uapi/linux/videodev2.h                | 4 +++-
+>  3 files changed, 10 insertions(+), 5 deletions(-)
 > 
-> Regards,
-> 
-> 	Hans
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 6481212fda77..dcce86c1fe40 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
+>  	__u32 which;
+>  	__u32 count;
+>  	__u32 error_idx;
+> -	__u32 reserved[2];
+> +	__s32 request_fd;
+> +	__u32 reserved[1];
+>  	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+>  };
+>  
+> @@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+>  	    get_user(count, &p32->count) ||
+>  	    put_user(count, &p64->count) ||
+>  	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
+> +	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
+>  	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+>  		return -EFAULT;
+>  
+> @@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+>  	    get_user(count, &p64->count) ||
+>  	    put_user(count, &p32->count) ||
+>  	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
+> +	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+>  	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
+>  	    get_user(kcontrols, &p64->controls))
+>  		return -EFAULT;
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index ea475d833dd6..03241d6b7ef8 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -590,8 +590,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+>  	const struct v4l2_ext_controls *p = arg;
+>  	int i;
+>  
+> -	pr_cont("which=0x%x, count=%d, error_idx=%d",
+> -			p->which, p->count, p->error_idx);
+> +	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
+> +			p->which, p->count, p->error_idx, p->request_fd);
+>  	for (i = 0; i < p->count; i++) {
+>  		if (!p->controls[i].size)
+>  			pr_cont(", id/val=0x%x/0x%x",
+> @@ -907,7 +907,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+>  	__u32 i;
+>  
+>  	/* zero the reserved fields */
+> -	c->reserved[0] = c->reserved[1] = 0;
+> +	c->reserved[0] = 0;
+>  	for (i = 0; i < c->count; i++)
+>  		c->controls[i].reserved2[0] = 0;
+>  
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 5d1a3685bea9..1df0fa983db6 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1599,7 +1599,8 @@ struct v4l2_ext_controls {
+>  	};
+>  	__u32 count;
+>  	__u32 error_idx;
+> -	__u32 reserved[2];
+> +	__s32 request_fd;
+> +	__u32 reserved[1];
+>  	struct v4l2_ext_control *controls;
+>  };
+>  
+> @@ -1612,6 +1613,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_MAX_DIMS	  (4)
+>  #define V4L2_CTRL_WHICH_CUR_VAL   0
+>  #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
+> +#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
+>  
+>  enum v4l2_ctrl_type {
+>  	V4L2_CTRL_TYPE_INTEGER	     = 1,
 
 
 
