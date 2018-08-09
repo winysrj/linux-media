@@ -1,257 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:57733 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732433AbeHITAn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 15:00:43 -0400
-Date: Thu, 9 Aug 2018 18:34:54 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        p.zabel@pengutronix.de, afshin.nasser@gmail.com,
-        javierm@redhat.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de
-Subject: Re: [PATCH 19/22] [media] tvp5150: add input source selection
- of_graph support
-Message-ID: <20180809163453.GA30373@pengutronix.de>
-References: <20180628162054.25613-1-m.felsch@pengutronix.de>
- <20180628162054.25613-20-m.felsch@pengutronix.de>
- <20180730152938.50e69143@coco.lan>
- <20180808152949.h7mpqb7evnvqiy5n@pengutronix.de>
- <20180808155251.4062ff1f@coco.lan>
- <20180809125507.4mxopx4yowjd3zgw@pengutronix.de>
- <20180809103653.0f81de01@coco.lan>
- <20180809143520.e2fwsuztfazmyl7e@pengutronix.de>
- <20180809130421.5fdac04d@coco.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180809130421.5fdac04d@coco.lan>
+Received: from mail-lf1-f65.google.com ([209.85.167.65]:43612 "EHLO
+        mail-lf1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727538AbeHIUhn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 16:37:43 -0400
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>, tfiga@chromium.org,
+        laurent.pinchart@ideasonboard.com, stern@rowland.harvard.edu,
+        ezequiel@collabora.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
+        mchehab@kernel.org, rostedt@goodmis.org, mingo@redhat.com,
+        isely@pobox.com, bhumirks@gmail.com, colin.king@canonical.com,
+        kieran.bingham@ideasonboard.com, keiichiw@chromium.org
+Subject: [PATCH v4 2/2] media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
+Date: Thu,  9 Aug 2018 21:11:03 +0300
+Message-Id: <20180809181103.15437-3-matwey@sai.msu.ru>
+In-Reply-To: <20180809181103.15437-1-matwey@sai.msu.ru>
+References: <20180809181103.15437-1-matwey@sai.msu.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+DMA cocherency slows the transfer down on systems without hardware
+coherent DMA.
+Instead we use noncocherent DMA memory and explicit sync at data receive
+handler.
 
-On 18-08-09 13:04, Mauro Carvalho Chehab wrote:
-> Em Thu, 9 Aug 2018 16:35:20 +0200
-> Marco Felsch <m.felsch@pengutronix.de> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > Thanks for your feedback.
-> 
-> > > > > > +	dev_dbg(sd->dev, "link setup '%s':%d->'%s':%d[%d]",
-> > > > > > +		remote->entity->name, remote->index, local->entity->name,
-> > > > > > +		local->index, flags & MEDIA_LNK_FL_ENABLED);    
-> > > > > 
-> > > > > Hmm... the remote is the connector, right? I would switch the
-> > > > > print message to point from the connector to tvp5150, as this is
-> > > > > the signal flow.    
-> > > > 
-> > > > I don't know what you mean, I tought that's what I'm already do. If I
-> > > > change it it will print something like: tvp5150 2-005d :0 -> Comp0 :0[1]  
-> > > 
-> > > Hmm... then "local" actually means the connector and "remote"
-> > > is the tvp5150?  
-> > 
-> > Nope, local is the tvp and remote is the connector. Actual the output
-> > looks as follows
-> > 
-> > [   26.339939] tvp5150 2-005d: link setup 'Comp0':0->'tvp5150 2-005d':0[1]
-> > [   26.346606] tvp5150 2-005d: Setting 0 active [composite]
-> > 
-> > I think this is what you mean with '... point from the connector to
-> > tvp5150 ...'.
-> 
-> Yes.
-> 
-> > 
-> > >   
-> > > >   
-> > > > > 
-> > > > > Btw, it would likely be better to call it "connector" or "conn_entity",
-> > > > > to make it clearer.    
-> > > > 
-> > > > I tought remote is the common nomenclature. Also the remote mustn't be a
-> > > > connector. In my case it's a soldered camera. With this in mind, you think
-> > > > it should be still changed?  
-> > > 
-> > > I see your point.
-> > > 
-> > > Yeah, remote is a common nomenclature. Yet, as it can be seen from
-> > > the above comment (and your answer), common nomenclature may lead
-> > > in to mistakes :-)  
-> > 
-> > Yeah, I know what you mean ^^
-> > 
-> > > 
-> > > It would be good to have either one of sides better named (either
-> > > the connectors side or the tvp5150 side - or both), in order to be
-> > > clearer and avoid confusion of someone else touches that part of
-> > > the code.  
-> > 
-> > Yes, I'm with you. Since the local always points to the tvp5150, I will
-> > change the local to tvp5150 or tvp5150_pad. Renaming the remote isn't
-> > that good since it can be anything.
-> 
-> OK!
-> 
-> > 
-> > > 
-> > > In this specific case, both connectors and tvp5150 are created by
-> > > the tvp5150, so both are "local" in the sense that both are
-> > > created by this driver.
-> > >  
-> > 
-> > I know.. Maybe there should be a 'common' svideo-/composite-connector
-> > code and some helpers to create and link those. Then we can drop the
-> > 'local' connectors.
-> 
-> Yeah, that could be a good idea.
-> 
-> > > > > > +static int tvp5150_registered(struct v4l2_subdev *sd)
-> > > > > > +{
-> > > > > > +#ifdef CONFIG_MEDIA_CONTROLLER
-> > > > > > +	struct tvp5150 *decoder = to_tvp5150(sd);
-> > > > > > +	unsigned int i;
-> > > > > > +	int ret;
-> > > > > > +
-> > > > > > +	for (i = 0; i < decoder->connectors_num; i++) {
-> > > > > > +		struct media_entity *con = &decoder->connectors[i].ent;
-> > > > > > +		struct media_pad *pad = &decoder->connectors[i].pad;
-> > > > > > +		unsigned int port = decoder->connectors[i].port_num;
-> > > > > > +		bool is_svideo = decoder->connectors[i].is_svideo;
-> > > > > > +
-> > > > > > +		pad->flags = MEDIA_PAD_FL_SOURCE;
-> > > > > > +		ret = media_entity_pads_init(con, 1, pad);
-> > > > > > +		if (ret < 0)
-> > > > > > +			return ret;
-> > > > > > +
-> > > > > > +		ret = media_device_register_entity(sd->v4l2_dev->mdev, con);
-> > > > > > +		if (ret < 0)
-> > > > > > +			return ret;
-> > > > > > +
-> > > > > > +		ret = media_create_pad_link(con, 0, &sd->entity, port, 0);
-> > > > > > +		if (ret < 0) {
-> > > > > > +			media_device_unregister_entity(con);
-> > > > > > +			return ret;
-> > > > > > +		}
-> > > > > > +
-> > > > > > +		if (is_svideo) {
-> > > > > > +			/* svideo links to both aip1a and aip1b */
-> > > > > > +			ret = media_create_pad_link(con, 0, &sd->entity,
-> > > > > > +						    port + 1, 0);
-> > > > > > +			if (ret < 0) {
-> > > > > > +				media_device_unregister_entity(con);
-> > > > > > +				return ret;
-> > > > > > +			}
-> > > > > > +		}
-> > > > > > +
-> > > > > > +	}    
-> > > > > 
-> > > > > IMO, it should route to the first available connector.    
-> > > > 
-> > > > Did you mean to set the link status to enabled?   
-> > > 
-> > > Yes.
-> > >   
-> > > > If so I have one
-> > > > question else can you tell me what you mean?
-> > > > 
-> > > > Should I use the media_entity_setup_link() helper or should I mark it as
-> > > > enabled during media_create_pad_link()? Now I did something like:
-> > > > 
-> > > > if (i == 0) {
-> > > > 	list_for_each_entry(link, &con->links, list) {
-> > > > 		media_entity_setup_link(link, MEDIA_LNK_FL_ENABLED);
-> > > > 	}
-> > > > }  
-> > > 
-> > > yeah, I guess this should work for both the cases where the first
-> > > connector is a comp or a svideo input.
-> > > 
-> > > I would prefer coding it differently, e. g. something like:
-> > > 
-> > > 	
-> > > 	for (i = 0; i < decoder->connectors_num; i++) {
-> > > 		int flags = i ? 0 : MEDIA_LNK_FL_ENABLED;
-> > > 
-> > > and then use the flags var as the last argument for media_create_pad_link()
-> > > calls. That would avoid an extra loop and would likely reduce a little bit
-> > > the code size.  
-> > 
-> > Sorry for the ambiguous code example. I did the 'if (i == 0)' in the same
-> > loop, so no extra loop. I can do it your way, but than unnecessary
-> > media_entity_setup_link() are made.
-> 
-> I got that, but:
-> 
-> 	list_for_each_entry(link, &con->links, list) {
-> 		media_entity_setup_link(link, MEDIA_LNK_FL_ENABLED);
-> 	}
-> 
-> would be a second loop inside it :-)
-> 
-> What do you mean by an unnecessary media_entity_setup_link()?
-> 
-> What I was thinking is something like:
+Based on previous commit the following performance benchmarks have been
+carried out. Average memcpy() data transfer rate (rate) and handler
+completion time (time) have been measured when running video stream at
+640x480 resolution at 10fps.
 
-Oh, okay I tought you mean I should at the link_flags to the
-media_entity_setup_link() call inside the list_for_each_entry(). Now I
-got you, I will enable the link the during the media_create_pad_link()
-call. This answers my initial question :)
+x86_64 based system (Intel Core i5-3470). This platform has hardware
+coherent DMA support and proposed change doesn't make big difference here.
 
-> 
-> 	static int tvp5150_registered(struct v4l2_subdev *sd)
-> 	{
-> 	#ifdef CONFIG_MEDIA_CONTROLLER
-> 		struct tvp5150 *decoder = to_tvp5150(sd);
-> 		unsigned int i;
-> 		int ret;
-> 
-> 		for (i = 0; i < decoder->connectors_num; i++) {
-> 			struct media_entity *con = &decoder->connectors[i].ent;
-> 			struct media_pad *pad = &decoder->connectors[i].pad;
-> 			unsigned int port = decoder->connectors[i].port_num;
-> 			bool is_svideo = decoder->connectors[i].is_svideo;
-> +			int link_flags = i ? 0 : MEDIA_LNK_FL_ENABLED;
-> 
-> 			pad->flags = MEDIA_PAD_FL_SOURCE;
-> 			ret = media_entity_pads_init(con, 1, pad);
-> 			if (ret < 0)
-> 				return ret;
-> 
-> 			ret = media_device_register_entity(sd->v4l2_dev->mdev, con);
-> 			if (ret < 0)
-> 				return ret;
-> 
-> -			ret = media_create_pad_link(con, 0, &sd->entity, port, 0);
-> +			ret = media_create_pad_link(con, 0, &sd->entity, port, link_flags);
-> 			if (ret < 0) {
-> 				media_device_unregister_entity(con);
-> 				return ret;
-> 			}
-> 
-> 			if (is_svideo) {
-> 				/* svideo links to both aip1a and aip1b */
-> 				ret = media_create_pad_link(con, 0, &sd->entity,
-> -							    port + 1, 0);
-> +							    port + 1, link_flags);
-> 				if (ret < 0) {
-> 					media_device_unregister_entity(con);
-> 					return ret;
-> 				}
-> 			}
-> 		}    
-> 
-> 
-> Thanks,
-> Mauro
-> 
+ * kmalloc:            rate = (2.0 +- 0.4) GBps
+                       time = (5.0 +- 3.0) usec
+ * usb_alloc_coherent: rate = (3.4 +- 1.2) GBps
+                       time = (3.5 +- 3.0) usec
 
-Thanks a lot for your feedback :) I will prepare the v2. This v2 will
-only contain those patches which aren't applied to your tvp5150-3 branch.
-Is that okay?
+We see that the measurements agree within error ranges in this case.
+So theoretically predicted performance downgrade cannot be reliably
+measured here.
 
-Regards,
-Marco
+armv7l based system (TI AM335x BeagleBone Black @ 300MHz). This platform
+has no hardware coherent DMA support. DMA coherence is implemented via
+disabled page caching that slows down memcpy() due to memory controller
+behaviour.
+
+ * kmalloc:            rate =  (114 +- 5) MBps
+                       time =   (84 +- 4) usec
+ * usb_alloc_coherent: rate = (28.1 +- 0.1) MBps
+                       time =  (341 +- 2) usec
+
+Note, that quantative difference leads (this commit leads to 4 times
+acceleration) to qualitative behavior change in this case. As it was
+stated before, the video stream cannot be successfully received at AM335x
+platforms with MUSB based USB host controller due to performance issues
+[1].
+
+[1] https://www.spinics.net/lists/linux-usb/msg165735.html
+
+Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+---
+ drivers/media/usb/pwc/pwc-if.c | 56 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 44 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index 72d2897a4b9f..e9c826be1ba6 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -159,6 +159,32 @@ static const struct video_device pwc_template = {
+ /***************************************************************************/
+ /* Private functions */
+ 
++static void *pwc_alloc_urb_buffer(struct device *dev,
++				  size_t size, dma_addr_t *dma_handle)
++{
++	void *buffer = kmalloc(size, GFP_KERNEL);
++
++	if (!buffer)
++		return NULL;
++
++	*dma_handle = dma_map_single(dev, buffer, size, DMA_FROM_DEVICE);
++	if (dma_mapping_error(dev, *dma_handle)) {
++		kfree(buffer);
++		return NULL;
++	}
++
++	return buffer;
++}
++
++static void pwc_free_urb_buffer(struct device *dev,
++				size_t size,
++				void *buffer,
++				dma_addr_t dma_handle)
++{
++	dma_unmap_single(dev, dma_handle, size, DMA_FROM_DEVICE);
++	kfree(buffer);
++}
++
+ static struct pwc_frame_buf *pwc_get_next_fill_buf(struct pwc_device *pdev)
+ {
+ 	unsigned long flags = 0;
+@@ -306,6 +332,11 @@ static void pwc_isoc_handler(struct urb *urb)
+ 	/* Reset ISOC error counter. We did get here, after all. */
+ 	pdev->visoc_errors = 0;
+ 
++	dma_sync_single_for_cpu(&urb->dev->dev,
++				urb->transfer_dma,
++				urb->transfer_buffer_length,
++				DMA_FROM_DEVICE);
++
+ 	/* vsync: 0 = don't copy data
+ 		  1 = sync-hunt
+ 		  2 = synched
+@@ -428,16 +459,15 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+ 		urb->dev = udev;
+ 		urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+ 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-		urb->transfer_buffer = usb_alloc_coherent(udev,
+-							  ISO_BUFFER_SIZE,
+-							  GFP_KERNEL,
+-							  &urb->transfer_dma);
++		urb->transfer_buffer_length = ISO_BUFFER_SIZE;
++		urb->transfer_buffer = pwc_alloc_urb_buffer(&udev->dev,
++							    urb->transfer_buffer_length,
++							    &urb->transfer_dma);
+ 		if (urb->transfer_buffer == NULL) {
+ 			PWC_ERROR("Failed to allocate urb buffer %d\n", i);
+ 			pwc_isoc_cleanup(pdev);
+ 			return -ENOMEM;
+ 		}
+-		urb->transfer_buffer_length = ISO_BUFFER_SIZE;
+ 		urb->complete = pwc_isoc_handler;
+ 		urb->context = pdev;
+ 		urb->start_frame = 0;
+@@ -488,15 +518,17 @@ static void pwc_iso_free(struct pwc_device *pdev)
+ 
+ 	/* Freeing ISOC buffers one by one */
+ 	for (i = 0; i < MAX_ISO_BUFS; i++) {
+-		if (pdev->urbs[i]) {
++		struct urb *urb = pdev->urbs[i];
++
++		if (urb) {
+ 			PWC_DEBUG_MEMORY("Freeing URB\n");
+-			if (pdev->urbs[i]->transfer_buffer) {
+-				usb_free_coherent(pdev->udev,
+-					pdev->urbs[i]->transfer_buffer_length,
+-					pdev->urbs[i]->transfer_buffer,
+-					pdev->urbs[i]->transfer_dma);
++			if (urb->transfer_buffer) {
++				pwc_free_urb_buffer(&urb->dev->dev,
++						    urb->transfer_buffer_length,
++						    urb->transfer_buffer,
++						    urb->transfer_dma);
+ 			}
+-			usb_free_urb(pdev->urbs[i]);
++			usb_free_urb(urb);
+ 			pdev->urbs[i] = NULL;
+ 		}
+ 	}
+-- 
+2.16.4
