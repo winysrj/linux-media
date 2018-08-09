@@ -1,143 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:43972 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727570AbeHIGPm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Aug 2018 02:15:42 -0400
-Message-ID: <fa3b41f945544b5dd5fc5853cb72957d@smtp-cloud8.xs4all.net>
-Date: Thu, 09 Aug 2018 05:52:55 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from perceval.ideasonboard.com ([213.167.242.64]:54440 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727371AbeHIKp3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 06:45:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: mchehab@kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2] dt-bindings: media: adv748x: Document re-mappable addresses
+Date: Thu, 09 Aug 2018 11:22:27 +0300
+Message-ID: <3968377.CNlSUayrWh@avalon>
+In-Reply-To: <20180808232941.10582-1-kieran.bingham@ideasonboard.com>
+References: <20180808232941.10582-1-kieran.bingham@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Kieran,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:			Thu Aug  9 05:00:09 CEST 2018
-media-tree git hash:	8179de98cd35242446f4c7a6ecdd73c6c41f0cfb
-media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
-v4l-utils git hash:	90905c2e4b17d7595256f3824e2d30d19b0df1a1
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+On Thursday, 9 August 2018 02:29:41 EEST Kieran Bingham wrote:
+> The ADV748x supports configurable slave addresses for its I2C pages.
+> Document the page names, and provide an example for setting each of the
+> pages explicitly.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> ---
+> v2:
+>  - Fix commit message
+>  - Extend documentation for the "required property" reg:
+> 
+> 
+>  .../devicetree/bindings/media/i2c/adv748x.txt    | 16 ++++++++++++++--
+>  1 file changed, 14 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> b/Documentation/devicetree/bindings/media/i2c/adv748x.txt index
+> 21ffb5ed8183..f7fbe221c15e 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> @@ -10,7 +10,11 @@ Required Properties:
+>      - "adi,adv7481" for the ADV7481
+>      - "adi,adv7482" for the ADV7482
+> 
+> -  - reg: I2C slave address
+> +  - reg: I2C slave addresses
+> +    The ADV748x has up to twelve 256-byte maps that can be accessed via the
+> +    main I2C ports. Each map has it own I2C address and acts as a standard
+> +    slave device on the I2C bus. The main address is mandatory, others are
+> +    optional and revert to defaults if not specified.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.140-i686: OK
-linux-4.4.140-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.112-i686: OK
-linux-4.9.112-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.55-i686: OK
-linux-4.14.55-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.6-i686: OK
-linux-4.17.6-x86_64: OK
-linux-4.18-rc4-i686: OK
-linux-4.18-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Maybe "revert" has a meaning I'm not aware of, but don't you mean "default" 
+instead ? "default to defaults" probably needs to be rephrased though.
 
-Detailed results are available here:
+>  Optional Properties:
+> 
+> @@ -18,6 +22,11 @@ Optional Properties:
+>  		     "intrq3". All interrupts are optional. The "intrq3" interrupt
+>  		     is only available on the adv7481
+>    - interrupts: Specify the interrupt lines for the ADV748x
+> +  - reg-names : Names of maps with programmable addresses.
+> +		It can contain any map needed a non-default address.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+I think you missed my comment to v1:
 
-Full logs are available here:
+s/can contain any map needed/shall contain all maps needing/
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+> +		Possible map names are:
+> +		  "main", "dpll", "cp", "hdmi", "edid", "repeater",
+> +		  "infoframe", "cbus", "cec", "sdp", "txa", "txb"
+> 
+>  The device node must contain one 'port' child node per device input and
+> output port, in accordance with the video interface bindings defined in
+> @@ -47,7 +56,10 @@ Example:
+> 
+>  	video-receiver@70 {
+>  		compatible = "adi,adv7482";
+> -		reg = <0x70>;
+> +		reg = <0x70 0x71 0x72 0x73 0x74 0x75
+> +		       0x60 0x61 0x62 0x63 0x64 0x65>;
+> +		reg-names = "main", "dpll", "cp", "hdmi", "edid", "repeater",
+> +			    "infoframe", "cbus", "cec", "sdp", "txa", "txb";
+> 
+>  		#address-cells = <1>;
+>  		#size-cells = <0>;
 
-The Media Infrastructure API from this daily build is here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Laurent Pinchart
