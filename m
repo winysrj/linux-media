@@ -1,147 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:47622 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:47750 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726971AbeHIWV0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 18:21:26 -0400
-Date: Thu, 9 Aug 2018 16:55:00 -0300
+        with ESMTP id S1726971AbeHIWXK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 18:23:10 -0400
+Date: Thu, 9 Aug 2018 16:56:45 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 05/34] media-request: add media_request_get_by_fd
-Message-ID: <20180809165500.2cc89f72@coco.lan>
-In-Reply-To: <20180804124526.46206-6-hverkuil@xs4all.nl>
+Subject: Re: [PATCHv17 06/34] media-request: add media_request_object_find
+Message-ID: <20180809165645.0bc83448@coco.lan>
+In-Reply-To: <20180804124526.46206-7-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-6-hverkuil@xs4all.nl>
+        <20180804124526.46206-7-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  4 Aug 2018 14:44:57 +0200
+Em Sat,  4 Aug 2018 14:44:58 +0200
 Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
 > From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Add media_request_get_by_fd() to find a request based on the file
-> descriptor.
+> Add media_request_object_find to find a request object inside a
+> request based on ops and priv values.
 > 
-> The caller has to call media_request_put() for the returned
-> request since this function increments the refcount.
+> Objects of the same type (vb2 buffer, control handler) will have
+> the same ops value. And objects that refer to the same 'parent'
+> object (e.g. the v4l2_ctrl_handler that has the current driver
+> state) will have the same priv value.
+> 
+> The caller has to call media_request_object_put() for the returned
+> object since this function increments the refcount.
 > 
 > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 > ---
->  drivers/media/media-request.c | 40 +++++++++++++++++++++++++++++++++++
->  include/media/media-request.h | 24 +++++++++++++++++++++
->  2 files changed, 64 insertions(+)
+>  drivers/media/media-request.c | 25 +++++++++++++++++++++++++
+>  include/media/media-request.h | 28 ++++++++++++++++++++++++++++
+>  2 files changed, 53 insertions(+)
 > 
 > diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-> index 253068f51a1f..4b523f3a03a3 100644
+> index 4b523f3a03a3..a5b70a4e613b 100644
 > --- a/drivers/media/media-request.c
 > +++ b/drivers/media/media-request.c
-> @@ -231,6 +231,46 @@ static const struct file_operations request_fops = {
->  	.release = media_request_close,
->  };
+> @@ -344,6 +344,31 @@ static void media_request_object_release(struct kref *kref)
+>  	obj->ops->release(obj);
+>  }
 >  
-> +struct media_request *
-> +media_request_get_by_fd(struct media_device *mdev, int request_fd)
+> +struct media_request_object *
+> +media_request_object_find(struct media_request *req,
+> +			  const struct media_request_object_ops *ops,
+> +			  void *priv)
 > +{
-> +	struct file *filp;
-> +	struct media_request *req;
+> +	struct media_request_object *obj;
+> +	struct media_request_object *found = NULL;
+> +	unsigned long flags;
 > +
-> +	if (!mdev || !mdev->ops ||
-> +	    !mdev->ops->req_validate || !mdev->ops->req_queue)
-> +		return ERR_PTR(-EPERM);
-
-EPERM? I guess ENOTTY would be better.
-
-Any reason why using EPERM?
-
+> +	if (WARN_ON(!ops || !priv))
+> +		return NULL;
 > +
-> +	filp = fget(request_fd);
-> +	if (!filp)
-> +		return ERR_PTR(-ENOENT);
-> +
-> +	if (filp->f_op != &request_fops)
-> +		goto err_fput;
-> +	req = filp->private_data;
-> +	if (req->mdev != mdev)
-> +		goto err_fput;
-> +
-> +	/*
-> +	 * Note: as long as someone has an open filehandle of the request,
-> +	 * the request can never be released. The fget() above ensures that
-> +	 * even if userspace closes the request filehandle, the release()
-> +	 * fop won't be called, so the media_request_get() always succeeds
-> +	 * and there is no race condition where the request was released
-> +	 * before media_request_get() is called.
-> +	 */
-> +	media_request_get(req);
-> +	fput(filp);
-> +
-> +	return req;
-> +
-> +err_fput:
-> +	fput(filp);
-> +
-> +	return ERR_PTR(-ENOENT);
+> +	spin_lock_irqsave(&req->lock, flags);
+> +	list_for_each_entry(obj, &req->objects, list) {
+> +		if (obj->ops == ops && obj->priv == priv) {
+> +			media_request_object_get(obj);
+> +			found = obj;
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock_irqrestore(&req->lock, flags);
+> +	return found;
 > +}
-> +EXPORT_SYMBOL_GPL(media_request_get_by_fd);
+> +EXPORT_SYMBOL_GPL(media_request_object_find);
 > +
->  int media_request_alloc(struct media_device *mdev,
->  			struct media_request_alloc *alloc)
+>  void media_request_object_put(struct media_request_object *obj)
 >  {
+>  	kref_put(&obj->kref, media_request_object_release);
 > diff --git a/include/media/media-request.h b/include/media/media-request.h
-> index fe5a04fb970c..66ec9d09fcd8 100644
+> index 66ec9d09fcd8..fd08d7a431a1 100644
 > --- a/include/media/media-request.h
 > +++ b/include/media/media-request.h
-> @@ -143,6 +143,24 @@ static inline void media_request_get(struct media_request *req)
+> @@ -253,6 +253,26 @@ static inline void media_request_object_get(struct media_request_object *obj)
 >   */
->  void media_request_put(struct media_request *req);
+>  void media_request_object_put(struct media_request_object *obj);
 >  
 > +/**
-> + * media_request_get_by_fd - Get a media request by fd
+> + * media_request_object_find - Find an object in a request
 > + *
-> + * @mdev: Media device this request belongs to
-> + * @request_fd: The file descriptor of the request
+> + * @req: The media request
+> + * @ops: Find an object with this ops value
+> + * @priv: Find an object with this priv value
 > + *
-> + * Get the request represented by @request_fd that is owned
-> + * by the media device.
+> + * Both @ops and @priv must be non-NULL.
 > + *
-> + * Return a -EPERM error pointer if requests are not supported
-> + * by this driver. Return -ENOENT if the request was not found.
-> + * Return the pointer to the request if found: the caller will
-> + * have to call @media_request_put when it finished using the
-> + * request.
+> + * Returns the object pointer or NULL if not found. The caller must
+> + * call media_request_object_put() once it finished using the object.
+> + *
+> + * Since this function needs to walk the list of objects it takes
+> + * the @req->lock spin lock to make this safe.
 > + */
-> +struct media_request *
-> +media_request_get_by_fd(struct media_device *mdev, int request_fd);
+> +struct media_request_object *
+> +media_request_object_find(struct media_request *req,
+> +			  const struct media_request_object_ops *ops,
+> +			  void *priv);
 > +
 >  /**
->   * media_request_alloc - Allocate the media request
+>   * media_request_object_init - Initialise a media request object
 >   *
-> @@ -164,6 +182,12 @@ static inline void media_request_put(struct media_request *req)
+> @@ -324,6 +344,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
 >  {
 >  }
 >  
-> +static inline struct media_request *
-> +media_request_get_by_fd(struct media_device *mdev, int request_fd)
+> +static inline struct media_request_object *
+> +media_request_object_find(struct media_request *req,
+> +			  const struct media_request_object_ops *ops,
+> +			  void *priv)
 > +{
-> +	return ERR_PTR(-EPERM);
-
-Again -ENOTTY sounds better.
-
+> +	return NULL;
 > +}
 > +
->  #endif
->  
->  /**
+>  static inline void media_request_object_init(struct media_request_object *obj)
+>  {
+>  	obj->ops = NULL;
 
-Feel free to add my reviewed-by if you change the error code to
-ENOTTY:
-
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
 
 Thanks,
