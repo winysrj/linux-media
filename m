@@ -1,98 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:46128 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729063AbeHDOqK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 10:46:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 12/34] v4l2-ctrls: alloc memory for p_req
-Date: Sat,  4 Aug 2018 14:45:04 +0200
-Message-Id: <20180804124526.46206-13-hverkuil@xs4all.nl>
-In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.133]:55220 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726894AbeHIWnR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 18:43:17 -0400
+Date: Thu, 9 Aug 2018 17:16:47 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: Re: [PATCHv17 11/34] v4l2-ctrls: prepare internal structs for
+ request API
+Message-ID: <20180809171647.1e4fc482@coco.lan>
+In-Reply-To: <20180804124526.46206-12-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+        <20180804124526.46206-12-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Sat,  4 Aug 2018 14:45:03 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-To store request data the handler_new_ref() allocates memory
-for it if needed.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
+> 
+> Add a p_req field to struct v4l2_ctrl_ref that will store the
+> request value.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b33a8bee82b0..171ab389afdd 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2018,13 +2018,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
- /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
- static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 			   struct v4l2_ctrl *ctrl,
--			   bool from_other_dev)
-+			   struct v4l2_ctrl_ref **ctrl_ref,
-+			   bool from_other_dev, bool allocate_req)
- {
- 	struct v4l2_ctrl_ref *ref;
- 	struct v4l2_ctrl_ref *new_ref;
- 	u32 id = ctrl->id;
- 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
- 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
-+	unsigned int sz_extra = 0;
-+
-+	if (ctrl_ref)
-+		*ctrl_ref = NULL;
- 
- 	/*
- 	 * Automatically add the control class if it is not yet present and
-@@ -2038,11 +2043,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	if (hdl->error)
- 		return hdl->error;
- 
--	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
-+	if (allocate_req)
-+		sz_extra = ctrl->elems * ctrl->elem_size;
-+	new_ref = kzalloc(sizeof(*new_ref) + sz_extra, GFP_KERNEL);
- 	if (!new_ref)
- 		return handler_set_err(hdl, -ENOMEM);
- 	new_ref->ctrl = ctrl;
- 	new_ref->from_other_dev = from_other_dev;
-+	if (sz_extra)
-+		new_ref->p_req.p = &new_ref[1];
-+
- 	if (ctrl->handler == hdl) {
- 		/* By default each control starts in a cluster of its own.
- 		   new_ref->ctrl is basically a cluster array with one
-@@ -2082,6 +2092,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	/* Insert the control node in the hash */
- 	new_ref->next = hdl->buckets[bucket];
- 	hdl->buckets[bucket] = new_ref;
-+	if (ctrl_ref)
-+		*ctrl_ref = new_ref;
- 
- unlock:
- 	mutex_unlock(hdl->lock);
-@@ -2223,7 +2235,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
- 	}
- 
--	if (handler_new_ref(hdl, ctrl, false)) {
-+	if (handler_new_ref(hdl, ctrl, NULL, false, false)) {
- 		kvfree(ctrl);
- 		return NULL;
- 	}
-@@ -2416,7 +2428,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* Filter any unwanted controls */
- 		if (filter && !filter(ctrl))
- 			continue;
--		ret = handler_new_ref(hdl, ctrl, from_other_dev);
-+		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev, false);
- 		if (ret)
- 			break;
- 	}
--- 
-2.18.0
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c |  1 +
+>  include/media/v4l2-ctrls.h           | 10 ++++++++++
+>  2 files changed, 11 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 404291f00715..b33a8bee82b0 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1901,6 +1901,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+>  				      sizeof(hdl->buckets[0]),
+>  				      GFP_KERNEL | __GFP_ZERO);
+>  	hdl->error = hdl->buckets ? 0 : -ENOMEM;
+> +	media_request_object_init(&hdl->req_obj);
+
+I don't like very much the idea of initializing it even when the
+request API won't work, e. g. :
+
+	if (!mdev->ops || !mdev->ops->req_validate || !mdev->ops->req_queue)
+
+but I guess it would be too early to check it here, right?
+
+>  	return hdl->error;
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 192e31c21faf..3f4e062d4e3d 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -20,6 +20,7 @@
+>  #include <linux/list.h>
+>  #include <linux/mutex.h>
+>  #include <linux/videodev2.h>
+> +#include <media/media-request.h>
+>  
+>  /* forward references */
+>  struct file;
+> @@ -249,6 +250,11 @@ struct v4l2_ctrl {
+>   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
+>   * @from_other_dev: If true, then @ctrl was defined in another
+>   *		device than the &struct v4l2_ctrl_handler.
+> + * @p_req:	If the control handler containing this control reference
+> + *		is bound to a media request, then this points to the
+> + *		value of the control that should be applied when the request
+> + *		is executed, or to the value of the control at the time
+> + *		that the request was completed.
+>   *
+>   * Each control handler has a list of these refs. The list_head is used to
+>   * keep a sorted-by-control-ID list of all controls, while the next pointer
+> @@ -260,6 +266,7 @@ struct v4l2_ctrl_ref {
+>  	struct v4l2_ctrl *ctrl;
+>  	struct v4l2_ctrl_helper *helper;
+>  	bool from_other_dev;
+> +	union v4l2_ctrl_ptr p_req;
+>  };
+>  
+>  /**
+> @@ -283,6 +290,8 @@ struct v4l2_ctrl_ref {
+>   * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
+>   * @nr_of_buckets: Total number of buckets in the array.
+>   * @error:	The error code of the first failed control addition.
+> + * @req_obj:	The &struct media_request_object, used to link into a
+> + *		&struct media_request. This request object has a refcount.
+>   */
+>  struct v4l2_ctrl_handler {
+>  	struct mutex _lock;
+> @@ -295,6 +304,7 @@ struct v4l2_ctrl_handler {
+>  	void *notify_priv;
+>  	u16 nr_of_buckets;
+>  	int error;
+> +	struct media_request_object req_obj;
+>  };
+>  
+>  /**
+
+
+
+Thanks,
+Mauro
