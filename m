@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:59045 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:59004 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730199AbeHIL3R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Aug 2018 07:29:17 -0400
+        id S1730191AbeHIL3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Aug 2018 07:29:16 -0400
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
@@ -23,28 +23,33 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Philipp Zabel <p.zabel@pengutronix.de>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v7 8/8] ARM: dts: sun8i-h3: Add Video Engine and reserved memory nodes
-Date: Thu,  9 Aug 2018 11:04:35 +0200
-Message-Id: <20180809090435.17248-9-paul.kocialkowski@bootlin.com>
+Subject: [PATCH v7 6/8] ARM: dts: sun7i-a20: Add Video Engine and reserved memory nodes
+Date: Thu,  9 Aug 2018 11:04:33 +0200
+Message-Id: <20180809090435.17248-7-paul.kocialkowski@bootlin.com>
 In-Reply-To: <20180809090435.17248-1-paul.kocialkowski@bootlin.com>
 References: <20180809090435.17248-1-paul.kocialkowski@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 This adds nodes for the Video Engine and the associated reserved memory
-for the H3. Up to 96 MiB of memory are dedicated to the CMA pool.
+for the A20. Up to 96 MiB of memory are dedicated to the CMA pool.
+
+The VPU can only map the first 256 MiB of DRAM, so the reserved memory
+pool has to be located in that area. Following Allwinner's decision in
+downstream software, the last 96 MiB of the first 256 MiB of RAM are
+reserved for this purpose.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 ---
- arch/arm/boot/dts/sun8i-h3.dtsi | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ arch/arm/boot/dts/sun7i-a20.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun8i-h3.dtsi b/arch/arm/boot/dts/sun8i-h3.dtsi
-index c93f6be40533..c1375e72bb12 100644
---- a/arch/arm/boot/dts/sun8i-h3.dtsi
-+++ b/arch/arm/boot/dts/sun8i-h3.dtsi
-@@ -110,6 +110,20 @@
- 			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
+diff --git a/arch/arm/boot/dts/sun7i-a20.dtsi b/arch/arm/boot/dts/sun7i-a20.dtsi
+index 38999d791cb5..55517b068009 100644
+--- a/arch/arm/boot/dts/sun7i-a20.dtsi
++++ b/arch/arm/boot/dts/sun7i-a20.dtsi
+@@ -161,6 +161,21 @@
+ 		reg = <0x40000000 0x80000000>;
  	};
  
 +	reserved-memory {
@@ -52,6 +57,7 @@ index c93f6be40533..c1375e72bb12 100644
 +		#size-cells = <1>;
 +		ranges;
 +
++		/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
 +		cma_pool: cma@4a000000 {
 +			compatible = "shared-dma-pool";
 +			size = <0x6000000>;
@@ -61,26 +67,26 @@ index c93f6be40533..c1375e72bb12 100644
 +		};
 +	};
 +
- 	soc {
- 		system-control@1c00000 {
- 			compatible = "allwinner,sun8i-h3-system-control",
-@@ -134,6 +148,17 @@
+ 	timer {
+ 		compatible = "arm,armv7-timer";
+ 		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+@@ -466,6 +481,17 @@
  			};
  		};
  
-+		video-codec@01c0e000 {
-+			compatible = "allwinner,sun8i-h3-video-engine";
++		video-codec@1c0e000 {
++			compatible = "allwinner,sun7i-a20-video-engine";
 +			reg = <0x01c0e000 0x1000>;
-+			clocks = <&ccu CLK_BUS_VE>, <&ccu CLK_VE>,
++			clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
 +				 <&ccu CLK_DRAM_VE>;
 +			clock-names = "ahb", "mod", "ram";
-+			resets = <&ccu RST_BUS_VE>;
-+			interrupts = <GIC_SPI 58 IRQ_TYPE_LEVEL_HIGH>;
++			resets = <&ccu RST_VE>;
++			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
 +			allwinner,sram = <&ve_sram 1>;
 +		};
 +
- 		mali: gpu@1c40000 {
- 			compatible = "allwinner,sun8i-h3-mali", "arm,mali-400";
- 			reg = <0x01c40000 0x10000>;
+ 		mmc0: mmc@1c0f000 {
+ 			compatible = "allwinner,sun7i-a20-mmc";
+ 			reg = <0x01c0f000 0x1000>;
 -- 
 2.18.0
