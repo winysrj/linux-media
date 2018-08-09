@@ -1,173 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:48816 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1730453AbeHIQr4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 12:47:56 -0400
-Date: Thu, 9 Aug 2018 10:22:48 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        USB list <linux-usb@vger.kernel.org>, <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Takashi Iwai <tiwai@suse.de>
-Subject: Re: [PATCH v2] usb: add usb_fill_iso_urb()
-In-Reply-To: <20180808213348.ipppuapqaasrkhxv@linutronix.de>
-Message-ID: <Pine.LNX.4.44L0.1808091017260.1549-100000@iolanthe.rowland.org>
+Received: from mail-yw1-f67.google.com ([209.85.161.67]:33161 "EHLO
+        mail-yw1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731574AbeHIQzd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 12:55:33 -0400
+Received: by mail-yw1-f67.google.com with SMTP id c135-v6so4371682ywa.0
+        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2018 07:30:24 -0700 (PDT)
+Received: from mail-yw1-f50.google.com (mail-yw1-f50.google.com. [209.85.161.50])
+        by smtp.gmail.com with ESMTPSA id x69-v6sm4547863ywx.105.2018.08.09.07.30.21
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 09 Aug 2018 07:30:22 -0700 (PDT)
+Received: by mail-yw1-f50.google.com with SMTP id r184-v6so4354345ywg.6
+        for <linux-media@vger.kernel.org>; Thu, 09 Aug 2018 07:30:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+References: <20180622120419.7675-1-matwey@sai.msu.ru> <2175835.YAv5WQJWxC@avalon>
+ <CAJs94EYX13oPHiD=Ck5E9cG=z3JMZ9Szs5kRaKHn9F90+uxQ8Q@mail.gmail.com> <2106168.1BipQ1ylgj@avalon>
+In-Reply-To: <2106168.1BipQ1ylgj@avalon>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 9 Aug 2018 23:30:09 +0900
+Message-ID: <CAAFQd5B6nsyu5fpjonUdOsstvhTrNhpVev7MmUckQWb0kasJKQ@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        rostedt@goodmis.org, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 8 Aug 2018, Sebastian Andrzej Siewior wrote:
+On Thu, Aug 9, 2018 at 6:44 PM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Matwey,
+>
+> On Thursday, 9 August 2018 12:18:13 EEST Matwey V. Kornilov wrote:
+> > 2018-08-09 1:46 GMT+03:00 Laurent Pinchart:
+> > > On Friday, 22 June 2018 15:04:19 EEST Matwey V. Kornilov wrote:
+> > >> DMA cocherency slows the transfer down on systems without hardware
+> > >> coherent DMA.
+> > >>
+> > >> Based on previous commit the following performance benchmarks have been
+> > >> carried out. Average memcpy() data transfer rate (rate) and handler
+> > >> completion time (time) have been measured when running video stream at
+> > >> 640x480 resolution at 10fps.
+> > >>
+> > >> x86_64 based system (Intel Core i5-3470). This platform has hardware
+> > >> coherent DMA support and proposed change doesn't make big difference
+> > >> here.
+> > >>
+> > >>  * kmalloc:            rate = (4.4 +- 1.0) GBps
+> > >>                        time = (2.4 +- 1.2) usec
+> > >>
+> > >>  * usb_alloc_coherent: rate = (4.1 +- 0.9) GBps
+> > >>                        time = (2.5 +- 1.0) usec
+> > >>
+> > >> We see that the measurements agree well within error ranges in this case.
+> > >> So no performance downgrade is introduced.
+> > >>
+> > >> armv7l based system (TI AM335x BeagleBone Black). This platform has no
+> > >> hardware coherent DMA support. DMA coherence is implemented via disabled
+> > >> page caching that slows down memcpy() due to memory controller behaviour.
+> > >>
+> > >>  * kmalloc:            rate =  (190 +-  30) MBps
+> > >>                        time =   (50 +-  10) usec
+> > >>
+> > >>  * usb_alloc_coherent: rate =   (33 +-   4) MBps
+> > >>                        time = (3000 +- 400) usec
+> > >>
+> > >> Note, that quantative difference leads (this commit leads to 5 times
+> > >> acceleration) to qualitative behavior change in this case. As it was
+> > >> stated before, the video stream can not be successfully received at
+> > >> AM335x platforms with MUSB based USB host controller due to performance
+> > >> issues [1].
+> > >>
+> > >> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+> > >>
+> > >> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+> > >> ---
+> > >>
+> > >>  drivers/media/usb/pwc/pwc-if.c | 12 +++---------
+> > >>  1 file changed, 3 insertions(+), 9 deletions(-)
+> > >>
+> > >> diff --git a/drivers/media/usb/pwc/pwc-if.c
+> > >> b/drivers/media/usb/pwc/pwc-if.c index 72d2897a4b9f..339a285600d1 100644
+> > >> --- a/drivers/media/usb/pwc/pwc-if.c
+> > >> +++ b/drivers/media/usb/pwc/pwc-if.c
+> > >> @@ -427,11 +427,8 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+> > >>               urb->interval = 1; // devik
+> > >>               urb->dev = udev;
+> > >>               urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
+> > >> -             urb->transfer_flags = URB_ISO_ASAP |
+> > >> URB_NO_TRANSFER_DMA_MAP;
+> > >> -             urb->transfer_buffer = usb_alloc_coherent(udev,
+> > >> -                                                       ISO_BUFFER_SIZE,
+> > >> -                                                       GFP_KERNEL,
+> > >> -
+> > >> &urb->transfer_dma);
+> > >> +             urb->transfer_flags = URB_ISO_ASAP;
+> > >> +             urb->transfer_buffer = kmalloc(ISO_BUFFER_SIZE,
+> > >> GFP_KERNEL);
+> > >
+> > > ISO_BUFFER_SIZE is 970 bytes, well below a page size, so this should be
+> > > fine. However, for other USB camera drivers, we might require larger
+> > > buffers spanning multiple pages, and kmalloc() wouldn't be a very good
+> > > choice there. I thus believe we should implement a helper function,
+> > > possibly in the for of usb_alloc_noncoherent(), to allow picking the
+> > > right allocation mechanism based on the buffer size (and possibly other
+> > > parameters). Ideally the helper and the USB core should cooperate to
+> > > avoid any overhead from DMA operations when DMA is coherent on the
+> > > platform (on x86 and some ARM platforms).
+> >
+> > pwc/pwc.h:
+> >
+> > #define ISO_FRAMES_PER_DESC     10
+> > #define ISO_MAX_FRAME_SIZE      960
+> > #define ISO_BUFFER_SIZE         (ISO_FRAMES_PER_DESC * ISO_MAX_FRAME_SIZE)
+> >
+> > The buffer size is 9600 bytes, where did 970 come from?
+>
+> From mistaking * for + at 2:00am :-/
+>
+> That's three pages, so to reduce pressure on memory allocation it would be
+> best to use an allocator that can be backed by CMA. A helper function to
+> abstract this has just become more important.
 
-> Provide usb_fill_iso_urb() for the initialisation of isochronous URBs.
-> We already have one of this helpers for control, bulk and interruptible
-> URB types. This helps to keep the initialisation of the URB members in
-> one place.
-> Update the documentation by adding this to the available init functions
-> and remove the suggestion to use the `_int_' helper which might provide
-> wrong encoding for the `interval' member.
-> 
-> This looks like it would cover most users nicely. The sound subsystem
-> initialises the ->iso_frame_desc[].offset + length member at a different
-> location and I'm not sure ->interval will work as expected.
-> 
-> Some users also initialise ->iso_frame_desc[].actual_length but I don't
-> think that this is required since it is the return value.
-> 
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
+Yes, that's a very valid point (which I raised earlier wrt possible
+problems with replacing current usb_alloc_coherent() with kmalloc().
+Not only it wouldn't be able to deal efficiently with contiguous
+allocations, it would actually enforce contiguous allocations, even
+for devices, which don't really need it, e.g. equipped with IOMMU.
 
-Very good.  Just some minor grammatical points below.
+Sounds like dma_alloc_noncoherent() (or dma_alloc_streaming())? In
+theory, there is already DMA_ATTR_NON_CONSISTENT flag for
+dma_alloc_attrs(), but almost no archs implement it (for sure ARM
+doesn't and neither do the generic dma-mapping helpers).
 
-> RFC … v2:
-> 	- rephrased the interval description as per Alan Stern.
-> 	- packets and packet_size can be 0 so the initialisation of
-> 	  those members will be skipped. Suggested by Alan Stern, came
-> 	  handy while converting drivers.
-> 	- Updated wording as suggested by Laurent Pinchart.
-> 
->  Documentation/driver-api/usb/URB.rst | 12 +++---
->  include/linux/usb.h                  | 60 ++++++++++++++++++++++++++++
->  2 files changed, 66 insertions(+), 6 deletions(-)
-> 
-> diff --git a/Documentation/driver-api/usb/URB.rst b/Documentation/driver-api/usb/URB.rst
-> index 61a54da9fce9..20030b781519 100644
-> --- a/Documentation/driver-api/usb/URB.rst
-> +++ b/Documentation/driver-api/usb/URB.rst
-> @@ -116,11 +116,11 @@ What has to be filled in?
->  
->  Depending on the type of transaction, there are some inline functions
->  defined in ``linux/usb.h`` to simplify the initialization, such as
-> -:c:func:`usb_fill_control_urb`, :c:func:`usb_fill_bulk_urb` and
-> -:c:func:`usb_fill_int_urb`.  In general, they need the usb device pointer,
-> -the pipe (usual format from usb.h), the transfer buffer, the desired transfer
-> -length, the completion handler, and its context. Take a look at the some
-> -existing drivers to see how they're used.
-> +:c:func:`usb_fill_control_urb`, :c:func:`usb_fill_bulk_urb`,
-> +:c:func:`usb_fill_int_urb` and :c:func:`usb_fill_iso_urb`.  In general, they
-> +need the usb device pointer, the pipe (usual format from usb.h), the transfer
-> +buffer, the desired transfer length, the completion handler, and its context.
-> +Take a look at the some existing drivers to see how they're used.
-
-s/the //.  This mistake was present in the original text, but you might 
-as well fix it now.
-
->  
->  Flags:
->  
-> @@ -243,7 +243,7 @@ Besides the fields present on a bulk transfer, for ISO, you also
->  also have to set ``urb->interval`` to say how often to make transfers; it's
->  often one per frame (which is once every microframe for highspeed devices).
->  The actual interval used will be a power of two that's no bigger than what
-> -you specify. You can use the :c:func:`usb_fill_int_urb` macro to fill
-> +you specify. You can use the :c:func:`usb_fill_iso_urb` macro to fill
->  most ISO transfer fields.
->  
->  For ISO transfers you also have to fill a :c:type:`usb_iso_packet_descriptor`
-> diff --git a/include/linux/usb.h b/include/linux/usb.h
-> index 4cdd515a4385..ec1200d53ac5 100644
-> --- a/include/linux/usb.h
-> +++ b/include/linux/usb.h
-> @@ -1697,6 +1697,66 @@ static inline void usb_fill_int_urb(struct urb *urb,
->  	urb->start_frame = -1;
->  }
->  
-> +/**
-> + * usb_fill_iso_urb - initializes an isochronous urb
-> + * @urb: pointer to the urb to initialize.
-> + * @dev: pointer to the struct usb_device for this urb.
-> + * @pipe: the endpoint pipe
-> + * @transfer_buffer: pointer to the transfer buffer
-> + * @buffer_length: length of the transfer buffer
-> + * @complete_fn: pointer to the usb_complete_t function
-> + * @context: what to set the urb context to.
-> + * @interval: what to set the urb interval to, encoded like
-> + *	the endpoint descriptor's bInterval value.
-> + * @packets: number of ISO packets.
-> + * @packet_size: size of each ISO packet.
-> + *
-> + * Initializes an isochronous urb with the proper information needed to submit
-> + * it to a device.
-> + *
-> + * Full-speed devices express polling intervals in frames (1 per ms);
-> + * high-speed and SuperSpeed devices express polling intervals in
-> + * microframes (8 per ms).
-> + *
-> + * The arguments @packets is to initialize number_of_packets member of struct
-
-Insert "the" between "initialize" and "number_of_packets".
-
-> + * usb. If @packets and @packet_size is non zero then the iso_frame_desc array
-
-s/usb/urb/
-s/is/are/
-
-> + * will be initialized and each packet will have the same size.
-
-Maybe add: "If @packets is zero then these members are not altered."
-
-> + */
-> +static inline void usb_fill_iso_urb(struct urb *urb,
-> +				    struct usb_device *dev,
-> +				    unsigned int pipe,
-> +				    void *transfer_buffer,
-> +				    int buffer_length,
-> +				    usb_complete_t complete_fn,
-> +				    void *context,
-> +				    int interval,
-> +				    unsigned int packets,
-> +				    unsigned int packet_size)
-> +{
-> +	unsigned int i;
-> +
-> +	urb->dev = dev;
-> +	urb->pipe = pipe;
-> +	urb->transfer_buffer = transfer_buffer;
-> +	urb->transfer_buffer_length = buffer_length;
-> +	urb->complete = complete_fn;
-> +	urb->context = context;
-> +
-> +	interval = clamp(interval, 1, 16);
-> +	urb->interval = 1 << (interval - 1);
-> +	urb->start_frame = -1;
-> +
-> +	if (packets)
-> +		urb->number_of_packets = packets;
-> +
-> +	if (packet_size) {
-> +		for (i = 0; i < packets; i++) {
-> +			urb->iso_frame_desc[i].offset = packet_size * i;
-> +			urb->iso_frame_desc[i].length = packet_size;
-> +		}
-> +	}
-> +}
-> +
->  extern void usb_init_urb(struct urb *urb);
->  extern struct urb *usb_alloc_urb(int iso_packets, gfp_t mem_flags);
->  extern void usb_free_urb(struct urb *urb);
-
-Alan Stern
+Best regards,
+Tomasz
