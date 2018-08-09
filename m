@@ -1,90 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:56102 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:42158 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727048AbeHHQSM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 12:18:12 -0400
-Date: Wed, 8 Aug 2018 10:58:20 -0300
+        with ESMTP id S1731065AbeHIR4w (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 13:56:52 -0400
+Date: Thu, 9 Aug 2018 12:31:21 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: vsp1: cleanup a false positive warning
-Message-ID: <20180808105820.67469806@coco.lan>
-In-Reply-To: <20180507122103.40048014@vento.lan>
-References: <a1bedd480c31bcc2f48cd6d965a9bb853e8786ee.1525436031.git.mchehab+samsung@kernel.org>
-        <3223850.s1aV98ALtZ@avalon>
-        <20180507122103.40048014@vento.lan>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        698668@bugs.debian.org, linux-media <linux-media@vger.kernel.org>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Ralph Metzler <rjkm@metzlerbros.de>,
+        Marcus Metzler <mocm@mocm.de>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] Documentation/media: uapi: Explicitly say there are no
+ Invariant Sections
+Message-ID: <20180809123121.19fd11ee@coco.lan>
+In-Reply-To: <20180809121920.60d146bf@coco.lan>
+References: <20180803144153.GA18030@decadent.org.uk>
+        <20180809121920.60d146bf@coco.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 7 May 2018 12:21:03 -0300
+Em Thu, 9 Aug 2018 12:19:20 -0300
 Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 
-> Em Mon, 07 May 2018 17:05:24 +0300
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> Em Fri, 3 Aug 2018 15:41:53 +0100
+> Ben Hutchings <ben@decadent.org.uk> escreveu:
 > 
-> > Hi Mauro,
+> > The GNU Free Documentation License allows for a work to specify
+> > Invariant Sections that are not allowed to be modified.  (Debian
+> > considers that this makes such works non-free.)
 > > 
-> > Thank you for the patch.
+> > The Linux Media Infrastructure userspace API documentation does not
+> > specify any such sections, but it also doesn't say there are none (as
+> > is recommended by the license text).  Make it explicit that there are
+> > none.
 > > 
-> > On Friday, 4 May 2018 15:13:58 EEST Mauro Carvalho Chehab wrote:  
-> > > With the new vsp1 code changes introduced by changeset
-> > > f81f9adc4ee1 ("media: v4l: vsp1: Assign BRU and BRS to pipelines
-> > > dynamically"), smatch complains with:
-> > > 	drivers/media/platform/vsp1/vsp1_drm.c:262 vsp1_du_pipeline_setup_bru()
-> > > error: we previously assumed 'pipe->bru' could be null (see line 180)
-> > > 
-> > > This is a false positive, as, if pipe->bru is NULL, the brx
-> > > var will be different, with ends by calling a code that will
-> > > set pipe->bru to another value.
-> > > 
-> > > Yet, cleaning this false positive is as easy as adding an explicit
-> > > check if pipe->bru is NULL.    
+> > References: https://bugs.debian.org/698668
+> > Signed-off-by: Ben Hutchings <ben@decadent.org.uk>  
+> 
+> From my side:
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> 
+> (I'm waiting for more SoBs before merging this)
+> 
+> I pinged some developers that don't use to listen to the media ML
+> as often as they used to do, and to the sub-maintainers, via the
+> sub-mainainers ML, and got some SoBs. Let me add them to this thread:
+> 
+> Gerd:
+> 
+> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+> 
+> Hans:
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Sylwester:
+> 
+> Signed-off-by: Sylwester Nawrocki <snawrocki@kernel.org>
+> 
+> Johannes:
+> 
+> "I think I didn't contribute to that documentation?
+>  Anyway, just in case: I agree with the change to
+>  forbid adding invariant sections."
+> 
+> Signed-off-by: Johannes Stezenbach <js@linuxtv.org>
+> 
+> Ralph:
+> 
+> "I also do not think there is anything left in there which I contributed.
+>  The original documentation up to 2002 probably is copyright of Convergence.
+> 
+>  But I agree with the change to forbid adding invariant sections regarding
+>  anything in that documentation that might be my copyright."
+> 
+> Signed-off-by: Ralph Metzler <rjkm@metzlerbros.de>
+> 
+> Markus:
+> 
+> "Ralph> I also do not think there is anything left in there which I
+>  Ralph> contributed.  The original documentation up to 2002
+>  Ralph> probably is copyright of Convergence.    
+>  The same is true for me.
+> 
+>  I also agree with the change to forbid adding invariant sections
+>  regarding anything in that documentation that might be my copyright."
+> 
+> Signed-off-by: Marcus Metzler <mocm@metzlerbros.de>
+
+
+Sean Young:
+
+Signed-off-by: Sean Young <sean@mess.org>
+
+ "Makes complete sense."
+
+
+> 
+> 
+> > ---
+> >  Documentation/media/media_uapi.rst | 6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
 > > 
-> > It's not very difficult indeed, but it really is a false positive. I think the 
-> > proposed change decreases readability, the condition currently reads as "if 
-> > (new brx != old brx)", why does smatch even flag that as an error ?  
-> 
-> I've no idea. Never studied smatch code. If you don't think that
-> this is a fix for it, do you have an alternative patch (either to
-> smatch or to vsp1)?
-
-Ping.
-
-We're carrying this warning since the latest Kernel release. If you
-don't have a better fix, let's apply it for 4.19. You may work on
-a different solution if you think you'll be able to either patch
-smatch in order to identify such complex logic or do something else
-at the vsp1 code to simplify the logic on future Kernel revisions.
-
-> 
-> Regards,
-> Mauro
-> 
-> >   
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > > ---
-> > >  drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> > > b/drivers/media/platform/vsp1/vsp1_drm.c index 095dc48aa25a..cb6b60843400
-> > > 100644
-> > > --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> > > +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> > > @@ -185,7 +185,7 @@ static int vsp1_du_pipeline_setup_brx(struct vsp1_device
-> > > *vsp1, brx = &vsp1->brs->entity;
-> > > 
-> > >  	/* Switch BRx if needed. */
-> > > -	if (brx != pipe->brx) {
-> > > +	if (brx != pipe->brx || !pipe->brx) {
-> > >  		struct vsp1_entity *released_brx = NULL;
-> > > 
-> > >  		/* Release our BRx if we have one. */    
-> >   
+> > diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
+> > index 28eb35a1f965..5198ff24a094 100644
+> > --- a/Documentation/media/media_uapi.rst
+> > +++ b/Documentation/media/media_uapi.rst
+> > @@ -10,9 +10,9 @@ Linux Media Infrastructure userspace API
+> >  
+> >  Permission is granted to copy, distribute and/or modify this document
+> >  under the terms of the GNU Free Documentation License, Version 1.1 or
+> > -any later version published by the Free Software Foundation. A copy of
+> > -the license is included in the chapter entitled "GNU Free Documentation
+> > -License".
+> > +any later version published by the Free Software Foundation, with no
+> > +Invariant Sections. A copy of the license is included in the chapter
+> > +entitled "GNU Free Documentation License".
+> >  
+> >  .. only:: html
+> >    
 > 
 > 
 > 
