@@ -1,85 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48647 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726437AbeHQRO5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 13:14:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org,
-        amd-gfx@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH (repost) 1/5] drm_dp_cec: check that aux has a transfer function
-Date: Fri, 17 Aug 2018 16:11:18 +0200
-Message-Id: <20180817141122.9541-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180817141122.9541-1-hverkuil@xs4all.nl>
-References: <20180817141122.9541-1-hverkuil@xs4all.nl>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:55295 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725757AbeHIEBv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 00:01:51 -0400
+Received: by mail-wm0-f67.google.com with SMTP id c14-v6so4640787wmb.4
+        for <linux-media@vger.kernel.org>; Wed, 08 Aug 2018 18:39:32 -0700 (PDT)
+From: petrcvekcz@gmail.com
+To: marek.vasut@gmail.com, mchehab@kernel.org
+Cc: Petr Cvek <petrcvekcz@gmail.com>, linux-media@vger.kernel.org,
+        robert.jarzmik@free.fr, slapin@ossfans.org, philipp.zabel@gmail.com
+Subject: [PATCH v1 0/5] [media] soc_camera: ov9640 switch to v4l2_async
+Date: Thu,  9 Aug 2018 03:39:44 +0200
+Message-Id: <cover.1533774451.git.petrcvekcz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Petr Cvek <petrcvekcz@gmail.com>
 
-If aux->transfer == NULL, then just return without doing
-anything. In that case the function is likely called for
-a non-(e)DP connector.
+This patch series transfer the ov9640 driver from the soc_camera subsystem
+into a standalone v4l2 driver. There is no changes except the required
+v4l2_async calls, GPIO allocation and a deleting of now unused variables.
 
-This never happened for the i915 driver, but the nouveau and amdgpu
-drivers need this check.
+The config symbol has been changed from CONFIG_SOC_CAMERA_OV9640 to
+VIDEO_OV9640.
 
-The alternative would be to add this check in those drivers before
-every drm_dp_cec call, but it makes sense to check it in the
-drm_dp_cec functions to prevent a kernel oops.
+Also as the drivers of the soc_camera seems to be orphaned I'm volunteering
+to maintain the driver (I own the hardware).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/drm_dp_cec.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+I've found the ov9640 seems to be used at least in magician and Palm Zire72.
+These need to define power and reset GPIOs and remove the soc_camera
+definitions. I'm debugging it on magician now (the camera was unusable
+on them since the pxa_camera switched from the soc_camera).
 
-diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
-index 988513346e9c..1407b13a8d5d 100644
---- a/drivers/gpu/drm/drm_dp_cec.c
-+++ b/drivers/gpu/drm/drm_dp_cec.c
-@@ -238,6 +238,10 @@ void drm_dp_cec_irq(struct drm_dp_aux *aux)
- 	u8 cec_irq;
- 	int ret;
- 
-+	/* No transfer function was set, so not a DP connector */
-+	if (!aux->transfer)
-+		return;
-+
- 	mutex_lock(&aux->cec.lock);
- 	if (!aux->cec.adap)
- 		goto unlock;
-@@ -293,6 +297,10 @@ void drm_dp_cec_set_edid(struct drm_dp_aux *aux, const struct edid *edid)
- 	unsigned int num_las = 1;
- 	u8 cap;
- 
-+	/* No transfer function was set, so not a DP connector */
-+	if (!aux->transfer)
-+		return;
-+
- #ifndef CONFIG_MEDIA_CEC_RC
- 	/*
- 	 * CEC_CAP_RC is part of CEC_CAP_DEFAULTS, but it is stripped by
-@@ -361,6 +369,10 @@ EXPORT_SYMBOL(drm_dp_cec_set_edid);
-  */
- void drm_dp_cec_unset_edid(struct drm_dp_aux *aux)
- {
-+	/* No transfer function was set, so not a DP connector */
-+	if (!aux->transfer)
-+		return;
-+
- 	cancel_delayed_work_sync(&aux->cec.unregister_work);
- 
- 	mutex_lock(&aux->cec.lock);
-@@ -404,6 +416,8 @@ void drm_dp_cec_register_connector(struct drm_dp_aux *aux, const char *name,
- 				   struct device *parent)
- {
- 	WARN_ON(aux->cec.adap);
-+	if (WARN_ON(!aux->transfer))
-+		return;
- 	aux->cec.name = name;
- 	aux->cec.parent = parent;
- 	INIT_DELAYED_WORK(&aux->cec.unregister_work,
--- 
+Petr Cvek (5):
+  [media] soc_camera: ov9640: move ov9640 out of soc_camera
+  [media] i2c: soc_camera: remove ov9640 Kconfig and Makefile options
+  [media] i2c: add ov9640 config option as a standalone v4l2 sensor
+  [media] i2c: drop soc_camera code from ov9640 and switch to v4l2_async
+  MAINTAINERS: Add Petr Cvek as a maintainer for the ov9640 driver
+
+ MAINTAINERS                                 |  6 ++
+ drivers/media/i2c/Kconfig                   |  7 ++
+ drivers/media/i2c/Makefile                  |  1 +
+ drivers/media/i2c/{soc_camera => }/ov9640.c | 76 ++++++++++++++-------
+ drivers/media/i2c/{soc_camera => }/ov9640.h |  2 +
+ drivers/media/i2c/soc_camera/Kconfig        |  6 --
+ drivers/media/i2c/soc_camera/Makefile       |  1 -
+ 7 files changed, 69 insertions(+), 30 deletions(-)
+ rename drivers/media/i2c/{soc_camera => }/ov9640.c (93%)
+ rename drivers/media/i2c/{soc_camera => }/ov9640.h (98%)
+
+--
 2.18.0
