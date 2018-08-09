@@ -1,201 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:46518 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727768AbeHIMdS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 08:33:18 -0400
-MIME-Version: 1.0
-In-Reply-To: <1999611.3qB5YXmi7D@avalon>
-References: <20180809093307.6001-1-matwey@sai.msu.ru> <20180809093307.6001-3-matwey@sai.msu.ru>
- <1999611.3qB5YXmi7D@avalon>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Thu, 9 Aug 2018 13:08:48 +0300
-Message-ID: <CAJs94EaDGKTk_LpZaLpbLDMfBrHULx3yeXBK9ZCEg-hBmXv9dQ@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] media: usb: pwc: Don't use coherent DMA buffers
- for ISO transfer
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:32850 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727858AbeHIMvf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 08:51:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: "Matwey V. Kornilov" <matwey@sai.msu.ru>,
         Alan Stern <stern@rowland.harvard.edu>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans de Goede <hdegoede@redhat.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>, hdegoede@redhat.com,
         Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        rostedt@goodmis.org, mingo@redhat.com,
         Mike Isely <isely@pobox.com>,
         Bhumika Goyal <bhumirks@gmail.com>,
         Colin King <colin.king@canonical.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Kieran Bingham <kieran.bingham@ideasonboard.com>,
         keiichiw@chromium.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 2/2] media: usb: pwc: Don't use coherent DMA buffers for ISO transfer
+Date: Thu, 09 Aug 2018 13:28:04 +0300
+Message-ID: <3036308.kSDdPnDKq4@avalon>
+In-Reply-To: <CAAFQd5Bv=WyQ2qK7pNGJFEcQ9PfQgqWVU72K5Zu0SXuG3VQ2fQ@mail.gmail.com>
+References: <CAJs94EZEqWEscECp7bsJ3DvqoU83_Y2WQ55jPaG4MyoG-hvLFQ@mail.gmail.com> <1913405.2MshdJEm1G@avalon> <CAAFQd5Bv=WyQ2qK7pNGJFEcQ9PfQgqWVU72K5Zu0SXuG3VQ2fQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-08-09 12:51 GMT+03:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Matwey,
->
-> Thank you for the patch.
->
-> On Thursday, 9 August 2018 12:33:07 EEST Matwey V. Kornilov wrote:
->> DMA cocherency slows the transfer down on systems without hardware
->> coherent DMA. Instead we use noncocherent DMA memory and explicit sync at
->> data receive handler.
->>
->> Based on previous commit the following performance benchmarks have been
->> carried out. Average memcpy() data transfer rate (rate) and handler
->> completion time (time) have been measured when running video stream at
->> 640x480 resolution at 10fps.
->>
->> x86_64 based system (Intel Core i5-3470). This platform has hardware
->> coherent DMA support and proposed change doesn't make big difference here.
->>
->>  * kmalloc:            rate = (2.0 +- 0.4) GBps
->>                        time = (5.0 +- 3.0) usec
->>  * usb_alloc_coherent: rate = (3.4 +- 1.2) GBps
->>                        time = (3.5 +- 3.0) usec
->>
->> We see that the measurements agree within error ranges in this case.
->> So theoretically predicted performance downgrade cannot be reliably measured
->> here.
->>
->> armv7l based system (TI AM335x BeagleBone Black @ 300MHz). This platform has
->> no hardware coherent DMA support. DMA coherence is implemented via disabled
->> page caching that slows down memcpy() due to memory controller behaviour.
->>
->>  * kmalloc:            rate =  (114 +- 5) MBps
->>                        time =   (84 +- 4) usec
->>  * usb_alloc_coherent: rate = (28.1 +- 0.1) MBps
->>                        time =  (341 +- 2) usec
->>
->> Note, that quantative difference leads (this commit leads to 4 times
->> acceleration) to qualitative behavior change in this case. As it was
->> stated before, the video stream cannot be successfully received at AM335x
->> platforms with MUSB based USB host controller due to performance issues
->> [1].
->>
->> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
->>
->> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
->> ---
->>  drivers/media/usb/pwc/pwc-if.c | 47 ++++++++++++++++++++++++++++-----------
->>  1 file changed, 35 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
->> index 72d2897a4b9f..17f2015a75bb 100644
->> --- a/drivers/media/usb/pwc/pwc-if.c
->> +++ b/drivers/media/usb/pwc/pwc-if.c
->> @@ -159,6 +159,31 @@ static const struct video_device pwc_template = {
->>  /**************************************************************************
->> */ /* Private functions */
->>
->> +static void* pwc_alloc_urb_buffer(struct device *dev, size_t size,
->> dma_addr_t *dma_handle) {
->
-> There are several violations of the Linux coding style here, could you please
-> run your patch through checkpatch.pl to fix them ?
+Hi Tomasz,
 
-Thanks. I'll fix them. I really need to configure git hooks with checkpatch.
+On Thursday, 9 August 2018 05:36:46 EEST Tomasz Figa wrote:
+> On Thu, Aug 9, 2018 at 7:31 AM Laurent Pinchart wrote:
+> > On Saturday, 4 August 2018 11:00:05 EEST Matwey V. Kornilov wrote:
+> >> 2018-07-30 18:35 GMT+03:00 Laurent Pinchart:
+> >>> On Tuesday, 24 July 2018 21:56:09 EEST Matwey V. Kornilov wrote:
+> >>>> 2018-07-23 21:57 GMT+03:00 Alan Stern:
+> >>>>> On Mon, 23 Jul 2018, Matwey V. Kornilov wrote:
+> >>>>>> I've tried to strategies:
+> >>>>>> 
+> >>>>>> 1) Use dma_unmap and dma_map inside the handler (I suppose this is
+> >>>>>> similar to how USB core does when there is no
+> >>>>>> URB_NO_TRANSFER_DMA_MAP)
+> >>>>> 
+> >>>>> Yes.
+> >>>>> 
+> >>>>>> 2) Use sync_cpu and sync_device inside the handler (and dma_map
+> >>>>>> only once at memory allocation)
+> >>>>>> 
+> >>>>>> It is interesting that dma_unmap/dma_map pair leads to the lower
+> >>>>>> overhead (+1us) than sync_cpu/sync_device (+2us) at x86_64
+> >>>>>> platform. At armv7l platform using dma_unmap/dma_map  leads to ~50
+> >>>>>> usec in the handler, and sync_cpu/sync_device - ~65 usec.
+> >>>>>> 
+> >>>>>> However, I am not sure is it mandatory to call
+> >>>>>> dma_sync_single_for_device for FROM_DEVICE direction?
+> >>>>> 
+> >>>>> According to Documentation/DMA-API-HOWTO.txt, the CPU should not
+> >>>>> write to a DMA_FROM_DEVICE-mapped area, so
+> >>>>> dma_sync_single_for_device() is not needed.
+> >>>> 
+> >>>> Well, I measured the following at armv7l. The handler execution time
+> >>>> (URB_NO_TRANSFER_DMA_MAP is used for all cases):
+> >>>> 
+> >>>> 1) coherent DMA: ~3000 usec (pwc is not functional)
+> >>>> 2) explicit dma_unmap and dma_map in the handler: ~52 usec
+> >>>> 3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device):
+> >>>> ~56 usec
+> >>> 
+> >>> I really don't understand why the sync option is slower. Could you
+> >>> please investigate ? Before doing anything we need to make sure we have
+> >>> a full understanding of the problem.
+> >> 
+> >> Hi,
+> >> 
+> >> I've found one drawback in my measurements. I forgot to fix CPU
+> >> frequency at lowest state 300MHz. Now, I remeasured
+> >> 
+> >> 2) dma_unmap and dma_map in the handler:
+> >> 2A) dma_unmap_single call: 28.8 +- 1.5 usec
+> >> 2B) memcpy and the rest: 58 +- 6 usec
+> >> 2C) dma_map_single call: 22 +- 2 usec
+> >> Total: 110 +- 7 usec
+> >> 
+> >> 3) dma_sync_single_for_cpu
+> >> 3A) dma_sync_single_for_cpu call: 29.4 +- 1.7 usec
+> >> 3B) memcpy and the rest: 59 +- 6 usec
+> >> 3C) noop (trace events overhead): 5 +- 2 usec
+> >> Total: 93 +- 7 usec
+> >> 
+> >> So, now we see that 2A and 3A (as well as 2B and 3B) agree good within
+> >> error ranges.
+> > 
+> > Thank you for the time you've spent on these measurements, the information
+> > is useful and your work very appreciated.
+> > 
+> >>>> So, I suppose that unfortunately Tomasz suggestion doesn't work.
+> >>>> There is no performance improvement when dma_sync_single is used.
+> >>>> 
+> >>>> At x86_64 the following happens:
+> >>>> 
+> >>>> 1) coherent DMA: ~2 usec
+> >>> 
+> >>> What do you mean by coherent DMA for x86_64 ? Is that
+> >>> usb_alloc_coherent() ? Could you trace it to see how memory is allocated
+> >>> exactly, and how it's mapped to the CPU ? I suspect that it will end up
+> >>> in dma_direct_alloc() but I'd like a confirmation.
+> >> 
+> >> usb_alloc_coherents() ends up inside hcd_buffer_alloc() where
+> >> dma_alloc_coherent() is called. Keep in mind, that requested size is
+> >> 9560 in our case and pool is not used.
+> >> 
+> >>>> 2) explicit dma_unmap and dma_map in the handler: ~3.5 usec
+> >>>> 3) explicit dma_sync_single_for_cpu (no dma_sync_single_for_device):
+> >>>> ~4 usec
+> >>>> 
+> >>>> So, whats to do next? Personally, I think that DMA streaming API
+> >>>> introduces not so great overhead.
+> >>> 
+> >>> It might not be very large, but with USB3 cameras at high resolutions
+> >>> and framerates, it might still become noticeable. I wouldn't degrade
+> >>> performances on x86, especially if we can decide which option to use
+> >>> based on the platform (or perhaps even better based on Kconfig options
+> >>> such as DMA_NONCOHERENT).
+> >> 
+> >> PWC is discontinued chip, so there will not be any new USB3 cameras.
+> > 
+> > You're right. I had in mind other USB cameras that would benefit from the
+> > same change, and in particular the uvcvideo driver, which is used by USB3
+> > cameras.
+> > 
+> >> Kconfig won't work here, as I said before, DMA config is stored inside
+> >> device tree blob on ARM architecture.
+> > 
+> > But couldn't we skip it at least on x86 ?
+> 
+> If we use the map-once, sync-repeatedly approach, would there be
+> anything to gain on x86? I believe the sync ops there would be
+> effectively no-ops, so the only overhead would be of a function call.
 
->
->> +     void* buffer = kmalloc(size, GFP_KERNEL);
->> +
->> +     if (buffer == NULL) {
->> +             goto fail_kmalloc;
->> +     }
->
-> No need for a goto, you can just return NULL here.
->
->> +     *dma_handle = dma_map_single(dev, buffer, size, DMA_FROM_DEVICE);
->> +     if (dma_mapping_error(dev, *dma_handle)) {
->> +             goto fail_dma_map_single;
->
-> And you can inline the error handling code here as it's used from a single
-> location.
->
->> +     }
->> +
->> +     return buffer;
->> +
->> +fail_dma_map_single:
->> +     kfree(buffer);
->> +fail_kmalloc:
->> +     return NULL;
->> +}
->> +
->> +static void pwc_free_urb_buffer(struct device *dev, size_t size, void*
->> buffer, dma_addr_t dma_handle) {
->> +     dma_unmap_single(dev, dma_handle, size, DMA_FROM_DEVICE);
->> +     kfree(buffer);
->> +}
->> +
->>  static struct pwc_frame_buf *pwc_get_next_fill_buf(struct pwc_device *pdev)
->> {
->>       unsigned long flags = 0;
->> @@ -306,6 +331,8 @@ static void pwc_isoc_handler(struct urb *urb)
->>       /* Reset ISOC error counter. We did get here, after all. */
->>       pdev->visoc_errors = 0;
->>
->> +     dma_sync_single_for_cpu(&urb->dev->dev, urb->transfer_dma,
->> urb->transfer_buffer_length, DMA_FROM_DEVICE);
->> +
->>       /* vsync: 0 = don't copy data
->>                 1 = sync-hunt
->>                 2 = synched
->> @@ -428,16 +455,13 @@ static int pwc_isoc_init(struct pwc_device *pdev)
->>               urb->dev = udev;
->>               urb->pipe = usb_rcvisocpipe(udev, pdev->vendpoint);
->>               urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
->> -             urb->transfer_buffer = usb_alloc_coherent(udev,
->> -                                                       ISO_BUFFER_SIZE,
->> -                                                       GFP_KERNEL,
->> -                                                       &urb->transfer_dma);
->> +             urb->transfer_buffer_length = ISO_BUFFER_SIZE;
->> +             urb->transfer_buffer = pwc_alloc_urb_buffer(&udev->dev,
->> urb->transfer_buffer_length, &urb->transfer_dma);
->>               if (urb->transfer_buffer == NULL) {
->>                       PWC_ERROR("Failed to allocate urb buffer %d\n", i);
->>                       pwc_isoc_cleanup(pdev);
->>                       return -ENOMEM;
->>               }
->> -             urb->transfer_buffer_length = ISO_BUFFER_SIZE;
->>               urb->complete = pwc_isoc_handler;
->>               urb->context = pdev;
->>               urb->start_frame = 0;
->> @@ -488,15 +512,14 @@ static void pwc_iso_free(struct pwc_device *pdev)
->>
->>       /* Freeing ISOC buffers one by one */
->>       for (i = 0; i < MAX_ISO_BUFS; i++) {
->> -             if (pdev->urbs[i]) {
->> +             struct urb* urb = pdev->urbs[i];
->> +
->> +             if (urb) {
->>                       PWC_DEBUG_MEMORY("Freeing URB\n");
->> -                     if (pdev->urbs[i]->transfer_buffer) {
->> -                             usb_free_coherent(pdev->udev,
->> -                                     pdev->urbs[i]->transfer_buffer_length,
->> -                                     pdev->urbs[i]->transfer_buffer,
->> -                                     pdev->urbs[i]->transfer_dma);
->> +                     if (urb->transfer_buffer) {
->> +                             pwc_free_urb_buffer(&urb->dev->dev, urb->transfer_buffer_length,
->> urb->transfer_buffer, urb->transfer_dma); }
->> -                     usb_free_urb(pdev->urbs[i]);
->> +                     usb_free_urb(urb);
->>                       pdev->urbs[i] = NULL;
->>               }
->>       }
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
-
-
+With that approach, and iff they're effectively no-ops, that should be fine. 
+We thus need to double-check.
 
 -- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119234, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+Regards,
+
+Laurent Pinchart
