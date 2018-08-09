@@ -1,174 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36626 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730090AbeHIQOd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Aug 2018 12:14:33 -0400
-Date: Thu, 9 Aug 2018 09:49:30 -0400
-From: Steven Rostedt <rostedt@goodmis.org>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        tfiga@chromium.org, laurent.pinchart@ideasonboard.com,
-        stern@rowland.harvard.edu, ezequiel@collabora.com,
-        hdegoede@redhat.com, hverkuil@xs4all.nl, mchehab@kernel.org,
-        mingo@redhat.com, isely@pobox.com, bhumirks@gmail.com,
-        colin.king@canonical.com, kieran.bingham@ideasonboard.com,
-        keiichiw@chromium.org
-Subject: Re: [PATCH v3 1/2] media: usb: pwc: Introduce TRACE_EVENTs for
- pwc_isoc_handler()
-Message-ID: <20180809094930.707da2e0@gandalf.local.home>
-In-Reply-To: <20180809093307.6001-2-matwey@sai.msu.ru>
-References: <20180809093307.6001-1-matwey@sai.msu.ru>
-        <20180809093307.6001-2-matwey@sai.msu.ru>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:46043 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730090AbeHIQRO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 12:17:14 -0400
+Date: Thu, 9 Aug 2018 15:52:05 +0200
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: mchehab@kernel.org, p.zabel@pengutronix.de,
+        afshin.nasser@gmail.com, javierm@redhat.com,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, kernel@pengutronix.de
+Subject: Re: [PATCH 06/22] [media] tvp5150: add FORMAT_TRY support for
+ get/set selection handlers
+Message-ID: <20180809135205.drqolr752nbv7bug@pengutronix.de>
+References: <20180628162054.25613-1-m.felsch@pengutronix.de>
+ <20180628162054.25613-7-m.felsch@pengutronix.de>
+ <20180730210123.7f1f2b57@coco.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180730210123.7f1f2b57@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu,  9 Aug 2018 12:33:06 +0300
-"Matwey V. Kornilov" <matwey@sai.msu.ru> wrote:
+Hi Mauro,
 
-> There were reports that PWC-based webcams don't work at some
-> embedded ARM platforms. [1] Isochronous transfer handler seems to
-> work too long leading to the issues in MUSB USB host subsystem.
-> Also note, that urb->giveback() handlers are still called with
-> disabled interrupts. In order to be able to measure performance of
-> PWC driver, traces are introduced in URB handler section.
+during my work for a v2 series, I prepared two patches which fix this in a
+common way. The first will fix the compiler break and the second will
+fix a missing dependency, since those helper functions require the
+media_entity which is only available if MEDIA_CONTROLLER is enabled.
+
+I attached both inline as an RFC, can give me your feedback?
+
+I removed the devicetree guys to aviod noise.
+
+On 18-07-30 21:01, Mauro Carvalho Chehab wrote:
+> Em Thu, 28 Jun 2018 18:20:38 +0200
+> Marco Felsch <m.felsch@pengutronix.de> escreveu:
 > 
-> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+> > Since commit 10d5509c8d50 ("[media] v4l2: remove g/s_crop from video ops")
+> > the 'which' field for set/get_selection must be FORMAT_ACTIVE. There is
+> > no way to try different selections. The patch adds a helper function to
+> > select the correct selection memory space (sub-device file handle or
+> > driver state) which will be set/returned.
+> > 
+> > The TVP5150 AVID will be updated if the 'which' field is FORMAT_ACTIVE
+> > and the requested selection rectangle differs from the already set one.
+> > 
+> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > ---
+> >  drivers/media/i2c/tvp5150.c | 107 ++++++++++++++++++++++++------------
+> >  1 file changed, 73 insertions(+), 34 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> > index d150487cc2d1..29eaf8166f25 100644
+> > --- a/drivers/media/i2c/tvp5150.c
+> > +++ b/drivers/media/i2c/tvp5150.c
+> > @@ -18,6 +18,7 @@
+> >  #include <media/v4l2-ctrls.h>
+> >  #include <media/v4l2-fwnode.h>
+> >  #include <media/v4l2-mc.h>
+> > +#include <media/v4l2-rect.h>
+> >  
+> >  #include "tvp5150_reg.h"
+> >  
+> > @@ -846,20 +847,38 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
+> >  	}
+> >  }
+> >  
+> > +static struct v4l2_rect *
+> > +__tvp5150_get_pad_crop(struct tvp5150 *decoder,
+> > +		       struct v4l2_subdev_pad_config *cfg, unsigned int pad,
+> > +		       enum v4l2_subdev_format_whence which)
+> > +{
+> > +	switch (which) {
+> > +	case V4L2_SUBDEV_FORMAT_TRY:
+> > +		return v4l2_subdev_get_try_crop(&decoder->sd, cfg, pad);
 > 
-> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
-> ---
->  drivers/media/usb/pwc/pwc-if.c |  7 +++++
->  include/trace/events/pwc.h     | 64 ++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 71 insertions(+)
->  create mode 100644 include/trace/events/pwc.h
+> This is not ok. It causes compilation breakage if the subdev API is not
+> selected:
 > 
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index 54b036d39c5b..72d2897a4b9f 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -76,6 +76,9 @@
->  #include "pwc-dec23.h"
->  #include "pwc-dec1.h"
->  
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/pwc.h>
-> +
->  /* Function prototypes and driver templates */
->  
->  /* hotplug device table support */
-> @@ -260,6 +263,8 @@ static void pwc_isoc_handler(struct urb *urb)
->  	int i, fst, flen;
->  	unsigned char *iso_buf = NULL;
->  
-> +	trace_pwc_handler_enter(urb, pdev);
-> +
->  	if (urb->status == -ENOENT || urb->status == -ECONNRESET ||
->  	    urb->status == -ESHUTDOWN) {
->  		PWC_DEBUG_OPEN("URB (%p) unlinked %ssynchronously.\n",
-> @@ -348,6 +353,8 @@ static void pwc_isoc_handler(struct urb *urb)
->  	}
->  
->  handler_end:
-> +	trace_pwc_handler_exit(urb, pdev);
-> +
->  	i = usb_submit_urb(urb, GFP_ATOMIC);
->  	if (i != 0)
->  		PWC_ERROR("Error (%d) re-submitting urb in pwc_isoc_handler.\n", i);
-> diff --git a/include/trace/events/pwc.h b/include/trace/events/pwc.h
-> new file mode 100644
-> index 000000000000..71ba98770537
-> --- /dev/null
-> +++ b/include/trace/events/pwc.h
-> @@ -0,0 +1,64 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +#if !defined(_TRACE_PWC_H) || defined(TRACE_HEADER_MULTI_READ)
-> +#define _TRACE_PWC_H
-> +
-> +#include <linux/usb.h>
-> +#include <linux/tracepoint.h>
-> +
-> +#undef TRACE_SYSTEM
-> +#define TRACE_SYSTEM pwc
-> +
-> +TRACE_EVENT(pwc_handler_enter,
-> +	TP_PROTO(struct urb *urb, struct pwc_device *pdev),
-> +	TP_ARGS(urb, pdev),
-> +	TP_STRUCT__entry(
-> +		__field(struct urb*, urb)
-> +		__field(int, urb__status)
-> +		__field(u32, urb__actual_length)
-> +		__field(const char*, name)
+> drivers/media/i2c/tvp5150.c: In function ‘__tvp5150_get_pad_crop’:
+> drivers/media/i2c/tvp5150.c:857:10: error: implicit declaration of function ‘v4l2_subdev_get_try_crop’; did you mean ‘v4l2_subdev_has_op’? [-Werror=implicit-function-declaration]
+>    return v4l2_subdev_get_try_crop(&decoder->sd, cfg, pad);
+>           ^~~~~~~~~~~~~~~~~~~~~~~~
+>           v4l2_subdev_has_op
+> drivers/media/i2c/tvp5150.c:857:10: warning: returning ‘int’ from a function with return type ‘struct v4l2_rect *’ makes pointer from integer without a cast [-Wint-conversion]
+>    return v4l2_subdev_get_try_crop(&decoder->sd, cfg, pad);
+>           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> The logic should keep working both with and without subdev API.
+> 
 
-name needs to be a __string. Never save pointers that you will
-dereference in the print_fmt, as you never know if those pointers will
-exist later. Not to mention, userspace tools like trace-cmd and perf
-have no idea how to display them.
+[ snip ]
 
-You want:
+>From d87554df5d1c6d609e44852a1cb998a6f5d99601 Mon Sep 17 00:00:00 2001
+From: Marco Felsch <m.felsch@pengutronix.de>
+Date: Wed, 8 Aug 2018 14:27:46 +0200
+Subject: [RFC] [media] v4l2-subdev: add stubs for v4l2_subdev_get_try_*
 
-		__string( name, pdev->v4l2_dev.name ),
+In case of missing CONFIG_VIDEO_V4L2_SUBDEV_API those helpers aren't
+available. So each driver have to add ifdefs around those helpers or
+add the CONFIG_VIDEO_V4L2_SUBDEV_API as dependcy.
 
+Make these helpers available in case of CONFIG_VIDEO_V4L2_SUBDEV_API
+isn't set to avoid ifdefs. This approach is less error prone too.
 
-> +		__field(struct pwc_frame_buf*, fbuf)
-> +		__field(int, fbuf__filled)
-> +	),
-> +	TP_fast_assign(
-> +		__entry->urb = urb;
-> +		__entry->urb__status = urb->status;
-> +		__entry->urb__actual_length = urb->actual_length;
-> +		__entry->name = pdev->v4l2_dev.name;
+Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+---
+ include/media/v4l2-subdev.h | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-And here you assign it with:
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 9102d6ca566e..ce48f1fcf295 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -912,8 +912,6 @@ struct v4l2_subdev_fh {
+ #define to_v4l2_subdev_fh(fh)	\
+ 	container_of(fh, struct v4l2_subdev_fh, vfh)
+ 
+-#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-
+ /**
+  * v4l2_subdev_get_try_format - ancillary routine to call
+  *	&struct v4l2_subdev_pad_config->try_fmt
+@@ -927,9 +925,13 @@ static inline struct v4l2_mbus_framefmt
+ 			    struct v4l2_subdev_pad_config *cfg,
+ 			    unsigned int pad)
+ {
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	if (WARN_ON(pad >= sd->entity.num_pads))
+ 		pad = 0;
+ 	return &cfg[pad].try_fmt;
++#else
++	return NULL;
++#endif
+ }
+ 
+ /**
+@@ -945,9 +947,13 @@ static inline struct v4l2_rect
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  unsigned int pad)
+ {
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	if (WARN_ON(pad >= sd->entity.num_pads))
+ 		pad = 0;
+ 	return &cfg[pad].try_crop;
++#else
++	return NULL;
++#endif
+ }
+ 
+ /**
+@@ -963,11 +969,14 @@ static inline struct v4l2_rect
+ 			     struct v4l2_subdev_pad_config *cfg,
+ 			     unsigned int pad)
+ {
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	if (WARN_ON(pad >= sd->entity.num_pads))
+ 		pad = 0;
+ 	return &cfg[pad].try_compose;
+-}
++#else
++	return NULL;
+ #endif
++}
+ 
+ extern const struct v4l2_file_operations v4l2_subdev_fops;
+ 
+-- 
+2.18.0
 
-		__assign_str(name, pdev->v4l2_dev.name);
+>From 6abc7599fe6bdb2b8bef84fd90417d69aafb4a33 Mon Sep 17 00:00:00 2001
+From: Marco Felsch <m.felsch@pengutronix.de>
+Date: Wed, 8 Aug 2018 14:47:44 +0200
+Subject: [RFC] [media] v4l2-subdev: fix v4l2_subdev_get_try_* dependency
 
-> +		__entry->fbuf = pdev->fill_buf;
-> +		__entry->fbuf__filled = (pdev->fill_buf ? pdev->fill_buf->filled : 0);
-> +	),
-> +	TP_printk("dev=%s (fbuf=%p filled=%d) urb=%p (status=%d actual_length=%u)",
-> +		__entry->name,
+These helpers make us of the media-controller entity which is only
+available if the CONFIG_MEDIA_CONTROLLER is enabled.
 
-And display it with:
+Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+---
+ include/media/v4l2-subdev.h | 100 ++++++++++++++++++------------------
+ 1 file changed, 50 insertions(+), 50 deletions(-)
 
-		__get_str(name),
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index ce48f1fcf295..79c066934ad2 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -912,6 +912,56 @@ struct v4l2_subdev_fh {
+ #define to_v4l2_subdev_fh(fh)	\
+ 	container_of(fh, struct v4l2_subdev_fh, vfh)
+ 
++extern const struct v4l2_file_operations v4l2_subdev_fops;
++
++/**
++ * v4l2_set_subdevdata - Sets V4L2 dev private device data
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @p: pointer to the private device data to be stored.
++ */
++static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
++{
++	sd->dev_priv = p;
++}
++
++/**
++ * v4l2_get_subdevdata - Gets V4L2 dev private device data
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ *
++ * Returns the pointer to the private device data to be stored.
++ */
++static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
++{
++	return sd->dev_priv;
++}
++
++/**
++ * v4l2_set_subdev_hostdata - Sets V4L2 dev private host data
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @p: pointer to the private data to be stored.
++ */
++static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
++{
++	sd->host_priv = p;
++}
++
++/**
++ * v4l2_get_subdev_hostdata - Gets V4L2 dev private data
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ *
++ * Returns the pointer to the private host data to be stored.
++ */
++static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
++{
++	return sd->host_priv;
++}
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++
+ /**
+  * v4l2_subdev_get_try_format - ancillary routine to call
+  *	&struct v4l2_subdev_pad_config->try_fmt
+@@ -978,56 +1028,6 @@ static inline struct v4l2_rect
+ #endif
+ }
+ 
+-extern const struct v4l2_file_operations v4l2_subdev_fops;
+-
+-/**
+- * v4l2_set_subdevdata - Sets V4L2 dev private device data
+- *
+- * @sd: pointer to &struct v4l2_subdev
+- * @p: pointer to the private device data to be stored.
+- */
+-static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+-{
+-	sd->dev_priv = p;
+-}
+-
+-/**
+- * v4l2_get_subdevdata - Gets V4L2 dev private device data
+- *
+- * @sd: pointer to &struct v4l2_subdev
+- *
+- * Returns the pointer to the private device data to be stored.
+- */
+-static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+-{
+-	return sd->dev_priv;
+-}
+-
+-/**
+- * v4l2_set_subdev_hostdata - Sets V4L2 dev private host data
+- *
+- * @sd: pointer to &struct v4l2_subdev
+- * @p: pointer to the private data to be stored.
+- */
+-static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
+-{
+-	sd->host_priv = p;
+-}
+-
+-/**
+- * v4l2_get_subdev_hostdata - Gets V4L2 dev private data
+- *
+- * @sd: pointer to &struct v4l2_subdev
+- *
+- * Returns the pointer to the private host data to be stored.
+- */
+-static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+-{
+-	return sd->host_priv;
+-}
+-
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-
+ /**
+  * v4l2_subdev_link_validate_default - validates a media link
+  *
+-- 
+2.18.0
 
-> +		__entry->fbuf,
-> +		__entry->fbuf__filled,
-> +		__entry->urb,
-> +		__entry->urb__status,
-> +		__entry->urb__actual_length)
-> +);
-> +
-> +TRACE_EVENT(pwc_handler_exit,
-> +	TP_PROTO(struct urb *urb, struct pwc_device* pdev),
-> +	TP_ARGS(urb, pdev),
-> +	TP_STRUCT__entry(
-> +		__field(struct urb*, urb)
-> +		__field(const char*, name)
-> +		__field(struct pwc_frame_buf*, fbuf)
-> +		__field(int, fbuf__filled)
-> +	),
-> +	TP_fast_assign(
-> +		__entry->urb = urb;
-> +		__entry->name = pdev->v4l2_dev.name;
-> +		__entry->fbuf = pdev->fill_buf;
-> +		__entry->fbuf__filled = pdev->fill_buf->filled;
-> +	),
-> +	TP_printk(" dev=%s (fbuf=%p filled=%d) urb=%p",
-> +		__entry->name,
-
-Same thing here.
-
--- Steve
-
-> +		__entry->fbuf,
-> +		__entry->fbuf__filled,
-> +		__entry->urb)
-> +);
-> +
-> +#endif /* _TRACE_PWC_H */
-> +
-> +/* This part must be outside protection */
-> +#include <trace/define_trace.h>
+Kind regards,
+Marco
