@@ -1,73 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57366 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1727477AbeHJQ5q (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:43835 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727718AbeHJRsv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Aug 2018 12:57:46 -0400
-Date: Fri, 10 Aug 2018 10:27:37 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>, <mingo@redhat.com>,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Colin King <colin.king@canonical.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        <keiichiw@chromium.org>
-Subject: Re: [PATCH v4 2/2] media: usb: pwc: Don't use coherent DMA buffers
- for ISO transfer
-In-Reply-To: <66694963.VB7x4V86dC@avalon>
-Message-ID: <Pine.LNX.4.44L0.1808101019550.1425-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+        Fri, 10 Aug 2018 13:48:51 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+Subject: [PATCH 0/3] i.MX PXP scaler/CSC driver
+Date: Fri, 10 Aug 2018 17:18:19 +0200
+Message-Id: <20180810151822.18650-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 10 Aug 2018, Laurent Pinchart wrote:
+The Pixel Pipeline (PXP) is a memory-to-memory graphics processing
+engine that supports scaling, colorspace conversion, alpha blending,
+rotation, and pixel conversion via lookup table. Different versions are
+present on various i.MX SoCs from i.MX23 to i.MX7. The latest versions
+on i.MX6ULL and i.MX7D have grown an additional pipeline for dithering
+and e-ink update processing that is ignored by this driver.
 
-> > > Aren't you're missing a dma_sync_single_for_device() call before
-> > > submitting the URB ? IIRC that's required for correct operation of the DMA
-> > > mapping API on some platforms, depending on the cache architecture. The
-> > > additional sync can affect performances, so it would be useful to re-run
-> > > the perf test.
-> > 
-> > This was already discussed:
-> > 
-> > https://lkml.org/lkml/2018/7/23/1051
-> > 
-> > I rely on Alan's reply:
-> > 
-> > > According to Documentation/DMA-API-HOWTO.txt, the CPU should not write
-> > > to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
-> > > not needed.
-> 
-> I fully agree that the CPU should not write to the buffer. However, I think 
-> the sync call is still needed. It's been a long time since I touched this 
-> area, but IIRC, some cache architectures (VIVT ?) require both cache clean 
-> before the transfer and cache invalidation after the transfer. On platforms 
-> where no cache management operation is needed before the transfer in the 
-> DMA_FROM_DEVICE direction, the dma_sync_*_for_device() calls should be no-ops 
-> (and if they're not, it's a bug of the DMA mapping implementation).
+This series adds a V4L2 mem-to-mem scaler/CSC driver for the PXP version
+found on i.MX6ULL SoCs which is a size reduced variant of the i.MX7 PXP.
+The driver uses only the legacy pipeline, so it should be reasonably
+easy to extend it to work with the older PXP versions found on i.MX6UL,
+i.MX6SX, i.MX6SL, i.MX28, and i.MX23. The driver supports scaling and
+colorspace conversion. There is currently no support for rotation,
+alpha-blending, and the LUTs.
 
-In general, I agree that the cache has to be clean before a transfer
-starts.  This means some sort of mapping operation (like
-dma_sync_*_for-device) is indeed required at some point between the
-allocation and the first transfer.
+regards
+Philipp
 
-For subsequent transfers, however, the cache is already clean and it
-will remain clean because the CPU will not do any writes to the buffer.
-(Note: clean != empty.  Rather, clean == !dirty.)  Therefore transfers
-following the first should not need any dma_sync_*_for_device.
+Philipp Zabel (3):
+  dt-bindings: media: Add i.MX Pixel Pipeline binding
+  ARM: dts: imx6ull: add pxp support
+  media: imx-pxp: add i.MX Pixel Pipeline driver
 
-If you don't accept this reasoning then you should ask the people who 
-wrote DMA-API-HOWTO.txt.  They certainly will know more about this 
-issue than I do.
+ .../devicetree/bindings/media/fsl-pxp.txt     |   26 +
+ arch/arm/boot/dts/imx6ul.dtsi                 |    8 +
+ arch/arm/boot/dts/imx6ull.dtsi                |    6 +
+ drivers/media/platform/Kconfig                |    9 +
+ drivers/media/platform/Makefile               |    2 +
+ drivers/media/platform/imx-pxp.c              | 1455 ++++++++++++++
+ drivers/media/platform/imx-pxp.h              | 1685 +++++++++++++++++
+ 7 files changed, 3191 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
+ create mode 100644 drivers/media/platform/imx-pxp.c
+ create mode 100644 drivers/media/platform/imx-pxp.h
 
-Alan Stern
+-- 
+2.18.0
