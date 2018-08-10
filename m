@@ -1,72 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:62962 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726963AbeHJNSR (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34547 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726181AbeHJOSi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Aug 2018 09:18:17 -0400
-Subject: Re: [PATCHv16 01/34] Documentation: v4l: document request API
-To: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180705160337.54379-1-hverkuil@xs4all.nl>
- <20180705160337.54379-2-hverkuil@xs4all.nl> <20180810104623.GA6350@amd>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <edbd181b-f7a4-cfa5-0460-7e6348ceb4bd@cisco.com>
-Date: Fri, 10 Aug 2018 12:48:54 +0200
+        Fri, 10 Aug 2018 10:18:38 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-ctrls: add v4l2_ctrl_del_handler()
+Message-ID: <8877bbf6-eaf8-732d-ee5f-6e2fbe2371bf@xs4all.nl>
+Date: Fri, 10 Aug 2018 13:48:58 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180810104623.GA6350@amd>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/18 12:46, Pavel Machek wrote:
-> Hi!
->> From: Alexandre Courbot <acourbot@chromium.org>
->>
->> Document the request API for V4L2 devices, and amend the documentation
->> of system calls influenced by it.
->>
->> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
->> --- a/Documentation/media/uapi/v4l/buffer.rst
->> +++ b/Documentation/media/uapi/v4l/buffer.rst
->> @@ -306,10 +306,15 @@ struct v4l2_buffer
->>        - A place holder for future extensions. Drivers and applications
->>  	must set this to 0.
->>      * - __u32
->> -      - ``reserved``
->> +      - ``request_fd``
->>        -
->> -      - A place holder for future extensions. Drivers and applications
->> -	must set this to 0.
->> +      - The file descriptor of the request to queue the buffer to. If specified
->> +        and flag ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
-> 
-> Delete "specified and" -- 0 is valid fd?
+If a sub-device is unbound, then it should also remove its controls from
+other control handlers that it was added to using v4l2_ctrl_add_handler().
 
-Good catch!
+So create a v4l2_ctrl_del_handler() function that removes the controls that
+were earlier added with v4l2_ctrl_add_handler().
 
-> 
->> +	queued to that request. This is set by the user when calling
->> +	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.
->> +	If the device does not support requests, then ``EPERM`` will be returned.
->> +	If requests are supported but an invalid request FD is given, then
->> +	``ENOENT`` will be returned.
-> 
-> Should this still specify that this should be 0 if
-> V4L2_BUF_FLAG_REQUEST_FD is not set?
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+I'm not sure if this should be merged. It is necessary to safely unbind
+subdevs, but since we don't do that yet anyway it is debatable if this
+should be merged without anyone using it. But at least it will be archived
+in patchwork so it isn't lost.
 
-I don't think so. But I can mentioned with request_fd that it is ignored if
-V4L2_BUF_FLAG_REQUEST_FD is not set.
+This function is used in our out-of-tree driver when we unconfigure an
+FPGA where we do exactly this type of unbinding.
 
 Regards,
 
 	Hans
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 39 ++++++++++++++++++++++++++++
+ include/media/v4l2-ctrls.h           | 12 +++++++++
+ 2 files changed, 51 insertions(+)
 
-> 
-> 									Pavel
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 599c1cbff3b9..b40cea8ec436 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2421,6 +2421,45 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_add_handler);
+
++void v4l2_ctrl_del_handler(struct v4l2_ctrl_handler *hdl,
++			  struct v4l2_ctrl_handler *del)
++{
++	struct v4l2_ctrl_ref *ref, *ref_safe;
++
++	/* Do nothing if either handler is NULL or if they are the same */
++	if (!hdl || !del || hdl == del)
++		return;
++
++	mutex_lock(hdl->lock);
++	list_for_each_entry_safe(ref, ref_safe, &hdl->ctrl_refs, node) {
++		struct v4l2_ctrl *ctrl = ref->ctrl;
++		struct v4l2_ctrl_ref *bucket_ref;
++		int bucket;
++
++		if (ctrl->handler != del)
++			continue;
++
++		bucket = ctrl->id % hdl->nr_of_buckets;	/* which bucket to use */
++		bucket_ref = hdl->buckets[bucket];
++
++		list_del(&ref->node);
++		if (bucket_ref == ref)
++			hdl->buckets[bucket] = ref->next;
++		else {
++			while (bucket_ref->next && bucket_ref->next != ref)
++				bucket_ref = bucket_ref->next;
++			if (bucket_ref)
++				bucket_ref->next = ref->next;
++			else
++				pr_err("could not find ctrl '%s'\n", ctrl->name);
++		}
++		kfree(ref);
++	}
++	hdl->cached = NULL;
++	mutex_unlock(hdl->lock);
++}
++EXPORT_SYMBOL(v4l2_ctrl_del_handler);
++
+ bool v4l2_ctrl_radio_filter(const struct v4l2_ctrl *ctrl)
+ {
+ 	if (V4L2_CTRL_ID2WHICH(ctrl->id) == V4L2_CTRL_CLASS_FM_TX)
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index f615ba1b29dd..c32d3500db54 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -644,6 +644,18 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 			  struct v4l2_ctrl_handler *add,
+ 			  v4l2_ctrl_filter filter);
+
++/**
++ * v4l2_ctrl_del_handler() - Remove all controls in handler @del from
++ * handler @hdl.
++ * @hdl:	The control handler.
++ * @del:	The control handler whose controls you want to delete from
++ *		the @hdl control handler.
++ *
++ * Does nothing if either of the two handlers is a NULL pointer.
++ */
++void v4l2_ctrl_del_handler(struct v4l2_ctrl_handler *hdl,
++			   struct v4l2_ctrl_handler *del);
++
+ /**
+  * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
+  *
+-- 
+2.18.0
