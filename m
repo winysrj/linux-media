@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:55013 "EHLO
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:52019 "EHLO
         mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728064AbeHJQvw (ORCPT
+        with ESMTP id S1728188AbeHJQvz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Aug 2018 12:51:52 -0400
-Received: by mail-wm0-f66.google.com with SMTP id c14-v6so2096577wmb.4
-        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2018 07:21:45 -0700 (PDT)
+        Fri, 10 Aug 2018 12:51:55 -0400
+Received: by mail-wm0-f66.google.com with SMTP id y2-v6so2108974wma.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2018 07:21:48 -0700 (PDT)
 From: Rui Miguel Silva <rui.silva@linaro.org>
 To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
         Philipp Zabel <p.zabel@pengutronix.de>,
@@ -16,41 +16,43 @@ Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Ryan Harkin <ryan.harkin@linaro.org>,
         Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v7 06/12] ARM: dts: imx7s: add mipi phy power domain
-Date: Fri, 10 Aug 2018 15:20:39 +0100
-Message-Id: <20180810142045.27657-7-rui.silva@linaro.org>
+Subject: [PATCH v7 07/12] ARM: dts: imx7s: add multiplexer controls
+Date: Fri, 10 Aug 2018 15:20:40 +0100
+Message-Id: <20180810142045.27657-8-rui.silva@linaro.org>
 In-Reply-To: <20180810142045.27657-1-rui.silva@linaro.org>
 References: <20180810142045.27657-1-rui.silva@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add power domain index 0 related with mipi-phy to imx7s.
-
-While at it rename pcie power-domain node to remove pgc prefix.
+The IOMUXC General Purpose Register has bitfield to control video bus
+multiplexer to control the CSI input between the MIPI-CSI2 and parallel
+interface. Add that register and mask.
 
 Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
  arch/arm/boot/dts/imx7s.dtsi | 8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-index 9ced589bfa96..df4a29365468 100644
+index df4a29365468..f6c7afa51dc1 100644
 --- a/arch/arm/boot/dts/imx7s.dtsi
 +++ b/arch/arm/boot/dts/imx7s.dtsi
-@@ -610,7 +610,13 @@
- 					#address-cells = <1>;
- 					#size-cells = <0>;
+@@ -493,8 +493,14 @@
  
--					pgc_pcie_phy: pgc-power-domain@1 {
-+					pgc_mipi_phy: power-domain@0 {
-+						#power-domain-cells = <0>;
-+						reg = <0>;
-+						power-supply = <&reg_1p0d>;
-+					};
+ 			gpr: iomuxc-gpr@30340000 {
+ 				compatible = "fsl,imx7d-iomuxc-gpr",
+-					"fsl,imx6q-iomuxc-gpr", "syscon";
++					"fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
+ 				reg = <0x30340000 0x10000>;
 +
-+					pgc_pcie_phy: power-domain@1 {
- 						#power-domain-cells = <0>;
- 						reg = <1>;
- 						power-supply = <&reg_1p0d>;
++				mux: mux-controller {
++					compatible = "mmio-mux";
++					#mux-control-cells = <0>;
++					mux-reg-masks = <0x14 0x00000010>;
++				};
+ 			};
+ 
+ 			ocotp: ocotp-ctrl@30350000 {
 -- 
 2.18.0
