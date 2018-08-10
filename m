@@ -1,66 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:56064 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728239AbeHJQwH (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:57366 "HELO
+        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1727477AbeHJQ5q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Aug 2018 12:52:07 -0400
-Received: by mail-wm0-f68.google.com with SMTP id f21-v6so2095921wmc.5
-        for <linux-media@vger.kernel.org>; Fri, 10 Aug 2018 07:21:59 -0700 (PDT)
-From: Rui Miguel Silva <rui.silva@linaro.org>
-To: mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        devicetree@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Ryan Harkin <ryan.harkin@linaro.org>,
-        Rui Miguel Silva <rui.silva@linaro.org>
-Subject: [PATCH v7 12/12] media: video-mux: add bayer formats
-Date: Fri, 10 Aug 2018 15:20:45 +0100
-Message-Id: <20180810142045.27657-13-rui.silva@linaro.org>
-In-Reply-To: <20180810142045.27657-1-rui.silva@linaro.org>
-References: <20180810142045.27657-1-rui.silva@linaro.org>
+        Fri, 10 Aug 2018 12:57:46 -0400
+Date: Fri, 10 Aug 2018 10:27:37 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, <mingo@redhat.com>,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        <keiichiw@chromium.org>
+Subject: Re: [PATCH v4 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+In-Reply-To: <66694963.VB7x4V86dC@avalon>
+Message-ID: <Pine.LNX.4.44L0.1808101019550.1425-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add non vendor bayer formats to the  allowed format array.
+On Fri, 10 Aug 2018, Laurent Pinchart wrote:
 
-Signed-off-by: Rui Miguel Silva <rui.silva@linaro.org>
----
- drivers/media/platform/video-mux.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+> > > Aren't you're missing a dma_sync_single_for_device() call before
+> > > submitting the URB ? IIRC that's required for correct operation of the DMA
+> > > mapping API on some platforms, depending on the cache architecture. The
+> > > additional sync can affect performances, so it would be useful to re-run
+> > > the perf test.
+> > 
+> > This was already discussed:
+> > 
+> > https://lkml.org/lkml/2018/7/23/1051
+> > 
+> > I rely on Alan's reply:
+> > 
+> > > According to Documentation/DMA-API-HOWTO.txt, the CPU should not write
+> > > to a DMA_FROM_DEVICE-mapped area, so dma_sync_single_for_device() is
+> > > not needed.
+> 
+> I fully agree that the CPU should not write to the buffer. However, I think 
+> the sync call is still needed. It's been a long time since I touched this 
+> area, but IIRC, some cache architectures (VIVT ?) require both cache clean 
+> before the transfer and cache invalidation after the transfer. On platforms 
+> where no cache management operation is needed before the transfer in the 
+> DMA_FROM_DEVICE direction, the dma_sync_*_for_device() calls should be no-ops 
+> (and if they're not, it's a bug of the DMA mapping implementation).
 
-diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
-index d8a6fa20879a..af74eb384b78 100644
---- a/drivers/media/platform/video-mux.c
-+++ b/drivers/media/platform/video-mux.c
-@@ -263,6 +263,26 @@ static int video_mux_set_format(struct v4l2_subdev *sd,
- 	case MEDIA_BUS_FMT_UYYVYY16_0_5X48:
- 	case MEDIA_BUS_FMT_JPEG_1X8:
- 	case MEDIA_BUS_FMT_AHSV8888_1X32:
-+	case MEDIA_BUS_FMT_SBGGR8_1X8:
-+	case MEDIA_BUS_FMT_SGBRG8_1X8:
-+	case MEDIA_BUS_FMT_SGRBG8_1X8:
-+	case MEDIA_BUS_FMT_SRGGB8_1X8:
-+	case MEDIA_BUS_FMT_SBGGR10_1X10:
-+	case MEDIA_BUS_FMT_SGBRG10_1X10:
-+	case MEDIA_BUS_FMT_SGRBG10_1X10:
-+	case MEDIA_BUS_FMT_SRGGB10_1X10:
-+	case MEDIA_BUS_FMT_SBGGR12_1X12:
-+	case MEDIA_BUS_FMT_SGBRG12_1X12:
-+	case MEDIA_BUS_FMT_SGRBG12_1X12:
-+	case MEDIA_BUS_FMT_SRGGB12_1X12:
-+	case MEDIA_BUS_FMT_SBGGR14_1X14:
-+	case MEDIA_BUS_FMT_SGBRG14_1X14:
-+	case MEDIA_BUS_FMT_SGRBG14_1X14:
-+	case MEDIA_BUS_FMT_SRGGB14_1X14:
-+	case MEDIA_BUS_FMT_SBGGR16_1X16:
-+	case MEDIA_BUS_FMT_SGBRG16_1X16:
-+	case MEDIA_BUS_FMT_SGRBG16_1X16:
-+	case MEDIA_BUS_FMT_SRGGB16_1X16:
- 		break;
- 	default:
- 		sdformat->format.code = MEDIA_BUS_FMT_Y8_1X8;
--- 
-2.18.0
+In general, I agree that the cache has to be clean before a transfer
+starts.  This means some sort of mapping operation (like
+dma_sync_*_for-device) is indeed required at some point between the
+allocation and the first transfer.
+
+For subsequent transfers, however, the cache is already clean and it
+will remain clean because the CPU will not do any writes to the buffer.
+(Note: clean != empty.  Rather, clean == !dirty.)  Therefore transfers
+following the first should not need any dma_sync_*_for_device.
+
+If you don't accept this reasoning then you should ask the people who 
+wrote DMA-API-HOWTO.txt.  They certainly will know more about this 
+issue than I do.
+
+Alan Stern
