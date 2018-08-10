@@ -1,189 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57980 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728455AbeHMRwh (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:51623 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727422AbeHJKBY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 13:52:37 -0400
-Date: Mon, 13 Aug 2018 12:09:53 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 32/34] vivid: add mc
-Message-ID: <20180813120953.488bc3ad@coco.lan>
-In-Reply-To: <20180804124526.46206-33-hverkuil@xs4all.nl>
-References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-33-hverkuil@xs4all.nl>
+        Fri, 10 Aug 2018 06:01:24 -0400
+Date: Fri, 10 Aug 2018 09:32:40 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: petrcvekcz@gmail.com
+Cc: marek.vasut@gmail.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, robert.jarzmik@free.fr,
+        slapin@ossfans.org, philipp.zabel@gmail.com
+Subject: Re: [PATCH v1 1/5] [media] soc_camera: ov9640: move ov9640 out of
+ soc_camera
+Message-ID: <20180810073240.GB7060@w540>
+References: <cover.1533774451.git.petrcvekcz@gmail.com>
+ <3852f6ed6544bfa3d8d0850b993190094eb09999.1533774451.git.petrcvekcz@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="kORqDWCi7qDJ0mEj"
+Content-Disposition: inline
+In-Reply-To: <3852f6ed6544bfa3d8d0850b993190094eb09999.1533774451.git.petrcvekcz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  4 Aug 2018 14:45:24 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add support for the media_device to vivid. This is a prerequisite
-> for request support.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+--kORqDWCi7qDJ0mEj
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Hi Petr,
+   thanks for the patches,
 
+On Thu, Aug 09, 2018 at 03:39:45AM +0200, petrcvekcz@gmail.com wrote:
+> From: Petr Cvek <petrcvekcz@gmail.com>
+>
+> Initial part of ov9640 transition from soc_camera subsystem to a standalone
+> v4l2 subdevice.
+>
+> Signed-off-by: Petr Cvek <petrcvekcz@gmail.com>
 > ---
->  drivers/media/platform/vivid/vivid-core.c | 61 +++++++++++++++++++++++
->  drivers/media/platform/vivid/vivid-core.h |  8 +++
->  2 files changed, 69 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> index 31db363602e5..1c448529be04 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -657,6 +657,15 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  
->  	dev->inst = inst;
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	dev->v4l2_dev.mdev = &dev->mdev;
-> +
-> +	/* Initialize media device */
-> +	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
-> +	dev->mdev.dev = &pdev->dev;
-> +	media_device_init(&dev->mdev);
-> +#endif
-> +
->  	/* register v4l2_device */
->  	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
->  			"%s-%03d", VIVID_MODULE_NAME, inst);
-> @@ -1174,6 +1183,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		vfd->lock = &dev->mutex;
->  		video_set_drvdata(vfd, dev);
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +		dev->vid_cap_pad.flags = MEDIA_PAD_FL_SINK;
-> +		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_cap_pad);
-> +		if (ret)
-> +			goto unreg_dev;
-> +#endif
-> +
->  #ifdef CONFIG_VIDEO_VIVID_CEC
->  		if (in_type_counter[HDMI]) {
->  			struct cec_adapter *adap;
-> @@ -1226,6 +1242,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		vfd->lock = &dev->mutex;
->  		video_set_drvdata(vfd, dev);
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +		dev->vid_out_pad.flags = MEDIA_PAD_FL_SOURCE;
-> +		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vid_out_pad);
-> +		if (ret)
-> +			goto unreg_dev;
-> +#endif
-> +
->  #ifdef CONFIG_VIDEO_VIVID_CEC
->  		for (i = 0; i < dev->num_outputs; i++) {
->  			struct cec_adapter *adap;
-> @@ -1275,6 +1298,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		vfd->tvnorms = tvnorms_cap;
->  		video_set_drvdata(vfd, dev);
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +		dev->vbi_cap_pad.flags = MEDIA_PAD_FL_SINK;
-> +		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_cap_pad);
-> +		if (ret)
-> +			goto unreg_dev;
-> +#endif
-> +
->  		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_cap_nr[inst]);
->  		if (ret < 0)
->  			goto unreg_dev;
-> @@ -1300,6 +1330,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		vfd->tvnorms = tvnorms_out;
->  		video_set_drvdata(vfd, dev);
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +		dev->vbi_out_pad.flags = MEDIA_PAD_FL_SOURCE;
-> +		ret = media_entity_pads_init(&vfd->entity, 1, &dev->vbi_out_pad);
-> +		if (ret)
-> +			goto unreg_dev;
-> +#endif
-> +
->  		ret = video_register_device(vfd, VFL_TYPE_VBI, vbi_out_nr[inst]);
->  		if (ret < 0)
->  			goto unreg_dev;
-> @@ -1323,6 +1360,13 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  		vfd->lock = &dev->mutex;
->  		video_set_drvdata(vfd, dev);
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +		dev->sdr_cap_pad.flags = MEDIA_PAD_FL_SINK;
-> +		ret = media_entity_pads_init(&vfd->entity, 1, &dev->sdr_cap_pad);
-> +		if (ret)
-> +			goto unreg_dev;
-> +#endif
-> +
->  		ret = video_register_device(vfd, VFL_TYPE_SDR, sdr_cap_nr[inst]);
->  		if (ret < 0)
->  			goto unreg_dev;
-> @@ -1369,12 +1413,25 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  					  video_device_node_name(vfd));
->  	}
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	/* Register the media device */
-> +	ret = media_device_register(&dev->mdev);
-> +	if (ret) {
-> +		dev_err(dev->mdev.dev,
-> +			"media device register failed (err=%d)\n", ret);
-> +		goto unreg_dev;
-> +	}
-> +#endif
-> +
->  	/* Now that everything is fine, let's add it to device list */
->  	vivid_devs[inst] = dev;
->  
->  	return 0;
->  
->  unreg_dev:
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	media_device_unregister(&dev->mdev);
-> +#endif
->  	video_unregister_device(&dev->radio_tx_dev);
->  	video_unregister_device(&dev->radio_rx_dev);
->  	video_unregister_device(&dev->sdr_cap_dev);
-> @@ -1445,6 +1502,10 @@ static int vivid_remove(struct platform_device *pdev)
->  		if (!dev)
->  			continue;
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +		media_device_unregister(&dev->mdev);
-> +#endif
-> +
->  		if (dev->has_vid_cap) {
->  			v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
->  				video_device_node_name(&dev->vid_cap_dev));
-> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-> index 477c80a4d44c..6ccd1f5c1d91 100644
-> --- a/drivers/media/platform/vivid/vivid-core.h
-> +++ b/drivers/media/platform/vivid/vivid-core.h
-> @@ -136,6 +136,14 @@ struct vivid_cec_work {
->  struct vivid_dev {
->  	unsigned			inst;
->  	struct v4l2_device		v4l2_dev;
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device		mdev;
-> +	struct media_pad		vid_cap_pad;
-> +	struct media_pad		vid_out_pad;
-> +	struct media_pad		vbi_cap_pad;
-> +	struct media_pad		vbi_out_pad;
-> +	struct media_pad		sdr_cap_pad;
-> +#endif
->  	struct v4l2_ctrl_handler	ctrl_hdl_user_gen;
->  	struct v4l2_ctrl_handler	ctrl_hdl_user_vid;
->  	struct v4l2_ctrl_handler	ctrl_hdl_user_aud;
+>  drivers/media/i2c/{soc_camera => }/ov9640.c | 0
+>  drivers/media/i2c/{soc_camera => }/ov9640.h | 0
+>  2 files changed, 0 insertions(+), 0 deletions(-)
+>  rename drivers/media/i2c/{soc_camera => }/ov9640.c (100%)
+>  rename drivers/media/i2c/{soc_camera => }/ov9640.h (100%)
+>
+> diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/ov9640.c
+> similarity index 100%
+> rename from drivers/media/i2c/soc_camera/ov9640.c
+> rename to drivers/media/i2c/ov9640.c
+> diff --git a/drivers/media/i2c/soc_camera/ov9640.h b/drivers/media/i2c/ov9640.h
+> similarity index 100%
+> rename from drivers/media/i2c/soc_camera/ov9640.h
+> rename to drivers/media/i2c/ov9640.h
 
+When I've been recently doing the same for ov772x and other sensor
+driver I've been suggested to first copy the driver into
+drivers/media/i2c/ and leave the original soc_camera one there, so
+they can be bulk removed or moved to staging. I'll let Hans confirm
+this, as he's about to take care of this process.
 
+Thanks
+   j
 
-Thanks,
-Mauro
+> --
+> 2.18.0
+>
+
+--kORqDWCi7qDJ0mEj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbbT+YAAoJEHI0Bo8WoVY8+XEP/RXbWl3kijZ4F3AWba2WJSDF
+g3Hz3Z7n4F1zqxKxOzaEYyPahLV9iZMfho3wPAzpoZ9J4GkHKMOVtxSaMYmunEqf
+WmeYjHn9DyYIR9B/4X/ZXfHGhoKgB7yzs1SWU2ziOmKbu3cHEJg9tmKdEJNX93sV
+n3ARfYededhMv8+o9svWZ89ryGSNxIi7XaqEwxvLY/IjJJtJ25n+JDwuposZnkrN
+HLUkEmB0TRnbGWausUlJqnlRyvbub+UbM1V47pj4mXIEIIJ0cu+0xLqoSUwEW1Mp
+53ubZgfoNIOIbErJuf1cSCqfcWNhKGYtpkizC+nDRD6NwduxOPpFAO/UvBJHuBjv
+dhhvVqyiJfqX+ykm/pBvafbBhaW/BgEPU5ZCvLVPRRiE1H1U3TBOETZkzUMQdpUa
+2RdyIpKTpWx2pYlZbwnE6XCqxZCaG/Is0yNjHgZkHfAGK6nnBpvwA1sUyHSPp4B5
+MbHic6QJ43qKLLAeAd9Hc+hgwvUfFntfWNqnqoUvl5UzH6TBVDpdmDhgLmw0JoXm
+rsIv9clpbvnfB5yMLUuhvUxWS34KnNjBGGseFJMqDp2nIP5Nlz+pwWs6dBz6Kuvm
+cMhZCSJFGjYc8oKnInr1oHadgHoMjHCGO63gKEZF7dO6rpYjAQ2hc6ZhjgD2Vz3c
+c2Q9oDkwur1sC/bNrlAn
+=dMzv
+-----END PGP SIGNATURE-----
+
+--kORqDWCi7qDJ0mEj--
