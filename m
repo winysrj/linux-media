@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:54043 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727266AbeHKNlK (ORCPT
+Received: from userp2130.oracle.com ([156.151.31.86]:37292 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727683AbeHLXbx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Aug 2018 09:41:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] v4l2-tpg: add Z16 support
-Date: Sat, 11 Aug 2018 13:07:15 +0200
-Message-Id: <20180811110715.23872-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180811110715.23872-1-hverkuil@xs4all.nl>
-References: <20180811110715.23872-1-hverkuil@xs4all.nl>
+        Sun, 12 Aug 2018 19:31:53 -0400
+Subject: Re: [ANN] edid-decode maintenance info
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hansverk@cisco.com>, xorg-devel@lists.x.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4f89ae25-4ae6-3530-a8f9-171dd39dceb0@cisco.com>
+ <85fdad02-5b68-1e62-cc59-d4dd6a33759b@oracle.com>
+ <af4b80cc-1966-b346-a9fd-66db45b0c102@xs4all.nl>
+From: Alan Coopersmith <alan.coopersmith@oracle.com>
+Message-ID: <cc3bbc46-fca1-a969-a276-3a8d0f7f4745@oracle.com>
+Date: Sun, 12 Aug 2018 13:52:33 -0700
+MIME-Version: 1.0
+In-Reply-To: <af4b80cc-1966-b346-a9fd-66db45b0c102@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/22/18 01:12 AM, Hans Verkuil wrote:
+> On 06/22/2018 01:36 AM, Alan Coopersmith wrote:
+>> On 06/21/18 01:59 AM, Hans Verkuil wrote:
+>>> Hi all,
+>>>
+>>> As Adam already announced earlier this week I'm taking over maintenance of
+>>> the edid-decode utility.
+>>>
+>>> Since I am already maintaining other utilities on git.linuxtv.org I decided
+>>> to move the edid-decode git repo to linuxtv.org as well. It is now available
+>>> here: https://git.linuxtv.org/edid-decode.git/
+>>>
+>>> Patches, bug reports, etc. should be mailed to linux-media@vger.kernel.org
+>>> (see https://linuxtv.org/lists.php). Please make sure the subject line
+>>> contains 'edid-decode'.
+>>>
+>>> One thing I would like to tackle in the very near future is to add support for
+>>> the new HDMI 2.1b EDID additions.
+>>>
+>>> I also know that some patches for edid-decode were posted to xorg-devel that
+>>> were never applied. I will try to find them, but to be safe it is best to
+>>> repost them to linux-media.
+>>
+>> Thanks - there's also a handful of open bug reports against edid-decode in
+>> our bugzilla as well, some of which have patches attached:
+>>
+>> https://bugs.freedesktop.org/buglist.cgi?component=App%2Fedid-decode
+>>
+> 
+> Thank you for this information. I looked through all the bug reports and
+> 100607, 100340 and 93366 were already fixed before I took over maintenance.
+> 
+> I just fixed 89348 and 93777 in my git repo, so those can be marked as
+> resolved.
 
-Z16 support is identical to Y16, so that's easy to add.
+Since no one else has, I marked all of these resolved now with links to your
+repo for the fixes.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 3 +++
- 1 file changed, 3 insertions(+)
+> The edid-decode component should probably be removed from the freedesktop
+> bugzilla.
 
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index e6d13c4fb7b7..f3d9c1140ffa 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -235,6 +235,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_Y12:
- 	case V4L2_PIX_FMT_Y16:
- 	case V4L2_PIX_FMT_Y16_BE:
-+	case V4L2_PIX_FMT_Z16:
- 		tpg->color_enc = TGP_COLOR_ENC_LUMA;
- 		break;
- 	case V4L2_PIX_FMT_YUV444:
-@@ -351,6 +352,7 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_Y12:
- 	case V4L2_PIX_FMT_Y16:
- 	case V4L2_PIX_FMT_Y16_BE:
-+	case V4L2_PIX_FMT_Z16:
- 		tpg->twopixelsize[0] = 2 * 2;
- 		break;
- 	case V4L2_PIX_FMT_RGB24:
-@@ -1062,6 +1064,7 @@ static void gen_twopix(struct tpg_data *tpg,
- 		buf[0][offset+1] = r_y_h >> 4;
- 		break;
- 	case V4L2_PIX_FMT_Y16:
-+	case V4L2_PIX_FMT_Z16:
- 		/*
- 		 * Ideally both bytes should be set to r_y_h, but then you won't
- 		 * be able to detect endian problems. So keep it 0 except for
+I don't know how to do that without deleting the bugs, so I'm hoping Adam
+or Daniel can do that, much as they've been doing for the stuff migrating
+to gitlab.
+
+
 -- 
-2.18.0
+	-Alan Coopersmith-               alan.coopersmith@oracle.com
+	 Oracle Solaris Engineering - https://blogs.oracle.com/alanc
