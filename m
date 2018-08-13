@@ -1,41 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from unassigned.psychz.net ([104.149.231.218]:45462 "EHLO
-        soapequipment.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1728055AbeHMMV5 (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:47793 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728055AbeHMNBn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 08:21:57 -0400
-To: linux-media@vger.kernel.org
-Subject: mobile apps design
-Message-ID: <c9b7657ca1b3b3829a47a2ac547fe349@lantronix.com>
-Date: Mon, 13 Aug 2018 08:38:35 +0200
-From: "Jack Dike" <davidtens@bathbodysupply.com>
-Reply-To: cengjaos@aliyun.com
+        Mon, 13 Aug 2018 09:01:43 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2 0/5] Fix OV5640 exposure & gain
+Date: Mon, 13 Aug 2018 12:19:41 +0200
+Message-ID: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do you need mobile apps development? We can do it for you.
+This patch serie fixes some problems around exposure & gain in OV5640 driver.
 
-We are an India base company. Here are the details about us:
-Years in business: 8
-Staffs: 125
-App developed: 350
+The 4th patch about autocontrols requires also a fix in v4l2-ctrls.c:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg133164.html
 
-We work on Android, iOS, Ionic, and PhoneGap platforms, we have clients
-across different kind of industries.
-Such like retail, media and entertainment, BFSI, hospitality, social media,
-eCommerce, food and beverages, etc.
+Here is the test procedure used for exposure & gain controls check:
+1) Preview in background
+$> gst-launch-1.0 v4l2src ! "video/x-raw, width=640, Height=480" ! queue ! waylandsink -e &
+2) Check gain & exposure values
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=19 flags=inactive, volatile
+3) Put finger in front of camera and check that gain/exposure values are changing:
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=660 flags=inactive, volatile
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=37 flags=inactive, volatile
+4) switch to manual mode, image exposition must not change
+$> v4l2-ctl --set-ctrl=gain_automatic=0
+$> v4l2-ctl --set-ctrl=auto_exposure=1
+Note the "1" for manual exposure.
 
-We do below:
-Mobile Apps
-Mobile App UI/UX designing
-App Maintenance and Support
-Website or ecommerce portal development
+5) Check current gain/exposure values:
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=20
 
-Please reply back if you are interested in what we do.
-We will share our portfolios to you.
+6) Put finger behind camera and check that gain/exposure values are NOT changing:
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=20
+7) Update exposure, check that it is well changed on display and that same value is returned:
+$> v4l2-ctl --set-ctrl=exposure=100
+$> v4l2-ctl --get-ctrl=exposure
+exposure: 100
 
-Regards,
-Jack
+9) Update gain, check that it is well changed on display and that same value is returned:
+$> v4l2-ctl --set-ctrl=gain=10
+$> v4l2-ctl --get-ctrl=gain
+gain: 10
+
+10) Switch back to auto gain/exposure, verify that image is correct and values returned are correct:
+$> v4l2-ctl --set-ctrl=gain_automatic=1
+$> v4l2-ctl --set-ctrl=auto_exposure=0
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=22 flags=inactive, volatile
+Note the "0" for auto exposure.
+
+===========
+= history =
+===========
+version 2:
+  - Fix patch 3/5 commit comment and rename binning function as per jacopo' suggestion:
+    https://www.mail-archive.com/linux-media@vger.kernel.org/msg133272.html
+
+Hugues Fruchet (5):
+  media: ov5640: fix exposure regression
+  media: ov5640: fix auto gain & exposure when changing mode
+  media: ov5640: fix wrong binning value in exposure calculation
+  media: ov5640: fix auto controls values when switching to manual mode
+  media: ov5640: fix restore of last mode set
+
+ drivers/media/i2c/ov5640.c | 124 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 72 insertions(+), 52 deletions(-)
+
+-- 
+2.7.4
