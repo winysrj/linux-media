@@ -1,161 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:60568 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:36030 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727830AbeHNK2A (ORCPT
+        with ESMTP id S1728455AbeHMOXM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 06:28:00 -0400
-Date: Tue, 14 Aug 2018 04:41:52 -0300
+        Mon, 13 Aug 2018 10:23:12 -0400
+Date: Mon, 13 Aug 2018 08:41:14 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 30/34] vim2m: use workqueue
-Message-ID: <20180814044152.369dab9b@coco.lan>
-In-Reply-To: <a240e2c5-cd99-519e-4902-67d5c4d11f89@xs4all.nl>
+Subject: Re: [PATCHv17 20/34] videodev2.h: Add request_fd field to
+ v4l2_buffer
+Message-ID: <20180813084114.1b15f56b@coco.lan>
+In-Reply-To: <20180804124526.46206-21-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-31-hverkuil@xs4all.nl>
-        <20180813120501.2e630010@coco.lan>
-        <a240e2c5-cd99-519e-4902-67d5c4d11f89@xs4all.nl>
+        <20180804124526.46206-21-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 09:28:42 +0200
+Em Sat,  4 Aug 2018 14:45:12 +0200
 Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On 13/08/18 17:05, Mauro Carvalho Chehab wrote:
-> > Em Sat,  4 Aug 2018 14:45:22 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
-> >> interrupt context. Switch to a workqueue instead and drop the timer.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>  
-> > 
-> > Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > 
-> > Shouldn't this come earlier at the series (before adding request API
-> > support to m2m) in order to avoid regressions?  
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> ??? At this stage vim2m doesn't support the request API yet. It's the next
-> patch that adds that (and that's when this patch is needed for it to work).
+> When queuing buffers allow for passing the request that should
+> be associated with this buffer.
+> 
+> If V4L2_BUF_FLAG_REQUEST_FD is set, then request_fd is used as
+> the file descriptor.
+> 
+> If a buffer is stored in a request, but not yet queued to the
+> driver, then V4L2_BUF_FLAG_IN_REQUEST is set.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-Ah, OK!
+> ---
+>  drivers/media/common/videobuf2/videobuf2-v4l2.c |  2 +-
+>  drivers/media/usb/cpia2/cpia2_v4l.c             |  2 +-
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c   |  9 ++++++---
+>  drivers/media/v4l2-core/v4l2-ioctl.c            |  4 ++--
+>  include/uapi/linux/videodev2.h                  | 10 +++++++++-
+>  5 files changed, 19 insertions(+), 8 deletions(-)
 > 
-> Regards,
-> 
-> 	Hans
-> 
-> >   
-> >> ---
-> >>  drivers/media/platform/vim2m.c | 25 ++++++++++---------------
-> >>  1 file changed, 10 insertions(+), 15 deletions(-)
-> >>
-> >> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> >> index 462099a141e4..6f87ef025ff1 100644
-> >> --- a/drivers/media/platform/vim2m.c
-> >> +++ b/drivers/media/platform/vim2m.c
-> >> @@ -3,7 +3,8 @@
-> >>   *
-> >>   * This is a virtual device driver for testing mem-to-mem videobuf framework.
-> >>   * It simulates a device that uses memory buffers for both source and
-> >> - * destination, processes the data and issues an "irq" (simulated by a timer).
-> >> + * destination, processes the data and issues an "irq" (simulated by a delayed
-> >> + * workqueue).
-> >>   * The device is capable of multi-instance, multi-buffer-per-transaction
-> >>   * operation (via the mem2mem framework).
-> >>   *
-> >> @@ -19,7 +20,6 @@
-> >>  #include <linux/module.h>
-> >>  #include <linux/delay.h>
-> >>  #include <linux/fs.h>
-> >> -#include <linux/timer.h>
-> >>  #include <linux/sched.h>
-> >>  #include <linux/slab.h>
-> >>  
-> >> @@ -148,7 +148,7 @@ struct vim2m_dev {
-> >>  	struct mutex		dev_mutex;
-> >>  	spinlock_t		irqlock;
-> >>  
-> >> -	struct timer_list	timer;
-> >> +	struct delayed_work	work_run;
-> >>  
-> >>  	struct v4l2_m2m_dev	*m2m_dev;
-> >>  };
-> >> @@ -336,12 +336,6 @@ static int device_process(struct vim2m_ctx *ctx,
-> >>  	return 0;
-> >>  }
-> >>  
-> >> -static void schedule_irq(struct vim2m_dev *dev, int msec_timeout)
-> >> -{
-> >> -	dprintk(dev, "Scheduling a simulated irq\n");
-> >> -	mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
-> >> -}
-> >> -
-> >>  /*
-> >>   * mem2mem callbacks
-> >>   */
-> >> @@ -387,13 +381,14 @@ static void device_run(void *priv)
-> >>  
-> >>  	device_process(ctx, src_buf, dst_buf);
-> >>  
-> >> -	/* Run a timer, which simulates a hardware irq  */
-> >> -	schedule_irq(dev, ctx->transtime);
-> >> +	/* Run delayed work, which simulates a hardware irq  */
-> >> +	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
-> >>  }
-> >>  
-> >> -static void device_isr(struct timer_list *t)
-> >> +static void device_work(struct work_struct *w)
-> >>  {
-> >> -	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-> >> +	struct vim2m_dev *vim2m_dev =
-> >> +		container_of(w, struct vim2m_dev, work_run.work);
-> >>  	struct vim2m_ctx *curr_ctx;
-> >>  	struct vb2_v4l2_buffer *src_vb, *dst_vb;
-> >>  	unsigned long flags;
-> >> @@ -805,6 +800,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
-> >>  	struct vb2_v4l2_buffer *vbuf;
-> >>  	unsigned long flags;
-> >>  
-> >> +	flush_scheduled_work();
-> >>  	for (;;) {
-> >>  		if (V4L2_TYPE_IS_OUTPUT(q->type))
-> >>  			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> >> @@ -1015,6 +1011,7 @@ static int vim2m_probe(struct platform_device *pdev)
-> >>  	vfd = &dev->vfd;
-> >>  	vfd->lock = &dev->dev_mutex;
-> >>  	vfd->v4l2_dev = &dev->v4l2_dev;
-> >> +	INIT_DELAYED_WORK(&dev->work_run, device_work);
-> >>  
-> >>  	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> >>  	if (ret) {
-> >> @@ -1026,7 +1023,6 @@ static int vim2m_probe(struct platform_device *pdev)
-> >>  	v4l2_info(&dev->v4l2_dev,
-> >>  			"Device registered as /dev/video%d\n", vfd->num);
-> >>  
-> >> -	timer_setup(&dev->timer, device_isr, 0);
-> >>  	platform_set_drvdata(pdev, dev);
-> >>  
-> >>  	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
-> >> @@ -1083,7 +1079,6 @@ static int vim2m_remove(struct platform_device *pdev)
-> >>  	media_device_cleanup(&dev->mdev);
-> >>  #endif
-> >>  	v4l2_m2m_release(dev->m2m_dev);
-> >> -	del_timer_sync(&dev->timer);
-> >>  	video_unregister_device(&dev->vfd);
-> >>  	v4l2_device_unregister(&dev->v4l2_dev);
-> >>    
-> > 
-> > 
-> > 
-> > Thanks,
-> > Mauro
-> >   
-> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index a677e2c26247..64905d87465c 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -384,7 +384,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>  	b->timecode = vbuf->timecode;
+>  	b->sequence = vbuf->sequence;
+>  	b->reserved2 = 0;
+> -	b->reserved = 0;
+> +	b->request_fd = 0;
+>  
+>  	if (q->is_multiplanar) {
+>  		/*
+> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+> index 99f106b13280..13aee9f67d05 100644
+> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
+> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+> @@ -949,7 +949,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+>  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+>  	buf->length = cam->frame_size;
+>  	buf->reserved2 = 0;
+> -	buf->reserved = 0;
+> +	buf->request_fd = 0;
+>  	memset(&buf->timecode, 0, sizeof(buf->timecode));
+>  
+>  	DBG("DQBUF #%d status:%d seq:%d length:%d\n", buf->index,
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index dcce86c1fe40..633465d21d04 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -482,7 +482,7 @@ struct v4l2_buffer32 {
+>  	} m;
+>  	__u32			length;
+>  	__u32			reserved2;
+> -	__u32			reserved;
+> +	__s32			request_fd;
+>  };
+>  
+>  static int get_v4l2_plane32(struct v4l2_plane __user *p64,
+> @@ -581,6 +581,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
+>  {
+>  	u32 type;
+>  	u32 length;
+> +	s32 request_fd;
+>  	enum v4l2_memory memory;
+>  	struct v4l2_plane32 __user *uplane32;
+>  	struct v4l2_plane __user *uplane;
+> @@ -595,7 +596,9 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *p64,
+>  	    get_user(memory, &p32->memory) ||
+>  	    put_user(memory, &p64->memory) ||
+>  	    get_user(length, &p32->length) ||
+> -	    put_user(length, &p64->length))
+> +	    put_user(length, &p64->length) ||
+> +	    get_user(request_fd, &p32->request_fd) ||
+> +	    put_user(request_fd, &p64->request_fd))
+>  		return -EFAULT;
+>  
+>  	if (V4L2_TYPE_IS_OUTPUT(type))
+> @@ -699,7 +702,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer __user *p64,
+>  	    copy_in_user(&p32->timecode, &p64->timecode, sizeof(p64->timecode)) ||
+>  	    assign_in_user(&p32->sequence, &p64->sequence) ||
+>  	    assign_in_user(&p32->reserved2, &p64->reserved2) ||
+> -	    assign_in_user(&p32->reserved, &p64->reserved) ||
+> +	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+>  	    get_user(length, &p64->length) ||
+>  	    put_user(length, &p32->length))
+>  		return -EFAULT;
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 20b5145a5254..2a84ca9e328a 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -474,13 +474,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+>  	const struct v4l2_plane *plane;
+>  	int i;
+>  
+> -	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+> +	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%d, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+>  			p->timestamp.tv_sec / 3600,
+>  			(int)(p->timestamp.tv_sec / 60) % 60,
+>  			(int)(p->timestamp.tv_sec % 60),
+>  			(long)p->timestamp.tv_usec,
+>  			p->index,
+> -			prt_names(p->type, v4l2_type_names),
+> +			prt_names(p->type, v4l2_type_names), p->request_fd,
+>  			p->flags, prt_names(p->field, v4l2_field_names),
+>  			p->sequence, prt_names(p->memory, v4l2_memory_names));
+>  
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 1df0fa983db6..91126b7312f8 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -917,6 +917,7 @@ struct v4l2_plane {
+>   * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+>   *		buffers (when type != *_MPLANE); number of elements in the
+>   *		planes array for multi-plane buffers
+> + * @request_fd: fd of the request that this buffer should use
+>   *
+>   * Contains data exchanged by application and driver using one of the Streaming
+>   * I/O methods.
+> @@ -941,7 +942,10 @@ struct v4l2_buffer {
+>  	} m;
+>  	__u32			length;
+>  	__u32			reserved2;
+> -	__u32			reserved;
+> +	union {
+> +		__s32		request_fd;
+> +		__u32		reserved;
+> +	};
+>  };
+>  
+>  /*  Flags for 'flags' field */
+> @@ -959,6 +963,8 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_BFRAME			0x00000020
+>  /* Buffer is ready, but the data contained within is corrupted. */
+>  #define V4L2_BUF_FLAG_ERROR			0x00000040
+> +/* Buffer is added to an unqueued request */
+> +#define V4L2_BUF_FLAG_IN_REQUEST		0x00000080
+>  /* timecode field is valid */
+>  #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+>  /* Buffer is prepared for queuing */
+> @@ -977,6 +983,8 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>  /* mem2mem encoder/decoder */
+>  #define V4L2_BUF_FLAG_LAST			0x00100000
+> +/* request_fd is valid */
+> +#define V4L2_BUF_FLAG_REQUEST_FD		0x00800000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
 
 
 
