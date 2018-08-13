@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:41483 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728547AbeHMRdJ (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:50715 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728547AbeHMRdM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 13:33:09 -0400
+        Mon, 13 Aug 2018 13:33:12 -0400
 From: Thierry Reding <thierry.reding@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thierry Reding <thierry.reding@gmail.com>
@@ -12,9 +12,9 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Jonathan Hunter <jonathanh@nvidia.com>,
         linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
         devel@driverdev.osuosl.org
-Subject: [PATCH 02/14] staging: media: tegra-vde: Support reference picture marking
-Date: Mon, 13 Aug 2018 16:50:15 +0200
-Message-Id: <20180813145027.16346-3-thierry.reding@gmail.com>
+Subject: [PATCH 03/14] staging: media: tegra-vde: Prepare for interlacing support
+Date: Mon, 13 Aug 2018 16:50:16 +0200
+Message-Id: <20180813145027.16346-4-thierry.reding@gmail.com>
 In-Reply-To: <20180813145027.16346-1-thierry.reding@gmail.com>
 References: <20180813145027.16346-1-thierry.reding@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -22,158 +22,221 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Thierry Reding <treding@nvidia.com>
 
-Tegra114 and Tegra124 support reference picture marking, which will
-cause BSEV to write picture marking data to SDRAM. Make sure there is
-a valid destination address for that data to avoid error messages from
-the memory controller.
+The number of frames doubles when decoding interlaced content and the
+structures describing the frames double in size. Take that into account
+to prepare for interlacing support.
 
 Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- drivers/staging/media/tegra-vde/tegra-vde.c | 54 ++++++++++++++++++++-
- drivers/staging/media/tegra-vde/uapi.h      |  3 ++
- 2 files changed, 55 insertions(+), 2 deletions(-)
+ drivers/staging/media/tegra-vde/tegra-vde.c | 73 ++++++++++++++++-----
+ 1 file changed, 58 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-index 9d8f833744db..3027b11b11ae 100644
+index 3027b11b11ae..1a40f6dff7c8 100644
 --- a/drivers/staging/media/tegra-vde/tegra-vde.c
 +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-@@ -60,7 +60,12 @@ struct video_frame {
- 	u32 flags;
+@@ -61,7 +61,9 @@ struct video_frame {
  };
  
-+struct tegra_vde_soc {
-+	bool supports_ref_pic_marking;
-+};
-+
+ struct tegra_vde_soc {
++	unsigned int num_ref_pics;
+ 	bool supports_ref_pic_marking;
++	bool supports_interlacing;
+ };
+ 
  struct tegra_vde {
-+	const struct tegra_vde_soc *soc;
- 	void __iomem *sxe;
- 	void __iomem *bsev;
- 	void __iomem *mbe;
-@@ -330,6 +335,7 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
- 				      struct video_frame *dpb_frames,
- 				      dma_addr_t bitstream_data_addr,
- 				      size_t bitstream_data_size,
-+				      dma_addr_t secure_addr,
+@@ -205,8 +207,12 @@ static void tegra_vde_setup_frameid(struct tegra_vde *vde,
+ 	u32 cr_addr = frame ? frame->cr_addr : 0x6CDEAD00;
+ 	u32 value1 = frame ? ((mbs_width << 16) | mbs_height) : 0;
+ 	u32 value2 = frame ? ((((mbs_width + 1) >> 1) << 6) | 1) : 0;
++	u32 value = y_addr >> 8;
+ 
+-	VDE_WR(y_addr  >> 8, vde->frameid + 0x000 + frameid * 4);
++	if (vde->soc->supports_interlacing)
++		value |= BIT(31);
++
++	VDE_WR(value,        vde->frameid + 0x000 + frameid * 4);
+ 	VDE_WR(cb_addr >> 8, vde->frameid + 0x100 + frameid * 4);
+ 	VDE_WR(cr_addr >> 8, vde->frameid + 0x180 + frameid * 4);
+ 	VDE_WR(value1,       vde->frameid + 0x080 + frameid * 4);
+@@ -229,20 +235,23 @@ static void tegra_setup_frameidx(struct tegra_vde *vde,
+ }
+ 
+ static void tegra_vde_setup_iram_entry(struct tegra_vde *vde,
++				       unsigned int num_ref_pics,
+ 				       unsigned int table,
+ 				       unsigned int row,
+ 				       u32 value1, u32 value2)
+ {
++	unsigned int entries = num_ref_pics * 2;
+ 	u32 *iram_tables = vde->iram;
+ 
+ 	dev_dbg(vde->miscdev.parent, "IRAM table %u: row %u: 0x%08X 0x%08X\n",
+ 		table, row, value1, value2);
+ 
+-	iram_tables[0x20 * table + row * 2] = value1;
+-	iram_tables[0x20 * table + row * 2 + 1] = value2;
++	iram_tables[entries * table + row * 2] = value1;
++	iram_tables[entries * table + row * 2 + 1] = value2;
+ }
+ 
+ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
++					unsigned int num_ref_pics,
+ 					struct video_frame *dpb_frames,
+ 					unsigned int ref_frames_nb,
+ 					unsigned int with_earlier_poc_nb)
+@@ -251,13 +260,17 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 	u32 value, aux_addr;
+ 	int with_later_poc_nb;
+ 	unsigned int i, k;
++	size_t size;
++
++	size = num_ref_pics * 4 * 8;
++	memset(vde->iram, 0, size);
+ 
+ 	dev_dbg(vde->miscdev.parent, "DPB: Frame 0: frame_num = %d\n",
+ 		dpb_frames[0].frame_num);
+ 
+ 	dev_dbg(vde->miscdev.parent, "REF L0:\n");
+ 
+-	for (i = 0; i < 16; i++) {
++	for (i = 0; i < num_ref_pics; i++) {
+ 		if (i < ref_frames_nb) {
+ 			frame = &dpb_frames[i + 1];
+ 
+@@ -277,10 +290,14 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 			value = 0;
+ 		}
+ 
+-		tegra_vde_setup_iram_entry(vde, 0, i, value, aux_addr);
+-		tegra_vde_setup_iram_entry(vde, 1, i, value, aux_addr);
+-		tegra_vde_setup_iram_entry(vde, 2, i, value, aux_addr);
+-		tegra_vde_setup_iram_entry(vde, 3, i, value, aux_addr);
++		tegra_vde_setup_iram_entry(vde, num_ref_pics, 0, i, value,
++					   aux_addr);
++		tegra_vde_setup_iram_entry(vde, num_ref_pics, 1, i, value,
++					   aux_addr);
++		tegra_vde_setup_iram_entry(vde, num_ref_pics, 2, i, value,
++					   aux_addr);
++		tegra_vde_setup_iram_entry(vde, num_ref_pics, 3, i, value,
++					   aux_addr);
+ 	}
+ 
+ 	if (!(dpb_frames[0].flags & FLAG_B_FRAME))
+@@ -309,7 +326,8 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 			"\tFrame %d: frame_num = %d\n",
+ 			k + 1, frame->frame_num);
+ 
+-		tegra_vde_setup_iram_entry(vde, 2, i, value, aux_addr);
++		tegra_vde_setup_iram_entry(vde, num_ref_pics, 2, i, value,
++					   aux_addr);
+ 	}
+ 
+ 	for (k = 0; i < ref_frames_nb; i++, k++) {
+@@ -326,7 +344,8 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde *vde,
+ 			"\tFrame %d: frame_num = %d\n",
+ 			k + 1, frame->frame_num);
+ 
+-		tegra_vde_setup_iram_entry(vde, 2, i, value, aux_addr);
++		tegra_vde_setup_iram_entry(vde, num_ref_pics, 2, i, value,
++					   aux_addr);
+ 	}
+ }
+ 
+@@ -339,9 +358,20 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
  				      unsigned int macroblocks_nb)
  {
  	struct device *dev = vde->miscdev.parent;
-@@ -454,6 +460,9 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
++	unsigned int num_ref_pics = 16;
++	/* XXX extend ABI to provide this */
++	bool interlaced = false;
++	size_t size;
+ 	u32 value;
+ 	int err;
  
- 	VDE_WR(bitstream_data_addr, vde->sxe + 0x6C);
- 
-+	if (vde->soc->supports_ref_pic_marking)
-+		VDE_WR(secure_addr, vde->sxe + 0x7c);
-+
- 	value = 0x10000005;
- 	value |= ctx->pic_width_in_mbs << 11;
- 	value |= ctx->pic_height_in_mbs << 3;
-@@ -772,12 +781,15 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
- 	struct tegra_vde_h264_frame __user *frames_user;
- 	struct video_frame *dpb_frames;
- 	struct dma_buf_attachment *bitstream_data_dmabuf_attachment;
--	struct sg_table *bitstream_sgt;
-+	struct dma_buf_attachment *secure_attachment = NULL;
-+	struct sg_table *bitstream_sgt, *secure_sgt;
- 	enum dma_data_direction dma_dir;
- 	dma_addr_t bitstream_data_addr;
-+	dma_addr_t secure_addr;
- 	dma_addr_t bsev_ptr;
- 	size_t lsize, csize;
- 	size_t bitstream_data_size;
-+	size_t secure_size;
- 	unsigned int macroblocks_nb;
- 	unsigned int read_bytes;
- 	unsigned int cstride;
-@@ -803,6 +815,18 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
- 	if (ret)
- 		return ret;
- 
-+	if (vde->soc->supports_ref_pic_marking) {
-+		ret = tegra_vde_attach_dmabuf(dev, ctx.secure_fd,
-+					      ctx.secure_offset, 0, SZ_256,
-+					      &secure_attachment,
-+					      &secure_addr,
-+					      &secure_sgt,
-+					      &secure_size,
-+					      DMA_TO_DEVICE);
-+		if (ret)
-+			goto release_bitstream_dmabuf;
++	if (vde->soc->supports_interlacing) {
++		if (interlaced)
++			num_ref_pics = vde->soc->num_ref_pics;
++		else
++			num_ref_pics = 16;
 +	}
 +
- 	dpb_frames = kcalloc(ctx.dpb_frames_nb, sizeof(*dpb_frames),
- 			     GFP_KERNEL);
- 	if (!dpb_frames) {
-@@ -876,6 +900,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
- 	ret = tegra_vde_setup_hw_context(vde, &ctx, dpb_frames,
- 					 bitstream_data_addr,
- 					 bitstream_data_size,
-+					 secure_addr,
- 					 macroblocks_nb);
- 	if (ret)
- 		goto put_runtime_pm;
-@@ -929,6 +954,10 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
- 	kfree(dpb_frames);
+ 	tegra_vde_set_bits(vde, 0x000A, vde->sxe + 0xF0);
+ 	tegra_vde_set_bits(vde, 0x000B, vde->bsev + CMDQUE_CONTROL);
+ 	tegra_vde_set_bits(vde, 0x8002, vde->mbe + 0x50);
+@@ -369,12 +399,12 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	VDE_WR(0x00000000, vde->bsev + 0x98);
+ 	VDE_WR(0x00000060, vde->bsev + 0x9C);
  
- release_bitstream_dmabuf:
-+	if (secure_attachment)
-+		tegra_vde_detach_and_put_dmabuf(secure_attachment, secure_sgt,
-+						DMA_TO_DEVICE);
+-	memset(vde->iram + 128, 0, macroblocks_nb / 2);
++	memset(vde->iram + 1024, 0, macroblocks_nb / 2);
+ 
+ 	tegra_setup_frameidx(vde, dpb_frames, ctx->dpb_frames_nb,
+ 			     ctx->pic_width_in_mbs, ctx->pic_height_in_mbs);
+ 
+-	tegra_vde_setup_iram_tables(vde, dpb_frames,
++	tegra_vde_setup_iram_tables(vde, num_ref_pics, dpb_frames,
+ 				    ctx->dpb_frames_nb - 1,
+ 				    ctx->dpb_ref_frames_with_earlier_poc_nb);
+ 
+@@ -396,22 +426,27 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 	if (err)
+ 		return err;
+ 
+-	err = tegra_vde_push_to_bsev_icmdqueue(vde, 0x800003FC, false);
++	value = (0x20 << 26) | (0 << 25) | ((4096 >> 2) & 0x1fff);
++	err = tegra_vde_push_to_bsev_icmdqueue(vde, value, false);
+ 	if (err)
+ 		return err;
+ 
+ 	value = 0x01500000;
+-	value |= ((vde->iram_lists_addr + 512) >> 2) & 0xFFFF;
++	value |= ((vde->iram_lists_addr + 1024) >> 2) & 0xffff;
+ 
+ 	err = tegra_vde_push_to_bsev_icmdqueue(vde, value, true);
+ 	if (err)
+ 		return err;
+ 
++	value = (0x21 << 26) | ((240 & 0x1fff) << 12) | (0x54c & 0xfff);
+ 	err = tegra_vde_push_to_bsev_icmdqueue(vde, 0x840F054C, false);
+ 	if (err)
+ 		return err;
+ 
+-	err = tegra_vde_push_to_bsev_icmdqueue(vde, 0x80000080, false);
++	size = num_ref_pics * 4 * 8;
 +
- 	tegra_vde_detach_and_put_dmabuf(bitstream_data_dmabuf_attachment,
- 					bitstream_sgt, DMA_TO_DEVICE);
++	value = (0x20 << 26) | (0x0 << 25) | ((size >> 2) & 0x1fff);
++	err = tegra_vde_push_to_bsev_icmdqueue(vde, value, false);
+ 	if (err)
+ 		return err;
  
-@@ -1029,6 +1058,8 @@ static int tegra_vde_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, vde);
- 
-+	vde->soc = of_device_get_match_data(&pdev->dev);
-+
- 	regs = platform_get_resource_byname(pdev, IORESOURCE_MEM, "sxe");
- 	if (!regs)
- 		return -ENODEV;
-@@ -1258,8 +1289,27 @@ static const struct dev_pm_ops tegra_vde_pm_ops = {
- 				tegra_vde_pm_resume)
+@@ -1290,19 +1325,27 @@ static const struct dev_pm_ops tegra_vde_pm_ops = {
  };
  
-+static const struct tegra_vde_soc tegra20_vde_soc = {
-+	.supports_ref_pic_marking = false,
-+};
-+
-+static const struct tegra_vde_soc tegra30_vde_soc = {
-+	.supports_ref_pic_marking = false,
-+};
-+
-+static const struct tegra_vde_soc tegra114_vde_soc = {
-+	.supports_ref_pic_marking = true,
-+};
-+
-+static const struct tegra_vde_soc tegra124_vde_soc = {
-+	.supports_ref_pic_marking = true,
-+};
-+
+ static const struct tegra_vde_soc tegra20_vde_soc = {
++	.num_ref_pics = 16,
+ 	.supports_ref_pic_marking = false,
++	.supports_interlacing = false,
+ };
+ 
+ static const struct tegra_vde_soc tegra30_vde_soc = {
++	.num_ref_pics = 32,
+ 	.supports_ref_pic_marking = false,
++	.supports_interlacing = false,
+ };
+ 
+ static const struct tegra_vde_soc tegra114_vde_soc = {
++	.num_ref_pics = 32,
+ 	.supports_ref_pic_marking = true,
++	.supports_interlacing = false,
+ };
+ 
+ static const struct tegra_vde_soc tegra124_vde_soc = {
++	.num_ref_pics = 32,
+ 	.supports_ref_pic_marking = true,
++	.supports_interlacing = true,
+ };
+ 
  static const struct of_device_id tegra_vde_of_match[] = {
--	{ .compatible = "nvidia,tegra20-vde", },
-+	{ .compatible = "nvidia,tegra124-vde", .data = &tegra124_vde_soc },
-+	{ .compatible = "nvidia,tegra114-vde", .data = &tegra114_vde_soc },
-+	{ .compatible = "nvidia,tegra30-vde", .data = &tegra30_vde_soc },
-+	{ .compatible = "nvidia,tegra20-vde", .data = &tegra20_vde_soc },
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, tegra_vde_of_match);
-diff --git a/drivers/staging/media/tegra-vde/uapi.h b/drivers/staging/media/tegra-vde/uapi.h
-index a50c7bcae057..58bfd56de55e 100644
---- a/drivers/staging/media/tegra-vde/uapi.h
-+++ b/drivers/staging/media/tegra-vde/uapi.h
-@@ -35,6 +35,9 @@ struct tegra_vde_h264_decoder_ctx {
- 	__s32 bitstream_data_fd;
- 	__u32 bitstream_data_offset;
- 
-+	__s32 secure_fd;
-+	__u32 secure_offset;
-+
- 	__u64 dpb_frames_ptr;
- 	__u8  dpb_frames_nb;
- 	__u8  dpb_ref_frames_with_earlier_poc_nb;
 -- 
 2.17.0
