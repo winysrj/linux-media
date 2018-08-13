@@ -1,132 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:31655 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728226AbeHMMEC (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:48209 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728310AbeHMMGx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 08:04:02 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Jacopo Mondi <jacopo@jmondi.org>
-Subject: [PATCH v2] media: ov5640: do not change mode if format or frame interval is unchanged
-Date: Mon, 13 Aug 2018 11:21:51 +0200
-Message-ID: <1534152111-16837-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Mon, 13 Aug 2018 08:06:53 -0400
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: kernel@pengutronix.de, devicetree@vger.kernel.org,
+        p.zabel@pengutronix.de, javierm@redhat.com,
+        laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+        afshin.nasser@gmail.com, linux-media@vger.kernel.org
+Subject: [PATCH v2 2/7] [media] dt-bindings: tvp5150: Add input port connectors DT bindings
+Date: Mon, 13 Aug 2018 11:25:03 +0200
+Message-Id: <20180813092508.1334-3-m.felsch@pengutronix.de>
+In-Reply-To: <20180813092508.1334-1-m.felsch@pengutronix.de>
+References: <20180813092508.1334-1-m.felsch@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Save load of mode registers array when V4L2 client sets a format or a
-frame interval which selects the same mode than the current one.
+The TVP5150/1 decoders support different video input sources to their
+AIP1A/B pins.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Possible configurations are as follows:
+  - Analog Composite signal connected to AIP1A.
+  - Analog Composite signal connected to AIP1B.
+  - Analog S-Video Y (luminance) and C (chrominance)
+    signals connected to AIP1A and AIP1B respectively.
+
+This patch extends the device tree bindings documentation to describe
+how the input connectors for these devices should be defined in a DT.
+
+Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+
 ---
-Version 2:
-  - Fix fuzzy image because of JPEG default format not being
-    changed according to new format selected, fix this.
-  - Init sequence initialises format to YUV422 UYVY but
-    sensor->fmt initial value was set to JPEG, fix this.
+Changelog:
+v2:
+- adapt port layout in accordance with
+  https://www.spinics.net/lists/linux-media/msg138546.html with the
+  svideo-connector deviation (use only one endpoint)
+---
+ .../devicetree/bindings/media/i2c/tvp5150.txt | 191 +++++++++++++++++-
+ 1 file changed, 185 insertions(+), 6 deletions(-)
 
-
- drivers/media/i2c/ov5640.c | 33 ++++++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 1ecbb7a..2ddd86d 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -223,6 +223,7 @@ struct ov5640_dev {
- 	int power_count;
+diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+index 8c0fc1a26bf0..d647d671f14a 100644
+--- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
++++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+@@ -12,11 +12,31 @@ Optional Properties:
+ - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
+ - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
  
- 	struct v4l2_mbus_framefmt fmt;
-+	bool pending_fmt_change;
+-The device node must contain one 'port' child node for its digital output
+-video port, in accordance with the video interface bindings defined in
+-Documentation/devicetree/bindings/media/video-interfaces.txt.
++The device node must contain one 'port' child node per device physical input
++and output port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
++are numbered as follows
  
- 	const struct ov5640_mode_info *current_mode;
- 	enum ov5640_frame_rate current_fr;
-@@ -255,7 +256,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
-  * should be identified and removed to speed register load time
-  * over i2c.
-  */
--
-+/* YUV422 UYVY VGA@30fps */
- static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
- 	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
- 	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
-@@ -1966,9 +1967,14 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 		goto out;
- 	}
- 
--	sensor->current_mode = new_mode;
--	sensor->fmt = *mbus_fmt;
--	sensor->pending_mode_change = true;
-+	if (new_mode != sensor->current_mode) {
-+		sensor->current_mode = new_mode;
-+		sensor->pending_mode_change = true;
-+	}
-+	if (mbus_fmt->code != sensor->fmt.code) {
-+		sensor->fmt = *mbus_fmt;
-+		sensor->pending_fmt_change = true;
-+	}
- out:
- 	mutex_unlock(&sensor->lock);
- 	return ret;
-@@ -2508,8 +2514,10 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 		goto out;
- 	}
- 
--	sensor->current_mode = mode;
--	sensor->pending_mode_change = true;
-+	if (mode != sensor->current_mode) {
-+		sensor->current_mode = mode;
-+		sensor->pending_mode_change = true;
-+	}
- out:
- 	mutex_unlock(&sensor->lock);
- 	return ret;
-@@ -2540,10 +2548,13 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
- 			ret = ov5640_set_mode(sensor, sensor->current_mode);
- 			if (ret)
- 				goto out;
-+		}
- 
-+		if (enable && sensor->pending_fmt_change) {
- 			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
- 			if (ret)
- 				goto out;
-+			sensor->pending_fmt_change = false;
- 		}
- 
- 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
-@@ -2638,9 +2649,14 @@ static int ov5640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 
- 	sensor->i2c_client = client;
+-Required Endpoint Properties for parallel synchronization:
++	  Name		Type		Port
++	--------------------------------------
++	  AIP1A		sink		0
++	  AIP1B		sink		1
++	  Y-OUT		src		2
 +
-+	/*
-+	 * default init sequence initialize sensor to
-+	 * YUV422 UYVY VGA@30fps
-+	 */
- 	fmt = &sensor->fmt;
--	fmt->code = ov5640_formats[0].code;
--	fmt->colorspace = ov5640_formats[0].colorspace;
-+	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	fmt->colorspace = V4L2_COLORSPACE_SRGB;
- 	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
- 	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
- 	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
-@@ -2652,7 +2668,6 @@ static int ov5640_probe(struct i2c_client *client,
- 	sensor->current_fr = OV5640_30_FPS;
- 	sensor->current_mode =
- 		&ov5640_mode_data[OV5640_30_FPS][OV5640_MODE_VGA_640_480];
--	sensor->pending_mode_change = true;
++The device node must contain at least one sink port and the src port. Each input
++port must be linked to an endpoint defined in
++Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt. The
++port/connector layout is as follows
++
++tvp-5150 port@0 (AIP1A)
++	endpoint@0 -----------> Comp0-Con  port
++	endpoint@1 -----------> Svideo-Con port
++tvp-5150 port@1 (AIP1B)
++	endpoint   -----------> Comp1-Con  port
++tvp-5150 port@2
++	endpoint (video bitstream output at YOUT[0-7] parallel bus)
++
++Required Endpoint Properties for parallel synchronization on output port:
  
- 	sensor->ae_target = 52;
+ - hsync-active: active state of the HSYNC signal. Must be <1> (HIGH).
+ - vsync-active: active state of the VSYNC signal. Must be <1> (HIGH).
+@@ -26,7 +46,140 @@ Required Endpoint Properties for parallel synchronization:
+ If none of hsync-active, vsync-active and field-even-active is specified,
+ the endpoint is assumed to use embedded BT.656 synchronization.
  
+-Example:
++Examples:
++
++One Input:
++
++connector {
++	compatible = "composite-video-connector";
++	label = "Composite0";
++
++	port {
++		composite0_to_tvp5150: endpoint {
++			remote-endpoint = <&tvp5150_to_composite0>;
++		};
++	};
++};
++
++&i2c2 {
++	...
++	tvp5150@5c {
++		compatible = "ti,tvp5150";
++		reg = <0x5c>;
++		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
++		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
++
++		port@0 {
++			reg = <0>;
++
++			tvp5150_to_composite0: endpoint {
++				remote-endpoint = <&composite0_to_tvp5150>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			tvp5150_1: endpoint {
++				remote-endpoint = <&ccdc_ep>;
++			};
++		};
++	};
++};
++
++Two Inputs:
++
++comp_connector_1 {
++	compatible = "composite-video-connector";
++	label = "Composite1";
++
++	port {
++		composite1_to_tvp5150: endpoint {
++			remote-endpoint = <&tvp5150_to_composite1>;
++		};
++	};
++};
++
++svid_connector {
++	compatible = "svideo-connector";
++	label = "S-Video";
++
++	port {
++		svideo_to_tvp5150: endpoint {
++			remote-endpoint = <&tvp5150_to_svideo>;
++		};
++	};
++};
++
++&i2c2 {
++	...
++	tvp5150@5c {
++		compatible = "ti,tvp5150";
++		reg = <0x5c>;
++		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
++		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
++
++                port@0 {
++                        reg = <0>;
++
++                        tvp5150_to_svideo: endpoint@1 {
++                                reg = <1>;
++                                remote-endpoint = <&svideo_to_tvp5150>;
++                        };
++                };
++
++                port@1 {
++                        reg = <1>;
++
++                        tvp5150_to_composite1: endpoint {
++                                remote-endpoint = <&composite1_to_tvp5150>;
++                        };
++                };
++
++		port@2 {
++			reg = <2>;
++
++			tvp5150_1: endpoint {
++				remote-endpoint = <&ccdc_ep>;
++			};
++		};
++	};
++};
++
++Three Inputs:
++
++comp_connector_0 {
++	compatible = "composite-video-connector";
++	label = "Composite0";
++
++	port {
++		composite0_to_tvp5150: endpoint {
++			remote-endpoint = <&tvp5150_to_composite0>;
++		};
++	};
++};
++
++comp_connector_1 {
++	compatible = "composite-video-connector";
++	label = "Composite1";
++
++	port {
++		composite1_to_tvp5150: endpoint {
++			remote-endpoint = <&tvp5150_to_composite1>;
++		};
++	};
++};
++
++svid_connector {
++	compatible = "svideo-connector";
++	label = "S-Video";
++
++	port {
++		svideo_to_tvp5150: endpoint {
++			remote-endpoint = <&tvp5150_to_svideo>;
++		};
++	};
++};
+ 
+ &i2c2 {
+ 	...
+@@ -36,7 +189,33 @@ Example:
+ 		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
+ 		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
+ 
+-		port {
++                port@0 {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++                        reg = <0>;
++
++                        tvp5150_to_composite0: endpoint@0 {
++                                reg = <0>;
++                                remote-endpoint = <&composite0_to_tvp5150>;
++                        };
++
++                        tvp5150_to_svideo: endpoint@1 {
++                                reg = <1>;
++                                remote-endpoint = <&svideo_to_tvp5150>;
++                        };
++                };
++
++                port@1 {
++                        reg = <1>;
++
++                        tvp5150_to_composite1: endpoint {
++                                remote-endpoint = <&composite1_to_tvp5150>;
++                        };
++                };
++
++		port@2 {
++			reg = <2>;
++
+ 			tvp5150_1: endpoint {
+ 				remote-endpoint = <&ccdc_ep>;
+ 			};
 -- 
-2.7.4
+2.18.0
