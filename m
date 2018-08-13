@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:40357 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728455AbeHMRdH (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:41483 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728547AbeHMRdJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 13:33:07 -0400
+        Mon, 13 Aug 2018 13:33:09 -0400
 From: Thierry Reding <thierry.reding@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Thierry Reding <thierry.reding@gmail.com>
@@ -12,9 +12,9 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Jonathan Hunter <jonathanh@nvidia.com>,
         linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
         devel@driverdev.osuosl.org
-Subject: [PATCH 01/14] staging: media: tegra-vde: Support BSEV clock and reset
-Date: Mon, 13 Aug 2018 16:50:14 +0200
-Message-Id: <20180813145027.16346-2-thierry.reding@gmail.com>
+Subject: [PATCH 02/14] staging: media: tegra-vde: Support reference picture marking
+Date: Mon, 13 Aug 2018 16:50:15 +0200
+Message-Id: <20180813145027.16346-3-thierry.reding@gmail.com>
 In-Reply-To: <20180813145027.16346-1-thierry.reding@gmail.com>
 References: <20180813145027.16346-1-thierry.reding@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -22,100 +22,158 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Thierry Reding <treding@nvidia.com>
 
-The BSEV clock has a separate gate bit and can not be assumed to be
-always enabled. Add explicit handling for the BSEV clock and reset.
-
-This fixes an issue on Tegra124 where the BSEV clock is not enabled
-by default and therefore accessing the BSEV registers will hang the
-CPU if the BSEV clock is not enabled and the reset not deasserted.
+Tegra114 and Tegra124 support reference picture marking, which will
+cause BSEV to write picture marking data to SDRAM. Make sure there is
+a valid destination address for that data to avoid error messages from
+the memory controller.
 
 Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- drivers/staging/media/tegra-vde/tegra-vde.c | 35 +++++++++++++++++++--
- 1 file changed, 33 insertions(+), 2 deletions(-)
+ drivers/staging/media/tegra-vde/tegra-vde.c | 54 ++++++++++++++++++++-
+ drivers/staging/media/tegra-vde/uapi.h      |  3 ++
+ 2 files changed, 55 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-index 6f06061a40d9..9d8f833744db 100644
+index 9d8f833744db..3027b11b11ae 100644
 --- a/drivers/staging/media/tegra-vde/tegra-vde.c
 +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-@@ -74,9 +74,11 @@ struct tegra_vde {
- 	struct miscdevice miscdev;
- 	struct reset_control *rst;
- 	struct reset_control *rst_mc;
-+	struct reset_control *rst_bsev;
- 	struct gen_pool *iram_pool;
- 	struct completion decode_completion;
- 	struct clk *clk;
-+	struct clk *clk_bsev;
- 	dma_addr_t iram_lists_addr;
- 	u32 *iram;
+@@ -60,7 +60,12 @@ struct video_frame {
+ 	u32 flags;
  };
-@@ -979,6 +981,11 @@ static int tegra_vde_runtime_suspend(struct device *dev)
- 		return err;
- 	}
  
-+	reset_control_assert(vde->rst_bsev);
++struct tegra_vde_soc {
++	bool supports_ref_pic_marking;
++};
 +
-+	usleep_range(2000, 4000);
+ struct tegra_vde {
++	const struct tegra_vde_soc *soc;
+ 	void __iomem *sxe;
+ 	void __iomem *bsev;
+ 	void __iomem *mbe;
+@@ -330,6 +335,7 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 				      struct video_frame *dpb_frames,
+ 				      dma_addr_t bitstream_data_addr,
+ 				      size_t bitstream_data_size,
++				      dma_addr_t secure_addr,
+ 				      unsigned int macroblocks_nb)
+ {
+ 	struct device *dev = vde->miscdev.parent;
+@@ -454,6 +460,9 @@ static int tegra_vde_setup_hw_context(struct tegra_vde *vde,
+ 
+ 	VDE_WR(bitstream_data_addr, vde->sxe + 0x6C);
+ 
++	if (vde->soc->supports_ref_pic_marking)
++		VDE_WR(secure_addr, vde->sxe + 0x7c);
 +
-+	clk_disable_unprepare(vde->clk_bsev);
- 	clk_disable_unprepare(vde->clk);
+ 	value = 0x10000005;
+ 	value |= ctx->pic_width_in_mbs << 11;
+ 	value |= ctx->pic_height_in_mbs << 3;
+@@ -772,12 +781,15 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 	struct tegra_vde_h264_frame __user *frames_user;
+ 	struct video_frame *dpb_frames;
+ 	struct dma_buf_attachment *bitstream_data_dmabuf_attachment;
+-	struct sg_table *bitstream_sgt;
++	struct dma_buf_attachment *secure_attachment = NULL;
++	struct sg_table *bitstream_sgt, *secure_sgt;
+ 	enum dma_data_direction dma_dir;
+ 	dma_addr_t bitstream_data_addr;
++	dma_addr_t secure_addr;
+ 	dma_addr_t bsev_ptr;
+ 	size_t lsize, csize;
+ 	size_t bitstream_data_size;
++	size_t secure_size;
+ 	unsigned int macroblocks_nb;
+ 	unsigned int read_bytes;
+ 	unsigned int cstride;
+@@ -803,6 +815,18 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 	if (ret)
+ 		return ret;
  
- 	return 0;
-@@ -996,6 +1003,16 @@ static int tegra_vde_runtime_resume(struct device *dev)
- 		return err;
- 	}
- 
-+	err = clk_prepare_enable(vde->clk_bsev);
-+	if (err < 0)
-+		return err;
-+
-+	err = reset_control_deassert(vde->rst_bsev);
-+	if (err < 0)
-+		return err;
-+
-+	usleep_range(2000, 4000);
-+
- 	return 0;
- }
- 
-@@ -1084,14 +1101,21 @@ static int tegra_vde_probe(struct platform_device *pdev)
- 	if (IS_ERR(vde->frameid))
- 		return PTR_ERR(vde->frameid);
- 
--	vde->clk = devm_clk_get(dev, NULL);
-+	vde->clk = devm_clk_get(dev, "vde");
- 	if (IS_ERR(vde->clk)) {
- 		err = PTR_ERR(vde->clk);
- 		dev_err(dev, "Could not get VDE clk %d\n", err);
- 		return err;
- 	}
- 
--	vde->rst = devm_reset_control_get(dev, NULL);
-+	vde->clk_bsev = devm_clk_get(dev, "bsev");
-+	if (IS_ERR(vde->clk_bsev)) {
-+		err = PTR_ERR(vde->clk_bsev);
-+		dev_err(dev, "failed to get BSEV clock: %d\n", err);
-+		return err;
++	if (vde->soc->supports_ref_pic_marking) {
++		ret = tegra_vde_attach_dmabuf(dev, ctx.secure_fd,
++					      ctx.secure_offset, 0, SZ_256,
++					      &secure_attachment,
++					      &secure_addr,
++					      &secure_sgt,
++					      &secure_size,
++					      DMA_TO_DEVICE);
++		if (ret)
++			goto release_bitstream_dmabuf;
 +	}
 +
-+	vde->rst = devm_reset_control_get(dev, "vde");
- 	if (IS_ERR(vde->rst)) {
- 		err = PTR_ERR(vde->rst);
- 		dev_err(dev, "Could not get VDE reset %d\n", err);
-@@ -1105,6 +1129,13 @@ static int tegra_vde_probe(struct platform_device *pdev)
- 		return err;
- 	}
+ 	dpb_frames = kcalloc(ctx.dpb_frames_nb, sizeof(*dpb_frames),
+ 			     GFP_KERNEL);
+ 	if (!dpb_frames) {
+@@ -876,6 +900,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 	ret = tegra_vde_setup_hw_context(vde, &ctx, dpb_frames,
+ 					 bitstream_data_addr,
+ 					 bitstream_data_size,
++					 secure_addr,
+ 					 macroblocks_nb);
+ 	if (ret)
+ 		goto put_runtime_pm;
+@@ -929,6 +954,10 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
+ 	kfree(dpb_frames);
  
-+	vde->rst_bsev = devm_reset_control_get(dev, "bsev");
-+	if (IS_ERR(vde->rst_bsev)) {
-+		err = PTR_ERR(vde->rst_bsev);
-+		dev_err(dev, "failed to get BSEV reset: %d\n", err);
-+		return err;
-+	}
+ release_bitstream_dmabuf:
++	if (secure_attachment)
++		tegra_vde_detach_and_put_dmabuf(secure_attachment, secure_sgt,
++						DMA_TO_DEVICE);
 +
- 	irq = platform_get_irq_byname(pdev, "sync-token");
- 	if (irq < 0)
- 		return irq;
+ 	tegra_vde_detach_and_put_dmabuf(bitstream_data_dmabuf_attachment,
+ 					bitstream_sgt, DMA_TO_DEVICE);
+ 
+@@ -1029,6 +1058,8 @@ static int tegra_vde_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, vde);
+ 
++	vde->soc = of_device_get_match_data(&pdev->dev);
++
+ 	regs = platform_get_resource_byname(pdev, IORESOURCE_MEM, "sxe");
+ 	if (!regs)
+ 		return -ENODEV;
+@@ -1258,8 +1289,27 @@ static const struct dev_pm_ops tegra_vde_pm_ops = {
+ 				tegra_vde_pm_resume)
+ };
+ 
++static const struct tegra_vde_soc tegra20_vde_soc = {
++	.supports_ref_pic_marking = false,
++};
++
++static const struct tegra_vde_soc tegra30_vde_soc = {
++	.supports_ref_pic_marking = false,
++};
++
++static const struct tegra_vde_soc tegra114_vde_soc = {
++	.supports_ref_pic_marking = true,
++};
++
++static const struct tegra_vde_soc tegra124_vde_soc = {
++	.supports_ref_pic_marking = true,
++};
++
+ static const struct of_device_id tegra_vde_of_match[] = {
+-	{ .compatible = "nvidia,tegra20-vde", },
++	{ .compatible = "nvidia,tegra124-vde", .data = &tegra124_vde_soc },
++	{ .compatible = "nvidia,tegra114-vde", .data = &tegra114_vde_soc },
++	{ .compatible = "nvidia,tegra30-vde", .data = &tegra30_vde_soc },
++	{ .compatible = "nvidia,tegra20-vde", .data = &tegra20_vde_soc },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, tegra_vde_of_match);
+diff --git a/drivers/staging/media/tegra-vde/uapi.h b/drivers/staging/media/tegra-vde/uapi.h
+index a50c7bcae057..58bfd56de55e 100644
+--- a/drivers/staging/media/tegra-vde/uapi.h
++++ b/drivers/staging/media/tegra-vde/uapi.h
+@@ -35,6 +35,9 @@ struct tegra_vde_h264_decoder_ctx {
+ 	__s32 bitstream_data_fd;
+ 	__u32 bitstream_data_offset;
+ 
++	__s32 secure_fd;
++	__u32 secure_offset;
++
+ 	__u64 dpb_frames_ptr;
+ 	__u8  dpb_frames_nb;
+ 	__u8  dpb_ref_frames_with_earlier_poc_nb;
 -- 
 2.17.0
