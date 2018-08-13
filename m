@@ -1,98 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:58013 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727213AbeHQRO6 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:52794 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729316AbeHMOk2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 13:14:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org,
-        amd-gfx@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH (repost) 5/5] drm/amdgpu: add DisplayPort CEC-Tunneling-over-AUX support
-Date: Fri, 17 Aug 2018 16:11:22 +0200
-Message-Id: <20180817141122.9541-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180817141122.9541-1-hverkuil@xs4all.nl>
-References: <20180817141122.9541-1-hverkuil@xs4all.nl>
+        Mon, 13 Aug 2018 10:40:28 -0400
+Date: Mon, 13 Aug 2018 08:58:26 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv17 22/34] videobuf2-core: embed media_request_object
+Message-ID: <20180813085826.473112d4@coco.lan>
+In-Reply-To: <20180804124526.46206-23-hverkuil@xs4all.nl>
+References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+        <20180804124526.46206-23-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Sat,  4 Aug 2018 14:45:14 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Add DisplayPort CEC-Tunneling-over-AUX support to amdgpu.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Make vb2_buffer a request object.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Alex Deucher <alexander.deucher@amd.com>
----
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c   | 13 +++++++++++--
- .../drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c |  2 ++
- 2 files changed, 13 insertions(+), 2 deletions(-)
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> ---
+>  include/media/videobuf2-core.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index cbda3968d018..df92dcdeabb3 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -17,6 +17,7 @@
+>  #include <linux/poll.h>
+>  #include <linux/dma-buf.h>
+>  #include <linux/bitops.h>
+> +#include <media/media-request.h>
+>  
+>  #define VB2_MAX_FRAME	(32)
+>  #define VB2_MAX_PLANES	(8)
+> @@ -236,6 +237,8 @@ struct vb2_queue;
+>   * @num_planes:		number of planes in the buffer
+>   *			on an internal driver queue.
+>   * @timestamp:		frame timestamp in ns.
+> + * @req_obj:		used to bind this buffer to a request. This
+> + *			request object has a refcount.
+>   */
+>  struct vb2_buffer {
+>  	struct vb2_queue	*vb2_queue;
+> @@ -244,6 +247,7 @@ struct vb2_buffer {
+>  	unsigned int		memory;
+>  	unsigned int		num_planes;
+>  	u64			timestamp;
+> +	struct media_request_object	req_obj;
+>  
+>  	/* private: internal use only
+>  	 *
 
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 34f34823bab5..77898c95bef6 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -898,6 +898,7 @@ amdgpu_dm_update_connector_after_detect(struct amdgpu_dm_connector *aconnector)
- 		aconnector->dc_sink = sink;
- 		if (sink->dc_edid.length == 0) {
- 			aconnector->edid = NULL;
-+			drm_dp_cec_unset_edid(&aconnector->dm_dp_aux.aux);
- 		} else {
- 			aconnector->edid =
- 				(struct edid *) sink->dc_edid.raw_edid;
-@@ -905,10 +906,13 @@ amdgpu_dm_update_connector_after_detect(struct amdgpu_dm_connector *aconnector)
- 
- 			drm_connector_update_edid_property(connector,
- 					aconnector->edid);
-+			drm_dp_cec_set_edid(&aconnector->dm_dp_aux.aux,
-+					    aconnector->edid);
- 		}
- 		amdgpu_dm_add_sink_to_freesync_module(connector, aconnector->edid);
- 
- 	} else {
-+		drm_dp_cec_unset_edid(&aconnector->dm_dp_aux.aux);
- 		amdgpu_dm_remove_sink_from_freesync_module(connector);
- 		drm_connector_update_edid_property(connector, NULL);
- 		aconnector->num_modes = 0;
-@@ -1059,12 +1063,16 @@ static void handle_hpd_rx_irq(void *param)
- 			drm_kms_helper_hotplug_event(dev);
- 		}
- 	}
-+
- 	if ((dc_link->cur_link_settings.lane_count != LANE_COUNT_UNKNOWN) ||
--	    (dc_link->type == dc_connection_mst_branch))
-+	    (dc_link->type == dc_connection_mst_branch)) {
- 		dm_handle_hpd_rx_irq(aconnector);
-+	}
- 
--	if (dc_link->type != dc_connection_mst_branch)
-+	if (dc_link->type != dc_connection_mst_branch) {
-+		drm_dp_cec_irq(&aconnector->dm_dp_aux.aux);
- 		mutex_unlock(&aconnector->hpd_lock);
-+	}
- }
- 
- static void register_hpd_handlers(struct amdgpu_device *adev)
-@@ -2732,6 +2740,7 @@ static void amdgpu_dm_connector_destroy(struct drm_connector *connector)
- 		dm->backlight_dev = NULL;
- 	}
- #endif
-+	drm_dp_cec_unregister_connector(&aconnector->dm_dp_aux.aux);
- 	drm_connector_unregister(connector);
- 	drm_connector_cleanup(connector);
- 	kfree(connector);
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c
-index 9a300732ba37..18a3a6e5ffa0 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c
-@@ -496,6 +496,8 @@ void amdgpu_dm_initialize_dp_connector(struct amdgpu_display_manager *dm,
- 	aconnector->dm_dp_aux.ddc_service = aconnector->dc_link->ddc;
- 
- 	drm_dp_aux_register(&aconnector->dm_dp_aux.aux);
-+	drm_dp_cec_register_connector(&aconnector->dm_dp_aux.aux,
-+				      aconnector->base.name, dm->adev->dev);
- 	aconnector->mst_mgr.cbs = &dm_mst_cbs;
- 	drm_dp_mst_topology_mgr_init(
- 		&aconnector->mst_mgr,
--- 
-2.18.0
+
+
+Thanks,
+Mauro
