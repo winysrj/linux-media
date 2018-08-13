@@ -1,175 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:54479 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728370AbeHMQzC (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:39297 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728370AbeHMRCu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 12:55:02 -0400
-Date: Mon, 13 Aug 2018 16:12:29 +0200
+        Mon, 13 Aug 2018 13:02:50 -0400
+Date: Mon, 13 Aug 2018 16:20:15 +0200
 From: jacopo mondi <jacopo@jmondi.org>
-To: Petr Cvek <petrcvekcz@gmail.com>
-Cc: marek.vasut@gmail.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, robert.jarzmik@free.fr,
-        slapin@ossfans.org, philipp.zabel@gmail.com
-Subject: Re: [PATCH v1 4/5] [media] i2c: drop soc_camera code from ov9640 and
- switch to v4l2_async
-Message-ID: <20180813141229.cuh64rpbsscb5wzh@apu3b.nibble.pw>
-References: <cover.1533774451.git.petrcvekcz@gmail.com>
- <60f150555da249bea9da274ee1e0e30c2d50ca02.1533774451.git.petrcvekcz@gmail.com>
- <20180810075100.GC7060@w540>
- <dcce1f38-83d2-78a7-8337-6fc7857ba75f@gmail.com>
+To: Mauro Carvalho Chehab <mchehab+kde@kernel.org>,
+        ysato@users.sourceforge.jp, dalias@libc.org
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, hverkuil@xs4all.nl,
+        mchehab@kernel.org, ysato@users.sourceforge.jp, dalias@libc.org,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/9] sh: defconfig: migor: Update defconfig
+Message-ID: <20180813142015.hc3o7rjph57sjed4@apu3b.nibble.pw>
+References: <1530699346-3235-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1530699346-3235-2-git-send-email-jacopo+renesas@jmondi.org>
+ <20180724184908.28b4f27b@coco.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <dcce1f38-83d2-78a7-8337-6fc7857ba75f@gmail.com>
+In-Reply-To: <20180724184908.28b4f27b@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Petr,
+Hi Mauro,
+        Sorry for the late reply.
 
-On Sun, Aug 12, 2018 at 03:13:39PM +0200, Petr Cvek wrote:
-> Dne 10.8.2018 v 09:51 jacopo mondi napsal(a):
-> > Hi Petr,
-> > 
-> > On Thu, Aug 09, 2018 at 03:39:48AM +0200, petrcvekcz@gmail.com wrote:
-> >> From: Petr Cvek <petrcvekcz@gmail.com>
-> >>
-> >> This patch removes the dependency on an obsoleted soc_camera from ov9640
-> >> driver and changes the code to be a standalone v4l2 async subdevice.
-> >> It also adds GPIO allocations for power and reset signals (as they are not
-> >> handled by soc_camera now).
-> >>
-> >> The patch should make ov9640 again compatible with the pxa_camera driver.
-> > 
-> > Are there board files using this driverin mainline ? (git grep says so)
-> > Care to port them to use the new driver if necessary? You can have a
-> > look at the SH4 Migo-R board, which recently underwent the same
-> > process (arch/sh/boards/mach-migor/setup.c)
-> > 
+On Tue, Jul 24, 2018 at 06:49:08PM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed,  4 Jul 2018 12:15:38 +0200
+> Jacopo Mondi <jacopo+renesas@jmondi.org> escreveu:
 > 
-> Yes there are Magician and Palm Zire72 which are directly using ov9640
-> (and few others which are using pxa_camera with a different sensor). I'm
-> working on HTC magician (pxa_camera is not a soc_camera subdev anymore,
-> ov9640 still is).
-> 
-> > I also suggest to adjust the build system in a single patch with this
-> > changes, but that's not a big deal...
+> > Update defconfig to Linux v4.18-rc2.
 > > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > 
-> OK (at the end of the patchset I suppose?)
+> Why do you want to apply this via the media tree?
 > 
 
-When I did the same soc_camera removal process on other drivers, I
-adjusted the build system in the same patch that removed soc_camera
-dependencies in the driver.
+The defconfig update is a preparation for the soc_camera related
+options removal, but, yes, I understand your concerns.
 
-The process looked like:
-01: copy the driver from drivers/media/i2c/soc_camera to
-drivers/media/i2c/
-02: Remove soc_camera dependencies from the driver and adjust
-drivers/media/i2c/Kconfg drivers/media/i2c/Makefile accordingly
-03: Port existing users of the soc_camera driver to use the new one
+> IMO, the natural path would be to submit this to the SUPERH
+> maintainer. If there is a good reason for merging via media,
+> I'd expect an ack from the maintainer to do it so.
+>
 
-I guess patch ordering is not a big deal though ;)
+SH people, would you like to take this series or ACK/NACK it?
 
 Thanks
-  j
+   j
 
+> Regards,
+> Mauro
+> 
 > > 
-> >> +		ret = v4l2_clk_enable(priv->clk);
+> > ---
+> > The updated config file generated by:
 > > 
-> > Is this required by the pxa camera driver using v4l2_clk_ APIs?
-> > Otherwise you should use the clk API directly.
+> > make ARCH=sh migor_defconfig
+> > make ARCH=sh menuconfig
+> > make ARCH=sh savedefconfig
+> > cp defconfig arch/sh/configs/migor_defconfig
+> > ---
+> > ---
+> >  arch/sh/configs/migor_defconfig | 25 ++-----------------------
+> >  1 file changed, 2 insertions(+), 23 deletions(-)
 > > 
+> > diff --git a/arch/sh/configs/migor_defconfig b/arch/sh/configs/migor_defconfig
+> > index e04f21b..a85a327 100644
+> > --- a/arch/sh/configs/migor_defconfig
+> > +++ b/arch/sh/configs/migor_defconfig
+> > @@ -3,8 +3,6 @@ CONFIG_IKCONFIG=y
+> >  CONFIG_IKCONFIG_PROC=y
+> >  CONFIG_LOG_BUF_SHIFT=14
+> >  CONFIG_BLK_DEV_INITRD=y
+> > -# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+> > -# CONFIG_SYSCTL_SYSCALL is not set
+> >  CONFIG_SLAB=y
+> >  CONFIG_PROFILING=y
+> >  CONFIG_OPROFILE=y
+> > @@ -13,9 +11,7 @@ CONFIG_MODULES=y
+> >  CONFIG_CPU_SUBTYPE_SH7722=y
+> >  CONFIG_MEMORY_START=0x0c000000
+> >  CONFIG_NUMA=y
+> > -# CONFIG_MIGRATION is not set
+> >  CONFIG_SH_MIGOR=y
+> > -# CONFIG_SH_TIMER_CMT is not set
+> >  CONFIG_SECCOMP=y
+> >  CONFIG_CMDLINE_OVERWRITE=y
+> >  CONFIG_CMDLINE="console=tty0 console=ttySC0,115200 earlyprintk=serial ip=on root=/dev/nfs ip=dhcp"
+> > @@ -27,7 +23,6 @@ CONFIG_IP_PNP=y
+> >  CONFIG_IP_PNP_DHCP=y
+> >  # CONFIG_IPV6 is not set
+> >  CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+> > -CONFIG_FW_LOADER=m
+> >  CONFIG_MTD=y
+> >  CONFIG_MTD_CMDLINE_PARTS=y
+> >  CONFIG_MTD_BLOCK=y
+> > @@ -40,9 +35,7 @@ CONFIG_BLK_DEV_RAM=y
+> >  CONFIG_SCSI=y
+> >  CONFIG_BLK_DEV_SD=y
+> >  CONFIG_NETDEVICES=y
+> > -CONFIG_NET_ETHERNET=y
+> >  CONFIG_SMC91X=y
+> > -# CONFIG_INPUT_MOUSEDEV is not set
+> >  CONFIG_INPUT_EVDEV=y
+> >  # CONFIG_KEYBOARD_ATKBD is not set
+> >  CONFIG_KEYBOARD_SH_KEYSC=y
+> > @@ -50,30 +43,16 @@ CONFIG_KEYBOARD_SH_KEYSC=y
+> >  CONFIG_INPUT_TOUCHSCREEN=y
+> >  CONFIG_TOUCHSCREEN_MIGOR=y
+> >  # CONFIG_SERIO is not set
+> > -CONFIG_VT_HW_CONSOLE_BINDING=y
+> >  CONFIG_SERIAL_SH_SCI=y
+> > -CONFIG_SERIAL_SH_SCI_NR_UARTS=3
+> > -CONFIG_SERIAL_SH_SCI_CONSOLE=y
+> >  CONFIG_HW_RANDOM=y
+> >  CONFIG_I2C=y
+> >  CONFIG_I2C_SH_MOBILE=y
+> >  # CONFIG_HWMON is not set
+> >  CONFIG_MEDIA_SUPPORT=y
+> > -CONFIG_VIDEO_DEV=y
+> > -# CONFIG_VIDEO_ALLOW_V4L1 is not set
+> > -# CONFIG_MEDIA_TUNER_CUSTOMISE is not set
+> > -CONFIG_VIDEO_HELPER_CHIPS_AUTO=y
+> > -CONFIG_SOC_CAMERA=y
+> > -CONFIG_SOC_CAMERA_TW9910=y
+> > -CONFIG_SOC_CAMERA_OV772X=y
+> > -CONFIG_VIDEO_SH_MOBILE_CEU=y
+> > -# CONFIG_RADIO_ADAPTERS is not set
+> >  CONFIG_FB=y
+> >  CONFIG_FB_SH_MOBILE_LCDC=y
+> >  CONFIG_FRAMEBUFFER_CONSOLE=y
+> >  CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
+> > -CONFIG_FONTS=y
+> > -CONFIG_FONT_MINI_4x6=y
+> >  CONFIG_LOGO=y
+> >  # CONFIG_LOGO_LINUX_MONO is not set
+> >  # CONFIG_LOGO_LINUX_VGA16 is not set
+> > @@ -81,7 +60,6 @@ CONFIG_LOGO=y
+> >  # CONFIG_LOGO_SUPERH_MONO is not set
+> >  # CONFIG_LOGO_SUPERH_CLUT224 is not set
+> >  CONFIG_USB_GADGET=y
+> > -CONFIG_USB_GADGET_M66592=y
+> >  CONFIG_USB_G_SERIAL=m
+> >  CONFIG_RTC_CLASS=y
+> >  CONFIG_RTC_DRV_RS5C372=y
+> > @@ -95,6 +73,7 @@ CONFIG_NFS_FS=y
+> >  CONFIG_ROOT_NFS=y
+> >  CONFIG_DEBUG_FS=y
+> >  CONFIG_CRYPTO_MANAGER=y
+> > -# CONFIG_CRYPTO_ANSI_CPRNG is not set
+> >  # CONFIG_CRYPTO_HW is not set
+> >  CONFIG_CRC_T10DIF=y
+> > +CONFIG_FONTS=y
+> > +CONFIG_FONT_MINI_4x6=y
 > 
-> Yes the clock is registered by pxa camera with v4l2_clk_register(). I
-> will probably get to that in the future, but there is stuff (bugs, dead
-> code from soc_camera removal, ...) with more priority in the driver for now.
 > 
 > 
-> >> +		mdelay(1);
-> >> +		gpiod_set_value(priv->gpio_reset, 0);
-> >> +	} else {
-> >> +		gpiod_set_value(priv->gpio_reset, 1);
-> >> +		mdelay(1);
-> >> +		v4l2_clk_disable(priv->clk);
-> >> +		mdelay(1);
-> >> +		gpiod_set_value(priv->gpio_power, 0);
-> >> +	}
-> >> +	return ret;
-> >>  }
-> >>
-> >>  /* select nearest higher resolution for capture */
-> >> @@ -631,14 +648,10 @@ static const struct v4l2_subdev_core_ops ov9640_core_ops = {
-> >>  static int ov9640_g_mbus_config(struct v4l2_subdev *sd,
-> >>  				struct v4l2_mbus_config *cfg)
-> > 
-> > g_mbus/s_mbus are deprecated. Unless the pxa camera driver wants them
-> > all format negotiation should go through s_fmt/g_fmt pad operations
-> > 
-> 
-> Yeah it does:
-> 
->   ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
-> 
-> 
-> >>  {
-> >> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> >> -
-> >>  	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
-> >>  		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-> >>  		V4L2_MBUS_DATA_ACTIVE_HIGH;
-> >>  	cfg->type = V4L2_MBUS_PARALLEL;
-> >> -	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
-> >>
-> >>  	return 0;
-> >>  }
-> >> @@ -667,18 +680,27 @@ static int ov9640_probe(struct i2c_client *client,
-> >>  			const struct i2c_device_id *did)
-> >>  {
-> >>  	struct ov9640_priv *priv;
-> >> -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> >>  	int ret;
-> >>
-> >> -	if (!ssdd) {
-> >> -		dev_err(&client->dev, "Missing platform_data for driver\n");
-> >> -		return -EINVAL;
-> >> -	}
-> >> -
-> >> -	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
-> >> +	priv = devm_kzalloc(&client->dev, sizeof(*priv),
-> >> +			    GFP_KERNEL);
-> >>  	if (!priv)
-> >>  		return -ENOMEM;
-> >>
-> >> +	priv->gpio_power = devm_gpiod_get(&client->dev, "Camera power",
-> >> +					  GPIOD_OUT_LOW);
-> >> +	if (IS_ERR_OR_NULL(priv->gpio_power)) {
-> >> +		ret = PTR_ERR(priv->gpio_power);
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	priv->gpio_reset = devm_gpiod_get(&client->dev, "Camera reset",
-> >> +					  GPIOD_OUT_HIGH);
-> >> +	if (IS_ERR_OR_NULL(priv->gpio_reset)) {
-> >> +		ret = PTR_ERR(priv->gpio_reset);
-> >> +		return ret;
-> >> +	}
-> >> +
-> >>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov9640_subdev_ops);
-> >>
-> >>  	v4l2_ctrl_handler_init(&priv->hdl, 2);
-> >> @@ -692,17 +714,25 @@ static int ov9640_probe(struct i2c_client *client,
-> >>
-> >>  	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-> >>  	if (IS_ERR(priv->clk)) {
-> >> -		ret = PTR_ERR(priv->clk);
-> >> +		ret = -EPROBE_DEFER;
-> > 
-> > Why are you forcing EPROBE_DEFER instead of returning the clk_get()
-> > return value?
-> > 
-> 
-> That may be residue from testing, I will fix that.
-> 
-> Petr
+> Thanks,
+> Mauro
