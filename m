@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:47793 "EHLO
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:33661 "EHLO
         mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728055AbeHMNBn (ORCPT
+        by vger.kernel.org with ESMTP id S1728055AbeHMNBo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 09:01:43 -0400
+        Mon, 13 Aug 2018 09:01:44 -0400
 From: Hugues Fruchet <hugues.fruchet@st.com>
 To: Steve Longerbeam <slongerbeam@gmail.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
@@ -13,78 +13,58 @@ To: Steve Longerbeam <slongerbeam@gmail.com>,
 CC: <linux-media@vger.kernel.org>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 0/5] Fix OV5640 exposure & gain
-Date: Mon, 13 Aug 2018 12:19:41 +0200
-Message-ID: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
+Subject: [PATCH v2 3/5] media: ov5640: fix wrong binning value in exposure calculation
+Date: Mon, 13 Aug 2018 12:19:44 +0200
+Message-ID: <1534155586-26974-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
+References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch serie fixes some problems around exposure & gain in OV5640 driver.
+ov5640_set_mode_exposure_calc() is checking binning value but
+binning value read is buggy, fix this.
+Rename ov5640_binning_on() to ov5640_get_binning() as per other
+similar functions.
 
-The 4th patch about autocontrols requires also a fix in v4l2-ctrls.c:
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg133164.html
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Here is the test procedure used for exposure & gain controls check:
-1) Preview in background
-$> gst-launch-1.0 v4l2src ! "video/x-raw, width=640, Height=480" ! queue ! waylandsink -e &
-2) Check gain & exposure values
-$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
-                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
-                           gain (int)    : min=0 max=1023 step=1 default=0 value=19 flags=inactive, volatile
-3) Put finger in front of camera and check that gain/exposure values are changing:
-$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
-                       exposure (int)    : min=0 max=65535 step=1 default=0 value=660 flags=inactive, volatile
-                           gain (int)    : min=0 max=1023 step=1 default=0 value=37 flags=inactive, volatile
-4) switch to manual mode, image exposition must not change
-$> v4l2-ctl --set-ctrl=gain_automatic=0
-$> v4l2-ctl --set-ctrl=auto_exposure=1
-Note the "1" for manual exposure.
-
-5) Check current gain/exposure values:
-$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
-                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330
-                           gain (int)    : min=0 max=1023 step=1 default=0 value=20
-
-6) Put finger behind camera and check that gain/exposure values are NOT changing:
-$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
-                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330
-                           gain (int)    : min=0 max=1023 step=1 default=0 value=20
-7) Update exposure, check that it is well changed on display and that same value is returned:
-$> v4l2-ctl --set-ctrl=exposure=100
-$> v4l2-ctl --get-ctrl=exposure
-exposure: 100
-
-9) Update gain, check that it is well changed on display and that same value is returned:
-$> v4l2-ctl --set-ctrl=gain=10
-$> v4l2-ctl --get-ctrl=gain
-gain: 10
-
-10) Switch back to auto gain/exposure, verify that image is correct and values returned are correct:
-$> v4l2-ctl --set-ctrl=gain_automatic=1
-$> v4l2-ctl --set-ctrl=auto_exposure=0
-$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
-                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
-                           gain (int)    : min=0 max=1023 step=1 default=0 value=22 flags=inactive, volatile
-Note the "0" for auto exposure.
-
-===========
-= history =
-===========
-version 2:
-  - Fix patch 3/5 commit comment and rename binning function as per jacopo' suggestion:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg133272.html
-
-Hugues Fruchet (5):
-  media: ov5640: fix exposure regression
-  media: ov5640: fix auto gain & exposure when changing mode
-  media: ov5640: fix wrong binning value in exposure calculation
-  media: ov5640: fix auto controls values when switching to manual mode
-  media: ov5640: fix restore of last mode set
-
- drivers/media/i2c/ov5640.c | 124 ++++++++++++++++++++++++++-------------------
- 1 file changed, 72 insertions(+), 52 deletions(-)
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 7c569de..9fb17b5 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1349,7 +1349,7 @@ static int ov5640_set_ae_target(struct ov5640_dev *sensor, int target)
+ 	return ov5640_write_reg(sensor, OV5640_REG_AEC_CTRL1F, fast_low);
+ }
+ 
+-static int ov5640_binning_on(struct ov5640_dev *sensor)
++static int ov5640_get_binning(struct ov5640_dev *sensor)
+ {
+ 	u8 temp;
+ 	int ret;
+@@ -1357,8 +1357,8 @@ static int ov5640_binning_on(struct ov5640_dev *sensor)
+ 	ret = ov5640_read_reg(sensor, OV5640_REG_TIMING_TC_REG21, &temp);
+ 	if (ret)
+ 		return ret;
+-	temp &= 0xfe;
+-	return temp ? 1 : 0;
++
++	return temp & BIT(0);
+ }
+ 
+ static int ov5640_set_binning(struct ov5640_dev *sensor, bool enable)
+@@ -1468,7 +1468,7 @@ static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
+ 	if (ret < 0)
+ 		return ret;
+ 	prev_shutter = ret;
+-	ret = ov5640_binning_on(sensor);
++	ret = ov5640_get_binning(sensor);
+ 	if (ret < 0)
+ 		return ret;
+ 	if (ret && mode->id != OV5640_MODE_720P_1280_720 &&
 -- 
 2.7.4
