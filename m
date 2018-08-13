@@ -1,143 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54653 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726656AbeHKGXl (ORCPT
+Received: from mail-lj1-f172.google.com ([209.85.208.172]:34946 "EHLO
+        mail-lj1-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726345AbeHMIys (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Aug 2018 02:23:41 -0400
-Message-ID: <cd0ac4e1e19d23ab0a67dcdc18d881d6@smtp-cloud9.xs4all.net>
-Date: Sat, 11 Aug 2018 05:50:57 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Mon, 13 Aug 2018 04:54:48 -0400
+Received: by mail-lj1-f172.google.com with SMTP id p10-v6so11658153ljg.2
+        for <linux-media@vger.kernel.org>; Sun, 12 Aug 2018 23:14:02 -0700 (PDT)
+MIME-Version: 1.0
+References: <4f89ae25-4ae6-3530-a8f9-171dd39dceb0@cisco.com>
+ <85fdad02-5b68-1e62-cc59-d4dd6a33759b@oracle.com> <af4b80cc-1966-b346-a9fd-66db45b0c102@xs4all.nl>
+ <cc3bbc46-fca1-a969-a276-3a8d0f7f4745@oracle.com>
+In-Reply-To: <cc3bbc46-fca1-a969-a276-3a8d0f7f4745@oracle.com>
+From: Daniel Stone <daniel@fooishbar.org>
+Date: Mon, 13 Aug 2018 07:13:50 +0100
+Message-ID: <CAPj87rPu5uaXZj-Rtj11H_gfpxxn284mr_mt=StiK6GqyjK-4g@mail.gmail.com>
+Subject: Re: [ANN] edid-decode maintenance info
+To: Alan Coopersmith <alan.coopersmith@oracle.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, hansverk@cisco.com,
+        xorg-devel <xorg-devel@lists.x.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On Sun, 12 Aug 2018 at 21:53, Alan Coopersmith
+<alan.coopersmith@oracle.com> wrote:
+> On 06/22/18 01:12 AM, Hans Verkuil wrote:
+> > Thank you for this information. I looked through all the bug reports and
+> > 100607, 100340 and 93366 were already fixed before I took over maintenance.
+> >
+> > I just fixed 89348 and 93777 in my git repo, so those can be marked as
+> > resolved.
+>
+> Since no one else has, I marked all of these resolved now with links to your
+> repo for the fixes.
+>
+> > The edid-decode component should probably be removed from the freedesktop
+> > bugzilla.
+>
+> I don't know how to do that without deleting the bugs, so I'm hoping Adam
+> or Daniel can do that, much as they've been doing for the stuff migrating
+> to gitlab.
 
-date:			Sat Aug 11 05:00:09 CEST 2018
-media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
-media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
-v4l-utils git hash:	90905c2e4b17d7595256f3824e2d30d19b0df1a1
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+edid-decode is already marked as inactive; the old bugs aren't deleted
+and it's possible to search by component, but you can't file new bugs
+against it.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.140-i686: OK
-linux-4.4.140-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.112-i686: OK
-linux-4.9.112-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.55-i686: OK
-linux-4.14.55-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.6-i686: OK
-linux-4.17.6-x86_64: OK
-linux-4.18-rc4-i686: OK
-linux-4.18-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Cheers,
+Daniel
