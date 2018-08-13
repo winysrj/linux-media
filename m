@@ -1,90 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:41027 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726694AbeH0AYz (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:34312 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728338AbeHMOMO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Aug 2018 20:24:55 -0400
-Subject: Re: [PATCH 3/7] media: imx274: don't hard-code the subdev name to
- DRIVER_NAME
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com
-References: <20180824163525.12694-1-luca@lucaceresoli.net>
- <20180824163525.12694-4-luca@lucaceresoli.net>
- <20180825144915.tq7m5jlikwndndzq@valkosipuli.retiisi.org.uk>
-From: Luca Ceresoli <luca@lucaceresoli.net>
-Message-ID: <799f4d1a-b91d-0404-7ef0-965d123319da@lucaceresoli.net>
-Date: Sun, 26 Aug 2018 22:41:13 +0200
+        Mon, 13 Aug 2018 10:12:14 -0400
+Date: Mon, 13 Aug 2018 08:30:19 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv17 19/34] vb2: drop VB2_BUF_STATE_PREPARED, use bool
+ prepared/synced instead
+Message-ID: <20180813083019.16c087d5@coco.lan>
+In-Reply-To: <20180804124526.46206-20-hverkuil@xs4all.nl>
+References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+        <20180804124526.46206-20-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180825144915.tq7m5jlikwndndzq@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Sat,  4 Aug 2018 14:45:11 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 25/08/2018 16:49, Sakari Ailus wrote:
-> Hi Luca,
-> 
-> On Fri, Aug 24, 2018 at 06:35:21PM +0200, Luca Ceresoli wrote:
->> Forcibly setting the subdev name to DRIVER_NAME (i.e. "IMX274") makes
->> it non-unique and less informative.
->>
->> Let the driver use the default name from i2c, e.g. "IMX274 2-001a".
->>
->> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
->> ---
->>  drivers/media/i2c/imx274.c | 1 -
->>  1 file changed, 1 deletion(-)
->>
->> diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
->> index 9b524de08470..570706695ca7 100644
->> --- a/drivers/media/i2c/imx274.c
->> +++ b/drivers/media/i2c/imx274.c
->> @@ -1885,7 +1885,6 @@ static int imx274_probe(struct i2c_client *client,
->>  	imx274->client = client;
->>  	sd = &imx274->sd;
->>  	v4l2_i2c_subdev_init(sd, client, &imx274_subdev_ops);
->> -	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
->>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
->>  
->>  	/* initialize subdev media pad */
-> 
-> This ends up changing the entity as well as the sub-device name which may
-> well break applications.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> The PREPARED state becomes a problem with the request API: a buffer
+> could be PREPARED but dequeued, or PREPARED and in state IN_REQUEST.
+>=20
+> PREPARED is really not a state as such, but more a property of the
+> buffer. So make new 'prepared' and 'synced' bools instead to remember
+> whether the buffer is prepared and/or synced or not.
+>=20
+> V4L2_BUF_FLAG_PREPARED is only set if the buffer is both synced and
+> prepared and in the DEQUEUED state.
+>=20
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../media/common/videobuf2/videobuf2-core.c   | 38 +++++++++++++------
+>  .../media/common/videobuf2/videobuf2-v4l2.c   | 16 +++++---
+>  include/media/videobuf2-core.h                |  6 ++-
+>  3 files changed, 40 insertions(+), 20 deletions(-)
+>=20
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/me=
+dia/common/videobuf2/videobuf2-core.c
+> index 7401a17c80ca..eead693ba619 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -682,7 +682,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_me=
+mory memory,
+>  		}
+> =20
+>  		/*
+> -		 * Call queue_cancel to clean up any buffers in the PREPARED or
+> +		 * Call queue_cancel to clean up any buffers in the
+>  		 * QUEUED state which is possible if buffers were prepared or
+>  		 * queued without ever calling STREAMON.
+>  		 */
+> @@ -921,6 +921,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_=
+buffer_state state)
+>  		/* sync buffers */
+>  		for (plane =3D 0; plane < vb->num_planes; ++plane)
+>  			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> +		vb->synced =3D false;
 
-Right, unfortunately.
+Shouldn't be prepared cleaned as well on reqbufs?
 
-> On the other hand, you currently can't have more
-> than one of these devices on a media device complex due to the name being
-> specific to a driver, not the device.
->
-> An option avoiding that would be to let the user choose by e.g. through a
-> Kconfig option would avoid having to address that, but I really hate adding
-> such options.
+>  	}
+> =20
+>  	spin_lock_irqsave(&q->done_lock, flags);
+> @@ -1239,6 +1240,7 @@ static void __enqueue_in_driver(struct vb2_buffer *=
+vb)
+>  static int __buf_prepare(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q =3D vb->vb2_queue;
+> +	enum vb2_buffer_state orig_state =3D vb->state;
+>  	unsigned int plane;
+>  	int ret;
+> =20
+> @@ -1247,6 +1249,10 @@ static int __buf_prepare(struct vb2_buffer *vb)
+>  		return -EIO;
+>  	}
+> =20
+> +	if (vb->prepared)
+> +		return 0;
+> +	WARN_ON(vb->synced);
+> +
+>  	vb->state =3D VB2_BUF_STATE_PREPARING;
+> =20
+>  	switch (q->memory) {
 
-I agree adding a Kconfig option just for this would be very annoying.
-However I think the issue affects a few other drivers (sr030pc30.c and
-s5c73m3-core.c apparently), thus maybe one option could serve them all.
+> @@ -1262,11 +1268,12 @@ static int __buf_prepare(struct vb2_buffer *vb)
+>  	default:
+>  		WARN(1, "Invalid queue type\n");
+>  		ret =3D -EINVAL;
+> +		break;
+>  	}
 
-> I wonder what others think. If anyone ever needs to add another on a board
-> so that it ends up being the part of the same media device complex
-> (likely), then changing the name now rather than later would be the least
-> pain. In this case I'd be leaning (slightly) towards accepting the patch
-> and hoping there wouldn't be any fallout... I don't see any board (DT)
-> containing imx274, at least not in the upstream kernel.
+Hmm... is this hunk a bug fix? if so, please split into a separate patch
+and add a c/c stable.
 
-I'll be OK with either decision. Should we keep it as is, then I think a
-comment before that line would be appropriate to clarify it's not
-correct but it is kept for backward userspace compatibility. This would
-help avoid new driver writers doing the same mistake, and prevent other
-people to send another patch like mine.
+> =20
+>  	if (ret) {
+>  		dprintk(1, "buffer preparation failed: %d\n", ret);
+> -		vb->state =3D VB2_BUF_STATE_DEQUEUED;
+> +		vb->state =3D orig_state;
+>  		return ret;
+>  	}
+> =20
+> @@ -1274,7 +1281,9 @@ static int __buf_prepare(struct vb2_buffer *vb)
+>  	for (plane =3D 0; plane < vb->num_planes; ++plane)
+>  		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+> =20
+> -	vb->state =3D VB2_BUF_STATE_PREPARED;
+> +	vb->synced =3D true;
+> +	vb->prepared =3D true;
+> +	vb->state =3D orig_state;
+> =20
+>  	return 0;
+>  }
+> @@ -1290,6 +1299,10 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsi=
+gned int index, void *pb)
+>  			vb->state);
+>  		return -EINVAL;
+>  	}
+> +	if (vb->prepared) {
+> +		dprintk(1, "buffer already prepared\n");
+> +		return -EINVAL;
+> +	}
+> =20
+>  	ret =3D __buf_prepare(vb);
+>  	if (ret)
+> @@ -1381,11 +1394,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned i=
+nt index, void *pb)
+> =20
+>  	switch (vb->state) {
+>  	case VB2_BUF_STATE_DEQUEUED:
+> -		ret =3D __buf_prepare(vb);
+> -		if (ret)
+> -			return ret;
+> -		break;
+> -	case VB2_BUF_STATE_PREPARED:
+> +		if (!vb->prepared) {
+> +			ret =3D __buf_prepare(vb);
+> +			if (ret)
+> +				return ret;
+> +		}
+>  		break;
+>  	case VB2_BUF_STATE_PREPARING:
+>  		dprintk(1, "buffer still being prepared\n");
+> @@ -1611,6 +1624,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned in=
+t *pindex, void *pb,
+>  	}
+> =20
+>  	call_void_vb_qop(vb, buf_finish, vb);
+> +	vb->prepared =3D false;
+> =20
+>  	if (pindex)
+>  		*pindex =3D vb->index;
+> @@ -1699,18 +1713,18 @@ static void __vb2_queue_cancel(struct vb2_queue *=
+q)
+>  	for (i =3D 0; i < q->num_buffers; ++i) {
+>  		struct vb2_buffer *vb =3D q->bufs[i];
+> =20
+> -		if (vb->state =3D=3D VB2_BUF_STATE_PREPARED ||
+> -		    vb->state =3D=3D VB2_BUF_STATE_QUEUED) {
+> +		if (vb->synced) {
+>  			unsigned int plane;
+> =20
+>  			for (plane =3D 0; plane < vb->num_planes; ++plane)
+>  				call_void_memop(vb, finish,
+>  						vb->planes[plane].mem_priv);
+> +			vb->synced =3D false;
+>  		}
+> =20
+> -		if (vb->state !=3D VB2_BUF_STATE_DEQUEUED) {
+> -			vb->state =3D VB2_BUF_STATE_PREPARED;
+> +		if (vb->prepared) {
+>  			call_void_vb_qop(vb, buf_finish, vb);
+> +			vb->prepared =3D false;
+>  		}
+>  		__vb2_dqbuf(vb);
+>  	}
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/me=
+dia/common/videobuf2/videobuf2-v4l2.c
+> index 360dc4e7d413..a677e2c26247 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -352,9 +352,13 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue=
+ *q, struct v4l2_buffer *b,
+>  	if (ret)
+>  		return ret;
+> =20
+> -	/* Copy relevant information provided by the userspace */
+> -	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
+> -	return vb2_fill_vb2_v4l2_buffer(vb, b);
+> +	if (!vb->prepared) {
+> +		/* Copy relevant information provided by the userspace */
+> +		memset(vbuf->planes, 0,
+> +		       sizeof(vbuf->planes[0]) * vb->num_planes);
+> +		ret =3D vb2_fill_vb2_v4l2_buffer(vb, b);
+> +	}
+> +	return ret;
+>  }
+> =20
+>  /*
+> @@ -443,9 +447,6 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,=
+ void *pb)
+>  	case VB2_BUF_STATE_DONE:
+>  		b->flags |=3D V4L2_BUF_FLAG_DONE;
+>  		break;
+> -	case VB2_BUF_STATE_PREPARED:
+> -		b->flags |=3D V4L2_BUF_FLAG_PREPARED;
+> -		break;
+>  	case VB2_BUF_STATE_PREPARING:
+>  	case VB2_BUF_STATE_DEQUEUED:
+>  	case VB2_BUF_STATE_REQUEUEING:
+> @@ -453,6 +454,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,=
+ void *pb)
+>  		break;
+>  	}
+> =20
+> +	if (vb->state =3D=3D VB2_BUF_STATE_DEQUEUED && vb->synced && vb->prepar=
+ed)
+> +		b->flags |=3D V4L2_BUF_FLAG_PREPARED;
+> +
+>  	if (vb2_buffer_in_use(q, vb))
+>  		b->flags |=3D V4L2_BUF_FLAG_MAPPED;
+> =20
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-cor=
+e.h
+> index 224c4820a044..5e760d5f280a 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -204,7 +204,6 @@ enum vb2_io_modes {
+>   * enum vb2_buffer_state - current video buffer state.
+>   * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control.
+>   * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf.
+> - * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the drive=
+r.
+>   * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver.
+>   * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver.
+>   * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
+> @@ -218,7 +217,6 @@ enum vb2_io_modes {
+>  enum vb2_buffer_state {
+>  	VB2_BUF_STATE_DEQUEUED,
+>  	VB2_BUF_STATE_PREPARING,
+> -	VB2_BUF_STATE_PREPARED,
+>  	VB2_BUF_STATE_QUEUED,
+>  	VB2_BUF_STATE_REQUEUEING,
+>  	VB2_BUF_STATE_ACTIVE,
+> @@ -250,6 +248,8 @@ struct vb2_buffer {
+>  	/* private: internal use only
+>  	 *
+>  	 * state:		current buffer state; do not change
+> +	 * synced:		this buffer has been synced
+> +	 * prepared:		this buffer has been prepared
 
-Regards,
--- 
-Luca
+Please describe better what "prepared" and "synced" means, as
+the above doesn't really help.
+
+=46rom what I got:
+
+	- "prepared" means that buf_prepare() was called and
+	  vidioc_dqbuf() (nor cancel) was not called;
+	- "sync" means that the buf_prepare() was called
+	  and the v4l2_buffer_done() (nor cancel)
+
+right?
+
+
+>  	 * queued_entry:	entry on the queued buffers list, which holds
+>  	 *			all buffers queued from userspace
+>  	 * done_entry:		entry on the list that stores all buffers ready
+> @@ -257,6 +257,8 @@ struct vb2_buffer {
+>  	 * vb2_plane:		per-plane information; do not change
+>  	 */
+>  	enum vb2_buffer_state	state;
+> +	bool			synced;
+> +	bool			prepared;
+> =20
+>  	struct vb2_plane	planes[VB2_MAX_PLANES];
+>  	struct list_head	queued_entry;
+
+
+
+Thanks,
+Mauro
