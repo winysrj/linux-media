@@ -1,125 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56220 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732831AbeHNRIO (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:54400 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728199AbeHNWXe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 13:08:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 32/35] vim2m: use workqueue
-Date: Tue, 14 Aug 2018 16:20:44 +0200
-Message-Id: <20180814142047.93856-33-hverkuil@xs4all.nl>
-In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
+        Tue, 14 Aug 2018 18:23:34 -0400
+Date: Tue, 14 Aug 2018 16:34:49 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv18 16/35] v4l2-ctrls: add
+ v4l2_ctrl_request_hdl_find/put/ctrl_find functions
+Message-ID: <20180814163449.696766df@coco.lan>
+In-Reply-To: <20180814142047.93856-17-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
+        <20180814142047.93856-17-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 14 Aug 2018 16:20:28 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
-interrupt context. Switch to a workqueue instead and drop the timer.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> If a driver needs to find/inspect the controls set in a request then
+> it can use these functions.
+> 
+> E.g. to check if a required control is set in a request use this in the
+> req_validate() implementation:
+> 
+> 	int res = -EINVAL;
+> 
+> 	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
+> 	if (hdl) {
+> 		if (v4l2_ctrl_request_hdl_ctrl_find(hdl, ctrl_id))
+> 			res = 0;
+> 		v4l2_ctrl_request_hdl_put(hdl);
+> 	}
+> 	return res;
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/platform/vim2m.c | 25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 25 ++++++++++++++
+>  include/media/v4l2-ctrls.h           | 49 +++++++++++++++++++++++++++-
+>  2 files changed, 73 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 6d34d7a6f235..a197b60183f5 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -2976,6 +2976,31 @@ static const struct media_request_object_ops req_ops = {
+>  	.release = v4l2_ctrl_request_release,
+>  };
+>  
+> +struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
+> +					struct v4l2_ctrl_handler *parent)
+> +{
+> +	struct media_request_object *obj;
+> +
+> +	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_VALIDATING &&
+> +		    req->state != MEDIA_REQUEST_STATE_QUEUED))
+> +		return NULL;
+> +
+> +	obj = media_request_object_find(req, &req_ops, parent);
+> +	if (obj)
+> +		return container_of(obj, struct v4l2_ctrl_handler, req_obj);
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_find);
+> +
+> +struct v4l2_ctrl *
+> +v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id)
+> +{
+> +	struct v4l2_ctrl_ref *ref = find_ref_lock(hdl, id);
+> +
+> +	return (ref && ref->req == ref) ? ref->ctrl : NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_ctrl_find);
+> +
+>  static int v4l2_ctrl_request_bind(struct media_request *req,
+>  			   struct v4l2_ctrl_handler *hdl,
+>  			   struct v4l2_ctrl_handler *from)
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index f4156544150b..53ca4df0c353 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -1111,7 +1111,54 @@ void v4l2_ctrl_request_setup(struct media_request *req,
+>   * request object.
+>   */
+>  void v4l2_ctrl_request_complete(struct media_request *req,
+> -				struct v4l2_ctrl_handler *hdl);
+> +				struct v4l2_ctrl_handler *parent);
+> +
+> +/**
+> + * v4l2_ctrl_request_hdl_find - Find the control handler in the request
+> + *
+> + * @req: The request
+> + * @parent: The parent control handler ('priv' in media_request_object_find())
+> + *
+> + * This function finds the control handler in the request. It may return
+> + * NULL if not found. When done, you must call v4l2_ctrl_request_put_hdl()
+> + * with the returned handler pointer.
+> + *
+> + * If the request is not in state VALIDATING or QUEUED, then this function
+> + * will always return NULL.
+> + *
+> + * Note that in state VALIDATING the req_queue_mutex is held, so
+> + * no objects can be added or deleted from the request.
+> + *
+> + * In state QUEUED it is the driver that will have to ensure this.
+> + */
+> +struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
+> +					struct v4l2_ctrl_handler *parent);
+> +
+> +/**
+> + * v4l2_ctrl_request_hdl_put - Put the control handler
+> + *
+> + * @hdl: Put this control handler
+> + *
+> + * This function released the control handler previously obtained from'
+> + * v4l2_ctrl_request_hdl_find().
+> + */
+> +static inline void v4l2_ctrl_request_hdl_put(struct v4l2_ctrl_handler *hdl)
+> +{
+> +	if (hdl)
+> +		media_request_object_put(&hdl->req_obj);
+> +}
+> +
+> +/**
+> + * v4l2_ctrl_request_ctrl_find() - Find a control with the given ID.
+> + *
+> + * @hdl: The control handler from the request.
+> + * @id: The ID of the control to find.
+> + *
+> + * This function returns a pointer to the control if this control is
+> + * part of the request or NULL otherwise.
+> + */
+> +struct v4l2_ctrl *
+> +v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id);
+>  
+>  /* Helpers for ioctl_ops */
+>  
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 462099a141e4..6f87ef025ff1 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -3,7 +3,8 @@
-  *
-  * This is a virtual device driver for testing mem-to-mem videobuf framework.
-  * It simulates a device that uses memory buffers for both source and
-- * destination, processes the data and issues an "irq" (simulated by a timer).
-+ * destination, processes the data and issues an "irq" (simulated by a delayed
-+ * workqueue).
-  * The device is capable of multi-instance, multi-buffer-per-transaction
-  * operation (via the mem2mem framework).
-  *
-@@ -19,7 +20,6 @@
- #include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/fs.h>
--#include <linux/timer.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- 
-@@ -148,7 +148,7 @@ struct vim2m_dev {
- 	struct mutex		dev_mutex;
- 	spinlock_t		irqlock;
- 
--	struct timer_list	timer;
-+	struct delayed_work	work_run;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
- };
-@@ -336,12 +336,6 @@ static int device_process(struct vim2m_ctx *ctx,
- 	return 0;
- }
- 
--static void schedule_irq(struct vim2m_dev *dev, int msec_timeout)
--{
--	dprintk(dev, "Scheduling a simulated irq\n");
--	mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
--}
--
- /*
-  * mem2mem callbacks
-  */
-@@ -387,13 +381,14 @@ static void device_run(void *priv)
- 
- 	device_process(ctx, src_buf, dst_buf);
- 
--	/* Run a timer, which simulates a hardware irq  */
--	schedule_irq(dev, ctx->transtime);
-+	/* Run delayed work, which simulates a hardware irq  */
-+	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
- }
- 
--static void device_isr(struct timer_list *t)
-+static void device_work(struct work_struct *w)
- {
--	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
-+	struct vim2m_dev *vim2m_dev =
-+		container_of(w, struct vim2m_dev, work_run.work);
- 	struct vim2m_ctx *curr_ctx;
- 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
-@@ -805,6 +800,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
- 	struct vb2_v4l2_buffer *vbuf;
- 	unsigned long flags;
- 
-+	flush_scheduled_work();
- 	for (;;) {
- 		if (V4L2_TYPE_IS_OUTPUT(q->type))
- 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-@@ -1015,6 +1011,7 @@ static int vim2m_probe(struct platform_device *pdev)
- 	vfd = &dev->vfd;
- 	vfd->lock = &dev->dev_mutex;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-+	INIT_DELAYED_WORK(&dev->work_run, device_work);
- 
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
-@@ -1026,7 +1023,6 @@ static int vim2m_probe(struct platform_device *pdev)
- 	v4l2_info(&dev->v4l2_dev,
- 			"Device registered as /dev/video%d\n", vfd->num);
- 
--	timer_setup(&dev->timer, device_isr, 0);
- 	platform_set_drvdata(pdev, dev);
- 
- 	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
-@@ -1083,7 +1079,6 @@ static int vim2m_remove(struct platform_device *pdev)
- 	media_device_cleanup(&dev->mdev);
- #endif
- 	v4l2_m2m_release(dev->m2m_dev);
--	del_timer_sync(&dev->timer);
- 	video_unregister_device(&dev->vfd);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
--- 
-2.18.0
+
+
+Thanks,
+Mauro
