@@ -1,60 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56087 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727689AbeHNKnb (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:44531 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731125AbeHNKMX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 06:43:31 -0400
-Subject: Re: [PATCHv17 01/34] Documentation: v4l: document request API
+        Tue, 14 Aug 2018 06:12:23 -0400
+Subject: Re: [PATCHv17 29/34] v4l2-mem2mem: add vb2_m2m_request_queue
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
- <20180804124526.46206-2-hverkuil@xs4all.nl>
- <20180809144300.6ea1d040@coco.lan>
+ <20180804124526.46206-30-hverkuil@xs4all.nl>
+ <20180813120149.1040f6f7@coco.lan>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <18b31024-2cf0-58b3-4df5-fcb89b77e50f@xs4all.nl>
-Date: Tue, 14 Aug 2018 09:57:27 +0200
+Message-ID: <7468515c-e42f-590f-c915-7da9806b3dd8@xs4all.nl>
+Date: Tue, 14 Aug 2018 09:26:25 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180809144300.6ea1d040@coco.lan>
+In-Reply-To: <20180813120149.1040f6f7@coco.lan>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/08/18 19:43, Mauro Carvalho Chehab wrote:
->> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
->> index 9e448a4aa3aa..0e415f2551b2 100644
->> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
->> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
->> @@ -65,7 +65,7 @@ To enqueue a :ref:`memory mapped <mmap>` buffer applications set the
->>  with a pointer to this structure the driver sets the
->>  ``V4L2_BUF_FLAG_MAPPED`` and ``V4L2_BUF_FLAG_QUEUED`` flags and clears
->>  the ``V4L2_BUF_FLAG_DONE`` flag in the ``flags`` field, or it returns an
->> -EINVAL error code.
->> +``EINVAL`` error code.
+On 13/08/18 17:02, Mauro Carvalho Chehab wrote:
+> Em Sat,  4 Aug 2018 14:45:21 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Side note: we should likely do a similar replacement on all other places
-> inside the media uAPI docs.
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> For mem2mem devices we have to make sure that v4l2_m2m_try_schedule()
+>> is called whenever a request is queued.
+>>
+>> We do that by creating a vb2_m2m_request_queue() helper that should
+>> be used instead of the 'normal' vb2_request_queue() helper. The m2m
+>> helper function will call v4l2_m2m_try_schedule() as needed.
+>>
+>> In addition we also avoid calling v4l2_m2m_try_schedule() when preparing
+>> or queueing a buffer for a request since that is no longer needed.
+>> Instead this helper function will do that when the request is actually
+>> queued.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
+> Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> 
+> But please notice below that there's another change on patch 1/34 due
+> to this patchset.
+> 
+>> ---
+>>  drivers/media/v4l2-core/v4l2-mem2mem.c | 59 ++++++++++++++++++++++----
+>>  include/media/v4l2-mem2mem.h           |  4 ++
+>>  2 files changed, 55 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+>> index b09494174eb4..56a16cfef6f8 100644
+>> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+>> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+>> @@ -369,7 +369,7 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
+>>  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+>>  		if (m2m_dev->m2m_ops->job_abort)
+>>  			m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
+>> -		dprintk("m2m_ctx %p running, will wait to complete", m2m_ctx);
+>> +		dprintk("m2m_ctx %p running, will wait to complete\n", m2m_ctx);
+>>  		wait_event(m2m_ctx->finished,
+>>  				!(m2m_ctx->job_flags & TRANS_RUNNING));
+>>  	} else if (m2m_ctx->job_flags & TRANS_QUEUED) {
+>> @@ -460,8 +460,14 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+>>  	int ret;
 >>  
->>  To enqueue a :ref:`user pointer <userp>` buffer applications set the
->>  ``memory`` field to ``V4L2_MEMORY_USERPTR``, the ``m.userptr`` field to
->> @@ -98,6 +98,25 @@ dequeued, until the :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or
->>  :ref:`VIDIOC_REQBUFS` ioctl is called, or until the
->>  device is closed.
->>  
->> +The ``request_fd`` field can be used with the ``VIDIOC_QBUF`` ioctl to specify
+>>  	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+>> +	if (!V4L2_TYPE_IS_OUTPUT(vq->type) &&
+>> +	    (buf->flags & V4L2_BUF_FLAG_REQUEST_FD)) {
+>> +		dprintk("%s: requests cannot be used with capture buffers\n",
+>> +			__func__);
 > 
-> Please prefer using :ref: for QBUF too, e. g.: 
-> 	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>`
+> I had to double-check the documentation at patch 01/34. While on one
+> part is says the same, saying that -EPERM is the error code, on
+> another part, it says:
+> 
+> 	+Note that there is typically no need to use the Request API for CAPTURE buffers
+> 	+since there are no per-frame settings to report there.
+> 
+> "typically" means that the normal usecase is to now allow, but gives
+> it open to implementations doing it.
+> 
+> Please fix that paragraph on patch 01/34 to reflect that no CAPTURE
+> buffers should be used with request API for m2m, in order to
+> reflect the code's implementation.
 
-Does this make sense when you are in the QBUF documentation itself? Using :ref: will
-just link back to the same page.
-
-We need some guidelines here. I personally don't think this makes sense.
+Good catch! That's a left-over from earlier versions of the documentation.
+I'll update the doc text.
 
 Regards,
 
 	Hans
+
+> 
+>> +		return -EPERM;
+>> +	}
+>>  	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
+>> -	if (!ret)
+>> +	if (!ret && !(buf->flags & V4L2_BUF_FLAG_IN_REQUEST))
+>>  		v4l2_m2m_try_schedule(m2m_ctx);
+>>  
+>>  	return ret;
+>> @@ -483,14 +489,9 @@ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+>>  {
+>>  	struct video_device *vdev = video_devdata(file);
+>>  	struct vb2_queue *vq;
+>> -	int ret;
+>>  
+>>  	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+>> -	ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+>> -	if (!ret)
+>> -		v4l2_m2m_try_schedule(m2m_ctx);
+>> -
+>> -	return ret;
+>> +	return vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l2_m2m_prepare_buf);
+>>  
+>> @@ -934,6 +935,48 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
+>>  
+>> +void vb2_m2m_request_queue(struct media_request *req)
+>> +{
+>> +	struct media_request_object *obj, *obj_safe;
+>> +	struct v4l2_m2m_ctx *m2m_ctx = NULL;
+>> +
+>> +	/* Queue all non-buffer objects */
+>> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list)
+>> +		if (obj->ops->queue && !vb2_request_object_is_buffer(obj))
+>> +			obj->ops->queue(obj);
+>> +
+>> +	/* Queue all buffer objects */
+>> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
+>> +		struct v4l2_m2m_ctx *m2m_ctx_obj;
+>> +		struct vb2_buffer *vb;
+>> +
+>> +		if (!obj->ops->queue || !vb2_request_object_is_buffer(obj))
+>> +			continue;
+>> +
+>> +		/* Sanity checks */
+>> +		vb = container_of(obj, struct vb2_buffer, req_obj);
+>> +		WARN_ON(!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type));
+>> +		m2m_ctx_obj = container_of(vb->vb2_queue,
+>> +					   struct v4l2_m2m_ctx,
+>> +					   out_q_ctx.q);
+>> +		WARN_ON(m2m_ctx && m2m_ctx_obj != m2m_ctx);
+>> +		m2m_ctx = m2m_ctx_obj;
+>> +
+>> +		/*
+>> +		 * The buffer we queue here can in theory be immediately
+>> +		 * unbound, hence the use of list_for_each_entry_safe()
+>> +		 * above and why we call the queue op last.
+>> +		 */
+>> +		obj->ops->queue(obj);
+>> +	}
+>> +
+>> +	WARN_ON(!m2m_ctx);
+>> +
+>> +	if (m2m_ctx)
+>> +		v4l2_m2m_try_schedule(m2m_ctx);
+>> +}
+>> +EXPORT_SYMBOL_GPL(vb2_m2m_request_queue);
+>> +
+>>  /* Videobuf2 ioctl helpers */
+>>  
+>>  int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+>> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+>> index d655720e16a1..58c1ecf3d648 100644
+>> --- a/include/media/v4l2-mem2mem.h
+>> +++ b/include/media/v4l2-mem2mem.h
+>> @@ -622,6 +622,10 @@ v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
+>>  	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
+>>  }
+>>  
+>> +/* v4l2 request helper */
+>> +
+>> +void vb2_m2m_request_queue(struct media_request *req);
+>> +
+>>  /* v4l2 ioctl helpers */
+>>  
+>>  int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
