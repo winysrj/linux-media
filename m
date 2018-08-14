@@ -1,110 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60511 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732781AbeHNRIN (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:54436 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728199AbeHNWZE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 13:08:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 09/35] videodev2.h: add request_fd field to v4l2_ext_controls
-Date: Tue, 14 Aug 2018 16:20:21 +0200
-Message-Id: <20180814142047.93856-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
+        Tue, 14 Aug 2018 18:25:04 -0400
+Date: Tue, 14 Aug 2018 16:36:19 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv18 17/35] videobuf2-v4l2: move __fill_v4l2_buffer()
+ function
+Message-ID: <20180814163619.4b273322@coco.lan>
+In-Reply-To: <20180814142047.93856-18-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
+        <20180814142047.93856-18-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexandre Courbot <acourbot@chromium.org>
+Em Tue, 14 Aug 2018 16:20:29 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
-can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
-
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Move the __fill_v4l2_buffer() to before the vb2_queue_or_prepare_buf()
+> function to prepare for the next two patches.
+> 
+> No other changes.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
- drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
- include/uapi/linux/videodev2.h                | 4 +++-
- 3 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 6481212fda77..dcce86c1fe40 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
- 	__u32 which;
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
- };
- 
-@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &p32->count) ||
- 	    put_user(count, &p64->count) ||
- 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
-+	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
- 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
- 		return -EFAULT;
- 
-@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
- 	    get_user(count, &p64->count) ||
- 	    put_user(count, &p32->count) ||
- 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
-+	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
- 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
- 	    get_user(kcontrols, &p64->controls))
- 		return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ea475d833dd6..03241d6b7ef8 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -590,8 +590,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
- 	const struct v4l2_ext_controls *p = arg;
- 	int i;
- 
--	pr_cont("which=0x%x, count=%d, error_idx=%d",
--			p->which, p->count, p->error_idx);
-+	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
-+			p->which, p->count, p->error_idx, p->request_fd);
- 	for (i = 0; i < p->count; i++) {
- 		if (!p->controls[i].size)
- 			pr_cont(", id/val=0x%x/0x%x",
-@@ -907,7 +907,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- 	__u32 i;
- 
- 	/* zero the reserved fields */
--	c->reserved[0] = c->reserved[1] = 0;
-+	c->reserved[0] = 0;
- 	for (i = 0; i < c->count; i++)
- 		c->controls[i].reserved2[0] = 0;
- 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 5d1a3685bea9..1df0fa983db6 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1599,7 +1599,8 @@ struct v4l2_ext_controls {
- 	};
- 	__u32 count;
- 	__u32 error_idx;
--	__u32 reserved[2];
-+	__s32 request_fd;
-+	__u32 reserved[1];
- 	struct v4l2_ext_control *controls;
- };
- 
-@@ -1612,6 +1613,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_MAX_DIMS	  (4)
- #define V4L2_CTRL_WHICH_CUR_VAL   0
- #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
-+#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
- 
- enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_INTEGER	     = 1,
--- 
-2.18.0
+> ---
+>  .../media/common/videobuf2/videobuf2-v4l2.c   | 264 +++++++++---------
+>  1 file changed, 132 insertions(+), 132 deletions(-)
+> 
+> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> index 886a2d8d5c6c..408fd7ce9c09 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+> @@ -154,138 +154,6 @@ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
+>  		pr_warn("use the actual size instead.\n");
+>  }
+>  
+> -static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+> -				    const char *opname)
+> -{
+> -	if (b->type != q->type) {
+> -		dprintk(1, "%s: invalid buffer type\n", opname);
+> -		return -EINVAL;
+> -	}
+> -
+> -	if (b->index >= q->num_buffers) {
+> -		dprintk(1, "%s: buffer index out of range\n", opname);
+> -		return -EINVAL;
+> -	}
+> -
+> -	if (q->bufs[b->index] == NULL) {
+> -		/* Should never happen */
+> -		dprintk(1, "%s: buffer is NULL\n", opname);
+> -		return -EINVAL;
+> -	}
+> -
+> -	if (b->memory != q->memory) {
+> -		dprintk(1, "%s: invalid memory type\n", opname);
+> -		return -EINVAL;
+> -	}
+> -
+> -	return __verify_planes_array(q->bufs[b->index], b);
+> -}
+> -
+> -/*
+> - * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
+> - * returned to userspace
+> - */
+> -static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+> -{
+> -	struct v4l2_buffer *b = pb;
+> -	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> -	struct vb2_queue *q = vb->vb2_queue;
+> -	unsigned int plane;
+> -
+> -	/* Copy back data such as timestamp, flags, etc. */
+> -	b->index = vb->index;
+> -	b->type = vb->type;
+> -	b->memory = vb->memory;
+> -	b->bytesused = 0;
+> -
+> -	b->flags = vbuf->flags;
+> -	b->field = vbuf->field;
+> -	b->timestamp = ns_to_timeval(vb->timestamp);
+> -	b->timecode = vbuf->timecode;
+> -	b->sequence = vbuf->sequence;
+> -	b->reserved2 = 0;
+> -	b->reserved = 0;
+> -
+> -	if (q->is_multiplanar) {
+> -		/*
+> -		 * Fill in plane-related data if userspace provided an array
+> -		 * for it. The caller has already verified memory and size.
+> -		 */
+> -		b->length = vb->num_planes;
+> -		for (plane = 0; plane < vb->num_planes; ++plane) {
+> -			struct v4l2_plane *pdst = &b->m.planes[plane];
+> -			struct vb2_plane *psrc = &vb->planes[plane];
+> -
+> -			pdst->bytesused = psrc->bytesused;
+> -			pdst->length = psrc->length;
+> -			if (q->memory == VB2_MEMORY_MMAP)
+> -				pdst->m.mem_offset = psrc->m.offset;
+> -			else if (q->memory == VB2_MEMORY_USERPTR)
+> -				pdst->m.userptr = psrc->m.userptr;
+> -			else if (q->memory == VB2_MEMORY_DMABUF)
+> -				pdst->m.fd = psrc->m.fd;
+> -			pdst->data_offset = psrc->data_offset;
+> -			memset(pdst->reserved, 0, sizeof(pdst->reserved));
+> -		}
+> -	} else {
+> -		/*
+> -		 * We use length and offset in v4l2_planes array even for
+> -		 * single-planar buffers, but userspace does not.
+> -		 */
+> -		b->length = vb->planes[0].length;
+> -		b->bytesused = vb->planes[0].bytesused;
+> -		if (q->memory == VB2_MEMORY_MMAP)
+> -			b->m.offset = vb->planes[0].m.offset;
+> -		else if (q->memory == VB2_MEMORY_USERPTR)
+> -			b->m.userptr = vb->planes[0].m.userptr;
+> -		else if (q->memory == VB2_MEMORY_DMABUF)
+> -			b->m.fd = vb->planes[0].m.fd;
+> -	}
+> -
+> -	/*
+> -	 * Clear any buffer state related flags.
+> -	 */
+> -	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+> -	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+> -	if (!q->copy_timestamp) {
+> -		/*
+> -		 * For non-COPY timestamps, drop timestamp source bits
+> -		 * and obtain the timestamp source from the queue.
+> -		 */
+> -		b->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> -		b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> -	}
+> -
+> -	switch (vb->state) {
+> -	case VB2_BUF_STATE_QUEUED:
+> -	case VB2_BUF_STATE_ACTIVE:
+> -		b->flags |= V4L2_BUF_FLAG_QUEUED;
+> -		break;
+> -	case VB2_BUF_STATE_ERROR:
+> -		b->flags |= V4L2_BUF_FLAG_ERROR;
+> -		/* fall through */
+> -	case VB2_BUF_STATE_DONE:
+> -		b->flags |= V4L2_BUF_FLAG_DONE;
+> -		break;
+> -	case VB2_BUF_STATE_PREPARED:
+> -		b->flags |= V4L2_BUF_FLAG_PREPARED;
+> -		break;
+> -	case VB2_BUF_STATE_PREPARING:
+> -	case VB2_BUF_STATE_DEQUEUED:
+> -	case VB2_BUF_STATE_REQUEUEING:
+> -		/* nothing */
+> -		break;
+> -	}
+> -
+> -	if (vb2_buffer_in_use(q, vb))
+> -		b->flags |= V4L2_BUF_FLAG_MAPPED;
+> -
+> -	if (!q->is_output &&
+> -		b->flags & V4L2_BUF_FLAG_DONE &&
+> -		b->flags & V4L2_BUF_FLAG_LAST)
+> -		q->last_buffer_dequeued = true;
+> -}
+> -
+>  /*
+>   * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
+>   * v4l2_buffer by the userspace. It also verifies that struct
+> @@ -441,6 +309,138 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+>  	return 0;
+>  }
+>  
+> +static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+> +				    const char *opname)
+> +{
+> +	if (b->type != q->type) {
+> +		dprintk(1, "%s: invalid buffer type\n", opname);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (b->index >= q->num_buffers) {
+> +		dprintk(1, "%s: buffer index out of range\n", opname);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (q->bufs[b->index] == NULL) {
+> +		/* Should never happen */
+> +		dprintk(1, "%s: buffer is NULL\n", opname);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (b->memory != q->memory) {
+> +		dprintk(1, "%s: invalid memory type\n", opname);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return __verify_planes_array(q->bufs[b->index], b);
+> +}
+> +
+> +/*
+> + * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
+> + * returned to userspace
+> + */
+> +static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+> +{
+> +	struct v4l2_buffer *b = pb;
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct vb2_queue *q = vb->vb2_queue;
+> +	unsigned int plane;
+> +
+> +	/* Copy back data such as timestamp, flags, etc. */
+> +	b->index = vb->index;
+> +	b->type = vb->type;
+> +	b->memory = vb->memory;
+> +	b->bytesused = 0;
+> +
+> +	b->flags = vbuf->flags;
+> +	b->field = vbuf->field;
+> +	b->timestamp = ns_to_timeval(vb->timestamp);
+> +	b->timecode = vbuf->timecode;
+> +	b->sequence = vbuf->sequence;
+> +	b->reserved2 = 0;
+> +	b->reserved = 0;
+> +
+> +	if (q->is_multiplanar) {
+> +		/*
+> +		 * Fill in plane-related data if userspace provided an array
+> +		 * for it. The caller has already verified memory and size.
+> +		 */
+> +		b->length = vb->num_planes;
+> +		for (plane = 0; plane < vb->num_planes; ++plane) {
+> +			struct v4l2_plane *pdst = &b->m.planes[plane];
+> +			struct vb2_plane *psrc = &vb->planes[plane];
+> +
+> +			pdst->bytesused = psrc->bytesused;
+> +			pdst->length = psrc->length;
+> +			if (q->memory == VB2_MEMORY_MMAP)
+> +				pdst->m.mem_offset = psrc->m.offset;
+> +			else if (q->memory == VB2_MEMORY_USERPTR)
+> +				pdst->m.userptr = psrc->m.userptr;
+> +			else if (q->memory == VB2_MEMORY_DMABUF)
+> +				pdst->m.fd = psrc->m.fd;
+> +			pdst->data_offset = psrc->data_offset;
+> +			memset(pdst->reserved, 0, sizeof(pdst->reserved));
+> +		}
+> +	} else {
+> +		/*
+> +		 * We use length and offset in v4l2_planes array even for
+> +		 * single-planar buffers, but userspace does not.
+> +		 */
+> +		b->length = vb->planes[0].length;
+> +		b->bytesused = vb->planes[0].bytesused;
+> +		if (q->memory == VB2_MEMORY_MMAP)
+> +			b->m.offset = vb->planes[0].m.offset;
+> +		else if (q->memory == VB2_MEMORY_USERPTR)
+> +			b->m.userptr = vb->planes[0].m.userptr;
+> +		else if (q->memory == VB2_MEMORY_DMABUF)
+> +			b->m.fd = vb->planes[0].m.fd;
+> +	}
+> +
+> +	/*
+> +	 * Clear any buffer state related flags.
+> +	 */
+> +	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+> +	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+> +	if (!q->copy_timestamp) {
+> +		/*
+> +		 * For non-COPY timestamps, drop timestamp source bits
+> +		 * and obtain the timestamp source from the queue.
+> +		 */
+> +		b->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +		b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
+> +	}
+> +
+> +	switch (vb->state) {
+> +	case VB2_BUF_STATE_QUEUED:
+> +	case VB2_BUF_STATE_ACTIVE:
+> +		b->flags |= V4L2_BUF_FLAG_QUEUED;
+> +		break;
+> +	case VB2_BUF_STATE_ERROR:
+> +		b->flags |= V4L2_BUF_FLAG_ERROR;
+> +		/* fall through */
+> +	case VB2_BUF_STATE_DONE:
+> +		b->flags |= V4L2_BUF_FLAG_DONE;
+> +		break;
+> +	case VB2_BUF_STATE_PREPARED:
+> +		b->flags |= V4L2_BUF_FLAG_PREPARED;
+> +		break;
+> +	case VB2_BUF_STATE_PREPARING:
+> +	case VB2_BUF_STATE_DEQUEUED:
+> +	case VB2_BUF_STATE_REQUEUEING:
+> +		/* nothing */
+> +		break;
+> +	}
+> +
+> +	if (vb2_buffer_in_use(q, vb))
+> +		b->flags |= V4L2_BUF_FLAG_MAPPED;
+> +
+> +	if (!q->is_output &&
+> +		b->flags & V4L2_BUF_FLAG_DONE &&
+> +		b->flags & V4L2_BUF_FLAG_LAST)
+> +		q->last_buffer_dequeued = true;
+> +}
+> +
+>  static const struct vb2_buf_ops v4l2_buf_ops = {
+>  	.verify_planes_array	= __verify_planes_array_core,
+>  	.fill_user_buffer	= __fill_v4l2_buffer,
+
+
+
+Thanks,
+Mauro
