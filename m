@@ -1,80 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:36798 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726921AbeHIV4F (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 17:56:05 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v3] dt-bindings: media: adv748x: Document re-mappable addresses
-Date: Thu,  9 Aug 2018 20:29:44 +0100
-Message-Id: <20180809192944.7371-1-kieran.bingham@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:45860 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726053AbeHNLlu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Aug 2018 07:41:50 -0400
+Date: Tue, 14 Aug 2018 05:55:33 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv17 16/34] v4l2-ctrls: add
+ v4l2_ctrl_request_hdl_find/put/ctrl_find functions
+Message-ID: <20180814055533.41959406@coco.lan>
+In-Reply-To: <ef84cba0-52d4-b532-8469-ff4fdc10192d@xs4all.nl>
+References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+        <20180804124526.46206-17-hverkuil@xs4all.nl>
+        <20180813080703.4ce872c1@coco.lan>
+        <ef84cba0-52d4-b532-8469-ff4fdc10192d@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ADV748x supports configurable slave addresses for its I2C pages.
-Document the page names, and provide an example for setting each of the
-pages explicitly.
+Em Tue, 14 Aug 2018 10:45:57 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> On 13/08/18 13:07, Mauro Carvalho Chehab wrote:
+> > Em Sat,  4 Aug 2018 14:45:08 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >  =20
+> >> If a driver needs to find/inspect the controls set in a request then
+> >> it can use these functions.
+> >>
+> >> E.g. to check if a required control is set in a request use this in the
+> >> req_validate() implementation:
+> >>
+> >> 	int res =3D -EINVAL;
+> >>
+> >> 	hdl =3D v4l2_ctrl_request_hdl_find(req, parent_hdl);
+> >> 	if (hdl) {
+> >> 		if (v4l2_ctrl_request_hdl_ctrl_find(hdl, ctrl_id))
+> >> 			res =3D 0;
+> >> 		v4l2_ctrl_request_hdl_put(hdl);
+> >> 	}
+> >> 	return res;
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/v4l2-core/v4l2-ctrls.c | 25 ++++++++++++++++
+> >>  include/media/v4l2-ctrls.h           | 44 +++++++++++++++++++++++++++-
+> >>  2 files changed, 68 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2=
+-core/v4l2-ctrls.c
+> >> index 86a6ae54ccaa..2a30be824491 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> @@ -2976,6 +2976,31 @@ static const struct media_request_object_ops re=
+q_ops =3D {
+> >>  	.release =3D v4l2_ctrl_request_release,
+> >>  };
+> >> =20
+> >> +struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_req=
+uest *req,
+> >> +					struct v4l2_ctrl_handler *parent)
+> >> +{
+> >> +	struct media_request_object *obj;
+> >> +
+> >> +	if (WARN_ON(req->state !=3D MEDIA_REQUEST_STATE_VALIDATING &&
+> >> +		    req->state !=3D MEDIA_REQUEST_STATE_QUEUED))
+> >> +		return NULL;
+> >> +
+> >> +	obj =3D media_request_object_find(req, &req_ops, parent);
+> >> +	if (obj)
+> >> +		return container_of(obj, struct v4l2_ctrl_handler, req_obj);
+> >> +	return NULL;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_find);
+> >> +
+> >> +struct v4l2_ctrl *
+> >> +v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id)
+> >> +{
+> >> +	struct v4l2_ctrl_ref *ref =3D find_ref_lock(hdl, id);
+> >> +
+> >> +	return (ref && ref->req =3D=3D ref) ? ref->ctrl : NULL; =20
+> >=20
+> > Doesn't those helper functions (including this one) be serialized? =20
+>=20
+> v4l2_ctrl_request_hdl_find() checks the request state to ensure this:
+> it is either VALIDATING (then the req_queue_mutex is locked) or QUEUED
+> and then it is under control of the driver. Of course, in that case the
+> driver should make sure that it doesn't complete the request in the
+> middle of calling this function. If a driver does that, then it is a driv=
+er
+> bug.
 
----
-v2:
- - Fix commit message
- - Extend documentation for the "required property" reg:
+Please document it then, as I guess anyone that didn't worked at the
+request API patchset wouldn't guess when the driver needs to take
+the lock themselves.
 
-v3
- - Fix missing comment from Laurent.
- - correct the reg descrption
----
- .../devicetree/bindings/media/i2c/adv748x.txt    | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+=46rom what I'm understanding, the driver needs to take the lock only
+when it is running a code that it is not called from an ioctl.
+right?
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-index 21ffb5ed8183..25a02496f4ba 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-@@ -10,7 +10,11 @@ Required Properties:
-     - "adi,adv7481" for the ADV7481
-     - "adi,adv7482" for the ADV7482
- 
--  - reg: I2C slave address
-+  - reg: I2C slave addresses
-+    The ADV748x has up to twelve 256-byte maps that can be accessed via the
-+    main I2C ports. Each map has it own I2C address and acts as a standard
-+    slave device on the I2C bus. The main address is mandatory, others are
-+    optional and remain at default values if not specified.
- 
- Optional Properties:
- 
-@@ -18,6 +22,11 @@ Optional Properties:
- 		     "intrq3". All interrupts are optional. The "intrq3" interrupt
- 		     is only available on the adv7481
-   - interrupts: Specify the interrupt lines for the ADV748x
-+  - reg-names : Names of maps with programmable addresses.
-+		It shall contain all maps needing a non-default address.
-+		Possible map names are:
-+		  "main", "dpll", "cp", "hdmi", "edid", "repeater",
-+		  "infoframe", "cbus", "cec", "sdp", "txa", "txb"
- 
- The device node must contain one 'port' child node per device input and output
- port, in accordance with the video interface bindings defined in
-@@ -47,7 +56,10 @@ Example:
- 
- 	video-receiver@70 {
- 		compatible = "adi,adv7482";
--		reg = <0x70>;
-+		reg = <0x70 0x71 0x72 0x73 0x74 0x75
-+		       0x60 0x61 0x62 0x63 0x64 0x65>;
-+		reg-names = "main", "dpll", "cp", "hdmi", "edid", "repeater",
-+			    "infoframe", "cbus", "cec", "sdp", "txa", "txb";
- 
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--- 
-2.17.1
+Thanks,
+Mauro
