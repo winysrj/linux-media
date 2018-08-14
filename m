@@ -1,35 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:58452 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725842AbeHNWwv (ORCPT
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:42774 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728947AbeHNXla (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 18:52:51 -0400
-Date: Tue, 14 Aug 2018 17:04:01 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCHv18 00/35] Request API
-Message-ID: <20180814170401.20834a3c@coco.lan>
-In-Reply-To: <20180814170107.44d341a7@coco.lan>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl>
-        <20180814170107.44d341a7@coco.lan>
+        Tue, 14 Aug 2018 19:41:30 -0400
+Date: Tue, 14 Aug 2018 14:52:30 -0600
+From: Rob Herring <robh@kernel.org>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        kernel@pengutronix.de
+Subject: Re: [PATCH 1/3] dt-bindings: media: Add i.MX Pixel Pipeline binding
+Message-ID: <20180814205230.GA16370@rob-hp-laptop>
+References: <20180810151822.18650-1-p.zabel@pengutronix.de>
+ <20180810151822.18650-2-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180810151822.18650-2-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 17:01:07 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-
-> > 
-> > Besides all the review comments I also fixed a bug. See:
-> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg134311.html  
+On Fri, 10 Aug 2018 17:18:20 +0200, Philipp Zabel wrote:
+> Add DT binding documentation for the Pixel Pipeline (PXP) found on
+> various NXP i.MX SoCs.
 > 
-> I'll look on it right now.
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  .../devicetree/bindings/media/fsl-pxp.txt     | 26 +++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
+> 
 
-Sorry, I meant to say that I'm looking into this email:
-	https://www.mail-archive.com/linux-media@vger.kernel.org/msg134053.html
-
-Thanks,
-Mauro
+Reviewed-by: Rob Herring <robh@kernel.org>
