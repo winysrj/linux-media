@@ -1,96 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33103 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732788AbeHNRIN (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:52134 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727755AbeHNWF5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 13:08:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [PATCHv18 11/35] v4l2-ctrls: prepare internal structs for request API
-Date: Tue, 14 Aug 2018 16:20:23 +0200
-Message-Id: <20180814142047.93856-12-hverkuil@xs4all.nl>
-In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
+        Tue, 14 Aug 2018 18:05:57 -0400
+Date: Tue, 14 Aug 2018 16:17:15 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv18 02/35] uapi/linux/media.h: add request API
+Message-ID: <20180814161715.4e3d7ed1@coco.lan>
+In-Reply-To: <20180814142047.93856-3-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
+        <20180814142047.93856-3-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Tue, 14 Aug 2018 16:20:14 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Embed and initialize a media_request_object in struct v4l2_ctrl_handler.
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Define the public request API.
+> 
+> This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
+> and two ioctls that operate on a request in order to queue the
+> contents of the request to the driver and to re-initialize the
+> request.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Add a p_req field to struct v4l2_ctrl_ref that will store the
-request value.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/v4l2-core/v4l2-ctrls.c |  1 +
- include/media/v4l2-ctrls.h           | 10 ++++++++++
- 2 files changed, 11 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 404291f00715..b33a8bee82b0 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1901,6 +1901,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
- 				      sizeof(hdl->buckets[0]),
- 				      GFP_KERNEL | __GFP_ZERO);
- 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
-+	media_request_object_init(&hdl->req_obj);
- 	return hdl->error;
- }
- EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 192e31c21faf..3f4e062d4e3d 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -20,6 +20,7 @@
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
-+#include <media/media-request.h>
- 
- /* forward references */
- struct file;
-@@ -249,6 +250,11 @@ struct v4l2_ctrl {
-  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
-  * @from_other_dev: If true, then @ctrl was defined in another
-  *		device than the &struct v4l2_ctrl_handler.
-+ * @p_req:	If the control handler containing this control reference
-+ *		is bound to a media request, then this points to the
-+ *		value of the control that should be applied when the request
-+ *		is executed, or to the value of the control at the time
-+ *		that the request was completed.
-  *
-  * Each control handler has a list of these refs. The list_head is used to
-  * keep a sorted-by-control-ID list of all controls, while the next pointer
-@@ -260,6 +266,7 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
- 	bool from_other_dev;
-+	union v4l2_ctrl_ptr p_req;
- };
- 
- /**
-@@ -283,6 +290,8 @@ struct v4l2_ctrl_ref {
-  * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
-  * @nr_of_buckets: Total number of buckets in the array.
-  * @error:	The error code of the first failed control addition.
-+ * @req_obj:	The &struct media_request_object, used to link into a
-+ *		&struct media_request. This request object has a refcount.
-  */
- struct v4l2_ctrl_handler {
- 	struct mutex _lock;
-@@ -295,6 +304,7 @@ struct v4l2_ctrl_handler {
- 	void *notify_priv;
- 	u16 nr_of_buckets;
- 	int error;
-+	struct media_request_object req_obj;
- };
- 
- /**
--- 
-2.18.0
+> ---
+>  include/uapi/linux/media.h | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 36f76e777ef9..e5d0c5c611b5 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -369,6 +369,14 @@ struct media_v2_topology {
+>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+> +#define MEDIA_IOC_REQUEST_ALLOC	_IOR ('|', 0x05, int)
+> +
+> +/*
+> + * These ioctls are called on the request file descriptor as returned
+> + * by MEDIA_IOC_REQUEST_ALLOC.
+> + */
+> +#define MEDIA_REQUEST_IOC_QUEUE		_IO('|',  0x80)
+> +#define MEDIA_REQUEST_IOC_REINIT	_IO('|',  0x81)
+>  
+>  #ifndef __KERNEL__
+>  
+
+
+
+Thanks,
+Mauro
