@@ -1,76 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43613 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732763AbeHNRIM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 13:08:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 05/35] media-request: add media_request_get_by_fd
-Date: Tue, 14 Aug 2018 16:20:17 +0200
-Message-Id: <20180814142047.93856-6-hverkuil@xs4all.nl>
-In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.99]:40152 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1732546AbeHNRUg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Aug 2018 13:20:36 -0400
+MIME-Version: 1.0
+References: <1533894263-10692-1-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1533894263-10692-1-git-send-email-vgarodia@codeaurora.org>
+From: Josh Boyer <jwboyer@kernel.org>
+Date: Tue, 14 Aug 2018 10:32:58 -0400
+Message-ID: <CA+5PVA6Q_Z2d1te6gMDfeJXWAjV7YFp_coxCxQQE5O7aoYn5yA@mail.gmail.com>
+Subject: Re: qcom: update firmware file for Venus on SDM845
+To: vgarodia@codeaurora.org
+Cc: Linux Firmware <linux-firmware@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Alexandre Courbot <acourbot@google.com>,
+        linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, Aug 10, 2018 at 5:44 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>
+> hi,
+>
+> This pull request updates firmware files for Venus h/w codec found on the Qualcomm SDM845 chipset.
+>
+> The following changes since commit 7b5835fd37630d18ac0c755329172f6a17c1af29:
+>
+>   linux-firmware: add firmware for mt76x2u (2018-07-30 07:20:31 -0400)
+>
+> are available in the git repository at:
+>
+>   https://github.com/vgarodia/venus_firmware_23 master
+>
+> for you to fetch changes up to 6ae7a5bf57f035aecc7613943528e52ada7e1e03:
+>
+>   qcom: update venus firmware files for v5.2 (2018-08-10 12:57:47 +0530)
+>
+> ----------------------------------------------------------------
+> Vikash Garodia (1):
+>       qcom: update venus firmware files for v5.2
+>
+>  WHENCE                   |   2 +-
+>  qcom/venus-5.2/venus.b00 | Bin 212 -> 212 bytes
+>  qcom/venus-5.2/venus.b01 | Bin 6600 -> 6600 bytes
+>  qcom/venus-5.2/venus.b02 | Bin 819552 -> 837304 bytes
+>  qcom/venus-5.2/venus.b03 | Bin 33536 -> 33640 bytes
+>  qcom/venus-5.2/venus.mbn | Bin 865408 -> 883264 bytes
+>  qcom/venus-5.2/venus.mdt | Bin 6812 -> 6812 bytes
+>  7 files changed, 1 insertion(+), 1 deletion(-)
 
-Add media_request_get_by_fd() to find a request based on the file
-descriptor.
+Pulled and pushed out.  Thanks.
 
-The caller has to call media_request_put() for the returned
-request since this function increments the refcount.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- include/media/media-request.h | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
-
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index 9664ebac5dc4..1c3e5d804d07 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -143,6 +143,24 @@ static inline void media_request_get(struct media_request *req)
-  */
- void media_request_put(struct media_request *req);
- 
-+/**
-+ * media_request_get_by_fd - Get a media request by fd
-+ *
-+ * @mdev: Media device this request belongs to
-+ * @request_fd: The file descriptor of the request
-+ *
-+ * Get the request represented by @request_fd that is owned
-+ * by the media device.
-+ *
-+ * Return a -EPERM error pointer if requests are not supported
-+ * by this driver. Return -ENOENT if the request was not found.
-+ * Return the pointer to the request if found: the caller will
-+ * have to call @media_request_put when it finished using the
-+ * request.
-+ */
-+struct media_request *
-+media_request_get_by_fd(struct media_device *mdev, int request_fd);
-+
- /**
-  * media_request_alloc - Allocate the media request
-  *
-@@ -164,6 +182,12 @@ static inline void media_request_put(struct media_request *req)
- {
- }
- 
-+static inline struct media_request *
-+media_request_get_by_fd(struct media_device *mdev, int request_fd)
-+{
-+	return ERR_PTR(-EPERM);
-+}
-+
- #endif
- 
- /**
--- 
-2.18.0
+josh
