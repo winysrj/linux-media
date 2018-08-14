@@ -1,70 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:55684 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731882AbeHNSpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 14:45:34 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, hans.verkuil@cisco.com,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, arnd@arndb.de,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH] media: camss: Use managed memory allocations
-Date: Tue, 14 Aug 2018 18:57:35 +0300
-Message-Id: <1534262255-32270-1-git-send-email-todor.tomov@linaro.org>
+Received: from merlin.infradead.org ([205.233.59.134]:49730 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728458AbeHNSuY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Aug 2018 14:50:24 -0400
+To: linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Cc: Neil Armstrong <narmstrong@baylibre.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH -next] media: platform: fix cros-ec-cec build error
+Message-ID: <314cbfef-ad4f-b0b2-d57b-3f54c062c1f8@infradead.org>
+Date: Tue, 14 Aug 2018 09:02:31 -0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use managed memory allocations for structs which are used until
-the driver is removed.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Fix build when MFD_CROS_EC is not enabled but COMPILE_TEST=y.
+Fixes this build error:
+
+ERROR: "cros_ec_cmd_xfer_status" [drivers/media/platform/cros-ec-cec/cros-ec-cec.ko] undefined!
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 ---
- drivers/media/platform/qcom/camss/camss-ispif.c |  4 ++--
- drivers/media/platform/qcom/camss/camss.c       | 11 ++++++-----
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/media/platform/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/platform/qcom/camss/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
-index 7f26902..ca7b091 100644
---- a/drivers/media/platform/qcom/camss/camss-ispif.c
-+++ b/drivers/media/platform/qcom/camss/camss-ispif.c
-@@ -1076,8 +1076,8 @@ int msm_ispif_subdev_init(struct ispif_device *ispif,
- 	else
- 		return -EINVAL;
- 
--	ispif->line = kcalloc(ispif->line_num, sizeof(*ispif->line),
--			      GFP_KERNEL);
-+	ispif->line = devm_kcalloc(dev, ispif->line_num, sizeof(*ispif->line),
-+				   GFP_KERNEL);
- 	if (!ispif->line)
- 		return -ENOMEM;
- 
-diff --git a/drivers/media/platform/qcom/camss/camss.c b/drivers/media/platform/qcom/camss/camss.c
-index dcc0c30..3304f7a 100644
---- a/drivers/media/platform/qcom/camss/camss.c
-+++ b/drivers/media/platform/qcom/camss/camss.c
-@@ -848,17 +848,18 @@ static int camss_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	camss->csiphy = kcalloc(camss->csiphy_num, sizeof(*camss->csiphy),
--				GFP_KERNEL);
-+	camss->csiphy = devm_kcalloc(dev, camss->csiphy_num,
-+				     sizeof(*camss->csiphy), GFP_KERNEL);
- 	if (!camss->csiphy)
- 		return -ENOMEM;
- 
--	camss->csid = kcalloc(camss->csid_num, sizeof(*camss->csid),
--			      GFP_KERNEL);
-+	camss->csid = devm_kcalloc(dev, camss->csid_num, sizeof(*camss->csid),
-+				   GFP_KERNEL);
- 	if (!camss->csid)
- 		return -ENOMEM;
- 
--	camss->vfe = kcalloc(camss->vfe_num, sizeof(*camss->vfe), GFP_KERNEL);
-+	camss->vfe = devm_kcalloc(dev, camss->vfe_num, sizeof(*camss->vfe),
-+				  GFP_KERNEL);
- 	if (!camss->vfe)
- 		return -ENOMEM;
- 
--- 
-2.7.4
+--- linux-next-20180814.orig/drivers/media/platform/Kconfig
++++ linux-next-20180814/drivers/media/platform/Kconfig
+@@ -541,6 +541,8 @@ config VIDEO_CROS_EC_CEC
+ 	depends on MFD_CROS_EC || COMPILE_TEST
+ 	select CEC_CORE
+ 	select CEC_NOTIFIER
++	select CHROME_PLATFORMS
++	select CROS_EC_PROTO
+ 	---help---
+ 	  If you say yes here you will get support for the
+ 	  ChromeOS Embedded Controller's CEC.
