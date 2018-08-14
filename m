@@ -1,137 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:33619 "EHLO
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45664 "EHLO
         lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732807AbeHNRIN (ORCPT
+        by vger.kernel.org with ESMTP id S1732780AbeHNRIN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 14 Aug 2018 13:08:13 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 16/35] v4l2-ctrls: add v4l2_ctrl_request_hdl_find/put/ctrl_find functions
-Date: Tue, 14 Aug 2018 16:20:28 +0200
-Message-Id: <20180814142047.93856-17-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCHv18 08/35] v4l2-dev: lock req_queue_mutex
+Date: Tue, 14 Aug 2018 16:20:20 +0200
+Message-Id: <20180814142047.93856-9-hverkuil@xs4all.nl>
 In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a driver needs to find/inspect the controls set in a request then
-it can use these functions.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-E.g. to check if a required control is set in a request use this in the
-req_validate() implementation:
+We need to serialize streamon/off with queueing new requests.
+These ioctls may trigger the cancellation of a streaming
+operation, and that should not be mixed with queuing a new
+request at the same time.
 
-	int res = -EINVAL;
+Finally close() needs this lock since that too can trigger the
+cancellation of a streaming operation.
 
-	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
-	if (hdl) {
-		if (v4l2_ctrl_request_hdl_ctrl_find(hdl, ctrl_id))
-			res = 0;
-		v4l2_ctrl_request_hdl_put(hdl);
-	}
-	return res;
+We take the req_queue_mutex here before any other locks since
+it is a very high-level lock.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 25 ++++++++++++++
- include/media/v4l2-ctrls.h           | 49 +++++++++++++++++++++++++++-
- 2 files changed, 73 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-dev.c   | 18 ++++++++++++++++--
+ drivers/media/v4l2-core/v4l2-ioctl.c | 22 +++++++++++++++++++++-
+ 2 files changed, 37 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6d34d7a6f235..a197b60183f5 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2976,6 +2976,31 @@ static const struct media_request_object_ops req_ops = {
- 	.release = v4l2_ctrl_request_release,
- };
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 69e775930fc4..feb749aaaa42 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -444,8 +444,22 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	struct video_device *vdev = video_devdata(filp);
+ 	int ret = 0;
  
-+struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
-+					struct v4l2_ctrl_handler *parent)
-+{
-+	struct media_request_object *obj;
+-	if (vdev->fops->release)
+-		ret = vdev->fops->release(filp);
++	/*
++	 * We need to serialize the release() with queueing new requests.
++	 * The release() may trigger the cancellation of a streaming
++	 * operation, and that should not be mixed with queueing a new
++	 * request at the same time.
++	 */
++	if (vdev->fops->release) {
++		if (v4l2_device_supports_requests(vdev->v4l2_dev)) {
++			mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
++			ret = vdev->fops->release(filp);
++			mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
++		} else {
++			ret = vdev->fops->release(filp);
++		}
++	}
 +
-+	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_VALIDATING &&
-+		    req->state != MEDIA_REQUEST_STATE_QUEUED))
-+		return NULL;
-+
-+	obj = media_request_object_find(req, &req_ops, parent);
-+	if (obj)
-+		return container_of(obj, struct v4l2_ctrl_handler, req_obj);
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_find);
-+
-+struct v4l2_ctrl *
-+v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id)
-+{
-+	struct v4l2_ctrl_ref *ref = find_ref_lock(hdl, id);
-+
-+	return (ref && ref->req == ref) ? ref->ctrl : NULL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_ctrl_find);
-+
- static int v4l2_ctrl_request_bind(struct media_request *req,
- 			   struct v4l2_ctrl_handler *hdl,
- 			   struct v4l2_ctrl_handler *from)
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index f4156544150b..53ca4df0c353 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -1111,7 +1111,54 @@ void v4l2_ctrl_request_setup(struct media_request *req,
-  * request object.
-  */
- void v4l2_ctrl_request_complete(struct media_request *req,
--				struct v4l2_ctrl_handler *hdl);
-+				struct v4l2_ctrl_handler *parent);
-+
-+/**
-+ * v4l2_ctrl_request_hdl_find - Find the control handler in the request
-+ *
-+ * @req: The request
-+ * @parent: The parent control handler ('priv' in media_request_object_find())
-+ *
-+ * This function finds the control handler in the request. It may return
-+ * NULL if not found. When done, you must call v4l2_ctrl_request_put_hdl()
-+ * with the returned handler pointer.
-+ *
-+ * If the request is not in state VALIDATING or QUEUED, then this function
-+ * will always return NULL.
-+ *
-+ * Note that in state VALIDATING the req_queue_mutex is held, so
-+ * no objects can be added or deleted from the request.
-+ *
-+ * In state QUEUED it is the driver that will have to ensure this.
-+ */
-+struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
-+					struct v4l2_ctrl_handler *parent);
-+
-+/**
-+ * v4l2_ctrl_request_hdl_put - Put the control handler
-+ *
-+ * @hdl: Put this control handler
-+ *
-+ * This function released the control handler previously obtained from'
-+ * v4l2_ctrl_request_hdl_find().
-+ */
-+static inline void v4l2_ctrl_request_hdl_put(struct v4l2_ctrl_handler *hdl)
-+{
-+	if (hdl)
-+		media_request_object_put(&hdl->req_obj);
-+}
-+
-+/**
-+ * v4l2_ctrl_request_ctrl_find() - Find a control with the given ID.
-+ *
-+ * @hdl: The control handler from the request.
-+ * @id: The ID of the control to find.
-+ *
-+ * This function returns a pointer to the control if this control is
-+ * part of the request or NULL otherwise.
-+ */
-+struct v4l2_ctrl *
-+v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id);
+ 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
+ 		dprintk("%s: release\n",
+ 			video_device_node_name(vdev));
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 54afc9c7ee6e..ea475d833dd6 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2780,6 +2780,7 @@ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vfd = video_devdata(file);
++	struct mutex *req_queue_lock = NULL;
+ 	struct mutex *lock; /* ioctl serialization mutex */
+ 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
+ 	bool write_only = false;
+@@ -2799,10 +2800,27 @@ static long __video_do_ioctl(struct file *file,
+ 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+ 		vfh = file->private_data;
  
- /* Helpers for ioctl_ops */
++	/*
++	 * We need to serialize streamon/off with queueing new requests.
++	 * These ioctls may trigger the cancellation of a streaming
++	 * operation, and that should not be mixed with queueing a new
++	 * request at the same time.
++	 */
++	if (v4l2_device_supports_requests(vfd->v4l2_dev) &&
++	    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF)) {
++		req_queue_lock = &vfd->v4l2_dev->mdev->req_queue_mutex;
++
++		if (mutex_lock_interruptible(req_queue_lock))
++			return -ERESTARTSYS;
++	}
++
+ 	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
+ 
+-	if (lock && mutex_lock_interruptible(lock))
++	if (lock && mutex_lock_interruptible(lock)) {
++		if (req_queue_lock)
++			mutex_unlock(req_queue_lock);
+ 		return -ERESTARTSYS;
++	}
+ 
+ 	if (!video_is_registered(vfd)) {
+ 		ret = -ENODEV;
+@@ -2861,6 +2879,8 @@ static long __video_do_ioctl(struct file *file,
+ unlock:
+ 	if (lock)
+ 		mutex_unlock(lock);
++	if (req_queue_lock)
++		mutex_unlock(req_queue_lock);
+ 	return ret;
+ }
  
 -- 
 2.18.0
