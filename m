@@ -1,137 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53906 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:36046 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725973AbeHNWLj (ORCPT
+        with ESMTP id S1728656AbeHNPVi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 18:11:39 -0400
-Date: Tue, 14 Aug 2018 16:22:56 -0300
+        Tue, 14 Aug 2018 11:21:38 -0400
+Date: Tue, 14 Aug 2018 09:34:36 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCHv18 08/35] v4l2-dev: lock req_queue_mutex
-Message-ID: <20180814162256.2dce8178@coco.lan>
-In-Reply-To: <20180814142047.93856-9-hverkuil@xs4all.nl>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl>
-        <20180814142047.93856-9-hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv17 02/34] uapi/linux/media.h: add request API
+Message-ID: <20180814093436.63836600@coco.lan>
+In-Reply-To: <176579c0-a430-a25c-49f7-578c6c544025@xs4all.nl>
+References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+        <20180804124526.46206-3-hverkuil@xs4all.nl>
+        <20180809145358.2278c795@coco.lan>
+        <5b3ac277-a191-0729-5571-8d028ea14e06@xs4all.nl>
+        <20180814054632.14b5c978@coco.lan>
+        <176579c0-a430-a25c-49f7-578c6c544025@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 16:20:20 +0200
+Em Tue, 14 Aug 2018 11:57:48 +0200
 Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> On 14/08/18 10:46, Mauro Carvalho Chehab wrote:
+> > Em Fri, 10 Aug 2018 09:21:59 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> On 08/09/2018 07:53 PM, Mauro Carvalho Chehab wrote:  
+> >>> Em Sat,  4 Aug 2018 14:44:54 +0200
+> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>     
+> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>
+> >>>> Define the public request API.
+> >>>>
+> >>>> This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
+> >>>> and two ioctls that operate on a request in order to queue the
+> >>>> contents of the request to the driver and to re-initialize the
+> >>>> request.
+> >>>>
+> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>>> ---
+> >>>>  include/uapi/linux/media.h | 12 ++++++++++++
+> >>>>  1 file changed, 12 insertions(+)
+> >>>>
+> >>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> >>>> index 36f76e777ef9..cf77f00a0f2d 100644
+> >>>> --- a/include/uapi/linux/media.h
+> >>>> +++ b/include/uapi/linux/media.h
+> >>>> @@ -364,11 +364,23 @@ struct media_v2_topology {
+> >>>>  
+> >>>>  /* ioctls */
+> >>>>  
+> >>>> +struct __attribute__ ((packed)) media_request_alloc {
+> >>>> +	__s32 fd;
+> >>>> +};
+> >>>> +
+> >>>>  #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
+> >>>>  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+> >>>>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+> >>>>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+> >>>>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+> >>>> +#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)    
+> > 
+> > The definition here is wrong... the fd field is not R/W, it is just R, as no
+> > fields inside this struct should be filled by userspace.
+> > The right declaration for it would be:
+> > 
+> > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOR('|', 0x05, struct media_request_alloc)
+> > 
+> > I do have a strong opinion here: ioctls that just return stuff should use _IOR.  
 > 
-> We need to serialize streamon/off with queueing new requests.
-> These ioctls may trigger the cancellation of a streaming
-> operation, and that should not be mixed with queuing a new
-> request at the same time.
+> You are right, this should be _IOR.
 > 
-> Finally close() needs this lock since that too can trigger the
-> cancellation of a streaming operation.
+> >   
+> >>>
+> >>> Same comment as in patch 1: keep it simpler: just pass a s32 * as the
+> >>> argument for this ioctl.    
+> >>
+> >> Same comment as in patch 1: I have no strong opinion, but I want the input from others
+> >> as well.  
+> > 
+> > I'm transcribing a comment you wrote on patch 01/34 here, for the sake of
+> > keeping everything on a single thread:
+> >   
+> >> The first version just had a s32 argument, not a struct. The main reason for
+> >> going back to a struct was indeed to make it easier to add new fields in the
+> >> future. I don't foresee any, but then, you never do.  
+> > 
+> > First of all, if we declare it as it should be, e. g.: 
+> > 
+> > #define MEDIA_IOC_REQUEST_ALLOC	_IOR('|', 0x05, int) 
+> > 
+> > If later find the need for some struct:
+> > 
+> > 	struct media_request_alloc {
+> > 		__s32 fd;
+> > 		__s32 foo;
+> > 	} __packed;
+> > 
+> > Assuming that "foo" is a write argument, we'll then have:
+> > 
+> > 	#define MEDIA_IOC_REQUEST_ALLOC		_IOR('|', 0x05, int) 
+> > 	#define MEDIA_IOC_REQUEST_ALLOC_V2	_IOWR('|', 0x05, struct media_request_alloc)  
+> > 
+> > The size of the ioctl will also be different, and also the direction.
+> > So, the magic number will be different.
+> > 
+> > The Kernel can easily handle it on both ways, and, as 
+> > MEDIA_IOC_REQUEST_ALLOC has only an integer output parameter, 
+> > there's no need for compat32 or to keep any old struct.
+> > The MEDIA_IOC_REQUEST_ALLOC code handler will still be very simple,
+> > and backward compatible comes for free.
+> > 
+> > If, on the other hand, we declare it as:
+> > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOR('|', 0x05, struct media_request_alloc_old)
+> > 
+> > And then we change it to:
+> > 	#define MEDIA_IOC_REQUEST_ALLOC	_IORW('|', 0x05, struct media_request_alloc_new)
+> > 
+> > Keeping backward compatible will be painful, and will require efforts for
+> > no gain.  
 > 
-> We take the req_queue_mutex here before any other locks since
-> it is a very high-level lock.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> In the kernel it doesn't matter much, I agree. But applications that have to
+> be able to handle both old and new ioctls will have to switch between either
+> an fd or a struct. Whereas if we use a struct from the beginning, then the
+> only difference between the old and new ioctls are whether or not additional
+> fields beyond the first fd field are set.
 
-I didn't test this patch series with sparse yet. When merging
-on a topic branch, I'll let you know if it applies cleanly.
+Well, if we change the API by adding other fields, applications will need
+both behaviors anyway, if they want to support multiple kernel versions
+and need the newer version behavior, if available.
 
-Anyway:
+> As mentioned before, I don't have very strong feelings about this, but I
+> do want input from others on this before making this change.
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Feel free to wait for other inputs.
 
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c   | 18 ++++++++++++++++--
->  drivers/media/v4l2-core/v4l2-ioctl.c | 22 +++++++++++++++++++++-
->  2 files changed, 37 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 69e775930fc4..feb749aaaa42 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -444,8 +444,22 @@ static int v4l2_release(struct inode *inode, struct file *filp)
->  	struct video_device *vdev = video_devdata(filp);
->  	int ret = 0;
->  
-> -	if (vdev->fops->release)
-> -		ret = vdev->fops->release(filp);
-> +	/*
-> +	 * We need to serialize the release() with queueing new requests.
-> +	 * The release() may trigger the cancellation of a streaming
-> +	 * operation, and that should not be mixed with queueing a new
-> +	 * request at the same time.
-> +	 */
-> +	if (vdev->fops->release) {
-> +		if (v4l2_device_supports_requests(vdev->v4l2_dev)) {
-> +			mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-> +			ret = vdev->fops->release(filp);
-> +			mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-> +		} else {
-> +			ret = vdev->fops->release(filp);
-> +		}
-> +	}
-> +
->  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
->  		dprintk("%s: release\n",
->  			video_device_node_name(vdev));
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 54afc9c7ee6e..ea475d833dd6 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2780,6 +2780,7 @@ static long __video_do_ioctl(struct file *file,
->  		unsigned int cmd, void *arg)
->  {
->  	struct video_device *vfd = video_devdata(file);
-> +	struct mutex *req_queue_lock = NULL;
->  	struct mutex *lock; /* ioctl serialization mutex */
->  	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
->  	bool write_only = false;
-> @@ -2799,10 +2800,27 @@ static long __video_do_ioctl(struct file *file,
->  	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
->  		vfh = file->private_data;
->  
-> +	/*
-> +	 * We need to serialize streamon/off with queueing new requests.
-> +	 * These ioctls may trigger the cancellation of a streaming
-> +	 * operation, and that should not be mixed with queueing a new
-> +	 * request at the same time.
-> +	 */
-> +	if (v4l2_device_supports_requests(vfd->v4l2_dev) &&
-> +	    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF)) {
-> +		req_queue_lock = &vfd->v4l2_dev->mdev->req_queue_mutex;
-> +
-> +		if (mutex_lock_interruptible(req_queue_lock))
-> +			return -ERESTARTSYS;
-> +	}
-> +
->  	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
->  
-> -	if (lock && mutex_lock_interruptible(lock))
-> +	if (lock && mutex_lock_interruptible(lock)) {
-> +		if (req_queue_lock)
-> +			mutex_unlock(req_queue_lock);
->  		return -ERESTARTSYS;
-> +	}
->  
->  	if (!video_is_registered(vfd)) {
->  		ret = -ENODEV;
-> @@ -2861,6 +2879,8 @@ static long __video_do_ioctl(struct file *file,
->  unlock:
->  	if (lock)
->  		mutex_unlock(lock);
-> +	if (req_queue_lock)
-> +		mutex_unlock(req_queue_lock);
->  	return ret;
->  }
->  
+> Frankly, I think it is unlikely that we will need more fields beyond just
+> the fd, but I've been wrong about such things before...
 
-
+In this specific ioctl, I don't expect other fields either. Even on
+brain storm with crazy ideas, I can't find any other parameter that
+might make any sense here. I'm almost certain that, if we end
+by needing some other things for this ioctl to work, the userspace
+logic will very likely require a non-trivial logic, up to a point
+that implementing it with a different name or have something like
+"MEDIA_IOC_PREP_REQUEST_ALLOC" would likely be better than re-using
+the same ioctl name and changing its behavior.
 
 Thanks,
 Mauro
