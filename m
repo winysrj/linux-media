@@ -1,126 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:44365 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728694AbeHNU0t (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:58300 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728315AbeHNWt6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 16:26:49 -0400
-Date: Tue, 14 Aug 2018 19:38:28 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
-        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
-Message-ID: <20180814173448.GA25722@w540>
-References: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
- <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
- <20180711072148.GH8180@w540>
- <bc50c3d7-d6ba-e73f-6156-341e1ce3099a@gmail.com>
- <b1369576-2193-bc57-0716-ca08098a2eca@gmail.com>
- <71f4b589-2c82-7e87-22fe-8b6373947b13@gmail.com>
- <20180716082929.GM8180@w540>
- <71bc3ff6-8db2-af63-f9af-72696f7d075c@gmail.com>
- <20180814153559.GA16428@w540>
- <cd3e2e96-0968-99cd-1417-05ffdd771341@gmail.com>
+        Tue, 14 Aug 2018 18:49:58 -0400
+Date: Tue, 14 Aug 2018 17:01:07 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCHv18 00/35] Request API
+Message-ID: <20180814170107.44d341a7@coco.lan>
+In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
+References: <20180814142047.93856-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="oLBj+sq0vYjzfsbl"
-Content-Disposition: inline
-In-Reply-To: <cd3e2e96-0968-99cd-1417-05ffdd771341@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Tue, 14 Aug 2018 16:20:12 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
---oLBj+sq0vYjzfsbl
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Hi all,
+> 
+> This is version 18 of the Request API series. The intention is that
+> this will become a topic branch in preparation of merging this for
+> 4.20 together with the cedrus staging driver.
+> 
+> I incorporated Mauro's review comments and a review comment from
+> Ezequiel in v18.
+> 
+> The main change is that I reverted back to a simple int argument for the
+> MEDIA_IOC_REQUEST_ALLOC ioctl. Mauro prefers it and I think he is right.
+> It was what we had originally as well.
+> 
+> Besides all the review comments I also fixed a bug. See:
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg134311.html
 
-Hi Steve,
+I'll look on it right now.
 
-On Tue, Aug 14, 2018 at 09:51:04AM -0700, Steve Longerbeam wrote:
-> Hi Jacopo,
->
->
-> On 08/14/2018 08:35 AM, jacopo mondi wrote:
-> >Hi Steve,
-> >    sorry for resurecting this.
-> >
-> ><snip>
-> >>>I'm sorry I'm not sur I'm following. Does this mean that with that bug
-> >>>you are referring to up here fixed by my last patch you have capture
-> >>>working?
-> >>No, capture still not working for me on SabreSD, even after fixing
-> >>the bug in 476dec0 "media: ov5640: Add horizontal and vertical totals",
-> >>by either using your patchset, or by running version 476dec0 of ov5640.c
-> >>with the call to ov5640_set_timings() moved to the correct places as
-> >>described below.
-> >>
-> >I've been reported a bug on exposure handling that makes the first
-> >captured frames all black. Both me and Hugues have tried to fix the
-> >issue (him with a more complete series, but that's another topic).
-> >See [1] and [2]
-> >
-> >It might be possible that you're getting blank frames with this series
-> >applied? I never seen them as I'm skipping the first frames when
-> >capturing, but I've now tested and without the exposure fixes (either
-> >[1] or [2]) I actually have blank frames.
-> >
-> >If that's the case for you too (which I hope so much) would you be
-> >available to test again this series with exposure fixes on top?
-> >On my platform that actually makes all frames correct.
-> >
-> >Thanks
-> >    j
-> >
-> >[1] [PATCH 0/2] media: ov5640: Fix set_timings and auto-exposure
-> >[2] [PATCH v2 0/5] Fix OV5640 exposure & gain
-> >
->
-> It's not clear to me which patch sets you would like me to test.
-> Just [1] and [2], or [1], [2], and "media: i2c: ov5640: Re-work MIPI startup
-> sequence"?
->
-I have tested on my board the following:
-v4.18-rc2 + MIPI Fix + Timings + Hugues' exposure fix
+> 
+> And sparse warned me about a poll prototype change, so the
+> media_request_poll() was slightly changed (use of EPOLL* instead of POLL*
+> and a __poll_t return type).
+> 
+> I also split up the old patch 17/34 into three patches: the first just
+> moves a function up in the source, the second replaces 'if' statements
+> with a switch, and the third is the actual patch that does the real
+> work. There is now much less noise in that patch and it should be much easier
+> to review.
+> 
+> Finally the RFC debugfs patch has been dropped from this series.
+> 
+> This patch series is also available here:
+> 
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv18
+> 
+> The patched v4l2-compliance (and rebased to the latest v4l-utils
+> as well) is available here:
+> 
+> https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=request
+> 
+> To avoid having to do a full review again I made a diff between
+> v17 and v18 that is much easier to understand. I added it below
+> the line (note that the removal of the debugfs patch is not included
+> in this diff, it's not useful).
 
-Without Hugues' patches I get blank frames (the first ones at least)
-Without MIPI startup reowkr and timings I get the LP-11 error on the
-CSI-2 bus.
+Patchset looks ok. Just not sure about a timestamp change at the
+VB2 code. Found one or two nitpicks too. Once addressed, I guess
+it is ready for being merged on a topic branch.
 
-As Hugues' series has to be rebased on mine, I have prepared a branch
-here for you if you feel like testing it:
-git://jmondi.org/linux ov5640/timings_exposure
+If nobody would require major changes, IMO the best would be
+to just reply to a v19 patch to the few ones that might require
+a respin.
 
-Thanks
-   j
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Alexandre Courbot (2):
+>   Documentation: v4l: document request API
+>   videodev2.h: add request_fd field to v4l2_ext_controls
+> 
+> Hans Verkuil (32):
+>   uapi/linux/media.h: add request API
+>   media-request: implement media requests
+>   media-request: add media_request_get_by_fd
+>   media-request: add media_request_object_find
+>   v4l2-device.h: add v4l2_device_supports_requests() helper
+>   v4l2-dev: lock req_queue_mutex
+>   v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+>   v4l2-ctrls: prepare internal structs for request API
+>   v4l2-ctrls: alloc memory for p_req
+>   v4l2-ctrls: use ref in helper instead of ctrl
+>   v4l2-ctrls: add core request support
+>   v4l2-ctrls: support g/s_ext_ctrls for requests
+>   v4l2-ctrls: add v4l2_ctrl_request_hdl_find/put/ctrl_find functions
+>   videobuf2-v4l2: move __fill_v4l2_buffer() function
+>   videobuf2-v4l2: replace if by switch in __fill_vb2_buffer()
+>   vb2: store userspace data in vb2_v4l2_buffer
+>   davinci_vpfe: remove bogus vb2->state check
+>   vb2: drop VB2_BUF_STATE_PREPARED, use bool prepared/synced instead
+>   videodev2.h: Add request_fd field to v4l2_buffer
+>   vb2: add init_buffer buffer op
+>   videobuf2-core: embed media_request_object
+>   videobuf2-core: integrate with media requests
+>   videobuf2-v4l2: integrate with media requests
+>   videobuf2-core: add request helper functions
+>   videobuf2-v4l2: add vb2_request_queue/validate helpers
+>   videobuf2-core: add uses_requests/qbuf flags
+>   videobuf2-v4l2: refuse qbuf if queue uses requests or vv.
+>   v4l2-mem2mem: add vb2_m2m_request_queue
+>   vim2m: use workqueue
+>   vim2m: support requests
+>   vivid: add mc
+>   vivid: add request support
+> 
+> Sakari Ailus (1):
+>   media: doc: Add media-request.h header to documentation build
+> 
+>  Documentation/media/kapi/mc-core.rst          |   2 +
+>  .../media/uapi/mediactl/media-controller.rst  |   1 +
+>  .../media/uapi/mediactl/media-funcs.rst       |   6 +
+>  .../uapi/mediactl/media-ioc-request-alloc.rst |  65 +++
+>  .../uapi/mediactl/media-request-ioc-queue.rst |  82 +++
+>  .../mediactl/media-request-ioc-reinit.rst     |  51 ++
+>  .../media/uapi/mediactl/request-api.rst       | 245 ++++++++
+>  .../uapi/mediactl/request-func-close.rst      |  48 ++
+>  .../uapi/mediactl/request-func-ioctl.rst      |  67 +++
+>  .../media/uapi/mediactl/request-func-poll.rst |  77 +++
+>  Documentation/media/uapi/v4l/buffer.rst       |  21 +-
+>  .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     |  53 +-
+>  Documentation/media/uapi/v4l/vidioc-qbuf.rst  |  32 +-
+>  .../media/videodev2.h.rst.exceptions          |   1 +
+>  drivers/media/Makefile                        |   3 +-
+>  .../media/common/videobuf2/videobuf2-core.c   | 262 +++++++--
+>  .../media/common/videobuf2/videobuf2-v4l2.c   | 508 +++++++++++-----
+>  drivers/media/dvb-core/dvb_vb2.c              |   5 +-
+>  drivers/media/dvb-frontends/rtl2832_sdr.c     |   5 +-
+>  drivers/media/media-device.c                  |  24 +-
+>  drivers/media/media-request.c                 | 489 ++++++++++++++++
+>  drivers/media/pci/bt8xx/bttv-driver.c         |   2 +-
+>  drivers/media/pci/cx23885/cx23885-417.c       |   2 +-
+>  drivers/media/pci/cx88/cx88-blackbird.c       |   2 +-
+>  drivers/media/pci/cx88/cx88-video.c           |   2 +-
+>  drivers/media/pci/saa7134/saa7134-empress.c   |   4 +-
+>  drivers/media/pci/saa7134/saa7134-video.c     |   2 +-
+>  .../media/platform/exynos4-is/fimc-capture.c  |   2 +-
+>  drivers/media/platform/omap3isp/ispvideo.c    |   4 +-
+>  drivers/media/platform/rcar-vin/rcar-core.c   |   2 +-
+>  drivers/media/platform/rcar_drif.c            |   2 +-
+>  .../media/platform/s3c-camif/camif-capture.c  |   4 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |   4 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c  |   4 +-
+>  .../media/platform/soc_camera/soc_camera.c    |   7 +-
+>  drivers/media/platform/vim2m.c                |  49 +-
+>  drivers/media/platform/vivid/vivid-core.c     |  69 +++
+>  drivers/media/platform/vivid/vivid-core.h     |   8 +
+>  drivers/media/platform/vivid/vivid-ctrls.c    |  46 +-
+>  .../media/platform/vivid/vivid-kthread-cap.c  |  12 +
+>  .../media/platform/vivid/vivid-kthread-out.c  |  12 +
+>  drivers/media/platform/vivid/vivid-sdr-cap.c  |  16 +
+>  drivers/media/platform/vivid/vivid-vbi-cap.c  |  10 +
+>  drivers/media/platform/vivid/vivid-vbi-out.c  |  10 +
+>  drivers/media/platform/vivid/vivid-vid-cap.c  |  10 +
+>  drivers/media/platform/vivid/vivid-vid-out.c  |  10 +
+>  drivers/media/usb/cpia2/cpia2_v4l.c           |   2 +-
+>  drivers/media/usb/cx231xx/cx231xx-417.c       |   2 +-
+>  drivers/media/usb/cx231xx/cx231xx-video.c     |   4 +-
+>  drivers/media/usb/msi2500/msi2500.c           |   2 +-
+>  drivers/media/usb/tm6000/tm6000-video.c       |   2 +-
+>  drivers/media/usb/uvc/uvc_queue.c             |   5 +-
+>  drivers/media/usb/uvc/uvc_v4l2.c              |   3 +-
+>  drivers/media/usb/uvc/uvcvideo.h              |   1 +
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  14 +-
+>  drivers/media/v4l2-core/v4l2-ctrls.c          | 541 +++++++++++++++++-
+>  drivers/media/v4l2-core/v4l2-dev.c            |  18 +-
+>  drivers/media/v4l2-core/v4l2-device.c         |   3 +-
+>  drivers/media/v4l2-core/v4l2-ioctl.c          |  44 +-
+>  drivers/media/v4l2-core/v4l2-mem2mem.c        |  67 ++-
+>  drivers/media/v4l2-core/v4l2-subdev.c         |   9 +-
+>  .../staging/media/davinci_vpfe/vpfe_video.c   |   7 +-
+>  drivers/staging/media/imx/imx-media-dev.c     |   2 +-
+>  drivers/staging/media/imx/imx-media-fim.c     |   2 +-
+>  drivers/staging/media/omap4iss/iss_video.c    |   3 +-
+>  drivers/usb/gadget/function/uvc_queue.c       |   2 +-
+>  include/media/media-device.h                  |  29 +
+>  include/media/media-request.h                 | 386 +++++++++++++
+>  include/media/v4l2-ctrls.h                    | 123 +++-
+>  include/media/v4l2-device.h                   |  11 +
+>  include/media/v4l2-mem2mem.h                  |   4 +
+>  include/media/videobuf2-core.h                |  62 +-
+>  include/media/videobuf2-v4l2.h                |  20 +-
+>  include/uapi/linux/media.h                    |   8 +
+>  include/uapi/linux/videodev2.h                |  14 +-
+>  75 files changed, 3369 insertions(+), 363 deletions(-)
+>  create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+>  create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+>  create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
+>  create mode 100644 Documentation/media/uapi/mediactl/request-api.rst
+>  create mode 100644 Documentation/media/uapi/mediactl/request-func-close.rst
+>  create mode 100644 Documentation/media/uapi/mediactl/request-func-ioctl.rst
+>  create mode 100644 Documentation/media/uapi/mediactl/request-func-poll.rst
+>  create mode 100644 drivers/media/media-request.c
+>  create mode 100644 include/media/media-request.h
+> 
 
 
-> Steve
->
->
->
 
---oLBj+sq0vYjzfsbl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbcxOUAAoJEHI0Bo8WoVY84fwP/iZe1I23Xczb4kw3XzMZUbEQ
-ZKFm3GHSkJ3y54cdNMXIHSLgx+gxidDJR3WLrWCtdVxDoMLbbtRgCHQtVdp0l0hk
-9l/p1gw4CyasbNcfde3Itm+Px4itW2edCAM53BgfT+wkWxckuCAmIjX4QNvtp6pu
-y6kwN5b++pTuIKpJCE1oHe11IONfYwipRkdzvnDWkuJ63IOuNER30yuj9T4q+XaR
-l4g089U+S5TQx6fN9ZL3dXWDQnZLC4jycR4ymB3aZkMzb3TScWFFfEplcjsHGE95
-AKjj/jKD68kUu+BJISFYQFB3mq80NN6kUX7MYFWc1n/LH+ecW9Co8MMqiOwAFCY5
-iHjLEESB7P7F5XsboBe7O4gDlG6mkR9wVshTEHARkfYLdrwhyYlZ7wrzAFoBf7qc
-aKP5qmekT/ESymbs/WRlXSYjspvByZRi01wNHSNisHZnqfmB8hwxqibOriT27GUb
-0HX//ucMrvHeIbguOi1lKrs9uaYcOAFPNW+KCBeATYnj95cfr1qBCuXYBo1rpEfH
-MdT0YXkFBNuBpxejSA/YKgdd1Mp7MRj+D7Bdnmp/sBC0T18K4ujd2wcqx5lgEXWo
-+npdS1OyYvw+fRbV2XnYJUt2QIDZy+y1L+33fM5S7gUQbDslPNDdPViSQwDPlklz
-m7bAZaJUawKuEnk90ud3
-=HZl2
------END PGP SIGNATURE-----
-
---oLBj+sq0vYjzfsbl--
+Thanks,
+Mauro
