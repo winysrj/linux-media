@@ -1,556 +1,487 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53962 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725973AbeHNWQK (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56599 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732787AbeHNRIN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 18:16:10 -0400
-Date: Tue, 14 Aug 2018 16:27:26 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv18 14/35] v4l2-ctrls: add core request support
-Message-ID: <20180814162726.4591885a@coco.lan>
-In-Reply-To: <20180814142047.93856-15-hverkuil@xs4all.nl>
+        Tue, 14 Aug 2018 13:08:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [PATCHv18 10/35] v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+Date: Tue, 14 Aug 2018 16:20:22 +0200
+Message-Id: <20180814142047.93856-11-hverkuil@xs4all.nl>
+In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
-        <20180814142047.93856-15-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 16:20:26 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Integrate the request support. This adds the v4l2_ctrl_request_complete
-> and v4l2_ctrl_request_setup functions to complete a request and (as a
-> helper function) to apply a request to the hardware.
-> 
-> It takes care of queuing requests and correctly chaining control values
-> in the request queue.
-> 
-> Note that when a request is marked completed it will copy control values
-> to the internal request state. This can be optimized in the future since
-> this is sub-optimal when dealing with large compound and/or array controls.
-> 
-> For the initial 'stateless codec' use-case the current implementation is
-> sufficient.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Add a 'bool from_other_dev' argument: set to true if the two
+handlers refer to different devices (e.g. it is true when
+inheriting controls from a subdev into a main v4l2 bridge
+driver).
+
+This will be used later when implementing support for the
+request API since we need to skip such controls.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 336 ++++++++++++++++++++++++++-
->  include/media/v4l2-ctrls.h           |  51 ++++
->  2 files changed, 381 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index c20e74ba48ab..89e7bfee108f 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1668,6 +1668,13 @@ static int new_to_user(struct v4l2_ext_control *c,
->  	return ptr_to_user(c, ctrl, ctrl->p_new);
->  }
->  
-> +/* Helper function: copy the request value back to the caller */
-> +static int req_to_user(struct v4l2_ext_control *c,
-> +		       struct v4l2_ctrl_ref *ref)
-> +{
-> +	return ptr_to_user(c, ref->ctrl, ref->p_req);
-> +}
-> +
->  /* Helper function: copy the initial control value back to the caller */
->  static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
->  {
-> @@ -1787,6 +1794,26 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
->  	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
->  }
->  
-> +/* Copy the new value to the request value */
-> +static void new_to_req(struct v4l2_ctrl_ref *ref)
-> +{
-> +	if (!ref)
-> +		return;
-> +	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
-> +	ref->req = ref;
-> +}
-> +
-> +/* Copy the request value to the new value */
-> +static void req_to_new(struct v4l2_ctrl_ref *ref)
-> +{
-> +	if (!ref)
-> +		return;
-> +	if (ref->req)
-> +		ptr_to_ptr(ref->ctrl, ref->req->p_req, ref->ctrl->p_new);
-> +	else
-> +		ptr_to_ptr(ref->ctrl, ref->ctrl->p_cur, ref->ctrl->p_new);
-> +}
-> +
->  /* Return non-zero if one or more of the controls in the cluster has a new
->     value that differs from the current value. */
->  static int cluster_changed(struct v4l2_ctrl *master)
-> @@ -1896,6 +1923,9 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
->  	lockdep_set_class_and_name(hdl->lock, key, name);
->  	INIT_LIST_HEAD(&hdl->ctrls);
->  	INIT_LIST_HEAD(&hdl->ctrl_refs);
-> +	INIT_LIST_HEAD(&hdl->requests);
-> +	INIT_LIST_HEAD(&hdl->requests_queued);
-> +	hdl->request_is_queued = false;
->  	hdl->nr_of_buckets = 1 + nr_of_controls_hint / 8;
->  	hdl->buckets = kvmalloc_array(hdl->nr_of_buckets,
->  				      sizeof(hdl->buckets[0]),
-> @@ -1916,6 +1946,14 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
->  	if (hdl == NULL || hdl->buckets == NULL)
->  		return;
->  
-> +	if (!hdl->req_obj.req && !list_empty(&hdl->requests)) {
-> +		struct v4l2_ctrl_handler *req, *next_req;
-> +
-> +		list_for_each_entry_safe(req, next_req, &hdl->requests, requests) {
-> +			media_request_object_unbind(&req->req_obj);
-> +			media_request_object_put(&req->req_obj);
-> +		}
-> +	}
->  	mutex_lock(hdl->lock);
->  	/* Free all nodes */
->  	list_for_each_entry_safe(ref, next_ref, &hdl->ctrl_refs, node) {
-> @@ -2837,6 +2875,123 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
->  }
->  EXPORT_SYMBOL(v4l2_querymenu);
->  
-> +static int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
-> +				   const struct v4l2_ctrl_handler *from)
-> +{
-> +	struct v4l2_ctrl_ref *ref;
-> +	int err;
-> +
-> +	if (WARN_ON(!hdl || hdl == from))
-> +		return -EINVAL;
-> +
-> +	if (hdl->error)
-> +		return hdl->error;
-> +
-> +	WARN_ON(hdl->lock != &hdl->_lock);
-> +
-> +	mutex_lock(from->lock);
-> +	list_for_each_entry(ref, &from->ctrl_refs, node) {
-> +		struct v4l2_ctrl *ctrl = ref->ctrl;
-> +		struct v4l2_ctrl_ref *new_ref;
-> +
-> +		/* Skip refs inherited from other devices */
-> +		if (ref->from_other_dev)
-> +			continue;
-> +		/* And buttons */
-> +		if (ctrl->type == V4L2_CTRL_TYPE_BUTTON)
-> +			continue;
-> +		err = handler_new_ref(hdl, ctrl, &new_ref, false, true);
-> +		if (err)
-> +			break;
-> +	}
-> +	mutex_unlock(from->lock);
-> +	return err;
-> +}
-> +
-> +static void v4l2_ctrl_request_queue(struct media_request_object *obj)
-> +{
-> +	struct v4l2_ctrl_handler *hdl =
-> +		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-> +	struct v4l2_ctrl_handler *main_hdl = obj->priv;
-> +	struct v4l2_ctrl_handler *prev_hdl = NULL;
-> +	struct v4l2_ctrl_ref *ref_ctrl, *ref_ctrl_prev = NULL;
-> +
-> +	if (list_empty(&main_hdl->requests_queued))
-> +		goto queue;
-> +
-> +	prev_hdl = list_last_entry(&main_hdl->requests_queued,
-> +				   struct v4l2_ctrl_handler, requests_queued);
-> +	/*
-> +	 * Note: prev_hdl and hdl must contain the same list of control
-> +	 * references, so if any differences are detected then that is a
-> +	 * driver bug and the WARN_ON is triggered.
-> +	 */
-> +	mutex_lock(prev_hdl->lock);
-> +	ref_ctrl_prev = list_first_entry(&prev_hdl->ctrl_refs,
-> +					 struct v4l2_ctrl_ref, node);
-> +	list_for_each_entry(ref_ctrl, &hdl->ctrl_refs, node) {
-> +		if (ref_ctrl->req)
-> +			continue;
-> +		while (ref_ctrl_prev->ctrl->id < ref_ctrl->ctrl->id) {
-> +			/* Should never happen, but just in case... */
-> +			if (list_is_last(&ref_ctrl_prev->node,
-> +					 &prev_hdl->ctrl_refs))
-> +				break;
-> +			ref_ctrl_prev = list_next_entry(ref_ctrl_prev, node);
-> +		}
-> +		if (WARN_ON(ref_ctrl_prev->ctrl->id != ref_ctrl->ctrl->id))
-> +			break;
-> +		ref_ctrl->req = ref_ctrl_prev->req;
-> +	}
-> +	mutex_unlock(prev_hdl->lock);
-> +queue:
-> +	list_add_tail(&hdl->requests_queued, &main_hdl->requests_queued);
-> +	hdl->request_is_queued = true;
-> +}
-> +
-> +static void v4l2_ctrl_request_unbind(struct media_request_object *obj)
-> +{
-> +	struct v4l2_ctrl_handler *hdl =
-> +		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-> +
-> +	list_del_init(&hdl->requests);
-> +	if (hdl->request_is_queued) {
-> +		list_del_init(&hdl->requests_queued);
-> +		hdl->request_is_queued = false;
-> +	}
-> +}
-> +
-> +static void v4l2_ctrl_request_release(struct media_request_object *obj)
-> +{
-> +	struct v4l2_ctrl_handler *hdl =
-> +		container_of(obj, struct v4l2_ctrl_handler, req_obj);
-> +
-> +	v4l2_ctrl_handler_free(hdl);
-> +	kfree(hdl);
-> +}
-> +
-> +static const struct media_request_object_ops req_ops = {
-> +	.queue = v4l2_ctrl_request_queue,
-> +	.unbind = v4l2_ctrl_request_unbind,
-> +	.release = v4l2_ctrl_request_release,
-> +};
-> +
-> +static int v4l2_ctrl_request_bind(struct media_request *req,
-> +			   struct v4l2_ctrl_handler *hdl,
-> +			   struct v4l2_ctrl_handler *from)
-> +{
-> +	int ret;
-> +
-> +	ret = v4l2_ctrl_request_clone(hdl, from);
-> +
-> +	if (!ret) {
-> +		ret = media_request_object_bind(req, &req_ops,
-> +						from, false, &hdl->req_obj);
-> +		if (!ret)
-> +			list_add_tail(&hdl->requests, &from->requests);
-> +	}
-> +	return ret;
-> +}
->  
->  /* Some general notes on the atomic requirements of VIDIOC_G/TRY/S_EXT_CTRLS:
->  
-> @@ -2898,6 +3053,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  
->  		if (cs->which &&
->  		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
-> +		    cs->which != V4L2_CTRL_WHICH_REQUEST_VAL &&
->  		    V4L2_CTRL_ID2WHICH(id) != cs->which)
->  			return -EINVAL;
->  
-> @@ -2977,13 +3133,12 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->     whether there are any controls at all. */
->  static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
->  {
-> -	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL)
-> +	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL ||
-> +	    which == V4L2_CTRL_WHICH_REQUEST_VAL)
->  		return 0;
->  	return find_ref_lock(hdl, which | 1) ? 0 : -EINVAL;
->  }
->  
-> -
-> -
->  /* Get extended controls. Allocates the helpers array if needed. */
->  int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs)
->  {
-> @@ -3049,8 +3204,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
->  			u32 idx = i;
->  
->  			do {
-> -				ret = ctrl_to_user(cs->controls + idx,
-> -						   helpers[idx].ref->ctrl);
-> +				if (helpers[idx].ref->req)
-> +					ret = req_to_user(cs->controls + idx,
-> +						helpers[idx].ref->req);
-> +				else
-> +					ret = ctrl_to_user(cs->controls + idx,
-> +						helpers[idx].ref->ctrl);
->  				idx = helpers[idx].next;
->  			} while (!ret && idx);
->  		}
-> @@ -3336,7 +3495,16 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  		} while (!ret && idx);
->  
->  		if (!ret)
-> -			ret = try_or_set_cluster(fh, master, set, 0);
-> +			ret = try_or_set_cluster(fh, master,
-> +						 !hdl->req_obj.req && set, 0);
-> +		if (!ret && hdl->req_obj.req && set) {
-> +			for (j = 0; j < master->ncontrols; j++) {
-> +				struct v4l2_ctrl_ref *ref =
-> +					find_ref(hdl, master->cluster[j]->id);
-> +
-> +				new_to_req(ref);
-> +			}
-> +		}
->  
->  		/* Copy the new values back to userspace. */
->  		if (!ret) {
-> @@ -3463,6 +3631,162 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
->  }
->  EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
->  
-> +void v4l2_ctrl_request_complete(struct media_request *req,
-> +				struct v4l2_ctrl_handler *main_hdl)
-> +{
-> +	struct media_request_object *obj;
-> +	struct v4l2_ctrl_handler *hdl;
-> +	struct v4l2_ctrl_ref *ref;
-> +
-> +	if (!req || !main_hdl)
-> +		return;
-> +
-> +	/*
-> +	 * Note that it is valid if nothing was found. It means
-> +	 * that this request doesn't have any controls and so just
-> +	 * wants to leave the controls unchanged.
-> +	 */
-> +	obj = media_request_object_find(req, &req_ops, main_hdl);
-> +	if (!obj)
-> +		return;
-> +	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
-> +
-> +	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-> +		struct v4l2_ctrl *ctrl = ref->ctrl;
-> +		struct v4l2_ctrl *master = ctrl->cluster[0];
-> +		unsigned int i;
-> +
-> +		if (ctrl->flags & V4L2_CTRL_FLAG_VOLATILE) {
-> +			ref->req = ref;
-> +
-> +			v4l2_ctrl_lock(master);
-> +			/* g_volatile_ctrl will update the current control values */
-> +			for (i = 0; i < master->ncontrols; i++)
-> +				cur_to_new(master->cluster[i]);
-> +			call_op(master, g_volatile_ctrl);
-> +			new_to_req(ref);
-> +			v4l2_ctrl_unlock(master);
-> +			continue;
-> +		}
-> +		if (ref->req == ref)
-> +			continue;
-> +
-> +		v4l2_ctrl_lock(ctrl);
-> +		if (ref->req)
-> +			ptr_to_ptr(ctrl, ref->req->p_req, ref->p_req);
-> +		else
-> +			ptr_to_ptr(ctrl, ctrl->p_cur, ref->p_req);
-> +		v4l2_ctrl_unlock(ctrl);
-> +	}
-> +
-> +	WARN_ON(!hdl->request_is_queued);
-> +	list_del_init(&hdl->requests_queued);
-> +	hdl->request_is_queued = false;
-> +	media_request_object_complete(obj);
-> +	media_request_object_put(obj);
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_request_complete);
-> +
-> +void v4l2_ctrl_request_setup(struct media_request *req,
-> +			     struct v4l2_ctrl_handler *main_hdl)
-> +{
-> +	struct media_request_object *obj;
-> +	struct v4l2_ctrl_handler *hdl;
-> +	struct v4l2_ctrl_ref *ref;
-> +
-> +	if (!req || !main_hdl)
-> +		return;
-> +
-> +	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_QUEUED))
-> +		return;
-> +
-> +	/*
-> +	 * Note that it is valid if nothing was found. It means
-> +	 * that this request doesn't have any controls and so just
-> +	 * wants to leave the controls unchanged.
-> +	 */
-> +	obj = media_request_object_find(req, &req_ops, main_hdl);
-> +	if (!obj)
-> +		return;
-> +	if (obj->completed) {
-> +		media_request_object_put(obj);
-> +		return;
-> +	}
-> +	hdl = container_of(obj, struct v4l2_ctrl_handler, req_obj);
-> +
-> +	list_for_each_entry(ref, &hdl->ctrl_refs, node)
-> +		ref->req_done = false;
-> +
-> +	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-> +		struct v4l2_ctrl *ctrl = ref->ctrl;
-> +		struct v4l2_ctrl *master = ctrl->cluster[0];
-> +		bool have_new_data = false;
-> +		int i;
-> +
-> +		/*
-> +		 * Skip if this control was already handled by a cluster.
-> +		 * Skip button controls and read-only controls.
-> +		 */
-> +		if (ref->req_done || ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
-> +		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
-> +			continue;
-> +
-> +		v4l2_ctrl_lock(master);
-> +		for (i = 0; i < master->ncontrols; i++) {
-> +			if (master->cluster[i]) {
-> +				struct v4l2_ctrl_ref *r =
-> +					find_ref(hdl, master->cluster[i]->id);
-> +
-> +				if (r->req && r == r->req) {
-> +					have_new_data = true;
-> +					break;
-> +				}
-> +			}
-> +		}
-> +		if (!have_new_data) {
-> +			v4l2_ctrl_unlock(master);
-> +			continue;
-> +		}
-> +
-> +		for (i = 0; i < master->ncontrols; i++) {
-> +			if (master->cluster[i]) {
-> +				struct v4l2_ctrl_ref *r =
-> +					find_ref(hdl, master->cluster[i]->id);
-> +
-> +				req_to_new(r);
-> +				master->cluster[i]->is_new = 1;
-> +				r->req_done = true;
-> +			}
-> +		}
-> +		/*
-> +		 * For volatile autoclusters that are currently in auto mode
-> +		 * we need to discover if it will be set to manual mode.
-> +		 * If so, then we have to copy the current volatile values
-> +		 * first since those will become the new manual values (which
-> +		 * may be overwritten by explicit new values from this set
-> +		 * of controls).
-> +		 */
-> +		if (master->is_auto && master->has_volatiles &&
-> +		    !is_cur_manual(master)) {
-> +			s32 new_auto_val = *master->p_new.p_s32;
-> +
-> +			/*
-> +			 * If the new value == the manual value, then copy
-> +			 * the current volatile values.
-> +			 */
-> +			if (new_auto_val == master->manual_mode_value)
-> +				update_from_auto_cluster(master);
-> +		}
-> +
-> +		try_or_set_cluster(NULL, master, true, 0);
-> +
-> +		v4l2_ctrl_unlock(master);
-> +	}
-> +
-> +	media_request_object_put(obj);
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_request_setup);
-> +
->  void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
->  {
->  	if (ctrl == NULL)
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 3f4e062d4e3d..ed784e98c293 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -250,6 +250,12 @@ struct v4l2_ctrl {
->   *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
->   * @from_other_dev: If true, then @ctrl was defined in another
->   *		device than the &struct v4l2_ctrl_handler.
-> + * @req_done:	Internal flag: if the control handler containing this control
-> + *		reference is bound to a media request, then this is set when
-> + *		the control has been applied. This prevents applying controls
-> + *		from a cluster with multiple controls twice (when the first
-> + *		control of a cluster is applied, they all are).
-> + * @req:	If set, this refers to another request that sets this control.
->   * @p_req:	If the control handler containing this control reference
->   *		is bound to a media request, then this points to the
->   *		value of the control that should be applied when the request
-> @@ -266,6 +272,8 @@ struct v4l2_ctrl_ref {
->  	struct v4l2_ctrl *ctrl;
->  	struct v4l2_ctrl_helper *helper;
->  	bool from_other_dev;
-> +	bool req_done;
-> +	struct v4l2_ctrl_ref *req;
->  	union v4l2_ctrl_ptr p_req;
->  };
->  
-> @@ -290,6 +298,15 @@ struct v4l2_ctrl_ref {
->   * @notify_priv: Passed as argument to the v4l2_ctrl notify callback.
->   * @nr_of_buckets: Total number of buckets in the array.
->   * @error:	The error code of the first failed control addition.
-> + * @request_is_queued: True if the request was queued.
-> + * @requests:	List to keep track of open control handler request objects.
-> + *		For the parent control handler (@req_obj.req == NULL) this
-> + *		is the list header. When the parent control handler is
-> + *		removed, it has to unbind and put all these requests since
-> + *		they refer to the parent.
-> + * @requests_queued: List of the queued requests. This determines the order
-> + *		in which these controls are applied. Once the request is
-> + *		completed it is removed from this list.
->   * @req_obj:	The &struct media_request_object, used to link into a
->   *		&struct media_request. This request object has a refcount.
->   */
-> @@ -304,6 +321,9 @@ struct v4l2_ctrl_handler {
->  	void *notify_priv;
->  	u16 nr_of_buckets;
->  	int error;
-> +	bool request_is_queued;
-> +	struct list_head requests;
-> +	struct list_head requests_queued;
->  	struct media_request_object req_obj;
->  };
->  
-> @@ -1062,6 +1082,37 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
->   */
->  __poll_t v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
->  
-> +/**
-> + * v4l2_ctrl_request_setup - helper function to apply control values in a request
-> + *
-> + * @req: The request
-> + * @parent: The parent control handler ('priv' in media_request_object_find())
-> + *
-> + * This is a helper function to call the control handler's s_ctrl callback with
-> + * the control values contained in the request. Do note that this approach of
-> + * applying control values in a request is only applicable to memory-to-memory
-> + * devices.
-> + */
-> +void v4l2_ctrl_request_setup(struct media_request *req,
-> +			     struct v4l2_ctrl_handler *parent);
-> +
-> +/**
-> + * v4l2_ctrl_request_complete - Complete a control handler request object
-> + *
-> + * @req: The request
-> + * @parent: The parent control handler ('priv' in media_request_object_find())
-> + *
-> + * This function is to be called on each control handler that may have had a
-> + * request object associated with it, i.e. control handlers of a driver that
-> + * supports requests.
-> + *
-> + * The function first obtains the values of any volatile controls in the control
-> + * handler and attach them to the request. Then, the function completes the
-> + * request object.
-> + */
-> +void v4l2_ctrl_request_complete(struct media_request *req,
-> +				struct v4l2_ctrl_handler *hdl);
-> +
->  /* Helpers for ioctl_ops */
->  
->  /**
+---
+ drivers/media/dvb-frontends/rtl2832_sdr.c     |  5 +-
+ drivers/media/pci/bt8xx/bttv-driver.c         |  2 +-
+ drivers/media/pci/cx23885/cx23885-417.c       |  2 +-
+ drivers/media/pci/cx88/cx88-blackbird.c       |  2 +-
+ drivers/media/pci/cx88/cx88-video.c           |  2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c   |  4 +-
+ drivers/media/pci/saa7134/saa7134-video.c     |  2 +-
+ .../media/platform/exynos4-is/fimc-capture.c  |  2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c   |  2 +-
+ drivers/media/platform/rcar_drif.c            |  2 +-
+ .../media/platform/soc_camera/soc_camera.c    |  3 +-
+ drivers/media/platform/vivid/vivid-ctrls.c    | 46 +++++++++----------
+ drivers/media/usb/cx231xx/cx231xx-417.c       |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c     |  4 +-
+ drivers/media/usb/msi2500/msi2500.c           |  2 +-
+ drivers/media/usb/tm6000/tm6000-video.c       |  2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c          | 11 +++--
+ drivers/media/v4l2-core/v4l2-device.c         |  3 +-
+ drivers/staging/media/imx/imx-media-dev.c     |  2 +-
+ drivers/staging/media/imx/imx-media-fim.c     |  2 +-
+ include/media/v4l2-ctrls.h                    |  8 +++-
+ 21 files changed, 61 insertions(+), 49 deletions(-)
 
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
+index d448d9d4879c..7d0c89e269ab 100644
+--- a/drivers/media/dvb-frontends/rtl2832_sdr.c
++++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
+@@ -1394,7 +1394,8 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
+ 	case RTL2832_SDR_TUNER_E4000:
+ 		v4l2_ctrl_handler_init(&dev->hdl, 9);
+ 		if (subdev)
+-			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler, NULL);
++			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
++					      NULL, true);
+ 		break;
+ 	case RTL2832_SDR_TUNER_R820T:
+ 	case RTL2832_SDR_TUNER_R828D:
+@@ -1423,7 +1424,7 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
+ 		v4l2_ctrl_handler_init(&dev->hdl, 2);
+ 		if (subdev)
+ 			v4l2_ctrl_add_handler(&dev->hdl, subdev->ctrl_handler,
+-					      NULL);
++					      NULL, true);
+ 		break;
+ 	default:
+ 		v4l2_ctrl_handler_init(&dev->hdl, 0);
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index cf05e11da01b..e86154092558 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -4211,7 +4211,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+ 	/* register video4linux + input */
+ 	if (!bttv_tvcards[btv->c.type].no_video) {
+ 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
+-				v4l2_ctrl_radio_filter);
++				v4l2_ctrl_radio_filter, false);
+ 		if (btv->radio_ctrl_handler.error) {
+ 			result = btv->radio_ctrl_handler.error;
+ 			goto fail2;
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index a71f3c7569ce..762823871c78 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -1527,7 +1527,7 @@ int cx23885_417_register(struct cx23885_dev *dev)
+ 	dev->cxhdl.priv = dev;
+ 	dev->cxhdl.func = cx23885_api_func;
+ 	cx2341x_handler_set_50hz(&dev->cxhdl, tsport->height == 576);
+-	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL);
++	v4l2_ctrl_add_handler(&dev->ctrl_handler, &dev->cxhdl.hdl, NULL, false);
+ 
+ 	/* Allocate and initialize V4L video device */
+ 	dev->v4l_device = cx23885_video_dev_alloc(tsport,
+diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
+index 7a4876cf9f08..722dd101c9b0 100644
+--- a/drivers/media/pci/cx88/cx88-blackbird.c
++++ b/drivers/media/pci/cx88/cx88-blackbird.c
+@@ -1183,7 +1183,7 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
+ 	err = cx2341x_handler_init(&dev->cxhdl, 36);
+ 	if (err)
+ 		goto fail_core;
+-	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL);
++	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl, NULL, false);
+ 
+ 	/* blackbird stuff */
+ 	pr_info("cx23416 based mpeg encoder (blackbird reference design)\n");
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 7b113bad70d2..85e2b6c9fb1c 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -1378,7 +1378,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 		if (vc->id == V4L2_CID_CHROMA_AGC)
+ 			core->chroma_agc = vc;
+ 	}
+-	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL);
++	v4l2_ctrl_add_handler(&core->video_hdl, &core->audio_hdl, NULL, false);
+ 
+ 	/* load and configure helper modules */
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 66acfd35ffc6..fc75ce00dbf8 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -265,9 +265,9 @@ static int empress_init(struct saa7134_dev *dev)
+ 		 "%s empress (%s)", dev->name,
+ 		 saa7134_boards[dev->board].name);
+ 	v4l2_ctrl_handler_init(hdl, 21);
+-	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter);
++	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter, false);
+ 	if (dev->empress_sd)
+-		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL);
++		v4l2_ctrl_add_handler(hdl, dev->empress_sd->ctrl_handler, NULL, true);
+ 	if (hdl->error) {
+ 		video_device_release(dev->empress_dev);
+ 		return hdl->error;
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 1a50ec9d084f..41d46488d22e 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2136,7 +2136,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+ 		hdl = &dev->radio_ctrl_handler;
+ 		v4l2_ctrl_handler_init(hdl, 2);
+ 		v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler,
+-				v4l2_ctrl_radio_filter);
++				v4l2_ctrl_radio_filter, false);
+ 		if (hdl->error)
+ 			return hdl->error;
+ 	}
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index a3cdac188190..2164375f0ee0 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -1424,7 +1424,7 @@ static int fimc_link_setup(struct media_entity *entity,
+ 		return 0;
+ 
+ 	return v4l2_ctrl_add_handler(&vc->ctx->ctrls.handler,
+-				     sensor->ctrl_handler, NULL);
++				     sensor->ctrl_handler, NULL, true);
+ }
+ 
+ static const struct media_entity_operations fimc_sd_media_ops = {
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index ce09799976ef..42f1084bedef 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -476,7 +476,7 @@ static int rvin_parallel_subdevice_attach(struct rvin_dev *vin,
+ 		return ret;
+ 
+ 	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, subdev->ctrl_handler,
+-				    NULL);
++				    NULL, true);
+ 	if (ret < 0) {
+ 		v4l2_ctrl_handler_free(&vin->ctrl_handler);
+ 		return ret;
+diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
+index 81413ab52475..8c3388b9f5bd 100644
+--- a/drivers/media/platform/rcar_drif.c
++++ b/drivers/media/platform/rcar_drif.c
+@@ -1164,7 +1164,7 @@ static int rcar_drif_notify_complete(struct v4l2_async_notifier *notifier)
+ 	}
+ 
+ 	ret = v4l2_ctrl_add_handler(&sdr->ctrl_hdl,
+-				    sdr->ep.subdev->ctrl_handler, NULL);
++				    sdr->ep.subdev->ctrl_handler, NULL, true);
+ 	if (ret) {
+ 		rdrif_err(sdr, "failed: ctrl add hdlr ret %d\n", ret);
+ 		goto error;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 66d613629167..901c07f49351 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1181,7 +1181,8 @@ static int soc_camera_probe_finish(struct soc_camera_device *icd)
+ 
+ 	v4l2_subdev_call(sd, video, g_tvnorms, &icd->vdev->tvnorms);
+ 
+-	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler, NULL);
++	ret = v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler,
++				    NULL, true);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index 5429193fbb91..5655f39d8e76 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -1662,59 +1662,59 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_auto_cluster(2, &dev->autogain, 0, true);
+ 
+ 	if (dev->has_vid_cap) {
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_vid, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_user_aud, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL, false);
+ 		if (hdl_vid_cap->error)
+ 			return hdl_vid_cap->error;
+ 		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
+ 	}
+ 	if (dev->has_vid_out) {
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
+-		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL, false);
+ 		if (hdl_vid_out->error)
+ 			return hdl_vid_out->error;
+ 		dev->vid_out_dev.ctrl_handler = hdl_vid_out;
+ 	}
+ 	if (dev->has_vbi_cap) {
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_streaming, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_sdtv_cap, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_cap, hdl_loop_cap, NULL, false);
+ 		if (hdl_vbi_cap->error)
+ 			return hdl_vbi_cap->error;
+ 		dev->vbi_cap_dev.ctrl_handler = hdl_vbi_cap;
+ 	}
+ 	if (dev->has_vbi_out) {
+-		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL);
++		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_vbi_out, hdl_streaming, NULL, false);
+ 		if (hdl_vbi_out->error)
+ 			return hdl_vbi_out->error;
+ 		dev->vbi_out_dev.ctrl_handler = hdl_vbi_out;
+ 	}
+ 	if (dev->has_radio_rx) {
+-		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL);
++		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_radio_rx, hdl_user_aud, NULL, false);
+ 		if (hdl_radio_rx->error)
+ 			return hdl_radio_rx->error;
+ 		dev->radio_rx_dev.ctrl_handler = hdl_radio_rx;
+ 	}
+ 	if (dev->has_radio_tx) {
+-		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL);
++		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_radio_tx, hdl_user_aud, NULL, false);
+ 		if (hdl_radio_tx->error)
+ 			return hdl_radio_tx->error;
+ 		dev->radio_tx_dev.ctrl_handler = hdl_radio_tx;
+ 	}
+ 	if (dev->has_sdr_cap) {
+-		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL);
+-		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL);
++		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_user_gen, NULL, false);
++		v4l2_ctrl_add_handler(hdl_sdr_cap, hdl_streaming, NULL, false);
+ 		if (hdl_sdr_cap->error)
+ 			return hdl_sdr_cap->error;
+ 		dev->sdr_cap_dev.ctrl_handler = hdl_sdr_cap;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index 2f3b0564d676..e3cb9eefd36a 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1992,7 +1992,7 @@ int cx231xx_417_register(struct cx231xx *dev)
+ 	dev->mpeg_ctrl_handler.ops = &cx231xx_ops;
+ 	if (dev->sd_cx25840)
+ 		v4l2_ctrl_add_handler(&dev->mpeg_ctrl_handler.hdl,
+-				dev->sd_cx25840->ctrl_handler, NULL);
++				dev->sd_cx25840->ctrl_handler, NULL, false);
+ 	if (dev->mpeg_ctrl_handler.hdl.error) {
+ 		err = dev->mpeg_ctrl_handler.hdl.error;
+ 		dprintk(3, "%s: can't add cx25840 controls\n", dev->name);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index f7fcd733a2ca..2dedb18f63a0 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -2204,10 +2204,10 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 
+ 	if (dev->sd_cx25840) {
+ 		v4l2_ctrl_add_handler(&dev->ctrl_handler,
+-				dev->sd_cx25840->ctrl_handler, NULL);
++				dev->sd_cx25840->ctrl_handler, NULL, true);
+ 		v4l2_ctrl_add_handler(&dev->radio_ctrl_handler,
+ 				dev->sd_cx25840->ctrl_handler,
+-				v4l2_ctrl_radio_filter);
++				v4l2_ctrl_radio_filter, true);
+ 	}
+ 
+ 	if (dev->ctrl_handler.error)
+diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
+index 65ef755adfdc..4aacd77a5d58 100644
+--- a/drivers/media/usb/msi2500/msi2500.c
++++ b/drivers/media/usb/msi2500/msi2500.c
+@@ -1278,7 +1278,7 @@ static int msi2500_probe(struct usb_interface *intf,
+ 	}
+ 
+ 	/* currently all controls are from subdev */
+-	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL);
++	v4l2_ctrl_add_handler(&dev->hdl, sd->ctrl_handler, NULL, true);
+ 
+ 	dev->v4l2_dev.ctrl_handler = &dev->hdl;
+ 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index 96055de6e8ce..176abbf5fbba 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1625,7 +1625,7 @@ int tm6000_v4l2_register(struct tm6000_core *dev)
+ 	v4l2_ctrl_new_std(&dev->ctrl_handler, &tm6000_ctrl_ops,
+ 			V4L2_CID_HUE, -128, 127, 1, 0);
+ 	v4l2_ctrl_add_handler(&dev->ctrl_handler,
+-			&dev->radio_ctrl_handler, NULL);
++			&dev->radio_ctrl_handler, NULL, false);
+ 
+ 	if (dev->radio_ctrl_handler.error)
+ 		ret = dev->radio_ctrl_handler.error;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 599c1cbff3b9..404291f00715 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2016,7 +2016,8 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
+ 
+ /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
+ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+-			   struct v4l2_ctrl *ctrl)
++			   struct v4l2_ctrl *ctrl,
++			   bool from_other_dev)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+ 	struct v4l2_ctrl_ref *new_ref;
+@@ -2040,6 +2041,7 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
+ 	if (!new_ref)
+ 		return handler_set_err(hdl, -ENOMEM);
+ 	new_ref->ctrl = ctrl;
++	new_ref->from_other_dev = from_other_dev;
+ 	if (ctrl->handler == hdl) {
+ 		/* By default each control starts in a cluster of its own.
+ 		   new_ref->ctrl is basically a cluster array with one
+@@ -2220,7 +2222,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+ 	}
+ 
+-	if (handler_new_ref(hdl, ctrl)) {
++	if (handler_new_ref(hdl, ctrl, false)) {
+ 		kvfree(ctrl);
+ 		return NULL;
+ 	}
+@@ -2389,7 +2391,8 @@ EXPORT_SYMBOL(v4l2_ctrl_new_int_menu);
+ /* Add the controls from another handler to our own. */
+ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 			  struct v4l2_ctrl_handler *add,
+-			  bool (*filter)(const struct v4l2_ctrl *ctrl))
++			  bool (*filter)(const struct v4l2_ctrl *ctrl),
++			  bool from_other_dev)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+ 	int ret = 0;
+@@ -2412,7 +2415,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 		/* Filter any unwanted controls */
+ 		if (filter && !filter(ctrl))
+ 			continue;
+-		ret = handler_new_ref(hdl, ctrl);
++		ret = handler_new_ref(hdl, ctrl, from_other_dev);
+ 		if (ret)
+ 			break;
+ 	}
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 3940e55c72f1..5189fb9f741f 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -178,7 +178,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 
+ 	sd->v4l2_dev = v4l2_dev;
+ 	/* This just returns 0 if either of the two args is NULL */
+-	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
++	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler,
++				    NULL, true);
+ 	if (err)
+ 		goto error_module;
+ 
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index b0be80f05767..b03a4b7bb769 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -391,7 +391,7 @@ static int imx_media_inherit_controls(struct imx_media_dev *imxmd,
+ 
+ 		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
+ 					    sd->ctrl_handler,
+-					    NULL);
++					    NULL, true);
+ 		if (ret)
+ 			return ret;
+ 	}
+diff --git a/drivers/staging/media/imx/imx-media-fim.c b/drivers/staging/media/imx/imx-media-fim.c
+index 6df189135db8..8cf773eef9da 100644
+--- a/drivers/staging/media/imx/imx-media-fim.c
++++ b/drivers/staging/media/imx/imx-media-fim.c
+@@ -463,7 +463,7 @@ int imx_media_fim_add_controls(struct imx_media_fim *fim)
+ {
+ 	/* add the FIM controls to the calling subdev ctrl handler */
+ 	return v4l2_ctrl_add_handler(fim->sd->ctrl_handler,
+-				     &fim->ctrl_handler, NULL);
++				     &fim->ctrl_handler, NULL, false);
+ }
+ EXPORT_SYMBOL_GPL(imx_media_fim_add_controls);
+ 
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index f615ba1b29dd..192e31c21faf 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -247,6 +247,8 @@ struct v4l2_ctrl {
+  * @ctrl:	The actual control information.
+  * @helper:	Pointer to helper struct. Used internally in
+  *		``prepare_ext_ctrls`` function at ``v4l2-ctrl.c``.
++ * @from_other_dev: If true, then @ctrl was defined in another
++ *		device than the &struct v4l2_ctrl_handler.
+  *
+  * Each control handler has a list of these refs. The list_head is used to
+  * keep a sorted-by-control-ID list of all controls, while the next pointer
+@@ -257,6 +259,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl_ref *next;
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
++	bool from_other_dev;
+ };
+ 
+ /**
+@@ -633,6 +636,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
+  * @add:	The control handler whose controls you want to add to
+  *		the @hdl control handler.
+  * @filter:	This function will filter which controls should be added.
++ * @from_other_dev: If true, then the controls in @add were defined in another
++ *		device than @hdl.
+  *
+  * Does nothing if either of the two handlers is a NULL pointer.
+  * If @filter is NULL, then all controls are added. Otherwise only those
+@@ -642,7 +647,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
+  */
+ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
+ 			  struct v4l2_ctrl_handler *add,
+-			  v4l2_ctrl_filter filter);
++			  v4l2_ctrl_filter filter,
++			  bool from_other_dev);
+ 
+ /**
+  * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
+-- 
+2.18.0
