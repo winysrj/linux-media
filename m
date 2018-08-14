@@ -1,299 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:53215 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732280AbeHNS6v (ORCPT
+Received: from mail-ed1-f49.google.com ([209.85.208.49]:41776 "EHLO
+        mail-ed1-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732956AbeHNTjH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 14:58:51 -0400
-Date: Tue, 14 Aug 2018 18:10:55 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: Rob Herring <robh@kernel.org>
-Cc: mchehab@kernel.org, mark.rutland@arm.com, kernel@pengutronix.de,
-        devicetree@vger.kernel.org, p.zabel@pengutronix.de,
-        javierm@redhat.com, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@linux.intel.com, afshin.nasser@gmail.com,
+        Tue, 14 Aug 2018 15:39:07 -0400
+Received: by mail-ed1-f49.google.com with SMTP id s24-v6so10449274edr.8
+        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2018 09:51:11 -0700 (PDT)
+Subject: Re: [PATCH v2 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
+To: jacopo mondi <jacopo@jmondi.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        maxime.ripard@bootlin.com, sam@elite-embedded.com,
+        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
+        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org,
         linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/7] [media] dt-bindings: tvp5150: Add input port
- connectors DT bindings
-Message-ID: <20180814161055.utz5mlktqnfkeddk@pengutronix.de>
-References: <20180813092508.1334-1-m.felsch@pengutronix.de>
- <20180813092508.1334-3-m.felsch@pengutronix.de>
- <20180813214117.GA4720@rob-hp-laptop>
+References: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
+ <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
+ <20180711072148.GH8180@w540> <bc50c3d7-d6ba-e73f-6156-341e1ce3099a@gmail.com>
+ <b1369576-2193-bc57-0716-ca08098a2eca@gmail.com>
+ <71f4b589-2c82-7e87-22fe-8b6373947b13@gmail.com> <20180716082929.GM8180@w540>
+ <71bc3ff6-8db2-af63-f9af-72696f7d075c@gmail.com>
+ <20180814153559.GA16428@w540>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <cd3e2e96-0968-99cd-1417-05ffdd771341@gmail.com>
+Date: Tue, 14 Aug 2018 09:51:04 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180813214117.GA4720@rob-hp-laptop>
+In-Reply-To: <20180814153559.GA16428@w540>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18-08-13 15:41, Rob Herring wrote:
-> On Mon, Aug 13, 2018 at 11:25:03AM +0200, Marco Felsch wrote:
-> > The TVP5150/1 decoders support different video input sources to their
-> > AIP1A/B pins.
-> > 
-> > Possible configurations are as follows:
-> >   - Analog Composite signal connected to AIP1A.
-> >   - Analog Composite signal connected to AIP1B.
-> >   - Analog S-Video Y (luminance) and C (chrominance)
-> >     signals connected to AIP1A and AIP1B respectively.
-> > 
-> > This patch extends the device tree bindings documentation to describe
-> > how the input connectors for these devices should be defined in a DT.
-> > 
-> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > 
-> > ---
-> > Changelog:
-> > v2:
-> > - adapt port layout in accordance with
-> >   https://www.spinics.net/lists/linux-media/msg138546.html with the
-> >   svideo-connector deviation (use only one endpoint)
-> > ---
-> >  .../devicetree/bindings/media/i2c/tvp5150.txt | 191 +++++++++++++++++-
-> >  1 file changed, 185 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > index 8c0fc1a26bf0..d647d671f14a 100644
-> > --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> > @@ -12,11 +12,31 @@ Optional Properties:
-> >  - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
-> >  - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
-> >  
-> > -The device node must contain one 'port' child node for its digital output
-> > -video port, in accordance with the video interface bindings defined in
-> > -Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > +The device node must contain one 'port' child node per device physical input
-> > +and output port, in accordance with the video interface bindings defined in
-> > +Documentation/devicetree/bindings/media/video-interfaces.txt. The port nodes
-> > +are numbered as follows
-> >  
-> > -Required Endpoint Properties for parallel synchronization:
-> > +	  Name		Type		Port
-> > +	--------------------------------------
-> > +	  AIP1A		sink		0
-> > +	  AIP1B		sink		1
-> > +	  Y-OUT		src		2
-> > +
-> > +The device node must contain at least one sink port and the src port. Each input
-> > +port must be linked to an endpoint defined in
-> > +Documentation/devicetree/bindings/display/connector/analog-tv-connector.txt. The
-> > +port/connector layout is as follows
-> > +
-> > +tvp-5150 port@0 (AIP1A)
-> > +	endpoint@0 -----------> Comp0-Con  port
-> > +	endpoint@1 -----------> Svideo-Con port
-> > +tvp-5150 port@1 (AIP1B)
-> > +	endpoint   -----------> Comp1-Con  port
-> > +tvp-5150 port@2
-> > +	endpoint (video bitstream output at YOUT[0-7] parallel bus)
-> > +
-> > +Required Endpoint Properties for parallel synchronization on output port:
-> >  
-> >  - hsync-active: active state of the HSYNC signal. Must be <1> (HIGH).
-> >  - vsync-active: active state of the VSYNC signal. Must be <1> (HIGH).
-> > @@ -26,7 +46,140 @@ Required Endpoint Properties for parallel synchronization:
-> >  If none of hsync-active, vsync-active and field-even-active is specified,
-> >  the endpoint is assumed to use embedded BT.656 synchronization.
-> >  
-> > -Example:
-> > +Examples:
-> 
-> Is it really necessary to enumerate every possibility? Just show the 
-> most complicated case which is a superset of the rest.
+Hi Jacopo,
 
-I just wanted to be a bit more verbose, since not all users (e.g.
-beginners) know how the of_graph works. Anyway, I can drop the 1st and
-2nd example.
 
-> 
-> > +
-> > +One Input:
-> > +
-> > +connector {
-> > +	compatible = "composite-video-connector";
-> > +	label = "Composite0";
-> > +
-> > +	port {
-> > +		composite0_to_tvp5150: endpoint {
-> > +			remote-endpoint = <&tvp5150_to_composite0>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +&i2c2 {
-> > +	...
-> > +	tvp5150@5c {
-> > +		compatible = "ti,tvp5150";
-> > +		reg = <0x5c>;
-> > +		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-> > +		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> > +
-> > +		port@0 {
-> > +			reg = <0>;
-> > +
-> > +			tvp5150_to_composite0: endpoint {
-> > +				remote-endpoint = <&composite0_to_tvp5150>;
-> > +			};
-> > +		};
-> > +
-> > +		port@2 {
-> > +			reg = <2>;
-> > +
-> > +			tvp5150_1: endpoint {
-> > +				remote-endpoint = <&ccdc_ep>;
-> > +			};
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +Two Inputs:
-> > +
-> > +comp_connector_1 {
-> > +	compatible = "composite-video-connector";
-> > +	label = "Composite1";
-> > +
-> > +	port {
-> > +		composite1_to_tvp5150: endpoint {
-> > +			remote-endpoint = <&tvp5150_to_composite1>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +svid_connector {
-> > +	compatible = "svideo-connector";
-> > +	label = "S-Video";
-> > +
-> > +	port {
-> > +		svideo_to_tvp5150: endpoint {
-> > +			remote-endpoint = <&tvp5150_to_svideo>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +&i2c2 {
-> > +	...
-> > +	tvp5150@5c {
-> > +		compatible = "ti,tvp5150";
-> > +		reg = <0x5c>;
-> > +		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-> > +		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> > +
-> > +                port@0 {
-> > +                        reg = <0>;
-> > +
-> > +                        tvp5150_to_svideo: endpoint@1 {
-> > +                                reg = <1>;
-> > +                                remote-endpoint = <&svideo_to_tvp5150>;
-> > +                        };
-> > +                };
-> > +
-> > +                port@1 {
-> > +                        reg = <1>;
-> > +
-> > +                        tvp5150_to_composite1: endpoint {
-> > +                                remote-endpoint = <&composite1_to_tvp5150>;
-> > +                        };
-> > +                };
-> 
-> Spaces used instead of tabs.
+On 08/14/2018 08:35 AM, jacopo mondi wrote:
+> Hi Steve,
+>     sorry for resurecting this.
+>
+> <snip>
+>>> I'm sorry I'm not sur I'm following. Does this mean that with that bug
+>>> you are referring to up here fixed by my last patch you have capture
+>>> working?
+>> No, capture still not working for me on SabreSD, even after fixing
+>> the bug in 476dec0 "media: ov5640: Add horizontal and vertical totals",
+>> by either using your patchset, or by running version 476dec0 of ov5640.c
+>> with the call to ov5640_set_timings() moved to the correct places as
+>> described below.
+>>
+> I've been reported a bug on exposure handling that makes the first
+> captured frames all black. Both me and Hugues have tried to fix the
+> issue (him with a more complete series, but that's another topic).
+> See [1] and [2]
+>
+> It might be possible that you're getting blank frames with this series
+> applied? I never seen them as I'm skipping the first frames when
+> capturing, but I've now tested and without the exposure fixes (either
+> [1] or [2]) I actually have blank frames.
+>
+> If that's the case for you too (which I hope so much) would you be
+> available to test again this series with exposure fixes on top?
+> On my platform that actually makes all frames correct.
+>
+> Thanks
+>     j
+>
+> [1] [PATCH 0/2] media: ov5640: Fix set_timings and auto-exposure
+> [2] [PATCH v2 0/5] Fix OV5640 exposure & gain
+>
 
-Sorry for that. I checked it by checkpatch with no errors.
-I will convert it.
+It's not clear to me which patch sets you would like me to test.
+Just [1] and [2], or [1], [2], and "media: i2c: ov5640: Re-work MIPI 
+startup sequence"?
 
-> 
-> > +
-> > +		port@2 {
-> > +			reg = <2>;
-> > +
-> > +			tvp5150_1: endpoint {
-> > +				remote-endpoint = <&ccdc_ep>;
-> > +			};
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +Three Inputs:
-> > +
-> > +comp_connector_0 {
-> > +	compatible = "composite-video-connector";
-> > +	label = "Composite0";
-> > +
-> > +	port {
-> > +		composite0_to_tvp5150: endpoint {
-> > +			remote-endpoint = <&tvp5150_to_composite0>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +comp_connector_1 {
-> > +	compatible = "composite-video-connector";
-> > +	label = "Composite1";
-> > +
-> > +	port {
-> > +		composite1_to_tvp5150: endpoint {
-> > +			remote-endpoint = <&tvp5150_to_composite1>;
-> > +		};
-> > +	};
-> > +};
-> > +
-> > +svid_connector {
-> > +	compatible = "svideo-connector";
-> > +	label = "S-Video";
-> > +
-> > +	port {
-> > +		svideo_to_tvp5150: endpoint {
-> > +			remote-endpoint = <&tvp5150_to_svideo>;
-> > +		};
-> > +	};
-> > +};
-> >  
-> >  &i2c2 {
-> >  	...
-> > @@ -36,7 +189,33 @@ Example:
-> >  		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-> >  		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> >  
-> > -		port {
-> > +                port@0 {
-> > +                        #address-cells = <1>;
-> > +                        #size-cells = <0>;
-> > +                        reg = <0>;
-> > +
-> > +                        tvp5150_to_composite0: endpoint@0 {
-> > +                                reg = <0>;
-> > +                                remote-endpoint = <&composite0_to_tvp5150>;
-> > +                        };
-> > +
-> > +                        tvp5150_to_svideo: endpoint@1 {
-> > +                                reg = <1>;
-> > +                                remote-endpoint = <&svideo_to_tvp5150>;
-> > +                        };
-> > +                };
-> > +
-> > +                port@1 {
-> > +                        reg = <1>;
-> > +
-> > +                        tvp5150_to_composite1: endpoint {
-> > +                                remote-endpoint = <&composite1_to_tvp5150>;
-> > +                        };
-> > +                };
-> 
-> Here too.
-> 
-> > +
-> > +		port@2 {
-> > +			reg = <2>;
-> > +
-> >  			tvp5150_1: endpoint {
-> >  				remote-endpoint = <&ccdc_ep>;
-> >  			};
-> > -- 
-> > 2.18.0
-> > 
-> 
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Steve
