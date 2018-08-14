@@ -1,357 +1,363 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57840 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727982AbeHNWgk (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:43613 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732813AbeHNRIN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 18:36:40 -0400
-Date: Tue, 14 Aug 2018 16:47:51 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv18 19/35] vb2: store userspace data in vb2_v4l2_buffer
-Message-ID: <20180814164751.7b52c58d@coco.lan>
-In-Reply-To: <20180814142047.93856-20-hverkuil@xs4all.nl>
+        Tue, 14 Aug 2018 13:08:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv18 25/35] videobuf2-core: integrate with media requests
+Date: Tue, 14 Aug 2018 16:20:37 +0200
+Message-Id: <20180814142047.93856-26-hverkuil@xs4all.nl>
+In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
-        <20180814142047.93856-20-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 16:20:31 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The userspace-provided plane data needs to be stored in
-> vb2_v4l2_buffer. Currently this information is applied by
-> __fill_vb2_buffer() which is called by the core prepare_buf
-> and qbuf functions, but when using requests these functions
-> aren't called yet since the buffer won't be prepared until
-> the media request is actually queued.
-> 
-> In the meantime this information has to be stored somewhere
-> and vb2_v4l2_buffer is a good place for it.
-> 
-> The __fill_vb2_buffer callback now just copies the relevant
-> information from vb2_v4l2_buffer into the planes array.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../media/common/videobuf2/videobuf2-core.c   | 43 ++++++-------
->  .../media/common/videobuf2/videobuf2-v4l2.c   | 60 +++++++++++++++----
->  drivers/media/dvb-core/dvb_vb2.c              |  3 +-
->  include/media/videobuf2-core.h                |  3 +-
->  include/media/videobuf2-v4l2.h                |  2 +
->  5 files changed, 72 insertions(+), 39 deletions(-)
-> 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> index 5653e8eebe2b..7401a17c80ca 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> @@ -967,20 +967,19 @@ EXPORT_SYMBOL_GPL(vb2_discard_done);
->  /*
->   * __prepare_mmap() - prepare an MMAP buffer
->   */
-> -static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
-> +static int __prepare_mmap(struct vb2_buffer *vb)
->  {
->  	int ret = 0;
->  
-> -	if (pb)
-> -		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-> -				 vb, pb, vb->planes);
-> +	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-> +			 vb, vb->planes);
->  	return ret ? ret : call_vb_qop(vb, buf_prepare, vb);
->  }
->  
->  /*
->   * __prepare_userptr() - prepare a USERPTR buffer
->   */
-> -static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
-> +static int __prepare_userptr(struct vb2_buffer *vb)
->  {
->  	struct vb2_plane planes[VB2_MAX_PLANES];
->  	struct vb2_queue *q = vb->vb2_queue;
-> @@ -991,12 +990,10 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
->  
->  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
->  	/* Copy relevant information provided by the userspace */
-> -	if (pb) {
-> -		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-> -				 vb, pb, planes);
-> -		if (ret)
-> -			return ret;
-> -	}
-> +	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-> +			 vb, planes);
-> +	if (ret)
-> +		return ret;
->  
->  	for (plane = 0; plane < vb->num_planes; ++plane) {
->  		/* Skip the plane if already verified */
-> @@ -1096,7 +1093,7 @@ static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
->  /*
->   * __prepare_dmabuf() - prepare a DMABUF buffer
->   */
-> -static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
-> +static int __prepare_dmabuf(struct vb2_buffer *vb)
->  {
->  	struct vb2_plane planes[VB2_MAX_PLANES];
->  	struct vb2_queue *q = vb->vb2_queue;
-> @@ -1107,12 +1104,10 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
->  
->  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
->  	/* Copy relevant information provided by the userspace */
-> -	if (pb) {
-> -		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-> -				 vb, pb, planes);
-> -		if (ret)
-> -			return ret;
-> -	}
-> +	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-> +			 vb, planes);
-> +	if (ret)
-> +		return ret;
->  
->  	for (plane = 0; plane < vb->num_planes; ++plane) {
->  		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
-> @@ -1241,7 +1236,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
->  	call_void_vb_qop(vb, buf_queue, vb);
->  }
->  
-> -static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
-> +static int __buf_prepare(struct vb2_buffer *vb)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
->  	unsigned int plane;
-> @@ -1256,13 +1251,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
->  
->  	switch (q->memory) {
->  	case VB2_MEMORY_MMAP:
-> -		ret = __prepare_mmap(vb, pb);
-> +		ret = __prepare_mmap(vb);
->  		break;
->  	case VB2_MEMORY_USERPTR:
-> -		ret = __prepare_userptr(vb, pb);
-> +		ret = __prepare_userptr(vb);
->  		break;
->  	case VB2_MEMORY_DMABUF:
-> -		ret = __prepare_dmabuf(vb, pb);
-> +		ret = __prepare_dmabuf(vb);
->  		break;
->  	default:
->  		WARN(1, "Invalid queue type\n");
-> @@ -1296,7 +1291,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
->  		return -EINVAL;
->  	}
->  
-> -	ret = __buf_prepare(vb, pb);
-> +	ret = __buf_prepare(vb);
->  	if (ret)
->  		return ret;
->  
-> @@ -1386,7 +1381,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->  
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_DEQUEUED:
-> -		ret = __buf_prepare(vb, pb);
-> +		ret = __buf_prepare(vb);
->  		if (ret)
->  			return ret;
->  		break;
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> index 57848ddc584f..360dc4e7d413 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -154,17 +154,11 @@ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
->  		pr_warn("use the actual size instead.\n");
->  }
->  
-> -/*
-> - * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
-> - * v4l2_buffer by the userspace. It also verifies that struct
-> - * v4l2_buffer has a valid number of planes.
-> - */
-> -static int __fill_vb2_buffer(struct vb2_buffer *vb,
-> -		const void *pb, struct vb2_plane *planes)
-> +static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
-> -	const struct v4l2_buffer *b = pb;
->  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> +	struct vb2_plane *planes = vbuf->planes;
->  	unsigned int plane;
->  	int ret;
->  
-> @@ -186,7 +180,6 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
->  		return -EINVAL;
->  	}
-> -	vb->timestamp = 0;
+Buffers can now be prepared or queued for a request.
 
-See my note below about this removal. On a quick look, I guess we may have
-a regression here for output buffers (non-m2m).
+A buffer is unbound from the request at vb2_buffer_done time or
+when the queue is cancelled.
 
->  	vbuf->sequence = 0;
->  
->  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-> @@ -208,6 +201,12 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  			}
->  			break;
->  		default:
-> +			for (plane = 0; plane < vb->num_planes; ++plane) {
-> +				planes[plane].m.offset =
-> +					vb->planes[plane].m.offset;
-> +				planes[plane].length =
-> +					vb->planes[plane].length;
-> +			}
->  			break;
->  		}
->  
-> @@ -269,9 +268,12 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  			planes[0].length = b->length;
->  			break;
->  		default:
-> +			planes[0].m.offset = vb->planes[0].m.offset;
-> +			planes[0].length = vb->planes[0].length;
->  			break;
->  		}
->  
-> +		planes[0].data_offset = 0;
->  		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->  			if (b->bytesused == 0)
->  				vb2_warn_zero_bytesused(vb);
-> @@ -286,7 +288,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  
->  	}
->  
-> -	/* Zero flags that the vb2 core handles */
-> +	/* Zero flags that we handle */
->  	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
->  	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
->  		/*
-> @@ -319,6 +321,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
->  				    const char *opname)
->  {
-> +	struct vb2_v4l2_buffer *vbuf;
-> +	struct vb2_buffer *vb;
-> +	int ret;
-> +
->  	if (b->type != q->type) {
->  		dprintk(1, "%s: invalid buffer type\n", opname);
->  		return -EINVAL;
-> @@ -340,7 +346,15 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
->  		return -EINVAL;
->  	}
->  
-> -	return __verify_planes_array(q->bufs[b->index], b);
-> +	vb = q->bufs[b->index];
-> +	vbuf = to_vb2_v4l2_buffer(vb);
-> +	ret = __verify_planes_array(vb, b);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Copy relevant information provided by the userspace */
-> +	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
-> +	return vb2_fill_vb2_v4l2_buffer(vb, b);
->  }
->  
->  /*
-> @@ -448,6 +462,30 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  		q->last_buffer_dequeued = true;
->  }
->  
-> +/*
-> + * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
-> + * v4l2_buffer by the userspace. It also verifies that struct
-> + * v4l2_buffer has a valid number of planes.
-> + */
-> +static int __fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
-> +{
-> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> +	unsigned int plane;
-> +
-> +	if (!vb->vb2_queue->is_output || !vb->vb2_queue->copy_timestamp)
-> +		vb->timestamp = 0;
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ .../media/common/videobuf2/videobuf2-core.c   | 133 +++++++++++++++++-
+ .../media/common/videobuf2/videobuf2-v4l2.c   |   4 +-
+ drivers/media/dvb-core/dvb_vb2.c              |   2 +-
+ include/media/videobuf2-core.h                |  18 ++-
+ 4 files changed, 147 insertions(+), 10 deletions(-)
 
-When vb->vb2_queue->copy_timestamp is not NULL, timestamp will be copied,
-but how VB2 will fill it if is_output?
-
-I suspect that the right logic here would be just:
-
-	if (!vb->vb2_queue->copy_timestamp)
-		vb->timestamp = 0;
-
-
-> +
-> +	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		if (vb->vb2_queue->memory != VB2_MEMORY_MMAP) {
-> +			planes[plane].m = vbuf->planes[plane].m;
-> +			planes[plane].length = vbuf->planes[plane].length;
-> +		}
-> +		planes[plane].bytesused = vbuf->planes[plane].bytesused;
-> +		planes[plane].data_offset = vbuf->planes[plane].data_offset;
-> +	}
-> +	return 0;
-> +}
-> +
->  static const struct vb2_buf_ops v4l2_buf_ops = {
->  	.verify_planes_array	= __verify_planes_array_core,
->  	.fill_user_buffer	= __fill_v4l2_buffer,
-> diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-> index b811adf88afa..da6a8cec7d42 100644
-> --- a/drivers/media/dvb-core/dvb_vb2.c
-> +++ b/drivers/media/dvb-core/dvb_vb2.c
-> @@ -146,8 +146,7 @@ static void _fill_dmx_buffer(struct vb2_buffer *vb, void *pb)
->  	dprintk(3, "[%s]\n", ctx->name);
->  }
->  
-> -static int _fill_vb2_buffer(struct vb2_buffer *vb,
-> -			    const void *pb, struct vb2_plane *planes)
-> +static int _fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
->  {
->  	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
->  
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index f6818f732f34..224c4820a044 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -417,8 +417,7 @@ struct vb2_ops {
->  struct vb2_buf_ops {
->  	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
->  	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
-> -	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
-> -				struct vb2_plane *planes);
-> +	int (*fill_vb2_buffer)(struct vb2_buffer *vb, struct vb2_plane *planes);
->  	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
->  };
->  
-> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-> index 3d5e2d739f05..097bf3e6951d 100644
-> --- a/include/media/videobuf2-v4l2.h
-> +++ b/include/media/videobuf2-v4l2.h
-> @@ -32,6 +32,7 @@
->   *		&enum v4l2_field.
->   * @timecode:	frame timecode.
->   * @sequence:	sequence count of this frame.
-> + * @planes:	plane information (userptr/fd, length, bytesused, data_offset).
->   *
->   * Should contain enough information to be able to cover all the fields
->   * of &struct v4l2_buffer at ``videodev2.h``.
-> @@ -43,6 +44,7 @@ struct vb2_v4l2_buffer {
->  	__u32			field;
->  	struct v4l2_timecode	timecode;
->  	__u32			sequence;
-> +	struct vb2_plane	planes[VB2_MAX_PLANES];
->  };
->  
->  /*
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index 230f83d6d094..a6f4e9ac77b0 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -499,8 +499,9 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+ 			pr_info("     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
+ 				vb->cnt_buf_init, vb->cnt_buf_cleanup,
+ 				vb->cnt_buf_prepare, vb->cnt_buf_finish);
+-			pr_info("     buf_queue: %u buf_done: %u\n",
+-				vb->cnt_buf_queue, vb->cnt_buf_done);
++			pr_info("     buf_queue: %u buf_done: %u buf_request_complete: %u\n",
++				vb->cnt_buf_queue, vb->cnt_buf_done,
++				vb->cnt_buf_request_complete);
+ 			pr_info("     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
+ 				vb->cnt_mem_alloc, vb->cnt_mem_put,
+ 				vb->cnt_mem_prepare, vb->cnt_mem_finish,
+@@ -936,6 +937,14 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 		vb->state = state;
+ 	}
+ 	atomic_dec(&q->owned_by_drv_count);
++
++	if (vb->req_obj.req) {
++		/* This is not supported at the moment */
++		WARN_ON(state == VB2_BUF_STATE_REQUEUEING);
++		media_request_object_unbind(&vb->req_obj);
++		media_request_object_put(&vb->req_obj);
++	}
++
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+ 	trace_vb2_buf_done(q, vb);
+@@ -1290,6 +1299,60 @@ static int __buf_prepare(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
++static int vb2_req_prepare(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++	int ret;
++
++	if (WARN_ON(vb->state != VB2_BUF_STATE_IN_REQUEST))
++		return -EINVAL;
++
++	mutex_lock(vb->vb2_queue->lock);
++	ret = __buf_prepare(vb);
++	mutex_unlock(vb->vb2_queue->lock);
++	return ret;
++}
++
++static void __vb2_dqbuf(struct vb2_buffer *vb);
++
++static void vb2_req_unprepare(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++
++	mutex_lock(vb->vb2_queue->lock);
++	__vb2_dqbuf(vb);
++	vb->state = VB2_BUF_STATE_IN_REQUEST;
++	mutex_unlock(vb->vb2_queue->lock);
++	WARN_ON(!vb->req_obj.req);
++}
++
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct media_request *req);
++
++static void vb2_req_queue(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++
++	mutex_lock(vb->vb2_queue->lock);
++	vb2_core_qbuf(vb->vb2_queue, vb->index, NULL, NULL);
++	mutex_unlock(vb->vb2_queue->lock);
++}
++
++static void vb2_req_release(struct media_request_object *obj)
++{
++	struct vb2_buffer *vb = container_of(obj, struct vb2_buffer, req_obj);
++
++	if (vb->state == VB2_BUF_STATE_IN_REQUEST)
++		vb->state = VB2_BUF_STATE_DEQUEUED;
++}
++
++static const struct media_request_object_ops vb2_core_req_ops = {
++	.prepare = vb2_req_prepare,
++	.unprepare = vb2_req_unprepare,
++	.queue = vb2_req_queue,
++	.release = vb2_req_release,
++};
++
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ {
+ 	struct vb2_buffer *vb;
+@@ -1315,7 +1378,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+ 
+ 	dprintk(2, "prepare of buffer %d succeeded\n", vb->index);
+ 
+-	return ret;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
+ 
+@@ -1382,7 +1445,8 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	return ret;
+ }
+ 
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct media_request *req)
+ {
+ 	struct vb2_buffer *vb;
+ 	int ret;
+@@ -1394,8 +1458,39 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 
+ 	vb = q->bufs[index];
+ 
++	if (req) {
++		int ret;
++
++		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
++			dprintk(1, "buffer %d not in dequeued state\n",
++				vb->index);
++			return -EINVAL;
++		}
++
++		media_request_object_init(&vb->req_obj);
++
++		/* Make sure the request is in a safe state for updating. */
++		ret = media_request_lock_for_update(req);
++		if (ret)
++			return ret;
++		ret = media_request_object_bind(req, &vb2_core_req_ops,
++						q, true, &vb->req_obj);
++		media_request_unlock_for_update(req);
++		if (ret)
++			return ret;
++
++		vb->state = VB2_BUF_STATE_IN_REQUEST;
++		/* Fill buffer information for the userspace */
++		if (pb)
++			call_void_bufop(q, fill_user_buffer, vb, pb);
++
++		dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
++		return 0;
++	}
++
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
++	case VB2_BUF_STATE_IN_REQUEST:
+ 		if (!vb->prepared) {
+ 			ret = __buf_prepare(vb);
+ 			if (ret)
+@@ -1601,6 +1696,11 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+ 			vb->planes[i].dbuf_mapped = 0;
+ 		}
++	if (vb->req_obj.req) {
++		media_request_object_unbind(&vb->req_obj);
++		media_request_object_put(&vb->req_obj);
++	}
++	call_void_bufop(q, init_buffer, vb);
+ }
+ 
+ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+@@ -1714,6 +1814,25 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	 */
+ 	for (i = 0; i < q->num_buffers; ++i) {
+ 		struct vb2_buffer *vb = q->bufs[i];
++		struct media_request *req = vb->req_obj.req;
++
++		/*
++		 * If a request is associated with this buffer, then
++		 * call buf_request_cancel() to give the driver to complete()
++		 * related request objects. Otherwise those objects would
++		 * never complete.
++		 */
++		if (req) {
++			enum media_request_state state;
++			unsigned long flags;
++
++			spin_lock_irqsave(&req->lock, flags);
++			state = req->state;
++			spin_unlock_irqrestore(&req->lock, flags);
++
++			if (state == MEDIA_REQUEST_STATE_QUEUED)
++				call_void_vb_qop(vb, buf_request_complete, vb);
++		}
+ 
+ 		if (vb->synced) {
+ 			unsigned int plane;
+@@ -2283,7 +2402,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			ret = vb2_core_qbuf(q, i, NULL);
++			ret = vb2_core_qbuf(q, i, NULL, NULL);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -2462,7 +2581,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 
+ 		if (copy_timestamp)
+ 			b->timestamp = ktime_get_ns();
+-		ret = vb2_core_qbuf(q, index, NULL);
++		ret = vb2_core_qbuf(q, index, NULL, NULL);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -2565,7 +2684,7 @@ static int vb2_thread(void *data)
+ 		if (copy_timestamp)
+ 			vb->timestamp = ktime_get_ns();
+ 		if (!threadio->stop)
+-			ret = vb2_core_qbuf(q, vb->index, NULL);
++			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index 64905d87465c..ea9db4b3f59a 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -441,6 +441,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	case VB2_BUF_STATE_ACTIVE:
+ 		b->flags |= V4L2_BUF_FLAG_QUEUED;
+ 		break;
++	case VB2_BUF_STATE_IN_REQUEST:
++		break;
+ 	case VB2_BUF_STATE_ERROR:
+ 		b->flags |= V4L2_BUF_FLAG_ERROR;
+ 		/* fall through */
+@@ -619,7 +621,7 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	}
+ 
+ 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b);
++	return ret ? ret : vb2_core_qbuf(q, b->index, b, NULL);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+index da6a8cec7d42..f1e7f0536028 100644
+--- a/drivers/media/dvb-core/dvb_vb2.c
++++ b/drivers/media/dvb-core/dvb_vb2.c
+@@ -384,7 +384,7 @@ int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
+ {
+ 	int ret;
+ 
+-	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b);
++	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b, NULL);
+ 	if (ret) {
+ 		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
+ 			b->index, ret);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 413b8b2dc485..957b11c675cb 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -204,6 +204,7 @@ enum vb2_io_modes {
+ /**
+  * enum vb2_buffer_state - current video buffer state.
+  * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control.
++ * @VB2_BUF_STATE_IN_REQUEST:	buffer is queued in media request.
+  * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf.
+  * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver.
+  * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver.
+@@ -217,6 +218,7 @@ enum vb2_io_modes {
+  */
+ enum vb2_buffer_state {
+ 	VB2_BUF_STATE_DEQUEUED,
++	VB2_BUF_STATE_IN_REQUEST,
+ 	VB2_BUF_STATE_PREPARING,
+ 	VB2_BUF_STATE_QUEUED,
+ 	VB2_BUF_STATE_REQUEUEING,
+@@ -297,6 +299,7 @@ struct vb2_buffer {
+ 	u32		cnt_buf_finish;
+ 	u32		cnt_buf_cleanup;
+ 	u32		cnt_buf_queue;
++	u32		cnt_buf_request_complete;
+ 
+ 	/* This counts the number of calls to vb2_buffer_done() */
+ 	u32		cnt_buf_done;
+@@ -390,6 +393,11 @@ struct vb2_buffer {
+  *			ioctl; might be called before @start_streaming callback
+  *			if user pre-queued buffers before calling
+  *			VIDIOC_STREAMON().
++ * @buf_request_complete: a buffer that was never queued to the driver but is
++ *			associated with a queued request was canceled.
++ *			The driver will have to mark associated objects in the
++ *			request as completed; required if requests are
++ *			supported.
+  */
+ struct vb2_ops {
+ 	int (*queue_setup)(struct vb2_queue *q,
+@@ -408,6 +416,8 @@ struct vb2_ops {
+ 	void (*stop_streaming)(struct vb2_queue *q);
+ 
+ 	void (*buf_queue)(struct vb2_buffer *vb);
++
++	void (*buf_request_complete)(struct vb2_buffer *vb);
+ };
+ 
+ /**
+@@ -765,12 +775,17 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  * @index:	id number of the buffer
+  * @pb:		buffer structure passed from userspace to
+  *		v4l2_ioctl_ops->vidioc_qbuf handler in driver
++ * @req:	pointer to &struct media_request, may be NULL.
+  *
+  * Videobuf2 core helper to implement VIDIOC_QBUF() operation. It is called
+  * internally by VB2 by an API-specific handler, like ``videobuf2-v4l2.h``.
+  *
+  * This function:
+  *
++ * #) If @req is non-NULL, then the buffer will be bound to this
++ *    media request and it returns. The buffer will be prepared and
++ *    queued to the driver (i.e. the next two steps) when the request
++ *    itself is queued.
+  * #) if necessary, calls &vb2_ops->buf_prepare callback in the driver
+  *    (if provided), in which driver-specific buffer initialization can
+  *    be performed;
+@@ -779,7 +794,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  *
+  * Return: returns zero on success; an error code otherwise.
+  */
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct media_request *req);
+ 
+ /**
+  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
+-- 
+2.18.0
