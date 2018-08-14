@@ -1,81 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50230 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730213AbeHNBcf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 21:32:35 -0400
-MIME-Version: 1.0
-References: <20180809192944.7371-1-kieran.bingham@ideasonboard.com>
- <20180813174544.GA11379@rob-hp-laptop> <dedade62-91ed-2c92-dac7-fe4a8f9d9452@ideasonboard.com>
-In-Reply-To: <dedade62-91ed-2c92-dac7-fe4a8f9d9452@ideasonboard.com>
-From: Rob Herring <robh@kernel.org>
-Date: Mon, 13 Aug 2018 16:48:05 -0600
-Message-ID: <CAL_JsqJQNtRNq+b3sJ4eEse1pzWy3F-WgbDF7=t-TrvFx6WcUQ@mail.gmail.com>
-Subject: Re: [PATCH v3] dt-bindings: media: adv748x: Document re-mappable addresses
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>, devicetree@vger.kernel.org,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35377 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729533AbeHNGR3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Aug 2018 02:17:29 -0400
+Message-ID: <1052d59e92f61f5921293263f8852461@smtp-cloud8.xs4all.net>
+Date: Tue, 14 Aug 2018 05:32:16 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 13, 2018 at 1:17 PM Kieran Bingham
-<kieran.bingham@ideasonboard.com> wrote:
->
-> Hi Rob,
->
-> On 13/08/18 18:45, Rob Herring wrote:
-> > On Thu, Aug 09, 2018 at 08:29:44PM +0100, Kieran Bingham wrote:
-> >> The ADV748x supports configurable slave addresses for its I2C pages.
-> >> Document the page names, and provide an example for setting each of the
-> >> pages explicitly.
-> >
-> > It would be good to say why you need this.
->
-> In fact - I should probably have added a fixes tag here, which would
-> have added more context:
->
-> Fixes: 67537fe960e5 ("media: i2c: adv748x: Add support for
-> i2c_new_secondary_device")
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-That doesn't really explain things from a DT perspective.
+Results of the daily build of media_tree:
 
-> Should I repost with this fixes tag?
-> Or can it be collected with the RB tag?
+date:			Tue Aug 14 05:00:13 CEST 2018
+media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
+media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
+v4l-utils git hash:	4e160e6dfc8705fbc6867c880f445e69fcedcada
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
 
-I'll leave that to Hans.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.18-i686: OK
+linux-4.18-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> > The only use I can think of
-> > is if there are other devices on the bus and you need to make sure the
-> > addresses don't conflict.
->
-> Yes, precisely. This driver has 'slave pages' which are created and
-> mapped by the driver. The device has default addresses which are used by
-> the driver - but it's very easy for these to conflict with other devices
-> on the same I2C bus.
->
-> Because the mappings are simply a software construct, we have a means to
-> specify the desired mappings through DT at the board level - which
-> allows the boards to ensure that conflicts do not appear.
->
->
-> > Arguably, that information could be figured out without this in DT.
->
-> How so ?
->
-> Scanning the bus is error prone, and dependant upon driver state (and
-> presence), and we have no means currently of requesting 'free/unused'
-> addresses from the I2C core framework.
+Detailed results are available here:
 
-True. But assuming all devices are in DT, then you just need to scan
-the child nodes of the bus and get a map of the used addresses. Though
-if you had 2 or more devices like this, then you'd need to maintain
-s/w allocated addresses too. It could all be maintained with a bitmap
-which you initialize with addresses in DT.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Rob
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
