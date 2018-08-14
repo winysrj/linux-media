@@ -1,118 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.intenta.de ([178.249.25.132]:36004 "EHLO mail.intenta.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727689AbeHNL0j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 07:26:39 -0400
-Date: Tue, 14 Aug 2018 10:40:26 +0200
-From: Helmut Grohne <helmut.grohne@intenta.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@iki.fi" <sakari.ailus@iki.fi>
-Subject: Re: why does aptina_pll_calculate insist on exact division?
-Message-ID: <20180814084026.be4fpbhrppdnx2a3@laureti-dev>
-References: <20180814063538.qxgg6ua5z7ta6pwp@laureti-dev>
- <3810765.IzfK4ck8Uo@avalon>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:51881 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727986AbeHNLcL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Aug 2018 07:32:11 -0400
+Subject: Re: [PATCHv17 16/34] v4l2-ctrls: add
+ v4l2_ctrl_request_hdl_find/put/ctrl_find functions
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+ <20180804124526.46206-17-hverkuil@xs4all.nl>
+ <20180813080703.4ce872c1@coco.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ef84cba0-52d4-b532-8469-ff4fdc10192d@xs4all.nl>
+Date: Tue, 14 Aug 2018 10:45:57 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <3810765.IzfK4ck8Uo@avalon>
+In-Reply-To: <20180813080703.4ce872c1@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-Thank you for the quick and helpful answer.
-
-On Tue, Aug 14, 2018 at 09:30:14AM +0200, Laurent Pinchart wrote:
-> How do you mean ? The only place where pix_clock_max is used is in the 
-> following code:
+On 13/08/18 13:07, Mauro Carvalho Chehab wrote:
+> Em Sat,  4 Aug 2018 14:45:08 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
->         if (pll->pix_clock == 0 || pll->pix_clock > limits->pix_clock_max) {
->                 dev_err(dev, "pll: invalid pixel clock frequency.\n");
->                 return -EINVAL;
->         }
+>> If a driver needs to find/inspect the controls set in a request then
+>> it can use these functions.
+>>
+>> E.g. to check if a required control is set in a request use this in the
+>> req_validate() implementation:
+>>
+>> 	int res = -EINVAL;
+>>
+>> 	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
+>> 	if (hdl) {
+>> 		if (v4l2_ctrl_request_hdl_ctrl_find(hdl, ctrl_id))
+>> 			res = 0;
+>> 		v4l2_ctrl_request_hdl_put(hdl);
+>> 	}
+>> 	return res;
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ctrls.c | 25 ++++++++++++++++
+>>  include/media/v4l2-ctrls.h           | 44 +++++++++++++++++++++++++++-
+>>  2 files changed, 68 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index 86a6ae54ccaa..2a30be824491 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -2976,6 +2976,31 @@ static const struct media_request_object_ops req_ops = {
+>>  	.release = v4l2_ctrl_request_release,
+>>  };
+>>  
+>> +struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
+>> +					struct v4l2_ctrl_handler *parent)
+>> +{
+>> +	struct media_request_object *obj;
+>> +
+>> +	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_VALIDATING &&
+>> +		    req->state != MEDIA_REQUEST_STATE_QUEUED))
+>> +		return NULL;
+>> +
+>> +	obj = media_request_object_find(req, &req_ops, parent);
+>> +	if (obj)
+>> +		return container_of(obj, struct v4l2_ctrl_handler, req_obj);
+>> +	return NULL;
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_find);
+>> +
+>> +struct v4l2_ctrl *
+>> +v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id)
+>> +{
+>> +	struct v4l2_ctrl_ref *ref = find_ref_lock(hdl, id);
+>> +
+>> +	return (ref && ref->req == ref) ? ref->ctrl : NULL;
 > 
-> aptina_pll_calculate() rejects a request pixel clock value higher than the 
-> pixel clock frequency higher limit, which is also given by the caller. That 
-> shouldn't happen, it would be a bug in the caller.
+> Doesn't those helper functions (including this one) be serialized?
 
-Of course, I am trying values lower than pix_clock_max. For a number of
-imagers, that pix_clock_max is 74.25 MHz. It seems that any pix_clock of
-at least 72 MHz is rejected here.
+v4l2_ctrl_request_hdl_find() checks the request state to ensure this:
+it is either VALIDATING (then the req_queue_mutex is locked) or QUEUED
+and then it is under control of the driver. Of course, in that case the
+driver should make sure that it doesn't complete the request in the
+middle of calling this function. If a driver does that, then it is a driver
+bug.
 
-> I'm not sure what you mean by avoiding fractional numbers. Could you please 
-> elaborate ? Please keep in mind that I last touched the code 6 years, so my 
-> memory isn't exactly fresh.
+Regards,
 
-The first thing the code does is computing the gcd of pix_clock and
-ext_clock. Immediately, it conludes that m must be a multiple of
-pix_clock / gcd(pix_clock, ext_clock). Varying either clock value
-slightly causes large jumps in the computed gcd value (in particular, it
-will be 1 whenever either clock happens to be a prime number).
+	Hans
 
-> If you mean using floating point operations to calculate PLL parameters, 
-> remember that the code runs in the Linux kernel, where floating point isn't 
-> allowed. You would thus have to implement the algorithm using fixed-point 
-> calculation.
-
-I'm not after using floating points. In a sense, we are already
-fixed-point calculation and the precision is 1 Hz. Rounding errors in
-that range look ok to me.
-
-> There's no such thing as an exact frequency anyway, as it's a physical value. 
-> I'd got for 50 MHz for simplicity.
-
-That's exactly my point. The exact value should not matter. However, for
-the present aptina_pll_calculate, the exact value matters a lot. Were
-you to use 49999991 Hz as ext_clock (which happens to be prime, but
-reasonably close), aptina_pll_calculate fails entirely as m is deemed to
-be a multiple of the pix_clock in Hz. No imager allows for such large m
-values and thus aptina_pll_calculate rejects any such configuration with
--EINVAL.
-
-I'm arguing that rather than failing to compute pll parameters, it
-should compromise on exactness. Presently, aptina_pll_calculate ensures
-that whenever it is successful, the assertion pix_clock = ext_clock / n
-* m / p1 holds exactly and all intermediate values are whole numbers.
-I'm arguing that having it hold exactly reduces utility of
-aptina_pll_calculate, because frequencies are not exact in the real
-world. There is no need to have whole numbered frequencies.
-
-> aptina_pll_calculate() also approximates the requested frequency, but as it 
-> appears from your test, fails in some cases. That's certainly an issue in the 
-> code and should be fixed. Feel free to convince the manufacturer to release 
-> their PLL parameters computation code under the GPL ;-)
-
-We both know that the exercise of extracting code from manufacturers is
-futile.
-
-However you appear to imply that aptina_pll_calculate should approximate
-the requested frequency. That's not what it does today. That's a useful
-answer to me already and I'll be looking into doing the work of coming
-up with an alternative lifting the requirement.
-
-> Again, please elaborate on what you mean by avoiding fractional numbers. I 
-> would certainly be open to a different algorithm (or possibly fixes to the 
-> existing code), as long as it fulfills the requirements behind the current 
-> implementation. In particular the code should compute the optimum PLL 
-> parameters when multiple options are possible, and its complexity should be 
-> lower than O(n^2) (ideally O(1), if not possible O(n)).
-
-Beware though that discussing complexities requires more precision as to
-what "n" means here. The code interprets it as n = p1_max - p1_min (not
-accounting for the gcd computation), which is not the usual
-interpretation. What you really want is that it completes in a
-reasonable amount of time on slow, embedded devices for any input.
-
-Once you lift the exactness requirement, you optimize multiple aspects
-simultaneously. The present code maximizes P1, but we also want to
-minimize the difference between the requested pix_clock and the
-resulting pix_clock. There has to be some kind of trade-off here. The
-trade-off chosen by the present code is to always have that difference
-be 0. Once non-zero differences are allowed, optimum is no longer
-well-defined.
-
-So could you go into more detail as to what "optimum PLL parameters"
-mean to you?
-
-Helmut
+> 
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_ctrl_request_hdl_ctrl_find);
+>> +
+>>  static int v4l2_ctrl_request_bind(struct media_request *req,
+>>  			   struct v4l2_ctrl_handler *hdl,
+>>  			   struct v4l2_ctrl_handler *from)
+>> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+>> index 98b1e70a4a46..aeb7f3c24ef7 100644
+>> --- a/include/media/v4l2-ctrls.h
+>> +++ b/include/media/v4l2-ctrls.h
+>> @@ -1111,7 +1111,49 @@ void v4l2_ctrl_request_setup(struct media_request *req,
+>>   * request object.
+>>   */
+>>  void v4l2_ctrl_request_complete(struct media_request *req,
+>> -				struct v4l2_ctrl_handler *hdl);
+>> +				struct v4l2_ctrl_handler *parent);
+>> +
+>> +/**
+>> + * v4l2_ctrl_request_hdl_find - Find the control handler in the request
+>> + *
+>> + * @req: The request
+>> + * @parent: The parent control handler ('priv' in media_request_object_find())
+>> + *
+>> + * This function finds the control handler in the request. It may return
+>> + * NULL if not found. When done, you must call v4l2_ctrl_request_put_hdl()
+>> + * with the returned handler pointer.
+>> + *
+>> + * If the request is not in state VALIDATING or QUEUED, then this function
+>> + * will always return NULL.
+>> + */
+>> +struct v4l2_ctrl_handler *v4l2_ctrl_request_hdl_find(struct media_request *req,
+>> +					struct v4l2_ctrl_handler *parent);
+>> +
+>> +/**
+>> + * v4l2_ctrl_request_hdl_put - Put the control handler
+>> + *
+>> + * @hdl: Put this control handler
+>> + *
+>> + * This function released the control handler previously obtained from'
+>> + * v4l2_ctrl_request_hdl_find().
+>> + */
+>> +static inline void v4l2_ctrl_request_hdl_put(struct v4l2_ctrl_handler *hdl)
+>> +{
+>> +	if (hdl)
+>> +		media_request_object_put(&hdl->req_obj);
+>> +}
+>> +
+>> +/**
+>> + * v4l2_ctrl_request_ctrl_find() - Find a control with the given ID.
+>> + *
+>> + * @hdl: The control handler from the request.
+>> + * @id: The ID of the control to find.
+>> + *
+>> + * This function returns a pointer to the control if this control is
+>> + * part of the request or NULL otherwise.
+>> + */
+>> +struct v4l2_ctrl *
+>> +v4l2_ctrl_request_hdl_ctrl_find(struct v4l2_ctrl_handler *hdl, u32 id);
+>>  
+>>  /* Helpers for ioctl_ops */
+>>  
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
