@@ -1,107 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:35377 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729533AbeHNGR3 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48962 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729055AbeHNIZ0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 02:17:29 -0400
-Message-ID: <1052d59e92f61f5921293263f8852461@smtp-cloud8.xs4all.net>
-Date: Tue, 14 Aug 2018 05:32:16 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Tue, 14 Aug 2018 04:25:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rob Herring <robh@kernel.org>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>, devicetree@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3] dt-bindings: media: adv748x: Document re-mappable addresses
+Date: Tue, 14 Aug 2018 08:40:37 +0300
+Message-ID: <2887621.fdKYYZGugR@avalon>
+In-Reply-To: <CAL_JsqJQNtRNq+b3sJ4eEse1pzWy3F-WgbDF7=t-TrvFx6WcUQ@mail.gmail.com>
+References: <20180809192944.7371-1-kieran.bingham@ideasonboard.com> <dedade62-91ed-2c92-dac7-fe4a8f9d9452@ideasonboard.com> <CAL_JsqJQNtRNq+b3sJ4eEse1pzWy3F-WgbDF7=t-TrvFx6WcUQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Rob,
 
-Results of the daily build of media_tree:
+On Tuesday, 14 August 2018 01:48:05 EEST Rob Herring wrote:
+> On Mon, Aug 13, 2018 at 1:17 PM Kieran Bingham wrote:
+> > On 13/08/18 18:45, Rob Herring wrote:
+> > > On Thu, Aug 09, 2018 at 08:29:44PM +0100, Kieran Bingham wrote:
+> > >> The ADV748x supports configurable slave addresses for its I2C pages.
+> > >> Document the page names, and provide an example for setting each of the
+> > >> pages explicitly.
+> > > 
+> > > It would be good to say why you need this.
+> > 
+> > In fact - I should probably have added a fixes tag here, which would
+> > have added more context:
+> > 
+> > Fixes: 67537fe960e5 ("media: i2c: adv748x: Add support for
+> > i2c_new_secondary_device")
+> 
+> That doesn't really explain things from a DT perspective.
+> 
+> > Should I repost with this fixes tag?
+> > Or can it be collected with the RB tag?
+> 
+> I'll leave that to Hans.
+> 
+> > > The only use I can think of
+> > > is if there are other devices on the bus and you need to make sure the
+> > > addresses don't conflict.
+> > 
+> > Yes, precisely. This driver has 'slave pages' which are created and
+> > mapped by the driver. The device has default addresses which are used by
+> > the driver - but it's very easy for these to conflict with other devices
+> > on the same I2C bus.
+> > 
+> > Because the mappings are simply a software construct, we have a means to
+> > specify the desired mappings through DT at the board level - which
+> > allows the boards to ensure that conflicts do not appear.
+> > 
+> > > Arguably, that information could be figured out without this in DT.
+> > 
+> > How so ?
+> > 
+> > Scanning the bus is error prone, and dependant upon driver state (and
+> > presence), and we have no means currently of requesting 'free/unused'
+> > addresses from the I2C core framework.
+> 
+> True. But assuming all devices are in DT, then you just need to scan
+> the child nodes of the bus and get a map of the used addresses. Though
+> if you had 2 or more devices like this, then you'd need to maintain
+> s/w allocated addresses too. It could all be maintained with a bitmap
+> which you initialize with addresses in DT.
 
-date:			Tue Aug 14 05:00:13 CEST 2018
-media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
-media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
-v4l-utils git hash:	4e160e6dfc8705fbc6867c880f445e69fcedcada
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+We've discussed this topic with Wolfram before, and unfortunately the base 
+assumption of assuming all devices are in DT often doesn't hold :-( For all 
+kind of reasons vendors often don't provide a full description of I2C buses, 
+especially when slave devices don't need to be accessed from Linux. Sometimes 
+they lack DT bindings for some I2C slaves that are not essential and still 
+want to provide a partial but functional DT. Sometimes devices are hooked up 
+to an I2C bus for debugging purposes only and end up never being used, so 
+nobody bothers describing them. Sometimes an I2C slave has multiple slave 
+addresses which DT writes are not aware of. Those are just a few examples.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.18-i686: OK
-linux-4.18-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+One alternative would be to add a DT property to the I2C master node to list 
+the known to be free addresses. I'm not sure that's better though. We should 
+also keep in mind that some I2C slaves could have restrictions on which 
+secondary addresses can be used, so we would need to pass constraints to the 
+I2C address allocator, which would quickly become a mess.
 
-Detailed results are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Laurent Pinchart
