@@ -1,287 +1,322 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:34312 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:60578 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728338AbeHMOMO (ORCPT
+        with ESMTP id S1727701AbeHNK3h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 10:12:14 -0400
-Date: Mon, 13 Aug 2018 08:30:19 -0300
+        Tue, 14 Aug 2018 06:29:37 -0400
+Date: Tue, 14 Aug 2018 04:43:35 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 19/34] vb2: drop VB2_BUF_STATE_PREPARED, use bool
- prepared/synced instead
-Message-ID: <20180813083019.16c087d5@coco.lan>
-In-Reply-To: <20180804124526.46206-20-hverkuil@xs4all.nl>
+Subject: Re: [PATCHv17 34/34] RFC: media-requests: add debugfs node
+Message-ID: <20180814044335.2fe6ccd8@coco.lan>
+In-Reply-To: <94a90503-2b0b-5f50-0409-486a46ccb58d@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-20-hverkuil@xs4all.nl>
+        <20180804124526.46206-35-hverkuil@xs4all.nl>
+        <20180813121526.69976228@coco.lan>
+        <94a90503-2b0b-5f50-0409-486a46ccb58d@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  4 Aug 2018 14:45:11 +0200
+Em Tue, 14 Aug 2018 09:33:16 +0200
 Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->=20
-> The PREPARED state becomes a problem with the request API: a buffer
-> could be PREPARED but dequeued, or PREPARED and in state IN_REQUEST.
->=20
-> PREPARED is really not a state as such, but more a property of the
-> buffer. So make new 'prepared' and 'synced' bools instead to remember
-> whether the buffer is prepared and/or synced or not.
->=20
-> V4L2_BUF_FLAG_PREPARED is only set if the buffer is both synced and
-> prepared and in the DEQUEUED state.
->=20
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../media/common/videobuf2/videobuf2-core.c   | 38 +++++++++++++------
->  .../media/common/videobuf2/videobuf2-v4l2.c   | 16 +++++---
->  include/media/videobuf2-core.h                |  6 ++-
->  3 files changed, 40 insertions(+), 20 deletions(-)
->=20
-> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/me=
-dia/common/videobuf2/videobuf2-core.c
-> index 7401a17c80ca..eead693ba619 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> @@ -682,7 +682,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_me=
-mory memory,
->  		}
-> =20
->  		/*
-> -		 * Call queue_cancel to clean up any buffers in the PREPARED or
-> +		 * Call queue_cancel to clean up any buffers in the
->  		 * QUEUED state which is possible if buffers were prepared or
->  		 * queued without ever calling STREAMON.
->  		 */
-> @@ -921,6 +921,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_=
-buffer_state state)
->  		/* sync buffers */
->  		for (plane =3D 0; plane < vb->num_planes; ++plane)
->  			call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-> +		vb->synced =3D false;
+> On 13/08/18 17:15, Mauro Carvalho Chehab wrote:
+> > Em Sat,  4 Aug 2018 14:45:26 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Keep track of the number of requests and request objects of a media
+> >> device. Helps to verify that all request-related memory is freed.
 
-Shouldn't be prepared cleaned as well on reqbufs?
+Ok. So, let's skip it on your next patchset. Debugfs can
+be added any time after the requests API main patchset gets merged.
 
->  	}
-> =20
->  	spin_lock_irqsave(&q->done_lock, flags);
-> @@ -1239,6 +1240,7 @@ static void __enqueue_in_driver(struct vb2_buffer *=
-vb)
->  static int __buf_prepare(struct vb2_buffer *vb)
->  {
->  	struct vb2_queue *q =3D vb->vb2_queue;
-> +	enum vb2_buffer_state orig_state =3D vb->state;
->  	unsigned int plane;
->  	int ret;
-> =20
-> @@ -1247,6 +1249,10 @@ static int __buf_prepare(struct vb2_buffer *vb)
->  		return -EIO;
->  	}
-> =20
-> +	if (vb->prepared)
-> +		return 0;
-> +	WARN_ON(vb->synced);
-> +
->  	vb->state =3D VB2_BUF_STATE_PREPARING;
-> =20
->  	switch (q->memory) {
-
-> @@ -1262,11 +1268,12 @@ static int __buf_prepare(struct vb2_buffer *vb)
->  	default:
->  		WARN(1, "Invalid queue type\n");
->  		ret =3D -EINVAL;
-> +		break;
->  	}
-
-Hmm... is this hunk a bug fix? if so, please split into a separate patch
-and add a c/c stable.
-
-> =20
->  	if (ret) {
->  		dprintk(1, "buffer preparation failed: %d\n", ret);
-> -		vb->state =3D VB2_BUF_STATE_DEQUEUED;
-> +		vb->state =3D orig_state;
->  		return ret;
->  	}
-> =20
-> @@ -1274,7 +1281,9 @@ static int __buf_prepare(struct vb2_buffer *vb)
->  	for (plane =3D 0; plane < vb->num_planes; ++plane)
->  		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
-> =20
-> -	vb->state =3D VB2_BUF_STATE_PREPARED;
-> +	vb->synced =3D true;
-> +	vb->prepared =3D true;
-> +	vb->state =3D orig_state;
-> =20
->  	return 0;
->  }
-> @@ -1290,6 +1299,10 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsi=
-gned int index, void *pb)
->  			vb->state);
->  		return -EINVAL;
->  	}
-> +	if (vb->prepared) {
-> +		dprintk(1, "buffer already prepared\n");
-> +		return -EINVAL;
-> +	}
-> =20
->  	ret =3D __buf_prepare(vb);
->  	if (ret)
-> @@ -1381,11 +1394,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned i=
-nt index, void *pb)
-> =20
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_DEQUEUED:
-> -		ret =3D __buf_prepare(vb);
-> -		if (ret)
-> -			return ret;
-> -		break;
-> -	case VB2_BUF_STATE_PREPARED:
-> +		if (!vb->prepared) {
-> +			ret =3D __buf_prepare(vb);
-> +			if (ret)
-> +				return ret;
-> +		}
->  		break;
->  	case VB2_BUF_STATE_PREPARING:
->  		dprintk(1, "buffer still being prepared\n");
-> @@ -1611,6 +1624,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned in=
-t *pindex, void *pb,
->  	}
-> =20
->  	call_void_vb_qop(vb, buf_finish, vb);
-> +	vb->prepared =3D false;
-> =20
->  	if (pindex)
->  		*pindex =3D vb->index;
-> @@ -1699,18 +1713,18 @@ static void __vb2_queue_cancel(struct vb2_queue *=
-q)
->  	for (i =3D 0; i < q->num_buffers; ++i) {
->  		struct vb2_buffer *vb =3D q->bufs[i];
-> =20
-> -		if (vb->state =3D=3D VB2_BUF_STATE_PREPARED ||
-> -		    vb->state =3D=3D VB2_BUF_STATE_QUEUED) {
-> +		if (vb->synced) {
->  			unsigned int plane;
-> =20
->  			for (plane =3D 0; plane < vb->num_planes; ++plane)
->  				call_void_memop(vb, finish,
->  						vb->planes[plane].mem_priv);
-> +			vb->synced =3D false;
->  		}
-> =20
-> -		if (vb->state !=3D VB2_BUF_STATE_DEQUEUED) {
-> -			vb->state =3D VB2_BUF_STATE_PREPARED;
-> +		if (vb->prepared) {
->  			call_void_vb_qop(vb, buf_finish, vb);
-> +			vb->prepared =3D false;
->  		}
->  		__vb2_dqbuf(vb);
->  	}
-> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/me=
-dia/common/videobuf2/videobuf2-v4l2.c
-> index 360dc4e7d413..a677e2c26247 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
-> @@ -352,9 +352,13 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue=
- *q, struct v4l2_buffer *b,
->  	if (ret)
->  		return ret;
-> =20
-> -	/* Copy relevant information provided by the userspace */
-> -	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
-> -	return vb2_fill_vb2_v4l2_buffer(vb, b);
-> +	if (!vb->prepared) {
-> +		/* Copy relevant information provided by the userspace */
-> +		memset(vbuf->planes, 0,
-> +		       sizeof(vbuf->planes[0]) * vb->num_planes);
-> +		ret =3D vb2_fill_vb2_v4l2_buffer(vb, b);
-> +	}
-> +	return ret;
->  }
-> =20
->  /*
-> @@ -443,9 +447,6 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,=
- void *pb)
->  	case VB2_BUF_STATE_DONE:
->  		b->flags |=3D V4L2_BUF_FLAG_DONE;
->  		break;
-> -	case VB2_BUF_STATE_PREPARED:
-> -		b->flags |=3D V4L2_BUF_FLAG_PREPARED;
-> -		break;
->  	case VB2_BUF_STATE_PREPARING:
->  	case VB2_BUF_STATE_DEQUEUED:
->  	case VB2_BUF_STATE_REQUEUEING:
-> @@ -453,6 +454,9 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,=
- void *pb)
->  		break;
->  	}
-> =20
-> +	if (vb->state =3D=3D VB2_BUF_STATE_DEQUEUED && vb->synced && vb->prepar=
-ed)
-> +		b->flags |=3D V4L2_BUF_FLAG_PREPARED;
-> +
->  	if (vb2_buffer_in_use(q, vb))
->  		b->flags |=3D V4L2_BUF_FLAG_MAPPED;
-> =20
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-cor=
-e.h
-> index 224c4820a044..5e760d5f280a 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -204,7 +204,6 @@ enum vb2_io_modes {
->   * enum vb2_buffer_state - current video buffer state.
->   * @VB2_BUF_STATE_DEQUEUED:	buffer under userspace control.
->   * @VB2_BUF_STATE_PREPARING:	buffer is being prepared in videobuf.
-> - * @VB2_BUF_STATE_PREPARED:	buffer prepared in videobuf and by the drive=
-r.
->   * @VB2_BUF_STATE_QUEUED:	buffer queued in videobuf, but not in driver.
->   * @VB2_BUF_STATE_REQUEUEING:	re-queue a buffer to the driver.
->   * @VB2_BUF_STATE_ACTIVE:	buffer queued in driver and possibly used
-> @@ -218,7 +217,6 @@ enum vb2_io_modes {
->  enum vb2_buffer_state {
->  	VB2_BUF_STATE_DEQUEUED,
->  	VB2_BUF_STATE_PREPARING,
-> -	VB2_BUF_STATE_PREPARED,
->  	VB2_BUF_STATE_QUEUED,
->  	VB2_BUF_STATE_REQUEUEING,
->  	VB2_BUF_STATE_ACTIVE,
-> @@ -250,6 +248,8 @@ struct vb2_buffer {
->  	/* private: internal use only
->  	 *
->  	 * state:		current buffer state; do not change
-> +	 * synced:		this buffer has been synced
-> +	 * prepared:		this buffer has been prepared
-
-Please describe better what "prepared" and "synced" means, as
-the above doesn't really help.
-
-=46rom what I got:
-
-	- "prepared" means that buf_prepare() was called and
-	  vidioc_dqbuf() (nor cancel) was not called;
-	- "sync" means that the buf_prepare() was called
-	  and the v4l2_buffer_done() (nor cancel)
-
-right?
-
-
->  	 * queued_entry:	entry on the queued buffers list, which holds
->  	 *			all buffers queued from userspace
->  	 * done_entry:		entry on the list that stores all buffers ready
-> @@ -257,6 +257,8 @@ struct vb2_buffer {
->  	 * vb2_plane:		per-plane information; do not change
->  	 */
->  	enum vb2_buffer_state	state;
-> +	bool			synced;
-> +	bool			prepared;
-> =20
->  	struct vb2_plane	planes[VB2_MAX_PLANES];
->  	struct list_head	queued_entry;
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>  
+> > 
+> > 
+> >   
+> >> ---
+> >>  drivers/media/media-device.c  | 41 +++++++++++++++++++++++++++++++++++
+> >>  drivers/media/media-devnode.c | 17 +++++++++++++++
+> >>  drivers/media/media-request.c |  5 +++++
+> >>  include/media/media-device.h  | 11 ++++++++++
+> >>  include/media/media-devnode.h |  4 ++++
+> >>  include/media/media-request.h |  2 ++
+> >>  6 files changed, 80 insertions(+)
+> >>
+> >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> >> index 4b9a8de05562..28a891b53886 100644
+> >> --- a/drivers/media/media-device.c
+> >> +++ b/drivers/media/media-device.c
+> >> @@ -691,6 +691,23 @@ void media_device_unregister_entity(struct media_entity *entity)
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+> >>  
+> >> +#ifdef CONFIG_DEBUG_FS  
+> > 
+> > Patch itself looks good. Yet, perhaps we could request both
+> > CONFIG_DEBUG_FS and CONFIG_VIDEO_ADV_DEBUG.
+> > 
+> > Also, instead of ifdef, please use IS_ENABLED for DEBUG_FS. That tends
+> > to be safer long term.
+> > 
+> > With that:
+> > 
+> > Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  
+> 
+> I don't intend to merge this patch yet. I'm not happy with it: I would
+> really like to count the objects per-request instead of globally, and
+> provide some more information about requests and their objects.
+> 
+> It was really a quick hack so that I could verify that all requests and
+> objects are properly freed.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >   
+> >> +/*
+> >> + * Log the state of media requests.
+> >> + * Very useful for debugging.
+> >> + */
+> >> +static int media_device_requests(struct seq_file *file, void *priv)
+> >> +{
+> >> +	struct media_device *dev = dev_get_drvdata(file->private);
+> >> +
+> >> +	seq_printf(file, "number of requests: %d\n",
+> >> +		   atomic_read(&dev->num_requests));
+> >> +	seq_printf(file, "number of request objects: %d\n",
+> >> +		   atomic_read(&dev->num_request_objects));
+> >> +	return 0;
+> >> +}
+> >> +#endif
+> >> +
+> >>  /**
+> >>   * media_device_init() - initialize a media device
+> >>   * @mdev:	The media device
+> >> @@ -713,6 +730,9 @@ void media_device_init(struct media_device *mdev)
+> >>  	mutex_init(&mdev->graph_mutex);
+> >>  	ida_init(&mdev->entity_internal_idx);
+> >>  
+> >> +	atomic_set(&mdev->num_requests, 0);
+> >> +	atomic_set(&mdev->num_request_objects, 0);
+> >> +
+> >>  	dev_dbg(mdev->dev, "Media device initialized\n");
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(media_device_init);
+> >> @@ -764,6 +784,26 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >>  
+> >>  	dev_dbg(mdev->dev, "Media device registered\n");
+> >>  
+> >> +#ifdef CONFIG_DEBUG_FS
+> >> +	if (!media_top_dir)
+> >> +		return 0;
+> >> +
+> >> +	mdev->media_dir = debugfs_create_dir(dev_name(&devnode->dev),
+> >> +					     media_top_dir);
+> >> +	if (IS_ERR_OR_NULL(mdev->media_dir)) {
+> >> +		dev_warn(mdev->dev, "Failed to create debugfs dir\n");
+> >> +		return 0;
+> >> +	}
+> >> +	mdev->requests_file = debugfs_create_devm_seqfile(&devnode->dev,
+> >> +		"requests", mdev->media_dir, media_device_requests);
+> >> +	if (IS_ERR_OR_NULL(mdev->requests_file)) {
+> >> +		dev_warn(mdev->dev, "Failed to create requests file\n");
+> >> +		debugfs_remove_recursive(mdev->media_dir);
+> >> +		mdev->media_dir = NULL;
+> >> +		return 0;
+> >> +	}
+> >> +#endif
+> >> +
+> >>  	return 0;
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(__media_device_register);
+> >> @@ -841,6 +881,7 @@ void media_device_unregister(struct media_device *mdev)
+> >>  
+> >>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+> >>  
+> >> +	debugfs_remove_recursive(mdev->media_dir);
+> >>  	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+> >>  	media_devnode_unregister(mdev->devnode);
+> >>  	/* devnode free is handled in media_devnode_*() */
+> >> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> >> index 6b87a721dc49..4358ed22f208 100644
+> >> --- a/drivers/media/media-devnode.c
+> >> +++ b/drivers/media/media-devnode.c
+> >> @@ -53,6 +53,12 @@ static dev_t media_dev_t;
+> >>  static DEFINE_MUTEX(media_devnode_lock);
+> >>  static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
+> >>  
+> >> +/*
+> >> + * debugfs
+> >> + */
+> >> +struct dentry *media_top_dir;
+> >> +
+> >> +
+> >>  /* Called when the last user of the media device exits. */
+> >>  static void media_devnode_release(struct device *cd)
+> >>  {
+> >> @@ -259,6 +265,8 @@ int __must_check media_devnode_register(struct media_device *mdev,
+> >>  		goto cdev_add_error;
+> >>  	}
+> >>  
+> >> +	dev_set_drvdata(&devnode->dev, mdev);
+> >> +
+> >>  	/* Part 4: Activate this minor. The char device can now be used. */
+> >>  	set_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+> >>  
+> >> @@ -310,6 +318,14 @@ static int __init media_devnode_init(void)
+> >>  		return ret;
+> >>  	}
+> >>  
+> >> +#ifdef CONFIG_DEBUG_FS
+> >> +	media_top_dir = debugfs_create_dir("media", NULL);
+> >> +	if (IS_ERR_OR_NULL(media_top_dir)) {
+> >> +		pr_warn("Failed to create debugfs media dir\n");
+> >> +		media_top_dir = NULL;
+> >> +	}
+> >> +#endif
+> >> +
+> >>  	ret = bus_register(&media_bus_type);
+> >>  	if (ret < 0) {
+> >>  		unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
+> >> @@ -322,6 +338,7 @@ static int __init media_devnode_init(void)
+> >>  
+> >>  static void __exit media_devnode_exit(void)
+> >>  {
+> >> +	debugfs_remove_recursive(media_top_dir);
+> >>  	bus_unregister(&media_bus_type);
+> >>  	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
+> >>  }
+> >> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> >> index a5b70a4e613b..8ba97a9c4bf1 100644
+> >> --- a/drivers/media/media-request.c
+> >> +++ b/drivers/media/media-request.c
+> >> @@ -72,6 +72,7 @@ static void media_request_release(struct kref *kref)
+> >>  		mdev->ops->req_free(req);
+> >>  	else
+> >>  		kfree(req);
+> >> +	atomic_dec(&mdev->num_requests);
+> >>  }
+> >>  
+> >>  void media_request_put(struct media_request *req)
+> >> @@ -318,6 +319,7 @@ int media_request_alloc(struct media_device *mdev,
+> >>  	get_task_comm(comm, current);
+> >>  	snprintf(req->debug_str, sizeof(req->debug_str), "%s:%d",
+> >>  		 comm, fd);
+> >> +	atomic_inc(&mdev->num_requests);
+> >>  	dev_dbg(mdev->dev, "request: allocated %s\n", req->debug_str);
+> >>  
+> >>  	fd_install(fd, filp);
+> >> @@ -342,6 +344,7 @@ static void media_request_object_release(struct kref *kref)
+> >>  	if (WARN_ON(req))
+> >>  		media_request_object_unbind(obj);
+> >>  	obj->ops->release(obj);
+> >> +	atomic_dec(&obj->mdev->num_request_objects);
+> >>  }
+> >>  
+> >>  struct media_request_object *
+> >> @@ -405,10 +408,12 @@ int media_request_object_bind(struct media_request *req,
+> >>  	obj->req = req;
+> >>  	obj->ops = ops;
+> >>  	obj->priv = priv;
+> >> +	obj->mdev = req->mdev;
+> >>  
+> >>  	list_add_tail(&obj->list, &req->objects);
+> >>  	req->num_incomplete_objects++;
+> >>  	ret = 0;
+> >> +	atomic_inc(&obj->mdev->num_request_objects);
+> >>  
+> >>  unlock:
+> >>  	spin_unlock_irqrestore(&req->lock, flags);
+> >> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> >> index 110b89567671..2de0606938d4 100644
+> >> --- a/include/media/media-device.h
+> >> +++ b/include/media/media-device.h
+> >> @@ -21,6 +21,7 @@
+> >>  
+> >>  #include <linux/list.h>
+> >>  #include <linux/mutex.h>
+> >> +#include <linux/atomic.h>
+> >>  
+> >>  #include <media/media-devnode.h>
+> >>  #include <media/media-entity.h>
+> >> @@ -107,6 +108,10 @@ struct media_device_ops {
+> >>   * @ops:	Operation handler callbacks
+> >>   * @req_queue_mutex: Serialise the MEDIA_REQUEST_IOC_QUEUE ioctl w.r.t.
+> >>   *		     other operations that stop or start streaming.
+> >> + * @num_requests: number of associated requests
+> >> + * @num_request_objects: number of associated request objects
+> >> + * @media_dir:	DebugFS media directory
+> >> + * @requests_file: DebugFS requests file
+> >>   *
+> >>   * This structure represents an abstract high-level media device. It allows easy
+> >>   * access to entities and provides basic media device-level support. The
+> >> @@ -179,6 +184,12 @@ struct media_device {
+> >>  	const struct media_device_ops *ops;
+> >>  
+> >>  	struct mutex req_queue_mutex;
+> >> +	atomic_t num_requests;
+> >> +	atomic_t num_request_objects;
+> >> +
+> >> +	/* debugfs */
+> >> +	struct dentry *media_dir;
+> >> +	struct dentry *requests_file;
+> >>  };
+> >>  
+> >>  /* We don't need to include pci.h or usb.h here */
+> >> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> >> index dc2f64e1b08f..984b62b634d3 100644
+> >> --- a/include/media/media-devnode.h
+> >> +++ b/include/media/media-devnode.h
+> >> @@ -28,9 +28,13 @@
+> >>  #include <linux/fs.h>
+> >>  #include <linux/device.h>
+> >>  #include <linux/cdev.h>
+> >> +#include <linux/debugfs.h>
+> >>  
+> >>  struct media_device;
+> >>  
+> >> +/* DebugFS top-level media directory */
+> >> +extern struct dentry *media_top_dir;
+> >> +
+> >>  /*
+> >>   * Flag to mark the media_devnode struct as registered. Drivers must not touch
+> >>   * this flag directly, it will be set and cleared by media_devnode_register and
+> >> diff --git a/include/media/media-request.h b/include/media/media-request.h
+> >> index fd08d7a431a1..76727d4a89c3 100644
+> >> --- a/include/media/media-request.h
+> >> +++ b/include/media/media-request.h
+> >> @@ -210,6 +210,7 @@ struct media_request_object_ops {
+> >>   * struct media_request_object - An opaque object that belongs to a media
+> >>   *				 request
+> >>   *
+> >> + * @mdev: Media device this object belongs to
+> >>   * @ops: object's operations
+> >>   * @priv: object's priv pointer
+> >>   * @req: the request this object belongs to (can be NULL)
+> >> @@ -221,6 +222,7 @@ struct media_request_object_ops {
+> >>   * another struct that contains the actual data for this request object.
+> >>   */
+> >>  struct media_request_object {
+> >> +	struct media_device *mdev;
+> >>  	const struct media_request_object_ops *ops;
+> >>  	void *priv;
+> >>  	struct media_request *req;  
+> > 
+> > 
+> > 
+> > Thanks,
+> > Mauro
+> >   
+> 
 
 
 
