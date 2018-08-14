@@ -1,16 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45664 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732780AbeHNRIN (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:48413 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732773AbeHNRIM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 13:08:13 -0400
+        Tue, 14 Aug 2018 13:08:12 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCHv18 08/35] v4l2-dev: lock req_queue_mutex
-Date: Tue, 14 Aug 2018 16:20:20 +0200
-Message-Id: <20180814142047.93856-9-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv18 06/35] media-request: add media_request_object_find
+Date: Tue, 14 Aug 2018 16:20:18 +0200
+Message-Id: <20180814142047.93856-7-hverkuil@xs4all.nl>
 In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,102 +17,106 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-We need to serialize streamon/off with queueing new requests.
-These ioctls may trigger the cancellation of a streaming
-operation, and that should not be mixed with queuing a new
-request at the same time.
+Add media_request_object_find to find a request object inside a
+request based on ops and priv values.
 
-Finally close() needs this lock since that too can trigger the
-cancellation of a streaming operation.
+Objects of the same type (vb2 buffer, control handler) will have
+the same ops value. And objects that refer to the same 'parent'
+object (e.g. the v4l2_ctrl_handler that has the current driver
+state) will have the same priv value.
 
-We take the req_queue_mutex here before any other locks since
-it is a very high-level lock.
+The caller has to call media_request_object_put() for the returned
+object since this function increments the refcount.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-dev.c   | 18 ++++++++++++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c | 22 +++++++++++++++++++++-
- 2 files changed, 37 insertions(+), 3 deletions(-)
+ drivers/media/media-request.c | 25 +++++++++++++++++++++++++
+ include/media/media-request.h | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 69e775930fc4..feb749aaaa42 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -444,8 +444,22 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 	struct video_device *vdev = video_devdata(filp);
- 	int ret = 0;
- 
--	if (vdev->fops->release)
--		ret = vdev->fops->release(filp);
-+	/*
-+	 * We need to serialize the release() with queueing new requests.
-+	 * The release() may trigger the cancellation of a streaming
-+	 * operation, and that should not be mixed with queueing a new
-+	 * request at the same time.
-+	 */
-+	if (vdev->fops->release) {
-+		if (v4l2_device_supports_requests(vdev->v4l2_dev)) {
-+			mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-+			ret = vdev->fops->release(filp);
-+			mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-+		} else {
-+			ret = vdev->fops->release(filp);
-+		}
-+	}
-+
- 	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
- 		dprintk("%s: release\n",
- 			video_device_node_name(vdev));
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 54afc9c7ee6e..ea475d833dd6 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2780,6 +2780,7 @@ static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
-+	struct mutex *req_queue_lock = NULL;
- 	struct mutex *lock; /* ioctl serialization mutex */
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	bool write_only = false;
-@@ -2799,10 +2800,27 @@ static long __video_do_ioctl(struct file *file,
- 	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
- 		vfh = file->private_data;
- 
-+	/*
-+	 * We need to serialize streamon/off with queueing new requests.
-+	 * These ioctls may trigger the cancellation of a streaming
-+	 * operation, and that should not be mixed with queueing a new
-+	 * request at the same time.
-+	 */
-+	if (v4l2_device_supports_requests(vfd->v4l2_dev) &&
-+	    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF)) {
-+		req_queue_lock = &vfd->v4l2_dev->mdev->req_queue_mutex;
-+
-+		if (mutex_lock_interruptible(req_queue_lock))
-+			return -ERESTARTSYS;
-+	}
-+
- 	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
- 
--	if (lock && mutex_lock_interruptible(lock))
-+	if (lock && mutex_lock_interruptible(lock)) {
-+		if (req_queue_lock)
-+			mutex_unlock(req_queue_lock);
- 		return -ERESTARTSYS;
-+	}
- 
- 	if (!video_is_registered(vfd)) {
- 		ret = -ENODEV;
-@@ -2861,6 +2879,8 @@ static long __video_do_ioctl(struct file *file,
- unlock:
- 	if (lock)
- 		mutex_unlock(lock);
-+	if (req_queue_lock)
-+		mutex_unlock(req_queue_lock);
- 	return ret;
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index 8d3c7360c8f3..4b0ce8fde7c9 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -342,6 +342,31 @@ static void media_request_object_release(struct kref *kref)
+ 	obj->ops->release(obj);
  }
  
++struct media_request_object *
++media_request_object_find(struct media_request *req,
++			  const struct media_request_object_ops *ops,
++			  void *priv)
++{
++	struct media_request_object *obj;
++	struct media_request_object *found = NULL;
++	unsigned long flags;
++
++	if (WARN_ON(!ops || !priv))
++		return NULL;
++
++	spin_lock_irqsave(&req->lock, flags);
++	list_for_each_entry(obj, &req->objects, list) {
++		if (obj->ops == ops && obj->priv == priv) {
++			media_request_object_get(obj);
++			found = obj;
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&req->lock, flags);
++	return found;
++}
++EXPORT_SYMBOL_GPL(media_request_object_find);
++
+ void media_request_object_put(struct media_request_object *obj)
+ {
+ 	kref_put(&obj->kref, media_request_object_release);
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index 1c3e5d804d07..ac02019c1d77 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -253,6 +253,26 @@ static inline void media_request_object_get(struct media_request_object *obj)
+  */
+ void media_request_object_put(struct media_request_object *obj);
+ 
++/**
++ * media_request_object_find - Find an object in a request
++ *
++ * @req: The media request
++ * @ops: Find an object with this ops value
++ * @priv: Find an object with this priv value
++ *
++ * Both @ops and @priv must be non-NULL.
++ *
++ * Returns the object pointer or NULL if not found. The caller must
++ * call media_request_object_put() once it finished using the object.
++ *
++ * Since this function needs to walk the list of objects it takes
++ * the @req->lock spin lock to make this safe.
++ */
++struct media_request_object *
++media_request_object_find(struct media_request *req,
++			  const struct media_request_object_ops *ops,
++			  void *priv);
++
+ /**
+  * media_request_object_init - Initialise a media request object
+  *
+@@ -331,6 +351,14 @@ static inline void media_request_object_put(struct media_request_object *obj)
+ {
+ }
+ 
++static inline struct media_request_object *
++media_request_object_find(struct media_request *req,
++			  const struct media_request_object_ops *ops,
++			  void *priv)
++{
++	return NULL;
++}
++
+ static inline void media_request_object_init(struct media_request_object *obj)
+ {
+ 	obj->ops = NULL;
 -- 
 2.18.0
