@@ -1,150 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:48054 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726894AbeHIW3j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Aug 2018 18:29:39 -0400
-Date: Thu, 9 Aug 2018 17:03:11 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCHv17 08/34] v4l2-dev: lock req_queue_mutex
-Message-ID: <20180809170311.31dec60b@coco.lan>
-In-Reply-To: <20180804124526.46206-9-hverkuil@xs4all.nl>
-References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-9-hverkuil@xs4all.nl>
+Received: from mx2.suse.de ([195.135.220.15]:42330 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727689AbeHNLQf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Aug 2018 07:16:35 -0400
+Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+        boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        koji.matsuoka.xm@renesas.com
+Cc: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180731093142.3828-1-andr2000@gmail.com>
+ <20180731093142.3828-2-andr2000@gmail.com>
+From: Juergen Gross <jgross@suse.com>
+Message-ID: <99cd131d-85ae-bbfb-61ef-fdc0401727f6@suse.com>
+Date: Tue, 14 Aug 2018 10:30:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180731093142.3828-2-andr2000@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-DE
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  4 Aug 2018 14:45:00 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 31/07/18 11:31, Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+> 
+> This is the ABI for the two halves of a para-virtualized
+> camera driver which extends Xen's reach multimedia capabilities even
+> farther enabling it for video conferencing, In-Vehicle Infotainment,
+> high definition maps etc.
+> 
+> The initial goal is to support most needed functionality with the
+> final idea to make it possible to extend the protocol if need be:
+> 
+> 1. Provide means for base virtual device configuration:
+>  - pixel formats
+>  - resolutions
+>  - frame rates
+> 2. Support basic camera controls:
+>  - contrast
+>  - brightness
+>  - hue
+>  - saturation
+> 3. Support streaming control
+> 4. Support zero-copying use-cases
+> 
+> Signed-off-by: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> We need to serialize streamon/off with queueing new requests.
-> These ioctls may trigger the cancellation of a streaming
-> operation, and that should not be mixed with queuing a new
-> request at the same time.
-> 
-> Finally close() needs this lock since that too can trigger the
-> cancellation of a streaming operation.
-> 
-> We take the req_queue_mutex here before any other locks since
-> it is a very high-level lock.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Some style issues below...
+
 > ---
->  drivers/media/v4l2-core/v4l2-dev.c   | 13 +++++++++++++
->  drivers/media/v4l2-core/v4l2-ioctl.c | 22 +++++++++++++++++++++-
->  2 files changed, 34 insertions(+), 1 deletion(-)
+>  xen/include/public/io/cameraif.h | 981 +++++++++++++++++++++++++++++++
+>  1 file changed, 981 insertions(+)
+>  create mode 100644 xen/include/public/io/cameraif.h
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 69e775930fc4..53018e4a4c78 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -444,8 +444,21 @@ static int v4l2_release(struct inode *inode, struct file *filp)
->  	struct video_device *vdev = video_devdata(filp);
->  	int ret = 0;
->  
-> +	/*
-> +	 * We need to serialize the release() with queueing new requests.
-> +	 * The release() may trigger the cancellation of a streaming
-> +	 * operation, and that should not be mixed with queueing a new
-> +	 * request at the same time.
-> +	 */
-> +	if (v4l2_device_supports_requests(vdev->v4l2_dev))
-> +		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
+> diff --git a/xen/include/public/io/cameraif.h b/xen/include/public/io/cameraif.h
+> new file mode 100644
+> index 000000000000..bdc6a1262fcf
+> --- /dev/null
+> +++ b/xen/include/public/io/cameraif.h
+
+> +struct xencamera_config {
+> +    uint32_t pixel_format;
+> +    uint32_t width;
+> +    uint32_t height;
+> +    uint32_t frame_rate_nom;
+> +    uint32_t frame_rate_denom;
+> +    uint8_t num_bufs;
+
+Add explicit padding?
+
+> +};
+
+> +struct xencamera_req {
+> +    uint16_t id;
+> +    uint8_t operation;
+> +    uint8_t reserved[5];
+> +    union {
+> +        struct xencamera_config config;
+> +        struct xencamera_buf_create_req buf_create;
+> +	struct xencamera_buf_destroy_req buf_destroy;
+> +	struct xencamera_set_ctrl_req set_ctrl;
+
+No tabs, please.
+
+> +        uint8_t reserved[56];
+> +    } req;
+> +};
 > +
->  	if (vdev->fops->release)
->  		ret = vdev->fops->release(filp);
-> +
-> +	if (v4l2_device_supports_requests(vdev->v4l2_dev))
-> +		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-> +
+> +struct xencamera_resp {
+> +    uint16_t id;
+> +    uint8_t operation;
+> +    uint8_t reserved;
+> +    int32_t status;
+> +    union {
+> +        struct xencamera_config config;
+> +        struct xencamera_buf_details_resp buf_details;
+> +	struct xencamera_get_ctrl_details_resp ctrl_details;
 
-This will very likely generate sparse warnings. See my discussions
-with that regards with Linus.
+Tab again.
 
-The only way to avoid it would be to do something like:
-
-	if (v4l2_device_supports_requests(vdev->v4l2_dev)) {
-		mutex_lock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-	 	if (vdev->fops->release)
-			ret = vdev->fops->release(filp);
-		mutex_unlock(&vdev->v4l2_dev->mdev->req_queue_mutex);
-	} else {
-	 	if (vdev->fops->release)
-			ret = vdev->fops->release(filp);
-	}
-
->  	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
->  		dprintk("%s: release\n",
->  			video_device_node_name(vdev));
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 54afc9c7ee6e..ea475d833dd6 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2780,6 +2780,7 @@ static long __video_do_ioctl(struct file *file,
->  		unsigned int cmd, void *arg)
->  {
->  	struct video_device *vfd = video_devdata(file);
-> +	struct mutex *req_queue_lock = NULL;
->  	struct mutex *lock; /* ioctl serialization mutex */
->  	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
->  	bool write_only = false;
-> @@ -2799,10 +2800,27 @@ static long __video_do_ioctl(struct file *file,
->  	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
->  		vfh = file->private_data;
->  
-> +	/*
-> +	 * We need to serialize streamon/off with queueing new requests.
-> +	 * These ioctls may trigger the cancellation of a streaming
-> +	 * operation, and that should not be mixed with queueing a new
-> +	 * request at the same time.
-> +	 */
-> +	if (v4l2_device_supports_requests(vfd->v4l2_dev) &&
-> +	    (cmd == VIDIOC_STREAMON || cmd == VIDIOC_STREAMOFF)) {
-> +		req_queue_lock = &vfd->v4l2_dev->mdev->req_queue_mutex;
-> +
-> +		if (mutex_lock_interruptible(req_queue_lock))
-> +			return -ERESTARTSYS;
-> +	}
-> +
->  	lock = v4l2_ioctl_get_lock(vfd, vfh, cmd, arg);
->  
-> -	if (lock && mutex_lock_interruptible(lock))
-> +	if (lock && mutex_lock_interruptible(lock)) {
-> +		if (req_queue_lock)
-> +			mutex_unlock(req_queue_lock);
->  		return -ERESTARTSYS;
-> +	}
-
-Same applies here.
-
->  
->  	if (!video_is_registered(vfd)) {
->  		ret = -ENODEV;
-> @@ -2861,6 +2879,8 @@ static long __video_do_ioctl(struct file *file,
->  unlock:
->  	if (lock)
->  		mutex_unlock(lock);
-> +	if (req_queue_lock)
-> +		mutex_unlock(req_queue_lock);
-
-This code looks really weird! are you locking in order to get a
-lock pointer?
-
-That seems broken by design.
-
->  	return ret;
->  }
->  
+> +        uint8_t reserved1[56];
+> +    } resp;
+> +};
 
 
-
-Thanks,
-Mauro
+Juergen
