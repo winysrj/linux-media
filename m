@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f180.google.com ([209.85.220.180]:46144 "EHLO
-        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726297AbeHWVIN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 17:08:13 -0400
-Received: by mail-qk0-f180.google.com with SMTP id j7-v6so4132721qkd.13
-        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2018 10:37:27 -0700 (PDT)
-Message-ID: <f4d1e18a6552446b092cffaa3028e0dfe5432b9a.camel@ndufresne.ca>
-Subject: Re: [RFC] Request API and V4L2 capabilities
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Date: Thu, 23 Aug 2018 13:37:24 -0400
-In-Reply-To: <b46ee744-4c00-7e73-1925-65f2122e30f0@xs4all.nl>
-References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
-         <b46ee744-4c00-7e73-1925-65f2122e30f0@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-563f/p2b4oZSJVthBc45"
-Mime-Version: 1.0
+Received: from mail.intenta.de ([178.249.25.132]:29097 "EHLO mail.intenta.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1730664AbeHNJ0s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Aug 2018 05:26:48 -0400
+Date: Tue, 14 Aug 2018 08:35:40 +0200
+From: Helmut Grohne <h.grohne@intenta.de>
+To: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        <linux-media@vger.kernel.org>
+Subject: why does aptina_pll_calculate insist on exact division?
+Message-ID: <20180814063538.qxgg6ua5z7ta6pwp@laureti-dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---=-563f/p2b4oZSJVthBc45
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I tried using the aptina_pll_calculate for a "new" imager and ran into
+problems. After filling out aptina_pll_limits from the data sheet, I was
+having a hard time finding a valid pix_clock. Most of the ones I tried
+are rejected by aptina_pll_calculate for various reasons. In particular,
+no pix_clock close to pix_clock_max is allowed.
 
-Le jeudi 23 ao=C3=BBt 2018 =C3=A0 16:31 +0200, Hans Verkuil a =C3=A9crit :
-> > I propose adding these capabilities:
-> >=20
-> > #define V4L2_BUF_CAP_HAS_REQUESTS     0x00000001
-> > #define V4L2_BUF_CAP_REQUIRES_REQUESTS        0x00000002
-> > #define V4L2_BUF_CAP_HAS_MMAP         0x00000100
-> > #define V4L2_BUF_CAP_HAS_USERPTR      0x00000200
-> > #define V4L2_BUF_CAP_HAS_DMABUF               0x00000400
->=20
-> I substituted SUPPORTS for HAS and dropped the REQUIRES_REQUESTS capabili=
-ty.
-> As Tomasz mentioned, technically (at least for stateless codecs) you coul=
-d
-> handle just one frame at a time without using requests. It's very ineffic=
-ient,
-> but it would work.
+Why does the calculation method insist on exact division and avoiding
+fractional numbers?
 
-I thought the request was providing a data structure to refer back to
-the frames, so each codec don't have to implement one. Do you mean that
-the framework will implicitly request requests in that mode ? or simply
-that there is no such helper ?
+I'm using an ext_clock of 50 MHz. This clock is derived from a 33 MHz
+clock and the 50 MHz is not attained exactly. Rather it ends up being
+more like 49.999976 Hz. This raises the question, what value I should
+put into ext_clock (or the corresponding device tree property). Should I
+use the requested frequency or the actual frequency? Worse, depending on
+the precise value of the ext_clock, aptina_pll_calculate may or may not
+be able to compute pll parameters.
 
---=-563f/p2b4oZSJVthBc45
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+On the other hand, the manufacturer provided configuration tool happily
+computes pll parameters that result in close, but not exactly, the
+requested pix_clock. In particular, the pll parameters do not
+necessarily result in a whole number. It appears to merely approximate
+the requested frequency.
 
------BEGIN PGP SIGNATURE-----
+Can you explain where the requirement to avoid fractional numbers comes
+from? Would it be reasonable to use a different algorithm that avoids
+this requirement?
 
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW37w1AAKCRBxUwItrAao
-HMsmAJ98lwNYgd4fk0Mk13FqBr0Vo0lY7QCeI6X5vdzloQSEa1tDdDHZgO6wq7Q=
-=jvyy
------END PGP SIGNATURE-----
-
---=-563f/p2b4oZSJVthBc45--
+Helmut
