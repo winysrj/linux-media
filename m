@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43478 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732827AbeHNRIN (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:59309 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732846AbeHNRIO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 13:08:13 -0400
+        Tue, 14 Aug 2018 13:08:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 31/35] v4l2-mem2mem: add vb2_m2m_request_queue
-Date: Tue, 14 Aug 2018 16:20:43 +0200
-Message-Id: <20180814142047.93856-32-hverkuil@xs4all.nl>
+Subject: [PATCHv18 29/35] videobuf2-core: add uses_requests/qbuf flags
+Date: Tue, 14 Aug 2018 16:20:41 +0200
+Message-Id: <20180814142047.93856-30-hverkuil@xs4all.nl>
 In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,136 +17,83 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-For mem2mem devices we have to make sure that v4l2_m2m_try_schedule()
-is called whenever a request is queued.
-
-We do that by creating a vb2_m2m_request_queue() helper that should
-be used instead of the 'normal' vb2_request_queue() helper. The m2m
-helper function will call v4l2_m2m_try_schedule() as needed.
-
-In addition we also avoid calling v4l2_m2m_try_schedule() when preparing
-or queueing a buffer for a request since that is no longer needed.
-Instead this helper function will do that when the request is actually
-queued.
+Set the first time a buffer from a request is queued to vb2
+(uses_requests) or directly queued (uses_qbuf).
+Cleared when the queue is canceled.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c | 63 ++++++++++++++++++++++----
- include/media/v4l2-mem2mem.h           |  4 ++
- 2 files changed, 59 insertions(+), 8 deletions(-)
+ drivers/media/common/videobuf2/videobuf2-core.c | 13 +++++++++++++
+ include/media/videobuf2-core.h                  |  8 ++++++++
+ 2 files changed, 21 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 4de8fa163fd3..d7806db222d8 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -387,7 +387,7 @@ static void v4l2_m2m_cancel_job(struct v4l2_m2m_ctx *m2m_ctx)
- 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
- 		if (m2m_dev->m2m_ops->job_abort)
- 			m2m_dev->m2m_ops->job_abort(m2m_ctx->priv);
--		dprintk("m2m_ctx %p running, will wait to complete", m2m_ctx);
-+		dprintk("m2m_ctx %p running, will wait to complete\n", m2m_ctx);
- 		wait_event(m2m_ctx->finished,
- 				!(m2m_ctx->job_flags & TRANS_RUNNING));
- 	} else if (m2m_ctx->job_flags & TRANS_QUEUED) {
-@@ -478,8 +478,14 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 	int ret;
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index f941bf4bd55f..2dc3fc935f87 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -1491,9 +1491,17 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
  
- 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
-+	if (!V4L2_TYPE_IS_OUTPUT(vq->type) &&
-+	    (buf->flags & V4L2_BUF_FLAG_REQUEST_FD)) {
-+		dprintk("%s: requests cannot be used with capture buffers\n",
-+			__func__);
+ 	vb = q->bufs[index];
+ 
++	if ((req && q->uses_qbuf) ||
++	    (!req && vb->state != VB2_BUF_STATE_IN_REQUEST &&
++	     q->uses_requests)) {
++		dprintk(1, "queue in wrong mode (qbuf vs requests)\n");
 +		return -EPERM;
 +	}
- 	ret = vb2_qbuf(vq, vdev->v4l2_dev->mdev, buf);
--	if (!ret)
-+	if (!ret && !(buf->flags & V4L2_BUF_FLAG_IN_REQUEST))
- 		v4l2_m2m_try_schedule(m2m_ctx);
++
+ 	if (req) {
+ 		int ret;
  
- 	return ret;
-@@ -501,14 +507,9 @@ int v4l2_m2m_prepare_buf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct vb2_queue *vq;
--	int ret;
++		q->uses_requests = 1;
+ 		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+ 			dprintk(1, "buffer %d not in dequeued state\n",
+ 				vb->index);
+@@ -1523,6 +1531,9 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+ 		return 0;
+ 	}
  
- 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
--	ret = vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
--	if (!ret)
--		v4l2_m2m_try_schedule(m2m_ctx);
--
--	return ret;
-+	return vb2_prepare_buf(vq, vdev->v4l2_dev->mdev, buf);
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_prepare_buf);
++	if (vb->state != VB2_BUF_STATE_IN_REQUEST)
++		q->uses_qbuf = 1;
++
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+ 	case VB2_BUF_STATE_IN_REQUEST:
+@@ -1825,6 +1836,8 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	q->start_streaming_called = 0;
+ 	q->queued_count = 0;
+ 	q->error = 0;
++	q->uses_requests = 0;
++	q->uses_qbuf = 0;
  
-@@ -952,6 +953,52 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx,
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_buf_queue);
+ 	/*
+ 	 * Remove all buffers from videobuf's list...
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index a9f2a7eae49a..881f53b38b26 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -472,6 +472,12 @@ struct vb2_buf_ops {
+  * @quirk_poll_must_check_waiting_for_buffers: Return %EPOLLERR at poll when QBUF
+  *              has not been called. This is a vb1 idiom that has been adopted
+  *              also by vb2.
++ * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
++ *		time this is called. Set to 0 when the queue is canceled.
++ *		If this is 1, then you cannot queue buffers from a request.
++ * @uses_requests: requests are used for this queue. Set to 1 the first time
++ *		a request is queued. Set to 0 when the queue is canceled.
++ *		If this is 1, then you cannot queue buffers directly.
+  * @lock:	pointer to a mutex that protects the &struct vb2_queue. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -539,6 +545,8 @@ struct vb2_queue {
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
+ 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
++	unsigned			uses_qbuf:1;
++	unsigned			uses_requests:1;
  
-+void vb2_m2m_request_queue(struct media_request *req)
-+{
-+	struct media_request_object *obj, *obj_safe;
-+	struct v4l2_m2m_ctx *m2m_ctx = NULL;
-+
-+	/*
-+	 * Queue all objects. Note that buffer objects are at the end of the
-+	 * objects list, after all other object types. Once buffer objects
-+	 * are queued, the driver might delete them immediately (if the driver
-+	 * processes the buffer at once), so we have to use
-+	 * list_for_each_entry_safe() to handle the case where the object we
-+	 * queue is deleted.
-+	 */
-+	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
-+		struct v4l2_m2m_ctx *m2m_ctx_obj;
-+		struct vb2_buffer *vb;
-+
-+		if (!obj->ops->queue)
-+			continue;
-+
-+		if (vb2_request_object_is_buffer(obj)) {
-+			/* Sanity checks */
-+			vb = container_of(obj, struct vb2_buffer, req_obj);
-+			WARN_ON(!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type));
-+			m2m_ctx_obj = container_of(vb->vb2_queue,
-+						   struct v4l2_m2m_ctx,
-+						   out_q_ctx.q);
-+			WARN_ON(m2m_ctx && m2m_ctx_obj != m2m_ctx);
-+			m2m_ctx = m2m_ctx_obj;
-+		}
-+
-+		/*
-+		 * The buffer we queue here can in theory be immediately
-+		 * unbound, hence the use of list_for_each_entry_safe()
-+		 * above and why we call the queue op last.
-+		 */
-+		obj->ops->queue(obj);
-+	}
-+
-+	WARN_ON(!m2m_ctx);
-+
-+	if (m2m_ctx)
-+		v4l2_m2m_try_schedule(m2m_ctx);
-+}
-+EXPORT_SYMBOL_GPL(vb2_m2m_request_queue);
-+
- /* Videobuf2 ioctl helpers */
- 
- int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index d655720e16a1..58c1ecf3d648 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -622,6 +622,10 @@ v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
- 	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
- }
- 
-+/* v4l2 request helper */
-+
-+void vb2_m2m_request_queue(struct media_request *req);
-+
- /* v4l2 ioctl helpers */
- 
- int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+ 	struct mutex			*lock;
+ 	void				*owner;
 -- 
 2.18.0
