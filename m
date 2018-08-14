@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43478 "EHLO
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56220 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732791AbeHNRIM (ORCPT
+        by vger.kernel.org with ESMTP id S1732831AbeHNRIO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 13:08:12 -0400
+        Tue, 14 Aug 2018 13:08:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv18 12/35] v4l2-ctrls: alloc memory for p_req
-Date: Tue, 14 Aug 2018 16:20:24 +0200
-Message-Id: <20180814142047.93856-13-hverkuil@xs4all.nl>
+Subject: [PATCHv18 32/35] vim2m: use workqueue
+Date: Tue, 14 Aug 2018 16:20:44 +0200
+Message-Id: <20180814142047.93856-33-hverkuil@xs4all.nl>
 In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
 References: <20180814142047.93856-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,83 +17,109 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-To store request data the handler_new_ref() allocates memory
-for it if needed.
+v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
+interrupt context. Switch to a workqueue instead and drop the timer.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ drivers/media/platform/vim2m.c | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b33a8bee82b0..95e60d7ee32b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2018,13 +2018,18 @@ EXPORT_SYMBOL(v4l2_ctrl_find);
- /* Allocate a new v4l2_ctrl_ref and hook it into the handler. */
- static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 			   struct v4l2_ctrl *ctrl,
--			   bool from_other_dev)
-+			   struct v4l2_ctrl_ref **ctrl_ref,
-+			   bool from_other_dev, bool allocate_req)
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 462099a141e4..6f87ef025ff1 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -3,7 +3,8 @@
+  *
+  * This is a virtual device driver for testing mem-to-mem videobuf framework.
+  * It simulates a device that uses memory buffers for both source and
+- * destination, processes the data and issues an "irq" (simulated by a timer).
++ * destination, processes the data and issues an "irq" (simulated by a delayed
++ * workqueue).
+  * The device is capable of multi-instance, multi-buffer-per-transaction
+  * operation (via the mem2mem framework).
+  *
+@@ -19,7 +20,6 @@
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+-#include <linux/timer.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ 
+@@ -148,7 +148,7 @@ struct vim2m_dev {
+ 	struct mutex		dev_mutex;
+ 	spinlock_t		irqlock;
+ 
+-	struct timer_list	timer;
++	struct delayed_work	work_run;
+ 
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ };
+@@ -336,12 +336,6 @@ static int device_process(struct vim2m_ctx *ctx,
+ 	return 0;
+ }
+ 
+-static void schedule_irq(struct vim2m_dev *dev, int msec_timeout)
+-{
+-	dprintk(dev, "Scheduling a simulated irq\n");
+-	mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
+-}
+-
+ /*
+  * mem2mem callbacks
+  */
+@@ -387,13 +381,14 @@ static void device_run(void *priv)
+ 
+ 	device_process(ctx, src_buf, dst_buf);
+ 
+-	/* Run a timer, which simulates a hardware irq  */
+-	schedule_irq(dev, ctx->transtime);
++	/* Run delayed work, which simulates a hardware irq  */
++	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
+ }
+ 
+-static void device_isr(struct timer_list *t)
++static void device_work(struct work_struct *w)
  {
- 	struct v4l2_ctrl_ref *ref;
- 	struct v4l2_ctrl_ref *new_ref;
- 	u32 id = ctrl->id;
- 	u32 class_ctrl = V4L2_CTRL_ID2WHICH(id) | 1;
- 	int bucket = id % hdl->nr_of_buckets;	/* which bucket to use */
-+	unsigned int size_extra_req = 0;
-+
-+	if (ctrl_ref)
-+		*ctrl_ref = NULL;
+-	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
++	struct vim2m_dev *vim2m_dev =
++		container_of(w, struct vim2m_dev, work_run.work);
+ 	struct vim2m_ctx *curr_ctx;
+ 	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+ 	unsigned long flags;
+@@ -805,6 +800,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+ 	struct vb2_v4l2_buffer *vbuf;
+ 	unsigned long flags;
  
- 	/*
- 	 * Automatically add the control class if it is not yet present and
-@@ -2038,11 +2043,16 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	if (hdl->error)
- 		return hdl->error;
++	flush_scheduled_work();
+ 	for (;;) {
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type))
+ 			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+@@ -1015,6 +1011,7 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	vfd = &dev->vfd;
+ 	vfd->lock = &dev->dev_mutex;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
++	INIT_DELAYED_WORK(&dev->work_run, device_work);
  
--	new_ref = kzalloc(sizeof(*new_ref), GFP_KERNEL);
-+	if (allocate_req)
-+		size_extra_req = ctrl->elems * ctrl->elem_size;
-+	new_ref = kzalloc(sizeof(*new_ref) + size_extra_req, GFP_KERNEL);
- 	if (!new_ref)
- 		return handler_set_err(hdl, -ENOMEM);
- 	new_ref->ctrl = ctrl;
- 	new_ref->from_other_dev = from_other_dev;
-+	if (size_extra_req)
-+		new_ref->p_req.p = &new_ref[1];
-+
- 	if (ctrl->handler == hdl) {
- 		/* By default each control starts in a cluster of its own.
- 		   new_ref->ctrl is basically a cluster array with one
-@@ -2082,6 +2092,8 @@ static int handler_new_ref(struct v4l2_ctrl_handler *hdl,
- 	/* Insert the control node in the hash */
- 	new_ref->next = hdl->buckets[bucket];
- 	hdl->buckets[bucket] = new_ref;
-+	if (ctrl_ref)
-+		*ctrl_ref = new_ref;
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+@@ -1026,7 +1023,6 @@ static int vim2m_probe(struct platform_device *pdev)
+ 	v4l2_info(&dev->v4l2_dev,
+ 			"Device registered as /dev/video%d\n", vfd->num);
  
- unlock:
- 	mutex_unlock(hdl->lock);
-@@ -2223,7 +2235,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
- 	}
+-	timer_setup(&dev->timer, device_isr, 0);
+ 	platform_set_drvdata(pdev, dev);
  
--	if (handler_new_ref(hdl, ctrl, false)) {
-+	if (handler_new_ref(hdl, ctrl, NULL, false, false)) {
- 		kvfree(ctrl);
- 		return NULL;
- 	}
-@@ -2416,7 +2428,7 @@ int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
- 		/* Filter any unwanted controls */
- 		if (filter && !filter(ctrl))
- 			continue;
--		ret = handler_new_ref(hdl, ctrl, from_other_dev);
-+		ret = handler_new_ref(hdl, ctrl, NULL, from_other_dev, false);
- 		if (ret)
- 			break;
- 	}
+ 	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+@@ -1083,7 +1079,6 @@ static int vim2m_remove(struct platform_device *pdev)
+ 	media_device_cleanup(&dev->mdev);
+ #endif
+ 	v4l2_m2m_release(dev->m2m_dev);
+-	del_timer_sync(&dev->timer);
+ 	video_unregister_device(&dev->vfd);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
 -- 
 2.18.0
