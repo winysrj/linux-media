@@ -1,150 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48979 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1732324AbeHNQUZ (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:54539 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728458AbeHNRIu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 12:20:25 -0400
-Subject: Re: [PATCHv17 03/34] media-request: implement media requests
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20180804124526.46206-1-hverkuil@xs4all.nl>
- <20180804124526.46206-4-hverkuil@xs4all.nl>
-Message-ID: <40060404-abe2-ae5c-d4ca-f01d17316eb5@xs4all.nl>
-Date: Tue, 14 Aug 2018 15:33:11 +0200
+        Tue, 14 Aug 2018 13:08:50 -0400
+Date: Tue, 14 Aug 2018 16:21:24 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Dmitry Osipenko <digetx@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH 01/14] staging: media: tegra-vde: Support BSEV clock and
+ reset
+Message-ID: <20180814142124.GA21075@ulmo>
+References: <20180813145027.16346-1-thierry.reding@gmail.com>
+ <20180813145027.16346-2-thierry.reding@gmail.com>
+ <2754354.GStWHyBo4g@dimapc>
 MIME-Version: 1.0
-In-Reply-To: <20180804124526.46206-4-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
+Content-Disposition: inline
+In-Reply-To: <2754354.GStWHyBo4g@dimapc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/08/18 14:44, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add initial media request support:
-> 
-> 1) Add MEDIA_IOC_REQUEST_ALLOC ioctl support to media-device.c
-> 2) Add struct media_request to store request objects.
-> 3) Add struct media_request_object to represent a request object.
-> 4) Add MEDIA_REQUEST_IOC_QUEUE/REINIT ioctl support.
-> 
-> Basic lifecycle: the application allocates a request, adds
-> objects to it, queues the request, polls until it is completed
-> and can then read the final values of the objects at the time
-> of completion. When it closes the file descriptor the request
-> memory will be freed (actually, when the last user of that request
-> releases the request).
-> 
-> Drivers will bind an object to a request (the 'adds objects to it'
-> phase), when MEDIA_REQUEST_IOC_QUEUE is called the request is
-> validated (req_validate op), then queued (the req_queue op).
-> 
-> When done with an object it can either be unbound from the request
-> (e.g. when the driver has finished with a vb2 buffer) or marked as
-> completed (e.g. for controls associated with a buffer). When all
-> objects in the request are completed (or unbound), then the request
-> fd will signal an exception (poll).
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Co-developed-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Co-developed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Co-developed-by: Alexandre Courbot <acourbot@chromium.org>
-> ---
->  drivers/media/Makefile        |   3 +-
->  drivers/media/media-device.c  |  14 ++
->  drivers/media/media-request.c | 423 ++++++++++++++++++++++++++++++++++
->  include/media/media-device.h  |  21 ++
->  include/media/media-request.h | 327 ++++++++++++++++++++++++++
->  5 files changed, 787 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/media-request.c
->  create mode 100644 include/media/media-request.h
-> 
 
-<snip>
+--YZ5djTAD1cGYuMQK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +static long media_request_ioctl_queue(struct media_request *req)
-> +{
-> +	struct media_device *mdev = req->mdev;
-> +	enum media_request_state state;
-> +	unsigned long flags;
-> +	int ret;
-> +
-> +	dev_dbg(mdev->dev, "request: queue %s\n", req->debug_str);
-> +
-> +	/*
-> +	 * Ensure the request that is validated will be the one that gets queued
-> +	 * next by serialising the queueing process. This mutex is also used
-> +	 * to serialize with canceling a vb2 queue and with setting values such
-> +	 * as controls in a request.
-> +	 */
-> +	mutex_lock(&mdev->req_queue_mutex);
-> +
-> +	media_request_get(req);
+On Mon, Aug 13, 2018 at 06:09:46PM +0300, Dmitry Osipenko wrote:
+> On Monday, 13 August 2018 17:50:14 MSK Thierry Reding wrote:
+> > From: Thierry Reding <treding@nvidia.com>
+> >=20
+> > The BSEV clock has a separate gate bit and can not be assumed to be
+> > always enabled. Add explicit handling for the BSEV clock and reset.
+> >=20
+> > This fixes an issue on Tegra124 where the BSEV clock is not enabled
+> > by default and therefore accessing the BSEV registers will hang the
+> > CPU if the BSEV clock is not enabled and the reset not deasserted.
+> >=20
+> > Signed-off-by: Thierry Reding <treding@nvidia.com>
+> > ---
+>=20
+> Are you sure that BSEV clock is really needed for T20/30? I've tried alre=
+ady=20
+> to disable the clock explicitly and everything kept working, though I'll =
+try=20
+> again.
 
-Here we get a reference to the request...
+I think you're right that these aren't strictly required for VDE to work
+on Tegra20 and Tegra30. However, the BSEV clock and reset do exist on
+those platforms, so I didn't see a reason why they shouldn't be handled
+uniformly across all generations.
 
-> +
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	if (req->state == MEDIA_REQUEST_STATE_IDLE)
-> +		req->state = MEDIA_REQUEST_STATE_VALIDATING;
-> +	state = req->state;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +	if (state != MEDIA_REQUEST_STATE_VALIDATING) {
-> +		dev_dbg(mdev->dev,
-> +			"request: unable to queue %s, request in state %s\n",
-> +			req->debug_str, media_request_state_str(state));
+> The device-tree changes should be reflected in the binding documentation.
 
-...but we didn't put it again in this error path. Thus this request is never
-released.
+Indeed, I forgot to update that.
 
-Fixed by adding a media_request_put(req) here.
+Thierry
 
-Found with v4l2-compliance.
+--YZ5djTAD1cGYuMQK
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> +		mutex_unlock(&mdev->req_queue_mutex);
-> +		return -EBUSY;
-> +	}
-> +
-> +	ret = mdev->ops->req_validate(req);
-> +
-> +	/*
-> +	 * If the req_validate was successful, then we mark the state as QUEUED
-> +	 * and call req_queue. The reason we set the state first is that this
-> +	 * allows req_queue to unbind or complete the queued objects in case
-> +	 * they are immediately 'consumed'. State changes from QUEUED to another
-> +	 * state can only happen if either the driver changes the state or if
-> +	 * the user cancels the vb2 queue. The driver can only change the state
-> +	 * after each object is queued through the req_queue op (and note that
-> +	 * that op cannot fail), so setting the state to QUEUED up front is
-> +	 * safe.
-> +	 *
-> +	 * The other reason for changing the state is if the vb2 queue is
-> +	 * canceled, and that uses the req_queue_mutex which is still locked
-> +	 * while req_queue is called, so that's safe as well.
-> +	 */
-> +	spin_lock_irqsave(&req->lock, flags);
-> +	req->state = ret ? MEDIA_REQUEST_STATE_IDLE
-> +			 : MEDIA_REQUEST_STATE_QUEUED;
-> +	spin_unlock_irqrestore(&req->lock, flags);
-> +
-> +	if (!ret)
-> +		mdev->ops->req_queue(req);
-> +
-> +	mutex_unlock(&mdev->req_queue_mutex);
-> +
-> +	if (ret) {
-> +		dev_dbg(mdev->dev, "request: can't queue %s (%d)\n",
-> +			req->debug_str, ret);
-> +		media_request_put(req);
-> +	}
-> +
-> +	return ret;
-> +}
+-----BEGIN PGP SIGNATURE-----
 
-Regards,
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlty5WEACgkQ3SOs138+
+s6EgTxAAqT6T2dMsu2O7ptA/ykaIKq/XqXUtLr+3V58Nnf+il/q0ND0uKsTHLIx1
+T/qeA/1+ed8UMMOXIamTYg4rSIyeg+v44uonibYhhAP5t0PmIRVb5d80wfOQkiMd
+4vDJUTY4+GAIJrw11WwWrnAca5qjXu/Z1KVsboIkoPQgiNDwRVyYA6NwVzr3ADzh
+knKcklsropsztJFKiekQwTz8x33zxX6wvue2eYusFdayngzsNq30yxUTjD5sziOw
+Q8Uv04jrwc3yDpsUNt01gG3DRxF1omrvO9RKL1PH+6AxPfnWugzvAOqTmFf+LrAN
+6lQRFxFEeQTSslaLwF3xLfVE17r83KdKwaqeLwJ8/cWNCWv+oOqO4ZZSEoh319cB
+w3QGhW7Xoo15geAngnfxvPihISpySNWeCYc5JzfnQ/sO4GbhN4Bt9mQVcKJzDoiK
+nhUtMfQtuFWTO1SDwH2erlNwYFnoEDS251GA4cCKM+TFQlarNj0uJkqKnPY9+wfz
+BNPEztyrjR60ZYvQ6x9vFUSWKbnzf/1JvLzLWP78mPKKTh1q1xsqNaNZ1zi9LDD8
+sU9+UPXdJtprioynJTA4FkRqX7EF8UOpuAuroBij1sesxi+pqyI8twXt/MHNsq4o
+Y6lhG+LY7PCpTkVooHwPRbbY1NBVpGPkVCA+h6017wOR5aQs2AY=
+=jelr
+-----END PGP SIGNATURE-----
 
-	Hans
+--YZ5djTAD1cGYuMQK--
