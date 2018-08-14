@@ -1,85 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:58508 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727788AbeH2VF2 (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.74]:42623 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728314AbeHNL60 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Aug 2018 17:05:28 -0400
-Date: Wed, 29 Aug 2018 14:07:31 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, Rob Herring <robh@kernel.org>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Pali =?UTF-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3 1/2] media: dt-bindings: bind nokia,n900-ir to
- generic pwm-ir-tx driver
-Message-ID: <20180829140731.1d6491c0@coco.lan>
-In-Reply-To: <20180713122230.19278-1-sean@mess.org>
-References: <20180713122230.19278-1-sean@mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Tue, 14 Aug 2018 07:58:26 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Todor Tomov <todor.tomov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Hans Verkuil <hansverk@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: camss: add missing includes
+Date: Tue, 14 Aug 2018 11:11:30 +0200
+Message-Id: <20180814091200.1851395-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 13 Jul 2018 13:22:29 +0100
-Sean Young <sean@mess.org> escreveu:
+Multiple files in this driver fail to build because of missing
+header inclusions:
 
-> The generic pwm-ir-tx driver should work for the Nokia n900.
->=20
-> Compile tested only.
+drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c: In function 'csiphy_hw_version_read':
+drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c:31:18: error: implicit declaration of function 'readl_relaxed'; did you mean 'xchg_relaxed'? [-Werror=implicit-function-declaration]
+drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c: In function 'csiphy_hw_version_read':
+drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c:52:2: error: implicit declaration of function 'writel' [-Werror=implicit-function-declaration]
+drivers/media/platform/qcom/camss/camss-ispif.c: In function 'msm_ispif_subdev_init':
+drivers/media/platform/qcom/camss/camss-ispif.c:1079:16: error: implicit declaration of function 'kcalloc'; did you mean 'kvcalloc'? [-Werror=implicit-function-declaration]
 
-It would be good to have some tests...
+Add the ones that I observed, plus linux/io.h in all other files that
+call readl/writel and related interfaces.
 
->=20
-> Cc: Rob Herring <robh@kernel.org>
-> Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> Cc: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-> Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c | 1 +
+ drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c | 1 +
+ drivers/media/platform/qcom/camss/camss-ispif.c          | 1 +
+ 3 files changed, 3 insertions(+)
 
-And some acks
-
-Before merging it.
-
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  arch/arm/boot/dts/omap3-n900.dts | 2 +-
->  drivers/media/rc/pwm-ir-tx.c     | 1 +
->  2 files changed, 2 insertions(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n=
-900.dts
-> index 182a53991c90..fd12dea15799 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -154,7 +154,7 @@
->  	};
-> =20
->  	ir: n900-ir {
-> -		compatible =3D "nokia,n900-ir";
-> +		compatible =3D "nokia,n900-ir", "pwm-ir-tx";
->  		pwms =3D <&pwm9 0 26316 0>; /* 38000 Hz */
->  	};
-> =20
-> diff --git a/drivers/media/rc/pwm-ir-tx.c b/drivers/media/rc/pwm-ir-tx.c
-> index 27d0f5837a76..272947b430c8 100644
-> --- a/drivers/media/rc/pwm-ir-tx.c
-> +++ b/drivers/media/rc/pwm-ir-tx.c
-> @@ -30,6 +30,7 @@ struct pwm_ir {
->  };
-> =20
->  static const struct of_device_id pwm_ir_of_match[] =3D {
-> +	{ .compatible =3D "nokia,n900-ir" },
->  	{ .compatible =3D "pwm-ir-tx", },
->  	{ },
->  };
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+index c832539397d7..12bce391d71f 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ 
+ #define CAMSS_CSI_PHY_LNn_CFG2(n)		(0x004 + 0x40 * (n))
+ #define CAMSS_CSI_PHY_LNn_CFG3(n)		(0x008 + 0x40 * (n))
+diff --git a/drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c b/drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c
+index bcd0dfd33618..2e65caf1ecae 100644
+--- a/drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c
++++ b/drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ 
+ #define CSIPHY_3PH_LNn_CFG1(n)			(0x000 + 0x100 * (n))
+ #define CSIPHY_3PH_LNn_CFG1_SWI_REC_DLY_PRG	(BIT(7) | BIT(6))
+diff --git a/drivers/media/platform/qcom/camss/camss-ispif.c b/drivers/media/platform/qcom/camss/camss-ispif.c
+index 7f269021d08c..fa5f9373879e 100644
+--- a/drivers/media/platform/qcom/camss/camss-ispif.c
++++ b/drivers/media/platform/qcom/camss/camss-ispif.c
+@@ -15,6 +15,7 @@
+ #include <linux/mutex.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/slab.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+-- 
+2.18.0
