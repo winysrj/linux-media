@@ -1,105 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54564 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727193AbeH0NP5 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60511 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1732781AbeHNRIN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 09:15:57 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Tue, 14 Aug 2018 13:08:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
-        niklas.soderlund@ragnatech.se, jacopo@jmondi.org
-Subject: [PATCH v2 15/23] v4l: fwnode: Use default parallel flags
-Date: Mon, 27 Aug 2018 12:29:52 +0300
-Message-Id: <20180827093000.29165-16-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
-References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv18 09/35] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Tue, 14 Aug 2018 16:20:21 +0200
+Message-Id: <20180814142047.93856-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180814142047.93856-1-hverkuil@xs4all.nl>
+References: <20180814142047.93856-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The caller may provide default flags for the endpoint. Change the
-configuration based on what is available through the fwnode property API.
+From: Alexandre Courbot <acourbot@chromium.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+If 'which' is V4L2_CTRL_WHICH_REQUEST_VAL, then the 'request_fd' field
+can be used to specify a request for the G/S/TRY_EXT_CTRLS ioctls.
+
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 5 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 6 +++---
+ include/uapi/linux/videodev2.h                | 4 +++-
+ 3 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index c7a52962a9c0..ba51c1ead314 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -183,31 +183,44 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 	unsigned int flags = 0;
- 	u32 v;
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6481212fda77..dcce86c1fe40 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -834,7 +834,8 @@ struct v4l2_ext_controls32 {
+ 	__u32 which;
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+ };
  
-+	if (bus_type == V4L2_MBUS_PARALLEL || bus_type == V4L2_MBUS_BT656)
-+		flags = bus->flags;
-+
- 	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v)) {
-+		flags &= ~(V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+			   V4L2_MBUS_HSYNC_ACTIVE_LOW);
- 		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
- 			V4L2_MBUS_HSYNC_ACTIVE_LOW;
- 		pr_debug("hsync-active %s\n", v ? "high" : "low");
- 	}
+@@ -909,6 +910,7 @@ static int get_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p32->count) ||
+ 	    put_user(count, &p64->count) ||
+ 	    assign_in_user(&p64->error_idx, &p32->error_idx) ||
++	    assign_in_user(&p64->request_fd, &p32->request_fd) ||
+ 	    copy_in_user(p64->reserved, p32->reserved, sizeof(p64->reserved)))
+ 		return -EFAULT;
  
- 	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v)) {
-+		flags &= ~(V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+			   V4L2_MBUS_VSYNC_ACTIVE_LOW);
- 		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
- 			V4L2_MBUS_VSYNC_ACTIVE_LOW;
- 		pr_debug("vsync-active %s\n", v ? "high" : "low");
- 	}
+@@ -974,6 +976,7 @@ static int put_v4l2_ext_controls32(struct file *file,
+ 	    get_user(count, &p64->count) ||
+ 	    put_user(count, &p32->count) ||
+ 	    assign_in_user(&p32->error_idx, &p64->error_idx) ||
++	    assign_in_user(&p32->request_fd, &p64->request_fd) ||
+ 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p32->reserved)) ||
+ 	    get_user(kcontrols, &p64->controls))
+ 		return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index ea475d833dd6..03241d6b7ef8 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -590,8 +590,8 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
+ 	const struct v4l2_ext_controls *p = arg;
+ 	int i;
  
- 	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v)) {
-+		flags &= ~(V4L2_MBUS_FIELD_EVEN_HIGH |
-+			   V4L2_MBUS_FIELD_EVEN_LOW);
- 		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
- 			V4L2_MBUS_FIELD_EVEN_LOW;
- 		pr_debug("field-even-active %s\n", v ? "high" : "low");
- 	}
+-	pr_cont("which=0x%x, count=%d, error_idx=%d",
+-			p->which, p->count, p->error_idx);
++	pr_cont("which=0x%x, count=%d, error_idx=%d, request_fd=%d",
++			p->which, p->count, p->error_idx, p->request_fd);
+ 	for (i = 0; i < p->count; i++) {
+ 		if (!p->controls[i].size)
+ 			pr_cont(", id/val=0x%x/0x%x",
+@@ -907,7 +907,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ 	__u32 i;
  
- 	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v)) {
-+		flags &= ~(V4L2_MBUS_PCLK_SAMPLE_RISING |
-+			   V4L2_MBUS_PCLK_SAMPLE_FALLING);
- 		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
- 			V4L2_MBUS_PCLK_SAMPLE_FALLING;
- 		pr_debug("pclk-sample %s\n", v ? "high" : "low");
- 	}
+ 	/* zero the reserved fields */
+-	c->reserved[0] = c->reserved[1] = 0;
++	c->reserved[0] = 0;
+ 	for (i = 0; i < c->count; i++)
+ 		c->controls[i].reserved2[0] = 0;
  
- 	if (!fwnode_property_read_u32(fwnode, "data-active", &v)) {
-+		flags &= ~(V4L2_MBUS_PCLK_SAMPLE_RISING |
-+			   V4L2_MBUS_PCLK_SAMPLE_FALLING);
- 		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
- 			V4L2_MBUS_DATA_ACTIVE_LOW;
- 		pr_debug("data-active %s\n", v ? "high" : "low");
-@@ -215,8 +228,10 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 5d1a3685bea9..1df0fa983db6 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1599,7 +1599,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
  
- 	if (fwnode_property_present(fwnode, "slave-mode")) {
- 		pr_debug("slave mode\n");
-+		flags &= ~V4L2_MBUS_MASTER;
- 		flags |= V4L2_MBUS_SLAVE;
- 	} else {
-+		flags &= ~V4L2_MBUS_SLAVE;
- 		flags |= V4L2_MBUS_MASTER;
- 	}
+@@ -1612,6 +1613,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_MAX_DIMS	  (4)
+ #define V4L2_CTRL_WHICH_CUR_VAL   0
+ #define V4L2_CTRL_WHICH_DEF_VAL   0x0f000000
++#define V4L2_CTRL_WHICH_REQUEST_VAL 0x0f010000
  
-@@ -231,12 +246,16 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 	}
- 
- 	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v)) {
-+		flags &= ~(V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH |
-+			   V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW);
- 		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
- 			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
- 		pr_debug("sync-on-green-active %s\n", v ? "high" : "low");
- 	}
- 
- 	if (!fwnode_property_read_u32(fwnode, "data-enable-active", &v)) {
-+		flags &= ~(V4L2_MBUS_DATA_ENABLE_HIGH |
-+			   V4L2_MBUS_DATA_ENABLE_LOW);
- 		flags |= v ? V4L2_MBUS_DATA_ENABLE_HIGH :
- 			V4L2_MBUS_DATA_ENABLE_LOW;
- 		pr_debug("data-enable-active %s\n", v ? "high" : "low");
+ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_INTEGER	     = 1,
 -- 
-2.11.0
+2.18.0
