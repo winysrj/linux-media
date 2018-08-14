@@ -1,363 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:59200 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728557AbeHMRxz (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:44653 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729459AbeHNKOk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Aug 2018 13:53:55 -0400
-Date: Mon, 13 Aug 2018 12:11:12 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 14 Aug 2018 06:14:40 -0400
+Subject: Re: [PATCHv17 30/34] vim2m: use workqueue
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 33/34] vivid: add request support
-Message-ID: <20180813121112.6bab380a@coco.lan>
-In-Reply-To: <20180804124526.46206-34-hverkuil@xs4all.nl>
 References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-34-hverkuil@xs4all.nl>
+ <20180804124526.46206-31-hverkuil@xs4all.nl>
+ <20180813120501.2e630010@coco.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a240e2c5-cd99-519e-4902-67d5c4d11f89@xs4all.nl>
+Date: Tue, 14 Aug 2018 09:28:42 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180813120501.2e630010@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  4 Aug 2018 14:45:25 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 13/08/18 17:05, Mauro Carvalho Chehab wrote:
+> Em Sat,  4 Aug 2018 14:45:22 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Add support for requests to vivid.
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> v4l2_ctrl uses mutexes, so we can't setup a ctrl_handler in
+>> interrupt context. Switch to a workqueue instead and drop the timer.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  drivers/media/platform/vivid/vivid-core.c        |  8 ++++++++
->  drivers/media/platform/vivid/vivid-kthread-cap.c | 12 ++++++++++++
->  drivers/media/platform/vivid/vivid-kthread-out.c | 12 ++++++++++++
->  drivers/media/platform/vivid/vivid-sdr-cap.c     | 16 ++++++++++++++++
->  drivers/media/platform/vivid/vivid-vbi-cap.c     | 10 ++++++++++
->  drivers/media/platform/vivid/vivid-vbi-out.c     | 10 ++++++++++
->  drivers/media/platform/vivid/vivid-vid-cap.c     | 10 ++++++++++
->  drivers/media/platform/vivid/vivid-vid-out.c     | 10 ++++++++++
->  8 files changed, 88 insertions(+)
+> Reviewed-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 > 
-> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-> index 1c448529be04..3f6f5cbe1b60 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -627,6 +627,13 @@ static void vivid_dev_release(struct v4l2_device *v4l2_dev)
->  	kfree(dev);
->  }
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +static const struct media_device_ops vivid_media_ops = {
-> +	.req_validate = vb2_request_validate,
-> +	.req_queue = vb2_request_queue,
-> +};
-> +#endif
-> +
->  static int vivid_create_instance(struct platform_device *pdev, int inst)
->  {
->  	static const struct v4l2_dv_timings def_dv_timings =
-> @@ -664,6 +671,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->  	strlcpy(dev->mdev.model, VIVID_MODULE_NAME, sizeof(dev->mdev.model));
->  	dev->mdev.dev = &pdev->dev;
->  	media_device_init(&dev->mdev);
-> +	dev->mdev.ops = &vivid_media_ops;
->  #endif
->  
->  	/* register v4l2_device */
-> diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> index f06003bb8e42..eebfff2126be 100644
-> --- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> @@ -703,6 +703,8 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
->  		goto update_mv;
->  
->  	if (vid_cap_buf) {
-> +		v4l2_ctrl_request_setup(vid_cap_buf->vb.vb2_buf.req_obj.req,
-> +					&dev->ctrl_hdl_vid_cap);
->  		/* Fill buffer */
->  		vivid_fillbuff(dev, vid_cap_buf);
->  		dprintk(dev, 1, "filled buffer %d\n",
-> @@ -713,6 +715,8 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
->  			dev->fb_cap.fmt.pixelformat == dev->fmt_cap->fourcc)
->  			vivid_overlay(dev, vid_cap_buf);
->  
-> +		v4l2_ctrl_request_complete(vid_cap_buf->vb.vb2_buf.req_obj.req,
-> +					   &dev->ctrl_hdl_vid_cap);
->  		vb2_buffer_done(&vid_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
->  				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
->  		dprintk(dev, 2, "vid_cap buffer %d done\n",
-> @@ -720,10 +724,14 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
->  	}
->  
->  	if (vbi_cap_buf) {
-> +		v4l2_ctrl_request_setup(vbi_cap_buf->vb.vb2_buf.req_obj.req,
-> +					&dev->ctrl_hdl_vbi_cap);
->  		if (dev->stream_sliced_vbi_cap)
->  			vivid_sliced_vbi_cap_process(dev, vbi_cap_buf);
->  		else
->  			vivid_raw_vbi_cap_process(dev, vbi_cap_buf);
-> +		v4l2_ctrl_request_complete(vbi_cap_buf->vb.vb2_buf.req_obj.req,
-> +					   &dev->ctrl_hdl_vbi_cap);
->  		vb2_buffer_done(&vbi_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
->  				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
->  		dprintk(dev, 2, "vbi_cap %d done\n",
-> @@ -891,6 +899,8 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
->  			buf = list_entry(dev->vid_cap_active.next,
->  					 struct vivid_buffer, list);
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vid_cap);
->  			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
->  			dprintk(dev, 2, "vid_cap buffer %d done\n",
->  				buf->vb.vb2_buf.index);
-> @@ -904,6 +914,8 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
->  			buf = list_entry(dev->vbi_cap_active.next,
->  					 struct vivid_buffer, list);
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vbi_cap);
->  			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
->  			dprintk(dev, 2, "vbi_cap buffer %d done\n",
->  				buf->vb.vb2_buf.index);
-> diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
-> index 9981e7548019..5a14810eeb69 100644
-> --- a/drivers/media/platform/vivid/vivid-kthread-out.c
-> +++ b/drivers/media/platform/vivid/vivid-kthread-out.c
-> @@ -75,6 +75,10 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
->  		return;
->  
->  	if (vid_out_buf) {
-> +		v4l2_ctrl_request_setup(vid_out_buf->vb.vb2_buf.req_obj.req,
-> +					&dev->ctrl_hdl_vid_out);
-> +		v4l2_ctrl_request_complete(vid_out_buf->vb.vb2_buf.req_obj.req,
-> +					   &dev->ctrl_hdl_vid_out);
->  		vid_out_buf->vb.sequence = dev->vid_out_seq_count;
->  		if (dev->field_out == V4L2_FIELD_ALTERNATE) {
->  			/*
-> @@ -92,6 +96,10 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
->  	}
->  
->  	if (vbi_out_buf) {
-> +		v4l2_ctrl_request_setup(vbi_out_buf->vb.vb2_buf.req_obj.req,
-> +					&dev->ctrl_hdl_vbi_out);
-> +		v4l2_ctrl_request_complete(vbi_out_buf->vb.vb2_buf.req_obj.req,
-> +					   &dev->ctrl_hdl_vbi_out);
->  		if (dev->stream_sliced_vbi_out)
->  			vivid_sliced_vbi_out_process(dev, vbi_out_buf);
->  
-> @@ -262,6 +270,8 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
->  			buf = list_entry(dev->vid_out_active.next,
->  					 struct vivid_buffer, list);
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vid_out);
->  			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
->  			dprintk(dev, 2, "vid_out buffer %d done\n",
->  				buf->vb.vb2_buf.index);
-> @@ -275,6 +285,8 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
->  			buf = list_entry(dev->vbi_out_active.next,
->  					 struct vivid_buffer, list);
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vbi_out);
->  			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
->  			dprintk(dev, 2, "vbi_out buffer %d done\n",
->  				buf->vb.vb2_buf.index);
-> diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-> index cfb7cb4d37a8..76cf8810a974 100644
-> --- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-> @@ -102,6 +102,10 @@ static void vivid_thread_sdr_cap_tick(struct vivid_dev *dev)
->  
->  	if (sdr_cap_buf) {
->  		sdr_cap_buf->vb.sequence = dev->sdr_cap_seq_count;
-> +		v4l2_ctrl_request_setup(sdr_cap_buf->vb.vb2_buf.req_obj.req,
-> +					&dev->ctrl_hdl_sdr_cap);
-> +		v4l2_ctrl_request_complete(sdr_cap_buf->vb.vb2_buf.req_obj.req,
-> +					   &dev->ctrl_hdl_sdr_cap);
->  		vivid_sdr_cap_process(dev, sdr_cap_buf);
->  		sdr_cap_buf->vb.vb2_buf.timestamp =
->  			ktime_get_ns() + dev->time_wrap_offset;
-> @@ -272,6 +276,8 @@ static int sdr_cap_start_streaming(struct vb2_queue *vq, unsigned count)
->  
->  		list_for_each_entry_safe(buf, tmp, &dev->sdr_cap_active, list) {
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_sdr_cap);
->  			vb2_buffer_done(&buf->vb.vb2_buf,
->  					VB2_BUF_STATE_QUEUED);
->  		}
-> @@ -293,6 +299,8 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
->  		buf = list_entry(dev->sdr_cap_active.next,
->  				struct vivid_buffer, list);
->  		list_del(&buf->list);
-> +		v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +					   &dev->ctrl_hdl_sdr_cap);
->  		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
->  	}
->  
-> @@ -303,12 +311,20 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
->  	mutex_lock(&dev->mutex);
->  }
->  
-> +static void sdr_cap_buf_request_complete(struct vb2_buffer *vb)
-> +{
-> +	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_sdr_cap);
-> +}
-> +
->  const struct vb2_ops vivid_sdr_cap_qops = {
->  	.queue_setup		= sdr_cap_queue_setup,
->  	.buf_prepare		= sdr_cap_buf_prepare,
->  	.buf_queue		= sdr_cap_buf_queue,
->  	.start_streaming	= sdr_cap_start_streaming,
->  	.stop_streaming		= sdr_cap_stop_streaming,
-> +	.buf_request_complete	= sdr_cap_buf_request_complete,
->  	.wait_prepare		= vb2_ops_wait_prepare,
->  	.wait_finish		= vb2_ops_wait_finish,
->  };
-> diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
-> index 92a852955173..903cebeb5ce5 100644
-> --- a/drivers/media/platform/vivid/vivid-vbi-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
-> @@ -204,6 +204,8 @@ static int vbi_cap_start_streaming(struct vb2_queue *vq, unsigned count)
->  
->  		list_for_each_entry_safe(buf, tmp, &dev->vbi_cap_active, list) {
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vbi_cap);
->  			vb2_buffer_done(&buf->vb.vb2_buf,
->  					VB2_BUF_STATE_QUEUED);
->  		}
-> @@ -220,12 +222,20 @@ static void vbi_cap_stop_streaming(struct vb2_queue *vq)
->  	vivid_stop_generating_vid_cap(dev, &dev->vbi_cap_streaming);
->  }
->  
-> +static void vbi_cap_buf_request_complete(struct vb2_buffer *vb)
-> +{
-> +	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vbi_cap);
-> +}
-> +
->  const struct vb2_ops vivid_vbi_cap_qops = {
->  	.queue_setup		= vbi_cap_queue_setup,
->  	.buf_prepare		= vbi_cap_buf_prepare,
->  	.buf_queue		= vbi_cap_buf_queue,
->  	.start_streaming	= vbi_cap_start_streaming,
->  	.stop_streaming		= vbi_cap_stop_streaming,
-> +	.buf_request_complete	= vbi_cap_buf_request_complete,
->  	.wait_prepare		= vb2_ops_wait_prepare,
->  	.wait_finish		= vb2_ops_wait_finish,
->  };
-> diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
-> index 69486c130a7e..9357c07e30d6 100644
-> --- a/drivers/media/platform/vivid/vivid-vbi-out.c
-> +++ b/drivers/media/platform/vivid/vivid-vbi-out.c
-> @@ -96,6 +96,8 @@ static int vbi_out_start_streaming(struct vb2_queue *vq, unsigned count)
->  
->  		list_for_each_entry_safe(buf, tmp, &dev->vbi_out_active, list) {
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vbi_out);
->  			vb2_buffer_done(&buf->vb.vb2_buf,
->  					VB2_BUF_STATE_QUEUED);
->  		}
-> @@ -115,12 +117,20 @@ static void vbi_out_stop_streaming(struct vb2_queue *vq)
->  	dev->vbi_out_have_cc[1] = false;
->  }
->  
-> +static void vbi_out_buf_request_complete(struct vb2_buffer *vb)
-> +{
-> +	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vbi_out);
-> +}
-> +
->  const struct vb2_ops vivid_vbi_out_qops = {
->  	.queue_setup		= vbi_out_queue_setup,
->  	.buf_prepare		= vbi_out_buf_prepare,
->  	.buf_queue		= vbi_out_buf_queue,
->  	.start_streaming	= vbi_out_start_streaming,
->  	.stop_streaming		= vbi_out_stop_streaming,
-> +	.buf_request_complete	= vbi_out_buf_request_complete,
->  	.wait_prepare		= vb2_ops_wait_prepare,
->  	.wait_finish		= vb2_ops_wait_finish,
->  };
-> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-> index 1599159f2574..b2aad441a071 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-> @@ -240,6 +240,8 @@ static int vid_cap_start_streaming(struct vb2_queue *vq, unsigned count)
->  
->  		list_for_each_entry_safe(buf, tmp, &dev->vid_cap_active, list) {
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vid_cap);
->  			vb2_buffer_done(&buf->vb.vb2_buf,
->  					VB2_BUF_STATE_QUEUED);
->  		}
-> @@ -257,6 +259,13 @@ static void vid_cap_stop_streaming(struct vb2_queue *vq)
->  	dev->can_loop_video = false;
->  }
->  
-> +static void vid_cap_buf_request_complete(struct vb2_buffer *vb)
-> +{
-> +	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vid_cap);
-> +}
-> +
->  const struct vb2_ops vivid_vid_cap_qops = {
->  	.queue_setup		= vid_cap_queue_setup,
->  	.buf_prepare		= vid_cap_buf_prepare,
-> @@ -264,6 +273,7 @@ const struct vb2_ops vivid_vid_cap_qops = {
->  	.buf_queue		= vid_cap_buf_queue,
->  	.start_streaming	= vid_cap_start_streaming,
->  	.stop_streaming		= vid_cap_stop_streaming,
-> +	.buf_request_complete	= vid_cap_buf_request_complete,
->  	.wait_prepare		= vb2_ops_wait_prepare,
->  	.wait_finish		= vb2_ops_wait_finish,
->  };
-> diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-> index 51fec66d8d45..423a67133f28 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-out.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-out.c
-> @@ -162,6 +162,8 @@ static int vid_out_start_streaming(struct vb2_queue *vq, unsigned count)
->  
->  		list_for_each_entry_safe(buf, tmp, &dev->vid_out_active, list) {
->  			list_del(&buf->list);
-> +			v4l2_ctrl_request_complete(buf->vb.vb2_buf.req_obj.req,
-> +						   &dev->ctrl_hdl_vid_out);
->  			vb2_buffer_done(&buf->vb.vb2_buf,
->  					VB2_BUF_STATE_QUEUED);
->  		}
-> @@ -179,12 +181,20 @@ static void vid_out_stop_streaming(struct vb2_queue *vq)
->  	dev->can_loop_video = false;
->  }
->  
-> +static void vid_out_buf_request_complete(struct vb2_buffer *vb)
-> +{
-> +	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +	v4l2_ctrl_request_complete(vb->req_obj.req, &dev->ctrl_hdl_vid_out);
-> +}
-> +
->  const struct vb2_ops vivid_vid_out_qops = {
->  	.queue_setup		= vid_out_queue_setup,
->  	.buf_prepare		= vid_out_buf_prepare,
->  	.buf_queue		= vid_out_buf_queue,
->  	.start_streaming	= vid_out_start_streaming,
->  	.stop_streaming		= vid_out_stop_streaming,
-> +	.buf_request_complete	= vid_out_buf_request_complete,
->  	.wait_prepare		= vb2_ops_wait_prepare,
->  	.wait_finish		= vb2_ops_wait_finish,
->  };
+> Shouldn't this come earlier at the series (before adding request API
+> support to m2m) in order to avoid regressions?
 
+??? At this stage vim2m doesn't support the request API yet. It's the next
+patch that adds that (and that's when this patch is needed for it to work).
 
+Regards,
 
-Thanks,
-Mauro
+	Hans
+
+> 
+>> ---
+>>  drivers/media/platform/vim2m.c | 25 ++++++++++---------------
+>>  1 file changed, 10 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+>> index 462099a141e4..6f87ef025ff1 100644
+>> --- a/drivers/media/platform/vim2m.c
+>> +++ b/drivers/media/platform/vim2m.c
+>> @@ -3,7 +3,8 @@
+>>   *
+>>   * This is a virtual device driver for testing mem-to-mem videobuf framework.
+>>   * It simulates a device that uses memory buffers for both source and
+>> - * destination, processes the data and issues an "irq" (simulated by a timer).
+>> + * destination, processes the data and issues an "irq" (simulated by a delayed
+>> + * workqueue).
+>>   * The device is capable of multi-instance, multi-buffer-per-transaction
+>>   * operation (via the mem2mem framework).
+>>   *
+>> @@ -19,7 +20,6 @@
+>>  #include <linux/module.h>
+>>  #include <linux/delay.h>
+>>  #include <linux/fs.h>
+>> -#include <linux/timer.h>
+>>  #include <linux/sched.h>
+>>  #include <linux/slab.h>
+>>  
+>> @@ -148,7 +148,7 @@ struct vim2m_dev {
+>>  	struct mutex		dev_mutex;
+>>  	spinlock_t		irqlock;
+>>  
+>> -	struct timer_list	timer;
+>> +	struct delayed_work	work_run;
+>>  
+>>  	struct v4l2_m2m_dev	*m2m_dev;
+>>  };
+>> @@ -336,12 +336,6 @@ static int device_process(struct vim2m_ctx *ctx,
+>>  	return 0;
+>>  }
+>>  
+>> -static void schedule_irq(struct vim2m_dev *dev, int msec_timeout)
+>> -{
+>> -	dprintk(dev, "Scheduling a simulated irq\n");
+>> -	mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
+>> -}
+>> -
+>>  /*
+>>   * mem2mem callbacks
+>>   */
+>> @@ -387,13 +381,14 @@ static void device_run(void *priv)
+>>  
+>>  	device_process(ctx, src_buf, dst_buf);
+>>  
+>> -	/* Run a timer, which simulates a hardware irq  */
+>> -	schedule_irq(dev, ctx->transtime);
+>> +	/* Run delayed work, which simulates a hardware irq  */
+>> +	schedule_delayed_work(&dev->work_run, msecs_to_jiffies(ctx->transtime));
+>>  }
+>>  
+>> -static void device_isr(struct timer_list *t)
+>> +static void device_work(struct work_struct *w)
+>>  {
+>> -	struct vim2m_dev *vim2m_dev = from_timer(vim2m_dev, t, timer);
+>> +	struct vim2m_dev *vim2m_dev =
+>> +		container_of(w, struct vim2m_dev, work_run.work);
+>>  	struct vim2m_ctx *curr_ctx;
+>>  	struct vb2_v4l2_buffer *src_vb, *dst_vb;
+>>  	unsigned long flags;
+>> @@ -805,6 +800,7 @@ static void vim2m_stop_streaming(struct vb2_queue *q)
+>>  	struct vb2_v4l2_buffer *vbuf;
+>>  	unsigned long flags;
+>>  
+>> +	flush_scheduled_work();
+>>  	for (;;) {
+>>  		if (V4L2_TYPE_IS_OUTPUT(q->type))
+>>  			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+>> @@ -1015,6 +1011,7 @@ static int vim2m_probe(struct platform_device *pdev)
+>>  	vfd = &dev->vfd;
+>>  	vfd->lock = &dev->dev_mutex;
+>>  	vfd->v4l2_dev = &dev->v4l2_dev;
+>> +	INIT_DELAYED_WORK(&dev->work_run, device_work);
+>>  
+>>  	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+>>  	if (ret) {
+>> @@ -1026,7 +1023,6 @@ static int vim2m_probe(struct platform_device *pdev)
+>>  	v4l2_info(&dev->v4l2_dev,
+>>  			"Device registered as /dev/video%d\n", vfd->num);
+>>  
+>> -	timer_setup(&dev->timer, device_isr, 0);
+>>  	platform_set_drvdata(pdev, dev);
+>>  
+>>  	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+>> @@ -1083,7 +1079,6 @@ static int vim2m_remove(struct platform_device *pdev)
+>>  	media_device_cleanup(&dev->mdev);
+>>  #endif
+>>  	v4l2_m2m_release(dev->m2m_dev);
+>> -	del_timer_sync(&dev->timer);
+>>  	video_unregister_device(&dev->vfd);
+>>  	v4l2_device_unregister(&dev->v4l2_dev);
+>>  
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
