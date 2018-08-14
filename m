@@ -1,159 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:36046 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728656AbeHNPVi (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:38319 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729536AbeHNPqR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 11:21:38 -0400
-Date: Tue, 14 Aug 2018 09:34:36 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv17 02/34] uapi/linux/media.h: add request API
-Message-ID: <20180814093436.63836600@coco.lan>
-In-Reply-To: <176579c0-a430-a25c-49f7-578c6c544025@xs4all.nl>
-References: <20180804124526.46206-1-hverkuil@xs4all.nl>
-        <20180804124526.46206-3-hverkuil@xs4all.nl>
-        <20180809145358.2278c795@coco.lan>
-        <5b3ac277-a191-0729-5571-8d028ea14e06@xs4all.nl>
-        <20180814054632.14b5c978@coco.lan>
-        <176579c0-a430-a25c-49f7-578c6c544025@xs4all.nl>
+        Tue, 14 Aug 2018 11:46:17 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <20180814091636.1960071-1-arnd@arndb.de> <565437f4-e01a-4558-ccc1-4f312e26cf35@linaro.org>
+In-Reply-To: <565437f4-e01a-4558-ccc1-4f312e26cf35@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 14 Aug 2018 14:58:55 +0200
+Message-ID: <CAK8P3a2swXMsOnOv_Oow6TCShna4LLfm=uuNmvKk+O2GTZMr+A@mail.gmail.com>
+Subject: Re: [PATCH] [v2] media: camss: add missing includes
+To: todor.tomov@linaro.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, hansverk@cisco.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Aug 2018 11:57:48 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Tue, Aug 14, 2018 at 2:45 PM Todor Tomov <todor.tomov@linaro.org> wrote:
+>
+> Hi Arnd,
+>
+> On 14.08.2018 12:13, Arnd Bergmann wrote:
+> > Multiple files in this driver fail to build because of missing
+> > header inclusions:
+> >
+> > drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c: In function 'csiphy_hw_version_read':
+> > drivers/media/platform/qcom/camss/camss-csiphy-2ph-1-0.c:31:18: error: implicit declaration of function 'readl_relaxed'; did you mean 'xchg_relaxed'? [-Werror=implicit-function-declaration]
+> > drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c: In function 'csiphy_hw_version_read':
+> > drivers/media/platform/qcom/camss/camss-csiphy-3ph-1-0.c:52:2: error: implicit declaration of function 'writel' [-Werror=implicit-function-declaration]
+>
+> Thank you for noticing this and preparing a patch.
+> I build for arm64 and x86_64 with compile test enabled and I don't see these errors. Do you have a guess what is different that I don't have them?
 
-> On 14/08/18 10:46, Mauro Carvalho Chehab wrote:
-> > Em Fri, 10 Aug 2018 09:21:59 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> On 08/09/2018 07:53 PM, Mauro Carvalho Chehab wrote:  
-> >>> Em Sat,  4 Aug 2018 14:44:54 +0200
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>     
-> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>>
-> >>>> Define the public request API.
-> >>>>
-> >>>> This adds the new MEDIA_IOC_REQUEST_ALLOC ioctl to allocate a request
-> >>>> and two ioctls that operate on a request in order to queue the
-> >>>> contents of the request to the driver and to re-initialize the
-> >>>> request.
-> >>>>
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>> ---
-> >>>>  include/uapi/linux/media.h | 12 ++++++++++++
-> >>>>  1 file changed, 12 insertions(+)
-> >>>>
-> >>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> >>>> index 36f76e777ef9..cf77f00a0f2d 100644
-> >>>> --- a/include/uapi/linux/media.h
-> >>>> +++ b/include/uapi/linux/media.h
-> >>>> @@ -364,11 +364,23 @@ struct media_v2_topology {
-> >>>>  
-> >>>>  /* ioctls */
-> >>>>  
-> >>>> +struct __attribute__ ((packed)) media_request_alloc {
-> >>>> +	__s32 fd;
-> >>>> +};
-> >>>> +
-> >>>>  #define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
-> >>>>  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
-> >>>>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
-> >>>>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
-> >>>>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
-> >>>> +#define MEDIA_IOC_REQUEST_ALLOC	_IOWR('|', 0x05, struct media_request_alloc)    
-> > 
-> > The definition here is wrong... the fd field is not R/W, it is just R, as no
-> > fields inside this struct should be filled by userspace.
-> > The right declaration for it would be:
-> > 
-> > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOR('|', 0x05, struct media_request_alloc)
-> > 
-> > I do have a strong opinion here: ioctls that just return stuff should use _IOR.  
-> 
-> You are right, this should be _IOR.
-> 
-> >   
-> >>>
-> >>> Same comment as in patch 1: keep it simpler: just pass a s32 * as the
-> >>> argument for this ioctl.    
-> >>
-> >> Same comment as in patch 1: I have no strong opinion, but I want the input from others
-> >> as well.  
-> > 
-> > I'm transcribing a comment you wrote on patch 01/34 here, for the sake of
-> > keeping everything on a single thread:
-> >   
-> >> The first version just had a s32 argument, not a struct. The main reason for
-> >> going back to a struct was indeed to make it easier to add new fields in the
-> >> future. I don't foresee any, but then, you never do.  
-> > 
-> > First of all, if we declare it as it should be, e. g.: 
-> > 
-> > #define MEDIA_IOC_REQUEST_ALLOC	_IOR('|', 0x05, int) 
-> > 
-> > If later find the need for some struct:
-> > 
-> > 	struct media_request_alloc {
-> > 		__s32 fd;
-> > 		__s32 foo;
-> > 	} __packed;
-> > 
-> > Assuming that "foo" is a write argument, we'll then have:
-> > 
-> > 	#define MEDIA_IOC_REQUEST_ALLOC		_IOR('|', 0x05, int) 
-> > 	#define MEDIA_IOC_REQUEST_ALLOC_V2	_IOWR('|', 0x05, struct media_request_alloc)  
-> > 
-> > The size of the ioctl will also be different, and also the direction.
-> > So, the magic number will be different.
-> > 
-> > The Kernel can easily handle it on both ways, and, as 
-> > MEDIA_IOC_REQUEST_ALLOC has only an integer output parameter, 
-> > there's no need for compat32 or to keep any old struct.
-> > The MEDIA_IOC_REQUEST_ALLOC code handler will still be very simple,
-> > and backward compatible comes for free.
-> > 
-> > If, on the other hand, we declare it as:
-> > 	#define MEDIA_IOC_REQUEST_ALLOC	_IOR('|', 0x05, struct media_request_alloc_old)
-> > 
-> > And then we change it to:
-> > 	#define MEDIA_IOC_REQUEST_ALLOC	_IORW('|', 0x05, struct media_request_alloc_new)
-> > 
-> > Keeping backward compatible will be painful, and will require efforts for
-> > no gain.  
-> 
-> In the kernel it doesn't matter much, I agree. But applications that have to
-> be able to handle both old and new ioctls will have to switch between either
-> an fd or a struct. Whereas if we use a struct from the beginning, then the
-> only difference between the old and new ioctls are whether or not additional
-> fields beyond the first fd field are set.
+I try lots of randconfig builds, and only one of them hit this, so
+it's surely some
+header that may or may not include io.h and slab.h depending on the
+configuration,
+or based on some other changes in linux-next.
 
-Well, if we change the API by adding other fields, applications will need
-both behaviors anyway, if they want to support multiple kernel versions
-and need the newer version behavior, if available.
+Since the solution seemed obvious, I did not investigate further.
 
-> As mentioned before, I don't have very strong feelings about this, but I
-> do want input from others on this before making this change.
+If you want to try reproducing the problem, see the arm64 config file
+at https://pastebin.com/raw/bNTPvYfZ
 
-Feel free to wait for other inputs.
-
-> Frankly, I think it is unlikely that we will need more fields beyond just
-> the fd, but I've been wrong about such things before...
-
-In this specific ioctl, I don't expect other fields either. Even on
-brain storm with crazy ideas, I can't find any other parameter that
-might make any sense here. I'm almost certain that, if we end
-by needing some other things for this ioctl to work, the userspace
-logic will very likely require a non-trivial logic, up to a point
-that implementing it with a different name or have something like
-"MEDIA_IOC_PREP_REQUEST_ALLOC" would likely be better than re-using
-the same ioctl name and changing its behavior.
-
-Thanks,
-Mauro
+     Arnd
