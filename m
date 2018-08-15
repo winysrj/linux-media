@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38212 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729348AbeHOQdL (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42061 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729356AbeHOQdM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Aug 2018 12:33:11 -0400
+        Wed, 15 Aug 2018 12:33:12 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/5] vidioc-g-dv-timings.rst: document V4L2_DV_FL_CAN_DETECT_REDUCED_FPS
-Date: Wed, 15 Aug 2018 15:40:52 +0200
-Message-Id: <20180815134056.98830-2-hverkuil@xs4all.nl>
+Subject: [PATCHv2 5/5] adv7842: enable reduced fps detection
+Date: Wed, 15 Aug 2018 15:40:56 +0200
+Message-Id: <20180815134056.98830-6-hverkuil@xs4all.nl>
 In-Reply-To: <20180815134056.98830-1-hverkuil@xs4all.nl>
 References: <20180815134056.98830-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,56 +18,42 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Document the new V4L2_DV_FL_CAN_DETECT_REDUCED_FPS flag and
-update the V4L2_DV_FL_REDUCED_FPS description since it can now
-also be used with receivers.
+The pixelclock detection of the adv7842 is precise enough to detect
+if the framerate is 60 Hz or 59.94 Hz (aka "reduced fps").
+
+Implement this detection.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../media/uapi/v4l/vidioc-g-dv-timings.rst    | 27 +++++++++++++------
- 1 file changed, 19 insertions(+), 8 deletions(-)
+ drivers/media/i2c/adv7842.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-index 1a034e825161..35cba2c8d459 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-@@ -257,14 +257,19 @@ EBUSY
- 	will also be cleared. This is a read-only flag, applications must
- 	not set this.
-     * - ``V4L2_DV_FL_REDUCED_FPS``
--      - CEA-861 specific: only valid for video transmitters, the flag is
--	cleared by receivers. It is also only valid for formats with the
--	``V4L2_DV_FL_CAN_REDUCE_FPS`` flag set, for other formats the
--	flag will be cleared by the driver. If the application sets this
--	flag, then the pixelclock used to set up the transmitter is
--	divided by 1.001 to make it compatible with NTSC framerates. If
--	the transmitter can't generate such frequencies, then the flag
--	will also be cleared.
-+      - CEA-861 specific: only valid for video transmitters or video
-+        receivers that have the ``V4L2_DV_FL_CAN_DETECT_REDUCED_FPS``
-+	set. This flag is cleared otherwise. It is also only valid for
-+	formats with the ``V4L2_DV_FL_CAN_REDUCE_FPS`` flag set, for other
-+	formats the flag will be cleared by the driver.
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 4f8fbdd00e35..999d621f5667 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -1525,6 +1525,7 @@ static void adv7842_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
+ 	v4l2_find_dv_timings_cap(timings, adv7842_get_dv_timings_cap(sd),
+ 			is_digital_input(sd) ? 250000 : 1000000,
+ 			adv7842_check_dv_timings, NULL);
++	timings->bt.flags |= V4L2_DV_FL_CAN_DETECT_REDUCED_FPS;
+ }
+ 
+ static int adv7842_query_dv_timings(struct v4l2_subdev *sd,
+@@ -1596,6 +1597,14 @@ static int adv7842_query_dv_timings(struct v4l2_subdev *sd,
+ 			bt->il_vbackporch = 0;
+ 		}
+ 		adv7842_fill_optional_dv_timings_fields(sd, timings);
++		if ((timings->bt.flags & V4L2_DV_FL_CAN_REDUCE_FPS) &&
++		    freq < bt->pixelclock) {
++			u32 reduced_freq = (bt->pixelclock / 1001) * 1000;
++			u32 delta_freq = abs(freq - reduced_freq);
 +
-+	If the application sets this flag for a transmitter, then the
-+	pixelclock used to set up the transmitter is divided by 1.001 to
-+	make it compatible with NTSC framerates. If the transmitter can't
-+	generate such frequencies, then the flag will be cleared.
-+
-+	If a video receiver detects that the format uses a reduced framerate,
-+	then it will set this flag to signal this to the application.
-     * - ``V4L2_DV_FL_HALF_LINE``
-       - Specific to interlaced formats: if set, then the vertical
- 	backporch of field 1 (aka the odd field) is really one half-line
-@@ -294,3 +299,9 @@ EBUSY
-       - If set, then the hdmi_vic field is valid and contains the Video
-         Identification Code as per the HDMI standard (HDMI Vendor Specific
- 	InfoFrame).
-+    * - ``V4L2_DV_FL_CAN_DETECT_REDUCED_FPS``
-+      - CEA-861 specific: only valid for video receivers, the flag is
-+        cleared by transmitters.
-+        If set, then the hardware can detect the difference between
-+	regular framerates and framerates reduced by 1000/1001. E.g.:
-+	60 vs 59.94 Hz, 30 vs 29.97 Hz or 24 vs 23.976 Hz.
++			if (delta_freq < (bt->pixelclock - reduced_freq) / 2)
++				timings->bt.flags |= V4L2_DV_FL_REDUCED_FPS;
++		}
+ 	} else {
+ 		/* find format
+ 		 * Since LCVS values are inaccurate [REF_03, p. 339-340],
 -- 
 2.18.0
