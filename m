@@ -1,143 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:58734 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726958AbeHGGDZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:54640 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727141AbeHOPDQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Aug 2018 02:03:25 -0400
-Message-ID: <4d7eefc9b8e8c688c7112173e2bfb7cf@smtp-cloud7.xs4all.net>
-Date: Tue, 07 Aug 2018 05:51:03 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Wed, 15 Aug 2018 11:03:16 -0400
+Date: Wed, 15 Aug 2018 09:11:15 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [RFC] Request API and V4L2 capabilities
+Message-ID: <20180815091115.1abd814d@coco.lan>
+In-Reply-To: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
+References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sat, 4 Aug 2018 15:50:04 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> Hi all,
+> 
+> While the Request API patch series addresses all the core API issues, there
+> are some high-level considerations as well:
+> 
+> 1) How can the application tell that the Request API is supported and for
+>    which buffer types (capture/output) and pixel formats?
+> 
+> 2) How can the application tell if the Request API is required as opposed to being
+>    optional?
 
-date:			Tue Aug  7 05:00:10 CEST 2018
-media-tree git hash:	12f336c88090fb8004736fd4329184326a49673b
-media_build git hash:	a0cd9105aaeb5af5af36117af923a3d1de4b76d7
-v4l-utils git hash:	90905c2e4b17d7595256f3824e2d30d19b0df1a1
-edid-decode git hash:	ab18befbcacd6cd4dff63faa82e32700369d6f25
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+Huh? Why would it be mandatory?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.140-i686: OK
-linux-4.4.140-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.112-i686: OK
-linux-4.9.112-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.55-i686: OK
-linux-4.14.55-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.6-i686: OK
-linux-4.17.6-x86_64: OK
-linux-4.18-rc4-i686: OK
-linux-4.18-rc4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> 
+> 3) Some controls may be required in each request, how to let userspace know this?
+>    Is it even necessary to inform userspace?
 
-Detailed results are available here:
+Again, why would it need to have a set of mandatory controls for requests
+to work? If this is really required,  it should have a way to send such
+list to userspace.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+> 
+> 4) (For bonus points): How to let the application know which streaming I/O modes
+>    are available? That's never been possible before, but it would be very nice
+>    indeed if that's made explicit.
+> 
+> Since the Request API associates data with frame buffers it makes sense to expose
+> this as a new capability field in struct v4l2_requestbuffers and struct v4l2_create_buffers.
+> 
+> The first struct has 2 reserved fields, the second has 8, so it's not a problem to
+> take one for a capability field. Both structs also have a buffer type, so we know
+> if this is requested for a capture or output buffer type. The pixel format is known
+> in the driver, so HAS/REQUIRES_REQUESTS can be set based on that. I doubt we'll have
+> drivers where the request caps would actually depend on the pixel format, but it
+> theoretically possible. For both ioctls you can call them with count=0 at the start
+> of the application. REQBUFS has of course the side-effect of deleting all buffers,
+> but at the start of your application you don't have any yet. CREATE_BUFS has no
+> side-effects.
+> 
+> I propose adding these capabilities:
+> 
+> #define V4L2_BUF_CAP_HAS_REQUESTS	0x00000001
 
-Full logs are available here:
+I'm OK with that.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+> #define V4L2_BUF_CAP_REQUIRES_REQUESTS	0x00000002
 
-The Media Infrastructure API from this daily build is here:
+But I'm not ok with breaking even more userspace support by forcing 
+requests.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> #define V4L2_BUF_CAP_HAS_MMAP		0x00000100
+> #define V4L2_BUF_CAP_HAS_USERPTR	0x00000200
+> #define V4L2_BUF_CAP_HAS_DMABUF		0x00000400
+
+Those sounds ok to me too.
+
+> 
+> If REQUIRES_REQUESTS is set, then HAS_REQUESTS is also set.
+> 
+> At this time I think that REQUIRES_REQUESTS would only need to be set for the
+> output queue of stateless codecs.
+
+Same as before: I don't see the need of support a request-only driver.
+
+> 
+> If capabilities is 0, then it's from an old kernel and all you know is that
+> requests are certainly not supported, and that MMAP is supported. Whether USERPTR
+> or DMABUF are supported isn't known in that case (just try it :-) ).
+> 
+> Strictly speaking we do not need these HAS_MMAP/USERPTR/DMABUF caps, but it is very
+> easy to add if we create a new capability field anyway, and it has always annoyed
+> the hell out of me that we didn't have a good way to let userspace know what
+> streaming I/O modes we support. And with vb2 it's easy to implement.
+
+Yeah, that sounds a bonus to me too.
+
+> Regarding point 3: I think this should be documented next to the pixel format. I.e.
+> the MPEG-2 Slice format used by the stateless cedrus codec requires the request API
+> and that two MPEG-2 controls (slice params and quantization matrices) must be present
+> in each request.
+
+Makes sense to document with the pixel format...
+
+> I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRED_IN_REQ) is needed here.
+
+but it sounds worth to also have a flag.
+
+> It's really implied by the fact that you use a stateless codec. It doesn't help
+> generic applications like v4l2-ctl or qv4l2 either since in order to support
+> stateless codecs they will have to know about the details of these controls anyway.
+
+Yeah, but they could skip enum those ioctls if they see one marked with
+V4L2_CTRL_FLAG_REQUIRED_IN_REQ and don't know how to use. Then, default
+to not use request API. 
+
+Then, the driver would use a default that would work (even not providing
+the best possible compression).
+
+> So I am inclined to say that it is not necessary to expose this information in
+> the API, but it has to be documented together with the pixel format documentation.
+> 
+> Comments? Ideas?
+> 
+> Regards,
+> 
+> 	Hans
+
+Thanks,
+Mauro
