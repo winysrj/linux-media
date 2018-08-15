@@ -1,134 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sslvpn.mstarsemi.com ([59.120.57.246]:19099 "EHLO
-        mailsqr.mstarsemi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726003AbeHOFir (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:60399 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726003AbeHOGVS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Aug 2018 01:38:47 -0400
-From: =?utf-8?B?SmVzc2UgSHVhbmcgKOm7g+W7uuiIiCk=?=
-        <jesse.huang@mstarsemi.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-CC: "mchehab@kernel.org" <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        =?utf-8?B?WWlzaGluIFR1bmcgKOerpeaAoeaWsCk=?=
-        <yishin.tung@mstarsemi.com>,
-        =?utf-8?B?WmluayBIc2luICjovpvptLvmnbAp?= <zink.hsin@mediatek.com>,
-        =?utf-8?B?TUYgSHNpZWggKOisneaYjueUqyk=?= <mf.hsieh@mstarsemi.com>,
-        =?utf-8?B?SnVueW91IExpbiAo5p6X5L+K6KOVKQ==?=
-        <junyou.lin@mstarsemi.com>
-Subject: RE: Using big platform driver as foundation to implement TV driver
- framework in Linux
-Date: Wed, 15 Aug 2018 02:47:34 +0000
-Message-ID: <32535303362f4a9e815d4ebcba3e4221@MSTARMBS01.mstarsemi.com.tw>
-References: <a60afd4a1035444aa3bbbb1f07af52b0@MSTARMBS01.mstarsemi.com.tw>
- <20180814063832.3bb75cd4@coco.lan>
-In-Reply-To: <20180814063832.3bb75cd4@coco.lan>
-Content-Language: zh-TW
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Wed, 15 Aug 2018 02:21:18 -0400
+Message-ID: <16ef8ada1be4df7b28fda928a5ad33db@smtp-cloud7.xs4all.net>
+Date: Wed, 15 Aug 2018 05:31:00 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWNoZWhhYiwNCg0KV2UgYXJlIHZlcnkgYXBwcmVjaWF0aW5nIGZvciB5b3VyIHJlcGx5Lg0K
-DQpGb3IgR1BMLCBXZSBhcmUgYWdyZWUgdG8gZm9sbG93IEdQTCBsaWNlbnNlIHRvIG9wZW4gc291
-cmNlIGNvZGUgd2hpY2ggaXMgaW4gTGludXgga2VybmVsLg0KRm9yICJidXQgd2UgZG9uJ3QgYWNj
-ZXB0IGFueSBvdGhlciBPUy1kZXBlbmRlbnQgY29kZSIsIHdlIGNhbiBmb2xsb3cgdGhpcyBydWxl
-IHRvIHJlbW92ZSByZWxhdGl2ZSBPUy1kZXBlbmRlbnQgY29kZS4NCkZvciAiIElmIG90aGVyd2lz
-ZSBhbGwgeW91IHdhbnQgaXMgdG8gaGF2ZSBhIHdyYXBwZXIgZHJpdmVyIHRvIHJ1biBzb21lIHBy
-b3ByaWV0YXJ5IGRyaXZlciwgdGhlbiBzaGlwcGluZyBzdWNoIHNvbHV0aW9uIHdvdWxkIGxpa2Vs
-eSBiZSBhIGNvcHlyaWdodCB2aW9sYXRpb24gYW5kIHdlIGNhbid0IGhlbHAgeW91LiIsDQpXZSBj
-YW4gZm9sbG93IEdQTCwgT3VyIGludGVudGlvbiBpcyBub3QgdG8gYmUgYSBjb3B5cmlnaHQgdmlv
-bGF0aW9uLg0KDQpXaGF0IHdlIGhvcGUgdG8gZG8gaXMgdG8gc2VwYXJhdGUgb3VyIGJvYXJkIHN1
-cHBvcnQgcGFja2FnZSB0byB0d28gcGFydC4gT25lIGlzIGRyaXZlciBwYXJ0LCBhbm90aGVyIGlz
-IHBsYXRmb3JtIHBhcnQuDQpXZSB3YW50IHRvIHB1dCBkcml2ZXIgcGFydCB0byBrZXJuZWwgc291
-cmNlIGZvbGRlciBkcml2ZXIvbWVkaWEsIG9yIGRyaXZlci94eHggYW5kIHB1dCBwbGF0Zm9ybSBw
-YXJ0IHRvIGFyY2gvYXJtL21hY2gteHh4Lg0KQm90aCBvZiB0aG9zZSBjb2RlIHdpbGwgZm9sbG93
-IEdQTCBsaWNlbnNlLCBhbmQgd2Ugd2FudCB0byB1cHN0cmVhbSBib3RoIGludG8gbWFpbiBMaW51
-eCBjb2RlIGxpbmUuDQoNCkJlY2F1c2Ugb3VyIGhhcmR3YXJlIGlzIGEgY29uc3VtZXJpc20gb3Jp
-ZW50YXRpb24gcHJvZHVjdGlvbiwgZGlmZmVyZW50IGhhcmR3YXJlIG1vZHVsZSBpcyBoaWdobHkg
-ZGVwZW5kZW5jeSB0byBwcm92aWRlIGNvc3QgZWZmaWNpZW5jeSBwZXJmb3JtYW5jZS4gSXQgd2ls
-bCBjYXVzZSBvdXIgZHJpdmVyIGltcGxlbWVudCBjb25jZXB0IHdpbGwgaGF2ZSBodWdlIGRpZmZl
-cmVudCB3aXRoIG90aGVyIGNvbXBhbnkgb3IgcGVyc29uYWwgY29tcHV0ZXIuDQpGb3IgdGhpcyBy
-ZWFzb24sIHdlIHdhbnQgdG8gY29sbGVjdCBub24tc3RhbmRhcmQgcGFydCBpbXBsZW1lbnQgdG8g
-InBsYXRmb3JtIiwgaW4gb3VyIHZpZXcgdGhpcyBpcyBhIHZlcnkgbG93IGxldmVsIC8gaGlnaGx5
-IGhhcmR3YXJlIGRlcGVuZGVuY3kgZnJvbSBvdXIgcHJvZHVjdGlvbiB0byBwcm9kdWN0LiBXZSBh
-bHNvIGhvcGUgbW9zdCBvZiBwbGF0Zm9ybSBwYXJ0IGNhbiBiZSByZS11c2UgdG8gYW5vdGhlciBP
-UywgaXQgY2FuIHJlZHVjZSBjb3N0IGZvciBxdWFsaXR5IGFzc3VyYW5jZSBvciBzeW5jIG9mIGJ1
-ZyBmaXggdG8gZGlmZmVyZW50IE9TLg0KV2UgaG9wZSBkcml2ZXIgcGFydCBjYW4gam9pbiBhbmQg
-Y28td29yayB3aXRoIG1lZGlhIGNvbW11bml0eS4gUHJvdmlkZSB0aG9zZSBkcml2ZXIgcGFydCB3
-aWxsIHJlZHVjZSBjb3N0IGFuZCB0aW1lIHRvIHVwZ3JhZGUgdG8gbmV3IHZlcnNpb24gb2Yga2Vy
-bmVsLg0KDQpGb3IgZXhhbXBsZSwgdGhlIG1vZGVsIHdlIGV4cGVjdCBpczoNCg0KVXNlciBtb2Rl
-IEFQUCAgID09aW50ZXJmYWNlKFY0TDIpPT0+ICAgL2RyaXZlci9tZWRpYS9WNEwyX0pwZWcgICA9
-PSBpbnRlcmZhY2UoYSBraW5kIG9mIG1lZGlhIHBsYXRmb3JtLCBob3BlIGhhdmUgc3RhbmRhcmQp
-PT0+ICAgL2FyY2gvYXJtL21hY2gtTVRLLVRWLW1vZGVsMi9wbGF0Zm9ybV9qcGVnDQoNCg0KDQoN
-Cg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IE1hdXJvIENhcnZhbGhvIENoZWhh
-YiBbbWFpbHRvOm1jaGVoYWIrc2Ftc3VuZ0BrZXJuZWwub3JnXSANClNlbnQ6IFR1ZXNkYXksIEF1
-Z3VzdCAxNCwgMjAxOCA1OjM5IFBNDQpUbzogSmVzc2UgSHVhbmcgKOm7g+W7uuiIiCkgPGplc3Nl
-Lmh1YW5nQG1zdGFyc2VtaS5jb20+DQpDYzogbWNoZWhhYkBrZXJuZWwub3JnOyBsaW51eC1tZWRp
-YUB2Z2VyLmtlcm5lbC5vcmc7IFlpc2hpbiBUdW5nICjnq6XmgKHmlrApIDx5aXNoaW4udHVuZ0Bt
-c3RhcnNlbWkuY29tPjsgWmluayBIc2luICjovpvptLvmnbApIDx6aW5rLmhzaW5AbWVkaWF0ZWsu
-Y29tPjsgTUYgSHNpZWggKOisneaYjueUqykgPG1mLmhzaWVoQG1zdGFyc2VtaS5jb20+OyBKdW55
-b3UgTGluICjmnpfkv4roo5UpIDxqdW55b3UubGluQG1zdGFyc2VtaS5jb20+DQpTdWJqZWN0OiBS
-ZTogVXNpbmcgYmlnIHBsYXRmb3JtIGRyaXZlciBhcyBmb3VuZGF0aW9uIHRvIGltcGxlbWVudCBU
-ViBkcml2ZXIgZnJhbWV3b3JrIGluIExpbnV4DQoNCkhpIEplc3NlLA0KDQpFbSBNb24sIDEzIEF1
-ZyAyMDE4IDAxOjMyOjQ1ICswMDAwDQpKZXNzZSBIdWFuZyAo6buD5bu66IiIKSA8amVzc2UuaHVh
-bmdAbXN0YXJzZW1pLmNvbT4gZXNjcmV2ZXU6DQoNCj4gSGkgTWNoZWhhYiwNCj4gSGkgTGludXgt
-TWVkaWEsDQo+IA0KPiBNVEsvTVN0YXIgdHJ5IHRvIG1vdmUgVFYgU09DIHByb3ByaWV0YXJ5IGRy
-aXZlciBmcmFtZXdvcmsgdG8gTGludXggVFYgZHJpdmVyLg0KPiANCj4gQnV0LCB3ZSBhbHNvIG5l
-ZWQgdG8gc2hhcmUvcmUtdXNlIGRyaXZlciBjb2RlIHRvIG5vbi1PUyB3aGljaCBpcyBhIHNpemUg
-bGltaXRhdGlvbiBsb3cgY29zdCBzeXN0ZW0uDQo+IA0KPiBOb3JtYWxseSwgZWFjaCBMaW51eCBk
-cml2ZXIgbmVlZCB0byBjb250cm9sIHJlZ2lzdGVycyBkaXJlY3RseSBieSBpdCBzZWxmLiBGb3Ig
-ZXhhbXBsZToNCj4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PShzYW1wbGUgY29kZSBi
-ZWdpbikgDQo+IGxpbnV4LTMuMTgtZXh5bm9zNzI3MC1zYW5kYm94Lm9wZW5zdzAzMTIucmViYXNl
-LTNkOTE0MDhcZHJpdmVyc1xtZWRpYVwNCj4gcGNpXGN4MjU4MjFcY3gyNTgyMS12aWRlby5jIHN0
-YXRpYyBpbnQgdmlkaW9jX3N0cmVhbW9uKHN0cnVjdCBmaWxlIA0KPiAqZmlsZSwgdm9pZCAqcHJp
-diwgZW51bSB2NGwyX2J1Zl90eXBlIGkpIHsNCj4gICAgIHN0cnVjdCBjeDI1ODIxX2NoYW5uZWwg
-KmNoYW4gPSB2aWRlb19kcnZkYXRhKGZpbGUpOw0KPiANCj4gICAgIGlmIChpICE9IFY0TDJfQlVG
-X1RZUEVfVklERU9fQ0FQVFVSRSkNCj4gICAgICAgICByZXR1cm4gLUVJTlZBTDsNCj4gDQo+ICAg
-ICBpZiAoY2hhbi0+c3RyZWFtaW5nX2ZoICYmIGNoYW4tPnN0cmVhbWluZ19maCAhPSBwcml2KQ0K
-PiAgICAgICAgIHJldHVybiAtRUJVU1k7DQo+ICAgICBjaGFuLT5zdHJlYW1pbmdfZmggPSBwcml2
-Ow0KPiANCj4gICAgIHJldHVybiB2aWRlb2J1Zl9zdHJlYW1vbigmY2hhbi0+dmlkcSk7IH0gDQo+
-ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0oc2FtcGxlIGNvZGUgZW5kKQ0KPiANCj4g
-DQo+IA0KPiBCdXQsIGluIG91ciBjb25jZXB0LCB3ZSBob3BlIHRvIHByb3ZpZGUgYW4gZW50aXJl
-IHByb3ByaWV0YXJ5IGEgZHJpdmVyIGFzIGEg4oCcTVRLIFRWIHBsYXRmb3JtIGRyaXZlcuKAnS4g
-QmFzZSBvbiB0aGlzIGRyaXZlciB0byBpbXBsZW1lbnQgTGludXggc3RhbmRhcmQgVFYgZHJpdmVy
-Lg0KPiBJZiB3aWxsIGxvb2sgbGlrZSB0aGlzOg0KPiA9PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09KHNhbXBsZSBjb2RlIGJlZ2luKSBzdGF0aWMgaW50IA0KPiB2aWRpb2Nfc3RyZWFtb24o
-c3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgKnByaXYsIGVudW0gdjRsMl9idWZfdHlwZSBpKSB7DQo+
-ICAgICByZXR1cm4gbXRrX3R2X3BsYXRmb3JtLT52aWRlby0+c3RyZWFtb24oKTsNCj4gfQ0KPiAN
-Cj4gVGhlIG10a190dl9wbGF0Zm9ybSB3aWxsIGJlIHJlZ2lzdGVyIHdoZW4gc2V0dXBfYXJjaCgp
-IHZvaWQgX19pbml0IA0KPiBzZXR1cF9hcmNoKGNoYXIgKipjbWRsaW5lX3ApIHsgcmV0dXJuIA0K
-PiBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXIoJm10a190dl9wbGF0Zm9ybSk7DQo+IH0NCj4gPT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PShzYW1wbGUgY29kZSBlbmQpDQo+IA0KPiBXb3Vs
-ZCB0aGlzIGtpZCBvZiBpbXBsZW1lbnQgbWV0aG9kIGNhbiBiZSBhY2NlcHQgZm9yIExpbnV4IHVw
-c3RyZWFtL3N1Ym1pdCBkcml2ZXIgcnVsZT8gV2hhdCBraW5kIG9mIGZyYW1ld29yayBkZXNpZ24g
-Z3VpZGUgbGluZS9ydWxlIHdlIHNob3VsZCBmb2xsb3c/IFdvdWxkIGl0IHBvc3NpYmxlIHRvIGhh
-dmUgc29tZSByZWZlcmVuY2UgZm9yIHVzLg0KPiANCj4gSWYgdGhpcyBtZXRob2QgaXMgcG9zc2li
-bGUsIHdlIGNhbiBzaGFyZSBhIGxvdCBvZiBodW1hbiByZXNvdXJjZSB0byBib3RoIG1haW50YWlu
-IGZvciBMaW51eCBhbmQgbm9uLUxpbnV4IHByb2plY3QuDQoNCk5vdCBzdXJlIGlmIEkgdW5kZXJz
-dGFuZCB3aGF0IHlvdSB3YW50IHRvIGRvLg0KDQpUaGUgTGludXggS2VybmVsIGlzIHVuZGVyIGEg
-R1BMIHZlcnNpb24gMiBsaWNlbnNlLCBtZWFuaW5nIHRoYXQgYW55b25lIHdhbnRpbmcgdG8gZG8g
-S2VybmVsIGRldmVsb3BtZW50IHNob3VsZCBsaWNlbnNlIHRoZWlyIHdvcmsgdW5kZXIgdGhvc2Ug
-dGVybXMuDQoNCkluIG90aGVyIHdvcmRzLCBJZiB5b3Ugd2FudCB0byBzdWJtaXQgYSBkcml2ZXIg
-dG8gdGhlIExpbnV4IEtlcm5lbCwgdGhlIG5lZWRlZCBzb2Z0d2FyZSB0byBjb250cm9sIHRoZSBo
-YXJkd2FyZSBzaG91bGQgYWxsIGJlIHVwc3RyZWFtZWQgdXNpbmcgR1BMIHZlcnNpb24gMiwgaW5j
-bHVkaW5nIGFsbCByZWdpc3RlciBzZXR0aW5ncy4NCg0KSW4gdGhlIHNwZWNpZmljIGNhc2Ugb2Yg
-aW1hZ2UgZW5oYW5jZW1lbnQgYWxnb3JpdGhtcywgbGlrZSAzQSwgd2UncmUgY3VycmVudGx5IHdv
-cmtpbmcgb24gYSBzb2x1dGlvbiB0aGF0IHdvdWxkIGFsbG93IGEgdGhpcmQgcGFydHkgc29mdHdh
-cmUgKGlkZWFsbHkgb3BlbiBzb3VyY2UsIGJ1dCBpdCBjb3VsZCBiZSBhIGJpbmFyeSBjb2RlKSB0
-byBydW4gb24gdXNlcnNwYWNlLCByZWNlaXZpbmcgbWV0YWRhdGEgZnJvbSB0aGUgaGFyZHdhcmUg
-dmlhIGEgZG9jdW1lbnRlZCB1c2Vyc3BhY2UsIGFuZCB1c2luZyB0aGUgc3RhbmRhcmQgVjRMMiBB
-UEkgdG8gYWRqdXN0IHRoZSBoYXJkd2FyZSwgYWZ0ZXIgZG9pbmcgc29tZSAodXN1YWxseSBwcm9w
-cmlldGFyeSkgcHJvY2Vzc2luZy4NCg0KU28sIGlmIHlvdSdyZSB3aWxsaW5nIHRvIGNvbnRyaWJ1
-dGUgdW5kZXIgdGhpcyB0ZXJtcywgd2UgY2FuIGhlbHAgeW91Lg0KDQpJdCBjb3VsZCBzdGlsbCBi
-ZSBwb3NzaWJsZSB0byBzaGFyZSBjb2RlIHdpdGggb3RoZXIgT1MsIGRlcGVuZGluZyBvbiBob3cg
-eW91IHdyaXRlIHRoZSBkcml2ZXIsIGJ1dCB3ZSBkb24ndCBhY2NlcHQgYW55IG90aGVyIE9TLWRl
-cGVuZGVudCBjb2RlIChsaWtlICNpZmRlZnMgaW5zaWRlIExpbnV4KS4gV2hhdCBvdGhlciB2ZW5k
-b3JzIHVzdWFsbHkgZG8gaXMgdG8gZWl0aGVyIGVuY2Fwc3VsYXRlIHRoZSBvdGhlci1vcyBkZXBl
-bmRlbnQgcGFydCBvbiBhIGRpZmZlcmVudCBzb3VyY2UgZmlsZSAobm90IHN1Ym1pdHRlZCB0byBM
-aW51eCkgb3IgdG8gaW50ZXJuYWxseSBoYXZlIHNvbWUgc29ydCBvZiBwcm9jZXNzIHRvIHN0cmlw
-ICNpZmRlZnMgd2hlbiBzdWJtaXR0aW5nIGRyaXZlcnMgdG8gTGludXguDQoNCklmIG90aGVyd2lz
-ZSBhbGwgeW91IHdhbnQgaXMgdG8gaGF2ZSBhIHdyYXBwZXIgZHJpdmVyIHRvIHJ1biBzb21lIHBy
-b3ByaWV0YXJ5IGRyaXZlciwgdGhlbiBzaGlwcGluZyBzdWNoIHNvbHV0aW9uIHdvdWxkIGxpa2Vs
-eSBiZSBhIGNvcHlyaWdodCB2aW9sYXRpb24gYW5kIHdlIGNhbid0IGhlbHAgeW91Lg0KDQpUaGFu
-a3MsDQpNYXVybw0K
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
+
+Results of the daily build of media_tree:
+
+date:			Wed Aug 15 05:00:16 CEST 2018
+media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
+media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
+v4l-utils git hash:	4e160e6dfc8705fbc6867c880f445e69fcedcada
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.16.0-1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.18-i686: OK
+linux-4.18-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
