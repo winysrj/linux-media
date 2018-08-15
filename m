@@ -1,237 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44423 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728949AbeHOPZZ (ORCPT
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:53973 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728811AbeHOPnr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Aug 2018 11:25:25 -0400
-Subject: Re: [PATCHv18 19/35] vb2: store userspace data in vb2_v4l2_buffer
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl>
- <20180814142047.93856-20-hverkuil@xs4all.nl>
- <20180814164751.7b52c58d@coco.lan>
- <56ce6185-4b96-240a-5fe1-ecaf607ca407@xs4all.nl>
- <20180815092844.7528c56d@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8fe436c6-37a0-8ad0-fe8b-f3f8107fc483@xs4all.nl>
-Date: Wed, 15 Aug 2018 14:33:22 +0200
+        Wed, 15 Aug 2018 11:43:47 -0400
+Received: by mail-qk0-f182.google.com with SMTP id v17-v6so620247qkb.11
+        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2018 05:51:41 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180815092844.7528c56d@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
+References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
+ <43c3d4b79377e9481ca29308cf1c160d57902d8c.camel@bootlin.com>
+ <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl> <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
+From: Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+Date: Wed, 15 Aug 2018 14:51:39 +0200
+Message-ID: <CAHStOZ5aU5N5UssqqSTU8YRN7nmGCX7H0eGO0GeB=AN0YK53dQ@mail.gmail.com>
+Subject: Re: [RFC] Request API and V4L2 capabilities
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/08/18 14:28, Mauro Carvalho Chehab wrote:
-> Em Wed, 15 Aug 2018 13:54:53 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 14/08/18 21:47, Mauro Carvalho Chehab wrote:
->>> Em Tue, 14 Aug 2018 16:20:31 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:  
+2018-08-06 11:13 GMT+02:00 Paul Kocialkowski <paul.kocialkowski@bootlin.com>:
+> Hi,
+>
+> On Mon, 2018-08-06 at 10:32 +0200, Hans Verkuil wrote:
+>> On 08/06/2018 10:16 AM, Paul Kocialkowski wrote:
+>> > On Sat, 2018-08-04 at 15:50 +0200, Hans Verkuil wrote:
+>> > > Regarding point 3: I think this should be documented next to the pixel format. I.e.
+>> > > the MPEG-2 Slice format used by the stateless cedrus codec requires the request API
+>> > > and that two MPEG-2 controls (slice params and quantization matrices) must be present
+>> > > in each request.
+>> > >
+>> > > I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRED_IN_REQ) is needed here.
+>> > > It's really implied by the fact that you use a stateless codec. It doesn't help
+>> > > generic applications like v4l2-ctl or qv4l2 either since in order to support
+>> > > stateless codecs they will have to know about the details of these controls anyway.
+>> > >
+>> > > So I am inclined to say that it is not necessary to expose this information in
+>> > > the API, but it has to be documented together with the pixel format documentation.
+>> >
+>> > I think this is affected by considerations about codec profile/level
+>> > support. More specifically, some controls will only be required for
+>> > supporting advanced codec profiles/levels, so they can only be
+>> > explicitly marked with appropriate flags by the driver when the target
+>> > profile/level is known. And I don't think it would be sane for userspace
+>> > to explicitly set what profile/level it's aiming at. As a result, I
+>> > don't think we can explicitly mark controls as required or optional.
+>> >
+>> > I also like the idea that it should instead be implicit and that the
+>> > documentation should detail which specific stateless metadata controls
+>> > are required for a given profile/level.
+>> >
+>> > As for controls validation, the approach followed in the Cedrus driver
+>> > is to check that the most basic controls are filled and allow having
+>> > missing controls for those that match advanced profiles.
+>> >
+>> > Since this approach feels somewhat generic enough to be applied to all
+>> > stateless VPU drivers, maybe this should be made a helper in the
+>> > framework?
 >>
->> <snip>
+>> Sounds reasonable. Not sure if it will be in the first version, but it is
+>> easy to add later.
+>
+> Definitely, I don't think this is such a high priority for now either.
+>
+>> > In addition, I see a need for exposing the maximum profile/level that
+>> > the driver supports for decoding. I would suggest reusing the already-
+>> > existing dedicated controls used for encoding for this purpose. For
+>> > decoders, they would be used to expose the (read-only) maximum
+>> > profile/level that is supported by the hardware and keep using them as a
+>> > settable value in a range (matching the level of support) for encoders.
+>> >
+>> > This is necessary for userspace to determine whether a given video can
+>> > be decoded in hardware or not. Instead of half-way decoding the video
+>> > (ending up in funky results), this would easily allow skipping hardware
+>> > decoding and e.g. falling back on software decoding.
 >>
->>>> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->>>> index 57848ddc584f..360dc4e7d413 100644
->>>> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->>>> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->>>> @@ -154,17 +154,11 @@ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
->>>>  		pr_warn("use the actual size instead.\n");
->>>>  }
->>>>  
->>>> -/*
->>>> - * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
->>>> - * v4l2_buffer by the userspace. It also verifies that struct
->>>> - * v4l2_buffer has a valid number of planes.
->>>> - */
->>>> -static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>>> -		const void *pb, struct vb2_plane *planes)
->>>> +static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->>>>  {
->>>>  	struct vb2_queue *q = vb->vb2_queue;
->>>> -	const struct v4l2_buffer *b = pb;
->>>>  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
->>>> +	struct vb2_plane *planes = vbuf->planes;
->>>>  	unsigned int plane;
->>>>  	int ret;
->>>>  
->>>> @@ -186,7 +180,6 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>>>  		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
->>>>  		return -EINVAL;
->>>>  	}
->>>> -	vb->timestamp = 0;  
->>>
->>> See my note below about this removal. On a quick look, I guess we may have
->>> a regression here for output buffers (non-m2m).  
->>
->> Note that this is no longer the __fill_vb2_buffer() callback, and the timestamp
->> is not handled in vb2_fill_vb2_v4l2_buffer(). That's why it is removed here.
->>
->> It is handled in the new __fill_vb2_buffer function, see below for comments.
->>
->>>   
->>>>  	vbuf->sequence = 0;
->>>>  
->>>>  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->>>> @@ -208,6 +201,12 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>>>  			}
->>>>  			break;
->>>>  		default:
->>>> +			for (plane = 0; plane < vb->num_planes; ++plane) {
->>>> +				planes[plane].m.offset =
->>>> +					vb->planes[plane].m.offset;
->>>> +				planes[plane].length =
->>>> +					vb->planes[plane].length;
->>>> +			}
->>>>  			break;
->>>>  		}
->>>>  
->>>> @@ -269,9 +268,12 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>>>  			planes[0].length = b->length;
->>>>  			break;
->>>>  		default:
->>>> +			planes[0].m.offset = vb->planes[0].m.offset;
->>>> +			planes[0].length = vb->planes[0].length;
->>>>  			break;
->>>>  		}
->>>>  
->>>> +		planes[0].data_offset = 0;
->>>>  		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->>>>  			if (b->bytesused == 0)
->>>>  				vb2_warn_zero_bytesused(vb);
->>>> @@ -286,7 +288,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>>>  
->>>>  	}
->>>>  
->>>> -	/* Zero flags that the vb2 core handles */
->>>> +	/* Zero flags that we handle */
->>>>  	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
->>>>  	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
->>>>  		/*
->>>> @@ -319,6 +321,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>>>  static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
->>>>  				    const char *opname)
->>>>  {
->>>> +	struct vb2_v4l2_buffer *vbuf;
->>>> +	struct vb2_buffer *vb;
->>>> +	int ret;
->>>> +
->>>>  	if (b->type != q->type) {
->>>>  		dprintk(1, "%s: invalid buffer type\n", opname);
->>>>  		return -EINVAL;
->>>> @@ -340,7 +346,15 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
->>>>  		return -EINVAL;
->>>>  	}
->>>>  
->>>> -	return __verify_planes_array(q->bufs[b->index], b);
->>>> +	vb = q->bufs[b->index];
->>>> +	vbuf = to_vb2_v4l2_buffer(vb);
->>>> +	ret = __verify_planes_array(vb, b);
->>>> +	if (ret)
->>>> +		return ret;
->>>> +
->>>> +	/* Copy relevant information provided by the userspace */
->>>> +	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
->>>> +	return vb2_fill_vb2_v4l2_buffer(vb, b);
->>>>  }
->>>>  
->>>>  /*
->>>> @@ -448,6 +462,30 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->>>>  		q->last_buffer_dequeued = true;
->>>>  }
->>>>  
->>>> +/*
->>>> + * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
->>>> + * v4l2_buffer by the userspace. It also verifies that struct
->>>> + * v4l2_buffer has a valid number of planes.
->>>> + */
->>>> +static int __fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
->>>> +{
->>>> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
->>>> +	unsigned int plane;
->>>> +
->>>> +	if (!vb->vb2_queue->is_output || !vb->vb2_queue->copy_timestamp)
->>>> +		vb->timestamp = 0;  
->>>
->>> When vb->vb2_queue->copy_timestamp is not NULL, timestamp will be copied,
->>> but how VB2 will fill it if is_output?  
->>
->> vb->vb2_queue->copy_timestamp is a bool, not a pointer. It is true if the timestamps
->> should be copied from output to capture by the driver.
->>
->> So the timestamp provided by the application for an output queue that also wants to
->> copy timestamps needs to be preserved so the driver can copy it to a capture buffer.
->> In all other cases the vb->timestamp should be zeroed and the driver will fill it in
->> later when it is done with the capture or output buffer.
->>
->> Without the request API the sequence during a VIDIOC_QBUF is:
->>
->> 1) call __buf_prepare() which in turn calls the fill_vb2_buffer callback. This zeroed
->>    the timestamp.
->> 2) call the copy_timestamp callback of the vb buffer which fills in the timestamp
->>    from the user-provided v4l2_buffer.
->>
->> With the request API this no longer works since when you queue a buffer to a request
->> it is parked internally and not actually queued to the driver until the request itself
->> is queued. So the sequence in that case is:
->>
->> 1) call copy_timestamp callback to store the user-provided timestamp
->>
->> And when the request is queued:
->>
->> 2) call __buf_prepare() which in turn calls the fill_vb2_buffer callback.
->>
->> So the order of calling copy_timestamp and __buf_prepare is now reversed.
->> I can't call copy_timestamp when the request is queued since I no longer have
->> access to the original struct v4l2_buffer.
->>
->> So __fill_vb2_buffer now leaves the timestamp alone for output buffers that
->> need to copy the timestamp.
->>
->>>
->>> I suspect that the right logic here would be just:
->>>
->>> 	if (!vb->vb2_queue->copy_timestamp)
->>> 		vb->timestamp = 0;  
->>
->> No, it also needs the !vb->vb2_queue->is_output check: capture queues can also
->> have vb2_queue->copy_timestamp set. But there it is the driver that will copy
->> the timestamp from the output side, so we need to zero it here.
->>
->> Note that v4l2-compliance tests this timestamp handling. And in fact, the changes
->> I had to make here to do correct timestamp handling for requests were the result
->> of failures in v4l2-compliance.
-> 
-> So, not zeroing it if !vb->vb2_queue->is_output is actually a bug fix, right?
+>> I think it might be better to expose this through new read-only bitmask
+>> controls: i.e. a bitmask containing the supported profiles and levels.
+>
+> It seems that this is more or less what the coda driver is doing for
+> decoding actually, although it uses a menu control between min/max
+> supported profile/levels, with a mask to "blacklist" the unsupported
+> values. Then, the V4L2_CTRL_FLAG_READ_ONLY flag is set to keep the
+> control read-only.
+>
+>> Reusing the existing controls for a decoder is odd since there is not
+>> really a concept of a 'current' value since you just want to report what
+>> is supported. And I am not sure if all decoders can report the profile
+>> or level that they detect.
+>
+> Is that really a problem when the READ_ONLY flag is set? I thought it
+> was designed to fit this specific case, when the driver reports a value
+> that userspace cannot affect.
+>
+> Otherwise, I agree that having a bitmask type would be a better fit, but
+> I think it would be beneficial to keep the already-defined control and
+> associated values, which implies using the menu control type for both
+> encoders and decoders.
+>
+> If this is not an option, I would be in favour of adding per-codec read-
+> only bitmask controls (e.g. for H264 something like
+> V4L2_CID_MPEG_VIDEO_H264_PROFILE_SUPPORT) that expose the already-
+> existing profile/level definitions as bit identifiers (a bit like coda
+> is using them to craft a mask for the menu items to blacklist) for
+> decoding only.
+>
+> What do you think?
 
-No, it is not a bug fix. The old code worked fine since the timestamp was copied
-*after* fill_vb2_buffer was called. Now it is reversed and you need this check
-to avoid zeroing a copied timestamp.
+Hi Paul, I think we need to go deeper than just exposing the supported
+profiles/levels and also include a way to query the CAPTURE pixel
+formats that are supported for each profile.
 
-When I referred to the v4l2-compliance failures I meant failures I got testing
-with an early version of the request API that didn't have this modified timestamp
-handling code.
+Maybe HEVC Main produces yuv420p but HEVC Main10 gives you
+yuv420p10le. Maybe H.264 HiP produces NV12 but H.264 Hi422P produces
+YUYV while also supporting down-sampling to NV12.
 
-Regards,
+I don't know the specifics of each platform and the only example I can
+think of is the Amlogic HEVC decoder that can produce NV12 for Main,
+but only outputs a compressed proprietary format for Main10.
 
-	Hans
+I unfortunately don't have an idea about how to implement that, but
+I'll think about it.
 
-> 
-> Please put such change on a separate patchset then. It could make sense to
-> c/c stable for it.
-> 
->>
->> A general note: I feel that vb2 is getting a bit too complex and could do with some
->> refactoring. It is something I want to look at in the future.
->>
->> Regards,
->>
->> 	Hans
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+Maxime
+
+> Cheers,
+>
+> Paul
+>
+> --
+> Paul Kocialkowski, Bootlin (formerly Free Electrons)
+> Embedded Linux and kernel engineering
+> https://bootlin.com
