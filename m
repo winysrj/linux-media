@@ -1,19 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:55844 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729264AbeHOQWa (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:35739 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728885AbeHOQWb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Aug 2018 12:22:30 -0400
-Received: by mail-wm0-f67.google.com with SMTP id f21-v6so1393240wmc.5
-        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2018 06:30:18 -0700 (PDT)
+        Wed, 15 Aug 2018 12:22:31 -0400
+Received: by mail-wr1-f68.google.com with SMTP id g1-v6so1147114wru.2
+        for <linux-media@vger.kernel.org>; Wed, 15 Aug 2018 06:30:19 -0700 (PDT)
 From: petrcvekcz@gmail.com
 To: hans.verkuil@cisco.com, jacopo@jmondi.org, mchehab@kernel.org,
         marek.vasut@gmail.com
 Cc: Petr Cvek <petrcvekcz@gmail.com>, linux-media@vger.kernel.org,
         robert.jarzmik@free.fr, slapin@ossfans.org, philipp.zabel@gmail.com
-Subject: [PATCH v2 3/4] media: i2c: ov9640: add missing SPDX identifiers
-Date: Wed, 15 Aug 2018 15:30:26 +0200
-Message-Id: <4b890bbac6ab58ded07de0f4972cee23492deb53.1534339750.git.petrcvekcz@gmail.com>
+Subject: [PATCH v2 4/4] MAINTAINERS: Add Petr Cvek as a maintainer for the ov9640 driver
+Date: Wed, 15 Aug 2018 15:30:27 +0200
+Message-Id: <70045b0b4aab56bd7fab8338ea05fcc53d471ba1.1534339750.git.petrcvekcz@gmail.com>
 In-Reply-To: <cover.1534339750.git.petrcvekcz@gmail.com>
 References: <cover.1534339750.git.petrcvekcz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -21,50 +21,30 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Petr Cvek <petrcvekcz@gmail.com>
 
-Add missing SPDX identifiers to .c and .h files of the sensor driver.
+The soc_camera drivers are marked as orphaned. Add Petr Cvek as a new
+maintainer for ov9640 driver after its switch from the soc_camera.
 
 Signed-off-by: Petr Cvek <petrcvekcz@gmail.com>
 ---
- drivers/media/i2c/ov9640.c | 5 +----
- drivers/media/i2c/ov9640.h | 5 +----
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ MAINTAINERS | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/i2c/ov9640.c b/drivers/media/i2c/ov9640.c
-index ae55d13233f0..158959193453 100644
---- a/drivers/media/i2c/ov9640.c
-+++ b/drivers/media/i2c/ov9640.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * OmniVision OV96xx Camera Driver
-  *
-@@ -14,10 +15,6 @@
-  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-  * Copyright (C) 2008 Magnus Damm
-  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 40d5ec9292ca..cab3fa4ccb37 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10627,6 +10627,12 @@ S:	Maintained
+ F:	drivers/media/i2c/ov7740.c
+ F:	Documentation/devicetree/bindings/media/i2c/ov7740.txt
  
- #include <linux/init.h>
-diff --git a/drivers/media/i2c/ov9640.h b/drivers/media/i2c/ov9640.h
-index be5e4b29ac69..a8ed6992c1a8 100644
---- a/drivers/media/i2c/ov9640.h
-+++ b/drivers/media/i2c/ov9640.h
-@@ -1,11 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * OmniVision OV96xx Camera Header File
-  *
-  * Copyright (C) 2009 Marek Vasut <marek.vasut@gmail.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #ifndef	__DRIVERS_MEDIA_VIDEO_OV9640_H__
++OMNIVISION OV9640 SENSOR DRIVER
++M:	Petr Cvek <petrcvekcz@gmail.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/i2c/ov9640.*
++
+ OMNIVISION OV9650 SENSOR DRIVER
+ M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+ R:	Akinobu Mita <akinobu.mita@gmail.com>
 -- 
 2.18.0
