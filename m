@@ -1,103 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:34060 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726375AbeHOCnF (ORCPT
+Received: from sslvpn.mstarsemi.com ([59.120.57.246]:19099 "EHLO
+        mailsqr.mstarsemi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726003AbeHOFir (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 22:43:05 -0400
-Received: by mail-pg1-f195.google.com with SMTP id y5-v6so9829852pgv.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Aug 2018 16:53:31 -0700 (PDT)
-Subject: Re: [PATCH v2 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
-        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org,
-        linux-media@vger.kernel.org
-References: <1531247768-15362-1-git-send-email-jacopo@jmondi.org>
- <e9057214-2e1a-df78-8983-c63c80448cb1@mentor.com>
- <20180711072148.GH8180@w540> <bc50c3d7-d6ba-e73f-6156-341e1ce3099a@gmail.com>
- <b1369576-2193-bc57-0716-ca08098a2eca@gmail.com>
- <71f4b589-2c82-7e87-22fe-8b6373947b13@gmail.com> <20180716082929.GM8180@w540>
- <71bc3ff6-8db2-af63-f9af-72696f7d075c@gmail.com>
- <20180814153559.GA16428@w540>
- <cd3e2e96-0968-99cd-1417-05ffdd771341@gmail.com>
- <20180814173448.GA25722@w540>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <dbe7bb65-156a-89a8-4f96-13692fe11d24@gmail.com>
-Date: Tue, 14 Aug 2018 16:53:26 -0700
+        Wed, 15 Aug 2018 01:38:47 -0400
+From: =?utf-8?B?SmVzc2UgSHVhbmcgKOm7g+W7uuiIiCk=?=
+        <jesse.huang@mstarsemi.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+CC: "mchehab@kernel.org" <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        =?utf-8?B?WWlzaGluIFR1bmcgKOerpeaAoeaWsCk=?=
+        <yishin.tung@mstarsemi.com>,
+        =?utf-8?B?WmluayBIc2luICjovpvptLvmnbAp?= <zink.hsin@mediatek.com>,
+        =?utf-8?B?TUYgSHNpZWggKOisneaYjueUqyk=?= <mf.hsieh@mstarsemi.com>,
+        =?utf-8?B?SnVueW91IExpbiAo5p6X5L+K6KOVKQ==?=
+        <junyou.lin@mstarsemi.com>
+Subject: RE: Using big platform driver as foundation to implement TV driver
+ framework in Linux
+Date: Wed, 15 Aug 2018 02:47:34 +0000
+Message-ID: <32535303362f4a9e815d4ebcba3e4221@MSTARMBS01.mstarsemi.com.tw>
+References: <a60afd4a1035444aa3bbbb1f07af52b0@MSTARMBS01.mstarsemi.com.tw>
+ <20180814063832.3bb75cd4@coco.lan>
+In-Reply-To: <20180814063832.3bb75cd4@coco.lan>
+Content-Language: zh-TW
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <20180814173448.GA25722@w540>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 08/14/2018 10:38 AM, jacopo mondi wrote:
-> Hi Steve,
->
-> On Tue, Aug 14, 2018 at 09:51:04AM -0700, Steve Longerbeam wrote:
->> Hi Jacopo,
->>
->>
->> On 08/14/2018 08:35 AM, jacopo mondi wrote:
->>> Hi Steve,
->>>     sorry for resurecting this.
->>>
->>> <snip>
->>>>> I'm sorry I'm not sur I'm following. Does this mean that with that bug
->>>>> you are referring to up here fixed by my last patch you have capture
->>>>> working?
->>>> No, capture still not working for me on SabreSD, even after fixing
->>>> the bug in 476dec0 "media: ov5640: Add horizontal and vertical totals",
->>>> by either using your patchset, or by running version 476dec0 of ov5640.c
->>>> with the call to ov5640_set_timings() moved to the correct places as
->>>> described below.
->>>>
->>> I've been reported a bug on exposure handling that makes the first
->>> captured frames all black. Both me and Hugues have tried to fix the
->>> issue (him with a more complete series, but that's another topic).
->>> See [1] and [2]
->>>
->>> It might be possible that you're getting blank frames with this series
->>> applied? I never seen them as I'm skipping the first frames when
->>> capturing, but I've now tested and without the exposure fixes (either
->>> [1] or [2]) I actually have blank frames.
->>>
->>> If that's the case for you too (which I hope so much) would you be
->>> available to test again this series with exposure fixes on top?
->>> On my platform that actually makes all frames correct.
->>>
->>> Thanks
->>>     j
->>>
->>> [1] [PATCH 0/2] media: ov5640: Fix set_timings and auto-exposure
->>> [2] [PATCH v2 0/5] Fix OV5640 exposure & gain
->>>
->> It's not clear to me which patch sets you would like me to test.
->> Just [1] and [2], or [1], [2], and "media: i2c: ov5640: Re-work MIPI startup
->> sequence"?
->>
-> I have tested on my board the following:
-> v4.18-rc2 + MIPI Fix + Timings + Hugues' exposure fix
->
-> Without Hugues' patches I get blank frames (the first ones at least)
-> Without MIPI startup reowkr and timings I get the LP-11 error on the
-> CSI-2 bus.
->
-> As Hugues' series has to be rebased on mine, I have prepared a branch
-> here for you if you feel like testing it:
-> git://jmondi.org/linux ov5640/timings_exposure
-
-Hi Jacopo, that branch works on SabreSD!
-
-Feel free to add
-
-Tested-by: Steve Longerbeam <slongerbeam@gmail.com>
-on i.MX6q SabreSD with MIPI CSI-2 OV5640 module
-
-to whichever ov5640 patches are appropriate.
-
-Steve
+SGkgTWNoZWhhYiwNCg0KV2UgYXJlIHZlcnkgYXBwcmVjaWF0aW5nIGZvciB5b3VyIHJlcGx5Lg0K
+DQpGb3IgR1BMLCBXZSBhcmUgYWdyZWUgdG8gZm9sbG93IEdQTCBsaWNlbnNlIHRvIG9wZW4gc291
+cmNlIGNvZGUgd2hpY2ggaXMgaW4gTGludXgga2VybmVsLg0KRm9yICJidXQgd2UgZG9uJ3QgYWNj
+ZXB0IGFueSBvdGhlciBPUy1kZXBlbmRlbnQgY29kZSIsIHdlIGNhbiBmb2xsb3cgdGhpcyBydWxl
+IHRvIHJlbW92ZSByZWxhdGl2ZSBPUy1kZXBlbmRlbnQgY29kZS4NCkZvciAiIElmIG90aGVyd2lz
+ZSBhbGwgeW91IHdhbnQgaXMgdG8gaGF2ZSBhIHdyYXBwZXIgZHJpdmVyIHRvIHJ1biBzb21lIHBy
+b3ByaWV0YXJ5IGRyaXZlciwgdGhlbiBzaGlwcGluZyBzdWNoIHNvbHV0aW9uIHdvdWxkIGxpa2Vs
+eSBiZSBhIGNvcHlyaWdodCB2aW9sYXRpb24gYW5kIHdlIGNhbid0IGhlbHAgeW91LiIsDQpXZSBj
+YW4gZm9sbG93IEdQTCwgT3VyIGludGVudGlvbiBpcyBub3QgdG8gYmUgYSBjb3B5cmlnaHQgdmlv
+bGF0aW9uLg0KDQpXaGF0IHdlIGhvcGUgdG8gZG8gaXMgdG8gc2VwYXJhdGUgb3VyIGJvYXJkIHN1
+cHBvcnQgcGFja2FnZSB0byB0d28gcGFydC4gT25lIGlzIGRyaXZlciBwYXJ0LCBhbm90aGVyIGlz
+IHBsYXRmb3JtIHBhcnQuDQpXZSB3YW50IHRvIHB1dCBkcml2ZXIgcGFydCB0byBrZXJuZWwgc291
+cmNlIGZvbGRlciBkcml2ZXIvbWVkaWEsIG9yIGRyaXZlci94eHggYW5kIHB1dCBwbGF0Zm9ybSBw
+YXJ0IHRvIGFyY2gvYXJtL21hY2gteHh4Lg0KQm90aCBvZiB0aG9zZSBjb2RlIHdpbGwgZm9sbG93
+IEdQTCBsaWNlbnNlLCBhbmQgd2Ugd2FudCB0byB1cHN0cmVhbSBib3RoIGludG8gbWFpbiBMaW51
+eCBjb2RlIGxpbmUuDQoNCkJlY2F1c2Ugb3VyIGhhcmR3YXJlIGlzIGEgY29uc3VtZXJpc20gb3Jp
+ZW50YXRpb24gcHJvZHVjdGlvbiwgZGlmZmVyZW50IGhhcmR3YXJlIG1vZHVsZSBpcyBoaWdobHkg
+ZGVwZW5kZW5jeSB0byBwcm92aWRlIGNvc3QgZWZmaWNpZW5jeSBwZXJmb3JtYW5jZS4gSXQgd2ls
+bCBjYXVzZSBvdXIgZHJpdmVyIGltcGxlbWVudCBjb25jZXB0IHdpbGwgaGF2ZSBodWdlIGRpZmZl
+cmVudCB3aXRoIG90aGVyIGNvbXBhbnkgb3IgcGVyc29uYWwgY29tcHV0ZXIuDQpGb3IgdGhpcyBy
+ZWFzb24sIHdlIHdhbnQgdG8gY29sbGVjdCBub24tc3RhbmRhcmQgcGFydCBpbXBsZW1lbnQgdG8g
+InBsYXRmb3JtIiwgaW4gb3VyIHZpZXcgdGhpcyBpcyBhIHZlcnkgbG93IGxldmVsIC8gaGlnaGx5
+IGhhcmR3YXJlIGRlcGVuZGVuY3kgZnJvbSBvdXIgcHJvZHVjdGlvbiB0byBwcm9kdWN0LiBXZSBh
+bHNvIGhvcGUgbW9zdCBvZiBwbGF0Zm9ybSBwYXJ0IGNhbiBiZSByZS11c2UgdG8gYW5vdGhlciBP
+UywgaXQgY2FuIHJlZHVjZSBjb3N0IGZvciBxdWFsaXR5IGFzc3VyYW5jZSBvciBzeW5jIG9mIGJ1
+ZyBmaXggdG8gZGlmZmVyZW50IE9TLg0KV2UgaG9wZSBkcml2ZXIgcGFydCBjYW4gam9pbiBhbmQg
+Y28td29yayB3aXRoIG1lZGlhIGNvbW11bml0eS4gUHJvdmlkZSB0aG9zZSBkcml2ZXIgcGFydCB3
+aWxsIHJlZHVjZSBjb3N0IGFuZCB0aW1lIHRvIHVwZ3JhZGUgdG8gbmV3IHZlcnNpb24gb2Yga2Vy
+bmVsLg0KDQpGb3IgZXhhbXBsZSwgdGhlIG1vZGVsIHdlIGV4cGVjdCBpczoNCg0KVXNlciBtb2Rl
+IEFQUCAgID09aW50ZXJmYWNlKFY0TDIpPT0+ICAgL2RyaXZlci9tZWRpYS9WNEwyX0pwZWcgICA9
+PSBpbnRlcmZhY2UoYSBraW5kIG9mIG1lZGlhIHBsYXRmb3JtLCBob3BlIGhhdmUgc3RhbmRhcmQp
+PT0+ICAgL2FyY2gvYXJtL21hY2gtTVRLLVRWLW1vZGVsMi9wbGF0Zm9ybV9qcGVnDQoNCg0KDQoN
+Cg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IE1hdXJvIENhcnZhbGhvIENoZWhh
+YiBbbWFpbHRvOm1jaGVoYWIrc2Ftc3VuZ0BrZXJuZWwub3JnXSANClNlbnQ6IFR1ZXNkYXksIEF1
+Z3VzdCAxNCwgMjAxOCA1OjM5IFBNDQpUbzogSmVzc2UgSHVhbmcgKOm7g+W7uuiIiCkgPGplc3Nl
+Lmh1YW5nQG1zdGFyc2VtaS5jb20+DQpDYzogbWNoZWhhYkBrZXJuZWwub3JnOyBsaW51eC1tZWRp
+YUB2Z2VyLmtlcm5lbC5vcmc7IFlpc2hpbiBUdW5nICjnq6XmgKHmlrApIDx5aXNoaW4udHVuZ0Bt
+c3RhcnNlbWkuY29tPjsgWmluayBIc2luICjovpvptLvmnbApIDx6aW5rLmhzaW5AbWVkaWF0ZWsu
+Y29tPjsgTUYgSHNpZWggKOisneaYjueUqykgPG1mLmhzaWVoQG1zdGFyc2VtaS5jb20+OyBKdW55
+b3UgTGluICjmnpfkv4roo5UpIDxqdW55b3UubGluQG1zdGFyc2VtaS5jb20+DQpTdWJqZWN0OiBS
+ZTogVXNpbmcgYmlnIHBsYXRmb3JtIGRyaXZlciBhcyBmb3VuZGF0aW9uIHRvIGltcGxlbWVudCBU
+ViBkcml2ZXIgZnJhbWV3b3JrIGluIExpbnV4DQoNCkhpIEplc3NlLA0KDQpFbSBNb24sIDEzIEF1
+ZyAyMDE4IDAxOjMyOjQ1ICswMDAwDQpKZXNzZSBIdWFuZyAo6buD5bu66IiIKSA8amVzc2UuaHVh
+bmdAbXN0YXJzZW1pLmNvbT4gZXNjcmV2ZXU6DQoNCj4gSGkgTWNoZWhhYiwNCj4gSGkgTGludXgt
+TWVkaWEsDQo+IA0KPiBNVEsvTVN0YXIgdHJ5IHRvIG1vdmUgVFYgU09DIHByb3ByaWV0YXJ5IGRy
+aXZlciBmcmFtZXdvcmsgdG8gTGludXggVFYgZHJpdmVyLg0KPiANCj4gQnV0LCB3ZSBhbHNvIG5l
+ZWQgdG8gc2hhcmUvcmUtdXNlIGRyaXZlciBjb2RlIHRvIG5vbi1PUyB3aGljaCBpcyBhIHNpemUg
+bGltaXRhdGlvbiBsb3cgY29zdCBzeXN0ZW0uDQo+IA0KPiBOb3JtYWxseSwgZWFjaCBMaW51eCBk
+cml2ZXIgbmVlZCB0byBjb250cm9sIHJlZ2lzdGVycyBkaXJlY3RseSBieSBpdCBzZWxmLiBGb3Ig
+ZXhhbXBsZToNCj4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PShzYW1wbGUgY29kZSBi
+ZWdpbikgDQo+IGxpbnV4LTMuMTgtZXh5bm9zNzI3MC1zYW5kYm94Lm9wZW5zdzAzMTIucmViYXNl
+LTNkOTE0MDhcZHJpdmVyc1xtZWRpYVwNCj4gcGNpXGN4MjU4MjFcY3gyNTgyMS12aWRlby5jIHN0
+YXRpYyBpbnQgdmlkaW9jX3N0cmVhbW9uKHN0cnVjdCBmaWxlIA0KPiAqZmlsZSwgdm9pZCAqcHJp
+diwgZW51bSB2NGwyX2J1Zl90eXBlIGkpIHsNCj4gICAgIHN0cnVjdCBjeDI1ODIxX2NoYW5uZWwg
+KmNoYW4gPSB2aWRlb19kcnZkYXRhKGZpbGUpOw0KPiANCj4gICAgIGlmIChpICE9IFY0TDJfQlVG
+X1RZUEVfVklERU9fQ0FQVFVSRSkNCj4gICAgICAgICByZXR1cm4gLUVJTlZBTDsNCj4gDQo+ICAg
+ICBpZiAoY2hhbi0+c3RyZWFtaW5nX2ZoICYmIGNoYW4tPnN0cmVhbWluZ19maCAhPSBwcml2KQ0K
+PiAgICAgICAgIHJldHVybiAtRUJVU1k7DQo+ICAgICBjaGFuLT5zdHJlYW1pbmdfZmggPSBwcml2
+Ow0KPiANCj4gICAgIHJldHVybiB2aWRlb2J1Zl9zdHJlYW1vbigmY2hhbi0+dmlkcSk7IH0gDQo+
+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0oc2FtcGxlIGNvZGUgZW5kKQ0KPiANCj4g
+DQo+IA0KPiBCdXQsIGluIG91ciBjb25jZXB0LCB3ZSBob3BlIHRvIHByb3ZpZGUgYW4gZW50aXJl
+IHByb3ByaWV0YXJ5IGEgZHJpdmVyIGFzIGEg4oCcTVRLIFRWIHBsYXRmb3JtIGRyaXZlcuKAnS4g
+QmFzZSBvbiB0aGlzIGRyaXZlciB0byBpbXBsZW1lbnQgTGludXggc3RhbmRhcmQgVFYgZHJpdmVy
+Lg0KPiBJZiB3aWxsIGxvb2sgbGlrZSB0aGlzOg0KPiA9PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09KHNhbXBsZSBjb2RlIGJlZ2luKSBzdGF0aWMgaW50IA0KPiB2aWRpb2Nfc3RyZWFtb24o
+c3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgKnByaXYsIGVudW0gdjRsMl9idWZfdHlwZSBpKSB7DQo+
+ICAgICByZXR1cm4gbXRrX3R2X3BsYXRmb3JtLT52aWRlby0+c3RyZWFtb24oKTsNCj4gfQ0KPiAN
+Cj4gVGhlIG10a190dl9wbGF0Zm9ybSB3aWxsIGJlIHJlZ2lzdGVyIHdoZW4gc2V0dXBfYXJjaCgp
+IHZvaWQgX19pbml0IA0KPiBzZXR1cF9hcmNoKGNoYXIgKipjbWRsaW5lX3ApIHsgcmV0dXJuIA0K
+PiBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXIoJm10a190dl9wbGF0Zm9ybSk7DQo+IH0NCj4gPT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PShzYW1wbGUgY29kZSBlbmQpDQo+IA0KPiBXb3Vs
+ZCB0aGlzIGtpZCBvZiBpbXBsZW1lbnQgbWV0aG9kIGNhbiBiZSBhY2NlcHQgZm9yIExpbnV4IHVw
+c3RyZWFtL3N1Ym1pdCBkcml2ZXIgcnVsZT8gV2hhdCBraW5kIG9mIGZyYW1ld29yayBkZXNpZ24g
+Z3VpZGUgbGluZS9ydWxlIHdlIHNob3VsZCBmb2xsb3c/IFdvdWxkIGl0IHBvc3NpYmxlIHRvIGhh
+dmUgc29tZSByZWZlcmVuY2UgZm9yIHVzLg0KPiANCj4gSWYgdGhpcyBtZXRob2QgaXMgcG9zc2li
+bGUsIHdlIGNhbiBzaGFyZSBhIGxvdCBvZiBodW1hbiByZXNvdXJjZSB0byBib3RoIG1haW50YWlu
+IGZvciBMaW51eCBhbmQgbm9uLUxpbnV4IHByb2plY3QuDQoNCk5vdCBzdXJlIGlmIEkgdW5kZXJz
+dGFuZCB3aGF0IHlvdSB3YW50IHRvIGRvLg0KDQpUaGUgTGludXggS2VybmVsIGlzIHVuZGVyIGEg
+R1BMIHZlcnNpb24gMiBsaWNlbnNlLCBtZWFuaW5nIHRoYXQgYW55b25lIHdhbnRpbmcgdG8gZG8g
+S2VybmVsIGRldmVsb3BtZW50IHNob3VsZCBsaWNlbnNlIHRoZWlyIHdvcmsgdW5kZXIgdGhvc2Ug
+dGVybXMuDQoNCkluIG90aGVyIHdvcmRzLCBJZiB5b3Ugd2FudCB0byBzdWJtaXQgYSBkcml2ZXIg
+dG8gdGhlIExpbnV4IEtlcm5lbCwgdGhlIG5lZWRlZCBzb2Z0d2FyZSB0byBjb250cm9sIHRoZSBo
+YXJkd2FyZSBzaG91bGQgYWxsIGJlIHVwc3RyZWFtZWQgdXNpbmcgR1BMIHZlcnNpb24gMiwgaW5j
+bHVkaW5nIGFsbCByZWdpc3RlciBzZXR0aW5ncy4NCg0KSW4gdGhlIHNwZWNpZmljIGNhc2Ugb2Yg
+aW1hZ2UgZW5oYW5jZW1lbnQgYWxnb3JpdGhtcywgbGlrZSAzQSwgd2UncmUgY3VycmVudGx5IHdv
+cmtpbmcgb24gYSBzb2x1dGlvbiB0aGF0IHdvdWxkIGFsbG93IGEgdGhpcmQgcGFydHkgc29mdHdh
+cmUgKGlkZWFsbHkgb3BlbiBzb3VyY2UsIGJ1dCBpdCBjb3VsZCBiZSBhIGJpbmFyeSBjb2RlKSB0
+byBydW4gb24gdXNlcnNwYWNlLCByZWNlaXZpbmcgbWV0YWRhdGEgZnJvbSB0aGUgaGFyZHdhcmUg
+dmlhIGEgZG9jdW1lbnRlZCB1c2Vyc3BhY2UsIGFuZCB1c2luZyB0aGUgc3RhbmRhcmQgVjRMMiBB
+UEkgdG8gYWRqdXN0IHRoZSBoYXJkd2FyZSwgYWZ0ZXIgZG9pbmcgc29tZSAodXN1YWxseSBwcm9w
+cmlldGFyeSkgcHJvY2Vzc2luZy4NCg0KU28sIGlmIHlvdSdyZSB3aWxsaW5nIHRvIGNvbnRyaWJ1
+dGUgdW5kZXIgdGhpcyB0ZXJtcywgd2UgY2FuIGhlbHAgeW91Lg0KDQpJdCBjb3VsZCBzdGlsbCBi
+ZSBwb3NzaWJsZSB0byBzaGFyZSBjb2RlIHdpdGggb3RoZXIgT1MsIGRlcGVuZGluZyBvbiBob3cg
+eW91IHdyaXRlIHRoZSBkcml2ZXIsIGJ1dCB3ZSBkb24ndCBhY2NlcHQgYW55IG90aGVyIE9TLWRl
+cGVuZGVudCBjb2RlIChsaWtlICNpZmRlZnMgaW5zaWRlIExpbnV4KS4gV2hhdCBvdGhlciB2ZW5k
+b3JzIHVzdWFsbHkgZG8gaXMgdG8gZWl0aGVyIGVuY2Fwc3VsYXRlIHRoZSBvdGhlci1vcyBkZXBl
+bmRlbnQgcGFydCBvbiBhIGRpZmZlcmVudCBzb3VyY2UgZmlsZSAobm90IHN1Ym1pdHRlZCB0byBM
+aW51eCkgb3IgdG8gaW50ZXJuYWxseSBoYXZlIHNvbWUgc29ydCBvZiBwcm9jZXNzIHRvIHN0cmlw
+ICNpZmRlZnMgd2hlbiBzdWJtaXR0aW5nIGRyaXZlcnMgdG8gTGludXguDQoNCklmIG90aGVyd2lz
+ZSBhbGwgeW91IHdhbnQgaXMgdG8gaGF2ZSBhIHdyYXBwZXIgZHJpdmVyIHRvIHJ1biBzb21lIHBy
+b3ByaWV0YXJ5IGRyaXZlciwgdGhlbiBzaGlwcGluZyBzdWNoIHNvbHV0aW9uIHdvdWxkIGxpa2Vs
+eSBiZSBhIGNvcHlyaWdodCB2aW9sYXRpb24gYW5kIHdlIGNhbid0IGhlbHAgeW91Lg0KDQpUaGFu
+a3MsDQpNYXVybw0K
