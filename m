@@ -1,158 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:56438 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2392441AbeHPTiT (ORCPT
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:58554 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726004AbeHPWnx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Aug 2018 15:38:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: chf.fritz@googlemail.com
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Norbert Wesp <n.wesp@phytec.de>,
-        Dirk Bender <D.bender@phytec.de>,
-        Philipp Zabel <philipp.zabel@gmail.com>
-Subject: Re: [PATCH] uvcvideo: add quirk to force Phytec CAM 004H to GBRG
-Date: Thu, 16 Aug 2018 19:39:34 +0300
-Message-ID: <4073605.T2oYED4Iz8@avalon>
-In-Reply-To: <1534423695.2246.15.camel@googlemail.com>
-References: <1519212389.11643.13.camel@googlemail.com> <1860315.IXoSrtTCf6@avalon> <1534423695.2246.15.camel@googlemail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 16 Aug 2018 18:43:53 -0400
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w7GJNdeQ087240
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2018 15:43:29 -0400
+Received: from e16.ny.us.ibm.com (e16.ny.us.ibm.com [129.33.205.206])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 2kwcgcqs7g-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2018 15:43:29 -0400
+Received: from localhost
+        by e16.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-media@vger.kernel.org> from <eajames@linux.vnet.ibm.com>;
+        Thu, 16 Aug 2018 15:43:29 -0400
+From: Eddie James <eajames@linux.vnet.ibm.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-aspeed@lists.ozlabs.org,
+        andrew@aj.id.au, joel@jms.id.au, mchehab@kernel.org,
+        openbmc@lists.ozlabs.org, Eddie James <eajames@linux.vnet.ibm.com>
+Subject: [RFC 0/2] media: platform: Add Aspeed Video Engine driver
+Date: Thu, 16 Aug 2018 14:43:19 -0500
+Message-Id: <1534448601-74120-1-git-send-email-eajames@linux.vnet.ibm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Christoph,
+The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
+can capture and compress video data from digital or analog sources. With
+the Aspeed chip acting as a service processor, the Video Engine can
+capture the host processor graphics output.
 
-(Philipp, there's a question for you at the end)
+This series adds a V4L2 driver for the VE, providing a read() interface
+only. The driver triggers the hardware to capture the host graphics output
+and compress it to JPEG format.
 
-On Thursday, 16 August 2018 15:48:15 EEST Christoph Fritz wrote:
-> > On Wednesday, 21 February 2018 23:24:36 EEST Laurent Pinchart wrote:
-> >> On Wednesday, 21 February 2018 22:42:45 EET Christoph Fritz wrote:
-> >>>>>  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
-> >>>>>  drivers/media/usb/uvc/uvcvideo.h   |  1 +
-> >>>>>  2 files changed, 17 insertions(+)
-> >>>>> 
-> >>>>> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> >>>>> b/drivers/media/usb/uvc/uvc_driver.c index cde43b6..8bfa40b 100644
-> >>>>> --- a/drivers/media/usb/uvc/uvc_driver.c
-> >>>>> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> >>>>> @@ -406,6 +406,13 @@ static int uvc_parse_format(struct uvc_device
-> >>>>> *dev,
-> >>>>>  				width_multiplier = 2;
-> >>>>>  			}
-> >>>>>  		}
-> >>>>> +		if (dev->quirks & UVC_QUIRK_FORCE_GBRG) {
-> >>>>> +			if (format->fcc == V4L2_PIX_FMT_SGRBG8) {
-> >>>>> +				strlcpy(format->name, "GBRG Bayer (GBRG)",
-> >>>>> +					sizeof(format->name));
-> >>>>> +				format->fcc = V4L2_PIX_FMT_SGBRG8;
-> >>>>> +			}
-> >>>>> +		}
-> >>>>> 
-> >>>>>  		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
-> >>>>>  			ftype = UVC_VS_FRAME_UNCOMPRESSED;
-> >>>>> @@ -2631,6 +2638,15 @@ static struct usb_device_id uvc_ids[] = {
-> >>>>>  	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
-> >>>>>  	  .bInterfaceSubClass	= 1,
-> >>>>>  	  .bInterfaceProtocol	= 0 },
-> >>>>> +	/* PHYTEC CAM 004H cameras */
-> >>>>> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> >>>>> +				| USB_DEVICE_ID_MATCH_INT_INFO,
-> >>>>> +	  .idVendor		= 0x199e,
-> >>>>> +	  .idProduct		= 0x8302,
-> >>>>> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
-> >>>>> +	  .bInterfaceSubClass	= 1,
-> >>>>> +	  .bInterfaceProtocol	= 0,
-> >>>>> +	  .driver_info		= UVC_QUIRK_FORCE_GBRG },
-> >>>>>  	/* Bodelin ProScopeHR */
-> >>>>>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> >>>>>  				| USB_DEVICE_ID_MATCH_DEV_HI
-> >>>>> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> >>>>> b/drivers/media/usb/uvc/uvcvideo.h index 7e4d3ee..ad51002 100644
-> >>>>> --- a/drivers/media/usb/uvc/uvcvideo.h
-> >>>>> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> >>>>> @@ -164,6 +164,7 @@
-> >>>>>  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
-> >>>>>  #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
-> >>>>>  #define UVC_QUIRK_FORCE_Y8		0x00000800
-> >>>>> +#define UVC_QUIRK_FORCE_GBRG		0x00001000
-> >>>> 
-> >>>> I don't think we should add a quirk flag for every format that needs
-> >>>> to be forced. Instead, now that we have a new way to store per-device
-> >>>> parameters since commit 3bc85817d798 ("media: uvcvideo: Add
-> >>>> extensible device information"), how about making use of it and adding
-> >>>> a field to the uvc_device_info structure to store the forced format ?
-> 
-> you mean something like:
-> 
->  struct uvc_device_info {
->         u32     quirks;
-> +       u32     forced_color_format;
->         u32     meta_format;
->  };
-> 
-> and
-> 
-> +static const struct uvc_device_info uvc_forced_color_sgbrg8 = {
-> +       .forced_color_format = V4L2_PIX_FMT_SGBRG8,
-> +};
-> 
-> and
-> 
-> @@ -2817,7 +2820,7 @@ static const struct usb_device_id uvc_ids[] = {
->           .bInterfaceClass      = USB_CLASS_VENDOR_SPEC,
->           .bInterfaceSubClass   = 1,
->           .bInterfaceProtocol   = 0,
-> -         .driver_info          = (kernel_ulong_t)&uvc_quirk_force_y8 },
-> +         .driver_info          = (kernel_ulong_t)&uvc_forced_color_y8 },
-> 
-> ?
+Testing on an AST2500 determined that the videobuf/streaming/mmap interface
+was significantly slower than the simple read() interface, so I have not
+included the streaming part.
 
-With an additional
+It's also possible to use an automatic mode for the VE such that
+re-triggering the HW every frame isn't necessary. However this wasn't
+reliable on the AST2400, and probably used more CPU anyway due to excessive
+interrupts. It was approximately 15% faster.
 
-static const struct uvc_device_info uvc_forced_color_y8 = {
-	.forced_color_format = V4L2_PIX_FMT_GREY,
-};
+Eddie James (2):
+  dt-bindings: media: Add Aspeed Video Engine binding documentation
+  media: platform: Add Aspeed Video Engine driver
 
-
-> If yes:
-> 
->  - there would be a need for forced_color_format in struct uvc_device
-
-Why so ?
-
->  - module-parameter quirk would not test force color format any more
->  - the actual force/quirk changes not only format->fcc:
-> 
->                 if (dev->forced_color_format == V4L2_PIX_FMT_SGBRG8) {
-
-The test should be if (dev->forced_color_format) to cover both the Y8 and 
-SGBRG8 cases.
-
->                         strlcpy(format->name, "Greyscale 8-bit (Y8  )",
->                                 sizeof(format->name));
-
-You can get the name from the uvc_fmts entry corresponding to dev-
->forced_color_format.
-
->                         format->fcc = dev->forced_color_format;
->                         format->bpp = 8;
->                         width_multiplier = 2;
-
-bpp and multiplier are more annoying. bpp is a property of the format, which 
-we could add to the uvc_fmts array. 
-
-I believe the multiplier could be computed by device bpp / bpp from uvc_fmts. 
-That would work at least for the Oculus VR Positional Tracker DK2, but I don't 
-have the Oculus VR Rift Sensor descriptors to check that. Philipp, if you 
-still have access to the device, could you send that to me ?
-
->                 }
-> 
-> Is this the way you want me to go?
+ .../devicetree/bindings/media/aspeed-video.txt     |   25 +
+ drivers/media/platform/Kconfig                     |    8 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/aspeed-video.c              | 1307 ++++++++++++++++++++
+ 4 files changed, 1341 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/aspeed-video.txt
+ create mode 100644 drivers/media/platform/aspeed-video.c
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
