@@ -1,123 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16114 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390378AbeHPMPG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Aug 2018 08:15:06 -0400
-Date: Thu, 16 Aug 2018 12:17:52 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se
-Subject: Re: [PATCH 05/21] dt-bindings: media: Specify bus type for MIPI
- D-PHY, others, explicitly
-Message-ID: <20180816091752.xnefm7b6cza67j4k@paasikivi.fi.intel.com>
-References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
- <20180723134706.15334-6-sakari.ailus@linux.intel.com>
- <20180731213210.GA28374@rob-hp-laptop>
- <20180801111627.gtvnhzo2b2j4haa2@paasikivi.fi.intel.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:16202 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2388054AbeHPMpH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Aug 2018 08:45:07 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: [PATCH] media: ov5640: fix mode change regression
+Date: Thu, 16 Aug 2018 11:46:53 +0200
+Message-ID: <1534412813-10406-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180801111627.gtvnhzo2b2j4haa2@paasikivi.fi.intel.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ping?
+fixes: 6949d864776e ("media: ov5640: do not change mode if format or frame interval is unchanged").
 
-On Wed, Aug 01, 2018 at 02:16:27PM +0300, Sakari Ailus wrote:
-> Hi Rob,
-> 
-> Thanks for the review.
-> 
-> On Tue, Jul 31, 2018 at 03:32:10PM -0600, Rob Herring wrote:
-> > On Mon, Jul 23, 2018 at 04:46:50PM +0300, Sakari Ailus wrote:
-> > > Allow specifying the bus type explicitly for MIPI D-PHY, parallel and
-> > > Bt.656 busses. This is useful for devices that can make use of different
-> > > bus types. There are CSI-2 transmitters and receivers but the PHY
-> > > selection needs to be made between C-PHY and D-PHY; many devices also
-> > > support parallel and Bt.656 interfaces but the means to pass that
-> > > information to software wasn't there.
-> > > 
-> > > Autodetection (value 0) is removed as an option as the property could be
-> > > simply omitted in that case.
-> > 
-> > Presumably there are users, so you can't remove it. But documenting 
-> > behavior when absent would be good.
-> 
-> Well, it's effectively the same as having no such property at all: the type
-> is not specified. Generally there are two possibilities: the hardware
-> supports just a single bus or it supports more than one. If there's just
-> one, the type can be known by the driver. In that case there's no use for
-> autodetection.
-> 
-> The second case is a bit more complicated: the bus type detection is solely
-> based on properties available in the endpoint, and I think that may have
-> been feasible approach when there were just parallel and Bt.656 busses that
-> were supported, but with the additional busses, the V4L2 fwnode framework
-> may no longer guess the bus in any meaningful way from the available
-> properties. I'd think the only known-good option here is to specify the
-> type explicitly in that case: there's no room for guessing. (This patchset
-> makes it possible for drivers to explicitly define the bus type, but the
-> autodetection support is maintained for backwards compatibility.)
-> 
-> One of the existing issues is that there are combined parallel/Bt.656
-> receivers that need to know the type of the bus. This is based on the
-> existence parallel interface only properties: if any of these exist, then
-> the interface is parallel, otherwise it is Bt.656. The DT bindings for the
-> same devices also define the defaults for the parallel interface. This
-> leaves the end result ambiguous: is it the parallel interface with the
-> default configuration or is it Bt.656?
-> 
-> There will likely be similar issues for CSI-2 D-PHY and CSI-2 C-PHY. The
-> question there would be: is this CSI-2 C-PHY or CSI-2 D-PHY with default
-> clock lane configuration?
-> 
-> In either case the autodetection option for the bus type provides no useful
-> information. If it exists in DT source, that's fine, there's just no use
-> for it.
-> 
-> Let me know if you still think it should be maintained in binding
-> documentation.
+Symptom was fuzzy image because of JPEG default format
+not being changed according to new format selected, fix this.
+Init sequence initialises format to YUV422 UYVY but
+sensor->fmt initial value was set to JPEG, fix this.
 
-If you prefer to keep it, I'd propose to mark it as deprecated or something
-as it provides no information to software.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-> 
-> > 
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > ---
-> > >  Documentation/devicetree/bindings/media/video-interfaces.txt | 4 +++-
-> > >  1 file changed, 3 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > index baf9d9756b3c..f884ada0bffc 100644
-> > > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > @@ -100,10 +100,12 @@ Optional endpoint properties
-> > >    slave device (data source) by the master device (data sink). In the master
-> > >    mode the data source device is also the source of the synchronization signals.
-> > >  - bus-type: data bus type. Possible values are:
-> > > -  0 - autodetect based on other properties (MIPI CSI-2 D-PHY, parallel or Bt656)
-> > >    1 - MIPI CSI-2 C-PHY
-> > >    2 - MIPI CSI1
-> > >    3 - CCP2
-> > > +  4 - MIPI CSI-2 D-PHY
-> > > +  5 - Parallel
-> > 
-> > Is that really specific enough to be useful?
-> 
-> Yes; see above.
-> 
-> > 
-> > > +  6 - Bt.656
-> > >  - bus-width: number of data lines actively used, valid for the parallel busses.
-> > >  - data-shift: on the parallel data busses, if bus-width is used to specify the
-> > >    number of data lines, data-shift can be used to specify which data lines are
-> 
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 071f4bc..2ddd86d 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -223,6 +223,7 @@ struct ov5640_dev {
+ 	int power_count;
+ 
+ 	struct v4l2_mbus_framefmt fmt;
++	bool pending_fmt_change;
+ 
+ 	const struct ov5640_mode_info *current_mode;
+ 	enum ov5640_frame_rate current_fr;
+@@ -255,7 +256,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
+  * should be identified and removed to speed register load time
+  * over i2c.
+  */
+-
++/* YUV422 UYVY VGA@30fps */
+ static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
+ 	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
+ 	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
+@@ -1968,9 +1969,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 
+ 	if (new_mode != sensor->current_mode) {
+ 		sensor->current_mode = new_mode;
+-		sensor->fmt = *mbus_fmt;
+ 		sensor->pending_mode_change = true;
+ 	}
++	if (mbus_fmt->code != sensor->fmt.code) {
++		sensor->fmt = *mbus_fmt;
++		sensor->pending_fmt_change = true;
++	}
+ out:
+ 	mutex_unlock(&sensor->lock);
+ 	return ret;
+@@ -2544,10 +2548,13 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+ 			ret = ov5640_set_mode(sensor, sensor->current_mode);
+ 			if (ret)
+ 				goto out;
++		}
+ 
++		if (enable && sensor->pending_fmt_change) {
+ 			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
+ 			if (ret)
+ 				goto out;
++			sensor->pending_fmt_change = false;
+ 		}
+ 
+ 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
+@@ -2642,9 +2649,14 @@ static int ov5640_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	sensor->i2c_client = client;
++
++	/*
++	 * default init sequence initialize sensor to
++	 * YUV422 UYVY VGA@30fps
++	 */
+ 	fmt = &sensor->fmt;
+-	fmt->code = ov5640_formats[0].code;
+-	fmt->colorspace = ov5640_formats[0].colorspace;
++	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
++	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+ 	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
+ 	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
+ 	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
+@@ -2656,7 +2668,6 @@ static int ov5640_probe(struct i2c_client *client,
+ 	sensor->current_fr = OV5640_30_FPS;
+ 	sensor->current_mode =
+ 		&ov5640_mode_data[OV5640_30_FPS][OV5640_MODE_VGA_640_480];
+-	sensor->pending_mode_change = true;
+ 
+ 	sensor->ae_target = 52;
+ 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
