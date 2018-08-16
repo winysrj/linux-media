@@ -1,139 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39520 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2391394AbeHPSHg (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:42981 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725808AbeHPSZO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Aug 2018 14:07:36 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: jacopo mondi <jacopo@jmondi.org>,
-        "akinobu.mita@gmail.com" <akinobu.mita@gmail.com>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
-Date: Thu, 16 Aug 2018 15:07:54 +0000
-Message-ID: <3ad25a94-3de0-1a9a-ff02-30d3d282b363@st.com>
-References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
- <1534155586-26974-6-git-send-email-hugues.fruchet@st.com>
- <20180816101023.GA19047@w540>
-In-Reply-To: <20180816101023.GA19047@w540>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <B167925494F47942BE5357DD91B2549F@st.com>
-Content-Transfer-Encoding: base64
+        Thu, 16 Aug 2018 14:25:14 -0400
+Received: by mail-wr1-f68.google.com with SMTP id e7-v6so4509839wrs.9
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2018 08:26:03 -0700 (PDT)
 MIME-Version: 1.0
+References: <20180816105319.6411-1-hverkuil@xs4all.nl>
+In-Reply-To: <20180816105319.6411-1-hverkuil@xs4all.nl>
+From: Alex Deucher <alexdeucher@gmail.com>
+Date: Thu, 16 Aug 2018 11:25:50 -0400
+Message-ID: <CADnq5_NiL8Ac=mF3wenpQ3MHuj+8cNJFW2eshkWnf2tPQHPqTA@mail.gmail.com>
+Subject: Re: [PATCH 0/5] drm/nouveau+amdgpu: add DP CEC-Tunneling-over-AUX
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        nouveau <nouveau@lists.freedesktop.org>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        Maling list - DRI developers
+        <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSmFjb3BvLA0KDQpPbiAwOC8xNi8yMDE4IDEyOjEwIFBNLCBqYWNvcG8gbW9uZGkgd3JvdGU6
-DQo+IEhpIEh1Z3VlcywNCj4gICAgICB0aGFua3MgZm9yIHRoZSBwYXRjaA0KPiANCj4gT24gTW9u
-LCBBdWcgMTMsIDIwMTggYXQgMTI6MTk6NDZQTSArMDIwMCwgSHVndWVzIEZydWNoZXQgd3JvdGU6
-DQo+PiBNb2RlIHNldHRpbmcgZGVwZW5kcyBvbiBsYXN0IG1vZGUgc2V0LCBpbiBwYXJ0aWN1bGFy
-DQo+PiBiZWNhdXNlIG9mIGV4cG9zdXJlIGNhbGN1bGF0aW9uIHdoZW4gZG93bnNjYWxlIG1vZGUN
-Cj4+IGNoYW5nZSBiZXR3ZWVuIHN1YnNhbXBsaW5nIGFuZCBzY2FsaW5nLg0KPj4gQXQgc3RyZWFt
-IG9uIHRoZSBsYXN0IG1vZGUgd2FzIHdyb25nbHkgc2V0IHRvIGN1cnJlbnQgbW9kZSwNCj4+IHNv
-IG5vIGNoYW5nZSB3YXMgZGV0ZWN0ZWQgYW5kIGV4cG9zdXJlIGNhbGN1bGF0aW9uDQo+PiB3YXMg
-bm90IG1hZGUsIGZpeCB0aGlzLg0KPiANCj4gSSBhY3R1YWxseSBzZWUgYSBkaWZmZXJlbnQgaXNz
-dWUgaGVyZS4uLg0KDQpXaGljaCBwcm9ibGVtIGRvIHlvdSBoYXZlIGV4YWN0bHksIHlvdSBnb3Qg
-YSBWR0EgSlBFRyBpbnN0ZWFkIG9mIGEgUVZHQSANCllVWVYgPw0KDQo+IA0KPiBUaGUgaXNzdWUg
-SSBzZWUgaGVyZSBkZXBlbmRzIG9uIHRoZSBmb3JtYXQgcHJvZ3JhbW1lZCB0aHJvdWdoDQo+IHNl
-dF9mbXQoKSBuZXZlciBiZWluZyBhcHBsaWVkIHdoZW4gdXNpbmcgdGhlIHNlbnNvciB3aXRoIGEg
-bWVkaWENCj4gY29udHJvbGxlciBlcXVpcHBlZCBkZXZpY2UgKGluIHRoaXMgY2FzZSBhbiBpLk1Y
-NiBib2FyZCkgdGhyb3VnaA0KPiBjYXB0dXJlIHNlc3Npb25zLCBhbmQgdGhlIG5vdCBwcm9wZXJs
-eSBjYWxjdWxhdGVkIGV4cG9zdXJlIHlvdSBzZWUgbWF5DQo+IGJlIGEgY29uc2VxdWVuY2Ugb2Yg
-dGhpcy4NCj4gDQo+IEknbGwgdHJ5IHRvIHdyaXRlIGRvd24gd2hhdCBJIHNlZSwgd2l0aCB0aGUg
-aGVscCBvZiBzb21lIGRlYnVnIG91dHB1dC4NCj4gDQo+IC0gQXQgcHJvYmUgdGltZSBtb2RlIDY0
-MHg0NjBAMzAgaXMgcHJvZ3JhbW1lZDoNCj4gICAgWyAgICAxLjY1MTIxNl0gb3Y1NjQwX3Byb2Jl
-OiBJbml0aWFsIG1vZGUgd2l0aCBpZDogMg0KPiANCj4gLSBJIHNldCB0aGUgZm9ybWF0IG9uIHRo
-ZSBzZW5zb3IncyBwYWQgYW5kIGl0IGdldHMgbm90IGFwcGxpZWQgYnV0DQo+ICAgIG1hcmtlZCBh
-cyBwZW5kaW5nIGFzIHRoZSBzZW5zb3IgaXMgcG93ZXJlZCBvZmY6DQo+IA0KPiAgICAjbWVkaWEt
-Y3RsIC0tc2V0LXY0bDIgIidvdjU2NDAgMi0wMDNjJzowW2ZtdDpVWVZZMlg4LzMyMHgyNDAgZmll
-bGQ6bm9uZV0iDQo+ICAgICBbICAgNjUuNjExOTgzXSBvdjU2NDBfc2V0X2ZtdDogTkVXIG1vZGUg
-d2l0aCBpZDogMSAtIFBFTkRJTkcNCg0KU28gaGVyZSBzZW5zb3ItPmN1cnJlbnRfbW9kZSBpcyBz
-ZXQgdG8gPDE+Oy8vUVZHQQ0KYW5kIHNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSBpcyBzZXQg
-dG8gdHJ1ZTsNCg0KPiANCj4gLSBJIHN0YXJ0IHN0cmVhbWluZyB3aXRoIHlhdnRhLCBhbmQgdGhl
-IHNlbnNvciByZWNlaXZlcyBhIHBvd2VyIG9uOw0KPiAgICB0aGlzIGNhdXNlcyB0aGUgJ2luaXRp
-YWwnIGZvcm1hdCB0byBiZSByZS1wcm9ncmFtbWVkIGFuZCB0aGUgcGVuZGluZw0KPiAgICBjaGFu
-Z2UgdG8gYmUgaWdub3JlZDoNCj4gDQo+ICAgICN5YXZ0YSAtYzEwIC1uNCAtZiBZVVlWIC1zICQz
-MjB4MjQwICAtRiIuLi9mcmFtZS0jLnl1diIgL2Rldi92aWRlbzQNCj4gICAgIFsgICA2OS4zOTUw
-MThdIG92NTY0MF9zZXRfcG93ZXI6MTgwNSAtIG9uDQo+ICAgICBbICAgNjkuNDMxMzQyXSBvdjU2
-NDBfcmVzdG9yZV9tb2RlOjE3MTENCj4gICAgIFsgICA2OS45OTY4ODJdIG92NTY0MF9zZXRfbW9k
-ZTogQXBwbHkgbW9kZSB3aXRoIGlkOiAwDQo+IA0KPiAgICBUaGUgJ292NTY0MF9zZXRfbW9kZSgp
-JyBjYWxsIGZyb20gJ292NTY0MF9yZXN0b3JlX21vZGUoKScgY2xlYXJzIHRoZQ0KPiAgICBzZW5z
-b3ItPnBlbmRpbmcgZmxhZywgZGlzY2FyZGluZyB0aGUgbmV3bHkgcmVxdWVzdGVkIGZvcm1hdCwg
-Zm9yDQo+ICAgIHRoaXMgcmVhc29uLCBhdCBzX3N0cmVhbSgpIHRpbWUsIHRoZSBwZW5kaW5nIGZs
-YWcgaXMgbm90IHNldA0KPiAgICBhbnltb3JlLg0KDQpPSyBidXQgYmVmb3JlIGNsZWFyaW5nIHNl
-bnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSwgc2V0X21vZGUoKSBpcw0KbG9hZGluZyByZWdpc3Rl
-cnMgY29ycmVzcG9uZGluZyB0byBzZW5zb3ItPmN1cnJlbnRfbW9kZToNCnN0YXRpYyBpbnQgb3Y1
-NjQwX3NldF9tb2RlKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQoJCQkgICBjb25zdCBzdHJ1
-Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqb3JpZ19tb2RlKQ0Kew0KPT0+CWNvbnN0IHN0cnVjdCBvdjU2
-NDBfbW9kZV9pbmZvICptb2RlID0gc2Vuc29yLT5jdXJyZW50X21vZGU7DQouLi4NCglyZXQgPSBv
-djU2NDBfc2V0X21vZGVfZGlyZWN0KHNlbnNvciwgbW9kZSwgZXhwb3N1cmUpOw0KDQo9PiBzbyBt
-b2RlIDwxPiBpcyBleHBlY3RlZCB0byBiZSBzZXQgbm93LCBzbyBJIGRvbid0IHVuZGVyc3RhbmQg
-eW91ciB0cmFjZToNCiI+ICAgICBbICAgNjkuOTk2ODgyXSBvdjU2NDBfc2V0X21vZGU6IEFwcGx5
-IG1vZGUgd2l0aCBpZDogMCINCldoaWNoIHZhcmlhYmxlIGRvIHlvdSB0cmFjZSB0aGF0IHNob3dz
-ICIwIiA/DQoNCg0KPiANCj4gQXJlIHlvdSB1c2luZyBhIG1lZGlhLWNvbnRyb2xsZXIgc3lzdGVt
-PyBJIHN1c3BlY3QgaW4gbm9uLW1jIGNhc2VzLA0KPiB0aGUgc2V0X2ZtdCBpcyBhcHBsaWVkIHRo
-cm91Z2ggYSBzaW5nbGUgcG93ZXJfb24vcG93ZXJfb2ZmIHNlc3Npb24sIG5vdA0KPiBjYXVzaW5n
-IHRoZSAncmVzdG9yZV9tb2RlKCknIGlzc3VlLiBJcyB0aGlzIHRoZSBjYXNlIGZvciB5b3Ugb3Ig
-eW91cg0KPiBpc3N1ZSBpcyBkaWZmZXJudD8NCj4gDQo+IEVkaXQ6DQo+IE1pdGEtc2FuIHRyaWVk
-IHRvIGFkZHJlc3MgdGhlIGlzc3VlIG9mIHRoZSBvdXRwdXQgcGl4ZWwgZm9ybWF0IG5vdA0KPiBi
-ZWluZyByZXN0b3JlZCB3aGVuIHRoZSBpbWFnZSBmb3JtYXQgd2FzIHJlc3RvcmVkIGluDQo+IDE5
-YWQyNmY5ZTZlMSAoIm1lZGlhOiBvdjU2NDA6IGFkZCBtaXNzaW5nIG91dHB1dCBwaXhlbCBmb3Jt
-YXQgc2V0dGluZyIpDQo+IA0KPiBJIHVuZGVyc3RhbmQgdGhlIGlzc3VlIGhlIHRyaWVkIHRvIGZp
-eCwgYnV0IHNob3VsZG4ndCB0aGUgcGVuZGluZw0KPiBmb3JtYXQgKGlmIGFueSkgYmUgYXBwbGll
-ZCBpbnN0ZWFkIG9mIHRoZSBpbml0aWFsIG9uZSB1bmNvbmRpdGlvbmFsbHk/DQoNClRoaXMgaXMg
-d2hhdCBkb2VzIHRoZSBvdjU2NDBfcmVzdG9yZV9tb2RlKCksIHNldCB0aGUgY3VycmVudCBtb2Rl
-IA0KKHNlbnNvci0+Y3VycmVudF9tb2RlKSwgdGhhdCBpcyBkb25lIHRocm91Z2ggdGhpcyBsaW5l
-Og0KCS8qIG5vdyByZXN0b3JlIHRoZSBsYXN0IGNhcHR1cmUgbW9kZSAqLw0KCXJldCA9IG92NTY0
-MF9zZXRfbW9kZShzZW5zb3IsICZvdjU2NDBfbW9kZV9pbml0X2RhdGEpOw0KPT4gbm90ZSB0aGF0
-IHRoZSBjb21tZW50IGFib3ZlIGlzIHdlaXJkLCBpbiBmYWN0IGl0IGlzIHRoZSAiY3VycmVudCIg
-DQptb2RlIHRoYXQgaXMgc2V0Lg0KPT4gbm90ZSBhbHNvIHRoYXQgdGhlIDJuZCBwYXJhbWV0ZXIg
-aXMgbm90IHRoZSBtb2RlIHRvIGJlIHNldCBidXQgdGhlIA0KcHJldmlvdXNseSBhcHBsaWVkIG1v
-ZGUgISAoaWUgbG9hZGVkIGluIG92NTY0MCByZWdpc3RlcnMpLiBUaGlzIGlzIHVzZWQNCnRvIGRl
-Y2lkZSBpZiB3ZSBoYXZlIHRvIGdvIHRvIHRoZSAic2V0X21vZGVfZXhwb3N1cmVfY2FsYyIgb3Ig
-DQoic2V0X21vZGVfZGlyZWN0Ii4NCg0KdGhlIG92NTY0MF9yZXN0b3JlX21vZGUoKSBhbHNvIHNl
-dCB0aGUgY3VycmVudCBwaXhlbCBmb3JtYXQgDQooc2Vuc29yLT5mbXQpLCB0aGF0IGlzIGRvbmUg
-dGhyb3VnaCB0aGlzIGxpbmU6DQoJcmV0dXJuIG92NTY0MF9zZXRfZnJhbWVmbXQoc2Vuc29yLCAm
-c2Vuc29yLT5mbXQpOw0KPT0+IFRoaXMgaXMgd2hhdCBoYXZlIGZpeGVkIE1pdGEtc2FuLCB0aGlz
-IGxpbmUgd2FzIG1pc3NpbmcgcHJldmlvdXNseSwgDQpsZWFkaW5nIHRvICJtb2RlIHJlZ2lzdGVy
-cyIgYmVpbmcgbG9hZGVkIGJ1dCBub3QgdGhlICJwaXhlbCBmb3JtYXQgDQpyZWdpc3RlcnMiLg0K
-DQoNClBTOiBUaGVyZSBhcmUgdHdvIG90aGVyICJzZXQgbW9kZSIgcmVsYXRlZCBjaGFuZ2VzIHRo
-YXQgYXJlIHJlbGF0ZWQgdG8gdGhpczoNCjEpIDY5NDlkODY0Nzc2ZSAoIm1lZGlhOiBvdjU2NDA6
-IGRvIG5vdCBjaGFuZ2UgbW9kZSBpZiBmb3JtYXQgb3IgZnJhbWUgDQppbnRlcnZhbCBpcyB1bmNo
-YW5nZWQiKQ0KPT4gdGhpcyBpcyBtZXJnZWQgaW4gbWVkaWEgbWFzdGVyLCB1bmZvcnR1bmF0ZWx5
-IEkndmUgaW50cm9kdWNlZCBhIA0KcmVncmVzc2lvbiBvbiAicGl4ZWwgZm9ybWF0IiBzaWRlIHRo
-YXQgSSd2ZSBmaXhlZCBpbiB0aGlzIHBhdGNoc2V0IDoNCjIpIGh0dHBzOi8vd3d3Lm1haWwtYXJj
-aGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEzNDQxMy5odG1sDQpTeW1w
-dG9tIHdhcyBhIG5vaXN5IGltYWdlIHdoZW4gY2FwdHVyaW5nIFFWR0EgWVVWIChpbiBmYWN0IGNh
-cHR1cmVkIGFzIA0KSlBFRyBkYXRhKS4NCg0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMuDQoNCj4g
-DQo+IFRoYW5rcw0KPiAgICAgag0KPiANCj4+DQo+PiBTaWduZWQtb2ZmLWJ5OiBIdWd1ZXMgRnJ1
-Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29tPg0KPj4gLS0tDQo+PiAgIGRyaXZlcnMvbWVkaWEv
-aTJjL292NTY0MC5jIHwgOCArKysrKysrLQ0KPj4gICAxIGZpbGUgY2hhbmdlZCwgNyBpbnNlcnRp
-b25zKCspLCAxIGRlbGV0aW9uKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEv
-aTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IGluZGV4IGMxMTBh
-NmEuLjkyM2NjMzAgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0K
-Pj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IEBAIC0yMjUsNiArMjI1LDcg
-QEAgc3RydWN0IG92NTY0MF9kZXYgew0KPj4gICAJc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCBm
-bXQ7DQo+Pg0KPj4gICAJY29uc3Qgc3RydWN0IG92NTY0MF9tb2RlX2luZm8gKmN1cnJlbnRfbW9k
-ZTsNCj4+ICsJY29uc3Qgc3RydWN0IG92NTY0MF9tb2RlX2luZm8gKmxhc3RfbW9kZTsNCj4+ICAg
-CWVudW0gb3Y1NjQwX2ZyYW1lX3JhdGUgY3VycmVudF9mcjsNCj4+ICAgCXN0cnVjdCB2NGwyX2Zy
-YWN0IGZyYW1lX2ludGVydmFsOw0KPj4NCj4+IEBAIC0xNjI4LDYgKzE2MjksOSBAQCBzdGF0aWMg
-aW50IG92NTY0MF9zZXRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLA0KPj4gICAJYm9v
-bCBhdXRvX2V4cCA9ICBzZW5zb3ItPmN0cmxzLmF1dG9fZXhwLT52YWwgPT0gVjRMMl9FWFBPU1VS
-RV9BVVRPOw0KPj4gICAJaW50IHJldDsNCj4+DQo+PiArCWlmICghb3JpZ19tb2RlKQ0KPj4gKwkJ
-b3JpZ19tb2RlID0gbW9kZTsNCj4+ICsNCj4+ICAgCWRuX21vZGUgPSBtb2RlLT5kbl9tb2RlOw0K
-Pj4gICAJb3JpZ19kbl9tb2RlID0gb3JpZ19tb2RlLT5kbl9tb2RlOw0KPj4NCj4+IEBAIC0xNjg4
-LDYgKzE2OTIsNyBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2Rl
-diAqc2Vuc29yLA0KPj4gICAJCXJldHVybiByZXQ7DQo+Pg0KPj4gICAJc2Vuc29yLT5wZW5kaW5n
-X21vZGVfY2hhbmdlID0gZmFsc2U7DQo+PiArCXNlbnNvci0+bGFzdF9tb2RlID0gbW9kZTsNCj4+
-DQo+PiAgIAlyZXR1cm4gMDsNCj4+DQo+PiBAQCAtMjU1MSw3ICsyNTU2LDggQEAgc3RhdGljIGlu
-dCBvdjU2NDBfc19zdHJlYW0oc3RydWN0IHY0bDJfc3ViZGV2ICpzZCwgaW50IGVuYWJsZSkNCj4+
-DQo+PiAgIAlpZiAoc2Vuc29yLT5zdHJlYW1pbmcgPT0gIWVuYWJsZSkgew0KPj4gICAJCWlmIChl
-bmFibGUgJiYgc2Vuc29yLT5wZW5kaW5nX21vZGVfY2hhbmdlKSB7DQo+PiAtCQkJcmV0ID0gb3Y1
-NjQwX3NldF9tb2RlKHNlbnNvciwgc2Vuc29yLT5jdXJyZW50X21vZGUpOw0KPj4gKwkJCXJldCA9
-IG92NTY0MF9zZXRfbW9kZShzZW5zb3IsIHNlbnNvci0+bGFzdF9tb2RlKTsNCj4+ICsNCj4+ICAg
-CQkJaWYgKHJldCkNCj4+ICAgCQkJCWdvdG8gb3V0Ow0KPj4NCj4+IC0tDQo+PiAyLjcuNA0KPj4=
+On Thu, Aug 16, 2018 at 6:56 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Now that the DisplayPort CEC-Tunneling-over-AUX drm+i915 support
+> has been merged in the mainline kernel it is time to roll this
+> out to nouveau and amdgpu as well.
+>
+> I combined both in the same patch series since both depend on the
+> same first patch, the comments in this cover letter apply to both
+> and the implementation is also very similar (and simple).
+>
+> As mentioned, the first patch is required for this: it adds checks that
+> the drm_dp_cec functions are called with a working aux implementation.
+> These checks weren't necessary for the i915, but nouveau and amdgpu
+> require them.
+>
+> The next two patches update a comment in drm_dp_cec.c and fix a bug
+> in sideband AUX handling that I found while researching CEC Tunneling
+> over an MST hub. It's there to prevent others from stumbling over the
+> same bug in the future.
+>
+> The fourth patch adds support for CEC to the nouveau driver.
+>
+> The last patch adds support for CEC to the amdgpu driver. However, there
+> appear to be two classes of amdgpu hardware: as a discrete GPU or
+> integrated. I only have a discrete GPU, so I can't test the integrated
+> GPU support and I only implemented this for the discrete GPU case.
+>
+> If someone has the integrated GPU and wants to get this working and is
+> willing to do some testing, then please contact me. It shouldn't be
+> difficult. You will likely have to buy a working DP-to-HDMI adapter.
+> See https://hverkuil.home.xs4all.nl/cec-status.txt for a (sadly very
+> short) list of working adapters.
+
+Actually you added support for APUs as well.  In amdgpu, there are two
+sets of modesetting code, an older less featured version
+(amd/amdgpu/dce*.c) and the newer more featured code (amd/display/*).
+Newer asics (vega and raven) are only supported by DC.  Older asics
+are supported by both.  Eventually we'd like to remove the older
+modesetting code.  I'm not really a CEC expert, but the patches look
+pretty straight forward to me.  Series is:
+Acked-by: Alex Deucher <alexander.deucher@amd.com>
+
+>
+> Note that I may be completely off-base regarding what atombios_dp.c
+> does, it's the first time I ever looked at amdgpu code.
+>
+> Two notes on CEC-Tunneling-over-AUX:
+>
+> 1) You need to be very careful about which USB-C/DP/mini-DP to HDMI
+>    adapters you buy. Only a few support this feature correctly today.
+>    Known chipsets that support this are Parade PS175 & PS176 and
+>    MegaChips 2900. Unfortunately almost all Parade-based adapters
+>    do not hook up the HDMI CEC pin to the chip, making them useless
+>    for this. The Parade reference design was only recently changed
+>    to hook up this pin, so perhaps this situation will change for
+>    new Parade-based adapters.
+>
+>    Adapters based on the new MegaChips 2900 fare much better: it
+>    appears that their reference design *does* hook up the CEC pin.
+>    Club3D has adapters using this device for USB-C, DP and mini-DP
+>    to HDMI, and they all work fine.
+>
+>    If anyone finds other adapters that work besides those I list
+>    in https://hverkuil.home.xs4all.nl/cec-status.txt, please let
+>    me know and I'll add them to the list.
+>
+>    Linux is the first OS that supports this feature, so I am
+>    not surprised that HW support for this has been poor. Hopefully
+>    this will change going forward. BTW, note the irony that CEC is
+>    now supported for DP-to-HDMI adapters, but not for the native
+>    HDMI ports on NVIDIA/AMD/Intel GPUs.
+>
+> 2) CEC-Tunneling does not work (yet?) if there is an MST hub in
+>    between. I'm still researching this but this might be a limitation
+>    of MST.
+>
+> Regards,
+>
+>         Hans
+>
+> Hans Verkuil (5):
+>   drm_dp_cec: check that aux has a transfer function
+>   drm_dp_cec: add note about good MegaChips 2900 CEC support
+>   drm_dp_mst_topology: fix broken
+>     drm_dp_sideband_parse_remote_dpcd_read()
+>   drm/nouveau: add DisplayPort CEC-Tunneling-over-AUX support
+>   drm/amdgpu: add DisplayPort CEC-Tunneling-over-AUX support
+>
+>  .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c  | 13 +++++++++++--
+>  .../display/amdgpu_dm/amdgpu_dm_mst_types.c    |  2 ++
+>  drivers/gpu/drm/drm_dp_cec.c                   | 18 +++++++++++++++++-
+>  drivers/gpu/drm/drm_dp_mst_topology.c          |  1 +
+>  drivers/gpu/drm/nouveau/nouveau_connector.c    | 17 +++++++++++++++--
+>  5 files changed, 46 insertions(+), 5 deletions(-)
+>
+> --
+> 2.18.0
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
