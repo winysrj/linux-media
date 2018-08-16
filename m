@@ -1,112 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20867 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726312AbeHPRPU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Aug 2018 13:15:20 -0400
-Date: Thu, 16 Aug 2018 17:16:23 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Rob Herring <robh@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Subject: Re: [PATCH 05/21] dt-bindings: media: Specify bus type for MIPI
- D-PHY, others, explicitly
-Message-ID: <20180816141623.2nrci6sa5p653ajf@paasikivi.fi.intel.com>
-References: <20180723134706.15334-1-sakari.ailus@linux.intel.com>
- <20180723134706.15334-6-sakari.ailus@linux.intel.com>
- <20180731213210.GA28374@rob-hp-laptop>
- <20180801111627.gtvnhzo2b2j4haa2@paasikivi.fi.intel.com>
- <20180816091752.xnefm7b6cza67j4k@paasikivi.fi.intel.com>
- <CAL_JsqL_nLQA29qsfS11NvhHThbAEmax+qBe1Dtqf8FXxLUxDg@mail.gmail.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39520 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2391394AbeHPSHg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Aug 2018 14:07:36 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: jacopo mondi <jacopo@jmondi.org>,
+        "akinobu.mita@gmail.com" <akinobu.mita@gmail.com>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
+Date: Thu, 16 Aug 2018 15:07:54 +0000
+Message-ID: <3ad25a94-3de0-1a9a-ff02-30d3d282b363@st.com>
+References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
+ <1534155586-26974-6-git-send-email-hugues.fruchet@st.com>
+ <20180816101023.GA19047@w540>
+In-Reply-To: <20180816101023.GA19047@w540>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <B167925494F47942BE5357DD91B2549F@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqL_nLQA29qsfS11NvhHThbAEmax+qBe1Dtqf8FXxLUxDg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
-
-On Thu, Aug 16, 2018 at 07:48:24AM -0600, Rob Herring wrote:
-> On Thu, Aug 16, 2018 at 3:17 AM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> >
-> > Ping?
-> >
-> > On Wed, Aug 01, 2018 at 02:16:27PM +0300, Sakari Ailus wrote:
-> > > Hi Rob,
-> > >
-> > > Thanks for the review.
-> > >
-> > > On Tue, Jul 31, 2018 at 03:32:10PM -0600, Rob Herring wrote:
-> > > > On Mon, Jul 23, 2018 at 04:46:50PM +0300, Sakari Ailus wrote:
-> > > > > Allow specifying the bus type explicitly for MIPI D-PHY, parallel and
-> > > > > Bt.656 busses. This is useful for devices that can make use of different
-> > > > > bus types. There are CSI-2 transmitters and receivers but the PHY
-> > > > > selection needs to be made between C-PHY and D-PHY; many devices also
-> > > > > support parallel and Bt.656 interfaces but the means to pass that
-> > > > > information to software wasn't there.
-> > > > >
-> > > > > Autodetection (value 0) is removed as an option as the property could be
-> > > > > simply omitted in that case.
-> > > >
-> > > > Presumably there are users, so you can't remove it. But documenting
-> > > > behavior when absent would be good.
-> > >
-> > > Well, it's effectively the same as having no such property at all: the type
-> > > is not specified. Generally there are two possibilities: the hardware
-> > > supports just a single bus or it supports more than one. If there's just
-> > > one, the type can be known by the driver. In that case there's no use for
-> > > autodetection.
-> > >
-> > > The second case is a bit more complicated: the bus type detection is solely
-> > > based on properties available in the endpoint, and I think that may have
-> > > been feasible approach when there were just parallel and Bt.656 busses that
-> > > were supported, but with the additional busses, the V4L2 fwnode framework
-> > > may no longer guess the bus in any meaningful way from the available
-> > > properties. I'd think the only known-good option here is to specify the
-> > > type explicitly in that case: there's no room for guessing. (This patchset
-> > > makes it possible for drivers to explicitly define the bus type, but the
-> > > autodetection support is maintained for backwards compatibility.)
-> > >
-> > > One of the existing issues is that there are combined parallel/Bt.656
-> > > receivers that need to know the type of the bus. This is based on the
-> > > existence parallel interface only properties: if any of these exist, then
-> > > the interface is parallel, otherwise it is Bt.656. The DT bindings for the
-> > > same devices also define the defaults for the parallel interface. This
-> > > leaves the end result ambiguous: is it the parallel interface with the
-> > > default configuration or is it Bt.656?
-> > >
-> > > There will likely be similar issues for CSI-2 D-PHY and CSI-2 C-PHY. The
-> > > question there would be: is this CSI-2 C-PHY or CSI-2 D-PHY with default
-> > > clock lane configuration?
-> > >
-> > > In either case the autodetection option for the bus type provides no useful
-> > > information. If it exists in DT source, that's fine, there's just no use
-> > > for it.
-> > >
-> > > Let me know if you still think it should be maintained in binding
-> > > documentation.
-> >
-> > If you prefer to keep it, I'd propose to mark it as deprecated or something
-> > as it provides no information to software.
-> 
-> Looks like there's only one user in tree:
-> 
-> arch/arm/boot/dts/omap3-n900.dts:
-> bus-type = <3>; /* CCP2 */
-> arch/arm/boot/dts/omap3-n900.dts:
-> bus-type = <3>; /* CCP2 */
-> 
-> So I guess removing is okay.
-
-Note that we're only discussing the value 0 --- autodetection. The rest of
-the values are good as they are, and indeed, necessary for unambiguous
-parsing of the endpoint configuration in cases where the hardware supports
-multiple bus types.
-
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+SGkgSmFjb3BvLA0KDQpPbiAwOC8xNi8yMDE4IDEyOjEwIFBNLCBqYWNvcG8gbW9uZGkgd3JvdGU6
+DQo+IEhpIEh1Z3VlcywNCj4gICAgICB0aGFua3MgZm9yIHRoZSBwYXRjaA0KPiANCj4gT24gTW9u
+LCBBdWcgMTMsIDIwMTggYXQgMTI6MTk6NDZQTSArMDIwMCwgSHVndWVzIEZydWNoZXQgd3JvdGU6
+DQo+PiBNb2RlIHNldHRpbmcgZGVwZW5kcyBvbiBsYXN0IG1vZGUgc2V0LCBpbiBwYXJ0aWN1bGFy
+DQo+PiBiZWNhdXNlIG9mIGV4cG9zdXJlIGNhbGN1bGF0aW9uIHdoZW4gZG93bnNjYWxlIG1vZGUN
+Cj4+IGNoYW5nZSBiZXR3ZWVuIHN1YnNhbXBsaW5nIGFuZCBzY2FsaW5nLg0KPj4gQXQgc3RyZWFt
+IG9uIHRoZSBsYXN0IG1vZGUgd2FzIHdyb25nbHkgc2V0IHRvIGN1cnJlbnQgbW9kZSwNCj4+IHNv
+IG5vIGNoYW5nZSB3YXMgZGV0ZWN0ZWQgYW5kIGV4cG9zdXJlIGNhbGN1bGF0aW9uDQo+PiB3YXMg
+bm90IG1hZGUsIGZpeCB0aGlzLg0KPiANCj4gSSBhY3R1YWxseSBzZWUgYSBkaWZmZXJlbnQgaXNz
+dWUgaGVyZS4uLg0KDQpXaGljaCBwcm9ibGVtIGRvIHlvdSBoYXZlIGV4YWN0bHksIHlvdSBnb3Qg
+YSBWR0EgSlBFRyBpbnN0ZWFkIG9mIGEgUVZHQSANCllVWVYgPw0KDQo+IA0KPiBUaGUgaXNzdWUg
+SSBzZWUgaGVyZSBkZXBlbmRzIG9uIHRoZSBmb3JtYXQgcHJvZ3JhbW1lZCB0aHJvdWdoDQo+IHNl
+dF9mbXQoKSBuZXZlciBiZWluZyBhcHBsaWVkIHdoZW4gdXNpbmcgdGhlIHNlbnNvciB3aXRoIGEg
+bWVkaWENCj4gY29udHJvbGxlciBlcXVpcHBlZCBkZXZpY2UgKGluIHRoaXMgY2FzZSBhbiBpLk1Y
+NiBib2FyZCkgdGhyb3VnaA0KPiBjYXB0dXJlIHNlc3Npb25zLCBhbmQgdGhlIG5vdCBwcm9wZXJs
+eSBjYWxjdWxhdGVkIGV4cG9zdXJlIHlvdSBzZWUgbWF5DQo+IGJlIGEgY29uc2VxdWVuY2Ugb2Yg
+dGhpcy4NCj4gDQo+IEknbGwgdHJ5IHRvIHdyaXRlIGRvd24gd2hhdCBJIHNlZSwgd2l0aCB0aGUg
+aGVscCBvZiBzb21lIGRlYnVnIG91dHB1dC4NCj4gDQo+IC0gQXQgcHJvYmUgdGltZSBtb2RlIDY0
+MHg0NjBAMzAgaXMgcHJvZ3JhbW1lZDoNCj4gICAgWyAgICAxLjY1MTIxNl0gb3Y1NjQwX3Byb2Jl
+OiBJbml0aWFsIG1vZGUgd2l0aCBpZDogMg0KPiANCj4gLSBJIHNldCB0aGUgZm9ybWF0IG9uIHRo
+ZSBzZW5zb3IncyBwYWQgYW5kIGl0IGdldHMgbm90IGFwcGxpZWQgYnV0DQo+ICAgIG1hcmtlZCBh
+cyBwZW5kaW5nIGFzIHRoZSBzZW5zb3IgaXMgcG93ZXJlZCBvZmY6DQo+IA0KPiAgICAjbWVkaWEt
+Y3RsIC0tc2V0LXY0bDIgIidvdjU2NDAgMi0wMDNjJzowW2ZtdDpVWVZZMlg4LzMyMHgyNDAgZmll
+bGQ6bm9uZV0iDQo+ICAgICBbICAgNjUuNjExOTgzXSBvdjU2NDBfc2V0X2ZtdDogTkVXIG1vZGUg
+d2l0aCBpZDogMSAtIFBFTkRJTkcNCg0KU28gaGVyZSBzZW5zb3ItPmN1cnJlbnRfbW9kZSBpcyBz
+ZXQgdG8gPDE+Oy8vUVZHQQ0KYW5kIHNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSBpcyBzZXQg
+dG8gdHJ1ZTsNCg0KPiANCj4gLSBJIHN0YXJ0IHN0cmVhbWluZyB3aXRoIHlhdnRhLCBhbmQgdGhl
+IHNlbnNvciByZWNlaXZlcyBhIHBvd2VyIG9uOw0KPiAgICB0aGlzIGNhdXNlcyB0aGUgJ2luaXRp
+YWwnIGZvcm1hdCB0byBiZSByZS1wcm9ncmFtbWVkIGFuZCB0aGUgcGVuZGluZw0KPiAgICBjaGFu
+Z2UgdG8gYmUgaWdub3JlZDoNCj4gDQo+ICAgICN5YXZ0YSAtYzEwIC1uNCAtZiBZVVlWIC1zICQz
+MjB4MjQwICAtRiIuLi9mcmFtZS0jLnl1diIgL2Rldi92aWRlbzQNCj4gICAgIFsgICA2OS4zOTUw
+MThdIG92NTY0MF9zZXRfcG93ZXI6MTgwNSAtIG9uDQo+ICAgICBbICAgNjkuNDMxMzQyXSBvdjU2
+NDBfcmVzdG9yZV9tb2RlOjE3MTENCj4gICAgIFsgICA2OS45OTY4ODJdIG92NTY0MF9zZXRfbW9k
+ZTogQXBwbHkgbW9kZSB3aXRoIGlkOiAwDQo+IA0KPiAgICBUaGUgJ292NTY0MF9zZXRfbW9kZSgp
+JyBjYWxsIGZyb20gJ292NTY0MF9yZXN0b3JlX21vZGUoKScgY2xlYXJzIHRoZQ0KPiAgICBzZW5z
+b3ItPnBlbmRpbmcgZmxhZywgZGlzY2FyZGluZyB0aGUgbmV3bHkgcmVxdWVzdGVkIGZvcm1hdCwg
+Zm9yDQo+ICAgIHRoaXMgcmVhc29uLCBhdCBzX3N0cmVhbSgpIHRpbWUsIHRoZSBwZW5kaW5nIGZs
+YWcgaXMgbm90IHNldA0KPiAgICBhbnltb3JlLg0KDQpPSyBidXQgYmVmb3JlIGNsZWFyaW5nIHNl
+bnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSwgc2V0X21vZGUoKSBpcw0KbG9hZGluZyByZWdpc3Rl
+cnMgY29ycmVzcG9uZGluZyB0byBzZW5zb3ItPmN1cnJlbnRfbW9kZToNCnN0YXRpYyBpbnQgb3Y1
+NjQwX3NldF9tb2RlKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQoJCQkgICBjb25zdCBzdHJ1
+Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqb3JpZ19tb2RlKQ0Kew0KPT0+CWNvbnN0IHN0cnVjdCBvdjU2
+NDBfbW9kZV9pbmZvICptb2RlID0gc2Vuc29yLT5jdXJyZW50X21vZGU7DQouLi4NCglyZXQgPSBv
+djU2NDBfc2V0X21vZGVfZGlyZWN0KHNlbnNvciwgbW9kZSwgZXhwb3N1cmUpOw0KDQo9PiBzbyBt
+b2RlIDwxPiBpcyBleHBlY3RlZCB0byBiZSBzZXQgbm93LCBzbyBJIGRvbid0IHVuZGVyc3RhbmQg
+eW91ciB0cmFjZToNCiI+ICAgICBbICAgNjkuOTk2ODgyXSBvdjU2NDBfc2V0X21vZGU6IEFwcGx5
+IG1vZGUgd2l0aCBpZDogMCINCldoaWNoIHZhcmlhYmxlIGRvIHlvdSB0cmFjZSB0aGF0IHNob3dz
+ICIwIiA/DQoNCg0KPiANCj4gQXJlIHlvdSB1c2luZyBhIG1lZGlhLWNvbnRyb2xsZXIgc3lzdGVt
+PyBJIHN1c3BlY3QgaW4gbm9uLW1jIGNhc2VzLA0KPiB0aGUgc2V0X2ZtdCBpcyBhcHBsaWVkIHRo
+cm91Z2ggYSBzaW5nbGUgcG93ZXJfb24vcG93ZXJfb2ZmIHNlc3Npb24sIG5vdA0KPiBjYXVzaW5n
+IHRoZSAncmVzdG9yZV9tb2RlKCknIGlzc3VlLiBJcyB0aGlzIHRoZSBjYXNlIGZvciB5b3Ugb3Ig
+eW91cg0KPiBpc3N1ZSBpcyBkaWZmZXJudD8NCj4gDQo+IEVkaXQ6DQo+IE1pdGEtc2FuIHRyaWVk
+IHRvIGFkZHJlc3MgdGhlIGlzc3VlIG9mIHRoZSBvdXRwdXQgcGl4ZWwgZm9ybWF0IG5vdA0KPiBi
+ZWluZyByZXN0b3JlZCB3aGVuIHRoZSBpbWFnZSBmb3JtYXQgd2FzIHJlc3RvcmVkIGluDQo+IDE5
+YWQyNmY5ZTZlMSAoIm1lZGlhOiBvdjU2NDA6IGFkZCBtaXNzaW5nIG91dHB1dCBwaXhlbCBmb3Jt
+YXQgc2V0dGluZyIpDQo+IA0KPiBJIHVuZGVyc3RhbmQgdGhlIGlzc3VlIGhlIHRyaWVkIHRvIGZp
+eCwgYnV0IHNob3VsZG4ndCB0aGUgcGVuZGluZw0KPiBmb3JtYXQgKGlmIGFueSkgYmUgYXBwbGll
+ZCBpbnN0ZWFkIG9mIHRoZSBpbml0aWFsIG9uZSB1bmNvbmRpdGlvbmFsbHk/DQoNClRoaXMgaXMg
+d2hhdCBkb2VzIHRoZSBvdjU2NDBfcmVzdG9yZV9tb2RlKCksIHNldCB0aGUgY3VycmVudCBtb2Rl
+IA0KKHNlbnNvci0+Y3VycmVudF9tb2RlKSwgdGhhdCBpcyBkb25lIHRocm91Z2ggdGhpcyBsaW5l
+Og0KCS8qIG5vdyByZXN0b3JlIHRoZSBsYXN0IGNhcHR1cmUgbW9kZSAqLw0KCXJldCA9IG92NTY0
+MF9zZXRfbW9kZShzZW5zb3IsICZvdjU2NDBfbW9kZV9pbml0X2RhdGEpOw0KPT4gbm90ZSB0aGF0
+IHRoZSBjb21tZW50IGFib3ZlIGlzIHdlaXJkLCBpbiBmYWN0IGl0IGlzIHRoZSAiY3VycmVudCIg
+DQptb2RlIHRoYXQgaXMgc2V0Lg0KPT4gbm90ZSBhbHNvIHRoYXQgdGhlIDJuZCBwYXJhbWV0ZXIg
+aXMgbm90IHRoZSBtb2RlIHRvIGJlIHNldCBidXQgdGhlIA0KcHJldmlvdXNseSBhcHBsaWVkIG1v
+ZGUgISAoaWUgbG9hZGVkIGluIG92NTY0MCByZWdpc3RlcnMpLiBUaGlzIGlzIHVzZWQNCnRvIGRl
+Y2lkZSBpZiB3ZSBoYXZlIHRvIGdvIHRvIHRoZSAic2V0X21vZGVfZXhwb3N1cmVfY2FsYyIgb3Ig
+DQoic2V0X21vZGVfZGlyZWN0Ii4NCg0KdGhlIG92NTY0MF9yZXN0b3JlX21vZGUoKSBhbHNvIHNl
+dCB0aGUgY3VycmVudCBwaXhlbCBmb3JtYXQgDQooc2Vuc29yLT5mbXQpLCB0aGF0IGlzIGRvbmUg
+dGhyb3VnaCB0aGlzIGxpbmU6DQoJcmV0dXJuIG92NTY0MF9zZXRfZnJhbWVmbXQoc2Vuc29yLCAm
+c2Vuc29yLT5mbXQpOw0KPT0+IFRoaXMgaXMgd2hhdCBoYXZlIGZpeGVkIE1pdGEtc2FuLCB0aGlz
+IGxpbmUgd2FzIG1pc3NpbmcgcHJldmlvdXNseSwgDQpsZWFkaW5nIHRvICJtb2RlIHJlZ2lzdGVy
+cyIgYmVpbmcgbG9hZGVkIGJ1dCBub3QgdGhlICJwaXhlbCBmb3JtYXQgDQpyZWdpc3RlcnMiLg0K
+DQoNClBTOiBUaGVyZSBhcmUgdHdvIG90aGVyICJzZXQgbW9kZSIgcmVsYXRlZCBjaGFuZ2VzIHRo
+YXQgYXJlIHJlbGF0ZWQgdG8gdGhpczoNCjEpIDY5NDlkODY0Nzc2ZSAoIm1lZGlhOiBvdjU2NDA6
+IGRvIG5vdCBjaGFuZ2UgbW9kZSBpZiBmb3JtYXQgb3IgZnJhbWUgDQppbnRlcnZhbCBpcyB1bmNo
+YW5nZWQiKQ0KPT4gdGhpcyBpcyBtZXJnZWQgaW4gbWVkaWEgbWFzdGVyLCB1bmZvcnR1bmF0ZWx5
+IEkndmUgaW50cm9kdWNlZCBhIA0KcmVncmVzc2lvbiBvbiAicGl4ZWwgZm9ybWF0IiBzaWRlIHRo
+YXQgSSd2ZSBmaXhlZCBpbiB0aGlzIHBhdGNoc2V0IDoNCjIpIGh0dHBzOi8vd3d3Lm1haWwtYXJj
+aGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEzNDQxMy5odG1sDQpTeW1w
+dG9tIHdhcyBhIG5vaXN5IGltYWdlIHdoZW4gY2FwdHVyaW5nIFFWR0EgWVVWIChpbiBmYWN0IGNh
+cHR1cmVkIGFzIA0KSlBFRyBkYXRhKS4NCg0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMuDQoNCj4g
+DQo+IFRoYW5rcw0KPiAgICAgag0KPiANCj4+DQo+PiBTaWduZWQtb2ZmLWJ5OiBIdWd1ZXMgRnJ1
+Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29tPg0KPj4gLS0tDQo+PiAgIGRyaXZlcnMvbWVkaWEv
+aTJjL292NTY0MC5jIHwgOCArKysrKysrLQ0KPj4gICAxIGZpbGUgY2hhbmdlZCwgNyBpbnNlcnRp
+b25zKCspLCAxIGRlbGV0aW9uKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEv
+aTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IGluZGV4IGMxMTBh
+NmEuLjkyM2NjMzAgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0K
+Pj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IEBAIC0yMjUsNiArMjI1LDcg
+QEAgc3RydWN0IG92NTY0MF9kZXYgew0KPj4gICAJc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCBm
+bXQ7DQo+Pg0KPj4gICAJY29uc3Qgc3RydWN0IG92NTY0MF9tb2RlX2luZm8gKmN1cnJlbnRfbW9k
+ZTsNCj4+ICsJY29uc3Qgc3RydWN0IG92NTY0MF9tb2RlX2luZm8gKmxhc3RfbW9kZTsNCj4+ICAg
+CWVudW0gb3Y1NjQwX2ZyYW1lX3JhdGUgY3VycmVudF9mcjsNCj4+ICAgCXN0cnVjdCB2NGwyX2Zy
+YWN0IGZyYW1lX2ludGVydmFsOw0KPj4NCj4+IEBAIC0xNjI4LDYgKzE2MjksOSBAQCBzdGF0aWMg
+aW50IG92NTY0MF9zZXRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLA0KPj4gICAJYm9v
+bCBhdXRvX2V4cCA9ICBzZW5zb3ItPmN0cmxzLmF1dG9fZXhwLT52YWwgPT0gVjRMMl9FWFBPU1VS
+RV9BVVRPOw0KPj4gICAJaW50IHJldDsNCj4+DQo+PiArCWlmICghb3JpZ19tb2RlKQ0KPj4gKwkJ
+b3JpZ19tb2RlID0gbW9kZTsNCj4+ICsNCj4+ICAgCWRuX21vZGUgPSBtb2RlLT5kbl9tb2RlOw0K
+Pj4gICAJb3JpZ19kbl9tb2RlID0gb3JpZ19tb2RlLT5kbl9tb2RlOw0KPj4NCj4+IEBAIC0xNjg4
+LDYgKzE2OTIsNyBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2Rl
+diAqc2Vuc29yLA0KPj4gICAJCXJldHVybiByZXQ7DQo+Pg0KPj4gICAJc2Vuc29yLT5wZW5kaW5n
+X21vZGVfY2hhbmdlID0gZmFsc2U7DQo+PiArCXNlbnNvci0+bGFzdF9tb2RlID0gbW9kZTsNCj4+
+DQo+PiAgIAlyZXR1cm4gMDsNCj4+DQo+PiBAQCAtMjU1MSw3ICsyNTU2LDggQEAgc3RhdGljIGlu
+dCBvdjU2NDBfc19zdHJlYW0oc3RydWN0IHY0bDJfc3ViZGV2ICpzZCwgaW50IGVuYWJsZSkNCj4+
+DQo+PiAgIAlpZiAoc2Vuc29yLT5zdHJlYW1pbmcgPT0gIWVuYWJsZSkgew0KPj4gICAJCWlmIChl
+bmFibGUgJiYgc2Vuc29yLT5wZW5kaW5nX21vZGVfY2hhbmdlKSB7DQo+PiAtCQkJcmV0ID0gb3Y1
+NjQwX3NldF9tb2RlKHNlbnNvciwgc2Vuc29yLT5jdXJyZW50X21vZGUpOw0KPj4gKwkJCXJldCA9
+IG92NTY0MF9zZXRfbW9kZShzZW5zb3IsIHNlbnNvci0+bGFzdF9tb2RlKTsNCj4+ICsNCj4+ICAg
+CQkJaWYgKHJldCkNCj4+ICAgCQkJCWdvdG8gb3V0Ow0KPj4NCj4+IC0tDQo+PiAyLjcuNA0KPj4=
