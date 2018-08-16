@@ -1,112 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:16202 "EHLO
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:20351 "EHLO
         mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2388054AbeHPMpH (ORCPT
+        by vger.kernel.org with ESMTP id S1727206AbeHPMxu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Aug 2018 08:45:07 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
+        Thu, 16 Aug 2018 08:53:50 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
 To: Steve Longerbeam <slongerbeam@gmail.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
         Hans Verkuil <hverkuil@xs4all.nl>,
         "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
         Maxime Ripard <maxime.ripard@bootlin.com>,
         Jacopo Mondi <jacopo@jmondi.org>
-Subject: [PATCH] media: ov5640: fix mode change regression
-Date: Thu, 16 Aug 2018 11:46:53 +0200
-Message-ID: <1534412813-10406-1-git-send-email-hugues.fruchet@st.com>
+Subject: Re: [PATCH v2] media: ov5640: do not change mode if format or frame
+ interval is unchanged
+Date: Thu, 16 Aug 2018 09:56:13 +0000
+Message-ID: <c5b3d6cd-862b-56a0-a81b-29cece658953@st.com>
+References: <1534152111-16837-1-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1534152111-16837-1-git-send-email-hugues.fruchet@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <EC05C68CAC45094FB8AA6E21AC588EFE@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixes: 6949d864776e ("media: ov5640: do not change mode if format or frame interval is unchanged").
-
-Symptom was fuzzy image because of JPEG default format
-not being changed according to new format selected, fix this.
-Init sequence initialises format to YUV422 UYVY but
-sensor->fmt initial value was set to JPEG, fix this.
-
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/i2c/ov5640.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 071f4bc..2ddd86d 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -223,6 +223,7 @@ struct ov5640_dev {
- 	int power_count;
- 
- 	struct v4l2_mbus_framefmt fmt;
-+	bool pending_fmt_change;
- 
- 	const struct ov5640_mode_info *current_mode;
- 	enum ov5640_frame_rate current_fr;
-@@ -255,7 +256,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
-  * should be identified and removed to speed register load time
-  * over i2c.
-  */
--
-+/* YUV422 UYVY VGA@30fps */
- static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
- 	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
- 	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
-@@ -1968,9 +1969,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 
- 	if (new_mode != sensor->current_mode) {
- 		sensor->current_mode = new_mode;
--		sensor->fmt = *mbus_fmt;
- 		sensor->pending_mode_change = true;
- 	}
-+	if (mbus_fmt->code != sensor->fmt.code) {
-+		sensor->fmt = *mbus_fmt;
-+		sensor->pending_fmt_change = true;
-+	}
- out:
- 	mutex_unlock(&sensor->lock);
- 	return ret;
-@@ -2544,10 +2548,13 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
- 			ret = ov5640_set_mode(sensor, sensor->current_mode);
- 			if (ret)
- 				goto out;
-+		}
- 
-+		if (enable && sensor->pending_fmt_change) {
- 			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
- 			if (ret)
- 				goto out;
-+			sensor->pending_fmt_change = false;
- 		}
- 
- 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
-@@ -2642,9 +2649,14 @@ static int ov5640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 
- 	sensor->i2c_client = client;
-+
-+	/*
-+	 * default init sequence initialize sensor to
-+	 * YUV422 UYVY VGA@30fps
-+	 */
- 	fmt = &sensor->fmt;
--	fmt->code = ov5640_formats[0].code;
--	fmt->colorspace = ov5640_formats[0].colorspace;
-+	fmt->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	fmt->colorspace = V4L2_COLORSPACE_SRGB;
- 	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
- 	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
- 	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
-@@ -2656,7 +2668,6 @@ static int ov5640_probe(struct i2c_client *client,
- 	sensor->current_fr = OV5640_30_FPS;
- 	sensor->current_mode =
- 		&ov5640_mode_data[OV5640_30_FPS][OV5640_MODE_VGA_640_480];
--	sensor->pending_mode_change = true;
- 
- 	sensor->ae_target = 52;
- 
--- 
-2.7.4
+SGkgYWxsLA0KDQpQbGVhc2UgaWdub3JlIHRoaXMgdjIsIHRoZSB2MSB3YXMgbWVyZ2VkLg0KSSd2
+ZSBqdXN0IHB1c2hlZCBhIG5ldyBwYXRjaCB3aGljaCBmaXhlcyB0aGUgcmVncmVzc2lvbiBvYnNl
+cnZlZCwgc2VlOg0KaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1tZWRpYUB2Z2Vy
+Lmtlcm5lbC5vcmcvbXNnMTM0NDEzLmh0bWwNCg0KU29ycnkgZm9yIGluY29udmVuaWVuY2UuDQoN
+CkJlc3QgcmVnYXJkcywNCkh1Z3Vlcy4NCg0KT24gMDgvMTMvMjAxOCAxMToyMSBBTSwgSHVndWVz
+IEZydWNoZXQgd3JvdGU6DQo+IFNhdmUgbG9hZCBvZiBtb2RlIHJlZ2lzdGVycyBhcnJheSB3aGVu
+IFY0TDIgY2xpZW50IHNldHMgYSBmb3JtYXQgb3IgYQ0KPiBmcmFtZSBpbnRlcnZhbCB3aGljaCBz
+ZWxlY3RzIHRoZSBzYW1lIG1vZGUgdGhhbiB0aGUgY3VycmVudCBvbmUuDQo+IA0KPiBTaWduZWQt
+b2ZmLWJ5OiBIdWd1ZXMgRnJ1Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29tPg0KPiAtLS0NCj4g
+VmVyc2lvbiAyOg0KPiAgICAtIEZpeCBmdXp6eSBpbWFnZSBiZWNhdXNlIG9mIEpQRUcgZGVmYXVs
+dCBmb3JtYXQgbm90IGJlaW5nDQo+ICAgICAgY2hhbmdlZCBhY2NvcmRpbmcgdG8gbmV3IGZvcm1h
+dCBzZWxlY3RlZCwgZml4IHRoaXMuDQo+ICAgIC0gSW5pdCBzZXF1ZW5jZSBpbml0aWFsaXNlcyBm
+b3JtYXQgdG8gWVVWNDIyIFVZVlkgYnV0DQo+ICAgICAgc2Vuc29yLT5mbXQgaW5pdGlhbCB2YWx1
+ZSB3YXMgc2V0IHRvIEpQRUcsIGZpeCB0aGlzLg0KPiANCj4gDQo+ICAgZHJpdmVycy9tZWRpYS9p
+MmMvb3Y1NjQwLmMgfCAzMyArKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0NCj4gICAx
+IGZpbGUgY2hhbmdlZCwgMjQgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkNCj4gDQo+IGRp
+ZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyBiL2RyaXZlcnMvbWVkaWEvaTJj
+L292NTY0MC5jDQo+IGluZGV4IDFlY2JiN2EuLjJkZGQ4NmQgMTAwNjQ0DQo+IC0tLSBhL2RyaXZl
+cnMvbWVkaWEvaTJjL292NTY0MC5jDQo+ICsrKyBiL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5j
+DQo+IEBAIC0yMjMsNiArMjIzLDcgQEAgc3RydWN0IG92NTY0MF9kZXYgew0KPiAgIAlpbnQgcG93
+ZXJfY291bnQ7DQo+ICAgDQo+ICAgCXN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgZm10Ow0KPiAr
+CWJvb2wgcGVuZGluZ19mbXRfY2hhbmdlOw0KPiAgIA0KPiAgIAljb25zdCBzdHJ1Y3Qgb3Y1NjQw
+X21vZGVfaW5mbyAqY3VycmVudF9tb2RlOw0KPiAgIAllbnVtIG92NTY0MF9mcmFtZV9yYXRlIGN1
+cnJlbnRfZnI7DQo+IEBAIC0yNTUsNyArMjU2LDcgQEAgc3RhdGljIGlubGluZSBzdHJ1Y3QgdjRs
+Ml9zdWJkZXYgKmN0cmxfdG9fc2Qoc3RydWN0IHY0bDJfY3RybCAqY3RybCkNCj4gICAgKiBzaG91
+bGQgYmUgaWRlbnRpZmllZCBhbmQgcmVtb3ZlZCB0byBzcGVlZCByZWdpc3RlciBsb2FkIHRpbWUN
+Cj4gICAgKiBvdmVyIGkyYy4NCj4gICAgKi8NCj4gLQ0KPiArLyogWVVWNDIyIFVZVlkgVkdBQDMw
+ZnBzICovDQo+ICAgc3RhdGljIGNvbnN0IHN0cnVjdCByZWdfdmFsdWUgb3Y1NjQwX2luaXRfc2V0
+dGluZ18zMGZwc19WR0FbXSA9IHsNCj4gICAJezB4MzEwMywgMHgxMSwgMCwgMH0sIHsweDMwMDgs
+IDB4ODIsIDAsIDV9LCB7MHgzMDA4LCAweDQyLCAwLCAwfSwNCj4gICAJezB4MzEwMywgMHgwMywg
+MCwgMH0sIHsweDMwMTcsIDB4MDAsIDAsIDB9LCB7MHgzMDE4LCAweDAwLCAwLCAwfSwNCj4gQEAg
+LTE5NjYsOSArMTk2NywxNCBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfZm10KHN0cnVjdCB2NGwy
+X3N1YmRldiAqc2QsDQo+ICAgCQlnb3RvIG91dDsNCj4gICAJfQ0KPiAgIA0KPiAtCXNlbnNvci0+
+Y3VycmVudF9tb2RlID0gbmV3X21vZGU7DQo+IC0Jc2Vuc29yLT5mbXQgPSAqbWJ1c19mbXQ7DQo+
+IC0Jc2Vuc29yLT5wZW5kaW5nX21vZGVfY2hhbmdlID0gdHJ1ZTsNCj4gKwlpZiAobmV3X21vZGUg
+IT0gc2Vuc29yLT5jdXJyZW50X21vZGUpIHsNCj4gKwkJc2Vuc29yLT5jdXJyZW50X21vZGUgPSBu
+ZXdfbW9kZTsNCj4gKwkJc2Vuc29yLT5wZW5kaW5nX21vZGVfY2hhbmdlID0gdHJ1ZTsNCj4gKwl9
+DQo+ICsJaWYgKG1idXNfZm10LT5jb2RlICE9IHNlbnNvci0+Zm10LmNvZGUpIHsNCj4gKwkJc2Vu
+c29yLT5mbXQgPSAqbWJ1c19mbXQ7DQo+ICsJCXNlbnNvci0+cGVuZGluZ19mbXRfY2hhbmdlID0g
+dHJ1ZTsNCj4gKwl9DQo+ICAgb3V0Og0KPiAgIAltdXRleF91bmxvY2soJnNlbnNvci0+bG9jayk7
+DQo+ICAgCXJldHVybiByZXQ7DQo+IEBAIC0yNTA4LDggKzI1MTQsMTAgQEAgc3RhdGljIGludCBv
+djU2NDBfc19mcmFtZV9pbnRlcnZhbChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLA0KPiAgIAkJZ290
+byBvdXQ7DQo+ICAgCX0NCj4gICANCj4gLQlzZW5zb3ItPmN1cnJlbnRfbW9kZSA9IG1vZGU7DQo+
+IC0Jc2Vuc29yLT5wZW5kaW5nX21vZGVfY2hhbmdlID0gdHJ1ZTsNCj4gKwlpZiAobW9kZSAhPSBz
+ZW5zb3ItPmN1cnJlbnRfbW9kZSkgew0KPiArCQlzZW5zb3ItPmN1cnJlbnRfbW9kZSA9IG1vZGU7
+DQo+ICsJCXNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSA9IHRydWU7DQo+ICsJfQ0KPiAgIG91
+dDoNCj4gICAJbXV0ZXhfdW5sb2NrKCZzZW5zb3ItPmxvY2spOw0KPiAgIAlyZXR1cm4gcmV0Ow0K
+PiBAQCAtMjU0MCwxMCArMjU0OCwxMyBAQCBzdGF0aWMgaW50IG92NTY0MF9zX3N0cmVhbShzdHJ1
+Y3QgdjRsMl9zdWJkZXYgKnNkLCBpbnQgZW5hYmxlKQ0KPiAgIAkJCXJldCA9IG92NTY0MF9zZXRf
+bW9kZShzZW5zb3IsIHNlbnNvci0+Y3VycmVudF9tb2RlKTsNCj4gICAJCQlpZiAocmV0KQ0KPiAg
+IAkJCQlnb3RvIG91dDsNCj4gKwkJfQ0KPiAgIA0KPiArCQlpZiAoZW5hYmxlICYmIHNlbnNvci0+
+cGVuZGluZ19mbXRfY2hhbmdlKSB7DQo+ICAgCQkJcmV0ID0gb3Y1NjQwX3NldF9mcmFtZWZtdChz
+ZW5zb3IsICZzZW5zb3ItPmZtdCk7DQo+ICAgCQkJaWYgKHJldCkNCj4gICAJCQkJZ290byBvdXQ7
+DQo+ICsJCQlzZW5zb3ItPnBlbmRpbmdfZm10X2NoYW5nZSA9IGZhbHNlOw0KPiAgIAkJfQ0KPiAg
+IA0KPiAgIAkJaWYgKHNlbnNvci0+ZXAuYnVzX3R5cGUgPT0gVjRMMl9NQlVTX0NTSTIpDQo+IEBA
+IC0yNjM4LDkgKzI2NDksMTQgQEAgc3RhdGljIGludCBvdjU2NDBfcHJvYmUoc3RydWN0IGkyY19j
+bGllbnQgKmNsaWVudCwNCj4gICAJCXJldHVybiAtRU5PTUVNOw0KPiAgIA0KPiAgIAlzZW5zb3It
+PmkyY19jbGllbnQgPSBjbGllbnQ7DQo+ICsNCj4gKwkvKg0KPiArCSAqIGRlZmF1bHQgaW5pdCBz
+ZXF1ZW5jZSBpbml0aWFsaXplIHNlbnNvciB0bw0KPiArCSAqIFlVVjQyMiBVWVZZIFZHQUAzMGZw
+cw0KPiArCSAqLw0KPiAgIAlmbXQgPSAmc2Vuc29yLT5mbXQ7DQo+IC0JZm10LT5jb2RlID0gb3Y1
+NjQwX2Zvcm1hdHNbMF0uY29kZTsNCj4gLQlmbXQtPmNvbG9yc3BhY2UgPSBvdjU2NDBfZm9ybWF0
+c1swXS5jb2xvcnNwYWNlOw0KPiArCWZtdC0+Y29kZSA9IE1FRElBX0JVU19GTVRfVVlWWThfMlg4
+Ow0KPiArCWZtdC0+Y29sb3JzcGFjZSA9IFY0TDJfQ09MT1JTUEFDRV9TUkdCOw0KPiAgIAlmbXQt
+PnljYmNyX2VuYyA9IFY0TDJfTUFQX1lDQkNSX0VOQ19ERUZBVUxUKGZtdC0+Y29sb3JzcGFjZSk7
+DQo+ICAgCWZtdC0+cXVhbnRpemF0aW9uID0gVjRMMl9RVUFOVElaQVRJT05fRlVMTF9SQU5HRTsN
+Cj4gICAJZm10LT54ZmVyX2Z1bmMgPSBWNEwyX01BUF9YRkVSX0ZVTkNfREVGQVVMVChmbXQtPmNv
+bG9yc3BhY2UpOw0KPiBAQCAtMjY1Miw3ICsyNjY4LDYgQEAgc3RhdGljIGludCBvdjU2NDBfcHJv
+YmUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwNCj4gICAJc2Vuc29yLT5jdXJyZW50X2ZyID0g
+T1Y1NjQwXzMwX0ZQUzsNCj4gICAJc2Vuc29yLT5jdXJyZW50X21vZGUgPQ0KPiAgIAkJJm92NTY0
+MF9tb2RlX2RhdGFbT1Y1NjQwXzMwX0ZQU11bT1Y1NjQwX01PREVfVkdBXzY0MF80ODBdOw0KPiAt
+CXNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSA9IHRydWU7DQo+ICAgDQo+ICAgCXNlbnNvci0+
+YWVfdGFyZ2V0ID0gNTI7DQo+ICAgDQo+IA==
