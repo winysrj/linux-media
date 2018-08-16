@@ -1,129 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:42981 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725808AbeHPSZO (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:56438 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2392441AbeHPTiT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Aug 2018 14:25:14 -0400
-Received: by mail-wr1-f68.google.com with SMTP id e7-v6so4509839wrs.9
-        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2018 08:26:03 -0700 (PDT)
+        Thu, 16 Aug 2018 15:38:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: chf.fritz@googlemail.com
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Norbert Wesp <n.wesp@phytec.de>,
+        Dirk Bender <D.bender@phytec.de>,
+        Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH] uvcvideo: add quirk to force Phytec CAM 004H to GBRG
+Date: Thu, 16 Aug 2018 19:39:34 +0300
+Message-ID: <4073605.T2oYED4Iz8@avalon>
+In-Reply-To: <1534423695.2246.15.camel@googlemail.com>
+References: <1519212389.11643.13.camel@googlemail.com> <1860315.IXoSrtTCf6@avalon> <1534423695.2246.15.camel@googlemail.com>
 MIME-Version: 1.0
-References: <20180816105319.6411-1-hverkuil@xs4all.nl>
-In-Reply-To: <20180816105319.6411-1-hverkuil@xs4all.nl>
-From: Alex Deucher <alexdeucher@gmail.com>
-Date: Thu, 16 Aug 2018 11:25:50 -0400
-Message-ID: <CADnq5_NiL8Ac=mF3wenpQ3MHuj+8cNJFW2eshkWnf2tPQHPqTA@mail.gmail.com>
-Subject: Re: [PATCH 0/5] drm/nouveau+amdgpu: add DP CEC-Tunneling-over-AUX
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        nouveau <nouveau@lists.freedesktop.org>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Maling list - DRI developers
-        <dri-devel@lists.freedesktop.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 16, 2018 at 6:56 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Now that the DisplayPort CEC-Tunneling-over-AUX drm+i915 support
-> has been merged in the mainline kernel it is time to roll this
-> out to nouveau and amdgpu as well.
->
-> I combined both in the same patch series since both depend on the
-> same first patch, the comments in this cover letter apply to both
-> and the implementation is also very similar (and simple).
->
-> As mentioned, the first patch is required for this: it adds checks that
-> the drm_dp_cec functions are called with a working aux implementation.
-> These checks weren't necessary for the i915, but nouveau and amdgpu
-> require them.
->
-> The next two patches update a comment in drm_dp_cec.c and fix a bug
-> in sideband AUX handling that I found while researching CEC Tunneling
-> over an MST hub. It's there to prevent others from stumbling over the
-> same bug in the future.
->
-> The fourth patch adds support for CEC to the nouveau driver.
->
-> The last patch adds support for CEC to the amdgpu driver. However, there
-> appear to be two classes of amdgpu hardware: as a discrete GPU or
-> integrated. I only have a discrete GPU, so I can't test the integrated
-> GPU support and I only implemented this for the discrete GPU case.
->
-> If someone has the integrated GPU and wants to get this working and is
-> willing to do some testing, then please contact me. It shouldn't be
-> difficult. You will likely have to buy a working DP-to-HDMI adapter.
-> See https://hverkuil.home.xs4all.nl/cec-status.txt for a (sadly very
-> short) list of working adapters.
+Hi Christoph,
 
-Actually you added support for APUs as well.  In amdgpu, there are two
-sets of modesetting code, an older less featured version
-(amd/amdgpu/dce*.c) and the newer more featured code (amd/display/*).
-Newer asics (vega and raven) are only supported by DC.  Older asics
-are supported by both.  Eventually we'd like to remove the older
-modesetting code.  I'm not really a CEC expert, but the patches look
-pretty straight forward to me.  Series is:
-Acked-by: Alex Deucher <alexander.deucher@amd.com>
+(Philipp, there's a question for you at the end)
 
->
-> Note that I may be completely off-base regarding what atombios_dp.c
-> does, it's the first time I ever looked at amdgpu code.
->
-> Two notes on CEC-Tunneling-over-AUX:
->
-> 1) You need to be very careful about which USB-C/DP/mini-DP to HDMI
->    adapters you buy. Only a few support this feature correctly today.
->    Known chipsets that support this are Parade PS175 & PS176 and
->    MegaChips 2900. Unfortunately almost all Parade-based adapters
->    do not hook up the HDMI CEC pin to the chip, making them useless
->    for this. The Parade reference design was only recently changed
->    to hook up this pin, so perhaps this situation will change for
->    new Parade-based adapters.
->
->    Adapters based on the new MegaChips 2900 fare much better: it
->    appears that their reference design *does* hook up the CEC pin.
->    Club3D has adapters using this device for USB-C, DP and mini-DP
->    to HDMI, and they all work fine.
->
->    If anyone finds other adapters that work besides those I list
->    in https://hverkuil.home.xs4all.nl/cec-status.txt, please let
->    me know and I'll add them to the list.
->
->    Linux is the first OS that supports this feature, so I am
->    not surprised that HW support for this has been poor. Hopefully
->    this will change going forward. BTW, note the irony that CEC is
->    now supported for DP-to-HDMI adapters, but not for the native
->    HDMI ports on NVIDIA/AMD/Intel GPUs.
->
-> 2) CEC-Tunneling does not work (yet?) if there is an MST hub in
->    between. I'm still researching this but this might be a limitation
->    of MST.
->
-> Regards,
->
->         Hans
->
-> Hans Verkuil (5):
->   drm_dp_cec: check that aux has a transfer function
->   drm_dp_cec: add note about good MegaChips 2900 CEC support
->   drm_dp_mst_topology: fix broken
->     drm_dp_sideband_parse_remote_dpcd_read()
->   drm/nouveau: add DisplayPort CEC-Tunneling-over-AUX support
->   drm/amdgpu: add DisplayPort CEC-Tunneling-over-AUX support
->
->  .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c  | 13 +++++++++++--
->  .../display/amdgpu_dm/amdgpu_dm_mst_types.c    |  2 ++
->  drivers/gpu/drm/drm_dp_cec.c                   | 18 +++++++++++++++++-
->  drivers/gpu/drm/drm_dp_mst_topology.c          |  1 +
->  drivers/gpu/drm/nouveau/nouveau_connector.c    | 17 +++++++++++++++--
->  5 files changed, 46 insertions(+), 5 deletions(-)
->
-> --
-> 2.18.0
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+On Thursday, 16 August 2018 15:48:15 EEST Christoph Fritz wrote:
+> > On Wednesday, 21 February 2018 23:24:36 EEST Laurent Pinchart wrote:
+> >> On Wednesday, 21 February 2018 22:42:45 EET Christoph Fritz wrote:
+> >>>>>  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+> >>>>>  drivers/media/usb/uvc/uvcvideo.h   |  1 +
+> >>>>>  2 files changed, 17 insertions(+)
+> >>>>> 
+> >>>>> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> >>>>> b/drivers/media/usb/uvc/uvc_driver.c index cde43b6..8bfa40b 100644
+> >>>>> --- a/drivers/media/usb/uvc/uvc_driver.c
+> >>>>> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> >>>>> @@ -406,6 +406,13 @@ static int uvc_parse_format(struct uvc_device
+> >>>>> *dev,
+> >>>>>  				width_multiplier = 2;
+> >>>>>  			}
+> >>>>>  		}
+> >>>>> +		if (dev->quirks & UVC_QUIRK_FORCE_GBRG) {
+> >>>>> +			if (format->fcc == V4L2_PIX_FMT_SGRBG8) {
+> >>>>> +				strlcpy(format->name, "GBRG Bayer (GBRG)",
+> >>>>> +					sizeof(format->name));
+> >>>>> +				format->fcc = V4L2_PIX_FMT_SGBRG8;
+> >>>>> +			}
+> >>>>> +		}
+> >>>>> 
+> >>>>>  		if (buffer[2] == UVC_VS_FORMAT_UNCOMPRESSED) {
+> >>>>>  			ftype = UVC_VS_FRAME_UNCOMPRESSED;
+> >>>>> @@ -2631,6 +2638,15 @@ static struct usb_device_id uvc_ids[] = {
+> >>>>>  	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
+> >>>>>  	  .bInterfaceSubClass	= 1,
+> >>>>>  	  .bInterfaceProtocol	= 0 },
+> >>>>> +	/* PHYTEC CAM 004H cameras */
+> >>>>> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> >>>>> +				| USB_DEVICE_ID_MATCH_INT_INFO,
+> >>>>> +	  .idVendor		= 0x199e,
+> >>>>> +	  .idProduct		= 0x8302,
+> >>>>> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
+> >>>>> +	  .bInterfaceSubClass	= 1,
+> >>>>> +	  .bInterfaceProtocol	= 0,
+> >>>>> +	  .driver_info		= UVC_QUIRK_FORCE_GBRG },
+> >>>>>  	/* Bodelin ProScopeHR */
+> >>>>>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> >>>>>  				| USB_DEVICE_ID_MATCH_DEV_HI
+> >>>>> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> >>>>> b/drivers/media/usb/uvc/uvcvideo.h index 7e4d3ee..ad51002 100644
+> >>>>> --- a/drivers/media/usb/uvc/uvcvideo.h
+> >>>>> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> >>>>> @@ -164,6 +164,7 @@
+> >>>>>  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+> >>>>>  #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
+> >>>>>  #define UVC_QUIRK_FORCE_Y8		0x00000800
+> >>>>> +#define UVC_QUIRK_FORCE_GBRG		0x00001000
+> >>>> 
+> >>>> I don't think we should add a quirk flag for every format that needs
+> >>>> to be forced. Instead, now that we have a new way to store per-device
+> >>>> parameters since commit 3bc85817d798 ("media: uvcvideo: Add
+> >>>> extensible device information"), how about making use of it and adding
+> >>>> a field to the uvc_device_info structure to store the forced format ?
+> 
+> you mean something like:
+> 
+>  struct uvc_device_info {
+>         u32     quirks;
+> +       u32     forced_color_format;
+>         u32     meta_format;
+>  };
+> 
+> and
+> 
+> +static const struct uvc_device_info uvc_forced_color_sgbrg8 = {
+> +       .forced_color_format = V4L2_PIX_FMT_SGBRG8,
+> +};
+> 
+> and
+> 
+> @@ -2817,7 +2820,7 @@ static const struct usb_device_id uvc_ids[] = {
+>           .bInterfaceClass      = USB_CLASS_VENDOR_SPEC,
+>           .bInterfaceSubClass   = 1,
+>           .bInterfaceProtocol   = 0,
+> -         .driver_info          = (kernel_ulong_t)&uvc_quirk_force_y8 },
+> +         .driver_info          = (kernel_ulong_t)&uvc_forced_color_y8 },
+> 
+> ?
+
+With an additional
+
+static const struct uvc_device_info uvc_forced_color_y8 = {
+	.forced_color_format = V4L2_PIX_FMT_GREY,
+};
+
+
+> If yes:
+> 
+>  - there would be a need for forced_color_format in struct uvc_device
+
+Why so ?
+
+>  - module-parameter quirk would not test force color format any more
+>  - the actual force/quirk changes not only format->fcc:
+> 
+>                 if (dev->forced_color_format == V4L2_PIX_FMT_SGBRG8) {
+
+The test should be if (dev->forced_color_format) to cover both the Y8 and 
+SGBRG8 cases.
+
+>                         strlcpy(format->name, "Greyscale 8-bit (Y8  )",
+>                                 sizeof(format->name));
+
+You can get the name from the uvc_fmts entry corresponding to dev-
+>forced_color_format.
+
+>                         format->fcc = dev->forced_color_format;
+>                         format->bpp = 8;
+>                         width_multiplier = 2;
+
+bpp and multiplier are more annoying. bpp is a property of the format, which 
+we could add to the uvc_fmts array. 
+
+I believe the multiplier could be computed by device bpp / bpp from uvc_fmts. 
+That would work at least for the Oculus VR Positional Tracker DK2, but I don't 
+have the Oculus VR Rift Sensor descriptors to check that. Philipp, if you 
+still have access to the device, could you send that to me ?
+
+>                 }
+> 
+> Is this the way you want me to go?
+
+-- 
+Regards,
+
+Laurent Pinchart
