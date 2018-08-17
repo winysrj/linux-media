@@ -1,24 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42706 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43762 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727459AbeHQSO7 (ORCPT
+        with ESMTP id S1727544AbeHQUMj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 14:14:59 -0400
+        Fri, 17 Aug 2018 16:12:39 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Kieran Bingham <kieran.bingham@ideasonboard.com>
 Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Niklas =?ISO-8859-1?Q?S=F6derlund?=
         <niklas.soderlund@ragnatech.se>, Jacopo Mondi <jacopo@jmondi.org>,
         Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>
-Subject: Re: [PATCH v2 2/4] dt-bindings: media: i2c: Add bindings for IMI RDACM20
-Date: Fri, 17 Aug 2018 18:12:05 +0300
-Message-ID: <5928304.EryO5GDx9q@avalon>
-In-Reply-To: <20180808165559.29957-3-kieran.bingham@ideasonboard.com>
-References: <20180808165559.29957-1-kieran.bingham@ideasonboard.com> <20180808165559.29957-3-kieran.bingham@ideasonboard.com>
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH v2 4/4] media: i2c: Add RDACM20 driver
+Date: Fri, 17 Aug 2018 20:09:19 +0300
+Message-ID: <5524303.kLxU94kiUG@avalon>
+In-Reply-To: <20180808165559.29957-5-kieran.bingham@ideasonboard.com>
+References: <20180808165559.29957-1-kieran.bingham@ideasonboard.com> <20180808165559.29957-5-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -26,146 +29,57 @@ Hi Kieran,
 
 Thank you for the patch.
 
-On Wednesday, 8 August 2018 19:55:57 EEST Kieran Bingham wrote:
-> From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> 
-> IMI D&D
-
-Dungeons & Dragons ?
-
-> RDACM20 automotive platform is a Gigabit Multimedia Serial Link
-
-Where does "automotive platform" come from ? How about just "The IMI RDACM20 
-is a ..." ?
-
-> (GMSL) camera transmitting video and I2C control messages on coax cable
-> physical link.
-> 
-> Document its device tree binding interface.
-> 
+On Wednesday, 8 August 2018 19:55:59 EEST Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>=20
+> The RDACM20 is a GMSL camera supporting 1280x800 resolution images
+> developed by IMI based on an Omnivision 10635 sensor and a Maxim MAX9271
+> GMSL serializer.
+>=20
+> The GMSL link carries power, control (I2C) and video data over a
+> single coax cable.
+>=20
 > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.co=
+m>
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
+>=20
 > ---
 > v2:
->  - Provide imi vendor prefix
->  - Fix minor spelling
-> 
->  .../bindings/media/i2c/imi,rdacm20.txt        | 62 +++++++++++++++++++
->  .../devicetree/bindings/vendor-prefixes.txt   |  1 +
->  2 files changed, 63 insertions(+)
->  create mode 100644
-> Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
-> b/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt new file mode
-> 100644
-> index 000000000000..994ae1974362
+>  - Fix MAINTAINERS entry
+>=20
+>  MAINTAINERS                         |  10 +
+>  drivers/media/i2c/Kconfig           |  11 +
+>  drivers/media/i2c/Makefile          |   1 +
+>  drivers/media/i2c/rdacm20-ov10635.h | 953 ++++++++++++++++++++++++++++
+>  drivers/media/i2c/rdacm20.c         | 635 ++++++++++++++++++
+>  5 files changed, 1610 insertions(+)
+>  create mode 100644 drivers/media/i2c/rdacm20-ov10635.h
+>  create mode 100644 drivers/media/i2c/rdacm20.c
+
+[snip]
+
+> diff --git a/drivers/media/i2c/rdacm20.c b/drivers/media/i2c/rdacm20.c
+> new file mode 100644
+> index 000000000000..352c54902d1c
 > --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/imi,rdacm20.txt
-> @@ -0,0 +1,62 @@
-> +IMI D&D RDACM20 Automotive Camera Platform
-> +------------------------------------------
-> +
-> +The IMI D&D RDACM20 is a GMSL-compatible camera designed for automotive
-> +applications.
+> +++ b/drivers/media/i2c/rdacm20.c
+> @@ -0,0 +1,635 @@
 
-Seems better here :-)
+[snip]
 
-> It is encloses a Maxim Integrated MAX9271 GMSL serializer, an
+> +MODULE_DESCRIPTION("SoC Camera driver for MAX9286<->MAX9271<->OV10635");
 
-"is encloses" ?
+You probably want to fix this. Apart from that, the code looks good to me a=
+s a=20
+first driver version, knowing that we will continue development and=20
+refactoring to try and separate the OV10635 and MAX9271 code.
 
-> +Omnivision OV10635 camera sensor and an embedded MCU, and connects to a
-> remote +GMSL endpoint through a coaxial cable.
-> +
-> +                                                     IMI RDACM20
-> + ---------------                              
-> -------------------------------- +|      GMSL     |   <---  Video Stream   
->     |       <- Video--------\        | +|               |< ====== GMSL Link
-> ======== >|MAX9271<- I2C bus-> <-->OV10635 | +| de-serializer |   <---  I2C
-> messages --->   |                   \<-->MCU     | + ---------------       
->                        --------------------------------
+> +MODULE_AUTHOR("Vladimir Barinov");
+> +MODULE_LICENSE("GPL");
 
-Sorry for messing up the nice ascii-art with linewraps :-(
-
-> +RDACM20 transmits video data generated by the embedded camera sensor on the
-
-s/RDACM20/The RDACM20/
-
-> +GMSL serial channel to a remote GMSL de-serializer, as well as it receives
-> and +transmits I2C messages encapsulated in the GMSL bidirectional control
-> channel.
-> +
-> +All I2C traffic received on the GMSL link not directed to the serializer is
-> +propagated on the local I2C bus to the embedded camera sensor and MCU. All
-> +I2C traffic generated on the local I2C bus not directed to the serializer
-> is +propagated to the remote de-serializer encapsulated in the GMSL control
-> channel.
-
-I think you should document that the RDACM20 DT node should be a direct child 
-of the GMSL deserializer's I2C bus corresponding to the GMSL link that the 
-camera is attached to.
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +Required Properties:
-> +
-> +- compatible: Shall be "imi,rdacm20".
-> +- reg: Pair of I2C device addresses, the first to be assigned to the
-> serializer
-> +  the second to be assigned to the camera sensor.
-> +
-> +Connection to the remote GMSL endpoint are modelled using the OF graph
-> bindings +in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +The device node contains a single "port" child node with a single
-> "endpoint" +sub-device.
-> +
-> +Required endpoint properties:
-> +
-> +- remote-endpoint: phandle to the remote GMSL endpoint sub-node in the
-> remote
-> +  node port.
-> +
-> +Example:
-> +-------
-> +
-> +	i2c@0 {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +		reg = <0>;
-> +
-> +		camera@51 {
-> +			compatible = "imi,rdacm20";
-> +			reg = <0x51 0x61>;
-> +
-> +			port {
-> +				rdacm20_out0: endpoint {
-> +					remote-endpoint = <&max9286_in0>;
-> +				};
-> +			};
-> +
-> +		};
-> +	};
-> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> b/Documentation/devicetree/bindings/vendor-prefixes.txt index
-> 7cad066191ee..9ee0eb8c2b4e 100644
-> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> @@ -164,6 +164,7 @@ idt	Integrated Device Technologies, Inc.
->  ifi	Ingenieurburo Fur Ic-Technologie (I/F/I)
->  ilitek	ILI Technology Corporation (ILITEK)
->  img	Imagination Technologies Ltd.
-> +imi	Integrated Micro-Electronics Inc.
->  infineon Infineon Technologies
->  inforce	Inforce Computing
->  ingenic	Ingenic Semiconductor
-
--- 
+=2D-=20
 Regards,
 
 Laurent Pinchart
