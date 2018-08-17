@@ -1,107 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:49552 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725769AbeHQGcd (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:59030 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726376AbeHQMgz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 02:32:33 -0400
-Message-ID: <53cf26f1ec7dbd43608840bcc9a9f63c@smtp-cloud8.xs4all.net>
-Date: Fri, 17 Aug 2018 05:30:50 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Fri, 17 Aug 2018 08:36:55 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?Q?B=c3=a5rd_Eirik_Winther?= <bwinther@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [ANN] qvidcap: Qt/OpenGL video capture testing utility
+Message-ID: <f69c82ae-b40c-d78c-1218-62c74944daaf@xs4all.nl>
+Date: Fri, 17 Aug 2018 11:34:12 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi all,
 
-Results of the daily build of media_tree:
+I have just added qvidcap to v4l-utils. It is a utility that I've been working on
+for a long time. For the past 2 years or so I was stuck on Qt/OpenGL issues and
+without time to dig into it. I want to thank my colleague Bård Eirik for fixing
+those issues.
 
-date:			Fri Aug 17 05:00:14 CEST 2018
-media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
-media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
-v4l-utils git hash:	02a260d3b307c61798a97c0c04ce2e7d862b1347
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.16.0-1-amd64
+The core purpose is to display uncompressed video using OpenGL/OpenGL ES.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.18-i686: OK
-linux-4.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+It can read from V4L2 video nodes, from a network socket, from a file or using
+the built-in test pattern generator.
 
-Detailed results are available here:
+To use the network functionality you start qvidcap with the -p option. And on
+the device elsewhere on the network you run:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+v4l2-ctl --stream-mmap --stream-to-host <hostname>
 
-Full logs are available here:
+It will now stream video (run-length-encoded, so poor compression unless you
+are streaming a test pattern) to the host that is running qvidcap and you can
+see what the video looks like.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Very useful when dealing with embedded systems that do not yet have working
+video output.
 
-The Media Infrastructure API from this daily build is here:
+When qvidcap reads from a file you can also dynamically change the resolution
+and pixelformat (i.e. how it interprets the data). Again, very useful for
+debugging.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Changing colorspace, transfer functions, etc. is always possible (right-click to
+see a menu appear).
+
+There are two display modes: either the video is scaled to the window, or the
+video is never scaled and you get scrollbars if the video is larger than the
+window.
+
+By default qvidcap uses OpenGL, but with the --opengles option you can select
+OpenGL ES.
+
+Future planned work:
+
+1) Allow changing resolution/pixelformat for streaming over the network as well.
+2) Re-use the opengl(es) code for qv4l2 as it is much cleaner code.
+3) Use the vicodec codec for the network streaming code as a second option
+   besides the run-length encoding.
+
+qvidcap has been tested on nvidia (both the nvidia and nouveau drivers), amd
+(amdgpu driver), intel i915 and vmware GPU drivers. I expect virtualbox to
+work fine as well.
+
+Enjoy!
+
+	Hans
