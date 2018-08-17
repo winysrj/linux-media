@@ -1,186 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:43998 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725845AbeHQNMd (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42098 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725992AbeHQNPU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 09:12:33 -0400
-Subject: Re: [RFC] Request API questions
+        Fri, 17 Aug 2018 09:15:20 -0400
+Subject: Re: [PATCH v2 5/6] media: Add controls for jpeg quantization tables
 To: Tomasz Figa <tfiga@chromium.org>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>, nicolas@ndufresne.ca
-References: <93ca4ddc-e803-ee5a-f345-7b72ded1f757@xs4all.nl>
- <20180816081522.76f71891@coco.lan>
- <CAAFQd5C9y2oZJ7HpRqCVqNhsMgUbnoxcafumX1fU9oXMnjiuww@mail.gmail.com>
+        kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+References: <20180802200010.24365-1-ezequiel@collabora.com>
+ <20180802200010.24365-6-ezequiel@collabora.com>
+ <CAAFQd5C4jTfdB5Zmk6LQwTOBB2hs14ensZ+J-ZdTcQzzBNKn0A@mail.gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3b59475f-b06e-4d9a-868c-04f608677cca@xs4all.nl>
-Date: Fri, 17 Aug 2018 12:09:40 +0200
+Message-ID: <f91a8099-9780-1b90-dfed-23b07668cb27@xs4all.nl>
+Date: Fri, 17 Aug 2018 12:12:22 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5C9y2oZJ7HpRqCVqNhsMgUbnoxcafumX1fU9oXMnjiuww@mail.gmail.com>
+In-Reply-To: <CAAFQd5C4jTfdB5Zmk6LQwTOBB2hs14ensZ+J-ZdTcQzzBNKn0A@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/08/18 12:02, Tomasz Figa wrote:
-> On Thu, Aug 16, 2018 at 8:15 PM Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org> wrote:
+On 17/08/18 04:10, Tomasz Figa wrote:
+> Hi Ezequiel,
+> 
+> On Fri, Aug 3, 2018 at 5:00 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
 >>
->> Em Thu, 16 Aug 2018 12:25:25 +0200
->> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>> From: Shunqian Zheng <zhengsq@rock-chips.com>
 >>
->>> Laurent raised a few API issues/questions in his review of the documentation.
->>>
->>> I've consolidated those in this RFC. I would like to know what others think
->>> and if I should make changes.
-> 
-> Thanks Hans for a nice summary and Mauro for initial input. :)
-> 
->>>
->>> 1) Should you be allowed to set controls directly if they are also used in
->>>    requests? Right now this is allowed, although we warn in the spec that
->>>    this can lead to undefined behavior.
->>>
->>>    In my experience being able to do this is very useful while testing,
->>>    and restricting this is not all that easy to implement. I also think it is
->>>    not our job. It is not as if something will break when you do this.
->>>
->>>    If there really is a good reason why you can't mix this for a specific
->>>    control, then the driver can check this and return -EBUSY.
+>> Add V4L2_CID_JPEG_LUMA/CHROMA_QUANTIZATION controls to allow userspace
+>> configure the JPEG quantization tables.
 >>
->> IMHO, there's not much sense on preventing it. Just having a warning
->> at the spec is enough.
+>> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+>> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+>> ---
+>>  Documentation/media/uapi/v4l/extended-controls.rst | 9 +++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c               | 4 ++++
+>>  include/uapi/linux/v4l2-controls.h                 | 3 +++
+>>  3 files changed, 16 insertions(+)
+> 
+> Thanks for this series and sorry for being late with review. Please
+> see my comments inline.
+> 
 >>
-> 
-> I tend to agree with Mauro on this.
-> 
-> Besides testing, there are some legit use cases where a carefully
-> programmed user space may want to choose between setting controls
-> directly and via a request, depending on circumstances. For example,
-> one may want to set focus position alone (potentially a big step,
-> taking time), before even attempting to capture any frames and then,
-> when the capture starts, move the position gradually (in small steps,
-> not taking too much time) with subsequent requests, to obtain a set of
-> frames with different focus position.
-> 
->> +.. caution::
+>> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+>> index 9f7312bf3365..80e26f81900b 100644
+>> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+>> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+>> @@ -3354,6 +3354,15 @@ JPEG Control IDs
+>>      Specify which JPEG markers are included in compressed stream. This
+>>      control is valid only for encoders.
+>>
+>> +.. _jpeg-quant-tables-control:
 >> +
->> +   Setting the same control through a request and also directly can lead to
->> +   undefined behavior!
->>
->> It is already warned with a caution. Anyone that decides to ignore a
->> warning like that will deserve his faith if things stop work.
->>
->>>
->>> 2) If request_fd in QBUF or the control ioctls is not a request fd, then we
->>>    now return ENOENT. Laurent suggests using EBADR ('Invalid request descriptor')
->>>    instead. This seems like a good idea to me. Should I change this?
->>
->> I don't have a strong opinion, but EBADR value seems to be arch-dependent:
->>
->> arch/alpha/include/uapi/asm/errno.h:#define     EBADR           98      /* Invalid request descriptor */
->> arch/mips/include/uapi/asm/errno.h:#define EBADR                51      /* Invalid request descriptor */
->> arch/parisc/include/uapi/asm/errno.h:#define    EBADR           161     /* Invalid request descriptor */
->> arch/sparc/include/uapi/asm/errno.h:#define     EBADR           103     /* Invalid request descriptor */
->> include/uapi/asm-generic/errno.h:#define        EBADR           53      /* Invalid request descriptor */
->>
->> Also, just because its name says "invalid request", it doesn't mean that it
->> is the right error code. In this specific case, we're talking about a file
->> descriptor. Invalid file descriptors is something that the FS subsystem
->> has already a defined set of return codes. We should stick with whatever
->> FS uses when a file descriptor is invalid.
->>
->> Where the VFS code returns EBADR? Does it make sense for our use cases?
+>> +``V4L2_CID_JPEG_LUMA_QUANTIZATION (__u8 matrix)``
+>> +    Sets the luma quantization table to be used for encoding
+>> +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. This table is
+>> +    expected to be in JPEG zigzag order, as per the JPEG specification.
+> 
+> Should we also specify this to be 8x8?
+> 
+>> +
+>> +``V4L2_CID_JPEG_CHROMA_QUANTIZATION (__u8 matrix)``
+>> +    Sets the chroma quantization table.
 >>
 > 
-> DMA-buf framework seems to return -EINVAL if a non-DMA-buf FD is
-> passed to dma_buf_get():
-> https://elixir.bootlin.com/linux/v4.18.1/source/drivers/dma-buf/dma-buf.c#L497
+> nit: I guess we aff something like
 > 
->>>
->>> 3) Calling VIDIOC_G_EXT_CTRLS for a request that has not been queued yet will
->>>    return either the value of the control you set earlier in the request, or
->>>    the current HW control value if it was never set in the request.
->>>
->>>    I believe it makes sense to return what was set in the request previously
->>>    (if you set it, you should be able to get it), but it is an idea to return
->>>    ENOENT when calling this for controls that are NOT in the request.
->>>
->>>    I'm inclined to implement that. Opinions?
->>
->> Return the request "cached" value, IMO, doesn't make sense. If the
->> application needs such cache, it can implement itself.
+> "See also V4L2_CID_JPEG_LUMA_QUANTIZATION for details."
 > 
-> Can we think about any specific use cases for a user space that first
-> sets a control value to a request and then needs to ask the kernel to
-> get the value back? After all, it was the user space which set the
-> value, so I'm not sure if there is any need for the kernel to be an
-> intermediary here.
+> to avoid repeating the V4L2_PIX_FMT_JPEG_RAW and zigzag order bits? Or
+> maybe just repeating is better?
 > 
 >>
->> Return an error code if the request has not yet completed makes
->> sense. Not sure what would be the best error code here... if the
->> request is queued already (but not processed), EBUSY seems to be the
->> better choice, but, if it was not queued yet, I'm not sure. I guess
->> ENOENT would work.
+>>  .. flat-table::
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index 599c1cbff3b9..5c62c3101851 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -999,6 +999,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>         case V4L2_CID_JPEG_RESTART_INTERVAL:    return "Restart Interval";
+>>         case V4L2_CID_JPEG_COMPRESSION_QUALITY: return "Compression Quality";
+>>         case V4L2_CID_JPEG_ACTIVE_MARKER:       return "Active Markers";
+>> +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:   return "Luminance Quantization Matrix";
+>> +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION: return "Chrominance Quantization Matrix";
+>>
+>>         /* Image source controls */
+>>         /* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>> @@ -1284,6 +1286,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>                 *flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>>                 break;
+>>         case V4L2_CID_DETECT_MD_REGION_GRID:
+>> +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:
+>> +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION:
 > 
-> IMHO, as far as we assign unique error codes for different conditions
-> and document them well, we should be okay with any not absurdly
-> mismatched code. After all, most of those codes are defined for file
-> system operations and don't really map directly to anything else.
+> It looks like with this setup, the driver has to explicitly set dims
+> to { 8, 8 } and min/max to 0/255.
 > 
-> FYI, VIDIOC_G_(EXT_)CTRL returns EINVAL if an unsupported control is
-> queried, so if we decided to keep the "cache" functionality after all,
-> perhaps we should stay consistent with it?
-> Reference: https://www.kernel.org/doc/html/latest/media/uapi/v4l/vidioc-g-ext-ctrls.html#return-value
-> 
-> My suggestion would be:
->  - EINVAL: the control was not in the request, (if we keep the cache
-> functionality)
->  - EPERM: the value is not ready, (we selected this code for Decoder
-> Interface to mean that CAPTURE format is not ready, which is similar;
-> perhaps that could be consistent?)
-> 
-> Note that EINVAL would only apply to writable controls, while EPERM
-> only to volatile controls, since the latter can only change due to
-> request completion (non-volatile controls can only change as an effect
-> of user space action).
-> 
+> At least for min and max, we could set them here. For dims, i don't
+> see it handled in generic code, so I guess we can leave it to the
+> driver now and add move into generic code, if another driver shows up.
+> Hans, what do you think?
 
-I'm inclined to just always return EPERM when calling G_EXT_CTRLS for
-a request. We can always relax this in the future.
-
-So when a request is not yet queued G_EXT_CTRLS returns EPERM, when
-queued but not completed it returns EBUSY and once completed it will
-work as it does today.
+I noticed this when reviewing. I have a slight preference for setting the
+dims and min/max in the core. It's pretty standard how this should behave
+after all.
 
 Regards,
 
 	Hans
-
->>
->>>
->>> 4) When queueing a buffer to a request with VIDIOC_QBUF you set V4L2_BUF_FLAG_REQUEST_FD
->>>    to indicate a valid request_fd. For other queue ioctls that take a struct v4l2_buffer
->>>    this flag and the request_fd field are just ignored. Should we return EINVAL
->>>    instead if the flag is set for those ioctls?
->>>
->>>    The argument for just ignoring it is that older kernels that do not know about
->>>    this flag will ignore it as well. There is no check against unknown flags.
->>
->> As I answered before, I don't see any need to add extra code for checking invalid
->> flags.
->>
->> It might make sense to ask users to clean the flag if not QBUF, just at the
->> eventual remote case we might want to use it on other ioctls.
-> 
-> Agreed with Mauro on this.
-> 
-> Best regards,
-> Tomasz
-> 
