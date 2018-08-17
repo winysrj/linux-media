@@ -1,52 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f66.google.com ([209.85.208.66]:38925 "EHLO
-        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725886AbeHRPxA (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46118 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726272AbeHRAyx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Aug 2018 11:53:00 -0400
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 05/14] staging: media: tegra-vde: Properly mark invalid entries
-Date: Sat, 18 Aug 2018 15:45:20 +0300
-Message-ID: <1655447.DEioCXKPSa@dimapc>
-In-Reply-To: <20180813145027.16346-6-thierry.reding@gmail.com>
-References: <20180813145027.16346-1-thierry.reding@gmail.com> <20180813145027.16346-6-thierry.reding@gmail.com>
+        Fri, 17 Aug 2018 20:54:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: chf.fritz@googlemail.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Norbert Wesp <n.wesp@phytec.de>,
+        Dirk Bender <D.bender@phytec.de>
+Subject: Re: [PATCH] uvcvideo: add quirk to force Phytec CAM 004H to GBRG
+Date: Sat, 18 Aug 2018 00:50:39 +0300
+Message-ID: <2371417.kFLlxrCYBz@avalon>
+In-Reply-To: <7233ce5ecd19fa6942afc1d86e3a7e97f8c3d734.camel@gmail.com>
+References: <1519212389.11643.13.camel@googlemail.com> <4073605.T2oYED4Iz8@avalon> <7233ce5ecd19fa6942afc1d86e3a7e97f8c3d734.camel@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, 13 August 2018 17:50:18 MSK Thierry Reding wrote:
-> From: Thierry Reding <treding@nvidia.com>
-> 
-> Entries in the reference picture list are marked as invalid by setting
-> the frame ID to 0x3f.
-> 
-> Signed-off-by: Thierry Reding <treding@nvidia.com>
-> ---
->  drivers/staging/media/tegra-vde/tegra-vde.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c
-> b/drivers/staging/media/tegra-vde/tegra-vde.c index
-> 275884e745df..0ce30c7ccb75 100644
-> --- a/drivers/staging/media/tegra-vde/tegra-vde.c
-> +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-> @@ -296,7 +296,7 @@ static void tegra_vde_setup_iram_tables(struct tegra_vde
-> *vde, (frame->flags & FLAG_B_FRAME));
->  		} else {
->  			aux_addr = 0x6ADEAD00;
-> -			value = 0;
-> +			value = 0x3f;
->  		}
-> 
->  		tegra_vde_setup_iram_entry(vde, num_ref_pics, 0, i, value,
+Hi Philipp,
 
-Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
-Tested-by: Dmitry Osipenko <digetx@gmail.com>
+On Friday, 17 August 2018 20:46:33 EEST Philipp Zabel wrote:
+> Am Donnerstag, den 16.08.2018, 19:39 +0300 schrieb Laurent Pinchart:
+> > Hi Christoph,
+> > 
+> > (Philipp, there's a question for you at the end)
+> 
+> > On Thursday, 16 August 2018 15:48:15 EEST Christoph Fritz wrote:
+> [...]
+> 
+> >>                         format->fcc = dev->forced_color_format;
+> >>                         format->bpp = 8;
+> >>                         width_multiplier = 2;
+> > 
+> > bpp and multiplier are more annoying. bpp is a property of the format,
+> > which we could add to the uvc_fmts array.
+> > 
+> > I believe the multiplier could be computed by device bpp / bpp from
+> > uvc_fmts. That would work at least for the Oculus VR Positional Tracker
+> > DK2, but I don't have the Oculus VR Rift Sensor descriptors to check
+> > that. Philipp, if you still have access to the device, could you send
+> > that to me ?
+> 
+> Full lsusb -v output below, the UVC descriptors are not decoded because
+> bFunctionClass is set to 255. The YUY2 uncompressed format descriptor
+> looks like this:
+> 
+>                ___guidFormat__________________________________
+> 1b 24 04 01 04 59 55 59 32 00 00 10 00 80 00 00 aa 00 38 9b 71 10 01 00 00
+> 00 00 ^^
+> so,                                           bBitsPerPixel == 16.
+
+Thanks a lot, that's exactly the information I needed. We can thus compute the 
+multiplier with something like
+
+        if (dev->info->pixel_format) {
+                fmtdesc = uvc_format_by_fourcc(dev->info->pixel_format);
+                strlcpy(format->name, fmtdesc->name,
+                        sizeof(format->name));
+                format->fcc = fmtdesc->fcc;
+                width_multiplier = format->bpp / fmtdesc->bpp;
+                format->bpp = fmtdesc->bpp;
+        }
+
+(possibly with a better name for the pixel_format field)
+
+-- 
+Regards,
+
+Laurent Pinchart
