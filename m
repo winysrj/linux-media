@@ -1,151 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:37806 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725845AbeHQMS7 (ORCPT
+Received: from mail-yw1-f66.google.com ([209.85.161.66]:33081 "EHLO
+        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725841AbeHQFLm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 08:18:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: chf.fritz@googlemail.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Norbert Wesp <n.wesp@phytec.de>,
-        Dirk Bender <D.bender@phytec.de>,
-        Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [PATCH] media: uvcvideo: Store device information pointer in struct uvc_device
-Date: Fri, 17 Aug 2018 12:17:08 +0300
-Message-Id: <20180817091708.17934-1-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <59022590.4QMSz7CzYA@avalon>
-References: <59022590.4QMSz7CzYA@avalon>
+        Fri, 17 Aug 2018 01:11:42 -0400
+Received: by mail-yw1-f66.google.com with SMTP id w200-v6so379767ywd.0
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2018 19:10:15 -0700 (PDT)
+Received: from mail-yw1-f52.google.com (mail-yw1-f52.google.com. [209.85.161.52])
+        by smtp.gmail.com with ESMTPSA id b135-v6sm1758674ywh.24.2018.08.16.19.10.13
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 16 Aug 2018 19:10:13 -0700 (PDT)
+Received: by mail-yw1-f52.google.com with SMTP id s68-v6so3892463ywg.2
+        for <linux-media@vger.kernel.org>; Thu, 16 Aug 2018 19:10:13 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180802200010.24365-1-ezequiel@collabora.com> <20180802200010.24365-6-ezequiel@collabora.com>
+In-Reply-To: <20180802200010.24365-6-ezequiel@collabora.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 17 Aug 2018 11:10:00 +0900
+Message-ID: <CAAFQd5C4jTfdB5Zmk6LQwTOBB2hs14ensZ+J-ZdTcQzzBNKn0A@mail.gmail.com>
+Subject: Re: [PATCH v2 5/6] media: Add controls for jpeg quantization tables
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device information structure is currently copied field by field in
-the uvc_device structure. As we only have two fields at the moment this
-isn't much of an issue, but it prevents easy addition of new info
-fields.
+Hi Ezequiel,
 
-Fix this by storing the uvc_device_info pointer in the uvc_device
-structure. As a result the uvc_device meta_format field can be removed.
-The quirks field, however, needs to stay as it can be modified through a
-module parameter.
+On Fri, Aug 3, 2018 at 5:00 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
+>
+> From: Shunqian Zheng <zhengsq@rock-chips.com>
+>
+> Add V4L2_CID_JPEG_LUMA/CHROMA_QUANTIZATION controls to allow userspace
+> configure the JPEG quantization tables.
+>
+> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/extended-controls.rst | 9 +++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c               | 4 ++++
+>  include/uapi/linux/v4l2-controls.h                 | 3 +++
+>  3 files changed, 16 insertions(+)
 
-As not all device have an information structure, we declare a global
-"NULL" info instance that is used as a fallback when the driver_info is
-empty.
+Thanks for this series and sorry for being late with review. Please
+see my comments inline.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c   | 15 +++++----------
- drivers/media/usb/uvc/uvc_metadata.c |  7 ++++---
- drivers/media/usb/uvc/uvcvideo.h     |  8 +++++++-
- 3 files changed, 16 insertions(+), 14 deletions(-)
+>
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> index 9f7312bf3365..80e26f81900b 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -3354,6 +3354,15 @@ JPEG Control IDs
+>      Specify which JPEG markers are included in compressed stream. This
+>      control is valid only for encoders.
+>
+> +.. _jpeg-quant-tables-control:
+> +
+> +``V4L2_CID_JPEG_LUMA_QUANTIZATION (__u8 matrix)``
+> +    Sets the luma quantization table to be used for encoding
+> +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. This table is
+> +    expected to be in JPEG zigzag order, as per the JPEG specification.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 21b0270067c1..232da625faad 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2040,10 +2040,7 @@ static int uvc_register_chains(struct uvc_device *dev)
-  * USB probe, disconnect, suspend and resume
-  */
- 
--struct uvc_device_info {
--	u32	quirks;
--	u32	meta_format;
--};
-+static const struct uvc_device_info uvc_quirk_none = { 0 };
- 
- static int uvc_probe(struct usb_interface *intf,
- 		     const struct usb_device_id *id)
-@@ -2052,7 +2049,6 @@ static int uvc_probe(struct usb_interface *intf,
- 	struct uvc_device *dev;
- 	const struct uvc_device_info *info =
- 		(const struct uvc_device_info *)id->driver_info;
--	u32 quirks = info ? info->quirks : 0;
- 	int function;
- 	int ret;
- 
-@@ -2079,10 +2075,9 @@ static int uvc_probe(struct usb_interface *intf,
- 	dev->udev = usb_get_dev(udev);
- 	dev->intf = usb_get_intf(intf);
- 	dev->intfnum = intf->cur_altsetting->desc.bInterfaceNumber;
--	dev->quirks = (uvc_quirks_param == -1)
--		    ? quirks : uvc_quirks_param;
--	if (info)
--		dev->meta_format = info->meta_format;
-+	dev->info = info ? info : &uvc_quirk_none;
-+	dev->quirks = uvc_quirks_param == -1
-+		    ? dev->info->quirks : uvc_quirks_param;
- 
- 	if (udev->product != NULL)
- 		strlcpy(dev->name, udev->product, sizeof(dev->name));
-@@ -2123,7 +2118,7 @@ static int uvc_probe(struct usb_interface *intf,
- 		le16_to_cpu(udev->descriptor.idVendor),
- 		le16_to_cpu(udev->descriptor.idProduct));
- 
--	if (dev->quirks != quirks) {
-+	if (dev->quirks != dev->info->quirks) {
- 		uvc_printk(KERN_INFO, "Forcing device quirks to 0x%x by module "
- 			"parameter for testing purpose.\n", dev->quirks);
- 		uvc_printk(KERN_INFO, "Please report required quirks to the "
-diff --git a/drivers/media/usb/uvc/uvc_metadata.c b/drivers/media/usb/uvc/uvc_metadata.c
-index cd1aec19cc5b..ed0f0c0732cb 100644
---- a/drivers/media/usb/uvc/uvc_metadata.c
-+++ b/drivers/media/usb/uvc/uvc_metadata.c
-@@ -74,7 +74,8 @@ static int uvc_meta_v4l2_try_format(struct file *file, void *fh,
- 
- 	memset(fmt, 0, sizeof(*fmt));
- 
--	fmt->dataformat = fmeta == dev->meta_format ? fmeta : V4L2_META_FMT_UVC;
-+	fmt->dataformat = fmeta == dev->info->meta_format
-+			? fmeta : V4L2_META_FMT_UVC;
- 	fmt->buffersize = UVC_METATADA_BUF_SIZE;
- 
- 	return 0;
-@@ -118,14 +119,14 @@ static int uvc_meta_v4l2_enum_formats(struct file *file, void *fh,
- 	u32 index = fdesc->index;
- 
- 	if (fdesc->type != vfh->vdev->queue->type ||
--	    index > 1U || (index && !dev->meta_format))
-+	    index > 1U || (index && !dev->info->meta_format))
- 		return -EINVAL;
- 
- 	memset(fdesc, 0, sizeof(*fdesc));
- 
- 	fdesc->type = vfh->vdev->queue->type;
- 	fdesc->index = index;
--	fdesc->pixelformat = index ? dev->meta_format : V4L2_META_FMT_UVC;
-+	fdesc->pixelformat = index ? dev->info->meta_format : V4L2_META_FMT_UVC;
- 
- 	return 0;
- }
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 59d66e5b8887..591eae3d0b0d 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -572,15 +572,21 @@ struct uvc_streaming {
- 	} clock;
- };
- 
-+struct uvc_device_info {
-+	u32	quirks;
-+	u32	meta_format;
-+};
-+
- struct uvc_device {
- 	struct usb_device *udev;
- 	struct usb_interface *intf;
- 	unsigned long warnings;
- 	u32 quirks;
--	u32 meta_format;
- 	int intfnum;
- 	char name[32];
- 
-+	const struct uvc_device_info *info;
-+
- 	struct mutex lock;		/* Protects users */
- 	unsigned int users;
- 	atomic_t nmappings;
--- 
-Regards,
+Should we also specify this to be 8x8?
 
-Laurent Pinchart
+> +
+> +``V4L2_CID_JPEG_CHROMA_QUANTIZATION (__u8 matrix)``
+> +    Sets the chroma quantization table.
+>
+
+nit: I guess we aff something like
+
+"See also V4L2_CID_JPEG_LUMA_QUANTIZATION for details."
+
+to avoid repeating the V4L2_PIX_FMT_JPEG_RAW and zigzag order bits? Or
+maybe just repeating is better?
+
+>
+>  .. flat-table::
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 599c1cbff3b9..5c62c3101851 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -999,6 +999,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>         case V4L2_CID_JPEG_RESTART_INTERVAL:    return "Restart Interval";
+>         case V4L2_CID_JPEG_COMPRESSION_QUALITY: return "Compression Quality";
+>         case V4L2_CID_JPEG_ACTIVE_MARKER:       return "Active Markers";
+> +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:   return "Luminance Quantization Matrix";
+> +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION: return "Chrominance Quantization Matrix";
+>
+>         /* Image source controls */
+>         /* Keep the order of the 'case's the same as in v4l2-controls.h! */
+> @@ -1284,6 +1286,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>                 *flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>                 break;
+>         case V4L2_CID_DETECT_MD_REGION_GRID:
+> +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:
+> +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION:
+
+It looks like with this setup, the driver has to explicitly set dims
+to { 8, 8 } and min/max to 0/255.
+
+At least for min and max, we could set them here. For dims, i don't
+see it handled in generic code, so I guess we can leave it to the
+driver now and add move into generic code, if another driver shows up.
+Hans, what do you think?
+
+Best regards,
+Tomasz
