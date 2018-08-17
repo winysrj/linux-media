@@ -1,78 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:40990 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727530AbeHIBvo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Aug 2018 21:51:44 -0400
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: mchehab@kernel.org, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH v2] dt-bindings: media: adv748x: Document re-mappable addresses
-Date: Thu,  9 Aug 2018 00:29:41 +0100
-Message-Id: <20180808232941.10582-1-kieran.bingham@ideasonboard.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48647 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726437AbeHQRO5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Aug 2018 13:14:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org,
+        amd-gfx@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH (repost) 1/5] drm_dp_cec: check that aux has a transfer function
+Date: Fri, 17 Aug 2018 16:11:18 +0200
+Message-Id: <20180817141122.9541-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180817141122.9541-1-hverkuil@xs4all.nl>
+References: <20180817141122.9541-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ADV748x supports configurable slave addresses for its I2C pages.
-Document the page names, and provide an example for setting each of the
-pages explicitly.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+If aux->transfer == NULL, then just return without doing
+anything. In that case the function is likely called for
+a non-(e)DP connector.
+
+This never happened for the i915 driver, but the nouveau and amdgpu
+drivers need this check.
+
+The alternative would be to add this check in those drivers before
+every drm_dp_cec call, but it makes sense to check it in the
+drm_dp_cec functions to prevent a kernel oops.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-v2:
- - Fix commit message
- - Extend documentation for the "required property" reg:
+ drivers/gpu/drm/drm_dp_cec.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-
- .../devicetree/bindings/media/i2c/adv748x.txt    | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-index 21ffb5ed8183..f7fbe221c15e 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-@@ -10,7 +10,11 @@ Required Properties:
-     - "adi,adv7481" for the ADV7481
-     - "adi,adv7482" for the ADV7482
+diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
+index 988513346e9c..1407b13a8d5d 100644
+--- a/drivers/gpu/drm/drm_dp_cec.c
++++ b/drivers/gpu/drm/drm_dp_cec.c
+@@ -238,6 +238,10 @@ void drm_dp_cec_irq(struct drm_dp_aux *aux)
+ 	u8 cec_irq;
+ 	int ret;
  
--  - reg: I2C slave address
-+  - reg: I2C slave addresses
-+    The ADV748x has up to twelve 256-byte maps that can be accessed via the
-+    main I2C ports. Each map has it own I2C address and acts as a standard
-+    slave device on the I2C bus. The main address is mandatory, others are
-+    optional and revert to defaults if not specified.
++	/* No transfer function was set, so not a DP connector */
++	if (!aux->transfer)
++		return;
++
+ 	mutex_lock(&aux->cec.lock);
+ 	if (!aux->cec.adap)
+ 		goto unlock;
+@@ -293,6 +297,10 @@ void drm_dp_cec_set_edid(struct drm_dp_aux *aux, const struct edid *edid)
+ 	unsigned int num_las = 1;
+ 	u8 cap;
  
- Optional Properties:
++	/* No transfer function was set, so not a DP connector */
++	if (!aux->transfer)
++		return;
++
+ #ifndef CONFIG_MEDIA_CEC_RC
+ 	/*
+ 	 * CEC_CAP_RC is part of CEC_CAP_DEFAULTS, but it is stripped by
+@@ -361,6 +369,10 @@ EXPORT_SYMBOL(drm_dp_cec_set_edid);
+  */
+ void drm_dp_cec_unset_edid(struct drm_dp_aux *aux)
+ {
++	/* No transfer function was set, so not a DP connector */
++	if (!aux->transfer)
++		return;
++
+ 	cancel_delayed_work_sync(&aux->cec.unregister_work);
  
-@@ -18,6 +22,11 @@ Optional Properties:
- 		     "intrq3". All interrupts are optional. The "intrq3" interrupt
- 		     is only available on the adv7481
-   - interrupts: Specify the interrupt lines for the ADV748x
-+  - reg-names : Names of maps with programmable addresses.
-+		It can contain any map needed a non-default address.
-+		Possible map names are:
-+		  "main", "dpll", "cp", "hdmi", "edid", "repeater",
-+		  "infoframe", "cbus", "cec", "sdp", "txa", "txb"
- 
- The device node must contain one 'port' child node per device input and output
- port, in accordance with the video interface bindings defined in
-@@ -47,7 +56,10 @@ Example:
- 
- 	video-receiver@70 {
- 		compatible = "adi,adv7482";
--		reg = <0x70>;
-+		reg = <0x70 0x71 0x72 0x73 0x74 0x75
-+		       0x60 0x61 0x62 0x63 0x64 0x65>;
-+		reg-names = "main", "dpll", "cp", "hdmi", "edid", "repeater",
-+			    "infoframe", "cbus", "cec", "sdp", "txa", "txb";
- 
- 		#address-cells = <1>;
- 		#size-cells = <0>;
+ 	mutex_lock(&aux->cec.lock);
+@@ -404,6 +416,8 @@ void drm_dp_cec_register_connector(struct drm_dp_aux *aux, const char *name,
+ 				   struct device *parent)
+ {
+ 	WARN_ON(aux->cec.adap);
++	if (WARN_ON(!aux->transfer))
++		return;
+ 	aux->cec.name = name;
+ 	aux->cec.parent = parent;
+ 	INIT_DELAYED_WORK(&aux->cec.unregister_work,
 -- 
-2.17.1
+2.18.0
