@@ -1,69 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:40302 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726410AbeHQOfg (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:42666 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726544AbeHQSGf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 10:35:36 -0400
-Received: by mail-wm0-f67.google.com with SMTP id y9-v6so7131626wma.5
-        for <linux-media@vger.kernel.org>; Fri, 17 Aug 2018 04:32:28 -0700 (PDT)
-Subject: Re: [PATCH] media: camss: mark PM functions as __maybe_unused
-To: Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20180817095425.2630974-1-arnd@arndb.de>
-From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <080262bf-d354-1ec4-761c-a086a7e268fb@linaro.org>
-Date: Fri, 17 Aug 2018 14:32:25 +0300
+        Fri, 17 Aug 2018 14:06:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>, Jacopo Mondi <jacopo@jmondi.org>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: Re: [PATCH v2 1/4] dt-bindings: media: i2c: Add bindings for Maxim Integrated MAX9286
+Date: Fri, 17 Aug 2018 18:03:42 +0300
+Message-ID: <2256852.PlY60itX2O@avalon>
+In-Reply-To: <20180808165559.29957-2-kieran.bingham@ideasonboard.com>
+References: <20180808165559.29957-1-kieran.bingham@ideasonboard.com> <20180808165559.29957-2-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20180817095425.2630974-1-arnd@arndb.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you Arnd.
+Hi Kieran,
 
-On 17.08.2018 12:53, Arnd Bergmann wrote:
-> The empty suspend/resume functions cause a build warning
-> when they are unused:
-> 
-> drivers/media/platform/qcom/camss/camss.c:1001:12: error: 'camss_runtime_resume' defined but not used [-Werror=unused-function]
-> drivers/media/platform/qcom/camss/camss.c:996:12: error: 'camss_runtime_suspend' defined but not used [-Werror=unused-function]
-> 
-> Mark them as __maybe_unused so the compiler can silently drop them.
-> 
-> Fixes: 02afa816dbbf ("media: camss: Add basic runtime PM support")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Thank you for the patch.
 
-Acked-by: Todor Tomov <todor.tomov@linaro.org>
-
+On Wednesday, 8 August 2018 19:55:56 EEST Kieran Bingham wrote:
+> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> The MAX9286 deserializes video data received on up to 4 Gigabit
+> Multimedia Serial Links (GMSL) and outputs them on a CSI-2 port using up
+> to 4 data lanes.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
->  drivers/media/platform/qcom/camss/camss.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  .../bindings/media/i2c/maxim,max9286.txt      | 180 ++++++++++++++++++
+>  1 file changed, 180 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
 > 
-> diff --git a/drivers/media/platform/qcom/camss/camss.c b/drivers/media/platform/qcom/camss/camss.c
-> index dcc0c30ef1b1..9f19d5f5966b 100644
-> --- a/drivers/media/platform/qcom/camss/camss.c
-> +++ b/drivers/media/platform/qcom/camss/camss.c
-> @@ -993,12 +993,12 @@ static const struct of_device_id camss_dt_match[] = {
->  
->  MODULE_DEVICE_TABLE(of, camss_dt_match);
->  
-> -static int camss_runtime_suspend(struct device *dev)
-> +static int __maybe_unused camss_runtime_suspend(struct device *dev)
->  {
->  	return 0;
->  }
->  
-> -static int camss_runtime_resume(struct device *dev)
-> +static int __maybe_unused camss_runtime_resume(struct device *dev)
->  {
->  	return 0;
->  }
-> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
+> b/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt new file
+> mode 100644
+> index 000000000000..8c099bf2939f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/maxim,max9286.txt
+> @@ -0,0 +1,180 @@
+> +Maxim Integrated Quad GMSL Deserializer
+> +---------------------------------------
+> +
+> +The MAX9286 deserializes receives video data on up to 4 Gigabit Multimedia
+
+s/deserializes/deserializer/
+
+> +Serial Links (GMSL) and outputs them on a CSI-2 port using up to 4 data
+> lanes.
+> +
+> +In addition to video data, the GMSL links carry a bidirectional control
+> +channel that encapsulates I2C messages. The MAX9286 forwards all I2C
+> traffic +not addressed to itself to the other side of the links, where a
+> GMSL +serializer will output it on a local I2C bus. In the other direction
+> all I2C +traffic received over GMSL by the MAX9286 is output on the local
+> I2C bus.
+> +
+> +Required Properties:
+> +
+> +- compatible: Shall be "maxim,max9286"
+> +- reg: I2C device address
+> +
+> +Optional Properties:
+> +
+> +- poc-supply: Regulator providing Power over Coax to the cameras
+> +- pwdn-gpios: GPIO connected to the #PWDN pin
+> +
+> +Required endpoint nodes:
+> +-----------------------
+> +
+> +The connections to the MAX9286 GMSL and its endpoint nodes are modeled
+> using +the OF graph bindings in accordance with the video interface
+> bindings defined +in
+> Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +The following table lists the port number corresponding to each device
+> port.
+> +
+> +        Port            Description
+> +        ----------------------------------------
+> +        Port 0          GMSL Input 0
+> +        Port 1          GMSL Input 1
+> +        Port 2          GMSL Input 2
+> +        Port 3          GMSL Input 3
+> +        Port 4          CSI-2 Output
+> +
+> +Optional Endpoint Properties for GSML Input Ports (Port [0-3]):
+> +
+> +- remote-endpoint: phandle to the remote GMSL source endpoint subnode in
+> the
+> +  remote node port.
+> +
+> +Required Endpoint Properties for CSI-2 Output Port (Port 4):
+> +
+> +- data-lanes: array of physical CSI-2 data lane indexes.
+> +- clock-lanes: index of CSI-2 clock lane.
+> +
+> +Required i2c-mux nodes:
+> +----------------------
+> +
+> +Each remote GMSL endpoint is modeled as child busses of an i2c bus
+
+It's not the GMSL endpoint that is modeled as a child bus, it's the GMSL link. 
+You should then document that the serializer device on the remote end of the 
+link shall be modeled as a child node of the corresponding I2C bus. Feel free 
+to come up with a better wording.
+
+> +multiplexer/switch, in accordance with bindings described in
+> +Documentation/devicetree/bindings/i2c/i2c-mux.txt.
+> +
+> +Required i2c child bus properties:
+> +- all properties described as required i2c child bus nodes properties in
+> +  Documentation/devicetree/bindings/i2c/i2c-mux.txt.
+> +
+> +Example:
+> +-------
+> +
+> +	gmsl-deserializer@2c {
+> +		compatible = "maxim,max9286";
+> +		reg = <0x2c>;
+> +		poc-supply = <&camera_poc_12v>;
+> +		pwdn-gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+> +
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		ports {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			port@0 {
+> +				reg = <0>;
+> +				max9286_in0: endpoint {
+> +					remote-endpoint = <&rdacm20_out0>;
+> +				};
+> +			};
+> +
+> +			port@1 {
+> +				reg = <1>;
+> +				max9286_in1: endpoint {
+> +					remote-endpoint = <&rdacm20_out1>;
+> +				};
+> +			};
+> +
+> +			port@2 {
+> +				reg = <2>;
+> +				max9286_in2: endpoint {
+> +					remote-endpoint = <&rdacm20_out2>;
+> +				};
+> +			};
+> +
+> +			port@3 {
+> +				reg = <3>;
+> +				max9286_in3: endpoint {
+> +					remote-endpoint = <&rdacm20_out3>;
+> +				};
+> +			};
+> +
+> +			port@4 {
+> +				reg = <4>;
+> +				max9286_out: endpoint {
+> +					clock-lanes = <0>;
+> +					data-lanes = <1 2 3 4>;
+> +					remote-endpoint = <&csi40_in>;
+> +				};
+> +			};
+> +		};
+> +
+> +		i2c@0 {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			reg = <0>;
+> +
+> +			camera@51 {
+> +				compatible = "imi,rdacm20";
+> +				reg = <0x51 0x61>;
+> +
+> +				port {
+> +					rdacm20_out0: endpoint {
+> +						remote-endpoint = <&max9286_in0>;
+> +					};
+> +				};
+> +
+> +			};
+> +		};
+> +
+> +		i2c@1 {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			reg = <1>;
+> +
+> +			camera@52 {
+> +				compatible = "imi,rdacm20";
+> +				reg = <0x52 0x62>;
+> +				port {
+> +					rdacm20_out1: endpoint {
+> +						remote-endpoint = <&max9286_in1>;
+> +					};
+> +				};
+> +			};
+> +		};
+> +
+> +		i2c@2 {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			reg = <2>;
+> +
+> +			camera@53 {
+> +				compatible = "imi,rdacm20";
+> +				reg = <0x53 0x63>;
+> +				port {
+> +					rdacm20_out2: endpoint {
+> +						remote-endpoint = <&max9286_in2>;
+> +					};
+> +				};
+> +			};
+> +		};
+> +
+> +		i2c@3 {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			reg = <3>;
+> +
+> +			camera@54 {
+> +				compatible = "imi,rdacm20";
+> +				reg = <0x54 0x64>;
+> +				port {
+> +					rdacm20_out3: endpoint {
+> +						remote-endpoint = <&max9286_in3>;
+> +					};
+> +				};
+> +			};
+> +		};
+> +	};
 
 -- 
-Best regards,
-Todor Tomov
+Regards,
+
+Laurent Pinchart
