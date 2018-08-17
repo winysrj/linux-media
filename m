@@ -1,91 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:51623 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727422AbeHJKBY (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:47114 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727160AbeHQRO5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Aug 2018 06:01:24 -0400
-Date: Fri, 10 Aug 2018 09:32:40 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: petrcvekcz@gmail.com
-Cc: marek.vasut@gmail.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, robert.jarzmik@free.fr,
-        slapin@ossfans.org, philipp.zabel@gmail.com
-Subject: Re: [PATCH v1 1/5] [media] soc_camera: ov9640: move ov9640 out of
- soc_camera
-Message-ID: <20180810073240.GB7060@w540>
-References: <cover.1533774451.git.petrcvekcz@gmail.com>
- <3852f6ed6544bfa3d8d0850b993190094eb09999.1533774451.git.petrcvekcz@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kORqDWCi7qDJ0mEj"
-Content-Disposition: inline
-In-Reply-To: <3852f6ed6544bfa3d8d0850b993190094eb09999.1533774451.git.petrcvekcz@gmail.com>
+        Fri, 17 Aug 2018 13:14:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org,
+        amd-gfx@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH (repost) 4/5] drm/nouveau: add DisplayPort CEC-Tunneling-over-AUX support
+Date: Fri, 17 Aug 2018 16:11:21 +0200
+Message-Id: <20180817141122.9541-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180817141122.9541-1-hverkuil@xs4all.nl>
+References: <20180817141122.9541-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---kORqDWCi7qDJ0mEj
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Add DisplayPort CEC-Tunneling-over-AUX support to nouveau.
 
-Hi Petr,
-   thanks for the patches,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/gpu/drm/nouveau/nouveau_connector.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-On Thu, Aug 09, 2018 at 03:39:45AM +0200, petrcvekcz@gmail.com wrote:
-> From: Petr Cvek <petrcvekcz@gmail.com>
->
-> Initial part of ov9640 transition from soc_camera subsystem to a standalone
-> v4l2 subdevice.
->
-> Signed-off-by: Petr Cvek <petrcvekcz@gmail.com>
-> ---
->  drivers/media/i2c/{soc_camera => }/ov9640.c | 0
->  drivers/media/i2c/{soc_camera => }/ov9640.h | 0
->  2 files changed, 0 insertions(+), 0 deletions(-)
->  rename drivers/media/i2c/{soc_camera => }/ov9640.c (100%)
->  rename drivers/media/i2c/{soc_camera => }/ov9640.h (100%)
->
-> diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/ov9640.c
-> similarity index 100%
-> rename from drivers/media/i2c/soc_camera/ov9640.c
-> rename to drivers/media/i2c/ov9640.c
-> diff --git a/drivers/media/i2c/soc_camera/ov9640.h b/drivers/media/i2c/ov9640.h
-> similarity index 100%
-> rename from drivers/media/i2c/soc_camera/ov9640.h
-> rename to drivers/media/i2c/ov9640.h
-
-When I've been recently doing the same for ov772x and other sensor
-driver I've been suggested to first copy the driver into
-drivers/media/i2c/ and leave the original soc_camera one there, so
-they can be bulk removed or moved to staging. I'll let Hans confirm
-this, as he's about to take care of this process.
-
-Thanks
-   j
-
-> --
-> 2.18.0
->
-
---kORqDWCi7qDJ0mEj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbbT+YAAoJEHI0Bo8WoVY8+XEP/RXbWl3kijZ4F3AWba2WJSDF
-g3Hz3Z7n4F1zqxKxOzaEYyPahLV9iZMfho3wPAzpoZ9J4GkHKMOVtxSaMYmunEqf
-WmeYjHn9DyYIR9B/4X/ZXfHGhoKgB7yzs1SWU2ziOmKbu3cHEJg9tmKdEJNX93sV
-n3ARfYededhMv8+o9svWZ89ryGSNxIi7XaqEwxvLY/IjJJtJ25n+JDwuposZnkrN
-HLUkEmB0TRnbGWausUlJqnlRyvbub+UbM1V47pj4mXIEIIJ0cu+0xLqoSUwEW1Mp
-53ubZgfoNIOIbErJuf1cSCqfcWNhKGYtpkizC+nDRD6NwduxOPpFAO/UvBJHuBjv
-dhhvVqyiJfqX+ykm/pBvafbBhaW/BgEPU5ZCvLVPRRiE1H1U3TBOETZkzUMQdpUa
-2RdyIpKTpWx2pYlZbwnE6XCqxZCaG/Is0yNjHgZkHfAGK6nnBpvwA1sUyHSPp4B5
-MbHic6QJ43qKLLAeAd9Hc+hgwvUfFntfWNqnqoUvl5UzH6TBVDpdmDhgLmw0JoXm
-rsIv9clpbvnfB5yMLUuhvUxWS34KnNjBGGseFJMqDp2nIP5Nlz+pwWs6dBz6Kuvm
-cMhZCSJFGjYc8oKnInr1oHadgHoMjHCGO63gKEZF7dO6rpYjAQ2hc6ZhjgD2Vz3c
-c2Q9oDkwur1sC/bNrlAn
-=dMzv
------END PGP SIGNATURE-----
-
---kORqDWCi7qDJ0mEj--
+diff --git a/drivers/gpu/drm/nouveau/nouveau_connector.c b/drivers/gpu/drm/nouveau/nouveau_connector.c
+index 51932c72334e..eb4f766b5958 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_connector.c
++++ b/drivers/gpu/drm/nouveau/nouveau_connector.c
+@@ -400,8 +400,10 @@ nouveau_connector_destroy(struct drm_connector *connector)
+ 	kfree(nv_connector->edid);
+ 	drm_connector_unregister(connector);
+ 	drm_connector_cleanup(connector);
+-	if (nv_connector->aux.transfer)
++	if (nv_connector->aux.transfer) {
++		drm_dp_cec_unregister_connector(&nv_connector->aux);
+ 		drm_dp_aux_unregister(&nv_connector->aux);
++	}
+ 	kfree(connector);
+ }
+ 
+@@ -608,6 +610,7 @@ nouveau_connector_detect(struct drm_connector *connector, bool force)
+ 
+ 		nouveau_connector_set_encoder(connector, nv_encoder);
+ 		conn_status = connector_status_connected;
++		drm_dp_cec_set_edid(&nv_connector->aux, nv_connector->edid);
+ 		goto out;
+ 	}
+ 
+@@ -1108,11 +1111,14 @@ nouveau_connector_hotplug(struct nvif_notify *notify)
+ 
+ 	if (rep->mask & NVIF_NOTIFY_CONN_V0_IRQ) {
+ 		NV_DEBUG(drm, "service %s\n", name);
++		drm_dp_cec_irq(&nv_connector->aux);
+ 		if ((nv_encoder = find_encoder(connector, DCB_OUTPUT_DP)))
+ 			nv50_mstm_service(nv_encoder->dp.mstm);
+ 	} else {
+ 		bool plugged = (rep->mask != NVIF_NOTIFY_CONN_V0_UNPLUG);
+ 
++		if (!plugged)
++			drm_dp_cec_unset_edid(&nv_connector->aux);
+ 		NV_DEBUG(drm, "%splugged %s\n", plugged ? "" : "un", name);
+ 		if ((nv_encoder = find_encoder(connector, DCB_OUTPUT_DP))) {
+ 			if (!plugged)
+@@ -1302,7 +1308,6 @@ nouveau_connector_create(struct drm_device *dev, int index)
+ 			kfree(nv_connector);
+ 			return ERR_PTR(ret);
+ 		}
+-
+ 		funcs = &nouveau_connector_funcs;
+ 		break;
+ 	default:
+@@ -1356,6 +1361,14 @@ nouveau_connector_create(struct drm_device *dev, int index)
+ 		break;
+ 	}
+ 
++	switch (type) {
++	case DRM_MODE_CONNECTOR_DisplayPort:
++	case DRM_MODE_CONNECTOR_eDP:
++		drm_dp_cec_register_connector(&nv_connector->aux,
++					      connector->name, dev->dev);
++		break;
++	}
++
+ 	ret = nvif_notify_init(&disp->disp.object, nouveau_connector_hotplug,
+ 			       true, NV04_DISP_NTFY_CONN,
+ 			       &(struct nvif_notify_conn_req_v0) {
+-- 
+2.18.0
