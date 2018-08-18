@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:33438 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725886AbeHRP4O (ORCPT
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:45166 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725886AbeHRP45 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Aug 2018 11:56:14 -0400
+        Sat, 18 Aug 2018 11:56:57 -0400
 From: Dmitry Osipenko <digetx@gmail.com>
 To: Thierry Reding <thierry.reding@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -11,190 +11,250 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Jonathan Hunter <jonathanh@nvidia.com>,
         linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
         devel@driverdev.osuosl.org
-Subject: Re: [PATCH 02/14] staging: media: tegra-vde: Support reference picture marking
-Date: Sat, 18 Aug 2018 15:48:34 +0300
-Message-ID: <1918249.WcIpY1bjpc@dimapc>
-In-Reply-To: <20180813145027.16346-3-thierry.reding@gmail.com>
-References: <20180813145027.16346-1-thierry.reding@gmail.com> <20180813145027.16346-3-thierry.reding@gmail.com>
+Subject: Re: [PATCH 08/14] staging: media: tegra-vde: Track struct device *
+Date: Sat, 18 Aug 2018 15:49:16 +0300
+Message-ID: <2240290.3OsW9MWjZy@dimapc>
+In-Reply-To: <20180813145027.16346-9-thierry.reding@gmail.com>
+References: <20180813145027.16346-1-thierry.reding@gmail.com> <20180813145027.16346-9-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, 13 August 2018 17:50:15 MSK Thierry Reding wrote:
+On Monday, 13 August 2018 17:50:21 MSK Thierry Reding wrote:
 > From: Thierry Reding <treding@nvidia.com>
 > 
-> Tegra114 and Tegra124 support reference picture marking, which will
-> cause BSEV to write picture marking data to SDRAM. Make sure there is
-> a valid destination address for that data to avoid error messages from
-> the memory controller.
+> The pointer to the struct device is frequently used, so store it in
+> struct tegra_vde. Also, pass around a pointer to a struct tegra_vde
+> instead of struct device in some cases to prepare for subsequent
+> patches referencing additional data from that structure.
 > 
 > Signed-off-by: Thierry Reding <treding@nvidia.com>
 > ---
->  drivers/staging/media/tegra-vde/tegra-vde.c | 54 ++++++++++++++++++++-
->  drivers/staging/media/tegra-vde/uapi.h      |  3 ++
->  2 files changed, 55 insertions(+), 2 deletions(-)
+>  drivers/staging/media/tegra-vde/tegra-vde.c | 63 ++++++++++++---------
+>  1 file changed, 36 insertions(+), 27 deletions(-)
 > 
 > diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c
 > b/drivers/staging/media/tegra-vde/tegra-vde.c index
-> 9d8f833744db..3027b11b11ae 100644
+> 41cf86dc5dbd..2496a03fd158 100644
 > --- a/drivers/staging/media/tegra-vde/tegra-vde.c
 > +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-> @@ -60,7 +60,12 @@ struct video_frame {
->  	u32 flags;
+> @@ -71,6 +71,7 @@ struct tegra_vde_soc {
 >  };
 > 
-> +struct tegra_vde_soc {
-> +	bool supports_ref_pic_marking;
-> +};
-> +
 >  struct tegra_vde {
-> +	const struct tegra_vde_soc *soc;
+> +	struct device *dev;
+>  	const struct tegra_vde_soc *soc;
 >  	void __iomem *sxe;
 >  	void __iomem *bsev;
->  	void __iomem *mbe;
-> @@ -330,6 +335,7 @@ static int tegra_vde_setup_hw_context(struct tegra_vde
-> *vde, struct video_frame *dpb_frames,
->  				      dma_addr_t bitstream_data_addr,
->  				      size_t bitstream_data_size,
-> +				      dma_addr_t secure_addr,
->  				      unsigned int macroblocks_nb)
+> @@ -644,7 +645,7 @@ static void tegra_vde_detach_and_put_dmabuf(struct
+> dma_buf_attachment *a, dma_buf_put(dmabuf);
+>  }
+> 
+> -static int tegra_vde_attach_dmabuf(struct device *dev,
+> +static int tegra_vde_attach_dmabuf(struct tegra_vde *vde,
+>  				   int fd,
+>  				   unsigned long offset,
+>  				   size_t min_size,
+> @@ -662,38 +663,40 @@ static int tegra_vde_attach_dmabuf(struct device *dev,
+> 
+>  	dmabuf = dma_buf_get(fd);
+>  	if (IS_ERR(dmabuf)) {
+> -		dev_err(dev, "Invalid dmabuf FD: %d\n", fd);
+> +		dev_err(vde->dev, "Invalid dmabuf FD: %d\n", fd);
+>  		return PTR_ERR(dmabuf);
+>  	}
+> 
+>  	if (dmabuf->size & (align_size - 1)) {
+> -		dev_err(dev, "Unaligned dmabuf 0x%zX, should be aligned to 0x%zX\n",
+> +		dev_err(vde->dev,
+> +			"Unaligned dmabuf 0x%zX, should be aligned to 0x%zX\n",
+>  			dmabuf->size, align_size);
+>  		return -EINVAL;
+>  	}
+> 
+>  	if ((u64)offset + min_size > dmabuf->size) {
+> -		dev_err(dev, "Too small dmabuf size %zu @0x%lX, should be at least
+> %zu\n", +		dev_err(vde->dev,
+> +			"Too small dmabuf size %zu @0x%lX, should be at least %zu\n",
+>  			dmabuf->size, offset, min_size);
+>  		return -EINVAL;
+>  	}
+> 
+> -	attachment = dma_buf_attach(dmabuf, dev);
+> +	attachment = dma_buf_attach(dmabuf, vde->dev);
+>  	if (IS_ERR(attachment)) {
+> -		dev_err(dev, "Failed to attach dmabuf\n");
+> +		dev_err(vde->dev, "Failed to attach dmabuf\n");
+>  		err = PTR_ERR(attachment);
+>  		goto err_put;
+>  	}
+> 
+>  	sgt = dma_buf_map_attachment(attachment, dma_dir);
+>  	if (IS_ERR(sgt)) {
+> -		dev_err(dev, "Failed to get dmabufs sg_table\n");
+> +		dev_err(vde->dev, "Failed to get dmabufs sg_table\n");
+>  		err = PTR_ERR(sgt);
+>  		goto err_detach;
+>  	}
+> 
+>  	if (sgt->nents != 1) {
+> -		dev_err(dev, "Sparse DMA region is unsupported\n");
+> +		dev_err(vde->dev, "Sparse DMA region is unsupported\n");
+>  		err = -EINVAL;
+>  		goto err_unmap;
+>  	}
+> @@ -717,7 +720,7 @@ static int tegra_vde_attach_dmabuf(struct device *dev,
+>  	return err;
+>  }
+> 
+> -static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
+> +static int tegra_vde_attach_dmabufs_to_frame(struct tegra_vde *vde,
+>  					     struct video_frame *frame,
+>  					     struct tegra_vde_h264_frame *src,
+>  					     enum dma_data_direction dma_dir,
+> @@ -726,7 +729,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct
+> device *dev, {
+>  	int err;
+> 
+> -	err = tegra_vde_attach_dmabuf(dev, src->y_fd,
+> +	err = tegra_vde_attach_dmabuf(vde, src->y_fd,
+>  				      src->y_offset, lsize, SZ_256,
+>  				      &frame->y_dmabuf_attachment,
+>  				      &frame->y_addr,
+> @@ -735,7 +738,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct
+> device *dev, if (err)
+>  		return err;
+> 
+> -	err = tegra_vde_attach_dmabuf(dev, src->cb_fd,
+> +	err = tegra_vde_attach_dmabuf(vde, src->cb_fd,
+>  				      src->cb_offset, csize, SZ_256,
+>  				      &frame->cb_dmabuf_attachment,
+>  				      &frame->cb_addr,
+> @@ -744,7 +747,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct
+> device *dev, if (err)
+>  		goto err_release_y;
+> 
+> -	err = tegra_vde_attach_dmabuf(dev, src->cr_fd,
+> +	err = tegra_vde_attach_dmabuf(vde, src->cr_fd,
+>  				      src->cr_offset, csize, SZ_256,
+>  				      &frame->cr_dmabuf_attachment,
+>  				      &frame->cr_addr,
+> @@ -758,7 +761,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct
+> device *dev, return 0;
+>  	}
+> 
+> -	err = tegra_vde_attach_dmabuf(dev, src->aux_fd,
+> +	err = tegra_vde_attach_dmabuf(vde, src->aux_fd,
+>  				      src->aux_offset, csize, SZ_256,
+>  				      &frame->aux_dmabuf_attachment,
+>  				      &frame->aux_addr,
+> @@ -770,33 +773,35 @@ static int tegra_vde_attach_dmabufs_to_frame(struct
+> device *dev, return 0;
+> 
+>  err_release_cr:
+> -	tegra_vde_detach_and_put_dmabuf(frame->cr_dmabuf_attachment,
+> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cr_dmabuf_attachment,
+>  					frame->cr_sgt, dma_dir);
+>  err_release_cb:
+> -	tegra_vde_detach_and_put_dmabuf(frame->cb_dmabuf_attachment,
+> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cb_dmabuf_attachment,
+>  					frame->cb_sgt, dma_dir);
+>  err_release_y:
+> -	tegra_vde_detach_and_put_dmabuf(frame->y_dmabuf_attachment,
+> +	tegra_vde_detach_and_put_dmabuf(vde, frame->y_dmabuf_attachment,
+>  					frame->y_sgt, dma_dir);
+> 
+>  	return err;
+>  }
+> 
+> -static void tegra_vde_release_frame_dmabufs(struct video_frame *frame,
+> +static void tegra_vde_release_frame_dmabufs(struct tegra_vde *vde,
+> +					    struct video_frame *frame,
+>  					    enum dma_data_direction dma_dir,
+>  					    bool baseline_profile)
 >  {
->  	struct device *dev = vde->miscdev.parent;
-> @@ -454,6 +460,9 @@ static int tegra_vde_setup_hw_context(struct tegra_vde
-> *vde,
+>  	if (!baseline_profile)
+> -		tegra_vde_detach_and_put_dmabuf(frame->aux_dmabuf_attachment,
+> +		tegra_vde_detach_and_put_dmabuf(vde,
+> +						frame->aux_dmabuf_attachment,
+>  						frame->aux_sgt, dma_dir);
 > 
->  	VDE_WR(bitstream_data_addr, vde->sxe + 0x6C);
+> -	tegra_vde_detach_and_put_dmabuf(frame->cr_dmabuf_attachment,
+> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cr_dmabuf_attachment,
+>  					frame->cr_sgt, dma_dir);
 > 
-> +	if (vde->soc->supports_ref_pic_marking)
-> +		VDE_WR(secure_addr, vde->sxe + 0x7c);
-> +
->  	value = 0x10000005;
->  	value |= ctx->pic_width_in_mbs << 11;
->  	value |= ctx->pic_height_in_mbs << 3;
-> @@ -772,12 +781,15 @@ static int tegra_vde_ioctl_decode_h264(struct
-> tegra_vde *vde, struct tegra_vde_h264_frame __user *frames_user;
->  	struct video_frame *dpb_frames;
->  	struct dma_buf_attachment *bitstream_data_dmabuf_attachment;
-> -	struct sg_table *bitstream_sgt;
-> +	struct dma_buf_attachment *secure_attachment = NULL;
-> +	struct sg_table *bitstream_sgt, *secure_sgt;
->  	enum dma_data_direction dma_dir;
->  	dma_addr_t bitstream_data_addr;
-> +	dma_addr_t secure_addr;
->  	dma_addr_t bsev_ptr;
->  	size_t lsize, csize;
->  	size_t bitstream_data_size;
-> +	size_t secure_size;
-
-secure_size is unused, you could omit it and replace with NULL below.
-
->  	unsigned int macroblocks_nb;
->  	unsigned int read_bytes;
->  	unsigned int cstride;
-> @@ -803,6 +815,18 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde
+> -	tegra_vde_detach_and_put_dmabuf(frame->cb_dmabuf_attachment,
+> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cb_dmabuf_attachment,
+>  					frame->cb_sgt, dma_dir);
+> 
+> -	tegra_vde_detach_and_put_dmabuf(frame->y_dmabuf_attachment,
+> +	tegra_vde_detach_and_put_dmabuf(vde, frame->y_dmabuf_attachment,
+>  					frame->y_sgt, dma_dir);
+>  }
+> 
+> @@ -937,7 +942,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde
 > *vde, if (ret)
 >  		return ret;
 > 
-> +	if (vde->soc->supports_ref_pic_marking) {
-> +		ret = tegra_vde_attach_dmabuf(dev, ctx.secure_fd,
-> +					      ctx.secure_offset, 0, SZ_256,
-
-Minimum buffer size? Since it's coming from userspace, you must specify it to 
-validate buffers size correctly.
-
-> +					      &secure_attachment,
-> +					      &secure_addr,
-> +					      &secure_sgt,
-> +					      &secure_size,
-> +					      DMA_TO_DEVICE);
-> +		if (ret)
-> +			goto release_bitstream_dmabuf;
-> +	}
-> +
->  	dpb_frames = kcalloc(ctx.dpb_frames_nb, sizeof(*dpb_frames),
->  			     GFP_KERNEL);
->  	if (!dpb_frames) {
-> @@ -876,6 +900,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde
-> *vde, ret = tegra_vde_setup_hw_context(vde, &ctx, dpb_frames,
->  					 bitstream_data_addr,
->  					 bitstream_data_size,
-> +					 secure_addr,
->  					 macroblocks_nb);
->  	if (ret)
->  		goto put_runtime_pm;
-> @@ -929,6 +954,10 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde
-> *vde, kfree(dpb_frames);
+> -	ret = tegra_vde_attach_dmabuf(dev, ctx.bitstream_data_fd,
+> +	ret = tegra_vde_attach_dmabuf(vde, ctx.bitstream_data_fd,
+>  				      ctx.bitstream_data_offset,
+>  				      SZ_16K, SZ_16K,
+>  				      &bitstream_data_dmabuf_attachment,
+> @@ -949,7 +954,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde
+> *vde, return ret;
+> 
+>  	if (vde->soc->supports_ref_pic_marking) {
+> -		ret = tegra_vde_attach_dmabuf(dev, ctx.secure_fd,
+> +		ret = tegra_vde_attach_dmabuf(vde, ctx.secure_fd,
+>  					      ctx.secure_offset, 0, SZ_256,
+>  					      &secure_attachment,
+>  					      &secure_addr,
+> @@ -992,7 +997,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde
+> *vde,
+> 
+>  		dma_dir = (i == 0) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+> 
+> -		ret = tegra_vde_attach_dmabufs_to_frame(dev, &dpb_frames[i],
+> +		ret = tegra_vde_attach_dmabufs_to_frame(vde, &dpb_frames[i],
+>  							&frame, dma_dir,
+>  							ctx.baseline_profile,
+>  							lsize, csize);
+> @@ -1081,7 +1086,7 @@ static int tegra_vde_ioctl_decode_h264(struct
+> tegra_vde *vde, while (i--) {
+>  		dma_dir = (i == 0) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+> 
+> -		tegra_vde_release_frame_dmabufs(&dpb_frames[i], dma_dir,
+> +		tegra_vde_release_frame_dmabufs(vde, &dpb_frames[i], dma_dir,
+>  						ctx.baseline_profile);
+>  	}
+> 
+> @@ -1089,10 +1094,12 @@ static int tegra_vde_ioctl_decode_h264(struct
+> tegra_vde *vde,
 > 
 >  release_bitstream_dmabuf:
-
-release_secure_dmabuf:
-
-> +	if (secure_attachment)
-> +		tegra_vde_detach_and_put_dmabuf(secure_attachment, secure_sgt,
-> +						DMA_TO_DEVICE);
-> +
->  	tegra_vde_detach_and_put_dmabuf(bitstream_data_dmabuf_attachment,
+>  	if (secure_attachment)
+> -		tegra_vde_detach_and_put_dmabuf(secure_attachment, secure_sgt,
+> +		tegra_vde_detach_and_put_dmabuf(vde, secure_attachment,
+> +						secure_sgt,
+>  						DMA_TO_DEVICE);
+> 
+> -	tegra_vde_detach_and_put_dmabuf(bitstream_data_dmabuf_attachment,
+> +	tegra_vde_detach_and_put_dmabuf(vde,
+> +					bitstream_data_dmabuf_attachment,
 >  					bitstream_sgt, DMA_TO_DEVICE);
 > 
-> @@ -1029,6 +1058,8 @@ static int tegra_vde_probe(struct platform_device
-> *pdev)
+>  	return ret;
+> @@ -1190,6 +1197,8 @@ static int tegra_vde_probe(struct platform_device
+> *pdev) if (!vde)
+>  		return -ENOMEM;
 > 
+> +	vde->dev = &pdev->dev;
+> +
 >  	platform_set_drvdata(pdev, vde);
 > 
-> +	vde->soc = of_device_get_match_data(&pdev->dev);
-> +
->  	regs = platform_get_resource_byname(pdev, IORESOURCE_MEM, "sxe");
->  	if (!regs)
->  		return -ENODEV;
-> @@ -1258,8 +1289,27 @@ static const struct dev_pm_ops tegra_vde_pm_ops = {
->  				tegra_vde_pm_resume)
->  };
-> 
-> +static const struct tegra_vde_soc tegra20_vde_soc = {
-> +	.supports_ref_pic_marking = false,
-> +};
-> +
-> +static const struct tegra_vde_soc tegra30_vde_soc = {
-> +	.supports_ref_pic_marking = false,
-> +};
-> +
-> +static const struct tegra_vde_soc tegra114_vde_soc = {
-> +	.supports_ref_pic_marking = true,
-> +};
-> +
-> +static const struct tegra_vde_soc tegra124_vde_soc = {
-> +	.supports_ref_pic_marking = true,
-> +};
-> +
->  static const struct of_device_id tegra_vde_of_match[] = {
-> -	{ .compatible = "nvidia,tegra20-vde", },
-> +	{ .compatible = "nvidia,tegra124-vde", .data = &tegra124_vde_soc },
-> +	{ .compatible = "nvidia,tegra114-vde", .data = &tegra114_vde_soc },
-> +	{ .compatible = "nvidia,tegra30-vde", .data = &tegra30_vde_soc },
-> +	{ .compatible = "nvidia,tegra20-vde", .data = &tegra20_vde_soc },
->  	{ },
->  };
->  MODULE_DEVICE_TABLE(of, tegra_vde_of_match);
-> diff --git a/drivers/staging/media/tegra-vde/uapi.h
-> b/drivers/staging/media/tegra-vde/uapi.h index a50c7bcae057..58bfd56de55e
-> 100644
-> --- a/drivers/staging/media/tegra-vde/uapi.h
-> +++ b/drivers/staging/media/tegra-vde/uapi.h
-> @@ -35,6 +35,9 @@ struct tegra_vde_h264_decoder_ctx {
->  	__s32 bitstream_data_fd;
->  	__u32 bitstream_data_offset;
-> 
-> +	__s32 secure_fd;
-> +	__u32 secure_offset;
-> +
+>  	vde->soc = of_device_get_match_data(&pdev->dev);
 
-If the sole purpose of this buffer is to hold some data that VDE produces 
-during the decoding process and there is no use for this data in userspace, 
-why this buffer should be exposed to userspace at all and not made internal to 
-VDE driver?
-
->  	__u64 dpb_frames_ptr;
->  	__u8  dpb_frames_nb;
->  	__u8  dpb_ref_frames_with_earlier_poc_nb;
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
