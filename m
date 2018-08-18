@@ -1,75 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46118 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726272AbeHRAyx (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36094 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725862AbeHRGhj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 20:54:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: chf.fritz@googlemail.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Norbert Wesp <n.wesp@phytec.de>,
-        Dirk Bender <D.bender@phytec.de>
-Subject: Re: [PATCH] uvcvideo: add quirk to force Phytec CAM 004H to GBRG
-Date: Sat, 18 Aug 2018 00:50:39 +0300
-Message-ID: <2371417.kFLlxrCYBz@avalon>
-In-Reply-To: <7233ce5ecd19fa6942afc1d86e3a7e97f8c3d734.camel@gmail.com>
-References: <1519212389.11643.13.camel@googlemail.com> <4073605.T2oYED4Iz8@avalon> <7233ce5ecd19fa6942afc1d86e3a7e97f8c3d734.camel@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Sat, 18 Aug 2018 02:37:39 -0400
+Message-ID: <22978ee97aef0344f1de438cb2598185@smtp-cloud9.xs4all.net>
+Date: Sat, 18 Aug 2018 05:31:32 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Friday, 17 August 2018 20:46:33 EEST Philipp Zabel wrote:
-> Am Donnerstag, den 16.08.2018, 19:39 +0300 schrieb Laurent Pinchart:
-> > Hi Christoph,
-> > 
-> > (Philipp, there's a question for you at the end)
-> 
-> > On Thursday, 16 August 2018 15:48:15 EEST Christoph Fritz wrote:
-> [...]
-> 
-> >>                         format->fcc = dev->forced_color_format;
-> >>                         format->bpp = 8;
-> >>                         width_multiplier = 2;
-> > 
-> > bpp and multiplier are more annoying. bpp is a property of the format,
-> > which we could add to the uvc_fmts array.
-> > 
-> > I believe the multiplier could be computed by device bpp / bpp from
-> > uvc_fmts. That would work at least for the Oculus VR Positional Tracker
-> > DK2, but I don't have the Oculus VR Rift Sensor descriptors to check
-> > that. Philipp, if you still have access to the device, could you send
-> > that to me ?
-> 
-> Full lsusb -v output below, the UVC descriptors are not decoded because
-> bFunctionClass is set to 255. The YUY2 uncompressed format descriptor
-> looks like this:
-> 
->                ___guidFormat__________________________________
-> 1b 24 04 01 04 59 55 59 32 00 00 10 00 80 00 00 aa 00 38 9b 71 10 01 00 00
-> 00 00 ^^
-> so,                                           bBitsPerPixel == 16.
+Results of the daily build of media_tree:
 
-Thanks a lot, that's exactly the information I needed. We can thus compute the 
-multiplier with something like
+date:			Sat Aug 18 05:00:14 CEST 2018
+media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
+media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
+v4l-utils git hash:	87e1d5afbda2ef76920ff6e806e2a03053637382
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-1-amd64
 
-        if (dev->info->pixel_format) {
-                fmtdesc = uvc_format_by_fourcc(dev->info->pixel_format);
-                strlcpy(format->name, fmtdesc->name,
-                        sizeof(format->name));
-                format->fcc = fmtdesc->fcc;
-                width_multiplier = format->bpp / fmtdesc->bpp;
-                format->bpp = fmtdesc->bpp;
-        }
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.18-i686: OK
+linux-4.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-(possibly with a better name for the pixel_format field)
+Detailed results are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Laurent Pinchart
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
