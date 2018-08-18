@@ -1,123 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59050 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59488 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726219AbeHRV35 (ORCPT
+        with ESMTP id S1726326AbeHSALn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Aug 2018 17:29:57 -0400
-Message-ID: <fe36727b86c1318b850e6d581b1bf337b0e3e15a.camel@collabora.com>
-Subject: Re: [PATCH v2 5/6] media: Add controls for jpeg quantization tables
+        Sat, 18 Aug 2018 20:11:43 -0400
+Message-ID: <022524d8b04450b2e8ed2dc8585a7a1c5c2cfe67.camel@collabora.com>
+Subject: Re: [PATCH v2 0/6] Add Rockchip VPU JPEG encoder
 From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        kernel@collabora.com,
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Cc: kernel@collabora.com,
         Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Date: Sat, 18 Aug 2018 15:21:11 -0300
-In-Reply-To: <CAAFQd5C4jTfdB5Zmk6LQwTOBB2hs14ensZ+J-ZdTcQzzBNKn0A@mail.gmail.com>
+        Tomasz Figa <tfiga@chromium.org>,
+        linux-rockchip@lists.infradead.org, devicetree@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Date: Sat, 18 Aug 2018 18:02:34 -0300
+In-Reply-To: <20180802200010.24365-1-ezequiel@collabora.com>
 References: <20180802200010.24365-1-ezequiel@collabora.com>
-         <20180802200010.24365-6-ezequiel@collabora.com>
-         <CAAFQd5C4jTfdB5Zmk6LQwTOBB2hs14ensZ+J-ZdTcQzzBNKn0A@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2018-08-17 at 11:10 +0900, Tomasz Figa wrote:
-> Hi Ezequiel,
+On Thu, 2018-08-02 at 17:00 -0300, Ezequiel Garcia wrote:
+> This series adds support for JPEG encoding via the VPU block
+> present in Rockchip platforms. Currently, support for RK3288
+> and RK3399 is included.
 > 
-> On Fri, Aug 3, 2018 at 5:00 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
-> > 
-> > From: Shunqian Zheng <zhengsq@rock-chips.com>
-> > 
-> > Add V4L2_CID_JPEG_LUMA/CHROMA_QUANTIZATION controls to allow userspace
-> > configure the JPEG quantization tables.
-> > 
-> > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > ---
-> >  Documentation/media/uapi/v4l/extended-controls.rst | 9 +++++++++
-> >  drivers/media/v4l2-core/v4l2-ctrls.c               | 4 ++++
-> >  include/uapi/linux/v4l2-controls.h                 | 3 +++
-> >  3 files changed, 16 insertions(+)
+> The hardware produces a Raw JPEG format (i.e. works as a
+> JPEG accelerator). It requires quantization tables provided
+> by the application, and uses standard huffman tables,
+> as recommended by the JPEG specification.
 > 
-> Thanks for this series and sorry for being late with review. Please
-> see my comments inline.
+> In order to support this, the series introduces a new pixel format,
+> and a new pair of controls, V4L2_CID_JPEG_{LUMA,CHROMA}_QUANTIZATION
+> allowing userspace to specify the quantization tables.
 > 
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> > index 9f7312bf3365..80e26f81900b 100644
-> > --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> > @@ -3354,6 +3354,15 @@ JPEG Control IDs
-> >      Specify which JPEG markers are included in compressed stream. This
-> >      control is valid only for encoders.
-> > 
-> > +.. _jpeg-quant-tables-control:
-> > +
-> > +``V4L2_CID_JPEG_LUMA_QUANTIZATION (__u8 matrix)``
-> > +    Sets the luma quantization table to be used for encoding
-> > +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. This table is
-> > +    expected to be in JPEG zigzag order, as per the JPEG specification.
+> Userspace is then responsible to add the required headers
+> and tables to the produced raw payload, to produce a JPEG image.
 > 
-> Should we also specify this to be 8x8?
+> Compliance
+> ==========
+> 
+> There is an outstanding compliance issue, related to a blocking
+> dqbuf, but I cannot see where is the issue, nor if the issue is
+> in the core or in the driver.
+> 
+> # v4l2-compliance -d 0 -s 
+> v4l2-compliance SHA: 81ea4a243b63d7bb1fec580910c553af4ae072c1, 64 bits
+> 
+> Compliance test for device /dev/video0:
+> 
+> Driver Info:
+> 	Driver name      : rockchip-vpu
+> 	Card type        : rockchip-vpu
+> 	Bus info         : platform: rockchip-vpu
+> 	Driver version   : 4.18.0
+> 	Capabilities     : 0x84204000
+> 		Video Memory-to-Memory Multiplanar
+> 		Streaming
+> 		Extended Pix Format
+> 		Device Capabilities
+> 	Device Caps      : 0x04204000
+> 		Video Memory-to-Memory Multiplanar
+> 		Streaming
+> 		Extended Pix Format
+> 
+> Required ioctls:
+> 	test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+> 	test second /dev/video0 open: OK
+> 	test VIDIOC_QUERYCAP: OK
+> 	test VIDIOC_G/S_PRIORITY: OK
+> 	test for unlimited opens: OK
+> 
+> Debug ioctls:
+> 	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+> 	test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+> 	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+> 	Inputs: 0 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+> 	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> 	test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> Control ioctls:
+> 	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+> 	test VIDIOC_QUERYCTRL: OK
+> 	test VIDIOC_G/S_CTRL: OK
+> 	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+> 	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+> 	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+> 	Standard Controls: 2 Private Controls: 0
+> 
+> Format ioctls:
+> 	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+> 	test VIDIOC_G/S_PARM: OK (Not Supported)
+> 	test VIDIOC_G_FBUF: OK (Not Supported)
+> 	test VIDIOC_G_FMT: OK
+> 	test VIDIOC_TRY_FMT: OK
+> 	test VIDIOC_S_FMT: OK
+> 	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 	test Cropping: OK (Not Supported)
+> 	test Composing: OK (Not Supported)
+> 	test Scaling: OK
+> 
+> Codec ioctls:
+> 	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+> 	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+> 	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Buffer ioctls:
+> 	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> 	test VIDIOC_EXPBUF: OK
+> 
+> Test input 0:
+> 
+> Streaming ioctls:
+> 	test read/write: OK (Not Supported)
+> 		fail: v4l2-test-buffers.cpp(1225): pid != pid_streamoff
+> 		fail: v4l2-test-buffers.cpp(1258): testBlockingDQBuf(node, q)
+> 	test blocking wait: FAIL
 > 
 
-Yes, could be.
+Hans,
 
-> > +
-> > +``V4L2_CID_JPEG_CHROMA_QUANTIZATION (__u8 matrix)``
-> > +    Sets the chroma quantization table.
-> > 
-> 
-> nit: I guess we aff something like
-> 
-> "See also V4L2_CID_JPEG_LUMA_QUANTIZATION for details."
-> 
-> to avoid repeating the V4L2_PIX_FMT_JPEG_RAW and zigzag order bits? Or
-> maybe just repeating is better?
-> 
+Any thoughts on where is this failure coming from and how to fix it?
 
-In spec documentation I usually find it's clearer for readers to see
-stuff repeated. Better to have an excess of clarity :-)
-
-> > 
-> >  .. flat-table::
-> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > index 599c1cbff3b9..5c62c3101851 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > @@ -999,6 +999,8 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >         case V4L2_CID_JPEG_RESTART_INTERVAL:    return "Restart Interval";
-> >         case V4L2_CID_JPEG_COMPRESSION_QUALITY: return "Compression Quality";
-> >         case V4L2_CID_JPEG_ACTIVE_MARKER:       return "Active Markers";
-> > +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:   return "Luminance Quantization Matrix";
-> > +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION: return "Chrominance Quantization Matrix";
-> > 
-> >         /* Image source controls */
-> >         /* Keep the order of the 'case's the same as in v4l2-controls.h! */
-> > @@ -1284,6 +1286,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
-> >                 *flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> >                 break;
-> >         case V4L2_CID_DETECT_MD_REGION_GRID:
-> > +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:
-> > +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION:
-> 
-> It looks like with this setup, the driver has to explicitly set dims
-> to { 8, 8 } and min/max to 0/255.
-> 
-> At least for min and max, we could set them here. For dims, i don't
-> see it handled in generic code, so I guess we can leave it to the
-> driver now and add move into generic code, if another driver shows up.
-> Hans, what do you think?
-> 
-
-Since Hans agrees to move this to the core, let's give it a try.
-I'll address this in v3.
-
-Thanks for the feedback!
-Eze
+Thanks!
+Eze 
