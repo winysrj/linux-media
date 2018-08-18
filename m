@@ -1,85 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:43762 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727544AbeHQUMj (ORCPT
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:34729 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725886AbeHRPwt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Aug 2018 16:12:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>, Jacopo Mondi <jacopo@jmondi.org>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: Re: [PATCH v2 4/4] media: i2c: Add RDACM20 driver
-Date: Fri, 17 Aug 2018 20:09:19 +0300
-Message-ID: <5524303.kLxU94kiUG@avalon>
-In-Reply-To: <20180808165559.29957-5-kieran.bingham@ideasonboard.com>
-References: <20180808165559.29957-1-kieran.bingham@ideasonboard.com> <20180808165559.29957-5-kieran.bingham@ideasonboard.com>
+        Sat, 18 Aug 2018 11:52:49 -0400
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH 11/14] ARM: tegra: Enable VDE on Tegra124
+Date: Sat, 18 Aug 2018 15:45:09 +0300
+Message-ID: <1684522.qRMD88czIW@dimapc>
+In-Reply-To: <20180813145027.16346-12-thierry.reding@gmail.com>
+References: <20180813145027.16346-1-thierry.reding@gmail.com> <20180813145027.16346-12-thierry.reding@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-Thank you for the patch.
-
-On Wednesday, 8 August 2018 19:55:59 EEST Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->=20
-> The RDACM20 is a GMSL camera supporting 1280x800 resolution images
-> developed by IMI based on an Omnivision 10635 sensor and a Maxim MAX9271
-> GMSL serializer.
->=20
-> The GMSL link carries power, control (I2C) and video data over a
-> single coax cable.
->=20
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.co=
-m>
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->=20
+On Monday, 13 August 2018 17:50:24 MSK Thierry Reding wrote:
+> From: Thierry Reding <treding@nvidia.com>
+> 
+> Signed-off-by: Thierry Reding <treding@nvidia.com>
 > ---
-> v2:
->  - Fix MAINTAINERS entry
->=20
->  MAINTAINERS                         |  10 +
->  drivers/media/i2c/Kconfig           |  11 +
->  drivers/media/i2c/Makefile          |   1 +
->  drivers/media/i2c/rdacm20-ov10635.h | 953 ++++++++++++++++++++++++++++
->  drivers/media/i2c/rdacm20.c         | 635 ++++++++++++++++++
->  5 files changed, 1610 insertions(+)
->  create mode 100644 drivers/media/i2c/rdacm20-ov10635.h
->  create mode 100644 drivers/media/i2c/rdacm20.c
+>  arch/arm/boot/dts/tegra124.dtsi | 40 +++++++++++++++++++++++++++++++++
+>  1 file changed, 40 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/tegra124.dtsi
+> b/arch/arm/boot/dts/tegra124.dtsi index b113e47b2b2a..8fdca4723205 100644
+> --- a/arch/arm/boot/dts/tegra124.dtsi
+> +++ b/arch/arm/boot/dts/tegra124.dtsi
+> @@ -83,6 +83,19 @@
+>  		};
+>  	};
+> 
+> +	iram@40000000 {
+> +		compatible = "mmio-sram";
+> +		reg = <0x0 0x40000000 0x0 0x40000>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges = <0 0x0 0x40000000 0x40000>;
+> +
+> +		vde_pool: pool@400 {
+> +			reg = <0x400 0x3fc00>;
+> +			pool;
+> +		};
+> +	};
+> +
+>  	host1x@50000000 {
+>  		compatible = "nvidia,tegra124-host1x", "simple-bus";
+>  		reg = <0x0 0x50000000 0x0 0x00034000>;
+> @@ -283,6 +296,33 @@
+>  		*/
+>  	};
+> 
+> +	vde@60030000 {
+> +		compatible = "nvidia,tegra124-vde", "nvidia,tegra30-vde",
+> +			     "nvidia,tegra20-vde";
+> +		reg = <0x0 0x60030000 0x0 0x1000   /* Syntax Engine */
+> +		       0x0 0x60031000 0x0 0x1000   /* Video Bitstream Engine */
+> +		       0x0 0x60032000 0x0 0x0100   /* Macroblock Engine */
+> +		       0x0 0x60032200 0x0 0x0100   /* Post-processing Engine */
+> +		       0x0 0x60032400 0x0 0x0100   /* Motion Compensation Engine */
+> +		       0x0 0x60032600 0x0 0x0100   /* Transform Engine */
+> +		       0x0 0x60032800 0x0 0x0100   /* Pixel prediction block */
+> +		       0x0 0x60032a00 0x0 0x0100   /* Video DMA */
+> +		       0x0 0x60033800 0x0 0x0400>; /* Video frame controls */
+> +		reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
+> +			    "tfe", "ppb", "vdma", "frameid";
+> +		iram = <&vde_pool>; /* IRAM region */
+> +		interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token 
+> +			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
+> +			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
+> +		interrupt-names = "sync-token", "bsev", "sxe";
+> +		clocks = <&tegra_car TEGRA124_CLK_VDE>,
+> +			 <&tegra_car TEGRA124_CLK_BSEV>;
+> +		clock-names = "vde", "bsev";
+> +		resets = <&tegra_car 61>,
+> +			 <&tegra_car 63>;
+> +		reset-names = "vde", "bsev";
 
-[snip]
+Memory client reset missed?
 
-> diff --git a/drivers/media/i2c/rdacm20.c b/drivers/media/i2c/rdacm20.c
-> new file mode 100644
-> index 000000000000..352c54902d1c
-> --- /dev/null
-> +++ b/drivers/media/i2c/rdacm20.c
-> @@ -0,0 +1,635 @@
-
-[snip]
-
-> +MODULE_DESCRIPTION("SoC Camera driver for MAX9286<->MAX9271<->OV10635");
-
-You probably want to fix this. Apart from that, the code looks good to me a=
-s a=20
-first driver version, knowing that we will continue development and=20
-refactoring to try and separate the OV10635 and MAX9271 code.
-
-> +MODULE_AUTHOR("Vladimir Barinov");
-> +MODULE_LICENSE("GPL");
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+> +	};
+> +
+>  	apbdma: dma@60020000 {
+>  		compatible = "nvidia,tegra124-apbdma", "nvidia,tegra148-apbdma";
+>  		reg = <0x0 0x60020000 0x0 0x1400>;
