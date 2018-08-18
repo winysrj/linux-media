@@ -1,274 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:45506 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726088AbeHRSrZ (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59050 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726219AbeHRV35 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Aug 2018 14:47:25 -0400
-Subject: Re: [PATCH 08/14] staging: media: tegra-vde: Track struct device *
-To: Thierry Reding <thierry.reding@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org
-References: <20180813145027.16346-1-thierry.reding@gmail.com>
- <20180813145027.16346-9-thierry.reding@gmail.com>
-From: Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <930d8dcf-0647-f41e-2bd4-4a753835dd1a@gmail.com>
-Date: Sat, 18 Aug 2018 18:39:14 +0300
-MIME-Version: 1.0
-In-Reply-To: <20180813145027.16346-9-thierry.reding@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Sat, 18 Aug 2018 17:29:57 -0400
+Message-ID: <fe36727b86c1318b850e6d581b1bf337b0e3e15a.camel@collabora.com>
+Subject: Re: [PATCH v2 5/6] media: Add controls for jpeg quantization tables
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Tomasz Figa <tfiga@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Date: Sat, 18 Aug 2018 15:21:11 -0300
+In-Reply-To: <CAAFQd5C4jTfdB5Zmk6LQwTOBB2hs14ensZ+J-ZdTcQzzBNKn0A@mail.gmail.com>
+References: <20180802200010.24365-1-ezequiel@collabora.com>
+         <20180802200010.24365-6-ezequiel@collabora.com>
+         <CAAFQd5C4jTfdB5Zmk6LQwTOBB2hs14ensZ+J-ZdTcQzzBNKn0A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.08.2018 17:50, Thierry Reding wrote:
-> From: Thierry Reding <treding@nvidia.com>
+On Fri, 2018-08-17 at 11:10 +0900, Tomasz Figa wrote:
+> Hi Ezequiel,
 > 
-> The pointer to the struct device is frequently used, so store it in
-> struct tegra_vde. Also, pass around a pointer to a struct tegra_vde
-> instead of struct device in some cases to prepare for subsequent
-> patches referencing additional data from that structure.
+> On Fri, Aug 3, 2018 at 5:00 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
+> > 
+> > From: Shunqian Zheng <zhengsq@rock-chips.com>
+> > 
+> > Add V4L2_CID_JPEG_LUMA/CHROMA_QUANTIZATION controls to allow userspace
+> > configure the JPEG quantization tables.
+> > 
+> > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > ---
+> >  Documentation/media/uapi/v4l/extended-controls.rst | 9 +++++++++
+> >  drivers/media/v4l2-core/v4l2-ctrls.c               | 4 ++++
+> >  include/uapi/linux/v4l2-controls.h                 | 3 +++
+> >  3 files changed, 16 insertions(+)
 > 
-> Signed-off-by: Thierry Reding <treding@nvidia.com>
-> ---
->  drivers/staging/media/tegra-vde/tegra-vde.c | 63 ++++++++++++---------
->  1 file changed, 36 insertions(+), 27 deletions(-)
+> Thanks for this series and sorry for being late with review. Please
+> see my comments inline.
 > 
-> diff --git a/drivers/staging/media/tegra-vde/tegra-vde.c b/drivers/staging/media/tegra-vde/tegra-vde.c
-> index 41cf86dc5dbd..2496a03fd158 100644
-> --- a/drivers/staging/media/tegra-vde/tegra-vde.c
-> +++ b/drivers/staging/media/tegra-vde/tegra-vde.c
-> @@ -71,6 +71,7 @@ struct tegra_vde_soc {
->  };
->  
->  struct tegra_vde {
-> +	struct device *dev;
->  	const struct tegra_vde_soc *soc;
->  	void __iomem *sxe;
->  	void __iomem *bsev;
-> @@ -644,7 +645,7 @@ static void tegra_vde_detach_and_put_dmabuf(struct dma_buf_attachment *a,
->  	dma_buf_put(dmabuf);
->  }
->  
-> -static int tegra_vde_attach_dmabuf(struct device *dev,
-> +static int tegra_vde_attach_dmabuf(struct tegra_vde *vde,
->  				   int fd,
->  				   unsigned long offset,
->  				   size_t min_size,
-> @@ -662,38 +663,40 @@ static int tegra_vde_attach_dmabuf(struct device *dev,
->  
->  	dmabuf = dma_buf_get(fd);
->  	if (IS_ERR(dmabuf)) {
-> -		dev_err(dev, "Invalid dmabuf FD: %d\n", fd);
-> +		dev_err(vde->dev, "Invalid dmabuf FD: %d\n", fd);
->  		return PTR_ERR(dmabuf);
->  	}
->  
->  	if (dmabuf->size & (align_size - 1)) {
-> -		dev_err(dev, "Unaligned dmabuf 0x%zX, should be aligned to 0x%zX\n",
-> +		dev_err(vde->dev,
-> +			"Unaligned dmabuf 0x%zX, should be aligned to 0x%zX\n",
->  			dmabuf->size, align_size);
->  		return -EINVAL;
->  	}
->  
->  	if ((u64)offset + min_size > dmabuf->size) {
-> -		dev_err(dev, "Too small dmabuf size %zu @0x%lX, should be at least %zu\n",
-> +		dev_err(vde->dev,
-> +			"Too small dmabuf size %zu @0x%lX, should be at least %zu\n",
->  			dmabuf->size, offset, min_size);
->  		return -EINVAL;
->  	}
->  
-> -	attachment = dma_buf_attach(dmabuf, dev);
-> +	attachment = dma_buf_attach(dmabuf, vde->dev);
->  	if (IS_ERR(attachment)) {
-> -		dev_err(dev, "Failed to attach dmabuf\n");
-> +		dev_err(vde->dev, "Failed to attach dmabuf\n");
->  		err = PTR_ERR(attachment);
->  		goto err_put;
->  	}
->  
->  	sgt = dma_buf_map_attachment(attachment, dma_dir);
->  	if (IS_ERR(sgt)) {
-> -		dev_err(dev, "Failed to get dmabufs sg_table\n");
-> +		dev_err(vde->dev, "Failed to get dmabufs sg_table\n");
->  		err = PTR_ERR(sgt);
->  		goto err_detach;
->  	}
->  
->  	if (sgt->nents != 1) {
-> -		dev_err(dev, "Sparse DMA region is unsupported\n");
-> +		dev_err(vde->dev, "Sparse DMA region is unsupported\n");
->  		err = -EINVAL;
->  		goto err_unmap;
->  	}
-> @@ -717,7 +720,7 @@ static int tegra_vde_attach_dmabuf(struct device *dev,
->  	return err;
->  }
->  
-> -static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
-> +static int tegra_vde_attach_dmabufs_to_frame(struct tegra_vde *vde,
->  					     struct video_frame *frame,
->  					     struct tegra_vde_h264_frame *src,
->  					     enum dma_data_direction dma_dir,
-> @@ -726,7 +729,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
->  {
->  	int err;
->  
-> -	err = tegra_vde_attach_dmabuf(dev, src->y_fd,
-> +	err = tegra_vde_attach_dmabuf(vde, src->y_fd,
->  				      src->y_offset, lsize, SZ_256,
->  				      &frame->y_dmabuf_attachment,
->  				      &frame->y_addr,
-> @@ -735,7 +738,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
->  	if (err)
->  		return err;
->  
-> -	err = tegra_vde_attach_dmabuf(dev, src->cb_fd,
-> +	err = tegra_vde_attach_dmabuf(vde, src->cb_fd,
->  				      src->cb_offset, csize, SZ_256,
->  				      &frame->cb_dmabuf_attachment,
->  				      &frame->cb_addr,
-> @@ -744,7 +747,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
->  	if (err)
->  		goto err_release_y;
->  
-> -	err = tegra_vde_attach_dmabuf(dev, src->cr_fd,
-> +	err = tegra_vde_attach_dmabuf(vde, src->cr_fd,
->  				      src->cr_offset, csize, SZ_256,
->  				      &frame->cr_dmabuf_attachment,
->  				      &frame->cr_addr,
-> @@ -758,7 +761,7 @@ static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
->  		return 0;
->  	}
->  
-> -	err = tegra_vde_attach_dmabuf(dev, src->aux_fd,
-> +	err = tegra_vde_attach_dmabuf(vde, src->aux_fd,
->  				      src->aux_offset, csize, SZ_256,
->  				      &frame->aux_dmabuf_attachment,
->  				      &frame->aux_addr,
-> @@ -770,33 +773,35 @@ static int tegra_vde_attach_dmabufs_to_frame(struct device *dev,
->  	return 0;
->  
->  err_release_cr:
-> -	tegra_vde_detach_and_put_dmabuf(frame->cr_dmabuf_attachment,
-> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cr_dmabuf_attachment,
->  					frame->cr_sgt, dma_dir);
->  err_release_cb:
-> -	tegra_vde_detach_and_put_dmabuf(frame->cb_dmabuf_attachment,
-> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cb_dmabuf_attachment,
->  					frame->cb_sgt, dma_dir);
->  err_release_y:
-> -	tegra_vde_detach_and_put_dmabuf(frame->y_dmabuf_attachment,
-> +	tegra_vde_detach_and_put_dmabuf(vde, frame->y_dmabuf_attachment,
->  					frame->y_sgt, dma_dir);
->  
->  	return err;
->  }
->  
-> -static void tegra_vde_release_frame_dmabufs(struct video_frame *frame,
-> +static void tegra_vde_release_frame_dmabufs(struct tegra_vde *vde,
-> +					    struct video_frame *frame,
->  					    enum dma_data_direction dma_dir,
->  					    bool baseline_profile)
->  {
->  	if (!baseline_profile)
-> -		tegra_vde_detach_and_put_dmabuf(frame->aux_dmabuf_attachment,
-> +		tegra_vde_detach_and_put_dmabuf(vde,
-> +						frame->aux_dmabuf_attachment,
->  						frame->aux_sgt, dma_dir);
->  
-> -	tegra_vde_detach_and_put_dmabuf(frame->cr_dmabuf_attachment,
-> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cr_dmabuf_attachment,
->  					frame->cr_sgt, dma_dir);
->  
-> -	tegra_vde_detach_and_put_dmabuf(frame->cb_dmabuf_attachment,
-> +	tegra_vde_detach_and_put_dmabuf(vde, frame->cb_dmabuf_attachment,
->  					frame->cb_sgt, dma_dir);
->  
-> -	tegra_vde_detach_and_put_dmabuf(frame->y_dmabuf_attachment,
-> +	tegra_vde_detach_and_put_dmabuf(vde, frame->y_dmabuf_attachment,
->  					frame->y_sgt, dma_dir);
->  }
->  
-> @@ -937,7 +942,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
->  	if (ret)
->  		return ret;
->  
-> -	ret = tegra_vde_attach_dmabuf(dev, ctx.bitstream_data_fd,
-> +	ret = tegra_vde_attach_dmabuf(vde, ctx.bitstream_data_fd,
->  				      ctx.bitstream_data_offset,
->  				      SZ_16K, SZ_16K,
->  				      &bitstream_data_dmabuf_attachment,
-> @@ -949,7 +954,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
->  		return ret;
->  
->  	if (vde->soc->supports_ref_pic_marking) {
-> -		ret = tegra_vde_attach_dmabuf(dev, ctx.secure_fd,
-> +		ret = tegra_vde_attach_dmabuf(vde, ctx.secure_fd,
->  					      ctx.secure_offset, 0, SZ_256,
->  					      &secure_attachment,
->  					      &secure_addr,
-> @@ -992,7 +997,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
->  
->  		dma_dir = (i == 0) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
->  
-> -		ret = tegra_vde_attach_dmabufs_to_frame(dev, &dpb_frames[i],
-> +		ret = tegra_vde_attach_dmabufs_to_frame(vde, &dpb_frames[i],
->  							&frame, dma_dir,
->  							ctx.baseline_profile,
->  							lsize, csize);
-> @@ -1081,7 +1086,7 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
->  	while (i--) {
->  		dma_dir = (i == 0) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
->  
-> -		tegra_vde_release_frame_dmabufs(&dpb_frames[i], dma_dir,
-> +		tegra_vde_release_frame_dmabufs(vde, &dpb_frames[i], dma_dir,
->  						ctx.baseline_profile);
->  	}
->  
-> @@ -1089,10 +1094,12 @@ static int tegra_vde_ioctl_decode_h264(struct tegra_vde *vde,
->  
->  release_bitstream_dmabuf:
->  	if (secure_attachment)
-> -		tegra_vde_detach_and_put_dmabuf(secure_attachment, secure_sgt,
-> +		tegra_vde_detach_and_put_dmabuf(vde, secure_attachment,
-> +						secure_sgt,
->  						DMA_TO_DEVICE);
->  
-> -	tegra_vde_detach_and_put_dmabuf(bitstream_data_dmabuf_attachment,
-> +	tegra_vde_detach_and_put_dmabuf(vde,
-> +					bitstream_data_dmabuf_attachment,
->  					bitstream_sgt, DMA_TO_DEVICE);
->  
->  	return ret;
-> @@ -1190,6 +1197,8 @@ static int tegra_vde_probe(struct platform_device *pdev)
->  	if (!vde)
->  		return -ENOMEM;
->  
-> +	vde->dev = &pdev->dev;
-> +
->  	platform_set_drvdata(pdev, vde);
->  
->  	vde->soc = of_device_get_match_data(&pdev->dev);
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> > index 9f7312bf3365..80e26f81900b 100644
+> > --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> > @@ -3354,6 +3354,15 @@ JPEG Control IDs
+> >      Specify which JPEG markers are included in compressed stream. This
+> >      control is valid only for encoders.
+> > 
+> > +.. _jpeg-quant-tables-control:
+> > +
+> > +``V4L2_CID_JPEG_LUMA_QUANTIZATION (__u8 matrix)``
+> > +    Sets the luma quantization table to be used for encoding
+> > +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. This table is
+> > +    expected to be in JPEG zigzag order, as per the JPEG specification.
+> 
+> Should we also specify this to be 8x8?
 > 
 
-This patch fails to compile.
+Yes, could be.
 
-drivers/staging/media/tegra-vde/tegra-vde.c: In function
-‘tegra_vde_attach_dmabufs_to_frame’:
-drivers/staging/media/tegra-vde/tegra-vde.c:776:34: error: passing argument 1 of
-‘tegra_vde_detach_and_put_dmabuf’ from incompatible pointer type
-[-Werror=incompatible-pointer-types]
-  tegra_vde_detach_and_put_dmabuf(vde, frame->cr_dmabuf_attachment,
-                                  ^~~
-drivers/staging/media/tegra-vde/tegra-vde.c:637:13: note: expected ‘struct
-dma_buf_attachment *’ but argument is of type ‘struct tegra_vde *’
- static void tegra_vde_detach_and_put_dmabuf(struct dma_buf_attachment *a
-...
+> > +
+> > +``V4L2_CID_JPEG_CHROMA_QUANTIZATION (__u8 matrix)``
+> > +    Sets the chroma quantization table.
+> > 
+> 
+> nit: I guess we aff something like
+> 
+> "See also V4L2_CID_JPEG_LUMA_QUANTIZATION for details."
+> 
+> to avoid repeating the V4L2_PIX_FMT_JPEG_RAW and zigzag order bits? Or
+> maybe just repeating is better?
+> 
 
-You need to rebase this patch properly.
+In spec documentation I usually find it's clearer for readers to see
+stuff repeated. Better to have an excess of clarity :-)
+
+> > 
+> >  .. flat-table::
+> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > index 599c1cbff3b9..5c62c3101851 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > @@ -999,6 +999,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+> >         case V4L2_CID_JPEG_RESTART_INTERVAL:    return "Restart Interval";
+> >         case V4L2_CID_JPEG_COMPRESSION_QUALITY: return "Compression Quality";
+> >         case V4L2_CID_JPEG_ACTIVE_MARKER:       return "Active Markers";
+> > +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:   return "Luminance Quantization Matrix";
+> > +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION: return "Chrominance Quantization Matrix";
+> > 
+> >         /* Image source controls */
+> >         /* Keep the order of the 'case's the same as in v4l2-controls.h! */
+> > @@ -1284,6 +1286,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+> >                 *flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> >                 break;
+> >         case V4L2_CID_DETECT_MD_REGION_GRID:
+> > +       case V4L2_CID_JPEG_LUMA_QUANTIZATION:
+> > +       case V4L2_CID_JPEG_CHROMA_QUANTIZATION:
+> 
+> It looks like with this setup, the driver has to explicitly set dims
+> to { 8, 8 } and min/max to 0/255.
+> 
+> At least for min and max, we could set them here. For dims, i don't
+> see it handled in generic code, so I guess we can leave it to the
+> driver now and add move into generic code, if another driver shows up.
+> Hans, what do you think?
+> 
+
+Since Hans agrees to move this to the core, let's give it a try.
+I'll address this in v3.
+
+Thanks for the feedback!
+Eze
