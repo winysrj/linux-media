@@ -1,85 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f181.google.com ([209.85.213.181]:41701 "EHLO
-        mail-yb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726857AbeH2I1G (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:41094 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726197AbeHTPTv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Aug 2018 04:27:06 -0400
-Received: by mail-yb0-f181.google.com with SMTP id q18-v6so64980ybg.8
-        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 21:32:08 -0700 (PDT)
-Received: from mail-yw1-f46.google.com (mail-yw1-f46.google.com. [209.85.161.46])
-        by smtp.gmail.com with ESMTPSA id k2-v6sm1158275ywa.93.2018.08.28.21.32.06
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 28 Aug 2018 21:32:06 -0700 (PDT)
-Received: by mail-yw1-f46.google.com with SMTP id n207-v6so1505865ywn.9
-        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 21:32:06 -0700 (PDT)
+        Mon, 20 Aug 2018 11:19:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/2] uvcvideo: rename UVC_QUIRK_INFO to UVC_INFO_QUIRK
+Date: Mon, 20 Aug 2018 15:05:24 +0300
+Message-ID: <3072387.PbVpJblKU4@avalon>
+In-Reply-To: <2137438.JYWfeMsUUX@avalon>
+References: <alpine.DEB.2.20.1808031334440.13762@axis700.grange> <2137438.JYWfeMsUUX@avalon>
 MIME-Version: 1.0
-References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
- <b46ee744-4c00-7e73-1925-65f2122e30f0@xs4all.nl> <f4d1e18a6552446b092cffaa3028e0dfe5432b9a.camel@ndufresne.ca>
- <26ae963d-3326-2506-b116-0a5f64b34c3d@xs4all.nl>
-In-Reply-To: <26ae963d-3326-2506-b116-0a5f64b34c3d@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 29 Aug 2018 13:31:54 +0900
-Message-ID: <CAAFQd5Bm55KL2arNGoPevKZV7Fc99GH4FU+ZDRgcOqD9jUoRaw@mail.gmail.com>
-Subject: Re: [RFC] Request API and V4L2 capabilities
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: nicolas@ndufresne.ca,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 24, 2018 at 4:30 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 08/23/2018 07:37 PM, Nicolas Dufresne wrote:
-> > Le jeudi 23 ao=C3=BBt 2018 =C3=A0 16:31 +0200, Hans Verkuil a =C3=A9cri=
-t :
-> >>> I propose adding these capabilities:
-> >>>
-> >>> #define V4L2_BUF_CAP_HAS_REQUESTS     0x00000001
-> >>> #define V4L2_BUF_CAP_REQUIRES_REQUESTS        0x00000002
-> >>> #define V4L2_BUF_CAP_HAS_MMAP         0x00000100
-> >>> #define V4L2_BUF_CAP_HAS_USERPTR      0x00000200
-> >>> #define V4L2_BUF_CAP_HAS_DMABUF               0x00000400
-> >>
-> >> I substituted SUPPORTS for HAS and dropped the REQUIRES_REQUESTS capab=
-ility.
-> >> As Tomasz mentioned, technically (at least for stateless codecs) you c=
-ould
-> >> handle just one frame at a time without using requests. It's very inef=
-ficient,
-> >> but it would work.
-> >
-> > I thought the request was providing a data structure to refer back to
-> > the frames, so each codec don't have to implement one. Do you mean that
-> > the framework will implicitly request requests in that mode ? or simply
-> > that there is no such helper ?
->
-> Yes, that's done through controls as well.
->
-> The idea would be that you set the necessary controls, queue a buffer to
-> the output queue, dequeue a buffer from the output queue, read back any
-> new state information and repeat the process.
->
-> That said, I'm not sure if the cedrus driver for example can handle this
-> at the moment. It is also inefficient and it won't work if codecs require
-> more than one buffer in the queue for whatever reason.
->
-> Tomasz, Paul, please correct me if I am wrong.
->
-> In any case, I think we can do without this proposed capability since it =
-is
-> simply a requirement when implementing the pixelformat for the stateless
-> codec that the Request API will be available and it should be documented
-> as such in the spec.
+Hi Guennadi,
 
-No correction needed. :)
+On Monday, 20 August 2018 15:02:53 EEST Laurent Pinchart wrote:
+> On Friday, 3 August 2018 14:36:56 EEST Guennadi Liakhovetski wrote:
+> > This macro defines "information about quirks," not "quirks for
+> > information."
 
-Best regards,
-Tomasz
+To address Nicolas' objection, would you mind saying "device information 
+containing quirks" instead of "information about quirks" ? It you're fine with 
+that I'll fix it in my tree, there's no need to resubmit.
+
+> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> and taken in my tree.
+> 
+> > ---
+> > 
+> >  drivers/media/usb/uvc/uvc_driver.c | 18 +++++++++---------
+> >  1 file changed, 9 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index d46dc43..699984b 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -2344,7 +2344,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .quirks = UVC_QUIRK_FORCE_Y8,
+> > 
+> >  };
+> > 
+> > -#define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct
+> > uvc_device_info){.quirks = q} +#define UVC_INFO_QUIRK(q)
+> > (kernel_ulong_t)&(struct
+> > uvc_device_info){.quirks = q}
+> > 
+> >  /*
+> >  
+> >   * The Logitech cameras listed below have their interface class set to
+> > 
+> > @@ -2453,7 +2453,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) 
+},
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) 
+},
+> > 
+> >  	/* Chicony CNF7129 (Asus EEE 100HE) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> >  	
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2462,7 +2462,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTRICT_FRAME_RATE) },
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_RESTRICT_FRAME_RATE) },
+> > 
+> >  	/* Alcor Micro AU3820 (Future Boy PC USB Webcam) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> >  	
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2525,7 +2525,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+> > 
+> >  					| UVC_QUIRK_BUILTIN_ISIGHT) },
+> >  	
+> >  	/* Apple Built-In iSight via iBridge */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> > @@ -2607,7 +2607,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+> > 
+> >  					| UVC_QUIRK_PROBE_DEF) },
+> >  	
+> >  	/* IMC Networks (Medion Akoya) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> > @@ -2707,7 +2707,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+> > 
+> >  					| UVC_QUIRK_PROBE_EXTRAFIELDS) },
+> >  	
+> >  	/* Aveo Technology USB 2.0 Camera (Tasco USB Microscope) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> > @@ -2725,7 +2725,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_EXTRAFIELDS) },
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_EXTRAFIELDS) },
+> > 
+> >  	/* Manta MM-353 Plako */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> >  	
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2771,7 +2771,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_STATUS_INTERVAL) },
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_STATUS_INTERVAL) },
+> > 
+> >  	/* MSI StarCam 370i */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> >  	
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2798,7 +2798,7 @@ static int uvc_clock_param_set(const char *val,
+> > const
+> > struct kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> > 
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > 
+> > -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+> > 
+> >  					| UVC_QUIRK_IGNORE_SELECTOR_UNIT) },
+> >  	
+> >  	/* Oculus VR Positional Tracker DK2 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+
+
+-- 
+Regards,
+
+Laurent Pinchart
