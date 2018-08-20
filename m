@@ -1,107 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:38398 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726026AbeHTGp2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Aug 2018 02:45:28 -0400
-Message-ID: <8e4a8e12866ed293de655ce0d317d1db@smtp-cloud9.xs4all.net>
-Date: Mon, 20 Aug 2018 05:31:33 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mout.gmx.net ([212.227.15.15]:40493 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725948AbeHTJ7o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Aug 2018 05:59:44 -0400
+Date: Mon, 20 Aug 2018 08:45:16 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/2] uvcvideo: rename UVC_QUIRK_INFO to
+ UVC_INFO_QUIRK
+In-Reply-To: <alpine.DEB.2.20.1808031334440.13762@axis700.grange>
+Message-ID: <alpine.DEB.2.20.1808200844240.13947@axis700.grange>
+References: <alpine.DEB.2.20.1808031334440.13762@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+As far as I understand we've missed the 4.19 cycle. Can we move on with 
+this please?
 
-date:			Mon Aug 20 05:00:13 CEST 2018
-media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
-media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
-v4l-utils git hash:	015ca7524748fa7cef296102c68b631b078b63c6
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.17.0-1-amd64
+Thanks
+Guennadi
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.18-i686: OK
-linux-4.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+On Fri, 3 Aug 2018, Guennadi Liakhovetski wrote:
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> This macro defines "information about quirks," not "quirks for
+> information."
+> 
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index d46dc43..699984b 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -2344,7 +2344,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	.quirks = UVC_QUIRK_FORCE_Y8,
+>  };
+>  
+> -#define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct uvc_device_info){.quirks = q}
+> +#define UVC_INFO_QUIRK(q) (kernel_ulong_t)&(struct uvc_device_info){.quirks = q}
+>  
+>  /*
+>   * The Logitech cameras listed below have their interface class set to
+> @@ -2453,7 +2453,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) },
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) },
+>  	/* Chicony CNF7129 (Asus EEE 100HE) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2462,7 +2462,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTRICT_FRAME_RATE) },
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_RESTRICT_FRAME_RATE) },
+>  	/* Alcor Micro AU3820 (Future Boy PC USB Webcam) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2525,7 +2525,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					| UVC_QUIRK_BUILTIN_ISIGHT) },
+>  	/* Apple Built-In iSight via iBridge */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> @@ -2607,7 +2607,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					| UVC_QUIRK_PROBE_DEF) },
+>  	/* IMC Networks (Medion Akoya) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> @@ -2707,7 +2707,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					| UVC_QUIRK_PROBE_EXTRAFIELDS) },
+>  	/* Aveo Technology USB 2.0 Camera (Tasco USB Microscope) */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> @@ -2725,7 +2725,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_EXTRAFIELDS) },
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_EXTRAFIELDS) },
+>  	/* Manta MM-353 Plako */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2771,7 +2771,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_STATUS_INTERVAL) },
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_STATUS_INTERVAL) },
+>  	/* MSI StarCam 370i */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> @@ -2798,7 +2798,7 @@ static int uvc_clock_param_set(const char *val, const struct kernel_param *kp)
+>  	  .bInterfaceClass	= USB_CLASS_VIDEO,
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+> -	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> +	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_PROBE_MINMAX
+>  					| UVC_QUIRK_IGNORE_SELECTOR_UNIT) },
+>  	/* Oculus VR Positional Tracker DK2 */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> -- 
+> 1.9.3
+> 
+> 
