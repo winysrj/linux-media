@@ -1,139 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:37315 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725732AbeHUEC7 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37297 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725733AbeHUGtu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Aug 2018 00:02:59 -0400
-Received: by mail-qt0-f193.google.com with SMTP id n6-v6so18403008qtl.4
-        for <linux-media@vger.kernel.org>; Mon, 20 Aug 2018 17:45:08 -0700 (PDT)
-Message-ID: <7ac54c075962760d24b6ed99ba5b0485a80d8f3f.camel@redhat.com>
-Subject: Re: [PATCH (repost) 1/5] drm_dp_cec: check that aux has a transfer
- function
-From: Lyude Paul <lyude@redhat.com>
-Reply-To: lyude@redhat.com
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: nouveau@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org
-Date: Mon, 20 Aug 2018 20:45:05 -0400
-In-Reply-To: <ad4cd65b-4bb2-4b6c-2bc6-dc0c228c76aa@xs4all.nl>
-References: <20180817141122.9541-1-hverkuil@xs4all.nl>
-         <20180817141122.9541-2-hverkuil@xs4all.nl>
-         <875a995712d0de615f47f200863376ee617ec533.camel@redhat.com>
-         <ad4cd65b-4bb2-4b6c-2bc6-dc0c228c76aa@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 21 Aug 2018 02:49:50 -0400
+Message-ID: <31b9da47b80de1e40d10d64bc9f9346e@smtp-cloud8.xs4all.net>
+Date: Tue, 21 Aug 2018 05:31:31 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-08-20 at 22:47 +0200, Hans Verkuil wrote:
-> On 08/20/2018 08:51 PM, Lyude Paul wrote:
-> > On Fri, 2018-08-17 at 16:11 +0200, Hans Verkuil wrote:
-> > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > 
-> > > If aux->transfer == NULL, then just return without doing
-> > > anything. In that case the function is likely called for
-> > > a non-(e)DP connector.
-> > > 
-> > > This never happened for the i915 driver, but the nouveau and amdgpu
-> > > drivers need this check.
-> > 
-> > Could you give a backtrace from where you're hitting this issue with nouveau
-> > and
-> > amdgpu? It doesn't make a whole ton of sense to have connectors registering
-> > DP
-> > aux busses if they aren't actually DP, that should probably just be fixed...
-> 
-Agh, nouveau and amdgpu making questionable decisions :s... but I suppose that
-makes sense.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Reviewed-by: Lyude Paul <lyude@redhat.com>
+Results of the daily build of media_tree:
 
-> The difference between the i915 driver and the nouveau (and amdgpu) driver is
-> that in the i915 driver the drm_dp_cec_set_edid/unset_edid/irq functions are
-> called from code that is exclusively for DisplayPort connectors.
-> 
-> For nouveau/amdgpu they are called from code that is shared between
-> DisplayPort
-> and HDMI, so aux->transfer may be NULL.
-> 
-> Rather than either testing for the connector type or for a non-NULL aux-
-> >transfer
-> every time I call a drm_dp_cec_* function, it is better to just test for
-> aux->transfer in the drm_dp_cec_* functions themselves. It's more robust.
-> 
-> So there isn't a bug or anything like that, it's just so that these drm_dp_cec
-> functions can handle a slightly different driver design safely.
-> 
-> The registration and unregistration of the cec devices is always DP specific,
-> and an attempt to register a cec device for a non-DP connector will now fail
-> with a WARN_ON.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > > 
-> > > The alternative would be to add this check in those drivers before
-> > > every drm_dp_cec call, but it makes sense to check it in the
-> > > drm_dp_cec functions to prevent a kernel oops.
-> > > 
-> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > ---
-> > >  drivers/gpu/drm/drm_dp_cec.c | 14 ++++++++++++++
-> > >  1 file changed, 14 insertions(+)
-> > > 
-> > > diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
-> > > index 988513346e9c..1407b13a8d5d 100644
-> > > --- a/drivers/gpu/drm/drm_dp_cec.c
-> > > +++ b/drivers/gpu/drm/drm_dp_cec.c
-> > > @@ -238,6 +238,10 @@ void drm_dp_cec_irq(struct drm_dp_aux *aux)
-> > >  	u8 cec_irq;
-> > >  	int ret;
-> > >  
-> > > +	/* No transfer function was set, so not a DP connector */
-> > > +	if (!aux->transfer)
-> > > +		return;
-> > > +
-> > >  	mutex_lock(&aux->cec.lock);
-> > >  	if (!aux->cec.adap)
-> > >  		goto unlock;
-> > > @@ -293,6 +297,10 @@ void drm_dp_cec_set_edid(struct drm_dp_aux *aux,
-> > > const
-> > > struct edid *edid)
-> > >  	unsigned int num_las = 1;
-> > >  	u8 cap;
-> > >  
-> > > +	/* No transfer function was set, so not a DP connector */
-> > > +	if (!aux->transfer)
-> > > +		return;
-> > > +
-> > >  #ifndef CONFIG_MEDIA_CEC_RC
-> > >  	/*
-> > >  	 * CEC_CAP_RC is part of CEC_CAP_DEFAULTS, but it is stripped by
-> > > @@ -361,6 +369,10 @@ EXPORT_SYMBOL(drm_dp_cec_set_edid);
-> > >   */
-> > >  void drm_dp_cec_unset_edid(struct drm_dp_aux *aux)
-> > >  {
-> > > +	/* No transfer function was set, so not a DP connector */
-> > > +	if (!aux->transfer)
-> > > +		return;
-> > > +
-> > >  	cancel_delayed_work_sync(&aux->cec.unregister_work);
-> > >  
-> > >  	mutex_lock(&aux->cec.lock);
-> > > @@ -404,6 +416,8 @@ void drm_dp_cec_register_connector(struct drm_dp_aux
-> > > *aux,
-> > > const char *name,
-> > >  				   struct device *parent)
-> > >  {
-> > >  	WARN_ON(aux->cec.adap);
-> > > +	if (WARN_ON(!aux->transfer))
-> > > +		return;
-> > >  	aux->cec.name = name;
-> > >  	aux->cec.parent = parent;
-> > >  	INIT_DELAYED_WORK(&aux->cec.unregister_work,
-> 
-> 
+date:			Tue Aug 21 05:00:14 CEST 2018
+media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
+media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
+v4l-utils git hash:	015ca7524748fa7cef296102c68b631b078b63c6
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.18-i686: OK
+linux-4.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
