@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:53666 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726585AbeHUKuZ (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:52239 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726785AbeHUKuZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 21 Aug 2018 06:50:25 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/6] vicodec improvements
-Date: Tue, 21 Aug 2018 09:31:13 +0200
-Message-Id: <20180821073119.3662-1-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/6] vicodec: simplify blocktype checking
+Date: Tue, 21 Aug 2018 09:31:17 +0200
+Message-Id: <20180821073119.3662-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180821073119.3662-1-hverkuil@xs4all.nl>
+References: <20180821073119.3662-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-- add support for quantization parameters
-- support many more pixel formats
-- code simplifications
-- rename source and use proper prefixes for the codec: this makes it
-  independent from the vicodec driver and easier to reuse in userspace
-  (similar to what we do for the v4l2-tpg code).
+Simplify some blocktype/is_intra checks.
 
-Hans Verkuil (6):
-  vicodec: add QP controls
-  vicodec: add support for more pixel formats
-  vicodec: simplify flags handling
-  vicodec: simplify blocktype checking
-  vicodec: improve handling of uncompressable planes
-  vicodec: rename and use proper fwht prefix for codec
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vicodec/vicodec-codec.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
- drivers/media/platform/vicodec/Makefile       |   2 +-
- .../vicodec/{vicodec-codec.c => codec-fwht.c} | 148 ++++--
- .../vicodec/{vicodec-codec.h => codec-fwht.h} |  76 ++-
- drivers/media/platform/vicodec/vicodec-core.c | 482 +++++++++++++-----
- 4 files changed, 488 insertions(+), 220 deletions(-)
- rename drivers/media/platform/vicodec/{vicodec-codec.c => codec-fwht.c} (85%)
- rename drivers/media/platform/vicodec/{vicodec-codec.h => codec-fwht.h} (67%)
-
+diff --git a/drivers/media/platform/vicodec/vicodec-codec.c b/drivers/media/platform/vicodec/vicodec-codec.c
+index 7bd11a974db0..e402d988f2ad 100644
+--- a/drivers/media/platform/vicodec/vicodec-codec.c
++++ b/drivers/media/platform/vicodec/vicodec-codec.c
+@@ -663,11 +663,10 @@ static u32 encode_plane(u8 *input, u8 *refp, __be16 **rlco, __be16 *rlco_max,
+ 			if (!is_intra)
+ 				blocktype = decide_blocktype(input, refp,
+ 					deltablock, width, input_step);
+-			if (is_intra || blocktype == IBLOCK) {
++			if (blocktype == IBLOCK) {
+ 				fwht(input, cf->coeffs, width, input_step, 1);
+ 				quantize_intra(cf->coeffs, cf->de_coeffs,
+ 					       cf->i_frame_qp);
+-				blocktype = IBLOCK;
+ 			} else {
+ 				/* inter code */
+ 				encoding |= FRAME_PCODED;
 -- 
 2.18.0
