@@ -1,214 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:37852 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727496AbeHUQ17 (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:43332 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726609AbeHUU2t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Aug 2018 12:27:59 -0400
-Received: by mail-wm0-f68.google.com with SMTP id n11-v6so2802202wmc.2
-        for <linux-media@vger.kernel.org>; Tue, 21 Aug 2018 06:07:53 -0700 (PDT)
-Subject: Re: [PATCH v4 3/4] venus: firmware: add no TZ boot and shutdown
- routine
-To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
-        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org
-References: <1533562085-8773-1-git-send-email-vgarodia@codeaurora.org>
- <1533562085-8773-4-git-send-email-vgarodia@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <a8df5189-fe17-0437-6706-f689efd2655e@linaro.org>
-Date: Tue, 21 Aug 2018 16:07:51 +0300
-MIME-Version: 1.0
-In-Reply-To: <1533562085-8773-4-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 21 Aug 2018 16:28:49 -0400
+Message-ID: <d8a30e78e6a33db10360995d800f2c0d19acc500.camel@collabora.com>
+Subject: Re: [PATCH 1/9] CHROMIUM: v4l: Add H264 low-level decoder API
+ compound controls.
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>, tfiga@chromium.org,
+        posciak@chromium.org,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        hans.verkuil@cisco.com, acourbot@chromium.org,
+        sakari.ailus@linux.intel.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Guenter Roeck <groeck@chromium.org>
+Date: Tue, 21 Aug 2018 13:07:43 -0400
+In-Reply-To: <80e1d9cb49c6df06843e49332685f2b401023292.camel@collabora.com>
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+         <20180613140714.1686-2-maxime.ripard@bootlin.com>
+         <80e1d9cb49c6df06843e49332685f2b401023292.camel@collabora.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-JHf4DZXGm3W7m8srBwS1"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
 
-On 08/06/2018 04:28 PM, Vikash Garodia wrote:
-> Video hardware is mainly comprised of vcodec subsystem and video
-> control subsystem. Video control has ARM9 which executes the video
-> firmware instructions whereas vcodec does the video frame processing.
-> This change adds support to load the video firmware and bring ARM9
-> out of reset for platforms which does not have trustzone.
-> 
-> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/core.c         |  6 +-
->  drivers/media/platform/qcom/venus/core.h         |  6 ++
->  drivers/media/platform/qcom/venus/firmware.c     | 91 +++++++++++++++++++++++-
->  drivers/media/platform/qcom/venus/firmware.h     |  2 +-
->  drivers/media/platform/qcom/venus/hfi_venus_io.h |  1 +
->  5 files changed, 99 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-> index 75b9785..393994e 100644
-> --- a/drivers/media/platform/qcom/venus/core.c
-> +++ b/drivers/media/platform/qcom/venus/core.c
-> @@ -76,7 +76,7 @@ static void venus_sys_error_handler(struct work_struct *work)
->  	hfi_core_deinit(core, true);
->  	hfi_destroy(core);
->  	mutex_lock(&core->lock);
-> -	venus_shutdown(core->dev);
-> +	venus_shutdown(core);
->  
->  	pm_runtime_put_sync(core->dev);
->  
-> @@ -323,7 +323,7 @@ static int venus_probe(struct platform_device *pdev)
->  err_core_deinit:
->  	hfi_core_deinit(core, false);
->  err_venus_shutdown:
-> -	venus_shutdown(dev);
-> +	venus_shutdown(core);
->  err_runtime_disable:
->  	pm_runtime_set_suspended(dev);
->  	pm_runtime_disable(dev);
-> @@ -344,7 +344,7 @@ static int venus_remove(struct platform_device *pdev)
->  	WARN_ON(ret);
->  
->  	hfi_destroy(core);
-> -	venus_shutdown(dev);
-> +	venus_shutdown(core);
->  	of_platform_depopulate(dev);
->  
->  	pm_runtime_put_sync(dev);
-> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-> index eb5ee66..8c64177 100644
-> --- a/drivers/media/platform/qcom/venus/core.h
-> +++ b/drivers/media/platform/qcom/venus/core.h
-> @@ -81,6 +81,11 @@ struct venus_caps {
->  	bool valid;	/* used only for Venus v1xx */
->  };
->  
-> +struct video_firmware {
-> +	struct device *dev;
-> +	struct iommu_domain *iommu_domain;
-> +};
-> +
->  /**
->   * struct venus_core - holds core parameters valid for all instances
->   *
-> @@ -129,6 +134,7 @@ struct venus_core {
->  	struct device *dev;
->  	struct device *dev_dec;
->  	struct device *dev_enc;
-> +	struct video_firmware fw;
->  	bool no_tz;
->  	struct mutex lock;
->  	struct list_head instances;
-> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-> index 4577043..30130d4 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.c
-> +++ b/drivers/media/platform/qcom/venus/firmware.c
-> @@ -12,8 +12,10 @@
->   *
->   */
->  
-> +#include <linux/platform_device.h>
+--=-JHf4DZXGm3W7m8srBwS1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-please keep includes alphabetically ordered.
+Le mardi 21 ao=C3=BBt 2018 =C3=A0 13:58 -0300, Ezequiel Garcia a =C3=A9crit=
+ :
+> On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
+> > From: Pawel Osciak <posciak@chromium.org>
+> >=20
+> > Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> > Reviewed-by: Wu-cheng Li <wuchengli@chromium.org>
+> > Tested-by: Tomasz Figa <tfiga@chromium.org>
+> > [rebase44(groeck): include linux/types.h in v4l2-controls.h]
+> > Signed-off-by: Guenter Roeck <groeck@chromium.org>
+> > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > ---
+> >=20
+>=20
+> [..]
+> > diff --git a/include/uapi/linux/videodev2.h
+> > b/include/uapi/linux/videodev2.h
+> > index 242a6bfa1440..4b4a1b25a0db 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -626,6 +626,7 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /*
+> > H264 with start codes */
+> >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /*
+> > H264 without start codes */
+> >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /*
+> > H264 MVC */
+> > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /*
+> > H264 parsed slices */
+>=20
+> As pointed out by Tomasz, the Rockchip VPU driver expects start codes
+> [1], so the userspace
+> should be aware of it. Perhaps we could document this pixel format
+> better as:
+>=20
+> #define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /*
+> H264 parsed slices with start codes */
+>=20
+> And introduce another pixel format:
+>=20
+> #define V4L2_PIX_FMT_H264_SLICE_NO_SC v4l2_fourcc(TODO) /* H264
+> parsed slices without start codes */
+>=20
+> For cedrus to use, as it seems it doesn't need start codes.
 
->  #include <linux/device.h>
->  #include <linux/firmware.h>
-> +#include <linux/iommu.h>
+I must admit that this RK requirement is a bit weird for slice data.
+Though, userspace wise, always adding start-code would be compatible,
+as the driver can just offset to remove it.
 
-and here too
+Another option, because I'm not fan of adding dedicated formats for
+this, the RK driver could use data_offset (in mplane v4l2 buffers),
+just write a start code there. I like this solution because I would not
+be surprise if some drivers requires in fact an HW specific header,
+that the driver can generate as needed.
 
->  #include <linux/kernel.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> @@ -118,6 +120,76 @@ static int venus_load_fw(struct venus_core *core, const char *fwname,
->  	return ret;
->  }
->  
-> +static int venus_boot_no_tz(struct venus_core *core, phys_addr_t mem_phys,
-> +			size_t mem_size)
-> +{
-> +	struct iommu_domain *iommu_dom;
-> +	struct device *dev;
-> +	int ret;
-> +
-> +	dev = core->fw.dev;
-> +	if (!dev)
-> +		return -EPROBE_DEFER;
-> +
-> +	iommu_dom = iommu_domain_alloc(&platform_bus_type);
-> +	if (!iommu_dom) {
-> +		dev_err(dev, "Failed to allocate iommu domain\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	ret = iommu_attach_device(iommu_dom, dev);
-> +	if (ret) {
-> +		dev_err(dev, "could not attach device\n");
-> +		goto err_attach;
-> +	}
-> +
-> +	ret = iommu_map(iommu_dom, VENUS_FW_START_ADDR, mem_phys, mem_size,
-> +			IOMMU_READ | IOMMU_WRITE | IOMMU_PRIV);
-> +	if (ret) {
-> +		dev_err(dev, "could not map video firmware region\n");
-> +		goto err_map;
-> +	}
-> +
-> +	core->fw.iommu_domain = iommu_dom;
-> +	venus_reset_cpu(core);
-> +
-> +	return 0;
-> +
-> +err_map:
-> +	iommu_detach_device(iommu_dom, dev);
-> +err_attach:
-> +	iommu_domain_free(iommu_dom);
-> +	return ret;
-> +}
-> +
-> +static int venus_shutdown_no_tz(struct venus_core *core)
-> +{
-> +	struct iommu_domain *iommu;
-> +	size_t unmapped = 0;
+>=20
+> How does it sound?=20
+>=20
+> [1]=20
+> https://cs.chromium.org/chromium/src/media/gpu/v4l2/v4l2_slice_video_deco=
+de_accelerator.cc?rcl=3D63129434aeacf0f54bbae96814f10cf64e3e6c35&l=3D2438
 
-no need to initialize unmapped variable.
+--=-JHf4DZXGm3W7m8srBwS1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-> +	u32 reg;
-> +	struct device *dev = core->fw.dev;
+-----BEGIN PGP SIGNATURE-----
 
-could you move longer lines at the beginning of the function
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW3xG3wAKCRBxUwItrAao
+HCfYAKC96oyPYQzefz0KyRZBp9iAELzjFwCfc3/GRoMdiWflJ81In3QADs5pCJE=
+=22Gp
+-----END PGP SIGNATURE-----
 
-> +	void __iomem *reg_base = core->base;
-
-renaming reg_base to base will give you shorter line(s), otherwise I
-think you should use core->base directly
-
-> +
-> +	/* Assert the reset to ARM9 */
-> +	reg = readl_relaxed(reg_base + WRAPPER_A9SS_SW_RESET);
-> +	reg |= WRAPPER_A9SS_SW_RESET_BIT;
-> +	writel_relaxed(reg, reg_base + WRAPPER_A9SS_SW_RESET);
-> +
-> +	/* Make sure reset is asserted before the mapping is removed */
-> +	mb();
-> +
-> +	iommu = core->fw.iommu_domain;
-> +
-> +	unmapped = iommu_unmap(iommu, VENUS_FW_START_ADDR, VENUS_FW_MEM_SIZE);
-> +	if (unmapped != VENUS_FW_MEM_SIZE)
-> +		dev_err(dev, "failed to unmap firmware\n");
-> +
-> +	iommu_detach_device(iommu, dev);
-> +	iommu_domain_free(iommu);
-> +
-
-the function doesn't return error why don't make it to return void? Up
-to you.
-
-> +	return 0;
-> +}
-
--- 
-regards,
-Stan
+--=-JHf4DZXGm3W7m8srBwS1--
