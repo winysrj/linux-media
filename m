@@ -1,88 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.intenta.de ([178.249.25.132]:58741 "EHLO mail.intenta.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728331AbeHVPyq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 11:54:46 -0400
-Received: from [10.10.16.42] (port=62184 helo=ICSMA001.intenta.de)
-        by mail.intenta.de with esmtps (TLSv1.2:AES256-SHA:256)
-        (Exim 4.82_1-5b7a7c0-XX)
-        (envelope-from <Helmut.Grohne@intenta.de>)
-        id 1fsSBl-0005eb-2o
-        for linux-media@vger.kernel.org; Wed, 22 Aug 2018 14:24:41 +0200
-Date: Wed, 22 Aug 2018 14:24:42 +0200
-From: Helmut Grohne <helmut.grohne@intenta.de>
-To: <linux-media@vger.kernel.org>
-Subject: V4L2 analogue gain contol
-Message-ID: <20180822122441.7zxj4e5dczdzmo5m@laureti-dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:42479 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728197AbeHVP7t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Aug 2018 11:59:49 -0400
+Received: by mail-wr1-f65.google.com with SMTP id v17-v6so1472958wrr.9
+        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2018 05:35:02 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Vikash Garodia <vgarodia@codeaurora.org>
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 4/4] venus: firmware: register separate platform_device for firmware loader
+Date: Wed, 22 Aug 2018 15:34:42 +0300
+Message-Id: <20180822123442.10810-1-stanimir.varbanov@linaro.org>
+In-Reply-To: <1534871974-32269-5-git-send-email-vgarodia@codeaurora.org>
+References: <1534871974-32269-5-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This registers a firmware platform_device and associate it with
+video-firmware DT subnode. Then calls dma configure to initialize
+dma and iommu.
 
-I've been looking at various image sensor drivers to see how they expose
-gains, in particular analogue ones. What I found in 4.18 looks like a
-mess to me.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ .../devicetree/bindings/media/qcom,venus.txt       | 13 +++++-
+ drivers/media/platform/qcom/venus/core.c           | 14 +++++--
+ drivers/media/platform/qcom/venus/firmware.c       | 49 ++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/firmware.h       |  2 +
+ 4 files changed, 73 insertions(+), 5 deletions(-)
 
-In particular, my interest is about separation of analogue vs digital
-gain and an understanding of what effect a change in gain has on the
-brightness of an image. The latter is characterized in the following
-table in the "linear" column.
-
-driver  | CID | register name               | min | max  | def | linear | comments
---------+-----+-----------------------------+-----+------+-----+--------+---------
-adv7343 | G   | ADV7343_DAC2_OUTPUT_LEVEL   | -64 | 64   | 0   |        |
-adv7393 | G   | ADV7393_DAC123_OUTPUT_LEVEL | -64 | 64   | 0   |        |
-imx258  | A   | IMX258_REG_ANALOG_GAIN      | 0   | 8191 | 0   |        |
-imx274  | G   | multiple                    |     |      |     | yes    | [1]
-mt9m032 | G   | MT9M032_GAIN_ALL            | 0   | 127  | 64  | no     | [2]
-mt9m111 | G   | GLOBAL_GAIN                 | 0   | 252  | 32  | no     | [3]
-mt9p031 | G   | MT9P031_GLOBAL_GAIN         | 8   | 1024 | 8   | no     | [4]
-mt9v011 | G   | multiple                    | 0   | 4063 | 32  |        |
-mt9v032 | G   | MT9V032_ANALOG_GAIN         | 16  | 64   | 16  | no     | [5]
-ov13858 | A   | OV13858_REG_ANALOG_GAIN     | 0   | 8191 | 128 |        |
-ov2685  | A   | OV2685_REG_GAIN             | 0   | 2047 | 54  |        |
-ov5640  | G   | OV5640_REG_AEC_PK_REAL_GAIN | 0   | 1023 | 0   |        |
-ov5670  | A   | OV5670_REG_ANALOG_GAIN      | 0   | 8191 | 128 |        |
-ov5695  | A   | OV5695_REG_ANALOG_GAIN      | 16  | 248  | 248 |        |
-mt9m001 | G   | MT9M001_GLOBAL_GAIN         | 0   | 127  | 64  | no     |
-mt9v022 | G   | MT9V022_ANALOG_GAIN         | 0   | 127  | 64  |        |
-
-CID:
-  A -> V4L2_CID_ANALOGUE_GAIN
-  G -> V4L2_CID_GAIN, no V4L2_CID_ANALOGUE_GAIN present
-step: always 1
-comments:
-[1] controls a product of analogue and digital gain, value scales
-    roughly linear
-[2] code comments contradict data sheet
-[3] it is not clear whether it also controls a digital gain.
-[4] controls a combination of analogue and digital gain
-[5] analogue only
-
-The documentation (extended-controls.rst) says that the digital gain is
-supposed to be a linear fixed-point number with 0x100 meaning factor 1.
-The situation for analogue is much less precise.
-
-Typically, the number of analogue gains is much smaller than the number
-of digital gains. No driver exposes more than 13 bit for the analogue
-gain and half of them use at most 8 bits.
-
-Can we give more structure to the analogue gain as exposed by V4L2?
-Ideally, I'd like to query a driver for the possible gain values if
-there are few (say < 256) and their factors (which are often given in
-data sheets). The nature of gains though is that they are often similar
-to floating point numbers (2 ** exp * (1 + mant / precision)), which
-makes it difficult to represent them using min/max/step/default.
-
-Would it be reasonable to add a new V4L2_CID_ANALOGUE_GAIN_MENU that
-claims linearity and uses fixed-point numbers like
-V4L2_CID_DIGITAL_GAIN? There already is the integer menu
-V4L2_CID_AUTO_EXPOSURE_BIAS, but it also affects the exposure.
-
-An important application is implementing a custom gain control when the
-built-in auto exposure is not applicable.
-
-Helmut
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+index 00d0d1bf7647..7e045862c3fe 100644
+--- a/Documentation/devicetree/bindings/media/qcom,venus.txt
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -53,7 +53,7 @@
+ 
+ * Subnodes
+ The Venus video-codec node must contain two subnodes representing
+-video-decoder and video-encoder.
++video-decoder and video-encoder, and one optional firmware subnode.
+ 
+ Every of video-encoder or video-decoder subnode should have:
+ 
+@@ -79,6 +79,13 @@ Every of video-encoder or video-decoder subnode should have:
+ 		    power domain which is responsible for collapsing
+ 		    and restoring power to the subcore.
+ 
++The firmware subnode must have:
++
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++
+ * An Example
+ 	video-codec@1d00000 {
+ 		compatible = "qcom,msm8916-venus";
+@@ -105,4 +112,8 @@ Every of video-encoder or video-decoder subnode should have:
+ 			clock-names = "core";
+ 			power-domains = <&mmcc VENUS_CORE1_GDSC>;
+ 		};
++
++		video-firmware {
++			iommus = <&apps_iommu 0x10b2 0x0>;
++		};
+ 	};
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 393994ecab26..3bd3b8ab1f82 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -284,6 +284,14 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_runtime_disable;
+ 
++	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
++	if (ret)
++		goto err_runtime_disable;
++
++	ret = venus_firmware_init(core);
++	if (ret)
++		goto err_runtime_disable;
++
+ 	ret = venus_boot(core);
+ 	if (ret)
+ 		goto err_runtime_disable;
+@@ -308,10 +316,6 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_core_deinit;
+ 
+-	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+-	if (ret)
+-		goto err_dev_unregister;
+-
+ 	ret = pm_runtime_put_sync(dev);
+ 	if (ret)
+ 		goto err_dev_unregister;
+@@ -347,6 +351,8 @@ static int venus_remove(struct platform_device *pdev)
+ 	venus_shutdown(core);
+ 	of_platform_depopulate(dev);
+ 
++	venus_firmware_deinit(core);
++
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+ 
+diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+index 80c3d1362c04..2a9fcbb71216 100644
+--- a/drivers/media/platform/qcom/venus/firmware.c
++++ b/drivers/media/platform/qcom/venus/firmware.c
+@@ -20,6 +20,7 @@
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/platform_device.h>
++#include <linux/of_device.h>
+ #include <linux/qcom_scm.h>
+ #include <linux/sizes.h>
+ #include <linux/soc/qcom/mdt_loader.h>
+@@ -228,3 +229,51 @@ int venus_shutdown(struct venus_core *core)
+ 
+ 	return ret;
+ }
++
++int venus_firmware_init(struct venus_core *core)
++{
++	struct platform_device_info info;
++	struct platform_device *pdev;
++	struct device_node *np;
++	int ret;
++
++	np = of_get_child_by_name(core->dev->of_node, "video-firmware");
++	if (!np)
++		return 0;
++
++	memset(&info, 0, sizeof(info));
++	info.fwnode = &np->fwnode;
++	info.parent = core->dev;
++	info.name = np->name;
++	info.dma_mask = DMA_BIT_MASK(32);
++
++	pdev = platform_device_register_full(&info);
++	if (IS_ERR(pdev)) {
++		of_node_put(np);
++		return PTR_ERR(pdev);
++	}
++
++	pdev->dev.of_node = np;
++
++	ret = of_dma_configure(&pdev->dev, np);
++	if (ret)
++		dev_err(core->dev, "dma configure fail\n");
++
++	of_node_put(np);
++
++	if (ret)
++		return ret;
++
++	core->no_tz = true;
++	core->fw.dev = &pdev->dev;
++
++	return 0;
++}
++
++void venus_firmware_deinit(struct venus_core *core)
++{
++	if (!core->fw.dev)
++		return;
++
++	platform_device_unregister(to_platform_device(core->fw.dev));
++}
+diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+index f41b615b96f1..119a9a4fc1a2 100644
+--- a/drivers/media/platform/qcom/venus/firmware.h
++++ b/drivers/media/platform/qcom/venus/firmware.h
+@@ -16,6 +16,8 @@
+ 
+ struct device;
+ 
++int venus_firmware_init(struct venus_core *core);
++void venus_firmware_deinit(struct venus_core *core);
+ int venus_boot(struct venus_core *core);
+ int venus_shutdown(struct venus_core *core);
+ int venus_set_hw_state(struct venus_core *core, bool suspend);
+-- 
+2.14.1
