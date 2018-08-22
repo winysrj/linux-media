@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52070 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726858AbeH2Osy (ORCPT
+Received: from mail-yb0-f182.google.com ([209.85.213.182]:42065 "EHLO
+        mail-yb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727649AbeHVKzd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Aug 2018 10:48:54 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH 3/3] sr030pc30: Remove redundant setting of sub-device name
-Date: Wed, 29 Aug 2018 13:52:33 +0300
-Message-Id: <20180829105233.3852-4-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
-References: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
+        Wed, 22 Aug 2018 06:55:33 -0400
+Received: by mail-yb0-f182.google.com with SMTP id z12-v6so341994ybg.9
+        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2018 00:31:54 -0700 (PDT)
+Received: from mail-yb0-f182.google.com (mail-yb0-f182.google.com. [209.85.213.182])
+        by smtp.gmail.com with ESMTPSA id 201-v6sm395913ywn.103.2018.08.22.00.31.52
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 22 Aug 2018 00:31:52 -0700 (PDT)
+Received: by mail-yb0-f182.google.com with SMTP id d4-v6so357447ybl.0
+        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2018 00:31:52 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180816105754.4d267d17@coco.lan>
+In-Reply-To: <20180816105754.4d267d17@coco.lan>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 22 Aug 2018 16:31:41 +0900
+Message-ID: <CAAFQd5BcW9mcKHxALoE+bAJQfXkj4zane7Kze7OH=jdMXyVeMw@mail.gmail.com>
+Subject: Re: [RFP] Media Summit: Complex cameras
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sub-device name is set right after in v4l2_i2c_subdev_init(). Remove
-the redundant strcpy() call.
+Hi Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/sr030pc30.c | 1 -
- 1 file changed, 1 deletion(-)
+On Thu, Aug 16, 2018 at 10:58 PM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
+>
+> I expect that we could have something to discuss there about complex
+> cameras. So, I'd reserve a 50 mins slot for it.
+>
+> The idea is to discuss about the undergoing work with complex camera
+> development is happening.
+>
+> As we're working to merge request API, another topic for discussion is
+> how to add support for requests on it (or on a separate but related
+> library).
 
-diff --git a/drivers/media/i2c/sr030pc30.c b/drivers/media/i2c/sr030pc30.c
-index 2a4882cddc51..3d3fb1cda28c 100644
---- a/drivers/media/i2c/sr030pc30.c
-+++ b/drivers/media/i2c/sr030pc30.c
-@@ -703,7 +703,6 @@ static int sr030pc30_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 
- 	sd = &info->sd;
--	strcpy(sd->name, MODULE_NAME);
- 	info->pdata = client->dev.platform_data;
- 
- 	v4l2_i2c_subdev_init(sd, client, &sr030pc30_ops);
--- 
-2.11.0
+I need to recheck, but I might not be able to attend in person. Do you
+think it would be possible to join remotely, by using Hangouts (or
+anything else)?
+
+Best regards,
+Tomasz
