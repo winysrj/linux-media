@@ -1,99 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:40811 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728886AbeHVQqO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 12:46:14 -0400
-Message-ID: <2ce0778a85616ea71d9ca493372b645b5858dc81.camel@bootlin.com>
-Subject: Re: [RFC] Request API and V4L2 capabilities
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Maxime Jourdan <maxi.jourdan@wanadoo.fr>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:46351 "EHLO
+        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728803AbeHVQ5W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Aug 2018 12:57:22 -0400
+Received: by mail-yb0-f194.google.com with SMTP id y20-v6so643703ybi.13
+        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2018 06:32:26 -0700 (PDT)
+Received: from mail-yb0-f175.google.com (mail-yb0-f175.google.com. [209.85.213.175])
+        by smtp.gmail.com with ESMTPSA id n187-v6sm1055619ywn.76.2018.08.22.06.32.24
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 22 Aug 2018 06:32:24 -0700 (PDT)
+Received: by mail-yb0-f175.google.com with SMTP id l16-v6so646518ybk.11
+        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2018 06:32:24 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+ <20180613140714.1686-2-maxime.ripard@bootlin.com> <80e1d9cb49c6df06843e49332685f2b401023292.camel@collabora.com>
+ <20180822091557.gtnlgoebyv6yttzf@flea> <CAAFQd5ANvKF2+GEXQTnRsdYVzJTtBOhv7nFahV=2W-9_QXwY4g@mail.gmail.com>
+ <e6324ea983d34403199044ae30e932cd728c8ad4.camel@bootlin.com>
+In-Reply-To: <e6324ea983d34403199044ae30e932cd728c8ad4.camel@bootlin.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 22 Aug 2018 22:24:23 +0900
+Message-ID: <CAAFQd5AybueM-rhy8bMbRHHZmwBP08-cWB11NadcUQAb6XJ1SA@mail.gmail.com>
+Subject: Re: [PATCH 1/9] CHROMIUM: v4l: Add H264 low-level decoder API
+ compound controls.
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Date: Wed, 22 Aug 2018 15:21:04 +0200
-In-Reply-To: <CAHStOZ5aU5N5UssqqSTU8YRN7nmGCX7H0eGO0GeB=AN0YK53dQ@mail.gmail.com>
-References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
-         <43c3d4b79377e9481ca29308cf1c160d57902d8c.camel@bootlin.com>
-         <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl>
-         <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
-         <CAHStOZ5aU5N5UssqqSTU8YRN7nmGCX7H0eGO0GeB=AN0YK53dQ@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-U8C4YbhnA6XBhEnA/gvz"
-Mime-Version: 1.0
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
+        thomas.petazzoni@bootlin.com, groeck@chromium.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Aug 22, 2018 at 10:03 PM Paul Kocialkowski
+<paul.kocialkowski@bootlin.com> wrote:
+>
+> Hi,
+>
+> On Wed, 2018-08-22 at 18:54 +0900, Tomasz Figa wrote:
+> > On Wed, Aug 22, 2018 at 6:16 PM Maxime Ripard <maxime.ripard@bootlin.com> wrote:
+> > >
+> > > Hi,
+> > >
+> > > On Tue, Aug 21, 2018 at 01:58:38PM -0300, Ezequiel Garcia wrote:
+> > > > On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
+> > > > > From: Pawel Osciak <posciak@chromium.org>
+> > > > >
+> > > > > Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> > > > > Reviewed-by: Wu-cheng Li <wuchengli@chromium.org>
+> > > > > Tested-by: Tomasz Figa <tfiga@chromium.org>
+> > > > > [rebase44(groeck): include linux/types.h in v4l2-controls.h]
+> > > > > Signed-off-by: Guenter Roeck <groeck@chromium.org>
+> > > > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > > > > ---
+> > > > >
+> > > >
+> > > > [..]
+> > > > > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > > > > index 242a6bfa1440..4b4a1b25a0db 100644
+> > > > > --- a/include/uapi/linux/videodev2.h
+> > > > > +++ b/include/uapi/linux/videodev2.h
+> > > > > @@ -626,6 +626,7 @@ struct v4l2_pix_format {
+> > > > >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
+> > > > >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
+> > > > >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 MVC */
+> > > > > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /* H264 parsed slices */
+> > > >
+> > > > As pointed out by Tomasz, the Rockchip VPU driver expects start codes [1], so the userspace
+> > > > should be aware of it. Perhaps we could document this pixel format better as:
+> > > >
+> > > > #define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /* H264 parsed slices with start codes */
+> > >
+> > > I'm not sure this is something we want to do at that point. libva
+> > > doesn't give the start code, so this is only going to make the life of
+> > > the sane controllers more difficult. And if you need to have the start
+> > > code and parse it, then you're not so stateless anymore.
+> >
+> > I might not remember correctly, but Rockchip decoder does some slice
+> > parsing on its own (despite not doing any higher level parsing).
+> > Probably that's why it needs those start codes.
+>
+> The VPU found on Allwinner platforms also provides a mechanism to parse
+> the bitstream data via a dedicated interface through the VPU registers.
+> It is used in libvdpau-sunxi but not in our driver, because we don't
+> want to be doing bitstream parsing in the kernel.
+>
+> It would be good to know if this is just a feature of the Rockchip VPU
+> hardware that can be skipped (like on Allwinner) or if it's a hard
+> requirement in its decoding pipeline.
 
---=-U8C4YbhnA6XBhEnA/gvz
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+It's a hard requirement for its decoding pipeline, but...
 
-Hi,
+> Also, maybe it only concerns the
+> slice header? It is already part of the slice data (provided by VAAPI)
+> for H.264/H.265 and an offset is provided to the beginning of the coded
+> video data.
 
-[...]
+Yes, it seems to be only the slice header.
 
-On Wed, 2018-08-15 at 14:51 +0200, Maxime Jourdan wrote:
-> Hi Paul, I think we need to go deeper than just exposing the supported
-> profiles/levels and also include a way to query the CAPTURE pixel
-> formats that are supported for each profile.
->=20
-> Maybe HEVC Main produces yuv420p but HEVC Main10 gives you
-> yuv420p10le. Maybe H.264 HiP produces NV12 but H.264 Hi422P produces
-> YUYV while also supporting down-sampling to NV12.
+>
+> > I wonder if libva is the best reference here. It's been designed
+> > almost entirely by Intel for Intel video hardware. We want something
+> > that could work with a wide range of devices and avoid something like
+> > a need to create a semi-stateless API few months later. In fact,
+> > hardware from another vendor, we're working with, also does parsing of
+> > slice headers internally. Moreover, we have some weird
+> > kind-of-stateful decoders, which cannot fully deal with bitstream on
+> > its own, e.g. cannot parse formats, cannot handle resolution changes,
+> > need H264 bitstream NALUs split into separate buffers, etc.
+> >
+> > As I suggested some time ago, having the full bitstream in the buffer,
+> > with offsets of particular units included in respective controls,
+> > would be the most scalable thing. If really needed, we could add flags
+> > telling the driver that particular units are present, so one's
+> > implementation of libva could put only raw slice data in the buffers.
+> > But perhaps it's libva which needs some amendment?
+>
+> If the raw bitstream is needed, I think it would make more sense to use
+> the already-existing formats for stateful VPUs along with the controls
+> for stateless ones instead of having the full bitstream in the
+> V4L2_PIX_FMT_*_SLICE formats.
 
-Well, I think we're looking at this backwards. Userspace certainly known
-what destination format is relevant for the video, so it shouldn't have
-to query the driver about it except to check that the format is indeed
-supported.
+It may indeed make sense to separate this based on pixel format.
+However, how do we tell the client that it needs to provide those
+controls? Current concept was based entirely on pixel format, so I
+guess that would mean creating something like
+V4L2_PIX_FMT_*_NOT_REALLY_SLICE (_PARSED, _STATELESS?). Might be okay,
+though...
 
-> I don't know the specifics of each platform and the only example I can
-> think of is the Amlogic HEVC decoder that can produce NV12 for Main,
-> but only outputs a compressed proprietary format for Main10.
->=20
-> I unfortunately don't have an idea about how to implement that, but
-> I'll think about it.
+>
+> I would also be tempted to say that reconstructing the needed parts of
+> the bitstream in-driver for these half-way VPUs would be a better
+> approach than blurrying the line between how (and what) data should be
+> passed for stateful and stateless VPUs at the API level. Stateless
+> should only cover what's in the slice NAL unit RBSP, which excludes the
+> start code detection bytes. It is no longer parsed data otherwise.
 
-On the first generations of Allwinner platforms, we also have a vendor-
-specific format as output, that we expose with a dedicated format.
-There's no particular interfacing issue with that. Only that userspace
-has to be aware of the format and how to deal with it.
+I'm not sure where such decision comes from. In particular, Chromium,
+from which this code originates, includes start codes in
+V4L2_PIX_FMT_H264_SLICE. As I mentioned earlier, we can't design this
+API based only on 1 type of hardware semantics. The stateless API
+should cover any kind of codec that needs user space assistance in
+processing the stream, which in practice would be almost everything
+for which stateful API doesn't work.
 
-Cheers,
+That said, since pixel format essentially specifies the buffer
+contents, having such cases differentiated based on the pixel format
+doesn't sound insane.
 
-Paul
-
-> > Cheers,
-> >=20
-> > Paul
-> >=20
-> > --
-> > Paul Kocialkowski, Bootlin (formerly Free Electrons)
-> > Embedded Linux and kernel engineering
-> > https://bootlin.com
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
-
---=-U8C4YbhnA6XBhEnA/gvz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlt9Y0AACgkQ3cLmz3+f
-v9GouAf/ae550kJA16HvjRNQwThjd+ygeGWYLmD61fK4Xd0pS8HuObsAmfUJaeJF
-+IAuiDk/PqdQA24+IN2A50jrczsbXSN7O9IX2wN+zZL86i0lxbFry50oTT9xfs43
-gRtXKhA1JUtWE/Dbc6fPve/dzABspMVblw3p2aUtvaAbJvh4ZkB9DkbReRNkrAji
-axOSExJab/+KfRXSJlQyOyz8vxvAxjYzCbxVOwpNh/PQHktqVBeoIcREF0r9TxLq
-Ous6NF9YSNTv+MmNjwJmNoxaW4BbXTzuex1nAjCwN+yu+0B9ULzx/BbRDLgOU8pv
-OBT2OU5TZyXUjIa1uZBEOh+HRqikMQ==
-=IAEE
------END PGP SIGNATURE-----
-
---=-U8C4YbhnA6XBhEnA/gvz--
+Best regards,
+Tomasz
