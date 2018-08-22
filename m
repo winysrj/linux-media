@@ -1,48 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57058 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726861AbeHUXVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Aug 2018 19:21:10 -0400
-Date: Tue, 21 Aug 2018 15:49:25 -0400
-From: Steven Rostedt <rostedt@goodmis.org>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        matwey.kornilov@gmail.com, tfiga@chromium.org,
-        laurent.pinchart@ideasonboard.com, stern@rowland.harvard.edu,
-        ezequiel@collabora.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
-        mchehab@kernel.org, mingo@redhat.com, isely@pobox.com,
-        bhumirks@gmail.com, colin.king@canonical.com,
-        kieran.bingham@ideasonboard.com, keiichiw@chromium.org
-Subject: Re: [PATCH v5 1/2] media: usb: pwc: Introduce TRACE_EVENTs for
- pwc_isoc_handler()
-Message-ID: <20180821154925.1951096c@gandalf.local.home>
-In-Reply-To: <20180821170629.18408-2-matwey@sai.msu.ru>
-References: <20180821170629.18408-1-matwey@sai.msu.ru>
-        <20180821170629.18408-2-matwey@sai.msu.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:35731 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726762AbeHVEp2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Aug 2018 00:45:28 -0400
+From: Guilherme Gallo <gagallo7@gmail.com>
+To: lkcamp@lists.libreplanetbr.org, helen.koike@collabora.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, hverkuil@xs4all.nl
+Subject: [PATCH] media: vimc: implement basic v4l2-ctrls
+Date: Tue, 21 Aug 2018 22:22:19 -0300
+Message-Id: <20180822012219.22946-1-gagallo7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 21 Aug 2018 20:06:28 +0300
-"Matwey V. Kornilov" <matwey@sai.msu.ru> wrote:
+Implement brightness, contrast and hue controls in vimc-sensor
 
-> There were reports that PWC-based webcams don't work at some
-> embedded ARM platforms. [1] Isochronous transfer handler seems to
-> work too long leading to the issues in MUSB USB host subsystem.
-> Also note, that urb->giveback() handlers are still called with
-> disabled interrupts. In order to be able to measure performance of
-> PWC driver, traces are introduced in URB handler section.
-> 
-> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
-> 
-> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
-> ---
->
+Signed-off-by: Guilherme Alcarde Gallo <gagallo7@gmail.com>
+---
+ drivers/media/platform/vimc/vimc-sensor.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
->From a tracing perspective,
-
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-
--- Steve
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index 605e2a2d5dd5..ecc82cd60900 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -316,6 +316,15 @@ static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_VFLIP:
+ 		tpg_s_vflip(&vsen->tpg, ctrl->val);
+ 		break;
++	case V4L2_CID_BRIGHTNESS:
++		tpg_s_brightness(&vsen->tpg, ctrl->val);
++		break;
++	case V4L2_CID_CONTRAST:
++		tpg_s_contrast(&vsen->tpg, ctrl->val);
++		break;
++	case V4L2_CID_HUE:
++		tpg_s_hue(&vsen->tpg, ctrl->val);
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -377,6 +386,12 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+ 			  V4L2_CID_VFLIP, 0, 1, 1, 0);
+ 	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
+ 			  V4L2_CID_HFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			  V4L2_CID_CONTRAST, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			  V4L2_CID_HUE, 0, 255, 1, 128);
+ 	vsen->sd.ctrl_handler = &vsen->hdl;
+ 	if (vsen->hdl.error) {
+ 		ret = vsen->hdl.error;
+-- 
+2.13.6
