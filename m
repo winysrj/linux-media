@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from summitracing.com ([74.63.245.244]:60160 "EHLO thisoldhouse.com"
+Received: from summitracing.com ([74.63.245.244]:36879 "EHLO thisoldhouse.com"
         rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729071AbeHVRpE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 13:45:04 -0400
+        id S1729191AbeHVRpM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Aug 2018 13:45:12 -0400
 To: linux-media@vger.kernel.org
 Subject: Apps Design
-Message-ID: <0b1a3c8602eb81e0037b51ae7cfbcbbf@jackssmallengines.com>
-Date: Wed, 22 Aug 2018 12:38:52 +0200
-From: "Ray" <freginal@aquahut.net>
+Message-ID: <bcb1cb70bc5e6c3514d1bebe8c979283@jackssmallengines.com>
+Date: Wed, 22 Aug 2018 11:21:02 +0200
+From: "Ray" <knoalge@dawnusa.net>
 Reply-To: dulondano@sina.com
 MIME-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="UTF-8"
