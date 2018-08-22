@@ -1,61 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59084 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726838AbeHVKNQ (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:33118 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726736AbeHVKW7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 06:13:16 -0400
-Subject: Re: Question regarding optimizing pipeline in Vimc
-To: Helen Koike <helen@koikeco.de>, linux-media@vger.kernel.org
-Cc: Guilherme Alcarde Gallo <gagallo7@gmail.com>,
-        =?UTF-8?Q?Lucas_Magalh=c3=a3es?= <lucmaga@gmail.com>
-References: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <61e3a97c-3a71-77b8-e14e-90dccc64a2a9@xs4all.nl>
-Date: Wed, 22 Aug 2018 08:49:40 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+        Wed, 22 Aug 2018 06:22:59 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] media: i2c: max2175: convert to SPDX identifiers
+Date: Wed, 22 Aug 2018 06:59:20 +0000
+Message-ID: <TY2PR01MB1962DBC547EC829ACB04D22BC3300@TY2PR01MB1962.jpnprd01.prod.outlook.com>
+References: <87bm9vf9p8.wl-kuninori.morimoto.gx@renesas.com>
+In-Reply-To: <87bm9vf9p8.wl-kuninori.morimoto.gx@renesas.com>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/22/2018 05:35 AM, Helen Koike wrote:
-> Hello,
-> 
-> One of the discussions we had when developing Vimc, was regarding
-> optimizing image generation.
-> The ideia was to generate the images directly in the capture instead
-> of propagating through the pipeline (to make things faster).
-> But my question is: if this optimization is on, and if there is a
-> greyscaler filter in the middle of the pipeline, do you expect to see
-> a grey image with this optimization?
+Hi Morimoto-san,
 
-Yes.
+Thank you for the patch.
 
-> Or if we just generate a dummy
-> image (with the right size format) at the end of the pipeline, would
-> it be ok? (I am asking because it doesn't sound that simple to
-> propagate the image transformation made by each entity in the pipe)
+> From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+>=20
+> This patch updates license to use SPDX-License-Identifier
+> instead of verbose license text.
+>=20
+> Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 
-No, that would not be OK.
+Acked-by: Ramesh Shanmugasundaram <Ramesh.shanmugasundaram@bp.renesas.com>
 
-My basic idea was that you use a TPG state structure that contains the
-desired output: the sensor starts with e.g. 720p using some bayer pixelformat,
-the debayer module replaces the pixelformat with e.g. PIX_FMT_RGB32, a
-grayscale filter replaces it with PI_FMT_GREY, and that's what the TPG for the
-video device eventually will use to generate the video.
+Thanks,
+Ramesh
 
-This assumes of course that all the vimc blocks only do operations that can
-be handled by the TPG. Depending on what the blocks will do the TPG might need
-to be extended if a feature is missing.
-
-Regards,
-
-	Hans
-
-> Or do you have any other thing in mind?
-> 
-> Thanks
-> Helen
-> 
+> ---
+>  drivers/media/i2c/max2175.c | 10 +---------
+>  drivers/media/i2c/max2175.h | 12 ++----------
+>  2 files changed, 3 insertions(+), 19 deletions(-)
+>=20
+> diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
+> index 008a082..85a3fdf 100644
+> --- a/drivers/media/i2c/max2175.c
+> +++ b/drivers/media/i2c/max2175.c
+> @@ -1,3 +1,4 @@
+> +// SPDX-License-Identifier: GPL-2.0
+>  /*
+>   * Maxim Integrated MAX2175 RF to Bits tuner driver
+>   *
+> @@ -6,15 +7,6 @@
+>   *
+>   * Copyright (C) 2016 Maxim Integrated Products
+>   * Copyright (C) 2017 Renesas Electronics Corporation
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2
+> - * as published by the Free Software Foundation.
+> - *
+> - * This program is distributed in the hope that it will be useful,
+> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> - * GNU General Public License for more details.
+>   */
+>=20
+>  #include <linux/clk.h>
+> diff --git a/drivers/media/i2c/max2175.h b/drivers/media/i2c/max2175.h
+> index eb43373..1ece587 100644
+> --- a/drivers/media/i2c/max2175.h
+> +++ b/drivers/media/i2c/max2175.h
+> @@ -1,4 +1,5 @@
+> -/*
+> +/* SPDX-License-Identifier: GPL-2.0
+> + *
+>   * Maxim Integrated MAX2175 RF to Bits tuner driver
+>   *
+>   * This driver & most of the hard coded values are based on the referenc=
+e
+> @@ -6,15 +7,6 @@
+>   *
+>   * Copyright (C) 2016 Maxim Integrated Products
+>   * Copyright (C) 2017 Renesas Electronics Corporation
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2
+> - * as published by the Free Software Foundation.
+> - *
+> - * This program is distributed in the hope that it will be useful,
+> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> - * GNU General Public License for more details.
+>   */
+>=20
+>  #ifndef __MAX2175_H__
+> --
+> 2.7.4
