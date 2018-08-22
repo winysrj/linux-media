@@ -1,203 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:42679 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728197AbeHVQCd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 12:02:33 -0400
-Received: by mail-wr1-f67.google.com with SMTP id v17-v6so1480262wrr.9
-        for <linux-media@vger.kernel.org>; Wed, 22 Aug 2018 05:37:46 -0700 (PDT)
-Subject: Re: [PATCH 4/4] venus: firmware: register separate platform_device
- for firmware loader
-To: Vikash Garodia <vgarodia@codeaurora.org>
-Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org
-References: <1534871974-32269-5-git-send-email-vgarodia@codeaurora.org>
- <20180822123442.10810-1-stanimir.varbanov@linaro.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <2bdb4da9-fac5-acf7-f4a0-4a5193c92d66@linaro.org>
-Date: Wed, 22 Aug 2018 15:37:44 +0300
-MIME-Version: 1.0
-In-Reply-To: <20180822123442.10810-1-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail.bootlin.com ([62.4.15.54]:40260 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728012AbeHVQ2D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Aug 2018 12:28:03 -0400
+Message-ID: <e6324ea983d34403199044ae30e932cd728c8ad4.camel@bootlin.com>
+Subject: Re: [PATCH 1/9] CHROMIUM: v4l: Add H264 low-level decoder API
+ compound controls.
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Tomasz Figa <tfiga@chromium.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
+         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
+        thomas.petazzoni@bootlin.com, groeck@chromium.org
+Date: Wed, 22 Aug 2018 15:03:00 +0200
+In-Reply-To: <CAAFQd5ANvKF2+GEXQTnRsdYVzJTtBOhv7nFahV=2W-9_QXwY4g@mail.gmail.com>
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+         <20180613140714.1686-2-maxime.ripard@bootlin.com>
+         <80e1d9cb49c6df06843e49332685f2b401023292.camel@collabora.com>
+         <20180822091557.gtnlgoebyv6yttzf@flea>
+         <CAAFQd5ANvKF2+GEXQTnRsdYVzJTtBOhv7nFahV=2W-9_QXwY4g@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-5Ntf9UxAehgezPWvBr41"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
 
-Could you give a try below patch on your environment? You should keep
-your 1/4 to 3/4 patches and replace your 4/4 with the below one.
+--=-5Ntf9UxAehgezPWvBr41
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-You have to drop the compatible string in firmware DT subnode (keep only
-iommus).
+Hi,
 
-On 08/22/2018 03:34 PM, Stanimir Varbanov wrote:
-> This registers a firmware platform_device and associate it with
-> video-firmware DT subnode. Then calls dma configure to initialize
-> dma and iommu.
-> 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  .../devicetree/bindings/media/qcom,venus.txt       | 13 +++++-
->  drivers/media/platform/qcom/venus/core.c           | 14 +++++--
->  drivers/media/platform/qcom/venus/firmware.c       | 49 ++++++++++++++++++++++
->  drivers/media/platform/qcom/venus/firmware.h       |  2 +
->  4 files changed, 73 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> index 00d0d1bf7647..7e045862c3fe 100644
-> --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> @@ -53,7 +53,7 @@
->  
->  * Subnodes
->  The Venus video-codec node must contain two subnodes representing
-> -video-decoder and video-encoder.
-> +video-decoder and video-encoder, and one optional firmware subnode.
->  
->  Every of video-encoder or video-decoder subnode should have:
->  
-> @@ -79,6 +79,13 @@ Every of video-encoder or video-decoder subnode should have:
->  		    power domain which is responsible for collapsing
->  		    and restoring power to the subcore.
->  
-> +The firmware subnode must have:
-> +
-> +- iommus:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A list of phandle and IOMMU specifier pairs.
-> +
->  * An Example
->  	video-codec@1d00000 {
->  		compatible = "qcom,msm8916-venus";
-> @@ -105,4 +112,8 @@ Every of video-encoder or video-decoder subnode should have:
->  			clock-names = "core";
->  			power-domains = <&mmcc VENUS_CORE1_GDSC>;
->  		};
-> +
-> +		video-firmware {
-> +			iommus = <&apps_iommu 0x10b2 0x0>;
-> +		};
->  	};
-> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-> index 393994ecab26..3bd3b8ab1f82 100644
-> --- a/drivers/media/platform/qcom/venus/core.c
-> +++ b/drivers/media/platform/qcom/venus/core.c
-> @@ -284,6 +284,14 @@ static int venus_probe(struct platform_device *pdev)
->  	if (ret < 0)
->  		goto err_runtime_disable;
->  
-> +	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-> +	if (ret)
-> +		goto err_runtime_disable;
-> +
-> +	ret = venus_firmware_init(core);
-> +	if (ret)
-> +		goto err_runtime_disable;
-> +
->  	ret = venus_boot(core);
->  	if (ret)
->  		goto err_runtime_disable;
-> @@ -308,10 +316,6 @@ static int venus_probe(struct platform_device *pdev)
->  	if (ret)
->  		goto err_core_deinit;
->  
-> -	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-> -	if (ret)
-> -		goto err_dev_unregister;
-> -
->  	ret = pm_runtime_put_sync(dev);
->  	if (ret)
->  		goto err_dev_unregister;
-> @@ -347,6 +351,8 @@ static int venus_remove(struct platform_device *pdev)
->  	venus_shutdown(core);
->  	of_platform_depopulate(dev);
->  
-> +	venus_firmware_deinit(core);
-> +
->  	pm_runtime_put_sync(dev);
->  	pm_runtime_disable(dev);
->  
-> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-> index 80c3d1362c04..2a9fcbb71216 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.c
-> +++ b/drivers/media/platform/qcom/venus/firmware.c
-> @@ -20,6 +20,7 @@
->  #include <linux/of.h>
->  #include <linux/of_address.h>
->  #include <linux/platform_device.h>
-> +#include <linux/of_device.h>
->  #include <linux/qcom_scm.h>
->  #include <linux/sizes.h>
->  #include <linux/soc/qcom/mdt_loader.h>
-> @@ -228,3 +229,51 @@ int venus_shutdown(struct venus_core *core)
->  
->  	return ret;
->  }
-> +
-> +int venus_firmware_init(struct venus_core *core)
-> +{
-> +	struct platform_device_info info;
-> +	struct platform_device *pdev;
-> +	struct device_node *np;
-> +	int ret;
-> +
-> +	np = of_get_child_by_name(core->dev->of_node, "video-firmware");
-> +	if (!np)
-> +		return 0;
-> +
-> +	memset(&info, 0, sizeof(info));
-> +	info.fwnode = &np->fwnode;
-> +	info.parent = core->dev;
-> +	info.name = np->name;
-> +	info.dma_mask = DMA_BIT_MASK(32);
-> +
-> +	pdev = platform_device_register_full(&info);
-> +	if (IS_ERR(pdev)) {
-> +		of_node_put(np);
-> +		return PTR_ERR(pdev);
-> +	}
-> +
-> +	pdev->dev.of_node = np;
-> +
-> +	ret = of_dma_configure(&pdev->dev, np);
-> +	if (ret)
-> +		dev_err(core->dev, "dma configure fail\n");
-> +
-> +	of_node_put(np);
-> +
-> +	if (ret)
-> +		return ret;
-> +
-> +	core->no_tz = true;
-> +	core->fw.dev = &pdev->dev;
-> +
-> +	return 0;
-> +}
-> +
-> +void venus_firmware_deinit(struct venus_core *core)
-> +{
-> +	if (!core->fw.dev)
-> +		return;
-> +
-> +	platform_device_unregister(to_platform_device(core->fw.dev));
-> +}
-> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
-> index f41b615b96f1..119a9a4fc1a2 100644
-> --- a/drivers/media/platform/qcom/venus/firmware.h
-> +++ b/drivers/media/platform/qcom/venus/firmware.h
-> @@ -16,6 +16,8 @@
->  
->  struct device;
->  
-> +int venus_firmware_init(struct venus_core *core);
-> +void venus_firmware_deinit(struct venus_core *core);
->  int venus_boot(struct venus_core *core);
->  int venus_shutdown(struct venus_core *core);
->  int venus_set_hw_state(struct venus_core *core, bool suspend);
-> 
+On Wed, 2018-08-22 at 18:54 +0900, Tomasz Figa wrote:
+> On Wed, Aug 22, 2018 at 6:16 PM Maxime Ripard <maxime.ripard@bootlin.com>=
+ wrote:
+> >=20
+> > Hi,
+> >=20
+> > On Tue, Aug 21, 2018 at 01:58:38PM -0300, Ezequiel Garcia wrote:
+> > > On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
+> > > > From: Pawel Osciak <posciak@chromium.org>
+> > > >=20
+> > > > Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> > > > Reviewed-by: Wu-cheng Li <wuchengli@chromium.org>
+> > > > Tested-by: Tomasz Figa <tfiga@chromium.org>
+> > > > [rebase44(groeck): include linux/types.h in v4l2-controls.h]
+> > > > Signed-off-by: Guenter Roeck <groeck@chromium.org>
+> > > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > > > ---
+> > > >=20
+> > >=20
+> > > [..]
+> > > > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/vi=
+deodev2.h
+> > > > index 242a6bfa1440..4b4a1b25a0db 100644
+> > > > --- a/include/uapi/linux/videodev2.h
+> > > > +++ b/include/uapi/linux/videodev2.h
+> > > > @@ -626,6 +626,7 @@ struct v4l2_pix_format {
+> > > >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H=
+264 with start codes */
+> > > >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /*=
+ H264 without start codes */
+> > > >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H=
+264 MVC */
+> > > > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /*=
+ H264 parsed slices */
+> > >=20
+> > > As pointed out by Tomasz, the Rockchip VPU driver expects start codes=
+ [1], so the userspace
+> > > should be aware of it. Perhaps we could document this pixel format be=
+tter as:
+> > >=20
+> > > #define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /* H2=
+64 parsed slices with start codes */
+> >=20
+> > I'm not sure this is something we want to do at that point. libva
+> > doesn't give the start code, so this is only going to make the life of
+> > the sane controllers more difficult. And if you need to have the start
+> > code and parse it, then you're not so stateless anymore.
+>=20
+> I might not remember correctly, but Rockchip decoder does some slice
+> parsing on its own (despite not doing any higher level parsing).
+> Probably that's why it needs those start codes.
 
--- 
-regards,
-Stan
+The VPU found on Allwinner platforms also provides a mechanism to parse
+the bitstream data via a dedicated interface through the VPU registers.
+It is used in libvdpau-sunxi but not in our driver, because we don't
+want to be doing bitstream parsing in the kernel.
+
+It would be good to know if this is just a feature of the Rockchip VPU
+hardware that can be skipped (like on Allwinner) or if it's a hard
+requirement in its decoding pipeline. Also, maybe it only concerns the
+slice header? It is already part of the slice data (provided by VAAPI)
+for H.264/H.265 and an offset is provided to the beginning of the coded
+video data.
+
+> I wonder if libva is the best reference here. It's been designed
+> almost entirely by Intel for Intel video hardware. We want something
+> that could work with a wide range of devices and avoid something like
+> a need to create a semi-stateless API few months later. In fact,
+> hardware from another vendor, we're working with, also does parsing of
+> slice headers internally. Moreover, we have some weird
+> kind-of-stateful decoders, which cannot fully deal with bitstream on
+> its own, e.g. cannot parse formats, cannot handle resolution changes,
+> need H264 bitstream NALUs split into separate buffers, etc.
+>=20
+> As I suggested some time ago, having the full bitstream in the buffer,
+> with offsets of particular units included in respective controls,
+> would be the most scalable thing. If really needed, we could add flags
+> telling the driver that particular units are present, so one's
+> implementation of libva could put only raw slice data in the buffers.
+> But perhaps it's libva which needs some amendment?
+
+If the raw bitstream is needed, I think it would make more sense to use
+the already-existing formats for stateful VPUs along with the controls
+for stateless ones instead of having the full bitstream in the
+V4L2_PIX_FMT_*_SLICE formats.
+
+I would also be tempted to say that reconstructing the needed parts of
+the bitstream in-driver for these half-way VPUs would be a better
+approach than blurrying the line between how (and what) data should be
+passed for stateful and stateless VPUs at the API level. Stateless
+should only cover what's in the slice NAL unit RBSP, which excludes the
+start code detection bytes. It is no longer parsed data otherwise.
+
+Cheers,
+
+Paul
+
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+
+--=-5Ntf9UxAehgezPWvBr41
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlt9XwQACgkQ3cLmz3+f
+v9ETmAf/RAEqpd8KEta6a87yUq4T6ONHgfrWLC/OeBYEV6TcuAyXKszJ3PQER1LA
+giSYj3OykDypAsJhbBzgrtJxXal++8If6iWRKGs2seVMtIfvl15vaGGKHaBkKWeK
+qjbDN6tFaBnrvSHYDyPa3SfppaxYqIvJ2o0+IYsTuwyMTnZc9LiHAQnNASlEaYJG
+qtx+Eaho9vruBQzXafMW0XaAuc+6ddpFPxDyyELOoTvbkaecfPYG3Fsb3CZhWI8x
+UY/Mdy8cSHAfW3QgF5235J4YBKzO1pAGd7h1+0fmItB8FfX/rxckPpasmaRAtHBE
+/cAASPu8KQaUO5w2MBHfbSKqOF2i+Q==
+=CkwI
+-----END PGP SIGNATURE-----
+
+--=-5Ntf9UxAehgezPWvBr41--
