@@ -1,212 +1,312 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:47382 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728512AbeHVR2Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 13:28:16 -0400
-Message-ID: <2550f0d2fd955922c8d6508573ac78487315bf25.camel@collabora.com>
-Subject: Re: [PATCH 1/9] CHROMIUM: v4l: Add H264 low-level decoder API
- compound controls.
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Tomasz Figa <tfiga@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
+Received: from mail.bootlin.com ([62.4.15.54]:42589 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728197AbeHVRfg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Aug 2018 13:35:36 -0400
+Message-ID: <8b603c5a27c55e30e4ac3f1b9bb6b6d8515e2331.camel@bootlin.com>
+Subject: Re: [RFC] Request API and V4L2 capabilities
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Tomasz Figa <tfiga@chromium.org>, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg "
-         "Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
-        thomas.petazzoni@bootlin.com, groeck@chromium.org
-Date: Wed, 22 Aug 2018 10:03:05 -0400
-In-Reply-To: <CAAFQd5AybueM-rhy8bMbRHHZmwBP08-cWB11NadcUQAb6XJ1SA@mail.gmail.com>
-References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
-         <20180613140714.1686-2-maxime.ripard@bootlin.com>
-         <80e1d9cb49c6df06843e49332685f2b401023292.camel@collabora.com>
-         <20180822091557.gtnlgoebyv6yttzf@flea>
-         <CAAFQd5ANvKF2+GEXQTnRsdYVzJTtBOhv7nFahV=2W-9_QXwY4g@mail.gmail.com>
-         <e6324ea983d34403199044ae30e932cd728c8ad4.camel@bootlin.com>
-         <CAAFQd5AybueM-rhy8bMbRHHZmwBP08-cWB11NadcUQAb6XJ1SA@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-O9f5ftoJBAVQZuKAhDT7"
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Date: Wed, 22 Aug 2018 16:10:20 +0200
+In-Reply-To: <CAAFQd5C0bwbZ74rpCTmXVNGPdp2TDJcb+YzRfevwuxvvK7Lbzg@mail.gmail.com>
+References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
+         <43c3d4b79377e9481ca29308cf1c160d57902d8c.camel@bootlin.com>
+         <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl>
+         <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
+         <186fd3ca-7759-7648-6870-4e5274a9680d@xs4all.nl>
+         <05d52a4a3ed33a057e050d1f79dc0d873f31f21e.camel@bootlin.com>
+         <CAAFQd5C0bwbZ74rpCTmXVNGPdp2TDJcb+YzRfevwuxvvK7Lbzg@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-VHIGgrZFWYviSSSmKkcM"
 Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-O9f5ftoJBAVQZuKAhDT7
+--=-VHIGgrZFWYviSSSmKkcM
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Le mercredi 22 ao=C3=BBt 2018 =C3=A0 22:24 +0900, Tomasz Figa a =C3=A9crit =
-:
-> On Wed, Aug 22, 2018 at 10:03 PM Paul Kocialkowski
+Hi,
+
+On Tue, 2018-08-21 at 17:52 +0900, Tomasz Figa wrote:
+> Hi Hans, Paul,
+>=20
+> On Mon, Aug 6, 2018 at 6:29 PM Paul Kocialkowski
 > <paul.kocialkowski@bootlin.com> wrote:
 > >=20
-> > Hi,
-> >=20
-> > On Wed, 2018-08-22 at 18:54 +0900, Tomasz Figa wrote:
-> > > On Wed, Aug 22, 2018 at 6:16 PM Maxime Ripard <maxime.ripard@bootlin.=
-com> wrote:
-> > > >=20
+> > On Mon, 2018-08-06 at 11:23 +0200, Hans Verkuil wrote:
+> > > On 08/06/2018 11:13 AM, Paul Kocialkowski wrote:
 > > > > Hi,
 > > > >=20
-> > > > On Tue, Aug 21, 2018 at 01:58:38PM -0300, Ezequiel Garcia wrote:
-> > > > > On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
-> > > > > > From: Pawel Osciak <posciak@chromium.org>
+> > > > On Mon, 2018-08-06 at 10:32 +0200, Hans Verkuil wrote:
+> > > > > On 08/06/2018 10:16 AM, Paul Kocialkowski wrote:
+> > > > > > On Sat, 2018-08-04 at 15:50 +0200, Hans Verkuil wrote:
+> > > > > > > Regarding point 3: I think this should be documented next to =
+the pixel format. I.e.
+> > > > > > > the MPEG-2 Slice format used by the stateless cedrus codec re=
+quires the request API
+> > > > > > > and that two MPEG-2 controls (slice params and quantization m=
+atrices) must be present
+> > > > > > > in each request.
+> > > > > > >=20
+> > > > > > > I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRED_IN=
+_REQ) is needed here.
+> > > > > > > It's really implied by the fact that you use a stateless code=
+c. It doesn't help
+> > > > > > > generic applications like v4l2-ctl or qv4l2 either since in o=
+rder to support
+> > > > > > > stateless codecs they will have to know about the details of =
+these controls anyway.
+> > > > > > >=20
+> > > > > > > So I am inclined to say that it is not necessary to expose th=
+is information in
+> > > > > > > the API, but it has to be documented together with the pixel =
+format documentation.
 > > > > > >=20
-> > > > > > Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> > > > > > Reviewed-by: Wu-cheng Li <wuchengli@chromium.org>
-> > > > > > Tested-by: Tomasz Figa <tfiga@chromium.org>
-> > > > > > [rebase44(groeck): include linux/types.h in v4l2-controls.h]
-> > > > > > Signed-off-by: Guenter Roeck <groeck@chromium.org>
-> > > > > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > > > > > ---
+> > > > > > I think this is affected by considerations about codec profile/=
+level
+> > > > > > support. More specifically, some controls will only be required=
+ for
+> > > > > > supporting advanced codec profiles/levels, so they can only be
+> > > > > > explicitly marked with appropriate flags by the driver when the=
+ target
+> > > > > > profile/level is known. And I don't think it would be sane for =
+userspace
+> > > > > > to explicitly set what profile/level it's aiming at. As a resul=
+t, I
+> > > > > > don't think we can explicitly mark controls as required or opti=
+onal.
+>=20
+> I'm not sure this is entirely true. The hardware may need to be
+> explicitly told what profile the video is. It may even not be the
+> hardware, but the driver itself too, given that the profile may imply
+> the CAPTURE pixel format, e.g. for VP9 profiles:
+>=20
+> profile 0
+> color depth: 8 bit/sample, chroma subsampling: 4:2:0
+> profile 1
+> color depth: 8 bit, chroma subsampling: 4:2:0, 4:2:2, 4:4:4
+> profile 2
+> color depth: 10=E2=80=9312 bit, chroma subsampling: 4:2:0
+> profile 3
+> color depth: 10=E2=80=9312 bit, chroma subsampling: 4:2:0, 4:2:2, 4:4:4
+>=20
+> (reference: https://en.wikipedia.org/wiki/VP9#Profiles)
+
+I think it would be fair to expect userspace to select the right
+destination format (and maybe have the driver error if there's a
+mismatch with the meta-data) instead of having the driver somewhat
+expose what format should be used.
+
+But maybe this would be an API violation, since all the enumerated
+formats are probably supposed to be selectable?
+
+We could also look at it the other way round and consider that selecting
+an exposed format is always legit, but that it implies passing a
+bitstream that matches it or the driver will error (because of an
+invalid bitstream passed, not because of a "wrong" selected format).
+
+As far as I understood, the profile/level information is there to
+indicate a set of supported features by the decoder, not as an
+information used for the decoding process. Each corresponding feature is
+enabled or not in the bitstream meta-data and that's all the information
+the decoder really needs.
+
+This is why I think that setting the profile/level explicitly is not
+justified by the nature of the process and adding it only for
+convenience or marking whether controls are optional doesn't seem
+justified at this point, in my opinion.
+
+> > > > > > I also like the idea that it should instead be implicit and tha=
+t the
+> > > > > > documentation should detail which specific stateless metadata c=
+ontrols
+> > > > > > are required for a given profile/level.
 > > > > > >=20
+> > > > > > As for controls validation, the approach followed in the Cedrus=
+ driver
+> > > > > > is to check that the most basic controls are filled and allow h=
+aving
+> > > > > > missing controls for those that match advanced profiles.
+> > > > > >=20
+> > > > > > Since this approach feels somewhat generic enough to be applied=
+ to all
+> > > > > > stateless VPU drivers, maybe this should be made a helper in th=
+e
+> > > > > > framework?
 > > > > >=20
-> > > > > [..]
-> > > > > > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linu=
-x/videodev2.h
-> > > > > > index 242a6bfa1440..4b4a1b25a0db 100644
-> > > > > > --- a/include/uapi/linux/videodev2.h
-> > > > > > +++ b/include/uapi/linux/videodev2.h
-> > > > > > @@ -626,6 +626,7 @@ struct v4l2_pix_format {
-> > > > > >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') =
-/* H264 with start codes */
-> > > > > >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1'=
-) /* H264 without start codes */
-> > > > > >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') =
-/* H264 MVC */
-> > > > > > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4'=
-) /* H264 parsed slices */
-> > > > >=20
-> > > > > As pointed out by Tomasz, the Rockchip VPU driver expects start c=
-odes [1], so the userspace
-> > > > > should be aware of it. Perhaps we could document this pixel forma=
-t better as:
-> > > > >=20
-> > > > > #define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /=
-* H264 parsed slices with start codes */
+> > > > > Sounds reasonable. Not sure if it will be in the first version, b=
+ut it is
+> > > > > easy to add later.
 > > > >=20
-> > > > I'm not sure this is something we want to do at that point. libva
-> > > > doesn't give the start code, so this is only going to make the life=
- of
-> > > > the sane controllers more difficult. And if you need to have the st=
-art
-> > > > code and parse it, then you're not so stateless anymore.
+> > > > Definitely, I don't think this is such a high priority for now eith=
+er.
+> > > >=20
+>=20
+> We may want to put strict requirements on what controls are provided
+> for given codec+profile/level. Otherwise we might get some user space
+> that doesn't provide some of them and works only by luck, e.g. because
+> some hardware defaults on initial drivers luckily match the needed
+> values. Even if we don't validate it in the code yet, we should put a
+> big warning saying that not providing the required controls would
+> result in undefined behavior.
+
+I don't think having such strict requirements are a good thing. Even
+with the level/profile made explicit, what if the video under-uses its
+features and thus legitimately doesn't need to have all the controls
+that could be supported with the level/profile? This can probably also
+be frame-specific, so some frames could require more controls than
+others.
+
+This also leads me to believe that the profile/level indication should
+be used as a support indication to userspace, not as a way to expose the
+required features for decoding to the kernel
+
+We could still enforce checks for the most basic controls (that are used
+for all types of slices to decode) and error if they are missing. We
+could also check the bits that indicate more advanced features in these
+basic controls and decide what other controls are required from that.
+
+> > > > > > In addition, I see a need for exposing the maximum profile/leve=
+l that
+> > > > > > the driver supports for decoding. I would suggest reusing the a=
+lready-
+> > > > > > existing dedicated controls used for encoding for this purpose.=
+ For
+> > > > > > decoders, they would be used to expose the (read-only) maximum
+> > > > > > profile/level that is supported by the hardware and keep using =
+them as a
+> > > > > > settable value in a range (matching the level of support) for e=
+ncoders.
+> > > > > >=20
+> > > > > > This is necessary for userspace to determine whether a given vi=
+deo can
+> > > > > > be decoded in hardware or not. Instead of half-way decoding the=
+ video
+> > > > > > (ending up in funky results), this would easily allow skipping =
+hardware
+> > > > > > decoding and e.g. falling back on software decoding.
+> > > > >=20
+> > > > > I think it might be better to expose this through new read-only b=
+itmask
+> > > > > controls: i.e. a bitmask containing the supported profiles and le=
+vels.
+> > > >=20
+> > > > It seems that this is more or less what the coda driver is doing fo=
+r
+> > > > decoding actually, although it uses a menu control between min/max
+> > > > supported profile/levels, with a mask to "blacklist" the unsupporte=
+d
+> > > > values. Then, the V4L2_CTRL_FLAG_READ_ONLY flag is set to keep the
+> > > > control read-only.
+> > > >=20
+> > > > > Reusing the existing controls for a decoder is odd since there is=
+ not
+> > > > > really a concept of a 'current' value since you just want to repo=
+rt what
+> > > > > is supported. And I am not sure if all decoders can report the pr=
+ofile
+> > > > > or level that they detect.
+> > > >=20
+> > > > Is that really a problem when the READ_ONLY flag is set? I thought =
+it
+> > > > was designed to fit this specific case, when the driver reports a v=
+alue
+> > > > that userspace cannot affect.
 > > >=20
-> > > I might not remember correctly, but Rockchip decoder does some slice
-> > > parsing on its own (despite not doing any higher level parsing).
-> > > Probably that's why it needs those start codes.
-> >=20
-> > The VPU found on Allwinner platforms also provides a mechanism to parse
-> > the bitstream data via a dedicated interface through the VPU registers.
-> > It is used in libvdpau-sunxi but not in our driver, because we don't
-> > want to be doing bitstream parsing in the kernel.
-> >=20
-> > It would be good to know if this is just a feature of the Rockchip VPU
-> > hardware that can be skipped (like on Allwinner) or if it's a hard
-> > requirement in its decoding pipeline.
->=20
-> It's a hard requirement for its decoding pipeline, but...
->=20
-> > Also, maybe it only concerns the
-> > slice header? It is already part of the slice data (provided by VAAPI)
-> > for H.264/H.265 and an offset is provided to the beginning of the coded
-> > video data.
->=20
-> Yes, it seems to be only the slice header.
->=20
-> >=20
-> > > I wonder if libva is the best reference here. It's been designed
-> > > almost entirely by Intel for Intel video hardware. We want something
-> > > that could work with a wide range of devices and avoid something like
-> > > a need to create a semi-stateless API few months later. In fact,
-> > > hardware from another vendor, we're working with, also does parsing o=
-f
-> > > slice headers internally. Moreover, we have some weird
-> > > kind-of-stateful decoders, which cannot fully deal with bitstream on
-> > > its own, e.g. cannot parse formats, cannot handle resolution changes,
-> > > need H264 bitstream NALUs split into separate buffers, etc.
+> > > Well, for read-only menu controls the current value of the control wo=
+uld
+> > > have to indicate what the current profile/level is that is being deco=
+ded.
 > > >=20
-> > > As I suggested some time ago, having the full bitstream in the buffer=
-,
-> > > with offsets of particular units included in respective controls,
-> > > would be the most scalable thing. If really needed, we could add flag=
-s
-> > > telling the driver that particular units are present, so one's
-> > > implementation of libva could put only raw slice data in the buffers.
-> > > But perhaps it's libva which needs some amendment?
+> > > That's not really relevant since what you want is just to query the
+> > > supported profiles/levels. A read-only bitmask control is the fastest
+> > > method (if only because using a menu control requires the application=
+ to
+> > > enumerate all possibilities with QUERYMENU).
+>=20
+> Besides querying for supported profiles,
+>  - For stateless codecs we also need to set the profile, since the
+> codec itself does only the number crunching.
+
+I disagree here, see above.
+
+>  - For stateful codecs, the decoder would also report the detected
+> profile after parsing the bitstream (although this is possibly not of
+> a big importance to the user space).
+
+I don't follow the logic behind this. This means informing userspace of
+the capabilities required to decode the video that the VPU is currently
+decoding... so that it can decided whether to decode it?
+
+> As for querying itself, there is still more to it than could be
+> handled with just a read only control. To detect what CAPTURE formats
+> are supported for given profile, one would have to set the profile
+> control first and then use ENUM_FMT.
+
+Or consider that the bitstream is invalid if it doesn't match the
+selected format and let userspace pick the appropriate format.
+
+> > Ah yes, I finally understand the issue with what the current control
+> > value represents here. Since I don't think the driver should have to
+> > bother with figuring out the profile in use (as expressed earlier, I
+> > think it should be implicit, through the codec metadata controls and
+> > features used), I no longer believe it's best to have the same control
+> > for both encoding and decoding.
 > >=20
-> > If the raw bitstream is needed, I think it would make more sense to use
-> > the already-existing formats for stateful VPUs along with the controls
-> > for stateless ones instead of having the full bitstream in the
-> > V4L2_PIX_FMT_*_SLICE formats.
+> > > > Otherwise, I agree that having a bitmask type would be a better fit=
+, but
+> > > > I think it would be beneficial to keep the already-defined control =
+and
+> > > > associated values, which implies using the menu control type for bo=
+th
+> > > > encoders and decoders.
+> > > >=20
+> > > > If this is not an option, I would be in favour of adding per-codec =
+read-
+> > > > only bitmask controls (e.g. for H264 something like
+> > > > V4L2_CID_MPEG_VIDEO_H264_PROFILE_SUPPORT) that expose the already-
+> > > > existing profile/level definitions as bit identifiers (a bit like c=
+oda
+> > > > is using them to craft a mask for the menu items to blacklist) for
+> > > > decoding only.
+> > >=20
+> > > That's what I have in mind, yes. I'd like Tomasz' input as well, thou=
+gh.
 >=20
-> It may indeed make sense to separate this based on pixel format.
-> However, how do we tell the client that it needs to provide those
-> controls? Current concept was based entirely on pixel format, so I
-> guess that would mean creating something like
-> V4L2_PIX_FMT_*_NOT_REALLY_SLICE (_PARSED, _STATELESS?). Might be okay,
-> though...
->=20
-> >=20
-> > I would also be tempted to say that reconstructing the needed parts of
-> > the bitstream in-driver for these half-way VPUs would be a better
-> > approach than blurrying the line between how (and what) data should be
-> > passed for stateful and stateless VPUs at the API level. Stateless
-> > should only cover what's in the slice NAL unit RBSP, which excludes the
-> > start code detection bytes. It is no longer parsed data otherwise.
->=20
-> I'm not sure where such decision comes from. In particular, Chromium,
-> from which this code originates, includes start codes in
-> V4L2_PIX_FMT_H264_SLICE. As I mentioned earlier, we can't design this
-> API based only on 1 type of hardware semantics. The stateless API
-> should cover any kind of codec that needs user space assistance in
-> processing the stream, which in practice would be almost everything
-> for which stateful API doesn't work.
+> Thanks for valuing my input! Hopefully the comments don't turn that
+> into overestimation. ;) Sorry for being terribly late to the party,
+> last 2 weeks have been extremely busy.
 
-Well, be aware that in most of today's use case, Chromium bitstream
-handling is suboptimal since the startcode are crafted by Chromium.
-Most of today's use case uses ISOMP4 container, which does not hold
-start codes but AVC headers.
+Taking the occasion to note that I have also been slow to respond here,
+with ongoing work on H265 support.
 
-If we step back a little, the start codes are designed for randomly
-accessing bytes. It's a mark made to be able to randomly scan and find
-the start of a NAL. In a well framed stream, they are useless. Then AVC
-header is designed to announce the size of the following block, if we
-pass only one NAL by buffer, this is not very useful either. Both seems
-trivial to reconstruct if the HW requires it.
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
 
->=20
-> That said, since pixel format essentially specifies the buffer
-> contents, having such cases differentiated based on the pixel format
-> doesn't sound insane.
-
-As of today, that's what the pixel formats tries to do with these
-_NO_SC postfix (the current naming is generally ambiguous though).
-
->=20
-> Best regards,
-> Tomasz
-
---=-O9f5ftoJBAVQZuKAhDT7
+--=-VHIGgrZFWYviSSSmKkcM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW31tGQAKCRBxUwItrAao
-HIGkAKCgkBKCJNCAYfiVGp4ochL2PrI0nQCdHEQ5iJuIyzNaKHWrmWONRL1TQFc=
-=Ew/g
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlt9bswACgkQ3cLmz3+f
+v9F+ogf/RCeg01C2Y6gVmAoa8VVaj7dBFNHhSKh2bnNjTiCyYwpJFIpIJ+NMYTQG
+v6QHVj7oSWv/p+gPmhU2+csp+OKZMfckUOG74cEbhRntXyhtlCWikjOQG5PIW9+J
+wbNHWJJ/4Vt7dgOEa539jdGWBjJt9Zoks8AILDef4/AgCIGMU19h6UPULzeRc3Lq
+LjF9+mlWBYPyfGvujpOb7eUE/DMAyO++SLOFg+cMMLnIT1NMJZyHKyAGBCtW70zN
+GiZ/PJym0GkDpOzCwlxt/at4iNTZQiPMH7wcbXOp4yVWrd0DnQ9t1X+EeK93153L
+GhiVEwKR/zOFU/rcKWjrt14/1GHA2A==
+=FsQK
 -----END PGP SIGNATURE-----
 
---=-O9f5ftoJBAVQZuKAhDT7--
+--=-VHIGgrZFWYviSSSmKkcM--
