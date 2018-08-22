@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:48092 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:48104 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727333AbeHVUZv (ORCPT
+        with ESMTP id S1727251AbeHVUZz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 16:25:51 -0400
+        Wed, 22 Aug 2018 16:25:55 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-rockchip@lists.infradead.org
@@ -14,125 +14,72 @@ Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
         Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v3 4/7] v4l2-ctrls: Support dimensions override for standard controls
-Date: Wed, 22 Aug 2018 13:59:34 -0300
-Message-Id: <20180822165937.8700-5-ezequiel@collabora.com>
+Subject: [PATCH v3 5/7] media: Add JPEG_RAW format
+Date: Wed, 22 Aug 2018 13:59:35 -0300
+Message-Id: <20180822165937.8700-6-ezequiel@collabora.com>
 In-Reply-To: <20180822165937.8700-1-ezequiel@collabora.com>
 References: <20180822165937.8700-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pass the v4l2_ctrl_config->dims array to v4l2_ctrl_fill, so the
-dimensions can be overridden for standard controls. This will
-be used to fill V4L2_CID_JPEG_LUMA_QUANTIZATION and
-V4L2_CID_JPEG_CHROMA_QUANTIZATION.
+From: Shunqian Zheng <zhengsq@rock-chips.com>
 
+Add V4L2_PIX_FMT_JPEG_RAW format that does not contain
+JPEG header in the output frame.
+
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
 Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/v4l2-core/v4l2-common.c |  2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c  | 17 ++++++++++-------
- include/media/v4l2-ctrls.h            |  2 +-
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ Documentation/media/uapi/v4l/pixfmt-compressed.rst | 9 +++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 1 +
+ include/uapi/linux/videodev2.h                     | 1 +
+ 3 files changed, 11 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index b518b92d6d96..7b6353dab8a5 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -90,7 +90,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 _min, s32 _max, s32 _
- 	s64 def = _def;
- 
- 	v4l2_ctrl_fill(qctrl->id, &name, &qctrl->type,
--		       &min, &max, &step, &def, &qctrl->flags);
-+		       &min, &max, &step, &def, NULL, &qctrl->flags);
- 
- 	if (name == NULL)
- 		return -EINVAL;
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 599c1cbff3b9..6ab15f4a0fea 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1068,7 +1068,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- EXPORT_SYMBOL(v4l2_ctrl_get_name);
- 
- void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags)
-+		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *dims, u32 *flags)
- {
- 	*name = v4l2_ctrl_get_name(id);
- 	*flags = 0;
-@@ -2244,10 +2244,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	s64 max = cfg->max;
- 	u64 step = cfg->step;
- 	s64 def = cfg->def;
-+	u32 dims[V4L2_CTRL_MAX_DIMS];
+diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+index d382e7a5c38e..4dffe40097f2 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+@@ -23,6 +23,15 @@ Compressed Formats
+       - 'JPEG'
+       - TBD. See also :ref:`VIDIOC_G_JPEGCOMP <VIDIOC_G_JPEGCOMP>`,
+ 	:ref:`VIDIOC_S_JPEGCOMP <VIDIOC_G_JPEGCOMP>`.
++    * .. _V4L2-PIX-FMT-JPEG-RAW:
 +
-+	memcpy(dims, cfg->dims, sizeof(dims));
++      - ``V4L2_PIX_FMT_JPEG_RAW``
++      - 'Raw JPEG'
++      - Raw JPEG bitstream, containing a compressed payload. This format
++        contains an image scan, i.e. without any metadata or headers.
++        The user is expected to set the needed metadata such as
++        quantization and entropy encoding tables, via ``V4L2_CID_JPEG``
++        controls, see :ref:`jpeg-control-id`.
+     * .. _V4L2-PIX-FMT-MPEG:
  
- 	if (name == NULL)
- 		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
--								&def, &flags);
-+			       &def, dims, &flags);
- 
- 	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
- 		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
-@@ -2266,7 +2269,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->type_ops, cfg->id, name,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step, def,
--			cfg->dims, cfg->elem_size,
-+			dims, cfg->elem_size,
- 			flags, qmenu, qmenu_int, priv);
- 	if (ctrl)
- 		ctrl->is_private = cfg->is_private;
-@@ -2283,7 +2286,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 	enum v4l2_ctrl_type type;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, NULL, &flags);
- 	if (type == V4L2_CTRL_TYPE_MENU ||
- 	    type == V4L2_CTRL_TYPE_INTEGER_MENU ||
- 	    type >= V4L2_CTRL_COMPOUND_TYPES) {
-@@ -2312,7 +2315,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 	u64 step;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, NULL, &flags);
- 
- 	if (type == V4L2_CTRL_TYPE_MENU)
- 		qmenu = v4l2_ctrl_get_menu(id);
-@@ -2350,7 +2353,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, NULL, &flags);
- 	if (type != V4L2_CTRL_TYPE_MENU || qmenu == NULL) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
-@@ -2375,7 +2378,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 	s64 def = _def;
- 	u32 flags;
- 
--	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-+	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, NULL, &flags);
- 	if (type != V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index f615ba1b29dd..55ab01d97c12 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -370,7 +370,7 @@ struct v4l2_ctrl_config {
-  *    control framework this function will no longer be exported.
-  */
- void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
--		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
-+		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *dims, u32 *flags);
- 
- 
- /**
+       - ``V4L2_PIX_FMT_MPEG``
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 54afc9c7ee6e..0dcd95f4bdf1 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1301,6 +1301,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		/* Max description length mask:	descr = "0123456789012345678901234567890" */
+ 		case V4L2_PIX_FMT_MJPEG:	descr = "Motion-JPEG"; break;
+ 		case V4L2_PIX_FMT_JPEG:		descr = "JFIF JPEG"; break;
++		case V4L2_PIX_FMT_JPEG_RAW:	descr = "Raw JPEG"; break;
+ 		case V4L2_PIX_FMT_DV:		descr = "1394"; break;
+ 		case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
+ 		case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 5d1a3685bea9..f271048c89c4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -627,6 +627,7 @@ struct v4l2_pix_format {
+ /* compressed formats */
+ #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
+ #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
++#define V4L2_PIX_FMT_JPEG_RAW v4l2_fourcc('J', 'P', 'G', 'R') /* JFIF JPEG RAW without headers */
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
+ #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
 -- 
 2.18.0
