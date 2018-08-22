@@ -1,107 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41270 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726469AbeHVGy3 (ORCPT
+Received: from mail-lj1-f182.google.com ([209.85.208.182]:32794 "EHLO
+        mail-lj1-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726186AbeHVG7S (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 02:54:29 -0400
-Message-ID: <a1bae004b6e12af19cdf924163dbfa33@smtp-cloud7.xs4all.net>
-Date: Wed, 22 Aug 2018 05:31:30 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Wed, 22 Aug 2018 02:59:18 -0400
+Received: by mail-lj1-f182.google.com with SMTP id s12-v6so389512ljj.0
+        for <linux-media@vger.kernel.org>; Tue, 21 Aug 2018 20:36:21 -0700 (PDT)
+Received: from mail-lf1-f47.google.com (mail-lf1-f47.google.com. [209.85.167.47])
+        by smtp.gmail.com with ESMTPSA id h73-v6sm89429lfb.58.2018.08.21.20.36.20
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 21 Aug 2018 20:36:20 -0700 (PDT)
+Received: by mail-lf1-f47.google.com with SMTP id c7-v6so388159lfe.0
+        for <linux-media@vger.kernel.org>; Tue, 21 Aug 2018 20:36:20 -0700 (PDT)
+MIME-Version: 1.0
+From: Helen Koike <helen@koikeco.de>
+Date: Wed, 22 Aug 2018 00:35:59 -0300
+Message-ID: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
+Subject: Question regarding optimizing pipeline in Vimc
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Guilherme Alcarde Gallo <gagallo7@gmail.com>,
+        =?UTF-8?Q?Lucas_Magalh=C3=A3es?= <lucmaga@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+One of the discussions we had when developing Vimc, was regarding
+optimizing image generation.
+The ideia was to generate the images directly in the capture instead
+of propagating through the pipeline (to make things faster).
+But my question is: if this optimization is on, and if there is a
+greyscaler filter in the middle of the pipeline, do you expect to see
+a grey image with this optimization? Or if we just generate a dummy
+image (with the right size format) at the end of the pipeline, would
+it be ok? (I am asking because it doesn't sound that simple to
+propagate the image transformation made by each entity in the pipe)
+Or do you have any other thing in mind?
 
-date:			Wed Aug 22 05:00:12 CEST 2018
-media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
-media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
-v4l-utils git hash:	015ca7524748fa7cef296102c68b631b078b63c6
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.17.0-1-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.115-i686: OK
-linux-3.18.115-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.18-i686: OK
-linux-4.18-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks
+Helen
