@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:43379 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726186AbeHVJxs (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59084 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726838AbeHVKNQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 05:53:48 -0400
-Subject: Re: [PATCH] media: vimc: implement basic v4l2-ctrls
-To: Guilherme Gallo <gagallo7@gmail.com>,
-        lkcamp@lists.libreplanetbr.org, helen.koike@collabora.com,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <20180822012219.22946-1-gagallo7@gmail.com>
+        Wed, 22 Aug 2018 06:13:16 -0400
+Subject: Re: Question regarding optimizing pipeline in Vimc
+To: Helen Koike <helen@koikeco.de>, linux-media@vger.kernel.org
+Cc: Guilherme Alcarde Gallo <gagallo7@gmail.com>,
+        =?UTF-8?Q?Lucas_Magalh=c3=a3es?= <lucmaga@gmail.com>
+References: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0c204c5f-2bd1-2ca7-c055-b0ff6d93189a@xs4all.nl>
-Date: Wed, 22 Aug 2018 08:30:14 +0200
+Message-ID: <61e3a97c-3a71-77b8-e14e-90dccc64a2a9@xs4all.nl>
+Date: Wed, 22 Aug 2018 08:49:40 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180822012219.22946-1-gagallo7@gmail.com>
+In-Reply-To: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guilherme,
+On 08/22/2018 05:35 AM, Helen Koike wrote:
+> Hello,
+> 
+> One of the discussions we had when developing Vimc, was regarding
+> optimizing image generation.
+> The ideia was to generate the images directly in the capture instead
+> of propagating through the pipeline (to make things faster).
+> But my question is: if this optimization is on, and if there is a
+> greyscaler filter in the middle of the pipeline, do you expect to see
+> a grey image with this optimization?
 
-Thank you for your patch. It looks good, but can you add support for V4L2_CID_SATURATION
-as well? The TPG supports that as well, so there is no reason to leave that out.
+Yes.
 
-Thank you!
+> Or if we just generate a dummy
+> image (with the right size format) at the end of the pipeline, would
+> it be ok? (I am asking because it doesn't sound that simple to
+> propagate the image transformation made by each entity in the pipe)
+
+No, that would not be OK.
+
+My basic idea was that you use a TPG state structure that contains the
+desired output: the sensor starts with e.g. 720p using some bayer pixelformat,
+the debayer module replaces the pixelformat with e.g. PIX_FMT_RGB32, a
+grayscale filter replaces it with PI_FMT_GREY, and that's what the TPG for the
+video device eventually will use to generate the video.
+
+This assumes of course that all the vimc blocks only do operations that can
+be handled by the TPG. Depending on what the blocks will do the TPG might need
+to be extended if a feature is missing.
+
+Regards,
 
 	Hans
 
-On 08/22/2018 03:22 AM, Guilherme Gallo wrote:
-> Implement brightness, contrast and hue controls in vimc-sensor
+> Or do you have any other thing in mind?
 > 
-> Signed-off-by: Guilherme Alcarde Gallo <gagallo7@gmail.com>
-> ---
->  drivers/media/platform/vimc/vimc-sensor.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-> index 605e2a2d5dd5..ecc82cd60900 100644
-> --- a/drivers/media/platform/vimc/vimc-sensor.c
-> +++ b/drivers/media/platform/vimc/vimc-sensor.c
-> @@ -316,6 +316,15 @@ static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_VFLIP:
->  		tpg_s_vflip(&vsen->tpg, ctrl->val);
->  		break;
-> +	case V4L2_CID_BRIGHTNESS:
-> +		tpg_s_brightness(&vsen->tpg, ctrl->val);
-> +		break;
-> +	case V4L2_CID_CONTRAST:
-> +		tpg_s_contrast(&vsen->tpg, ctrl->val);
-> +		break;
-> +	case V4L2_CID_HUE:
-> +		tpg_s_hue(&vsen->tpg, ctrl->val);
-> +		break;
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -377,6 +386,12 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
->  			  V4L2_CID_VFLIP, 0, 1, 1, 0);
->  	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
->  			  V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-> +			  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-> +			  V4L2_CID_CONTRAST, 0, 255, 1, 128);
-> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-> +			  V4L2_CID_HUE, 0, 255, 1, 128);
->  	vsen->sd.ctrl_handler = &vsen->hdl;
->  	if (vsen->hdl.error) {
->  		ret = vsen->hdl.error;
+> Thanks
+> Helen
 > 
