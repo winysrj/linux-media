@@ -1,69 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:12484 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730908AbeHWQ6C (ORCPT
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:12453 "EHLO
+        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730794AbeHWQ6B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 12:58:02 -0400
+        Thu, 23 Aug 2018 12:58:01 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 24/30] adv748x: csi2: add translation from pixelcode to CSI-2 datatype
-Date: Thu, 23 Aug 2018 15:25:38 +0200
-Message-Id: <20180823132544.521-25-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 22/30] v4l: Add CSI-2 bus configuration to frame descriptors
+Date: Thu, 23 Aug 2018 15:25:36 +0200
+Message-Id: <20180823132544.521-23-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare to implement frame descriptors to support multiplexed streams by
-adding a function to map pixelcode to CSI-2 datatype. This is needed to
-properly be able to fill out the struct v4l2_mbus_frame_desc.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Add CSI-2 bus specific configuration to the frame descriptors. This allows
+obtaining the virtual channel and data type information for each stream
+the transmitter is sending.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/adv748x/adv748x-csi2.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ include/media/v4l2-subdev.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 469be87a3761feb5..b759a7e22fbc98df 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -18,6 +18,28 @@
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index ac1f7ee4cdb978ad..ffd98e4f368358a6 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -317,6 +317,17 @@ struct v4l2_subdev_audio_ops {
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+ };
  
- #include "adv748x.h"
- 
-+struct adv748x_csi2_format {
-+	unsigned int code;
-+	unsigned int datatype;
++/**
++ * struct v4l2_mbus_frame_desc_entry_csi2
++ *
++ * @channel: CSI-2 virtual channel
++ * @data_type: CSI-2 data type ID
++ */
++struct v4l2_mbus_frame_desc_entry_csi2 {
++	u8 channel;
++	u8 data_type;
 +};
 +
-+static const struct adv748x_csi2_format adv748x_csi2_formats[] = {
-+	{ .code = MEDIA_BUS_FMT_RGB888_1X24,    .datatype = 0x24, },
-+	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,     .datatype = 0x1e, },
-+	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,      .datatype = 0x1e, },
-+	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,    .datatype = 0x1e, },
-+};
-+
-+static unsigned int adv748x_csi2_code_to_datatype(unsigned int code)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(adv748x_csi2_formats); i++)
-+		if (adv748x_csi2_formats[i].code == code)
-+			return adv748x_csi2_formats[i].datatype;
-+	return 0;
-+}
-+
- static bool is_txa(struct adv748x_csi2 *tx)
- {
- 	return tx == &tx->state->txa;
+ /**
+  * enum v4l2_mbus_frame_desc_entry - media bus frame description flags
+  *
+@@ -340,11 +351,16 @@ enum v4l2_mbus_frame_desc_flags {
+  *		%FRAME_DESC_FL_BLOB is not set.
+  * @length:	number of octets per frame, valid if @flags
+  *		%V4L2_MBUS_FRAME_DESC_FL_LEN_MAX is set.
++ * @bus:	Bus specific frame descriptor parameters
++ * @bus.csi2:	CSI-2 specific bus configuration
+  */
+ struct v4l2_mbus_frame_desc_entry {
+ 	enum v4l2_mbus_frame_desc_flags flags;
+ 	u32 pixelcode;
+ 	u32 length;
++	union {
++		struct v4l2_mbus_frame_desc_entry_csi2 csi2;
++	} bus;
+ };
+ 
+ #define V4L2_FRAME_DESC_ENTRY_MAX	4
 -- 
 2.18.0
