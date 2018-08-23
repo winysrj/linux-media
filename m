@@ -1,394 +1,668 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:12132 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730648AbeHWQ5r (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:12144 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730669AbeHWQ5t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 12:57:47 -0400
+        Thu, 23 Aug 2018 12:57:49 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 05/30] media: entity: Move the pipeline from entity to pads
-Date: Thu, 23 Aug 2018 15:25:19 +0200
-Message-Id: <20180823132544.521-6-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 06/30] media: entity: Use pad as the starting point for a pipeline
+Date: Thu, 23 Aug 2018 15:25:20 +0200
+Message-Id: <20180823132544.521-7-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-This moves the pipe and stream_count fields from struct media_entity to
-struct media_pad. Effectively streams become pad-specific rather than
-being stream specific, allowing several independent streams to traverse a
-single entity.
+The pipeline will be moved from the entity to the pads; reflect this in
+the media pipeline function API.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/media-entity.c                  | 61 ++++++++++++-------
- drivers/media/platform/exynos4-is/fimc-isp.c  |  2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c |  2 +-
- drivers/media/platform/omap3isp/isp.c         |  2 +-
- drivers/media/platform/omap3isp/ispvideo.c    |  2 +-
- drivers/media/platform/omap3isp/ispvideo.h    |  2 +-
- drivers/media/platform/rcar-vin/rcar-dma.c    |  2 +-
- drivers/media/platform/xilinx/xilinx-dma.c    |  2 +-
- drivers/media/platform/xilinx/xilinx-dma.h    |  2 +-
- drivers/staging/media/imx/imx-media-utils.c   |  2 +-
- drivers/staging/media/omap4iss/iss.c          |  2 +-
- drivers/staging/media/omap4iss/iss_video.c    |  2 +-
- drivers/staging/media/omap4iss/iss_video.h    |  2 +-
- include/media/media-entity.h                  | 17 ++++--
- 14 files changed, 61 insertions(+), 41 deletions(-)
+ Documentation/media/kapi/mc-core.rst          |  6 ++--
+ drivers/media/media-entity.c                  | 25 +++++++-------
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c      |  6 ++--
+ .../media/platform/exynos4-is/fimc-capture.c  |  8 ++---
+ .../platform/exynos4-is/fimc-isp-video.c      |  8 ++---
+ drivers/media/platform/exynos4-is/fimc-lite.c |  8 ++---
+ drivers/media/platform/omap3isp/ispvideo.c    |  6 ++--
+ .../media/platform/qcom/camss/camss-video.c   |  6 ++--
+ drivers/media/platform/rcar-vin/rcar-dma.c    |  6 ++--
+ .../media/platform/s3c-camif/camif-capture.c  |  6 ++--
+ drivers/media/platform/vimc/vimc-capture.c    |  6 ++--
+ drivers/media/platform/vsp1/vsp1_video.c      |  6 ++--
+ drivers/media/platform/xilinx/xilinx-dma.c    |  6 ++--
+ drivers/media/usb/au0828/au0828-core.c        |  4 +--
+ drivers/staging/media/imx/imx-media-utils.c   |  6 ++--
+ drivers/staging/media/omap4iss/iss_video.c    |  6 ++--
+ include/media/media-entity.h                  | 33 ++++++++++---------
+ 17 files changed, 76 insertions(+), 76 deletions(-)
 
+diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+index 849b87439b7a9772..ede7e946f6a82ac0 100644
+--- a/Documentation/media/kapi/mc-core.rst
++++ b/Documentation/media/kapi/mc-core.rst
+@@ -211,11 +211,11 @@ When starting streaming, drivers must notify all entities in the pipeline to
+ prevent link states from being modified during streaming by calling
+ :c:func:`media_pipeline_start()`.
+ 
+-The function will mark all entities connected to the given entity through
+-enabled links, either directly or indirectly, as streaming.
++The function will mark all entities connected to the given pad through
++enabled routes and links, either directly or indirectly, as streaming.
+ 
+ The struct :c:type:`media_pipeline` instance pointed to by
+-the pipe argument will be stored in every entity in the pipeline.
++the pipe argument will be stored in every pad in the pipeline.
+ Drivers should embed the struct :c:type:`media_pipeline`
+ in higher-level pipeline structures and can then access the
+ pipeline through the struct :c:type:`media_entity`
 diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index ec7c61dff6ae879d..239036a7582cbc95 100644
+index 239036a7582cbc95..2722c38a822d7787 100644
 --- a/drivers/media/media-entity.c
 +++ b/drivers/media/media-entity.c
-@@ -419,7 +419,7 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
- 	struct media_pad *pad = entity->pads;
+@@ -411,12 +411,11 @@ EXPORT_SYMBOL_GPL(media_entity_get_fwnode_pad);
+  * Pipeline management
+  */
+ 
+-__must_check int __media_pipeline_start(struct media_entity *entity,
++__must_check int __media_pipeline_start(struct media_pad *pad,
+ 					struct media_pipeline *pipe)
+ {
+-	struct media_device *mdev = entity->graph_obj.mdev;
++	struct media_device *mdev = pad->graph_obj.mdev;
+ 	struct media_graph *graph = &pipe->graph;
+-	struct media_pad *pad = entity->pads;
  	struct media_pad *pad_err = pad;
  	struct media_link *link;
--	int ret;
-+	int ret = 0;
+ 	int ret = 0;
+@@ -549,24 +548,23 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
+ }
+ EXPORT_SYMBOL_GPL(__media_pipeline_start);
  
- 	if (!pipe->streaming_count++) {
- 		ret = media_graph_walk_init(&pipe->graph, mdev);
-@@ -431,21 +431,27 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
- 
- 	while ((pad = media_graph_walk_next(graph))) {
- 		struct media_entity *entity = pad->entity;
-+		unsigned int i;
-+		bool skip_validation = pad->pipe;
- 
- 		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
- 		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
- 
--		entity->stream_count++;
-+		for (i = 0; i < entity->num_pads; i++) {
-+			struct media_pad *iter = &entity->pads[i];
- 
--		if (WARN_ON(entity->pipe && entity->pipe != pipe)) {
--			ret = -EBUSY;
--			goto error;
-+			if (iter->pipe && WARN_ON(iter->pipe != pipe))
-+				ret = -EBUSY;
-+			else
-+				iter->pipe = pipe;
-+			iter->stream_count++;
- 		}
- 
--		entity->pipe = pipe;
-+		if (ret)
-+			goto error;
- 
- 		/* Already streaming --- no need to check. */
--		if (entity->stream_count > 1)
-+		if (skip_validation)
- 			continue;
- 
- 		if (!entity->ops || !entity->ops->link_validate)
-@@ -514,19 +520,24 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
- 
- 	while ((pad_err = media_graph_walk_next(graph))) {
- 		struct media_entity *entity_err = pad_err->entity;
-+		unsigned int i;
-+
-+		for (i = 0; i < entity_err->num_pads; i++) {
-+			struct media_pad *iter = &entity_err->pads[i];
- 
--		/* Sanity check for negative stream_count */
--		if (!WARN_ON_ONCE(entity_err->stream_count <= 0)) {
--			entity_err->stream_count--;
--			if (entity_err->stream_count == 0)
--				entity_err->pipe = NULL;
-+			/* Sanity check for negative stream_count */
-+			if (!WARN_ON_ONCE(iter->stream_count <= 0)) {
-+				--iter->stream_count;
-+				if (iter->stream_count == 0)
-+					iter->pipe = NULL;
-+			}
- 		}
- 
- 		/*
- 		 * We haven't increased stream_count further than this
- 		 * so we quit here.
- 		 */
--		if (pad_err == pad)
-+		if (pad_err->entity == pad->entity)
- 			break;
- 	}
- 
-@@ -553,7 +564,7 @@ EXPORT_SYMBOL_GPL(media_pipeline_start);
- 
- void __media_pipeline_stop(struct media_entity *entity)
+-__must_check int media_pipeline_start(struct media_entity *entity,
++__must_check int media_pipeline_start(struct media_pad *pad,
+ 				      struct media_pipeline *pipe)
  {
--	struct media_pipeline *pipe = entity->pipe;
-+	struct media_pipeline *pipe = entity->pads->pipe;
+-	struct media_device *mdev = entity->graph_obj.mdev;
++	struct media_device *mdev = pad->graph_obj.mdev;
+ 	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-	ret = __media_pipeline_start(entity, pipe);
++	ret = __media_pipeline_start(pad, pipe);
+ 	mutex_unlock(&mdev->graph_mutex);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(media_pipeline_start);
+ 
+-void __media_pipeline_stop(struct media_entity *entity)
++void __media_pipeline_stop(struct media_pad *pad)
+ {
+-	struct media_pipeline *pipe = entity->pads->pipe;
++	struct media_pipeline *pipe = pad->pipe;
  	struct media_graph *graph = &pipe->graph;
- 	struct media_pad *pad;
+-	struct media_pad *pad;
  
-@@ -567,13 +578,17 @@ void __media_pipeline_stop(struct media_entity *entity)
- 	media_graph_walk_start(graph, entity->pads);
+ 	/*
+ 	 * If the following check fails, the driver has performed an
+@@ -575,9 +573,10 @@ void __media_pipeline_stop(struct media_entity *entity)
+ 	if (WARN_ON(!pipe))
+ 		return;
+ 
+-	media_graph_walk_start(graph, entity->pads);
++	media_graph_walk_start(graph, pad);
  
  	while ((pad = media_graph_walk_next(graph))) {
--		struct media_entity *entity = pad->entity;
-+		unsigned int i;
++		struct media_entity *entity = pad->entity;
+ 		unsigned int i;
  
--		/* Sanity check for negative stream_count */
--		if (!WARN_ON_ONCE(entity->stream_count <= 0)) {
--			entity->stream_count--;
--			if (entity->stream_count == 0)
--				entity->pipe = NULL;
-+		for (i = 0; i < entity->num_pads; i++) {
-+			struct media_pad *iter = &entity->pads[i];
-+
-+			/* Sanity check for negative stream_count */
-+			if (!WARN_ON_ONCE(iter->stream_count <= 0)) {
-+				iter->stream_count--;
-+				if (iter->stream_count == 0)
-+					iter->pipe = NULL;
-+			}
- 		}
+ 		for (i = 0; i < entity->num_pads; i++) {
+@@ -598,12 +597,12 @@ void __media_pipeline_stop(struct media_entity *entity)
+ }
+ EXPORT_SYMBOL_GPL(__media_pipeline_stop);
+ 
+-void media_pipeline_stop(struct media_entity *entity)
++void media_pipeline_stop(struct media_pad *pad)
+ {
+-	struct media_device *mdev = entity->graph_obj.mdev;
++	struct media_device *mdev = pad->graph_obj.mdev;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-	__media_pipeline_stop(entity);
++	__media_pipeline_stop(pad);
+ 	mutex_unlock(&mdev->graph_mutex);
+ }
+ EXPORT_SYMBOL_GPL(media_pipeline_stop);
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+index 29027159eced88a5..7eb16e45c8069f4b 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+@@ -1002,7 +1002,7 @@ static int cio2_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		return r;
  	}
  
-@@ -839,7 +854,7 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
- {
- 	const u32 mask = MEDIA_LNK_FL_ENABLED;
- 	struct media_device *mdev;
--	struct media_entity *source, *sink;
-+	struct media_pad *source, *sink;
- 	int ret = -EBUSY;
+-	r = media_pipeline_start(&q->vdev.entity, &q->pipe);
++	r = media_pipeline_start(q->vdev.entity.pads, &q->pipe);
+ 	if (r)
+ 		goto fail_pipeline;
  
- 	if (link == NULL)
-@@ -855,8 +870,8 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
- 	if (link->flags == flags)
- 		return 0;
- 
--	source = link->source->entity;
--	sink = link->sink->entity;
-+	source = link->source;
-+	sink = link->sink;
- 
- 	if (!(link->flags & MEDIA_LNK_FL_DYNAMIC) &&
- 	    (source->stream_count || sink->stream_count))
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
-index 9a48c0f69320ba35..79d128a57e87fd58 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp.c
-@@ -229,7 +229,7 @@ static int fimc_isp_subdev_set_fmt(struct v4l2_subdev *sd,
- 			}
- 		}
- 	} else {
--		if (sd->entity.stream_count == 0) {
-+		if (sd->entity.pads->stream_count == 0) {
- 			if (fmt->pad == FIMC_ISP_SD_PAD_SINK) {
- 				struct v4l2_subdev_format format = *fmt;
- 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 70d5f5586a5d5ca6..f486eeed805b0bbc 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -1096,7 +1096,7 @@ static int fimc_lite_subdev_set_fmt(struct v4l2_subdev *sd,
+@@ -1022,7 +1022,7 @@ static int cio2_vb2_start_streaming(struct vb2_queue *vq, unsigned int count)
+ fail_csi2_subdev:
+ 	cio2_hw_exit(cio2, q);
+ fail_hw:
+-	media_pipeline_stop(&q->vdev.entity);
++	media_pipeline_stop(q->vdev.entity.pads);
+ fail_pipeline:
+ 	dev_dbg(&cio2->pci_dev->dev, "failed to start streaming (%d)\n", r);
+ 	cio2_vb2_return_all_buffers(q, VB2_BUF_STATE_QUEUED);
+@@ -1043,7 +1043,7 @@ static void cio2_vb2_stop_streaming(struct vb2_queue *vq)
+ 	cio2_hw_exit(cio2, q);
+ 	synchronize_irq(cio2->pci_dev->irq);
+ 	cio2_vb2_return_all_buffers(q, VB2_BUF_STATE_ERROR);
+-	media_pipeline_stop(&q->vdev.entity);
++	media_pipeline_stop(q->vdev.entity.pads);
+ 	pm_runtime_put(&cio2->pci_dev->dev);
+ 	cio2->streaming = false;
+ }
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index a3cdac18819043df..88efbfbe8f61c0dc 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -537,7 +537,7 @@ static int fimc_capture_release(struct file *file)
  	mutex_lock(&fimc->lock);
  
- 	if ((atomic_read(&fimc->out_path) == FIMC_IO_ISP &&
--	    sd->entity.stream_count > 0) ||
-+	    sd->entity.pads->stream_count > 0) ||
- 	    (atomic_read(&fimc->out_path) == FIMC_IO_DMA &&
- 	    vb2_is_busy(&fimc->vb_queue))) {
- 		mutex_unlock(&fimc->lock);
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 842e2235047d9c63..c487efe8c153942b 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -927,7 +927,7 @@ static int isp_pipeline_is_last(struct media_entity *me)
- 	struct isp_pipeline *pipe;
- 	struct media_pad *pad;
- 
--	if (!me->pipe)
-+	if (!me->pads->pipe)
- 		return 0;
- 	pipe = to_isp_pipeline(me);
- 	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED)
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 1f52779249cfaf60..5ac7ac8c98d52ac8 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1102,7 +1102,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	/* Start streaming on the pipeline. No link touching an entity in the
- 	 * pipeline can be activated or deactivated once streaming is started.
- 	 */
--	pipe = video->video.entity.pipe
-+	pipe = video->video.entity.pads->pipe
- 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
- 
- 	ret = media_entity_enum_init(&pipe->ent_enum, &video->isp->media_dev);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index f6a2082b4a0a7708..8f4146c25a1b1293 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -103,7 +103,7 @@ struct isp_pipeline {
- };
- 
- #define to_isp_pipeline(__e) \
--	container_of((__e)->pipe, struct isp_pipeline, pipe)
-+	container_of((__e)->pads->pipe, struct isp_pipeline, pipe)
- 
- static inline int isp_pipeline_ready(struct isp_pipeline *pipe)
- {
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 92323310f7352147..e749096926f34d4a 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1128,7 +1128,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
- 	 */
- 	mdev = vin->vdev.entity.graph_obj.mdev;
- 	mutex_lock(&mdev->graph_mutex);
--	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-+	pipe = sd->entity.pads->pipe ? sd->entity.pads->pipe : &vin->vdev.pipe;
- 	ret = __media_pipeline_start(&vin->vdev.entity, pipe);
- 	mutex_unlock(&mdev->graph_mutex);
- 	if (ret)
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 9f0a53238d510fce..9ea9a58eec632b7b 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -406,7 +406,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	 * Use the pipeline object embedded in the first DMA object that starts
- 	 * streaming.
- 	 */
--	pipe = dma->video.entity.pipe
-+	pipe = dma->video.entity.pads->pipe
- 	     ? to_xvip_pipeline(&dma->video.entity) : &dma->pipe;
- 
- 	ret = media_pipeline_start(&dma->video.entity, &pipe->pipe);
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
-index e95d136c153a8f5f..c12e053ff41eed1c 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.h
-+++ b/drivers/media/platform/xilinx/xilinx-dma.h
-@@ -50,7 +50,7 @@ struct xvip_pipeline {
- 
- static inline struct xvip_pipeline *to_xvip_pipeline(struct media_entity *e)
- {
--	return container_of(e->pipe, struct xvip_pipeline, pipe);
-+	return container_of(e->pads->pipe, struct xvip_pipeline, pipe);
- }
- 
- /**
-diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-index 8aa13403b09d15f6..1cfa77a96e610f6c 100644
---- a/drivers/staging/media/imx/imx-media-utils.c
-+++ b/drivers/staging/media/imx/imx-media-utils.c
-@@ -917,7 +917,7 @@ int imx_media_pipeline_set_stream(struct imx_media_dev *imxmd,
- 			__media_pipeline_stop(entity);
- 	} else {
- 		v4l2_subdev_call(sd, video, s_stream, 0);
--		if (entity->pipe)
-+		if (entity->pads->pipe)
- 			__media_pipeline_stop(entity);
+ 	if (close && vc->streaming) {
+-		media_pipeline_stop(&vc->ve.vdev.entity);
++		media_pipeline_stop(vc->ve.vdev.entity.pads);
+ 		vc->streaming = false;
  	}
  
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index b1036baebb0357e7..6785363c09e9ba43 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -547,7 +547,7 @@ static int iss_pipeline_is_last(struct media_entity *me)
- 	struct iss_pipeline *pipe;
- 	struct media_pad *pad;
+@@ -1201,7 +1201,7 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	if (fimc_capture_active(fimc))
+ 		return -EBUSY;
  
--	if (!me->pipe)
-+	if (!me->pads->pipe)
+-	ret = media_pipeline_start(entity, &vc->ve.pipe->mp);
++	ret = media_pipeline_start(entity->pads, &vc->ve.pipe->mp);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1235,7 +1235,7 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	}
+ 
+ err_p_stop:
+-	media_pipeline_stop(entity);
++	media_pipeline_stop(entity->pads);
+ 	return ret;
+ }
+ 
+@@ -1250,7 +1250,7 @@ static int fimc_cap_streamoff(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_pipeline_stop(&vc->ve.vdev.entity);
++	media_pipeline_stop(vc->ve.vdev.entity.pads);
+ 	vc->streaming = false;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+index a920164f53f1f0ab..d0a40ab0b7e92362 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+@@ -312,7 +312,7 @@ static int isp_video_release(struct file *file)
+ 	mutex_lock(&isp->video_lock);
+ 
+ 	if (v4l2_fh_is_singular_file(file) && ivc->streaming) {
+-		media_pipeline_stop(entity);
++		media_pipeline_stop(entity->pads);
+ 		ivc->streaming = 0;
+ 	}
+ 
+@@ -494,7 +494,7 @@ static int isp_video_streamon(struct file *file, void *priv,
+ 	struct media_entity *me = &ve->vdev.entity;
+ 	int ret;
+ 
+-	ret = media_pipeline_start(me, &ve->pipe->mp);
++	ret = media_pipeline_start(me->pads, &ve->pipe->mp);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -509,7 +509,7 @@ static int isp_video_streamon(struct file *file, void *priv,
+ 	isp->video_capture.streaming = 1;
+ 	return 0;
+ p_stop:
+-	media_pipeline_stop(me);
++	media_pipeline_stop(me->pads);
+ 	return ret;
+ }
+ 
+@@ -524,7 +524,7 @@ static int isp_video_streamoff(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_pipeline_stop(&video->ve.vdev.entity);
++	media_pipeline_stop(video->ve.vdev.entity.pads);
+ 	video->streaming = 0;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index f486eeed805b0bbc..e99a8c1a68541077 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -524,7 +524,7 @@ static int fimc_lite_release(struct file *file)
+ 	if (v4l2_fh_is_singular_file(file) &&
+ 	    atomic_read(&fimc->out_path) == FIMC_IO_DMA) {
+ 		if (fimc->streaming) {
+-			media_pipeline_stop(entity);
++			media_pipeline_stop(entity->pads);
+ 			fimc->streaming = false;
+ 		}
+ 		fimc_lite_stop_capture(fimc, false);
+@@ -832,7 +832,7 @@ static int fimc_lite_streamon(struct file *file, void *priv,
+ 	if (fimc_lite_active(fimc))
+ 		return -EBUSY;
+ 
+-	ret = media_pipeline_start(entity, &fimc->ve.pipe->mp);
++	ret = media_pipeline_start(entity->pads, &fimc->ve.pipe->mp);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -849,7 +849,7 @@ static int fimc_lite_streamon(struct file *file, void *priv,
+ 	}
+ 
+ err_p_stop:
+-	media_pipeline_stop(entity);
++	media_pipeline_stop(entity->pads);
+ 	return 0;
+ }
+ 
+@@ -863,7 +863,7 @@ static int fimc_lite_streamoff(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_pipeline_stop(&fimc->ve.vdev.entity);
++	media_pipeline_stop(fimc->ve.vdev.entity.pads);
+ 	fimc->streaming = false;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 5ac7ac8c98d52ac8..a9613c31a6b87e3c 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1113,7 +1113,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+ 	pipe->max_rate = pipe->l3_ick;
+ 
+-	ret = media_pipeline_start(&video->video.entity, &pipe->pipe);
++	ret = media_pipeline_start(video->video.entity.pads, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto err_pipeline_start;
+ 
+@@ -1170,7 +1170,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
+ 
+ err_check_format:
+-	media_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(video->video.entity.pads);
+ err_pipeline_start:
+ 	/* TODO: Implement PM QoS */
+ 	/* The DMA queue must be emptied here, otherwise CCDC interrupts that
+@@ -1237,7 +1237,7 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	video->error = false;
+ 
+ 	/* TODO: Implement PM QoS */
+-	media_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(video->video.entity.pads);
+ 
+ 	media_entity_enum_cleanup(&pipe->ent_enum);
+ 
+diff --git a/drivers/media/platform/qcom/camss/camss-video.c b/drivers/media/platform/qcom/camss/camss-video.c
+index c9bb0d023db480d1..8e828755c391ba48 100644
+--- a/drivers/media/platform/qcom/camss/camss-video.c
++++ b/drivers/media/platform/qcom/camss/camss-video.c
+@@ -436,7 +436,7 @@ static int video_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	struct v4l2_subdev *subdev;
+ 	int ret;
+ 
+-	ret = media_pipeline_start(&vdev->entity, &video->pipe);
++	ret = media_pipeline_start(vdev->entity.pads, &video->pipe);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -465,7 +465,7 @@ static int video_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	return 0;
+ 
+ error:
+-	media_pipeline_stop(&vdev->entity);
++	media_pipeline_stop(vdev->entity.pads);
+ 
+ 	video->ops->flush_buffers(video, VB2_BUF_STATE_QUEUED);
+ 
+@@ -496,7 +496,7 @@ static void video_stop_streaming(struct vb2_queue *q)
+ 		v4l2_subdev_call(subdev, video, s_stream, 0);
+ 	}
+ 
+-	media_pipeline_stop(&vdev->entity);
++	media_pipeline_stop(vdev->entity.pads);
+ 
+ 	video->ops->flush_buffers(video, VB2_BUF_STATE_ERROR);
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index e749096926f34d4a..57c2087f7ad472f3 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -1112,7 +1112,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 	sd = media_entity_to_v4l2_subdev(pad->entity);
+ 
+ 	if (!on) {
+-		media_pipeline_stop(&vin->vdev.entity);
++		media_pipeline_stop(vin->vdev.entity.pads);
+ 		return v4l2_subdev_call(sd, video, s_stream, 0);
+ 	}
+ 
+@@ -1129,7 +1129,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 	mdev = vin->vdev.entity.graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+ 	pipe = sd->entity.pads->pipe ? sd->entity.pads->pipe : &vin->vdev.pipe;
+-	ret = __media_pipeline_start(&vin->vdev.entity, pipe);
++	ret = __media_pipeline_start(vin->vdev.entity.pads, pipe);
+ 	mutex_unlock(&mdev->graph_mutex);
+ 	if (ret)
+ 		return ret;
+@@ -1138,7 +1138,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 	if (ret == -ENOIOCTLCMD)
+ 		ret = 0;
+ 	if (ret)
+-		media_pipeline_stop(&vin->vdev.entity);
++		media_pipeline_stop(vin->vdev.entity.pads);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index c02dce8b4c6c788b..3d7b92f0da33a5f9 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -858,13 +858,13 @@ static int s3c_camif_streamon(struct file *file, void *priv,
+ 	if (s3c_vp_active(vp))
  		return 0;
- 	pipe = to_iss_pipeline(me);
- 	if (pipe->stream_state == ISS_PIPELINE_STREAM_STOPPED)
+ 
+-	ret = media_pipeline_start(sensor, camif->m_pipeline);
++	ret = media_pipeline_start(sensor->pads, camif->m_pipeline);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	ret = camif_pipeline_validate(camif);
+ 	if (ret < 0) {
+-		media_pipeline_stop(sensor);
++		media_pipeline_stop(sensor->pads);
+ 		return ret;
+ 	}
+ 
+@@ -888,7 +888,7 @@ static int s3c_camif_streamoff(struct file *file, void *priv,
+ 
+ 	ret = vb2_streamoff(&vp->vb_queue, type);
+ 	if (ret == 0)
+-		media_pipeline_stop(&camif->sensor.sd->entity);
++		media_pipeline_stop(camif->sensor.sd->entity.pads);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/platform/vimc/vimc-capture.c b/drivers/media/platform/vimc/vimc-capture.c
+index 88a1e5670c725101..de3fee15f0a73493 100644
+--- a/drivers/media/platform/vimc/vimc-capture.c
++++ b/drivers/media/platform/vimc/vimc-capture.c
+@@ -247,7 +247,7 @@ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	vcap->sequence = 0;
+ 
+ 	/* Start the media pipeline */
+-	ret = media_pipeline_start(entity, &vcap->pipe);
++	ret = media_pipeline_start(entity->pads, &vcap->pipe);
+ 	if (ret) {
+ 		vimc_cap_return_all_buffers(vcap, VB2_BUF_STATE_QUEUED);
+ 		return ret;
+@@ -256,7 +256,7 @@ static int vimc_cap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* Enable streaming from the pipe */
+ 	ret = vimc_pipeline_s_stream(&vcap->vdev.entity, 1);
+ 	if (ret) {
+-		media_pipeline_stop(entity);
++		media_pipeline_stop(entity->pads);
+ 		vimc_cap_return_all_buffers(vcap, VB2_BUF_STATE_QUEUED);
+ 		return ret;
+ 	}
+@@ -276,7 +276,7 @@ static void vimc_cap_stop_streaming(struct vb2_queue *vq)
+ 	vimc_pipeline_s_stream(&vcap->vdev.entity, 0);
+ 
+ 	/* Stop the media pipeline */
+-	media_pipeline_stop(&vcap->vdev.entity);
++	media_pipeline_stop(vcap->vdev.entity.pads);
+ 
+ 	/* Release all active buffers */
+ 	vimc_cap_return_all_buffers(vcap, VB2_BUF_STATE_ERROR);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index f3e7f239e90c5f7d..241d2efbced27359 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -940,7 +940,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	}
+ 	mutex_unlock(&pipe->lock);
+ 
+-	media_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(video->video.entity.pads);
+ 	vsp1_video_release_buffers(video);
+ 	vsp1_video_pipeline_put(pipe);
+ }
+@@ -1067,7 +1067,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		return PTR_ERR(pipe);
+ 	}
+ 
+-	ret = __media_pipeline_start(&video->video.entity, &pipe->pipe);
++	ret = __media_pipeline_start(video->video.entity.pads, &pipe->pipe);
+ 	if (ret < 0) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		goto err_pipe;
+@@ -1091,7 +1091,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
+ 
+ err_stop:
+-	media_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(video->video.entity.pads);
+ err_pipe:
+ 	vsp1_video_pipeline_put(pipe);
+ 	return ret;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 9ea9a58eec632b7b..0fc948fe1a1aa0d8 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -409,7 +409,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	pipe = dma->video.entity.pads->pipe
+ 	     ? to_xvip_pipeline(&dma->video.entity) : &dma->pipe;
+ 
+-	ret = media_pipeline_start(&dma->video.entity, &pipe->pipe);
++	ret = media_pipeline_start(dma->video.entity.pads, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto error;
+ 
+@@ -435,7 +435,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	return 0;
+ 
+ error_stop:
+-	media_pipeline_stop(&dma->video.entity);
++	media_pipeline_stop(dma->video.entity.pads);
+ 
+ error:
+ 	/* Give back all queued buffers to videobuf2. */
+@@ -463,7 +463,7 @@ static void xvip_dma_stop_streaming(struct vb2_queue *vq)
+ 
+ 	/* Cleanup the pipeline and mark it as being stopped. */
+ 	xvip_pipeline_cleanup(pipe);
+-	media_pipeline_stop(&dma->video.entity);
++	media_pipeline_stop(dma->video.entity.pads);
+ 
+ 	/* Give back all queued buffers to videobuf2. */
+ 	spin_lock_irq(&dma->queued_lock);
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index cd363a2100d453c6..b649f11a45b586f2 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -394,7 +394,7 @@ static int au0828_enable_source(struct media_entity *entity,
+ 		goto end;
+ 	}
+ 
+-	ret = __media_pipeline_start(entity, pipe);
++	ret = __media_pipeline_start(entity->pads, pipe);
+ 	if (ret) {
+ 		pr_err("Start Pipeline: %s->%s Error %d\n",
+ 			source->name, entity->name, ret);
+@@ -445,7 +445,7 @@ static void au0828_disable_source(struct media_entity *entity)
+ 		*/
+ 		if (dev->active_link_owner != entity)
+ 			return;
+-		__media_pipeline_stop(entity);
++		__media_pipeline_stop(entity->pads);
+ 		ret = __media_entity_setup_link(dev->active_link, 0);
+ 		if (ret)
+ 			pr_err("Deactivate link Error %d\n", ret);
+diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
+index 1cfa77a96e610f6c..b89e3f369d1b3686 100644
+--- a/drivers/staging/media/imx/imx-media-utils.c
++++ b/drivers/staging/media/imx/imx-media-utils.c
+@@ -909,16 +909,16 @@ int imx_media_pipeline_set_stream(struct imx_media_dev *imxmd,
+ 	mutex_lock(&imxmd->md.graph_mutex);
+ 
+ 	if (on) {
+-		ret = __media_pipeline_start(entity, &imxmd->pipe);
++		ret = __media_pipeline_start(entity->pads, &imxmd->pipe);
+ 		if (ret)
+ 			goto out;
+ 		ret = v4l2_subdev_call(sd, video, s_stream, 1);
+ 		if (ret)
+-			__media_pipeline_stop(entity);
++			__media_pipeline_stop(entity->pads);
+ 	} else {
+ 		v4l2_subdev_call(sd, video, s_stream, 0);
+ 		if (entity->pads->pipe)
+-			__media_pipeline_stop(entity);
++			__media_pipeline_stop(entity->pads);
+ 	}
+ 
+ out:
 diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 28efafa0621ef010..d1d91a79992a61bc 100644
+index d1d91a79992a61bc..6ff6b75de4db80a1 100644
 --- a/drivers/staging/media/omap4iss/iss_video.c
 +++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -880,7 +880,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	 * Start streaming on the pipeline. No link touching an entity in the
- 	 * pipeline can be activated or deactivated once streaming is started.
- 	 */
--	pipe = pad->entity->pipe
-+	pipe = pad->pipe
- 	     ? to_iss_pipeline(pad->entity) : &video->pipe;
- 	pipe->external = NULL;
- 	pipe->external_rate = 0;
-diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
-index d7e05d04512c5176..8e57a92a622c4145 100644
---- a/drivers/staging/media/omap4iss/iss_video.h
-+++ b/drivers/staging/media/omap4iss/iss_video.h
-@@ -98,7 +98,7 @@ struct iss_pipeline {
- };
+@@ -898,7 +898,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, true);
  
- #define to_iss_pipeline(__e) \
--	container_of((__e)->pipe, struct iss_pipeline, pipe)
-+	container_of((__e)->pads->pipe, struct iss_pipeline, pipe)
+-	ret = media_pipeline_start(pad->entity, &pipe->pipe);
++	ret = media_pipeline_start(pad, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto err_media_pipeline_start;
  
- static inline int iss_pipeline_ready(struct iss_pipeline *pipe)
- {
+@@ -987,7 +987,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ err_omap4iss_set_stream:
+ 	vb2_streamoff(&vfh->queue, type);
+ err_iss_video_check_format:
+-	media_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(video->video.entity.pads);
+ err_media_pipeline_start:
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, false);
+@@ -1041,7 +1041,7 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, false);
+-	media_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(video->video.entity.pads);
+ 
+ done:
+ 	mutex_unlock(&video->stream_lock);
 diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index fad1776cbaadbbab..4f68638153679a36 100644
+index 4f68638153679a36..532c438b9eb862c5 100644
 --- a/include/media/media-entity.h
 +++ b/include/media/media-entity.h
-@@ -160,14 +160,24 @@ struct media_link {
+@@ -917,53 +917,54 @@ struct media_pad *media_graph_walk_next(struct media_graph *graph);
+ 
+ /**
+  * media_pipeline_start - Mark a pipeline as streaming
+- * @entity: Starting entity
+- * @pipe: Media pipeline to be assigned to all entities in the pipeline.
++ * @pad: Starting pad
++ * @pipe: Media pipeline to be assigned to all pads in the pipeline.
   *
-  * @graph_obj:	Embedded structure containing the media object common data
-  * @entity:	Entity this pad belongs to
-+ * @pipe:	Pipeline this entity belongs to.
-+ * @stream_count: Stream count for the entity.
-  * @index:	Pad index in the entity pads array, numbered from 0 to n
-  * @flags:	Pad flags, as defined in
-  *		:ref:`include/uapi/linux/media.h <media_header>`
-  *		(seek for ``MEDIA_PAD_FL_*``)
-+ * .. note::
-+ *
-+ *    @stream_count reference counts must never be negative, but are
-+ *    signed integers on purpose: a simple ``WARN_ON(<0)`` check can
-+ *    be used to detect reference count bugs that would make them
-+ *    negative.
+- * Mark all entities connected to a given entity through enabled links, either
+- * directly or indirectly, as streaming. The given pipeline object is assigned
+- * to every entity in the pipeline and stored in the media_entity pipe field.
++ * Mark all pads connected to a given pad through enabled
++ * routes or links, either directly or indirectly, as streaming. The
++ * given pipeline object is assigned to every pad in the pipeline
++ * and stored in the media_pad pipe field.
+  *
+  * Calls to this function can be nested, in which case the same number of
+  * media_pipeline_stop() calls will be required to stop streaming. The
+  * pipeline pointer must be identical for all nested calls to
+  * media_pipeline_start().
   */
- struct media_pad {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	struct media_entity *entity;
-+	struct media_pipeline *pipe;
-+	int stream_count;
- 	u16 index;
- 	unsigned long flags;
- };
-@@ -244,9 +254,7 @@ enum media_entity_type {
-  * @pads:	Pads array with the size defined by @num_pads.
-  * @links:	List of data links.
-  * @ops:	Entity operations.
-- * @stream_count: Stream count for the entity.
-  * @use_count:	Use count for the entity.
-- * @pipe:	Pipeline this entity belongs to.
-  * @info:	Union with devnode information.  Kept just for backward
-  *		compatibility.
-  * @info.dev:	Contains device major and minor info.
-@@ -259,7 +267,7 @@ enum media_entity_type {
+-__must_check int media_pipeline_start(struct media_entity *entity,
++__must_check int media_pipeline_start(struct media_pad *pad,
+ 				      struct media_pipeline *pipe);
+ /**
+  * __media_pipeline_start - Mark a pipeline as streaming
   *
-  * .. note::
+- * @entity: Starting entity
+- * @pipe: Media pipeline to be assigned to all entities in the pipeline.
++ * @pad: Starting pad
++ * @pipe: Media pipeline to be assigned to all pads in the pipeline.
   *
-- *    @stream_count and @use_count reference counts must never be
-+ *    @use_count reference counts must never be
-  *    negative, but are signed integers on purpose: a simple ``WARN_ON(<0)``
-  *    check can be used to detect reference count bugs that would make them
-  *    negative.
-@@ -281,11 +289,8 @@ struct media_entity {
+  * ..note:: This is the non-locking version of media_pipeline_start()
+  */
+-__must_check int __media_pipeline_start(struct media_entity *entity,
++__must_check int __media_pipeline_start(struct media_pad *pad,
+ 					struct media_pipeline *pipe);
  
- 	const struct media_entity_operations *ops;
+ /**
+  * media_pipeline_stop - Mark a pipeline as not streaming
+- * @entity: Starting entity
++ * @pad: Starting pad
+  *
+- * Mark all entities connected to a given entity through enabled links, either
+- * directly or indirectly, as not streaming. The media_entity pipe field is
+- * reset to %NULL.
++ * Mark all pads connected to a given pad through enabled routes or
++ * links, either directly or indirectly, as not streaming. The
++ * media_pad pipe field is reset to %NULL.
+  *
+  * If multiple calls to media_pipeline_start() have been made, the same
+  * number of calls to this function are required to mark the pipeline as not
+  * streaming.
+  */
+-void media_pipeline_stop(struct media_entity *entity);
++void media_pipeline_stop(struct media_pad *pad);
  
--	int stream_count;
- 	int use_count;
+ /**
+  * __media_pipeline_stop - Mark a pipeline as not streaming
+  *
+- * @entity: Starting entity
++ * @pad: Starting pad
+  *
+  * .. note:: This is the non-locking version of media_pipeline_stop()
+  */
+-void __media_pipeline_stop(struct media_entity *entity);
++void __media_pipeline_stop(struct media_pad *pad);
  
--	struct media_pipeline *pipe;
--
- 	union {
- 		struct {
- 			u32 major;
+ /**
+  * media_devnode_create() - creates and initializes a device node interface
 -- 
 2.18.0
