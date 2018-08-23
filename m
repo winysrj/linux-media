@@ -1,108 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45774 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728330AbeH3PnR (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:12046 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730559AbeHWQ5n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Aug 2018 11:43:17 -0400
-Subject: Re: [PATCH 4/5] videodev2.h: add new capabilities for buffer types
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Hans Verkuil <hansverk@cisco.com>
-References: <20180824082156.6986-1-hverkuil@xs4all.nl>
- <20180824082156.6986-5-hverkuil@xs4all.nl>
- <CAAFQd5A+UCSxBM11-maLbe-0WAKVFnk-mDCn+o06Xd9JO7=0_g@mail.gmail.com>
- <ef161d62-bf9b-427d-9fb5-f022f2b0d83b@xs4all.nl>
- <CAAFQd5Bdvxw_=qrKuFPt87LfM1aR+1LuWQ7L3jZo9JuGWVykUA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0559761e-f689-1bc0-983c-dd2ce96e3bb8@xs4all.nl>
-Date: Thu, 30 Aug 2018 13:41:31 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5Bdvxw_=qrKuFPt87LfM1aR+1LuWQ7L3jZo9JuGWVykUA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 23 Aug 2018 12:57:43 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 01/30] media: entity: Use pad as a starting point for graph walk
+Date: Thu, 23 Aug 2018 15:25:15 +0200
+Message-Id: <20180823132544.521-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/29/2018 10:49 AM, Tomasz Figa wrote:
-> On Tue, Aug 28, 2018 at 9:37 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 24/08/18 16:36, Tomasz Figa wrote:
->>> Hi Hans,
->>>
->>> On Fri, Aug 24, 2018 at 5:22 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>
->>>> From: Hans Verkuil <hansverk@cisco.com>
->>>>
->>>> VIDIOC_REQBUFS and VIDIOC_CREATE_BUFFERS will return capabilities
->>>> telling userspace what the given buffer type is capable of.
->>>>
->>>
->>> Please see my comments below.
->>>
->>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
->>>> ---
->>>>  .../media/uapi/v4l/vidioc-create-bufs.rst     | 10 +++++-
->>>>  .../media/uapi/v4l/vidioc-reqbufs.rst         | 36 ++++++++++++++++++-
->>>>  include/uapi/linux/videodev2.h                | 13 +++++--
->>>>  3 files changed, 55 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
->>>> index a39e18d69511..fd34d3f236c9 100644
->>>> --- a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
->>>> +++ b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
->>>> @@ -102,7 +102,15 @@ than the number requested.
->>>>        - ``format``
->>>>        - Filled in by the application, preserved by the driver.
->>>>      * - __u32
->>>> -      - ``reserved``\ [8]
->>>> +      - ``capabilities``
->>>> +      - Set by the driver. If 0, then the driver doesn't support
->>>> +        capabilities. In that case all you know is that the driver is
->>>> +       guaranteed to support ``V4L2_MEMORY_MMAP`` and *might* support
->>>> +       other :c:type:`v4l2_memory` types. It will not support any others
->>>> +       capabilities. See :ref:`here <v4l2-buf-capabilities>` for a list of the
->>>> +       capabilities.
->>>
->>> Perhaps it would make sense to document how the application is
->>> expected to query for these capabilities? Right now, the application
->>> is expected to fill in the "memory" field in this struct (and reqbufs
->>> counterpart), but it sounds a bit strange that one needs to know what
->>> "memory" value to write there to query what set of "memory" values is
->>> supported. In theory, MMAP is expected to be always supported, but it
->>> sounds strange anyway. Also, is there a way to call REQBUFS without
->>> altering the buffer allocation?
->>
->> No, this is only possible with CREATE_BUFS.
->>
->> But it is reasonable to call REQBUFS with a count of 0, since you want to
->> start with a clean slate anyway.
->>
->> The only option I see would be to introduce a new memory type (e.g.
->> V4L2_MEMORY_CAPS) to just return the capabilities. But that's more ugly
->> then just requiring that you use MMAP when calling this.
->>
->> I'm inclined to just document that you need to set memory to MMAP if
->> you want to get the capabilities since MMAP is always guaranteed to
->> exist.
-> 
-> I guess it's the least evil we can get without changing the API too
-> much. Fair enough.
-> 
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Can you ack the updated patch:
+With the upcoming use of the recently added has_route() media entity op, all
+the pads in an entity will no longer be considered interconnected. This has
+an effect where the media graph is traversed: the starting pad does make a
+difference.
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg134624.html
+Prepare for this change by using pad instead of the entity as an argument
+for the graph walk operations. The actual graph traversal algorithm change
+is in further patches.
 
-And take a look at patches 6-10 as well, if you have time.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/kapi/mc-core.rst            |  2 +-
+ drivers/media/media-entity.c                    | 17 ++++++++---------
+ drivers/media/platform/exynos4-is/media-dev.c   |  4 ++--
+ drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c        |  2 +-
+ drivers/media/platform/xilinx/xilinx-dma.c      |  2 +-
+ drivers/media/v4l2-core/v4l2-mc.c               |  6 +++---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c |  6 +++---
+ drivers/staging/media/omap4iss/iss_video.c      |  4 ++--
+ include/media/media-entity.h                    | 10 ++++------
+ 10 files changed, 26 insertions(+), 29 deletions(-)
 
-I'd like to get this merged in a request topic branch asap.
-
-Regards,
-
-	Hans
-
-> Best regards,
-> Tomasz
-> 
+diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+index 0c05503eaf1fa6c7..27aefb9a778b2ad6 100644
+--- a/Documentation/media/kapi/mc-core.rst
++++ b/Documentation/media/kapi/mc-core.rst
+@@ -165,7 +165,7 @@ Drivers initiate a graph traversal by calling
+ :c:func:`media_graph_walk_start()`
+ 
+ The graph structure, provided by the caller, is initialized to start graph
+-traversal at the given entity.
++traversal at the given pad in an entity.
+ 
+ Drivers can then retrieve the next entity by calling
+ :c:func:`media_graph_walk_next()`
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 3498551e618e5437..70679d186944a117 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -300,17 +300,16 @@ void media_graph_walk_cleanup(struct media_graph *graph)
+ }
+ EXPORT_SYMBOL_GPL(media_graph_walk_cleanup);
+ 
+-void media_graph_walk_start(struct media_graph *graph,
+-			    struct media_entity *entity)
++void media_graph_walk_start(struct media_graph *graph, struct media_pad *pad)
+ {
+ 	media_entity_enum_zero(&graph->ent_enum);
+-	media_entity_enum_set(&graph->ent_enum, entity);
++	media_entity_enum_set(&graph->ent_enum, pad->entity);
+ 
+ 	graph->top = 0;
+ 	graph->stack[graph->top].entity = NULL;
+-	stack_push(graph, entity);
+-	dev_dbg(entity->graph_obj.mdev->dev,
+-		"begin graph walk at '%s'\n", entity->name);
++	stack_push(graph, pad->entity);
++	dev_dbg(pad->graph_obj.mdev->dev,
++		"begin graph walk at '%s':%u\n", pad->entity->name, pad->index);
+ }
+ EXPORT_SYMBOL_GPL(media_graph_walk_start);
+ 
+@@ -428,7 +427,7 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
+ 			goto error_graph_walk_start;
+ 	}
+ 
+-	media_graph_walk_start(&pipe->graph, entity);
++	media_graph_walk_start(&pipe->graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(graph))) {
+ 		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
+@@ -509,7 +508,7 @@ __must_check int __media_pipeline_start(struct media_entity *entity,
+ 	 * Link validation on graph failed. We revert what we did and
+ 	 * return the error.
+ 	 */
+-	media_graph_walk_start(graph, entity_err);
++	media_graph_walk_start(graph, entity_err->pads);
+ 
+ 	while ((entity_err = media_graph_walk_next(graph))) {
+ 		/* Sanity check for negative stream_count */
+@@ -560,7 +559,7 @@ void __media_pipeline_stop(struct media_entity *entity)
+ 	if (WARN_ON(!pipe))
+ 		return;
+ 
+-	media_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(graph))) {
+ 		/* Sanity check for negative stream_count */
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index deb499f76412a33f..4e7aa9a37f22b904 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1133,7 +1133,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+ 	 * through active links. This is needed as we cannot power on/off the
+ 	 * subdevs in random order.
+ 	 */
+-	media_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(graph))) {
+ 		if (!is_media_entity_v4l2_video_device(entity))
+@@ -1148,7 +1148,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+ 	return 0;
+ 
+ err:
+-	media_graph_walk_start(graph, entity_err);
++	media_graph_walk_start(graph, entity_err->pads);
+ 
+ 	while ((entity_err = media_graph_walk_next(graph))) {
+ 		if (!is_media_entity_v4l2_video_device(entity_err))
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 9d228eac24ea538c..218220b0a3ebb781 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -238,7 +238,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 		return ret;
+ 	}
+ 
+-	media_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(&graph))) {
+ 		struct isp_video *__video;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 81d47a09d7bcc6b8..da75847a61f3be63 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -583,7 +583,7 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+ 	if (ret)
+ 		return ret;
+ 
+-	media_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(&graph))) {
+ 		struct v4l2_subdev *subdev;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index d041f94be832ae62..ba767fa707e39dc4 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -193,7 +193,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 		return ret;
+ 	}
+ 
+-	media_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(&graph))) {
+ 		struct xvip_dma *dma;
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 0fc185a2ce90e80a..c8adddb878cbd3b5 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -260,7 +260,7 @@ static int pipeline_pm_use_count(struct media_entity *entity,
+ {
+ 	int use = 0;
+ 
+-	media_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(graph))) {
+ 		if (is_media_entity_v4l2_video_device(entity))
+@@ -323,7 +323,7 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
+ 	if (!change)
+ 		return 0;
+ 
+-	media_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity->pads);
+ 
+ 	while (!ret && (entity = media_graph_walk_next(graph)))
+ 		if (is_media_entity_v4l2_subdev(entity))
+@@ -332,7 +332,7 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
+ 	if (!ret)
+ 		return ret;
+ 
+-	media_graph_walk_start(graph, first);
++	media_graph_walk_start(graph, first->pads);
+ 
+ 	while ((first = media_graph_walk_next(graph))
+ 	       && first != entity)
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 1269a983455e57c5..af0d9e81b8de1cad 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -150,7 +150,7 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return -ENOMEM;
+ 	}
+-	media_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity->pads);
+ 	while ((entity = media_graph_walk_next(&graph))) {
+ 		if (entity == &video->video_dev.entity)
+ 			continue;
+@@ -303,7 +303,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ 	ret = media_graph_walk_init(&pipe->graph, mdev);
+ 	if (ret)
+ 		goto out;
+-	media_graph_walk_start(&pipe->graph, entity);
++	media_graph_walk_start(&pipe->graph, entity->pads);
+ 	while ((entity = media_graph_walk_next(&pipe->graph))) {
+ 
+ 		if (!is_media_entity_v4l2_subdev(entity))
+@@ -345,7 +345,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ 
+ 	mdev = entity->graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+-	media_graph_walk_start(&pipe->graph, entity);
++	media_graph_walk_start(&pipe->graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(&pipe->graph))) {
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index a3a83424a926c793..b646fe909bad64d4 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -220,7 +220,7 @@ iss_video_far_end(struct iss_video *video)
+ 		return NULL;
+ 	}
+ 
+-	media_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity->pads);
+ 
+ 	while ((entity = media_graph_walk_next(&graph))) {
+ 		if (entity == &video->video.entity)
+@@ -900,7 +900,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_media_pipeline_start;
+ 
+-	media_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity->pads);
+ 	while ((entity = media_graph_walk_next(&graph)))
+ 		media_entity_enum_set(&pipe->ent_enum, entity);
+ 
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 3aa3d58d1d586dc2..20ff038c8aeff4b8 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -880,22 +880,20 @@ void media_graph_walk_cleanup(struct media_graph *graph);
+ void media_entity_put(struct media_entity *entity);
+ 
+ /**
+- * media_graph_walk_start - Start walking the media graph at a
+- *	given entity
++ * media_graph_walk_start - Start walking the media graph at a given pad
+  *
+  * @graph: Media graph structure that will be used to walk the graph
+- * @entity: Starting entity
++ * @pad: Starting pad
+  *
+  * Before using this function, media_graph_walk_init() must be
+  * used to allocate resources used for walking the graph. This
+  * function initializes the graph traversal structure to walk the
+- * entities graph starting at the given entity. The traversal
++ * entities graph starting at the given pad. The traversal
+  * structure must not be modified by the caller during graph
+  * traversal. After the graph walk, the resources must be released
+  * using media_graph_walk_cleanup().
+  */
+-void media_graph_walk_start(struct media_graph *graph,
+-			    struct media_entity *entity);
++void media_graph_walk_start(struct media_graph *graph, struct media_pad *pad);
+ 
+ /**
+  * media_graph_walk_next - Get the next entity in the graph
+-- 
+2.18.0
