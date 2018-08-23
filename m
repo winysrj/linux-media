@@ -1,411 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.intenta.de ([178.249.25.132]:47720 "EHLO mail.intenta.de"
+Received: from mail.bootlin.com ([62.4.15.54]:59409 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726995AbeHWL0Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 07:26:24 -0400
-Date: Thu, 23 Aug 2018 09:52:09 +0200
-From: Helmut Grohne <helmut.grohne@intenta.de>
-To: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-media@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH] media: aptina-pll: allow approximating the requested
- pix_clock
-Message-ID: <20180823075208.mqjctv4ax4dakfws@laureti-dev>
-References: <20180814084026.be4fpbhrppdnx2a3@laureti-dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20180814084026.be4fpbhrppdnx2a3@laureti-dev>
+        id S1726075AbeHWLd6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 23 Aug 2018 07:33:58 -0400
+Message-ID: <0f947768d8e982fcc591112c43cf40d618df2233.camel@bootlin.com>
+Subject: Re: [RFC] Request API and V4L2 capabilities
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Date: Thu, 23 Aug 2018 10:05:22 +0200
+In-Reply-To: <8a4dba99d73e46eb6885b852110d9eac2b041db7.camel@collabora.com>
+References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
+         <43c3d4b79377e9481ca29308cf1c160d57902d8c.camel@bootlin.com>
+         <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl>
+         <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
+         <186fd3ca-7759-7648-6870-4e5274a9680d@xs4all.nl>
+         <05d52a4a3ed33a057e050d1f79dc0d873f31f21e.camel@bootlin.com>
+         <CAAFQd5C0bwbZ74rpCTmXVNGPdp2TDJcb+YzRfevwuxvvK7Lbzg@mail.gmail.com>
+         <8b603c5a27c55e30e4ac3f1b9bb6b6d8515e2331.camel@bootlin.com>
+         <8a4dba99d73e46eb6885b852110d9eac2b041db7.camel@collabora.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-Gh8TeR8aBH3LkCYz9cJd"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clock frequencies are not exact values, but rather imprecise, physical
-properties. The present pll computation however, treats them as exact.
-It tries to compute parameters that attain the requested pix_clock
-exactly. Failing that, it gives up.
 
-The new implementation approximates the requested pix_clock and reports
-the actual value resulting from the computed parameters. If the
-requested pix_clock can be attained, the original behaviour of
-maximizing p1 is retained.
+--=-Gh8TeR8aBH3LkCYz9cJd
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Experiments with the algorithm in userspace on an arm device show that
-the computational cost is negligible compared to executing a binary for
-all practical inputs.
+Hi,
 
-Signed-off-by: Helmut Grohne <helmut.grohne@intenta.de>
----
- drivers/media/i2c/aptina-pll.c | 263 ++++++++++++++++++++++++-----------------
- drivers/media/i2c/mt9m032.c    |  15 ++-
- 2 files changed, 165 insertions(+), 113 deletions(-)
+On Wed, 2018-08-22 at 14:33 -0300, Ezequiel Garcia wrote:
+> On Wed, 2018-08-22 at 16:10 +0200, Paul Kocialkowski wrote:
+> > Hi,
+> >=20
+> > On Tue, 2018-08-21 at 17:52 +0900, Tomasz Figa wrote:
+> > > Hi Hans, Paul,
+> > >=20
+> > > On Mon, Aug 6, 2018 at 6:29 PM Paul Kocialkowski
+> > > <paul.kocialkowski@bootlin.com> wrote:
+> > > >=20
+> > > > On Mon, 2018-08-06 at 11:23 +0200, Hans Verkuil wrote:
+> > > > > On 08/06/2018 11:13 AM, Paul Kocialkowski wrote:
+> > > > > > Hi,
+> > > > > >=20
+> > > > > > On Mon, 2018-08-06 at 10:32 +0200, Hans Verkuil wrote:
+> > > > > > > On 08/06/2018 10:16 AM, Paul Kocialkowski wrote:
+> > > > > > > > On Sat, 2018-08-04 at 15:50 +0200, Hans Verkuil wrote:
+> > > > > > > > > Regarding point 3: I think this should be documented next=
+ to the pixel format. I.e.
+> > > > > > > > > the MPEG-2 Slice format used by the stateless cedrus code=
+c requires the request API
+> > > > > > > > > and that two MPEG-2 controls (slice params and quantizati=
+on matrices) must be present
+> > > > > > > > > in each request.
+> > > > > > > > >=20
+> > > > > > > > > I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRE=
+D_IN_REQ) is needed here.
+> > > > > > > > > It's really implied by the fact that you use a stateless =
+codec. It doesn't help
+> > > > > > > > > generic applications like v4l2-ctl or qv4l2 either since =
+in order to support
+> > > > > > > > > stateless codecs they will have to know about the details=
+ of these controls anyway.
+> > > > > > > > >=20
+> > > > > > > > > So I am inclined to say that it is not necessary to expos=
+e this information in
+> > > > > > > > > the API, but it has to be documented together with the pi=
+xel format documentation.
+> > > > > > > >=20
+> > > > > > > > I think this is affected by considerations about codec prof=
+ile/level
+> > > > > > > > support. More specifically, some controls will only be requ=
+ired for
+> > > > > > > > supporting advanced codec profiles/levels, so they can only=
+ be
+> > > > > > > > explicitly marked with appropriate flags by the driver when=
+ the target
+> > > > > > > > profile/level is known. And I don't think it would be sane =
+for userspace
+> > > > > > > > to explicitly set what profile/level it's aiming at. As a r=
+esult, I
+> > > > > > > > don't think we can explicitly mark controls as required or =
+optional.
+> > >=20
+> > > I'm not sure this is entirely true. The hardware may need to be
+> > > explicitly told what profile the video is. It may even not be the
+> > > hardware, but the driver itself too, given that the profile may imply
+> > > the CAPTURE pixel format, e.g. for VP9 profiles:
+> > >=20
+> > > profile 0
+> > > color depth: 8 bit/sample, chroma subsampling: 4:2:0
+> > > profile 1
+> > > color depth: 8 bit, chroma subsampling: 4:2:0, 4:2:2, 4:4:4
+> > > profile 2
+> > > color depth: 10=E2=80=9312 bit, chroma subsampling: 4:2:0
+> > > profile 3
+> > > color depth: 10=E2=80=9312 bit, chroma subsampling: 4:2:0, 4:2:2, 4:4=
+:4
+> > >=20
+> > > (reference: https://en.wikipedia.org/wiki/VP9#Profiles)
+> >=20
+> > I think it would be fair to expect userspace to select the right
+> > destination format (and maybe have the driver error if there's a
+> > mismatch with the meta-data) instead of having the driver somewhat
+> > expose what format should be used.
+> >=20
+> > But maybe this would be an API violation, since all the enumerated
+> > formats are probably supposed to be selectable?
+> >=20
+> > We could also look at it the other way round and consider that selectin=
+g
+> > an exposed format is always legit, but that it implies passing a
+> > bitstream that matches it or the driver will error (because of an
+> > invalid bitstream passed, not because of a "wrong" selected format).
+> >=20
+>=20
+> The API requires the user to negotiate via TRY_FMT/S_FMT. The driver
+> usually does not return error on invalid formats, and simply return
+> a format it can work with. I think the kernel-user contract has to
+> guarantee if the driver accepted a given format, it won't fail to
+> encoder or decode.
 
-I tried using aptina_pll_calculate in a driver for a similar image sensor.
-Using it, I was unable to find a pix_clock value such that the computation was
-successful. Most of the practical parameters result in a non-integer pix_clock,
-something that struct pll cannot represent.
+Well, the issue here is that in order to correctly enumerate the
+formats, the driver needs to be aware of:
+1. in what destination format the bitstream data is decoded to;
+2. what format convesions the VPU can do.
 
-The driver is not ready for submission at this point, but the changes to
-aptina_pll_calculate are reasonable on their own, which is why I submit them
-separately now.
+Step 1 is known by userspace but is only passed to the driver with the
+bitstream metadata from controls. This is much too late for trimming the
+list of supported formats.
 
-Helmut
+I'm not sure that passing an extra information to the driver early to
+trim the list would make sense, because it comes to down to telling the
+driver what format to target and then asking the driver was format it
+supports, which is rather redundant.
 
-diff --git a/drivers/media/i2c/aptina-pll.c b/drivers/media/i2c/aptina-pll.c
-index 224ae4e4cf8b..249018772b2b 100644
---- a/drivers/media/i2c/aptina-pll.c
-+++ b/drivers/media/i2c/aptina-pll.c
-@@ -2,6 +2,7 @@
-  * Aptina Sensor PLL Configuration
-  *
-  * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ * Copyright (C) 2018 Intenta GmbH
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-@@ -14,23 +15,84 @@
-  */
- 
- #include <linux/device.h>
--#include <linux/gcd.h>
- #include <linux/kernel.h>
--#include <linux/lcm.h>
-+#include <linux/math64.h>
- #include <linux/module.h>
- 
- #include "aptina-pll.h"
- 
-+/* A variant of mult_frac that works even when (x % denom) * numer produces a
-+ * 32bit overflow.
-+ */
-+#define mult_frac_exact(x, numer, denom) \
-+	((u32)div_u64(mul_u32_u32((x), (numer)), (denom)))
-+
-+static unsigned int absdiff(unsigned int x, unsigned int y)
-+{
-+	return x > y ? x - y : y - x;
-+}
-+
-+/* Find n_min <= *np <= n_max and d_min <= *dp <= d_max such that *np / *dp
-+ * approximates n_target / d_target.
-+ */
-+static int approximate_fraction(unsigned int n_min, unsigned int n_max,
-+				unsigned int d_min, unsigned int d_max,
-+				unsigned int n_target, unsigned int d_target,
-+				unsigned int *np, unsigned int *dp)
-+{
-+	unsigned int d, best_err = UINT_MAX;
-+
-+	d_min = max(d_min, mult_frac_exact(n_min, d_target, n_target));
-+	d_max = min(d_max, mult_frac_exact(n_max, d_target, n_target) + 1);
-+	if (d_min > d_max)
-+		return -EINVAL;
-+
-+	for (d = d_min; d < d_max; ++d) {
-+		unsigned int n = mult_frac_exact(d, n_target, d_target);
-+
-+		if (n >= n_min) {
-+			unsigned int err = absdiff(
-+				n_target, mult_frac_exact(n, d_target, d));
-+
-+			if (err < best_err) {
-+				best_err = err;
-+				*np = n;
-+				*dp = d;
-+			}
-+			if (err == 0)
-+				return 0;
-+		}
-+		++n;
-+		if (n <= n_max) {
-+			unsigned int err = absdiff(
-+				n_target, mult_frac_exact(n, d_target, d));
-+
-+			if (err < best_err) {
-+				best_err = err;
-+				*np = n;
-+				*dp = d;
-+			}
-+		}
-+	}
-+	return best_err == UINT_MAX ? -EINVAL : 0;
-+}
-+
-+/* Find parameters n, m, p1 such that:
-+ *   n_min <= n <= n_max
-+ *   m_min <= m <= m_max
-+ *   p1_min <= p1 <= p1_max, even
-+ *   int_clock_min <= ext_clock / n <= int_clock_max
-+ *   out_clock_min <= ext_clock / n * m <= out_clock_max
-+ *   pix_clock = ext_clock / n * m / p1 (approximately)
-+ *   p1 is maximized
-+ * Report the achieved pix_clock (input/output parameter).
-+ */
- int aptina_pll_calculate(struct device *dev,
- 			 const struct aptina_pll_limits *limits,
- 			 struct aptina_pll *pll)
- {
--	unsigned int mf_min;
--	unsigned int mf_max;
--	unsigned int p1_min;
--	unsigned int p1_max;
--	unsigned int p1;
--	unsigned int div;
-+	unsigned int n_min, n_max, m_min, m_max, p1_min, p1_max, p1;
-+	unsigned int clock_err = UINT_MAX;
- 
- 	dev_dbg(dev, "PLL: ext clock %u pix clock %u\n",
- 		pll->ext_clock, pll->pix_clock);
-@@ -46,120 +108,103 @@ int aptina_pll_calculate(struct device *dev,
- 		return -EINVAL;
- 	}
- 
--	/* Compute the multiplier M and combined N*P1 divisor. */
--	div = gcd(pll->pix_clock, pll->ext_clock);
--	pll->m = pll->pix_clock / div;
--	div = pll->ext_clock / div;
--
--	/* We now have the smallest M and N*P1 values that will result in the
--	 * desired pixel clock frequency, but they might be out of the valid
--	 * range. Compute the factor by which we should multiply them given the
--	 * following constraints:
--	 *
--	 * - minimum/maximum multiplier
--	 * - minimum/maximum multiplier output clock frequency assuming the
--	 *   minimum/maximum N value
--	 * - minimum/maximum combined N*P1 divisor
--	 */
--	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
--	mf_min = max(mf_min, limits->out_clock_min /
--		     (pll->ext_clock / limits->n_min * pll->m));
--	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
--	mf_max = limits->m_max / pll->m;
--	mf_max = min(mf_max, limits->out_clock_max /
--		    (pll->ext_clock / limits->n_max * pll->m));
--	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
--
--	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
--	if (mf_min > mf_max) {
--		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
-+	/* int_clock_min <= ext_clock / N <= int_clock_max */
-+	n_min = max(limits->n_min,
-+		    DIV_ROUND_UP(pll->ext_clock, limits->int_clock_max));
-+	n_max = min(limits->n_max,
-+		    pll->ext_clock / limits->int_clock_min);
-+
-+	if (n_min > n_max) {
-+		dev_err(dev,
-+			"pll: no divisor N results in a valid int_clock.\n");
-+		return -EINVAL;
-+	}
-+
-+	/* out_clock_min <= ext_clock / N * M <= out_clock_max */
-+	m_min = max(limits->m_min,
-+		    mult_frac(limits->out_clock_min, n_min, pll->ext_clock));
-+	m_max = min(limits->m_max,
-+		    mult_frac(limits->out_clock_max, n_max, pll->ext_clock));
-+	if (m_min > m_max) {
-+		dev_err(dev,
-+			"pll: no multiplier M results in a valid out_clock.\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Using limits of m, we can further shrink the range of n. */
-+	n_min = max(n_min,
-+		    mult_frac(pll->ext_clock, m_min, limits->out_clock_max));
-+	n_max = max(n_max,
-+		    mult_frac(pll->ext_clock, m_max, limits->out_clock_min));
-+	if (n_min > n_max) {
-+		dev_err(dev,
-+			"pll: no divisor N results in a valid out_clock.\n");
- 		return -EINVAL;
- 	}
- 
--	/*
--	 * We're looking for the highest acceptable P1 value for which a
--	 * multiplier factor MF exists that fulfills the following conditions:
--	 *
--	 * 1. p1 is in the [p1_min, p1_max] range given by the limits and is
--	 *    even
--	 * 2. mf is in the [mf_min, mf_max] range computed above
--	 * 3. div * mf is a multiple of p1, in order to compute
--	 *	n = div * mf / p1
--	 *	m = pll->m * mf
--	 * 4. the internal clock frequency, given by ext_clock / n, is in the
--	 *    [int_clock_min, int_clock_max] range given by the limits
--	 * 5. the output clock frequency, given by ext_clock / n * m, is in the
--	 *    [out_clock_min, out_clock_max] range given by the limits
--	 *
--	 * The first naive approach is to iterate over all p1 values acceptable
--	 * according to (1) and all mf values acceptable according to (2), and
--	 * stop at the first combination that fulfills (3), (4) and (5). This
--	 * has a O(n^2) complexity.
--	 *
--	 * Instead of iterating over all mf values in the [mf_min, mf_max] range
--	 * we can compute the mf increment between two acceptable values
--	 * according to (3) with
--	 *
--	 *	mf_inc = p1 / gcd(div, p1)			(6)
--	 *
--	 * and round the minimum up to the nearest multiple of mf_inc. This will
--	 * restrict the number of mf values to be checked.
--	 *
--	 * Furthermore, conditions (4) and (5) only restrict the range of
--	 * acceptable p1 and mf values by modifying the minimum and maximum
--	 * limits. (5) can be expressed as
--	 *
--	 *	ext_clock / (div * mf / p1) * m * mf >= out_clock_min
--	 *	ext_clock / (div * mf / p1) * m * mf <= out_clock_max
--	 *
--	 * or
--	 *
--	 *	p1 >= out_clock_min * div / (ext_clock * m)	(7)
--	 *	p1 <= out_clock_max * div / (ext_clock * m)
--	 *
--	 * Similarly, (4) can be expressed as
--	 *
--	 *	mf >= ext_clock * p1 / (int_clock_max * div)	(8)
--	 *	mf <= ext_clock * p1 / (int_clock_min * div)
--	 *
--	 * We can thus iterate over the restricted p1 range defined by the
--	 * combination of (1) and (7), and then compute the restricted mf range
--	 * defined by the combination of (2), (6) and (8). If the resulting mf
--	 * range is not empty, any value in the mf range is acceptable. We thus
--	 * select the mf lwoer bound and the corresponding p1 value.
--	 */
--	if (limits->p1_min == 0) {
--		dev_err(dev, "pll: P1 minimum value must be >0.\n");
-+	dev_dbg(dev, "pll: %u <= N <= %u\n", n_min, n_max);
-+	dev_dbg(dev, "pll: %u <= M <= %u\n", m_min, m_max);
-+
-+	/* out_clock_min <= pix_clock * P1 <= out_clock_max */
-+	p1_min = max(limits->p1_min,
-+		     DIV_ROUND_UP(limits->out_clock_min, pll->pix_clock));
-+	p1_max = min(limits->p1_max,
-+		     limits->out_clock_max / pll->pix_clock);
-+	/* pix_clock = ext_clock / N * M / P1 */
-+	p1_min = max(p1_min, DIV_ROUND_UP(pll->ext_clock * m_min,
-+					  pll->pix_clock * n_max));
-+	p1_max = min(p1_max,
-+		     pll->ext_clock * m_max / (pll->pix_clock * n_min));
-+	if (p1_min > p1_max) {
-+		dev_err(dev, "pll: no valid P1 divisor.\n");
- 		return -EINVAL;
- 	}
- 
--	p1_min = max(limits->p1_min, DIV_ROUND_UP(limits->out_clock_min * div,
--		     pll->ext_clock * pll->m));
--	p1_max = min(limits->p1_max, limits->out_clock_max * div /
--		     (pll->ext_clock * pll->m));
-+	dev_dbg(dev, "pll: %u <= P1 <= %u\n", p1_min, p1_max);
- 
- 	for (p1 = p1_max & ~1; p1 >= p1_min; p1 -= 2) {
--		unsigned int mf_inc = p1 / gcd(div, p1);
--		unsigned int mf_high;
--		unsigned int mf_low;
-+		unsigned int n = 0, m = UINT_MAX, out_clock, err;
-+		const unsigned int target_out_clock = pll->pix_clock * p1;
- 
--		mf_low = roundup(max(mf_min, DIV_ROUND_UP(pll->ext_clock * p1,
--					limits->int_clock_max * div)), mf_inc);
--		mf_high = min(mf_max, pll->ext_clock * p1 /
--			      (limits->int_clock_min * div));
-+		/* target_out_clock = ext_clock / N * M */
-+		if (approximate_fraction(n_min, n_max, m_min, m_max,
-+					 pll->ext_clock, target_out_clock,
-+					 &n, &m) < 0)
-+			continue;
- 
--		if (mf_low > mf_high)
-+		/* We must check all conditions due to possible rounding
-+		 * errors:
-+		 *   int_clock_min <= ext_clock / N <= int_clock_max
-+		 *   out_clock_min <= ext_clock / N * M <= out_clock_max
-+		 */
-+		out_clock = mult_frac(pll->ext_clock, m, n);
-+		if (pll->ext_clock < limits->int_clock_min * n ||
-+		    pll->ext_clock > limits->int_clock_max * n ||
-+		    out_clock < limits->out_clock_min ||
-+		    out_clock > limits->out_clock_max)
- 			continue;
- 
--		pll->n = div * mf_low / p1;
--		pll->m *= mf_low;
--		pll->p1 = p1;
--		dev_dbg(dev, "PLL: N %u M %u P1 %u\n", pll->n, pll->m, pll->p1);
--		return 0;
-+		err = absdiff(out_clock / p1, pll->pix_clock);
-+		if (err < clock_err) {
-+			pll->n = n;
-+			pll->m = m;
-+			pll->p1 = p1;
-+			clock_err = err;
-+		}
-+		if (err == 0) {
-+			dev_dbg(dev, "pll: N %u M %u P1 %u exact\n",
-+				pll->n, pll->m, pll->p1);
-+			return 0;
-+		}
- 	}
--
--	dev_err(dev, "pll: no valid N and P1 divisors found.\n");
--	return -EINVAL;
-+	if (clock_err == UINT_MAX) {
-+		dev_err(dev, "pll: no valid parameters found.\n");
-+		return -EINVAL;
-+	}
-+	pll->pix_clock = mult_frac(pll->ext_clock, pll->m, pll->n * pll->p1);
-+	dev_dbg(dev, "pll: N %u M %u P1 %u pix_clock %u Hz error %u Hz\n",
-+		pll->n, pll->m, pll->p1, pll->pix_clock, clock_err);
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(aptina_pll_calculate);
- 
-diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
-index 6a9e068462fd..31410f40b197 100644
---- a/drivers/media/i2c/mt9m032.c
-+++ b/drivers/media/i2c/mt9m032.c
-@@ -285,7 +285,7 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
- 	if (ret < 0)
- 		return ret;
- 
--	sensor->pix_clock = pdata->pix_clock;
-+	sensor->pix_clock = pll.pix_clock;
- 
- 	ret = mt9m032_write(client, MT9M032_PLL_CONFIG1,
- 			    (pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT) |
-@@ -711,6 +711,7 @@ static int mt9m032_probe(struct i2c_client *client,
- 	struct mt9m032_platform_data *pdata = client->dev.platform_data;
- 	struct i2c_adapter *adapter = client->adapter;
- 	struct mt9m032 *sensor;
-+	struct v4l2_ctrl *pixel_rate_ctrl;
- 	int chip_version;
- 	int ret;
- 
-@@ -780,9 +781,10 @@ static int mt9m032_probe(struct i2c_client *client,
- 			  V4L2_CID_EXPOSURE, MT9M032_SHUTTER_WIDTH_MIN,
- 			  MT9M032_SHUTTER_WIDTH_MAX, 1,
- 			  MT9M032_SHUTTER_WIDTH_DEF);
--	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
--			  V4L2_CID_PIXEL_RATE, pdata->pix_clock,
--			  pdata->pix_clock, 1, pdata->pix_clock);
-+	pixel_rate_ctrl = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-+					    V4L2_CID_PIXEL_RATE,
-+					    pdata->pix_clock, pdata->pix_clock,
-+					    1, pdata->pix_clock);
- 
- 	if (sensor->ctrls.error) {
- 		ret = sensor->ctrls.error;
-@@ -810,6 +812,11 @@ static int mt9m032_probe(struct i2c_client *client,
- 		goto error_entity;
- 	usleep_range(10000, 11000);
- 
-+	ret = __v4l2_ctrl_modify_range(pixel_rate_ctrl, sensor->pix_clock,
-+				       sensor->pix_clock, 1, sensor->pix_clock);
-+	if (ret < 0)
-+		goto error_entity;
-+
- 	ret = v4l2_ctrl_handler_setup(&sensor->ctrls);
- 	if (ret < 0)
- 		goto error_entity;
--- 
-2.11.0
+I think the information we need to expose to userspace is whether the
+driver supports a destination format that does not match the bitstream
+format. We could make it part of the spec that, by lack of this
+indication, the provided bitstream is expected to match the format that
+was selected.
+
+> I think that's why it makes sense for stateless drivers to set the
+> profile/levels for a given job, in order to properly negotiate
+> the input and output formats (for both encoders and decoders). =20
+
+I still fail to follow this logic. As far as I understood, profile/level
+are indications of hardware capabilities required to decode the video,
+not an indication of the precise features selected for decoding,
+especially when it comes the format. As Tomasz mentionned in the
+previous email, various formats may be supported by the same profile, so
+setting the profile/level does not indicate which format is appropriate
+for decoding the bitstream.
+
+> [1] https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/vidioc-g-fmt.html
+--=20
+Paul Kocialkowski, Bootlin (formerly Free Electrons)
+Embedded Linux and kernel engineering
+https://bootlin.com
+
+--=-Gh8TeR8aBH3LkCYz9cJd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlt+asIACgkQ3cLmz3+f
+v9Frdwf/bcVvdejF8Rdvj7SlwYYdpL0liNiuvdor2yYrcSuyzqoV5Jg6GzaKoVqN
+IRlWOzDiM/pRHBUeKYKCCEnBkmhW1n+OR4kdNUpW8m4ZuZva70P4TcyeciDtLCpu
+mLnp791SahMX+W7y0Ndvu2nv6CTqfLRDAZRi2F3pi8D20yTZkbl/sxHPdy5ZW1wu
+T/IaxPilDwaAfbzeSHE0PWAE5sSTrEyGKj0VD09+XfaSKJatOWNm7SYPQ+756zjy
+jN2IqUOBGVyqRolANGu/AAOzJlQMVpxC+nc4vkl4rz1+4cpr/hv/MROCWx2E3o4p
+dcy183N31cQgKpyIYL/LMHgGsb8p5Q==
+=qNhi
+-----END PGP SIGNATURE-----
+
+--=-Gh8TeR8aBH3LkCYz9cJd--
