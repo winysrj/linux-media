@@ -1,35 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:37072 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729973AbeHWRZh (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:46350 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727597AbeHWR7A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 13:25:37 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] video_function_calls.rst: drop obsolete video-set-attributes
- reference
-Message-ID: <d80d2a85-3afd-e07a-edf0-b04452ab1e47@xs4all.nl>
-Date: Thu, 23 Aug 2018 15:55:43 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Thu, 23 Aug 2018 13:59:00 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
+        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+Subject: [PATCH v6 0/4] Venus updates - PIL
+Date: Thu, 23 Aug 2018 19:58:44 +0530
+Message-Id: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes this warning:
+Hello,
 
-Documentation/media/uapi/dvb/video_function_calls.rst:9: WARNING: toctree contains
-reference to nonexisting document 'uapi/dvb/video-set-attributes'
+Here is v6 with following comments addressed:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/Documentation/media/uapi/dvb/video_function_calls.rst b/Documentation/media/uapi/dvb/video_function_calls.rst
-index 3f4f6c9ffad7..a4222b6cd2d3 100644
---- a/Documentation/media/uapi/dvb/video_function_calls.rst
-+++ b/Documentation/media/uapi/dvb/video_function_calls.rst
-@@ -33,4 +33,3 @@ Video Function Calls
-     video-clear-buffer
-     video-set-streamtype
-     video-set-format
--    video-set-attributes
+* 4/4 from earlier series was dropped as .probe was not needed.
+* indentation as per checkpatch --strict option.
+* tested on Venus v4 hardware. 
+
+Stanimir Varbanov (1):
+  venus: firmware: register separate platform_device for firmware loader
+
+Vikash Garodia (3):
+  venus: firmware: add routine to reset ARM9
+  venus: firmware: move load firmware in a separate function
+  venus: firmware: add no TZ boot and shutdown routine
+
+ .../devicetree/bindings/media/qcom,venus.txt       |  13 +-
+ drivers/media/platform/qcom/venus/core.c           |  24 ++-
+ drivers/media/platform/qcom/venus/core.h           |   9 +
+ drivers/media/platform/qcom/venus/firmware.c       | 223 +++++++++++++++++++--
+ drivers/media/platform/qcom/venus/firmware.h       |  17 +-
+ drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |   8 +
+ 7 files changed, 265 insertions(+), 42 deletions(-)
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
