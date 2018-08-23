@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:12570 "EHLO
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:12528 "EHLO
         bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731012AbeHWQ6G (ORCPT
+        by vger.kernel.org with ESMTP id S1729541AbeHWQ6E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 12:58:06 -0400
+        Thu, 23 Aug 2018 12:58:04 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -12,9 +12,9 @@ To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 Cc: linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 28/30] adv748x: afe: add routing support
-Date: Thu, 23 Aug 2018 15:25:42 +0200
-Message-Id: <20180823132544.521-29-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 26/30] adv748x: csi2: describe the multiplexed stream
+Date: Thu, 23 Aug 2018 15:25:40 +0200
+Message-Id: <20180823132544.521-27-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
@@ -23,102 +23,80 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The adv748x afe has eight analog sink pads, currently one of them is
-chosen to be the active route based on device tree configuration. With
-the new routing API it's possible to expose and change which of the
-eight sink pads are routed to the source pad.
+The adv748x CSI-2 transmitter can only transmit one stream over the
+CSI-2 link, however it can choose which virtual channel is used. This
+choice effects the CSI-2 receiver and needs to be captured in the frame
+descriptor information, solve this by implementing .get_frame_desc().
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/i2c/adv748x/adv748x-afe.c | 65 +++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 31 +++++++++++++++++++++++-
+ drivers/media/i2c/adv748x/adv748x.h      |  1 +
+ 2 files changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
-index edd25e895e5dec3c..dac0e9e385e7791a 100644
---- a/drivers/media/i2c/adv748x/adv748x-afe.c
-+++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-@@ -43,6 +43,9 @@
- #define ADV748X_AFE_STD_PAL_SECAM			0xe
- #define ADV748X_AFE_STD_PAL_SECAM_PED			0xf
- 
-+#define ADV748X_AFE_ROUTES_MAX ((ADV748X_AFE_SINK_AIN7 - \
-+				ADV748X_AFE_SINK_AIN0) + 1)
-+
- static int adv748x_afe_read_ro_map(struct adv748x_state *state, u8 reg)
- {
- 	int ret;
-@@ -387,10 +390,72 @@ static int adv748x_afe_set_format(struct v4l2_subdev *sd,
- 	return 0;
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index 9f736da2ad60160f..5087b87a2c2e8f7d 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -231,9 +231,37 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
+ 	return ret;
  }
  
-+static int adv748x_afe_get_routing(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_routing *routing)
++static int adv748x_csi2_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				       struct v4l2_mbus_frame_desc *fd)
 +{
-+	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
-+	struct v4l2_subdev_route *r = routing->routes;
-+	unsigned int i;
++	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
++	struct v4l2_mbus_framefmt *mbusformat;
 +
-+	/* There is one possible route from each sink */
-+	if (routing->num_routes < ADV748X_AFE_ROUTES_MAX) {
-+		routing->num_routes = ADV748X_AFE_ROUTES_MAX;
-+		return -ENOSPC;
-+	}
++	memset(fd, 0, sizeof(*fd));
 +
-+	routing->num_routes = ADV748X_AFE_ROUTES_MAX;
++	if (pad != ADV748X_CSI2_SOURCE)
++		return -EINVAL;
 +
-+	for (i = ADV748X_AFE_SINK_AIN0; i <= ADV748X_AFE_SINK_AIN7; i++) {
-+		r->sink_pad = i;
-+		r->sink_stream = 0;
-+		r->source_pad = ADV748X_AFE_SOURCE;
-+		r->source_stream = 0;
-+		r->flags = afe->input == i ? V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
-+		r++;
-+	}
++	mbusformat = adv748x_csi2_get_pad_format(sd, NULL, ADV748X_CSI2_SINK,
++						 V4L2_SUBDEV_FORMAT_ACTIVE);
++	if (!mbusformat)
++		return -EINVAL;
++
++	fd->entry->stream = tx->vc;
++	fd->entry->bus.csi2.channel = tx->vc;
++	fd->entry->bus.csi2.data_type =
++		adv748x_csi2_code_to_datatype(mbusformat->code);
++
++	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
++	fd->num_entries = 1;
 +
 +	return 0;
 +}
 +
-+static int adv748x_afe_set_routing(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_routing *routing)
-+{
-+	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
-+	struct v4l2_subdev_route *r = routing->routes;
-+	int input = -1;
-+	unsigned int i;
-+
-+	if (routing->num_routes > ADV748X_AFE_ROUTES_MAX)
-+		return -ENOSPC;
-+
-+	for (i = 0; i < routing->num_routes; i++) {
-+		if (r->sink_pad > ADV748X_AFE_SINK_AIN7 ||
-+		    r->sink_stream != 0 ||
-+		    r->source_pad != ADV748X_AFE_SOURCE ||
-+		    r->source_stream != 0)
-+			return -EINVAL;
-+
-+		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE) {
-+			if (input != -1)
-+				return -EMLINK;
-+
-+			input = r->sink_pad;
-+		}
-+		r++;
-+	}
-+
-+	if (input != -1)
-+		afe->input = input;
-+
-+	return 0;
-+}
-+
- static const struct v4l2_subdev_pad_ops adv748x_afe_pad_ops = {
- 	.enum_mbus_code = adv748x_afe_enum_mbus_code,
- 	.set_fmt = adv748x_afe_set_format,
- 	.get_fmt = adv748x_afe_get_format,
-+	.get_routing = adv748x_afe_get_routing,
-+	.set_routing = adv748x_afe_set_routing,
+ static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
+ 	.get_fmt = adv748x_csi2_get_format,
+ 	.set_fmt = adv748x_csi2_set_format,
++	.get_frame_desc = adv748x_csi2_get_frame_desc,
  };
  
  /* -----------------------------------------------------------------------------
+@@ -309,7 +337,8 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
+ 	}
+ 
+ 	/* Initialise the virtual channel */
+-	adv748x_csi2_set_virtual_channel(tx, 0);
++	tx->vc = 0;
++	adv748x_csi2_set_virtual_channel(tx, tx->vc);
+ 
+ 	adv748x_subdev_init(&tx->sd, state, &adv748x_csi2_ops,
+ 			    MEDIA_ENT_F_VID_IF_BRIDGE,
+diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+index 65f83741277e1365..90901b8a4e027ae5 100644
+--- a/drivers/media/i2c/adv748x/adv748x.h
++++ b/drivers/media/i2c/adv748x/adv748x.h
+@@ -80,6 +80,7 @@ enum adv748x_csi2_pads {
+ 
+ struct adv748x_csi2 {
+ 	struct adv748x_state *state;
++	unsigned int vc;
+ 	struct v4l2_mbus_framefmt format;
+ 	unsigned int page;
+ 
 -- 
 2.18.0
