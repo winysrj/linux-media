@@ -1,35 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:41945 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728483AbeHNIre (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Aug 2018 04:47:34 -0400
-From: "Zhang, Ning A" <ning.a.zhang@intel.com>
-To: "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: question about v4l2_i2c_new_subdev_board
-Date: Tue, 14 Aug 2018 06:00:40 +0000
-Message-ID: <1534226439.2854.37.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <7D0E4A1AB8F2AA4BBA98229EA0B625C7@intel.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from mail-qk0-f180.google.com ([209.85.220.180]:46144 "EHLO
+        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726297AbeHWVIN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 23 Aug 2018 17:08:13 -0400
+Received: by mail-qk0-f180.google.com with SMTP id j7-v6so4132721qkd.13
+        for <linux-media@vger.kernel.org>; Thu, 23 Aug 2018 10:37:27 -0700 (PDT)
+Message-ID: <f4d1e18a6552446b092cffaa3028e0dfe5432b9a.camel@ndufresne.ca>
+Subject: Re: [RFC] Request API and V4L2 capabilities
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Date: Thu, 23 Aug 2018 13:37:24 -0400
+In-Reply-To: <b46ee744-4c00-7e73-1925-65f2122e30f0@xs4all.nl>
+References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
+         <b46ee744-4c00-7e73-1925-65f2122e30f0@xs4all.nl>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-563f/p2b4oZSJVthBc45"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8sIEhhbnMsIE1hdXJvDQoNCkkgZmluZCBpbiBzb3VyY2UgY29kZTogdjRsMi1jb21tb24u
-YzogdjRsMl9pMmNfbmV3X3N1YmRldl9ib2FyZCgpLA0KdGhlcmUgaXMgYSBjb21tZW50Og0KDQoJ
-LyogTm90ZTogYnkgbG9hZGluZyB0aGUgbW9kdWxlIGZpcnN0IHdlIGFyZSBjZXJ0YWluIHRoYXQg
-Yy0NCj5kcml2ZXINCgnCoMKgwqB3aWxsIGJlIHNldCBpZiB0aGUgZHJpdmVyIHdhcyBmb3VuZC4g
-SWYgdGhlIG1vZHVsZSB3YXMgbm90DQpsb2FkZWQNCgnCoMKgwqBmaXJzdCwgdGhlbiB0aGUgaTJj
-IGNvcmUgdHJpZXMgdG8gZGVsYXktbG9hZCB0aGUgbW9kdWxlIGZvcg0KdXMsDQoJwqDCoMKgYW5k
-IHRoZW4gYy0+ZHJpdmVyIGlzIHN0aWxsIE5VTEwgdW50aWwgdGhlIG1vZHVsZSBpcyBmaW5hbGx5
-DQoJwqDCoMKgbG9hZGVkLiBUaGlzIGRlbGF5LWxvYWQgbWVjaGFuaXNtIGRvZXNuJ3Qgd29yayBp
-ZiBvdGhlcg0KZHJpdmVycw0KCcKgwqDCoHdhbnQgdG8gdXNlIHRoZSBpMmMgZGV2aWNlLCBzbyBl
-eHBsaWNpdGx5IGxvYWRpbmcgdGhlIG1vZHVsZQ0KCcKgwqDCoGlzIHRoZSBiZXN0IGFsdGVybmF0
-aXZlLiAqLw0KDQpJIGZpbmQgaXQgYWRkZWQgYnkgY29tbWl0OiBmMDIyMmM3ZDg2MGYwOWE2MWJl
-YzVlNTAwNTM5ZjI4ZGIwMTg0YjM4IA0KDQppdCB3YXMgYWRkZWQgYXQgeWVhciAyMDA5LCBpcyB0
-aGlzIHN0aWxsIGFuIGlzc3VlIGluIG5ld2VyIGtlcm5lbCwgbGlrZQ0KNC4xND8NCg0KQlIuDQpO
-aW5nLg==
+
+--=-563f/p2b4oZSJVthBc45
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Le jeudi 23 ao=C3=BBt 2018 =C3=A0 16:31 +0200, Hans Verkuil a =C3=A9crit :
+> > I propose adding these capabilities:
+> >=20
+> > #define V4L2_BUF_CAP_HAS_REQUESTS     0x00000001
+> > #define V4L2_BUF_CAP_REQUIRES_REQUESTS        0x00000002
+> > #define V4L2_BUF_CAP_HAS_MMAP         0x00000100
+> > #define V4L2_BUF_CAP_HAS_USERPTR      0x00000200
+> > #define V4L2_BUF_CAP_HAS_DMABUF               0x00000400
+>=20
+> I substituted SUPPORTS for HAS and dropped the REQUIRES_REQUESTS capabili=
+ty.
+> As Tomasz mentioned, technically (at least for stateless codecs) you coul=
+d
+> handle just one frame at a time without using requests. It's very ineffic=
+ient,
+> but it would work.
+
+I thought the request was providing a data structure to refer back to
+the frames, so each codec don't have to implement one. Do you mean that
+the framework will implicitly request requests in that mode ? or simply
+that there is no such helper ?
+
+--=-563f/p2b4oZSJVthBc45
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW37w1AAKCRBxUwItrAao
+HMsmAJ98lwNYgd4fk0Mk13FqBr0Vo0lY7QCeI6X5vdzloQSEa1tDdDHZgO6wq7Q=
+=jvyy
+-----END PGP SIGNATURE-----
+
+--=-563f/p2b4oZSJVthBc45--
