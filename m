@@ -1,207 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:12342 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730783AbeHWQ54 (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:12357 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730718AbeHWQ55 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 12:57:56 -0400
+        Thu, 23 Aug 2018 12:57:57 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: [PATCH 16/30] v4l: subdev: Add [GS]_ROUTING subdev ioctls and operations
-Date: Thu, 23 Aug 2018 15:25:30 +0200
-Message-Id: <20180823132544.521-17-niklas.soderlund+renesas@ragnatech.se>
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 17/30] v4l: subdev: compat: Implement handling for VIDIOC_SUBDEV_[GS]_ROUTING
+Date: Thu, 23 Aug 2018 15:25:31 +0200
+Message-Id: <20180823132544.521-18-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-
-- Add sink and source streams for multiplexed links
-- Copy the argument back in case of an error. This is needed to let the
-  caller know the number of routes.
+Implement compat IOCTL handling for VIDIOC_SUBDEV_G_ROUTING and
+VIDIOC_SUBDEV_S_ROUTING IOCTLs.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c  | 20 +++++++++++++-
- drivers/media/v4l2-core/v4l2-subdev.c | 28 +++++++++++++++++++
- include/media/v4l2-subdev.h           |  7 +++++
- include/uapi/linux/v4l2-subdev.h      | 40 +++++++++++++++++++++++++++
- 4 files changed, 94 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 75 +++++++++++++++++++
+ 1 file changed, 75 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 54afc9c7ee6ea162..68a0cf8b6f91208d 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -19,6 +19,7 @@
- #include <linux/kernel.h>
- #include <linux/version.h>
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6481212fda772c73..b9112d6909ce0859 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1045,6 +1045,64 @@ static int put_v4l2_event32(struct v4l2_event __user *p64,
+ 	return 0;
+ }
  
-+#include <linux/v4l2-subdev.h>
- #include <linux/videodev2.h>
- 
- #include <media/v4l2-common.h>
-@@ -2924,6 +2925,23 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 		}
- 		break;
- 	}
-+
-+	case VIDIOC_SUBDEV_G_ROUTING:
-+	case VIDIOC_SUBDEV_S_ROUTING: {
-+		struct v4l2_subdev_routing *route = parg;
-+
-+		if (route->num_routes > 0) {
-+			if (route->num_routes > 256)
-+				return -EINVAL;
-+
-+			*user_ptr = (void __user *)route->routes;
-+			*kernel_ptr = (void *)&route->routes;
-+			*array_size = sizeof(struct v4l2_subdev_route)
-+				    * route->num_routes;
-+			ret = 1;
-+		}
-+		break;
-+	}
- 	}
- 
- 	return ret;
-@@ -3033,7 +3051,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	 * Some ioctls can return an error, but still have valid
- 	 * results that must be returned.
- 	 */
--	if (err < 0 && !always_copy)
-+	if (err < 0 && !always_copy && cmd != VIDIOC_SUBDEV_G_ROUTING)
- 		goto out;
- 
- out_array_args:
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 2b63fa6b6fc9a739..601a2b23f736b382 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -516,7 +516,35 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_SUBDEV_QUERYSTD:
- 		return v4l2_subdev_call(sd, video, querystd, arg);
-+
-+	case VIDIOC_SUBDEV_G_ROUTING:
-+		return v4l2_subdev_call(sd, pad, get_routing, arg);
-+
-+	case VIDIOC_SUBDEV_S_ROUTING: {
-+		struct v4l2_subdev_routing *route = arg;
-+		unsigned int i;
-+
-+		if (route->num_routes > sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		for (i = 0; i < route->num_routes; ++i) {
-+			unsigned int sink = route->routes[i].sink_pad;
-+			unsigned int source = route->routes[i].source_pad;
-+			struct media_pad *pads = sd->entity.pads;
-+
-+			if (sink >= sd->entity.num_pads ||
-+			    source >= sd->entity.num_pads)
-+				return -EINVAL;
-+
-+			if (!(pads[sink].flags & MEDIA_PAD_FL_SINK) ||
-+			    !(pads[source].flags & MEDIA_PAD_FL_SOURCE))
-+				return -EINVAL;
-+		}
-+
-+		return v4l2_subdev_call(sd, pad, set_routing, route);
-+	}
- #endif
-+
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
- 	}
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 9102d6ca566e01f2..5acaeeb9b3cacefa 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -679,6 +679,9 @@ struct v4l2_subdev_pad_config {
-  *
-  * @set_frame_desc: set the low level media bus frame parameters, @fd array
-  *                  may be adjusted by the subdev driver to device capabilities.
-+ *
-+ * @get_routing: callback for VIDIOC_SUBDEV_G_ROUTING IOCTL handler.
-+ * @set_routing: callback for VIDIOC_SUBDEV_S_ROUTING IOCTL handler.
-  */
- struct v4l2_subdev_pad_ops {
- 	int (*init_cfg)(struct v4l2_subdev *sd,
-@@ -719,6 +722,10 @@ struct v4l2_subdev_pad_ops {
- 			      struct v4l2_mbus_frame_desc *fd);
- 	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
- 			      struct v4l2_mbus_frame_desc *fd);
-+	int (*get_routing)(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_routing *route);
-+	int (*set_routing)(struct v4l2_subdev *sd,
-+			   struct v4l2_subdev_routing *route);
- };
- 
- /**
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index 03970ce3074193e6..af069bfb10ca23a5 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -155,6 +155,44 @@ struct v4l2_subdev_selection {
- 	__u32 reserved[8];
- };
- 
-+#define V4L2_SUBDEV_ROUTE_FL_ACTIVE	(1 << 0)
-+#define V4L2_SUBDEV_ROUTE_FL_IMMUTABLE	(1 << 1)
-+
-+/**
-+ * struct v4l2_subdev_route - A signal route inside a subdev
-+ * @sink_pad: the sink pad
-+ * @sink_stream: the sink stream
-+ * @source_pad: the source pad
-+ * @source_stream: the source stream
-+ * @flags: route flags:
-+ *
-+ *	V4L2_SUBDEV_ROUTE_FL_ACTIVE: Is the stream in use or not? An
-+ *	active stream will start when streaming is enabled on a video
-+ *	node. Set by the user.
-+ *
-+ *	V4L2_SUBDEV_ROUTE_FL_IMMUTABLE: Is the stream immutable, i.e.
-+ *	can it be activated and inactivated? Set by the driver.
-+ */
-+struct v4l2_subdev_route {
-+	__u32 sink_pad;
-+	__u32 sink_stream;
-+	__u32 source_pad;
-+	__u32 source_stream;
-+	__u32 flags;
-+	__u32 reserved[5];
-+};
-+
-+/**
-+ * struct v4l2_subdev_routing - Routing information
-+ * @routes: the routes array
-+ * @num_routes: the total number of routes in the routes array
-+ */
-+struct v4l2_subdev_routing {
-+	struct v4l2_subdev_route *routes;
++struct v4l2_subdev_routing32 {
++	compat_caddr_t routes;
 +	__u32 num_routes;
 +	__u32 reserved[5];
 +};
 +
- /* Backwards compatibility define --- to be removed */
- #define v4l2_subdev_edid v4l2_edid
++static int get_v4l2_subdev_routing(struct v4l2_subdev_routing __user *kp,
++				   struct v4l2_subdev_routing32 __user *up)
++{
++	struct v4l2_subdev_route __user *routes;
++	compat_caddr_t p;
++	u32 num_routes;
++
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
++	    get_user(p, &up->routes) ||
++	    get_user(num_routes, &up->num_routes) ||
++	    put_user(num_routes, &kp->num_routes) ||
++	    copy_in_user(&kp->reserved, &up->reserved, sizeof(kp->reserved)) ||
++	    num_routes > U32_MAX / sizeof(*kp->routes))
++		return -EFAULT;
++
++	routes = compat_ptr(p);
++
++	if (!access_ok(VERIFY_READ, routes,
++		       num_routes * sizeof(*kp->routes)))
++		return -EFAULT;
++
++	if (put_user((__force struct v4l2_subdev_route *)routes,
++		     &kp->routes))
++		return -EFAULT;
++
++	return 0;
++}
++
++static int put_v4l2_subdev_routing(struct v4l2_subdev_routing __user *kp,
++				   struct v4l2_subdev_routing32 __user *up)
++{
++	struct v4l2_subdev_route __user *routes;
++	compat_caddr_t p;
++	u32 num_routes;
++
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
++	    get_user(p, &up->routes) ||
++	    get_user(num_routes, &kp->num_routes) ||
++	    put_user(num_routes, &up->num_routes) ||
++	    copy_in_user(&up->reserved, &kp->reserved, sizeof(kp->reserved)) ||
++	    num_routes > U32_MAX / sizeof(*kp->routes))
++		return -EFAULT;
++
++	routes = compat_ptr(p);
++
++	if (!access_ok(VERIFY_WRITE, routes,
++		       num_routes * sizeof(*kp->routes)))
++		return -EFAULT;
++
++	return 0;
++}
++
+ struct v4l2_edid32 {
+ 	__u32 pad;
+ 	__u32 start_block;
+@@ -1117,6 +1175,8 @@ static int put_v4l2_edid32(struct v4l2_edid __user *p64,
+ #define VIDIOC_STREAMOFF32	_IOW ('V', 19, s32)
+ #define VIDIOC_G_INPUT32	_IOR ('V', 38, s32)
+ #define VIDIOC_S_INPUT32	_IOWR('V', 39, s32)
++#define VIDIOC_SUBDEV_G_ROUTING32 _IOWR('V', 38, struct v4l2_subdev_routing32)
++#define VIDIOC_SUBDEV_S_ROUTING32 _IOWR('V', 39, struct v4l2_subdev_routing32)
+ #define VIDIOC_G_OUTPUT32	_IOR ('V', 46, s32)
+ #define VIDIOC_S_OUTPUT32	_IOWR('V', 47, s32)
  
-@@ -181,5 +219,7 @@ struct v4l2_subdev_selection {
- #define VIDIOC_SUBDEV_ENUM_DV_TIMINGS		_IOWR('V', 98, struct v4l2_enum_dv_timings)
- #define VIDIOC_SUBDEV_QUERY_DV_TIMINGS		_IOR('V', 99, struct v4l2_dv_timings)
- #define VIDIOC_SUBDEV_DV_TIMINGS_CAP		_IOWR('V', 100, struct v4l2_dv_timings_cap)
-+#define VIDIOC_SUBDEV_G_ROUTING			_IOWR('V', 38, struct v4l2_subdev_routing)
-+#define VIDIOC_SUBDEV_S_ROUTING			_IOWR('V', 39, struct v4l2_subdev_routing)
+@@ -1195,6 +1255,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 	case VIDIOC_STREAMOFF32: cmd = VIDIOC_STREAMOFF; break;
+ 	case VIDIOC_G_INPUT32: cmd = VIDIOC_G_INPUT; break;
+ 	case VIDIOC_S_INPUT32: cmd = VIDIOC_S_INPUT; break;
++	case VIDIOC_SUBDEV_G_ROUTING32: cmd = VIDIOC_SUBDEV_G_ROUTING; break;
++	case VIDIOC_SUBDEV_S_ROUTING32: cmd = VIDIOC_SUBDEV_S_ROUTING; break;
+ 	case VIDIOC_G_OUTPUT32: cmd = VIDIOC_G_OUTPUT; break;
+ 	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
+ 	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
+@@ -1227,6 +1289,15 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		compatible_arg = 0;
+ 		break;
  
- #endif
++	case VIDIOC_SUBDEV_G_ROUTING:
++	case VIDIOC_SUBDEV_S_ROUTING:
++		err = alloc_userspace(sizeof(struct v4l2_subdev_routing),
++				      0, &new_p64);
++		if (!err)
++			err = get_v4l2_subdev_routing(new_p64, p32);
++		compatible_arg = 0;
++		break;
++
+ 	case VIDIOC_G_EDID:
+ 	case VIDIOC_S_EDID:
+ 		err = alloc_userspace(sizeof(struct v4l2_edid), 0, &new_p64);
+@@ -1368,6 +1439,10 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		if (put_v4l2_edid32(new_p64, p32))
+ 			err = -EFAULT;
+ 		break;
++	case VIDIOC_SUBDEV_G_ROUTING:
++	case VIDIOC_SUBDEV_S_ROUTING:
++		err = put_v4l2_subdev_routing(new_p64, p32);
++		break;
+ 	}
+ 	if (err)
+ 		return err;
 -- 
 2.18.0
