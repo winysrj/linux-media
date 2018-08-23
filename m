@@ -1,125 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:12552 "EHLO
-        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730043AbeHWQ6F (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:12251 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730726AbeHWQ5x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 12:58:05 -0400
+        Thu, 23 Aug 2018 12:57:53 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 27/30] adv748x: csi2: add internal routing configuration
-Date: Thu, 23 Aug 2018 15:25:41 +0200
-Message-Id: <20180823132544.521-28-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 11/30] media: entity: Skip link validation for pads to which there is no route to
+Date: Thu, 23 Aug 2018 15:25:25 +0200
+Message-Id: <20180823132544.521-12-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support to get and set the internal routing between the adv748x
-CSI-2 transmitters sink pad and its multiplexed source pad. This routing
-includes which stream of the multiplexed pad to use, allowing the user
-to select which CSI-2 virtual channel to use when transmitting the
-stream.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Links are validated along the pipeline which is about to start streaming.
+Not all the pads in entities that are traversed along that pipeline are
+part of the pipeline, however. Skip the link validation for such pads.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/adv748x/adv748x-csi2.c | 65 ++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ drivers/media/media-entity.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 5087b87a2c2e8f7d..7bd4566807d0a4ee 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -18,6 +18,8 @@
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 12d9fc9ee02f38f2..0395d58b2e233d88 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -493,6 +493,11 @@ __must_check int __media_pipeline_start(struct media_pad *pad,
+ 			struct media_pad *other_pad = link->sink->entity == entity
+ 				? link->sink : link->source;
  
- #include "adv748x.h"
++			/* Ignore pads to which there is no route. */
++			if (!media_entity_has_route(entity, pad->index,
++						    other_pad->index))
++				continue;
++
+ 			/* Mark that a pad is connected by a link. */
+ 			bitmap_clear(has_no_links, other_pad->index, 1);
  
-+#define ADV748X_CSI2_ROUTES_MAX 4
-+
- struct adv748x_csi2_format {
- 	unsigned int code;
- 	unsigned int datatype;
-@@ -258,10 +260,73 @@ static int adv748x_csi2_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
- 	return 0;
- }
- 
-+static int adv748x_csi2_get_routing(struct v4l2_subdev *sd,
-+				    struct v4l2_subdev_routing *routing)
-+{
-+	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-+	struct v4l2_subdev_route *r = routing->routes;
-+	unsigned int vc;
-+
-+	if (routing->num_routes < ADV748X_CSI2_ROUTES_MAX) {
-+		routing->num_routes = ADV748X_CSI2_ROUTES_MAX;
-+		return -ENOSPC;
-+	}
-+
-+	routing->num_routes = ADV748X_CSI2_ROUTES_MAX;
-+
-+	for (vc = 0; vc < ADV748X_CSI2_ROUTES_MAX; vc++) {
-+		r->sink_pad = ADV748X_CSI2_SINK;
-+		r->sink_stream = 0;
-+		r->source_pad = ADV748X_CSI2_SOURCE;
-+		r->source_stream = vc;
-+		r->flags = vc == tx->vc ? V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
-+		r++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int adv748x_csi2_set_routing(struct v4l2_subdev *sd,
-+				    struct v4l2_subdev_routing *routing)
-+{
-+	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
-+	struct v4l2_subdev_route *r = routing->routes;
-+	unsigned int i;
-+	int vc = -1;
-+
-+	if (routing->num_routes > ADV748X_CSI2_ROUTES_MAX)
-+		return -ENOSPC;
-+
-+	for (i = 0; i < routing->num_routes; i++) {
-+		if (r->sink_pad != ADV748X_CSI2_SINK ||
-+		    r->sink_stream != 0 ||
-+		    r->source_pad != ADV748X_CSI2_SOURCE ||
-+		    r->source_stream >= ADV748X_CSI2_ROUTES_MAX)
-+			return -EINVAL;
-+
-+		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE) {
-+			if (vc != -1)
-+				return -EMLINK;
-+
-+			vc = r->source_stream;
-+		}
-+		r++;
-+	}
-+
-+	if (vc != -1)
-+		tx->vc = vc;
-+
-+	adv748x_csi2_set_virtual_channel(tx, tx->vc);
-+
-+	return 0;
-+}
-+
- static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
- 	.get_fmt = adv748x_csi2_get_format,
- 	.set_fmt = adv748x_csi2_set_format,
- 	.get_frame_desc = adv748x_csi2_get_frame_desc,
-+	.get_routing = adv748x_csi2_get_routing,
-+	.set_routing = adv748x_csi2_set_routing,
- };
- 
- /* -----------------------------------------------------------------------------
 -- 
 2.18.0
