@@ -1,115 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:44909 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726872AbeHXMev (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Aug 2018 08:34:51 -0400
-Message-ID: <3774b8efd8818b7aef64211f0d7424e296806636.camel@bootlin.com>
-Subject: Re: [RFC] Request API and V4L2 capabilities
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:42496 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727134AbeHXMfZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Aug 2018 08:35:25 -0400
+Received: by mail-wr1-f65.google.com with SMTP id v17-v6so6839196wrr.9
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2018 02:01:43 -0700 (PDT)
+Subject: Re: [PATCH v6 2/4] venus: firmware: move load firmware in a separate
+ function
+To: Alexandre Courbot <acourbot@chromium.org>, vgarodia@codeaurora.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
+        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Date: Fri, 24 Aug 2018 11:00:28 +0200
-In-Reply-To: <26ae963d-3326-2506-b116-0a5f64b34c3d@xs4all.nl>
-References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
-         <b46ee744-4c00-7e73-1925-65f2122e30f0@xs4all.nl>
-         <f4d1e18a6552446b092cffaa3028e0dfe5432b9a.camel@ndufresne.ca>
-         <26ae963d-3326-2506-b116-0a5f64b34c3d@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-TECyqF2VRcCKcma0fsIs"
-Mime-Version: 1.0
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org
+References: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
+ <1535034528-11590-3-git-send-email-vgarodia@codeaurora.org>
+ <CAPBb6MXydrrfbWOps-xV4eRzgN6n6pT45B2C=H5tuF2pZOesZQ@mail.gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <ee7f8db9-8624-9e08-7ea2-7ea99c0ad289@linaro.org>
+Date: Fri, 24 Aug 2018 12:01:40 +0300
+MIME-Version: 1.0
+In-Reply-To: <CAPBb6MXydrrfbWOps-xV4eRzgN6n6pT45B2C=H5tuF2pZOesZQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Alex,
 
---=-TECyqF2VRcCKcma0fsIs
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 08/24/2018 10:39 AM, Alexandre Courbot wrote:
+> On Thu, Aug 23, 2018 at 11:29 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>>
+>> Separate firmware loading part into a new function.
+>>
+>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/core.c     |  4 +-
+>>  drivers/media/platform/qcom/venus/firmware.c | 55 ++++++++++++++++++----------
+>>  drivers/media/platform/qcom/venus/firmware.h |  2 +-
+>>  3 files changed, 38 insertions(+), 23 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+>> index bb6add9..75b9785 100644
+>> --- a/drivers/media/platform/qcom/venus/core.c
+>> +++ b/drivers/media/platform/qcom/venus/core.c
+>> @@ -84,7 +84,7 @@ static void venus_sys_error_handler(struct work_struct *work)
+>>
+>>         pm_runtime_get_sync(core->dev);
+>>
+>> -       ret |= venus_boot(core->dev, core->res->fwname);
+>> +       ret |= venus_boot(core);
+>>
+>>         ret |= hfi_core_resume(core, true);
+>>
+>> @@ -284,7 +284,7 @@ static int venus_probe(struct platform_device *pdev)
+>>         if (ret < 0)
+>>                 goto err_runtime_disable;
+>>
+>> -       ret = venus_boot(dev, core->res->fwname);
+>> +       ret = venus_boot(core);
+>>         if (ret)
+>>                 goto err_runtime_disable;
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+>> index a9d042e..34224eb 100644
+>> --- a/drivers/media/platform/qcom/venus/firmware.c
+>> +++ b/drivers/media/platform/qcom/venus/firmware.c
+>> @@ -60,20 +60,18 @@ int venus_set_hw_state(struct venus_core *core, bool resume)
+>>         return 0;
+>>  }
+>>
+>> -int venus_boot(struct device *dev, const char *fwname)
+>> +static int venus_load_fw(struct venus_core *core, const char *fwname,
+>> +                        phys_addr_t *mem_phys, size_t *mem_size)
+> 
+> Following the remarks of the previous patch, you would have mem_phys
+> and mem_size as members of venus_core (probably renamed as fw_mem_addr
+> and fw_mem_size).
+> 
+>>  {
+>>         const struct firmware *mdt;
+>>         struct device_node *node;
+>> -       phys_addr_t mem_phys;
+>> +       struct device *dev;
+>>         struct resource r;
+>>         ssize_t fw_size;
+>> -       size_t mem_size;
+>>         void *mem_va;
+>>         int ret;
+>>
+>> -       if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER) || !qcom_scm_is_available())
+>> -               return -EPROBE_DEFER;
+> 
+> !IS_ENABLED(CONFIG_QCOM_MDT_LOADER) is not a condition that can change
+> at runtime, and returning -EPROBE_DEFER in that case seems erroneous
+> to me. Instead, wouldn't it make more sense to make the driver depend
+> on QCOM_MDT_LOADER?
 
-Hi,
+That was made on purpose, for more info git show b8f9bdc151e4a
 
-On Fri, 2018-08-24 at 09:29 +0200, Hans Verkuil wrote:
-> On 08/23/2018 07:37 PM, Nicolas Dufresne wrote:
-> > Le jeudi 23 ao=C3=BBt 2018 =C3=A0 16:31 +0200, Hans Verkuil a =C3=A9cri=
-t :
-> > > > I propose adding these capabilities:
-> > > >=20
-> > > > #define V4L2_BUF_CAP_HAS_REQUESTS     0x00000001
-> > > > #define V4L2_BUF_CAP_REQUIRES_REQUESTS        0x00000002
-> > > > #define V4L2_BUF_CAP_HAS_MMAP         0x00000100
-> > > > #define V4L2_BUF_CAP_HAS_USERPTR      0x00000200
-> > > > #define V4L2_BUF_CAP_HAS_DMABUF               0x00000400
-> > >=20
-> > > I substituted SUPPORTS for HAS and dropped the REQUIRES_REQUESTS capa=
-bility.
-> > > As Tomasz mentioned, technically (at least for stateless codecs) you =
-could
-> > > handle just one frame at a time without using requests. It's very ine=
-fficient,
-> > > but it would work.
-> >=20
-> > I thought the request was providing a data structure to refer back to
-> > the frames, so each codec don't have to implement one. Do you mean that
-> > the framework will implicitly request requests in that mode ? or simply
-> > that there is no such helper ?
->=20
-> Yes, that's done through controls as well.
->=20
-> The idea would be that you set the necessary controls, queue a buffer to
-> the output queue, dequeue a buffer from the output queue, read back any
-> new state information and repeat the process.
->=20
-> That said, I'm not sure if the cedrus driver for example can handle this
-> at the moment. It is also inefficient and it won't work if codecs require
-> more than one buffer in the queue for whatever reason.
->=20
-> Tomasz, Paul, please correct me if I am wrong.
-
-I haven't tested decoding without requests, but I suppose it should work
-when submitting only one source buffer at a time.
-
-By the way, note that our VAAPI backend for the request API gets the
-slice data and metadata for each frame sequentially and we are not yet
-starting to fill the next request before the current one was completed
-(fences would probably help implement that).
-
-> In any case, I think we can do without this proposed capability since it =
-is
-> simply a requirement when implementing the pixelformat for the stateless
-> codec that the Request API will be available and it should be documented
-> as such in the spec.
-
-Agreed.
-
-Cheers,
-
-Paul
-
---=20
-Paul Kocialkowski, Bootlin (formerly Free Electrons)
-Embedded Linux and kernel engineering
-https://bootlin.com
-
---=-TECyqF2VRcCKcma0fsIs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEJZpWjZeIetVBefti3cLmz3+fv9EFAlt/ySwACgkQ3cLmz3+f
-v9FPUwf/SxS2XbDbfXFQ6T4AH6cNb1Z20R9DwdkGp3F9e3tGX4srNIdM07Eg+VWN
-lxSPArGEEBbDtrxIi+4y1qCKxw+h7qCK0MImq1LMp9ysDbddY5nhEBtKxE/H7a0S
-12N78E9tVwe/7snn2drWFJT8UuzZa9pkj99QxW/+sdrwA9RKLFz7aZqxqy8FSr9n
-vDHCiop0f0P9F6LnMiPWxwVmrcAiMoZ0YXjLBTymgD2mIV3sUwOFUD/I56Ehnosx
-cBr6iRtG+nRKlNnwymgy6i+5JZeR/u7brDWMZQ595X8n/3DMi2kvT7rAe74/QtSW
-1+jSosXxiiITvJScYUyaGo6H3i7++w==
-=yxBk
------END PGP SIGNATURE-----
-
---=-TECyqF2VRcCKcma0fsIs--
+-- 
+regards,
+Stan
