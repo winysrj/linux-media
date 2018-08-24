@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:33085 "EHLO
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:35964 "EHLO
         srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728006AbeHXULc (ORCPT
+        with ESMTP id S1727644AbeHXULe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Aug 2018 16:11:32 -0400
+        Fri, 24 Aug 2018 16:11:34 -0400
 From: Luca Ceresoli <luca@lucaceresoli.net>
 To: linux-media@vger.kernel.org
 Cc: Luca Ceresoli <luca@lucaceresoli.net>,
@@ -11,44 +11,33 @@ Cc: Luca Ceresoli <luca@lucaceresoli.net>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 1/7] media: imx274: rename IMX274_DEFAULT_MODE to IMX274_DEFAULT_BINNING
-Date: Fri, 24 Aug 2018 18:35:19 +0200
-Message-Id: <20180824163525.12694-2-luca@lucaceresoli.net>
+Subject: [PATCH 5/7] media: imx274: fix error in function docs
+Date: Fri, 24 Aug 2018 18:35:23 +0200
+Message-Id: <20180824163525.12694-6-luca@lucaceresoli.net>
 In-Reply-To: <20180824163525.12694-1-luca@lucaceresoli.net>
 References: <20180824163525.12694-1-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The "mode" has been renamed to "binning" in commit 39dd23dc9d4c
-("media: imx274: add cropping support via SELECTION API"), but this
-define has not been updated.
+This parameter holds the number of bytes, not bits.
 
 Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 ---
- drivers/media/i2c/imx274.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/i2c/imx274.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index f8c70f1a34fe..4f629e4e53fd 100644
+index 6572d5728791..07bc41f537c5 100644
 --- a/drivers/media/i2c/imx274.c
 +++ b/drivers/media/i2c/imx274.c
-@@ -76,7 +76,7 @@
+@@ -668,7 +668,7 @@ static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
+  * @addr: Address of the LSB register.  Other registers must be
+  *        consecutive, least-to-most significant.
+  * @val: Value to be written to the register (cpu endianness)
+- * @nbytes: Number of bits to write (range: [1..3])
++ * @nbytes: Number of bytes to write (range: [1..3])
   */
- #define IMX274_MIN_EXPOSURE_TIME		(4 * 260 / 72)
- 
--#define IMX274_DEFAULT_MODE			IMX274_BINNING_OFF
-+#define IMX274_DEFAULT_BINNING			IMX274_BINNING_OFF
- #define IMX274_MAX_WIDTH			(3840)
- #define IMX274_MAX_HEIGHT			(2160)
- #define IMX274_MAX_FRAME_RATE			(120)
-@@ -1871,7 +1871,7 @@ static int imx274_probe(struct i2c_client *client,
- 	mutex_init(&imx274->lock);
- 
- 	/* initialize format */
--	imx274->mode = &imx274_formats[IMX274_DEFAULT_MODE];
-+	imx274->mode = &imx274_formats[IMX274_DEFAULT_BINNING];
- 	imx274->crop.width = IMX274_MAX_WIDTH;
- 	imx274->crop.height = IMX274_MAX_HEIGHT;
- 	imx274->format.width = imx274->crop.width / imx274->mode->bin_ratio;
+ static int imx274_write_mbreg(struct stimx274 *priv, u16 addr, u32 val,
+ 			      size_t nbytes)
 -- 
 2.17.1
