@@ -1,125 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51921 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726338AbeHXKwB (ORCPT
+Received: from mail-it0-f46.google.com ([209.85.214.46]:51017 "EHLO
+        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727650AbeHXLND (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Aug 2018 06:52:01 -0400
-Subject: Re: [PATCH (repost) 5/5] drm/amdgpu: add DisplayPort
- CEC-Tunneling-over-AUX support
-To: Harry Wentland <harry.wentland@amd.com>,
-        linux-media@vger.kernel.org
-Cc: nouveau@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org
-References: <20180817141122.9541-1-hverkuil@xs4all.nl>
- <20180817141122.9541-6-hverkuil@xs4all.nl>
- <79366c45-6cd4-6e19-5b5f-73b50b9e995e@amd.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <13f3fa34-29af-b37d-bbde-7fed160efe1d@xs4all.nl>
-Date: Fri, 24 Aug 2018 09:18:30 +0200
+        Fri, 24 Aug 2018 07:13:03 -0400
+Received: by mail-it0-f46.google.com with SMTP id j81-v6so984737ite.0
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2018 00:39:39 -0700 (PDT)
+Received: from mail-it0-f43.google.com (mail-it0-f43.google.com. [209.85.214.43])
+        by smtp.gmail.com with ESMTPSA id 14-v6sm350741ity.8.2018.08.24.00.39.37
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 24 Aug 2018 00:39:38 -0700 (PDT)
+Received: by mail-it0-f43.google.com with SMTP id p16-v6so952303itp.1
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2018 00:39:37 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <79366c45-6cd4-6e19-5b5f-73b50b9e995e@amd.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Fri, 24 Aug 2018 16:39:25 +0900
+Message-ID: <CAPBb6MW8rxj7SQLqKV07CQjjJth7b6iBT9bH8XYd3chtiXcKnw@mail.gmail.com>
+Subject: Re: [PATCH v6 0/4] Venus updates - PIL
+To: vgarodia@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
+        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2018 08:38 PM, Harry Wentland wrote:
-> On 2018-08-17 10:11 AM, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add DisplayPort CEC-Tunneling-over-AUX support to amdgpu.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Alex Deucher <alexander.deucher@amd.com>
->> ---
->>  drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c   | 13 +++++++++++--
->>  .../drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c |  2 ++
->>  2 files changed, 13 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
->> index 34f34823bab5..77898c95bef6 100644
->> --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
->> +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
->> @@ -898,6 +898,7 @@ amdgpu_dm_update_connector_after_detect(struct amdgpu_dm_connector *aconnector)
->>  		aconnector->dc_sink = sink;
->>  		if (sink->dc_edid.length == 0) {
->>  			aconnector->edid = NULL;
->> +			drm_dp_cec_unset_edid(&aconnector->dm_dp_aux.aux);
->>  		} else {
->>  			aconnector->edid =
->>  				(struct edid *) sink->dc_edid.raw_edid;
->> @@ -905,10 +906,13 @@ amdgpu_dm_update_connector_after_detect(struct amdgpu_dm_connector *aconnector)
->>  
->>  			drm_connector_update_edid_property(connector,
->>  					aconnector->edid);
->> +			drm_dp_cec_set_edid(&aconnector->dm_dp_aux.aux,
->> +					    aconnector->edid);
->>  		}
->>  		amdgpu_dm_add_sink_to_freesync_module(connector, aconnector->edid);
->>  
->>  	} else {
->> +		drm_dp_cec_unset_edid(&aconnector->dm_dp_aux.aux);
->>  		amdgpu_dm_remove_sink_from_freesync_module(connector);
->>  		drm_connector_update_edid_property(connector, NULL);
->>  		aconnector->num_modes = 0;
->> @@ -1059,12 +1063,16 @@ static void handle_hpd_rx_irq(void *param)
->>  			drm_kms_helper_hotplug_event(dev);
->>  		}
->>  	}
->> +
->>  	if ((dc_link->cur_link_settings.lane_count != LANE_COUNT_UNKNOWN) ||
->> -	    (dc_link->type == dc_connection_mst_branch))
->> +	    (dc_link->type == dc_connection_mst_branch)) {
->>  		dm_handle_hpd_rx_irq(aconnector);
->> +	}
-> 
-> These lines don't really add anything functional.
+Hi Vikash,
 
-Oops, a left-over from debugging code. I'll remove this 'change' and post a v2
-with all the Acks/reviewed-bys.
+On Thu, Aug 23, 2018 at 11:29 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>
+> Hello,
+>
+> Here is v6 with following comments addressed:
+>
+> * 4/4 from earlier series was dropped as .probe was not needed.
+> * indentation as per checkpatch --strict option.
+> * tested on Venus v4 hardware.
 
-Any idea who would typically merge a patch series like this?
+I have tested this series and it seems to be working fine! Thanks for
+pushing it forward!
 
-Regards,
-
-	Hans
-
-> 
-> Either way, this patch is
-> Reviewed-by: Harry Wentland <harry.wentland@amd.com>
-> 
-> Harry
-> 
->>  
->> -	if (dc_link->type != dc_connection_mst_branch)
->> +	if (dc_link->type != dc_connection_mst_branch) {
->> +		drm_dp_cec_irq(&aconnector->dm_dp_aux.aux);
->>  		mutex_unlock(&aconnector->hpd_lock);
->> +	}
->>  }
->>  
->>  static void register_hpd_handlers(struct amdgpu_device *adev)
->> @@ -2732,6 +2740,7 @@ static void amdgpu_dm_connector_destroy(struct drm_connector *connector)
->>  		dm->backlight_dev = NULL;
->>  	}
->>  #endif
->> +	drm_dp_cec_unregister_connector(&aconnector->dm_dp_aux.aux);
->>  	drm_connector_unregister(connector);
->>  	drm_connector_cleanup(connector);
->>  	kfree(connector);
->> diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c
->> index 9a300732ba37..18a3a6e5ffa0 100644
->> --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c
->> +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_mst_types.c
->> @@ -496,6 +496,8 @@ void amdgpu_dm_initialize_dp_connector(struct amdgpu_display_manager *dm,
->>  	aconnector->dm_dp_aux.ddc_service = aconnector->dc_link->ddc;
->>  
->>  	drm_dp_aux_register(&aconnector->dm_dp_aux.aux);
->> +	drm_dp_cec_register_connector(&aconnector->dm_dp_aux.aux,
->> +				      aconnector->base.name, dm->adev->dev);
->>  	aconnector->mst_mgr.cbs = &dm_mst_cbs;
->>  	drm_dp_mst_topology_mgr_init(
->>  		&aconnector->mst_mgr,
->>
+I have made a few comments inline, but some may be difficult to apply
+without reorganizing the series a bit. If my explanations are not
+clear, I can take care of submitting the next spin of this series if
+you wish.
