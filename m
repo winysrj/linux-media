@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:35964 "EHLO
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:50584 "EHLO
         srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727644AbeHXULe (ORCPT
+        with ESMTP id S1727998AbeHXULd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Aug 2018 16:11:34 -0400
+        Fri, 24 Aug 2018 16:11:33 -0400
 From: Luca Ceresoli <luca@lucaceresoli.net>
 To: linux-media@vger.kernel.org
 Cc: Luca Ceresoli <luca@lucaceresoli.net>,
@@ -11,33 +11,35 @@ Cc: Luca Ceresoli <luca@lucaceresoli.net>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 5/7] media: imx274: fix error in function docs
-Date: Fri, 24 Aug 2018 18:35:23 +0200
-Message-Id: <20180824163525.12694-6-luca@lucaceresoli.net>
-In-Reply-To: <20180824163525.12694-1-luca@lucaceresoli.net>
-References: <20180824163525.12694-1-luca@lucaceresoli.net>
+Subject: [PATCH 0/7] media: imx274: miscellaneous improvements
+Date: Fri, 24 Aug 2018 18:35:18 +0200
+Message-Id: <20180824163525.12694-1-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This parameter holds the number of bytes, not bits.
+Hi,
 
-Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
----
- drivers/media/i2c/imx274.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+here's a series of small improvements to the imx274 sensor
+driver.
 
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index 6572d5728791..07bc41f537c5 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -668,7 +668,7 @@ static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
-  * @addr: Address of the LSB register.  Other registers must be
-  *        consecutive, least-to-most significant.
-  * @val: Value to be written to the register (cpu endianness)
-- * @nbytes: Number of bits to write (range: [1..3])
-+ * @nbytes: Number of bytes to write (range: [1..3])
-  */
- static int imx274_write_mbreg(struct stimx274 *priv, u16 addr, u32 val,
- 			      size_t nbytes)
+The patches are mostly unrelated to each other. Patch 3 is a fix to
+make the subdev name unique. Patches 2 and 6 are small
+optimizations. The remaining patches have no functional effect.
+
+Luca
+
+
+Luca Ceresoli (7):
+  media: imx274: rename IMX274_DEFAULT_MODE to IMX274_DEFAULT_BINNING
+  media: imx274: rearrange sensor startup register tables
+  media: imx274: don't hard-code the subdev name to DRIVER_NAME
+  media: imx274: rename frmfmt and format to "mode"
+  media: imx274: fix error in function docs
+  media: imx274: add helper to read multibyte registers
+  media: imx274: switch to SPDX license identifier
+
+ drivers/media/i2c/imx274.c | 165 ++++++++++++++++---------------------
+ 1 file changed, 72 insertions(+), 93 deletions(-)
+
 -- 
 2.17.1
