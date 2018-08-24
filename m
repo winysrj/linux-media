@@ -1,79 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39022 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727059AbeHXQJa (ORCPT
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:42341 "EHLO
+        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726264AbeHXSLn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Aug 2018 12:09:30 -0400
+        Fri, 24 Aug 2018 14:11:43 -0400
+Received: by mail-yw1-f65.google.com with SMTP id n207-v6so3149886ywn.9
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2018 07:36:47 -0700 (PDT)
+Received: from mail-yb0-f174.google.com (mail-yb0-f174.google.com. [209.85.213.174])
+        by smtp.gmail.com with ESMTPSA id a129-v6sm8241223ywh.79.2018.08.24.07.36.45
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 24 Aug 2018 07:36:45 -0700 (PDT)
+Received: by mail-yb0-f174.google.com with SMTP id d34-v6so3554065yba.3
+        for <linux-media@vger.kernel.org>; Fri, 24 Aug 2018 07:36:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Fri, 24 Aug 2018 18:05:00 +0530
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
-        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-media-owner@vger.kernel.org
-Subject: Re: [PATCH v6 1/4] venus: firmware: add routine to reset ARM9
-In-Reply-To: <51cc9d6b-0483-76a6-d413-3f5cc63f3f56@linaro.org>
-References: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
- <1535034528-11590-2-git-send-email-vgarodia@codeaurora.org>
- <CAPBb6MUZawT84Wcrhi+MEyn+zSCWOpn_iOZMMudZz+_Urixsrw@mail.gmail.com>
- <51cc9d6b-0483-76a6-d413-3f5cc63f3f56@linaro.org>
-Message-ID: <d6661f5a8f6c64b017dad5b7b8000042@codeaurora.org>
+References: <20180824082156.6986-1-hverkuil@xs4all.nl> <20180824082156.6986-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180824082156.6986-5-hverkuil@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 24 Aug 2018 23:36:32 +0900
+Message-ID: <CAAFQd5A+UCSxBM11-maLbe-0WAKVFnk-mDCn+o06Xd9JO7=0_g@mail.gmail.com>
+Subject: Re: [PATCH 4/5] videodev2.h: add new capabilities for buffer types
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        hansverk@cisco.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-08-24 14:27, Stanimir Varbanov wrote:
-> Hi Alex,
-> 
-> On 08/24/2018 10:38 AM, Alexandre Courbot wrote:
->> On Thu, Aug 23, 2018 at 11:29 PM Vikash Garodia 
->> <vgarodia@codeaurora.org> wrote:
->>> 
+Hi Hans,
 
-[snip]
+On Fri, Aug 24, 2018 at 5:22 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> From: Hans Verkuil <hansverk@cisco.com>
+>
+> VIDIOC_REQBUFS and VIDIOC_CREATE_BUFFERS will return capabilities
+> telling userspace what the given buffer type is capable of.
+>
 
->>> index c4a5778..a9d042e 100644
->>> --- a/drivers/media/platform/qcom/venus/firmware.c
->>> +++ b/drivers/media/platform/qcom/venus/firmware.c
->>> @@ -22,10 +22,43 @@
->>>  #include <linux/sizes.h>
->>>  #include <linux/soc/qcom/mdt_loader.h>
->>> 
->>> +#include "core.h"
->>>  #include "firmware.h"
->>> +#include "hfi_venus_io.h"
->>> 
->>>  #define VENUS_PAS_ID                   9
->>>  #define VENUS_FW_MEM_SIZE              (6 * SZ_1M)
->> 
->> This is making a strong assumption about the size of the FW memory
->> region, which in practice is not always true (I had to reduce it to
->> 5MB). How about having this as a member of venus_core, which is
-> 
-> Why you reduced to 5MB? Is there an issue with 6MB or you don't want to
-> waste reserved memory?
-> 
->> initialized in venus_load_fw() from the actual size of the memory
->> region? You could do this as an extra patch that comes before this
->> one.
+Please see my comments below.
 
-I would go with existing design than relying on the size specified in 
-the
-memory-region for venus. size loaded is always taken from DT while the
-VENUS_FW_MEM_SIZE serves the purpose of sanity check.
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> ---
+>  .../media/uapi/v4l/vidioc-create-bufs.rst     | 10 +++++-
+>  .../media/uapi/v4l/vidioc-reqbufs.rst         | 36 ++++++++++++++++++-
+>  include/uapi/linux/videodev2.h                | 13 +++++--
+>  3 files changed, 55 insertions(+), 4 deletions(-)
+>
+> diff --git a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
+> index a39e18d69511..fd34d3f236c9 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
+> @@ -102,7 +102,15 @@ than the number requested.
+>        - ``format``
+>        - Filled in by the application, preserved by the driver.
+>      * - __u32
+> -      - ``reserved``\ [8]
+> +      - ``capabilities``
+> +      - Set by the driver. If 0, then the driver doesn't support
+> +        capabilities. In that case all you know is that the driver is
+> +       guaranteed to support ``V4L2_MEMORY_MMAP`` and *might* support
+> +       other :c:type:`v4l2_memory` types. It will not support any others
+> +       capabilities. See :ref:`here <v4l2-buf-capabilities>` for a list of the
+> +       capabilities.
 
-> The size is 6MB by historical reasons and they are no more valid, so I
-> think we could safely decrease to 5MB. I could prepare a patch for 
-> that.
+Perhaps it would make sense to document how the application is
+expected to query for these capabilities? Right now, the application
+is expected to fill in the "memory" field in this struct (and reqbufs
+counterpart), but it sounds a bit strange that one needs to know what
+"memory" value to write there to query what set of "memory" values is
+supported. In theory, MMAP is expected to be always supported, but it
+sounds strange anyway. Also, is there a way to call REQBUFS without
+altering the buffer allocation?
 
-Thanks Stan. Initial patch in this series had 5MB. We discussed earlier 
-to keep
-it as is and take it as a separate patch to update from 6MB to 5MB.
+Best regards,
+Tomasz
