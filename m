@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:48424 "EHLO
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:37647 "EHLO
         srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728001AbeHXULe (ORCPT
+        with ESMTP id S1727808AbeHXULf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Aug 2018 16:11:34 -0400
+        Fri, 24 Aug 2018 16:11:35 -0400
 From: Luca Ceresoli <luca@lucaceresoli.net>
 To: linux-media@vger.kernel.org
 Cc: Luca Ceresoli <luca@lucaceresoli.net>,
@@ -11,113 +11,182 @@ Cc: Luca Ceresoli <luca@lucaceresoli.net>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 2/7] media: imx274: rearrange sensor startup register tables
-Date: Fri, 24 Aug 2018 18:35:20 +0200
-Message-Id: <20180824163525.12694-3-luca@lucaceresoli.net>
+Subject: [PATCH 6/7] media: imx274: add helper to read multibyte registers
+Date: Fri, 24 Aug 2018 18:35:24 +0200
+Message-Id: <20180824163525.12694-7-luca@lucaceresoli.net>
 In-Reply-To: <20180824163525.12694-1-luca@lucaceresoli.net>
 References: <20180824163525.12694-1-luca@lucaceresoli.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rearrange the imx274_start_<N> register tables to better match the
-datasheet and slightly simplify code:
+Currently 2-bytes and 3-bytes registers are read one byte at a time,
+doing the needed shift & mask each time.
 
- - collapes tables 1 and 2, they are applied one after each other and
-   together they implement the fixed part 1 of the startup procedure
-   in the datasheet
- - while there, cleanup comments
- - rename tables 3 and 4 -> 2 and 3, coherently with the datasheet
+Replace all of this code by a unique helper function that calls
+regmap_bulk_read(), which has two advantages:
+ - reads all the bytes in a unique I2C transaction
+ - simplifies code to read multibyte registers
 
 Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
 ---
- drivers/media/i2c/imx274.c | 36 +++++++++++++-----------------------
- 1 file changed, 13 insertions(+), 23 deletions(-)
+ drivers/media/i2c/imx274.c | 93 +++++++++++++++++++-------------------
+ 1 file changed, 47 insertions(+), 46 deletions(-)
 
 diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index 4f629e4e53fd..9b524de08470 100644
+index 07bc41f537c5..783277068b45 100644
 --- a/drivers/media/i2c/imx274.c
 +++ b/drivers/media/i2c/imx274.c
-@@ -349,20 +349,14 @@ static const struct reg_8 imx274_mode5_1280x720_raw10[] = {
-  */
- static const struct reg_8 imx274_start_1[] = {
- 	{IMX274_STANDBY_REG, 0x12},
--	{IMX274_TABLE_END, 0x00}
--};
- 
--/*
-- * imx274 second step register configuration for
-- * starting stream
-- */
--static const struct reg_8 imx274_start_2[] = {
--	{0x3120, 0xF0}, /* clock settings */
--	{0x3121, 0x00}, /* clock settings */
--	{0x3122, 0x02}, /* clock settings */
--	{0x3129, 0x9C}, /* clock settings */
--	{0x312A, 0x02}, /* clock settings */
--	{0x312D, 0x02}, /* clock settings */
-+	/* PLRD: clock settings */
-+	{0x3120, 0xF0},
-+	{0x3121, 0x00},
-+	{0x3122, 0x02},
-+	{0x3129, 0x9C},
-+	{0x312A, 0x02},
-+	{0x312D, 0x02},
- 
- 	{0x310B, 0x00},
- 
-@@ -407,20 +401,20 @@ static const struct reg_8 imx274_start_2[] = {
- };
- 
- /*
-- * imx274 third step register configuration for
-+ * imx274 second step register configuration for
-  * starting stream
-  */
--static const struct reg_8 imx274_start_3[] = {
-+static const struct reg_8 imx274_start_2[] = {
- 	{IMX274_STANDBY_REG, 0x00},
- 	{0x303E, 0x02}, /* SYS_MODE = 2 */
- 	{IMX274_TABLE_END, 0x00}
- };
- 
- /*
-- * imx274 forth step register configuration for
-+ * imx274 third step register configuration for
-  * starting stream
-  */
--static const struct reg_8 imx274_start_4[] = {
-+static const struct reg_8 imx274_start_3[] = {
- 	{0x30F4, 0x00},
- 	{0x3018, 0xA2}, /* XHS VHS OUTUPT */
- 	{IMX274_TABLE_END, 0x00}
-@@ -708,10 +702,6 @@ static int imx274_mode_regs(struct stimx274 *priv)
- 	if (err)
- 		return err;
- 
--	err = imx274_write_table(priv, imx274_start_2);
--	if (err)
--		return err;
--
- 	err = imx274_write_table(priv, priv->mode->init_regs);
- 
+@@ -659,6 +659,41 @@ static inline int imx274_write_reg(struct stimx274 *priv, u16 addr, u8 val)
  	return err;
-@@ -733,7 +723,7 @@ static int imx274_start_stream(struct stimx274 *priv)
- 	 * give it 1 extra ms for margin
- 	 */
- 	msleep_range(11);
--	err = imx274_write_table(priv, imx274_start_3);
-+	err = imx274_write_table(priv, imx274_start_2);
- 	if (err)
- 		return err;
+ }
  
-@@ -743,7 +733,7 @@ static int imx274_start_stream(struct stimx274 *priv)
- 	 * give it 1 extra ms for margin
- 	 */
- 	msleep_range(8);
--	err = imx274_write_table(priv, imx274_start_4);
-+	err = imx274_write_table(priv, imx274_start_3);
++/**
++ * Read a multibyte register.
++ *
++ * Uses a bulk read where possible.
++ *
++ * @priv: Pointer to device structure
++ * @addr: Address of the LSB register.  Other registers must be
++ *        consecutive, least-to-most significant.
++ * @val: Pointer to store the register value (cpu endianness)
++ * @nbytes: Number of bytes to read (range: [1..3]).
++ *          Other bytes are zet to 0.
++ *
++ * Return: 0 on success, errors otherwise
++ */
++static int imx274_read_mbreg(struct stimx274 *priv, u16 addr, u32 *val,
++			     size_t nbytes)
++{
++	__le32 val_le = 0;
++	int err;
++
++	err = regmap_bulk_read(priv->regmap, addr, &val_le, nbytes);
++	if (err) {
++		dev_err(&priv->client->dev,
++			"%s : i2c bulk read failed, %x (%zu bytes)\n",
++			__func__, addr, nbytes);
++	} else {
++		*val = le32_to_cpu(val_le);
++		dev_dbg(&priv->client->dev,
++			"%s : addr 0x%x, val=0x%x (%zu bytes)\n",
++			__func__, addr, *val, nbytes);
++	}
++
++	return err;
++}
++
+ /**
+  * Write a multibyte register.
+  *
+@@ -1377,37 +1412,17 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int on)
+ static int imx274_get_frame_length(struct stimx274 *priv, u32 *val)
+ {
+ 	int err;
+-	u16 svr;
++	u32 svr;
+ 	u32 vmax;
+-	u8 reg_val[3];
+ 
+-	/* svr */
+-	err = imx274_read_reg(priv, IMX274_SVR_REG_LSB, &reg_val[0]);
++	err = imx274_read_mbreg(priv, IMX274_SVR_REG_LSB, &svr, 2);
  	if (err)
- 		return err;
+ 		goto fail;
+ 
+-	err = imx274_read_reg(priv, IMX274_SVR_REG_MSB, &reg_val[1]);
++	err = imx274_read_mbreg(priv, IMX274_VMAX_REG_3, &vmax, 3);
+ 	if (err)
+ 		goto fail;
+ 
+-	svr = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
+-
+-	/* vmax */
+-	err = imx274_read_reg(priv, IMX274_VMAX_REG_3, &reg_val[0]);
+-	if (err)
+-		goto fail;
+-
+-	err = imx274_read_reg(priv, IMX274_VMAX_REG_2, &reg_val[1]);
+-	if (err)
+-		goto fail;
+-
+-	err = imx274_read_reg(priv, IMX274_VMAX_REG_1, &reg_val[2]);
+-	if (err)
+-		goto fail;
+-
+-	vmax = ((reg_val[2] & IMX274_MASK_LSB_3_BITS) << IMX274_SHIFT_16_BITS)
+-		+ (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
+-
+ 	*val = vmax * (svr + 1);
+ 
+ 	return 0;
+@@ -1588,8 +1603,7 @@ static int imx274_set_coarse_time(struct stimx274 *priv, u32 *val)
+ static int imx274_set_exposure(struct stimx274 *priv, int val)
+ {
+ 	int err;
+-	u16 hmax;
+-	u8 reg_val[2];
++	u32 hmax;
+ 	u32 coarse_time; /* exposure time in unit of line (HMAX)*/
+ 
+ 	dev_dbg(&priv->client->dev,
+@@ -1597,14 +1611,10 @@ static int imx274_set_exposure(struct stimx274 *priv, int val)
+ 
+ 	/* step 1: convert input exposure_time (val) into number of 1[HMAX] */
+ 
+-	/* obtain HMAX value */
+-	err = imx274_read_reg(priv, IMX274_HMAX_REG_LSB, &reg_val[0]);
+-	if (err)
+-		goto fail;
+-	err = imx274_read_reg(priv, IMX274_HMAX_REG_MSB, &reg_val[1]);
++	err = imx274_read_mbreg(priv, IMX274_HMAX_REG_LSB, &hmax, 2);
+ 	if (err)
+ 		goto fail;
+-	hmax = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
++
+ 	if (hmax == 0) {
+ 		err = -EINVAL;
+ 		goto fail;
+@@ -1739,9 +1749,8 @@ static int imx274_set_frame_interval(struct stimx274 *priv,
+ {
+ 	int err;
+ 	u32 frame_length, req_frame_rate;
+-	u16 svr;
+-	u16 hmax;
+-	u8 reg_val[2];
++	u32 svr;
++	u32 hmax;
+ 
+ 	dev_dbg(&priv->client->dev, "%s: input frame interval = %d / %d",
+ 		__func__, frame_interval.numerator,
+@@ -1769,25 +1778,17 @@ static int imx274_set_frame_interval(struct stimx274 *priv,
+ 	 * frame_length (i.e. VMAX) = (frame_interval) x 72M /(SVR+1) / HMAX
+ 	 */
+ 
+-	/* SVR */
+-	err = imx274_read_reg(priv, IMX274_SVR_REG_LSB, &reg_val[0]);
++	err = imx274_read_mbreg(priv, IMX274_SVR_REG_LSB, &svr, 2);
+ 	if (err)
+ 		goto fail;
+-	err = imx274_read_reg(priv, IMX274_SVR_REG_MSB, &reg_val[1]);
+-	if (err)
+-		goto fail;
+-	svr = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
++
+ 	dev_dbg(&priv->client->dev,
+ 		"%s : register SVR = %d\n", __func__, svr);
+ 
+-	/* HMAX */
+-	err = imx274_read_reg(priv, IMX274_HMAX_REG_LSB, &reg_val[0]);
++	err = imx274_read_mbreg(priv, IMX274_HMAX_REG_LSB, &hmax, 2);
+ 	if (err)
+ 		goto fail;
+-	err = imx274_read_reg(priv, IMX274_HMAX_REG_MSB, &reg_val[1]);
+-	if (err)
+-		goto fail;
+-	hmax = (reg_val[1] << IMX274_SHIFT_8_BITS) + reg_val[0];
++
+ 	dev_dbg(&priv->client->dev,
+ 		"%s : register HMAX = %d\n", __func__, hmax);
  
 -- 
 2.17.1
