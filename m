@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51510 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:51540 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726166AbeHYIlK (ORCPT
+        with ESMTP id S1726624AbeHYIqj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Aug 2018 04:41:10 -0400
+        Sat, 25 Aug 2018 04:46:39 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] uvcvideo: add a D4M camera description
-Date: Sat, 25 Aug 2018 08:03:28 +0300
-Message-ID: <1540109.86EXVmqvYh@avalon>
-In-Reply-To: <alpine.DEB.2.20.1808031335310.13762@axis700.grange>
-References: <alpine.DEB.2.20.1712231208440.21222@axis700.grange> <5991411.ejCQOIbS9u@avalon> <alpine.DEB.2.20.1808031335310.13762@axis700.grange>
+Subject: Re: [PATCH] uvcvideo: add a D4M camera description
+Date: Sat, 25 Aug 2018 08:08:57 +0300
+Message-ID: <3055434.pg5Tdbnipv@avalon>
+In-Reply-To: <alpine.DEB.2.20.1807311236290.2248@axis700.grange>
+References: <alpine.DEB.2.20.1712231208440.21222@axis700.grange> <5991411.ejCQOIbS9u@avalon> <alpine.DEB.2.20.1807311236290.2248@axis700.grange>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -20,307 +20,108 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Guennadi,
 
-Thank you for the patch.
-
-Overall this looks good to me, I only have small comments. Please see below, 
-with a summary at the end.
-
-On Friday, 3 August 2018 14:37:08 EEST Guennadi Liakhovetski wrote:
-> D4M is a mobile model from the D4XX family of Intel RealSense cameras.
-> This patch adds a descriptor for it, which enables reading per-frame
-> metadata from it.
+On Friday, 3 August 2018 14:07:12 EEST Guennadi Liakhovetski wrote:
+> Hi Laurent,
 > 
-> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> ---
->  Documentation/media/uapi/v4l/meta-formats.rst     |   1 +
->  Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 204 +++++++++++++++++++
->  drivers/media/usb/uvc/uvc_driver.c                |  11 ++
->  include/uapi/linux/videodev2.h                    |   1 +
->  4 files changed, 217 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> Thanks for the review. A general note: I think you're requesting a rather
+> detailed information about many parameters. That isn't a problem by
+> itself, however, it is difficult to obtain some of that information. I'll
+> address whatever comments I can in an updated version, just answering some
+> questions here. I directed youor questions, that I couldn't answer myself
+> to respective people, but I have no idea if and when I get replies. So,
+> it's up to you whether to wait for that additional information or to take
+> at least what we have now.
+
+I've replied to v2, and apart from a few minor points, I think we can apply 
+the current version. There are a few small questions I would still like to 
+have answers to, but if it takes to long to obtain that, let's not miss v4.20.
+
+> On Sun, 29 Jul 2018, Laurent Pinchart wrote:
+> > On Saturday, 23 December 2017 13:11:00 EEST Guennadi Liakhovetski wrote:
+> >> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> >> 
+> >> D4M is a mobile model from the D4XX family of Intel RealSense cameras.
+> >> This patch adds a descriptor for it, which enables reading per-frame
+> >> metadata from it.
+> >> 
+> >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> >> ---
+> >> 
+> >>  Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 202 ++++++++++++++++
+> >>  drivers/media/usb/uvc/uvc_driver.c                |  11 ++
+> >>  include/uapi/linux/videodev2.h                    |   1 +
+> >>  3 files changed, 214 insertions(+)
+> >>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> >> 
+> >> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> >> b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst new file mode 100644
+> >> index 0000000..950780d
+> >> --- /dev/null
+> >> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
 
 [snip]
 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst new file mode 100644
-> index 0000000..57ecfd9
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> @@ -0,0 +1,204 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _v4l2-meta-fmt-d4xx:
-> +
-> +*******************************
-> +V4L2_META_FMT_D4XX ('D4XX')
-> +*******************************
-> +
-> +Intel D4xx UVC Cameras Metadata
-> +
-> +
-> +Description
-> +===========
-> +
-> +Intel D4xx (D435 and other) cameras include per-frame metadata in their UVC
-> +payload headers, following the Microsoft(R) UVC extension proposal [1_].
-> That +means, that the private D4XX metadata, following the standard UVC
-> header, is +organised in blocks. D4XX cameras implement several standard
-> block types, +proposed by Microsoft, and several proprietary ones.
-> Supported standard metadata +types are MetadataId_CaptureStats (ID 3),
-> MetadataId_CameraExtrinsics (ID 4), +and MetadataId_CameraIntrinsics (ID
-> 5). For their description see [1_]. This +document describes proprietary
-> metadata types, used by D4xx cameras.
-> +
-> +V4L2_META_FMT_D4XX buffers follow the metadata buffer layout of
-> +V4L2_META_FMT_UVC with the only difference, that it also includes
-> proprietary +payload header data. D4xx cameras use bulk transfers and only
-> send one payload +per frame, therefore their headers cannot be larger than
-> 255 bytes.
-> +
-> +Below are proprietary Microsoft style metadata types, used by D4xx cameras,
-> +where all fields are in little endian order:
-> +
-> +.. flat-table:: D4xx metadata
-> +    :widths: 1 4
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +
-> +    * - Field
-> +      - Description
-> +    * - :cspan:`1` *Depth Control*
+> >> +    * - :cspan:`1` *Configuration*
+> >> +    * - __u32 ID
+> >> +      - 0x80000002
+> >> +    * - __u32 Size
+> >> +      - Size in bytes (currently 40)
+> >> +    * - __u32 Version
+> >> +      - Version of the struct
+> >> +    * - __u32 Flags
+> >> +      - A bitmask of flags: see [4_] below
+> >> +    * - __u8 Hardware type
+> >> +      - Camera hardware version [5_]
+> >> +    * - __u8 SKU ID
+> >> +      - Camera hardware configuration [6_]
+> >> +    * - __u32 Cookie
+> >> +      - Internal synchronisation
+> > 
+> > Internal synchronisation with what ? :-)
 
-Does this mean that all fields in this structure apply to the depth image only 
-? If so, do you mind if I mention that explicitly ?
+This is still something I'd like to understand (and I understand it may still 
+take time to receive an answer from the right person).
 
-> +    * - __u32 ID
-> +      - 0x80000000
-> +    * - __u32 Size
-> +      - Size in bytes (currently 56)
-> +    * - __u32 Version
-> +      - Version of the struct
+> >> +    * - __u16 Format
+> >> +      - Image format code [7_]
+> >> +    * - __u16 Width
+> >> +      - Width in pixels
+> >> +    * - __u16 Height
+> >> +      - Height in pixels
+> >> +    * - __u16 Framerate
+> >> +      - Requested framerate
+> > 
+> > What's the unit of this value ?
+> 
+> Is anything other than frames per second used in V4L?
 
-I would elaborate a bit here, how about the following ?
+V4L2 expresses the frame rate as a fraction, hence my question, to know 
+whether this field contained the number of frames per second as an integer, or 
+used a different representation (such as a fixed point decimal value for 
+instance).
 
-"Version of this structure. The documentation herein corresponds to version 
-xxx. The version number will be incremented when new fields are added."
+> >> +    * - __u16 Trigger
+> >> +      - Byte 0: bit 0:  depth and RGB are synchronised, bit 1: external
+> >> trigger
+> >> +
+> >> +.. _1:
+> >> +
+> >> +[1]
+> >> https://docs.microsoft.com/en-us/windows-hardware/drivers/stream/uvc-ext
+> >> ensions-1-5
+> > 
+> > Should we at some point replicate that documentation in the V4L2 spec ?
+> > Without copying it of course, as that would be a copyright violation.
+> 
+> Well, we don't replicate the UVC itself or any other standards, do we? Of
+> course, that document doesn't have the same status as an official
+> vendor-neutral standard, but still, we don't replicate data sheets either.
+> Besides, I think there are cameras that use this, and windows supports
+> this, so, don't think it will disappear overnight...
 
-If you can provide me with the current version number I can update this when 
-applying the patch (I would get it myself, but I'm about to board a plane and 
-haven't taken the camera with me :-/).
-
-> +    * - __u32 Flags
-> +      - A bitmask of flags: see [2_] below
-> +    * - __u32 Gain
-> +      - Gain value in internal units, same as the V4L2_CID_GAIN control,
-> used to
-> +        capture the frame
-> +    * - __u32 Exposure
-> +      - Exposure time (in microseconds) used to capture the frame
-> +    * - __u32 Laser power
-> +      - Power of the laser LED 0-360, used for depth measurement
-> +    * - __u32 AE mode
-> +      - 0: manual; 1: automatic exposure
-> +    * - __u32 Exposure priority
-> +      - Exposure priority value: 0 - constant frame rate
-> +    * - __u32 AE ROI left
-> +      - Left border of the AE Region of Interest (all ROI values are in
-> pixels
-> +        and lie between 0 and maximum width or height respectively)
-> +    * - __u32 AE ROI right
-> +      - Right border of the AE Region of Interest
-> +    * - __u32 AE ROI top
-> +      - Top border of the AE Region of Interest
-> +    * - __u32 AE ROI bottom
-> +      - Bottom border of the AE Region of Interest
-> +    * - __u32 Preset
-> +      - Preset selector value, default: 0, unless changed by the user
-
-I won't block this patch for this, but could we get the documentation of the 
-corresponding XU control ? Even better, if Intel could publish documentation 
-of the full XUs, that would be great :-)
-
-> +    * - __u32 Laser mode
-> +      - 0: off, 1: on
-> +    * - :cspan:`1` *Capture Timing*
-
-Similarly, what does this apply to ? The left sensor, the fish eye camera, or 
-both (or something else) ?
-
-> +    * - __u32 ID
-> +      - 0x80000001
-> +    * - __u32 Size
-> +      - Size in bytes (currently 40)
-> +    * - __u32 Version
-> +      - Version of the struct
-> +    * - __u32 Flags
-> +      - A bitmask of flags: see [3_] below
-> +    * - __u32 Frame counter
-> +      - Monotonically increasing counter
-
-I assume this increases by exactly one for every frame. I'll test it when I 
-get back home, and will update the documentation accordingly.
-
-> +    * - __u32 Optical time
-> +      - Time in microseconds from the beginning of a frame till its middle
-
-I'm still puzzled by this value, as I expect it to be exactly half the 
-exposure time, which is reported separately. If that's not the case I'd like 
-to know what this represents.
-
-> +    * - __u32 Readout time
-> +      - Time, used to read out a frame in microseconds
-> +    * - __u32 Exposure time
-> +      - Frame exposure time in microseconds
-> +    * - __u32 Frame interval
-> +      - In microseconds = 1000000 / framerate
-> +    * - __u32 Pipe latency
-> +      - Time in microseconds from start of frame to data in USB buffer
-> +    * - :cspan:`1` *Configuration*
-> +    * - __u32 ID
-> +      - 0x80000002
-> +    * - __u32 Size
-> +      - Size in bytes (currently 40)
-> +    * - __u32 Version
-> +      - Version of the struct
-> +    * - __u32 Flags
-> +      - A bitmask of flags: see [4_] below
-> +    * - __u8 Hardware type
-> +      - Camera hardware version [5_]
-> +    * - __u8 SKU ID
-> +      - Camera hardware configuration [6_]
-> +    * - __u32 Cookie
-> +      - Internal synchronisation
-> +    * - __u16 Format
-> +      - Image format code [7_]
-> +    * - __u16 Width
-> +      - Width in pixels
-> +    * - __u16 Height
-> +      - Height in pixels
-> +    * - __u16 Framerate
-> +      - Requested frame rate per second
-> +    * - __u16 Trigger
-> +      - Byte 0: bit 0: depth and RGB are synchronised, bit 1: external
-> trigger
-> +
-> +.. _1:
-> +
-> +[1]
-> https://docs.microsoft.com/en-us/windows-hardware/drivers/stream/uvc-extens
-> ions-1-5
-> +
-> +.. _2:
-> +
-> +[2] Depth Control flags specify which fields are valid: ::
-> +
-> +  0x00000001 Gain
-> +  0x00000002 Exposure
-> +  0x00000004 Laser power
-> +  0x00000008 AE mode
-> +  0x00000010 Exposure priority
-> +  0x00000020 AE ROI
-> +  0x00000040 Preset
-> +
-> +.. _3:
-> +
-> +[3] Capture Timing flags specify which fields are valid: ::
-> +
-> +  0x00000001 Frame counter
-> +  0x00000002 Optical time
-> +  0x00000004 Readout time
-> +  0x00000008 Exposure time
-> +  0x00000010 Frame interval
-> +  0x00000020 Pipe latency
-> +
-> +.. _4:
-> +
-> +[4] Configuration flags specify which fields are valid: ::
-> +
-> +  0x00000001 Hardware type
-> +  0x00000002 SKU ID
-> +  0x00000004 Cookie
-> +  0x00000008 Format
-> +  0x00000010 Width
-> +  0x00000020 Height
-> +  0x00000040 Framerate
-> +  0x00000080 Trigger
-> +  0x00000100 Cal count
-> +
-> +.. _5:
-> +
-> +[5] Camera model: ::
-> +
-> +  0 DS5
-> +  1 IVCAM2
-> +
-> +.. _6:
-> +
-> +[6] 8-bit camera hardware configuration bitfield: ::
-> +
-> +  [1:0] depthCamera
-> +	00: no depth
-> +	01: standard depth
-> +	10: wide depth
-> +	11: reserved
-> +  [2]   depthIsActive - has a laser projector
-> +  [3]   RGB presence
-> +  [4]   IMU presence
-
-Do you mind if I write this "Inertial Measurement Unit (IMU) presense" ? Or is 
-it just me who's not familiar enough with depth cameras ? :-)
-
-On a side note, does the camera expose IMU data to the host over USB ?
-
-> +  [5]   projectorType
-> +	0: HPTG
-> +	1: Princeton
-> +  [6]   0: a projector, 1: an LED
-> +  [7]   reserved
-> +
-> +.. _7:
-> +
-> +[7] Image format codes per camera interface:
-
-I was initially puzzled by this until I read your explanation. How about 
-wording it as "Image format codes per video streaming interface" to use the 
-UVC vocabulary ?
-
-> +
-> +Depth: ::
-> +
-> +  1 Z16
-> +  2 Z
-> +
-> +Left sensor: ::
-> +
-> +  1 Y8
-> +  2 UYVY
-> +  3 R8L8
-> +  4 Calibration
-> +  5 W10
-> +
-> +Fish Eye sensor: ::
-> +
-> +  1 RAW8
-
-If you agree with the comments above, I'll update the patch when applying it 
-to my tree. I would however still like to get the following information
-
-- What are the version of the three structures documented in this patch ? I 
-can check that when I get back home, but if you have the information it would 
-be faster.
-
-- Do the fields in the Depth Control structure apply to the depth video stream 
-only ? (I assume they do)
-
-- What do the fields in the Capture Control structure apply to ? (I assume the 
-left sensor and/or fish eye video streams)
-
-- Does the optical time differ from half the exposure time ?
-
-If you think it will take time to get this information and we risk missing the 
-next kernel version, I'm OK applying the patch already, but please then submit 
-a follow-up patch (or just drop a mail in reply to this one with the 
-information and I can turn that into a patch).
+Probably not overnight, you're right. I'm a bit worried about the link 
+becoming invalid though. In any case that's not a blocker, but I might at some 
+point decide to replicate the documentation.
 
 [snip]
 
