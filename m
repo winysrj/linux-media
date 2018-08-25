@@ -1,33 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48920 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726412AbeHYQj5 (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:55505 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726624AbeHYSNR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Aug 2018 12:39:57 -0400
-Date: Sat, 25 Aug 2018 16:01:01 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv18 24/35] videobuf2-core: embed media_request_object
-Message-ID: <20180825130101.np4bddblvi7ensnw@valkosipuli.retiisi.org.uk>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl>
- <20180814142047.93856-25-hverkuil@xs4all.nl>
+        Sat, 25 Aug 2018 14:13:17 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180814142047.93856-25-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Sat, 25 Aug 2018 16:34:01 +0200
+From: KELLY ALAN <kellyalan@servicescourrier.club>
+To: kellyalan@servicescourrier.club
+Subject: TRADING  ACCOUNT
+Reply-To: kellyalan@cfmeareongines.com
+Message-ID: <908b880a35c541eb8221dfe117c55333@servicescourrier.club>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 14, 2018 at 04:20:36PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Make vb2_buffer a request object.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Dear sir ,
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+I KELLY ALAN  purchasing and sales manager of CFM INTERNATIONAL .Our 
+Company specialised in Supplying computer hardware and Electronic .We 
+want to extend our supplier list because of concurrency in prices on the 
+international market. We are seeking a supplier with whom we can to have 
+  partnered long-term in order to have competitive prices . we are 
+interested to buy the products you sell and want to place an order with 
+you in big quantities.
+Can you give us payment facilities ( 14 , 30 or 60 days payment terms ) 
+?
+What is the procedure for our account opening  and credit line 
+application ?
+
+Cordially
+
+  KELLY ALAN
+
+CFM INTERNATIONAL
+2 BOULEVARD DU GAL MARTIAL VALIN
+75015 PARIS
+REG N° 302 527 700
+VAT N° FR90 302527700
+TEL +33171025367
+FAX +33177759149
+https://www.cfmaeroengines.com
