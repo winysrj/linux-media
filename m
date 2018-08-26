@@ -1,127 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:57827 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726672AbeHYScv (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:55457 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726415AbeHZHNG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Aug 2018 14:32:51 -0400
-Date: Sat, 25 Aug 2018 16:53:35 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
-Message-ID: <20180825145335.GL26480@w540>
-References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
- <1534155586-26974-6-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="oYAXToTM8kn9Ra/9"
-Content-Disposition: inline
-In-Reply-To: <1534155586-26974-6-git-send-email-hugues.fruchet@st.com>
+        Sun, 26 Aug 2018 03:13:06 -0400
+Message-ID: <74d078dbc4b124359e4c2e9ae059a42a@smtp-cloud9.xs4all.net>
+Date: Sun, 26 Aug 2018 05:31:58 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---oYAXToTM8kn9Ra/9
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-Hi Hugues,
- one more comment on this patch..
+date:			Sun Aug 26 05:00:12 CEST 2018
+media-tree git hash:	da2048b7348a0be92f706ac019e022139e29495e
+media_build git hash:	baf45935ffad914f33faf751ad9f4d0dd276c021
+v4l-utils git hash:	015ca7524748fa7cef296102c68b631b078b63c6
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.1.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-1-amd64
 
-On Mon, Aug 13, 2018 at 12:19:46PM +0200, Hugues Fruchet wrote:
-> Mode setting depends on last mode set, in particular
-> because of exposure calculation when downscale mode
-> change between subsampling and scaling.
-> At stream on the last mode was wrongly set to current mode,
-> so no change was detected and exposure calculation
-> was not made, fix this.
->
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/i2c/ov5640.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index c110a6a..923cc30 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -225,6 +225,7 @@ struct ov5640_dev {
->  	struct v4l2_mbus_framefmt fmt;
->
->  	const struct ov5640_mode_info *current_mode;
-> +	const struct ov5640_mode_info *last_mode;
->  	enum ov5640_frame_rate current_fr;
->  	struct v4l2_fract frame_interval;
->
-> @@ -1628,6 +1629,9 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
->  	bool auto_exp =  sensor->ctrls.auto_exp->val == V4L2_EXPOSURE_AUTO;
->  	int ret;
->
-> +	if (!orig_mode)
-> +		orig_mode = mode;
-> +
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.115-i686: OK
+linux-3.18.115-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.18-i686: OK
+linux-4.18-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Am I wrong or with the introduction of last_mode we could drop the
-'orig_mode' parameter (which has confused me already :/ ) from the
-set_mode() function?
+Detailed results are available here:
 
-Just set here 'orig_mode = sensor->last_mode' and make sure last_mode
-is intialized properly at probe time...
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Or is there some other value in keeping the orig_mode parameter here?
+Full logs are available here:
 
-Thanks
-   j
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
->  	dn_mode = mode->dn_mode;
->  	orig_dn_mode = orig_mode->dn_mode;
->
-> @@ -1688,6 +1692,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
->  		return ret;
->
->  	sensor->pending_mode_change = false;
-> +	sensor->last_mode = mode;
->
->  	return 0;
->
-> @@ -2551,7 +2556,8 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
->
->  	if (sensor->streaming == !enable) {
->  		if (enable && sensor->pending_mode_change) {
-> -			ret = ov5640_set_mode(sensor, sensor->current_mode);
-> +			ret = ov5640_set_mode(sensor, sensor->last_mode);
-> +
->  			if (ret)
->  				goto out;
->
-> --
-> 2.7.4
->
+The Media Infrastructure API from this daily build is here:
 
---oYAXToTM8kn9Ra/9
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbgW1vAAoJEHI0Bo8WoVY8WHEP/0tFXXVTMaL0AZoSqFD0Dtg6
-nLgWU6T3GVnaoVbuQWoU6J9C0PIyfPZ87a6CkKAVBb79xydv+i8RcIhfz+6RKK/h
-nwIRrVp2w3+AF8kaNcJvdbm1WweDZqpIqW7E6dC8FmSZH9msi9hyc/KvklhpazGi
-0QO2THq/H3PVxpGKYfyxqHCmrvxAMLUkt/I2wmNfnEAZEaGG59vpd0XzWo12km9l
-9CxV63sM5gOhcyVNtzMPY3pX26JuVbmZGYLeIy5UF0TR6CLBscPU6ERMfUml2hCB
-lACM+JJGM54l3JYlqgNg+NoIJicTFRtaAyWf8GIW28NkzjmrZZWffVObJ4HQyJ0r
-Ph3sMzujwbRYX7G6TcnPgd2xU02l4KCNyVZgjdQMZgRk4NGm+LiakS4g+MWVavwP
-sWwgS25rdb8w3i8NmXpKvJFWotqY4jrdMnrM0QChB1f9dhghWAb4oFREpoaYoew1
-srP5sYmZQDdKQw5R/aOBiKt80K85Q8+iq4D1lhjBO2Uo2U/6sIyoOIhaxd4ArGkk
-SR2tfDQFF37FPzOMANINgBFxtVS6Zc+DmEfmicoRndCUw/OJZc8bNwtZG1nSAPI3
-z+BCaXsd/dqblhCArvynhBQlTiHhliXvLGpxN5woEy13mSfK90RE4jY82/w57AYX
-P6O9WZVIAVXGmF/nFUKE
-=uVvx
------END PGP SIGNATURE-----
-
---oYAXToTM8kn9Ra/9--
+http://www.xs4all.nl/~hverkuil/spec/index.html
