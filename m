@@ -1,143 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:36093 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726809AbeH0M7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 08:59:14 -0400
-Date: Mon, 27 Aug 2018 11:13:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] uvcvideo: add a D4M camera description
-In-Reply-To: <3055434.pg5Tdbnipv@avalon>
-Message-ID: <alpine.DEB.2.20.1808271102340.4506@axis700.grange>
-References: <alpine.DEB.2.20.1712231208440.21222@axis700.grange> <5991411.ejCQOIbS9u@avalon> <alpine.DEB.2.20.1807311236290.2248@axis700.grange> <3055434.pg5Tdbnipv@avalon>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54440 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726872AbeH0NPy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Aug 2018 09:15:54 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
+        niklas.soderlund@ragnatech.se, jacopo@jmondi.org
+Subject: [PATCH v2 00/23] V4L2 fwnode rework; support for default configuration
+Date: Mon, 27 Aug 2018 12:29:37 +0300
+Message-Id: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello everyone,
 
-On Sat, 25 Aug 2018, Laurent Pinchart wrote:
+I've long thought the V4L2 fwnode framework requires some work (it's buggy
+and it does not adequately serve common needs). This set should address in
+particular these matters:
 
-> Hi Guennadi,
-> 
-> On Friday, 3 August 2018 14:07:12 EEST Guennadi Liakhovetski wrote:
-> > Hi Laurent,
-> > 
-> > Thanks for the review. A general note: I think you're requesting a rather
-> > detailed information about many parameters. That isn't a problem by
-> > itself, however, it is difficult to obtain some of that information. I'll
-> > address whatever comments I can in an updated version, just answering some
-> > questions here. I directed youor questions, that I couldn't answer myself
-> > to respective people, but I have no idea if and when I get replies. So,
-> > it's up to you whether to wait for that additional information or to take
-> > at least what we have now.
-> 
-> I've replied to v2, and apart from a few minor points, I think we can apply 
-> the current version. There are a few small questions I would still like to 
-> have answers to, but if it takes to long to obtain that, let's not miss v4.20.
-> 
-> > On Sun, 29 Jul 2018, Laurent Pinchart wrote:
-> > > On Saturday, 23 December 2017 13:11:00 EEST Guennadi Liakhovetski wrote:
-> > >> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > >> 
-> > >> D4M is a mobile model from the D4XX family of Intel RealSense cameras.
-> > >> This patch adds a descriptor for it, which enables reading per-frame
-> > >> metadata from it.
-> > >> 
-> > >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > >> ---
-> > >> 
-> > >>  Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 202 ++++++++++++++++
-> > >>  drivers/media/usb/uvc/uvc_driver.c                |  11 ++
-> > >>  include/uapi/linux/videodev2.h                    |   1 +
-> > >>  3 files changed, 214 insertions(+)
-> > >>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> > >> 
-> > >> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> > >> b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst new file mode 100644
-> > >> index 0000000..950780d
-> > >> --- /dev/null
-> > >> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-> 
-> [snip]
-> 
-> > >> +    * - :cspan:`1` *Configuration*
-> > >> +    * - __u32 ID
-> > >> +      - 0x80000002
-> > >> +    * - __u32 Size
-> > >> +      - Size in bytes (currently 40)
-> > >> +    * - __u32 Version
-> > >> +      - Version of the struct
-> > >> +    * - __u32 Flags
-> > >> +      - A bitmask of flags: see [4_] below
-> > >> +    * - __u8 Hardware type
-> > >> +      - Camera hardware version [5_]
-> > >> +    * - __u8 SKU ID
-> > >> +      - Camera hardware configuration [6_]
-> > >> +    * - __u32 Cookie
-> > >> +      - Internal synchronisation
-> > > 
-> > > Internal synchronisation with what ? :-)
-> 
-> This is still something I'd like to understand (and I understand it may still 
-> take time to receive an answer from the right person).
+- Most devices support a particular media bus type but the V4L2 fwnode
+  framework was not able to use such information, but instead tried to
+  guess the bus type with varying levels of success while drivers
+  generally ignored the results. This patchset makes that possible ---
+  setting a bus type enables parsing configuration for only that bus.
+  Failing that check results in returning -ENXIO to be returned.
 
-Sorry, no idea, that flag wasn't even set when I was testing it.
+- Support specifying default configuration. If the endpoint has no
+  configuration, the defaults set by the driver (as documented in DT
+  bindings) will prevail. Any available configuration will still be read
+  from the endpoint as one could expect. A common use case for this is
+  e.g. the number of CSI-2 lanes. Few devices support lane mapping, and
+  default 1:1 mapping is provided in absence of a valid default or
+  configuration read OF.
 
-> > >> +    * - __u16 Format
-> > >> +      - Image format code [7_]
-> > >> +    * - __u16 Width
-> > >> +      - Width in pixels
-> > >> +    * - __u16 Height
-> > >> +      - Height in pixels
-> > >> +    * - __u16 Framerate
-> > >> +      - Requested framerate
-> > > 
-> > > What's the unit of this value ?
-> > 
-> > Is anything other than frames per second used in V4L?
-> 
-> V4L2 expresses the frame rate as a fraction, hence my question, to know 
-> whether this field contained the number of frames per second as an integer, or 
-> used a different representation (such as a fixed point decimal value for 
-> instance).
+- Debugging information is greatly improved.
 
-Nono, sorry, just an integer FPS.
+- Recognition of the differences between CSI-2 D-PHY and C-PHY. All
+  currently supported hardware (or at least drivers) is D-PHY only, so
+  this change is still easy.
 
-Thanks
-Guennadi
+The smiapp driver is converted to use the new functionality. This patchset
+does not address remaining issues such as supporting setting defaults for
+e.g. bridge drivers with multiple ports, but with Steve Longerbeam's
+patchset we're much closer to that goal. I've rebased this set on top of
+Steve's. Albeit the two deal with the same files, there were only a few
+trivial conflicts.
 
-> > >> +    * - __u16 Trigger
-> > >> +      - Byte 0: bit 0:  depth and RGB are synchronised, bit 1: external
-> > >> trigger
-> > >> +
-> > >> +.. _1:
-> > >> +
-> > >> +[1]
-> > >> https://docs.microsoft.com/en-us/windows-hardware/drivers/stream/uvc-ext
-> > >> ensions-1-5
-> > > 
-> > > Should we at some point replicate that documentation in the V4L2 spec ?
-> > > Without copying it of course, as that would be a copyright violation.
-> > 
-> > Well, we don't replicate the UVC itself or any other standards, do we? Of
-> > course, that document doesn't have the same status as an official
-> > vendor-neutral standard, but still, we don't replicate data sheets either.
-> > Besides, I think there are cameras that use this, and windows supports
-> > this, so, don't think it will disappear overnight...
-> 
-> Probably not overnight, you're right. I'm a bit worried about the link 
-> becoming invalid though. In any case that's not a blocker, but I might at some 
-> point decide to replicate the documentation.
-> 
-> [snip]
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
-> 
+Note that I've only tested parsing endpoints for the CSI-2 bus (no
+parallel IF hardware). Jacopo has tested an earlier version of the set
+with a few changes to the parallel bus handling compared to this one.
+
+Comments are welcome.
+
+I've pushed the patches (including Steve's) here:
+
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-fwnode-next>
+
+since v1:
+
+- Rebase it all on current media tree master --- there was a conflict in
+  drivers/media/platform/qcom/camss/camss.c in Steve's patch "media:
+  platform: Switch to v4l2_async_notifier_add_subdev"; I hope the
+  resolution was fine.
+
+- Default to Bt.656 bus in guessing the bus type if no properties
+  suggesting otherwise are set. In v1 and error was returned, which would
+  have been troublesome for the existing drivers.
+
+- Set the bus_type field to zero (i.e. guess) for existing callers of
+  v4l2_fwnode_endpoint_(alloc_)parse.
+
+- Improved documentation for v4l2_fwnode_endpoint_parse and
+  v4l2_fwnode_endpoint_alloc_parse.
+
+Sakari Ailus (23):
+  v4l: fwnode: Add debug prints for V4L2 endpoint property parsing
+  v4l: fwnode: Use fwnode_graph_for_each_endpoint
+  v4l: fwnode: The CSI-2 clock is continuous if it's not non-continuous
+  dt-bindings: media: Specify bus type for MIPI D-PHY, others,
+    explicitly
+  v4l: fwnode: Add definitions for CSI-2 D-PHY, parallel and Bt.656
+    busses
+  v4l: mediabus: Recognise CSI-2 D-PHY and C-PHY
+  v4l: fwnode: Let the caller provide V4L2 fwnode endpoint
+  v4l: fwnode: Detect bus type correctly
+  v4l: fwnode: Make use of newly specified bus types
+  v4l: fwnode: Read lane inversion information despite lane numbering
+  v4l: fwnode: Only assign configuration if there is no error
+  v4l: fwnode: Support driver-defined lane mapping defaults
+  v4l: fwnode: Support default CSI-2 lane mapping for drivers
+  v4l: fwnode: Parse the graph endpoint as last
+  v4l: fwnode: Use default parallel flags
+  v4l: fwnode: Initialise the V4L2 fwnode endpoints to zero
+  v4l: fwnode: Only zero the struct if bus type is set to
+    V4L2_MBUS_UNKNOWN
+  v4l: fwnode: Use media bus type for bus parser selection
+  v4l: fwnode: Print bus type
+  v4l: fwnode: Use V4L2 fwnode endpoint media bus type if set
+  v4l: fwnode: Support parsing of CSI-2 C-PHY endpoints
+  v4l: fwnode: Update V4L2 fwnode endpoint parsing documentation
+  smiapp: Query the V4L2 endpoint for a specific bus type
+
+ .../devicetree/bindings/media/video-interfaces.txt |   4 +-
+ drivers/gpu/ipu-v3/ipu-csi.c                       |   2 +-
+ drivers/media/i2c/adv7180.c                        |   2 +-
+ drivers/media/i2c/adv7604.c                        |   2 +-
+ drivers/media/i2c/mt9v032.c                        |   2 +-
+ drivers/media/i2c/ov2659.c                         |  14 +-
+ drivers/media/i2c/ov5640.c                         |   4 +-
+ drivers/media/i2c/ov5645.c                         |   2 +-
+ drivers/media/i2c/ov5647.c                         |   2 +-
+ drivers/media/i2c/ov7251.c                         |   4 +-
+ drivers/media/i2c/ov7670.c                         |   2 +-
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |   4 +-
+ drivers/media/i2c/s5k5baf.c                        |   6 +-
+ drivers/media/i2c/s5k6aa.c                         |   2 +-
+ drivers/media/i2c/smiapp/smiapp-core.c             |  34 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   2 +-
+ drivers/media/i2c/tc358743.c                       |  28 +-
+ drivers/media/i2c/tda1997x.c                       |   2 +-
+ drivers/media/i2c/tvp514x.c                        |   2 +-
+ drivers/media/i2c/tvp5150.c                        |   2 +-
+ drivers/media/i2c/tvp7002.c                        |   2 +-
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c           |   2 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |   2 +-
+ drivers/media/platform/atmel/atmel-isc.c           |   3 +-
+ drivers/media/platform/atmel/atmel-isi.c           |   2 +-
+ drivers/media/platform/cadence/cdns-csi2rx.c       |   4 +-
+ drivers/media/platform/cadence/cdns-csi2tx.c       |   4 +-
+ drivers/media/platform/davinci/vpif_capture.c      |   2 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |   2 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   2 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c    |   4 +-
+ drivers/media/platform/marvell-ccic/mmp-driver.c   |   2 +-
+ drivers/media/platform/omap3isp/isp.c              |   2 +-
+ drivers/media/platform/pxa_camera.c                |   4 +-
+ drivers/media/platform/rcar-vin/rcar-csi2.c        |   4 +-
+ drivers/media/platform/renesas-ceu.c               |   3 +-
+ drivers/media/platform/soc_camera/soc_mediabus.c   |   2 +-
+ drivers/media/platform/stm32/stm32-dcmi.c          |   4 +-
+ drivers/media/platform/ti-vpe/cal.c                |   2 +-
+ drivers/media/v4l2-core/v4l2-fwnode.c              | 508 ++++++++++++++++-----
+ drivers/staging/media/imx/imx-media-csi.c          |   2 +-
+ drivers/staging/media/imx/imx6-mipi-csi2.c         |   2 +-
+ drivers/staging/media/imx074/imx074.c              |   2 +-
+ include/media/v4l2-fwnode.h                        |  60 ++-
+ include/media/v4l2-mediabus.h                      |   8 +-
+ 45 files changed, 536 insertions(+), 220 deletions(-)
+
+-- 
+2.11.0
