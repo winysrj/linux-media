@@ -1,145 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44981 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726254AbeHZKds (ORCPT
+Received: from mail-io0-f193.google.com ([209.85.223.193]:34218 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727027AbeH0GtI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Aug 2018 06:33:48 -0400
-Date: Sun, 26 Aug 2018 08:52:09 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Helmut Grohne <helmut.grohne@intenta.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: V4L2 analogue gain contol
-Message-ID: <20180826065209.GC25309@amd>
-References: <20180822122441.7zxj4e5dczdzmo5m@laureti-dev>
+        Mon, 27 Aug 2018 02:49:08 -0400
+Received: by mail-io0-f193.google.com with SMTP id c22-v6so11722696iob.1
+        for <linux-media@vger.kernel.org>; Sun, 26 Aug 2018 20:04:29 -0700 (PDT)
+Received: from mail-it0-f54.google.com (mail-it0-f54.google.com. [209.85.214.54])
+        by smtp.gmail.com with ESMTPSA id k18-v6sm5074649iom.73.2018.08.26.20.04.27
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 26 Aug 2018 20:04:27 -0700 (PDT)
+Received: by mail-it0-f54.google.com with SMTP id p129-v6so8754729ite.3
+        for <linux-media@vger.kernel.org>; Sun, 26 Aug 2018 20:04:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="7gGkHNMELEOhSGF6"
-Content-Disposition: inline
-In-Reply-To: <20180822122441.7zxj4e5dczdzmo5m@laureti-dev>
+References: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
+ <1535034528-11590-2-git-send-email-vgarodia@codeaurora.org>
+ <CAPBb6MUZawT84Wcrhi+MEyn+zSCWOpn_iOZMMudZz+_Urixsrw@mail.gmail.com> <51cc9d6b-0483-76a6-d413-3f5cc63f3f56@linaro.org>
+In-Reply-To: <51cc9d6b-0483-76a6-d413-3f5cc63f3f56@linaro.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Mon, 27 Aug 2018 12:04:15 +0900
+Message-ID: <CAPBb6MWMQeXAabnis0iJxE91MCSscacbim3T_K6VF6OODw5TuQ@mail.gmail.com>
+Subject: Re: [PATCH v6 1/4] venus: firmware: add routine to reset ARM9
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: vgarodia@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
+        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Aug 24, 2018 at 5:57 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi Alex,
+>
+> On 08/24/2018 10:38 AM, Alexandre Courbot wrote:
+> > On Thu, Aug 23, 2018 at 11:29 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+> >>
+> >> Add routine to reset the ARM9 and brings it out of reset. Also
+> >> abstract the Venus CPU state handling with a new function. This
+> >> is in preparation to add PIL functionality in venus driver.
+> >>
+> >> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> >> ---
+> >>  drivers/media/platform/qcom/venus/core.h         |  2 ++
+> >>  drivers/media/platform/qcom/venus/firmware.c     | 33 ++++++++++++++++++++++++
+> >>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
+> >>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
+> >>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
+> >>  5 files changed, 57 insertions(+), 9 deletions(-)
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+> >> index 2f02365..dfd5c10 100644
+> >> --- a/drivers/media/platform/qcom/venus/core.h
+> >> +++ b/drivers/media/platform/qcom/venus/core.h
+> >> @@ -98,6 +98,7 @@ struct venus_caps {
+> >>   * @dev:               convenience struct device pointer
+> >>   * @dev_dec:   convenience struct device pointer for decoder device
+> >>   * @dev_enc:   convenience struct device pointer for encoder device
+> >> + * @no_tz:     a flag that suggests presence of trustzone
+> >>   * @lock:      a lock for this strucure
+> >>   * @instances: a list_head of all instances
+> >>   * @insts_count:       num of instances
+> >> @@ -129,6 +130,7 @@ struct venus_core {
+> >>         struct device *dev;
+> >>         struct device *dev_dec;
+> >>         struct device *dev_enc;
+> >> +       bool no_tz;
+> >>         struct mutex lock;
+> >>         struct list_head instances;
+> >>         atomic_t insts_count;
+> >> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+> >> index c4a5778..a9d042e 100644
+> >> --- a/drivers/media/platform/qcom/venus/firmware.c
+> >> +++ b/drivers/media/platform/qcom/venus/firmware.c
+> >> @@ -22,10 +22,43 @@
+> >>  #include <linux/sizes.h>
+> >>  #include <linux/soc/qcom/mdt_loader.h>
+> >>
+> >> +#include "core.h"
+> >>  #include "firmware.h"
+> >> +#include "hfi_venus_io.h"
+> >>
+> >>  #define VENUS_PAS_ID                   9
+> >>  #define VENUS_FW_MEM_SIZE              (6 * SZ_1M)
+> >
+> > This is making a strong assumption about the size of the FW memory
+> > region, which in practice is not always true (I had to reduce it to
+> > 5MB). How about having this as a member of venus_core, which is
+>
+> Why you reduced to 5MB? Is there an issue with 6MB or you don't want to
+> waste reserved memory?
 
---7gGkHNMELEOhSGF6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The DT layout of our board only has 5MB reserved for Venus.
 
-Hi!
+> > initialized in venus_load_fw() from the actual size of the memory
+> > region? You could do this as an extra patch that comes before this
+> > one.
+> >
+>
+> The size is 6MB by historical reasons and they are no more valid, so I
+> think we could safely decrease to 5MB. I could prepare a patch for that.
 
-> I've been looking at various image sensor drivers to see how they expose
-> gains, in particular analogue ones. What I found in 4.18 looks like a
-> mess to me.
->=20
-> In particular, my interest is about separation of analogue vs digital
-> gain and an understanding of what effect a change in gain has on the
-> brightness of an image. The latter is characterized in the following
-> table in the "linear" column.
->=20
-> driver  | CID | register name               | min | max  | def | linear |=
- comments
-> --------+-----+-----------------------------+-----+------+-----+--------+=
----------
-> adv7343 | G   | ADV7343_DAC2_OUTPUT_LEVEL   | -64 | 64   | 0   |        |
-> adv7393 | G   | ADV7393_DAC123_OUTPUT_LEVEL | -64 | 64   | 0   |        |
-> imx258  | A   | IMX258_REG_ANALOG_GAIN      | 0   | 8191 | 0   |        |
-> imx274  | G   | multiple                    |     |      |     | yes    |=
- [1]
-> mt9m032 | G   | MT9M032_GAIN_ALL            | 0   | 127  | 64  | no     |=
- [2]
-> mt9m111 | G   | GLOBAL_GAIN                 | 0   | 252  | 32  | no     |=
- [3]
-> mt9p031 | G   | MT9P031_GLOBAL_GAIN         | 8   | 1024 | 8   | no     |=
- [4]
-> mt9v011 | G   | multiple                    | 0   | 4063 | 32  |        |
-> mt9v032 | G   | MT9V032_ANALOG_GAIN         | 16  | 64   | 16  | no     |=
- [5]
-> ov13858 | A   | OV13858_REG_ANALOG_GAIN     | 0   | 8191 | 128 |        |
-> ov2685  | A   | OV2685_REG_GAIN             | 0   | 2047 | 54  |        |
-> ov5640  | G   | OV5640_REG_AEC_PK_REAL_GAIN | 0   | 1023 | 0   |        |
-> ov5670  | A   | OV5670_REG_ANALOG_GAIN      | 0   | 8191 | 128 |        |
-> ov5695  | A   | OV5695_REG_ANALOG_GAIN      | 16  | 248  | 248 |        |
-> mt9m001 | G   | MT9M001_GLOBAL_GAIN         | 0   | 127  | 64  | no     |
-> mt9v022 | G   | MT9V022_ANALOG_GAIN         | 0   | 127  | 64  |        |
->=20
-> CID:
->   A -> V4L2_CID_ANALOGUE_GAIN
->   G -> V4L2_CID_GAIN, no V4L2_CID_ANALOGUE_GAIN present
-> step: always 1
-> comments:
-> [1] controls a product of analogue and digital gain, value scales
->     roughly linear
-> [2] code comments contradict data sheet
-> [3] it is not clear whether it also controls a digital gain.
-> [4] controls a combination of analogue and digital gain
-> [5] analogue only
->=20
-> The documentation (extended-controls.rst) says that the digital gain is
-> supposed to be a linear fixed-point number with 0x100 meaning factor 1.
-> The situation for analogue is much less precise.
->=20
-> Typically, the number of analogue gains is much smaller than the number
-> of digital gains. No driver exposes more than 13 bit for the analogue
-> gain and half of them use at most 8 bits.
->=20
-> Can we give more structure to the analogue gain as exposed by V4L2?
-> Ideally, I'd like to query a driver for the possible gain values if
-> there are few (say < 256) and their factors (which are often given in
-> data sheets). The nature of gains though is that they are often similar
-> to floating point numbers (2 ** exp * (1 + mant / precision)), which
-> makes it difficult to represent them using min/max/step/default.
-
-Yes, it would be nice to have uniform controls for that. And it would
-be good if mapping to "ISO" sensitivity from digital photography existed.
-
-> Would it be reasonable to add a new V4L2_CID_ANALOGUE_GAIN_MENU that
-> claims linearity and uses fixed-point numbers like
-> V4L2_CID_DIGITAL_GAIN? There already is the integer menu
-> V4L2_CID_AUTO_EXPOSURE_BIAS, but it also affects the exposure.
-
-I'm not sure if linear scale is really appropriate. You can expect
-camera to do ISO100 or ISO200, but if your camera supports ISO480000,
-you don't really expect it to support ISO480100.
-
-=2E/drivers/media/i2c/et8ek8/et8ek8_driver.c already does that.
-
-IOW logarithmic scale would be more appropriate; min/max would be
-nice, and step=20
-
-> An important application is implementing a custom gain control when the
-> built-in auto exposure is not applicable.
-
-Looking at et8ek8 again, perhaps that's the right solution? Userland
-just sets the gain, and the driver automatically selects best
-analog/digital gain combination.
-
-/*
- * This table describes what should be written to the sensor register
-  * for each gain value. The gain(index in the table) is in terms of
-   * 0.1EV, i.e. 10 indexes in the table give 2 time more gain [0] in
-    * the *analog gain, [1] in the digital gain
-     *
-      * Analog gain [dB] =3D 20*log10(regvalue/32); 0x20..0x100
-       */
-      =20
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---7gGkHNMELEOhSGF6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAluCThkACgkQMOfwapXb+vJnggCbBtHZPwwCg4ILG/YKmxC1Lbpp
-9SAAnR5vT9q/xHP0mNxnKQJ1nmsWvuJX
-=Ua85
------END PGP SIGNATURE-----
-
---7gGkHNMELEOhSGF6--
+Whether we settle with 6MB or 5MB, that size remains arbitrary and not
+based on the actual firmware size. And __qcom_mdt_load() does check
+that the firmware fits the memory area. So I don't understand what
+extra safety is added by ensuring the memory region is larger than a
+given number of megabytes?
