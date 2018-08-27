@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54460 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726802AbeH0NPy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 09:15:54 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
-        niklas.soderlund@ragnatech.se, jacopo@jmondi.org
-Subject: [PATCH v2 02/23] v4l: fwnode: Use fwnode_graph_for_each_endpoint
-Date: Mon, 27 Aug 2018 12:29:39 +0300
-Message-Id: <20180827093000.29165-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
-References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:34902 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727098AbeH0NUZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Aug 2018 09:20:25 -0400
+Date: Mon, 27 Aug 2018 11:34:30 +0200
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK"
+        <linux-kselftest@vger.kernel.org>
+Subject: Re: [PATCH v6] Add udmabuf misc device
+Message-ID: <20180827093430.ck2pf7lkxdt52n2h@sirius.home.kraxel.org>
+References: <20180703075359.30349-1-kraxel@redhat.com>
+ <20180703083757.GG7880@phenom.ffwll.local>
+ <20180704055338.n3b7oexltaejqmcd@sirius.home.kraxel.org>
+ <20180704080807.GH3891@phenom.ffwll.local>
+ <20180704085825.nfkv5i7ultaavjve@sirius.home.kraxel.org>
+ <20180704091954.GQ3891@phenom.ffwll.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180704091954.GQ3891@phenom.ffwll.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use fwnode_graph_for_each_endpoint iterator for better readability.
+  Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+> > Covering udmabuf.c maintainance is a different issue.  I could just add
+> > myself to the existing entry, or create a new one specifically for
+> > udmabuf.
+> 
+> That's what I meant, do a more specific entry to add yourself just for
+> udmabuf.
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index dae01d5f570e..da13348b1f4a 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -456,8 +456,7 @@ static int __v4l2_async_notifier_parse_fwnode_endpoints(
- 	if (WARN_ON(asd_struct_size < sizeof(struct v4l2_async_subdev)))
- 		return -EINVAL;
- 
--	for (fwnode = NULL; (fwnode = fwnode_graph_get_next_endpoint(
--				     dev_fwnode(dev), fwnode)); ) {
-+	fwnode_graph_for_each_endpoint(dev_fwnode(dev), fwnode) {
- 		struct fwnode_handle *dev_fwnode;
- 		bool is_available;
- 
--- 
-2.11.0
+Ok.  Back from summer vacation, finally found the time to continue
+working on this.  Entry added, rebased to 4.19-rc1, v7 comes in a
+moment.  Please review & ack.
+
+thanks,
+  Gerd
