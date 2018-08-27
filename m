@@ -1,128 +1,382 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.intenta.de ([178.249.25.132]:47950 "EHLO mail.intenta.de"
+Received: from mout.gmx.net ([212.227.15.15]:33455 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726802AbeH0Mcq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 08:32:46 -0400
-Date: Mon, 27 Aug 2018 10:40:12 +0200
-From: Helmut Grohne <helmut.grohne@intenta.de>
-To: Pavel Machek <pavel@ucw.cz>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: V4L2 analogue gain contol
-Message-ID: <20180827084012.ng4rb2npus65iutq@laureti-dev>
-References: <20180822122441.7zxj4e5dczdzmo5m@laureti-dev>
- <20180826065209.GC25309@amd>
+        id S1726802AbeH0Mrs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Aug 2018 08:47:48 -0400
+Date: Mon, 27 Aug 2018 11:01:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 2/2] uvcvideo: add a D4M camera description
+In-Reply-To: <1540109.86EXVmqvYh@avalon>
+Message-ID: <alpine.DEB.2.20.1808270844530.4506@axis700.grange>
+References: <alpine.DEB.2.20.1712231208440.21222@axis700.grange> <5991411.ejCQOIbS9u@avalon> <alpine.DEB.2.20.1808031335310.13762@axis700.grange> <1540109.86EXVmqvYh@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20180826065209.GC25309@amd>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-On Sun, Aug 26, 2018 at 08:52:09AM +0200, Pavel Machek wrote:
-> > Can we give more structure to the analogue gain as exposed by V4L2?
-> > Ideally, I'd like to query a driver for the possible gain values if
-> > there are few (say < 256) and their factors (which are often given in
-> > data sheets). The nature of gains though is that they are often similar
-> > to floating point numbers (2 ** exp * (1 + mant / precision)), which
-> > makes it difficult to represent them using min/max/step/default.
+Thanks for the review.
+
+On Sat, 25 Aug 2018, Laurent Pinchart wrote:
+
+> Hi Guennadi,
 > 
-> Yes, it would be nice to have uniform controls for that. And it would
-> be good if mapping to "ISO" sensitivity from digital photography existed.
-
-Thank you very much for this pointer.
-
-There is V4L2_CID_ISO_SENSITIVITY. It is an integer menu, which means
-that I can introspect the available values. It is already used by
-s5c73m3 and m5mols. That looks mostly like what I need. It makes no
-provision on how the image is amplified, whether digital or analogue.
-I'd need analogue gain only here.
-
-Reading the platform/exynos4-is/fimc and the i2c/s5c73m3 driver, I get
-the impression that the scaling is not in accordance with
-Documentation/media/uapi/v4l/extended-controls.rst ("standard ISO values
-multiplied by 1000") though. -> Adding the maintainers/supporters to Cc.
-
-> > Would it be reasonable to add a new V4L2_CID_ANALOGUE_GAIN_MENU that
-> > claims linearity and uses fixed-point numbers like
-> > V4L2_CID_DIGITAL_GAIN? There already is the integer menu
-> > V4L2_CID_AUTO_EXPOSURE_BIAS, but it also affects the exposure.
+> Thank you for the patch.
 > 
-> I'm not sure if linear scale is really appropriate. You can expect
-> camera to do ISO100 or ISO200, but if your camera supports ISO480000,
-> you don't really expect it to support ISO480100.
-
-I may have been ambigue here. With "linear" I was not trying to imply
-that cameras should support every possible value and maybe "linear" is
-not the property I actually need.
-
-What I need is a correspondence between gain value (the value you pass
-to V4L2_CID_ANALOGUE_GAIN) and amplification factor (brightness increase
-of the resulting image). A linear connection is the simplest of course,
-but logarithmic works as well in principle.
-
-My idea of using an integer menu here was that a significant number of
-cameras have a low count of valid gain settings. For them, listing all
-valid values may be a legitimate option. Indeed, that's what happened
-for V4L2_CID_ISO_SENSITIVITY.
-
-> ./drivers/media/i2c/et8ek8/et8ek8_driver.c already does that.
+> Overall this looks good to me, I only have small comments. Please see below, 
+> with a summary at the end.
 > 
-> IOW logarithmic scale would be more appropriate; min/max would be
-> nice, and step 
-
-I'm sorry for missing this driver in the analysis. It certainly adds to
-the picture.
-
-Note however that simply logarithmic with a step will not be a
-one-size-fits-all. Fixed point numbers do not map to a logarithmic scale
-with fixed steps. You can achieve fewer "holes" in your representation,
-but you won't get rid of them entirely.
-
-In the majority of cases, you could represent the gain as a product of a
-logarithmic and a linear scale each with fixed steps. Is that an option?
-
-> > An important application is implementing a custom gain control when the
-> > built-in auto exposure is not applicable.
+> On Friday, 3 August 2018 14:37:08 EEST Guennadi Liakhovetski wrote:
+> > D4M is a mobile model from the D4XX family of Intel RealSense cameras.
+> > This patch adds a descriptor for it, which enables reading per-frame
+> > metadata from it.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > ---
+> >  Documentation/media/uapi/v4l/meta-formats.rst     |   1 +
+> >  Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 204 +++++++++++++++++++
+> >  drivers/media/usb/uvc/uvc_driver.c                |  11 ++
+> >  include/uapi/linux/videodev2.h                    |   1 +
+> >  4 files changed, 217 insertions(+)
+> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
 > 
-> Looking at et8ek8 again, perhaps that's the right solution? Userland
-> just sets the gain, and the driver automatically selects best
-> analog/digital gain combination.
+> [snip]
 > 
-> /*
->  * This table describes what should be written to the sensor register
->   * for each gain value. The gain(index in the table) is in terms of
->    * 0.1EV, i.e. 10 indexes in the table give 2 time more gain [0] in
->     * the *analog gain, [1] in the digital gain
->      *
->       * Analog gain [dB] = 20*log10(regvalue/32); 0x20..0x100
->        */
+> > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> > b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst new file mode 100644
+> > index 0000000..57ecfd9
+> > --- /dev/null
+> > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+> > @@ -0,0 +1,204 @@
+> > +.. -*- coding: utf-8; mode: rst -*-
+> > +
+> > +.. _v4l2-meta-fmt-d4xx:
+> > +
+> > +*******************************
+> > +V4L2_META_FMT_D4XX ('D4XX')
+> > +*******************************
+> > +
+> > +Intel D4xx UVC Cameras Metadata
+> > +
+> > +
+> > +Description
+> > +===========
+> > +
+> > +Intel D4xx (D435 and other) cameras include per-frame metadata in their UVC
+> > +payload headers, following the Microsoft(R) UVC extension proposal [1_].
+> > That +means, that the private D4XX metadata, following the standard UVC
+> > header, is +organised in blocks. D4XX cameras implement several standard
+> > block types, +proposed by Microsoft, and several proprietary ones.
+> > Supported standard metadata +types are MetadataId_CaptureStats (ID 3),
+> > MetadataId_CameraExtrinsics (ID 4), +and MetadataId_CameraIntrinsics (ID
+> > 5). For their description see [1_]. This +document describes proprietary
+> > metadata types, used by D4xx cameras.
+> > +
+> > +V4L2_META_FMT_D4XX buffers follow the metadata buffer layout of
+> > +V4L2_META_FMT_UVC with the only difference, that it also includes
+> > proprietary +payload header data. D4xx cameras use bulk transfers and only
+> > send one payload +per frame, therefore their headers cannot be larger than
+> > 255 bytes.
+> > +
+> > +Below are proprietary Microsoft style metadata types, used by D4xx cameras,
+> > +where all fields are in little endian order:
+> > +
+> > +.. flat-table:: D4xx metadata
+> > +    :widths: 1 4
+> > +    :header-rows:  1
+> > +    :stub-columns: 0
+> > +
+> > +    * - Field
+> > +      - Description
+> > +    * - :cspan:`1` *Depth Control*
+> 
+> Does this mean that all fields in this structure apply to the depth image only 
+> ? If so, do you mind if I mention that explicitly ?
 
-That may work (even for just analogue gain), but it comes at a little
-loss of flexibility. You stop exposing a number of gain values and
-combinations. In some cases, you loose more than half of the valid
-configurations.
+I don't think that's the case. E.g. only this struct has laser parameters 
+and the laser can be used without the depth node being active. In fact I 
+just tried streaming from the other node and reading metadata from its 
+metadata node - it also included ID 0x80000000 with flags set to 0xff, 
+i.e. all fields valid.
 
-Striking a balance between a simple and a flexible interface of course
-is difficult. I'm not opposed to providing such a simple interface, but
-I'd also like to retain the flexibility (with another and likely more
-complex interface).
+> > +    * - __u32 ID
+> > +      - 0x80000000
+> > +    * - __u32 Size
+> > +      - Size in bytes (currently 56)
+> > +    * - __u32 Version
+> > +      - Version of the struct
+> 
+> I would elaborate a bit here, how about the following ?
+> 
+> "Version of this structure. The documentation herein corresponds to version 
+> xxx. The version number will be incremented when new fields are added."
+> 
+> If you can provide me with the current version number I can update this when 
+> applying the patch (I would get it myself, but I'm about to board a plane and 
+> haven't taken the camera with me :-/).
 
-Given your reply, I see three significant alternatives to my proposal:
+Sure, sounds good, the "depth control" is version 2, the rest is version 
+1.
 
- * V4L2_CID_ISO_SENSITIVITY (even though it may use digital gain)
+> > +    * - __u32 Flags
+> > +      - A bitmask of flags: see [2_] below
+> > +    * - __u32 Gain
+> > +      - Gain value in internal units, same as the V4L2_CID_GAIN control,
+> > used to
+> > +        capture the frame
+> > +    * - __u32 Exposure
+> > +      - Exposure time (in microseconds) used to capture the frame
+> > +    * - __u32 Laser power
+> > +      - Power of the laser LED 0-360, used for depth measurement
+> > +    * - __u32 AE mode
+> > +      - 0: manual; 1: automatic exposure
+> > +    * - __u32 Exposure priority
+> > +      - Exposure priority value: 0 - constant frame rate
+> > +    * - __u32 AE ROI left
+> > +      - Left border of the AE Region of Interest (all ROI values are in
+> > pixels
+> > +        and lie between 0 and maximum width or height respectively)
+> > +    * - __u32 AE ROI right
+> > +      - Right border of the AE Region of Interest
+> > +    * - __u32 AE ROI top
+> > +      - Top border of the AE Region of Interest
+> > +    * - __u32 AE ROI bottom
+> > +      - Bottom border of the AE Region of Interest
+> > +    * - __u32 Preset
+> > +      - Preset selector value, default: 0, unless changed by the user
+> 
+> I won't block this patch for this, but could we get the documentation of the 
+> corresponding XU control ? Even better, if Intel could publish documentation 
+> of the full XUs, that would be great :-)
 
- * V4L2_CID_ANALOGUE_GAIN_ISO could be an integer menu control modeled
-   after V4L2_CID_ISO_SENSITIVITY.
+I think it's mostly up to you, if you insist, I'll ask for the information 
+and tell them, that the patch won't go in without it. If you don't, it's 
+the same answer I'm afraid - I asked for details and reminded about my 
+query and still got no response back. The same holds for all other 
+information.
 
- * V4L2_CID_ANALOGUE_GAIN_LOG x + V4L2_CID_ANALOGUE_GAIN_LINEAR y such
-   that the actual gain amplification value is 2 ** x * y (where x and y
-   are each fixed point numbers with a to-be-determined fixed point).
+> > +    * - __u32 Laser mode
+> > +      - 0: off, 1: on
+> > +    * - :cspan:`1` *Capture Timing*
+> 
+> Similarly, what does this apply to ? The left sensor, the fish eye camera, or 
+> both (or something else) ?
 
-I guess I'll try to work with V4L2_CID_ISO_SENSITIVITY.
+You have a metadata node for each of those nodes, so, you just read from 
+it when capturing from the respective video streaming node and use 
+whatever is there.
 
-Helmut
+> > +    * - __u32 ID
+> > +      - 0x80000001
+> > +    * - __u32 Size
+> > +      - Size in bytes (currently 40)
+> > +    * - __u32 Version
+> > +      - Version of the struct
+> > +    * - __u32 Flags
+> > +      - A bitmask of flags: see [3_] below
+> > +    * - __u32 Frame counter
+> > +      - Monotonically increasing counter
+> 
+> I assume this increases by exactly one for every frame. I'll test it when I 
+> get back home, and will update the documentation accordingly.
+
+I think since it's formulated as it is, they didn't want the user to rely 
+on any specific increment step. And I don't think testing a couple of 
+use-cases would provide a relyable answer to this...
+
+> > +    * - __u32 Optical time
+> > +      - Time in microseconds from the beginning of a frame till its middle
+> 
+> I'm still puzzled by this value, as I expect it to be exactly half the 
+> exposure time, which is reported separately. If that's not the case I'd like 
+> to know what this represents.
+
+Sorry, I really don't know more than what's there.
+
+> > +    * - __u32 Readout time
+> > +      - Time, used to read out a frame in microseconds
+> > +    * - __u32 Exposure time
+> > +      - Frame exposure time in microseconds
+> > +    * - __u32 Frame interval
+> > +      - In microseconds = 1000000 / framerate
+> > +    * - __u32 Pipe latency
+> > +      - Time in microseconds from start of frame to data in USB buffer
+> > +    * - :cspan:`1` *Configuration*
+> > +    * - __u32 ID
+> > +      - 0x80000002
+> > +    * - __u32 Size
+> > +      - Size in bytes (currently 40)
+> > +    * - __u32 Version
+> > +      - Version of the struct
+> > +    * - __u32 Flags
+> > +      - A bitmask of flags: see [4_] below
+> > +    * - __u8 Hardware type
+> > +      - Camera hardware version [5_]
+> > +    * - __u8 SKU ID
+> > +      - Camera hardware configuration [6_]
+> > +    * - __u32 Cookie
+> > +      - Internal synchronisation
+> > +    * - __u16 Format
+> > +      - Image format code [7_]
+> > +    * - __u16 Width
+> > +      - Width in pixels
+> > +    * - __u16 Height
+> > +      - Height in pixels
+> > +    * - __u16 Framerate
+> > +      - Requested frame rate per second
+> > +    * - __u16 Trigger
+> > +      - Byte 0: bit 0: depth and RGB are synchronised, bit 1: external
+> > trigger
+> > +
+> > +.. _1:
+> > +
+> > +[1]
+> > https://docs.microsoft.com/en-us/windows-hardware/drivers/stream/uvc-extens
+> > ions-1-5
+> > +
+> > +.. _2:
+> > +
+> > +[2] Depth Control flags specify which fields are valid: ::
+> > +
+> > +  0x00000001 Gain
+> > +  0x00000002 Exposure
+> > +  0x00000004 Laser power
+> > +  0x00000008 AE mode
+> > +  0x00000010 Exposure priority
+> > +  0x00000020 AE ROI
+> > +  0x00000040 Preset
+> > +
+> > +.. _3:
+> > +
+> > +[3] Capture Timing flags specify which fields are valid: ::
+> > +
+> > +  0x00000001 Frame counter
+> > +  0x00000002 Optical time
+> > +  0x00000004 Readout time
+> > +  0x00000008 Exposure time
+> > +  0x00000010 Frame interval
+> > +  0x00000020 Pipe latency
+> > +
+> > +.. _4:
+> > +
+> > +[4] Configuration flags specify which fields are valid: ::
+> > +
+> > +  0x00000001 Hardware type
+> > +  0x00000002 SKU ID
+> > +  0x00000004 Cookie
+> > +  0x00000008 Format
+> > +  0x00000010 Width
+> > +  0x00000020 Height
+> > +  0x00000040 Framerate
+> > +  0x00000080 Trigger
+> > +  0x00000100 Cal count
+> > +
+> > +.. _5:
+> > +
+> > +[5] Camera model: ::
+> > +
+> > +  0 DS5
+> > +  1 IVCAM2
+> > +
+> > +.. _6:
+> > +
+> > +[6] 8-bit camera hardware configuration bitfield: ::
+> > +
+> > +  [1:0] depthCamera
+> > +	00: no depth
+> > +	01: standard depth
+> > +	10: wide depth
+> > +	11: reserved
+> > +  [2]   depthIsActive - has a laser projector
+> > +  [3]   RGB presence
+> > +  [4]   IMU presence
+> 
+> Do you mind if I write this "Inertial Measurement Unit (IMU) presense" ? Or is 
+> it just me who's not familiar enough with depth cameras ? :-)
+
+IMUs aren't only present in depth cameras, in fact, they are more usually 
+present outside of depth cameras. E.g. in phones, drones, robots, etc. 
+Everywhere where you need orientation, acceleration, and similar stuff. 
+But up to you, if you think, this isn't common enough, feel free to 
+explain.
+
+> On a side note, does the camera expose IMU data to the host over USB ?
+
+I haven't worked with such cameras, but if there's an IMU in a USB camera, 
+USB is the only way to present it to the user, and yes, I think it would 
+be presented to the user and not only used internally. But again, I 
+haven't worked with them personally.
+
+> > +  [5]   projectorType
+> > +	0: HPTG
+> > +	1: Princeton
+> > +  [6]   0: a projector, 1: an LED
+> > +  [7]   reserved
+> > +
+> > +.. _7:
+> > +
+> > +[7] Image format codes per camera interface:
+> 
+> I was initially puzzled by this until I read your explanation. How about 
+> wording it as "Image format codes per video streaming interface" to use the 
+> UVC vocabulary ?
+
+Sure, sounds good!
+
+> 
+> > +
+> > +Depth: ::
+> > +
+> > +  1 Z16
+> > +  2 Z
+> > +
+> > +Left sensor: ::
+> > +
+> > +  1 Y8
+> > +  2 UYVY
+> > +  3 R8L8
+> > +  4 Calibration
+> > +  5 W10
+> > +
+> > +Fish Eye sensor: ::
+> > +
+> > +  1 RAW8
+> 
+> If you agree with the comments above, I'll update the patch when applying it 
+> to my tree. I would however still like to get the following information
+> 
+> - What are the version of the three structures documented in this patch ? I 
+> can check that when I get back home, but if you have the information it would 
+> be faster.
+> 
+> - Do the fields in the Depth Control structure apply to the depth video stream 
+> only ? (I assume they do)
+> 
+> - What do the fields in the Capture Control structure apply to ? (I assume the 
+> left sensor and/or fish eye video streams)
+> 
+> - Does the optical time differ from half the exposure time ?
+
+All responses above.
+
+Thanks
+Guennadi
+
+> 
+> If you think it will take time to get this information and we risk missing the 
+> next kernel version, I'm OK applying the patch already, but please then submit 
+> a follow-up patch (or just drop a mail in reply to this one with the 
+> information and I can turn that into a patch).
+> 
+> [snip]
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
+> 
