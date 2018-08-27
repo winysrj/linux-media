@@ -1,66 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.intenta.de ([178.249.25.132]:47861 "EHLO mail.intenta.de"
+Received: from mail.intenta.de ([178.249.25.132]:47950 "EHLO mail.intenta.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726802AbeH0Mco (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 08:32:44 -0400
-Date: Mon, 27 Aug 2018 10:44:18 +0200
+        id S1726802AbeH0Mcq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Aug 2018 08:32:46 -0400
+Date: Mon, 27 Aug 2018 10:40:12 +0200
 From: Helmut Grohne <helmut.grohne@intenta.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: aptina-pll: allow approximating the requested
- pix_clock
-Message-ID: <20180827084418.io2ea3z3h3ziv5mf@laureti-dev>
-References: <20180814084026.be4fpbhrppdnx2a3@laureti-dev>
- <20180823075208.mqjctv4ax4dakfws@laureti-dev>
- <11902774.1rSuDQUnix@avalon>
- <20180824120517.7fn6omq3q7fhhb52@laureti-dev>
- <20180825113247.64hlewztioog44ao@valkosipuli.retiisi.org.uk>
+To: Pavel Machek <pavel@ucw.cz>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: V4L2 analogue gain contol
+Message-ID: <20180827084012.ng4rb2npus65iutq@laureti-dev>
+References: <20180822122441.7zxj4e5dczdzmo5m@laureti-dev>
+ <20180826065209.GC25309@amd>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20180825113247.64hlewztioog44ao@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180826065209.GC25309@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 25, 2018 at 01:32:47PM +0200, Sakari Ailus wrote:
-> On Fri, Aug 24, 2018 at 02:05:17PM +0200, Helmut Grohne wrote:
-> > Take for instance MT9M024. The data sheet
-> > (http://www.mouser.com/ds/2/308/MT9M024-D-606228.pdf) allows deducing
-> > the following limits:
-> > 
-> > 	const struct aptina_pll_limits mt9m024_limits = {
-> > 		.ext_clock_min = 6000000,
-> > 		.ext_clock_max = 50000000,
-> > 		.int_clock_min = 2000000,
-> > 		.int_clock_max = 24000000,
-> > 		.out_clock_min = 384000000,
-> > 		.out_clock_max = 768000000,
-> > 		.pix_clock_max = 74250000,
-> > 		.n_min = 1,
-> > 		.n_max = 63,
-> > 		.m_min = 32,
-> > 		.m_max = 255,
-> > 		.p1_min = 4,
-> > 		.p1_max = 16,
-> > 	};
-> > 
-> > Now if you choose ext_clock and pix_clock maximal within the given
-> > limits, the existing aptina_pll_calculate gives up. Lowering the
-> > pix_clock does not help either. Even down to 73 MHz, it is unable to
-> > find any pll configuration.
-> > 
-> > The new algorithm finds a solution (n=11, m=98, p1=6) with 7.5 KHz
-> > error. Incidentally, that solution is close to the one given by the
-> > vendor tool (n=22, m=196, p1=6).
-> 
-> These values don't seem valid for 6 MHz --- the frequency after the PLL is
-> less than 384 MHz. Did you use a different external clock frequency?
+Hi,
 
-I wrote that I used the maximal external clock frequency, which is 50
-MHz. For that value, the output clock is within the requested bounds.
-Are you implying that the chosen pll parameters should be valid for all
-possible external clocks simultaneously?
+On Sun, Aug 26, 2018 at 08:52:09AM +0200, Pavel Machek wrote:
+> > Can we give more structure to the analogue gain as exposed by V4L2?
+> > Ideally, I'd like to query a driver for the possible gain values if
+> > there are few (say < 256) and their factors (which are often given in
+> > data sheets). The nature of gains though is that they are often similar
+> > to floating point numbers (2 ** exp * (1 + mant / precision)), which
+> > makes it difficult to represent them using min/max/step/default.
+> 
+> Yes, it would be nice to have uniform controls for that. And it would
+> be good if mapping to "ISO" sensitivity from digital photography existed.
+
+Thank you very much for this pointer.
+
+There is V4L2_CID_ISO_SENSITIVITY. It is an integer menu, which means
+that I can introspect the available values. It is already used by
+s5c73m3 and m5mols. That looks mostly like what I need. It makes no
+provision on how the image is amplified, whether digital or analogue.
+I'd need analogue gain only here.
+
+Reading the platform/exynos4-is/fimc and the i2c/s5c73m3 driver, I get
+the impression that the scaling is not in accordance with
+Documentation/media/uapi/v4l/extended-controls.rst ("standard ISO values
+multiplied by 1000") though. -> Adding the maintainers/supporters to Cc.
+
+> > Would it be reasonable to add a new V4L2_CID_ANALOGUE_GAIN_MENU that
+> > claims linearity and uses fixed-point numbers like
+> > V4L2_CID_DIGITAL_GAIN? There already is the integer menu
+> > V4L2_CID_AUTO_EXPOSURE_BIAS, but it also affects the exposure.
+> 
+> I'm not sure if linear scale is really appropriate. You can expect
+> camera to do ISO100 or ISO200, but if your camera supports ISO480000,
+> you don't really expect it to support ISO480100.
+
+I may have been ambigue here. With "linear" I was not trying to imply
+that cameras should support every possible value and maybe "linear" is
+not the property I actually need.
+
+What I need is a correspondence between gain value (the value you pass
+to V4L2_CID_ANALOGUE_GAIN) and amplification factor (brightness increase
+of the resulting image). A linear connection is the simplest of course,
+but logarithmic works as well in principle.
+
+My idea of using an integer menu here was that a significant number of
+cameras have a low count of valid gain settings. For them, listing all
+valid values may be a legitimate option. Indeed, that's what happened
+for V4L2_CID_ISO_SENSITIVITY.
+
+> ./drivers/media/i2c/et8ek8/et8ek8_driver.c already does that.
+> 
+> IOW logarithmic scale would be more appropriate; min/max would be
+> nice, and step 
+
+I'm sorry for missing this driver in the analysis. It certainly adds to
+the picture.
+
+Note however that simply logarithmic with a step will not be a
+one-size-fits-all. Fixed point numbers do not map to a logarithmic scale
+with fixed steps. You can achieve fewer "holes" in your representation,
+but you won't get rid of them entirely.
+
+In the majority of cases, you could represent the gain as a product of a
+logarithmic and a linear scale each with fixed steps. Is that an option?
+
+> > An important application is implementing a custom gain control when the
+> > built-in auto exposure is not applicable.
+> 
+> Looking at et8ek8 again, perhaps that's the right solution? Userland
+> just sets the gain, and the driver automatically selects best
+> analog/digital gain combination.
+> 
+> /*
+>  * This table describes what should be written to the sensor register
+>   * for each gain value. The gain(index in the table) is in terms of
+>    * 0.1EV, i.e. 10 indexes in the table give 2 time more gain [0] in
+>     * the *analog gain, [1] in the digital gain
+>      *
+>       * Analog gain [dB] = 20*log10(regvalue/32); 0x20..0x100
+>        */
+
+That may work (even for just analogue gain), but it comes at a little
+loss of flexibility. You stop exposing a number of gain values and
+combinations. In some cases, you loose more than half of the valid
+configurations.
+
+Striking a balance between a simple and a flexible interface of course
+is difficult. I'm not opposed to providing such a simple interface, but
+I'd also like to retain the flexibility (with another and likely more
+complex interface).
+
+Given your reply, I see three significant alternatives to my proposal:
+
+ * V4L2_CID_ISO_SENSITIVITY (even though it may use digital gain)
+
+ * V4L2_CID_ANALOGUE_GAIN_ISO could be an integer menu control modeled
+   after V4L2_CID_ISO_SENSITIVITY.
+
+ * V4L2_CID_ANALOGUE_GAIN_LOG x + V4L2_CID_ANALOGUE_GAIN_LINEAR y such
+   that the actual gain amplification value is 2 ** x * y (where x and y
+   are each fixed point numbers with a to-be-determined fixed point).
+
+I guess I'll try to work with V4L2_CID_ISO_SENSITIVITY.
 
 Helmut
