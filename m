@@ -1,30 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:42244 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726714AbeH0GvH (ORCPT
+Received: from mail-it0-f66.google.com ([209.85.214.66]:52091 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726757AbeH0Gzw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 02:51:07 -0400
-Received: by mail-io0-f196.google.com with SMTP id n18-v6so11687503ioa.9
-        for <linux-media@vger.kernel.org>; Sun, 26 Aug 2018 20:06:27 -0700 (PDT)
-Received: from mail-it0-f52.google.com (mail-it0-f52.google.com. [209.85.214.52])
-        by smtp.gmail.com with ESMTPSA id v13-v6sm3490489ita.38.2018.08.26.20.06.25
+        Mon, 27 Aug 2018 02:55:52 -0400
+Received: by mail-it0-f66.google.com with SMTP id e14-v6so9194754itf.1
+        for <linux-media@vger.kernel.org>; Sun, 26 Aug 2018 20:11:11 -0700 (PDT)
+Received: from mail-io0-f179.google.com (mail-io0-f179.google.com. [209.85.223.179])
+        by smtp.gmail.com with ESMTPSA id y189-v6sm3486797itd.26.2018.08.26.20.11.11
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 26 Aug 2018 20:06:25 -0700 (PDT)
-Received: by mail-it0-f52.google.com with SMTP id p79-v6so473602itp.3
-        for <linux-media@vger.kernel.org>; Sun, 26 Aug 2018 20:06:25 -0700 (PDT)
+        Sun, 26 Aug 2018 20:11:11 -0700 (PDT)
+Received: by mail-io0-f179.google.com with SMTP id y3-v6so11717978ioc.5
+        for <linux-media@vger.kernel.org>; Sun, 26 Aug 2018 20:11:11 -0700 (PDT)
 MIME-Version: 1.0
 References: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
- <1535034528-11590-4-git-send-email-vgarodia@codeaurora.org>
- <CAPBb6MV1jjksgbSaCuUcY_ZbjfGeK-GaQ_+OZ7LWUv4ehA3dGQ@mail.gmail.com> <9e9417cf2fccfed4015f6893045e4f7f@codeaurora.org>
-In-Reply-To: <9e9417cf2fccfed4015f6893045e4f7f@codeaurora.org>
+ <1535034528-11590-3-git-send-email-vgarodia@codeaurora.org>
+ <CAPBb6MXydrrfbWOps-xV4eRzgN6n6pT45B2C=H5tuF2pZOesZQ@mail.gmail.com> <ee7f8db9-8624-9e08-7ea2-7ea99c0ad289@linaro.org>
+In-Reply-To: <ee7f8db9-8624-9e08-7ea2-7ea99c0ad289@linaro.org>
 From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 27 Aug 2018 12:06:14 +0900
-Message-ID: <CAPBb6MX7EQvXfq_F+8b2FcqROpGY7ud4M6UyttGzoELsw=NJ=Q@mail.gmail.com>
-Subject: Re: [PATCH v6 3/4] venus: firmware: add no TZ boot and shutdown routine
-To: vgarodia@codeaurora.org
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Date: Mon, 27 Aug 2018 12:10:59 +0900
+Message-ID: <CAPBb6MWYE2o+nPXeaVGq6Pvymb4NAivf6aM2srX++=fpAU6SwA@mail.gmail.com>
+Subject: Re: [PATCH v6 2/4] venus: firmware: move load firmware in a separate function
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: vgarodia@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
         mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
         Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
@@ -36,87 +35,89 @@ Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 24, 2018 at 9:26 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+On Fri, Aug 24, 2018 at 6:01 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
 >
 > Hi Alex,
 >
-> On 2018-08-24 13:09, Alexandre Courbot wrote:
-> > On Thu, Aug 23, 2018 at 11:29 PM Vikash Garodia
-> > <vgarodia@codeaurora.org> wrote:
->
-> [snip]
->
-> >> +struct video_firmware {
+> On 08/24/2018 10:39 AM, Alexandre Courbot wrote:
+> > On Thu, Aug 23, 2018 at 11:29 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+> >>
+> >> Separate firmware loading part into a new function.
+> >>
+> >> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> >> ---
+> >>  drivers/media/platform/qcom/venus/core.c     |  4 +-
+> >>  drivers/media/platform/qcom/venus/firmware.c | 55 ++++++++++++++++++----------
+> >>  drivers/media/platform/qcom/venus/firmware.h |  2 +-
+> >>  3 files changed, 38 insertions(+), 23 deletions(-)
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+> >> index bb6add9..75b9785 100644
+> >> --- a/drivers/media/platform/qcom/venus/core.c
+> >> +++ b/drivers/media/platform/qcom/venus/core.c
+> >> @@ -84,7 +84,7 @@ static void venus_sys_error_handler(struct work_struct *work)
+> >>
+> >>         pm_runtime_get_sync(core->dev);
+> >>
+> >> -       ret |= venus_boot(core->dev, core->res->fwname);
+> >> +       ret |= venus_boot(core);
+> >>
+> >>         ret |= hfi_core_resume(core, true);
+> >>
+> >> @@ -284,7 +284,7 @@ static int venus_probe(struct platform_device *pdev)
+> >>         if (ret < 0)
+> >>                 goto err_runtime_disable;
+> >>
+> >> -       ret = venus_boot(dev, core->res->fwname);
+> >> +       ret = venus_boot(core);
+> >>         if (ret)
+> >>                 goto err_runtime_disable;
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+> >> index a9d042e..34224eb 100644
+> >> --- a/drivers/media/platform/qcom/venus/firmware.c
+> >> +++ b/drivers/media/platform/qcom/venus/firmware.c
+> >> @@ -60,20 +60,18 @@ int venus_set_hw_state(struct venus_core *core, bool resume)
+> >>         return 0;
+> >>  }
+> >>
+> >> -int venus_boot(struct device *dev, const char *fwname)
+> >> +static int venus_load_fw(struct venus_core *core, const char *fwname,
+> >> +                        phys_addr_t *mem_phys, size_t *mem_size)
+> >
+> > Following the remarks of the previous patch, you would have mem_phys
+> > and mem_size as members of venus_core (probably renamed as fw_mem_addr
+> > and fw_mem_size).
+> >
+> >>  {
+> >>         const struct firmware *mdt;
+> >>         struct device_node *node;
+> >> -       phys_addr_t mem_phys;
 > >> +       struct device *dev;
-> >> +       struct iommu_domain *iommu_domain;
-> >> +};
-> >> +
-> >>  /**
-> >>   * struct venus_core - holds core parameters valid for all instances
-> >>   *
-> >> @@ -98,6 +103,7 @@ struct venus_caps {
-> >>   * @dev:               convenience struct device pointer
-> >>   * @dev_dec:   convenience struct device pointer for decoder device
-> >>   * @dev_enc:   convenience struct device pointer for encoder device
-> >> + * @fw:                a struct for venus firmware info
-> >>   * @no_tz:     a flag that suggests presence of trustzone
-> >>   * @lock:      a lock for this strucure
-> >>   * @instances: a list_head of all instances
-> >> @@ -130,6 +136,7 @@ struct venus_core {
-> >>         struct device *dev;
-> >>         struct device *dev_dec;
-> >>         struct device *dev_enc;
-> >> +       struct video_firmware fw;
+> >>         struct resource r;
+> >>         ssize_t fw_size;
+> >> -       size_t mem_size;
+> >>         void *mem_va;
+> >>         int ret;
+> >>
+> >> -       if (!IS_ENABLED(CONFIG_QCOM_MDT_LOADER) || !qcom_scm_is_available())
+> >> -               return -EPROBE_DEFER;
 > >
-> > Since struct video_firmware is only used here I think you can declare
-> > it inline, i.e.
-> >
-> >     struct {
-> >         struct device *dev;
-> >         struct iommu_domain *iommu_domain;
-> >     } fw;
-> >
-> > This structure is actually a good candidate to hold the firmware
-> > memory area start address and size.
+> > !IS_ENABLED(CONFIG_QCOM_MDT_LOADER) is not a condition that can change
+> > at runtime, and returning -EPROBE_DEFER in that case seems erroneous
+> > to me. Instead, wouldn't it make more sense to make the driver depend
+> > on QCOM_MDT_LOADER?
 >
-> I can make it inline.
-> Memory area and size are common parameters populated
-> locally while loading the firmware with or without tz. Firmware struct
-> has
-> info more specific to firmware device.
->
-> [snip]
->
-> >
-> >> +{
-> >> +       struct iommu_domain *iommu_dom;
-> >> +       struct device *dev;
-> >> +       int ret;
-> >> +
-> >> +       dev = core->fw.dev;
-> >> +       if (!dev)
-> >> +               return -EPROBE_DEFER;
-> >> +
-> >> +       iommu_dom = iommu_domain_alloc(&platform_bus_type);
-> >> +       if (!iommu_dom) {
-> >> +               dev_err(dev, "Failed to allocate iommu domain\n");
-> >> +               return -ENOMEM;
-> >> +       }
-> >> +
-> >> +       ret = iommu_attach_device(iommu_dom, dev);
-> >> +       if (ret) {
-> >> +               dev_err(dev, "could not attach device\n");
-> >> +               goto err_attach;
-> >> +       }
-> >
-> > I think like the above belongs more in venus_firmware_init()
-> > (introduced in patch 4/4) than here. There is no reason to
-> > detach/reattach the iommu if we stop the firmware.
->
-> Consider the case when we want to reload the firmware during error
-> recovery.
-> Boot and shutdown will be needed in such case without the need to
-> populate
-> the firmware device again.
+> That was made on purpose, for more info git show b8f9bdc151e4a
 
-Is there a need to reattach the iommu domain in case of an error?
+Ah, I see. Still, in the current form it seems like
+qcom_scm_is_available() is not resolved thanks to a compiler
+optimization. Wouldn't it be more explicit to do something like
+
+#if IS_ENABLED(CONFIG_QCOM_MDT_LOADER)
+if (!qcom_scm_is_available())
+    return -EPROBE_DEFER;
+#endif
+
+instead?
