@@ -1,71 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54584 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54476 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727159AbeH0NP5 (ORCPT
+        by vger.kernel.org with ESMTP id S1726926AbeH0NPy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 09:15:57 -0400
+        Mon, 27 Aug 2018 09:15:54 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
         niklas.soderlund@ragnatech.se, jacopo@jmondi.org
-Subject: [PATCH v2 12/23] v4l: fwnode: Support driver-defined lane mapping defaults
-Date: Mon, 27 Aug 2018 12:29:49 +0300
-Message-Id: <20180827093000.29165-13-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 04/23] dt-bindings: media: Specify bus type for MIPI D-PHY, others, explicitly
+Date: Mon, 27 Aug 2018 12:29:41 +0300
+Message-Id: <20180827093000.29165-5-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
 References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make use of the default CSI-2 lane mapping from caller-passed
-configuration.
+Allow specifying the bus type explicitly for MIPI D-PHY, parallel and
+Bt.656 busses. This is useful for devices that can make use of different
+bus types. There are CSI-2 transmitters and receivers but the PHY
+selection needs to be made between C-PHY and D-PHY; many devices also
+support parallel and Bt.656 interfaces but the means to pass that
+information to software wasn't there.
+
+Autodetection (value 0) is removed as an option as the property could be
+simply omitted in that case.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index ea9262305968..282595c90818 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -55,10 +55,14 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 	u32 v;
- 	int rval;
- 
--	if (bus_type == V4L2_FWNODE_BUS_TYPE_CSI2_DPHY)
-+	if (bus_type == V4L2_FWNODE_BUS_TYPE_CSI2_DPHY) {
- 		num_data_lanes = min_t(u32, bus->num_data_lanes,
- 				       V4L2_FWNODE_CSI2_MAX_DATA_LANES);
- 
-+		for (i = 0; i < num_data_lanes; i++)
-+			array[i] = bus->data_lanes[i];
-+	}
-+
- 	rval = fwnode_property_read_u32_array(fwnode, "data-lanes", NULL, 0);
- 	if (rval > 0) {
- 		num_data_lanes =
-@@ -66,15 +70,15 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 
- 		fwnode_property_read_u32_array(fwnode, "data-lanes", array,
- 					       num_data_lanes);
-+	}
- 
--		for (i = 0; i < num_data_lanes; i++) {
--			if (lanes_used & BIT(array[i]))
--				pr_warn("duplicated lane %u in data-lanes\n",
--					array[i]);
--			lanes_used |= BIT(array[i]);
-+	for (i = 0; i < num_data_lanes; i++) {
-+		if (lanes_used & BIT(array[i]))
-+			pr_warn("duplicated lane %u in data-lanes\n",
-+				array[i]);
-+		lanes_used |= BIT(array[i]);
- 
--			pr_debug("lane %u position %u\n", i, array[i]);
--		}
-+		pr_debug("lane %u position %u\n", i, array[i]);
- 	}
- 
- 	rval = fwnode_property_read_u32_array(fwnode, "lane-polarities", NULL,
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index baf9d9756b3c..f884ada0bffc 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -100,10 +100,12 @@ Optional endpoint properties
+   slave device (data source) by the master device (data sink). In the master
+   mode the data source device is also the source of the synchronization signals.
+ - bus-type: data bus type. Possible values are:
+-  0 - autodetect based on other properties (MIPI CSI-2 D-PHY, parallel or Bt656)
+   1 - MIPI CSI-2 C-PHY
+   2 - MIPI CSI1
+   3 - CCP2
++  4 - MIPI CSI-2 D-PHY
++  5 - Parallel
++  6 - Bt.656
+ - bus-width: number of data lines actively used, valid for the parallel busses.
+ - data-shift: on the parallel data busses, if bus-width is used to specify the
+   number of data lines, data-shift can be used to specify which data lines are
 -- 
 2.11.0
