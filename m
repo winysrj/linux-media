@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:45984 "EHLO
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:35389 "EHLO
         lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726825AbeH0Lnz (ORCPT
+        by vger.kernel.org with ESMTP id S1726809AbeH0Lnz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 27 Aug 2018 07:43:55 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
@@ -10,9 +10,9 @@ Cc: nouveau@lists.freedesktop.org, amd-gfx@lists.freedesktop.org,
         Maling list - DRI developers
         <dri-devel@lists.freedesktop.org>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/5] drm_dp_mst_topology: fix broken drm_dp_sideband_parse_remote_dpcd_read()
-Date: Mon, 27 Aug 2018 09:58:18 +0200
-Message-Id: <20180827075820.41109-4-hverkuil@xs4all.nl>
+Subject: [PATCHv2 2/5] drm_dp_cec: add note about good MegaChips 2900 CEC support
+Date: Mon, 27 Aug 2018 09:58:17 +0200
+Message-Id: <20180827075820.41109-3-hverkuil@xs4all.nl>
 In-Reply-To: <20180827075820.41109-1-hverkuil@xs4all.nl>
 References: <20180827075820.41109-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -20,30 +20,34 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-When parsing the reply of a DP_REMOTE_DPCD_READ DPCD command the
-result is wrong due to a missing idx increment.
+A big problem with DP CEC-Tunneling-over-AUX is that it is tricky
+to find adapters with a chipset that supports this AND where the
+manufacturer actually connected the HDMI CEC line to the chipset.
 
-This was never noticed since DP_REMOTE_DPCD_READ is currently not
-used, but if you enable it, then it is all wrong.
+Add a mention of the MegaChips 2900 chipset which seems to support
+this feature well.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Reviewed-by: Lyude Paul <lyude@redhat.com>
 Acked-by: Alex Deucher <alexander.deucher@amd.com>
 ---
- drivers/gpu/drm/drm_dp_mst_topology.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/gpu/drm/drm_dp_cec.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/drm_dp_mst_topology.c b/drivers/gpu/drm/drm_dp_mst_topology.c
-index 7780567aa669..5ff1d79b86c4 100644
---- a/drivers/gpu/drm/drm_dp_mst_topology.c
-+++ b/drivers/gpu/drm/drm_dp_mst_topology.c
-@@ -439,6 +439,7 @@ static bool drm_dp_sideband_parse_remote_dpcd_read(struct drm_dp_sideband_msg_rx
- 	if (idx > raw->curlen)
- 		goto fail_len;
- 	repmsg->u.remote_dpcd_read_ack.num_bytes = raw->msg[idx];
-+	idx++;
- 	if (idx > raw->curlen)
- 		goto fail_len;
- 
+diff --git a/drivers/gpu/drm/drm_dp_cec.c b/drivers/gpu/drm/drm_dp_cec.c
+index 1407b13a8d5d..8a718f85079a 100644
+--- a/drivers/gpu/drm/drm_dp_cec.c
++++ b/drivers/gpu/drm/drm_dp_cec.c
+@@ -16,7 +16,9 @@
+  * here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
+  * have a converter chip that supports CEC-Tunneling-over-AUX (usually the
+  * Parade PS176), but they do not wire up the CEC pin, thus making CEC
+- * useless.
++ * useless. Note that MegaChips 2900-based adapters appear to have good
++ * support for CEC tunneling. Those adapters that I have tested using
++ * this chipset all have the CEC line connected.
+  *
+  * Sadly there is no way for this driver to know this. What happens is
+  * that a /dev/cecX device is created that is isolated and unable to see
 -- 
 2.18.0
