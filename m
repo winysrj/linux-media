@@ -1,115 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54574 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54586 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727119AbeH0NP4 (ORCPT
+        by vger.kernel.org with ESMTP id S1727130AbeH0NP5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 09:15:56 -0400
+        Mon, 27 Aug 2018 09:15:57 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
         niklas.soderlund@ragnatech.se, jacopo@jmondi.org
-Subject: [PATCH v2 09/23] v4l: fwnode: Make use of newly specified bus types
-Date: Mon, 27 Aug 2018 12:29:46 +0300
-Message-Id: <20180827093000.29165-10-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 11/23] v4l: fwnode: Only assign configuration if there is no error
+Date: Mon, 27 Aug 2018 12:29:48 +0300
+Message-Id: <20180827093000.29165-12-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
 References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for parsing CSI-2 D-PHY, parallel or Bt.656 bus explicitly.
+Only assign endpoint configuration if the endpoint is parsed successfully.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 53 ++++++++++++++++++++++++++++-------
- 1 file changed, 43 insertions(+), 10 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 52bd9f839fb2..ff34a7e47967 100644
+index fb086242d2d9..ea9262305968 100644
 --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -123,8 +123,16 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 	return 0;
- }
- 
-+#define PARALLEL_MBUS_FLAGS (V4L2_MBUS_HSYNC_ACTIVE_HIGH |	\
-+			     V4L2_MBUS_HSYNC_ACTIVE_LOW |	\
-+			     V4L2_MBUS_VSYNC_ACTIVE_HIGH |	\
-+			     V4L2_MBUS_VSYNC_ACTIVE_LOW |	\
-+			     V4L2_MBUS_FIELD_EVEN_HIGH |	\
-+			     V4L2_MBUS_FIELD_EVEN_LOW)
-+
- static void v4l2_fwnode_endpoint_parse_parallel_bus(
--	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep)
-+	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep,
-+	enum v4l2_fwnode_bus_type bus_type)
+@@ -47,7 +47,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 					       enum v4l2_fwnode_bus_type bus_type)
  {
- 	struct v4l2_fwnode_bus_parallel *bus = &vep->bus.parallel;
- 	unsigned int flags = 0;
-@@ -189,16 +197,28 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 		pr_debug("data-enable-active %s\n", v ? "high" : "low");
+ 	struct v4l2_fwnode_bus_mipi_csi2 *bus = &vep->bus.mipi_csi2;
+-	bool have_clk_lane = false;
++	bool have_clk_lane = false, have_lane_polarities = false;
+ 	unsigned int flags = 0, lanes_used = 0;
+ 	u32 array[1 + V4L2_FWNODE_CSI2_MAX_DATA_LANES];
+ 	unsigned int num_data_lanes = 0;
+@@ -73,7 +73,6 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 					array[i]);
+ 			lanes_used |= BIT(array[i]);
+ 
+-			bus->data_lanes[i] = array[i];
+ 			pr_debug("lane %u position %u\n", i, array[i]);
+ 		}
+ 	}
+@@ -87,16 +86,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 			return -EINVAL;
+ 		}
+ 
+-		fwnode_property_read_u32_array(fwnode, "lane-polarities", array,
+-					       1 + num_data_lanes);
+-
+-		for (i = 0; i < 1 + num_data_lanes; i++) {
+-			bus->lane_polarities[i] = array[i];
+-			pr_debug("lane %u polarity %sinverted",
+-				 i, array[i] ? "" : "not ");
+-		}
+-	} else {
+-		pr_debug("no lane polarities defined, assuming not inverted\n");
++		have_lane_polarities = true;
  	}
  
--	bus->flags = flags;
--	if (flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
--		     V4L2_MBUS_HSYNC_ACTIVE_LOW |
--		     V4L2_MBUS_VSYNC_ACTIVE_HIGH |
--		     V4L2_MBUS_VSYNC_ACTIVE_LOW |
--		     V4L2_MBUS_FIELD_EVEN_HIGH |
--		     V4L2_MBUS_FIELD_EVEN_LOW))
-+	switch (bus_type) {
-+	default:
-+		bus->flags = flags;
-+		if (flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+			     V4L2_MBUS_HSYNC_ACTIVE_LOW |
-+			     V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+			     V4L2_MBUS_VSYNC_ACTIVE_LOW |
-+			     V4L2_MBUS_FIELD_EVEN_HIGH |
-+			     V4L2_MBUS_FIELD_EVEN_LOW))
-+			vep->bus_type = V4L2_MBUS_PARALLEL;
-+		else
-+			vep->bus_type = V4L2_MBUS_BT656;
-+		break;
-+	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
- 		vep->bus_type = V4L2_MBUS_PARALLEL;
--	else
-+		bus->flags = flags;
-+		break;
-+	case V4L2_FWNODE_BUS_TYPE_BT656:
- 		vep->bus_type = V4L2_MBUS_BT656;
-+		bus->flags = flags & ~PARALLEL_MBUS_FLAGS;
-+		break;
-+	}
- }
- 
- static void
-@@ -258,7 +278,8 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			return rval;
- 
- 		if (vep->bus_type == V4L2_MBUS_UNKNOWN)
--			v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep);
-+			v4l2_fwnode_endpoint_parse_parallel_bus(
-+				fwnode, vep, V4L2_MBUS_UNKNOWN);
- 
- 		break;
- 	case V4L2_FWNODE_BUS_TYPE_CCP2:
-@@ -266,6 +287,18 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, bus_type);
- 
- 		break;
-+	case V4L2_FWNODE_BUS_TYPE_CSI2_DPHY:
-+		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
-+		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep);
-+		if (rval)
-+			return rval;
+ 	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v)) {
+@@ -121,6 +111,22 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+ 		bus->flags = flags;
+ 		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
+ 		bus->num_data_lanes = num_data_lanes;
++		for (i = 0; i < num_data_lanes; i++)
++			bus->data_lanes[i] = array[i];
 +
-+		break;
-+	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
-+	case V4L2_FWNODE_BUS_TYPE_BT656:
-+		v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep, bus_type);
++		if (have_lane_polarities) {
++			fwnode_property_read_u32_array(fwnode,
++						       "lane-polarities", array,
++						       1 + num_data_lanes);
 +
-+		break;
- 	default:
- 		pr_warn("unsupported bus type %u\n", bus_type);
- 		return -EINVAL;
++			for (i = 0; i < 1 + num_data_lanes; i++) {
++				bus->lane_polarities[i] = array[i];
++				pr_debug("lane %u polarity %sinverted",
++					 i, array[i] ? "" : "not ");
++			}
++		} else {
++			pr_debug("no lane polarities defined, assuming not inverted\n");
++		}
+ 	}
+ 
+ 	return 0;
 -- 
 2.11.0
