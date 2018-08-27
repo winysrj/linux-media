@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54590 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54574 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727294AbeH0NP6 (ORCPT
+        by vger.kernel.org with ESMTP id S1727264AbeH0NP6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Mon, 27 Aug 2018 09:15:58 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
         niklas.soderlund@ragnatech.se, jacopo@jmondi.org
-Subject: [PATCH v2 21/23] v4l: fwnode: Support parsing of CSI-2 C-PHY endpoints
-Date: Mon, 27 Aug 2018 12:29:58 +0300
-Message-Id: <20180827093000.29165-22-sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 17/23] v4l: fwnode: Only zero the struct if bus type is set to V4L2_MBUS_UNKNOWN
+Date: Mon, 27 Aug 2018 12:29:54 +0300
+Message-Id: <20180827093000.29165-18-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
 References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 fwnode framework only parsed CSI-2 D-PHY endpoints while C-PHY
-support wasn't there. Also parse endpoints for media bus type
-V4L2_MBUS_CSI2_CPHY.
+In order to prepare for allowing drivers to set the defaults for a given
+bus, make zeroing the struct conditional based on detecting the bus.
+All callers now set the bus type to zero which allows only zeroing the
+remaining bus union.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 4c2f7d709c5d..a863c423ee8c 100644
+index ba51c1ead314..6c5a76442667 100644
 --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -145,7 +145,8 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 	u32 v;
+@@ -325,6 +325,12 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 	u32 bus_type = 0;
  	int rval;
  
--	if (bus_type == V4L2_MBUS_CSI2_DPHY) {
-+	if (bus_type == V4L2_MBUS_CSI2_DPHY ||
-+	    bus_type == V4L2_MBUS_CSI2_CPHY) {
- 		use_default_lane_mapping = true;
++	if (vep->bus_type == V4L2_MBUS_UNKNOWN) {
++		/* Zero fields from bus union to until the end */
++		memset(&vep->bus, 0,
++		       sizeof(*vep) - offsetof(typeof(*vep), bus));
++	}
++
+ 	pr_debug("===== begin V4L2 endpoint properties\n");
  
- 		num_data_lanes = min_t(u32, bus->num_data_lanes,
-@@ -221,10 +222,12 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
- 	}
+ 	/*
+@@ -333,10 +339,6 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 	 */
+ 	memset(&vep->base, 0, sizeof(vep->base));
  
--	if (bus_type == V4L2_MBUS_CSI2_DPHY || lanes_used ||
-+	if (bus_type == V4L2_MBUS_CSI2_DPHY ||
-+	    bus_type == V4L2_MBUS_CSI2_CPHY || lanes_used ||
- 	    have_clk_lane || (flags & ~V4L2_MBUS_CSI2_CONTINUOUS_CLOCK)) {
- 		bus->flags = flags;
--		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
-+		if (bus_type == V4L2_MBUS_UNKNOWN)
-+			vep->bus_type = V4L2_MBUS_CSI2_DPHY;
- 		bus->num_data_lanes = num_data_lanes;
+-	/* Zero fields from bus_type to until the end */
+-	memset(&vep->bus_type, 0, sizeof(*vep) -
+-	       offsetof(typeof(*vep), bus_type));
+-
+ 	fwnode_property_read_u32(fwnode, "bus-type", &bus_type);
  
- 		if (use_default_lane_mapping) {
-@@ -468,6 +471,7 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 
- 		break;
- 	case V4L2_MBUS_CSI2_DPHY:
-+	case V4L2_MBUS_CSI2_CPHY:
- 		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep,
- 							   vep->bus_type);
- 		if (rval)
+ 	switch (bus_type) {
 -- 
 2.11.0
