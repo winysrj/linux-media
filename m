@@ -1,84 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:38401 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728118AbeH1Rk7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 13:40:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 07/10] v4l2-ctrls: use media_request_(un)lock_for_access
-Date: Tue, 28 Aug 2018 15:49:08 +0200
-Message-Id: <20180828134911.44086-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180828134911.44086-1-hverkuil@xs4all.nl>
-References: <20180828134911.44086-1-hverkuil@xs4all.nl>
+Received: from mail.horus.com ([78.46.148.228]:35035 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727519AbeH1Rl3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 13:41:29 -0400
+Date: Tue, 28 Aug 2018 15:49:42 +0200
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] media: rc: ir-rc6-decoder: enable toggle bit for Kathrein
+ RCU-676 remote
+Message-ID: <20180828134942.3ckdxl7lofjabd3o@camel2.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The Kathrein RCU-676 remote uses the 32-bit rc6 protocol and toggles
+bit 15 (0x8000) on repeated button presses, like MCE remotes.
 
-When getting control values from a completed request, we have
-to protect the request against being re-inited why it is
-being accessed by calling media_request_(un)lock_for_access.
+Add it's customer code 0x80460000 to the 32-bit rc6 toggle
+handling code to get proper scancodes and toggle reports.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Matthias Reichl <hias@horus.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+Here's the link to the bugreport and discussion:
+https://forum.libreelec.tv/thread/13086-get-kathrein-rcu-676-remote-to-work-with-le9/
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ccaf3068de6d..cc266a4a6e88 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3289,11 +3289,10 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 		     struct v4l2_ext_controls *cs)
- {
- 	struct media_request_object *obj = NULL;
-+	struct media_request *req = NULL;
- 	int ret;
- 
- 	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
--		struct media_request *req;
--
- 		if (!mdev || cs->request_fd < 0)
- 			return -EINVAL;
- 
-@@ -3306,11 +3305,18 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 			return -EACCES;
- 		}
- 
-+		ret = media_request_lock_for_access(req);
-+		if (ret) {
-+			media_request_put(req);
-+			return ret;
-+		}
-+
- 		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
--		/* Reference to the request held through obj */
--		media_request_put(req);
--		if (IS_ERR(obj))
-+		if (IS_ERR(obj)) {
-+			media_request_unlock_for_access(req);
-+			media_request_put(req);
- 			return PTR_ERR(obj);
-+		}
- 
- 		hdl = container_of(obj, struct v4l2_ctrl_handler,
- 				   req_obj);
-@@ -3318,8 +3324,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 
- 	ret = v4l2_g_ext_ctrls_common(hdl, cs);
- 
--	if (obj)
-+	if (obj) {
-+		media_request_unlock_for_access(req);
- 		media_request_object_put(obj);
-+		media_request_put(req);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(v4l2_g_ext_ctrls);
+ drivers/media/rc/ir-rc6-decoder.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
+index 68487ce9f79b..d96aed1343e4 100644
+--- a/drivers/media/rc/ir-rc6-decoder.c
++++ b/drivers/media/rc/ir-rc6-decoder.c
+@@ -40,6 +40,7 @@
+ #define RC6_6A_MCE_TOGGLE_MASK	0x8000	/* for the body bits */
+ #define RC6_6A_LCC_MASK		0xffff0000 /* RC6-6A-32 long customer code mask */
+ #define RC6_6A_MCE_CC		0x800f0000 /* MCE customer code */
++#define RC6_6A_KATHREIN_CC	0x80460000 /* Kathrein RCU-676 customer code */
+ #ifndef CHAR_BIT
+ #define CHAR_BIT 8	/* Normally in <limits.h> */
+ #endif
+@@ -242,13 +243,17 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 				toggle = 0;
+ 				break;
+ 			case 32:
+-				if ((scancode & RC6_6A_LCC_MASK) == RC6_6A_MCE_CC) {
++				switch (scancode & RC6_6A_LCC_MASK) {
++				case RC6_6A_MCE_CC:
++				case RC6_6A_KATHREIN_CC:
+ 					protocol = RC_PROTO_RC6_MCE;
+ 					toggle = !!(scancode & RC6_6A_MCE_TOGGLE_MASK);
+ 					scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
+-				} else {
++					break;
++				default:
+ 					protocol = RC_PROTO_RC6_6A_32;
+ 					toggle = 0;
++					break;
+ 				}
+ 				break;
+ 			default:
 -- 
 2.18.0
