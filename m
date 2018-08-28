@@ -1,169 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:37754 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727091AbeH1NHA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 09:07:00 -0400
-Date: Tue, 28 Aug 2018 12:16:00 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from srv-hp10-72.netsons.net ([94.141.22.72]:38162 "EHLO
+        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727091AbeH1NF5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 09:05:57 -0400
+Subject: Re: [PATCH v6 1/2] media: imx274: use regmap_bulk_write to write
+ multybyte registers
+To: Philippe De Muyter <phdm@macq.eu>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Leon Luo <leonl@leopardimaging.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>, chao.c.li@intel.com,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
-Message-ID: <20180828091559.2scsfpfbhy5w3ywm@kekkonen.localdomain>
-References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com>
- <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
- <749a58a4-24f7-672f-70a9-cfd584af0171@xs4all.nl>
- <20180813174950.6fd3915f@coco.lan>
- <CAAFQd5BAqkusfzfX6s7OW0QyMs+55LX+4OTcD0aZDPaJ0RyfrQ@mail.gmail.com>
+        linux-kernel@vger.kernel.org
+References: <20180725162455.31381-1-luca@lucaceresoli.net>
+ <20180725162455.31381-2-luca@lucaceresoli.net>
+ <20180828090300.GA23579@frolo.macqel>
+From: Luca Ceresoli <luca@lucaceresoli.net>
+Message-ID: <9ed69bb8-ff2c-76bb-faef-71c06e96877b@lucaceresoli.net>
+Date: Tue, 28 Aug 2018 11:14:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5BAqkusfzfX6s7OW0QyMs+55LX+4OTcD0aZDPaJ0RyfrQ@mail.gmail.com>
+In-Reply-To: <20180828090300.GA23579@frolo.macqel>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi Philippe,
 
-On Tue, Aug 28, 2018 at 05:56:37PM +0900, Tomasz Figa wrote:
-> On Tue, Aug 14, 2018 at 5:50 AM Mauro Carvalho Chehab
-> <mchehab+samsung@kernel.org> wrote:
-> >
-> > Em Mon, 13 Aug 2018 15:42:34 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >
-> > > On 15/06/18 05:29, Yong Zhi wrote:
-> > > > These meta formats are used on Intel IPU3 ImgU video queues
-> > > > to carry 3A statistics and ISP pipeline parameters.
-> > > >
-> > > > V4L2_META_FMT_IPU3_3A
-> > > > V4L2_META_FMT_IPU3_PARAMS
-> > > >
-> > > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> > > > Signed-off-by: Chao C Li <chao.c.li@intel.com>
-> > > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> > > > ---
-> > > >  Documentation/media/uapi/v4l/meta-formats.rst      |    1 +
-> > > >  .../media/uapi/v4l/pixfmt-meta-intel-ipu3.rst      |  174 ++
-> > > >  include/uapi/linux/intel-ipu3.h                    | 2816 ++++++++++++++++++++
-> > > >  3 files changed, 2991 insertions(+)
-> > > >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> > > >  create mode 100644 include/uapi/linux/intel-ipu3.h
-> > > >
-> > > > diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
-> > > > index 0c4e1ec..b887fca 100644
-> > > > --- a/Documentation/media/uapi/v4l/meta-formats.rst
-> > > > +++ b/Documentation/media/uapi/v4l/meta-formats.rst
-> > > > @@ -12,6 +12,7 @@ These formats are used for the :ref:`metadata` interface only.
-> > > >  .. toctree::
-> > > >      :maxdepth: 1
-> > > >
-> > > > +    pixfmt-meta-intel-ipu3
-> > > >      pixfmt-meta-uvc
-> > > >      pixfmt-meta-vsp1-hgo
-> > > >      pixfmt-meta-vsp1-hgt
-> > > > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> > > > new file mode 100644
-> > > > index 0000000..5c050e6
-> > > > --- /dev/null
-> > > > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
-> > > > @@ -0,0 +1,174 @@
-> > > > +.. -*- coding: utf-8; mode: rst -*-
-> > > > +
-> > > > +.. _intel-ipu3:
-> > > > +
-> > > > +******************************************************************
-> > > > +V4L2_META_FMT_IPU3_PARAMS ('ip3p'), V4L2_META_FMT_IPU3_3A ('ip3s')
-> > > > +******************************************************************
-> > > > +
-> > > > +.. c:type:: ipu3_uapi_stats_3a
-> > > > +
-> > > > +3A statistics
-> > > > +=============
-> > > > +
-> > > > +For IPU3 ImgU, the 3A statistics accelerators collect different statistics over
-> > > > +an input bayer frame. Those statistics, defined in data struct
-> > > > +:c:type:`ipu3_uapi_stats_3a`, are meta output obtained from "ipu3-imgu 3a stat"
-> > > > +video node, which are then passed to user space for statistics analysis
-> > > > +using :c:type:`v4l2_meta_format` interface.
-> > > > +
-> > > > +The statistics collected are AWB (Auto-white balance) RGBS cells, AWB filter
-> >
-> > Just like you did with AWB, AF and AE, please place the full name in parenthesis
-> > for RGBS and AWB.
-> >
-> > > > +response, AF (Auto-focus) filter response, and AE (Auto-exposure) histogram.
-> > > > +
-> > > > +struct :c:type:`ipu3_uapi_4a_config` saves configurable parameters for all above.
-> > > > +
-> > > > +
-> > > > +.. code-block:: c
-> > > > +
-> > > > +
-> > > > +     struct ipu3_uapi_stats_3a {
-> > > > +   IPU3_ALIGN struct ipu3_uapi_awb_raw_buffer awb_raw_buffer;
-> > >
-> > > IPU3_ALIGN? What's that?
-> > >
-> > > OK, after reading the header I see what it does, but I think you should
-> > > drop it in the documentation since it doesn't help the reader.
-> >
-> > Yeah, that IPU3_ALIGN is confusing.
-> >
-> > Yet, instead of just dropping, I would replace it by a comment
-> > to explain that the struct is 32-bytes aligned.
-> >
-> > On a separate (but related) comment, you're declaring it as:
-> >
-> >         #define IPU3_ALIGN      __attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
-> >
-> > This is a gcc-specific dialect. Better to use, instead, __aligned(x)
-> > which is defined as:
-> >
-> > #define __aligned(x)            __attribute__((aligned(x)))
-> >
+thanks for you review.
+
+On 28/08/2018 11:03, Philippe De Muyter wrote:
+> On Wed, Jul 25, 2018 at 06:24:54PM +0200, Luca Ceresoli wrote:
+>> Currently 2-bytes and 3-bytes registers are set by very similar
+>> functions doing the needed shift & mask manipulation, followed by very
+>> similar for loops setting one byte at a time over I2C.
+>>
+>> Replace all of this code by a unique helper function that calls
+>> regmap_bulk_write(), which has two advantages:
+>>  - sets all the bytes in a unique I2C transaction
+>>  - removes lots of now unused code.
+>>
+>> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>
+> ...
+>> +/**
+>> + * Write a multibyte register.
+>> + *
+>> + * Uses a bulk write where possible.
+>> + *
+>> + * @priv: Pointer to device structure
+>> + * @addr: Address of the LSB register.  Other registers must be
+>> + *        consecutive, least-to-most significant.
+>> + * @val: Value to be written to the register (cpu endianness)
+>> + * @nbytes: Number of bits to write (range: [1..3])
+>> + */
+>> +static int imx274_write_mbreg(struct stimx274 *priv, u16 addr, u32 val,
+>> +			      size_t nbytes)
 > 
-> Note that this is an uapi/ header. Is the __aligned() macro okay to
-> use in uapi headers? I couldn't find any header there using it and we
-> had problems with our user space compiling with it.
-> 
-> By the way, I wonder if this is the right approach for controlling the
-> layout of ABI structs. I don't see many headers using any alignment in
-> uapi/ in general. Perhaps explicit padding bytes would be more
-> appropriate? They are also less tricky when one structure needs to be
-> embedded inside two or more different structures with different
-> alignments, which can't be done easily if you specify __aligned() on
-> the child struct.
+> Should nbytes be called nbits, or is nbytes a 'Number of bytes' ?
 
-One of the reasons there are not so many are probably what you just
-elaborated above. That said, there are a few points to note here:
-
-- the alignment is generally the same here as it's due to DMA word size
-  AFAIK,
-
-- the device can be only found in an Intel SoC which limits the
-  architectures where the driver can actually be used to x86, 64- or
-  32-bit.
-
-Together these should in theory make if fairly safe. Padding in principle
-would be more explicit way to force struct memory layout without relying so
-much on the compiler doing the right thing but it'll lead to a *lot* of
-reserved fields, which I think is likely one of the reasons why it didn't
-catch up back then --- I've suggested it earlier.
-
-FWIW, the rest of the uAPI headers appear to be using
-__attribute__((aligned(x))).
+This patch has already been applied, but I sent a fix:
+https://patchwork.linuxtv.org/patch/51719/
 
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Luca
