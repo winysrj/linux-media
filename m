@@ -1,136 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:53456 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726666AbeH1Jmj (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38531 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726567AbeH1KYf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 05:42:39 -0400
-Received: by mail-it0-f66.google.com with SMTP id p79-v6so988313itp.3
-        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2018 22:52:38 -0700 (PDT)
-Received: from mail-it0-f49.google.com (mail-it0-f49.google.com. [209.85.214.49])
-        by smtp.gmail.com with ESMTPSA id n140-v6sm211324itb.37.2018.08.27.22.45.42
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 27 Aug 2018 22:45:42 -0700 (PDT)
-Received: by mail-it0-f49.google.com with SMTP id 139-v6so939757itf.0
-        for <linux-media@vger.kernel.org>; Mon, 27 Aug 2018 22:45:42 -0700 (PDT)
+        Tue, 28 Aug 2018 06:24:35 -0400
+Subject: Re: [PATCH] staging: Convert to using %pOFn instead of
+ device_node.name
+To: Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+References: <20180828015252.28511-1-robh@kernel.org>
+ <20180828015252.28511-44-robh@kernel.org>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <a7c26cd7-2c56-7ec3-6c90-76998fcb4998@gmail.com>
+Date: Tue, 28 Aug 2018 07:34:23 +0100
 MIME-Version: 1.0
-References: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
- <1535034528-11590-4-git-send-email-vgarodia@codeaurora.org>
- <CAPBb6MV1jjksgbSaCuUcY_ZbjfGeK-GaQ_+OZ7LWUv4ehA3dGQ@mail.gmail.com>
- <9e9417cf2fccfed4015f6893045e4f7f@codeaurora.org> <CAPBb6MX7EQvXfq_F+8b2FcqROpGY7ud4M6UyttGzoELsw=NJ=Q@mail.gmail.com>
- <002138192bcb3f7e6bf55e090d1b5328@codeaurora.org>
-In-Reply-To: <002138192bcb3f7e6bf55e090d1b5328@codeaurora.org>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Tue, 28 Aug 2018 14:45:30 +0900
-Message-ID: <CAPBb6MX_XR=vfjgnSn3eauW3C-yfu7a9JA3Psnk=0Aej3mtNBg@mail.gmail.com>
-Subject: Re: [PATCH v6 3/4] venus: firmware: add no TZ boot and shutdown routine
-To: vgarodia@codeaurora.org
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
-        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20180828015252.28511-44-robh@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US-large
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 27, 2018 at 9:49 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
->
-> On 2018-08-27 08:36, Alexandre Courbot wrote:
-> > On Fri, Aug 24, 2018 at 9:26 PM Vikash Garodia
-> > <vgarodia@codeaurora.org> wrote:
-> >>
-> >> Hi Alex,
-> >>
-> >> On 2018-08-24 13:09, Alexandre Courbot wrote:
-> >> > On Thu, Aug 23, 2018 at 11:29 PM Vikash Garodia
-> >> > <vgarodia@codeaurora.org> wrote:
-> >>
-> >> [snip]
-> >>
-> >> >> +struct video_firmware {
-> >> >> +       struct device *dev;
-> >> >> +       struct iommu_domain *iommu_domain;
-> >> >> +};
-> >> >> +
-> >> >>  /**
-> >> >>   * struct venus_core - holds core parameters valid for all instances
-> >> >>   *
-> >> >> @@ -98,6 +103,7 @@ struct venus_caps {
-> >> >>   * @dev:               convenience struct device pointer
-> >> >>   * @dev_dec:   convenience struct device pointer for decoder device
-> >> >>   * @dev_enc:   convenience struct device pointer for encoder device
-> >> >> + * @fw:                a struct for venus firmware info
-> >> >>   * @no_tz:     a flag that suggests presence of trustzone
-> >> >>   * @lock:      a lock for this strucure
-> >> >>   * @instances: a list_head of all instances
-> >> >> @@ -130,6 +136,7 @@ struct venus_core {
-> >> >>         struct device *dev;
-> >> >>         struct device *dev_dec;
-> >> >>         struct device *dev_enc;
-> >> >> +       struct video_firmware fw;
-> >> >
-> >> > Since struct video_firmware is only used here I think you can declare
-> >> > it inline, i.e.
-> >> >
-> >> >     struct {
-> >> >         struct device *dev;
-> >> >         struct iommu_domain *iommu_domain;
-> >> >     } fw;
-> >> >
-> >> > This structure is actually a good candidate to hold the firmware
-> >> > memory area start address and size.
-> >>
-> >> I can make it inline.
-> >> Memory area and size are common parameters populated
-> >> locally while loading the firmware with or without tz. Firmware struct
-> >> has
-> >> info more specific to firmware device.
-> >>
-> >> [snip]
-> >>
-> >> >
-> >> >> +{
-> >> >> +       struct iommu_domain *iommu_dom;
-> >> >> +       struct device *dev;
-> >> >> +       int ret;
-> >> >> +
-> >> >> +       dev = core->fw.dev;
-> >> >> +       if (!dev)
-> >> >> +               return -EPROBE_DEFER;
-> >> >> +
-> >> >> +       iommu_dom = iommu_domain_alloc(&platform_bus_type);
-> >> >> +       if (!iommu_dom) {
-> >> >> +               dev_err(dev, "Failed to allocate iommu domain\n");
-> >> >> +               return -ENOMEM;
-> >> >> +       }
-> >> >> +
-> >> >> +       ret = iommu_attach_device(iommu_dom, dev);
-> >> >> +       if (ret) {
-> >> >> +               dev_err(dev, "could not attach device\n");
-> >> >> +               goto err_attach;
-> >> >> +       }
-> >> >
-> >> > I think like the above belongs more in venus_firmware_init()
-> >> > (introduced in patch 4/4) than here. There is no reason to
-> >> > detach/reattach the iommu if we stop the firmware.
-> >>
-> >> Consider the case when we want to reload the firmware during error
-> >> recovery.
-> >> Boot and shutdown will be needed in such case without the need to
-> >> populate
-> >> the firmware device again.
-> >
-> > Is there a need to reattach the iommu domain in case of an error?
->
-> re-attach is not needed. We can have alloc/attach in init and
-> detach/free in deinit.
-> map/reset and unmap/reset can continue to remain in boot and shutdown
-> calls. Let me
-> know if this is good, i can repatch the series.
+Hi,
 
-Yeah, the idea is to avoid repeating operations that do not need to be. Thanks!
+On 28/08/2018 02:52, Rob Herring wrote:
+> In preparation to remove the node name pointer from struct device_node,
+> convert printf users to use the %pOFn format specifier.
+> 
+> Cc: Steve Longerbeam <slongerbeam@gmail.com>
+> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: linux-media@vger.kernel.org
+> Cc: devel@driverdev.osuosl.org
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
+>   drivers/staging/media/imx/imx-media-dev.c | 11 ++++++-----
+>   drivers/staging/media/imx/imx-media-of.c  |  4 ++--
+>   drivers/staging/mt7621-eth/mdio.c         |  4 ++--
+>   3 files changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+> index b0be80f05767..818846f8c291 100644
+> --- a/drivers/staging/media/imx/imx-media-dev.c
+> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> @@ -89,8 +89,8 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+>   
+>   	/* return -EEXIST if this asd already added */
+>   	if (find_async_subdev(imxmd, fwnode, devname)) {
+> -		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+> -			__func__, np ? np->name : devname);
+> +		dev_dbg(imxmd->md.dev, "%s: already added %pOFn\n",
+> +			__func__, np ? np : devname);
+
+This won't work for the np==NULL case I think since devname is just a 
+string.
+
+Regards,
+Ian
+>   		ret = -EEXIST;
+>   		goto out;
+>   	}
+> @@ -105,19 +105,20 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+>   	if (fwnode) {
+>   		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>   		asd->match.fwnode = fwnode;
+> +		dev_dbg(imxmd->md.dev, "%s: added %pOFn, match type FWNODE\n",
+> +			__func__, np);
+>   	} else {
+>   		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+>   		asd->match.device_name = devname;
+>   		imxasd->pdev = pdev;
+> +		dev_dbg(imxmd->md.dev, "%s: added %s, match type DEVNAME\n",
+> +			__func__, devname);
+>   	}
+>   
+>   	list_add_tail(&imxasd->list, &imxmd->asd_list);
+>   
+>   	imxmd->subdev_notifier.num_subdevs++;
+>   
+> -	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+> -		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+> -
+>   out:
+>   	mutex_unlock(&imxmd->mutex);
+>   	return ret;
+> diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+> index acde372c6795..cb74df356576 100644
+> --- a/drivers/staging/media/imx/imx-media-of.c
+> +++ b/drivers/staging/media/imx/imx-media-of.c
+> @@ -79,8 +79,8 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+>   	int i, num_ports, ret;
+>   
+>   	if (!of_device_is_available(sd_np)) {
+> -		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
+> -			sd_np->name);
+> +		dev_dbg(imxmd->md.dev, "%pOFn: %s not enabled\n", __func__,
+> +			sd_np);
+>   		/* unavailable is not an error */
+>   		return 0;
+>   	}
+> diff --git a/drivers/staging/mt7621-eth/mdio.c b/drivers/staging/mt7621-eth/mdio.c
+> index 7ad0c4141205..9ffa8f771235 100644
+> --- a/drivers/staging/mt7621-eth/mdio.c
+> +++ b/drivers/staging/mt7621-eth/mdio.c
+> @@ -70,7 +70,7 @@ int mtk_connect_phy_node(struct mtk_eth *eth, struct mtk_mac *mac,
+>   	_port = of_get_property(phy_node, "reg", NULL);
+>   
+>   	if (!_port || (be32_to_cpu(*_port) >= 0x20)) {
+> -		pr_err("%s: invalid port id\n", phy_node->name);
+> +		pr_err("%pOFn: invalid port id\n", phy_node);
+>   		return -EINVAL;
+>   	}
+>   	port = be32_to_cpu(*_port);
+> @@ -249,7 +249,7 @@ int mtk_mdio_init(struct mtk_eth *eth)
+>   	eth->mii_bus->priv = eth;
+>   	eth->mii_bus->parent = eth->dev;
+>   
+> -	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
+> +	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%pOFn", mii_np);
+>   	err = of_mdiobus_register(eth->mii_bus, mii_np);
+>   	if (err)
+>   		goto err_free_bus;
+> 
