@@ -1,273 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43309 "EHLO
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54224 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727460AbeH1RlA (ORCPT
+        by vger.kernel.org with ESMTP id S1728011AbeH1Rk7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 13:41:00 -0400
+        Tue, 28 Aug 2018 13:40:59 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 10/10] media-request: update documentation
-Date: Tue, 28 Aug 2018 15:49:11 +0200
-Message-Id: <20180828134911.44086-11-hverkuil@xs4all.nl>
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv2 05/10] vb2: set reqbufs/create_bufs capabilities
+Date: Tue, 28 Aug 2018 15:49:06 +0200
+Message-Id: <20180828134911.44086-6-hverkuil@xs4all.nl>
 In-Reply-To: <20180828134911.44086-1-hverkuil@xs4all.nl>
 References: <20180828134911.44086-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-Various clarifications and readability improvements based on
-Laurent Pinchart's review of the documentation.
+Set the capabilities field of v4l2_requestbuffers and v4l2_create_buffers.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The various mapping modes were easy, but for signaling the request capability
+a new 'supports_requests' bitfield was added to videobuf2-core.h (and set in
+vim2m and vivid). Drivers have to set this bitfield for any queue where
+requests are supported.
+
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- .../uapi/mediactl/media-ioc-request-alloc.rst |  3 +-
- .../uapi/mediactl/media-request-ioc-queue.rst |  7 +--
- .../media/uapi/mediactl/request-api.rst       | 51 +++++++++++--------
- .../uapi/mediactl/request-func-close.rst      |  1 +
- .../media/uapi/mediactl/request-func-poll.rst |  2 +-
- Documentation/media/uapi/v4l/buffer.rst       | 14 +++--
- .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     |  5 +-
- Documentation/media/uapi/v4l/vidioc-qbuf.rst  |  5 +-
- 8 files changed, 52 insertions(+), 36 deletions(-)
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 19 ++++++++++++++++++-
+ drivers/media/platform/vim2m.c                |  1 +
+ drivers/media/platform/vivid/vivid-core.c     |  5 +++++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 +++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  4 ++--
+ include/media/videobuf2-core.h                |  2 ++
+ 6 files changed, 31 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
-index 34434e2b3918..0f8b31874002 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
-@@ -52,7 +52,8 @@ for the request to complete.
+diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+index a70df16d68f1..2caaabd50532 100644
+--- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
+@@ -384,7 +384,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct media_device *md
+ 			return -EPERM;
+ 		}
+ 		return 0;
+-	} else if (q->uses_qbuf) {
++	} else if (q->uses_qbuf || !q->supports_requests) {
+ 		dprintk(1, "%s: queue does not use requests\n", opname);
+ 		return -EPERM;
+ 	}
+@@ -619,10 +619,24 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ }
+ EXPORT_SYMBOL(vb2_querybuf);
  
- The request will remain allocated until all the file descriptors associated
- with it are closed by :ref:`close() <request-func-close>` and the driver no
--longer uses the request internally.
-+longer uses the request internally. See also
-+:ref:`here <media-request-life-time>` for more information.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
-index d4f8119e0643..3bf1c2e492eb 100644
---- a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
-+++ b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
-@@ -40,9 +40,6 @@ Other errors can be returned if the contents of the request contained
- invalid or inconsistent data, see the next section for a list of
- common error codes. On error both the request and driver state are unchanged.
- 
--Typically if you get an error here, then that means that the application
--did something wrong and you have to fix the application.
--
- Once a request is queued, then the driver is required to gracefully handle
- errors that occur when the request is applied to the hardware. The
- exception is the ``EIO`` error which signals a fatal error that requires
-@@ -69,8 +66,8 @@ EPERM
-     to use a request. It is not permitted to mix the two APIs.
- ENOENT
-     The request did not contain any buffers. All requests are required
--    to have at least one buffer. This can also be returned if required
--    controls are missing.
-+    to have at least one buffer. This can also be returned if some required
-+    configuration is missing in the request.
- ENOMEM
-     Out of memory when allocating internal data structures for this
-     request.
-diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
-index 0b9da58b01e3..1ac42749e564 100644
---- a/Documentation/media/uapi/mediactl/request-api.rst
-+++ b/Documentation/media/uapi/mediactl/request-api.rst
-@@ -12,6 +12,9 @@ the same pipeline to reconfigure and collaborate closely on a per-frame basis.
- Another is support of stateless codecs, which require controls to be applied
- to specific frames (aka 'per-frame controls') in order to be used efficiently.
- 
-+While the initial use-case was V4L2, it can be extended to other subsystems
-+as well, as long as they use the media controller.
++static void fill_buf_caps(struct vb2_queue *q, u32 *caps)
++{
++	*caps = 0;
++	if (q->io_modes & VB2_MMAP)
++		*caps |= V4L2_BUF_CAP_SUPPORTS_MMAP;
++	if (q->io_modes & VB2_USERPTR)
++		*caps |= V4L2_BUF_CAP_SUPPORTS_USERPTR;
++	if (q->io_modes & VB2_DMABUF)
++		*caps |= V4L2_BUF_CAP_SUPPORTS_DMABUF;
++	if (q->supports_requests)
++		*caps |= V4L2_BUF_CAP_SUPPORTS_REQUESTS;
++}
 +
- Supporting these features without the Request API is not always possible and if
- it is, it is terribly inefficient: user-space would have to flush all activity
- on the media pipeline, reconfigure it for the next frame, queue the buffers to
-@@ -20,19 +23,23 @@ dequeuing before considering the next frame. This defeats the purpose of having
- buffer queues since in practice only one buffer would be queued at a time.
+ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ {
+ 	int ret = vb2_verify_memory_type(q, req->memory, req->type);
  
- The Request API allows a specific configuration of the pipeline (media
--controller topology + controls for each media entity) to be associated with
--specific buffers. The parameters are applied by each participating device as
--buffers associated to a request flow in. This allows user-space to schedule
--several tasks ("requests") with different parameters in advance, knowing that
--the parameters will be applied when needed to get the expected result. Control
--values at the time of request completion are also available for reading.
-+controller topology + configuration for each media entity) to be associated with
-+specific buffers. This allows user-space to schedule several tasks ("requests")
-+with different configurations in advance, knowing that the configuration will be
-+applied when needed to get the expected result. Configuration values at the time
-+of request completion are also available for reading.
++	fill_buf_caps(q, &req->capabilities);
+ 	return ret ? ret : vb2_core_reqbufs(q, req->memory, &req->count);
+ }
+ EXPORT_SYMBOL_GPL(vb2_reqbufs);
+@@ -654,6 +668,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ 	int ret = vb2_verify_memory_type(q, create->memory, f->type);
+ 	unsigned i;
  
- Usage
- =====
++	fill_buf_caps(q, &create->capabilities);
+ 	create->index = q->num_buffers;
+ 	if (create->count == 0)
+ 		return ret != -EBUSY ? ret : 0;
+@@ -861,6 +876,7 @@ int vb2_ioctl_reqbufs(struct file *file, void *priv,
+ 	struct video_device *vdev = video_devdata(file);
+ 	int res = vb2_verify_memory_type(vdev->queue, p->memory, p->type);
  
--The Request API is used on top of standard media controller and V4L2 calls,
--which are augmented with an extra ``request_fd`` parameter. Requests themselves
--are allocated from the supporting media controller node.
-+The Request API extends the Media Controller API and cooperates with
-+subsystem-specific APIs to support request usage. At the Media Controller
-+level, requests are allocated from the supporting Media Controller device
-+node. Their life cycle is then managed through the request file descriptors in
-+an opaque way. Configuration data, buffer handles and processing results
-+stored in requests are accessed through subsystem-specific APIs extended for
-+request support, such as V4L2 APIs that take an explicit ``request_fd``
-+parameter.
++	fill_buf_caps(vdev->queue, &p->capabilities);
+ 	if (res)
+ 		return res;
+ 	if (vb2_queue_is_busy(vdev, file))
+@@ -882,6 +898,7 @@ int vb2_ioctl_create_bufs(struct file *file, void *priv,
+ 			p->format.type);
  
- Request Allocation
- ------------------
-@@ -47,29 +54,27 @@ Request Preparation
- Standard V4L2 ioctls can then receive a request file descriptor to express the
- fact that the ioctl is part of said request, and is not to be applied
- immediately. See :ref:`MEDIA_IOC_REQUEST_ALLOC` for a list of ioctls that
--support this. Controls set with a ``request_fd`` parameter are stored instead
--of being immediately applied, and buffers queued to a request do not enter the
--regular buffer queue until the request itself is queued.
-+support this. Configurations set with a ``request_fd`` parameter are stored
-+instead of being immediately applied, and buffers queued to a request do not
-+enter the regular buffer queue until the request itself is queued.
+ 	p->index = vdev->queue->num_buffers;
++	fill_buf_caps(vdev->queue, &p->capabilities);
+ 	/*
+ 	 * If count == 0, then just check if memory and type are valid.
+ 	 * Any -EBUSY result from vb2_verify_memory_type can be mapped to 0.
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index 5423f0dd0821..40fbb1e429af 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -855,6 +855,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *ds
+ 	src_vq->mem_ops = &vb2_vmalloc_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->dev->dev_mutex;
++	src_vq->supports_requests = true;
  
- Request Submission
- ------------------
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 3f6f5cbe1b60..e7f1394832fe 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1077,6 +1077,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+ 		q->dev = dev->v4l2_dev.dev;
++		q->supports_requests = true;
  
--Once the parameters and buffers of the request are specified, it can be
-+Once the configuration and buffers of the request are specified, it can be
- queued by calling :ref:`MEDIA_REQUEST_IOC_QUEUE` on the request file descriptor.
- A request must contain at least one buffer, otherwise ``ENOENT`` is returned.
--This will make the buffers associated to the request available to their driver,
--which can then apply the associated controls as buffers are processed. A queued
--request cannot be modified anymore.
-+A queued request cannot be modified anymore.
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1097,6 +1098,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+ 		q->dev = dev->v4l2_dev.dev;
++		q->supports_requests = true;
  
- .. caution::
-    For :ref:`memory-to-memory devices <codec>` you can use requests only for
-    output buffers, not for capture buffers. Attempting to add a capture buffer
-    to a request will result in an ``EPERM`` error.
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1117,6 +1119,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+ 		q->dev = dev->v4l2_dev.dev;
++		q->supports_requests = true;
  
--If the request contains parameters for multiple entities, individual drivers may
--synchronize so the requested pipeline's topology is applied before the buffers
--are processed. Media controller drivers do a best effort implementation since
--perfect atomicity may not be possible due to hardware limitations.
-+If the request contains configurations for multiple entities, individual drivers
-+may synchronize so the requested pipeline's topology is applied before the
-+buffers are processed. Media controller drivers do a best effort implementation
-+since perfect atomicity may not be possible due to hardware limitations.
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1137,6 +1140,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+ 		q->dev = dev->v4l2_dev.dev;
++		q->supports_requests = true;
  
- .. caution::
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1156,6 +1160,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->min_buffers_needed = 8;
+ 		q->lock = &dev->mutex;
+ 		q->dev = dev->v4l2_dev.dev;
++		q->supports_requests = true;
  
-@@ -96,14 +101,16 @@ Note that user-space does not need to wait for the request to complete to
- dequeue its buffers: buffers that are available halfway through a request can
- be dequeued independently of the request's state.
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 633465d21d04..0028e0be6b5b 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -251,7 +251,8 @@ struct v4l2_create_buffers32 {
+ 	__u32			count;
+ 	__u32			memory;	/* enum v4l2_memory */
+ 	struct v4l2_format32	format;
+-	__u32			reserved[8];
++	__u32			capabilities;
++	__u32			reserved[7];
+ };
  
--A completed request contains the state of the request at the time of the
--request completion. User-space can query that state by calling
-+A completed request contains the state of the device after the request was
-+executed. User-space can query that state by calling
- :ref:`ioctl VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` with the request file
- descriptor. Calling :ref:`ioctl VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` for a
- request that has been queued but not yet completed will return ``EBUSY``
- since the control values might be changed at any time by the driver while the
- request is in flight.
+ static int __bufsize_v4l2_format(struct v4l2_format32 __user *p32, u32 *size)
+@@ -411,6 +412,7 @@ static int put_v4l2_create32(struct v4l2_create_buffers __user *p64,
+ 	if (!access_ok(VERIFY_WRITE, p32, sizeof(*p32)) ||
+ 	    copy_in_user(p32, p64,
+ 			 offsetof(struct v4l2_create_buffers32, format)) ||
++	    assign_in_user(&p32->capabilities, &p64->capabilities) ||
+ 	    copy_in_user(p32->reserved, p64->reserved, sizeof(p64->reserved)))
+ 		return -EFAULT;
+ 	return __put_v4l2_format32(&p64->format, &p32->format);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 2a84ca9e328a..87dba0b9c0a7 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1877,7 +1877,7 @@ static int v4l_reqbufs(const struct v4l2_ioctl_ops *ops,
+ 	if (ret)
+ 		return ret;
  
-+.. _media-request-life-time:
-+
- Recycling and Destruction
- -------------------------
+-	CLEAR_AFTER_FIELD(p, memory);
++	CLEAR_AFTER_FIELD(p, capabilities);
  
-diff --git a/Documentation/media/uapi/mediactl/request-func-close.rst b/Documentation/media/uapi/mediactl/request-func-close.rst
-index b5c78683840b..098d7f2b9548 100644
---- a/Documentation/media/uapi/mediactl/request-func-close.rst
-+++ b/Documentation/media/uapi/mediactl/request-func-close.rst
-@@ -36,6 +36,7 @@ Description
- Closes the request file descriptor. Resources associated with the request
- are freed once all file descriptors associated with the request are closed
- and the driver has completed the request.
-+See :ref:`here <media-request-life-time>` for more information.
+ 	return ops->vidioc_reqbufs(file, fh, p);
+ }
+@@ -1918,7 +1918,7 @@ static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
+ 	if (ret)
+ 		return ret;
  
+-	CLEAR_AFTER_FIELD(create, format);
++	CLEAR_AFTER_FIELD(create, capabilities);
  
- Return Value
-diff --git a/Documentation/media/uapi/mediactl/request-func-poll.rst b/Documentation/media/uapi/mediactl/request-func-poll.rst
-index 70cc9d406a9f..85191254f381 100644
---- a/Documentation/media/uapi/mediactl/request-func-poll.rst
-+++ b/Documentation/media/uapi/mediactl/request-func-poll.rst
-@@ -50,7 +50,7 @@ when the request was completed.  When the function times out it returns
- a value of zero, on failure it returns -1 and the ``errno`` variable is
- set appropriately.
+ 	v4l_sanitize_format(&create->format);
  
--Attempting to poll for a request that is completed or not yet queued will
-+Attempting to poll for a request that is not yet queued will
- set the ``POLLERR`` flag in ``revents``.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 881f53b38b26..6c76b9802589 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -472,6 +472,7 @@ struct vb2_buf_ops {
+  * @quirk_poll_must_check_waiting_for_buffers: Return %EPOLLERR at poll when QBUF
+  *              has not been called. This is a vb1 idiom that has been adopted
+  *              also by vb2.
++ * @supports_requests: this queue supports the Request API.
+  * @uses_qbuf:	qbuf was used directly for this queue. Set to 1 the first
+  *		time this is called. Set to 0 when the queue is canceled.
+  *		If this is 1, then you cannot queue buffers from a request.
+@@ -545,6 +546,7 @@ struct vb2_queue {
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
+ 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
++	unsigned			supports_requests:1;
+ 	unsigned			uses_qbuf:1;
+ 	unsigned			uses_requests:1;
  
- 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index 58a6d7d336e6..2e266d32470a 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -308,12 +308,18 @@ struct v4l2_buffer
-     * - __u32
-       - ``request_fd``
-       -
--      - The file descriptor of the request to queue the buffer to. If specified
--        and flag ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
--	queued to that request. This is set by the user when calling
--	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.
-+      - The file descriptor of the request to queue the buffer to. If the flag
-+        ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
-+	queued to this request. If the flag is not set, then this field will
-+	be ignored.
-+
-+	The ``V4L2_BUF_FLAG_REQUEST_FD`` flag and this field are only used by
-+	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls that
-+	take a :c:type:`v4l2_buffer` as argument.
-+
- 	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
- 	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
-+
- 	If the device does not support requests, then ``EACCES`` will be returned.
- 	If requests are supported but an invalid request file descriptor is
- 	given, then ``EINVAL`` will be returned.
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-index 54a999df5aec..d9930fe776cf 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-@@ -237,7 +237,7 @@ still cause this situation.
- 
- 	.. note::
- 
--	   When using ``V4L2_CTRL_WHICH_DEF_VAL`` note that You can only
-+	   When using ``V4L2_CTRL_WHICH_DEF_VAL`` be aware that you can only
- 	   get the default value of the control, you cannot set or try it.
- 
- 	For backwards compatibility you can also use a control class here
-@@ -382,7 +382,8 @@ EINVAL
-     :c:type:`v4l2_ext_control` ``value`` was
-     inappropriate (e.g. the given menu index is not supported by the
-     driver), or the ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL``
--    but the given ``request_fd`` was invalid.
-+    but the given ``request_fd`` was invalid or ``V4L2_CTRL_WHICH_REQUEST_VAL``
-+    is not supported by the kernel.
-     This error code is also returned by the
-     :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` and :ref:`VIDIOC_TRY_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` ioctls if two or
-     more control values are in conflict.
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index a2f4ac0b0ba1..b4d5e62aa0c7 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -111,7 +111,10 @@ then ``EINVAL`` will be returned.
- .. caution::
-    It is not allowed to mix queuing requests with queuing buffers directly.
-    ``EPERM`` will be returned if the first buffer was queued directly and
--   then the application tries to queue a request, or vice versa.
-+   then the application tries to queue a request, or vice versa. After
-+   closing the file descriptor, calling
-+   :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or calling :ref:`VIDIOC_REQBUFS`
-+   the check for this will be reset.
- 
-    For :ref:`memory-to-memory devices <codec>` you can specify the
-    ``request_fd`` only for output buffers, not for capture buffers. Attempting
 -- 
 2.18.0
