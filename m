@@ -1,129 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:38531 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726567AbeH1KYf (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:43322 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726468AbeH1LHq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 06:24:35 -0400
-Subject: Re: [PATCH] staging: Convert to using %pOFn instead of
- device_node.name
-To: Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-References: <20180828015252.28511-1-robh@kernel.org>
- <20180828015252.28511-44-robh@kernel.org>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <a7c26cd7-2c56-7ec3-6c90-76998fcb4998@gmail.com>
-Date: Tue, 28 Aug 2018 07:34:23 +0100
+        Tue, 28 Aug 2018 07:07:46 -0400
 MIME-Version: 1.0
-In-Reply-To: <20180828015252.28511-44-robh@kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US-large
-Content-Transfer-Encoding: 7bit
+References: <20180821170629.18408-1-matwey@sai.msu.ru> <20180821170629.18408-3-matwey@sai.msu.ru>
+In-Reply-To: <20180821170629.18408-3-matwey@sai.msu.ru>
+From: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>
+Date: Tue, 28 Aug 2018 10:17:16 +0300
+Message-ID: <CAJs94EZ5Qh8q3tEABmH89NjDkA=jjzsB63yctRGdEqcvJTnASA@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+=D0=B2=D1=82, 21 =D0=B0=D0=B2=D0=B3. 2018 =D0=B3. =D0=B2 20:06, Matwey V. K=
+ornilov <matwey@sai.msu.ru>:
+>
+> DMA cocherency slows the transfer down on systems without hardware
+> coherent DMA.
+> Instead we use noncocherent DMA memory and explicit sync at data receive
+> handler.
+>
+> Based on previous commit the following performance benchmarks have been
+> carried out. Average memcpy() data transfer rate (rate) and handler
+> completion time (time) have been measured when running video stream at
+> 640x480 resolution at 10fps.
+>
+> x86_64 based system (Intel Core i5-3470). This platform has hardware
+> coherent DMA support and proposed change doesn't make big difference here=
+.
+>
+>  * kmalloc:            rate =3D (2.0 +- 0.4) GBps
+>                        time =3D (5.0 +- 3.0) usec
+>  * usb_alloc_coherent: rate =3D (3.4 +- 1.2) GBps
+>                        time =3D (3.5 +- 3.0) usec
+>
+> We see that the measurements agree within error ranges in this case.
+> So theoretically predicted performance downgrade cannot be reliably
+> measured here.
+>
+> armv7l based system (TI AM335x BeagleBone Black @ 300MHz). This platform
+> has no hardware coherent DMA support. DMA coherence is implemented via
+> disabled page caching that slows down memcpy() due to memory controller
+> behaviour.
+>
+>  * kmalloc:            rate =3D  (114 +- 5) MBps
+>                        time =3D   (84 +- 4) usec
+>  * usb_alloc_coherent: rate =3D (28.1 +- 0.1) MBps
+>                        time =3D  (341 +- 2) usec
+>
+> Note, that quantative difference leads (this commit leads to 4 times
+> acceleration) to qualitative behavior change in this case. As it was
+> stated before, the video stream cannot be successfully received at AM335x
+> platforms with MUSB based USB host controller due to performance issues
+> [1].
+>
+> [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+>
+> Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
 
-On 28/08/2018 02:52, Rob Herring wrote:
-> In preparation to remove the node name pointer from struct device_node,
-> convert printf users to use the %pOFn format specifier.
-> 
-> Cc: Steve Longerbeam <slongerbeam@gmail.com>
-> Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: devel@driverdev.osuosl.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
+Ping
+
 > ---
->   drivers/staging/media/imx/imx-media-dev.c | 11 ++++++-----
->   drivers/staging/media/imx/imx-media-of.c  |  4 ++--
->   drivers/staging/mt7621-eth/mdio.c         |  4 ++--
->   3 files changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-> index b0be80f05767..818846f8c291 100644
-> --- a/drivers/staging/media/imx/imx-media-dev.c
-> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> @@ -89,8 +89,8 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
->   
->   	/* return -EEXIST if this asd already added */
->   	if (find_async_subdev(imxmd, fwnode, devname)) {
-> -		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
-> -			__func__, np ? np->name : devname);
-> +		dev_dbg(imxmd->md.dev, "%s: already added %pOFn\n",
-> +			__func__, np ? np : devname);
+>  drivers/media/usb/pwc/pwc-if.c | 57 ++++++++++++++++++++++++++++++++----=
+------
+>  1 file changed, 44 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-i=
+f.c
+> index 72d2897a4b9f..1360722ab423 100644
+> --- a/drivers/media/usb/pwc/pwc-if.c
+> +++ b/drivers/media/usb/pwc/pwc-if.c
+> @@ -159,6 +159,32 @@ static const struct video_device pwc_template =3D {
+>  /***********************************************************************=
+****/
+>  /* Private functions */
+>
+> +static void *pwc_alloc_urb_buffer(struct device *dev,
+> +                                 size_t size, dma_addr_t *dma_handle)
+> +{
+> +       void *buffer =3D kmalloc(size, GFP_KERNEL);
+> +
+> +       if (!buffer)
+> +               return NULL;
+> +
+> +       *dma_handle =3D dma_map_single(dev, buffer, size, DMA_FROM_DEVICE=
+);
+> +       if (dma_mapping_error(dev, *dma_handle)) {
+> +               kfree(buffer);
+> +               return NULL;
+> +       }
+> +
+> +       return buffer;
+> +}
+> +
+> +static void pwc_free_urb_buffer(struct device *dev,
+> +                               size_t size,
+> +                               void *buffer,
+> +                               dma_addr_t dma_handle)
+> +{
+> +       dma_unmap_single(dev, dma_handle, size, DMA_FROM_DEVICE);
+> +       kfree(buffer);
+> +}
+> +
+>  static struct pwc_frame_buf *pwc_get_next_fill_buf(struct pwc_device *pd=
+ev)
+>  {
+>         unsigned long flags =3D 0;
+> @@ -306,6 +332,11 @@ static void pwc_isoc_handler(struct urb *urb)
+>         /* Reset ISOC error counter. We did get here, after all. */
+>         pdev->visoc_errors =3D 0;
+>
+> +       dma_sync_single_for_cpu(&urb->dev->dev,
+> +                               urb->transfer_dma,
+> +                               urb->transfer_buffer_length,
+> +                               DMA_FROM_DEVICE);
+> +
+>         /* vsync: 0 =3D don't copy data
+>                   1 =3D sync-hunt
+>                   2 =3D synched
+> @@ -428,16 +459,15 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+>                 urb->dev =3D udev;
+>                 urb->pipe =3D usb_rcvisocpipe(udev, pdev->vendpoint);
+>                 urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_DM=
+A_MAP;
+> -               urb->transfer_buffer =3D usb_alloc_coherent(udev,
+> -                                                         ISO_BUFFER_SIZE=
+,
+> -                                                         GFP_KERNEL,
+> -                                                         &urb->transfer_=
+dma);
+> +               urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
+> +               urb->transfer_buffer =3D pwc_alloc_urb_buffer(&udev->dev,
+> +                                                           urb->transfer=
+_buffer_length,
+> +                                                           &urb->transfe=
+r_dma);
+>                 if (urb->transfer_buffer =3D=3D NULL) {
+>                         PWC_ERROR("Failed to allocate urb buffer %d\n", i=
+);
+>                         pwc_isoc_cleanup(pdev);
+>                         return -ENOMEM;
+>                 }
+> -               urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
+>                 urb->complete =3D pwc_isoc_handler;
+>                 urb->context =3D pdev;
+>                 urb->start_frame =3D 0;
+> @@ -488,15 +518,16 @@ static void pwc_iso_free(struct pwc_device *pdev)
+>
+>         /* Freeing ISOC buffers one by one */
+>         for (i =3D 0; i < MAX_ISO_BUFS; i++) {
+> -               if (pdev->urbs[i]) {
+> +               struct urb *urb =3D pdev->urbs[i];
+> +
+> +               if (urb) {
+>                         PWC_DEBUG_MEMORY("Freeing URB\n");
+> -                       if (pdev->urbs[i]->transfer_buffer) {
+> -                               usb_free_coherent(pdev->udev,
+> -                                       pdev->urbs[i]->transfer_buffer_le=
+ngth,
+> -                                       pdev->urbs[i]->transfer_buffer,
+> -                                       pdev->urbs[i]->transfer_dma);
+> -                       }
+> -                       usb_free_urb(pdev->urbs[i]);
+> +                       if (urb->transfer_buffer)
+> +                               pwc_free_urb_buffer(&urb->dev->dev,
+> +                                                   urb->transfer_buffer_=
+length,
+> +                                                   urb->transfer_buffer,
+> +                                                   urb->transfer_dma);
+> +                       usb_free_urb(urb);
+>                         pdev->urbs[i] =3D NULL;
+>                 }
+>         }
+> --
+> 2.16.4
+>
 
-This won't work for the np==NULL case I think since devname is just a 
-string.
 
-Regards,
-Ian
->   		ret = -EEXIST;
->   		goto out;
->   	}
-> @@ -105,19 +105,20 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
->   	if (fwnode) {
->   		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
->   		asd->match.fwnode = fwnode;
-> +		dev_dbg(imxmd->md.dev, "%s: added %pOFn, match type FWNODE\n",
-> +			__func__, np);
->   	} else {
->   		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
->   		asd->match.device_name = devname;
->   		imxasd->pdev = pdev;
-> +		dev_dbg(imxmd->md.dev, "%s: added %s, match type DEVNAME\n",
-> +			__func__, devname);
->   	}
->   
->   	list_add_tail(&imxasd->list, &imxmd->asd_list);
->   
->   	imxmd->subdev_notifier.num_subdevs++;
->   
-> -	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
-> -		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
-> -
->   out:
->   	mutex_unlock(&imxmd->mutex);
->   	return ret;
-> diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
-> index acde372c6795..cb74df356576 100644
-> --- a/drivers/staging/media/imx/imx-media-of.c
-> +++ b/drivers/staging/media/imx/imx-media-of.c
-> @@ -79,8 +79,8 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
->   	int i, num_ports, ret;
->   
->   	if (!of_device_is_available(sd_np)) {
-> -		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
-> -			sd_np->name);
-> +		dev_dbg(imxmd->md.dev, "%pOFn: %s not enabled\n", __func__,
-> +			sd_np);
->   		/* unavailable is not an error */
->   		return 0;
->   	}
-> diff --git a/drivers/staging/mt7621-eth/mdio.c b/drivers/staging/mt7621-eth/mdio.c
-> index 7ad0c4141205..9ffa8f771235 100644
-> --- a/drivers/staging/mt7621-eth/mdio.c
-> +++ b/drivers/staging/mt7621-eth/mdio.c
-> @@ -70,7 +70,7 @@ int mtk_connect_phy_node(struct mtk_eth *eth, struct mtk_mac *mac,
->   	_port = of_get_property(phy_node, "reg", NULL);
->   
->   	if (!_port || (be32_to_cpu(*_port) >= 0x20)) {
-> -		pr_err("%s: invalid port id\n", phy_node->name);
-> +		pr_err("%pOFn: invalid port id\n", phy_node);
->   		return -EINVAL;
->   	}
->   	port = be32_to_cpu(*_port);
-> @@ -249,7 +249,7 @@ int mtk_mdio_init(struct mtk_eth *eth)
->   	eth->mii_bus->priv = eth;
->   	eth->mii_bus->parent = eth->dev;
->   
-> -	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
-> +	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%pOFn", mii_np);
->   	err = of_mdiobus_register(eth->mii_bus, mii_np);
->   	if (err)
->   		goto err_free_bus;
-> 
+--
+With best regards,
+Matwey V. Kornilov
