@@ -1,141 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:39657 "EHLO
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45142 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728292AbeH1RlA (ORCPT
+        by vger.kernel.org with ESMTP id S1727999AbeH1Rk7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 13:41:00 -0400
+        Tue, 28 Aug 2018 13:40:59 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 09/10] media-request: EPERM -> EACCES
-Date: Tue, 28 Aug 2018 15:49:10 +0200
-Message-Id: <20180828134911.44086-10-hverkuil@xs4all.nl>
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv2 02/10] v4l2-ctrls: return -EACCES if request wasn't completed
+Date: Tue, 28 Aug 2018 15:49:03 +0200
+Message-Id: <20180828134911.44086-3-hverkuil@xs4all.nl>
 In-Reply-To: <20180828134911.44086-1-hverkuil@xs4all.nl>
 References: <20180828134911.44086-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-If requests are not supported by the driver, then return EACCES, not
-EPERM. This is consistent with the error that an invalid request_fd will
-give, and if requests are not supported, then all request_fd values are
-invalid.
+For now (this might be relaxed in the future) we do not allow getting
+controls from a request that isn't completed. In that case we return
+-EACCES. Update the documentation accordingly.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- Documentation/media/uapi/v4l/buffer.rst           |  2 +-
- .../media/uapi/v4l/vidioc-g-ext-ctrls.rst         |  9 ++++-----
- Documentation/media/uapi/v4l/vidioc-qbuf.rst      | 15 +++++++++------
- drivers/media/media-request.c                     |  4 ++--
- 4 files changed, 16 insertions(+), 14 deletions(-)
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst      | 18 +++++++++---------
+ drivers/media/v4l2-core/v4l2-ctrls.c           |  5 ++---
+ 2 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index 1865cd5b9d3c..58a6d7d336e6 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -314,7 +314,7 @@ struct v4l2_buffer
- 	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.
- 	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
- 	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
--	If the device does not support requests, then ``EPERM`` will be returned.
-+	If the device does not support requests, then ``EACCES`` will be returned.
- 	If requests are supported but an invalid request file descriptor is
- 	given, then ``EINVAL`` will be returned.
- 
 diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-index ad8908ce3095..54a999df5aec 100644
+index 9c56a9b6e98a..ad8908ce3095 100644
 --- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
 +++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
-@@ -100,7 +100,7 @@ file descriptor and ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``,
- then the controls are not applied immediately when calling
- :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, but instead are applied by
- the driver for the buffer associated with the same request.
--If the device does not support requests, then ``EPERM`` will be returned.
-+If the device does not support requests, then ``EACCES`` will be returned.
- If requests are supported but an invalid request file descriptor is given,
- then ``EINVAL`` will be returned.
+@@ -107,13 +107,12 @@ then ``EINVAL`` will be returned.
+ An attempt to call :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` for a
+ request that has already been queued will result in an ``EBUSY`` error.
  
-@@ -233,7 +233,7 @@ still cause this situation.
- 	these controls have to be retrieved from a request or tried/set for
- 	a request. In the latter case the ``request_fd`` field contains the
- 	file descriptor of the request that should be used. If the device
--	does not support requests, then ``EPERM`` will be returned.
-+	does not support requests, then ``EACCES`` will be returned.
+-If ``request_fd`` is specified and ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``
+-during a call to :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then the
+-returned values will be the values currently set for the request (or the
+-hardware value if none is set) if the request has not yet been queued, or the
+-values of the controls at the time of request completion if it has already
+-completed. Attempting to get controls while the request has been queued but
+-not yet completed will result in an ``EBUSY`` error.
++If ``request_fd`` is specified and ``which`` is set to
++``V4L2_CTRL_WHICH_REQUEST_VAL`` during a call to
++:ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then it will return the
++values of the controls at the time of request completion.
++If the request is not yet completed, then this will result in an
++``EACCES`` error.
  
- 	.. note::
+ The driver will only set/get these controls if all control values are
+ correct. This prevents the situation where only some of the controls
+@@ -405,8 +404,9 @@ ENOSPC
+     and this error code is returned.
  
-@@ -299,7 +299,7 @@ still cause this situation.
-       - ``request_fd``
-       - File descriptor of the request to be used by this operation. Only
- 	valid if ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``.
--	If the device does not support requests, then ``EPERM`` will be returned.
-+	If the device does not support requests, then ``EACCES`` will be returned.
- 	If requests are supported but an invalid request file descriptor is
- 	given, then ``EINVAL`` will be returned.
-     * - __u32
-@@ -408,6 +408,5 @@ EACCES
-     control, or to get a control from a request that has not yet been
-     completed.
+ EACCES
+-    Attempt to try or set a read-only control or to get a write-only
+-    control.
++    Attempt to try or set a read-only control, or to get a write-only
++    control, or to get a control from a request that has not yet been
++    completed.
  
--EPERM
--    The ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
-+    Or the ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
-     device does not support requests.
-diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-index 7bff69c15452..a2f4ac0b0ba1 100644
---- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-@@ -104,7 +104,7 @@ in use. Setting it means that the buffer will not be passed to the driver
- until the request itself is queued. Also, the driver will apply any
- settings associated with the request for this buffer. This field will
- be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD`` flag is set.
--If the device does not support requests, then ``EPERM`` will be returned.
-+If the device does not support requests, then ``EACCES`` will be returned.
- If requests are supported but an invalid request file descriptor is given,
- then ``EINVAL`` will be returned.
+ EPERM
+     The ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index a197b60183f5..ccaf3068de6d 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3301,10 +3301,9 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+ 		if (IS_ERR(req))
+ 			return PTR_ERR(req);
  
-@@ -175,9 +175,12 @@ EPIPE
-     codecs if a buffer with the ``V4L2_BUF_FLAG_LAST`` was already
-     dequeued and no new buffers are expected to become available.
+-		if (req->state != MEDIA_REQUEST_STATE_IDLE &&
+-		    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
++		if (req->state != MEDIA_REQUEST_STATE_COMPLETE) {
+ 			media_request_put(req);
+-			return -EBUSY;
++			return -EACCES;
+ 		}
  
--EPERM
-+EACCES
-     The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
--    support requests. Or the first buffer was queued via a request, but
--    the application now tries to queue it directly, or vice versa (it is
--    not permitted to mix the two APIs). Or an attempt is made to queue a
--    CAPTURE buffer to a request for a :ref:`memory-to-memory device <codec>`.
-+    support requests.
-+
-+EPERM
-+    The first buffer was queued via a request, but the application now tries
-+    to queue it directly, or vice versa (it is not permitted to mix the two
-+    APIs). Or an attempt is made to queue a CAPTURE buffer to a request for a
-+    :ref:`memory-to-memory device <codec>`.
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 414197645e09..4e9db1fed697 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -249,7 +249,7 @@ media_request_get_by_fd(struct media_device *mdev, int request_fd)
- 
- 	if (!mdev || !mdev->ops ||
- 	    !mdev->ops->req_validate || !mdev->ops->req_queue)
--		return ERR_PTR(-EPERM);
-+		return ERR_PTR(-EACCES);
- 
- 	filp = fget(request_fd);
- 	if (!filp)
-@@ -405,7 +405,7 @@ int media_request_object_bind(struct media_request *req,
- 	int ret = -EBUSY;
- 
- 	if (WARN_ON(!ops->release))
--		return -EPERM;
-+		return -EACCES;
- 
- 	spin_lock_irqsave(&req->lock, flags);
- 
+ 		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
 -- 
 2.18.0
