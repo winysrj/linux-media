@@ -1,154 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:55289 "EHLO
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:39657 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727848AbeH1Rk7 (ORCPT
+        by vger.kernel.org with ESMTP id S1728292AbeH1RlA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 13:40:59 -0400
+        Tue, 28 Aug 2018 13:41:00 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv2 04/10] videodev2.h: add new capabilities for buffer types
-Date: Tue, 28 Aug 2018 15:49:05 +0200
-Message-Id: <20180828134911.44086-5-hverkuil@xs4all.nl>
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 09/10] media-request: EPERM -> EACCES
+Date: Tue, 28 Aug 2018 15:49:10 +0200
+Message-Id: <20180828134911.44086-10-hverkuil@xs4all.nl>
 In-Reply-To: <20180828134911.44086-1-hverkuil@xs4all.nl>
 References: <20180828134911.44086-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-VIDIOC_REQBUFS and VIDIOC_CREATE_BUFFERS will return capabilities
-telling userspace what the given buffer type is capable of.
+If requests are not supported by the driver, then return EACCES, not
+EPERM. This is consistent with the error that an invalid request_fd will
+give, and if requests are not supported, then all request_fd values are
+invalid.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- .../media/uapi/v4l/vidioc-create-bufs.rst     | 14 ++++++-
- .../media/uapi/v4l/vidioc-reqbufs.rst         | 42 ++++++++++++++++++-
- include/uapi/linux/videodev2.h                | 13 +++++-
- 3 files changed, 65 insertions(+), 4 deletions(-)
+ Documentation/media/uapi/v4l/buffer.rst           |  2 +-
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst         |  9 ++++-----
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst      | 15 +++++++++------
+ drivers/media/media-request.c                     |  4 ++--
+ 4 files changed, 16 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
-index a39e18d69511..eadf6f757fbf 100644
---- a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
-@@ -102,7 +102,19 @@ than the number requested.
-       - ``format``
-       - Filled in by the application, preserved by the driver.
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index 1865cd5b9d3c..58a6d7d336e6 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -314,7 +314,7 @@ struct v4l2_buffer
+ 	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.
+ 	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
+ 	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
+-	If the device does not support requests, then ``EPERM`` will be returned.
++	If the device does not support requests, then ``EACCES`` will be returned.
+ 	If requests are supported but an invalid request file descriptor is
+ 	given, then ``EINVAL`` will be returned.
+ 
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+index ad8908ce3095..54a999df5aec 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+@@ -100,7 +100,7 @@ file descriptor and ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``,
+ then the controls are not applied immediately when calling
+ :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, but instead are applied by
+ the driver for the buffer associated with the same request.
+-If the device does not support requests, then ``EPERM`` will be returned.
++If the device does not support requests, then ``EACCES`` will be returned.
+ If requests are supported but an invalid request file descriptor is given,
+ then ``EINVAL`` will be returned.
+ 
+@@ -233,7 +233,7 @@ still cause this situation.
+ 	these controls have to be retrieved from a request or tried/set for
+ 	a request. In the latter case the ``request_fd`` field contains the
+ 	file descriptor of the request that should be used. If the device
+-	does not support requests, then ``EPERM`` will be returned.
++	does not support requests, then ``EACCES`` will be returned.
+ 
+ 	.. note::
+ 
+@@ -299,7 +299,7 @@ still cause this situation.
+       - ``request_fd``
+       - File descriptor of the request to be used by this operation. Only
+ 	valid if ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``.
+-	If the device does not support requests, then ``EPERM`` will be returned.
++	If the device does not support requests, then ``EACCES`` will be returned.
+ 	If requests are supported but an invalid request file descriptor is
+ 	given, then ``EINVAL`` will be returned.
      * - __u32
--      - ``reserved``\ [8]
-+      - ``capabilities``
-+      - Set by the driver. If 0, then the driver doesn't support
-+        capabilities. In that case all you know is that the driver is
-+	guaranteed to support ``V4L2_MEMORY_MMAP`` and *might* support
-+	other :c:type:`v4l2_memory` types. It will not support any others
-+	capabilities. See :ref:`here <v4l2-buf-capabilities>` for a list of the
-+	capabilities.
-+
-+	If you want to just query the capabilities without making any
-+	other changes, then set ``count`` to 0, ``memory`` to
-+	``V4L2_MEMORY_MMAP`` and ``format.type`` to the buffer type.
-+    * - __u32
-+      - ``reserved``\ [7]
-       - A place holder for future extensions. Drivers and applications
- 	must set the array to zero.
+@@ -408,6 +408,5 @@ EACCES
+     control, or to get a control from a request that has not yet been
+     completed.
  
-diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-index 316f52c8a310..d4bbbb0c60e8 100644
---- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-@@ -88,10 +88,50 @@ any DMA in progress, an implicit
- 	``V4L2_MEMORY_DMABUF`` or ``V4L2_MEMORY_USERPTR``. See
- 	:c:type:`v4l2_memory`.
-     * - __u32
--      - ``reserved``\ [2]
-+      - ``capabilities``
-+      - Set by the driver. If 0, then the driver doesn't support
-+        capabilities. In that case all you know is that the driver is
-+	guaranteed to support ``V4L2_MEMORY_MMAP`` and *might* support
-+	other :c:type:`v4l2_memory` types. It will not support any others
-+	capabilities.
-+
-+	If you want to query the capabilities with a minimum of side-effects,
-+	then this can be called with ``count`` set to 0, ``memory`` set to
-+	``V4L2_MEMORY_MMAP`` and ``type`` set to the buffer type. This will
-+	free any previously allocated buffers, so this is typically something
-+	that will be done at the start of the application.
-+    * - __u32
-+      - ``reserved``\ [1]
-       - A place holder for future extensions. Drivers and applications
- 	must set the array to zero.
+-EPERM
+-    The ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
++    Or the ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
+     device does not support requests.
+diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+index 7bff69c15452..a2f4ac0b0ba1 100644
+--- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+@@ -104,7 +104,7 @@ in use. Setting it means that the buffer will not be passed to the driver
+ until the request itself is queued. Also, the driver will apply any
+ settings associated with the request for this buffer. This field will
+ be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD`` flag is set.
+-If the device does not support requests, then ``EPERM`` will be returned.
++If the device does not support requests, then ``EACCES`` will be returned.
+ If requests are supported but an invalid request file descriptor is given,
+ then ``EINVAL`` will be returned.
  
-+.. tabularcolumns:: |p{6.1cm}|p{2.2cm}|p{8.7cm}|
-+
-+.. _v4l2-buf-capabilities:
-+.. _V4L2-BUF-CAP-SUPPORTS-MMAP:
-+.. _V4L2-BUF-CAP-SUPPORTS-USERPTR:
-+.. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
-+.. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
-+
-+.. cssclass:: longtable
-+
-+.. flat-table:: V4L2 Buffer Capabilities Flags
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       3 1 4
-+
-+    * - ``V4L2_BUF_CAP_SUPPORTS_MMAP``
-+      - 0x00000001
-+      - This buffer type supports the ``V4L2_MEMORY_MMAP`` streaming mode.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_USERPTR``
-+      - 0x00000002
-+      - This buffer type supports the ``V4L2_MEMORY_USERPTR`` streaming mode.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_DMABUF``
-+      - 0x00000004
-+      - This buffer type supports the ``V4L2_MEMORY_DMABUF`` streaming mode.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
-+      - 0x00000008
-+      - This buffer type supports :ref:`requests <media-request-api>`.
+@@ -175,9 +175,12 @@ EPIPE
+     codecs if a buffer with the ``V4L2_BUF_FLAG_LAST`` was already
+     dequeued and no new buffers are expected to become available.
  
- Return Value
- ============
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 91126b7312f8..490fc9964d97 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -856,9 +856,16 @@ struct v4l2_requestbuffers {
- 	__u32			count;
- 	__u32			type;		/* enum v4l2_buf_type */
- 	__u32			memory;		/* enum v4l2_memory */
--	__u32			reserved[2];
-+	__u32			capabilities;
-+	__u32			reserved[1];
- };
- 
-+/* capabilities for struct v4l2_requestbuffers and v4l2_create_buffers */
-+#define V4L2_BUF_CAP_SUPPORTS_MMAP	(1 << 0)
-+#define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
-+#define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
-+#define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
+-EPERM
++EACCES
+     The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
+-    support requests. Or the first buffer was queued via a request, but
+-    the application now tries to queue it directly, or vice versa (it is
+-    not permitted to mix the two APIs). Or an attempt is made to queue a
+-    CAPTURE buffer to a request for a :ref:`memory-to-memory device <codec>`.
++    support requests.
 +
- /**
-  * struct v4l2_plane - plane info for multi-planar buffers
-  * @bytesused:		number of bytes occupied by data in the plane (payload)
-@@ -2312,6 +2319,7 @@ struct v4l2_dbg_chip_info {
-  *		return: number of created buffers
-  * @memory:	enum v4l2_memory; buffer memory type
-  * @format:	frame format, for which buffers are requested
-+ * @capabilities: capabilities of this buffer type.
-  * @reserved:	future extensions
-  */
- struct v4l2_create_buffers {
-@@ -2319,7 +2327,8 @@ struct v4l2_create_buffers {
- 	__u32			count;
- 	__u32			memory;
- 	struct v4l2_format	format;
--	__u32			reserved[8];
-+	__u32			capabilities;
-+	__u32			reserved[7];
- };
++EPERM
++    The first buffer was queued via a request, but the application now tries
++    to queue it directly, or vice versa (it is not permitted to mix the two
++    APIs). Or an attempt is made to queue a CAPTURE buffer to a request for a
++    :ref:`memory-to-memory device <codec>`.
+diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+index 414197645e09..4e9db1fed697 100644
+--- a/drivers/media/media-request.c
++++ b/drivers/media/media-request.c
+@@ -249,7 +249,7 @@ media_request_get_by_fd(struct media_device *mdev, int request_fd)
  
- /*
+ 	if (!mdev || !mdev->ops ||
+ 	    !mdev->ops->req_validate || !mdev->ops->req_queue)
+-		return ERR_PTR(-EPERM);
++		return ERR_PTR(-EACCES);
+ 
+ 	filp = fget(request_fd);
+ 	if (!filp)
+@@ -405,7 +405,7 @@ int media_request_object_bind(struct media_request *req,
+ 	int ret = -EBUSY;
+ 
+ 	if (WARN_ON(!ops->release))
+-		return -EPERM;
++		return -EACCES;
+ 
+ 	spin_lock_irqsave(&req->lock, flags);
+ 
 -- 
 2.18.0
