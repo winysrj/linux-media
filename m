@@ -1,99 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:38516 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727337AbeH1NNR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 09:13:17 -0400
-Subject: Re: [PATCH 3/7] media: imx274: don't hard-code the subdev name to
- DRIVER_NAME
-To: Luca Ceresoli <luca@lucaceresoli.net>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Leon Luo <leonl@leopardimaging.com>,
+Received: from mga18.intel.com ([134.134.136.126]:37754 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727091AbeH1NHA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 09:07:00 -0400
+Date: Tue, 28 Aug 2018 12:16:00 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <20180824163525.12694-1-luca@lucaceresoli.net>
- <20180824163525.12694-4-luca@lucaceresoli.net>
- <20180825144915.tq7m5jlikwndndzq@valkosipuli.retiisi.org.uk>
- <799f4d1a-b91d-0404-7ef0-965d123319da@lucaceresoli.net>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <113d3e05-9331-bd54-0e49-46c5e132339f@xs4all.nl>
-Date: Tue, 28 Aug 2018 11:22:28 +0200
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>, chao.c.li@intel.com,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
+Message-ID: <20180828091559.2scsfpfbhy5w3ywm@kekkonen.localdomain>
+References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com>
+ <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
+ <749a58a4-24f7-672f-70a9-cfd584af0171@xs4all.nl>
+ <20180813174950.6fd3915f@coco.lan>
+ <CAAFQd5BAqkusfzfX6s7OW0QyMs+55LX+4OTcD0aZDPaJ0RyfrQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <799f4d1a-b91d-0404-7ef0-965d123319da@lucaceresoli.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAFQd5BAqkusfzfX6s7OW0QyMs+55LX+4OTcD0aZDPaJ0RyfrQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/08/18 22:41, Luca Ceresoli wrote:
-> Hi Sakari,
-> 
-> On 25/08/2018 16:49, Sakari Ailus wrote:
->> Hi Luca,
->>
->> On Fri, Aug 24, 2018 at 06:35:21PM +0200, Luca Ceresoli wrote:
->>> Forcibly setting the subdev name to DRIVER_NAME (i.e. "IMX274") makes
->>> it non-unique and less informative.
->>>
->>> Let the driver use the default name from i2c, e.g. "IMX274 2-001a".
->>>
->>> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
->>> ---
->>>  drivers/media/i2c/imx274.c | 1 -
->>>  1 file changed, 1 deletion(-)
->>>
->>> diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
->>> index 9b524de08470..570706695ca7 100644
->>> --- a/drivers/media/i2c/imx274.c
->>> +++ b/drivers/media/i2c/imx274.c
->>> @@ -1885,7 +1885,6 @@ static int imx274_probe(struct i2c_client *client,
->>>  	imx274->client = client;
->>>  	sd = &imx274->sd;
->>>  	v4l2_i2c_subdev_init(sd, client, &imx274_subdev_ops);
->>> -	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
->>>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
->>>  
->>>  	/* initialize subdev media pad */
->>
->> This ends up changing the entity as well as the sub-device name which may
->> well break applications.
-> 
-> Right, unfortunately.
-> 
->> On the other hand, you currently can't have more
->> than one of these devices on a media device complex due to the name being
->> specific to a driver, not the device.
->>
->> An option avoiding that would be to let the user choose by e.g. through a
->> Kconfig option would avoid having to address that, but I really hate adding
->> such options.
-> 
-> I agree adding a Kconfig option just for this would be very annoying.
-> However I think the issue affects a few other drivers (sr030pc30.c and
-> s5c73m3-core.c apparently), thus maybe one option could serve them all.
-> 
->> I wonder what others think. If anyone ever needs to add another on a board
->> so that it ends up being the part of the same media device complex
->> (likely), then changing the name now rather than later would be the least
->> pain. In this case I'd be leaning (slightly) towards accepting the patch
->> and hoping there wouldn't be any fallout... I don't see any board (DT)
->> containing imx274, at least not in the upstream kernel.
-> 
-> I'll be OK with either decision. Should we keep it as is, then I think a
-> comment before that line would be appropriate to clarify it's not
-> correct but it is kept for backward userspace compatibility. This would
-> help avoid new driver writers doing the same mistake, and prevent other
-> people to send another patch like mine.
+Hi Tomasz,
 
-In this end, this is a driver bug. I would just fix this, but add a comment
-that states the old name and why it was changed. No need for a dev_info
-IMHO.
+On Tue, Aug 28, 2018 at 05:56:37PM +0900, Tomasz Figa wrote:
+> On Tue, Aug 14, 2018 at 5:50 AM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+> >
+> > Em Mon, 13 Aug 2018 15:42:34 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >
+> > > On 15/06/18 05:29, Yong Zhi wrote:
+> > > > These meta formats are used on Intel IPU3 ImgU video queues
+> > > > to carry 3A statistics and ISP pipeline parameters.
+> > > >
+> > > > V4L2_META_FMT_IPU3_3A
+> > > > V4L2_META_FMT_IPU3_PARAMS
+> > > >
+> > > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > > > Signed-off-by: Chao C Li <chao.c.li@intel.com>
+> > > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > > > ---
+> > > >  Documentation/media/uapi/v4l/meta-formats.rst      |    1 +
+> > > >  .../media/uapi/v4l/pixfmt-meta-intel-ipu3.rst      |  174 ++
+> > > >  include/uapi/linux/intel-ipu3.h                    | 2816 ++++++++++++++++++++
+> > > >  3 files changed, 2991 insertions(+)
+> > > >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > > >  create mode 100644 include/uapi/linux/intel-ipu3.h
+> > > >
+> > > > diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+> > > > index 0c4e1ec..b887fca 100644
+> > > > --- a/Documentation/media/uapi/v4l/meta-formats.rst
+> > > > +++ b/Documentation/media/uapi/v4l/meta-formats.rst
+> > > > @@ -12,6 +12,7 @@ These formats are used for the :ref:`metadata` interface only.
+> > > >  .. toctree::
+> > > >      :maxdepth: 1
+> > > >
+> > > > +    pixfmt-meta-intel-ipu3
+> > > >      pixfmt-meta-uvc
+> > > >      pixfmt-meta-vsp1-hgo
+> > > >      pixfmt-meta-vsp1-hgt
+> > > > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > > > new file mode 100644
+> > > > index 0000000..5c050e6
+> > > > --- /dev/null
+> > > > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > > > @@ -0,0 +1,174 @@
+> > > > +.. -*- coding: utf-8; mode: rst -*-
+> > > > +
+> > > > +.. _intel-ipu3:
+> > > > +
+> > > > +******************************************************************
+> > > > +V4L2_META_FMT_IPU3_PARAMS ('ip3p'), V4L2_META_FMT_IPU3_3A ('ip3s')
+> > > > +******************************************************************
+> > > > +
+> > > > +.. c:type:: ipu3_uapi_stats_3a
+> > > > +
+> > > > +3A statistics
+> > > > +=============
+> > > > +
+> > > > +For IPU3 ImgU, the 3A statistics accelerators collect different statistics over
+> > > > +an input bayer frame. Those statistics, defined in data struct
+> > > > +:c:type:`ipu3_uapi_stats_3a`, are meta output obtained from "ipu3-imgu 3a stat"
+> > > > +video node, which are then passed to user space for statistics analysis
+> > > > +using :c:type:`v4l2_meta_format` interface.
+> > > > +
+> > > > +The statistics collected are AWB (Auto-white balance) RGBS cells, AWB filter
+> >
+> > Just like you did with AWB, AF and AE, please place the full name in parenthesis
+> > for RGBS and AWB.
+> >
+> > > > +response, AF (Auto-focus) filter response, and AE (Auto-exposure) histogram.
+> > > > +
+> > > > +struct :c:type:`ipu3_uapi_4a_config` saves configurable parameters for all above.
+> > > > +
+> > > > +
+> > > > +.. code-block:: c
+> > > > +
+> > > > +
+> > > > +     struct ipu3_uapi_stats_3a {
+> > > > +   IPU3_ALIGN struct ipu3_uapi_awb_raw_buffer awb_raw_buffer;
+> > >
+> > > IPU3_ALIGN? What's that?
+> > >
+> > > OK, after reading the header I see what it does, but I think you should
+> > > drop it in the documentation since it doesn't help the reader.
+> >
+> > Yeah, that IPU3_ALIGN is confusing.
+> >
+> > Yet, instead of just dropping, I would replace it by a comment
+> > to explain that the struct is 32-bytes aligned.
+> >
+> > On a separate (but related) comment, you're declaring it as:
+> >
+> >         #define IPU3_ALIGN      __attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
+> >
+> > This is a gcc-specific dialect. Better to use, instead, __aligned(x)
+> > which is defined as:
+> >
+> > #define __aligned(x)            __attribute__((aligned(x)))
+> >
+> 
+> Note that this is an uapi/ header. Is the __aligned() macro okay to
+> use in uapi headers? I couldn't find any header there using it and we
+> had problems with our user space compiling with it.
+> 
+> By the way, I wonder if this is the right approach for controlling the
+> layout of ABI structs. I don't see many headers using any alignment in
+> uapi/ in general. Perhaps explicit padding bytes would be more
+> appropriate? They are also less tricky when one structure needs to be
+> embedded inside two or more different structures with different
+> alignments, which can't be done easily if you specify __aligned() on
+> the child struct.
 
-It would be nice if you can check if the same mistake is made in other drivers,
-and update those as well. It's easier if this is all done at the same time.
+One of the reasons there are not so many are probably what you just
+elaborated above. That said, there are a few points to note here:
 
+- the alignment is generally the same here as it's due to DMA word size
+  AFAIK,
+
+- the device can be only found in an Intel SoC which limits the
+  architectures where the driver can actually be used to x86, 64- or
+  32-bit.
+
+Together these should in theory make if fairly safe. Padding in principle
+would be more explicit way to force struct memory layout without relying so
+much on the compiler doing the right thing but it'll lead to a *lot* of
+reserved fields, which I think is likely one of the reasons why it didn't
+catch up back then --- I've suggested it earlier.
+
+FWIW, the rest of the uAPI headers appear to be using
+__attribute__((aligned(x))).
+
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+sakari.ailus@linux.intel.com
