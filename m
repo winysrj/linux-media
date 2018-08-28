@@ -1,79 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:49861 "EHLO smtp2.macqel.be"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726806AbeH1MCE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 08:02:04 -0400
-Date: Tue, 28 Aug 2018 10:11:32 +0200
-From: Philippe De Muyter <phdm@macq.eu>
-To: Luca Ceresoli <luca@lucaceresoli.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 3/7] media: imx274: don't hard-code the subdev name to
-        DRIVER_NAME
-Message-ID: <20180828081132.GA17946@frolo.macqel>
-References: <20180824163525.12694-1-luca@lucaceresoli.net> <20180824163525.12694-4-luca@lucaceresoli.net> <20180825144915.tq7m5jlikwndndzq@valkosipuli.retiisi.org.uk> <799f4d1a-b91d-0404-7ef0-965d123319da@lucaceresoli.net>
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:41735 "EHLO
+        mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726806AbeH1MCJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 08:02:09 -0400
+Received: by mail-yb0-f194.google.com with SMTP id z3-v6so259688ybm.8
+        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 01:11:40 -0700 (PDT)
+Received: from mail-yw1-f41.google.com (mail-yw1-f41.google.com. [209.85.161.41])
+        by smtp.gmail.com with ESMTPSA id b6-v6sm161480ywb.78.2018.08.28.01.11.36
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 28 Aug 2018 01:11:36 -0700 (PDT)
+Received: by mail-yw1-f41.google.com with SMTP id l189-v6so250863ywb.10
+        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 01:11:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <799f4d1a-b91d-0404-7ef0-965d123319da@lucaceresoli.net>
+References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
+ <20180613140714.1686-2-maxime.ripard@bootlin.com> <80e1d9cb49c6df06843e49332685f2b401023292.camel@collabora.com>
+ <d8a30e78e6a33db10360995d800f2c0d19acc500.camel@collabora.com>
+ <53987ca7a536a21b2eb49626d777a9bf894d6910.camel@bootlin.com>
+ <CAAFQd5B68ArBgSj-Oso8=MzSrvVGB=h+MVO12qqgACmBrZtRkw@mail.gmail.com> <faca77cc213e4737c689f80ac5e830833bbe87ae.camel@bootlin.com>
+In-Reply-To: <faca77cc213e4737c689f80ac5e830833bbe87ae.camel@bootlin.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 28 Aug 2018 17:11:24 +0900
+Message-ID: <CAAFQd5Az89KTS_+VBUMHX3Eice+OKQn66Hw0rBusf4g6rSJ7VA@mail.gmail.com>
+Subject: Re: [PATCH 1/9] CHROMIUM: v4l: Add H264 low-level decoder API
+ compound controls.
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
+        thomas.petazzoni@bootlin.com, groeck@chromium.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari and Luca,
-On Sun, Aug 26, 2018 at 10:41:13PM +0200, Luca Ceresoli wrote:
-> Hi Sakari,
-> 
-> On 25/08/2018 16:49, Sakari Ailus wrote:
-> > Hi Luca,
-> > 
-> > On Fri, Aug 24, 2018 at 06:35:21PM +0200, Luca Ceresoli wrote:
-> >> Forcibly setting the subdev name to DRIVER_NAME (i.e. "IMX274") makes
-> >> it non-unique and less informative.
-> >>
-> >> Let the driver use the default name from i2c, e.g. "IMX274 2-001a".
-> >>
-...
-> > 
-> > This ends up changing the entity as well as the sub-device name which may
-> > well break applications.
-> 
-> Right, unfortunately.
-> 
-> > On the other hand, you currently can't have more
-> > than one of these devices on a media device complex due to the name being
-> > specific to a driver, not the device.
+On Wed, Aug 22, 2018 at 11:45 PM Paul Kocialkowski
+<paul.kocialkowski@bootlin.com> wrote:
+>
+> Hi,
+>
+> On Wed, 2018-08-22 at 22:38 +0900, Tomasz Figa wrote:
+> > On Wed, Aug 22, 2018 at 10:07 PM Paul Kocialkowski
+> > <paul.kocialkowski@bootlin.com> wrote:
+> > >
+> > > Hi,
+> > >
+> > > On Tue, 2018-08-21 at 13:07 -0400, Nicolas Dufresne wrote:
+> > > > Le mardi 21 ao=C3=BBt 2018 =C3=A0 13:58 -0300, Ezequiel Garcia a =
+=C3=A9crit :
+> > > > > On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
+> > > > > > From: Pawel Osciak <posciak@chromium.org>
+> > > > > >
+> > > > > > Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> > > > > > Reviewed-by: Wu-cheng Li <wuchengli@chromium.org>
+> > > > > > Tested-by: Tomasz Figa <tfiga@chromium.org>
+> > > > > > [rebase44(groeck): include linux/types.h in v4l2-controls.h]
+> > > > > > Signed-off-by: Guenter Roeck <groeck@chromium.org>
+> > > > > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > > > > > ---
+> > > > > >
+> > > > >
+> > > > > [..]
+> > > > > > diff --git a/include/uapi/linux/videodev2.h
+> > > > > > b/include/uapi/linux/videodev2.h
+> > > > > > index 242a6bfa1440..4b4a1b25a0db 100644
+> > > > > > --- a/include/uapi/linux/videodev2.h
+> > > > > > +++ b/include/uapi/linux/videodev2.h
+> > > > > > @@ -626,6 +626,7 @@ struct v4l2_pix_format {
+> > > > > >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') =
+/*
+> > > > > > H264 with start codes */
+> > > > > >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1'=
+) /*
+> > > > > > H264 without start codes */
+> > > > > >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') =
+/*
+> > > > > > H264 MVC */
+> > > > > > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4'=
+) /*
+> > > > > > H264 parsed slices */
+> > > > >
+> > > > > As pointed out by Tomasz, the Rockchip VPU driver expects start c=
+odes
+> > > > > [1], so the userspace
+> > > > > should be aware of it. Perhaps we could document this pixel forma=
+t
+> > > > > better as:
+> > > > >
+> > > > > #define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /=
+*
+> > > > > H264 parsed slices with start codes */
+> > > > >
+> > > > > And introduce another pixel format:
+> > > > >
+> > > > > #define V4L2_PIX_FMT_H264_SLICE_NO_SC v4l2_fourcc(TODO) /* H264
+> > > > > parsed slices without start codes */
+> > > > >
+> > > > > For cedrus to use, as it seems it doesn't need start codes.
+> > > >
+> > > > I must admit that this RK requirement is a bit weird for slice data=
+.
+> > > > Though, userspace wise, always adding start-code would be compatibl=
+e,
+> > > > as the driver can just offset to remove it.
+> > >
+> > > This would mean that the stateless API no longer takes parsed bitstre=
+am
+> > > data but effectively the full bitstream, which defeats the purpose of
+> > > the _SLICE pixel formats.
+> > >
 > >
-> > An option avoiding that would be to let the user choose by e.g. through a
-> > Kconfig option would avoid having to address that, but I really hate adding
-> > such options.
-> 
-> I agree adding a Kconfig option just for this would be very annoying.
-> However I think the issue affects a few other drivers (sr030pc30.c and
-> s5c73m3-core.c apparently), thus maybe one option could serve them all.
-> 
-> > I wonder what others think. If anyone ever needs to add another on a board
-> > so that it ends up being the part of the same media device complex
-> > (likely), then changing the name now rather than later would be the least
-> > pain. In this case I'd be leaning (slightly) towards accepting the patch
-> > and hoping there wouldn't be any fallout... I don't see any board (DT)
-> > containing imx274, at least not in the upstream kernel.
-> 
-> I'll be OK with either decision. Should we keep it as is, then I think a
-> comment before that line would be appropriate to clarify it's not
-> correct but it is kept for backward userspace compatibility. This would
-> help avoid new driver writers doing the same mistake, and prevent other
-> people to send another patch like mine.
+> > Not entirely. One of the purposes of the _SLICE pixel format was to
+> > specify it in a way that adds a requirement of providing the required
+> > controls by the client.
+>
+> I think we need to define what we want the stateless APIs (and these
+> formats) to precisely reflect conceptually. I've started discussing this
+> in the Request API and V4L2 capabilities thread.
+>
+> > > > Another option, because I'm not fan of adding dedicated formats for
+> > > > this, the RK driver could use data_offset (in mplane v4l2 buffers),
+> > > > just write a start code there. I like this solution because I would=
+ not
+> > > > be surprise if some drivers requires in fact an HW specific header,
+> > > > that the driver can generate as needed.
+> > >
+> > > I like this idea, because it implies that the driver should deal with
+> > > the specificities of the hardware, instead of making the blurrying th=
+e
+> > > lines of stateless API for covering these cases.
+> >
+> > The spec says
+> >
+> > "Offset in bytes to video data in the plane. Drivers must set this
+> > field when type refers to a capture stream, applications when it
+> > refers to an output stream."
+> >
+> > which would mean that user space would have to know to reserve some
+> > bytes at the beginning for the driver to add the start code there. (Or
+> > the driver memmove()ing the data forward when the buffer is queued,
+> > assuming that there is enough space in the buffer, but it should
+> > normally be the case.)
+> >
+> > Sounds like a pixel format with full bitstream data and some offsets
+> > to particular parts inside given inside a control might be the most
+> > flexible and cleanest solution.
+>
+> I can't help but think that bringing the whole bitstream over to the
+> kernel with a dedicated pix fmt just for the sake of having 3 start code
+> bytes is rather overkill anyway.
+>
+> I believe moving the data around to be the best call for this situation.
+> Or maybe there's a way to alloc more data *before* the bufer that is
+> exposed to userspace, so userspace can fill it normally and the driver
+> can bring-in the necessary heading start code bytes before the buffer?
 
-Would it be acceptable to accept Luca's patch but add a dev_info message
-indicating the old and the new name, so that at least if the user notices
-a problem he'll find an informative message helping him to fix his config ?
-This dev_info message could even be standardized to be usable for other
-drivers with only the names changed.
+After thinking this over for some time, I believe it boils down to
+whether we can have an in-kernel library for turning H264 (and other
+codec) header structs back into a bitstream, if we end up with more
+than one driver need to do it. If that's fine, I think we're okay with
+having just the parsed pixel format around.
 
-Philippe
--- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+Note that I didn't think about this with the Rockchip driver in mind,
+since it indeed only needs few bytes.
+
+Best regards,
+Tomasz
