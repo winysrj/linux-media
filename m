@@ -1,25 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv-hp10-72.netsons.net ([94.141.22.72]:38162 "EHLO
-        srv-hp10-72.netsons.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727091AbeH1NF5 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:59266 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727094AbeH1NyV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 09:05:57 -0400
-Subject: Re: [PATCH v6 1/2] media: imx274: use regmap_bulk_write to write
- multybyte registers
-To: Philippe De Muyter <phdm@macq.eu>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-References: <20180725162455.31381-1-luca@lucaceresoli.net>
- <20180725162455.31381-2-luca@lucaceresoli.net>
- <20180828090300.GA23579@frolo.macqel>
-From: Luca Ceresoli <luca@lucaceresoli.net>
-Message-ID: <9ed69bb8-ff2c-76bb-faef-71c06e96877b@lucaceresoli.net>
-Date: Tue, 28 Aug 2018 11:14:47 +0200
+        Tue, 28 Aug 2018 09:54:21 -0400
+Subject: Re: [PATCH] media: v4l2-subdev.h: allow V4L2_FRMIVAL_TYPE_CONTINUOUS
+ & _STEPWISE
+To: Philippe De Muyter <phdm@macqel.be>, linux-media@vger.kernel.org
+References: <1535442907-8659-1-git-send-email-phdm@macqel.be>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7bfc83d5-92dd-a604-35a6-4dc659feb7b5@xs4all.nl>
+Date: Tue, 28 Aug 2018 12:03:25 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180828090300.GA23579@frolo.macqel>
+In-Reply-To: <1535442907-8659-1-git-send-email-phdm@macqel.be>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -28,41 +21,134 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Philippe,
 
-thanks for you review.
+On 28/08/18 09:55, Philippe De Muyter wrote:
+> add max_interval and step_interval to struct
+> v4l2_subdev_frame_interval_enum.
 
-On 28/08/2018 11:03, Philippe De Muyter wrote:
-> On Wed, Jul 25, 2018 at 06:24:54PM +0200, Luca Ceresoli wrote:
->> Currently 2-bytes and 3-bytes registers are set by very similar
->> functions doing the needed shift & mask manipulation, followed by very
->> similar for loops setting one byte at a time over I2C.
->>
->> Replace all of this code by a unique helper function that calls
->> regmap_bulk_write(), which has two advantages:
->>  - sets all the bytes in a unique I2C transaction
->>  - removes lots of now unused code.
->>
->> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
->> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
->>
-> ...
->> +/**
->> + * Write a multibyte register.
->> + *
->> + * Uses a bulk write where possible.
->> + *
->> + * @priv: Pointer to device structure
->> + * @addr: Address of the LSB register.  Other registers must be
->> + *        consecutive, least-to-most significant.
->> + * @val: Value to be written to the register (cpu endianness)
->> + * @nbytes: Number of bits to write (range: [1..3])
->> + */
->> +static int imx274_write_mbreg(struct stimx274 *priv, u16 addr, u32 val,
->> +			      size_t nbytes)
+Yeah, I never understood why this wasn't supported when this API was designed.
+Clearly an oversight.
+
 > 
-> Should nbytes be called nbits, or is nbytes a 'Number of bytes' ?
+> When filled correctly by the sensor driver, those fields must be
+> used as follows by the intermediate level :
+> 
+>         struct v4l2_frmivalenum *fival;
+>         struct v4l2_subdev_frame_interval_enum fie;
+> 
+>         if (fie.max_interval.numerator == 0) {
+>                 fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+>                 fival->discrete = fie.interval;
+>         } else if (fie.step_interval.numerator == 0) {
+>                 fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+>                 fival->stepwise.min = fie.interval;
+>                 fival->stepwise.max = fie.max_interval;
+>         } else {
+>                 fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+>                 fival->stepwise.min = fie.interval;
+>                 fival->stepwise.max = fie.max_interval;
+>                 fival->stepwise.step = fie.step_interval;
+>         }
 
-This patch has already been applied, but I sent a fix:
-https://patchwork.linuxtv.org/patch/51719/
+This is a bit too magical for my tastes. I'd add a type field:
 
--- 
-Luca
+#define V4L2_SUBDEV_FRMIVAL_TYPE_DISCRETE 0
+#define V4L2_SUBDEV_FRMIVAL_TYPE_CONTINUOUS 1
+#define V4L2_SUBDEV_FRMIVAL_TYPE_STEPWISE 2
+
+Older applications that do not know about the type field will just
+see a single discrete interval containing the minimum interval.
+I guess that's OK as they will keep working.
+
+While at it: it would be really nice if you can also add stepwise
+support to VIDIOC_SUBDEV_ENUM_FRAME_SIZE. I think the only thing
+you need to do there is to add two new fields: step_width and step_height.
+If 0, then that just means a step size of 1.
+
+Add some helper functions to translate between v4l2_subdev_frame_size/interval_enum
+and v4l2_frmsize/ivalenum and this becomes much cleaner.
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+> ---
+>  .../uapi/v4l/vidioc-subdev-enum-frame-interval.rst | 39 +++++++++++++++++++++-
+>  include/uapi/linux/v4l2-subdev.h                   |  4 ++-
+>  2 files changed, 41 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+> index 1bfe386..acc516e 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+> @@ -51,6 +51,37 @@ EINVAL error code if one of the input fields is invalid. All frame
+>  intervals are enumerable by beginning at index zero and incrementing by
+>  one until ``EINVAL`` is returned.
+>  
+> +If the sub-device can work only at the fixed set of frame intervals,
+> +driver must enumerate them with increasing indexes, by only filling
+> +the ``interval`` field.  If the sub-device can work with a continuous
+> +range of frame intervals, driver must only return success for index 0
+> +and fill ``interval`` with the minimum interval, ``max_interval`` with
+> +the maximum interval, and ``step_interval`` with 0 or the step between
+> +the possible intervals.
+> +
+> +Callers are expected to use the returned information as follows :
+> +
+> +.. code-block:: c
+> +
+> +        struct v4l2_frmivalenum * fival;
+> +        struct v4l2_subdev_frame_interval_enum fie;
+> +
+> +        if (fie.max_interval.numerator == 0) {
+> +                fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +                fival->discrete = fie.interval;
+> +        } else if (fie.step_interval.numerator == 0) {
+> +                fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+> +                fival->stepwise.min = fie.interval;
+> +                fival->stepwise.max = fie.max_interval;
+> +        } else {
+> +                fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+> +                fival->stepwise.min = fie.interval;
+> +                fival->stepwise.max = fie.max_interval;
+> +                fival->stepwise.step = fie.step_interval;
+> +        }
+> +
+> +.. code-block:: c
+> +
+>  Available frame intervals may depend on the current 'try' formats at
+>  other pads of the sub-device, as well as on the current active links.
+>  See :ref:`VIDIOC_SUBDEV_G_FMT` for more
+> @@ -92,8 +123,14 @@ multiple pads of the same sub-device is not defined.
+>        - ``which``
+>        - Frame intervals to be enumerated, from enum
+>  	:ref:`v4l2_subdev_format_whence <v4l2-subdev-format-whence>`.
+> +    * - struct :c:type:`v4l2_fract`
+> +      - ``max_interval``
+> +      - Maximum period, in seconds, between consecutive video frames, or 0.
+> +    * - struct :c:type:`v4l2_fract`
+> +      - ``step_interval``
+> +      - Frame interval step size, in seconds, or 0.
+>      * - __u32
+> -      - ``reserved``\ [8]
+> +      - ``reserved``\ [4]
+>        - Reserved for future extensions. Applications and drivers must set
+>  	the array to zero.
+>  
+> diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+> index 03970ce..c944644 100644
+> --- a/include/uapi/linux/v4l2-subdev.h
+> +++ b/include/uapi/linux/v4l2-subdev.h
+> @@ -128,7 +128,9 @@ struct v4l2_subdev_frame_interval_enum {
+>  	__u32 height;
+>  	struct v4l2_fract interval;
+>  	__u32 which;
+> -	__u32 reserved[8];
+> +	struct v4l2_fract max_interval;
+> +	struct v4l2_fract step_interval;
+> +	__u32 reserved[4];
+>  };
+>  
+>  /**
+> 
