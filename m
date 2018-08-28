@@ -1,47 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nuntiux.org ([104.168.144.117]:41232 "EHLO nuntiux.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727171AbeH1BA2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Aug 2018 21:00:28 -0400
-Message-ID: <4c1620ea55ec64da48f1f44a135675c0.squirrel@nuntiux.org>
-Date: Mon, 27 Aug 2018 13:13:39 -0400
-Subject: YOUR PRODUCT
-From: "Rafaa Esawi" <test@nuntiux.org>
-Reply-To: rafaa.esawi@gmail.com
-MIME-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:37815 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727490AbeH1Fo3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 01:44:29 -0400
+From: Rob Herring <robh@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH] staging: Convert to using %pOFn instead of device_node.name
+Date: Mon, 27 Aug 2018 20:52:45 -0500
+Message-Id: <20180828015252.28511-44-robh@kernel.org>
+In-Reply-To: <20180828015252.28511-1-robh@kernel.org>
+References: <20180828015252.28511-1-robh@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+In preparation to remove the node name pointer from struct device_node,
+convert printf users to use the %pOFn format specifier.
 
+Cc: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org
+Cc: devel@driverdev.osuosl.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ drivers/staging/media/imx/imx-media-dev.c | 11 ++++++-----
+ drivers/staging/media/imx/imx-media-of.c  |  4 ++--
+ drivers/staging/mt7621-eth/mdio.c         |  4 ++--
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-
-Greetings,
-
-We are rebuilding Iraq after years of conflicts and we are inviting you to
-take up contracts. We are determined to purchase your products in large
-quantities, for use in all over our 18 governorates(provinces) as the task
-of re-building Iraq covers every single sectormand facet of our society.
-We'll submit your products information to
-the Iraqi Project and Contracting Office. They will examine the propriety
-and necessity of your product and approve for bulk supply contracting
-relationship.
-
-I am currently on the board of the Iraqi Project and Contracting Office,
-With my connections in the corridors of power, we are quite confident of
-securing approval. Also of note is the issue of different financial
-regulations between my country Iraq and your country. As such you will be
-paid 100% through the Iraqi ministry of Finance
-before you commence supplies. When you've received payment, we would be
-expecting a monthly supply; as the sum budgeted for product may be quite
-enormous as to outstrip your capacity and capability to supply.
-
-A consideration also is that your quotation must be CIF Port of Umm Qasr.
-Please send response so that I will reveal more procedural information to
-you upon your re-confirmation.
-
-Thany You.
-
-Rafaa Esawi
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index b0be80f05767..818846f8c291 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -89,8 +89,8 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 
+ 	/* return -EEXIST if this asd already added */
+ 	if (find_async_subdev(imxmd, fwnode, devname)) {
+-		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+-			__func__, np ? np->name : devname);
++		dev_dbg(imxmd->md.dev, "%s: already added %pOFn\n",
++			__func__, np ? np : devname);
+ 		ret = -EEXIST;
+ 		goto out;
+ 	}
+@@ -105,19 +105,20 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 	if (fwnode) {
+ 		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 		asd->match.fwnode = fwnode;
++		dev_dbg(imxmd->md.dev, "%s: added %pOFn, match type FWNODE\n",
++			__func__, np);
+ 	} else {
+ 		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+ 		asd->match.device_name = devname;
+ 		imxasd->pdev = pdev;
++		dev_dbg(imxmd->md.dev, "%s: added %s, match type DEVNAME\n",
++			__func__, devname);
+ 	}
+ 
+ 	list_add_tail(&imxasd->list, &imxmd->asd_list);
+ 
+ 	imxmd->subdev_notifier.num_subdevs++;
+ 
+-	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+-		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+-
+ out:
+ 	mutex_unlock(&imxmd->mutex);
+ 	return ret;
+diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+index acde372c6795..cb74df356576 100644
+--- a/drivers/staging/media/imx/imx-media-of.c
++++ b/drivers/staging/media/imx/imx-media-of.c
+@@ -79,8 +79,8 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 	int i, num_ports, ret;
+ 
+ 	if (!of_device_is_available(sd_np)) {
+-		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
+-			sd_np->name);
++		dev_dbg(imxmd->md.dev, "%pOFn: %s not enabled\n", __func__,
++			sd_np);
+ 		/* unavailable is not an error */
+ 		return 0;
+ 	}
+diff --git a/drivers/staging/mt7621-eth/mdio.c b/drivers/staging/mt7621-eth/mdio.c
+index 7ad0c4141205..9ffa8f771235 100644
+--- a/drivers/staging/mt7621-eth/mdio.c
++++ b/drivers/staging/mt7621-eth/mdio.c
+@@ -70,7 +70,7 @@ int mtk_connect_phy_node(struct mtk_eth *eth, struct mtk_mac *mac,
+ 	_port = of_get_property(phy_node, "reg", NULL);
+ 
+ 	if (!_port || (be32_to_cpu(*_port) >= 0x20)) {
+-		pr_err("%s: invalid port id\n", phy_node->name);
++		pr_err("%pOFn: invalid port id\n", phy_node);
+ 		return -EINVAL;
+ 	}
+ 	port = be32_to_cpu(*_port);
+@@ -249,7 +249,7 @@ int mtk_mdio_init(struct mtk_eth *eth)
+ 	eth->mii_bus->priv = eth;
+ 	eth->mii_bus->parent = eth->dev;
+ 
+-	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
++	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%pOFn", mii_np);
+ 	err = of_mdiobus_register(eth->mii_bus, mii_np);
+ 	if (err)
+ 		goto err_free_bus;
+-- 
+2.17.1
