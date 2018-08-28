@@ -1,66 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:35035 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727519AbeH1Rl3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 13:41:29 -0400
-Date: Tue, 28 Aug 2018 15:49:42 +0200
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] media: rc: ir-rc6-decoder: enable toggle bit for Kathrein
- RCU-676 remote
-Message-ID: <20180828134942.3ckdxl7lofjabd3o@camel2.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56912 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728290AbeH1Rk7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 13:40:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 08/10] v4l2-ctrls: improve media_request_(un)lock_for_update
+Date: Tue, 28 Aug 2018 15:49:09 +0200
+Message-Id: <20180828134911.44086-9-hverkuil@xs4all.nl>
+In-Reply-To: <20180828134911.44086-1-hverkuil@xs4all.nl>
+References: <20180828134911.44086-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Kathrein RCU-676 remote uses the 32-bit rc6 protocol and toggles
-bit 15 (0x8000) on repeated button presses, like MCE remotes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add it's customer code 0x80460000 to the 32-bit rc6 toggle
-handling code to get proper scancodes and toggle reports.
+The request reference count was decreased again once a reference to the
+request object was taken. Postpone this until we finished using the object.
 
-Signed-off-by: Matthias Reichl <hias@horus.com>
+In theory I think it is possible that the request_fd can be closed by
+the application from another thread. In that case when request_put is
+called the whole request would be freed.
+
+It's highly unlikely, but let's just be safe and fix this potential
+race condition.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Here's the link to the bugreport and discussion:
-https://forum.libreelec.tv/thread/13086-get-kathrein-rcu-676-remote-to-work-with-le9/
+ drivers/media/v4l2-core/v4l2-ctrls.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- drivers/media/rc/ir-rc6-decoder.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 68487ce9f79b..d96aed1343e4 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -40,6 +40,7 @@
- #define RC6_6A_MCE_TOGGLE_MASK	0x8000	/* for the body bits */
- #define RC6_6A_LCC_MASK		0xffff0000 /* RC6-6A-32 long customer code mask */
- #define RC6_6A_MCE_CC		0x800f0000 /* MCE customer code */
-+#define RC6_6A_KATHREIN_CC	0x80460000 /* Kathrein RCU-676 customer code */
- #ifndef CHAR_BIT
- #define CHAR_BIT 8	/* Normally in <limits.h> */
- #endif
-@@ -242,13 +243,17 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 				toggle = 0;
- 				break;
- 			case 32:
--				if ((scancode & RC6_6A_LCC_MASK) == RC6_6A_MCE_CC) {
-+				switch (scancode & RC6_6A_LCC_MASK) {
-+				case RC6_6A_MCE_CC:
-+				case RC6_6A_KATHREIN_CC:
- 					protocol = RC_PROTO_RC6_MCE;
- 					toggle = !!(scancode & RC6_6A_MCE_TOGGLE_MASK);
- 					scancode &= ~RC6_6A_MCE_TOGGLE_MASK;
--				} else {
-+					break;
-+				default:
- 					protocol = RC_PROTO_RC6_6A_32;
- 					toggle = 0;
-+					break;
- 				}
- 				break;
- 			default:
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index cc266a4a6e88..95d065d54308 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3657,10 +3657,9 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
+ 		}
+ 
+ 		obj = v4l2_ctrls_find_req_obj(hdl, req, set);
+-		/* Reference to the request held through obj */
+-		media_request_put(req);
+ 		if (IS_ERR(obj)) {
+ 			media_request_unlock_for_update(req);
++			media_request_put(req);
+ 			return PTR_ERR(obj);
+ 		}
+ 		hdl = container_of(obj, struct v4l2_ctrl_handler,
+@@ -3670,8 +3669,9 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh,
+ 	ret = try_set_ext_ctrls_common(fh, hdl, cs, set);
+ 
+ 	if (obj) {
+-		media_request_unlock_for_update(obj->req);
++		media_request_unlock_for_update(req);
+ 		media_request_object_put(obj);
++		media_request_put(req);
+ 	}
+ 
+ 	return ret;
 -- 
 2.18.0
