@@ -1,206 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37133 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727141AbeHOOqt (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34431 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727595AbeH1FoL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Aug 2018 10:46:49 -0400
-Subject: Re: [PATCHv18 19/35] vb2: store userspace data in vb2_v4l2_buffer
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180814142047.93856-1-hverkuil@xs4all.nl>
- <20180814142047.93856-20-hverkuil@xs4all.nl>
- <20180814164751.7b52c58d@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56ce6185-4b96-240a-5fe1-ecaf607ca407@xs4all.nl>
-Date: Wed, 15 Aug 2018 13:54:53 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180814164751.7b52c58d@coco.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 28 Aug 2018 01:44:11 -0400
+From: Rob Herring <robh@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hyun Kwon <hyun.kwon@xilinx.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH] media: Convert to using %pOFn instead of device_node.name
+Date: Mon, 27 Aug 2018 20:52:29 -0500
+Message-Id: <20180828015252.28511-28-robh@kernel.org>
+In-Reply-To: <20180828015252.28511-1-robh@kernel.org>
+References: <20180828015252.28511-1-robh@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/08/18 21:47, Mauro Carvalho Chehab wrote:
-> Em Tue, 14 Aug 2018 16:20:31 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+In preparation to remove the node name pointer from struct device_node,
+convert printf users to use the %pOFn format specifier.
 
-<snip>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Benoit Parrot <bparrot@ti.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hyun Kwon <hyun.kwon@xilinx.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Michal Simek <michal.simek@xilinx.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ drivers/media/i2c/tvp5150.c                   | 8 ++++----
+ drivers/media/platform/davinci/vpif_capture.c | 3 +--
+ drivers/media/platform/ti-vpe/cal.c           | 8 ++++----
+ drivers/media/platform/video-mux.c            | 2 +-
+ drivers/media/platform/xilinx/xilinx-dma.c    | 8 ++++----
+ 5 files changed, 14 insertions(+), 15 deletions(-)
 
->> diff --git a/drivers/media/common/videobuf2/videobuf2-v4l2.c b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> index 57848ddc584f..360dc4e7d413 100644
->> --- a/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> +++ b/drivers/media/common/videobuf2/videobuf2-v4l2.c
->> @@ -154,17 +154,11 @@ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
->>  		pr_warn("use the actual size instead.\n");
->>  }
->>  
->> -/*
->> - * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
->> - * v4l2_buffer by the userspace. It also verifies that struct
->> - * v4l2_buffer has a valid number of planes.
->> - */
->> -static int __fill_vb2_buffer(struct vb2_buffer *vb,
->> -		const void *pb, struct vb2_plane *planes)
->> +static int vb2_fill_vb2_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->>  {
->>  	struct vb2_queue *q = vb->vb2_queue;
->> -	const struct v4l2_buffer *b = pb;
->>  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
->> +	struct vb2_plane *planes = vbuf->planes;
->>  	unsigned int plane;
->>  	int ret;
->>  
->> @@ -186,7 +180,6 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>  		dprintk(1, "the field is incorrectly set to ALTERNATE for an output buffer\n");
->>  		return -EINVAL;
->>  	}
->> -	vb->timestamp = 0;
-> 
-> See my note below about this removal. On a quick look, I guess we may have
-> a regression here for output buffers (non-m2m).
-
-Note that this is no longer the __fill_vb2_buffer() callback, and the timestamp
-is not handled in vb2_fill_vb2_v4l2_buffer(). That's why it is removed here.
-
-It is handled in the new __fill_vb2_buffer function, see below for comments.
-
-> 
->>  	vbuf->sequence = 0;
->>  
->>  	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
->> @@ -208,6 +201,12 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>  			}
->>  			break;
->>  		default:
->> +			for (plane = 0; plane < vb->num_planes; ++plane) {
->> +				planes[plane].m.offset =
->> +					vb->planes[plane].m.offset;
->> +				planes[plane].length =
->> +					vb->planes[plane].length;
->> +			}
->>  			break;
->>  		}
->>  
->> @@ -269,9 +268,12 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>  			planes[0].length = b->length;
->>  			break;
->>  		default:
->> +			planes[0].m.offset = vb->planes[0].m.offset;
->> +			planes[0].length = vb->planes[0].length;
->>  			break;
->>  		}
->>  
->> +		planes[0].data_offset = 0;
->>  		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
->>  			if (b->bytesused == 0)
->>  				vb2_warn_zero_bytesused(vb);
->> @@ -286,7 +288,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>  
->>  	}
->>  
->> -	/* Zero flags that the vb2 core handles */
->> +	/* Zero flags that we handle */
->>  	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
->>  	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
->>  		/*
->> @@ -319,6 +321,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->>  static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
->>  				    const char *opname)
->>  {
->> +	struct vb2_v4l2_buffer *vbuf;
->> +	struct vb2_buffer *vb;
->> +	int ret;
->> +
->>  	if (b->type != q->type) {
->>  		dprintk(1, "%s: invalid buffer type\n", opname);
->>  		return -EINVAL;
->> @@ -340,7 +346,15 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
->>  		return -EINVAL;
->>  	}
->>  
->> -	return __verify_planes_array(q->bufs[b->index], b);
->> +	vb = q->bufs[b->index];
->> +	vbuf = to_vb2_v4l2_buffer(vb);
->> +	ret = __verify_planes_array(vb, b);
->> +	if (ret)
->> +		return ret;
->> +
->> +	/* Copy relevant information provided by the userspace */
->> +	memset(vbuf->planes, 0, sizeof(vbuf->planes[0]) * vb->num_planes);
->> +	return vb2_fill_vb2_v4l2_buffer(vb, b);
->>  }
->>  
->>  /*
->> @@ -448,6 +462,30 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->>  		q->last_buffer_dequeued = true;
->>  }
->>  
->> +/*
->> + * __fill_vb2_buffer() - fill a vb2_buffer with information provided in a
->> + * v4l2_buffer by the userspace. It also verifies that struct
->> + * v4l2_buffer has a valid number of planes.
->> + */
->> +static int __fill_vb2_buffer(struct vb2_buffer *vb, struct vb2_plane *planes)
->> +{
->> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
->> +	unsigned int plane;
->> +
->> +	if (!vb->vb2_queue->is_output || !vb->vb2_queue->copy_timestamp)
->> +		vb->timestamp = 0;
-> 
-> When vb->vb2_queue->copy_timestamp is not NULL, timestamp will be copied,
-> but how VB2 will fill it if is_output?
-
-vb->vb2_queue->copy_timestamp is a bool, not a pointer. It is true if the timestamps
-should be copied from output to capture by the driver.
-
-So the timestamp provided by the application for an output queue that also wants to
-copy timestamps needs to be preserved so the driver can copy it to a capture buffer.
-In all other cases the vb->timestamp should be zeroed and the driver will fill it in
-later when it is done with the capture or output buffer.
-
-Without the request API the sequence during a VIDIOC_QBUF is:
-
-1) call __buf_prepare() which in turn calls the fill_vb2_buffer callback. This zeroed
-   the timestamp.
-2) call the copy_timestamp callback of the vb buffer which fills in the timestamp
-   from the user-provided v4l2_buffer.
-
-With the request API this no longer works since when you queue a buffer to a request
-it is parked internally and not actually queued to the driver until the request itself
-is queued. So the sequence in that case is:
-
-1) call copy_timestamp callback to store the user-provided timestamp
-
-And when the request is queued:
-
-2) call __buf_prepare() which in turn calls the fill_vb2_buffer callback.
-
-So the order of calling copy_timestamp and __buf_prepare is now reversed.
-I can't call copy_timestamp when the request is queued since I no longer have
-access to the original struct v4l2_buffer.
-
-So __fill_vb2_buffer now leaves the timestamp alone for output buffers that
-need to copy the timestamp.
-
-> 
-> I suspect that the right logic here would be just:
-> 
-> 	if (!vb->vb2_queue->copy_timestamp)
-> 		vb->timestamp = 0;
-
-No, it also needs the !vb->vb2_queue->is_output check: capture queues can also
-have vb2_queue->copy_timestamp set. But there it is the driver that will copy
-the timestamp from the output side, so we need to zero it here.
-
-Note that v4l2-compliance tests this timestamp handling. And in fact, the changes
-I had to make here to do correct timestamp handling for requests were the result
-of failures in v4l2-compliance.
-
-A general note: I feel that vb2 is getting a bit too complex and could do with some
-refactoring. It is something I want to look at in the future.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 76e6bed5a1da..f337e523821b 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1403,8 +1403,8 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ 		ret = of_property_read_u32(child, "input", &input_type);
+ 		if (ret) {
+ 			dev_err(decoder->sd.dev,
+-				 "missing type property in node %s\n",
+-				 child->name);
++				 "missing type property in node %pOFn\n",
++				 child);
+ 			goto err_connector;
+ 		}
+ 
+@@ -1439,8 +1439,8 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ 		ret = of_property_read_string(child, "label", &name);
+ 		if (ret < 0) {
+ 			dev_err(decoder->sd.dev,
+-				 "missing label property in node %s\n",
+-				 child->name);
++				 "missing label property in node %pOFn\n",
++				 child);
+ 			goto err_connector;
+ 		}
+ 
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index a96f53ce8088..35fc69591d54 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1583,8 +1583,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
+ 			goto done;
+ 		}
+ 
+-		dev_dbg(&pdev->dev, "Remote device %s, %pOF found\n",
+-			rem->name, rem);
++		dev_dbg(&pdev->dev, "Remote device %pOF found\n", rem);
+ 		sdinfo->name = rem->full_name;
+ 
+ 		pdata->asd[i] = devm_kzalloc(&pdev->dev,
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index d1febe5baa6d..77d755020e78 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -1712,8 +1712,8 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+ 	v4l2_fwnode_endpoint_parse(of_fwnode_handle(remote_ep), endpoint);
+ 
+ 	if (endpoint->bus_type != V4L2_MBUS_CSI2) {
+-		ctx_err(ctx, "Port:%d sub-device %s is not a CSI2 device\n",
+-			inst, sensor_node->name);
++		ctx_err(ctx, "Port:%d sub-device %pOFn is not a CSI2 device\n",
++			inst, sensor_node);
+ 		goto cleanup_exit;
+ 	}
+ 
+@@ -1732,8 +1732,8 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+ 			endpoint->bus.mipi_csi2.data_lanes[lane]);
+ 	ctx_dbg(3, ctx, "\t>\n");
+ 
+-	ctx_dbg(1, ctx, "Port: %d found sub-device %s\n",
+-		inst, sensor_node->name);
++	ctx_dbg(1, ctx, "Port: %d found sub-device %pOFn\n",
++		inst, sensor_node);
+ 
+ 	ctx->asd_list[0] = asd;
+ 	ctx->notifier.subdevs = ctx->asd_list;
+diff --git a/drivers/media/platform/video-mux.c b/drivers/media/platform/video-mux.c
+index c01e1592ad0a..61a9bf716a05 100644
+--- a/drivers/media/platform/video-mux.c
++++ b/drivers/media/platform/video-mux.c
+@@ -333,7 +333,7 @@ static int video_mux_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, vmux);
+ 
+ 	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
+-	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
++	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%pOFn", np);
+ 	vmux->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	vmux->subdev.dev = dev;
+ 
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index d041f94be832..3c8fcf951c63 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -506,8 +506,8 @@ xvip_dma_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ 
+ 	strlcpy(cap->driver, "xilinx-vipp", sizeof(cap->driver));
+ 	strlcpy(cap->card, dma->video.name, sizeof(cap->card));
+-	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s:%u",
+-		 dma->xdev->dev->of_node->name, dma->port);
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%pOFn:%u",
++		 dma->xdev->dev->of_node, dma->port);
+ 
+ 	return 0;
+ }
+@@ -693,8 +693,8 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 	dma->video.fops = &xvip_dma_fops;
+ 	dma->video.v4l2_dev = &xdev->v4l2_dev;
+ 	dma->video.queue = &dma->queue;
+-	snprintf(dma->video.name, sizeof(dma->video.name), "%s %s %u",
+-		 xdev->dev->of_node->name,
++	snprintf(dma->video.name, sizeof(dma->video.name), "%pOFn %s %u",
++		 xdev->dev->of_node,
+ 		 type == V4L2_BUF_TYPE_VIDEO_CAPTURE ? "output" : "input",
+ 		 port);
+ 	dma->video.vfl_type = VFL_TYPE_GRABBER;
+-- 
+2.17.1
