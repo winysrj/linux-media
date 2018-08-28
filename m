@@ -1,180 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f194.google.com ([209.85.213.194]:41735 "EHLO
+Received: from mail-yb0-f194.google.com ([209.85.213.194]:45977 "EHLO
         mail-yb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726806AbeH1MCJ (ORCPT
+        with ESMTP id S1726954AbeH1Mra (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 08:02:09 -0400
-Received: by mail-yb0-f194.google.com with SMTP id z3-v6so259688ybm.8
-        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 01:11:40 -0700 (PDT)
-Received: from mail-yw1-f41.google.com (mail-yw1-f41.google.com. [209.85.161.41])
-        by smtp.gmail.com with ESMTPSA id b6-v6sm161480ywb.78.2018.08.28.01.11.36
+        Tue, 28 Aug 2018 08:47:30 -0400
+Received: by mail-yb0-f194.google.com with SMTP id v13-v6so291092ybq.12
+        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 01:56:51 -0700 (PDT)
+Received: from mail-yb0-f170.google.com (mail-yb0-f170.google.com. [209.85.213.170])
+        by smtp.gmail.com with ESMTPSA id 84-v6sm190832ywo.15.2018.08.28.01.56.49
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 28 Aug 2018 01:11:36 -0700 (PDT)
-Received: by mail-yw1-f41.google.com with SMTP id l189-v6so250863ywb.10
-        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 01:11:36 -0700 (PDT)
+        Tue, 28 Aug 2018 01:56:50 -0700 (PDT)
+Received: by mail-yb0-f170.google.com with SMTP id z12-v6so295764ybg.9
+        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 01:56:49 -0700 (PDT)
 MIME-Version: 1.0
-References: <20180613140714.1686-1-maxime.ripard@bootlin.com>
- <20180613140714.1686-2-maxime.ripard@bootlin.com> <80e1d9cb49c6df06843e49332685f2b401023292.camel@collabora.com>
- <d8a30e78e6a33db10360995d800f2c0d19acc500.camel@collabora.com>
- <53987ca7a536a21b2eb49626d777a9bf894d6910.camel@bootlin.com>
- <CAAFQd5B68ArBgSj-Oso8=MzSrvVGB=h+MVO12qqgACmBrZtRkw@mail.gmail.com> <faca77cc213e4737c689f80ac5e830833bbe87ae.camel@bootlin.com>
-In-Reply-To: <faca77cc213e4737c689f80ac5e830833bbe87ae.camel@bootlin.com>
+References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com>
+ <1529033373-15724-3-git-send-email-yong.zhi@intel.com> <749a58a4-24f7-672f-70a9-cfd584af0171@xs4all.nl>
+ <20180813174950.6fd3915f@coco.lan>
+In-Reply-To: <20180813174950.6fd3915f@coco.lan>
 From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 28 Aug 2018 17:11:24 +0900
-Message-ID: <CAAFQd5Az89KTS_+VBUMHX3Eice+OKQn66Hw0rBusf4g6rSJ7VA@mail.gmail.com>
-Subject: Re: [PATCH 1/9] CHROMIUM: v4l: Add H264 low-level decoder API
- compound controls.
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
+Date: Tue, 28 Aug 2018 17:56:37 +0900
+Message-ID: <CAAFQd5BAqkusfzfX6s7OW0QyMs+55LX+4OTcD0aZDPaJ0RyfrQ@mail.gmail.com>
+Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: Yong Zhi <yong.zhi@intel.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        jenskuske@gmail.com, linux-sunxi@googlegroups.com,
-        thomas.petazzoni@bootlin.com, groeck@chromium.org
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>, chao.c.li@intel.com,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 22, 2018 at 11:45 PM Paul Kocialkowski
-<paul.kocialkowski@bootlin.com> wrote:
+On Tue, Aug 14, 2018 at 5:50 AM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
 >
-> Hi,
+> Em Mon, 13 Aug 2018 15:42:34 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 >
-> On Wed, 2018-08-22 at 22:38 +0900, Tomasz Figa wrote:
-> > On Wed, Aug 22, 2018 at 10:07 PM Paul Kocialkowski
-> > <paul.kocialkowski@bootlin.com> wrote:
+> > On 15/06/18 05:29, Yong Zhi wrote:
+> > > These meta formats are used on Intel IPU3 ImgU video queues
+> > > to carry 3A statistics and ISP pipeline parameters.
 > > >
-> > > Hi,
+> > > V4L2_META_FMT_IPU3_3A
+> > > V4L2_META_FMT_IPU3_PARAMS
 > > >
-> > > On Tue, 2018-08-21 at 13:07 -0400, Nicolas Dufresne wrote:
-> > > > Le mardi 21 ao=C3=BBt 2018 =C3=A0 13:58 -0300, Ezequiel Garcia a =
-=C3=A9crit :
-> > > > > On Wed, 2018-06-13 at 16:07 +0200, Maxime Ripard wrote:
-> > > > > > From: Pawel Osciak <posciak@chromium.org>
-> > > > > >
-> > > > > > Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> > > > > > Reviewed-by: Wu-cheng Li <wuchengli@chromium.org>
-> > > > > > Tested-by: Tomasz Figa <tfiga@chromium.org>
-> > > > > > [rebase44(groeck): include linux/types.h in v4l2-controls.h]
-> > > > > > Signed-off-by: Guenter Roeck <groeck@chromium.org>
-> > > > > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > > > > > ---
-> > > > > >
-> > > > >
-> > > > > [..]
-> > > > > > diff --git a/include/uapi/linux/videodev2.h
-> > > > > > b/include/uapi/linux/videodev2.h
-> > > > > > index 242a6bfa1440..4b4a1b25a0db 100644
-> > > > > > --- a/include/uapi/linux/videodev2.h
-> > > > > > +++ b/include/uapi/linux/videodev2.h
-> > > > > > @@ -626,6 +626,7 @@ struct v4l2_pix_format {
-> > > > > >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') =
-/*
-> > > > > > H264 with start codes */
-> > > > > >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1'=
-) /*
-> > > > > > H264 without start codes */
-> > > > > >  #define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') =
-/*
-> > > > > > H264 MVC */
-> > > > > > +#define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4'=
-) /*
-> > > > > > H264 parsed slices */
-> > > > >
-> > > > > As pointed out by Tomasz, the Rockchip VPU driver expects start c=
-odes
-> > > > > [1], so the userspace
-> > > > > should be aware of it. Perhaps we could document this pixel forma=
-t
-> > > > > better as:
-> > > > >
-> > > > > #define V4L2_PIX_FMT_H264_SLICE v4l2_fourcc('S', '2', '6', '4') /=
-*
-> > > > > H264 parsed slices with start codes */
-> > > > >
-> > > > > And introduce another pixel format:
-> > > > >
-> > > > > #define V4L2_PIX_FMT_H264_SLICE_NO_SC v4l2_fourcc(TODO) /* H264
-> > > > > parsed slices without start codes */
-> > > > >
-> > > > > For cedrus to use, as it seems it doesn't need start codes.
-> > > >
-> > > > I must admit that this RK requirement is a bit weird for slice data=
-.
-> > > > Though, userspace wise, always adding start-code would be compatibl=
-e,
-> > > > as the driver can just offset to remove it.
+> > > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> > > Signed-off-by: Chao C Li <chao.c.li@intel.com>
+> > > Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > > ---
+> > >  Documentation/media/uapi/v4l/meta-formats.rst      |    1 +
+> > >  .../media/uapi/v4l/pixfmt-meta-intel-ipu3.rst      |  174 ++
+> > >  include/uapi/linux/intel-ipu3.h                    | 2816 ++++++++++++++++++++
+> > >  3 files changed, 2991 insertions(+)
+> > >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > >  create mode 100644 include/uapi/linux/intel-ipu3.h
 > > >
-> > > This would mean that the stateless API no longer takes parsed bitstre=
-am
-> > > data but effectively the full bitstream, which defeats the purpose of
-> > > the _SLICE pixel formats.
+> > > diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+> > > index 0c4e1ec..b887fca 100644
+> > > --- a/Documentation/media/uapi/v4l/meta-formats.rst
+> > > +++ b/Documentation/media/uapi/v4l/meta-formats.rst
+> > > @@ -12,6 +12,7 @@ These formats are used for the :ref:`metadata` interface only.
+> > >  .. toctree::
+> > >      :maxdepth: 1
 > > >
-> >
-> > Not entirely. One of the purposes of the _SLICE pixel format was to
-> > specify it in a way that adds a requirement of providing the required
-> > controls by the client.
+> > > +    pixfmt-meta-intel-ipu3
+> > >      pixfmt-meta-uvc
+> > >      pixfmt-meta-vsp1-hgo
+> > >      pixfmt-meta-vsp1-hgt
+> > > diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > > new file mode 100644
+> > > index 0000000..5c050e6
+> > > --- /dev/null
+> > > +++ b/Documentation/media/uapi/v4l/pixfmt-meta-intel-ipu3.rst
+> > > @@ -0,0 +1,174 @@
+> > > +.. -*- coding: utf-8; mode: rst -*-
+> > > +
+> > > +.. _intel-ipu3:
+> > > +
+> > > +******************************************************************
+> > > +V4L2_META_FMT_IPU3_PARAMS ('ip3p'), V4L2_META_FMT_IPU3_3A ('ip3s')
+> > > +******************************************************************
+> > > +
+> > > +.. c:type:: ipu3_uapi_stats_3a
+> > > +
+> > > +3A statistics
+> > > +=============
+> > > +
+> > > +For IPU3 ImgU, the 3A statistics accelerators collect different statistics over
+> > > +an input bayer frame. Those statistics, defined in data struct
+> > > +:c:type:`ipu3_uapi_stats_3a`, are meta output obtained from "ipu3-imgu 3a stat"
+> > > +video node, which are then passed to user space for statistics analysis
+> > > +using :c:type:`v4l2_meta_format` interface.
+> > > +
+> > > +The statistics collected are AWB (Auto-white balance) RGBS cells, AWB filter
 >
-> I think we need to define what we want the stateless APIs (and these
-> formats) to precisely reflect conceptually. I've started discussing this
-> in the Request API and V4L2 capabilities thread.
+> Just like you did with AWB, AF and AE, please place the full name in parenthesis
+> for RGBS and AWB.
 >
-> > > > Another option, because I'm not fan of adding dedicated formats for
-> > > > this, the RK driver could use data_offset (in mplane v4l2 buffers),
-> > > > just write a start code there. I like this solution because I would=
- not
-> > > > be surprise if some drivers requires in fact an HW specific header,
-> > > > that the driver can generate as needed.
-> > >
-> > > I like this idea, because it implies that the driver should deal with
-> > > the specificities of the hardware, instead of making the blurrying th=
-e
-> > > lines of stateless API for covering these cases.
+> > > +response, AF (Auto-focus) filter response, and AE (Auto-exposure) histogram.
+> > > +
+> > > +struct :c:type:`ipu3_uapi_4a_config` saves configurable parameters for all above.
+> > > +
+> > > +
+> > > +.. code-block:: c
+> > > +
+> > > +
+> > > +     struct ipu3_uapi_stats_3a {
+> > > +   IPU3_ALIGN struct ipu3_uapi_awb_raw_buffer awb_raw_buffer;
 > >
-> > The spec says
+> > IPU3_ALIGN? What's that?
 > >
-> > "Offset in bytes to video data in the plane. Drivers must set this
-> > field when type refers to a capture stream, applications when it
-> > refers to an output stream."
-> >
-> > which would mean that user space would have to know to reserve some
-> > bytes at the beginning for the driver to add the start code there. (Or
-> > the driver memmove()ing the data forward when the buffer is queued,
-> > assuming that there is enough space in the buffer, but it should
-> > normally be the case.)
-> >
-> > Sounds like a pixel format with full bitstream data and some offsets
-> > to particular parts inside given inside a control might be the most
-> > flexible and cleanest solution.
+> > OK, after reading the header I see what it does, but I think you should
+> > drop it in the documentation since it doesn't help the reader.
 >
-> I can't help but think that bringing the whole bitstream over to the
-> kernel with a dedicated pix fmt just for the sake of having 3 start code
-> bytes is rather overkill anyway.
+> Yeah, that IPU3_ALIGN is confusing.
 >
-> I believe moving the data around to be the best call for this situation.
-> Or maybe there's a way to alloc more data *before* the bufer that is
-> exposed to userspace, so userspace can fill it normally and the driver
-> can bring-in the necessary heading start code bytes before the buffer?
+> Yet, instead of just dropping, I would replace it by a comment
+> to explain that the struct is 32-bytes aligned.
+>
+> On a separate (but related) comment, you're declaring it as:
+>
+>         #define IPU3_ALIGN      __attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
+>
+> This is a gcc-specific dialect. Better to use, instead, __aligned(x)
+> which is defined as:
+>
+> #define __aligned(x)            __attribute__((aligned(x)))
+>
 
-After thinking this over for some time, I believe it boils down to
-whether we can have an in-kernel library for turning H264 (and other
-codec) header structs back into a bitstream, if we end up with more
-than one driver need to do it. If that's fine, I think we're okay with
-having just the parsed pixel format around.
+Note that this is an uapi/ header. Is the __aligned() macro okay to
+use in uapi headers? I couldn't find any header there using it and we
+had problems with our user space compiling with it.
 
-Note that I didn't think about this with the Rockchip driver in mind,
-since it indeed only needs few bytes.
+By the way, I wonder if this is the right approach for controlling the
+layout of ABI structs. I don't see many headers using any alignment in
+uapi/ in general. Perhaps explicit padding bytes would be more
+appropriate? They are also less tricky when one structure needs to be
+embedded inside two or more different structures with different
+alignments, which can't be done easily if you specify __aligned() on
+the child struct.
 
 Best regards,
 Tomasz
