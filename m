@@ -1,77 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:34771 "EHLO mail.bootlin.com"
+Received: from smtp2.macqel.be ([109.135.2.61]:62581 "EHLO smtp2.macqel.be"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726997AbeH1LxU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 07:53:20 -0400
-From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 0/2] HEVC/H.265 stateless support for V4L2 and Cedrus
-Date: Tue, 28 Aug 2018 10:02:38 +0200
-Message-Id: <20180828080240.10982-1-paul.kocialkowski@bootlin.com>
+        id S1726997AbeH1LxW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 07:53:22 -0400
+From: Philippe De Muyter <phdm@macqel.be>
+To: linux-media@vger.kernel.org
+Cc: Philippe De Muyter <phdm@macqel.be>
+Subject: [PATCH] media: v4l2-subdev.h: allow V4L2_FRMIVAL_TYPE_CONTINUOUS & _STEPWISE
+Date: Tue, 28 Aug 2018 09:55:07 +0200
+Message-Id: <1535442907-8659-1-git-send-email-phdm@macqel.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This introduces the required bits for supporting HEVC/H.265 both in the
-V4L2 framework and the Cedrus VPU driver that concerns Allwinner
-devices.
+add max_interval and step_interval to struct
+v4l2_subdev_frame_interval_enum.
 
-A specific pixel format is introduced for the HEVC slice format and
-controls are provided to pass the bitstream metadata to the decoder.
-Some bitstream extensions are knowingly not supported at this point.
+When filled correctly by the sensor driver, those fields must be
+used as follows by the intermediate level :
 
-Since this is the first proposal for stateless HEVC/H.265 support in
-V4L2, reviews and comments about the controls definitions are
-particularly welcome.
+        struct v4l2_frmivalenum *fival;
+        struct v4l2_subdev_frame_interval_enum fie;
 
-On the Cedrus side, the H.265 implementation covers frame pictures
-with both uni-directional and bi-direction prediction modes (P/B
-slices). Field pictures (interleaved), scaling lists and 10-bit output
-are not supported at this point.
+        if (fie.max_interval.numerator == 0) {
+                fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+                fival->discrete = fie.interval;
+        } else if (fie.step_interval.numerator == 0) {
+                fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+                fival->stepwise.min = fie.interval;
+                fival->stepwise.max = fie.max_interval;
+        } else {
+                fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+                fival->stepwise.min = fie.interval;
+                fival->stepwise.max = fie.max_interval;
+                fival->stepwise.step = fie.step_interval;
+        }
 
-This series is based upon the following series:
-* Cedrus driver for the Allwinner Video Engine, using media requests
-* media: cedrus: Add H264 decoding support
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+---
+ .../uapi/v4l/vidioc-subdev-enum-frame-interval.rst | 39 +++++++++++++++++++++-
+ include/uapi/linux/v4l2-subdev.h                   |  4 ++-
+ 2 files changed, 41 insertions(+), 2 deletions(-)
 
-Cheers!
-
-Paul Kocialkowski (2):
-  media: v4l: Add definitions for the HEVC slice format and controls
-  media: cedrus: Add HEVC/H.265 decoding support
-
- .../media/uapi/v4l/extended-controls.rst      | 416 ++++++++++++++
- .../media/uapi/v4l/pixfmt-compressed.rst      |  15 +
- .../media/uapi/v4l/vidioc-queryctrl.rst       |  18 +
- .../media/videodev2.h.rst.exceptions          |   3 +
- drivers/media/v4l2-core/v4l2-ctrls.c          |  26 +
- drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
- drivers/staging/media/sunxi/cedrus/Makefile   |   2 +-
- drivers/staging/media/sunxi/cedrus/cedrus.c   |  19 +
- drivers/staging/media/sunxi/cedrus/cedrus.h   |  20 +-
- .../staging/media/sunxi/cedrus/cedrus_dec.c   |   9 +
- .../staging/media/sunxi/cedrus/cedrus_h265.c  | 540 ++++++++++++++++++
- .../staging/media/sunxi/cedrus/cedrus_hw.c    |   4 +
- .../staging/media/sunxi/cedrus/cedrus_regs.h  | 290 ++++++++++
- .../staging/media/sunxi/cedrus/cedrus_video.c |  13 +
- include/media/v4l2-ctrls.h                    |   6 +
- include/uapi/linux/v4l2-controls.h            | 155 +++++
- include/uapi/linux/videodev2.h                |   7 +
- 17 files changed, 1542 insertions(+), 2 deletions(-)
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_h265.c
-
+diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+index 1bfe386..acc516e 100644
+--- a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
++++ b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+@@ -51,6 +51,37 @@ EINVAL error code if one of the input fields is invalid. All frame
+ intervals are enumerable by beginning at index zero and incrementing by
+ one until ``EINVAL`` is returned.
+ 
++If the sub-device can work only at the fixed set of frame intervals,
++driver must enumerate them with increasing indexes, by only filling
++the ``interval`` field.  If the sub-device can work with a continuous
++range of frame intervals, driver must only return success for index 0
++and fill ``interval`` with the minimum interval, ``max_interval`` with
++the maximum interval, and ``step_interval`` with 0 or the step between
++the possible intervals.
++
++Callers are expected to use the returned information as follows :
++
++.. code-block:: c
++
++        struct v4l2_frmivalenum * fival;
++        struct v4l2_subdev_frame_interval_enum fie;
++
++        if (fie.max_interval.numerator == 0) {
++                fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete = fie.interval;
++        } else if (fie.step_interval.numerator == 0) {
++                fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
++                fival->stepwise.min = fie.interval;
++                fival->stepwise.max = fie.max_interval;
++        } else {
++                fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
++                fival->stepwise.min = fie.interval;
++                fival->stepwise.max = fie.max_interval;
++                fival->stepwise.step = fie.step_interval;
++        }
++
++.. code-block:: c
++
+ Available frame intervals may depend on the current 'try' formats at
+ other pads of the sub-device, as well as on the current active links.
+ See :ref:`VIDIOC_SUBDEV_G_FMT` for more
+@@ -92,8 +123,14 @@ multiple pads of the same sub-device is not defined.
+       - ``which``
+       - Frame intervals to be enumerated, from enum
+ 	:ref:`v4l2_subdev_format_whence <v4l2-subdev-format-whence>`.
++    * - struct :c:type:`v4l2_fract`
++      - ``max_interval``
++      - Maximum period, in seconds, between consecutive video frames, or 0.
++    * - struct :c:type:`v4l2_fract`
++      - ``step_interval``
++      - Frame interval step size, in seconds, or 0.
+     * - __u32
+-      - ``reserved``\ [8]
++      - ``reserved``\ [4]
+       - Reserved for future extensions. Applications and drivers must set
+ 	the array to zero.
+ 
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index 03970ce..c944644 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -128,7 +128,9 @@ struct v4l2_subdev_frame_interval_enum {
+ 	__u32 height;
+ 	struct v4l2_fract interval;
+ 	__u32 which;
+-	__u32 reserved[8];
++	struct v4l2_fract max_interval;
++	struct v4l2_fract step_interval;
++	__u32 reserved[4];
+ };
+ 
+ /**
 -- 
-2.18.0
+1.8.4
