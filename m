@@ -1,212 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:44974 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726383AbeH1TS6 (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:39252 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727456AbeH1Tg5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 15:18:58 -0400
-Reply-To: kieran.bingham+renesas@ideasonboard.com
-Subject: Re: [PATCH 1/2] media: i2c: adv748x: Support probing a single output
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <1535369285-26032-1-git-send-email-jacopo+renesas@jmondi.org>
- <1535369285-26032-2-git-send-email-jacopo+renesas@jmondi.org>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <f9923f8e-4644-81bd-9ee6-1ffbf44551f3@ideasonboard.com>
-Date: Tue, 28 Aug 2018 16:26:43 +0100
-MIME-Version: 1.0
-In-Reply-To: <1535369285-26032-2-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+        Tue, 28 Aug 2018 15:36:57 -0400
+From: Rob Herring <robh@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Ian Arkver <ian.arkver.dev@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH v2] staging: Convert to using %pOFn instead of device_node.name
+Date: Tue, 28 Aug 2018 10:44:33 -0500
+Message-Id: <20180828154433.5693-7-robh@kernel.org>
+In-Reply-To: <20180828154433.5693-1-robh@kernel.org>
+References: <20180828154433.5693-1-robh@kernel.org>
+In-Reply-To: <20180828015252.28511-44-robh@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+In preparation to remove the node name pointer from struct device_node,
+convert printf users to use the %pOFn format specifier.
 
-Thank you for the patch,
+Cc: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org
+Cc: devel@driverdev.osuosl.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+v2:
+- fix conditional use of node name vs devname for imx
 
+ drivers/staging/media/imx/imx-media-dev.c | 15 ++++++++++-----
+ drivers/staging/media/imx/imx-media-of.c  |  4 ++--
+ drivers/staging/mt7621-eth/mdio.c         |  4 ++--
+ 3 files changed, 14 insertions(+), 9 deletions(-)
 
-On 27/08/18 12:28, Jacopo Mondi wrote:
-> Currently the adv748x driver refuses to probe if both its output endpoints
-> (TXA and TXB) are not connected.
-> 
-> Make the driver support probing with (at least) one output endpoint connected
-> and protect the cleanup function from accessing un-initialized fields.
-> 
-> Following patches will fix other user of un-initialized TXs in the driver,
-> such as power management functions.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 38 +++++++++++++++++++++++++-------
->  drivers/media/i2c/adv748x/adv748x-csi2.c | 17 ++++----------
->  drivers/media/i2c/adv748x/adv748x.h      |  2 ++
->  3 files changed, 36 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index 6ca88daa..78d5996 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -654,6 +654,24 @@ static int adv748x_probe(struct i2c_client *client,
->  		goto err_cleanup_clients;
->  	}
->  
-> +	/*
-> +	 * We can not use container_of to get back to the state with two TXs;
-> +	 * Initialize the TXs's fields unconditionally on the endpoint
-> +	 * presence to access them later.
-> +	 */
-> +	state->txa.state = state->txb.state = state;
-> +	state->txa.page = ADV748X_PAGE_TXA;
-> +	state->txb.page = ADV748X_PAGE_TXB;
-> +	state->txa.port = ADV748X_PORT_TXA;
-> +	state->txb.port = ADV748X_PORT_TXB;
-> +
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index b0be80f05767..3f48f5ceb6ea 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -89,8 +89,12 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
 
-Initialising this data here feels a bit hacky...
+ 	/* return -EEXIST if this asd already added */
+ 	if (find_async_subdev(imxmd, fwnode, devname)) {
+-		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+-			__func__, np ? np->name : devname);
++		if (np)
++			dev_dbg(imxmd->md.dev, "%s: already added %pOFn\n",
++			__func__, np);
++		else
++			dev_dbg(imxmd->md.dev, "%s: already added %s\n",
++			__func__, devname);
+ 		ret = -EEXIST;
+ 		goto out;
+ 	}
+@@ -105,19 +109,20 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 	if (fwnode) {
+ 		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 		asd->match.fwnode = fwnode;
++		dev_dbg(imxmd->md.dev, "%s: added %pOFn, match type FWNODE\n",
++			__func__, np);
+ 	} else {
+ 		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+ 		asd->match.device_name = devname;
+ 		imxasd->pdev = pdev;
++		dev_dbg(imxmd->md.dev, "%s: added %s, match type DEVNAME\n",
++			__func__, devname);
+ 	}
 
+ 	list_add_tail(&imxasd->list, &imxmd->asd_list);
 
-> +	if (!is_tx_enabled(&state->txa) &&
-> +	    !is_tx_enabled(&state->txb)) {
+ 	imxmd->subdev_notifier.num_subdevs++;
 
-Could we make is_tx_enabled() based on the information it needs?
+-	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+-		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+-
+ out:
+ 	mutex_unlock(&imxmd->mutex);
+ 	return ret;
+diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+index acde372c6795..163437e421c5 100644
+--- a/drivers/staging/media/imx/imx-media-of.c
++++ b/drivers/staging/media/imx/imx-media-of.c
+@@ -79,8 +79,8 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 	int i, num_ports, ret;
 
-	is_tx_enabled(ADV748X_PORT_TXA);
+ 	if (!of_device_is_available(sd_np)) {
+-		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
+-			sd_np->name);
++		dev_dbg(imxmd->md.dev, "%s: %pOFn not enabled\n", __func__,
++			sd_np);
+ 		/* unavailable is not an error */
+ 		return 0;
+ 	}
+diff --git a/drivers/staging/mt7621-eth/mdio.c b/drivers/staging/mt7621-eth/mdio.c
+index 7ad0c4141205..9ffa8f771235 100644
+--- a/drivers/staging/mt7621-eth/mdio.c
++++ b/drivers/staging/mt7621-eth/mdio.c
+@@ -70,7 +70,7 @@ int mtk_connect_phy_node(struct mtk_eth *eth, struct mtk_mac *mac,
+ 	_port = of_get_property(phy_node, "reg", NULL);
 
-Or perhaps:
-	is_port_enabled(ADV748X_PORT_TXA)
-	
+ 	if (!_port || (be32_to_cpu(*_port) >= 0x20)) {
+-		pr_err("%s: invalid port id\n", phy_node->name);
++		pr_err("%pOFn: invalid port id\n", phy_node);
+ 		return -EINVAL;
+ 	}
+ 	port = be32_to_cpu(*_port);
+@@ -249,7 +249,7 @@ int mtk_mdio_init(struct mtk_eth *eth)
+ 	eth->mii_bus->priv = eth;
+ 	eth->mii_bus->parent = eth->dev;
 
-
-> +		ret = -ENODEV;
-> +		adv_err(state, "No output endpoint defined\n");
-> +		goto err_cleanup_clients;
-> +	}
-> +
-
-I approached this slightly differently at [0], by allowing the CSI
-object to initialise, but if they return -ENODEV, then it's fine.
-
-The only thing missing from [0] is a check to see if at least one of the
-CSI devices probed.
-
-
-
-You might be interested in [1], from my old 'adv748x/dev' branch [2] for
-looking at the link creation too.
-
-[0]
-https://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git/commit/?h=adv748x/for-next&id=ee53e0f7e6e0f3dacc79dcf157ce3c403b17ec14
-
-[1]
-https://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git/commit/?h=adv748x/dev&id=e0e975d73a70a5b73ad674e206103cd7df983a04
-
-
-[2]
-https://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git/log/?h=adv748x/dev
-
-
->  	/* SW reset ADV748X to its default values */
->  	ret = adv748x_reset(state);
->  	if (ret) {
-> @@ -676,17 +694,21 @@ static int adv748x_probe(struct i2c_client *client,
->  	}
->  
->  	/* Initialise TXA */
-> -	ret = adv748x_csi2_init(state, &state->txa);
-> -	if (ret) {
-> -		adv_err(state, "Failed to probe TXA");
-> -		goto err_cleanup_afe;
-> +	if (is_tx_enabled(&state->txa)) {
-> +		ret = adv748x_csi2_init(state, &state->txa);
-> +		if (ret) {
-> +			adv_err(state, "Failed to probe TXA");
-> +			goto err_cleanup_afe;
-> +		}
->  	}
->  
->  	/* Initialise TXB */
-> -	ret = adv748x_csi2_init(state, &state->txb);
-> -	if (ret) {
-> -		adv_err(state, "Failed to probe TXB");
-> -		goto err_cleanup_txa;
-> +	if (is_tx_enabled(&state->txb)) {
-> +		ret = adv748x_csi2_init(state, &state->txb);
-> +		if (ret) {
-> +			adv_err(state, "Failed to probe TXB");
-> +			goto err_cleanup_txa;
-> +		}
->  	}
->  
->  	return 0;
-> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> index 469be87..709cdea 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -266,20 +266,8 @@ static int adv748x_csi2_init_controls(struct adv748x_csi2 *tx)
->  
->  int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
->  {
-> -	struct device_node *ep;
->  	int ret;
->  
-> -	/* We can not use container_of to get back to the state with two TXs */
-> -	tx->state = state;
-> -	tx->page = is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
-> -
-> -	ep = state->endpoints[is_txa(tx) ? ADV748X_PORT_TXA : ADV748X_PORT_TXB];
-> -	if (!ep) {
-> -		adv_err(state, "No endpoint found for %s\n",
-> -				is_txa(tx) ? "txa" : "txb");
-
-If you used the -ENODEV approach, this adv_err should be removed.
-
-> -		return -ENODEV;
-> -	}
-> -
->  	/* Initialise the virtual channel */
->  	adv748x_csi2_set_virtual_channel(tx, 0);
->  
-> @@ -288,7 +276,7 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
->  			    is_txa(tx) ? "txa" : "txb");
->  
->  	/* Ensure that matching is based upon the endpoint fwnodes */
-> -	tx->sd.fwnode = of_fwnode_handle(ep);
-> +	tx->sd.fwnode = of_fwnode_handle(state->endpoints[tx->port]);
->  
->  	/* Register internal ops for incremental subdev registration */
->  	tx->sd.internal_ops = &adv748x_csi2_internal_ops;
-> @@ -321,6 +309,9 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
->  
->  void adv748x_csi2_cleanup(struct adv748x_csi2 *tx)
->  {
-> +	if (!is_tx_enabled(tx))
-> +		return;
-> +
->  	v4l2_async_unregister_subdev(&tx->sd);
->  	media_entity_cleanup(&tx->sd.entity);
->  	v4l2_ctrl_handler_free(&tx->ctrl_hdl);
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index 65f8374..1cf46c40 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -82,6 +82,7 @@ struct adv748x_csi2 {
->  	struct adv748x_state *state;
->  	struct v4l2_mbus_framefmt format;
->  	unsigned int page;
-> +	unsigned int port;
->  
->  	struct media_pad pads[ADV748X_CSI2_NR_PADS];
->  	struct v4l2_ctrl_handler ctrl_hdl;
-> @@ -91,6 +92,7 @@ struct adv748x_csi2 {
->  
->  #define notifier_to_csi2(n) container_of(n, struct adv748x_csi2, notifier)
->  #define adv748x_sd_to_csi2(sd) container_of(sd, struct adv748x_csi2, sd)
-> +#define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
-
->  
->  enum adv748x_hdmi_pads {
->  	ADV748X_HDMI_SINK,
-> 
+-	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
++	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%pOFn", mii_np);
+ 	err = of_mdiobus_register(eth->mii_bus, mii_np);
+ 	if (err)
+ 		goto err_free_bus;
+--
+2.17.1
