@@ -1,176 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:40596 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727094AbeH1N5h (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 09:57:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Rob Herring <robh@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hyun Kwon <hyun.kwon@xilinx.com>,
-        Michal Simek <michal.simek@xilinx.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: Convert to using %pOFn instead of device_node.name
-Date: Tue, 28 Aug 2018 13:06:42 +0300
-Message-ID: <2863201.EMhOTYQe29@avalon>
-In-Reply-To: <20180828015252.28511-28-robh@kernel.org>
-References: <20180828015252.28511-1-robh@kernel.org> <20180828015252.28511-28-robh@kernel.org>
+Received: from smtp2.macqel.be ([109.135.2.61]:52537 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726982AbeH1ORM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Aug 2018 10:17:12 -0400
+Date: Tue, 28 Aug 2018 12:26:10 +0200
+From: Philippe De Muyter <phdm@macqel.be>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: v4l2-subdev.h: allow
+        V4L2_FRMIVAL_TYPE_CONTINUOUS & _STEPWISE
+Message-ID: <20180828102610.GA31307@frolo.macqel>
+References: <1535442907-8659-1-git-send-email-phdm@macqel.be> <7bfc83d5-92dd-a604-35a6-4dc659feb7b5@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7bfc83d5-92dd-a604-35a6-4dc659feb7b5@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hi Hans,
 
-Thank you for the patch.
+On Tue, Aug 28, 2018 at 12:03:25PM +0200, Hans Verkuil wrote:
+> Hi Philippe,
+> 
+> On 28/08/18 09:55, Philippe De Muyter wrote:
+> > add max_interval and step_interval to struct
+> > v4l2_subdev_frame_interval_enum.
+> 
+> Yeah, I never understood why this wasn't supported when this API was designed.
+> Clearly an oversight.
+> 
+> > 
+> > When filled correctly by the sensor driver, those fields must be
+> > used as follows by the intermediate level :
+> > 
+> >         struct v4l2_frmivalenum *fival;
+> >         struct v4l2_subdev_frame_interval_enum fie;
+> > 
+> >         if (fie.max_interval.numerator == 0) {
+> >                 fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> >                 fival->discrete = fie.interval;
+> >         } else if (fie.step_interval.numerator == 0) {
+> >                 fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+> >                 fival->stepwise.min = fie.interval;
+> >                 fival->stepwise.max = fie.max_interval;
+> >         } else {
+> >                 fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+> >                 fival->stepwise.min = fie.interval;
+> >                 fival->stepwise.max = fie.max_interval;
+> >                 fival->stepwise.step = fie.step_interval;
+> >         }
+> 
+> This is a bit too magical for my tastes. I'd add a type field:
+> 
+> #define V4L2_SUBDEV_FRMIVAL_TYPE_DISCRETE 0
+> #define V4L2_SUBDEV_FRMIVAL_TYPE_CONTINUOUS 1
+> #define V4L2_SUBDEV_FRMIVAL_TYPE_STEPWISE 2
 
-On Tuesday, 28 August 2018 04:52:29 EEST Rob Herring wrote:
-> In preparation to remove the node name pointer from struct device_node,
-> convert printf users to use the %pOFn format specifier.
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> Cc: Benoit Parrot <bparrot@ti.com>
-> Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Michal Simek <michal.simek@xilinx.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
+Like that ?
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	struct v4l2_subdev_frame_interval_enum {
+		__u32 index;
+		__u32 pad;
+		__u32 code;
+		__u32 width;
+		__u32 height;
+		struct v4l2_fract interval;
+		__u32 which;
+		__u32 type;
+		struct v4l2_fract max_interval;
+		struct v4l2_fract step_interval;
+		__u32 reserved[3];
+	};
 
-Which tree would you like to merge this through ?
 
-> ---
->  drivers/media/i2c/tvp5150.c                   | 8 ++++----
->  drivers/media/platform/davinci/vpif_capture.c | 3 +--
->  drivers/media/platform/ti-vpe/cal.c           | 8 ++++----
->  drivers/media/platform/video-mux.c            | 2 +-
->  drivers/media/platform/xilinx/xilinx-dma.c    | 8 ++++----
->  5 files changed, 14 insertions(+), 15 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 76e6bed5a1da..f337e523821b 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -1403,8 +1403,8 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder,
-> struct device_node *np) ret = of_property_read_u32(child, "input",
-> &input_type);
->  		if (ret) {
->  			dev_err(decoder->sd.dev,
-> -				 "missing type property in node %s\n",
-> -				 child->name);
-> +				 "missing type property in node %pOFn\n",
-> +				 child);
->  			goto err_connector;
->  		}
-> 
-> @@ -1439,8 +1439,8 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder,
-> struct device_node *np) ret = of_property_read_string(child, "label",
-> &name);
->  		if (ret < 0) {
->  			dev_err(decoder->sd.dev,
-> -				 "missing label property in node %s\n",
-> -				 child->name);
-> +				 "missing label property in node %pOFn\n",
-> +				 child);
->  			goto err_connector;
->  		}
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> b/drivers/media/platform/davinci/vpif_capture.c index
-> a96f53ce8088..35fc69591d54 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -1583,8 +1583,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
->  			goto done;
->  		}
-> 
-> -		dev_dbg(&pdev->dev, "Remote device %s, %pOF found\n",
-> -			rem->name, rem);
-> +		dev_dbg(&pdev->dev, "Remote device %pOF found\n", rem);
->  		sdinfo->name = rem->full_name;
-> 
->  		pdata->asd[i] = devm_kzalloc(&pdev->dev,
-> diff --git a/drivers/media/platform/ti-vpe/cal.c
-> b/drivers/media/platform/ti-vpe/cal.c index d1febe5baa6d..77d755020e78
-> 100644
-> --- a/drivers/media/platform/ti-vpe/cal.c
-> +++ b/drivers/media/platform/ti-vpe/cal.c
-> @@ -1712,8 +1712,8 @@ static int of_cal_create_instance(struct cal_ctx *ctx,
-> int inst) v4l2_fwnode_endpoint_parse(of_fwnode_handle(remote_ep),
-> endpoint);
-> 
->  	if (endpoint->bus_type != V4L2_MBUS_CSI2) {
-> -		ctx_err(ctx, "Port:%d sub-device %s is not a CSI2 device\n",
-> -			inst, sensor_node->name);
-> +		ctx_err(ctx, "Port:%d sub-device %pOFn is not a CSI2 device\n",
-> +			inst, sensor_node);
->  		goto cleanup_exit;
->  	}
-> 
-> @@ -1732,8 +1732,8 @@ static int of_cal_create_instance(struct cal_ctx *ctx,
-> int inst) endpoint->bus.mipi_csi2.data_lanes[lane]);
->  	ctx_dbg(3, ctx, "\t>\n");
-> 
-> -	ctx_dbg(1, ctx, "Port: %d found sub-device %s\n",
-> -		inst, sensor_node->name);
-> +	ctx_dbg(1, ctx, "Port: %d found sub-device %pOFn\n",
-> +		inst, sensor_node);
-> 
->  	ctx->asd_list[0] = asd;
->  	ctx->notifier.subdevs = ctx->asd_list;
-> diff --git a/drivers/media/platform/video-mux.c
-> b/drivers/media/platform/video-mux.c index c01e1592ad0a..61a9bf716a05
-> 100644
-> --- a/drivers/media/platform/video-mux.c
-> +++ b/drivers/media/platform/video-mux.c
-> @@ -333,7 +333,7 @@ static int video_mux_probe(struct platform_device *pdev)
-> platform_set_drvdata(pdev, vmux);
-> 
->  	v4l2_subdev_init(&vmux->subdev, &video_mux_subdev_ops);
-> -	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%s", np->name);
-> +	snprintf(vmux->subdev.name, sizeof(vmux->subdev.name), "%pOFn", np);
->  	vmux->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->  	vmux->subdev.dev = dev;
-> 
-> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
-> b/drivers/media/platform/xilinx/xilinx-dma.c index
-> d041f94be832..3c8fcf951c63 100644
-> --- a/drivers/media/platform/xilinx/xilinx-dma.c
-> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-> @@ -506,8 +506,8 @@ xvip_dma_querycap(struct file *file, void *fh, struct
-> v4l2_capability *cap)
-> 
->  	strlcpy(cap->driver, "xilinx-vipp", sizeof(cap->driver));
->  	strlcpy(cap->card, dma->video.name, sizeof(cap->card));
-> -	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s:%u",
-> -		 dma->xdev->dev->of_node->name, dma->port);
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%pOFn:%u",
-> +		 dma->xdev->dev->of_node, dma->port);
-> 
->  	return 0;
->  }
-> @@ -693,8 +693,8 @@ int xvip_dma_init(struct xvip_composite_device *xdev,
-> struct xvip_dma *dma, dma->video.fops = &xvip_dma_fops;
->  	dma->video.v4l2_dev = &xdev->v4l2_dev;
->  	dma->video.queue = &dma->queue;
-> -	snprintf(dma->video.name, sizeof(dma->video.name), "%s %s %u",
-> -		 xdev->dev->of_node->name,
-> +	snprintf(dma->video.name, sizeof(dma->video.name), "%pOFn %s %u",
-> +		 xdev->dev->of_node,
->  		 type == V4L2_BUF_TYPE_VIDEO_CAPTURE ? "output" : "input",
->  		 port);
->  	dma->video.vfl_type = VFL_TYPE_GRABBER;
+> Older applications that do not know about the type field will just
+> see a single discrete interval containing the minimum interval.
+> I guess that's OK as they will keep working.
 
+That's actually what also happens with the above implementation, because
+max_interval.numerator and step_interval.numerator were previously
+reserved and thus 0, and if this code is moved to a helper function,
+that does not matter if it's a little bit magical :).
+
+Both implementations are equal to me, but the proposed one uses less
+space from the 'reserved' field.
+
+> 
+> While at it: it would be really nice if you can also add stepwise
+> support to VIDIOC_SUBDEV_ENUM_FRAME_SIZE. I think the only thing
+> you need to do there is to add two new fields: step_width and step_height.
+> If 0, then that just means a step size of 1.
+
+I'll look at that if I find enough interest and test opportunity for it,
+but those things are unrelated except that they are missing :)
+
+> 
+> Add some helper functions to translate between v4l2_subdev_frame_size/interval_enum
+> and v4l2_frmsize/ivalenum and this becomes much cleaner.
+
+OK
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+> > ---
+> >  .../uapi/v4l/vidioc-subdev-enum-frame-interval.rst | 39 +++++++++++++++++++++-
+> >  include/uapi/linux/v4l2-subdev.h                   |  4 ++-
+> >  2 files changed, 41 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+> > index 1bfe386..acc516e 100644
+> > --- a/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+> > +++ b/Documentation/media/uapi/v4l/vidioc-subdev-enum-frame-interval.rst
+> > @@ -51,6 +51,37 @@ EINVAL error code if one of the input fields is invalid. All frame
+> >  intervals are enumerable by beginning at index zero and incrementing by
+> >  one until ``EINVAL`` is returned.
+> >  
+> > +If the sub-device can work only at the fixed set of frame intervals,
+> > +driver must enumerate them with increasing indexes, by only filling
+> > +the ``interval`` field.  If the sub-device can work with a continuous
+> > +range of frame intervals, driver must only return success for index 0
+> > +and fill ``interval`` with the minimum interval, ``max_interval`` with
+> > +the maximum interval, and ``step_interval`` with 0 or the step between
+> > +the possible intervals.
+> > +
+> > +Callers are expected to use the returned information as follows :
+> > +
+> > +.. code-block:: c
+> > +
+> > +        struct v4l2_frmivalenum * fival;
+> > +        struct v4l2_subdev_frame_interval_enum fie;
+> > +
+> > +        if (fie.max_interval.numerator == 0) {
+> > +                fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> > +                fival->discrete = fie.interval;
+> > +        } else if (fie.step_interval.numerator == 0) {
+> > +                fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+> > +                fival->stepwise.min = fie.interval;
+> > +                fival->stepwise.max = fie.max_interval;
+> > +        } else {
+> > +                fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+> > +                fival->stepwise.min = fie.interval;
+> > +                fival->stepwise.max = fie.max_interval;
+> > +                fival->stepwise.step = fie.step_interval;
+> > +        }
+> > +
+> > +.. code-block:: c
+> > +
+> >  Available frame intervals may depend on the current 'try' formats at
+> >  other pads of the sub-device, as well as on the current active links.
+> >  See :ref:`VIDIOC_SUBDEV_G_FMT` for more
+> > @@ -92,8 +123,14 @@ multiple pads of the same sub-device is not defined.
+> >        - ``which``
+> >        - Frame intervals to be enumerated, from enum
+> >  	:ref:`v4l2_subdev_format_whence <v4l2-subdev-format-whence>`.
+> > +    * - struct :c:type:`v4l2_fract`
+> > +      - ``max_interval``
+> > +      - Maximum period, in seconds, between consecutive video frames, or 0.
+> > +    * - struct :c:type:`v4l2_fract`
+> > +      - ``step_interval``
+> > +      - Frame interval step size, in seconds, or 0.
+> >      * - __u32
+> > -      - ``reserved``\ [8]
+> > +      - ``reserved``\ [4]
+> >        - Reserved for future extensions. Applications and drivers must set
+> >  	the array to zero.
+> >  
+> > diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+> > index 03970ce..c944644 100644
+> > --- a/include/uapi/linux/v4l2-subdev.h
+> > +++ b/include/uapi/linux/v4l2-subdev.h
+> > @@ -128,7 +128,9 @@ struct v4l2_subdev_frame_interval_enum {
+> >  	__u32 height;
+> >  	struct v4l2_fract interval;
+> >  	__u32 which;
+> > -	__u32 reserved[8];
+> > +	struct v4l2_fract max_interval;
+> > +	struct v4l2_fract step_interval;
+> > +	__u32 reserved[4];
+> >  };
+> >  
+> >  /**
+> > 
 
 -- 
-Regards,
-
-Laurent Pinchart
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
