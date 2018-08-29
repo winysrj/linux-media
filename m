@@ -1,443 +1,320 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:54238 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725723AbeH2FCe (ORCPT
+Received: from mail-yw1-f66.google.com ([209.85.161.66]:34753 "EHLO
+        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727115AbeH2IQO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Aug 2018 01:02:34 -0400
-Message-ID: <f15e355ece0b250a252347ec22f1433dd786bb5b.camel@collabora.com>
-Subject: Re: [PATCH v8 4/8] media: platform: Add Cedrus VPU decoder driver
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devel@driverdev.osuosl.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Randy Li <ayaka@soulik.info>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wed, 29 Aug 2018 04:16:14 -0400
+Received: by mail-yw1-f66.google.com with SMTP id y134-v6so1513357ywg.1
+        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 21:21:18 -0700 (PDT)
+Received: from mail-yb0-f178.google.com (mail-yb0-f178.google.com. [209.85.213.178])
+        by smtp.gmail.com with ESMTPSA id t4-v6sm1158735ywa.51.2018.08.28.21.21.16
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 28 Aug 2018 21:21:16 -0700 (PDT)
+Received: by mail-yb0-f178.google.com with SMTP id c1-v6so1515448ybq.5
+        for <linux-media@vger.kernel.org>; Tue, 28 Aug 2018 21:21:16 -0700 (PDT)
+MIME-Version: 1.0
+References: <621896b1-f26e-3239-e7e7-e8c9bc4f3fe8@xs4all.nl>
+ <43c3d4b79377e9481ca29308cf1c160d57902d8c.camel@bootlin.com>
+ <5f1a88aa-9ad9-9669-b8b9-78c921282279@xs4all.nl> <ee7e5b404c895d01682700d815a6cec89c2221a1.camel@bootlin.com>
+ <186fd3ca-7759-7648-6870-4e5274a9680d@xs4all.nl> <05d52a4a3ed33a057e050d1f79dc0d873f31f21e.camel@bootlin.com>
+ <CAAFQd5C0bwbZ74rpCTmXVNGPdp2TDJcb+YzRfevwuxvvK7Lbzg@mail.gmail.com> <8b603c5a27c55e30e4ac3f1b9bb6b6d8515e2331.camel@bootlin.com>
+In-Reply-To: <8b603c5a27c55e30e4ac3f1b9bb6b6d8515e2331.camel@bootlin.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 29 Aug 2018 13:21:04 +0900
+Message-ID: <CAAFQd5Dz74BZvDT74iBXMKkBygqgvfW1jtw9dHcwFg6jq5fzWA@mail.gmail.com>
+Subject: Re: [RFC] Request API and V4L2 capabilities
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-sunxi@googlegroups.com
-Date: Tue, 28 Aug 2018 22:08:00 -0300
-In-Reply-To: <20180828073424.30247-5-paul.kocialkowski@bootlin.com>
-References: <20180828073424.30247-1-paul.kocialkowski@bootlin.com>
-         <20180828073424.30247-5-paul.kocialkowski@bootlin.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2018-08-28 at 09:34 +0200, Paul Kocialkowski wrote:
-> This introduces the Cedrus VPU driver that supports the VPU found in
-> Allwinner SoCs, also known as Video Engine. It is implemented through
-> a v4l2 m2m decoder device and a media device (used for media requests).
-> So far, it only supports MPEG2 decoding.
-> 
-> Since this VPU is stateless, synchronization with media requests is
-> required in order to ensure consistency between frame headers that
-> contain metadata about the frame to process and the raw slice data that
-> is used to generate the frame.
-> 
-> This driver was made possible thanks to the long-standing effort
-> carried out by the linux-sunxi community in the interest of reverse
-> engineering, documenting and implementing support for Allwinner VPU.
-> 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> ---
->  MAINTAINERS                                   |   7 +
->  drivers/staging/media/Kconfig                 |   2 +
->  drivers/staging/media/Makefile                |   1 +
->  drivers/staging/media/sunxi/Kconfig           |  15 +
->  drivers/staging/media/sunxi/Makefile          |   1 +
->  drivers/staging/media/sunxi/cedrus/Kconfig    |  14 +
->  drivers/staging/media/sunxi/cedrus/Makefile   |   3 +
->  drivers/staging/media/sunxi/cedrus/cedrus.c   | 420 +++++++++++++
->  drivers/staging/media/sunxi/cedrus/cedrus.h   | 167 +++++
->  .../staging/media/sunxi/cedrus/cedrus_dec.c   | 116 ++++
->  .../staging/media/sunxi/cedrus/cedrus_dec.h   |  28 +
->  .../staging/media/sunxi/cedrus/cedrus_hw.c    | 322 ++++++++++
->  .../staging/media/sunxi/cedrus/cedrus_hw.h    |  30 +
->  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 235 +++++++
->  .../staging/media/sunxi/cedrus/cedrus_regs.h  | 233 +++++++
->  .../staging/media/sunxi/cedrus/cedrus_video.c | 574 ++++++++++++++++++
->  .../staging/media/sunxi/cedrus/cedrus_video.h |  32 +
->  17 files changed, 2200 insertions(+)
->  create mode 100644 drivers/staging/media/sunxi/Kconfig
->  create mode 100644 drivers/staging/media/sunxi/Makefile
->  create mode 100644 drivers/staging/media/sunxi/cedrus/Kconfig
->  create mode 100644 drivers/staging/media/sunxi/cedrus/Makefile
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.c
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.h
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.c
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.h
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.c
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.h
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_regs.h
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.c
->  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.h
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 435e6c08c694..08065d53c69d 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -656,6 +656,13 @@ L:	linux-crypto@vger.kernel.org
->  S:	Maintained
->  F:	drivers/crypto/sunxi-ss/
->  
-> +ALLWINNER VPU DRIVER
-> +M:	Maxime Ripard <maxime.ripard@bootlin.com>
-> +M:	Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> +L:	linux-media@vger.kernel.org
-> +S:	Maintained
-> +F:	drivers/staging/media/sunxi/cedrus/
-> +
->  ALPHA PORT
->  M:	Richard Henderson <rth@twiddle.net>
->  M:	Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-> index db5cf67047ad..b3620a8f2d9f 100644
-> --- a/drivers/staging/media/Kconfig
-> +++ b/drivers/staging/media/Kconfig
-> @@ -31,6 +31,8 @@ source "drivers/staging/media/mt9t031/Kconfig"
->  
->  source "drivers/staging/media/omap4iss/Kconfig"
->  
-> +source "drivers/staging/media/sunxi/Kconfig"
-> +
->  source "drivers/staging/media/tegra-vde/Kconfig"
->  
->  source "drivers/staging/media/zoran/Kconfig"
-> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-> index 503fbe47fa58..42948f805548 100644
-> --- a/drivers/staging/media/Makefile
-> +++ b/drivers/staging/media/Makefile
-> @@ -5,5 +5,6 @@ obj-$(CONFIG_SOC_CAMERA_IMX074)	+= imx074/
->  obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031/
->  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
->  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
-> +obj-$(CONFIG_VIDEO_SUNXI)	+= sunxi/
->  obj-$(CONFIG_TEGRA_VDE)		+= tegra-vde/
->  obj-$(CONFIG_VIDEO_ZORAN)	+= zoran/
-> diff --git a/drivers/staging/media/sunxi/Kconfig b/drivers/staging/media/sunxi/Kconfig
-> new file mode 100644
-> index 000000000000..c78d92240ceb
-> --- /dev/null
-> +++ b/drivers/staging/media/sunxi/Kconfig
-> @@ -0,0 +1,15 @@
-> +config VIDEO_SUNXI
-> +	bool "Allwinner sunXi family Video Devices"
-> +	depends on ARCH_SUNXI || COMPILE_TEST
-> +	help
-> +	  If you have an Allwinner SoC based on the sunXi family, say Y.
-> +
-> +	  Note that this option doesn't include new drivers in the
-> +	  kernel: saying N will just cause Kconfig to skip all the
-> +	  questions about Allwinner media devices.
-> +
-> +if VIDEO_SUNXI
-> +
-> +source "drivers/staging/media/sunxi/cedrus/Kconfig"
-> +
-> +endif
-> diff --git a/drivers/staging/media/sunxi/Makefile b/drivers/staging/media/sunxi/Makefile
-> new file mode 100644
-> index 000000000000..cee2846c3ecf
-> --- /dev/null
-> +++ b/drivers/staging/media/sunxi/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_VIDEO_SUNXI_CEDRUS)	+= cedrus/
-> diff --git a/drivers/staging/media/sunxi/cedrus/Kconfig b/drivers/staging/media/sunxi/cedrus/Kconfig
-> new file mode 100644
-> index 000000000000..afd7d7ee0388
-> --- /dev/null
-> +++ b/drivers/staging/media/sunxi/cedrus/Kconfig
-> @@ -0,0 +1,14 @@
-> +config VIDEO_SUNXI_CEDRUS
-> +	tristate "Allwinner Cedrus VPU driver"
-> +	depends on VIDEO_DEV && VIDEO_V4L2 && MEDIA_CONTROLLER
-> +	depends on HAS_DMA
-> +	depends on OF
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	select MEDIA_REQUEST_API
-> +	select V4L2_MEM2MEM_DEV
-> +	help
-> +	  Support for the VPU found in Allwinner SoCs, also known as the Cedar
-> +	  video engine.
-> +
-> +	  To compile this driver as a module, choose M here: the module
-> +	  will be called sunxi-cedrus.
-> diff --git a/drivers/staging/media/sunxi/cedrus/Makefile b/drivers/staging/media/sunxi/cedrus/Makefile
-> new file mode 100644
-> index 000000000000..e9dc68b7bcb6
-> --- /dev/null
-> +++ b/drivers/staging/media/sunxi/cedrus/Makefile
-> @@ -0,0 +1,3 @@
-> +obj-$(CONFIG_VIDEO_SUNXI_CEDRUS) += sunxi-cedrus.o
-> +
-> +sunxi-cedrus-y = cedrus.o cedrus_video.o cedrus_hw.o cedrus_dec.o cedrus_mpeg2.o
-> diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
-> new file mode 100644
-> index 000000000000..7c0f90253135
-> --- /dev/null
-> +++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
-> @@ -0,0 +1,420 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Cedrus VPU driver
-> + *
-> + * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
-> + * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> + * Copyright (C) 2018 Bootlin
-> + *
-> + * Based on the vim2m driver, that is:
-> + *
-> + * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-> + * Pawel Osciak, <pawel@osciak.com>
-> + * Marek Szyprowski, <m.szyprowski@samsung.com>
-> + */
-> +
-> +#include <linux/platform_device.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-mem2mem.h>
-> +
-> +#include "cedrus.h"
-> +#include "cedrus_video.h"
-> +#include "cedrus_dec.h"
-> +#include "cedrus_hw.h"
-> +
-> +static const struct cedrus_control cedrus_controls[] = {
-> +	{
-> +		.id		= V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS,
-> +		.elem_size	= sizeof(struct v4l2_ctrl_mpeg2_slice_params),
-> +		.codec		= CEDRUS_CODEC_MPEG2,
-> +		.required	= true,
-> +	},
-> +	{
-> +		.id		= V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION,
-> +		.elem_size	= sizeof(struct v4l2_ctrl_mpeg2_quantization),
-> +		.codec		= CEDRUS_CODEC_MPEG2,
-> +		.required	= false,
-> +	},
-> +};
-> +
-> +#define CEDRUS_CONTROLS_COUNT	ARRAY_SIZE(cedrus_controls)
-> +
-> +void *cedrus_find_control_data(struct cedrus_ctx *ctx, u32 id)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; ctx->ctrls[i] != NULL; i++)
-> +		if (ctx->ctrls[i]->id == id)
-> +			return ctx->ctrls[i]->p_cur.p;
-> +
-> +	return NULL;
-> +}
-> +
-> +static int cedrus_init_ctrls(struct cedrus_dev *dev, struct cedrus_ctx *ctx)
-> +{
-> +	struct v4l2_ctrl_handler *hdl = &ctx->hdl;
-> +	struct v4l2_ctrl *ctrl;
-> +	unsigned int ctrl_size;
-> +	unsigned int i;
-> +
-> +	v4l2_ctrl_handler_init(hdl, CEDRUS_CONTROLS_COUNT);
-> +	if (hdl->error) {
-> +		v4l2_err(&dev->v4l2_dev,
-> +			 "Failed to initialize control handler\n");
-> +		return hdl->error;
-> +	}
-> +
-> +	ctrl_size = sizeof(ctrl) * CEDRUS_CONTROLS_COUNT + 1;
-> +
-> +	ctx->ctrls = kzalloc(ctrl_size, GFP_KERNEL);
-> +	memset(ctx->ctrls, 0, ctrl_size);
-> +
-> +	for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
-> +		struct v4l2_ctrl_config cfg = { 0 };
-> +
-> +		cfg.elem_size = cedrus_controls[i].elem_size;
-> +		cfg.id = cedrus_controls[i].id;
-> +
-> +		ctrl = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
-> +		if (hdl->error) {
-> +			v4l2_err(&dev->v4l2_dev,
-> +				 "Failed to create new custom control\n");
-> +
-> +			v4l2_ctrl_handler_free(hdl);
-> +			kfree(ctx->ctrls);
-> +			return hdl->error;
-> +		}
-> +
-> +		ctx->ctrls[i] = ctrl;
-> +	}
-> +
-> +	ctx->fh.ctrl_handler = hdl;
-> +	v4l2_ctrl_handler_setup(hdl);
-> +
-> +	return 0;
-> +}
-> +
-> +static int cedrus_request_validate(struct media_request *req)
-> +{
-> +	struct media_request_object *obj, *obj_safe;
-> +	struct v4l2_ctrl_handler *parent_hdl, *hdl;
-> +	struct cedrus_ctx *ctx = NULL;
-> +	struct v4l2_ctrl *ctrl_test;
-> +	unsigned int i;
-> +
-> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
-> +		struct vb2_buffer *vb;
-> +
-> +		if (vb2_request_object_is_buffer(obj)) {
-> +			vb = container_of(obj, struct vb2_buffer, req_obj);
-> +			ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (!ctx)
-> +		return -ENOENT;
-> +
-> +	parent_hdl = &ctx->hdl;
-> +
-> +	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
-> +	if (!hdl) {
-> +		v4l2_err(&ctx->dev->v4l2_dev, "Missing codec control(s)\n");
-> +		return -ENOENT;
-> +	}
-> +
-> +	for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
-> +		if (cedrus_controls[i].codec != ctx->current_codec ||
-> +		    !cedrus_controls[i].required)
-> +			continue;
-> +
-> +		ctrl_test = v4l2_ctrl_request_hdl_ctrl_find(hdl,
-> +			cedrus_controls[i].id);
-> +		if (!ctrl_test) {
-> +			v4l2_err(&ctx->dev->v4l2_dev,
-> +				 "Missing required codec control\n");
-> +			return -ENOENT;
-> +		}
-> +	}
-> +
-> +	v4l2_ctrl_request_hdl_put(hdl);
-> +
-> +	return vb2_request_validate(req);
-> +}
-> +
-> +static int cedrus_open(struct file *file)
-> +{
-> +	struct cedrus_dev *dev = video_drvdata(file);
-> +	struct cedrus_ctx *ctx = NULL;
-> +	int ret;
-> +
-> +	if (mutex_lock_interruptible(&dev->dev_mutex))
-> +		return -ERESTARTSYS;
-> +
-> +	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-> +	if (!ctx) {
-> +		mutex_unlock(&dev->dev_mutex);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	v4l2_fh_init(&ctx->fh, video_devdata(file));
-> +	file->private_data = &ctx->fh;
-> +	ctx->dev = dev;
-> +
-> +	ret = cedrus_init_ctrls(dev, ctx);
-> +	if (ret)
-> +		goto err_free;
-> +
-> +	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
-> +					    &cedrus_queue_init);
-> +	if (IS_ERR(ctx->fh.m2m_ctx)) {
-> +		ret = PTR_ERR(ctx->fh.m2m_ctx);
-> +		goto err_ctrls;
-> +	}
-> +
-> +	v4l2_fh_add(&ctx->fh);
-> +
-> +	mutex_unlock(&dev->dev_mutex);
-> +
-> +	return 0;
-> +
-> +err_ctrls:
-> +	v4l2_ctrl_handler_free(&ctx->hdl);
-> +err_free:
-> +	kfree(ctx);
-> +	mutex_unlock(&dev->dev_mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static int cedrus_release(struct file *file)
-> +{
-> +	struct cedrus_dev *dev = video_drvdata(file);
-> +	struct cedrus_ctx *ctx = container_of(file->private_data,
-> +					      struct cedrus_ctx, fh);
-> +
-> +	mutex_lock(&dev->dev_mutex);
-> +
-> +	v4l2_fh_del(&ctx->fh);
-> +	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
-> +
-> +	v4l2_ctrl_handler_free(&ctx->hdl);
-> +	kfree(ctx->ctrls);
-> +
-> +	v4l2_fh_exit(&ctx->fh);
-> +
-> +	kfree(ctx);
-> +
-> +	mutex_unlock(&dev->dev_mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_file_operations cedrus_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.open		= cedrus_open,
-> +	.release	= cedrus_release,
-> +	.poll		= v4l2_m2m_fop_poll,
-> +	.unlocked_ioctl	= video_ioctl2,
-> +	.mmap		= v4l2_m2m_fop_mmap,
-> +};
-> +
-> +static const struct video_device cedrus_video_device = {
-> +	.name		= CEDRUS_NAME,
-> +	.vfl_dir	= VFL_DIR_M2M,
-> +	.fops		= &cedrus_fops,
-> +	.ioctl_ops	= &cedrus_ioctl_ops,
-> +	.minor		= -1,
-> +	.release	= video_device_release_empty,
-> +	.device_caps	= V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING,
-> +};
-> +
-> +static const struct v4l2_m2m_ops cedrus_m2m_ops = {
-> +	.device_run	= cedrus_device_run,
-> +	.job_abort	= cedrus_job_abort,
-> +};
-> +
+On Wed, Aug 22, 2018 at 11:10 PM Paul Kocialkowski
+<paul.kocialkowski@bootlin.com> wrote:
+>
+> Hi,
+>
+> On Tue, 2018-08-21 at 17:52 +0900, Tomasz Figa wrote:
+> > Hi Hans, Paul,
+> >
+> > On Mon, Aug 6, 2018 at 6:29 PM Paul Kocialkowski
+> > <paul.kocialkowski@bootlin.com> wrote:
+> > >
+> > > On Mon, 2018-08-06 at 11:23 +0200, Hans Verkuil wrote:
+> > > > On 08/06/2018 11:13 AM, Paul Kocialkowski wrote:
+> > > > > Hi,
+> > > > >
+> > > > > On Mon, 2018-08-06 at 10:32 +0200, Hans Verkuil wrote:
+> > > > > > On 08/06/2018 10:16 AM, Paul Kocialkowski wrote:
+> > > > > > > On Sat, 2018-08-04 at 15:50 +0200, Hans Verkuil wrote:
+> > > > > > > > Regarding point 3: I think this should be documented next t=
+o the pixel format. I.e.
+> > > > > > > > the MPEG-2 Slice format used by the stateless cedrus codec =
+requires the request API
+> > > > > > > > and that two MPEG-2 controls (slice params and quantization=
+ matrices) must be present
+> > > > > > > > in each request.
+> > > > > > > >
+> > > > > > > > I am not sure a control flag (e.g. V4L2_CTRL_FLAG_REQUIRED_=
+IN_REQ) is needed here.
+> > > > > > > > It's really implied by the fact that you use a stateless co=
+dec. It doesn't help
+> > > > > > > > generic applications like v4l2-ctl or qv4l2 either since in=
+ order to support
+> > > > > > > > stateless codecs they will have to know about the details o=
+f these controls anyway.
+> > > > > > > >
+> > > > > > > > So I am inclined to say that it is not necessary to expose =
+this information in
+> > > > > > > > the API, but it has to be documented together with the pixe=
+l format documentation.
+> > > > > > >
+> > > > > > > I think this is affected by considerations about codec profil=
+e/level
+> > > > > > > support. More specifically, some controls will only be requir=
+ed for
+> > > > > > > supporting advanced codec profiles/levels, so they can only b=
+e
+> > > > > > > explicitly marked with appropriate flags by the driver when t=
+he target
+> > > > > > > profile/level is known. And I don't think it would be sane fo=
+r userspace
+> > > > > > > to explicitly set what profile/level it's aiming at. As a res=
+ult, I
+> > > > > > > don't think we can explicitly mark controls as required or op=
+tional.
+> >
+> > I'm not sure this is entirely true. The hardware may need to be
+> > explicitly told what profile the video is. It may even not be the
+> > hardware, but the driver itself too, given that the profile may imply
+> > the CAPTURE pixel format, e.g. for VP9 profiles:
+> >
+> > profile 0
+> > color depth: 8 bit/sample, chroma subsampling: 4:2:0
+> > profile 1
+> > color depth: 8 bit, chroma subsampling: 4:2:0, 4:2:2, 4:4:4
+> > profile 2
+> > color depth: 10=E2=80=9312 bit, chroma subsampling: 4:2:0
+> > profile 3
+> > color depth: 10=E2=80=9312 bit, chroma subsampling: 4:2:0, 4:2:2, 4:4:4
+> >
+> > (reference: https://en.wikipedia.org/wiki/VP9#Profiles)
+>
+> I think it would be fair to expect userspace to select the right
+> destination format (and maybe have the driver error if there's a
+> mismatch with the meta-data) instead of having the driver somewhat
+> expose what format should be used.
 
-I think you can get rid of this .job_abort. It should
-simplify your .device_run quite a bit.
+There are many different memory representations of the same physical
+YUV format, just for YUV 4:2:0: NV12, NV12M, NV21, NV21M, YUV420,
+YUV420M, YVU420, YVU420M. It depends on hardware and driver which one
+would be available for given stream to decode. How is the user space
+expected to know which one is, without querying the driver first?
 
-.job_abort is optional now since 5525b8314389a0c558d15464e86f438974b94e32.
+>
+> But maybe this would be an API violation, since all the enumerated
+> formats are probably supposed to be selectable?
 
-Regards,
-Ezequiel
+Correct.
+
+>
+> We could also look at it the other way round and consider that selecting
+> an exposed format is always legit, but that it implies passing a
+> bitstream that matches it or the driver will error (because of an
+> invalid bitstream passed, not because of a "wrong" selected format).
+
+As per above, it's unlikely that a generic user space can set the
+right format. It may be able to narrow down the list of exposed
+formats to those which make sense for the generic information about
+the stream it has, e.g. VP9 profile 0 -> YUV 4:2:0, but there may
+still be a constraint on which representation is allowed depending on
+stream features.
+
+>
+> As far as I understood, the profile/level information is there to
+> indicate a set of supported features by the decoder, not as an
+> information used for the decoding process. Each corresponding feature is
+> enabled or not in the bitstream meta-data and that's all the information
+> the decoder really needs.
+>
+> This is why I think that setting the profile/level explicitly is not
+> justified by the nature of the process and adding it only for
+> convenience or marking whether controls are optional doesn't seem
+> justified at this point, in my opinion.
+
+Okay, it's actually a good point. Whether given format can be
+supported is not entirely dictated by profile/level. There may be some
+initial negotiation needed, involving the user space setting the
+parsed stream parameters through respective controls.
+
+>
+> > > > > > > I also like the idea that it should instead be implicit and t=
+hat the
+> > > > > > > documentation should detail which specific stateless metadata=
+ controls
+> > > > > > > are required for a given profile/level.
+> > > > > > >
+> > > > > > > As for controls validation, the approach followed in the Cedr=
+us driver
+> > > > > > > is to check that the most basic controls are filled and allow=
+ having
+> > > > > > > missing controls for those that match advanced profiles.
+> > > > > > >
+> > > > > > > Since this approach feels somewhat generic enough to be appli=
+ed to all
+> > > > > > > stateless VPU drivers, maybe this should be made a helper in =
+the
+> > > > > > > framework?
+> > > > > >
+> > > > > > Sounds reasonable. Not sure if it will be in the first version,=
+ but it is
+> > > > > > easy to add later.
+> > > > >
+> > > > > Definitely, I don't think this is such a high priority for now ei=
+ther.
+> > > > >
+> >
+> > We may want to put strict requirements on what controls are provided
+> > for given codec+profile/level. Otherwise we might get some user space
+> > that doesn't provide some of them and works only by luck, e.g. because
+> > some hardware defaults on initial drivers luckily match the needed
+> > values. Even if we don't validate it in the code yet, we should put a
+> > big warning saying that not providing the required controls would
+> > result in undefined behavior.
+>
+> I don't think having such strict requirements are a good thing. Even
+> with the level/profile made explicit, what if the video under-uses its
+> features and thus legitimately doesn't need to have all the controls
+> that could be supported with the level/profile? This can probably also
+> be frame-specific, so some frames could require more controls than
+> others.
+
+That's exactly the best first step towards an user space that relies
+on unspecified behavior. Even if the video doesn't use all the
+features as per given profile/level, user space should be expected to
+initialize the state with reasonable defaults, since it's essentially
+for the driver/hardware to decide which state it needs to do the
+decoding.
+
+Whether profile/level is the right indicator to judge what's required
+and what's not is a different question. It indeed may not be. However,
+we need to clearly state what controls and when the application needs
+to set in the specification. I'm not talking about requirements as for
+bailing out with an error code, but exactly as for having that
+included in the specification and correct behavior only guaranteed if
+followed correctly.
+
+>
+> This also leads me to believe that the profile/level indication should
+> be used as a support indication to userspace, not as a way to expose the
+> required features for decoding to the kernel
+>
+> We could still enforce checks for the most basic controls (that are used
+> for all types of slices to decode) and error if they are missing. We
+> could also check the bits that indicate more advanced features in these
+> basic controls and decide what other controls are required from that.
+>
+> > > > > > > In addition, I see a need for exposing the maximum profile/le=
+vel that
+> > > > > > > the driver supports for decoding. I would suggest reusing the=
+ already-
+> > > > > > > existing dedicated controls used for encoding for this purpos=
+e. For
+> > > > > > > decoders, they would be used to expose the (read-only) maximu=
+m
+> > > > > > > profile/level that is supported by the hardware and keep usin=
+g them as a
+> > > > > > > settable value in a range (matching the level of support) for=
+ encoders.
+> > > > > > >
+> > > > > > > This is necessary for userspace to determine whether a given =
+video can
+> > > > > > > be decoded in hardware or not. Instead of half-way decoding t=
+he video
+> > > > > > > (ending up in funky results), this would easily allow skippin=
+g hardware
+> > > > > > > decoding and e.g. falling back on software decoding.
+> > > > > >
+> > > > > > I think it might be better to expose this through new read-only=
+ bitmask
+> > > > > > controls: i.e. a bitmask containing the supported profiles and =
+levels.
+> > > > >
+> > > > > It seems that this is more or less what the coda driver is doing =
+for
+> > > > > decoding actually, although it uses a menu control between min/ma=
+x
+> > > > > supported profile/levels, with a mask to "blacklist" the unsuppor=
+ted
+> > > > > values. Then, the V4L2_CTRL_FLAG_READ_ONLY flag is set to keep th=
+e
+> > > > > control read-only.
+> > > > >
+> > > > > > Reusing the existing controls for a decoder is odd since there =
+is not
+> > > > > > really a concept of a 'current' value since you just want to re=
+port what
+> > > > > > is supported. And I am not sure if all decoders can report the =
+profile
+> > > > > > or level that they detect.
+> > > > >
+> > > > > Is that really a problem when the READ_ONLY flag is set? I though=
+t it
+> > > > > was designed to fit this specific case, when the driver reports a=
+ value
+> > > > > that userspace cannot affect.
+> > > >
+> > > > Well, for read-only menu controls the current value of the control =
+would
+> > > > have to indicate what the current profile/level is that is being de=
+coded.
+> > > >
+> > > > That's not really relevant since what you want is just to query the
+> > > > supported profiles/levels. A read-only bitmask control is the faste=
+st
+> > > > method (if only because using a menu control requires the applicati=
+on to
+> > > > enumerate all possibilities with QUERYMENU).
+> >
+> > Besides querying for supported profiles,
+> >  - For stateless codecs we also need to set the profile, since the
+> > codec itself does only the number crunching.
+>
+> I disagree here, see above.
+>
+
+Indeed, profile is normally a function of various parameters included
+in the more general decoder state (e.g. bitstream headers).
+
+> >  - For stateful codecs, the decoder would also report the detected
+> > profile after parsing the bitstream (although this is possibly not of
+> > a big importance to the user space).
+>
+> I don't follow the logic behind this. This means informing userspace of
+> the capabilities required to decode the video that the VPU is currently
+> decoding... so that it can decided whether to decode it?
+
+That's what some of current drivers do, but I also fail to see it
+being useful. We should make sure that there is no user space relying
+on this behavior, if we intend to change it.
+
+>
+> > As for querying itself, there is still more to it than could be
+> > handled with just a read only control. To detect what CAPTURE formats
+> > are supported for given profile, one would have to set the profile
+> > control first and then use ENUM_FMT.
+>
+> Or consider that the bitstream is invalid if it doesn't match the
+> selected format and let userspace pick the appropriate format.
+
+See above. The appropriate format is only known to the driver.
+
+Best regards,
+Tomasz
