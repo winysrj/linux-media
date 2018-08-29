@@ -1,224 +1,443 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:52115 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726889AbeH2EtB (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:54238 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725723AbeH2FCe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Aug 2018 00:49:01 -0400
-Subject: Re: [PATCH v2 00/23] V4L2 fwnode rework; support for default
- configuration
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        <linux-media@vger.kernel.org>
-CC: <devicetree@vger.kernel.org>, <slongerbeam@gmail.com>,
-        <niklas.soderlund@ragnatech.se>, <jacopo@jmondi.org>
-References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <b48fd4d7-22cd-64d5-019c-aa1ab92ad130@mentor.com>
-Date: Tue, 28 Aug 2018 17:53:51 -0700
-MIME-Version: 1.0
-In-Reply-To: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+        Wed, 29 Aug 2018 01:02:34 -0400
+Message-ID: <f15e355ece0b250a252347ec22f1433dd786bb5b.camel@collabora.com>
+Subject: Re: [PATCH v8 4/8] media: platform: Add Cedrus VPU decoder driver
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Randy Li <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-sunxi@googlegroups.com
+Date: Tue, 28 Aug 2018 22:08:00 -0300
+In-Reply-To: <20180828073424.30247-5-paul.kocialkowski@bootlin.com>
+References: <20180828073424.30247-1-paul.kocialkowski@bootlin.com>
+         <20180828073424.30247-5-paul.kocialkowski@bootlin.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Tue, 2018-08-28 at 09:34 +0200, Paul Kocialkowski wrote:
+> This introduces the Cedrus VPU driver that supports the VPU found in
+> Allwinner SoCs, also known as Video Engine. It is implemented through
+> a v4l2 m2m decoder device and a media device (used for media requests).
+> So far, it only supports MPEG2 decoding.
+> 
+> Since this VPU is stateless, synchronization with media requests is
+> required in order to ensure consistency between frame headers that
+> contain metadata about the frame to process and the raw slice data that
+> is used to generate the frame.
+> 
+> This driver was made possible thanks to the long-standing effort
+> carried out by the linux-sunxi community in the interest of reverse
+> engineering, documenting and implementing support for Allwinner VPU.
+> 
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  MAINTAINERS                                   |   7 +
+>  drivers/staging/media/Kconfig                 |   2 +
+>  drivers/staging/media/Makefile                |   1 +
+>  drivers/staging/media/sunxi/Kconfig           |  15 +
+>  drivers/staging/media/sunxi/Makefile          |   1 +
+>  drivers/staging/media/sunxi/cedrus/Kconfig    |  14 +
+>  drivers/staging/media/sunxi/cedrus/Makefile   |   3 +
+>  drivers/staging/media/sunxi/cedrus/cedrus.c   | 420 +++++++++++++
+>  drivers/staging/media/sunxi/cedrus/cedrus.h   | 167 +++++
+>  .../staging/media/sunxi/cedrus/cedrus_dec.c   | 116 ++++
+>  .../staging/media/sunxi/cedrus/cedrus_dec.h   |  28 +
+>  .../staging/media/sunxi/cedrus/cedrus_hw.c    | 322 ++++++++++
+>  .../staging/media/sunxi/cedrus/cedrus_hw.h    |  30 +
+>  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 235 +++++++
+>  .../staging/media/sunxi/cedrus/cedrus_regs.h  | 233 +++++++
+>  .../staging/media/sunxi/cedrus/cedrus_video.c | 574 ++++++++++++++++++
+>  .../staging/media/sunxi/cedrus/cedrus_video.h |  32 +
+>  17 files changed, 2200 insertions(+)
+>  create mode 100644 drivers/staging/media/sunxi/Kconfig
+>  create mode 100644 drivers/staging/media/sunxi/Makefile
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/Kconfig
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/Makefile
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.c
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.h
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.h
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.c
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.h
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_regs.h
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.c
+>  create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.h
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 435e6c08c694..08065d53c69d 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -656,6 +656,13 @@ L:	linux-crypto@vger.kernel.org
+>  S:	Maintained
+>  F:	drivers/crypto/sunxi-ss/
+>  
+> +ALLWINNER VPU DRIVER
+> +M:	Maxime Ripard <maxime.ripard@bootlin.com>
+> +M:	Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> +L:	linux-media@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/staging/media/sunxi/cedrus/
+> +
+>  ALPHA PORT
+>  M:	Richard Henderson <rth@twiddle.net>
+>  M:	Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+> index db5cf67047ad..b3620a8f2d9f 100644
+> --- a/drivers/staging/media/Kconfig
+> +++ b/drivers/staging/media/Kconfig
+> @@ -31,6 +31,8 @@ source "drivers/staging/media/mt9t031/Kconfig"
+>  
+>  source "drivers/staging/media/omap4iss/Kconfig"
+>  
+> +source "drivers/staging/media/sunxi/Kconfig"
+> +
+>  source "drivers/staging/media/tegra-vde/Kconfig"
+>  
+>  source "drivers/staging/media/zoran/Kconfig"
+> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+> index 503fbe47fa58..42948f805548 100644
+> --- a/drivers/staging/media/Makefile
+> +++ b/drivers/staging/media/Makefile
+> @@ -5,5 +5,6 @@ obj-$(CONFIG_SOC_CAMERA_IMX074)	+= imx074/
+>  obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031/
+>  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+>  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+> +obj-$(CONFIG_VIDEO_SUNXI)	+= sunxi/
+>  obj-$(CONFIG_TEGRA_VDE)		+= tegra-vde/
+>  obj-$(CONFIG_VIDEO_ZORAN)	+= zoran/
+> diff --git a/drivers/staging/media/sunxi/Kconfig b/drivers/staging/media/sunxi/Kconfig
+> new file mode 100644
+> index 000000000000..c78d92240ceb
+> --- /dev/null
+> +++ b/drivers/staging/media/sunxi/Kconfig
+> @@ -0,0 +1,15 @@
+> +config VIDEO_SUNXI
+> +	bool "Allwinner sunXi family Video Devices"
+> +	depends on ARCH_SUNXI || COMPILE_TEST
+> +	help
+> +	  If you have an Allwinner SoC based on the sunXi family, say Y.
+> +
+> +	  Note that this option doesn't include new drivers in the
+> +	  kernel: saying N will just cause Kconfig to skip all the
+> +	  questions about Allwinner media devices.
+> +
+> +if VIDEO_SUNXI
+> +
+> +source "drivers/staging/media/sunxi/cedrus/Kconfig"
+> +
+> +endif
+> diff --git a/drivers/staging/media/sunxi/Makefile b/drivers/staging/media/sunxi/Makefile
+> new file mode 100644
+> index 000000000000..cee2846c3ecf
+> --- /dev/null
+> +++ b/drivers/staging/media/sunxi/Makefile
+> @@ -0,0 +1 @@
+> +obj-$(CONFIG_VIDEO_SUNXI_CEDRUS)	+= cedrus/
+> diff --git a/drivers/staging/media/sunxi/cedrus/Kconfig b/drivers/staging/media/sunxi/cedrus/Kconfig
+> new file mode 100644
+> index 000000000000..afd7d7ee0388
+> --- /dev/null
+> +++ b/drivers/staging/media/sunxi/cedrus/Kconfig
+> @@ -0,0 +1,14 @@
+> +config VIDEO_SUNXI_CEDRUS
+> +	tristate "Allwinner Cedrus VPU driver"
+> +	depends on VIDEO_DEV && VIDEO_V4L2 && MEDIA_CONTROLLER
+> +	depends on HAS_DMA
+> +	depends on OF
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	select MEDIA_REQUEST_API
+> +	select V4L2_MEM2MEM_DEV
+> +	help
+> +	  Support for the VPU found in Allwinner SoCs, also known as the Cedar
+> +	  video engine.
+> +
+> +	  To compile this driver as a module, choose M here: the module
+> +	  will be called sunxi-cedrus.
+> diff --git a/drivers/staging/media/sunxi/cedrus/Makefile b/drivers/staging/media/sunxi/cedrus/Makefile
+> new file mode 100644
+> index 000000000000..e9dc68b7bcb6
+> --- /dev/null
+> +++ b/drivers/staging/media/sunxi/cedrus/Makefile
+> @@ -0,0 +1,3 @@
+> +obj-$(CONFIG_VIDEO_SUNXI_CEDRUS) += sunxi-cedrus.o
+> +
+> +sunxi-cedrus-y = cedrus.o cedrus_video.o cedrus_hw.o cedrus_dec.o cedrus_mpeg2.o
+> diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
+> new file mode 100644
+> index 000000000000..7c0f90253135
+> --- /dev/null
+> +++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
+> @@ -0,0 +1,420 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Cedrus VPU driver
+> + *
+> + * Copyright (C) 2016 Florent Revest <florent.revest@free-electrons.com>
+> + * Copyright (C) 2018 Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> + * Copyright (C) 2018 Bootlin
+> + *
+> + * Based on the vim2m driver, that is:
+> + *
+> + * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
+> + * Pawel Osciak, <pawel@osciak.com>
+> + * Marek Szyprowski, <m.szyprowski@samsung.com>
+> + */
+> +
+> +#include <linux/platform_device.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-mem2mem.h>
+> +
+> +#include "cedrus.h"
+> +#include "cedrus_video.h"
+> +#include "cedrus_dec.h"
+> +#include "cedrus_hw.h"
+> +
+> +static const struct cedrus_control cedrus_controls[] = {
+> +	{
+> +		.id		= V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS,
+> +		.elem_size	= sizeof(struct v4l2_ctrl_mpeg2_slice_params),
+> +		.codec		= CEDRUS_CODEC_MPEG2,
+> +		.required	= true,
+> +	},
+> +	{
+> +		.id		= V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION,
+> +		.elem_size	= sizeof(struct v4l2_ctrl_mpeg2_quantization),
+> +		.codec		= CEDRUS_CODEC_MPEG2,
+> +		.required	= false,
+> +	},
+> +};
+> +
+> +#define CEDRUS_CONTROLS_COUNT	ARRAY_SIZE(cedrus_controls)
+> +
+> +void *cedrus_find_control_data(struct cedrus_ctx *ctx, u32 id)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; ctx->ctrls[i] != NULL; i++)
+> +		if (ctx->ctrls[i]->id == id)
+> +			return ctx->ctrls[i]->p_cur.p;
+> +
+> +	return NULL;
+> +}
+> +
+> +static int cedrus_init_ctrls(struct cedrus_dev *dev, struct cedrus_ctx *ctx)
+> +{
+> +	struct v4l2_ctrl_handler *hdl = &ctx->hdl;
+> +	struct v4l2_ctrl *ctrl;
+> +	unsigned int ctrl_size;
+> +	unsigned int i;
+> +
+> +	v4l2_ctrl_handler_init(hdl, CEDRUS_CONTROLS_COUNT);
+> +	if (hdl->error) {
+> +		v4l2_err(&dev->v4l2_dev,
+> +			 "Failed to initialize control handler\n");
+> +		return hdl->error;
+> +	}
+> +
+> +	ctrl_size = sizeof(ctrl) * CEDRUS_CONTROLS_COUNT + 1;
+> +
+> +	ctx->ctrls = kzalloc(ctrl_size, GFP_KERNEL);
+> +	memset(ctx->ctrls, 0, ctrl_size);
+> +
+> +	for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
+> +		struct v4l2_ctrl_config cfg = { 0 };
+> +
+> +		cfg.elem_size = cedrus_controls[i].elem_size;
+> +		cfg.id = cedrus_controls[i].id;
+> +
+> +		ctrl = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+> +		if (hdl->error) {
+> +			v4l2_err(&dev->v4l2_dev,
+> +				 "Failed to create new custom control\n");
+> +
+> +			v4l2_ctrl_handler_free(hdl);
+> +			kfree(ctx->ctrls);
+> +			return hdl->error;
+> +		}
+> +
+> +		ctx->ctrls[i] = ctrl;
+> +	}
+> +
+> +	ctx->fh.ctrl_handler = hdl;
+> +	v4l2_ctrl_handler_setup(hdl);
+> +
+> +	return 0;
+> +}
+> +
+> +static int cedrus_request_validate(struct media_request *req)
+> +{
+> +	struct media_request_object *obj, *obj_safe;
+> +	struct v4l2_ctrl_handler *parent_hdl, *hdl;
+> +	struct cedrus_ctx *ctx = NULL;
+> +	struct v4l2_ctrl *ctrl_test;
+> +	unsigned int i;
+> +
+> +	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
+> +		struct vb2_buffer *vb;
+> +
+> +		if (vb2_request_object_is_buffer(obj)) {
+> +			vb = container_of(obj, struct vb2_buffer, req_obj);
+> +			ctx = vb2_get_drv_priv(vb->vb2_queue);
+> +
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (!ctx)
+> +		return -ENOENT;
+> +
+> +	parent_hdl = &ctx->hdl;
+> +
+> +	hdl = v4l2_ctrl_request_hdl_find(req, parent_hdl);
+> +	if (!hdl) {
+> +		v4l2_err(&ctx->dev->v4l2_dev, "Missing codec control(s)\n");
+> +		return -ENOENT;
+> +	}
+> +
+> +	for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
+> +		if (cedrus_controls[i].codec != ctx->current_codec ||
+> +		    !cedrus_controls[i].required)
+> +			continue;
+> +
+> +		ctrl_test = v4l2_ctrl_request_hdl_ctrl_find(hdl,
+> +			cedrus_controls[i].id);
+> +		if (!ctrl_test) {
+> +			v4l2_err(&ctx->dev->v4l2_dev,
+> +				 "Missing required codec control\n");
+> +			return -ENOENT;
+> +		}
+> +	}
+> +
+> +	v4l2_ctrl_request_hdl_put(hdl);
+> +
+> +	return vb2_request_validate(req);
+> +}
+> +
+> +static int cedrus_open(struct file *file)
+> +{
+> +	struct cedrus_dev *dev = video_drvdata(file);
+> +	struct cedrus_ctx *ctx = NULL;
+> +	int ret;
+> +
+> +	if (mutex_lock_interruptible(&dev->dev_mutex))
+> +		return -ERESTARTSYS;
+> +
+> +	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+> +	if (!ctx) {
+> +		mutex_unlock(&dev->dev_mutex);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	v4l2_fh_init(&ctx->fh, video_devdata(file));
+> +	file->private_data = &ctx->fh;
+> +	ctx->dev = dev;
+> +
+> +	ret = cedrus_init_ctrls(dev, ctx);
+> +	if (ret)
+> +		goto err_free;
+> +
+> +	ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
+> +					    &cedrus_queue_init);
+> +	if (IS_ERR(ctx->fh.m2m_ctx)) {
+> +		ret = PTR_ERR(ctx->fh.m2m_ctx);
+> +		goto err_ctrls;
+> +	}
+> +
+> +	v4l2_fh_add(&ctx->fh);
+> +
+> +	mutex_unlock(&dev->dev_mutex);
+> +
+> +	return 0;
+> +
+> +err_ctrls:
+> +	v4l2_ctrl_handler_free(&ctx->hdl);
+> +err_free:
+> +	kfree(ctx);
+> +	mutex_unlock(&dev->dev_mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static int cedrus_release(struct file *file)
+> +{
+> +	struct cedrus_dev *dev = video_drvdata(file);
+> +	struct cedrus_ctx *ctx = container_of(file->private_data,
+> +					      struct cedrus_ctx, fh);
+> +
+> +	mutex_lock(&dev->dev_mutex);
+> +
+> +	v4l2_fh_del(&ctx->fh);
+> +	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+> +
+> +	v4l2_ctrl_handler_free(&ctx->hdl);
+> +	kfree(ctx->ctrls);
+> +
+> +	v4l2_fh_exit(&ctx->fh);
+> +
+> +	kfree(ctx);
+> +
+> +	mutex_unlock(&dev->dev_mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_file_operations cedrus_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.open		= cedrus_open,
+> +	.release	= cedrus_release,
+> +	.poll		= v4l2_m2m_fop_poll,
+> +	.unlocked_ioctl	= video_ioctl2,
+> +	.mmap		= v4l2_m2m_fop_mmap,
+> +};
+> +
+> +static const struct video_device cedrus_video_device = {
+> +	.name		= CEDRUS_NAME,
+> +	.vfl_dir	= VFL_DIR_M2M,
+> +	.fops		= &cedrus_fops,
+> +	.ioctl_ops	= &cedrus_ioctl_ops,
+> +	.minor		= -1,
+> +	.release	= video_device_release_empty,
+> +	.device_caps	= V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING,
+> +};
+> +
+> +static const struct v4l2_m2m_ops cedrus_m2m_ops = {
+> +	.device_run	= cedrus_device_run,
+> +	.job_abort	= cedrus_job_abort,
+> +};
+> +
 
+I think you can get rid of this .job_abort. It should
+simplify your .device_run quite a bit.
 
-On 08/27/2018 02:29 AM, Sakari Ailus wrote:
-> Hello everyone,
->
-> I've long thought the V4L2 fwnode framework requires some work (it's buggy
-> and it does not adequately serve common needs). This set should address in
-> particular these matters:
->
-> - Most devices support a particular media bus type but the V4L2 fwnode
->    framework was not able to use such information, but instead tried to
->    guess the bus type with varying levels of success while drivers
->    generally ignored the results. This patchset makes that possible ---
->    setting a bus type enables parsing configuration for only that bus.
->    Failing that check results in returning -ENXIO to be returned.
->
-> - Support specifying default configuration. If the endpoint has no
->    configuration, the defaults set by the driver (as documented in DT
->    bindings) will prevail. Any available configuration will still be read
->    from the endpoint as one could expect. A common use case for this is
->    e.g. the number of CSI-2 lanes. Few devices support lane mapping, and
->    default 1:1 mapping is provided in absence of a valid default or
->    configuration read OF.
->
-> - Debugging information is greatly improved.
->
-> - Recognition of the differences between CSI-2 D-PHY and C-PHY. All
->    currently supported hardware (or at least drivers) is D-PHY only, so
->    this change is still easy.
->
-> The smiapp driver is converted to use the new functionality. This patchset
-> does not address remaining issues such as supporting setting defaults for
-> e.g. bridge drivers with multiple ports, but with Steve Longerbeam's
-> patchset we're much closer to that goal. I've rebased this set on top of
-> Steve's. Albeit the two deal with the same files, there were only a few
-> trivial conflicts.
->
-> Note that I've only tested parsing endpoints for the CSI-2 bus (no
-> parallel IF hardware). Jacopo has tested an earlier version of the set
-> with a few changes to the parallel bus handling compared to this one.
->
-> Comments are welcome.
+.job_abort is optional now since 5525b8314389a0c558d15464e86f438974b94e32.
 
-I got around to testing this. The following diff needs to be added
-to initialize bus_type before calling v4l2_fwnode_endpoint_parse()
-in imx-media driver, this should probably be squashed with
-"v4l: fwnode: Initialise the V4L2 fwnode endpoints to zero":
-
-diff --git a/drivers/staging/media/imx/imx-media-csi.c 
-b/drivers/staging/media/imx/imx-media-csi.c
-index 539159d..ac9d718 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1050,7 +1050,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
-                              struct v4l2_subdev_format *sink_fmt)
-  {
-         struct csi_priv *priv = v4l2_get_subdevdata(sd);
--       struct v4l2_fwnode_endpoint upstream_ep = {};
-+       struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
-         bool is_csi2;
-         int ret;
-
-@@ -1164,7 +1164,7 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
-                               struct v4l2_subdev_mbus_code_enum *code)
-  {
-         struct csi_priv *priv = v4l2_get_subdevdata(sd);
--       struct v4l2_fwnode_endpoint upstream_ep;
-+       struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
-         const struct imx_media_pixfmt *incc;
-         struct v4l2_mbus_framefmt *infmt;
-         int ret = 0;
-@@ -1403,7 +1403,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
-  {
-         struct csi_priv *priv = v4l2_get_subdevdata(sd);
-         struct imx_media_video_dev *vdev = priv->vdev;
--       struct v4l2_fwnode_endpoint upstream_ep;
-+       struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
-         const struct imx_media_pixfmt *cc;
-         struct v4l2_pix_format vdev_fmt;
-         struct v4l2_mbus_framefmt *fmt;
-@@ -1542,7 +1542,7 @@ static int csi_set_selection(struct v4l2_subdev *sd,
-                              struct v4l2_subdev_selection *sel)
-  {
-         struct csi_priv *priv = v4l2_get_subdevdata(sd);
--       struct v4l2_fwnode_endpoint upstream_ep;
-+       struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
-         struct v4l2_mbus_framefmt *infmt;
-         struct v4l2_rect *crop, *compose;
-         int pad, ret;
-
-
-After making that change, capture from CSI-2 OV5640 and parallel
-OV5642 on the imx6q Sabrelite is working fine. Feel free to add my
-Tested-by on that platform.
-
->
-> I've pushed the patches (including Steve's) here:
->
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-fwnode-next>
->
-> since v1:
->
-> - Rebase it all on current media tree master --- there was a conflict in
->    drivers/media/platform/qcom/camss/camss.c in Steve's patch "media:
->    platform: Switch to v4l2_async_notifier_add_subdev"; I hope the
->    resolution was fine.
-
-I checked your resolution to camss.c and it was the same resolution I
-made as well.
-
-Thanks,
-Steve
-
->
-> - Default to Bt.656 bus in guessing the bus type if no properties
->    suggesting otherwise are set. In v1 and error was returned, which would
->    have been troublesome for the existing drivers.
->
-> - Set the bus_type field to zero (i.e. guess) for existing callers of
->    v4l2_fwnode_endpoint_(alloc_)parse.
->
-> - Improved documentation for v4l2_fwnode_endpoint_parse and
->    v4l2_fwnode_endpoint_alloc_parse.
->
-> Sakari Ailus (23):
->    v4l: fwnode: Add debug prints for V4L2 endpoint property parsing
->    v4l: fwnode: Use fwnode_graph_for_each_endpoint
->    v4l: fwnode: The CSI-2 clock is continuous if it's not non-continuous
->    dt-bindings: media: Specify bus type for MIPI D-PHY, others,
->      explicitly
->    v4l: fwnode: Add definitions for CSI-2 D-PHY, parallel and Bt.656
->      busses
->    v4l: mediabus: Recognise CSI-2 D-PHY and C-PHY
->    v4l: fwnode: Let the caller provide V4L2 fwnode endpoint
->    v4l: fwnode: Detect bus type correctly
->    v4l: fwnode: Make use of newly specified bus types
->    v4l: fwnode: Read lane inversion information despite lane numbering
->    v4l: fwnode: Only assign configuration if there is no error
->    v4l: fwnode: Support driver-defined lane mapping defaults
->    v4l: fwnode: Support default CSI-2 lane mapping for drivers
->    v4l: fwnode: Parse the graph endpoint as last
->    v4l: fwnode: Use default parallel flags
->    v4l: fwnode: Initialise the V4L2 fwnode endpoints to zero
->    v4l: fwnode: Only zero the struct if bus type is set to
->      V4L2_MBUS_UNKNOWN
->    v4l: fwnode: Use media bus type for bus parser selection
->    v4l: fwnode: Print bus type
->    v4l: fwnode: Use V4L2 fwnode endpoint media bus type if set
->    v4l: fwnode: Support parsing of CSI-2 C-PHY endpoints
->    v4l: fwnode: Update V4L2 fwnode endpoint parsing documentation
->    smiapp: Query the V4L2 endpoint for a specific bus type
->
->   .../devicetree/bindings/media/video-interfaces.txt |   4 +-
->   drivers/gpu/ipu-v3/ipu-csi.c                       |   2 +-
->   drivers/media/i2c/adv7180.c                        |   2 +-
->   drivers/media/i2c/adv7604.c                        |   2 +-
->   drivers/media/i2c/mt9v032.c                        |   2 +-
->   drivers/media/i2c/ov2659.c                         |  14 +-
->   drivers/media/i2c/ov5640.c                         |   4 +-
->   drivers/media/i2c/ov5645.c                         |   2 +-
->   drivers/media/i2c/ov5647.c                         |   2 +-
->   drivers/media/i2c/ov7251.c                         |   4 +-
->   drivers/media/i2c/ov7670.c                         |   2 +-
->   drivers/media/i2c/s5c73m3/s5c73m3-core.c           |   4 +-
->   drivers/media/i2c/s5k5baf.c                        |   6 +-
->   drivers/media/i2c/s5k6aa.c                         |   2 +-
->   drivers/media/i2c/smiapp/smiapp-core.c             |  34 +-
->   drivers/media/i2c/soc_camera/ov5642.c              |   2 +-
->   drivers/media/i2c/tc358743.c                       |  28 +-
->   drivers/media/i2c/tda1997x.c                       |   2 +-
->   drivers/media/i2c/tvp514x.c                        |   2 +-
->   drivers/media/i2c/tvp5150.c                        |   2 +-
->   drivers/media/i2c/tvp7002.c                        |   2 +-
->   drivers/media/pci/intel/ipu3/ipu3-cio2.c           |   2 +-
->   drivers/media/platform/am437x/am437x-vpfe.c        |   2 +-
->   drivers/media/platform/atmel/atmel-isc.c           |   3 +-
->   drivers/media/platform/atmel/atmel-isi.c           |   2 +-
->   drivers/media/platform/cadence/cdns-csi2rx.c       |   4 +-
->   drivers/media/platform/cadence/cdns-csi2tx.c       |   4 +-
->   drivers/media/platform/davinci/vpif_capture.c      |   2 +-
->   drivers/media/platform/exynos4-is/media-dev.c      |   2 +-
->   drivers/media/platform/exynos4-is/mipi-csis.c      |   2 +-
->   drivers/media/platform/marvell-ccic/mcam-core.c    |   4 +-
->   drivers/media/platform/marvell-ccic/mmp-driver.c   |   2 +-
->   drivers/media/platform/omap3isp/isp.c              |   2 +-
->   drivers/media/platform/pxa_camera.c                |   4 +-
->   drivers/media/platform/rcar-vin/rcar-csi2.c        |   4 +-
->   drivers/media/platform/renesas-ceu.c               |   3 +-
->   drivers/media/platform/soc_camera/soc_mediabus.c   |   2 +-
->   drivers/media/platform/stm32/stm32-dcmi.c          |   4 +-
->   drivers/media/platform/ti-vpe/cal.c                |   2 +-
->   drivers/media/v4l2-core/v4l2-fwnode.c              | 508 ++++++++++++++++-----
->   drivers/staging/media/imx/imx-media-csi.c          |   2 +-
->   drivers/staging/media/imx/imx6-mipi-csi2.c         |   2 +-
->   drivers/staging/media/imx074/imx074.c              |   2 +-
->   include/media/v4l2-fwnode.h                        |  60 ++-
->   include/media/v4l2-mediabus.h                      |   8 +-
->   45 files changed, 536 insertions(+), 220 deletions(-)
->
+Regards,
+Ezequiel
