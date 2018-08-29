@@ -1,60 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:53955 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726142AbeHONUW (ORCPT
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:56816 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728604AbeH3BIZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Aug 2018 09:20:22 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
-        maxime.ripard@bootlin.com, sam@elite-embedded.com,
-        jagan@amarulasolutions.com, festevam@gmail.com, pza@pengutronix.de,
-        steve_longerbeam@mentor.com, hugues.fruchet@st.com,
-        loic.poulain@linaro.org, daniel@zonque.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH v3 0/2] media: i2c: ov5640: Re-work MIPI startup sequence
-Date: Wed, 15 Aug 2018 12:28:15 +0200
-Message-Id: <1534328897-14957-1-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 29 Aug 2018 21:08:25 -0400
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w7TL8nhG055009
+        for <linux-media@vger.kernel.org>; Wed, 29 Aug 2018 17:09:43 -0400
+Received: from e12.ny.us.ibm.com (e12.ny.us.ibm.com [129.33.205.202])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2m6158vscp-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-media@vger.kernel.org>; Wed, 29 Aug 2018 17:09:43 -0400
+Received: from localhost
+        by e12.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-media@vger.kernel.org> from <eajames@linux.vnet.ibm.com>;
+        Wed, 29 Aug 2018 17:09:41 -0400
+From: Eddie James <eajames@linux.vnet.ibm.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-aspeed@lists.ozlabs.org,
+        openbmc@lists.ozlabs.org, andrew@aj.id.au, mchehab@kernel.org,
+        joel@jms.id.au, robh+dt@kernel.org, mark.rutland@arm.com,
+        devicetree@vger.kernel.org, linux-clk@vger.kernel.org,
+        mturquette@baylibre.com, sboyd@kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        Eddie James <eajames@linux.vnet.ibm.com>
+Subject: [PATCH 0/4] media: platform: Add Aspeed Video Engine driver
+Date: Wed, 29 Aug 2018 16:09:29 -0500
+Message-Id: <1535576973-8067-1-git-send-email-eajames@linux.vnet.ibm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello ov5640 people,
-   this driver has received a lot of attention recently, and this series aims
-to fix the CSI-2 interface startup on i.Mx6Q platforms.
+The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
+can capture and compress video data from digital or analog sources. With
+the Aspeed chip acting as a service processor, the Video Engine can
+capture the host processor graphics output.
 
-Please refer to the v2 cover letters for more background informations:
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg133420.html
+This series adds a V4L2 driver for the VE, providing a read() interface
+only. The driver triggers the hardware to capture the host graphics output
+and compress it to JPEG format.
 
-This two patches alone allows the MIPI interface to startup properly, but in
-order to capture good images (good as in 'not completely black') exposure and
-gain handling should be fixed too.
-Hugues Fruchet has a series in review that fixes that issues:
-[PATCH v2 0/5] Fix OV5640 exposure & gain
+Testing on an AST2500 determined that the videobuf/streaming/mmap interface
+was significantly slower than the simple read() interface, so I have not
+included the streaming part.
 
-And I have re-based it on top of this two fixes here:
-git://jmondi.org/linux ov5640/timings_exposure
+It's also possible to use an automatic mode for the VE such that
+re-triggering the HW every frame isn't necessary. However this wasn't
+reliable on the AST2400, and probably used more CPU anyway due to excessive
+interrupts. It was approximately 15% faster.
 
-Steve Longerbeam tested that branch on his I.MX6q SabreSD board and confirms he
-can now capture frames (I added his Tested-by tag to this patches). I have
-verified the same on Engicam iCore I.MX6q and an Intel Atom based board.
+The series also adds the necessary parent clock definitions to the Aspeed
+clock driver, with both a mux and clock divider.
 
-Ideally I would like to have these two fixes merged, and Hugues' ones then
-applied on top. Of course, more testing on other platforms using CSI-2 is very
-welcome.
+Eddie James (4):
+  clock: aspeed: Add VIDEO reset index definition
+  clock: aspeed: Setup video engine clocking
+  dt-bindings: media: Add Aspeed Video Engine binding documentation
+  media: platform: Add Aspeed Video Engine driver
 
-Thanks
-   j
+ .../devicetree/bindings/media/aspeed-video.txt     |   23 +
+ drivers/clk/clk-aspeed.c                           |   41 +-
+ drivers/media/platform/Kconfig                     |    8 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/aspeed-video.c              | 1307 ++++++++++++++++++++
+ include/dt-bindings/clock/aspeed-clock.h           |    1 +
+ 6 files changed, 1379 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/aspeed-video.txt
+ create mode 100644 drivers/media/platform/aspeed-video.c
 
-v2 -> v3:
-- patch [2/2] was originally sent in a different series, compared to v2 it
-  removes entries from the blob array instead of adding more.
-
-Jacopo Mondi (2):
-  media: ov5640: Re-work MIPI startup sequence
-  media: ov5640: Fix timings setup code
-
- drivers/media/i2c/ov5640.c | 141 +++++++++++++++++++++++++++++----------------
- 1 file changed, 92 insertions(+), 49 deletions(-)
-
---
-2.7.4
+-- 
+1.8.3.1
