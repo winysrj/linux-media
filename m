@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52062 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52058 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727268AbeH2Osy (ORCPT
+        by vger.kernel.org with ESMTP id S1727204AbeH2Osy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Wed, 29 Aug 2018 10:48:54 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: hverkuil@xs4all.nl
-Subject: [PATCH 2/3] smiapp: Use v4l2_i2c_subdev_set_name
-Date: Wed, 29 Aug 2018 13:52:32 +0300
-Message-Id: <20180829105233.3852-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
-References: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
+Subject: [PATCH 0/3] Uniformly assign sub-device names
+Date: Wed, 29 Aug 2018 13:52:30 +0300
+Message-Id: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use v4l2_i2c_subdev_set_name() to set the name of the smiapp driver's
-sub-devices. There is no functional change.
+Hi all,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
+Recently we noticed the sub-device drivers used a few different naming
+schemes, as well as a few more different implementations of that naming.
+This set adds a framework function to call to name sub-devices for cases
+where a sub-device driver exposes more than one sub-device.
+
+This set brings no functional change.
+
+Sakari Ailus (3):
+  v4l: subdev: Add a function to set an I²C sub-device's name
+  smiapp: Use v4l2_i2c_subdev_set_name
+  v4l: sr030pc30: Remove redundant setting of sub-device name
+
  drivers/media/i2c/smiapp/smiapp-core.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/media/i2c/sr030pc30.c          |  1 -
+ drivers/media/v4l2-core/v4l2-common.c  | 18 ++++++++++++++----
+ include/media/v4l2-common.h            | 12 ++++++++++++
+ 4 files changed, 30 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 1236683da8f7..99f3b295ae3c 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2617,9 +2617,7 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
- 	ssd->npads = num_pads;
- 	ssd->source_pad = num_pads - 1;
- 
--	snprintf(ssd->sd.name,
--		 sizeof(ssd->sd.name), "%s %s %d-%4.4x", sensor->minfo.name,
--		 name, i2c_adapter_id(client->adapter), client->addr);
-+	v4l2_i2c_subdev_set_name(&ssd->sd, client, sensor->minfo.name, name);
- 
- 	smiapp_get_native_size(ssd, &ssd->sink_fmt);
- 
-@@ -3064,9 +3062,9 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0)
- 		sensor->pll.flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
- 
--	smiapp_create_subdev(sensor, sensor->scaler, "scaler", 2);
--	smiapp_create_subdev(sensor, sensor->binner, "binner", 2);
--	smiapp_create_subdev(sensor, sensor->pixel_array, "pixel_array", 1);
-+	smiapp_create_subdev(sensor, sensor->scaler, " scaler", 2);
-+	smiapp_create_subdev(sensor, sensor->binner, " binner", 2);
-+	smiapp_create_subdev(sensor, sensor->pixel_array, " pixel_array", 1);
- 
- 	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
- 
 -- 
 2.11.0
