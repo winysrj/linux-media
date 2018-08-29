@@ -1,140 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52424 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728198AbeH2PfO (ORCPT
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:37596 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727428AbeH2Pyy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Aug 2018 11:35:14 -0400
-Date: Wed, 29 Aug 2018 14:38:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philippe De Muyter <phdm@macq.eu>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Luca Ceresoli <luca@lucaceresoli.net>,
-        linux-media@vger.kernel.org, Leon Luo <leonl@leopardimaging.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 3/7] media: imx274: don't hard-code the subdev name to
- DRIVER_NAME
-Message-ID: <20180829113843.4v63cxf3clvbzbtd@valkosipuli.retiisi.org.uk>
-References: <20180824163525.12694-1-luca@lucaceresoli.net>
- <20180824163525.12694-4-luca@lucaceresoli.net>
- <20180825144915.tq7m5jlikwndndzq@valkosipuli.retiisi.org.uk>
- <799f4d1a-b91d-0404-7ef0-965d123319da@lucaceresoli.net>
- <113d3e05-9331-bd54-0e49-46c5e132339f@xs4all.nl>
- <20180828160255.GA9763@frolo.macqel>
- <20180829110721.zlpqfmusaw4nh7et@valkosipuli.retiisi.org.uk>
- <20180829112936.GA15244@frolo.macqel>
+        Wed, 29 Aug 2018 11:54:54 -0400
+Received: by mail-oi0-f42.google.com with SMTP id p84-v6so8618671oic.4
+        for <linux-media@vger.kernel.org>; Wed, 29 Aug 2018 04:58:20 -0700 (PDT)
+Subject: Re: Question regarding optimizing pipeline in Vimc
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Guilherme Alcarde Gallo <gagallo7@gmail.com>,
+        =?UTF-8?Q?Lucas_Magalh=c3=a3es?= <lucmaga@gmail.com>
+References: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
+ <61e3a97c-3a71-77b8-e14e-90dccc64a2a9@xs4all.nl>
+From: Helen Koike <helen@koikeco.de>
+Message-ID: <f37b690f-68bd-178b-a282-30106d6a2e69@koikeco.de>
+Date: Wed, 29 Aug 2018 08:58:17 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180829112936.GA15244@frolo.macqel>
+In-Reply-To: <61e3a97c-3a71-77b8-e14e-90dccc64a2a9@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 29, 2018 at 01:29:36PM +0200, Philippe De Muyter wrote:
-> Hi Sakari,
-> 
-> On Wed, Aug 29, 2018 at 02:07:21PM +0300, Sakari Ailus wrote:
-> > Hi Philippe,
-> > 
-> > On Tue, Aug 28, 2018 at 06:02:55PM +0200, Philippe De Muyter wrote:
-> > > Hi Hans, Sakari and Luca
-> > > 
-> > > On Tue, Aug 28, 2018 at 11:22:28AM +0200, Hans Verkuil wrote:
-> > > > On 26/08/18 22:41, Luca Ceresoli wrote:
-> > > > > Hi Sakari,
-> > > > > 
-> > > > > On 25/08/2018 16:49, Sakari Ailus wrote:
-> > > > >> Hi Luca,
-> > > > >>
-> > > > >> On Fri, Aug 24, 2018 at 06:35:21PM +0200, Luca Ceresoli wrote:
-> > > > >>> Forcibly setting the subdev name to DRIVER_NAME (i.e. "IMX274") makes
-> > > > >>> it non-unique and less informative.
-> > > > >>>
-> > > > >>> Let the driver use the default name from i2c, e.g. "IMX274 2-001a".
-> > > > >>>
-> > > > >>> Signed-off-by: Luca Ceresoli <luca@lucaceresoli.net>
-> > > > >>> ---
-> > > > >>>  drivers/media/i2c/imx274.c | 1 -
-> > > > >>>  1 file changed, 1 deletion(-)
-> > > > >>>
-> > > > >>> diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-> > > > >>> index 9b524de08470..570706695ca7 100644
-> > > > >>> --- a/drivers/media/i2c/imx274.c
-> > > > >>> +++ b/drivers/media/i2c/imx274.c
-> > > > >>> @@ -1885,7 +1885,6 @@ static int imx274_probe(struct i2c_client *client,
-> > > > >>>  	imx274->client = client;
-> > > > >>>  	sd = &imx274->sd;
-> > > > >>>  	v4l2_i2c_subdev_init(sd, client, &imx274_subdev_ops);
-> > > > >>> -	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
-> > > > >>>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-> > > > >>>  
-> > > > >>>  	/* initialize subdev media pad */
-> > > > >>
-> > > > >> This ends up changing the entity as well as the sub-device name which may
-> > > > >> well break applications.
-> > > > > 
-> > > > > Right, unfortunately.
-> > > > > 
-> > > > >> On the other hand, you currently can't have more
-> > > > >> than one of these devices on a media device complex due to the name being
-> > > > >> specific to a driver, not the device.
-> > > > >>
-> > > > >> An option avoiding that would be to let the user choose by e.g. through a
-> > > > >> Kconfig option would avoid having to address that, but I really hate adding
-> > > > >> such options.
-> > > > > 
-> > > > > I agree adding a Kconfig option just for this would be very annoying.
-> > > > > However I think the issue affects a few other drivers (sr030pc30.c and
-> > > > > s5c73m3-core.c apparently), thus maybe one option could serve them all.
-> > > > > 
-> > > > >> I wonder what others think. If anyone ever needs to add another on a board
-> > > > >> so that it ends up being the part of the same media device complex
-> > > > >> (likely), then changing the name now rather than later would be the least
-> > > > >> pain. In this case I'd be leaning (slightly) towards accepting the patch
-> > > > >> and hoping there wouldn't be any fallout... I don't see any board (DT)
-> > > > >> containing imx274, at least not in the upstream kernel.
-> > > > > 
-> > > > > I'll be OK with either decision. Should we keep it as is, then I think a
-> > > > > comment before that line would be appropriate to clarify it's not
-> > > > > correct but it is kept for backward userspace compatibility. This would
-> > > > > help avoid new driver writers doing the same mistake, and prevent other
-> > > > > people to send another patch like mine.
-> > > > 
-> > > > In this end, this is a driver bug. I would just fix this, but add a comment
-> > > > that states the old name and why it was changed. No need for a dev_info
-> > > > IMHO.
-> > > > 
-> > > > It would be nice if you can check if the same mistake is made in other drivers,
-> > > > and update those as well. It's easier if this is all done at the same time.
-> > > > 
-> > > 
-> > > Then we should probably also apply the following patch I submitted :
-> > > 
-> > > "media: v4l2-common: v4l2_spi_subdev_init : generate unique name"
-> > > 	https://patchwork.kernel.org/patch/10553035/
-> > > 
-> > > and perhaps
-> > > 
-> > > "media: v4l2-common: simplify v4l2_i2c_subdev_init name generation"
-> > > 	https://patchwork.kernel.org/patch/10553037/
-> > 
-> > The problem with this patch is that the existing naming scheme is very
-> > similar while the new one offers no tangible benefits apart from being in
-> > line with the rest of the kernel. That's still not a benefit for uAPI:
-> > changing the name is certain to break user space applications.
-> 
-> I agree with you on the patch for v4l2_i2c_subdev_init (I wrote 'perhaps'),
-> but you don't say anything on the one about v4l2_spi_subdev_init :), which
-> fixes an actual bug.  I have 2 identical SPI-controlled sensors on the
-> same board, and without my patch they get the same subdev name.  Of course,
-> I could fix that in the sensor driver itself, but that's not what we want,
-> or do we ?
 
-Good point. I missed the naming of the SPI devices ignored any bus
-information there. I'm rather inclined towards taking the SPI patch. Hans,
-Mauro, Laurent; any opinion on that?
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+On 8/22/18 3:49 AM, Hans Verkuil wrote:
+> On 08/22/2018 05:35 AM, Helen Koike wrote:
+>> Hello,
+>>
+>> One of the discussions we had when developing Vimc, was regarding
+>> optimizing image generation.
+>> The ideia was to generate the images directly in the capture instead
+>> of propagating through the pipeline (to make things faster).
+>> But my question is: if this optimization is on, and if there is a
+>> greyscaler filter in the middle of the pipeline, do you expect to see
+>> a grey image with this optimization?
+> 
+> Yes.
+> 
+>> Or if we just generate a dummy
+>> image (with the right size format) at the end of the pipeline, would
+>> it be ok? (I am asking because it doesn't sound that simple to
+>> propagate the image transformation made by each entity in the pipe)
+> 
+> No, that would not be OK.
+> 
+> My basic idea was that you use a TPG state structure that contains the
+> desired output: the sensor starts with e.g. 720p using some bayer pixelformat,
+> the debayer module replaces the pixelformat with e.g. PIX_FMT_RGB32, a
+> grayscale filter replaces it with PI_FMT_GREY, and that's what the TPG for the
+> video device eventually will use to generate the video.
+> 
+> This assumes of course that all the vimc blocks only do operations that can
+> be handled by the TPG. Depending on what the blocks will do the TPG might need
+> to be extended if a feature is missing.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>> Or do you have any other thing in mind?
+>>
+>> Thanks
+>> Helen
+>>
+> 
+
+Thanks Hans,
+
+We'll be working on that soon.
+
+Helen
