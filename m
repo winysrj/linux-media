@@ -1,98 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:33118 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726736AbeHVKW7 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52070 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726858AbeH2Osy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Aug 2018 06:22:59 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] media: i2c: max2175: convert to SPDX identifiers
-Date: Wed, 22 Aug 2018 06:59:20 +0000
-Message-ID: <TY2PR01MB1962DBC547EC829ACB04D22BC3300@TY2PR01MB1962.jpnprd01.prod.outlook.com>
-References: <87bm9vf9p8.wl-kuninori.morimoto.gx@renesas.com>
-In-Reply-To: <87bm9vf9p8.wl-kuninori.morimoto.gx@renesas.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+        Wed, 29 Aug 2018 10:48:54 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH 3/3] sr030pc30: Remove redundant setting of sub-device name
+Date: Wed, 29 Aug 2018 13:52:33 +0300
+Message-Id: <20180829105233.3852-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
+References: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Morimoto-san,
+The sub-device name is set right after in v4l2_i2c_subdev_init(). Remove
+the redundant strcpy() call.
 
-Thank you for the patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/sr030pc30.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-> From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
->=20
-> This patch updates license to use SPDX-License-Identifier
-> instead of verbose license text.
->=20
-> Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-
-Acked-by: Ramesh Shanmugasundaram <Ramesh.shanmugasundaram@bp.renesas.com>
-
-Thanks,
-Ramesh
-
-> ---
->  drivers/media/i2c/max2175.c | 10 +---------
->  drivers/media/i2c/max2175.h | 12 ++----------
->  2 files changed, 3 insertions(+), 19 deletions(-)
->=20
-> diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
-> index 008a082..85a3fdf 100644
-> --- a/drivers/media/i2c/max2175.c
-> +++ b/drivers/media/i2c/max2175.c
-> @@ -1,3 +1,4 @@
-> +// SPDX-License-Identifier: GPL-2.0
->  /*
->   * Maxim Integrated MAX2175 RF to Bits tuner driver
->   *
-> @@ -6,15 +7,6 @@
->   *
->   * Copyright (C) 2016 Maxim Integrated Products
->   * Copyright (C) 2017 Renesas Electronics Corporation
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2
-> - * as published by the Free Software Foundation.
-> - *
-> - * This program is distributed in the hope that it will be useful,
-> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> - * GNU General Public License for more details.
->   */
->=20
->  #include <linux/clk.h>
-> diff --git a/drivers/media/i2c/max2175.h b/drivers/media/i2c/max2175.h
-> index eb43373..1ece587 100644
-> --- a/drivers/media/i2c/max2175.h
-> +++ b/drivers/media/i2c/max2175.h
-> @@ -1,4 +1,5 @@
-> -/*
-> +/* SPDX-License-Identifier: GPL-2.0
-> + *
->   * Maxim Integrated MAX2175 RF to Bits tuner driver
->   *
->   * This driver & most of the hard coded values are based on the referenc=
-e
-> @@ -6,15 +7,6 @@
->   *
->   * Copyright (C) 2016 Maxim Integrated Products
->   * Copyright (C) 2017 Renesas Electronics Corporation
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2
-> - * as published by the Free Software Foundation.
-> - *
-> - * This program is distributed in the hope that it will be useful,
-> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> - * GNU General Public License for more details.
->   */
->=20
->  #ifndef __MAX2175_H__
-> --
-> 2.7.4
+diff --git a/drivers/media/i2c/sr030pc30.c b/drivers/media/i2c/sr030pc30.c
+index 2a4882cddc51..3d3fb1cda28c 100644
+--- a/drivers/media/i2c/sr030pc30.c
++++ b/drivers/media/i2c/sr030pc30.c
+@@ -703,7 +703,6 @@ static int sr030pc30_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	sd = &info->sd;
+-	strcpy(sd->name, MODULE_NAME);
+ 	info->pdata = client->dev.platform_data;
+ 
+ 	v4l2_i2c_subdev_init(sd, client, &sr030pc30_ops);
+-- 
+2.11.0
