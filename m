@@ -1,57 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:40590 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729036AbeHDOqM (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:49732 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727609AbeH3BWG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Aug 2018 10:46:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv17 22/34] videobuf2-core: embed media_request_object
-Date: Sat,  4 Aug 2018 14:45:14 +0200
-Message-Id: <20180804124526.46206-23-hverkuil@xs4all.nl>
-In-Reply-To: <20180804124526.46206-1-hverkuil@xs4all.nl>
-References: <20180804124526.46206-1-hverkuil@xs4all.nl>
+        Wed, 29 Aug 2018 21:22:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Philippe De Muyter <phdm@macq.eu>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Luca Ceresoli <luca@lucaceresoli.net>,
+        linux-media@vger.kernel.org, Leon Luo <leonl@leopardimaging.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/7] media: imx274: don't hard-code the subdev name to DRIVER_NAME
+Date: Thu, 30 Aug 2018 00:23:23 +0300
+Message-ID: <1552922.PBQrL6RDxY@avalon>
+In-Reply-To: <20180829113843.4v63cxf3clvbzbtd@valkosipuli.retiisi.org.uk>
+References: <20180824163525.12694-1-luca@lucaceresoli.net> <20180829112936.GA15244@frolo.macqel> <20180829113843.4v63cxf3clvbzbtd@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-Make vb2_buffer a request object.
+On Wednesday, 29 August 2018 14:38:43 EEST Sakari Ailus wrote:
+> On Wed, Aug 29, 2018 at 01:29:36PM +0200, Philippe De Muyter wrote:
+> > On Wed, Aug 29, 2018 at 02:07:21PM +0300, Sakari Ailus wrote:
+> >> On Tue, Aug 28, 2018 at 06:02:55PM +0200, Philippe De Muyter wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/videobuf2-core.h | 4 ++++
- 1 file changed, 4 insertions(+)
+[snip]
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index cbda3968d018..df92dcdeabb3 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -17,6 +17,7 @@
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
- #include <linux/bitops.h>
-+#include <media/media-request.h>
- 
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -236,6 +237,8 @@ struct vb2_queue;
-  * @num_planes:		number of planes in the buffer
-  *			on an internal driver queue.
-  * @timestamp:		frame timestamp in ns.
-+ * @req_obj:		used to bind this buffer to a request. This
-+ *			request object has a refcount.
-  */
- struct vb2_buffer {
- 	struct vb2_queue	*vb2_queue;
-@@ -244,6 +247,7 @@ struct vb2_buffer {
- 	unsigned int		memory;
- 	unsigned int		num_planes;
- 	u64			timestamp;
-+	struct media_request_object	req_obj;
- 
- 	/* private: internal use only
- 	 *
+> >>> Then we should probably also apply the following patch I submitted :
+> >>> 
+> >>> "media: v4l2-common: v4l2_spi_subdev_init : generate unique name"
+> >>> 
+> >>> 	https://patchwork.kernel.org/patch/10553035/
+> >>> 
+> >>> and perhaps
+> >>> 
+> >>> "media: v4l2-common: simplify v4l2_i2c_subdev_init name generation"
+> >>> 
+> >>> 	https://patchwork.kernel.org/patch/10553037/
+> >> 
+> >> The problem with this patch is that the existing naming scheme is very
+> >> similar while the new one offers no tangible benefits apart from being
+> >> in line with the rest of the kernel. That's still not a benefit for uAPI:
+> >> changing the name is certain to break user space applications.
+> > 
+> > I agree with you on the patch for v4l2_i2c_subdev_init (I wrote
+> > 'perhaps'), but you don't say anything on the one about
+> > v4l2_spi_subdev_init :), which fixes an actual bug.  I have 2 identical
+> > SPI-controlled sensors on the same board, and without my patch they get
+> > the same subdev name.  Of course, I could fix that in the sensor driver
+> > itself, but that's not what we want, or do we ?
+> 
+> Good point. I missed the naming of the SPI devices ignored any bus
+> information there. I'm rather inclined towards taking the SPI patch. Hans,
+> Mauro, Laurent; any opinion on that?
+
+I agree that the SPI patch makes sense, I think we should take it.
+
 -- 
-2.18.0
+Regards,
+
+Laurent Pinchart
