@@ -1,91 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52060 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52062 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727099AbeH2Osy (ORCPT
+        by vger.kernel.org with ESMTP id S1727268AbeH2Osy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Wed, 29 Aug 2018 10:48:54 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: hverkuil@xs4all.nl
-Subject: [PATCH 1/3] =?UTF-8?q?v4l:=20subdev:=20Add=20a=20function=20to=20?= =?UTF-8?q?set=20an=20I=C2=B2C=20sub-device's=20name?=
-Date: Wed, 29 Aug 2018 13:52:31 +0300
-Message-Id: <20180829105233.3852-2-sakari.ailus@linux.intel.com>
+Subject: [PATCH 2/3] smiapp: Use v4l2_i2c_subdev_set_name
+Date: Wed, 29 Aug 2018 13:52:32 +0300
+Message-Id: <20180829105233.3852-3-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
 References: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_i2c_subdev_set_name() can be used to assign a name to a sub-device.
-This way uniform names can be formed easily without having to resort to
-things such as snprintf in drivers.
+Use v4l2_i2c_subdev_set_name() to set the name of the smiapp driver's
+sub-devices. There is no functional change.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-common.c | 18 ++++++++++++++----
- include/media/v4l2-common.h           | 12 ++++++++++++
- 2 files changed, 26 insertions(+), 4 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index b518b92d6d96..9c48b90b4ae8 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -109,6 +109,19 @@ EXPORT_SYMBOL(v4l2_ctrl_query_fill);
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 1236683da8f7..99f3b295ae3c 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2617,9 +2617,7 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
+ 	ssd->npads = num_pads;
+ 	ssd->source_pad = num_pads - 1;
  
- #if IS_ENABLED(CONFIG_I2C)
+-	snprintf(ssd->sd.name,
+-		 sizeof(ssd->sd.name), "%s %s %d-%4.4x", sensor->minfo.name,
+-		 name, i2c_adapter_id(client->adapter), client->addr);
++	v4l2_i2c_subdev_set_name(&ssd->sd, client, sensor->minfo.name, name);
  
-+void v4l2_i2c_subdev_set_name(struct v4l2_subdev *sd, struct i2c_client *client,
-+			      const char *devname, const char *postfix)
-+{
-+	if (!devname)
-+		devname = client->dev.driver->name;
-+	if (!postfix)
-+		postfix = "";
-+
-+	snprintf(sd->name, sizeof(sd->name), "%s%s %d-%04x", devname, postfix,
-+		 i2c_adapter_id(client->adapter), client->addr);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_set_name);
-+
- void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 		const struct v4l2_subdev_ops *ops)
- {
-@@ -120,10 +133,7 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 	/* i2c_client and v4l2_subdev point to one another */
- 	v4l2_set_subdevdata(sd, client);
- 	i2c_set_clientdata(client, sd);
--	/* initialize name */
--	snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
--		client->dev.driver->name, i2c_adapter_id(client->adapter),
--		client->addr);
-+	v4l2_i2c_subdev_set_name(sd, client, NULL, NULL);
- }
- EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+ 	smiapp_get_native_size(ssd, &ssd->sink_fmt);
  
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index cdc87ec61e54..bd880a909ecf 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -155,6 +155,18 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
- 		const unsigned short *probe_addrs);
+@@ -3064,9 +3062,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0)
+ 		sensor->pll.flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
  
- /**
-+ * v4l2_i2c_subdev_set_name - Set name for an I²C sub-device
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @client: pointer to struct i2c_client
-+ * @devname: the name of the device; if NULL, the I²C device's name will be used
-+ * @postfix: sub-device specific string to put right after the I²C device name;
-+ *	     may be NULL
-+ */
-+void v4l2_i2c_subdev_set_name(struct v4l2_subdev *sd, struct i2c_client *client,
-+			      const char *devname, const char *postfix);
-+
-+/**
-  * v4l2_i2c_subdev_init - Initializes a &struct v4l2_subdev with data from
-  *	an i2c_client struct.
-  *
+-	smiapp_create_subdev(sensor, sensor->scaler, "scaler", 2);
+-	smiapp_create_subdev(sensor, sensor->binner, "binner", 2);
+-	smiapp_create_subdev(sensor, sensor->pixel_array, "pixel_array", 1);
++	smiapp_create_subdev(sensor, sensor->scaler, " scaler", 2);
++	smiapp_create_subdev(sensor, sensor->binner, " binner", 2);
++	smiapp_create_subdev(sensor, sensor->pixel_array, " pixel_array", 1);
+ 
+ 	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
+ 
 -- 
 2.11.0
