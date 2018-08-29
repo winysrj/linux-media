@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:44745 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727185AbeH2CI6 (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:37388 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725882AbeH2EkB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Aug 2018 22:08:58 -0400
-Date: Tue, 28 Aug 2018 17:15:14 -0500
+        Wed, 29 Aug 2018 00:40:01 -0400
+Date: Tue, 28 Aug 2018 19:45:46 -0500
 From: Rob Herring <robh@kernel.org>
-To: Vikash Garodia <vgarodia@codeaurora.org>
-Cc: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org, mark.rutland@arm.com, andy.gross@linaro.org,
-        arnd@arndb.de, bjorn.andersson@linaro.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org
-Subject: Re: [PATCH v6 4/4] venus: firmware: register separate
- platform_device for firmware loader
-Message-ID: <20180828221514.GA8820@bogus>
-References: <1535034528-11590-1-git-send-email-vgarodia@codeaurora.org>
- <1535034528-11590-5-git-send-email-vgarodia@codeaurora.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se,
+        jacopo@jmondi.org
+Subject: Re: [PATCH v2 04/23] dt-bindings: media: Specify bus type for MIPI
+ D-PHY, others, explicitly
+Message-ID: <20180829004546.GA4879@bogus>
+References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
+ <20180827093000.29165-5-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1535034528-11590-5-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <20180827093000.29165-5-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 23, 2018 at 07:58:48PM +0530, Vikash Garodia wrote:
-> From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+On Mon, 27 Aug 2018 12:29:41 +0300, Sakari Ailus wrote:
+> Allow specifying the bus type explicitly for MIPI D-PHY, parallel and
+> Bt.656 busses. This is useful for devices that can make use of different
+> bus types. There are CSI-2 transmitters and receivers but the PHY
+> selection needs to be made between C-PHY and D-PHY; many devices also
+> support parallel and Bt.656 interfaces but the means to pass that
+> information to software wasn't there.
 > 
-> This registers a firmware platform_device and associate it with
-> video-firmware DT subnode. Then calls dma configure to initialize
-> dma and iommu.
+> Autodetection (value 0) is removed as an option as the property could be
+> simply omitted in that case.
 > 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  .../devicetree/bindings/media/qcom,venus.txt       | 13 +++++-
-
-In the future, please split binding patches.
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
 
 Reviewed-by: Rob Herring <robh@kernel.org>
-
->  drivers/media/platform/qcom/venus/core.c           | 14 +++++--
->  drivers/media/platform/qcom/venus/firmware.c       | 49 ++++++++++++++++++++++
->  drivers/media/platform/qcom/venus/firmware.h       |  2 +
->  4 files changed, 73 insertions(+), 5 deletions(-)
