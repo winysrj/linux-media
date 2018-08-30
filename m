@@ -1,42 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:39636 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725836AbeHaCQF (ORCPT
+Received: from mail-io0-f169.google.com ([209.85.223.169]:34268 "EHLO
+        mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725893AbeHaDl4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Aug 2018 22:16:05 -0400
-Message-ID: <4fc5107f93871599ead017af7ad50f22535a7683.camel@collabora.com>
-Subject: Re: [RFC 2/3] USB: core: Add non-coherent buffer allocation helpers
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        "Matwey V . Kornilov" <matwey@sai.msu.ru>,
-        Alan Stern <stern@rowland.harvard.edu>, kernel@collabora.com,
-        Keiichi Watanabe <keiichiw@chromium.org>
-Date: Thu, 30 Aug 2018 19:11:35 -0300
-In-Reply-To: <20180830175850.GA11521@infradead.org>
-References: <20180830172030.23344-1-ezequiel@collabora.com>
-         <20180830172030.23344-3-ezequiel@collabora.com>
-         <20180830175850.GA11521@infradead.org>
+        Thu, 30 Aug 2018 23:41:56 -0400
+Received: by mail-io0-f169.google.com with SMTP id c22-v6so9048290iob.1
+        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 16:37:20 -0700 (PDT)
+MIME-Version: 1.0
+References: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
+ <61e3a97c-3a71-77b8-e14e-90dccc64a2a9@xs4all.nl>
+In-Reply-To: <61e3a97c-3a71-77b8-e14e-90dccc64a2a9@xs4all.nl>
+From: =?UTF-8?Q?Lucas_Magalh=C3=A3es?= <lucmaga@gmail.com>
+Date: Thu, 30 Aug 2018 20:37:06 -0300
+Message-ID: <CAK0xOaHQ-xBWc6L=M_mZV5OcsRBL5qq2n8Tq5hNWLdPoMxubwA@mail.gmail.com>
+Subject: Re: Question regarding optimizing pipeline in Vimc
+To: hverkuil@xs4all.nl
+Cc: Helen Koike <helen@koikeco.de>, linux-media@vger.kernel.org,
+        gagallo7@gmail.com
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-08-30 at 10:58 -0700, Christoph Hellwig wrote:
-> Please don't introduce new DMA_ATTR_NON_CONSISTENT users, it is
-> a rather horrible interface, and I plan to kill it off rather sooner
-> than later.  I plan to post some patches for a better interface
-> that can reuse the normal dma_sync_single_* interfaces for ownership
-> transfers.  I can happily include usb in that initial patch set based
-> on your work here if that helps.
+On Wed, Aug 22, 2018 at 3:49 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> My basic idea was that you use a TPG state structure that contains the
+> desired output: the sensor starts with e.g. 720p using some bayer pixelformat,
+> the debayer module replaces the pixelformat with e.g. PIX_FMT_RGB32, a
+> grayscale filter replaces it with PI_FMT_GREY, and that's what the TPG for the
+> video device eventually will use to generate the video.
+>
+> This assumes of course that all the vimc blocks only do operations that can
+> be handled by the TPG. Depending on what the blocks will do the TPG might need
+> to be extended if a feature is missing.
+>
+Hi Hans,
 
-Please do. Until we have proper allocators that go thru the DMA API,
-drivers will have to kmalloc the USB transfer buffers, and have
-streaming mappings. Which in turns mean not using IOMMU or CMA.
+I start to work on this task but I have another question. I understand that the
+final image should have the correct format as if the frame was passing through
+the whole topology. But the operations itself doesn't needed to be done on each
+entity. For example, a scaled image will have deformations that will not be
+present if it is generated on the end of the pipeline with the final size.
+You just need the format, size and properties to be correct, do I got it right?
 
-Regards,
-Eze
+Thanks Lucas.
