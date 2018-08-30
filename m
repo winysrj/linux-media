@@ -1,53 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54991 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727098AbeH3LlH (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50417 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727643AbeH3Lyp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Aug 2018 07:41:07 -0400
-Subject: Re: [PATCH 3/3] sr030pc30: Remove redundant setting of sub-device
- name
+        Thu, 30 Aug 2018 07:54:45 -0400
+Subject: Re: [RFC 1/1] v4l: samsung, ov9650: Rely on V4L2-set sub-device names
 To: Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
-References: <20180829105233.3852-1-sakari.ailus@linux.intel.com>
- <20180829105233.3852-4-sakari.ailus@linux.intel.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+        Heungjun Kim <riverful.kim@samsung.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>
+References: <20180829105828.4502-1-sakari.ailus@linux.intel.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fa02a500-6516-3427-e0a5-9fba4b2b0cc4@xs4all.nl>
-Date: Thu, 30 Aug 2018 09:40:16 +0200
+Message-ID: <be5864c0-1bbd-40a2-0b54-e3d19e6d6276@xs4all.nl>
+Date: Thu, 30 Aug 2018 09:53:50 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180829105233.3852-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180829105828.4502-1-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/29/2018 12:52 PM, Sakari Ailus wrote:
-> The sub-device name is set right after in v4l2_i2c_subdev_init(). Remove
-> the redundant strcpy() call.
+On 08/29/2018 12:58 PM, Sakari Ailus wrote:
+> v4l2_i2c_subdev_init() sets the name of the sub-devices (as well as
+> entities) to what is fairly certainly known to be unique in the system,
+> even if there were more devices of the same kind.
+> 
+> These drivers (m5mols, noon010pc30, ov9650, s5c73m3, s5k4ecgx, s5k6aa) set
+> the name to the name of the driver or the module while omitting the
+> device's I²C address and bus, leaving the devices with a static name and
+> effectively limiting the number of such devices in a media device to 1.
+> 
+> Address this by using the name set by the V4L2 framework.
 > 
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
+If Samsung agrees to fix this, then you can add my:
 
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks!
+I think it depends a bit on whether these sensors are for in-house Samsung use
+only, or if anyone can buy them and use in products. In the latter case I am
+in favor of fixing this, but if it is in-house only, then I don't care that
+much. Although I would like to see a patch adding comments to these drivers
+that warn of this complication (to avoid people using code from these drivers
+as a template).
+
+Regards,
 
 	Hans
 
 > ---
->  drivers/media/i2c/sr030pc30.c | 1 -
->  1 file changed, 1 deletion(-)
+> Hi,
 > 
-> diff --git a/drivers/media/i2c/sr030pc30.c b/drivers/media/i2c/sr030pc30.c
-> index 2a4882cddc51..3d3fb1cda28c 100644
-> --- a/drivers/media/i2c/sr030pc30.c
-> +++ b/drivers/media/i2c/sr030pc30.c
-> @@ -703,7 +703,6 @@ static int sr030pc30_probe(struct i2c_client *client,
->  		return -ENOMEM;
+> I'm a bit uncertain about this one. I discussed the matter with Hans and
+> his view was this is a bug (I don't disagree), but this bug affects uAPI.
+> Also these devices tend to be a few years old and might not see much use
+> in newer devices, so why bother? The naming convention musn't be copied to
+> newer drivers though.
+> 
+> Any opinions?
+> 
+> This patch depends on my non-RFC set I just posted, this patch in particular:
+> 
+> <URL:https://patchwork.linuxtv.org/patch/51788/>
+> 
+>  drivers/media/i2c/m5mols/m5mols_core.c   | 1 -
+>  drivers/media/i2c/noon010pc30.c          | 1 -
+>  drivers/media/i2c/ov9650.c               | 1 -
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c | 4 ++--
+>  drivers/media/i2c/s5k4ecgx.c             | 1 -
+>  drivers/media/i2c/s5k6aa.c               | 1 -
+>  6 files changed, 2 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+> index 12e79f9e32d5..320e79b63555 100644
+> --- a/drivers/media/i2c/m5mols/m5mols_core.c
+> +++ b/drivers/media/i2c/m5mols/m5mols_core.c
+> @@ -987,7 +987,6 @@ static int m5mols_probe(struct i2c_client *client,
 >  
 >  	sd = &info->sd;
-> -	strcpy(sd->name, MODULE_NAME);
->  	info->pdata = client->dev.platform_data;
+>  	v4l2_i2c_subdev_init(sd, client, &m5mols_ops);
+> -	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
 >  
->  	v4l2_i2c_subdev_init(sd, client, &sr030pc30_ops);
+>  	sd->internal_ops = &m5mols_subdev_internal_ops;
+> diff --git a/drivers/media/i2c/noon010pc30.c b/drivers/media/i2c/noon010pc30.c
+> index 88c498ad45df..0629bc138fbc 100644
+> --- a/drivers/media/i2c/noon010pc30.c
+> +++ b/drivers/media/i2c/noon010pc30.c
+> @@ -720,7 +720,6 @@ static int noon010_probe(struct i2c_client *client,
+>  	mutex_init(&info->lock);
+>  	sd = &info->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
+> -	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+>  
+>  	sd->internal_ops = &noon010_subdev_internal_ops;
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 5bea31cd41aa..7e116eb415e5 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -1546,7 +1546,6 @@ static int ov965x_probe(struct i2c_client *client,
+>  
+>  	sd = &ov965x->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
+> -	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+>  
+>  	sd->internal_ops = &ov965x_sd_internal_ops;
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> index ce196b60f917..64212551524e 100644
+> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> @@ -1683,7 +1683,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+>  	v4l2_subdev_init(sd, &s5c73m3_subdev_ops);
+>  	sd->owner = client->dev.driver->owner;
+>  	v4l2_set_subdevdata(sd, state);
+> -	strlcpy(sd->name, "S5C73M3", sizeof(sd->name));
+> +	v4l2_i2c_subdev_set_name(sd, client, NULL, NULL);
+>  
+>  	sd->internal_ops = &s5c73m3_internal_ops;
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> @@ -1698,7 +1698,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+>  		return ret;
+>  
+>  	v4l2_i2c_subdev_init(oif_sd, client, &oif_subdev_ops);
+> -	strcpy(oif_sd->name, "S5C73M3-OIF");
+> +	v4l2_i2c_subdev_set_name(sd, client, NULL, "-OIF");
+>  
+>  	oif_sd->internal_ops = &oif_internal_ops;
+>  	oif_sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
+> index 6ebcf254989a..8aaf5ad26826 100644
+> --- a/drivers/media/i2c/s5k4ecgx.c
+> +++ b/drivers/media/i2c/s5k4ecgx.c
+> @@ -954,7 +954,6 @@ static int s5k4ecgx_probe(struct i2c_client *client,
+>  	sd = &priv->sd;
+>  	/* Registering subdev */
+>  	v4l2_i2c_subdev_init(sd, client, &s5k4ecgx_ops);
+> -	strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
+>  
+>  	sd->internal_ops = &s5k4ecgx_subdev_internal_ops;
+>  	/* Support v4l2 sub-device user space API */
+> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+> index 13c10b5e2b45..9536316e2d80 100644
+> --- a/drivers/media/i2c/s5k6aa.c
+> +++ b/drivers/media/i2c/s5k6aa.c
+> @@ -1576,7 +1576,6 @@ static int s5k6aa_probe(struct i2c_client *client,
+>  
+>  	sd = &s5k6aa->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &s5k6aa_subdev_ops);
+> -	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+>  
+>  	sd->internal_ops = &s5k6aa_subdev_internal_ops;
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
 > 
