@@ -1,99 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:54488 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726878AbeH3TnV (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:38030 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725836AbeH3VYL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Aug 2018 15:43:21 -0400
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w7UFdXBv012989
-        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 11:40:36 -0400
-Received: from e36.co.us.ibm.com (e36.co.us.ibm.com [32.97.110.154])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2m6gjarqrw-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 11:40:36 -0400
-Received: from localhost
-        by e36.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <eajames@linux.vnet.ibm.com>;
-        Thu, 30 Aug 2018 09:40:35 -0600
-Subject: Re: [PATCH 4/4] media: platform: Add Aspeed Video Engine driver
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-aspeed@lists.ozlabs.org, openbmc@lists.ozlabs.org,
-        andrew@aj.id.au, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        joel@jms.id.au, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-clk@vger.kernel.org,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
-References: <1535576973-8067-1-git-send-email-eajames@linux.vnet.ibm.com>
- <1535576973-8067-5-git-send-email-eajames@linux.vnet.ibm.com>
- <CAAEAJfBpmFPLTMAr+Azc-53JXHPkCU4bjtwqE6nDWUvm=J_x-A@mail.gmail.com>
-From: Eddie James <eajames@linux.vnet.ibm.com>
-Date: Thu, 30 Aug 2018 10:40:21 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAAEAJfBpmFPLTMAr+Azc-53JXHPkCU4bjtwqE6nDWUvm=J_x-A@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-Message-Id: <7cb0c2f0-cc12-81a6-a858-40776ec5904c@linux.vnet.ibm.com>
+        Thu, 30 Aug 2018 17:24:11 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        "Matwey V . Kornilov" <matwey@sai.msu.ru>,
+        Alan Stern <stern@rowland.harvard.edu>, kernel@collabora.com,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [RFC 0/3] Introduce usb_{alloc,free}_noncoherent API
+Date: Thu, 30 Aug 2018 14:20:27 -0300
+Message-Id: <20180830172030.23344-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Following the discussion on PWC [1] and UVC [2] drivers, where
+use non-consistent mappings for the URB transfer buffers was
+shown to improve transfer speed significantly, here's a proposal
+for a non-coherent USB helpers.
 
+With this pachset, it's possible to get 360x288 raw analog video
+using stk1160 and a AM335x Beaglebone Black board. This isn't
+possible in mainline, for the same reasons Matwey has explained [1].
 
-On 08/29/2018 07:52 PM, Ezequiel Garcia wrote:
-> Hi Eddie,
->
-> On 29 August 2018 at 18:09, Eddie James <eajames@linux.vnet.ibm.com> wrote:
->> The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
->> can capture and compress video data from digital or analog sources. With
->> the Aspeed chip acting a service processor, the Video Engine can capture
->> the host processor graphics output.
->>
->> Add a V4L2 driver to capture video data and compress it to JPEG images,
->> making the data available through a standard read interface.
->>
->> Signed-off-by: Eddie James <eajames@linux.vnet.ibm.com>
->> ---
->>   drivers/media/platform/Kconfig        |    8 +
->>   drivers/media/platform/Makefile       |    1 +
->>   drivers/media/platform/aspeed-video.c | 1307 +++++++++++++++++++++++++++++++++
->>   3 files changed, 1316 insertions(+)
->>   create mode 100644 drivers/media/platform/aspeed-video.c
->>
->> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
->> index 94c1fe0..e599245 100644
->> --- a/drivers/media/platform/Kconfig
->> +++ b/drivers/media/platform/Kconfig
->> @@ -32,6 +32,14 @@ source "drivers/media/platform/davinci/Kconfig"
->>
->>   source "drivers/media/platform/omap/Kconfig"
->>
->> +config VIDEO_ASPEED
->> +       tristate "Aspeed AST2400 and AST2500 Video Engine driver"
->> +       depends on VIDEO_V4L2
-> It seems you are not using videobuf2. I think it should simplify the read
-> I/O part and at the same time expose the other capture methods.
+First patch is a hack, obviously incomplete, to add support for
+non-consistent mappings on ARM.
 
-Hi,
+The second patch introduces the usb_{alloc,free}_noncoherent API,
+while the third patch is an example on stk1160.
 
-Well I'm not sure it would simplify the read interface; it's quite 
-simple as it is, both in the driver and to set up in user-space.
+I'm sending this patchset as RFC, just to get the ball rolling.
 
-I did get streaming I/O working but found the performance significantly 
-worse than simple read calls, and therefore not worth the additional 
-complexity.
+[1] https://lkml.org/lkml/2018/8/21/663
+[2] https://lkml.org/lkml/2018/6/27/188
 
-Is it required that I support streaming?
+Ezequiel Garcia (3):
+  HACK: ARM: dma-mapping: Get writeback memory for non-consistent
+    mappings
+  USB: core: Add non-coherent buffer allocation helpers
+  stk1160: Use non-coherent buffers for USB transfers
 
-Thanks,
-Eddie
+ arch/arm/include/asm/pgtable.h            |  3 ++
+ arch/arm/mm/dma-mapping.c                 |  9 ++--
+ drivers/media/usb/stk1160/stk1160-video.c | 22 +++------
+ drivers/usb/core/buffer.c                 | 29 +++++++-----
+ drivers/usb/core/hcd.c                    |  5 +-
+ drivers/usb/core/usb.c                    | 56 ++++++++++++++++++++++-
+ include/linux/usb.h                       |  5 ++
+ include/linux/usb/hcd.h                   |  4 +-
+ 8 files changed, 97 insertions(+), 36 deletions(-)
 
->
-> There are plenty of examples to follow.
->
-> Regards,
-> Eze
->
+-- 
+2.18.0
