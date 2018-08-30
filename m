@@ -1,148 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:12033 "EHLO
-        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730557AbeHWQ5n (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45774 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728330AbeH3PnR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Aug 2018 12:57:43 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 00/30] v4l: add support for multiplexed streams
-Date: Thu, 23 Aug 2018 15:25:14 +0200
-Message-Id: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 30 Aug 2018 11:43:17 -0400
+Subject: Re: [PATCH 4/5] videodev2.h: add new capabilities for buffer types
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Hans Verkuil <hansverk@cisco.com>
+References: <20180824082156.6986-1-hverkuil@xs4all.nl>
+ <20180824082156.6986-5-hverkuil@xs4all.nl>
+ <CAAFQd5A+UCSxBM11-maLbe-0WAKVFnk-mDCn+o06Xd9JO7=0_g@mail.gmail.com>
+ <ef161d62-bf9b-427d-9fb5-f022f2b0d83b@xs4all.nl>
+ <CAAFQd5Bdvxw_=qrKuFPt87LfM1aR+1LuWQ7L3jZo9JuGWVykUA@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0559761e-f689-1bc0-983c-dd2ce96e3bb8@xs4all.nl>
+Date: Thu, 30 Aug 2018 13:41:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAAFQd5Bdvxw_=qrKuFPt87LfM1aR+1LuWQ7L3jZo9JuGWVykUA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 08/29/2018 10:49 AM, Tomasz Figa wrote:
+> On Tue, Aug 28, 2018 at 9:37 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>> On 24/08/18 16:36, Tomasz Figa wrote:
+>>> Hi Hans,
+>>>
+>>> On Fri, Aug 24, 2018 at 5:22 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>
+>>>> From: Hans Verkuil <hansverk@cisco.com>
+>>>>
+>>>> VIDIOC_REQBUFS and VIDIOC_CREATE_BUFFERS will return capabilities
+>>>> telling userspace what the given buffer type is capable of.
+>>>>
+>>>
+>>> Please see my comments below.
+>>>
+>>>> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+>>>> ---
+>>>>  .../media/uapi/v4l/vidioc-create-bufs.rst     | 10 +++++-
+>>>>  .../media/uapi/v4l/vidioc-reqbufs.rst         | 36 ++++++++++++++++++-
+>>>>  include/uapi/linux/videodev2.h                | 13 +++++--
+>>>>  3 files changed, 55 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
+>>>> index a39e18d69511..fd34d3f236c9 100644
+>>>> --- a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
+>>>> +++ b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
+>>>> @@ -102,7 +102,15 @@ than the number requested.
+>>>>        - ``format``
+>>>>        - Filled in by the application, preserved by the driver.
+>>>>      * - __u32
+>>>> -      - ``reserved``\ [8]
+>>>> +      - ``capabilities``
+>>>> +      - Set by the driver. If 0, then the driver doesn't support
+>>>> +        capabilities. In that case all you know is that the driver is
+>>>> +       guaranteed to support ``V4L2_MEMORY_MMAP`` and *might* support
+>>>> +       other :c:type:`v4l2_memory` types. It will not support any others
+>>>> +       capabilities. See :ref:`here <v4l2-buf-capabilities>` for a list of the
+>>>> +       capabilities.
+>>>
+>>> Perhaps it would make sense to document how the application is
+>>> expected to query for these capabilities? Right now, the application
+>>> is expected to fill in the "memory" field in this struct (and reqbufs
+>>> counterpart), but it sounds a bit strange that one needs to know what
+>>> "memory" value to write there to query what set of "memory" values is
+>>> supported. In theory, MMAP is expected to be always supported, but it
+>>> sounds strange anyway. Also, is there a way to call REQBUFS without
+>>> altering the buffer allocation?
+>>
+>> No, this is only possible with CREATE_BUFS.
+>>
+>> But it is reasonable to call REQBUFS with a count of 0, since you want to
+>> start with a clean slate anyway.
+>>
+>> The only option I see would be to introduce a new memory type (e.g.
+>> V4L2_MEMORY_CAPS) to just return the capabilities. But that's more ugly
+>> then just requiring that you use MMAP when calling this.
+>>
+>> I'm inclined to just document that you need to set memory to MMAP if
+>> you want to get the capabilities since MMAP is always guaranteed to
+>> exist.
+> 
+> I guess it's the least evil we can get without changing the API too
+> much. Fair enough.
+> 
 
-This series adds support for multiplexed streams within a media device 
-link. The use-case addressed in this series covers CSI-2 Virtual 
-Channels on the Renesas R-Car Gen3 platforms. The v4l2 changes have been 
-a joint effort between Sakari and Laurent and floating around for some 
-time [1].
+Can you ack the updated patch:
 
-I have added driver support for the devices used on the Renesas Gen3 
-platforms, a ADV7482 connected to the R-Car CSI-2 receiver. With these 
-changes I can control which of the analog inputs of the ADV7482 the 
-video source is captured from and on which CSI-2 virtual channel the 
-video is transmitted on to the R-Car CSI-2 receiver.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg134624.html
 
-The series adds two new subdev IOCTLs [GS]_ROUTING which allows 
-user-space to get and set routes inside a subdevice. I have added RFC 
-support for these to v4l-utils [2] which can be used to test this 
-series, example:
+And take a look at patches 6-10 as well, if you have time.
 
-    Check the internal routing of the adv748x csi-2 transmitter:
-    v4l2-ctl -d /dev/v4l-subdev24 --get-routing
-    0/0 -> 1/0 [ENABLED]
-    0/0 -> 1/1 []
-    0/0 -> 1/2 []
-    0/0 -> 1/3 []
+I'd like to get this merged in a request topic branch asap.
 
+Regards,
 
-    Select that video should be outputed on VC 2 and check the result:
-    $ v4l2-ctl -d /dev/v4l-subdev24 --set-routing '0/0 -> 1/2 [1]'
+	Hans
 
-    $ v4l2-ctl -d /dev/v4l-subdev24 --get-routing
-    0/0 -> 1/0 []
-    0/0 -> 1/1 []
-    0/0 -> 1/2 [ENABLED]
-    0/0 -> 1/3 []
-
-This series is tested on R-Car M3-N and for your testing needs this 
-series is available at
-
-    git://git.ragnatech.se/linux v4l2/mux
-
-Thanks.
-
-1. git://linuxtv.org/sailus/media_tree.git vc
-2. git://git.ragnatech.se/v4l-utils routing
-
-
-Laurent Pinchart (4):
-  media: entity: Add has_route entity operation
-  media: entity: Add media_has_route() function
-  media: entity: Use routing information during graph traversal
-  v4l: subdev: Add [GS]_ROUTING subdev ioctls and operations
-
-Niklas Söderlund (7):
-  adv748x: csi2: add translation from pixelcode to CSI-2 datatype
-  adv748x: csi2: only allow formats on sink pads
-  adv748x: csi2: describe the multiplexed stream
-  adv748x: csi2: add internal routing configuration
-  adv748x: afe: add routing support
-  rcar-csi2: use frame description information to configure CSI-2 bus
-  rcar-csi2: expose the subdevice internal routing
-
-Sakari Ailus (19):
-  media: entity: Use pad as a starting point for graph walk
-  media: entity: Use pads instead of entities in the media graph walk
-    stack
-  media: entity: Walk the graph based on pads
-  v4l: mc: Start walk from a specific pad in use count calculation
-  media: entity: Move the pipeline from entity to pads
-  media: entity: Use pad as the starting point for a pipeline
-  media: entity: Swap pads if route is checked from source to sink
-  media: entity: Skip link validation for pads to which there is no
-    route to
-  media: entity: Add an iterator helper for connected pads
-  media: entity: Add only connected pads to the pipeline
-  media: entity: Add debug information in graph walk route check
-  media: entity: Look for indirect routes
-  v4l: subdev: compat: Implement handling for VIDIOC_SUBDEV_[GS]_ROUTING
-  v4l: subdev: Take routing information into account in link validation
-  v4l: subdev: Improve link format validation debug messages
-  v4l: mc: Add an S_ROUTING helper function for power state changes
-  v4l: Add bus type to frame descriptors
-  v4l: Add CSI-2 bus configuration to frame descriptors
-  v4l: Add stream to frame descriptor
-
- Documentation/media/kapi/mc-core.rst          |  15 +-
- drivers/media/i2c/adv748x/adv748x-afe.c       |  65 ++++
- drivers/media/i2c/adv748x/adv748x-csi2.c      | 124 +++++++-
- drivers/media/i2c/adv748x/adv748x.h           |   1 +
- drivers/media/media-entity.c                  | 252 ++++++++++------
- drivers/media/pci/intel/ipu3/ipu3-cio2.c      |   6 +-
- .../media/platform/exynos4-is/fimc-capture.c  |   8 +-
- .../platform/exynos4-is/fimc-isp-video.c      |   8 +-
- drivers/media/platform/exynos4-is/fimc-isp.c  |   2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c |  10 +-
- drivers/media/platform/exynos4-is/media-dev.c |  20 +-
- drivers/media/platform/omap3isp/isp.c         |   2 +-
- drivers/media/platform/omap3isp/ispvideo.c    |  25 +-
- drivers/media/platform/omap3isp/ispvideo.h    |   2 +-
- .../media/platform/qcom/camss/camss-video.c   |   6 +-
- drivers/media/platform/rcar-vin/rcar-csi2.c   | 188 +++++++++---
- drivers/media/platform/rcar-vin/rcar-dma.c    |   8 +-
- .../media/platform/s3c-camif/camif-capture.c  |   6 +-
- drivers/media/platform/vimc/vimc-capture.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_video.c      |  18 +-
- drivers/media/platform/xilinx/xilinx-dma.c    |  20 +-
- drivers/media/platform/xilinx/xilinx-dma.h    |   2 +-
- drivers/media/usb/au0828/au0828-core.c        |   4 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  75 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c          |  20 +-
- drivers/media/v4l2-core/v4l2-mc.c             |  76 +++--
- drivers/media/v4l2-core/v4l2-subdev.c         | 285 ++++++++++++++++--
- .../staging/media/davinci_vpfe/vpfe_video.c   |  47 +--
- drivers/staging/media/imx/imx-media-utils.c   |   8 +-
- drivers/staging/media/omap4iss/iss.c          |   2 +-
- drivers/staging/media/omap4iss/iss_video.c    |  38 +--
- drivers/staging/media/omap4iss/iss_video.h    |   2 +-
- include/media/media-entity.h                  | 122 +++++---
- include/media/v4l2-mc.h                       |  22 ++
- include/media/v4l2-subdev.h                   |  34 +++
- include/uapi/linux/v4l2-subdev.h              |  40 +++
- 36 files changed, 1239 insertions(+), 330 deletions(-)
-
--- 
-2.18.0
+> Best regards,
+> Tomasz
+> 
