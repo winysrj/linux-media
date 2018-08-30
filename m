@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:52250 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727286AbeHaTjI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60480 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728195AbeH3O5H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 15:39:08 -0400
-Date: Fri, 31 Aug 2018 12:31:02 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.20] Add Request API for the topic branch
-Message-ID: <20180831123102.72bf427d@coco.lan>
-In-Reply-To: <23a0f5a6-af4b-c239-7443-df85631c0075@xs4all.nl>
-References: <23a0f5a6-af4b-c239-7443-df85631c0075@xs4all.nl>
+        Thu, 30 Aug 2018 10:57:07 -0400
+Date: Thu, 30 Aug 2018 13:55:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: robh@kernel.org
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        alanx.chiang@intel.com, andy.yeh@intel.com
+Subject: Re: [PATCH 1/2] dt-bindings: dw9714, dw9807-vcm: Add files to
+ MAINTAINERS, rename files
+Message-ID: <20180830105531.53o3afx5k3cank5z@valkosipuli.retiisi.org.uk>
+References: <20180723105039.20110-1-sakari.ailus@linux.intel.com>
+ <20180723105039.20110-2-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180723105039.20110-2-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Aug 2018 12:40:38 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Ping?
 
-> Hi Mauro,
+On Mon, Jul 23, 2018 at 01:50:38PM +0300, Sakari Ailus wrote:
+> Add the DT binding documentation for dw9714 and dw9807-vcm to the
+> MAINTAINERS file. The dw9807-vcm binding documentation file is renamed to
+> match the dw9807's VCM bit's compatible string.
 > 
-> This is a pull request to add the Request API v18 as a topic branch.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  .../bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} | 0
+>  MAINTAINERS                                                             | 2 ++
+>  2 files changed, 2 insertions(+)
+>  rename Documentation/devicetree/bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} (100%)
 > 
-> Note that this does not yet include the follow-up patches:
+> diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
+> similarity index 100%
+> rename from Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> rename to Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index bbd9b9b3d74f..44e917de2c8c 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -4410,6 +4410,7 @@ L:	linux-media@vger.kernel.org
+>  T:	git git://linuxtv.org/media_tree.git
+>  S:	Maintained
+>  F:	drivers/media/i2c/dw9714.c
+> +F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
+>  
+>  DONGWOON DW9807 LENS VOICE COIL DRIVER
+>  M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+> @@ -4417,6 +4418,7 @@ L:	linux-media@vger.kernel.org
+>  T:	git git://linuxtv.org/media_tree.git
+>  S:	Maintained
+>  F:	drivers/media/i2c/dw9807.c
+> +F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
+>  
+>  DOUBLETALK DRIVER
+>  M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
+> -- 
+> 2.11.0
 > 
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg134630.html
-> 
-> Those will come in a separate pull request on top of this one once this is
-> agreed upon (hopefully soon!).
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 3799eca51c5be3cd76047a582ac52087373b54b3:
-> 
->   media: camss: add missing includes (2018-08-29 14:02:06 -0400)
-> 
-> are available in the Git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git reqv18
-> 
-> for you to fetch changes up to 1212ceb69544eee3864ec8461bc53ee6ddd87fb0:
-> 
->   vivid: add request support (2018-08-30 12:01:28 +0200)
 
-This pull request breaks compilation with 386:
-
-drivers/media/platform/vivid/vivid-osd.c:./include/linux/slab.h:631:13: error: undefined identifier '__builtin_mul_overflow'
-drivers/media/platform/vivid/vivid-osd.c:./include/linux/slab.h:631:13: warning: call with no type!
-
-Thanks,
-Mauro
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
