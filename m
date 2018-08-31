@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42160 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42296 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728071AbeHaQdR (ORCPT
+        by vger.kernel.org with ESMTP id S1727191AbeHaQtl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 12:33:17 -0400
-Date: Fri, 31 Aug 2018 15:25:58 +0300
+        Fri, 31 Aug 2018 12:49:41 -0400
+Date: Fri, 31 Aug 2018 15:42:21 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ysato@users.sourceforge.jp, dalias@libc.org,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/5] Remove sh_mobile_ceu_camera from arch/sh
-Message-ID: <20180831122558.zv7537uyfw5pcnqj@valkosipuli.retiisi.org.uk>
-References: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] media: sr030pc30: inconsistent NULL checking in
+ sr030pc30_base_config()
+Message-ID: <20180831124221.3kuamslh4xw3vjt7@valkosipuli.retiisi.org.uk>
+References: <20180622111947.tormf7s7an5vj4lg@kili.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <20180622111947.tormf7s7an5vj4lg@kili.mountain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
-
-On Mon, May 28, 2018 at 06:37:06PM +0200, Jacopo Mondi wrote:
-> Hello,
->     this series removes dependencies on the soc_camera based
-> sh_mobile_ceu_camera driver from 3 board files in arch/sh and from one
-> sensor driver used by one of those boards.
+On Fri, Jun 22, 2018 at 02:19:48PM +0300, Dan Carpenter wrote:
+> If info->pdata is NULL then we would oops on the next line.  And we can
+> flip the "ret" test around and give up if a failure has already occured.
 > 
-> Hans, this means there are no more user of the soc_camera framework that I know
-> of in Linux, and I guess we can now plan of to remove that framework.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/media/i2c/sr030pc30.c b/drivers/media/i2c/sr030pc30.c
+> index 2a4882cddc51..4ebd00198d34 100644
+> --- a/drivers/media/i2c/sr030pc30.c
+> +++ b/drivers/media/i2c/sr030pc30.c
+> @@ -569,8 +569,8 @@ static int sr030pc30_base_config(struct v4l2_subdev *sd)
+>  	if (!ret)
+>  		ret = sr030pc30_pwr_ctrl(sd, false, false);
+>  
+> -	if (!ret && !info->pdata)
+> -		return ret;
+> +	if (ret || !info->pdata)
+> +		return -EIO;
 
-What's the status of this set? I think it'd be nice to get it in; the CEU
-driver is the last using SoC camera framework.
+There seem to be a couple of other places checking pdata is not NULL,
+including the driver's probe() function; doing the same here seems
+redundant. Just checking ret and failing if it's non-zero should suffice:
 
-I guess an ack from the SH folks would be needed for these patches to go
-through the media tree.
+if (ret)
+	return ret;
 
-On the sensor driver patches --- please just move the files. The CEU was
-the last that it was possible to use the drivers with.
+Let me know if you'd like to respin; I can do that as well.
+
+>  
+>  	expmin = EXPOS_MIN_MS * info->pdata->clk_rate / (8 * 1000);
+>  	expmax = EXPOS_MAX_MS * info->pdata->clk_rate / (8 * 1000);
 
 -- 
-Kind regards,
-
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi
