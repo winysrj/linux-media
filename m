@@ -1,172 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58148 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728311AbeH3OmM (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45554 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727957AbeHaUBZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Aug 2018 10:42:12 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.20] Add Request API for the topic branch
-Message-ID: <23a0f5a6-af4b-c239-7443-df85631c0075@xs4all.nl>
-Date: Thu, 30 Aug 2018 12:40:38 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 31 Aug 2018 16:01:25 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v4 5/6] media: Add controls for JPEG quantization tables
+Date: Fri, 31 Aug 2018 12:52:45 -0300
+Message-Id: <20180831155245.19235-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Shunqian Zheng <zhengsq@rock-chips.com>
 
-This is a pull request to add the Request API v18 as a topic branch.
+Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
+configure the JPEG quantization tables.
 
-Note that this does not yet include the follow-up patches:
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ .../media/uapi/v4l/extended-controls.rst      | 23 +++++++++++++++++++
+ .../media/videodev2.h.rst.exceptions          |  1 +
+ drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++++
+ include/uapi/linux/v4l2-controls.h            |  5 ++++
+ include/uapi/linux/videodev2.h                |  1 +
+ 5 files changed, 40 insertions(+)
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg134630.html
-
-Those will come in a separate pull request on top of this one once this is
-agreed upon (hopefully soon!).
-
-Regards,
-
-	Hans
-
-The following changes since commit 3799eca51c5be3cd76047a582ac52087373b54b3:
-
-  media: camss: add missing includes (2018-08-29 14:02:06 -0400)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git reqv18
-
-for you to fetch changes up to 1212ceb69544eee3864ec8461bc53ee6ddd87fb0:
-
-  vivid: add request support (2018-08-30 12:01:28 +0200)
-
-----------------------------------------------------------------
-Alexandre Courbot (2):
-      Documentation: v4l: document request API
-      videodev2.h: add request_fd field to v4l2_ext_controls
-
-Hans Verkuil (32):
-      uapi/linux/media.h: add request API
-      media-request: implement media requests
-      media-request: add media_request_get_by_fd
-      media-request: add media_request_object_find
-      v4l2-device.h: add v4l2_device_supports_requests() helper
-      v4l2-dev: lock req_queue_mutex
-      v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
-      v4l2-ctrls: prepare internal structs for request API
-      v4l2-ctrls: alloc memory for p_req
-      v4l2-ctrls: use ref in helper instead of ctrl
-      v4l2-ctrls: add core request support
-      v4l2-ctrls: support g/s_ext_ctrls for requests
-      v4l2-ctrls: add v4l2_ctrl_request_hdl_find/put/ctrl_find functions
-      videobuf2-v4l2: move __fill_v4l2_buffer() function
-      videobuf2-v4l2: replace if by switch in __fill_vb2_buffer()
-      vb2: store userspace data in vb2_v4l2_buffer
-      davinci_vpfe: remove bogus vb2->state check
-      vb2: drop VB2_BUF_STATE_PREPARED, use bool prepared/synced instead
-      videodev2.h: Add request_fd field to v4l2_buffer
-      vb2: add init_buffer buffer op
-      videobuf2-core: embed media_request_object
-      videobuf2-core: integrate with media requests
-      videobuf2-v4l2: integrate with media requests
-      videobuf2-core: add request helper functions
-      videobuf2-v4l2: add vb2_request_queue/validate helpers
-      videobuf2-core: add uses_requests/qbuf flags
-      videobuf2-v4l2: refuse qbuf if queue uses requests or vv.
-      v4l2-mem2mem: add vb2_m2m_request_queue
-      vim2m: use workqueue
-      vim2m: support requests
-      vivid: add mc
-      vivid: add request support
-
-Sakari Ailus (1):
-      media: doc: Add media-request.h header to documentation build
-
- Documentation/media/kapi/mc-core.rst                           |   2 +
- Documentation/media/uapi/mediactl/media-controller.rst         |   1 +
- Documentation/media/uapi/mediactl/media-funcs.rst              |   6 +
- Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst  |  65 +++++
- Documentation/media/uapi/mediactl/media-request-ioc-queue.rst  |  82 ++++++
- Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst |  51 ++++
- Documentation/media/uapi/mediactl/request-api.rst              | 245 ++++++++++++++++++
- Documentation/media/uapi/mediactl/request-func-close.rst       |  48 ++++
- Documentation/media/uapi/mediactl/request-func-ioctl.rst       |  67 +++++
- Documentation/media/uapi/mediactl/request-func-poll.rst        |  77 ++++++
- Documentation/media/uapi/v4l/buffer.rst                        |  21 +-
- Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst            |  53 +++-
- Documentation/media/uapi/v4l/vidioc-qbuf.rst                   |  32 ++-
- Documentation/media/videodev2.h.rst.exceptions                 |   1 +
- drivers/media/Makefile                                         |   3 +-
- drivers/media/common/videobuf2/videobuf2-core.c                | 262 +++++++++++++++----
- drivers/media/common/videobuf2/videobuf2-v4l2.c                | 508 +++++++++++++++++++++++++------------
- drivers/media/dvb-core/dvb_vb2.c                               |   5 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c                      |   5 +-
- drivers/media/media-device.c                                   |  24 +-
- drivers/media/media-request.c                                  | 489 ++++++++++++++++++++++++++++++++++++
- drivers/media/pci/bt8xx/bttv-driver.c                          |   2 +-
- drivers/media/pci/cx23885/cx23885-417.c                        |   2 +-
- drivers/media/pci/cx88/cx88-blackbird.c                        |   2 +-
- drivers/media/pci/cx88/cx88-video.c                            |   2 +-
- drivers/media/pci/saa7134/saa7134-empress.c                    |   4 +-
- drivers/media/pci/saa7134/saa7134-video.c                      |   2 +-
- drivers/media/platform/exynos4-is/fimc-capture.c               |   2 +-
- drivers/media/platform/omap3isp/ispvideo.c                     |   4 +-
- drivers/media/platform/rcar-vin/rcar-core.c                    |   2 +-
- drivers/media/platform/rcar_drif.c                             |   2 +-
- drivers/media/platform/s3c-camif/camif-capture.c               |   4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c                   |   4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c                   |   4 +-
- drivers/media/platform/soc_camera/soc_camera.c                 |   7 +-
- drivers/media/platform/vim2m.c                                 |  49 ++--
- drivers/media/platform/vivid/vivid-core.c                      |  69 +++++
- drivers/media/platform/vivid/vivid-core.h                      |   8 +
- drivers/media/platform/vivid/vivid-ctrls.c                     |  46 ++--
- drivers/media/platform/vivid/vivid-kthread-cap.c               |  12 +
- drivers/media/platform/vivid/vivid-kthread-out.c               |  12 +
- drivers/media/platform/vivid/vivid-sdr-cap.c                   |  16 ++
- drivers/media/platform/vivid/vivid-vbi-cap.c                   |  10 +
- drivers/media/platform/vivid/vivid-vbi-out.c                   |  10 +
- drivers/media/platform/vivid/vivid-vid-cap.c                   |  10 +
- drivers/media/platform/vivid/vivid-vid-out.c                   |  10 +
- drivers/media/usb/cpia2/cpia2_v4l.c                            |   2 +-
- drivers/media/usb/cx231xx/cx231xx-417.c                        |   2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c                      |   4 +-
- drivers/media/usb/msi2500/msi2500.c                            |   2 +-
- drivers/media/usb/tm6000/tm6000-video.c                        |   2 +-
- drivers/media/usb/uvc/uvc_queue.c                              |   5 +-
- drivers/media/usb/uvc/uvc_v4l2.c                               |   3 +-
- drivers/media/usb/uvc/uvcvideo.h                               |   1 +
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c                  |  14 +-
- drivers/media/v4l2-core/v4l2-ctrls.c                           | 541 ++++++++++++++++++++++++++++++++++++++--
- drivers/media/v4l2-core/v4l2-dev.c                             |  18 +-
- drivers/media/v4l2-core/v4l2-device.c                          |   3 +-
- drivers/media/v4l2-core/v4l2-ioctl.c                           |  44 +++-
- drivers/media/v4l2-core/v4l2-mem2mem.c                         |  67 ++++-
- drivers/media/v4l2-core/v4l2-subdev.c                          |   9 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c                |   7 +-
- drivers/staging/media/imx/imx-media-dev.c                      |   2 +-
- drivers/staging/media/imx/imx-media-fim.c                      |   2 +-
- drivers/staging/media/omap4iss/iss_video.c                     |   3 +-
- drivers/usb/gadget/function/uvc_queue.c                        |   2 +-
- include/media/media-device.h                                   |  29 +++
- include/media/media-request.h                                  | 386 ++++++++++++++++++++++++++++
- include/media/v4l2-ctrls.h                                     | 123 ++++++++-
- include/media/v4l2-device.h                                    |  11 +
- include/media/v4l2-mem2mem.h                                   |   4 +
- include/media/videobuf2-core.h                                 |  62 ++++-
- include/media/videobuf2-v4l2.h                                 |  20 +-
- include/uapi/linux/media.h                                     |   8 +
- include/uapi/linux/videodev2.h                                 |  14 +-
- 75 files changed, 3369 insertions(+), 363 deletions(-)
- create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
- create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
- create mode 100644 Documentation/media/uapi/mediactl/media-request-ioc-reinit.rst
- create mode 100644 Documentation/media/uapi/mediactl/request-api.rst
- create mode 100644 Documentation/media/uapi/mediactl/request-func-close.rst
- create mode 100644 Documentation/media/uapi/mediactl/request-func-ioctl.rst
- create mode 100644 Documentation/media/uapi/mediactl/request-func-poll.rst
- create mode 100644 drivers/media/media-request.c
- create mode 100644 include/media/media-request.h
+diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+index 9f7312bf3365..e0dd03e452de 100644
+--- a/Documentation/media/uapi/v4l/extended-controls.rst
++++ b/Documentation/media/uapi/v4l/extended-controls.rst
+@@ -3354,7 +3354,30 @@ JPEG Control IDs
+     Specify which JPEG markers are included in compressed stream. This
+     control is valid only for encoders.
+ 
++.. _jpeg-quant-tables-control:
+ 
++``V4L2_CID_JPEG_QUANTIZATION (struct)``
++    Specifies the luma and chroma quantization matrices for encoding
++    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The two matrices
++    must be set in JPEG zigzag order, as per the JPEG specification.
++
++
++.. c:type:: struct v4l2_ctrl_jpeg_quantization
++
++.. cssclass:: longtable
++
++.. flat-table:: struct v4l2_ctrl_jpeg_quantization
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 1 2
++
++    * - __u8
++      - ``luma_quantization_matrix[64]``
++      - Sets the luma quantization table.
++
++    * - __u8
++      - ``chroma_quantization_matrix[64]``
++      - Sets the chroma quantization table.
+ 
+ .. flat-table::
+     :header-rows:  0
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index ca9f0edc579e..a0a38e92bf38 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -129,6 +129,7 @@ replace symbol V4L2_CTRL_TYPE_STRING :c:type:`v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_U16 :c:type:`v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_U32 :c:type:`v4l2_ctrl_type`
+ replace symbol V4L2_CTRL_TYPE_U8 :c:type:`v4l2_ctrl_type`
++replace symbol V4L2_CTRL_TYPE_JPEG_QUANTIZATION :c:type:`v4l2_ctrl_type`
+ 
+ # V4L2 capability defines
+ replace define V4L2_CAP_VIDEO_CAPTURE device-capabilities
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 599c1cbff3b9..305bd7a9b7f1 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -999,6 +999,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
+ 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
++	case V4L2_CID_JPEG_QUANTIZATION:	return "JPEG Quantization Tables";
+ 
+ 	/* Image source controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+@@ -1286,6 +1287,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DETECT_MD_REGION_GRID:
+ 		*type = V4L2_CTRL_TYPE_U8;
+ 		break;
++	case V4L2_CID_JPEG_QUANTIZATION:
++		*type = V4L2_CTRL_TYPE_JPEG_QUANTIZATION;
++		break;
+ 	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
+ 		*type = V4L2_CTRL_TYPE_U16;
+ 		break;
+@@ -1612,6 +1616,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			return -ERANGE;
+ 		return 0;
+ 
++	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
++		return 0;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -2133,6 +2140,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	case V4L2_CTRL_TYPE_U32:
+ 		elem_size = sizeof(u32);
+ 		break;
++	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
++		elem_size = sizeof(struct v4l2_ctrl_jpeg_quantization);
++		break;
+ 	default:
+ 		if (type < V4L2_CTRL_COMPOUND_TYPES)
+ 			elem_size = sizeof(s32);
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index e4ee10ee917d..fcb288bb05c7 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -987,6 +987,11 @@ enum v4l2_jpeg_chroma_subsampling {
+ #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
+ #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
+ 
++#define V4L2_CID_JPEG_QUANTIZATION		(V4L2_CID_JPEG_CLASS_BASE + 5)
++struct v4l2_ctrl_jpeg_quantization {
++	__u8	luma_quantization_matrix[64];
++	__u8	chroma_quantization_matrix[64];
++};
+ 
+ /* Image source controls */
+ #define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index f271048c89c4..e998d07464cb 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1630,6 +1630,7 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++	V4L2_CTRL_TYPE_JPEG_QUANTIZATION = 0x0103,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+-- 
+2.18.0
