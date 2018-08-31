@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f194.google.com ([209.85.219.194]:45257 "EHLO
-        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727129AbeHaK6H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 06:58:07 -0400
-Received: by mail-yb1-f194.google.com with SMTP id h22-v6so104614ybg.12
-        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 23:52:08 -0700 (PDT)
-Received: from mail-yb1-f172.google.com (mail-yb1-f172.google.com. [209.85.219.172])
-        by smtp.gmail.com with ESMTPSA id 124-v6sm4647187yws.25.2018.08.30.23.52.06
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 30 Aug 2018 23:52:07 -0700 (PDT)
-Received: by mail-yb1-f172.google.com with SMTP id f4-v6so514157ybp.7
-        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 23:52:06 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180830172030.23344-1-ezequiel@collabora.com>
- <20180830172030.23344-3-ezequiel@collabora.com> <20180830175850.GA11521@infradead.org>
- <4fc5107f93871599ead017af7ad50f22535a7683.camel@collabora.com> <20180831055047.GA9140@infradead.org>
-In-Reply-To: <20180831055047.GA9140@infradead.org>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 31 Aug 2018 15:51:54 +0900
-Message-ID: <CAAFQd5DhFr8ywjc41oK9q+zZXH9zsOKh_7DxWmjzcE0+5Q3hGA@mail.gmail.com>
-Subject: Re: [RFC 2/3] USB: core: Add non-coherent buffer allocation helpers
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-usb@vger.kernel.org,
-        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
-        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:55702 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727177AbeHaLK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 31 Aug 2018 07:10:28 -0400
+Date: Fri, 31 Aug 2018 09:04:24 +0200
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Alan Stern <stern@rowland.harvard.edu>, kernel@collabora.com,
-        keiichiw@chromium.org
-Content-Type: text/plain; charset="UTF-8"
+        Jonathan Corbet <corbet@lwn.net>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK"
+        <linux-kselftest@vger.kernel.org>, Zach Reizner <zachr@google.com>,
+        Daniel Stone <daniels@collabora.com>
+Subject: Re: [PATCH v6] Add udmabuf misc device
+Message-ID: <20180831070424.3xoxfy54vyxbdfzd@sirius.home.kraxel.org>
+References: <20180703075359.30349-1-kraxel@redhat.com>
+ <20180703083757.GG7880@phenom.ffwll.local>
+ <20180704055338.n3b7oexltaejqmcd@sirius.home.kraxel.org>
+ <9818b301-9c9d-c703-d4fe-7c2d4d43ed66@collabora.com>
+ <20180704080005.juutrwri4kxm7yim@sirius.home.kraxel.org>
+ <06d8aa8d-5eac-64e2-f21e-43fe7ca96cc2@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <06d8aa8d-5eac-64e2-f21e-43fe7ca96cc2@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 31, 2018 at 2:50 PM Christoph Hellwig <hch@infradead.org> wrote:
->
-> On Thu, Aug 30, 2018 at 07:11:35PM -0300, Ezequiel Garcia wrote:
-> > On Thu, 2018-08-30 at 10:58 -0700, Christoph Hellwig wrote:
-> > > Please don't introduce new DMA_ATTR_NON_CONSISTENT users, it is
-> > > a rather horrible interface, and I plan to kill it off rather sooner
-> > > than later.  I plan to post some patches for a better interface
-> > > that can reuse the normal dma_sync_single_* interfaces for ownership
-> > > transfers.  I can happily include usb in that initial patch set based
-> > > on your work here if that helps.
-> >
-> > Please do. Until we have proper allocators that go thru the DMA API,
-> > drivers will have to kmalloc the USB transfer buffers, and have
-> > streaming mappings. Which in turns mean not using IOMMU or CMA.
->
-> dma_map_page will of course use the iommu.
+  Hi,
 
-Sure, dma_map*() will, but using kmalloc() defeats (half of) the
-purpose of it, since contiguous memory would be allocated
-unnecessarily, risking failures due to fragmentation.
+> > qemu can use memfd to allocate guest ram.  Now, with the help of
+> > udmabuf, qemu can create a *host* dma-buf for the *guest* graphics
+> > buffer.
+> 
+> Guess each physical address in the iovec in
+> VIRTIO_GPU_CMD_RESOURCE_ATTACH_BACKING can be passed as the offset in the
+> udmabuf_create_item struct?
 
-Best regards,
-Tomasz
+Exactly.
+
+https://git.kraxel.org/cgit/qemu/commit/?h=sirius/udmabuf&id=515a5b9f1215ea668a992e39d66993a17a940801
+
+> Are you thinking of anything else besides passing the winsrv protocol across
+> the guest/host boundary? Just wondering if I'm missing something.
+
+The patch above uses the dmabuf internally in qemu.  It simply mmaps it,
+so qemu has a linear representation of the resource and can use it as
+pixman image backing storage without copying the pixel data.
+
+So it is useful even without actually exporting the dmabuf to other
+processes.
+
+cheers,
+  Gerd
+
+PS: Any chance you can review the v7 patch?
