@@ -1,70 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:45468 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727768AbeHaTuP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:35844 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727345AbeHaT6I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 15:50:15 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-rockchip@lists.infradead.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v4 3/6] arm64: dts: rockchip: add VPU device node for RK3399
-Date: Fri, 31 Aug 2018 12:41:10 -0300
-Message-Id: <20180831154113.18872-4-ezequiel@collabora.com>
-In-Reply-To: <20180831154113.18872-1-ezequiel@collabora.com>
-References: <20180831154113.18872-1-ezequiel@collabora.com>
+        Fri, 31 Aug 2018 15:58:08 -0400
+Date: Fri, 31 Aug 2018 12:49:58 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.20] Add Request API for the topic branch
+Message-ID: <20180831124958.528dbfbe@coco.lan>
+In-Reply-To: <20180831123102.72bf427d@coco.lan>
+References: <23a0f5a6-af4b-c239-7443-df85631c0075@xs4all.nl>
+        <20180831123102.72bf427d@coco.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the Video Processing Unit node for the RK3399 SoC.
+Em Fri, 31 Aug 2018 12:31:02 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 
-Also, fix the VPU IOMMU node, which was disabled and lacking
-its power domain property.
+> Em Thu, 30 Aug 2018 12:40:38 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > This is a pull request to add the Request API v18 as a topic branch.
+> > 
+> > Note that this does not yet include the follow-up patches:
+> > 
+> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg134630.html
+> > 
+> > Those will come in a separate pull request on top of this one once this is
+> > agreed upon (hopefully soon!).
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > The following changes since commit 3799eca51c5be3cd76047a582ac52087373b54b3:
+> > 
+> >   media: camss: add missing includes (2018-08-29 14:02:06 -0400)
+> > 
+> > are available in the Git repository at:
+> > 
+> >   git://linuxtv.org/hverkuil/media_tree.git reqv18
+> > 
+> > for you to fetch changes up to 1212ceb69544eee3864ec8461bc53ee6ddd87fb0:
+> > 
+> >   vivid: add request support (2018-08-30 12:01:28 +0200)  
+> 
+> This pull request breaks compilation with 386:
+> 
+> drivers/media/platform/vivid/vivid-osd.c:./include/linux/slab.h:631:13: error: undefined identifier '__builtin_mul_overflow'
+> drivers/media/platform/vivid/vivid-osd.c:./include/linux/slab.h:631:13: warning: call with no type!
 
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+False alarm. This seems to be just some random noise from a static
+code analizer.
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index 6ba438427515..5dd840b3deb1 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -1231,6 +1231,18 @@
- 		status = "disabled";
- 	};
- 
-+	vpu: video-codec@ff650000 {
-+		compatible = "rockchip,rk3399-vpu";
-+		reg = <0x0 0xff650000 0x0 0x800>;
-+		interrupts = <GIC_SPI 114 IRQ_TYPE_LEVEL_HIGH 0>,
-+			     <GIC_SPI 113 IRQ_TYPE_LEVEL_HIGH 0>;
-+		interrupt-names = "vepu", "vdpu";
-+		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
-+		clock-names = "aclk", "hclk";
-+		power-domains = <&power RK3399_PD_VCODEC>;
-+		iommus = <&vpu_mmu>;
-+	};
-+
- 	vpu_mmu: iommu@ff650800 {
- 		compatible = "rockchip,iommu";
- 		reg = <0x0 0xff650800 0x0 0x40>;
-@@ -1238,8 +1250,8 @@
- 		interrupt-names = "vpu_mmu";
- 		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
- 		clock-names = "aclk", "iface";
-+		power-domains = <&power RK3399_PD_VCODEC>;
- 		#iommu-cells = <0>;
--		status = "disabled";
- 	};
- 
- 	vdec_mmu: iommu@ff660480 {
--- 
-2.18.0
+> 
+> Thanks,
+> Mauro
+
+
+
+Thanks,
+Mauro
