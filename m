@@ -1,70 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:35844 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727345AbeHaT6I (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45538 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728587AbeHaUAg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 15:58:08 -0400
-Date: Fri, 31 Aug 2018 12:49:58 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.20] Add Request API for the topic branch
-Message-ID: <20180831124958.528dbfbe@coco.lan>
-In-Reply-To: <20180831123102.72bf427d@coco.lan>
-References: <23a0f5a6-af4b-c239-7443-df85631c0075@xs4all.nl>
-        <20180831123102.72bf427d@coco.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 31 Aug 2018 16:00:36 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v4 4/6] media: Add JPEG_RAW format
+Date: Fri, 31 Aug 2018 12:51:57 -0300
+Message-Id: <20180831155157.19114-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 31 Aug 2018 12:31:02 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+From: Shunqian Zheng <zhengsq@rock-chips.com>
 
-> Em Thu, 30 Aug 2018 12:40:38 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > This is a pull request to add the Request API v18 as a topic branch.
-> > 
-> > Note that this does not yet include the follow-up patches:
-> > 
-> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg134630.html
-> > 
-> > Those will come in a separate pull request on top of this one once this is
-> > agreed upon (hopefully soon!).
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > The following changes since commit 3799eca51c5be3cd76047a582ac52087373b54b3:
-> > 
-> >   media: camss: add missing includes (2018-08-29 14:02:06 -0400)
-> > 
-> > are available in the Git repository at:
-> > 
-> >   git://linuxtv.org/hverkuil/media_tree.git reqv18
-> > 
-> > for you to fetch changes up to 1212ceb69544eee3864ec8461bc53ee6ddd87fb0:
-> > 
-> >   vivid: add request support (2018-08-30 12:01:28 +0200)  
-> 
-> This pull request breaks compilation with 386:
-> 
-> drivers/media/platform/vivid/vivid-osd.c:./include/linux/slab.h:631:13: error: undefined identifier '__builtin_mul_overflow'
-> drivers/media/platform/vivid/vivid-osd.c:./include/linux/slab.h:631:13: warning: call with no type!
+Add V4L2_PIX_FMT_JPEG_RAW format that does not contain
+JPEG header in the output frame.
 
-False alarm. This seems to be just some random noise from a static
-code analizer.
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-compressed.rst | 9 +++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 1 +
+ include/uapi/linux/videodev2.h                     | 1 +
+ 3 files changed, 11 insertions(+)
 
-> 
-> Thanks,
-> Mauro
-
-
-
-Thanks,
-Mauro
+diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+index d382e7a5c38e..4dffe40097f2 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+@@ -23,6 +23,15 @@ Compressed Formats
+       - 'JPEG'
+       - TBD. See also :ref:`VIDIOC_G_JPEGCOMP <VIDIOC_G_JPEGCOMP>`,
+ 	:ref:`VIDIOC_S_JPEGCOMP <VIDIOC_G_JPEGCOMP>`.
++    * .. _V4L2-PIX-FMT-JPEG-RAW:
++
++      - ``V4L2_PIX_FMT_JPEG_RAW``
++      - 'Raw JPEG'
++      - Raw JPEG bitstream, containing a compressed payload. This format
++        contains an image scan, i.e. without any metadata or headers.
++        The user is expected to set the needed metadata such as
++        quantization and entropy encoding tables, via ``V4L2_CID_JPEG``
++        controls, see :ref:`jpeg-control-id`.
+     * .. _V4L2-PIX-FMT-MPEG:
+ 
+       - ``V4L2_PIX_FMT_MPEG``
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 54afc9c7ee6e..0dcd95f4bdf1 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1301,6 +1301,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		/* Max description length mask:	descr = "0123456789012345678901234567890" */
+ 		case V4L2_PIX_FMT_MJPEG:	descr = "Motion-JPEG"; break;
+ 		case V4L2_PIX_FMT_JPEG:		descr = "JFIF JPEG"; break;
++		case V4L2_PIX_FMT_JPEG_RAW:	descr = "Raw JPEG"; break;
+ 		case V4L2_PIX_FMT_DV:		descr = "1394"; break;
+ 		case V4L2_PIX_FMT_MPEG:		descr = "MPEG-1/2/4"; break;
+ 		case V4L2_PIX_FMT_H264:		descr = "H.264"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 5d1a3685bea9..f271048c89c4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -627,6 +627,7 @@ struct v4l2_pix_format {
+ /* compressed formats */
+ #define V4L2_PIX_FMT_MJPEG    v4l2_fourcc('M', 'J', 'P', 'G') /* Motion-JPEG   */
+ #define V4L2_PIX_FMT_JPEG     v4l2_fourcc('J', 'P', 'E', 'G') /* JFIF JPEG     */
++#define V4L2_PIX_FMT_JPEG_RAW v4l2_fourcc('J', 'P', 'G', 'R') /* JFIF JPEG RAW without headers */
+ #define V4L2_PIX_FMT_DV       v4l2_fourcc('d', 'v', 's', 'd') /* 1394          */
+ #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
+ #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
+-- 
+2.18.0
