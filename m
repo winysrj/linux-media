@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:45554 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45398 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727957AbeHaUBZ (ORCPT
+        with ESMTP id S1727687AbeHaTt7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 16:01:25 -0400
+        Fri, 31 Aug 2018 15:49:59 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-rockchip@lists.infradead.org
@@ -14,145 +14,224 @@ Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
         Miouyouyou <myy@miouyouyou.fr>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v4 5/6] media: Add controls for JPEG quantization tables
-Date: Fri, 31 Aug 2018 12:52:45 -0300
-Message-Id: <20180831155245.19235-1-ezequiel@collabora.com>
+Subject: [PATCH v4 0/6] Add Rockchip VPU JPEG encoder
+Date: Fri, 31 Aug 2018 12:41:07 -0300
+Message-Id: <20180831154113.18872-1-ezequiel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+This series adds support for JPEG encoding via the VPU block
+present in Rockchip platforms. Currently, support for RK3288
+and RK3399 is included.
 
-Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
-configure the JPEG quantization tables.
+This v4 patchset changes quantization luma and chroma array controls,
+and instead introduces a compound control, V4L2_CID_JPEG_QUANTIZATION
+for userspace to specify the luma and chroma quantization tables,
+via a struct.
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
----
- .../media/uapi/v4l/extended-controls.rst      | 23 +++++++++++++++++++
- .../media/videodev2.h.rst.exceptions          |  1 +
- drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++++
- include/uapi/linux/v4l2-controls.h            |  5 ++++
- include/uapi/linux/videodev2.h                |  1 +
- 5 files changed, 40 insertions(+)
+Rest of the changes are the same as v3.
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index 9f7312bf3365..e0dd03e452de 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -3354,7 +3354,30 @@ JPEG Control IDs
-     Specify which JPEG markers are included in compressed stream. This
-     control is valid only for encoders.
- 
-+.. _jpeg-quant-tables-control:
- 
-+``V4L2_CID_JPEG_QUANTIZATION (struct)``
-+    Specifies the luma and chroma quantization matrices for encoding
-+    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The two matrices
-+    must be set in JPEG zigzag order, as per the JPEG specification.
-+
-+
-+.. c:type:: struct v4l2_ctrl_jpeg_quantization
-+
-+.. cssclass:: longtable
-+
-+.. flat-table:: struct v4l2_ctrl_jpeg_quantization
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       1 1 2
-+
-+    * - __u8
-+      - ``luma_quantization_matrix[64]``
-+      - Sets the luma quantization table.
-+
-+    * - __u8
-+      - ``chroma_quantization_matrix[64]``
-+      - Sets the chroma quantization table.
- 
- .. flat-table::
-     :header-rows:  0
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index ca9f0edc579e..a0a38e92bf38 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -129,6 +129,7 @@ replace symbol V4L2_CTRL_TYPE_STRING :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_U16 :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_U32 :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_U8 :c:type:`v4l2_ctrl_type`
-+replace symbol V4L2_CTRL_TYPE_JPEG_QUANTIZATION :c:type:`v4l2_ctrl_type`
- 
- # V4L2 capability defines
- replace define V4L2_CAP_VIDEO_CAPTURE device-capabilities
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 599c1cbff3b9..305bd7a9b7f1 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -999,6 +999,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
- 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
-+	case V4L2_CID_JPEG_QUANTIZATION:	return "JPEG Quantization Tables";
- 
- 	/* Image source controls */
- 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-@@ -1286,6 +1287,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DETECT_MD_REGION_GRID:
- 		*type = V4L2_CTRL_TYPE_U8;
- 		break;
-+	case V4L2_CID_JPEG_QUANTIZATION:
-+		*type = V4L2_CTRL_TYPE_JPEG_QUANTIZATION;
-+		break;
- 	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
- 		*type = V4L2_CTRL_TYPE_U16;
- 		break;
-@@ -1612,6 +1616,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 			return -ERANGE;
- 		return 0;
- 
-+	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
-+		return 0;
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -2133,6 +2140,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	case V4L2_CTRL_TYPE_U32:
- 		elem_size = sizeof(u32);
- 		break;
-+	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
-+		elem_size = sizeof(struct v4l2_ctrl_jpeg_quantization);
-+		break;
- 	default:
- 		if (type < V4L2_CTRL_COMPOUND_TYPES)
- 			elem_size = sizeof(s32);
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index e4ee10ee917d..fcb288bb05c7 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -987,6 +987,11 @@ enum v4l2_jpeg_chroma_subsampling {
- #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
- #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
- 
-+#define V4L2_CID_JPEG_QUANTIZATION		(V4L2_CID_JPEG_CLASS_BASE + 5)
-+struct v4l2_ctrl_jpeg_quantization {
-+	__u8	luma_quantization_matrix[64];
-+	__u8	chroma_quantization_matrix[64];
-+};
- 
- /* Image source controls */
- #define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index f271048c89c4..e998d07464cb 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1630,6 +1630,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_U8	     = 0x0100,
- 	V4L2_CTRL_TYPE_U16	     = 0x0101,
- 	V4L2_CTRL_TYPE_U32	     = 0x0102,
-+	V4L2_CTRL_TYPE_JPEG_QUANTIZATION = 0x0103,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+This series does not depend on the Request API, since there are
+some encoder uses that doesn't require it. So, if there are no
+more comments, I'd like to merge this sooner than later.
+
+Compliance
+==========
+
+(Same results as v3)
+
+v4l2-compliance SHA: d0f4ea7ddab6d0244c4fe1e960bb2aaeefb911b9, 64 bits
+
+Compliance test for device /dev/video0:
+
+Driver Info:
+	Driver name      : rockchip-vpu
+	Card type        : rockchip,rk3399-vpu-enc
+	Bus info         : platform: rockchip-vpu
+	Driver version   : 4.18.0
+	Capabilities     : 0x84204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x04204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+Media Driver Info:
+	Driver name      : rockchip-vpu
+	Model            : rockchip-vpu
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.18.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.18.0
+Interface Info:
+	ID               : 0x0300000c
+	Type             : V4L Video
+Entity Info:
+	ID               : 0x00000001 (1)
+	Name             : rockchip,rk3399-vpu-enc-source
+	Function         : V4L2 I/O
+	Pad 0x01000002   : Source
+	  Link 0x02000008: to remote pad 0x1000005 of entity 'rockchip,rk3399-vpu-enc-proc': Data, Enabled, Immutable
+
+Required ioctls:
+	test MC information (see 'Media Driver Info' above): OK
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second /dev/video0 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 2 Private Controls: 0
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK (Not Supported)
+	test blocking wait: OK
+	test MMAP: OK                                     
+	test USERPTR: OK (Not Supported)
+	test DMABUF: Cannot test, specify --expbuf-device
+
+Total: 48, Succeeded: 48, Failed: 0, Warnings: 0
+
+v4:
+  - Change luma and chroma array controls, with a compound
+    control, as suggested by Paul.
+v3:
+  - Refactor driver to allow a more elegant integration with
+    other codec modes (h264 decoding, jpeg decoding, etc).
+    Each variant can now be encoders, decoders or both.
+  - Register driver in the media controller framework,
+    in preparation for the Request API.
+  - Set values for JPEG quantization controls in the core, as suggested
+    by Tomasz and Hans.
+  - Move pm_runtime_get/put to run/done, reducing power consumption.
+    This was possible thanks to Miouyouyou, who pointed out the power
+    domains missing [1].
+  - Use bulk clock API for simpler code.
+v2:
+  - Add devicetree binding documentation and devicetree changes
+  - Add documentation to added pixel format and controls
+  - Address Hans' review comments
+  - Get rid of unused running_ctx field
+  - Fix wrong planar pixel format depths
+  - Other minor changes for v4l2-compliance
+  - Drop .crop support, we will add support for the
+    selector API later, if needed.
+
+[1] https://github.com/Miouyouyou/RockMyy/blob/master/patches/kernel/v4.18/DTS/0026-ARM-DTSI-rk3288-Set-the-VPU-MMU-power-domains.patch
+
+
+Ezequiel Garcia (4):
+  dt-bindings: Document the Rockchip VPU bindings
+  ARM: dts: rockchip: add VPU device node for RK3288
+  arm64: dts: rockchip: add VPU device node for RK3399
+  media: add Rockchip VPU JPEG encoder driver
+
+Shunqian Zheng (2):
+  media: Add JPEG_RAW format
+  media: Add controls for JPEG quantization tables
+
+ .../bindings/media/rockchip-vpu.txt           |  30 +
+ .../media/uapi/v4l/extended-controls.rst      |  23 +
+ .../media/uapi/v4l/pixfmt-compressed.rst      |   9 +
+ .../media/videodev2.h.rst.exceptions          |   1 +
+ MAINTAINERS                                   |   7 +
+ arch/arm/boot/dts/rk3288.dtsi                 |  14 +-
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi      |  14 +-
+ drivers/media/platform/Kconfig                |  13 +
+ drivers/media/platform/Makefile               |   1 +
+ drivers/media/platform/rockchip/vpu/Makefile  |   9 +
+ .../platform/rockchip/vpu/rk3288_vpu_hw.c     | 123 ++++
+ .../rockchip/vpu/rk3288_vpu_hw_jpege.c        | 126 ++++
+ .../platform/rockchip/vpu/rk3288_vpu_regs.h   | 442 +++++++++++++
+ .../platform/rockchip/vpu/rk3399_vpu_hw.c     | 124 ++++
+ .../rockchip/vpu/rk3399_vpu_hw_jpege.c        | 154 +++++
+ .../platform/rockchip/vpu/rk3399_vpu_regs.h   | 601 +++++++++++++++++
+ .../platform/rockchip/vpu/rockchip_vpu.h      | 362 +++++++++++
+ .../rockchip/vpu/rockchip_vpu_common.h        |  37 ++
+ .../platform/rockchip/vpu/rockchip_vpu_drv.c  | 545 ++++++++++++++++
+ .../platform/rockchip/vpu/rockchip_vpu_enc.c  | 607 ++++++++++++++++++
+ .../platform/rockchip/vpu/rockchip_vpu_hw.h   |  65 ++
+ drivers/media/v4l2-core/v4l2-ctrls.c          |  10 +
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+ include/uapi/linux/v4l2-controls.h            |   5 +
+ include/uapi/linux/videodev2.h                |   2 +
+ 25 files changed, 3323 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
+ create mode 100644 drivers/media/platform/rockchip/vpu/Makefile
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_hw.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_hw_jpege.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_regs.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_hw.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_hw_jpege.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_regs.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_common.h
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_drv.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_enc.c
+ create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_hw.h
+
 -- 
 2.18.0
