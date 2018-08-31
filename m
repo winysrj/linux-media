@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60991 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726990AbeHaOE3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42160 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728071AbeHaQdR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 10:04:29 -0400
-Subject: Re: Question regarding optimizing pipeline in Vimc
-To: =?UTF-8?Q?Lucas_Magalh=c3=a3es?= <lucmaga@gmail.com>
-Cc: Helen Koike <helen@koikeco.de>, linux-media@vger.kernel.org,
-        gagallo7@gmail.com
-References: <CAPW4XYY0k_rjbhTNVOjUcm6cpOXRyoDYk81HV0honCgFF+Crig@mail.gmail.com>
- <61e3a97c-3a71-77b8-e14e-90dccc64a2a9@xs4all.nl>
- <CAK0xOaHQ-xBWc6L=M_mZV5OcsRBL5qq2n8Tq5hNWLdPoMxubwA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <80cbe2b3-c8aa-e0d5-90ee-d826f4cebfa3@xs4all.nl>
-Date: Fri, 31 Aug 2018 11:57:44 +0200
+        Fri, 31 Aug 2018 12:33:17 -0400
+Date: Fri, 31 Aug 2018 15:25:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ysato@users.sourceforge.jp, dalias@libc.org,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/5] Remove sh_mobile_ceu_camera from arch/sh
+Message-ID: <20180831122558.zv7537uyfw5pcnqj@valkosipuli.retiisi.org.uk>
+References: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-In-Reply-To: <CAK0xOaHQ-xBWc6L=M_mZV5OcsRBL5qq2n8Tq5hNWLdPoMxubwA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/2018 01:37 AM, Lucas Magalhães wrote:
-> On Wed, Aug 22, 2018 at 3:49 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> My basic idea was that you use a TPG state structure that contains the
->> desired output: the sensor starts with e.g. 720p using some bayer pixelformat,
->> the debayer module replaces the pixelformat with e.g. PIX_FMT_RGB32, a
->> grayscale filter replaces it with PI_FMT_GREY, and that's what the TPG for the
->> video device eventually will use to generate the video.
->>
->> This assumes of course that all the vimc blocks only do operations that can
->> be handled by the TPG. Depending on what the blocks will do the TPG might need
->> to be extended if a feature is missing.
->>
-> Hi Hans,
+Hi Jacopo,
+
+On Mon, May 28, 2018 at 06:37:06PM +0200, Jacopo Mondi wrote:
+> Hello,
+>     this series removes dependencies on the soc_camera based
+> sh_mobile_ceu_camera driver from 3 board files in arch/sh and from one
+> sensor driver used by one of those boards.
 > 
-> I start to work on this task but I have another question. I understand that the
-> final image should have the correct format as if the frame was passing through
-> the whole topology. But the operations itself doesn't needed to be done on each
-> entity. For example, a scaled image will have deformations that will not be
-> present if it is generated on the end of the pipeline with the final size.
-> You just need the format, size and properties to be correct, do I got it right?
+> Hans, this means there are no more user of the soc_camera framework that I know
+> of in Linux, and I guess we can now plan of to remove that framework.
 
-Yes. Although this example is unfortunate since the TPG can actually scale:
-with tpg_reset_source you define the width/height of the 'source', and with
-tpg_s_crop_compose you can define the crop and compose rectangles, which in
-turn translates to scaling. The TPG has a poor man's scaler, so if you scale
-up by a factor of 2, you will in fact see those deformations.
+What's the status of this set? I think it'd be nice to get it in; the CEU
+driver is the last using SoC camera framework.
 
-But if you have a complex pipeline with e.g. two scalers with additional
-processing in between, then that cannot be modeled accurately with the TPG.
-So be it. There is a balance between accuracy and performance, and I think
-this is a decent compromise.
+I guess an ack from the SH folks would be needed for these patches to go
+through the media tree.
 
-Regards,
+On the sensor driver patches --- please just move the files. The CEU was
+the last that it was possible to use the drivers with.
 
-	Hans
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
