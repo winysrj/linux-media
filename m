@@ -1,27 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f193.google.com ([209.85.219.193]:36176 "EHLO
-        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728932AbeHaTKI (ORCPT
+Received: from mail-yb1-f196.google.com ([209.85.219.196]:45101 "EHLO
+        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727433AbeHaTTL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 15:10:08 -0400
-Received: by mail-yb1-f193.google.com with SMTP id d34-v6so971583yba.3
-        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2018 08:02:14 -0700 (PDT)
-Received: from mail-yw1-f53.google.com (mail-yw1-f53.google.com. [209.85.161.53])
-        by smtp.gmail.com with ESMTPSA id b185-v6sm4221817ywf.12.2018.08.31.08.02.12
+        Fri, 31 Aug 2018 15:19:11 -0400
+Received: by mail-yb1-f196.google.com with SMTP id h22-v6so574783ybg.12
+        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2018 08:11:14 -0700 (PDT)
+Received: from mail-yb1-f179.google.com (mail-yb1-f179.google.com. [209.85.219.179])
+        by smtp.gmail.com with ESMTPSA id w80-v6sm5043755ywd.55.2018.08.31.08.11.12
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 31 Aug 2018 08:02:12 -0700 (PDT)
-Received: by mail-yw1-f53.google.com with SMTP id y134-v6so5158473ywg.1
-        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2018 08:02:12 -0700 (PDT)
+        Fri, 31 Aug 2018 08:11:12 -0700 (PDT)
+Received: by mail-yb1-f179.google.com with SMTP id d34-v6so983435yba.3
+        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2018 08:11:12 -0700 (PDT)
 MIME-Version: 1.0
-References: <20180828134911.44086-1-hverkuil@xs4all.nl> <20180828134911.44086-8-hverkuil@xs4all.nl>
- <CAAFQd5DFOYt+SgWuGhLGEGz37oq9YGaL=ovkCdETX31AUDxYmQ@mail.gmail.com>
-In-Reply-To: <CAAFQd5DFOYt+SgWuGhLGEGz37oq9YGaL=ovkCdETX31AUDxYmQ@mail.gmail.com>
+References: <20180828134911.44086-1-hverkuil@xs4all.nl> <20180828134911.44086-10-hverkuil@xs4all.nl>
+ <20180830101531.fbb2srjjl2y5ql5o@valkosipuli.retiisi.org.uk>
+ <a53efceb-e6a8-6b3e-6ea2-f51b9bce898c@xs4all.nl> <20180830130409.orfcywkpuasnaizp@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180830130409.orfcywkpuasnaizp@valkosipuli.retiisi.org.uk>
 From: Tomasz Figa <tfiga@chromium.org>
-Date: Sat, 1 Sep 2018 00:01:58 +0900
-Message-ID: <CAAFQd5A7BuDzCP5oEGnkWjRBPjBGqmDqmA_P3iqjDA2kQyJAGw@mail.gmail.com>
-Subject: Re: [PATCHv2 07/10] v4l2-ctrls: use media_request_(un)lock_for_access
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sat, 1 Sep 2018 00:10:59 +0900
+Message-ID: <CAAFQd5DsuihYrSqyZ36GaxAK_v0kqifAp3Micq89FTWjHBsY9w@mail.gmail.com>
+Subject: Re: [PATCHv2 09/10] media-request: EPERM -> EACCES
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Hans Verkuil <hans.verkuil@cisco.com>
@@ -29,76 +31,154 @@ Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 31, 2018 at 11:55 PM Tomasz Figa <tfiga@chromium.org> wrote:
+On Thu, Aug 30, 2018 at 10:04 PM Sakari Ailus <sakari.ailus@iki.fi> wrote:
 >
-> Hi Hans,
+> On Thu, Aug 30, 2018 at 01:51:39PM +0200, Hans Verkuil wrote:
+> > On 08/30/2018 12:15 PM, Sakari Ailus wrote:
+> > > Hi Hans,
+> > >
+> > > Thanks a lot for working on this!
+> > >
+> > > On Tue, Aug 28, 2018 at 03:49:10PM +0200, Hans Verkuil wrote:
+> > >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> > >>
+> > >> If requests are not supported by the driver, then return EACCES, not
+> > >> EPERM. This is consistent with the error that an invalid request_fd will
+> > >> give, and if requests are not supported, then all request_fd values are
+> > >> invalid.
+> > >>
+> > >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >> ---
+> > >>  Documentation/media/uapi/v4l/buffer.rst           |  2 +-
+> > >>  .../media/uapi/v4l/vidioc-g-ext-ctrls.rst         |  9 ++++-----
+> > >>  Documentation/media/uapi/v4l/vidioc-qbuf.rst      | 15 +++++++++------
+> > >>  drivers/media/media-request.c                     |  4 ++--
+> > >>  4 files changed, 16 insertions(+), 14 deletions(-)
+> > >>
+> > >> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> > >> index 1865cd5b9d3c..58a6d7d336e6 100644
+> > >> --- a/Documentation/media/uapi/v4l/buffer.rst
+> > >> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> > >> @@ -314,7 +314,7 @@ struct v4l2_buffer
+> > >>    :ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.
+> > >>    Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
+> > >>    other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
+> > >> -  If the device does not support requests, then ``EPERM`` will be returned.
+> > >> +  If the device does not support requests, then ``EACCES`` will be returned.
+> > >>    If requests are supported but an invalid request file descriptor is
+> > >>    given, then ``EINVAL`` will be returned.
+> > >>
+> > >> diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+> > >> index ad8908ce3095..54a999df5aec 100644
+> > >> --- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+> > >> +++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+> > >> @@ -100,7 +100,7 @@ file descriptor and ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``,
+> > >>  then the controls are not applied immediately when calling
+> > >>  :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, but instead are applied by
+> > >>  the driver for the buffer associated with the same request.
+> > >> -If the device does not support requests, then ``EPERM`` will be returned.
+> > >> +If the device does not support requests, then ``EACCES`` will be returned.
+> > >>  If requests are supported but an invalid request file descriptor is given,
+> > >>  then ``EINVAL`` will be returned.
+> > >>
+> > >> @@ -233,7 +233,7 @@ still cause this situation.
+> > >>    these controls have to be retrieved from a request or tried/set for
+> > >>    a request. In the latter case the ``request_fd`` field contains the
+> > >>    file descriptor of the request that should be used. If the device
+> > >> -  does not support requests, then ``EPERM`` will be returned.
+> > >> +  does not support requests, then ``EACCES`` will be returned.
+> > >>
+> > >>    .. note::
+> > >>
+> > >> @@ -299,7 +299,7 @@ still cause this situation.
+> > >>        - ``request_fd``
+> > >>        - File descriptor of the request to be used by this operation. Only
+> > >>    valid if ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``.
+> > >> -  If the device does not support requests, then ``EPERM`` will be returned.
+> > >> +  If the device does not support requests, then ``EACCES`` will be returned.
+> > >>    If requests are supported but an invalid request file descriptor is
+> > >>    given, then ``EINVAL`` will be returned.
+> > >>      * - __u32
+> > >> @@ -408,6 +408,5 @@ EACCES
+> > >>      control, or to get a control from a request that has not yet been
+> > >>      completed.
+> > >>
+> > >> -EPERM
+> > >
+> > > -EACCES here, too?
+> >
+> > The '-' in -EPERM is from diff, meaning: delete this line :-)
 >
-> On Tue, Aug 28, 2018 at 10:49 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> >
-> > When getting control values from a completed request, we have
-> > to protect the request against being re-inited why it is
-> > being accessed by calling media_request_(un)lock_for_access.
-> >
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-ctrls.c | 21 +++++++++++++++------
-> >  1 file changed, 15 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > index ccaf3068de6d..cc266a4a6e88 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > @@ -3289,11 +3289,10 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-> >                      struct v4l2_ext_controls *cs)
-> >  {
-> >         struct media_request_object *obj = NULL;
-> > +       struct media_request *req = NULL;
-> >         int ret;
-> >
-> >         if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
-> > -               struct media_request *req;
-> > -
-> >                 if (!mdev || cs->request_fd < 0)
-> >                         return -EINVAL;
-> >
-> > @@ -3306,11 +3305,18 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-> >                         return -EACCES;
-> >                 }
-> >
-> > +               ret = media_request_lock_for_access(req);
-> > +               if (ret) {
-> > +                       media_request_put(req);
-> > +                       return ret;
-> > +               }
-> > +
-> >                 obj = v4l2_ctrls_find_req_obj(hdl, req, false);
-> > -               /* Reference to the request held through obj */
-> > -               media_request_put(req);
-> > -               if (IS_ERR(obj))
-> > +               if (IS_ERR(obj)) {
-> > +                       media_request_unlock_for_access(req);
-> > +                       media_request_put(req);
-> >                         return PTR_ERR(obj);
-> > +               }
-> >
-> >                 hdl = container_of(obj, struct v4l2_ctrl_handler,
-> >                                    req_obj);
-> > @@ -3318,8 +3324,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
-> >
-> >         ret = v4l2_g_ext_ctrls_common(hdl, cs);
-> >
-> > -       if (obj)
-> > +       if (obj) {
-> > +               media_request_unlock_for_access(req);
+> Oh, I missed that while reading the quoted message. X-)
 >
-> We called media_request_lock_for_access() before looking up obj. Don't
-> we also need to  call media_request_unlock_for_access() regardless of
-> whether obj is non-NULL?
+> >
+> > >
+> > >> -    The ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
+> > >> +    Or the ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
+> > >>      device does not support requests.
+> > >> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> > >> index 7bff69c15452..a2f4ac0b0ba1 100644
+> > >> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> > >> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+> > >> @@ -104,7 +104,7 @@ in use. Setting it means that the buffer will not be passed to the driver
+> > >>  until the request itself is queued. Also, the driver will apply any
+> > >>  settings associated with the request for this buffer. This field will
+> > >>  be ignored unless the ``V4L2_BUF_FLAG_REQUEST_FD`` flag is set.
+> > >> -If the device does not support requests, then ``EPERM`` will be returned.
+> > >> +If the device does not support requests, then ``EACCES`` will be returned.
+> > >>  If requests are supported but an invalid request file descriptor is given,
+> > >>  then ``EINVAL`` will be returned.
+> > >>
+> > >> @@ -175,9 +175,12 @@ EPIPE
+> > >>      codecs if a buffer with the ``V4L2_BUF_FLAG_LAST`` was already
+> > >>      dequeued and no new buffers are expected to become available.
+> > >>
+> > >> -EPERM
+> > >> +EACCES
+> > >>      The ``V4L2_BUF_FLAG_REQUEST_FD`` flag was set but the device does not
+> > >> -    support requests. Or the first buffer was queued via a request, but
+> > >> -    the application now tries to queue it directly, or vice versa (it is
+> > >> -    not permitted to mix the two APIs). Or an attempt is made to queue a
+> > >> -    CAPTURE buffer to a request for a :ref:`memory-to-memory device <codec>`.
+> > >> +    support requests.
+> > >> +
+> > >> +EPERM
+> > >> +    The first buffer was queued via a request, but the application now tries
+> > >> +    to queue it directly, or vice versa (it is not permitted to mix the two
+> > >> +    APIs). Or an attempt is made to queue a CAPTURE buffer to a request for a
+> > >> +    :ref:`memory-to-memory device <codec>`.
+> > >
+> > > This is still apparently not quite the error code it should be --- EPERM is
+> > > about lacking permissions, not that the user did something that isn't
+> > > possible. We should not use an error code that has a well established
+> > > meaning everywhere else in uAPI already for a purpose that is very
+> > > different.
+> > >
+> > > If you think this needs to be something else than EACCES (which I think is
+> > > perfectly fine), then how about EDOM or EBUSY?
+> >
+> > Hmm. EPERM is returned for two reasons:
+> >
+> > - attempting to queue a buffer when you need to use requests, or vice versa.
+> >   EBUSY would be a much better error code since the device is busy streaming
+> >   in a different mode than you requested. And after you stop streaming you
+> >   can use the requested mode again.
 
-Aha, never mind. I checked the full context and we can't have !obj
-here if we operated on a request. Sorry for the noise.
+EBUSY sounds good here indeed.
+
+> >
+> > - attempting to queue a request for a vb2 queue that doesn't support requests.
+> >   This should return -EACCES.
+>
+> I think we've actually used EINVAL in most cases the user tries to use
+> functionality (fine grainer than IOCTL command) which isn't supported such
+> as buffer or memory types not supported by the driver. EINVAL would be just
+> a little less specific but better in line with the rest of the API.
+
+Buffer or memory type is a value inside the ioctl arguments, so EINVAL
+matches there.
+
+I tend to side with Hans on EACCES.
 
 Best regards,
 Tomasz
