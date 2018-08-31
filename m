@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:44524 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:44516 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727573AbeHaSsk (ORCPT
+        with ESMTP id S1727724AbeHaSsj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 14:48:40 -0400
+        Fri, 31 Aug 2018 14:48:39 -0400
 From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         mchehab@kernel.org
 Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 2/6] media: vsp1: Correct the pitch on multiplanar formats
-Date: Fri, 31 Aug 2018 15:40:40 +0100
-Message-Id: <20180831144044.31713-3-kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 1/6] media: vsp1: Remove artificial pixel limitation
+Date: Fri, 31 Aug 2018 15:40:39 +0100
+Message-Id: <20180831144044.31713-2-kieran.bingham+renesas@ideasonboard.com>
 In-Reply-To: <20180831144044.31713-1-kieran.bingham+renesas@ideasonboard.com>
 References: <20180831144044.31713-1-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DRM pipelines now support tri-planar as well as packed formats with
-YCbCr, however the pitch calculation was not updated to support this.
+The VSP1 has a minimum width and height of a single pixel, with the
+exception of pixel formats with sub-sampling.
 
-Correct this by adjusting the bytesperline accordingly when 3 planes are
-used.
+Remove the artificial minimum width and minimum height limitation, and
+instead clamp the minimum dimensions based upon the sub-sampling
+parameter of that dimension.
 
-Fixes: 7863ac504bc5 ("drm: rcar-du: Add tri-planar memory formats support")
 Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c | 10 ++++++++++
- include/media/vsp1.h                   |  2 +-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/media/platform/vsp1/vsp1_video.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index b9c0f695d002..b9afd98f6867 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -814,6 +814,16 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
- 	rpf->format.num_planes = fmtinfo->planes;
- 	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
- 	rpf->format.plane_fmt[1].bytesperline = cfg->pitch;
-+
-+	/*
-+	 * Packed YUV formats are subsampled, but the packing of two components
-+	 * into a single plane compensates for this leaving the bytesperline
-+	 * to be the correct value. For multiplanar formats we must adjust the
-+	 * pitch accordingly.
-+	 */
-+	if (fmtinfo->planes == 3)
-+		rpf->format.plane_fmt[1].bytesperline /= fmtinfo->hsub;
-+
- 	rpf->alpha = cfg->alpha;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 81d47a09d7bc..e78eadd0295b 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -38,9 +38,7 @@
+ #define VSP1_VIDEO_DEF_WIDTH		1024
+ #define VSP1_VIDEO_DEF_HEIGHT		768
  
- 	rpf->mem.addr[0] = cfg->mem[0];
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 3093b9cb9067..0ce19b595cc7 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -46,7 +46,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- /**
-  * struct vsp1_du_atomic_config - VSP atomic configuration parameters
-  * @pixelformat: plane pixel format (V4L2 4CC)
-- * @pitch: line pitch in bytes, for all planes
-+ * @pitch: line pitch in bytes
-  * @mem: DMA memory address for each plane of the frame buffer
-  * @src: source rectangle in the frame buffer (integer coordinates)
-  * @dst: destination rectangle on the display (integer coordinates)
+-#define VSP1_VIDEO_MIN_WIDTH		2U
+ #define VSP1_VIDEO_MAX_WIDTH		8190U
+-#define VSP1_VIDEO_MIN_HEIGHT		2U
+ #define VSP1_VIDEO_MAX_HEIGHT		8190U
+ 
+ /* -----------------------------------------------------------------------------
+@@ -136,9 +134,8 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+ 	height = round_down(height, info->vsub);
+ 
+ 	/* Clamp the width and height. */
+-	pix->width = clamp(width, VSP1_VIDEO_MIN_WIDTH, VSP1_VIDEO_MAX_WIDTH);
+-	pix->height = clamp(height, VSP1_VIDEO_MIN_HEIGHT,
+-			    VSP1_VIDEO_MAX_HEIGHT);
++	pix->width = clamp(width, info->hsub, VSP1_VIDEO_MAX_WIDTH);
++	pix->height = clamp(height, info->vsub, VSP1_VIDEO_MAX_HEIGHT);
+ 
+ 	/*
+ 	 * Compute and clamp the stride and image size. While not documented in
 -- 
 2.17.1
