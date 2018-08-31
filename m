@@ -1,96 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:38416 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727261AbeHaKCu (ORCPT
+Received: from mail-yb1-f194.google.com ([209.85.219.194]:45257 "EHLO
+        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727129AbeHaK6H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 06:02:50 -0400
-Received: by mail-wr1-f68.google.com with SMTP id w11-v6so10027531wrc.5
-        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 22:57:01 -0700 (PDT)
-Subject: Re: [PATCH v3 1/2] media: dt-bindings: bind nokia,n900-ir to generic
- pwm-ir-tx driver
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, Rob Herring <robh@kernel.org>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-        Tony Lindgren <tony@atomide.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-References: <20180713122230.19278-1-sean@mess.org>
- <20180829140731.1d6491c0@coco.lan>
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <f55b4c44-d58a-d2e0-4a7e-7c45b7b438fb@gmail.com>
-Date: Fri, 31 Aug 2018 08:52:55 +0300
+        Fri, 31 Aug 2018 06:58:07 -0400
+Received: by mail-yb1-f194.google.com with SMTP id h22-v6so104614ybg.12
+        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 23:52:08 -0700 (PDT)
+Received: from mail-yb1-f172.google.com (mail-yb1-f172.google.com. [209.85.219.172])
+        by smtp.gmail.com with ESMTPSA id 124-v6sm4647187yws.25.2018.08.30.23.52.06
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 30 Aug 2018 23:52:07 -0700 (PDT)
+Received: by mail-yb1-f172.google.com with SMTP id f4-v6so514157ybp.7
+        for <linux-media@vger.kernel.org>; Thu, 30 Aug 2018 23:52:06 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180829140731.1d6491c0@coco.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+References: <20180830172030.23344-1-ezequiel@collabora.com>
+ <20180830172030.23344-3-ezequiel@collabora.com> <20180830175850.GA11521@infradead.org>
+ <4fc5107f93871599ead017af7ad50f22535a7683.camel@collabora.com> <20180831055047.GA9140@infradead.org>
+In-Reply-To: <20180831055047.GA9140@infradead.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 31 Aug 2018 15:51:54 +0900
+Message-ID: <CAAFQd5DhFr8ywjc41oK9q+zZXH9zsOKh_7DxWmjzcE0+5Q3hGA@mail.gmail.com>
+Subject: Re: [RFC 2/3] USB: core: Add non-coherent buffer allocation helpers
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-usb@vger.kernel.org,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Alan Stern <stern@rowland.harvard.edu>, kernel@collabora.com,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Aug 31, 2018 at 2:50 PM Christoph Hellwig <hch@infradead.org> wrote:
+>
+> On Thu, Aug 30, 2018 at 07:11:35PM -0300, Ezequiel Garcia wrote:
+> > On Thu, 2018-08-30 at 10:58 -0700, Christoph Hellwig wrote:
+> > > Please don't introduce new DMA_ATTR_NON_CONSISTENT users, it is
+> > > a rather horrible interface, and I plan to kill it off rather sooner
+> > > than later.  I plan to post some patches for a better interface
+> > > that can reuse the normal dma_sync_single_* interfaces for ownership
+> > > transfers.  I can happily include usb in that initial patch set based
+> > > on your work here if that helps.
+> >
+> > Please do. Until we have proper allocators that go thru the DMA API,
+> > drivers will have to kmalloc the USB transfer buffers, and have
+> > streaming mappings. Which in turns mean not using IOMMU or CMA.
+>
+> dma_map_page will of course use the iommu.
 
+Sure, dma_map*() will, but using kmalloc() defeats (half of) the
+purpose of it, since contiguous memory would be allocated
+unnecessarily, risking failures due to fragmentation.
 
-On 29.08.2018 20:07, Mauro Carvalho Chehab wrote:
-> Em Fri, 13 Jul 2018 13:22:29 +0100
-> Sean Young <sean@mess.org> escreveu:
-> 
->> The generic pwm-ir-tx driver should work for the Nokia n900.
->>
->> Compile tested only.
-> 
-> It would be good to have some tests...
-> 
-
-Unfortunately, it turned out I won't be able to test soon, so please, 
-somebody else do it.
-
->>
->> Cc: Rob Herring <robh@kernel.org>
->> Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
->> Cc: Pali Rohár <pali.rohar@gmail.com>
->> Cc: Pavel Machek <pavel@ucw.cz>
->> Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
->> Cc: Tony Lindgren <tony@atomide.com>
-> 
-> And some acks
-> 
-> Before merging it.
-> 
->> Signed-off-by: Sean Young <sean@mess.org>
->> ---
->>   arch/arm/boot/dts/omap3-n900.dts | 2 +-
->>   drivers/media/rc/pwm-ir-tx.c     | 1 +
->>   2 files changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
->> index 182a53991c90..fd12dea15799 100644
->> --- a/arch/arm/boot/dts/omap3-n900.dts
->> +++ b/arch/arm/boot/dts/omap3-n900.dts
->> @@ -154,7 +154,7 @@
->>   	};
->>   
->>   	ir: n900-ir {
->> -		compatible = "nokia,n900-ir";
->> +		compatible = "nokia,n900-ir", "pwm-ir-tx";
->>   		pwms = <&pwm9 0 26316 0>; /* 38000 Hz */
->>   	};
->>   
->> diff --git a/drivers/media/rc/pwm-ir-tx.c b/drivers/media/rc/pwm-ir-tx.c
->> index 27d0f5837a76..272947b430c8 100644
->> --- a/drivers/media/rc/pwm-ir-tx.c
->> +++ b/drivers/media/rc/pwm-ir-tx.c
->> @@ -30,6 +30,7 @@ struct pwm_ir {
->>   };
->>   
->>   static const struct of_device_id pwm_ir_of_match[] = {
->> +	{ .compatible = "nokia,n900-ir" },
->>   	{ .compatible = "pwm-ir-tx", },
->>   	{ },
->>   };
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+Best regards,
+Tomasz
