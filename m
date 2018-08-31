@@ -1,49 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:44510 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727573AbeHaSsi (ORCPT
+Received: from mail-yb1-f195.google.com ([209.85.219.195]:35405 "EHLO
+        mail-yb1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728075AbeHaTDN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Aug 2018 14:48:38 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 0/6] VSP1 Updates
-Date: Fri, 31 Aug 2018 15:40:38 +0100
-Message-Id: <20180831144044.31713-1-kieran.bingham+renesas@ideasonboard.com>
+        Fri, 31 Aug 2018 15:03:13 -0400
+Received: by mail-yb1-f195.google.com with SMTP id o17-v6so962584yba.2
+        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2018 07:55:21 -0700 (PDT)
+Received: from mail-yb1-f182.google.com (mail-yb1-f182.google.com. [209.85.219.182])
+        by smtp.gmail.com with ESMTPSA id o62-v6sm3657210ywf.109.2018.08.31.07.55.18
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 31 Aug 2018 07:55:19 -0700 (PDT)
+Received: by mail-yb1-f182.google.com with SMTP id d4-v6so963020ybl.0
+        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2018 07:55:18 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180828134911.44086-1-hverkuil@xs4all.nl> <20180828134911.44086-8-hverkuil@xs4all.nl>
+In-Reply-To: <20180828134911.44086-8-hverkuil@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 31 Aug 2018 23:55:05 +0900
+Message-ID: <CAAFQd5DFOYt+SgWuGhLGEGz37oq9YGaL=ovkCdETX31AUDxYmQ@mail.gmail.com>
+Subject: Re: [PATCHv2 07/10] v4l2-ctrls: use media_request_(un)lock_for_access
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An assorted selection of fixes and updates for the VSP1 to improve code
-quality and remove incorrect limitations.
+Hi Hans,
 
-The SRU and UDS are capable of larger partitions, as part of the
-partition algorithm - but we only document this support for now, as
-updating it should be done in consideration with the overlap and phase
-corrections necessary.
+On Tue, Aug 28, 2018 at 10:49 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> When getting control values from a completed request, we have
+> to protect the request against being re-inited why it is
+> being accessed by calling media_request_(un)lock_for_access.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 21 +++++++++++++++------
+>  1 file changed, 15 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index ccaf3068de6d..cc266a4a6e88 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -3289,11 +3289,10 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+>                      struct v4l2_ext_controls *cs)
+>  {
+>         struct media_request_object *obj = NULL;
+> +       struct media_request *req = NULL;
+>         int ret;
+>
+>         if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
+> -               struct media_request *req;
+> -
+>                 if (!mdev || cs->request_fd < 0)
+>                         return -EINVAL;
+>
+> @@ -3306,11 +3305,18 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+>                         return -EACCES;
+>                 }
+>
+> +               ret = media_request_lock_for_access(req);
+> +               if (ret) {
+> +                       media_request_put(req);
+> +                       return ret;
+> +               }
+> +
+>                 obj = v4l2_ctrls_find_req_obj(hdl, req, false);
+> -               /* Reference to the request held through obj */
+> -               media_request_put(req);
+> -               if (IS_ERR(obj))
+> +               if (IS_ERR(obj)) {
+> +                       media_request_unlock_for_access(req);
+> +                       media_request_put(req);
+>                         return PTR_ERR(obj);
+> +               }
+>
+>                 hdl = container_of(obj, struct v4l2_ctrl_handler,
+>                                    req_obj);
+> @@ -3318,8 +3324,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+>
+>         ret = v4l2_g_ext_ctrls_common(hdl, cs);
+>
+> -       if (obj)
+> +       if (obj) {
+> +               media_request_unlock_for_access(req);
 
-Kieran Bingham (6):
-  media: vsp1: Remove artificial pixel limitation
-  media: vsp1: Correct the pitch on multiplanar formats
-  media: vsp1: Implement partition algorithm restrictions
-  media: vsp1: Document max_width restriction on SRU
-  media: vsp1: Document max_width restriction on UDS
-  media: vsp1: use periods at the end of comment sentences
+We called media_request_lock_for_access() before looking up obj. Don't
+we also need to  call media_request_unlock_for_access() regardless of
+whether obj is non-NULL?
 
- drivers/media/platform/vsp1/vsp1_brx.c    |  4 +--
- drivers/media/platform/vsp1/vsp1_drm.c    | 10 ++++++
- drivers/media/platform/vsp1/vsp1_drv.c    |  6 ++--
- drivers/media/platform/vsp1/vsp1_entity.c |  2 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  4 +--
- drivers/media/platform/vsp1/vsp1_sru.c    | 13 ++++++--
- drivers/media/platform/vsp1/vsp1_sru.h    |  1 +
- drivers/media/platform/vsp1/vsp1_uds.c    | 14 +++++++--
- drivers/media/platform/vsp1/vsp1_video.c  | 38 ++++++++++++++++++-----
- drivers/media/platform/vsp1/vsp1_wpf.c    |  2 +-
- include/media/vsp1.h                      |  2 +-
- 11 files changed, 73 insertions(+), 23 deletions(-)
+>                 media_request_object_put(obj);
+> +               media_request_put(req);
+> +       }
+>         return ret;
+>  }
 
--- 
-2.17.1
+Best regards,
+Tomasz
