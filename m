@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:38057 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726825AbeIAQ6O (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34353 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726991AbeIAQ6R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Sep 2018 12:58:14 -0400
+        Sat, 1 Sep 2018 12:58:17 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Tomasz Figa <tfiga@chromium.org>,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 06/10] media-request: add media_request_(un)lock_for_access
-Date: Sat,  1 Sep 2018 14:46:07 +0200
-Message-Id: <20180901124611.45345-7-hverkuil@xs4all.nl>
+Subject: [PATCHv3 10/10] media-request: update documentation
+Date: Sat,  1 Sep 2018 14:46:11 +0200
+Message-Id: <20180901124611.45345-11-hverkuil@xs4all.nl>
 In-Reply-To: <20180901124611.45345-1-hverkuil@xs4all.nl>
 References: <20180901124611.45345-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -19,145 +19,256 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add helper functions to prevent a completed request from being
-re-inited while it is being accessed.
+Various clarifications and readability improvements based on
+Laurent Pinchart's review of the documentation.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/media-request.c | 10 +++++++
- include/media/media-request.h | 56 +++++++++++++++++++++++++++++++++++
- 2 files changed, 66 insertions(+)
+ .../uapi/mediactl/media-ioc-request-alloc.rst |  3 +-
+ .../uapi/mediactl/media-request-ioc-queue.rst |  7 +--
+ .../media/uapi/mediactl/request-api.rst       | 51 +++++++++++--------
+ .../uapi/mediactl/request-func-close.rst      |  1 +
+ .../media/uapi/mediactl/request-func-poll.rst |  2 +-
+ Documentation/media/uapi/v4l/buffer.rst       | 14 +++--
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     |  5 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst  |  5 +-
+ 8 files changed, 52 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
-index 4cee67e6657e..414197645e09 100644
---- a/drivers/media/media-request.c
-+++ b/drivers/media/media-request.c
-@@ -43,6 +43,7 @@ static void media_request_clean(struct media_request *req)
- 	/* Just a sanity check. No other code path is allowed to change this. */
- 	WARN_ON(req->state != MEDIA_REQUEST_STATE_CLEANING);
- 	WARN_ON(req->updating_count);
-+	WARN_ON(req->access_count);
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+index 34434e2b3918..0f8b31874002 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-request-alloc.rst
+@@ -52,7 +52,8 @@ for the request to complete.
  
- 	list_for_each_entry_safe(obj, obj_safe, &req->objects, list) {
- 		media_request_object_unbind(obj);
-@@ -50,6 +51,7 @@ static void media_request_clean(struct media_request *req)
- 	}
+ The request will remain allocated until all the file descriptors associated
+ with it are closed by :ref:`close() <request-func-close>` and the driver no
+-longer uses the request internally.
++longer uses the request internally. See also
++:ref:`here <media-request-life-time>` for more information.
  
- 	req->updating_count = 0;
-+	req->access_count = 0;
- 	WARN_ON(req->num_incomplete_objects);
- 	req->num_incomplete_objects = 0;
- 	wake_up_interruptible_all(&req->poll_wait);
-@@ -198,6 +200,13 @@ static long media_request_ioctl_reinit(struct media_request *req)
- 		spin_unlock_irqrestore(&req->lock, flags);
- 		return -EBUSY;
- 	}
-+	if (req->access_count) {
-+		dev_dbg(mdev->dev,
-+			"request: %s is being accessed, cannot reinit\n",
-+			req->debug_str);
-+		spin_unlock_irqrestore(&req->lock, flags);
-+		return -EBUSY;
-+	}
- 	req->state = MEDIA_REQUEST_STATE_CLEANING;
- 	spin_unlock_irqrestore(&req->lock, flags);
+ Return Value
+ ============
+diff --git a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+index d4f8119e0643..3bf1c2e492eb 100644
+--- a/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
++++ b/Documentation/media/uapi/mediactl/media-request-ioc-queue.rst
+@@ -40,9 +40,6 @@ Other errors can be returned if the contents of the request contained
+ invalid or inconsistent data, see the next section for a list of
+ common error codes. On error both the request and driver state are unchanged.
  
-@@ -313,6 +322,7 @@ int media_request_alloc(struct media_device *mdev, int *alloc_fd)
- 	spin_lock_init(&req->lock);
- 	init_waitqueue_head(&req->poll_wait);
- 	req->updating_count = 0;
-+	req->access_count = 0;
+-Typically if you get an error here, then that means that the application
+-did something wrong and you have to fix the application.
+-
+ Once a request is queued, then the driver is required to gracefully handle
+ errors that occur when the request is applied to the hardware. The
+ exception is the ``EIO`` error which signals a fatal error that requires
+@@ -69,8 +66,8 @@ EPERM
+     to use a request. It is not permitted to mix the two APIs.
+ ENOENT
+     The request did not contain any buffers. All requests are required
+-    to have at least one buffer. This can also be returned if required
+-    controls are missing.
++    to have at least one buffer. This can also be returned if some required
++    configuration is missing in the request.
+ ENOMEM
+     Out of memory when allocating internal data structures for this
+     request.
+diff --git a/Documentation/media/uapi/mediactl/request-api.rst b/Documentation/media/uapi/mediactl/request-api.rst
+index 0b9da58b01e3..1ac42749e564 100644
+--- a/Documentation/media/uapi/mediactl/request-api.rst
++++ b/Documentation/media/uapi/mediactl/request-api.rst
+@@ -12,6 +12,9 @@ the same pipeline to reconfigure and collaborate closely on a per-frame basis.
+ Another is support of stateless codecs, which require controls to be applied
+ to specific frames (aka 'per-frame controls') in order to be used efficiently.
  
- 	*alloc_fd = fd;
- 
-diff --git a/include/media/media-request.h b/include/media/media-request.h
-index ac02019c1d77..d8c8db89dbde 100644
---- a/include/media/media-request.h
-+++ b/include/media/media-request.h
-@@ -53,6 +53,7 @@ struct media_request_object;
-  * @debug_str: Prefix for debug messages (process name:fd)
-  * @state: The state of the request
-  * @updating_count: count the number of request updates that are in progress
-+ * @access_count: count the number of request accesses that are in progress
-  * @objects: List of @struct media_request_object request objects
-  * @num_incomplete_objects: The number of incomplete objects in the request
-  * @poll_wait: Wait queue for poll
-@@ -64,6 +65,7 @@ struct media_request {
- 	char debug_str[TASK_COMM_LEN + 11];
- 	enum media_request_state state;
- 	unsigned int updating_count;
-+	unsigned int access_count;
- 	struct list_head objects;
- 	unsigned int num_incomplete_objects;
- 	struct wait_queue_head poll_wait;
-@@ -72,6 +74,50 @@ struct media_request {
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 
-+/**
-+ * media_request_lock_for_access - Lock the request to access its objects
-+ *
-+ * @req: The media request
-+ *
-+ * Use before accessing a completed request. A reference to the request must
-+ * be held during the access. This usually takes place automatically through
-+ * a file handle. Use @media_request_unlock_for_access when done.
-+ */
-+static inline int __must_check
-+media_request_lock_for_access(struct media_request *req)
-+{
-+	unsigned long flags;
-+	int ret = -EBUSY;
++While the initial use-case was V4L2, it can be extended to other subsystems
++as well, as long as they use the media controller.
 +
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (req->state == MEDIA_REQUEST_STATE_COMPLETE) {
-+		req->access_count++;
-+		ret = 0;
-+	}
-+	spin_unlock_irqrestore(&req->lock, flags);
-+
-+	return ret;
-+}
-+
-+/**
-+ * media_request_unlock_for_access - Unlock a request previously locked for
-+ *				     access
-+ *
-+ * @req: The media request
-+ *
-+ * Unlock a request that has previously been locked using
-+ * @media_request_lock_for_access.
-+ */
-+static inline void media_request_unlock_for_access(struct media_request *req)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&req->lock, flags);
-+	if (!WARN_ON(!req->access_count))
-+		req->access_count--;
-+	spin_unlock_irqrestore(&req->lock, flags);
-+}
-+
- /**
-  * media_request_lock_for_update - Lock the request for updating its objects
-  *
-@@ -333,6 +379,16 @@ void media_request_object_complete(struct media_request_object *obj);
+ Supporting these features without the Request API is not always possible and if
+ it is, it is terribly inefficient: user-space would have to flush all activity
+ on the media pipeline, reconfigure it for the next frame, queue the buffers to
+@@ -20,19 +23,23 @@ dequeuing before considering the next frame. This defeats the purpose of having
+ buffer queues since in practice only one buffer would be queued at a time.
  
- #else
+ The Request API allows a specific configuration of the pipeline (media
+-controller topology + controls for each media entity) to be associated with
+-specific buffers. The parameters are applied by each participating device as
+-buffers associated to a request flow in. This allows user-space to schedule
+-several tasks ("requests") with different parameters in advance, knowing that
+-the parameters will be applied when needed to get the expected result. Control
+-values at the time of request completion are also available for reading.
++controller topology + configuration for each media entity) to be associated with
++specific buffers. This allows user-space to schedule several tasks ("requests")
++with different configurations in advance, knowing that the configuration will be
++applied when needed to get the expected result. Configuration values at the time
++of request completion are also available for reading.
  
-+static inline int __must_check
-+media_request_lock_for_access(struct media_request *req)
-+{
-+	return -EINVAL;
-+}
+ Usage
+ =====
+ 
+-The Request API is used on top of standard media controller and V4L2 calls,
+-which are augmented with an extra ``request_fd`` parameter. Requests themselves
+-are allocated from the supporting media controller node.
++The Request API extends the Media Controller API and cooperates with
++subsystem-specific APIs to support request usage. At the Media Controller
++level, requests are allocated from the supporting Media Controller device
++node. Their life cycle is then managed through the request file descriptors in
++an opaque way. Configuration data, buffer handles and processing results
++stored in requests are accessed through subsystem-specific APIs extended for
++request support, such as V4L2 APIs that take an explicit ``request_fd``
++parameter.
+ 
+ Request Allocation
+ ------------------
+@@ -47,29 +54,27 @@ Request Preparation
+ Standard V4L2 ioctls can then receive a request file descriptor to express the
+ fact that the ioctl is part of said request, and is not to be applied
+ immediately. See :ref:`MEDIA_IOC_REQUEST_ALLOC` for a list of ioctls that
+-support this. Controls set with a ``request_fd`` parameter are stored instead
+-of being immediately applied, and buffers queued to a request do not enter the
+-regular buffer queue until the request itself is queued.
++support this. Configurations set with a ``request_fd`` parameter are stored
++instead of being immediately applied, and buffers queued to a request do not
++enter the regular buffer queue until the request itself is queued.
+ 
+ Request Submission
+ ------------------
+ 
+-Once the parameters and buffers of the request are specified, it can be
++Once the configuration and buffers of the request are specified, it can be
+ queued by calling :ref:`MEDIA_REQUEST_IOC_QUEUE` on the request file descriptor.
+ A request must contain at least one buffer, otherwise ``ENOENT`` is returned.
+-This will make the buffers associated to the request available to their driver,
+-which can then apply the associated controls as buffers are processed. A queued
+-request cannot be modified anymore.
++A queued request cannot be modified anymore.
+ 
+ .. caution::
+    For :ref:`memory-to-memory devices <codec>` you can use requests only for
+    output buffers, not for capture buffers. Attempting to add a capture buffer
+    to a request will result in an ``EPERM`` error.
+ 
+-If the request contains parameters for multiple entities, individual drivers may
+-synchronize so the requested pipeline's topology is applied before the buffers
+-are processed. Media controller drivers do a best effort implementation since
+-perfect atomicity may not be possible due to hardware limitations.
++If the request contains configurations for multiple entities, individual drivers
++may synchronize so the requested pipeline's topology is applied before the
++buffers are processed. Media controller drivers do a best effort implementation
++since perfect atomicity may not be possible due to hardware limitations.
+ 
+ .. caution::
+ 
+@@ -96,14 +101,16 @@ Note that user-space does not need to wait for the request to complete to
+ dequeue its buffers: buffers that are available halfway through a request can
+ be dequeued independently of the request's state.
+ 
+-A completed request contains the state of the request at the time of the
+-request completion. User-space can query that state by calling
++A completed request contains the state of the device after the request was
++executed. User-space can query that state by calling
+ :ref:`ioctl VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` with the request file
+ descriptor. Calling :ref:`ioctl VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` for a
+ request that has been queued but not yet completed will return ``EBUSY``
+ since the control values might be changed at any time by the driver while the
+ request is in flight.
+ 
++.. _media-request-life-time:
 +
-+static inline void media_request_unlock_for_access(struct media_request *req)
-+{
-+}
+ Recycling and Destruction
+ -------------------------
+ 
+diff --git a/Documentation/media/uapi/mediactl/request-func-close.rst b/Documentation/media/uapi/mediactl/request-func-close.rst
+index b5c78683840b..098d7f2b9548 100644
+--- a/Documentation/media/uapi/mediactl/request-func-close.rst
++++ b/Documentation/media/uapi/mediactl/request-func-close.rst
+@@ -36,6 +36,7 @@ Description
+ Closes the request file descriptor. Resources associated with the request
+ are freed once all file descriptors associated with the request are closed
+ and the driver has completed the request.
++See :ref:`here <media-request-life-time>` for more information.
+ 
+ 
+ Return Value
+diff --git a/Documentation/media/uapi/mediactl/request-func-poll.rst b/Documentation/media/uapi/mediactl/request-func-poll.rst
+index 70cc9d406a9f..85191254f381 100644
+--- a/Documentation/media/uapi/mediactl/request-func-poll.rst
++++ b/Documentation/media/uapi/mediactl/request-func-poll.rst
+@@ -50,7 +50,7 @@ when the request was completed.  When the function times out it returns
+ a value of zero, on failure it returns -1 and the ``errno`` variable is
+ set appropriately.
+ 
+-Attempting to poll for a request that is completed or not yet queued will
++Attempting to poll for a request that is not yet queued will
+ set the ``POLLERR`` flag in ``revents``.
+ 
+ 
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index 58a6d7d336e6..2e266d32470a 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -308,12 +308,18 @@ struct v4l2_buffer
+     * - __u32
+       - ``request_fd``
+       -
+-      - The file descriptor of the request to queue the buffer to. If specified
+-        and flag ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
+-	queued to that request. This is set by the user when calling
+-	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.
++      - The file descriptor of the request to queue the buffer to. If the flag
++        ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
++	queued to this request. If the flag is not set, then this field will
++	be ignored.
 +
- static inline int __must_check
- media_request_lock_for_update(struct media_request *req)
- {
++	The ``V4L2_BUF_FLAG_REQUEST_FD`` flag and this field are only used by
++	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls that
++	take a :c:type:`v4l2_buffer` as argument.
++
+ 	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
+ 	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
++
+ 	If the device does not support requests, then ``EACCES`` will be returned.
+ 	If requests are supported but an invalid request file descriptor is
+ 	given, then ``EINVAL`` will be returned.
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+index 54a999df5aec..d9930fe776cf 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+@@ -237,7 +237,7 @@ still cause this situation.
+ 
+ 	.. note::
+ 
+-	   When using ``V4L2_CTRL_WHICH_DEF_VAL`` note that You can only
++	   When using ``V4L2_CTRL_WHICH_DEF_VAL`` be aware that you can only
+ 	   get the default value of the control, you cannot set or try it.
+ 
+ 	For backwards compatibility you can also use a control class here
+@@ -382,7 +382,8 @@ EINVAL
+     :c:type:`v4l2_ext_control` ``value`` was
+     inappropriate (e.g. the given menu index is not supported by the
+     driver), or the ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL``
+-    but the given ``request_fd`` was invalid.
++    but the given ``request_fd`` was invalid or ``V4L2_CTRL_WHICH_REQUEST_VAL``
++    is not supported by the kernel.
+     This error code is also returned by the
+     :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` and :ref:`VIDIOC_TRY_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` ioctls if two or
+     more control values are in conflict.
+diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+index 6b1e7a67cbe5..639be0a4b4f3 100644
+--- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+@@ -111,7 +111,10 @@ then ``EINVAL`` will be returned.
+ .. caution::
+    It is not allowed to mix queuing requests with queuing buffers directly.
+    ``EPERM`` will be returned if the first buffer was queued directly and
+-   then the application tries to queue a request, or vice versa.
++   then the application tries to queue a request, or vice versa. After
++   closing the file descriptor, calling
++   :ref:`VIDIOC_STREAMOFF <VIDIOC_STREAMON>` or calling :ref:`VIDIOC_REQBUFS`
++   the check for this will be reset.
+ 
+    For :ref:`memory-to-memory devices <codec>` you can specify the
+    ``request_fd`` only for output buffers, not for capture buffers. Attempting
 -- 
 2.18.0
