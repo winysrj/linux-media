@@ -1,76 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:41125 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726006AbeIBOw3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 2 Sep 2018 10:52:29 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tom aan de Wiel <tom.aandewiel@gmail.com>
-Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vicodec: change codec license to LGPL
-Message-ID: <6c7584ed-c7ba-b9c2-73fa-2201fcba8201@xs4all.nl>
-Date: Sun, 2 Sep 2018 12:37:04 +0200
+Received: from vps.deutnet.info ([92.222.219.9]:50136 "EHLO vps.deutnet.info"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727541AbeIBR1k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 2 Sep 2018 13:27:40 -0400
+Date: Sun, 2 Sep 2018 14:36:40 +0200
+From: Alexandre GRIVEAUX <agriveaux@deutnet.info>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        agriveaux@deutnet.info
+Subject: [PATCH] [media] saa7134: add P7131_4871 analog inputs
+Message-ID: <20180902123640.4xiyc66rdazzubvo@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The FWHT codec can also be used by userspace utilities and libraries, but
-since the current license is GPL and not LGPL it is not possible to include
-it in e.g. gstreamer, since LGPL is required for that.
+The saa7134 Tiger board has a front panel connector at the back (labeled
+panel 2 on the PCB), with S-VIDEO, composite and audio.
 
-Change the license of these four files to LGPL.
+This patch adds those inputs.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre GRIVEAUX <agriveaux@deutnet.info>
 ---
-Tom, if you agree to this, can you give your 'Signed-off-by' line? I cannot
-make this change for the codec-fwht.c/h files without it. I think this change
-makes sense.
+ drivers/media/pci/saa7134/saa7134-cards.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-Regards,
-
-	Hans
----
-diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
-index 47939160560e..36656031b295 100644
---- a/drivers/media/platform/vicodec/codec-fwht.c
-+++ b/drivers/media/platform/vicodec/codec-fwht.c
-@@ -1,4 +1,4 @@
--// SPDX-License-Identifier: GPL-2.0+
-+// SPDX-License-Identifier: LGPL-2.1+
- /*
-  * Copyright 2016 Tom aan de Wiel
-  * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
-index 1f9e47331197..3e9391fec5fe 100644
---- a/drivers/media/platform/vicodec/codec-fwht.h
-+++ b/drivers/media/platform/vicodec/codec-fwht.h
-@@ -1,4 +1,4 @@
--/* SPDX-License-Identifier: GPL-2.0+ */
-+/* SPDX-License-Identifier: LGPL-2.1+ */
- /*
-  * Copyright 2016 Tom aan de Wiel
-  * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-index cfcf84b8574d..6b06aa382cbb 100644
---- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-+++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
-@@ -1,4 +1,4 @@
--// SPDX-License-Identifier: GPL-2.0
-+// SPDX-License-Identifier: LGPL-2.1
- /*
-  * A V4L2 frontend for the FWHT codec
-  *
-diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
-index 7794c186d905..95d1756556db 100644
---- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
-+++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
-@@ -1,4 +1,4 @@
--/* SPDX-License-Identifier: GPL-2.0 */
-+/* SPDX-License-Identifier: LGPL-2.1 */
- /*
-  * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-  */
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index 9d6688a82b50..40ce033cb884 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -3628,6 +3628,21 @@ struct saa7134_board saa7134_boards[] = {
+ 			.vmux   = 1,
+ 			.amux   = TV,
+ 			.gpio   = 0x0200000,
++		},{
++			.type = SAA7134_INPUT_COMPOSITE1,
++			.vmux = 3,
++			.amux = LINE2,
++			.gpio = 0x0200000,
++		},{
++			.type = SAA7134_INPUT_COMPOSITE2,
++			.vmux = 0,
++			.amux = LINE2,
++			.gpio = 0x0200000,
++		},{
++			.type = SAA7134_INPUT_SVIDEO,
++			.vmux = 8,
++			.amux = LINE2,
++			.gpio = 0x0200000,
+ 		}},
+ 	},
+ 	[SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA] = {
+-- 
+2.11.0
