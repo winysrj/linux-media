@@ -1,878 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:47181 "EHLO
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:39498 "EHLO
         lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726029AbeICNmn (ORCPT
+        by vger.kernel.org with ESMTP id S1726046AbeICOJv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Sep 2018 09:42:43 -0400
-Subject: Re: [PATCH 1/2] media: v4l: Add definitions for the HEVC slice format
- and controls
-To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
+        Mon, 3 Sep 2018 10:09:51 -0400
+Subject: Re: [PATCH v4 5/6] media: Add controls for JPEG quantization tables
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20180828080240.10982-1-paul.kocialkowski@bootlin.com>
- <20180828080240.10982-2-paul.kocialkowski@bootlin.com>
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+References: <20180831155245.19235-1-ezequiel@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ebee4ca1-8fb6-f0c6-b332-c3b22a0a1041@xs4all.nl>
-Date: Mon, 3 Sep 2018 11:23:17 +0200
+Message-ID: <ec1dab04-1890-5555-44cf-2cdadc79c1a6@xs4all.nl>
+Date: Mon, 3 Sep 2018 11:50:22 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180828080240.10982-2-paul.kocialkowski@bootlin.com>
+In-Reply-To: <20180831155245.19235-1-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/28/2018 10:02 AM, Paul Kocialkowski wrote:
-> This introduces the required definitions for HEVC decoding support with
-> stateless VPUs. The controls associated to the HEVC slice format provide
-> the required meta-data for decoding slices extracted from the bitstream.
+On 08/31/2018 05:52 PM, Ezequiel Garcia wrote:
+> From: Shunqian Zheng <zhengsq@rock-chips.com>
 > 
-> This interface comes with the following limitations:
-> * No custom quantization matrices (scaling lists);
-> * Support for a single temporal layer only;
-> * No slice entry point offsets support;
-> * No conformance window support;
-> * No VUI parameters support;
-> * No support for SPS extensions: range, multilayer, 3d, scc, 4 bits;
-> * No support for PPS extensions: range, multilayer, 3d, scc, 4 bits.
+> Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
+> configure the JPEG quantization tables.
 > 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 > ---
->  .../media/uapi/v4l/extended-controls.rst      | 416 ++++++++++++++++++
->  .../media/uapi/v4l/pixfmt-compressed.rst      |  15 +
->  .../media/uapi/v4l/vidioc-queryctrl.rst       |  18 +
->  .../media/videodev2.h.rst.exceptions          |   3 +
->  drivers/media/v4l2-core/v4l2-ctrls.c          |  26 ++
->  drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
->  include/media/v4l2-ctrls.h                    |   6 +
->  include/uapi/linux/v4l2-controls.h            | 155 +++++++
->  include/uapi/linux/videodev2.h                |   7 +
->  9 files changed, 647 insertions(+)
+>  .../media/uapi/v4l/extended-controls.rst      | 23 +++++++++++++++++++
+>  .../media/videodev2.h.rst.exceptions          |  1 +
+>  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++++
+>  include/uapi/linux/v4l2-controls.h            |  5 ++++
+>  include/uapi/linux/videodev2.h                |  1 +
+>  5 files changed, 40 insertions(+)
 > 
 > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index a9252225b63e..f5255bfd8434 100644
+> index 9f7312bf3365..e0dd03e452de 100644
 > --- a/Documentation/media/uapi/v4l/extended-controls.rst
 > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -1675,6 +1675,422 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type -
->  	non-intra-coded frames, in zigzag scanning order. Only relevant for
->  	non-4:2:0 YUV formats.
+> @@ -3354,7 +3354,30 @@ JPEG Control IDs
+>      Specify which JPEG markers are included in compressed stream. This
+>      control is valid only for encoders.
 >  
-> +.. _v4l2-mpeg-hevc:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_SPS (struct)``
-> +    Specifies the Sequence Parameter Set fields (as extracted from the
-> +    bitstream) for the associated HEVC slice data.
-> +    The bitstream parameters are defined according to the ISO/IEC 23008-2 and
-> +    ITU-T Rec. H.265 specifications.
+> +.. _jpeg-quant-tables-control:
+>  
+> +``V4L2_CID_JPEG_QUANTIZATION (struct)``
+> +    Specifies the luma and chroma quantization matrices for encoding
+> +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The two matrices
+> +    must be set in JPEG zigzag order, as per the JPEG specification.
 
-Use proper references to these specs in biblio.rst (adding them if not there already).
+Can you change "JPEG specification" to a reference to the JPEG spec entry
+in bibio.rst?
 
 > +
-> +.. c:type:: v4l2_ctrl_hevc_sps
+> +
+> +.. c:type:: struct v4l2_ctrl_jpeg_quantization
 > +
 > +.. cssclass:: longtable
 > +
-> +.. flat-table:: struct v4l2_ctrl_hevc_sps
+> +.. flat-table:: struct v4l2_ctrl_jpeg_quantization
 > +    :header-rows:  0
 > +    :stub-columns: 0
 > +    :widths:       1 1 2
 > +
 > +    * - __u8
-> +      - ``chroma_format_idc``
-> +      - Syntax description inherited from the specification.
+> +      - ``luma_quantization_matrix[64]``
+> +      - Sets the luma quantization table.
+> +
+> +    * - __u8
+> +      - ``chroma_quantization_matrix[64]``
+> +      - Sets the chroma quantization table.
 
-If you have a section number of the spec that you can refer to, then that
-would be nice.
+Just checking: the JPEG standard specifies this as unsigned 8-bit values as well?
 
-> +    * - __u8
-> +      - ``separate_colour_plane_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u16
-> +      - ``pic_width_in_luma_samples``
-> +      - Syntax description inherited from the specification.
-> +    * - __u16
-> +      - ``pic_height_in_luma_samples``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``bit_depth_luma_minus8``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``bit_depth_chroma_minus8``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_max_pic_order_cnt_lsb_minus4``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``sps_max_dec_pic_buffering_minus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``sps_max_num_reorder_pics``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``sps_max_latency_increase_plus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_min_luma_coding_block_size_minus3``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_diff_max_min_luma_coding_block_size``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_min_luma_transform_block_size_minus2``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_diff_max_min_luma_transform_block_size``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``max_transform_hierarchy_depth_inter``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``max_transform_hierarchy_depth_intra``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``scaling_list_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``amp_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``sample_adaptive_offset_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pcm_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pcm_sample_bit_depth_luma_minus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pcm_sample_bit_depth_chroma_minus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_min_pcm_luma_coding_block_size_minus3``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_diff_max_min_pcm_luma_coding_block_size``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pcm_loop_filter_disabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``num_short_term_ref_pic_sets``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``long_term_ref_pics_present_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``num_long_term_ref_pics_sps``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``sps_temporal_mvp_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``strong_intra_smoothing_enabled_flag``
-> +      - Syntax description inherited from the specification.
-
-I'd just drop the 'Syntax description inherited from the specification.' and
-add that after the table. Ditto elsewhere.
-
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_PPS (struct)``
-> +    Specifies the Picture Parameter Set fields (as extracted from the
-> +    bitstream) for the associated HEVC slice data.
-> +    The bitstream parameters are defined according to the ISO/IEC 23008-2 and
-> +    ITU-T Rec. H.265 specifications.
-
-Same here. I think these two specs are actually one and the same. By using a
-biblio reference you can just say: "according to the HEVC/H.265 specification"
-where 'HEVC/H.265 specification' is a link to the actual spec(s).
-
-> +
-> +.. c:type:: v4l2_ctrl_hevc_pps
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: struct v4l2_ctrl_hevc_pps
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths:       1 1 2
-> +
-> +    * - __u8
-> +      - ``dependent_slice_segment_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``output_flag_present_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``num_extra_slice_header_bits``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``sign_data_hiding_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``cabac_init_present_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``init_qp_minus26``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``constrained_intra_pred_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``transform_skip_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``cu_qp_delta_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``diff_cu_qp_delta_depth``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``pps_cb_qp_offset``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``pps_cr_qp_offset``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pps_slice_chroma_qp_offsets_present_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``weighted_pred_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``weighted_bipred_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``transquant_bypass_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``tiles_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``entropy_coding_sync_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``num_tile_columns_minus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``num_tile_rows_minus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``column_width_minus1[20]``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``row_height_minus1[22]``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``loop_filter_across_tiles_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pps_loop_filter_across_slices_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``deblocking_filter_override_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pps_disable_deblocking_filter_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``pps_beta_offset_div2``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``pps_tc_offset_div2``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``lists_modification_present_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``log2_parallel_merge_level_minus2``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``slice_segment_header_extension_present_flag``
-> +      - Syntax description inherited from the specification.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS (struct)``
-> +    Specifies various slice-specific parameters, especially from the NAL unit
-> +    header, general slice segment header and weighted prediction parameter
-> +    parts of the bitstream.
-> +    The bitstream parameters are defined according to the ISO/IEC 23008-2 and
-> +    ITU-T Rec. H.265 specifications.
-> +
-> +.. c:type:: v4l2_ctrl_hevc_slice_params
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: struct v4l2_ctrl_hevc_slice_params
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths:       1 1 2
-> +
-> +    * - __u32
-> +      - ``bit_size``
-> +      - Size (in bits) of the current slice data.
-> +    * - __u32
-> +      - ``data_bit_offset``
-> +      - Offset (in bits) to the video data in the current slice data.
-> +    * - __u8
-> +      - ``nal_unit_type``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``nuh_temporal_id_plus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``slice_type``
-> +      - Syntax description inherited from the specification.
-> +	(V4L2_HEVC_SLICE_TYPE_I, V4L2_HEVC_SLICE_TYPE_P or
-> +	V4L2_HEVC_SLICE_TYPE_B).
-> +    * - __u8
-> +      - ``colour_plane_id``
-> +      - Syntax description inherited from the specification.
-> +    * - __u16
-> +      - ``slice_pic_order_cnt``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``slice_sao_luma_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``slice_sao_chroma_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``slice_temporal_mvp_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``num_ref_idx_l0_active_minus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``num_ref_idx_l1_active_minus1``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``mvd_l1_zero_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``cabac_init_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``collocated_from_l0_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``collocated_ref_idx``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``five_minus_max_num_merge_cand``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``use_integer_mv_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_qp_delta``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_cb_qp_offset``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_cr_qp_offset``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_act_y_qp_offset``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_act_cb_qp_offset``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_act_cr_qp_offset``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``slice_deblocking_filter_disabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_beta_offset_div2``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``slice_tc_offset_div2``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``slice_loop_filter_across_slices_enabled_flag``
-> +      - Syntax description inherited from the specification.
-> +    * - __u8
-> +      - ``pic_struct``
-> +      - Syntax description inherited from the specification.
-> +    * - struct :c:type:`v4l2_hevc_dpb_entry`
-> +      - ``dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
-> +      - The decoded picture buffer, for meta-data about reference frames.
-> +    * - __u8
-> +      - ``num_active_dpb_entries``
-> +      - The number of entries in ``dpb``.
-> +    * - __u8
-> +      - ``ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
-> +      - The list of L0 reference elements as indices in the DPB.
-> +    * - __u8
-> +      - ``ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
-> +      - The list of L1 reference elements as indices in the DPB.
-> +    * - __u8
-> +      - ``num_rps_poc_st_curr_before``
-> +      - The number of reference pictures in the short-term set that come before
-> +        the current frame.
-> +    * - __u8
-> +      - ``num_rps_poc_st_curr_after``
-> +      - The number of reference pictures in the short-term set that come after
-> +        the current frame.
-> +    * - __u8
-> +      - ``num_rps_poc_lt_curr``
-> +      - The number of reference pictures in the long-term set.
-> +    * - struct :c:type:`v4l2_hevc_pred_weight_table`
-> +      - ``pred_weight_table``
-> +      - The prediction weight coefficients for inter-picture prediction.
-> +
-> +.. c:type:: v4l2_hevc_dpb_entry
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: struct v4l2_hevc_dpb_entry
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths:       1 1 2
-> +
-> +    * - __u32
-> +      - ``buffer_index``
-> +      - The V4L2 buffer index that matches the associated reference picture.
-> +    * - __u8
-> +      - ``rps``
-> +      - The reference set for the reference frame
-> +        (V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE,
-> +        V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER or
-> +        V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR)
-> +    * - __u8
-> +      - ``field_pic``
-> +      - Whether the reference is a field picture or a frame.
-> +    * - __u16
-> +      - ``pic_order_cnt[2]``
-> +      - Le picture order count of the reference. Only the first element of the
-
-Le -> The
-
-> +        array is used for frame pictures, while the first element identifies the
-> +        top field and the second the bottom field in field-coded pictures.
-> +
-> +.. c:type:: v4l2_hevc_pred_weight_table
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: struct v4l2_hevc_pred_weight_table
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths:       1 1 2
-> +
-> +    * - __u8
-> +      - ``luma_log2_weight_denom``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``delta_chroma_log2_weight_denom``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
-> +      - Syntax description inherited from the specification.
-> +    * - __s8
-> +      - ``chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
-> +      - Syntax description inherited from the specification.
-> +
->  MFC 5.1 MPEG Controls
->  ---------------------
 >  
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> index a86b59f770dd..a1a19890df4c 100644
-> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-> @@ -109,6 +109,21 @@ Compressed Formats
->        - ``V4L2_PIX_FMT_HEVC``
->        - 'HEVC'
->        - HEVC/H.265 video elementary stream.
-> +    * .. _V4L2-PIX-FMT-HEVC-SLICE:
-> +
-> +      - ``V4L2_PIX_FMT_HEVC_SLICE``
-> +      - 'S265'
-> +      - HEVC parsed slice data, as extracted from the HEVC bitstream.
-> +	This format is adapted for stateless video decoders that implement a
-> +	HEVC pipeline (using the Memory to Memory and Media Request APIs).
-
-Should be references to these two sections of the spec.
-
-> +	Metadata associated with the frame to decode is required to be passed
-> +	through the following controls :
-> +        * ``V4L2_CID_MPEG_VIDEO_HEVC_SPS``
-> +        * ``V4L2_CID_MPEG_VIDEO_HEVC_PPS``
-> +        * ``V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS``
-> +	See the :ref:`associated Codec Control IDs <v4l2-mpeg-hevc>`.
-> +	Buffers associated with this pixel format must contain the appropriate
-> +	number of macroblocks to decode a full corresponding frame.
->      * .. _V4L2-PIX-FMT-FWHT:
->  
->        - ``V4L2_PIX_FMT_FWHT``
-> diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> index 258f5813f281..1f5aa8ad68fa 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> @@ -436,6 +436,24 @@ See also the examples in :ref:`control`.
->        - n/a
->        - A struct :c:type:`v4l2_ctrl_mpeg2_quantization`, containing MPEG-2
->  	quantization matrices for stateless video decoders.
-> +    * - ``V4L2_CTRL_TYPE_HEVC_SPS``
-> +      - n/a
-> +      - n/a
-> +      - n/a
-> +      - A struct :c:type:`v4l2_ctrl_hevc_sps`, containing HEVC Sequence
-> +	Parameter Set for stateless video decoders.
-> +    * - ``V4L2_CTRL_TYPE_HEVC_PPS``
-> +      - n/a
-> +      - n/a
-> +      - n/a
-> +      - A struct :c:type:`v4l2_ctrl_hevc_pps`, containing HEVC Picture
-> +	Parameter Set for stateless video decoders.
-> +    * - ``V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS``
-> +      - n/a
-> +      - n/a
-> +      - n/a
-> +      - A struct :c:type:`v4l2_ctrl_hevc_slice_params`, containing HEVC
-> +	slice parameters for stateless video decoders.
->  
->  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
->  
+>  .. flat-table::
+>      :header-rows:  0
 > diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-> index 30ba0d6f546f..7640ce6dadc9 100644
+> index ca9f0edc579e..a0a38e92bf38 100644
 > --- a/Documentation/media/videodev2.h.rst.exceptions
 > +++ b/Documentation/media/videodev2.h.rst.exceptions
-> @@ -131,6 +131,9 @@ replace symbol V4L2_CTRL_TYPE_U32 :c:type:`v4l2_ctrl_type`
+> @@ -129,6 +129,7 @@ replace symbol V4L2_CTRL_TYPE_STRING :c:type:`v4l2_ctrl_type`
+>  replace symbol V4L2_CTRL_TYPE_U16 :c:type:`v4l2_ctrl_type`
+>  replace symbol V4L2_CTRL_TYPE_U32 :c:type:`v4l2_ctrl_type`
 >  replace symbol V4L2_CTRL_TYPE_U8 :c:type:`v4l2_ctrl_type`
->  replace symbol V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS :c:type:`v4l2_ctrl_type`
->  replace symbol V4L2_CTRL_TYPE_MPEG2_QUANTIZATION :c:type:`v4l2_ctrl_type`
-> +replace symbol V4L2_CTRL_TYPE_HEVC_SPS :c:type:`v4l2_ctrl_type`
-> +replace symbol V4L2_CTRL_TYPE_HEVC_PPS :c:type:`v4l2_ctrl_type`
-> +replace symbol V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS :c:type:`v4l2_ctrl_type`
+> +replace symbol V4L2_CTRL_TYPE_JPEG_QUANTIZATION :c:type:`v4l2_ctrl_type`
 >  
 >  # V4L2 capability defines
 >  replace define V4L2_CAP_VIDEO_CAPTURE device-capabilities
 > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 2b1022d7c617..c9c40e693a93 100644
+> index 599c1cbff3b9..305bd7a9b7f1 100644
 > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
 > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -913,6 +913,9 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
->  	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:	return "Reference Frames for a P-Frame";
->  	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:		return "Prepend SPS and PPS to IDR";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SPS:			return "HEVC Sequence Parameter Set";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PPS:			return "HEVC Picture Parameter Set";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS:		return "HEVC Slice Parameters";
+> @@ -999,6 +999,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
+>  	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
+>  	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
+> +	case V4L2_CID_JPEG_QUANTIZATION:	return "JPEG Quantization Tables";
 >  
->  	/* CAMERA controls */
+>  	/* Image source controls */
 >  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-> @@ -1320,6 +1323,15 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAMS:
->  		*type = V4L2_CTRL_TYPE_H264_DECODE_PARAMS;
+> @@ -1286,6 +1287,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_DETECT_MD_REGION_GRID:
+>  		*type = V4L2_CTRL_TYPE_U8;
 >  		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SPS:
-> +		*type = V4L2_CTRL_TYPE_HEVC_SPS;
+> +	case V4L2_CID_JPEG_QUANTIZATION:
+> +		*type = V4L2_CTRL_TYPE_JPEG_QUANTIZATION;
 > +		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PPS:
-> +		*type = V4L2_CTRL_TYPE_HEVC_PPS;
-> +		break;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS:
-> +		*type = V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS;
-> +		break;
->  	default:
->  		*type = V4L2_CTRL_TYPE_INTEGER;
+>  	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
+>  		*type = V4L2_CTRL_TYPE_U16;
 >  		break;
-> @@ -1696,6 +1708,11 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->  	case V4L2_CTRL_TYPE_H264_DECODE_PARAMS:
+> @@ -1612,6 +1616,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+>  			return -ERANGE;
 >  		return 0;
 >  
-> +	case V4L2_CTRL_TYPE_HEVC_SPS:
-> +	case V4L2_CTRL_TYPE_HEVC_PPS:
-> +	case V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS:
+> +	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
 > +		return 0;
 > +
 >  	default:
 >  		return -EINVAL;
 >  	}
-> @@ -2291,6 +2308,15 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->  	case V4L2_CTRL_TYPE_H264_DECODE_PARAMS:
->  		elem_size = sizeof(struct v4l2_ctrl_h264_decode_param);
+> @@ -2133,6 +2140,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>  	case V4L2_CTRL_TYPE_U32:
+>  		elem_size = sizeof(u32);
 >  		break;
-> +	case V4L2_CTRL_TYPE_HEVC_SPS:
-> +		elem_size = sizeof(struct v4l2_ctrl_hevc_sps);
-> +		break;
-> +	case V4L2_CTRL_TYPE_HEVC_PPS:
-> +		elem_size = sizeof(struct v4l2_ctrl_hevc_pps);
-> +		break;
-> +	case V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS:
-> +		elem_size = sizeof(struct v4l2_ctrl_hevc_slice_params);
+> +	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
+> +		elem_size = sizeof(struct v4l2_ctrl_jpeg_quantization);
 > +		break;
 >  	default:
 >  		if (type < V4L2_CTRL_COMPOUND_TYPES)
 >  			elem_size = sizeof(s32);
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 0507a19079fe..a121f96912bf 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1318,6 +1318,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->  		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
->  		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
->  		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
-> +		case V4L2_PIX_FMT_HEVC_SLICE:	descr = "HEVC Parsed Slice Data"; break;
->  		case V4L2_PIX_FMT_FWHT:		descr = "FWHT"; break; /* used in vicodec */
->  		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
->  		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 4814dd4a763e..8d4763ea1e1f 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -48,6 +48,9 @@ struct poll_table_struct;
->   * @p_h264_scal_mtrx:		Pointer to a struct v4l2_ctrl_h264_scaling_matrix.
->   * @p_h264_slice_param:		Pointer to a struct v4l2_ctrl_h264_slice_param.
->   * @p_h264_decode_param:	Pointer to a struct v4l2_ctrl_h264_decode_param.
-> + * @p_hevc_sps:			Pointer to an HEVC sequence parameter set structure.
-> + * @p_hevc_pps:			Pointer to an HEVC picture parameter set structure.
-> + * @p_hevc_slice_params		Pointer to an HEVC slice parameters structure.
->   * @p:				Pointer to a compound value.
->   */
->  union v4l2_ctrl_ptr {
-> @@ -64,6 +67,9 @@ union v4l2_ctrl_ptr {
->  	struct v4l2_ctrl_h264_scaling_matrix *p_h264_scal_mtrx;
->  	struct v4l2_ctrl_h264_slice_param *p_h264_slice_param;
->  	struct v4l2_ctrl_h264_decode_param *p_h264_decode_param;
-> +	struct v4l2_ctrl_hevc_sps *p_hevc_sps;
-> +	struct v4l2_ctrl_hevc_pps *p_hevc_pps;
-> +	struct v4l2_ctrl_hevc_slice_params *p_hevc_slice_params;
->  	void *p;
->  };
->  
 > diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index c41d5beab9b4..a914e6df8f98 100644
+> index e4ee10ee917d..fcb288bb05c7 100644
 > --- a/include/uapi/linux/v4l2-controls.h
 > +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -707,6 +707,9 @@ enum v4l2_cid_mpeg_video_hevc_size_of_length_field {
->  #define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR	(V4L2_CID_MPEG_BASE + 642)
->  #define V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES	(V4L2_CID_MPEG_BASE + 643)
->  #define V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR	(V4L2_CID_MPEG_BASE + 644)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_SPS			(V4L2_CID_MPEG_BASE + 645)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_PPS			(V4L2_CID_MPEG_BASE + 646)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS		(V4L2_CID_MPEG_BASE + 647)
+> @@ -987,6 +987,11 @@ enum v4l2_jpeg_chroma_subsampling {
+>  #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
+>  #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
 >  
->  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
->  #define V4L2_CID_MPEG_CX2341X_BASE				(V4L2_CTRL_CLASS_MPEG | 0x1000)
-> @@ -1323,4 +1326,156 @@ struct v4l2_ctrl_h264_decode_param {
->  	struct v4l2_h264_dpb_entry dpb[16];
->  };
+> +#define V4L2_CID_JPEG_QUANTIZATION		(V4L2_CID_JPEG_CLASS_BASE + 5)
+> +struct v4l2_ctrl_jpeg_quantization {
+> +	__u8	luma_quantization_matrix[64];
+> +	__u8	chroma_quantization_matrix[64];
+> +};
 >  
-> +#define V4L2_HEVC_SLICE_TYPE_B	0
-> +#define V4L2_HEVC_SLICE_TYPE_P	1
-> +#define V4L2_HEVC_SLICE_TYPE_I	2
-> +
-> +struct v4l2_ctrl_hevc_sps {
-> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Sequence parameter set */
-> +	__u8	chroma_format_idc;
-> +	__u8	separate_colour_plane_flag;
-> +	__u16	pic_width_in_luma_samples;
-> +	__u16	pic_height_in_luma_samples;
-> +	__u8	bit_depth_luma_minus8;
-> +	__u8	bit_depth_chroma_minus8;
-> +	__u8	log2_max_pic_order_cnt_lsb_minus4;
-> +	__u8	sps_max_dec_pic_buffering_minus1;
-> +	__u8	sps_max_num_reorder_pics;
-> +	__u8	sps_max_latency_increase_plus1;
-> +	__u8	log2_min_luma_coding_block_size_minus3;
-> +	__u8	log2_diff_max_min_luma_coding_block_size;
-> +	__u8	log2_min_luma_transform_block_size_minus2;
-> +	__u8	log2_diff_max_min_luma_transform_block_size;
-> +	__u8	max_transform_hierarchy_depth_inter;
-> +	__u8	max_transform_hierarchy_depth_intra;
-> +	__u8	scaling_list_enabled_flag;
-> +	__u8	amp_enabled_flag;
-> +	__u8	sample_adaptive_offset_enabled_flag;
-> +	__u8	pcm_enabled_flag;
-> +	__u8	pcm_sample_bit_depth_luma_minus1;
-> +	__u8	pcm_sample_bit_depth_chroma_minus1;
-> +	__u8	log2_min_pcm_luma_coding_block_size_minus3;
-> +	__u8	log2_diff_max_min_pcm_luma_coding_block_size;
-> +	__u8	pcm_loop_filter_disabled_flag;
-> +	__u8	num_short_term_ref_pic_sets;
-> +	__u8	long_term_ref_pics_present_flag;
-> +	__u8	num_long_term_ref_pics_sps;
-> +	__u8	sps_temporal_mvp_enabled_flag;
-> +	__u8	strong_intra_smoothing_enabled_flag;
-> +};
-> +
-> +struct v4l2_ctrl_hevc_pps {
-> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture parameter set */
-> +	__u8	dependent_slice_segment_flag;
-> +	__u8	output_flag_present_flag;
-> +	__u8	num_extra_slice_header_bits;
-> +	__u8	sign_data_hiding_enabled_flag;
-> +	__u8	cabac_init_present_flag;
-> +	__s8	init_qp_minus26;
-> +	__u8	constrained_intra_pred_flag;
-> +	__u8	transform_skip_enabled_flag;
-> +	__u8	cu_qp_delta_enabled_flag;
-> +	__u8	diff_cu_qp_delta_depth;
-> +	__s8	pps_cb_qp_offset;
-> +	__s8	pps_cr_qp_offset;
-> +	__u8	pps_slice_chroma_qp_offsets_present_flag;
-> +	__u8	weighted_pred_flag;
-> +	__u8	weighted_bipred_flag;
-> +	__u8	transquant_bypass_enabled_flag;
-> +	__u8	tiles_enabled_flag;
-> +	__u8	entropy_coding_sync_enabled_flag;
-> +	__u8	num_tile_columns_minus1;
-> +	__u8	num_tile_rows_minus1;
-> +	__u8	column_width_minus1[20];
-> +	__u8	row_height_minus1[22];
-> +	__u8	loop_filter_across_tiles_enabled_flag;
-> +	__u8	pps_loop_filter_across_slices_enabled_flag;
-> +	__u8	deblocking_filter_override_enabled_flag;
-> +	__u8	pps_disable_deblocking_filter_flag;
-> +	__s8	pps_beta_offset_div2;
-> +	__s8	pps_tc_offset_div2;
-> +	__u8	lists_modification_present_flag;
-> +	__u8	log2_parallel_merge_level_minus2;
-> +	__u8	slice_segment_header_extension_present_flag;
-> +};
-> +
-> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE	0x01
-> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER	0x02
-> +#define V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR		0x03
-> +
-> +#define V4L2_HEVC_DPB_ENTRIES_NUM_MAX		16
-> +
-> +struct v4l2_hevc_dpb_entry {
-> +	__u32	buffer_index;
-> +	__u8	rps;
-> +	__u8	field_pic;
-> +	__u16	pic_order_cnt[2];
-> +};
-> +
-> +struct v4l2_hevc_pred_weight_table {
-> +	__u8	luma_log2_weight_denom;
-> +	__s8	delta_chroma_log2_weight_denom;
-> +
-> +	__s8	delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
-> +	__s8	luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
-> +	__s8	delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
-> +	__s8	chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
-> +
-> +	__s8	delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
-> +	__s8	luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
-> +	__s8	delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
-> +	__s8	chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
-> +};
-> +
-> +struct v4l2_ctrl_hevc_slice_params {
-> +	__u32	bit_size;
-> +	__u32	data_bit_offset;
-> +
-> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: NAL unit header */
-> +	__u8	nal_unit_type;
-> +	__u8	nuh_temporal_id_plus1;
-> +
-> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
-> +	__u8	slice_type;
-> +	__u8	colour_plane_id;
-> +	__u16	slice_pic_order_cnt;
-> +	__u8	slice_sao_luma_flag;
-> +	__u8	slice_sao_chroma_flag;
-> +	__u8	slice_temporal_mvp_enabled_flag;
-> +	__u8	num_ref_idx_l0_active_minus1;
-> +	__u8	num_ref_idx_l1_active_minus1;
-> +	__u8	mvd_l1_zero_flag;
-> +	__u8	cabac_init_flag;
-> +	__u8	collocated_from_l0_flag;
-> +	__u8	collocated_ref_idx;
-> +	__u8	five_minus_max_num_merge_cand;
-> +	__u8	use_integer_mv_flag;
-> +	__s8	slice_qp_delta;
-> +	__s8	slice_cb_qp_offset;
-> +	__s8	slice_cr_qp_offset;
-> +	__s8	slice_act_y_qp_offset;
-> +	__s8	slice_act_cb_qp_offset;
-> +	__s8	slice_act_cr_qp_offset;
-> +	__u8	slice_deblocking_filter_disabled_flag;
-> +	__s8	slice_beta_offset_div2;
-> +	__s8	slice_tc_offset_div2;
-> +	__u8	slice_loop_filter_across_slices_enabled_flag;
-> +
-> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture timing SEI message */
-> +	__u8	pic_struct;
-> +
-> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
-> +	struct v4l2_hevc_dpb_entry dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
-> +	__u8	num_active_dpb_entries;
-> +	__u8	ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
-> +	__u8	ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
-> +
-> +	__u8	num_rps_poc_st_curr_before;
-> +	__u8	num_rps_poc_st_curr_after;
-> +	__u8	num_rps_poc_lt_curr;
-> +
-> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Weighted prediction parameter */
-> +	struct v4l2_hevc_pred_weight_table pred_weight_table;
-> +};
-> +
->  #endif
+>  /* Image source controls */
+>  #define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
 > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 9a00f5fcd3cd..e582c6bb0ab9 100644
+> index f271048c89c4..e998d07464cb 100644
 > --- a/include/uapi/linux/videodev2.h
 > +++ b/include/uapi/linux/videodev2.h
-> @@ -644,6 +644,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
->  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
->  #define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC aka H.265 */
-> +#define V4L2_PIX_FMT_HEVC_SLICE v4l2_fourcc('S', '2', '6', '5') /* H265 parsed slices */
->  #define V4L2_PIX_FMT_FWHT     v4l2_fourcc('F', 'W', 'H', 'T') /* Fast Walsh Hadamard Transform (vicodec) */
->  
->  /*  Vendor-specific formats   */
-> @@ -1611,6 +1612,9 @@ struct v4l2_ext_control {
->  		struct v4l2_ctrl_h264_scaling_matrix __user *p_h264_scal_mtrx;
->  		struct v4l2_ctrl_h264_slice_param __user *p_h264_slice_param;
->  		struct v4l2_ctrl_h264_decode_param __user *p_h264_decode_param;
-> +		struct v4l2_ctrl_hevc_sps __user *p_hevc_sps;
-> +		struct v4l2_ctrl_hevc_pps __user *p_hevc_pps;
-> +		struct v4l2_ctrl_hevc_slice_params __user *p_hevc_slice_params;
->  		void __user *ptr;
->  	};
->  } __attribute__ ((packed));
-> @@ -1663,6 +1667,9 @@ enum v4l2_ctrl_type {
->  	V4L2_CTRL_TYPE_H264_SCALING_MATRIX = 0x0107,
->  	V4L2_CTRL_TYPE_H264_SLICE_PARAMS = 0x0108,
->  	V4L2_CTRL_TYPE_H264_DECODE_PARAMS = 0x0109,
-> +	V4L2_CTRL_TYPE_HEVC_SPS = 0x0110,
-> +	V4L2_CTRL_TYPE_HEVC_PPS = 0x0111,
-> +	V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS = 0x0112,
+> @@ -1630,6 +1630,7 @@ enum v4l2_ctrl_type {
+>  	V4L2_CTRL_TYPE_U8	     = 0x0100,
+>  	V4L2_CTRL_TYPE_U16	     = 0x0101,
+>  	V4L2_CTRL_TYPE_U32	     = 0x0102,
+> +	V4L2_CTRL_TYPE_JPEG_QUANTIZATION = 0x0103,
 >  };
 >  
 >  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
