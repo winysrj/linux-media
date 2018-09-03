@@ -1,277 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:54257 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726711AbeICR1Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Sep 2018 13:27:16 -0400
-Subject: Re: [PATCH v6 00/17] Rockchip ISP1 Driver
-To: Jacob Chen <jacob-chen@iotwrt.com>,
-        linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        devicetree@vger.kernel.org, heiko@sntech.de,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-References: <20180308094807.9443-1-jacob-chen@iotwrt.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6761c936-82c7-e36a-de21-c0e827b68a3e@xs4all.nl>
-Date: Mon, 3 Sep 2018 15:07:03 +0200
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:39618 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727528AbeICRcM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2018 13:32:12 -0400
+Date: Mon, 3 Sep 2018 15:12:02 +0200
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dmitry Osipenko <digetx@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH 00/14] staging: media: tegra-vdea: Add Tegra124 support
+Message-ID: <20180903131202.GA23488@ulmo>
+References: <20180813145027.16346-1-thierry.reding@gmail.com>
+ <ddf04f92-f82f-75bf-90a0-102437e3787f@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180308094807.9443-1-jacob-chen@iotwrt.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
+Content-Disposition: inline
+In-Reply-To: <ddf04f92-f82f-75bf-90a0-102437e3787f@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob,
 
-What is the status of this patch series? I haven't seen any updates for quite
-some time now, and I thought that it was getting close.
+--BOKacYhQ+x31HxR3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It would be nice to see this go in.
+On Mon, Sep 03, 2018 at 02:18:15PM +0200, Hans Verkuil wrote:
+> Hi Thierry, Dmitry,
+>=20
+> Dmitry found some issues, so I'll wait for a v2.
+>=20
+> Anyway, this driver is in staging with this TODO:
+>=20
+> - Implement V4L2 API once it gains support for stateless decoders.
+>=20
+> I just wanted to mention that the Request API is expected to be merged
+> for 4.20. A topic branch is here:
+>=20
+> https://git.linuxtv.org/media_tree.git/log/?h=3Drequest_api
+>=20
+> This patch series is expected to be added to the topic branch once
+> everyone agrees:
+>=20
+> https://www.spinics.net/lists/linux-media/msg139713.html
+>=20
+> The first Allwinner driver that will be using this API is here:
+>=20
+> https://lwn.net/Articles/763589/
+>=20
+> It's expected to be merged for 4.20 as well.
+>=20
+> Preliminary H264 work for the Allwinner driver is here:
+>=20
+> https://lkml.org/lkml/2018/6/13/399
+>=20
+> But this needs more work.
+>=20
+> HEVC support, on the other hand, is almost ready:
+>=20
+> https://lkml.org/lkml/2018/8/28/229
+>=20
+> I hope these links give a good overview of the current status.
 
-Regards,
+Thanks for those links. I was aware of the ongoing efforts and was
+eagerly waiting for the various pieces to settle a bit. I will hopefully
+get around to porting the tegra-vde driver to this new infrastructure in
+the next couple of weeks.
 
-	Hans
+Thierry
 
-On 03/08/2018 10:47 AM, Jacob Chen wrote:
-> From: Jacob Chen <jacob2.chen@rock-chips.com>
-> 
-> changes in V6:
->   - add mipi txrx phy support
->   - remove bool and enum from uapi header
->   - add buf_prepare op
->   - correct some spelling problems
->   - return all queued buffers when starting stream failed
-> 
-> changes in V5: Sync with local changes,
->   - fix the SP height limit
->   - speed up the second stream capture
->   - the second stream can't force sync for rsz when start/stop streaming
->   - add frame id to param vb2 buf
->   - enable luminance maximum threshold
-> 
-> changes in V4:
->   - fix some bugs during development
->   - move quantization settings to rkisp1 subdev
->   - correct some spelling problems
->   - describe ports in dt-binding documents
-> 
-> changes in V3:
->   - add some comments
->   - fix wrong use of v4l2_async_subdev_notifier_register
->   - optimize two paths capture at a time
->   - remove compose
->   - re-struct headers
->   - add a tmp wiki page: http://opensource.rock-chips.com/wiki_Rockchip-isp1
-> 
-> changes in V2:
->   mipi-phy:
->     - use async probing
->     - make it be a child device of the GRF
->   isp:
->     - add dummy buffer
->     - change the way to get bus configuration, which make it possible to
->             add parallel sensor support in the future(without mipi-phy driver).
-> 
-> This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
-> 
-> Wiki Pages:
-> http://opensource.rock-chips.com/wiki_Rockchip-isp1
-> 
-> The deprecated g_mbus_config op is not dropped in  V6 because i am waiting tomasz's patches.
-> 
-> v4l2-compliance for V6(isp params/stats nodes are passed):
-> 
->     v4l2-compliance SHA   : 93dc5f20727fede5097d67f8b9adabe4b8046d5b
-> 
->     Compliance test for device /dev/video0:
-> 
->     Driver Info:
->             Driver name      : rkisp1
->             Card type        : rkisp1
->             Bus info         : platform:ff910000.isp
->             Driver version   : 4.16.0
->             Capabilities     : 0x84201000
->                     Video Capture Multiplanar
->                     Streaming
->                     Extended Pix Format
->                     Device Capabilities
->             Device Caps      : 0x04201000
->                     Video Capture Multiplanar
->                     Streaming
->                     Extended Pix Format
->     Media Driver Info:
->             Driver name      : rkisp1
->             Model            : rkisp1
->             Serial           : 
->             Bus info         : 
->             Media version    : 4.16.0
->             Hardware revision: 0x00000000 (0)
->             Driver version   : 4.16.0
->     Interface Info:
->             ID               : 0x03000007
->             Type             : V4L Video
->     Entity Info:
->             ID               : 0x00000006 (6)
->             Name             : rkisp1_selfpath
->             Function         : V4L2 I/O
->             Pad 0x01000009   : Sink
->               Link 0x02000021: from remote pad 0x1000004 of entity 'rkisp1-isp-subdev': Data, Enabled
-> 
->     Required ioctls:
->             test MC information (see 'Media Driver Info' above): OK
->             test VIDIOC_QUERYCAP: OK
-> 
->     Allow for multiple opens:
->             test second /dev/video0 open: OK
->             test VIDIOC_QUERYCAP: OK
->             test VIDIOC_G/S_PRIORITY: OK
->             test for unlimited opens: OK
-> 
->     Debug ioctls:
->             test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->             test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
->     Input ioctls:
->             test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->             test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->             test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->             test VIDIOC_ENUMAUDIO: OK (Not Supported)
->             test VIDIOC_G/S/ENUMINPUT: OK
->             test VIDIOC_G/S_AUDIO: OK (Not Supported)
->             Inputs: 1 Audio Inputs: 0 Tuners: 0
-> 
->     Output ioctls:
->             test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->             test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->             test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->             test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->             test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->             Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
->     Input/Output configuration ioctls:
->             test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->             test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->             test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->             test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
->     Control ioctls (Input 0):
->             test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
->             test VIDIOC_QUERYCTRL: OK
->             test VIDIOC_G/S_CTRL: OK
->             test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->             test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->             test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->             Standard Controls: 9 Private Controls: 0
-> 
->     Format ioctls (Input 0):
->             test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->             test VIDIOC_G/S_PARM: OK (Not Supported)
->             test VIDIOC_G_FBUF: OK (Not Supported)
->                     fail: v4l2-test-formats.cpp(330): !colorspace
->                     fail: v4l2-test-formats.cpp(454): testColorspace(pix_mp.pixelformat, pix_mp.colorspace, pix_mp.ycbcr_enc, pix_m
->     p.quantization)
->             test VIDIOC_G_FMT: FAIL
->             test VIDIOC_TRY_FMT: OK (Not Supported)
->             test VIDIOC_S_FMT: OK (Not Supported)
->             test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->                     fail: v4l2-test-formats.cpp(1288): doioctl(node, VIDIOC_G_SELECTION, &sel) != EINVAL
->             test Cropping: FAIL
->             test Composing: OK (Not Supported)
->             test Scaling: OK
-> 
->     Codec ioctls (Input 0):
->             test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->             test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->             test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
->     Buffer ioctls (Input 0):
->             test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->                     fail: v4l2-test-buffers.cpp(525): VIDIOC_EXPBUF is supported, but the V4L2_MEMORY_MMAP support is missing, prob
->     ably due to earlier failing format tests.
->             test VIDIOC_EXPBUF: OK (Not Supported)
-> 
->     Total: 44, Succeeded: 42, Failed: 2, Warnings: 0
-> 
-> Jacob Chen (12):
->   media: doc: add document for rkisp1 meta buffer format
->   media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
->   media: rkisp1: add Rockchip ISP1 subdev driver
->   media: rkisp1: add ISP1 statistics driver
->   media: rkisp1: add ISP1 params driver
->   media: rkisp1: add capture device driver
->   media: rkisp1: add rockchip isp1 core driver
->   dt-bindings: Document the Rockchip ISP1 bindings
->   dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
->   ARM: dts: rockchip: add isp node for rk3288
->   ARM: dts: rockchip: add rx0 mipi-phy for rk3288
->   MAINTAINERS: add entry for Rockchip ISP1 driver
-> 
-> Jeffy Chen (1):
->   media: rkisp1: Add user space ABI definitions
-> 
-> Shunqian Zheng (3):
->   media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
->   arm64: dts: rockchip: add isp0 node for rk3399
->   arm64: dts: rockchip: add rx0 mipi-phy for rk3399
-> 
-> Wen Nuan (1):
->   ARM: dts: rockchip: Add dts mipi-dphy TXRX1 node for rk3288
-> 
->  .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
->  .../bindings/media/rockchip-mipi-dphy.txt          |   90 +
->  Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
->  .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   20 +
->  .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
->  MAINTAINERS                                        |   10 +
->  arch/arm/boot/dts/rk3288.dtsi                      |   33 +
->  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
->  drivers/media/platform/Kconfig                     |   10 +
->  drivers/media/platform/Makefile                    |    1 +
->  drivers/media/platform/rockchip/isp1/Makefile      |    8 +
->  drivers/media/platform/rockchip/isp1/capture.c     | 1751 ++++++++++++++++++++
->  drivers/media/platform/rockchip/isp1/capture.h     |  167 ++
->  drivers/media/platform/rockchip/isp1/common.h      |  110 ++
->  drivers/media/platform/rockchip/isp1/dev.c         |  626 +++++++
->  drivers/media/platform/rockchip/isp1/dev.h         |   93 ++
->  drivers/media/platform/rockchip/isp1/isp_params.c  | 1539 +++++++++++++++++
->  drivers/media/platform/rockchip/isp1/isp_params.h  |   49 +
->  drivers/media/platform/rockchip/isp1/isp_stats.c   |  508 ++++++
->  drivers/media/platform/rockchip/isp1/isp_stats.h   |   58 +
->  .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  868 ++++++++++
->  .../media/platform/rockchip/isp1/mipi_dphy_sy.h    |   15 +
->  drivers/media/platform/rockchip/isp1/regs.c        |  239 +++
->  drivers/media/platform/rockchip/isp1/regs.h        | 1550 +++++++++++++++++
->  drivers/media/platform/rockchip/isp1/rkisp1.c      | 1177 +++++++++++++
->  drivers/media/platform/rockchip/isp1/rkisp1.h      |  105 ++
->  drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
->  include/uapi/linux/rkisp1-config.h                 |  798 +++++++++
->  include/uapi/linux/videodev2.h                     |    4 +
->  29 files changed, 9945 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
->  create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
->  create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
->  create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/common.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
->  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
->  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
->  create mode 100644 include/uapi/linux/rkisp1-config.h
-> 
+--BOKacYhQ+x31HxR3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAluNMx8ACgkQ3SOs138+
+s6HaVhAAmzfAo7klZU1tRE2lpTD8EmgFR9VP3kf28ElofxeRw/KYCyDW6vVX6Yl0
+GWOd0uZ4senQytotr0vWXSlROGL2iZFzj11lnjFq+aiNorCwkwWErdGzZqlD7TNY
+TRjKu+3P/x0kEKg8NPRzWwkZVxhyspveUFENXILEtIh+/9c/GIOALcrhoTDUQMnZ
+E+87Eh2I2MXhybLq0FdmfPpDwVBIWbcZAZUL5MJ/iBQIbceK139MY5jn/oHMpl2r
+UzJAl9zZ2TVRC84ne2vZZ/QJIWvGLv3n0Y91kz0pRnyPs1fR1tr/euTj6sbHYH3h
+0EANSi1X9dQat8x2c29rT4U6mWsRMqAvoxNzFcLn7MU3aCp8NT8SvwqIQ1c5tWzy
+ezxYJHcA4BD4jsgdR+S/HVdU4IhzHlzny38+2bhEShWninsf+glZ3m5BTvQsV+Ri
+t0rhVJovoJQR1pR48hgHo3IJt3stZJXm8j1WFPDYIajaVnZCcyDuO/YxdysR0IDk
+AvjVIpnPhOap/w/vDDjUrjPEqWrgH4EDXoITn5rPvq15rWxTB5aWSLsM8mqeNe2Q
+AmkrCO3sJRkuGIOeQuL87cWGjvXCb8cpYEYXU1MPK19VhHixgJ/gnsV6M5XrV1Av
+vRAEBJtWbpRS3aSvYgUwLkqKeYhi5uB+a2OP4cgifPqAp2bbfuc=
+=qyca
+-----END PGP SIGNATURE-----
+
+--BOKacYhQ+x31HxR3--
