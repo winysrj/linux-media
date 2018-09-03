@@ -1,117 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44556 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725866AbeICLvp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Sep 2018 07:51:45 -0400
-Subject: Re: [PATCH] vicodec: change codec license to LGPL
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tom aan de Wiel <tom.aandewiel@gmail.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>
-References: <6c7584ed-c7ba-b9c2-73fa-2201fcba8201@xs4all.nl>
- <20180902221600.4b1bc5f1@coco.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7e2f8228-5d82-8044-9a1d-243e05de0e48@xs4all.nl>
-Date: Mon, 3 Sep 2018 09:32:47 +0200
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:39891 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725927AbeICLyq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2018 07:54:46 -0400
+Received: by mail-wr1-f67.google.com with SMTP id o37-v6so16726111wrf.6
+        for <linux-media@vger.kernel.org>; Mon, 03 Sep 2018 00:35:52 -0700 (PDT)
+Subject: Re: [PATCH] media: intel-ipu3: cio2: register the mdev on v4l2 async
+ notifier complete
+To: Bing Bu Cao <bingbu.cao@linux.intel.com>,
+        linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Jian Xu Zheng <jian.xu.zheng@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>, linux-media@vger.kernel.org
+References: <20180831152045.9957-1-javierm@redhat.com>
+ <cd307d41-ed19-5ab0-cbdb-a743cdb76e09@linux.intel.com>
+From: Javier Martinez Canillas <javierm@redhat.com>
+Message-ID: <c1e54228-a21a-b4a2-1083-c75b2dda797c@redhat.com>
+Date: Mon, 3 Sep 2018 09:35:48 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180902221600.4b1bc5f1@coco.lan>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <cd307d41-ed19-5ab0-cbdb-a743cdb76e09@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2018 03:17 AM, Mauro Carvalho Chehab wrote:
-> Em Sun, 2 Sep 2018 12:37:04 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi,
+
+Thanks a lot your feedback.
+
+On 09/03/2018 09:25 AM, Bing Bu Cao wrote:
 > 
->> The FWHT codec can also be used by userspace utilities and libraries, but
->> since the current license is GPL and not LGPL it is not possible to include
->> it in e.g. gstreamer, since LGPL is required for that.
+> 
+> On 08/31/2018 11:20 PM, Javier Martinez Canillas wrote:
+>> Commit 9832e155f1ed ("[media] media-device: split media initialization and
+>> registration") split the media_device_register() function in two, to avoid
+>> a race condition that can happen when the media device node is accessed by
+>> userpace before the pending subdevices have been asynchronously registered.
 >>
->> Change the license of these four files to LGPL.
+>> But the ipu3-cio2 driver calls the media_device_register() function right
+>> after calling media_device_init() which defeats the purpose of having two
+>> separate functions.
 >>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->> Tom, if you agree to this, can you give your 'Signed-off-by' line? I cannot
->> make this change for the codec-fwht.c/h files without it. I think this change
->> makes sense.
->>
->> Regards,
->>
->> 	Hans
->> ---
->> diff --git a/drivers/media/platform/vicodec/codec-fwht.c b/drivers/media/platform/vicodec/codec-fwht.c
->> index 47939160560e..36656031b295 100644
->> --- a/drivers/media/platform/vicodec/codec-fwht.c
->> +++ b/drivers/media/platform/vicodec/codec-fwht.c
->> @@ -1,4 +1,4 @@
->> -// SPDX-License-Identifier: GPL-2.0+
->> +// SPDX-License-Identifier: LGPL-2.1+
-> 
-> There aren't much C files under LGPL at the Kernel. Yeah, I know it
-> is compatible with GPL-2.0+, but I would prefer it the tag would
-> be, instead:
-> 
-> // SPDX-License-Identifier: GPL-2.0+ OR LGPL-2.1+
-> 
-> as this makes easier if one uses some software to parse the Kernel
-> tree.
-> 
-> (same applies to the other files).
+>> In that case, userspace could have a partial view of the media device if
+>> it opened the media device node before all the pending devices have been
+>> bound. So instead, only register the media device once all pending v4l2
+>> subdevices have been registered.
+> Javier, Thanks for your patch.
+> IMHO, there are no big differences for registering the cio2 before and after all the subdevices are ready.
+> User may see a partial view of media graph but it presents what it really is then.
+> It indicate that device is not available currently not it is not there.
 
-I don't see the point. Grepping for this shows nobody else doing that.
-LGPL is one of the preferred licenses (LICENSES/preferred/), so I don't
-see what you gain by supporting both.
+I disagree that there are no differences. The media graph shouldn't be exposed
+until its complete. That's the reason why we have a v4l2 async notifier .bound
+and .complete callbacks (otherwise the .bound would be enough).
 
-I don't see why this would make it easier parsing the kernel, since
-that's what the SPDX tag is for.
+It's also the reason why media register was split in _init and _register, as I
+mentioned in the commit message.
 
-Regards,
+> Could you help tell more details about your problem? The full context is helpful for me to reproduce your problem.
 
-	Hans
+If an application opens the media device node, how it would know that has an
+incomplete media graph? how it would know once the subdevice has been .bound
+and that has to query the media graph again?
 
-> 
-> Regards,
-> Mauro
-> 
->>  /*
->>   * Copyright 2016 Tom aan de Wiel
->>   * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
->> diff --git a/drivers/media/platform/vicodec/codec-fwht.h b/drivers/media/platform/vicodec/codec-fwht.h
->> index 1f9e47331197..3e9391fec5fe 100644
->> --- a/drivers/media/platform/vicodec/codec-fwht.h
->> +++ b/drivers/media/platform/vicodec/codec-fwht.h
->> @@ -1,4 +1,4 @@
->> -/* SPDX-License-Identifier: GPL-2.0+ */
->> +/* SPDX-License-Identifier: LGPL-2.1+ */
->>  /*
->>   * Copyright 2016 Tom aan de Wiel
->>   * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
->> diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
->> index cfcf84b8574d..6b06aa382cbb 100644
->> --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
->> +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
->> @@ -1,4 +1,4 @@
->> -// SPDX-License-Identifier: GPL-2.0
->> +// SPDX-License-Identifier: LGPL-2.1
->>  /*
->>   * A V4L2 frontend for the FWHT codec
->>   *
->> diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
->> index 7794c186d905..95d1756556db 100644
->> --- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
->> +++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
->> @@ -1,4 +1,4 @@
->> -/* SPDX-License-Identifier: GPL-2.0 */
->> +/* SPDX-License-Identifier: LGPL-2.1 */
->>  /*
->>   * Copyright 2018 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
->>   */
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+AFAIK there's no way to notify that information to user-space currenctly but
+I may be wrong.
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Software Engineer - Desktop Hardware Enablement
+Red Hat
