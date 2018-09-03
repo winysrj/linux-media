@@ -1,73 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46636 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725969AbeICU1b (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2018 16:27:31 -0400
-Received: from avalon.localnet (unknown [IPv6:2a02:a03f:44af:b200:7127:b50e:4bc9:57a3])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 81D001AAF
-        for <linux-media@vger.kernel.org>; Mon,  3 Sep 2018 18:06:42 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.20] uvcvideo changes
-Date: Mon, 03 Sep 2018 19:06:46 +0300
-Message-ID: <1960104.jB7WYTBLo6@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:38436 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728279AbeICVgw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2018 17:36:52 -0400
+Message-ID: <f7f1249779d660a06b902bdaf3166cda910e48e1.camel@collabora.com>
+Subject: Re: [PATCH v4 5/6] media: Add controls for JPEG quantization tables
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Ian Arkver <ian.arkver.dev@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Date: Mon, 03 Sep 2018 14:15:20 -0300
+In-Reply-To: <1d0c0685-7d91-b422-7e34-b6472a090eb2@gmail.com>
+References: <20180831155245.19235-1-ezequiel@collabora.com>
+         <ec1dab04-1890-5555-44cf-2cdadc79c1a6@xs4all.nl>
+         <b5715198-eff0-30d2-6f84-cd1441d3f7ba@gmail.com>
+         <8d9cb4b73c4dc4af66ace5205bd6af5fc193d72a.camel@collabora.com>
+         <0beecc48-6974-c12f-00a2-3823690108c0@xs4all.nl>
+         <1d0c0685-7d91-b422-7e34-b6472a090eb2@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, 2018-09-03 at 16:51 +0100, Ian Arkver wrote:
+> Hi Hans, Ezequiel,
+> 
+> On 03/09/2018 16:33, Hans Verkuil wrote:
+> > On 09/03/2018 05:27 PM, Ezequiel Garcia wrote:
+> > > Hi Ian, Hans:
+> > > 
+> > > On Mon, 2018-09-03 at 14:29 +0100, Ian Arkver wrote:
+> > > > Hi,
+> > > > 
+> > > > On 03/09/2018 10:50, Hans Verkuil wrote:
+> > > > > On 08/31/2018 05:52 PM, Ezequiel Garcia wrote:
+> > > > > > From: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > > > > 
+> > > > > > Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
+> > > > > > configure the JPEG quantization tables.
+> > > > > > 
+> > > > > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > > > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > > > > > ---
+> > > > > >    .../media/uapi/v4l/extended-controls.rst      | 23 +++++++++++++++++++
+> > > > > >    .../media/videodev2.h.rst.exceptions          |  1 +
+> > > > > >    drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++++
+> > > > > >    include/uapi/linux/v4l2-controls.h            |  5 ++++
+> > > > > >    include/uapi/linux/videodev2.h                |  1 +
+> > > > > >    5 files changed, 40 insertions(+)
+> > > > > > 
+> > > > > > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > > > > index 9f7312bf3365..e0dd03e452de 100644
+> > > > > > --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> > > > > > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > > > > @@ -3354,7 +3354,30 @@ JPEG Control IDs
+> > > > > >        Specify which JPEG markers are included in compressed stream. This
+> > > > > >        control is valid only for encoders.
+> > > > > >    
+> > > > > > +.. _jpeg-quant-tables-control:
+> > > > > >    
+> > > > > > +``V4L2_CID_JPEG_QUANTIZATION (struct)``
+> > > > > > +    Specifies the luma and chroma quantization matrices for encoding
+> > > > > > +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The two matrices
+> > > > > > +    must be set in JPEG zigzag order, as per the JPEG specification.
+> > > > > 
+> > > > > Can you change "JPEG specification" to a reference to the JPEG spec entry
+> > > > > in bibio.rst?
+> > > > > 
+> > > > > > +
+> > > > > > +
+> > > > > > +.. c:type:: struct v4l2_ctrl_jpeg_quantization
+> > > > > > +
+> > > > > > +.. cssclass:: longtable
+> > > > > > +
+> > > > > > +.. flat-table:: struct v4l2_ctrl_jpeg_quantization
+> > > > > > +    :header-rows:  0
+> > > > > > +    :stub-columns: 0
+> > > > > > +    :widths:       1 1 2
+> > > > > > +
+> > > > > > +    * - __u8
+> > > > > > +      - ``luma_quantization_matrix[64]``
+> > > > > > +      - Sets the luma quantization table.
+> > > > > > +
+> > > > > > +    * - __u8
+> > > > > > +      - ``chroma_quantization_matrix[64]``
+> > > > > > +      - Sets the chroma quantization table.
+> > > > > 
+> > > > > Just checking: the JPEG standard specifies this as unsigned 8-bit values as well?
+> > > 
+> > > I thought this was already discussed, but I think the only thing I've added
+> > > is this comment in one of the driver's headers:
+> > > 
+> > >   JPEG encoder
+> > >   ------------
+> > >   The VPU JPEG encoder produces JPEG baseline sequential format.
+> > >   The quantization coefficients are 8-bit values, complying with
+> > >   the baseline specification. Therefore, it requires application-defined
+> > >   luma and chroma quantization tables. The hardware does entrophy
+> > >   encoding using internal Huffman tables, as specified in the JPEG
+> > >   specification.
+> > > 
+> > > Certainly controls should be specified better.
+> > > 
+> > > > As far as I can see ISO/IEC 10918-1 does not specify the precision or
+> > > > signedness of the quantisation value Qvu. The default tables for 8-bit
+> > > > baseline JPEG all fit into __u8 though.
+> > > > 
+> > > 
+> > > Paragraph 4.7 of that spec, indicates the "sample" precision:
+> > > 8-bit for baseline; 8-bit or 12-bit for extended.
+> > > 
+> > > For the quantization coefficients, the DQT segment contains a bit
+> > > that indicates if the quantization coefficients are 8-bit or 16-bit.
+> > > See B.2.4.1 for details.
+> 
+> See below (and Tq which follows the Pq field)
+> 
+> > > 
+> > > > However there can be four sets of tables in non-baseline JPEG and it's
+> > > 
+> > > You lost me here, which four sets of tables are you refering to?
+> > > 
+> > > > not clear (to me) whether 12-bit JPEG would need more precision (I'd
+> > > > guess it would).
+> > > 
+> > > It seems it would. From B.2.4.1:
+> > > 
+> > > "An 8-bit DCT-based process shall not use a 16-bit precision quantization table."
+> > > 
+> > > > Since this patch is defining UAPI I think it might be
+> > > > good to build in some additional information, eg. number of tables,
+> > > > element size. Maybe this can all be inferred from the selected pixel
+> > > > format? If so then it would need documented that the above structure
+> > > > only applies to baseline.
+> > > > 
+> > > 
+> > > For quantization coefficients, I can only see two tables: one for luma
+> > > one for chroma. Huffman coefficients are a different story and we are
+> > > not really adding them here.
+> 
+> I was looking at the definition of Tqi in the frame header in B.2.2 
+> which seems to allow up to four (sets of?) quantization tables. 
+> Rereading it, it seems these are per component. Table B.2 implies that 
+> this applies to Baseline Sequential too. In the DQT marker description 
+> there's a Tq field to specify the destination for the new table. I think 
+> this means that an encoder can use up to four (sets of) tables and a 
+> decoder should be able to store four from the stream.
+> 
+> This may well not be relevant to the encoder under discussion, but if 
+> it's not allowed for in UAPI it's almost a given that it'll need to be 
+> added later.
+> 
 
-The following changes since commit d842a7cf938b6e0f8a1aa9f1aec0476c9a599310:
+Hm, I think it's not really relevant for us, either on the encoding
+or decoding side. Let me explain how I read the spec.
 
-  media: adv7842: enable reduced fps detection (2018-08-31 10:03:51 -0400)
+First of all, keep in mind it seems to be written with streams
+in mind, which explains different start-of-image and start-of-frames
+segments (SOI and SOF).
 
-are available in the Git repository at:
+The way I read the four tables thing, the decoder expects to be first
+transmitted a set of quantization tables, via DQT segments. Each DQT
+segment contains a 4-bit index (0-3), allowing up to four quantization
+tables to be defined.
 
-  git://linuxtv.org/pinchartl/media.git tags/uvc-next-20180903
+Then, each frame is transmitted in a SOF segment. The SOF header
+contains an 8-bit field (Tq_i) indicating which quantization table has
+to be used for this frame.
 
-for you to fetch changes up to 8cefb491d85d35e9a2279a98f2545c10718524d7:
+In Video4Linux, we are frame-based, and the JPEG segments have no meaning,
+because these controls are meant to be used with the JPEG RAW format,
+as specified.
 
-  media: uvcvideo: Add a D4M camera description (2018-09-03 19:00:47 +0300)
+For the decoder side, the application is expected to parse all the segments,
+and set quantization tables and compressed bitstream, via legacy or
+request APIs (probably the latter).
 
-----------------------------------------------------------------
-UVC changes for v4.20
+Same goes for encoding, the user will set a quantization table for the
+encoding process and then take care of the JPEG segments creation.
 
-----------------------------------------------------------------
-Colin Ian King (1):
-      media: uvcvideo: Fix spelling mistake: "entites" -> "entities"
+> BTW, my copy of the spec is dated 1993(E). Maybe it's out of date?
+> 
 
-Guennadi Liakhovetski (2):
-      media: uvcvideo: Rename UVC_QUIRK_INFO to UVC_INFO_QUIRK
-      media: uvcvideo: Add a D4M camera description
+My copy is also 1992, so even more dated :-)
 
-Gustavo A. R. Silva (1):
-      media: uvcvideo: Remove unnecessary NULL check before 
-debugfs_remove_recursive
+> > 
+> > Since (if I understand this correctly) we would need u16 for extended precision
+> > JPEG, shouldn't we use u16 instead of u8? That makes the control more generic.
+> 
+> This seems like a safer option to me.
+> 
 
-Joe Perches (1):
-      media: uvcvideo: Make some structs const
+Yes, I agree too.
 
-Laurent Pinchart (2):
-      media: uvcvideo: Make uvc_control_mapping menu_info field const
-      media: uvcvideo: Store device information pointer in struct uvc_device
+> 
+> > 
+> > BTW, are the coefficients always unsigned? I think so, but I never read the
+> > JPEG spec.
+> > 
 
-Nadav Amit (1):
-      media: uvcvideo: Fix uvc_alloc_entity() allocation alignment
+I don't think signed quantization coefficients make sense, so perhaps
+this is not explicitly specified?
 
- Documentation/media/uapi/v4l/meta-formats.rst     |   1 +
- Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 210 +++++++++++++++++++++
- drivers/media/usb/uvc/uvc_ctrl.c                  |  14 +-
- drivers/media/usb/uvc/uvc_debugfs.c               |   6 +-
- drivers/media/usb/uvc/uvc_driver.c                |  53 +++---
- drivers/media/usb/uvc/uvc_metadata.c              |   7 +-
- drivers/media/usb/uvc/uvcvideo.h                  |  10 +-
- include/uapi/linux/videodev2.h                    |   1 +
- 8 files changed, 261 insertions(+), 41 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-
--- 
 Regards,
-
-Laurent Pinchart
+Eze
