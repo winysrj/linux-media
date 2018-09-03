@@ -1,90 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40555 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725949AbeICTqN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Sep 2018 15:46:13 -0400
-Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
-To: Oleksandr Andrushchenko <andr2000@gmail.com>,
-        Juergen Gross <jgross@suse.com>,
-        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
-        boris.ostrovsky@oracle.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        koji.matsuoka.xm@renesas.com
-Cc: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
-References: <20180731093142.3828-1-andr2000@gmail.com>
- <20180731093142.3828-2-andr2000@gmail.com>
- <99cd131d-85ae-bbfb-61ef-fdc0401727f6@suse.com>
- <5505e5af-5b64-b317-a0d8-09c11317926f@gmail.com>
- <345d7ec3-3ca3-e8fe-28a0-ba299196b5e4@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ecfe2b61-deb8-5c3d-3cf4-706c23b47afc@xs4all.nl>
-Date: Mon, 3 Sep 2018 17:25:25 +0200
-MIME-Version: 1.0
-In-Reply-To: <345d7ec3-3ca3-e8fe-28a0-ba299196b5e4@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:37820 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727079AbeICTsn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2018 15:48:43 -0400
+Message-ID: <8d9cb4b73c4dc4af66ace5205bd6af5fc193d72a.camel@collabora.com>
+Subject: Re: [PATCH v4 5/6] media: Add controls for JPEG quantization tables
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Ian Arkver <ian.arkver.dev@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Date: Mon, 03 Sep 2018 12:27:52 -0300
+In-Reply-To: <b5715198-eff0-30d2-6f84-cd1441d3f7ba@gmail.com>
+References: <20180831155245.19235-1-ezequiel@collabora.com>
+         <ec1dab04-1890-5555-44cf-2cdadc79c1a6@xs4all.nl>
+         <b5715198-eff0-30d2-6f84-cd1441d3f7ba@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Oleksandr,
+Hi Ian, Hans:
 
-On 09/03/2018 12:16 PM, Oleksandr Andrushchenko wrote:
-> On 08/21/2018 08:54 AM, Oleksandr Andrushchenko wrote:
->> On 08/14/2018 11:30 AM, Juergen Gross wrote:
->>> On 31/07/18 11:31, Oleksandr Andrushchenko wrote:
->>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>>>
->>>> This is the ABI for the two halves of a para-virtualized
->>>> camera driver which extends Xen's reach multimedia capabilities even
->>>> farther enabling it for video conferencing, In-Vehicle Infotainment,
->>>> high definition maps etc.
->>>>
->>>> The initial goal is to support most needed functionality with the
->>>> final idea to make it possible to extend the protocol if need be:
->>>>
->>>> 1. Provide means for base virtual device configuration:
->>>>   - pixel formats
->>>>   - resolutions
->>>>   - frame rates
->>>> 2. Support basic camera controls:
->>>>   - contrast
->>>>   - brightness
->>>>   - hue
->>>>   - saturation
->>>> 3. Support streaming control
->>>> 4. Support zero-copying use-cases
->>>>
->>>> Signed-off-by: Oleksandr Andrushchenko 
->>>> <oleksandr_andrushchenko@epam.com>
->>> Some style issues below...
->> Will fix all the below, thank you!
->>
->> I would like to draw some attention of the Linux/V4L community to this
->> protocol as the plan is that once it is accepted for Xen we plan to
->> upstream a Linux camera front-end kernel driver which will be based
->> on this work and will be a V4L2 device driver (this is why I have sent
->> this patch not only to Xen, but to the corresponding Linux mailing list
->> as well)
-> ping
+On Mon, 2018-09-03 at 14:29 +0100, Ian Arkver wrote:
+> Hi,
+> 
+> On 03/09/2018 10:50, Hans Verkuil wrote:
+> > On 08/31/2018 05:52 PM, Ezequiel Garcia wrote:
+> > > From: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > 
+> > > Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
+> > > configure the JPEG quantization tables.
+> > > 
+> > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > > ---
+> > >   .../media/uapi/v4l/extended-controls.rst      | 23 +++++++++++++++++++
+> > >   .../media/videodev2.h.rst.exceptions          |  1 +
+> > >   drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++++
+> > >   include/uapi/linux/v4l2-controls.h            |  5 ++++
+> > >   include/uapi/linux/videodev2.h                |  1 +
+> > >   5 files changed, 40 insertions(+)
+> > > 
+> > > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > index 9f7312bf3365..e0dd03e452de 100644
+> > > --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> > > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > @@ -3354,7 +3354,30 @@ JPEG Control IDs
+> > >       Specify which JPEG markers are included in compressed stream. This
+> > >       control is valid only for encoders.
+> > >   
+> > > +.. _jpeg-quant-tables-control:
+> > >   
+> > > +``V4L2_CID_JPEG_QUANTIZATION (struct)``
+> > > +    Specifies the luma and chroma quantization matrices for encoding
+> > > +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The two matrices
+> > > +    must be set in JPEG zigzag order, as per the JPEG specification.
+> > 
+> > Can you change "JPEG specification" to a reference to the JPEG spec entry
+> > in bibio.rst?
+> > 
+> > > +
+> > > +
+> > > +.. c:type:: struct v4l2_ctrl_jpeg_quantization
+> > > +
+> > > +.. cssclass:: longtable
+> > > +
+> > > +.. flat-table:: struct v4l2_ctrl_jpeg_quantization
+> > > +    :header-rows:  0
+> > > +    :stub-columns: 0
+> > > +    :widths:       1 1 2
+> > > +
+> > > +    * - __u8
+> > > +      - ``luma_quantization_matrix[64]``
+> > > +      - Sets the luma quantization table.
+> > > +
+> > > +    * - __u8
+> > > +      - ``chroma_quantization_matrix[64]``
+> > > +      - Sets the chroma quantization table.
+> > 
+> > Just checking: the JPEG standard specifies this as unsigned 8-bit values as well?
+> 
 
-Sorry, this got buried in my mailbox, I only came across it today. I'll try
-to review this this week, if not, just ping me again.
+I thought this was already discussed, but I think the only thing I've added
+is this comment in one of the driver's headers:
 
-I had one high-level question, though:
+ JPEG encoder
+ ------------
+ The VPU JPEG encoder produces JPEG baseline sequential format.
+ The quantization coefficients are 8-bit values, complying with
+ the baseline specification. Therefore, it requires application-defined
+ luma and chroma quantization tables. The hardware does entrophy
+ encoding using internal Huffman tables, as specified in the JPEG
+ specification.
 
-What types of hardware do you intend to target? This initial version targets
-(very) simple webcams, but what about HDMI or SDTV receivers? Or hardware
-codecs? Or complex embedded video pipelines?
+Certainly controls should be specified better.
 
-In other words, where are you planning to draw the line?
+> As far as I can see ISO/IEC 10918-1 does not specify the precision or 
+> signedness of the quantisation value Qvu. The default tables for 8-bit 
+> baseline JPEG all fit into __u8 though.
+> 
 
-Even with just simple cameras there is a difference between regular UVC
-webcams and cameras used with embedded systems: for the latter you often
-need to provide more control w.r.t. white-balancing etc., things that a
-UVC webcam will generally do for you in the webcam's firmware.
+Paragraph 4.7 of that spec, indicates the "sample" precision:
+8-bit for baseline; 8-bit or 12-bit for extended.
 
-Regards,
+For the quantization coefficients, the DQT segment contains a bit
+that indicates if the quantization coefficients are 8-bit or 16-bit.
+See B.2.4.1 for details.
 
-	Hans
+> However there can be four sets of tables in non-baseline JPEG and it's 
+
+You lost me here, which four sets of tables are you refering to?
+
+> not clear (to me) whether 12-bit JPEG would need more precision (I'd 
+> guess it would).
+
+It seems it would. From B.2.4.1:
+
+"An 8-bit DCT-based process shall not use a 16-bit precision quantization table."
+
+> Since this patch is defining UAPI I think it might be 
+> good to build in some additional information, eg. number of tables, 
+> element size. Maybe this can all be inferred from the selected pixel 
+> format? If so then it would need documented that the above structure 
+> only applies to baseline.
+> 
+
+For quantization coefficients, I can only see two tables: one for luma
+one for chroma. Huffman coefficients are a different story and we are
+not really adding them here.
+
+Thanks,
+Eze
