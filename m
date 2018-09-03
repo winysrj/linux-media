@@ -1,346 +1,883 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elara.tizoo.com ([212.147.77.196]:54462 "EHLO elara.tizoo.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726029AbeICNki (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Sep 2018 09:40:38 -0400
-Received: from adsl-178-39-78-65.adslplus.ch ([178.39.78.65]:59036 helo=[192.168.178.37])
-        by elara.tizoo.com with esmtpsa (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128)
-        (Exim 4.91)
-        (envelope-from <tjenni@retrodragon.com>)
-        id 1fwkmu-00AEPA-Ks
-        for linux-media@vger.kernel.org; Mon, 03 Sep 2018 11:04:48 +0200
-To: linux-media@vger.kernel.org
-From: Thomas Jenni <tjenni@retrodragon.com>
-Subject: not able to build libv4lconvert on Ubuntu 16.04
-Message-ID: <63805c4f-09cd-8a98-c2d9-7ec3f97cfbfb@retrodragon.com>
-Date: Mon, 3 Sep 2018 11:04:47 +0200
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:47181 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726029AbeICNmn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Sep 2018 09:42:43 -0400
+Subject: Re: [PATCH 1/2] media: v4l: Add definitions for the HEVC slice format
+ and controls
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <20180828080240.10982-1-paul.kocialkowski@bootlin.com>
+ <20180828080240.10982-2-paul.kocialkowski@bootlin.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ebee4ca1-8fb6-f0c6-b332-c3b22a0a1041@xs4all.nl>
+Date: Mon, 3 Sep 2018 11:23:17 +0200
 MIME-Version: 1.0
+In-Reply-To: <20180828080240.10982-2-paul.kocialkowski@bootlin.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there !
+On 08/28/2018 10:02 AM, Paul Kocialkowski wrote:
+> This introduces the required definitions for HEVC decoding support with
+> stateless VPUs. The controls associated to the HEVC slice format provide
+> the required meta-data for decoding slices extracted from the bitstream.
+> 
+> This interface comes with the following limitations:
+> * No custom quantization matrices (scaling lists);
+> * Support for a single temporal layer only;
+> * No slice entry point offsets support;
+> * No conformance window support;
+> * No VUI parameters support;
+> * No support for SPS extensions: range, multilayer, 3d, scc, 4 bits;
+> * No support for PPS extensions: range, multilayer, 3d, scc, 4 bits.
+> 
+> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+> ---
+>  .../media/uapi/v4l/extended-controls.rst      | 416 ++++++++++++++++++
+>  .../media/uapi/v4l/pixfmt-compressed.rst      |  15 +
+>  .../media/uapi/v4l/vidioc-queryctrl.rst       |  18 +
+>  .../media/videodev2.h.rst.exceptions          |   3 +
+>  drivers/media/v4l2-core/v4l2-ctrls.c          |  26 ++
+>  drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+>  include/media/v4l2-ctrls.h                    |   6 +
+>  include/uapi/linux/v4l2-controls.h            | 155 +++++++
+>  include/uapi/linux/videodev2.h                |   7 +
+>  9 files changed, 647 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> index a9252225b63e..f5255bfd8434 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -1675,6 +1675,422 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type -
+>  	non-intra-coded frames, in zigzag scanning order. Only relevant for
+>  	non-4:2:0 YUV formats.
+>  
+> +.. _v4l2-mpeg-hevc:
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_SPS (struct)``
+> +    Specifies the Sequence Parameter Set fields (as extracted from the
+> +    bitstream) for the associated HEVC slice data.
+> +    The bitstream parameters are defined according to the ISO/IEC 23008-2 and
+> +    ITU-T Rec. H.265 specifications.
 
-I've tried to build libv4lconvert (ubuntu 16.04, 64bits) cloning the git.=
+Use proper references to these specs in biblio.rst (adding them if not there already).
 
+> +
+> +.. c:type:: v4l2_ctrl_hevc_sps
+> +
+> +.. cssclass:: longtable
+> +
+> +.. flat-table:: struct v4l2_ctrl_hevc_sps
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths:       1 1 2
+> +
+> +    * - __u8
+> +      - ``chroma_format_idc``
+> +      - Syntax description inherited from the specification.
 
-After removing the first line of the Makefile in the libv4lconvert
-directory (that was set to arm architecture), the problem was that it
-didn't find "linux/videodev.h".
+If you have a section number of the spec that you can refer to, then that
+would be nice.
 
-I tried:
+> +    * - __u8
+> +      - ``separate_colour_plane_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u16
+> +      - ``pic_width_in_luma_samples``
+> +      - Syntax description inherited from the specification.
+> +    * - __u16
+> +      - ``pic_height_in_luma_samples``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``bit_depth_luma_minus8``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``bit_depth_chroma_minus8``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_max_pic_order_cnt_lsb_minus4``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``sps_max_dec_pic_buffering_minus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``sps_max_num_reorder_pics``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``sps_max_latency_increase_plus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_min_luma_coding_block_size_minus3``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_diff_max_min_luma_coding_block_size``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_min_luma_transform_block_size_minus2``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_diff_max_min_luma_transform_block_size``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``max_transform_hierarchy_depth_inter``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``max_transform_hierarchy_depth_intra``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``scaling_list_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``amp_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``sample_adaptive_offset_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pcm_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pcm_sample_bit_depth_luma_minus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pcm_sample_bit_depth_chroma_minus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_min_pcm_luma_coding_block_size_minus3``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_diff_max_min_pcm_luma_coding_block_size``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pcm_loop_filter_disabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``num_short_term_ref_pic_sets``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``long_term_ref_pics_present_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``num_long_term_ref_pics_sps``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``sps_temporal_mvp_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``strong_intra_smoothing_enabled_flag``
+> +      - Syntax description inherited from the specification.
 
-sudo ln -s /usr/include/linux/videodev2.h /usr/include/linux/videodev.h
+I'd just drop the 'Syntax description inherited from the specification.' and
+add that after the table. Ditto elsewhere.
 
-but that was the same.
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_PPS (struct)``
+> +    Specifies the Picture Parameter Set fields (as extracted from the
+> +    bitstream) for the associated HEVC slice data.
+> +    The bitstream parameters are defined according to the ISO/IEC 23008-2 and
+> +    ITU-T Rec. H.265 specifications.
 
-I tried:
+Same here. I think these two specs are actually one and the same. By using a
+biblio reference you can just say: "according to the HEVC/H.265 specification"
+where 'HEVC/H.265 specification' is a link to the actual spec(s).
 
-sudo ln -s /usr/include/libv4l1-videodev.h /usr/include/linux/videodev.h
+> +
+> +.. c:type:: v4l2_ctrl_hevc_pps
+> +
+> +.. cssclass:: longtable
+> +
+> +.. flat-table:: struct v4l2_ctrl_hevc_pps
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths:       1 1 2
+> +
+> +    * - __u8
+> +      - ``dependent_slice_segment_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``output_flag_present_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``num_extra_slice_header_bits``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``sign_data_hiding_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``cabac_init_present_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``init_qp_minus26``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``constrained_intra_pred_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``transform_skip_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``cu_qp_delta_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``diff_cu_qp_delta_depth``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``pps_cb_qp_offset``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``pps_cr_qp_offset``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pps_slice_chroma_qp_offsets_present_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``weighted_pred_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``weighted_bipred_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``transquant_bypass_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``tiles_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``entropy_coding_sync_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``num_tile_columns_minus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``num_tile_rows_minus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``column_width_minus1[20]``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``row_height_minus1[22]``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``loop_filter_across_tiles_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pps_loop_filter_across_slices_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``deblocking_filter_override_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pps_disable_deblocking_filter_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``pps_beta_offset_div2``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``pps_tc_offset_div2``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``lists_modification_present_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``log2_parallel_merge_level_minus2``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``slice_segment_header_extension_present_flag``
+> +      - Syntax description inherited from the specification.
+> +
+> +``V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS (struct)``
+> +    Specifies various slice-specific parameters, especially from the NAL unit
+> +    header, general slice segment header and weighted prediction parameter
+> +    parts of the bitstream.
+> +    The bitstream parameters are defined according to the ISO/IEC 23008-2 and
+> +    ITU-T Rec. H.265 specifications.
+> +
+> +.. c:type:: v4l2_ctrl_hevc_slice_params
+> +
+> +.. cssclass:: longtable
+> +
+> +.. flat-table:: struct v4l2_ctrl_hevc_slice_params
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths:       1 1 2
+> +
+> +    * - __u32
+> +      - ``bit_size``
+> +      - Size (in bits) of the current slice data.
+> +    * - __u32
+> +      - ``data_bit_offset``
+> +      - Offset (in bits) to the video data in the current slice data.
+> +    * - __u8
+> +      - ``nal_unit_type``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``nuh_temporal_id_plus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``slice_type``
+> +      - Syntax description inherited from the specification.
+> +	(V4L2_HEVC_SLICE_TYPE_I, V4L2_HEVC_SLICE_TYPE_P or
+> +	V4L2_HEVC_SLICE_TYPE_B).
+> +    * - __u8
+> +      - ``colour_plane_id``
+> +      - Syntax description inherited from the specification.
+> +    * - __u16
+> +      - ``slice_pic_order_cnt``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``slice_sao_luma_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``slice_sao_chroma_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``slice_temporal_mvp_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``num_ref_idx_l0_active_minus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``num_ref_idx_l1_active_minus1``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``mvd_l1_zero_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``cabac_init_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``collocated_from_l0_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``collocated_ref_idx``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``five_minus_max_num_merge_cand``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``use_integer_mv_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_qp_delta``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_cb_qp_offset``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_cr_qp_offset``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_act_y_qp_offset``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_act_cb_qp_offset``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_act_cr_qp_offset``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``slice_deblocking_filter_disabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_beta_offset_div2``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``slice_tc_offset_div2``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``slice_loop_filter_across_slices_enabled_flag``
+> +      - Syntax description inherited from the specification.
+> +    * - __u8
+> +      - ``pic_struct``
+> +      - Syntax description inherited from the specification.
+> +    * - struct :c:type:`v4l2_hevc_dpb_entry`
+> +      - ``dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
+> +      - The decoded picture buffer, for meta-data about reference frames.
+> +    * - __u8
+> +      - ``num_active_dpb_entries``
+> +      - The number of entries in ``dpb``.
+> +    * - __u8
+> +      - ``ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
+> +      - The list of L0 reference elements as indices in the DPB.
+> +    * - __u8
+> +      - ``ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
+> +      - The list of L1 reference elements as indices in the DPB.
+> +    * - __u8
+> +      - ``num_rps_poc_st_curr_before``
+> +      - The number of reference pictures in the short-term set that come before
+> +        the current frame.
+> +    * - __u8
+> +      - ``num_rps_poc_st_curr_after``
+> +      - The number of reference pictures in the short-term set that come after
+> +        the current frame.
+> +    * - __u8
+> +      - ``num_rps_poc_lt_curr``
+> +      - The number of reference pictures in the long-term set.
+> +    * - struct :c:type:`v4l2_hevc_pred_weight_table`
+> +      - ``pred_weight_table``
+> +      - The prediction weight coefficients for inter-picture prediction.
+> +
+> +.. c:type:: v4l2_hevc_dpb_entry
+> +
+> +.. cssclass:: longtable
+> +
+> +.. flat-table:: struct v4l2_hevc_dpb_entry
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths:       1 1 2
+> +
+> +    * - __u32
+> +      - ``buffer_index``
+> +      - The V4L2 buffer index that matches the associated reference picture.
+> +    * - __u8
+> +      - ``rps``
+> +      - The reference set for the reference frame
+> +        (V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE,
+> +        V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER or
+> +        V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR)
+> +    * - __u8
+> +      - ``field_pic``
+> +      - Whether the reference is a field picture or a frame.
+> +    * - __u16
+> +      - ``pic_order_cnt[2]``
+> +      - Le picture order count of the reference. Only the first element of the
 
-and then it told me a lot things (that i don't understand):
+Le -> The
 
-In file included from /usr/include/x86_64-linux-gnu/asm/ioctl.h:1:0,
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0 from /usr/include/linux/ioctl.h:4,
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0 from ../libv4lconvert/libv4lsyscall-priv.h:41,
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0 from log.c:21:
-log.c:42:11: error: =E2=80=98VIDIOCKEY=E2=80=99 undeclared here (not in a=
- function)
-=C2=A0 [_IOC_NR(VIDIOCKEY)]=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =3D=
- "VIDIOCKEY",
-=2E..
+> +        array is used for frame pictures, while the first element identifies the
+> +        top field and the second the bottom field in field-coded pictures.
+> +
+> +.. c:type:: v4l2_hevc_pred_weight_table
+> +
+> +.. cssclass:: longtable
+> +
+> +.. flat-table:: struct v4l2_hevc_pred_weight_table
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths:       1 1 2
+> +
+> +    * - __u8
+> +      - ``luma_log2_weight_denom``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``delta_chroma_log2_weight_denom``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX]``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
+> +      - Syntax description inherited from the specification.
+> +    * - __s8
+> +      - ``chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2]``
+> +      - Syntax description inherited from the specification.
+> +
+>  MFC 5.1 MPEG Controls
+>  ---------------------
+>  
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> index a86b59f770dd..a1a19890df4c 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> @@ -109,6 +109,21 @@ Compressed Formats
+>        - ``V4L2_PIX_FMT_HEVC``
+>        - 'HEVC'
+>        - HEVC/H.265 video elementary stream.
+> +    * .. _V4L2-PIX-FMT-HEVC-SLICE:
+> +
+> +      - ``V4L2_PIX_FMT_HEVC_SLICE``
+> +      - 'S265'
+> +      - HEVC parsed slice data, as extracted from the HEVC bitstream.
+> +	This format is adapted for stateless video decoders that implement a
+> +	HEVC pipeline (using the Memory to Memory and Media Request APIs).
 
-Here's the complete log:
+Should be references to these two sections of the spec.
 
+> +	Metadata associated with the frame to decode is required to be passed
+> +	through the following controls :
+> +        * ``V4L2_CID_MPEG_VIDEO_HEVC_SPS``
+> +        * ``V4L2_CID_MPEG_VIDEO_HEVC_PPS``
+> +        * ``V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS``
+> +	See the :ref:`associated Codec Control IDs <v4l2-mpeg-hevc>`.
+> +	Buffers associated with this pixel format must contain the appropriate
+> +	number of macroblocks to decode a full corresponding frame.
+>      * .. _V4L2-PIX-FMT-FWHT:
+>  
+>        - ``V4L2_PIX_FMT_FWHT``
+> diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> index 258f5813f281..1f5aa8ad68fa 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
+> @@ -436,6 +436,24 @@ See also the examples in :ref:`control`.
+>        - n/a
+>        - A struct :c:type:`v4l2_ctrl_mpeg2_quantization`, containing MPEG-2
+>  	quantization matrices for stateless video decoders.
+> +    * - ``V4L2_CTRL_TYPE_HEVC_SPS``
+> +      - n/a
+> +      - n/a
+> +      - n/a
+> +      - A struct :c:type:`v4l2_ctrl_hevc_sps`, containing HEVC Sequence
+> +	Parameter Set for stateless video decoders.
+> +    * - ``V4L2_CTRL_TYPE_HEVC_PPS``
+> +      - n/a
+> +      - n/a
+> +      - n/a
+> +      - A struct :c:type:`v4l2_ctrl_hevc_pps`, containing HEVC Picture
+> +	Parameter Set for stateless video decoders.
+> +    * - ``V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS``
+> +      - n/a
+> +      - n/a
+> +      - n/a
+> +      - A struct :c:type:`v4l2_ctrl_hevc_slice_params`, containing HEVC
+> +	slice parameters for stateless video decoders.
+>  
+>  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+>  
+> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+> index 30ba0d6f546f..7640ce6dadc9 100644
+> --- a/Documentation/media/videodev2.h.rst.exceptions
+> +++ b/Documentation/media/videodev2.h.rst.exceptions
+> @@ -131,6 +131,9 @@ replace symbol V4L2_CTRL_TYPE_U32 :c:type:`v4l2_ctrl_type`
+>  replace symbol V4L2_CTRL_TYPE_U8 :c:type:`v4l2_ctrl_type`
+>  replace symbol V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS :c:type:`v4l2_ctrl_type`
+>  replace symbol V4L2_CTRL_TYPE_MPEG2_QUANTIZATION :c:type:`v4l2_ctrl_type`
+> +replace symbol V4L2_CTRL_TYPE_HEVC_SPS :c:type:`v4l2_ctrl_type`
+> +replace symbol V4L2_CTRL_TYPE_HEVC_PPS :c:type:`v4l2_ctrl_type`
+> +replace symbol V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS :c:type:`v4l2_ctrl_type`
+>  
+>  # V4L2 capability defines
+>  replace define V4L2_CAP_VIDEO_CAPTURE device-capabilities
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 2b1022d7c617..c9c40e693a93 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -913,6 +913,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
+>  	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:	return "Reference Frames for a P-Frame";
+>  	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:		return "Prepend SPS and PPS to IDR";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_SPS:			return "HEVC Sequence Parameter Set";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_PPS:			return "HEVC Picture Parameter Set";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS:		return "HEVC Slice Parameters";
+>  
+>  	/* CAMERA controls */
+>  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+> @@ -1320,6 +1323,15 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAMS:
+>  		*type = V4L2_CTRL_TYPE_H264_DECODE_PARAMS;
+>  		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_SPS:
+> +		*type = V4L2_CTRL_TYPE_HEVC_SPS;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_PPS:
+> +		*type = V4L2_CTRL_TYPE_HEVC_PPS;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS:
+> +		*type = V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS;
+> +		break;
+>  	default:
+>  		*type = V4L2_CTRL_TYPE_INTEGER;
+>  		break;
+> @@ -1696,6 +1708,11 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+>  	case V4L2_CTRL_TYPE_H264_DECODE_PARAMS:
+>  		return 0;
+>  
+> +	case V4L2_CTRL_TYPE_HEVC_SPS:
+> +	case V4L2_CTRL_TYPE_HEVC_PPS:
+> +	case V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS:
+> +		return 0;
+> +
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -2291,6 +2308,15 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+>  	case V4L2_CTRL_TYPE_H264_DECODE_PARAMS:
+>  		elem_size = sizeof(struct v4l2_ctrl_h264_decode_param);
+>  		break;
+> +	case V4L2_CTRL_TYPE_HEVC_SPS:
+> +		elem_size = sizeof(struct v4l2_ctrl_hevc_sps);
+> +		break;
+> +	case V4L2_CTRL_TYPE_HEVC_PPS:
+> +		elem_size = sizeof(struct v4l2_ctrl_hevc_pps);
+> +		break;
+> +	case V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS:
+> +		elem_size = sizeof(struct v4l2_ctrl_hevc_slice_params);
+> +		break;
+>  	default:
+>  		if (type < V4L2_CTRL_COMPOUND_TYPES)
+>  			elem_size = sizeof(s32);
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 0507a19079fe..a121f96912bf 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1318,6 +1318,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+>  		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
+>  		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
+>  		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
+> +		case V4L2_PIX_FMT_HEVC_SLICE:	descr = "HEVC Parsed Slice Data"; break;
+>  		case V4L2_PIX_FMT_FWHT:		descr = "FWHT"; break; /* used in vicodec */
+>  		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+>  		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 4814dd4a763e..8d4763ea1e1f 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -48,6 +48,9 @@ struct poll_table_struct;
+>   * @p_h264_scal_mtrx:		Pointer to a struct v4l2_ctrl_h264_scaling_matrix.
+>   * @p_h264_slice_param:		Pointer to a struct v4l2_ctrl_h264_slice_param.
+>   * @p_h264_decode_param:	Pointer to a struct v4l2_ctrl_h264_decode_param.
+> + * @p_hevc_sps:			Pointer to an HEVC sequence parameter set structure.
+> + * @p_hevc_pps:			Pointer to an HEVC picture parameter set structure.
+> + * @p_hevc_slice_params		Pointer to an HEVC slice parameters structure.
+>   * @p:				Pointer to a compound value.
+>   */
+>  union v4l2_ctrl_ptr {
+> @@ -64,6 +67,9 @@ union v4l2_ctrl_ptr {
+>  	struct v4l2_ctrl_h264_scaling_matrix *p_h264_scal_mtrx;
+>  	struct v4l2_ctrl_h264_slice_param *p_h264_slice_param;
+>  	struct v4l2_ctrl_h264_decode_param *p_h264_decode_param;
+> +	struct v4l2_ctrl_hevc_sps *p_hevc_sps;
+> +	struct v4l2_ctrl_hevc_pps *p_hevc_pps;
+> +	struct v4l2_ctrl_hevc_slice_params *p_hevc_slice_params;
+>  	void *p;
+>  };
+>  
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index c41d5beab9b4..a914e6df8f98 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -707,6 +707,9 @@ enum v4l2_cid_mpeg_video_hevc_size_of_length_field {
+>  #define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR	(V4L2_CID_MPEG_BASE + 642)
+>  #define V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES	(V4L2_CID_MPEG_BASE + 643)
+>  #define V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR	(V4L2_CID_MPEG_BASE + 644)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_SPS			(V4L2_CID_MPEG_BASE + 645)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_PPS			(V4L2_CID_MPEG_BASE + 646)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_SLICE_PARAMS		(V4L2_CID_MPEG_BASE + 647)
+>  
+>  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+>  #define V4L2_CID_MPEG_CX2341X_BASE				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+> @@ -1323,4 +1326,156 @@ struct v4l2_ctrl_h264_decode_param {
+>  	struct v4l2_h264_dpb_entry dpb[16];
+>  };
+>  
+> +#define V4L2_HEVC_SLICE_TYPE_B	0
+> +#define V4L2_HEVC_SLICE_TYPE_P	1
+> +#define V4L2_HEVC_SLICE_TYPE_I	2
+> +
+> +struct v4l2_ctrl_hevc_sps {
+> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Sequence parameter set */
+> +	__u8	chroma_format_idc;
+> +	__u8	separate_colour_plane_flag;
+> +	__u16	pic_width_in_luma_samples;
+> +	__u16	pic_height_in_luma_samples;
+> +	__u8	bit_depth_luma_minus8;
+> +	__u8	bit_depth_chroma_minus8;
+> +	__u8	log2_max_pic_order_cnt_lsb_minus4;
+> +	__u8	sps_max_dec_pic_buffering_minus1;
+> +	__u8	sps_max_num_reorder_pics;
+> +	__u8	sps_max_latency_increase_plus1;
+> +	__u8	log2_min_luma_coding_block_size_minus3;
+> +	__u8	log2_diff_max_min_luma_coding_block_size;
+> +	__u8	log2_min_luma_transform_block_size_minus2;
+> +	__u8	log2_diff_max_min_luma_transform_block_size;
+> +	__u8	max_transform_hierarchy_depth_inter;
+> +	__u8	max_transform_hierarchy_depth_intra;
+> +	__u8	scaling_list_enabled_flag;
+> +	__u8	amp_enabled_flag;
+> +	__u8	sample_adaptive_offset_enabled_flag;
+> +	__u8	pcm_enabled_flag;
+> +	__u8	pcm_sample_bit_depth_luma_minus1;
+> +	__u8	pcm_sample_bit_depth_chroma_minus1;
+> +	__u8	log2_min_pcm_luma_coding_block_size_minus3;
+> +	__u8	log2_diff_max_min_pcm_luma_coding_block_size;
+> +	__u8	pcm_loop_filter_disabled_flag;
+> +	__u8	num_short_term_ref_pic_sets;
+> +	__u8	long_term_ref_pics_present_flag;
+> +	__u8	num_long_term_ref_pics_sps;
+> +	__u8	sps_temporal_mvp_enabled_flag;
+> +	__u8	strong_intra_smoothing_enabled_flag;
+> +};
+> +
+> +struct v4l2_ctrl_hevc_pps {
+> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture parameter set */
+> +	__u8	dependent_slice_segment_flag;
+> +	__u8	output_flag_present_flag;
+> +	__u8	num_extra_slice_header_bits;
+> +	__u8	sign_data_hiding_enabled_flag;
+> +	__u8	cabac_init_present_flag;
+> +	__s8	init_qp_minus26;
+> +	__u8	constrained_intra_pred_flag;
+> +	__u8	transform_skip_enabled_flag;
+> +	__u8	cu_qp_delta_enabled_flag;
+> +	__u8	diff_cu_qp_delta_depth;
+> +	__s8	pps_cb_qp_offset;
+> +	__s8	pps_cr_qp_offset;
+> +	__u8	pps_slice_chroma_qp_offsets_present_flag;
+> +	__u8	weighted_pred_flag;
+> +	__u8	weighted_bipred_flag;
+> +	__u8	transquant_bypass_enabled_flag;
+> +	__u8	tiles_enabled_flag;
+> +	__u8	entropy_coding_sync_enabled_flag;
+> +	__u8	num_tile_columns_minus1;
+> +	__u8	num_tile_rows_minus1;
+> +	__u8	column_width_minus1[20];
+> +	__u8	row_height_minus1[22];
+> +	__u8	loop_filter_across_tiles_enabled_flag;
+> +	__u8	pps_loop_filter_across_slices_enabled_flag;
+> +	__u8	deblocking_filter_override_enabled_flag;
+> +	__u8	pps_disable_deblocking_filter_flag;
+> +	__s8	pps_beta_offset_div2;
+> +	__s8	pps_tc_offset_div2;
+> +	__u8	lists_modification_present_flag;
+> +	__u8	log2_parallel_merge_level_minus2;
+> +	__u8	slice_segment_header_extension_present_flag;
+> +};
+> +
+> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_BEFORE	0x01
+> +#define V4L2_HEVC_DPB_ENTRY_RPS_ST_CURR_AFTER	0x02
+> +#define V4L2_HEVC_DPB_ENTRY_RPS_LT_CURR		0x03
+> +
+> +#define V4L2_HEVC_DPB_ENTRIES_NUM_MAX		16
+> +
+> +struct v4l2_hevc_dpb_entry {
+> +	__u32	buffer_index;
+> +	__u8	rps;
+> +	__u8	field_pic;
+> +	__u16	pic_order_cnt[2];
+> +};
+> +
+> +struct v4l2_hevc_pred_weight_table {
+> +	__u8	luma_log2_weight_denom;
+> +	__s8	delta_chroma_log2_weight_denom;
+> +
+> +	__s8	delta_luma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+> +	__s8	luma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+> +	__s8	delta_chroma_weight_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+> +	__s8	chroma_offset_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+> +
+> +	__s8	delta_luma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+> +	__s8	luma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+> +	__s8	delta_chroma_weight_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+> +	__s8	chroma_offset_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX][2];
+> +};
+> +
+> +struct v4l2_ctrl_hevc_slice_params {
+> +	__u32	bit_size;
+> +	__u32	data_bit_offset;
+> +
+> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: NAL unit header */
+> +	__u8	nal_unit_type;
+> +	__u8	nuh_temporal_id_plus1;
+> +
+> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
+> +	__u8	slice_type;
+> +	__u8	colour_plane_id;
+> +	__u16	slice_pic_order_cnt;
+> +	__u8	slice_sao_luma_flag;
+> +	__u8	slice_sao_chroma_flag;
+> +	__u8	slice_temporal_mvp_enabled_flag;
+> +	__u8	num_ref_idx_l0_active_minus1;
+> +	__u8	num_ref_idx_l1_active_minus1;
+> +	__u8	mvd_l1_zero_flag;
+> +	__u8	cabac_init_flag;
+> +	__u8	collocated_from_l0_flag;
+> +	__u8	collocated_ref_idx;
+> +	__u8	five_minus_max_num_merge_cand;
+> +	__u8	use_integer_mv_flag;
+> +	__s8	slice_qp_delta;
+> +	__s8	slice_cb_qp_offset;
+> +	__s8	slice_cr_qp_offset;
+> +	__s8	slice_act_y_qp_offset;
+> +	__s8	slice_act_cb_qp_offset;
+> +	__s8	slice_act_cr_qp_offset;
+> +	__u8	slice_deblocking_filter_disabled_flag;
+> +	__s8	slice_beta_offset_div2;
+> +	__s8	slice_tc_offset_div2;
+> +	__u8	slice_loop_filter_across_slices_enabled_flag;
+> +
+> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Picture timing SEI message */
+> +	__u8	pic_struct;
+> +
+> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: General slice segment header */
+> +	struct v4l2_hevc_dpb_entry dpb[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+> +	__u8	num_active_dpb_entries;
+> +	__u8	ref_idx_l0[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+> +	__u8	ref_idx_l1[V4L2_HEVC_DPB_ENTRIES_NUM_MAX];
+> +
+> +	__u8	num_rps_poc_st_curr_before;
+> +	__u8	num_rps_poc_st_curr_after;
+> +	__u8	num_rps_poc_lt_curr;
+> +
+> +	/* ISO/IEC 23008-2, ITU-T Rec. H.265: Weighted prediction parameter */
+> +	struct v4l2_hevc_pred_weight_table pred_weight_table;
+> +};
+> +
+>  #endif
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 9a00f5fcd3cd..e582c6bb0ab9 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -644,6 +644,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
+>  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
+>  #define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC aka H.265 */
+> +#define V4L2_PIX_FMT_HEVC_SLICE v4l2_fourcc('S', '2', '6', '5') /* H265 parsed slices */
+>  #define V4L2_PIX_FMT_FWHT     v4l2_fourcc('F', 'W', 'H', 'T') /* Fast Walsh Hadamard Transform (vicodec) */
+>  
+>  /*  Vendor-specific formats   */
+> @@ -1611,6 +1612,9 @@ struct v4l2_ext_control {
+>  		struct v4l2_ctrl_h264_scaling_matrix __user *p_h264_scal_mtrx;
+>  		struct v4l2_ctrl_h264_slice_param __user *p_h264_slice_param;
+>  		struct v4l2_ctrl_h264_decode_param __user *p_h264_decode_param;
+> +		struct v4l2_ctrl_hevc_sps __user *p_hevc_sps;
+> +		struct v4l2_ctrl_hevc_pps __user *p_hevc_pps;
+> +		struct v4l2_ctrl_hevc_slice_params __user *p_hevc_slice_params;
+>  		void __user *ptr;
+>  	};
+>  } __attribute__ ((packed));
+> @@ -1663,6 +1667,9 @@ enum v4l2_ctrl_type {
+>  	V4L2_CTRL_TYPE_H264_SCALING_MATRIX = 0x0107,
+>  	V4L2_CTRL_TYPE_H264_SLICE_PARAMS = 0x0108,
+>  	V4L2_CTRL_TYPE_H264_DECODE_PARAMS = 0x0109,
+> +	V4L2_CTRL_TYPE_HEVC_SPS = 0x0110,
+> +	V4L2_CTRL_TYPE_HEVC_PPS = 0x0111,
+> +	V4L2_CTRL_TYPE_HEVC_SLICE_PARAMS = 0x0112,
+>  };
+>  
+>  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+> 
 
-bobby@bobby-E202SA:~/Bureau/libv4lconvert$ git clone
-https://github.com/ashwing920/libv4lconvert.git
-Clonage dans 'libv4lconvert'...
-remote: Counting objects: 113, done.
-remote: Total 113 (delta 0), reused 0 (delta 0), pack-reused 113
-R=C3=A9ception d'objets: 100% (113/113), 522.41 KiB | 687.00 KiB/s, fait.=
+Regards,
 
-R=C3=A9solution des deltas: 100% (24/24), fait.
-V=C3=A9rification de la connectivit=C3=A9... fait.
-bobby@bobby-E202SA:~/Bureau/libv4lconvert$ make
-make: *** Pas de cible sp=C3=A9cifi=C3=A9e et aucun makefile n'a =C3=A9t=C3=
-=A9 trouv=C3=A9. Arr=C3=AAt.
-bobby@bobby-E202SA:~/Bureau/libv4lconvert$ cd li*
-bobby@bobby-E202SA:~/Bureau/libv4lconvert/libv4lconvert$ make
-make -C libv4lconvert V4L2_LIB_VERSION=3D0.6.2-test all
-make[1]=C2=A0: on entre dans le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4lconvert=C2=
-=A0=C2=BB
-cc -Wp,-MMD,"libv4lconvert.d",-MQ,"libv4lconvert.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o libv4lconvert.o libv4lconvert=
-=2Ec
-cc -Wp,-MMD,"sn9c10x.d",-MQ,"sn9c10x.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o sn9c10x.o sn9c10x.c
-cc -Wp,-MMD,"pac207.d",-MQ,"pac207.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o pac207.o pac207.c
-cc -Wp,-MMD,"mr97310a.d",-MQ,"mr97310a.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o mr97310a.o mr97310a.c
-cc -Wp,-MMD,"flip.d",-MQ,"flip.o",-MP -c -I../include -I../../../include
--fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4=
-l\"
--g -O1 -Wall -Wno-unused -Wpointer-arith -Wstrict-prototypes
--Wmissing-prototypes -o flip.o flip.c
-cc -Wp,-MMD,"crop.d",-MQ,"crop.o",-MP -c -I../include -I../../../include
--fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4=
-l\"
--g -O1 -Wall -Wno-unused -Wpointer-arith -Wstrict-prototypes
--Wmissing-prototypes -o crop.o crop.c
-cc -Wp,-MMD,"jidctflt.d",-MQ,"jidctflt.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o jidctflt.o jidctflt.c
-cc -Wp,-MMD,"rgbyuv.d",-MQ,"rgbyuv.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o rgbyuv.o rgbyuv.c
-cc -Wp,-MMD,"sn9c2028-decomp.d",-MQ,"sn9c2028-decomp.o",-MP -c
--I../include -I../../../include -fvisibility=3Dhidden
--DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall
--Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
-sn9c2028-decomp.o sn9c2028-decomp.c
-cc -Wp,-MMD,"bayer.d",-MQ,"bayer.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o bayer.o bayer.c
-cc -Wp,-MMD,"hm12.d",-MQ,"hm12.o",-MP -c -I../include -I../../../include
--fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4=
-l\"
--g -O1 -Wall -Wno-unused -Wpointer-arith -Wstrict-prototypes
--Wmissing-prototypes -o hm12.o hm12.c
-cc -Wp,-MMD,"control/libv4lcontrol.d",-MQ,"control/libv4lcontrol.o",-MP
--c -I../include -I../../../include -fvisibility=3Dhidden
--DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall
--Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
-control/libv4lcontrol.o control/libv4lcontrol.c
-control/libv4lcontrol.c: In function =E2=80=98v4lcontrol_create=E2=80=99:=
-
-control/libv4lcontrol.c:449:5: warning: ignoring return value of
-=E2=80=98ftruncate=E2=80=99, declared with attribute warn_unused_result [=
--Wunused-result]
-=C2=A0=C2=A0=C2=A0=C2=A0 ftruncate(shm_fd, V4LCONTROL_SHM_SIZE);
-=C2=A0=C2=A0=C2=A0=C2=A0 ^
-cc
--Wp,-MMD,"processing/libv4lprocessing.d",-MQ,"processing/libv4lprocessing=
-=2Eo",-MP
--c -I../include -I../../../include -fvisibility=3Dhidden
--DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall
--Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
-processing/libv4lprocessing.o processing/libv4lprocessing.c
-cc
--Wp,-MMD,"processing/whitebalance.d",-MQ,"processing/whitebalance.o",-MP
--c -I../include -I../../../include -fvisibility=3Dhidden
--DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall
--Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
-processing/whitebalance.o processing/whitebalance.c
-cc -Wp,-MMD,"processing/autogain.d",-MQ,"processing/autogain.o",-MP -c
--I../include -I../../../include -fvisibility=3Dhidden
--DLIBDIR=3D\"/usr/local/lib\" -DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall
--Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
-processing/autogain.o processing/autogain.c
-cc -Wp,-MMD,"helper.d",-MQ,"helper.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -DLIBDIR=3D\"/usr/local/lib\"
--DLIBSUBDIR=3D\"libv4l\" -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o helper.o helper.c
-ar cqs libv4lconvert.a libv4lconvert.o tinyjpeg.o sn9c10x.o sn9c20x.o
-pac207.o mr97310a.o flip.o crop.o jidctflt.o spca561-decompress.o
-rgbyuv.o sn9c2028-decomp.o spca501.o sq905c.o bayer.o hm12.o
-control/libv4lcontrol.o processing/libv4lprocessing.o
-processing/whitebalance.o processing/autogain.o processing/gamma.o helper=
-=2Eo
-make[1]=C2=A0: on quitte le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4lconvert=C2=
-=A0=C2=BB
-make -C libv4l2 V4L2_LIB_VERSION=3D0.6.2-test all
-make[1]=C2=A0: on entre dans le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l2=C2=A0=C2=
-=BB
-cc -Wp,-MMD,"libv4l2.d",-MQ,"libv4l2.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -fPIC -g -O1 -Wall -Wno-unused
--Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o libv4l2.o
-libv4l2.c
-cc -Wp,-MMD,"log.d",-MQ,"log.o",-MP -c -I../include -I../../../include
--fvisibility=3Dhidden -fPIC -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o log.o log.c
-cc -shared=C2=A0 -Wl,-soname,../libv4lconvert/libv4lconvert.so.0 -o
-=2E./libv4lconvert/libv4lconvert.so.0=C2=A0
-ln -f -s ../libv4lconvert/libv4lconvert.so.0
-=2E./libv4lconvert/libv4lconvert.so
-cc -shared=C2=A0 -Wl,-soname,libv4l2.so.0 -o libv4l2.so.0 libv4l2.o log.o=
-
-=2E./libv4lconvert/libv4lconvert.so -lpthread
-ln -f -s libv4l2.so.0 libv4l2.so
-cc -Wp,-MMD,"v4l2convert.d",-MQ,"v4l2convert.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -fPIC -g -O1 -Wall -Wno-unused
--Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
-v4l2convert.o v4l2convert.c
-cc -shared=C2=A0 -Wl,-soname,v4l2convert.so.0 -o v4l2convert.so.0
-v4l2convert.o libv4l2.so
-ln -f -s v4l2convert.so.0 v4l2convert.so
-make[1]=C2=A0: on quitte le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l2=C2=A0=C2=
-=BB
-make -C libv4l1 V4L2_LIB_VERSION=3D0.6.2-test all
-make[1]=C2=A0: on entre dans le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l1=C2=A0=C2=
-=BB
-cc -Wp,-MMD,"libv4l1.d",-MQ,"libv4l1.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -fPIC -g -O1 -Wall -Wno-unused
--Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o libv4l1.o
-libv4l1.c
-libv4l1.c:53:28: fatal error: linux/videodev.h: Aucun fichier ou dossier
-de ce type
-compilation terminated.
-Makefile:81=C2=A0: la recette pour la cible =C2=AB=C2=A0libv4l1.o=C2=A0=C2=
-=BB a =C3=A9chou=C3=A9e
-make[1]: *** [libv4l1.o] Erreur 1
-make[1]=C2=A0: on quitte le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l1=C2=A0=C2=
-=BB
-Makefile:5=C2=A0: la recette pour la cible =C2=AB=C2=A0all=C2=A0=C2=BB a =
-=C3=A9chou=C3=A9e
-make: *** [all] Erreur 2
-bobby@bobby-E202SA:~/Bureau/libv4lconvert/libv4lconvert$ make
-make -C libv4lconvert V4L2_LIB_VERSION=3D0.6.2-test all
-make[1]=C2=A0: on entre dans le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4lconvert=C2=
-=A0=C2=BB
-make[1]: rien =C3=A0 faire pour =C2=AB=C2=A0all=C2=A0=C2=BB.
-make[1]=C2=A0: on quitte le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4lconvert=C2=
-=A0=C2=BB
-make -C libv4l2 V4L2_LIB_VERSION=3D0.6.2-test all
-make[1]=C2=A0: on entre dans le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l2=C2=A0=C2=
-=BB
-make[1]: rien =C3=A0 faire pour =C2=AB=C2=A0all=C2=A0=C2=BB.
-make[1]=C2=A0: on quitte le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l2=C2=A0=C2=
-=BB
-make -C libv4l1 V4L2_LIB_VERSION=3D0.6.2-test all
-make[1]=C2=A0: on entre dans le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l1=C2=A0=C2=
-=BB
-cc -Wp,-MMD,"libv4l1.d",-MQ,"libv4l1.o",-MP -c -I../include
--I../../../include -fvisibility=3Dhidden -fPIC -g -O1 -Wall -Wno-unused
--Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o libv4l1.o
-libv4l1.c
-cc -Wp,-MMD,"log.d",-MQ,"log.o",-MP -c -I../include -I../../../include
--fvisibility=3Dhidden -fPIC -g -O1 -Wall -Wno-unused -Wpointer-arith
--Wstrict-prototypes -Wmissing-prototypes -o log.o log.c
-In file included from /usr/include/x86_64-linux-gnu/asm/ioctl.h:1:0,
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0 from /usr/include/linux/ioctl.h:4,
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0 from ../libv4lconvert/libv4lsyscall-priv.h:41,
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0 from log.c:21:
-log.c:42:11: error: =E2=80=98VIDIOCKEY=E2=80=99 undeclared here (not in a=
- function)
-=C2=A0 [_IOC_NR(VIDIOCKEY)]=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =3D=
- "VIDIOCKEY",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:42:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCKEY)]=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =3D=
- "VIDIOCKEY",
-=C2=A0=C2=A0 ^
-log.c:42:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-log.c:50:11: error: =E2=80=98VIDIOCGUNIT=E2=80=99 undeclared here (not in=
- a function)
-=C2=A0 [_IOC_NR(VIDIOCGUNIT)]=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =3D "VIDIOCGU=
-NIT",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:50:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCGUNIT)]=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =3D "VIDIOCGU=
-NIT",
-=C2=A0=C2=A0 ^
-log.c:50:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-log.c:51:11: error: =E2=80=98VIDIOCGCAPTURE=E2=80=99 undeclared here (not=
- in a function)
-=C2=A0 [_IOC_NR(VIDIOCGCAPTURE)]=C2=A0=C2=A0 =3D "VIDIOCGCAPTURE",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:51:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCGCAPTURE)]=C2=A0=C2=A0 =3D "VIDIOCGCAPTURE",
-=C2=A0=C2=A0 ^
-log.c:51:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-log.c:52:11: error: =E2=80=98VIDIOCSCAPTURE=E2=80=99 undeclared here (not=
- in a function)
-=C2=A0 [_IOC_NR(VIDIOCSCAPTURE)]=C2=A0=C2=A0 =3D "VIDIOCSCAPTURE",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:52:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCSCAPTURE)]=C2=A0=C2=A0 =3D "VIDIOCSCAPTURE",
-=C2=A0=C2=A0 ^
-log.c:52:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-log.c:53:11: error: =E2=80=98VIDIOCSPLAYMODE=E2=80=99 undeclared here (no=
-t in a function)
-=C2=A0 [_IOC_NR(VIDIOCSPLAYMODE)]=C2=A0 =3D "VIDIOCSPLAYMODE",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:53:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCSPLAYMODE)]=C2=A0 =3D "VIDIOCSPLAYMODE",
-=C2=A0=C2=A0 ^
-log.c:53:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-log.c:54:11: error: =E2=80=98VIDIOCSWRITEMODE=E2=80=99 undeclared here (n=
-ot in a function)
-=C2=A0 [_IOC_NR(VIDIOCSWRITEMODE)] =3D "VIDIOCSWRITEMODE",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:54:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCSWRITEMODE)] =3D "VIDIOCSWRITEMODE",
-=C2=A0=C2=A0 ^
-log.c:54:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-log.c:55:11: error: =E2=80=98VIDIOCGPLAYINFO=E2=80=99 undeclared here (no=
-t in a function)
-=C2=A0 [_IOC_NR(VIDIOCGPLAYINFO)]=C2=A0 =3D "VIDIOCGPLAYINFO",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:55:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCGPLAYINFO)]=C2=A0 =3D "VIDIOCGPLAYINFO",
-=C2=A0=C2=A0 ^
-log.c:55:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-log.c:56:11: error: =E2=80=98VIDIOCSMICROCODE=E2=80=99 undeclared here (n=
-ot in a function)
-=C2=A0 [_IOC_NR(VIDIOCSMICROCODE)] =3D "VIDIOCSMICROCODE",
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 ^
-log.c:56:3: error: array index in initializer not of integer type
-=C2=A0 [_IOC_NR(VIDIOCSMICROCODE)] =3D "VIDIOCSMICROCODE",
-=C2=A0=C2=A0 ^
-log.c:56:3: note: (near initialization for =E2=80=98v4l1_ioctls=E2=80=99)=
-
-Makefile:81=C2=A0: la recette pour la cible =C2=AB=C2=A0log.o=C2=A0=C2=BB=
- a =C3=A9chou=C3=A9e
-make[1]: *** [log.o] Erreur 1
-make[1]=C2=A0: on quitte le r=C3=A9pertoire
-=C2=AB=C2=A0/home/bobby/Bureau/libv4lconvert/libv4lconvert/libv4l1=C2=A0=C2=
-=BB
-Makefile:5=C2=A0: la recette pour la cible =C2=AB=C2=A0all=C2=A0=C2=BB a =
-=C3=A9chou=C3=A9e
-make: *** [all] Erreur 2
-bobby@bobby-E202SA:~/Bureau/libv4lconvert/libv4lconvert$
-
-
-
-Best regards,
-
-Thomas
+	Hans
