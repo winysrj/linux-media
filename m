@@ -1,3418 +1,2928 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:43491 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726153AbeICOy2 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:58493 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726057AbeICPh6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Sep 2018 10:54:28 -0400
-Subject: Re: [PATCH v4 6/6] media: add Rockchip VPU JPEG encoder driver
-To: Ezequiel Garcia <ezequiel@collabora.com>,
+        Mon, 3 Sep 2018 11:37:58 -0400
+Subject: Re: [PATCH 2/4] media: meson: add v4l2 m2m video decoder driver
+To: Maxime Jourdan <mjourdan@baylibre.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
         linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-rockchip@lists.infradead.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>
-References: <20180831155253.19285-1-ezequiel@collabora.com>
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-amlogic@lists.infradead.org
+References: <20180831085205.14760-1-mjourdan@baylibre.com>
+ <20180831085205.14760-3-mjourdan@baylibre.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a1cf34b2-ca9b-8e8d-8062-705cff2a16ea@xs4all.nl>
-Date: Mon, 3 Sep 2018 12:34:40 +0200
+Message-ID: <76741d4b-a3a1-2719-a1d9-90d9a7637f2e@xs4all.nl>
+Date: Mon, 3 Sep 2018 13:18:03 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180831155253.19285-1-ezequiel@collabora.com>
+In-Reply-To: <20180831085205.14760-3-mjourdan@baylibre.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/2018 05:52 PM, Ezequiel Garcia wrote:
-> Add a mem2mem driver for the VPU available on Rockchip SoCs.
-> Currently only JPEG encoding is supported, for RK3399 and RK3288
-> platforms.
+Hi Maxime,
+
+Thank you for this patch series, nice to see amlogic becoming supported as well!
+
+On 08/31/2018 10:52 AM, Maxime Jourdan wrote:
+> Amlogic SoCs feature a powerful video decoder unit able to
+> decode many formats, with a performance of usually up to 4k60.
 > 
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> This is a driver for this IP that is based around the v4l2 m2m framework.
+> 
+> It features decoding for:
+> - MPEG 1
+> - MPEG 2
+> 
+> Supported SoCs are: GXBB (S905), GXL (S905X/W/D), GXM (S912)
+> 
+> There is also a hardware bitstream parser (ESPARSER) that is handled here.
+> 
+> Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
 > ---
->  MAINTAINERS                                   |   7 +
->  drivers/media/platform/Kconfig                |  13 +
->  drivers/media/platform/Makefile               |   1 +
->  drivers/media/platform/rockchip/vpu/Makefile  |   9 +
->  .../platform/rockchip/vpu/rk3288_vpu_hw.c     | 123 ++++
->  .../rockchip/vpu/rk3288_vpu_hw_jpege.c        | 126 ++++
->  .../platform/rockchip/vpu/rk3288_vpu_regs.h   | 442 +++++++++++++
->  .../platform/rockchip/vpu/rk3399_vpu_hw.c     | 124 ++++
->  .../rockchip/vpu/rk3399_vpu_hw_jpege.c        | 154 +++++
->  .../platform/rockchip/vpu/rk3399_vpu_regs.h   | 601 +++++++++++++++++
->  .../platform/rockchip/vpu/rockchip_vpu.h      | 362 +++++++++++
->  .../rockchip/vpu/rockchip_vpu_common.h        |  37 ++
->  .../platform/rockchip/vpu/rockchip_vpu_drv.c  | 545 ++++++++++++++++
->  .../platform/rockchip/vpu/rockchip_vpu_enc.c  | 607 ++++++++++++++++++
->  .../platform/rockchip/vpu/rockchip_vpu_hw.h   |  65 ++
->  15 files changed, 3216 insertions(+)
->  create mode 100644 drivers/media/platform/rockchip/vpu/Makefile
->  create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_hw.c
->  create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_hw_jpege.c
->  create mode 100644 drivers/media/platform/rockchip/vpu/rk3288_vpu_regs.h
->  create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_hw.c
->  create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_hw_jpege.c
->  create mode 100644 drivers/media/platform/rockchip/vpu/rk3399_vpu_regs.h
->  create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu.h
->  create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_common.h
->  create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_drv.c
->  create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_enc.c
->  create mode 100644 drivers/media/platform/rockchip/vpu/rockchip_vpu_hw.h
+>  drivers/media/platform/Kconfig                |  10 +
+>  drivers/media/platform/meson/Makefile         |   1 +
+>  drivers/media/platform/meson/vdec/Makefile    |   8 +
+>  .../media/platform/meson/vdec/codec_mpeg12.c  | 170 +++
+>  .../media/platform/meson/vdec/codec_mpeg12.h  |  14 +
+>  drivers/media/platform/meson/vdec/dos_regs.h  |  98 ++
+>  drivers/media/platform/meson/vdec/esparser.c  | 368 +++++++
+>  drivers/media/platform/meson/vdec/esparser.h  |  28 +
+>  drivers/media/platform/meson/vdec/vdec.c      | 988 ++++++++++++++++++
+>  drivers/media/platform/meson/vdec/vdec.h      | 234 +++++
+>  drivers/media/platform/meson/vdec/vdec_1.c    | 228 ++++
+>  drivers/media/platform/meson/vdec/vdec_1.h    |  14 +
+>  .../media/platform/meson/vdec/vdec_helpers.c  | 354 +++++++
+>  .../media/platform/meson/vdec/vdec_helpers.h  |  45 +
+>  .../media/platform/meson/vdec/vdec_platform.c | 101 ++
+>  .../media/platform/meson/vdec/vdec_platform.h |  30 +
+
+Missing MAINTAINERS file update.
+
+>  16 files changed, 2691 insertions(+)
+>  create mode 100644 drivers/media/platform/meson/vdec/Makefile
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg12.c
+>  create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg12.h
+>  create mode 100644 drivers/media/platform/meson/vdec/dos_regs.h
+>  create mode 100644 drivers/media/platform/meson/vdec/esparser.c
+>  create mode 100644 drivers/media/platform/meson/vdec/esparser.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_1.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_1.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_helpers.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_helpers.h
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_platform.c
+>  create mode 100644 drivers/media/platform/meson/vdec/vdec_platform.h
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index da68e6da9981..e99b49c8dcf2 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -12272,6 +12272,13 @@ S:	Maintained
->  F:	drivers/media/platform/rockchip/rga/
->  F:	Documentation/devicetree/bindings/media/rockchip-rga.txt
->  
-> +ROCKCHIP VPU CODEC DRIVER
-> +M:	Ezequiel Garcia <ezequiel@collabora.com>
-> +L:	linux-media@vger.kernel.org
-> +S:	Maintained
-> +F:	drivers/media/platform/rockchip/vpu/
-> +F:	Documentation/devicetree/bindings/media/rockchip-vpu.txt
-> +
->  ROCKER DRIVER
->  M:	Jiri Pirko <jiri@resnulli.us>
->  L:	netdev@vger.kernel.org
 > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index b25c8d3c1c31..87eb854cf7cb 100644
+> index 2728376b04b5..1c33d95dd92f 100644
 > --- a/drivers/media/platform/Kconfig
 > +++ b/drivers/media/platform/Kconfig
-> @@ -448,6 +448,19 @@ config VIDEO_ROCKCHIP_RGA
->  
+> @@ -482,6 +482,16 @@ config VIDEO_QCOM_VENUS
+>  	  on various Qualcomm SoCs.
 >  	  To compile this driver as a module choose m here.
 >  
-> +config VIDEO_ROCKCHIP_VPU
-> +	tristate "Rockchip VPU driver"
-> +	depends on ARCH_ROCKCHIP || COMPILE_TEST
-> +	depends on VIDEO_DEV && VIDEO_V4L2 && MEDIA_CONTROLLER
+> +config VIDEO_MESON_VDEC
+> +	tristate "Amlogic video decoder driver"
+> +	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+> +	depends on (ARCH_MESON) || COMPILE_TEST
+
+Why is ARCH_MESON between parenthesis?
+
 > +	select VIDEOBUF2_DMA_CONTIG
 > +	select V4L2_MEM2MEM_DEV
-> +	default n
+> +	select MESON_CANVAS
 > +	help
-> +	  Support for the Video Processing Unit present on Rockchip SoC,
-> +	  which accelerates video and image encoding and decoding.
-> +	  To compile this driver as a module, choose M here: the module
-> +	  will be called rockchip-vpu.
+> +	Support for the video decoder found in gxbb/gxl/gxm chips.
 > +
->  config VIDEO_TI_VPE
->  	tristate "TI VPE (Video Processing Engine) driver"
->  	depends on VIDEO_DEV && VIDEO_V4L2
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 08640ba87fc2..9b93f6a6b6e2 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -67,6 +67,7 @@ obj-$(CONFIG_VIDEO_RENESAS_JPU)		+= rcar_jpu.o
->  obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
+>  endif # V4L_MEM2MEM_DRIVERS
 >  
->  obj-$(CONFIG_VIDEO_ROCKCHIP_RGA)	+= rockchip/rga/
-> +obj-$(CONFIG_VIDEO_ROCKCHIP_VPU)        += rockchip/vpu/
->  
->  obj-y	+= omap/
->  
-> diff --git a/drivers/media/platform/rockchip/vpu/Makefile b/drivers/media/platform/rockchip/vpu/Makefile
+>  # TI VIDEO PORT Helper Modules
+> diff --git a/drivers/media/platform/meson/Makefile b/drivers/media/platform/meson/Makefile
+> index 597beb8f34d1..f7c6e1031f25 100644
+> --- a/drivers/media/platform/meson/Makefile
+> +++ b/drivers/media/platform/meson/Makefile
+> @@ -1 +1,2 @@
+>  obj-$(CONFIG_VIDEO_MESON_AO_CEC)	+= ao-cec.o
+> +obj-$(CONFIG_VIDEO_MESON_VDEC)	+= vdec/
+> diff --git a/drivers/media/platform/meson/vdec/Makefile b/drivers/media/platform/meson/vdec/Makefile
 > new file mode 100644
-> index 000000000000..f717dfda1d42
+> index 000000000000..6bea129084b7
 > --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/Makefile
-> @@ -0,0 +1,9 @@
-> +obj-$(CONFIG_VIDEO_ROCKCHIP_VPU) += rockchip-vpu.o
+> +++ b/drivers/media/platform/meson/vdec/Makefile
+> @@ -0,0 +1,8 @@
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Makefile for Amlogic meson video decoder driver
 > +
-> +rockchip-vpu-y += \
-> +		rockchip_vpu_drv.o \
-> +		rockchip_vpu_enc.o \
-> +		rk3288_vpu_hw.o \
-> +		rk3288_vpu_hw_jpege.o \
-> +		rk3399_vpu_hw.o \
-> +		rk3399_vpu_hw_jpege.o
-> diff --git a/drivers/media/platform/rockchip/vpu/rk3288_vpu_hw.c b/drivers/media/platform/rockchip/vpu/rk3288_vpu_hw.c
+> +meson-vdec-objs = esparser.o vdec.o vdec_helpers.o vdec_platform.o
+> +meson-vdec-objs += vdec_1.o
+> +meson-vdec-objs += codec_mpeg12.o
+> +
+> +obj-$(CONFIG_VIDEO_MESON_VDEC) += meson-vdec.o
+> diff --git a/drivers/media/platform/meson/vdec/codec_mpeg12.c b/drivers/media/platform/meson/vdec/codec_mpeg12.c
 > new file mode 100644
-> index 000000000000..474e1ec758df
+> index 000000000000..18709319cff7
 > --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rk3288_vpu_hw.c
-> @@ -0,0 +1,123 @@
-> +// SPDX-License-Identifier: GPL-2.0
+> +++ b/drivers/media/platform/meson/vdec/codec_mpeg12.c
+> @@ -0,0 +1,170 @@
+> +// SPDX-License-Identifier: GPL-2.0+
 > +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Rockchip Electronics Co., Ltd.
-> + *	Jeffy Chen <jeffy.chen@rock-chips.com>
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
 > + */
 > +
-> +#include <linux/clk.h>
-> +
-> +#include "rockchip_vpu.h"
-> +#include "rk3288_vpu_regs.h"
-> +
-> +#define RK3288_ACLK_MAX_FREQ (400 * 1000 * 1000)
-> +
-> +/*
-> + * Supported formats.
-> + */
-> +
-> +static const struct rockchip_vpu_fmt rk3288_vpu_enc_fmts[] = {
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_YUV420M,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 3,
-> +		.depth = { 8, 2, 2 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_YUV420P,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_NV12M,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 2,
-> +		.depth = { 8, 4 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_YUV420SP,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_YUYV,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 1,
-> +		.depth = { 16 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_YUYV422,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_UYVY,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 1,
-> +		.depth = { 16 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_UYVY422,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_JPEG_RAW,
-> +		.codec_mode = RK_VPU_MODE_JPEGE,
-> +		.num_planes = 1,
-> +		.max_depth = 2,
-> +		.frmsize = {
-> +			.min_width = 96,
-> +			.max_width = 8192,
-> +			.step_width = MB_DIM,
-> +			.min_height = 32,
-> +			.max_height = 8192,
-> +			.step_height = MB_DIM,
-> +		},
-> +	},
-> +};
-> +
-> +static irqreturn_t rk3288_vepu_irq(int irq, void *dev_id)
-> +{
-> +	struct rockchip_vpu_dev *vpu = dev_id;
-> +	u32 status = vepu_read(vpu, VEPU_REG_INTERRUPT);
-> +	u32 bytesused =	vepu_read(vpu, VEPU_REG_STR_BUF_LIMIT) / 8;
-> +
-> +	vepu_write(vpu, 0, VEPU_REG_INTERRUPT);
-> +	vepu_write(vpu, 0, VEPU_REG_AXI_CTRL);
-> +
-> +	rockchip_vpu_irq_done(vpu,
-> +		bytesused,
-> +		status & VEPU_REG_INTERRUPT_FRAME_RDY ?
-> +		VB2_BUF_STATE_DONE :
-> +		VB2_BUF_STATE_ERROR);
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int rk3288_vpu_hw_init(struct rockchip_vpu_dev *vpu)
-> +{
-> +	/* Bump ACLK to max. possible freq. to improve performance. */
-> +	clk_set_rate(vpu->clocks[0].clk, RK3288_ACLK_MAX_FREQ);
-> +	return 0;
-> +}
-> +
-> +static void rk3288_vpu_enc_reset(struct rockchip_vpu_ctx *ctx)
-> +{
-> +	struct rockchip_vpu_dev *vpu = ctx->dev;
-> +
-> +	vepu_write(vpu, VEPU_REG_INTERRUPT_DIS_BIT, VEPU_REG_INTERRUPT);
-> +	vepu_write(vpu, 0, VEPU_REG_ENC_CTRL);
-> +	vepu_write(vpu, 0, VEPU_REG_AXI_CTRL);
-> +}
-> +
-> +/*
-> + * Supported codec ops.
-> + */
-> +
-> +static const struct rockchip_vpu_codec_ops rk3288_vpu_codec_ops[] = {
-> +	[RK_VPU_MODE_JPEGE] = {
-> +		.run = rk3288_vpu_jpege_run,
-> +		.reset = rk3288_vpu_enc_reset,
-> +	},
-> +};
-> +
-> +/*
-> + * VPU variant.
-> + */
-> +
-> +const struct rockchip_vpu_variant rk3288_vpu_variant = {
-> +	.enc_offset = 0x0,
-> +	.enc_fmts = rk3288_vpu_enc_fmts,
-> +	.num_enc_fmts = ARRAY_SIZE(rk3288_vpu_enc_fmts),
-> +	.codec_ops = rk3288_vpu_codec_ops,
-> +	.codec = RK_VPU_CODEC_JPEG,
-> +	.vepu_irq = rk3288_vepu_irq,
-> +	.init = rk3288_vpu_hw_init,
-> +	.clk_names = {"aclk", "hclk"},
-> +	.num_clocks = 2
-> +};
-> diff --git a/drivers/media/platform/rockchip/vpu/rk3288_vpu_hw_jpege.c b/drivers/media/platform/rockchip/vpu/rk3288_vpu_hw_jpege.c
-> new file mode 100644
-> index 000000000000..6851875193d3
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rk3288_vpu_hw_jpege.c
-> @@ -0,0 +1,126 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Rockchip Electronics Co., Ltd.
-> + */
-> +
-> +#include <asm/unaligned.h>
 > +#include <media/v4l2-mem2mem.h>
-> +#include "rockchip_vpu.h"
-> +#include "rockchip_vpu_common.h"
-> +#include "rockchip_vpu_hw.h"
-> +#include "rk3288_vpu_regs.h"
-> +
-> +#define VEPU_JPEG_QUANT_TABLE_COUNT 16
-> +
-> +static void rk3288_vpu_set_src_img_ctrl(struct rockchip_vpu_dev *vpu,
-> +					struct rockchip_vpu_ctx *ctx)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_fmt = &ctx->src_fmt;
-> +	u32 reg;
-> +
-> +	reg = VEPU_REG_IN_IMG_CTRL_ROW_LEN(pix_fmt->width)
-> +		| VEPU_REG_IN_IMG_CTRL_OVRFLR_D4(0)
-> +		| VEPU_REG_IN_IMG_CTRL_OVRFLB_D4(0)
-> +		| VEPU_REG_IN_IMG_CTRL_FMT(ctx->vpu_src_fmt->enc_fmt);
-> +	vepu_write_relaxed(vpu, reg, VEPU_REG_IN_IMG_CTRL);
-> +}
-> +
-> +static void rk3288_vpu_jpege_set_buffers(struct rockchip_vpu_dev *vpu,
-> +					 struct rockchip_vpu_ctx *ctx,
-> +					 struct vb2_buffer *src_buf,
-> +					 struct vb2_buffer *dst_buf)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_fmt = &ctx->src_fmt;
-> +	dma_addr_t dst, src[3];
-> +	u32 dst_size;
-> +
-> +	WARN_ON(pix_fmt->num_planes > 3);
-> +
-> +	dst = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-> +	dst_size = vb2_plane_size(dst_buf, 0);
-> +
-> +	vepu_write_relaxed(vpu, dst, VEPU_REG_ADDR_OUTPUT_STREAM);
-> +	vepu_write_relaxed(vpu, dst_size, VEPU_REG_STR_BUF_LIMIT);
-> +
-> +	if (pix_fmt->num_planes == 1) {
-> +		src[0] = vb2_dma_contig_plane_dma_addr(src_buf, 0);
-> +		/* single plane formats we supported are all interlaced */
-> +		src[1] = src[2] = src[0];
-> +	} else if (pix_fmt->num_planes == 2) {
-> +		src[PLANE_Y] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_Y);
-> +		src[PLANE_CB] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_CB);
-> +		src[PLANE_CR] = src[PLANE_CB];
-> +	} else {
-> +		src[PLANE_Y] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_Y);
-> +		src[PLANE_CB] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_CB);
-> +		src[PLANE_CR] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_CR);
-> +	}
-> +
-> +	vepu_write_relaxed(vpu, src[PLANE_Y], VEPU_REG_ADDR_IN_LUMA);
-> +	vepu_write_relaxed(vpu, src[PLANE_CR], VEPU_REG_ADDR_IN_CR);
-> +	vepu_write_relaxed(vpu, src[PLANE_CB], VEPU_REG_ADDR_IN_CB);
-> +}
-> +
-> +static void rk3288_vpu_jpege_set_qtable(struct rockchip_vpu_dev *vpu,
-> +		const struct v4l2_ctrl_jpeg_quantization *qtable)
-> +{
-> +	__be32 *chroma_qtable;
-> +	__be32 *luma_qtable;
-> +	u32 reg, i;
-> +
-> +	chroma_qtable = (__be32 *)&qtable->chroma_quantization_matrix;
-> +	luma_qtable = (__be32 *)&qtable->luma_quantization_matrix;
-> +
-> +	for (i = 0; i < VEPU_JPEG_QUANT_TABLE_COUNT; i++) {
-> +		reg = get_unaligned_be32(&luma_qtable[i]);
-> +		vepu_write_relaxed(vpu, reg, VEPU_REG_JPEG_LUMA_QUAT(i));
-> +
-> +		reg = get_unaligned_be32(&chroma_qtable[i]);
-> +		vepu_write_relaxed(vpu, reg, VEPU_REG_JPEG_CHROMA_QUAT(i));
-> +	}
-> +}
-> +
-> +void rk3288_vpu_jpege_run(struct rockchip_vpu_ctx *ctx)
-> +{
-> +	const struct v4l2_ctrl_jpeg_quantization *qtable;
-> +	struct rockchip_vpu_dev *vpu = ctx->dev;
-> +	struct vb2_buffer *src_buf, *dst_buf;
-> +	u32 reg;
-> +
-> +	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-> +	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-> +
-> +	/* Switch to JPEG encoder mode before writing registers */
-> +	vepu_write_relaxed(vpu, VEPU_REG_ENC_CTRL_ENC_MODE_JPEG,
-> +			   VEPU_REG_ENC_CTRL);
-> +
-> +	rk3288_vpu_set_src_img_ctrl(vpu, ctx);
-> +	rk3288_vpu_jpege_set_buffers(vpu, ctx, src_buf, dst_buf);
-> +
-> +	qtable = rockchip_vpu_find_control_data(ctx,
-> +			V4L2_CID_JPEG_QUANTIZATION);
-> +	rk3288_vpu_jpege_set_qtable(vpu, qtable);
-> +
-> +	/* Make sure that all registers are written at this point. */
-> +	wmb();
-> +
-> +	reg = VEPU_REG_AXI_CTRL_OUTPUT_SWAP16
-> +		| VEPU_REG_AXI_CTRL_INPUT_SWAP16
-> +		| VEPU_REG_AXI_CTRL_BURST_LEN(16)
-> +		| VEPU_REG_AXI_CTRL_OUTPUT_SWAP32
-> +		| VEPU_REG_AXI_CTRL_INPUT_SWAP32
-> +		| VEPU_REG_AXI_CTRL_OUTPUT_SWAP8
-> +		| VEPU_REG_AXI_CTRL_INPUT_SWAP8;
-> +	vepu_write_relaxed(vpu, reg, VEPU_REG_AXI_CTRL);
-> +
-> +	reg = VEPU_REG_ENC_CTRL_WIDTH(MB_WIDTH(ctx->src_fmt.width))
-> +		| VEPU_REG_ENC_CTRL_HEIGHT(MB_HEIGHT(ctx->src_fmt.height))
-> +		| VEPU_REG_ENC_CTRL_ENC_MODE_JPEG
-> +		| VEPU_REG_ENC_PIC_INTRA
-> +		| VEPU_REG_ENC_CTRL_EN_BIT;
-> +	/* Kick the watchdog and start encoding */
-> +	schedule_delayed_work(&vpu->watchdog_work, msecs_to_jiffies(2000));
-> +	vepu_write(vpu, reg, VEPU_REG_ENC_CTRL);
-> +}
-> diff --git a/drivers/media/platform/rockchip/vpu/rk3288_vpu_regs.h b/drivers/media/platform/rockchip/vpu/rk3288_vpu_regs.h
-> new file mode 100644
-> index 000000000000..7fa0262a3df3
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rk3288_vpu_regs.h
-> @@ -0,0 +1,442 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Google, Inc.
-> + *	Tomasz Figa <tfiga@chromium.org>
-> + */
-> +
-> +#ifndef RK3288_VPU_REGS_H_
-> +#define RK3288_VPU_REGS_H_
-> +
-> +/* Encoder registers. */
-> +#define VEPU_REG_INTERRUPT			0x004
-> +#define     VEPU_REG_INTERRUPT_FRAME_RDY	BIT(2)
-> +#define     VEPU_REG_INTERRUPT_DIS_BIT		BIT(1)
-> +#define     VEPU_REG_INTERRUPT_BIT		BIT(0)
-> +#define VEPU_REG_AXI_CTRL			0x008
-> +#define     VEPU_REG_AXI_CTRL_OUTPUT_SWAP16	BIT(15)
-> +#define     VEPU_REG_AXI_CTRL_INPUT_SWAP16	BIT(14)
-> +#define     VEPU_REG_AXI_CTRL_BURST_LEN(x)	((x) << 8)
-> +#define     VEPU_REG_AXI_CTRL_GATE_BIT		BIT(4)
-> +#define     VEPU_REG_AXI_CTRL_OUTPUT_SWAP32	BIT(3)
-> +#define     VEPU_REG_AXI_CTRL_INPUT_SWAP32	BIT(2)
-> +#define     VEPU_REG_AXI_CTRL_OUTPUT_SWAP8	BIT(1)
-> +#define     VEPU_REG_AXI_CTRL_INPUT_SWAP8	BIT(0)
-> +#define VEPU_REG_ADDR_OUTPUT_STREAM		0x014
-> +#define VEPU_REG_ADDR_OUTPUT_CTRL		0x018
-> +#define VEPU_REG_ADDR_REF_LUMA			0x01c
-> +#define VEPU_REG_ADDR_REF_CHROMA		0x020
-> +#define VEPU_REG_ADDR_REC_LUMA			0x024
-> +#define VEPU_REG_ADDR_REC_CHROMA		0x028
-> +#define VEPU_REG_ADDR_IN_LUMA			0x02c
-> +#define VEPU_REG_ADDR_IN_CB			0x030
-> +#define VEPU_REG_ADDR_IN_CR			0x034
-> +#define VEPU_REG_ENC_CTRL			0x038
-> +#define     VEPU_REG_ENC_CTRL_TIMEOUT_EN	BIT(31)
-> +#define     VEPU_REG_ENC_CTRL_NAL_MODE_BIT	BIT(29)
-> +#define     VEPU_REG_ENC_CTRL_WIDTH(w)		((w) << 19)
-> +#define     VEPU_REG_ENC_CTRL_HEIGHT(h)		((h) << 10)
-> +#define     VEPU_REG_ENC_PIC_INTER		(0x0 << 3)
-> +#define     VEPU_REG_ENC_PIC_INTRA		(0x1 << 3)
-> +#define     VEPU_REG_ENC_PIC_MVCINTER		(0x2 << 3)
-> +#define     VEPU_REG_ENC_CTRL_ENC_MODE_H264	(0x3 << 1)
-> +#define     VEPU_REG_ENC_CTRL_ENC_MODE_JPEG	(0x2 << 1)
-> +#define     VEPU_REG_ENC_CTRL_ENC_MODE_VP8	(0x1 << 1)
-> +#define     VEPU_REG_ENC_CTRL_EN_BIT		BIT(0)
-> +#define VEPU_REG_IN_IMG_CTRL			0x03c
-> +#define     VEPU_REG_IN_IMG_CTRL_ROW_LEN(x)	((x) << 12)
-> +#define     VEPU_REG_IN_IMG_CTRL_OVRFLR_D4(x)	((x) << 10)
-> +#define     VEPU_REG_IN_IMG_CTRL_OVRFLB_D4(x)	((x) << 6)
-> +#define     VEPU_REG_IN_IMG_CTRL_FMT(x)		((x) << 2)
-> +#define VEPU_REG_ENC_CTRL0			0x040
-> +#define    VEPU_REG_ENC_CTRL0_INIT_QP(x)		((x) << 26)
-> +#define    VEPU_REG_ENC_CTRL0_SLICE_ALPHA(x)		((x) << 22)
-> +#define    VEPU_REG_ENC_CTRL0_SLICE_BETA(x)		((x) << 18)
-> +#define    VEPU_REG_ENC_CTRL0_CHROMA_QP_OFFSET(x)	((x) << 13)
-> +#define    VEPU_REG_ENC_CTRL0_FILTER_DIS(x)		((x) << 5)
-> +#define    VEPU_REG_ENC_CTRL0_IDR_PICID(x)		((x) << 1)
-> +#define    VEPU_REG_ENC_CTRL0_CONSTR_INTRA_PRED	BIT(0)
-> +#define VEPU_REG_ENC_CTRL1			0x044
-> +#define    VEPU_REG_ENC_CTRL1_PPS_ID(x)			((x) << 24)
-> +#define    VEPU_REG_ENC_CTRL1_INTRA_PRED_MODE(x)	((x) << 16)
-> +#define    VEPU_REG_ENC_CTRL1_FRAME_NUM(x)		((x))
-> +#define VEPU_REG_ENC_CTRL2			0x048
-> +#define    VEPU_REG_ENC_CTRL2_DEBLOCKING_FILETER_MODE(x)	((x) << 30)
-> +#define    VEPU_REG_ENC_CTRL2_H264_SLICE_SIZE(x)		((x) << 23)
-> +#define    VEPU_REG_ENC_CTRL2_DISABLE_QUARTER_PIXMV		BIT(22)
-> +#define    VEPU_REG_ENC_CTRL2_TRANS8X8_MODE_EN			BIT(21)
-> +#define    VEPU_REG_ENC_CTRL2_CABAC_INIT_IDC(x)			((x) << 19)
-> +#define    VEPU_REG_ENC_CTRL2_ENTROPY_CODING_MODE		BIT(18)
-> +#define    VEPU_REG_ENC_CTRL2_H264_INTER4X4_MODE		BIT(17)
-> +#define    VEPU_REG_ENC_CTRL2_H264_STREAM_MODE			BIT(16)
-> +#define    VEPU_REG_ENC_CTRL2_INTRA16X16_MODE(x)		((x))
-> +#define VEPU_REG_ENC_CTRL3			0x04c
-> +#define    VEPU_REG_ENC_CTRL3_MUTIMV_EN			BIT(30)
-> +#define    VEPU_REG_ENC_CTRL3_MV_PENALTY_1_4P(x)	((x) << 20)
-> +#define    VEPU_REG_ENC_CTRL3_MV_PENALTY_4P(x)		((x) << 10)
-> +#define    VEPU_REG_ENC_CTRL3_MV_PENALTY_1P(x)		((x))
-> +#define VEPU_REG_ENC_CTRL4			0x050
-> +#define    VEPU_REG_ENC_CTRL4_MV_PENALTY_16X8_8X16(x)	((x) << 20)
-> +#define    VEPU_REG_ENC_CTRL4_MV_PENALTY_8X8(x)		((x) << 10)
-> +#define    VEPU_REG_ENC_CTRL4_8X4_4X8(x)		((x))
-> +#define VEPU_REG_ENC_CTRL5			0x054
-> +#define    VEPU_REG_ENC_CTRL5_MACROBLOCK_PENALTY(x)	((x) << 24)
-> +#define    VEPU_REG_ENC_CTRL5_COMPLETE_SLICES(x)	((x) << 16)
-> +#define    VEPU_REG_ENC_CTRL5_INTER_MODE(x)		((x))
-> +#define VEPU_REG_STR_HDR_REM_MSB		0x058
-> +#define VEPU_REG_STR_HDR_REM_LSB		0x05c
-> +#define VEPU_REG_STR_BUF_LIMIT			0x060
-> +#define VEPU_REG_MAD_CTRL			0x064
-> +#define    VEPU_REG_MAD_CTRL_QP_ADJUST(x)	((x) << 28)
-> +#define    VEPU_REG_MAD_CTRL_MAD_THREDHOLD(x)	((x) << 22)
-> +#define    VEPU_REG_MAD_CTRL_QP_SUM_DIV2(x)	((x))
-> +#define VEPU_REG_ADDR_VP8_PROB_CNT		0x068
-> +#define VEPU_REG_QP_VAL				0x06c
-> +#define    VEPU_REG_QP_VAL_LUM(x)		((x) << 26)
-> +#define    VEPU_REG_QP_VAL_MAX(x)		((x) << 20)
-> +#define    VEPU_REG_QP_VAL_MIN(x)		((x) << 14)
-> +#define    VEPU_REG_QP_VAL_CHECKPOINT_DISTAN(x)	((x))
-> +#define VEPU_REG_VP8_QP_VAL(i)			(0x06c + ((i) * 0x4))
-> +#define VEPU_REG_CHECKPOINT(i)			(0x070 + ((i) * 0x4))
-> +#define     VEPU_REG_CHECKPOINT_CHECK0(x)	(((x) & 0xffff))
-> +#define     VEPU_REG_CHECKPOINT_CHECK1(x)	(((x) & 0xffff) << 16)
-> +#define     VEPU_REG_CHECKPOINT_RESULT(x)	((((x) >> (16 - 16 \
-> +						 * (i & 1))) & 0xffff) \
-> +						 * 32)
-> +#define VEPU_REG_CHKPT_WORD_ERR(i)		(0x084 + ((i) * 0x4))
-> +#define     VEPU_REG_CHKPT_WORD_ERR_CHK0(x)	(((x) & 0xffff))
-> +#define     VEPU_REG_CHKPT_WORD_ERR_CHK1(x)	(((x) & 0xffff) << 16)
-> +#define VEPU_REG_VP8_BOOL_ENC			0x08c
-> +#define VEPU_REG_CHKPT_DELTA_QP			0x090
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK0(x)	(((x) & 0x0f) << 0)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK1(x)	(((x) & 0x0f) << 4)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK2(x)	(((x) & 0x0f) << 8)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK3(x)	(((x) & 0x0f) << 12)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK4(x)	(((x) & 0x0f) << 16)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK5(x)	(((x) & 0x0f) << 20)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK6(x)	(((x) & 0x0f) << 24)
-> +#define VEPU_REG_VP8_CTRL0			0x090
-> +#define VEPU_REG_RLC_CTRL			0x094
-> +#define     VEPU_REG_RLC_CTRL_STR_OFFS_SHIFT	23
-> +#define     VEPU_REG_RLC_CTRL_STR_OFFS_MASK	(0x3f << 23)
-> +#define     VEPU_REG_RLC_CTRL_RLC_SUM(x)	((x))
-> +#define VEPU_REG_MB_CTRL			0x098
-> +#define     VEPU_REG_MB_CNT_OUT(x)		(((x) & 0xffff))
-> +#define     VEPU_REG_MB_CNT_SET(x)		(((x) & 0xffff) << 16)
-> +#define VEPU_REG_ADDR_NEXT_PIC			0x09c
-> +#define	VEPU_REG_JPEG_LUMA_QUAT(i)		(0x100 + ((i) * 0x4))
-> +#define	VEPU_REG_JPEG_CHROMA_QUAT(i)		(0x140 + ((i) * 0x4))
-> +#define VEPU_REG_STABILIZATION_OUTPUT		0x0A0
-> +#define VEPU_REG_ADDR_CABAC_TBL			0x0cc
-> +#define VEPU_REG_ADDR_MV_OUT			0x0d0
-> +#define VEPU_REG_RGB_YUV_COEFF(i)		(0x0d4 + ((i) * 0x4))
-> +#define VEPU_REG_RGB_MASK_MSB			0x0dc
-> +#define VEPU_REG_INTRA_AREA_CTRL		0x0e0
-> +#define VEPU_REG_CIR_INTRA_CTRL			0x0e4
-> +#define VEPU_REG_INTRA_SLICE_BITMAP(i)		(0x0e8 + ((i) * 0x4))
-> +#define VEPU_REG_ADDR_VP8_DCT_PART(i)		(0x0e8 + ((i) * 0x4))
-> +#define VEPU_REG_FIRST_ROI_AREA			0x0f0
-> +#define VEPU_REG_SECOND_ROI_AREA		0x0f4
-> +#define VEPU_REG_MVC_CTRL			0x0f8
-> +#define	VEPU_REG_MVC_CTRL_MV16X16_FAVOR(x)	((x) << 28)
-> +#define VEPU_REG_VP8_INTRA_PENALTY(i)		(0x100 + ((i) * 0x4))
-> +#define VEPU_REG_ADDR_VP8_SEG_MAP		0x11c
-> +#define VEPU_REG_VP8_SEG_QP(i)			(0x120 + ((i) * 0x4))
-> +#define VEPU_REG_DMV_4P_1P_PENALTY(i)		(0x180 + ((i) * 0x4))
-> +#define     VEPU_REG_DMV_4P_1P_PENALTY_BIT(x, i)	(x << i * 8)
-> +#define VEPU_REG_DMV_QPEL_PENALTY(i)		(0x200 + ((i) * 0x4))
-> +#define     VEPU_REG_DMV_QPEL_PENALTY_BIT(x, i)	(x << i * 8)
-> +#define VEPU_REG_VP8_CTRL1			0x280
-> +#define VEPU_REG_VP8_BIT_COST_GOLDEN		0x284
-> +#define VEPU_REG_VP8_LOOP_FLT_DELTA(i)		(0x288 + ((i) * 0x4))
-> +
-> +/* Decoder registers. */
-> +#define VDPU_REG_INTERRUPT			0x004
-> +#define     VDPU_REG_INTERRUPT_DEC_PIC_INF		BIT(24)
-> +#define     VDPU_REG_INTERRUPT_DEC_TIMEOUT		BIT(18)
-> +#define     VDPU_REG_INTERRUPT_DEC_SLICE_INT		BIT(17)
-> +#define     VDPU_REG_INTERRUPT_DEC_ERROR_INT		BIT(16)
-> +#define     VDPU_REG_INTERRUPT_DEC_ASO_INT		BIT(15)
-> +#define     VDPU_REG_INTERRUPT_DEC_BUFFER_INT		BIT(14)
-> +#define     VDPU_REG_INTERRUPT_DEC_BUS_INT		BIT(13)
-> +#define     VDPU_REG_INTERRUPT_DEC_RDY_INT		BIT(12)
-> +#define     VDPU_REG_INTERRUPT_DEC_IRQ			BIT(8)
-> +#define     VDPU_REG_INTERRUPT_DEC_IRQ_DIS		BIT(4)
-> +#define     VDPU_REG_INTERRUPT_DEC_E			BIT(0)
-> +#define VDPU_REG_CONFIG				0x008
-> +#define     VDPU_REG_CONFIG_DEC_AXI_RD_ID(x)		(((x) & 0xff) << 24)
-> +#define     VDPU_REG_CONFIG_DEC_TIMEOUT_E		BIT(23)
-> +#define     VDPU_REG_CONFIG_DEC_STRSWAP32_E		BIT(22)
-> +#define     VDPU_REG_CONFIG_DEC_STRENDIAN_E		BIT(21)
-> +#define     VDPU_REG_CONFIG_DEC_INSWAP32_E		BIT(20)
-> +#define     VDPU_REG_CONFIG_DEC_OUTSWAP32_E		BIT(19)
-> +#define     VDPU_REG_CONFIG_DEC_DATA_DISC_E		BIT(18)
-> +#define     VDPU_REG_CONFIG_TILED_MODE_MSB		BIT(17)
-> +#define     VDPU_REG_CONFIG_DEC_OUT_TILED_E		BIT(17)
-> +#define     VDPU_REG_CONFIG_DEC_LATENCY(x)		(((x) & 0x3f) << 11)
-> +#define     VDPU_REG_CONFIG_DEC_CLK_GATE_E		BIT(10)
-> +#define     VDPU_REG_CONFIG_DEC_IN_ENDIAN		BIT(9)
-> +#define     VDPU_REG_CONFIG_DEC_OUT_ENDIAN		BIT(8)
-> +#define     VDPU_REG_CONFIG_PRIORITY_MODE(x)		(((x) & 0x7) << 5)
-> +#define     VDPU_REG_CONFIG_TILED_MODE_LSB		BIT(7)
-> +#define     VDPU_REG_CONFIG_DEC_ADV_PRE_DIS		BIT(6)
-> +#define     VDPU_REG_CONFIG_DEC_SCMD_DIS		BIT(5)
-> +#define     VDPU_REG_CONFIG_DEC_MAX_BURST(x)		(((x) & 0x1f) << 0)
-> +#define VDPU_REG_DEC_CTRL0			0x00c
-> +#define     VDPU_REG_DEC_CTRL0_DEC_MODE(x)		(((x) & 0xf) << 28)
-> +#define     VDPU_REG_DEC_CTRL0_RLC_MODE_E		BIT(27)
-> +#define     VDPU_REG_DEC_CTRL0_SKIP_MODE		BIT(26)
-> +#define     VDPU_REG_DEC_CTRL0_DIVX3_E			BIT(25)
-> +#define     VDPU_REG_DEC_CTRL0_PJPEG_E			BIT(24)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_INTERLACE_E		BIT(23)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_FIELDMODE_E		BIT(22)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_B_E			BIT(21)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_INTER_E		BIT(20)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_TOPFIELD_E		BIT(19)
-> +#define     VDPU_REG_DEC_CTRL0_FWD_INTERLACE_E		BIT(18)
-> +#define     VDPU_REG_DEC_CTRL0_SORENSON_E		BIT(17)
-> +#define     VDPU_REG_DEC_CTRL0_REF_TOPFIELD_E		BIT(16)
-> +#define     VDPU_REG_DEC_CTRL0_DEC_OUT_DIS		BIT(15)
-> +#define     VDPU_REG_DEC_CTRL0_FILTERING_DIS		BIT(14)
-> +#define     VDPU_REG_DEC_CTRL0_WEBP_E			BIT(13)
-> +#define     VDPU_REG_DEC_CTRL0_MVC_E			BIT(13)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_FIXED_QUANT		BIT(13)
-> +#define     VDPU_REG_DEC_CTRL0_WRITE_MVS_E		BIT(12)
-> +#define     VDPU_REG_DEC_CTRL0_REFTOPFIRST_E		BIT(11)
-> +#define     VDPU_REG_DEC_CTRL0_SEQ_MBAFF_E		BIT(10)
-> +#define     VDPU_REG_DEC_CTRL0_PICORD_COUNT_E		BIT(9)
-> +#define     VDPU_REG_DEC_CTRL0_DEC_AHB_HLOCK_E		BIT(8)
-> +#define     VDPU_REG_DEC_CTRL0_DEC_AXI_WR_ID(x)		(((x) & 0xff) << 0)
-> +#define VDPU_REG_DEC_CTRL1			0x010
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_WIDTH(x)		(((x) & 0x1ff) << 23)
-> +#define     VDPU_REG_DEC_CTRL1_MB_WIDTH_OFF(x)		(((x) & 0xf) << 19)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_HEIGHT_P(x)	(((x) & 0xff) << 11)
-> +#define     VDPU_REG_DEC_CTRL1_MB_HEIGHT_OFF(x)		(((x) & 0xf) << 7)
-> +#define     VDPU_REG_DEC_CTRL1_ALT_SCAN_E		BIT(6)
-> +#define     VDPU_REG_DEC_CTRL1_TOPFIELDFIRST_E		BIT(5)
-> +#define     VDPU_REG_DEC_CTRL1_REF_FRAMES(x)		(((x) & 0x1f) << 0)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_W_EXT(x)		(((x) & 0x7) << 3)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_H_EXT(x)		(((x) & 0x7) << 0)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_REFER_FLAG		BIT(0)
-> +#define VDPU_REG_DEC_CTRL2			0x014
-> +#define     VDPU_REG_DEC_CTRL2_STRM_START_BIT(x)	(((x) & 0x3f) << 26)
-> +#define     VDPU_REG_DEC_CTRL2_SYNC_MARKER_E		BIT(25)
-> +#define     VDPU_REG_DEC_CTRL2_TYPE1_QUANT_E		BIT(24)
-> +#define     VDPU_REG_DEC_CTRL2_CH_QP_OFFSET(x)		(((x) & 0x1f) << 19)
-> +#define     VDPU_REG_DEC_CTRL2_CH_QP_OFFSET2(x)		(((x) & 0x1f) << 14)
-> +#define     VDPU_REG_DEC_CTRL2_FIELDPIC_FLAG_E		BIT(0)
-> +#define     VDPU_REG_DEC_CTRL2_INTRADC_VLC_THR(x)	(((x) & 0x7) << 16)
-> +#define     VDPU_REG_DEC_CTRL2_VOP_TIME_INCR(x)		(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_DEC_CTRL2_DQ_PROFILE		BIT(24)
-> +#define     VDPU_REG_DEC_CTRL2_DQBI_LEVEL		BIT(23)
-> +#define     VDPU_REG_DEC_CTRL2_RANGE_RED_FRM_E		BIT(22)
-> +#define     VDPU_REG_DEC_CTRL2_FAST_UVMC_E		BIT(20)
-> +#define     VDPU_REG_DEC_CTRL2_TRANSDCTAB		BIT(17)
-> +#define     VDPU_REG_DEC_CTRL2_TRANSACFRM(x)		(((x) & 0x3) << 15)
-> +#define     VDPU_REG_DEC_CTRL2_TRANSACFRM2(x)		(((x) & 0x3) << 13)
-> +#define     VDPU_REG_DEC_CTRL2_MB_MODE_TAB(x)		(((x) & 0x7) << 10)
-> +#define     VDPU_REG_DEC_CTRL2_MVTAB(x)			(((x) & 0x7) << 7)
-> +#define     VDPU_REG_DEC_CTRL2_CBPTAB(x)		(((x) & 0x7) << 4)
-> +#define     VDPU_REG_DEC_CTRL2_2MV_BLK_PAT_TAB(x)	(((x) & 0x3) << 2)
-> +#define     VDPU_REG_DEC_CTRL2_4MV_BLK_PAT_TAB(x)	(((x) & 0x3) << 0)
-> +#define     VDPU_REG_DEC_CTRL2_QSCALE_TYPE		BIT(24)
-> +#define     VDPU_REG_DEC_CTRL2_CON_MV_E			BIT(4)
-> +#define     VDPU_REG_DEC_CTRL2_INTRA_DC_PREC(x)		(((x) & 0x3) << 2)
-> +#define     VDPU_REG_DEC_CTRL2_INTRA_VLC_TAB		BIT(1)
-> +#define     VDPU_REG_DEC_CTRL2_FRAME_PRED_DCT		BIT(0)
-> +#define     VDPU_REG_DEC_CTRL2_JPEG_QTABLES(x)		(((x) & 0x3) << 11)
-> +#define     VDPU_REG_DEC_CTRL2_JPEG_MODE(x)		(((x) & 0x7) << 8)
-> +#define     VDPU_REG_DEC_CTRL2_JPEG_FILRIGHT_E		BIT(7)
-> +#define     VDPU_REG_DEC_CTRL2_JPEG_STREAM_ALL		BIT(6)
-> +#define     VDPU_REG_DEC_CTRL2_CR_AC_VLCTABLE		BIT(5)
-> +#define     VDPU_REG_DEC_CTRL2_CB_AC_VLCTABLE		BIT(4)
-> +#define     VDPU_REG_DEC_CTRL2_CR_DC_VLCTABLE		BIT(3)
-> +#define     VDPU_REG_DEC_CTRL2_CB_DC_VLCTABLE		BIT(2)
-> +#define     VDPU_REG_DEC_CTRL2_CR_DC_VLCTABLE3		BIT(1)
-> +#define     VDPU_REG_DEC_CTRL2_CB_DC_VLCTABLE3		BIT(0)
-> +#define     VDPU_REG_DEC_CTRL2_STRM1_START_BIT(x)	(((x) & 0x3f) << 18)
-> +#define     VDPU_REG_DEC_CTRL2_HUFFMAN_E		BIT(17)
-> +#define     VDPU_REG_DEC_CTRL2_MULTISTREAM_E		BIT(16)
-> +#define     VDPU_REG_DEC_CTRL2_BOOLEAN_VALUE(x)		(((x) & 0xff) << 8)
-> +#define     VDPU_REG_DEC_CTRL2_BOOLEAN_RANGE(x)		(((x) & 0xff) << 0)
-> +#define     VDPU_REG_DEC_CTRL2_ALPHA_OFFSET(x)		(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_DEC_CTRL2_BETA_OFFSET(x)		(((x) & 0x1f) << 0)
-> +#define VDPU_REG_DEC_CTRL3			0x018
-> +#define     VDPU_REG_DEC_CTRL3_START_CODE_E		BIT(31)
-> +#define     VDPU_REG_DEC_CTRL3_INIT_QP(x)		(((x) & 0x3f) << 25)
-> +#define     VDPU_REG_DEC_CTRL3_CH_8PIX_ILEAV_E		BIT(24)
-> +#define     VDPU_REG_DEC_CTRL3_STREAM_LEN_EXT(x)	(((x) & 0xff) << 24)
-> +#define     VDPU_REG_DEC_CTRL3_STREAM_LEN(x)		(((x) & 0xffffff) << 0)
-> +#define VDPU_REG_DEC_CTRL4			0x01c
-> +#define     VDPU_REG_DEC_CTRL4_CABAC_E			BIT(31)
-> +#define     VDPU_REG_DEC_CTRL4_BLACKWHITE_E		BIT(30)
-> +#define     VDPU_REG_DEC_CTRL4_DIR_8X8_INFER_E		BIT(29)
-> +#define     VDPU_REG_DEC_CTRL4_WEIGHT_PRED_E		BIT(28)
-> +#define     VDPU_REG_DEC_CTRL4_WEIGHT_BIPR_IDC(x)	(((x) & 0x3) << 26)
-> +#define     VDPU_REG_DEC_CTRL4_AVS_H264_H_EXT		BIT(25)
-> +#define     VDPU_REG_DEC_CTRL4_FRAMENUM_LEN(x)		(((x) & 0x1f) << 16)
-> +#define     VDPU_REG_DEC_CTRL4_FRAMENUM(x)		(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_DEC_CTRL4_BITPLANE0_E		BIT(31)
-> +#define     VDPU_REG_DEC_CTRL4_BITPLANE1_E		BIT(30)
-> +#define     VDPU_REG_DEC_CTRL4_BITPLANE2_E		BIT(29)
-> +#define     VDPU_REG_DEC_CTRL4_ALT_PQUANT(x)		(((x) & 0x1f) << 24)
-> +#define     VDPU_REG_DEC_CTRL4_DQ_EDGES(x)		(((x) & 0xf) << 20)
-> +#define     VDPU_REG_DEC_CTRL4_TTMBF			BIT(19)
-> +#define     VDPU_REG_DEC_CTRL4_PQINDEX(x)		(((x) & 0x1f) << 14)
-> +#define     VDPU_REG_DEC_CTRL4_VC1_HEIGHT_EXT		BIT(13)
-> +#define     VDPU_REG_DEC_CTRL4_BILIN_MC_E		BIT(12)
-> +#define     VDPU_REG_DEC_CTRL4_UNIQP_E			BIT(11)
-> +#define     VDPU_REG_DEC_CTRL4_HALFQP_E			BIT(10)
-> +#define     VDPU_REG_DEC_CTRL4_TTFRM(x)			(((x) & 0x3) << 8)
-> +#define     VDPU_REG_DEC_CTRL4_2ND_BYTE_EMUL_E		BIT(7)
-> +#define     VDPU_REG_DEC_CTRL4_DQUANT_E			BIT(6)
-> +#define     VDPU_REG_DEC_CTRL4_VC1_ADV_E		BIT(5)
-> +#define     VDPU_REG_DEC_CTRL4_PJPEG_FILDOWN_E		BIT(26)
-> +#define     VDPU_REG_DEC_CTRL4_PJPEG_WDIV8		BIT(25)
-> +#define     VDPU_REG_DEC_CTRL4_PJPEG_HDIV8		BIT(24)
-> +#define     VDPU_REG_DEC_CTRL4_PJPEG_AH(x)		(((x) & 0xf) << 20)
-> +#define     VDPU_REG_DEC_CTRL4_PJPEG_AL(x)		(((x) & 0xf) << 16)
-> +#define     VDPU_REG_DEC_CTRL4_PJPEG_SS(x)		(((x) & 0xff) << 8)
-> +#define     VDPU_REG_DEC_CTRL4_PJPEG_SE(x)		(((x) & 0xff) << 0)
-> +#define     VDPU_REG_DEC_CTRL4_DCT1_START_BIT(x)	(((x) & 0x3f) << 26)
-> +#define     VDPU_REG_DEC_CTRL4_DCT2_START_BIT(x)	(((x) & 0x3f) << 20)
-> +#define     VDPU_REG_DEC_CTRL4_CH_MV_RES		BIT(13)
-> +#define     VDPU_REG_DEC_CTRL4_INIT_DC_MATCH0(x)	(((x) & 0x7) << 9)
-> +#define     VDPU_REG_DEC_CTRL4_INIT_DC_MATCH1(x)	(((x) & 0x7) << 6)
-> +#define     VDPU_REG_DEC_CTRL4_VP7_VERSION		BIT(5)
-> +#define VDPU_REG_DEC_CTRL5			0x020
-> +#define     VDPU_REG_DEC_CTRL5_CONST_INTRA_E		BIT(31)
-> +#define     VDPU_REG_DEC_CTRL5_FILT_CTRL_PRES		BIT(30)
-> +#define     VDPU_REG_DEC_CTRL5_RDPIC_CNT_PRES		BIT(29)
-> +#define     VDPU_REG_DEC_CTRL5_8X8TRANS_FLAG_E		BIT(28)
-> +#define     VDPU_REG_DEC_CTRL5_REFPIC_MK_LEN(x)		(((x) & 0x7ff) << 17)
-> +#define     VDPU_REG_DEC_CTRL5_IDR_PIC_E		BIT(16)
-> +#define     VDPU_REG_DEC_CTRL5_IDR_PIC_ID(x)		(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_DEC_CTRL5_MV_SCALEFACTOR(x)	(((x) & 0xff) << 24)
-> +#define     VDPU_REG_DEC_CTRL5_REF_DIST_FWD(x)		(((x) & 0x1f) << 19)
-> +#define     VDPU_REG_DEC_CTRL5_REF_DIST_BWD(x)		(((x) & 0x1f) << 14)
-> +#define     VDPU_REG_DEC_CTRL5_LOOP_FILT_LIMIT(x)	(((x) & 0xf) << 14)
-> +#define     VDPU_REG_DEC_CTRL5_VARIANCE_TEST_E		BIT(13)
-> +#define     VDPU_REG_DEC_CTRL5_MV_THRESHOLD(x)		(((x) & 0x7) << 10)
-> +#define     VDPU_REG_DEC_CTRL5_VAR_THRESHOLD(x)		(((x) & 0x3ff) << 0)
-> +#define     VDPU_REG_DEC_CTRL5_DIVX_IDCT_E		BIT(8)
-> +#define     VDPU_REG_DEC_CTRL5_DIVX3_SLICE_SIZE(x)	(((x) & 0xff) << 0)
-> +#define     VDPU_REG_DEC_CTRL5_PJPEG_REST_FREQ(x)	(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_DEC_CTRL5_RV_PROFILE(x)		(((x) & 0x3) << 30)
-> +#define     VDPU_REG_DEC_CTRL5_RV_OSV_QUANT(x)		(((x) & 0x3) << 28)
-> +#define     VDPU_REG_DEC_CTRL5_RV_FWD_SCALE(x)		(((x) & 0x3fff) << 14)
-> +#define     VDPU_REG_DEC_CTRL5_RV_BWD_SCALE(x)		(((x) & 0x3fff) << 0)
-> +#define     VDPU_REG_DEC_CTRL5_INIT_DC_COMP0(x)		(((x) & 0xffff) << 16)
-> +#define     VDPU_REG_DEC_CTRL5_INIT_DC_COMP1(x)		(((x) & 0xffff) << 0)
-> +#define VDPU_REG_DEC_CTRL6			0x024
-> +#define     VDPU_REG_DEC_CTRL6_PPS_ID(x)		(((x) & 0xff) << 24)
-> +#define     VDPU_REG_DEC_CTRL6_REFIDX1_ACTIVE(x)	(((x) & 0x1f) << 19)
-> +#define     VDPU_REG_DEC_CTRL6_REFIDX0_ACTIVE(x)	(((x) & 0x1f) << 14)
-> +#define     VDPU_REG_DEC_CTRL6_POC_LENGTH(x)		(((x) & 0xff) << 0)
-> +#define     VDPU_REG_DEC_CTRL6_ICOMP0_E			BIT(24)
-> +#define     VDPU_REG_DEC_CTRL6_ISCALE0(x)		(((x) & 0xff) << 16)
-> +#define     VDPU_REG_DEC_CTRL6_ISHIFT0(x)		(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_DEC_CTRL6_STREAM1_LEN(x)		(((x) & 0xffffff) << 0)
-> +#define     VDPU_REG_DEC_CTRL6_PIC_SLICE_AM(x)		(((x) & 0x1fff) << 0)
-> +#define     VDPU_REG_DEC_CTRL6_COEFFS_PART_AM(x)	(((x) & 0xf) << 24)
-> +#define VDPU_REG_FWD_PIC(i)			(0x028 + ((i) * 0x4))
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F5(x)		(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F4(x)		(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F3(x)		(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F2(x)		(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F1(x)		(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F0(x)		(((x) & 0x1f) << 0)
-> +#define     VDPU_REG_FWD_PIC1_ICOMP1_E			BIT(24)
-> +#define     VDPU_REG_FWD_PIC1_ISCALE1(x)		(((x) & 0xff) << 16)
-> +#define     VDPU_REG_FWD_PIC1_ISHIFT1(x)		(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_FWD_PIC1_SEGMENT_BASE(x)		((x) << 0)
-> +#define     VDPU_REG_FWD_PIC1_SEGMENT_UPD_E		BIT(1)
-> +#define     VDPU_REG_FWD_PIC1_SEGMENT_E			BIT(0)
-> +#define VDPU_REG_DEC_CTRL7			0x02c
-> +#define     VDPU_REG_DEC_CTRL7_PINIT_RLIST_F15(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_DEC_CTRL7_PINIT_RLIST_F14(x)	(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_DEC_CTRL7_PINIT_RLIST_F13(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_DEC_CTRL7_PINIT_RLIST_F12(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_DEC_CTRL7_PINIT_RLIST_F11(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_DEC_CTRL7_PINIT_RLIST_F10(x)	(((x) & 0x1f) << 0)
-> +#define     VDPU_REG_DEC_CTRL7_ICOMP2_E			BIT(24)
-> +#define     VDPU_REG_DEC_CTRL7_ISCALE2(x)		(((x) & 0xff) << 16)
-> +#define     VDPU_REG_DEC_CTRL7_ISHIFT2(x)		(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_DEC_CTRL7_DCT3_START_BIT(x)	(((x) & 0x3f) << 24)
-> +#define     VDPU_REG_DEC_CTRL7_DCT4_START_BIT(x)	(((x) & 0x3f) << 18)
-> +#define     VDPU_REG_DEC_CTRL7_DCT5_START_BIT(x)	(((x) & 0x3f) << 12)
-> +#define     VDPU_REG_DEC_CTRL7_DCT6_START_BIT(x)	(((x) & 0x3f) << 6)
-> +#define     VDPU_REG_DEC_CTRL7_DCT7_START_BIT(x)	(((x) & 0x3f) << 0)
-> +#define VDPU_REG_ADDR_STR			0x030
-> +#define VDPU_REG_ADDR_DST			0x034
-> +#define VDPU_REG_ADDR_REF(i)			(0x038 + ((i) * 0x4))
-> +#define     VDPU_REG_ADDR_REF_FIELD_E			BIT(1)
-> +#define     VDPU_REG_ADDR_REF_TOPC_E			BIT(0)
-> +#define VDPU_REG_REF_PIC(i)			(0x078 + ((i) * 0x4))
-> +#define     VDPU_REG_REF_PIC_FILT_TYPE_E		BIT(31)
-> +#define     VDPU_REG_REF_PIC_FILT_SHARPNESS(x)	(((x) & 0x7) << 28)
-> +#define     VDPU_REG_REF_PIC_MB_ADJ_0(x)		(((x) & 0x7f) << 21)
-> +#define     VDPU_REG_REF_PIC_MB_ADJ_1(x)		(((x) & 0x7f) << 14)
-> +#define     VDPU_REG_REF_PIC_MB_ADJ_2(x)		(((x) & 0x7f) << 7)
-> +#define     VDPU_REG_REF_PIC_MB_ADJ_3(x)		(((x) & 0x7f) << 0)
-> +#define     VDPU_REG_REF_PIC_REFER1_NBR(x)		(((x) & 0xffff) << 16)
-> +#define     VDPU_REG_REF_PIC_REFER0_NBR(x)		(((x) & 0xffff) << 0)
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_0(x)		(((x) & 0x3f) << 18)
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_1(x)		(((x) & 0x3f) << 12)
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_2(x)		(((x) & 0x3f) << 6)
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_3(x)		(((x) & 0x3f) << 0)
-> +#define     VDPU_REG_REF_PIC_QUANT_DELTA_0(x)	(((x) & 0x1f) << 27)
-> +#define     VDPU_REG_REF_PIC_QUANT_DELTA_1(x)	(((x) & 0x1f) << 22)
-> +#define     VDPU_REG_REF_PIC_QUANT_0(x)			(((x) & 0x7ff) << 11)
-> +#define     VDPU_REG_REF_PIC_QUANT_1(x)			(((x) & 0x7ff) << 0)
-> +#define VDPU_REG_LT_REF				0x098
-> +#define VDPU_REG_VALID_REF			0x09c
-> +#define VDPU_REG_ADDR_QTABLE			0x0a0
-> +#define VDPU_REG_ADDR_DIR_MV			0x0a4
-> +#define VDPU_REG_BD_REF_PIC(i)			(0x0a8 + ((i) * 0x4))
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B2(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F2(x)	(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B1(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F1(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B0(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F0(x)	(((x) & 0x1f) << 0)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_2_M1(x)	(((x) & 0x3) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_2_4(x)		(((x) & 0x3) << 8)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_4_M1(x)	(((x) & 0x3) << 6)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_4_4(x)		(((x) & 0x3) << 4)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_6_M1(x)	(((x) & 0x3) << 2)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_6_4(x)		(((x) & 0x3) << 0)
-> +#define     VDPU_REG_BD_REF_PIC_QUANT_DELTA_2(x)	(((x) & 0x1f) << 27)
-> +#define     VDPU_REG_BD_REF_PIC_QUANT_DELTA_3(x)	(((x) & 0x1f) << 22)
-> +#define     VDPU_REG_BD_REF_PIC_QUANT_2(x)		(((x) & 0x7ff) << 11)
-> +#define     VDPU_REG_BD_REF_PIC_QUANT_3(x)		(((x) & 0x7ff) << 0)
-> +#define VDPU_REG_BD_P_REF_PIC			0x0bc
-> +#define     VDPU_REG_BD_P_REF_PIC_QUANT_DELTA_4(x)	(((x) & 0x1f) << 27)
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F3(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F2(x)	(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F1(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F0(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_P_REF_PIC_BINIT_RLIST_B15(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_P_REF_PIC_BINIT_RLIST_F15(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_ERR_CONC			0x0c0
-> +#define     VDPU_REG_ERR_CONC_STARTMB_X(x)		(((x) & 0x1ff) << 23)
-> +#define     VDPU_REG_ERR_CONC_STARTMB_Y(x)		(((x) & 0xff) << 15)
-> +#define VDPU_REG_PRED_FLT			0x0c4
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_0_0(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_0_1(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_0_2(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_REF_BUF_CTRL			0x0cc
-> +#define     VDPU_REG_REF_BUF_CTRL_REFBU_E		BIT(31)
-> +#define     VDPU_REG_REF_BUF_CTRL_REFBU_THR(x)		(((x) & 0xfff) << 19)
-> +#define     VDPU_REG_REF_BUF_CTRL_REFBU_PICID(x)	(((x) & 0x1f) << 14)
-> +#define     VDPU_REG_REF_BUF_CTRL_REFBU_EVAL_E		BIT(13)
-> +#define     VDPU_REG_REF_BUF_CTRL_REFBU_FPARMOD_E	BIT(12)
-> +#define     VDPU_REG_REF_BUF_CTRL_REFBU_Y_OFFSET(x)	(((x) & 0x1ff) << 0)
-> +#define VDPU_REG_REF_BUF_CTRL2			0x0dc
-> +#define     VDPU_REG_REF_BUF_CTRL2_REFBU2_BUF_E		BIT(31)
-> +#define     VDPU_REG_REF_BUF_CTRL2_REFBU2_THR(x)	(((x) & 0xfff) << 19)
-> +#define     VDPU_REG_REF_BUF_CTRL2_REFBU2_PICID(x)	(((x) & 0x1f) << 14)
-> +#define     VDPU_REG_REF_BUF_CTRL2_APF_THRESHOLD(x)	(((x) & 0x3fff) << 0)
-> +
-> +#endif /* RK3288_VPU_REGS_H_ */
-> diff --git a/drivers/media/platform/rockchip/vpu/rk3399_vpu_hw.c b/drivers/media/platform/rockchip/vpu/rk3399_vpu_hw.c
-> new file mode 100644
-> index 000000000000..616fcc395d48
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rk3399_vpu_hw.c
-> @@ -0,0 +1,124 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Rockchip Electronics Co., Ltd.
-> + *	Jeffy Chen <jeffy.chen@rock-chips.com>
-> + */
-> +
-> +#include <linux/clk.h>
-> +
-> +#include "rockchip_vpu.h"
-> +#include "rk3399_vpu_regs.h"
-> +
-> +#define RK3399_ACLK_MAX_FREQ (400 * 1000 * 1000)
-> +
-> +/*
-> + * Supported formats.
-> + */
-> +
-> +static const struct rockchip_vpu_fmt rk3399_vpu_enc_fmts[] = {
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_YUV420M,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 3,
-> +		.depth = { 8, 2, 2 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_YUV420P,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_NV12M,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 2,
-> +		.depth = { 8, 4 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_YUV420SP,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_YUYV,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 1,
-> +		.depth = { 16 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_YUYV422,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_UYVY,
-> +		.codec_mode = RK_VPU_MODE_NONE,
-> +		.num_planes = 1,
-> +		.depth = { 16 },
-> +		.enc_fmt = RK3288_VPU_ENC_FMT_UYVY422,
-> +	},
-> +	{
-> +		.fourcc = V4L2_PIX_FMT_JPEG_RAW,
-> +		.codec_mode = RK_VPU_MODE_JPEGE,
-> +		.num_planes = 1,
-> +		.max_depth = 2,
-> +		.frmsize = {
-> +			.min_width = 96,
-> +			.max_width = 8192,
-> +			.step_width = MB_DIM,
-> +			.min_height = 32,
-> +			.max_height = 8192,
-> +			.step_height = MB_DIM,
-> +		},
-> +	},
-> +};
-> +
-> +static irqreturn_t rk3399_vepu_irq(int irq, void *dev_id)
-> +{
-> +	struct rockchip_vpu_dev *vpu = dev_id;
-> +	u32 status = vepu_read(vpu, VEPU_REG_INTERRUPT);
-> +	u32 bytesused =	vepu_read(vpu, VEPU_REG_STR_BUF_LIMIT) / 8;
-> +
-> +	vepu_write(vpu, 0, VEPU_REG_INTERRUPT);
-> +	vepu_write(vpu, 0, VEPU_REG_AXI_CTRL);
-> +
-> +	rockchip_vpu_irq_done(vpu,
-> +		bytesused,
-> +		status & VEPU_REG_INTERRUPT_FRAME_READY ?
-> +		VB2_BUF_STATE_DONE :
-> +		VB2_BUF_STATE_ERROR);
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int rk3399_vpu_hw_init(struct rockchip_vpu_dev *vpu)
-> +{
-> +	/* Bump ACLK to max. possible freq. to improve performance. */
-> +	clk_set_rate(vpu->clocks[0].clk, RK3399_ACLK_MAX_FREQ);
-> +	return 0;
-> +}
-> +
-> +static void rk3399_vpu_enc_reset(struct rockchip_vpu_ctx *ctx)
-> +{
-> +	struct rockchip_vpu_dev *vpu = ctx->dev;
-> +
-> +	vepu_write(vpu, VEPU_REG_INTERRUPT_DIS_BIT, VEPU_REG_INTERRUPT);
-> +	vepu_write(vpu, 0, VEPU_REG_ENCODE_START);
-> +	vepu_write(vpu, 0, VEPU_REG_AXI_CTRL);
-> +}
-> +
-> +/*
-> + * Supported codec ops.
-> + */
-> +
-> +static const struct rockchip_vpu_codec_ops rk3399_vpu_codec_ops[] = {
-> +	[RK_VPU_MODE_JPEGE] = {
-> +		.run = rk3399_vpu_jpege_run,
-> +		.reset = rk3399_vpu_enc_reset,
-> +	},
-> +};
-> +
-> +/*
-> + * VPU variant.
-> + */
-> +
-> +const struct rockchip_vpu_variant rk3399_vpu_variant = {
-> +	.enc_offset = 0x0,
-> +	.enc_fmts = rk3399_vpu_enc_fmts,
-> +	.num_enc_fmts = ARRAY_SIZE(rk3399_vpu_enc_fmts),
-> +	.dec_offset = 0x0,
-> +	.codec = RK_VPU_CODEC_JPEG,
-> +	.codec_ops = rk3399_vpu_codec_ops,
-> +	.vepu_irq = rk3399_vepu_irq,
-> +	.init = rk3399_vpu_hw_init,
-> +	.clk_names = {"aclk", "hclk"},
-> +	.num_clocks = 2
-> +};
-> diff --git a/drivers/media/platform/rockchip/vpu/rk3399_vpu_hw_jpege.c b/drivers/media/platform/rockchip/vpu/rk3399_vpu_hw_jpege.c
-
-What does the last 'e' in 'jpege' stand for? If it is 'encoding', then I prefer
-that you rename it to rk3399_vpu_hw_jpeg_enc.c (ditto elsewhere).
-
-> new file mode 100644
-> index 000000000000..76ee9c736c1a
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rk3399_vpu_hw_jpege.c
-> @@ -0,0 +1,154 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Rockchip Electronics Co., Ltd.
-> + *
-> + * JPEG encoder
-> + * ------------
-> + * The VPU JPEG encoder produces JPEG baseline sequential format.
-> + * The quantization coefficients are 8-bit values, complying with
-> + * the baseline specification. Therefore, it requires application-defined
-> + * luma and chroma quantization tables. The hardware does entrophy
-> + * encoding using internal Huffman tables, as specified in the JPEG
-> + * specification.
-> + *
-> + * In other words, only the luma and chroma quantization tables are
-> + * required as application-defined parameters for the encoding operation.
-> + *
-> + * Quantization luma table values are written to registers
-> + * VEPU_swreg_0-VEPU_swreg_15, and chroma table values to
-> + * VEPU_swreg_16-VEPU_swreg_31.
-> + *
-> + * JPEG zigzag order is expected on the quantization tables.
-> + */
-> +
-> +#include <asm/unaligned.h>
-> +#include <media/v4l2-mem2mem.h>
-> +#include "rockchip_vpu.h"
-> +#include "rockchip_vpu_common.h"
-> +#include "rockchip_vpu_hw.h"
-> +#include "rk3399_vpu_regs.h"
-> +
-> +#define VEPU_JPEG_QUANT_TABLE_COUNT 16
-> +
-> +static void rk3399_vpu_set_src_img_ctrl(struct rockchip_vpu_dev *vpu,
-> +					struct rockchip_vpu_ctx *ctx)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_fmt = &ctx->src_fmt;
-> +	u32 reg;
-> +
-> +	/* The pix fmt width/height are already MiB aligned
-> +	 * by .vidioc_s_fmt_vid_cap_mplane() callback
-> +	 */
-> +	reg = VEPU_REG_IN_IMG_CTRL_ROW_LEN(pix_fmt->width);
-> +	vepu_write_relaxed(vpu, reg, VEPU_REG_INPUT_LUMA_INFO);
-> +
-> +	reg = VEPU_REG_IN_IMG_CTRL_OVRFLR_D4(0) |
-> +	      VEPU_REG_IN_IMG_CTRL_OVRFLB(0);
-> +	vepu_write_relaxed(vpu, reg, VEPU_REG_ENC_OVER_FILL_STRM_OFFSET);
-> +
-> +	reg = VEPU_REG_IN_IMG_CTRL_FMT(ctx->vpu_src_fmt->enc_fmt);
-> +	vepu_write_relaxed(vpu, reg, VEPU_REG_ENC_CTRL1);
-> +}
-> +
-> +static void rk3399_vpu_jpege_set_buffers(struct rockchip_vpu_dev *vpu,
-> +					 struct rockchip_vpu_ctx *ctx,
-> +					 struct vb2_buffer *src_buf,
-> +					 struct vb2_buffer *dst_buf)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_fmt = &ctx->src_fmt;
-> +	dma_addr_t dst, src[3];
-> +	u32 dst_size;
-> +
-> +	WARN_ON(pix_fmt->num_planes > 3);
-> +
-> +	dst = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-> +	dst_size = vb2_plane_size(dst_buf, 0);
-> +
-> +	vepu_write_relaxed(vpu, dst, VEPU_REG_ADDR_OUTPUT_STREAM);
-> +	vepu_write_relaxed(vpu, dst_size, VEPU_REG_STR_BUF_LIMIT);
-> +
-> +	if (pix_fmt->num_planes == 1) {
-> +		src[0] = vb2_dma_contig_plane_dma_addr(src_buf, 0);
-> +		/* single plane formats we supported are all interlaced */
-> +		src[1] = src[2] = src[0];
-> +	} else if (pix_fmt->num_planes == 2) {
-> +		src[PLANE_Y] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_Y);
-> +		src[PLANE_CB] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_CB);
-> +		src[PLANE_CR] = src[PLANE_CB];
-> +	} else {
-> +		src[PLANE_Y] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_Y);
-> +		src[PLANE_CB] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_CB);
-> +		src[PLANE_CR] = vb2_dma_contig_plane_dma_addr(src_buf, PLANE_CR);
-> +	}
-> +
-> +	vepu_write_relaxed(vpu, src[PLANE_Y], VEPU_REG_ADDR_IN_LUMA);
-> +	vepu_write_relaxed(vpu, src[PLANE_CR], VEPU_REG_ADDR_IN_CR);
-> +	vepu_write_relaxed(vpu, src[PLANE_CB], VEPU_REG_ADDR_IN_CB);
-> +}
-> +
-> +static void rk3399_vpu_jpege_set_qtable(struct rockchip_vpu_dev *vpu,
-> +		const struct v4l2_ctrl_jpeg_quantization *qtable)
-> +{
-> +	__be32 *chroma_qtable;
-> +	__be32 *luma_qtable;
-> +	u32 reg, i;
-> +
-> +	chroma_qtable = (__be32 *)&qtable->chroma_quantization_matrix;
-> +	luma_qtable = (__be32 *)&qtable->luma_quantization_matrix;
-> +
-> +	for (i = 0; i < VEPU_JPEG_QUANT_TABLE_COUNT; i++) {
-> +		reg = get_unaligned_be32(&luma_qtable[i]);
-> +		vepu_write_relaxed(vpu, reg, VEPU_REG_JPEG_LUMA_QUAT(i));
-> +
-> +		reg = get_unaligned_be32(&chroma_qtable[i]);
-> +		vepu_write_relaxed(vpu, reg, VEPU_REG_JPEG_CHROMA_QUAT(i));
-> +	}
-> +}
-> +
-> +void rk3399_vpu_jpege_run(struct rockchip_vpu_ctx *ctx)
-> +{
-> +	const struct v4l2_ctrl_jpeg_quantization *qtable;
-> +	struct rockchip_vpu_dev *vpu = ctx->dev;
-> +	struct vb2_buffer *src_buf, *dst_buf;
-> +	u32 reg;
-> +
-> +	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
-> +	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-> +
-> +	/* Switch to JPEG encoder mode before writing registers */
-> +	vepu_write_relaxed(vpu, VEPU_REG_ENCODE_FORMAT_JPEG,
-> +			   VEPU_REG_ENCODE_START);
-> +
-> +	rk3399_vpu_set_src_img_ctrl(vpu, ctx);
-> +	rk3399_vpu_jpege_set_buffers(vpu, ctx, src_buf, dst_buf);
-> +
-> +	qtable = rockchip_vpu_find_control_data(ctx,
-> +			V4L2_CID_JPEG_QUANTIZATION);
-> +	rk3399_vpu_jpege_set_qtable(vpu, qtable);
-> +
-> +	/* Make sure that all registers are written at this point. */
-> +	wmb();
-> +
-> +	reg = VEPU_REG_OUTPUT_SWAP32
-> +		| VEPU_REG_OUTPUT_SWAP16
-> +		| VEPU_REG_OUTPUT_SWAP8
-> +		| VEPU_REG_INPUT_SWAP8
-> +		| VEPU_REG_INPUT_SWAP16
-> +		| VEPU_REG_INPUT_SWAP32;
-> +	vepu_write_relaxed(vpu, reg, VEPU_REG_DATA_ENDIAN);
-> +
-> +	reg = VEPU_REG_AXI_CTRL_BURST_LEN(16);
-> +	vepu_write_relaxed(vpu, reg, VEPU_REG_AXI_CTRL);
-> +
-> +	reg = VEPU_REG_MB_WIDTH(MB_WIDTH(ctx->src_fmt.width))
-> +		| VEPU_REG_MB_HEIGHT(MB_HEIGHT(ctx->src_fmt.height))
-> +		| VEPU_REG_FRAME_TYPE_INTRA
-> +		| VEPU_REG_ENCODE_FORMAT_JPEG
-> +		| VEPU_REG_ENCODE_ENABLE;
-> +
-> +	/* Kick the watchdog and start encoding */
-> +	schedule_delayed_work(&vpu->watchdog_work, msecs_to_jiffies(2000));
-> +	vepu_write(vpu, reg, VEPU_REG_ENCODE_START);
-> +}
-> diff --git a/drivers/media/platform/rockchip/vpu/rk3399_vpu_regs.h b/drivers/media/platform/rockchip/vpu/rk3399_vpu_regs.h
-> new file mode 100644
-> index 000000000000..899d1e1a506c
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rk3399_vpu_regs.h
-> @@ -0,0 +1,601 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Rockchip Electronics Co., Ltd.
-> + *	Alpha Lin <alpha.lin@rock-chips.com>
-> + */
-> +
-> +#ifndef RK3399_VPU_REGS_H_
-> +#define RK3399_VPU_REGS_H_
-> +
-> +/* Encoder registers. */
-> +#define VEPU_REG_VP8_QUT_1ST(i)			(0x000 + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_QUT_DC_Y2(x)			(((x) & 0x3fff) << 16)
-> +#define     VEPU_REG_VP8_QUT_DC_Y1(x)			(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_QUT_2ND(i)			(0x004 + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_QUT_AC_Y1(x)			(((x) & 0x3fff) << 16)
-> +#define     VEPU_REG_VP8_QUT_DC_CHR(x)			(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_QUT_3RD(i)			(0x008 + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_QUT_AC_CHR(x)			(((x) & 0x3fff) << 16)
-> +#define     VEPU_REG_VP8_QUT_AC_Y2(x)			(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_QUT_4TH(i)			(0x00c + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_QUT_ZB_DC_CHR(x)		(((x) & 0x1ff) << 18)
-> +#define     VEPU_REG_VP8_QUT_ZB_DC_Y2(x)		(((x) & 0x1ff) << 9)
-> +#define     VEPU_REG_VP8_QUT_ZB_DC_Y1(x)		(((x) & 0x1ff) << 0)
-> +#define VEPU_REG_VP8_QUT_5TH(i)			(0x010 + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_QUT_ZB_AC_CHR(x)		(((x) & 0x1ff) << 18)
-> +#define     VEPU_REG_VP8_QUT_ZB_AC_Y2(x)		(((x) & 0x1ff) << 9)
-> +#define     VEPU_REG_VP8_QUT_ZB_AC_Y1(x)		(((x) & 0x1ff) << 0)
-> +#define VEPU_REG_VP8_QUT_6TH(i)			(0x014 + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_QUT_RND_DC_CHR(x)		(((x) & 0xff) << 16)
-> +#define     VEPU_REG_VP8_QUT_RND_DC_Y2(x)		(((x) & 0xff) << 8)
-> +#define     VEPU_REG_VP8_QUT_RND_DC_Y1(x)		(((x) & 0xff) << 0)
-> +#define VEPU_REG_VP8_QUT_7TH(i)			(0x018 + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_QUT_RND_AC_CHR(x)		(((x) & 0xff) << 16)
-> +#define     VEPU_REG_VP8_QUT_RND_AC_Y2(x)		(((x) & 0xff) << 8)
-> +#define     VEPU_REG_VP8_QUT_RND_AC_Y1(x)		(((x) & 0xff) << 0)
-> +#define VEPU_REG_VP8_QUT_8TH(i)			(0x01c + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_SEG_FILTER_LEVEL(x)		(((x) & 0x3f) << 25)
-> +#define     VEPU_REG_VP8_DEQUT_DC_CHR(x)		(((x) & 0xff) << 17)
-> +#define     VEPU_REG_VP8_DEQUT_DC_Y2(x)			(((x) & 0x1ff) << 8)
-> +#define     VEPU_REG_VP8_DEQUT_DC_Y1(x)			(((x) & 0xff) << 0)
-> +#define VEPU_REG_VP8_QUT_9TH(i)			(0x020 + ((i) * 0x24))
-> +#define     VEPU_REG_VP8_DEQUT_AC_CHR(x)		(((x) & 0x1ff) << 18)
-> +#define     VEPU_REG_VP8_DEQUT_AC_Y2(x)			(((x) & 0x1ff) << 9)
-> +#define     VEPU_REG_VP8_DEQUT_AC_Y1(x)			(((x) & 0x1ff) << 0)
-> +#define VEPU_REG_ADDR_VP8_SEG_MAP		0x06c
-> +#define VEPU_REG_VP8_INTRA_4X4_PENALTY(i)	(0x070 + ((i) * 0x4))
-> +#define     VEPU_REG_VP8_INTRA_4X4_PENALTY_0(x)		(((x) & 0xfff) << 0)
-> +#define     VEPU_REG_VP8_INTRA_4x4_PENALTY_1(x)		(((x) & 0xfff) << 16)
-> +#define VEPU_REG_VP8_INTRA_16X16_PENALTY(i)	(0x084 + ((i) * 0x4))
-> +#define     VEPU_REG_VP8_INTRA_16X16_PENALTY_0(x)	(((x) & 0xfff) << 0)
-> +#define     VEPU_REG_VP8_INTRA_16X16_PENALTY_1(x)	(((x) & 0xfff) << 16)
-> +#define VEPU_REG_VP8_CONTROL			0x0a0
-> +#define     VEPU_REG_VP8_LF_MODE_DELTA_BPRED(x)		(((x) & 0x1f) << 24)
-> +#define     VEPU_REG_VP8_LF_REF_DELTA_INTRA_MB(x)	(((x) & 0x7f) << 16)
-> +#define     VEPU_REG_VP8_INTER_TYPE_BIT_COST(x)		(((x) & 0xfff) << 0)
-> +#define VEPU_REG_VP8_REF_FRAME_VAL		0x0a4
-> +#define     VEPU_REG_VP8_COEF_DMV_PENALTY(x)		(((x) & 0xfff) << 16)
-> +#define     VEPU_REG_VP8_REF_FRAME(x)			(((x) & 0xfff) << 0)
-> +#define VEPU_REG_VP8_LOOP_FILTER_REF_DELTA	0x0a8
-> +#define     VEPU_REG_VP8_LF_REF_DELTA_ALT_REF(x)	(((x) & 0x7f) << 16)
-> +#define     VEPU_REG_VP8_LF_REF_DELTA_LAST_REF(x)	(((x) & 0x7f) << 8)
-> +#define     VEPU_REG_VP8_LF_REF_DELTA_GOLDEN(x)		(((x) & 0x7f) << 0)
-> +#define VEPU_REG_VP8_LOOP_FILTER_MODE_DELTA	0x0ac
-> +#define     VEPU_REG_VP8_LF_MODE_DELTA_SPLITMV(x)	(((x) & 0x7f) << 16)
-> +#define     VEPU_REG_VP8_LF_MODE_DELTA_ZEROMV(x)	(((x) & 0x7f) << 8)
-> +#define     VEPU_REG_VP8_LF_MODE_DELTA_NEWMV(x)		(((x) & 0x7f) << 0)
-> +#define	VEPU_REG_JPEG_LUMA_QUAT(i)		(0x000 + ((i) * 0x4))
-> +#define	VEPU_REG_JPEG_CHROMA_QUAT(i)		(0x040 + ((i) * 0x4))
-> +#define VEPU_REG_INTRA_SLICE_BITMAP(i)		(0x0b0 + ((i) * 0x4))
-> +#define VEPU_REG_ADDR_VP8_DCT_PART(i)		(0x0b0 + ((i) * 0x4))
-> +#define VEPU_REG_INTRA_AREA_CTRL		0x0b8
-> +#define     VEPU_REG_INTRA_AREA_TOP(x)			(((x) & 0xff) << 24)
-> +#define     VEPU_REG_INTRA_AREA_BOTTOM(x)		(((x) & 0xff) << 16)
-> +#define     VEPU_REG_INTRA_AREA_LEFT(x)			(((x) & 0xff) << 8)
-> +#define     VEPU_REG_INTRA_AREA_RIGHT(x)		(((x) & 0xff) << 0)
-> +#define VEPU_REG_CIR_INTRA_CTRL			0x0bc
-> +#define     VEPU_REG_CIR_INTRA_FIRST_MB(x)		(((x) & 0xffff) << 16)
-> +#define     VEPU_REG_CIR_INTRA_INTERVAL(x)		(((x) & 0xffff) << 0)
-> +#define VEPU_REG_ADDR_IN_LUMA			0x0c0
-> +#define VEPU_REG_ADDR_IN_CB			0x0c4
-> +#define VEPU_REG_ADDR_IN_CR			0x0c8
-> +#define VEPU_REG_STR_HDR_REM_MSB		0x0cc
-> +#define VEPU_REG_STR_HDR_REM_LSB		0x0d0
-> +#define VEPU_REG_STR_BUF_LIMIT			0x0d4
-> +#define VEPU_REG_AXI_CTRL			0x0d8
-> +#define     VEPU_REG_AXI_CTRL_READ_ID(x)		(((x) & 0xff) << 24)
-> +#define     VEPU_REG_AXI_CTRL_WRITE_ID(x)		(((x) & 0xff) << 16)
-> +#define     VEPU_REG_AXI_CTRL_BURST_LEN(x)		(((x) & 0x3f) << 8)
-> +#define     VEPU_REG_AXI_CTRL_INCREMENT_MODE(x)		(((x) & 0x01) << 2)
-> +#define     VEPU_REG_AXI_CTRL_BIRST_DISCARD(x)		(((x) & 0x01) << 1)
-> +#define     VEPU_REG_AXI_CTRL_BIRST_DISABLE		BIT(0)
-> +#define VEPU_QP_ADJUST_MAD_DELTA_ROI		0x0dc
-> +#define     VEPU_REG_ROI_QP_DELTA_1			(((x) & 0xf) << 12)
-> +#define     VEPU_REG_ROI_QP_DELTA_2			(((x) & 0xf) << 8)
-> +#define     VEPU_REG_MAD_QP_ADJUSTMENT			(((x) & 0xf) << 0)
-> +#define VEPU_REG_ADDR_REF_LUMA			0x0e0
-> +#define VEPU_REG_ADDR_REF_CHROMA		0x0e4
-> +#define VEPU_REG_QP_SUM_DIV2			0x0e8
-> +#define     VEPU_REG_QP_SUM(x)				(((x) & 0x001fffff) * 2)
-> +#define VEPU_REG_ENC_CTRL0			0x0ec
-> +#define     VEPU_REG_DISABLE_QUARTER_PIXEL_MV		BIT(28)
-> +#define     VEPU_REG_DEBLOCKING_FILTER_MODE(x)		(((x) & 0x3) << 24)
-> +#define     VEPU_REG_CABAC_INIT_IDC(x)			(((x) & 0x3) << 21)
-> +#define     VEPU_REG_ENTROPY_CODING_MODE		BIT(20)
-> +#define     VEPU_REG_H264_TRANS8X8_MODE			BIT(17)
-> +#define     VEPU_REG_H264_INTER4X4_MODE			BIT(16)
-> +#define     VEPU_REG_H264_STREAM_MODE			BIT(15)
-> +#define     VEPU_REG_H264_SLICE_SIZE(x)			(((x) & 0x7f) << 8)
-> +#define VEPU_REG_ENC_OVER_FILL_STRM_OFFSET	0x0f0
-> +#define     VEPU_REG_STREAM_START_OFFSET(x)		(((x) & 0x3f) << 16)
-> +#define     VEPU_REG_SKIP_MACROBLOCK_PENALTY(x)		(((x) & 0xff) << 8)
-> +#define     VEPU_REG_IN_IMG_CTRL_OVRFLR_D4(x)		(((x) & 0x3) << 4)
-> +#define     VEPU_REG_IN_IMG_CTRL_OVRFLB(x)		(((x) & 0xf) << 0)
-> +#define VEPU_REG_INPUT_LUMA_INFO		0x0f4
-> +#define     VEPU_REG_IN_IMG_CHROMA_OFFSET(x)		(((x) & 0x7) << 20)
-> +#define     VEPU_REG_IN_IMG_LUMA_OFFSET(x)		(((x) & 0x7) << 16)
-> +#define     VEPU_REG_IN_IMG_CTRL_ROW_LEN(x)		(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_RLC_SUM			0x0f8
-> +#define     VEPU_REG_RLC_SUM_OUT(x)			(((x) & 0x007fffff) * 4)
-> +#define VEPU_REG_SPLIT_PENALTY_4X4		0x0f8
-> +#define	    VEPU_REG_VP8_SPLIT_PENALTY_4X4		(((x) & 0x1ff) << 19)
-> +#define VEPU_REG_ADDR_REC_LUMA			0x0fc
-> +#define VEPU_REG_ADDR_REC_CHROMA		0x100
-> +#define VEPU_REG_CHECKPOINT(i)			(0x104 + ((i) * 0x4))
-> +#define     VEPU_REG_CHECKPOINT_CHECK0(x)		(((x) & 0xffff))
-> +#define     VEPU_REG_CHECKPOINT_CHECK1(x)		(((x) & 0xffff) << 16)
-> +#define     VEPU_REG_CHECKPOINT_RESULT(x)		((((x) >> (16 - 16 \
-> +							 * (i & 1))) & 0xffff) \
-> +							 * 32)
-> +#define VEPU_REG_VP8_SEG0_QUANT_AC_Y1		0x104
-> +#define     VEPU_REG_VP8_SEG0_RND_AC_Y1(x)		(((x) & 0xff) << 23)
-> +#define     VEPU_REG_VP8_SEG0_ZBIN_AC_Y1(x)		(((x) & 0x1ff) << 14)
-> +#define     VEPU_REG_VP8_SEG0_QUT_AC_Y1(x)		(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_SEG0_QUANT_DC_Y2		0x108
-> +#define     VEPU_REG_VP8_SEG0_RND_DC_Y2(x)		(((x) & 0xff) << 23)
-> +#define     VEPU_REG_VP8_SEG0_ZBIN_DC_Y2(x)		(((x) & 0x1ff) << 14)
-> +#define     VEPU_REG_VP8_SEG0_QUT_DC_Y2(x)		(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_SEG0_QUANT_AC_Y2		0x10c
-> +#define     VEPU_REG_VP8_SEG0_RND_AC_Y2(x)		(((x) & 0xff) << 23)
-> +#define     VEPU_REG_VP8_SEG0_ZBIN_AC_Y2(x)		(((x) & 0x1ff) << 14)
-> +#define     VEPU_REG_VP8_SEG0_QUT_AC_Y2(x)		(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_SEG0_QUANT_DC_CHR		0x110
-> +#define     VEPU_REG_VP8_SEG0_RND_DC_CHR(x)		(((x) & 0xff) << 23)
-> +#define     VEPU_REG_VP8_SEG0_ZBIN_DC_CHR(x)		(((x) & 0x1ff) << 14)
-> +#define     VEPU_REG_VP8_SEG0_QUT_DC_CHR(x)		(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_SEG0_QUANT_AC_CHR		0x114
-> +#define     VEPU_REG_VP8_SEG0_RND_AC_CHR(x)		(((x) & 0xff) << 23)
-> +#define     VEPU_REG_VP8_SEG0_ZBIN_AC_CHR(x)		(((x) & 0x1ff) << 14)
-> +#define     VEPU_REG_VP8_SEG0_QUT_AC_CHR(x)		(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_VP8_SEG0_QUANT_DQUT		0x118
-> +#define     VEPU_REG_VP8_MV_REF_IDX1(x)			(((x) & 0x03) << 26)
-> +#define     VEPU_REG_VP8_SEG0_DQUT_DC_Y2(x)		(((x) & 0x1ff) << 17)
-> +#define     VEPU_REG_VP8_SEG0_DQUT_AC_Y1(x)		(((x) & 0x1ff) << 8)
-> +#define     VEPU_REG_VP8_SEG0_DQUT_DC_Y1(x)		(((x) & 0xff) << 0)
-> +#define VEPU_REG_CHKPT_WORD_ERR(i)		(0x118 + ((i) * 0x4))
-> +#define     VEPU_REG_CHKPT_WORD_ERR_CHK0(x)		(((x) & 0xffff))
-> +#define     VEPU_REG_CHKPT_WORD_ERR_CHK1(x)		(((x) & 0xffff) << 16)
-> +#define VEPU_REG_VP8_SEG0_QUANT_DQUT_1		0x11c
-> +#define     VEPU_REG_VP8_SEGMENT_MAP_UPDATE		BIT(30)
-> +#define     VEPU_REG_VP8_SEGMENT_EN			BIT(29)
-> +#define     VEPU_REG_VP8_MV_REF_IDX2_EN			BIT(28)
-> +#define     VEPU_REG_VP8_MV_REF_IDX2(x)			(((x) & 0x03) << 26)
-> +#define     VEPU_REG_VP8_SEG0_DQUT_AC_CHR(x)		(((x) & 0x1ff) << 17)
-> +#define     VEPU_REG_VP8_SEG0_DQUT_DC_CHR(x)		(((x) & 0xff) << 9)
-> +#define     VEPU_REG_VP8_SEG0_DQUT_AC_Y2(x)		(((x) & 0x1ff) << 0)
-> +#define VEPU_REG_VP8_BOOL_ENC_VALUE		0x120
-> +#define VEPU_REG_CHKPT_DELTA_QP			0x124
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK0(x)		(((x) & 0x0f) << 0)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK1(x)		(((x) & 0x0f) << 4)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK2(x)		(((x) & 0x0f) << 8)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK3(x)		(((x) & 0x0f) << 12)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK4(x)		(((x) & 0x0f) << 16)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK5(x)		(((x) & 0x0f) << 20)
-> +#define     VEPU_REG_CHKPT_DELTA_QP_CHK6(x)		(((x) & 0x0f) << 24)
-> +#define VEPU_REG_VP8_ENC_CTRL2			0x124
-> +#define     VEPU_REG_VP8_ZERO_MV_PENALTY_FOR_REF2(x)	(((x) & 0xff) << 24)
-> +#define     VEPU_REG_VP8_FILTER_SHARPNESS(x)		(((x) & 0x07) << 21)
-> +#define     VEPU_REG_VP8_FILTER_LEVEL(x)		(((x) & 0x3f) << 15)
-> +#define     VEPU_REG_VP8_DCT_PARTITION_CNT(x)		(((x) & 0x03) << 13)
-> +#define     VEPU_REG_VP8_BOOL_ENC_VALUE_BITS(x)		(((x) & 0x1f) << 8)
-> +#define     VEPU_REG_VP8_BOOL_ENC_RANGE(x)		(((x) & 0xff) << 0)
-> +#define VEPU_REG_ENC_CTRL1			0x128
-> +#define     VEPU_REG_MAD_THRESHOLD(x)			(((x) & 0x3f) << 24)
-> +#define     VEPU_REG_COMPLETED_SLICES(x)		(((x) & 0xff) << 16)
-> +#define     VEPU_REG_IN_IMG_CTRL_FMT(x)			(((x) & 0xf) << 4)
-> +#define     VEPU_REG_IN_IMG_ROTATE_MODE(x)		(((x) & 0x3) << 2)
-> +#define     VEPU_REG_SIZE_TABLE_PRESENT			BIT(0)
-> +#define VEPU_REG_INTRA_INTER_MODE		0x12c
-> +#define     VEPU_REG_INTRA16X16_MODE(x)			(((x) & 0xffff) << 16)
-> +#define     VEPU_REG_INTER_MODE(x)			(((x) & 0xffff) << 0)
-> +#define VEPU_REG_ENC_CTRL2			0x130
-> +#define     VEPU_REG_PPS_INIT_QP(x)			(((x) & 0x3f) << 26)
-> +#define     VEPU_REG_SLICE_FILTER_ALPHA(x)		(((x) & 0xf) << 22)
-> +#define     VEPU_REG_SLICE_FILTER_BETA(x)		(((x) & 0xf) << 18)
-> +#define     VEPU_REG_CHROMA_QP_OFFSET(x)		(((x) & 0x1f) << 13)
-> +#define     VEPU_REG_FILTER_DISABLE			BIT(5)
-> +#define     VEPU_REG_IDR_PIC_ID(x)			(((x) & 0xf) << 1)
-> +#define     VEPU_REG_CONSTRAINED_INTRA_PREDICTION	BIT(0)
-> +#define VEPU_REG_ADDR_OUTPUT_STREAM		0x134
-> +#define VEPU_REG_ADDR_OUTPUT_CTRL		0x138
-> +#define VEPU_REG_ADDR_NEXT_PIC			0x13c
-> +#define VEPU_REG_ADDR_MV_OUT			0x140
-> +#define VEPU_REG_ADDR_CABAC_TBL			0x144
-> +#define VEPU_REG_ROI1				0x148
-> +#define     VEPU_REG_ROI1_TOP_MB(x)			(((x) & 0xff) << 24)
-> +#define     VEPU_REG_ROI1_BOTTOM_MB(x)			(((x) & 0xff) << 16)
-> +#define     VEPU_REG_ROI1_LEFT_MB(x)			(((x) & 0xff) << 8)
-> +#define     VEPU_REG_ROI1_RIGHT_MB(x)			(((x) & 0xff) << 0)
-> +#define VEPU_REG_ROI2				0x14c
-> +#define     VEPU_REG_ROI2_TOP_MB(x)			(((x) & 0xff) << 24)
-> +#define     VEPU_REG_ROI2_BOTTOM_MB(x)			(((x) & 0xff) << 16)
-> +#define     VEPU_REG_ROI2_LEFT_MB(x)			(((x) & 0xff) << 8)
-> +#define     VEPU_REG_ROI2_RIGHT_MB(x)			(((x) & 0xff) << 0)
-> +#define VEPU_REG_STABLE_MATRIX(i)		(0x150 + ((i) * 0x4))
-> +#define VEPU_REG_STABLE_MOTION_SUM		0x174
-> +#define VEPU_REG_STABILIZATION_OUTPUT		0x178
-> +#define     VEPU_REG_STABLE_MIN_VALUE(x)		(((x) & 0xffffff) << 8)
-> +#define     VEPU_REG_STABLE_MODE_SEL(x)			(((x) & 0x3) << 6)
-> +#define     VEPU_REG_STABLE_HOR_GMV(x)			(((x) & 0x3f) << 0)
-> +#define VEPU_REG_RGB2YUV_CONVERSION_COEF1	0x17c
-> +#define     VEPU_REG_RGB2YUV_CONVERSION_COEFB(x)	(((x) & 0xffff) << 16)
-> +#define     VEPU_REG_RGB2YUV_CONVERSION_COEFA(x)	(((x) & 0xffff) << 0)
-> +#define VEPU_REG_RGB2YUV_CONVERSION_COEF2	0x180
-> +#define     VEPU_REG_RGB2YUV_CONVERSION_COEFE(x)	(((x) & 0xffff) << 16)
-> +#define     VEPU_REG_RGB2YUV_CONVERSION_COEFC(x)	(((x) & 0xffff) << 0)
-> +#define VEPU_REG_RGB2YUV_CONVERSION_COEF3	0x184
-> +#define     VEPU_REG_RGB2YUV_CONVERSION_COEFF(x)	(((x) & 0xffff) << 0)
-> +#define VEPU_REG_RGB_MASK_MSB			0x188
-> +#define     VEPU_REG_RGB_MASK_B_MSB(x)			(((x) & 0x1f) << 16)
-> +#define     VEPU_REG_RGB_MASK_G_MSB(x)			(((x) & 0x1f) << 8)
-> +#define     VEPU_REG_RGB_MASK_R_MSB(x)			(((x) & 0x1f) << 0)
-> +#define VEPU_REG_MV_PENALTY			0x18c
-> +#define     VEPU_REG_1MV_PENALTY(x)			(((x) & 0x3ff) << 21)
-> +#define     VEPU_REG_QMV_PENALTY(x)			(((x) & 0x3ff) << 11)
-> +#define     VEPU_REG_4MV_PENALTY(x)			(((x) & 0x3ff) << 1)
-> +#define     VEPU_REG_SPLIT_MV_MODE_EN			BIT(0)
-> +#define VEPU_REG_QP_VAL				0x190
-> +#define     VEPU_REG_H264_LUMA_INIT_QP(x)		(((x) & 0x3f) << 26)
-> +#define     VEPU_REG_H264_QP_MAX(x)			(((x) & 0x3f) << 20)
-> +#define     VEPU_REG_H264_QP_MIN(x)			(((x) & 0x3f) << 14)
-> +#define     VEPU_REG_H264_CHKPT_DISTANCE(x)		(((x) & 0xfff) << 0)
-> +#define VEPU_REG_VP8_SEG0_QUANT_DC_Y1		0x190
-> +#define     VEPU_REG_VP8_SEG0_RND_DC_Y1(x)		(((x) & 0xff) << 23)
-> +#define     VEPU_REG_VP8_SEG0_ZBIN_DC_Y1(x)		(((x) & 0x1ff) << 14)
-> +#define     VEPU_REG_VP8_SEG0_QUT_DC_Y1(x)		(((x) & 0x3fff) << 0)
-> +#define VEPU_REG_MVC_RELATE			0x198
-> +#define     VEPU_REG_ZERO_MV_FAVOR_D2(x)		(((x) & 0xf) << 20)
-> +#define     VEPU_REG_PENALTY_4X4MV(x)			(((x) & 0x1ff) << 11)
-> +#define     VEPU_REG_MVC_VIEW_ID(x)			(((x) & 0x7) << 8)
-> +#define     VEPU_REG_MVC_ANCHOR_PIC_FLAG		BIT(7)
-> +#define     VEPU_REG_MVC_PRIORITY_ID(x)			(((x) & 0x7) << 4)
-> +#define     VEPU_REG_MVC_TEMPORAL_ID(x)			(((x) & 0x7) << 1)
-> +#define     VEPU_REG_MVC_INTER_VIEW_FLAG		BIT(0)
-> +#define VEPU_REG_ENCODE_START			0x19c
-> +#define     VEPU_REG_MB_HEIGHT(x)			(((x) & 0x1ff) << 20)
-> +#define     VEPU_REG_MB_WIDTH(x)			(((x) & 0x1ff) << 8)
-> +#define     VEPU_REG_FRAME_TYPE_INTER			(0 << 6)
-> +#define     VEPU_REG_FRAME_TYPE_INTRA			(1 << 6)
-> +#define     VEPU_REG_FRAME_TYPE_MVCINTER		(2 << 6)
-> +#define     VEPU_REG_ENCODE_FORMAT_JPEG			(2 << 4)
-> +#define     VEPU_REG_ENCODE_FORMAT_H264			(3 << 4)
-> +#define     VEPU_REG_ENCODE_ENABLE			BIT(0)
-> +#define VEPU_REG_MB_CTRL			0x1a0
-> +#define     VEPU_REG_MB_CNT_OUT(x)			(((x) & 0xffff) << 16)
-> +#define     VEPU_REG_MB_CNT_SET(x)			(((x) & 0xffff) << 0)
-> +#define VEPU_REG_DATA_ENDIAN			0x1a4
-> +#define     VEPU_REG_INPUT_SWAP8			BIT(31)
-> +#define     VEPU_REG_INPUT_SWAP16			BIT(30)
-> +#define     VEPU_REG_INPUT_SWAP32			BIT(29)
-> +#define     VEPU_REG_OUTPUT_SWAP8			BIT(28)
-> +#define     VEPU_REG_OUTPUT_SWAP16			BIT(27)
-> +#define     VEPU_REG_OUTPUT_SWAP32			BIT(26)
-> +#define     VEPU_REG_TEST_IRQ				BIT(24)
-> +#define     VEPU_REG_TEST_COUNTER(x)			(((x) & 0xf) << 20)
-> +#define     VEPU_REG_TEST_REG				BIT(19)
-> +#define     VEPU_REG_TEST_MEMORY			BIT(18)
-> +#define     VEPU_REG_TEST_LEN(x)			(((x) & 0x3ffff) << 0)
-> +#define VEPU_REG_ENC_CTRL3			0x1a8
-> +#define     VEPU_REG_PPS_ID(x)				(((x) & 0xff) << 24)
-> +#define     VEPU_REG_INTRA_PRED_MODE(x)			(((x) & 0xff) << 16)
-> +#define     VEPU_REG_FRAME_NUM(x)			(((x) & 0xffff) << 0)
-> +#define VEPU_REG_ENC_CTRL4			0x1ac
-> +#define     VEPU_REG_MV_PENALTY_16X8_8X16(x)		(((x) & 0x3ff) << 20)
-> +#define     VEPU_REG_MV_PENALTY_8X8(x)			(((x) & 0x3ff) << 10)
-> +#define     VEPU_REG_MV_PENALTY_8X4_4X8(x)		(((x) & 0x3ff) << 0)
-> +#define VEPU_REG_ADDR_VP8_PROB_CNT		0x1b0
-> +#define VEPU_REG_INTERRUPT			0x1b4
-> +#define     VEPU_REG_INTERRUPT_NON			BIT(28)
-> +#define     VEPU_REG_MV_WRITE_EN			BIT(24)
-> +#define     VEPU_REG_RECON_WRITE_DIS			BIT(20)
-> +#define     VEPU_REG_INTERRUPT_SLICE_READY_EN		BIT(16)
-> +#define     VEPU_REG_CLK_GATING_EN			BIT(12)
-> +#define     VEPU_REG_INTERRUPT_TIMEOUT_EN		BIT(10)
-> +#define     VEPU_REG_INTERRUPT_RESET			BIT(9)
-> +#define     VEPU_REG_INTERRUPT_DIS_BIT			BIT(8)
-> +#define     VEPU_REG_INTERRUPT_TIMEOUT			BIT(6)
-> +#define     VEPU_REG_INTERRUPT_BUFFER_FULL		BIT(5)
-> +#define     VEPU_REG_INTERRUPT_BUS_ERROR		BIT(4)
-> +#define     VEPU_REG_INTERRUPT_FUSE			BIT(3)
-> +#define     VEPU_REG_INTERRUPT_SLICE_READY		BIT(2)
-> +#define     VEPU_REG_INTERRUPT_FRAME_READY		BIT(1)
-> +#define     VEPU_REG_INTERRUPT_BIT			BIT(0)
-> +#define VEPU_REG_DMV_PENALTY_TBL(i)		(0x1E0 + ((i) * 0x4))
-> +#define     VEPU_REG_DMV_PENALTY_TABLE_BIT(x, i)        (x << i * 8)
-> +#define VEPU_REG_DMV_Q_PIXEL_PENALTY_TBL(i)	(0x260 + ((i) * 0x4))
-> +#define     VEPU_REG_DMV_Q_PIXEL_PENALTY_TABLE_BIT(x, i)	(x << i * 8)
-> +
-> +/* vpu decoder register */
-> +#define VDPU_REG_DEC_CTRL0			0x0c8 // 50
-> +#define     VDPU_REG_REF_BUF_CTRL2_REFBU2_PICID(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_REF_BUF_CTRL2_REFBU2_THR(x)	(((x) & 0xfff) << 13)
-> +#define     VDPU_REG_CONFIG_TILED_MODE_LSB		BIT(12)
-> +#define     VDPU_REG_CONFIG_DEC_ADV_PRE_DIS		BIT(11)
-> +#define     VDPU_REG_CONFIG_DEC_SCMD_DIS		BIT(10)
-> +#define     VDPU_REG_DEC_CTRL0_SKIP_MODE		BIT(9)
-> +#define     VDPU_REG_DEC_CTRL0_FILTERING_DIS		BIT(8)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_FIXED_QUANT		BIT(7)
-> +#define     VDPU_REG_CONFIG_DEC_LATENCY(x)		(((x) & 0x3f) << 1)
-> +#define     VDPU_REG_CONFIG_TILED_MODE_MSB(x)		BIT(0)
-> +#define     VDPU_REG_CONFIG_DEC_OUT_TILED_E		BIT(0)
-> +#define VDPU_REG_STREAM_LEN			0x0cc
-> +#define     VDPU_REG_DEC_CTRL3_INIT_QP(x)		(((x) & 0x3f) << 25)
-> +#define     VDPU_REG_DEC_STREAM_LEN_HI			BIT(24)
-> +#define     VDPU_REG_DEC_CTRL3_STREAM_LEN(x)		(((x) & 0xffffff) << 0)
-> +#define VDPU_REG_ERROR_CONCEALMENT		0x0d0
-> +#define     VDPU_REG_REF_BUF_CTRL2_APF_THRESHOLD(x)	(((x) & 0x3fff) << 17)
-> +#define     VDPU_REG_ERR_CONC_STARTMB_X(x)		(((x) & 0x1ff) << 8)
-> +#define     VDPU_REG_ERR_CONC_STARTMB_Y(x)		(((x) & 0xff) << 0)
-> +#define VDPU_REG_DEC_FORMAT			0x0d4
-> +#define     VDPU_REG_DEC_CTRL0_DEC_MODE(x)		(((x) & 0xf) << 0)
-> +#define VDPU_REG_DATA_ENDIAN			0x0d8
-> +#define     VDPU_REG_CONFIG_DEC_STRENDIAN_E		BIT(5)
-> +#define     VDPU_REG_CONFIG_DEC_STRSWAP32_E		BIT(4)
-> +#define     VDPU_REG_CONFIG_DEC_OUTSWAP32_E		BIT(3)
-> +#define     VDPU_REG_CONFIG_DEC_INSWAP32_E		BIT(2)
-> +#define     VDPU_REG_CONFIG_DEC_OUT_ENDIAN		BIT(1)
-> +#define     VDPU_REG_CONFIG_DEC_IN_ENDIAN		BIT(0)
-> +#define VDPU_REG_INTERRUPT			0x0dc
-> +#define     VDPU_REG_INTERRUPT_DEC_TIMEOUT		BIT(13)
-> +#define     VDPU_REG_INTERRUPT_DEC_ERROR_INT		BIT(12)
-> +#define     VDPU_REG_INTERRUPT_DEC_PIC_INF		BIT(10)
-> +#define     VDPU_REG_INTERRUPT_DEC_SLICE_INT		BIT(9)
-> +#define     VDPU_REG_INTERRUPT_DEC_ASO_INT		BIT(8)
-> +#define     VDPU_REG_INTERRUPT_DEC_BUFFER_INT		BIT(6)
-> +#define     VDPU_REG_INTERRUPT_DEC_BUS_INT		BIT(5)
-> +#define     VDPU_REG_INTERRUPT_DEC_RDY_INT		BIT(4)
-> +#define     VDPU_REG_INTERRUPT_DEC_IRQ_DIS		BIT(1)
-> +#define     VDPU_REG_INTERRUPT_DEC_IRQ			BIT(0)
-> +#define VDPU_REG_AXI_CTRL			0x0e0
-> +#define     VDPU_REG_AXI_DEC_SEL			BIT(23)
-> +#define     VDPU_REG_CONFIG_DEC_DATA_DISC_E		BIT(22)
-> +#define     VDPU_REG_PARAL_BUS_E(x)			BIT(21)
-> +#define     VDPU_REG_CONFIG_DEC_MAX_BURST(x)		(((x) & 0x1f) << 16)
-> +#define     VDPU_REG_DEC_CTRL0_DEC_AXI_WR_ID(x)		(((x) & 0xff) << 8)
-> +#define     VDPU_REG_CONFIG_DEC_AXI_RD_ID(x)		(((x) & 0xff) << 0)
-> +#define VDPU_REG_EN_FLAGS			0x0e4
-> +#define     VDPU_REG_AHB_HLOCK_E			BIT(31)
-> +#define     VDPU_REG_CACHE_E				BIT(29)
-> +#define     VDPU_REG_PREFETCH_SINGLE_CHANNEL_E		BIT(28)
-> +#define     VDPU_REG_INTRA_3_CYCLE_ENHANCE		BIT(27)
-> +#define     VDPU_REG_INTRA_DOUBLE_SPEED			BIT(26)
-> +#define     VDPU_REG_INTER_DOUBLE_SPEED			BIT(25)
-> +#define     VDPU_REG_DEC_CTRL3_START_CODE_E		BIT(22)
-> +#define     VDPU_REG_DEC_CTRL3_CH_8PIX_ILEAV_E		BIT(21)
-> +#define     VDPU_REG_DEC_CTRL0_RLC_MODE_E		BIT(20)
-> +#define     VDPU_REG_DEC_CTRL0_DIVX3_E			BIT(19)
-> +#define     VDPU_REG_DEC_CTRL0_PJPEG_E			BIT(18)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_INTERLACE_E		BIT(17)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_FIELDMODE_E		BIT(16)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_B_E			BIT(15)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_INTER_E		BIT(14)
-> +#define     VDPU_REG_DEC_CTRL0_PIC_TOPFIELD_E		BIT(13)
-> +#define     VDPU_REG_DEC_CTRL0_FWD_INTERLACE_E		BIT(12)
-> +#define     VDPU_REG_DEC_CTRL0_SORENSON_E		BIT(11)
-> +#define     VDPU_REG_DEC_CTRL0_WRITE_MVS_E		BIT(10)
-> +#define     VDPU_REG_DEC_CTRL0_REF_TOPFIELD_E		BIT(9)
-> +#define     VDPU_REG_DEC_CTRL0_REFTOPFIRST_E		BIT(8)
-> +#define     VDPU_REG_DEC_CTRL0_SEQ_MBAFF_E		BIT(7)
-> +#define     VDPU_REG_DEC_CTRL0_PICORD_COUNT_E		BIT(6)
-> +#define     VDPU_REG_CONFIG_DEC_TIMEOUT_E		BIT(5)
-> +#define     VDPU_REG_CONFIG_DEC_CLK_GATE_E		BIT(4)
-> +#define     VDPU_REG_DEC_CTRL0_DEC_OUT_DIS		BIT(2)
-> +#define     VDPU_REG_REF_BUF_CTRL2_REFBU2_BUF_E		BIT(1)
-> +#define     VDPU_REG_INTERRUPT_DEC_E			BIT(0)
-> +#define VDPU_REG_SOFT_RESET			0x0e8
-> +#define VDPU_REG_PRED_FLT			0x0ec
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_0_0(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_0_1(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_0_2(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_ADDITIONAL_CHROMA_ADDRESS	0x0f0
-> +#define VDPU_REG_ADDR_QTABLE			0x0f4
-> +#define VDPU_REG_DIRECT_MV_ADDR			0x0f8
-> +#define VDPU_REG_ADDR_DST			0x0fc
-> +#define VDPU_REG_ADDR_STR			0x100
-> +#define VDPU_REG_REFBUF_RELATED			0x104
-> +#define VDPU_REG_FWD_PIC(i)			(0x128 + ((i) * 0x4))
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F5(x)		(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F4(x)		(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F3(x)		(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F2(x)		(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F1(x)		(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_FWD_PIC_PINIT_RLIST_F0(x)		(((x) & 0x1f) << 0)
-> +#define VDPU_REG_REF_PIC(i)			(0x130 + ((i) * 0x4))
-> +#define     VDPU_REG_REF_PIC_REFER1_NBR(x)		(((x) & 0xffff) << 16)
-> +#define     VDPU_REG_REF_PIC_REFER0_NBR(x)		(((x) & 0xffff) << 0)
-> +#define VDPU_REG_H264_ADDR_REF(i)			(0x150 + ((i) * 0x4))
-> +#define     VDPU_REG_ADDR_REF_FIELD_E			BIT(1)
-> +#define     VDPU_REG_ADDR_REF_TOPC_E			BIT(0)
-> +#define VDPU_REG_INITIAL_REF_PIC_LIST0		0x190
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F5(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F4(x)	(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F3(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F2(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F1(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F0(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_INITIAL_REF_PIC_LIST1		0x194
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F11(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F10(x)	(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F9(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F8(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F7(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F6(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_INITIAL_REF_PIC_LIST2		0x198
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F15(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F14(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F13(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_F12(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_INITIAL_REF_PIC_LIST3		0x19c
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B5(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B4(x)	(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B3(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B2(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B1(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B0(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_INITIAL_REF_PIC_LIST4		0x1a0
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B11(x)	(((x) & 0x1f) << 25)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B10(x)	(((x) & 0x1f) << 20)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B9(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B8(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B7(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B6(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_INITIAL_REF_PIC_LIST5		0x1a4
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B15(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B14(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B13(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_REF_PIC_BINIT_RLIST_B12(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_INITIAL_REF_PIC_LIST6		0x1a8
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F3(x)	(((x) & 0x1f) << 15)
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F2(x)	(((x) & 0x1f) << 10)
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F1(x)	(((x) & 0x1f) << 5)
-> +#define     VDPU_REG_BD_P_REF_PIC_PINIT_RLIST_F0(x)	(((x) & 0x1f) << 0)
-> +#define VDPU_REG_LT_REF				0x1ac
-> +#define VDPU_REG_VALID_REF			0x1b0
-> +#define VDPU_REG_H264_PIC_MB_SIZE		0x1b8
-> +#define     VDPU_REG_DEC_CTRL2_CH_QP_OFFSET2(x)		(((x) & 0x1f) << 22)
-> +#define     VDPU_REG_DEC_CTRL2_CH_QP_OFFSET(x)		(((x) & 0x1f) << 17)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_HEIGHT_P(x)	(((x) & 0xff) << 9)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_WIDTH(x)		(((x) & 0x1ff) << 0)
-> +#define VDPU_REG_H264_CTRL			0x1bc
-> +#define     VDPU_REG_DEC_CTRL4_WEIGHT_BIPR_IDC(x)	(((x) & 0x3) << 16)
-> +#define     VDPU_REG_DEC_CTRL1_REF_FRAMES(x)		(((x) & 0x1f) << 0)
-> +#define VDPU_REG_CURRENT_FRAME			0x1c0
-> +#define     VDPU_REG_DEC_CTRL5_FILT_CTRL_PRES		BIT(31)
-> +#define     VDPU_REG_DEC_CTRL5_RDPIC_CNT_PRES		BIT(30)
-> +#define     VDPU_REG_DEC_CTRL4_FRAMENUM_LEN(x)		(((x) & 0x1f) << 16)
-> +#define     VDPU_REG_DEC_CTRL4_FRAMENUM(x)		(((x) & 0xffff) << 0)
-> +#define VDPU_REG_REF_FRAME			0x1c4
-> +#define     VDPU_REG_DEC_CTRL5_REFPIC_MK_LEN(x)		(((x) & 0x7ff) << 16)
-> +#define     VDPU_REG_DEC_CTRL5_IDR_PIC_ID(x)		(((x) & 0xffff) << 0)
-> +#define VDPU_REG_DEC_CTRL6			0x1c8
-> +#define     VDPU_REG_DEC_CTRL6_PPS_ID(x)		(((x) & 0xff) << 24)
-> +#define     VDPU_REG_DEC_CTRL6_REFIDX1_ACTIVE(x)	(((x) & 0x1f) << 19)
-> +#define     VDPU_REG_DEC_CTRL6_REFIDX0_ACTIVE(x)	(((x) & 0x1f) << 14)
-> +#define     VDPU_REG_DEC_CTRL6_POC_LENGTH(x)		(((x) & 0xff) << 0)
-> +#define VDPU_REG_ENABLE_FLAG			0x1cc
-> +#define     VDPU_REG_DEC_CTRL5_IDR_PIC_E		BIT(8)
-> +#define     VDPU_REG_DEC_CTRL4_DIR_8X8_INFER_E		BIT(7)
-> +#define     VDPU_REG_DEC_CTRL4_BLACKWHITE_E		BIT(6)
-> +#define     VDPU_REG_DEC_CTRL4_CABAC_E			BIT(5)
-> +#define     VDPU_REG_DEC_CTRL4_WEIGHT_PRED_E		BIT(4)
-> +#define     VDPU_REG_DEC_CTRL5_CONST_INTRA_E		BIT(3)
-> +#define     VDPU_REG_DEC_CTRL5_8X8TRANS_FLAG_E		BIT(2)
-> +#define     VDPU_REG_DEC_CTRL2_TYPE1_QUANT_E		BIT(1)
-> +#define     VDPU_REG_DEC_CTRL2_FIELDPIC_FLAG_E		BIT(0)
-> +#define VDPU_REG_VP8_PIC_MB_SIZE		0x1e0
-> +#define     VDPU_REG_DEC_PIC_MB_WIDTH(x)		(((x) & 0x1ff) << 23)
-> +#define	    VDPU_REG_DEC_MB_WIDTH_OFF(x)		(((x) & 0xf) << 19)
-> +#define	    VDPU_REG_DEC_PIC_MB_HEIGHT_P(x)		(((x) & 0xff) << 11)
-> +#define     VDPU_REG_DEC_MB_HEIGHT_OFF(x)		(((x) & 0xf) << 7)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_W_EXT(x)		(((x) & 0x7) << 3)
-> +#define     VDPU_REG_DEC_CTRL1_PIC_MB_H_EXT(x)		(((x) & 0x7) << 0)
-> +#define VDPU_REG_VP8_DCT_START_BIT		0x1e4
-> +#define     VDPU_REG_DEC_CTRL4_DCT1_START_BIT(x)	(((x) & 0x3f) << 26)
-> +#define     VDPU_REG_DEC_CTRL4_DCT2_START_BIT(x)	(((x) & 0x3f) << 20)
-> +#define     VDPU_REG_DEC_CTRL4_VC1_HEIGHT_EXT		BIT(13)
-> +#define     VDPU_REG_DEC_CTRL4_BILIN_MC_E		BIT(12)
-> +#define VDPU_REG_VP8_CTRL0			0x1e8
-> +#define     VDPU_REG_DEC_CTRL2_STRM_START_BIT(x)	(((x) & 0x3f) << 26)
-> +#define     VDPU_REG_DEC_CTRL2_STRM1_START_BIT(x)	(((x) & 0x3f) << 18)
-> +#define     VDPU_REG_DEC_CTRL2_BOOLEAN_VALUE(x)		(((x) & 0xff) << 8)
-> +#define     VDPU_REG_DEC_CTRL2_BOOLEAN_RANGE(x)		(((x) & 0xff) << 0)
-> +#define VDPU_REG_VP8_DATA_VAL			0x1f0
-> +#define     VDPU_REG_DEC_CTRL6_COEFFS_PART_AM(x)	(((x) & 0xf) << 24)
-> +#define     VDPU_REG_DEC_CTRL6_STREAM1_LEN(x)		(((x) & 0xffffff) << 0)
-> +#define VDPU_REG_PRED_FLT7			0x1f4
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_5_1(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_5_2(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_5_3(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT8			0x1f8
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_6_0(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_6_1(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_6_2(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT9			0x1fc
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_6_3(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_7_0(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_7_1(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT10			0x200
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_7_2(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_7_3(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_2_M1(x)	(((x) & 0x3) << 10)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_2_4(x)		(((x) & 0x3) << 8)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_4_M1(x)	(((x) & 0x3) << 6)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_4_4(x)		(((x) & 0x3) << 4)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_6_M1(x)	(((x) & 0x3) << 2)
-> +#define     VDPU_REG_BD_REF_PIC_PRED_TAP_6_4(x)		(((x) & 0x3) << 0)
-> +#define VDPU_REG_FILTER_LEVEL			0x204
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_0(x)		(((x) & 0x3f) << 18)
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_1(x)		(((x) & 0x3f) << 12)
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_2(x)		(((x) & 0x3f) << 6)
-> +#define     VDPU_REG_REF_PIC_LF_LEVEL_3(x)		(((x) & 0x3f) << 0)
-> +#define VDPU_REG_VP8_QUANTER0			0x208
-> +#define     VDPU_REG_REF_PIC_QUANT_DELTA_0(x)		(((x) & 0x1f) << 27)
-> +#define     VDPU_REG_REF_PIC_QUANT_DELTA_1(x)		(((x) & 0x1f) << 22)
-> +#define     VDPU_REG_REF_PIC_QUANT_0(x)			(((x) & 0x7ff) << 11)
-> +#define     VDPU_REG_REF_PIC_QUANT_1(x)			(((x) & 0x7ff) << 0)
-> +#define VDPU_REG_VP8_ADDR_REF0			0x20c
-> +#define VDPU_REG_FILTER_MB_ADJ			0x210
-> +#define     VDPU_REG_REF_PIC_FILT_TYPE_E		BIT(31)
-> +#define     VDPU_REG_REF_PIC_FILT_SHARPNESS(x)		(((x) & 0x7) << 28)
-> +#define     VDPU_REG_FILT_MB_ADJ_0(x)			(((x) & 0x7f) << 21)
-> +#define     VDPU_REG_FILT_MB_ADJ_1(x)			(((x) & 0x7f) << 14)
-> +#define     VDPU_REG_FILT_MB_ADJ_2(x)			(((x) & 0x7f) << 7)
-> +#define     VDPU_REG_FILT_MB_ADJ_3(x)			(((x) & 0x7f) << 0)
-> +#define VDPU_REG_FILTER_REF_ADJ			0x214
-> +#define     VDPU_REG_REF_PIC_ADJ_0(x)			(((x) & 0x7f) << 21)
-> +#define     VDPU_REG_REF_PIC_ADJ_1(x)			(((x) & 0x7f) << 14)
-> +#define     VDPU_REG_REF_PIC_ADJ_2(x)			(((x) & 0x7f) << 7)
-> +#define     VDPU_REG_REF_PIC_ADJ_3(x)			(((x) & 0x7f) << 0)
-> +#define VDPU_REG_VP8_ADDR_REF2_5(i)		(0x218 + ((i) * 0x4))
-> +#define     VDPU_REG_VP8_GREF_SIGN_BIAS			BIT(0)
-> +#define     VDPU_REG_VP8_AREF_SIGN_BIAS			BIT(0)
-> +#define VDPU_REG_VP8_DCT_BASE(i)		(0x230 + ((i) * 0x4))
-> +#define VDPU_REG_VP8_ADDR_CTRL_PART		0x244
-> +#define VDPU_REG_VP8_ADDR_REF1			0x250
-> +#define VDPU_REG_VP8_SEGMENT_VAL		0x254
-> +#define     VDPU_REG_FWD_PIC1_SEGMENT_BASE(x)		((x) << 0)
-> +#define     VDPU_REG_FWD_PIC1_SEGMENT_UPD_E		BIT(1)
-> +#define     VDPU_REG_FWD_PIC1_SEGMENT_E			BIT(0)
-> +#define VDPU_REG_VP8_DCT_START_BIT2		0x258
-> +#define     VDPU_REG_DEC_CTRL7_DCT3_START_BIT(x)	(((x) & 0x3f) << 24)
-> +#define     VDPU_REG_DEC_CTRL7_DCT4_START_BIT(x)	(((x) & 0x3f) << 18)
-> +#define     VDPU_REG_DEC_CTRL7_DCT5_START_BIT(x)	(((x) & 0x3f) << 12)
-> +#define     VDPU_REG_DEC_CTRL7_DCT6_START_BIT(x)	(((x) & 0x3f) << 6)
-> +#define     VDPU_REG_DEC_CTRL7_DCT7_START_BIT(x)	(((x) & 0x3f) << 0)
-> +#define VDPU_REG_VP8_QUANTER1			0x25c
-> +#define     VDPU_REG_REF_PIC_QUANT_DELTA_2(x)		(((x) & 0x1f) << 27)
-> +#define     VDPU_REG_REF_PIC_QUANT_DELTA_3(x)		(((x) & 0x1f) << 22)
-> +#define     VDPU_REG_REF_PIC_QUANT_2(x)			(((x) & 0x7ff) << 11)
-> +#define     VDPU_REG_REF_PIC_QUANT_3(x)			(((x) & 0x7ff) << 0)
-> +#define VDPU_REG_VP8_QUANTER2			0x260
-> +#define     VDPU_REG_REF_PIC_QUANT_DELTA_4(x)		(((x) & 0x1f) << 27)
-> +#define     VDPU_REG_REF_PIC_QUANT_4(x)			(((x) & 0x7ff) << 11)
-> +#define     VDPU_REG_REF_PIC_QUANT_5(x)			(((x) & 0x7ff) << 0)
-> +#define VDPU_REG_PRED_FLT1			0x264
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_0_3(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_1_0(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_1_1(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT2			0x268
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_1_2(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_1_3(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_2_0(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT3			0x26c
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_2_1(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_2_2(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_2_3(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT4			0x270
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_3_0(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_3_1(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_3_2(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT5			0x274
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_3_3(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_4_0(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_4_1(x)	(((x) & 0x3ff) << 2)
-> +#define VDPU_REG_PRED_FLT6			0x278
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_4_2(x)	(((x) & 0x3ff) << 22)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_4_3(x)	(((x) & 0x3ff) << 12)
-> +#define     VDPU_REG_PRED_FLT_PRED_BC_TAP_5_0(x)	(((x) & 0x3ff) << 2)
-> +
-> +#endif /* RK3399_VPU_REGS_H_ */
-> diff --git a/drivers/media/platform/rockchip/vpu/rockchip_vpu.h b/drivers/media/platform/rockchip/vpu/rockchip_vpu.h
-> new file mode 100644
-> index 000000000000..f4fee777dbc7
-> --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rockchip_vpu.h
-> @@ -0,0 +1,362 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Google, Inc.
-> + *	Tomasz Figa <tfiga@chromium.org>
-> + *
-> + * Based on s5p-mfc driver by Samsung Electronics Co., Ltd.
-> + * Copyright (C) 2011 Samsung Electronics Co., Ltd.
-> + */
-> +
-> +#ifndef ROCKCHIP_VPU_H_
-> +#define ROCKCHIP_VPU_H_
-> +
-> +#include <linux/platform_device.h>
-> +#include <linux/videodev2.h>
-> +#include <linux/wait.h>
-> +#include <linux/clk.h>
-> +
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf2-core.h>
 > +#include <media/videobuf2-dma-contig.h>
 > +
-> +#include "rockchip_vpu_hw.h"
+> +#include "vdec_helpers.h"
+> +#include "dos_regs.h"
 > +
-> +#define ROCKCHIP_VPU_MAX_CLOCKS		4
-> +#define ROCKCHIP_VPU_MAX_CTRLS		16
+> +#define SIZE_WORKSPACE		SZ_128K
+> +/* Offset substracted by the firmware from the workspace paddr */
+> +#define WORKSPACE_OFFSET	(5 * SZ_1K)
 > +
-> +#define MB_DIM				16
-> +#define MB_WIDTH(x_size)		DIV_ROUND_UP(x_size, MB_DIM)
-> +#define MB_HEIGHT(y_size)		DIV_ROUND_UP(y_size, MB_DIM)
-> +#define SB_DIM				64
-> +#define SB_WIDTH(x_size)		DIV_ROUND_UP(x_size, SB_DIM)
-> +#define SB_HEIGHT(y_size)		DIV_ROUND_UP(y_size, SB_DIM)
+> +/* map firmware registers to known MPEG1/2 functions */
+> +#define MREG_SEQ_INFO		AV_SCRATCH_4
+> +#define MREG_PIC_INFO		AV_SCRATCH_5
+> +#define MREG_PIC_WIDTH		AV_SCRATCH_6
+> +#define MREG_PIC_HEIGHT		AV_SCRATCH_7
+> +#define MREG_BUFFERIN		AV_SCRATCH_8
+> +#define MREG_BUFFEROUT		AV_SCRATCH_9
+> +#define MREG_CMD		AV_SCRATCH_A
+> +#define MREG_CO_MV_START	AV_SCRATCH_B
+> +#define MREG_ERROR_COUNT	AV_SCRATCH_C
+> +#define MREG_FRAME_OFFSET	AV_SCRATCH_D
+> +#define MREG_WAIT_BUFFER	AV_SCRATCH_E
+> +#define MREG_FATAL_ERROR	AV_SCRATCH_F
 > +
-> +struct rockchip_vpu_ctx;
-> +struct rockchip_vpu_codec_ops;
+> +#define PICINFO_PROG		0x00008000
+> +#define PICINFO_TOP_FIRST	0x00002000
 > +
-> +#define	RK_VPU_CODEC_JPEG BIT(0)
-> +#define	RK_VPU_CODEC_H264 BIT(1)
-
-??? I thought this was a JPEG-only driver?
-
-> +
-> +/**
-> + * struct rockchip_vpu_variant - information about VPU hardware variant
-> + *
-> + * @enc_offset:			Offset from VPU base to encoder registers.
-> + * @enc_fmts:			Encoder formats.
-> + * @num_enc_fmts:		Number of encoder formats.
-> + * @dec_fmts:			Decoder formats.
-> + * @num_dec_fmts:		Number of decoder formats.
-> + * @codec:			Supported codecs
-> + * @codec_ops:			Codec ops.
-> + * @init:			Initialize hardware.
-> + * @vepu_irq:			encoder interrupt handler
-> + * @vdpu_irq:			decoder interrupt handler
-> + * @clocks:			array of clock names
-> + * @num_clocks:			number of clocks in the array
-> + */
-> +struct rockchip_vpu_variant {
-> +	unsigned int enc_offset;
-> +	unsigned int dec_offset;
-> +	const struct rockchip_vpu_fmt *enc_fmts;
-> +	const struct rockchip_vpu_fmt *dec_fmts;
-
-Decoder support?
-
-> +	unsigned int num_enc_fmts;
-> +	unsigned int num_dec_fmts;
-> +	unsigned int codec;
-> +	const struct rockchip_vpu_codec_ops *codec_ops;
-> +	int (*init)(struct rockchip_vpu_dev *vpu);
-> +	irqreturn_t (*vepu_irq)(int irq, void *priv);
-> +	irqreturn_t (*vdpu_irq)(int irq, void *priv);
-> +	const char *clk_names[ROCKCHIP_VPU_MAX_CLOCKS];
-> +	int num_clocks;
+> +struct codec_mpeg12 {
+> +	/* Buffer for the MPEG1/2 Workspace */
+> +	void	  *workspace_vaddr;
+> +	dma_addr_t workspace_paddr;
 > +};
 > +
-> +/**
-> + * enum rockchip_vpu_codec_mode - codec operating mode.
-> + * @RK_VPU_MODE_NONE:  No operating mode. Used for RAW video formats.
-> + * @RK_VPU_MODE_JPEGE: JPEG encoder.
-> + * @RK_VPU_MODE_JPEGD: JPEG decoder.
-> + * @RK_VPU_MODE_H264D: H264 decoder.
-> + */
-> +enum rockchip_vpu_codec_mode {
-> +	RK_VPU_MODE_NONE = -1,
-> +	RK_VPU_MODE_JPEGE,
-> +	RK_VPU_MODE_JPEGD,
-> +	RK_VPU_MODE_H264D,
-
-It appears that this driver is prepared for JPEG and H264 decoding in the
-future as well, correct?
-
-Wasn't the H264 decoding stateless for the Rockchip VPU?
-
-It's a bit confusing looking at this. If the intention is to add JPEG and
-H264 decoding to this driver as well, then I would feel more comfortable
-if this driver is added to staging first.
-
-> +};
-> +
-> +struct rockchip_vpu_ctrl {
-> +	u32 id;
-> +	bool required;
-> +	unsigned int codec;
-> +	struct v4l2_ctrl_config cfg;
-> +};
-> +
-> +/**
-> + * enum rockchip_vpu_plane - indices of planes inside a VB2 buffer.
-> + * @PLANE_Y:		Plane containing luminance data (also denoted as Y).
-> + * @PLANE_CB_CR:	Plane containing interleaved chrominance data (also
-> + *			denoted as CbCr).
-> + * @PLANE_CB:		Plane containing CB part of chrominance data.
-> + * @PLANE_CR:		Plane containing CR part of chrominance data.
-> + */
-> +enum rockchip_vpu_plane {
-> +	PLANE_Y		= 0,
-> +	PLANE_CB_CR	= 1,
-> +	PLANE_CB	= 1,
-> +	PLANE_CR	= 2,
-> +};
-> +
-> +/**
-> + * struct rockchip_vpu_dev - driver data
-> + * @v4l2_dev:		V4L2 device to register video devices for.
-> + * @vfd_enc:		Video device for encoder.
-> + * @pdev:		Pointer to VPU platform device.
-> + * @dev:		Pointer to device for convenient logging using
-> + *			dev_ macros.
-> + * @clocks:		Array of clock handles.
-> + * @base:		Mapped address of VPU registers.
-> + * @enc_base:		Mapped address of VPU encoder register for convenience.
-> + * @vpu_mutex:		Mutex to synchronize V4L2 calls.
-> + * @irqlock:		Spinlock to synchronize access to data structures
-> + *			shared with interrupt handlers.
-> + * @variant:		Hardware variant-specific parameters.
-> + * @watchdog_work:	Delayed work for hardware timeout handling.
-> + */
-> +struct rockchip_vpu_dev {
-> +	struct v4l2_device v4l2_dev;
-> +	struct v4l2_m2m_dev *m2m_dev;
-> +	struct media_device mdev;
-> +	struct video_device *vfd_enc;
-> +	struct platform_device *pdev;
-> +	struct device *dev;
-> +	struct clk_bulk_data clocks[ROCKCHIP_VPU_MAX_CLOCKS];
-> +	void __iomem *base;
-> +	void __iomem *enc_base;
-> +	void __iomem *dec_base;
-> +
-> +	struct mutex vpu_mutex;	/* video_device lock */
-> +	spinlock_t irqlock;
-> +	const struct rockchip_vpu_variant *variant;
-> +	struct delayed_work watchdog_work;
-> +};
-> +
-> +/**
-> + * struct rockchip_vpu_aux_buf - auxiliary DMA buffer for hardware data
-> + * @cpu:        CPU pointer to the buffer.
-> + * @dma:        DMA address of the buffer.
-> + * @size:       Size of the buffer.
-> + */
-> +struct rockchip_vpu_aux_buf {
-> +	void *cpu;
-> +	dma_addr_t dma;
-> +	size_t size;
-> +};
-> +
-> +/**
-> + * struct rockchip_vpu_h264d_hw_ctx - Per context data specific to H264
-> + * decoding.
-> + * @priv_tbl:		Private auxiliary buffer for hardware.
-> + */
-> +struct rockchip_vpu_h264d_ctx {
-> +	struct rockchip_vpu_aux_buf priv;
-> +};
-> +
-> +/**
-> + * struct rockchip_vpu_ctx - Context (instance) private data.
-> + *
-> + * @dev:		VPU driver data to which the context belongs.
-> + * @fh:			V4L2 file handler.
-> + *
-> + * @sequence_cap:       Sequence counter for capture queue
-> + * @sequence_out:       Sequence counter for output queue
-> + * @codec_mode:		Active codec mode
-> + *
-> + * @vpu_src_fmt:	Descriptor of active source format.
-> + * @src_fmt:		V4L2 pixel format of active source format.
-> + * @vpu_dst_fmt:	Descriptor of active destination format.
-> + * @dst_fmt:		V4L2 pixel format of active destination format.
-> + *
-> + * @ctrls:		Array containing pointer to registered controls.
-> + * @ctrl_handler:	Control handler used to register controls.
-> + * @num_ctrls:		Number of registered controls.
-> + *
-> + * @codec_ops:		Set of operations related to codec mode.
-> + */
-> +struct rockchip_vpu_ctx {
-> +	struct rockchip_vpu_dev *dev;
-> +	struct v4l2_fh fh;
-> +
-> +	u32 sequence_cap;
-> +	u32 sequence_out;
-> +
-> +	/* Format info */
-> +	const struct rockchip_vpu_fmt *vpu_src_fmt;
-> +	struct v4l2_pix_format_mplane src_fmt;
-> +	const struct rockchip_vpu_fmt *vpu_dst_fmt;
-> +	struct v4l2_pix_format_mplane dst_fmt;
-> +
-> +	enum v4l2_colorspace colorspace;
-> +	enum v4l2_ycbcr_encoding ycbcr_enc;
-> +	enum v4l2_quantization quantization;
-> +	enum v4l2_xfer_func xfer_func;
-> +
-> +	/* Controls */
-> +	struct v4l2_ctrl *ctrls[ROCKCHIP_VPU_MAX_CTRLS];
-> +	struct v4l2_ctrl_handler ctrl_handler;
-> +	unsigned int num_ctrls;
-> +
-> +	const struct rockchip_vpu_codec_ops *codec_ops;
-> +	struct vb2_buffer *dst_bufs[VIDEO_MAX_FRAME];
-> +
-> +	struct rockchip_vpu_h264d_ctx h264d;
-> +};
-> +
-> +/**
-> + * struct rockchip_vpu_fmt - information about supported video formats.
-> + * @name:	Human readable name of the format.
-> + * @fourcc:	FourCC code of the format. See V4L2_PIX_FMT_*.
-> + * @codec_mode:	Codec mode related to this format. See
-> + *		enum rockchip_vpu_codec_mode.
-> + * @num_planes:	Number of planes used by this format.
-> + * @max_depth:	Maximum depth, for bitstream formats
-> + * @depth:	Depth of each plane in bits per pixel.
-> + * @enc_fmt:	Format identifier for encoder registers.
-> + * @frmsize:	Supported range of frame sizes (only for bitstream formats).
-> + */
-> +struct rockchip_vpu_fmt {
-> +	char *name;
-> +	u32 fourcc;
-> +	enum rockchip_vpu_codec_mode codec_mode;
-> +	int num_planes;
-> +	int max_depth;
-> +	u8 depth[VIDEO_MAX_PLANES];
-> +	enum rockchip_vpu_enc_fmt enc_fmt;
-> +	struct v4l2_frmsize_stepwise frmsize;
-> +};
-> +
-> +static inline void rk_write_header(u32 value, u32 *buffer, u32 offset, u32 len)
+> +static int codec_mpeg12_can_recycle(struct amvdec_core *core)
 > +{
-> +	u32 word = offset / 32;
-> +	u32 bit = offset % 32;
+> +	return !amvdec_read_dos(core, MREG_BUFFERIN);
+> +}
 > +
-> +	if (len + bit > 32) {
-> +		u32 len1 = 32 - bit;
-> +		u32 len2 = len + bit - 32;
+> +static void codec_mpeg12_recycle(struct amvdec_core *core, u32 buf_idx)
+> +{
+> +	amvdec_write_dos(core, MREG_BUFFERIN, buf_idx + 1);
+> +}
 > +
-> +		buffer[word] &= ~(((1 << len1) - 1) << bit);
-> +		buffer[word] |= value << bit;
+> +static int codec_mpeg12_start(struct amvdec_session *sess)
+> +{
+> +	struct amvdec_core *core = sess->core;
+> +	struct codec_mpeg12 *mpeg12 = sess->priv;
+> +	int ret;
 > +
-> +		value >>= (32 - bit);
-> +		buffer[word + 1] &= ~((1 << len2) - 1);
-> +		buffer[word + 1] |= value;
-> +	} else {
-> +		buffer[word] &= ~(((1 << len) - 1) << bit);
-> +		buffer[word] |= value << bit;
+> +	mpeg12 = kzalloc(sizeof(*mpeg12), GFP_KERNEL);
+> +	if (!mpeg12)
+> +		return -ENOMEM;
+> +
+> +	/* Allocate some memory for the MPEG1/2 decoder's state */
+> +	mpeg12->workspace_vaddr = dma_alloc_coherent(core->dev, SIZE_WORKSPACE,
+> +						     &mpeg12->workspace_paddr,
+> +						     GFP_KERNEL);
+> +	if (!mpeg12->workspace_vaddr) {
+> +		dev_err(core->dev, "Failed to request MPEG 1/2 Workspace\n");
+> +		ret = -ENOMEM;
+> +		goto free_mpeg12;
 > +	}
+> +
+> +	ret = amvdec_set_canvases(sess, (u32[]){ AV_SCRATCH_0, 0 },
+> +					(u32[]){ 8, 0 });
+> +	if (ret)
+> +		goto free_workspace;
+> +
+> +	amvdec_write_dos(core, POWER_CTL_VLD, BIT(4));
+> +	amvdec_write_dos(core, MREG_CO_MV_START,
+> +			 mpeg12->workspace_paddr + WORKSPACE_OFFSET);
+> +
+> +	amvdec_write_dos(core, MPEG1_2_REG, 0);
+> +	amvdec_write_dos(core, PSCALE_CTRL, 0);
+> +	amvdec_write_dos(core, PIC_HEAD_INFO, 0x380);
+> +	amvdec_write_dos(core, M4_CONTROL_REG, 0);
+> +	amvdec_write_dos(core, MREG_BUFFERIN, 0);
+> +	amvdec_write_dos(core, MREG_BUFFEROUT, 0);
+> +	amvdec_write_dos(core, MREG_CMD, (sess->width << 16) | sess->height);
+> +	amvdec_write_dos(core, MREG_ERROR_COUNT, 0);
+> +	amvdec_write_dos(core, MREG_FATAL_ERROR, 0);
+> +	amvdec_write_dos(core, MREG_WAIT_BUFFER, 0);
+> +
+> +	sess->keyframe_found = 1;
+> +	sess->priv = mpeg12;
+> +
+> +	return 0;
+> +
+> +free_workspace:
+> +	dma_free_coherent(core->dev, SIZE_WORKSPACE, mpeg12->workspace_vaddr,
+> +			  mpeg12->workspace_paddr);
+> +free_mpeg12:
+> +	kfree(mpeg12);
+> +
+> +	return ret;
 > +}
 > +
-> +#define FIELD(word, bit)        (32 * (word) + (bit))
-> +#define WRITE_HEADER(value, buffer, field)      \
-> +	rk_write_header(value, buffer, field ## _OFF, field ## _LEN)
-> +
-> +/* Logging helpers */
-> +
-> +/**
-> + * debug - Module parameter to control level of debugging messages.
-> + *
-> + * Level of debugging messages can be controlled by bits of module parameter
-> + * called "debug". Meaning of particular bits is as follows:
-> + *
-> + * bit 0 - global information: mode, size, init, release
-> + * bit 1 - each run start/result information
-> + * bit 2 - contents of small controls from userspace
-> + * bit 3 - contents of big controls from userspace
-> + * bit 4 - detail fmt, ctrl, buffer q/dq information
-> + * bit 5 - detail function enter/leave trace information
-> + * bit 6 - register write/read information
-> + */
-> +extern int rockchip_vpu_debug;
-> +
-> +#define vpu_debug(level, fmt, args...)				\
-> +	do {							\
-> +		if (rockchip_vpu_debug & BIT(level))		\
-> +			pr_info("%s:%d: " fmt,	                \
-> +				 __func__, __LINE__, ##args);	\
-> +	} while (0)
-> +
-> +#define vpu_err(fmt, args...)					\
-> +	pr_err("%s:%d: " fmt, __func__, __LINE__, ##args)
-> +
-> +static inline char *fmt2str(u32 fmt, char *str)
+> +static int codec_mpeg12_stop(struct amvdec_session *sess)
 > +{
-> +	char a = fmt & 0xFF;
-> +	char b = (fmt >> 8) & 0xFF;
-> +	char c = (fmt >> 16) & 0xFF;
-> +	char d = (fmt >> 24) & 0xFF;
+> +	struct codec_mpeg12 *mpeg12 = sess->priv;
+> +	struct amvdec_core *core = sess->core;
 > +
-> +	sprintf(str, "%c%c%c%c", a, b, c, d);
+> +	if (mpeg12->workspace_vaddr)
+> +		dma_free_coherent(core->dev, SIZE_WORKSPACE,
+> +				  mpeg12->workspace_vaddr,
+> +				  mpeg12->workspace_paddr);
 > +
-> +	return str;
+> +	return 0;
 > +}
 > +
-> +/* Structure access helpers. */
-> +static inline struct rockchip_vpu_ctx *fh_to_ctx(struct v4l2_fh *fh)
+> +static irqreturn_t codec_mpeg12_threaded_isr(struct amvdec_session *sess)
 > +{
-> +	return container_of(fh, struct rockchip_vpu_ctx, fh);
+> +	struct amvdec_core *core = sess->core;
+> +	u32 reg;
+> +	u32 pic_info;
+> +	u32 is_progressive;
+> +	u32 buffer_index;
+> +	u32 field = V4L2_FIELD_NONE;
+> +
+> +	amvdec_write_dos(core, ASSIST_MBOX1_CLR_REG, 1);
+> +	reg = amvdec_read_dos(core, MREG_FATAL_ERROR);
+> +	if (reg == 1) {
+> +		dev_err(core->dev, "MPEG1/2 fatal error\n");
+> +		amvdec_abort(sess);
+> +		return IRQ_HANDLED;
+> +	}
+> +
+> +	reg = amvdec_read_dos(core, MREG_BUFFEROUT);
+> +	if (!reg)
+> +		return IRQ_HANDLED;
+> +
+> +	/* Unclear what this means */
+> +	if ((reg & GENMASK(23, 17)) == GENMASK(23, 17))
+> +		goto end;
+> +
+> +	pic_info = amvdec_read_dos(core, MREG_PIC_INFO);
+> +	is_progressive = pic_info & PICINFO_PROG;
+> +
+> +	if (!is_progressive)
+> +		field = (pic_info & PICINFO_TOP_FIRST) ?
+> +			V4L2_FIELD_INTERLACED_TB :
+> +			V4L2_FIELD_INTERLACED_BT;
+> +
+> +	buffer_index = ((reg & 0xf) - 1) & 7;
+> +	amvdec_dst_buf_done_idx(sess, buffer_index, field);
+> +
+> +end:
+> +	amvdec_write_dos(core, MREG_BUFFEROUT, 0);
+> +	return IRQ_HANDLED;
 > +}
 > +
-> +static inline unsigned int rockchip_vpu_rounded_luma_size(unsigned int w,
-> +							  unsigned int h)
+> +static irqreturn_t codec_mpeg12_isr(struct amvdec_session *sess)
 > +{
-> +	return round_up(w, MB_DIM) * round_up(h, MB_DIM);
+> +	return IRQ_WAKE_THREAD;
 > +}
 > +
-> +int rockchip_vpu_enc_ctrls_setup(struct rockchip_vpu_ctx *ctx);
-> +
-> +/* Register accessors. */
-> +static inline void vepu_write_relaxed(struct rockchip_vpu_dev *vpu,
-> +				       u32 val, u32 reg)
-> +{
-> +	vpu_debug(6, "MARK: set reg[%03d]: %08x\n", reg / 4, val);
-> +	writel_relaxed(val, vpu->enc_base + reg);
-> +}
-> +
-> +static inline void vepu_write(struct rockchip_vpu_dev *vpu, u32 val, u32 reg)
-> +{
-> +	vpu_debug(6, "MARK: set reg[%03d]: %08x\n", reg / 4, val);
-> +	writel(val, vpu->enc_base + reg);
-> +}
-> +
-> +static inline u32 vepu_read(struct rockchip_vpu_dev *vpu, u32 reg)
-> +{
-> +	u32 val = readl(vpu->enc_base + reg);
-> +
-> +	vpu_debug(6, "MARK: get reg[%03d]: %08x\n", reg / 4, val);
-> +	return val;
-> +}
-> +
-> +static inline void vdpu_write_relaxed(struct rockchip_vpu_dev *vpu,
-> +				       u32 val, u32 reg)
-> +{
-> +	vpu_debug(6, "MARK: set reg[%03d]: %08x\n", reg / 4, val);
-> +	writel_relaxed(val, vpu->dec_base + reg);
-> +}
-> +
-> +static inline void vdpu_write(struct rockchip_vpu_dev *vpu, u32 val, u32 reg)
-> +{
-> +	vpu_debug(6, "MARK: set reg[%03d]: %08x\n", reg / 4, val);
-> +	writel(val, vpu->dec_base + reg);
-> +}
-> +
-> +static inline u32 vdpu_read(struct rockchip_vpu_dev *vpu, u32 reg)
-> +{
-> +	u32 val = readl(vpu->dec_base + reg);
-> +
-> +	vpu_debug(6, "MARK: get reg[%03d]: %08x\n", reg / 4, val);
-> +	return val;
-> +}
-> +
-> +#endif /* ROCKCHIP_VPU_H_ */
-> diff --git a/drivers/media/platform/rockchip/vpu/rockchip_vpu_common.h b/drivers/media/platform/rockchip/vpu/rockchip_vpu_common.h
+> +struct amvdec_codec_ops codec_mpeg12_ops = {
+> +	.start = codec_mpeg12_start,
+> +	.stop = codec_mpeg12_stop,
+> +	.isr = codec_mpeg12_isr,
+> +	.threaded_isr = codec_mpeg12_threaded_isr,
+> +	.can_recycle = codec_mpeg12_can_recycle,
+> +	.recycle = codec_mpeg12_recycle,
+> +};
+> diff --git a/drivers/media/platform/meson/vdec/codec_mpeg12.h b/drivers/media/platform/meson/vdec/codec_mpeg12.h
 > new file mode 100644
-> index 000000000000..1d7c7bf8f323
+> index 000000000000..43cab5f39ca0
 > --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rockchip_vpu_common.h
-> @@ -0,0 +1,37 @@
-> +// SPDX-License-Identifier: GPL-2.0
+> +++ b/drivers/media/platform/meson/vdec/codec_mpeg12.h
+> @@ -0,0 +1,14 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
 > +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Rockchip Electronics Co., Ltd.
-> + *	Alpha Lin <Alpha.Lin@rock-chips.com>
-> + *	Jeffy Chen <jeffy.chen@rock-chips.com>
-> + *
-> + * Copyright (C) 2018 Google, Inc.
-> + *	Tomasz Figa <tfiga@chromium.org>
-> + *
-> + * Based on s5p-mfc driver by Samsung Electronics Co., Ltd.
-> + * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
 > + */
 > +
-> +#ifndef ROCKCHIP_VPU_COMMON_H_
-> +#define ROCKCHIP_VPU_COMMON_H_
+> +#ifndef __MESON_VDEC_CODEC_MPEG12_H_
+> +#define __MESON_VDEC_CODEC_MPEG12_H_
 > +
-> +#include "rockchip_vpu.h"
+> +#include "vdec.h"
 > +
-> +extern const struct v4l2_ioctl_ops rockchip_vpu_enc_ioctl_ops;
-> +extern const struct v4l2_ioctl_ops rockchip_vpu_dec_ioctl_ops;
-> +extern const struct vb2_ops rockchip_vpu_enc_queue_ops;
-> +extern const struct vb2_ops rockchip_vpu_dec_queue_ops;
+> +extern struct amvdec_codec_ops codec_mpeg12_ops;
 > +
-> +void *rockchip_vpu_find_control_data(struct rockchip_vpu_ctx *ctx,
-> +				unsigned int id);
-> +void rockchip_vpu_enc_reset_src_fmt(struct rockchip_vpu_dev *vpu,
-> +				struct rockchip_vpu_ctx *ctx);
-> +void rockchip_vpu_enc_reset_dst_fmt(struct rockchip_vpu_dev *vpu,
-> +				struct rockchip_vpu_ctx *ctx);
-> +void rockchip_vpu_dec_reset_src_fmt(struct rockchip_vpu_dev *vpu,
-> +				struct rockchip_vpu_ctx *ctx);
-> +void rockchip_vpu_dec_reset_dst_fmt(struct rockchip_vpu_dev *vpu,
-> +				struct rockchip_vpu_ctx *ctx);
-> +
-> +#endif /* ROCKCHIP_VPU_COMMON_H_ */
-> diff --git a/drivers/media/platform/rockchip/vpu/rockchip_vpu_drv.c b/drivers/media/platform/rockchip/vpu/rockchip_vpu_drv.c
+> +#endif
+> diff --git a/drivers/media/platform/meson/vdec/dos_regs.h b/drivers/media/platform/meson/vdec/dos_regs.h
 > new file mode 100644
-> index 000000000000..09a2c0be9715
+> index 000000000000..abd810542dbb
 > --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rockchip_vpu_drv.c
-> @@ -0,0 +1,545 @@
-> +// SPDX-License-Identifier: GPL-2.0
+> +++ b/drivers/media/platform/meson/vdec/dos_regs.h
+> @@ -0,0 +1,98 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
 > +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Collabora, Ltd.
-> + * Copyright (C) 2014 Google, Inc.
-> + *	Tomasz Figa <tfiga@chromium.org>
-> + *
-> + * Based on s5p-mfc driver by Samsung Electronics Co., Ltd.
-> + * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
 > + */
 > +
-> +#include <linux/clk.h>
+> +#ifndef __MESON_VDEC_DOS_REGS_H_
+> +#define __MESON_VDEC_DOS_REGS_H_
+> +
+> +/* DOS registers */
+> +#define VDEC_ASSIST_AMR1_INT8	0x00b4
+> +
+> +#define ASSIST_MBOX1_CLR_REG	0x01d4
+> +#define ASSIST_MBOX1_MASK	0x01d8
+> +
+> +#define MPSR			0x0c04
+> +#define MCPU_INTR_MSK		0x0c10
+> +#define CPSR			0x0c84
+> +
+> +#define IMEM_DMA_CTRL		0x0d00
+> +#define IMEM_DMA_ADR		0x0d04
+> +#define IMEM_DMA_COUNT		0x0d08
+> +#define LMEM_DMA_CTRL		0x0d40
+> +
+> +#define MC_STATUS0		0x2424
+> +#define MC_CTRL1		0x242c
+> +
+> +#define PSCALE_RST		0x2440
+> +#define PSCALE_CTRL		0x2444
+> +#define PSCALE_BMEM_ADDR	0x247c
+> +#define PSCALE_BMEM_DAT		0x2480
+> +
+> +#define DBLK_CTRL		0x2544
+> +#define DBLK_STATUS		0x254c
+> +
+> +#define GCLK_EN			0x260c
+> +#define MDEC_PIC_DC_CTRL	0x2638
+> +#define MDEC_PIC_DC_STATUS	0x263c
+> +#define ANC0_CANVAS_ADDR	0x2640
+> +#define MDEC_PIC_DC_THRESH	0x26e0
+> +
+> +/* Firmware interface registers */
+> +#define AV_SCRATCH_0		0x2700
+> +#define AV_SCRATCH_1		0x2704
+> +#define AV_SCRATCH_2		0x2708
+> +#define AV_SCRATCH_3		0x270c
+> +#define AV_SCRATCH_4		0x2710
+> +#define AV_SCRATCH_5		0x2714
+> +#define AV_SCRATCH_6		0x2718
+> +#define AV_SCRATCH_7		0x271c
+> +#define AV_SCRATCH_8		0x2720
+> +#define AV_SCRATCH_9		0x2724
+> +#define AV_SCRATCH_A		0x2728
+> +#define AV_SCRATCH_B		0x272c
+> +#define AV_SCRATCH_C		0x2730
+> +#define AV_SCRATCH_D		0x2734
+> +#define AV_SCRATCH_E		0x2738
+> +#define AV_SCRATCH_F		0x273c
+> +#define AV_SCRATCH_G		0x2740
+> +#define AV_SCRATCH_H		0x2744
+> +#define AV_SCRATCH_I		0x2748
+> +#define AV_SCRATCH_J		0x274c
+> +#define AV_SCRATCH_K		0x2750
+> +#define AV_SCRATCH_L		0x2754
+> +
+> +#define MPEG1_2_REG		0x3004
+> +#define PIC_HEAD_INFO		0x300c
+> +#define POWER_CTL_VLD		0x3020
+> +#define M4_CONTROL_REG		0x30a4
+> +
+> +/* Stream Buffer (stbuf) regs */
+> +#define VLD_MEM_VIFIFO_START_PTR	0x3100
+> +#define VLD_MEM_VIFIFO_CURR_PTR	0x3104
+> +#define VLD_MEM_VIFIFO_END_PTR	0x3108
+> +#define VLD_MEM_VIFIFO_CONTROL	0x3110
+> +	#define MEM_FIFO_CNT_BIT	16
+> +	#define MEM_FILL_ON_LEVEL	BIT(10)
+> +	#define MEM_CTRL_EMPTY_EN	BIT(2)
+> +	#define MEM_CTRL_FILL_EN	BIT(1)
+> +#define VLD_MEM_VIFIFO_WP	0x3114
+> +#define VLD_MEM_VIFIFO_RP	0x3118
+> +#define VLD_MEM_VIFIFO_LEVEL	0x311c
+> +#define VLD_MEM_VIFIFO_BUF_CNTL	0x3120
+> +	#define MEM_BUFCTRL_MANUAL	BIT(1)
+> +#define VLD_MEM_VIFIFO_WRAP_COUNT	0x3144
+> +
+> +#define DCAC_DMA_CTRL		0x3848
+> +
+> +#define DOS_SW_RESET0		0xfc00
+> +#define DOS_GCLK_EN0		0xfc04
+> +#define DOS_GEN_CTRL0		0xfc08
+> +#define DOS_MEM_PD_VDEC		0xfcc0
+> +#define DOS_MEM_PD_HEVC		0xfccc
+> +#define DOS_SW_RESET3		0xfcd0
+> +#define DOS_GCLK_EN3		0xfcd4
+> +#define DOS_VDEC_MCRCC_STALL_CTRL	0xfd00
+> +
+> +#endif
+> diff --git a/drivers/media/platform/meson/vdec/esparser.c b/drivers/media/platform/meson/vdec/esparser.c
+> new file mode 100644
+> index 000000000000..098c7d76ad3f
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/esparser.c
+> @@ -0,0 +1,368 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + *
+> + * The Elementary Stream Parser is a HW bitstream parser.
+> + * It reads bitstream buffers and feeds them to the VIFIFO
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/ioctl.h>
+> +#include <linux/list.h>
 > +#include <linux/module.h>
-> +#include <linux/of.h>
+> +#include <linux/of_device.h>
 > +#include <linux/platform_device.h>
-> +#include <linux/pm.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/slab.h>
-> +#include <linux/videodev2.h>
-> +#include <linux/workqueue.h>
-> +#include <media/v4l2-event.h>
+> +#include <linux/reset.h>
+> +#include <media/videobuf2-dma-contig.h>
 > +#include <media/v4l2-mem2mem.h>
-> +#include <media/videobuf2-core.h>
-> +#include <media/videobuf2-core.h>
+> +
+> +#include "dos_regs.h"
+> +#include "esparser.h"
+> +#include "vdec_helpers.h"
+> +
+> +/* PARSER REGS (CBUS) */
+> +#define PARSER_CONTROL 0x00
+> +	#define ES_PACK_SIZE_BIT	8
+> +	#define ES_WRITE		BIT(5)
+> +	#define ES_SEARCH		BIT(1)
+> +	#define ES_PARSER_START		BIT(0)
+> +#define PARSER_FETCH_ADDR	0x4
+> +#define PARSER_FETCH_CMD	0x8
+> +#define PARSER_CONFIG 0x14
+> +	#define PS_CFG_MAX_FETCH_CYCLE_BIT	0
+> +	#define PS_CFG_STARTCODE_WID_24_BIT	10
+> +	#define PS_CFG_MAX_ES_WR_CYCLE_BIT	12
+> +	#define PS_CFG_PFIFO_EMPTY_CNT_BIT	16
+> +#define PFIFO_WR_PTR 0x18
+> +#define PFIFO_RD_PTR 0x1c
+> +#define PARSER_SEARCH_PATTERN 0x24
+> +	#define ES_START_CODE_PATTERN 0x00000100
+> +#define PARSER_SEARCH_MASK 0x28
+> +	#define ES_START_CODE_MASK	0xffffff00
+> +	#define FETCH_ENDIAN_BIT	27
+> +#define PARSER_INT_ENABLE	0x2c
+> +	#define PARSER_INT_HOST_EN_BIT	8
+> +#define PARSER_INT_STATUS	0x30
+> +	#define PARSER_INTSTAT_SC_FOUND	1
+> +#define PARSER_ES_CONTROL	0x5c
+> +#define PARSER_VIDEO_START_PTR	0x80
+> +#define PARSER_VIDEO_END_PTR	0x84
+> +#define PARSER_VIDEO_HOLE	0x90
+> +
+> +#define SEARCH_PATTERN_LEN	512
+> +#define MIN_PACKET_SIZE		(4 * SZ_1K)
+> +
+> +/* Buffer to send to the ESPARSER to signal End Of Stream.
+> + * Credits to Endless Mobile.
+> + */
+> +#define EOS_TAIL_BUF_SIZE 1024
+> +static const u8 eos_tail_data[EOS_TAIL_BUF_SIZE] = {
+> +	0x00, 0x00, 0x00, 0x01, 0x06, 0x05, 0xff, 0xe4, 0xdc, 0x45, 0xe9, 0xbd,
+> +	0xe6, 0xd9, 0x48, 0xb7,	0x96, 0x2c, 0xd8, 0x20, 0xd9, 0x23, 0xee, 0xef,
+> +	0x78, 0x32, 0x36, 0x34, 0x20, 0x2d, 0x20, 0x63,	0x6f, 0x72, 0x65, 0x20,
+> +	0x36, 0x37, 0x20, 0x72, 0x31, 0x31, 0x33, 0x30, 0x20, 0x38, 0x34, 0x37,
+> +	0x35, 0x39, 0x37, 0x37, 0x20, 0x2d, 0x20, 0x48, 0x2e, 0x32, 0x36, 0x34,
+> +	0x2f, 0x4d, 0x50, 0x45,	0x47, 0x2d, 0x34, 0x20, 0x41, 0x56, 0x43, 0x20,
+> +	0x63, 0x6f, 0x64, 0x65, 0x63, 0x20, 0x2d, 0x20,	0x43, 0x6f, 0x70, 0x79,
+> +	0x6c, 0x65, 0x66, 0x74, 0x20, 0x32, 0x30, 0x30, 0x33, 0x2d, 0x32, 0x30,
+> +	0x30, 0x39, 0x20, 0x2d, 0x20, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f,
+> +	0x77, 0x77, 0x77, 0x2e,	0x76, 0x69, 0x64, 0x65, 0x6f, 0x6c, 0x61, 0x6e,
+> +	0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x78, 0x32, 0x36,	0x34, 0x2e, 0x68, 0x74,
+> +	0x6d, 0x6c, 0x20, 0x2d, 0x20, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+> +	0x3a, 0x20, 0x63, 0x61, 0x62, 0x61, 0x63, 0x3d, 0x31, 0x20, 0x72, 0x65,
+> +	0x66, 0x3d, 0x31, 0x20,	0x64, 0x65, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x3d,
+> +	0x31, 0x3a, 0x30, 0x3a, 0x30, 0x20, 0x61, 0x6e,	0x61, 0x6c, 0x79, 0x73,
+> +	0x65, 0x3d, 0x30, 0x78, 0x31, 0x3a, 0x30, 0x78, 0x31, 0x31, 0x31, 0x20,
+> +	0x6d, 0x65, 0x3d, 0x68, 0x65, 0x78, 0x20, 0x73, 0x75, 0x62, 0x6d, 0x65,
+> +	0x3d, 0x36, 0x20, 0x70,	0x73, 0x79, 0x5f, 0x72, 0x64, 0x3d, 0x31, 0x2e,
+> +	0x30, 0x3a, 0x30, 0x2e, 0x30, 0x20, 0x6d, 0x69,	0x78, 0x65, 0x64, 0x5f,
+> +	0x72, 0x65, 0x66, 0x3d, 0x30, 0x20, 0x6d, 0x65, 0x5f, 0x72, 0x61, 0x6e,
+> +	0x67, 0x65, 0x3d, 0x31, 0x36, 0x20, 0x63, 0x68, 0x72, 0x6f, 0x6d, 0x61,
+> +	0x5f, 0x6d, 0x65, 0x3d,	0x31, 0x20, 0x74, 0x72, 0x65, 0x6c, 0x6c, 0x69,
+> +	0x73, 0x3d, 0x30, 0x20, 0x38, 0x78, 0x38, 0x64,	0x63, 0x74, 0x3d, 0x30,
+> +	0x20, 0x63, 0x71, 0x6d, 0x3d, 0x30, 0x20, 0x64, 0x65, 0x61, 0x64, 0x7a,
+> +	0x6f, 0x6e, 0x65, 0x3d, 0x32, 0x31, 0x2c, 0x31, 0x31, 0x20, 0x63, 0x68,
+> +	0x72, 0x6f, 0x6d, 0x61,	0x5f, 0x71, 0x70, 0x5f, 0x6f, 0x66, 0x66, 0x73,
+> +	0x65, 0x74, 0x3d, 0x2d, 0x32, 0x20, 0x74, 0x68,	0x72, 0x65, 0x61, 0x64,
+> +	0x73, 0x3d, 0x31, 0x20, 0x6e, 0x72, 0x3d, 0x30, 0x20, 0x64, 0x65, 0x63,
+> +	0x69, 0x6d, 0x61, 0x74, 0x65, 0x3d, 0x31, 0x20, 0x6d, 0x62, 0x61, 0x66,
+> +	0x66, 0x3d, 0x30, 0x20,	0x62, 0x66, 0x72, 0x61, 0x6d, 0x65, 0x73, 0x3d,
+> +	0x30, 0x20, 0x6b, 0x65, 0x79, 0x69, 0x6e, 0x74,	0x3d, 0x32, 0x35, 0x30,
+> +	0x20, 0x6b, 0x65, 0x79, 0x69, 0x6e, 0x74, 0x5f, 0x6d, 0x69, 0x6e, 0x3d,
+> +	0x32, 0x35, 0x20, 0x73, 0x63, 0x65, 0x6e, 0x65, 0x63, 0x75, 0x74, 0x3d,
+> +	0x34, 0x30, 0x20, 0x72,	0x63, 0x3d, 0x61, 0x62, 0x72, 0x20, 0x62, 0x69,
+> +	0x74, 0x72, 0x61, 0x74, 0x65, 0x3d, 0x31, 0x30,	0x20, 0x72, 0x61, 0x74,
+> +	0x65, 0x74, 0x6f, 0x6c, 0x3d, 0x31, 0x2e, 0x30, 0x20, 0x71, 0x63, 0x6f,
+> +	0x6d, 0x70, 0x3d, 0x30, 0x2e, 0x36, 0x30, 0x20, 0x71, 0x70, 0x6d, 0x69,
+> +	0x6e, 0x3d, 0x31, 0x30,	0x20, 0x71, 0x70, 0x6d, 0x61, 0x78, 0x3d, 0x35,
+> +	0x31, 0x20, 0x71, 0x70, 0x73, 0x74, 0x65, 0x70,	0x3d, 0x34, 0x20, 0x69,
+> +	0x70, 0x5f, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x3d, 0x31, 0x2e, 0x34, 0x30,
+> +	0x20, 0x61, 0x71, 0x3d, 0x31, 0x3a, 0x31, 0x2e, 0x30, 0x30, 0x00, 0x80,
+> +	0x00, 0x00, 0x00, 0x01,	0x67, 0x4d, 0x40, 0x0a, 0x9a, 0x74, 0xf4, 0x20,
+> +	0x00, 0x00, 0x03, 0x00, 0x20, 0x00, 0x00, 0x06,	0x51, 0xe2, 0x44, 0xd4,
+> +	0x00, 0x00, 0x00, 0x01, 0x68, 0xee, 0x32, 0xc8, 0x00, 0x00, 0x00, 0x01,
+> +	0x65, 0x88, 0x80, 0x20, 0x00, 0x08, 0x7f, 0xea, 0x6a, 0xe2, 0x99, 0xb6,
+> +	0x57, 0xae, 0x49, 0x30,	0xf5, 0xfe, 0x5e, 0x46, 0x0b, 0x72, 0x44, 0xc4,
+> +	0xe1, 0xfc, 0x62, 0xda, 0xf1, 0xfb, 0xa2, 0xdb,	0xd6, 0xbe, 0x5c, 0xd7,
+> +	0x24, 0xa3, 0xf5, 0xb9, 0x2f, 0x57, 0x16, 0x49, 0x75, 0x47, 0x77, 0x09,
+> +	0x5c, 0xa1, 0xb4, 0xc3, 0x4f, 0x60, 0x2b, 0xb0, 0x0c, 0xc8, 0xd6, 0x66,
+> +	0xba, 0x9b, 0x82, 0x29,	0x33, 0x92, 0x26, 0x99, 0x31, 0x1c, 0x7f, 0x9b
+> +};
+> +
+> +static DECLARE_WAIT_QUEUE_HEAD(wq);
+> +static int search_done;
+> +
+> +static irqreturn_t esparser_isr(int irq, void *dev)
+> +{
+> +	int int_status;
+> +	struct amvdec_core *core = dev;
+> +
+> +	int_status = amvdec_read_parser(core, PARSER_INT_STATUS);
+> +	amvdec_write_parser(core, PARSER_INT_STATUS, int_status);
+> +
+> +	if (int_status & PARSER_INTSTAT_SC_FOUND) {
+> +		amvdec_write_parser(core, PFIFO_RD_PTR, 0);
+> +		amvdec_write_parser(core, PFIFO_WR_PTR, 0);
+> +		search_done = 1;
+> +		wake_up_interruptible(&wq);
+> +	}
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +/* Pad the packet to at least 4KiB bytes otherwise the VDEC unit won't trigger
+> + * ISRs.
+> + * Also append a start code 000001ff at the end to trigger
+> + * the ESPARSER interrupt.
+> + */
+> +static u32 esparser_pad_start_code(struct vb2_buffer *vb)
+> +{
+> +	u32 payload_size = vb2_get_plane_payload(vb, 0);
+> +	u32 pad_size = 0;
+> +	u8 *vaddr = vb2_plane_vaddr(vb, 0) + payload_size;
+> +
+> +	if (payload_size < MIN_PACKET_SIZE) {
+> +		pad_size = MIN_PACKET_SIZE - payload_size;
+> +		memset(vaddr, 0, pad_size);
+> +	}
+> +
+> +	memset(vaddr + pad_size, 0, SEARCH_PATTERN_LEN);
+> +	vaddr[pad_size]     = 0x00;
+> +	vaddr[pad_size + 1] = 0x00;
+> +	vaddr[pad_size + 2] = 0x01;
+> +	vaddr[pad_size + 3] = 0xff;
+> +
+> +	return pad_size;
+> +}
+> +
+> +static int
+> +esparser_write_data(struct amvdec_core *core, dma_addr_t addr, u32 size)
+> +{
+> +	amvdec_write_parser(core, PFIFO_RD_PTR, 0);
+> +	amvdec_write_parser(core, PFIFO_WR_PTR, 0);
+> +	amvdec_write_parser(core, PARSER_CONTROL,
+> +			    ES_WRITE |
+> +			    ES_PARSER_START |
+> +			    ES_SEARCH |
+> +			    (size << ES_PACK_SIZE_BIT));
+> +
+> +	amvdec_write_parser(core, PARSER_FETCH_ADDR, addr);
+> +	amvdec_write_parser(core, PARSER_FETCH_CMD,
+> +			    (7 << FETCH_ENDIAN_BIT) |
+> +			    (size + SEARCH_PATTERN_LEN));
+> +
+> +	search_done = 0;
+> +	return wait_event_interruptible_timeout(wq, search_done, (HZ / 5));
+> +}
+> +
+> +static u32 esparser_vififo_get_free_space(struct amvdec_session *sess)
+> +{
+> +	u32 vififo_usage;
+> +	struct amvdec_ops *vdec_ops = sess->fmt_out->vdec_ops;
+> +	struct amvdec_core *core = sess->core;
+> +
+> +	vififo_usage  = vdec_ops->vififo_level(sess);
+> +	vififo_usage += amvdec_read_parser(core, PARSER_VIDEO_HOLE);
+> +	vififo_usage += (6 * SZ_1K);
+> +
+> +	if (vififo_usage > sess->vififo_size) {
+> +		dev_warn(sess->core->dev,
+> +			 "VIFIFO usage (%u) > VIFIFO size (%u)\n",
+> +			 vififo_usage, sess->vififo_size);
+> +		return 0;
+> +	}
+> +
+> +	return sess->vififo_size - vififo_usage;
+> +}
+> +
+> +int esparser_queue_eos(struct amvdec_core *core)
+> +{
+> +	struct device *dev = core->dev;
+> +	void *eos_vaddr;
+> +	dma_addr_t eos_paddr;
+> +	int ret;
+> +
+> +	eos_vaddr = dma_alloc_coherent(dev,
+> +				       EOS_TAIL_BUF_SIZE + SEARCH_PATTERN_LEN,
+> +				       &eos_paddr, GFP_KERNEL);
+> +	if (!eos_vaddr)
+> +		return -ENOMEM;
+> +
+> +	memset(eos_vaddr, 0, EOS_TAIL_BUF_SIZE + SEARCH_PATTERN_LEN);
+> +	memcpy(eos_vaddr, eos_tail_data, sizeof(eos_tail_data));
+> +	ret = esparser_write_data(core, eos_paddr, EOS_TAIL_BUF_SIZE);
+> +	dma_free_coherent(dev, EOS_TAIL_BUF_SIZE + SEARCH_PATTERN_LEN,
+> +			  eos_vaddr, eos_paddr);
+> +
+> +	return ret;
+> +}
+> +
+> +static int
+> +esparser_queue(struct amvdec_session *sess, struct vb2_v4l2_buffer *vbuf)
+> +{
+> +	int ret;
+> +	struct vb2_buffer *vb = &vbuf->vb2_buf;
+> +	struct amvdec_core *core = sess->core;
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +	u32 num_dst_bufs = 0;
+> +	u32 payload_size = vb2_get_plane_payload(vb, 0);
+> +	dma_addr_t phy = vb2_dma_contig_plane_dma_addr(vb, 0);
+> +	u32 pad_size;
+> +
+> +	if (!payload_size) {
+> +		esparser_queue_eos(core);
+> +		return 0;
+> +	}
+> +
+> +	if (codec_ops->num_pending_bufs)
+> +		num_dst_bufs = codec_ops->num_pending_bufs(sess);
+> +
+> +	num_dst_bufs += v4l2_m2m_num_dst_bufs_ready(sess->m2m_ctx);
+> +
+> +	if (esparser_vififo_get_free_space(sess) < payload_size ||
+> +	    atomic_read(&sess->esparser_queued_bufs) >= num_dst_bufs)
+> +		return -EAGAIN;
+> +
+> +	v4l2_m2m_src_buf_remove_by_buf(sess->m2m_ctx, vbuf);
+> +	amvdec_add_ts_reorder(sess, vb->timestamp);
+> +	dev_dbg(core->dev, "esparser: Queuing ts = %llu ; pld_size = %u\n",
+> +		vb->timestamp, payload_size);
+> +
+> +	pad_size = esparser_pad_start_code(vb);
+> +	ret = esparser_write_data(core, phy, payload_size + pad_size);
+> +
+> +	if (ret > 0) {
+> +		/* We need to wait until we parse/decode the first keyframe.
+> +		 * All buffers prior to the first keyframe must be dropped.
+> +		 */
+> +		if (!sess->keyframe_found)
+> +			usleep_range(1000, 2000);
+> +
+> +		if (sess->keyframe_found)
+> +			atomic_inc(&sess->esparser_queued_bufs);
+> +		else
+> +			amvdec_remove_ts(sess, vb->timestamp);
+> +
+> +		vbuf->flags = 0;
+> +		vbuf->field = V4L2_FIELD_NONE;
+> +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
+> +		return 0;
+> +	}
+> +
+> +	dev_warn(core->dev, "esparser: input parsing error\n");
+> +	amvdec_remove_ts(sess, vb->timestamp);
+> +	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+> +	amvdec_write_parser(core, PARSER_FETCH_CMD, 0);
+> +
+> +	return 0;
+> +}
+> +
+> +void esparser_queue_all_src(struct work_struct *work)
+> +{
+> +	struct v4l2_m2m_buffer *buf, *n;
+> +	struct amvdec_session *sess =
+> +		container_of(work, struct amvdec_session, esparser_queue_work);
+> +
+> +	mutex_lock(&sess->lock);
+> +	v4l2_m2m_for_each_src_buf_safe(sess->m2m_ctx, buf, n) {
+> +		if (esparser_queue(sess, &buf->vb) < 0)
+> +			break;
+> +
+> +		/* Some codecs don't like having data queued in too fast */
+
+This needs some more extensive explanation. Which codecs? Why is this is
+problem? Why is 1 ms delay sufficient?
+
+It's weird and unexpected, so that needs better documentation.
+
+> +		usleep_range(1000, 2000);
+> +	}
+> +	mutex_unlock(&sess->lock);
+> +}
+> +
+> +int esparser_power_up(struct amvdec_session *sess)
+> +{
+> +	struct amvdec_core *core = sess->core;
+> +	struct amvdec_ops *vdec_ops = sess->fmt_out->vdec_ops;
+> +
+> +	reset_control_reset(core->esparser_reset);
+> +	amvdec_write_parser(core, PARSER_CONFIG,
+> +			    (10 << PS_CFG_PFIFO_EMPTY_CNT_BIT) |
+> +			    (1  << PS_CFG_MAX_ES_WR_CYCLE_BIT) |
+> +			    (16 << PS_CFG_MAX_FETCH_CYCLE_BIT));
+> +
+> +	amvdec_write_parser(core, PFIFO_RD_PTR, 0);
+> +	amvdec_write_parser(core, PFIFO_WR_PTR, 0);
+> +
+> +	amvdec_write_parser(core, PARSER_SEARCH_PATTERN,
+> +			    ES_START_CODE_PATTERN);
+> +	amvdec_write_parser(core, PARSER_SEARCH_MASK, ES_START_CODE_MASK);
+> +
+> +	amvdec_write_parser(core, PARSER_CONFIG,
+> +			    (10 << PS_CFG_PFIFO_EMPTY_CNT_BIT) |
+> +			    (1  << PS_CFG_MAX_ES_WR_CYCLE_BIT) |
+> +			    (16 << PS_CFG_MAX_FETCH_CYCLE_BIT) |
+> +			    (2  << PS_CFG_STARTCODE_WID_24_BIT));
+> +
+> +	amvdec_write_parser(core, PARSER_CONTROL,
+> +			    (ES_SEARCH | ES_PARSER_START));
+> +
+> +	amvdec_write_parser(core, PARSER_VIDEO_START_PTR, sess->vififo_paddr);
+> +	amvdec_write_parser(core, PARSER_VIDEO_END_PTR,
+> +			    sess->vififo_paddr + sess->vififo_size - 8);
+> +	amvdec_write_parser(core, PARSER_ES_CONTROL,
+> +			    amvdec_read_parser(core, PARSER_ES_CONTROL) & ~1);
+> +
+> +	if (vdec_ops->conf_esparser)
+> +		vdec_ops->conf_esparser(sess);
+> +
+> +	amvdec_write_parser(core, PARSER_INT_STATUS, 0xffff);
+> +	amvdec_write_parser(core, PARSER_INT_ENABLE,
+> +			    BIT(PARSER_INT_HOST_EN_BIT));
+> +
+> +	return 0;
+> +}
+> +
+> +int esparser_init(struct platform_device *pdev, struct amvdec_core *core)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	int ret;
+> +	int irq;
+> +
+> +	irq = platform_get_irq(pdev, 1);
+> +	if (irq < 0) {
+> +		dev_err(dev, "Failed getting ESPARSER IRQ from dtb\n");
+> +		return irq;
+> +	}
+> +
+> +	ret = devm_request_irq(dev, irq, esparser_isr, IRQF_SHARED,
+> +			       "esparserirq", core);
+> +	if (ret) {
+> +		dev_err(dev, "Failed requesting ESPARSER IRQ\n");
+> +		return ret;
+> +	}
+> +
+> +	core->esparser_reset =
+> +		devm_reset_control_get_exclusive(dev, "esparser");
+> +	if (IS_ERR(core->esparser_reset)) {
+> +		dev_err(dev, "Failed to get esparser_reset\n");
+> +		return PTR_ERR(core->esparser_reset);
+> +	}
+> +
+> +	return 0;
+> +}
+> diff --git a/drivers/media/platform/meson/vdec/esparser.h b/drivers/media/platform/meson/vdec/esparser.h
+> new file mode 100644
+> index 000000000000..22c2ac5c6d35
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/esparser.h
+> @@ -0,0 +1,28 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + */
+> +
+> +#ifndef __MESON_VDEC_ESPARSER_H_
+> +#define __MESON_VDEC_ESPARSER_H_
+> +
+> +#include "vdec.h"
+> +
+> +int esparser_init(struct platform_device *pdev, struct amvdec_core *core);
+> +int esparser_power_up(struct amvdec_session *sess);
+> +
+> +/**
+> + * esparser_queue_eos() - write End Of Stream sequence to the ESPARSER
+> + *
+> + * @core vdec core struct
+> + */
+> +int esparser_queue_eos(struct amvdec_core *core);
+> +
+> +/**
+> + * esparser_queue_all_src() - work handler that writes as many src buffers
+> + * as possible to the ESPARSER
+> + */
+> +void esparser_queue_all_src(struct work_struct *work);
+> +
+> +#endif
+> diff --git a/drivers/media/platform/meson/vdec/vdec.c b/drivers/media/platform/meson/vdec/vdec.c
+> new file mode 100644
+> index 000000000000..32e1e2228297
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/vdec.c
+> @@ -0,0 +1,988 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + */
+> +
+> +#include <linux/of_device.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mfd/syscon.h>
+> +#include <linux/slab.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-mem2mem.h>
+> +#include <media/v4l2-dev.h>
 > +#include <media/videobuf2-dma-contig.h>
 > +
-> +#include "rockchip_vpu_common.h"
-> +#include "rockchip_vpu.h"
-> +#include "rockchip_vpu_hw.h"
+> +#include "vdec.h"
+> +#include "esparser.h"
+> +#include "vdec_helpers.h"
 > +
-> +#define DRIVER_NAME "rockchip-vpu"
+> +struct dummy_buf {
+> +	struct vb2_v4l2_buffer vb;
+> +	struct list_head list;
+> +};
 > +
-> +int rockchip_vpu_debug;
-> +module_param_named(debug, rockchip_vpu_debug, int, 0644);
-> +MODULE_PARM_DESC(debug,
-> +		 "Debug level - higher value produces more verbose messages");
+> +/* 16 MiB for parsed bitstream swap exchange */
+> +#define SIZE_VIFIFO SZ_16M
 > +
-> +static void rockchip_vpu_job_finish(struct rockchip_vpu_dev *vpu,
-> +		struct rockchip_vpu_ctx *ctx,
-> +		unsigned int bytesused,
-> +		enum vb2_buffer_state result)
+> +static u32 get_output_size(u32 width, u32 height)
 > +{
-> +	struct vb2_v4l2_buffer *src, *dst;
-> +
-> +	src = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> +	dst = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-> +
-> +	if (WARN_ON(!src))
-> +		return;
-> +	if (WARN_ON(!dst))
-> +		return;
-> +
-> +	src->sequence = ctx->sequence_out++;
-> +	dst->sequence = ctx->sequence_cap++;
-> +
-> +	dst->field = src->field;
-> +	dst->timecode = src->timecode;
-> +	dst->vb2_buf.timestamp = src->vb2_buf.timestamp;
-> +	dst->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-> +	dst->flags |= src->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-> +
-> +	if (bytesused)
-> +		dst->vb2_buf.planes[0].bytesused = bytesused;
-> +
-> +	v4l2_m2m_buf_done(src, result);
-> +	v4l2_m2m_buf_done(dst, result);
-> +
-> +	v4l2_m2m_job_finish(vpu->m2m_dev, ctx->fh.m2m_ctx);
-> +
-> +	pm_runtime_mark_last_busy(vpu->dev);
-> +	pm_runtime_put_autosuspend(vpu->dev);
+> +	return ALIGN(width * height, SZ_64K);
 > +}
 > +
-> +void rockchip_vpu_irq_done(struct rockchip_vpu_dev *vpu,
-> +			   unsigned int bytesused,
-> +			   enum vb2_buffer_state result)
+> +u32 amvdec_get_output_size(struct amvdec_session *sess)
 > +{
-> +	struct rockchip_vpu_ctx *ctx =
-> +		(struct rockchip_vpu_ctx *)v4l2_m2m_get_curr_priv(vpu->m2m_dev);
+> +	return get_output_size(sess->width, sess->height);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_get_output_size);
 > +
-> +	/* Atomic watchdog cancel. The worker may still be
-> +	 * running after calling this.
-> +	 */
-> +	cancel_delayed_work(&vpu->watchdog_work);
-> +	if (ctx)
-> +		rockchip_vpu_job_finish(vpu, ctx, bytesused, result);
+> +static int vdec_codec_needs_recycle(struct amvdec_session *sess)
+> +{
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +
+> +	return codec_ops->can_recycle && codec_ops->recycle;
 > +}
 > +
-> +void rockchip_vpu_watchdog(struct work_struct *work)
+> +static int vdec_recycle_thread(void *data)
 > +{
-> +	struct rockchip_vpu_dev *vpu;
-> +	struct rockchip_vpu_ctx *ctx;
+> +	struct amvdec_session *sess = data;
+> +	struct amvdec_core *core = sess->core;
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +	struct amvdec_buffer *tmp, *n;
 > +
-> +	vpu = container_of(to_delayed_work(work),
-> +			   struct rockchip_vpu_dev, watchdog_work);
-> +	ctx = (struct rockchip_vpu_ctx *)v4l2_m2m_get_curr_priv(vpu->m2m_dev);
-> +	if (ctx) {
-> +		vpu_err("frame processing timed out!\n");
-> +		ctx->codec_ops->reset(ctx);
-> +		rockchip_vpu_job_finish(vpu, ctx, 0, VB2_BUF_STATE_ERROR);
+> +	while (!kthread_should_stop()) {
+> +		mutex_lock(&sess->bufs_recycle_lock);
+> +		list_for_each_entry_safe(tmp, n, &sess->bufs_recycle, list) {
+> +			if (!codec_ops->can_recycle(core))
+> +				break;
+> +
+> +			codec_ops->recycle(core, tmp->vb->index);
+> +			dev_dbg(core->dev, "Buffer %d recycled\n",
+> +				tmp->vb->index);
+> +			list_del(&tmp->list);
+> +			kfree(tmp);
+> +		}
+> +		mutex_unlock(&sess->bufs_recycle_lock);
+> +
+> +		usleep_range(5000, 10000);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_poweron(struct amvdec_session *sess)
+> +{
+> +	int ret;
+> +	struct amvdec_ops *vdec_ops = sess->fmt_out->vdec_ops;
+> +
+> +	ret = clk_prepare_enable(sess->core->dos_parser_clk);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = clk_prepare_enable(sess->core->dos_clk);
+> +	if (ret)
+> +		goto disable_dos_parser;
+> +
+> +	ret = vdec_ops->start(sess);
+> +	if (ret)
+> +		goto disable_dos;
+> +
+> +	esparser_power_up(sess);
+> +
+> +	return 0;
+> +
+> +disable_dos:
+> +	clk_disable_unprepare(sess->core->dos_clk);
+> +disable_dos_parser:
+> +	clk_disable_unprepare(sess->core->dos_parser_clk);
+> +
+> +	return ret;
+> +}
+> +
+> +static void vdec_wait_inactive(struct amvdec_session *sess)
+> +{
+> +	/* We consider 50ms with no IRQ to be inactive. */
+> +	while (time_is_after_jiffies64(sess->last_irq_jiffies +
+> +				       msecs_to_jiffies(50)))
+> +		msleep(25);
+> +}
+> +
+> +static void vdec_poweroff(struct amvdec_session *sess)
+> +{
+> +	struct amvdec_ops *vdec_ops = sess->fmt_out->vdec_ops;
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +
+> +	vdec_wait_inactive(sess);
+> +	if (codec_ops->drain)
+> +		codec_ops->drain(sess);
+> +
+> +	vdec_ops->stop(sess);
+> +	clk_disable_unprepare(sess->core->dos_clk);
+> +	clk_disable_unprepare(sess->core->dos_parser_clk);
+> +}
+> +
+> +static void
+> +vdec_queue_recycle(struct amvdec_session *sess, struct vb2_buffer *vb)
+> +{
+> +	struct amvdec_buffer *new_buf;
+> +
+> +	new_buf = kmalloc(sizeof(*new_buf), GFP_KERNEL);
+> +	new_buf->vb = vb;
+> +
+> +	mutex_lock(&sess->bufs_recycle_lock);
+> +	list_add_tail(&new_buf->list, &sess->bufs_recycle);
+> +	mutex_unlock(&sess->bufs_recycle_lock);
+> +}
+> +
+> +static void vdec_m2m_device_run(void *priv)
+> +{
+> +	struct amvdec_session *sess = priv;
+> +
+> +	schedule_work(&sess->esparser_queue_work);
+> +}
+> +
+> +static void vdec_m2m_job_abort(void *priv)
+> +{
+> +	struct amvdec_session *sess = priv;
+> +
+> +	v4l2_m2m_job_finish(sess->m2m_dev, sess->m2m_ctx);
+> +}
+> +
+> +static const struct v4l2_m2m_ops vdec_m2m_ops = {
+> +	.device_run = vdec_m2m_device_run,
+> +	.job_abort = vdec_m2m_job_abort,
+> +};
+> +
+> +static int vdec_queue_setup(struct vb2_queue *q,
+> +		unsigned int *num_buffers, unsigned int *num_planes,
+> +		unsigned int sizes[], struct device *alloc_devs[])
+> +{
+> +	struct amvdec_session *sess = vb2_get_drv_priv(q);
+> +	struct amvdec_core *core = sess->core;
+> +	const struct amvdec_format *fmt_out = sess->fmt_out;
+> +	u32 pixfmt_cap = sess->pixfmt_cap;
+> +
+> +	switch (q->type) {
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +		sizes[0] = amvdec_get_output_size(sess);
+> +		*num_planes = 1;
+> +		break;
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> +		if (pixfmt_cap == V4L2_PIX_FMT_NV12M) {
+> +			sizes[0] = amvdec_get_output_size(sess);
+> +			sizes[1] = amvdec_get_output_size(sess) / 2;
+> +			*num_planes = 2;
+> +		} else if (pixfmt_cap == V4L2_PIX_FMT_YUV420M) {
+> +			sizes[0] = amvdec_get_output_size(sess);
+> +			sizes[1] = amvdec_get_output_size(sess) / 4;
+> +			sizes[2] = amvdec_get_output_size(sess) / 4;
+> +			*num_planes = 3;
+> +		}
+> +		*num_buffers = min(max(*num_buffers, fmt_out->min_buffers),
+> +				   fmt_out->max_buffers);
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_lock(&core->lock);
+> +	if (core->cur_sess && core->cur_sess != sess) {
+> +		mutex_unlock(&core->lock);
+> +		return -EBUSY;
+> +	}
+> +
+> +	core->cur_sess = sess;
+> +	mutex_unlock(&core->lock);
+> +
+> +	return 0;
+> +}
+> +
+> +static void vdec_vb2_buf_queue(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct amvdec_session *sess = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct v4l2_m2m_ctx *m2m_ctx = sess->m2m_ctx;
+> +
+> +	mutex_lock(&sess->lock);
+> +	v4l2_m2m_buf_queue(m2m_ctx, vbuf);
+> +
+> +	if (!sess->streamon_out || !sess->streamon_cap)
+> +		goto unlock;
+> +
+> +	if (vb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
+> +	    vdec_codec_needs_recycle(sess))
+> +		vdec_queue_recycle(sess, vb);
+> +
+> +	schedule_work(&sess->esparser_queue_work);
+> +unlock:
+> +	mutex_unlock(&sess->lock);
+> +}
+> +
+> +static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +	struct amvdec_session *sess = vb2_get_drv_priv(q);
+> +	struct vb2_v4l2_buffer *buf;
+> +	int ret;
+> +
+> +	mutex_lock(&sess->lock);
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		sess->streamon_out = 1;
+> +	else
+> +		sess->streamon_cap = 1;
+> +
+> +	if (!sess->streamon_out || !sess->streamon_cap) {
+> +		mutex_unlock(&sess->lock);
+> +		return 0;
+> +	}
+> +
+> +	sess->vififo_size = SIZE_VIFIFO;
+> +	sess->vififo_vaddr =
+> +		dma_alloc_coherent(sess->core->dev, sess->vififo_size,
+> +				   &sess->vififo_paddr, GFP_KERNEL);
+> +	if (!sess->vififo_vaddr) {
+> +		dev_err(sess->core->dev, "Failed to request VIFIFO buffer\n");
+> +		ret = -ENOMEM;
+> +		goto bufs_done;
+> +	}
+> +
+> +	sess->should_stop = 0;
+> +	sess->keyframe_found = 0;
+> +	atomic_set(&sess->esparser_queued_bufs, 0);
+> +	ret = vdec_poweron(sess);
+> +	if (ret)
+> +		goto vififo_free;
+> +
+> +	sess->sequence_cap = 0;
+> +	if (vdec_codec_needs_recycle(sess))
+> +		sess->recycle_thread = kthread_run(vdec_recycle_thread, sess,
+> +						   "vdec_recycle");
+> +	mutex_unlock(&sess->lock);
+> +
+> +	return 0;
+> +
+> +vififo_free:
+> +	dma_free_coherent(sess->core->dev, sess->vififo_size,
+> +			  sess->vififo_vaddr, sess->vififo_paddr);
+> +bufs_done:
+> +	while ((buf = v4l2_m2m_src_buf_remove(sess->m2m_ctx)))
+> +		v4l2_m2m_buf_done(buf, VB2_BUF_STATE_QUEUED);
+> +	while ((buf = v4l2_m2m_dst_buf_remove(sess->m2m_ctx)))
+> +		v4l2_m2m_buf_done(buf, VB2_BUF_STATE_QUEUED);
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		sess->streamon_out = 0;
+> +	else
+> +		sess->streamon_cap = 0;
+> +	mutex_unlock(&sess->lock);
+> +	return ret;
+> +}
+> +
+> +static void vdec_free_canvas(struct amvdec_session *sess)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < sess->canvas_num; ++i)
+> +		meson_canvas_free(sess->core->canvas, sess->canvas_alloc[i]);
+> +
+> +	sess->canvas_num = 0;
+> +}
+> +
+> +static void vdec_reset_timestamps(struct amvdec_session *sess)
+> +{
+> +	struct amvdec_timestamp *tmp, *n;
+> +
+> +	list_for_each_entry_safe(tmp, n, &sess->timestamps, list) {
+> +		list_del(&tmp->list);
+> +		kfree(tmp);
 > +	}
 > +}
 > +
-> +static void device_run(void *priv)
+> +static void vdec_reset_bufs_recycle(struct amvdec_session *sess)
 > +{
-> +	struct rockchip_vpu_ctx *ctx = priv;
+> +	struct amvdec_buffer *tmp, *n;
 > +
-> +	pm_runtime_get_sync(ctx->dev->dev);
-> +
-> +	ctx->codec_ops->run(ctx);
+> +	list_for_each_entry_safe(tmp, n, &sess->bufs_recycle, list) {
+> +		list_del(&tmp->list);
+> +		kfree(tmp);
+> +	}
 > +}
 > +
-> +static struct v4l2_m2m_ops vpu_m2m_ops = {
-> +	.device_run = device_run,
+> +static void vdec_stop_streaming(struct vb2_queue *q)
+> +{
+> +	struct amvdec_session *sess = vb2_get_drv_priv(q);
+> +	struct vb2_v4l2_buffer *buf;
+> +
+> +	mutex_lock(&sess->lock);
+> +
+> +	if (sess->streamon_out && sess->streamon_cap) {
+> +		if (vdec_codec_needs_recycle(sess))
+> +			kthread_stop(sess->recycle_thread);
+> +
+> +		vdec_poweroff(sess);
+> +		vdec_free_canvas(sess);
+> +		dma_free_coherent(sess->core->dev, sess->vififo_size,
+> +				  sess->vififo_vaddr, sess->vififo_paddr);
+> +		vdec_reset_timestamps(sess);
+> +		vdec_reset_bufs_recycle(sess);
+> +		kfree(sess->priv);
+> +		sess->priv = NULL;
+> +	}
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		while ((buf = v4l2_m2m_src_buf_remove(sess->m2m_ctx)))
+> +			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
+> +
+> +		sess->streamon_out = 0;
+> +	} else {
+> +		while ((buf = v4l2_m2m_dst_buf_remove(sess->m2m_ctx)))
+> +			v4l2_m2m_buf_done(buf, VB2_BUF_STATE_ERROR);
+> +
+> +		sess->streamon_cap = 0;
+> +	}
+> +
+> +	mutex_unlock(&sess->lock);
+> +}
+> +
+> +static const struct vb2_ops vdec_vb2_ops = {
+> +	.queue_setup = vdec_queue_setup,
+> +	.start_streaming = vdec_start_streaming,
+> +	.stop_streaming = vdec_stop_streaming,
+> +	.buf_queue = vdec_vb2_buf_queue,
+
+You need to add:
+
+        .wait_prepare    = vb2_ops_wait_prepare,
+        .wait_finish     = vb2_ops_wait_finish,
+
+and set the lock field for the vb2_queues.
+
+Otherwise a DQBUF ioctl can block other ioctls issued from another thread
+if DQBUF does a blocking wait.
+
 > +};
 > +
 > +static int
-> +enc_queue_init(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
+> +vdec_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
 > +{
-> +	struct rockchip_vpu_ctx *ctx = priv;
+> +	strlcpy(cap->driver, "meson-vdec", sizeof(cap->driver));
+> +	strlcpy(cap->card, "Amlogic Video Decoder", sizeof(cap->card));
+> +	strlcpy(cap->bus_info, "platform:meson-vdec", sizeof(cap->bus_info));
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct amvdec_format *
+> +find_format(const struct amvdec_format *fmts, u32 size, u32 pixfmt)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < size; i++) {
+> +		if (fmts[i].pixfmt == pixfmt)
+> +			return &fmts[i];
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +static unsigned int
+> +vdec_supports_pixfmt_cap(const struct amvdec_format *fmt_out, u32 pixfmt_cap)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; fmt_out->pixfmts_cap[i]; i++)
+> +		if (fmt_out->pixfmts_cap[i] == pixfmt_cap)
+> +			return 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct amvdec_format *
+> +vdec_try_fmt_common(struct amvdec_session *sess, u32 size,
+> +		    struct v4l2_format *f)
+> +{
+> +	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> +	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
+> +	const struct amvdec_format *fmts = sess->core->platform->formats;
+> +	const struct amvdec_format *fmt_out;
+> +
+> +	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
+> +	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		fmt_out = find_format(fmts, size, pixmp->pixelformat);
+> +		if (!fmt_out) {
+> +			pixmp->pixelformat = V4L2_PIX_FMT_MPEG2;
+> +			fmt_out = find_format(fmts, size, pixmp->pixelformat);
+> +			pixmp->width = 1280;
+> +			pixmp->height = 720;
+
+Why set the width and height here? You normally keep that as-is.
+
+> +		}
+> +
+> +		pfmt[0].sizeimage =
+> +			get_output_size(pixmp->width, pixmp->height);
+> +		pfmt[0].bytesperline = 0;
+> +		pixmp->num_planes = 1;
+> +	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		fmt_out = sess->fmt_out;
+> +		if (!vdec_supports_pixfmt_cap(fmt_out, pixmp->pixelformat))
+> +			pixmp->pixelformat = fmt_out->pixfmts_cap[0];
+> +
+> +		memset(pfmt[1].reserved, 0, sizeof(pfmt[1].reserved));
+> +		if (pixmp->pixelformat == V4L2_PIX_FMT_NV12M) {
+> +			pfmt[0].sizeimage =
+> +				get_output_size(pixmp->width, pixmp->height);
+> +			pfmt[0].bytesperline = ALIGN(pixmp->width, 64);
+> +
+> +			pfmt[1].sizeimage =
+> +			      get_output_size(pixmp->width, pixmp->height) / 2;
+> +			pfmt[1].bytesperline = ALIGN(pixmp->width, 64);
+> +			pixmp->num_planes = 2;
+> +		} else if (pixmp->pixelformat == V4L2_PIX_FMT_YUV420M) {
+> +			pfmt[0].sizeimage =
+> +				get_output_size(pixmp->width, pixmp->height);
+> +			pfmt[0].bytesperline = ALIGN(pixmp->width, 64);
+> +
+> +			pfmt[1].sizeimage =
+> +			      get_output_size(pixmp->width, pixmp->height) / 4;
+> +			pfmt[1].bytesperline = ALIGN(pixmp->width, 64) / 2;
+> +
+> +			pfmt[2].sizeimage =
+> +			      get_output_size(pixmp->width, pixmp->height) / 4;
+> +			pfmt[2].bytesperline = ALIGN(pixmp->width, 64) / 2;
+> +			pixmp->num_planes = 3;
+> +		}
+> +	} else {
+> +		return NULL;
+> +	}
+> +
+> +	pixmp->width  = clamp(pixmp->width,  (u32)256, fmt_out->max_width);
+> +	pixmp->height = clamp(pixmp->height, (u32)144, fmt_out->max_height);
+> +
+> +	if (pixmp->field == V4L2_FIELD_ANY)
+> +		pixmp->field = V4L2_FIELD_NONE;
+> +
+> +	pixmp->flags = 0;
+
+Shouldn't be necessary, the core takes care of that if I remember correctly.
+
+> +
+> +	return fmt_out;
+> +}
+> +
+> +static int vdec_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
+> +{
+> +	struct amvdec_session *sess =
+> +		container_of(file->private_data, struct amvdec_session, fh);
+> +
+> +	vdec_try_fmt_common(sess, sess->core->platform->num_formats, f);
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+> +{
+> +	struct amvdec_session *sess =
+> +		container_of(file->private_data, struct amvdec_session, fh);
+> +	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		pixmp->pixelformat = sess->pixfmt_cap;
+> +	else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		pixmp->pixelformat = sess->fmt_out->pixfmt;
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		pixmp->width = sess->width;
+> +		pixmp->height = sess->height;
+> +		pixmp->colorspace = sess->colorspace;
+> +		pixmp->ycbcr_enc = sess->ycbcr_enc;
+> +		pixmp->quantization = sess->quantization;
+> +		pixmp->xfer_func = sess->xfer_func;
+> +	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		pixmp->width = sess->width;
+> +		pixmp->height = sess->height;
+> +	}
+> +
+> +	vdec_try_fmt_common(sess, sess->core->platform->num_formats, f);
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+> +{
+> +	struct amvdec_session *sess =
+> +		container_of(file->private_data, struct amvdec_session, fh);
+> +	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
+> +	u32 num_formats = sess->core->platform->num_formats;
+> +	const struct amvdec_format *fmt_out;
+> +	struct v4l2_pix_format_mplane orig_pixmp;
+> +	struct v4l2_format format;
+> +	u32 pixfmt_out = 0, pixfmt_cap = 0;
+> +
+> +	orig_pixmp = *pixmp;
+> +
+> +	fmt_out = vdec_try_fmt_common(sess, num_formats, f);
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		pixfmt_out = pixmp->pixelformat;
+> +		pixfmt_cap = sess->pixfmt_cap;
+> +	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		pixfmt_cap = pixmp->pixelformat;
+> +		pixfmt_out = sess->fmt_out->pixfmt;
+> +	}
+> +
+> +	memset(&format, 0, sizeof(format));
+> +
+> +	format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+> +	format.fmt.pix_mp.pixelformat = pixfmt_out;
+> +	format.fmt.pix_mp.width = orig_pixmp.width;
+> +	format.fmt.pix_mp.height = orig_pixmp.height;
+> +	vdec_try_fmt_common(sess, num_formats, &format);
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		sess->width = format.fmt.pix_mp.width;
+> +		sess->height = format.fmt.pix_mp.height;
+> +		sess->colorspace = pixmp->colorspace;
+> +		sess->ycbcr_enc = pixmp->ycbcr_enc;
+> +		sess->quantization = pixmp->quantization;
+> +		sess->xfer_func = pixmp->xfer_func;
+> +	}
+> +
+> +	memset(&format, 0, sizeof(format));
+> +
+> +	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> +	format.fmt.pix_mp.pixelformat = pixfmt_cap;
+> +	format.fmt.pix_mp.width = orig_pixmp.width;
+> +	format.fmt.pix_mp.height = orig_pixmp.height;
+> +	vdec_try_fmt_common(sess, num_formats, &format);
+> +
+> +	sess->width = format.fmt.pix_mp.width;
+> +	sess->height = format.fmt.pix_mp.height;
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		sess->fmt_out = fmt_out;
+> +	else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		sess->pixfmt_cap = format.fmt.pix_mp.pixelformat;
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
+> +{
+> +	struct amvdec_session *sess =
+> +		container_of(file->private_data, struct amvdec_session, fh);
+> +	const struct vdec_platform *platform = sess->core->platform;
+> +	const struct amvdec_format *fmt_out;
+> +
+> +	memset(f->reserved, 0, sizeof(f->reserved));
+> +
+> +	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		if (f->index >= platform->num_formats)
+> +			return -EINVAL;
+> +
+> +		fmt_out = &platform->formats[f->index];
+> +		f->pixelformat = fmt_out->pixfmt;
+> +	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		fmt_out = sess->fmt_out;
+> +		if (f->index >= 4 || !fmt_out->pixfmts_cap[f->index])
+> +			return -EINVAL;
+> +
+> +		f->pixelformat = fmt_out->pixfmts_cap[f->index];
+> +	} else {
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_enum_framesizes(struct file *file, void *fh,
+> +				struct v4l2_frmsizeenum *fsize)
+> +{
+> +	struct amvdec_session *sess =
+> +		container_of(file->private_data, struct amvdec_session, fh);
+> +	const struct amvdec_format *formats = sess->core->platform->formats;
+> +	const struct amvdec_format *fmt;
+> +	u32 num_formats = sess->core->platform->num_formats;
+> +
+> +	fmt = find_format(formats, num_formats, fsize->pixel_format);
+> +	if (!fmt || fsize->index)
+> +		return -EINVAL;
+> +
+> +	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
+> +
+> +	fsize->stepwise.min_width = 256;
+> +	fsize->stepwise.max_width = fmt->max_width;
+> +	fsize->stepwise.step_width = 1;
+> +	fsize->stepwise.min_height = 144;
+> +	fsize->stepwise.max_height = fmt->max_height;
+> +	fsize->stepwise.step_height = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +vdec_try_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+> +{
+> +	switch (cmd->cmd) {
+> +	case V4L2_DEC_CMD_STOP:
+> +		if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
+> +			return -EINVAL;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +vdec_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+> +{
+> +	struct amvdec_session *sess =
+> +		container_of(file->private_data, struct amvdec_session, fh);
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +	int ret;
+> +
+> +	ret = vdec_try_decoder_cmd(file, fh, cmd);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (!(sess->streamon_out & sess->streamon_cap))
+> +		goto unlock;
+> +
+> +	dev_dbg(sess->core->dev, "Received V4L2_DEC_CMD_STOP\n");
+> +	sess->should_stop = 1;
+> +
+> +	vdec_wait_inactive(sess);
+> +
+> +	mutex_lock(&sess->lock);
+> +	if (codec_ops->drain)
+> +		codec_ops->drain(sess);
+> +	else
+> +		esparser_queue_eos(sess->core);
+> +
+> +unlock:
+> +	mutex_unlock(&sess->lock);
+> +	return ret;
+> +}
+> +
+> +static int vdec_subscribe_event(struct v4l2_fh *fh,
+> +				const struct v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_EOS:
+> +		return v4l2_event_subscribe(fh, sub, 2, NULL);
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
+> +	.vidioc_querycap = vdec_querycap,
+> +	.vidioc_enum_fmt_vid_cap_mplane = vdec_enum_fmt,
+> +	.vidioc_enum_fmt_vid_out_mplane = vdec_enum_fmt,
+> +	.vidioc_s_fmt_vid_cap_mplane = vdec_s_fmt,
+> +	.vidioc_s_fmt_vid_out_mplane = vdec_s_fmt,
+> +	.vidioc_g_fmt_vid_cap_mplane = vdec_g_fmt,
+> +	.vidioc_g_fmt_vid_out_mplane = vdec_g_fmt,
+> +	.vidioc_try_fmt_vid_cap_mplane = vdec_try_fmt,
+> +	.vidioc_try_fmt_vid_out_mplane = vdec_try_fmt,
+> +	.vidioc_reqbufs = v4l2_m2m_ioctl_reqbufs,
+> +	.vidioc_querybuf = v4l2_m2m_ioctl_querybuf,
+> +	.vidioc_create_bufs = v4l2_m2m_ioctl_create_bufs,
+> +	.vidioc_prepare_buf = v4l2_m2m_ioctl_prepare_buf,
+> +	.vidioc_qbuf = v4l2_m2m_ioctl_qbuf,
+> +	.vidioc_expbuf = v4l2_m2m_ioctl_expbuf,
+> +	.vidioc_dqbuf = v4l2_m2m_ioctl_dqbuf,
+> +	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
+> +	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+> +	.vidioc_enum_framesizes = vdec_enum_framesizes,
+> +	.vidioc_subscribe_event = vdec_subscribe_event,
+> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+> +	.vidioc_try_decoder_cmd = vdec_try_decoder_cmd,
+> +	.vidioc_decoder_cmd = vdec_decoder_cmd,
+> +};
+> +
+> +static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
+> +			  struct vb2_queue *dst_vq)
+> +{
+> +	struct amvdec_session *sess = priv;
 > +	int ret;
 > +
 > +	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
 > +	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
-> +	src_vq->drv_priv = ctx;
-> +	src_vq->ops = &rockchip_vpu_enc_queue_ops;
-> +	src_vq->mem_ops = &vb2_dma_contig_memops;
-> +	src_vq->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES |
-> +			    DMA_ATTR_NO_KERNEL_MAPPING;
-> +	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
 > +	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	src_vq->lock = &ctx->dev->vpu_mutex;
-> +	src_vq->dev = ctx->dev->v4l2_dev.dev;
-> +
+> +	src_vq->ops = &vdec_vb2_ops;
+> +	src_vq->mem_ops = &vb2_dma_contig_memops;
+> +	src_vq->drv_priv = sess;
+> +	src_vq->buf_struct_size = sizeof(struct dummy_buf);
+> +	src_vq->allow_zero_bytesused = 1;
+
+This shouldn't be used for new drivers.
+
+> +	src_vq->min_buffers_needed = 1;
+> +	src_vq->dev = sess->core->dev;
 > +	ret = vb2_queue_init(src_vq);
 > +	if (ret)
 > +		return ret;
 > +
 > +	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
 > +	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
-> +	dst_vq->drv_priv = ctx;
-> +	dst_vq->ops = &rockchip_vpu_enc_queue_ops;
-> +	dst_vq->mem_ops = &vb2_dma_contig_memops;
-> +	dst_vq->dma_attrs = DMA_ATTR_ALLOC_SINGLE_PAGES;
-> +	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
 > +	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	dst_vq->lock = &ctx->dev->vpu_mutex;
-> +	dst_vq->dev = ctx->dev->v4l2_dev.dev;
-> +
-> +	return vb2_queue_init(dst_vq);
-> +}
-> +
-> +static struct rockchip_vpu_ctrl controls[] = {
-> +	{
-> +		.id = V4L2_CID_JPEG_QUANTIZATION,
-> +		.codec = RK_VPU_CODEC_JPEG,
-> +	},
-> +};
-> +
-> +void *rockchip_vpu_find_control_data(struct rockchip_vpu_ctx *ctx,
-> +				     unsigned int id)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < ctx->num_ctrls; i++) {
-> +		if (!ctx->ctrls[i])
-> +			continue;
-> +		if (ctx->ctrls[i]->id == id)
-> +			return ctx->ctrls[i]->p_cur.p;
-> +	}
-> +	return NULL;
-> +}
-> +
-> +static int rockchip_vpu_ctrls_setup(struct rockchip_vpu_dev *vpu,
-> +				    struct rockchip_vpu_ctx *ctx)
-> +{
-> +	int j, i, num_ctrls = ARRAY_SIZE(controls);
-> +
-> +	if (num_ctrls > ARRAY_SIZE(ctx->ctrls)) {
-> +		vpu_err("context control array not large enough\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	v4l2_ctrl_handler_init(&ctx->ctrl_handler, num_ctrls);
-> +	if (ctx->ctrl_handler.error) {
-> +		vpu_err("v4l2_ctrl_handler_init failed\n");
-> +		return ctx->ctrl_handler.error;
-> +	}
-> +
-> +	for (i = 0, j = 0; i < num_ctrls; i++) {
-> +		if (!(vpu->variant->codec & controls[i].codec))
-> +			continue;
-> +		controls[i].cfg.id = controls[i].id;
-> +		ctx->ctrls[j++] = v4l2_ctrl_new_custom(&ctx->ctrl_handler,
-> +						     &controls[i].cfg, NULL);
-> +		if (ctx->ctrl_handler.error) {
-> +			vpu_err("Adding control (%d) failed %d\n",
-> +				controls[i].id,
-> +				ctx->ctrl_handler.error);
-> +			v4l2_ctrl_handler_free(&ctx->ctrl_handler);
-> +			return ctx->ctrl_handler.error;
-> +		}
-> +	}
-> +
-> +	v4l2_ctrl_handler_setup(&ctx->ctrl_handler);
-> +	ctx->num_ctrls = num_ctrls;
-> +	return 0;
-> +}
-> +
-> +/*
-> + * V4L2 file operations.
-> + */
-> +
-> +static int rockchip_vpu_open(struct file *filp)
-> +{
-> +	struct rockchip_vpu_dev *vpu = video_drvdata(filp);
-> +	struct video_device *vdev = video_devdata(filp);
-> +	struct rockchip_vpu_ctx *ctx;
-> +	int ret;
-> +
-> +	/*
-> +	 * We do not need any extra locking here, because we operate only
-> +	 * on local data here, except reading few fields from dev, which
-> +	 * do not change through device's lifetime (which is guaranteed by
-> +	 * reference on module from open()) and V4L2 internal objects (such
-> +	 * as vdev and ctx->fh), which have proper locking done in respective
-> +	 * helper functions used here.
-> +	 */
-> +
-> +	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-> +	if (!ctx)
-> +		return -ENOMEM;
-> +
-> +	ctx->dev = vpu;
-> +	if (vdev == vpu->vfd_enc)
-> +		ctx->fh.m2m_ctx = v4l2_m2m_ctx_init(vpu->m2m_dev, ctx,
-> +						    &enc_queue_init);
-> +	else
-> +		ctx->fh.m2m_ctx = ERR_PTR(-ENODEV);
-> +	if (IS_ERR(ctx->fh.m2m_ctx)) {
-> +		ret = PTR_ERR(ctx->fh.m2m_ctx);
-> +		kfree(ctx);
+> +	dst_vq->ops = &vdec_vb2_ops;
+> +	dst_vq->mem_ops = &vb2_dma_contig_memops;
+> +	dst_vq->drv_priv = sess;
+> +	dst_vq->buf_struct_size = sizeof(struct dummy_buf);
+> +	dst_vq->allow_zero_bytesused = 1;
+
+And it definitely makes no sense for capture queues, since this
+field applies to output queues only.
+
+> +	dst_vq->min_buffers_needed = 1;
+> +	dst_vq->dev = sess->core->dev;
+> +	ret = vb2_queue_init(dst_vq);
+
+Please fill in the lock field of both queues as well.
+
+> +	if (ret) {
+> +		vb2_queue_release(src_vq);
 > +		return ret;
 > +	}
 > +
-> +	v4l2_fh_init(&ctx->fh, vdev);
-> +	filp->private_data = &ctx->fh;
-> +	v4l2_fh_add(&ctx->fh);
+> +	return 0;
+> +}
 > +
-> +	if (vdev == vpu->vfd_enc) {
-> +		rockchip_vpu_enc_reset_dst_fmt(vpu, ctx);
-> +		rockchip_vpu_enc_reset_src_fmt(vpu, ctx);
+> +static int vdec_open(struct file *file)
+> +{
+> +	struct amvdec_core *core = video_drvdata(file);
+> +	struct device *dev = core->dev;
+> +	const struct amvdec_format *formats = core->platform->formats;
+> +	struct amvdec_session *sess;
+> +	int ret;
+> +
+> +	sess = kzalloc(sizeof(*sess), GFP_KERNEL);
+> +	if (!sess) {
+> +		mutex_unlock(&core->lock);
+> +		return -ENOMEM;
 > +	}
 > +
-> +	ret = rockchip_vpu_ctrls_setup(vpu, ctx);
-> +	if (ret) {
-> +		vpu_err("Failed to set up controls\n");
-> +		goto err_fh_free;
+> +	sess->core = core;
+> +
+> +	sess->m2m_dev = v4l2_m2m_init(&vdec_m2m_ops);
+> +	if (IS_ERR(sess->m2m_dev)) {
+> +		dev_err(dev, "Fail to v4l2_m2m_init\n");
+> +		ret = PTR_ERR(sess->m2m_dev);
+> +		goto err_free_sess;
 > +	}
-> +	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+> +
+> +	sess->m2m_ctx = v4l2_m2m_ctx_init(sess->m2m_dev, sess, m2m_queue_init);
+> +	if (IS_ERR(sess->m2m_ctx)) {
+> +		dev_err(dev, "Fail to v4l2_m2m_ctx_init\n");
+> +		ret = PTR_ERR(sess->m2m_ctx);
+> +		goto err_m2m_release;
+> +	}
+> +
+> +	sess->pixfmt_cap = formats[0].pixfmts_cap[0];
+> +	sess->fmt_out = &formats[0];
+> +	sess->width = 1280;
+> +	sess->height = 720;
+> +
+> +	INIT_LIST_HEAD(&sess->timestamps);
+> +	INIT_LIST_HEAD(&sess->bufs_recycle);
+> +	INIT_WORK(&sess->esparser_queue_work, esparser_queue_all_src);
+> +	mutex_init(&sess->lock);
+> +	mutex_init(&sess->bufs_recycle_lock);
+> +	spin_lock_init(&sess->ts_spinlock);
+> +
+> +	v4l2_fh_init(&sess->fh, core->vdev_dec);
+> +	v4l2_fh_add(&sess->fh);
+> +	sess->fh.m2m_ctx = sess->m2m_ctx;
+> +	file->private_data = &sess->fh;
+> +
 > +	return 0;
 > +
-> +err_fh_free:
-> +	v4l2_fh_del(&ctx->fh);
-> +	v4l2_fh_exit(&ctx->fh);
-> +	kfree(ctx);
+> +err_m2m_release:
+> +	v4l2_m2m_release(sess->m2m_dev);
+> +err_free_sess:
+> +	kfree(sess);
 > +	return ret;
 > +}
 > +
-> +static int rockchip_vpu_release(struct file *filp)
+> +static int vdec_close(struct file *file)
 > +{
-> +	struct rockchip_vpu_ctx *ctx =
-> +		container_of(filp->private_data, struct rockchip_vpu_ctx, fh);
+> +	struct amvdec_session *sess =
+> +		container_of(file->private_data, struct amvdec_session, fh);
+> +	struct amvdec_core *core = sess->core;
 > +
-> +	/*
-> +	 * No need for extra locking because this was the last reference
-> +	 * to this file.
-> +	 */
-> +	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
-> +	v4l2_fh_del(&ctx->fh);
-> +	v4l2_fh_exit(&ctx->fh);
-> +	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
-> +	kfree(ctx);
+> +	v4l2_m2m_ctx_release(sess->m2m_ctx);
+> +	v4l2_m2m_release(sess->m2m_dev);
+> +	v4l2_fh_del(&sess->fh);
+> +	v4l2_fh_exit(&sess->fh);
+> +
+> +	mutex_destroy(&sess->lock);
+> +	mutex_destroy(&sess->bufs_recycle_lock);
+> +
+> +	kfree(sess);
+> +
+> +	if (core->cur_sess == sess)
+> +		core->cur_sess = NULL;
 > +
 > +	return 0;
 > +}
 > +
-> +static const struct v4l2_file_operations rockchip_vpu_fops = {
+> +static const struct v4l2_file_operations vdec_fops = {
 > +	.owner = THIS_MODULE,
-> +	.open = rockchip_vpu_open,
-> +	.release = rockchip_vpu_release,
-> +	.poll = v4l2_m2m_fop_poll,
+> +	.open = vdec_open,
+> +	.release = vdec_close,
 > +	.unlocked_ioctl = video_ioctl2,
+> +	.poll = v4l2_m2m_fop_poll,
 > +	.mmap = v4l2_m2m_fop_mmap,
+> +#ifdef CONFIG_COMPAT
+> +	.compat_ioctl32 = v4l2_compat_ioctl32,
+> +#endif
+
+Not needed. It's only needed if you have custom ioctls, and you don't.
+
 > +};
 > +
-> +static const struct of_device_id of_rockchip_vpu_match[] = {
-> +	{ .compatible = "rockchip,rk3399-vpu", .data = &rk3399_vpu_variant, },
-> +	{ .compatible = "rockchip,rk3288-vpu", .data = &rk3288_vpu_variant, },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, of_rockchip_vpu_match);
-> +
-> +static int rockchip_vpu_video_device_register(struct rockchip_vpu_dev *vpu)
+> +static irqreturn_t vdec_isr(int irq, void *data)
 > +{
-> +	const struct of_device_id *match;
-> +	struct video_device *vfd;
-> +	int ret;
+> +	struct amvdec_core *core = data;
+> +	struct amvdec_session *sess = core->cur_sess;
 > +
-> +	match = of_match_node(of_rockchip_vpu_match, vpu->dev->of_node);
-> +	vfd = video_device_alloc();
-> +	if (!vfd) {
-> +		v4l2_err(&vpu->v4l2_dev, "Failed to allocate video device\n");
-> +		return -ENOMEM;
-> +	}
+> +	sess->last_irq_jiffies = get_jiffies_64();
 > +
-> +	vfd->fops = &rockchip_vpu_fops;
-> +	vfd->release = video_device_release;
-> +	vfd->lock = &vpu->vpu_mutex;
-> +	vfd->v4l2_dev = &vpu->v4l2_dev;
-> +	vfd->vfl_dir = VFL_DIR_M2M;
-> +	vfd->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE;
-> +	vfd->ioctl_ops = &rockchip_vpu_enc_ioctl_ops;
-> +	snprintf(vfd->name, sizeof(vfd->name), "%s-enc", match->compatible);
-> +	vpu->vfd_enc = vfd;
-> +	video_set_drvdata(vfd, vpu);
-> +
-> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> +	if (ret) {
-> +		v4l2_err(&vpu->v4l2_dev, "Failed to register video device\n");
-> +		goto err_free_dev;
-> +	}
-> +	v4l2_info(&vpu->v4l2_dev, "registered as /dev/video%d\n", vfd->num);
-> +
-> +	ret = v4l2_m2m_register_media_controller(vpu->m2m_dev,
-> +				vfd,
-> +				MEDIA_ENT_F_PROC_VIDEO_ENCODER);
-> +	if (ret) {
-> +		v4l2_err(&vpu->v4l2_dev, "Failed to init mem2mem media controller\n");
-> +		goto err_unreg_video;
-> +	}
-> +	return 0;
-> +
-> +err_unreg_video:
-> +	video_unregister_device(vfd);
-> +err_free_dev:
-> +	video_device_release(vfd);
-> +	return ret;
+> +	return sess->fmt_out->codec_ops->isr(sess);
 > +}
 > +
-> +static int rockchip_vpu_probe(struct platform_device *pdev)
+> +static irqreturn_t vdec_threaded_isr(int irq, void *data)
 > +{
-> +	const struct of_device_id *match;
-> +	struct rockchip_vpu_dev *vpu;
-> +	struct resource *res;
-> +	int i, ret;
+> +	struct amvdec_core *core = data;
+> +	struct amvdec_session *sess = core->cur_sess;
 > +
-> +	vpu = devm_kzalloc(&pdev->dev, sizeof(*vpu), GFP_KERNEL);
-> +	if (!vpu)
+> +	return sess->fmt_out->codec_ops->threaded_isr(sess);
+> +}
+> +
+> +static const struct of_device_id vdec_dt_match[] = {
+> +	{ .compatible = "amlogic,gxbb-vdec",
+> +	  .data = &vdec_platform_gxbb },
+> +	{ .compatible = "amlogic,gxm-vdec",
+> +	  .data = &vdec_platform_gxm },
+> +	{ .compatible = "amlogic,gxl-vdec",
+> +	  .data = &vdec_platform_gxl },
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(of, vdec_dt_match);
+> +
+> +static int vdec_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct video_device *vdev;
+> +	struct amvdec_core *core;
+> +	struct resource *r;
+> +	const struct of_device_id *of_id;
+> +	int irq;
+> +	int ret;
+> +
+> +	core = devm_kzalloc(dev, sizeof(*core), GFP_KERNEL);
+> +	if (!core)
 > +		return -ENOMEM;
 > +
-> +	vpu->dev = &pdev->dev;
-> +	vpu->pdev = pdev;
-> +	mutex_init(&vpu->vpu_mutex);
-> +	spin_lock_init(&vpu->irqlock);
+> +	core->dev = dev;
+> +	platform_set_drvdata(pdev, core);
 > +
-> +	match = of_match_node(of_rockchip_vpu_match, pdev->dev.of_node);
-> +	vpu->variant = match->data;
+> +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dos");
+> +	core->dos_base = devm_ioremap_resource(dev, r);
+> +	if (IS_ERR(core->dos_base)) {
+> +		dev_err(dev, "Couldn't remap DOS memory\n");
+> +		return PTR_ERR(core->dos_base);
+> +	}
 > +
-> +	INIT_DELAYED_WORK(&vpu->watchdog_work, rockchip_vpu_watchdog);
+> +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "esparser");
+> +	core->esparser_base = devm_ioremap_resource(dev, r);
+> +	if (IS_ERR(core->esparser_base)) {
+> +		dev_err(dev, "Couldn't remap ESPARSER memory\n");
+> +		return PTR_ERR(core->esparser_base);
+> +	}
 > +
-> +	for (i = 0; i < vpu->variant->num_clocks; i++)
-> +		vpu->clocks[i].id = vpu->variant->clk_names[i];
-> +	ret = devm_clk_bulk_get(&pdev->dev, vpu->variant->num_clocks,
-> +				vpu->clocks);
+> +	core->regmap_ao = syscon_regmap_lookup_by_phandle(dev->of_node,
+> +							 "amlogic,ao-sysctrl");
+> +	if (IS_ERR(core->regmap_ao)) {
+> +		dev_err(dev, "Couldn't regmap AO sysctrl\n");
+> +		return PTR_ERR(core->regmap_ao);
+> +	}
+> +
+> +	core->canvas = meson_canvas_get(dev);
+> +	if (!core->canvas)
+> +		return PTR_ERR(core->canvas);
+> +
+> +	core->dos_parser_clk = devm_clk_get(dev, "dos_parser");
+> +	if (IS_ERR(core->dos_parser_clk))
+> +		return -EPROBE_DEFER;
+> +
+> +	core->dos_clk = devm_clk_get(dev, "dos");
+> +	if (IS_ERR(core->dos_clk))
+> +		return -EPROBE_DEFER;
+> +
+> +	core->vdec_1_clk = devm_clk_get(dev, "vdec_1");
+> +	if (IS_ERR(core->vdec_1_clk))
+> +		return -EPROBE_DEFER;
+> +
+> +	core->vdec_hevc_clk = devm_clk_get(dev, "vdec_hevc");
+> +	if (IS_ERR(core->vdec_hevc_clk))
+> +		return -EPROBE_DEFER;
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq < 0)
+> +		return irq;
+> +
+> +	ret = devm_request_threaded_irq(core->dev, irq, vdec_isr,
+> +					vdec_threaded_isr, IRQF_ONESHOT,
+> +					"vdec", core);
 > +	if (ret)
 > +		return ret;
 > +
-> +	res = platform_get_resource(vpu->pdev, IORESOURCE_MEM, 0);
-> +	vpu->base = devm_ioremap_resource(vpu->dev, res);
-> +	if (IS_ERR(vpu->base))
-> +		return PTR_ERR(vpu->base);
-> +	vpu->enc_base = vpu->base + vpu->variant->enc_offset;
-> +	vpu->dec_base = vpu->base + vpu->variant->dec_offset;
-> +
-> +	ret = dma_set_coherent_mask(vpu->dev, DMA_BIT_MASK(32));
-> +	if (ret) {
-> +		dev_err(vpu->dev, "Could not set DMA coherent mask.\n");
+> +	ret = esparser_init(pdev, core);
+> +	if (ret)
 > +		return ret;
-> +	}
 > +
-> +	if (vpu->variant->vepu_irq) {
-> +		int irq;
-> +
-> +		irq = platform_get_irq_byname(vpu->pdev, "vepu");
-> +		if (irq <= 0) {
-> +			dev_err(vpu->dev, "Could not get vepu IRQ.\n");
-> +			return -ENXIO;
-> +		}
-> +
-> +		ret = devm_request_irq(vpu->dev, irq, vpu->variant->vepu_irq,
-> +				       0, dev_name(vpu->dev), vpu);
-> +		if (ret) {
-> +			dev_err(vpu->dev, "Could not request vepu IRQ.\n");
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	if (vpu->variant->vdpu_irq) {
-> +		int irq;
-> +
-> +		irq = platform_get_irq_byname(vpu->pdev, "vdpu");
-> +		if (irq <= 0) {
-> +			dev_err(vpu->dev, "could not get vdpu IRQ\n");
-> +			return -ENXIO;
-> +		}
-> +		ret = devm_request_irq(vpu->dev, irq, vpu->variant->vdpu_irq,
-> +				       0, dev_name(vpu->dev), vpu);
-> +		if (ret) {
-> +			dev_err(vpu->dev, "could not request vdpu IRQ\n");
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	ret = vpu->variant->init(vpu);
+> +	ret = v4l2_device_register(dev, &core->v4l2_dev);
 > +	if (ret) {
-> +		dev_err(&pdev->dev, "Failed to init VPU hardware\n");
-> +		return ret;
+> +		dev_err(dev, "Couldn't register v4l2 device\n");
+> +		return -ENOMEM;
 > +	}
 > +
-> +	pm_runtime_set_autosuspend_delay(vpu->dev, 100);
-> +	pm_runtime_use_autosuspend(vpu->dev);
-> +	pm_runtime_enable(vpu->dev);
+> +	vdev = video_device_alloc();
+> +	if (!vdev) {
+> +		ret = -ENOMEM;
+> +		goto err_vdev_release;
+> +	}
 > +
-> +	ret = clk_bulk_prepare(vpu->variant->num_clocks, vpu->clocks);
+> +	strlcpy(vdev->name, "meson-video-decoder", sizeof(vdev->name));
+> +	vdev->release = video_device_release;
+> +	vdev->fops = &vdec_fops;
+> +	vdev->ioctl_ops = &vdec_ioctl_ops;
+> +	vdev->vfl_dir = VFL_DIR_M2M;
+> +	vdev->v4l2_dev = &core->v4l2_dev;
+
+Please fill in vdev->lock, you probably want to set it to &core->lock
+(not sure, though). Otherwise you would have to serialize all ioctls yourself.
+
+> +	vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+> +
+> +	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
 > +	if (ret) {
-> +		dev_err(&pdev->dev, "Failed to prepare clocks\n");
-> +		return ret;
+> +		dev_err(dev, "Failed registering video device\n");
+> +		goto err_vdev_release;
 > +	}
 > +
-> +	ret = v4l2_device_register(&pdev->dev, &vpu->v4l2_dev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Failed to register v4l2 device\n");
-> +		goto err_clk_unprepare;
-> +	}
-> +	platform_set_drvdata(pdev, vpu);
+> +	of_id = of_match_node(vdec_dt_match, dev->of_node);
+> +	core->platform = of_id->data;
+> +	core->vdev_dec = vdev;
+> +	core->dev_dec = dev;
+> +	mutex_init(&core->lock);
 > +
-> +	vpu->m2m_dev = v4l2_m2m_init(&vpu_m2m_ops);
-> +	if (IS_ERR(vpu->m2m_dev)) {
-> +		v4l2_err(&vpu->v4l2_dev, "Failed to init mem2mem device\n");
-> +		ret = PTR_ERR(vpu->m2m_dev);
-> +		goto err_v4l2_unreg;
-> +	}
+> +	video_set_drvdata(vdev, core);
+
+I'd move all this to before the video_register_device() call. Otherwise the video device
+can appear and used immediately without this initialization being done.
+
 > +
-> +	vpu->mdev.dev = vpu->dev;
-> +	strlcpy(vpu->mdev.model, DRIVER_NAME, sizeof(vpu->mdev.model));
-> +	media_device_init(&vpu->mdev);
-> +	vpu->v4l2_dev.mdev = &vpu->mdev;
-> +
-> +	ret = rockchip_vpu_video_device_register(vpu);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Failed to register encoder\n");
-> +		goto err_m2m_rel;
-> +	}
-> +
-> +	ret = media_device_register(&vpu->mdev);
-> +	if (ret) {
-> +		v4l2_err(&vpu->v4l2_dev, "Failed to register mem2mem media device\n");
-> +		goto err_video_dev_unreg;
-> +	}
 > +	return 0;
-> +err_video_dev_unreg:
-> +	if (vpu->vfd_enc) {
-> +		video_unregister_device(vpu->vfd_enc);
-> +		video_device_release(vpu->vfd_enc);
-> +	}
-> +err_m2m_rel:
-> +	v4l2_m2m_release(vpu->m2m_dev);
-> +err_v4l2_unreg:
-> +	v4l2_device_unregister(&vpu->v4l2_dev);
-> +err_clk_unprepare:
-> +	clk_bulk_unprepare(vpu->variant->num_clocks, vpu->clocks);
-> +	pm_runtime_disable(vpu->dev);
+> +
+> +err_vdev_release:
+> +	video_device_release(vdev);
 > +	return ret;
 > +}
 > +
-> +static int rockchip_vpu_remove(struct platform_device *pdev)
+> +static int vdec_remove(struct platform_device *pdev)
 > +{
-> +	struct rockchip_vpu_dev *vpu = platform_get_drvdata(pdev);
+> +	struct amvdec_core *core = platform_get_drvdata(pdev);
 > +
-> +	v4l2_info(&vpu->v4l2_dev, "Removing %s\n", pdev->name);
+> +	video_unregister_device(core->vdev_dec);
 > +
-> +	media_device_unregister(&vpu->mdev);
-> +	v4l2_m2m_unregister_media_controller(vpu->m2m_dev);
-> +	v4l2_m2m_release(vpu->m2m_dev);
-> +	media_device_cleanup(&vpu->mdev);
-> +	if (vpu->vfd_enc) {
-> +		video_unregister_device(vpu->vfd_enc);
-> +		video_device_release(vpu->vfd_enc);
-> +	}
-> +	v4l2_device_unregister(&vpu->v4l2_dev);
-> +	clk_bulk_unprepare(vpu->variant->num_clocks, vpu->clocks);
-> +	pm_runtime_disable(vpu->dev);
 > +	return 0;
 > +}
 > +
-> +static int __maybe_unused rockchip_vpu_runtime_suspend(struct device *dev)
-> +{
-> +	struct rockchip_vpu_dev *vpu = dev_get_drvdata(dev);
-> +
-> +	clk_bulk_disable(vpu->variant->num_clocks, vpu->clocks);
-> +	return 0;
-> +}
-> +
-> +static int __maybe_unused rockchip_vpu_runtime_resume(struct device *dev)
-> +{
-> +	struct rockchip_vpu_dev *vpu = dev_get_drvdata(dev);
-> +
-> +	return clk_bulk_enable(vpu->variant->num_clocks, vpu->clocks);
-> +}
-> +
-> +static const struct dev_pm_ops rockchip_vpu_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
-> +				pm_runtime_force_resume)
-> +	SET_RUNTIME_PM_OPS(rockchip_vpu_runtime_suspend,
-> +			   rockchip_vpu_runtime_resume, NULL)
-> +};
-> +
-> +static struct platform_driver rockchip_vpu_driver = {
-> +	.probe = rockchip_vpu_probe,
-> +	.remove = rockchip_vpu_remove,
+> +static struct platform_driver meson_vdec_driver = {
+> +	.probe = vdec_probe,
+> +	.remove = vdec_remove,
 > +	.driver = {
-> +		   .name = DRIVER_NAME,
-> +		   .of_match_table = of_match_ptr(of_rockchip_vpu_match),
-> +		   .pm = &rockchip_vpu_pm_ops,
+> +		.name = "meson-vdec",
+> +		.of_match_table = vdec_dt_match,
 > +	},
 > +};
-> +module_platform_driver(rockchip_vpu_driver);
+> +module_platform_driver(meson_vdec_driver);
 > +
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_AUTHOR("Alpha Lin <Alpha.Lin@Rock-Chips.com>");
-> +MODULE_AUTHOR("Tomasz Figa <tfiga@chromium.org>");
-> +MODULE_AUTHOR("Ezequiel Garcia <ezequiel@collabora.com>");
-> +MODULE_DESCRIPTION("Rockchip VPU codec driver");
-> diff --git a/drivers/media/platform/rockchip/vpu/rockchip_vpu_enc.c b/drivers/media/platform/rockchip/vpu/rockchip_vpu_enc.c
+> +MODULE_DESCRIPTION("Meson video decoder driver for GXBB/GXL/GXM");
+> +MODULE_AUTHOR("Maxime Jourdan <mjourdan@baylibre.com>");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/platform/meson/vdec/vdec.h b/drivers/media/platform/meson/vdec/vdec.h
 > new file mode 100644
-> index 000000000000..416b435a6398
+> index 000000000000..8250fb82dfab
 > --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rockchip_vpu_enc.c
-> @@ -0,0 +1,607 @@
-> +// SPDX-License-Identifier: GPL-2.0
+> +++ b/drivers/media/platform/meson/vdec/vdec.h
+> @@ -0,0 +1,234 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
 > +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Collabora, Ltd.
-> + * Copyright (C) 2018 Rockchip Electronics Co., Ltd.
-> + *	Alpha Lin <Alpha.Lin@rock-chips.com>
-> + *	Jeffy Chen <jeffy.chen@rock-chips.com>
-> + *
-> + * Copyright (C) 2018 Google, Inc.
-> + *	Tomasz Figa <tfiga@chromium.org>
-> + *
-> + * Based on s5p-mfc driver by Samsung Electronics Co., Ltd.
-> + * Copyright (C) 2010-2011 Samsung Electronics Co., Ltd.
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
 > + */
 > +
-> +#include <linux/interrupt.h>
-> +#include <linux/io.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/videodev2.h>
-> +#include <linux/workqueue.h>
+> +#ifndef __MESON_VDEC_CORE_H_
+> +#define __MESON_VDEC_CORE_H_
+> +
+> +/* 32 buffers in 3-plane YUV420 */
+> +#define MAX_CANVAS (32 * 3)
+> +
+> +#include <linux/regmap.h>
+> +#include <linux/list.h>
+> +#include <media/videobuf2-v4l2.h>
 > +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-event.h>
-> +#include <media/v4l2-mem2mem.h>
-> +#include <media/videobuf2-core.h>
-> +#include <media/videobuf2-dma-sg.h>
+> +#include <media/v4l2-device.h>
+> +#include <linux/soc/amlogic/meson-canvas.h>
 > +
-> +#include "rockchip_vpu.h"
-> +#include "rockchip_vpu_hw.h"
-> +#include "rockchip_vpu_common.h"
+> +#include "vdec_platform.h"
 > +
-> +static const struct rockchip_vpu_fmt *
-> +rockchip_vpu_find_format(struct rockchip_vpu_ctx *ctx, u32 fourcc)
-> +{
-> +	struct rockchip_vpu_dev *dev = ctx->dev;
-> +	const struct rockchip_vpu_fmt *formats;
-> +	unsigned int num_fmts, i;
-> +
-> +	formats = dev->variant->enc_fmts;
-> +	num_fmts = dev->variant->num_enc_fmts;
-> +	for (i = 0; i < num_fmts; i++)
-> +		if (formats[i].fourcc == fourcc)
-> +			return &formats[i];
-> +	return NULL;
-> +}
-> +
-> +static const struct rockchip_vpu_fmt *
-> +rockchip_vpu_get_default_fmt(struct rockchip_vpu_ctx *ctx, bool bitstream)
-> +{
-> +	struct rockchip_vpu_dev *dev = ctx->dev;
-> +	const struct rockchip_vpu_fmt *formats;
-> +	unsigned int num_fmts, i;
-> +
-> +	formats = dev->variant->enc_fmts;
-> +	num_fmts = dev->variant->num_enc_fmts;
-> +	for (i = 0; i < num_fmts; i++)
-> +		if (bitstream == (formats[i].codec_mode != RK_VPU_MODE_NONE))
-> +			return &formats[i];
-> +	return NULL;
-> +}
-> +
-> +static int vidioc_querycap(struct file *file, void *priv,
-> +			   struct v4l2_capability *cap)
-> +{
-> +	struct rockchip_vpu_dev *vpu = video_drvdata(file);
-> +
-> +	strlcpy(cap->driver, vpu->dev->driver->name, sizeof(cap->driver));
-> +	strlcpy(cap->card, vpu->vfd_enc->name, sizeof(cap->card));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform: %s",
-> +		 vpu->dev->driver->name);
-> +	return 0;
-> +}
-> +
-> +static int vidioc_enum_framesizes(struct file *file, void *priv,
-> +				  struct v4l2_frmsizeenum *fsize)
-> +{
-> +	struct rockchip_vpu_ctx *ctx = fh_to_ctx(priv);
-> +	const struct rockchip_vpu_fmt *fmt;
-> +
-> +	if (fsize->index != 0) {
-> +		vpu_debug(0, "invalid frame size index (expected 0, got %d)\n",
-> +				fsize->index);
-> +		return -EINVAL;
-> +	}
-> +
-> +	fmt = rockchip_vpu_find_format(ctx, fsize->pixel_format);
-> +	if (!fmt) {
-> +		vpu_debug(0, "unsupported bitstream format (%08x)\n",
-> +				fsize->pixel_format);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* This only makes sense for codec formats */
-> +	if (fmt->codec_mode == RK_VPU_MODE_NONE)
-> +		return -EINVAL;
-> +
-> +	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
-> +	fsize->stepwise = fmt->frmsize;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *priv,
-> +					  struct v4l2_fmtdesc *f)
-> +{
-> +	struct rockchip_vpu_dev *dev = video_drvdata(file);
-> +	const struct rockchip_vpu_fmt *fmt;
-> +	const struct rockchip_vpu_fmt *formats;
-> +	int num_fmts, i, j = 0;
-> +
-> +	formats = dev->variant->enc_fmts;
-> +	num_fmts = dev->variant->num_enc_fmts;
-> +	for (i = 0; i < num_fmts; i++) {
-> +		/* Skip uncompressed formats */
-> +		if (formats[i].codec_mode == RK_VPU_MODE_NONE)
-> +			continue;
-> +		if (j == f->index) {
-> +			fmt = &formats[i];
-> +			f->pixelformat = fmt->fourcc;
-> +			return 0;
-> +		}
-> +		++j;
-> +	}
-> +	return -EINVAL;
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *priv,
-> +					  struct v4l2_fmtdesc *f)
-> +{
-> +	struct rockchip_vpu_dev *dev = video_drvdata(file);
-> +	const struct rockchip_vpu_fmt *formats;
-> +	const struct rockchip_vpu_fmt *fmt;
-> +	int num_fmts, i, j = 0;
-> +
-> +	formats = dev->variant->enc_fmts;
-> +	num_fmts = dev->variant->num_enc_fmts;
-> +	for (i = 0; i < num_fmts; i++) {
-> +		if (formats[i].codec_mode != RK_VPU_MODE_NONE)
-> +			continue;
-> +		if (j == f->index) {
-> +			fmt = &formats[i];
-> +			f->pixelformat = fmt->fourcc;
-> +			return 0;
-> +		}
-> +		++j;
-> +	}
-> +	return -EINVAL;
-> +}
-> +
-> +static int vidioc_g_fmt_out(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
-> +	struct rockchip_vpu_ctx *ctx = fh_to_ctx(priv);
-> +
-> +	vpu_debug(4, "f->type = %d\n", f->type);
-> +
-> +	*pix_mp = ctx->src_fmt;
-> +	pix_mp->colorspace = ctx->colorspace;
-> +	pix_mp->ycbcr_enc = ctx->ycbcr_enc;
-> +	pix_mp->xfer_func = ctx->xfer_func;
-> +	pix_mp->quantization = ctx->quantization;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_fmt_cap(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
-> +	struct rockchip_vpu_ctx *ctx = fh_to_ctx(priv);
-> +
-> +	vpu_debug(4, "f->type = %d\n", f->type);
-> +
-> +	*pix_mp = ctx->dst_fmt;
-> +	pix_mp->colorspace = ctx->colorspace;
-> +	pix_mp->ycbcr_enc = ctx->ycbcr_enc;
-> +	pix_mp->xfer_func = ctx->xfer_func;
-> +	pix_mp->quantization = ctx->quantization;
-> +
-> +	return 0;
-> +}
-> +
-> +static void calculate_plane_sizes(const struct rockchip_vpu_fmt *fmt,
-> +				  struct v4l2_pix_format_mplane *pix_mp)
-> +{
-> +	unsigned int w = pix_mp->width;
-> +	unsigned int h = pix_mp->height;
-> +	int i;
-> +
-> +	for (i = 0; i < fmt->num_planes; ++i) {
-> +		memset(pix_mp->plane_fmt[i].reserved, 0,
-> +		       sizeof(pix_mp->plane_fmt[i].reserved));
-> +		pix_mp->plane_fmt[i].bytesperline = w * fmt->depth[i] / 8;
-> +		pix_mp->plane_fmt[i].sizeimage = h *
-> +					pix_mp->plane_fmt[i].bytesperline;
-> +	}
-> +}
-> +
-> +static int
-> +vidioc_try_fmt_cap(struct file *file, void *priv, struct v4l2_format *f)
-> +{
-> +	struct rockchip_vpu_ctx *ctx = fh_to_ctx(priv);
-> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
-> +	const struct rockchip_vpu_fmt *fmt;
-> +	char str[5];
-> +
-> +	vpu_debug(4, "%s\n", fmt2str(pix_mp->pixelformat, str));
-> +
-> +	fmt = rockchip_vpu_find_format(ctx, pix_mp->pixelformat);
-> +	if (!fmt) {
-> +		fmt = rockchip_vpu_get_default_fmt(ctx, true);
-> +		f->fmt.pix.pixelformat = fmt->fourcc;
-> +	}
-> +
-> +	pix_mp->num_planes = fmt->num_planes;
-> +	pix_mp->field = V4L2_FIELD_NONE;
-> +	pix_mp->width = clamp(pix_mp->width,
-> +			fmt->frmsize.min_width,
-> +			fmt->frmsize.max_width);
-> +	pix_mp->height = clamp(pix_mp->height,
-> +			fmt->frmsize.min_height,
-> +			fmt->frmsize.max_height);
-> +	pix_mp->plane_fmt[0].sizeimage =
-> +		pix_mp->width * pix_mp->height * fmt->max_depth;
-> +	memset(pix_mp->plane_fmt[0].reserved, 0,
-> +	       sizeof(pix_mp->plane_fmt[0].reserved));
-> +	return 0;
-> +}
-> +
-> +static int
-> +vidioc_try_fmt_out(struct file *file, void *priv, struct v4l2_format *f)
-> +{
-> +	struct rockchip_vpu_ctx *ctx = fh_to_ctx(priv);
-> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
-> +	const struct rockchip_vpu_fmt *fmt;
-> +	unsigned long dma_align;
-> +	bool need_alignment;
-> +	char str[5];
-> +	int i;
-> +
-> +	vpu_debug(4, "%s\n", fmt2str(pix_mp->pixelformat, str));
-> +
-> +	fmt = rockchip_vpu_find_format(ctx, pix_mp->pixelformat);
-> +	if (!fmt) {
-> +		fmt = rockchip_vpu_get_default_fmt(ctx, false);
-> +		f->fmt.pix.pixelformat = fmt->fourcc;
-> +	}
-> +
-> +	pix_mp->num_planes = fmt->num_planes;
-> +	pix_mp->field = V4L2_FIELD_NONE;
-> +	pix_mp->width = clamp(pix_mp->width,
-> +			ctx->vpu_dst_fmt->frmsize.min_width,
-> +			ctx->vpu_dst_fmt->frmsize.max_width);
-> +	pix_mp->height = clamp(pix_mp->height,
-> +			ctx->vpu_dst_fmt->frmsize.min_height,
-> +			ctx->vpu_dst_fmt->frmsize.max_height);
-> +	/* Round up to macroblocks. */
-> +	pix_mp->width = round_up(pix_mp->width, MB_DIM);
-> +	pix_mp->height = round_up(pix_mp->height, MB_DIM);
-> +
-> +	/* Fill remaining fields */
-> +	calculate_plane_sizes(fmt, pix_mp);
-> +
-> +	dma_align = dma_get_cache_alignment();
-> +	need_alignment = false;
-> +	for (i = 0; i < fmt->num_planes; i++) {
-> +		if (!IS_ALIGNED(pix_mp->plane_fmt[i].sizeimage,
-> +				dma_align)) {
-> +			need_alignment = true;
-> +			break;
-> +		}
-> +	}
-> +	if (!need_alignment)
-> +		return 0;
-> +
-> +	pix_mp->height = round_up(pix_mp->height, dma_align * 4 / MB_DIM);
-> +	if (pix_mp->height > ctx->vpu_dst_fmt->frmsize.max_height) {
-> +		vpu_err("Aligned height higher than maximum.\n");
-> +		return -EINVAL;
-> +	}
-> +	/* Fill in remaining fields, again */
-> +	calculate_plane_sizes(fmt, pix_mp);
-> +	return 0;
-> +}
-> +
-> +void rockchip_vpu_enc_reset_dst_fmt(struct rockchip_vpu_dev *vpu,
-> +				struct rockchip_vpu_ctx *ctx)
-> +{
-> +	struct v4l2_pix_format_mplane *fmt = &ctx->dst_fmt;
-> +
-> +	ctx->vpu_dst_fmt = rockchip_vpu_get_default_fmt(ctx, true);
-> +
-> +	memset(fmt, 0, sizeof(*fmt));
-> +
-> +	fmt->num_planes = ctx->vpu_dst_fmt->num_planes;
-> +	fmt->width = clamp(fmt->width, ctx->vpu_dst_fmt->frmsize.min_width,
-> +		ctx->vpu_dst_fmt->frmsize.max_width);
-> +	fmt->height = clamp(fmt->height, ctx->vpu_dst_fmt->frmsize.min_height,
-> +		ctx->vpu_dst_fmt->frmsize.max_height);
-> +	fmt->pixelformat = ctx->vpu_dst_fmt->fourcc;
-> +	fmt->field = V4L2_FIELD_NONE;
-> +	fmt->colorspace = ctx->colorspace;
-> +	fmt->ycbcr_enc = ctx->ycbcr_enc;
-> +	fmt->xfer_func = ctx->xfer_func;
-> +	fmt->quantization = ctx->quantization;
-> +
-> +	fmt->plane_fmt[0].sizeimage =
-> +		fmt->width * fmt->height * ctx->vpu_dst_fmt->max_depth;
-> +}
-> +
-> +void rockchip_vpu_enc_reset_src_fmt(struct rockchip_vpu_dev *vpu,
-> +				struct rockchip_vpu_ctx *ctx)
-> +{
-> +	struct v4l2_pix_format_mplane *fmt = &ctx->src_fmt;
-> +
-> +	ctx->vpu_src_fmt = rockchip_vpu_get_default_fmt(ctx, false);
-> +
-> +	memset(fmt, 0, sizeof(*fmt));
-> +
-> +	fmt->num_planes = ctx->vpu_src_fmt->num_planes;
-> +	fmt->width = clamp(fmt->width, ctx->vpu_dst_fmt->frmsize.min_width,
-> +		ctx->vpu_dst_fmt->frmsize.max_width);
-> +	fmt->height = clamp(fmt->height, ctx->vpu_dst_fmt->frmsize.min_height,
-> +		ctx->vpu_dst_fmt->frmsize.max_height);
-> +	fmt->pixelformat = ctx->vpu_src_fmt->fourcc;
-> +	fmt->field = V4L2_FIELD_NONE;
-> +	fmt->colorspace = ctx->colorspace;
-> +	fmt->ycbcr_enc = ctx->ycbcr_enc;
-> +	fmt->xfer_func = ctx->xfer_func;
-> +	fmt->quantization = ctx->quantization;
-> +
-> +	calculate_plane_sizes(ctx->vpu_src_fmt, fmt);
-> +}
-> +
-> +static int
-> +vidioc_s_fmt_out(struct file *file, void *priv, struct v4l2_format *f)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
-> +	struct rockchip_vpu_ctx *ctx = fh_to_ctx(priv);
-> +	struct vb2_queue *vq, *peer_vq;
-> +	int ret;
-> +
-> +	/* Change not allowed if queue is streaming. */
-> +	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
-> +	if (vb2_is_streaming(vq))
-> +		return -EBUSY;
-> +
-> +	ctx->colorspace = pix_mp->colorspace;
-> +	ctx->ycbcr_enc = pix_mp->ycbcr_enc;
-> +	ctx->xfer_func = pix_mp->xfer_func;
-> +	ctx->quantization = pix_mp->quantization;
-> +
-> +	/*
-> +	 * Pixel format change is not allowed when the other queue has
-> +	 * buffers allocated.
-> +	 */
-> +	peer_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
-> +		V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
-> +	if (vb2_is_busy(peer_vq) &&
-> +	    pix_mp->pixelformat != ctx->src_fmt.pixelformat)
-> +		return -EBUSY;
-> +
-> +	ret = vidioc_try_fmt_out(file, priv, f);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ctx->vpu_src_fmt = rockchip_vpu_find_format(ctx, pix_mp->pixelformat);
-> +	ctx->src_fmt = *pix_mp;
-> +
-> +	vpu_debug(0, "OUTPUT codec mode: %d\n", ctx->vpu_src_fmt->codec_mode);
-> +	vpu_debug(0, "fmt - w: %d, h: %d, mb - w: %d, h: %d\n",
-> +		  pix_mp->width, pix_mp->height,
-> +		  MB_WIDTH(pix_mp->width),
-> +		  MB_HEIGHT(pix_mp->height));
-> +	return 0;
-> +}
-> +
-> +static int
-> +vidioc_s_fmt_cap(struct file *file, void *priv, struct v4l2_format *f)
-> +{
-> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
-> +	struct rockchip_vpu_ctx *ctx = fh_to_ctx(priv);
-> +	struct rockchip_vpu_dev *vpu = ctx->dev;
-> +	struct vb2_queue *vq, *peer_vq;
-> +	int ret;
-> +
-> +	/* Change not allowed if queue is streaming. */
-> +	vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, f->type);
-> +	if (vb2_is_streaming(vq))
-> +		return -EBUSY;
-> +
-> +	ctx->colorspace = pix_mp->colorspace;
-> +	ctx->ycbcr_enc = pix_mp->ycbcr_enc;
-> +	ctx->xfer_func = pix_mp->xfer_func;
-> +	ctx->quantization = pix_mp->quantization;
-> +
-> +	/*
-> +	 * Pixel format change is not allowed when the other queue has
-> +	 * buffers allocated.
-> +	 */
-> +	peer_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
-> +			V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
-> +	if (vb2_is_busy(peer_vq) &&
-> +	    pix_mp->pixelformat != ctx->dst_fmt.pixelformat)
-> +		return -EBUSY;
-> +
-> +	ret = vidioc_try_fmt_cap(file, priv, f);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ctx->vpu_dst_fmt = rockchip_vpu_find_format(ctx, pix_mp->pixelformat);
-> +	ctx->dst_fmt = *pix_mp;
-> +
-> +	vpu_debug(0, "CAPTURE codec mode: %d\n", ctx->vpu_dst_fmt->codec_mode);
-> +	vpu_debug(0, "fmt - w: %d, h: %d, mb - w: %d, h: %d\n",
-> +		  pix_mp->width, pix_mp->height,
-> +		  MB_WIDTH(pix_mp->width),
-> +		  MB_HEIGHT(pix_mp->height));
-> +
-> +	/*
-> +	 * Current raw format might have become invalid with newly
-> +	 * selected codec, so reset it to default just to be safe and
-> +	 * keep internal driver state sane. User is mandated to set
-> +	 * the raw format again after we return, so we don't need
-> +	 * anything smarter.
-> +	 */
-> +	rockchip_vpu_enc_reset_src_fmt(vpu, ctx);
-> +	return 0;
-> +}
-> +
-> +const struct v4l2_ioctl_ops rockchip_vpu_enc_ioctl_ops = {
-> +	.vidioc_querycap = vidioc_querycap,
-> +	.vidioc_enum_framesizes = vidioc_enum_framesizes,
-> +
-> +	.vidioc_try_fmt_vid_cap_mplane = vidioc_try_fmt_cap,
-> +	.vidioc_try_fmt_vid_out_mplane = vidioc_try_fmt_out,
-> +	.vidioc_s_fmt_vid_out_mplane = vidioc_s_fmt_out,
-> +	.vidioc_s_fmt_vid_cap_mplane = vidioc_s_fmt_cap,
-> +	.vidioc_g_fmt_vid_out_mplane = vidioc_g_fmt_out,
-> +	.vidioc_g_fmt_vid_cap_mplane = vidioc_g_fmt_cap,
-> +	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
-> +	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
-> +
-> +	.vidioc_reqbufs = v4l2_m2m_ioctl_reqbufs,
-> +	.vidioc_querybuf = v4l2_m2m_ioctl_querybuf,
-> +	.vidioc_qbuf = v4l2_m2m_ioctl_qbuf,
-> +	.vidioc_dqbuf = v4l2_m2m_ioctl_dqbuf,
-> +	.vidioc_prepare_buf = v4l2_m2m_ioctl_prepare_buf,
-> +	.vidioc_create_bufs = v4l2_m2m_ioctl_create_bufs,
-> +	.vidioc_expbuf = v4l2_m2m_ioctl_expbuf,
-> +
-> +	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-> +
-> +	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
-> +	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+> +struct amvdec_buffer {
+> +	struct list_head list;
+> +	struct vb2_buffer *vb;
 > +};
 > +
-> +static int rockchip_vpu_queue_setup(struct vb2_queue *vq,
-> +				  unsigned int *num_buffers,
-> +				  unsigned int *num_planes,
-> +				  unsigned int sizes[],
-> +				  struct device *alloc_devs[])
+> +struct amvdec_timestamp {
+> +	struct list_head list;
+> +	u64 ts;
+> +};
+> +
+> +struct amvdec_session;
+> +
+> +/**
+> + * struct amvdec_core - device parameters, singleton
+> + *
+> + * @dos_base: DOS memory base address
+> + * @esparser_base: PARSER memory base address
+> + * @regmap_ao: regmap for the AO bus
+> + * @dev: core device
+> + * @dev_dec: decoder device
+> + * @platform: platform-specific data
+> + * @canvas: canvas provider reference
+> + * @dos_parser_clk: DOS_PARSER clock
+> + * @dos_clk: DOS clock
+> + * @vdec_1_clk: VDEC_1 clock
+> + * @vdec_hevc_clk: VDEC_HEVC clock
+> + * @esparser_reset: RESET for the PARSER
+> + * @vdec_dec: video device for the decoder
+> + * @v4l2_dev: v4l2 device
+> + * @cur_sess: current decoding session
+> + * @lock: lock for this structure
+> + */
+> +struct amvdec_core {
+> +	void __iomem *dos_base;
+> +	void __iomem *esparser_base;
+> +	struct regmap *regmap_ao;
+> +
+> +	struct device *dev;
+> +	struct device *dev_dec;
+> +	const struct vdec_platform *platform;
+> +
+> +	struct meson_canvas *canvas;
+> +
+> +	struct clk *dos_parser_clk;
+> +	struct clk *dos_clk;
+> +	struct clk *vdec_1_clk;
+> +	struct clk *vdec_hevc_clk;
+> +
+> +	struct reset_control *esparser_reset;
+> +
+> +	struct video_device *vdev_dec;
+> +	struct v4l2_device v4l2_dev;
+> +
+> +	struct amvdec_session *cur_sess;
+> +	struct mutex lock;
+> +};
+> +
+> +/**
+> + * struct amvdec_ops - vdec operations
+> + *
+> + * @start: mandatory call when the vdec needs to initialize
+> + * @stop: mandatory call when the vdec needs to stop
+> + * @conf_esparser: mandatory call to let the vdec configure the ESPARSER
+> + * @vififo_level: mandatory call to get the current amount of data
+> + *		  in the VIFIFO
+> + */
+> +struct amvdec_ops {
+> +	int (*start)(struct amvdec_session *sess);
+> +	int (*stop)(struct amvdec_session *sess);
+> +	void (*conf_esparser)(struct amvdec_session *sess);
+> +	u32 (*vififo_level)(struct amvdec_session *sess);
+> +};
+> +
+> +/**
+> + * struct amvdec_codec_ops - codec operations
+> + *
+> + * @start: mandatory call when the codec needs to initialize
+> + * @stop: mandatory call when the codec needs to stop
+> + * @load_extended_firmware: optional call to load additional firmware bits
+> + * @num_pending_bufs: optional call to get the number of dst buffers on hold
+> + * @can_recycle: optional call to know if the codec is ready to recycle
+> + *		 a dst buffer
+> + * @recycle: optional call to tell the codec to recycle a dst buffer. Must go
+> + *	     in pair with can_recycle
+> + * @drain: optional call if the codec has a custom way of draining
+> + * @isr: mandatory call when the ISR triggers
+> + * @threaded_isr: mandatory call for the threaded ISR
+> + */
+> +struct amvdec_codec_ops {
+> +	int (*start)(struct amvdec_session *sess);
+> +	int (*stop)(struct amvdec_session *sess);
+> +	int (*load_extended_firmware)(struct amvdec_session *sess,
+> +				      const u8 *data, u32 len);
+> +	u32 (*num_pending_bufs)(struct amvdec_session *sess);
+> +	int (*can_recycle)(struct amvdec_core *core);
+> +	void (*recycle)(struct amvdec_core *core, u32 buf_idx);
+> +	void (*drain)(struct amvdec_session *sess);
+> +	irqreturn_t (*isr)(struct amvdec_session *sess);
+> +	irqreturn_t (*threaded_isr)(struct amvdec_session *sess);
+> +};
+> +
+> +/**
+> + * struct amvdec_format - describes one of the OUTPUT (src) format supported
+> + *
+> + * @pixfmt: V4L2 pixel format
+> + * @min_buffers: minimum amount of CAPTURE (dst) buffers
+> + * @max_buffers: maximum amount of CAPTURE (dst) buffers
+> + * @max_width: maximum picture width supported
+> + * @max_height: maximum picture height supported
+> + * @vdec_ops: the VDEC operations that support this format
+> + * @codec_ops: the codec operations that support this format
+> + * @firmware_path: Path to the firmware that supports this format
+> + * @pixfmts_cap: list of CAPTURE pixel formats available with pixfmt
+> + */
+> +struct amvdec_format {
+> +	u32 pixfmt;
+> +	u32 min_buffers;
+> +	u32 max_buffers;
+> +	u32 max_width;
+> +	u32 max_height;
+> +
+> +	struct amvdec_ops *vdec_ops;
+> +	struct amvdec_codec_ops *codec_ops;
+> +
+> +	char *firmware_path;
+> +	u32 pixfmts_cap[4];
+> +};
+> +
+> +/**
+> + * struct amvdec_session - decoding session parameters
+> + *
+> + * @core: reference to the vdec core struct
+> + * @fh: v4l2 file handle
+> + * @m2m_dev: v4l2 m2m device
+> + * @m2m_ctx: v4l2 m2m context
+> + * @lock: session lock
+> + * @fmt_out: vdec pixel format for the OUTPUT queue
+> + * @pixfmt_cap: V4L2 pixel format for the CAPTURE queue
+> + * @width: current picture width
+> + * @height: current picture height
+> + * @colorspace: current colorspace
+> + * @ycbcr_enc: current ycbcr_enc
+> + * @quantization: current quantization
+> + * @xfer_func: current transfer function
+> + * @esparser_queued_bufs: number of buffers currently queued into ESPARSER
+> + * @esparser_queue_work: work struct for the ESPARSER to process src buffers
+> + * @streamon_cap: stream on flag for capture queue
+> + * @streamon_out: stream on flag for output queue
+> + * @sequence_cap: capture sequence counter
+> + * @should_stop: flag set is userspacec signaled EOS via command
+> + *		 or empty buffer
+> + * @keyframe_found: flag set once a keyframe has been parsed
+> + * @canvas_alloc: array of all the canvas IDs allocated
+> + * @canvas_num: number of canvas IDs allocated
+> + * @vififo_vaddr: virtual address for the VIFIFO
+> + * @vififo_paddr: physical address for the VIFIFO
+> + * @vififo_size: size of the VIFIFO dma alloc
+> + * @bufs_recycle: list of buffers that need to be recycled
+> + * @bufs_recycle_lock: lock for the bufs_recycle list
+> + * @recycle_thread: task struct for the recycling thread
+> + * @timestamps: chronological list of src timestamps
+> + * @ts_spinlock: spinlock for the timestamps list
+> + * @last_irq_jiffies: tracks last time the vdec triggered an IRQ
+> + * @priv: codec private data
+> + */
+> +struct amvdec_session {
+> +	struct amvdec_core *core;
+> +
+> +	struct v4l2_fh fh;
+> +	struct v4l2_m2m_dev *m2m_dev;
+> +	struct v4l2_m2m_ctx *m2m_ctx;
+> +	struct mutex lock;
+> +
+> +	const struct amvdec_format *fmt_out;
+> +	u32 pixfmt_cap;
+> +
+> +	u32 width;
+> +	u32 height;
+> +	u32 colorspace;
+> +	u8 ycbcr_enc;
+> +	u8 quantization;
+> +	u8 xfer_func;
+> +
+> +	atomic_t esparser_queued_bufs;
+> +	struct work_struct esparser_queue_work;
+> +
+> +	unsigned int streamon_cap, streamon_out;
+> +	unsigned int sequence_cap;
+> +	unsigned int should_stop;
+> +	unsigned int keyframe_found;
+> +
+> +	u8 canvas_alloc[MAX_CANVAS];
+> +	u32 canvas_num;
+> +
+> +	void *vififo_vaddr;
+> +	dma_addr_t vififo_paddr;
+> +	u32 vififo_size;
+> +
+> +	struct list_head bufs_recycle;
+> +	struct mutex bufs_recycle_lock;
+> +	struct task_struct *recycle_thread;
+> +
+> +	struct list_head timestamps;
+> +	spinlock_t ts_spinlock;
+> +
+> +	u64 last_irq_jiffies;
+> +
+> +	void *priv;
+> +};
+> +
+> +u32 amvdec_get_output_size(struct amvdec_session *sess);
+> +
+> +#endif
+> diff --git a/drivers/media/platform/meson/vdec/vdec_1.c b/drivers/media/platform/meson/vdec/vdec_1.c
+> new file mode 100644
+> index 000000000000..29f6305a6276
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/vdec_1.c
+> @@ -0,0 +1,228 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + *
+> + * VDEC_1 is a video decoding block that allows decoding of
+> + * MPEG 1/2/4, H.263, H.264, MJPEG, VC1
+> + */
+> +
+> +#include <linux/firmware.h>
+> +#include <linux/clk.h>
+> +
+> +#include "vdec_1.h"
+> +#include "vdec_helpers.h"
+> +#include "dos_regs.h"
+> +
+> +/* AO Registers */
+> +#define AO_RTI_GEN_PWR_SLEEP0	0xe8
+> +#define AO_RTI_GEN_PWR_ISO0	0xec
+> +	#define GEN_PWR_VDEC_1 (BIT(3) | BIT(2))
+> +
+> +#define MC_SIZE			(4096 * 4)
+> +
+> +static int
+> +vdec_1_load_firmware(struct amvdec_session *sess, const char *fwname)
 > +{
-> +	struct rockchip_vpu_ctx *ctx = vb2_get_drv_priv(vq);
-> +	const struct rockchip_vpu_fmt *vpu_fmt;
-> +	struct v4l2_pix_format_mplane *pixfmt;
-> +	int i;
+> +	const struct firmware *fw;
+> +	struct amvdec_core *core = sess->core;
+> +	struct device *dev = core->dev_dec;
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +	static void *mc_addr;
+> +	static dma_addr_t mc_addr_map;
+> +	int ret;
+> +	u32 i = 1000;
 > +
-> +	switch (vq->type) {
-> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> +		vpu_fmt = ctx->vpu_dst_fmt;
-> +		pixfmt = &ctx->dst_fmt;
-> +		break;
-> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> +		vpu_fmt = ctx->vpu_src_fmt;
-> +		pixfmt = &ctx->src_fmt;
-> +		break;
-> +	default:
-> +		vpu_err("invalid queue type: %d\n", vq->type);
+> +	ret = request_firmware(&fw, fwname, dev);
+> +	if (ret < 0)
 > +		return -EINVAL;
+> +
+> +	if (fw->size < MC_SIZE) {
+> +		dev_err(dev, "Firmware size %zu is too small. Expected %u.\n",
+> +			fw->size, MC_SIZE);
+> +		ret = -EINVAL;
+> +		goto release_firmware;
 > +	}
 > +
-> +	*num_buffers = clamp_t(unsigned int,
-> +			*num_buffers, 1, VIDEO_MAX_FRAME);
-
-Please drop this. The vb2 framework takes care of this, and in any
-case this code would be wrong when called from VIDIOC_CREATE_BUFS.
-
-> +
-> +	if (*num_planes) {
-> +		if (*num_planes !=  vpu_fmt->num_planes)
-> +			return -EINVAL;
-> +		for (i = 0; i < vpu_fmt->num_planes; ++i)
-> +			if (sizes[i] < pixfmt->plane_fmt[i].sizeimage)
-> +				return -EINVAL;
-> +		return 0;
+> +	mc_addr = dma_alloc_coherent(core->dev, MC_SIZE,
+> +				     &mc_addr_map, GFP_KERNEL);
+> +	if (!mc_addr) {
+> +		dev_err(dev,
+> +			"Failed allocating memory for firmware loading\n");
+> +		ret = -ENOMEM;
+> +		goto release_firmware;
 > +	}
 > +
-> +	*num_planes = vpu_fmt->num_planes;
-> +	for (i = 0; i < vpu_fmt->num_planes; ++i)
-> +		sizes[i] = pixfmt->plane_fmt[i].sizeimage;
-> +	return 0;
-> +}
+> +	memcpy(mc_addr, fw->data, MC_SIZE);
 > +
-> +static int rockchip_vpu_buf_prepare(struct vb2_buffer *vb)
-> +{
-> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-> +	struct vb2_queue *vq = vb->vb2_queue;
-> +	struct rockchip_vpu_ctx *ctx = vb2_get_drv_priv(vq);
-> +	const struct rockchip_vpu_fmt *vpu_fmt;
-> +	struct v4l2_pix_format_mplane *pixfmt;
-> +	unsigned int sz;
-> +	int ret = 0;
-> +	int i;
+> +	amvdec_write_dos(core, MPSR, 0);
+> +	amvdec_write_dos(core, CPSR, 0);
 > +
-> +	switch (vq->type) {
-> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> +		vpu_fmt = ctx->vpu_dst_fmt;
-> +		pixfmt = &ctx->dst_fmt;
-> +		break;
-> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> +		vpu_fmt = ctx->vpu_src_fmt;
-> +		pixfmt = &ctx->src_fmt;
+> +	amvdec_clear_dos_bits(core, MDEC_PIC_DC_CTRL, BIT(31));
 > +
-> +		if (vbuf->field == V4L2_FIELD_ANY)
-> +			vbuf->field = V4L2_FIELD_NONE;
-> +		if (vbuf->field != V4L2_FIELD_NONE) {
-> +			vpu_debug(4, "field %d not supported\n",
-> +				  vbuf->field);
-> +			return -EINVAL;
-> +		}
-> +		break;
-> +	default:
-> +		vpu_err("invalid queue type: %d\n", vq->type);
-> +		return -EINVAL;
+> +	amvdec_write_dos(core, IMEM_DMA_ADR, mc_addr_map);
+> +	amvdec_write_dos(core, IMEM_DMA_COUNT, MC_SIZE / 4);
+> +	amvdec_write_dos(core, IMEM_DMA_CTRL, (0x8000 | (7 << 16)));
+> +
+> +	while (--i && amvdec_read_dos(core, IMEM_DMA_CTRL) & 0x8000) { }
+> +
+> +	if (i == 0) {
+> +		dev_err(dev, "Firmware load fail (DMA hang?)\n");
+> +		ret = -EINVAL;
+> +		goto free_mc;
 > +	}
 > +
-> +	for (i = 0; i < vpu_fmt->num_planes; ++i) {
-> +		sz = pixfmt->plane_fmt[i].sizeimage;
-> +		vpu_debug(4, "plane %d size: %ld, sizeimage: %u\n",
-> +			  i, vb2_plane_size(vb, i), sz);
-> +		if (vb2_plane_size(vb, i) < sz) {
-> +			vpu_err("plane %d is too small for output\n", i);
-> +			ret = -EINVAL;
-> +			break;
-> +		}
-> +	}
+> +	if (codec_ops->load_extended_firmware)
+> +		codec_ops->load_extended_firmware(sess, fw->data + MC_SIZE,
+> +						  fw->size - MC_SIZE);
 > +
+> +free_mc:
+> +	dma_free_coherent(core->dev, MC_SIZE, mc_addr, mc_addr_map);
+> +release_firmware:
+> +	release_firmware(fw);
 > +	return ret;
 > +}
 > +
-> +static void rockchip_vpu_buf_queue(struct vb2_buffer *vb)
+> +int vdec_1_stbuf_power_up(struct amvdec_session *sess)
 > +{
-> +	struct rockchip_vpu_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct amvdec_core *core = sess->core;
 > +
-> +	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
-> +}
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_CONTROL, 0);
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_WRAP_COUNT, 0);
+> +	amvdec_write_dos(core, POWER_CTL_VLD, BIT(4));
 > +
-> +static int rockchip_vpu_start_streaming(struct vb2_queue *q, unsigned int count)
-> +{
-> +	struct rockchip_vpu_ctx *ctx = vb2_get_drv_priv(q);
-> +	enum rockchip_vpu_codec_mode codec_mode;
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_START_PTR, sess->vififo_paddr);
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_CURR_PTR, sess->vififo_paddr);
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_END_PTR,
+> +			 sess->vififo_paddr + sess->vififo_size - 8);
 > +
-> +	if (V4L2_TYPE_IS_OUTPUT(q->type))
-> +		ctx->sequence_out = 0;
-> +	else
-> +		ctx->sequence_cap = 0;
+> +	amvdec_write_dos_bits(core, VLD_MEM_VIFIFO_CONTROL, 1);
+> +	amvdec_clear_dos_bits(core, VLD_MEM_VIFIFO_CONTROL, 1);
 > +
-> +	/* Set codec_ops for the chosen destination format */
-> +	codec_mode = ctx->vpu_dst_fmt->codec_mode;
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_BUF_CNTL, MEM_BUFCTRL_MANUAL);
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_WP, sess->vififo_paddr);
 > +
-> +	vpu_debug(4, "Codec mode = %d\n", codec_mode);
-> +	ctx->codec_ops = &ctx->dev->variant->codec_ops[codec_mode];
+> +	amvdec_write_dos_bits(core, VLD_MEM_VIFIFO_BUF_CNTL, 1);
+> +	amvdec_clear_dos_bits(core, VLD_MEM_VIFIFO_BUF_CNTL, 1);
+> +
+> +	amvdec_write_dos_bits(core, VLD_MEM_VIFIFO_CONTROL,
+> +		(0x11 << MEM_FIFO_CNT_BIT) | MEM_FILL_ON_LEVEL |
+> +		MEM_CTRL_FILL_EN | MEM_CTRL_EMPTY_EN);
 > +
 > +	return 0;
 > +}
 > +
-> +static void rockchip_vpu_stop_streaming(struct vb2_queue *q)
+> +static void vdec_1_conf_esparser(struct amvdec_session *sess)
 > +{
-> +	struct rockchip_vpu_ctx *ctx = vb2_get_drv_priv(q);
+> +	struct amvdec_core *core = sess->core;
 > +
-> +	/* The mem2mem framework calls v4l2_m2m_cancel_job before
-> +	 * .stop_streaming, so there isn't any job running and
-> +	 * it is safe to return all the buffers.
-> +	 */
-> +	for (;;) {
-> +		struct vb2_v4l2_buffer *vbuf;
-> +
-> +		if (V4L2_TYPE_IS_OUTPUT(q->type))
-> +			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> +		else
-> +			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-> +		if (!vbuf)
-> +			break;
-> +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
-> +	}
+> +	/* VDEC_1 specific ESPARSER stuff */
+> +	amvdec_write_dos(core, DOS_GEN_CTRL0, 0);
+> +	amvdec_write_dos(core, VLD_MEM_VIFIFO_BUF_CNTL, 1);
+> +	amvdec_clear_dos_bits(core, VLD_MEM_VIFIFO_BUF_CNTL, 1);
 > +}
 > +
-> +const struct vb2_ops rockchip_vpu_enc_queue_ops = {
-> +	.queue_setup = rockchip_vpu_queue_setup,
-> +	.buf_prepare = rockchip_vpu_buf_prepare,
-> +	.buf_queue = rockchip_vpu_buf_queue,
-> +	.start_streaming = rockchip_vpu_start_streaming,
-> +	.stop_streaming = rockchip_vpu_stop_streaming,
-> +	.wait_prepare = vb2_ops_wait_prepare,
-> +	.wait_finish = vb2_ops_wait_finish,
+> +static u32 vdec_1_vififo_level(struct amvdec_session *sess)
+> +{
+> +	struct amvdec_core *core = sess->core;
+> +
+> +	return amvdec_read_dos(core, VLD_MEM_VIFIFO_LEVEL);
+> +}
+> +
+> +static int vdec_1_stop(struct amvdec_session *sess)
+> +{
+> +	struct amvdec_core *core = sess->core;
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +
+> +	amvdec_write_dos(core, MPSR, 0);
+> +	amvdec_write_dos(core, CPSR, 0);
+> +	amvdec_write_dos(core, ASSIST_MBOX1_MASK, 0);
+> +
+> +	amvdec_write_dos(core, DOS_SW_RESET0, BIT(12) | BIT(11));
+> +	amvdec_write_dos(core, DOS_SW_RESET0, 0);
+> +	amvdec_read_dos(core, DOS_SW_RESET0);
+> +
+> +	/* enable vdec1 isolation */
+> +	regmap_write(core->regmap_ao, AO_RTI_GEN_PWR_ISO0, 0xc0);
+> +	/* power off vdec1 memories */
+> +	amvdec_write_dos(core, DOS_MEM_PD_VDEC, 0xffffffff);
+> +	/* power off vdec1 */
+> +	regmap_update_bits(core->regmap_ao, AO_RTI_GEN_PWR_SLEEP0,
+> +			   GEN_PWR_VDEC_1, GEN_PWR_VDEC_1);
+> +
+> +	clk_disable_unprepare(core->vdec_1_clk);
+> +
+> +	if (sess->priv)
+> +		codec_ops->stop(sess);
+> +
+> +	return 0;
+> +}
+> +
+> +static int vdec_1_start(struct amvdec_session *sess)
+> +{
+> +	int ret;
+> +	struct amvdec_core *core = sess->core;
+> +	struct amvdec_codec_ops *codec_ops = sess->fmt_out->codec_ops;
+> +
+> +	/* Configure the vdec clk to the maximum available */
+> +	clk_set_rate(core->vdec_1_clk, 666666666);
+> +	ret = clk_prepare_enable(core->vdec_1_clk);
+> +	if (ret)
+> +		return ret;
+> +
+> +	regmap_update_bits(core->regmap_ao, AO_RTI_GEN_PWR_SLEEP0,
+> +			   GEN_PWR_VDEC_1, 0);
+> +	udelay(10);
+> +
+> +	/* Reset VDEC1 */
+> +	amvdec_write_dos(core, DOS_SW_RESET0, 0xfffffffc);
+> +	amvdec_write_dos(core, DOS_SW_RESET0, 0x00000000);
+> +
+> +	amvdec_write_dos(core, DOS_GCLK_EN0, 0x3ff);
+> +
+> +	/* enable VDEC Memories */
+> +	amvdec_write_dos(core, DOS_MEM_PD_VDEC, 0);
+> +	/* Remove VDEC1 Isolation */
+> +	regmap_write(core->regmap_ao, AO_RTI_GEN_PWR_ISO0, 0);
+> +	/* Reset DOS top registers */
+> +	amvdec_write_dos(core, DOS_VDEC_MCRCC_STALL_CTRL, 0);
+> +
+> +	amvdec_write_dos(core, GCLK_EN, 0x3ff);
+> +	amvdec_clear_dos_bits(core, MDEC_PIC_DC_CTRL, BIT(31));
+> +
+> +	vdec_1_stbuf_power_up(sess);
+> +
+> +	ret = vdec_1_load_firmware(sess, sess->fmt_out->firmware_path);
+> +	if (ret)
+> +		goto stop;
+> +
+> +	ret = codec_ops->start(sess);
+> +	if (ret)
+> +		goto stop;
+> +
+> +	/* Enable IRQ */
+> +	amvdec_write_dos(core, ASSIST_MBOX1_CLR_REG, 1);
+> +	amvdec_write_dos(core, ASSIST_MBOX1_MASK, 1);
+> +
+> +	/* Enable 2-plane output */
+> +	if (sess->pixfmt_cap == V4L2_PIX_FMT_NV12M)
+> +		amvdec_write_dos_bits(core, MDEC_PIC_DC_CTRL, BIT(17));
+> +
+> +	/* Enable firmware processor */
+> +	amvdec_write_dos(core, MPSR, 1);
+> +	/* Let the firmware settle */
+> +	udelay(10);
+> +
+> +	return 0;
+> +
+> +stop:
+> +	vdec_1_stop(sess);
+> +	return ret;
+> +}
+> +
+> +struct amvdec_ops vdec_1_ops = {
+> +	.start = vdec_1_start,
+> +	.stop = vdec_1_stop,
+> +	.conf_esparser = vdec_1_conf_esparser,
+> +	.vififo_level = vdec_1_vififo_level,
 > +};
-> diff --git a/drivers/media/platform/rockchip/vpu/rockchip_vpu_hw.h b/drivers/media/platform/rockchip/vpu/rockchip_vpu_hw.h
+> diff --git a/drivers/media/platform/meson/vdec/vdec_1.h b/drivers/media/platform/meson/vdec/vdec_1.h
 > new file mode 100644
-> index 000000000000..d48311b60bcf
+> index 000000000000..042d930c40d7
 > --- /dev/null
-> +++ b/drivers/media/platform/rockchip/vpu/rockchip_vpu_hw.h
-> @@ -0,0 +1,65 @@
-> +// SPDX-License-Identifier: GPL-2.0
+> +++ b/drivers/media/platform/meson/vdec/vdec_1.h
+> @@ -0,0 +1,14 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
 > +/*
-> + * Rockchip VPU codec driver
-> + *
-> + * Copyright (C) 2018 Google, Inc.
-> + *	Tomasz Figa <tfiga@chromium.org>
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
 > + */
 > +
-> +#ifndef ROCKCHIP_VPU_HW_H_
-> +#define ROCKCHIP_VPU_HW_H_
+> +#ifndef __MESON_VDEC_VDEC_1_H_
+> +#define __MESON_VDEC_VDEC_1_H_
 > +
-> +#include <linux/interrupt.h>
-> +#include <linux/v4l2-controls.h>
-> +#include <media/videobuf2-core.h>
+> +#include "vdec.h"
 > +
-> +#define ROCKCHIP_HEADER_SIZE		1280
-> +#define ROCKCHIP_HW_PARAMS_SIZE		5487
-> +#define ROCKCHIP_RET_PARAMS_SIZE	488
-> +#define ROCKCHIP_JPEG_QUANT_ELE_SIZE	64
+> +extern struct amvdec_ops vdec_1_ops;
 > +
-> +#define ROCKCHIP_VPU_CABAC_TABLE_SIZE	(52 * 2 * 464)
+> +#endif
+> diff --git a/drivers/media/platform/meson/vdec/vdec_helpers.c b/drivers/media/platform/meson/vdec/vdec_helpers.c
+> new file mode 100644
+> index 000000000000..615107629765
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/vdec_helpers.c
+> @@ -0,0 +1,354 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + */
 > +
-> +struct rockchip_vpu_dev;
-> +struct rockchip_vpu_ctx;
-> +struct rockchip_vpu_buf;
-> +struct rockchip_vpu_variant;
+> +#include <media/v4l2-mem2mem.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/videobuf2-dma-contig.h>
+> +
+> +#include "vdec_helpers.h"
+> +
+> +#define NUM_CANVAS_NV12 2
+> +#define NUM_CANVAS_YUV420 3
+> +
+> +u32 amvdec_read_dos(struct amvdec_core *core, u32 reg)
+> +{
+> +	return readl_relaxed(core->dos_base + reg);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_read_dos);
+> +
+> +void amvdec_write_dos(struct amvdec_core *core, u32 reg, u32 val)
+> +{
+> +	writel_relaxed(val, core->dos_base + reg);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_write_dos);
+> +
+> +void amvdec_write_dos_bits(struct amvdec_core *core, u32 reg, u32 val)
+> +{
+> +	amvdec_write_dos(core, reg, amvdec_read_dos(core, reg) | val);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_write_dos_bits);
+> +
+> +void amvdec_clear_dos_bits(struct amvdec_core *core, u32 reg, u32 val)
+> +{
+> +	amvdec_write_dos(core, reg, amvdec_read_dos(core, reg) & ~val);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_clear_dos_bits);
+> +
+> +u32 amvdec_read_parser(struct amvdec_core *core, u32 reg)
+> +{
+> +	return readl_relaxed(core->esparser_base + reg);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_read_parser);
+> +
+> +void amvdec_write_parser(struct amvdec_core *core, u32 reg, u32 val)
+> +{
+> +	writel_relaxed(val, core->esparser_base + reg);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_write_parser);
+> +
+> +static int canvas_alloc(struct amvdec_session *sess, u8 *canvas_id)
+> +{
+> +	int ret;
+> +
+> +	if (sess->canvas_num >= MAX_CANVAS) {
+> +		dev_err(sess->core->dev, "Reached max number of canvas\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	ret = meson_canvas_alloc(sess->core->canvas, canvas_id);
+> +	if (ret)
+> +		return ret;
+> +
+> +	sess->canvas_alloc[sess->canvas_num++] = *canvas_id;
+> +	return 0;
+> +}
+> +
+> +static int set_canvas_yuv420m(struct amvdec_session *sess,
+> +			      struct vb2_buffer *vb, u32 width,
+> +			      u32 height, u32 reg)
+> +{
+> +	struct amvdec_core *core = sess->core;
+> +	u8 canvas_id[NUM_CANVAS_YUV420]; /* Y U V */
+> +	dma_addr_t buf_paddr[NUM_CANVAS_YUV420]; /* Y U V */
+> +	int ret, i;
+> +
+> +	for (i = 0; i < NUM_CANVAS_YUV420; ++i) {
+> +		ret = canvas_alloc(sess, &canvas_id[i]);
+> +		if (ret)
+> +			return ret;
+> +
+> +		buf_paddr[i] =
+> +		    vb2_dma_contig_plane_dma_addr(vb, i);
+> +	}
+> +
+> +	/* Y plane */
+> +	meson_canvas_config(core->canvas, canvas_id[0], buf_paddr[0],
+> +			    width, height, MESON_CANVAS_WRAP_NONE,
+> +			    MESON_CANVAS_BLKMODE_LINEAR,
+> +			    MESON_CANVAS_ENDIAN_SWAP64);
+> +
+> +	/* U plane */
+> +	meson_canvas_config(core->canvas, canvas_id[1], buf_paddr[1],
+> +			    width / 2, height / 2, MESON_CANVAS_WRAP_NONE,
+> +			    MESON_CANVAS_BLKMODE_LINEAR,
+> +			    MESON_CANVAS_ENDIAN_SWAP64);
+> +
+> +	/* V plane */
+> +	meson_canvas_config(core->canvas, canvas_id[2], buf_paddr[2],
+> +			    width / 2, height / 2, MESON_CANVAS_WRAP_NONE,
+> +			    MESON_CANVAS_BLKMODE_LINEAR,
+> +			    MESON_CANVAS_ENDIAN_SWAP64);
+> +
+> +	amvdec_write_dos(core, reg,
+> +			 ((canvas_id[2]) << 16) |
+> +			 ((canvas_id[1]) << 8)  |
+> +			 (canvas_id[0]));
+> +
+> +	return 0;
+> +}
+> +
+> +static int set_canvas_nv12m(struct amvdec_session *sess,
+> +			    struct vb2_buffer *vb, u32 width,
+> +			    u32 height, u32 reg)
+> +{
+> +	struct amvdec_core *core = sess->core;
+> +	u8 canvas_id[NUM_CANVAS_NV12]; /* Y U/V */
+> +	dma_addr_t buf_paddr[NUM_CANVAS_NV12]; /* Y U/V */
+> +	int ret, i;
+> +
+> +	for (i = 0; i < NUM_CANVAS_NV12; ++i) {
+> +		ret = canvas_alloc(sess, &canvas_id[i]);
+> +		if (ret)
+> +			return ret;
+> +
+> +		buf_paddr[i] =
+> +		    vb2_dma_contig_plane_dma_addr(vb, i);
+> +	}
+> +
+> +	/* Y plane */
+> +	meson_canvas_config(core->canvas, canvas_id[0], buf_paddr[0],
+> +			    width, height, MESON_CANVAS_WRAP_NONE,
+> +			    MESON_CANVAS_BLKMODE_LINEAR,
+> +			    MESON_CANVAS_ENDIAN_SWAP64);
+> +
+> +	/* U/V plane */
+> +	meson_canvas_config(core->canvas, canvas_id[1], buf_paddr[1],
+> +			    width, height / 2, MESON_CANVAS_WRAP_NONE,
+> +			    MESON_CANVAS_BLKMODE_LINEAR,
+> +			    MESON_CANVAS_ENDIAN_SWAP64);
+> +
+> +	amvdec_write_dos(core, reg,
+> +			 ((canvas_id[1]) << 16) |
+> +			 ((canvas_id[1]) << 8)  |
+> +			 (canvas_id[0]));
+> +
+> +	return 0;
+> +}
+> +
+> +int amvdec_set_canvases(struct amvdec_session *sess,
+> +			u32 reg_base[], u32 reg_num[])
+> +{
+> +	struct v4l2_m2m_buffer *buf;
+> +	u32 pixfmt = sess->pixfmt_cap;
+> +	u32 width = ALIGN(sess->width, 64);
+> +	u32 height = ALIGN(sess->height, 64);
+> +	u32 reg_cur = reg_base[0];
+> +	u32 reg_num_cur = 0;
+> +	u32 reg_base_cur = 0;
+> +	int ret;
+> +
+> +	v4l2_m2m_for_each_dst_buf(sess->m2m_ctx, buf) {
+> +		if (!reg_base[reg_base_cur])
+> +			return -EINVAL;
+> +
+> +		reg_cur = reg_base[reg_base_cur] + reg_num_cur * 4;
+> +
+> +		switch (pixfmt) {
+> +		case V4L2_PIX_FMT_NV12M:
+> +			ret = set_canvas_nv12m(sess, &buf->vb.vb2_buf, width,
+> +					       height, reg_cur);
+> +			if (ret)
+> +				return ret;
+> +			break;
+> +		case V4L2_PIX_FMT_YUV420M:
+> +			ret = set_canvas_yuv420m(sess, &buf->vb.vb2_buf, width,
+> +						 height, reg_cur);
+> +			if (ret)
+> +				return ret;
+> +			break;
+> +		default:
+> +			dev_err(sess->core->dev, "Unsupported pixfmt %08X\n",
+> +				pixfmt);
+> +			return -EINVAL;
+> +		};
+> +
+> +		reg_num_cur++;
+> +		if (reg_num_cur >= reg_num[reg_base_cur]) {
+> +			reg_base_cur++;
+> +			reg_num_cur = 0;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_set_canvases);
+> +
+> +void amvdec_dst_buf_done(struct amvdec_session *sess,
+> +			 struct vb2_v4l2_buffer *vbuf, u32 field)
+> +{
+> +	struct device *dev = sess->core->dev_dec;
+> +	struct amvdec_timestamp *tmp;
+> +	struct list_head *timestamps = &sess->timestamps;
+> +	u32 output_size = amvdec_get_output_size(sess);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&sess->ts_spinlock, flags);
+> +	if (list_empty(timestamps)) {
+> +		dev_err(dev, "Buffer %u done but list is empty\n",
+> +			vbuf->vb2_buf.index);
+> +
+> +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
+> +		amvdec_abort(sess);
+> +		spin_unlock_irqrestore(&sess->ts_spinlock, flags);
+> +		goto end;
+> +	}
+> +
+> +	tmp = list_first_entry(timestamps, struct amvdec_timestamp, list);
+> +
+> +	switch (sess->pixfmt_cap) {
+> +	case V4L2_PIX_FMT_NV12M:
+> +		vbuf->vb2_buf.planes[0].bytesused = output_size;
+> +		vbuf->vb2_buf.planes[1].bytesused = output_size / 2;
+> +		break;
+> +	case V4L2_PIX_FMT_YUV420M:
+> +		vbuf->vb2_buf.planes[0].bytesused = output_size;
+> +		vbuf->vb2_buf.planes[1].bytesused = output_size / 4;
+> +		vbuf->vb2_buf.planes[2].bytesused = output_size / 4;
+> +		break;
+> +	}
+> +	vbuf->vb2_buf.timestamp = tmp->ts;
+> +	vbuf->sequence = sess->sequence_cap++;
+> +
+> +	list_del(&tmp->list);
+> +	kfree(tmp);
+> +	spin_unlock_irqrestore(&sess->ts_spinlock, flags);
+> +
+> +	atomic_dec(&sess->esparser_queued_bufs);
+> +
+> +	if (sess->should_stop && list_empty(timestamps)) {
+> +		const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
+> +
+> +		dev_dbg(dev, "Signaling EOS\n");
+> +		v4l2_event_queue_fh(&sess->fh, &ev);
+> +		vbuf->flags |= V4L2_BUF_FLAG_LAST;
+> +	} else if (sess->should_stop)
+> +		dev_dbg(dev, "should_stop, %u bufs remain\n",
+> +			atomic_read(&sess->esparser_queued_bufs));
+> +
+> +	vbuf->field = field;
+> +	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
+> +
+> +end:
+> +	/* Buffer done probably means the vififo got freed */
+> +	schedule_work(&sess->esparser_queue_work);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_dst_buf_done);
+> +
+> +void
+> +amvdec_dst_buf_done_idx(struct amvdec_session *sess, u32 buf_idx, u32 field)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf;
+> +	struct device *dev = sess->core->dev_dec;
+> +
+> +	vbuf = v4l2_m2m_dst_buf_remove_by_idx(sess->m2m_ctx, buf_idx);
+> +	if (!vbuf) {
+> +		dev_err(dev,
+> +			"Buffer %u done but it doesn't exist in m2m_ctx\n",
+> +			buf_idx);
+> +		amvdec_rm_first_ts(sess);
+> +		return;
+> +	}
+> +
+> +	amvdec_dst_buf_done(sess, vbuf, field);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_dst_buf_done_idx);
+> +
+> +void amvdec_add_ts_reorder(struct amvdec_session *sess, u64 ts)
+> +{
+> +	struct amvdec_timestamp *new_ts, *tmp;
+> +	unsigned long flags;
+> +
+> +	new_ts = kmalloc(sizeof(*new_ts), GFP_KERNEL);
+> +	new_ts->ts = ts;
+> +
+> +	spin_lock_irqsave(&sess->ts_spinlock, flags);
+> +
+> +	if (list_empty(&sess->timestamps))
+> +		goto add_tail;
+> +
+> +	list_for_each_entry(tmp, &sess->timestamps, list) {
+> +		if (ts < tmp->ts) {
+> +			list_add_tail(&new_ts->list, &tmp->list);
+> +			goto unlock;
+> +		}
+> +	}
+> +
+> +add_tail:
+> +	list_add_tail(&new_ts->list, &sess->timestamps);
+> +unlock:
+> +	spin_unlock_irqrestore(&sess->ts_spinlock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_add_ts_reorder);
+> +
+> +void amvdec_remove_ts(struct amvdec_session *sess, u64 ts)
+> +{
+> +	struct amvdec_timestamp *tmp;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&sess->ts_spinlock, flags);
+> +	list_for_each_entry(tmp, &sess->timestamps, list) {
+> +		if (tmp->ts == ts) {
+> +			list_del(&tmp->list);
+> +			kfree(tmp);
+> +			goto unlock;
+> +		}
+> +	}
+> +	dev_warn(sess->core->dev_dec,
+> +		 "Couldn't remove buffer with timestamp %llu from list\n", ts);
+> +
+> +unlock:
+> +	spin_unlock_irqrestore(&sess->ts_spinlock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_remove_ts);
+> +
+> +void amvdec_rm_first_ts(struct amvdec_session *sess)
+> +{
+> +	unsigned long flags;
+> +	struct amvdec_buffer *tmp;
+> +	struct device *dev = sess->core->dev_dec;
+> +
+> +	spin_lock_irqsave(&sess->ts_spinlock, flags);
+> +	if (list_empty(&sess->timestamps)) {
+> +		dev_err(dev, "Can't rm first timestamp: list empty\n");
+> +		goto unlock;
+> +	}
+> +
+> +	tmp = list_first_entry(&sess->timestamps, struct amvdec_buffer, list);
+> +	list_del(&tmp->list);
+> +	kfree(tmp);
+> +	atomic_dec(&sess->esparser_queued_bufs);
+> +
+> +unlock:
+> +	spin_unlock_irqrestore(&sess->ts_spinlock, flags);
+> +}
+> +
+> +void amvdec_abort(struct amvdec_session *sess)
+> +{
+> +	dev_info(sess->core->dev, "Aborting decoding session!\n");
+> +	vb2_queue_error(&sess->m2m_ctx->cap_q_ctx.q);
+> +	vb2_queue_error(&sess->m2m_ctx->out_q_ctx.q);
+> +}
+> +EXPORT_SYMBOL_GPL(amvdec_abort);
+> diff --git a/drivers/media/platform/meson/vdec/vdec_helpers.h b/drivers/media/platform/meson/vdec/vdec_helpers.h
+> new file mode 100644
+> index 000000000000..352c6b4c4b84
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/vdec_helpers.h
+> @@ -0,0 +1,45 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + */
+> +
+> +#ifndef __MESON_VDEC_HELPERS_H_
+> +#define __MESON_VDEC_HELPERS_H_
+> +
+> +#include "vdec.h"
 > +
 > +/**
-> + * struct rockchip_vpu_codec_ops - codec mode specific operations
+> + * amvdec_set_canvases() - Map VB2 buffers to canvases
 > + *
-> + * @run:	Start single {en,de)coding job. Called from atomic context
-> + *		to indicate that a pair of buffers is ready and the hardware
-> + *		should be programmed and started.
-> + * @done:	Read back processing results and additional data from hardware.
-> + * @reset:	Reset the hardware in case of a timeout.
+> + * @sess: current session
+> + * @reg_base: Registry bases of where to write the canvas indexes
+> + * @reg_num: number of contiguous registers after each reg_base (including it)
 > + */
-> +struct rockchip_vpu_codec_ops {
-> +	void (*run)(struct rockchip_vpu_ctx *ctx);
-> +	void (*done)(struct rockchip_vpu_ctx *ctx, enum vb2_buffer_state);
-> +	void (*reset)(struct rockchip_vpu_ctx *ctx);
-> +};
+> +int amvdec_set_canvases(struct amvdec_session *sess,
+> +			u32 reg_base[], u32 reg_num[]);
+> +
+> +u32 amvdec_read_dos(struct amvdec_core *core, u32 reg);
+> +void amvdec_write_dos(struct amvdec_core *core, u32 reg, u32 val);
+> +void amvdec_write_dos_bits(struct amvdec_core *core, u32 reg, u32 val);
+> +void amvdec_clear_dos_bits(struct amvdec_core *core, u32 reg, u32 val);
+> +u32 amvdec_read_parser(struct amvdec_core *core, u32 reg);
+> +void amvdec_write_parser(struct amvdec_core *core, u32 reg, u32 val);
+> +
+> +void amvdec_dst_buf_done_idx(struct amvdec_session *sess, u32 buf_idx,
+> +			     u32 field);
+> +void amvdec_dst_buf_done(struct amvdec_session *sess,
+> +			 struct vb2_v4l2_buffer *vbuf, u32 field);
 > +
 > +/**
-> + * enum rockchip_vpu_enc_fmt - source format ID for hardware registers.
+> + * amvdec_add_ts_reorder() - Add a timestamp to the list in chronological order
+> + *
+> + * @sess: current session
+> + * @ts: timestamp to add
 > + */
-> +enum rockchip_vpu_enc_fmt {
-> +	RK3288_VPU_ENC_FMT_YUV420P = 0,
-> +	RK3288_VPU_ENC_FMT_YUV420SP = 1,
-> +	RK3288_VPU_ENC_FMT_YUYV422 = 2,
-> +	RK3288_VPU_ENC_FMT_UYVY422 = 3,
+> +void amvdec_add_ts_reorder(struct amvdec_session *sess, u64 ts);
+> +void amvdec_remove_ts(struct amvdec_session *sess, u64 ts);
+> +void amvdec_rm_first_ts(struct amvdec_session *sess);
+> +
+> +void amvdec_abort(struct amvdec_session *sess);
+> +#endif
+> diff --git a/drivers/media/platform/meson/vdec/vdec_platform.c b/drivers/media/platform/meson/vdec/vdec_platform.c
+> new file mode 100644
+> index 000000000000..46eeb7426f54
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/vdec_platform.c
+> @@ -0,0 +1,101 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + */
+> +
+> +#include "vdec_platform.h"
+> +#include "vdec.h"
+> +
+> +#include "vdec_1.h"
+> +#include "codec_mpeg12.h"
+> +
+> +static const struct amvdec_format vdec_formats_gxbb[] = {
+> +	{
+> +		.pixfmt = V4L2_PIX_FMT_MPEG1,
+> +		.min_buffers = 8,
+> +		.max_buffers = 8,
+> +		.max_width = 1920,
+> +		.max_height = 1080,
+> +		.vdec_ops = &vdec_1_ops,
+> +		.codec_ops = &codec_mpeg12_ops,
+> +		.firmware_path = "meson/gx/vmpeg12_mc",
+> +		.pixfmts_cap = { V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M, 0 },
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_MPEG2,
+> +		.min_buffers = 8,
+> +		.max_buffers = 8,
+> +		.max_width = 1920,
+> +		.max_height = 1080,
+> +		.vdec_ops = &vdec_1_ops,
+> +		.codec_ops = &codec_mpeg12_ops,
+> +		.firmware_path = "meson/gx/vmpeg12_mc",
+> +		.pixfmts_cap = { V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M, 0 },
+> +	},
 > +};
 > +
-> +extern const struct rockchip_vpu_variant rk3399_vpu_variant;
-> +extern const struct rockchip_vpu_variant rk3288_vpu_variant;
+> +static const struct amvdec_format vdec_formats_gxl[] = {
+> +	{
+> +		.pixfmt = V4L2_PIX_FMT_MPEG1,
+> +		.min_buffers = 8,
+> +		.max_buffers = 8,
+> +		.max_width = 1920,
+> +		.max_height = 1080,
+> +		.vdec_ops = &vdec_1_ops,
+> +		.codec_ops = &codec_mpeg12_ops,
+> +		.firmware_path = "meson/gx/vmpeg12_mc",
+> +		.pixfmts_cap = { V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M, 0 },
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_MPEG2,
+> +		.min_buffers = 8,
+> +		.max_buffers = 8,
+> +		.max_width = 1920,
+> +		.max_height = 1080,
+> +		.vdec_ops = &vdec_1_ops,
+> +		.codec_ops = &codec_mpeg12_ops,
+> +		.firmware_path = "meson/gx/vmpeg12_mc",
+> +		.pixfmts_cap = { V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M, 0 },
+> +	},
+> +};
 > +
-> +void rockchip_vpu_watchdog(struct work_struct *work);
-> +void rockchip_vpu_run(struct rockchip_vpu_ctx *ctx);
-> +void rockchip_vpu_irq_done(struct rockchip_vpu_dev *vpu,
-> +			   unsigned int bytesused,
-> +			   enum vb2_buffer_state result);
+> +static const struct amvdec_format vdec_formats_gxm[] = {
+> +	{
+> +		.pixfmt = V4L2_PIX_FMT_MPEG1,
+> +		.min_buffers = 8,
+> +		.max_buffers = 8,
+> +		.max_width = 1920,
+> +		.max_height = 1080,
+> +		.vdec_ops = &vdec_1_ops,
+> +		.codec_ops = &codec_mpeg12_ops,
+> +		.firmware_path = "meson/gx/vmpeg12_mc",
+> +		.pixfmts_cap = { V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M, 0 },
+> +	}, {
+> +		.pixfmt = V4L2_PIX_FMT_MPEG2,
+> +		.min_buffers = 8,
+> +		.max_buffers = 8,
+> +		.max_width = 1920,
+> +		.max_height = 1080,
+> +		.vdec_ops = &vdec_1_ops,
+> +		.codec_ops = &codec_mpeg12_ops,
+> +		.firmware_path = "meson/gx/vmpeg12_mc",
+> +		.pixfmts_cap = { V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M, 0 },
+> +	},
+> +};
 > +
-> +void rk3288_vpu_jpege_run(struct rockchip_vpu_ctx *ctx);
-> +void rk3399_vpu_jpege_run(struct rockchip_vpu_ctx *ctx);
+> +const struct vdec_platform vdec_platform_gxbb = {
+> +	.formats = vdec_formats_gxbb,
+> +	.num_formats = ARRAY_SIZE(vdec_formats_gxbb),
+> +	.revision = VDEC_REVISION_GXBB,
+> +};
 > +
-> +#endif /* ROCKCHIP_VPU_HW_H_ */
+> +const struct vdec_platform vdec_platform_gxl = {
+> +	.formats = vdec_formats_gxl,
+> +	.num_formats = ARRAY_SIZE(vdec_formats_gxl),
+> +	.revision = VDEC_REVISION_GXL,
+> +};
+> +
+> +const struct vdec_platform vdec_platform_gxm = {
+> +	.formats = vdec_formats_gxm,
+> +	.num_formats = ARRAY_SIZE(vdec_formats_gxm),
+> +	.revision = VDEC_REVISION_GXM,
+> +};
+> diff --git a/drivers/media/platform/meson/vdec/vdec_platform.h b/drivers/media/platform/meson/vdec/vdec_platform.h
+> new file mode 100644
+> index 000000000000..f6025326db1d
+> --- /dev/null
+> +++ b/drivers/media/platform/meson/vdec/vdec_platform.h
+> @@ -0,0 +1,30 @@
+> +/* SPDX-License-Identifier: GPL-2.0+ */
+> +/*
+> + * Copyright (C) 2018 BayLibre, SAS
+> + * Author: Maxime Jourdan <mjourdan@baylibre.com>
+> + */
+> +
+> +#ifndef __MESON_VDEC_PLATFORM_H_
+> +#define __MESON_VDEC_PLATFORM_H_
+> +
+> +#include "vdec.h"
+> +
+> +struct amvdec_format;
+> +
+> +enum vdec_revision {
+> +	VDEC_REVISION_GXBB,
+> +	VDEC_REVISION_GXL,
+> +	VDEC_REVISION_GXM,
+> +};
+> +
+> +struct vdec_platform {
+> +	const struct amvdec_format *formats;
+> +	const u32 num_formats;
+> +	enum vdec_revision revision;
+> +};
+> +
+> +extern const struct vdec_platform vdec_platform_gxbb;
+> +extern const struct vdec_platform vdec_platform_gxm;
+> +extern const struct vdec_platform vdec_platform_gxl;
+> +
+> +#endif
 > 
-
-Other than the few trivial things I found my main concern is what the
-intention is of this driver for JPEG decoding and H264 decoding. Can we
-discuss this on irc?
 
 Regards,
 
