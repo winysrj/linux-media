@@ -1,119 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:58636 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726221AbeILRBW (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:41890 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725992AbeIDMCS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 13:01:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        mchehab@kernel.org
-Subject: Re: [PATCH 1/1] v4l: event: Prevent freeing event subscriptions while accessed
-Date: Wed, 12 Sep 2018 14:57:20 +0300
-Message-ID: <1845994.88l34GQLCY@avalon>
-In-Reply-To: <20180912100056.5upn2zrmy6tbeluu@kekkonen.localdomain>
-References: <20180912085232.26950-1-sakari.ailus@linux.intel.com> <9df0d0b6-2f28-2479-5018-c715b3085934@xs4all.nl> <20180912100056.5upn2zrmy6tbeluu@kekkonen.localdomain>
+        Tue, 4 Sep 2018 08:02:18 -0400
+Subject: Re: cron job: media_tree daily build: ERRORS
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org, "Jasmin J." <jasmin@anw.at>
+References: <a9f6b54c1e44b080026f417896cc0b2e@smtp-cloud9.xs4all.net>
+Message-ID: <9e160819-cb5f-bc4c-0f36-1879aa08ce32@xs4all.nl>
+Date: Tue, 4 Sep 2018 09:38:20 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <a9f6b54c1e44b080026f417896cc0b2e@smtp-cloud9.xs4all.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Jasmin,
 
-On Wednesday, 12 September 2018 13:00:57 EEST Sakari Ailus wrote:
-> On Wed, Sep 12, 2018 at 11:27:35AM +0200, Hans Verkuil wrote:
-> > On 09/12/18 10:52, Sakari Ailus wrote:
-> >> The event subscriptions are added to the subscribed event list while
-> >> holding a spinlock, but that lock is subsequently released while still
-> >> accessing the subscription object. This makes it possible to unsubscribe
-> >> the event --- and freeing the subscription object's memory --- while
-> >> the subscription object is simultaneously accessed.
-> > 
-> > Hmm, the (un)subscribe ioctls are serialized through the ioctl lock,
-> > so this could only be a scenario with drivers that do not use this
-> > lock. Off-hand the only driver I know that does this is uvc.
-> > Unfortunately,
-> > that's a rather popular one.
+On 09/04/2018 08:33 AM, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
 > 
-> On video nodes, perhaps. But how about sub-device nodes? Generally drivers
-> tend to do locking themselves, whether or not that is the best for most
-> drivers.
+> Results of the daily build of media_tree:
 
-I tend to agree with Sakari. Furthermore, having fine-grained locking is 
-better in my opinion than locking everything at the ioctl level, for drivers 
-that wish to do so. We should thus strive for self-contained locking in the 
-different helper libraries of V4L2.
+Thank you for all your work, it looks much better now.
 
-> >> Prevent this by adding a mutex to serialise the event subscription and
-> >> unsubscription. This also gives a guarantee to the callback ops that the
-> >> add op has returned before the del op is called.
-> >> 
-> >> This change also results in making the elems field less special:
-> >> subscriptions are only added to the event list once they are fully
-> >> initialised.
-> >> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >> Hi folks,
-> >> 
-> >> I noticed this while working to add support for media events. This seems
-> >> like material for the stable trees.
-> > 
-> > I'd say 'no need for this' if it wasn't for uvc.
-> > 
-> >>  drivers/media/v4l2-core/v4l2-event.c | 35 ++++++++++++++++-------------
-> >>  drivers/media/v4l2-core/v4l2-fh.c    |  2 ++
-> >>  include/media/v4l2-fh.h              |  4 ++++
-> >>  3 files changed, 24 insertions(+), 17 deletions(-)
+It seems a lot of the remaining errors are due to a missing dev_warn_once.
+I've added compat code for that and will do another build run, hopefully
+the result will be posted here later today.
 
-[snip]
-
-> >> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-> >> index ea73fef8bdc0..1be45a5f6383 100644
-> >> --- a/include/media/v4l2-fh.h
-> >> +++ b/include/media/v4l2-fh.h
-> >> @@ -42,6 +42,9 @@ struct v4l2_ctrl_handler;
-> >>   * @available: list of events waiting to be dequeued
-> >>   * @navailable: number of available events at @available list
-> >>   * @sequence: event sequence number
-> >> + * @mutex: hold event subscriptions during subscribing;
-> >> + *	   guarantee that the add and del event callbacks are orderly called
-
-Could you try to describe what this mutex protects in terms of data ?
-
-> >> + *
-
-Extra blank line ?
-
-> >>   * @m2m_ctx: pointer to &struct v4l2_m2m_ctx
-> >>   */
-> >>  
-> >>  struct v4l2_fh {
-> >> @@ -56,6 +59,7 @@ struct v4l2_fh {
-> >>  	struct list_head	available;
-> >>  	unsigned int		navailable;
-> >>  	u32			sequence;
-> >> +	struct mutex		mutex;
-> > 
-> > I don't like the name 'mutex'. Perhaps something more descriptive like:
-> > 'subscribe_lock'?
-> > 
-> >>  #if IS_ENABLED(CONFIG_V4L2_MEM2MEM_DEV)
-> >>  
-> >>  	struct v4l2_m2m_ctx	*m2m_ctx;
-> > 
-> > Overall I think this patch makes sense. The code is cleaner and easier to
-> > follow. Just give 'mutex' a better name :-)
-> 
-> How about "subscribe_mutex"? It's a mutex... "subscribe_lock" would use a
-> similar convention elsewhere in V4L2 where mutexes are commonly called
-> locks, so I'm certainly fine with that as well.
-
-We indeed use lock for both mutexes and spinlocks. I have a slight preference 
-for the name lock myself, but I don't mind too much.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> date:			Tue Sep  4 04:00:14 CEST 2018
+> media-tree git hash:	d842a7cf938b6e0f8a1aa9f1aec0476c9a599310
+> media_build git hash:	1cd94ce3d513f211dffc576698a5be347352e3cb
+> v4l-utils git hash:	f44f00e8b4ac6e9aa05bac8953e3fcc89e1fe198
+> edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+> gcc version:		i686-linux-gcc (GCC) 8.2.0
+> sparse version:		0.5.2 (Debian: 0.5.2-1+b1)
+> smatch version:		v0.5.0-3428-gdfe27cf
+> host hardware:		x86_64
+> host os:		4.17.0-1-amd64
+> 
+> linux-git-arm-at91: OK
+> linux-git-arm-davinci: OK
+> linux-git-arm-multi: OK
+> linux-git-arm-pxa: OK
+> linux-git-arm-stm32: OK
+> linux-git-arm64: OK
+> linux-git-i686: OK
+> linux-git-mips: OK
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: OK
+> Check COMPILE_TEST: OK
+> linux-2.6.36.4-i686: ERRORS
+> linux-2.6.36.4-x86_64: ERRORS
+> linux-2.6.37.6-i686: ERRORS
+> linux-2.6.37.6-x86_64: ERRORS
+> linux-2.6.38.8-i686: ERRORS
+> linux-2.6.38.8-x86_64: ERRORS
+> linux-2.6.39.4-i686: ERRORS
+> linux-2.6.39.4-x86_64: ERRORS
+> linux-3.0.101-i686: ERRORS
+> linux-3.0.101-x86_64: ERRORS
+> linux-3.1.10-i686: ERRORS
+> linux-3.1.10-x86_64: ERRORS
+> linux-3.2.102-i686: ERRORS
+> linux-3.2.102-x86_64: ERRORS
+> linux-3.3.8-i686: ERRORS
+> linux-3.3.8-x86_64: ERRORS
+> linux-3.4.113-i686: ERRORS
+> linux-3.4.113-x86_64: ERRORS
+> linux-3.5.7-i686: ERRORS
+> linux-3.5.7-x86_64: ERRORS
+> linux-3.6.11-i686: ERRORS
+> linux-3.6.11-x86_64: ERRORS
+> linux-3.7.10-i686: ERRORS
+> linux-3.7.10-x86_64: ERRORS
+> linux-3.8.13-i686: ERRORS
+> linux-3.8.13-x86_64: ERRORS
+> linux-3.9.11-i686: ERRORS
+> linux-3.9.11-x86_64: ERRORS
+> linux-3.10.108-i686: ERRORS
+> linux-3.10.108-x86_64: ERRORS
+> linux-3.11.10-i686: ERRORS
+> linux-3.11.10-x86_64: ERRORS
+> linux-3.12.74-i686: ERRORS
+> linux-3.12.74-x86_64: ERRORS
+> linux-3.13.11-i686: ERRORS
+> linux-3.13.11-x86_64: ERRORS
+> linux-3.14.79-i686: ERRORS
+> linux-3.14.79-x86_64: ERRORS
+> linux-3.15.10-i686: ERRORS
+> linux-3.15.10-x86_64: ERRORS
+> linux-3.16.57-i686: ERRORS
+> linux-3.16.57-x86_64: ERRORS
+> linux-3.17.8-i686: ERRORS
+> linux-3.17.8-x86_64: ERRORS
+> linux-3.18.119-i686: ERRORS
+> linux-3.18.119-x86_64: ERRORS
+> linux-3.19.8-i686: OK
+> linux-3.19.8-x86_64: OK
+> linux-4.0.9-i686: OK
+> linux-4.0.9-x86_64: OK
+> linux-4.1.52-i686: OK
+> linux-4.1.52-x86_64: OK
+> linux-4.2.8-i686: OK
+> linux-4.2.8-x86_64: OK
+> linux-4.3.6-i686: OK
+> linux-4.3.6-x86_64: OK
+> linux-4.4.152-i686: OK
+> linux-4.4.152-x86_64: OK
+> linux-4.5.7-i686: OK
+> linux-4.5.7-x86_64: OK
+> linux-4.6.7-i686: OK
+> linux-4.6.7-x86_64: OK
+> linux-4.7.10-i686: OK
+> linux-4.7.10-x86_64: OK
+> linux-4.8.17-i686: OK
+> linux-4.8.17-x86_64: OK
+> linux-4.9.124-i686: OK
+> linux-4.9.124-x86_64: OK
+> linux-4.10.17-i686: OK
+> linux-4.10.17-x86_64: OK
+> linux-4.11.12-i686: OK
+> linux-4.11.12-x86_64: OK
+> linux-4.12.14-i686: OK
+> linux-4.12.14-x86_64: OK
+> linux-4.13.16-i686: OK
+> linux-4.13.16-x86_64: OK
+> linux-4.14.67-i686: OK
+> linux-4.14.67-x86_64: OK
+> linux-4.15.18-i686: OK
+> linux-4.15.18-x86_64: OK
+> linux-4.16-rc7-i686: OK
+> linux-4.16-rc7-x86_64: OK
+> linux-4.16.18-i686: OK
+> linux-4.16.18-x86_64: OK
+> linux-4.17.19-i686: OK
+> linux-4.17.19-x86_64: OK
+> linux-4.18-rc1-i686: OK
+> linux-4.18-rc1-x86_64: OK
+> linux-4.18.5-i686: OK
+> linux-4.18.5-x86_64: OK
+> linux-4.19-rc1-i686: OK
+> linux-4.19-rc1-x86_64: OK
+> apps: OK
+> spec-git: OK
+> sparse: WARNINGS
+> 
+> Logs weren't copied as they are too large (580 kB)
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
