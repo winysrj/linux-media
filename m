@@ -1,82 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41175 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727321AbeIDLEG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Sep 2018 07:04:06 -0400
-Subject: Re: [PATCH v2] media: vimc: implement basic v4l2-ctrls
-To: Guilherme Gallo <gagallo7@gmail.com>,
-        Helen Koike <helen.koike@collabora.com>,
+Received: from mga06.intel.com ([134.134.136.31]:59635 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727250AbeIDLKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Sep 2018 07:10:05 -0400
+Date: Tue, 4 Sep 2018 09:46:05 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+Cc: Javier Martinez Canillas <javierm@redhat.com>,
+        Bing Bu Cao <bingbu.cao@linux.intel.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: lkcamp@lists.libreplanetbr.org
-References: <20180904014559.15765-1-gagallo7@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <529ce419-bba7-7e90-cb7d-e9a94fe64ac2@xs4all.nl>
-Date: Tue, 4 Sep 2018 08:40:20 +0200
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: intel-ipu3: cio2: register the mdev on v4l2 async
+ notifier complete
+Message-ID: <20180904064605.6prcawieb4ooxtyl@paasikivi.fi.intel.com>
+References: <20180831152045.9957-1-javierm@redhat.com>
+ <cd307d41-ed19-5ab0-cbdb-a743cdb76e09@linux.intel.com>
+ <c1e54228-a21a-b4a2-1083-c75b2dda797c@redhat.com>
+ <b15b236e-e0a7-8b2f-1e1f-196c9dc04f4d@linux.intel.com>
+ <44eb94a8-3712-155b-b3ab-35538f5b6b38@redhat.com>
+ <F4B393EC1A37C8418714AECDAAEF72A93C9A39FC@shsmsx102.ccr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20180904014559.15765-1-gagallo7@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <F4B393EC1A37C8418714AECDAAEF72A93C9A39FC@shsmsx102.ccr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guilherme,
+Hi Javier, Tian Shu,
 
-On 09/04/2018 03:45 AM, Guilherme Gallo wrote:
-> Add brightness, contrast, hue and saturation controls in vimc-sensor
+On Tue, Sep 04, 2018 at 05:01:56AM +0000, Qiu, Tian Shu wrote:
+> Hi,
 > 
-> Signed-off-by: Guilherme Alcarde Gallo <gagallo7@gmail.com>
-> Signed-off-by: Guilherme Gallo <gagallo7@gmail.com>
+> Raise my point.
+> The case here is that we have multiple sensors connected to CIO2. The sensors work independently. So failure on one sensor should not block the function of the other.
+> That is, we should not rely on that all sensors are ready before allowing user to operate on the ready cameras.
+> Sometimes due to hardware issues or incompleteness, we did met the case that one sensor is not probing properly. And in this case, the current implementation blocks us using the working one.
+> What I can think now to solve this are:
+> 1. Register multiple media devices. One for each sensor path. This will increase media device count.
+> 2. Use .bound callback to create the link and register the subdev node for each sensor. Leave .complete empty.
+>      Not sure if this breaks the rule of media framework. And also have not found an API to register one single subdev node.
 
-Looks good, but you have (probably unintended) two Signed-off-by lines.
-Just let me know which one I should use and I'll drop the other one.
+I'd prefer to keep the driver as-is.
 
-Regards,
+Even if the media device is only created once all the sub-devices are
+around, the devices are still created one by one so there's no way to
+prevent the user space seeing a partially registered media device complex.
 
-	Hans
+In general that doesn't happen as the sensors are typically registered
+early during system boot.
 
-> ---
->  drivers/media/platform/vimc/vimc-sensor.c | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
-> index b2b89315e7ba..edf4c85ae63d 100644
-> --- a/drivers/media/platform/vimc/vimc-sensor.c
-> +++ b/drivers/media/platform/vimc/vimc-sensor.c
-> @@ -317,6 +317,18 @@ static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_VFLIP:
->  		tpg_s_vflip(&vsen->tpg, ctrl->val);
->  		break;
-> +	case V4L2_CID_BRIGHTNESS:
-> +		tpg_s_brightness(&vsen->tpg, ctrl->val);
-> +		break;
-> +	case V4L2_CID_CONTRAST:
-> +		tpg_s_contrast(&vsen->tpg, ctrl->val);
-> +		break;
-> +	case V4L2_CID_HUE:
-> +		tpg_s_hue(&vsen->tpg, ctrl->val);
-> +		break;
-> +	case V4L2_CID_SATURATION:
-> +		tpg_s_saturation(&vsen->tpg, ctrl->val);
-> +		break;
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -378,6 +390,14 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
->  			  V4L2_CID_VFLIP, 0, 1, 1, 0);
->  	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
->  			  V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-> +			  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-> +			  V4L2_CID_CONTRAST, 0, 255, 1, 128);
-> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-> +			  V4L2_CID_HUE, -128, 127, 1, 0);
-> +	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
-> +			  V4L2_CID_SATURATION, 0, 255, 1, 128);
->  	vsen->sd.ctrl_handler = &vsen->hdl;
->  	if (vsen->hdl.error) {
->  		ret = vsen->hdl.error;
-> 
+Javier is right in asking a way for the user to know whether everything is
+fully initialised. That should be added but I don't think it is in any way
+specific to the cio2 driver.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
