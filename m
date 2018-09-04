@@ -1,260 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:36825 "EHLO
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:45813 "EHLO
         relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726961AbeIDSuA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 14:50:00 -0400
-Date: Tue, 4 Sep 2018 16:24:37 +0200
+        with ESMTP id S1726961AbeIDSwn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 14:52:43 -0400
+Date: Tue, 4 Sep 2018 16:27:18 +0200
 From: jacopo mondi <jacopo@jmondi.org>
 To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
         laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se,
         linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: i2c: adv748x: Support probing a single output
-Message-ID: <20180904142437.GC28160@w540>
+Subject: Re: [PATCH 2/2] media: i2c: adv748x: Handle TX[A|B] power management
+Message-ID: <20180904142718.GD28160@w540>
 References: <1535369285-26032-1-git-send-email-jacopo+renesas@jmondi.org>
- <1535369285-26032-2-git-send-email-jacopo+renesas@jmondi.org>
- <f9923f8e-4644-81bd-9ee6-1ffbf44551f3@ideasonboard.com>
+ <1535369285-26032-3-git-send-email-jacopo+renesas@jmondi.org>
+ <33085517-c771-05c8-c053-6e6abbe83e53@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="XWOWbaMNXpFDWE00"
+        protocol="application/pgp-signature"; boundary="W5WqUoFLvi1M7tJE"
 Content-Disposition: inline
-In-Reply-To: <f9923f8e-4644-81bd-9ee6-1ffbf44551f3@ideasonboard.com>
+In-Reply-To: <33085517-c771-05c8-c053-6e6abbe83e53@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---XWOWbaMNXpFDWE00
+--W5WqUoFLvi1M7tJE
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
 Hi Kieran,
 
-On Tue, Aug 28, 2018 at 04:26:43PM +0100, Kieran Bingham wrote:
+On Tue, Aug 28, 2018 at 04:47:05PM +0100, Kieran Bingham wrote:
 > Hi Jacopo,
 >
 > Thank you for the patch,
 >
->
 > On 27/08/18 12:28, Jacopo Mondi wrote:
-> > Currently the adv748x driver refuses to probe if both its output endpoints
-> > (TXA and TXB) are not connected.
+> > As the driver is now allowed to probe with a single output endpoint,
+> > power management routines shall now take into account the case a CSI-2 TX
+> > is not enabled.
 > >
-> > Make the driver support probing with (at least) one output endpoint connected
-> > and protect the cleanup function from accessing un-initialized fields.
+> > Unify the adv748x_tx_power() routine to handle transparently TXA and TXB,
+> > and enable the CSI-2 outputs conditionally.
+>
+> Great - I definitely want to see this code refactored. Ideally with a
+> full removal of the register lists ... but we can get there in stages :D
+>
 > >
-> > Following patches will fix other user of un-initialized TXs in the driver,
-> > such as power management functions.
+> > The AFE and HDMI backends have fixed output routes, so enable the designated
+> > CSI-2 output according to that.
+>
+> Ah ... but what happens when the links can be changed dynamically ?
+> I guess we handle that then ...
+>
 > >
 > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > > ---
-> >  drivers/media/i2c/adv748x/adv748x-core.c | 38 +++++++++++++++++++++++++-------
-> >  drivers/media/i2c/adv748x/adv748x-csi2.c | 17 ++++----------
-> >  drivers/media/i2c/adv748x/adv748x.h      |  2 ++
-> >  3 files changed, 36 insertions(+), 21 deletions(-)
+> >  drivers/media/i2c/adv748x/adv748x-afe.c  |  2 +-
+> >  drivers/media/i2c/adv748x/adv748x-core.c | 52 +++++++++++++-------------------
+> >  drivers/media/i2c/adv748x/adv748x-csi2.c |  5 ---
+> >  drivers/media/i2c/adv748x/adv748x-hdmi.c |  2 +-
+> >  drivers/media/i2c/adv748x/adv748x.h      |  4 +--
+> >  5 files changed, 25 insertions(+), 40 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+> > index edd25e8..6d78105 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-afe.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+> > @@ -286,7 +286,7 @@ static int adv748x_afe_s_stream(struct v4l2_subdev *sd, int enable)
+> >  			goto unlock;
+> >  	}
+> >
+> > -	ret = adv748x_txb_power(state, enable);
+> > +	ret = adv748x_tx_power(&state->txb, enable);
+> >  	if (ret)
+> >  		goto unlock;
 > >
 > > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> > index 6ca88daa..78d5996 100644
+> > index 78d5996..0adbcb6 100644
 > > --- a/drivers/media/i2c/adv748x/adv748x-core.c
 > > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> > @@ -654,6 +654,24 @@ static int adv748x_probe(struct i2c_client *client,
-> >  		goto err_cleanup_clients;
-> >  	}
+> > @@ -292,33 +292,16 @@ static const struct adv748x_reg_value adv748x_power_down_txb_1lane[] = {
+> >  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+> >  };
 > >
-> > +	/*
-> > +	 * We can not use container_of to get back to the state with two TXs;
-> > +	 * Initialize the TXs's fields unconditionally on the endpoint
-> > +	 * presence to access them later.
-> > +	 */
-> > +	state->txa.state = state->txb.state = state;
-> > +	state->txa.page = ADV748X_PAGE_TXA;
-> > +	state->txb.page = ADV748X_PAGE_TXB;
-> > +	state->txa.port = ADV748X_PORT_TXA;
-> > +	state->txb.port = ADV748X_PORT_TXB;
-> > +
+> > -int adv748x_txa_power(struct adv748x_state *state, bool on)
+> > +int adv748x_tx_power(struct adv748x_csi2 *tx, bool on)
+> >  {
+> > +	struct adv748x_state *state = tx->state;
+> > +	const struct adv748x_reg_value *reglist;
+> >  	int val;
+> >
+> > -	val = txa_read(state, ADV748X_CSI_FS_AS_LS);
+> > -	if (val < 0)
+> > -		return val;
+> > -
+> > -	/*
+> > -	 * This test against BIT(6) is not documented by the datasheet, but was
+> > -	 * specified in the downstream driver.
+> > -	 * Track with a WARN_ONCE to determine if it is ever set by HW.
+> > -	 */
+> > -	WARN_ONCE((on && val & ADV748X_CSI_FS_AS_LS_UNKNOWN),
+> > -			"Enabling with unknown bit set");
 >
-> Initialising this data here feels a bit hacky...
+> I was going to query if this was dropped, but the check is identical in
+> the other function.
+>
+> The original BSP driver had this condition as a 'fatal' error from what
+> I recall, which is why I kept it as a warning check.
+>
+> I've only seen it fire once, when I had an incorrect power-on-off sequence.
+>
+> I think the bit actually likely only gets set from one of the reglists
+> in the driver.
+>
+> The bit is undocumented, and I didn't get any further detail from
+> querying analog devices. At somepoint I'd like to drop the WARN_ON with
+> an equivalent change which removes all references to this bit (whichever
+> entry in the register lists sets the bit).
+>
+> But that's not an issue for this patch.
+>
+>
+>
+> > -
+> > -	if (on)
+> > -		return adv748x_write_regs(state, adv748x_power_up_txa_4lane);
+> > -
+> > -	return adv748x_write_regs(state, adv748x_power_down_txa_4lane);
+> > -}
+> > -
+> > -int adv748x_txb_power(struct adv748x_state *state, bool on)
+> > -{
+> > -	int val;
+> > +	if (!is_tx_enabled(tx))
+> > +		return 0;
+> >
+> > -	val = txb_read(state, ADV748X_CSI_FS_AS_LS);
+>
+> I think we can remove txa_read(), txb_read() now  ?
 
-Possibly, yes.
-I'm going to move this back to csi2_init() and call it
-unconditionally, but I don't like returning an error if not having a
-TX enabled is not an error. I'll go for
-
-        if (!is_tx_enabled(tx))
-                return 0;
->
->
-> > +	if (!is_tx_enabled(&state->txa) &&
-> > +	    !is_tx_enabled(&state->txb)) {
->
-> Could we make is_tx_enabled() based on the information it needs?
->
-> 	is_tx_enabled(ADV748X_PORT_TXA);
->
-> Or perhaps:
-> 	is_port_enabled(ADV748X_PORT_TXA)
->
-
-We could, but why? Where's the benefit?
+Ah yes, I thought I did that already...
 
 >
-> > +		ret = -ENODEV;
-> > +		adv_err(state, "No output endpoint defined\n");
-> > +		goto err_cleanup_clients;
-> > +	}
-> > +
+> > +	val = tx_read(tx, ADV748X_CSI_FS_AS_LS);
+> >  	if (val < 0)
+> >  		return val;
+> >
+> > @@ -331,9 +314,13 @@ int adv748x_txb_power(struct adv748x_state *state, bool on)
+> >  			"Enabling with unknown bit set");
+> >
+> >  	if (on)
+> > -		return adv748x_write_regs(state, adv748x_power_up_txb_1lane);
+> > +		reglist = is_txa(tx) ? adv748x_power_up_txa_4lane :
+> > +				       adv748x_power_up_txb_1lane;
+> > +	else
+> > +		reglist = is_txa(tx) ? adv748x_power_down_txa_4lane :
+> > +				       adv748x_power_down_txb_1lane;
+> >
+> > -	return adv748x_write_regs(state, adv748x_power_down_txb_1lane);
+> > +	return adv748x_write_regs(state, reglist);
+> >  }
+> >
+> >  /* -----------------------------------------------------------------------------
+> > @@ -482,6 +469,7 @@ static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
+> >  static int adv748x_reset(struct adv748x_state *state)
+> >  {
+> >  	int ret;
+> > +	u8 regval = ADV748X_IO_10_PIX_OUT_EN;
 >
-> I approached this slightly differently at [0], by allowing the CSI
-> object to initialise, but if they return -ENODEV, then it's fine.
+> As discussed, I believe this refers to the 8-bit TTL I/O port.
+>
+> Ideally - this functionality should be broken out to a separate port (or
+> pair of ports) - but that's not for here.
+>
+> Keeping this here maintains the existing behaviour of the driver so
+> that's fine, but perhaps if you re-spin - could you add a comment to
+> state that the ADV748X_IO_10_PIX_OUT_EN refers to the non-supported TTL
+> IO port ?
 
-I see. Not my preference actually, but I'll change in v2 as you
-suggested above (the tx initialization in csi2_init() )
+I would actually go and remove this with a patch on top of this one.
+
+Will do in v2.
 
 Thanks
-  j
+   j
+
 >
-> The only thing missing from [0] is a check to see if at least one of the
-> CSI devices probed.
->
->
->
-> You might be interested in [1], from my old 'adv748x/dev' branch [2] for
-> looking at the link creation too.
->
-> [0]
-> https://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git/commit/?h=adv748x/for-next&id=ee53e0f7e6e0f3dacc79dcf157ce3c403b17ec14
->
-> [1]
-> https://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git/commit/?h=adv748x/dev&id=e0e975d73a70a5b73ad674e206103cd7df983a04
->
->
-> [2]
-> https://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git/log/?h=adv748x/dev
->
->
-> >  	/* SW reset ADV748X to its default values */
-> >  	ret = adv748x_reset(state);
-> >  	if (ret) {
-> > @@ -676,17 +694,21 @@ static int adv748x_probe(struct i2c_client *client,
-> >  	}
 > >
-> >  	/* Initialise TXA */
-> > -	ret = adv748x_csi2_init(state, &state->txa);
-> > -	if (ret) {
-> > -		adv_err(state, "Failed to probe TXA");
-> > -		goto err_cleanup_afe;
-> > +	if (is_tx_enabled(&state->txa)) {
-> > +		ret = adv748x_csi2_init(state, &state->txa);
-> > +		if (ret) {
-> > +			adv_err(state, "Failed to probe TXA");
-> > +			goto err_cleanup_afe;
-> > +		}
-> >  	}
+> >  	ret = adv748x_write_regs(state, adv748x_sw_reset);
+> >  	if (ret < 0)
+> > @@ -496,22 +484,24 @@ static int adv748x_reset(struct adv748x_state *state)
+> >  	if (ret)
+> >  		return ret;
 > >
-> >  	/* Initialise TXB */
-> > -	ret = adv748x_csi2_init(state, &state->txb);
-> > -	if (ret) {
-> > -		adv_err(state, "Failed to probe TXB");
-> > -		goto err_cleanup_txa;
-> > +	if (is_tx_enabled(&state->txb)) {
-> > +		ret = adv748x_csi2_init(state, &state->txb);
-> > +		if (ret) {
-> > +			adv_err(state, "Failed to probe TXB");
-> > +			goto err_cleanup_txa;
-> > +		}
-> >  	}
+> > -	adv748x_txa_power(state, 0);
+> > +	adv748x_tx_power(&state->txa, 0);
 > >
-> >  	return 0;
+> >  	/* Init and power down TXB */
+> >  	ret = adv748x_write_regs(state, adv748x_init_txb_1lane);
+> >  	if (ret)
+> >  		return ret;
+> >
+> > -	adv748x_txb_power(state, 0);
+> > +	adv748x_tx_power(&state->txb, 0);
+> >
+> >  	/* Disable chip powerdown & Enable HDMI Rx block */
+> >  	io_write(state, ADV748X_IO_PD, ADV748X_IO_PD_RX_EN);
+> >
+> > -	/* Enable 4-lane CSI Tx & Pixel Port */
+> > -	io_write(state, ADV748X_IO_10, ADV748X_IO_10_CSI4_EN |
+> > -				       ADV748X_IO_10_CSI1_EN |
+> > -				       ADV748X_IO_10_PIX_OUT_EN);
+> > +	/* Conditionally enable 4-lane CSI Tx & Pixel Port */
+> > +	if (is_tx_enabled(&state->txa))
+> > +		regval |= ADV748X_IO_10_CSI4_EN;
+> > +	if (is_tx_enabled(&state->txb))
+> > +		regval |= ADV748X_IO_10_CSI1_EN;
+> > +	io_write(state, ADV748X_IO_10, regval);
+>
+> Could be a bit of powersaving here :) Great.
+>
+>
+>
+> >  	/* Use vid_std and v_freq as freerun resolution for CP */
+> >  	cp_clrset(state, ADV748X_CP_CLMP_POS, ADV748X_CP_CLMP_POS_DIS_AUTO,
 > > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > index 469be87..709cdea 100644
+> > index 709cdea..36bc786 100644
 > > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
 > > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > @@ -266,20 +266,8 @@ static int adv748x_csi2_init_controls(struct adv748x_csi2 *tx)
+> > @@ -18,11 +18,6 @@
 > >
-> >  int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
-> >  {
-> > -	struct device_node *ep;
-> >  	int ret;
+> >  #include "adv748x.h"
 > >
-> > -	/* We can not use container_of to get back to the state with two TXs */
-> > -	tx->state = state;
-> > -	tx->page = is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+> > -static bool is_txa(struct adv748x_csi2 *tx)
+> > -{
+> > -	return tx == &tx->state->txa;
+> > -}
 > > -
-> > -	ep = state->endpoints[is_txa(tx) ? ADV748X_PORT_TXA : ADV748X_PORT_TXB];
-> > -	if (!ep) {
-> > -		adv_err(state, "No endpoint found for %s\n",
-> > -				is_txa(tx) ? "txa" : "txb");
->
-> If you used the -ENODEV approach, this adv_err should be removed.
->
-> > -		return -ENODEV;
-> > -	}
-> > -
-> >  	/* Initialise the virtual channel */
-> >  	adv748x_csi2_set_virtual_channel(tx, 0);
-> >
-> > @@ -288,7 +276,7 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
-> >  			    is_txa(tx) ? "txa" : "txb");
-> >
-> >  	/* Ensure that matching is based upon the endpoint fwnodes */
-> > -	tx->sd.fwnode = of_fwnode_handle(ep);
-> > +	tx->sd.fwnode = of_fwnode_handle(state->endpoints[tx->port]);
-> >
-> >  	/* Register internal ops for incremental subdev registration */
-> >  	tx->sd.internal_ops = &adv748x_csi2_internal_ops;
-> > @@ -321,6 +309,9 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
-> >
-> >  void adv748x_csi2_cleanup(struct adv748x_csi2 *tx)
+> >  static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+> >  					    unsigned int vc)
 > >  {
-> > +	if (!is_tx_enabled(tx))
-> > +		return;
-> > +
-> >  	v4l2_async_unregister_subdev(&tx->sd);
-> >  	media_entity_cleanup(&tx->sd.entity);
-> >  	v4l2_ctrl_handler_free(&tx->ctrl_hdl);
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> > index aecc2a8..abb6568 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> > @@ -362,7 +362,7 @@ static int adv748x_hdmi_s_stream(struct v4l2_subdev *sd, int enable)
+> >
+> >  	mutex_lock(&state->mutex);
+> >
+> > -	ret = adv748x_txa_power(state, enable);
+> > +	ret = adv748x_tx_power(&state->txa, enable);
+> >  	if (ret)
+> >  		goto done;
+> >
 > > diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> > index 65f8374..1cf46c40 100644
+> > index 1cf46c40..2e8d37a 100644
 > > --- a/drivers/media/i2c/adv748x/adv748x.h
 > > +++ b/drivers/media/i2c/adv748x/adv748x.h
-> > @@ -82,6 +82,7 @@ struct adv748x_csi2 {
-> >  	struct adv748x_state *state;
-> >  	struct v4l2_mbus_framefmt format;
-> >  	unsigned int page;
-> > +	unsigned int port;
-> >
-> >  	struct media_pad pads[ADV748X_CSI2_NR_PADS];
-> >  	struct v4l2_ctrl_handler ctrl_hdl;
-> > @@ -91,6 +92,7 @@ struct adv748x_csi2 {
-> >
+> > @@ -93,6 +93,7 @@ struct adv748x_csi2 {
 > >  #define notifier_to_csi2(n) container_of(n, struct adv748x_csi2, notifier)
 > >  #define adv748x_sd_to_csi2(sd) container_of(sd, struct adv748x_csi2, sd)
-> > +#define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
->
+> >  #define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
+> > +#define is_txa(_tx) ((_tx) == &(_tx)->state->txa)
 > >
 > >  enum adv748x_hdmi_pads {
 > >  	ADV748X_HDMI_SINK,
+> > @@ -400,8 +401,7 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
+> >  int adv748x_register_subdevs(struct adv748x_state *state,
+> >  			     struct v4l2_device *v4l2_dev);
+> >
+> > -int adv748x_txa_power(struct adv748x_state *state, bool on);
+> > -int adv748x_txb_power(struct adv748x_state *state, bool on);
+> > +int adv748x_tx_power(struct adv748x_csi2 *tx, bool on);
+> >
+> >  int adv748x_afe_init(struct adv748x_afe *afe);
+> >  void adv748x_afe_cleanup(struct adv748x_afe *afe);
 > >
 >
 
---XWOWbaMNXpFDWE00
+--W5WqUoFLvi1M7tJE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbjpWkAAoJEHI0Bo8WoVY8/2cP/0V68iHm3zCPWEEQ79V1rVP1
-UtsqbT/PpgHHEpEiZt34t9dvwsTlVJV2hBgtlax8/Y20+ItLOHeysxJWZ2HwYDSL
-aTzuWg1C00B3qoWUs/OR5fJMdS8yymRebLuYnTjrS4k3OxLf0fpP9gKWc3y/Q9wi
-nmHayZtVRfKFxpeNGU9kIiI8j7dcUEIfzKG9nIBXG70ZDo7eMkcg7GUK1O18znCS
-0S60bX76gCHn8GPh37Piq59j1hAiRfMQkYHrlytpPLqEm9pNwx+Lyc8YghWXxDtU
-7meoc5f+BdB3vRjMkmDhAJCE+NtK9rBqWb7VWB40GVnRjPjWU4iKHLa5dP9G28ka
-jRFs68teIVM+r/wSAJ2UfsdZG1kq6Or4ISBEJiRHMmubnNGJEz+ti7Qg8fhLbVm9
-S6uNP68juBwx4Vvwq+RLVR3nf3RBpX3YnGRZKo7NMJfnv/CJKPjWWB6w2+Tpm5rP
-ueLUv4YxJdMjbdpS2dbXIM143bfodgjwC8tRB97EP6WHVweSnd5EGNR2QAU9k5Fo
-7vHvdrMgHpMkFQJNwGgq+o/926z0Dibk1tnUjSPKeaDYPo1QAmAPUTSk5rPaTLF0
-m2cKvrmV53uBURs3+xE+m5uHOqeFW5haze3P81/nDuKsw6CvcYEdxijFrIJ5VimD
-MNFXmT+Ub8pobsndzy9G
-=l4Vp
+iQIcBAEBAgAGBQJbjpZGAAoJEHI0Bo8WoVY8dxAP/1Tmy/L/i+LCbcIyk+V+LnlY
+ey4psHSrJKsUaPw+pSM518weSseRb8BMFpi+u34XXG6HswA1lVr4nR6SVrwRoi39
+zBhmN9Z4LBUwfnUYVluIQxbSeLPWur/9cg/7wo9kMfA09xqPliM+pdY8pqP0cO6g
++UHTEqyeV0b+XyfYJwMP0fHyujU+LNksRbISAY4zfiaYoNI2O54vfQmOraMkbCB7
+CcJevpAMMTNUzOa9qEgX9USrhjQthw+mFc3aq09xPHLZ86vL5wmrc7VQ2Ghtp/Al
+nlFgOU3A7vKKHHxDhRltrrKvT2H6bsNvpH1seOqUg0rJJnoSoLqi1EZV92VQ+Uz9
+GbUZzCLNE5h+rA6LazJWTA0FRmFICcaRjy9dB4pGhTFRCw0wBevvYMqt61462Oao
+5wpTjxwxkqK7oWxrFQWeggKxPHNEkwiq1K9XLWbaVOjNCnNfD9vp3ot+7HAxNc8y
+GdaSQTbTB/oHuH1GNGkd0iQNmSZ9H3hBFUDbvTdGm3fGqxRg1lR1AhzpTC34vNZ6
+EwDEQc3cjbMcixeRC4l6eWvm1FChG6+Izd/UJNHp1gWXv8g7epwQmI6Gk7XaD7+/
+scvHX8XDppiENm8nR9OKUm3x+ye7fF/LSuTRvymOhWFn9Zv2gNaKUdW5+j4TcQ18
+ssrxfMs5dxafzOuUUtZ4
+=5/iP
 -----END PGP SIGNATURE-----
 
---XWOWbaMNXpFDWE00--
+--W5WqUoFLvi1M7tJE--
