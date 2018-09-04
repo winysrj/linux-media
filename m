@@ -1,104 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:41582 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726029AbeIDMQz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 08:16:55 -0400
-Received: by mail-wr1-f66.google.com with SMTP id z96-v6so2856962wrb.8
-        for <linux-media@vger.kernel.org>; Tue, 04 Sep 2018 00:52:58 -0700 (PDT)
-Subject: Re: [PATCH] media: intel-ipu3: cio2: register the mdev on v4l2 async
- notifier complete
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Cc: Bing Bu Cao <bingbu.cao@linux.intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <20180831152045.9957-1-javierm@redhat.com>
- <cd307d41-ed19-5ab0-cbdb-a743cdb76e09@linux.intel.com>
- <c1e54228-a21a-b4a2-1083-c75b2dda797c@redhat.com>
- <b15b236e-e0a7-8b2f-1e1f-196c9dc04f4d@linux.intel.com>
- <44eb94a8-3712-155b-b3ab-35538f5b6b38@redhat.com>
- <F4B393EC1A37C8418714AECDAAEF72A93C9A39FC@shsmsx102.ccr.corp.intel.com>
- <20180904064605.6prcawieb4ooxtyl@paasikivi.fi.intel.com>
-From: Javier Martinez Canillas <javierm@redhat.com>
-Message-ID: <b8aab749-e734-c2e8-daa7-5377c2547bc3@redhat.com>
-Date: Tue, 4 Sep 2018 09:52:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180904064605.6prcawieb4ooxtyl@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36877 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726157AbeIDMWw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Sep 2018 08:22:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCHv4 00/10] Post-v18: Request API updates
+Date: Tue,  4 Sep 2018 09:58:40 +0200
+Message-Id: <20180904075850.2406-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,  Tian Shu,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 09/04/2018 08:46 AM, Sakari Ailus wrote:
-> Hi Javier, Tian Shu,
-> 
-> On Tue, Sep 04, 2018 at 05:01:56AM +0000, Qiu, Tian Shu wrote:
->> Hi,
->>
->> Raise my point.
->> The case here is that we have multiple sensors connected to CIO2. The sensors work independently. So failure on one sensor should not block the function of the other.
->> That is, we should not rely on that all sensors are ready before allowing user to operate on the ready cameras.
->> Sometimes due to hardware issues or incompleteness, we did met the case that one sensor is not probing properly. And in this case, the current implementation blocks us using the working one.
+Hi all,
 
-This is a valid concern, but unfortunately the media graph is created in a quite
-static way currently: the port and enpoints are parsed in the hardware topology,
-the driver waits for the subdevices to be registered and bound, and is notified
-by the .complete callback when there aren't more pending devices to be registered.
+This patch series sits on top of the request_api topic branch in the
+media_tree. It makes some final (?) changes as discussed in:
 
-With the current infrastructure, I think we have to wait to register the media
-device node until all devices have been bound, even if that would mean a single
-camera driver not probing will cause the media graph to not be available.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg134419.html
 
-Probably the correct approach would be to allow the media graph to dynamically
-change and notify the user when new nodes are added or deleted (currently we
-prevent to remove modules for the devices bound to the media device).
+and:
 
->> What I can think now to solve this are:
->> 1. Register multiple media devices. One for each sensor path. This will increase media device count.
->> 2. Use .bound callback to create the link and register the subdev node for each sensor. Leave .complete empty.
->>      Not sure if this breaks the rule of media framework. And also have not found an API to register one single subdev node.
-> 
-> I'd prefer to keep the driver as-is.
-> 
-> Even if the media device is only created once all the sub-devices are
-> around, the devices are still created one by one so there's no way to
-> prevent the user space seeing a partially registered media device complex.
->
+https://www.spinics.net/lists/linux-media/msg138596.html
 
-Yes, but at least the media device node won't be available.
+The combined v18 patches + this series is available here:
 
-> In general that doesn't happen as the sensors are typically registered
-> early during system boot.
->
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=reqv18-1
 
-It's true if the drivers are built-in, but they can be built as modules.
+Updated v4l-utils for this is available here:
 
-The goal with this patch was to prevent having a media graph that's not
-useful, for example I've a media graph with no sensors media entities
-(because there are no drivers supporting the sensors on my machine).
+https://git.linuxtv.org/hverkuil/v4l-utils.git/log/?h=request
 
-I prefer not having a media node in that case, that way users can know
-that something went wrong / some support is missing.
+Userspace visible changes:
 
-> Javier is right in asking a way for the user to know whether everything is
-> fully initialised. That should be added but I don't think it is in any way
-> specific to the cio2 driver.
->
+- Invalid request_fd values now return -EINVAL instead of -ENOENT.
+- It is no longer possible to use VIDIOC_G_EXT_CTRLS for requests
+  that are not completed. -EACCES is returned in that case.
+- Attempting to use requests if requests are not supported by the driver
+  will result in -EACCES instead of -EPERM.
+- Attempting to mix direct QBUF with queueing buffers via a request
+  will result in -EBUSY instead of -EPERM.
 
-I was thinking about using the presence of the media device node as an
-indication that the media graph has been fully initialized. And I thought
-that was the agreement that lead to the commit 9832e155f1ed ("[media]
-media-device: split media initialization and registration").
+Driver visible changes (important for the cedrus driver!):
 
-Best regards,
+Drivers should set the new vb2_queue 'supports_request' bitfield to 1
+if a vb2_queue can support requests. Otherwise the queue cannot be
+used with requests.
+
+This bitfield is also used to fill in the new capabilities field
+in struct v4l2_requestbuffers and v4l2_create_buffers.
+
+Changes since v3:
+
+- I missed a few EPERM references in comments, documentation and even
+  a stub functions. They have all been replaced by EBUSY or EACCES.
+  Thanks to Sakari 'Eagle-Eye' Sailus for finding these.
+  This only effects patch 09/10.
+
+Changes since v2:
+
+- Fix typo in commit message of patch 07/10: why -> when
+- Attempting to mix direct QBUF with queueing buffers via a request
+  will result in -EBUSY instead of -EPERM.
+- Replaced -EPERM with -EBUSY in videobuf2-core.c that was missed in
+  v1.
+
+Changes since v1:
+
+- Updated patch 4/10 to explain how to query the capabilities
+  with REQBUFS/CREATE_BUFS with a minimum of side-effects
+  (requested by Tomasz).
+- Added patches 6-10:
+  6: Sakari found a corner case: when accessing a request the
+     request has to be protected from being re-inited. New
+     media_request_(un)lock_for_access helpers are added for this.
+  7: use these helpers in g_ext_ctrls.
+  8: make s/try_ext_ctrls more robust by keeping the request
+     references until we're fully done setting/trying the controls.
+  9: Change two more EPERM's to EACCES. EPERM suggests that you can
+     fix it by changing permissions somehow, but in this case the
+     driver simply doesn't support requests at all.
+  10: Update the request documentation based on Laurent's comments:
+      https://www.spinics.net/lists/linux-media/msg139152.html
+      To do: split off the V4L2 specifics into a V4L2 specific
+      rst file. But this will take more time and is for later.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (10):
+  media-request: return -EINVAL for invalid request_fds
+  v4l2-ctrls: return -EACCES if request wasn't completed
+  buffer.rst: only set V4L2_BUF_FLAG_REQUEST_FD for QBUF
+  videodev2.h: add new capabilities for buffer types
+  vb2: set reqbufs/create_bufs capabilities
+  media-request: add media_request_(un)lock_for_access
+  v4l2-ctrls: use media_request_(un)lock_for_access
+  v4l2-ctrls: improve media_request_(un)lock_for_update
+  media-request: EPERM -> EACCES/EBUSY
+  media-request: update documentation
+
+ .../uapi/mediactl/media-ioc-request-alloc.rst |  3 +-
+ .../uapi/mediactl/media-request-ioc-queue.rst | 16 ++---
+ .../media/uapi/mediactl/request-api.rst       | 55 +++++++++-------
+ .../uapi/mediactl/request-func-close.rst      |  1 +
+ .../media/uapi/mediactl/request-func-poll.rst |  2 +-
+ Documentation/media/uapi/v4l/buffer.rst       | 22 ++++---
+ .../media/uapi/v4l/vidioc-create-bufs.rst     | 14 ++++-
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst     | 48 +++++++-------
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst  | 35 ++++++-----
+ .../media/uapi/v4l/vidioc-reqbufs.rst         | 42 ++++++++++++-
+ .../media/common/videobuf2/videobuf2-core.c   |  2 +-
+ .../media/common/videobuf2/videobuf2-v4l2.c   | 24 ++++++-
+ drivers/media/media-request.c                 | 20 ++++--
+ drivers/media/platform/vim2m.c                |  1 +
+ drivers/media/platform/vivid/vivid-core.c     |  5 ++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c          | 32 ++++++----
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  4 +-
+ include/media/media-request.h                 | 62 ++++++++++++++++++-
+ include/media/videobuf2-core.h                |  2 +
+ include/uapi/linux/videodev2.h                | 13 +++-
+ 21 files changed, 294 insertions(+), 113 deletions(-)
+
 -- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+2.18.0
