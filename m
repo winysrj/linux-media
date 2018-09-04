@@ -1,100 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46683 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725947AbeIDBdR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Sep 2018 21:33:17 -0400
-From: rens <rensg@xs4all.nl>
-Subject: dvbv5-scan --- report bugs to Mauro Carvalho Chehab
- <m.chehab@samsung.com>
-To: linux-media@vger.kernel.org
-Message-ID: <4df2dd7f-b61f-870a-aff2-531dcf6e8b81@xs4all.nl>
-Date: Mon, 3 Sep 2018 23:11:15 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from mail-qk1-f193.google.com ([209.85.222.193]:39692 "EHLO
+        mail-qk1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725833AbeIDGJC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 02:09:02 -0400
+From: Guilherme Gallo <gagallo7@gmail.com>
+To: hverkuil@xs4all.nl, Helen Koike <helen.koike@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: lkcamp@lists.libreplanetbr.org
+Subject: [PATCH v2] media: vimc: implement basic v4l2-ctrls
+Date: Mon,  3 Sep 2018 22:45:59 -0300
+Message-Id: <20180904014559.15765-1-gagallo7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add brightness, contrast, hue and saturation controls in vimc-sensor
 
-Hi.
+Signed-off-by: Guilherme Alcarde Gallo <gagallo7@gmail.com>
+Signed-off-by: Guilherme Gallo <gagallo7@gmail.com>
+---
+ drivers/media/platform/vimc/vimc-sensor.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-I think I ran into a bug, but.......
-
-I have a 3 way lnb setup, with a TBS HD capable satellite tuner.
-
-I am in Netherlands, Europe, and therefore I can receive Astra2 channels
-( mainly UK based channels)
-
-with the old dvbscan, I can tune and record from stations on frequency
-10714 :
-
-FIlm4 and More4 +1 , they are both free to air.
-
-With the dvbv5-scan, (and consequently also kaffeine ) I am not able to
-scan,  tune to or record from these channels.
-
-My scan file looks like this:
-
-_____________________________
-
-=>cat x6
-S 10714000 H 22000000 5/6
-
-__________________________________________________
-
-#dvbv5-scan -V
-dvbv5-scan version 1.8.0
-
-=>dvbv5-scan -S 2  -w -1 -I CHANNEL -l UNIVERSAL  x6
-Using LNBf UNIVERSAL
-        Europe
-        10800 to 11800 MHz and 11600 to 12700 MHz
-        Dual LO, IF = lowband 9750 MHz, highband 10600 MHz
-ERROR    command BANDWIDTH_HZ (5) not found during retrieve
-Cannot calc frequency shift. Either bandwidth/symbol-rate is unavailable
-(yet).
-Scanning frequency #1 10714000
-RF     (0x01) Signal= -37.00dBm
-4.4.114-42-vanilla:vmhost1:/root
-_____________________________________________________
-
-
-with the same x6 file and using dvbscan :
-
-I do get the stations on that frequency. Any suggestion if I am doing
-something wrong / what is going on here ??
-
-
-# rpm -qf `which dvbscan `
-dvb-1.1.1_20150120-3.2.x86_64
-
-_____________________________________________________
-
-# dvbscan  -s 2   -l UNIVERSAL   x6
-scanning x6
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 10714000 H 22000000 5
->>> tune to: 10714:h:2:22000
-DVB-S IF freq is 964000
-0x0000 0x23fb: pmt_pid 0x0100 BSkyB -- Channel 4 (running)
-0x0000 0x23fc: pmt_pid 0x0101 BSkyB -- Channel 4 (running)
-0x0000 0x23fd: pmt_pid 0x0102 BSkyB -- Channel 4 (running)
-0x0000 0x23fe: pmt_pid 0x0103 BSkyB -- Channel 4 (running)
-0x0000 0x2400: pmt_pid 0x0105 BSkyB -- Channel 4 (running)
-0x0000 0x2404: pmt_pid 0x010a BSkyB -- Film4 (running)
-0x0000 0x240e: pmt_pid 0x0108 BSkyB -- More4+1 (running)
-0x0000 0x240f: pmt_pid 0x010b BSkyB -- More4 (running, scrambled)
-0x0000 0x2419: pmt_pid 0x0107 BSkyB -- E4 (running)
-0x0000 0x241d: pmt_pid 0x010d BSkyB -- Channel 4+1 (running, scrambled)
-0x0000 0x2422: pmt_pid 0x0109 BSkyB -- E4+1 (running, scrambled)
-0x0000 0x2441: pmt_pid 0x0106 BSkyB -- c4 l (running)
-Network Name 'ASTRA'
-
-__________________________________________________
-
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index b2b89315e7ba..edf4c85ae63d 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -317,6 +317,18 @@ static int vimc_sen_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_VFLIP:
+ 		tpg_s_vflip(&vsen->tpg, ctrl->val);
+ 		break;
++	case V4L2_CID_BRIGHTNESS:
++		tpg_s_brightness(&vsen->tpg, ctrl->val);
++		break;
++	case V4L2_CID_CONTRAST:
++		tpg_s_contrast(&vsen->tpg, ctrl->val);
++		break;
++	case V4L2_CID_HUE:
++		tpg_s_hue(&vsen->tpg, ctrl->val);
++		break;
++	case V4L2_CID_SATURATION:
++		tpg_s_saturation(&vsen->tpg, ctrl->val);
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -378,6 +390,14 @@ static int vimc_sen_comp_bind(struct device *comp, struct device *master,
+ 			  V4L2_CID_VFLIP, 0, 1, 1, 0);
+ 	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
+ 			  V4L2_CID_HFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			  V4L2_CID_CONTRAST, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			  V4L2_CID_HUE, -128, 127, 1, 0);
++	v4l2_ctrl_new_std(&vsen->hdl, &vimc_sen_ctrl_ops,
++			  V4L2_CID_SATURATION, 0, 255, 1, 128);
+ 	vsen->sd.ctrl_handler = &vsen->hdl;
+ 	if (vsen->hdl.error) {
+ 		ret = vsen->hdl.error;
 -- 
+2.13.6
 
-Met vriendelijke groet / Best regards,
-Rens
+Changes in v2:
+- Added brightness, hue and saturation controls.
+- Fixed the standard values for hue control.
