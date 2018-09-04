@@ -1,85 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54574 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726355AbeIDMWy (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:57048 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726319AbeIDMWx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Sep 2018 08:22:54 -0400
+        Tue, 4 Sep 2018 08:22:53 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 07/10] v4l2-ctrls: use media_request_(un)lock_for_access
-Date: Tue,  4 Sep 2018 09:58:47 +0200
-Message-Id: <20180904075850.2406-8-hverkuil@xs4all.nl>
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv4 03/10] buffer.rst: only set V4L2_BUF_FLAG_REQUEST_FD for QBUF
+Date: Tue,  4 Sep 2018 09:58:43 +0200
+Message-Id: <20180904075850.2406-4-hverkuil@xs4all.nl>
 In-Reply-To: <20180904075850.2406-1-hverkuil@xs4all.nl>
 References: <20180904075850.2406-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
 
-When getting control values from a completed request, we have
-to protect the request against being re-inited when it is
-being accessed by calling media_request_(un)lock_for_access.
+Document that V4L2_BUF_FLAG_REQUEST_FD should only be used with
+VIDIOC_QBUF and cleared otherwise.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ Documentation/media/uapi/v4l/buffer.rst | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ccaf3068de6d..cc266a4a6e88 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3289,11 +3289,10 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 		     struct v4l2_ext_controls *cs)
- {
- 	struct media_request_object *obj = NULL;
-+	struct media_request *req = NULL;
- 	int ret;
- 
- 	if (cs->which == V4L2_CTRL_WHICH_REQUEST_VAL) {
--		struct media_request *req;
--
- 		if (!mdev || cs->request_fd < 0)
- 			return -EINVAL;
- 
-@@ -3306,11 +3305,18 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 			return -EACCES;
- 		}
- 
-+		ret = media_request_lock_for_access(req);
-+		if (ret) {
-+			media_request_put(req);
-+			return ret;
-+		}
-+
- 		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
--		/* Reference to the request held through obj */
--		media_request_put(req);
--		if (IS_ERR(obj))
-+		if (IS_ERR(obj)) {
-+			media_request_unlock_for_access(req);
-+			media_request_put(req);
- 			return PTR_ERR(obj);
-+		}
- 
- 		hdl = container_of(obj, struct v4l2_ctrl_handler,
- 				   req_obj);
-@@ -3318,8 +3324,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
- 
- 	ret = v4l2_g_ext_ctrls_common(hdl, cs);
- 
--	if (obj)
-+	if (obj) {
-+		media_request_unlock_for_access(req);
- 		media_request_object_put(obj);
-+		media_request_put(req);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(v4l2_g_ext_ctrls);
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index 35c2fadd10de..1865cd5b9d3c 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -312,6 +312,8 @@ struct v4l2_buffer
+         and flag ``V4L2_BUF_FLAG_REQUEST_FD`` is set, then the buffer will be
+ 	queued to that request. This is set by the user when calling
+ 	:ref:`ioctl VIDIOC_QBUF <VIDIOC_QBUF>` and ignored by other ioctls.
++	Applications should not set ``V4L2_BUF_FLAG_REQUEST_FD`` for any ioctls
++	other than :ref:`VIDIOC_QBUF <VIDIOC_QBUF>`.
+ 	If the device does not support requests, then ``EPERM`` will be returned.
+ 	If requests are supported but an invalid request file descriptor is
+ 	given, then ``EINVAL`` will be returned.
 -- 
 2.18.0
