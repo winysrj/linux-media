@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:60318 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726335AbeIDMWx (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:58359 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726200AbeIDMWx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 4 Sep 2018 08:22:53 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
@@ -9,9 +9,9 @@ To: linux-media@vger.kernel.org
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Tomasz Figa <tfiga@chromium.org>,
         Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv4 04/10] videodev2.h: add new capabilities for buffer types
-Date: Tue,  4 Sep 2018 09:58:44 +0200
-Message-Id: <20180904075850.2406-5-hverkuil@xs4all.nl>
+Subject: [PATCHv4 02/10] v4l2-ctrls: return -EACCES if request wasn't completed
+Date: Tue,  4 Sep 2018 09:58:42 +0200
+Message-Id: <20180904075850.2406-3-hverkuil@xs4all.nl>
 In-Reply-To: <20180904075850.2406-1-hverkuil@xs4all.nl>
 References: <20180904075850.2406-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -19,137 +19,69 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hansverk@cisco.com>
 
-VIDIOC_REQBUFS and VIDIOC_CREATE_BUFFERS will return capabilities
-telling userspace what the given buffer type is capable of.
+For now (this might be relaxed in the future) we do not allow getting
+controls from a request that isn't completed. In that case we return
+-EACCES. Update the documentation accordingly.
 
 Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 ---
- .../media/uapi/v4l/vidioc-create-bufs.rst     | 14 ++++++-
- .../media/uapi/v4l/vidioc-reqbufs.rst         | 42 ++++++++++++++++++-
- include/uapi/linux/videodev2.h                | 13 +++++-
- 3 files changed, 65 insertions(+), 4 deletions(-)
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst      | 18 +++++++++---------
+ drivers/media/v4l2-core/v4l2-ctrls.c           |  5 ++---
+ 2 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
-index a39e18d69511..eadf6f757fbf 100644
---- a/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-create-bufs.rst
-@@ -102,7 +102,19 @@ than the number requested.
-       - ``format``
-       - Filled in by the application, preserved by the driver.
-     * - __u32
--      - ``reserved``\ [8]
-+      - ``capabilities``
-+      - Set by the driver. If 0, then the driver doesn't support
-+        capabilities. In that case all you know is that the driver is
-+	guaranteed to support ``V4L2_MEMORY_MMAP`` and *might* support
-+	other :c:type:`v4l2_memory` types. It will not support any others
-+	capabilities. See :ref:`here <v4l2-buf-capabilities>` for a list of the
-+	capabilities.
-+
-+	If you want to just query the capabilities without making any
-+	other changes, then set ``count`` to 0, ``memory`` to
-+	``V4L2_MEMORY_MMAP`` and ``format.type`` to the buffer type.
-+    * - __u32
-+      - ``reserved``\ [7]
-       - A place holder for future extensions. Drivers and applications
- 	must set the array to zero.
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+index 9c56a9b6e98a..ad8908ce3095 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-ext-ctrls.rst
+@@ -107,13 +107,12 @@ then ``EINVAL`` will be returned.
+ An attempt to call :ref:`VIDIOC_S_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>` for a
+ request that has already been queued will result in an ``EBUSY`` error.
  
-diff --git a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-index 316f52c8a310..d4bbbb0c60e8 100644
---- a/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-reqbufs.rst
-@@ -88,10 +88,50 @@ any DMA in progress, an implicit
- 	``V4L2_MEMORY_DMABUF`` or ``V4L2_MEMORY_USERPTR``. See
- 	:c:type:`v4l2_memory`.
-     * - __u32
--      - ``reserved``\ [2]
-+      - ``capabilities``
-+      - Set by the driver. If 0, then the driver doesn't support
-+        capabilities. In that case all you know is that the driver is
-+	guaranteed to support ``V4L2_MEMORY_MMAP`` and *might* support
-+	other :c:type:`v4l2_memory` types. It will not support any others
-+	capabilities.
-+
-+	If you want to query the capabilities with a minimum of side-effects,
-+	then this can be called with ``count`` set to 0, ``memory`` set to
-+	``V4L2_MEMORY_MMAP`` and ``type`` set to the buffer type. This will
-+	free any previously allocated buffers, so this is typically something
-+	that will be done at the start of the application.
-+    * - __u32
-+      - ``reserved``\ [1]
-       - A place holder for future extensions. Drivers and applications
- 	must set the array to zero.
+-If ``request_fd`` is specified and ``which`` is set to ``V4L2_CTRL_WHICH_REQUEST_VAL``
+-during a call to :ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then the
+-returned values will be the values currently set for the request (or the
+-hardware value if none is set) if the request has not yet been queued, or the
+-values of the controls at the time of request completion if it has already
+-completed. Attempting to get controls while the request has been queued but
+-not yet completed will result in an ``EBUSY`` error.
++If ``request_fd`` is specified and ``which`` is set to
++``V4L2_CTRL_WHICH_REQUEST_VAL`` during a call to
++:ref:`VIDIOC_G_EXT_CTRLS <VIDIOC_G_EXT_CTRLS>`, then it will return the
++values of the controls at the time of request completion.
++If the request is not yet completed, then this will result in an
++``EACCES`` error.
  
-+.. tabularcolumns:: |p{6.1cm}|p{2.2cm}|p{8.7cm}|
-+
-+.. _v4l2-buf-capabilities:
-+.. _V4L2-BUF-CAP-SUPPORTS-MMAP:
-+.. _V4L2-BUF-CAP-SUPPORTS-USERPTR:
-+.. _V4L2-BUF-CAP-SUPPORTS-DMABUF:
-+.. _V4L2-BUF-CAP-SUPPORTS-REQUESTS:
-+
-+.. cssclass:: longtable
-+
-+.. flat-table:: V4L2 Buffer Capabilities Flags
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       3 1 4
-+
-+    * - ``V4L2_BUF_CAP_SUPPORTS_MMAP``
-+      - 0x00000001
-+      - This buffer type supports the ``V4L2_MEMORY_MMAP`` streaming mode.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_USERPTR``
-+      - 0x00000002
-+      - This buffer type supports the ``V4L2_MEMORY_USERPTR`` streaming mode.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_DMABUF``
-+      - 0x00000004
-+      - This buffer type supports the ``V4L2_MEMORY_DMABUF`` streaming mode.
-+    * - ``V4L2_BUF_CAP_SUPPORTS_REQUESTS``
-+      - 0x00000008
-+      - This buffer type supports :ref:`requests <media-request-api>`.
+ The driver will only set/get these controls if all control values are
+ correct. This prevents the situation where only some of the controls
+@@ -405,8 +404,9 @@ ENOSPC
+     and this error code is returned.
  
- Return Value
- ============
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2350151ce4ea..55d45a387dd2 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -856,9 +856,16 @@ struct v4l2_requestbuffers {
- 	__u32			count;
- 	__u32			type;		/* enum v4l2_buf_type */
- 	__u32			memory;		/* enum v4l2_memory */
--	__u32			reserved[2];
-+	__u32			capabilities;
-+	__u32			reserved[1];
- };
+ EACCES
+-    Attempt to try or set a read-only control or to get a write-only
+-    control.
++    Attempt to try or set a read-only control, or to get a write-only
++    control, or to get a control from a request that has not yet been
++    completed.
  
-+/* capabilities for struct v4l2_requestbuffers and v4l2_create_buffers */
-+#define V4L2_BUF_CAP_SUPPORTS_MMAP	(1 << 0)
-+#define V4L2_BUF_CAP_SUPPORTS_USERPTR	(1 << 1)
-+#define V4L2_BUF_CAP_SUPPORTS_DMABUF	(1 << 2)
-+#define V4L2_BUF_CAP_SUPPORTS_REQUESTS	(1 << 3)
-+
- /**
-  * struct v4l2_plane - plane info for multi-planar buffers
-  * @bytesused:		number of bytes occupied by data in the plane (payload)
-@@ -2319,6 +2326,7 @@ struct v4l2_dbg_chip_info {
-  *		return: number of created buffers
-  * @memory:	enum v4l2_memory; buffer memory type
-  * @format:	frame format, for which buffers are requested
-+ * @capabilities: capabilities of this buffer type.
-  * @reserved:	future extensions
-  */
- struct v4l2_create_buffers {
-@@ -2326,7 +2334,8 @@ struct v4l2_create_buffers {
- 	__u32			count;
- 	__u32			memory;
- 	struct v4l2_format	format;
--	__u32			reserved[8];
-+	__u32			capabilities;
-+	__u32			reserved[7];
- };
+ EPERM
+     The ``which`` field was set to ``V4L2_CTRL_WHICH_REQUEST_VAL`` but the
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index a197b60183f5..ccaf3068de6d 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -3301,10 +3301,9 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct media_device *mdev,
+ 		if (IS_ERR(req))
+ 			return PTR_ERR(req);
  
- /*
+-		if (req->state != MEDIA_REQUEST_STATE_IDLE &&
+-		    req->state != MEDIA_REQUEST_STATE_COMPLETE) {
++		if (req->state != MEDIA_REQUEST_STATE_COMPLETE) {
+ 			media_request_put(req);
+-			return -EBUSY;
++			return -EACCES;
+ 		}
+ 
+ 		obj = v4l2_ctrls_find_req_obj(hdl, req, false);
 -- 
 2.18.0
