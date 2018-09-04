@@ -1,74 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f66.google.com ([209.85.161.66]:41659 "EHLO
-        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725990AbeIDMqC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 08:46:02 -0400
-Received: by mail-yw1-f66.google.com with SMTP id q129-v6so944477ywg.8
-        for <linux-media@vger.kernel.org>; Tue, 04 Sep 2018 01:21:58 -0700 (PDT)
-Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com. [209.85.219.175])
-        by smtp.gmail.com with ESMTPSA id f5-v6sm7485538ywa.39.2018.09.04.01.21.56
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 04 Sep 2018 01:21:57 -0700 (PDT)
-Received: by mail-yb1-f175.google.com with SMTP id y20-v6so965024ybi.13
-        for <linux-media@vger.kernel.org>; Tue, 04 Sep 2018 01:21:56 -0700 (PDT)
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:38537 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726066AbeIDNK1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 09:10:27 -0400
+Received: by mail-wr1-f68.google.com with SMTP id w11-v6so3049804wrc.5
+        for <linux-media@vger.kernel.org>; Tue, 04 Sep 2018 01:46:18 -0700 (PDT)
+Subject: Re: [PATCH] media: intel-ipu3: cio2: register the mdev on v4l2 async
+ notifier complete
+To: "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        Bing Bu Cao <bingbu.cao@linux.intel.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20180831152045.9957-1-javierm@redhat.com>
+ <cd307d41-ed19-5ab0-cbdb-a743cdb76e09@linux.intel.com>
+ <c1e54228-a21a-b4a2-1083-c75b2dda797c@redhat.com>
+ <b15b236e-e0a7-8b2f-1e1f-196c9dc04f4d@linux.intel.com>
+ <44eb94a8-3712-155b-b3ab-35538f5b6b38@redhat.com>
+ <F4B393EC1A37C8418714AECDAAEF72A93C9A39FC@shsmsx102.ccr.corp.intel.com>
+From: Javier Martinez Canillas <javierm@redhat.com>
+Message-ID: <1404b391-3fdc-9ccd-6467-bf65b4d10ec9@redhat.com>
+Date: Tue, 4 Sep 2018 10:46:14 +0200
 MIME-Version: 1.0
-References: <20180904075850.2406-1-hverkuil@xs4all.nl> <20180904075850.2406-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180904075850.2406-10-hverkuil@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 4 Sep 2018 17:21:44 +0900
-Message-ID: <CAAFQd5BZ_OVXGyNS7+0h07f7uun45NSitnWegKj20QcdcoqyNg@mail.gmail.com>
-Subject: Re: [PATCHv4 09/10] media-request: EPERM -> EACCES/EBUSY
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <F4B393EC1A37C8418714AECDAAEF72A93C9A39FC@shsmsx102.ccr.corp.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 4, 2018 at 4:59 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> If requests are not supported by the driver, then return EACCES, not
-> EPERM.
->
-> If you attempt to mix queueing buffers directly and using requests,
-> then EBUSY is returned instead of EPERM: once a specific queueing mode
-> has been chosen the queue is 'busy' if you attempt the other mode
-> (i.e. direct queueing vs via a request).
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../uapi/mediactl/media-request-ioc-queue.rst  |  9 ++++-----
->  .../media/uapi/mediactl/request-api.rst        |  4 ++--
->  Documentation/media/uapi/v4l/buffer.rst        |  2 +-
->  .../media/uapi/v4l/vidioc-g-ext-ctrls.rst      |  9 ++++-----
->  Documentation/media/uapi/v4l/vidioc-qbuf.rst   | 18 ++++++++++--------
->  .../media/common/videobuf2/videobuf2-core.c    |  2 +-
->  .../media/common/videobuf2/videobuf2-v4l2.c    |  9 ++++++---
->  drivers/media/media-request.c                  |  4 ++--
->  include/media/media-request.h                  |  6 +++---
->  9 files changed, 33 insertions(+), 30 deletions(-)
-[snip]
-> diff --git a/include/media/media-request.h b/include/media/media-request.h
-> index d8c8db89dbde..0ce75c35131f 100644
-> --- a/include/media/media-request.h
-> +++ b/include/media/media-request.h
-> @@ -198,8 +198,8 @@ void media_request_put(struct media_request *req);
->   * Get the request represented by @request_fd that is owned
->   * by the media device.
->   *
-> - * Return a -EPERM error pointer if requests are not supported
-> - * by this driver. Return -ENOENT if the request was not found.
-> + * Return a -EACCES error pointer if requests are not supported
-> + * by this driver. Return -EINVAL if the request was not found.
+Hi Tian Shu,
 
-I think the bottom-most line belongs to patch 1/10. With that fixed
-(possibly when applying):
+On 09/04/2018 07:01 AM, Qiu, Tian Shu wrote:
+> Hi,
+> 
+> Raise my point.
+> The case here is that we have multiple sensors connected to CIO2. The sensors work independently. So failure on one sensor should not block the function of the other.
+> That is, we should not rely on that all sensors are ready before allowing user to operate on the ready cameras.
+> Sometimes due to hardware issues or incompleteness, we did met the case that one sensor is not probing properly. And in this case, the current implementation blocks us using the working one.
+> What I can think now to solve this are:
 
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+After discussing this with Sakari over IRC, I agree with you that $SUBJECT can
+do more harm than good and the patch should just be dropped.
+
+> 1. Register multiple media devices. One for each sensor path. This will increase media device count.
+> 2. Use .bound callback to create the link and register the subdev node for each sensor. Leave .complete empty.
+>      Not sure if this breaks the rule of media framework. And also have not found an API to register one single subdev node.
+>
+
+I agree with your comment on (2) since currently the driver isn't able to cope
+with the case that you are describing, as you mention the links and the subdev
+node registration are done in the .complete callback. So that logic should be
+moved to the .bound callback instead, so the media graph is usable even if one
+of the drivers for a pending subdevice fails to probe.
+
+> Thanks
+> Tianshu Qiu
+> 
 
 Best regards,
-Tomasz
+-- 
+Javier Martinez Canillas
+Software Engineer - Desktop Hardware Enablement
+Red Hat
