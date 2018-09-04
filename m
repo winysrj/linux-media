@@ -1,145 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:35063 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726295AbeIDNoy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Sep 2018 09:44:54 -0400
-Message-ID: <f9240414e3e99606783a495c9f8b1ffa@smtp-cloud9.xs4all.net>
-Date: Tue, 04 Sep 2018 11:20:35 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from relay10.mail.gandi.net ([217.70.178.230]:51469 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726108AbeIDN6W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 09:58:22 -0400
+Date: Tue, 4 Sep 2018 11:33:58 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ysato@users.sourceforge.jp, dalias@libc.org,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/5] Remove sh_mobile_ceu_camera from arch/sh
+Message-ID: <20180904093358.GK20333@w540>
+References: <1527525431-22852-1-git-send-email-jacopo+renesas@jmondi.org>
+ <20180831122558.zv7537uyfw5pcnqj@valkosipuli.retiisi.org.uk>
+ <20180903072234.GA4116@w540>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="rf72Gf+bfLC8kxKs"
+Content-Disposition: inline
+In-Reply-To: <20180903072234.GA4116@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--rf72Gf+bfLC8kxKs
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-date:			Tue Sep  4 09:37:57 CEST 2018
-media-tree git hash:	d842a7cf938b6e0f8a1aa9f1aec0476c9a599310
-media_build git hash:	ed1d887e2c18299383c7258615130197c8ce4946
-v4l-utils git hash:	f44f00e8b4ac6e9aa05bac8953e3fcc89e1fe198
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		v0.5.0-3428-gdfe27cf
-host hardware:		x86_64
-host os:		4.17.0-1-amd64
+Hi again Sakari,
+   sorry, I'm confusing you
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.119-i686: OK
-linux-3.18.119-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.152-i686: OK
-linux-4.4.152-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.124-i686: OK
-linux-4.9.124-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.67-i686: OK
-linux-4.14.67-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.5-i686: OK
-linux-4.18.5-x86_64: OK
-linux-4.19-rc1-i686: OK
-linux-4.19-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+On Mon, Sep 03, 2018 at 09:22:34AM +0200, jacopo mondi wrote:
+> Hi Sakari,
+>
+> On Fri, Aug 31, 2018 at 03:25:58PM +0300, Sakari Ailus wrote:
+> > Hi Jacopo,
+> >
+> > On Mon, May 28, 2018 at 06:37:06PM +0200, Jacopo Mondi wrote:
+> > > Hello,
+> > >     this series removes dependencies on the soc_camera based
+> > > sh_mobile_ceu_camera driver from 3 board files in arch/sh and from one
+> > > sensor driver used by one of those boards.
+> > >
+> > > Hans, this means there are no more user of the soc_camera framework that I know
+> > > of in Linux, and I guess we can now plan of to remove that framework.
+> >
+> > What's the status of this set? I think it'd be nice to get it in; the CEU
+> > driver is the last using SoC camera framework.
+> >
 
-Detailed results are available here:
+The series went in in the media tree in late June and I now see it in
+v4.19-rc2.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Sorry for the confusion.
 
-Full logs are available here:
+The other soc_camera series which is pending for approval is the one
+removing dependencies on the framework from some SH defconfigs:
+https://lkml.org/lkml/2018/7/4/323
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Mauro was exitant to take this one through the media tree, and he's
+probably right SH maintainers should at least ack the series. So far,
+I haven't heard from them.
 
-The Media Infrastructure API from this daily build is here:
+I'll try to rebase it on latest version and re-send.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks
+   j
+
+>
+> There's an open comment from Geert on this series.
+> I'll resend, then I guess it can be collected.
+>
+> > I guess an ack from the SH folks would be needed for these patches to go
+> > through the media tree.
+> >
+>
+> I would have loved to hear from them on this and other media patches
+> which are sh-related. It hasn't happen, and as for the previous patches
+> removing usage of the old ceu driver for SH boards, I guess this can go in
+> through the media tree. But I let Hans decide how to handle this.
+>
+> > On the sensor driver patches --- please just move the files. The CEU was
+> > the last that it was possible to use the drivers with.
+> >
+>
+> My understanding was that Hans preferred to do it after all
+> dependencies are moved away from soc_camera.
+>
+> Maybe at ELC-E we should have a status-check and decide how to move
+> forward with soc_camera deprecation.
+>
+> Thanks
+>    j
+>
+> > --
+> > Kind regards,
+> >
+> > Sakari Ailus
+> > e-mail: sakari.ailus@iki.fi
+
+
+
+--rf72Gf+bfLC8kxKs
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbjlGGAAoJEHI0Bo8WoVY8fCoP/0F8FsHOYWBYj8TX9i4AOemi
+w53upV1NL55gJqnTY6jmAcXy1a626rVd5W25f6eHaSigx1Vm9mGXcElpqG7tRCrW
+539AgDdtwXjlFEmGFMB57HKSVw8rvrS+IVelPJxPurCB81yGviB0wAIAGglzyp0K
+xRV4/MTKgWu+L9bnINqUZ+uVHbdLNI4O2BRfSBlOteRDHWb1ybQbTctq2noSzBoq
+3GeAS5fUt+/hrQqtXxE/O/1egDH7i52nvdvxnWJO9fvWTuN9Qi5jq+5MrQ1hmEDz
+28ZWmnx0XgpnzOkvV81OC8K5hndp3KEsJYyfAgOEPFXD2Ns8oOUzOkvaCGmk9opc
+hGuW+rNzuydJorKGGd5qm2CpmkdXZiJ1m0sMAgRXamKL0eUVEfl2arwXVzDCSFmU
+yhOuUYLrRcTv0xKCQjQGj1YgjFDPVbRMqU/zQcvX9Vx9V9SArPfW6zaCu9Od/SsH
+fREVU1hX83i/j7rFisY4rLf+V6xsn/v2bcG0DzRbrr4owong35PFHdBf4Nqjsd6D
+3Sspg2LqAihwgH2dAkYSBwyHqd+xK7WrMg5KAi65hMe+znF1YQusuXbhtjlC0xEv
+XgTjhoRl2/B7M4muErTK86GyqjYLNTlpWenVQeM5sNtdDYqG2C/xy8orw4olaG0v
+/G8G/fKwWVrxbY0aoAcX
+=cbPT
+-----END PGP SIGNATURE-----
+
+--rf72Gf+bfLC8kxKs--
