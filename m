@@ -1,51 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:59267 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726008AbeIERwx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2018 13:52:53 -0400
-Message-ID: <1536153757.4084.9.camel@pengutronix.de>
-Subject: Re: [PATCH v2 3/4] media: imx-pxp: add i.MX Pixel Pipeline driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE"
-        <linux-arm-kernel@lists.infradead.org>,
-        Sascha Hauer <kernel@pengutronix.de>
-Date: Wed, 05 Sep 2018 15:22:37 +0200
-In-Reply-To: <CAOMZO5D20FG0=5FLJ3XMBd=vam9h3GMgkUKEfiPCbUKNrTw2Vg@mail.gmail.com>
-References: <20180905100018.27556-1-p.zabel@pengutronix.de>
-         <20180905100018.27556-4-p.zabel@pengutronix.de>
-         <CAOMZO5D20FG0=5FLJ3XMBd=vam9h3GMgkUKEfiPCbUKNrTw2Vg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from xavier.telenet-ops.be ([195.130.132.52]:50558 "EHLO
+        xavier.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727614AbeIERy1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2018 13:54:27 -0400
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH v2] media: dt-bindings: adv748x: Fix decimal unit addresses
+Date: Wed,  5 Sep 2018 15:24:09 +0200
+Message-Id: <20180905132409.14456-1-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+With recent dtc and W=1:
 
-On Wed, 2018-09-05 at 10:11 -0300, Fabio Estevam wrote:
-> Hi Philipp,
-> 
-> On Wed, Sep 5, 2018 at 7:00 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> 
-> > index 000000000000..2f90c692f3fe
-> > --- /dev/null
-> > +++ b/drivers/media/platform/imx-pxp.c
-> > @@ -0,0 +1,1774 @@
-> > +// SPDX-License-Identifier: GPL-2.0-or-later
-> 
-> The recommended SPDX format in this case is:
-> 
-> // SPDX-License-Identifier: GPL-2.0+
-> 
-> as per Documentation/process/license-rules.rst
+    Warning (graph_port): video-receiver@70/port@10: graph node unit address error, expected "a"
+    Warning (graph_port): video-receiver@70/port@11: graph node unit address error, expected "b"
 
-Oh, right, we are still using the old identifiers. Thanks!
+Unit addresses are always hexadecimal (without prefix), while the bases
+of reg property values depend on their prefixes.
 
-regards
-Philipp
+Fixes: e69595170b1cad85 ("media: adv748x: Add adv7481, adv7482 bindings")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+v2:
+  - Add Reviewed-by,
+  - Drop RFC state.
+---
+ Documentation/devicetree/bindings/media/i2c/adv748x.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+index 21ffb5ed818302ff..54d1d3bc186949fa 100644
+--- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
++++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+@@ -73,7 +73,7 @@ Example:
+ 			};
+ 		};
+ 
+-		port@10 {
++		port@a {
+ 			reg = <10>;
+ 
+ 			adv7482_txa: endpoint {
+@@ -83,7 +83,7 @@ Example:
+ 			};
+ 		};
+ 
+-		port@11 {
++		port@b {
+ 			reg = <11>;
+ 
+ 			adv7482_txb: endpoint {
+-- 
+2.17.1
