@@ -1,154 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:60677 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727234AbeIET6N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2018 15:58:13 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com,
-        kieran.bingham+renesas@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 5/5] media: i2c: adv748x: Register all input subdevices
-Date: Wed,  5 Sep 2018 17:27:11 +0200
-Message-Id: <1536161231-25221-6-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1536161231-25221-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1536161231-25221-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from leonov.paulk.fr ([185.233.101.22]:47206 "EHLO leonov.paulk.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726335AbeIEUUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Sep 2018 16:20:41 -0400
+Message-ID: <383bf546272ac7edca5a5f502fce4cafa88a3321.camel@paulk.fr>
+Subject: Re: [PATCH v8 4/8] media: platform: Add Cedrus VPU decoder driver
+From: Paul Kocialkowski <contact@paulk.fr>
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Randy Li <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-sunxi@googlegroups.com
+Date: Wed, 05 Sep 2018 17:49:31 +0200
+In-Reply-To: <f15e355ece0b250a252347ec22f1433dd786bb5b.camel@collabora.com>
+References: <20180828073424.30247-1-paul.kocialkowski@bootlin.com>
+         <20180828073424.30247-5-paul.kocialkowski@bootlin.com>
+         <f15e355ece0b250a252347ec22f1433dd786bb5b.camel@collabora.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-KFmJeFVy/fWfX39GUA0U"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The input subdevice registration, being the link between adv728x's inputs
-and outputs fixed, happens at output subdevice registration time. In the
-current design the TXA output subdevice 'registered()' callback registers
-the HDMI input subdevice and the TXB output subdevice 'registered()' callback
-registers the AFE input subdevice instead. Media links are created
-accordingly to the fixed routing.
 
-As the adv748x driver can now probe with at least a single output port
-enabled an input subdevice linked to a disabled output is never registered
-to the media graph. Fix this by having the first registered output subdevice
-register all the available input subdevices.
+--=-KFmJeFVy/fWfX39GUA0U
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This change is necessary to have dynamic routing between the adv748x inputs
-and outputs implemented.
+Hi,
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/i2c/adv748x/adv748x-csi2.c | 85 +++++++++++++++-----------------
- 1 file changed, 40 insertions(+), 45 deletions(-)
+Le mardi 28 ao=C3=BBt 2018 =C3=A0 22:08 -0300, Ezequiel Garcia a =C3=A9crit=
+ :
+> On Tue, 2018-08-28 at 09:34 +0200, Paul Kocialkowski wrote:
+> > +static const struct v4l2_m2m_ops cedrus_m2m_ops =3D {
+> > +	.device_run	=3D cedrus_device_run,
+> > +	.job_abort	=3D cedrus_job_abort,
+> > +};
+> > +
+>=20
+> I think you can get rid of this .job_abort. It should
+> simplify your .device_run quite a bit.
+>=20
+> .job_abort is optional now since
+> 5525b8314389a0c558d15464e86f438974b94e32.
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 9e9df51..fd4aa9d 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -24,42 +24,6 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
- 	return tx_write(tx, ADV748X_CSI_VC_REF, vc << ADV748X_CSI_VC_REF_SHIFT);
- }
- 
--/**
-- * adv748x_csi2_register_link : Register and link internal entities
-- *
-- * @tx: CSI2 private entity
-- * @v4l2_dev: Video registration device
-- * @src: Source subdevice to establish link
-- * @src_pad: Pad number of source to link to this @tx
-- *
-- * Ensure that the subdevice is registered against the v4l2_device, and link the
-- * source pad to the sink pad of the CSI2 bus entity.
-- */
--static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
--				      struct v4l2_device *v4l2_dev,
--				      struct v4l2_subdev *src,
--				      unsigned int src_pad)
--{
--	int enabled = MEDIA_LNK_FL_ENABLED;
--	int ret;
--
--	/*
--	 * Dynamic linking of the AFE is not supported.
--	 * Register the links as immutable.
--	 */
--	enabled |= MEDIA_LNK_FL_IMMUTABLE;
--
--	if (!src->v4l2_dev) {
--		ret = v4l2_device_register_subdev(v4l2_dev, src);
--		if (ret)
--			return ret;
--	}
--
--	return media_create_pad_link(&src->entity, src_pad,
--				     &tx->sd.entity, ADV748X_CSI2_SINK,
--				     enabled);
--}
--
- /* -----------------------------------------------------------------------------
-  * v4l2_subdev_internal_ops
-  *
-@@ -72,25 +36,56 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
- {
- 	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
- 	struct adv748x_state *state = tx->state;
-+	struct v4l2_subdev *src_sd;
-+	unsigned int src_pad;
-+	int ret;
- 
- 	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
- 			sd->name);
- 
-+	/* The first registered CSI-2 registers all input subdevices. */
-+	src_sd = &state->hdmi.sd;
-+	if (!src_sd->v4l2_dev && is_hdmi_enabled(state)) {
-+		ret = v4l2_device_register_subdev(sd->v4l2_dev, src_sd);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	src_sd = &state->afe.sd;
-+	if (!src_sd->v4l2_dev && is_afe_enabled(state)) {
-+		ret = v4l2_device_register_subdev(sd->v4l2_dev, src_sd);
-+		if (ret)
-+			goto err_unregister_hdmi;
-+	}
-+
- 	/*
- 	 * The adv748x hardware allows the AFE to route through the TXA, however
- 	 * this is not currently supported in this driver.
- 	 *
- 	 * Link HDMI->TXA, and AFE->TXB directly.
- 	 */
--	if (is_txa(tx) && is_hdmi_enabled(state))
--		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
--						  &state->hdmi.sd,
--						  ADV748X_HDMI_SOURCE);
--	if (!is_txa(tx) && is_afe_enabled(state))
--		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
--						  &state->afe.sd,
--						  ADV748X_AFE_SOURCE);
--	return 0;
-+	if (is_txa(tx)) {
-+		if (!is_hdmi_enabled(state))
-+			return 0;
-+
-+		src_sd = &state->hdmi.sd;
-+		src_pad = ADV748X_HDMI_SOURCE;
-+	} else {
-+		if (!is_afe_enabled(state))
-+			return 0;
-+
-+		src_sd = &state->afe.sd;
-+		src_pad = ADV748X_AFE_SOURCE;
-+	}
-+
-+	/* Dynamic linking is not supported, register the links as immutable. */
-+	return media_create_pad_link(&src_sd->entity, src_pad, &sd->entity,
-+				     ADV748X_CSI2_SINK, MEDIA_LNK_FL_ENABLED |
-+				     MEDIA_LNK_FL_IMMUTABLE);
-+err_unregister_hdmi:
-+	v4l2_device_unregister_subdev(&state->hdmi.sd);
-+
-+	return ret;
- }
- 
- static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
--- 
-2.7.4
+Alright, I will probably do that for the next revision, since it seems
+that there is no particular downside to removing it.
+
+Thanks,
+
+Paul
+
+> Regards,
+> Ezequiel
+
+--=20
+Developer of free digital technology and hardware support.
+
+Website: https://www.paulk.fr/
+Coding blog: https://code.paulk.fr/
+Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
+
+--=-KFmJeFVy/fWfX39GUA0U
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEAbcMXZQMtj1fphLChP3B6o/ulQwFAluP+wsACgkQhP3B6o/u
+lQwr5RAAhwkjVt4DncAUciQMMQNfX7Fl3XQ0nmjsszYqQCr1FVFtXRwMuU8+hkPF
+WlMFw1yVWTz3dfh/KZfP+5V568FO4L+NkDvPvCp6hkhh3RbjRnuGrzzOFcpcdNYT
+VsJzUJyPOXeQnh4bpHy1PVRiw1b2jHXF9q4kLn1p1fpGABvn6aJZ7lKRtsGnyFwx
+2Q4TGfFcenNrTdV9ftdw4CZg7wxThOvS5gUz8FNud4BccX6vDqns8guITvRHFHTR
+6vi+8FtvB4Sq/yYnv3Mw8Q700uD5GNgjDSjfp3KzvCOfipYdZmQTcI4cNfSifZbi
+R0RdwThMZmmKikZ8k1H5OJ1mOfzvA1YB21siQireV4yFTWf1R/S90yRz0Wpf9OaR
+SAG1NSGpj7pQp5daZcQpGCN3SfjXG/sOlie5GptOx3g7QilEWXMyLQUdrej50oG9
+7weQUjQOJsUb9aXiOA2wg4VXR3kqGlR6sVcZLaa1uat57JcedA9e3CgTdMaNaPCD
+VLHPOa7vCfuvsCw8hzgNIshIfdJni6t0KoiTcy3z4FFBsVqt3zobEtNx50qulMt8
+0p+TzGI50OtvrFibLWJjYG+D8Ujkg3AI7SzDk20KQhj28MLQ2/gAtDu8acK32b5e
+QMqyCzfkSsGyhCS2EBMg1lxXiV1cYhAPfw3jIpH7rCEa9Ud11Q8=
+=wYAK
+-----END PGP SIGNATURE-----
+
+--=-KFmJeFVy/fWfX39GUA0U--
