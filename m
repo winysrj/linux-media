@@ -1,254 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:56573 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726487AbeIEVks (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2018 17:40:48 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v2] [RFC v2] v4l2: add support for colorspace conversion for video capture
-Date: Wed,  5 Sep 2018 19:09:32 +0200
-Message-Id: <20180905170932.14370-1-p.zabel@pengutronix.de>
+Received: from mout.kundenserver.de ([212.227.126.131]:42641 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726487AbeIEVmG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2018 17:42:06 -0400
+Date: Wed, 5 Sep 2018 19:10:36 +0200 (CEST)
+From: Stefan Wahren <stefan.wahren@i2se.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel@pengutronix.de, Shawn Guo <shawnguo@kernel.org>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-ID: <1527575951.28748.1536167436305@email.1und1.de>
+In-Reply-To: <20180905100018.27556-2-p.zabel@pengutronix.de>
+References: <20180905100018.27556-1-p.zabel@pengutronix.de>
+ <20180905100018.27556-2-p.zabel@pengutronix.de>
+Subject: Re: [PATCH v2 1/4] dt-bindings: media: Add i.MX Pixel Pipeline
+ binding
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For video capture it is the driver that reports the colorspace,
-Y'CbCr/HSV encoding and quantization range used by the video, and there
-is no way to request something different, even though many HDTV
-receivers have some sort of colorspace conversion capabilities.
+Hi Philipp,
 
-For output video this feature already exists since the application
-specifies this information for the video format it will send out, and
-the transmitter will enable any available CSC if a format conversion has
-to be performed in order to match the capabilities of the sink.
+> Philipp Zabel <p.zabel@pengutronix.de> hat am 5. September 2018 um 12:00 geschrieben:
+> 
+> 
+> Add DT binding documentation for the Pixel Pipeline (PXP) found on
+> various NXP i.MX SoCs.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> ---
+>  .../devicetree/bindings/media/fsl-pxp.txt     | 26 +++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/fsl-pxp.txt b/Documentation/devicetree/bindings/media/fsl-pxp.txt
+> new file mode 100644
+> index 000000000000..2477e7f87381
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/fsl-pxp.txt
+> @@ -0,0 +1,26 @@
+> +Freescale Pixel Pipeline
+> +========================
+> +
+> +The Pixel Pipeline (PXP) is a memory-to-memory graphics processing engine
+> +that supports scaling, colorspace conversion, alpha blending, rotation, and
+> +pixel conversion via lookup table. Different versions are present on various
+> +i.MX SoCs from i.MX23 to i.MX7.
+> +
+> +Required properties:
+> +- compatible: should be "fsl,<soc>-pxp", where SoC can be one of imx23, imx28,
+> +  imx6dl, imx6sl, imx6ul, imx6sx, imx6ull, or imx7d.
 
-For video capture we propose adding new pix_format flags:
-V4L2_PIX_FMT_FLAG_CSC_COLORSPACE, V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC,
-V4L2_PIX_FMT_FLAG_CSC_HSV_ENC, V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION, and
-V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC. These are set by the driver to indicate
-its conversion features. When set by the application, the driver will
-interpret the colorspace, ycbcr_enc/hsv_enc, quantization and xfer_func
-fields as the requested colorspace information and will attempt to do
-the conversion it supports.
+please correct me if i'm wrong, but the driver in patch #3 only support imx6ull so this binding is misleading. As a user i would expect that binding and driver are in sync.
 
-Drivers do not have to actually look at the flags: if the flags are not
-set, then the colorspace, ycbcr_enc and quantization fields are set to
-the default values by the core, i.e. just pass on the received format
-without conversion.
-
-Signed-off-by: Hans Verkuil <Hans Verkuil@cisco.com>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1 [1]
- - convert to rst
- - split V4L2_PIX_FMT_FLAG_REQUEST_CSC into four separate flags for
-   colorspace, ycbcr_enc/hsv_enc, quantization, and xfer_func
- - let driver set flags to indicate supported features
-
-[1] https://patchwork.linuxtv.org/patch/28847/
----
- .../media/uapi/v4l/pixfmt-reserved.rst        | 41 +++++++++++++++++++
- .../media/uapi/v4l/pixfmt-v4l2-mplane.rst     | 16 ++------
- Documentation/media/uapi/v4l/pixfmt-v4l2.rst  | 37 ++++++++++++++---
- drivers/media/v4l2-core/v4l2-ioctl.c          | 12 ++++++
- include/uapi/linux/videodev2.h                |  5 +++
- 5 files changed, 94 insertions(+), 17 deletions(-)
-
-diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-index 38af1472a4b4..c1090027626c 100644
---- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-@@ -261,3 +261,44 @@ please make a proposal on the linux-media mailing list.
- 	by RGBA values (128, 192, 255, 128), the same pixel described with
- 	premultiplied colors would be described by RGBA values (64, 96,
- 	128, 128)
-+    * - ``V4L2_PIX_FMT_FLAG_CSC_COLORSPACE``
-+      - 0x00000002
-+      - Set by the driver to indicate colorspace conversion support. Set by the
-+	application to request conversion to the specified colorspace. It is
-+	only used for capture and is ignored for output streams. If set by the
-+	application, then request the driver to do colorspace conversion from
-+	the received colorspace to the requested colorspace by setting the
-+	``colorspace`` field of struct :c:type:`v4l2_pix_format`.
-+    * - ``V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC``
-+      - 0x00000004
-+      - Set by the driver to indicate Y'CbCr encoding conversion support. Set
-+	by the application to request conversion to the specified Y'CbCr
-+	encoding.  It is only used for capture and is ignored for output
-+	streams. If set by the application, then request the driver to convert
-+	from the received Y'CbCr encoding to the requested encoding by setting
-+	the ``ycbcr_enc`` field of struct :c:type:`v4l2_pix_format`.
-+    * - ``V4L2_PIX_FMT_FLAG_CSC_HSV_ENC``
-+      - 0x00000004
-+      - Set by the driver to indicate HSV encoding conversion support. Set
-+	by the application to request conversion to the specified HSV encoding.
-+	It is only used for capture and is ignored for output streams. If set
-+	by the application, then request the driver to convert from the
-+	received HSV encoding to the requested encoding by setting the
-+	``hsv_enc`` field of struct :c:type:`v4l2_pix_format`.
-+    * - ``V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION``
-+      - 0x00000008
-+      - Set by the driver to indicate quantization range conversion support.
-+	Set by the application to request conversion to the specified
-+	quantization range. It is only used for capture and is ignored for
-+	output streams. If set by the application, then request the driver to
-+	convert from the received quantization range to the requested
-+	quantization by setting the ``quantization`` field of struct
-+	:c:type:`v4l2_pix_format`.
-+    * - ``V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC``
-+      - 0x00000010
-+      - Set by the driver to indicate transfer function conversion support.
-+	Set by the application to request conversion to the specified transfer
-+	function. It is only used for capture and is ignored for output
-+	streams. If set by the application, then request the driver to convert
-+	from the received transfer function to the requested transfer function
-+	by setting the ``xfer_func`` field of struct :c:type:`v4l2_pix_format`.
-diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
-index ef52f637d8e9..7ff07411db77 100644
---- a/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-v4l2-mplane.rst
-@@ -81,30 +81,22 @@ describing all planes of that format.
-     * - __u8
-       - ``ycbcr_enc``
-       - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
--        This information supplements the ``colorspace`` and must be set by
--	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	See struct :c:type:`v4l2_pix_format`.
-     * - __u8
-       - ``hsv_enc``
-       - HSV encoding, from enum :c:type:`v4l2_hsv_encoding`.
--        This information supplements the ``colorspace`` and must be set by
--	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	See struct :c:type:`v4l2_pix_format`.
-     * - }
-       -
-       -
-     * - __u8
-       - ``quantization``
-       - Quantization range, from enum :c:type:`v4l2_quantization`.
--        This information supplements the ``colorspace`` and must be set by
--	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	See struct :c:type:`v4l2_pix_format`.
-     * - __u8
-       - ``xfer_func``
-       - Transfer function, from enum :c:type:`v4l2_xfer_func`.
--        This information supplements the ``colorspace`` and must be set by
--	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	See struct :c:type:`v4l2_pix_format`.
-     * - __u8
-       - ``reserved[7]``
-       - Reserved for future extensions. Should be zeroed by drivers and
-diff --git a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
-index 826f2305da01..932b6a546e61 100644
---- a/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-v4l2.rst
-@@ -88,7 +88,12 @@ Single-planar format structure
-       - Image colorspace, from enum :c:type:`v4l2_colorspace`.
-         This information supplements the ``pixelformat`` and must be set
- 	by the driver for capture streams and by the application for
--	output streams, see :ref:`colorspaces`.
-+	output streams, see :ref:`colorspaces`. If the application sets the
-+	flag ``V4L2_PIX_FMT_FLAG_CSC_COLORSPACE`` then the application can set
-+	this field for a capture stream to request a specific colorspace for
-+	the captured image data. The driver will attempt to do colorspace
-+	conversion to the specified colorspace or return the colorspace it will
-+	use if it can't do the conversion.
-     * - __u32
-       - ``priv``
-       - This field indicates whether the remaining fields of the
-@@ -126,13 +131,25 @@ Single-planar format structure
-       - Y'CbCr encoding, from enum :c:type:`v4l2_ycbcr_encoding`.
-         This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	streams, see :ref:`colorspaces`. If the application sets the
-+	flag ``V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC`` then the application can set
-+	this field for a capture stream to request a specific Y'CbCr encoding
-+	for the captured image data. The driver will attempt to do the
-+	conversion to the specified Y'CbCr encoding or return the encoding it
-+	will use if it can't do the conversion. This field is ignored for
-+	non-Y'CbCr pixelformats.
-     * - __u32
-       - ``hsv_enc``
-       - HSV encoding, from enum :c:type:`v4l2_hsv_encoding`.
-         This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	streams, see :ref:`colorspaces`. If the application sets the flag
-+	``V4L2_PIX_FMT_FLAG_CSC_HSV_ENC`` then the application can set this
-+	field for a capture stream to request a specific HSV encoding for the
-+	captured image data. The driver will attempt to do the conversion to
-+	the specified HSV encoding or return the encoding it will use if it
-+	can't do the conversion. This field is ignored for non-HSV
-+	pixelformats.
-     * - }
-       -
-       -
-@@ -141,10 +158,20 @@ Single-planar format structure
-       - Quantization range, from enum :c:type:`v4l2_quantization`.
-         This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	streams, see :ref:`colorspaces`. If the application sets the flag
-+	``V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION`` then the application can set
-+	this field for a capture stream to request a specific quantization
-+	range for the captured image data. The driver will attempt to do the
-+	conversion to the specified quantization range or return the
-+	quantization it will use if it can't do the conversion.
-     * - __u32
-       - ``xfer_func``
-       - Transfer function, from enum :c:type:`v4l2_xfer_func`.
-         This information supplements the ``colorspace`` and must be set by
- 	the driver for capture streams and by the application for output
--	streams, see :ref:`colorspaces`.
-+	streams, see :ref:`colorspaces`. If the application sets the flag
-+	``V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC`` then the application can set
-+	this field for a capture stream to request a specific transfer function
-+	for the captured image data. The driver will attempt to do the
-+	conversion to the specified transfer function or return the transfer
-+	function it will use if it can't do the conversion.
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 54afc9c7ee6e..39def068f13e 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1019,6 +1019,18 @@ static void v4l_sanitize_format(struct v4l2_format *fmt)
- 	 * isn't used by applications.
- 	 */
- 
-+	if (fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
-+	    fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_COLORSPACE))
-+			fmt->fmt.pix.colorspace = V4L2_COLORSPACE_DEFAULT;
-+		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC))
-+			fmt->fmt.pix.ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-+		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION))
-+			fmt->fmt.pix.quantization = V4L2_QUANTIZATION_DEFAULT;
-+		if (!(fmt->fmt.pix.flags & V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC))
-+			fmt->fmt.pix.xfer_func = V4L2_XFER_FUNC_DEFAULT;
-+	}
-+
- 	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
- 	    fmt->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		return;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 622f0479d668..4cbc8f23b828 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -709,6 +709,11 @@ struct v4l2_pix_format {
- 
- /* Flags */
- #define V4L2_PIX_FMT_FLAG_PREMUL_ALPHA	0x00000001
-+#define V4L2_PIX_FMT_FLAG_CSC_COLORSPACE	0x00000002
-+#define V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC		0x00000004
-+#define V4L2_PIX_FMT_FLAG_CSC_HSV_ENC		0x00000004
-+#define V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION	0x00000008
-+#define V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC		0x00000010
- 
- /*
-  *	F O R M A T   E N U M E R A T I O N
--- 
-2.18.0
+Regards
+Stefan
