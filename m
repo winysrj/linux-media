@@ -1,145 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48752 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725939AbeIEHxY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Sep 2018 03:53:24 -0400
-Message-ID: <4fa93c24bfc8b7c72de72a1f238899fe@smtp-cloud9.xs4all.net>
-Date: Wed, 05 Sep 2018 05:25:16 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mail-yb1-f193.google.com ([209.85.219.193]:45696 "EHLO
+        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727595AbeIEKOQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2018 06:14:16 -0400
+Received: by mail-yb1-f193.google.com with SMTP id h22-v6so2222906ybg.12
+        for <linux-media@vger.kernel.org>; Tue, 04 Sep 2018 22:45:48 -0700 (PDT)
+Received: from mail-yb1-f174.google.com (mail-yb1-f174.google.com. [209.85.219.174])
+        by smtp.gmail.com with ESMTPSA id l3-v6sm356254ywd.98.2018.09.04.22.45.47
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 04 Sep 2018 22:45:47 -0700 (PDT)
+Received: by mail-yb1-f174.google.com with SMTP id t71-v6so2235983ybi.7
+        for <linux-media@vger.kernel.org>; Tue, 04 Sep 2018 22:45:47 -0700 (PDT)
+MIME-Version: 1.0
+References: <20180724140621.59624-1-tfiga@chromium.org> <20180724140621.59624-2-tfiga@chromium.org>
+ <CAPBb6MXT4jiQXfgzq8fpXSQTsdcF0UZLB=RQ6itH5-JZx-27FA@mail.gmail.com>
+In-Reply-To: <CAPBb6MXT4jiQXfgzq8fpXSQTsdcF0UZLB=RQ6itH5-JZx-27FA@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 5 Sep 2018 14:45:35 +0900
+Message-ID: <CAAFQd5CALOiC1-8XSrnZxevBmHa=tTM8t37joGz6Fqu_GqgeAg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: docs-rst: Document memory-to-memory video
+ decoder interface
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Pawel Osciak <posciak@chromium.org>, kamil@wypas.org,
+        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        jtp.park@samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
+        nicolas@ndufresne.ca,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Aug 31, 2018 at 5:27 PM Alexandre Courbot <acourbot@chromium.org> wrote:
+>
+> Hi Tomasz, just a few thoughts I came across while writing the
+> stateless codec document:
+>
+> On Tue, Jul 24, 2018 at 11:06 PM Tomasz Figa <tfiga@chromium.org> wrote:
+> [snip]
+> > +****************************************
+> > +Memory-to-memory Video Decoder Interface
+> > +****************************************
+>
+> Since we have a m2m stateless decoder interface, can we call this the
+> m2m video *stateful* decoder interface? :)
 
-Results of the daily build of media_tree:
+I guess it could make sense indeed. Let's wait for some other opinions, if any.
 
-date:			Wed Sep  5 04:17:40 CEST 2018
-media-tree git hash:	d842a7cf938b6e0f8a1aa9f1aec0476c9a599310
-media_build git hash:	ed1d887e2c18299383c7258615130197c8ce4946
-v4l-utils git hash:	f44f00e8b4ac6e9aa05bac8953e3fcc89e1fe198
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		v0.5.0-3428-gdfe27cf
-host hardware:		x86_64
-host os:		4.17.0-1-amd64
+>
+> > +Conventions and notation used in this document
+> > +==============================================
+> [snip]
+> > +Glossary
+> > +========
+>
+> I think these sections apply to both stateless and stateful. How about
+> moving then into dev-codec.rst and mentioning that they apply to the
+> two following sections?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-i686: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.119-i686: OK
-linux-3.18.119-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.152-i686: OK
-linux-4.4.152-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.124-i686: OK
-linux-4.9.124-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.67-i686: OK
-linux-4.14.67-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.5-i686: OK
-linux-4.18.5-x86_64: OK
-linux-4.19-rc1-i686: OK
-linux-4.19-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Or maybe we could put them into separate rst files and source them at
+the top of each interface documentation? Personally, I'm okay with
+either. On a related note, I'd love to see some kind of glossary
+lookup on mouse hoover, so that I don't have to scroll back and forth.
+:)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
