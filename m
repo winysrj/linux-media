@@ -1,91 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:57689 "EHLO
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:57688 "EHLO
         homiemail-a119.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727093AbeIGBpT (ORCPT
+        by vger.kernel.org with ESMTP id S1726505AbeIGBpT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 6 Sep 2018 21:45:19 -0400
 From: Brad Love <brad@nextdimension.cc>
 To: linux-media@vger.kernel.org, mkrufky@linuxtv.org
 Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 1/2] au0828: cannot kfree dev before usb disconnect
-Date: Thu,  6 Sep 2018 16:07:48 -0500
-Message-Id: <1536268069-25435-2-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1536268069-25435-1-git-send-email-brad@nextdimension.cc>
-References: <1536268069-25435-1-git-send-email-brad@nextdimension.cc>
+Subject: [PATCH 0/2] au0828 Oops fix and message correction
+Date: Thu,  6 Sep 2018 16:07:47 -0500
+Message-Id: <1536268069-25435-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If au0828_analog_register fails, the dev is kfree'd and then flow
-jumps to done, which can call au0828_usb_disconnect. Since all USB
-error codes are negative, au0828_usb_disconnect will be called. The
-problem is au0828_usb_disconnect uses dev, if dev is NULL then there
-is immediate oops encountered.
+An end user reported oopsing on connection of multiple
+Hauppauge 950Q devices. The oops is related to analog
+setup failing during usb probe for a device. If analog
+setup fails then dev is kfree'd and then drivers usb
+disconnect function is called, which requires valid
+dev. Hence, immediate oops.
 
-[    7.454307] au0828: au0828_usb_probe() au0282_dev_register failed to register on V4L2
-[    7.454323] BUG: unable to handle kernel NULL pointer dereference at 0000000000000050
-[    7.454421] PGD 0 P4D 0
-[    7.454457] Oops: 0002 [#1] SMP PTI
-[    7.454500] CPU: 1 PID: 262 Comm: systemd-udevd Tainted: P           O      4.18.3 #1
-[    7.454584] Hardware name: Google Panther/Panther, BIOS MattDevo 04/27/2015
-[    7.454670] RIP: 0010:_raw_spin_lock_irqsave+0x2c/0x50
-[    7.454725] Code: 44 00 00 55 48 89 e5 41 54 53 48 89 fb 9c 58 0f 1f 44 00 00 49 89 c4 fa 66 0f 1f 44 00 00 e8 db 23 1b ff 31 c0 ba 01 00 00 00 <f0> 0f b1 13 85 c0 75 08 4c 89 e0 5b 41 5c 5d c3 89 c6 48 89 df e8
-[    7.455004] RSP: 0018:ffff9130f53ef988 EFLAGS: 00010046
-[    7.455063] RAX: 0000000000000000 RBX: 0000000000000050 RCX: 0000000000000000
-[    7.455139] RDX: 0000000000000001 RSI: 0000000000000003 RDI: 0000000000000050
-[    7.455216] RBP: ffff9130f53ef998 R08: 0000000000000018 R09: 0000000000000090
-[    7.455292] R10: ffffed4cc53cb000 R11: ffffed4cc53cb108 R12: 0000000000000082
-[    7.455369] R13: ffff9130cf2c6188 R14: 0000000000000000 R15: 0000000000000018
-[    7.455447] FS:  00007f2ff8514cc0(0000) GS:ffff9130fcb00000(0000) knlGS:0000000000000000
-[    7.455535] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    7.455597] CR2: 0000000000000050 CR3: 00000001753f0002 CR4: 00000000000606a0
-[    7.455675] Call Trace:
-[    7.455713]  __wake_up_common_lock+0x65/0xc0
-[    7.455764]  __wake_up+0x13/0x20
-[    7.455808]  ir_lirc_unregister+0x57/0xe0 [rc_core]
-[    7.455865]  rc_unregister_device+0xa0/0xc0 [rc_core]
-[    7.455935]  au0828_rc_unregister+0x25/0x40 [au0828]
-[    7.455999]  au0828_usb_disconnect+0x33/0x80 [au0828]
-[    7.456064]  au0828_usb_probe.cold.16+0x8d/0x2aa [au0828]
-[    7.456130]  usb_probe_interface+0xf1/0x300
-[    7.456184]  driver_probe_device+0x2e3/0x460
-[    7.456235]  __driver_attach+0xe4/0x110
-[    7.456282]  ? driver_probe_device+0x460/0x460
-[    7.456335]  bus_for_each_dev+0x74/0xb0
-[    7.456385]  ? kmem_cache_alloc_trace+0x15d/0x1d0
-[    7.456441]  driver_attach+0x1e/0x20
-[    7.456485]  bus_add_driver+0x159/0x230
-[    7.456532]  driver_register+0x70/0xc0
-[    7.456578]  usb_register_driver+0x7f/0x140
-[    7.456626]  ? 0xffffffffc0474000
-[    7.456674]  au0828_init+0xbc/0x1000 [au0828]
-[    7.456725]  do_one_initcall+0x4a/0x1c9
-[    7.456771]  ? _cond_resched+0x19/0x30
-[    7.456817]  ? kmem_cache_alloc_trace+0x15d/0x1d0
-[    7.456873]  do_init_module+0x60/0x210
-[    7.456918]  load_module+0x221b/0x2710
-[    7.456966]  ? vfs_read+0xf5/0x120
-[    7.457010]  __do_sys_finit_module+0xbd/0x120
-[    7.457061]  ? __do_sys_finit_module+0xbd/0x120
-[    7.457115]  __x64_sys_finit_module+0x1a/0x20
-[    7.457166]  do_syscall_64+0x5b/0x110
-[    7.457210]  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+Patch 2 is just error message correction around the
+failure spot. An invalid function name is corrected.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/usb/au0828/au0828-core.c | 1 -
- 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index cd363a2..257ae0d 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -629,7 +629,6 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 		pr_err("%s() au0282_dev_register failed to register on V4L2\n",
- 			__func__);
- 		mutex_unlock(&dev->lock);
--		kfree(dev);
- 		goto done;
- 	}
- 
+Brad Love (2):
+  au0828: cannot kfree dev before usb disconnect
+  au0828: Fix incorrect error messages
+
+ drivers/media/usb/au0828/au0828-core.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
 -- 
 2.7.4
