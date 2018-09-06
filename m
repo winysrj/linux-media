@@ -1,133 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58921 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727750AbeIFOYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 10:24:46 -0400
-Message-ID: <1536227404.5357.5.camel@pengutronix.de>
-Subject: Re: [PATCH v2] [RFC v2] v4l2: add support for colorspace conversion
- for video capture
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Date: Thu, 06 Sep 2018 11:50:04 +0200
-In-Reply-To: <2cf2e7e5-f79a-4717-a04f-87eff7d8f3e6@xs4all.nl>
-References: <20180905170932.14370-1-p.zabel@pengutronix.de>
-         <2cf2e7e5-f79a-4717-a04f-87eff7d8f3e6@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from leonov.paulk.fr ([185.233.101.22]:56660 "EHLO leonov.paulk.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726356AbeIGDH7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Sep 2018 23:07:59 -0400
+From: Paul Kocialkowski <contact@paulk.fr>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 4/9] dt-bindings: media: Document bindings for the Cedrus VPU driver
+Date: Fri,  7 Sep 2018 00:24:37 +0200
+Message-Id: <20180906222442.14825-5-contact@paulk.fr>
+In-Reply-To: <20180906222442.14825-1-contact@paulk.fr>
+References: <20180906222442.14825-1-contact@paulk.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-09-06 at 11:02 +0200, Hans Verkuil wrote:
-> Hi Philipp,
-> 
-> It is much appreciated that this old RFC of mine
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-Right, I should have made clearer that this is just a rework of Hans'
-original RFC in [1].
+This adds a device-tree binding document that specifies the properties
+used by the Cedrus VPU driver, as well as examples.
 
-[1] https://patchwork.linuxtv.org/patch/28847/
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ .../devicetree/bindings/media/cedrus.txt      | 54 +++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cedrus.txt
 
-> is picked up again. I always wanted to get this in, but I never had a
-> driver where it would make sense to do so.
-
-I'll test this with i.MX PXP and IPU mem2mem drivers and follow up with
-per-driver patches to enable this feature once we know where this should
-be going.
-
-> On 09/05/2018 07:09 PM, Philipp Zabel wrote:
-> > For video capture it is the driver that reports the colorspace,
-> 
-> add: "transfer function,"
-
-Will do.
-
-> > Y'CbCr/HSV encoding and quantization range used by the video, and there
-> > is no way to request something different, even though many HDTV
-> > receivers have some sort of colorspace conversion capabilities.
-> > 
-> > For output video this feature already exists since the application
-> > specifies this information for the video format it will send out, and
-> > the transmitter will enable any available CSC if a format conversion has
-> > to be performed in order to match the capabilities of the sink.
-> > 
-> > For video capture we propose adding new pix_format flags:
-> > V4L2_PIX_FMT_FLAG_CSC_COLORSPACE, V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC,
-> > V4L2_PIX_FMT_FLAG_CSC_HSV_ENC, V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION, and
-> > V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC. These are set by the driver to indicate
-> > its conversion features. When set by the application, the driver will
-> > interpret the colorspace, ycbcr_enc/hsv_enc, quantization and xfer_func
-> > fields as the requested colorspace information and will attempt to do
-> > the conversion it supports.
-> > 
-> > Drivers do not have to actually look at the flags: if the flags are not
-> > set, then the colorspace, ycbcr_enc and quantization fields are set to
-> > the default values by the core, i.e. just pass on the received format
-> > without conversion.
-> 
-> Thinking about this some more, I don't think this is quite the right approach.
-> Having userspace set these flags with S_FMT if they want to do explicit
-> conversions makes sense, and that part we can keep.
-> 
-> But to signal the capabilities I think should be done via new flags for
-> VIDIOC_ENUM_FMT. Basically the same set of flags, but for the flags field
-> of struct v4l2_fmtdesc.
-
-In that case, I think the V4L2_PIX_FMT_FLAG_CSC_* should be purely a
-signal from the application to the driver, and the driver should not
-(have to) touch them at all.
-
-An equivalent set of v4l2_fmtdesc flags could be used to signal
-conversion support via VIDIOC_ENUM_FMT:
-
-#define V4L2_FMT_FLAG_CSC_COLORSPACE	0x0004
-#define V4L2_FMT_FLAG_CSC_YCBCR_ENC	0x0008
-#define V4L2_FMT_FLAG_CSC_HSV_ENC	0x0008
-#define V4L2_FMT_FLAG_CSC_QUANTIZATION	0x0010
-#define V4L2_FMT_FLAG_CSC_XFER_FUNC	0x0020
-
-What is the expected use case for these reported flags? Applications
-that see them set to zero can skip enumerating capture side colorimetry.
-Is there anything else?
-
-> One thing that's not clear to me is what happens if userspace sets one or
-> more flags and calls S_FMT for a driver that doesn't support this. Are the
-> flags zeroed in that case upon return?
-
-I'd say no. Drivers are free to silently ignore the flag.
-The effect is the same as if the driver supports the flag in principle,
-but has to change a requested value anyway because of some limitation.
-The application can check whether the driver changed its requested
-colorspace, xfer_func, ycbcr_enc, or quantization.
-
-The application usually doesn't need to know whether the driver changed
-the requested ycbcr_enc because it doesn't have CSC matrix support at
-all, or because it doesn't implement a specific conversion. And if the
-application needs to know for some reason, it can always check
-VIDIOC_ENUM_FMT.
-
-> I don't think so, but I think that
-> is already true for the existing flag V4L2_PIX_FMT_FLAG_PREMUL_ALPHA.
-
-The only drivers using V4L2_PIX_FMT_FLAG_PREMUL_ALPHA I can see are
-vsp1_brx and vsp1_rpf. They never write to the v4l2_pix_format flags
-field.
-
-> I wonder if V4L2_PIX_FMT_FLAG_PREMUL_ALPHA should also get an equivalent
-> flag for v4l2_fmtdesc.
-
-Isn't this useless to introduce after the fact, if there are already
-applications that use this feature? They can't depend on the existence
-of this flag to check for support anyway.
-
-> Then we can just document that v4l2_format flags are only valid if they
-> are also defined in v4l2_fmtdesc.
-> 
-> Does anyone have better ideas for this?
-
-I'd just say the driver is free to ignore the flag if it doesn't support
-the specific requested value and leave it at that.
-
-regards
-Philipp
+diff --git a/Documentation/devicetree/bindings/media/cedrus.txt b/Documentation/devicetree/bindings/media/cedrus.txt
+new file mode 100644
+index 000000000000..a089a0c1ff05
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cedrus.txt
+@@ -0,0 +1,54 @@
++Device-tree bindings for the VPU found in Allwinner SoCs, referred to as the
++Video Engine (VE) in Allwinner literature.
++
++The VPU can only access the first 256 MiB of DRAM, that are DMA-mapped starting
++from the DRAM base. This requires specific memory allocation and handling.
++
++Required properties:
++- compatible		: must be one of the following compatibles:
++			- "allwinner,sun4i-a10-video-engine"
++			- "allwinner,sun5i-a13-video-engine"
++			- "allwinner,sun7i-a20-video-engine"
++			- "allwinner,sun8i-a33-video-engine"
++			- "allwinner,sun8i-h3-video-engine"
++- reg			: register base and length of VE;
++- clocks		: list of clock specifiers, corresponding to entries in
++			  the clock-names property;
++- clock-names		: should contain "ahb", "mod" and "ram" entries;
++- resets		: phandle for reset;
++- interrupts		: VE interrupt number;
++- allwinner,sram	: SRAM region to use with the VE.
++
++Optional properties:
++- memory-region		: CMA pool to use for buffers allocation instead of the
++			  default CMA pool.
++
++Example:
++
++reserved-memory {
++	#address-cells = <1>;
++	#size-cells = <1>;
++	ranges;
++
++	/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
++	cma_pool: cma@4a000000 {
++		compatible = "shared-dma-pool";
++		size = <0x6000000>;
++		alloc-ranges = <0x4a000000 0x6000000>;
++		reusable;
++		linux,cma-default;
++	};
++};
++
++video-codec@1c0e000 {
++	compatible = "allwinner,sun7i-a20-video-engine";
++	reg = <0x01c0e000 0x1000>;
++
++	clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
++		 <&ccu CLK_DRAM_VE>;
++	clock-names = "ahb", "mod", "ram";
++
++	resets = <&ccu RST_VE>;
++	interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
++	allwinner,sram = <&ve_sram 1>;
++};
+-- 
+2.18.0
