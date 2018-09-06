@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:41164 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:41188 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728776AbeIFSGl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 14:06:41 -0400
+        with ESMTP id S1728776AbeIFSGt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 14:06:49 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hugues Fruchet <hugues.fruchet@st.com>
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
@@ -12,11 +12,11 @@ Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 4/5] media: ov5640: fix auto controls values when switching to manual mode
-Date: Thu, 06 Sep 2018 16:31:09 +0300
-Message-ID: <1747395.R2Yra0TKY1@avalon>
-In-Reply-To: <1534155586-26974-5-git-send-email-hugues.fruchet@st.com>
-References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com> <1534155586-26974-5-git-send-email-hugues.fruchet@st.com>
+Subject: Re: [PATCH v2 1/5] media: ov5640: fix exposure regression
+Date: Thu, 06 Sep 2018 16:31:22 +0300
+Message-ID: <9486616.rRIMQl6ReX@avalon>
+In-Reply-To: <1534155586-26974-2-git-send-email-hugues.fruchet@st.com>
+References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com> <1534155586-26974-2-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -27,53 +27,86 @@ Hi Hugues,
 
 Thank you for the patch.
 
-On Monday, 13 August 2018 13:19:45 EEST Hugues Fruchet wrote:
-> When switching from auto to manual mode, V4L2 core is calling
-> g_volatile_ctrl() in manual mode in order to get the manual initial value.
-> Remove the manual mode check/return to not break this behaviour.
+On Monday, 13 August 2018 13:19:42 EEST Hugues Fruchet wrote:
+> fixes: bf4a4b518c20 ("media: ov5640: Don't force the auto exposure state at
+> start time").
+> 
+> Symptom was black image when capturing HD or 5Mp picture
+> due to manual exposure set to 1 while it was intended to
+> set autoexposure to "manual", fix this.
 > 
 > Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 > ---
->  drivers/media/i2c/ov5640.c | 4 ----
->  1 file changed, 4 deletions(-)
+>  drivers/media/i2c/ov5640.c | 18 ++++++++++++------
+>  1 file changed, 12 insertions(+), 6 deletions(-)
 > 
 > diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 9fb17b5..c110a6a 100644
+> index 1ecbb7a..4b9da8b 100644
 > --- a/drivers/media/i2c/ov5640.c
 > +++ b/drivers/media/i2c/ov5640.c
-> @@ -2277,16 +2277,12 @@ static int ov5640_g_volatile_ctrl(struct v4l2_ctrl
-> *ctrl)
+> @@ -938,6 +938,12 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
+>  	return ret;
+>  }
 > 
->  	switch (ctrl->id) {
->  	case V4L2_CID_AUTOGAIN:
-> -		if (!ctrl->val)
-> -			return 0;
->  		val = ov5640_get_gain(sensor);
->  		if (val < 0)
->  			return val;
->  		sensor->ctrls.gain->val = val;
->  		break;
-
-What is this even supposed to do ? Only the V4L2_CID_GAIN and 
-V4L2_CID_EXPOSURE have the volatile flag set. Why can't this code be replaced 
-with
-
-	case V4L2_CID_GAIN:
-  		val = ov5640_get_gain(sensor);
-  		if (val < 0)
-  			return val;
-  		ctrl->val = val;
-		break;
-
-
->  	case V4L2_CID_EXPOSURE_AUTO:
-> -		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
-> -			return 0;
->  		val = ov5640_get_exposure(sensor);
->  		if (val < 0)
->  			return val;
-
-And same here.
+> +static int ov5640_set_autoexposure(struct ov5640_dev *sensor, bool on)
+> +{
+> +	return ov5640_mod_reg(sensor, OV5640_REG_AEC_PK_MANUAL,
+> +			      BIT(0), on ? 0 : BIT(0));
+> +}
+> +
+>  /* read exposure, in number of line periods */
+>  static int ov5640_get_exposure(struct ov5640_dev *sensor)
+>  {
+> @@ -1593,7 +1599,7 @@ static int ov5640_set_mode_exposure_calc(struct
+> ov5640_dev *sensor, */
+>  static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
+>  				  const struct ov5640_mode_info *mode,
+> -				  s32 exposure)
+> +				  bool auto_exp)
+>  {
+>  	int ret;
+> 
+> @@ -1610,7 +1616,8 @@ static int ov5640_set_mode_direct(struct ov5640_dev
+> *sensor, if (ret)
+>  		return ret;
+> 
+> -	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure);
+> +	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, auto_exp ?
+> +				  V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL);
+>  }
+> 
+>  static int ov5640_set_mode(struct ov5640_dev *sensor,
+> @@ -1618,7 +1625,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+>  {
+>  	const struct ov5640_mode_info *mode = sensor->current_mode;
+>  	enum ov5640_downsize_mode dn_mode, orig_dn_mode;
+> -	s32 exposure;
+> +	bool auto_exp =  sensor->ctrls.auto_exp->val == V4L2_EXPOSURE_AUTO;
+>  	int ret;
+> 
+>  	dn_mode = mode->dn_mode;
+> @@ -1629,8 +1636,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+>  	if (ret)
+>  		return ret;
+> 
+> -	exposure = sensor->ctrls.auto_exp->val;
+> -	ret = ov5640_set_exposure(sensor, V4L2_EXPOSURE_MANUAL);
+> +	ret = ov5640_set_autoexposure(sensor, false);
+>  	if (ret)
+>  		return ret;
+> 
+> @@ -1646,7 +1652,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+>  		 * change inside subsampling or scaling
+>  		 * download firmware directly
+>  		 */
+> -		ret = ov5640_set_mode_direct(sensor, mode, exposure);
+> +		ret = ov5640_set_mode_direct(sensor, mode, auto_exp);
+>  	}
+> 
+>  	if (ret < 0)
 
 -- 
 Regards,
