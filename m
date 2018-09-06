@@ -1,167 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:61268 "EHLO
-        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726247AbeIDSPs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2018 14:15:48 -0400
-Subject: Re: [RFCv2 PATCH 1/3] uapi/linux/media.h: add property support
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180807102847.13200-1-hverkuil@xs4all.nl>
- <20180807102847.13200-2-hverkuil@xs4all.nl>
- <20180904130107.habwc3cti53eodqb@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <5a2e9988-6e9e-cfcb-ab35-9d2c7e734683@cisco.com>
-Date: Tue, 4 Sep 2018 15:50:33 +0200
-MIME-Version: 1.0
-In-Reply-To: <20180904130107.habwc3cti53eodqb@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:58921 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727750AbeIFOYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 10:24:46 -0400
+Message-ID: <1536227404.5357.5.camel@pengutronix.de>
+Subject: Re: [PATCH v2] [RFC v2] v4l2: add support for colorspace conversion
+ for video capture
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+Date: Thu, 06 Sep 2018 11:50:04 +0200
+In-Reply-To: <2cf2e7e5-f79a-4717-a04f-87eff7d8f3e6@xs4all.nl>
+References: <20180905170932.14370-1-p.zabel@pengutronix.de>
+         <2cf2e7e5-f79a-4717-a04f-87eff7d8f3e6@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/04/18 15:01, Sakari Ailus wrote:
-> Hi Hans,
+On Thu, 2018-09-06 at 11:02 +0200, Hans Verkuil wrote:
+> Hi Philipp,
 > 
-> Thanks for the set.
-> 
-> On Tue, Aug 07, 2018 at 12:28:45PM +0200, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Add a new topology struct that includes properties.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  include/uapi/linux/media.h | 40 ++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 40 insertions(+)
->>
->> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->> index 36f76e777ef9..1910c091601e 100644
->> --- a/include/uapi/linux/media.h
->> +++ b/include/uapi/linux/media.h
->> @@ -342,6 +342,40 @@ struct media_v2_link {
->>  	__u32 reserved[6];
->>  } __attribute__ ((packed));
->>  
->> +#define MEDIA_PROP_TYPE_U64	1
->> +#define MEDIA_PROP_TYPE_S64	2
->> +#define MEDIA_PROP_TYPE_STRING	3
->> +
->> +/**
->> + * struct media_v2_prop - A media property
->> + *
->> + * @id:		The unique non-zero ID of this property
->> + * @owner_id:	The ID of the object this property belongs to
-> 
-> This assumes everything has a graph object ID. Speaking of "everything",
-> one of the use cases for this could be telling the user whether the media
-> device registration is finished.
-> 
-> One approach could be to create a special graph object with a constant ID
-> for that purpose. As the type is a part of the ID field, we could simply
-> create a new type of constant objects.
+> It is much appreciated that this old RFC of mine
 
-Why would you use properties for that? Why not just allow polling for
-exceptions (i.e. new events) on the media device node, similar to events
-for V4L2? It's very easy to use with select() et al.
+Right, I should have made clearer that this is just a rework of Hans'
+original RFC in [1].
 
-> On a sidenote, the proposed API effectively prohibits conveying structured
-> data. One use case for that would be to tell about camera modules. We don't
-> have that right now as part of the uAPI as there's nothing the kernel
-> currently knows about camera modules --- because there's nothing to control
-> there. The user space would still be interested in knowing quite a few
-> parameters of these devices which means the concept of the camera module
-> would be good to have in precisely this kind of an interface. What should
-> be there could in practice be what does the module contain (some of the
-> components are sub-devices whereas some would not be, such as an IR filter
-> or the lens) and their parameters (e.g. focal length).
+[1] https://patchwork.linuxtv.org/patch/28847/
 
-You can easily (but indeed not yet implemented in this initial version) create
-hierarchical properties by simply setting the owner_id to a parent property.
+> is picked up again. I always wanted to get this in, but I never had a
+> driver where it would make sense to do so.
 
-And you obviously need to carefully define and document how data is
-represented in properties.
+I'll test this with i.MX PXP and IPU mem2mem drivers and follow up with
+per-driver patches to enable this feature once we know where this should
+be going.
 
-If people feel strongly enough about this, then I can implement it in the
-next RFC. But I want feedback on this RFC first.
-
-> I'm not demanding this must be a part of the API in the beginning, however
-> this was one of the reasons why I originally proposed using JSON:
+> On 09/05/2018 07:09 PM, Philipp Zabel wrote:
+> > For video capture it is the driver that reports the colorspace,
 > 
-> <URL:https://www.spinics.net/lists/linux-media/msg90160.html>
-> 
-> The downside with JSON would be that it does not fit very well with the
-> rest of the MC API.
-> 
->> + * @type:	Property type
->> + * @flags:	Property flags
->> + * @payload_size: Property payload size, 0 for U64/S64
->> + * @payload_offset: Property payload starts at this offset from &prop.id.
->> + *		This is 0 for U64/S64.
->> + * @reserved:	Property reserved field, will be zeroed.
->> + * @name:	Property name
->> + * @uval:	Property value (unsigned)
->> + * @sval:	Property value (signed)
->> + */
->> +struct media_v2_prop {
->> +	__u32 id;
->> +	__u32 owner_id;
->> +	__u32 type;
->> +	__u32 flags;
->> +	__u32 payload_size;
->> +	__u32 payload_offset;
->> +	__u32 reserved[18];
-> 
-> That's plenty. What is the typical size of the properties array for a media
-> device with, say, a few hundred entities with some four pads each, linked
-> with a single link on average?
-> 
->> +	char name[32];
-> 
-> Is 32 enough? For controls and formats it's been sometimes a bit limiting.
-> 
-> Another approach could be to make this variable size, but that would make
-> parsing a little bit more complicated. As you already have separated the
-> property descriptor and the payload, that wouldn't be a major change
-> anymore.
+> add: "transfer function,"
 
-I'll have to experiment a bit with that.
+Will do.
 
-Thanks for looking at this!
-
-Regards,
-
-	Hans
-
+> > Y'CbCr/HSV encoding and quantization range used by the video, and there
+> > is no way to request something different, even though many HDTV
+> > receivers have some sort of colorspace conversion capabilities.
+> > 
+> > For output video this feature already exists since the application
+> > specifies this information for the video format it will send out, and
+> > the transmitter will enable any available CSC if a format conversion has
+> > to be performed in order to match the capabilities of the sink.
+> > 
+> > For video capture we propose adding new pix_format flags:
+> > V4L2_PIX_FMT_FLAG_CSC_COLORSPACE, V4L2_PIX_FMT_FLAG_CSC_YCBCR_ENC,
+> > V4L2_PIX_FMT_FLAG_CSC_HSV_ENC, V4L2_PIX_FMT_FLAG_CSC_QUANTIZATION, and
+> > V4L2_PIX_FMT_FLAG_CSC_XFER_FUNC. These are set by the driver to indicate
+> > its conversion features. When set by the application, the driver will
+> > interpret the colorspace, ycbcr_enc/hsv_enc, quantization and xfer_func
+> > fields as the requested colorspace information and will attempt to do
+> > the conversion it supports.
+> > 
+> > Drivers do not have to actually look at the flags: if the flags are not
+> > set, then the colorspace, ycbcr_enc and quantization fields are set to
+> > the default values by the core, i.e. just pass on the received format
+> > without conversion.
 > 
->> +	union {
->> +		__u64 uval;
->> +		__s64 sval;
->> +	};
->> +} __attribute__ ((packed));
->> +
->>  struct media_v2_topology {
->>  	__u64 topology_version;
->>  
->> @@ -360,6 +394,10 @@ struct media_v2_topology {
->>  	__u32 num_links;
->>  	__u32 reserved4;
->>  	__u64 ptr_links;
->> +
->> +	__u32 num_props;
->> +	__u32 props_payload_size;
->> +	__u64 ptr_props;
->>  } __attribute__ ((packed));
->>  
->>  /* ioctls */
->> @@ -368,6 +406,8 @@ struct media_v2_topology {
->>  #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
->>  #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
->>  #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
->> +/* Old MEDIA_IOC_G_TOPOLOGY ioctl without props support */
->> +#define MEDIA_IOC_G_TOPOLOGY_OLD 0xc0487c04
->>  #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
->>  
->>  #ifndef __KERNEL__
+> Thinking about this some more, I don't think this is quite the right approach.
+> Having userspace set these flags with S_FMT if they want to do explicit
+> conversions makes sense, and that part we can keep.
 > 
+> But to signal the capabilities I think should be done via new flags for
+> VIDIOC_ENUM_FMT. Basically the same set of flags, but for the flags field
+> of struct v4l2_fmtdesc.
+
+In that case, I think the V4L2_PIX_FMT_FLAG_CSC_* should be purely a
+signal from the application to the driver, and the driver should not
+(have to) touch them at all.
+
+An equivalent set of v4l2_fmtdesc flags could be used to signal
+conversion support via VIDIOC_ENUM_FMT:
+
+#define V4L2_FMT_FLAG_CSC_COLORSPACE	0x0004
+#define V4L2_FMT_FLAG_CSC_YCBCR_ENC	0x0008
+#define V4L2_FMT_FLAG_CSC_HSV_ENC	0x0008
+#define V4L2_FMT_FLAG_CSC_QUANTIZATION	0x0010
+#define V4L2_FMT_FLAG_CSC_XFER_FUNC	0x0020
+
+What is the expected use case for these reported flags? Applications
+that see them set to zero can skip enumerating capture side colorimetry.
+Is there anything else?
+
+> One thing that's not clear to me is what happens if userspace sets one or
+> more flags and calls S_FMT for a driver that doesn't support this. Are the
+> flags zeroed in that case upon return?
+
+I'd say no. Drivers are free to silently ignore the flag.
+The effect is the same as if the driver supports the flag in principle,
+but has to change a requested value anyway because of some limitation.
+The application can check whether the driver changed its requested
+colorspace, xfer_func, ycbcr_enc, or quantization.
+
+The application usually doesn't need to know whether the driver changed
+the requested ycbcr_enc because it doesn't have CSC matrix support at
+all, or because it doesn't implement a specific conversion. And if the
+application needs to know for some reason, it can always check
+VIDIOC_ENUM_FMT.
+
+> I don't think so, but I think that
+> is already true for the existing flag V4L2_PIX_FMT_FLAG_PREMUL_ALPHA.
+
+The only drivers using V4L2_PIX_FMT_FLAG_PREMUL_ALPHA I can see are
+vsp1_brx and vsp1_rpf. They never write to the v4l2_pix_format flags
+field.
+
+> I wonder if V4L2_PIX_FMT_FLAG_PREMUL_ALPHA should also get an equivalent
+> flag for v4l2_fmtdesc.
+
+Isn't this useless to introduce after the fact, if there are already
+applications that use this feature? They can't depend on the existence
+of this flag to check for support anyway.
+
+> Then we can just document that v4l2_format flags are only valid if they
+> are also defined in v4l2_fmtdesc.
+> 
+> Does anyone have better ideas for this?
+
+I'd just say the driver is free to ignore the flag if it doesn't support
+the specific requested value and leave it at that.
+
+regards
+Philipp
