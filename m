@@ -1,85 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:44272 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727591AbeIPBzM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 21:55:12 -0400
-Date: Sat, 15 Sep 2018 17:34:54 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Marco Felsch <m.felsch@pengutronix.de>
-Subject: Re: [PATCH v2 00/14] Better handle pads for tuning/decoder part of
- the devices
-Message-ID: <20180915173454.203afb43@coco.lan>
-In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
-References: <cover.1537042262.git.mchehab+samsung@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:45015 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727629AbeIFNgs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 09:36:48 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+Subject: [PATCH v3 1/4] dt-bindings: media: Add i.MX Pixel Pipeline binding
+Date: Thu,  6 Sep 2018 11:02:12 +0200
+Message-Id: <20180906090215.15719-2-p.zabel@pengutronix.de>
+In-Reply-To: <20180906090215.15719-1-p.zabel@pengutronix.de>
+References: <20180906090215.15719-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 15 Sep 2018 17:14:15 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
+Add DT binding documentation for the Pixel Pipeline (PXP) found on
+various NXP i.MX SoCs.
 
-> At PC consumer devices, it is very common that the bridge same driver 
-> to be attached to different types of tuners and demods. We need a way
-> for the Kernel to properly identify what kind of signal is provided by each
-> PAD, in order to properly setup the pipelines.
-> 
-> The previous approach were to hardcode a fixed number of PADs for all
-> elements of the same type. This is not good, as different devices may 
-> actually have a different number of pads.
-> 
-> It was acceptable in the past, as there were a promisse of adding "soon"
-> a properties API that would allow to identify the type for each PADs, but
-> this was never merged (or even a patchset got submitted).
-> 
-> So, replace this approach by another one: add a "taint" mark to pads that
-> contain different types of signals.
-> 
-> I tried to minimize the number of signals, in order to make it simpler to
-> convert from the past way.
-> 
-> For now, it is tested only with a simple grabber device. I intend to do
-> more tests before merging it, but it would be interesting to have this
-> merged for Kernel 4.19, as we'll now be exposing the pad index via
-> the MC API version 2.
-> 
-> --
-> 
-> v2:
-> 
-> - Fix some issues noticed while testing with WinTV USB2. As result
-> of such tests, I opted to use just one type for all analog signals.
-> 
-> - Added a patch to provide some info if something gets wrong while
->   creating the links.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+No changes since v2.
+---
+ .../devicetree/bindings/media/fsl-pxp.txt     | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
 
-In time:
-
-1) The patches are at:
-
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=pad-fix-4
-
-2_ I have an experimental tree on the top of it with tvp5150 patches:
-
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-4
-
-I'll likely replace the last patch there by something else.
-
-3) Except if I get any comments, my plan is to merge the patches
-at pad-fix-4 together with tvp5150-4 branch on Monday;
-
-4) There is a series of tvp5150-related patches that I'll keep out
-of the Monday's merge:
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-5
-
-Those contain a patch series from Marco that are currently under
-review, plus a reminder from me that some things are needed to be
-changed after this series (the last patch is incomplete, but I intend
-to wait for Marco's new patchset before working on a replacement).
-
-Thanks,
-Mauro
+diff --git a/Documentation/devicetree/bindings/media/fsl-pxp.txt b/Documentation/devicetree/bindings/media/fsl-pxp.txt
+new file mode 100644
+index 000000000000..2477e7f87381
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/fsl-pxp.txt
+@@ -0,0 +1,26 @@
++Freescale Pixel Pipeline
++========================
++
++The Pixel Pipeline (PXP) is a memory-to-memory graphics processing engine
++that supports scaling, colorspace conversion, alpha blending, rotation, and
++pixel conversion via lookup table. Different versions are present on various
++i.MX SoCs from i.MX23 to i.MX7.
++
++Required properties:
++- compatible: should be "fsl,<soc>-pxp", where SoC can be one of imx23, imx28,
++  imx6dl, imx6sl, imx6ul, imx6sx, imx6ull, or imx7d.
++- reg: the register base and size for the device registers
++- interrupts: the PXP interrupt, two interrupts for imx6ull and imx7d.
++- clock-names: should be "axi"
++- clocks: the PXP AXI clock
++
++Example:
++
++pxp@21cc000 {
++	compatible = "fsl,imx6ull-pxp";
++	reg = <0x021cc000 0x4000>;
++	interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>,
++		     <GIC_SPI 18 IRQ_TYPE_LEVEL_HIGH>;
++	clock-names = "axi";
++	clocks = <&clks IMX6UL_CLK_PXP>;
++};
+-- 
+2.18.0
