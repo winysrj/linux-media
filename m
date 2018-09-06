@@ -1,93 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:57625 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:59109 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727672AbeIFNez (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 09:34:55 -0400
-Message-ID: <1536224414.5357.3.camel@pengutronix.de>
-Subject: Re: [PATCH v2 1/4] dt-bindings: media: Add i.MX Pixel Pipeline
- binding
+        with ESMTP id S1727629AbeIFNgq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 09:36:46 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Stefan Wahren <stefan.wahren@i2se.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        kernel@pengutronix.de, Shawn Guo <shawnguo@kernel.org>,
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Jacopo Mondi <jacopo@jmondi.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date: Thu, 06 Sep 2018 11:00:14 +0200
-In-Reply-To: <1527575951.28748.1536167436305@email.1und1.de>
-References: <20180905100018.27556-1-p.zabel@pengutronix.de>
-         <20180905100018.27556-2-p.zabel@pengutronix.de>
-         <1527575951.28748.1536167436305@email.1und1.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
+Subject: [PATCH v3 0/4] i.MX PXP scaler/CSC driver
+Date: Thu,  6 Sep 2018 11:02:11 +0200
+Message-Id: <20180906090215.15719-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan,
+The Pixel Pipeline (PXP) is a memory-to-memory graphics processing
+engine that supports scaling, colorspace conversion, alpha blending,
+rotation, and pixel conversion via lookup table. Different versions are
+present on various i.MX SoCs from i.MX23 to i.MX7. The latest versions
+on i.MX6ULL and i.MX7D have grown an additional pipeline for dithering
+and e-ink update processing that is ignored by this driver.
 
-thank you for your comments.
+This series adds a V4L2 mem-to-mem scaler/CSC driver for the PXP version
+found on i.MX6ULL SoCs which is a size reduced variant of the i.MX7 PXP.
+The driver uses only the legacy pipeline, so it should be reasonably
+easy to extend it to work with the older PXP versions found on i.MX6UL,
+i.MX6SX, i.MX6SL, i.MX28, and i.MX23. The driver supports scaling and
+colorspace conversion. There is currently no support for rotation,
+alpha-blending, and the LUTs.
 
-On Wed, 2018-09-05 at 19:10 +0200, Stefan Wahren wrote:
-> Hi Philipp,
-> 
-> > Philipp Zabel <p.zabel@pengutronix.de> hat am 5. September 2018 um 12:00 geschrieben:
-> > 
-> > 
-> > Add DT binding documentation for the Pixel Pipeline (PXP) found on
-> > various NXP i.MX SoCs.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > Reviewed-by: Rob Herring <robh@kernel.org>
-> > ---
-> >  .../devicetree/bindings/media/fsl-pxp.txt     | 26 +++++++++++++++++++
-> >  1 file changed, 26 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/fsl-pxp.txt b/Documentation/devicetree/bindings/media/fsl-pxp.txt
-> > new file mode 100644
-> > index 000000000000..2477e7f87381
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/fsl-pxp.txt
-> > @@ -0,0 +1,26 @@
-> > +Freescale Pixel Pipeline
-> > +========================
-> > +
-> > +The Pixel Pipeline (PXP) is a memory-to-memory graphics processing engine
-> > +that supports scaling, colorspace conversion, alpha blending, rotation, and
-> > +pixel conversion via lookup table. Different versions are present on various
-> > +i.MX SoCs from i.MX23 to i.MX7.
-> > +
-> > +Required properties:
-> > +- compatible: should be "fsl,<soc>-pxp", where SoC can be one of imx23, imx28,
-> > +  imx6dl, imx6sl, imx6ul, imx6sx, imx6ull, or imx7d.
-> 
-> please correct me if i'm wrong, but the driver in patch #3 only
-> support imx6ull 
-
-That is correct.
-
-I assume it should work on i.MX7D mostly unchanged, by just adding a
-compatible. The others probably require some register layout changes.
-
-> so this binding is misleading.
-
-I disagree. The binding document specifies how PXP hardware should be
-described in the device tree. It should be seen completely separate from
-any driver implementation.
-
-There is no reason to leave out SoCs that are known to contain the PXP
-from this description just because some driver doesn't implement support
-for them. Similarly, there is no reason to remove the second interrupt
-just because the current Linux driver doesn't use it.
-
-> As a user i would expect that binding and driver are in sync.
-
-This expectation is at odds with the purpose of DT bindings, which is to
-describe the hardware, not to document driver features.
-
-(Which driver, anyway? Drivers for other operating systems or
-bootloaders could have a different set of supported SoCs and features).
+Changes since v2:
+ - fix Kconfig whitespace
+ - remove unused defines
+ - fix video_unregister_device/v4l2_m2m_release order in pxp_remove
+ - use GPL-2.0+ instead of GPL-2.0-or-later SPDX license identifer
+ - remove pxp_default_ycbcr_enc/quantization, always map to default
+   encoding/quantization
+ - rename pxp_fixup_colorimetry to pxp_fixup_colorimetry_cap
 
 regards
 Philipp
+
+Philipp Zabel (4):
+  dt-bindings: media: Add i.MX Pixel Pipeline binding
+  ARM: dts: imx6ull: add pxp support
+  media: imx-pxp: add i.MX Pixel Pipeline driver
+  MAINTAINERS: add entry for i.MX PXP media mem2mem driver
+
+ .../devicetree/bindings/media/fsl-pxp.txt     |   26 +
+ MAINTAINERS                                   |    7 +
+ arch/arm/boot/dts/imx6ul.dtsi                 |    8 +
+ arch/arm/boot/dts/imx6ull.dtsi                |    6 +
+ drivers/media/platform/Kconfig                |    9 +
+ drivers/media/platform/Makefile               |    2 +
+ drivers/media/platform/imx-pxp.c              | 1752 +++++++++++++++++
+ drivers/media/platform/imx-pxp.h              | 1685 ++++++++++++++++
+ 8 files changed, 3495 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
+ create mode 100644 drivers/media/platform/imx-pxp.c
+ create mode 100644 drivers/media/platform/imx-pxp.h
+
+-- 
+2.18.0
