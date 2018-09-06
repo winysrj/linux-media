@@ -1,76 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:43213 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:57625 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727629AbeIFNeh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 09:34:37 -0400
-Message-ID: <1536224410.5357.2.camel@pengutronix.de>
-Subject: Re: [PATCH v2 3/4] media: imx-pxp: add i.MX Pixel Pipeline driver
+        with ESMTP id S1727672AbeIFNez (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 09:34:55 -0400
+Message-ID: <1536224414.5357.3.camel@pengutronix.de>
+Subject: Re: [PATCH v2 1/4] dt-bindings: media: Add i.MX Pixel Pipeline
+ binding
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
+To: Stefan Wahren <stefan.wahren@i2se.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel@pengutronix.de, Shawn Guo <shawnguo@kernel.org>,
         Jacopo Mondi <jacopo@jmondi.org>,
-        linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
-Date: Thu, 06 Sep 2018 11:00:10 +0200
-In-Reply-To: <dbc31612-1686-c115-8618-309355363f27@xs4all.nl>
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Date: Thu, 06 Sep 2018 11:00:14 +0200
+In-Reply-To: <1527575951.28748.1536167436305@email.1und1.de>
 References: <20180905100018.27556-1-p.zabel@pengutronix.de>
-         <20180905100018.27556-4-p.zabel@pengutronix.de>
-         <b2968b6b-b6ab-dfbe-b51c-5c4e73786039@xs4all.nl>
-         <1536153658.4084.7.camel@pengutronix.de>
-         <dbc31612-1686-c115-8618-309355363f27@xs4all.nl>
+         <20180905100018.27556-2-p.zabel@pengutronix.de>
+         <1527575951.28748.1536167436305@email.1und1.de>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-09-06 at 09:57 +0200, Hans Verkuil wrote:
-[...]
-> > If userspace sets xfer_func explicitly, it will get the explicit default
-> > ycbcr_enc and quantization values.
+Hi Stefan,
+
+thank you for your comments.
+
+On Wed, 2018-09-05 at 19:10 +0200, Stefan Wahren wrote:
+> Hi Philipp,
+> 
+> > Philipp Zabel <p.zabel@pengutronix.de> hat am 5. September 2018 um 12:00 geschrieben:
 > > 
-> > I think I did this to make v4l2-compliance at some point, but it could
-> > be that the explicit output->capture colorimetry copy for RGB->RGB and
-> > YUV->YUV conversions has me covered now.
+> > 
+> > Add DT binding documentation for the Pixel Pipeline (PXP) found on
+> > various NXP i.MX SoCs.
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > Reviewed-by: Rob Herring <robh@kernel.org>
+> > ---
+> >  .../devicetree/bindings/media/fsl-pxp.txt     | 26 +++++++++++++++++++
+> >  1 file changed, 26 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/fsl-pxp.txt b/Documentation/devicetree/bindings/media/fsl-pxp.txt
+> > new file mode 100644
+> > index 000000000000..2477e7f87381
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/fsl-pxp.txt
+> > @@ -0,0 +1,26 @@
+> > +Freescale Pixel Pipeline
+> > +========================
+> > +
+> > +The Pixel Pipeline (PXP) is a memory-to-memory graphics processing engine
+> > +that supports scaling, colorspace conversion, alpha blending, rotation, and
+> > +pixel conversion via lookup table. Different versions are present on various
+> > +i.MX SoCs from i.MX23 to i.MX7.
+> > +
+> > +Required properties:
+> > +- compatible: should be "fsl,<soc>-pxp", where SoC can be one of imx23, imx28,
+> > +  imx6dl, imx6sl, imx6ul, imx6sx, imx6ull, or imx7d.
 > 
-> This xfer_func test makes no sense. xfer_func is completely ignored by the
-> driver (other than copying it from output to capture queue) since it can't
-> make any changes to it anyway.
-> 
-> What you are trying to do in pxp_fixup_colorimetry() is to figure out the
-> ycbcr_enc and quantization values for the capture queue.
+> please correct me if i'm wrong, but the driver in patch #3 only
+> support imx6ull 
 
-Yes. I checked again without that. Since there is the forced out->cap
-copy for RGB->RGB and YUV->YUV conversions in pxp_fixup_colorimetry,
-v4l2-compliance is happy anyway. The pxp_default_quant/ycbcr_enc
-functions are removed now.
+That is correct.
 
-> BTW, can you rename pxp_fixup_colorimetry to pxp_fixup_colorimetry_cap or
-> something? Since it is specifically for the capture queue.
+I assume it should work on i.MX7D mostly unchanged, by just adding a
+compatible. The others probably require some register layout changes.
 
-Ok.
+> so this binding is misleading.
 
-> These values depend entirely on the capture queue pixelformat and on the
-> colorspace and not on the xfer_func value.
-> 
-> So just do:
-> 
-> bool is_rgb = !pxp_v4l2_pix_fmt_is_yuv(dst_fourcc);
-> *ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(ctx->colorspace);
-> *quantization = V4L2_MAP_QUANTIZATION_DEFAULT(is_rgb, ctx->colorspace,
-> 					      *ycbcr_enc);
+I disagree. The binding document specifies how PXP hardware should be
+described in the device tree. It should be seen completely separate from
+any driver implementation.
 
-That's almost exactly what I ended up with, thank you.
+There is no reason to leave out SoCs that are known to contain the PXP
+from this description just because some driver doesn't implement support
+for them. Similarly, there is no reason to remove the second interrupt
+just because the current Linux driver doesn't use it.
 
-> BTW, I just noticed that the V4L2_MAP_QUANTIZATION_DEFAULT macro no longer
-> uses ycbcr_enc. The comment in videodev2.h should be updated. I can't
-> change the define as it is used in applications (and we might need to
-> depend on it again in the future anyway).
-> 
-> If this code will give you v4l2-compliance issues, please let me know.
-> It shouldn't AFAICT.
+> As a user i would expect that binding and driver are in sync.
 
-There are no complaints anymore.
+This expectation is at odds with the purpose of DT bindings, which is to
+describe the hardware, not to document driver features.
+
+(Which driver, anyway? Drivers for other operating systems or
+bootloaders could have a different set of supported SoCs and features).
 
 regards
 Philipp
