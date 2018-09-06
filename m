@@ -1,184 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:45354 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:46696 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726541AbeIFV1V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 17:27:21 -0400
+        with ESMTP id S1727740AbeIFVpL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 17:45:11 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-media@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-Subject: Re: [PATCH 02/10] phy: Add configuration interface
-Date: Thu, 06 Sep 2018 19:51:05 +0300
-Message-ID: <2403687.Gdit31W5bd@avalon>
-In-Reply-To: <20180906144807.pn753tgfyovvheil@flea>
-References: <cover.ee6158898d563fcc01d45c9652501180bccff0f0.1536138624.git-series.maxime.ripard@bootlin.com> <8397722.XVQDA25ZU6@avalon> <20180906144807.pn753tgfyovvheil@flea>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "maxime.ripard@bootlin.com" <maxime.ripard@bootlin.com>,
+        "sam@elite-embedded.com" <sam@elite-embedded.com>,
+        "jagan@amarulasolutions.com" <jagan@amarulasolutions.com>,
+        "festevam@gmail.com" <festevam@gmail.com>,
+        "pza@pengutronix.de" <pza@pengutronix.de>,
+        "steve_longerbeam@mentor.com" <steve_longerbeam@mentor.com>,
+        "loic.poulain@linaro.org" <loic.poulain@linaro.org>,
+        "daniel@zonque.org" <daniel@zonque.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] media: ov5640: Fix auto-exposure disabling
+Date: Thu, 06 Sep 2018 20:08:50 +0300
+Message-ID: <5889322.4cUpKFCJtK@avalon>
+In-Reply-To: <20180814154525.GB16349@w540>
+References: <1531912743-24767-1-git-send-email-jacopo@jmondi.org> <d7dff287-d02c-38cb-3a73-d0c578cb2758@st.com> <20180814154525.GB16349@w540>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hello,
 
-On Thursday, 6 September 2018 17:48:07 EEST Maxime Ripard wrote:
-> On Wed, Sep 05, 2018 at 04:39:46PM +0300, Laurent Pinchart wrote:
-> > On Wednesday, 5 September 2018 12:16:33 EEST Maxime Ripard wrote:
-> >> The phy framework is only allowing to configure the power state of the
-> >> PHY using the init and power_on hooks, and their power_off and exit
-> >> counterparts.
-> >> 
-> >> While it works for most, simple, PHYs supported so far, some more
-> >> advanced PHYs need some configuration depending on runtime parameters.
-> >> These PHYs have been supported by a number of means already, often by
-> >> using ad-hoc drivers in their consumer drivers.
-> >> 
-> >> That doesn't work too well however, when a consumer device needs to deal
+On Tuesday, 14 August 2018 18:45:25 EEST jacopo mondi wrote:
+> On Tue, Aug 07, 2018 at 08:53:23AM +0000, Hugues FRUCHET wrote:
+> > Hi Jacopo,
 > > 
-> > s/deal/deal with/
-> > 
-> >> multiple PHYs, or when multiple consumers need to deal with the same PHY
-> >> (a DSI driver and a CSI driver for example).
-> >> 
-> >> So we'll add a new interface, through two funtions, phy_validate and
-> >> phy_configure. The first one will allow to check that a current
-> >> configuration, for a given mode, is applicable. It will also allow the
-> >> PHY driver to tune the settings given as parameters as it sees fit.
-> >> 
-> >> phy_configure will actually apply that configuration in the phy itself.
-> >> 
-> >> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> >> ---
-> >> 
-> >>  drivers/phy/phy-core.c  | 62 +++++++++++++++++++++++++++++++++++++++++-
-> >>  include/linux/phy/phy.h | 42 ++++++++++++++++++++++++++++-
-> >>  2 files changed, 104 insertions(+)
-> >> 
-> >> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-> >> index 35fd38c5a4a1..6eaf655e370f 100644
-> >> --- a/drivers/phy/phy-core.c
-> >> +++ b/drivers/phy/phy-core.c
-> >> @@ -408,6 +408,68 @@ int phy_calibrate(struct phy *phy)
-> >>  EXPORT_SYMBOL_GPL(phy_calibrate);
-> >>  
-> >>  /**
-> >> + * phy_configure() - Changes the phy parameters
-> >> + * @phy: the phy returned by phy_get()
-> >> + * @mode: phy_mode the configuration is applicable to.
-> >> + * @opts: New configuration to apply
-> >> + *
-> >> + * Used to change the PHY parameters. phy_init() must have
-> >> + * been called on the phy.
-> >> + *
-> >> + * Returns: 0 if successful, an negative error code otherwise
-> >> + */
-> >> +int phy_configure(struct phy *phy, enum phy_mode mode,
-> >> +		  union phy_configure_opts *opts)
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	if (!phy)
-> >> +		return -EINVAL;
-> >> +
-> >> +	if (!phy->ops->configure)
-> >> +		return 0;
-> > 
-> > Shouldn't you report an error to the caller ? If a caller expects the PHY
-> > to be configurable, I would assume that silently ignoring the requested
-> > configuration won't work great.
+> > In serie "[PATCH 0/5] Fix OV5640 exposure & gain"
+> > https://www.mail-archive.com/linux-media@vger.kernel.org/msg133269.html
+> > I've tried to collect fixes around exposure/gain, not only the exposure
+> > regression and I would prefer to keep it consistent with the associated
+> > procedure test.
 > 
-> I'm not sure. I also expect a device having to interact with multiple
-> PHYs, some of them needing some configuration while some other do
-> not. In that scenario, returning 0 seems to be the right thing to do.
-
-It could be up to the caller to decide whether to ignore the error or not when 
-the operation isn't implemented. I expect that a call requiring specific 
-configuration parameters for a given PHY might want to bail out if the 
-configuration can't be applied. On the other hand that should never happen 
-when the system is designed correctly, as vendors are not supposed to ship 
-kernels that would be broken by design (as in requiring a configure operation 
-but not providing it).
-
-> >> +	mutex_lock(&phy->mutex);
-> >> +	ret = phy->ops->configure(phy, mode, opts);
-> >> +	mutex_unlock(&phy->mutex);
-> >> +
-> >> +	return ret;
-> >> +}
-
-[snip]
-
-> >> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-> >> index 9cba7fe16c23..3cc315dcfcd0 100644
-> >> --- a/include/linux/phy/phy.h
-> >> +++ b/include/linux/phy/phy.h
-
-[snip]
-
-> >> @@ -60,6 +66,38 @@ struct phy_ops {
-> >>  	int	(*power_on)(struct phy *phy);
-> >>  	int	(*power_off)(struct phy *phy);
-> >>  	int	(*set_mode)(struct phy *phy, enum phy_mode mode);
-> >> +
-> >> +	/**
-> >> +	 * @configure:
-> >> +	 *
-> >> +	 * Optional.
-> >> +	 *
-> >> +	 * Used to change the PHY parameters. phy_init() must have
-> >> +	 * been called on the phy.
-> >> +	 *
-> >> +	 * Returns: 0 if successful, an negative error code otherwise
-> >> +	 */
-> >> +	int	(*configure)(struct phy *phy, enum phy_mode mode,
-> >> +			     union phy_configure_opts *opts);
-> > 
-> > Is this function allowed to modify opts ? If so, to what extent ? If not,
-> > the pointer should be made const.
+> You're right. Please see my other reply, I mixed two different issues
+> in this series probably.
 > 
-> That's a pretty good question. I guess it could modify it to the same
-> extent than validate could. Would that make sense?
-
-It would, or we could say that PHY users are required to call the validate 
-function first, and the the configure function will return an error if the 
-passed configuration isn't valid. That would avoid double-validation when the 
-PHY user uses .validate().
-
-> >> +	/**
-> >> +	 * @validate:
-> >> +	 *
-> >> +	 * Optional.
-> >> +	 *
-> >> +	 * Used to check that the current set of parameters can be
-> >> +	 * handled by the phy. Implementations are free to tune the
-> >> +	 * parameters passed as arguments if needed by some
-> >> +	 * implementation detail or constraints. It must not change
-> >> +	 * any actual configuration of the PHY, so calling it as many
-> >> +	 * times as deemed fit by the consumer must have no side
-> >> +	 * effect.
-> >> +	 *
-> >> +	 * Returns: 0 if the configuration can be applied, an negative
-> >> +	 * error code otherwise
-> > 
-> > When should this operation modify the passed parameters, and when should
-> > it return an error ? I understand that your goal is to implement a
-> > negotiation mechanism for the PHY parameters, and to be really useful I
-> > think we need to document it more precisely.
+> > Moreover I dislike the internal use of control framework functions to
+> > disable/enable exposure/gain, on my opinion this has to be kept simpler
+> > by just disabling/enabling the right registers.
 > 
-> My initial idea was to reject a configuration that wouldn't be
-> achievable by the PHY, ie you're asking something that is outside of
-> the operating boundaries, while you would be able to change settings
-> that would be operational, but sub-optimal.
+> Why that? I thought changing parameters exposed as controls should go
+> through the control framework to ensure consistency. Maybe I'm wrong.
 
-I'm fine with that, let's document it explicitly.
+If I understand the driver correctly, auto-exposure has to be disabled 
+temporarily when changing format and size, due to internal hardware 
+requirements. The sequence should more or less be
+
+ 1. Disable auto-exposure
+ 2. Configure the format and size
+ 3. Restore auto-exposure
+
+This sequence is internal to the driver, and should thus not be visible to 
+userspace. Going through the control framework to disable and restore auto-
+exposure would generate control events that would just confuse userspace. For 
+that reason I'd keep all this internal with direct register access instead of 
+going through the control framework.
+
+> > Would it be possible that you test my 5 patches serie on your side ?
+> 
+> I did. I re-based the series on top of my MIPI and timings fixes and
+> it actually solves the exposure issues I didn't know I had :)
+> 
+> I'll comment on v2 as well as soon as I'll get an answer from Steve on
+> the CSI-2 issue.
+> 
+> > On 07/18/2018 03:04 PM, jacopo mondi wrote:
+> > > Hi again,
+> > > 
+> > > On Wed, Jul 18, 2018 at 01:19:03PM +0200, Jacopo Mondi wrote:
+> > >> As of:
+> > >> commit bf4a4b518c20 ("media: ov5640: Don't force the auto exposure
+> > >> state at
+> > >> start time") auto-exposure got disabled before programming new capture
+> > >> modes to the sensor. Unfortunately the function used to do that
+> > >> (ov5640_set_exposure()) does not enable/disable auto-exposure engine
+> > >> through register 0x3503[0] bit, but programs registers [0x3500 -
+> > >> 0x3502] which represent the desired exposure time when running with
+> > >> manual exposure. As a result, auto-exposure was not actually disabled
+> > >> at all.
+> > >> 
+> > >> To actually disable auto-exposure, go through the control framework
+> > >> instead of calling ov5640_set_exposure() function directly.
+> > >> 
+> > >> Also, as auto-gain and auto-exposure are disabled un-conditionally but
+> > >> only
+> > >> restored to their previous values in ov5640_set_mode_direct() function,
+> > >> move controls restoring so that their value is re-programmed
+> > >> opportunely after either ov5640_set_mode_direct() or
+> > >> ov5640_set_mode_exposure_calc() have been executed.
+> > >> 
+> > >> Fixes: bf4a4b518c20 ("media: ov5640: Don't force the auto exposure
+> > >> state at start time") Signed-off-by: Jacopo Mondi <jacopo@jmondi.org>
+> > >> 
+> > >> ---
+> > >> Is it worth doing with auto-gain what we're doing with auto-exposure?
+> > >> Cache the value and then re-program it instead of unconditionally
+> > >> disable/enable it?> > 
+> > > I have missed this patch from Hugues that address almost the same
+> > > issue
+> > > https://www.mail-archive.com/linux-media@vger.kernel.org/msg133264.html
+> > > 
+> > > I feel this new one is simpler, and unless we want to avoid going
+> > > through the control framework, it is not worth adding new functions to
+> > > handle auto-exposure as Hugues' patch is doing.
+> > > 
+> > > Hugues, do you have comments? Feel free to add your sob or rb tags if
+> > > you like to.
+> > > 
+> > > Thanks
+> > > 
+> > >     j
+> > >> 
+> > >> Thanks
+> > >> 
+> > >>    j
+> > >> 
+> > >> ---
+> > >> ---
+> > >> 
+> > >>   drivers/media/i2c/ov5640.c | 29 +++++++++++++----------------
+> > >>   1 file changed, 13 insertions(+), 16 deletions(-)
+> > >> 
+> > >> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> > >> index 12b3496..bc75cb7 100644
+> > >> --- a/drivers/media/i2c/ov5640.c
+> > >> +++ b/drivers/media/i2c/ov5640.c
+> > >> @@ -1588,25 +1588,13 @@ static int ov5640_set_mode_exposure_calc(struct
+> > >> ov5640_dev *sensor,> >> 
+> > >>    * change mode directly
+> > >>    */
+> > >>   
+> > >>   static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
+> > >> 
+> > >> -				  const struct ov5640_mode_info *mode,
+> > >> -				  s32 exposure)
+> > >> +				  const struct ov5640_mode_info *mode)
+> > >> 
+> > >>   {
+> > >> 
+> > >> -	int ret;
+> > >> -
+> > >> 
+> > >>   	if (!mode->reg_data)
+> > >>   	
+> > >>   		return -EINVAL;
+> > >>   	
+> > >>   	/* Write capture setting */
+> > >> 
+> > >> -	ret = ov5640_load_regs(sensor, mode);
+> > >> -	if (ret < 0)
+> > >> -		return ret;
+> > >> -
+> > >> -	/* turn auto gain/exposure back on for direct mode */
+> > >> -	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
+> > >> -	if (ret)
+> > >> -		return ret;
+> > >> -
+> > >> -	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure);
+> > >> +	return  ov5640_load_regs(sensor, mode);
+> > >> 
+> > >>   }
+> > >>   
+> > >>   static int ov5640_set_mode(struct ov5640_dev *sensor,
+> > >> 
+> > >> @@ -1626,7 +1614,7 @@ static int ov5640_set_mode(struct ov5640_dev
+> > >> *sensor,
+> > >> 
+> > >>   		return ret;
+> > >>   	
+> > >>   	exposure = sensor->ctrls.auto_exp->val;
+> > >> 
+> > >> -	ret = ov5640_set_exposure(sensor, V4L2_EXPOSURE_MANUAL);
+> > >> +	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp,
+> > >> V4L2_EXPOSURE_MANUAL);
+> > >> 
+> > >>   	if (ret)
+> > >>   	
+> > >>   		return ret;
+> > >> 
+> > >> @@ -1642,12 +1630,21 @@ static int ov5640_set_mode(struct ov5640_dev
+> > >> *sensor,> >> 
+> > >>   		 * change inside subsampling or scaling
+> > >>   		 * download firmware directly
+> > >>   		 */
+> > >> 
+> > >> -		ret = ov5640_set_mode_direct(sensor, mode, exposure);
+> > >> +		ret = ov5640_set_mode_direct(sensor, mode);
+> > >> 
+> > >>   	}
+> > >>   	
+> > >>   	if (ret < 0)
+> > >>   	
+> > >>   		return ret;
+> > >> 
+> > >> +	/* Restore auto-gain and auto-exposure after mode has changed. */
+> > >> +	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_gain, 1);
+> > >> +	if (ret)
+> > >> +		return ret;
+> > >> +
+> > >> +	ret = __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure)
+> > >> +	if (ret)
+> > >> +		return ret;
+> > >> +
+> > >> 
+> > >>   	ret = ov5640_set_binning(sensor, dn_mode != SCALING);
+> > >>   	if (ret < 0)
+> > >>   	
+> > >>   		return ret;
+> > >> 
+> > >> --
+> > >> 2.7.4
+
 
 -- 
 Regards,
