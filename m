@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45015 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:36237 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727629AbeIFNgs (ORCPT
+        with ESMTP id S1728222AbeIFNgs (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 09:36:48 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
@@ -10,57 +10,56 @@ Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
         Jacopo Mondi <jacopo@jmondi.org>,
         linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
-Subject: [PATCH v3 1/4] dt-bindings: media: Add i.MX Pixel Pipeline binding
-Date: Thu,  6 Sep 2018 11:02:12 +0200
-Message-Id: <20180906090215.15719-2-p.zabel@pengutronix.de>
+Subject: [PATCH v3 2/4] ARM: dts: imx6ull: add pxp support
+Date: Thu,  6 Sep 2018 11:02:13 +0200
+Message-Id: <20180906090215.15719-3-p.zabel@pengutronix.de>
 In-Reply-To: <20180906090215.15719-1-p.zabel@pengutronix.de>
 References: <20180906090215.15719-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT binding documentation for the Pixel Pipeline (PXP) found on
-various NXP i.MX SoCs.
+Add the device node for the i.MX6ULL Pixel Pipeline (PXP).
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Rob Herring <robh@kernel.org>
 ---
 No changes since v2.
 ---
- .../devicetree/bindings/media/fsl-pxp.txt     | 26 +++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/fsl-pxp.txt
+ arch/arm/boot/dts/imx6ul.dtsi  | 8 ++++++++
+ arch/arm/boot/dts/imx6ull.dtsi | 6 ++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/fsl-pxp.txt b/Documentation/devicetree/bindings/media/fsl-pxp.txt
-new file mode 100644
-index 000000000000..2477e7f87381
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/fsl-pxp.txt
-@@ -0,0 +1,26 @@
-+Freescale Pixel Pipeline
-+========================
+diff --git a/arch/arm/boot/dts/imx6ul.dtsi b/arch/arm/boot/dts/imx6ul.dtsi
+index 6dc0b569acdf..051d42676160 100644
+--- a/arch/arm/boot/dts/imx6ul.dtsi
++++ b/arch/arm/boot/dts/imx6ul.dtsi
+@@ -945,6 +945,14 @@
+ 				status = "disabled";
+ 			};
+ 
++			pxp: pxp@21cc000 {
++				compatible = "fsl,imx6ul-pxp";
++				reg = <0x021cc000 0x4000>;
++				interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
++				clock-names = "axi";
++				clocks = <&clks IMX6UL_CLK_PXP>;
++			};
 +
-+The Pixel Pipeline (PXP) is a memory-to-memory graphics processing engine
-+that supports scaling, colorspace conversion, alpha blending, rotation, and
-+pixel conversion via lookup table. Different versions are present on various
-+i.MX SoCs from i.MX23 to i.MX7.
+ 			qspi: qspi@21e0000 {
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+diff --git a/arch/arm/boot/dts/imx6ull.dtsi b/arch/arm/boot/dts/imx6ull.dtsi
+index cd1776a7015a..c0518490b58c 100644
+--- a/arch/arm/boot/dts/imx6ull.dtsi
++++ b/arch/arm/boot/dts/imx6ull.dtsi
+@@ -57,3 +57,9 @@
+ 		};
+ 	};
+ };
 +
-+Required properties:
-+- compatible: should be "fsl,<soc>-pxp", where SoC can be one of imx23, imx28,
-+  imx6dl, imx6sl, imx6ul, imx6sx, imx6ull, or imx7d.
-+- reg: the register base and size for the device registers
-+- interrupts: the PXP interrupt, two interrupts for imx6ull and imx7d.
-+- clock-names: should be "axi"
-+- clocks: the PXP AXI clock
-+
-+Example:
-+
-+pxp@21cc000 {
++&pxp {
 +	compatible = "fsl,imx6ull-pxp";
-+	reg = <0x021cc000 0x4000>;
 +	interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>,
 +		     <GIC_SPI 18 IRQ_TYPE_LEVEL_HIGH>;
-+	clock-names = "axi";
-+	clocks = <&clks IMX6UL_CLK_PXP>;
 +};
 -- 
 2.18.0
