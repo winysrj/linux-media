@@ -1,88 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:59434 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726678AbeIKRCx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 13:02:53 -0400
-Date: Tue, 11 Sep 2018 14:03:50 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
-        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Shuah Khan <shuah@kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:KERNEL SELFTEST FRAMEWORK"
-        <linux-kselftest@vger.kernel.org>, linux-api@vger.kernel.org
-Subject: Re: [PATCH v7] Add udmabuf misc device
-Message-ID: <20180911120350.qtacdf2otwzuywv2@sirius.home.kraxel.org>
-References: <20180827093444.23623-1-kraxel@redhat.com>
- <21053714.0Xa7F2u2PE@avalon>
- <20180911065014.vo6qp6hkb7cjftdc@sirius.home.kraxel.org>
- <18750721.r4B5nx0M26@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <18750721.r4B5nx0M26@avalon>
+Received: from leonov.paulk.fr ([185.233.101.22]:56728 "EHLO leonov.paulk.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726031AbeIGDM2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Sep 2018 23:12:28 -0400
+From: Paul Kocialkowski <contact@paulk.fr>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        devel@driverdev.osuosl.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v9 6/9] ARM: dts: sun5i: Add Video Engine and reserved memory nodes
+Date: Fri,  7 Sep 2018 00:24:39 +0200
+Message-Id: <20180906222442.14825-7-contact@paulk.fr>
+In-Reply-To: <20180906222442.14825-1-contact@paulk.fr>
+References: <20180906222442.14825-1-contact@paulk.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > >> +	if (WARN_ON(vmf->pgoff >= ubuf->pagecount))
-> > >> +		return VM_FAULT_SIGBUS;
-> > > 
-> > > Just curious, when do you expect this to happen ?
-> > 
-> > It should not.  If it actually happens it would be a bug somewhere,
-> > thats why the WARN_ON.
-> 
-> But you seem to consider that this condition that should never happen still 
-> has a high enough chance of happening that it's worth a WARN_ON(). I was 
-> wondering why this one in particular, and not other conditions that also can't 
-> happen and are not checked through the code. 
+From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-Added it while writing the code, to get any coding mistake I make
-flagged right away instead of things exploding later on.
+This adds nodes for the Video Engine and the associated reserved memory
+for sun5i-based platforms. Up to 96 MiB of memory are dedicated to the
+CMA pool.
 
-I can drop it.
+The VPU can only map the first 256 MiB of DRAM, so the reserved memory
+pool has to be located in that area. Following Allwinner's decision in
+downstream software, the last 96 MiB of the first 256 MiB of RAM are
+reserved for this purpose.
 
-> > >> +	ubuf = kzalloc(sizeof(struct udmabuf), GFP_KERNEL);
-> > > 
-> > > sizeof(*ubuf)
-> > 
-> > Why?  Should not make a difference ...
-> 
-> Because the day we replace
-> 
-> 	struct udmabuf *ubuf;
-> 
-> with
-> 
-> 	struct udmabuf_ext *ubuf;
-> 
-> and forget to change the next line, we'll introduce a bug. That's why 
-> sizeof(variable) is preferred over sizeof(type). Another reason is that I can 
-> easily see that
-> 
-> 	ubuf = kzalloc(sizeof(*ubuf), GFP_KERNEL);
-> 
-> is correct, while using sizeof(type) requires me to go and look up the 
-> declaration of the variable.
+Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ arch/arm/boot/dts/sun5i.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-So it simplifies review, ok, will change it.
-
-BTW: Maybe the kernel should pick up a neat trick from glib:
-
-g_new0() is a macro which takes the type instead of the size as first
-argument, and it casts the return value to that type.  So the compiler
-will throw warnings in case of a mismatch.  That'll work better than
-depending purely on the coder being careful and review catching the
-remaining issues.
-
-cheers,
-  Gerd
+diff --git a/arch/arm/boot/dts/sun5i.dtsi b/arch/arm/boot/dts/sun5i.dtsi
+index 8bfb36651177..9cd65c46720b 100644
+--- a/arch/arm/boot/dts/sun5i.dtsi
++++ b/arch/arm/boot/dts/sun5i.dtsi
+@@ -108,6 +108,21 @@
+ 		};
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
++		cma_pool: cma@4a000000 {
++			compatible = "shared-dma-pool";
++			size = <0x6000000>;
++			alloc-ranges = <0x4a000000 0x6000000>;
++			reusable;
++			linux,cma-default;
++		};
++	};
++
+ 	soc@1c00000 {
+ 		compatible = "simple-bus";
+ 		#address-cells = <1>;
+@@ -294,6 +309,17 @@
+ 			};
+ 		};
+ 
++		video-codec@1c0e000 {
++			compatible = "allwinner,sun5i-a13-video-engine";
++			reg = <0x01c0e000 0x1000>;
++			clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
++				 <&ccu CLK_DRAM_VE>;
++			clock-names = "ahb", "mod", "ram";
++			resets = <&ccu RST_VE>;
++			interrupts = <53>;
++			allwinner,sram = <&ve_sram 1>;
++		};
++
+ 		mmc0: mmc@1c0f000 {
+ 			compatible = "allwinner,sun5i-a13-mmc";
+ 			reg = <0x01c0f000 0x1000>;
+-- 
+2.18.0
