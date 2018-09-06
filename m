@@ -1,216 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:38992 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728098AbeIFODP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2018 10:03:15 -0400
-Subject: Re: [PATCH 02/10] phy: Add configuration interface
-To: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>
-CC: Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, <linux-kernel@vger.kernel.org>,
-        <dri-devel@lists.freedesktop.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-References: <cover.ee6158898d563fcc01d45c9652501180bccff0f0.1536138624.git-series.maxime.ripard@bootlin.com>
- <a739a2d623c3e60373a73e1ec206c2aa35c4a742.1536138624.git-series.maxime.ripard@bootlin.com>
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Message-ID: <1ed01c1f-76d5-fa96-572b-9bfd269ad11b@ti.com>
-Date: Thu, 6 Sep 2018 14:57:58 +0530
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55505 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726389AbeIFOLG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Sep 2018 10:11:06 -0400
+Subject: Re: [PATCH 1/2] CNF4 fourcc for 4 bit-per-pixel packed confidence
+ information
+To: dorodnic@gmail.com, linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, evgeni.raikhel@intel.com,
+        Sergey Dorodnicov <sergey.dorodnicov@intel.com>
+References: <1536220267-22347-1-git-send-email-sergey.dorodnicov@intel.com>
+ <1536220267-22347-2-git-send-email-sergey.dorodnicov@intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6660d6be-7db5-5723-3268-761ed710f661@xs4all.nl>
+Date: Thu, 6 Sep 2018 11:36:24 +0200
 MIME-Version: 1.0
-In-Reply-To: <a739a2d623c3e60373a73e1ec206c2aa35c4a742.1536138624.git-series.maxime.ripard@bootlin.com>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <1536220267-22347-2-git-send-email-sergey.dorodnicov@intel.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sergey,
 
-On Wednesday 05 September 2018 02:46 PM, Maxime Ripard wrote:
-> The phy framework is only allowing to configure the power state of the PHY
-> using the init and power_on hooks, and their power_off and exit
-> counterparts.
+Some review comments:
+
+On 09/06/18 09:51, dorodnic@gmail.com wrote:
+> From: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
 > 
-> While it works for most, simple, PHYs supported so far, some more advanced
-> PHYs need some configuration depending on runtime parameters. These PHYs
-> have been supported by a number of means already, often by using ad-hoc
-> drivers in their consumer drivers.
+> Adding new fourcc CNF4 for 4 bit-per-pixel packed confidence information
+> provided by Intel RealSense depth cameras. Every two consecutive pixels
+> are packed into a single byte (little-endian).
 > 
-> That doesn't work too well however, when a consumer device needs to deal
-> multiple PHYs, or when multiple consumers need to deal with the same PHY (a
-> DSI driver and a CSI driver for example).
-> 
-> So we'll add a new interface, through two funtions, phy_validate and
-> phy_configure. The first one will allow to check that a current
-> configuration, for a given mode, is applicable. It will also allow the PHY
-> driver to tune the settings given as parameters as it sees fit.
-> 
-> phy_configure will actually apply that configuration in the phy itself.
-> 
-> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> Signed-off-by: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
+> Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
 > ---
->  drivers/phy/phy-core.c  | 62 ++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/phy/phy.h | 42 ++++++++++++++++++++++++++++-
->  2 files changed, 104 insertions(+)
+>  Documentation/media/uapi/v4l/depth-formats.rst |  1 +
+>  Documentation/media/uapi/v4l/pixfmt-cnf4.rst   | 30 ++++++++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
+>  include/uapi/linux/videodev2.h                 |  1 +
+>  4 files changed, 33 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-cnf4.rst
 > 
-> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-> index 35fd38c5a4a1..6eaf655e370f 100644
-> --- a/drivers/phy/phy-core.c
-> +++ b/drivers/phy/phy-core.c
-> @@ -408,6 +408,68 @@ int phy_calibrate(struct phy *phy)
->  EXPORT_SYMBOL_GPL(phy_calibrate);
+> diff --git a/Documentation/media/uapi/v4l/depth-formats.rst b/Documentation/media/uapi/v4l/depth-formats.rst
+> index d1641e9..9533348 100644
+> --- a/Documentation/media/uapi/v4l/depth-formats.rst
+> +++ b/Documentation/media/uapi/v4l/depth-formats.rst
+> @@ -14,3 +14,4 @@ Depth data provides distance to points, mapped onto the image plane
 >  
->  /**
-> + * phy_configure() - Changes the phy parameters
-> + * @phy: the phy returned by phy_get()
-> + * @mode: phy_mode the configuration is applicable to.
+>      pixfmt-inzi
+>      pixfmt-z16
+> +    pixfmt-cnf4
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-cnf4.rst b/Documentation/media/uapi/v4l/pixfmt-cnf4.rst
+> new file mode 100644
+> index 0000000..d24fc1a
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-cnf4.rst
+> @@ -0,0 +1,30 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2-PIX-FMT-CNF4:
+> +
+> +******************************
+> +V4L2_PIX_FMT_CNF4 ('CNF4')
+> +******************************
+> +
+> +Sensor confidence information as a 4 bits per pixel packed array
 
-mode should be used if the same PHY can be configured in multiple modes. But
-with phy_set_mode() and phy_calibrate() we could achieve the same.
-> + * @opts: New configuration to apply
+Confidence in what? I'll take a wild guess and say that it is about depth
+confidence, but I don't think you actually say this anywhere :-)
 
-Should these configuration come from the consumer driver? Can't the helper
-functions be directly invoked by the PHY driver for the configuration.
-> + *
-> + * Used to change the PHY parameters. phy_init() must have
-> + * been called on the phy.
-> + *
-> + * Returns: 0 if successful, an negative error code otherwise
-> + */
-> +int phy_configure(struct phy *phy, enum phy_mode mode,
-> +		  union phy_configure_opts *opts)
-> +{> +	int ret;
 > +
-> +	if (!phy)
-> +		return -EINVAL;
+> +Description
+> +===========
 > +
-> +	if (!phy->ops->configure)
-> +		return 0;
+> +Proprietary format used by Intel RealSense Depth cameras containing sensor
+> +confidence information in range 0-15 with 0 indicating that the sensor was
+> +unable to resolve any signal and 15 indicating maximum level of confidence for
+> +the specific sensor (actual error margins might change from sensor to sensor).
 > +
-> +	mutex_lock(&phy->mutex);
-> +	ret = phy->ops->configure(phy, mode, opts);
-> +	mutex_unlock(&phy->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * phy_validate() - Checks the phy parameters
-> + * @phy: the phy returned by phy_get()
-> + * @mode: phy_mode the configuration is applicable to.
-> + * @opts: Configuration to check
-> + *
-> + * Used to check that the current set of parameters can be handled by
-> + * the phy. Implementations are free to tune the parameters passed as
-> + * arguments if needed by some implementation detail or
-> + * constraints. It will not change any actual configuration of the
-> + * PHY, so calling it as many times as deemed fit will have no side
-> + * effect.
-> + *
-> + * Returns: 0 if successful, an negative error code otherwise
-> + */
-> +int phy_validate(struct phy *phy, enum phy_mode mode,
-> +		  union phy_configure_opts *opts)
+> +Every two consecutive pixels are packed into a single byte (bit order is
+> +little-endian).
 
-IIUC the consumer driver will pass configuration options (or PHY parameters)
-which will be validated by the PHY driver and in some cases the PHY driver can
-modify the configuration options? And these modified configuration options will
-again be given to phy_configure?
+Luckily, the bit order is always little-endian, so that doesn't help.
 
-Looks like it's a round about way of doing the same thing.
+It's better to be specific here: bits 0-3 refer to the confidence value for the pixel
+at position X, bits 407 refer to the pixel at position X+1, where X is even.
 
+> +
+> +**Bit-packed representation.**
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths: 64 64
+> +
+> +    * - Y'\ :sub:`01[3:0]`\ (bits 3--0) Y'\ :sub:`00[3:0]`\ (bits 7--4)
+> +      - Y'\ :sub:`03[3:0]`\ (bits 3--0) Y'\ :sub:`02[3:0]`\ (bits 7--4)
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 54afc9c..eff296d 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1189,6 +1189,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+>  	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
+>  	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
+>  	case V4L2_PIX_FMT_INZI:		descr = "Planar 10:16 Greyscale Depth"; break;
+> +	case V4L2_PIX_FMT_CNF4:		descr = "4-bit Confidence (Packed)"; break;
 
-> +{
-> +	int ret;
-> +
-> +	if (!phy)
-> +		return -EINVAL;
-> +
-> +	if (!phy->ops->validate)
-> +		return 0;
-> +
-> +	mutex_lock(&phy->mutex);
-> +	ret = phy->ops->validate(phy, mode, opts);
-> +	mutex_unlock(&phy->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
->   * _of_phy_get() - lookup and obtain a reference to a phy by phandle
->   * @np: device_node for which to get the phy
->   * @index: the index of the phy
-> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-> index 9cba7fe16c23..3cc315dcfcd0 100644
-> --- a/include/linux/phy/phy.h
-> +++ b/include/linux/phy/phy.h
-> @@ -44,6 +44,12 @@ enum phy_mode {
->  };
+This should probably become "4-bit Depth Confidence (Packed)".
+
+>  	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
+>  	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4"; break;
+>  	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 5d1a368..a47f603 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -676,6 +676,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+>  #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+>  #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
+> +#define V4L2_PIX_FMT_CNF4     v4l2_fourcc('C', 'N', 'F', '4') /* Intel 4-bit packed confidence information */
+
+again, be explicit: "depth confidence"
+
 >  
->  /**
-> + * union phy_configure_opts - Opaque generic phy configuration
-> + */
-> +union phy_configure_opts {
-> +};
-> +
-> +/**
->   * struct phy_ops - set of function pointers for performing phy operations
->   * @init: operation to be performed for initializing phy
->   * @exit: operation to be performed while exiting
-> @@ -60,6 +66,38 @@ struct phy_ops {
->  	int	(*power_on)(struct phy *phy);
->  	int	(*power_off)(struct phy *phy);
->  	int	(*set_mode)(struct phy *phy, enum phy_mode mode);
-> +
-> +	/**
-> +	 * @configure:
-> +	 *
-> +	 * Optional.
-> +	 *
-> +	 * Used to change the PHY parameters. phy_init() must have
-> +	 * been called on the phy.
-> +	 *
-> +	 * Returns: 0 if successful, an negative error code otherwise
-> +	 */
-> +	int	(*configure)(struct phy *phy, enum phy_mode mode,
-> +			     union phy_configure_opts *opts);
-> +
-> +	/**
-> +	 * @validate:
-> +	 *
-> +	 * Optional.
-> +	 *
-> +	 * Used to check that the current set of parameters can be
-> +	 * handled by the phy. Implementations are free to tune the
-> +	 * parameters passed as arguments if needed by some
-> +	 * implementation detail or constraints. It must not change
-> +	 * any actual configuration of the PHY, so calling it as many
-> +	 * times as deemed fit by the consumer must have no side
-> +	 * effect.
-> +	 *
-> +	 * Returns: 0 if the configuration can be applied, an negative
-> +	 * error code otherwise
-> +	 */
-> +	int	(*validate)(struct phy *phy, enum phy_mode mode,
-> +			    union phy_configure_opts *opts);
->  	int	(*reset)(struct phy *phy);
->  	int	(*calibrate)(struct phy *phy);
->  	struct module *owner;
-> @@ -164,6 +202,10 @@ int phy_exit(struct phy *phy);
->  int phy_power_on(struct phy *phy);
->  int phy_power_off(struct phy *phy);
->  int phy_set_mode(struct phy *phy, enum phy_mode mode);
-> +int phy_configure(struct phy *phy, enum phy_mode mode,
-> +		  union phy_configure_opts *opts);
-> +int phy_validate(struct phy *phy, enum phy_mode mode,
-> +		 union phy_configure_opts *opts);
+>  /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
+>  #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
+> 
 
-Stub function when CONFIG_GENERIC_PHY is not set is also required.
+Regards,
 
-Thanks
-Kishon
+	Hans
