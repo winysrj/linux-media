@@ -1,240 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:39082 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725986AbeIHBAF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2018 21:00:05 -0400
-Message-ID: <19062a24c3aa2cb9e0410cf2884b4589e44c263b.camel@collabora.com>
-Subject: Re: [PATCH 2/2] media: docs-rst: Document memory-to-memory video
- encoder interface
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Tomasz Figa <tfiga@chromium.org>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
-        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        jtp.park@samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
-        Tiffany Lin =?UTF-8?Q?=28=E6=9E=97=E6=85=A7=E7=8F=8A=29?=
-        <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
-        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
-        nicolas@ndufresne.ca,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Dave Stevenson <dave.stevenson@raspberrypi.org>
-Date: Fri, 07 Sep 2018 17:17:03 -0300
-In-Reply-To: <20180724140621.59624-3-tfiga@chromium.org>
-References: <20180724140621.59624-1-tfiga@chromium.org>
-         <20180724140621.59624-3-tfiga@chromium.org>
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:42670 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728452AbeIHCXG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2018 22:23:06 -0400
+Received: by mail-qt0-f180.google.com with SMTP id z8-v6so17767690qto.9
+        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2018 14:40:12 -0700 (PDT)
+MIME-Version: 1.0
+From: Satish Nagireddy <satish.nagireddy1@gmail.com>
+Date: Fri, 7 Sep 2018 14:40:01 -0700
+Message-ID: <CADsxt07mLmNxKc==D2BcoZwjJPcPAXgmcMRcsVkcE5xyQtNZQQ@mail.gmail.com>
+Subject: Query on V4L2 interlaced "height"
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2018-07-24 at 23:06 +0900, Tomasz Figa wrote:
-> Due to complexity of the video encoding process, the V4L2 drivers of
-> stateful encoder hardware require specific sequences of V4L2 API calls
-> to be followed. These include capability enumeration, initialization,
-> encoding, encode parameters change, drain and reset.
-> 
-> Specifics of the above have been discussed during Media Workshops at
-> LinuxCon Europe 2012 in Barcelona and then later Embedded Linux
-> Conference Europe 2014 in Düsseldorf. The de facto Codec API that
-> originated at those events was later implemented by the drivers we already
-> have merged in mainline, such as s5p-mfc or coda.
-> 
-> The only thing missing was the real specification included as a part of
-> Linux Media documentation. Fix it now and document the encoder part of
-> the Codec API.
-> 
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> ---
->  Documentation/media/uapi/v4l/dev-encoder.rst | 550 +++++++++++++++++++
->  Documentation/media/uapi/v4l/devices.rst     |   1 +
->  Documentation/media/uapi/v4l/v4l2.rst        |   2 +
->  3 files changed, 553 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/dev-encoder.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/dev-encoder.rst b/Documentation/media/uapi/v4l/dev-encoder.rst
-> new file mode 100644
-> index 000000000000..28be1698e99c
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/dev-encoder.rst
-> @@ -0,0 +1,550 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _encoder:
-> +
-> +****************************************
-> +Memory-to-memory Video Encoder Interface
-> +****************************************
-> +
-> +Input data to a video encoder are raw video frames in display order
-> +to be encoded into the output bitstream. Output data are complete chunks of
-> +valid bitstream, including all metadata, headers, etc. The resulting stream
-> +must not need any further post-processing by the client.
-> +
-> +Performing software stream processing, header generation etc. in the driver
-> +in order to support this interface is strongly discouraged. In case such
-> +operations are needed, use of Stateless Video Encoder Interface (in
-> +development) is strongly advised.
-> +
-> +Conventions and notation used in this document
-> +==============================================
-> +
-> +1. The general V4L2 API rules apply if not specified in this document
-> +   otherwise.
-> +
-> +2. The meaning of words “must”, “may”, “should”, etc. is as per RFC
-> +   2119.
-> +
-> +3. All steps not marked “optional” are required.
-> +
-> +4. :c:func:`VIDIOC_G_EXT_CTRLS`, :c:func:`VIDIOC_S_EXT_CTRLS` may be used
-> +   interchangeably with :c:func:`VIDIOC_G_CTRL`, :c:func:`VIDIOC_S_CTRL`,
-> +   unless specified otherwise.
-> +
-> +5. Single-plane API (see spec) and applicable structures may be used
-> +   interchangeably with Multi-plane API, unless specified otherwise,
-> +   depending on driver capabilities and following the general V4L2
-> +   guidelines.
-> +
-> +6. i = [a..b]: sequence of integers from a to b, inclusive, i.e. i =
-> +   [0..2]: i = 0, 1, 2.
-> +
-> +7. For ``OUTPUT`` buffer A, A’ represents a buffer on the ``CAPTURE`` queue
-> +   containing data (encoded frame/stream) that resulted from processing
-> +   buffer A.
-> +
-> +Glossary
-> +========
-> +
-> +CAPTURE
-> +   the destination buffer queue; the queue of buffers containing encoded
-> +   bitstream; ``V4L2_BUF_TYPE_VIDEO_CAPTURE```` or
-> +   ``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE``; data are captured from the
-> +   hardware into ``CAPTURE`` buffers
-> +
-> +client
-> +   application client communicating with the driver implementing this API
-> +
-> +coded format
-> +   encoded/compressed video bitstream format (e.g. H.264, VP8, etc.);
-> +   see also: raw format
-> +
-> +coded height
-> +   height for given coded resolution
-> +
-> +coded resolution
-> +   stream resolution in pixels aligned to codec and hardware requirements;
-> +   typically visible resolution rounded up to full macroblocks; see also:
-> +   visible resolution
-> +
-> +coded width
-> +   width for given coded resolution
-> +
-> +decode order
-> +   the order in which frames are decoded; may differ from display order if
-> +   coded format includes a feature of frame reordering; ``CAPTURE`` buffers
-> +   must be returned by the driver in decode order
-> +
-> +display order
-> +   the order in which frames must be displayed; ``OUTPUT`` buffers must be
-> +   queued by the client in display order
-> +
-> +IDR
-> +   a type of a keyframe in H.264-encoded stream, which clears the list of
-> +   earlier reference frames (DPBs)
-> +
-> +keyframe
-> +   an encoded frame that does not reference frames decoded earlier, i.e.
-> +   can be decoded fully on its own.
-> +
-> +macroblock
-> +   a processing unit in image and video compression formats based on linear
-> +   block transforms (e.g. H264, VP8, VP9); codec-specific, but for most of
-> +   popular codecs the size is 16x16 samples (pixels)
-> +
-> +OUTPUT
-> +   the source buffer queue; the queue of buffers containing raw frames;
-> +   ``V4L2_BUF_TYPE_VIDEO_OUTPUT`` or
-> +   ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``; the hardware is fed with data
-> +   from ``OUTPUT`` buffers
-> +
-> +PPS
-> +   Picture Parameter Set; a type of metadata entity in H.264 bitstream
-> +
-> +raw format
-> +   uncompressed format containing raw pixel data (e.g. YUV, RGB formats)
-> +
-> +resume point
-> +   a point in the bitstream from which decoding may start/continue, without
-> +   any previous state/data present, e.g.: a keyframe (VP8/VP9) or
-> +   SPS/PPS/IDR sequence (H.264); a resume point is required to start decode
-> +   of a new stream, or to resume decoding after a seek
-> +
-> +source
-> +   data fed to the encoder; ``OUTPUT``
-> +
-> +source height
-> +   height in pixels for given source resolution
-> +
-> +source resolution
-> +   resolution in pixels of source frames being source to the encoder and
-> +   subject to further cropping to the bounds of visible resolution
-> +
-> +source width
-> +   width in pixels for given source resolution
-> +
-> +SPS
-> +   Sequence Parameter Set; a type of metadata entity in H.264 bitstream
-> +
-> +stream metadata
-> +   additional (non-visual) information contained inside encoded bitstream;
-> +   for example: coded resolution, visible resolution, codec profile
-> +
-> +visible height
-> +   height for given visible resolution; display height
-> +
-> +visible resolution
-> +   stream resolution of the visible picture, in pixels, to be used for
-> +   display purposes; must be smaller or equal to coded resolution;
-> +   display resolution
-> +
-> +visible width
-> +   width for given visible resolution; display width
-> +
-> +Querying capabilities
-> +=====================
-> +
-> +1. To enumerate the set of coded formats supported by the driver, the
-> +   client may call :c:func:`VIDIOC_ENUM_FMT` on ``CAPTURE``.
-> +
-> +   * The driver must always return the full set of supported formats,
-> +     irrespective of the format set on the ``OUTPUT`` queue.
-> +
-> +2. To enumerate the set of supported raw formats, the client may call
-> +   :c:func:`VIDIOC_ENUM_FMT` on ``OUTPUT``.
-> +
-> +   * The driver must return only the formats supported for the format
-> +     currently active on ``CAPTURE``.
-> +
+Hi,
 
-Paul and I where discussing about the default active format on CAPTURE
-and OUTPUT queues. That is, the format that is active (if any) right
-after driver probes.
+I am working on interlaced capture devices. There is some confusion in
+handling height parameter between application and driver.
 
-Currently, the v4l2-compliance tool tests the default active format,
-by requiring drivers to support:
+Capture device is able to produce 1920x1080i, where one field
+(top/bottom) resolution is 1920x540.
 
-    fmt = g_fmt()
-    s_fmt(fmt)
+Query 1:
+What should be the height passed by application to driver to capture
+1920x1080i resolution?
+According to v4l2 specification:
+https://www.kernel.org/doc/html/v4.16/media/uapi/v4l/pixfmt-v4l2.html
 
-Is this actually required? Should we also require this for stateful
-and stateless codecs? If yes, should it be documented?
+Image height in pixels. If field is one of V4L2_FIELD_TOP,
+V4L2_FIELD_BOTTOM or V4L2_FIELD_ALTERNATE then height refers to
+
+the number of lines in the field, otherwise it refers to the number of
+lines in the frame (which is twice the field height for interlaced
+formats).
+
+Query 2:
+I can think of 4 possible cases here:
+
+i) If application calling VIDIOC_TRY_FMT with filed as
+V4L2_FIELD_ALTERNATE and capture hardware supports same
+
+ii) If application calling VIDIOC_TRY_FMT with filed as
+V4L2_FIELD_NONE and capture hardware supports same
+
+iii) If application calling VIDIOC_TRY_FMT with field as
+V4L2_FIELD_NONE (progressive) and capture hardware supports
+V4L2_FIELD_ALTERNATE
+
+iv) If application calling VIDIOC_TRY_FMT with field as
+V4L2_FIELD_ALTERNATE (progressive) and capture hardware supports
+V4L2_FIELD_NONE
+
+The first 2 cases are straightforward. What should be the driver
+behavior for iii and iv ? Should it alter height passed by the
+application accordingly?
+
+I see some of the capture drivers are dividing height by 2 if field is
+V4L2_FIELD_ALTERNATE. Is this the right behavior?
 
 Regards,
-Ezequiel
+Satish
