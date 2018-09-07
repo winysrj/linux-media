@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42887 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:42905 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726129AbeIGSSv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Sep 2018 14:18:51 -0400
-Date: Fri, 7 Sep 2018 15:37:39 +0200
+        id S1726129AbeIGSTR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Sep 2018 14:19:17 -0400
+Date: Fri, 7 Sep 2018 15:38:04 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Kishon Vijay Abraham I <kishon@ti.com>,
@@ -17,131 +17,57 @@ Cc: Kishon Vijay Abraham I <kishon@ti.com>,
         linux-arm-kernel@lists.infradead.org,
         Krzysztof Witos <kwitos@cadence.com>,
         Rafal Ciepiela <rafalc@cadence.com>
-Subject: Re: [PATCH 04/10] phy: dphy: Add configuration helpers
-Message-ID: <20180907133739.6lvlw7wsdk4ffeua@flea>
+Subject: Re: [PATCH 09/10] phy: Add Cadence D-PHY support
+Message-ID: <20180907133804.ktpth3n4uft6fvl6@flea>
 References: <cover.ee6158898d563fcc01d45c9652501180bccff0f0.1536138624.git-series.maxime.ripard@bootlin.com>
- <aa491b814100a670ad16b646765005efbdae05d9.1536138624.git-series.maxime.ripard@bootlin.com>
- <3617916.Vq2Smf1hnZ@avalon>
+ <d50a5f0750647dcc09ef52411641b628161b362e.1536138624.git-series.maxime.ripard@bootlin.com>
+ <1838745.9zNmGlpGXc@avalon>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="xzvsx53ec7kgrpz7"
+        protocol="application/pgp-signature"; boundary="cuyvdolowx73taes"
 Content-Disposition: inline
-In-Reply-To: <3617916.Vq2Smf1hnZ@avalon>
+In-Reply-To: <1838745.9zNmGlpGXc@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---xzvsx53ec7kgrpz7
+--cuyvdolowx73taes
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 05, 2018 at 04:46:05PM +0300, Laurent Pinchart wrote:
+On Wed, Sep 05, 2018 at 04:48:27PM +0300, Laurent Pinchart wrote:
 > Hi Maxime,
 >=20
 > Thank you for the patch.
 >=20
-> On Wednesday, 5 September 2018 12:16:35 EEST Maxime Ripard wrote:
-> > The MIPI D-PHY spec defines default values and boundaries for most of t=
-he
-> > parameters it defines. Introduce helpers to help drivers get meaningful
-> > values based on their current parameters, and validate the boundaries of
-> > these parameters if needed.
+> On Wednesday, 5 September 2018 12:16:40 EEST Maxime Ripard wrote:
+> > Cadence has designed a D-PHY that can be used by the, currently in tree,
+> > DSI bridge (DRM), CSI Transceiver and CSI Receiver (v4l2) drivers.
+> >=20
+> > Only the DSI driver has an ad-hoc driver for that phy at the moment, wh=
+ile
+> > the v4l2 drivers are completely missing any phy support. In order to ma=
+ke
+> > that phy support available to all these drivers, without having to
+> > duplicate that code three times, let's create a generic phy framework
+> > driver.
 > >=20
 > > Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 > > ---
-> >  drivers/phy/Kconfig               |   8 ++-
-> >  drivers/phy/Makefile              |   1 +-
-> >  drivers/phy/phy-core-mipi-dphy.c  | 160 ++++++++++++++++++++++++++++++=
+> >  drivers/phy/Kconfig             |   1 +-
+> >  drivers/phy/Makefile            |   1 +-
+> >  drivers/phy/cadence/Kconfig     |  13 +-
+> >  drivers/phy/cadence/Makefile    |   1 +-
+> >  drivers/phy/cadence/cdns-dphy.c | 499 ++++++++++++++++++++++++++++++++=
 +-
-> >  include/linux/phy/phy-mipi-dphy.h |   6 +-
-> >  4 files changed, 175 insertions(+)
-> >  create mode 100644 drivers/phy/phy-core-mipi-dphy.c
-> >=20
-> > diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> > index 5c8d452e35e2..06bd22bd1f4a 100644
-> > --- a/drivers/phy/Kconfig
-> > +++ b/drivers/phy/Kconfig
-> > @@ -15,6 +15,14 @@ config GENERIC_PHY
-> >  	  phy users can obtain reference to the PHY. All the users of this
-> >  	  framework should select this config.
-> >=20
-> > +config GENERIC_PHY_MIPI_DPHY
-> > +	bool "MIPI D-PHY support"
-> > +	help
-> > +	  Generic MIPI D-PHY support.
-> > +
-> > +	  Provides a number of helpers a core functions for MIPI D-PHY
-> > +	  drivers to us.
 >=20
-> Do we really need to make this user-selectable ?
+> Should the DT bindings be split from Documentation/devicetree/bindings/
+> display/bridge/cdns,dsi.txt ?
 
-Probably not :)
+Yep, I'll change it.
 
-> >  config PHY_LPC18XX_USB_OTG
-> >  	tristate "NXP LPC18xx/43xx SoC USB OTG PHY driver"
-> >  	depends on OF && (ARCH_LPC18XX || COMPILE_TEST)
-> > diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-> > index 84e3bd9c5665..71c29d2b9af7 100644
-> > --- a/drivers/phy/Makefile
-> > +++ b/drivers/phy/Makefile
-> > @@ -4,6 +4,7 @@
-> >  #
-> >=20
-> >  obj-$(CONFIG_GENERIC_PHY)		+=3D phy-core.o
-> > +obj-$(CONFIG_GENERIC_PHY_MIPI_DPHY)	+=3D phy-core-mipi-dphy.o
-> >  obj-$(CONFIG_PHY_LPC18XX_USB_OTG)	+=3D phy-lpc18xx-usb-otg.o
-> >  obj-$(CONFIG_PHY_XGENE)			+=3D phy-xgene.o
-> >  obj-$(CONFIG_PHY_PISTACHIO_USB)		+=3D phy-pistachio-usb.o
-> > diff --git a/drivers/phy/phy-core-mipi-dphy.c
-> > b/drivers/phy/phy-core-mipi-dphy.c new file mode 100644
-> > index 000000000000..6c1ddc7734a2
-> > --- /dev/null
-> > +++ b/drivers/phy/phy-core-mipi-dphy.c
-> > @@ -0,0 +1,160 @@
-> > +/* SPDX-License-Identifier: GPL-2.0 */
-> > +/*
-> > + * Copyright (C) 2013 NVIDIA Corporation
-> > + * Copyright (C) 2018 Cadence Design Systems Inc.
-> > + */
-> > +
-> > +#include <linux/errno.h>
-> > +#include <linux/export.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/time64.h>
-> > +
-> > +#include <linux/phy/phy.h>
-> > +#include <linux/phy/phy-mipi-dphy.h>
-> > +
-> > +/*
-> > + * Default D-PHY timings based on MIPI D-PHY specification. Derived fr=
-om
-> > the
-> > + * valid ranges specified in Section 6.9, Table 14, Page 40 of the D-P=
-HY
-> > + * specification (v1.2) with minor adjustments.
->=20
-> Could you list those adjustments ?
-
-I will. This was taken from the Tegra DSI driver, so I'm not sure what
-these are exactly, but that should be addressed.
-
-> > + */
-> > +int phy_mipi_dphy_get_default_config(unsigned long pixel_clock,
-> > +				     unsigned int bpp,
-> > +				     unsigned int lanes,
-> > +				     struct phy_configure_opts_mipi_dphy *cfg)
-> > +{
-> > +	unsigned long hs_clk_rate;
-> > +	unsigned long ui;
-> > +
-> > +	if (!cfg)
-> > +		return -EINVAL;
->=20
-> Should we really expect cfg to be NULL ?
-
-It avoids a kernel panic and it's not in a hot patch, so I'd say yes?
-
+Thanks!
 Maxime
 
 --=20
@@ -149,24 +75,24 @@ Maxime Ripard, Bootlin
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---xzvsx53ec7kgrpz7
+--cuyvdolowx73taes
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAluSfyIACgkQ0rTAlCFN
-r3Q6NQ//Vo9VNwq0Q/E3MGCE7xJc1frQHdbAlZyUse7WtZGymhiUpubD+2lyTw6B
-zW5tfjExaFs3h4oOW/hTPJ8h2enIc0ySTT1I+DPgTEGetfMng/D5YjwZKL8iosX5
-lsrLbWS4Mq5H9qsEvjA8r/iJ7IvTvkFbiKlPKRgq9OsZgUivMi3bt5L2nt4udM6y
-zXxjRZczTw0e/OowYACXQ6twJ9K2QgwqOowgJcHf9ojXy7qacLI9vo+fb1zepAyp
-fmxaxzj8e+knukbFMXRc+d32yzA2Rrichy0aDSjKDH1Nxmiv+pyvGBxhR5NYe9U4
-/uM8XXgGi8JWsqDEwZqj3LgSHBWeiiHkGuRP+9fDhi05FaCN7nrK3ZtXPKqvlNNX
-xii8lXarAm/gQmERTFtU4kTH5kGOJkMaC8Ssklv47lfBXBeyiQLCv1xIZ/JOA4vb
-oI8E46WUCPKyjQAmcIz9xIVUICageXA++Yf7SALIhvObv8Jyh8EaMK6nyor78hnv
-91LHJ80PG+LzDXWAIM77fG6gYUXx4BbWJ67yJNj+lRxo1D5oYWTBUKs96PnZmSKA
-q+ftBvNmBlPKTG2tF5O9Xe+LCkgDVN7P2tnCq8UPDib+331hMG6hHwbLbjjfVZbD
-YZKGPrz4L8mMBfERQSAE4ee3byygfdnU0IoS6r6vMpII7WsRuc4=
-=RxIg
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAluSfzsACgkQ0rTAlCFN
+r3R1YQ/8Dcq7GFoZ3FVBxlIk5V9dLkefeHySK2NXWZWAxYzSEUlkmRVfoq8+HoZE
+GvKTAPrqnLfWiczZzDtMQaXe2QSHfg9w+9yEP59q31RDYAqSWHKXmg3C2ro2PXlf
+QJpfsT40zTWcMHNYlWI0x9EU0P4TV/5KJbiwvHeVR8xvrZ6a747xs3wfQpB3gryW
+eP3z0pO4bVeAT9SSgOp0zfPzAsX40lFWxjSdPqF4NRVuJ4WqdEIhnorp5ySIGUos
+qhhw88Um5BnVY0p7+c4gjphChLa9RZekiQIFNjjarAFRSiJGm9zCzMNBBpoNlW7C
+YPyrs3OHKr6r9Cq0NI98tPg3uias6bW0H2Qna0FIp2eqWqF2KOvfYWGNBEljEipP
+76o7rtpgRqxkQmf+OsAZIHgatuKeoW7sT7A/M6y9sjwBoByZR0uas7ld8qoNvc/p
+7Sm6NiBtLGDMpHvGoYGzDvv6mdKmmxO+b4RtpXNFUReNgCz/f0KPDuleHvtqCFn8
+7pHbK/EHch+peSG4quRjcoMr/slMB/JbB3cDqK7DHZzT+YH7QGc4LTVvd+GZd04u
+2hNKVfvAFVPqERneZRpXFFboICzYdP3hfOEKmEDK/NRkQHR6qyykknIHzu384R9/
+i4Pwq0pG9HbpyjAhdunQmW1Gkqx9ixRdJ+uBm07qmv7WbsVryVU=
+=MZ+y
 -----END PGP SIGNATURE-----
 
---xzvsx53ec7kgrpz7--
+--cuyvdolowx73taes--
