@@ -1,111 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:39620 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727639AbeIGTcD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2018 15:32:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-media@vger.kernel.org,
-        Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Chen-Yu Tsai <wens@csie.org>, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Krzysztof Witos <kwitos@cadence.com>,
-        Rafal Ciepiela <rafalc@cadence.com>
-Subject: Re: [PATCH 03/10] phy: Add MIPI D-PHY configuration options
-Date: Fri, 07 Sep 2018 17:50:52 +0300
-Message-ID: <4247225.jW0mJSbZmP@avalon>
-In-Reply-To: <20180907085623.ltzybsftrw3zmmev@flea>
-References: <cover.ee6158898d563fcc01d45c9652501180bccff0f0.1536138624.git-series.maxime.ripard@bootlin.com> <11216244.YyI1EIWKhC@avalon> <20180907085623.ltzybsftrw3zmmev@flea>
+Received: from mail.bootlin.com ([62.4.15.54]:45021 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727856AbeIGTfy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Sep 2018 15:35:54 -0400
+Date: Fri, 7 Sep 2018 16:54:36 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: Re: [RFP] Stateless Codec Userspace Support
+Message-ID: <20180907145436.fwzudpefpv3e7i37@flea>
+References: <ae73ad59-af82-040c-ec89-b8defd8e312c@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="vsqgy4jzq3mieubo"
+Content-Disposition: inline
+In-Reply-To: <ae73ad59-af82-040c-ec89-b8defd8e312c@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
 
-On Friday, 7 September 2018 11:56:23 EEST Maxime Ripard wrote:
-> On Wed, Sep 05, 2018 at 04:43:57PM +0300, Laurent Pinchart wrote:
-> >> The current set of parameters should cover all the potential users.
-> >> 
-> >> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> >> ---
-> >> 
-> >>  include/linux/phy/phy-mipi-dphy.h | 241 ++++++++++++++++++++++++++++++-
-> >>  include/linux/phy/phy.h           |   6 +-
-> >>  2 files changed, 247 insertions(+)
-> >>  create mode 100644 include/linux/phy/phy-mipi-dphy.h
-> >> 
-> >> diff --git a/include/linux/phy/phy-mipi-dphy.h
-> >> b/include/linux/phy/phy-mipi-dphy.h new file mode 100644
-> >> index 000000000000..792724145290
-> >> --- /dev/null
-> >> +++ b/include/linux/phy/phy-mipi-dphy.h
-> >> @@ -0,0 +1,241 @@
-> >> +/* SPDX-License-Identifier: GPL-2.0 */
-> >> +/*
-> >> + * Copyright (C) 2018 Cadence Design Systems Inc.
-> >> + */
-> >> +
-> >> +#ifndef __PHY_MIPI_DPHY_H_
-> >> +#define __PHY_MIPI_DPHY_H_
-> >> +
-> >> +#include <video/videomode.h>
-> >> +
-> >> +/**
-> >> + * struct phy_configure_opts_mipi_dphy - MIPI D-PHY configuration set
-> >> + *
-> >> + * This structure is used to represent the configuration state of a
-> >> + * MIPI D-PHY phy.
-> > 
-> > Shouldn't we split the RX and TX parameters in two structures ?
-> 
-> Are they different? As far as I understood it, both were having the
-> same parameters.
+--vsqgy4jzq3mieubo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-clk_miss, for instance, is a receiver parameter, while clk_post is a 
-transmitter parameter. There are relationships between the transmitter and 
-receiver parameters in the sense that they have to be compatible, and we may 
-want to compute one set of parameters based on the other one, but I think they 
-target RX and TX separately.
+On Fri, Sep 07, 2018 at 04:34:45PM +0200, Hans Verkuil wrote:
+> Support for stateless codecs and Request API will hopefully be merged for
+> 4.20, and the next step is to discuss how to organize the userspace suppo=
+rt.
+>=20
+> Hopefully by the time the media summit starts we'll have some better ideas
+> of what we want in this area.
+>=20
+> Some userspace support is available from bootlin for the cedrus driver:
+>=20
+>   - v4l2-request-test, that has a bunch of sample frames for various
+>     codecs and will rely solely on the kernel request api (and DRM for
+>     the display part) to test and bringup a particular driver
+>     https://github.com/bootlin/v4l2-request-test
+>=20
+>   - libva-v4l2-request, that is a libva implementation using the
+>     request API
+>     https://github.com/bootlin/libva-v4l2-request
+>=20
+> But this is more geared towards testing and less a 'proper' implementatio=
+n.
 
-> >> +	/**
-> >> +	 * @modes:
-> >> +	 *
-> >> +	 * transmission operation mode flags
-> >> +	 */
-> >> +	u32			modes;
-> > 
-> > Where are those flags defined ?
-> 
-> goto label;
-> 
-> >> +	/**
-> >> +	 * @timings:
-> >> +	 *
-> >> +	 * Video timings associated with the transmission.
-> > 
-> > That's a pretty vague description...
-> 
-> I'll try to improve it then
-> 
-> >> +	 */
-> >> +	struct videomode	timings;
-> >> +};
-> >> +
-> 
-> label:
-> > > +/* TODO: Add other modes (burst, commands, etc) */
-> > > +#define MIPI_DPHY_MODE_VIDEO_SYNC_PULSE		BIT(0)
-> 
-> But maybe I should reorganize it to make it more obvious.
+While the first one is definitely a test tool, I wouldn't consider the
+latter as such. We have Kodi and VLC running with it, and we started
+to work on using gstreamer on top of it, so it's definitely something
+I would consider for real world use cases.
 
--- 
-Regards,
+Maxime
 
-Laurent Pinchart
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--vsqgy4jzq3mieubo
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAluSkSsACgkQ0rTAlCFN
+r3QDQw//cooMu208s1dqtoAM517Ds856l4BjnU8ck2gFdaRxUf+unwge3tfUsLfq
+GOMop+j9p57g7CM+dNgdUNEUTz9YsmIqjVPUjWU8s0HfHkRdUhINdZsWLOOzFVTi
+4J7wT3hlIxfAub0Lvw5gpcqtIO6/Yc0FmiqL/Z/Op1JT9Cjs+0MTDmuKJl6Gw+rP
+HPu8v76BnNagBrhFCvmVig1/21th32laGARqy20hE8LV5oX3iG3VygqWtZ6i4AQl
+cF0cuhdbga+m3fBXAAagSDlLIGNbli08epXn+GKN4QPUhjnjojRqplKGZz97DUzz
+36lk7q8VjZ1wr1HRh/+B2Kd8jUHToXRVKPnEo6Hzy/UlYUhlc6g52LpnpG9MzTCk
+9W2hPlWmcFMdQuAz+ahVS5Y3I7cpH1N+nnUTxNhK7ipAxFSgljczoGxSuVLrIWmT
+ZyGzB4bM496dm/x9d7quzdpouRgRGrcHy1cohbIy3JWcR793TAgaP1LRkLWX0x9I
+k+NwZK3bOELxzOpJz3xNIdMZunAXswGvWWfQ2Nd6Blmqj4StCtghL9BMgLlo4J0F
+3e0xwMdOu71iW8Y6AJySCNdJa6oKvgFi1hVNPXXr3D9l1qKHPzma+8/32tt8sdEn
+ql/M92lLA5kgErubREe0XgjIU40+Ayc96RxEZzvl72mAuuEFY4I=
+=J57x
+-----END PGP SIGNATURE-----
+
+--vsqgy4jzq3mieubo--
