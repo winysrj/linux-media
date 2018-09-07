@@ -1,94 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42549 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:42421 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727289AbeIGSHa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Sep 2018 14:07:30 -0400
-Date: Fri, 7 Sep 2018 15:26:20 +0200
+        id S1727752AbeIGSEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Sep 2018 14:04:22 -0400
+Date: Fri, 7 Sep 2018 15:23:11 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Paul Kocialkowski <contact@paulk.fr>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org,
+To: Chen-Yu Tsai <wens@csie.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Yong Deng <yong.deng@magewell.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v9 5/9] media: platform: Add Cedrus VPU decoder driver
-Message-ID: <20180907132620.lmsvlwpa3rzioj2h@flea>
-References: <20180906222442.14825-1-contact@paulk.fr>
- <20180906222442.14825-6-contact@paulk.fr>
- <4b30c0bf-e525-1868-f625-569d4a104aa0@xs4all.nl>
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
+Subject: Re: [PATCH v10 0/2] Initial Allwinner V3s CSI Support
+Message-ID: <20180907132311.g7q3zzziiagqecae@flea>
+References: <20180517090224.u3ygdzjr77im2mmp@flea>
+ <20180529095757.qkz7jyuxza7movbc@flea.home>
+ <20180530091934.tbd6xbyr5s3ipn3v@paasikivi.fi.intel.com>
+ <CAGb2v67RP8bjObBJu_1JsREUo64hnEzptG_n-aYMn4Dcd_Zo-g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hu5t7oybgv7p55pp"
+        protocol="application/pgp-signature"; boundary="76ixmv7qtsguwevu"
 Content-Disposition: inline
-In-Reply-To: <4b30c0bf-e525-1868-f625-569d4a104aa0@xs4all.nl>
+In-Reply-To: <CAGb2v67RP8bjObBJu_1JsREUo64hnEzptG_n-aYMn4Dcd_Zo-g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---hu5t7oybgv7p55pp
+--76ixmv7qtsguwevu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Hans,
+Hi Yong,
 
-On Fri, Sep 07, 2018 at 03:13:19PM +0200, Hans Verkuil wrote:
-> On 09/07/2018 12:24 AM, Paul Kocialkowski wrote:
-> > From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> >=20
-> > This introduces the Cedrus VPU driver that supports the VPU found in
-> > Allwinner SoCs, also known as Video Engine. It is implemented through
-> > a V4L2 M2M decoder device and a media device (used for media requests).
-> > So far, it only supports MPEG-2 decoding.
-> >=20
-> > Since this VPU is stateless, synchronization with media requests is
-> > required in order to ensure consistency between frame headers that
-> > contain metadata about the frame to process and the raw slice data that
-> > is used to generate the frame.
-> >=20
-> > This driver was made possible thanks to the long-standing effort
-> > carried out by the linux-sunxi community in the interest of reverse
-> > engineering, documenting and implementing support for the Allwinner VPU.
-> >=20
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
+On Wed, Jun 20, 2018 at 12:45:03PM +0800, Chen-Yu Tsai wrote:
+> On Wed, May 30, 2018 at 5:19 PM, Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> > On Tue, May 29, 2018 at 11:57:57AM +0200, Maxime Ripard wrote:
+> >> On Thu, May 17, 2018 at 11:02:24AM +0200, Maxime Ripard wrote:
+> >> > On Fri, May 04, 2018 at 02:44:08PM +0800, Yong Deng wrote:
+> >> > > This patchset add initial support for Allwinner V3s CSI.
+> >> > >
+> >> > > Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI C=
+SI-2
+> >> > > interface and CSI1 is used for parallel interface. This is not
+> >> > > documented in datasheet but by test and guess.
+> >> > >
+> >> > > This patchset implement a v4l2 framework driver and add a binding
+> >> > > documentation for it.
+> >> > >
+> >> > > Currently, the driver only support the parallel interface. And has=
+ been
+> >> > > tested with a BT1120 signal which generating from FPGA. The follow=
+ing
+> >> > > fetures are not support with this patchset:
+> >> > >   - ISP
+> >> > >   - MIPI-CSI2
+> >> > >   - Master clock for camera sensor
+> >> > >   - Power regulator for the front end IC
+> >> >
+> >> > I tested it on my H3 with a parallel camera, and it still works. Tha=
+nks!
+> >> >
+> >> > Hans, Sakari, any chance this might land in 4.18?
+> >>
+> >> Ping?
+> >
+> > I'll try to look into this soonish but it seems to be too late for 4.18.
+> > Sorry about that.
 >=20
-> One high-level comment:
->=20
-> Can you add a TODO file for this staging driver? This can be done in
-> a follow-up patch.
->=20
-> It should contain what needs to be done to get this out of staging:
->=20
-> - Request API needs to stabilize
-> - Userspace support for stateless codecs must be created
+> Can we get this into 4.19?
 
-On that particular note, as part of the effort to develop the driver,
-we've also developped two userspace components:
+Did you have some time to make the changes Sakari asked for? That
+would be great to have it in 4.20.
 
-  - v4l2-request-test, that has a bunch of sample frames for various
-    codecs and will rely solely on the kernel request api (and DRM for
-    the display part) to test and bringup a particular driver
-    https://github.com/bootlin/v4l2-request-test
-
-  - libva-v4l2-request, that is a libva implementation using the
-    request API
-    https://github.com/bootlin/libva-v4l2-request
-
-Did you have something else in mind?
-
+Thanks!
 Maxime
 
 --=20
@@ -96,24 +102,24 @@ Maxime Ripard, Bootlin
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---hu5t7oybgv7p55pp
+--76ixmv7qtsguwevu
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAluSfHsACgkQ0rTAlCFN
-r3QxZg/9GeduzkWPv/fZmHl4wwxZayt10goQkM42PfX6x2so6f2V8SuL0GBRITQt
-HTWg6NKhu47952sU2dwu/1yEX2cInQvpK81INpMuAC7nNdfvr8DPfMG65+b4jm5e
-Bzla1OnBTimftcRkmaGW/xJid0uf6Skn765hEnLAM3hYiWhOVmXV5klIRJ1onP2j
-tS0JxYc9jmD/f7G1TIQlTr/0RuZNeBdGMouYf8uuX439PHyOdVVJC6pn0Qfq1R6Z
-M2CTacJKGde/y9ytRpNnjZNO8NuQpstgu8GzCJZqYpCJAxajjRhC0xFnT5u9Z1yU
-+Qhmo7/VLacmEPBFzFRxQOMbD+G3pNS23fX6TcqMKn0OUuGbc3UB/egOQIDTgumQ
-sl+z4hbp96iPdXxRiFf1fJ8cuulV1Gjn6BqtyiN9p8AzJORrbIgsBdBr84VrrTVA
-B3CYV4BZOVvT1MSThvlWWviB1GL5SN58MpG/BirE41Pd4k3/DdDSRZ5+k43I7F+s
-O/gw/NPTVTLfTxYoLz85zPHGEu8n2UyVemOb9q5aD4TALygXivI1CWvYtEzFsGvB
-nAdSdroFa/jn4zzBUxktyRxUxgR40XCsTc8g+rvppsTrMh1aZsCIfCkglsDq9IjG
-6Oc6ZfiPSAOdVQzEFZP9+Ln89y1LmWJnva0visMUkVan/cVonw4=
-=Cfug
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAluSe78ACgkQ0rTAlCFN
+r3QLTQ//cPVrtXJ+bCSWc2Y96Chm2fymit3kl60M173YzsG+JlPwp5/in1ZMGzTr
+U6aAuc6Tzd1zz6p33ZqDLAzGIjssfzdBnmUGCG41n7Gq4ktV95HUeX8p++9HEXTE
+425+hNFkOdOqBMC9FscWyDqh2Fc6uPyWLAk6JFxgPIrcnpjFsfRGmkELc69B2YXa
+7MKYEBEnFLGW70AtYtWPxasnF7uz2oMh1JGjyZ2c5dSyibnrL3xZhsc7JCXPLHPw
+wtvkdUDVaigGZn074Je4tFqpPTwjq7DdhbXi3VQ2Q7i4sH0P4uzaDPKM0laqQJmL
+E8CDsB1MCNTs+lpq3RqC9cAwHz9AmysnTv3sDkcO49RXXh7OF5Witl7syHk7ORje
+oIQytG9CsNU91AAZjeOp4MHLC43rG/vZWq6HRonqCBzhwlyWTW1z5wJ1dTeja01Y
+I/fUD+OBZcdykXwZcVYCEkxbfu71ro41lwonBn0qW6xM2+9PQGIEz6V5iS81YeLe
+Uv8oyfzv/fSQvsOESgyJ4UEFpGDEC8CWX9JfVHjHwQUJClEk46aSh6i2PqjikdqY
+rBEx2TB1EJ+aWDXYcxtCx8PQT/MsKQTxgdeMBKu96Ruc9H4vymKzMNYxYC//2pnY
+pKGjFyvCaXm6XLKntdDgm5PeYs9rKB2dYgH5KzZlBwZo6tj8zsU=
+=3pmh
 -----END PGP SIGNATURE-----
 
---hu5t7oybgv7p55pp--
+--76ixmv7qtsguwevu--
