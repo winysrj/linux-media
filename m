@@ -1,95 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:32865 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726187AbeIGND1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2018 09:03:27 -0400
-Received: by mail-ed1-f68.google.com with SMTP id d8-v6so10950731edv.0
-        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2018 01:23:37 -0700 (PDT)
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:37530 "EHLO
+        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727417AbeIGNec (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2018 09:34:32 -0400
+Received: by mail-yw1-f65.google.com with SMTP id x83-v6so5137245ywd.4
+        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2018 01:54:35 -0700 (PDT)
+Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com. [209.85.219.177])
+        by smtp.gmail.com with ESMTPSA id y2-v6sm3187392ywd.38.2018.09.07.01.54.33
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 07 Sep 2018 01:54:34 -0700 (PDT)
+Received: by mail-yb1-f177.google.com with SMTP id k5-v6so5186782ybo.10
+        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2018 01:54:33 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20180906084807.GL28160@w540>
-References: <1534328897-14957-1-git-send-email-jacopo+renesas@jmondi.org>
- <1534328897-14957-2-git-send-email-jacopo+renesas@jmondi.org>
- <CAMZdPi8gr0p4GogZaj7Lyf1aJF_+xp1gfBfhh7R4S=7eNoR2TQ@mail.gmail.com>
- <20180906074815.GK28160@w540> <CAMZdPi8MTCCNp_Q_WZUm5TnH2U_x9bxO7QLmxaiBvMEAB5ujTw@mail.gmail.com>
- <20180906084807.GL28160@w540>
-From: Loic Poulain <loic.poulain@linaro.org>
-Date: Fri, 7 Sep 2018 10:22:56 +0200
-Message-ID: <CAMZdPi9o5OR2TxdwGw5osH5Duh-FSUnufPB1Ooie3_yDKZ6d8w@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] media: ov5640: Re-work MIPI startup sequence
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+References: <20180830172030.23344-1-ezequiel@collabora.com>
+ <20180830172030.23344-4-ezequiel@collabora.com> <20180830175937.GB11521@infradead.org>
+In-Reply-To: <20180830175937.GB11521@infradead.org>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 7 Sep 2018 17:54:22 +0900
+Message-ID: <CAAFQd5D=tETh0638gR0TP=_FZXzMcy=6EjOLW8n1SRPqR=sCrQ@mail.gmail.com>
+Subject: Re: [RFC 3/3] stk1160: Use non-coherent buffers for USB transfers
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-usb@vger.kernel.org,
+        "list@263.net:IOMMU DRIVERS <iommu@lists.linux-foundation.org>, Joerg
+        Roedel <joro@8bytes.org>," <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Sam Bobrowicz <sam@elite-embedded.com>,
-        Jagan Teki <jagan@amarulasolutions.com>,
-        Fabio Estevam <festevam@gmail.com>, pza@pengutronix.de,
-        steve_longerbeam@mentor.com,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Daniel Mack <daniel@zonque.org>, linux-media@vger.kernel.org
+        "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Alan Stern <stern@rowland.harvard.edu>, kernel@collabora.com,
+        keiichiw@chromium.org
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 September 2018 at 10:48, jacopo mondi <jacopo@jmondi.org> wrote:
-> Hello Loic,
+On Fri, Aug 31, 2018 at 2:59 AM Christoph Hellwig <hch@infradead.org> wrote:
 >
-> On Thu, Sep 06, 2018 at 10:13:53AM +0200, Loic Poulain wrote:
->> On 6 September 2018 at 09:48, jacopo mondi <jacopo@jmondi.org> wrote:
->> > Hello Loic,
->> >    thanks for looking into this
->> >
->> > On Tue, Sep 04, 2018 at 07:22:50PM +0200, Loic Poulain wrote:
->> >> Hi Jacopo,
->> >>
->> >> > -       ret = ov5640_mod_reg(sensor, OV5640_REG_MIPI_CTRL00, BIT(5),
->> >> > -                            on ? 0 : BIT(5));
->> >> > -       if (ret)
->> >> > -               return ret;
->> >> > -       ret = ov5640_write_reg(sensor, OV5640_REG_PAD_OUTPUT00,
->> >> > -                              on ? 0x00 : 0x70);
->> >> > +       /*
->> >> > +        * Enable/disable the MIPI interface
->> >> > +        *
->> >> > +        * 0x300e = on ? 0x45 : 0x40
->> >> > +        * [7:5] = 001  : 2 data lanes mode
->> >>
->> >> Does 2-Lanes work with this config?
->> >> AFAIU, if 2-Lanes is bit 5, value should be 0x25 and 0x20.
->> >>
->> >
->> > Yes, confusing.
->> >
->> > The sensor manual reports
->> > 0x300e[7:5] = 000 one lane mode
->> > 0x300e[7:5] = 001 two lanes mode
->> >
->> > Although this configuration works with 2 lanes, and the application
->> > note I have, with the suggested settings for MIPI CSI-2 2 lanes
->> > reports 0x40 to be the 2 lanes mode...
->> >
->> > I used that one, also because the removed entry from the settings blob
->> > is:
->> > -       {0x300e, 0x45, 0, 0}, {0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
->> > +       {0x302e, 0x08, 0, 0}, {0x4300, 0x3f, 0, 0},
->> >
->> > So it was using BIT(6) already.
->>
->> Yes, it was setting BIT(6) from static config and BIT(5) from the
->> ov5640_set_stream_mipi function. In your patch you don't set
->> BIT(5) anymore.
->>
->> So it's not clear to me why it is still working, and the datasheet does
->> not help a lot on this (BIT(6) is for debug modes).
->> FYI I tried with BIT(5) only but it does not work (though I did not
->> investigate a lot).
+> > +     dma_sync_single_for_cpu(&urb->dev->dev, urb->transfer_dma,
+> > +             urb->transfer_buffer_length, DMA_FROM_DEVICE);
 >
-> Thanks. Is your setup using 1 or 2 lanes? (I assume 2...)
->
-> Another question, unrelated to this specific issue: was the ov5640
-> working with dragonboard before this patch? I'm asking as I've seen
-> different behaviors between different platforms, and knowing this
-> fixes a widespread one like dragonboard is, would help getting this
-> patches in faster :)
+> You can't ue dma_sync_single_for_cpu on non-coherent dma buffers,
+> which is one of the major issues with them.
 
-I did not test without the patch, will do.
+It's not an issue of DMA API, but just an API mismatch. By design,
+memory allocated for device (e.g. by DMA API) doesn't have to be
+physically contiguous, while dma_*_single() API expects a _single_,
+physically contiguous region of memory.
+
+We need a way to allocate non-coherent memory using DMA API to handle
+(on USB example, but applies to virtually any class of devices doing
+DMA):
+ - DMA address range limitations (e.g. dma_mask) - while a USB HCD
+driver is normally aware of those, USB device driver should have no
+idea,
+ - memory mapping capability === whether contiguous memory or a set of
+random pages can be allocated - this is a platform integration detail,
+which even a USB HCD driver may not be aware of, if a SoC IOMMU is
+just stuffed between the bus and HCD,
+ - platform coherency specifics - there are practical scenarios when
+on a coherent-by-default system it's more efficient to allocate
+non-coherent memory and manage caches explicitly to avoid the costs of
+cache snooping.
+
+If DMA_ATTR_NON_CONSISTENT is not the right way to do it, there should
+be definitely a new API introduced, coupled closely to DMA API
+implementation on given platform, since it's the only place which can
+solve all the constraints above.
+
+Best regards,
+Tomasz
