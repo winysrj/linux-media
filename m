@@ -1,97 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:45916 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725942AbeIGSdJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Sep 2018 14:33:09 -0400
-Subject: Re: [PATCH v9 5/9] media: platform: Add Cedrus VPU decoder driver
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Paul Kocialkowski <contact@paulk.fr>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:39468 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726033AbeIGTAB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2018 15:00:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: jacopo mondi <jacopo@jmondi.org>,
+        "akinobu.mita@gmail.com" <akinobu.mita@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20180906222442.14825-1-contact@paulk.fr>
- <20180906222442.14825-6-contact@paulk.fr>
- <4b30c0bf-e525-1868-f625-569d4a104aa0@xs4all.nl>
- <20180907132620.lmsvlwpa3rzioj2h@flea>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2c9689b2-c5a6-58b7-b467-fc53208ecd2d@xs4all.nl>
-Date: Fri, 7 Sep 2018 15:52:00 +0200
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
+Date: Fri, 07 Sep 2018 17:18:56 +0300
+Message-ID: <2363168.XP4MAGOgOS@avalon>
+In-Reply-To: <3ad25a94-3de0-1a9a-ff02-30d3d282b363@st.com>
+References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com> <20180816101023.GA19047@w540> <3ad25a94-3de0-1a9a-ff02-30d3d282b363@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20180907132620.lmsvlwpa3rzioj2h@flea>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/2018 03:26 PM, Maxime Ripard wrote:
-> Hi Hans,
-> 
-> On Fri, Sep 07, 2018 at 03:13:19PM +0200, Hans Verkuil wrote:
->> On 09/07/2018 12:24 AM, Paul Kocialkowski wrote:
->>> From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
->>>
->>> This introduces the Cedrus VPU driver that supports the VPU found in
->>> Allwinner SoCs, also known as Video Engine. It is implemented through
->>> a V4L2 M2M decoder device and a media device (used for media requests).
->>> So far, it only supports MPEG-2 decoding.
->>>
->>> Since this VPU is stateless, synchronization with media requests is
->>> required in order to ensure consistency between frame headers that
->>> contain metadata about the frame to process and the raw slice data that
->>> is used to generate the frame.
->>>
->>> This driver was made possible thanks to the long-standing effort
->>> carried out by the linux-sunxi community in the interest of reverse
->>> engineering, documenting and implementing support for the Allwinner VPU.
->>>
->>> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
->>> Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
->>
->> One high-level comment:
->>
->> Can you add a TODO file for this staging driver? This can be done in
->> a follow-up patch.
->>
->> It should contain what needs to be done to get this out of staging:
->>
->> - Request API needs to stabilize
->> - Userspace support for stateless codecs must be created
-> 
-> On that particular note, as part of the effort to develop the driver,
-> we've also developped two userspace components:
-> 
->   - v4l2-request-test, that has a bunch of sample frames for various
->     codecs and will rely solely on the kernel request api (and DRM for
->     the display part) to test and bringup a particular driver
->     https://github.com/bootlin/v4l2-request-test
-> 
->   - libva-v4l2-request, that is a libva implementation using the
->     request API
->     https://github.com/bootlin/libva-v4l2-request
-> 
-> Did you have something else in mind?
+Hello Hugues,
 
-Reviewing this will be the next step. I haven't looked at the userspace components
-at all yet, so I don't know yet whether it is what we expect/want/need.
+On Thursday, 16 August 2018 18:07:54 EEST Hugues FRUCHET wrote:
+> On 08/16/2018 12:10 PM, jacopo mondi wrote:
+> > On Mon, Aug 13, 2018 at 12:19:46PM +0200, Hugues Fruchet wrote:
+> > 
+> >> Mode setting depends on last mode set, in particular
+> >> because of exposure calculation when downscale mode
+> >> change between subsampling and scaling.
+> >> At stream on the last mode was wrongly set to current mode,
+> >> so no change was detected and exposure calculation
+> >> was not made, fix this.
+> > 
+> > I actually see a different issue here...
+> 
+> Which problem do you have exactly, you got a VGA JPEG instead of a QVGA 
+> YUYV ?
+> 
+> > The issue I see here depends on the format programmed through
+> > set_fmt() never being applied when using the sensor with a media
+> > controller equipped device (in this case an i.MX6 board) through
+> > capture sessions, and the not properly calculated exposure you see may
+> > be a consequence of this.
+> > 
+> > I'll try to write down what I see, with the help of some debug output.
+> > 
+> > - At probe time mode 640x460@30 is programmed:
+> > 
+> >    [    1.651216] ov5640_probe: Initial mode with id: 2
+> > 
+> > - I set the format on the sensor's pad and it gets not applied but
+> >    marked as pending as the sensor is powered off:
+> > 
+> >    #media-ctl --set-v4l2 "'ov5640 2-003c':0[fmt:UYVY2X8/320x240
+> >    field:none]"
+> >     [   65.611983] ov5640_set_fmt: NEW mode with id: 1 - PENDING
+> 
+> So here sensor->current_mode is set to <1>;//QVGA
+> and sensor->pending_mode_change is set to true;
+> 
+> > - I start streaming with yavta, and the sensor receives a power on;
+> >    this causes the 'initial' format to be re-programmed and the pending
+> >    change to be ignored:
+> > 
+> >    #yavta -c10 -n4 -f YUYV -s $320x240  -F"../frame-#.yuv" /dev/video4
+> >    
+> >     [   69.395018] ov5640_set_power:1805 - on
+> >     [   69.431342] ov5640_restore_mode:1711
+> >     [   69.996882] ov5640_set_mode: Apply mode with id: 0
+> > 
+> >    The 'ov5640_set_mode()' call from 'ov5640_restore_mode()' clears the
+> >    sensor->pending flag, discarding the newly requested format, for
+> >    this reason, at s_stream() time, the pending flag is not set
+> >    anymore.
+> 
+> OK but before clearing sensor->pending_mode_change, set_mode() is
+> loading registers corresponding to sensor->current_mode:
+> static int ov5640_set_mode(struct ov5640_dev *sensor,
+> 			   const struct ov5640_mode_info *orig_mode)
+> {
+> ==>	const struct ov5640_mode_info *mode = sensor->current_mode;
+> ...
+> 	ret = ov5640_set_mode_direct(sensor, mode, exposure);
+> 
+> => so mode <1> is expected to be set now, so I don't understand your trace:
+> ">     [   69.996882] ov5640_set_mode: Apply mode with id: 0"
+> Which variable do you trace that shows "0" ?
+> 
+> > Are you using a media-controller system? I suspect in non-mc cases,
+> > the set_fmt is applied through a single power_on/power_off session, not
+> > causing the 'restore_mode()' issue. Is this the case for you or your
+> > issue is differnt?
+> > 
+> > Edit:
+> > Mita-san tried to address the issue of the output pixel format not
+> > being restored when the image format was restored in
+> > 19ad26f9e6e1 ("media: ov5640: add missing output pixel format setting")
+> > 
+> > I understand the issue he tried to fix, but shouldn't the pending
+> > format (if any) be applied instead of the initial one unconditionally?
+> 
+> This is what does the ov5640_restore_mode(), set the current mode 
+> (sensor->current_mode), that is done through this line:
+> 	/* now restore the last capture mode */
+> 	ret = ov5640_set_mode(sensor, &ov5640_mode_init_data);
+> => note that the comment above is weird, in fact it is the "current" 
+> mode that is set.
+> => note also that the 2nd parameter is not the mode to be set but the 
+> previously applied mode ! (ie loaded in ov5640 registers). This is used
+> to decide if we have to go to the "set_mode_exposure_calc" or 
+> "set_mode_direct".
+> 
+> the ov5640_restore_mode() also set the current pixel format 
+> (sensor->fmt), that is done through this line:
+> 	return ov5640_set_framefmt(sensor, &sensor->fmt);
+> ==> This is what have fixed Mita-san, this line was missing previously, 
+> leading to "mode registers" being loaded but not the "pixel format 
+> registers".
 
-I think this might be a very good topic for the media summit in October if we
-can get all the stakeholders together.
+This seems overly complicated to me. Why do we have to set the mode at power 
+on time at all, why can't we do it at stream on time only, and simplify all 
+this logic ?
 
+> PS: There are two other "set mode" related changes that are related to
+> this:
+> 1) 6949d864776e ("media: ov5640: do not change mode if format or
+> frame interval is unchanged")
+> => this is merged in media master, unfortunately I've introduced a 
+> regression on "pixel format" side that I've fixed in this patchset :
+> 2) https://www.mail-archive.com/linux-media@vger.kernel.org/msg134413.html
+> Symptom was a noisy image when capturing QVGA YUV (in fact captured as 
+> JPEG data).
+
+[snip]
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
