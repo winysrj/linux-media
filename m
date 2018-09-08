@@ -1,64 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f180.google.com ([209.85.216.180]:42670 "EHLO
-        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728452AbeIHCXG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2018 22:23:06 -0400
-Received: by mail-qt0-f180.google.com with SMTP id z8-v6so17767690qto.9
-        for <linux-media@vger.kernel.org>; Fri, 07 Sep 2018 14:40:12 -0700 (PDT)
-MIME-Version: 1.0
-From: Satish Nagireddy <satish.nagireddy1@gmail.com>
-Date: Fri, 7 Sep 2018 14:40:01 -0700
-Message-ID: <CADsxt07mLmNxKc==D2BcoZwjJPcPAXgmcMRcsVkcE5xyQtNZQQ@mail.gmail.com>
-Subject: Query on V4L2 interlaced "height"
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:52504 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726175AbeIHHv1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 8 Sep 2018 03:51:27 -0400
+Message-ID: <7e5238522350c361ac8de825fc527be5@smtp-cloud8.xs4all.net>
+Date: Sat, 08 Sep 2018 05:07:26 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I am working on interlaced capture devices. There is some confusion in
-handling height parameter between application and driver.
+Results of the daily build of media_tree:
 
-Capture device is able to produce 1920x1080i, where one field
-(top/bottom) resolution is 1920x540.
+date:			Sat Sep  8 04:00:16 CEST 2018
+media-tree git hash:	d842a7cf938b6e0f8a1aa9f1aec0476c9a599310
+media_build git hash:	ed1d887e2c18299383c7258615130197c8ce4946
+v4l-utils git hash:	d26e4941419b05fcb2b6708ee32aef367c2ec4af
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		v0.5.0-3428-gdfe27cf
+host hardware:		x86_64
+host os:		4.17.0-3-amd64
 
-Query 1:
-What should be the height passed by application to driver to capture
-1920x1080i resolution?
-According to v4l2 specification:
-https://www.kernel.org/doc/html/v4.16/media/uapi/v4l/pixfmt-v4l2.html
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.119-i686: OK
+linux-3.18.119-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.152-i686: OK
+linux-4.4.152-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.124-i686: OK
+linux-4.9.124-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.67-i686: OK
+linux-4.14.67-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.5-i686: OK
+linux-4.18.5-x86_64: OK
+linux-4.19-rc1-i686: OK
+linux-4.19-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Image height in pixels. If field is one of V4L2_FIELD_TOP,
-V4L2_FIELD_BOTTOM or V4L2_FIELD_ALTERNATE then height refers to
+Detailed results are available here:
 
-the number of lines in the field, otherwise it refers to the number of
-lines in the frame (which is twice the field height for interlaced
-formats).
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Query 2:
-I can think of 4 possible cases here:
+Full logs are available here:
 
-i) If application calling VIDIOC_TRY_FMT with filed as
-V4L2_FIELD_ALTERNATE and capture hardware supports same
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-ii) If application calling VIDIOC_TRY_FMT with filed as
-V4L2_FIELD_NONE and capture hardware supports same
+The Media Infrastructure API from this daily build is here:
 
-iii) If application calling VIDIOC_TRY_FMT with field as
-V4L2_FIELD_NONE (progressive) and capture hardware supports
-V4L2_FIELD_ALTERNATE
-
-iv) If application calling VIDIOC_TRY_FMT with field as
-V4L2_FIELD_ALTERNATE (progressive) and capture hardware supports
-V4L2_FIELD_NONE
-
-The first 2 cases are straightforward. What should be the driver
-behavior for iii and iv ? Should it alter height passed by the
-application accordingly?
-
-I see some of the capture drivers are dividing height by 2 if field is
-V4L2_FIELD_ALTERNATE. Is this the right behavior?
-
-Regards,
-Satish
+http://www.xs4all.nl/~hverkuil/spec/index.html
