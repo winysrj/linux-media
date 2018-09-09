@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leonov.paulk.fr ([185.233.101.22]:44800 "EHLO leonov.paulk.fr"
+Received: from leonov.paulk.fr ([185.233.101.22]:44832 "EHLO leonov.paulk.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726599AbeIJAC4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 9 Sep 2018 20:02:56 -0400
+        id S1726599AbeIJADW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 9 Sep 2018 20:03:22 -0400
 From: Paul Kocialkowski <contact@paulk.fr>
 To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org
@@ -21,40 +21,33 @@ Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Paul Kocialkowski <contact@paulk.fr>
-Subject: [PATCH v2 3/4] media: cedrus: Wrap PHYS_PFN_OFFSET with ifdef and add dedicated comment
-Date: Sun,  9 Sep 2018 21:10:14 +0200
-Message-Id: <20180909191015.20902-4-contact@paulk.fr>
+Subject: [PATCH v2 4/4] media: cedrus: Select the sunxi SRAM driver in Kconfig
+Date: Sun,  9 Sep 2018 21:10:15 +0200
+Message-Id: <20180909191015.20902-5-contact@paulk.fr>
 In-Reply-To: <20180909191015.20902-1-contact@paulk.fr>
 References: <20180909191015.20902-1-contact@paulk.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since PHYS_PFN_OFFSET is not defined for all architectures, it is
-requried to wrap it with ifdef so that it can be built on all
-architectures.
+Since the sunxi SRAM driver is required to build the Cedrus driver,
+select it in Kconfig.
 
 Signed-off-by: Paul Kocialkowski <contact@paulk.fr>
 ---
- drivers/staging/media/sunxi/cedrus/cedrus_hw.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/staging/media/sunxi/cedrus/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-index f4307e8f7908..32adbcbe6175 100644
---- a/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-+++ b/drivers/staging/media/sunxi/cedrus/cedrus_hw.c
-@@ -199,8 +199,13 @@ int cedrus_hw_probe(struct cedrus_dev *dev)
- 	/*
- 	 * The VPU is only able to handle bus addresses so we have to subtract
- 	 * the RAM offset to the physcal addresses.
-+	 *
-+	 * This information will eventually be obtained from device-tree.
- 	 */
-+
-+#ifdef PHYS_PFN_OFFSET
- 	dev->dev->dma_pfn_offset = PHYS_PFN_OFFSET;
-+#endif
- 
- 	ret = of_reserved_mem_device_init(dev->dev);
- 	if (ret && ret != -ENODEV) {
+diff --git a/drivers/staging/media/sunxi/cedrus/Kconfig b/drivers/staging/media/sunxi/cedrus/Kconfig
+index afd7d7ee0388..3b06283e4bf3 100644
+--- a/drivers/staging/media/sunxi/cedrus/Kconfig
++++ b/drivers/staging/media/sunxi/cedrus/Kconfig
+@@ -3,6 +3,7 @@ config VIDEO_SUNXI_CEDRUS
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && MEDIA_CONTROLLER
+ 	depends on HAS_DMA
+ 	depends on OF
++	select SUNXI_SRAM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select MEDIA_REQUEST_API
+ 	select V4L2_MEM2MEM_DEV
 -- 
 2.18.0
