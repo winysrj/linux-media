@@ -1,59 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f43.google.com ([209.85.166.43]:45944 "EHLO
-        mail-io1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726424AbeIIFhG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Sep 2018 01:37:06 -0400
-Received: by mail-io1-f43.google.com with SMTP id e12-v6so4306010iok.12
-        for <linux-media@vger.kernel.org>; Sat, 08 Sep 2018 17:49:27 -0700 (PDT)
-Received: from eggsbenedict.adamsnet (24-220-35-37-dynamic.midco.net. [24.220.35.37])
-        by smtp.gmail.com with ESMTPSA id u6-v6sm5040062itg.27.2018.09.08.17.49.24
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 08 Sep 2018 17:49:24 -0700 (PDT)
-Date: Sat, 8 Sep 2018 20:49:22 -0400
-From: Adam Stylinski <kungfujesus06@gmail.com>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34764 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726397AbeIIHyS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 9 Sep 2018 03:54:18 -0400
+Message-ID: <3dc7fb83336f44d1f970b599e6b809e0@smtp-cloud7.xs4all.net>
+Date: Sun, 09 Sep 2018 05:06:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: 4.18 regression
-Message-ID: <20180909004922.GA9322@eggsbenedict.adamsnet>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
-Content-Disposition: inline
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---1yeeQ81UyVL57Vl7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-Hello,
+date:			Sun Sep  9 04:00:17 CEST 2018
+media-tree git hash:	d842a7cf938b6e0f8a1aa9f1aec0476c9a599310
+media_build git hash:	ed1d887e2c18299383c7258615130197c8ce4946
+v4l-utils git hash:	d26e4941419b05fcb2b6708ee32aef367c2ec4af
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-3-amd64
 
-I haven't done a thorough bisection of kernel revisions, but moving from kernel 4.17.19 to 4.18.6 results in mythtv being unable to tune in any channel with a pic hdtv 5500 tuner (cx88 based device with an LG frontend). I get an error back from the channel scanner about not being able to measure signal strength and getting back an error unknown (errno 254).
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-i686: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.119-i686: OK
+linux-3.18.119-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.152-i686: OK
+linux-4.4.152-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.124-i686: OK
+linux-4.9.124-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.67-i686: OK
+linux-4.14.67-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.5-i686: OK
+linux-4.18.5-x86_64: OK
+linux-4.19-rc1-i686: OK
+linux-4.19-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-I was able to use dvbtools with get-atsc to get a channel, but I don't think any of the forward error correction was applied to it.
+Detailed results are available here:
 
-Let me know if you need more details.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
---1yeeQ81UyVL57Vl7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Full logs are available here:
 
------BEGIN PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-iQIzBAEBCAAdFiEEDgVoSkwBBLuwA/n/PqxEcTpO+acFAluUbhAACgkQPqxEcTpO
-+aeC4BAA4j5jJcpiEFT4msIj6/BllRDqEXslpCX7XuombPQ0n0LBRPXUidAfg64J
-KpA1lw/Mfj6V0IPdyB2GDFeRJWuBWEQLg/O79G2oH5G2gdc7FEn8/NK7uonEQN5R
-fbNBqdm1LrhYd8wL+SvsiL+STDLgEYJzlDDvFyWwAuIpPQdyn6qkPVH2A1x4qtXa
-5WFHb6NrTUCsh+DiBTzjkpT/Rd6GN193HUy2D1kvKMVHryOIDc+FT6bWvIrNc5Rb
-S+8QqNAVToUwtZY/SX1qMbqvaN8Wfc/v21nBFJX9o7FPNESn43e8Fai/Nov+XzEE
-buM0wOwBOrQIWC8Hu5j01FneTTcs/kQmHXpc7Rp8MKXBu1dJMwytrLyIfhNRPJgR
-k/l44/w1eE6XTMlqkUlaaO54Mue0bx+sCx0D3et/5ZHTrwn6TiGRX4vmkCznHk7c
-F1ivaaSIBSJSQwQPc3OmiPocJ7M0o0GJIpXV2DcUhiUoN9lZX8A/y4AoLfEESAgX
-Xww7nDJTmaYkRIOhBTdmt4ObGtcjORhdC/r80qhZ/zDlEpygXyA8MQZ5TYa6nosF
-diZP9r7mYEJMX3IIeDQhk9E6IJE1u7u8ALiLGFwUzQSZJvseN7EZ25KO0cbFcZqo
-1HIkwE3JR347Yw8bC/PjJ5KZFj4yMyEyiiFRGSCXAB1FT5eJiug=
-=w121
------END PGP SIGNATURE-----
+The Media Infrastructure API from this daily build is here:
 
---1yeeQ81UyVL57Vl7--
+http://www.xs4all.nl/~hverkuil/spec/index.html
