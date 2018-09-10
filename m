@@ -1,358 +1,624 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53482 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728126AbeIJRNT (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:52380 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727649AbeIJRGk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 13:13:19 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kees Cook <keescook@chromium.org>
-Subject: [PATCH 0/3] Use only strscpy() for string copy
-Date: Mon, 10 Sep 2018 08:19:13 -0400
-Message-Id: <cover.1536581757.git.mchehab+samsung@kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Mon, 10 Sep 2018 13:06:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gerd Hoffmann <kraxel@redhat.com>
+Cc: dri-devel@lists.freedesktop.org, David Airlie <airlied@linux.ie>,
+        Tomeu Vizoso <tomeu.vizoso@collabora.com>,
+        Daniel Vetter <daniel@ffwll.ch>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Shuah Khan <shuah@kernel.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK"
+        <linux-kselftest@vger.kernel.org>, linux-api@vger.kernel.org
+Subject: Re: [PATCH v7] Add udmabuf misc device
+Date: Mon, 10 Sep 2018 15:12:59 +0300
+Message-ID: <21053714.0Xa7F2u2PE@avalon>
+In-Reply-To: <20180827093444.23623-1-kraxel@redhat.com>
+References: <20180827093444.23623-1-kraxel@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are hot discussions upstream about getting rid of strcpy(), strncpy()
-and strlcpy() in favor of the safer strscpy().
+Hi Gerd,
 
-While there are exceptions where strscpy() may not be the best option
-(for example, when filling records with fixed size), we don't have those
-situations right now on media.
+Thank you for the patch.
 
-On all cases, all the core and drivers are doing are filling some var with
-a name. So, we can switch all such functions by strscpy().
+CC'ing the linux-api mailing list as this creates a new userspace API.
 
-Mauro Carvalho Chehab (3):
-  media: use strscpy() instead of strlcpy()
-  media: replace strcpy() by strscpy()
-  media: replace strncpy() by strscpy()
+On Monday, 27 August 2018 12:34:44 EEST Gerd Hoffmann wrote:
+> A driver to let userspace turn memfd regions into dma-bufs.
+> 
+> Use case:  Allows qemu create dmabufs for the vga framebuffer or
+> virtio-gpu ressources.  Then they can be passed around to display
+> those guest things on the host.  To spice client for classic full
+> framebuffer display, and hopefully some day to wayland server for
+> seamless guest window display.
+> 
+> qemu test branch:
+>   https://git.kraxel.org/cgit/qemu/log/?h=sirius/udmabuf
+> 
+> Cc: David Airlie <airlied@linux.ie>
+> Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Daniel Vetter <daniel@ffwll.ch>
+> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+> ---
+>  Documentation/ioctl/ioctl-number.txt              |   1 +
+>  include/uapi/linux/udmabuf.h                      |  33 +++
+>  drivers/dma-buf/udmabuf.c                         | 287 +++++++++++++++++++
+>  tools/testing/selftests/drivers/dma-buf/udmabuf.c |  96 ++++++++
+>  MAINTAINERS                                       |  16 ++
+>  drivers/dma-buf/Kconfig                           |   8 +
+>  drivers/dma-buf/Makefile                          |   1 +
+>  tools/testing/selftests/drivers/dma-buf/Makefile  |   5 +
+>  8 files changed, 447 insertions(+)
+>  create mode 100644 include/uapi/linux/udmabuf.h
+>  create mode 100644 drivers/dma-buf/udmabuf.c
+>  create mode 100644 tools/testing/selftests/drivers/dma-buf/udmabuf.c
+>  create mode 100644 tools/testing/selftests/drivers/dma-buf/Makefile
 
- drivers/media/cec/cec-api.c                   |  4 +-
- drivers/media/cec/cec-core.c                  |  2 +-
- drivers/media/common/b2c2/flexcop-i2c.c       | 12 ++---
- drivers/media/common/cx2341x.c                |  2 +-
- drivers/media/common/saa7146/saa7146_fops.c   |  2 +-
- drivers/media/common/saa7146/saa7146_video.c  |  8 +--
- drivers/media/common/siano/smscoreapi.c       |  4 +-
- drivers/media/common/siano/smsir.c            |  2 +-
- drivers/media/dvb-core/dvb_frontend.c         |  2 +-
- drivers/media/dvb-core/dvb_vb2.c              |  2 +-
- drivers/media/dvb-core/dvbdev.c               |  4 +-
- drivers/media/dvb-frontends/as102_fe.c        |  2 +-
- drivers/media/dvb-frontends/cx24123.c         |  2 +-
- drivers/media/dvb-frontends/cxd2820r_core.c   |  2 +-
- drivers/media/dvb-frontends/dib7000p.c        |  3 +-
- drivers/media/dvb-frontends/dib8000.c         |  4 +-
- drivers/media/dvb-frontends/dib9000.c         |  6 ++-
- drivers/media/dvb-frontends/dibx000_common.c  |  2 +-
- drivers/media/dvb-frontends/dvb-pll.c         |  2 +-
- drivers/media/dvb-frontends/lgdt330x.c        |  2 +-
- drivers/media/dvb-frontends/m88ds3103.c       |  4 +-
- drivers/media/dvb-frontends/mt312.c           |  9 ++--
- drivers/media/dvb-frontends/rtl2832_sdr.c     | 10 ++--
- drivers/media/dvb-frontends/s5h1420.c         |  2 +-
- drivers/media/dvb-frontends/tc90522.c         |  2 +-
- drivers/media/dvb-frontends/ts2020.c          |  2 +-
- drivers/media/dvb-frontends/zd1301_demod.c    |  3 +-
- drivers/media/dvb-frontends/zl10039.c         |  5 +-
- drivers/media/firewire/firedtv-fe.c           |  2 +-
- drivers/media/i2c/ad5820.c                    |  2 +-
- drivers/media/i2c/cs53l32a.c                  |  2 +-
- drivers/media/i2c/imx274.c                    |  2 +-
- drivers/media/i2c/lm3560.c                    |  3 +-
- drivers/media/i2c/lm3646.c                    |  3 +-
- drivers/media/i2c/m5mols/m5mols_core.c        |  2 +-
- drivers/media/i2c/max2175.c                   |  2 +-
- drivers/media/i2c/msp3400-driver.c            |  2 +-
- drivers/media/i2c/noon010pc30.c               |  2 +-
- drivers/media/i2c/ov9650.c                    |  2 +-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c      |  4 +-
- drivers/media/i2c/s5k4ecgx.c                  |  2 +-
- drivers/media/i2c/s5k6aa.c                    |  2 +-
- drivers/media/i2c/saa7115.c                   |  6 +--
- drivers/media/i2c/saa7127.c                   |  4 +-
- drivers/media/i2c/sr030pc30.c                 |  2 +-
- drivers/media/i2c/tvaudio.c                   |  2 +-
- drivers/media/i2c/video-i2c.c                 |  8 +--
- drivers/media/media-device.c                  | 28 +++++-----
- drivers/media/pci/bt8xx/bttv-driver.c         | 10 ++--
- drivers/media/pci/bt8xx/bttv-i2c.c            |  6 +--
- drivers/media/pci/bt8xx/bttv-input.c          |  2 +-
- drivers/media/pci/bt8xx/dst.c                 |  3 +-
- drivers/media/pci/bt8xx/dvb-bt8xx.c           |  3 +-
- drivers/media/pci/cobalt/cobalt-alsa-main.c   |  2 +-
- drivers/media/pci/cobalt/cobalt-alsa-pcm.c    |  4 +-
- drivers/media/pci/cobalt/cobalt-v4l2.c        | 14 ++---
- drivers/media/pci/cx18/cx18-alsa-main.c       |  2 +-
- drivers/media/pci/cx18/cx18-alsa-pcm.c        |  2 +-
- drivers/media/pci/cx18/cx18-cards.c           |  8 +--
- drivers/media/pci/cx18/cx18-driver.c          |  2 +-
- drivers/media/pci/cx18/cx18-i2c.c             |  2 +-
- drivers/media/pci/cx18/cx18-ioctl.c           |  8 +--
- drivers/media/pci/cx23885/cx23885-417.c       |  8 +--
- drivers/media/pci/cx23885/cx23885-alsa.c      |  4 +-
- drivers/media/pci/cx23885/cx23885-dvb.c       | 54 +++++++++----------
- drivers/media/pci/cx23885/cx23885-i2c.c       |  4 +-
- drivers/media/pci/cx23885/cx23885-ioctl.c     |  4 +-
- drivers/media/pci/cx23885/cx23885-video.c     | 15 +++---
- drivers/media/pci/cx25821/cx25821-alsa.c      |  8 +--
- drivers/media/pci/cx25821/cx25821-i2c.c       |  2 +-
- drivers/media/pci/cx25821/cx25821-video.c     | 10 ++--
- drivers/media/pci/cx88/cx88-alsa.c            |  6 +--
- drivers/media/pci/cx88/cx88-blackbird.c       |  6 +--
- drivers/media/pci/cx88/cx88-cards.c           |  2 +-
- drivers/media/pci/cx88/cx88-i2c.c             |  4 +-
- drivers/media/pci/cx88/cx88-input.c           |  4 +-
- drivers/media/pci/cx88/cx88-video.c           | 12 ++---
- drivers/media/pci/cx88/cx88-vp3054-i2c.c      |  2 +-
- drivers/media/pci/dm1105/dm1105.c             |  5 +-
- drivers/media/pci/dt3155/dt3155.c             |  8 +--
- drivers/media/pci/intel/ipu3/ipu3-cio2.c      |  8 +--
- drivers/media/pci/ivtv/ivtv-alsa-main.c       |  2 +-
- drivers/media/pci/ivtv/ivtv-alsa-pcm.c        |  2 +-
- drivers/media/pci/ivtv/ivtv-cards.c           | 12 ++---
- drivers/media/pci/ivtv/ivtv-i2c.c             |  4 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c           |  8 +--
- drivers/media/pci/ivtv/ivtvfb.c               |  2 +-
- drivers/media/pci/mantis/mantis_i2c.c         |  2 +-
- drivers/media/pci/meye/meye.c                 | 10 ++--
- drivers/media/pci/ngene/ngene-i2c.c           |  2 +-
- drivers/media/pci/pluto2/pluto2.c             |  3 +-
- drivers/media/pci/pt1/pt1.c                   |  2 +-
- drivers/media/pci/pt3/pt3.c                   |  2 +-
- drivers/media/pci/saa7134/saa7134-alsa.c      |  8 +--
- drivers/media/pci/saa7134/saa7134-empress.c   |  2 +-
- drivers/media/pci/saa7134/saa7134-go7007.c    |  4 +-
- drivers/media/pci/saa7134/saa7134-i2c.c       |  2 +-
- drivers/media/pci/saa7134/saa7134-input.c     |  2 +-
- drivers/media/pci/saa7134/saa7134-video.c     | 15 +++---
- drivers/media/pci/saa7146/mxb.c               |  2 +-
- drivers/media/pci/saa7164/saa7164-core.c      |  2 +-
- drivers/media/pci/saa7164/saa7164-dvb.c       | 10 ++--
- drivers/media/pci/saa7164/saa7164-encoder.c   | 10 ++--
- drivers/media/pci/saa7164/saa7164-i2c.c       |  2 +-
- drivers/media/pci/saa7164/saa7164-vbi.c       |  4 +-
- drivers/media/pci/smipcie/smipcie-main.c      | 12 ++---
- drivers/media/pci/solo6x10/solo6x10-g723.c    |  8 +--
- .../media/pci/solo6x10/solo6x10-v4l2-enc.c    | 13 +++--
- drivers/media/pci/solo6x10/solo6x10-v4l2.c    |  6 +--
- drivers/media/pci/sta2x11/sta2x11_vip.c       |  6 +--
- drivers/media/pci/ttpci/av7110.c              |  3 +-
- drivers/media/pci/ttpci/av7110_v4l.c          |  2 +-
- drivers/media/pci/ttpci/budget-core.c         |  6 ++-
- drivers/media/pci/tw5864/tw5864-video.c       |  2 +-
- drivers/media/pci/tw68/tw68-video.c           |  6 +--
- drivers/media/pci/tw686x/tw686x-audio.c       |  8 +--
- drivers/media/pci/tw686x/tw686x-video.c       |  4 +-
- drivers/media/platform/am437x/am437x-vpfe.c   | 11 ++--
- drivers/media/platform/atmel/atmel-isc.c      |  8 +--
- drivers/media/platform/atmel/atmel-isi.c      | 10 ++--
- drivers/media/platform/coda/coda-common.c     |  8 +--
- drivers/media/platform/davinci/vpbe_display.c |  8 +--
- drivers/media/platform/davinci/vpbe_venc.c    |  2 +-
- drivers/media/platform/davinci/vpfe_capture.c |  8 +--
- drivers/media/platform/davinci/vpif_capture.c | 14 ++---
- drivers/media/platform/davinci/vpif_display.c | 12 ++---
- drivers/media/platform/exynos-gsc/gsc-core.c  |  2 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c   |  4 +-
- drivers/media/platform/exynos4-is/common.c    |  4 +-
- .../media/platform/exynos4-is/fimc-capture.c  |  4 +-
- .../media/platform/exynos4-is/fimc-is-i2c.c   |  2 +-
- .../platform/exynos4-is/fimc-isp-video.c      |  2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c |  6 +--
- drivers/media/platform/exynos4-is/fimc-m2m.c  |  2 +-
- drivers/media/platform/exynos4-is/media-dev.c |  8 +--
- drivers/media/platform/fsl-viu.c              |  8 +--
- drivers/media/platform/m2m-deinterlace.c      |  8 +--
- .../media/platform/marvell-ccic/cafe-driver.c |  2 +-
- .../media/platform/marvell-ccic/mcam-core.c   | 12 ++---
- .../media/platform/marvell-ccic/mmp-driver.c  |  2 +-
- .../media/platform/mtk-jpeg/mtk_jpeg_core.c   |  4 +-
- drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  |  6 +--
- .../platform/mtk-vcodec/mtk_vcodec_dec.c      |  6 +--
- .../platform/mtk-vcodec/mtk_vcodec_enc.c      |  6 +--
- drivers/media/platform/mtk-vpu/mtk_vpu.c      |  2 +-
- drivers/media/platform/mx2_emmaprp.c          |  6 +--
- drivers/media/platform/omap/omap_vout.c       | 10 ++--
- drivers/media/platform/omap3isp/isp.c         |  2 +-
- drivers/media/platform/omap3isp/ispccdc.c     |  2 +-
- drivers/media/platform/omap3isp/ispccp2.c     |  2 +-
- drivers/media/platform/omap3isp/ispcsi2.c     |  2 +-
- drivers/media/platform/omap3isp/isppreview.c  |  2 +-
- drivers/media/platform/omap3isp/ispresizer.c  |  2 +-
- drivers/media/platform/omap3isp/ispvideo.c    |  8 +--
- drivers/media/platform/pxa_camera.c           |  8 +--
- .../media/platform/qcom/camss/camss-video.c   |  8 +--
- drivers/media/platform/qcom/camss/camss.c     |  2 +-
- drivers/media/platform/qcom/venus/vdec.c      |  8 +--
- drivers/media/platform/qcom/venus/venc.c      |  8 +--
- drivers/media/platform/rcar-vin/rcar-core.c   |  4 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c   |  8 +--
- drivers/media/platform/rcar_drif.c            |  4 +-
- drivers/media/platform/rcar_fdp1.c            |  6 +--
- drivers/media/platform/rcar_jpu.c             | 10 ++--
- drivers/media/platform/renesas-ceu.c          |  6 +--
- drivers/media/platform/rockchip/rga/rga.c     |  6 +--
- .../media/platform/s3c-camif/camif-capture.c  | 10 ++--
- drivers/media/platform/s3c-camif/camif-core.c |  4 +-
- drivers/media/platform/s5p-g2d/g2d.c          |  6 +--
- drivers/media/platform/s5p-jpeg/jpeg-core.c   | 10 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |  6 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c  |  6 +--
- drivers/media/platform/sh_veu.c               |  9 ++--
- drivers/media/platform/sh_vou.c               | 10 ++--
- .../soc_camera/sh_mobile_ceu_camera.c         |  6 +--
- .../media/platform/soc_camera/soc_camera.c    |  8 +--
- .../platform/soc_camera/soc_camera_platform.c |  2 +-
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c |  4 +-
- drivers/media/platform/sti/delta/delta-v4l2.c |  4 +-
- drivers/media/platform/sti/hva/hva-v4l2.c     |  4 +-
- drivers/media/platform/stm32/stm32-dcmi.c     | 10 ++--
- drivers/media/platform/ti-vpe/cal.c           |  6 +--
- drivers/media/platform/ti-vpe/vpe.c           |  6 +--
- drivers/media/platform/via-camera.c           | 10 ++--
- drivers/media/platform/vicodec/vicodec-core.c | 10 ++--
- drivers/media/platform/vim2m.c                |  6 +--
- drivers/media/platform/vimc/vimc-capture.c    |  6 +--
- drivers/media/platform/vimc/vimc-common.c     |  2 +-
- drivers/media/platform/vimc/vimc-core.c       |  4 +-
- drivers/media/platform/vivid/vivid-cec.c      |  4 +-
- drivers/media/platform/vivid/vivid-core.c     |  4 +-
- drivers/media/platform/vivid/vivid-osd.c      |  2 +-
- .../media/platform/vivid/vivid-radio-common.c |  4 +-
- drivers/media/platform/vivid/vivid-radio-rx.c |  2 +-
- drivers/media/platform/vivid/vivid-radio-tx.c |  2 +-
- drivers/media/platform/vivid/vivid-rds-gen.c  |  4 +-
- drivers/media/platform/vivid/vivid-sdr-cap.c  |  4 +-
- drivers/media/platform/vivid/vivid-vid-cap.c  |  2 +-
- drivers/media/platform/vsp1/vsp1_drv.c        |  2 +-
- drivers/media/platform/vsp1/vsp1_histo.c      |  4 +-
- drivers/media/platform/vsp1/vsp1_video.c      |  4 +-
- drivers/media/platform/xilinx/xilinx-dma.c    |  6 +--
- drivers/media/platform/xilinx/xilinx-tpg.c    |  2 +-
- drivers/media/platform/xilinx/xilinx-vipp.c   |  2 +-
- drivers/media/radio/dsbr100.c                 |  9 ++--
- drivers/media/radio/radio-cadet.c             | 12 ++---
- drivers/media/radio/radio-isa.c               | 10 ++--
- drivers/media/radio/radio-keene.c             |  8 +--
- drivers/media/radio/radio-ma901.c             |  8 +--
- drivers/media/radio/radio-maxiradio.c         |  2 +-
- drivers/media/radio/radio-miropcm20.c         | 10 ++--
- drivers/media/radio/radio-mr800.c             |  8 +--
- drivers/media/radio/radio-raremono.c          |  8 +--
- drivers/media/radio/radio-sf16fmi.c           | 12 ++---
- drivers/media/radio/radio-sf16fmr2.c          |  6 +--
- drivers/media/radio/radio-shark.c             |  2 +-
- drivers/media/radio/radio-shark2.c            |  2 +-
- drivers/media/radio/radio-si476x.c            | 12 ++---
- drivers/media/radio/radio-tea5764.c           |  6 +--
- drivers/media/radio/radio-tea5777.c           | 12 ++---
- drivers/media/radio/radio-timb.c              |  8 +--
- drivers/media/radio/radio-wl1273.c            | 12 ++---
- .../media/radio/si470x/radio-si470x-common.c  |  2 +-
- drivers/media/radio/si470x/radio-si470x-i2c.c |  4 +-
- drivers/media/radio/si470x/radio-si470x-usb.c |  4 +-
- .../radio/si4713/radio-platform-si4713.c      |  6 +--
- drivers/media/radio/si4713/radio-usb-si4713.c |  6 +--
- drivers/media/radio/si4713/si4713.c           |  2 +-
- drivers/media/radio/tea575x.c                 | 10 ++--
- drivers/media/radio/tef6862.c                 |  2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c       | 13 ++---
- drivers/media/rc/ati_remote.c                 |  2 +-
- drivers/media/rc/imon.c                       |  4 +-
- drivers/media/rc/mceusb.c                     |  2 +-
- drivers/media/rc/streamzap.c                  |  2 +-
- drivers/media/tuners/e4000.c                  |  2 +-
- drivers/media/tuners/fc2580.c                 |  2 +-
- drivers/media/tuners/msi001.c                 |  2 +-
- drivers/media/tuners/mt20xx.c                 |  2 +-
- drivers/media/tuners/tuner-simple.c           |  2 +-
- drivers/media/usb/airspy/airspy.c             | 10 ++--
- drivers/media/usb/au0828/au0828-i2c.c         |  2 +-
- drivers/media/usb/au0828/au0828-video.c       | 22 ++++----
- drivers/media/usb/cpia2/cpia2_v4l.c           | 12 ++---
- drivers/media/usb/cx231xx/cx231xx-417.c       |  2 +-
- drivers/media/usb/cx231xx/cx231xx-audio.c     |  9 ++--
- drivers/media/usb/cx231xx/cx231xx-input.c     |  2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c     | 27 +++++-----
- drivers/media/usb/dvb-usb-v2/af9035.c         |  2 +-
- drivers/media/usb/dvb-usb-v2/anysee.c         |  2 +-
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   |  2 +-
- drivers/media/usb/dvb-usb-v2/gl861.c          |  2 +-
- drivers/media/usb/dvb-usb-v2/lmedm04.c        |  2 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c       | 18 +++----
- drivers/media/usb/dvb-usb-v2/zd1301.c         |  2 +-
- drivers/media/usb/dvb-usb/cxusb.c             |  4 +-
- drivers/media/usb/dvb-usb/dib0700_devices.c   |  4 +-
- drivers/media/usb/dvb-usb/dvb-usb-i2c.c       |  2 +-
- drivers/media/usb/dvb-usb/dw2102.c            |  4 +-
- drivers/media/usb/dvb-usb/technisat-usb2.c    |  5 +-
- drivers/media/usb/em28xx/em28xx-audio.c       |  8 +--
- drivers/media/usb/em28xx/em28xx-i2c.c         |  3 +-
- drivers/media/usb/em28xx/em28xx-video.c       | 32 +++++------
- drivers/media/usb/go7007/go7007-driver.c      |  2 +-
- drivers/media/usb/go7007/go7007-usb.c         | 16 +++---
- drivers/media/usb/go7007/go7007-v4l2.c        | 18 +++----
- drivers/media/usb/go7007/snd-go7007.c         |  8 +--
- drivers/media/usb/gspca/gspca.c               | 10 ++--
- drivers/media/usb/gspca/sn9c20x.c             |  2 +-
- drivers/media/usb/hackrf/hackrf.c             | 12 ++---
- drivers/media/usb/hdpvr/hdpvr-video.c         | 18 +++----
- drivers/media/usb/msi2500/msi2500.c           |  8 +--
- drivers/media/usb/pulse8-cec/pulse8-cec.c     |  7 +--
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c       |  2 +-
- drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c  |  6 +--
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      | 14 ++---
- drivers/media/usb/pwc/pwc-if.c                |  2 +-
- drivers/media/usb/pwc/pwc-v4l.c               | 12 +++--
- .../media/usb/rainshadow-cec/rainshadow-cec.c |  3 +-
- drivers/media/usb/s2255/s2255drv.c            | 10 ++--
- drivers/media/usb/stk1160/stk1160-i2c.c       |  2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c       |  6 +--
- drivers/media/usb/stkwebcam/stk-webcam.c      | 21 +++++---
- drivers/media/usb/tm6000/tm6000-alsa.c        |  6 +--
- drivers/media/usb/tm6000/tm6000-i2c.c         |  4 +-
- drivers/media/usb/tm6000/tm6000-video.c       | 13 ++---
- .../media/usb/ttusb-budget/dvb-ttusb-budget.c |  3 +-
- drivers/media/usb/usbtv/usbtv-audio.c         |  6 +--
- drivers/media/usb/usbtv/usbtv-video.c         | 14 ++---
- drivers/media/usb/usbvision/usbvision-video.c | 29 +++++-----
- drivers/media/usb/uvc/uvc_ctrl.c              |  4 +-
- drivers/media/usb/uvc/uvc_driver.c            | 22 ++++----
- drivers/media/usb/uvc/uvc_entity.c            |  2 +-
- drivers/media/usb/uvc/uvc_metadata.c          |  4 +-
- drivers/media/usb/uvc/uvc_v4l2.c              | 10 ++--
- drivers/media/usb/zr364xx/zr364xx.c           | 10 ++--
- drivers/media/v4l2-core/v4l2-common.c         |  6 +--
- drivers/media/v4l2-core/v4l2-ctrls.c          |  8 +--
- drivers/media/v4l2-core/v4l2-device.c         |  2 +-
- .../media/v4l2-core/v4l2-flash-led-class.c    |  2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c          |  8 +--
- drivers/media/v4l2-core/v4l2-subdev.c         |  2 +-
- drivers/staging/media/bcm2048/radio-bcm2048.c |  8 +--
- .../staging/media/davinci_vpfe/dm365_ipipe.c  |  2 +-
- .../media/davinci_vpfe/dm365_ipipeif.c        |  2 +-
- .../staging/media/davinci_vpfe/dm365_isif.c   |  2 +-
- .../media/davinci_vpfe/dm365_resizer.c        |  6 +--
- .../media/davinci_vpfe/vpfe_mc_capture.c      |  3 +-
- .../staging/media/davinci_vpfe/vpfe_video.c   |  6 +--
- drivers/staging/media/imx/imx-ic-common.c     |  2 +-
- drivers/staging/media/imx/imx-media-capture.c |  4 +-
- drivers/staging/media/imx/imx-media-dev.c     |  4 +-
- drivers/staging/media/imx/imx-media-vdic.c    |  2 +-
- drivers/staging/media/imx/imx6-mipi-csi2.c    |  2 +-
- drivers/staging/media/omap4iss/iss.c          |  2 +-
- drivers/staging/media/omap4iss/iss_ipipe.c    |  2 +-
- drivers/staging/media/omap4iss/iss_ipipeif.c  |  2 +-
- drivers/staging/media/omap4iss/iss_resizer.c  |  2 +-
- drivers/staging/media/omap4iss/iss_video.c    | 10 ++--
- drivers/staging/media/zoran/zoran_card.c      |  7 +--
- drivers/staging/media/zoran/zoran_driver.c    | 14 ++---
- 321 files changed, 977 insertions(+), 927 deletions(-)
+[snip]
+
+> diff --git a/include/uapi/linux/udmabuf.h b/include/uapi/linux/udmabuf.h
+> new file mode 100644
+> index 0000000000..46b6532ed8
+> --- /dev/null
+> +++ b/include/uapi/linux/udmabuf.h
+> @@ -0,0 +1,33 @@
+> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+> +#ifndef _UAPI_LINUX_UDMABUF_H
+> +#define _UAPI_LINUX_UDMABUF_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/ioctl.h>
+> +
+> +#define UDMABUF_FLAGS_CLOEXEC	0x01
+> +
+> +struct udmabuf_create {
+> +	__u32 memfd;
+> +	__u32 flags;
+> +	__u64 offset;
+> +	__u64 size;
+> +};
+> +
+> +struct udmabuf_create_item {
+> +	__u32 memfd;
+> +	__u32 __pad;
+> +	__u64 offset;
+> +	__u64 size;
+> +};
+> +
+> +struct udmabuf_create_list {
+> +	__u32 flags;
+> +	__u32 count;
+> +	struct udmabuf_create_item list[];
+> +};
+> +
+> +#define UDMABUF_CREATE       _IOW('u', 0x42, struct udmabuf_create)
+
+Why do you start at 0x42 if you reserve the 0x40-0x4f range ?
+
+> +#define UDMABUF_CREATE_LIST  _IOW('u', 0x43, struct udmabuf_create_list)
+
+Where's the documentation ? :-)
+
+> +#endif /* _UAPI_LINUX_UDMABUF_H */
+> diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
+> new file mode 100644
+> index 0000000000..8e24204526
+> --- /dev/null
+> +++ b/drivers/dma-buf/udmabuf.c
+> @@ -0,0 +1,287 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/device.h>
+> +#include <linux/kernel.h>
+> +#include <linux/slab.h>
+> +#include <linux/miscdevice.h>
+> +#include <linux/dma-buf.h>
+> +#include <linux/highmem.h>
+> +#include <linux/cred.h>
+> +#include <linux/shmem_fs.h>
+> +#include <linux/memfd.h>
+
+Could you please keep the #include alphabetically sorted ? It helps locating 
+duplicates.
+
+> +#include <uapi/linux/udmabuf.h>
+
+I think you can just #include <linux/udmabuf.h>, no need to use the uapi/ 
+prefix.
+
+> +struct udmabuf {
+> +	u32 pagecount;
+> +	struct page **pages;
+> +};
+> +
+> +static int udmabuf_vm_fault(struct vm_fault *vmf)
+> +{
+> +	struct vm_area_struct *vma = vmf->vma;
+> +	struct udmabuf *ubuf = vma->vm_private_data;
+> +
+> +	if (WARN_ON(vmf->pgoff >= ubuf->pagecount))
+> +		return VM_FAULT_SIGBUS;
+
+Just curious, when do you expect this to happen ?
+
+> +	vmf->page = ubuf->pages[vmf->pgoff];
+> +	get_page(vmf->page);
+> +	return 0;
+> +}
+> +
+> +static const struct vm_operations_struct udmabuf_vm_ops = {
+> +	.fault = udmabuf_vm_fault,
+> +};
+> +
+> +static int mmap_udmabuf(struct dma_buf *buf, struct vm_area_struct *vma)
+> +{
+> +	struct udmabuf *ubuf = buf->priv;
+> +
+> +	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
+> +		return -EINVAL;
+> +
+> +	vma->vm_ops = &udmabuf_vm_ops;
+> +	vma->vm_private_data = ubuf;
+> +	return 0;
+> +}
+> +
+> +static struct sg_table *map_udmabuf(struct dma_buf_attachment *at,
+> +				    enum dma_data_direction direction)
+> +{
+> +	struct udmabuf *ubuf = at->dmabuf->priv;
+> +	struct sg_table *sg;
+> +
+> +	sg = kzalloc(sizeof(*sg), GFP_KERNEL);
+> +	if (!sg)
+> +		goto err1;
+
+You can return ERR_PTR(-ENOMEM) directly.
+
+> +	if (sg_alloc_table_from_pages(sg, ubuf->pages, ubuf->pagecount,
+> +				      0, ubuf->pagecount << PAGE_SHIFT,
+> +				      GFP_KERNEL) < 0)
+
+Shouldn't you propagate the return value from sg_alloc_table_from_pages() ?
+
+> +		goto err2;
+> +	if (!dma_map_sg(at->dev, sg->sgl, sg->nents, direction))
+> +		goto err3;
+> +
+> +	return sg;
+> +
+> +err3:
+> +	sg_free_table(sg);
+> +err2:
+> +	kfree(sg);
+> +err1:
+> +	return ERR_PTR(-ENOMEM);
+
+You can merge all these labels with
+
+error:
+	if (sg) {
+		sg_free_table(sg);
+		kfree(sg);
+	}
+
+	return ERR_PTR(-ENOMEM);
+
+> +}
+> +
+> +static void unmap_udmabuf(struct dma_buf_attachment *at,
+> +			  struct sg_table *sg,
+> +			  enum dma_data_direction direction)
+> +{
+> +	sg_free_table(sg);
+> +	kfree(sg);
+> +}
+> +
+> +static void release_udmabuf(struct dma_buf *buf)
+> +{
+> +	struct udmabuf *ubuf = buf->priv;
+> +	pgoff_t pg;
+> +
+> +	for (pg = 0; pg < ubuf->pagecount; pg++)
+
+Shouldn't both pg and pagecount have the same type ? Why does the loop counter 
+qualify for a pgoff_t and not the pagecount field ? Granted, the pgoff_t is 
+documented as "The type of an index in the page cache", so pagecount doesn't 
+really quality, but the fact that one is an unsigned long and the other a u32 
+makes me think that something is wrong.
+
+> +		put_page(ubuf->pages[pg]);
+> +	kfree(ubuf->pages);
+> +	kfree(ubuf);
+> +}
+> +
+> +static void *kmap_udmabuf(struct dma_buf *buf, unsigned long page_num)
+> +{
+> +	struct udmabuf *ubuf = buf->priv;
+> +	struct page *page = ubuf->pages[page_num];
+> +
+> +	return kmap(page);
+> +}
+> +
+> +static void kunmap_udmabuf(struct dma_buf *buf, unsigned long page_num,
+> +			   void *vaddr)
+> +{
+> +	kunmap(vaddr);
+> +}
+> +
+> +static struct dma_buf_ops udmabuf_ops = {
+
+static const struct
+
+> +	.map_dma_buf	  = map_udmabuf,
+> +	.unmap_dma_buf	  = unmap_udmabuf,
+> +	.release	  = release_udmabuf,
+> +	.map		  = kmap_udmabuf,
+> +	.unmap		  = kunmap_udmabuf,
+> +	.mmap		  = mmap_udmabuf,
+> +};
+> +
+> +#define SEALS_WANTED (F_SEAL_SHRINK)
+> +#define SEALS_DENIED (F_SEAL_WRITE)
+> +
+> +static long udmabuf_create(struct udmabuf_create_list *head,
+> +			   struct udmabuf_create_item *list)
+
+Those two structures are not modified by the function, you can make them 
+const.
+
+> +{
+> +	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
+> +	struct file *memfd = NULL;
+> +	struct udmabuf *ubuf;
+> +	struct dma_buf *buf;
+> +	pgoff_t pgoff, pgcnt, pgidx, pgbuf;
+> +	struct page *page;
+> +	int seals, ret = -EINVAL;
+> +	u32 i, flags;
+> +
+> +	ubuf = kzalloc(sizeof(struct udmabuf), GFP_KERNEL);
+
+sizeof(*ubuf)
+
+> +	if (!ubuf)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < head->count; i++) {
+> +		if (!IS_ALIGNED(list[i].offset, PAGE_SIZE))
+> +			goto err_free_ubuf;
+> +		if (!IS_ALIGNED(list[i].size, PAGE_SIZE))
+> +			goto err_free_ubuf;
+> +		ubuf->pagecount += list[i].size >> PAGE_SHIFT;
+
+Is there a risk of overflowing pagecount ?
+
+> +	}
+> +	ubuf->pages = kmalloc_array(ubuf->pagecount, sizeof(struct page *),
+> +				    GFP_KERNEL);
+
+sizeof(*ubuf->pages)
+
+> +	if (!ubuf->pages) {
+> +		ret = -ENOMEM;
+> +		goto err_free_ubuf;
+> +	}
+> +
+> +	pgbuf = 0;
+> +	for (i = 0; i < head->count; i++) {
+> +		memfd = fget(list[i].memfd);
+> +		if (!memfd)
+> +			goto err_put_pages;
+> +		if (!shmem_mapping(file_inode(memfd)->i_mapping))
+> +			goto err_put_pages;
+> +		seals = memfd_fcntl(memfd, F_GET_SEALS, 0);
+> +		if (seals == -EINVAL ||
+> +		    (seals & SEALS_WANTED) != SEALS_WANTED ||
+> +		    (seals & SEALS_DENIED) != 0)
+> +			goto err_put_pages;
+
+All these conditions will return -EINVAL. I'm not familiar with the memfd API, 
+should some error conditions return a different error code to make them 
+distinguishable by userspace ?
+
+> +		pgoff = list[i].offset >> PAGE_SHIFT;
+> +		pgcnt = list[i].size   >> PAGE_SHIFT;
+> +		for (pgidx = 0; pgidx < pgcnt; pgidx++) {
+> +			page = shmem_read_mapping_page(
+> +				file_inode(memfd)->i_mapping, pgoff + pgidx);
+
+Can't pgoff + pgcnt overflow the total number of avialble pages ?
+
+> +			if (IS_ERR(page)) {
+> +				ret = PTR_ERR(page);
+> +				goto err_put_pages;
+> +			}
+> +			ubuf->pages[pgbuf++] = page;
+> +		}
+> +		fput(memfd);
+> +	}
+> +	memfd = NULL;
+
+I'd move this line just after fput(memfd) inside the loop to avoid 
+introduction bugs in the future if we add code that can break from the loop 
+before the fget() call.
+
+> +	exp_info.ops  = &udmabuf_ops;
+> +	exp_info.size = ubuf->pagecount << PAGE_SHIFT;
+> +	exp_info.priv = ubuf;
+> +
+> +	buf = dma_buf_export(&exp_info);
+> +	if (IS_ERR(buf)) {
+> +		ret = PTR_ERR(buf);
+> +		goto err_put_pages;
+> +	}
+> +
+> +	flags = 0;
+> +	if (head->flags & UDMABUF_FLAGS_CLOEXEC)
+> +		flags |= O_CLOEXEC;
+> +	return dma_buf_fd(buf, flags);
+> +
+> +err_put_pages:
+> +	while (pgbuf > 0)
+> +		put_page(ubuf->pages[--pgbuf]);
+
+If you initialize pgbuf to 0 you can merge the two error labels.
+
+> +err_free_ubuf:
+> +	fput(memfd);
+> +	kfree(ubuf->pages);
+> +	kfree(ubuf);
+> +	return ret;
+> +}
+> +
+> +static long udmabuf_ioctl_create(struct file *filp, unsigned long arg)
+> +{
+> +	struct udmabuf_create create;
+> +	struct udmabuf_create_list head;
+> +	struct udmabuf_create_item list;
+> +
+> +	if (copy_from_user(&create, (void __user *)arg,
+> +			   sizeof(struct udmabuf_create)))
+
+sizeof(create)
+
+> +		return -EFAULT;
+> +
+> +	head.flags  = create.flags;
+> +	head.count  = 1;
+> +	list.memfd  = create.memfd;
+> +	list.offset = create.offset;
+> +	list.size   = create.size;
+> +
+> +	return udmabuf_create(&head, &list);
+> +}
+> +
+> +static long udmabuf_ioctl_create_list(struct file *filp, unsigned long arg)
+> +{
+> +	struct udmabuf_create_list head;
+> +	struct udmabuf_create_item *list;
+> +	int ret = -EINVAL;
+> +	u32 lsize;
+> +
+> +	if (copy_from_user(&head, (void __user *)arg, sizeof(head)))
+> +		return -EFAULT;
+> +	if (head.count > 1024)
+> +		return -EINVAL;
+> +	lsize = sizeof(struct udmabuf_create_item) * head.count;
+> +	list = memdup_user((void __user *)(arg + sizeof(head)), lsize);
+> +	if (IS_ERR(list))
+> +		return PTR_ERR(list);
+> +
+> +	ret = udmabuf_create(&head, list);
+> +	kfree(list);
+> +	return ret;
+> +}
+> +
+> +static long udmabuf_ioctl(struct file *filp, unsigned int ioctl,
+> +			  unsigned long arg)
+> +{
+> +	long ret;
+> +
+> +	switch (ioctl) {
+> +	case UDMABUF_CREATE:
+> +		ret = udmabuf_ioctl_create(filp, arg);
+> +		break;
+> +	case UDMABUF_CREATE_LIST:
+> +		ret = udmabuf_ioctl_create_list(filp, arg);
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+
+The proper error code for invalid ioctls is -ENOTTY.
+
+> +		break;
+> +	}
+> +	return ret;
+> +}
+> +
+> +static const struct file_operations udmabuf_fops = {
+> +	.owner		= THIS_MODULE,
+> +	.unlocked_ioctl = udmabuf_ioctl,
+> +};
+> +
+> +static struct miscdevice udmabuf_misc = {
+> +	.minor          = MISC_DYNAMIC_MINOR,
+> +	.name           = "udmabuf",
+> +	.fops           = &udmabuf_fops,
+> +};
+> +
+> +static int __init udmabuf_dev_init(void)
+> +{
+> +	return misc_register(&udmabuf_misc);
+> +}
+> +
+> +static void __exit udmabuf_dev_exit(void)
+> +{
+> +	misc_deregister(&udmabuf_misc);
+> +}
+> +
+> +module_init(udmabuf_dev_init)
+> +module_exit(udmabuf_dev_exit)
+> +
+> +MODULE_AUTHOR("Gerd Hoffmann <kraxel@redhat.com>");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/tools/testing/selftests/drivers/dma-buf/udmabuf.c
+> b/tools/testing/selftests/drivers/dma-buf/udmabuf.c new file mode 100644
+> index 0000000000..376b1d6730
+> --- /dev/null
+> +++ b/tools/testing/selftests/drivers/dma-buf/udmabuf.c
+> @@ -0,0 +1,96 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +#include <stdio.h>
+> +#include <stdlib.h>
+> +#include <unistd.h>
+> +#include <string.h>
+> +#include <errno.h>
+> +#include <fcntl.h>
+> +#include <malloc.h>
+> +
+> +#include <sys/ioctl.h>
+> +#include <sys/syscall.h>
+> +#include <linux/memfd.h>
+> +#include <linux/udmabuf.h>
+> +
+> +#define TEST_PREFIX	"drivers/dma-buf/udmabuf"
+> +#define NUM_PAGES       4
+> +
+> +static int memfd_create(const char *name, unsigned int flags)
+> +{
+> +	return syscall(__NR_memfd_create, name, flags);
+> +}
+> +
+> +int main(int argc, char *argv[])
+> +{
+> +	struct udmabuf_create create;
+> +	int devfd, memfd, buf, ret;
+> +	off_t size;
+> +	void *mem;
+> +
+> +	devfd = open("/dev/udmabuf", O_RDWR);
+> +	if (devfd < 0) {
+> +		printf("%s: [skip,no-udmabuf]\n", TEST_PREFIX);
+> +		exit(77);
+> +	}
+> +
+> +	memfd = memfd_create("udmabuf-test", MFD_CLOEXEC);
+> +	if (memfd < 0) {
+> +		printf("%s: [skip,no-memfd]\n", TEST_PREFIX);
+> +		exit(77);
+> +	}
+> +
+> +	size = getpagesize() * NUM_PAGES;
+> +	ret = ftruncate(memfd, size);
+> +	if (ret == -1) {
+> +		printf("%s: [FAIL,memfd-truncate]\n", TEST_PREFIX);
+> +		exit(1);
+> +	}
+> +
+> +	memset(&create, 0, sizeof(create));
+> +
+> +	/* should fail (offset not page aligned) */
+> +	create.memfd  = memfd;
+> +	create.offset = getpagesize()/2;
+> +	create.size   = getpagesize();
+> +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
+> +	if (buf >= 0) {
+> +		printf("%s: [FAIL,test-1]\n", TEST_PREFIX);
+> +		exit(1);
+> +	}
+> +
+> +	/* should fail (size not multiple of page) */
+> +	create.memfd  = memfd;
+> +	create.offset = 0;
+> +	create.size   = getpagesize()/2;
+> +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
+> +	if (buf >= 0) {
+> +		printf("%s: [FAIL,test-2]\n", TEST_PREFIX);
+> +		exit(1);
+> +	}
+> +
+> +	/* should fail (not memfd) */
+> +	create.memfd  = 0; /* stdin */
+> +	create.offset = 0;
+> +	create.size   = size;
+> +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
+> +	if (buf >= 0) {
+> +		printf("%s: [FAIL,test-3]\n", TEST_PREFIX);
+> +		exit(1);
+> +	}
+> +
+> +	/* should work */
+> +	create.memfd  = memfd;
+> +	create.offset = 0;
+> +	create.size   = size;
+> +	buf = ioctl(devfd, UDMABUF_CREATE, &create);
+> +	if (buf < 0) {
+> +		printf("%s: [FAIL,test-4]\n", TEST_PREFIX);
+> +		exit(1);
+> +	}
+> +
+> +	fprintf(stderr, "%s: ok\n", TEST_PREFIX);
+> +	close(buf);
+> +	close(memfd);
+> +	close(devfd);
+> +	return 0;
+> +}
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a5b256b259..11a9b04277 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -14934,6 +14934,14 @@ S:	Maintained
+>  F:	Documentation/filesystems/udf.txt
+>  F:	fs/udf/
+> 
+> +UDMABUF DRIVER
+> +M:	Gerd Hoffmann <kraxel@redhat.com>
+> +L:	dri-devel@lists.freedesktop.org
+> +S:	Maintained
+> +F:	drivers/dma-buf/udmabuf.c
+> +F:	include/uapi/linux/udmabuf.h
+> +F:	tools/testing/selftests/drivers/dma-buf/udmabuf.c
+> +
+>  UDRAW TABLET
+>  M:	Bastien Nocera <hadess@hadess.net>
+>  L:	linux-input@vger.kernel.org
+> @@ -15343,6 +15351,14 @@ F:	arch/x86/um/
+>  F:	fs/hostfs/
+>  F:	fs/hppfs/
+> 
+> +USERSPACE DMA BUFFER DRIVER
+> +M:	Gerd Hoffmann <kraxel@redhat.com>
+> +S:	Maintained
+> +L:	dri-devel@lists.freedesktop.org
+> +F:	drivers/dma-buf/udmabuf.c
+> +F:	include/uapi/linux/udmabuf.h
+> +T:	git git://anongit.freedesktop.org/drm/drm-misc
+
+One entry should be enough.
+
+>  USERSPACE I/O (UIO)
+>  M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>  S:	Maintained
+
+[snip]
 
 -- 
-2.17.1
+Regards,
+
+Laurent Pinchart
