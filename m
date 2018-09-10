@@ -1,127 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:11302 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728466AbeIJUJ1 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50304 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727714AbeIJURl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 16:09:27 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-CC: jacopo mondi <jacopo@jmondi.org>,
-        "akinobu.mita@gmail.com" <akinobu.mita@gmail.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        "Sakari Ailus" <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
-Date: Mon, 10 Sep 2018 15:14:45 +0000
-Message-ID: <5702b9be-8e56-65c5-86f0-acc1c8999cc2@st.com>
-References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
- <20180816101023.GA19047@w540> <3ad25a94-3de0-1a9a-ff02-30d3d282b363@st.com>
- <2363168.XP4MAGOgOS@avalon>
-In-Reply-To: <2363168.XP4MAGOgOS@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <2AD31680EC577A41BF76D1036B90787D@st.com>
-Content-Transfer-Encoding: base64
+        Mon, 10 Sep 2018 16:17:41 -0400
+Subject: Re: [PATCH 1/2] vicodec: Drop unneeded symbol dependency
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+References: <20180910152154.14291-1-ezequiel@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <09c8a682-209a-e325-cc56-1224773eab61@xs4all.nl>
+Date: Mon, 10 Sep 2018 17:23:01 +0200
 MIME-Version: 1.0
+In-Reply-To: <20180910152154.14291-1-ezequiel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTGF1cmVudCwgU3RldmUsDQoNCk9uIDA5LzA3LzIwMTggMDQ6MTggUE0sIExhdXJlbnQgUGlu
-Y2hhcnQgd3JvdGU6DQo+IEhlbGxvIEh1Z3VlcywNCj4gDQo+IE9uIFRodXJzZGF5LCAxNiBBdWd1
-c3QgMjAxOCAxODowNzo1NCBFRVNUIEh1Z3VlcyBGUlVDSEVUIHdyb3RlOg0KPj4gT24gMDgvMTYv
-MjAxOCAxMjoxMCBQTSwgamFjb3BvIG1vbmRpIHdyb3RlOg0KPj4+IE9uIE1vbiwgQXVnIDEzLCAy
-MDE4IGF0IDEyOjE5OjQ2UE0gKzAyMDAsIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4+DQo+Pj4+
-IE1vZGUgc2V0dGluZyBkZXBlbmRzIG9uIGxhc3QgbW9kZSBzZXQsIGluIHBhcnRpY3VsYXINCj4+
-Pj4gYmVjYXVzZSBvZiBleHBvc3VyZSBjYWxjdWxhdGlvbiB3aGVuIGRvd25zY2FsZSBtb2RlDQo+
-Pj4+IGNoYW5nZSBiZXR3ZWVuIHN1YnNhbXBsaW5nIGFuZCBzY2FsaW5nLg0KPj4+PiBBdCBzdHJl
-YW0gb24gdGhlIGxhc3QgbW9kZSB3YXMgd3JvbmdseSBzZXQgdG8gY3VycmVudCBtb2RlLA0KPj4+
-PiBzbyBubyBjaGFuZ2Ugd2FzIGRldGVjdGVkIGFuZCBleHBvc3VyZSBjYWxjdWxhdGlvbg0KPj4+
-PiB3YXMgbm90IG1hZGUsIGZpeCB0aGlzLg0KPj4+DQo+Pj4gSSBhY3R1YWxseSBzZWUgYSBkaWZm
-ZXJlbnQgaXNzdWUgaGVyZS4uLg0KPj4NCj4+IFdoaWNoIHByb2JsZW0gZG8geW91IGhhdmUgZXhh
-Y3RseSwgeW91IGdvdCBhIFZHQSBKUEVHIGluc3RlYWQgb2YgYSBRVkdBDQo+PiBZVVlWID8NCj4+
-DQo+Pj4gVGhlIGlzc3VlIEkgc2VlIGhlcmUgZGVwZW5kcyBvbiB0aGUgZm9ybWF0IHByb2dyYW1t
-ZWQgdGhyb3VnaA0KPj4+IHNldF9mbXQoKSBuZXZlciBiZWluZyBhcHBsaWVkIHdoZW4gdXNpbmcg
-dGhlIHNlbnNvciB3aXRoIGEgbWVkaWENCj4+PiBjb250cm9sbGVyIGVxdWlwcGVkIGRldmljZSAo
-aW4gdGhpcyBjYXNlIGFuIGkuTVg2IGJvYXJkKSB0aHJvdWdoDQo+Pj4gY2FwdHVyZSBzZXNzaW9u
-cywgYW5kIHRoZSBub3QgcHJvcGVybHkgY2FsY3VsYXRlZCBleHBvc3VyZSB5b3Ugc2VlIG1heQ0K
-Pj4+IGJlIGEgY29uc2VxdWVuY2Ugb2YgdGhpcy4NCj4+Pg0KPj4+IEknbGwgdHJ5IHRvIHdyaXRl
-IGRvd24gd2hhdCBJIHNlZSwgd2l0aCB0aGUgaGVscCBvZiBzb21lIGRlYnVnIG91dHB1dC4NCj4+
-Pg0KPj4+IC0gQXQgcHJvYmUgdGltZSBtb2RlIDY0MHg0NjBAMzAgaXMgcHJvZ3JhbW1lZDoNCj4+
-Pg0KPj4+ICAgICBbICAgIDEuNjUxMjE2XSBvdjU2NDBfcHJvYmU6IEluaXRpYWwgbW9kZSB3aXRo
-IGlkOiAyDQo+Pj4NCj4+PiAtIEkgc2V0IHRoZSBmb3JtYXQgb24gdGhlIHNlbnNvcidzIHBhZCBh
-bmQgaXQgZ2V0cyBub3QgYXBwbGllZCBidXQNCj4+PiAgICAgbWFya2VkIGFzIHBlbmRpbmcgYXMg
-dGhlIHNlbnNvciBpcyBwb3dlcmVkIG9mZjoNCj4+Pg0KPj4+ICAgICAjbWVkaWEtY3RsIC0tc2V0
-LXY0bDIgIidvdjU2NDAgMi0wMDNjJzowW2ZtdDpVWVZZMlg4LzMyMHgyNDANCj4+PiAgICAgZmll
-bGQ6bm9uZV0iDQo+Pj4gICAgICBbICAgNjUuNjExOTgzXSBvdjU2NDBfc2V0X2ZtdDogTkVXIG1v
-ZGUgd2l0aCBpZDogMSAtIFBFTkRJTkcNCj4+DQo+PiBTbyBoZXJlIHNlbnNvci0+Y3VycmVudF9t
-b2RlIGlzIHNldCB0byA8MT47Ly9RVkdBDQo+PiBhbmQgc2Vuc29yLT5wZW5kaW5nX21vZGVfY2hh
-bmdlIGlzIHNldCB0byB0cnVlOw0KPj4NCj4+PiAtIEkgc3RhcnQgc3RyZWFtaW5nIHdpdGggeWF2
-dGEsIGFuZCB0aGUgc2Vuc29yIHJlY2VpdmVzIGEgcG93ZXIgb247DQo+Pj4gICAgIHRoaXMgY2F1
-c2VzIHRoZSAnaW5pdGlhbCcgZm9ybWF0IHRvIGJlIHJlLXByb2dyYW1tZWQgYW5kIHRoZSBwZW5k
-aW5nDQo+Pj4gICAgIGNoYW5nZSB0byBiZSBpZ25vcmVkOg0KPj4+DQo+Pj4gICAgICN5YXZ0YSAt
-YzEwIC1uNCAtZiBZVVlWIC1zICQzMjB4MjQwICAtRiIuLi9mcmFtZS0jLnl1diIgL2Rldi92aWRl
-bzQNCj4+PiAgICAgDQo+Pj4gICAgICBbICAgNjkuMzk1MDE4XSBvdjU2NDBfc2V0X3Bvd2VyOjE4
-MDUgLSBvbg0KPj4+ICAgICAgWyAgIDY5LjQzMTM0Ml0gb3Y1NjQwX3Jlc3RvcmVfbW9kZToxNzEx
-DQo+Pj4gICAgICBbICAgNjkuOTk2ODgyXSBvdjU2NDBfc2V0X21vZGU6IEFwcGx5IG1vZGUgd2l0
-aCBpZDogMA0KPj4+DQo+Pj4gICAgIFRoZSAnb3Y1NjQwX3NldF9tb2RlKCknIGNhbGwgZnJvbSAn
-b3Y1NjQwX3Jlc3RvcmVfbW9kZSgpJyBjbGVhcnMgdGhlDQo+Pj4gICAgIHNlbnNvci0+cGVuZGlu
-ZyBmbGFnLCBkaXNjYXJkaW5nIHRoZSBuZXdseSByZXF1ZXN0ZWQgZm9ybWF0LCBmb3INCj4+PiAg
-ICAgdGhpcyByZWFzb24sIGF0IHNfc3RyZWFtKCkgdGltZSwgdGhlIHBlbmRpbmcgZmxhZyBpcyBu
-b3Qgc2V0DQo+Pj4gICAgIGFueW1vcmUuDQo+Pg0KPj4gT0sgYnV0IGJlZm9yZSBjbGVhcmluZyBz
-ZW5zb3ItPnBlbmRpbmdfbW9kZV9jaGFuZ2UsIHNldF9tb2RlKCkgaXMNCj4+IGxvYWRpbmcgcmVn
-aXN0ZXJzIGNvcnJlc3BvbmRpbmcgdG8gc2Vuc29yLT5jdXJyZW50X21vZGU6DQo+PiBzdGF0aWMg
-aW50IG92NTY0MF9zZXRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLA0KPj4gCQkJICAg
-Y29uc3Qgc3RydWN0IG92NTY0MF9tb2RlX2luZm8gKm9yaWdfbW9kZSkNCj4+IHsNCj4+ID09Pglj
-b25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqbW9kZSA9IHNlbnNvci0+Y3VycmVudF9tb2Rl
-Ow0KPj4gLi4uDQo+PiAJcmV0ID0gb3Y1NjQwX3NldF9tb2RlX2RpcmVjdChzZW5zb3IsIG1vZGUs
-IGV4cG9zdXJlKTsNCj4+DQo+PiA9PiBzbyBtb2RlIDwxPiBpcyBleHBlY3RlZCB0byBiZSBzZXQg
-bm93LCBzbyBJIGRvbid0IHVuZGVyc3RhbmQgeW91ciB0cmFjZToNCj4+ICI+ICAgICBbICAgNjku
-OTk2ODgyXSBvdjU2NDBfc2V0X21vZGU6IEFwcGx5IG1vZGUgd2l0aCBpZDogMCINCj4+IFdoaWNo
-IHZhcmlhYmxlIGRvIHlvdSB0cmFjZSB0aGF0IHNob3dzICIwIiA/DQo+Pg0KPj4+IEFyZSB5b3Ug
-dXNpbmcgYSBtZWRpYS1jb250cm9sbGVyIHN5c3RlbT8gSSBzdXNwZWN0IGluIG5vbi1tYyBjYXNl
-cywNCj4+PiB0aGUgc2V0X2ZtdCBpcyBhcHBsaWVkIHRocm91Z2ggYSBzaW5nbGUgcG93ZXJfb24v
-cG93ZXJfb2ZmIHNlc3Npb24sIG5vdA0KPj4+IGNhdXNpbmcgdGhlICdyZXN0b3JlX21vZGUoKScg
-aXNzdWUuIElzIHRoaXMgdGhlIGNhc2UgZm9yIHlvdSBvciB5b3VyDQo+Pj4gaXNzdWUgaXMgZGlm
-ZmVybnQ/DQo+Pj4NCj4+PiBFZGl0Og0KPj4+IE1pdGEtc2FuIHRyaWVkIHRvIGFkZHJlc3MgdGhl
-IGlzc3VlIG9mIHRoZSBvdXRwdXQgcGl4ZWwgZm9ybWF0IG5vdA0KPj4+IGJlaW5nIHJlc3RvcmVk
-IHdoZW4gdGhlIGltYWdlIGZvcm1hdCB3YXMgcmVzdG9yZWQgaW4NCj4+PiAxOWFkMjZmOWU2ZTEg
-KCJtZWRpYTogb3Y1NjQwOiBhZGQgbWlzc2luZyBvdXRwdXQgcGl4ZWwgZm9ybWF0IHNldHRpbmci
-KQ0KPj4+DQo+Pj4gSSB1bmRlcnN0YW5kIHRoZSBpc3N1ZSBoZSB0cmllZCB0byBmaXgsIGJ1dCBz
-aG91bGRuJ3QgdGhlIHBlbmRpbmcNCj4+PiBmb3JtYXQgKGlmIGFueSkgYmUgYXBwbGllZCBpbnN0
-ZWFkIG9mIHRoZSBpbml0aWFsIG9uZSB1bmNvbmRpdGlvbmFsbHk/DQo+Pg0KPj4gVGhpcyBpcyB3
-aGF0IGRvZXMgdGhlIG92NTY0MF9yZXN0b3JlX21vZGUoKSwgc2V0IHRoZSBjdXJyZW50IG1vZGUN
-Cj4+IChzZW5zb3ItPmN1cnJlbnRfbW9kZSksIHRoYXQgaXMgZG9uZSB0aHJvdWdoIHRoaXMgbGlu
-ZToNCj4+IAkvKiBub3cgcmVzdG9yZSB0aGUgbGFzdCBjYXB0dXJlIG1vZGUgKi8NCj4+IAlyZXQg
-PSBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCAmb3Y1NjQwX21vZGVfaW5pdF9kYXRhKTsNCj4+ID0+
-IG5vdGUgdGhhdCB0aGUgY29tbWVudCBhYm92ZSBpcyB3ZWlyZCwgaW4gZmFjdCBpdCBpcyB0aGUg
-ImN1cnJlbnQiDQo+PiBtb2RlIHRoYXQgaXMgc2V0Lg0KPj4gPT4gbm90ZSBhbHNvIHRoYXQgdGhl
-IDJuZCBwYXJhbWV0ZXIgaXMgbm90IHRoZSBtb2RlIHRvIGJlIHNldCBidXQgdGhlDQo+PiBwcmV2
-aW91c2x5IGFwcGxpZWQgbW9kZSAhIChpZSBsb2FkZWQgaW4gb3Y1NjQwIHJlZ2lzdGVycykuIFRo
-aXMgaXMgdXNlZA0KPj4gdG8gZGVjaWRlIGlmIHdlIGhhdmUgdG8gZ28gdG8gdGhlICJzZXRfbW9k
-ZV9leHBvc3VyZV9jYWxjIiBvcg0KPj4gInNldF9tb2RlX2RpcmVjdCIuDQo+Pg0KPj4gdGhlIG92
-NTY0MF9yZXN0b3JlX21vZGUoKSBhbHNvIHNldCB0aGUgY3VycmVudCBwaXhlbCBmb3JtYXQNCj4+
-IChzZW5zb3ItPmZtdCksIHRoYXQgaXMgZG9uZSB0aHJvdWdoIHRoaXMgbGluZToNCj4+IAlyZXR1
-cm4gb3Y1NjQwX3NldF9mcmFtZWZtdChzZW5zb3IsICZzZW5zb3ItPmZtdCk7DQo+PiA9PT4gVGhp
-cyBpcyB3aGF0IGhhdmUgZml4ZWQgTWl0YS1zYW4sIHRoaXMgbGluZSB3YXMgbWlzc2luZyBwcmV2
-aW91c2x5LA0KPj4gbGVhZGluZyB0byAibW9kZSByZWdpc3RlcnMiIGJlaW5nIGxvYWRlZCBidXQg
-bm90IHRoZSAicGl4ZWwgZm9ybWF0DQo+PiByZWdpc3RlcnMiLg0KPiANCj4gVGhpcyBzZWVtcyBv
-dmVybHkgY29tcGxpY2F0ZWQgdG8gbWUuIFdoeSBkbyB3ZSBoYXZlIHRvIHNldCB0aGUgbW9kZSBh
-dCBwb3dlcg0KPiBvbiB0aW1lIGF0IGFsbCwgd2h5IGNhbid0IHdlIGRvIGl0IGF0IHN0cmVhbSBv
-biB0aW1lIG9ubHksIGFuZCBzaW1wbGlmeSBhbGwNCj4gdGhpcyBsb2dpYyA/DQo+IA0KDQpJJ20g
-bm90IHRoZSBhdXRob3Igb2YgdGhpcyBkcml2ZXIsIFN0ZXZlIGRvIHlvdSBrbm93IHRoZSBvcmln
-aW4gYW5kIHRoZSANCmdhaW4gdG8gZG8gc28gPw0KQW55d2F5LCBJIHdvdWxkIHByZWZlciB0aGF0
-IHdlIHN0YWJpbGl6ZSBjdXJyZW50bHkgZXhpc3RpbmcgY29kZSBiZWZvcmUgDQpnb2luZyB0byBs
-YXJnZXIgY2hhbmdlcy4NCg0KPj4gUFM6IFRoZXJlIGFyZSB0d28gb3RoZXIgInNldCBtb2RlIiBy
-ZWxhdGVkIGNoYW5nZXMgdGhhdCBhcmUgcmVsYXRlZCB0bw0KPj4gdGhpczoNCj4+IDEpIDY5NDlk
-ODY0Nzc2ZSAoIm1lZGlhOiBvdjU2NDA6IGRvIG5vdCBjaGFuZ2UgbW9kZSBpZiBmb3JtYXQgb3IN
-Cj4+IGZyYW1lIGludGVydmFsIGlzIHVuY2hhbmdlZCIpDQo+PiA9PiB0aGlzIGlzIG1lcmdlZCBp
-biBtZWRpYSBtYXN0ZXIsIHVuZm9ydHVuYXRlbHkgSSd2ZSBpbnRyb2R1Y2VkIGENCj4+IHJlZ3Jl
-c3Npb24gb24gInBpeGVsIGZvcm1hdCIgc2lkZSB0aGF0IEkndmUgZml4ZWQgaW4gdGhpcyBwYXRj
-aHNldCA6DQo+PiAyKSBodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZn
-ZXIua2VybmVsLm9yZy9tc2cxMzQ0MTMuaHRtbA0KPj4gU3ltcHRvbSB3YXMgYSBub2lzeSBpbWFn
-ZSB3aGVuIGNhcHR1cmluZyBRVkdBIFlVViAoaW4gZmFjdCBjYXB0dXJlZCBhcw0KPj4gSlBFRyBk
-YXRhKS4NCj4gDQo+IFtzbmlwXQ0KPiANCkJSIEh1Z3Vlcy4=
+On 09/10/2018 05:21 PM, Ezequiel Garcia wrote:
+> The vicodec doesn't use the Subdev API, so drop the dependency.
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  drivers/media/platform/vicodec/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vicodec/Kconfig b/drivers/media/platform/vicodec/Kconfig
+> index 2503bcb1529f..ad13329e3461 100644
+> --- a/drivers/media/platform/vicodec/Kconfig
+> +++ b/drivers/media/platform/vicodec/Kconfig
+> @@ -1,6 +1,6 @@
+>  config VIDEO_VICODEC
+>  	tristate "Virtual Codec Driver"
+> -	depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+
+But it definitely needs the MEDIA_CONTROLLER. That's what it should depend on.
+
+Regards,
+
+	Hans
+
+> +	depends on VIDEO_DEV && VIDEO_V4L2
+>  	select VIDEOBUF2_VMALLOC
+>  	select V4L2_MEM2MEM_DEV
+>  	default n
+> 
