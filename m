@@ -1,41 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:60924 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727649AbeIJRcy (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:53504 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727796AbeIJRmP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 13:32:54 -0400
-Date: Mon, 10 Sep 2018 14:38:56 +0200
-From: Simon Horman <horms@verge.net.au>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] media: dt-bindings: adv748x: Fix decimal unit
- addresses
-Message-ID: <20180910123855.q3uuunzprbjlywg6@verge.net.au>
-References: <20180905132409.14456-1-geert+renesas@glider.be>
+        Mon, 10 Sep 2018 13:42:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Oleksandr Andrushchenko <andr2000@gmail.com>
+Cc: xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        koji.matsuoka.xm@renesas.com,
+        Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: Re: [Xen-devel][PATCH 0/1] cameraif: Add ABI for para-virtualized
+Date: Mon, 10 Sep 2018 15:48:27 +0300
+Message-ID: <9982468.6V2ZCyXi16@avalon>
+In-Reply-To: <20180731093142.3828-1-andr2000@gmail.com>
+References: <20180731093142.3828-1-andr2000@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180905132409.14456-1-geert+renesas@glider.be>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 05, 2018 at 03:24:09PM +0200, Geert Uytterhoeven wrote:
-> With recent dtc and W=1:
-> 
->     Warning (graph_port): video-receiver@70/port@10: graph node unit address error, expected "a"
->     Warning (graph_port): video-receiver@70/port@11: graph node unit address error, expected "b"
-> 
-> Unit addresses are always hexadecimal (without prefix), while the bases
-> of reg property values depend on their prefixes.
-> 
-> Fixes: e69595170b1cad85 ("media: adv748x: Add adv7481, adv7482 bindings")
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi Oleksandr,
 
-Reviewed-by: Simon Horman <horms+renesas@verge.net.au>
+Thank you for the patch.
+
+On Tuesday, 31 July 2018 12:31:41 EEST Oleksandr Andrushchenko wrote:
+> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+> 
+> Hello!
+> 
+> At the moment Xen [1] already supports some virtual multimedia
+> features [2] such as virtual display, sound. It supports keyboards,
+> pointers and multi-touch devices all allowing Xen to be used in
+> automotive appliances, In-Vehicle Infotainment (IVI) systems
+> and many more.
+> 
+> This work adds a new Xen para-virtualized protocol for a virtual
+> camera device which extends multimedia capabilities of Xen even
+> farther: video conferencing, IVI, high definition maps etc.
+> 
+> The initial goal is to support most needed functionality with the
+> final idea to make it possible to extend the protocol if need be:
+> 
+> 1. Provide means for base virtual device configuration:
+>  - pixel formats
+>  - resolutions
+>  - frame rates
+> 2. Support basic camera controls:
+>  - contrast
+>  - brightness
+>  - hue
+>  - saturation
+> 3. Support streaming control
+> 4. Support zero-copying use-cases
+> 
+> I hope that Xen and V4L and other communities could give their
+> valuable feedback on this work, so I can update the protocol
+> to better fit any additional requirements I might have missed.
+
+I'll start with a question : what are the expected use cases ? The ones listed 
+above sound like they would better be solved by passing the corresponding 
+device(s) to the guest.
+
+> [1] https://www.xenproject.org/
+> [2] https://xenbits.xen.org/gitweb/?p=xen.git;a=tree;f=xen/include/public/io
+> 
+> Oleksandr Andrushchenko (1):
+>   cameraif: add ABI for para-virtual camera
+> 
+>  xen/include/public/io/cameraif.h | 981 +++++++++++++++++++++++++++++++
+>  1 file changed, 981 insertions(+)
+>  create mode 100644 xen/include/public/io/cameraif.h
+
+-- 
+Regards,
+
+Laurent Pinchart
