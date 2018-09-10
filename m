@@ -1,77 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:58302 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728043AbeIJUcC (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:51744 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728101AbeIJUqR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 16:32:02 -0400
-Message-ID: <d58b839f60c07bef6e08184de243380550e75171.camel@collabora.com>
-Subject: Re: [PATCH 2/2] vicodec: set state->info before calling the
- encode/decode funcs
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Date: Mon, 10 Sep 2018 12:37:12 -0300
-In-Reply-To: <20180910150040.39265-2-hverkuil@xs4all.nl>
-References: <20180910150040.39265-1-hverkuil@xs4all.nl>
-         <20180910150040.39265-2-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Mon, 10 Sep 2018 16:46:17 -0400
+Subject: Re: [PATCH 1/2] vicodec: Drop unneeded symbol dependency
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org
+References: <20180910152154.14291-1-ezequiel@collabora.com>
+ <09c8a682-209a-e325-cc56-1224773eab61@xs4all.nl>
+ <2fa0428d6e20b3bf511cff3b282a627f6aa42337.camel@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <24e5de88-35b9-74e3-02ce-76967da3f97a@xs4all.nl>
+Date: Mon, 10 Sep 2018 17:51:30 +0200
+MIME-Version: 1.0
+In-Reply-To: <2fa0428d6e20b3bf511cff3b282a627f6aa42337.camel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-09-10 at 17:00 +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 09/10/2018 05:44 PM, Ezequiel Garcia wrote:
+> On Mon, 2018-09-10 at 17:23 +0200, Hans Verkuil wrote:
+>> On 09/10/2018 05:21 PM, Ezequiel Garcia wrote:
+>>> The vicodec doesn't use the Subdev API, so drop the dependency.
+>>>
+>>> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+>>> ---
+>>>  drivers/media/platform/vicodec/Kconfig | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/platform/vicodec/Kconfig b/drivers/media/platform/vicodec/Kconfig
+>>> index 2503bcb1529f..ad13329e3461 100644
+>>> --- a/drivers/media/platform/vicodec/Kconfig
+>>> +++ b/drivers/media/platform/vicodec/Kconfig
+>>> @@ -1,6 +1,6 @@
+>>>  config VIDEO_VICODEC
+>>>  	tristate "Virtual Codec Driver"
+>>> -	depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>>
+>> But it definitely needs the MEDIA_CONTROLLER. That's what it should depend on.
+>>
 > 
-> state->info was NULL since I completely forgot to set state->info.
-> Oops.
+> Does it really? The code have proper ifdefs.
 > 
-> Reported-by: Ezequiel Garcia <ezequiel@collabora.com>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-For both patches:
+You are right, it is not needed now, but will be when stateless codec support
+is added to vicodec in the future.
 
-Tested-by: Ezequiel Garcia <ezequiel@collabora.com>
+Regards,
 
-With these changes, now this gstreamer pipeline no longer
-crashes:
-
-gst-launch-1.0 -v videotestsrc num-buffers=30 ! video/x-raw,width=1280,height=720 ! v4l2fwhtenc capture-io-mode=mmap output-io-mode=mmap ! v4l2fwhtdec
-capture-io-mode=mmap output-io-mode=mmap ! fakesink
-
-A few things:
-
-  * You now need to mark "[PATCH] vicodec: fix sparse warning" as invalid.
-  * v4l2fwhtenc/v4l2fwhtdec elements are not upstream yet.
-  * Gstreamer doesn't end properly; and it seems to negotiate
-    different sizes for encoded and decoded unless explicitly set.
-
-Thanks!
-
->  drivers/media/platform/vicodec/vicodec-core.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-> index fdd77441a47b..5d42a8414283 100644
-> --- a/drivers/media/platform/vicodec/vicodec-core.c
-> +++ b/drivers/media/platform/vicodec/vicodec-core.c
-> @@ -176,12 +176,15 @@ static int device_process(struct vicodec_ctx *ctx,
->  	}
->  
->  	if (ctx->is_enc) {
-> -		unsigned int size = v4l2_fwht_encode(state, p_in, p_out);
-> -
-> -		vb2_set_plane_payload(&out_vb->vb2_buf, 0, size);
-> +		state->info = q_out->info;
-> +		ret = v4l2_fwht_encode(state, p_in, p_out);
-> +		if (ret < 0)
-> +			return ret;
-> +		vb2_set_plane_payload(&out_vb->vb2_buf, 0, ret);
->  	} else {
-> +		state->info = q_cap->info;
->  		ret = v4l2_fwht_decode(state, p_in, p_out);
-> -		if (ret)
-> +		if (ret < 0)
->  			return ret;
->  		vb2_set_plane_payload(&out_vb->vb2_buf, 0, q_cap->sizeimage);
->  	}
+	Hans
