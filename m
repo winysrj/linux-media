@@ -1,91 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf1-f67.google.com ([209.85.167.67]:38966 "EHLO
-        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727269AbeIJR4J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 13:56:09 -0400
-Received: by mail-lf1-f67.google.com with SMTP id v77-v6so17349549lfa.6
-        for <linux-media@vger.kernel.org>; Mon, 10 Sep 2018 06:02:09 -0700 (PDT)
-Subject: Re: [Xen-devel][PATCH 0/1] cameraif: Add ABI for para-virtualized
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>
-Cc: xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+Received: from mail-db5eur01on0077.outbound.protection.outlook.com ([104.47.2.77]:35527
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1728365AbeIJSKa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Sep 2018 14:10:30 -0400
+Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
         jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
         linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
         koji.matsuoka.xm@renesas.com
 References: <20180731093142.3828-1-andr2000@gmail.com>
- <9982468.6V2ZCyXi16@avalon>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <ff1beb4d-7acf-d861-f689-8c9ceb5aadad@gmail.com>
-Date: Mon, 10 Sep 2018 16:02:06 +0300
+ <20180731093142.3828-2-andr2000@gmail.com>
+ <73b69e31-d36d-d89f-20d6-d59dbefe395e@xs4all.nl>
+ <fc78ee17-412f-8a74-ecc8-b8ab55189e1b@gmail.com>
+ <7134b3ad-9fcf-0139-41b3-67a3dbc8224d@xs4all.nl>
+ <51f97715-454a-0242-b381-29944d77d5b5@gmail.com>
+ <3c6bb5c8-eeb4-fd09-407a-5a77b29b56c3@xs4all.nl>
+ <2a39c994-118f-a17e-c40a-f5fbbad1cb03@epam.com>
+ <30d7c91a-4515-157b-fc29-90c2e6f0008b@xs4all.nl>
+ <ae111e1d-4ac2-9e68-a4a5-6513650ae37f@gmail.com>
+ <c980f6b7-ffe1-c5f5-5506-b9fb1a37498b@xs4all.nl>
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Message-ID: <af84eb15-1463-bee8-8266-e4a54761daba@epam.com>
+Date: Mon, 10 Sep 2018 16:16:19 +0300
 MIME-Version: 1.0
-In-Reply-To: <9982468.6V2ZCyXi16@avalon>
+In-Reply-To: <c980f6b7-ffe1-c5f5-5506-b9fb1a37498b@xs4all.nl>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent!
+On 09/10/2018 03:26 PM, Hans Verkuil wrote:
+> On 09/10/2018 01:49 PM, Oleksandr Andrushchenko wrote:
+>> On 09/10/2018 02:09 PM, Hans Verkuil wrote:
+>>> On 09/10/2018 11:52 AM, Oleksandr Andrushchenko wrote:
+>>>> On 09/10/2018 12:04 PM, Hans Verkuil wrote:
+>>>>> On 09/10/2018 10:24 AM, Oleksandr Andrushchenko wrote:
+>>>>>> On 09/10/2018 10:53 AM, Hans Verkuil wrote:
+>>>>>>> Hi Oleksandr,
+>>>>>>>
+>>>>>>> On 09/10/2018 09:16 AM, Oleksandr Andrushchenko wrote:
+>>>>> <snip>
+>>>>>
+>>>>>>>>> I suspect that you likely will want to support such sources eventually, so
+>>>>>>>>> it pays to design this with that in mind.
+>>>>>>>> Again, I think that this is the backend to hide these
+>>>>>>>> use-cases from the frontend.
+>>>>>>> I'm not sure you can: say you are playing a bluray connected to the system
+>>>>>>> with HDMI, then if there is a resolution change, what do you do? You can tear
+>>>>>>> everything down and build it up again, or you can just tell frontends that
+>>>>>>> something changed and that they have to look at the new vcamera configuration.
+>>>>>>>
+>>>>>>> The latter seems to be more sensible to me. It is really not much that you
+>>>>>>> need to do: all you really need is an event signalling that something changed.
+>>>>>>> In V4L2 that's the V4L2_EVENT_SOURCE_CHANGE.
+>>>>>> well, this complicates things a lot as I'll have to
+>>>>>> re-allocate buffers - right?
+>>>>> Right. Different resolutions means different sized buffers and usually lots of
+>>>>> changes throughout the whole video pipeline, which in this case can even
+>>>>> go into multiple VMs.
+>>>>>
+>>>>> One additional thing to keep in mind for the future: V4L2_EVENT_SOURCE_CHANGE
+>>>>> has a flags field that tells userspace what changed. Right now that is just the
+>>>>> resolution, but in the future you can expect flags for cases where just the
+>>>>> colorspace information changes, but not the resolution.
+>>>>>
+>>>>> Which reminds me of two important missing pieces of information in your protocol:
+>>>>>
+>>>>> 1) You need to communicate the colorspace data:
+>>>>>
+>>>>> - colorspace
+>>>>> - xfer_func
+>>>>> - ycbcr_enc/hsv_enc (unlikely you ever want to support HSV pixelformats, so I
+>>>>>      think you can ignore hsv_enc)
+>>>>> - quantization
+>>>>>
+>>>>> See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
+>>>>> and the links to the colorspace sections in the V4L2 spec for details).
+>>>>>
+>>>>> This information is part of the format, it is reported by the driver.
+>>>> I'll take a look and think what can be put and how into the protocol,
+>>>> do you think I'll have to implement all the above for
+>>>> this stage?
+>>> Yes. Without it VMs will have no way of knowing how to reproduce the right colors.
+>>> They don't *have* to use this information, but it should be there. For cameras
+>>> this isn't all that important, for SDTV/HDTV sources this becomes more relevant
+>>> (esp. the quantization and ycbcr_enc information) and for sources with BT.2020/HDR
+>>> formats this is critical.
+>> ok, then I'll add the following to the set_config request/response:
+>>
+>>       uint32_t colorspace;
+>>       uint32_t xfer_func;
+>>       uint32_t ycbcr_enc;
+>>       uint32_t quantization;
+>>
+>> With this respect, I will need to put some OS agnostic constants
+>> into the protocol, so if backend and frontend are not Linux/V4L2
+>> based they can still talk to each other.
+>> I see that V4L2 already defines constants for the above: [1], [2], [3], [4].
+>>
+>> Do you think I can define the same replacing V4L2_ prefix
+>> with XENCAMERA_, e.g. V4L2_XFER_FUNC_SRGB -> XENCAMERA_XFER_FUNC_SRGB?
+> Yes.
+>
+>> Do I need to define all those or there can be some subset of the
+>> above for my simpler use-case?
+> Most of these defines directly map to standards. I would skip the following
+> defines:
+>
+> V4L2_COLORSPACE_DEFAULT (not applicable)
+> V4L2_COLORSPACE_470_SYSTEM_*  (rarely used, if received by the HW the Xen backend
+> 			should map this to V4L2_COLORSPACE_SMPTE170M)
+> V4L2_COLORSPACE_JPEG (historical V4L2 artifact, see here how to map:
+> 	 https://hverkuil.home.xs4all.nl/spec/uapi/v4l/colorspaces-details.html#col-jpeg)
+>
+> V4L2_COLORSPACE_SMPTE240M (rarely used, map to V4L2_COLORSPACE_SMPTE170M if seen in backend)
+>
+> V4L2_XFER_FUNC_SMPTE240M (rarely used, map to V4L2_XFER_FUNC_709)
+>
+> V4L2_YCBCR_ENC_SMPTE240M (rarely used, map to V4L2_YCBCR_ENC_709)
+>
+> While V4L2 allows 0 (DEFAULT) values for xfer_func, ycbcr_enc and quantization, and
+> provides macros to map default values to the actual values (for legacy reasons),
+> the Xen backend should always fill this in explicitly, using those same mapping
+> macros (see e.g. V4L2_MAP_XFER_FUNC_DEFAULT).
+>
+> The V4L2 spec has extensive information on colorspaces (sections 2.14-2.17).
+>
+Thank you for such a detailed explanation!
+I'll define the constants as agreed above.
 
-On 09/10/2018 03:48 PM, Laurent Pinchart wrote:
-> Hi Oleksandr,
+>>> The vivid driver can actually reproduce all combinations, so that's a good driver
+>>> to test this with.
+>> You mean I can use it on backend side instead of real HW camera and
+>> test all the configurations possible/those of interest?
+> Right.
 >
-> Thank you for the patch.
+> Regards,
 >
-> On Tuesday, 31 July 2018 12:31:41 EEST Oleksandr Andrushchenko wrote:
->> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
->>
->> Hello!
->>
->> At the moment Xen [1] already supports some virtual multimedia
->> features [2] such as virtual display, sound. It supports keyboards,
->> pointers and multi-touch devices all allowing Xen to be used in
->> automotive appliances, In-Vehicle Infotainment (IVI) systems
->> and many more.
->>
->> This work adds a new Xen para-virtualized protocol for a virtual
->> camera device which extends multimedia capabilities of Xen even
->> farther: video conferencing, IVI, high definition maps etc.
->>
->> The initial goal is to support most needed functionality with the
->> final idea to make it possible to extend the protocol if need be:
->>
->> 1. Provide means for base virtual device configuration:
->>   - pixel formats
->>   - resolutions
->>   - frame rates
->> 2. Support basic camera controls:
->>   - contrast
->>   - brightness
->>   - hue
->>   - saturation
->> 3. Support streaming control
->> 4. Support zero-copying use-cases
->>
->> I hope that Xen and V4L and other communities could give their
->> valuable feedback on this work, so I can update the protocol
->> to better fit any additional requirements I might have missed.
-> I'll start with a question : what are the expected use cases ?
-The very basic use-case is to share a capture stream produced
-by a single HW camera to multiple VMs for different
-purposes: In-Vehicle Infotainment, high definition maps etc.
-all running in different (dedicated) VMs at the same time
->   The ones listed
-> above sound like they would better be solved by passing the corresponding
-> device(s) to the guest.
-With the above use-case I cannot tell how passing the
-corresponding *single* device can serve *multiple* VMs.
-Could you please elaborate more on the solution you see?
->
->> [1] https://www.xenproject.org/
->> [2] https://xenbits.xen.org/gitweb/?p=xen.git;a=tree;f=xen/include/public/io
->>
->> Oleksandr Andrushchenko (1):
->>    cameraif: add ABI for para-virtual camera
->>
->>   xen/include/public/io/cameraif.h | 981 +++++++++++++++++++++++++++++++
->>   1 file changed, 981 insertions(+)
->>   create mode 100644 xen/include/public/io/cameraif.h
+> 	Hans
+It seems that the number of changes discussed are begging
+for the v2 of the protocol to be published ;)
+
 Thank you,
 Oleksandr
