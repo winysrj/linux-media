@@ -1,97 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f194.google.com ([209.85.219.194]:46855 "EHLO
-        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726024AbeIJI0w (ORCPT
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:35012 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726148AbeIJKwS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 04:26:52 -0400
-Received: by mail-yb1-f194.google.com with SMTP id y20-v6so7416966ybi.13
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2018 20:34:58 -0700 (PDT)
-Received: from mail-yw1-f47.google.com (mail-yw1-f47.google.com. [209.85.161.47])
-        by smtp.gmail.com with ESMTPSA id m82-v6sm6863821ywm.19.2018.09.09.20.34.57
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 09 Sep 2018 20:34:57 -0700 (PDT)
-Received: by mail-yw1-f47.google.com with SMTP id i144-v6so1597928ywc.3
-        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2018 20:34:57 -0700 (PDT)
+        Mon, 10 Sep 2018 06:52:18 -0400
+Received: by mail-lj1-f196.google.com with SMTP id p10-v6so16820395ljg.2
+        for <linux-media@vger.kernel.org>; Sun, 09 Sep 2018 22:59:56 -0700 (PDT)
+Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
+To: Hans Verkuil <hverkuil@xs4all.nl>, Juergen Gross <jgross@suse.com>,
+        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+        boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        koji.matsuoka.xm@renesas.com
+Cc: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>,
+        Artem Mygaiev <Artem_Mygaiev@epam.com>
+References: <20180731093142.3828-1-andr2000@gmail.com>
+ <20180731093142.3828-2-andr2000@gmail.com>
+ <99cd131d-85ae-bbfb-61ef-fdc0401727f6@suse.com>
+ <5505e5af-5b64-b317-a0d8-09c11317926f@gmail.com>
+ <345d7ec3-3ca3-e8fe-28a0-ba299196b5e4@gmail.com>
+ <ecfe2b61-deb8-5c3d-3cf4-706c23b47afc@xs4all.nl>
+ <53189190-ffe0-9795-b01c-01de8db83acb@gmail.com>
+ <641cd785-c5e7-7552-dc4b-35249f1f1985@xs4all.nl>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <de866c33-69ec-8811-a51f-3dcef88033a9@gmail.com>
+Date: Mon, 10 Sep 2018 08:59:53 +0300
 MIME-Version: 1.0
-References: <20180724140621.59624-1-tfiga@chromium.org> <20180724140621.59624-3-tfiga@chromium.org>
- <19062a24c3aa2cb9e0410cf2884b4589e44c263b.camel@collabora.com>
-In-Reply-To: <19062a24c3aa2cb9e0410cf2884b4589e44c263b.camel@collabora.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Mon, 10 Sep 2018 12:34:45 +0900
-Message-ID: <CAAFQd5A2xskpHpm8XqWoNKGt9As53Pft1NO32Ziys+PEJ2fh1A@mail.gmail.com>
-Subject: Re: [PATCH 2/2] media: docs-rst: Document memory-to-memory video
- encoder interface
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
-        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        jtp.park@samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
-        <tiffany.lin@mediatek.com>,
-        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
-        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
-        nicolas@ndufresne.ca,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <641cd785-c5e7-7552-dc4b-35249f1f1985@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 8, 2018 at 5:17 AM Ezequiel Garcia <ezequiel@collabora.com> wrote:
->
-> On Tue, 2018-07-24 at 23:06 +0900, Tomasz Figa wrote:
-[snip]
-> > +Querying capabilities
-> > +=====================
-> > +
-> > +1. To enumerate the set of coded formats supported by the driver, the
-> > +   client may call :c:func:`VIDIOC_ENUM_FMT` on ``CAPTURE``.
-> > +
-> > +   * The driver must always return the full set of supported formats,
-> > +     irrespective of the format set on the ``OUTPUT`` queue.
-> > +
-> > +2. To enumerate the set of supported raw formats, the client may call
-> > +   :c:func:`VIDIOC_ENUM_FMT` on ``OUTPUT``.
-> > +
-> > +   * The driver must return only the formats supported for the format
-> > +     currently active on ``CAPTURE``.
-> > +
->
-> Paul and I where discussing about the default active format on CAPTURE
-> and OUTPUT queues. That is, the format that is active (if any) right
-> after driver probes.
->
-> Currently, the v4l2-compliance tool tests the default active format,
-> by requiring drivers to support:
->
->     fmt = g_fmt()
->     s_fmt(fmt)
->
-> Is this actually required? Should we also require this for stateful
-> and stateless codecs? If yes, should it be documented?
+Hi, Hans!
 
-The general V4L2 principle is that drivers must maintain some sane
-default state right from when they are exposed to the userspace. I'd
-try to stick to the common V4L2 semantics, unless there is a very good
-reason not to do so.
+On 09/09/2018 01:42 PM, Hans Verkuil wrote:
+> On 09/04/2018 08:56 AM, Oleksandr Andrushchenko wrote:
+>> On 09/03/2018 06:25 PM, Hans Verkuil wrote:
+>>> Hi Oleksandr,
+>>>
+>>> On 09/03/2018 12:16 PM, Oleksandr Andrushchenko wrote:
+>>>> On 08/21/2018 08:54 AM, Oleksandr Andrushchenko wrote:
+>>>>> On 08/14/2018 11:30 AM, Juergen Gross wrote:
+>>>>>> On 31/07/18 11:31, Oleksandr Andrushchenko wrote:
+>>>>>>> From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+>>>>>>>
+>>>>>>> This is the ABI for the two halves of a para-virtualized
+>>>>>>> camera driver which extends Xen's reach multimedia capabilities even
+>>>>>>> farther enabling it for video conferencing, In-Vehicle Infotainment,
+>>>>>>> high definition maps etc.
+>>>>>>>
+>>>>>>> The initial goal is to support most needed functionality with the
+>>>>>>> final idea to make it possible to extend the protocol if need be:
+>>>>>>>
+>>>>>>> 1. Provide means for base virtual device configuration:
+>>>>>>>     - pixel formats
+>>>>>>>     - resolutions
+>>>>>>>     - frame rates
+>>>>>>> 2. Support basic camera controls:
+>>>>>>>     - contrast
+>>>>>>>     - brightness
+>>>>>>>     - hue
+>>>>>>>     - saturation
+>>>>>>> 3. Support streaming control
+>>>>>>> 4. Support zero-copying use-cases
+>>>>>>>
+>>>>>>> Signed-off-by: Oleksandr Andrushchenko
+>>>>>>> <oleksandr_andrushchenko@epam.com>
+>>>>>> Some style issues below...
+>>>>> Will fix all the below, thank you!
+>>>>>
+>>>>> I would like to draw some attention of the Linux/V4L community to this
+>>>>> protocol as the plan is that once it is accepted for Xen we plan to
+>>>>> upstream a Linux camera front-end kernel driver which will be based
+>>>>> on this work and will be a V4L2 device driver (this is why I have sent
+>>>>> this patch not only to Xen, but to the corresponding Linux mailing list
+>>>>> as well)
+>>>> ping
+>>> Sorry, this got buried in my mailbox, I only came across it today. I'll try
+>>> to review this this week, if not, just ping me again.
+>> Thank you for your time
+>>> I had one high-level question, though:
+>>>
+>>> What types of hardware do you intend to target? This initial version targets
+>>> (very) simple webcams, but what about HDMI or SDTV receivers? Or hardware
+>>> codecs? Or complex embedded video pipelines?
+>>>
+>>> In other words, where are you planning to draw the line?
+>>>
+>>> Even with just simple cameras there is a difference between regular UVC
+>>> webcams and cameras used with embedded systems: for the latter you often
+>>> need to provide more control w.r.t. white-balancing etc., things that a
+>>> UVC webcam will generally do for you in the webcam's firmware.
+>> The use-cases we want to implement are mostly in automotive/embedded domain,
+>> so there are many performance restrictions apply.
+>> We are not targeting virtualizing very complex hardware and have no
+>> intention
+>> to make a 1:1 mapping of the real hardware: for that one can pass-through
+>> a real HW device to a virtual machine (VM). The goal is to share a single
+>> camera device to multiple virtual machines, no codecs, receivers etc.
+>>
+>> Controlling the same HW device from different VMs doesn't look feasible:
+>> what if the same control is set to different values from different VMs?
+> You can do this, actually: in V4L2 you can get an event when another process
+> changes a control, and update your own GUI/internal state accordingly.
+>
+> So in this case if one VM changes a control, an event is sent to all others
+> that the control has changed value.
+Well, technically this can be done by introducing one more
+event for such a notification. But, from system partitioning
+POV, I am still not convinced this should be done: I would prefer
+that a single VM owns such a control and even which control and which
+VM is decided while configuring the whole system.
+So, I would like to keep it as is.
+>
+>> Of course, this can be achieved if the corresponding backend can
+>> post-process
+>> original camera image with GPU, for example, thus applying different filters
+>> for different VMs effectively emulating camera controls.
+>> But this requires additional CPU/GPU power which we try to avoid.
+>>
+>> System partitioning (camera and controls assignment) is done at
+>> configuration
+>> time (remember we are in automotive/embedded world, so most of the time
+>> the set
+>> of VMs requiring cameras is known at this stage and the configuration
+>> remains
+>> static at run-time). So, when para-virtualized (PV) approach is used then we
+>> only implement very basic controls (those found in the protocol), so one can
+>> assign set of controls (all or some) to one of the VMs (main or mission
+>> critical
+>> VM or whatever) allowing that VM to adjusts those for all VMs at once.
+>> For other
+>> VMs think of it as firmware implemented adjustment. And the backend still
+>> controls the rest of the controls of the real HW camera you mention.
+>>
+>> Just an example of automotive use-case (we can imagine many more):
+>> 1. Driver Domain - owns real camera HW and runs the camera backend.
+>>      Uses camera output for mission critical tasks, e.g. parking assistance.
+>> 2. In-Vehicle Infotainment domain - uses PV camera for infotainment
+>> purposes,
+>>      e.g. taking pictures while in motion.
+>> 3. Navigation domain - uses PV camera for high definition maps
+>>
+>> Hope, this helps understanding the possible uses of the proposed
+>> protocol, its
+>> intention and restrictions.
+> Right, so in this scenario you probably do not want hotpluggable
+> sources in the Driver Domain. So support for fixed camera's only.
+Well, some sort of hotplug can already be implemented, please
+see [1], [2] as it is done for virtual display: this is
+achieved as a response to the backend's state change,
+e.g. whenever backend decides to unplug the virtual device
+it changes its state accordingly.
+>
+> If this is indeed the case, then this should be made very clear in
+> the API specification.
+As I described above this is already assumed by the state
+machine of a xenbus_driver
+> One additional thing to consider: cameras can break. So what should be
+> done if that happens? We as media developers have ideas about that, but
+> nothing has been implemented (yet).
+>
+> If the HW is simple (one camera is driven by a single driver instance),
+> then if it breaks, there simply won't be a video device. But if you have
+> multiple cameras all controlled through the same driver instance, then today
+> if a single camera breaks, all are gone.
+Please see above
+> We have ideas on how to address that, but as I said, nothing is implemented
+> yet. Basically we need to allow for partial bring-up and inform userspace
+> what is and what is not running.
+>
+> But this is likely something you also need to consider in this API, given
+> the use-case you are looking at.
+>
+> Regards,
+>
+> 	Hans
+Thank you for your valuable comments,
+Oleksandr
 
-Note that we actually diverged from it on CAPTURE state for stateful
-decoders, because we return an error, if any format-related ioctl is
-called on CAPTURE queue before OUTPUT queue is initialized with a
-valid coded format, either explicitly by the client or implicitly via
-bitstream parsing. The reason was backwards compatibility with clients
-which don't handle source change events. If that wasn't the case, we
-could have made the CAPTURE queue completely independent and have the
-format there reset with source change event, whenever it becomes
-invalid due to things like resolution change or speculative
-initialization miss, which would make things much more symmetrical.
-
-Best regards,
-Tomasz
+[1] 
+https://elixir.bootlin.com/linux/v4.19-rc3/source/drivers/gpu/drm/xen/xen_drm_front.c#L721
+[2] 
+https://elixir.bootlin.com/linux/v4.19-rc3/source/drivers/gpu/drm/xen/xen_drm_front.c#L582
