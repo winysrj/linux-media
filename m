@@ -1,85 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:44070 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726112AbeIKBKD (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59566 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726121AbeIKBQW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 21:10:03 -0400
-Date: Mon, 10 Sep 2018 17:14:15 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Kees Cook <keescook@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/3] media: replace strcpy() by strscpy()
-Message-ID: <20180910171415.7eac2732@coco.lan>
-In-Reply-To: <20180910164847.3f015458@coco.lan>
-References: <cover.1536581757.git.mchehab+samsung@kernel.org>
-        <ac8f27b58748f6d474ffd141f29536638f793953.1536581758.git.mchehab+samsung@kernel.org>
-        <CAGXu5jKAN6JihMhxz_tMZ6q_Feik3j5RD5QwhuRFmAyiNQJXpA@mail.gmail.com>
-        <20180910164847.3f015458@coco.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 10 Sep 2018 21:16:22 -0400
+Message-ID: <85f9305f4a9d50588b8b4d51ef78727cfa89edc7.camel@collabora.com>
+Subject: Re: [PATCH 2/2] vicodec: set state->info before calling the
+ encode/decode funcs
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Date: Mon, 10 Sep 2018 17:20:26 -0300
+In-Reply-To: <85a5d85cc6fc6bb21dafc78e744c350db25894d2.camel@ndufresne.ca>
+References: <20180910150040.39265-1-hverkuil@xs4all.nl>
+         <20180910150040.39265-2-hverkuil@xs4all.nl>
+         <d58b839f60c07bef6e08184de243380550e75171.camel@collabora.com>
+         <85a5d85cc6fc6bb21dafc78e744c350db25894d2.camel@ndufresne.ca>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 10 Sep 2018 16:48:47 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
-
-> Em Mon, 10 Sep 2018 09:16:35 -0700
-> Kees Cook <keescook@chromium.org> escreveu:
+On Mon, 2018-09-10 at 13:16 -0400, Nicolas Dufresne wrote:
+> Le lundi 10 septembre 2018 à 12:37 -0300, Ezequiel Garcia a écrit :
+> > On Mon, 2018-09-10 at 17:00 +0200, Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > state->info was NULL since I completely forgot to set state->info.
+> > > Oops.
+> > > 
+> > > Reported-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > For both patches:
+> > 
+> > Tested-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > 
+> > With these changes, now this gstreamer pipeline no longer
+> > crashes:
+> > 
+> > gst-launch-1.0 -v videotestsrc num-buffers=30 ! video/x-
+> > raw,width=1280,height=720 ! v4l2fwhtenc capture-io-mode=mmap output-
+> > io-mode=mmap ! v4l2fwhtdec
+> > capture-io-mode=mmap output-io-mode=mmap ! fakesink
+> > 
+> > A few things:
+> > 
+> >   * You now need to mark "[PATCH] vicodec: fix sparse warning" as
+> > invalid.
+> >   * v4l2fwhtenc/v4l2fwhtdec elements are not upstream yet.
+> >   * Gstreamer doesn't end properly; and it seems to negotiate
 > 
-> > On Mon, Sep 10, 2018 at 5:19 AM, Mauro Carvalho Chehab
-> > <mchehab+samsung@kernel.org> wrote:  
-> > > The strcpy() function is being deprecated upstream. Replace
-> > > it by the safer strscpy().    
-> > 
-> > Did you verify that all the destination buffers here are arrays and
-> > not pointers? For example:
-> > 
-> > struct thing {
-> >   char buffer[64];
-> >   char *ptr;
-> > }
-> > 
-> > strscpy(instance->buffer, source, sizeof(instance->buffer));
-> > 
-> > is correct.
-> > 
-> > But:
-> > 
-> > strscpy(instance->ptr, source, sizeof(instance->ptr));
-> > 
-> > will not be and will truncate strings to sizeof(char *).
-> > 
-> > If you _did_ verify this, I'd love to know more about your tooling. :)  
+> Is the driver missing CMD_STOP implementation ? (draining flow)
 > 
-> I ended by implementing a simple tooling to test... it found just
-> one place where it was wrong. I'll send the correct patch.
 
-Btw, at the only case it was trying to fill a pointer was for
-some sysfs fill. AFAIKT, the buffer size there is PAGE_SIZE,
-so, I guess the enclosed patch would be the right way to use
-strscpy().
+I think that's the case.
 
-Yet, IMHO, a better fix would be if the parameters for
-DEVICE_ATTR store field would have a count.
+Gstreamer debug log, right before it stalls:
 
-Thanks,
-Mauro
+0:00:16.929785442   180 0x5593bcbd18a0 DEBUG           v4l2videodec gstv4l2videodec.c:375:gst_v4l2_video_dec_finish:<v4l2fwhtdec0> Finishing decoding
+0:00:16.931866009   180 0x5593bcbd18a0 DEBUG           v4l2videodec gstv4l2videodec.c:340:gst_v4l2_decoder_cmd:<v4l2fwhtdec0> sending v4l2 decoder
+command 1 with flags 0
+0:00:16.934260349   180 0x5593bcbd18a0 DEBUG           v4l2videodec gstv4l2videodec.c:384:gst_v4l2_video_dec_finish:<v4l2fwhtdec0> Waiting for decoder
+stop
+[stalls here]
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 1041c056854d..989d2554ec72 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -772,9 +772,9 @@ static ssize_t show_associate_remote(struct device *d,
- 
- 	mutex_lock(&ictx->lock);
- 	if (ictx->rf_isassociating)
--		strcpy(buf, "associating\n");
-+		strscpy(buf, "associating\n", PAGE_SIZE);
- 	else
--		strcpy(buf, "closed\n");
-+		strscpy(buf, "closed\n", PAGE_SIZE);
- 
- 	dev_info(d, "Visit http://www.lirc.org/html/imon-24g.html for instructions on how to associate your iMON 2.4G DT/LT remote\n");
- 	mutex_unlock(&ictx->lock);
+Regards,
+Ezequiel
