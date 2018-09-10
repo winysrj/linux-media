@@ -1,73 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:23416 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727840AbeIJPRO (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:48305 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727810AbeIJP1W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 11:17:14 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 4/5] media: ov5640: fix auto controls values when
- switching to manual mode
-Date: Mon, 10 Sep 2018 10:23:41 +0000
-Message-ID: <104d1a65-0504-62e9-f0b2-eafaaa7f18ee@st.com>
-References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
- <1534155586-26974-5-git-send-email-hugues.fruchet@st.com>
- <1747395.R2Yra0TKY1@avalon>
-In-Reply-To: <1747395.R2Yra0TKY1@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <D68B4A88CA8C5848869EB7F23C22B350@st.com>
-Content-Transfer-Encoding: base64
+        Mon, 10 Sep 2018 11:27:22 -0400
+Subject: Re: [PATCH v9 2/9] media: v4l: Add definitions for MPEG-2 slice
+ format and metadata
+To: Paul Kocialkowski <contact@paulk.fr>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <20180906222442.14825-1-contact@paulk.fr>
+ <20180906222442.14825-3-contact@paulk.fr>
+ <9a7fd34d-50e3-4db6-4752-9e62bb160655@xs4all.nl>
+ <2409ba6607e85acf3dbbaed394487fa8e92d93df.camel@paulk.fr>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bd6dd135-1719-2e25-051b-d15b1fe52d61@xs4all.nl>
+Date: Mon, 10 Sep 2018 12:33:52 +0200
 MIME-Version: 1.0
+In-Reply-To: <2409ba6607e85acf3dbbaed394487fa8e92d93df.camel@paulk.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTGF1cmVudCwNCg0KT24gMDkvMDYvMjAxOCAwMzozMSBQTSwgTGF1cmVudCBQaW5jaGFydCB3
-cm90ZToNCj4gSGkgSHVndWVzLA0KPiANCj4gVGhhbmsgeW91IGZvciB0aGUgcGF0Y2guDQo+IA0K
-PiBPbiBNb25kYXksIDEzIEF1Z3VzdCAyMDE4IDEzOjE5OjQ1IEVFU1QgSHVndWVzIEZydWNoZXQg
-d3JvdGU6DQo+PiBXaGVuIHN3aXRjaGluZyBmcm9tIGF1dG8gdG8gbWFudWFsIG1vZGUsIFY0TDIg
-Y29yZSBpcyBjYWxsaW5nDQo+PiBnX3ZvbGF0aWxlX2N0cmwoKSBpbiBtYW51YWwgbW9kZSBpbiBv
-cmRlciB0byBnZXQgdGhlIG1hbnVhbCBpbml0aWFsIHZhbHVlLg0KPj4gUmVtb3ZlIHRoZSBtYW51
-YWwgbW9kZSBjaGVjay9yZXR1cm4gdG8gbm90IGJyZWFrIHRoaXMgYmVoYXZpb3VyLg0KPj4NCj4+
-IFNpZ25lZC1vZmYtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+
-PiAtLS0NCj4+ICAgZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgfCA0IC0tLS0NCj4+ICAgMSBm
-aWxlIGNoYW5nZWQsIDQgZGVsZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-bWVkaWEvaTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IGluZGV4
-IDlmYjE3YjUuLmMxMTBhNmEgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2
-NDAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IEBAIC0yMjc3LDE2
-ICsyMjc3LDEyIEBAIHN0YXRpYyBpbnQgb3Y1NjQwX2dfdm9sYXRpbGVfY3RybChzdHJ1Y3QgdjRs
-Ml9jdHJsDQo+PiAqY3RybCkNCj4+DQo+PiAgIAlzd2l0Y2ggKGN0cmwtPmlkKSB7DQo+PiAgIAlj
-YXNlIFY0TDJfQ0lEX0FVVE9HQUlOOg0KPj4gLQkJaWYgKCFjdHJsLT52YWwpDQo+PiAtCQkJcmV0
-dXJuIDA7DQo+PiAgIAkJdmFsID0gb3Y1NjQwX2dldF9nYWluKHNlbnNvcik7DQo+PiAgIAkJaWYg
-KHZhbCA8IDApDQo+PiAgIAkJCXJldHVybiB2YWw7DQo+PiAgIAkJc2Vuc29yLT5jdHJscy5nYWlu
-LT52YWwgPSB2YWw7DQo+PiAgIAkJYnJlYWs7DQo+IA0KPiBXaGF0IGlzIHRoaXMgZXZlbiBzdXBw
-b3NlZCB0byBkbyA/IE9ubHkgdGhlIFY0TDJfQ0lEX0dBSU4gYW5kDQo+IFY0TDJfQ0lEX0VYUE9T
-VVJFIGhhdmUgdGhlIHZvbGF0aWxlIGZsYWcgc2V0LiBXaHkgY2FuJ3QgdGhpcyBjb2RlIGJlIHJl
-cGxhY2VkDQo+IHdpdGgNCg0KVGhpcyBpcyBiZWNhdXNlIFY0TDJfQ0lEX0FVVE9HQUlOICYgVjRM
-Ml9DSURfR0FJTiBhcmUgZGVjbGFyZWQgYXMgDQphdXRvLWNsdXN0ZXI6DQogIHN0YXRpYyBpbnQg
-b3Y1NjQwX2luaXRfY29udHJvbHMoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvcikNCgkvKiBBdXRv
-L21hbnVhbCBnYWluICovDQoJY3RybHMtPmF1dG9fZ2FpbiA9IHY0bDJfY3RybF9uZXdfc3RkKGhk
-bCwgb3BzLCBWNEwyX0NJRF9BVVRPR0FJTiwNCgkJCQkJICAgICAwLCAxLCAxLCAxKTsNCgljdHJs
-cy0+Z2FpbiA9IHY0bDJfY3RybF9uZXdfc3RkKGhkbCwgb3BzLCBWNEwyX0NJRF9HQUlOLA0KCQkJ
-CQkwLCAxMDIzLCAxLCAwKTsNClsuLi5dDQoJdjRsMl9jdHJsX2F1dG9fY2x1c3RlcigyLCAmY3Ry
-bHMtPmF1dG9fZ2FpbiwgMCwgdHJ1ZSk7DQoNCkJ5IGNoZWNraW5nIG1hbnkgb3RoZXIgZHJpdmVy
-cyB0aGF0IGFyZSB1c2luZyBjbHVzdGVyZWQgYXV0byBjb250cm9scywgDQp0aGV5IGFyZSBhbGwg
-ZG9pbmcgdGhhdCB3YXk6DQoNCmN0cmxzLT5hdXRvX3ggPSB2NGwyX2N0cmxfbmV3X3N0ZChDSURf
-WF9BVVRPLi4NCmN0cmxzLT54ID0gdjRsMl9jdHJsX25ld19zdGQoQ0lEX1guLg0KdjRsMl9jdHJs
-X2F1dG9fY2x1c3RlcigyLCAmY3RybHMtPmF1dG8sIDAsIHRydWUpOw0KDQpnX3ZvbGF0aWxlX2N0
-cmwoY3RybCkNCiAgIHN3aXRjaCAoY3RybC0+aWQpIHsNCiAgICBjYXNlIENJRF9YX0FVVE86DQog
-ICAgICBjdHJscy0+eC0+dmFsID0gUkVBRF9SRUcoKQ0KDQo+IA0KPiAJY2FzZSBWNEwyX0NJRF9H
-QUlOOg0KPiAgICAJCXZhbCA9IG92NTY0MF9nZXRfZ2FpbihzZW5zb3IpOw0KPiAgICAJCWlmICh2
-YWwgPCAwKQ0KPiAgICAJCQlyZXR1cm4gdmFsOw0KPiAgICAJCWN0cmwtPnZhbCA9IHZhbDsNCj4g
-CQlicmVhazsNCj4gDQo+IA0KPj4gICAJY2FzZSBWNEwyX0NJRF9FWFBPU1VSRV9BVVRPOg0KPj4g
-LQkJaWYgKGN0cmwtPnZhbCA9PSBWNEwyX0VYUE9TVVJFX01BTlVBTCkNCj4+IC0JCQlyZXR1cm4g
-MDsNCj4+ICAgCQl2YWwgPSBvdjU2NDBfZ2V0X2V4cG9zdXJlKHNlbnNvcik7DQo+PiAgIAkJaWYg
-KHZhbCA8IDApDQo+PiAgIAkJCXJldHVybiB2YWw7DQo+IA0KPiBBbmQgc2FtZSBoZXJlLg0KPiAN
-Cg0KQmVzdCByZWdhcmRzLA0KSHVndWVzLg==
+On 09/10/2018 11:47 AM, Paul Kocialkowski wrote:
+> Hi,
+> 
+> Le lundi 10 septembre 2018 à 11:41 +0200, Hans Verkuil a écrit :
+>> On 09/07/2018 12:24 AM, Paul Kocialkowski wrote:
+>>> From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+>>>
+>>> Stateless video decoding engines require both the MPEG-2 slices and
+>>> associated metadata from the video stream in order to decode frames.
+>>>
+>>> This introduces definitions for a new pixel format, describing buffers
+>>> with MPEG-2 slice data, as well as control structure sfor passing the
+>>> frame metadata to drivers.
+>>>
+>>> This is based on work from both Florent Revest and Hugues Fruchet.
+>>>
+>>> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+>>> ---
+>>>  .../media/uapi/v4l/extended-controls.rst      | 176 ++++++++++++++++++
+>>>  .../media/uapi/v4l/pixfmt-compressed.rst      |  16 ++
+>>>  .../media/uapi/v4l/vidioc-queryctrl.rst       |  14 +-
+>>>  .../media/videodev2.h.rst.exceptions          |   2 +
+>>>  drivers/media/v4l2-core/v4l2-ctrls.c          |  63 +++++++
+>>>  drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+>>>  include/media/v4l2-ctrls.h                    |  18 +-
+>>>  include/uapi/linux/v4l2-controls.h            |  65 +++++++
+>>>  include/uapi/linux/videodev2.h                |   5 +
+>>>  9 files changed, 351 insertions(+), 9 deletions(-)
+>>>
+>>> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+>>> index 9f7312bf3365..f1951236266a 100644
+>>> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+>>> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+>>> @@ -1497,6 +1497,182 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type -
+>>>  
+>>>  
+>>>  
+>>> +.. _v4l2-mpeg-mpeg2:
+>>> +
+>>> +``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS (struct)``
+>>> +    Specifies the slice parameters (as extracted from the bitstream) for the
+>>> +    associated MPEG-2 slice data. This includes the necessary parameters for
+>>> +    configuring a stateless hardware decoding pipeline for MPEG-2.
+>>> +    The bitstream parameters are defined according to :ref:`mpeg2part2`.
+>>> +
+>>> +.. c:type:: v4l2_ctrl_mpeg2_slice_params
+>>> +
+>>> +.. cssclass:: longtable
+>>> +
+>>> +.. flat-table:: struct v4l2_ctrl_mpeg2_slice_params
+>>> +    :header-rows:  0
+>>> +    :stub-columns: 0
+>>> +    :widths:       1 1 2
+>>> +
+>>> +    * - __u32
+>>> +      - ``bit_size``
+>>> +      - Size (in bits) of the current slice data.
+>>> +    * - __u32
+>>> +      - ``data_bit_offset``
+>>> +      - Offset (in bits) to the video data in the current slice data.
+>>> +    * - struct :c:type:`v4l2_mpeg2_sequence`
+>>> +      - ``sequence``
+>>> +      - Structure with MPEG-2 sequence metadata, merging relevant fields from
+>>> +	the sequence header and sequence extension parts of the bitstream.
+>>> +    * - struct :c:type:`v4l2_mpeg2_picture`
+>>> +      - ``picture``
+>>> +      - Structure with MPEG-2 picture metadata, merging relevant fields from
+>>> +	the picture header and picture coding extension parts of the bitstream.
+>>> +    * - __u8
+>>> +      - ``quantiser_scale_code``
+>>> +      - Code used to determine the quantization scale to use for the IDCT.
+>>> +    * - __u8
+>>> +      - ``backward_ref_index``
+>>> +      - Index for the V4L2 buffer to use as backward reference, used with
+>>> +	B-coded and P-coded frames.
+>>> +    * - __u8
+>>> +      - ``forward_ref_index``
+>>> +      - Index for the V4L2 buffer to use as forward reference, used with
+>>> +	P-coded frames.
+>>
+>> Should this be "B-coded frames"?
+> 
+> Oops, that's right, B-coded frames.
+> 
+> Should I make a follow-up patch for that (maybe gathered with other
+> changes if required)?
+
+Follow-up patches, please. All on top of my last pull request that adds the
+cedrus driver.
+
+Regards,
+
+	Hans
