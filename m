@@ -1,126 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:39327 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727488AbeIJN1x (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:34113 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727059AbeIJN5y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 09:27:53 -0400
+        Mon, 10 Sep 2018 09:57:54 -0400
+Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
+To: Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        koji.matsuoka.xm@renesas.com
+Cc: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+References: <20180731093142.3828-1-andr2000@gmail.com>
+ <20180731093142.3828-2-andr2000@gmail.com>
+ <73b69e31-d36d-d89f-20d6-d59dbefe395e@xs4all.nl>
+ <fc78ee17-412f-8a74-ecc8-b8ab55189e1b@gmail.com>
+ <7134b3ad-9fcf-0139-41b3-67a3dbc8224d@xs4all.nl>
+ <51f97715-454a-0242-b381-29944d77d5b5@gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.20 (request_api branch)] Add Allwinner cedrus
- decoder driver
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Message-ID: <8c00abfd-3f15-eab5-7d0b-5a4f7580d1f0@xs4all.nl>
-Date: Mon, 10 Sep 2018 10:34:53 +0200
+Message-ID: <3c6bb5c8-eeb4-fd09-407a-5a77b29b56c3@xs4all.nl>
+Date: Mon, 10 Sep 2018 11:04:46 +0200
 MIME-Version: 1.0
+In-Reply-To: <51f97715-454a-0242-b381-29944d77d5b5@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 09/10/2018 10:24 AM, Oleksandr Andrushchenko wrote:
+> On 09/10/2018 10:53 AM, Hans Verkuil wrote:
+>> Hi Oleksandr,
+>>
+>> On 09/10/2018 09:16 AM, Oleksandr Andrushchenko wrote:
 
-This is the cedrus Allwinner decoder driver. It is for the request_api topic
-branch, but it assumes that this pull request is applied first:
-https://patchwork.linuxtv.org/patch/51889/
+<snip>
 
-The last two patches could optionally be squashed with the main driver patch:
-they fix COMPILE_TEST issues. I decided not to squash them and leave the choice
-to you.
+>>>> I suspect that you likely will want to support such sources eventually, so
+>>>> it pays to design this with that in mind.
+>>> Again, I think that this is the backend to hide these
+>>> use-cases from the frontend.
+>> I'm not sure you can: say you are playing a bluray connected to the system
+>> with HDMI, then if there is a resolution change, what do you do? You can tear
+>> everything down and build it up again, or you can just tell frontends that
+>> something changed and that they have to look at the new vcamera configuration.
+>>
+>> The latter seems to be more sensible to me. It is really not much that you
+>> need to do: all you really need is an event signalling that something changed.
+>> In V4L2 that's the V4L2_EVENT_SOURCE_CHANGE.
+> well, this complicates things a lot as I'll have to
+> re-allocate buffers - right?
 
-This won't fully fix the COMPILE_TEST problems, for that another patch is needed:
+Right. Different resolutions means different sized buffers and usually lots of
+changes throughout the whole video pipeline, which in this case can even
+go into multiple VMs.
 
-https://lore.kernel.org/patchwork/patch/983848/
+One additional thing to keep in mind for the future: V4L2_EVENT_SOURCE_CHANGE
+has a flags field that tells userspace what changed. Right now that is just the
+resolution, but in the future you can expect flags for cases where just the
+colorspace information changes, but not the resolution.
 
-But that's going through another subsystem.
+Which reminds me of two important missing pieces of information in your protocol:
 
-Many, many thanks go to Paul for working on this, trying to keep up to date with
-the Request API changes at the same time. It was a pleasure working with you on
-this!
+1) You need to communicate the colorspace data:
+
+- colorspace
+- xfer_func
+- ycbcr_enc/hsv_enc (unlikely you ever want to support HSV pixelformats, so I
+  think you can ignore hsv_enc)
+- quantization
+
+See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
+and the links to the colorspace sections in the V4L2 spec for details).
+
+This information is part of the format, it is reported by the driver.
+
+2) If you support interlaced formats and V4L2_FIELD_ALTERNATE (i.e.
+   each buffer contains a single field), then you need to be able to tell
+   userspace whether the dequeued buffer contains a top or bottom field.
+
+Also, what to do with dropped frames/fields: V4L2 has a sequence counter and
+timestamp that can help detecting that. You probably need something similar.
+
+> But anyways, I can add
+> #define XENCAMERA_EVT_CFG_CHANGE       0x01
+> in the protocol, so we can address this use-case
+>>
+
+<snip>
+
+>>> 1. set format command:
+>>>    * pixel_format - uint32_t, pixel format to be used, FOURCC code.
+>>>    * width - uint32_t, width in pixels.
+>>>    * height - uint32_t, height in pixels.
+>>>
+>>> 2. Set frame rate command:
+>>>    + * frame_rate_numer - uint32_t, numerator of the frame rate.
+>>>    + * frame_rate_denom - uint32_t, denominator of the frame rate.
+>>>
+>>> 3. Set/request num bufs:
+>>>    * num_bufs - uint8_t, desired number of buffers to be used.
+>> I like this much better. 1+2 could be combined, but 3 should definitely remain
+>> separate.
+> ok, then 1+2 combined + 3 separate.
+> Do you think we can still name 1+2 as "set_format" or "set_config"
+> will fit better?
+
+set_format is closer to S_FMT as used in V4L2, so I have a slight preference
+for that, but it is really up to you.
+
+>>
+>>>>> + *
+>>>>> + * See response format for this request.
+>>>>> + *
+>>>>> + * Notes:
+>>>>> + *  - frontend must check the corresponding response in order to see
+>>>>> + *    if the values reported back by the backend do match the desired ones
+>>>>> + *    and can be accepted.
+>>>>> + *  - frontend may send multiple XENCAMERA_OP_SET_CONFIG requests before
+>>>>> + *    sending XENCAMERA_OP_STREAM_START request to update or tune the
+>>>>> + *    configuration.
+>>>>> + */
+>>>>> +struct xencamera_config {
+>>>>> +    uint32_t pixel_format;
+>>>>> +    uint32_t width;
+>>>>> +    uint32_t height;
+>>>>> +    uint32_t frame_rate_nom;
+>>>>> +    uint32_t frame_rate_denom;
+>>>>> +    uint8_t num_bufs;
+>>>>> +};
+>>>>> +
+>>>>> +/*
+>>>>> + * Request buffer details - request camera buffer's memory layout.
+>>>>> + * detailed description:
+>>>>> + *         0                1                 2               3        octet
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |               id                |_GET_BUF_DETAILS|   reserved     | 4
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |                              reserved                             | 8
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |                              reserved                             | 64
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + *
+>>>>> + * See response format for this request.
+>>>>> + *
+>>>>> + *
+>>>>> + * Request camera buffer creation:
+>>>>> + *         0                1                 2               3        octet
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |               id                | _OP_BUF_CREATE |   reserved     | 4
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |                             reserved                              | 8
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |      index     |                     reserved                     | 12
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |                           gref_directory                          | 16
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |                             reserved                              | 20
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + * |                             reserved                              | 64
+>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>> + *
+>>>>> + * An attempt to create multiple buffers with the same index is an error.
+>>>>> + * index can be re-used after destroying the corresponding camera buffer.
+>>>>> + *
+>>>>> + * index - uint8_t, index of the buffer to be created.
+>>>>> + * gref_directory - grant_ref_t, a reference to the first shared page
+>>>>> + *   describing shared buffer references. The size of the buffer is equal to
+>>>>> + *   XENCAMERA_OP_GET_BUF_DETAILS.size response. At least one page exists. If
+>>>>> + *   shared buffer size exceeds what can be addressed by this single page,
+>>>>> + *   then reference to the next shared page must be supplied (see
+>>>>> + *   gref_dir_next_page below).
+>>>> It might be better to allocate all buffers in one go, i.e. what VIDIOC_REQBUFS
+>>>> does.
+>>> Well, I still think it is better to have a per buffer interface
+>>> in the protocol as it is done for other Xen virtual devices.
+>>> So, I'll keep this as is for now: VIDIOC_REQBUFS can still do
+>>> what it does internally in the frontend driver
+>> I may have misunderstood the original API. The newly proposed XENCAMERA_OP_BUF_REQUEST
+>> maps to REQBUFS, right? And then BUF_CREATE/DESTROY just set up the shared buffer
+>> mappings for the buffers created by REQBUFS. If that's the sequence, then it makes
+>> sense. I'm not sure about the naming.
+>>
+>> You might want to make it clear that XENCAMERA_OP_BUF_REQUEST allocates the buffers
+>> on the backend, and so can fail. Also, the actual number of allocated buffers in
+>> case of success can be more or less than what was requested.
+> The buffers can be allocated and shared by either backend or frontend: see
+> "be-alloc" configuration option telling which domain (VM) shares
+> the Xen grant references to the pages of the buffer: either frontend
+> or backend.
+
+If you want to do zero-copy video capture, then you need to know which
+device in your video pipeline (which now covers both actual hardware and
+multiple VMs) has the strictest memory layout requirements. Often the
+video HW requires contiguous physical memory for the buffers, which means
+you can't just give it a piece of non-contig memory allocated elsewhere.
+
+In practice you have two possible memory models you can use with V4L2 drivers:
+MMAP (i.e. allocated by the driver and the buffers can, if needed, be exported
+as dmabuf handles with VIDIOC_EXPBUF), or DMABUF where buffers are allocated
+elsewhere and imported to V4L2, which may fail if it doesn't match the HW
+requirements.
+
+> 
+> So, I was more thinking that in case of V4L2 based frontend driver:
+> 1. Frontend serves REQBUFS ioctl and asks the backend with 
+> XENCAMERA_OP_BUF_REQUEST
+> if it can handle that many buffers and gets number of buffers to be used
+> and buffer structure (number of planes, sizes, offsets etc.) as the reply
+> to that request
+> 2. Frontend creates n buffers with XENCAMERA_OP_BUF_CREATE
+> 3. Frontend returns from REQBUFS ioctl with actual number of buffers
+> allocated
 
 Regards,
 
 	Hans
-
-The following changes since commit 051dfd971de1317626d322581546257b748ebde1:
-
-  media-request: update documentation (2018-09-04 11:34:57 +0200)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cedrus
-
-for you to fetch changes up to e035b190fac3735e5f9d3c96cee5afc82aa1a94d:
-
-  media: cedrus: Select the sunxi SRAM driver in Kconfig (2018-09-10 10:22:07 +0200)
-
-----------------------------------------------------------------
-Paul Kocialkowski (13):
-      media: videobuf2-core: Rework and rename helper for request buffer count
-      media: v4l: Add definitions for MPEG-2 slice format and metadata
-      media: v4l: Add definition for the Sunxi tiled NV12 format
-      dt-bindings: media: Document bindings for the Cedrus VPU driver
-      media: platform: Add Cedrus VPU decoder driver
-      ARM: dts: sun5i: Add Video Engine and reserved memory nodes
-      ARM: dts: sun7i-a20: Add Video Engine and reserved memory nodes
-      ARM: dts: sun8i-a33: Add Video Engine and reserved memory nodes
-      ARM: dts: sun8i-h3: Add Video Engine and reserved memory nodes
-      media: cedrus: Fix error reporting in request validation
-      media: cedrus: Add TODO file with tasks to complete before unstaging
-      media: cedrus: Wrap PHYS_PFN_OFFSET with ifdef and add dedicated comment
-      media: cedrus: Select the sunxi SRAM driver in Kconfig
-
- Documentation/devicetree/bindings/media/cedrus.txt |  54 +++++
- Documentation/media/uapi/v4l/extended-controls.rst | 176 ++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt-compressed.rst |  16 ++
- Documentation/media/uapi/v4l/pixfmt-reserved.rst   |  15 +-
- Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  14 +-
- Documentation/media/videodev2.h.rst.exceptions     |   2 +
- MAINTAINERS                                        |   7 +
- arch/arm/boot/dts/sun5i.dtsi                       |  26 +++
- arch/arm/boot/dts/sun7i-a20.dtsi                   |  26 +++
- arch/arm/boot/dts/sun8i-a33.dtsi                   |  26 +++
- arch/arm/boot/dts/sun8i-h3.dtsi                    |  25 +++
- drivers/media/common/videobuf2/videobuf2-core.c    |  18 +-
- drivers/media/common/videobuf2/videobuf2-v4l2.c    |   2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c               |  63 ++++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
- drivers/staging/media/Kconfig                      |   2 +
- drivers/staging/media/Makefile                     |   1 +
- drivers/staging/media/sunxi/Kconfig                |  15 ++
- drivers/staging/media/sunxi/Makefile               |   1 +
- drivers/staging/media/sunxi/cedrus/Kconfig         |  14 ++
- drivers/staging/media/sunxi/cedrus/Makefile        |   3 +
- drivers/staging/media/sunxi/cedrus/TODO            |   7 +
- drivers/staging/media/sunxi/cedrus/cedrus.c        | 431 +++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus.h        | 165 +++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_dec.c    |  70 +++++++
- drivers/staging/media/sunxi/cedrus/cedrus_dec.h    |  27 +++
- drivers/staging/media/sunxi/cedrus/cedrus_hw.c     | 327 +++++++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_hw.h     |  30 +++
- drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c  | 237 +++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_regs.h   | 233 +++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_video.c  | 544 +++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_video.h  |  30 +++
- include/media/v4l2-ctrls.h                         |  18 +-
- include/media/videobuf2-core.h                     |   4 +-
- include/uapi/linux/v4l2-controls.h                 |  65 ++++++
- include/uapi/linux/videodev2.h                     |   6 +
- 36 files changed, 2679 insertions(+), 23 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/cedrus.txt
- create mode 100644 drivers/staging/media/sunxi/Kconfig
- create mode 100644 drivers/staging/media/sunxi/Makefile
- create mode 100644 drivers/staging/media/sunxi/cedrus/Kconfig
- create mode 100644 drivers/staging/media/sunxi/cedrus/Makefile
- create mode 100644 drivers/staging/media/sunxi/cedrus/TODO
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_regs.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.h
