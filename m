@@ -1,49 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:50304 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727714AbeIJURl (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58198 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728375AbeIJUQp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 16:17:41 -0400
-Subject: Re: [PATCH 1/2] vicodec: Drop unneeded symbol dependency
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org
-References: <20180910152154.14291-1-ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <09c8a682-209a-e325-cc56-1224773eab61@xs4all.nl>
-Date: Mon, 10 Sep 2018 17:23:01 +0200
-MIME-Version: 1.0
+        Mon, 10 Sep 2018 16:16:45 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 2/2] vicodec: Drop unused job_abort()
+Date: Mon, 10 Sep 2018 12:21:54 -0300
+Message-Id: <20180910152154.14291-2-ezequiel@collabora.com>
 In-Reply-To: <20180910152154.14291-1-ezequiel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20180910152154.14291-1-ezequiel@collabora.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/10/2018 05:21 PM, Ezequiel Garcia wrote:
-> The vicodec doesn't use the Subdev API, so drop the dependency.
-> 
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  drivers/media/platform/vicodec/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vicodec/Kconfig b/drivers/media/platform/vicodec/Kconfig
-> index 2503bcb1529f..ad13329e3461 100644
-> --- a/drivers/media/platform/vicodec/Kconfig
-> +++ b/drivers/media/platform/vicodec/Kconfig
-> @@ -1,6 +1,6 @@
->  config VIDEO_VICODEC
->  	tristate "Virtual Codec Driver"
-> -	depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+The vicodec does not use the aborting field. In fact, this driver
+can't really cancel any work, since it performs all the work
+in device_run().
 
-But it definitely needs the MEDIA_CONTROLLER. That's what it should depend on.
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/platform/vicodec/vicodec-core.c | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-Regards,
-
-	Hans
-
-> +	depends on VIDEO_DEV && VIDEO_V4L2
->  	select VIDEOBUF2_VMALLOC
->  	select V4L2_MEM2MEM_DEV
->  	default n
-> 
+diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+index bbc48fcaa563..8d455c42163e 100644
+--- a/drivers/media/platform/vicodec/vicodec-core.c
++++ b/drivers/media/platform/vicodec/vicodec-core.c
+@@ -112,8 +112,6 @@ struct vicodec_ctx {
+ 
+ 	struct v4l2_ctrl_handler hdl;
+ 
+-	/* Abort requested by m2m */
+-	int			aborting;
+ 	struct vb2_v4l2_buffer *last_src_buf;
+ 	struct vb2_v4l2_buffer *last_dst_buf;
+ 
+@@ -376,14 +374,6 @@ static int job_ready(void *priv)
+ 	return 1;
+ }
+ 
+-static void job_abort(void *priv)
+-{
+-	struct vicodec_ctx *ctx = priv;
+-
+-	/* Will cancel the transaction in the next interrupt handler */
+-	ctx->aborting = 1;
+-}
+-
+ /*
+  * video ioctls
+  */
+@@ -1268,7 +1258,6 @@ static const struct video_device vicodec_videodev = {
+ 
+ static const struct v4l2_m2m_ops m2m_ops = {
+ 	.device_run	= device_run,
+-	.job_abort	= job_abort,
+ 	.job_ready	= job_ready,
+ };
+ 
+-- 
+2.19.0.rc2
