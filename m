@@ -1,90 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:59997 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728494AbeIJTiD (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54968 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728219AbeIJTzP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 15:38:03 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 4/5] media: ov5640: fix auto controls values when
- switching to manual mode
-Date: Mon, 10 Sep 2018 14:43:27 +0000
-Message-ID: <47c43695-8784-90c6-3811-bfa337923243@st.com>
-References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
- <1747395.R2Yra0TKY1@avalon> <104d1a65-0504-62e9-f0b2-eafaaa7f18ee@st.com>
- <1637570.gloTqPpV0r@avalon>
-In-Reply-To: <1637570.gloTqPpV0r@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <D254B8703E3CE94893E5B18AD2D65B78@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Mon, 10 Sep 2018 15:55:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] vicodec: check for valid format in v4l2_fwht_en/decode
+Date: Mon, 10 Sep 2018 17:00:39 +0200
+Message-Id: <20180910150040.39265-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTGF1cmVudCwNCg0KT24gMDkvMTAvMjAxOCAxMjo0NiBQTSwgTGF1cmVudCBQaW5jaGFydCB3
-cm90ZToNCj4gSGkgSHVndWVzLA0KPiANCj4gT24gTW9uZGF5LCAxMCBTZXB0ZW1iZXIgMjAxOCAx
-MzoyMzo0MSBFRVNUIEh1Z3VlcyBGUlVDSEVUIHdyb3RlOg0KPj4gT24gMDkvMDYvMjAxOCAwMzoz
-MSBQTSwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToNCj4+PiBPbiBNb25kYXksIDEzIEF1Z3VzdCAy
-MDE4IDEzOjE5OjQ1IEVFU1QgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+Pj4NCj4+Pj4gV2hlbiBz
-d2l0Y2hpbmcgZnJvbSBhdXRvIHRvIG1hbnVhbCBtb2RlLCBWNEwyIGNvcmUgaXMgY2FsbGluZw0K
-Pj4+PiBnX3ZvbGF0aWxlX2N0cmwoKSBpbiBtYW51YWwgbW9kZSBpbiBvcmRlciB0byBnZXQgdGhl
-IG1hbnVhbCBpbml0aWFsDQo+Pj4+IHZhbHVlLiBSZW1vdmUgdGhlIG1hbnVhbCBtb2RlIGNoZWNr
-L3JldHVybiB0byBub3QgYnJlYWsgdGhpcyBiZWhhdmlvdXIuDQo+Pj4+DQo+Pj4+IFNpZ25lZC1v
-ZmYtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+Pj4+IC0tLQ0K
-Pj4+PiAgICBkcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyB8IDQgLS0tLQ0KPj4+PiAgICAxIGZp
-bGUgY2hhbmdlZCwgNCBkZWxldGlvbnMoLSkNCj4+Pj4NCj4+Pj4gZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvbWVkaWEvaTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+Pj4g
-aW5kZXggOWZiMTdiNS4uYzExMGE2YSAxMDA2NDQNCj4+Pj4gLS0tIGEvZHJpdmVycy9tZWRpYS9p
-MmMvb3Y1NjQwLmMNCj4+Pj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+Pj4g
-QEAgLTIyNzcsMTYgKzIyNzcsMTIgQEAgc3RhdGljIGludCBvdjU2NDBfZ192b2xhdGlsZV9jdHJs
-KHN0cnVjdA0KPj4+PiB2NGwyX2N0cmwgKmN0cmwpDQo+Pj4+DQo+Pj4+ICAgIAlzd2l0Y2ggKGN0
-cmwtPmlkKSB7DQo+Pj4+ICAgIAljYXNlIFY0TDJfQ0lEX0FVVE9HQUlOOg0KPj4+PiAtCQlpZiAo
-IWN0cmwtPnZhbCkNCj4+Pj4gLQkJCXJldHVybiAwOw0KPj4+Pg0KPj4+PiAgICAJCXZhbCA9IG92
-NTY0MF9nZXRfZ2FpbihzZW5zb3IpOw0KPj4+PiAgICAJCWlmICh2YWwgPCAwKQ0KPj4+PiAgICAJ
-CQlyZXR1cm4gdmFsOw0KPj4+PiAgICAJCQ0KPj4+PiAgICAJCXNlbnNvci0+Y3RybHMuZ2Fpbi0+
-dmFsID0gdmFsOw0KPj4+PiAgICAJCWJyZWFrOw0KPj4+DQo+Pj4gV2hhdCBpcyB0aGlzIGV2ZW4g
-c3VwcG9zZWQgdG8gZG8gPyBPbmx5IHRoZSBWNEwyX0NJRF9HQUlOIGFuZA0KPj4+IFY0TDJfQ0lE
-X0VYUE9TVVJFIGhhdmUgdGhlIHZvbGF0aWxlIGZsYWcgc2V0LiBXaHkgY2FuJ3QgdGhpcyBjb2Rl
-IGJlDQo+Pj4gcmVwbGFjZWQgd2l0aA0KPj4NCj4+IFRoaXMgaXMgYmVjYXVzZSBWNEwyX0NJRF9B
-VVRPR0FJTiAmIFY0TDJfQ0lEX0dBSU4gYXJlIGRlY2xhcmVkIGFzDQo+PiBhdXRvLWNsdXN0ZXI6
-DQo+PiAgICBzdGF0aWMgaW50IG92NTY0MF9pbml0X2NvbnRyb2xzKHN0cnVjdCBvdjU2NDBfZGV2
-ICpzZW5zb3IpDQo+PiAJLyogQXV0by9tYW51YWwgZ2FpbiAqLw0KPj4gCWN0cmxzLT5hdXRvX2dh
-aW4gPSB2NGwyX2N0cmxfbmV3X3N0ZChoZGwsIG9wcywgVjRMMl9DSURfQVVUT0dBSU4sDQo+PiAJ
-CQkJCSAgICAgMCwgMSwgMSwgMSk7DQo+PiAJY3RybHMtPmdhaW4gPSB2NGwyX2N0cmxfbmV3X3N0
-ZChoZGwsIG9wcywgVjRMMl9DSURfR0FJTiwNCj4+IAkJCQkJMCwgMTAyMywgMSwgMCk7DQo+PiBb
-Li4uXQ0KPj4gCXY0bDJfY3RybF9hdXRvX2NsdXN0ZXIoMiwgJmN0cmxzLT5hdXRvX2dhaW4sIDAs
-IHRydWUpOw0KPj4NCj4+IEJ5IGNoZWNraW5nIG1hbnkgb3RoZXIgZHJpdmVycyB0aGF0IGFyZSB1
-c2luZyBjbHVzdGVyZWQgYXV0byBjb250cm9scywNCj4+IHRoZXkgYXJlIGFsbCBkb2luZyB0aGF0
-IHdheToNCj4+DQo+PiBjdHJscy0+YXV0b194ID0gdjRsMl9jdHJsX25ld19zdGQoQ0lEX1hfQVVU
-Ty4uDQo+PiBjdHJscy0+eCA9IHY0bDJfY3RybF9uZXdfc3RkKENJRF9YLi4NCj4+IHY0bDJfY3Ry
-bF9hdXRvX2NsdXN0ZXIoMiwgJmN0cmxzLT5hdXRvLCAwLCB0cnVlKTsNCj4+DQo+PiBnX3ZvbGF0
-aWxlX2N0cmwoY3RybCkNCj4+ICAgICBzd2l0Y2ggKGN0cmwtPmlkKSB7DQo+PiAgICAgIGNhc2Ug
-Q0lEX1hfQVVUTzoNCj4+ICAgICAgICBjdHJscy0+eC0+dmFsID0gUkVBRF9SRUcoKQ0KPiANCj4g
-U2VlbXMgbGlrZSBjYXJnby1jdWx0IHRvIG1lLiBXaHkgaXMgdGhpcyBiZXR0ZXIgdGhhbiB0aGUg
-Y29uc3RydWN0IGJlbG93ID8NCj4gDQoNCkkgaGF2ZSBkb25lIHRoZSBjaGFuZ2VzIGFzIHBlciB5
-b3VyIHN1Z2dlc3Rpb24sIGJ1dCBiZWhhdmlvdXIgaXMgYnJva2VuOiANCndoZW4gYXV0b2dhaW4g
-Y29udHJvbCBpcyBvbiBhbmQgSSByZWFkIGdhaW4gdmFsdWUsIGdhaW4gaXMgbm90IHJlZnJlc2hl
-ZCANCndpdGggY3VycmVudCBnYWluIHZhbHVlIGZyb20gc2Vuc29yLCBidXQgc3RpY2sgdG8gbGFz
-dCBtYW51YWwgdmFsdWUgc2V0Lg0KDQpNb3Jlb3ZlciBJJ3ZlIGNoZWNrZWQgaW4gdml2aWQgaG93
-IGl0IGlzIGRvbmUgYW5kIHN0aWxsIHdlIGhhdmUgdGhlIA0Kc3RydWN0dXJlIG9mIGNvZGUgSSd2
-ZSBhbHJlYWR5IG1lbnRpb25uZWQ6DQoNCnN0YXRpYyBpbnQgdml2aWRfdXNlcl92aWRfZ192b2xh
-dGlsZV9jdHJsKHN0cnVjdCB2NGwyX2N0cmwgKmN0cmwpDQp7DQoJc3RydWN0IHZpdmlkX2RldiAq
-ZGV2ID0gY29udGFpbmVyX29mKGN0cmwtPmhhbmRsZXIsIHN0cnVjdCB2aXZpZF9kZXYsIA0KY3Ry
-bF9oZGxfdXNlcl92aWQpOw0KDQoJc3dpdGNoIChjdHJsLT5pZCkgew0KCWNhc2UgVjRMMl9DSURf
-QVVUT0dBSU46DQoJCWRldi0+Z2Fpbi0+dmFsID0gZGV2LT5qaWZmaWVzX3ZpZF9jYXAgJiAweGZm
-Ow0KCQlicmVhazsNCgl9DQoJcmV0dXJuIDA7DQp9DQoNCg0KPj4+IAljYXNlIFY0TDJfQ0lEX0dB
-SU46DQo+Pj4gICAgIAkJdmFsID0gb3Y1NjQwX2dldF9nYWluKHNlbnNvcik7DQo+Pj4gICAgIAkJ
-aWYgKHZhbCA8IDApDQo+Pj4gICAgIAkJCXJldHVybiB2YWw7DQo+Pj4gICAgIAkJY3RybC0+dmFs
-ID0gdmFsOw0KPj4+IAkJYnJlYWs7DQo+Pj4NCj4+Pj4gICAgCWNhc2UgVjRMMl9DSURfRVhQT1NV
-UkVfQVVUTzoNCj4+Pj4gLQkJaWYgKGN0cmwtPnZhbCA9PSBWNEwyX0VYUE9TVVJFX01BTlVBTCkN
-Cj4+Pj4gLQkJCXJldHVybiAwOw0KPj4+PiAgICAJCXZhbCA9IG92NTY0MF9nZXRfZXhwb3N1cmUo
-c2Vuc29yKTsNCj4+Pj4gICAgCQlpZiAodmFsIDwgMCkNCj4+Pj4gICAgCQkJcmV0dXJuIHZhbDsN
-Cj4+Pg0KPj4+IEFuZCBzYW1lIGhlcmUuDQo+IA0KDQpCUiBIdWd1ZXMu
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+These functions did not return an error if state->info was NULL
+or an unsupported pixelformat was selected (should not happen,
+but just to be on the safe side).
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vicodec/codec-v4l2-fwht.c | 15 +++++++++++----
+ drivers/media/platform/vicodec/codec-v4l2-fwht.h |  7 ++-----
+ 2 files changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.c b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+index cfcf84b8574d..1b86eb9868c3 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.c
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.c
+@@ -51,8 +51,7 @@ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx)
+ 	return v4l2_fwht_pixfmts + idx;
+ }
+ 
+-unsigned int v4l2_fwht_encode(struct v4l2_fwht_state *state,
+-			      u8 *p_in, u8 *p_out)
++int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ {
+ 	unsigned int size = state->width * state->height;
+ 	const struct v4l2_fwht_pixfmt_info *info = state->info;
+@@ -62,6 +61,8 @@ unsigned int v4l2_fwht_encode(struct v4l2_fwht_state *state,
+ 	u32 encoding;
+ 	u32 flags = 0;
+ 
++	if (!info)
++		return -EINVAL;
+ 	rf.width = state->width;
+ 	rf.height = state->height;
+ 	rf.luma = p_in;
+@@ -137,6 +138,8 @@ unsigned int v4l2_fwht_encode(struct v4l2_fwht_state *state,
+ 		rf.cr = rf.cb + 2;
+ 		rf.luma++;
+ 		break;
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	cf.width = state->width;
+@@ -180,8 +183,7 @@ unsigned int v4l2_fwht_encode(struct v4l2_fwht_state *state,
+ 	return cf.size + sizeof(*p_hdr);
+ }
+ 
+-int v4l2_fwht_decode(struct v4l2_fwht_state *state,
+-		     u8 *p_in, u8 *p_out)
++int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out)
+ {
+ 	unsigned int size = state->width * state->height;
+ 	unsigned int chroma_size = size;
+@@ -191,6 +193,9 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state,
+ 	struct fwht_cframe cf;
+ 	u8 *p;
+ 
++	if (!state->info)
++		return -EINVAL;
++
+ 	p_hdr = (struct fwht_cframe_hdr *)p_in;
+ 	cf.width = ntohl(p_hdr->width);
+ 	cf.height = ntohl(p_hdr->height);
+@@ -320,6 +325,8 @@ int v4l2_fwht_decode(struct v4l2_fwht_state *state,
+ 			*p++ = 0;
+ 		}
+ 		break;
++	default:
++		return -EINVAL;
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vicodec/codec-v4l2-fwht.h b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+index 7794c186d905..22ae0e4d7315 100644
+--- a/drivers/media/platform/vicodec/codec-v4l2-fwht.h
++++ b/drivers/media/platform/vicodec/codec-v4l2-fwht.h
+@@ -41,10 +41,7 @@ struct v4l2_fwht_state {
+ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_find_pixfmt(u32 pixelformat);
+ const struct v4l2_fwht_pixfmt_info *v4l2_fwht_get_pixfmt(u32 idx);
+ 
+-unsigned int v4l2_fwht_encode(struct v4l2_fwht_state *state,
+-			      u8 *p_in, u8 *p_out);
+-
+-int v4l2_fwht_decode(struct v4l2_fwht_state *state,
+-		     u8 *p_in, u8 *p_out);
++int v4l2_fwht_encode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out);
++int v4l2_fwht_decode(struct v4l2_fwht_state *state, u8 *p_in, u8 *p_out);
+ 
+ #endif
+-- 
+2.18.0
