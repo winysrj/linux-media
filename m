@@ -1,173 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leonov.paulk.fr ([185.233.101.22]:49102 "EHLO leonov.paulk.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726738AbeIJOld (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Sep 2018 10:41:33 -0400
-Message-ID: <2409ba6607e85acf3dbbaed394487fa8e92d93df.camel@paulk.fr>
-Subject: Re: [PATCH v9 2/9] media: v4l: Add definitions for MPEG-2 slice
- format and metadata
-From: Paul Kocialkowski <contact@paulk.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, devel@driverdev.osuosl.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Mon, 10 Sep 2018 11:47:47 +0200
-In-Reply-To: <9a7fd34d-50e3-4db6-4752-9e62bb160655@xs4all.nl>
-References: <20180906222442.14825-1-contact@paulk.fr>
-         <20180906222442.14825-3-contact@paulk.fr>
-         <9a7fd34d-50e3-4db6-4752-9e62bb160655@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-YrlIFe9eOeQdIb272dAH"
-Mime-Version: 1.0
+Received: from mail-db5eur01on0070.outbound.protection.outlook.com ([104.47.2.70]:10610
+        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727714AbeIJOqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Sep 2018 10:46:08 -0400
+Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Oleksandr Andrushchenko <andr2000@gmail.com>,
+        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        koji.matsuoka.xm@renesas.com
+References: <20180731093142.3828-1-andr2000@gmail.com>
+ <20180731093142.3828-2-andr2000@gmail.com>
+ <73b69e31-d36d-d89f-20d6-d59dbefe395e@xs4all.nl>
+ <fc78ee17-412f-8a74-ecc8-b8ab55189e1b@gmail.com>
+ <7134b3ad-9fcf-0139-41b3-67a3dbc8224d@xs4all.nl>
+ <51f97715-454a-0242-b381-29944d77d5b5@gmail.com>
+ <3c6bb5c8-eeb4-fd09-407a-5a77b29b56c3@xs4all.nl>
+From: Oleksandr Andrushchenko <Oleksandr_Andrushchenko@epam.com>
+Message-ID: <2a39c994-118f-a17e-c40a-f5fbbad1cb03@epam.com>
+Date: Mon, 10 Sep 2018 12:52:38 +0300
+MIME-Version: 1.0
+In-Reply-To: <3c6bb5c8-eeb4-fd09-407a-5a77b29b56c3@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 09/10/2018 12:04 PM, Hans Verkuil wrote:
+> On 09/10/2018 10:24 AM, Oleksandr Andrushchenko wrote:
+>> On 09/10/2018 10:53 AM, Hans Verkuil wrote:
+>>> Hi Oleksandr,
+>>>
+>>> On 09/10/2018 09:16 AM, Oleksandr Andrushchenko wrote:
+> <snip>
+>
+>>>>> I suspect that you likely will want to support such sources eventually, so
+>>>>> it pays to design this with that in mind.
+>>>> Again, I think that this is the backend to hide these
+>>>> use-cases from the frontend.
+>>> I'm not sure you can: say you are playing a bluray connected to the system
+>>> with HDMI, then if there is a resolution change, what do you do? You can tear
+>>> everything down and build it up again, or you can just tell frontends that
+>>> something changed and that they have to look at the new vcamera configuration.
+>>>
+>>> The latter seems to be more sensible to me. It is really not much that you
+>>> need to do: all you really need is an event signalling that something changed.
+>>> In V4L2 that's the V4L2_EVENT_SOURCE_CHANGE.
+>> well, this complicates things a lot as I'll have to
+>> re-allocate buffers - right?
+> Right. Different resolutions means different sized buffers and usually lots of
+> changes throughout the whole video pipeline, which in this case can even
+> go into multiple VMs.
+>
+> One additional thing to keep in mind for the future: V4L2_EVENT_SOURCE_CHANGE
+> has a flags field that tells userspace what changed. Right now that is just the
+> resolution, but in the future you can expect flags for cases where just the
+> colorspace information changes, but not the resolution.
+>
+> Which reminds me of two important missing pieces of information in your protocol:
+>
+> 1) You need to communicate the colorspace data:
+>
+> - colorspace
+> - xfer_func
+> - ycbcr_enc/hsv_enc (unlikely you ever want to support HSV pixelformats, so I
+>    think you can ignore hsv_enc)
+> - quantization
+>
+> See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
+> and the links to the colorspace sections in the V4L2 spec for details).
+>
+> This information is part of the format, it is reported by the driver.
+I'll take a look and think what can be put and how into the protocol,
+do you think I'll have to implement all the above for
+this stage?
 
---=-YrlIFe9eOeQdIb272dAH
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+>
+> 2) If you support interlaced formats and V4L2_FIELD_ALTERNATE (i.e.
+>     each buffer contains a single field), then you need to be able to tell
+>     userspace whether the dequeued buffer contains a top or bottom field.
+I think at the first stage we can assume that interlaced
+formats are not supported and add such support later if need be.
+>
+> Also, what to do with dropped frames/fields: V4L2 has a sequence counter and
+> timestamp that can help detecting that. You probably need something similar.
+Ok, this can be reported as part of XENCAMERA_EVT_FRAME_AVAIL event
+>
+>> But anyways, I can add
+>> #define XENCAMERA_EVT_CFG_CHANGE       0x01
+>> in the protocol, so we can address this use-case
+> <snip>
+>
+>>>> 1. set format command:
+>>>>     * pixel_format - uint32_t, pixel format to be used, FOURCC code.
+>>>>     * width - uint32_t, width in pixels.
+>>>>     * height - uint32_t, height in pixels.
+>>>>
+>>>> 2. Set frame rate command:
+>>>>     + * frame_rate_numer - uint32_t, numerator of the frame rate.
+>>>>     + * frame_rate_denom - uint32_t, denominator of the frame rate.
+>>>>
+>>>> 3. Set/request num bufs:
+>>>>     * num_bufs - uint8_t, desired number of buffers to be used.
+>>> I like this much better. 1+2 could be combined, but 3 should definitely remain
+>>> separate.
+>> ok, then 1+2 combined + 3 separate.
+>> Do you think we can still name 1+2 as "set_format" or "set_config"
+>> will fit better?
+> set_format is closer to S_FMT as used in V4L2, so I have a slight preference
+> for that, but it is really up to you.
+I'll probably stick to SET_CONFIG here
+>
+>>>>>> + *
+>>>>>> + * See response format for this request.
+>>>>>> + *
+>>>>>> + * Notes:
+>>>>>> + *  - frontend must check the corresponding response in order to see
+>>>>>> + *    if the values reported back by the backend do match the desired ones
+>>>>>> + *    and can be accepted.
+>>>>>> + *  - frontend may send multiple XENCAMERA_OP_SET_CONFIG requests before
+>>>>>> + *    sending XENCAMERA_OP_STREAM_START request to update or tune the
+>>>>>> + *    configuration.
+>>>>>> + */
+>>>>>> +struct xencamera_config {
+>>>>>> +    uint32_t pixel_format;
+>>>>>> +    uint32_t width;
+>>>>>> +    uint32_t height;
+>>>>>> +    uint32_t frame_rate_nom;
+>>>>>> +    uint32_t frame_rate_denom;
+>>>>>> +    uint8_t num_bufs;
+>>>>>> +};
+>>>>>> +
+>>>>>> +/*
+>>>>>> + * Request buffer details - request camera buffer's memory layout.
+>>>>>> + * detailed description:
+>>>>>> + *         0                1                 2               3        octet
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |               id                |_GET_BUF_DETAILS|   reserved     | 4
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |                              reserved                             | 8
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |                              reserved                             | 64
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + *
+>>>>>> + * See response format for this request.
+>>>>>> + *
+>>>>>> + *
+>>>>>> + * Request camera buffer creation:
+>>>>>> + *         0                1                 2               3        octet
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |               id                | _OP_BUF_CREATE |   reserved     | 4
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |                             reserved                              | 8
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |      index     |                     reserved                     | 12
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |                           gref_directory                          | 16
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |                             reserved                              | 20
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/|
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + * |                             reserved                              | 64
+>>>>>> + * +----------------+----------------+----------------+----------------+
+>>>>>> + *
+>>>>>> + * An attempt to create multiple buffers with the same index is an error.
+>>>>>> + * index can be re-used after destroying the corresponding camera buffer.
+>>>>>> + *
+>>>>>> + * index - uint8_t, index of the buffer to be created.
+>>>>>> + * gref_directory - grant_ref_t, a reference to the first shared page
+>>>>>> + *   describing shared buffer references. The size of the buffer is equal to
+>>>>>> + *   XENCAMERA_OP_GET_BUF_DETAILS.size response. At least one page exists. If
+>>>>>> + *   shared buffer size exceeds what can be addressed by this single page,
+>>>>>> + *   then reference to the next shared page must be supplied (see
+>>>>>> + *   gref_dir_next_page below).
+>>>>> It might be better to allocate all buffers in one go, i.e. what VIDIOC_REQBUFS
+>>>>> does.
+>>>> Well, I still think it is better to have a per buffer interface
+>>>> in the protocol as it is done for other Xen virtual devices.
+>>>> So, I'll keep this as is for now: VIDIOC_REQBUFS can still do
+>>>> what it does internally in the frontend driver
+>>> I may have misunderstood the original API. The newly proposed XENCAMERA_OP_BUF_REQUEST
+>>> maps to REQBUFS, right? And then BUF_CREATE/DESTROY just set up the shared buffer
+>>> mappings for the buffers created by REQBUFS. If that's the sequence, then it makes
+>>> sense. I'm not sure about the naming.
+>>>
+>>> You might want to make it clear that XENCAMERA_OP_BUF_REQUEST allocates the buffers
+>>> on the backend, and so can fail. Also, the actual number of allocated buffers in
+>>> case of success can be more or less than what was requested.
+>> The buffers can be allocated and shared by either backend or frontend: see
+>> "be-alloc" configuration option telling which domain (VM) shares
+>> the Xen grant references to the pages of the buffer: either frontend
+>> or backend.
+> If you want to do zero-copy video capture,
+this is the goal
+>   then you need to know which
+> device in your video pipeline (which now covers both actual hardware and
+> multiple VMs) has the strictest memory layout requirements. Often the
+> video HW requires contiguous physical memory for the buffers, which means
+> you can't just give it a piece of non-contig memory allocated elsewhere.
+We have already implemented zero copying use-cases for
+virtual display, please see [1] and [2] which are dma-buf
+based which can cope with real HW restrictions you mention.
+And in that case we can implement zero-copying both ways,
+e.g. when the Xen grant references are shared by either
+backend or frontend. This is different from camera use-cases:
+a single buffer needs to be shared with multiple frontends,
+so zero-copying is only possible when backend allocates the references
+and shares those with frontends. The way when frontend allocates
+the buffers and still we can implement zero-copying is when
+there is a single frontend in the system, otherwise we
+need to copy the images from backend's buffers into frontend's
+ones.
+> In practice you have two possible memory models you can use with V4L2 drivers:
+> MMAP (i.e. allocated by the driver and the buffers can, if needed, be exported
+> as dmabuf handles with VIDIOC_EXPBUF), or DMABUF where buffers are allocated
+> elsewhere and imported to V4L2, which may fail if it doesn't match the HW
+> requirements.
+For the frontend it is possible to work with both MMAP/DMABUF
+and the rest is on the backend's side - this was proven by
+virtual display implementation, so I see no problem here
+for virtual camera.
+>
+>> So, I was more thinking that in case of V4L2 based frontend driver:
+>> 1. Frontend serves REQBUFS ioctl and asks the backend with
+>> XENCAMERA_OP_BUF_REQUEST
+>> if it can handle that many buffers and gets number of buffers to be used
+>> and buffer structure (number of planes, sizes, offsets etc.) as the reply
+>> to that request
+>> 2. Frontend creates n buffers with XENCAMERA_OP_BUF_CREATE
+>> 3. Frontend returns from REQBUFS ioctl with actual number of buffers
+>> allocated
+> Regards,
+>
+> 	Hans
+Thank you,
+Oleksandr
 
-Hi,
-
-Le lundi 10 septembre 2018 =C3=A0 11:41 +0200, Hans Verkuil a =C3=A9crit :
-> On 09/07/2018 12:24 AM, Paul Kocialkowski wrote:
-> > From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> >=20
-> > Stateless video decoding engines require both the MPEG-2 slices and
-> > associated metadata from the video stream in order to decode frames.
-> >=20
-> > This introduces definitions for a new pixel format, describing buffers
-> > with MPEG-2 slice data, as well as control structure sfor passing the
-> > frame metadata to drivers.
-> >=20
-> > This is based on work from both Florent Revest and Hugues Fruchet.
-> >=20
-> > Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> > ---
-> >  .../media/uapi/v4l/extended-controls.rst      | 176 ++++++++++++++++++
-> >  .../media/uapi/v4l/pixfmt-compressed.rst      |  16 ++
-> >  .../media/uapi/v4l/vidioc-queryctrl.rst       |  14 +-
-> >  .../media/videodev2.h.rst.exceptions          |   2 +
-> >  drivers/media/v4l2-core/v4l2-ctrls.c          |  63 +++++++
-> >  drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
-> >  include/media/v4l2-ctrls.h                    |  18 +-
-> >  include/uapi/linux/v4l2-controls.h            |  65 +++++++
-> >  include/uapi/linux/videodev2.h                |   5 +
-> >  9 files changed, 351 insertions(+), 9 deletions(-)
-> >=20
-> > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Docum=
-entation/media/uapi/v4l/extended-controls.rst
-> > index 9f7312bf3365..f1951236266a 100644
-> > --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> > @@ -1497,6 +1497,182 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_t=
-ype -
-> > =20
-> > =20
-> > =20
-> > +.. _v4l2-mpeg-mpeg2:
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS (struct)``
-> > +    Specifies the slice parameters (as extracted from the bitstream) f=
-or the
-> > +    associated MPEG-2 slice data. This includes the necessary paramete=
-rs for
-> > +    configuring a stateless hardware decoding pipeline for MPEG-2.
-> > +    The bitstream parameters are defined according to :ref:`mpeg2part2=
-`.
-> > +
-> > +.. c:type:: v4l2_ctrl_mpeg2_slice_params
-> > +
-> > +.. cssclass:: longtable
-> > +
-> > +.. flat-table:: struct v4l2_ctrl_mpeg2_slice_params
-> > +    :header-rows:  0
-> > +    :stub-columns: 0
-> > +    :widths:       1 1 2
-> > +
-> > +    * - __u32
-> > +      - ``bit_size``
-> > +      - Size (in bits) of the current slice data.
-> > +    * - __u32
-> > +      - ``data_bit_offset``
-> > +      - Offset (in bits) to the video data in the current slice data.
-> > +    * - struct :c:type:`v4l2_mpeg2_sequence`
-> > +      - ``sequence``
-> > +      - Structure with MPEG-2 sequence metadata, merging relevant fiel=
-ds from
-> > +	the sequence header and sequence extension parts of the bitstream.
-> > +    * - struct :c:type:`v4l2_mpeg2_picture`
-> > +      - ``picture``
-> > +      - Structure with MPEG-2 picture metadata, merging relevant field=
-s from
-> > +	the picture header and picture coding extension parts of the bitstrea=
-m.
-> > +    * - __u8
-> > +      - ``quantiser_scale_code``
-> > +      - Code used to determine the quantization scale to use for the I=
-DCT.
-> > +    * - __u8
-> > +      - ``backward_ref_index``
-> > +      - Index for the V4L2 buffer to use as backward reference, used w=
-ith
-> > +	B-coded and P-coded frames.
-> > +    * - __u8
-> > +      - ``forward_ref_index``
-> > +      - Index for the V4L2 buffer to use as forward reference, used wi=
-th
-> > +	P-coded frames.
->=20
-> Should this be "B-coded frames"?
-
-Oops, that's right, B-coded frames.
-
-Should I make a follow-up patch for that (maybe gathered with other
-changes if required)?
-
-Cheers,
-
-Paul
-
---=20
-Developer of free digital technology and hardware support.
-
-Website: https://www.paulk.fr/
-Coding blog: https://code.paulk.fr/
-Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
-
---=-YrlIFe9eOeQdIb272dAH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEAbcMXZQMtj1fphLChP3B6o/ulQwFAluWPcMACgkQhP3B6o/u
-lQxIEQ//eGI0dpOkNfiLbEpqBwBGb9xGo3qAOTvktnFFLyHDrVW9UcCl+Lxsrpw5
-wR1MxxbeejkVmb897/Y+AyfTPhxo5mg6DzD7/tWY3ooT4d74v3DySO7UW+5M6fc3
-3UMu9NGUOCWew02TtXowXMm7OFa0KO4JJofdkItpIGT57YynoriYqVTSlYrWhGQa
-6PtbOlUfJg0Fz7PloHvyEeXU4swP1Oz4xzjPoxLz+pu43SR7PFiO6vvVwvf6R2FB
-IX9ahPFqARtWyli9296l6bRk7ha5/3Q5oP/PmF8c9n8+bwiymQZxC2M97Hdm+uEx
-LCVFUELUcWLcV0EUIw3RsDnwdTkUZGvSr/r+YXIiqAoBlZBzwd7HjGht4xqhuNGX
-KisNN9zYD7yoJ7wl3RyiUskfwgqxPRYrxL0fsmPji4VKhgFSmrLHXQ/kwlH8hNiK
-Ek9mbq0QtVn64cOIt75PPGZjP8/D5f+w3JKgyoRYofC5DNaQhaOgygBnTs9QqMcZ
-puKwiiZz1NtUX5hk1JgO6xCpoCcim2qDR6eeBEFVKU3rCdbNBtenMQX3L/DwE/PB
-ct0THCwIhnB8oOoHS5u8jI8D3HTfJkXj1FqxS+EkamcJvJHrtzvewJarA6/b6aB3
-XND21Hg8S4OuwSKIQ9lUcz2E08RZJGAlpvjxQc605EFAlbo4QZk=
-=ZnXS
------END PGP SIGNATURE-----
-
---=-YrlIFe9eOeQdIb272dAH--
+[1] https://elixir.bootlin.com/linux/v4.19-rc3/source/drivers/gpu/drm/xen
+[2] 
+https://elixir.bootlin.com/linux/v4.19-rc3/source/drivers/xen/gntdev-dmabuf.c
