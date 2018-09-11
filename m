@@ -1,153 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f174.google.com ([209.85.208.174]:43279 "EHLO
-        mail-lj1-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726488AbeIKNHh (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:46706 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726408AbeIKNYl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 09:07:37 -0400
-Received: by mail-lj1-f174.google.com with SMTP id m84-v6so20099182lje.10
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2018 01:09:27 -0700 (PDT)
-Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>,
-        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
-        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        koji.matsuoka.xm@renesas.com
-References: <20180731093142.3828-1-andr2000@gmail.com>
- <20180731093142.3828-2-andr2000@gmail.com>
- <73b69e31-d36d-d89f-20d6-d59dbefe395e@xs4all.nl>
- <fc78ee17-412f-8a74-ecc8-b8ab55189e1b@gmail.com>
- <7134b3ad-9fcf-0139-41b3-67a3dbc8224d@xs4all.nl>
- <51f97715-454a-0242-b381-29944d77d5b5@gmail.com>
- <3c6bb5c8-eeb4-fd09-407a-5a77b29b56c3@xs4all.nl>
- <2a39c994-118f-a17e-c40a-f5fbbad1cb03@epam.com>
- <30d7c91a-4515-157b-fc29-90c2e6f0008b@xs4all.nl>
- <ae111e1d-4ac2-9e68-a4a5-6513650ae37f@gmail.com>
- <c980f6b7-ffe1-c5f5-5506-b9fb1a37498b@xs4all.nl>
- <f53218ac-f704-b260-543f-72ccb33c7a1f@gmail.com>
- <cb233d78-9634-749e-f6a4-6e8692ea6ddd@xs4all.nl>
- <abd78f44-96ea-b706-378a-14f32fdd77d7@gmail.com>
- <c7ad3c0f-61f9-3124-f270-f87826a68700@xs4all.nl>
-From: Oleksandr Andrushchenko <andr2000@gmail.com>
-Message-ID: <e91f12e2-52d6-62a1-f23d-f06cff9292c1@gmail.com>
-Date: Tue, 11 Sep 2018 11:09:24 +0300
-MIME-Version: 1.0
-In-Reply-To: <c7ad3c0f-61f9-3124-f270-f87826a68700@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Tue, 11 Sep 2018 09:24:41 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        jacopo mondi <jacopo@jmondi.org>,
+        "akinobu.mita@gmail.com" <akinobu.mita@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
+Date: Tue, 11 Sep 2018 08:26:16 +0000
+Message-ID: <3123a026-a9f5-f7f5-fd42-66395b3f9b94@st.com>
+References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
+ <2363168.XP4MAGOgOS@avalon> <5702b9be-8e56-65c5-86f0-acc1c8999cc2@st.com>
+ <1860753.2yNHFgTZu0@avalon>
+In-Reply-To: <1860753.2yNHFgTZu0@avalon>
 Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <EA7F880691055D4B91E7F67AB1CBDB71@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2018 10:52 AM, Hans Verkuil wrote:
-> On 09/11/18 09:14, Oleksandr Andrushchenko wrote:
->> On 09/11/2018 10:04 AM, Hans Verkuil wrote:
->>> On 09/11/2018 08:52 AM, Oleksandr Andrushchenko wrote:
->>>> Hi, Hans!
->>>>
->>>> On 09/10/2018 03:26 PM, Hans Verkuil wrote:
->>>>> On 09/10/2018 01:49 PM, Oleksandr Andrushchenko wrote:
->>>>>> On 09/10/2018 02:09 PM, Hans Verkuil wrote:
->>>>>>> On 09/10/2018 11:52 AM, Oleksandr Andrushchenko wrote:
->>>>>>>> On 09/10/2018 12:04 PM, Hans Verkuil wrote:
->>>>>>>>> On 09/10/2018 10:24 AM, Oleksandr Andrushchenko wrote:
->>>>>>>>>> On 09/10/2018 10:53 AM, Hans Verkuil wrote:
->>>>>>>>>>> Hi Oleksandr,
->>>>>>>>>>>
->>>>>>>>>>> On 09/10/2018 09:16 AM, Oleksandr Andrushchenko wrote:
->>>>>>>>> <snip>
->>>>>>>>>
->>>>>>>>>>>>> I suspect that you likely will want to support such sources eventually, so
->>>>>>>>>>>>> it pays to design this with that in mind.
->>>>>>>>>>>> Again, I think that this is the backend to hide these
->>>>>>>>>>>> use-cases from the frontend.
->>>>>>>>>>> I'm not sure you can: say you are playing a bluray connected to the system
->>>>>>>>>>> with HDMI, then if there is a resolution change, what do you do? You can tear
->>>>>>>>>>> everything down and build it up again, or you can just tell frontends that
->>>>>>>>>>> something changed and that they have to look at the new vcamera configuration.
->>>>>>>>>>>
->>>>>>>>>>> The latter seems to be more sensible to me. It is really not much that you
->>>>>>>>>>> need to do: all you really need is an event signalling that something changed.
->>>>>>>>>>> In V4L2 that's the V4L2_EVENT_SOURCE_CHANGE.
->>>>>>>>>> well, this complicates things a lot as I'll have to
->>>>>>>>>> re-allocate buffers - right?
->>>>>>>>> Right. Different resolutions means different sized buffers and usually lots of
->>>>>>>>> changes throughout the whole video pipeline, which in this case can even
->>>>>>>>> go into multiple VMs.
->>>>>>>>>
->>>>>>>>> One additional thing to keep in mind for the future: V4L2_EVENT_SOURCE_CHANGE
->>>>>>>>> has a flags field that tells userspace what changed. Right now that is just the
->>>>>>>>> resolution, but in the future you can expect flags for cases where just the
->>>>>>>>> colorspace information changes, but not the resolution.
->>>>>>>>>
->>>>>>>>> Which reminds me of two important missing pieces of information in your protocol:
->>>>>>>>>
->>>>>>>>> 1) You need to communicate the colorspace data:
->>>>>>>>>
->>>>>>>>> - colorspace
->>>>>>>>> - xfer_func
->>>>>>>>> - ycbcr_enc/hsv_enc (unlikely you ever want to support HSV pixelformats, so I
->>>>>>>>>        think you can ignore hsv_enc)
->>>>>>>>> - quantization
->>>>>>>>>
->>>>>>>>> See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
->>>>>>>>> and the links to the colorspace sections in the V4L2 spec for details).
->>>>>>>>>
->>>>>>>>> This information is part of the format, it is reported by the driver.
->>>>>>>> I'll take a look and think what can be put and how into the protocol,
->>>>>>>> do you think I'll have to implement all the above for
->>>>>>>> this stage?
->>>>>>> Yes. Without it VMs will have no way of knowing how to reproduce the right colors.
->>>>>>> They don't *have* to use this information, but it should be there. For cameras
->>>>>>> this isn't all that important, for SDTV/HDTV sources this becomes more relevant
->>>>>>> (esp. the quantization and ycbcr_enc information) and for sources with BT.2020/HDR
->>>>>>> formats this is critical.
->>>>>> ok, then I'll add the following to the set_config request/response:
->>>>>>
->>>>>>         uint32_t colorspace;
->>>>>>         uint32_t xfer_func;
->>>>>>         uint32_t ycbcr_enc;
->>>>>>         uint32_t quantization;
->>>> Yet another question here: are the above (color space, xfer etc.) and
->>>> display aspect ratio defined per pixel_format or per pixel_format +
->>>> resolution?
->>>>
->>>> If per pixel_format then
->>>>
->>>> .../vcamera/1/formats/YUYV/display-aspect-ratio = "59/58"
->>>>
->>>> or if per resolution
->>>>
->>>> .../vcamera/1/formats/YUYV/640x480/display-aspect-ratio = "59/58"
->>> They are totally independent of resolution or pixelformat, with the
->>> exception of ycbcr_enc which is of course ignored for RGB pixelformats.
->>>
->>> They are set by the driver, never by the application.
->>>
->>> For HDMI sources these values can change depending on what source is
->>> connected, so they are not fixed and you need to query them whenever
->>> a new source is connected. In fact, then can change midstream, but we
->>> do not have good support for that at the moment.
->> Ah, great, then I'll define colorspace, xfer_func, quantization
->> and display aspect ratio as part of virtual camera device configuration
->> (as vcamera represents a single source) and ycbcr_enc as a part
->> of pixel format configuration (one ycbcr_enc per each
->> pixel format)
->>
->> Does this sound ok?
-> Uh, no :-)
->
-> ycbcr_enc is not tied to specific pixel formats. The Y'CbCr encoding tells
-> you how the Y'CbCr values were derived from the R'G'B' values. So this only
-> makes sense if you are in fact receiving Y'CbCr pixels, otherwise you just
-> ignore it.
->
-> It's up to you what value to assign to ycbcr_enc in that case: V4L2 doesn't
-> have any hard requirements for that AFAIK, although it will most likely be
-> set to 0 (V4L2_YCBCR_ENC_DEFAULT).
-Thank you for the explanation
-> Regards,
->
-> 	Hans
-Thank you,
-Oleksandr
+SGkgTGF1cmVudCwNCg0KT24gMDkvMTAvMjAxOCAxMDo1NiBQTSwgTGF1cmVudCBQaW5jaGFydCB3
+cm90ZToNCj4gSGkgSHVndWVzLA0KPiANCj4gT24gTW9uZGF5LCAxMCBTZXB0ZW1iZXIgMjAxOCAx
+ODoxNDo0NSBFRVNUIEh1Z3VlcyBGUlVDSEVUIHdyb3RlOg0KPj4gT24gMDkvMDcvMjAxOCAwNDox
+OCBQTSwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToNCj4+PiBPbiBUaHVyc2RheSwgMTYgQXVndXN0
+IDIwMTggMTg6MDc6NTQgRUVTVCBIdWd1ZXMgRlJVQ0hFVCB3cm90ZToNCj4+Pj4gT24gMDgvMTYv
+MjAxOCAxMjoxMCBQTSwgamFjb3BvIG1vbmRpIHdyb3RlOg0KPj4+Pj4gT24gTW9uLCBBdWcgMTMs
+IDIwMTggYXQgMTI6MTk6NDZQTSArMDIwMCwgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+Pj4+Pg0K
+Pj4+Pj4+IE1vZGUgc2V0dGluZyBkZXBlbmRzIG9uIGxhc3QgbW9kZSBzZXQsIGluIHBhcnRpY3Vs
+YXINCj4+Pj4+PiBiZWNhdXNlIG9mIGV4cG9zdXJlIGNhbGN1bGF0aW9uIHdoZW4gZG93bnNjYWxl
+IG1vZGUNCj4+Pj4+PiBjaGFuZ2UgYmV0d2VlbiBzdWJzYW1wbGluZyBhbmQgc2NhbGluZy4NCj4+
+Pj4+PiBBdCBzdHJlYW0gb24gdGhlIGxhc3QgbW9kZSB3YXMgd3JvbmdseSBzZXQgdG8gY3VycmVu
+dCBtb2RlLA0KPj4+Pj4+IHNvIG5vIGNoYW5nZSB3YXMgZGV0ZWN0ZWQgYW5kIGV4cG9zdXJlIGNh
+bGN1bGF0aW9uDQo+Pj4+Pj4gd2FzIG5vdCBtYWRlLCBmaXggdGhpcy4NCj4+Pj4+DQo+Pj4+PiBJ
+IGFjdHVhbGx5IHNlZSBhIGRpZmZlcmVudCBpc3N1ZSBoZXJlLi4uDQo+Pj4+DQo+Pj4+IFdoaWNo
+IHByb2JsZW0gZG8geW91IGhhdmUgZXhhY3RseSwgeW91IGdvdCBhIFZHQSBKUEVHIGluc3RlYWQg
+b2YgYSBRVkdBDQo+Pj4+IFlVWVYgPw0KPj4+Pg0KPj4+Pj4gVGhlIGlzc3VlIEkgc2VlIGhlcmUg
+ZGVwZW5kcyBvbiB0aGUgZm9ybWF0IHByb2dyYW1tZWQgdGhyb3VnaA0KPj4+Pj4gc2V0X2ZtdCgp
+IG5ldmVyIGJlaW5nIGFwcGxpZWQgd2hlbiB1c2luZyB0aGUgc2Vuc29yIHdpdGggYSBtZWRpYQ0K
+Pj4+Pj4gY29udHJvbGxlciBlcXVpcHBlZCBkZXZpY2UgKGluIHRoaXMgY2FzZSBhbiBpLk1YNiBi
+b2FyZCkgdGhyb3VnaA0KPj4+Pj4gY2FwdHVyZSBzZXNzaW9ucywgYW5kIHRoZSBub3QgcHJvcGVy
+bHkgY2FsY3VsYXRlZCBleHBvc3VyZSB5b3Ugc2VlIG1heQ0KPj4+Pj4gYmUgYSBjb25zZXF1ZW5j
+ZSBvZiB0aGlzLg0KPj4+Pj4NCj4+Pj4+IEknbGwgdHJ5IHRvIHdyaXRlIGRvd24gd2hhdCBJIHNl
+ZSwgd2l0aCB0aGUgaGVscCBvZiBzb21lIGRlYnVnIG91dHB1dC4NCj4+Pj4+DQo+Pj4+PiAtIEF0
+IHByb2JlIHRpbWUgbW9kZSA2NDB4NDYwQDMwIGlzIHByb2dyYW1tZWQ6DQo+Pj4+Pg0KPj4+Pj4g
+ICAgICBbICAgIDEuNjUxMjE2XSBvdjU2NDBfcHJvYmU6IEluaXRpYWwgbW9kZSB3aXRoIGlkOiAy
+DQo+Pj4+Pg0KPj4+Pj4gLSBJIHNldCB0aGUgZm9ybWF0IG9uIHRoZSBzZW5zb3IncyBwYWQgYW5k
+IGl0IGdldHMgbm90IGFwcGxpZWQgYnV0DQo+Pj4+PiAgICAgIG1hcmtlZCBhcyBwZW5kaW5nIGFz
+IHRoZSBzZW5zb3IgaXMgcG93ZXJlZCBvZmY6DQo+ICAgPj4+DQo+Pj4+PiAgICAgICNtZWRpYS1j
+dGwgLS1zZXQtdjRsMiAiJ292NTY0MCAyLTAwM2MnOjBbZm10OlVZVlkyWDgvMzIweDI0MA0KPj4+
+Pj4gICAgICBmaWVsZDpub25lXSINCj4+Pj4+ICAgICAgIFsgICA2NS42MTE5ODNdIG92NTY0MF9z
+ZXRfZm10OiBORVcgbW9kZSB3aXRoIGlkOiAxIC0gUEVORElORw0KPj4+Pg0KPj4+PiBTbyBoZXJl
+IHNlbnNvci0+Y3VycmVudF9tb2RlIGlzIHNldCB0byA8MT47Ly9RVkdBDQo+Pj4+IGFuZCBzZW5z
+b3ItPnBlbmRpbmdfbW9kZV9jaGFuZ2UgaXMgc2V0IHRvIHRydWU7DQo+Pj4+DQo+Pj4+PiAtIEkg
+c3RhcnQgc3RyZWFtaW5nIHdpdGggeWF2dGEsIGFuZCB0aGUgc2Vuc29yIHJlY2VpdmVzIGEgcG93
+ZXIgb247DQo+Pj4+PiAgICAgIHRoaXMgY2F1c2VzIHRoZSAnaW5pdGlhbCcgZm9ybWF0IHRvIGJl
+IHJlLXByb2dyYW1tZWQgYW5kIHRoZQ0KPj4+Pj4gICAgICBwZW5kaW5nIGNoYW5nZSB0byBiZSBp
+Z25vcmVkOg0KPj4+Pj4NCj4+Pj4+ICAgICAgI3lhdnRhIC1jMTAgLW40IC1mIFlVWVYgLXMgJDMy
+MHgyNDAgIC1GIi4uL2ZyYW1lLSMueXV2IiAvZGV2L3ZpZGVvNA0KPj4+Pj4gICAgICANCj4+Pj4+
+ICAgICAgIFsgICA2OS4zOTUwMThdIG92NTY0MF9zZXRfcG93ZXI6MTgwNSAtIG9uDQo+Pj4+PiAg
+ICAgICBbICAgNjkuNDMxMzQyXSBvdjU2NDBfcmVzdG9yZV9tb2RlOjE3MTENCj4+Pj4+ICAgICAg
+IFsgICA2OS45OTY4ODJdIG92NTY0MF9zZXRfbW9kZTogQXBwbHkgbW9kZSB3aXRoIGlkOiAwDQo+
+Pj4+Pg0KPj4+Pj4gICAgICBUaGUgJ292NTY0MF9zZXRfbW9kZSgpJyBjYWxsIGZyb20gJ292NTY0
+MF9yZXN0b3JlX21vZGUoKScgY2xlYXJzDQo+Pj4+PiAgICAgIHRoZSBzZW5zb3ItPnBlbmRpbmcg
+ZmxhZywgZGlzY2FyZGluZyB0aGUgbmV3bHkgcmVxdWVzdGVkIGZvcm1hdCwgZm9yDQo+Pj4+PiAg
+ICAgIHRoaXMgcmVhc29uLCBhdCBzX3N0cmVhbSgpIHRpbWUsIHRoZSBwZW5kaW5nIGZsYWcgaXMg
+bm90IHNldA0KPj4+Pj4gICAgICBhbnltb3JlLg0KPj4+Pg0KPj4+PiBPSyBidXQgYmVmb3JlIGNs
+ZWFyaW5nIHNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSwgc2V0X21vZGUoKSBpcw0KPj4+PiBs
+b2FkaW5nIHJlZ2lzdGVycyBjb3JyZXNwb25kaW5nIHRvIHNlbnNvci0+Y3VycmVudF9tb2RlOg0K
+Pj4+Pg0KPj4+PiBzdGF0aWMgaW50IG92NTY0MF9zZXRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2RldiAq
+c2Vuc29yLA0KPj4+PiAJCQkgICBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqb3JpZ19t
+b2RlKQ0KPj4+PiB7DQo+Pj4+ID09Pgljb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqbW9k
+ZSA9IHNlbnNvci0+Y3VycmVudF9tb2RlOw0KPj4+PiAuLi4NCj4+Pj4gCXJldCA9IG92NTY0MF9z
+ZXRfbW9kZV9kaXJlY3Qoc2Vuc29yLCBtb2RlLCBleHBvc3VyZSk7DQo+Pj4+DQo+Pj4+ID0+IHNv
+IG1vZGUgPDE+IGlzIGV4cGVjdGVkIHRvIGJlIHNldCBub3csIHNvIEkgZG9uJ3QgdW5kZXJzdGFu
+ZCB5b3VyDQo+Pj4+IHRyYWNlOg0KPj4+PiAiPiAgICAgWyAgIDY5Ljk5Njg4Ml0gb3Y1NjQwX3Nl
+dF9tb2RlOiBBcHBseSBtb2RlIHdpdGggaWQ6IDAiDQo+Pj4+IFdoaWNoIHZhcmlhYmxlIGRvIHlv
+dSB0cmFjZSB0aGF0IHNob3dzICIwIiA/DQo+Pj4+DQo+Pj4+PiBBcmUgeW91IHVzaW5nIGEgbWVk
+aWEtY29udHJvbGxlciBzeXN0ZW0/IEkgc3VzcGVjdCBpbiBub24tbWMgY2FzZXMsDQo+Pj4+PiB0
+aGUgc2V0X2ZtdCBpcyBhcHBsaWVkIHRocm91Z2ggYSBzaW5nbGUgcG93ZXJfb24vcG93ZXJfb2Zm
+IHNlc3Npb24sIG5vdA0KPj4+Pj4gY2F1c2luZyB0aGUgJ3Jlc3RvcmVfbW9kZSgpJyBpc3N1ZS4g
+SXMgdGhpcyB0aGUgY2FzZSBmb3IgeW91IG9yIHlvdXINCj4+Pj4+IGlzc3VlIGlzIGRpZmZlcm50
+Pw0KPj4+Pj4NCj4+Pj4+IEVkaXQ6DQo+Pj4+PiBNaXRhLXNhbiB0cmllZCB0byBhZGRyZXNzIHRo
+ZSBpc3N1ZSBvZiB0aGUgb3V0cHV0IHBpeGVsIGZvcm1hdCBub3QNCj4+Pj4+IGJlaW5nIHJlc3Rv
+cmVkIHdoZW4gdGhlIGltYWdlIGZvcm1hdCB3YXMgcmVzdG9yZWQgaW4NCj4+Pj4+IDE5YWQyNmY5
+ZTZlMSAoIm1lZGlhOiBvdjU2NDA6IGFkZCBtaXNzaW5nIG91dHB1dCBwaXhlbCBmb3JtYXQgc2V0
+dGluZyIpDQo+Pj4+Pg0KPj4+Pj4gSSB1bmRlcnN0YW5kIHRoZSBpc3N1ZSBoZSB0cmllZCB0byBm
+aXgsIGJ1dCBzaG91bGRuJ3QgdGhlIHBlbmRpbmcNCj4+Pj4+IGZvcm1hdCAoaWYgYW55KSBiZSBh
+cHBsaWVkIGluc3RlYWQgb2YgdGhlIGluaXRpYWwgb25lIHVuY29uZGl0aW9uYWxseT8NCj4+Pj4N
+Cj4+Pj4gVGhpcyBpcyB3aGF0IGRvZXMgdGhlIG92NTY0MF9yZXN0b3JlX21vZGUoKSwgc2V0IHRo
+ZSBjdXJyZW50IG1vZGUNCj4+Pj4gKHNlbnNvci0+Y3VycmVudF9tb2RlKSwgdGhhdCBpcyBkb25l
+IHRocm91Z2ggdGhpcyBsaW5lOg0KPj4+Pg0KPj4+PiAJLyogbm93IHJlc3RvcmUgdGhlIGxhc3Qg
+Y2FwdHVyZSBtb2RlICovDQo+Pj4+IAlyZXQgPSBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCAmb3Y1
+NjQwX21vZGVfaW5pdF9kYXRhKTsNCj4+Pj4NCj4+Pj4gPT4gbm90ZSB0aGF0IHRoZSBjb21tZW50
+IGFib3ZlIGlzIHdlaXJkLCBpbiBmYWN0IGl0IGlzIHRoZSAiY3VycmVudCINCj4+Pj4gbW9kZSB0
+aGF0IGlzIHNldC4NCj4+Pj4gPT4gbm90ZSBhbHNvIHRoYXQgdGhlIDJuZCBwYXJhbWV0ZXIgaXMg
+bm90IHRoZSBtb2RlIHRvIGJlIHNldCBidXQgdGhlDQo+Pj4+IHByZXZpb3VzbHkgYXBwbGllZCBt
+b2RlICEgKGllIGxvYWRlZCBpbiBvdjU2NDAgcmVnaXN0ZXJzKS4gVGhpcyBpcyB1c2VkDQo+Pj4+
+IHRvIGRlY2lkZSBpZiB3ZSBoYXZlIHRvIGdvIHRvIHRoZSAic2V0X21vZGVfZXhwb3N1cmVfY2Fs
+YyIgb3INCj4+Pj4gInNldF9tb2RlX2RpcmVjdCIuDQo+Pj4+DQo+Pj4+IHRoZSBvdjU2NDBfcmVz
+dG9yZV9tb2RlKCkgYWxzbyBzZXQgdGhlIGN1cnJlbnQgcGl4ZWwgZm9ybWF0DQo+Pj4+IChzZW5z
+b3ItPmZtdCksIHRoYXQgaXMgZG9uZSB0aHJvdWdoIHRoaXMgbGluZToNCj4+Pj4NCj4+Pj4gCXJl
+dHVybiBvdjU2NDBfc2V0X2ZyYW1lZm10KHNlbnNvciwgJnNlbnNvci0+Zm10KTsNCj4+Pj4NCj4+
+Pj4gPT0+IFRoaXMgaXMgd2hhdCBoYXZlIGZpeGVkIE1pdGEtc2FuLCB0aGlzIGxpbmUgd2FzIG1p
+c3NpbmcgcHJldmlvdXNseSwNCj4+Pj4gbGVhZGluZyB0byAibW9kZSByZWdpc3RlcnMiIGJlaW5n
+IGxvYWRlZCBidXQgbm90IHRoZSAicGl4ZWwgZm9ybWF0DQo+Pj4+IHJlZ2lzdGVycyIuDQo+Pj4N
+Cj4+PiBUaGlzIHNlZW1zIG92ZXJseSBjb21wbGljYXRlZCB0byBtZS4gV2h5IGRvIHdlIGhhdmUg
+dG8gc2V0IHRoZSBtb2RlIGF0DQo+Pj4gcG93ZXIgb24gdGltZSBhdCBhbGwsIHdoeSBjYW4ndCB3
+ZSBkbyBpdCBhdCBzdHJlYW0gb24gdGltZSBvbmx5LCBhbmQNCj4+PiBzaW1wbGlmeSBhbGwgdGhp
+cyBsb2dpYyA/DQo+Pg0KPj4gSSdtIG5vdCB0aGUgYXV0aG9yIG9mIHRoaXMgZHJpdmVyLCBTdGV2
+ZSBkbyB5b3Uga25vdyB0aGUgb3JpZ2luIGFuZCB0aGUNCj4+IGdhaW4gdG8gZG8gc28gPyBBbnl3
+YXksIEkgd291bGQgcHJlZmVyIHRoYXQgd2Ugc3RhYmlsaXplIGN1cnJlbnRseSBleGlzdGluZw0K
+Pj4gY29kZSBiZWZvcmUgZ29pbmcgdG8gbGFyZ2VyIGNoYW5nZXMuDQo+IA0KPiBJJ20gbm90IG9w
+cG9zZWQgdG8gdGhhdCwgYnV0IGl0J3MgdGhlbiBwcmV0dHkgaGFyZCB0byByZXZpZXcgdGhlIHBh
+dGNoZXMsIHdoZW4NCj4gdGhleSByZXBsYWNlIGhhcmQgdG8gcmVhZCBjb2RlIHdpdGggb3RoZXIg
+aGFyZCB0byByZWFkIGNvZGUgOi0pDQo+IA0KPiBFdmVudHVhbGx5IHdlIHNob3VsZCByZWFsbHkg
+Y2xlYW4gdGhpcyB1cC4NCg0KTm8gcHJvYmxlbSB0byBjbGVhbnVwIHRoYXQgY29kZSwgSSB3aWxs
+IGJlIHJlYWxseSBoYXBweSB0byBzaW1wbGlmeSB0aGF0IA0Kc3R1ZmYsIGJ1dCB0aGVyZSBhcmUg
+bG90IG9mIHN0YWtlaG9sZGVycyBub3cgc28gYmV0dGVyIHRvIGlzb2xhdGUgdGhhdCANCmV4YWN0
+IGNoYW5nZSBpbiBhIG5ldyBzZXJpZSBhbmQgYXNrIGZvciBhIG5vbi1yZWdyZXNzaW9uIGNhbXBh
+aWduLg0KDQo+IA0KPj4+PiBQUzogVGhlcmUgYXJlIHR3byBvdGhlciAic2V0IG1vZGUiIHJlbGF0
+ZWQgY2hhbmdlcyB0aGF0IGFyZSByZWxhdGVkIHRvDQo+Pj4+IHRoaXM6DQo+Pj4+IDEpIDY5NDlk
+ODY0Nzc2ZSAoIm1lZGlhOiBvdjU2NDA6IGRvIG5vdCBjaGFuZ2UgbW9kZSBpZiBmb3JtYXQgb3IN
+Cj4+Pj4gZnJhbWUgaW50ZXJ2YWwgaXMgdW5jaGFuZ2VkIikNCj4+Pj4gPT4gdGhpcyBpcyBtZXJn
+ZWQgaW4gbWVkaWEgbWFzdGVyLCB1bmZvcnR1bmF0ZWx5IEkndmUgaW50cm9kdWNlZCBhDQo+Pj4+
+IHJlZ3Jlc3Npb24gb24gInBpeGVsIGZvcm1hdCIgc2lkZSB0aGF0IEkndmUgZml4ZWQgaW4gdGhp
+cyBwYXRjaHNldCA6DQo+Pj4+IDIpDQo+Pj4+IGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20v
+bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEzNDQxMy5odG1sDQo+Pj4+IFN5bXB0b20g
+d2FzIGEgbm9pc3kgaW1hZ2Ugd2hlbiBjYXB0dXJpbmcgUVZHQSBZVVYgKGluIGZhY3QgY2FwdHVy
+ZWQgYXMNCj4+Pj4gSlBFRyBkYXRhKS4NCj4+Pg0KPj4+IFtzbmlwXQ0KPiANCg0KQlIgSHVndWVz
+Lg==
