@@ -1,27 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [167.99.178.92] ([167.99.178.92]:38650 "EHLO mail.smygo.gq"
-        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-        id S1727413AbeILGuq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 02:50:46 -0400
-To: linux-media@vger.kernel.org
-Subject: Inquiry
-From: Sinara Group <sinara-group@bk.ru>
-Reply-To: sinara-group@list.ru
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <20180911211617.D63235CD6C5@mail.smygo.gq>
-Date: Tue, 11 Sep 2018 21:07:35 +0000 (UTC)
+Received: from smtp2.macqel.be ([109.135.2.61]:49320 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727647AbeIKWG5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Sep 2018 18:06:57 -0400
+From: Philippe De Muyter <phdm@macqel.be>
+To: linux-media@vger.kernel.org, slongerbeam@gmail.com
+Cc: Philippe De Muyter <phdm@macqel.be>
+Subject: [PATCH v3 0/2] media: v4l2-subdev.h: allow V4L2_FRMIVAL_TYPE_CONTINUOUS & _STEPWISE
+Date: Tue, 11 Sep 2018 19:06:31 +0200
+Message-Id: <1536685593-27512-1-git-send-email-phdm@macqel.be>
+In-Reply-To: <linux-media@vger.kernel.org.slongerbeam@gmail.com>
+References: <linux-media@vger.kernel.org.slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+add V4L2_FRMIVAL_TYPE_CONTINUOUS and V4L2_FRMIVAL_TYPE_STEPWISE for
+subdev's frame intervals in addition to implicit existing
+V4L2_FRMIVAL_TYPE_DISCRETE type.
+--
+v2:
+	Add a 'type' field and a helper function, as asked by Hans
+v3:
+	Fix documentation (as asked by Hans)
+	Convert a driver to use the new helper function (asked by Hans)
+	Initialize 'which' to V4L2_SUBDEV_FORMAT_ACTIVE in helper
 
-This is Daniel Murray and i am from Sinara Group Co.Ltd Group Co.,LTD in Russia.
-We are glad to know about your company from the web and we are interested in your products.
-Could you kindly send us your Latest catalog and price list for our trial order.
+Philippe De Muyter (2):
+  media: v4l2-subdev.h: allow V4L2_FRMIVAL_TYPE_CONTINUOUS & _STEPWISE
+  media: imx: capture: use 'v4l2_fill_frmivalenum_from_subdev'
 
-Best Regards,
+ .../uapi/v4l/vidioc-subdev-enum-frame-interval.rst | 69 +++++++++++++++++++++-
+ drivers/media/v4l2-core/v4l2-common.c              | 32 ++++++++++
+ drivers/staging/media/imx/imx-media-capture.c      | 18 +-----
+ include/media/v4l2-common.h                        | 12 ++++
+ include/uapi/linux/v4l2-subdev.h                   | 22 ++++++-
+ 5 files changed, 133 insertions(+), 20 deletions(-)
 
-Daniel Murray
-Purchasing Manager
+-- 
+1.8.4
