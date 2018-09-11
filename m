@@ -1,141 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:46706 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726408AbeIKNYl (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:40265 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726563AbeIKN2O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 09:24:41 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        jacopo mondi <jacopo@jmondi.org>,
-        "akinobu.mita@gmail.com" <akinobu.mita@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
-Date: Tue, 11 Sep 2018 08:26:16 +0000
-Message-ID: <3123a026-a9f5-f7f5-fd42-66395b3f9b94@st.com>
-References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
- <2363168.XP4MAGOgOS@avalon> <5702b9be-8e56-65c5-86f0-acc1c8999cc2@st.com>
- <1860753.2yNHFgTZu0@avalon>
-In-Reply-To: <1860753.2yNHFgTZu0@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <EA7F880691055D4B91E7F67AB1CBDB71@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Tue, 11 Sep 2018 09:28:14 -0400
+Received: by mail-wm0-f68.google.com with SMTP id 207-v6so407076wme.5
+        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2018 01:30:00 -0700 (PDT)
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+To: xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        koji.matsuoka.xm@renesas.com, hverkuil@xs4all.nl
+Cc: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+Subject: [Xen-devel][PATCH v2 0/1] cameraif: add ABI for para-virtual camera
+Date: Tue, 11 Sep 2018 11:29:51 +0300
+Message-Id: <20180911082952.23322-1-andr2000@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTGF1cmVudCwNCg0KT24gMDkvMTAvMjAxOCAxMDo1NiBQTSwgTGF1cmVudCBQaW5jaGFydCB3
-cm90ZToNCj4gSGkgSHVndWVzLA0KPiANCj4gT24gTW9uZGF5LCAxMCBTZXB0ZW1iZXIgMjAxOCAx
-ODoxNDo0NSBFRVNUIEh1Z3VlcyBGUlVDSEVUIHdyb3RlOg0KPj4gT24gMDkvMDcvMjAxOCAwNDox
-OCBQTSwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToNCj4+PiBPbiBUaHVyc2RheSwgMTYgQXVndXN0
-IDIwMTggMTg6MDc6NTQgRUVTVCBIdWd1ZXMgRlJVQ0hFVCB3cm90ZToNCj4+Pj4gT24gMDgvMTYv
-MjAxOCAxMjoxMCBQTSwgamFjb3BvIG1vbmRpIHdyb3RlOg0KPj4+Pj4gT24gTW9uLCBBdWcgMTMs
-IDIwMTggYXQgMTI6MTk6NDZQTSArMDIwMCwgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+Pj4+Pg0K
-Pj4+Pj4+IE1vZGUgc2V0dGluZyBkZXBlbmRzIG9uIGxhc3QgbW9kZSBzZXQsIGluIHBhcnRpY3Vs
-YXINCj4+Pj4+PiBiZWNhdXNlIG9mIGV4cG9zdXJlIGNhbGN1bGF0aW9uIHdoZW4gZG93bnNjYWxl
-IG1vZGUNCj4+Pj4+PiBjaGFuZ2UgYmV0d2VlbiBzdWJzYW1wbGluZyBhbmQgc2NhbGluZy4NCj4+
-Pj4+PiBBdCBzdHJlYW0gb24gdGhlIGxhc3QgbW9kZSB3YXMgd3JvbmdseSBzZXQgdG8gY3VycmVu
-dCBtb2RlLA0KPj4+Pj4+IHNvIG5vIGNoYW5nZSB3YXMgZGV0ZWN0ZWQgYW5kIGV4cG9zdXJlIGNh
-bGN1bGF0aW9uDQo+Pj4+Pj4gd2FzIG5vdCBtYWRlLCBmaXggdGhpcy4NCj4+Pj4+DQo+Pj4+PiBJ
-IGFjdHVhbGx5IHNlZSBhIGRpZmZlcmVudCBpc3N1ZSBoZXJlLi4uDQo+Pj4+DQo+Pj4+IFdoaWNo
-IHByb2JsZW0gZG8geW91IGhhdmUgZXhhY3RseSwgeW91IGdvdCBhIFZHQSBKUEVHIGluc3RlYWQg
-b2YgYSBRVkdBDQo+Pj4+IFlVWVYgPw0KPj4+Pg0KPj4+Pj4gVGhlIGlzc3VlIEkgc2VlIGhlcmUg
-ZGVwZW5kcyBvbiB0aGUgZm9ybWF0IHByb2dyYW1tZWQgdGhyb3VnaA0KPj4+Pj4gc2V0X2ZtdCgp
-IG5ldmVyIGJlaW5nIGFwcGxpZWQgd2hlbiB1c2luZyB0aGUgc2Vuc29yIHdpdGggYSBtZWRpYQ0K
-Pj4+Pj4gY29udHJvbGxlciBlcXVpcHBlZCBkZXZpY2UgKGluIHRoaXMgY2FzZSBhbiBpLk1YNiBi
-b2FyZCkgdGhyb3VnaA0KPj4+Pj4gY2FwdHVyZSBzZXNzaW9ucywgYW5kIHRoZSBub3QgcHJvcGVy
-bHkgY2FsY3VsYXRlZCBleHBvc3VyZSB5b3Ugc2VlIG1heQ0KPj4+Pj4gYmUgYSBjb25zZXF1ZW5j
-ZSBvZiB0aGlzLg0KPj4+Pj4NCj4+Pj4+IEknbGwgdHJ5IHRvIHdyaXRlIGRvd24gd2hhdCBJIHNl
-ZSwgd2l0aCB0aGUgaGVscCBvZiBzb21lIGRlYnVnIG91dHB1dC4NCj4+Pj4+DQo+Pj4+PiAtIEF0
-IHByb2JlIHRpbWUgbW9kZSA2NDB4NDYwQDMwIGlzIHByb2dyYW1tZWQ6DQo+Pj4+Pg0KPj4+Pj4g
-ICAgICBbICAgIDEuNjUxMjE2XSBvdjU2NDBfcHJvYmU6IEluaXRpYWwgbW9kZSB3aXRoIGlkOiAy
-DQo+Pj4+Pg0KPj4+Pj4gLSBJIHNldCB0aGUgZm9ybWF0IG9uIHRoZSBzZW5zb3IncyBwYWQgYW5k
-IGl0IGdldHMgbm90IGFwcGxpZWQgYnV0DQo+Pj4+PiAgICAgIG1hcmtlZCBhcyBwZW5kaW5nIGFz
-IHRoZSBzZW5zb3IgaXMgcG93ZXJlZCBvZmY6DQo+ICAgPj4+DQo+Pj4+PiAgICAgICNtZWRpYS1j
-dGwgLS1zZXQtdjRsMiAiJ292NTY0MCAyLTAwM2MnOjBbZm10OlVZVlkyWDgvMzIweDI0MA0KPj4+
-Pj4gICAgICBmaWVsZDpub25lXSINCj4+Pj4+ICAgICAgIFsgICA2NS42MTE5ODNdIG92NTY0MF9z
-ZXRfZm10OiBORVcgbW9kZSB3aXRoIGlkOiAxIC0gUEVORElORw0KPj4+Pg0KPj4+PiBTbyBoZXJl
-IHNlbnNvci0+Y3VycmVudF9tb2RlIGlzIHNldCB0byA8MT47Ly9RVkdBDQo+Pj4+IGFuZCBzZW5z
-b3ItPnBlbmRpbmdfbW9kZV9jaGFuZ2UgaXMgc2V0IHRvIHRydWU7DQo+Pj4+DQo+Pj4+PiAtIEkg
-c3RhcnQgc3RyZWFtaW5nIHdpdGggeWF2dGEsIGFuZCB0aGUgc2Vuc29yIHJlY2VpdmVzIGEgcG93
-ZXIgb247DQo+Pj4+PiAgICAgIHRoaXMgY2F1c2VzIHRoZSAnaW5pdGlhbCcgZm9ybWF0IHRvIGJl
-IHJlLXByb2dyYW1tZWQgYW5kIHRoZQ0KPj4+Pj4gICAgICBwZW5kaW5nIGNoYW5nZSB0byBiZSBp
-Z25vcmVkOg0KPj4+Pj4NCj4+Pj4+ICAgICAgI3lhdnRhIC1jMTAgLW40IC1mIFlVWVYgLXMgJDMy
-MHgyNDAgIC1GIi4uL2ZyYW1lLSMueXV2IiAvZGV2L3ZpZGVvNA0KPj4+Pj4gICAgICANCj4+Pj4+
-ICAgICAgIFsgICA2OS4zOTUwMThdIG92NTY0MF9zZXRfcG93ZXI6MTgwNSAtIG9uDQo+Pj4+PiAg
-ICAgICBbICAgNjkuNDMxMzQyXSBvdjU2NDBfcmVzdG9yZV9tb2RlOjE3MTENCj4+Pj4+ICAgICAg
-IFsgICA2OS45OTY4ODJdIG92NTY0MF9zZXRfbW9kZTogQXBwbHkgbW9kZSB3aXRoIGlkOiAwDQo+
-Pj4+Pg0KPj4+Pj4gICAgICBUaGUgJ292NTY0MF9zZXRfbW9kZSgpJyBjYWxsIGZyb20gJ292NTY0
-MF9yZXN0b3JlX21vZGUoKScgY2xlYXJzDQo+Pj4+PiAgICAgIHRoZSBzZW5zb3ItPnBlbmRpbmcg
-ZmxhZywgZGlzY2FyZGluZyB0aGUgbmV3bHkgcmVxdWVzdGVkIGZvcm1hdCwgZm9yDQo+Pj4+PiAg
-ICAgIHRoaXMgcmVhc29uLCBhdCBzX3N0cmVhbSgpIHRpbWUsIHRoZSBwZW5kaW5nIGZsYWcgaXMg
-bm90IHNldA0KPj4+Pj4gICAgICBhbnltb3JlLg0KPj4+Pg0KPj4+PiBPSyBidXQgYmVmb3JlIGNs
-ZWFyaW5nIHNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSwgc2V0X21vZGUoKSBpcw0KPj4+PiBs
-b2FkaW5nIHJlZ2lzdGVycyBjb3JyZXNwb25kaW5nIHRvIHNlbnNvci0+Y3VycmVudF9tb2RlOg0K
-Pj4+Pg0KPj4+PiBzdGF0aWMgaW50IG92NTY0MF9zZXRfbW9kZShzdHJ1Y3Qgb3Y1NjQwX2RldiAq
-c2Vuc29yLA0KPj4+PiAJCQkgICBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqb3JpZ19t
-b2RlKQ0KPj4+PiB7DQo+Pj4+ID09Pgljb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqbW9k
-ZSA9IHNlbnNvci0+Y3VycmVudF9tb2RlOw0KPj4+PiAuLi4NCj4+Pj4gCXJldCA9IG92NTY0MF9z
-ZXRfbW9kZV9kaXJlY3Qoc2Vuc29yLCBtb2RlLCBleHBvc3VyZSk7DQo+Pj4+DQo+Pj4+ID0+IHNv
-IG1vZGUgPDE+IGlzIGV4cGVjdGVkIHRvIGJlIHNldCBub3csIHNvIEkgZG9uJ3QgdW5kZXJzdGFu
-ZCB5b3VyDQo+Pj4+IHRyYWNlOg0KPj4+PiAiPiAgICAgWyAgIDY5Ljk5Njg4Ml0gb3Y1NjQwX3Nl
-dF9tb2RlOiBBcHBseSBtb2RlIHdpdGggaWQ6IDAiDQo+Pj4+IFdoaWNoIHZhcmlhYmxlIGRvIHlv
-dSB0cmFjZSB0aGF0IHNob3dzICIwIiA/DQo+Pj4+DQo+Pj4+PiBBcmUgeW91IHVzaW5nIGEgbWVk
-aWEtY29udHJvbGxlciBzeXN0ZW0/IEkgc3VzcGVjdCBpbiBub24tbWMgY2FzZXMsDQo+Pj4+PiB0
-aGUgc2V0X2ZtdCBpcyBhcHBsaWVkIHRocm91Z2ggYSBzaW5nbGUgcG93ZXJfb24vcG93ZXJfb2Zm
-IHNlc3Npb24sIG5vdA0KPj4+Pj4gY2F1c2luZyB0aGUgJ3Jlc3RvcmVfbW9kZSgpJyBpc3N1ZS4g
-SXMgdGhpcyB0aGUgY2FzZSBmb3IgeW91IG9yIHlvdXINCj4+Pj4+IGlzc3VlIGlzIGRpZmZlcm50
-Pw0KPj4+Pj4NCj4+Pj4+IEVkaXQ6DQo+Pj4+PiBNaXRhLXNhbiB0cmllZCB0byBhZGRyZXNzIHRo
-ZSBpc3N1ZSBvZiB0aGUgb3V0cHV0IHBpeGVsIGZvcm1hdCBub3QNCj4+Pj4+IGJlaW5nIHJlc3Rv
-cmVkIHdoZW4gdGhlIGltYWdlIGZvcm1hdCB3YXMgcmVzdG9yZWQgaW4NCj4+Pj4+IDE5YWQyNmY5
-ZTZlMSAoIm1lZGlhOiBvdjU2NDA6IGFkZCBtaXNzaW5nIG91dHB1dCBwaXhlbCBmb3JtYXQgc2V0
-dGluZyIpDQo+Pj4+Pg0KPj4+Pj4gSSB1bmRlcnN0YW5kIHRoZSBpc3N1ZSBoZSB0cmllZCB0byBm
-aXgsIGJ1dCBzaG91bGRuJ3QgdGhlIHBlbmRpbmcNCj4+Pj4+IGZvcm1hdCAoaWYgYW55KSBiZSBh
-cHBsaWVkIGluc3RlYWQgb2YgdGhlIGluaXRpYWwgb25lIHVuY29uZGl0aW9uYWxseT8NCj4+Pj4N
-Cj4+Pj4gVGhpcyBpcyB3aGF0IGRvZXMgdGhlIG92NTY0MF9yZXN0b3JlX21vZGUoKSwgc2V0IHRo
-ZSBjdXJyZW50IG1vZGUNCj4+Pj4gKHNlbnNvci0+Y3VycmVudF9tb2RlKSwgdGhhdCBpcyBkb25l
-IHRocm91Z2ggdGhpcyBsaW5lOg0KPj4+Pg0KPj4+PiAJLyogbm93IHJlc3RvcmUgdGhlIGxhc3Qg
-Y2FwdHVyZSBtb2RlICovDQo+Pj4+IAlyZXQgPSBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCAmb3Y1
-NjQwX21vZGVfaW5pdF9kYXRhKTsNCj4+Pj4NCj4+Pj4gPT4gbm90ZSB0aGF0IHRoZSBjb21tZW50
-IGFib3ZlIGlzIHdlaXJkLCBpbiBmYWN0IGl0IGlzIHRoZSAiY3VycmVudCINCj4+Pj4gbW9kZSB0
-aGF0IGlzIHNldC4NCj4+Pj4gPT4gbm90ZSBhbHNvIHRoYXQgdGhlIDJuZCBwYXJhbWV0ZXIgaXMg
-bm90IHRoZSBtb2RlIHRvIGJlIHNldCBidXQgdGhlDQo+Pj4+IHByZXZpb3VzbHkgYXBwbGllZCBt
-b2RlICEgKGllIGxvYWRlZCBpbiBvdjU2NDAgcmVnaXN0ZXJzKS4gVGhpcyBpcyB1c2VkDQo+Pj4+
-IHRvIGRlY2lkZSBpZiB3ZSBoYXZlIHRvIGdvIHRvIHRoZSAic2V0X21vZGVfZXhwb3N1cmVfY2Fs
-YyIgb3INCj4+Pj4gInNldF9tb2RlX2RpcmVjdCIuDQo+Pj4+DQo+Pj4+IHRoZSBvdjU2NDBfcmVz
-dG9yZV9tb2RlKCkgYWxzbyBzZXQgdGhlIGN1cnJlbnQgcGl4ZWwgZm9ybWF0DQo+Pj4+IChzZW5z
-b3ItPmZtdCksIHRoYXQgaXMgZG9uZSB0aHJvdWdoIHRoaXMgbGluZToNCj4+Pj4NCj4+Pj4gCXJl
-dHVybiBvdjU2NDBfc2V0X2ZyYW1lZm10KHNlbnNvciwgJnNlbnNvci0+Zm10KTsNCj4+Pj4NCj4+
-Pj4gPT0+IFRoaXMgaXMgd2hhdCBoYXZlIGZpeGVkIE1pdGEtc2FuLCB0aGlzIGxpbmUgd2FzIG1p
-c3NpbmcgcHJldmlvdXNseSwNCj4+Pj4gbGVhZGluZyB0byAibW9kZSByZWdpc3RlcnMiIGJlaW5n
-IGxvYWRlZCBidXQgbm90IHRoZSAicGl4ZWwgZm9ybWF0DQo+Pj4+IHJlZ2lzdGVycyIuDQo+Pj4N
-Cj4+PiBUaGlzIHNlZW1zIG92ZXJseSBjb21wbGljYXRlZCB0byBtZS4gV2h5IGRvIHdlIGhhdmUg
-dG8gc2V0IHRoZSBtb2RlIGF0DQo+Pj4gcG93ZXIgb24gdGltZSBhdCBhbGwsIHdoeSBjYW4ndCB3
-ZSBkbyBpdCBhdCBzdHJlYW0gb24gdGltZSBvbmx5LCBhbmQNCj4+PiBzaW1wbGlmeSBhbGwgdGhp
-cyBsb2dpYyA/DQo+Pg0KPj4gSSdtIG5vdCB0aGUgYXV0aG9yIG9mIHRoaXMgZHJpdmVyLCBTdGV2
-ZSBkbyB5b3Uga25vdyB0aGUgb3JpZ2luIGFuZCB0aGUNCj4+IGdhaW4gdG8gZG8gc28gPyBBbnl3
-YXksIEkgd291bGQgcHJlZmVyIHRoYXQgd2Ugc3RhYmlsaXplIGN1cnJlbnRseSBleGlzdGluZw0K
-Pj4gY29kZSBiZWZvcmUgZ29pbmcgdG8gbGFyZ2VyIGNoYW5nZXMuDQo+IA0KPiBJJ20gbm90IG9w
-cG9zZWQgdG8gdGhhdCwgYnV0IGl0J3MgdGhlbiBwcmV0dHkgaGFyZCB0byByZXZpZXcgdGhlIHBh
-dGNoZXMsIHdoZW4NCj4gdGhleSByZXBsYWNlIGhhcmQgdG8gcmVhZCBjb2RlIHdpdGggb3RoZXIg
-aGFyZCB0byByZWFkIGNvZGUgOi0pDQo+IA0KPiBFdmVudHVhbGx5IHdlIHNob3VsZCByZWFsbHkg
-Y2xlYW4gdGhpcyB1cC4NCg0KTm8gcHJvYmxlbSB0byBjbGVhbnVwIHRoYXQgY29kZSwgSSB3aWxs
-IGJlIHJlYWxseSBoYXBweSB0byBzaW1wbGlmeSB0aGF0IA0Kc3R1ZmYsIGJ1dCB0aGVyZSBhcmUg
-bG90IG9mIHN0YWtlaG9sZGVycyBub3cgc28gYmV0dGVyIHRvIGlzb2xhdGUgdGhhdCANCmV4YWN0
-IGNoYW5nZSBpbiBhIG5ldyBzZXJpZSBhbmQgYXNrIGZvciBhIG5vbi1yZWdyZXNzaW9uIGNhbXBh
-aWduLg0KDQo+IA0KPj4+PiBQUzogVGhlcmUgYXJlIHR3byBvdGhlciAic2V0IG1vZGUiIHJlbGF0
-ZWQgY2hhbmdlcyB0aGF0IGFyZSByZWxhdGVkIHRvDQo+Pj4+IHRoaXM6DQo+Pj4+IDEpIDY5NDlk
-ODY0Nzc2ZSAoIm1lZGlhOiBvdjU2NDA6IGRvIG5vdCBjaGFuZ2UgbW9kZSBpZiBmb3JtYXQgb3IN
-Cj4+Pj4gZnJhbWUgaW50ZXJ2YWwgaXMgdW5jaGFuZ2VkIikNCj4+Pj4gPT4gdGhpcyBpcyBtZXJn
-ZWQgaW4gbWVkaWEgbWFzdGVyLCB1bmZvcnR1bmF0ZWx5IEkndmUgaW50cm9kdWNlZCBhDQo+Pj4+
-IHJlZ3Jlc3Npb24gb24gInBpeGVsIGZvcm1hdCIgc2lkZSB0aGF0IEkndmUgZml4ZWQgaW4gdGhp
-cyBwYXRjaHNldCA6DQo+Pj4+IDIpDQo+Pj4+IGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20v
-bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEzNDQxMy5odG1sDQo+Pj4+IFN5bXB0b20g
-d2FzIGEgbm9pc3kgaW1hZ2Ugd2hlbiBjYXB0dXJpbmcgUVZHQSBZVVYgKGluIGZhY3QgY2FwdHVy
-ZWQgYXMNCj4+Pj4gSlBFRyBkYXRhKS4NCj4+Pg0KPj4+IFtzbmlwXQ0KPiANCg0KQlIgSHVndWVz
-Lg==
+From: Oleksandr Andrushchenko <oleksandr_andrushchenko@epam.com>
+
+Hello!
+
+At the moment Xen [1] already supports some virtual multimedia
+features [2] such as virtual display, sound. It supports keyboards,
+pointers and multi-touch devices all allowing Xen to be used in
+automotive appliances, In-Vehicle Infotainment (IVI) systems
+and many more.
+
+This work adds a new Xen para-virtualized protocol for a virtual
+camera device which extends multimedia capabilities of Xen even
+farther: video conferencing, IVI, high definition maps etc.
+
+The initial goal is to support most needed functionality with the
+final idea to make it possible to extend the protocol if need be:
+
+1. Provide means for base virtual device configuration:
+ - pixel formats
+ - resolutions
+ - frame rates
+2. Support basic camera controls:
+ - contrast
+ - brightness
+ - hue
+ - saturation
+3. Support streaming control
+4. Support zero-copying use-cases
+
+I hope that Xen and V4L and other communities could give their
+valuable feedback on this work, so I can update the protocol
+to better fit any additional requirements I might have missed.
+
+I would like to thank Hans Verkuil <hverkuil@xs4all.nl> for valuable
+comments and help.
+
+Thank you,
+Oleksandr Andrushchenko
+
+Changes since v1:
+=================
+
+1. Added XenStore entries:
+ - frame-rates
+2. Do not require the FOURCC code in XenStore to be upper case only
+3. Added/changed command set:
+ - configuration get/set
+ - buffer queue/dequeue
+ - control get
+4. Added control flags, e.g. read-only etc.
+5. Added colorspace configuration support, relevant constants
+6. Added events:
+ - configuration change
+ - control change
+7. Changed control values to 64-bit
+8. Added sequence number to frame avail event
+9. Coding style cleanup
+
+[1] https://www.xenproject.org/
+[2] https://xenbits.xen.org/gitweb/?p=xen.git;a=tree;f=xen/include/public/io
+
+Oleksandr Andrushchenko (1):
+  cameraif: add ABI for para-virtual camera
+
+ xen/include/public/io/cameraif.h | 1263 ++++++++++++++++++++++++++++++
+ 1 file changed, 1263 insertions(+)
+ create mode 100644 xen/include/public/io/cameraif.h
+
+-- 
+2.18.0
