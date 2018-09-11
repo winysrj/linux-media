@@ -1,189 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:48554 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726622AbeIKUue (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:41236 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726645AbeIKX7g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 16:50:34 -0400
-Date: Tue, 11 Sep 2018 12:50:31 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Paul Kocialkowski <contact@paulk.fr>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        devel@driverdev.osuosl.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        linux-sunxi@googlegroups.com, Randy Li <ayaka@soulik.info>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v9 5/9] media: platform: Add Cedrus VPU decoder driver
-Message-ID: <20180911124625.6759e429@coco.lan>
-In-Reply-To: <20180906222442.14825-6-contact@paulk.fr>
-References: <20180906222442.14825-1-contact@paulk.fr>
-        <20180906222442.14825-6-contact@paulk.fr>
+        Tue, 11 Sep 2018 19:59:36 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <20180821170629.18408-1-matwey@sai.msu.ru> <20180821170629.18408-3-matwey@sai.msu.ru>
+ <CAJs94EZ5Qh8q3tEABmH89NjDkA=jjzsB63yctRGdEqcvJTnASA@mail.gmail.com>
+In-Reply-To: <CAJs94EZ5Qh8q3tEABmH89NjDkA=jjzsB63yctRGdEqcvJTnASA@mail.gmail.com>
+From: "Matwey V. Kornilov" <matwey.kornilov@gmail.com>
+Date: Tue, 11 Sep 2018 21:58:43 +0300
+Message-ID: <CAJs94EZBpUmRXnYRiSHJex+UdLX5tUfW-nxm1bWjy1oQW6vuFQ@mail.gmail.com>
+Subject: Re: [PATCH v5 2/2] media: usb: pwc: Don't use coherent DMA buffers
+ for ISO transfer
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>, mingo@redhat.com,
+        Mike Isely <isely@pobox.com>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Colin King <colin.king@canonical.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        keiichiw@chromium.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri,  7 Sep 2018 00:24:38 +0200
-Paul Kocialkowski <contact@paulk.fr> escreveu:
+=D0=B2=D1=82, 28 =D0=B0=D0=B2=D0=B3. 2018 =D0=B3. =D0=B2 10:17, Matwey V. K=
+ornilov <matwey.kornilov@gmail.com>:
+>
+> =D0=B2=D1=82, 21 =D0=B0=D0=B2=D0=B3. 2018 =D0=B3. =D0=B2 20:06, Matwey V.=
+ Kornilov <matwey@sai.msu.ru>:
+> >
+> > DMA cocherency slows the transfer down on systems without hardware
+> > coherent DMA.
+> > Instead we use noncocherent DMA memory and explicit sync at data receiv=
+e
+> > handler.
+> >
+> > Based on previous commit the following performance benchmarks have been
+> > carried out. Average memcpy() data transfer rate (rate) and handler
+> > completion time (time) have been measured when running video stream at
+> > 640x480 resolution at 10fps.
+> >
+> > x86_64 based system (Intel Core i5-3470). This platform has hardware
+> > coherent DMA support and proposed change doesn't make big difference he=
+re.
+> >
+> >  * kmalloc:            rate =3D (2.0 +- 0.4) GBps
+> >                        time =3D (5.0 +- 3.0) usec
+> >  * usb_alloc_coherent: rate =3D (3.4 +- 1.2) GBps
+> >                        time =3D (3.5 +- 3.0) usec
+> >
+> > We see that the measurements agree within error ranges in this case.
+> > So theoretically predicted performance downgrade cannot be reliably
+> > measured here.
+> >
+> > armv7l based system (TI AM335x BeagleBone Black @ 300MHz). This platfor=
+m
+> > has no hardware coherent DMA support. DMA coherence is implemented via
+> > disabled page caching that slows down memcpy() due to memory controller
+> > behaviour.
+> >
+> >  * kmalloc:            rate =3D  (114 +- 5) MBps
+> >                        time =3D   (84 +- 4) usec
+> >  * usb_alloc_coherent: rate =3D (28.1 +- 0.1) MBps
+> >                        time =3D  (341 +- 2) usec
+> >
+> > Note, that quantative difference leads (this commit leads to 4 times
+> > acceleration) to qualitative behavior change in this case. As it was
+> > stated before, the video stream cannot be successfully received at AM33=
+5x
+> > platforms with MUSB based USB host controller due to performance issues
+> > [1].
+> >
+> > [1] https://www.spinics.net/lists/linux-usb/msg165735.html
+> >
+> > Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+>
+> Ping
+>
 
-> From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> 
-> This introduces the Cedrus VPU driver that supports the VPU found in
-> Allwinner SoCs, also known as Video Engine. It is implemented through
-> a V4L2 M2M decoder device and a media device (used for media requests).
-> So far, it only supports MPEG-2 decoding.
-> 
-> Since this VPU is stateless, synchronization with media requests is
-> required in order to ensure consistency between frame headers that
-> contain metadata about the frame to process and the raw slice data that
-> is used to generate the frame.
-> 
-> This driver was made possible thanks to the long-standing effort
-> carried out by the linux-sunxi community in the interest of reverse
-> engineering, documenting and implementing support for the Allwinner VPU.
-> 
-> Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
-> Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Ping
 
-There are several checkpatch issues here. Ok, some can be
-ignored, but there are at least some of them that sounds relevant.
-
-Please address them.
-
-In particular, see https://lkml.org/lkml/2017/11/21/384.
-
-Also, for new drivers, please use --strict parameter on checkpatch,
-as it will give more insights about possible bad coding styles.
-
-This is what checkpatch currently complains:
-
-
-CHECK: Comparison to NULL could be written "ctx->ctrls[i]"
-#214: FILE: drivers/staging/media/sunxi/cedrus/cedrus.c:51:
-+	for (i = 0; ctx->ctrls[i] != NULL; i++)
-
-CHECK: Alignment should match open parenthesis
-#304: FILE: drivers/staging/media/sunxi/cedrus/cedrus.c:141:
-+		ctrl_test = v4l2_ctrl_request_hdl_ctrl_find(hdl,
-+			cedrus_controls[i].id);
-
-CHECK: Alignment should match open parenthesis
-#468: FILE: drivers/staging/media/sunxi/cedrus/cedrus.c:305:
-+	ret = v4l2_m2m_register_media_controller(dev->m2m_dev,
-+			vfd, MEDIA_ENT_F_PROC_VIDEO_DECODER);
-
-CHECK: Avoid using bool structure members because of possible alignment issues - see: https://lkml.org/lkml/2017/11/21/384
-#638: FILE: drivers/staging/media/sunxi/cedrus/cedrus.h:47:
-+	bool			required;
-
-WARNING: line over 80 characters
-#744: FILE: drivers/staging/media/sunxi/cedrus/cedrus.h:153:
-+static inline struct cedrus_buffer *vb2_v4l2_to_cedrus_buffer(const struct vb2_v4l2_buffer *p)
-
-WARNING: line over 80 characters
-#749: FILE: drivers/staging/media/sunxi/cedrus/cedrus.h:158:
-+static inline struct cedrus_buffer *vb2_to_cedrus_buffer(const struct vb2_buffer *p)
-
-CHECK: Alignment should match open parenthesis
-#809: FILE: drivers/staging/media/sunxi/cedrus/cedrus_dec.c:47:
-+		run.mpeg2.slice_params = cedrus_find_control_data(ctx,
-+			V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS);
-
-CHECK: Alignment should match open parenthesis
-#811: FILE: drivers/staging/media/sunxi/cedrus/cedrus_dec.c:49:
-+		run.mpeg2.quantization = cedrus_find_control_data(ctx,
-+			V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION);
-
-WARNING: line over 80 characters
-#1368: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:133:
-+	reg |= VE_DEC_MPEG_MP12HDR_INTRA_DC_PRECISION(picture->intra_dc_precision);
-
-WARNING: line over 80 characters
-#1369: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:134:
-+	reg |= VE_DEC_MPEG_MP12HDR_INTRA_PICTURE_STRUCTURE(picture->picture_structure);
-
-WARNING: line over 80 characters
-#1371: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:136:
-+	reg |= VE_DEC_MPEG_MP12HDR_FRAME_PRED_FRAME_DCT(picture->frame_pred_frame_dct);
-
-WARNING: line over 80 characters
-#1372: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:137:
-+	reg |= VE_DEC_MPEG_MP12HDR_CONCEALMENT_MOTION_VECTORS(picture->concealment_motion_vectors);
-
-WARNING: line over 80 characters
-#1395: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:160:
-+	fwd_luma_addr = cedrus_dst_buf_addr(ctx, slice_params->forward_ref_index, 0);
-
-WARNING: line over 80 characters
-#1396: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:161:
-+	fwd_chroma_addr = cedrus_dst_buf_addr(ctx, slice_params->forward_ref_index, 1);
-
-WARNING: line over 80 characters
-#1401: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:166:
-+	bwd_luma_addr = cedrus_dst_buf_addr(ctx, slice_params->backward_ref_index, 0);
-
-WARNING: line over 80 characters
-#1402: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:167:
-+	bwd_chroma_addr = cedrus_dst_buf_addr(ctx, slice_params->backward_ref_index, 1);
-
-WARNING: line over 80 characters
-#1417: FILE: drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c:182:
-+	cedrus_write(dev, VE_DEC_MPEG_VLD_OFFSET, slice_params->data_bit_offset);
-
-CHECK: Macro argument reuse 'x' - possible side-effects?
-#1552: FILE: drivers/staging/media/sunxi/cedrus/cedrus_regs.h:74:
-+#define VE_DEC_MPEG_MP12HDR_F_CODE_MASK(x, y) \
-+	GENMASK(VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y) + 3, \
-+		VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y))
-
-CHECK: Macro argument reuse 'y' - possible side-effects?
-#1552: FILE: drivers/staging/media/sunxi/cedrus/cedrus_regs.h:74:
-+#define VE_DEC_MPEG_MP12HDR_F_CODE_MASK(x, y) \
-+	GENMASK(VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y) + 3, \
-+		VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y))
-
-CHECK: Macro argument reuse 'x' - possible side-effects?
-#1555: FILE: drivers/staging/media/sunxi/cedrus/cedrus_regs.h:77:
-+#define VE_DEC_MPEG_MP12HDR_F_CODE(x, y, v) \
-+	(((v) << VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y)) & \
-+	 VE_DEC_MPEG_MP12HDR_F_CODE_MASK(x, y))
-
-CHECK: Macro argument reuse 'y' - possible side-effects?
-#1555: FILE: drivers/staging/media/sunxi/cedrus/cedrus_regs.h:77:
-+#define VE_DEC_MPEG_MP12HDR_F_CODE(x, y, v) \
-+	(((v) << VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y)) & \
-+	 VE_DEC_MPEG_MP12HDR_F_CODE_MASK(x, y))
-
-CHECK: Macro argument reuse 'a' - possible side-effects?
-#1685: FILE: drivers/staging/media/sunxi/cedrus/cedrus_regs.h:207:
-+#define VE_DEC_MPEG_VLD_ADDR_BASE(a) \
-+	(((a) & GENMASK(27, 4)) | (((a) >> 28) & GENMASK(3, 0)))
-
-CHECK: Comparison to NULL could be written "fmt"
-#1805: FILE: drivers/staging/media/sunxi/cedrus/cedrus_video.c:88:
-+	return fmt != NULL;
-
-CHECK: Please use a blank line after function/struct/union/enum declarations
-#2214: FILE: drivers/staging/media/sunxi/cedrus/cedrus_video.c:497:
-+}
-+static struct vb2_ops cedrus_qops = {
-
-total: 0 errors, 11 warnings, 13 checks, 2139 lines checked
+> > ---
+> >  drivers/media/usb/pwc/pwc-if.c | 57 ++++++++++++++++++++++++++++++++--=
+--------
+> >  1 file changed, 44 insertions(+), 13 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc=
+-if.c
+> > index 72d2897a4b9f..1360722ab423 100644
+> > --- a/drivers/media/usb/pwc/pwc-if.c
+> > +++ b/drivers/media/usb/pwc/pwc-if.c
+> > @@ -159,6 +159,32 @@ static const struct video_device pwc_template =3D =
+{
+> >  /*********************************************************************=
+******/
+> >  /* Private functions */
+> >
+> > +static void *pwc_alloc_urb_buffer(struct device *dev,
+> > +                                 size_t size, dma_addr_t *dma_handle)
+> > +{
+> > +       void *buffer =3D kmalloc(size, GFP_KERNEL);
+> > +
+> > +       if (!buffer)
+> > +               return NULL;
+> > +
+> > +       *dma_handle =3D dma_map_single(dev, buffer, size, DMA_FROM_DEVI=
+CE);
+> > +       if (dma_mapping_error(dev, *dma_handle)) {
+> > +               kfree(buffer);
+> > +               return NULL;
+> > +       }
+> > +
+> > +       return buffer;
+> > +}
+> > +
+> > +static void pwc_free_urb_buffer(struct device *dev,
+> > +                               size_t size,
+> > +                               void *buffer,
+> > +                               dma_addr_t dma_handle)
+> > +{
+> > +       dma_unmap_single(dev, dma_handle, size, DMA_FROM_DEVICE);
+> > +       kfree(buffer);
+> > +}
+> > +
+> >  static struct pwc_frame_buf *pwc_get_next_fill_buf(struct pwc_device *=
+pdev)
+> >  {
+> >         unsigned long flags =3D 0;
+> > @@ -306,6 +332,11 @@ static void pwc_isoc_handler(struct urb *urb)
+> >         /* Reset ISOC error counter. We did get here, after all. */
+> >         pdev->visoc_errors =3D 0;
+> >
+> > +       dma_sync_single_for_cpu(&urb->dev->dev,
+> > +                               urb->transfer_dma,
+> > +                               urb->transfer_buffer_length,
+> > +                               DMA_FROM_DEVICE);
+> > +
+> >         /* vsync: 0 =3D don't copy data
+> >                   1 =3D sync-hunt
+> >                   2 =3D synched
+> > @@ -428,16 +459,15 @@ static int pwc_isoc_init(struct pwc_device *pdev)
+> >                 urb->dev =3D udev;
+> >                 urb->pipe =3D usb_rcvisocpipe(udev, pdev->vendpoint);
+> >                 urb->transfer_flags =3D URB_ISO_ASAP | URB_NO_TRANSFER_=
+DMA_MAP;
+> > -               urb->transfer_buffer =3D usb_alloc_coherent(udev,
+> > -                                                         ISO_BUFFER_SI=
+ZE,
+> > -                                                         GFP_KERNEL,
+> > -                                                         &urb->transfe=
+r_dma);
+> > +               urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
+> > +               urb->transfer_buffer =3D pwc_alloc_urb_buffer(&udev->de=
+v,
+> > +                                                           urb->transf=
+er_buffer_length,
+> > +                                                           &urb->trans=
+fer_dma);
+> >                 if (urb->transfer_buffer =3D=3D NULL) {
+> >                         PWC_ERROR("Failed to allocate urb buffer %d\n",=
+ i);
+> >                         pwc_isoc_cleanup(pdev);
+> >                         return -ENOMEM;
+> >                 }
+> > -               urb->transfer_buffer_length =3D ISO_BUFFER_SIZE;
+> >                 urb->complete =3D pwc_isoc_handler;
+> >                 urb->context =3D pdev;
+> >                 urb->start_frame =3D 0;
+> > @@ -488,15 +518,16 @@ static void pwc_iso_free(struct pwc_device *pdev)
+> >
+> >         /* Freeing ISOC buffers one by one */
+> >         for (i =3D 0; i < MAX_ISO_BUFS; i++) {
+> > -               if (pdev->urbs[i]) {
+> > +               struct urb *urb =3D pdev->urbs[i];
+> > +
+> > +               if (urb) {
+> >                         PWC_DEBUG_MEMORY("Freeing URB\n");
+> > -                       if (pdev->urbs[i]->transfer_buffer) {
+> > -                               usb_free_coherent(pdev->udev,
+> > -                                       pdev->urbs[i]->transfer_buffer_=
+length,
+> > -                                       pdev->urbs[i]->transfer_buffer,
+> > -                                       pdev->urbs[i]->transfer_dma);
+> > -                       }
+> > -                       usb_free_urb(pdev->urbs[i]);
+> > +                       if (urb->transfer_buffer)
+> > +                               pwc_free_urb_buffer(&urb->dev->dev,
+> > +                                                   urb->transfer_buffe=
+r_length,
+> > +                                                   urb->transfer_buffe=
+r,
+> > +                                                   urb->transfer_dma);
+> > +                       usb_free_urb(urb);
+> >                         pdev->urbs[i] =3D NULL;
+> >                 }
+> >         }
+> > --
+> > 2.16.4
+> >
+>
+>
+> --
+> With best regards,
+> Matwey V. Kornilov
 
 
-Thanks,
-Mauro
+
+--=20
+With best regards,
+Matwey V. Kornilov
