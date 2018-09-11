@@ -1,71 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:57908 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727659AbeIKSlm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 14:41:42 -0400
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: dri-devel@lists.freedesktop.org
-Cc: laurent.pinchart@ideasonboard.com, daniel@ffwll.ch,
-        Gerd Hoffmann <kraxel@redhat.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
-        linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
-        FRAMEWORK), linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v2 02/13] udmabuf: improve map_udmabuf error handling
-Date: Tue, 11 Sep 2018 15:42:05 +0200
-Message-Id: <20180911134216.9760-3-kraxel@redhat.com>
-In-Reply-To: <20180911134216.9760-1-kraxel@redhat.com>
-References: <20180911134216.9760-1-kraxel@redhat.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41072 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726622AbeIKSsD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Sep 2018 14:48:03 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v3 1/5] media: ov5640: fix exposure regression
+Date: Tue, 11 Sep 2018 15:48:17 +0200
+Message-ID: <1536673701-32165-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
+References: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- drivers/dma-buf/udmabuf.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+fixes: bf4a4b518c20 ("media: ov5640: Don't force the auto exposure state at start time").
 
-diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
-index 155050c741..0d03367c57 100644
---- a/drivers/dma-buf/udmabuf.c
-+++ b/drivers/dma-buf/udmabuf.c
-@@ -51,25 +51,24 @@ static struct sg_table *map_udmabuf(struct dma_buf_attachment *at,
- {
- 	struct udmabuf *ubuf = at->dmabuf->priv;
- 	struct sg_table *sg;
-+	int ret;
- 
- 	sg = kzalloc(sizeof(*sg), GFP_KERNEL);
- 	if (!sg)
--		goto err1;
--	if (sg_alloc_table_from_pages(sg, ubuf->pages, ubuf->pagecount,
--				      0, ubuf->pagecount << PAGE_SHIFT,
--				      GFP_KERNEL) < 0)
--		goto err2;
-+		return ERR_PTR(-ENOMEM);
-+	ret = sg_alloc_table_from_pages(sg, ubuf->pages, ubuf->pagecount,
-+					0, ubuf->pagecount << PAGE_SHIFT,
-+					GFP_KERNEL);
-+	if (ret < 0)
-+		goto err;
- 	if (!dma_map_sg(at->dev, sg->sgl, sg->nents, direction))
--		goto err3;
--
-+		goto err;
- 	return sg;
- 
--err3:
-+err:
- 	sg_free_table(sg);
--err2:
- 	kfree(sg);
--err1:
--	return ERR_PTR(-ENOMEM);
-+	return ERR_PTR(ret);
+Symptom was black image when capturing HD or 5Mp picture
+due to manual exposure set to 1 while it was intended to
+set autoexposure to "manual", fix this.
+
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/ov5640.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 1ecbb7a..4b9da8b 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -938,6 +938,12 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
+ 	return ret;
  }
  
- static void unmap_udmabuf(struct dma_buf_attachment *at,
++static int ov5640_set_autoexposure(struct ov5640_dev *sensor, bool on)
++{
++	return ov5640_mod_reg(sensor, OV5640_REG_AEC_PK_MANUAL,
++			      BIT(0), on ? 0 : BIT(0));
++}
++
+ /* read exposure, in number of line periods */
+ static int ov5640_get_exposure(struct ov5640_dev *sensor)
+ {
+@@ -1593,7 +1599,7 @@ static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
+  */
+ static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
+ 				  const struct ov5640_mode_info *mode,
+-				  s32 exposure)
++				  bool auto_exp)
+ {
+ 	int ret;
+ 
+@@ -1610,7 +1616,8 @@ static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
+ 	if (ret)
+ 		return ret;
+ 
+-	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure);
++	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, auto_exp ?
++				  V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL);
+ }
+ 
+ static int ov5640_set_mode(struct ov5640_dev *sensor,
+@@ -1618,7 +1625,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ {
+ 	const struct ov5640_mode_info *mode = sensor->current_mode;
+ 	enum ov5640_downsize_mode dn_mode, orig_dn_mode;
+-	s32 exposure;
++	bool auto_exp =  sensor->ctrls.auto_exp->val == V4L2_EXPOSURE_AUTO;
+ 	int ret;
+ 
+ 	dn_mode = mode->dn_mode;
+@@ -1629,8 +1636,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ 	if (ret)
+ 		return ret;
+ 
+-	exposure = sensor->ctrls.auto_exp->val;
+-	ret = ov5640_set_exposure(sensor, V4L2_EXPOSURE_MANUAL);
++	ret = ov5640_set_autoexposure(sensor, false);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1646,7 +1652,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
+ 		 * change inside subsampling or scaling
+ 		 * download firmware directly
+ 		 */
+-		ret = ov5640_set_mode_direct(sensor, mode, exposure);
++		ret = ov5640_set_mode_direct(sensor, mode, auto_exp);
+ 	}
+ 
+ 	if (ret < 0)
 -- 
-2.9.3
+2.7.4
