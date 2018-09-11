@@ -1,71 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:34408 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726484AbeIKMgs (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:36517 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726301AbeIKMas (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 08:36:48 -0400
-Received: by mail-ed1-f67.google.com with SMTP id u1-v6so18467874eds.1
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2018 00:38:47 -0700 (PDT)
-Date: Tue, 11 Sep 2018 09:38:44 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: dri-devel@lists.freedesktop.org,
-        open list <linux-kernel@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        laurent.pinchart@ideasonboard.com,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 03/10] udmabuf: use pgoff_t for pagecount
-Message-ID: <20180911073844.GH19774@phenom.ffwll.local>
-References: <20180911065921.23818-1-kraxel@redhat.com>
- <20180911065921.23818-4-kraxel@redhat.com>
+        Tue, 11 Sep 2018 08:30:48 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: jacopo mondi <jacopo@jmondi.org>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v2 5/5] media: ov5640: fix restore of last mode set
+Date: Tue, 11 Sep 2018 07:32:09 +0000
+Message-ID: <2b93ae96-8849-38a5-3855-1093e10afc18@st.com>
+References: <1534155586-26974-1-git-send-email-hugues.fruchet@st.com>
+ <1534155586-26974-6-git-send-email-hugues.fruchet@st.com>
+ <20180825145335.GL26480@w540>
+In-Reply-To: <20180825145335.GL26480@w540>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <5FA7CDA2228082429C97FE695244F5D7@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180911065921.23818-4-kraxel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 11, 2018 at 08:59:14AM +0200, Gerd Hoffmann wrote:
-> Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-
-TIL pgoff_t stands for page cache offset. I think we're pretty bad at
-using that within i915 :-)
-
-On the entire series Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-
-I did try to review in depth, but my brain is offline and coffee not
-working :-) Hence just an ack.
--Daniel
-
-> ---
->  drivers/dma-buf/udmabuf.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
-> index 19bd918209..ec22f203b5 100644
-> --- a/drivers/dma-buf/udmabuf.c
-> +++ b/drivers/dma-buf/udmabuf.c
-> @@ -13,7 +13,7 @@
->  #include <linux/udmabuf.h>
->  
->  struct udmabuf {
-> -	u32 pagecount;
-> +	pgoff_t pagecount;
->  	struct page **pages;
->  };
->  
-> -- 
-> 2.9.3
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+SGkgSmFjb3BvLA0KDQpPbiAwOC8yNS8yMDE4IDA0OjUzIFBNLCBqYWNvcG8gbW9uZGkgd3JvdGU6
+DQo+IEhpIEh1Z3VlcywNCj4gICBvbmUgbW9yZSBjb21tZW50IG9uIHRoaXMgcGF0Y2guLg0KPiAN
+Cj4gT24gTW9uLCBBdWcgMTMsIDIwMTggYXQgMTI6MTk6NDZQTSArMDIwMCwgSHVndWVzIEZydWNo
+ZXQgd3JvdGU6DQo+PiBNb2RlIHNldHRpbmcgZGVwZW5kcyBvbiBsYXN0IG1vZGUgc2V0LCBpbiBw
+YXJ0aWN1bGFyDQo+PiBiZWNhdXNlIG9mIGV4cG9zdXJlIGNhbGN1bGF0aW9uIHdoZW4gZG93bnNj
+YWxlIG1vZGUNCj4+IGNoYW5nZSBiZXR3ZWVuIHN1YnNhbXBsaW5nIGFuZCBzY2FsaW5nLg0KPj4g
+QXQgc3RyZWFtIG9uIHRoZSBsYXN0IG1vZGUgd2FzIHdyb25nbHkgc2V0IHRvIGN1cnJlbnQgbW9k
+ZSwNCj4+IHNvIG5vIGNoYW5nZSB3YXMgZGV0ZWN0ZWQgYW5kIGV4cG9zdXJlIGNhbGN1bGF0aW9u
+DQo+PiB3YXMgbm90IG1hZGUsIGZpeCB0aGlzLg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IEh1Z3Vl
+cyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+PiAtLS0NCj4+ICAgZHJpdmVycy9t
+ZWRpYS9pMmMvb3Y1NjQwLmMgfCA4ICsrKysrKystDQo+PiAgIDEgZmlsZSBjaGFuZ2VkLCA3IGlu
+c2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4+DQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS9pMmMvb3Y1NjQwLmMgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4gaW5kZXgg
+YzExMGE2YS4uOTIzY2MzMCAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0
+MC5jDQo+PiArKysgYi9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4gQEAgLTIyNSw2ICsy
+MjUsNyBAQCBzdHJ1Y3Qgb3Y1NjQwX2RldiB7DQo+PiAgIAlzdHJ1Y3QgdjRsMl9tYnVzX2ZyYW1l
+Zm10IGZtdDsNCj4+DQo+PiAgIAljb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqY3VycmVu
+dF9tb2RlOw0KPj4gKwljb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqbGFzdF9tb2RlOw0K
+Pj4gICAJZW51bSBvdjU2NDBfZnJhbWVfcmF0ZSBjdXJyZW50X2ZyOw0KPj4gICAJc3RydWN0IHY0
+bDJfZnJhY3QgZnJhbWVfaW50ZXJ2YWw7DQo+Pg0KPj4gQEAgLTE2MjgsNiArMTYyOSw5IEBAIHN0
+YXRpYyBpbnQgb3Y1NjQwX3NldF9tb2RlKHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQo+PiAg
+IAlib29sIGF1dG9fZXhwID0gIHNlbnNvci0+Y3RybHMuYXV0b19leHAtPnZhbCA9PSBWNEwyX0VY
+UE9TVVJFX0FVVE87DQo+PiAgIAlpbnQgcmV0Ow0KPj4NCj4+ICsJaWYgKCFvcmlnX21vZGUpDQo+
+PiArCQlvcmlnX21vZGUgPSBtb2RlOw0KPj4gKw0KPiANCj4gQW0gSSB3cm9uZyBvciB3aXRoIHRo
+ZSBpbnRyb2R1Y3Rpb24gb2YgbGFzdF9tb2RlIHdlIGNvdWxkIGRyb3AgdGhlDQo+ICdvcmlnX21v
+ZGUnIHBhcmFtZXRlciAod2hpY2ggaGFzIGNvbmZ1c2VkIG1lIGFscmVhZHkgOi8gKSBmcm9tIHRo
+ZQ0KPiBzZXRfbW9kZSgpIGZ1bmN0aW9uPw0KPiANCj4gSnVzdCBzZXQgaGVyZSAnb3JpZ19tb2Rl
+ID0gc2Vuc29yLT5sYXN0X21vZGUnIGFuZCBtYWtlIHN1cmUgbGFzdF9tb2RlDQo+IGlzIGludGlh
+bGl6ZWQgcHJvcGVybHkgYXQgcHJvYmUgdGltZS4uLg0KPiANCj4gT3IgaXMgdGhlcmUgc29tZSBv
+dGhlciB2YWx1ZSBpbiBrZWVwaW5nIHRoZSBvcmlnX21vZGUgcGFyYW1ldGVyIGhlcmU/DQo+IA0K
+PiBUaGFua3MNCj4gICAgIGoNCg0KSSdtIGZpbmUgd2l0aCB0aGF0IGNoYW5nZSwgd2lsbCBwdXNo
+IGl0IGluIHYzLg0KDQoNCj4gDQo+PiAgIAlkbl9tb2RlID0gbW9kZS0+ZG5fbW9kZTsNCj4+ICAg
+CW9yaWdfZG5fbW9kZSA9IG9yaWdfbW9kZS0+ZG5fbW9kZTsNCj4+DQo+PiBAQCAtMTY4OCw2ICsx
+NjkyLDcgQEAgc3RhdGljIGludCBvdjU2NDBfc2V0X21vZGUoc3RydWN0IG92NTY0MF9kZXYgKnNl
+bnNvciwNCj4+ICAgCQlyZXR1cm4gcmV0Ow0KPj4NCj4+ICAgCXNlbnNvci0+cGVuZGluZ19tb2Rl
+X2NoYW5nZSA9IGZhbHNlOw0KPj4gKwlzZW5zb3ItPmxhc3RfbW9kZSA9IG1vZGU7DQo+Pg0KPj4g
+ICAJcmV0dXJuIDA7DQo+Pg0KPj4gQEAgLTI1NTEsNyArMjU1Niw4IEBAIHN0YXRpYyBpbnQgb3Y1
+NjQwX3Nfc3RyZWFtKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsIGludCBlbmFibGUpDQo+Pg0KPj4g
+ICAJaWYgKHNlbnNvci0+c3RyZWFtaW5nID09ICFlbmFibGUpIHsNCj4+ICAgCQlpZiAoZW5hYmxl
+ICYmIHNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSkgew0KPj4gLQkJCXJldCA9IG92NTY0MF9z
+ZXRfbW9kZShzZW5zb3IsIHNlbnNvci0+Y3VycmVudF9tb2RlKTsNCj4+ICsJCQlyZXQgPSBvdjU2
+NDBfc2V0X21vZGUoc2Vuc29yLCBzZW5zb3ItPmxhc3RfbW9kZSk7DQo+PiArDQo+PiAgIAkJCWlm
+IChyZXQpDQo+PiAgIAkJCQlnb3RvIG91dDsNCj4+DQo+PiAtLQ0KPj4gMi43LjQNCj4+DQoNCkJS
+IEh1Z3Vlcy4=
