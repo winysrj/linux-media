@@ -1,14 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:33158 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726941AbeIKUJe (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:40057 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727652AbeIKUJf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 16:09:34 -0400
-Received: by mail-wr1-f65.google.com with SMTP id v90-v6so26491928wrc.0
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2018 08:09:49 -0700 (PDT)
+        Tue, 11 Sep 2018 16:09:35 -0400
+Received: by mail-wm0-f67.google.com with SMTP id 207-v6so1367626wme.5
+        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2018 08:09:51 -0700 (PDT)
 From: Maxime Jourdan <mjourdan@baylibre.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Maxime Jourdan <mjourdan@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Kevin Hilman <khilman@baylibre.com>,
         Jerome Brunet <jbrunet@baylibre.com>,
@@ -17,208 +18,98 @@ Cc: Maxime Jourdan <mjourdan@baylibre.com>,
         linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-amlogic@lists.infradead.org
-Subject: [PATCH v2 0/3] Add Amlogic video decoder driver
-Date: Tue, 11 Sep 2018 17:09:35 +0200
-Message-Id: <20180911150938.3844-1-mjourdan@baylibre.com>
+Subject: [PATCH v2 1/3] dt-bindings: media: add Amlogic Video Decoder Bindings
+Date: Tue, 11 Sep 2018 17:09:36 +0200
+Message-Id: <20180911150938.3844-2-mjourdan@baylibre.com>
+In-Reply-To: <20180911150938.3844-1-mjourdan@baylibre.com>
+References: <20180911150938.3844-1-mjourdan@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+Add documentation for the meson vdec dts node.
 
-This patch series adds support for the Amlogic video decoder,
-as well as the corresponding dt bindings for GXBB/GXL/GXM chips.
-
-It features decoding for the following formats:
-- MPEG 1
-- MPEG 2
-
-The following formats will be added in future patches:
-- MJPEG
-- MPEG 4 (incl. Xvid, H.263)
-- H.264
-- HEVC (incl. 10-bit)
-
-The following formats' development has still not started, but they are
-supported by the hardware:
-- VC1
-- VP9
-
-The code was made in such a way to allow easy inclusion of those formats
-in the future.
-
-The decoder is single instance.
-
-Files:
- - vdec.c handles the V4L2 M2M logic
- - esparser.c manages the hardware bitstream parser
- - vdec_helpers.c provides helpers to DONE the dst buffers as well as
- various common code used by the codecs
- - vdec_1.c manages the VDEC_1 block of the vdec IP
- - codec_mpeg12.c enables decoding for MPEG 1/2.
- - vdec_platform.c links codec units with vdec units
- (e.g vdec_1 with codec_mpeg12) and lists all the available
- src/dst formats and requirements (max width/height, etc.),
- per compatible chip.
-
-Firmwares are necessary to run the vdec. They can currently be found at:
-https://github.com/chewitt/meson-firmware
-
-It was tested primarily with ffmpeg's v4l2-m2m implementation. For instance:
-$ ffmpeg -c:v mpeg2_v4l2m2m -i sample_mpeg2.mkv -f null -
-
-Note: This patch series depends on
-"[PATCH v3 0/3] soc: amlogic: add meson-canvas"
-https://patchwork.kernel.org/cover/10573763/
-
-The v4l2-compliance results are available below the patch diff.
-
-Changes since v1 [0]:
- - use named interrupts in the bindings
- - rewrite description in the bindings doc
- - don't include the dts changes in the patch series
- - fill the vb2 queues locks
- - fill the video_device lock
- - use helpers for wait_prepare and wait_finish vb2_ops
- - remove unnecessary usleep in between esparser writes.
- Extensive testing of every codec on GXBB/GXL didn't reveal
- any fails without it, so just remove it.
- - compile v4l2_compliance inside the git repo
- - Check for plane number/plane size to pass the latest v4l2-compliance test
- - Moved the single instance check (returning -EBUSY) to start/stop streaming
- The check was previously in queue_setup but there was no great location to
- clear it except for .close().
- - Slight rework of the way CAPTURE frames are timestamped for better accuracy
- - Implement PAR reporting via VIDIOC_CROPCAP
-
-[0] https://patchwork.kernel.org/cover/10583391/
-
-Maxime Jourdan (3):
-  dt-bindings: media: add Amlogic Video Decoder Bindings
-  media: meson: add v4l2 m2m video decoder driver
-  MAINTAINERS: Add meson video decoder
-
- .../bindings/media/amlogic,vdec.txt           |   71 ++
- MAINTAINERS                                   |    8 +
- drivers/media/platform/Kconfig                |   10 +
- drivers/media/platform/meson/Makefile         |    1 +
- drivers/media/platform/meson/vdec/Makefile    |    8 +
- .../media/platform/meson/vdec/codec_mpeg12.c  |  200 ++++
- .../media/platform/meson/vdec/codec_mpeg12.h  |   14 +
- drivers/media/platform/meson/vdec/dos_regs.h  |   98 ++
- drivers/media/platform/meson/vdec/esparser.c  |  366 ++++++
- drivers/media/platform/meson/vdec/esparser.h  |   32 +
- drivers/media/platform/meson/vdec/vdec.c      | 1013 +++++++++++++++++
- drivers/media/platform/meson/vdec/vdec.h      |  247 ++++
- drivers/media/platform/meson/vdec/vdec_1.c    |  235 ++++
- drivers/media/platform/meson/vdec/vdec_1.h    |   14 +
- .../media/platform/meson/vdec/vdec_helpers.c  |  437 +++++++
- .../media/platform/meson/vdec/vdec_helpers.h  |   48 +
- .../media/platform/meson/vdec/vdec_platform.c |  101 ++
- .../media/platform/meson/vdec/vdec_platform.h |   30 +
- 18 files changed, 2933 insertions(+)
+Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
+---
+ .../bindings/media/amlogic,vdec.txt           | 71 +++++++++++++++++++
+ 1 file changed, 71 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/media/amlogic,vdec.txt
- create mode 100644 drivers/media/platform/meson/vdec/Makefile
- create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg12.c
- create mode 100644 drivers/media/platform/meson/vdec/codec_mpeg12.h
- create mode 100644 drivers/media/platform/meson/vdec/dos_regs.h
- create mode 100644 drivers/media/platform/meson/vdec/esparser.c
- create mode 100644 drivers/media/platform/meson/vdec/esparser.h
- create mode 100644 drivers/media/platform/meson/vdec/vdec.c
- create mode 100644 drivers/media/platform/meson/vdec/vdec.h
- create mode 100644 drivers/media/platform/meson/vdec/vdec_1.c
- create mode 100644 drivers/media/platform/meson/vdec/vdec_1.h
- create mode 100644 drivers/media/platform/meson/vdec/vdec_helpers.c
- create mode 100644 drivers/media/platform/meson/vdec/vdec_helpers.h
- create mode 100644 drivers/media/platform/meson/vdec/vdec_platform.c
- create mode 100644 drivers/media/platform/meson/vdec/vdec_platform.h
 
-root@libretech-cc:~# v4l2-compliance -d /dev/video0 
-v4l2-compliance SHA: d26e4941419b05fcb2b6708ee32aef367c2ec4af, 64 bits
-
-Compliance test for device /dev/video0:
-
-Driver Info:
-	Driver name      : meson-vdec
-	Card type        : Amlogic Video Decoder
-	Bus info         : platform:meson-vdec
-	Driver version   : 4.19.0
-	Capabilities     : 0x84204000
-		Video Memory-to-Memory Multiplanar
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps      : 0x04204000
-		Video Memory-to-Memory Multiplanar
-		Streaming
-		Extended Pix Format
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second /dev/video0 open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Control ioctls:
-	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-	test VIDIOC_QUERYCTRL: OK (Not Supported)
-	test VIDIOC_G/S_CTRL: OK (Not Supported)
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 0 Private Controls: 0
-
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK (Not Supported)
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-	test VIDIOC_TRY_FMT: OK
-	test VIDIOC_S_FMT: OK
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-	test Cropping: OK (Not Supported)
-	test Composing: OK (Not Supported)
-	test Scaling: OK
-
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK
-
-Buffer ioctls:
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-	test VIDIOC_EXPBUF: OK
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
+diff --git a/Documentation/devicetree/bindings/media/amlogic,vdec.txt b/Documentation/devicetree/bindings/media/amlogic,vdec.txt
+new file mode 100644
+index 000000000000..aabdd01bcf32
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/amlogic,vdec.txt
+@@ -0,0 +1,71 @@
++Amlogic Video Decoder
++================================
++
++The video decoding IP lies within the DOS memory region,
++except for the hardware bitstream parser that makes use of an undocumented
++region.
++
++It makes use of the following blocks:
++
++- ESPARSER is a bitstream parser that outputs to a VIFIFO. Further VDEC blocks
++then feed from this VIFIFO.
++- VDEC_1 can decode MPEG-1, MPEG-2, MPEG-4 part 2, MJPEG, H.263, H.264, VC-1.
++- VDEC_HEVC can decode HEVC and VP9.
++
++Both VDEC_1 and VDEC_HEVC share the "vdec" IRQ and as such cannot run
++concurrently.
++
++Device Tree Bindings:
++---------------------
++
++VDEC: Video Decoder
++--------------------------
++
++Required properties:
++- compatible: value should be different for each SoC family as :
++	- GXBB (S905) : "amlogic,gxbb-vdec"
++	- GXL (S905X, S905D) : "amlogic,gxl-vdec"
++	- GXM (S912) : "amlogic,gxm-vdec"
++- reg: base address and size of he following memory-mapped regions :
++	- dos
++	- esparser
++- reg-names: should contain the names of the previous memory regions
++- interrupts: should contain the following IRQs:
++	- vdec
++	- esparser
++- interrupt-names: should contain the names of the previous interrupts
++- amlogic,ao-sysctrl: should point to the AOBUS sysctrl node
++- amlogic,canvas: should point to a canvas provider node
++- clocks: should contain the following clocks :
++	- dos_parser
++	- dos
++	- vdec_1
++	- vdec_hevc
++- clock-names: should contain the names of the previous clocks
++- resets: should contain the parser reset
++- reset-names: should be "esparser"
++
++Example:
++
++vdec: video-decoder@c8820000 {
++	compatible = "amlogic,gxbb-vdec";
++	reg = <0x0 0xc8820000 0x0 0x10000>,
++	      <0x0 0xc110a580 0x0 0xe4>;
++	reg-names = "dos", "esparser";
++
++	interrupts = <GIC_SPI 44 IRQ_TYPE_EDGE_RISING>,
++		     <GIC_SPI 32 IRQ_TYPE_EDGE_RISING>;
++	interrupt-names = "vdec", "esparser";
++
++	amlogic,ao-sysctrl = <&sysctrl_AO>;
++	amlogic,canvas = <&canvas>;
++
++	clocks = <&clkc CLKID_DOS_PARSER>,
++		 <&clkc CLKID_DOS>,
++		 <&clkc CLKID_VDEC_1>,
++		 <&clkc CLKID_VDEC_HEVC>;
++	clock-names = "dos_parser", "dos", "vdec_1", "vdec_hevc";
++
++	resets = <&reset RESET_PARSER>;
++	reset-names = "esparser";
++};
 -- 
 2.18.0
