@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41072 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726622AbeIKSsD (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:37459 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726622AbeIKSsH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 14:48:03 -0400
+        Tue, 11 Sep 2018 14:48:07 -0400
 From: Hugues Fruchet <hugues.fruchet@st.com>
 To: Steve Longerbeam <slongerbeam@gmail.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
@@ -13,91 +13,82 @@ To: Steve Longerbeam <slongerbeam@gmail.com>,
 CC: <linux-media@vger.kernel.org>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v3 1/5] media: ov5640: fix exposure regression
-Date: Tue, 11 Sep 2018 15:48:17 +0200
-Message-ID: <1536673701-32165-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
-References: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
+Subject: [PATCH v3 0/5] Fix OV5640 exposure & gain
+Date: Tue, 11 Sep 2018 15:48:16 +0200
+Message-ID: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixes: bf4a4b518c20 ("media: ov5640: Don't force the auto exposure state at start time").
+This patch serie fixes some problems around exposure & gain in OV5640 driver.
 
-Symptom was black image when capturing HD or 5Mp picture
-due to manual exposure set to 1 while it was intended to
-set autoexposure to "manual", fix this.
+The 4th patch about autocontrols requires also a fix in v4l2-ctrls.c:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg133164.html
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/ov5640.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+Here is the test procedure used for exposure & gain controls check:
+1) Preview in background
+$> gst-launch-1.0 v4l2src ! "video/x-raw, width=640, Height=480" ! queue ! waylandsink -e &
+2) Check gain & exposure values
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=19 flags=inactive, volatile
+3) Put finger in front of camera and check that gain/exposure values are changing:
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=660 flags=inactive, volatile
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=37 flags=inactive, volatile
+4) switch to manual mode, image exposition must not change
+$> v4l2-ctl --set-ctrl=gain_automatic=0
+$> v4l2-ctl --set-ctrl=auto_exposure=1
+Note the "1" for manual exposure.
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 1ecbb7a..4b9da8b 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -938,6 +938,12 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
- 	return ret;
- }
- 
-+static int ov5640_set_autoexposure(struct ov5640_dev *sensor, bool on)
-+{
-+	return ov5640_mod_reg(sensor, OV5640_REG_AEC_PK_MANUAL,
-+			      BIT(0), on ? 0 : BIT(0));
-+}
-+
- /* read exposure, in number of line periods */
- static int ov5640_get_exposure(struct ov5640_dev *sensor)
- {
-@@ -1593,7 +1599,7 @@ static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
-  */
- static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
- 				  const struct ov5640_mode_info *mode,
--				  s32 exposure)
-+				  bool auto_exp)
- {
- 	int ret;
- 
-@@ -1610,7 +1616,8 @@ static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
- 	if (ret)
- 		return ret;
- 
--	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, exposure);
-+	return __v4l2_ctrl_s_ctrl(sensor->ctrls.auto_exp, auto_exp ?
-+				  V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL);
- }
- 
- static int ov5640_set_mode(struct ov5640_dev *sensor,
-@@ -1618,7 +1625,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
- {
- 	const struct ov5640_mode_info *mode = sensor->current_mode;
- 	enum ov5640_downsize_mode dn_mode, orig_dn_mode;
--	s32 exposure;
-+	bool auto_exp =  sensor->ctrls.auto_exp->val == V4L2_EXPOSURE_AUTO;
- 	int ret;
- 
- 	dn_mode = mode->dn_mode;
-@@ -1629,8 +1636,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
- 	if (ret)
- 		return ret;
- 
--	exposure = sensor->ctrls.auto_exp->val;
--	ret = ov5640_set_exposure(sensor, V4L2_EXPOSURE_MANUAL);
-+	ret = ov5640_set_autoexposure(sensor, false);
- 	if (ret)
- 		return ret;
- 
-@@ -1646,7 +1652,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor,
- 		 * change inside subsampling or scaling
- 		 * download firmware directly
- 		 */
--		ret = ov5640_set_mode_direct(sensor, mode, exposure);
-+		ret = ov5640_set_mode_direct(sensor, mode, auto_exp);
- 	}
- 
- 	if (ret < 0)
+5) Check current gain/exposure values:
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=20
+
+6) Put finger behind camera and check that gain/exposure values are NOT changing:
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=20
+7) Update exposure, check that it is well changed on display and that same value is returned:
+$> v4l2-ctl --set-ctrl=exposure=100
+$> v4l2-ctl --get-ctrl=exposure
+exposure: 100
+
+9) Update gain, check that it is well changed on display and that same value is returned:
+$> v4l2-ctl --set-ctrl=gain=10
+$> v4l2-ctl --get-ctrl=gain
+gain: 10
+
+10) Switch back to auto gain/exposure, verify that image is correct and values returned are correct:
+$> v4l2-ctl --set-ctrl=gain_automatic=1
+$> v4l2-ctl --set-ctrl=auto_exposure=0
+$> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
+                       exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
+                           gain (int)    : min=0 max=1023 step=1 default=0 value=22 flags=inactive, volatile
+Note the "0" for auto exposure.
+
+===========
+= history =
+===========
+version 3:
+  - Change patch 5/5 by removing set_mode() orig_mode parameter as per jacopo' suggestion:
+    https://www.spinics.net/lists/linux-media/msg139457.html
+
+version 2:
+  - Fix patch 3/5 commit comment and rename binning function as per jacopo' suggestion:
+    https://www.mail-archive.com/linux-media@vger.kernel.org/msg133272.html
+
+Hugues Fruchet (5):
+  media: ov5640: fix exposure regression
+  media: ov5640: fix auto gain & exposure when changing mode
+  media: ov5640: fix wrong binning value in exposure calculation
+  media: ov5640: fix auto controls values when switching to manual mode
+  media: ov5640: fix restore of last mode set
+
+ drivers/media/i2c/ov5640.c | 128 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 73 insertions(+), 55 deletions(-)
+
 -- 
 2.7.4
