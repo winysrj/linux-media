@@ -1,122 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:41050 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726482AbeIKM4U (ORCPT
+Received: from mail-lj1-f174.google.com ([209.85.208.174]:43279 "EHLO
+        mail-lj1-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726488AbeIKNHh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 08:56:20 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.20 (request_api branch)] Add Allwinner cedrus
- decoder driver
-Message-ID: <589bce62-67e7-272d-ba77-e57f2ee48fce@xs4all.nl>
-Date: Tue, 11 Sep 2018 09:58:09 +0200
+        Tue, 11 Sep 2018 09:07:37 -0400
+Received: by mail-lj1-f174.google.com with SMTP id m84-v6so20099182lje.10
+        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2018 01:09:27 -0700 (PDT)
+Subject: Re: [Xen-devel][PATCH 1/1] cameraif: add ABI for para-virtual camera
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        "Oleksandr_Andrushchenko@epam.com" <Oleksandr_Andrushchenko@epam.com>,
+        xen-devel@lists.xenproject.org, konrad.wilk@oracle.com,
+        jgross@suse.com, boris.ostrovsky@oracle.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        koji.matsuoka.xm@renesas.com
+References: <20180731093142.3828-1-andr2000@gmail.com>
+ <20180731093142.3828-2-andr2000@gmail.com>
+ <73b69e31-d36d-d89f-20d6-d59dbefe395e@xs4all.nl>
+ <fc78ee17-412f-8a74-ecc8-b8ab55189e1b@gmail.com>
+ <7134b3ad-9fcf-0139-41b3-67a3dbc8224d@xs4all.nl>
+ <51f97715-454a-0242-b381-29944d77d5b5@gmail.com>
+ <3c6bb5c8-eeb4-fd09-407a-5a77b29b56c3@xs4all.nl>
+ <2a39c994-118f-a17e-c40a-f5fbbad1cb03@epam.com>
+ <30d7c91a-4515-157b-fc29-90c2e6f0008b@xs4all.nl>
+ <ae111e1d-4ac2-9e68-a4a5-6513650ae37f@gmail.com>
+ <c980f6b7-ffe1-c5f5-5506-b9fb1a37498b@xs4all.nl>
+ <f53218ac-f704-b260-543f-72ccb33c7a1f@gmail.com>
+ <cb233d78-9634-749e-f6a4-6e8692ea6ddd@xs4all.nl>
+ <abd78f44-96ea-b706-378a-14f32fdd77d7@gmail.com>
+ <c7ad3c0f-61f9-3124-f270-f87826a68700@xs4all.nl>
+From: Oleksandr Andrushchenko <andr2000@gmail.com>
+Message-ID: <e91f12e2-52d6-62a1-f23d-f06cff9292c1@gmail.com>
+Date: Tue, 11 Sep 2018 11:09:24 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <c7ad3c0f-61f9-3124-f270-f87826a68700@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This supersedes my previous pull request for this since I inadvertently left
-in the dts patches, but those go through a separate subsystem.
-
-Hi Mauro,
-
-This is the cedrus Allwinner decoder driver. It is for the request_api topic
-branch, but it assumes that this pull request is applied first:
-https://patchwork.linuxtv.org/patch/51889/
-
-The last two patches could optionally be squashed with the main driver patch:
-they fix COMPILE_TEST issues. I decided not to squash them and leave the choice
-to you.
-
-This won't fully fix the COMPILE_TEST problems, for that another patch is needed:
-
-https://lore.kernel.org/patchwork/patch/983848/
-
-But that's going through another subsystem.
-
-Many, many thanks go to Paul for working on this, trying to keep up to date with
-the Request API changes at the same time. It was a pleasure working with you on
-this!
-
-Regards,
-
-	Hans
-
-The following changes since commit 051dfd971de1317626d322581546257b748ebde1:
-
-  media-request: update documentation (2018-09-04 11:34:57 +0200)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cedrus
-
-for you to fetch changes up to e01a72b552b97e49f4d874fc5c48d3092475c423:
-
-  media: cedrus: Select the sunxi SRAM driver in Kconfig (2018-09-11 09:53:39 +0200)
-
-----------------------------------------------------------------
-Paul Kocialkowski (9):
-      media: videobuf2-core: Rework and rename helper for request buffer count
-      media: v4l: Add definitions for MPEG-2 slice format and metadata
-      media: v4l: Add definition for the Sunxi tiled NV12 format
-      dt-bindings: media: Document bindings for the Cedrus VPU driver
-      media: platform: Add Cedrus VPU decoder driver
-      media: cedrus: Fix error reporting in request validation
-      media: cedrus: Add TODO file with tasks to complete before unstaging
-      media: cedrus: Wrap PHYS_PFN_OFFSET with ifdef and add dedicated comment
-      media: cedrus: Select the sunxi SRAM driver in Kconfig
-
- Documentation/devicetree/bindings/media/cedrus.txt |  54 ++++++
- Documentation/media/uapi/v4l/extended-controls.rst | 176 +++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt-compressed.rst |  16 ++
- Documentation/media/uapi/v4l/pixfmt-reserved.rst   |  15 +-
- Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  14 +-
- Documentation/media/videodev2.h.rst.exceptions     |   2 +
- MAINTAINERS                                        |   7 +
- drivers/media/common/videobuf2/videobuf2-core.c    |  18 +-
- drivers/media/common/videobuf2/videobuf2-v4l2.c    |   2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c               |  63 +++++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
- drivers/staging/media/Kconfig                      |   2 +
- drivers/staging/media/Makefile                     |   1 +
- drivers/staging/media/sunxi/Kconfig                |  15 ++
- drivers/staging/media/sunxi/Makefile               |   1 +
- drivers/staging/media/sunxi/cedrus/Kconfig         |  14 ++
- drivers/staging/media/sunxi/cedrus/Makefile        |   3 +
- drivers/staging/media/sunxi/cedrus/TODO            |   7 +
- drivers/staging/media/sunxi/cedrus/cedrus.c        | 431 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus.h        | 165 +++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_dec.c    |  70 ++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_dec.h    |  27 +++
- drivers/staging/media/sunxi/cedrus/cedrus_hw.c     | 327 ++++++++++++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_hw.h     |  30 ++++
- drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c  | 237 +++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_regs.h   | 233 ++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_video.c  | 544 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/sunxi/cedrus/cedrus_video.h  |  30 ++++
- include/media/v4l2-ctrls.h                         |  18 +-
- include/media/videobuf2-core.h                     |   4 +-
- include/uapi/linux/v4l2-controls.h                 |  65 +++++++
- include/uapi/linux/videodev2.h                     |   6 +
- 32 files changed, 2576 insertions(+), 23 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/cedrus.txt
- create mode 100644 drivers/staging/media/sunxi/Kconfig
- create mode 100644 drivers/staging/media/sunxi/Makefile
- create mode 100644 drivers/staging/media/sunxi/cedrus/Kconfig
- create mode 100644 drivers/staging/media/sunxi/cedrus/Makefile
- create mode 100644 drivers/staging/media/sunxi/cedrus/TODO
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_regs.h
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.c
- create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.h
-tschai: ~/work/src/v4l/media-git $
+On 09/11/2018 10:52 AM, Hans Verkuil wrote:
+> On 09/11/18 09:14, Oleksandr Andrushchenko wrote:
+>> On 09/11/2018 10:04 AM, Hans Verkuil wrote:
+>>> On 09/11/2018 08:52 AM, Oleksandr Andrushchenko wrote:
+>>>> Hi, Hans!
+>>>>
+>>>> On 09/10/2018 03:26 PM, Hans Verkuil wrote:
+>>>>> On 09/10/2018 01:49 PM, Oleksandr Andrushchenko wrote:
+>>>>>> On 09/10/2018 02:09 PM, Hans Verkuil wrote:
+>>>>>>> On 09/10/2018 11:52 AM, Oleksandr Andrushchenko wrote:
+>>>>>>>> On 09/10/2018 12:04 PM, Hans Verkuil wrote:
+>>>>>>>>> On 09/10/2018 10:24 AM, Oleksandr Andrushchenko wrote:
+>>>>>>>>>> On 09/10/2018 10:53 AM, Hans Verkuil wrote:
+>>>>>>>>>>> Hi Oleksandr,
+>>>>>>>>>>>
+>>>>>>>>>>> On 09/10/2018 09:16 AM, Oleksandr Andrushchenko wrote:
+>>>>>>>>> <snip>
+>>>>>>>>>
+>>>>>>>>>>>>> I suspect that you likely will want to support such sources eventually, so
+>>>>>>>>>>>>> it pays to design this with that in mind.
+>>>>>>>>>>>> Again, I think that this is the backend to hide these
+>>>>>>>>>>>> use-cases from the frontend.
+>>>>>>>>>>> I'm not sure you can: say you are playing a bluray connected to the system
+>>>>>>>>>>> with HDMI, then if there is a resolution change, what do you do? You can tear
+>>>>>>>>>>> everything down and build it up again, or you can just tell frontends that
+>>>>>>>>>>> something changed and that they have to look at the new vcamera configuration.
+>>>>>>>>>>>
+>>>>>>>>>>> The latter seems to be more sensible to me. It is really not much that you
+>>>>>>>>>>> need to do: all you really need is an event signalling that something changed.
+>>>>>>>>>>> In V4L2 that's the V4L2_EVENT_SOURCE_CHANGE.
+>>>>>>>>>> well, this complicates things a lot as I'll have to
+>>>>>>>>>> re-allocate buffers - right?
+>>>>>>>>> Right. Different resolutions means different sized buffers and usually lots of
+>>>>>>>>> changes throughout the whole video pipeline, which in this case can even
+>>>>>>>>> go into multiple VMs.
+>>>>>>>>>
+>>>>>>>>> One additional thing to keep in mind for the future: V4L2_EVENT_SOURCE_CHANGE
+>>>>>>>>> has a flags field that tells userspace what changed. Right now that is just the
+>>>>>>>>> resolution, but in the future you can expect flags for cases where just the
+>>>>>>>>> colorspace information changes, but not the resolution.
+>>>>>>>>>
+>>>>>>>>> Which reminds me of two important missing pieces of information in your protocol:
+>>>>>>>>>
+>>>>>>>>> 1) You need to communicate the colorspace data:
+>>>>>>>>>
+>>>>>>>>> - colorspace
+>>>>>>>>> - xfer_func
+>>>>>>>>> - ycbcr_enc/hsv_enc (unlikely you ever want to support HSV pixelformats, so I
+>>>>>>>>>        think you can ignore hsv_enc)
+>>>>>>>>> - quantization
+>>>>>>>>>
+>>>>>>>>> See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
+>>>>>>>>> and the links to the colorspace sections in the V4L2 spec for details).
+>>>>>>>>>
+>>>>>>>>> This information is part of the format, it is reported by the driver.
+>>>>>>>> I'll take a look and think what can be put and how into the protocol,
+>>>>>>>> do you think I'll have to implement all the above for
+>>>>>>>> this stage?
+>>>>>>> Yes. Without it VMs will have no way of knowing how to reproduce the right colors.
+>>>>>>> They don't *have* to use this information, but it should be there. For cameras
+>>>>>>> this isn't all that important, for SDTV/HDTV sources this becomes more relevant
+>>>>>>> (esp. the quantization and ycbcr_enc information) and for sources with BT.2020/HDR
+>>>>>>> formats this is critical.
+>>>>>> ok, then I'll add the following to the set_config request/response:
+>>>>>>
+>>>>>>         uint32_t colorspace;
+>>>>>>         uint32_t xfer_func;
+>>>>>>         uint32_t ycbcr_enc;
+>>>>>>         uint32_t quantization;
+>>>> Yet another question here: are the above (color space, xfer etc.) and
+>>>> display aspect ratio defined per pixel_format or per pixel_format +
+>>>> resolution?
+>>>>
+>>>> If per pixel_format then
+>>>>
+>>>> .../vcamera/1/formats/YUYV/display-aspect-ratio = "59/58"
+>>>>
+>>>> or if per resolution
+>>>>
+>>>> .../vcamera/1/formats/YUYV/640x480/display-aspect-ratio = "59/58"
+>>> They are totally independent of resolution or pixelformat, with the
+>>> exception of ycbcr_enc which is of course ignored for RGB pixelformats.
+>>>
+>>> They are set by the driver, never by the application.
+>>>
+>>> For HDMI sources these values can change depending on what source is
+>>> connected, so they are not fixed and you need to query them whenever
+>>> a new source is connected. In fact, then can change midstream, but we
+>>> do not have good support for that at the moment.
+>> Ah, great, then I'll define colorspace, xfer_func, quantization
+>> and display aspect ratio as part of virtual camera device configuration
+>> (as vcamera represents a single source) and ycbcr_enc as a part
+>> of pixel format configuration (one ycbcr_enc per each
+>> pixel format)
+>>
+>> Does this sound ok?
+> Uh, no :-)
+>
+> ycbcr_enc is not tied to specific pixel formats. The Y'CbCr encoding tells
+> you how the Y'CbCr values were derived from the R'G'B' values. So this only
+> makes sense if you are in fact receiving Y'CbCr pixels, otherwise you just
+> ignore it.
+>
+> It's up to you what value to assign to ycbcr_enc in that case: V4L2 doesn't
+> have any hard requirements for that AFAIK, although it will most likely be
+> set to 0 (V4L2_YCBCR_ENC_DEFAULT).
+Thank you for the explanation
+> Regards,
+>
+> 	Hans
+Thank you,
+Oleksandr
