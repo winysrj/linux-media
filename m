@@ -1,47 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:34850 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726979AbeIQVbY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 17:31:24 -0400
-Received: by mail-pf1-f196.google.com with SMTP id p12-v6so7780031pfh.2
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 09:03:24 -0700 (PDT)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 0/5] media: video-i2c: support changing frame interval and runtime PM
-Date: Tue, 18 Sep 2018 01:03:06 +0900
-Message-Id: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:57958 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727797AbeIKSlo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Sep 2018 14:41:44 -0400
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: dri-devel@lists.freedesktop.org
+Cc: laurent.pinchart@ideasonboard.com, daniel@ffwll.ch,
+        Gerd Hoffmann <kraxel@redhat.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
+        linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
+        FRAMEWORK), linux-doc@vger.kernel.org (open list:DOCUMENTATION),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v2 13/13] udmabuf: add documentation
+Date: Tue, 11 Sep 2018 15:42:16 +0200
+Message-Id: <20180911134216.9760-14-kraxel@redhat.com>
+In-Reply-To: <20180911134216.9760-1-kraxel@redhat.com>
+References: <20180911134216.9760-1-kraxel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset adds support for changing frame interval and runtime PM for
-video-i2c driver.  This also adds an helper function to v4l2 common
-internal API that is used to to find a suitable frame interval.
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+---
+ include/uapi/linux/udmabuf.h         | 50 +++++++++++++++++++++++++++++++++---
+ Documentation/driver-api/dma-buf.rst |  8 ++++++
+ 2 files changed, 55 insertions(+), 3 deletions(-)
 
-There are a couple of unrelated changes that are included for simplifying
-driver initialization code and register accesses.
-
-Akinobu Mita (5):
-  media: video-i2c: avoid accessing released memory area when removing
-    driver
-  media: video-i2c: use i2c regmap
-  media: v4l2-common: add v4l2_find_closest_fract()
-  media: video-i2c: support changing frame interval
-  media: video-i2c: support runtime PM
-
- drivers/media/i2c/video-i2c.c         | 276 ++++++++++++++++++++++++++++------
- drivers/media/v4l2-core/v4l2-common.c |  26 ++++
- include/media/v4l2-common.h           |  12 ++
- 3 files changed, 267 insertions(+), 47 deletions(-)
-
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hansverk@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+diff --git a/include/uapi/linux/udmabuf.h b/include/uapi/linux/udmabuf.h
+index 46b6532ed8..f30b37cb5c 100644
+--- a/include/uapi/linux/udmabuf.h
++++ b/include/uapi/linux/udmabuf.h
+@@ -5,8 +5,38 @@
+ #include <linux/types.h>
+ #include <linux/ioctl.h>
+ 
++/**
++ * DOC: udmabuf
++ *
++ * udmabuf is a device driver which allows userspace create dmabufs.
++ * The memory used for these dmabufs must be backed by memfd.  The
++ * memfd must have F_SEAL_SHRINK and it must not have F_SEAL_WRITE.
++ *
++ * The driver has two ioctls, one to create a dmabuf from a single
++ * memory block and one to create a dmabuf from a list of memory
++ * blocks.
++ *
++ * UDMABUF_CREATE - _IOW('u', 0x42, udmabuf_create)
++ *
++ * UDMABUF_CREATE_LIST - _IOW('u', 0x43, udmabuf_create_list)
++ */
++
++#define UDMABUF_CREATE       _IOW('u', 0x42, struct udmabuf_create)
++#define UDMABUF_CREATE_LIST  _IOW('u', 0x43, struct udmabuf_create_list)
++
+ #define UDMABUF_FLAGS_CLOEXEC	0x01
+ 
++/**
++ * struct udmabuf_create - create a dmabuf from a single memory block.
++ *
++ * @memfd: The file handle.
++ * @offset: Start of the buffer (from memfd start).
++ * Must be page aligned.
++ * @size: Size of the buffer.  Must be rounded to page size.
++ *
++ * flags:
++ * UDMABUF_FLAGS_CLOEXEC: set CLOEXEC flag for the dmabuf.
++ */
+ struct udmabuf_create {
+ 	__u32 memfd;
+ 	__u32 flags;
+@@ -14,6 +44,14 @@ struct udmabuf_create {
+ 	__u64 size;
+ };
+ 
++/**
++ * struct udmabuf_create_item - one memory block list item.
++ *
++ * @memfd: The file handle.
++ * @offset: Start of the buffer (from memfd start).
++ * Must be page aligned.
++ * @size: Size of the buffer.  Must be rounded to page size.
++ */
+ struct udmabuf_create_item {
+ 	__u32 memfd;
+ 	__u32 __pad;
+@@ -21,13 +59,19 @@ struct udmabuf_create_item {
+ 	__u64 size;
+ };
+ 
++/**
++ * struct udmabuf_create_list - create a dmabuf from a memory block list.
++ *
++ * @count: The number of list elements.
++ * @list: The memory block list
++ *
++ * flags:
++ * UDMABUF_FLAGS_CLOEXEC: set CLOEXEC flag for the dmabuf.
++ */
+ struct udmabuf_create_list {
+ 	__u32 flags;
+ 	__u32 count;
+ 	struct udmabuf_create_item list[];
+ };
+ 
+-#define UDMABUF_CREATE       _IOW('u', 0x42, struct udmabuf_create)
+-#define UDMABUF_CREATE_LIST  _IOW('u', 0x43, struct udmabuf_create_list)
+-
+ #endif /* _UAPI_LINUX_UDMABUF_H */
+diff --git a/Documentation/driver-api/dma-buf.rst b/Documentation/driver-api/dma-buf.rst
+index b541e97c7a..1f62c30a14 100644
+--- a/Documentation/driver-api/dma-buf.rst
++++ b/Documentation/driver-api/dma-buf.rst
+@@ -166,3 +166,11 @@ DMA Fence uABI/Sync File
+ .. kernel-doc:: include/linux/sync_file.h
+    :internal:
+ 
++Userspace DMA Buffer driver
++~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++.. kernel-doc:: include/uapi/linux/udmabuf.h
++   :doc: udmabuf
++
++.. kernel-doc:: include/uapi/linux/udmabuf.h
++   :internal:
 -- 
-2.7.4
+2.9.3
