@@ -1,57 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:49995 "EHLO
-        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727642AbeIKToj (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38930 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726670AbeIKTwf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 15:44:39 -0400
-From: Johan Fjeldtvedt <johfjeld@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: hansverk@cisco.com, Johan Fjeldtvedt <johfjeld@cisco.com>
-Subject: [PATCH v4] vb2: check for sane values from queue_setup
-Date: Tue, 11 Sep 2018 16:46:04 +0200
-Message-Id: <20180911144604.32616-1-johfjeld@cisco.com>
+        Tue, 11 Sep 2018 15:52:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gerd Hoffmann <kraxel@redhat.com>
+Cc: dri-devel@lists.freedesktop.org, daniel@ffwll.ch,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        "open list:DMA BUFFER SHARING FRAMEWORK"
+        <linux-media@vger.kernel.org>,
+        "moderated list:DMA BUFFER SHARING FRAMEWORK"
+        <linaro-mm-sig@lists.linaro.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 05/13] udmabuf: constify udmabuf_create args
+Date: Tue, 11 Sep 2018 17:53:06 +0300
+Message-ID: <4625619.OKDULqJxva@avalon>
+In-Reply-To: <20180911134216.9760-6-kraxel@redhat.com>
+References: <20180911134216.9760-1-kraxel@redhat.com> <20180911134216.9760-6-kraxel@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Warn and return error from the reqbufs ioctl when driver sets 0 number
-of planes or 0 as plane sizes, as these values don't make any sense.
-Checking this here stops obviously wrong values from propagating
-further and causing various problems that are hard to trace back to
-either of these values being 0.
+Hi Gerd,
 
-v4: check num_planes, not num_buffers
+Thank you for the patch.
 
-Signed-off-by: Johan Fjeldtvedt <johfjeld@cisco.com>
----
- drivers/media/common/videobuf2/videobuf2-core.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+On Tuesday, 11 September 2018 16:42:08 EEST Gerd Hoffmann wrote:
+> Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> ---
+>  drivers/dma-buf/udmabuf.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dma-buf/udmabuf.c b/drivers/dma-buf/udmabuf.c
+> index e3560e840d..4167da8141 100644
+> --- a/drivers/dma-buf/udmabuf.c
+> +++ b/drivers/dma-buf/udmabuf.c
+> @@ -116,8 +116,8 @@ static const struct dma_buf_ops udmabuf_ops = {
+>  #define SEALS_WANTED (F_SEAL_SHRINK)
+>  #define SEALS_DENIED (F_SEAL_WRITE)
+> 
+> -static long udmabuf_create(struct udmabuf_create_list *head,
+> -			   struct udmabuf_create_item *list)
+> +static long udmabuf_create(const struct udmabuf_create_list *head,
+> +			   const const struct udmabuf_create_item *list)
 
-diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-index f32ec7342ef0..cf2f93462a54 100644
---- a/drivers/media/common/videobuf2/videobuf2-core.c
-+++ b/drivers/media/common/videobuf2/videobuf2-core.c
-@@ -662,6 +662,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 	unsigned int num_buffers, allocated_buffers, num_planes = 0;
- 	unsigned plane_sizes[VB2_MAX_PLANES] = { };
- 	int ret;
-+	int i;
- 
- 	if (q->streaming) {
- 		dprintk(1, "streaming active\n");
-@@ -718,6 +719,14 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 	if (ret)
- 		return ret;
- 
-+	/* Check that driver has set sane values */
-+	if (WARN_ON(!num_planes))
-+		return -EINVAL;
-+
-+	for (i = 0; i < num_planes; i++)
-+		if (WARN_ON(!plane_sizes[i]))
-+			return -EINVAL;
-+
- 	/* Finally, allocate buffers and video memory */
- 	allocated_buffers =
- 		__vb2_queue_alloc(q, memory, num_buffers, num_planes, plane_sizes);
+Even if you really want to make it const, a single const should suffice :-)
+
+>  {
+>  	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
+>  	struct file *memfd = NULL;
+
+
 -- 
-2.17.1
+Regards,
+
+Laurent Pinchart
