@@ -1,76 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35818 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.99]:59956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727819AbeILVvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 17:51:23 -0400
-From: Robin Murphy <robin.murphy@arm.com>
-To: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com
-Cc: linux-arm-kernel@lists.infradead.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH] media: s5p-mfc: Fix memdev DMA configuration
-Date: Wed, 12 Sep 2018 17:45:51 +0100
-Message-Id: <d485dc3698304403620d5ed92d066942a6b68cfd.1536770587.git.robin.murphy@arm.com>
+        id S1728253AbeIMBdP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Sep 2018 21:33:15 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20180828154433.5693-1-robh@kernel.org> <20180828154433.5693-7-robh@kernel.org>
+ <20180912121705.010a999d@coco.lan>
+In-Reply-To: <20180912121705.010a999d@coco.lan>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 12 Sep 2018 15:26:48 -0500
+Message-ID: <CAL_JsqK8B46x8bm_aYggJSPAWrMGZ1rZ58uWCmyiSqA2KZpiFg@mail.gmail.com>
+Subject: Re: [PATCH v2] staging: Convert to using %pOFn instead of device_node.name
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Joe Perches <joe@perches.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Ian Arkver <ian.arkver.dev@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Having of_reserved_mem_device_init() forcibly reconfigure DMA for all
-callers, potentially overriding the work done by a bus-specific
-.dma_configure method earlier, is at best a bad idea and at worst
-actively harmful. If drivers really need virtual devices to own
-dma-coherent memory, they should explicitly configure those devices
-based on the appropriate firmware node as they create them.
++Joe P
 
-It looks like the only driver not passing in a proper OF platform device
-is s5p-mfc, so move the rogue of_dma_configure() call into that driver
-where it logically belongs.
+On Wed, Sep 12, 2018 at 10:17 AM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
+>
+> Em Tue, 28 Aug 2018 10:44:33 -0500
+> Rob Herring <robh@kernel.org> escreveu:
+>
+> > In preparation to remove the node name pointer from struct device_node,
+> > convert printf users to use the %pOFn format specifier.
+> >
+> > Cc: Steve Longerbeam <slongerbeam@gmail.com>
+> > Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > Cc: linux-media@vger.kernel.org
+> > Cc: devel@driverdev.osuosl.org
+> > Signed-off-by: Rob Herring <robh@kernel.org>
+> > ---
+> > v2:
+> > - fix conditional use of node name vs devname for imx
+> >
+> >  drivers/staging/media/imx/imx-media-dev.c | 15 ++++++++++-----
+> >  drivers/staging/media/imx/imx-media-of.c  |  4 ++--
+> >  drivers/staging/mt7621-eth/mdio.c         |  4 ++--
+>
+> It would be better if you had submitted the staging/media stuff
+> on a separate patch, as they usually go via the media tree.
 
-CC: Smitha T Murthy <smitha.t@samsung.com>
-CC: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Rob Herring <robh@kernel.org>
-Signed-off-by: Robin Murphy <robin.murphy@arm.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 7 +++++++
- drivers/of/of_reserved_mem.c             | 4 ----
- 2 files changed, 7 insertions(+), 4 deletions(-)
+Sorry, I thought Greg took all of staging.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 927a1235408d..77eb4a4511c1 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1094,6 +1094,13 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
- 	child->dma_mask = dev->dma_mask;
- 	child->release = s5p_mfc_memdev_release;
- 
-+	/*
-+	 * The memdevs are not proper OF platform devices, so in order for them
-+	 * to be treated as valid DMA masters we need a bit of a hack to force
-+	 * them to inherit the MFC node's DMA configuration.
-+	 */
-+	of_dma_configure(child, dev->of_node, true);
-+
- 	if (device_add(child) == 0) {
- 		ret = of_reserved_mem_device_init_by_idx(child, dev->of_node,
- 							 idx);
-diff --git a/drivers/of/of_reserved_mem.c b/drivers/of/of_reserved_mem.c
-index 895c83e0c7b6..4ef6f4485335 100644
---- a/drivers/of/of_reserved_mem.c
-+++ b/drivers/of/of_reserved_mem.c
-@@ -350,10 +350,6 @@ int of_reserved_mem_device_init_by_idx(struct device *dev,
- 		mutex_lock(&of_rmem_assigned_device_mutex);
- 		list_add(&rd->list, &of_rmem_assigned_device_list);
- 		mutex_unlock(&of_rmem_assigned_device_mutex);
--		/* ensure that dma_ops is set for virtual devices
--		 * using reserved memory
--		 */
--		of_dma_configure(dev, np, true);
- 
- 		dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
- 	} else {
--- 
-2.19.0.dirty
+A problem with MAINTAINERS is there is no way to tell who applies
+patches for a given path vs. anyone else listed. This frequently
+happens when the maintainer organization doesn't match the directory
+org. If we distinguished this, then it would be quite easy to see when
+you've created a patch that needs to be split to different maintainers
+(or an explanation why it isn't). Whatever happened with splitting up
+MAINTAINERS? If there was a file for each maintainer tree, then it
+would be easier to extract that information.
+
+Or maybe we just need to be stricter with the 'M' vs. 'R' tag and 'M'
+means that is the person who applies the patch. I don't think many
+drivers have their own tree and maintainer except for a few big ones.
+
+Rob
+
+>
+> As I don't foresee any conflicts on that part of the code,
+> I'm Ok if Greg pick it and submit via his tree.
+>
+> So,
+>
+> Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+>
+> If you prefer instead that I would pick the media part, please
+> split it into two patches.
+>
+> Regards,
+> Mauro
+>
+> >  3 files changed, 14 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+> > index b0be80f05767..3f48f5ceb6ea 100644
+> > --- a/drivers/staging/media/imx/imx-media-dev.c
+> > +++ b/drivers/staging/media/imx/imx-media-dev.c
+> > @@ -89,8 +89,12 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+> >
+> >       /* return -EEXIST if this asd already added */
+> >       if (find_async_subdev(imxmd, fwnode, devname)) {
+> > -             dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+> > -                     __func__, np ? np->name : devname);
+> > +             if (np)
+> > +                     dev_dbg(imxmd->md.dev, "%s: already added %pOFn\n",
+> > +                     __func__, np);
+> > +             else
+> > +                     dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+> > +                     __func__, devname);
+> >               ret = -EEXIST;
+> >               goto out;
+> >       }
+> > @@ -105,19 +109,20 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+> >       if (fwnode) {
+> >               asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> >               asd->match.fwnode = fwnode;
+> > +             dev_dbg(imxmd->md.dev, "%s: added %pOFn, match type FWNODE\n",
+> > +                     __func__, np);
+> >       } else {
+> >               asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+> >               asd->match.device_name = devname;
+> >               imxasd->pdev = pdev;
+> > +             dev_dbg(imxmd->md.dev, "%s: added %s, match type DEVNAME\n",
+> > +                     __func__, devname);
+> >       }
+> >
+> >       list_add_tail(&imxasd->list, &imxmd->asd_list);
+> >
+> >       imxmd->subdev_notifier.num_subdevs++;
+> >
+> > -     dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+> > -             __func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+> > -
+> >  out:
+> >       mutex_unlock(&imxmd->mutex);
+> >       return ret;
+> > diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+> > index acde372c6795..163437e421c5 100644
+> > --- a/drivers/staging/media/imx/imx-media-of.c
+> > +++ b/drivers/staging/media/imx/imx-media-of.c
+> > @@ -79,8 +79,8 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+> >       int i, num_ports, ret;
+> >
+> >       if (!of_device_is_available(sd_np)) {
+> > -             dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
+> > -                     sd_np->name);
+> > +             dev_dbg(imxmd->md.dev, "%s: %pOFn not enabled\n", __func__,
+> > +                     sd_np);
+> >               /* unavailable is not an error */
+> >               return 0;
+> >       }
+> > diff --git a/drivers/staging/mt7621-eth/mdio.c b/drivers/staging/mt7621-eth/mdio.c
+> > index 7ad0c4141205..9ffa8f771235 100644
+> > --- a/drivers/staging/mt7621-eth/mdio.c
+> > +++ b/drivers/staging/mt7621-eth/mdio.c
+> > @@ -70,7 +70,7 @@ int mtk_connect_phy_node(struct mtk_eth *eth, struct mtk_mac *mac,
+> >       _port = of_get_property(phy_node, "reg", NULL);
+> >
+> >       if (!_port || (be32_to_cpu(*_port) >= 0x20)) {
+> > -             pr_err("%s: invalid port id\n", phy_node->name);
+> > +             pr_err("%pOFn: invalid port id\n", phy_node);
+> >               return -EINVAL;
+> >       }
+> >       port = be32_to_cpu(*_port);
+> > @@ -249,7 +249,7 @@ int mtk_mdio_init(struct mtk_eth *eth)
+> >       eth->mii_bus->priv = eth;
+> >       eth->mii_bus->parent = eth->dev;
+> >
+> > -     snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
+> > +     snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%pOFn", mii_np);
+> >       err = of_mdiobus_register(eth->mii_bus, mii_np);
+> >       if (err)
+> >               goto err_free_bus;
+> > --
+> > 2.17.1
+>
+>
+>
+> Thanks,
+> Mauro
