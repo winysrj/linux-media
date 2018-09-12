@@ -1,184 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41446 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727739AbeIMDbZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 23:31:25 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, mchehab@kernel.org,
-        laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 1/1] v4l: event: Prevent freeing event subscriptions while accessed
-Date: Thu, 13 Sep 2018 01:24:49 +0300
-Message-Id: <20180912222449.23704-1-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.99]:44860 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727803AbeIMDzl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Sep 2018 23:55:41 -0400
+MIME-Version: 1.0
+References: <20180828154433.5693-1-robh@kernel.org> <20180828154433.5693-7-robh@kernel.org>
+ <20180912121705.010a999d@coco.lan> <CAL_JsqK8B46x8bm_aYggJSPAWrMGZ1rZ58uWCmyiSqA2KZpiFg@mail.gmail.com>
+ <20180912180734.37dfafb2@coco.lan>
+In-Reply-To: <20180912180734.37dfafb2@coco.lan>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 12 Sep 2018 17:48:50 -0500
+Message-ID: <CAL_JsqJdr6q00w8YhTsFdZM9k2bAJGDh-ViqFo19VCgJ1SXyug@mail.gmail.com>
+Subject: Re: [PATCH v2] staging: Convert to using %pOFn instead of device_node.name
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Joe Perches <joe@perches.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Ian Arkver <ian.arkver.dev@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The event subscriptions are added to the subscribed event list while
-holding a spinlock, but that lock is subsequently released while still
-accessing the subscription object. This makes it possible to unsubscribe
-the event --- and freeing the subscription object's memory --- while
-the subscription object is simultaneously accessed.
+On Wed, Sep 12, 2018 at 4:07 PM Mauro Carvalho Chehab
+<mchehab+samsung@kernel.org> wrote:
+>
+> Em Wed, 12 Sep 2018 15:26:48 -0500
+> Rob Herring <robh@kernel.org> escreveu:
+>
+> > +Joe P
+> >
+> > On Wed, Sep 12, 2018 at 10:17 AM Mauro Carvalho Chehab
+> > <mchehab+samsung@kernel.org> wrote:
+> > >
+> > > Em Tue, 28 Aug 2018 10:44:33 -0500
+> > > Rob Herring <robh@kernel.org> escreveu:
+> > >
+> > > > In preparation to remove the node name pointer from struct device_node,
+> > > > convert printf users to use the %pOFn format specifier.
+> > > >
+> > > > Cc: Steve Longerbeam <slongerbeam@gmail.com>
+> > > > Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> > > > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > > > Cc: linux-media@vger.kernel.org
+> > > > Cc: devel@driverdev.osuosl.org
+> > > > Signed-off-by: Rob Herring <robh@kernel.org>
+> > > > ---
+> > > > v2:
+> > > > - fix conditional use of node name vs devname for imx
+> > > >
+> > > >  drivers/staging/media/imx/imx-media-dev.c | 15 ++++++++++-----
+> > > >  drivers/staging/media/imx/imx-media-of.c  |  4 ++--
+> > > >  drivers/staging/mt7621-eth/mdio.c         |  4 ++--
+> > >
+> > > It would be better if you had submitted the staging/media stuff
+> > > on a separate patch, as they usually go via the media tree.
+> >
+> > Sorry, I thought Greg took all of staging.
+>
+> No, I usually take media patches on staging. It seems that at least
+> the IIO subsystem does the same:
+>
+> IIO SUBSYSTEM AND DRIVERS
+> M:      Jonathan Cameron <jic23@kernel.org>
+> R:      Hartmut Knaack <knaack.h@gmx.de>
+> R:      Lars-Peter Clausen <lars@metafoo.de>
+> R:      Peter Meerwald-Stadler <pmeerw@pmeerw.net>
+> L:      linux-iio@vger.kernel.org
+> T:      git git://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git
+> S:      Maintained
+> F:      Documentation/ABI/testing/configfs-iio*
+> F:      Documentation/ABI/testing/sysfs-bus-iio*
+> F:      Documentation/devicetree/bindings/iio/
+> F:      drivers/iio/
+> F:      drivers/staging/iio/
+> F:      include/linux/iio/
+> F:      tools/iio/
 
-Prevent this by adding a mutex to serialise the event subscription and
-unsubscription. This also gives a guarantee to the callback ops that the
-add op has returned before the del op is called.
+Yes, the information is there, but needs human processing.
 
-This change also results in making the elems field less special:
-subscriptions are only added to the event list once they are fully
-initialised.
+> Anyway, as I said before, I don't have any issues if Greg takes
+> this specific patch.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v1:
+I know. I'm just thinking about how to improve things. Ideally, what
+I'd like is a script that spits out a To list for who applies the
+patch and a Cc list of reviewers.
 
-- Call the mutex field subscribe_lock instead.
+> > A problem with MAINTAINERS is there is no way to tell who applies
+> > patches for a given path vs. anyone else listed. This frequently
+> > happens when the maintainer organization doesn't match the directory
+> > org. If we distinguished this, then it would be quite easy to see when
+> > you've created a patch that needs to be split to different maintainers
+> > (or an explanation why it isn't). Whatever happened with splitting up
+> > MAINTAINERS? If there was a file for each maintainer tree, then it
+> > would be easier to extract that information.
+>
+> Yes, but, on the other hand, get_maintainers.pl would likely
+> take more time to process, if a patch touches multiple subsystems.
+>
+> >
+> > Or maybe we just need to be stricter with the 'M' vs. 'R' tag and 'M'
+> > means that is the person who applies the patch. I don't think many
+> > drivers have their own tree and maintainer except for a few big ones.
+>
+> Hmm... just getting a random file under staging/media:
+>
+>         ./scripts/get_maintainer.pl -f drivers/staging/media/imx/imx-ic.h
+>         Steve Longerbeam <slongerbeam@gmail.com> (maintainer:MEDIA DRIVERS FOR FREESCALE IMX)
+>         Philipp Zabel <p.zabel@pengutronix.de> (maintainer:MEDIA DRIVERS FOR FREESCALE IMX)
+>         Mauro Carvalho Chehab <mchehab@kernel.org> (maintainer:MEDIA INPUT INFRASTRUCTURE (V4L/DVB))
+>         Greg Kroah-Hartman <gregkh@linuxfoundation.org> (supporter:STAGING SUBSYSTEM)
+>         linux-media@vger.kernel.org (open list:MEDIA DRIVERS FOR FREESCALE IMX)
+>         devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM)
+>         linux-kernel@vger.kernel.org (open list)
+>
+> It seems that the maintainers are already ordered by the tree
+> depth (placing the most relevant results first).
 
-- Move the field that is now subscribe_lock above the subscribed field the
-  write access to which it serialises.
+Most relevant in the sense of who reviews and cares about the changes,
+but not to answer who applies this patch. I could say I just need to
+ignore supporters and look at the last maintainer, but then that
+breaks for the case below. I don't think 'maintainer' vs. 'supporter'
+is very well maintained either.
 
-- Improve documentation of the subscribe_lock field.
+$ scripts/get_maintainer.pl -f drivers/staging/olpc_dcon/
+Jens Frederich <jfrederich@gmail.com> (maintainer:STAGING - OLPC
+SECONDARY DISPLAY CONTROLLER (DCON))
+Daniel Drake <dsd@laptop.org> (maintainer:STAGING - OLPC SECONDARY
+DISPLAY CONTROLLER (DCON))
+Jon Nettleton <jon.nettleton@gmail.com> (maintainer:STAGING - OLPC
+SECONDARY DISPLAY CONTROLLER (DCON))
+Greg Kroah-Hartman <gregkh@linuxfoundation.org> (supporter:STAGING SUBSYSTEM)
+devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM)
+linux-kernel@vger.kernel.org (open list)
 
- drivers/media/v4l2-core/v4l2-event.c | 35 ++++++++++++++++++-----------------
- drivers/media/v4l2-core/v4l2-fh.c    |  2 ++
- include/media/v4l2-fh.h              |  4 ++++
- 3 files changed, 24 insertions(+), 17 deletions(-)
+Maybe Jon has a tree and applies it. Who knows... You either have to
+know who are "real" maintainers (the ones applying patches) or go look
+at git history to see Greg is the only non-author S-o-B.
 
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index 127fe6eb91d9..b76fd92e24c8 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -115,14 +115,6 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
- 	if (sev == NULL)
- 		return;
- 
--	/*
--	 * If the event has been added to the fh->subscribed list, but its
--	 * add op has not completed yet elems will be 0, treat this as
--	 * not being subscribed.
--	 */
--	if (!sev->elems)
--		return;
--
- 	/* Increase event sequence number on fh. */
- 	fh->sequence++;
- 
-@@ -208,6 +200,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	struct v4l2_subscribed_event *sev, *found_ev;
- 	unsigned long flags;
- 	unsigned i;
-+	int ret = 0;
- 
- 	if (sub->type == V4L2_EVENT_ALL)
- 		return -EINVAL;
-@@ -225,31 +218,35 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	sev->flags = sub->flags;
- 	sev->fh = fh;
- 	sev->ops = ops;
-+	sev->elems = elems;
-+
-+	mutex_lock(&fh->subscribe_lock);
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
--	if (!found_ev)
--		list_add(&sev->list, &fh->subscribed);
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 
- 	if (found_ev) {
-+		/* Already listening */
- 		kvfree(sev);
--		return 0; /* Already listening */
-+		goto out_unlock;
- 	}
- 
- 	if (sev->ops && sev->ops->add) {
--		int ret = sev->ops->add(sev, elems);
-+		ret = sev->ops->add(sev, elems);
- 		if (ret) {
--			sev->ops = NULL;
--			v4l2_event_unsubscribe(fh, sub);
--			return ret;
-+			kvfree(sev);
-+			goto out_unlock;
- 		}
- 	}
- 
- 	/* Mark as ready for use */
--	sev->elems = elems;
-+	list_add(&sev->list, &fh->subscribed);
- 
--	return 0;
-+out_unlock:
-+	mutex_unlock(&fh->subscribe_lock);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
- 
-@@ -288,6 +285,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 		return 0;
- 	}
- 
-+	mutex_lock(&fh->subscribe_lock);
-+
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 
- 	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
-@@ -305,6 +304,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	if (sev && sev->ops && sev->ops->del)
- 		sev->ops->del(sev);
- 
-+	mutex_unlock(&fh->subscribe_lock);
-+
- 	kvfree(sev);
- 
- 	return 0;
-diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
-index 3895999bf880..c91a7bd3ecfc 100644
---- a/drivers/media/v4l2-core/v4l2-fh.c
-+++ b/drivers/media/v4l2-core/v4l2-fh.c
-@@ -45,6 +45,7 @@ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
- 	INIT_LIST_HEAD(&fh->available);
- 	INIT_LIST_HEAD(&fh->subscribed);
- 	fh->sequence = -1;
-+	mutex_init(&fh->subscribe_lock);
- }
- EXPORT_SYMBOL_GPL(v4l2_fh_init);
- 
-@@ -90,6 +91,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
- 		return;
- 	v4l_disable_media_source(fh->vdev);
- 	v4l2_event_unsubscribe_all(fh);
-+	mutex_destroy(&fh->subscribe_lock);
- 	fh->vdev = NULL;
- }
- EXPORT_SYMBOL_GPL(v4l2_fh_exit);
-diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-index ea73fef8bdc0..8586cfb49828 100644
---- a/include/media/v4l2-fh.h
-+++ b/include/media/v4l2-fh.h
-@@ -38,10 +38,13 @@ struct v4l2_ctrl_handler;
-  * @prio: priority of the file handler, as defined by &enum v4l2_priority
-  *
-  * @wait: event' s wait queue
-+ * @subscribe_lock: serialise changes to the subscribed list; guarantee that
-+ *		    the add and del event callbacks are orderly called
-  * @subscribed: list of subscribed events
-  * @available: list of events waiting to be dequeued
-  * @navailable: number of available events at @available list
-  * @sequence: event sequence number
-+ *
-  * @m2m_ctx: pointer to &struct v4l2_m2m_ctx
-  */
- struct v4l2_fh {
-@@ -52,6 +55,7 @@ struct v4l2_fh {
- 
- 	/* Events */
- 	wait_queue_head_t	wait;
-+	struct mutex		subscribe_lock;
- 	struct list_head	subscribed;
- 	struct list_head	available;
- 	unsigned int		navailable;
--- 
-2.11.0
+> So, both driver maintainers appear first, then me and finally
+> Greg (as supporter).
+>
+> Mailing lists are also ordered by relevance: media ML, then staging
+> ML and finally LKML.
+
+Another clue, yes, but something you can script?
+
+Rob
