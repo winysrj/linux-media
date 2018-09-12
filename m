@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40954 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40966 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728287AbeIMCgM (ORCPT
+        by vger.kernel.org with ESMTP id S1728237AbeIMCgM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Wed, 12 Sep 2018 22:36:12 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
@@ -9,41 +9,111 @@ To: linux-media@vger.kernel.org
 Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
         niklas.soderlund@ragnatech.se, jacopo@jmondi.org,
         p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
-Subject: [PATCH v3 23/23] smiapp: Query the V4L2 endpoint for a specific bus type
-Date: Thu, 13 Sep 2018 00:29:42 +0300
-Message-Id: <20180912212942.19641-24-sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 22/23] v4l: fwnode: Update V4L2 fwnode endpoint parsing documentation
+Date: Thu, 13 Sep 2018 00:29:41 +0300
+Message-Id: <20180912212942.19641-23-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
 References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of opportunistically trying to gather some information from the
-V4L2 endpoint, set the bus type and let the V4L2 fwnode framework figure
-out the configuration.
+The semantics of v4l2_fwnode_endpoint_parse() and
+v4l2_fwnode_endpoint_alloc_parse() have changed slightly: they now take
+the bus type from the user as well as a default configuration for the bus
+that shall reflect the DT binding defaults. Document this.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ include/media/v4l2-fwnode.h | 56 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 37 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 048ab6cfaa97..0d660349b13c 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2775,7 +2775,13 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 	if (!ep)
- 		return NULL;
- 
-+	bus_cfg.bus_type = V4L2_MBUS_CSI2_DPHY;
- 	rval = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
-+	if (rval == -ENXIO) {
-+		bus_cfg = (struct v4l2_fwnode_endpoint)
-+			{ .bus_type = V4L2_MBUS_CCP2 };
-+		rval = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
-+	}
- 	if (rval)
- 		goto out_err;
- 
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 1ea1a3ecf6d5..b4a49ca27579 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -131,21 +131,30 @@ struct v4l2_fwnode_link {
+  * @fwnode: pointer to the endpoint's fwnode handle
+  * @vep: pointer to the V4L2 fwnode data structure
+  *
+- * All properties are optional. If none are found, we don't set any flags. This
+- * means the port has a static configuration and no properties have to be
+- * specified explicitly. If any properties that identify the bus as parallel
+- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+- * reference to @fwnode.
+- *
+- * The caller must set the bus_type field of @vep to zero.
++ * This function parses the V4L2 fwnode endpoint specific parameters from the
++ * firmware. The caller is responsible for assigning @vep.bus_type to a valid
++ * media bus type. The caller may also set the default configuration for the
++ * endpoint --- a configuration that shall be in line with the DT binding
++ * documentation. Should a device support multiple bus types, the caller may
++ * call this function once the correct type is found --- with a default
++ * configuration valid for that type.
++ *
++ * As a compatibility means guessing the bus type is also supported by setting
++ * @vep.bus_type to V4L2_MBUS_UNKNOWN. The caller may not provide a default
++ * configuration in this case as the defaults are specific to a given bus type.
++ * This functionality is deprecated and should not be used in new drivers and it
++ * is only supported for CSI-2 D-PHY, parallel and Bt.656 busses.
++ *
++ * The function does not change the V4L2 fwnode endpoint state if it fails.
+  *
+  * NOTE: This function does not parse properties the size of which is variable
+  * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
+  * new drivers instead.
+  *
+- * Return: 0 on success or a negative error code on failure.
++ * Return: %0 on success or a negative error code on failure:
++ *	   %-ENOMEM on memory allocation failure
++ *	   %-EINVAL on parsing failure
++ *	   %-ENXIO on mismatching bus types
+  */
+ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 			       struct v4l2_fwnode_endpoint *vep);
+@@ -165,15 +174,21 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+  * @fwnode: pointer to the endpoint's fwnode handle
+  * @vep: pointer to the V4L2 fwnode data structure
+  *
+- * All properties are optional. If none are found, we don't set any flags. This
+- * means the port has a static configuration and no properties have to be
+- * specified explicitly. If any properties that identify the bus as parallel
+- * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if
+- * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't set, we
+- * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+- * reference to @fwnode.
++ * This function parses the V4L2 fwnode endpoint specific parameters from the
++ * firmware. The caller is responsible for assigning @vep.bus_type to a valid
++ * media bus type. The caller may also set the default configuration for the
++ * endpoint --- a configuration that shall be in line with the DT binding
++ * documentation. Should a device support multiple bus types, the caller may
++ * call this function once the correct type is found --- with a default
++ * configuration valid for that type.
++ *
++ * As a compatibility means guessing the bus type is also supported by setting
++ * @vep.bus_type to V4L2_MBUS_UNKNOWN. The caller may not provide a default
++ * configuration in this case as the defaults are specific to a given bus type.
++ * This functionality is deprecated and should not be used in new drivers and it
++ * is only supported for CSI-2 D-PHY, parallel and Bt.656 busses.
+  *
+- * The caller must set the bus_type field of @vep to zero.
++ * The function does not change the V4L2 fwnode endpoint state if it fails.
+  *
+  * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
+  * v4l2_fwnode_endpoint_parse():
+@@ -183,7 +198,10 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+  * 2. The memory it has allocated to store the variable size data must be freed
+  *    using v4l2_fwnode_endpoint_free() when no longer needed.
+  *
+- * Return: 0 on success or a negative error code on failure.
++ * Return: %0 on success or a negative error code on failure:
++ *	   %-ENOMEM on memory allocation failure
++ *	   %-EINVAL on parsing failure
++ *	   %-ENXIO on mismatching bus types
+  */
+ int v4l2_fwnode_endpoint_alloc_parse(
+ 	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep);
 -- 
 2.11.0
