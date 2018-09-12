@@ -1,123 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:46895 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727811AbeILVBt (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:33346 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727859AbeILVCA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 17:01:49 -0400
-Received: by mail-pg1-f195.google.com with SMTP id b129-v6so1266080pga.13
-        for <linux-media@vger.kernel.org>; Wed, 12 Sep 2018 08:56:42 -0700 (PDT)
-Date: Wed, 12 Sep 2018 09:56:39 -0600
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        qat-linux@intel.com, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
- generic_compat_ioctl_ptrarg
-Message-ID: <20180912155639.GF5633@ziepe.ca>
-References: <20180912150142.157913-1-arnd@arndb.de>
- <20180912151134.436719-1-arnd@arndb.de>
+        Wed, 12 Sep 2018 17:02:00 -0400
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Subject: Re: [PATCH v2 3/5] media: i2c: adv748x: Conditionally enable only
+ CSI-2 outputs
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+References: <1536161231-25221-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1536161231-25221-4-git-send-email-jacopo+renesas@jmondi.org>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <0670b9a5-a269-b926-5167-ea8a9d360023@ideasonboard.com>
+Date: Wed, 12 Sep 2018 16:56:47 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180912151134.436719-1-arnd@arndb.de>
+In-Reply-To: <1536161231-25221-4-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 12, 2018 at 05:08:52PM +0200, Arnd Bergmann wrote:
-> The .ioctl and .compat_ioctl file operations have the same prototype so
-> they can both point to the same function, which works great almost all
-> the time when all the commands are compatible.
-> 
-> One exception is the s390 architecture, where a compat pointer is only
-> 31 bit wide, and converting it into a 64-bit pointer requires calling
-> compat_ptr(). Most drivers here will ever run in s390, but since we now
-> have a generic helper for it, it's easy enough to use it consistently.
-> 
-> I double-checked all these drivers to ensure that all ioctl arguments
-> are used as pointers or are ignored, but are not interpreted as integer
-> values.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->  drivers/android/binder.c                    | 2 +-
->  drivers/crypto/qat/qat_common/adf_ctl_drv.c | 2 +-
->  drivers/dma-buf/dma-buf.c                   | 4 +---
->  drivers/dma-buf/sw_sync.c                   | 2 +-
->  drivers/dma-buf/sync_file.c                 | 2 +-
->  drivers/gpu/drm/amd/amdkfd/kfd_chardev.c    | 2 +-
->  drivers/hid/hidraw.c                        | 4 +---
->  drivers/iio/industrialio-core.c             | 2 +-
->  drivers/infiniband/core/uverbs_main.c       | 4 ++--
->  drivers/media/rc/lirc_dev.c                 | 4 +---
->  drivers/mfd/cros_ec_dev.c                   | 4 +---
->  drivers/misc/vmw_vmci/vmci_host.c           | 2 +-
->  drivers/nvdimm/bus.c                        | 4 ++--
->  drivers/nvme/host/core.c                    | 2 +-
->  drivers/pci/switch/switchtec.c              | 2 +-
->  drivers/platform/x86/wmi.c                  | 2 +-
->  drivers/rpmsg/rpmsg_char.c                  | 4 ++--
->  drivers/sbus/char/display7seg.c             | 2 +-
->  drivers/sbus/char/envctrl.c                 | 4 +---
->  drivers/scsi/3w-xxxx.c                      | 4 +---
->  drivers/scsi/cxlflash/main.c                | 2 +-
->  drivers/scsi/esas2r/esas2r_main.c           | 2 +-
->  drivers/scsi/pmcraid.c                      | 4 +---
->  drivers/staging/android/ion/ion.c           | 4 +---
->  drivers/staging/vme/devices/vme_user.c      | 2 +-
->  drivers/tee/tee_core.c                      | 2 +-
->  drivers/usb/class/cdc-wdm.c                 | 2 +-
->  drivers/usb/class/usbtmc.c                  | 4 +---
->  drivers/video/fbdev/ps3fb.c                 | 2 +-
->  drivers/virt/fsl_hypervisor.c               | 2 +-
->  fs/btrfs/super.c                            | 2 +-
->  fs/ceph/dir.c                               | 2 +-
->  fs/ceph/file.c                              | 2 +-
->  fs/fuse/dev.c                               | 2 +-
->  fs/notify/fanotify/fanotify_user.c          | 2 +-
->  fs/userfaultfd.c                            | 2 +-
->  net/rfkill/core.c                           | 2 +-
->  37 files changed, 40 insertions(+), 58 deletions(-)
+Hi Jacopo,
 
-> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-> index 823beca448e1..f4755c1c9cfa 100644
-> +++ b/drivers/infiniband/core/uverbs_main.c
-> @@ -930,7 +930,7 @@ static const struct file_operations uverbs_fops = {
->  	.release = ib_uverbs_close,
->  	.llseek	 = no_llseek,
->  	.unlocked_ioctl = ib_uverbs_ioctl,
-> -	.compat_ioctl = ib_uverbs_ioctl,
-> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
->  };
+This looks good - just some spelling and grammar to fix in the commit
+message.
+
+On 05/09/18 16:27, Jacopo Mondi wrote:
+> The ADV748x has two CSI-2 output port and one TLL input/output port for
+
+s/TLL/TTL/
+
+> digital video reception/transmission. The TTL digital pad is un-conditionally
+
+s/un-conditionally/unconditionally/
+
+> enabled during the device reset even if not used. Same goes for the TXa
+> and TXb CSI-2 outputs, which are enabled by the initial settings blob
+
+Could we keep TXa, TXb capitalized as TXA and TXB to match the other
+uses please?
+
+> programmed into the chip.
+> 
+> In order to improve power saving and do not enable un-used output interfaces:
+
+s/power saving and do not/power saving, do not/
+
+s/un-used/unused/
+
+
+> keep TLL output disabled, as it is not used, and drop CSI-2 output enabling
+
+s/TLL/TTL/
+
+> from the intial settings list, as they get conditionally enabled later.
+
+s/intial/initial/
+
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+I wonder if the power savings are measurable ... I might have to see if
+I can get a comparison to work with the ACME power monitor I have.
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+
+> ---
+>  drivers/media/i2c/adv748x/adv748x-core.c | 8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index 72a6692..7b79b0c 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -386,8 +386,6 @@ static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
 >  
->  static const struct file_operations uverbs_mmap_fops = {
-> @@ -941,7 +941,7 @@ static const struct file_operations uverbs_mmap_fops = {
->  	.release = ib_uverbs_close,
->  	.llseek	 = no_llseek,
->  	.unlocked_ioctl = ib_uverbs_ioctl,
-> -	.compat_ioctl = ib_uverbs_ioctl,
-> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
->  };
+>  	{ADV748X_PAGE_IO, 0x0c, 0xe0},	/* Enable LLC_DLL & Double LLC Timing */
+>  	{ADV748X_PAGE_IO, 0x0e, 0xdd},	/* LLC/PIX/SPI PINS TRISTATED AUD */
+> -	/* Outputs Enabled */
+> -	{ADV748X_PAGE_IO, 0x10, 0xa0},	/* Enable 4-lane CSI Tx & Pixel Port */
 >  
->  static struct ib_client uverbs_client = {
-
-For uverbs:
-
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
-
-It is very strange, this patch did not appear in the RDMA patchworks,
-I almost missed it  :|
-
-Jason
+>  	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+>  	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> @@ -441,10 +439,6 @@ static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
+>  	{ADV748X_PAGE_SDP, 0x31, 0x12},	/* ADI Required Write */
+>  	{ADV748X_PAGE_SDP, 0xe6, 0x4f},  /* V bit end pos manually in NTSC */
+>  
+> -	/* Enable 1-Lane MIPI Tx, */
+> -	/* enable pixel output and route SD through Pixel port */
+> -	{ADV748X_PAGE_IO, 0x10, 0x70},
+> -
+>  	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+>  	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+>  	{ADV748X_PAGE_TXB, 0xd2, 0x40},	/* ADI Required Write */
+> @@ -469,7 +463,7 @@ static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
+>  static int adv748x_reset(struct adv748x_state *state)
+>  {
+>  	int ret;
+> -	u8 regval = ADV748X_IO_10_PIX_OUT_EN;
+> +	u8 regval = 0;
+>  
+>  	ret = adv748x_write_regs(state, adv748x_sw_reset);
+>  	if (ret < 0)
+> 
