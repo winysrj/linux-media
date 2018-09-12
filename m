@@ -1,61 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:20646 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726239AbeIMCAL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 22:00:11 -0400
-Date: Wed, 12 Sep 2018 23:53:33 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se
-Subject: Re: [PATCH v2 18/23] v4l: fwnode: Use media bus type for bus parser
- selection
-Message-ID: <20180912205333.b4uunnddps4jybp7@kekkonen.localdomain>
-References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
- <20180827093000.29165-19-sakari.ailus@linux.intel.com>
- <20180912151505.GB11509@w540>
+Received: from bombadil.infradead.org ([198.137.202.133]:54514 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727010AbeIMCOB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Sep 2018 22:14:01 -0400
+Date: Wed, 12 Sep 2018 18:07:34 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Rob Herring <robh@kernel.org>
+Cc: Joe Perches <joe@perches.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Ian Arkver <ian.arkver.dev@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v2] staging: Convert to using %pOFn instead of
+ device_node.name
+Message-ID: <20180912180734.37dfafb2@coco.lan>
+In-Reply-To: <CAL_JsqK8B46x8bm_aYggJSPAWrMGZ1rZ58uWCmyiSqA2KZpiFg@mail.gmail.com>
+References: <20180828154433.5693-1-robh@kernel.org>
+        <20180828154433.5693-7-robh@kernel.org>
+        <20180912121705.010a999d@coco.lan>
+        <CAL_JsqK8B46x8bm_aYggJSPAWrMGZ1rZ58uWCmyiSqA2KZpiFg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180912151505.GB11509@w540>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Em Wed, 12 Sep 2018 15:26:48 -0500
+Rob Herring <robh@kernel.org> escreveu:
 
-Thanks for the comments.
-
-On Wed, Sep 12, 2018 at 05:15:05PM +0200, jacopo mondi wrote:
-> Hi Sakari,
+> +Joe P
 > 
-> On Mon, Aug 27, 2018 at 12:29:55PM +0300, Sakari Ailus wrote:
-> > Use the media bus types instead of the fwnode bus types internally. This
-> > is the interface to the drivers as well, making the use of the fwnode bus
-> > types more localised to the V4L2 fwnode framework.
+> On Wed, Sep 12, 2018 at 10:17 AM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
 > >
+> > Em Tue, 28 Aug 2018 10:44:33 -0500
+> > Rob Herring <robh@kernel.org> escreveu:
+> >  
+> > > In preparation to remove the node name pointer from struct device_node,
+> > > convert printf users to use the %pOFn format specifier.
+> > >
+> > > Cc: Steve Longerbeam <slongerbeam@gmail.com>
+> > > Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> > > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > > Cc: linux-media@vger.kernel.org
+> > > Cc: devel@driverdev.osuosl.org
+> > > Signed-off-by: Rob Herring <robh@kernel.org>
+> > > ---
+> > > v2:
+> > > - fix conditional use of node name vs devname for imx
+> > >
+> > >  drivers/staging/media/imx/imx-media-dev.c | 15 ++++++++++-----
+> > >  drivers/staging/media/imx/imx-media-of.c  |  4 ++--
+> > >  drivers/staging/mt7621-eth/mdio.c         |  4 ++--  
+> >
+> > It would be better if you had submitted the staging/media stuff
+> > on a separate patch, as they usually go via the media tree.  
 > 
-> So basically now "v4l2_fwnode_bus_type" it is only used in a few
-> places in v4l2-fwnode and has to be kept in sync with the bus types
-> listed in the devicetree bindings documentation?
+> Sorry, I thought Greg took all of staging.
 
-Correct.
+No, I usually take media patches on staging. It seems that at least
+the IIO subsystem does the same:
+
+IIO SUBSYSTEM AND DRIVERS
+M:	Jonathan Cameron <jic23@kernel.org>
+R:	Hartmut Knaack <knaack.h@gmx.de>
+R:	Lars-Peter Clausen <lars@metafoo.de>
+R:	Peter Meerwald-Stadler <pmeerw@pmeerw.net>
+L:	linux-iio@vger.kernel.org
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git
+S:	Maintained
+F:	Documentation/ABI/testing/configfs-iio*
+F:	Documentation/ABI/testing/sysfs-bus-iio*
+F:	Documentation/devicetree/bindings/iio/
+F:	drivers/iio/
+F:	drivers/staging/iio/
+F:	include/linux/iio/
+F:	tools/iio/
+
+Anyway, as I said before, I don't have any issues if Greg takes
+this specific patch.
+
+> A problem with MAINTAINERS is there is no way to tell who applies
+> patches for a given path vs. anyone else listed. This frequently
+> happens when the maintainer organization doesn't match the directory
+> org. If we distinguished this, then it would be quite easy to see when
+> you've created a patch that needs to be split to different maintainers
+> (or an explanation why it isn't). Whatever happened with splitting up
+> MAINTAINERS? If there was a file for each maintainer tree, then it
+> would be easier to extract that information.
+
+Yes, but, on the other hand, get_maintainers.pl would likely
+take more time to process, if a patch touches multiple subsystems.
 
 > 
-> Do you think it is still worth to keep around functions dealing with
-> that enum type as "v4l2_fwnode_bus_type_to_string()" ?
-> It is only used by a debug printout (without that much value added, as
-> we can print out the integer parsed from the DT). In all other cases
-> it can be converted to the corresponing v4l2_mbus_type immediately.
+> Or maybe we just need to be stricter with the 'M' vs. 'R' tag and 'M'
+> means that is the person who applies the patch. I don't think many
+> drivers have their own tree and maintainer except for a few big ones.
 
-One of the aims of this patchset is to make debugging easier. A string is
-more informative to the developers than a number, and for a few additional
-lines of code I think that is justifiable.
+Hmm... just getting a random file under staging/media:
 
-I'll send v3 probably early tomorrow as I fixed a build issue;
-V4L2_MBUS_UNKNOWN was used in one patch that preceded its introduction.
+	./scripts/get_maintainer.pl -f drivers/staging/media/imx/imx-ic.h
+	Steve Longerbeam <slongerbeam@gmail.com> (maintainer:MEDIA DRIVERS FOR FREESCALE IMX)
+	Philipp Zabel <p.zabel@pengutronix.de> (maintainer:MEDIA DRIVERS FOR FREESCALE IMX)
+	Mauro Carvalho Chehab <mchehab@kernel.org> (maintainer:MEDIA INPUT INFRASTRUCTURE (V4L/DVB))
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org> (supporter:STAGING SUBSYSTEM)
+	linux-media@vger.kernel.org (open list:MEDIA DRIVERS FOR FREESCALE IMX)
+	devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM)
+	linux-kernel@vger.kernel.org (open list)
 
--- 
-Regards,
+It seems that the maintainers are already ordered by the tree
+depth (placing the most relevant results first).
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+So, both driver maintainers appear first, then me and finally
+Greg (as supporter). 
+
+Mailing lists are also ordered by relevance: media ML, then staging
+ML and finally LKML.
+
+Thanks,
+Mauro
