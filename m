@@ -1,95 +1,387 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:26806 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725828AbeIUIOp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 04:14:45 -0400
-Subject: Re: [PATCH v5] media: add imx319 camera sensor driver
-To: Tomasz Figa <tfiga@chromium.org>,
-        Cao Bing Bu <bingbu.cao@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-References: <1537163872-14567-1-git-send-email-bingbu.cao@intel.com>
- <CAAFQd5Dp8kp6fi8bXr6jODO0Cr4Kqu5L0eSXudsrOkHK6cKdjg@mail.gmail.com>
-From: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <c2998a8f-90bf-e5c8-e45d-e52d2bebcca0@linux.intel.com>
-Date: Fri, 21 Sep 2018 10:31:54 +0800
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5Dp8kp6fi8bXr6jODO0Cr4Kqu5L0eSXudsrOkHK6cKdjg@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40960 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728232AbeIMCgK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Sep 2018 22:36:10 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
+        niklas.soderlund@ragnatech.se, jacopo@jmondi.org,
+        p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
+Subject: [PATCH v3 07/23] v4l: fwnode: Let the caller provide V4L2 fwnode endpoint
+Date: Thu, 13 Sep 2018 00:29:26 +0300
+Message-Id: <20180912212942.19641-8-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
+References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of allocating the V4L2 fwnode endpoint in
+v4l2_fwnode_endpoint_alloc_parse, let the caller to do this. This allows
+setting default parameters for the endpoint which is a very common need
+for drivers.
 
-On 09/18/2018 05:49 PM, Tomasz Figa wrote:
-> Hi Bingbu,
->
-> On Mon, Sep 17, 2018 at 2:53 PM <bingbu.cao@intel.com> wrote:
->> From: Bingbu Cao <bingbu.cao@intel.com>
->>
->> Add a v4l2 sub-device driver for the Sony imx319 image sensor.
->> This is a camera sensor using the i2c bus for control and the
->> csi-2 bus for data.
-> Please see my comments inline. Also, I'd appreciate being CCed on
-> related work in the future.
-Ack.
-Sorry, will add you into the cc-list.
->
-> [snip]
->> +
->> +static const char * const imx319_test_pattern_menu[] = {
->> +       "Disabled",
->> +       "100% color bars",
->> +       "Solid color",
->> +       "Fade to gray color bars",
->> +       "PN9"
->> +};
->> +
->> +static const int imx319_test_pattern_val[] = {
->> +       IMX319_TEST_PATTERN_DISABLED,
->> +       IMX319_TEST_PATTERN_COLOR_BARS,
->> +       IMX319_TEST_PATTERN_SOLID_COLOR,
->> +       IMX319_TEST_PATTERN_GRAY_COLOR_BARS,
->> +       IMX319_TEST_PATTERN_PN9,
->> +};
-> This array is not needed. All the entries are equal to corresponding
-> indices, i.e. the array is equivalent to { 0, 1, 2, 3, 4 }. We can use
-> ctrl->val directly.
-Ack.
-> [snip]
->
->> +/* Write a list of registers */
->> +static int imx319_write_regs(struct imx319 *imx319,
->> +                             const struct imx319_reg *regs, u32 len)
->> +{
->> +       struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
->> +       int ret;
->> +       u32 i;
->> +
->> +       for (i = 0; i < len; i++) {
->> +               ret = imx319_write_reg(imx319, regs[i].address, 1, regs[i].val);
->> +               if (ret) {
->> +                       dev_err_ratelimited(&client->dev,
->> +
-> Hmm, the message is clipped here. Let me see if it's something with my
-> email client...
-The code here:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/media/i2c/ov2659.c             | 14 +++++-----
+ drivers/media/i2c/smiapp/smiapp-core.c | 26 +++++++++---------
+ drivers/media/i2c/tc358743.c           | 26 +++++++++---------
+ drivers/media/v4l2-core/v4l2-fwnode.c  | 49 +++++++++++++---------------------
+ include/media/v4l2-fwnode.h            | 10 ++++---
+ 5 files changed, 60 insertions(+), 65 deletions(-)
 
-1827 for (i = 0; i < len; i++) {
-1828 ret = imx319_write_reg(imx319, regs[i].address, 1, regs[i].val);
-1829 if (ret) {
-1830 dev_err_ratelimited(&client->dev,
-1831 "write reg 0x%4.4x return err %d",
-1832 regs[i].address, ret);
-1833 return ret;
-1834 }
-1835 } Same as the code shown on your client?
-
->
-> Best regards,
-> Tomasz
->
+diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+index 4715edc8ca33..799acce803fe 100644
+--- a/drivers/media/i2c/ov2659.c
++++ b/drivers/media/i2c/ov2659.c
+@@ -1347,8 +1347,9 @@ static struct ov2659_platform_data *
+ ov2659_get_pdata(struct i2c_client *client)
+ {
+ 	struct ov2659_platform_data *pdata;
+-	struct v4l2_fwnode_endpoint *bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
+ 	struct device_node *endpoint;
++	int ret;
+ 
+ 	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+ 		return client->dev.platform_data;
+@@ -1357,8 +1358,9 @@ ov2659_get_pdata(struct i2c_client *client)
+ 	if (!endpoint)
+ 		return NULL;
+ 
+-	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(endpoint));
+-	if (IS_ERR(bus_cfg)) {
++	ret = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(endpoint),
++					       &bus_cfg);
++	if (ret) {
+ 		pdata = NULL;
+ 		goto done;
+ 	}
+@@ -1367,17 +1369,17 @@ ov2659_get_pdata(struct i2c_client *client)
+ 	if (!pdata)
+ 		goto done;
+ 
+-	if (!bus_cfg->nr_of_link_frequencies) {
++	if (!bus_cfg.nr_of_link_frequencies) {
+ 		dev_err(&client->dev,
+ 			"link-frequencies property not found or too many\n");
+ 		pdata = NULL;
+ 		goto done;
+ 	}
+ 
+-	pdata->link_frequency = bus_cfg->link_frequencies[0];
++	pdata->link_frequency = bus_cfg.link_frequencies[0];
+ 
+ done:
+-	v4l2_fwnode_endpoint_free(bus_cfg);
++	v4l2_fwnode_endpoint_free(&bus_cfg);
+ 	of_node_put(endpoint);
+ 	return pdata;
+ }
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 9e33c2008ba6..048ab6cfaa97 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2761,7 +2761,7 @@ static int __maybe_unused smiapp_resume(struct device *dev)
+ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ {
+ 	struct smiapp_hwconfig *hwcfg;
+-	struct v4l2_fwnode_endpoint *bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
+ 	struct fwnode_handle *ep;
+ 	struct fwnode_handle *fwnode = dev_fwnode(dev);
+ 	u32 rotation;
+@@ -2775,27 +2775,27 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 	if (!ep)
+ 		return NULL;
+ 
+-	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(ep);
+-	if (IS_ERR(bus_cfg))
++	rval = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
++	if (rval)
+ 		goto out_err;
+ 
+ 	hwcfg = devm_kzalloc(dev, sizeof(*hwcfg), GFP_KERNEL);
+ 	if (!hwcfg)
+ 		goto out_err;
+ 
+-	switch (bus_cfg->bus_type) {
++	switch (bus_cfg.bus_type) {
+ 	case V4L2_MBUS_CSI2_DPHY:
+ 		hwcfg->csi_signalling_mode = SMIAPP_CSI_SIGNALLING_MODE_CSI2;
+-		hwcfg->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
++		hwcfg->lanes = bus_cfg.bus.mipi_csi2.num_data_lanes;
+ 		break;
+ 	case V4L2_MBUS_CCP2:
+-		hwcfg->csi_signalling_mode = (bus_cfg->bus.mipi_csi1.strobe) ?
++		hwcfg->csi_signalling_mode = (bus_cfg.bus.mipi_csi1.strobe) ?
+ 		SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_STROBE :
+ 		SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK;
+ 		hwcfg->lanes = 1;
+ 		break;
+ 	default:
+-		dev_err(dev, "unsupported bus %u\n", bus_cfg->bus_type);
++		dev_err(dev, "unsupported bus %u\n", bus_cfg.bus_type);
+ 		goto out_err;
+ 	}
+ 
+@@ -2827,28 +2827,28 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 	dev_dbg(dev, "nvm %d, clk %d, mode %d\n",
+ 		hwcfg->nvm_size, hwcfg->ext_clk, hwcfg->csi_signalling_mode);
+ 
+-	if (!bus_cfg->nr_of_link_frequencies) {
++	if (!bus_cfg.nr_of_link_frequencies) {
+ 		dev_warn(dev, "no link frequencies defined\n");
+ 		goto out_err;
+ 	}
+ 
+ 	hwcfg->op_sys_clock = devm_kcalloc(
+-		dev, bus_cfg->nr_of_link_frequencies + 1 /* guardian */,
++		dev, bus_cfg.nr_of_link_frequencies + 1 /* guardian */,
+ 		sizeof(*hwcfg->op_sys_clock), GFP_KERNEL);
+ 	if (!hwcfg->op_sys_clock)
+ 		goto out_err;
+ 
+-	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
+-		hwcfg->op_sys_clock[i] = bus_cfg->link_frequencies[i];
++	for (i = 0; i < bus_cfg.nr_of_link_frequencies; i++) {
++		hwcfg->op_sys_clock[i] = bus_cfg.link_frequencies[i];
+ 		dev_dbg(dev, "freq %d: %lld\n", i, hwcfg->op_sys_clock[i]);
+ 	}
+ 
+-	v4l2_fwnode_endpoint_free(bus_cfg);
++	v4l2_fwnode_endpoint_free(&bus_cfg);
+ 	fwnode_handle_put(ep);
+ 	return hwcfg;
+ 
+ out_err:
+-	v4l2_fwnode_endpoint_free(bus_cfg);
++	v4l2_fwnode_endpoint_free(&bus_cfg);
+ 	fwnode_handle_put(ep);
+ 	return NULL;
+ }
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 6a2064597124..8402d540eb8c 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1895,11 +1895,11 @@ static void tc358743_gpio_reset(struct tc358743_state *state)
+ static int tc358743_probe_of(struct tc358743_state *state)
+ {
+ 	struct device *dev = &state->i2c_client->dev;
+-	struct v4l2_fwnode_endpoint *endpoint;
++	struct v4l2_fwnode_endpoint endpoint = { .bus_type = 0 };
+ 	struct device_node *ep;
+ 	struct clk *refclk;
+ 	u32 bps_pr_lane;
+-	int ret = -EINVAL;
++	int ret;
+ 
+ 	refclk = devm_clk_get(dev, "refclk");
+ 	if (IS_ERR(refclk)) {
+@@ -1915,26 +1915,28 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ 		return -EINVAL;
+ 	}
+ 
+-	endpoint = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(ep));
+-	if (IS_ERR(endpoint)) {
++	ret = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(ep), &endpoint);
++	if (ret) {
+ 		dev_err(dev, "failed to parse endpoint\n");
+-		ret = PTR_ERR(endpoint);
++		ret = ret;
+ 		goto put_node;
+ 	}
+ 
+-	if (endpoint->bus_type != V4L2_MBUS_CSI2_DPHY ||
+-	    endpoint->bus.mipi_csi2.num_data_lanes == 0 ||
+-	    endpoint->nr_of_link_frequencies == 0) {
++	if (endpoint.bus_type != V4L2_MBUS_CSI2_DPHY ||
++	    endpoint.bus.mipi_csi2.num_data_lanes == 0 ||
++	    endpoint.nr_of_link_frequencies == 0) {
+ 		dev_err(dev, "missing CSI-2 properties in endpoint\n");
++		ret = -EINVAL;
+ 		goto free_endpoint;
+ 	}
+ 
+-	if (endpoint->bus.mipi_csi2.num_data_lanes > 4) {
++	if (endpoint.bus.mipi_csi2.num_data_lanes > 4) {
+ 		dev_err(dev, "invalid number of lanes\n");
++		ret = -EINVAL;
+ 		goto free_endpoint;
+ 	}
+ 
+-	state->bus = endpoint->bus.mipi_csi2;
++	state->bus = endpoint.bus.mipi_csi2;
+ 
+ 	ret = clk_prepare_enable(refclk);
+ 	if (ret) {
+@@ -1967,7 +1969,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ 	 * The CSI bps per lane must be between 62.5 Mbps and 1 Gbps.
+ 	 * The default is 594 Mbps for 4-lane 1080p60 or 2-lane 720p60.
+ 	 */
+-	bps_pr_lane = 2 * endpoint->link_frequencies[0];
++	bps_pr_lane = 2 * endpoint.link_frequencies[0];
+ 	if (bps_pr_lane < 62500000U || bps_pr_lane > 1000000000U) {
+ 		dev_err(dev, "unsupported bps per lane: %u bps\n", bps_pr_lane);
+ 		goto disable_clk;
+@@ -2013,7 +2015,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ disable_clk:
+ 	clk_disable_unprepare(refclk);
+ free_endpoint:
+-	v4l2_fwnode_endpoint_free(endpoint);
++	v4l2_fwnode_endpoint_free(&endpoint);
+ put_node:
+ 	of_node_put(ep);
+ 	return ret;
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 54162217bb36..d6ba3e5d4356 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -290,23 +290,17 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
+ 		return;
+ 
+ 	kfree(vep->link_frequencies);
+-	kfree(vep);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
+ 
+-struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+-	struct fwnode_handle *fwnode)
++int v4l2_fwnode_endpoint_alloc_parse(
++	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep)
+ {
+-	struct v4l2_fwnode_endpoint *vep;
+ 	int rval;
+ 
+-	vep = kzalloc(sizeof(*vep), GFP_KERNEL);
+-	if (!vep)
+-		return ERR_PTR(-ENOMEM);
+-
+ 	rval = __v4l2_fwnode_endpoint_parse(fwnode, vep);
+ 	if (rval < 0)
+-		goto out_err;
++		return rval;
+ 
+ 	rval = fwnode_property_read_u64_array(fwnode, "link-frequencies",
+ 					      NULL, 0);
+@@ -316,18 +310,18 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+ 		vep->link_frequencies =
+ 			kmalloc_array(rval, sizeof(*vep->link_frequencies),
+ 				      GFP_KERNEL);
+-		if (!vep->link_frequencies) {
+-			rval = -ENOMEM;
+-			goto out_err;
+-		}
++		if (!vep->link_frequencies)
++			return -ENOMEM;
+ 
+ 		vep->nr_of_link_frequencies = rval;
+ 
+ 		rval = fwnode_property_read_u64_array(
+ 			fwnode, "link-frequencies", vep->link_frequencies,
+ 			vep->nr_of_link_frequencies);
+-		if (rval < 0)
+-			goto out_err;
++		if (rval < 0) {
++			v4l2_fwnode_endpoint_free(vep);
++			return rval;
++		}
+ 
+ 		for (i = 0; i < vep->nr_of_link_frequencies; i++)
+ 			pr_info("link-frequencies %u value %llu\n", i,
+@@ -336,11 +330,7 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+ 
+ 	pr_debug("===== end V4L2 endpoint properties\n");
+ 
+-	return vep;
+-
+-out_err:
+-	v4l2_fwnode_endpoint_free(vep);
+-	return ERR_PTR(rval);
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
+ 
+@@ -392,9 +382,9 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
+ 			    struct v4l2_fwnode_endpoint *vep,
+ 			    struct v4l2_async_subdev *asd))
+ {
++	struct v4l2_fwnode_endpoint vep = { .bus_type = 0 };
+ 	struct v4l2_async_subdev *asd;
+-	struct v4l2_fwnode_endpoint *vep;
+-	int ret = 0;
++	int ret;
+ 
+ 	asd = kzalloc(asd_struct_size, GFP_KERNEL);
+ 	if (!asd)
+@@ -409,23 +399,22 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
+ 		goto out_err;
+ 	}
+ 
+-	vep = v4l2_fwnode_endpoint_alloc_parse(endpoint);
+-	if (IS_ERR(vep)) {
+-		ret = PTR_ERR(vep);
++	ret = v4l2_fwnode_endpoint_alloc_parse(endpoint, &vep);
++	if (ret) {
+ 		dev_warn(dev, "unable to parse V4L2 fwnode endpoint (%d)\n",
+ 			 ret);
+ 		goto out_err;
+ 	}
+ 
+-	ret = parse_endpoint ? parse_endpoint(dev, vep, asd) : 0;
++	ret = parse_endpoint ? parse_endpoint(dev, &vep, asd) : 0;
+ 	if (ret == -ENOTCONN)
+-		dev_dbg(dev, "ignoring port@%u/endpoint@%u\n", vep->base.port,
+-			vep->base.id);
++		dev_dbg(dev, "ignoring port@%u/endpoint@%u\n", vep.base.port,
++			vep.base.id);
+ 	else if (ret < 0)
+ 		dev_warn(dev,
+ 			 "driver could not parse port@%u/endpoint@%u (%d)\n",
+-			 vep->base.port, vep->base.id, ret);
+-	v4l2_fwnode_endpoint_free(vep);
++			 vep.base.port, vep.base.id, ret);
++	v4l2_fwnode_endpoint_free(&vep);
+ 	if (ret < 0)
+ 		goto out_err;
+ 
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 8b4873c37098..4a371c3ad86c 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -161,6 +161,7 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+ /**
+  * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
+  * @fwnode: pointer to the endpoint's fwnode handle
++ * @vep: pointer to the V4L2 fwnode data structure
+  *
+  * All properties are optional. If none are found, we don't set any flags. This
+  * means the port has a static configuration and no properties have to be
+@@ -170,6 +171,8 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+  * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
+  * reference to @fwnode.
+  *
++ * The caller must set the bus_type field of @vep to zero.
++ *
+  * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
+  * v4l2_fwnode_endpoint_parse():
+  *
+@@ -178,11 +181,10 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+  * 2. The memory it has allocated to store the variable size data must be freed
+  *    using v4l2_fwnode_endpoint_free() when no longer needed.
+  *
+- * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error pointer
+- * on error.
++ * Return: 0 on success or a negative error code on failure.
+  */
+-struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+-	struct fwnode_handle *fwnode);
++int v4l2_fwnode_endpoint_alloc_parse(
++	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep);
+ 
+ /**
+  * v4l2_fwnode_parse_link() - parse a link between two endpoints
+-- 
+2.11.0
