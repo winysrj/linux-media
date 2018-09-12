@@ -1,53 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45020 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726608AbeILXTQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 19:19:16 -0400
-Date: Wed, 12 Sep 2018 20:13:30 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        qat-linux@intel.com, linux-crypto@vger.kernel.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-fbdev@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
-        linux-wireless@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
- generic_compat_ioctl_ptrarg
-Message-ID: <20180912181330.GC15031@kroah.com>
-References: <20180912150142.157913-1-arnd@arndb.de>
- <20180912151134.436719-1-arnd@arndb.de>
+Received: from mga07.intel.com ([134.134.136.100]:19773 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726239AbeIMBxJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Sep 2018 21:53:09 -0400
+Date: Wed, 12 Sep 2018 23:46:50 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se
+Subject: Re: [PATCH v2 07/23] v4l: fwnode: Let the caller provide V4L2 fwnode
+ endpoint
+Message-ID: <20180912204650.6trvsboictmkw3ee@kekkonen.localdomain>
+References: <20180827093000.29165-1-sakari.ailus@linux.intel.com>
+ <20180827093000.29165-8-sakari.ailus@linux.intel.com>
+ <20180912145107.GA11509@w540>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180912151134.436719-1-arnd@arndb.de>
+In-Reply-To: <20180912145107.GA11509@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 12, 2018 at 05:08:52PM +0200, Arnd Bergmann wrote:
-> The .ioctl and .compat_ioctl file operations have the same prototype so
-> they can both point to the same function, which works great almost all
-> the time when all the commands are compatible.
-> 
-> One exception is the s390 architecture, where a compat pointer is only
-> 31 bit wide, and converting it into a 64-bit pointer requires calling
-> compat_ptr(). Most drivers here will ever run in s390, but since we now
-> have a generic helper for it, it's easy enough to use it consistently.
-> 
-> I double-checked all these drivers to ensure that all ioctl arguments
-> are used as pointers or are ignored, but are not interpreted as integer
-> values.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Hi Jacopo,
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+On Wed, Sep 12, 2018 at 04:51:07PM +0200, jacopo mondi wrote:
+> Hi Sakari,
+> 
+> On Mon, Aug 27, 2018 at 12:29:44PM +0300, Sakari Ailus wrote:
+> > Instead of allocating the V4L2 fwnode endpoint in
+> > v4l2_fwnode_endpoint_alloc_parse, let the caller to do this. This allows
+> > setting default parameters for the endpoint which is a very common need
+> > for drivers.
+> >
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/i2c/ov2659.c             | 14 +++++-----
+> >  drivers/media/i2c/smiapp/smiapp-core.c | 26 +++++++++---------
+> >  drivers/media/i2c/tc358743.c           | 26 +++++++++---------
+> >  drivers/media/v4l2-core/v4l2-fwnode.c  | 49 +++++++++++++---------------------
+> >  include/media/v4l2-fwnode.h            | 10 ++++---
+> >  5 files changed, 60 insertions(+), 65 deletions(-)
+> >
+> 
+> [snip]
+> 
+> > -struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+> > -	struct fwnode_handle *fwnode)
+> > +int v4l2_fwnode_endpoint_alloc_parse(
+> > +	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep)
+> 
+> Looking at the resulting implementation of
+> "v4l2_fwnode_endpoint_alloc_parse" and "v4l2_fwnode_endpoint_parse" I
+> wonder if there's still value in keeping them separate... Now that in
+> both cases the caller has to provide an v4l2_fwnode_endpoint, isn't it
+> worth making a single function out of them, that behaves like
+> "alloc_parse" is doing nowadays (allocates vep->link_frequencies
+> conditionally on the presence of the "link-frequencies" property) ?
+
+The problem with that would be that the caller would have to know if there
+are variable length properties, i.e. the caller would always have to call
+v4l2_fwnode_endpoint_free() once it no longer needs them. For quite a few
+drivers this means immediately after calling the function which parsed
+them.
+
+I prefer to keep this simple for the drivers that need no such properties.
+
+> 
+> Or is the size of the allocated vep relevant in the async subdevice
+> matching or registration process? I guess not, but I might be missing
+> something...
+
+It's not. The link frequencies are a pointer anyway.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
