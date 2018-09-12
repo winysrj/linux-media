@@ -1,104 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:37912 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:56368 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732496AbeITU2s (ORCPT
+        with ESMTP id S1726677AbeILUWJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 16:28:48 -0400
-Date: Thu, 20 Sep 2018 11:44:53 -0300
+        Wed, 12 Sep 2018 16:22:09 -0400
+Date: Wed, 12 Sep 2018 12:17:05 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 5/6] media: isp: fix a warning about a wrong struct
- initializer
-Message-ID: <20180920114453.54424b60@coco.lan>
-In-Reply-To: <1547255.gQsGpOKB2G@avalon>
-References: <577a6299b1881c011bb82adb8a321ce72599a33c.1533739965.git.mchehab+samsung@kernel.org>
-        <cf5719a1cb77e6322d8dd4c679529aec4c07ee27.1533739965.git.mchehab+samsung@kernel.org>
-        <1638882.BEPym44MaE@avalon>
-        <1547255.gQsGpOKB2G@avalon>
+To: Rob Herring <robh@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+        Ian Arkver <ian.arkver.dev@gmail.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH v2] staging: Convert to using %pOFn instead of
+ device_node.name
+Message-ID: <20180912121705.010a999d@coco.lan>
+In-Reply-To: <20180828154433.5693-7-robh@kernel.org>
+References: <20180828154433.5693-1-robh@kernel.org>
+        <20180828154433.5693-7-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 07 Sep 2018 14:46:34 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Em Tue, 28 Aug 2018 10:44:33 -0500
+Rob Herring <robh@kernel.org> escreveu:
 
-> Hi Mauro,
->=20
-> As maintainers should be held to the same level of obligations as develop=
-ers,=20
-> and to avoid demotivating reviewers, could you handle comments you receiv=
-e=20
-> before pushing your own patches to your tree ? There should be no maintai=
-ner=20
-> privilege here.
+> In preparation to remove the node name pointer from struct device_node,
+> convert printf users to use the %pOFn format specifier.
+> 
+> Cc: Steve Longerbeam <slongerbeam@gmail.com>
+> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: linux-media@vger.kernel.org
+> Cc: devel@driverdev.osuosl.org
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
+> v2:
+> - fix conditional use of node name vs devname for imx
+> 
+>  drivers/staging/media/imx/imx-media-dev.c | 15 ++++++++++-----
+>  drivers/staging/media/imx/imx-media-of.c  |  4 ++--
+>  drivers/staging/mt7621-eth/mdio.c         |  4 ++--
 
-Sorry, yeah, this was improperly handled. Not sure what happened.
+It would be better if you had submitted the staging/media stuff
+on a separate patch, as they usually go via the media tree.
 
-=46rom whatever reason, I ended by mishandling this and lost the
-related emails. I had to do several e-mail changes at the beginning
-of August, as I'm not using s-opensource.com anymore, and had to
-reconfigure my inbox handling logic.
+As I don't foresee any conflicts on that part of the code,
+I'm Ok if Greg pick it and submit via his tree.
 
-Do you want me to revert the patch?
+So,
 
->=20
-> On Wednesday, 8 August 2018 18:45:49 EEST Laurent Pinchart wrote:
-> > Hi Mauro,
-> >=20
-> > Thank you for the patch.
-> >=20
-> > The subject line should be "media: omap3isp: ...".
-> >=20
-> > On Wednesday, 8 August 2018 17:52:55 EEST Mauro Carvalho Chehab wrote: =
-=20
-> > > As sparse complains:
-> > > 	drivers/media/platform/omap3isp/isp.c:303:39: warning: Using plain
-> > > 	integer
-> > >=20
-> > > as NULL pointer
-> > >=20
-> > > when a struct is initialized with { 0 }, actually the first
-> > > element of the struct is initialized with zeros, initializing the
-> > > other elements recursively. That can even generate gcc warnings
-> > > on nested structs.
-> > >=20
-> > > So, instead, use the gcc-specific syntax for that (with is used
-> > > broadly inside the Kernel), initializing it with {};
-> > >=20
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > > ---
-> > >=20
-> > >  drivers/media/platform/omap3isp/isp.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >=20
-> > > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > > b/drivers/media/platform/omap3isp/isp.c index 03354d513311..842e22350=
-47d
-> > > 100644
-> > > --- a/drivers/media/platform/omap3isp/isp.c
-> > > +++ b/drivers/media/platform/omap3isp/isp.c
-> > > @@ -300,7 +300,7 @@ static struct clk *isp_xclk_src_get(struct
-> > > of_phandle_args *clkspec, void *data) static int isp_xclk_init(struct
-> > > isp_device *isp)
-> > >=20
-> > >  {
-> > > =20
-> > >  	struct device_node *np =3D isp->dev->of_node;
-> > >=20
-> > > -	struct clk_init_data init =3D { 0 };
-> > > +	struct clk_init_data init =3D {}; =20
-> >=20
-> > How about =3D { NULL }; to avoid a gcc-specific syntax ?
-> >  =20
-> > >  	unsigned int i;
-> > >  =09
-> > >  	for (i =3D 0; i < ARRAY_SIZE(isp->xclks); ++i) =20
->=20
->=20
+Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+
+If you prefer instead that I would pick the media part, please
+split it into two patches.
+
+Regards,
+Mauro
+
+>  3 files changed, 14 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+> index b0be80f05767..3f48f5ceb6ea 100644
+> --- a/drivers/staging/media/imx/imx-media-dev.c
+> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> @@ -89,8 +89,12 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+> 
+>  	/* return -EEXIST if this asd already added */
+>  	if (find_async_subdev(imxmd, fwnode, devname)) {
+> -		dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+> -			__func__, np ? np->name : devname);
+> +		if (np)
+> +			dev_dbg(imxmd->md.dev, "%s: already added %pOFn\n",
+> +			__func__, np);
+> +		else
+> +			dev_dbg(imxmd->md.dev, "%s: already added %s\n",
+> +			__func__, devname);
+>  		ret = -EEXIST;
+>  		goto out;
+>  	}
+> @@ -105,19 +109,20 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+>  	if (fwnode) {
+>  		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  		asd->match.fwnode = fwnode;
+> +		dev_dbg(imxmd->md.dev, "%s: added %pOFn, match type FWNODE\n",
+> +			__func__, np);
+>  	} else {
+>  		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+>  		asd->match.device_name = devname;
+>  		imxasd->pdev = pdev;
+> +		dev_dbg(imxmd->md.dev, "%s: added %s, match type DEVNAME\n",
+> +			__func__, devname);
+>  	}
+> 
+>  	list_add_tail(&imxasd->list, &imxmd->asd_list);
+> 
+>  	imxmd->subdev_notifier.num_subdevs++;
+> 
+> -	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+> -		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+> -
+>  out:
+>  	mutex_unlock(&imxmd->mutex);
+>  	return ret;
+> diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+> index acde372c6795..163437e421c5 100644
+> --- a/drivers/staging/media/imx/imx-media-of.c
+> +++ b/drivers/staging/media/imx/imx-media-of.c
+> @@ -79,8 +79,8 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+>  	int i, num_ports, ret;
+> 
+>  	if (!of_device_is_available(sd_np)) {
+> -		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
+> -			sd_np->name);
+> +		dev_dbg(imxmd->md.dev, "%s: %pOFn not enabled\n", __func__,
+> +			sd_np);
+>  		/* unavailable is not an error */
+>  		return 0;
+>  	}
+> diff --git a/drivers/staging/mt7621-eth/mdio.c b/drivers/staging/mt7621-eth/mdio.c
+> index 7ad0c4141205..9ffa8f771235 100644
+> --- a/drivers/staging/mt7621-eth/mdio.c
+> +++ b/drivers/staging/mt7621-eth/mdio.c
+> @@ -70,7 +70,7 @@ int mtk_connect_phy_node(struct mtk_eth *eth, struct mtk_mac *mac,
+>  	_port = of_get_property(phy_node, "reg", NULL);
+> 
+>  	if (!_port || (be32_to_cpu(*_port) >= 0x20)) {
+> -		pr_err("%s: invalid port id\n", phy_node->name);
+> +		pr_err("%pOFn: invalid port id\n", phy_node);
+>  		return -EINVAL;
+>  	}
+>  	port = be32_to_cpu(*_port);
+> @@ -249,7 +249,7 @@ int mtk_mdio_init(struct mtk_eth *eth)
+>  	eth->mii_bus->priv = eth;
+>  	eth->mii_bus->parent = eth->dev;
+> 
+> -	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
+> +	snprintf(eth->mii_bus->id, MII_BUS_ID_SIZE, "%pOFn", mii_np);
+>  	err = of_mdiobus_register(eth->mii_bus, mii_np);
+>  	if (err)
+>  		goto err_free_bus;
+> --
+> 2.17.1
 
 
 
