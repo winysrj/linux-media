@@ -1,117 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40966 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40956 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728237AbeIMCgK (ORCPT
+        by vger.kernel.org with ESMTP id S1728229AbeIMCgL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 22:36:10 -0400
+        Wed, 12 Sep 2018 22:36:11 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
 Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
         niklas.soderlund@ragnatech.se, jacopo@jmondi.org,
         p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
-Subject: [PATCH v3 09/23] v4l: fwnode: Make use of newly specified bus types
-Date: Thu, 13 Sep 2018 00:29:28 +0300
-Message-Id: <20180912212942.19641-10-sakari.ailus@linux.intel.com>
+Subject: [PATCH v3 17/23] v4l: fwnode: Only zero the struct if bus type is set to V4L2_MBUS_UNKNOWN
+Date: Thu, 13 Sep 2018 00:29:36 +0300
+Message-Id: <20180912212942.19641-18-sakari.ailus@linux.intel.com>
 In-Reply-To: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
 References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for parsing CSI-2 D-PHY, parallel or Bt.656 bus explicitly.
+In order to prepare for allowing drivers to set the defaults for a given
+bus, make zeroing the struct conditional based on detecting the bus.
+All callers now set the bus type to zero which allows only zeroing the
+remaining bus union.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/v4l2-core/v4l2-fwnode.c | 53 ++++++++++++++++++++++++++++-------
- 1 file changed, 43 insertions(+), 10 deletions(-)
+ drivers/media/v4l2-core/v4l2-fwnode.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index aa3d28c4a50b..74c2f4e03e52 100644
+index de4a43765ac2..8244a7b8414e 100644
 --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -123,8 +123,16 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 	return 0;
- }
+@@ -325,6 +325,12 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 	u32 bus_type = 0;
+ 	int rval;
  
-+#define PARALLEL_MBUS_FLAGS (V4L2_MBUS_HSYNC_ACTIVE_HIGH |	\
-+			     V4L2_MBUS_HSYNC_ACTIVE_LOW |	\
-+			     V4L2_MBUS_VSYNC_ACTIVE_HIGH |	\
-+			     V4L2_MBUS_VSYNC_ACTIVE_LOW |	\
-+			     V4L2_MBUS_FIELD_EVEN_HIGH |	\
-+			     V4L2_MBUS_FIELD_EVEN_LOW)
-+
- static void v4l2_fwnode_endpoint_parse_parallel_bus(
--	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep)
-+	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep,
-+	enum v4l2_fwnode_bus_type bus_type)
- {
- 	struct v4l2_fwnode_bus_parallel *bus = &vep->bus.parallel;
- 	unsigned int flags = 0;
-@@ -189,16 +197,28 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 		pr_debug("data-enable-active %s\n", v ? "high" : "low");
- 	}
- 
--	bus->flags = flags;
--	if (flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
--		     V4L2_MBUS_HSYNC_ACTIVE_LOW |
--		     V4L2_MBUS_VSYNC_ACTIVE_HIGH |
--		     V4L2_MBUS_VSYNC_ACTIVE_LOW |
--		     V4L2_MBUS_FIELD_EVEN_HIGH |
--		     V4L2_MBUS_FIELD_EVEN_LOW))
-+	switch (bus_type) {
-+	default:
-+		bus->flags = flags;
-+		if (flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+			     V4L2_MBUS_HSYNC_ACTIVE_LOW |
-+			     V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+			     V4L2_MBUS_VSYNC_ACTIVE_LOW |
-+			     V4L2_MBUS_FIELD_EVEN_HIGH |
-+			     V4L2_MBUS_FIELD_EVEN_LOW))
-+			vep->bus_type = V4L2_MBUS_PARALLEL;
-+		else
-+			vep->bus_type = V4L2_MBUS_BT656;
-+		break;
-+	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
- 		vep->bus_type = V4L2_MBUS_PARALLEL;
--	else
-+		bus->flags = flags;
-+		break;
-+	case V4L2_FWNODE_BUS_TYPE_BT656:
- 		vep->bus_type = V4L2_MBUS_BT656;
-+		bus->flags = flags & ~PARALLEL_MBUS_FLAGS;
-+		break;
++	if (vep->bus_type == V4L2_MBUS_UNKNOWN) {
++		/* Zero fields from bus union to until the end */
++		memset(&vep->bus, 0,
++		       sizeof(*vep) - offsetof(typeof(*vep), bus));
 +	}
- }
- 
- static void
-@@ -258,7 +278,8 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 			return rval;
- 
- 		if (vep->bus_type == V4L2_MBUS_UNKNOWN)
--			v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep);
-+			v4l2_fwnode_endpoint_parse_parallel_bus(
-+				fwnode, vep, V4L2_MBUS_UNKNOWN);
- 
- 		break;
- 	case V4L2_FWNODE_BUS_TYPE_CCP2:
-@@ -266,6 +287,18 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, bus_type);
- 
- 		break;
-+	case V4L2_FWNODE_BUS_TYPE_CSI2_DPHY:
-+		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
-+		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep);
-+		if (rval)
-+			return rval;
 +
-+		break;
-+	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
-+	case V4L2_FWNODE_BUS_TYPE_BT656:
-+		v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep, bus_type);
-+
-+		break;
- 	default:
- 		pr_warn("unsupported bus type %u\n", bus_type);
- 		return -EINVAL;
+ 	pr_debug("===== begin V4L2 endpoint properties\n");
+ 
+ 	/*
+@@ -333,10 +339,6 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+ 	 */
+ 	memset(&vep->base, 0, sizeof(vep->base));
+ 
+-	/* Zero fields from bus_type to until the end */
+-	memset(&vep->bus_type, 0, sizeof(*vep) -
+-	       offsetof(typeof(*vep), bus_type));
+-
+ 	fwnode_property_read_u32(fwnode, "bus-type", &bus_type);
+ 
+ 	switch (bus_type) {
 -- 
 2.11.0
