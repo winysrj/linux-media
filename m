@@ -1,127 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:34322 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726775AbeIKUkU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Sep 2018 16:40:20 -0400
-Subject: Re: [PATCH v2 13/13] udmabuf: add documentation
-To: Gerd Hoffmann <kraxel@redhat.com>, dri-devel@lists.freedesktop.org
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:46504 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726879AbeILLgW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Sep 2018 07:36:22 -0400
+From: Gerd Hoffmann <kraxel@redhat.com>
+To: dri-devel@lists.freedesktop.org
 Cc: laurent.pinchart@ideasonboard.com, daniel@ffwll.ch,
+        Gerd Hoffmann <kraxel@redhat.com>,
         Sumit Semwal <sumit.semwal@linaro.org>,
         Jonathan Corbet <corbet@lwn.net>,
-        "open list:DMA BUFFER SHARING FRAMEWORK"
-        <linux-media@vger.kernel.org>,
-        "moderated list:DMA BUFFER SHARING FRAMEWORK"
-        <linaro-mm-sig@lists.linaro.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-References: <20180911134216.9760-1-kraxel@redhat.com>
- <20180911134216.9760-14-kraxel@redhat.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <ae4524da-abdb-e5b5-7658-3a0e9a6a071e@infradead.org>
-Date: Tue, 11 Sep 2018 08:40:26 -0700
-MIME-Version: 1.0
-In-Reply-To: <20180911134216.9760-14-kraxel@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
+        linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
+        FRAMEWORK), linux-doc@vger.kernel.org (open list:DOCUMENTATION),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v3 1/3] udmabuf: add documentation
+Date: Wed, 12 Sep 2018 08:33:14 +0200
+Message-Id: <20180912063316.21047-2-kraxel@redhat.com>
+In-Reply-To: <20180912063316.21047-1-kraxel@redhat.com>
+References: <20180912063316.21047-1-kraxel@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/11/18 6:42 AM, Gerd Hoffmann wrote:
-> Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-> ---
->  include/uapi/linux/udmabuf.h         | 50 +++++++++++++++++++++++++++++++++---
->  Documentation/driver-api/dma-buf.rst |  8 ++++++
->  2 files changed, 55 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/uapi/linux/udmabuf.h b/include/uapi/linux/udmabuf.h
-> index 46b6532ed8..f30b37cb5c 100644
-> --- a/include/uapi/linux/udmabuf.h
-> +++ b/include/uapi/linux/udmabuf.h
-> @@ -5,8 +5,38 @@
->  #include <linux/types.h>
->  #include <linux/ioctl.h>
->  
-> +/**
-> + * DOC: udmabuf
-> + *
-> + * udmabuf is a device driver which allows userspace create dmabufs.
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+---
+ include/uapi/linux/udmabuf.h         | 51 +++++++++++++++++++++++++++++++++---
+ Documentation/driver-api/dma-buf.rst |  8 ++++++
+ 2 files changed, 56 insertions(+), 3 deletions(-)
 
-                                                        to create
-
-> + * The memory used for these dmabufs must be backed by memfd.  The
-> + * memfd must have F_SEAL_SHRINK and it must not have F_SEAL_WRITE.
-> + *
-> + * The driver has two ioctls, one to create a dmabuf from a single
-> + * memory block and one to create a dmabuf from a list of memory
-> + * blocks.
-> + *
-> + * UDMABUF_CREATE - _IOW('u', 0x42, udmabuf_create)
-> + *
-> + * UDMABUF_CREATE_LIST - _IOW('u', 0x43, udmabuf_create_list)
-> + */
-> +
-> +#define UDMABUF_CREATE       _IOW('u', 0x42, struct udmabuf_create)
-> +#define UDMABUF_CREATE_LIST  _IOW('u', 0x43, struct udmabuf_create_list)
-> +
->  #define UDMABUF_FLAGS_CLOEXEC	0x01
->  
-> +/**
-> + * struct udmabuf_create - create a dmabuf from a single memory block.
-> + *
-> + * @memfd: The file handle.
-> + * @offset: Start of the buffer (from memfd start).
-> + * Must be page aligned.
-> + * @size: Size of the buffer.  Must be rounded to page size.
-
-      @flags: ???
-
-> + *
-> + * flags:
-> + * UDMABUF_FLAGS_CLOEXEC: set CLOEXEC flag for the dmabuf.
-> + */
->  struct udmabuf_create {
->  	__u32 memfd;
->  	__u32 flags;
-> @@ -14,6 +44,14 @@ struct udmabuf_create {
->  	__u64 size;
->  };
->  
-> +/**
-> + * struct udmabuf_create_item - one memory block list item.
-> + *
-> + * @memfd: The file handle.
-> + * @offset: Start of the buffer (from memfd start).
-> + * Must be page aligned.
-> + * @size: Size of the buffer.  Must be rounded to page size.
-> + */
->  struct udmabuf_create_item {
->  	__u32 memfd;
->  	__u32 __pad;
-> @@ -21,13 +59,19 @@ struct udmabuf_create_item {
->  	__u64 size;
->  };
->  
-> +/**
-> + * struct udmabuf_create_list - create a dmabuf from a memory block list.
-> + *
-> + * @count: The number of list elements.
-> + * @list: The memory block list
-> + *
-> + * flags:
-
-      @flags:
-
-> + * UDMABUF_FLAGS_CLOEXEC: set CLOEXEC flag for the dmabuf.
-> + */
->  struct udmabuf_create_list {
->  	__u32 flags;
->  	__u32 count;
->  	struct udmabuf_create_item list[];
->  };
-
-
-thanks.
+diff --git a/include/uapi/linux/udmabuf.h b/include/uapi/linux/udmabuf.h
+index 46b6532ed8..281e2c52f1 100644
+--- a/include/uapi/linux/udmabuf.h
++++ b/include/uapi/linux/udmabuf.h
+@@ -5,8 +5,39 @@
+ #include <linux/types.h>
+ #include <linux/ioctl.h>
+ 
++/**
++ * DOC: udmabuf
++ *
++ * udmabuf is a device driver which allows userspace to create
++ * dmabufs.  The memory used for these dmabufs must be backed by
++ * memfd.  The memfd must have F_SEAL_SHRINK and it must not have
++ * F_SEAL_WRITE.
++ *
++ * The driver has two ioctls, one to create a dmabuf from a single
++ * memory block and one to create a dmabuf from a list of memory
++ * blocks.
++ *
++ * UDMABUF_CREATE - _IOW('u', 0x42, udmabuf_create)
++ *
++ * UDMABUF_CREATE_LIST - _IOW('u', 0x43, udmabuf_create_list)
++ */
++
++#define UDMABUF_CREATE       _IOW('u', 0x42, struct udmabuf_create)
++#define UDMABUF_CREATE_LIST  _IOW('u', 0x43, struct udmabuf_create_list)
++
+ #define UDMABUF_FLAGS_CLOEXEC	0x01
+ 
++/**
++ * struct udmabuf_create - create a dmabuf from a single memory block.
++ *
++ * @memfd: The file handle.
++ * @offset: Start of the buffer (from memfd start).
++ * Must be page aligned.
++ * @size: Size of the buffer.  Must be rounded to page size.
++ *
++ * @flags:
++ * UDMABUF_FLAGS_CLOEXEC: set CLOEXEC flag for the dmabuf.
++ */
+ struct udmabuf_create {
+ 	__u32 memfd;
+ 	__u32 flags;
+@@ -14,6 +45,14 @@ struct udmabuf_create {
+ 	__u64 size;
+ };
+ 
++/**
++ * struct udmabuf_create_item - one memory block list item.
++ *
++ * @memfd: The file handle.
++ * @offset: Start of the buffer (from memfd start).
++ * Must be page aligned.
++ * @size: Size of the buffer.  Must be rounded to page size.
++ */
+ struct udmabuf_create_item {
+ 	__u32 memfd;
+ 	__u32 __pad;
+@@ -21,13 +60,19 @@ struct udmabuf_create_item {
+ 	__u64 size;
+ };
+ 
++/**
++ * struct udmabuf_create_list - create a dmabuf from a memory block list.
++ *
++ * @count: The number of list elements.
++ * @list: The memory block list
++ *
++ * flags:
++ * UDMABUF_FLAGS_CLOEXEC: set CLOEXEC flag for the dmabuf.
++ */
+ struct udmabuf_create_list {
+ 	__u32 flags;
+ 	__u32 count;
+ 	struct udmabuf_create_item list[];
+ };
+ 
+-#define UDMABUF_CREATE       _IOW('u', 0x42, struct udmabuf_create)
+-#define UDMABUF_CREATE_LIST  _IOW('u', 0x43, struct udmabuf_create_list)
+-
+ #endif /* _UAPI_LINUX_UDMABUF_H */
+diff --git a/Documentation/driver-api/dma-buf.rst b/Documentation/driver-api/dma-buf.rst
+index b541e97c7a..1f62c30a14 100644
+--- a/Documentation/driver-api/dma-buf.rst
++++ b/Documentation/driver-api/dma-buf.rst
+@@ -166,3 +166,11 @@ DMA Fence uABI/Sync File
+ .. kernel-doc:: include/linux/sync_file.h
+    :internal:
+ 
++Userspace DMA Buffer driver
++~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++.. kernel-doc:: include/uapi/linux/udmabuf.h
++   :doc: udmabuf
++
++.. kernel-doc:: include/uapi/linux/udmabuf.h
++   :internal:
 -- 
-~Randy
+2.9.3
