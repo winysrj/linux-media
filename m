@@ -1,115 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42554 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727051AbeIMQ4p (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42548 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727006AbeIMQ4p (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Thu, 13 Sep 2018 12:56:45 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: dri-devel@lists.freedesktop.org, Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 2/5] media colorspaces*.rst: rename AdobeRGB to opRGB
-Date: Thu, 13 Sep 2018 13:47:28 +0200
-Message-Id: <20180913114731.16500-3-hverkuil@xs4all.nl>
+Subject: [PATCH 3/5] hdmi.h: rename ADOBE_RGB to OPRGB and ADOBE_YCC to OPYCC
+Date: Thu, 13 Sep 2018 13:47:29 +0200
+Message-Id: <20180913114731.16500-4-hverkuil@xs4all.nl>
 In-Reply-To: <20180913114731.16500-1-hverkuil@xs4all.nl>
 References: <20180913114731.16500-1-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hansverk@cisco.com>
 
-Drop all Adobe references and use the official opRGB standard
-instead.
+These names have been renamed in the CTA-861 standard due to trademark
+issues. Replace them here as well so they are in sync with the standard.
 
 Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- Documentation/media/uapi/v4l/biblio.rst             | 10 ----------
- Documentation/media/uapi/v4l/colorspaces-defs.rst   |  8 ++++----
- .../media/uapi/v4l/colorspaces-details.rst          | 13 ++++++-------
- 3 files changed, 10 insertions(+), 21 deletions(-)
+ drivers/media/i2c/adv7511.c               | 4 ++--
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 4 ++--
+ drivers/video/hdmi.c                      | 8 ++++----
+ include/linux/hdmi.h                      | 4 ++--
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/biblio.rst b/Documentation/media/uapi/v4l/biblio.rst
-index 1cedcfc04327..386d6cf83e9c 100644
---- a/Documentation/media/uapi/v4l/biblio.rst
-+++ b/Documentation/media/uapi/v4l/biblio.rst
-@@ -226,16 +226,6 @@ xvYCC
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index a1f73d998495..f3899cc84e27 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -1357,8 +1357,8 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
+ 	switch (format->format.colorspace) {
+ 	case V4L2_COLORSPACE_OPRGB:
+ 		c = HDMI_COLORIMETRY_EXTENDED;
+-		ec = y ? HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601 :
+-			 HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB;
++		ec = y ? HDMI_EXTENDED_COLORIMETRY_OPYCC_601 :
++			 HDMI_EXTENDED_COLORIMETRY_OPRGB;
+ 		break;
+ 	case V4L2_COLORSPACE_SMPTE170M:
+ 		c = y ? HDMI_COLORIMETRY_ITU_601 : HDMI_COLORIMETRY_NONE;
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index facd180870d9..4e4bfb33adbe 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -876,7 +876,7 @@ v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
+ 		switch (avi->colorimetry) {
+ 		case HDMI_COLORIMETRY_EXTENDED:
+ 			switch (avi->extended_colorimetry) {
+-			case HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB:
++			case HDMI_EXTENDED_COLORIMETRY_OPRGB:
+ 				c.colorspace = V4L2_COLORSPACE_OPRGB;
+ 				c.xfer_func = V4L2_XFER_FUNC_OPRGB;
+ 				break;
+@@ -947,7 +947,7 @@ v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
+ 				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
+ 				c.xfer_func = V4L2_XFER_FUNC_SRGB;
+ 				break;
+-			case HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601:
++			case HDMI_EXTENDED_COLORIMETRY_OPYCC_601:
+ 				c.colorspace = V4L2_COLORSPACE_OPRGB;
+ 				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
+ 				c.xfer_func = V4L2_XFER_FUNC_OPRGB;
+diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
+index 38716eb50408..8a3e8f61b991 100644
+--- a/drivers/video/hdmi.c
++++ b/drivers/video/hdmi.c
+@@ -592,10 +592,10 @@ hdmi_extended_colorimetry_get_name(enum hdmi_extended_colorimetry ext_col)
+ 		return "xvYCC 709";
+ 	case HDMI_EXTENDED_COLORIMETRY_S_YCC_601:
+ 		return "sYCC 601";
+-	case HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601:
+-		return "Adobe YCC 601";
+-	case HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB:
+-		return "Adobe RGB";
++	case HDMI_EXTENDED_COLORIMETRY_OPYCC_601:
++		return "opYCC 601";
++	case HDMI_EXTENDED_COLORIMETRY_OPRGB:
++		return "opRGB";
+ 	case HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM:
+ 		return "BT.2020 Constant Luminance";
+ 	case HDMI_EXTENDED_COLORIMETRY_BT2020:
+diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+index d271ff23984f..4f3febc0f971 100644
+--- a/include/linux/hdmi.h
++++ b/include/linux/hdmi.h
+@@ -101,8 +101,8 @@ enum hdmi_extended_colorimetry {
+ 	HDMI_EXTENDED_COLORIMETRY_XV_YCC_601,
+ 	HDMI_EXTENDED_COLORIMETRY_XV_YCC_709,
+ 	HDMI_EXTENDED_COLORIMETRY_S_YCC_601,
+-	HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601,
+-	HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB,
++	HDMI_EXTENDED_COLORIMETRY_OPYCC_601,
++	HDMI_EXTENDED_COLORIMETRY_OPRGB,
  
- :author:    International Electrotechnical Commission (http://www.iec.ch)
- 
--.. _adobergb:
--
--AdobeRGB
--========
--
--
--:title:     Adobe© RGB (1998) Color Image Encoding Version 2005-05
--
--:author:    Adobe Systems Incorporated (http://www.adobe.com)
--
- .. _oprgb:
- 
- opRGB
-diff --git a/Documentation/media/uapi/v4l/colorspaces-defs.rst b/Documentation/media/uapi/v4l/colorspaces-defs.rst
-index 410907fe9415..f24615544792 100644
---- a/Documentation/media/uapi/v4l/colorspaces-defs.rst
-+++ b/Documentation/media/uapi/v4l/colorspaces-defs.rst
-@@ -51,8 +51,8 @@ whole range, 0-255, dividing the angular value by 1.41. The enum
-       - See :ref:`col-rec709`.
-     * - ``V4L2_COLORSPACE_SRGB``
-       - See :ref:`col-srgb`.
--    * - ``V4L2_COLORSPACE_ADOBERGB``
--      - See :ref:`col-adobergb`.
-+    * - ``V4L2_COLORSPACE_OPRGB``
-+      - See :ref:`col-oprgb`.
-     * - ``V4L2_COLORSPACE_BT2020``
-       - See :ref:`col-bt2020`.
-     * - ``V4L2_COLORSPACE_DCI_P3``
-@@ -90,8 +90,8 @@ whole range, 0-255, dividing the angular value by 1.41. The enum
-       - Use the Rec. 709 transfer function.
-     * - ``V4L2_XFER_FUNC_SRGB``
-       - Use the sRGB transfer function.
--    * - ``V4L2_XFER_FUNC_ADOBERGB``
--      - Use the AdobeRGB transfer function.
-+    * - ``V4L2_XFER_FUNC_OPRGB``
-+      - Use the opRGB transfer function.
-     * - ``V4L2_XFER_FUNC_SMPTE240M``
-       - Use the SMPTE 240M transfer function.
-     * - ``V4L2_XFER_FUNC_NONE``
-diff --git a/Documentation/media/uapi/v4l/colorspaces-details.rst b/Documentation/media/uapi/v4l/colorspaces-details.rst
-index b5d551b9cc8f..09fabf4cd412 100644
---- a/Documentation/media/uapi/v4l/colorspaces-details.rst
-+++ b/Documentation/media/uapi/v4l/colorspaces-details.rst
-@@ -290,15 +290,14 @@ Y' is clamped to the range [0…1] and Cb and Cr are clamped to the range
- 170M/BT.601. The Y'CbCr quantization is limited range.
- 
- 
--.. _col-adobergb:
-+.. _col-oprgb:
- 
--Colorspace Adobe RGB (V4L2_COLORSPACE_ADOBERGB)
-+Colorspace opRGB (V4L2_COLORSPACE_OPRGB)
- ===============================================
- 
--The :ref:`adobergb` standard defines the colorspace used by computer
--graphics that use the AdobeRGB colorspace. This is also known as the
--:ref:`oprgb` standard. The default transfer function is
--``V4L2_XFER_FUNC_ADOBERGB``. The default Y'CbCr encoding is
-+The :ref:`oprgb` standard defines the colorspace used by computer
-+graphics that use the opRGB colorspace. The default transfer function is
-+``V4L2_XFER_FUNC_OPRGB``. The default Y'CbCr encoding is
- ``V4L2_YCBCR_ENC_601``. The default Y'CbCr quantization is limited
- range.
- 
-@@ -312,7 +311,7 @@ The chromaticities of the primary colors and the white reference are:
- 
- .. tabularcolumns:: |p{4.4cm}|p{4.4cm}|p{8.7cm}|
- 
--.. flat-table:: Adobe RGB Chromaticities
-+.. flat-table:: opRGB Chromaticities
-     :header-rows:  1
-     :stub-columns: 0
-     :widths:       1 1 2
+ 	/* The following EC values are only defined in CEA-861-F. */
+ 	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM,
 -- 
 2.18.0
