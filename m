@@ -1,473 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:34623 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726495AbeIMOzG (ORCPT
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:46739 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726736AbeIMPDj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 10:55:06 -0400
-Date: Thu, 13 Sep 2018 11:46:14 +0200
+        Thu, 13 Sep 2018 11:03:39 -0400
+Date: Thu, 13 Sep 2018 11:54:50 +0200
 From: jacopo mondi <jacopo@jmondi.org>
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         slongerbeam@gmail.com, niklas.soderlund@ragnatech.se,
         p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v3 16/23] v4l: fwnode: Initialise the V4L2 fwnode
- endpoints to zero
-Message-ID: <20180913094614.GS20333@w540>
+Subject: Re: [PATCH v3 00/23] V4L2 fwnode rework; support for default
+ configuration
+Message-ID: <20180913095450.GA28160@w540>
 References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
- <20180912212942.19641-17-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="TVVcQco/7vcH19KK"
+        protocol="application/pgp-signature"; boundary="OThxTnIjTxi+/jRk"
 Content-Disposition: inline
-In-Reply-To: <20180912212942.19641-17-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---TVVcQco/7vcH19KK
+--OThxTnIjTxi+/jRk
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
 Hi Sakari,
 
-On Thu, Sep 13, 2018 at 12:29:35AM +0300, Sakari Ailus wrote:
-> Initialise the V4L2 fwnode endpoints to zero in all drivers using
-> v4l2_fwnode_endpoint_parse(). This prepares for setting default endpoint
-> flags as well as the bus type. Setting bus type to zero will continue to
-> guess the bus among the guessable set (parallel, Bt.656 and CSI-2 D-PHY).
+On Thu, Sep 13, 2018 at 12:29:19AM +0300, Sakari Ailus wrote:
+> Hello everyone,
 >
+> I've long thought the V4L2 fwnode framework requires some work (it's buggy
+> and it does not adequately serve common needs). This set should address in
+> particular these matters:
+>
+> - Most devices support a particular media bus type but the V4L2 fwnode
+>   framework was not able to use such information, but instead tried to
+>   guess the bus type with varying levels of success while drivers
+>   generally ignored the results. This patchset makes that possible ---
+>   setting a bus type enables parsing configuration for only that bus.
+>   Failing that check results in returning -ENXIO to be returned.
+>
+> - Support specifying default configuration. If the endpoint has no
+>   configuration, the defaults set by the driver (as documented in DT
+>   bindings) will prevail. Any available configuration will still be read
+>   from the endpoint as one could expect. A common use case for this is
+>   e.g. the number of CSI-2 lanes. Few devices support lane mapping, and
+>   default 1:1 mapping is provided in absence of a valid default or
+>   configuration read OF.
+>
+> - Debugging information is greatly improved.
+>
+> - Recognition of the differences between CSI-2 D-PHY and C-PHY. All
+>   currently supported hardware (or at least drivers) is D-PHY only, so
+>   this change is still easy.
+>
+> The smiapp driver is converted to use the new functionality. This patchset
+> does not address remaining issues such as supporting setting defaults for
+> e.g. bridge drivers with multiple ports, but with Steve Longerbeam's
+> patchset we're much closer to that goal. I've rebased this set on top of
+> Steve's. Albeit the two deal with the same files, there were only a few
+> trivial conflicts.
+>
+> Note that I've only tested parsing endpoints for the CSI-2 bus (no
+> parallel IF hardware). Jacopo has tested an earlier version of the set
+> with a few changes to the parallel bus handling compared to this one.
 
-I've played around with this patch, trying to use defaults in the
-renesas-ceu driver.
+I've tested on parallel bus with CEU and MT9V111.
 
-This is the resulting patch, if you want I can send it as follow-up or
-send it so that you can include it in your series if it's correct):
-https://paste.debian.net/hidden/a7795d3e/
+You can add my:
+Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+to this version too.
 
 Thanks
-  j
+   j
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  drivers/media/i2c/adv7604.c                   | 2 +-
->  drivers/media/i2c/mt9v032.c                   | 2 +-
->  drivers/media/i2c/ov5647.c                    | 2 +-
->  drivers/media/i2c/ov7670.c                    | 2 +-
->  drivers/media/i2c/s5c73m3/s5c73m3-core.c      | 2 +-
->  drivers/media/i2c/s5k5baf.c                   | 2 +-
->  drivers/media/i2c/tda1997x.c                  | 2 +-
->  drivers/media/i2c/tvp514x.c                   | 2 +-
->  drivers/media/i2c/tvp5150.c                   | 2 +-
->  drivers/media/i2c/tvp7002.c                   | 2 +-
->  drivers/media/platform/am437x/am437x-vpfe.c   | 2 +-
->  drivers/media/platform/atmel/atmel-isc.c      | 3 ++-
->  drivers/media/platform/atmel/atmel-isi.c      | 2 +-
->  drivers/media/platform/cadence/cdns-csi2rx.c  | 2 +-
->  drivers/media/platform/cadence/cdns-csi2tx.c  | 2 +-
->  drivers/media/platform/davinci/vpif_capture.c | 2 +-
->  drivers/media/platform/exynos4-is/media-dev.c | 2 +-
->  drivers/media/platform/exynos4-is/mipi-csis.c | 2 +-
->  drivers/media/platform/pxa_camera.c           | 2 +-
->  drivers/media/platform/rcar-vin/rcar-csi2.c   | 2 +-
->  drivers/media/platform/renesas-ceu.c          | 3 ++-
->  drivers/media/platform/stm32/stm32-dcmi.c     | 2 +-
->  drivers/staging/media/imx/imx-media-csi.c     | 8 ++++----
->  include/media/v4l2-fwnode.h                   | 2 ++
->  24 files changed, 30 insertions(+), 26 deletions(-)
 >
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 668be2bca57a..413578dc23a3 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -3093,7 +3093,7 @@ MODULE_DEVICE_TABLE(of, adv76xx_of_id);
+> Comments are welcome.
 >
->  static int adv76xx_parse_dt(struct adv76xx_state *state)
->  {
-> -	struct v4l2_fwnode_endpoint bus_cfg;
-> +	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  	struct device_node *endpoint;
->  	struct device_node *np;
->  	unsigned int flags;
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index f74730d24d8f..67f69ad6ecf4 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -989,7 +989,7 @@ static struct mt9v032_platform_data *
->  mt9v032_get_pdata(struct i2c_client *client)
->  {
->  	struct mt9v032_platform_data *pdata = NULL;
-> -	struct v4l2_fwnode_endpoint endpoint;
-> +	struct v4l2_fwnode_endpoint endpoint = { .bus_type = 0 };
->  	struct device_node *np;
->  	struct property *prop;
+> I've pushed the patches (including Steve's) here:
 >
-> diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
-> index da39c49de503..4589631798c9 100644
-> --- a/drivers/media/i2c/ov5647.c
-> +++ b/drivers/media/i2c/ov5647.c
-> @@ -532,7 +532,7 @@ static const struct v4l2_subdev_internal_ops ov5647_subdev_internal_ops = {
+> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=v4l2-fwnode-next>
 >
->  static int ov5647_parse_dt(struct device_node *np)
->  {
-> -	struct v4l2_fwnode_endpoint bus_cfg;
-> +	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  	struct device_node *ep;
+> since v1:
 >
->  	int ret;
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index 31bf577b0bd3..92f59ae1b624 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -1728,7 +1728,7 @@ static int ov7670_parse_dt(struct device *dev,
->  			   struct ov7670_info *info)
->  {
->  	struct fwnode_handle *fwnode = dev_fwnode(dev);
-> -	struct v4l2_fwnode_endpoint bus_cfg;
-> +	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  	struct fwnode_handle *ep;
->  	int ret;
+> - Rebase it all on current media tree master --- there was a conflict in
+>   drivers/media/platform/qcom/camss/camss.c in Steve's patch "media:
+>   platform: Switch to v4l2_async_notifier_add_subdev"; I hope the
+>   resolution was fine.
 >
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> index 479c9753e863..9bb28faad1b3 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> @@ -1603,7 +1603,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
->  	const struct s5c73m3_platform_data *pdata = dev->platform_data;
->  	struct device_node *node = dev->of_node;
->  	struct device_node *node_ep;
-> -	struct v4l2_fwnode_endpoint ep;
-> +	struct v4l2_fwnode_endpoint ep = { .bus_type = 0 };
->  	int ret;
+> - Default to Bt.656 bus in guessing the bus type if no properties
+>   suggesting otherwise are set. In v1 and error was returned, which would
+>   have been troublesome for the existing drivers.
 >
->  	if (!node) {
-> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-> index 4c41a770b132..727db7c0670a 100644
-> --- a/drivers/media/i2c/s5k5baf.c
-> +++ b/drivers/media/i2c/s5k5baf.c
-> @@ -1841,7 +1841,7 @@ static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device *dev)
->  {
->  	struct device_node *node = dev->of_node;
->  	struct device_node *node_ep;
-> -	struct v4l2_fwnode_endpoint ep;
-> +	struct v4l2_fwnode_endpoint ep = { .bus_type = 0 };
->  	int ret;
+> - Set the bus_type field to zero (i.e. guess) for existing callers of
+>   v4l2_fwnode_endpoint_(alloc_)parse.
 >
->  	if (!node) {
-> diff --git a/drivers/media/i2c/tda1997x.c b/drivers/media/i2c/tda1997x.c
-> index d114ac5243ec..c4c2a6134e1e 100644
-> --- a/drivers/media/i2c/tda1997x.c
-> +++ b/drivers/media/i2c/tda1997x.c
-> @@ -2265,7 +2265,7 @@ MODULE_DEVICE_TABLE(of, tda1997x_of_id);
->  static int tda1997x_parse_dt(struct tda1997x_state *state)
->  {
->  	struct tda1997x_platform_data *pdata = &state->pdata;
-> -	struct v4l2_fwnode_endpoint bus_cfg;
-> +	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  	struct device_node *ep;
->  	struct device_node *np;
->  	unsigned int flags;
-> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-> index 675b9ae212ab..1cc83cb934e2 100644
-> --- a/drivers/media/i2c/tvp514x.c
-> +++ b/drivers/media/i2c/tvp514x.c
-> @@ -989,7 +989,7 @@ static struct tvp514x_platform_data *
->  tvp514x_get_pdata(struct i2c_client *client)
->  {
->  	struct tvp514x_platform_data *pdata = NULL;
-> -	struct v4l2_fwnode_endpoint bus_cfg;
-> +	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  	struct device_node *endpoint;
->  	unsigned int flags;
+> - Improved documentation for v4l2_fwnode_endpoint_parse and
+>   v4l2_fwnode_endpoint_alloc_parse.
 >
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 76e6bed5a1da..a305c3022c9d 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -1362,7 +1362,7 @@ static int tvp5150_init(struct i2c_client *c)
+> since v2:
 >
->  static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
->  {
-> -	struct v4l2_fwnode_endpoint bus_cfg;
-> +	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  	struct device_node *ep;
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct device_node *connectors, *child;
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index 4f5c627579c7..cab2f2bd0aa9 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -889,7 +889,7 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
->  static struct tvp7002_config *
->  tvp7002_get_pdata(struct i2c_client *client)
->  {
-> -	struct v4l2_fwnode_endpoint bus_cfg;
-> +	struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  	struct tvp7002_config *pdata = NULL;
->  	struct device_node *endpoint;
->  	unsigned int flags;
-> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-> index 0b1a03b64b19..e13d2b3a7168 100644
-> --- a/drivers/media/platform/am437x/am437x-vpfe.c
-> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
-> @@ -2426,7 +2426,6 @@ static struct vpfe_config *
->  vpfe_get_pdata(struct vpfe_device *vpfe)
->  {
->  	struct device_node *endpoint = NULL;
-> -	struct v4l2_fwnode_endpoint bus_cfg;
->  	struct device *dev = vpfe->pdev;
->  	struct vpfe_subdev_info *sdinfo;
->  	struct vpfe_config *pdata;
-> @@ -2446,6 +2445,7 @@ vpfe_get_pdata(struct vpfe_device *vpfe)
->  		return NULL;
+> - Rename V4L2_MBUS_CSI2 to V4L2_MBUS_CSI2_DPHY also in
+>   drivers/gpu/ipu-v3/ipu-csi.c.
 >
->  	for (i = 0; ; i++) {
-> +		struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  		struct device_node *rem;
+> - Use 0 instead of V4L2_MBUS_UNKNOWN in
+>   v4l2_async_notifier_fwnode_parse_endpoint(). This is partially due to
+>   V4L2_MBUS_UNKNOWN being introduced after the change is done.
 >
->  		endpoint = of_graph_get_next_endpoint(dev->of_node, endpoint);
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> index 334de0f2e36a..50178968b8a6 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -2028,7 +2028,6 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
->  {
->  	struct device_node *np = dev->of_node;
->  	struct device_node *epn = NULL, *rem;
-> -	struct v4l2_fwnode_endpoint v4l2_epn;
->  	struct isc_subdev_entity *subdev_entity;
->  	unsigned int flags;
->  	int ret;
-> @@ -2036,6 +2035,8 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
->  	INIT_LIST_HEAD(&isc->subdev_entities);
+> - Initialise bus_type to zero in quite a few V4L2 fwnode endpoints in
+>   drivers/staging/media/imx/imx-media-csi.c (thanks to Steve for the
+>   changes).
 >
->  	while (1) {
-> +		struct v4l2_fwnode_endpoint v4l2_epn = { .bus_type = 0 };
-> +
->  		epn = of_graph_get_next_endpoint(np, epn);
->  		if (!epn)
->  			return 0;
-> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
-> index c4d5f05786e8..fdb255e4a956 100644
-> --- a/drivers/media/platform/atmel/atmel-isi.c
-> +++ b/drivers/media/platform/atmel/atmel-isi.c
-> @@ -790,7 +790,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
->  			struct platform_device *pdev)
->  {
->  	struct device_node *np = pdev->dev.of_node;
-> -	struct v4l2_fwnode_endpoint ep;
-> +	struct v4l2_fwnode_endpoint ep = { .bus_type = 0 };
->  	int err;
+> Sakari Ailus (23):
+>   v4l: fwnode: Add debug prints for V4L2 endpoint property parsing
+>   v4l: fwnode: Use fwnode_graph_for_each_endpoint
+>   v4l: fwnode: The CSI-2 clock is continuous if it's not non-continuous
+>   dt-bindings: media: Specify bus type for MIPI D-PHY, others,
+>     explicitly
+>   v4l: fwnode: Add definitions for CSI-2 D-PHY, parallel and Bt.656
+>     busses
+>   v4l: mediabus: Recognise CSI-2 D-PHY and C-PHY
+>   v4l: fwnode: Let the caller provide V4L2 fwnode endpoint
+>   v4l: fwnode: Detect bus type correctly
+>   v4l: fwnode: Make use of newly specified bus types
+>   v4l: fwnode: Read lane inversion information despite lane numbering
+>   v4l: fwnode: Only assign configuration if there is no error
+>   v4l: fwnode: Support driver-defined lane mapping defaults
+>   v4l: fwnode: Support default CSI-2 lane mapping for drivers
+>   v4l: fwnode: Parse the graph endpoint as last
+>   v4l: fwnode: Use default parallel flags
+>   v4l: fwnode: Initialise the V4L2 fwnode endpoints to zero
+>   v4l: fwnode: Only zero the struct if bus type is set to
+>     V4L2_MBUS_UNKNOWN
+>   v4l: fwnode: Use media bus type for bus parser selection
+>   v4l: fwnode: Print bus type
+>   v4l: fwnode: Use V4L2 fwnode endpoint media bus type if set
+>   v4l: fwnode: Support parsing of CSI-2 C-PHY endpoints
+>   v4l: fwnode: Update V4L2 fwnode endpoint parsing documentation
+>   smiapp: Query the V4L2 endpoint for a specific bus type
 >
->  	/* Default settings for ISI */
-> diff --git a/drivers/media/platform/cadence/cdns-csi2rx.c b/drivers/media/platform/cadence/cdns-csi2rx.c
-> index 0776a34f28ee..31ace114eda1 100644
-> --- a/drivers/media/platform/cadence/cdns-csi2rx.c
-> +++ b/drivers/media/platform/cadence/cdns-csi2rx.c
-> @@ -361,7 +361,7 @@ static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
+>  .../devicetree/bindings/media/video-interfaces.txt |   4 +-
+>  drivers/gpu/ipu-v3/ipu-csi.c                       |   6 +-
+>  drivers/media/i2c/adv7180.c                        |   2 +-
+>  drivers/media/i2c/adv7604.c                        |   2 +-
+>  drivers/media/i2c/mt9v032.c                        |   2 +-
+>  drivers/media/i2c/ov2659.c                         |  14 +-
+>  drivers/media/i2c/ov5640.c                         |   4 +-
+>  drivers/media/i2c/ov5645.c                         |   2 +-
+>  drivers/media/i2c/ov5647.c                         |   2 +-
+>  drivers/media/i2c/ov7251.c                         |   4 +-
+>  drivers/media/i2c/ov7670.c                         |   2 +-
+>  drivers/media/i2c/s5c73m3/s5c73m3-core.c           |   4 +-
+>  drivers/media/i2c/s5k5baf.c                        |   6 +-
+>  drivers/media/i2c/s5k6aa.c                         |   2 +-
+>  drivers/media/i2c/smiapp/smiapp-core.c             |  34 +-
+>  drivers/media/i2c/soc_camera/ov5642.c              |   2 +-
+>  drivers/media/i2c/tc358743.c                       |  28 +-
+>  drivers/media/i2c/tda1997x.c                       |   2 +-
+>  drivers/media/i2c/tvp514x.c                        |   2 +-
+>  drivers/media/i2c/tvp5150.c                        |   2 +-
+>  drivers/media/i2c/tvp7002.c                        |   2 +-
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c           |   2 +-
+>  drivers/media/platform/am437x/am437x-vpfe.c        |   2 +-
+>  drivers/media/platform/atmel/atmel-isc.c           |   3 +-
+>  drivers/media/platform/atmel/atmel-isi.c           |   2 +-
+>  drivers/media/platform/cadence/cdns-csi2rx.c       |   4 +-
+>  drivers/media/platform/cadence/cdns-csi2tx.c       |   4 +-
+>  drivers/media/platform/davinci/vpif_capture.c      |   2 +-
+>  drivers/media/platform/exynos4-is/media-dev.c      |   2 +-
+>  drivers/media/platform/exynos4-is/mipi-csis.c      |   2 +-
+>  drivers/media/platform/marvell-ccic/mcam-core.c    |   4 +-
+>  drivers/media/platform/marvell-ccic/mmp-driver.c   |   2 +-
+>  drivers/media/platform/omap3isp/isp.c              |   2 +-
+>  drivers/media/platform/pxa_camera.c                |   4 +-
+>  drivers/media/platform/rcar-vin/rcar-csi2.c        |   4 +-
+>  drivers/media/platform/renesas-ceu.c               |   3 +-
+>  drivers/media/platform/soc_camera/soc_mediabus.c   |   2 +-
+>  drivers/media/platform/stm32/stm32-dcmi.c          |   4 +-
+>  drivers/media/platform/ti-vpe/cal.c                |   2 +-
+>  drivers/media/v4l2-core/v4l2-fwnode.c              | 508 ++++++++++++++++-----
+>  drivers/staging/media/imx/imx-media-csi.c          |  10 +-
+>  drivers/staging/media/imx/imx6-mipi-csi2.c         |   2 +-
+>  drivers/staging/media/imx074/imx074.c              |   2 +-
+>  include/media/v4l2-fwnode.h                        |  60 ++-
+>  include/media/v4l2-mediabus.h                      |   8 +-
+>  45 files changed, 542 insertions(+), 226 deletions(-)
 >
->  static int csi2rx_parse_dt(struct csi2rx_priv *csi2rx)
->  {
-> -	struct v4l2_fwnode_endpoint v4l2_ep;
-> +	struct v4l2_fwnode_endpoint v4l2_ep = { .bus_type = 0 };
->  	struct fwnode_handle *fwh;
->  	struct device_node *ep;
->  	int ret;
-> diff --git a/drivers/media/platform/cadence/cdns-csi2tx.c b/drivers/media/platform/cadence/cdns-csi2tx.c
-> index 6224daf891d7..5042d053b94e 100644
-> --- a/drivers/media/platform/cadence/cdns-csi2tx.c
-> +++ b/drivers/media/platform/cadence/cdns-csi2tx.c
-> @@ -432,7 +432,7 @@ static int csi2tx_get_resources(struct csi2tx_priv *csi2tx,
->
->  static int csi2tx_check_lanes(struct csi2tx_priv *csi2tx)
->  {
-> -	struct v4l2_fwnode_endpoint v4l2_ep;
-> +	struct v4l2_fwnode_endpoint v4l2_ep = { .bus_type = 0 };
->  	struct device_node *ep;
->  	int ret;
->
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-> index 23e237a5ea1a..69fec88031fd 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -1511,7 +1511,6 @@ static struct vpif_capture_config *
->  vpif_capture_get_pdata(struct platform_device *pdev)
->  {
->  	struct device_node *endpoint = NULL;
-> -	struct v4l2_fwnode_endpoint bus_cfg;
->  	struct vpif_capture_config *pdata;
->  	struct vpif_subdev_info *sdinfo;
->  	struct vpif_capture_chan_config *chan;
-> @@ -1541,6 +1540,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
->  		return NULL;
->
->  	for (i = 0; i < VPIF_CAPTURE_NUM_CHANNELS; i++) {
-> +		struct v4l2_fwnode_endpoint bus_cfg = { .bus_type = 0 };
->  		struct device_node *rem;
->  		unsigned int flags;
->  		int err;
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index fbad0635c6b5..870501b0f351 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -390,7 +390,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  {
->  	struct fimc_source_info *pd = &fmd->sensor[index].pdata;
->  	struct device_node *rem, *ep, *np;
-> -	struct v4l2_fwnode_endpoint endpoint;
-> +	struct v4l2_fwnode_endpoint endpoint = { .bus_type = 0 };
->  	int ret;
->
->  	/* Assume here a port node can have only one endpoint node. */
-> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-> index b4e28a299e26..35cb0162085b 100644
-> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
-> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-> @@ -718,7 +718,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
->  			    struct csis_state *state)
->  {
->  	struct device_node *node = pdev->dev.of_node;
-> -	struct v4l2_fwnode_endpoint endpoint;
-> +	struct v4l2_fwnode_endpoint endpoint = { .bus_type = 0 };
->  	int ret;
->
->  	if (of_property_read_u32(node, "clock-frequency",
-> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-> index a47be1242cf4..d16ca667ec44 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -2298,7 +2298,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
->  {
->  	u32 mclk_rate;
->  	struct device_node *remote, *np = dev->of_node;
-> -	struct v4l2_fwnode_endpoint ep;
-> +	struct v4l2_fwnode_endpoint ep = { .bus_type = 0 };
->  	int err = of_property_read_u32(np, "clock-frequency",
->  				       &mclk_rate);
->  	if (!err) {
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> index 25edc2edd197..b0044a08e71e 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -743,7 +743,7 @@ static int rcsi2_parse_v4l2(struct rcar_csi2 *priv,
->  static int rcsi2_parse_dt(struct rcar_csi2 *priv)
->  {
->  	struct device_node *ep;
-> -	struct v4l2_fwnode_endpoint v4l2_ep;
-> +	struct v4l2_fwnode_endpoint v4l2_ep = { .bus_type = 0 };
->  	int ret;
->
->  	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
-> diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
-> index eee4ae7234be..035f1d3f10e5 100644
-> --- a/drivers/media/platform/renesas-ceu.c
-> +++ b/drivers/media/platform/renesas-ceu.c
-> @@ -1536,7 +1536,6 @@ static int ceu_parse_platform_data(struct ceu_device *ceudev,
->  static int ceu_parse_dt(struct ceu_device *ceudev)
->  {
->  	struct device_node *of = ceudev->dev->of_node;
-> -	struct v4l2_fwnode_endpoint fw_ep;
->  	struct device_node *ep, *remote;
->  	struct ceu_subdev *ceu_sd;
->  	unsigned int i;
-> @@ -1552,6 +1551,8 @@ static int ceu_parse_dt(struct ceu_device *ceudev)
->  		return ret;
->
->  	for (i = 0; i < num_ep; i++) {
-> +		struct v4l2_fwnode_endpoint fw_ep = { .bus_type = 0 };
-> +
->  		ep = of_graph_get_endpoint_by_regs(of, 0, i);
->  		if (!ep) {
->  			dev_err(ceudev->dev,
-> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-> index da296a2afc2e..07d154024183 100644
-> --- a/drivers/media/platform/stm32/stm32-dcmi.c
-> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
-> @@ -1621,7 +1621,7 @@ static int dcmi_probe(struct platform_device *pdev)
->  {
->  	struct device_node *np = pdev->dev.of_node;
->  	const struct of_device_id *match = NULL;
-> -	struct v4l2_fwnode_endpoint ep;
-> +	struct v4l2_fwnode_endpoint ep = { .bus_type = 0 };
->  	struct stm32_dcmi *dcmi;
->  	struct vb2_queue *q;
->  	struct dma_chan *chan;
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 539159d9af6b..ac9d718d7ff0 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -1050,7 +1050,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
->  			     struct v4l2_subdev_format *sink_fmt)
->  {
->  	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-> -	struct v4l2_fwnode_endpoint upstream_ep = {};
-> +	struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
->  	bool is_csi2;
->  	int ret;
->
-> @@ -1164,7 +1164,7 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
->  			      struct v4l2_subdev_mbus_code_enum *code)
->  {
->  	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-> -	struct v4l2_fwnode_endpoint upstream_ep;
-> +	struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
->  	const struct imx_media_pixfmt *incc;
->  	struct v4l2_mbus_framefmt *infmt;
->  	int ret = 0;
-> @@ -1403,7 +1403,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
->  {
->  	struct csi_priv *priv = v4l2_get_subdevdata(sd);
->  	struct imx_media_video_dev *vdev = priv->vdev;
-> -	struct v4l2_fwnode_endpoint upstream_ep;
-> +	struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
->  	const struct imx_media_pixfmt *cc;
->  	struct v4l2_pix_format vdev_fmt;
->  	struct v4l2_mbus_framefmt *fmt;
-> @@ -1542,7 +1542,7 @@ static int csi_set_selection(struct v4l2_subdev *sd,
->  			     struct v4l2_subdev_selection *sel)
->  {
->  	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-> -	struct v4l2_fwnode_endpoint upstream_ep;
-> +	struct v4l2_fwnode_endpoint upstream_ep = { .bus_type = 0 };
->  	struct v4l2_mbus_framefmt *infmt;
->  	struct v4l2_rect *crop, *compose;
->  	int pad, ret;
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index 4a371c3ad86c..1ea1a3ecf6d5 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -139,6 +139,8 @@ struct v4l2_fwnode_link {
->   * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
->   * reference to @fwnode.
->   *
-> + * The caller must set the bus_type field of @vep to zero.
-> + *
->   * NOTE: This function does not parse properties the size of which is variable
->   * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_parse() in
->   * new drivers instead.
 > --
 > 2.11.0
 >
 
---TVVcQco/7vcH19KK
+--OThxTnIjTxi+/jRk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbmjHmAAoJEHI0Bo8WoVY8DQoP/3ZI8PRBEWn/R+/q1tkDtmZy
-4VgzFaZyEPOjh5ILfLOugCzwOLEp9/rNVMcW3+OYcl6inXp8ZGhXxFrkt98ubezY
-Kpn+YOpMMHLQzgtE5nQJecTaFXtl13kJab9JZPrQ3y+Pi5mljq98NbITdkqY6iv1
-J8i6o008uUB0YKEFa8OiiK+exd8gD2QdAhhQF3PB7PFkkQdJnO5+P7sDnaCUNcdW
-kVkNKwTczZWLL1HRO58u+lyoWIx4v6vAxPMeBENb/9K2G2I9v3LD0w5O5faIVC7T
-zCr5KqyGkTX2EqfOac9K005gwdIcvUZ/2XO3CFnt0C6ku65jCJQYUoplzEQa4FPP
-kV/ZbeM2Xo6I1dwoEmuWsyGzP2IF6B1P23C/ZgHSv04IuXiAhmnXwXezixjW4OKH
-P3xs5UY8h7DuhOqyw4Q2by7hFBzjo9tUt8QGgKZVw1XPfby1iITUh3A8T406ZUTw
-OD29NlfZp1rdw3HQ/mRabmv4aKQaKX+uXQBxga74N9xJiH/uFOEHYj1Rz6HkGHP5
-s5ipfqbUz/LPUgdXNd+pD+X6s6RLomLf5NusoP7OjuO7AylJlC2IfSgLtb73M0YH
-YDiSuhJr6Fl34UUvdoD+63b026FC+U+jZ3zTCjN1HhnGDhDcSR6k4Nc8dzxUobeO
-vM01vO2NiFzNRd6ExDym
-=4G4a
+iQIcBAEBAgAGBQJbmjPqAAoJEHI0Bo8WoVY8tUgQAJFKpByEeqQGN337NUo224hG
+IdkVrlXnwiblFLoneeTsuXn9u1GlbiUtfM/9L0qzUDXRp+oflIDNdlV1IV9Itpio
+56Yw/OJcwq5O1sofVwKupNdGu9W3wJjQN/NE6mF2/nWcahNcJGdYgKNl8fbwYhXo
+SUIZGzbYbf4QnRGOIH84QyPY8XxaE2nU6uBP6qXrtZRywC8vRTZyIJChG4GEMKpM
+nMnY+qg982QFmGKfvlJX2m80YAcfO1izMOxI4CS+Zs6YF/drIxks6UEfTOkZ+puY
+xbK6Jc3IeTCG6edMsRMsj6qR1hHEmzI8K/E8qRhqUMV7LtrRXphqq0iOHYGvb095
+kc0k2M9cEaW0luwzc+bN5MpdZp6Ots8LKZWOl71kPB79MmY5WroKZDxMZU3KD3Ft
+rlOtcSFvQruQjGT56o9WTL+V2kc5NJR7um8IRzCQuNXA/OF+LfpR9XTesJhSjw5D
+nuVDCIUM3P6cEknudYvgMv8d3hjZgE43yRGQtmJ40JMT0g421lrTcxySIow7vR6P
+ayNI/GtD4V7Wdz4XMT8Xk0NJOPICNixFiKHH4f1lbjZbQ/tUA9fkEIXH0TlW1IoE
+CXJzIpe2Dd4Yop1ehFaQPznYRIshgeR/J11GDO9dQl0KwE76pBjMcCqFzD59c8xc
+kfEQh10g972GrslXoOgy
+=TDDm
 -----END PGP SIGNATURE-----
 
---TVVcQco/7vcH19KK--
+--OThxTnIjTxi+/jRk--
