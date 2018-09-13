@@ -1,70 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44832 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726741AbeIMP0I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 11:26:08 -0400
-Date: Thu, 13 Sep 2018 13:17:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: robh@kernel.org
+Received: from mga07.intel.com ([134.134.136.100]:61092 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726794AbeIMP2E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Sep 2018 11:28:04 -0400
+Date: Thu, 13 Sep 2018 13:19:12 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        alanx.chiang@intel.com, andy.yeh@intel.com
-Subject: Re: [PATCH 1/2] dt-bindings: dw9714, dw9807-vcm: Add files to
- MAINTAINERS, rename files
-Message-ID: <20180913101718.b5qwae6j7gf5qa7t@valkosipuli.retiisi.org.uk>
-References: <20180723105039.20110-1-sakari.ailus@linux.intel.com>
- <20180723105039.20110-2-sakari.ailus@linux.intel.com>
- <20180830105531.53o3afx5k3cank5z@valkosipuli.retiisi.org.uk>
+        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se,
+        p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v3 16/23] v4l: fwnode: Initialise the V4L2 fwnode
+ endpoints to zero
+Message-ID: <20180913101912.ee4qfkphw3zsypbi@paasikivi.fi.intel.com>
+References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
+ <20180912212942.19641-17-sakari.ailus@linux.intel.com>
+ <20180913094614.GS20333@w540>
+ <20180913095533.nu6yjf6swga7fa6x@paasikivi.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180830105531.53o3afx5k3cank5z@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180913095533.nu6yjf6swga7fa6x@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 30, 2018 at 01:55:32PM +0300, Sakari Ailus wrote:
-> Ping?
-
-I will assume this patch is fine. :-)
-
+On Thu, Sep 13, 2018 at 12:55:33PM +0300, Sakari Ailus wrote:
+> Hi Jacopo,
 > 
-> On Mon, Jul 23, 2018 at 01:50:38PM +0300, Sakari Ailus wrote:
-> > Add the DT binding documentation for dw9714 and dw9807-vcm to the
-> > MAINTAINERS file. The dw9807-vcm binding documentation file is renamed to
-> > match the dw9807's VCM bit's compatible string.
+> On Thu, Sep 13, 2018 at 11:46:14AM +0200, jacopo mondi wrote:
+> > Hi Sakari,
 > > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  .../bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} | 0
-> >  MAINTAINERS                                                             | 2 ++
-> >  2 files changed, 2 insertions(+)
-> >  rename Documentation/devicetree/bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} (100%)
+> > On Thu, Sep 13, 2018 at 12:29:35AM +0300, Sakari Ailus wrote:
+> > > Initialise the V4L2 fwnode endpoints to zero in all drivers using
+> > > v4l2_fwnode_endpoint_parse(). This prepares for setting default endpoint
+> > > flags as well as the bus type. Setting bus type to zero will continue to
+> > > guess the bus among the guessable set (parallel, Bt.656 and CSI-2 D-PHY).
+> > >
 > > 
-> > diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
-> > similarity index 100%
-> > rename from Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-> > rename to Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index bbd9b9b3d74f..44e917de2c8c 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -4410,6 +4410,7 @@ L:	linux-media@vger.kernel.org
-> >  T:	git git://linuxtv.org/media_tree.git
-> >  S:	Maintained
-> >  F:	drivers/media/i2c/dw9714.c
-> > +F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
-> >  
-> >  DONGWOON DW9807 LENS VOICE COIL DRIVER
-> >  M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-> > @@ -4417,6 +4418,7 @@ L:	linux-media@vger.kernel.org
-> >  T:	git git://linuxtv.org/media_tree.git
-> >  S:	Maintained
-> >  F:	drivers/media/i2c/dw9807.c
-> > +F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
-> >  
-> >  DOUBLETALK DRIVER
-> >  M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
+> > I've played around with this patch, trying to use defaults in the
+> > renesas-ceu driver.
+> > 
+> > This is the resulting patch, if you want I can send it as follow-up or
+> > send it so that you can include it in your series if it's correct):
+> > https://paste.debian.net/hidden/a7795d3e/
+> 
+> Looks nice; could you send it out to the list for review?
+> 
+> The bus width default isn't specified in DT bindings; could you write a
+> patch that defines it?
+
+Same for "pclk-sample". DT bindings do not document that; it should go to
+the same patch.
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
