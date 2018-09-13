@@ -1,149 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:41267 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726832AbeIMO0C (ORCPT
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:60029 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726832AbeIMOXc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 10:26:02 -0400
-Date: Thu, 13 Sep 2018 11:17:20 +0200
+        Thu, 13 Sep 2018 10:23:32 -0400
+Date: Thu, 13 Sep 2018 11:14:52 +0200
 From: jacopo mondi <jacopo@jmondi.org>
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
         slongerbeam@gmail.com, niklas.soderlund@ragnatech.se,
         p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v3 15/23] v4l: fwnode: Use default parallel flags
-Message-ID: <20180913091720.GR20333@w540>
+Subject: Re: [PATCH v3 09/23] v4l: fwnode: Make use of newly specified bus
+ types
+Message-ID: <20180913091452.GQ20333@w540>
 References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
- <20180912212942.19641-16-sakari.ailus@linux.intel.com>
+ <20180912212942.19641-10-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EmW68jKGQIhj8inv"
+        protocol="application/pgp-signature"; boundary="rG09A39trvEtf3rB"
 Content-Disposition: inline
-In-Reply-To: <20180912212942.19641-16-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180912212942.19641-10-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---EmW68jKGQIhj8inv
+--rG09A39trvEtf3rB
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
 Hi Sakari,
 
-On Thu, Sep 13, 2018 at 12:29:34AM +0300, Sakari Ailus wrote:
-> The caller may provide default flags for the endpoint. Change the
-> configuration based on what is available through the fwnode property API.
+On Thu, Sep 13, 2018 at 12:29:28AM +0300, Sakari Ailus wrote:
+> Add support for parsing CSI-2 D-PHY, parallel or Bt.656 bus explicitly.
 >
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 53 ++++++++++++++++++++++++++++-------
+>  1 file changed, 43 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index aa3d28c4a50b..74c2f4e03e52 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -123,8 +123,16 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+>  	return 0;
+>  }
+>
+> +#define PARALLEL_MBUS_FLAGS (V4L2_MBUS_HSYNC_ACTIVE_HIGH |	\
+> +			     V4L2_MBUS_HSYNC_ACTIVE_LOW |	\
+> +			     V4L2_MBUS_VSYNC_ACTIVE_HIGH |	\
+> +			     V4L2_MBUS_VSYNC_ACTIVE_LOW |	\
+> +			     V4L2_MBUS_FIELD_EVEN_HIGH |	\
+> +			     V4L2_MBUS_FIELD_EVEN_LOW)
+> +
+>  static void v4l2_fwnode_endpoint_parse_parallel_bus(
+> -	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep)
+> +	struct fwnode_handle *fwnode, struct v4l2_fwnode_endpoint *vep,
+> +	enum v4l2_fwnode_bus_type bus_type)
+>  {
+>  	struct v4l2_fwnode_bus_parallel *bus = &vep->bus.parallel;
+>  	unsigned int flags = 0;
+> @@ -189,16 +197,28 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+>  		pr_debug("data-enable-active %s\n", v ? "high" : "low");
+>  	}
+>
+> -	bus->flags = flags;
+> -	if (flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+> -		     V4L2_MBUS_HSYNC_ACTIVE_LOW |
+> -		     V4L2_MBUS_VSYNC_ACTIVE_HIGH |
+> -		     V4L2_MBUS_VSYNC_ACTIVE_LOW |
+> -		     V4L2_MBUS_FIELD_EVEN_HIGH |
+> -		     V4L2_MBUS_FIELD_EVEN_LOW))
+> +	switch (bus_type) {
+> +	default:
+> +		bus->flags = flags;
+> +		if (flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+> +			     V4L2_MBUS_HSYNC_ACTIVE_LOW |
+> +			     V4L2_MBUS_VSYNC_ACTIVE_HIGH |
+> +			     V4L2_MBUS_VSYNC_ACTIVE_LOW |
+> +			     V4L2_MBUS_FIELD_EVEN_HIGH |
+> +			     V4L2_MBUS_FIELD_EVEN_LOW))
 
+I guess you could use V4L2_MBUS_PARALLEL here.
+
+Apart from this:
 Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
 Thanks
-  j
-> ---
->  drivers/media/v4l2-core/v4l2-fwnode.c | 19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
+   j
+
+> +			vep->bus_type = V4L2_MBUS_PARALLEL;
+> +		else
+> +			vep->bus_type = V4L2_MBUS_BT656;
+> +		break;
+> +	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
+>  		vep->bus_type = V4L2_MBUS_PARALLEL;
+> -	else
+> +		bus->flags = flags;
+> +		break;
+> +	case V4L2_FWNODE_BUS_TYPE_BT656:
+>  		vep->bus_type = V4L2_MBUS_BT656;
+> +		bus->flags = flags & ~PARALLEL_MBUS_FLAGS;
+> +		break;
+> +	}
+>  }
 >
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index bdb0a355b66b..de4a43765ac2 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -183,31 +183,44 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
->  	unsigned int flags = 0;
->  	u32 v;
+>  static void
+> @@ -258,7 +278,8 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+>  			return rval;
 >
-> +	if (bus_type == V4L2_MBUS_PARALLEL || bus_type == V4L2_MBUS_BT656)
-> +		flags = bus->flags;
+>  		if (vep->bus_type == V4L2_MBUS_UNKNOWN)
+> -			v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep);
+> +			v4l2_fwnode_endpoint_parse_parallel_bus(
+> +				fwnode, vep, V4L2_MBUS_UNKNOWN);
+>
+>  		break;
+>  	case V4L2_FWNODE_BUS_TYPE_CCP2:
+> @@ -266,6 +287,18 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+>  		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, bus_type);
+>
+>  		break;
+> +	case V4L2_FWNODE_BUS_TYPE_CSI2_DPHY:
+> +		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
+> +		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep);
+> +		if (rval)
+> +			return rval;
 > +
->  	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v)) {
-> +		flags &= ~(V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-> +			   V4L2_MBUS_HSYNC_ACTIVE_LOW);
->  		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
->  			V4L2_MBUS_HSYNC_ACTIVE_LOW;
->  		pr_debug("hsync-active %s\n", v ? "high" : "low");
->  	}
->
->  	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v)) {
-> +		flags &= ~(V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-> +			   V4L2_MBUS_VSYNC_ACTIVE_LOW);
->  		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
->  			V4L2_MBUS_VSYNC_ACTIVE_LOW;
->  		pr_debug("vsync-active %s\n", v ? "high" : "low");
->  	}
->
->  	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v)) {
-> +		flags &= ~(V4L2_MBUS_FIELD_EVEN_HIGH |
-> +			   V4L2_MBUS_FIELD_EVEN_LOW);
->  		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
->  			V4L2_MBUS_FIELD_EVEN_LOW;
->  		pr_debug("field-even-active %s\n", v ? "high" : "low");
->  	}
->
->  	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v)) {
-> +		flags &= ~(V4L2_MBUS_PCLK_SAMPLE_RISING |
-> +			   V4L2_MBUS_PCLK_SAMPLE_FALLING);
->  		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
->  			V4L2_MBUS_PCLK_SAMPLE_FALLING;
->  		pr_debug("pclk-sample %s\n", v ? "high" : "low");
->  	}
->
->  	if (!fwnode_property_read_u32(fwnode, "data-active", &v)) {
-> +		flags &= ~(V4L2_MBUS_PCLK_SAMPLE_RISING |
-> +			   V4L2_MBUS_PCLK_SAMPLE_FALLING);
->  		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
->  			V4L2_MBUS_DATA_ACTIVE_LOW;
->  		pr_debug("data-active %s\n", v ? "high" : "low");
-> @@ -215,8 +228,10 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
->
->  	if (fwnode_property_present(fwnode, "slave-mode")) {
->  		pr_debug("slave mode\n");
-> +		flags &= ~V4L2_MBUS_MASTER;
->  		flags |= V4L2_MBUS_SLAVE;
->  	} else {
-> +		flags &= ~V4L2_MBUS_SLAVE;
->  		flags |= V4L2_MBUS_MASTER;
->  	}
->
-> @@ -231,12 +246,16 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
->  	}
->
->  	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v)) {
-> +		flags &= ~(V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH |
-> +			   V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW);
->  		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
->  			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
->  		pr_debug("sync-on-green-active %s\n", v ? "high" : "low");
->  	}
->
->  	if (!fwnode_property_read_u32(fwnode, "data-enable-active", &v)) {
-> +		flags &= ~(V4L2_MBUS_DATA_ENABLE_HIGH |
-> +			   V4L2_MBUS_DATA_ENABLE_LOW);
->  		flags |= v ? V4L2_MBUS_DATA_ENABLE_HIGH :
->  			V4L2_MBUS_DATA_ENABLE_LOW;
->  		pr_debug("data-enable-active %s\n", v ? "high" : "low");
+> +		break;
+> +	case V4L2_FWNODE_BUS_TYPE_PARALLEL:
+> +	case V4L2_FWNODE_BUS_TYPE_BT656:
+> +		v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep, bus_type);
+> +
+> +		break;
+>  	default:
+>  		pr_warn("unsupported bus type %u\n", bus_type);
+>  		return -EINVAL;
 > --
 > 2.11.0
 >
 
---EmW68jKGQIhj8inv
+--rG09A39trvEtf3rB
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbmisgAAoJEHI0Bo8WoVY8+HEQAJcr9EJVT7gzYLBGjgtBGSxh
-Js0Y+fuW3kRMDFfQEVJY5s6JhAu8Qr7iQicpkBZKm+2KQ9dt5rYvdv3tmi8oajR6
-0l3y7SiBAYYk+rXu234PfbXc1PXcvqBkW+OPQSiVxrUfLy/VYJtLWYHhTPpfrVvg
-k4kw2s0X3PtjByAQhvlUxEx12Wt8XhrMW4SzrLIOIt5OJ07IgoZpCqe6UOXxr+DE
-rVz88jUD1aurM6LUPZGv8rTL6Ohe0onpeRFM3gUyIE4eohsH9nV44NdP4M6nt/jy
-NTL+KN3y973xyEDG9cy1AqLKgOh1gZL6BsSjJnrel6ezzgXBfb37kWv8uQhmuz1k
-7tHSuynpVrfJLR/jl60GHujKfRXk6VaOXwGomGdW6qxqYs7lgHjbC0yrA+ERqhOw
-w8//ZsinIaV6mSbun+Yw2oAgFcSaEviCXD+JgWWPqPqvtxWFYL3V9Y55UbnkQuc+
-Y4Nmjo0nDMoxMbkeiqNaI6YQwpcu0cuFDJBNDIIFbjrIju9PUIgrVIn6zsUBMhH3
-Kwx+XCChs1xreXBn1Jc0UWMNbecQ0Xe3V1gK5yAT+buHPp19KkSE6Ws8AZE7RRUh
-qHLmh/RaUrzZRgTGv2J4svQX/i98Ia6I6K6qxvGOF3azpgAJlrLqCilDTJo7Mel8
-oAVW6u5U6P18Zg7ts+ox
-=eJCE
+iQIcBAEBAgAGBQJbmiqMAAoJEHI0Bo8WoVY8CRwQAJGw2aOfTznbuMiXIwuclnyn
+rEALu1uhxnzSci53s01IOMaEcxuJ1Ui4JLxSjCMnzLTKzTtRlMEQJDO92O1JRSay
+6i/tjS3hK8FzK9iGIMYk+yFBsYRLUHHkV0+Uslj3jV0X0WC3uTq5CT65/7vG1Wj7
+h4FNpVs/wgsCcJCFF3II0c/AWziOwmU3a4ddcMo3yDo5rboOpFmWmZj80+tLiz+i
+uHeRA7gjdKJtSNMcKq1Bv2Vaei8gCvmTDCMVrh3sHMp047k4W0kHavV2Aq7Yit8O
+ShbVSEY18CUVSN7dUB28Xf5kz+SOruVucqSPG9RdOkes+7NAex3MYkhdpf35fx8Q
+J/QrVyJaDW9qYR7ezukMJgSmPRt4oxx7Uxh28BpuEDSCI3V2bKV946hxaV/GOrQj
+nT2z4y7WjyLhdRE1YnFR7/3qoROZWrAnSgGYuSX7vhVcuorE/9grquTLXohNCapY
+xSDo0QLkJ827i2P3Plm7s6Ky0eD6Tpkc05iSNOj35jjovvXXeFzby1ya84b5Gvmd
+CDsnVqNPq+GPdY49UCW/dy9V3CaDYeKRLz1tEssZ9SbxON07doRYXnE3OJZmLbci
+I87UfQrwfrFBBLVyhPCaV6sDX2W0EZTJM7aFNkp/vkWS3mMsvSYqWI51uXd2QeXw
+oEEZD9Gc5msqlM5oISHA
+=s+IB
 -----END PGP SIGNATURE-----
 
---EmW68jKGQIhj8inv--
+--rG09A39trvEtf3rB--
