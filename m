@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:44701 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:44705 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728100AbeIMUBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 16:01:51 -0400
+        id S1728099AbeIMUBw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Sep 2018 16:01:52 -0400
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         linux-media@vger.kernel.org,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v10 3/5] media: v4l: Add definition for the Sunxi tiled NV12 format
-Date: Thu, 13 Sep 2018 16:51:53 +0200
-Message-Id: <20180913145155.1636-4-maxime.ripard@bootlin.com>
+Subject: [PATCH v10 4/5] dt-bindings: media: Document bindings for the Cedrus VPU driver
+Date: Thu, 13 Sep 2018 16:51:54 +0200
+Message-Id: <20180913145155.1636-5-maxime.ripard@bootlin.com>
 In-Reply-To: <20180913145155.1636-1-maxime.ripard@bootlin.com>
 References: <20180913145155.1636-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -19,72 +19,77 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
 
-This introduces support for the Sunxi tiled NV12 format, where each
-component of the YUV frame is divided into macroblocks. Hence, the size
-of each plane requires specific alignment. The pixels inside each
-macroblock are coded in linear order (line after line from top to
-bottom).
-
-This tiled NV12 format is used by the video engine on Allwinner
-platforms: it is the default format for decoded frames (and the only
-one available in the oldest supported platforms).
+This adds a device-tree binding document that specifies the properties
+used by the Cedrus VPU driver, as well as examples.
 
 Signed-off-by: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
- Documentation/media/uapi/v4l/pixfmt-reserved.rst | 13 +++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c             |  1 +
- include/uapi/linux/videodev2.h                   |  1 +
- 3 files changed, 15 insertions(+)
+ .../devicetree/bindings/media/cedrus.txt      | 54 +++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cedrus.txt
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-index 38af1472a4b4..0c399858bda2 100644
---- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-@@ -243,7 +243,20 @@ please make a proposal on the linux-media mailing list.
- 	It is an opaque intermediate format and the MDP hardware must be
- 	used to convert ``V4L2_PIX_FMT_MT21C`` to ``V4L2_PIX_FMT_NV12M``,
- 	``V4L2_PIX_FMT_YUV420M`` or ``V4L2_PIX_FMT_YVU420``.
-+    * .. _V4L2-PIX-FMT-SUNXI-TILED-NV12:
- 
-+      - ``V4L2_PIX_FMT_SUNXI_TILED_NV12``
-+      - 'ST12'
-+      - Two-planar NV12-based format used by the video engine found on Allwinner
-+	(codenamed sunxi) platforms, with 32x32 tiles for the luminance plane
-+	and 32x64 tiles for the chrominance plane. The data in each tile is
-+	stored in linear order, within the tile bounds. Each tile follows the
-+	previous one linearly in memory (from left to right, top to bottom).
+diff --git a/Documentation/devicetree/bindings/media/cedrus.txt b/Documentation/devicetree/bindings/media/cedrus.txt
+new file mode 100644
+index 000000000000..a089a0c1ff05
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cedrus.txt
+@@ -0,0 +1,54 @@
++Device-tree bindings for the VPU found in Allwinner SoCs, referred to as the
++Video Engine (VE) in Allwinner literature.
 +
-+	The associated buffer dimensions are aligned to match an integer number
-+	of tiles, resulting in 32-aligned resolutions for the luminance plane
-+	and 16-aligned resolutions for the chrominance plane (with 2x2
-+	subsampling).
- 
- .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 1a8feaf6c3f7..c148c44caffb 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1337,6 +1337,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
- 		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
- 		case V4L2_PIX_FMT_MT21C:	descr = "Mediatek Compressed Format"; break;
-+		case V4L2_PIX_FMT_SUNXI_TILED_NV12: descr = "Sunxi Tiled NV12 Format"; break;
- 		default:
- 			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
- 			if (fmt->description[0])
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 314ec7a5f046..7412a255d9ce 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -677,6 +677,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
-+#define V4L2_PIX_FMT_SUNXI_TILED_NV12 v4l2_fourcc('S', 'T', '1', '2') /* Sunxi Tiled NV12 Format */
- 
- /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
- #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++The VPU can only access the first 256 MiB of DRAM, that are DMA-mapped starting
++from the DRAM base. This requires specific memory allocation and handling.
++
++Required properties:
++- compatible		: must be one of the following compatibles:
++			- "allwinner,sun4i-a10-video-engine"
++			- "allwinner,sun5i-a13-video-engine"
++			- "allwinner,sun7i-a20-video-engine"
++			- "allwinner,sun8i-a33-video-engine"
++			- "allwinner,sun8i-h3-video-engine"
++- reg			: register base and length of VE;
++- clocks		: list of clock specifiers, corresponding to entries in
++			  the clock-names property;
++- clock-names		: should contain "ahb", "mod" and "ram" entries;
++- resets		: phandle for reset;
++- interrupts		: VE interrupt number;
++- allwinner,sram	: SRAM region to use with the VE.
++
++Optional properties:
++- memory-region		: CMA pool to use for buffers allocation instead of the
++			  default CMA pool.
++
++Example:
++
++reserved-memory {
++	#address-cells = <1>;
++	#size-cells = <1>;
++	ranges;
++
++	/* Address must be kept in the lower 256 MiBs of DRAM for VE. */
++	cma_pool: cma@4a000000 {
++		compatible = "shared-dma-pool";
++		size = <0x6000000>;
++		alloc-ranges = <0x4a000000 0x6000000>;
++		reusable;
++		linux,cma-default;
++	};
++};
++
++video-codec@1c0e000 {
++	compatible = "allwinner,sun7i-a20-video-engine";
++	reg = <0x01c0e000 0x1000>;
++
++	clocks = <&ccu CLK_AHB_VE>, <&ccu CLK_VE>,
++		 <&ccu CLK_DRAM_VE>;
++	clock-names = "ahb", "mod", "ram";
++
++	resets = <&ccu RST_VE>;
++	interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
++	allwinner,sram = <&ve_sram 1>;
++};
 -- 
 2.17.1
