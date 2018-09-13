@@ -1,80 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44696 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44832 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726736AbeIMPJa (ORCPT
+        by vger.kernel.org with ESMTP id S1726741AbeIMP0I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 11:09:30 -0400
-Date: Thu, 13 Sep 2018 13:00:43 +0300
+        Thu, 13 Sep 2018 11:26:08 -0400
+Date: Thu, 13 Sep 2018 13:17:18 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        slongerbeam@gmail.com, niklas.soderlund@ragnatech.se,
-        p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v3 00/23] V4L2 fwnode rework; support for default
- configuration
-Message-ID: <20180913100043.gibskvsvy7zrw4an@valkosipuli.retiisi.org.uk>
-References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
- <20180913095450.GA28160@w540>
+To: robh@kernel.org
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        alanx.chiang@intel.com, andy.yeh@intel.com
+Subject: Re: [PATCH 1/2] dt-bindings: dw9714, dw9807-vcm: Add files to
+ MAINTAINERS, rename files
+Message-ID: <20180913101718.b5qwae6j7gf5qa7t@valkosipuli.retiisi.org.uk>
+References: <20180723105039.20110-1-sakari.ailus@linux.intel.com>
+ <20180723105039.20110-2-sakari.ailus@linux.intel.com>
+ <20180830105531.53o3afx5k3cank5z@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180913095450.GA28160@w540>
+In-Reply-To: <20180830105531.53o3afx5k3cank5z@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 13, 2018 at 11:54:50AM +0200, jacopo mondi wrote:
-> Hi Sakari,
-> 
-> On Thu, Sep 13, 2018 at 12:29:19AM +0300, Sakari Ailus wrote:
-> > Hello everyone,
-> >
-> > I've long thought the V4L2 fwnode framework requires some work (it's buggy
-> > and it does not adequately serve common needs). This set should address in
-> > particular these matters:
-> >
-> > - Most devices support a particular media bus type but the V4L2 fwnode
-> >   framework was not able to use such information, but instead tried to
-> >   guess the bus type with varying levels of success while drivers
-> >   generally ignored the results. This patchset makes that possible ---
-> >   setting a bus type enables parsing configuration for only that bus.
-> >   Failing that check results in returning -ENXIO to be returned.
-> >
-> > - Support specifying default configuration. If the endpoint has no
-> >   configuration, the defaults set by the driver (as documented in DT
-> >   bindings) will prevail. Any available configuration will still be read
-> >   from the endpoint as one could expect. A common use case for this is
-> >   e.g. the number of CSI-2 lanes. Few devices support lane mapping, and
-> >   default 1:1 mapping is provided in absence of a valid default or
-> >   configuration read OF.
-> >
-> > - Debugging information is greatly improved.
-> >
-> > - Recognition of the differences between CSI-2 D-PHY and C-PHY. All
-> >   currently supported hardware (or at least drivers) is D-PHY only, so
-> >   this change is still easy.
-> >
-> > The smiapp driver is converted to use the new functionality. This patchset
-> > does not address remaining issues such as supporting setting defaults for
-> > e.g. bridge drivers with multiple ports, but with Steve Longerbeam's
-> > patchset we're much closer to that goal. I've rebased this set on top of
-> > Steve's. Albeit the two deal with the same files, there were only a few
-> > trivial conflicts.
-> >
-> > Note that I've only tested parsing endpoints for the CSI-2 bus (no
-> > parallel IF hardware). Jacopo has tested an earlier version of the set
-> > with a few changes to the parallel bus handling compared to this one.
-> 
-> I've tested on parallel bus with CEU and MT9V111.
-> 
-> You can add my:
-> Tested-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> to this version too.
+On Thu, Aug 30, 2018 at 01:55:32PM +0300, Sakari Ailus wrote:
+> Ping?
 
-Thanks!
+I will assume this patch is fine. :-)
 
-I'll put your ack on the DT binding documentation patch as Tested-by: isn't
-really meaningful in that case.
+> 
+> On Mon, Jul 23, 2018 at 01:50:38PM +0300, Sakari Ailus wrote:
+> > Add the DT binding documentation for dw9714 and dw9807-vcm to the
+> > MAINTAINERS file. The dw9807-vcm binding documentation file is renamed to
+> > match the dw9807's VCM bit's compatible string.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  .../bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} | 0
+> >  MAINTAINERS                                                             | 2 ++
+> >  2 files changed, 2 insertions(+)
+> >  rename Documentation/devicetree/bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} (100%)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
+> > similarity index 100%
+> > rename from Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> > rename to Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index bbd9b9b3d74f..44e917de2c8c 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -4410,6 +4410,7 @@ L:	linux-media@vger.kernel.org
+> >  T:	git git://linuxtv.org/media_tree.git
+> >  S:	Maintained
+> >  F:	drivers/media/i2c/dw9714.c
+> > +F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9714.txt
+> >  
+> >  DONGWOON DW9807 LENS VOICE COIL DRIVER
+> >  M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+> > @@ -4417,6 +4418,7 @@ L:	linux-media@vger.kernel.org
+> >  T:	git git://linuxtv.org/media_tree.git
+> >  S:	Maintained
+> >  F:	drivers/media/i2c/dw9807.c
+> > +F:	Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807-vcm.txt
+> >  
+> >  DOUBLETALK DRIVER
+> >  M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
 
 -- 
 Sakari Ailus
