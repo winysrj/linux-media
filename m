@@ -1,105 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:10441 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727413AbeIMTcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 15:32:24 -0400
-Date: Thu, 13 Sep 2018 17:22:36 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        slongerbeam@gmail.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 3/3] media: renesas-ceu: Use default mbus settings
-Message-ID: <20180913142236.4g2eo3exn7rjwlpk@kekkonen.localdomain>
-References: <1536847191-17175-1-git-send-email-jacopo+renesas@jmondi.org>
- <1536847191-17175-4-git-send-email-jacopo+renesas@jmondi.org>
+Received: from bombadil.infradead.org ([198.137.202.133]:38712 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727534AbeIMTix (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Sep 2018 15:38:53 -0400
+Date: Thu, 13 Sep 2018 11:29:03 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH 1/5] media: replace ADOBERGB by OPRGB
+Message-ID: <20180913112903.7275b126@coco.lan>
+In-Reply-To: <20180913114731.16500-2-hverkuil@xs4all.nl>
+References: <20180913114731.16500-1-hverkuil@xs4all.nl>
+        <20180913114731.16500-2-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1536847191-17175-4-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Em Thu, 13 Sep 2018 13:47:27 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Thu, Sep 13, 2018 at 03:59:51PM +0200, Jacopo Mondi wrote:
-> As the v4l2-fwnode now allows drivers to set defaults, and eventually
-> override them by specifying properties in DTS, use defaults for the CEU
-> driver.
+> From: Hans Verkuil <hansverk@cisco.com>
 > 
-> Also remove endpoint properties from the gr-peach-audiocamerashield as
-> they match the defaults now specified in the driver code.
+> The CTA-861 standards have been updated to refer to opRGB instead
+> of AdobeRGB. The official standard is in fact named opRGB, so
+> switch to that.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  arch/arm/boot/dts/gr-peach-audiocamerashield.dtsi |  4 ----
->  drivers/media/platform/renesas-ceu.c              | 20 +++++++++++---------
->  2 files changed, 11 insertions(+), 13 deletions(-)
+> The two old defines referring to ADOBERGB in the public API are
+> put under #ifndef __KERNEL__ and a comment mentions that they are
+> deprecated.
 > 
-> diff --git a/arch/arm/boot/dts/gr-peach-audiocamerashield.dtsi b/arch/arm/boot/dts/gr-peach-audiocamerashield.dtsi
-> index e31a9e3..8d77579 100644
-> --- a/arch/arm/boot/dts/gr-peach-audiocamerashield.dtsi
-> +++ b/arch/arm/boot/dts/gr-peach-audiocamerashield.dtsi
-> @@ -69,10 +69,6 @@
-> 
->  	port {
->  		ceu_in: endpoint {
-> -			hsync-active = <1>;
-> -			vsync-active = <1>;
-> -			bus-width = <8>;
-> -			pclk-sample = <1>;
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 
-Do I understand correctly that pclk-sample was never relevant for the
-hardware, and is removed because of that? You could mention that in the
-commit message. That's perhaps a minor detail.
 
-The set seems good to me.
+> index 184e4dbe8f9c..c1e14a3b476e 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -225,8 +225,12 @@ enum v4l2_colorspace {
+>  	/* For RGB colorspaces such as produces by most webcams. */
+>  	V4L2_COLORSPACE_SRGB          = 8,
+>  
+> -	/* AdobeRGB colorspace */
+> +	/* opRGB colorspace */
+> +	V4L2_COLORSPACE_OPRGB         = 9,
+> +#ifndef __KERNEL__
+> +	/* Deprecated alias for V4L2_COLORSPACE_OPRGB */
+>  	V4L2_COLORSPACE_ADOBERGB      = 9,
+> +#endif
+>  
+>  	/* BT.2020 colorspace, used for UHDTV. */
+>  	V4L2_COLORSPACE_BT2020        = 10,
+> @@ -258,7 +262,7 @@ enum v4l2_xfer_func {
+>  	 *
+>  	 * V4L2_COLORSPACE_SRGB, V4L2_COLORSPACE_JPEG: V4L2_XFER_FUNC_SRGB
+>  	 *
+> -	 * V4L2_COLORSPACE_ADOBERGB: V4L2_XFER_FUNC_ADOBERGB
+> +	 * V4L2_COLORSPACE_OPRGB: V4L2_XFER_FUNC_OPRGB
+>  	 *
+>  	 * V4L2_COLORSPACE_SMPTE240M: V4L2_XFER_FUNC_SMPTE240M
+>  	 *
+> @@ -269,7 +273,11 @@ enum v4l2_xfer_func {
+>  	V4L2_XFER_FUNC_DEFAULT     = 0,
+>  	V4L2_XFER_FUNC_709         = 1,
+>  	V4L2_XFER_FUNC_SRGB        = 2,
+> +	V4L2_XFER_FUNC_OPRGB       = 3,
+> +#ifndef __KERNEL__
+> +	/* Deprecated alias for V4L2_XFER_FUNC_OPRGB */
+>  	V4L2_XFER_FUNC_ADOBERGB    = 3,
+> +#endif
+>  	V4L2_XFER_FUNC_SMPTE240M   = 4,
+>  	V4L2_XFER_FUNC_NONE        = 5,
+>  	V4L2_XFER_FUNC_DCI_P3      = 6,
 
->  			remote-endpoint = <&mt9v111_out>;
->  		};
->  	};
-> diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
-> index 035f1d3..150196f 100644
-> --- a/drivers/media/platform/renesas-ceu.c
-> +++ b/drivers/media/platform/renesas-ceu.c
-> @@ -1551,7 +1551,16 @@ static int ceu_parse_dt(struct ceu_device *ceudev)
->  		return ret;
-> 
->  	for (i = 0; i < num_ep; i++) {
-> -		struct v4l2_fwnode_endpoint fw_ep = { .bus_type = 0 };
-> +		struct v4l2_fwnode_endpoint fw_ep = {
-> +			.bus_type = V4L2_MBUS_PARALLEL,
-> +			.bus = {
-> +				.parallel = {
-> +					.flags = V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-> +						 V4L2_MBUS_VSYNC_ACTIVE_HIGH,
-> +					.bus_width = 8,
-> +				},
-> +			},
-> +		};
-> 
->  		ep = of_graph_get_endpoint_by_regs(of, 0, i);
->  		if (!ep) {
-> @@ -1564,14 +1573,7 @@ static int ceu_parse_dt(struct ceu_device *ceudev)
->  		ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &fw_ep);
->  		if (ret) {
->  			dev_err(ceudev->dev,
-> -				"Unable to parse endpoint #%u.\n", i);
-> -			goto error_cleanup;
-> -		}
-> -
-> -		if (fw_ep.bus_type != V4L2_MBUS_PARALLEL) {
-> -			dev_err(ceudev->dev,
-> -				"Only parallel input supported.\n");
-> -			ret = -EINVAL;
-> +				"Unable to parse endpoint #%u: %d.\n", i, ret);
->  			goto error_cleanup;
->  		}
-> 
+Nitpick: instead of having #ifndef inside the enum, I would instead
+place both V4L2_COLORSPACE_ADOBERGB and V4L2_XFER_FUNC_ADOBERGB on
+a separate #define, e. g:
 
--- 
-Kind regards,
+/*
+ * Deprecated names for Optional RGB colorspace (IEC 61966-2)
+ *
+ * WARNING: Please don't use it on your code, as those can be removed
+ * from Kernelspace in the future.
+ */
+#ifndef __KERNEL__
+# define V4L2_COLORSPACE_ADOBERGB V4L2_COLORSPACE_OPRGB
+# define V4L2_XFER_FUNC_ADOBERGB  V4L2_XFER_FUNC_OPRGB
+#endif
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+There are two reasons for that:
+
+1) by adding them inside enums and not documenting, you may
+   end by having warnings;
+
+2) as you mentioned on patch 0/5, one of the goals is to
+   "avoid possible future trademark complaints."
+
+So, better to add a clear warning at the Kernel that we may need
+to remove it in the future.
+
+Thanks,
+Mauro
