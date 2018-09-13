@@ -1,58 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot1-f65.google.com ([209.85.210.65]:34309 "EHLO
-        mail-ot1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726741AbeIMOvQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 10:51:16 -0400
-Received: by mail-ot1-f65.google.com with SMTP id i12-v6so660307otl.1
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2018 02:42:35 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180829105828.4502-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180829105828.4502-1-sakari.ailus@linux.intel.com>
-From: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
-Date: Thu, 13 Sep 2018 11:42:22 +0200
-Message-ID: <CAB_H8rspDcsTKJ8+AtRB_-v80cmSHfStv1U=e2zbMtsLsC2=+w@mail.gmail.com>
-Subject: Re: [RFC 1/1] v4l: samsung, ov9650: Rely on V4L2-set sub-device names
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        riverful.kim@samsung.com, Akinobu Mita <akinobu.mita@gmail.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.bootlin.com ([62.4.15.54]:60823 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726839AbeIMOjF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Sep 2018 10:39:05 -0400
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        linux-media@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH] staging: cedrus: Fix checkpatch issues
+Date: Thu, 13 Sep 2018 11:30:23 +0200
+Message-Id: <20180913093023.12225-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Checkpatch, when used with --strict, reports a number of issues on the
+cedrus driver.
 
-On Thu, 13 Sep 2018 at 11:21, Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
-[...]
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> index ce196b60f917..64212551524e 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> @@ -1683,7 +1683,7 @@ static int s5c73m3_probe(struct i2c_client *client,
->         v4l2_subdev_init(sd, &s5c73m3_subdev_ops);
->         sd->owner = client->dev.driver->owner;
->         v4l2_set_subdevdata(sd, state);
-> -       strlcpy(sd->name, "S5C73M3", sizeof(sd->name));
-> +       v4l2_i2c_subdev_set_name(sd, client, NULL, NULL);
->
->         sd->internal_ops = &s5c73m3_internal_ops;
->         sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> @@ -1698,7 +1698,7 @@ static int s5c73m3_probe(struct i2c_client *client,
->                 return ret;
->
->         v4l2_i2c_subdev_init(oif_sd, client, &oif_subdev_ops);
-> -       strcpy(oif_sd->name, "S5C73M3-OIF");
-> +       v4l2_i2c_subdev_set_name(sd, client, NULL, "-OIF");
+Fix those warnings, except for a few, minor, lines too long warnings.
 
-I would suggest to change the "OIF-" prefix to lower case, to avoid
-something like
-"s5c73m3-OIF". IIRC client->name is derived from DT compatible string, which is
-in lower case.
-Otherwise looks OK to me.
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ drivers/staging/media/sunxi/cedrus/cedrus.c   | 10 +++++-----
+ drivers/staging/media/sunxi/cedrus/cedrus.h   |  8 +++++---
+ .../staging/media/sunxi/cedrus/cedrus_dec.c   | 10 ++++++----
+ .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 19 ++++++++++++++-----
+ .../staging/media/sunxi/cedrus/cedrus_regs.h  | 16 +++++++++-------
+ .../staging/media/sunxi/cedrus/cedrus_video.c |  6 ++----
+ 6 files changed, 41 insertions(+), 28 deletions(-)
 
---
-Thanks,
-Sylwester
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
+index 0a9363c7db06..d312dec5ab79 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus.c
+@@ -48,7 +48,7 @@ void *cedrus_find_control_data(struct cedrus_ctx *ctx, u32 id)
+ {
+ 	unsigned int i;
+ 
+-	for (i = 0; ctx->ctrls[i] != NULL; i++)
++	for (i = 0; ctx->ctrls[i]; i++)
+ 		if (ctx->ctrls[i]->id == id)
+ 			return ctx->ctrls[i]->p_cur.p;
+ 
+@@ -147,10 +147,10 @@ static int cedrus_request_validate(struct media_request *req)
+ 			continue;
+ 
+ 		ctrl_test = v4l2_ctrl_request_hdl_ctrl_find(hdl,
+-			cedrus_controls[i].id);
++							    cedrus_controls[i].id);
+ 		if (!ctrl_test) {
+ 			v4l2_info(&ctx->dev->v4l2_dev,
+-				 "Missing required codec control\n");
++				  "Missing required codec control\n");
+ 			return -ENOENT;
+ 		}
+ 	}
+@@ -310,8 +310,8 @@ static int cedrus_probe(struct platform_device *pdev)
+ 	dev->mdev.ops = &cedrus_m2m_media_ops;
+ 	dev->v4l2_dev.mdev = &dev->mdev;
+ 
+-	ret = v4l2_m2m_register_media_controller(dev->m2m_dev,
+-			vfd, MEDIA_ENT_F_PROC_VIDEO_DECODER);
++	ret = v4l2_m2m_register_media_controller(dev->m2m_dev, vfd,
++						 MEDIA_ENT_F_PROC_VIDEO_DECODER);
+ 	if (ret) {
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "Failed to initialize V4L2 M2M media controller\n");
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.h b/drivers/staging/media/sunxi/cedrus/cedrus.h
+index 3262341e8c9a..8d171efecc37 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus.h
++++ b/drivers/staging/media/sunxi/cedrus/cedrus.h
+@@ -44,7 +44,7 @@ struct cedrus_control {
+ 	u32			id;
+ 	u32			elem_size;
+ 	enum cedrus_codec	codec;
+-	bool			required;
++	unsigned char		required;
+ };
+ 
+ struct cedrus_mpeg2_run {
+@@ -150,12 +150,14 @@ static inline dma_addr_t cedrus_dst_buf_addr(struct cedrus_ctx *ctx,
+ 	return buf ? cedrus_buf_addr(buf, &ctx->dst_fmt, plane) : 0;
+ }
+ 
+-static inline struct cedrus_buffer *vb2_v4l2_to_cedrus_buffer(const struct vb2_v4l2_buffer *p)
++static inline struct cedrus_buffer *
++vb2_v4l2_to_cedrus_buffer(const struct vb2_v4l2_buffer *p)
+ {
+ 	return container_of(p, struct cedrus_buffer, m2m_buf.vb);
+ }
+ 
+-static inline struct cedrus_buffer *vb2_to_cedrus_buffer(const struct vb2_buffer *p)
++static inline struct cedrus_buffer *
++vb2_to_cedrus_buffer(const struct vb2_buffer *p)
+ {
+ 	return vb2_v4l2_to_cedrus_buffer(to_vb2_v4l2_buffer(p));
+ }
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+index e40180a33951..788811a1414e 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+@@ -43,10 +43,12 @@ void cedrus_device_run(void *priv)
+ 
+ 	switch (ctx->src_fmt.pixelformat) {
+ 	case V4L2_PIX_FMT_MPEG2_SLICE:
+-		run.mpeg2.slice_params = cedrus_find_control_data(ctx,
+-			V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS);
+-		run.mpeg2.quantization = cedrus_find_control_data(ctx,
+-			V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION);
++		run.mpeg2.slice_params =
++			cedrus_find_control_data(ctx,
++						 V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS);
++		run.mpeg2.quantization =
++			cedrus_find_control_data(ctx,
++						 V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION);
+ 		break;
+ 
+ 	default:
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+index 029eb1626bf4..9abd39cae38c 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+@@ -157,14 +157,22 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 
+ 	/* Forward and backward prediction reference buffers. */
+ 
+-	fwd_luma_addr = cedrus_dst_buf_addr(ctx, slice_params->forward_ref_index, 0);
+-	fwd_chroma_addr = cedrus_dst_buf_addr(ctx, slice_params->forward_ref_index, 1);
++	fwd_luma_addr = cedrus_dst_buf_addr(ctx,
++					    slice_params->forward_ref_index,
++					    0);
++	fwd_chroma_addr = cedrus_dst_buf_addr(ctx,
++					      slice_params->forward_ref_index,
++					      1);
+ 
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_LUMA_ADDR, fwd_luma_addr);
+ 	cedrus_write(dev, VE_DEC_MPEG_FWD_REF_CHROMA_ADDR, fwd_chroma_addr);
+ 
+-	bwd_luma_addr = cedrus_dst_buf_addr(ctx, slice_params->backward_ref_index, 0);
+-	bwd_chroma_addr = cedrus_dst_buf_addr(ctx, slice_params->backward_ref_index, 1);
++	bwd_luma_addr = cedrus_dst_buf_addr(ctx,
++					    slice_params->backward_ref_index,
++					    0);
++	bwd_chroma_addr = cedrus_dst_buf_addr(ctx,
++					      slice_params->backward_ref_index,
++					      1);
+ 
+ 	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_LUMA_ADDR, bwd_luma_addr);
+ 	cedrus_write(dev, VE_DEC_MPEG_BWD_REF_CHROMA_ADDR, bwd_chroma_addr);
+@@ -179,7 +187,8 @@ static void cedrus_mpeg2_setup(struct cedrus_ctx *ctx, struct cedrus_run *run)
+ 
+ 	/* Source offset and length in bits. */
+ 
+-	cedrus_write(dev, VE_DEC_MPEG_VLD_OFFSET, slice_params->data_bit_offset);
++	cedrus_write(dev, VE_DEC_MPEG_VLD_OFFSET,
++		     slice_params->data_bit_offset);
+ 
+ 	reg = slice_params->bit_size - slice_params->data_bit_offset;
+ 	cedrus_write(dev, VE_DEC_MPEG_VLD_LEN, reg);
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_regs.h b/drivers/staging/media/sunxi/cedrus/cedrus_regs.h
+index 9b14d1fb94a0..9aa0a04cede5 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_regs.h
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_regs.h
+@@ -71,12 +71,9 @@
+ 
+ #define VE_DEC_MPEG_MP12HDR_SLICE_TYPE(t)	(((t) << 28) & GENMASK(30, 28))
+ #define VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y)	(24 - 4 * (y) - 8 * (x))
+-#define VE_DEC_MPEG_MP12HDR_F_CODE_MASK(x, y) \
+-	GENMASK(VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y) + 3, \
+-		VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y))
+ #define VE_DEC_MPEG_MP12HDR_F_CODE(x, y, v) \
+-	(((v) << VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y)) & \
+-	 VE_DEC_MPEG_MP12HDR_F_CODE_MASK(x, y))
++	(((v) & GENMASK(3, 0)) << VE_DEC_MPEG_MP12HDR_F_CODE_SHIFT(x, y))
++
+ #define VE_DEC_MPEG_MP12HDR_INTRA_DC_PRECISION(p) \
+ 	(((p) << 10) & GENMASK(11, 10))
+ #define VE_DEC_MPEG_MP12HDR_INTRA_PICTURE_STRUCTURE(s) \
+@@ -204,8 +201,13 @@
+ #define VE_DEC_MPEG_VLD_ADDR_FIRST_PIC_DATA	BIT(30)
+ #define VE_DEC_MPEG_VLD_ADDR_LAST_PIC_DATA	BIT(29)
+ #define VE_DEC_MPEG_VLD_ADDR_VALID_PIC_DATA	BIT(28)
+-#define VE_DEC_MPEG_VLD_ADDR_BASE(a) \
+-	(((a) & GENMASK(27, 4)) | (((a) >> 28) & GENMASK(3, 0)))
++#define VE_DEC_MPEG_VLD_ADDR_BASE(a)					\
++	({								\
++		u32 _tmp = (a);						\
++		u32 _lo = _tmp & GENMASK(27, 4);			\
++		u32 _hi = (_tmp >> 28) & GENMASK(3, 0);			\
++		(_lo | _hi);						\
++	})
+ 
+ #define VE_DEC_MPEG_VLD_OFFSET			(VE_ENGINE_DEC_MPEG + 0x2c)
+ #define VE_DEC_MPEG_VLD_LEN			(VE_ENGINE_DEC_MPEG + 0x30)
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_video.c b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
+index bd119d2c4e1f..2da6826b0972 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_video.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_video.c
+@@ -82,10 +82,7 @@ static struct cedrus_format *cedrus_find_format(u32 pixelformat, u32 directions,
+ static bool cedrus_check_format(u32 pixelformat, u32 directions,
+ 				unsigned int capabilities)
+ {
+-	struct cedrus_format *fmt = cedrus_find_format(pixelformat, directions,
+-						       capabilities);
+-
+-	return fmt != NULL;
++	return cedrus_find_format(pixelformat, directions, capabilities);
+ }
+ 
+ static void cedrus_prepare_format(struct v4l2_pix_format *pix_fmt)
+@@ -494,6 +491,7 @@ static void cedrus_buf_request_complete(struct vb2_buffer *vb)
+ 
+ 	v4l2_ctrl_request_complete(vb->req_obj.req, &ctx->hdl);
+ }
++
+ static struct vb2_ops cedrus_qops = {
+ 	.queue_setup		= cedrus_queue_setup,
+ 	.buf_prepare		= cedrus_buf_prepare,
+-- 
+2.17.1
