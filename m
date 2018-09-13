@@ -1,224 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leonov.paulk.fr ([185.233.101.22]:51364 "EHLO leonov.paulk.fr"
+Received: from mga01.intel.com ([192.55.52.88]:6165 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726919AbeIMRYe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 13:24:34 -0400
-Message-ID: <e7126e89d8984eb93216ec75c83ce1fc5afc437d.camel@paulk.fr>
-Subject: Re: [PATCH v5 5/6] media: Add controls for JPEG quantization tables
-From: Paul Kocialkowski <contact@paulk.fr>
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-rockchip@lists.infradead.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Date: Thu, 13 Sep 2018 14:14:53 +0200
-In-Reply-To: <20180905220011.16612-6-ezequiel@collabora.com>
-References: <20180905220011.16612-1-ezequiel@collabora.com>
-         <20180905220011.16612-6-ezequiel@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S1726930AbeIMRyR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Sep 2018 13:54:17 -0400
+Date: Thu, 13 Sep 2018 15:44:25 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v6 06/17] media: v4l2-fwnode: Add a convenience function
+ for registering subdevs with notifiers
+Message-ID: <20180913124425.h5vfjyr3b44j4nxv@paasikivi.fi.intel.com>
+References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+ <1531175957-1973-7-git-send-email-steve_longerbeam@mentor.com>
+ <20180913103727.GB28160@w540>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180913103727.GB28160@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Jacopo,
 
-On Wed, 2018-09-05 at 19:00 -0300, Ezequiel Garcia wrote:
-> From: Shunqian Zheng <zhengsq@rock-chips.com>
+On Thu, Sep 13, 2018 at 12:37:27PM +0200, jacopo mondi wrote:
+> Hi Steve,
 > 
-> Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
-> configure the JPEG quantization tables.
+> On Mon, Jul 09, 2018 at 03:39:06PM -0700, Steve Longerbeam wrote:
+> > Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
+> > for parsing a sub-device's fwnode port endpoints for connected remote
+> > sub-devices, registering a sub-device notifier, and then registering
+> > the sub-device itself.
+> >
+> > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> > ---
+> > Changes since v5:
+> > - add call to v4l2_async_notifier_init().
+> > Changes since v4:
+> > - none
+> > Changes since v3:
+> > - remove support for port sub-devices, such sub-devices will have to
+> >   role their own.
+> > Changes since v2:
+> > - fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
+> >   to put device.
+> > Changes since v1:
+> > - add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
+> >   'struct v4l2_subdev' declaration.
+> > ---
+> >  drivers/media/v4l2-core/v4l2-fwnode.c | 64 +++++++++++++++++++++++++++++++++++
+> >  include/media/v4l2-fwnode.h           | 38 +++++++++++++++++++++
+> >  2 files changed, 102 insertions(+)
+> >
+> > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > index 67ad333..94d867a 100644
+> > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > @@ -872,6 +872,70 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
+> >
+> > +int v4l2_async_register_fwnode_subdev(
 > 
-> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> ---
->  .../media/uapi/v4l/extended-controls.rst      | 31 +++++++++++++++++++
->  .../media/videodev2.h.rst.exceptions          |  1 +
->  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++
->  include/uapi/linux/v4l2-controls.h            | 12 +++++++
->  include/uapi/linux/videodev2.h                |  1 +
->  5 files changed, 55 insertions(+)
+> The meat of this function is to register a subdev with a notifier,
+> so I would make it clear in the function name which is otherwise
+> misleading
 > 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index 9f7312bf3365..1335d27d30f3 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -3354,7 +3354,38 @@ JPEG Control IDs
->      Specify which JPEG markers are included in compressed stream. This
->      control is valid only for encoders.
->  
-> +.. _jpeg-quant-tables-control:
+> > +	struct v4l2_subdev *sd, size_t asd_struct_size,
+> > +	unsigned int *ports, unsigned int num_ports,
+> > +	int (*parse_endpoint)(struct device *dev,
+> > +			      struct v4l2_fwnode_endpoint *vep,
+> > +			      struct v4l2_async_subdev *asd))
+> > +{
+> > +	struct v4l2_async_notifier *notifier;
+> > +	struct device *dev = sd->dev;
+> > +	struct fwnode_handle *fwnode;
+> > +	int ret;
+> > +
+> > +	if (WARN_ON(!dev))
+> > +		return -ENODEV;
+> > +
+> > +	fwnode = dev_fwnode(dev);
+> > +	if (!fwnode_device_is_available(fwnode))
+> > +		return -ENODEV;
+> > +
+> > +	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
+> > +	if (!notifier)
+> > +		return -ENOMEM;
+> > +
+> > +	v4l2_async_notifier_init(notifier);
+> > +
+> > +	if (!ports) {
+> > +		ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > +			dev, notifier, asd_struct_size, parse_endpoint);
+> > +		if (ret < 0)
+> > +			goto out_cleanup;
+> > +	} else {
+> > +		unsigned int i;
+> > +
+> > +		for (i = 0; i < num_ports; i++) {
+> 
+> It's not particularly exciting to iterate on pointers received from
+> callers without checking for num_ports first.
 
-I just had a look at how the Allwinner VPU handles JPEG decoding and it
-seems to require the following information (in addition to
-quantization):
+The loop is not executed if num_ports is zero, so I don't see a problem
+with that.
 
-* Horizontal and vertical sampling factors for each Y/U/V component:
+> 
+> Also the caller has to allocate an array of "ports" and keep track of it
+> just to pass it to this function and I don't see a way to set the
+> notifier's ops before the notifier gets registered here below.
 
-The number of components and sampling factors are coded separately in
-the bitstream, but it's probably easier to use the already-existing
-V4L2_CID_JPEG_CHROMA_SUBSAMPLING control for specifying that.
+True; this can be seen as an omission but quite a few drivers have no need
+for this either. It could be added later on --- I think it'd make perfect
+sense.
 
-However, this is potentially very much related to the destination
-format. If we decide that this format should match the format resulting
-from decompression, we don't need to specify it through an external
-control. On the other hand, it's possible that the VPU has format
-conversion block integrated in its pipeline so it would also make sense
-to consider the destination format as independent.
+> 
+> > +			ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> > +				dev, notifier, asd_struct_size,
+> > +				ports[i], parse_endpoint);
+> > +			if (ret < 0)
+> > +				goto out_cleanup;
+> > +		}
+> > +	}
+> > +
+> > +	ret = v4l2_async_subdev_notifier_register(sd, notifier);
+> > +	if (ret < 0)
+> > +		goto out_cleanup;
+> > +
+> > +	ret = v4l2_async_register_subdev(sd);
+> > +	if (ret < 0)
+> > +		goto out_unregister;
+> > +
+> > +	sd->subdev_notifier = notifier;
+> 
+> This is set already by v4l2_async_subdev_notifier_register()
 
-* Custom Huffman tables (DC and AC), both for luma and chroma
+The same pattern is actually present in
+v4l2_async_register_subdev_sensor_common(). It's used in unregistration
+that can only happen after the registration, i.e. this function, has
+completed.
 
-It seems that there is a default table when no Huffman table is provided
-in the bitstream (I'm not too sure how standard that is, just started
-learning about JPEG). We probably need a specific control for that.
+> 
+> In general, I have doubts this function is really needed. It requires
+> the caller to reserve memory just to pass down a list of intergers,
+> and there is no way to set subdev ops.
+> 
+> Could you have a look at how drivers/media/platform/rcar-vin/rcar-csi2.c
+> registers a subdevice and an associated notifier and see if in your
+> opinion it can be implemented in the same way in your imx csi/csi2 driver,
+> or you still like this one most?
 
-* Reset interval
+I was actually thinking of changing this later on a bit. I came to think of
+this after picking up the patchset to my tree... oh well.
 
-That's extracted from the bitstream as well and there's a
-V4L2_CID_JPEG_RESTART_INTERVAL control already.
+This function is meant for cases where you have multiple ports. That's not
+working very nicely at the moment, and even with my patches, you can't pass
+default configuration to e.g. v4l2_async_notifier_parse_fwnode_endpoints().
+So there's definitely work to do. I'd like to move the details of parsing
+out of drivers; every driver is doing almost the same but just in a little
+bit different way.
 
-In addition to these points, I see that among all the JPEG profiles,
-some have to do with arithmetic coding which will probably require a
-specific control on its own (not sure how it should look at this point
-though).
+The arguments should to be put into a struct. That way we get rid of a very
+long series of hard-to-read function arguments, as well as we don't need to
+change every caller when the function gets something new and interesting to
+do.
 
-What do you think?
+Right now the entire patchset is so big (40 patches) that I'd prefer to get
+it in unless serious issues are found, and proceed the development on top.
 
-Cheers,
-
-Paul
-
-> +``V4L2_CID_JPEG_QUANTIZATION (struct)``
-> +    Specifies the luma and chroma quantization matrices for encoding
-> +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The :ref:`itu-t81`
-> +    specification allows 8-bit quantization coefficients for
-> +    baseline profile images, and 8-bit or 16-bit for extended profile
-> +    images. Supporting or not 16-bit precision coefficients is driver-specific.
-> +    Coefficients must be set in JPEG zigzag scan order.
-> +
-> +
-> +.. c:type:: struct v4l2_ctrl_jpeg_quantization
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: struct v4l2_ctrl_jpeg_quantization
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +    :widths:       1 1 2
-> +
-> +    * - __u8
-> +      - ``precision``
-> +      - Specifies the coefficient precision. User shall set 0
-> +        for 8-bit, and 1 for 16-bit.
-> +
-> +    * - __u16
-> +      - ``luma_quantization_matrix[64]``
-> +      - Sets the luma quantization table.
-> +
-> +    * - __u16
-> +      - ``chroma_quantization_matrix[64]``
-> +      - Sets the chroma quantization table.
->  
->  .. flat-table::
->      :header-rows:  0
-> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-> index ca9f0edc579e..a0a38e92bf38 100644
-> --- a/Documentation/media/videodev2.h.rst.exceptions
-> +++ b/Documentation/media/videodev2.h.rst.exceptions
-> @@ -129,6 +129,7 @@ replace symbol V4L2_CTRL_TYPE_STRING :c:type:`v4l2_ctrl_type`
->  replace symbol V4L2_CTRL_TYPE_U16 :c:type:`v4l2_ctrl_type`
->  replace symbol V4L2_CTRL_TYPE_U32 :c:type:`v4l2_ctrl_type`
->  replace symbol V4L2_CTRL_TYPE_U8 :c:type:`v4l2_ctrl_type`
-> +replace symbol V4L2_CTRL_TYPE_JPEG_QUANTIZATION :c:type:`v4l2_ctrl_type`
->  
->  # V4L2 capability defines
->  replace define V4L2_CAP_VIDEO_CAPTURE device-capabilities
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 599c1cbff3b9..305bd7a9b7f1 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -999,6 +999,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
->  	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
->  	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
-> +	case V4L2_CID_JPEG_QUANTIZATION:	return "JPEG Quantization Tables";
->  
->  	/* Image source controls */
->  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-> @@ -1286,6 +1287,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_DETECT_MD_REGION_GRID:
->  		*type = V4L2_CTRL_TYPE_U8;
->  		break;
-> +	case V4L2_CID_JPEG_QUANTIZATION:
-> +		*type = V4L2_CTRL_TYPE_JPEG_QUANTIZATION;
-> +		break;
->  	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
->  		*type = V4L2_CTRL_TYPE_U16;
->  		break;
-> @@ -1612,6 +1616,9 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->  			return -ERANGE;
->  		return 0;
->  
-> +	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
-> +		return 0;
-> +
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -2133,6 +2140,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->  	case V4L2_CTRL_TYPE_U32:
->  		elem_size = sizeof(u32);
->  		break;
-> +	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
-> +		elem_size = sizeof(struct v4l2_ctrl_jpeg_quantization);
-> +		break;
->  	default:
->  		if (type < V4L2_CTRL_COMPOUND_TYPES)
->  			elem_size = sizeof(s32);
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index e4ee10ee917d..856b3325052f 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -987,6 +987,18 @@ enum v4l2_jpeg_chroma_subsampling {
->  #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
->  #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
->  
-> +#define V4L2_CID_JPEG_QUANTIZATION		(V4L2_CID_JPEG_CLASS_BASE + 5)
-> +struct v4l2_ctrl_jpeg_quantization {
-> +	/* ITU-T.81 specifies two quantization coefficient precisions:
-> +	 * 8-bit for baseline profile,
-> +	 * 8-bit or 16-bit for extended profile.
-> +	 *
-> +	 * User shall set "precision" to 0 for 8-bit and 1 for 16-bit.
-> +	 */
-> +	__u8	precision;
-> +	__u16	luma_quantization_matrix[64];
-> +	__u16	chroma_quantization_matrix[64];
-> +};
->  
->  /* Image source controls */
->  #define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index f9f3ae5b489e..8ace47cb1003 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1637,6 +1637,7 @@ enum v4l2_ctrl_type {
->  	V4L2_CTRL_TYPE_U8	     = 0x0100,
->  	V4L2_CTRL_TYPE_U16	     = 0x0101,
->  	V4L2_CTRL_TYPE_U32	     = 0x0102,
-> +	V4L2_CTRL_TYPE_JPEG_QUANTIZATION = 0x0103,
->  };
->  
->  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
 -- 
-Developer of free digital technology and hardware support.
+Kind regards,
 
-Website: https://www.paulk.fr/
-Coding blog: https://code.paulk.fr/
-Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
+Sakari Ailus
+sakari.ailus@linux.intel.com
