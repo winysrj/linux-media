@@ -1,182 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:43826 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727332AbeIMR7J (ORCPT
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:37627 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727656AbeIMSIZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 13:59:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Lars-Peter Clausen <lars@metafoo.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/4] cec: make cec_get_edid_spa_location() an inline function
-Date: Thu, 13 Sep 2018 14:49:41 +0200
-Message-Id: <20180913124944.39863-2-hverkuil@xs4all.nl>
-In-Reply-To: <20180913124944.39863-1-hverkuil@xs4all.nl>
-References: <20180913124944.39863-1-hverkuil@xs4all.nl>
+        Thu, 13 Sep 2018 14:08:25 -0400
+Date: Thu, 13 Sep 2018 14:58:57 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sebastian Reichel <sre@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v6 06/17] media: v4l2-fwnode: Add a convenience function
+ for registering subdevs with notifiers
+Message-ID: <20180913125857.GC11509@w540>
+References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+ <1531175957-1973-7-git-send-email-steve_longerbeam@mentor.com>
+ <20180913103727.GB28160@w540>
+ <20180913124425.h5vfjyr3b44j4nxv@paasikivi.fi.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="lCAWRPmW1mITcIfM"
+Content-Disposition: inline
+In-Reply-To: <20180913124425.h5vfjyr3b44j4nxv@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This function is needed by both V4L2 and CEC, so move this to
-cec.h as a static inline since there are no obvious shared
-modules between the two subsystems.
+--lCAWRPmW1mITcIfM
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-edid.c | 60 -------------------------------
- include/media/cec.h          | 70 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+), 60 deletions(-)
+Hi Sakari,
 
-diff --git a/drivers/media/cec/cec-edid.c b/drivers/media/cec/cec-edid.c
-index ec72ac1c0b91..f587e8eaefd8 100644
---- a/drivers/media/cec/cec-edid.c
-+++ b/drivers/media/cec/cec-edid.c
-@@ -10,66 +10,6 @@
- #include <linux/types.h>
- #include <media/cec.h>
- 
--/*
-- * This EDID is expected to be a CEA-861 compliant, which means that there are
-- * at least two blocks and one or more of the extensions blocks are CEA-861
-- * blocks.
-- *
-- * The returned location is guaranteed to be < size - 1.
-- */
--static unsigned int cec_get_edid_spa_location(const u8 *edid, unsigned int size)
--{
--	unsigned int blocks = size / 128;
--	unsigned int block;
--	u8 d;
--
--	/* Sanity check: at least 2 blocks and a multiple of the block size */
--	if (blocks < 2 || size % 128)
--		return 0;
--
--	/*
--	 * If there are fewer extension blocks than the size, then update
--	 * 'blocks'. It is allowed to have more extension blocks than the size,
--	 * since some hardware can only read e.g. 256 bytes of the EDID, even
--	 * though more blocks are present. The first CEA-861 extension block
--	 * should normally be in block 1 anyway.
--	 */
--	if (edid[0x7e] + 1 < blocks)
--		blocks = edid[0x7e] + 1;
--
--	for (block = 1; block < blocks; block++) {
--		unsigned int offset = block * 128;
--
--		/* Skip any non-CEA-861 extension blocks */
--		if (edid[offset] != 0x02 || edid[offset + 1] != 0x03)
--			continue;
--
--		/* search Vendor Specific Data Block (tag 3) */
--		d = edid[offset + 2] & 0x7f;
--		/* Check if there are Data Blocks */
--		if (d <= 4)
--			continue;
--		if (d > 4) {
--			unsigned int i = offset + 4;
--			unsigned int end = offset + d;
--
--			/* Note: 'end' is always < 'size' */
--			do {
--				u8 tag = edid[i] >> 5;
--				u8 len = edid[i] & 0x1f;
--
--				if (tag == 3 && len >= 5 && i + len <= end &&
--				    edid[i + 1] == 0x03 &&
--				    edid[i + 2] == 0x0c &&
--				    edid[i + 3] == 0x00)
--					return i + 4;
--				i += len + 1;
--			} while (i < end);
--		}
--	}
--	return 0;
--}
--
- u16 cec_get_edid_phys_addr(const u8 *edid, unsigned int size,
- 			   unsigned int *offset)
- {
-diff --git a/include/media/cec.h b/include/media/cec.h
-index ff9847f7f99d..603f2fa08f62 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -461,4 +461,74 @@ static inline void cec_phys_addr_invalidate(struct cec_adapter *adap)
- 	cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
- }
- 
-+/**
-+ * cec_get_edid_spa_location() - find location of the Source Physical Address
-+ *
-+ * @edid: the EDID
-+ * @size: the size of the EDID
-+ *
-+ * This EDID is expected to be a CEA-861 compliant, which means that there are
-+ * at least two blocks and one or more of the extensions blocks are CEA-861
-+ * blocks.
-+ *
-+ * The returned location is guaranteed to be <= size-2.
-+ *
-+ * This is an inline function since it is used by both CEC and V4L2.
-+ * Ideally this would go in a module shared by both, but it is overkill to do
-+ * that for just a single function.
-+ */
-+static inline unsigned int cec_get_edid_spa_location(const u8 *edid,
-+						     unsigned int size)
-+{
-+	unsigned int blocks = size / 128;
-+	unsigned int block;
-+	u8 d;
-+
-+	/* Sanity check: at least 2 blocks and a multiple of the block size */
-+	if (blocks < 2 || size % 128)
-+		return 0;
-+
-+	/*
-+	 * If there are fewer extension blocks than the size, then update
-+	 * 'blocks'. It is allowed to have more extension blocks than the size,
-+	 * since some hardware can only read e.g. 256 bytes of the EDID, even
-+	 * though more blocks are present. The first CEA-861 extension block
-+	 * should normally be in block 1 anyway.
-+	 */
-+	if (edid[0x7e] + 1 < blocks)
-+		blocks = edid[0x7e] + 1;
-+
-+	for (block = 1; block < blocks; block++) {
-+		unsigned int offset = block * 128;
-+
-+		/* Skip any non-CEA-861 extension blocks */
-+		if (edid[offset] != 0x02 || edid[offset + 1] != 0x03)
-+			continue;
-+
-+		/* search Vendor Specific Data Block (tag 3) */
-+		d = edid[offset + 2] & 0x7f;
-+		/* Check if there are Data Blocks */
-+		if (d <= 4)
-+			continue;
-+		if (d > 4) {
-+			unsigned int i = offset + 4;
-+			unsigned int end = offset + d;
-+
-+			/* Note: 'end' is always < 'size' */
-+			do {
-+				u8 tag = edid[i] >> 5;
-+				u8 len = edid[i] & 0x1f;
-+
-+				if (tag == 3 && len >= 5 && i + len <= end &&
-+				    edid[i + 1] == 0x03 &&
-+				    edid[i + 2] == 0x0c &&
-+				    edid[i + 3] == 0x00)
-+					return i + 4;
-+				i += len + 1;
-+			} while (i < end);
-+		}
-+	}
-+	return 0;
-+}
-+
- #endif /* _MEDIA_CEC_H */
--- 
-2.18.0
+On Thu, Sep 13, 2018 at 03:44:25PM +0300, Sakari Ailus wrote:
+> Hi Jacopo,
+>
+> On Thu, Sep 13, 2018 at 12:37:27PM +0200, jacopo mondi wrote:
+> > Hi Steve,
+> >
+> > On Mon, Jul 09, 2018 at 03:39:06PM -0700, Steve Longerbeam wrote:
+> > > Adds v4l2_async_register_fwnode_subdev(), which is a convenience function
+> > > for parsing a sub-device's fwnode port endpoints for connected remote
+> > > sub-devices, registering a sub-device notifier, and then registering
+> > > the sub-device itself.
+> > >
+> > > Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> > > ---
+> > > Changes since v5:
+> > > - add call to v4l2_async_notifier_init().
+> > > Changes since v4:
+> > > - none
+> > > Changes since v3:
+> > > - remove support for port sub-devices, such sub-devices will have to
+> > >   role their own.
+> > > Changes since v2:
+> > > - fix error-out path in v4l2_async_register_fwnode_subdev() that forgot
+> > >   to put device.
+> > > Changes since v1:
+> > > - add #include <media/v4l2-subdev.h> to v4l2-fwnode.h for
+> > >   'struct v4l2_subdev' declaration.
+> > > ---
+> > >  drivers/media/v4l2-core/v4l2-fwnode.c | 64 +++++++++++++++++++++++++++++++++++
+> > >  include/media/v4l2-fwnode.h           | 38 +++++++++++++++++++++
+> > >  2 files changed, 102 insertions(+)
+> > >
+> > > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > > index 67ad333..94d867a 100644
+> > > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> > > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> > > @@ -872,6 +872,70 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
+> > >
+> > > +int v4l2_async_register_fwnode_subdev(
+> >
+> > The meat of this function is to register a subdev with a notifier,
+> > so I would make it clear in the function name which is otherwise
+> > misleading
+> >
+> > > +	struct v4l2_subdev *sd, size_t asd_struct_size,
+> > > +	unsigned int *ports, unsigned int num_ports,
+> > > +	int (*parse_endpoint)(struct device *dev,
+> > > +			      struct v4l2_fwnode_endpoint *vep,
+> > > +			      struct v4l2_async_subdev *asd))
+> > > +{
+> > > +	struct v4l2_async_notifier *notifier;
+> > > +	struct device *dev = sd->dev;
+> > > +	struct fwnode_handle *fwnode;
+> > > +	int ret;
+> > > +
+> > > +	if (WARN_ON(!dev))
+> > > +		return -ENODEV;
+> > > +
+> > > +	fwnode = dev_fwnode(dev);
+> > > +	if (!fwnode_device_is_available(fwnode))
+> > > +		return -ENODEV;
+> > > +
+> > > +	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
+> > > +	if (!notifier)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	v4l2_async_notifier_init(notifier);
+> > > +
+> > > +	if (!ports) {
+> > > +		ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> > > +			dev, notifier, asd_struct_size, parse_endpoint);
+> > > +		if (ret < 0)
+> > > +			goto out_cleanup;
+> > > +	} else {
+> > > +		unsigned int i;
+> > > +
+> > > +		for (i = 0; i < num_ports; i++) {
+> >
+> > It's not particularly exciting to iterate on pointers received from
+> > callers without checking for num_ports first.
+>
+> The loop is not executed if num_ports is zero, so I don't see a problem
+> with that.
+>
+
+I know this is internal drivers API and failures are meant to be
+catched early in development, but what if the actual number of ports
+identifiers is < then the num_ports parameter?
+
+> >
+> > Also the caller has to allocate an array of "ports" and keep track of it
+> > just to pass it to this function and I don't see a way to set the
+> > notifier's ops before the notifier gets registered here below.
+>
+> True; this can be seen as an omission but quite a few drivers have no need
+> for this either. It could be added later on --- I think it'd make perfect
+> sense.
+>
+
+In a 'notifier configuration' structure that gather these and existing
+function parameters together as you suggested...
+
+> >
+> > > +			ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+> > > +				dev, notifier, asd_struct_size,
+> > > +				ports[i], parse_endpoint);
+> > > +			if (ret < 0)
+> > > +				goto out_cleanup;
+> > > +		}
+> > > +	}
+> > > +
+> > > +	ret = v4l2_async_subdev_notifier_register(sd, notifier);
+> > > +	if (ret < 0)
+> > > +		goto out_cleanup;
+> > > +
+> > > +	ret = v4l2_async_register_subdev(sd);
+> > > +	if (ret < 0)
+> > > +		goto out_unregister;
+> > > +
+> > > +	sd->subdev_notifier = notifier;
+> >
+> > This is set already by v4l2_async_subdev_notifier_register()
+>
+> The same pattern is actually present in
+> v4l2_async_register_subdev_sensor_common(). It's used in unregistration
+> that can only happen after the registration, i.e. this function, has
+> completed.
+>
+> >
+> > In general, I have doubts this function is really needed. It requires
+> > the caller to reserve memory just to pass down a list of intergers,
+> > and there is no way to set subdev ops.
+> >
+> > Could you have a look at how drivers/media/platform/rcar-vin/rcar-csi2.c
+> > registers a subdevice and an associated notifier and see if in your
+> > opinion it can be implemented in the same way in your imx csi/csi2 driver,
+> > or you still like this one most?
+>
+> I was actually thinking of changing this later on a bit. I came to think of
+> this after picking up the patchset to my tree... oh well.
+>
+> This function is meant for cases where you have multiple ports. That's not
+> working very nicely at the moment, and even with my patches, you can't pass
+> default configuration to e.g. v4l2_async_notifier_parse_fwnode_endpoints().
+> So there's definitely work to do. I'd like to move the details of parsing
+> out of drivers; every driver is doing almost the same but just in a little
+> bit different way.
+>
+
+I see...
+
+> The arguments should to be put into a struct. That way we get rid of a very
+> long series of hard-to-read function arguments, as well as we don't need to
+> change every caller when the function gets something new and interesting to
+> do.
+>
+> Right now the entire patchset is so big (40 patches) that I'd prefer to get
+> it in unless serious issues are found, and proceed the development on top.
+>
+
+Sure, please go ahead and thanks for the reply.
+
+Cheers
+   j
+
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+
+--lCAWRPmW1mITcIfM
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbml8RAAoJEHI0Bo8WoVY8LjkQALnhBfdcw/AMi9GaQaOxJHh6
+LkwJsSEl4VEb37w2YLjArZeE8udzMWfG9GftYHYalchRA9yhnsAJODl6czGtE4LP
+eHqKGehd/iAMlZ2aEKifIN63WVHV6YBuY7DhFbQ370EeeToLwEdSwGeBp/ot1tGd
+BbRA3Bd0e50gnUcX79TUbe3wAKoTcKMjXANZ4M3AOdvoYBhVYq8DLqjL2EtIEPJF
+b2ieoRO491aJdUvy0tWHI3ZA4fTfAglkNIQoAUbBq3cKOGLAa9SktOKnGiwXNPXA
+yQPGkuThxUQmQWoPmPYKXZER0HkbPTKIenst/sGNXKoHwthQkXma1NBXUieVloCb
+HwYR6a9qlJAXOYoctPPZXKhllR+1NlDR1KSu7UUv03JDY6SXnaRmGiSxnxyujqd1
+OYYy+p4BH2lXXI4+XcJYIR/uPWMiSm8xkNiLOI6u+u/t+zhh8RBtDFgM2tQOC7aq
+6vGP7OdfPTtXmQujBIURlDj3pqVw+M9mhIdu4KQ/rKhD025oOXa+nDpcnILrkyAQ
+oXmZp/2aaCyW7WY+Iqd7T3AfPfSkK1rHrrrJxNP4vYN6ldG+BDnp2MR+HSY3i1YF
+6VS40jxEQ/rvWKRzZrtZUlKu10WfUB5QG3JQ52wBXCIRE7BYnYWEhlRV0d9kYWUi
+GdpS2R3ZyVP8o9u1pOw8
+=nFhZ
+-----END PGP SIGNATURE-----
+
+--lCAWRPmW1mITcIfM--
