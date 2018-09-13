@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:44554 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:44535 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727690AbeIMTwG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 15:52:06 -0400
+        id S1727690AbeIMTut (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Sep 2018 15:50:49 -0400
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         linux-media@vger.kernel.org,
         Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH RESEND v2] staging: cedrus: Fix checkpatch issues
-Date: Thu, 13 Sep 2018 16:42:04 +0200
-Message-Id: <20180913144204.6810-1-maxime.ripard@bootlin.com>
+Subject: [PATCH v2] staging: cedrus: Fix checkpatch issues
+Date: Thu, 13 Sep 2018 16:40:47 +0200
+Message-Id: <20180913144047.6390-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -23,8 +23,6 @@ Fix those warnings, except for a few, minor, lines too long warnings.
 Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
 
-Resent since some changes were left uncommitted.
-
 Changes from v1:
   - Removed the find_control wrapping
   - Added the bit length to the required variable
@@ -32,10 +30,11 @@ Changes from v1:
 
  drivers/staging/media/sunxi/cedrus/cedrus.c   | 10 +++++-----
  drivers/staging/media/sunxi/cedrus/cedrus.h   |  8 +++++---
+ .../staging/media/sunxi/cedrus/cedrus_dec.c   | 10 ++++++----
  .../staging/media/sunxi/cedrus/cedrus_mpeg2.c | 19 ++++++++++++++-----
  .../staging/media/sunxi/cedrus/cedrus_regs.h  | 18 ++++++++++--------
  .../staging/media/sunxi/cedrus/cedrus_video.c |  6 ++----
- 5 files changed, 36 insertions(+), 25 deletions(-)
+ 6 files changed, 42 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/staging/media/sunxi/cedrus/cedrus.c b/drivers/staging/media/sunxi/cedrus/cedrus.c
 index 1f5f20a1f849..82558455384a 100644
@@ -104,6 +103,27 @@ index 3262341e8c9a..3f61248c57ac 100644
  {
  	return vb2_v4l2_to_cedrus_buffer(to_vb2_v4l2_buffer(p));
  }
+diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+index e40180a33951..788811a1414e 100644
+--- a/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
++++ b/drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+@@ -43,10 +43,12 @@ void cedrus_device_run(void *priv)
+ 
+ 	switch (ctx->src_fmt.pixelformat) {
+ 	case V4L2_PIX_FMT_MPEG2_SLICE:
+-		run.mpeg2.slice_params = cedrus_find_control_data(ctx,
+-			V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS);
+-		run.mpeg2.quantization = cedrus_find_control_data(ctx,
+-			V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION);
++		run.mpeg2.slice_params =
++			cedrus_find_control_data(ctx,
++						 V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS);
++		run.mpeg2.quantization =
++			cedrus_find_control_data(ctx,
++						 V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION);
+ 		break;
+ 
+ 	default:
 diff --git a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c b/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
 index 029eb1626bf4..9abd39cae38c 100644
 --- a/drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
