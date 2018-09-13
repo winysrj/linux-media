@@ -1,61 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:51870 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726792AbeIMOe7 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44246 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726945AbeIMOdQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Sep 2018 10:34:59 -0400
-Received: by mail-wm0-f66.google.com with SMTP id y2-v6so5358440wma.1
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2018 02:26:20 -0700 (PDT)
-Date: Thu, 13 Sep 2018 10:26:07 +0100
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH] drm/i2c/tda9950.c: set MAX_RETRIES for errors only
-Message-ID: <20180913092607.GA21564@juma.lan>
-References: <6109476a-e8fa-6d82-3ed8-3833f0f18615@xs4all.nl>
+        Thu, 13 Sep 2018 10:33:16 -0400
+Date: Thu, 13 Sep 2018 12:24:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] v4l2-common: fix typo in documentation for
+ v4l_bound_align_image()
+Message-ID: <20180913092437.knojzf2bzzcb4urh@valkosipuli.retiisi.org.uk>
+References: <20180913000738.1674-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <6109476a-e8fa-6d82-3ed8-3833f0f18615@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180913000738.1674-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thanks for the patch.
-
-On Mon, Aug 27, 2018 at 02:28:50PM +0200, Hans Verkuil wrote:
-> The CEC_TX_STATUS_MAX_RETRIES should be set for errors only to
-> prevent the CEC framework from retrying the transmit. If the
-> transmit was successful, then don't set this flag.
-> 
-> Found by running 'cec-compliance -A' on a beaglebone box.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Sep 13, 2018 at 02:07:38AM +0200, Niklas Söderlund wrote:
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
->  drivers/gpu/drm/i2c/tda9950.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  include/media/v4l2-common.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/gpu/drm/i2c/tda9950.c b/drivers/gpu/drm/i2c/tda9950.c
-> index 5d2f0d548469..4a14fc3b5011 100644
-> --- a/drivers/gpu/drm/i2c/tda9950.c
-> +++ b/drivers/gpu/drm/i2c/tda9950.c
-> @@ -191,7 +191,8 @@ static irqreturn_t tda9950_irq(int irq, void *data)
->  			break;
->  		}
->  		/* TDA9950 executes all retries for us */
-> -		tx_status |= CEC_TX_STATUS_MAX_RETRIES;
-> +		if (tx_status != CEC_TX_STATUS_OK)
-> +			tx_status |= CEC_TX_STATUS_MAX_RETRIES;
->  		cec_transmit_done(priv->adap, tx_status, arb_lost_cnt,
->  				  nack_cnt, 0, err_cnt);
->  		break;
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index cdc87ec61e54c856..7c97951a85e15d6b 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -283,7 +283,7 @@ struct v4l2_priv_tun_config {
+>   * @height:	pointer to height that will be adjusted if needed.
+>   * @hmin:	minimum height.
+>   * @hmax:	maximum height.
+> - * @halign:	least significant bit on width.
+> + * @halign:	least significant bit on height.
+>   * @salign:	least significant bit for the image size (e. g.
+>   *		:math:`width * height`).
+>   *
 
-Reviewed-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-> -- 
-> 2.18.0
-> 
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
