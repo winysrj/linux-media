@@ -1,99 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:33790 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:37316 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726748AbeIOAN5 (ORCPT
+        with ESMTP id S1727002AbeIOAYh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 20:13:57 -0400
-Date: Fri, 14 Sep 2018 15:57:56 -0300
+        Fri, 14 Sep 2018 20:24:37 -0400
+Date: Fri, 14 Sep 2018 16:08:45 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, mchehab@kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com, kernel@pengutronix.de,
-        devicetree@vger.kernel.org, p.zabel@pengutronix.de,
-        javierm@redhat.com, laurent.pinchart@ideasonboard.com,
-        afshin.nasser@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 7/7] [media] tvp5150: add s_power callback
-Message-ID: <20180914155756.1734a15c@coco.lan>
-In-Reply-To: <20180914182046.y73rpgdwxfm2uchu@pengutronix.de>
-References: <20180813092508.1334-1-m.felsch@pengutronix.de>
-        <20180813092508.1334-8-m.felsch@pengutronix.de>
-        <20180914132352.ta2g64slkttr5bdo@paasikivi.fi.intel.com>
-        <20180914182046.y73rpgdwxfm2uchu@pengutronix.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/4] em28xx: solve several issues pointed by
+ v4l2-compliance
+Message-ID: <20180914160845.0e2864b9@coco.lan>
+In-Reply-To: <cover.1536949178.git.mchehab+samsung@kernel.org>
+References: <cover.1536949178.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 14 Sep 2018 20:20:46 +0200
-Marco Felsch <m.felsch@pengutronix.de> escreveu:
+Em Fri, 14 Sep 2018 15:22:30 -0300
+Mauro Carvalho Chehab <mchehab+samsung@kernel.org> escreveu:
 
-> Hi Sakari,
+> There are several non-compliance issues on em28xx.  Fix those that
+> I can hit with a simple grabber board like Terratec AV 350.
 > 
-> On 18-09-14 16:23, Sakari Ailus wrote:
-> > Hi Marco,
-> > 
-> > On Mon, Aug 13, 2018 at 11:25:08AM +0200, Marco Felsch wrote:  
-> > > Don't en-/disable the interrupts during s_stream because someone can
-> > > disable the stream but wants to get informed if the stream is locked
-> > > again. So keep the interrupts enabled the whole time the pipeline is
-> > > opened.
-> > > 
-> > > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> > > ---
-> > >  drivers/media/i2c/tvp5150.c | 23 +++++++++++++++++------
-> > >  1 file changed, 17 insertions(+), 6 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> > > index e736f609fecd..e296f5bfae21 100644
-> > > --- a/drivers/media/i2c/tvp5150.c
-> > > +++ b/drivers/media/i2c/tvp5150.c
-> > > @@ -1389,11 +1389,26 @@ static const struct media_entity_operations tvp5150_sd_media_ops = {
-> > >  /****************************************************************************
-> > >  			I2C Command
-> > >   ****************************************************************************/
-> > > +static int tvp5150_s_power(struct  v4l2_subdev *sd, int on)
-> > > +{
-> > > +	struct tvp5150 *decoder = to_tvp5150(sd);
-> > > +	unsigned int val = 0;
-> > > +
-> > > +	if (on)
-> > > +		val = TVP5150_INT_A_LOCK;
-> > > +
-> > > +	if (decoder->irq)
-> > > +		/* Enable / Disable lock interrupt */
-> > > +		regmap_update_bits(decoder->regmap, TVP5150_INT_ENABLE_REG_A,
-> > > +				   TVP5150_INT_A_LOCK, val);  
-> > 
-> > Could you use runtime PM instead?  
+> I also tested it with a WinTV USB2. There, I got several other compliants
+> all related to msp3400 driver and step size. Fixing those is more complex,
+> as it would require some non-trivial changes. So, for now, let's do just
+> the ones that aren't related to msp3400.
 > 
-> I will test it next monday. What's the different between s_power and
-> runtime PM?
+> Mauro Carvalho Chehab (4):
+>   media: em28xx: fix handler for vidioc_s_input()
+>   media: em28xx: use a default format if TRY_FMT fails
+>   media: em28xx: fix input name for Terratec AV 350
+>   media: em28xx: make v4l2-compliance happier by starting sequence on
+>     zero
 > 
-> > 
-> > For an example, the dw9714 driver does this: drivers/media/i2c/dw9714.c .  
+>  drivers/media/usb/em28xx/em28xx-cards.c | 33 ++++++++-
+>  drivers/media/usb/em28xx/em28xx-video.c | 91 ++++++++++++++++++++++---
+>  drivers/media/usb/em28xx/em28xx.h       |  8 ++-
+>  3 files changed, 118 insertions(+), 14 deletions(-)
 > 
-> Hopefully I got you right, should I use the
-> v4l2_subdev_internal_ops.open/close and call the pm_runtime_put/get
-> there or did you mean the driver.pm callbacks? I'm not that familiar
-> with the pm ops at the moment, sorry.
 
-I guess the main issue here is: will this work if the bridge
-driver is em28xx?
+Btw, if one wants to see the results for v4l2-compliance,
+I applied those together with my tvp5150-4 test git branch:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-4
 
-Whatever change we do, tvp5150 should still fully work with em28xx,
-as several devices use this demod there.
-
-Changing em28xx to cope with runtime PM would be *very* complex,
-as there are lots of other drivers that can work with it, and
-touching those will affect lots of other drivers. At the end, it
-will very likely affect all PCI/PCIe V4L2 drivers, and several
-USB ones.
-
-If it can be done without affecting PM with em28xx, let's do it.
-Otherwise, let's stick with s_power on this series, and let 
-the mass PM rework on non-platform drivers to happen on some
-separate patchset.
+Results enclosed.
 
 Thanks,
 Mauro
+
+$ v4l2-compliance -s
+v4l2-compliance SHA: bc71e4a67c6fbc5940062843bc41e7c8679634ce, 64 bits
+
+Compliance test for device /dev/video0:
+
+Driver Info:
+	Driver name      : em28xx
+	Card type        : Terratec AV350
+	Bus info         : usb-0000:00:14.0-2
+	Driver version   : 4.19.0
+	Capabilities     : 0x85220011
+		Video Capture
+		VBI Capture
+		Audio
+		Read/Write
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x05220001
+		Video Capture
+		Audio
+		Read/Write
+		Streaming
+		Extended Pix Format
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second /dev/video0 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK
+	Inputs: 2 Audio Inputs: 1 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls (Input 0):
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 13 Private Controls: 0
+
+Format ioctls (Input 0):
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls (Input 0):
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls (Input 0):
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK (Not Supported)
+
+Control ioctls (Input 1):
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 13 Private Controls: 0
+
+Format ioctls (Input 1):
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls (Input 1):
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls (Input 1):
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK
+	test blocking wait: OK
+	test MMAP: OK                                     
+	test USERPTR: OK                                  
+	test DMABUF: Cannot test, specify --expbuf-device
+
+Total: 68, Succeeded: 68, Failed: 0, Warnings: 0
