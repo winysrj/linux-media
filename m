@@ -1,165 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:14409 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727611AbeINSkM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 14:40:12 -0400
-Date: Fri, 14 Sep 2018 16:25:38 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Marco Felsch <m.felsch@pengutronix.de>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        kernel@pengutronix.de, devicetree@vger.kernel.org,
-        p.zabel@pengutronix.de, javierm@redhat.com,
-        laurent.pinchart@ideasonboard.com, afshin.nasser@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 4/7] [media] v4l2-subdev: fix v4l2_subdev_get_try_*
- dependency
-Message-ID: <20180914132538.5anptpaqt6cgkxow@paasikivi.fi.intel.com>
-References: <20180813092508.1334-1-m.felsch@pengutronix.de>
- <20180813092508.1334-5-m.felsch@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180813092508.1334-5-m.felsch@pengutronix.de>
+Received: from smtp.codeaurora.org ([198.145.29.96]:53430 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727611AbeINSkB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Sep 2018 14:40:01 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
+        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+Subject: [PATCH v7 3/5] venus: firmware: register separate platform_device for firmware loader
+Date: Fri, 14 Sep 2018 18:54:35 +0530
+Message-Id: <1536931477-13018-4-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1536931477-13018-1-git-send-email-vgarodia@codeaurora.org>
+References: <1536931477-13018-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marco,
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 
-On Mon, Aug 13, 2018 at 11:25:05AM +0200, Marco Felsch wrote:
-> These helpers make us of the media-controller entity which is only
-> available if the CONFIG_MEDIA_CONTROLLER is enabled.
-> 
-> Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
-> ---
->  include/media/v4l2-subdev.h | 100 ++++++++++++++++++------------------
->  1 file changed, 50 insertions(+), 50 deletions(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index ce48f1fcf295..79c066934ad2 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -912,6 +912,56 @@ struct v4l2_subdev_fh {
->  #define to_v4l2_subdev_fh(fh)	\
->  	container_of(fh, struct v4l2_subdev_fh, vfh)
->  
-> +extern const struct v4l2_file_operations v4l2_subdev_fops;
-> +
-> +/**
-> + * v4l2_set_subdevdata - Sets V4L2 dev private device data
-> + *
-> + * @sd: pointer to &struct v4l2_subdev
-> + * @p: pointer to the private device data to be stored.
-> + */
-> +static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
-> +{
-> +	sd->dev_priv = p;
-> +}
-> +
-> +/**
-> + * v4l2_get_subdevdata - Gets V4L2 dev private device data
-> + *
-> + * @sd: pointer to &struct v4l2_subdev
-> + *
-> + * Returns the pointer to the private device data to be stored.
-> + */
-> +static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
-> +{
-> +	return sd->dev_priv;
-> +}
-> +
-> +/**
-> + * v4l2_set_subdev_hostdata - Sets V4L2 dev private host data
-> + *
-> + * @sd: pointer to &struct v4l2_subdev
-> + * @p: pointer to the private data to be stored.
-> + */
-> +static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
-> +{
-> +	sd->host_priv = p;
-> +}
-> +
-> +/**
-> + * v4l2_get_subdev_hostdata - Gets V4L2 dev private data
-> + *
-> + * @sd: pointer to &struct v4l2_subdev
-> + *
-> + * Returns the pointer to the private host data to be stored.
-> + */
-> +static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
-> +{
-> +	return sd->host_priv;
-> +}
+This registers a firmware platform_device and associate it with
+video-firmware DT subnode. Then calls dma configure to initialize
+dma and iommu.
 
-Could you leave the functions dealing with host_priv where they are? I'd
-like to avoid expanding their use; rather reduce it. The field is
-problematic in some cases and generally not really needed either.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/qcom/venus/core.c     | 14 +++++---
+ drivers/media/platform/qcom/venus/core.h     |  3 ++
+ drivers/media/platform/qcom/venus/firmware.c | 54 ++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/firmware.h |  2 ++
+ 4 files changed, 69 insertions(+), 4 deletions(-)
 
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +
->  /**
->   * v4l2_subdev_get_try_format - ancillary routine to call
->   *	&struct v4l2_subdev_pad_config->try_fmt
-> @@ -978,56 +1028,6 @@ static inline struct v4l2_rect
->  #endif
->  }
->  
-> -extern const struct v4l2_file_operations v4l2_subdev_fops;
-> -
-> -/**
-> - * v4l2_set_subdevdata - Sets V4L2 dev private device data
-> - *
-> - * @sd: pointer to &struct v4l2_subdev
-> - * @p: pointer to the private device data to be stored.
-> - */
-> -static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
-> -{
-> -	sd->dev_priv = p;
-> -}
-> -
-> -/**
-> - * v4l2_get_subdevdata - Gets V4L2 dev private device data
-> - *
-> - * @sd: pointer to &struct v4l2_subdev
-> - *
-> - * Returns the pointer to the private device data to be stored.
-> - */
-> -static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
-> -{
-> -	return sd->dev_priv;
-> -}
-> -
-> -/**
-> - * v4l2_set_subdev_hostdata - Sets V4L2 dev private host data
-> - *
-> - * @sd: pointer to &struct v4l2_subdev
-> - * @p: pointer to the private data to be stored.
-> - */
-> -static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
-> -{
-> -	sd->host_priv = p;
-> -}
-> -
-> -/**
-> - * v4l2_get_subdev_hostdata - Gets V4L2 dev private data
-> - *
-> - * @sd: pointer to &struct v4l2_subdev
-> - *
-> - * Returns the pointer to the private host data to be stored.
-> - */
-> -static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
-> -{
-> -	return sd->host_priv;
-> -}
-> -
-> -#ifdef CONFIG_MEDIA_CONTROLLER
-> -
->  /**
->   * v4l2_subdev_link_validate_default - validates a media link
->   *
-
+diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+index 75b9785..440f25f 100644
+--- a/drivers/media/platform/qcom/venus/core.c
++++ b/drivers/media/platform/qcom/venus/core.c
+@@ -284,6 +284,14 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_runtime_disable;
+ 
++	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
++	if (ret)
++		goto err_runtime_disable;
++
++	ret = venus_firmware_init(core);
++	if (ret)
++		goto err_runtime_disable;
++
+ 	ret = venus_boot(core);
+ 	if (ret)
+ 		goto err_runtime_disable;
+@@ -308,10 +316,6 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_core_deinit;
+ 
+-	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+-	if (ret)
+-		goto err_dev_unregister;
+-
+ 	ret = pm_runtime_put_sync(dev);
+ 	if (ret)
+ 		goto err_dev_unregister;
+@@ -347,6 +351,8 @@ static int venus_remove(struct platform_device *pdev)
+ 	venus_shutdown(dev);
+ 	of_platform_depopulate(dev);
+ 
++	venus_firmware_deinit(core);
++
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+ 
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index dfd5c10..3a53d5d 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -130,6 +130,9 @@ struct venus_core {
+ 	struct device *dev;
+ 	struct device *dev_dec;
+ 	struct device *dev_enc;
++	struct video_firmware {
++	struct device *dev;
++	} fw;
+ 	bool no_tz;
+ 	struct mutex lock;
+ 	struct list_head instances;
+diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+index 34224eb..69a99cd 100644
+--- a/drivers/media/platform/qcom/venus/firmware.c
++++ b/drivers/media/platform/qcom/venus/firmware.c
+@@ -18,6 +18,8 @@
+ #include <linux/io.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
++#include <linux/platform_device.h>
++#include <linux/of_device.h>
+ #include <linux/qcom_scm.h>
+ #include <linux/sizes.h>
+ #include <linux/soc/qcom/mdt_loader.h>
+@@ -144,3 +146,55 @@ int venus_shutdown(struct device *dev)
+ {
+ 	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
+ }
++
++int venus_firmware_init(struct venus_core *core)
++{
++	struct platform_device_info info;
++	struct platform_device *pdev;
++	struct device_node *np;
++	int ret;
++
++	np = of_get_child_by_name(core->dev->of_node, "video-firmware");
++	if (!np)
++		return 0;
++
++	memset(&info, 0, sizeof(info));
++	info.fwnode = &np->fwnode;
++	info.parent = core->dev;
++	info.name = np->name;
++	info.dma_mask = DMA_BIT_MASK(32);
++
++	pdev = platform_device_register_full(&info);
++	if (IS_ERR(pdev)) {
++		of_node_put(np);
++		return PTR_ERR(pdev);
++	}
++
++	pdev->dev.of_node = np;
++
++	ret = of_dma_configure(&pdev->dev, np);
++	if (ret) {
++		dev_err(core->dev, "dma configure fail\n");
++		goto err_unregister;
++	}
++
++	core->fw.dev = &pdev->dev;
++	core->no_tz = true;
++
++	of_node_put(np);
++
++	return 0;
++
++err_unregister:
++	platform_device_unregister(pdev);
++	of_node_put(np);
++	return ret;
++}
++
++void venus_firmware_deinit(struct venus_core *core)
++{
++	if (!core->fw.dev)
++		return;
++
++	platform_device_unregister(to_platform_device(core->fw.dev));
++}
+diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+index 1343747..fd7edf0 100644
+--- a/drivers/media/platform/qcom/venus/firmware.h
++++ b/drivers/media/platform/qcom/venus/firmware.h
+@@ -16,6 +16,8 @@
+ 
+ struct device;
+ 
++int venus_firmware_init(struct venus_core *core);
++void venus_firmware_deinit(struct venus_core *core);
+ int venus_boot(struct venus_core *core);
+ int venus_shutdown(struct device *dev);
+ int venus_set_hw_state(struct venus_core *core, bool suspend);
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
