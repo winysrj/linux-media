@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57244 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:57238 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727095AbeINXiT (ORCPT
+        with ESMTP id S1727065AbeINXiT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Fri, 14 Sep 2018 19:38:19 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/4] media: em28xx: fix input name for Terratec AV 350
-Date: Fri, 14 Sep 2018 15:22:33 -0300
-Message-Id: <878961938591640ca84b327df760f467cb2c0c5e.1536949178.git.mchehab+samsung@kernel.org>
+Subject: [PATCH 4/4] media: em28xx: make v4l2-compliance happier by starting sequence on zero
+Date: Fri, 14 Sep 2018 15:22:34 -0300
+Message-Id: <88789c529759c28029c89f41442d745d4dd5aae8.1536949178.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1536949178.git.mchehab+samsung@kernel.org>
 References: <cover.1536949178.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1536949178.git.mchehab+samsung@kernel.org>
@@ -18,33 +18,30 @@ References: <cover.1536949178.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using a register value, use an AMUX name, as otherwise
-VIDIOC_G_AUDIO would fail.
+The v4l2-compliance tool complains if a video doesn't start
+with a zero sequence number.
+
+While this shouldn't cause any real problem for apps, let's
+make it happier, in order to better check the v4l2-compliance
+differences before and after patchsets.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/em28xx/em28xx-video.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index e9ab1fbc8f0d..2a3f3e237d05 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2141,13 +2141,13 @@ const struct em28xx_board em28xx_boards[] = {
- 		.input           = { {
- 			.type     = EM28XX_VMUX_COMPOSITE,
- 			.vmux     = TVP5150_COMPOSITE1,
--			.amux     = EM28XX_AUDIO_SRC_LINE,
-+			.amux     = EM28XX_AMUX_LINE_IN,
- 			.gpio     = terratec_av350_unmute_gpio,
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 41ac47f1589c..26859aaf5c93 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1093,6 +1093,8 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
  
- 		}, {
- 			.type     = EM28XX_VMUX_SVIDEO,
- 			.vmux     = TVP5150_SVIDEO,
--			.amux     = EM28XX_AUDIO_SRC_LINE,
-+			.amux     = EM28XX_AMUX_LINE_IN,
- 			.gpio     = terratec_av350_unmute_gpio,
- 		} },
- 	},
+ 	em28xx_videodbg("%s\n", __func__);
+ 
++	dev->v4l2->field_count = 0;
++
+ 	/*
+ 	 * Make sure streaming is not already in progress for this type
+ 	 * of filehandle (e.g. video, vbi)
 -- 
 2.17.1
