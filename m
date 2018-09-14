@@ -1,19 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:34180 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34274 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727881AbeINP1m (ORCPT
+        with ESMTP id S1726966AbeINPgm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 11:27:42 -0400
+        Fri, 14 Sep 2018 11:36:42 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: linux-kernel@vger.kernel.org, kbingham@kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 2/4] MAINTAINERS: VSP1: Add co-maintainer
-Date: Fri, 14 Sep 2018 13:14:06 +0300
-Message-ID: <1716835.dM7TpKmmGR@avalon>
-In-Reply-To: <20180806143904.4716-2-kieran.bingham@ideasonboard.com>
-References: <20180806143904.4716-1-kieran.bingham@ideasonboard.com> <20180806143904.4716-2-kieran.bingham@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/6] media: vsp1: Remove artificial pixel limitation
+Date: Fri, 14 Sep 2018 13:23:04 +0300
+Message-ID: <3874771.GdJIGdZf8f@avalon>
+In-Reply-To: <20180831144044.31713-2-kieran.bingham+renesas@ideasonboard.com>
+References: <20180831144044.31713-1-kieran.bingham+renesas@ideasonboard.com> <20180831144044.31713-2-kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -24,39 +23,52 @@ Hi Kieran,
 
 Thank you for the patch.
 
-On Monday, 6 August 2018 17:39:02 EEST Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Friday, 31 August 2018 17:40:39 EEST Kieran Bingham wrote:
+> The VSP1 has a minimum width and height of a single pixel, with the
+> exception of pixel formats with sub-sampling.
 > 
-> Add myself as a co-maintainer for the Renesas VSP driver.
+> Remove the artificial minimum width and minimum height limitation, and
+> instead clamp the minimum dimensions based upon the sub-sampling
+> parameter of that dimension.
 > 
 > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 and applied to my tree.
 
-Thank you for your help with the R-Car VSP driver !
-
 > ---
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-renesas-soc@vger.kernel.org
+>  drivers/media/platform/vsp1/vsp1_video.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
 > 
->  MAINTAINERS | 1 +
->  1 file changed, 1 insertion(+)
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index 81d47a09d7bc..e78eadd0295b
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -38,9 +38,7 @@
+>  #define VSP1_VIDEO_DEF_WIDTH		1024
+>  #define VSP1_VIDEO_DEF_HEIGHT		768
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index c7cecb9201b3..6a30a5332b18 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8935,6 +8935,7 @@ F:	drivers/media/platform/rcar-vin/
+> -#define VSP1_VIDEO_MIN_WIDTH		2U
+>  #define VSP1_VIDEO_MAX_WIDTH		8190U
+> -#define VSP1_VIDEO_MIN_HEIGHT		2U
+>  #define VSP1_VIDEO_MAX_HEIGHT		8190U
 > 
->  MEDIA DRIVERS FOR RENESAS - VSP1
->  M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> +M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->  L:	linux-media@vger.kernel.org
->  L:	linux-renesas-soc@vger.kernel.org
->  T:	git git://linuxtv.org/media_tree.git
+>  /*
+> ---------------------------------------------------------------------------
+> -- @@ -136,9 +134,8 @@ static int __vsp1_video_try_format(struct vsp1_video
+> *video, height = round_down(height, info->vsub);
+> 
+>  	/* Clamp the width and height. */
+> -	pix->width = clamp(width, VSP1_VIDEO_MIN_WIDTH, VSP1_VIDEO_MAX_WIDTH);
+> -	pix->height = clamp(height, VSP1_VIDEO_MIN_HEIGHT,
+> -			    VSP1_VIDEO_MAX_HEIGHT);
+> +	pix->width = clamp(width, info->hsub, VSP1_VIDEO_MAX_WIDTH);
+> +	pix->height = clamp(height, info->vsub, VSP1_VIDEO_MAX_HEIGHT);
+> 
+>  	/*
+>  	 * Compute and clamp the stride and image size. While not documented in
 
 -- 
 Regards,
