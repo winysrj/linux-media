@@ -1,97 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:36468 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726872AbeINRdt (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:47952 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727803AbeINRuL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 13:33:49 -0400
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
-        by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20180914121933euoutp01d0bde9ff77ab3ce7fe37846743975e40~UQ3wcYbjn1169811698euoutp012
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2018 12:19:33 +0000 (GMT)
-Subject: Re: [PATCH] media: s5p-mfc: Fix memdev DMA configuration
-To: Robin Murphy <robin.murphy@arm.com>, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com
-Cc: linux-arm-kernel@lists.infradead.org,
-        iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Rob Herring <robh@kernel.org>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Fri, 14 Sep 2018 14:19:29 +0200
+        Fri, 14 Sep 2018 13:50:11 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.20 (request_api branch)] Add Allwinner cedrus
+ decoder driver (v2)
+Message-ID: <b47510c2-8840-c0c6-0aff-e93fcd0c07ca@xs4all.nl>
+Date: Fri, 14 Sep 2018 14:35:49 +0200
 MIME-Version: 1.0
-In-Reply-To: <d485dc3698304403620d5ed92d066942a6b68cfd.1536770587.git.robin.murphy@arm.com>
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Message-Id: <20180914121931eucas1p14292ee983fd9b4bb21968dffa303dde8~UQ3utL6mj2689726897eucas1p15@eucas1p1.samsung.com>
-Content-Type: text/plain; charset="utf-8"
-References: <CGME20180912164604epcas3p1ac72c0861ec182f50485959ac998ed52@epcas3p1.samsung.com>
-        <d485dc3698304403620d5ed92d066942a6b68cfd.1536770587.git.robin.murphy@arm.com>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robin,
+Hi Mauro,
 
-On 2018-09-12 18:45, Robin Murphy wrote:
-> Having of_reserved_mem_device_init() forcibly reconfigure DMA for all
-> callers, potentially overriding the work done by a bus-specific
-> .dma_configure method earlier, is at best a bad idea and at worst
-> actively harmful. If drivers really need virtual devices to own
-> dma-coherent memory, they should explicitly configure those devices
-> based on the appropriate firmware node as they create them.
->
-> It looks like the only driver not passing in a proper OF platform device
-> is s5p-mfc, so move the rogue of_dma_configure() call into that driver
-> where it logically belongs.
->
-> CC: Smitha T Murthy <smitha.t@samsung.com>
-> CC: Marek Szyprowski <m.szyprowski@samsung.com>
-> CC: Rob Herring <robh@kernel.org>
-> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+This is the cedrus Allwinner decoder driver. It is for the request_api topic
+branch.
 
-Right, after recent cleanup dma ops initialization, MFC driver is
-a better place for calling of_dma_configure() on virtual devices.
+Note that there is a COMPILE_TEST issue with sram functions, for that another patch
+is needed:
 
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+https://lore.kernel.org/patchwork/patch/983848/
 
-> ---
->   drivers/media/platform/s5p-mfc/s5p_mfc.c | 7 +++++++
->   drivers/of/of_reserved_mem.c             | 4 ----
->   2 files changed, 7 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index 927a1235408d..77eb4a4511c1 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -1094,6 +1094,13 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
->   	child->dma_mask = dev->dma_mask;
->   	child->release = s5p_mfc_memdev_release;
->   
-> +	/*
-> +	 * The memdevs are not proper OF platform devices, so in order for them
-> +	 * to be treated as valid DMA masters we need a bit of a hack to force
-> +	 * them to inherit the MFC node's DMA configuration.
-> +	 */
-> +	of_dma_configure(child, dev->of_node, true);
-> +
->   	if (device_add(child) == 0) {
->   		ret = of_reserved_mem_device_init_by_idx(child, dev->of_node,
->   							 idx);
-> diff --git a/drivers/of/of_reserved_mem.c b/drivers/of/of_reserved_mem.c
-> index 895c83e0c7b6..4ef6f4485335 100644
-> --- a/drivers/of/of_reserved_mem.c
-> +++ b/drivers/of/of_reserved_mem.c
-> @@ -350,10 +350,6 @@ int of_reserved_mem_device_init_by_idx(struct device *dev,
->   		mutex_lock(&of_rmem_assigned_device_mutex);
->   		list_add(&rd->list, &of_rmem_assigned_device_list);
->   		mutex_unlock(&of_rmem_assigned_device_mutex);
-> -		/* ensure that dma_ops is set for virtual devices
-> -		 * using reserved memory
-> -		 */
-> -		of_dma_configure(dev, np, true);
->   
->   		dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
->   	} else {
+But that's going through another subsystem and is already queued up for 4.20.
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+The first two patches fix two trivial sparse and smatch issues.
+
+Many, many thanks go to Paul for working on this, trying to keep up to date with
+the Request API changes at the same time. It was a pleasure working with you on
+this!
+
+I'm now using a signed tag, let me know if this works or not.
+
+Regards,
+
+	Hans
+
+The following changes since commit d4215edbd4b170b207b0e5a1d8ae42fb49f5c470:
+
+  media: media-request: update documentation (2018-09-11 09:58:43 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-cedrus
+
+for you to fetch changes up to 615ba78ac81ce76edf5ae84981e404fd4eee3ee0:
+
+  media: platform: Add Cedrus VPU decoder driver (2018-09-14 14:27:45 +0200)
+
+----------------------------------------------------------------
+Tag cedrus branch
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      v4l2-compat-ioctl32.c: fix sparse warning
+      v4l2-ctrls.c: fix smatch error
+
+Paul Kocialkowski (5):
+      media: videobuf2-core: Rework and rename helper for request buffer count
+      media: v4l: Add definitions for MPEG-2 slice format and metadata
+      media: v4l: Add definition for the Sunxi tiled NV12 format
+      dt-bindings: media: Document bindings for the Cedrus VPU driver
+      media: platform: Add Cedrus VPU decoder driver
+
+ Documentation/devicetree/bindings/media/cedrus.txt |  54 +++++++
+ Documentation/media/uapi/v4l/extended-controls.rst | 176 ++++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-compressed.rst |  16 ++
+ Documentation/media/uapi/v4l/pixfmt-reserved.rst   |  15 +-
+ Documentation/media/uapi/v4l/vidioc-queryctrl.rst  |  14 +-
+ Documentation/media/videodev2.h.rst.exceptions     |   2 +
+ MAINTAINERS                                        |   7 +
+ drivers/media/common/videobuf2/videobuf2-core.c    |  18 +--
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    |   2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |   1 +
+ drivers/media/v4l2-core/v4l2-ctrls.c               |  65 +++++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
+ drivers/staging/media/Kconfig                      |   2 +
+ drivers/staging/media/Makefile                     |   1 +
+ drivers/staging/media/sunxi/Kconfig                |  15 ++
+ drivers/staging/media/sunxi/Makefile               |   1 +
+ drivers/staging/media/sunxi/cedrus/Kconfig         |  14 ++
+ drivers/staging/media/sunxi/cedrus/Makefile        |   3 +
+ drivers/staging/media/sunxi/cedrus/TODO            |   7 +
+ drivers/staging/media/sunxi/cedrus/cedrus.c        | 431 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus.h        | 167 +++++++++++++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.c    |  70 +++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus_dec.h    |  27 ++++
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.c     | 327 ++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus_hw.h     |  30 ++++
+ drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c  | 246 ++++++++++++++++++++++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus_regs.h   | 235 +++++++++++++++++++++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus_video.c  | 542 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/media/sunxi/cedrus/cedrus_video.h  |  30 ++++
+ include/media/v4l2-ctrls.h                         |  18 ++-
+ include/media/videobuf2-core.h                     |   4 +-
+ include/uapi/linux/v4l2-controls.h                 |  65 ++++++++
+ include/uapi/linux/videodev2.h                     |   6 +
+ 33 files changed, 2589 insertions(+), 24 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/cedrus.txt
+ create mode 100644 drivers/staging/media/sunxi/Kconfig
+ create mode 100644 drivers/staging/media/sunxi/Makefile
+ create mode 100644 drivers/staging/media/sunxi/cedrus/Kconfig
+ create mode 100644 drivers/staging/media/sunxi/cedrus/Makefile
+ create mode 100644 drivers/staging/media/sunxi/cedrus/TODO
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.c
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus.h
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.c
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_dec.h
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.c
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_hw.h
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_mpeg2.c
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_regs.h
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.c
+ create mode 100644 drivers/staging/media/sunxi/cedrus/cedrus_video.h
