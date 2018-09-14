@@ -1,109 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:62984 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727790AbeINXFT (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:38543 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728211AbeINXKI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 19:05:19 -0400
-Subject: Re: [PATCH v3 0/5] Fix OV5640 exposure & gain
-To: Hugues Fruchet <hugues.fruchet@st.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-References: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <df2bd151-a83e-4ba8-2bf8-982c96c64c9f@mentor.com>
-Date: Fri, 14 Sep 2018 10:49:39 -0700
+        Fri, 14 Sep 2018 19:10:08 -0400
+Date: Fri, 14 Sep 2018 19:54:22 +0200
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        kernel@pengutronix.de, devicetree@vger.kernel.org,
+        p.zabel@pengutronix.de, javierm@redhat.com,
+        laurent.pinchart@ideasonboard.com, afshin.nasser@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/7] [media] tvp5150: add input source selection
+ of_graph support
+Message-ID: <20180914175422.udn5ci2hpygwa7fz@pengutronix.de>
+References: <20180813092508.1334-1-m.felsch@pengutronix.de>
+ <20180813092508.1334-2-m.felsch@pengutronix.de>
+ <20180914133157.wppvzfvbssmm2zer@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180914133157.wppvzfvbssmm2zer@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hughes,
+Hi Sakari,
 
-The whole series,
+thanks for the review.
 
-Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+On 18-09-14 16:31, Sakari Ailus wrote:
+> Hi Marco,
+> 
+> On Mon, Aug 13, 2018 at 11:25:02AM +0200, Marco Felsch wrote:
+> ...
+> > +static void tvp5150_dt_cleanup(struct tvp5150 *decoder)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	for (i = 0; i < TVP5150_NUM_PADS; i++)
+> > +		of_node_put(decoder->endpoints[i]);
+> > +}
+> > +
+> >  static const char * const tvp5150_test_patterns[2] = {
+> >  	"Disabled",
+> >  	"Black screen"
+> > @@ -1586,7 +1996,7 @@ static int tvp5150_probe(struct i2c_client *c,
+> >  		res = tvp5150_parse_dt(core, np);
+> >  		if (res) {
+> >  			dev_err(sd->dev, "DT parsing error: %d\n", res);
+> > -			return res;
+> > +			goto err_cleanup_dt;
+> >  		}
+> >  	} else {
+> >  		/* Default to BT.656 embedded sync */
+> > @@ -1594,25 +2004,16 @@ static int tvp5150_probe(struct i2c_client *c,
+> >  	}
+> >  
+> >  	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+> > +	sd->internal_ops = &tvp5150_internal_ops;
+> >  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> >  
+> > -#if defined(CONFIG_MEDIA_CONTROLLER)
+> > -	core->pads[TVP5150_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+> > -	core->pads[TVP5150_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
+> > -	core->pads[TVP5150_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> > -	core->pads[TVP5150_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
+> > -
+> > -	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+> > -
+> > -	res = media_entity_pads_init(&sd->entity, TVP5150_NUM_PADS, core->pads);
+> > -	if (res < 0)
+> > -		return res;
+> > -
+> > -#endif
+> > +	res = tvp5150_mc_init(sd);
+> > +	if (res)
+> > +		goto err_cleanup_dt;
+> >  
+> >  	res = tvp5150_detect_version(core);
+> >  	if (res < 0)
+> > -		return res;
+> > +		goto err_cleanup_dt;
+> >  
+> >  	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
+> >  	core->detected_norm = V4L2_STD_UNKNOWN;
+> > @@ -1664,6 +2065,9 @@ static int tvp5150_probe(struct i2c_client *c,
+> >  err:
+> 
+> Now that you have more error labels, you could rename this one.
 
-and
+Hm.. okay make sense, I will change this.
 
-Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-on i.MX6q SabreSD with MIPI CSI-2 OV5640 module
+> 
+> >  	v4l2_ctrl_handler_free(&core->hdl);
+> >  	return res;
+> 
+> Is the above line intended to be kept?
 
+Nope, sorry I will fix this.
 
-On 09/11/2018 06:48 AM, Hugues Fruchet wrote:
-> This patch serie fixes some problems around exposure & gain in OV5640 driver.
->
-> The 4th patch about autocontrols requires also a fix in v4l2-ctrls.c:
-> https://www.mail-archive.com/linux-media@vger.kernel.org/msg133164.html
->
-> Here is the test procedure used for exposure & gain controls check:
-> 1) Preview in background
-> $> gst-launch-1.0 v4l2src ! "video/x-raw, width=640, Height=480" ! queue ! waylandsink -e &
-> 2) Check gain & exposure values
-> $> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
->                         exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
->                             gain (int)    : min=0 max=1023 step=1 default=0 value=19 flags=inactive, volatile
-> 3) Put finger in front of camera and check that gain/exposure values are changing:
-> $> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
->                         exposure (int)    : min=0 max=65535 step=1 default=0 value=660 flags=inactive, volatile
->                             gain (int)    : min=0 max=1023 step=1 default=0 value=37 flags=inactive, volatile
-> 4) switch to manual mode, image exposition must not change
-> $> v4l2-ctl --set-ctrl=gain_automatic=0
-> $> v4l2-ctl --set-ctrl=auto_exposure=1
-> Note the "1" for manual exposure.
->
-> 5) Check current gain/exposure values:
-> $> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
->                         exposure (int)    : min=0 max=65535 step=1 default=0 value=330
->                             gain (int)    : min=0 max=1023 step=1 default=0 value=20
->
-> 6) Put finger behind camera and check that gain/exposure values are NOT changing:
-> $> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
->                         exposure (int)    : min=0 max=65535 step=1 default=0 value=330
->                             gain (int)    : min=0 max=1023 step=1 default=0 value=20
-> 7) Update exposure, check that it is well changed on display and that same value is returned:
-> $> v4l2-ctl --set-ctrl=exposure=100
-> $> v4l2-ctl --get-ctrl=exposure
-> exposure: 100
->
-> 9) Update gain, check that it is well changed on display and that same value is returned:
-> $> v4l2-ctl --set-ctrl=gain=10
-> $> v4l2-ctl --get-ctrl=gain
-> gain: 10
->
-> 10) Switch back to auto gain/exposure, verify that image is correct and values returned are correct:
-> $> v4l2-ctl --set-ctrl=gain_automatic=1
-> $> v4l2-ctl --set-ctrl=auto_exposure=0
-> $> v4l2-ctl --all | grep -e exposure -e gain | grep "(int)"
->                         exposure (int)    : min=0 max=65535 step=1 default=0 value=330 flags=inactive, volatile
->                             gain (int)    : min=0 max=1023 step=1 default=0 value=22 flags=inactive, volatile
-> Note the "0" for auto exposure.
->
-> ===========
-> = history =
-> ===========
-> version 3:
->    - Change patch 5/5 by removing set_mode() orig_mode parameter as per jacopo' suggestion:
->      https://www.spinics.net/lists/linux-media/msg139457.html
->
-> version 2:
->    - Fix patch 3/5 commit comment and rename binning function as per jacopo' suggestion:
->      https://www.mail-archive.com/linux-media@vger.kernel.org/msg133272.html
->
-> Hugues Fruchet (5):
->    media: ov5640: fix exposure regression
->    media: ov5640: fix auto gain & exposure when changing mode
->    media: ov5640: fix wrong binning value in exposure calculation
->    media: ov5640: fix auto controls values when switching to manual mode
->    media: ov5640: fix restore of last mode set
->
->   drivers/media/i2c/ov5640.c | 128 ++++++++++++++++++++++++++-------------------
->   1 file changed, 73 insertions(+), 55 deletions(-)
->
+Regards,
+Marco
+
+> 
+> > +err_cleanup_dt:
+> > +	tvp5150_dt_cleanup(core);
+> > +	return res;
+> >  }
+> >  
+> >  static int tvp5150_remove(struct i2c_client *c)
+> 
+> -- 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+> 
