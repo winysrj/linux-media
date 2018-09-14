@@ -1,84 +1,649 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:36787 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728089AbeINN4l (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:40633 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727865AbeINOLn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 09:56:41 -0400
-Date: Fri, 14 Sep 2018 10:43:03 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: kernel@pengutronix.de, devicetree@vger.kernel.org,
-        p.zabel@pengutronix.de, javierm@redhat.com,
-        laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-        afshin.nasser@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 0/7] TVP5150 fixes and new features
-Message-ID: <20180914084303.pvqm35cbe6vznoci@pengutronix.de>
-References: <20180813092508.1334-1-m.felsch@pengutronix.de>
+        Fri, 14 Sep 2018 10:11:43 -0400
+Subject: [PATCHv2 1/5] media: replace ADOBERGB by OPRGB
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, Hans Verkuil <hansverk@cisco.com>
+References: <20180913114731.16500-1-hverkuil@xs4all.nl>
+ <20180913114731.16500-2-hverkuil@xs4all.nl>
+Message-ID: <f7baea85-a011-77b3-1752-14ecf6e77074@xs4all.nl>
+Date: Fri, 14 Sep 2018 10:58:03 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180813092508.1334-1-m.felsch@pengutronix.de>
+In-Reply-To: <20180913114731.16500-2-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The CTA-861 standards have been updated to refer to opRGB instead
+of AdobeRGB. The official standard is in fact named opRGB, so
+switch to that.
 
-since I sent this series I only got feedback from Rob.
+The two old defines referring to ADOBERGB in the public API are
+put under #ifndef __KERNEL__ and a comment mentions that they are
+deprecated.
 
-Regards,
-Marco
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+Changes in v2:
 
-On 18-08-13 11:25, Marco Felsch wrote:
-> Hi,
-> 
-> this is my v2 with the integrated reviews from my v1 [1]. Since Mauro
-> applied the most patches from my v1 to his experimental/tvp5150-3
-> branch [2], this series only contains those which aren't applied.
-> 
-> Patches I changed contain a changelog, so I will omit these here.
-> 
-> Patch ('[media] tvp5150: add FORMAT_TRY support for get/set selection
-> handlers') throws a compile error. Therefore I added two v4l2-subdev.h
-> patches which should fix the error in a common way.
-> 
-> Patch ('[media] tvp5150: add s_power callback') is new too. I forget
-> them in my v1. This patch address the interrupt enable/disable handling.
-> Now it is possible to pause streaming and keep the interrupts on.
-> 
-> The changes I made in the ('[media] tvp5150: add input source selection
-> of_graph support') patch are based on the the RFC [3] and discussion [4].
-> I dropped patch ('[media] tvp5150: Change default input source selection
-> behaviour') since the default input source selectopn is setup during the
-> .registered() callback now.
-> 
-> I've tested this series on a customer dt-based board. Unfortunately I
-> haven't a device which use the em28xx driver. So other tester a welcome :)
-> 
-> [1] https://www.spinics.net/lists/devicetree/msg236650.html
-> [2] https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-3
-> [3] https://www.spinics.net/lists/devicetree/msg243181.html
-> [4] https://www.spinics.net/lists/devicetree/msg243840.html
-> 
-> Regards,
-> Marco
-> 
-> Marco Felsch (6):
->   [media] tvp5150: add input source selection of_graph support
->   [media] dt-bindings: tvp5150: Add input port connectors DT bindings
->   [media] v4l2-subdev: add stubs for v4l2_subdev_get_try_*
->   [media] v4l2-subdev: fix v4l2_subdev_get_try_* dependency
->   [media] tvp5150: add FORMAT_TRY support for get/set selection handlers
->   [media] tvp5150: add s_power callback
-> 
-> Michael Tretter (1):
->   [media] tvp5150: initialize subdev before parsing device tree
-> 
->  .../devicetree/bindings/media/i2c/tvp5150.txt | 191 +++++-
->  drivers/media/i2c/tvp5150.c                   | 611 +++++++++++++++---
->  include/media/v4l2-subdev.h                   | 111 ++--
->  3 files changed, 776 insertions(+), 137 deletions(-)
-> 
-> -- 
-> 2.18.0
-> 
-> 
+Incorporated Mauro's suggestions:
+- Grouped the old ADOBERGB names together and use defines.
+- Mentioned that they might have to be removed in the future.
+---
+ .../media/videodev2.h.rst.exceptions          |   6 +-
+ .../media/common/v4l2-tpg/v4l2-tpg-colors.c   | 262 +++++++++---------
+ drivers/media/i2c/adv7511.c                   |   2 +-
+ drivers/media/i2c/adv7604.c                   |   2 +-
+ drivers/media/i2c/tc358743.c                  |   4 +-
+ drivers/media/platform/vivid/vivid-core.h     |   2 +-
+ drivers/media/platform/vivid/vivid-ctrls.c    |   6 +-
+ drivers/media/platform/vivid/vivid-vid-out.c  |   2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c     |   8 +-
+ include/uapi/linux/videodev2.h                |  23 +-
+ 10 files changed, 165 insertions(+), 152 deletions(-)
+
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index 63fa131729c0..1f4340dd9a37 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -56,7 +56,8 @@ replace symbol V4L2_MEMORY_USERPTR :c:type:`v4l2_memory`
+ # Documented enum v4l2_colorspace
+ replace symbol V4L2_COLORSPACE_470_SYSTEM_BG :c:type:`v4l2_colorspace`
+ replace symbol V4L2_COLORSPACE_470_SYSTEM_M :c:type:`v4l2_colorspace`
+-replace symbol V4L2_COLORSPACE_ADOBERGB :c:type:`v4l2_colorspace`
++replace symbol V4L2_COLORSPACE_OPRGB :c:type:`v4l2_colorspace`
++replace define V4L2_COLORSPACE_ADOBERGB :c:type:`v4l2_colorspace`
+ replace symbol V4L2_COLORSPACE_BT2020 :c:type:`v4l2_colorspace`
+ replace symbol V4L2_COLORSPACE_DCI_P3 :c:type:`v4l2_colorspace`
+ replace symbol V4L2_COLORSPACE_DEFAULT :c:type:`v4l2_colorspace`
+@@ -69,7 +70,8 @@ replace symbol V4L2_COLORSPACE_SRGB :c:type:`v4l2_colorspace`
+
+ # Documented enum v4l2_xfer_func
+ replace symbol V4L2_XFER_FUNC_709 :c:type:`v4l2_xfer_func`
+-replace symbol V4L2_XFER_FUNC_ADOBERGB :c:type:`v4l2_xfer_func`
++replace symbol V4L2_XFER_FUNC_OPRGB :c:type:`v4l2_xfer_func`
++replace define V4L2_XFER_FUNC_ADOBERGB :c:type:`v4l2_xfer_func`
+ replace symbol V4L2_XFER_FUNC_DCI_P3 :c:type:`v4l2_xfer_func`
+ replace symbol V4L2_XFER_FUNC_DEFAULT :c:type:`v4l2_xfer_func`
+ replace symbol V4L2_XFER_FUNC_NONE :c:type:`v4l2_xfer_func`
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
+index 3a3dc23c560c..a4341205c197 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-colors.c
+@@ -602,14 +602,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_SRGB][5] = { 3138, 657, 810 },
+ 	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_SRGB][6] = { 731, 680, 3048 },
+ 	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_SRGB][7] = { 800, 799, 800 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][1] = { 3046, 3054, 886 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][2] = { 0, 3058, 3031 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][3] = { 360, 3079, 877 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][4] = { 3103, 587, 3027 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][5] = { 3116, 723, 861 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][6] = { 789, 744, 3025 },
+-	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][1] = { 3046, 3054, 886 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][2] = { 0, 3058, 3031 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][3] = { 360, 3079, 877 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][4] = { 3103, 587, 3027 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][5] = { 3116, 723, 861 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][6] = { 789, 744, 3025 },
++	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_SMPTE240M][1] = { 2941, 2950, 546 },
+ 	[V4L2_COLORSPACE_SMPTE170M][V4L2_XFER_FUNC_SMPTE240M][2] = { 0, 2954, 2924 },
+@@ -658,14 +658,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_SRGB][5] = { 3138, 657, 810 },
+ 	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_SRGB][6] = { 731, 680, 3048 },
+ 	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_SRGB][7] = { 800, 799, 800 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][1] = { 3046, 3054, 886 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][2] = { 0, 3058, 3031 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][3] = { 360, 3079, 877 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][4] = { 3103, 587, 3027 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][5] = { 3116, 723, 861 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][6] = { 789, 744, 3025 },
+-	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][1] = { 3046, 3054, 886 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][2] = { 0, 3058, 3031 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][3] = { 360, 3079, 877 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][4] = { 3103, 587, 3027 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][5] = { 3116, 723, 861 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][6] = { 789, 744, 3025 },
++	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_SMPTE240M][1] = { 2941, 2950, 546 },
+ 	[V4L2_COLORSPACE_SMPTE240M][V4L2_XFER_FUNC_SMPTE240M][2] = { 0, 2954, 2924 },
+@@ -714,14 +714,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_SRGB][5] = { 3056, 800, 800 },
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_SRGB][6] = { 800, 800, 3056 },
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_SRGB][7] = { 800, 800, 800 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][1] = { 3033, 3033, 851 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][2] = { 851, 3033, 3033 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][3] = { 851, 3033, 851 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][4] = { 3033, 851, 3033 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][5] = { 3033, 851, 851 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][6] = { 851, 851, 3033 },
+-	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][1] = { 3033, 3033, 851 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][2] = { 851, 3033, 3033 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][3] = { 851, 3033, 851 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][4] = { 3033, 851, 3033 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][5] = { 3033, 851, 851 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][6] = { 851, 851, 3033 },
++	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_SMPTE240M][1] = { 2926, 2926, 507 },
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_SMPTE240M][2] = { 507, 2926, 2926 },
+@@ -770,14 +770,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][5] = { 2599, 901, 909 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][6] = { 991, 0, 2966 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][7] = { 800, 799, 800 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][1] = { 2989, 3120, 1180 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][2] = { 1913, 3011, 3009 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][3] = { 1836, 3099, 1105 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][4] = { 2627, 413, 2966 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][5] = { 2576, 943, 951 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][6] = { 1026, 0, 2942 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][1] = { 2989, 3120, 1180 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][2] = { 1913, 3011, 3009 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][3] = { 1836, 3099, 1105 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][4] = { 2627, 413, 2966 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][5] = { 2576, 943, 951 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][6] = { 1026, 0, 2942 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][1] = { 2879, 3022, 874 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][2] = { 1688, 2903, 2901 },
+@@ -826,14 +826,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_SRGB][5] = { 3001, 800, 799 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_SRGB][6] = { 800, 800, 3071 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_SRGB][7] = { 800, 800, 799 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][1] = { 3033, 3033, 776 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][2] = { 1068, 3033, 3033 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][3] = { 1068, 3033, 776 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][4] = { 2977, 851, 3048 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][5] = { 2977, 851, 851 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][6] = { 851, 851, 3048 },
+-	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][1] = { 3033, 3033, 776 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][2] = { 1068, 3033, 3033 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][3] = { 1068, 3033, 776 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][4] = { 2977, 851, 3048 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][5] = { 2977, 851, 851 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][6] = { 851, 851, 3048 },
++	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_SMPTE240M][1] = { 2926, 2926, 423 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_SMPTE240M][2] = { 749, 2926, 2926 },
+@@ -882,14 +882,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SRGB][5] = { 3056, 800, 800 },
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SRGB][6] = { 800, 800, 3056 },
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SRGB][7] = { 800, 800, 800 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][1] = { 3033, 3033, 851 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][2] = { 851, 3033, 3033 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][3] = { 851, 3033, 851 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][4] = { 3033, 851, 3033 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][5] = { 3033, 851, 851 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][6] = { 851, 851, 3033 },
+-	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][1] = { 3033, 3033, 851 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][2] = { 851, 3033, 3033 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][3] = { 851, 3033, 851 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][4] = { 3033, 851, 3033 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][5] = { 3033, 851, 851 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][6] = { 851, 851, 3033 },
++	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SMPTE240M][1] = { 2926, 2926, 507 },
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SMPTE240M][2] = { 507, 2926, 2926 },
+@@ -922,62 +922,62 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SMPTE2084][5] = { 1812, 886, 886 },
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SMPTE2084][6] = { 886, 886, 1812 },
+ 	[V4L2_COLORSPACE_SRGB][V4L2_XFER_FUNC_SMPTE2084][7] = { 886, 886, 886 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][0] = { 2939, 2939, 2939 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][1] = { 2939, 2939, 781 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][2] = { 1622, 2939, 2939 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][3] = { 1622, 2939, 781 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][4] = { 2502, 547, 2881 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][5] = { 2502, 547, 547 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][6] = { 547, 547, 2881 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_709][7] = { 547, 547, 547 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][0] = { 3056, 3056, 3056 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][1] = { 3056, 3056, 1031 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][2] = { 1838, 3056, 3056 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][3] = { 1838, 3056, 1031 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][4] = { 2657, 800, 3002 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][5] = { 2657, 800, 800 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][6] = { 800, 800, 3002 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SRGB][7] = { 800, 800, 800 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][1] = { 3033, 3033, 1063 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][2] = { 1828, 3033, 3033 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][3] = { 1828, 3033, 1063 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][4] = { 2633, 851, 2979 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][5] = { 2633, 851, 851 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][6] = { 851, 851, 2979 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][1] = { 2926, 2926, 744 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][2] = { 1594, 2926, 2926 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][3] = { 1594, 2926, 744 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][4] = { 2484, 507, 2867 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][5] = { 2484, 507, 507 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][6] = { 507, 507, 2867 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE240M][7] = { 507, 507, 507 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][0] = { 2125, 2125, 2125 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][1] = { 2125, 2125, 212 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][2] = { 698, 2125, 2125 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][3] = { 698, 2125, 212 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][4] = { 1557, 130, 2043 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][5] = { 1557, 130, 130 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][6] = { 130, 130, 2043 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_NONE][7] = { 130, 130, 130 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][0] = { 3175, 3175, 3175 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][1] = { 3175, 3175, 1308 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][2] = { 2069, 3175, 3175 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][3] = { 2069, 3175, 1308 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][4] = { 2816, 1084, 3127 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][5] = { 2816, 1084, 1084 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][6] = { 1084, 1084, 3127 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_DCI_P3][7] = { 1084, 1084, 1084 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][0] = { 1812, 1812, 1812 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][1] = { 1812, 1812, 1022 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][2] = { 1402, 1812, 1812 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][3] = { 1402, 1812, 1022 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][4] = { 1692, 886, 1797 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][5] = { 1692, 886, 886 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][6] = { 886, 886, 1797 },
+-	[V4L2_COLORSPACE_ADOBERGB][V4L2_XFER_FUNC_SMPTE2084][7] = { 886, 886, 886 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][0] = { 2939, 2939, 2939 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][1] = { 2939, 2939, 781 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][2] = { 1622, 2939, 2939 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][3] = { 1622, 2939, 781 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][4] = { 2502, 547, 2881 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][5] = { 2502, 547, 547 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][6] = { 547, 547, 2881 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_709][7] = { 547, 547, 547 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][0] = { 3056, 3056, 3056 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][1] = { 3056, 3056, 1031 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][2] = { 1838, 3056, 3056 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][3] = { 1838, 3056, 1031 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][4] = { 2657, 800, 3002 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][5] = { 2657, 800, 800 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][6] = { 800, 800, 3002 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SRGB][7] = { 800, 800, 800 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][1] = { 3033, 3033, 1063 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][2] = { 1828, 3033, 3033 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][3] = { 1828, 3033, 1063 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][4] = { 2633, 851, 2979 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][5] = { 2633, 851, 851 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][6] = { 851, 851, 2979 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][1] = { 2926, 2926, 744 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][2] = { 1594, 2926, 2926 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][3] = { 1594, 2926, 744 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][4] = { 2484, 507, 2867 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][5] = { 2484, 507, 507 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][6] = { 507, 507, 2867 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE240M][7] = { 507, 507, 507 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][0] = { 2125, 2125, 2125 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][1] = { 2125, 2125, 212 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][2] = { 698, 2125, 2125 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][3] = { 698, 2125, 212 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][4] = { 1557, 130, 2043 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][5] = { 1557, 130, 130 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][6] = { 130, 130, 2043 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_NONE][7] = { 130, 130, 130 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][0] = { 3175, 3175, 3175 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][1] = { 3175, 3175, 1308 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][2] = { 2069, 3175, 3175 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][3] = { 2069, 3175, 1308 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][4] = { 2816, 1084, 3127 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][5] = { 2816, 1084, 1084 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][6] = { 1084, 1084, 3127 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_DCI_P3][7] = { 1084, 1084, 1084 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][0] = { 1812, 1812, 1812 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][1] = { 1812, 1812, 1022 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][2] = { 1402, 1812, 1812 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][3] = { 1402, 1812, 1022 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][4] = { 1692, 886, 1797 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][5] = { 1692, 886, 886 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][6] = { 886, 886, 1797 },
++	[V4L2_COLORSPACE_OPRGB][V4L2_XFER_FUNC_SMPTE2084][7] = { 886, 886, 886 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_709][0] = { 2939, 2939, 2939 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_709][1] = { 2877, 2923, 1058 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_709][2] = { 1837, 2840, 2916 },
+@@ -994,14 +994,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_SRGB][5] = { 2517, 1159, 900 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_SRGB][6] = { 1042, 870, 2917 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_SRGB][7] = { 800, 800, 800 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][1] = { 2976, 3018, 1315 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][2] = { 2024, 2942, 3011 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][3] = { 1930, 2926, 1256 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][4] = { 2563, 1227, 2916 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][5] = { 2494, 1183, 943 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][6] = { 1073, 916, 2894 },
+-	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][1] = { 2976, 3018, 1315 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][2] = { 2024, 2942, 3011 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][3] = { 1930, 2926, 1256 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][4] = { 2563, 1227, 2916 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][5] = { 2494, 1183, 943 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][6] = { 1073, 916, 2894 },
++	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_SMPTE240M][1] = { 2864, 2910, 1024 },
+ 	[V4L2_COLORSPACE_BT2020][V4L2_XFER_FUNC_SMPTE240M][2] = { 1811, 2826, 2903 },
+@@ -1050,14 +1050,14 @@ const struct tpg_rbg_color16 tpg_csc_colors[V4L2_COLORSPACE_DCI_P3 + 1][V4L2_XFE
+ 	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_SRGB][5] = { 2880, 998, 902 },
+ 	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_SRGB][6] = { 816, 823, 2940 },
+ 	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_SRGB][7] = { 800, 800, 799 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][1] = { 3029, 3028, 1255 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][2] = { 1406, 2988, 3011 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][3] = { 1398, 2983, 1190 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][4] = { 2860, 1050, 2939 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][5] = { 2857, 1033, 945 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][6] = { 866, 873, 2916 },
+-	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][1] = { 3029, 3028, 1255 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][2] = { 1406, 2988, 3011 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][3] = { 1398, 2983, 1190 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][4] = { 2860, 1050, 2939 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][5] = { 2857, 1033, 945 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][6] = { 866, 873, 2916 },
++	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_OPRGB][7] = { 851, 851, 851 },
+ 	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
+ 	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_SMPTE240M][1] = { 2923, 2921, 957 },
+ 	[V4L2_COLORSPACE_DCI_P3][V4L2_XFER_FUNC_SMPTE240M][2] = { 1125, 2877, 2902 },
+@@ -1128,7 +1128,7 @@ static const double rec709_to_240m[3][3] = {
+ 	{ 0.0016327, 0.0044133, 0.9939540 },
+ };
+
+-static const double rec709_to_adobergb[3][3] = {
++static const double rec709_to_oprgb[3][3] = {
+ 	{ 0.7151627, 0.2848373, -0.0000000 },
+ 	{ 0.0000000, 1.0000000, 0.0000000 },
+ 	{ -0.0000000, 0.0411705, 0.9588295 },
+@@ -1195,7 +1195,7 @@ static double transfer_rec709_to_rgb(double v)
+ 	return (v < 0.081) ? v / 4.5 : pow((v + 0.099) / 1.099, 1.0 / 0.45);
+ }
+
+-static double transfer_rgb_to_adobergb(double v)
++static double transfer_rgb_to_oprgb(double v)
+ {
+ 	return pow(v, 1.0 / 2.19921875);
+ }
+@@ -1251,8 +1251,8 @@ static void csc(enum v4l2_colorspace colorspace, enum v4l2_xfer_func xfer_func,
+ 	case V4L2_COLORSPACE_470_SYSTEM_M:
+ 		mult_matrix(r, g, b, rec709_to_ntsc1953);
+ 		break;
+-	case V4L2_COLORSPACE_ADOBERGB:
+-		mult_matrix(r, g, b, rec709_to_adobergb);
++	case V4L2_COLORSPACE_OPRGB:
++		mult_matrix(r, g, b, rec709_to_oprgb);
+ 		break;
+ 	case V4L2_COLORSPACE_BT2020:
+ 		mult_matrix(r, g, b, rec709_to_bt2020);
+@@ -1284,10 +1284,10 @@ static void csc(enum v4l2_colorspace colorspace, enum v4l2_xfer_func xfer_func,
+ 		*g = transfer_rgb_to_srgb(*g);
+ 		*b = transfer_rgb_to_srgb(*b);
+ 		break;
+-	case V4L2_XFER_FUNC_ADOBERGB:
+-		*r = transfer_rgb_to_adobergb(*r);
+-		*g = transfer_rgb_to_adobergb(*g);
+-		*b = transfer_rgb_to_adobergb(*b);
++	case V4L2_XFER_FUNC_OPRGB:
++		*r = transfer_rgb_to_oprgb(*r);
++		*g = transfer_rgb_to_oprgb(*g);
++		*b = transfer_rgb_to_oprgb(*b);
+ 		break;
+ 	case V4L2_XFER_FUNC_DCI_P3:
+ 		*r = transfer_rgb_to_dcip3(*r);
+@@ -1321,7 +1321,7 @@ int main(int argc, char **argv)
+ 		V4L2_COLORSPACE_470_SYSTEM_BG,
+ 		0,
+ 		V4L2_COLORSPACE_SRGB,
+-		V4L2_COLORSPACE_ADOBERGB,
++		V4L2_COLORSPACE_OPRGB,
+ 		V4L2_COLORSPACE_BT2020,
+ 		0,
+ 		V4L2_COLORSPACE_DCI_P3,
+@@ -1336,7 +1336,7 @@ int main(int argc, char **argv)
+ 		"V4L2_COLORSPACE_470_SYSTEM_BG",
+ 		"",
+ 		"V4L2_COLORSPACE_SRGB",
+-		"V4L2_COLORSPACE_ADOBERGB",
++		"V4L2_COLORSPACE_OPRGB",
+ 		"V4L2_COLORSPACE_BT2020",
+ 		"",
+ 		"V4L2_COLORSPACE_DCI_P3",
+@@ -1345,7 +1345,7 @@ int main(int argc, char **argv)
+ 		"",
+ 		"V4L2_XFER_FUNC_709",
+ 		"V4L2_XFER_FUNC_SRGB",
+-		"V4L2_XFER_FUNC_ADOBERGB",
++		"V4L2_XFER_FUNC_OPRGB",
+ 		"V4L2_XFER_FUNC_SMPTE240M",
+ 		"V4L2_XFER_FUNC_NONE",
+ 		"V4L2_XFER_FUNC_DCI_P3",
+diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+index 55c2ea0720d9..a1f73d998495 100644
+--- a/drivers/media/i2c/adv7511.c
++++ b/drivers/media/i2c/adv7511.c
+@@ -1355,7 +1355,7 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
+ 	state->xfer_func = format->format.xfer_func;
+
+ 	switch (format->format.colorspace) {
+-	case V4L2_COLORSPACE_ADOBERGB:
++	case V4L2_COLORSPACE_OPRGB:
+ 		c = HDMI_COLORIMETRY_EXTENDED;
+ 		ec = y ? HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601 :
+ 			 HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 668be2bca57a..64e7d7b37af4 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2474,7 +2474,7 @@ static int adv76xx_log_status(struct v4l2_subdev *sd)
+ 		"YCbCr Bt.601 (16-235)", "YCbCr Bt.709 (16-235)",
+ 		"xvYCC Bt.601", "xvYCC Bt.709",
+ 		"YCbCr Bt.601 (0-255)", "YCbCr Bt.709 (0-255)",
+-		"sYCC", "Adobe YCC 601", "AdobeRGB", "invalid", "invalid",
++		"sYCC", "opYCC 601", "opRGB", "invalid", "invalid",
+ 		"invalid", "invalid", "invalid"
+ 	};
+ 	static const char * const rgb_quantization_range_txt[] = {
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 44c41933415a..ff25ea9aca48 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1243,9 +1243,9 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
+ 	u8 vi_status3 =  i2c_rd8(sd, VI_STATUS3);
+ 	const int deep_color_mode[4] = { 8, 10, 12, 16 };
+ 	static const char * const input_color_space[] = {
+-		"RGB", "YCbCr 601", "Adobe RGB", "YCbCr 709", "NA (4)",
++		"RGB", "YCbCr 601", "opRGB", "YCbCr 709", "NA (4)",
+ 		"xvYCC 601", "NA(6)", "xvYCC 709", "NA(8)", "sYCC601",
+-		"NA(10)", "NA(11)", "NA(12)", "Adobe YCC 601"};
++		"NA(10)", "NA(11)", "NA(12)", "opYCC 601"};
+
+ 	v4l2_info(sd, "-----Chip status-----\n");
+ 	v4l2_info(sd, "Chip ID: 0x%02x\n",
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 477c80a4d44c..cd4c8230563c 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -111,7 +111,7 @@ enum vivid_colorspace {
+ 	VIVID_CS_170M,
+ 	VIVID_CS_709,
+ 	VIVID_CS_SRGB,
+-	VIVID_CS_ADOBERGB,
++	VIVID_CS_OPRGB,
+ 	VIVID_CS_2020,
+ 	VIVID_CS_DCI_P3,
+ 	VIVID_CS_240M,
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index 5429193fbb91..999aa101b150 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -348,7 +348,7 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		V4L2_COLORSPACE_SMPTE170M,
+ 		V4L2_COLORSPACE_REC709,
+ 		V4L2_COLORSPACE_SRGB,
+-		V4L2_COLORSPACE_ADOBERGB,
++		V4L2_COLORSPACE_OPRGB,
+ 		V4L2_COLORSPACE_BT2020,
+ 		V4L2_COLORSPACE_DCI_P3,
+ 		V4L2_COLORSPACE_SMPTE240M,
+@@ -729,7 +729,7 @@ static const char * const vivid_ctrl_colorspace_strings[] = {
+ 	"SMPTE 170M",
+ 	"Rec. 709",
+ 	"sRGB",
+-	"AdobeRGB",
++	"opRGB",
+ 	"BT.2020",
+ 	"DCI-P3",
+ 	"SMPTE 240M",
+@@ -752,7 +752,7 @@ static const char * const vivid_ctrl_xfer_func_strings[] = {
+ 	"Default",
+ 	"Rec. 709",
+ 	"sRGB",
+-	"AdobeRGB",
++	"opRGB",
+ 	"SMPTE 240M",
+ 	"None",
+ 	"DCI-P3",
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 51fec66d8d45..50248e2176a0 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -413,7 +413,7 @@ int vivid_try_fmt_vid_out(struct file *file, void *priv,
+ 		mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	} else if (mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
+ 		   mp->colorspace != V4L2_COLORSPACE_REC709 &&
+-		   mp->colorspace != V4L2_COLORSPACE_ADOBERGB &&
++		   mp->colorspace != V4L2_COLORSPACE_OPRGB &&
+ 		   mp->colorspace != V4L2_COLORSPACE_BT2020 &&
+ 		   mp->colorspace != V4L2_COLORSPACE_SRGB) {
+ 		mp->colorspace = V4L2_COLORSPACE_REC709;
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 8f52353b0881..facd180870d9 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -877,8 +877,8 @@ v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
+ 		case HDMI_COLORIMETRY_EXTENDED:
+ 			switch (avi->extended_colorimetry) {
+ 			case HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB:
+-				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
+-				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
++				c.colorspace = V4L2_COLORSPACE_OPRGB;
++				c.xfer_func = V4L2_XFER_FUNC_OPRGB;
+ 				break;
+ 			case HDMI_EXTENDED_COLORIMETRY_BT2020:
+ 				c.colorspace = V4L2_COLORSPACE_BT2020;
+@@ -948,9 +948,9 @@ v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
+ 				c.xfer_func = V4L2_XFER_FUNC_SRGB;
+ 				break;
+ 			case HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601:
+-				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
++				c.colorspace = V4L2_COLORSPACE_OPRGB;
+ 				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
+-				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
++				c.xfer_func = V4L2_XFER_FUNC_OPRGB;
+ 				break;
+ 			case HDMI_EXTENDED_COLORIMETRY_BT2020:
+ 				c.colorspace = V4L2_COLORSPACE_BT2020;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 184e4dbe8f9c..29729d580452 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -225,8 +225,8 @@ enum v4l2_colorspace {
+ 	/* For RGB colorspaces such as produces by most webcams. */
+ 	V4L2_COLORSPACE_SRGB          = 8,
+
+-	/* AdobeRGB colorspace */
+-	V4L2_COLORSPACE_ADOBERGB      = 9,
++	/* opRGB colorspace */
++	V4L2_COLORSPACE_OPRGB         = 9,
+
+ 	/* BT.2020 colorspace, used for UHDTV. */
+ 	V4L2_COLORSPACE_BT2020        = 10,
+@@ -258,7 +258,7 @@ enum v4l2_xfer_func {
+ 	 *
+ 	 * V4L2_COLORSPACE_SRGB, V4L2_COLORSPACE_JPEG: V4L2_XFER_FUNC_SRGB
+ 	 *
+-	 * V4L2_COLORSPACE_ADOBERGB: V4L2_XFER_FUNC_ADOBERGB
++	 * V4L2_COLORSPACE_OPRGB: V4L2_XFER_FUNC_OPRGB
+ 	 *
+ 	 * V4L2_COLORSPACE_SMPTE240M: V4L2_XFER_FUNC_SMPTE240M
+ 	 *
+@@ -269,7 +269,7 @@ enum v4l2_xfer_func {
+ 	V4L2_XFER_FUNC_DEFAULT     = 0,
+ 	V4L2_XFER_FUNC_709         = 1,
+ 	V4L2_XFER_FUNC_SRGB        = 2,
+-	V4L2_XFER_FUNC_ADOBERGB    = 3,
++	V4L2_XFER_FUNC_OPRGB       = 3,
+ 	V4L2_XFER_FUNC_SMPTE240M   = 4,
+ 	V4L2_XFER_FUNC_NONE        = 5,
+ 	V4L2_XFER_FUNC_DCI_P3      = 6,
+@@ -281,7 +281,7 @@ enum v4l2_xfer_func {
+  * This depends on the colorspace.
+  */
+ #define V4L2_MAP_XFER_FUNC_DEFAULT(colsp) \
+-	((colsp) == V4L2_COLORSPACE_ADOBERGB ? V4L2_XFER_FUNC_ADOBERGB : \
++	((colsp) == V4L2_COLORSPACE_OPRGB ? V4L2_XFER_FUNC_OPRGB : \
+ 	 ((colsp) == V4L2_COLORSPACE_SMPTE240M ? V4L2_XFER_FUNC_SMPTE240M : \
+ 	  ((colsp) == V4L2_COLORSPACE_DCI_P3 ? V4L2_XFER_FUNC_DCI_P3 : \
+ 	   ((colsp) == V4L2_COLORSPACE_RAW ? V4L2_XFER_FUNC_NONE : \
+@@ -295,7 +295,7 @@ enum v4l2_ycbcr_encoding {
+ 	 *
+ 	 * V4L2_COLORSPACE_SMPTE170M, V4L2_COLORSPACE_470_SYSTEM_M,
+ 	 * V4L2_COLORSPACE_470_SYSTEM_BG, V4L2_COLORSPACE_SRGB,
+-	 * V4L2_COLORSPACE_ADOBERGB and V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
++	 * V4L2_COLORSPACE_OPRGB and V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
+ 	 *
+ 	 * V4L2_COLORSPACE_REC709 and V4L2_COLORSPACE_DCI_P3: V4L2_YCBCR_ENC_709
+ 	 *
+@@ -382,6 +382,17 @@ enum v4l2_quantization {
+ 	 (((is_rgb_or_hsv) || (colsp) == V4L2_COLORSPACE_JPEG) ? \
+ 	 V4L2_QUANTIZATION_FULL_RANGE : V4L2_QUANTIZATION_LIM_RANGE))
+
++/*
++ * Deprecated names for opRGB colorspace (IEC 61966-2-5)
++ *
++ * WARNING: Please don't use these deprecated defines in your code, as
++ * there is a chance we have to remove them in the future.
++ */
++#ifndef __KERNEL__
++#define V4L2_COLORSPACE_ADOBERGB V4L2_COLORSPACE_OPRGB
++#define V4L2_XFER_FUNC_ADOBERGB  V4L2_XFER_FUNC_OPRGB
++#endif
++
+ enum v4l2_priority {
+ 	V4L2_PRIORITY_UNSET       = 0,  /* not initialized */
+ 	V4L2_PRIORITY_BACKGROUND  = 1,
+-- 
+2.18.0
