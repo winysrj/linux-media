@@ -1,68 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:42861 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727095AbeINWMB (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57014 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726891AbeINWa3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 18:12:01 -0400
-Received: by mail-lj1-f193.google.com with SMTP id f1-v6so8070185ljc.9
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2018 09:56:40 -0700 (PDT)
-Subject: Re: [PATCH v2 2/2] media: vsp1: Document max_width restriction on UDS
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20180914142652.30484-1-kieran.bingham+renesas@ideasonboard.com>
- <20180914142652.30484-2-kieran.bingham+renesas@ideasonboard.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <07c61a65-51fd-f01a-2f96-d9eac1e7c098@cogentembedded.com>
-Date: Fri, 14 Sep 2018 19:56:37 +0300
+        Fri, 14 Sep 2018 18:30:29 -0400
+Subject: Re: [PATCH v2 0/2] media: platform: Add Aspeed Video Engine Driver
+To: Eddie James <eajames@linux.vnet.ibm.com>,
+        linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
+        linux-aspeed@lists.ozlabs.org, andrew@aj.id.au,
+        openbmc@lists.ozlabs.org, robh+dt@kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+References: <1536866964-71593-1-git-send-email-eajames@linux.vnet.ibm.com>
+ <3fe3a367-5e63-446b-faba-fa6ac7a007cd@xs4all.nl>
+ <1436d8d6-25ab-4bb8-5558-3e02fbe95e58@linux.vnet.ibm.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <eff9f795-d28f-d9cd-ff04-752757856f94@xs4all.nl>
+Date: Fri, 14 Sep 2018 19:14:58 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180914142652.30484-2-kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <1436d8d6-25ab-4bb8-5558-3e02fbe95e58@linux.vnet.ibm.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-MW
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
-
-On 09/14/2018 05:26 PM, Kieran Bingham wrote:
-
-> The UDS is currently restricted based on a partition size of 256 pixels.
-> Document the actual restrictions, but don't increase the implementation.
+On 09/14/2018 05:08 PM, Eddie James wrote:
 > 
-> The extended partition algorithm may later choose to utilise a larger
-> partition size to support overlapping partitions which will improve the
-> quality of the output images.
 > 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_uds.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> On 09/14/2018 01:59 AM, Hans Verkuil wrote:
+>> On 09/13/2018 09:29 PM, Eddie James wrote:
+>>> The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
+>>> can capture and compress video data from digital or analog sources. With
+>>> the Aspeed chip acting as a service processor, the Video Engine can
+>>> capture the host processor graphics output.
+>>>
+>>> This series adds a V4L2 driver for the VE, providing a read() interface
+>>> only. The driver triggers the hardware to capture the host graphics output
+>>> and compress it to JPEG format.
+>>>
+>>>
+>>> v4l2-compliance output:
+>>>
+>>> v4l2-compliance SHA   : not available
+>> There should be a SHA here. "not available" indicates that you didn't compile
+>> from the git repository directly, and now I do not know how old this compliance
+>> test is. Always compile from the latest git repo, never use a version from e.g.
+>> a distro as they tend to be old and missing tests.
+>>
+>> It would be great if you can do this and reply with the new compliance output.
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-> index 75c613050151..e8340de85813 100644
-> --- a/drivers/media/platform/vsp1/vsp1_uds.c
-> +++ b/drivers/media/platform/vsp1/vsp1_uds.c
-> @@ -342,6 +342,14 @@ static unsigned int uds_max_width(struct vsp1_entity *entity,
->  					    UDS_PAD_SOURCE);
->  	hscale = output->width / input->width;
->  
-> +	/*
-> +	 * The maximum width of the UDS is 304 pixels. These are input pixels
-> +	 * in the event of up-scaling, and output pixels in the event of
-> +	 * downscaling.
-> +	 *
-> +	 * To support overlapping parition windows we clamp at units of 256 and
+> Hmm, I did compile from the latest git repo (maybe a week old now), but 
+> maybe our cross complication setup is preventing that hash from being 
+> generated. Will try and get it.
 
-   Partition.
+You can also just report the git commit hash if you can't get it to work.
+As long as I know from which source version it was built.
 
-> +	 * the remaining pixels are reserved.
-> +	 */
->  	if (hscale <= 2)
->  		return 256;
->  	else if (hscale <= 4)
+Regards,
 
-MBR, Sergei
+	Hans
