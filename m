@@ -1,105 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:54313 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726883AbeINOVw (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:48256 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726776AbeINOvb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 10:21:52 -0400
-Date: Fri, 14 Sep 2018 11:08:16 +0200
-From: Marco Felsch <m.felsch@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Nasser Afshin <afshin.nasser@gmail.com>,
-        Javier Martinez Canillas <javierm@redhat.com>
-Subject: Re: [PATCH] tvp5150: avoid going past array on v4l2_querymenu()
-Message-ID: <20180914090816.arva6a7wibwvdf4t@pengutronix.de>
-References: <23f2f6c9b22bc17addd99ffa1cb60cde9647128f.1536874602.git.mchehab+samsung@kernel.org>
+        Fri, 14 Sep 2018 10:51:31 -0400
+Date: Fri, 14 Sep 2018 06:37:41 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        kernel@pengutronix.de, devicetree@vger.kernel.org,
+        p.zabel@pengutronix.de, javierm@redhat.com,
+        laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+        afshin.nasser@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 0/7] TVP5150 fixes and new features
+Message-ID: <20180914063741.407b517b@coco.lan>
+In-Reply-To: <20180914084303.pvqm35cbe6vznoci@pengutronix.de>
+References: <20180813092508.1334-1-m.felsch@pengutronix.de>
+        <20180914084303.pvqm35cbe6vznoci@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <23f2f6c9b22bc17addd99ffa1cb60cde9647128f.1536874602.git.mchehab+samsung@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18-09-13 18:36, Mauro Carvalho Chehab wrote:
-> The parameters of v4l2_ctrl_new_std_menu_items() are tricky: instead of
-> the number of possible values, it requires the number of the maximum
-> value. In other words, the ARRAY_SIZE() value should be decremented,
-> otherwise it will go past the array bounds, as warned by KASAN:
-> 
-> [  279.839688] BUG: KASAN: global-out-of-bounds in v4l2_querymenu+0x10d/0x180 [videodev]
-> [  279.839709] Read of size 8 at addr ffffffffc10a4cb0 by task v4l2-compliance/16676
-> 
-> [  279.839736] CPU: 1 PID: 16676 Comm: v4l2-compliance Not tainted 4.18.0-rc2+ #120
-> [  279.839741] Hardware name:  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
-> [  279.839743] Call Trace:
-> [  279.839758]  dump_stack+0x71/0xab
-> [  279.839807]  ? v4l2_querymenu+0x10d/0x180 [videodev]
-> [  279.839817]  print_address_description+0x1c9/0x270
-> [  279.839863]  ? v4l2_querymenu+0x10d/0x180 [videodev]
-> [  279.839871]  kasan_report+0x237/0x360
-> [  279.839918]  v4l2_querymenu+0x10d/0x180 [videodev]
-> [  279.839964]  __video_do_ioctl+0x2c8/0x590 [videodev]
-> [  279.840011]  ? copy_overflow+0x20/0x20 [videodev]
-> [  279.840020]  ? avc_ss_reset+0xa0/0xa0
-> [  279.840028]  ? check_stack_object+0x21/0x60
-> [  279.840036]  ? __check_object_size+0xe7/0x240
-> [  279.840080]  video_usercopy+0xed/0x730 [videodev]
-> [  279.840123]  ? copy_overflow+0x20/0x20 [videodev]
-> [  279.840167]  ? v4l_enumstd+0x40/0x40 [videodev]
-> [  279.840177]  ? __handle_mm_fault+0x9f9/0x1ba0
-> [  279.840186]  ? __pmd_alloc+0x2c0/0x2c0
-> [  279.840193]  ? __vfs_write+0xb6/0x350
-> [  279.840200]  ? kernel_read+0xa0/0xa0
-> [  279.840244]  ? video_usercopy+0x730/0x730 [videodev]
-> [  279.840284]  v4l2_ioctl+0xa1/0xb0 [videodev]
-> [  279.840295]  do_vfs_ioctl+0x117/0x8a0
-> [  279.840303]  ? selinux_file_ioctl+0x211/0x2f0
-> [  279.840313]  ? ioctl_preallocate+0x120/0x120
-> [  279.840319]  ? selinux_capable+0x20/0x20
-> [  279.840332]  ksys_ioctl+0x70/0x80
-> [  279.840342]  __x64_sys_ioctl+0x3d/0x50
-> [  279.840351]  do_syscall_64+0x6d/0x1c0
-> [  279.840361]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> [  279.840367] RIP: 0033:0x7fdfb46275d7
-> [  279.840369] Code: b3 66 90 48 8b 05 b1 48 2d 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 81 48 2d 00 f7 d8 64 89 01 48
-> [  279.840474] RSP: 002b:00007ffee1179038 EFLAGS: 00000202 ORIG_RAX: 0000000000000010
-> [  279.840483] RAX: ffffffffffffffda RBX: 00007ffee1179180 RCX: 00007fdfb46275d7
-> [  279.840488] RDX: 00007ffee11790c0 RSI: 00000000c02c5625 RDI: 0000000000000003
-> [  279.840493] RBP: 0000000000000002 R08: 0000000000000020 R09: 00000000009f0902
-> [  279.840497] R10: 0000000000000000 R11: 0000000000000202 R12: 00007ffee117a5a0
-> [  279.840501] R13: 00007ffee11790c0 R14: 0000000000000002 R15: 0000000000000000
-> 
-> [  279.840515] The buggy address belongs to the variable:
-> [  279.840535]  tvp5150_test_patterns+0x10/0xffffffffffffe360 [tvp5150]
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Em Fri, 14 Sep 2018 10:43:03 +0200
+Marco Felsch <m.felsch@pengutronix.de> escreveu:
 
-Should there a Fixes: tag and also a fix keyword in the patch title?
+> Hi,
+> 
+> since I sent this series I only got feedback from Rob.
 
-Regards,
-Marco
+I'm doing some tests on it. If everything gets ok, I'll likely merge
+it today.
 
-> ---
->  drivers/media/i2c/tvp5150.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index b5d44c25d1da..133073518744 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -1633,7 +1633,7 @@ static int tvp5150_probe(struct i2c_client *c,
->  			27000000, 1, 27000000);
->  	v4l2_ctrl_new_std_menu_items(&core->hdl, &tvp5150_ctrl_ops,
->  				     V4L2_CID_TEST_PATTERN,
-> -				     ARRAY_SIZE(tvp5150_test_patterns),
-> +				     ARRAY_SIZE(tvp5150_test_patterns) - 1,
->  				     0, 0, tvp5150_test_patterns);
->  	sd->ctrl_handler = &core->hdl;
->  	if (core->hdl.error) {
-> -- 
-> 2.17.1
+> Regards,
+> Marco
 > 
-> 
+> On 18-08-13 11:25, Marco Felsch wrote:
+> > Hi,
+> > 
+> > this is my v2 with the integrated reviews from my v1 [1]. Since Mauro
+> > applied the most patches from my v1 to his experimental/tvp5150-3
+> > branch [2], this series only contains those which aren't applied.
+> > 
+> > Patches I changed contain a changelog, so I will omit these here.
+> > 
+> > Patch ('[media] tvp5150: add FORMAT_TRY support for get/set selection
+> > handlers') throws a compile error. Therefore I added two v4l2-subdev.h
+> > patches which should fix the error in a common way.
+> > 
+> > Patch ('[media] tvp5150: add s_power callback') is new too. I forget
+> > them in my v1. This patch address the interrupt enable/disable handling.
+> > Now it is possible to pause streaming and keep the interrupts on.
+> > 
+> > The changes I made in the ('[media] tvp5150: add input source selection
+> > of_graph support') patch are based on the the RFC [3] and discussion [4].
+> > I dropped patch ('[media] tvp5150: Change default input source selection
+> > behaviour') since the default input source selectopn is setup during the
+> > .registered() callback now.
+> > 
+> > I've tested this series on a customer dt-based board. Unfortunately I
+> > haven't a device which use the em28xx driver. So other tester a welcome :)
+> > 
+> > [1] https://www.spinics.net/lists/devicetree/msg236650.html
+> > [2] https://git.linuxtv.org/mchehab/experimental.git/log/?h=tvp5150-3
+> > [3] https://www.spinics.net/lists/devicetree/msg243181.html
+> > [4] https://www.spinics.net/lists/devicetree/msg243840.html
+> > 
+> > Regards,
+> > Marco
+> > 
+> > Marco Felsch (6):
+> >   [media] tvp5150: add input source selection of_graph support
+> >   [media] dt-bindings: tvp5150: Add input port connectors DT bindings
+> >   [media] v4l2-subdev: add stubs for v4l2_subdev_get_try_*
+> >   [media] v4l2-subdev: fix v4l2_subdev_get_try_* dependency
+> >   [media] tvp5150: add FORMAT_TRY support for get/set selection handlers
+> >   [media] tvp5150: add s_power callback
+> > 
+> > Michael Tretter (1):
+> >   [media] tvp5150: initialize subdev before parsing device tree
+> > 
+> >  .../devicetree/bindings/media/i2c/tvp5150.txt | 191 +++++-
+> >  drivers/media/i2c/tvp5150.c                   | 611 +++++++++++++++---
+> >  include/media/v4l2-subdev.h                   | 111 ++--
+> >  3 files changed, 776 insertions(+), 137 deletions(-)
+> > 
+> > -- 
+> > 2.18.0
+> > 
+> >   
+
+
+
+Thanks,
+Mauro
