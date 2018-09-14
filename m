@@ -1,38 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:38072 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726618AbeINPLm (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34180 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727881AbeINP1m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 11:11:42 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for request_api branch] v4l2-compat-ioctl32.c: fix sparse
- warning
-Message-ID: <8867b0c6-8e9e-f6ca-b036-1d06076e0dfa@xs4all.nl>
-Date: Fri, 14 Sep 2018 11:57:51 +0200
+        Fri, 14 Sep 2018 11:27:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-kernel@vger.kernel.org, kbingham@kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 2/4] MAINTAINERS: VSP1: Add co-maintainer
+Date: Fri, 14 Sep 2018 13:14:06 +0300
+Message-ID: <1716835.dM7TpKmmGR@avalon>
+In-Reply-To: <20180806143904.4716-2-kieran.bingham@ideasonboard.com>
+References: <20180806143904.4716-1-kieran.bingham@ideasonboard.com> <20180806143904.4716-2-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this sparse warning:
+Hi Kieran,
 
-drivers/media/v4l2-core/v4l2-compat-ioctl32.c:256: warning:
-Function parameter or member 'capabilities' not described in 'v4l2_create_buffers32'
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 0028e0be6b5b..f4325329fbd6 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -244,6 +244,7 @@ struct v4l2_format32 {
-  *		return: number of created buffers
-  * @memory:	buffer memory type
-  * @format:	frame format, for which buffers are requested
-+ * @capabilities: capabilities of this buffer type.
-  * @reserved:	future extensions
-  */
- struct v4l2_create_buffers32 {
+On Monday, 6 August 2018 17:39:02 EEST Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> Add myself as a co-maintainer for the Renesas VSP driver.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+Thank you for your help with the R-Car VSP driver !
+
+> ---
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-renesas-soc@vger.kernel.org
+> 
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index c7cecb9201b3..6a30a5332b18 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -8935,6 +8935,7 @@ F:	drivers/media/platform/rcar-vin/
+> 
+>  MEDIA DRIVERS FOR RENESAS - VSP1
+>  M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> +M:	Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>  L:	linux-media@vger.kernel.org
+>  L:	linux-renesas-soc@vger.kernel.org
+>  T:	git git://linuxtv.org/media_tree.git
+
+-- 
+Regards,
+
+Laurent Pinchart
