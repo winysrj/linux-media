@@ -1,39 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:54419 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726902AbeINVPX (ORCPT
+Received: from relay10.mail.gandi.net ([217.70.178.230]:58247 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726845AbeINVWZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 17:15:23 -0400
-Date: Fri, 14 Sep 2018 18:00:12 +0200
+        Fri, 14 Sep 2018 17:22:25 -0400
+Date: Fri, 14 Sep 2018 18:07:12 +0200
 From: jacopo mondi <jacopo@jmondi.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, hugues.fruchet@st.com
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
         Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>
 Subject: Re: [PATCH v3 0/5] Fix OV5640 exposure & gain
-Message-ID: <20180914160012.GC16851@w540>
+Message-ID: <20180914160712.GD16851@w540>
 References: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="L6iaP+gRLNZHKoI4"
+        protocol="application/pgp-signature"; boundary="KdquIMZPjGJQvRdI"
 Content-Disposition: inline
 In-Reply-To: <1536673701-32165-1-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---L6iaP+gRLNZHKoI4
+--KdquIMZPjGJQvRdI
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
-Hi  Hugues,
-   thanks for the patches
+Hi Sakari,
 
 On Tue, Sep 11, 2018 at 03:48:16PM +0200, Hugues Fruchet wrote:
 > This patch serie fixes some problems around exposure & gain in OV5640 driver.
+
+As you offered to collect this series and my CSI-2 fixes I have just
+re-sent, you might be interested in this branch:
+
+git://jmondi.org/linux
+engicam-imx6q/media-master/ov5640/csi2_init_v4_exposure_v3
+
+I have there re-based this series on top of mine, which is in turn
+based on latest media master, where this series do not apply as-is
+afaict.
+
+I have added to Hugues' patches my reviewed-by and tested-by tags.
+If you prefer to I can send you a pull request, or if you want to have
+a chance to review the whole patch list please refer to the above
+branch.
+
+Let me know if I can help speeding up the inclusion of these two
+series as they fix two real issues of MIPI CSI-2 capture operations
+for this sensor.
+
+Thanks
+  j
+
 >
 > The 4th patch about autocontrols requires also a fix in v4l2-ctrls.c:
 > https://www.mail-archive.com/linux-media@vger.kernel.org/msg133164.html
@@ -81,55 +102,6 @@ On Tue, Sep 11, 2018 at 03:48:16PM +0200, Hugues Fruchet wrote:
 >                            gain (int)    : min=0 max=1023 step=1 default=0 value=22 flags=inactive, volatile
 > Note the "0" for auto exposure.
 >
-
-I've tested on my side and I can confirm the exposure and gain when in
-auto-mode changes as expected, and it is possible to switch back and
-forth between auto and manual modes.
-
-The patches also fixes an issue when capturing frames, as the first
-two/three frames where always black in my setup before this series.
-
-(While streaming to gstreamers' fakesink)
-# v4l2-ctl --get-ctrl "exposure" --get-ctrl "gain" -d /dev/video4
-exposure: 885
-gain: 50
-
-(Point a light in front of the sensor)
-# v4l2-ctl --get-ctrl "exposure" --get-ctrl "gain" -d /dev/video4
-exposure: 17
-gain: 19
-
-(Disable auto-gain and auto-exposure)
-# v4l2-ctl  -d /dev/video4 --set-ctrl=auto_exposure=1
-# v4l2-ctl  -d /dev/video4 --set-ctrl=gain_automatic=0
-# v4l2-ctl  -d /dev/video4 --set-ctrl=exposure=100
-# v4l2-ctl --get-ctrl "exposure" --get-ctrl "gain" -d /dev/video4
-exposure: 100
-gain: 46
-
-(Re-enable auto-exp and auto-gain)
-# v4l2-ctl  -d /dev/video4 --set-ctrl=auto_exposure=0
-# v4l2-ctl  -d /dev/video4 --set-ctrl=gain_automatic=1
-# v4l2-ctl --get-ctrl "exposure" --get-ctrl "gain" -d /dev/video4
-exposure: 885
-gain: 46
-
-(Finger on the sensor)
-# v4l2-ctl --get-ctrl "exposure" --get-ctrl "gain" -d /dev/video4
-exposure: 885
-gain: 248
-
-(Point a light on the sensor)
-exposure: 16
-gain: 19
-
-So please add my
-Tested-by: Jacopo Mondi <jacopo@jmondi.org>
-to this series.
-
-Thanks
-   j
-
 > ===========
 > = history =
 > ===========
@@ -155,25 +127,25 @@ Thanks
 > 2.7.4
 >
 
---L6iaP+gRLNZHKoI4
+--KdquIMZPjGJQvRdI
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbm9sMAAoJEHI0Bo8WoVY8b9QP+wQW/epX2W1v2XjkYadbu7RZ
-JY/Zt2rsecJxi3cGPvPFYBuCpSfWrRGVyXL98pH6IrhQKlJdNq+Bacd5YmrzZ7je
-Eg2El4MixpouEW6rbt0gRLk+efygO5J3QnvCb9Ak99nVh78iJct0WFC9kCGzNdZG
-IhMjCe0Lu8umchCSpJjL3MROFhbG+VxRdpqh7jkh1wr+hFqsJU8A4g79KmbYG/2h
-e7pIHuO8Yu6sElpkQOfbu8jLTxwUtCdAKZUZXQqfBVPB8nN1v2dsiRbmGH86jDzp
-Zg0X3JxlsCR37uL1fIFHY6LjG1rxYXlAfEfHIRYwxVY6cE8/4C2uOT1vfE5JDQ0f
-AYsErZYnWrk0iu+TlLKiXEj2IUHInEGLQlHd+WfB23Jx1/p4Pfx09jmUiYychVDq
-T1P0kGyxszH6m0KNbZj/GLI+lZlYi3vJkgETskjkL6qUzpCNtSaquGn1aI/ulpMK
-Q2K00EOzwz4n8V5LJu0LFlvgALM6xwAXSCekUHmPMnjtCWPpdnyVOm70eC3FIv4m
-1q9uadksfmpZzDRKikSLkc+WhOOg0D5UYu5RQGRJJw3MPlIfBjomjuCGzxP0eLrt
-1ZOgcMkGvxofGLpTk0IoEEdMdPUz6pqMkbMJLIXqAqB2Y0R7XMwebpT/npoTzDF3
-9ZeQEUYmYpTl41cmw9fm
-=Yecm
+iQIcBAEBAgAGBQJbm9ywAAoJEHI0Bo8WoVY8ea8P/3iUxJUfCLiO1uqpwgiX3Asc
+XKrW9/G1WzlhOxDTCmenT1HevqXUa8l/BjlBBM1rT0O4UMTyoKPtx/jW3sYuHb1v
+7pczZ4vg5eczFPhfbbd6j0wcjr7pb5R/DXwwMZTZ7iqsAoK1XB08sJy8asef6+WM
+z+HMV8f5EG/2aJM11S8JEWwoHYIB3w7P3MWnovUd693zu7qO8KTZf/P1/ZnGurU9
+xsIFJBP7THTFTDLYY6ggyFqqaw9q1I8N60VHMXMMIGNiwM20jERi4p34sh1nUtA3
+y4LvpEr006hVALtGhxVbcTeF20DxytSsEu8r6Oef7bbsgQ8kdpUE+f9wEMxyDBZi
+j5ycDRO+r/T58c/Sl9W4CC8m626wlqHpqOJAlZQdlEbcvAVN2ozeGmfM1oY5uTyi
+xY9MvMpOhQfXDZtKwhJo86Y59X9E7vZbxd96wAq/vEgK+u4Dwb5P8CtP5p0RhBuW
+cbOlUTW3koYJvEKaWFHH7obgFJA60HhyduMdV8WklP0aAKEonIY5OUxrlkPY+lta
+9HIWybR+b1oVf8EdB6c4FjrifbMb1aDfu8GwK/jBZDREM+CJJoQuF3rGDjKecnxB
+sRxfTTc+Un8mECWgtfLl5cGvg3kH/rE2wZICUIo7MsoR7dCFz2j9acYw4F9/YdVo
+6QO2t+WKiA85sX6XSMKb
+=RAv2
 -----END PGP SIGNATURE-----
 
---L6iaP+gRLNZHKoI4--
+--KdquIMZPjGJQvRdI--
