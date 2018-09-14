@@ -1,77 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:54757 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726618AbeINOBQ (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:54313 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726883AbeINOVw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 10:01:16 -0400
-Subject: Re: [PATCH 1/3] rcar-vin: align format width with hardware limits
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20180914021345.9277-1-niklas.soderlund+renesas@ragnatech.se>
- <20180914021345.9277-2-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <6676e7fa-5548-7c3e-25f0-19bf6b03ed42@xs4all.nl>
-Date: Fri, 14 Sep 2018 10:47:41 +0200
+        Fri, 14 Sep 2018 10:21:52 -0400
+Date: Fri, 14 Sep 2018 11:08:16 +0200
+From: Marco Felsch <m.felsch@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Nasser Afshin <afshin.nasser@gmail.com>,
+        Javier Martinez Canillas <javierm@redhat.com>
+Subject: Re: [PATCH] tvp5150: avoid going past array on v4l2_querymenu()
+Message-ID: <20180914090816.arva6a7wibwvdf4t@pengutronix.de>
+References: <23f2f6c9b22bc17addd99ffa1cb60cde9647128f.1536874602.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20180914021345.9277-2-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <23f2f6c9b22bc17addd99ffa1cb60cde9647128f.1536874602.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/14/2018 04:13 AM, Niklas Söderlund wrote:
-> The Gen3 datasheets lists specific alignment restrictions compared to
-> Gen2. This was overlooked when adding Gen3 support as no problematic
-> configuration was encountered. However when adding support for Gen3 Up
-> Down Scaler (UDS) strange issues could be observed for odd widths
-> without taking this limit into consideration.
+On 18-09-13 18:36, Mauro Carvalho Chehab wrote:
+> The parameters of v4l2_ctrl_new_std_menu_items() are tricky: instead of
+> the number of possible values, it requires the number of the maximum
+> value. In other words, the ARRAY_SIZE() value should be decremented,
+> otherwise it will go past the array bounds, as warned by KASAN:
 > 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
+> [  279.839688] BUG: KASAN: global-out-of-bounds in v4l2_querymenu+0x10d/0x180 [videodev]
+> [  279.839709] Read of size 8 at addr ffffffffc10a4cb0 by task v4l2-compliance/16676
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index dc77682b47857c97..2fc2a05eaeacb134 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -673,6 +673,21 @@ static void rvin_mc_try_format(struct rvin_dev *vin,
->  	pix->quantization = V4L2_MAP_QUANTIZATION_DEFAULT(true, pix->colorspace,
->  							  pix->ycbcr_enc);
->  
-> +	switch (vin->format.pixelformat) {
-> +	case V4L2_PIX_FMT_NV16:
-> +		pix->width = ALIGN(pix->width, 0x80);
-> +		break;
-> +	case V4L2_PIX_FMT_YUYV:
-> +	case V4L2_PIX_FMT_UYVY:
-> +	case V4L2_PIX_FMT_RGB565:
-> +	case V4L2_PIX_FMT_XRGB555:
-> +		pix->width = ALIGN(pix->width, 0x40);
-> +		break;
-> +	default:
-> +		pix->width = ALIGN(pix->width, 0x20);
-> +		break;
-> +	}
-> +
->  	rvin_format_align(vin, pix);
->  }
->  
+> [  279.839736] CPU: 1 PID: 16676 Comm: v4l2-compliance Not tainted 4.18.0-rc2+ #120
+> [  279.839741] Hardware name:  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+> [  279.839743] Call Trace:
+> [  279.839758]  dump_stack+0x71/0xab
+> [  279.839807]  ? v4l2_querymenu+0x10d/0x180 [videodev]
+> [  279.839817]  print_address_description+0x1c9/0x270
+> [  279.839863]  ? v4l2_querymenu+0x10d/0x180 [videodev]
+> [  279.839871]  kasan_report+0x237/0x360
+> [  279.839918]  v4l2_querymenu+0x10d/0x180 [videodev]
+> [  279.839964]  __video_do_ioctl+0x2c8/0x590 [videodev]
+> [  279.840011]  ? copy_overflow+0x20/0x20 [videodev]
+> [  279.840020]  ? avc_ss_reset+0xa0/0xa0
+> [  279.840028]  ? check_stack_object+0x21/0x60
+> [  279.840036]  ? __check_object_size+0xe7/0x240
+> [  279.840080]  video_usercopy+0xed/0x730 [videodev]
+> [  279.840123]  ? copy_overflow+0x20/0x20 [videodev]
+> [  279.840167]  ? v4l_enumstd+0x40/0x40 [videodev]
+> [  279.840177]  ? __handle_mm_fault+0x9f9/0x1ba0
+> [  279.840186]  ? __pmd_alloc+0x2c0/0x2c0
+> [  279.840193]  ? __vfs_write+0xb6/0x350
+> [  279.840200]  ? kernel_read+0xa0/0xa0
+> [  279.840244]  ? video_usercopy+0x730/0x730 [videodev]
+> [  279.840284]  v4l2_ioctl+0xa1/0xb0 [videodev]
+> [  279.840295]  do_vfs_ioctl+0x117/0x8a0
+> [  279.840303]  ? selinux_file_ioctl+0x211/0x2f0
+> [  279.840313]  ? ioctl_preallocate+0x120/0x120
+> [  279.840319]  ? selinux_capable+0x20/0x20
+> [  279.840332]  ksys_ioctl+0x70/0x80
+> [  279.840342]  __x64_sys_ioctl+0x3d/0x50
+> [  279.840351]  do_syscall_64+0x6d/0x1c0
+> [  279.840361]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> [  279.840367] RIP: 0033:0x7fdfb46275d7
+> [  279.840369] Code: b3 66 90 48 8b 05 b1 48 2d 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 81 48 2d 00 f7 d8 64 89 01 48
+> [  279.840474] RSP: 002b:00007ffee1179038 EFLAGS: 00000202 ORIG_RAX: 0000000000000010
+> [  279.840483] RAX: ffffffffffffffda RBX: 00007ffee1179180 RCX: 00007fdfb46275d7
+> [  279.840488] RDX: 00007ffee11790c0 RSI: 00000000c02c5625 RDI: 0000000000000003
+> [  279.840493] RBP: 0000000000000002 R08: 0000000000000020 R09: 00000000009f0902
+> [  279.840497] R10: 0000000000000000 R11: 0000000000000202 R12: 00007ffee117a5a0
+> [  279.840501] R13: 00007ffee11790c0 R14: 0000000000000002 R15: 0000000000000000
 > 
+> [  279.840515] The buggy address belongs to the variable:
+> [  279.840535]  tvp5150_test_patterns+0x10/0xffffffffffffe360 [tvp5150]
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 
-This looks weird. So for NV16 the width must be a multiple of 128,
-do I read that correctly?
-
-Are you sure you don't mean bytesperline?
-
-And if it really is the width, doesn't this place very big constraints
-on the vin driver? If you don't want/need the UDS, then I can imagine
-that you don't want these alignments.
+Should there a Fixes: tag and also a fix keyword in the patch title?
 
 Regards,
+Marco
 
-	Hans
+> ---
+>  drivers/media/i2c/tvp5150.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index b5d44c25d1da..133073518744 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -1633,7 +1633,7 @@ static int tvp5150_probe(struct i2c_client *c,
+>  			27000000, 1, 27000000);
+>  	v4l2_ctrl_new_std_menu_items(&core->hdl, &tvp5150_ctrl_ops,
+>  				     V4L2_CID_TEST_PATTERN,
+> -				     ARRAY_SIZE(tvp5150_test_patterns),
+> +				     ARRAY_SIZE(tvp5150_test_patterns) - 1,
+>  				     0, 0, tvp5150_test_patterns);
+>  	sd->ctrl_handler = &core->hdl;
+>  	if (core->hdl.error) {
+> -- 
+> 2.17.1
+> 
+> 
