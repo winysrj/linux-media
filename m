@@ -1,70 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:33422 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726942AbeIODMq (ORCPT
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:45602 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725198AbeIOEGk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 23:12:46 -0400
-Subject: Re: [PATCH] media: imx-pxp: fix compilation on i386 or x86_64
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, kernel@pengutronix.de
-References: <20180914071056.28752-1-p.zabel@pengutronix.de>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <0245b7b8-8826-27ab-cc36-8bf5f9107a7b@infradead.org>
-Date: Fri, 14 Sep 2018 14:56:18 -0700
-MIME-Version: 1.0
-In-Reply-To: <20180914071056.28752-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Sat, 15 Sep 2018 00:06:40 -0400
+From: Luis Oliveira <Luis.Oliveira@synopsys.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: all-jpinto-org-pt02@synopsys.com,
+        Luis Oliveira <Luis.Oliveira@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Luis Oliveira <luis.oliveira@synopsys.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH 0/5]  platform: dwc: Add of DesignWare MIPI CSI-2 Host
+Date: Sat, 15 Sep 2018 00:48:36 +0200
+Message-Id: <20180914224849.27173-1-lolivei@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/14/18 12:10 AM, Philipp Zabel wrote:
-> Include the missing interrupt.h header to fix compilation on i386 or
-> x86_64:
-> 
->  ../drivers/media/platform/imx-pxp.c:988:1: error: unknown type name 'irqreturn_t'
->   static irqreturn_t pxp_irq_handler(int irq, void *dev_id)
->   ^
->  ../drivers/media/platform/imx-pxp.c: In function 'pxp_irq_handler':
->  ../drivers/media/platform/imx-pxp.c:1012:9: error: 'IRQ_HANDLED' undeclared (first use in this function)
->    return IRQ_HANDLED;
->           ^
->  ../drivers/media/platform/imx-pxp.c:1012:9: note: each undeclared identifier is reported only once for each function it appears in
->  ../drivers/media/platform/imx-pxp.c: In function 'pxp_probe':
->  ../drivers/media/platform/imx-pxp.c:1660:2: error: implicit declaration of function 'devm_request_threaded_irq' [-Werror=implicit-function-declaration]
->    ret = devm_request_threaded_irq(&pdev->dev, irq, NULL, pxp_irq_handler,
->    ^
->  ../drivers/media/platform/imx-pxp.c:1661:4: error: 'IRQF_ONESHOT' undeclared (first use in this function)
->      IRQF_ONESHOT, dev_name(&pdev->dev), dev);
-> 
-> Fixes: 51abcf7fdb70 ("media: imx-pxp: add i.MX Pixel Pipeline driver")
-> Reported-by: Randy Dunlap <rdunlap@infradead.org>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+This adds support for Synopsys MIPI CSI-2 Host and MIPI D-PHY.
+The patch series include support for initialization/configuration of the
+DW MIPI CSI-2 controller and DW MIPI D-PHY and both include a reference
+platform driver.
 
-Thanks.  You can choose/add:
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Build-tested-by: Randy Dunlap <rdunlap@infradead.org>
+This will enable future SoCs to use this standard approach and possibly
+create a more clean environment.
 
-> ---
->  drivers/media/platform/imx-pxp.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/imx-pxp.c b/drivers/media/platform/imx-pxp.c
-> index 68ecfed7098b..229c23ae4029 100644
-> --- a/drivers/media/platform/imx-pxp.c
-> +++ b/drivers/media/platform/imx-pxp.c
-> @@ -13,6 +13,7 @@
->  #include <linux/clk.h>
->  #include <linux/delay.h>
->  #include <linux/dma-mapping.h>
-> +#include <linux/interrupt.h>
->  #include <linux/io.h>
->  #include <linux/iopoll.h>
->  #include <linux/module.h>
-> 
+This series also documents the dt-bindings needed for the platform
+drivers.
 
+This was applied in: https://git.linuxtv.org/media_tree.git
+
+Luis Oliveira (5):
+  media: platform: Add DesignWare MIPI CSI2 Host placeholder
+  Documentation: dt-bindings: Document the Synopsys MIPI DPHY Rx
+    bindings
+  media: platform: dwc: Add DW MIPI DPHY core and platform
+  Documentation: dt-bindings: Document bindings for DW MIPI CSI-2 Host
+  media: platform: dwc: Add MIPI CSI-2 controller driver
+
+ .../devicetree/bindings/media/snps,dw-csi-plat.txt |  74 +++
+ .../devicetree/bindings/phy/snps,dphy-rx.txt       |  36 ++
+ MAINTAINERS                                        |  10 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   3 +
+ drivers/media/platform/dwc/Kconfig                 |  42 ++
+ drivers/media/platform/dwc/Makefile                |   4 +
+ drivers/media/platform/dwc/dw-csi-plat.c           | 508 ++++++++++++++++++
+ drivers/media/platform/dwc/dw-csi-plat.h           |  76 +++
+ drivers/media/platform/dwc/dw-dphy-plat.c          | 365 +++++++++++++
+ drivers/media/platform/dwc/dw-dphy-rx.c            | 592 +++++++++++++++++++++
+ drivers/media/platform/dwc/dw-dphy-rx.h            | 176 ++++++
+ drivers/media/platform/dwc/dw-mipi-csi.c           | 491 +++++++++++++++++
+ drivers/media/platform/dwc/dw-mipi-csi.h           | 202 +++++++
+ include/media/dwc/dw-mipi-csi-pltfrm.h             | 101 ++++
+ 15 files changed, 2681 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/snps,dw-csi-plat.txt
+ create mode 100644 Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
+ create mode 100644 drivers/media/platform/dwc/Kconfig
+ create mode 100644 drivers/media/platform/dwc/Makefile
+ create mode 100644 drivers/media/platform/dwc/dw-csi-plat.c
+ create mode 100644 drivers/media/platform/dwc/dw-csi-plat.h
+ create mode 100644 drivers/media/platform/dwc/dw-dphy-plat.c
+ create mode 100644 drivers/media/platform/dwc/dw-dphy-rx.c
+ create mode 100644 drivers/media/platform/dwc/dw-dphy-rx.h
+ create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.c
+ create mode 100644 drivers/media/platform/dwc/dw-mipi-csi.h
+ create mode 100644 include/media/dwc/dw-mipi-csi-pltfrm.h
 
 -- 
-~Randy
+2.9.3
