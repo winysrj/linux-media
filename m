@@ -1,30 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45080 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727726AbeINO7V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 10:59:21 -0400
-Date: Fri, 14 Sep 2018 11:45:38 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] udmabuf: fix error code in map_udmabuf()
-Message-ID: <20180914094538.xied3d2zgg5b2atr@sirius.home.kraxel.org>
-References: <20180914065615.GA12043@mwanda>
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:40016 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726882AbeINPBx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Sep 2018 11:01:53 -0400
+Received: by mail-wr1-f66.google.com with SMTP id n2-v6so9827920wrw.7
+        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2018 02:48:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180914065615.GA12043@mwanda>
+In-Reply-To: <20180911150938.3844-1-mjourdan@baylibre.com>
+References: <20180911150938.3844-1-mjourdan@baylibre.com>
+From: Maxime Jourdan <mjourdan@baylibre.com>
+Date: Fri, 14 Sep 2018 11:48:08 +0200
+Message-ID: <CAMO6naz46zu5qiN=9LCixMKOHbXLW6qYGqarHf9ciNUsMRQ6sQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/3] Add Amlogic video decoder driver
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Maxime Jourdan <mjourdan@baylibre.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-amlogic@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 14, 2018 at 09:56:15AM +0300, Dan Carpenter wrote:
-> We accidentally forgot to set "ret" on this error path so it means we
-> return NULL instead of an error pointer.  The caller checks for NULL and
-> changes it to an error pointer so it doesn't cause an issue at run time.
+Please note: the canvas patches required for this series (and causing
+the kbuild fail) were merged by Kevin Hilman with a tag.
 
-Pushed to drm-misc-next.
+Repo: https://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-amlogic.git
+Tag: amlogic-drivers-canvas
 
-thanks,
-  Gerd
+Regards,
+Maxime
