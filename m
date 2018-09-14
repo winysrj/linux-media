@@ -1,53 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55342 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727021AbeINSN4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 14:13:56 -0400
-Date: Fri, 14 Sep 2018 15:59:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: petrcvekcz@gmail.com
-Cc: hans.verkuil@cisco.com, jacopo@jmondi.org, mchehab@kernel.org,
-        marek.vasut@gmail.com, linux-media@vger.kernel.org,
-        robert.jarzmik@free.fr, slapin@ossfans.org, philipp.zabel@gmail.com
-Subject: Re: [PATCH v2 0/4] media: soc_camera: ov9640: switch driver to
- v4l2_async
-Message-ID: <20180914125932.gepe4g7idwyjd2t4@valkosipuli.retiisi.org.uk>
-References: <cover.1534339750.git.petrcvekcz@gmail.com>
+Received: from mga05.intel.com ([192.55.52.43]:12295 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728245AbeINSqd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Sep 2018 14:46:33 -0400
+Date: Fri, 14 Sep 2018 16:31:57 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Marco Felsch <m.felsch@pengutronix.de>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        kernel@pengutronix.de, devicetree@vger.kernel.org,
+        p.zabel@pengutronix.de, javierm@redhat.com,
+        laurent.pinchart@ideasonboard.com, afshin.nasser@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/7] [media] tvp5150: add input source selection
+ of_graph support
+Message-ID: <20180914133157.wppvzfvbssmm2zer@paasikivi.fi.intel.com>
+References: <20180813092508.1334-1-m.felsch@pengutronix.de>
+ <20180813092508.1334-2-m.felsch@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <cover.1534339750.git.petrcvekcz@gmail.com>
+In-Reply-To: <20180813092508.1334-2-m.felsch@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Petr,
+Hi Marco,
 
-On Wed, Aug 15, 2018 at 03:30:23PM +0200, petrcvekcz@gmail.com wrote:
-> From: Petr Cvek <petrcvekcz@gmail.com>
-> 
-> This patch series transfer the ov9640 driver from the soc_camera subsystem
-> into a standalone v4l2 driver. There is no changes except the required
-> v4l2_async calls, GPIO allocation, deletion of now unused variables,
-> a change from mdelay() to msleep() and an addition of SPDX identifiers
-> (as suggested in the v1 version RFC).
-> 
-> The config symbol has been changed from CONFIG_SOC_CAMERA_OV9640 to
-> CONFIG_VIDEO_OV9640.
-> 
-> Also as the drivers of the soc_camera seems to be orphaned I'm volunteering
-> as a maintainer of the driver (I own the hardware).
+On Mon, Aug 13, 2018 at 11:25:02AM +0200, Marco Felsch wrote:
+...
+> +static void tvp5150_dt_cleanup(struct tvp5150 *decoder)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < TVP5150_NUM_PADS; i++)
+> +		of_node_put(decoder->endpoints[i]);
+> +}
+> +
+>  static const char * const tvp5150_test_patterns[2] = {
+>  	"Disabled",
+>  	"Black screen"
+> @@ -1586,7 +1996,7 @@ static int tvp5150_probe(struct i2c_client *c,
+>  		res = tvp5150_parse_dt(core, np);
+>  		if (res) {
+>  			dev_err(sd->dev, "DT parsing error: %d\n", res);
+> -			return res;
+> +			goto err_cleanup_dt;
+>  		}
+>  	} else {
+>  		/* Default to BT.656 embedded sync */
+> @@ -1594,25 +2004,16 @@ static int tvp5150_probe(struct i2c_client *c,
+>  	}
+>  
+>  	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+> +	sd->internal_ops = &tvp5150_internal_ops;
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>  
+> -#if defined(CONFIG_MEDIA_CONTROLLER)
+> -	core->pads[TVP5150_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+> -	core->pads[TVP5150_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
+> -	core->pads[TVP5150_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> -	core->pads[TVP5150_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
+> -
+> -	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+> -
+> -	res = media_entity_pads_init(&sd->entity, TVP5150_NUM_PADS, core->pads);
+> -	if (res < 0)
+> -		return res;
+> -
+> -#endif
+> +	res = tvp5150_mc_init(sd);
+> +	if (res)
+> +		goto err_cleanup_dt;
+>  
+>  	res = tvp5150_detect_version(core);
+>  	if (res < 0)
+> -		return res;
+> +		goto err_cleanup_dt;
+>  
+>  	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
+>  	core->detected_norm = V4L2_STD_UNKNOWN;
+> @@ -1664,6 +2065,9 @@ static int tvp5150_probe(struct i2c_client *c,
+>  err:
 
-Thanks for the set. The patches seem good to me as such but there's some
-more work to do there. For one, the depedency to v4l2_clk should be
-removed; the common clock framework has supported clocks from random
-devices for many, many years now.
+Now that you have more error labels, you could rename this one.
 
-The PXA camera driver does still depend on v4l2_clk so I guess this is
-better to do later on in a different patchset.
+>  	v4l2_ctrl_handler_free(&core->hdl);
+>  	return res;
+
+Is the above line intended to be kept?
+
+> +err_cleanup_dt:
+> +	tvp5150_dt_cleanup(core);
+> +	return res;
+>  }
+>  
+>  static int tvp5150_remove(struct i2c_client *c)
 
 -- 
-Regards,
-
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
