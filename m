@@ -1,60 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f65.google.com ([209.85.128.65]:37543 "EHLO
-        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727416AbeIOCQC (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:33422 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726942AbeIODMq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 22:16:02 -0400
-Received: by mail-wm1-f65.google.com with SMTP id n11-v6so3289316wmc.2
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2018 13:59:51 -0700 (PDT)
-Subject: Re: [PATCH v2 0/4] media: soc_camera: ov9640: switch driver to
- v4l2_async
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: hans.verkuil@cisco.com, jacopo@jmondi.org, mchehab@kernel.org,
-        marek.vasut@gmail.com, linux-media@vger.kernel.org,
-        robert.jarzmik@free.fr, slapin@ossfans.org, philipp.zabel@gmail.com
-References: <cover.1534339750.git.petrcvekcz@gmail.com>
- <20180914125932.gepe4g7idwyjd2t4@valkosipuli.retiisi.org.uk>
-From: Petr Cvek <petrcvekcz@gmail.com>
-Message-ID: <68f3e0bf-ffd7-09cd-b612-0dd1fb7ff078@gmail.com>
-Date: Fri, 14 Sep 2018 23:00:07 +0200
+        Fri, 14 Sep 2018 23:12:46 -0400
+Subject: Re: [PATCH] media: imx-pxp: fix compilation on i386 or x86_64
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, kernel@pengutronix.de
+References: <20180914071056.28752-1-p.zabel@pengutronix.de>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <0245b7b8-8826-27ab-cc36-8bf5f9107a7b@infradead.org>
+Date: Fri, 14 Sep 2018 14:56:18 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180914125932.gepe4g7idwyjd2t4@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: cs
+In-Reply-To: <20180914071056.28752-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dne 14.9.2018 v 14:59 Sakari Ailus napsal(a):
-> Hi Petr,
+On 9/14/18 12:10 AM, Philipp Zabel wrote:
+> Include the missing interrupt.h header to fix compilation on i386 or
+> x86_64:
 > 
-> On Wed, Aug 15, 2018 at 03:30:23PM +0200, petrcvekcz@gmail.com wrote:
->> From: Petr Cvek <petrcvekcz@gmail.com>
->>
->> This patch series transfer the ov9640 driver from the soc_camera subsystem
->> into a standalone v4l2 driver. There is no changes except the required
->> v4l2_async calls, GPIO allocation, deletion of now unused variables,
->> a change from mdelay() to msleep() and an addition of SPDX identifiers
->> (as suggested in the v1 version RFC).
->>
->> The config symbol has been changed from CONFIG_SOC_CAMERA_OV9640 to
->> CONFIG_VIDEO_OV9640.
->>
->> Also as the drivers of the soc_camera seems to be orphaned I'm volunteering
->> as a maintainer of the driver (I own the hardware).
+>  ../drivers/media/platform/imx-pxp.c:988:1: error: unknown type name 'irqreturn_t'
+>   static irqreturn_t pxp_irq_handler(int irq, void *dev_id)
+>   ^
+>  ../drivers/media/platform/imx-pxp.c: In function 'pxp_irq_handler':
+>  ../drivers/media/platform/imx-pxp.c:1012:9: error: 'IRQ_HANDLED' undeclared (first use in this function)
+>    return IRQ_HANDLED;
+>           ^
+>  ../drivers/media/platform/imx-pxp.c:1012:9: note: each undeclared identifier is reported only once for each function it appears in
+>  ../drivers/media/platform/imx-pxp.c: In function 'pxp_probe':
+>  ../drivers/media/platform/imx-pxp.c:1660:2: error: implicit declaration of function 'devm_request_threaded_irq' [-Werror=implicit-function-declaration]
+>    ret = devm_request_threaded_irq(&pdev->dev, irq, NULL, pxp_irq_handler,
+>    ^
+>  ../drivers/media/platform/imx-pxp.c:1661:4: error: 'IRQF_ONESHOT' undeclared (first use in this function)
+>      IRQF_ONESHOT, dev_name(&pdev->dev), dev);
 > 
-> Thanks for the set. The patches seem good to me as such but there's some
-> more work to do there. For one, the depedency to v4l2_clk should be
-> removed; the common clock framework has supported clocks from random
-> devices for many, many years now.
+> Fixes: 51abcf7fdb70 ("media: imx-pxp: add i.MX Pixel Pipeline driver")
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+Thanks.  You can choose/add:
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Build-tested-by: Randy Dunlap <rdunlap@infradead.org>
+
+> ---
+>  drivers/media/platform/imx-pxp.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> The PXA camera driver does still depend on v4l2_clk so I guess this is
-> better to do later on in a different patchset.
+> diff --git a/drivers/media/platform/imx-pxp.c b/drivers/media/platform/imx-pxp.c
+> index 68ecfed7098b..229c23ae4029 100644
+> --- a/drivers/media/platform/imx-pxp.c
+> +++ b/drivers/media/platform/imx-pxp.c
+> @@ -13,6 +13,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/delay.h>
+>  #include <linux/dma-mapping.h>
+> +#include <linux/interrupt.h>
+>  #include <linux/io.h>
+>  #include <linux/iopoll.h>
+>  #include <linux/module.h>
 > 
 
-Yeah I too would like to remove the v4l2_clk from both of them. We've
-had the discussion about clock dependency around v1 patch set:
-"[BUG, RFC] media: Wrong module gets acquired"
 
-cheers,
-Petr
+-- 
+~Randy
