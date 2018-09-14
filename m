@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:38543 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:58849 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728211AbeINXKI (ORCPT
+        with ESMTP id S1726748AbeINXZw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 19:10:08 -0400
-Date: Fri, 14 Sep 2018 19:54:22 +0200
+        Fri, 14 Sep 2018 19:25:52 -0400
+Date: Fri, 14 Sep 2018 20:10:04 +0200
 From: Marco Felsch <m.felsch@pengutronix.de>
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
@@ -12,106 +12,169 @@ Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
         p.zabel@pengutronix.de, javierm@redhat.com,
         laurent.pinchart@ideasonboard.com, afshin.nasser@gmail.com,
         linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/7] [media] tvp5150: add input source selection
- of_graph support
-Message-ID: <20180914175422.udn5ci2hpygwa7fz@pengutronix.de>
+Subject: Re: [PATCH v2 4/7] [media] v4l2-subdev: fix v4l2_subdev_get_try_*
+ dependency
+Message-ID: <20180914181004.i2yemrfbrr6xltvz@pengutronix.de>
 References: <20180813092508.1334-1-m.felsch@pengutronix.de>
- <20180813092508.1334-2-m.felsch@pengutronix.de>
- <20180914133157.wppvzfvbssmm2zer@paasikivi.fi.intel.com>
+ <20180813092508.1334-5-m.felsch@pengutronix.de>
+ <20180914132538.5anptpaqt6cgkxow@paasikivi.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180914133157.wppvzfvbssmm2zer@paasikivi.fi.intel.com>
+In-Reply-To: <20180914132538.5anptpaqt6cgkxow@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Sakari,
 
-thanks for the review.
-
-On 18-09-14 16:31, Sakari Ailus wrote:
+On 18-09-14 16:25, Sakari Ailus wrote:
 > Hi Marco,
 > 
-> On Mon, Aug 13, 2018 at 11:25:02AM +0200, Marco Felsch wrote:
-> ...
-> > +static void tvp5150_dt_cleanup(struct tvp5150 *decoder)
-> > +{
-> > +	unsigned int i;
+> On Mon, Aug 13, 2018 at 11:25:05AM +0200, Marco Felsch wrote:
+> > These helpers make us of the media-controller entity which is only
+> > available if the CONFIG_MEDIA_CONTROLLER is enabled.
+> > 
+> > Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
+> > ---
+> >  include/media/v4l2-subdev.h | 100 ++++++++++++++++++------------------
+> >  1 file changed, 50 insertions(+), 50 deletions(-)
+> > 
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index ce48f1fcf295..79c066934ad2 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -912,6 +912,56 @@ struct v4l2_subdev_fh {
+> >  #define to_v4l2_subdev_fh(fh)	\
+> >  	container_of(fh, struct v4l2_subdev_fh, vfh)
+> >  
+> > +extern const struct v4l2_file_operations v4l2_subdev_fops;
 > > +
-> > +	for (i = 0; i < TVP5150_NUM_PADS; i++)
-> > +		of_node_put(decoder->endpoints[i]);
+> > +/**
+> > + * v4l2_set_subdevdata - Sets V4L2 dev private device data
+> > + *
+> > + * @sd: pointer to &struct v4l2_subdev
+> > + * @p: pointer to the private device data to be stored.
+> > + */
+> > +static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+> > +{
+> > +	sd->dev_priv = p;
 > > +}
 > > +
-> >  static const char * const tvp5150_test_patterns[2] = {
-> >  	"Disabled",
-> >  	"Black screen"
-> > @@ -1586,7 +1996,7 @@ static int tvp5150_probe(struct i2c_client *c,
-> >  		res = tvp5150_parse_dt(core, np);
-> >  		if (res) {
-> >  			dev_err(sd->dev, "DT parsing error: %d\n", res);
-> > -			return res;
-> > +			goto err_cleanup_dt;
-> >  		}
-> >  	} else {
-> >  		/* Default to BT.656 embedded sync */
-> > @@ -1594,25 +2004,16 @@ static int tvp5150_probe(struct i2c_client *c,
-> >  	}
-> >  
-> >  	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
-> > +	sd->internal_ops = &tvp5150_internal_ops;
-> >  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> >  
-> > -#if defined(CONFIG_MEDIA_CONTROLLER)
-> > -	core->pads[TVP5150_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-> > -	core->pads[TVP5150_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
-> > -	core->pads[TVP5150_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-> > -	core->pads[TVP5150_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
-> > -
-> > -	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
-> > -
-> > -	res = media_entity_pads_init(&sd->entity, TVP5150_NUM_PADS, core->pads);
-> > -	if (res < 0)
-> > -		return res;
-> > -
-> > -#endif
-> > +	res = tvp5150_mc_init(sd);
-> > +	if (res)
-> > +		goto err_cleanup_dt;
-> >  
-> >  	res = tvp5150_detect_version(core);
-> >  	if (res < 0)
-> > -		return res;
-> > +		goto err_cleanup_dt;
-> >  
-> >  	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
-> >  	core->detected_norm = V4L2_STD_UNKNOWN;
-> > @@ -1664,6 +2065,9 @@ static int tvp5150_probe(struct i2c_client *c,
-> >  err:
+> > +/**
+> > + * v4l2_get_subdevdata - Gets V4L2 dev private device data
+> > + *
+> > + * @sd: pointer to &struct v4l2_subdev
+> > + *
+> > + * Returns the pointer to the private device data to be stored.
+> > + */
+> > +static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+> > +{
+> > +	return sd->dev_priv;
+> > +}
+> > +
+> > +/**
+> > + * v4l2_set_subdev_hostdata - Sets V4L2 dev private host data
+> > + *
+> > + * @sd: pointer to &struct v4l2_subdev
+> > + * @p: pointer to the private data to be stored.
+> > + */
+> > +static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
+> > +{
+> > +	sd->host_priv = p;
+> > +}
+> > +
+> > +/**
+> > + * v4l2_get_subdev_hostdata - Gets V4L2 dev private data
+> > + *
+> > + * @sd: pointer to &struct v4l2_subdev
+> > + *
+> > + * Returns the pointer to the private host data to be stored.
+> > + */
+> > +static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+> > +{
+> > +	return sd->host_priv;
+> > +}
 > 
-> Now that you have more error labels, you could rename this one.
+> Could you leave the functions dealing with host_priv where they are? I'd
+> like to avoid expanding their use; rather reduce it. The field is
+> problematic in some cases and generally not really needed either.
 
-Hm.. okay make sense, I will change this.
-
-> 
-> >  	v4l2_ctrl_handler_free(&core->hdl);
-> >  	return res;
-> 
-> Is the above line intended to be kept?
-
-Nope, sorry I will fix this.
+Sure, I just moved the v4l2_subdev_get_try_* formats to the
+CONFIG_MEDIA_CONTROLLER ifdef block to avoid a second ifdef block (see
+below). Git made it that way.. and I'm with you, the patch looks not good.
+Should I open a 2nd ifdef CONFIG_MEDIA_CONTROLLER block instead?
 
 Regards,
 Marco
 
 > 
-> > +err_cleanup_dt:
-> > +	tvp5150_dt_cleanup(core);
-> > +	return res;
+> > +
+> > +#ifdef CONFIG_MEDIA_CONTROLLER
+> > +
+> >  /**
+> >   * v4l2_subdev_get_try_format - ancillary routine to call
+> >   *	&struct v4l2_subdev_pad_config->try_fmt
+> > @@ -978,56 +1028,6 @@ static inline struct v4l2_rect
+> >  #endif
 > >  }
 > >  
-> >  static int tvp5150_remove(struct i2c_client *c)
+> > -extern const struct v4l2_file_operations v4l2_subdev_fops;
+> > -
+> > -/**
+> > - * v4l2_set_subdevdata - Sets V4L2 dev private device data
+> > - *
+> > - * @sd: pointer to &struct v4l2_subdev
+> > - * @p: pointer to the private device data to be stored.
+> > - */
+> > -static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+> > -{
+> > -	sd->dev_priv = p;
+> > -}
+> > -
+> > -/**
+> > - * v4l2_get_subdevdata - Gets V4L2 dev private device data
+> > - *
+> > - * @sd: pointer to &struct v4l2_subdev
+> > - *
+> > - * Returns the pointer to the private device data to be stored.
+> > - */
+> > -static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+> > -{
+> > -	return sd->dev_priv;
+> > -}
+> > -
+> > -/**
+> > - * v4l2_set_subdev_hostdata - Sets V4L2 dev private host data
+> > - *
+> > - * @sd: pointer to &struct v4l2_subdev
+> > - * @p: pointer to the private data to be stored.
+> > - */
+> > -static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
+> > -{
+> > -	sd->host_priv = p;
+> > -}
+> > -
+> > -/**
+> > - * v4l2_get_subdev_hostdata - Gets V4L2 dev private data
+> > - *
+> > - * @sd: pointer to &struct v4l2_subdev
+> > - *
+> > - * Returns the pointer to the private host data to be stored.
+> > - */
+> > -static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+> > -{
+> > -	return sd->host_priv;
+> > -}
+> > -
+> > -#ifdef CONFIG_MEDIA_CONTROLLER
+> > -
+> >  /**
+> >   * v4l2_subdev_link_validate_default - validates a media link
+> >   *
 > 
 > -- 
+> Kind regards,
+> 
 > Sakari Ailus
 > sakari.ailus@linux.intel.com
 > 
