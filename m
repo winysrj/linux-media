@@ -1,37 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:40016 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726882AbeINPBx (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57262 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726618AbeINPKS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 11:01:53 -0400
-Received: by mail-wr1-f66.google.com with SMTP id n2-v6so9827920wrw.7
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2018 02:48:10 -0700 (PDT)
+        Fri, 14 Sep 2018 11:10:18 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for request_api branch] v4l2-ctrls.c: fix smatch error
+Message-ID: <0964af69-fd97-ecca-467e-a11b5e731666@xs4all.nl>
+Date: Fri, 14 Sep 2018 11:56:28 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180911150938.3844-1-mjourdan@baylibre.com>
-References: <20180911150938.3844-1-mjourdan@baylibre.com>
-From: Maxime Jourdan <mjourdan@baylibre.com>
-Date: Fri, 14 Sep 2018 11:48:08 +0200
-Message-ID: <CAMO6naz46zu5qiN=9LCixMKOHbXLW6qYGqarHf9ciNUsMRQ6sQ@mail.gmail.com>
-Subject: Re: [PATCH v2 0/3] Add Amlogic video decoder driver
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Maxime Jourdan <mjourdan@baylibre.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-amlogic@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please note: the canvas patches required for this series (and causing
-the kbuild fail) were merged by Kevin Hilman with a tag.
+Fix this smatch error:
 
-Repo: https://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-amlogic.git
-Tag: amlogic-drivers-canvas
+drivers/media/v4l2-core/v4l2-ctrls.c:2971 v4l2_ctrl_request_clone() error: uninitialized symbol 'err'.
 
-Regards,
-Maxime
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 73665c7d7045..65e3cf838ac7 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2942,7 +2942,7 @@ static int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
+ 				   const struct v4l2_ctrl_handler *from)
+ {
+ 	struct v4l2_ctrl_ref *ref;
+-	int err;
++	int err = 0;
+
+ 	if (WARN_ON(!hdl || hdl == from))
+ 		return -EINVAL;
