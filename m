@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43402 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:43390 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727852AbeIPBer (ORCPT
+        with ESMTP id S1727774AbeIPBer (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Sat, 15 Sep 2018 21:34:47 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
@@ -10,11 +10,10 @@ Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Kees Cook <keescook@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Brian Warner <brian.warner@samsung.com>
-Subject: [PATCH v2 09/14] media: saa7115: declare its own pads
-Date: Sat, 15 Sep 2018 17:14:24 -0300
-Message-Id: <75d23f5b6cf851ffe2a1a64dbc9052e5b2552d50.1537042262.git.mchehab+samsung@kernel.org>
+        Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH v2 12/14] media: saa7134: declare its own pads
+Date: Sat, 15 Sep 2018 17:14:27 -0300
+Message-Id: <0170e70a57ac61e21700e828b0768ec9e5342c29.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
 References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
@@ -29,51 +28,58 @@ model.
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/i2c/saa7115.c | 19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ drivers/media/pci/saa7134/saa7134-core.c | 10 +++++-----
+ drivers/media/pci/saa7134/saa7134.h      |  8 +++++++-
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index 7b2dbe7c59b2..1b30f568119a 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -59,10 +59,17 @@ enum saa711x_model {
- 	SAA7118,
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index c4e2df197bf9..8984b1bf57a5 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -845,13 +845,13 @@ static void saa7134_create_entities(struct saa7134_dev *dev)
+ 	 */
+ 	if (!decoder) {
+ 		dev->demod.name = "saa713x";
+-		dev->demod_pad[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+-		dev->demod_pad[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
+-		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-		dev->demod_pad[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
++		dev->demod_pad[SAA7134_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
++		dev->demod_pad[SAA7134_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
++		dev->demod_pad[SAA7134_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++		dev->demod_pad[SAA7134_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
+ 		dev->demod.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+-		ret = media_entity_pads_init(&dev->demod, DEMOD_NUM_PADS,
++		ret = media_entity_pads_init(&dev->demod, SAA7134_NUM_PADS,
+ 					     dev->demod_pad);
+ 		if (ret < 0)
+ 			pr_err("failed to initialize demod pad!\n");
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index d99e937a98c1..ac05a38aa728 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -547,6 +547,12 @@ struct saa7134_mpeg_ops {
+ 						  unsigned long status);
  };
  
-+
-+enum saa711x_pads {
-+       SAA711X_PAD_IF_INPUT,
-+       SAA711X_PAD_VID_OUT,
-+       SAA711X_NUM_PADS
++enum saa7134_pads {
++       SAA7134_PAD_IF_INPUT,
++       SAA7134_PAD_VID_OUT,
++       SAA7134_NUM_PADS
 +};
 +
- struct saa711x_state {
- 	struct v4l2_subdev sd;
- #ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_pad pads[DEMOD_NUM_PADS];
-+	struct media_pad pads[SAA711X_NUM_PADS];
- #endif
- 	struct v4l2_ctrl_handler hdl;
+ /* global device status */
+ struct saa7134_dev {
+ 	struct list_head           devlist;
+@@ -674,7 +680,7 @@ struct saa7134_dev {
+ 	struct media_pad input_pad[SAA7134_INPUT_MAX + 1];
  
-@@ -1834,14 +1841,14 @@ static int saa711x_probe(struct i2c_client *client,
- 	v4l2_i2c_subdev_init(sd, client, &saa711x_ops);
+ 	struct media_entity demod;
+-	struct media_pad demod_pad[DEMOD_NUM_PADS];
++	struct media_pad demod_pad[SAA7134_NUM_PADS];
  
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
--	state->pads[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
--	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	state->pads[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
-+	state->pads[SAA711X_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[SAA711X_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
-+	state->pads[SAA711X_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[SAA711X_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
- 
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
--	ret = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, state->pads);
-+	ret = media_entity_pads_init(&sd->entity, SAA711X_NUM_PADS, state->pads);
- 	if (ret < 0)
- 		return ret;
- #endif
+ 	struct media_pad video_pad, vbi_pad;
+ 	struct media_entity *decoder;
 -- 
 2.17.1
