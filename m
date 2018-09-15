@@ -1,243 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43482 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728024AbeIPBev (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35232 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725199AbeIPELn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 21:34:51 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pravin Shedge <pravin.shedge4linux@gmail.com>,
-        Shuah Khan <shuah@kernel.org>
-Subject: [PATCH v2 03/14] v4l2-mc: switch it to use the new approach to setup pipelines
-Date: Sat, 15 Sep 2018 17:14:18 -0300
-Message-Id: <e8de60bcee7848936c3e3d7325ecff28db9f283b.1537042262.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
-References: <cover.1537042262.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
-References: <cover.1537042262.git.mchehab+samsung@kernel.org>
+        Sun, 16 Sep 2018 00:11:43 -0400
+Received: from lanttu.localdomain (lanttu-e.localdomain [192.168.1.64])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 72878634C84
+        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2018 01:51:02 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] v4l: samsung, ov9650: Rely on V4L2-set sub-device names
+Date: Sun, 16 Sep 2018 01:51:02 +0300
+Message-Id: <20180915225102.12850-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of relying on a static map for pids, use the new sig_type
-"taint" type to setup the pipelines with the same tipe between
-different entities.
+v4l2_i2c_subdev_init() sets the name of the sub-devices (as well as
+entities) to what is fairly certainly known to be unique in the system,
+even if there were more devices of the same kind.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+These drivers (m5mols, noon010pc30, ov9650, s5c73m3, s5k4ecgx, s5k6aa) set
+the name to the name of the driver or the module while omitting the
+device's I²C address and bus, leaving the devices with a static name and
+effectively limiting the number of such devices in a media device to 1.
+
+Address this by using the name set by the V4L2 framework.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com> (ov9650)
 ---
- drivers/media/media-entity.c      | 26 +++++++++++
- drivers/media/v4l2-core/v4l2-mc.c | 73 ++++++++++++++++++++++++-------
- include/media/media-entity.h      | 19 ++++++++
- 3 files changed, 101 insertions(+), 17 deletions(-)
+since RFC v1:
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 3498551e618e..0b1cb3559140 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -662,6 +662,32 @@ static void __media_entity_remove_link(struct media_entity *entity,
- 	kfree(link);
- }
+- Use "-oif" instead of "-OIF" postfix for s5c73m3 OIF bit. (Suggested by
+  Sylwester.)
+
+ drivers/media/i2c/m5mols/m5mols_core.c   | 1 -
+ drivers/media/i2c/noon010pc30.c          | 1 -
+ drivers/media/i2c/ov9650.c               | 1 -
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c | 4 ++--
+ drivers/media/i2c/s5k4ecgx.c             | 1 -
+ drivers/media/i2c/s5k6aa.c               | 1 -
+ 6 files changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+index 155424a43d4c..320e79b63555 100644
+--- a/drivers/media/i2c/m5mols/m5mols_core.c
++++ b/drivers/media/i2c/m5mols/m5mols_core.c
+@@ -987,7 +987,6 @@ static int m5mols_probe(struct i2c_client *client,
  
-+int media_get_pad_index(struct media_entity *entity, bool is_sink,
-+			enum media_pad_signal_type sig_type)
-+{
-+	int i;
-+	bool pad_is_sink;
-+
-+	if (!entity)
-+		return -EINVAL;
-+
-+	for (i = 0; i < entity->num_pads; i++) {
-+		if (entity->pads[i].flags == MEDIA_PAD_FL_SINK)
-+			pad_is_sink = true;
-+		else if (entity->pads[i].flags == MEDIA_PAD_FL_SOURCE)
-+			pad_is_sink = false;
-+		else
-+			continue;	/* This is an error! */
-+
-+		if (pad_is_sink != is_sink)
-+			continue;
-+		if (entity->pads[i].sig_type == sig_type)
-+			return i;
-+	}
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(media_get_pad_index);
-+
- int
- media_create_pad_link(struct media_entity *source, u16 source_pad,
- 			 struct media_entity *sink, u16 sink_pad, u32 flags)
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 982bab3530f6..3d868f071dd7 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -28,7 +28,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
- 	bool is_webcam = false;
- 	u32 flags;
--	int ret;
-+	int ret, pad_sink, pad_source;
+ 	sd = &info->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &m5mols_ops);
+-	strscpy(sd->name, MODULE_NAME, sizeof(sd->name));
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
  
- 	if (!mdev)
- 		return 0;
-@@ -97,29 +97,52 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	/* Link the tuner and IF video output pads */
- 	if (tuner) {
- 		if (if_vid) {
--			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
--						    if_vid,
--						    IF_VID_DEC_PAD_IF_INPUT,
-+			pad_source = media_get_pad_index(tuner, false,
-+							 PAD_SIGNAL_ANALOG);
-+			pad_sink = media_get_pad_index(if_vid, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(tuner, pad_source,
-+						    if_vid, pad_sink,
- 						    MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
--			ret = media_create_pad_link(if_vid, IF_VID_DEC_PAD_OUT,
--						decoder, DEMOD_PAD_IF_INPUT,
-+
-+			pad_source = media_get_pad_index(if_vid, false,
-+							 PAD_SIGNAL_ANALOG);
-+			pad_sink = media_get_pad_index(decoder, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(if_vid, pad_source,
-+						decoder, pad_sink,
- 						MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
- 		} else {
--			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
--						decoder, DEMOD_PAD_IF_INPUT,
-+			pad_source = media_get_pad_index(tuner, false,
-+							 PAD_SIGNAL_ANALOG);
-+			pad_sink = media_get_pad_index(decoder, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(tuner, pad_source,
-+						decoder, pad_sink,
- 						MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
- 		}
+ 	sd->internal_ops = &m5mols_subdev_internal_ops;
+diff --git a/drivers/media/i2c/noon010pc30.c b/drivers/media/i2c/noon010pc30.c
+index 4698e40fedd2..0629bc138fbc 100644
+--- a/drivers/media/i2c/noon010pc30.c
++++ b/drivers/media/i2c/noon010pc30.c
+@@ -720,7 +720,6 @@ static int noon010_probe(struct i2c_client *client,
+ 	mutex_init(&info->lock);
+ 	sd = &info->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
+-	strscpy(sd->name, MODULE_NAME, sizeof(sd->name));
  
- 		if (if_aud) {
--			ret = media_create_pad_link(tuner, TUNER_PAD_AUD_OUT,
--						    if_aud,
--						    IF_AUD_DEC_PAD_IF_INPUT,
-+			pad_source = media_get_pad_index(tuner, false,
-+							 PAD_SIGNAL_AUDIO);
-+			pad_sink = media_get_pad_index(if_aud, true,
-+						       PAD_SIGNAL_AUDIO);
-+			if (pad_source < 0 || pad_sink < 0)
-+				return -EINVAL;
-+			ret = media_create_pad_link(tuner, pad_source,
-+						    if_aud, pad_sink,
- 						    MEDIA_LNK_FL_ENABLED);
- 			if (ret)
- 				return ret;
-@@ -131,7 +154,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	sd->internal_ops = &noon010_subdev_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 3c9e6798d14b..9f1ed79d2a99 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -1539,7 +1539,6 @@ static int ov965x_probe(struct i2c_client *client,
  
- 	/* Create demod to V4L, VBI and SDR radio links */
- 	if (io_v4l) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-+		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-+		if (pad_source < 0)
-+			return -EINVAL;
-+		ret = media_create_pad_link(decoder, pad_source,
- 					io_v4l, 0,
- 					MEDIA_LNK_FL_ENABLED);
- 		if (ret)
-@@ -139,7 +165,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	}
+ 	sd = &ov965x->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
+-	strscpy(sd->name, DRIVER_NAME, sizeof(sd->name));
  
- 	if (io_swradio) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-+		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-+		if (pad_source < 0)
-+			return -EINVAL;
-+		ret = media_create_pad_link(decoder, pad_source,
- 					io_swradio, 0,
- 					MEDIA_LNK_FL_ENABLED);
- 		if (ret)
-@@ -147,7 +176,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	}
+ 	sd->internal_ops = &ov965x_sd_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index 21ca5186f9ed..69967346f787 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -1683,7 +1683,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 	v4l2_subdev_init(sd, &s5c73m3_subdev_ops);
+ 	sd->owner = client->dev.driver->owner;
+ 	v4l2_set_subdevdata(sd, state);
+-	strscpy(sd->name, "S5C73M3", sizeof(sd->name));
++	v4l2_i2c_subdev_set_name(sd, client, NULL, NULL);
  
- 	if (io_vbi) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-+		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-+		if (pad_source < 0)
-+			return -EINVAL;
-+		ret = media_create_pad_link(decoder, pad_source,
- 					    io_vbi, 0,
- 					    MEDIA_LNK_FL_ENABLED);
- 		if (ret)
-@@ -161,15 +193,22 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 		case MEDIA_ENT_F_CONN_RF:
- 			if (!tuner)
- 				continue;
--
-+			pad_sink = media_get_pad_index(tuner, true,
-+							 PAD_SIGNAL_ANALOG);
-+			if (pad_sink < 0)
-+				return -EINVAL;
- 			ret = media_create_pad_link(entity, 0, tuner,
--						    TUNER_PAD_RF_INPUT,
-+						    pad_sink,
- 						    flags);
- 			break;
- 		case MEDIA_ENT_F_CONN_SVIDEO:
- 		case MEDIA_ENT_F_CONN_COMPOSITE:
-+			pad_sink = media_get_pad_index(decoder, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_sink < 0)
-+				return -EINVAL;
- 			ret = media_create_pad_link(entity, 0, decoder,
--						    DEMOD_PAD_IF_INPUT,
-+						    pad_sink,
- 						    flags);
- 			break;
- 		default:
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index b132687bd36f..c3b653f879a4 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -669,6 +669,25 @@ static inline void media_entity_cleanup(struct media_entity *entity) {}
- #define media_entity_cleanup(entity) do { } while (false)
- #endif
+ 	sd->internal_ops = &s5c73m3_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+@@ -1698,7 +1698,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 		return ret;
  
-+
-+/**
-+ * media_get_pad_index() - retrieves a pad index from an entity
-+ *
-+ * @entity:	entity where the pads belong
-+ * @is_sink:	true if the pad is a sink, false if it is a source
-+ * @sig_type:	type of signal of the pad to be search
-+ *
-+ * This helper function finds the first pad index inside an entity that
-+ * satisfies both @is_sink and @sig_type conditions.
-+ *
-+ * Return:
-+ *
-+ * On success, return the pad number. If the pad was not found or the media
-+ * entity is a NULL pointer, return -EINVAL.
-+ */
-+int media_get_pad_index(struct media_entity *entity, bool is_sink,
-+			enum media_pad_signal_type sig_type);
-+
- /**
-  * media_create_pad_link() - creates a link between two entities.
-  *
+ 	v4l2_i2c_subdev_init(oif_sd, client, &oif_subdev_ops);
+-	strscpy(oif_sd->name, "S5C73M3-OIF", sizeof(oif_sd->name));
++	v4l2_i2c_subdev_set_name(sd, client, NULL, "-oif");
+ 
+ 	oif_sd->internal_ops = &oif_internal_ops;
+ 	oif_sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
+index 8c0dca6cb20c..8aaf5ad26826 100644
+--- a/drivers/media/i2c/s5k4ecgx.c
++++ b/drivers/media/i2c/s5k4ecgx.c
+@@ -954,7 +954,6 @@ static int s5k4ecgx_probe(struct i2c_client *client,
+ 	sd = &priv->sd;
+ 	/* Registering subdev */
+ 	v4l2_i2c_subdev_init(sd, client, &s5k4ecgx_ops);
+-	strscpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
+ 
+ 	sd->internal_ops = &s5k4ecgx_subdev_internal_ops;
+ 	/* Support v4l2 sub-device user space API */
+diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+index 52ca033f7069..9536316e2d80 100644
+--- a/drivers/media/i2c/s5k6aa.c
++++ b/drivers/media/i2c/s5k6aa.c
+@@ -1576,7 +1576,6 @@ static int s5k6aa_probe(struct i2c_client *client,
+ 
+ 	sd = &s5k6aa->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &s5k6aa_subdev_ops);
+-	strscpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+ 
+ 	sd->internal_ops = &s5k6aa_subdev_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
 -- 
-2.17.1
+2.11.0
