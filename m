@@ -1,149 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leonov.paulk.fr ([185.233.101.22]:52414 "EHLO leonov.paulk.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726663AbeIOWIi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 18:08:38 -0400
-Message-ID: <928a021c1e402f99eadd20e00aa5ec0cc218edbd.camel@paulk.fr>
-Subject: Re: [PATCH v5 5/6] media: Add controls for JPEG quantization tables
-From: Paul Kocialkowski <contact@paulk.fr>
-To: Ezequiel Garcia <ezequiel@collabora.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-rockchip@lists.infradead.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Date: Sat, 15 Sep 2018 18:48:40 +0200
-In-Reply-To: <710d4e77de63b46e6ffd440c9c98ca9af133117f.camel@collabora.com>
-References: <20180905220011.16612-1-ezequiel@collabora.com>
-         <20180905220011.16612-6-ezequiel@collabora.com>
-         <718d8a73-008a-a610-d090-91cc54a992ad@xs4all.nl>
-         <710d4e77de63b46e6ffd440c9c98ca9af133117f.camel@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.133]:38358 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727278AbeIPA43 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Sep 2018 20:56:29 -0400
+Date: Sat, 15 Sep 2018 16:36:20 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] media-ctl: rework and merge mc_nextgen_test features
+Message-ID: <20180915163620.5ae732ba@coco.lan>
+In-Reply-To: <b29b6c04-1089-c58d-3335-a31a87f856bc@xs4all.nl>
+References: <b29b6c04-1089-c58d-3335-a31a87f856bc@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Sat, 15 Sep 2018 10:31:07 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Mon, 2018-09-10 at 10:25 -0300, Ezequiel Garcia wrote:
-> Hi Hans,
+> Hi Laurent, Mauro,
 > 
-> Thanks for the review.
+> We currently have two competing utilities for controlling media devices:
+> media-ctl and mc_nextgen_test, each with features that the other doesn't
+> have. That's obviously not good.
+
+Hi Hans,
+
+My goal with this e-mail is to give you some hints about what *I* think
+it would be easier/better. It is your time, so, spend it the way you want, 
+but I suspect that, if you consider my advises, you may have less
+headaches with the new toolchain.
+
 > 
-> On Mon, 2018-09-10 at 14:42 +0200, Hans Verkuil wrote:
-> > On 09/06/2018 12:00 AM, Ezequiel Garcia wrote:
-> > > From: Shunqian Zheng <zhengsq@rock-chips.com>
-> > > 
-> > > Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
-> > > configure the JPEG quantization tables.
-> > > 
-> > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > > ---
-> > >  .../media/uapi/v4l/extended-controls.rst      | 31 +++++++++++++++++++
-> > >  .../media/videodev2.h.rst.exceptions          |  1 +
-> > >  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++
-> > >  include/uapi/linux/v4l2-controls.h            | 12 +++++++
-> > >  include/uapi/linux/videodev2.h                |  1 +
-> > >  5 files changed, 55 insertions(+)
-> > > 
-> > > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> > > index 9f7312bf3365..1335d27d30f3 100644
-> > > --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> > > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> > > @@ -3354,7 +3354,38 @@ JPEG Control IDs
-> > >      Specify which JPEG markers are included in compressed stream. This
-> > >      control is valid only for encoders.
-> > >  
-> > > +.. _jpeg-quant-tables-control:
-> > >  
-> > > +``V4L2_CID_JPEG_QUANTIZATION (struct)``
-> > > +    Specifies the luma and chroma quantization matrices for encoding
-> > > +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The :ref:`itu-t81`
-> > > +    specification allows 8-bit quantization coefficients for
-> > > +    baseline profile images, and 8-bit or 16-bit for extended profile
-> > > +    images. Supporting or not 16-bit precision coefficients is driver-specific.
-> > > +    Coefficients must be set in JPEG zigzag scan order.
-> > > +
-> > > +
-> > > +.. c:type:: struct v4l2_ctrl_jpeg_quantization
-> > > +
-> > > +.. cssclass:: longtable
-> > > +
-> > > +.. flat-table:: struct v4l2_ctrl_jpeg_quantization
-> > > +    :header-rows:  0
-> > > +    :stub-columns: 0
-> > > +    :widths:       1 1 2
-> > > +
-> > > +    * - __u8
-> > > +      - ``precision``
-> > > +      - Specifies the coefficient precision. User shall set 0
-> > > +        for 8-bit, and 1 for 16-bit.
-> > 
-> > So does specifying 1 here switch the HW encoder to use extended profile?
-> > What if the HW only supports baseline? The rockchip driver doesn't appear
-> > to check the precision field at all...
-> > 
+> I would like to work on adding the missing pieces for the new G_TOPOLOGY
+> API to media-ctl.
+
+That could be a lot of work. When I started working on it, I tried to extend
+media-ctl, but media-ctl's internal model (libmediactl) is so tightly coupled
+to the old topology ioctls that it would require a lot of work for it to do,
+in order to make it support both APIs. After spending two or three days
+trying to do that, I realized that starting from scratch and provide backward
+compatibility with legacy API would be a way easier. That's why I created
+mc_nextgen_test. The first working code took just a single day to write
+(about one third of the time I spent with libmediactl).
+
+The topology parsing code at mc_nextgen_test is a way smaller, more efficient
+and less subject to errors than the model at media-ctl. While designing
+MC nextgen, from time to time I had to fix wrong premises at libmediactl that
+caused it to not be able to recognize a valid topology using v1 ioctls,
+with were causing even core dumps on it.
+
+So, I suggest you to at least take a look at mc_nextgen_test code. 
+
+I intended to implement the link set logic there after we add a v2 for the
+links creation ioctl (that was on our original plans), but I got sidetracked
+by other projects after the end of the year I took to work on MC nextgen
+patchset. Also, frankly, I got frustrated by the obstacules we (still) have 
+for reviewing the ALSA patchset (with was one of the reasons why I worked
+on MC in 2015: I wanted to be able to properly handle complex pipelines
+on hybrid hardware and glue the different APIs with MC).
+
+> As part of that I would really like to turn media-ctl
+> into C++ (like the other V4L2/CEC utilities) so I can use the v4l2-info.cpp
+> and media-info.cpp helpers. This will ensure consistent naming conventions
+> throughout our utilities, which I think is a good thing.
+
+We'll still have pure C code there: IR and DVB are C. I don't have any plans
+to switch them to C++, as I don't see any benefit. My preference is to have
+libraries written in C, as it makes a way easier to integrate with everything
+including C and C++ userspace code, although a C++ library with a C
+interface could work.
+
+> With C++ you can
+> also use the standard STL maps, lists, vectors, etc. which are ideal for
+> processing a media topology.
+
+Frankly, I don't see much gain, at least for the core part (ioctl and basic
+handling).  The model I used at mc_nextgen_test is very simple (and 
+quick/small, with is a plus). If I had written in C++, it would likely be
+worse, slower and a way bigger.
+
+IMHO, the best strategy would be to keep the library code in C, even if
+the userspace tool itself is written in C++, but that's just my personal
+preference.
+
+> One thing that I really dislike about the media-ctl syntax is the use of
+> characters that require quotes ('->' being the main offender). I would like
+> to add an alternative syntax that avoids this.
 > 
-> The driver is missing to check that, when the user sets this control.
+> I'm thinking that ' to ' (note the spaces) is a good alternative to '->'.
+> Question: does '->' already require spaces? Or is 'pad1->pad2' equivalent
+> to 'pad1 -> pad2'? I haven't dug into the parsing code yet.
+
+See my comment about that below.
+
 > 
-> > I think this needs a bit more thought.
-> > 
-> > I am not at all sure that this is the right place for the precision field.
-> > This is really about JPEG profiles, so I would kind of expect a JPEG PROFILE
-> > control (just like other codec profiles), or possibly a new pixelformat for
-> > extended profiles.
-> > 
-> > And based on that the driver would interpret these matrix values as 8 or
-> > 16 bits.
-> > 
+> I'm a bit confused by this syntax:
 > 
-> Right, the JPEG profile control is definitely needed. I haven't add it because
-> it wouldn't be used, since this VPU can only do baseline.
-
-Well, I suppose it would still be relevant that you add it for the
-encoder and only report baseline there.
-
-> However, the problem is that some JPEGs in the wild have with 8-bit data and
-> 16-bit quantization coefficients, as per [1] and [2]:
+>         entity          = entity-number | ( '"' entity-name '"' ) ;
 > 
-> [1] https://github.com/martinhath/jpeg-rust/issues/1
-> [2] https://github.com/libjpeg-turbo/libjpeg-turbo/pull/90
+> Shouldn't this be:
 > 
-> So, in order to support decoding of these images, I've added the precision
-> field to the quantization control. The user would be able to set a baseline
-> or extended profile thru a (future) profile control, and if 16-bit
-> tables are found, and if the hardware supports them, the driver
-> would be able to support them.
->
-> Another option, which might be even better, is have explicit baseline
-> and extended quantization tables controls, e.g.: V4L2_CID_JPEG_QUANT
-> and V4L2_CID_JPEG_EXT_QUANT.
+>         entity          = entity-number | entity-name ;
+> 
+> The first syntax suggests that all entity-names must be written as "name",
+> and that can't be right. Just checking if the entity string starts with
+> 0-9 is enough. If you want to allow entity names to start with 0-9 as
+> well (a bad idea IMHO), then you can be fancier and check if the entity
+> string matches either [0-9]+ or 0[xX][0-9]+.
 
-I think this makes more sense than a common structure with an indication
-bit on how to interpret the data.
+My 2 cents here: I would require that the first char for any entity 
+to be a letter. Anyway, this should be aligned with uAPI spec.
 
-However, it seems problematic that userspace can't figure out whether
-16-bit quant tables are supported with a baseline profile and just has
-to try and see.
+Btw, I'm almost sure that " is mandatory: the OMAP entities have
+space on their names.
 
-Hans, do you think this is an acceptable approach or should we rather
-stick to the standard here, at the cost of not supporting these pictures
-that were encoded with this common abuse of the standard?
+> Assuming that brackets around the entity name are indeed not needed, then
+> the only other annoying syntax is for rectangles: (left,top)/wxh.
+> 
+> The () also need to be quoted. I was wondering if the () around left,top are
+> needed at all. Wouldn't left,top/WxH be sufficient? Rectangles are prefixed by
+> crop: or compose:, so it's easy to know when you have to parse a rectangle.
 
-Cheers,
+IMO, here is one issue with media-ctl: IMO, the syntax for setting
+links is very confusing[1]:
 
-Paul
+	$ media-ctl -v -r -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]' 
+	(just picked a random example from stackoverflow)
 
--- 
-Developer of free digital technology and hardware support.
+[1] as a side note, IMHO, this syntax is obscure for humans, hard to parse
+by the tool and doing it inside scripts is complex, as it would need to
+double escape several things there, if you, for example, do things like using
+a bash script that calls another bash script, or use ssh to send a media-ctl
+setup line to a remote server.
 
-Website: https://www.paulk.fr/
-Coding blog: https://code.paulk.fr/
-Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
+I would very much prefer to have a file with something like
+(I just preserved about the same syntax here, for didactic purposes):
+
+	mt9v032 3-005c:0    -> OMAP3 ISP CCDC:0[1]
+	OMAP3 ISP CCDC:2    -> OMAP3 ISP preview:0[1]
+	OMAP3 ISP preview:1 -> OMAP3 ISP resizer:0[1]
+	OMAP3 ISP resizer:1 -> OMAP3 ISP resizer output:0[1]
+
+And then do something like:
+
+	media-ctl-v2 set-links -f links_file
+
+With regards to the syntax, my strong preference here would be to use something
+that could be parsed with GraphViz, as one could do something like:
+
+	media-ctl-v2 get-links -f file && cat file | dot -T png | display
+
+Using GraphViz to view the topology. Then do whatever changes needed
+to a text file (with could be viewed with GraphViz) and then import the
+topology with media-ctl-v2.
+
+Anyway, whatever syntax it uses, the best is to be sure that it would
+internally be prepared to use a new ioctl that would allow doing everything
+atomically.
+
+Also, IMHO, it should be possible to do things like:
+
+	echo "something" | media-ctl-v2 set-links
+
+and:
+
+	media-ctl-v2 set-links -f some_pipeline_settings_file
+
+(so, instead of passing a complex command line, the topology would come
+from either STDIN or via a file).
+
+> I think that with these changes in place you can setup pipelines without
+> having to care about escaping or quoting special characters.
+> 
+> My plan is to first convert media-ctl to C++ (with minimum changes) and
+> start using v4l2-info.cpp and media-info.cpp to ensure consistent naming.
+> 
+> The next step is to support an easier alternative syntax, and finally
+> G_TOPOLOGY support will be added to media-ctl so it has the same feature
+> set as mc_nextgen_test.
+
+My advice is to do the opposite: try first to implement G_TOPOLOGY
+there. You'll then see how painful it is, and eventually decide if
+it would be worth to drop the topology part of it in favor of using
+a much simpler implementation at mc_nextgen_test (with also supports
+v1 topology ioctls) or to simply start from scratch.
+
+> Hopefully by the time that's done we'll also have properties, so that will
+> be added as well.
+> 
+> I am uncertain what to do with libmediactl.c. It is only used by media-ctl,
+> and it is never installed either. I am inclined to first make something
+> that works, and then think about creating a proper library. Splitting off
+> the parsing in a separate source is a good idea regardless, so I was
+> planning to do that anyway.
+
+IMO, the major issue with media-ctl is due to libmediactl.c. Trying to
+do anything that would preserve the API there will be really painful
+when implementing G_TOPOLOGY and would break API/ABI.
+
+Also, IMHO, media-ctl.c carries a lot of stuff there just due to 
+libmediactl, as it provides an "abstraction" from the Kernel structs
+that actually doesn't really abstract (try to add G_TOPOLOGY support
+there and you'll see what I mean), and adds a lot of code inside 
+media-ctl in order to cope with the model.
+
+If look at  my code, I actually encoded it with the goal to make it
+a library. The only part there that is not part of a possible library
+is the main() function and the parameter handling. So, if you decide
+to reuse its code, you'll likely will get G_TOPOLOGY almost for free.
+
+Thanks,
+Mauro
