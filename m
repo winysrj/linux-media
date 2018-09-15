@@ -1,71 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl1-f177.google.com ([209.85.214.177]:36876 "EHLO
-        mail-pl1-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725754AbeIOF7l (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46315 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726975AbeIOIS7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 01:59:41 -0400
-Received: by mail-pl1-f177.google.com with SMTP id f1-v6so4898871plt.4
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2018 17:42:51 -0700 (PDT)
-Date: Sat, 15 Sep 2018 10:42:39 +1000
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: David R <david@unsolicited.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        kungfujesus06@gmail.co
-Subject: Re: cx23885 - regression between 4.17.x and 4.18.x
-Message-ID: <20180915004236.GA15913@shambles.windy>
-References: <47a0c36e-3247-bae4-674d-d8ae7d503a40@unsolicited.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <47a0c36e-3247-bae4-674d-d8ae7d503a40@unsolicited.net>
+        Sat, 15 Sep 2018 04:18:59 -0400
+Message-ID: <24a60152424607661d3308bdcf0c1ec9@smtp-cloud9.xs4all.net>
+Date: Sat, 15 Sep 2018 05:01:36 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 13, 2018 at 06:39:57PM +0100, David R wrote:
-> Hi
-> 
-> Just a heads up. I'm having to revert cx23885-core.c to the 4.17 version
-> to obtain stability with my old AMD Phenom/ASUS M4A785TD and Hauppauge
-> WinTV-HVR-5525. The latest code drops out and refuses to return video
-> streams in hours or a few days max. The 4.17 version is fine and stable
-> over weeks/months.
-> 
-> 04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23887/8
-> PCIe Broadcast Audio and Video Decoder with 3D Comb (rev 04)
->     Subsystem: Hauppauge computer works Inc. Device f038
->     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR+ FastB2B- DisINTx-
->     Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->     Latency: 0, Cache Line Size: 64 bytes
->     Interrupt: pin A routed to IRQ 17
->     Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
->     Capabilities: <access denied>
->     Kernel driver in use: cx23885
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Interesting. cx88 also seems to have regressed.
-Are you able to give a git commit range for what works & doesn't work?
+Results of the daily build of media_tree:
 
-I asked Adam to try building the modules with media-build
-but have not heard anything further.
+date:			Sat Sep 15 04:00:49 CEST 2018
+media-tree git hash:	78cf8c842c111df656c63b5d04997ea4e40ef26a
+media_build git hash:	73a39eb63460f29cbe9bc056ae0b05ce9e813b11
+v4l-utils git hash:	22a3113e373d0845fee555f1818c81d2fdc9fc20
+edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-3-amd64
 
-    Date: Sat, 8 Sep 2018 20:49:22 -0400
-    From: Adam Stylinski <kungfujesus06@gmail.com>
-    To: linux-media@vger.kernel.org
-    Subject: 4.18 regression
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.0.101-i686: WARNINGS
+linux-3.0.101-x86_64: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.102-i686: WARNINGS
+linux-3.2.102-x86_64: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.113-i686: WARNINGS
+linux-3.4.113-x86_64: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.10-i686: WARNINGS
+linux-3.7.10-x86_64: WARNINGS
+linux-3.8.13-i686: WARNINGS
+linux-3.8.13-x86_64: WARNINGS
+linux-3.9.11-i686: WARNINGS
+linux-3.9.11-x86_64: WARNINGS
+linux-3.10.108-i686: WARNINGS
+linux-3.10.108-x86_64: WARNINGS
+linux-3.11.10-i686: WARNINGS
+linux-3.11.10-x86_64: WARNINGS
+linux-3.12.74-i686: WARNINGS
+linux-3.12.74-x86_64: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.79-i686: WARNINGS
+linux-3.14.79-x86_64: WARNINGS
+linux-3.15.10-i686: WARNINGS
+linux-3.15.10-x86_64: WARNINGS
+linux-3.16.57-i686: WARNINGS
+linux-3.16.57-x86_64: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.119-i686: OK
+linux-3.18.119-x86_64: OK
+linux-3.19.8-i686: WARNINGS
+linux-3.19.8-x86_64: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.52-i686: WARNINGS
+linux-4.1.52-x86_64: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.152-i686: OK
+linux-4.4.152-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.124-i686: OK
+linux-4.9.124-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.67-i686: OK
+linux-4.14.67-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.5-i686: OK
+linux-4.18.5-x86_64: OK
+linux-4.19-rc1-i686: OK
+linux-4.19-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-    Hello,
+Logs weren't copied as they are too large (2112 kB)
 
-    I haven't done a thorough bisection of kernel revisions, but moving from kernel 4.17.19
-    to 4.18.6 results in mythtv being unable to tune in any channel with a pic hdtv 5500
-    tuner (cx88 based device with an LG frontend). I get an error back from the channel
-    scanner about not being able to measure signal strength and getting back an error unknown
-    (errno 254).
+The Media Infrastructure API from this daily build is here:
 
-    I was able to use dvbtools with get-atsc to get a channel, but I don't think any of the
-    forward error correction was applied to it.
-
-    Let me know if you need more details.
-
-Vince
+http://www.xs4all.nl/~hverkuil/spec/index.html
