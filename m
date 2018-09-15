@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43478 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:43482 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727999AbeIPBev (ORCPT
+        with ESMTP id S1728024AbeIPBev (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Sat, 15 Sep 2018 21:34:51 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
@@ -9,21 +9,12 @@ To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Brian Warner <brian.warner@samsung.com>,
-        Kees Cook <keescook@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Marco Felsch <m.felsch@pengutronix.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Nasser Afshin <afshin.nasser@gmail.com>,
-        Javier Martinez Canillas <javierm@redhat.com>,
-        Shuah Khan <shuah@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Pravin Shedge <pravin.shedge4linux@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 01/14] media: v4l2: remove VBI output pad
-Date: Sat, 15 Sep 2018 17:14:16 -0300
-Message-Id: <b088a4161e8980d24c7ccf3c752cec84b43f98e9.1537042262.git.mchehab+samsung@kernel.org>
+        Shuah Khan <shuah@kernel.org>
+Subject: [PATCH v2 03/14] v4l2-mc: switch it to use the new approach to setup pipelines
+Date: Sat, 15 Sep 2018 17:14:18 -0300
+Message-Id: <e8de60bcee7848936c3e3d7325ecff28db9f283b.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
 References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
@@ -31,101 +22,222 @@ References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The signal there is the same as the video output (well,
-except for sliced VBI, but let's simplify the model and ignore
-it, at least for now - as it is routed together with raw
-VBI).
+Instead of relying on a static map for pids, use the new sig_type
+"taint" type to setup the pipelines with the same tipe between
+different entities.
 
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/dvb-frontends/au8522_decoder.c | 1 -
- drivers/media/i2c/saa7115.c                  | 1 -
- drivers/media/i2c/tvp5150.c                  | 1 -
- drivers/media/pci/saa7134/saa7134-core.c     | 1 -
- drivers/media/v4l2-core/v4l2-mc.c            | 2 +-
- include/media/v4l2-mc.h                      | 2 --
- 6 files changed, 1 insertion(+), 7 deletions(-)
+ drivers/media/media-entity.c      | 26 +++++++++++
+ drivers/media/v4l2-core/v4l2-mc.c | 73 ++++++++++++++++++++++++-------
+ include/media/media-entity.h      | 19 ++++++++
+ 3 files changed, 101 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index f285096a48f0..198dd2b6f326 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -720,7 +720,6 @@ static int au8522_probe(struct i2c_client *client,
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 3498551e618e..0b1cb3559140 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -662,6 +662,32 @@ static void __media_entity_remove_link(struct media_entity *entity,
+ 	kfree(link);
+ }
  
- 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	state->pads[DEMOD_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index 7bc3b721831e..471d1b7af164 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -1836,7 +1836,6 @@ static int saa711x_probe(struct i2c_client *client,
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 57b2102586bc..93c373c20efd 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1501,7 +1501,6 @@ static int tvp5150_probe(struct i2c_client *c,
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index 9e76de2411ae..267d143c3a48 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -847,7 +847,6 @@ static void saa7134_create_entities(struct saa7134_dev *dev)
- 		dev->demod.name = "saa713x";
- 		dev->demod_pad[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
- 		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--		dev->demod_pad[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 		dev->demod.function = MEDIA_ENT_F_ATV_DECODER;
- 
- 		ret = media_entity_pads_init(&dev->demod, DEMOD_NUM_PADS,
++int media_get_pad_index(struct media_entity *entity, bool is_sink,
++			enum media_pad_signal_type sig_type)
++{
++	int i;
++	bool pad_is_sink;
++
++	if (!entity)
++		return -EINVAL;
++
++	for (i = 0; i < entity->num_pads; i++) {
++		if (entity->pads[i].flags == MEDIA_PAD_FL_SINK)
++			pad_is_sink = true;
++		else if (entity->pads[i].flags == MEDIA_PAD_FL_SOURCE)
++			pad_is_sink = false;
++		else
++			continue;	/* This is an error! */
++
++		if (pad_is_sink != is_sink)
++			continue;
++		if (entity->pads[i].sig_type == sig_type)
++			return i;
++	}
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(media_get_pad_index);
++
+ int
+ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 			 struct media_entity *sink, u16 sink_pad, u32 flags)
 diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 0fc185a2ce90..982bab3530f6 100644
+index 982bab3530f6..3d868f071dd7 100644
 --- a/drivers/media/v4l2-core/v4l2-mc.c
 +++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -147,7 +147,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+@@ -28,7 +28,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
+ 	bool is_webcam = false;
+ 	u32 flags;
+-	int ret;
++	int ret, pad_sink, pad_source;
+ 
+ 	if (!mdev)
+ 		return 0;
+@@ -97,29 +97,52 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	/* Link the tuner and IF video output pads */
+ 	if (tuner) {
+ 		if (if_vid) {
+-			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-						    if_vid,
+-						    IF_VID_DEC_PAD_IF_INPUT,
++			pad_source = media_get_pad_index(tuner, false,
++							 PAD_SIGNAL_ANALOG);
++			pad_sink = media_get_pad_index(if_vid, true,
++						       PAD_SIGNAL_ANALOG);
++			if (pad_source < 0 || pad_sink < 0)
++				return -EINVAL;
++			ret = media_create_pad_link(tuner, pad_source,
++						    if_vid, pad_sink,
+ 						    MEDIA_LNK_FL_ENABLED);
+ 			if (ret)
+ 				return ret;
+-			ret = media_create_pad_link(if_vid, IF_VID_DEC_PAD_OUT,
+-						decoder, DEMOD_PAD_IF_INPUT,
++
++			pad_source = media_get_pad_index(if_vid, false,
++							 PAD_SIGNAL_ANALOG);
++			pad_sink = media_get_pad_index(decoder, true,
++						       PAD_SIGNAL_ANALOG);
++			if (pad_source < 0 || pad_sink < 0)
++				return -EINVAL;
++			ret = media_create_pad_link(if_vid, pad_source,
++						decoder, pad_sink,
+ 						MEDIA_LNK_FL_ENABLED);
+ 			if (ret)
+ 				return ret;
+ 		} else {
+-			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-						decoder, DEMOD_PAD_IF_INPUT,
++			pad_source = media_get_pad_index(tuner, false,
++							 PAD_SIGNAL_ANALOG);
++			pad_sink = media_get_pad_index(decoder, true,
++						       PAD_SIGNAL_ANALOG);
++			if (pad_source < 0 || pad_sink < 0)
++				return -EINVAL;
++			ret = media_create_pad_link(tuner, pad_source,
++						decoder, pad_sink,
+ 						MEDIA_LNK_FL_ENABLED);
+ 			if (ret)
+ 				return ret;
+ 		}
+ 
+ 		if (if_aud) {
+-			ret = media_create_pad_link(tuner, TUNER_PAD_AUD_OUT,
+-						    if_aud,
+-						    IF_AUD_DEC_PAD_IF_INPUT,
++			pad_source = media_get_pad_index(tuner, false,
++							 PAD_SIGNAL_AUDIO);
++			pad_sink = media_get_pad_index(if_aud, true,
++						       PAD_SIGNAL_AUDIO);
++			if (pad_source < 0 || pad_sink < 0)
++				return -EINVAL;
++			ret = media_create_pad_link(tuner, pad_source,
++						    if_aud, pad_sink,
+ 						    MEDIA_LNK_FL_ENABLED);
+ 			if (ret)
+ 				return ret;
+@@ -131,7 +154,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 
+ 	/* Create demod to V4L, VBI and SDR radio links */
+ 	if (io_v4l) {
+-		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
++		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
++		if (pad_source < 0)
++			return -EINVAL;
++		ret = media_create_pad_link(decoder, pad_source,
+ 					io_v4l, 0,
+ 					MEDIA_LNK_FL_ENABLED);
+ 		if (ret)
+@@ -139,7 +165,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	}
+ 
+ 	if (io_swradio) {
+-		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
++		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
++		if (pad_source < 0)
++			return -EINVAL;
++		ret = media_create_pad_link(decoder, pad_source,
+ 					io_swradio, 0,
+ 					MEDIA_LNK_FL_ENABLED);
+ 		if (ret)
+@@ -147,7 +176,10 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
  	}
  
  	if (io_vbi) {
--		ret = media_create_pad_link(decoder, DEMOD_PAD_VBI_OUT,
-+		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+-		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
++		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
++		if (pad_source < 0)
++			return -EINVAL;
++		ret = media_create_pad_link(decoder, pad_source,
  					    io_vbi, 0,
  					    MEDIA_LNK_FL_ENABLED);
  		if (ret)
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-index 2634d9dc9916..7c9c781b16a9 100644
---- a/include/media/v4l2-mc.h
-+++ b/include/media/v4l2-mc.h
-@@ -89,14 +89,12 @@ enum if_aud_dec_pad_index {
+@@ -161,15 +193,22 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 		case MEDIA_ENT_F_CONN_RF:
+ 			if (!tuner)
+ 				continue;
+-
++			pad_sink = media_get_pad_index(tuner, true,
++							 PAD_SIGNAL_ANALOG);
++			if (pad_sink < 0)
++				return -EINVAL;
+ 			ret = media_create_pad_link(entity, 0, tuner,
+-						    TUNER_PAD_RF_INPUT,
++						    pad_sink,
+ 						    flags);
+ 			break;
+ 		case MEDIA_ENT_F_CONN_SVIDEO:
+ 		case MEDIA_ENT_F_CONN_COMPOSITE:
++			pad_sink = media_get_pad_index(decoder, true,
++						       PAD_SIGNAL_ANALOG);
++			if (pad_sink < 0)
++				return -EINVAL;
+ 			ret = media_create_pad_link(entity, 0, decoder,
+-						    DEMOD_PAD_IF_INPUT,
++						    pad_sink,
+ 						    flags);
+ 			break;
+ 		default:
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index b132687bd36f..c3b653f879a4 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -669,6 +669,25 @@ static inline void media_entity_cleanup(struct media_entity *entity) {}
+ #define media_entity_cleanup(entity) do { } while (false)
+ #endif
+ 
++
++/**
++ * media_get_pad_index() - retrieves a pad index from an entity
++ *
++ * @entity:	entity where the pads belong
++ * @is_sink:	true if the pad is a sink, false if it is a source
++ * @sig_type:	type of signal of the pad to be search
++ *
++ * This helper function finds the first pad index inside an entity that
++ * satisfies both @is_sink and @sig_type conditions.
++ *
++ * Return:
++ *
++ * On success, return the pad number. If the pad was not found or the media
++ * entity is a NULL pointer, return -EINVAL.
++ */
++int media_get_pad_index(struct media_entity *entity, bool is_sink,
++			enum media_pad_signal_type sig_type);
++
+ /**
+  * media_create_pad_link() - creates a link between two entities.
   *
-  * @DEMOD_PAD_IF_INPUT:	IF input sink pad.
-  * @DEMOD_PAD_VID_OUT:	Video output source pad.
-- * @DEMOD_PAD_VBI_OUT:	Vertical Blank Interface (VBI) output source pad.
-  * @DEMOD_PAD_AUDIO_OUT: Audio output source pad.
-  * @DEMOD_NUM_PADS:	Maximum number of output pads.
-  */
- enum demod_pad_index {
- 	DEMOD_PAD_IF_INPUT,
- 	DEMOD_PAD_VID_OUT,
--	DEMOD_PAD_VBI_OUT,
- 	DEMOD_PAD_AUDIO_OUT,
- 	DEMOD_NUM_PADS
- };
 -- 
 2.17.1
