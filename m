@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43368 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:43360 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727697AbeIPBer (ORCPT
+        with ESMTP id S1727291AbeIPBer (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Sat, 15 Sep 2018 21:34:47 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Antti Palosaari <crope@iki.fi>
-Subject: [PATCH v2 11/14] media: si2157: declare its own pads
-Date: Sat, 15 Sep 2018 17:14:26 -0300
-Message-Id: <dbf8228f8e14b1c3009e788beac6dceaf9159b7e.1537042262.git.mchehab+samsung@kernel.org>
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 14/14] media: v4l2-mc: get rid of global pad indexes
+Date: Sat, 15 Sep 2018 17:14:29 -0300
+Message-Id: <8a0329ffa68d0c3d7a05485aa25e53013f992fd6.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
 References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
@@ -19,70 +19,168 @@ References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we don't need anymore to share pad numbers with similar
-drivers, use its own pad definition instead of a global
-model.
+Now that all drivers are using pad signal types, we can get
+rid of the global static definition, as routes are stablished
+using the pad signal type.
+
+The tuner and IF-PLL pads are now used only by the tuner core,
+so move the definitions to be there.
 
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/tuners/si2157.c      | 15 ++++++++-------
- drivers/media/tuners/si2157_priv.h |  9 ++++++++-
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ drivers/media/v4l2-core/tuner-core.c | 49 +++++++++++++++++-
+ include/media/v4l2-mc.h              | 76 ----------------------------
+ 2 files changed, 48 insertions(+), 77 deletions(-)
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 0e39810922fc..d389f1fc237a 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -467,14 +467,15 @@ static int si2157_probe(struct i2c_client *client,
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index 2f3b7fb092b9..92b20bae6c06 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -94,9 +94,56 @@ static const struct v4l2_subdev_ops tuner_ops;
+ } while (0)
  
- 		dev->ent.name = KBUILD_MODNAME;
- 		dev->ent.function = MEDIA_ENT_F_TUNER;
--		dev->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
--		dev->pad[TUNER_PAD_RF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
--		dev->pad[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
--		dev->pad[TUNER_PAD_OUTPUT].sig_type = PAD_SIGNAL_ANALOG;
--		dev->pad[TUNER_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
--		dev->pad[TUNER_PAD_AUD_OUT].sig_type = PAD_SIGNAL_AUDIO;
+ /*
+- * Internal struct used inside the driver
++ * Internal enums/struct used inside the driver
+  */
  
--		ret = media_entity_pads_init(&dev->ent, TUNER_NUM_PADS,
-+		dev->pad[SI2157_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		dev->pad[SI2157_PAD_RF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
-+		dev->pad[SI2157_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->pad[SI2157_PAD_VID_OUT].sig_type = PAD_SIGNAL_ANALOG;
-+		dev->pad[SI2157_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->pad[SI2157_PAD_AUD_OUT].sig_type = PAD_SIGNAL_AUDIO;
-+
-+		ret = media_entity_pads_init(&dev->ent, SI2157_NUM_PADS,
- 					     &dev->pad[0]);
- 
- 		if (ret)
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index e6436f74abaa..129a35e4e11b 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -21,6 +21,13 @@
- #include <media/v4l2-mc.h>
- #include "si2157.h"
- 
-+enum si2157_pads {
-+       SI2157_PAD_RF_INPUT,
-+       SI2157_PAD_VID_OUT,
-+       SI2157_PAD_AUD_OUT,
-+       SI2157_NUM_PADS
++/**
++ * enum tuner_pad_index - tuner pad index for MEDIA_ENT_F_TUNER
++ *
++ * @TUNER_PAD_RF_INPUT:
++ *	Radiofrequency (RF) sink pad, usually linked to a RF connector entity.
++ * @TUNER_PAD_OUTPUT:
++ *	tuner video output source pad. Contains the video chrominance
++ *	and luminance or the hole bandwidth of the signal converted to
++ *	an Intermediate Frequency (IF) or to baseband (on zero-IF tuners).
++ * @TUNER_PAD_AUD_OUT:
++ *	Tuner audio output source pad. Tuners used to decode analog TV
++ *	signals have an extra pad for audio output. Old tuners use an
++ *	analog stage with a saw filter for the audio IF frequency. The
++ *	output of the pad is, in this case, the audio IF, with should be
++ *	decoded either by the bridge chipset (that's the case of cx2388x
++ *	chipsets) or may require an external IF sound processor, like
++ *	msp34xx. On modern silicon tuners, the audio IF decoder is usually
++ *	incorporated at the tuner. On such case, the output of this pad
++ *	is an audio sampled data.
++ * @TUNER_NUM_PADS:
++ *	Number of pads of the tuner.
++ */
++enum tuner_pad_index {
++	TUNER_PAD_RF_INPUT,
++	TUNER_PAD_OUTPUT,
++	TUNER_PAD_AUD_OUT,
++	TUNER_NUM_PADS
 +};
 +
- /* state struct */
- struct si2157_dev {
- 	struct mutex i2c_mutex;
-@@ -35,7 +42,7 @@ struct si2157_dev {
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_device	*mdev;
- 	struct media_entity	ent;
--	struct media_pad	pad[TUNER_NUM_PADS];
-+	struct media_pad	pad[SI2157_NUM_PADS];
- #endif
++/**
++ * enum if_vid_dec_pad_index - video IF-PLL pad index
++ *	for MEDIA_ENT_F_IF_VID_DECODER
++ *
++ * @IF_VID_DEC_PAD_IF_INPUT:
++ *	video Intermediate Frequency (IF) sink pad
++ * @IF_VID_DEC_PAD_OUT:
++ * 	IF-PLL video output source pad. Contains the video chrominance
++ *	and luminance IF signals.
++ * @IF_VID_DEC_PAD_NUM_PADS:
++ *	Number of pads of the video IF-PLL.
++ */
++enum if_vid_dec_pad_index {
++	IF_VID_DEC_PAD_IF_INPUT,
++	IF_VID_DEC_PAD_OUT,
++	IF_VID_DEC_PAD_NUM_PADS
++};
++
+ struct tuner {
+ 	/* device */
+ 	struct dvb_frontend fe;
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index 7c9c781b16a9..bf5043c1ab6b 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -23,82 +23,6 @@
+ #include <media/v4l2-dev.h>
+ #include <linux/types.h>
  
- };
+-/**
+- * enum tuner_pad_index - tuner pad index for MEDIA_ENT_F_TUNER
+- *
+- * @TUNER_PAD_RF_INPUT:	Radiofrequency (RF) sink pad, usually linked to a
+- *			RF connector entity.
+- * @TUNER_PAD_OUTPUT:	Tuner video output source pad. Contains the video
+- *			chrominance and luminance or the hole bandwidth
+- *			of the signal converted to an Intermediate Frequency
+- *			(IF) or to baseband (on zero-IF tuners).
+- * @TUNER_PAD_AUD_OUT:	Tuner audio output source pad. Tuners used to decode
+- *			analog TV signals have an extra pad for audio output.
+- *			Old tuners use an analog stage with a saw filter for
+- *			the audio IF frequency. The output of the pad is, in
+- *			this case, the audio IF, with should be decoded either
+- *			by the bridge chipset (that's the case of cx2388x
+- *			chipsets) or may require an external IF sound
+- *			processor, like msp34xx. On modern silicon tuners,
+- *			the audio IF decoder is usually incorporated at the
+- *			tuner. On such case, the output of this pad is an
+- *			audio sampled data.
+- * @TUNER_NUM_PADS:	Number of pads of the tuner.
+- */
+-enum tuner_pad_index {
+-	TUNER_PAD_RF_INPUT,
+-	TUNER_PAD_OUTPUT,
+-	TUNER_PAD_AUD_OUT,
+-	TUNER_NUM_PADS
+-};
+-
+-/**
+- * enum if_vid_dec_pad_index - video IF-PLL pad index for
+- *			   MEDIA_ENT_F_IF_VID_DECODER
+- *
+- * @IF_VID_DEC_PAD_IF_INPUT:	video Intermediate Frequency (IF) sink pad
+- * @IF_VID_DEC_PAD_OUT:		IF-PLL video output source pad. Contains the
+- *				video chrominance and luminance IF signals.
+- * @IF_VID_DEC_PAD_NUM_PADS:	Number of pads of the video IF-PLL.
+- */
+-enum if_vid_dec_pad_index {
+-	IF_VID_DEC_PAD_IF_INPUT,
+-	IF_VID_DEC_PAD_OUT,
+-	IF_VID_DEC_PAD_NUM_PADS
+-};
+-
+-/**
+- * enum if_aud_dec_pad_index - audio/sound IF-PLL pad index for
+- *			   MEDIA_ENT_F_IF_AUD_DECODER
+- *
+- * @IF_AUD_DEC_PAD_IF_INPUT:	audio Intermediate Frequency (IF) sink pad
+- * @IF_AUD_DEC_PAD_OUT:		IF-PLL audio output source pad. Contains the
+- *				audio sampled stream data, usually connected
+- *				to the bridge bus via an Inter-IC Sound (I2S)
+- *				bus.
+- * @IF_AUD_DEC_PAD_NUM_PADS:	Number of pads of the audio IF-PLL.
+- */
+-enum if_aud_dec_pad_index {
+-	IF_AUD_DEC_PAD_IF_INPUT,
+-	IF_AUD_DEC_PAD_OUT,
+-	IF_AUD_DEC_PAD_NUM_PADS
+-};
+-
+-/**
+- * enum demod_pad_index - analog TV pad index for MEDIA_ENT_F_ATV_DECODER
+- *
+- * @DEMOD_PAD_IF_INPUT:	IF input sink pad.
+- * @DEMOD_PAD_VID_OUT:	Video output source pad.
+- * @DEMOD_PAD_AUDIO_OUT: Audio output source pad.
+- * @DEMOD_NUM_PADS:	Maximum number of output pads.
+- */
+-enum demod_pad_index {
+-	DEMOD_PAD_IF_INPUT,
+-	DEMOD_PAD_VID_OUT,
+-	DEMOD_PAD_AUDIO_OUT,
+-	DEMOD_NUM_PADS
+-};
+-
+ /* We don't need to include pci.h or usb.h here */
+ struct pci_dev;
+ struct usb_device;
 -- 
 2.17.1
