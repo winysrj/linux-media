@@ -1,131 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:46315 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726975AbeIOIS7 (ORCPT
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:36052 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725976AbeIOLFc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 04:18:59 -0400
-Message-ID: <24a60152424607661d3308bdcf0c1ec9@smtp-cloud9.xs4all.net>
-Date: Sat, 15 Sep 2018 05:01:36 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Sat, 15 Sep 2018 07:05:32 -0400
+From: Nathan Chancellor <natechancellor@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH] [media] dib7000p: Remove dead code
+Date: Fri, 14 Sep 2018 22:47:39 -0700
+Message-Id: <20180915054739.14117-1-natechancellor@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Clang warns that 'interleaving' is assigned to itself in this function.
 
-Results of the daily build of media_tree:
+drivers/media/dvb-frontends/dib7000p.c:1874:15: warning: explicitly
+assigning value of variable of type 'int' to itself [-Wself-assign]
+        interleaving = interleaving;
+        ~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
+1 warning generated.
 
-date:			Sat Sep 15 04:00:49 CEST 2018
-media-tree git hash:	78cf8c842c111df656c63b5d04997ea4e40ef26a
-media_build git hash:	73a39eb63460f29cbe9bc056ae0b05ce9e813b11
-v4l-utils git hash:	22a3113e373d0845fee555f1818c81d2fdc9fc20
-edid-decode git hash:	b2da1516df3cc2756bfe8d1fa06d7bf2562ba1f4
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.17.0-3-amd64
+It's correct. Just removing the self-assignment would sufficiently hide
+the warning but all of this code is dead because 'tmp' is zero due to
+being multiplied by zero. This doesn't appear to be an issue with
+dib8000, which this code was copied from in commit 041ad449683b
+("[media] dib7000p: Add DVBv5 stats support").
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.0.101-i686: WARNINGS
-linux-3.0.101-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.102-i686: WARNINGS
-linux-3.2.102-x86_64: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.113-i686: WARNINGS
-linux-3.4.113-x86_64: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.10-i686: WARNINGS
-linux-3.7.10-x86_64: WARNINGS
-linux-3.8.13-i686: WARNINGS
-linux-3.8.13-x86_64: WARNINGS
-linux-3.9.11-i686: WARNINGS
-linux-3.9.11-x86_64: WARNINGS
-linux-3.10.108-i686: WARNINGS
-linux-3.10.108-x86_64: WARNINGS
-linux-3.11.10-i686: WARNINGS
-linux-3.11.10-x86_64: WARNINGS
-linux-3.12.74-i686: WARNINGS
-linux-3.12.74-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.79-i686: WARNINGS
-linux-3.14.79-x86_64: WARNINGS
-linux-3.15.10-i686: WARNINGS
-linux-3.15.10-x86_64: WARNINGS
-linux-3.16.57-i686: WARNINGS
-linux-3.16.57-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.119-i686: OK
-linux-3.18.119-x86_64: OK
-linux-3.19.8-i686: WARNINGS
-linux-3.19.8-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.52-i686: WARNINGS
-linux-4.1.52-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.152-i686: OK
-linux-4.4.152-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.124-i686: OK
-linux-4.9.124-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.67-i686: OK
-linux-4.14.67-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.5-i686: OK
-linux-4.18.5-x86_64: OK
-linux-4.19-rc1-i686: OK
-linux-4.19-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ drivers/media/dvb-frontends/dib7000p.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-Logs weren't copied as they are too large (2112 kB)
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
+index 58387860b62d..25843658fc68 100644
+--- a/drivers/media/dvb-frontends/dib7000p.c
++++ b/drivers/media/dvb-frontends/dib7000p.c
+@@ -1800,9 +1800,8 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)
+ {
+ 	struct dtv_frontend_properties *c = &demod->dtv_property_cache;
+ 	u64 time_us, tmp64;
+-	u32 tmp, denom;
+-	int guard, rate_num, rate_denum = 1, bits_per_symbol;
+-	int interleaving = 0, fft_div;
++	u32 denom;
++	int guard, rate_num, rate_denum = 1, bits_per_symbol, fft_div;
+ 
+ 	switch (c->guard_interval) {
+ 	case GUARD_INTERVAL_1_4:
+@@ -1871,8 +1870,6 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)
+ 		break;
+ 	}
+ 
+-	interleaving = interleaving;
+-
+ 	denom = bits_per_symbol * rate_num * fft_div * 384;
+ 
+ 	/* If calculus gets wrong, wait for 1s for the next stats */
+@@ -1887,9 +1884,6 @@ static u32 dib7000p_get_time_us(struct dvb_frontend *demod)
+ 	time_us += denom / 2;
+ 	do_div(time_us, denom);
+ 
+-	tmp = 1008 * 96 * interleaving;
+-	time_us += tmp + tmp / guard;
+-
+ 	return time_us;
+ }
+ 
+-- 
+2.18.0
