@@ -1,73 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:48068 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727028AbeIOTxX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 15:53:23 -0400
-Received: from avalon.localnet (unknown [IPv6:2a02:a03f:445f:eb00:2fe7:4d9d:1e65:8525])
-        by perceval.ideasonboard.com (Postfix) with ESMTPSA id 727FACE
-        for <linux-media@vger.kernel.org>; Sat, 15 Sep 2018 16:34:11 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.20] R-Car VSP1 changes
-Date: Sat, 15 Sep 2018 17:34:25 +0300
-Message-ID: <1963797.BROc79MLIv@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from leonov.paulk.fr ([185.233.101.22]:52414 "EHLO leonov.paulk.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726663AbeIOWIi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Sep 2018 18:08:38 -0400
+Message-ID: <928a021c1e402f99eadd20e00aa5ec0cc218edbd.camel@paulk.fr>
+Subject: Re: [PATCH v5 5/6] media: Add controls for JPEG quantization tables
+From: Paul Kocialkowski <contact@paulk.fr>
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Date: Sat, 15 Sep 2018 18:48:40 +0200
+In-Reply-To: <710d4e77de63b46e6ffd440c9c98ca9af133117f.camel@collabora.com>
+References: <20180905220011.16612-1-ezequiel@collabora.com>
+         <20180905220011.16612-6-ezequiel@collabora.com>
+         <718d8a73-008a-a610-d090-91cc54a992ad@xs4all.nl>
+         <710d4e77de63b46e6ffd440c9c98ca9af133117f.camel@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-The following changes since commit 78cf8c842c111df656c63b5d04997ea4e40ef26a:
+On Mon, 2018-09-10 at 10:25 -0300, Ezequiel Garcia wrote:
+> Hi Hans,
+> 
+> Thanks for the review.
+> 
+> On Mon, 2018-09-10 at 14:42 +0200, Hans Verkuil wrote:
+> > On 09/06/2018 12:00 AM, Ezequiel Garcia wrote:
+> > > From: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > 
+> > > Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
+> > > configure the JPEG quantization tables.
+> > > 
+> > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > > ---
+> > >  .../media/uapi/v4l/extended-controls.rst      | 31 +++++++++++++++++++
+> > >  .../media/videodev2.h.rst.exceptions          |  1 +
+> > >  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++
+> > >  include/uapi/linux/v4l2-controls.h            | 12 +++++++
+> > >  include/uapi/linux/videodev2.h                |  1 +
+> > >  5 files changed, 55 insertions(+)
+> > > 
+> > > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > index 9f7312bf3365..1335d27d30f3 100644
+> > > --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> > > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > @@ -3354,7 +3354,38 @@ JPEG Control IDs
+> > >      Specify which JPEG markers are included in compressed stream. This
+> > >      control is valid only for encoders.
+> > >  
+> > > +.. _jpeg-quant-tables-control:
+> > >  
+> > > +``V4L2_CID_JPEG_QUANTIZATION (struct)``
+> > > +    Specifies the luma and chroma quantization matrices for encoding
+> > > +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The :ref:`itu-t81`
+> > > +    specification allows 8-bit quantization coefficients for
+> > > +    baseline profile images, and 8-bit or 16-bit for extended profile
+> > > +    images. Supporting or not 16-bit precision coefficients is driver-specific.
+> > > +    Coefficients must be set in JPEG zigzag scan order.
+> > > +
+> > > +
+> > > +.. c:type:: struct v4l2_ctrl_jpeg_quantization
+> > > +
+> > > +.. cssclass:: longtable
+> > > +
+> > > +.. flat-table:: struct v4l2_ctrl_jpeg_quantization
+> > > +    :header-rows:  0
+> > > +    :stub-columns: 0
+> > > +    :widths:       1 1 2
+> > > +
+> > > +    * - __u8
+> > > +      - ``precision``
+> > > +      - Specifies the coefficient precision. User shall set 0
+> > > +        for 8-bit, and 1 for 16-bit.
+> > 
+> > So does specifying 1 here switch the HW encoder to use extended profile?
+> > What if the HW only supports baseline? The rockchip driver doesn't appear
+> > to check the precision field at all...
+> > 
+> 
+> The driver is missing to check that, when the user sets this control.
+> 
+> > I think this needs a bit more thought.
+> > 
+> > I am not at all sure that this is the right place for the precision field.
+> > This is really about JPEG profiles, so I would kind of expect a JPEG PROFILE
+> > control (just like other codec profiles), or possibly a new pixelformat for
+> > extended profiles.
+> > 
+> > And based on that the driver would interpret these matrix values as 8 or
+> > 16 bits.
+> > 
+> 
+> Right, the JPEG profile control is definitely needed. I haven't add it because
+> it wouldn't be used, since this VPU can only do baseline.
 
-  media: drxj: fix spelling mistake in fall-through annotations (2018-09-12 
-11:21:52 -0400)
+Well, I suppose it would still be relevant that you add it for the
+encoder and only report baseline there.
 
-are available in the Git repository at:
+> However, the problem is that some JPEGs in the wild have with 8-bit data and
+> 16-bit quantization coefficients, as per [1] and [2]:
+> 
+> [1] https://github.com/martinhath/jpeg-rust/issues/1
+> [2] https://github.com/libjpeg-turbo/libjpeg-turbo/pull/90
+> 
+> So, in order to support decoding of these images, I've added the precision
+> field to the quantization control. The user would be able to set a baseline
+> or extended profile thru a (future) profile control, and if 16-bit
+> tables are found, and if the hardware supports them, the driver
+> would be able to support them.
+>
+> Another option, which might be even better, is have explicit baseline
+> and extended quantization tables controls, e.g.: V4L2_CID_JPEG_QUANT
+> and V4L2_CID_JPEG_EXT_QUANT.
 
-  git://linuxtv.org/pinchartl/media.git tags/vsp1-next-20180914
+I think this makes more sense than a common structure with an indication
+bit on how to interpret the data.
 
-for you to fetch changes up to 585e8c594967672aeca0ec90a6472f7c13dc30a2:
+However, it seems problematic that userspace can't figure out whether
+16-bit quant tables are supported with a baseline profile and just has
+to try and see.
 
-  media: vsp1: Document max_width restriction on UDS (2018-09-15 17:27:37 
-+0300)
+Hans, do you think this is an acceptable approach or should we rather
+stick to the standard here, at the cost of not supporting these pictures
+that were encoded with this common abuse of the standard?
 
-----------------------------------------------------------------
-R-Car VSP1 changes for v4.20
+Cheers,
 
-----------------------------------------------------------------
-Kieran Bingham (5):
-      MAINTAINERS: VSP1: Add co-maintainer
-      media: vsp1: Remove artificial minimum width/height limitation
-      media: vsp1: use periods at the end of comment sentences
-      media: vsp1: Document max_width restriction on SRU
-      media: vsp1: Document max_width restriction on UDS
-
-Koji Matsuoka (1):
-      media: vsp1: Fix YCbCr planar formats pitch calculation
-
-Laurent Pinchart (2):
-      media: vsp1: Fix vsp1_regs.h license header
-      media: vsp1: Update LIF buffer thresholds
-
- MAINTAINERS                               |  1 +
- drivers/media/platform/vsp1/vsp1_brx.c    |  4 ++--
- drivers/media/platform/vsp1/vsp1_drm.c    | 11 ++++++++++-
- drivers/media/platform/vsp1/vsp1_drv.c    |  6 +++---
- drivers/media/platform/vsp1/vsp1_entity.c |  2 +-
- drivers/media/platform/vsp1/vsp1_lif.c    | 29 +++++++++++++++++++++++++----
- drivers/media/platform/vsp1/vsp1_regs.h   |  2 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  4 ++--
- drivers/media/platform/vsp1/vsp1_sru.c    |  7 ++++++-
- drivers/media/platform/vsp1/vsp1_uds.c    | 14 +++++++++++---
- drivers/media/platform/vsp1/vsp1_video.c  |  9 +++------
- drivers/media/platform/vsp1/vsp1_wpf.c    |  2 +-
- include/media/vsp1.h                      |  2 +-
- 13 files changed, 67 insertions(+), 26 deletions(-)
+Paul
 
 -- 
-Regards,
+Developer of free digital technology and hardware support.
 
-Laurent Pinchart
+Website: https://www.paulk.fr/
+Coding blog: https://code.paulk.fr/
+Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
