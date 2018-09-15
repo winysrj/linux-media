@@ -1,17 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35232 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35248 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725199AbeIPELn (ORCPT
+        by vger.kernel.org with ESMTP id S1725199AbeIPEMy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Sep 2018 00:11:43 -0400
-Received: from lanttu.localdomain (lanttu-e.localdomain [192.168.1.64])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 72878634C84
-        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2018 01:51:02 +0300 (EEST)
+        Sun, 16 Sep 2018 00:12:54 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] v4l: samsung, ov9650: Rely on V4L2-set sub-device names
-Date: Sun, 16 Sep 2018 01:51:02 +0300
-Message-Id: <20180915225102.12850-1-sakari.ailus@linux.intel.com>
+Cc: hverkuil@xs4all.nl, Kyungmin Park <kyungmin.park@samsung.com>,
+        Heungjun Kim <riverful.kim@samsung.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Subject: [RESEND PATCH 1/1] v4l: samsung, ov9650: Rely on V4L2-set sub-device names
+Date: Sun, 16 Sep 2018 01:52:13 +0300
+Message-Id: <20180915225213.12946-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -32,6 +34,8 @@ Address this by using the name set by the V4L2 framework.
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com> (ov9650)
 ---
+(Resending with appropriate folks cc'd.)
+
 since RFC v1:
 
 - Use "-oif" instead of "-OIF" postfix for s5c73m3 OIF bit. (Suggested by
