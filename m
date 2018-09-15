@@ -1,19 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43390 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:43474 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727774AbeIPBer (ORCPT
+        with ESMTP id S1728005AbeIPBev (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 21:34:47 -0400
+        Sat, 15 Sep 2018 21:34:51 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Nasser Afshin <afshin.nasser@gmail.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Kees Cook <keescook@chromium.org>,
-        Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH v2 12/14] media: saa7134: declare its own pads
-Date: Sat, 15 Sep 2018 17:14:27 -0300
-Message-Id: <0170e70a57ac61e21700e828b0768ec9e5342c29.1537042262.git.mchehab+samsung@kernel.org>
+        Javier Martinez Canillas <javierm@redhat.com>
+Subject: [PATCH v2 10/14] media: tvp5150: declare its own pads
+Date: Sat, 15 Sep 2018 17:14:25 -0300
+Message-Id: <c4be32e78825034694fc8fab35b2df5ad00dfaf9.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
 References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
@@ -28,58 +30,68 @@ model.
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/pci/saa7134/saa7134-core.c | 10 +++++-----
- drivers/media/pci/saa7134/saa7134.h      |  8 +++++++-
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/media/i2c/tvp5150.c | 22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index c4e2df197bf9..8984b1bf57a5 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -845,13 +845,13 @@ static void saa7134_create_entities(struct saa7134_dev *dev)
- 	 */
- 	if (!decoder) {
- 		dev->demod.name = "saa713x";
--		dev->demod_pad[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
--		dev->demod_pad[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
--		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--		dev->demod_pad[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
-+		dev->demod_pad[SAA7134_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		dev->demod_pad[SAA7134_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
-+		dev->demod_pad[SAA7134_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->demod_pad[SAA7134_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
- 		dev->demod.function = MEDIA_ENT_F_ATV_DECODER;
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 94841cf81a7d..1f3dc2702954 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -38,10 +38,16 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
  
--		ret = media_entity_pads_init(&dev->demod, DEMOD_NUM_PADS,
-+		ret = media_entity_pads_init(&dev->demod, SAA7134_NUM_PADS,
- 					     dev->demod_pad);
- 		if (ret < 0)
- 			pr_err("failed to initialize demod pad!\n");
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index d99e937a98c1..ac05a38aa728 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -547,6 +547,12 @@ struct saa7134_mpeg_ops {
- 						  unsigned long status);
- };
+ #define dprintk0(__dev, __arg...) dev_dbg_lvl(__dev, 0, 0, __arg)
  
-+enum saa7134_pads {
-+       SAA7134_PAD_IF_INPUT,
-+       SAA7134_PAD_VID_OUT,
-+       SAA7134_NUM_PADS
++enum tvp5150_pads {
++       TVP5150_PAD_IF_INPUT,
++       TVP5150_PAD_VID_OUT,
++       TVP5150_NUM_PADS
 +};
 +
- /* global device status */
- struct saa7134_dev {
- 	struct list_head           devlist;
-@@ -674,7 +680,7 @@ struct saa7134_dev {
- 	struct media_pad input_pad[SAA7134_INPUT_MAX + 1];
+ struct tvp5150 {
+ 	struct v4l2_subdev sd;
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	struct media_pad pads[DEMOD_NUM_PADS];
++	struct media_pad pads[TVP5150_NUM_PADS];
+ 	struct media_entity input_ent[TVP5150_INPUT_NUM];
+ 	struct media_pad input_pad[TVP5150_INPUT_NUM];
+ #endif
+@@ -866,7 +872,7 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+ 	struct v4l2_mbus_framefmt *f;
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
  
- 	struct media_entity demod;
--	struct media_pad demod_pad[DEMOD_NUM_PADS];
-+	struct media_pad demod_pad[SAA7134_NUM_PADS];
+-	if (!format || (format->pad != DEMOD_PAD_VID_OUT))
++	if (!format || (format->pad != TVP5150_PAD_VID_OUT))
+ 		return -EINVAL;
  
- 	struct media_pad video_pad, vbi_pad;
- 	struct media_entity *decoder;
+ 	f = &format->format;
+@@ -1217,7 +1223,7 @@ static int tvp5150_registered(struct v4l2_subdev *sd)
+ 			return ret;
+ 
+ 		ret = media_create_pad_link(input, 0, &sd->entity,
+-					    DEMOD_PAD_IF_INPUT, 0);
++					    TVP5150_PAD_IF_INPUT, 0);
+ 		if (ret < 0) {
+ 			media_device_unregister_entity(input);
+ 			return ret;
+@@ -1499,14 +1505,14 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+-	core->pads[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
+-	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	core->pads[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
++	core->pads[TVP5150_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
++	core->pads[TVP5150_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
++	core->pads[TVP5150_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	core->pads[TVP5150_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
+ 
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+-	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
++	res = media_entity_pads_init(&sd->entity, TVP5150_NUM_PADS, core->pads);
+ 	if (res < 0)
+ 		return res;
+ 
 -- 
 2.17.1
