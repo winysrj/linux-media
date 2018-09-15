@@ -1,92 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt1-f196.google.com ([209.85.160.196]:37611 "EHLO
-        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726316AbeIYCXH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:43478 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727999AbeIPBev (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Sep 2018 22:23:07 -0400
-MIME-Version: 1.0
-References: <20180912150142.157913-1-arnd@arndb.de> <20180912151134.436719-1-arnd@arndb.de>
- <20180914203506.GE35251@wrath> <20180914205748.GC19965@ZenIV.linux.org.uk>
- <20180918175108.GF35251@wrath> <20180918175952.GJ11367@ziepe.ca>
-In-Reply-To: <20180918175952.GJ11367@ziepe.ca>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 24 Sep 2018 22:18:52 +0200
-Message-ID: <CAK8P3a17GY89in7PeLk1F2T-0Xq=sCrwwntM+Y4BCpXheUC+qQ@mail.gmail.com>
-Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to generic_compat_ioctl_ptrarg
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Darren Hart <dvhart@infradead.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        gregkh <gregkh@linuxfoundation.org>,
-        David Miller <davem@davemloft.net>,
-        driverdevel <devel@driverdev.osuosl.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        qat-linux@intel.com,
-        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE"
-        <linux-crypto@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
-        "open list:HID CORE LAYER" <linux-input@vger.kernel.org>,
-        linux-iio@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>,
-        linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org,
-        linux-pci <linux-pci@vger.kernel.org>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        linux-remoteproc@vger.kernel.org,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        USB list <linux-usb@vger.kernel.org>,
-        linux-fbdev@vger.kernel.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-btrfs <linux-btrfs@vger.kernel.org>,
-        ceph-devel <ceph-devel@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        Networking <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Sat, 15 Sep 2018 21:34:51 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Brian Warner <brian.warner@samsung.com>,
+        Kees Cook <keescook@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Marco Felsch <m.felsch@pengutronix.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Nasser Afshin <afshin.nasser@gmail.com>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Shuah Khan <shuah@kernel.org>,
+        Pravin Shedge <pravin.shedge4linux@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 01/14] media: v4l2: remove VBI output pad
+Date: Sat, 15 Sep 2018 17:14:16 -0300
+Message-Id: <b088a4161e8980d24c7ccf3c752cec84b43f98e9.1537042262.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
+References: <cover.1537042262.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
+References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 18, 2018 at 7:59 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
-> On Tue, Sep 18, 2018 at 10:51:08AM -0700, Darren Hart wrote:
-> > On Fri, Sep 14, 2018 at 09:57:48PM +0100, Al Viro wrote:
-> > > On Fri, Sep 14, 2018 at 01:35:06PM -0700, Darren Hart wrote:
-> > >
-> > > > Acked-by: Darren Hart (VMware) <dvhart@infradead.org>
-> > > >
-> > > > As for a longer term solution, would it be possible to init fops in such
-> > > > a way that the compat_ioctl call defaults to generic_compat_ioctl_ptrarg
-> > > > so we don't have to duplicate this boilerplate for every ioctl fops
-> > > > structure?
-> > >
-> > >     Bad idea, that...  Because several years down the road somebody will add
-> > > an ioctl that takes an unsigned int for argument.  Without so much as looking
-> > > at your magical mystery macro being used to initialize file_operations.
-> >
-> > Fair, being explicit in the declaration as it is currently may be
-> > preferable then.
->
-> It would be much cleaner and safer if you could arrange things to add
-> something like this to struct file_operations:
->
->   long (*ptr_ioctl) (struct file *, unsigned int, void __user *);
->
-> Where the core code automatically converts the unsigned long to the
-> void __user * as appropriate.
->
-> Then it just works right always and the compiler will help address
-> Al's concern down the road.
+The signal there is the same as the video output (well,
+except for sliced VBI, but let's simplify the model and ignore
+it, at least for now - as it is routed together with raw
+VBI).
 
-I think if we wanted to do this with a new file operation, the best
-way would be to do the copy_from_user()/copy_to_user() in the caller
-as well.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/dvb-frontends/au8522_decoder.c | 1 -
+ drivers/media/i2c/saa7115.c                  | 1 -
+ drivers/media/i2c/tvp5150.c                  | 1 -
+ drivers/media/pci/saa7134/saa7134-core.c     | 1 -
+ drivers/media/v4l2-core/v4l2-mc.c            | 2 +-
+ include/media/v4l2-mc.h                      | 2 --
+ 6 files changed, 1 insertion(+), 7 deletions(-)
 
-We already do this inside of some subsystems, notably drivers/media/,
-and it simplifies the implementation of the ioctl handler function
-significantly. We obviously cannot do this in general, both because of
-traditional drivers that have 16-bit command codes (drivers/tty and others)
-and also because of drivers that by accident defined the commands
-incorrectly and use the wrong type or the wrong direction in the
-definition.
-
-       Arnd
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index f285096a48f0..198dd2b6f326 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -720,7 +720,6 @@ static int au8522_probe(struct i2c_client *client,
+ 
+ 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	state->pads[DEMOD_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 7bc3b721831e..471d1b7af164 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1836,7 +1836,6 @@ static int saa711x_probe(struct i2c_client *client,
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 57b2102586bc..93c373c20efd 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1501,7 +1501,6 @@ static int tvp5150_probe(struct i2c_client *c,
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index 9e76de2411ae..267d143c3a48 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -847,7 +847,6 @@ static void saa7134_create_entities(struct saa7134_dev *dev)
+ 		dev->demod.name = "saa713x";
+ 		dev->demod_pad[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-		dev->demod_pad[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 		dev->demod.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+ 		ret = media_entity_pads_init(&dev->demod, DEMOD_NUM_PADS,
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 0fc185a2ce90..982bab3530f6 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -147,7 +147,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	}
+ 
+ 	if (io_vbi) {
+-		ret = media_create_pad_link(decoder, DEMOD_PAD_VBI_OUT,
++		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+ 					    io_vbi, 0,
+ 					    MEDIA_LNK_FL_ENABLED);
+ 		if (ret)
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index 2634d9dc9916..7c9c781b16a9 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -89,14 +89,12 @@ enum if_aud_dec_pad_index {
+  *
+  * @DEMOD_PAD_IF_INPUT:	IF input sink pad.
+  * @DEMOD_PAD_VID_OUT:	Video output source pad.
+- * @DEMOD_PAD_VBI_OUT:	Vertical Blank Interface (VBI) output source pad.
+  * @DEMOD_PAD_AUDIO_OUT: Audio output source pad.
+  * @DEMOD_NUM_PADS:	Maximum number of output pads.
+  */
+ enum demod_pad_index {
+ 	DEMOD_PAD_IF_INPUT,
+ 	DEMOD_PAD_VID_OUT,
+-	DEMOD_PAD_VBI_OUT,
+ 	DEMOD_PAD_AUDIO_OUT,
+ 	DEMOD_NUM_PADS
+ };
+-- 
+2.17.1
