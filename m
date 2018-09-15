@@ -1,20 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43464 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:43402 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727872AbeIPBev (ORCPT
+        with ESMTP id S1727852AbeIPBer (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 21:34:51 -0400
+        Sat, 15 Sep 2018 21:34:47 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Max Kellermann <max.kellermann@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kees Cook <keescook@chromium.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Kees Cook <keescook@chromium.org>
-Subject: [PATCH v2 05/14] media: dvb: use signals to discover pads
-Date: Sat, 15 Sep 2018 17:14:20 -0300
-Message-Id: <2ec0cbc2a5d5d4a32beff776118dceea6611215e.1537042262.git.mchehab+samsung@kernel.org>
+        Brian Warner <brian.warner@samsung.com>
+Subject: [PATCH v2 09/14] media: saa7115: declare its own pads
+Date: Sat, 15 Sep 2018 17:14:24 -0300
+Message-Id: <75d23f5b6cf851ffe2a1a64dbc9052e5b2552d50.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
 References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
@@ -22,71 +22,58 @@ References: <cover.1537042262.git.mchehab+samsung@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On tuner pads, multiple signals are present. Be sure to get
-the right PAD by using them.
+As we don't need anymore to share pad numbers with similar
+drivers, use its own pad definition instead of a global
+model.
 
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/dvb-core/dvbdev.c | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ drivers/media/i2c/saa7115.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 9a5eed3f6cf6..b7171bf094fb 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -621,7 +621,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
- 	unsigned demux_pad = 0;
- 	unsigned dvr_pad = 0;
- 	unsigned ntuner = 0, ndemod = 0;
--	int ret;
-+	int ret, pad_source, pad_sink;
- 	static const char *connector_name = "Television";
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 7b2dbe7c59b2..1b30f568119a 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -59,10 +59,17 @@ enum saa711x_model {
+ 	SAA7118,
+ };
  
- 	if (!mdev)
-@@ -681,7 +681,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
- 		if (ret)
- 			return ret;
++
++enum saa711x_pads {
++       SAA711X_PAD_IF_INPUT,
++       SAA711X_PAD_VID_OUT,
++       SAA711X_NUM_PADS
++};
++
+ struct saa711x_state {
+ 	struct v4l2_subdev sd;
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	struct media_pad pads[DEMOD_NUM_PADS];
++	struct media_pad pads[SAA711X_NUM_PADS];
+ #endif
+ 	struct v4l2_ctrl_handler hdl;
  
--		if (!ntuner)
-+		if (!ntuner) {
- 			ret = media_create_pad_links(mdev,
- 						     MEDIA_ENT_F_CONN_RF,
- 						     conn, 0,
-@@ -689,22 +689,31 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
- 						     demod, 0,
- 						     MEDIA_LNK_FL_ENABLED,
- 						     false);
--		else
-+		} else {
-+			pad_sink = media_get_pad_index(tuner, true,
-+						       PAD_SIGNAL_ANALOG);
-+			if (pad_sink < 0)
-+				return -EINVAL;
- 			ret = media_create_pad_links(mdev,
- 						     MEDIA_ENT_F_CONN_RF,
- 						     conn, 0,
- 						     MEDIA_ENT_F_TUNER,
--						     tuner, TUNER_PAD_RF_INPUT,
-+						     tuner, pad_sink,
- 						     MEDIA_LNK_FL_ENABLED,
- 						     false);
-+		}
- 		if (ret)
- 			return ret;
- 	}
+@@ -1834,14 +1841,14 @@ static int saa711x_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(sd, client, &saa711x_ops);
  
- 	if (ntuner && ndemod) {
-+		pad_source = media_get_pad_index(tuner, true,
-+						 PAD_SIGNAL_ANALOG);
-+		if (pad_source)
-+			return -EINVAL;
- 		ret = media_create_pad_links(mdev,
- 					     MEDIA_ENT_F_TUNER,
--					     tuner, TUNER_PAD_OUTPUT,
-+					     tuner, pad_source,
- 					     MEDIA_ENT_F_DTV_DEMOD,
- 					     demod, 0, MEDIA_LNK_FL_ENABLED,
- 					     false);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+-	state->pads[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
+-	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	state->pads[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
++	state->pads[SAA711X_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
++	state->pads[SAA711X_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
++	state->pads[SAA711X_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[SAA711X_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
+ 
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+-	ret = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, state->pads);
++	ret = media_entity_pads_init(&sd->entity, SAA711X_NUM_PADS, state->pads);
+ 	if (ret < 0)
+ 		return ret;
+ #endif
 -- 
 2.17.1
