@@ -1,22 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:42620 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:42684 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727601AbeIPTnM (ORCPT
+        with ESMTP id S1727808AbeIPUCe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Sep 2018 15:43:12 -0400
+        Sun, 16 Sep 2018 16:02:34 -0400
 Reply-To: kieran.bingham+renesas@ideasonboard.com
-Subject: Re: [PATCH v2 4/5] media: i2c: adv748x: Register only enabled inputs
+Subject: Re: [PATCH v2 5/5] media: i2c: adv748x: Register all input subdevices
 To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
         laurent.pinchart@ideasonboard.com,
         niklas.soderlund+renesas@ragnatech.se
 Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
 References: <1536161231-25221-1-git-send-email-jacopo+renesas@jmondi.org>
- <1536161231-25221-5-git-send-email-jacopo+renesas@jmondi.org>
+ <1536161231-25221-6-git-send-email-jacopo+renesas@jmondi.org>
 From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <efd35177-86c9-f03a-32e5-24a9923f4aa3@ideasonboard.com>
-Date: Sun, 16 Sep 2018 15:19:59 +0100
+Message-ID: <bd21dc3e-f5a9-2150-5a27-1470c91f9538@ideasonboard.com>
+Date: Sun, 16 Sep 2018 15:39:17 +0100
 MIME-Version: 1.0
-In-Reply-To: <1536161231-25221-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1536161231-25221-6-git-send-email-jacopo+renesas@jmondi.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
@@ -25,90 +25,170 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Jacopo,
 
-Thankyou for the patch,
-
 On 05/09/18 16:27, Jacopo Mondi wrote:
-> The adv748x assumes input endpoints are always enabled, and registers
-> a subdevice for each of them everytime the corresponding output subdevice
-> is registered.
+> The input subdevice registration, being the link between adv728x's inputs
+
+s/adv728x/adv748x/
+
+> and outputs fixed, happens at output subdevice registration time. In the
+
+'are fixed, and happens at' ?
+
+
+> current design the TXA output subdevice 'registered()' callback registers
+> the HDMI input subdevice and the TXB output subdevice 'registered()' callback
+> registers the AFE input subdevice instead. Media links are created
+> accordingly to the fixed routing.
+> 
+> As the adv748x driver can now probe with at least a single output port
+> enabled an input subdevice linked to a disabled output is never registered
+> to the media graph. Fix this by having the first registered output subdevice
+> register all the available input subdevices.
 > 
 
-s/everytime/every time/
+If the input device can not be routed to the output device, then does it
+matter that it's not registered?
 
-Although this sounds like something that happens repeatedly in the
-lifetime of the driver when it only actually happens once I believe?
+> This change is necessary to have dynamic routing between the adv748x inputs
+> and outputs implemented.
 
-In which case perhaps:
+Indeed, unless it's necessary I feel like a this change or equivalent
+should be part of a series which introduces dynamic routing.
 
-s/everytime/when/
+(I.e., not that this patch should be discarded, but perhaps not
+integrated quite yet)
 
-> Fix this by conditionally register the input subdevice only if it is
-
-s/register/registering/
-
-> actually described in device tree.
-> 
 > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-
-Otherwise,
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
 > ---
->  drivers/media/i2c/adv748x/adv748x-csi2.c |  6 +++---
->  drivers/media/i2c/adv748x/adv748x.h      | 10 ++++++++++
->  2 files changed, 13 insertions(+), 3 deletions(-)
+>  drivers/media/i2c/adv748x/adv748x-csi2.c | 85 +++++++++++++++-----------------
+>  1 file changed, 40 insertions(+), 45 deletions(-)
 > 
 > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> index 034fd93..9e9df51 100644
+> index 9e9df51..fd4aa9d 100644
 > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
 > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -82,15 +82,15 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+> @@ -24,42 +24,6 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+>  	return tx_write(tx, ADV748X_CSI_VC_REF, vc << ADV748X_CSI_VC_REF_SHIFT);
+>  }
+>  
+> -/**
+> - * adv748x_csi2_register_link : Register and link internal entities
+> - *
+> - * @tx: CSI2 private entity
+> - * @v4l2_dev: Video registration device
+> - * @src: Source subdevice to establish link
+> - * @src_pad: Pad number of source to link to this @tx
+> - *
+> - * Ensure that the subdevice is registered against the v4l2_device, and link the
+> - * source pad to the sink pad of the CSI2 bus entity.
+> - */
+> -static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+> -				      struct v4l2_device *v4l2_dev,
+> -				      struct v4l2_subdev *src,
+> -				      unsigned int src_pad)
+> -{
+> -	int enabled = MEDIA_LNK_FL_ENABLED;
+> -	int ret;
+> -
+> -	/*
+> -	 * Dynamic linking of the AFE is not supported.
+> -	 * Register the links as immutable.
+> -	 */
+> -	enabled |= MEDIA_LNK_FL_IMMUTABLE;
+> -
+> -	if (!src->v4l2_dev) {
+> -		ret = v4l2_device_register_subdev(v4l2_dev, src);
+> -		if (ret)
+> -			return ret;
+> -	}
+> -
+> -	return media_create_pad_link(&src->entity, src_pad,
+> -				     &tx->sd.entity, ADV748X_CSI2_SINK,
+> -				     enabled);
+> -}
+> -
+>  /* -----------------------------------------------------------------------------
+>   * v4l2_subdev_internal_ops
+>   *
+> @@ -72,25 +36,56 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+>  {
+>  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+>  	struct adv748x_state *state = tx->state;
+> +	struct v4l2_subdev *src_sd;
+> +	unsigned int src_pad;
+> +	int ret;
+>  
+>  	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
+>  			sd->name);
+>  
+> +	/* The first registered CSI-2 registers all input subdevices. */
+> +	src_sd = &state->hdmi.sd;
+> +	if (!src_sd->v4l2_dev && is_hdmi_enabled(state)) {
+> +		ret = v4l2_device_register_subdev(sd->v4l2_dev, src_sd);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	src_sd = &state->afe.sd;
+> +	if (!src_sd->v4l2_dev && is_afe_enabled(state)) {
+> +		ret = v4l2_device_register_subdev(sd->v4l2_dev, src_sd);
+> +		if (ret)
+> +			goto err_unregister_hdmi;
+> +	}
+> +
+
+
+This registers both the AFE and HDMI as subdevices of the first v4l2_dev
+... Is this an issue ? (in fact is the v4l2_dev for both CSI/TX devices
+the same?)
+
+What happens if we connect the TXA to one capture VIN device, and the
+TXB to a completely different input device (this is probably a bit
+hypothetical at the moment)
+
+
+
+>  	/*
+>  	 * The adv748x hardware allows the AFE to route through the TXA, however
+>  	 * this is not currently supported in this driver.
 >  	 *
 >  	 * Link HDMI->TXA, and AFE->TXB directly.
 >  	 */
-> -	if (is_txa(tx)) {
-> +	if (is_txa(tx) && is_hdmi_enabled(state))
->  		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
->  						  &state->hdmi.sd,
->  						  ADV748X_HDMI_SOURCE);
-> -	} else {
-> +	if (!is_txa(tx) && is_afe_enabled(state))
->  		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
->  						  &state->afe.sd,
->  						  ADV748X_AFE_SOURCE);
-> -	}
-> +	return 0;
+> -	if (is_txa(tx) && is_hdmi_enabled(state))
+> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> -						  &state->hdmi.sd,
+> -						  ADV748X_HDMI_SOURCE);
+> -	if (!is_txa(tx) && is_afe_enabled(state))
+> -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> -						  &state->afe.sd,
+> -						  ADV748X_AFE_SOURCE);
+> -	return 0;
+> +	if (is_txa(tx)) {
+> +		if (!is_hdmi_enabled(state))
+> +			return 0;
+> +
+> +		src_sd = &state->hdmi.sd;
+> +		src_pad = ADV748X_HDMI_SOURCE;
+> +	} else {
+> +		if (!is_afe_enabled(state))
+> +			return 0;
+> +
+> +		src_sd = &state->afe.sd;
+> +		src_pad = ADV748X_AFE_SOURCE;
+> +	}
+> +
+> +	/* Dynamic linking is not supported, register the links as immutable. */
+> +	return media_create_pad_link(&src_sd->entity, src_pad, &sd->entity,
+> +				     ADV748X_CSI2_SINK, MEDIA_LNK_FL_ENABLED |
+> +				     MEDIA_LNK_FL_IMMUTABLE);
+> +err_unregister_hdmi:
+> +	v4l2_device_unregister_subdev(&state->hdmi.sd);
+> +
+> +	return ret;
 >  }
 >  
 >  static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index eeadf05..a34004e 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -94,6 +94,16 @@ struct adv748x_csi2 {
->  #define adv748x_sd_to_csi2(sd) container_of(sd, struct adv748x_csi2, sd)
->  #define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
->  #define is_txa(_tx) ((_tx) == &(_tx)->state->txa)
-> +#define is_afe_enabled(_state)					\
-> +	((_state)->endpoints[ADV748X_PORT_AIN0] != NULL ||	\
-> +	 (_state)->endpoints[ADV748X_PORT_AIN1] != NULL ||	\
-> +	 (_state)->endpoints[ADV748X_PORT_AIN2] != NULL ||	\
-> +	 (_state)->endpoints[ADV748X_PORT_AIN3] != NULL ||	\
-> +	 (_state)->endpoints[ADV748X_PORT_AIN4] != NULL ||	\
-> +	 (_state)->endpoints[ADV748X_PORT_AIN5] != NULL ||	\
-> +	 (_state)->endpoints[ADV748X_PORT_AIN6] != NULL ||	\
-> +	 (_state)->endpoints[ADV748X_PORT_AIN7] != NULL)
-> +#define is_hdmi_enabled(_state) ((_state)->endpoints[ADV748X_PORT_HDMI] != NULL)
-
-Wow that's quite some conditionals on the AFE :)
-
-We could introduce a flag instead... but it's just implementation
-detail. I'll leave that up to you, if you prefer this then that's fine.
-We're not on a hot-path here so it's not a big deal.
-
-
->  
->  enum adv748x_hdmi_pads {
->  	ADV748X_HDMI_SINK,
 > 
+
+--
+Kieran
