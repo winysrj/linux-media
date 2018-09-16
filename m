@@ -1,69 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelv0142.ext.ti.com ([198.47.23.249]:35998 "EHLO
-        lelv0142.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726840AbeIPVHJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Sep 2018 17:07:09 -0400
-Date: Sun, 16 Sep 2018 10:43:38 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: zhong jiang <zhongjiang@huawei.com>
-CC: <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: platform: remove redundant null pointer check
- before of_node_put
-Message-ID: <20180916154338.GE17511@ti.com>
-References: <1537103811-63670-1-git-send-email-zhongjiang@huawei.com>
+Received: from mga07.intel.com ([134.134.136.100]:1107 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728532AbeIQB2B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Sep 2018 21:28:01 -0400
+From: "Zhi, Yong" <yong.zhi@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>
+Subject: RE: [PATCH v6 11/12] intel-ipu3: Add v4l2 driver based on media
+ framework
+Date: Sun, 16 Sep 2018 20:03:51 +0000
+Message-ID: <C193D76D23A22742993887E6D207B54D3DAFA1A2@ORSMSX103.amr.corp.intel.com>
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
+ <1522376100-22098-12-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5DdJddmypcpLswQzwV8jdiS1iPGTO=FUJoz+AmnzOy2cg@mail.gmail.com>
+In-Reply-To: <CAAFQd5DdJddmypcpLswQzwV8jdiS1iPGTO=FUJoz+AmnzOy2cg@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1537103811-63670-1-git-send-email-zhongjiang@huawei.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Zhong,
-
-Thank you for the patch.
-
-zhong jiang <zhongjiang@huawei.com> wrote on Sun [2018-Sep-16 21:16:51 +0800]:
-> of_node_put has taken the null pinter check into account. So it is
-
-s/pinter/pointer/
-
-> safe to remove the duplicated check before of_node_put.
-> 
-> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-
-with the above change,
-
-Reviewed-by: Benoit Parrot <bparrot@ti.com>
-
-> ---
->  drivers/media/platform/ti-vpe/cal.c | 12 ++++--------
->  1 file changed, 4 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-> index cc052b2..5f9d4e0 100644
-> --- a/drivers/media/platform/ti-vpe/cal.c
-> +++ b/drivers/media/platform/ti-vpe/cal.c
-> @@ -1747,14 +1747,10 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
->  	}
->  
->  cleanup_exit:
-> -	if (remote_ep)
-> -		of_node_put(remote_ep);
-> -	if (sensor_node)
-> -		of_node_put(sensor_node);
-> -	if (ep_node)
-> -		of_node_put(ep_node);
-> -	if (port)
-> -		of_node_put(port);
-> +	of_node_put(remote_ep);
-> +	of_node_put(sensor_node);
-> +	of_node_put(ep_node);
-> +	of_node_put(port);
->  
->  	return ret;
->  }
-> -- 
-> 1.7.12.4
-> 
+SGksIFRvbWFzeiwNCg0KU29ycnkgZm9yIHRoZSBkZWxheSBpbiByZXNwb25kaW5nIHRvIHlvdXIg
+cmV2aWV3Lg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4LW1l
+ZGlhLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW1lZGlhLQ0KPiBvd25lckB2
+Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBUb21hc3ogRmlnYQ0KPiBTZW50OiBNb25kYXks
+IEp1bHkgMiwgMjAxOCAyOjUwIEFNDQo+IFRvOiBaaGksIFlvbmcgPHlvbmcuemhpQGludGVsLmNv
+bT4NCj4gQ2M6IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGludXgtbWVkaWFAdmdlci5rZXJu
+ZWwub3JnPjsgU2FrYXJpIEFpbHVzDQo+IDxzYWthcmkuYWlsdXNAbGludXguaW50ZWwuY29tPjsg
+TWFuaSwgUmFqbW9oYW4NCj4gPHJham1vaGFuLm1hbmlAaW50ZWwuY29tPjsgVG9pdm9uZW4sIFR1
+dWtrYQ0KPiA8dHV1a2thLnRvaXZvbmVuQGludGVsLmNvbT47IEh1LCBKZXJyeSBXIDxqZXJyeS53
+Lmh1QGludGVsLmNvbT47IFpoZW5nLA0KPiBKaWFuIFh1IDxqaWFuLnh1LnpoZW5nQGludGVsLmNv
+bT47IFZpamF5a3VtYXIsIFJhbXlhDQo+IDxyYW15YS52aWpheWt1bWFyQGludGVsLmNvbT4NCj4g
+U3ViamVjdDogUmU6IFtQQVRDSCB2NiAxMS8xMl0gaW50ZWwtaXB1MzogQWRkIHY0bDIgZHJpdmVy
+IGJhc2VkIG9uIG1lZGlhDQo+IGZyYW1ld29yaw0KPiANCj4gSGkgWW9uZywNCj4gDQo+IE9uIEZy
+aSwgTWFyIDMwLCAyMDE4IGF0IDExOjE1IEFNIFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+
+IHdyb3RlOg0KPiBbc25pcF0NCj4gPiArc3RhdGljIGludCBpcHUzX3ZpZGlvY19lbnVtX2lucHV0
+KHN0cnVjdCBmaWxlICpmaWxlLCB2b2lkICpmaCwNCj4gPiArICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgc3RydWN0IHY0bDJfaW5wdXQgKmlucHV0KSB7DQo+ID4gKyAgICAgICBpZiAo
+aW5wdXQtPmluZGV4ID4gMCkNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7DQo+
+ID4gKyAgICAgICBzdHJsY3B5KGlucHV0LT5uYW1lLCAiY2FtZXJhIiwgc2l6ZW9mKGlucHV0LT5u
+YW1lKSk7DQo+ID4gKyAgICAgICBpbnB1dC0+dHlwZSA9IFY0TDJfSU5QVVRfVFlQRV9DQU1FUkE7
+DQo+ID4gKw0KPiA+ICsgICAgICAgcmV0dXJuIDA7DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRp
+YyBpbnQgaXB1M192aWRpb2NfZ19pbnB1dChzdHJ1Y3QgZmlsZSAqZmlsZSwgdm9pZCAqZmgsIHVu
+c2lnbmVkDQo+ID4gK2ludCAqaW5wdXQpIHsNCj4gPiArICAgICAgICppbnB1dCA9IDA7DQo+ID4g
+Kw0KPiA+ICsgICAgICAgcmV0dXJuIDA7DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyBpbnQg
+aXB1M192aWRpb2Nfc19pbnB1dChzdHJ1Y3QgZmlsZSAqZmlsZSwgdm9pZCAqZmgsIHVuc2lnbmVk
+DQo+ID4gK2ludCBpbnB1dCkgew0KPiA+ICsgICAgICAgcmV0dXJuIGlucHV0ID09IDAgPyAwIDog
+LUVJTlZBTDsgfQ0KPiA+ICsNCj4gPiArc3RhdGljIGludCBpcHUzX3ZpZGlvY19lbnVtX291dHB1
+dChzdHJ1Y3QgZmlsZSAqZmlsZSwgdm9pZCAqZmgsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBzdHJ1Y3QgdjRsMl9vdXRwdXQgKm91dHB1dCkgew0KPiA+ICsgICAgICAg
+aWYgKG91dHB1dC0+aW5kZXggPiAwKQ0KPiA+ICsgICAgICAgICAgICAgICByZXR1cm4gLUVJTlZB
+TDsNCj4gPiArICAgICAgIHN0cmxjcHkob3V0cHV0LT5uYW1lLCAiY2FtZXJhIiwgc2l6ZW9mKG91
+dHB1dC0+bmFtZSkpOw0KPiA+ICsgICAgICAgb3V0cHV0LT50eXBlID0gVjRMMl9JTlBVVF9UWVBF
+X0NBTUVSQTsNCj4gPiArDQo+ID4gKyAgICAgICByZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4g
+PiArc3RhdGljIGludCBpcHUzX3ZpZGlvY19nX291dHB1dChzdHJ1Y3QgZmlsZSAqZmlsZSwgdm9p
+ZCAqZmgsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBpbnQg
+Km91dHB1dCkgew0KPiA+ICsgICAgICAgKm91dHB1dCA9IDA7DQo+ID4gKw0KPiA+ICsgICAgICAg
+cmV0dXJuIDA7DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyBpbnQgaXB1M192aWRpb2Nfc19v
+dXRwdXQoc3RydWN0IGZpbGUgKmZpbGUsIHZvaWQgKmZoLA0KPiA+ICsgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgdW5zaWduZWQgaW50IG91dHB1dCkgew0KPiA+ICsgICAgICAgcmV0dXJu
+IG91dHB1dCA9PSAwID8gMCA6IC1FSU5WQUw7IH0NCj4gDQo+IERvIHdlIHJlYWxseSBuZWVkIHRv
+IGltcGxlbWVudCB0aGUgNiBmdW5jdGlvbnMgYWJvdmU/IFRoZXkgZG9uJ3Qgc2VlbSB0bw0KPiBi
+ZSBkb2luZyBhbnl0aGluZyB1c2VmdWwuDQo+IA0KDQpUaGV5IGFyZSBoZXJlIHRvIHBhc3MgdjRs
+Mi1jb21wbGlhbmNlIHRlc3QuIEkgY2FuIGFkZCBhIG5vdGUgaW4gbmV4dCB1cGRhdGUgZm9yIHRo
+ZWlyIHB1cnBvc2UuICBXZSBjYW4gcmVtb3ZlIHRoZW0gaW4gdGhlIGZ1dHVyZSB3aGVuIGRlZmF1
+bHRzIGNhbGxiYWNrcyBhcmUgYXZhaWxhYmxlIGZvciB0aG9zZSBvcHMuDQoNCj4gW3NuaXBdDQo+
+IA0KPiA+ICtpbnQgaXB1M192NGwyX3JlZ2lzdGVyKHN0cnVjdCBpbWd1X2RldmljZSAqaW1ndSkg
+ew0KPiA+ICsgICAgICAgc3RydWN0IHY0bDJfbWJ1c19mcmFtZWZtdCBkZWZfYnVzX2ZtdCA9IHsg
+MCB9Ow0KPiA+ICsgICAgICAgc3RydWN0IHY0bDJfcGl4X2Zvcm1hdF9tcGxhbmUgZGVmX3BpeF9m
+bXQgPSB7IDAgfTsNCj4gPiArDQo+ID4gKyAgICAgICBpbnQgaSwgcjsNCj4gPiArDQo+ID4gKyAg
+ICAgICAvKiBJbml0aWFsaXplIG1pc2NlbGxhbmVvdXMgdmFyaWFibGVzICovDQo+ID4gKyAgICAg
+ICBpbWd1LT5zdHJlYW1pbmcgPSBmYWxzZTsNCj4gPiArDQo+ID4gKyAgICAgICAvKiBTZXQgdXAg
+bWVkaWEgZGV2aWNlICovDQo+ID4gKyAgICAgICBpbWd1LT5tZWRpYV9kZXYuZGV2ID0gJmltZ3Ut
+PnBjaV9kZXYtPmRldjsNCj4gPiArICAgICAgIHN0cmxjcHkoaW1ndS0+bWVkaWFfZGV2Lm1vZGVs
+LCBJTUdVX05BTUUsDQo+ID4gKyAgICAgICAgICAgICAgIHNpemVvZihpbWd1LT5tZWRpYV9kZXYu
+bW9kZWwpKTsNCj4gPiArICAgICAgIHNucHJpbnRmKGltZ3UtPm1lZGlhX2Rldi5idXNfaW5mbywg
+c2l6ZW9mKGltZ3UtDQo+ID5tZWRpYV9kZXYuYnVzX2luZm8pLA0KPiA+ICsgICAgICAgICAgICAg
+ICAgIiVzIiwgZGV2X25hbWUoJmltZ3UtPnBjaV9kZXYtPmRldikpOw0KPiA+ICsgICAgICAgaW1n
+dS0+bWVkaWFfZGV2Lmh3X3JldmlzaW9uID0gMDsNCj4gPiArICAgICAgIG1lZGlhX2RldmljZV9p
+bml0KCZpbWd1LT5tZWRpYV9kZXYpOw0KPiA+ICsgICAgICAgciA9IG1lZGlhX2RldmljZV9yZWdp
+c3RlcigmaW1ndS0+bWVkaWFfZGV2KTsNCj4gPiArICAgICAgIGlmIChyKSB7DQo+ID4gKyAgICAg
+ICAgICAgICAgIGRldl9lcnIoJmltZ3UtPnBjaV9kZXYtPmRldiwNCj4gPiArICAgICAgICAgICAg
+ICAgICAgICAgICAiZmFpbGVkIHRvIHJlZ2lzdGVyIG1lZGlhIGRldmljZSAoJWQpXG4iLCByKTsN
+Cj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIHI7DQo+ID4gKyAgICAgICB9DQo+IA0KPiBTaG91
+bGRuJ3Qgd2UgcmVnaXN0ZXIgdGhlIG1lZGlhIGRldmljZSBhdCB0aGUgZW5kLCBhZnRlciBhbGwg
+dmlkZW8gbm9kZXMgYXJlDQo+IHJlZ2lzdGVyZWQgYmVsb3c/IE90aGVyd2lzZSwgc2luY2UgbWVk
+aWFfZGV2aWNlX3JlZ2lzdGVyKCkgZXhwb3NlcyB0aGUNCj4gbWVkaWEgbm9kZSB0byB1c2Vyc3Bh
+Y2UsIHdlIHJpc2sgYSByYWNlLCB3aGVuIHVzZXJzcGFjZSBvcGVucyB0aGUgbWVkaWENCj4gZGV2
+aWNlIGJlZm9yZSBhbGwgdGhlIGVudGl0aWVzIGFyZSBjcmVhdGVkIGFuZCBsaW5rZWQuDQo+IA0K
+DQpNYWtlIHNlbnNlLCB3aWxsIGNoYW5nZSB0aGUgY2FsbCBvcmRlciBpbiB2Ny4NCg0KPiBbc25p
+cF0NCj4gDQo+ID4gK2ludCBpcHUzX3Y0bDJfdW5yZWdpc3RlcihzdHJ1Y3QgaW1ndV9kZXZpY2Ug
+KmltZ3UpIHsNCj4gPiArICAgICAgIHVuc2lnbmVkIGludCBpOw0KPiA+ICsNCj4gPiArICAgICAg
+IGZvciAoaSA9IDA7IGkgPCBJTUdVX05PREVfTlVNOyBpKyspIHsNCj4gPiArICAgICAgICAgICAg
+ICAgdmlkZW9fdW5yZWdpc3Rlcl9kZXZpY2UoJmltZ3UtPm5vZGVzW2ldLnZkZXYpOw0KPiA+ICsg
+ICAgICAgICAgICAgICBtZWRpYV9lbnRpdHlfY2xlYW51cCgmaW1ndS0+bm9kZXNbaV0udmRldi5l
+bnRpdHkpOw0KPiA+ICsgICAgICAgICAgICAgICBtdXRleF9kZXN0cm95KCZpbWd1LT5ub2Rlc1tp
+XS5sb2NrKTsNCj4gPiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICB2NGwyX2RldmljZV91
+bnJlZ2lzdGVyX3N1YmRldigmaW1ndS0+c3ViZGV2KTsNCj4gPiArICAgICAgIG1lZGlhX2VudGl0
+eV9jbGVhbnVwKCZpbWd1LT5zdWJkZXYuZW50aXR5KTsNCj4gPiArICAgICAgIGtmcmVlKGltZ3Ut
+PnN1YmRldl9wYWRzKTsNCj4gPiArICAgICAgIHY0bDJfZGV2aWNlX3VucmVnaXN0ZXIoJmltZ3Ut
+PnY0bDJfZGV2KTsNCj4gPiArICAgICAgIG1lZGlhX2RldmljZV91bnJlZ2lzdGVyKCZpbWd1LT5t
+ZWRpYV9kZXYpOw0KPiANCj4gU2hvdWxkIHVucmVnaXN0ZXIgbWVkaWEgZGV2aWNlIGF0IHRoZSBi
+ZWdpbm5pbmcsIHNvIHRoYXQgaXQgY2Fubm90IGJlIHVzZWQNCj4gd2hlbiB3ZSBjb250aW51ZSB0
+byBjbGVhbiB1cCB0aGUgZW50aXRpZXMuDQo+IA0KDQpBZ3JlZSwgdGhhbmtzIGZvciB0aGUgcmV2
+aWV3Lg0KDQo+ID4gKyAgICAgICBtZWRpYV9kZXZpY2VfY2xlYW51cCgmaW1ndS0+bWVkaWFfZGV2
+KTsNCj4gPiArDQo+ID4gKyAgICAgICByZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICtFWFBPUlRfU1lN
+Qk9MX0dQTChpcHUzX3Y0bDJfdW5yZWdpc3Rlcik7DQo+IA0KPiBCZXN0IHJlZ2FyZHMsDQo+IFRv
+bWFzeg0K
