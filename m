@@ -1,55 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay7-d.mail.gandi.net ([217.70.183.200]:55259 "EHLO
-        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726824AbeIQQ6B (ORCPT
+Received: from aserp2120.oracle.com ([141.146.126.78]:36272 "EHLO
+        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726865AbeIQTYX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 12:58:01 -0400
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com,
-        kieran.bingham+renesas@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v3 0/4] media: adv748x: Allow probe with a single output endpoint
-Date: Mon, 17 Sep 2018 13:30:53 +0200
-Message-Id: <1537183857-29173-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 17 Sep 2018 15:24:23 -0400
+Date: Mon, 17 Sep 2018 16:56:22 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Cc: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH] [media] VPU: mediatek: don't pass an unused parameter
+Message-ID: <20180917135622.GA23073@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent, Kieran, Niklas,
-   to address the Ebisu board use case, this series allows the adv748x driver
-to probe with a single output connection defined.
+The load_requested_vpu() function returns a freed vpu_fw pointer.  It's
+not used so it doesn't cause any problems, but Smatch complains about
+it:
 
-Compared to v2, I have dropped the last patch, as without any dynamic routing
-support it is not that helpful, and I've fixed most of commit messages as
-suggested by Kieran.
+    drivers/media/platform/mtk-vpu/mtk_vpu.c:578 vpu_load_firmware()
+    warn: passing freed memory 'vpu_fw'
 
-I have tested in 3 conditions on Salvator-X M3-W:
-- AFE input not registered
-- TXB not registered (Ebisu use case)
-- AFE and TXB not registered
+We can clean up the code a bit and silence the static checker warning
+by not passing the parameter at all.
 
-Let me know if I can help testing this on Ebisu.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Thanks
-   j
-
-v2 -> v3:
-- Drop v2 patch [5/5]
-- Add Kieran's tags and modify commit messages as he suggested
-
-Jacopo Mondi (4):
-  media: i2c: adv748x: Support probing a single output
-  media: i2c: adv748x: Handle TX[A|B] power management
-  media: i2c: adv748x: Conditionally enable only CSI-2 outputs
-  media: i2c: adv748x: Register only enabled inputs
-
- drivers/media/i2c/adv748x/adv748x-afe.c  |  2 +-
- drivers/media/i2c/adv748x/adv748x-core.c | 83 +++++++++++++++++---------------
- drivers/media/i2c/adv748x/adv748x-csi2.c | 29 ++++-------
- drivers/media/i2c/adv748x/adv748x-hdmi.c |  2 +-
- drivers/media/i2c/adv748x/adv748x.h      | 19 ++++++--
- 5 files changed, 68 insertions(+), 67 deletions(-)
-
---
-2.7.4
+diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+index f8d35e3ac1dc..616f78b24a79 100644
+--- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
++++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+@@ -480,12 +480,12 @@ EXPORT_SYMBOL_GPL(vpu_get_plat_device);
+ 
+ /* load vpu program/data memory */
+ static int load_requested_vpu(struct mtk_vpu *vpu,
+-			      const struct firmware *vpu_fw,
+ 			      u8 fw_type)
+ {
+ 	size_t tcm_size = fw_type ? VPU_DTCM_SIZE : VPU_PTCM_SIZE;
+ 	size_t fw_size = fw_type ? VPU_D_FW_SIZE : VPU_P_FW_SIZE;
+ 	char *fw_name = fw_type ? VPU_D_FW : VPU_P_FW;
++	const struct firmware *vpu_fw;
+ 	size_t dl_size = 0;
+ 	size_t extra_fw_size = 0;
+ 	void *dest;
+@@ -539,7 +539,6 @@ int vpu_load_firmware(struct platform_device *pdev)
+ 	struct mtk_vpu *vpu;
+ 	struct device *dev = &pdev->dev;
+ 	struct vpu_run *run;
+-	const struct firmware *vpu_fw = NULL;
+ 	int ret;
+ 
+ 	if (!pdev) {
+@@ -568,14 +567,14 @@ int vpu_load_firmware(struct platform_device *pdev)
+ 	run->signaled = false;
+ 	dev_dbg(vpu->dev, "firmware request\n");
+ 	/* Downloading program firmware to device*/
+-	ret = load_requested_vpu(vpu, vpu_fw, P_FW);
++	ret = load_requested_vpu(vpu, P_FW);
+ 	if (ret < 0) {
+ 		dev_err(dev, "Failed to request %s, %d\n", VPU_P_FW, ret);
+ 		goto OUT_LOAD_FW;
+ 	}
+ 
+ 	/* Downloading data firmware to device */
+-	ret = load_requested_vpu(vpu, vpu_fw, D_FW);
++	ret = load_requested_vpu(vpu, D_FW);
+ 	if (ret < 0) {
+ 		dev_err(dev, "Failed to request %s, %d\n", VPU_D_FW, ret);
+ 		goto OUT_LOAD_FW;
