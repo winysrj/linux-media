@@ -1,91 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53022 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726315AbeIHQJt (ORCPT
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:34949 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726824AbeIQQ6E (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Sep 2018 12:09:49 -0400
-Subject: Re: [PATCH 0/2] Follow-up patches for Cedrus v9
-To: Chen-Yu Tsai <wens@csie.org>
-Cc: Paul Kocialkowski <contact@paulk.fr>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        Randy Li <ayaka@soulik.info>, ezequiel@collabora.com,
-        Tomasz Figa <tfiga@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-References: <20180907163347.32312-1-contact@paulk.fr>
- <11104c03-97ac-8b36-7d75-dfecb8fcce10@xs4all.nl>
- <CAGb2v67F2a-kYFRb_f+CyhzkHf5+Y+h01=SE-rxJ=-Oj-ma1BA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3c4e5a98-4dbd-9a8c-8dab-612a923f0eb9@xs4all.nl>
-Date: Sat, 8 Sep 2018 13:24:13 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAGb2v67F2a-kYFRb_f+CyhzkHf5+Y+h01=SE-rxJ=-Oj-ma1BA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 17 Sep 2018 12:58:04 -0400
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com,
+        kieran.bingham+renesas@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v3 1/4] media: i2c: adv748x: Support probing a single output
+Date: Mon, 17 Sep 2018 13:30:54 +0200
+Message-Id: <1537183857-29173-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1537183857-29173-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1537183857-29173-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/08/2018 12:22 PM, Chen-Yu Tsai wrote:
-> On Sat, Sep 8, 2018 at 6:06 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 09/07/2018 06:33 PM, Paul Kocialkowski wrote:
->>> This brings the requested modifications on top of version 9 of the
->>> Cedrus VPU driver, that implements stateless video decoding using the
->>> Request API.
->>>
->>> Paul Kocialkowski (2):
->>>   media: cedrus: Fix error reporting in request validation
->>>   media: cedrus: Add TODO file with tasks to complete before unstaging
->>>
->>>  drivers/staging/media/sunxi/cedrus/TODO     |  7 +++++++
->>>  drivers/staging/media/sunxi/cedrus/cedrus.c | 15 ++++++++++++---
->>>  2 files changed, 19 insertions(+), 3 deletions(-)
->>>  create mode 100644 drivers/staging/media/sunxi/cedrus/TODO
->>>
->>
->> So close...
->>
->> When compiling under e.g. intel I get errors since it doesn't know about
->> the sunxi_sram_claim/release function and the PHYS_PFN_OFFSET define.
->>
->> Is it possible to add stub functions to linux/soc/sunxi/sunxi_sram.h
->> if CONFIG_SUNXI_SRAM is not defined? That would be the best fix for that.
->>
->> The use of PHYS_PFN_OFFSET is weird: are you sure this is the right
->> way? I see that drivers/of/device.c also sets dev->dma_pfn_offset, which
->> makes me wonder if this information shouldn't come from the device tree.
->>
->> You are the only driver that uses this define directly, which makes me
->> suspicious.
-> 
-> On Allwinner platforms, some devices do DMA directly on the memory BUS
-> with the DRAM controller. In such cases, the DRAM has no offset. In all
-> other cases where the DMA goes through the common system bus and the DRAM
-> offset is either 0x40000000 or 0x20000000, depending on the SoC. Since the
-> former case is not described in the device tree (this is being worked on
-> by Maxime BTW), the dma_pfn_offset is not the value it should be. AFAIK
-> only the display and media subsystems (VPU, camera, TS) are wired this
-> way.
-> 
-> In drivers/gpu/drm/sun4i/sun4i_backend.c (the display driver) we use
-> PHYS_OFFSET, which is pretty much the same thing.
->
+Currently the adv748x driver will fail to probe unless both of it's
+output endpoints (TXA and TXB) are connected.
 
-OK, in that case just put #ifdef PHYS_PFN_OFFSET around that line together
-with a comment that this will eventually come from the device tree.
+Make the driver support probing provided that there is at least one
+input, and one output connected and protect the clean-up function from
+accessing un-initialized fields.
 
-Regards,
+Following patches will fix other uses of un-initialized TXs in the driver,
+such as power management functions.
 
-	Hans
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/adv748x/adv748x-core.c | 25 ++++++++++++++++++++++---
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 18 ++++++------------
+ drivers/media/i2c/adv748x/adv748x.h      |  2 ++
+ 3 files changed, 30 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+index 6ca88daa..65c3024 100644
+--- a/drivers/media/i2c/adv748x/adv748x-core.c
++++ b/drivers/media/i2c/adv748x/adv748x-core.c
+@@ -569,7 +569,8 @@ static int adv748x_parse_dt(struct adv748x_state *state)
+ {
+ 	struct device_node *ep_np = NULL;
+ 	struct of_endpoint ep;
+-	bool found = false;
++	bool out_found = false;
++	bool in_found = false;
+ 
+ 	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
+ 		of_graph_parse_endpoint(ep_np, &ep);
+@@ -592,10 +593,17 @@ static int adv748x_parse_dt(struct adv748x_state *state)
+ 		of_node_get(ep_np);
+ 		state->endpoints[ep.port] = ep_np;
+ 
+-		found = true;
++		/*
++		 * At least one input endpoint and one output endpoint shall
++		 * be defined.
++		 */
++		if (ep.port < ADV748X_PORT_TXA)
++			in_found = true;
++		else
++			out_found = true;
+ 	}
+ 
+-	return found ? 0 : -ENODEV;
++	return in_found && out_found ? 0 : -ENODEV;
+ }
+ 
+ static void adv748x_dt_cleanup(struct adv748x_state *state)
+@@ -627,6 +635,17 @@ static int adv748x_probe(struct i2c_client *client,
+ 	state->i2c_clients[ADV748X_PAGE_IO] = client;
+ 	i2c_set_clientdata(client, state);
+ 
++	/*
++	 * We can not use container_of to get back to the state with two TXs;
++	 * Initialize the TXs's fields unconditionally on the endpoint
++	 * presence to access them later.
++	 */
++	state->txa.state = state->txb.state = state;
++	state->txa.page = ADV748X_PAGE_TXA;
++	state->txb.page = ADV748X_PAGE_TXB;
++	state->txa.port = ADV748X_PORT_TXA;
++	state->txb.port = ADV748X_PORT_TXB;
++
+ 	/* Discover and process ports declared by the Device tree endpoints */
+ 	ret = adv748x_parse_dt(state);
+ 	if (ret) {
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index 469be87..556e13c 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -266,19 +266,10 @@ static int adv748x_csi2_init_controls(struct adv748x_csi2 *tx)
+ 
+ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
+ {
+-	struct device_node *ep;
+ 	int ret;
+ 
+-	/* We can not use container_of to get back to the state with two TXs */
+-	tx->state = state;
+-	tx->page = is_txa(tx) ? ADV748X_PAGE_TXA : ADV748X_PAGE_TXB;
+-
+-	ep = state->endpoints[is_txa(tx) ? ADV748X_PORT_TXA : ADV748X_PORT_TXB];
+-	if (!ep) {
+-		adv_err(state, "No endpoint found for %s\n",
+-				is_txa(tx) ? "txa" : "txb");
+-		return -ENODEV;
+-	}
++	if (!is_tx_enabled(tx))
++		return 0;
+ 
+ 	/* Initialise the virtual channel */
+ 	adv748x_csi2_set_virtual_channel(tx, 0);
+@@ -288,7 +279,7 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
+ 			    is_txa(tx) ? "txa" : "txb");
+ 
+ 	/* Ensure that matching is based upon the endpoint fwnodes */
+-	tx->sd.fwnode = of_fwnode_handle(ep);
++	tx->sd.fwnode = of_fwnode_handle(state->endpoints[tx->port]);
+ 
+ 	/* Register internal ops for incremental subdev registration */
+ 	tx->sd.internal_ops = &adv748x_csi2_internal_ops;
+@@ -321,6 +312,9 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
+ 
+ void adv748x_csi2_cleanup(struct adv748x_csi2 *tx)
+ {
++	if (!is_tx_enabled(tx))
++		return;
++
+ 	v4l2_async_unregister_subdev(&tx->sd);
+ 	media_entity_cleanup(&tx->sd.entity);
+ 	v4l2_ctrl_handler_free(&tx->ctrl_hdl);
+diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+index 65f8374..1cf46c40 100644
+--- a/drivers/media/i2c/adv748x/adv748x.h
++++ b/drivers/media/i2c/adv748x/adv748x.h
+@@ -82,6 +82,7 @@ struct adv748x_csi2 {
+ 	struct adv748x_state *state;
+ 	struct v4l2_mbus_framefmt format;
+ 	unsigned int page;
++	unsigned int port;
+ 
+ 	struct media_pad pads[ADV748X_CSI2_NR_PADS];
+ 	struct v4l2_ctrl_handler ctrl_hdl;
+@@ -91,6 +92,7 @@ struct adv748x_csi2 {
+ 
+ #define notifier_to_csi2(n) container_of(n, struct adv748x_csi2, notifier)
+ #define adv748x_sd_to_csi2(sd) container_of(sd, struct adv748x_csi2, sd)
++#define is_tx_enabled(_tx) ((_tx)->state->endpoints[(_tx)->port] != NULL)
+ 
+ enum adv748x_hdmi_pads {
+ 	ADV748X_HDMI_SINK,
+-- 
+2.7.4
