@@ -1,70 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53434 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726570AbeIQOn0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 10:43:26 -0400
-Subject: Re: [PATCH v5] vb2: check for sane values from queue_setup
-To: Johan Fjeldtvedt <johfjeld@cisco.com>, linux-media@vger.kernel.org
-References: <20180917083647.6236-1-johfjeld@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3f68d7c9-49c4-36f8-9ab9-6d679493fff5@xs4all.nl>
-Date: Mon, 17 Sep 2018 11:16:50 +0200
+Received: from szxga06-in.huawei.com ([45.249.212.32]:51774 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726826AbeIQPAz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Sep 2018 11:00:55 -0400
+Date: Mon, 17 Sep 2018 10:33:48 +0100
+From: Jonathan Cameron <jonathan.cameron@huawei.com>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: <viro@zeniv.linux.org.uk>, <linux-fsdevel@vger.kernel.org>,
+        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        <devel@driverdev.osuosl.org>, <linux-kernel@vger.kernel.org>,
+        <qat-linux@intel.com>, <linux-crypto@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        <linaro-mm-sig@lists.linaro.org>, <amd-gfx@lists.freedesktop.org>,
+        <linux-input@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+        <linux-rdma@vger.kernel.org>, <linux-nvdimm@lists.01.org>,
+        <linux-nvme@lists.infradead.org>, <linux-pci@vger.kernel.org>,
+        <platform-driver-x86@vger.kernel.org>,
+        <linux-remoteproc@vger.kernel.org>, <sparclinux@vger.kernel.org>,
+        <linux-scsi@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+        <linux-fbdev@vger.kernel.org>, <linuxppc-dev@lists.ozlabs.org>,
+        <linux-btrfs@vger.kernel.org>, <ceph-devel@vger.kernel.org>,
+        <linux-wireless@vger.kernel.org>, <netdev@vger.kernel.org>
+Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
+ generic_compat_ioctl_ptrarg
+Message-ID: <20180917103348.00003f31@huawei.com>
+In-Reply-To: <20180912151134.436719-1-arnd@arndb.de>
+References: <20180912150142.157913-1-arnd@arndb.de>
+        <20180912151134.436719-1-arnd@arndb.de>
 MIME-Version: 1.0
-In-Reply-To: <20180917083647.6236-1-johfjeld@cisco.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/2018 10:36 AM, Johan Fjeldtvedt wrote:
-> Warn and return error from the reqbufs ioctl when driver sets 0 number
-> of planes or 0 as plane sizes, as these values don't make any sense.
-> Checking this here stops obviously wrong values from propagating
-> further and causing various problems that are hard to trace back to
-> either of these values being 0.
+On Wed, 12 Sep 2018 17:08:52 +0200
+Arnd Bergmann <arnd@arndb.de> wrote:
+
+> The .ioctl and .compat_ioctl file operations have the same prototype so
+> they can both point to the same function, which works great almost all
+> the time when all the commands are compatible.
 > 
-> Signed-off-by: Johan Fjeldtvedt <johfjeld@cisco.com>
-
-FYI: next time when you post a new version of a patch don't forget to add
-any Acked-by's or Reviewed-by's that others added to previous versions.
-
-I'll add Sakari's Acked-by, so no need for a v6 :-)
-
-Regards,
-
-	Hans
-
+> One exception is the s390 architecture, where a compat pointer is only
+> 31 bit wide, and converting it into a 64-bit pointer requires calling
+> compat_ptr(). Most drivers here will ever run in s390, but since we now
+> have a generic helper for it, it's easy enough to use it consistently.
+> 
+> I double-checked all these drivers to ensure that all ioctl arguments
+> are used as pointers or are ignored, but are not interpreted as integer
+> values.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/media/common/videobuf2/videobuf2-core.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
-> index f32ec7342ef0..14cedf42e907 100644
-> --- a/drivers/media/common/videobuf2/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
-> @@ -661,6 +661,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
->  {
->  	unsigned int num_buffers, allocated_buffers, num_planes = 0;
->  	unsigned plane_sizes[VB2_MAX_PLANES] = { };
-> +	unsigned int i;
->  	int ret;
+
+For IIO part.
+
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
+Thanks,
+> diff --git a/drivers/iio/industrialio-core.c b/drivers/iio/industrialio-core.c
+> index a062cfddc5af..22844b94b0e9 100644
+> --- a/drivers/iio/industrialio-core.c
+> +++ b/drivers/iio/industrialio-core.c
+> @@ -1630,7 +1630,7 @@ static const struct file_operations iio_buffer_fileops = {
+>  	.owner = THIS_MODULE,
+>  	.llseek = noop_llseek,
+>  	.unlocked_ioctl = iio_ioctl,
+> -	.compat_ioctl = iio_ioctl,
+> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
+>  };
 >  
->  	if (q->streaming) {
-> @@ -718,6 +719,14 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
->  	if (ret)
->  		return ret;
->  
-> +	/* Check that driver has set sane values */
-> +	if (WARN_ON(!num_planes))
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < num_planes; i++)
-> +		if (WARN_ON(!plane_sizes[i]))
-> +			return -EINVAL;
-> +
->  	/* Finally, allocate buffers and video memory */
->  	allocated_buffers =
->  		__vb2_queue_alloc(q, memory, num_buffers, num_planes, plane_sizes);
-> 
