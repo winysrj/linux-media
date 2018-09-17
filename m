@@ -1,79 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:36272 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726865AbeIQTYX (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49169 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728705AbeIQUJJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 15:24:23 -0400
-Date: Mon, 17 Sep 2018 16:56:22 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Cc: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Houlong Wei <houlong.wei@mediatek.com>,
+        Mon, 17 Sep 2018 16:09:09 -0400
+Subject: Re: [PATCH v3 2/2] [media] videobuf2-dc: Support cacheable MMAP
+To: Thierry Escande <thierry.escande@collabora.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH] [media] VPU: mediatek: don't pass an unused parameter
-Message-ID: <20180917135622.GA23073@mwanda>
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+References: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
+ <1477471926-15796-3-git-send-email-thierry.escande@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <89fe7216-d391-5a5c-424e-df1a2679f3cf@xs4all.nl>
+Date: Mon, 17 Sep 2018 16:41:26 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1477471926-15796-3-git-send-email-thierry.escande@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The load_requested_vpu() function returns a freed vpu_fw pointer.  It's
-not used so it doesn't cause any problems, but Smatch complains about
-it:
+I'm going through old patches in patchwork that fell through the
+cracks, and this is one of them.
 
-    drivers/media/platform/mtk-vpu/mtk_vpu.c:578 vpu_load_firmware()
-    warn: passing freed memory 'vpu_fw'
+If this is still desired, please rebase and repost.
 
-We can clean up the code a bit and silence the static checker warning
-by not passing the parameter at all.
+I'm marking this series as Obsoleted in patchwork, since it no longer
+applies anyway.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Regards,
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-index f8d35e3ac1dc..616f78b24a79 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-@@ -480,12 +480,12 @@ EXPORT_SYMBOL_GPL(vpu_get_plat_device);
- 
- /* load vpu program/data memory */
- static int load_requested_vpu(struct mtk_vpu *vpu,
--			      const struct firmware *vpu_fw,
- 			      u8 fw_type)
- {
- 	size_t tcm_size = fw_type ? VPU_DTCM_SIZE : VPU_PTCM_SIZE;
- 	size_t fw_size = fw_type ? VPU_D_FW_SIZE : VPU_P_FW_SIZE;
- 	char *fw_name = fw_type ? VPU_D_FW : VPU_P_FW;
-+	const struct firmware *vpu_fw;
- 	size_t dl_size = 0;
- 	size_t extra_fw_size = 0;
- 	void *dest;
-@@ -539,7 +539,6 @@ int vpu_load_firmware(struct platform_device *pdev)
- 	struct mtk_vpu *vpu;
- 	struct device *dev = &pdev->dev;
- 	struct vpu_run *run;
--	const struct firmware *vpu_fw = NULL;
- 	int ret;
- 
- 	if (!pdev) {
-@@ -568,14 +567,14 @@ int vpu_load_firmware(struct platform_device *pdev)
- 	run->signaled = false;
- 	dev_dbg(vpu->dev, "firmware request\n");
- 	/* Downloading program firmware to device*/
--	ret = load_requested_vpu(vpu, vpu_fw, P_FW);
-+	ret = load_requested_vpu(vpu, P_FW);
- 	if (ret < 0) {
- 		dev_err(dev, "Failed to request %s, %d\n", VPU_P_FW, ret);
- 		goto OUT_LOAD_FW;
- 	}
- 
- 	/* Downloading data firmware to device */
--	ret = load_requested_vpu(vpu, vpu_fw, D_FW);
-+	ret = load_requested_vpu(vpu, D_FW);
- 	if (ret < 0) {
- 		dev_err(dev, "Failed to request %s, %d\n", VPU_D_FW, ret);
- 		goto OUT_LOAD_FW;
+	Hans
+
+
+On 10/26/2016 10:52 AM, Thierry Escande wrote:
+> From: Heng-Ruey Hsu <henryhsu@chromium.org>
+> 
+> DMA allocations for MMAP type are uncached by default. But for
+> some cases, CPU has to access the buffers. ie: memcpy for format
+> converter. Supporting cacheable MMAP improves huge performance.
+> 
+> This patch enables cacheable memory for DMA coherent allocator in mmap
+> buffer allocation if non-consistent DMA attribute is set and kernel
+> mapping is present. Even if userspace doesn't mmap the buffer, sync
+> still should be happening if kernel mapping is present.
+> If not done in allocation, it is enabled when memory is mapped from
+> userspace (if non-consistent DMA attribute is set).
+> 
+> Signed-off-by: Heng-Ruey Hsu <henryhsu@chromium.org>
+> Tested-by: Heng-ruey Hsu <henryhsu@chromium.org>
+> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index 0d9665d..89b534a 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -151,6 +151,10 @@ static void vb2_dc_put(void *buf_priv)
+>  		sg_free_table(buf->sgt_base);
+>  		kfree(buf->sgt_base);
+>  	}
+> +	if (buf->dma_sgt) {
+> +		sg_free_table(buf->dma_sgt);
+> +		kfree(buf->dma_sgt);
+> +	}
+>  	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
+>  		       buf->attrs);
+>  	put_device(buf->dev);
+> @@ -192,6 +196,14 @@ static void *vb2_dc_alloc(struct device *dev, unsigned long attrs,
+>  	buf->handler.put = vb2_dc_put;
+>  	buf->handler.arg = buf;
+>  
+> +	/*
+> +	 * Enable cache maintenance. Even if userspace doesn't mmap the buffer,
+> +	 * sync still should be happening if kernel mapping is present.
+> +	 */
+> +	if (!(buf->attrs & DMA_ATTR_NO_KERNEL_MAPPING) &&
+> +	    buf->attrs & DMA_ATTR_NON_CONSISTENT)
+> +		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
+> +
+>  	atomic_inc(&buf->refcount);
+>  
+>  	return buf;
+> @@ -227,6 +239,10 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+>  
+>  	vma->vm_ops->open(vma);
+>  
+> +	/* Enable cache maintenance if not enabled in allocation. */
+> +	if (!buf->dma_sgt && buf->attrs & DMA_ATTR_NON_CONSISTENT)
+> +		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
+> +
+>  	pr_debug("%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
+>  		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
+>  		buf->size);
+> 
