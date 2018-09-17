@@ -1,105 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:59816 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:45302 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727089AbeIRAbS (ORCPT
+        with ESMTP id S1725787AbeIREJD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 20:31:18 -0400
+        Tue, 18 Sep 2018 00:09:03 -0400
+Date: Mon, 17 Sep 2018 19:39:36 -0300
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, Jan Kara <jack@suse.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org,
-        linux-ext4@vger.kernel.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org
-Subject: [PATCH] docs: fix some broken documentation references
-Date: Mon, 17 Sep 2018 15:02:34 -0400
-Message-Id: <6b47bf56b898c48a0dc3cd42283c9e5c7c23367a.1537210894.git.mchehab+samsung@kernel.org>
+To: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [media] dib7000p: Remove dead code
+Message-ID: <20180917193936.33e90d5a@coco.lan>
+In-Reply-To: <CAKwvOdmQ4pbbPuvYrVYB9myD8ap36h6nLjEdL-mSbYjM37UJ_g@mail.gmail.com>
+References: <20180915054739.14117-1-natechancellor@gmail.com>
+        <CAKwvOdmQ4pbbPuvYrVYB9myD8ap36h6nLjEdL-mSbYjM37UJ_g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some documentation files received recent changes and are
-pointing to wrong places.
+Em Mon, 17 Sep 2018 10:58:32 -0700
+Nick Desaulniers <ndesaulniers@google.com> escreveu:
 
-Those references can easily fixed with the help of a
-script:
+> On Fri, Sep 14, 2018 at 10:47 PM Nathan Chancellor
+> <natechancellor@gmail.com> wrote:
+> >
+> > Clang warns that 'interleaving' is assigned to itself in this function.
+> >
+> > drivers/media/dvb-frontends/dib7000p.c:1874:15: warning: explicitly
+> > assigning value of variable of type 'int' to itself [-Wself-assign]
+> >         interleaving =3D interleaving;
+> >         ~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
+> > 1 warning generated.
+> >
+> > It's correct. Just removing the self-assignment would sufficiently hide
+> > the warning but all of this code is dead because 'tmp' is zero due to
+> > being multiplied by zero. This doesn't appear to be an issue with
+> > dib8000, which this code was copied from in commit 041ad449683b
+> > ("[media] dib7000p: Add DVBv5 stats support").
+> >
+> > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> > ---
+> >  drivers/media/dvb-frontends/dib7000p.c | 10 ++--------
+> >  1 file changed, 2 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb=
+-frontends/dib7000p.c
+> > index 58387860b62d..25843658fc68 100644
+> > --- a/drivers/media/dvb-frontends/dib7000p.c
+> > +++ b/drivers/media/dvb-frontends/dib7000p.c
+> > @@ -1800,9 +1800,8 @@ static u32 dib7000p_get_time_us(struct dvb_fronte=
+nd *demod) =20
+>=20
+> Something looks wrong here (with this function).  The patch is no
+> functional change, since as you point out `interleaving` is
+> initialized to 0, then never updated before read, but I think there's
+> an underlying bug here that should be fixed differently.  Thanks for
+> the patch though, as it does raise the question.
+>=20
+> dib7000p_get_time_us has this comment above it:
+>=20
+>   1798 /* FIXME: may require changes - this one was borrowed from
+> dib8000 */
 
-	$ ./scripts/documentation-file-ref-check --fix
+The goal of dib7000p_get_time_us() is to estimate how much time it
+takes, with current tuning parameters, to have a certain number of
+DVB-T packets. This is used for block error count. That's said,
+on a quick look, it seems that the code is not right on many ways.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- Documentation/filesystems/dax.txt  | 2 +-
- Documentation/filesystems/ext2.txt | 2 +-
- MAINTAINERS                        | 4 ++--
- net/bridge/Kconfig                 | 2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+It should be aligned with the amount of data it is required for
+dib7000 to update the block/bit error counters. There are two kinds
+of implementation:
 
-diff --git a/Documentation/filesystems/dax.txt b/Documentation/filesystems/dax.txt
-index 70cb68bed2e8..bc393e0a22b8 100644
---- a/Documentation/filesystems/dax.txt
-+++ b/Documentation/filesystems/dax.txt
-@@ -75,7 +75,7 @@ exposure of uninitialized data through mmap.
- 
- These filesystems may be used for inspiration:
- - ext2: see Documentation/filesystems/ext2.txt
--- ext4: see Documentation/filesystems/ext4.txt
-+- ext4: see Documentation/filesystems/ext4/ext4.rst
- - xfs:  see Documentation/filesystems/xfs.txt
- 
- 
-diff --git a/Documentation/filesystems/ext2.txt b/Documentation/filesystems/ext2.txt
-index 81c0becab225..a45c9fc0747b 100644
---- a/Documentation/filesystems/ext2.txt
-+++ b/Documentation/filesystems/ext2.txt
-@@ -358,7 +358,7 @@ and are copied into the filesystem.  If a transaction is incomplete at
- the time of the crash, then there is no guarantee of consistency for
- the blocks in that transaction so they are discarded (which means any
- filesystem changes they represent are also lost).
--Check Documentation/filesystems/ext4.txt if you want to read more about
-+Check Documentation/filesystems/ext4/ext4.rst if you want to read more about
- ext4 and journaling.
- 
- References
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9989925f658d..078a4cf6d064 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -840,7 +840,7 @@ ANALOG DEVICES INC ADGS1408 DRIVER
- M:	Mircea Caprioru <mircea.caprioru@analog.com>
- S:	Supported
- F:	drivers/mux/adgs1408.c
--F:	Documentation/devicetree/bindings/mux/adgs1408.txt
-+F:	Documentation/devicetree/bindings/mux/adi,adgs1408.txt
- 
- ANALOG DEVICES INC ADP5061 DRIVER
- M:	Stefan Popa <stefan.popa@analog.com>
-@@ -5515,7 +5515,7 @@ W:	http://ext4.wiki.kernel.org
- Q:	http://patchwork.ozlabs.org/project/linux-ext4/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4.git
- S:	Maintained
--F:	Documentation/filesystems/ext4.txt
-+F:	Documentation/filesystems/ext4/ext4.rst
- F:	fs/ext4/
- 
- Extended Verification Module (EVM)
-diff --git a/net/bridge/Kconfig b/net/bridge/Kconfig
-index aa0d3b2f1bb7..3625d6ade45c 100644
---- a/net/bridge/Kconfig
-+++ b/net/bridge/Kconfig
-@@ -17,7 +17,7 @@ config BRIDGE
- 	  other third party bridge products.
- 
- 	  In order to use the Ethernet bridge, you'll need the bridge
--	  configuration tools; see <file:Documentation/networking/bridge.txt>
-+	  configuration tools; see <file:Documentation/networking/bridge.rst>
- 	  for location. Please read the Bridge mini-HOWTO for more
- 	  information.
- 
--- 
-2.17.1
+1) the frontend has an internal counter that it is shifted and made
+   available to the driver after a certain amount of received data
+   (usually in the order of 10^5 to 10^7 bits);
+
+2) the frontend has an internal timer that shifts the data from its
+   internal counter after a certain amount of time (usually at the
+   seconds range).
+
+Different vendors opt for either one of the strategy. Some updates
+a counter with the amount of bits taken. Unfortunately, this is not
+the case of those dib* frontends. So, the Kernel has to estimate
+it, based on the tuning parameters.
+
+=46rom the code, it seems that, for block errors, it waits for 1,250,000
+bits to arrive (e. g. about 766 packets), so, it uses type (1) strategy:
+
+                /* Estimate the number of packets based on bitrate */
+                if (!time_us)
+                        time_us =3D dib7000p_get_time_us(demod);
+
+                if (time_us) {
+                        blocks =3D 1250000ULL * 1000000ULL;	// the multiply=
+ here is to convert to microsseconds...
+                        do_div(blocks, time_us * 8 * 204);	// As here it di=
+vides by the time in microsseconds
+                        c->block_count.stat[0].scale =3D FE_SCALE_COUNTER;
+                        c->block_count.stat[0].uvalue +=3D blocks;
+                }
+
+For BER, the logic assumes that the bit error count should be divided
+by 10^-8:
+
+                c->post_bit_count.stat[0].uvalue +=3D 100000000;
+
+and the counter is updated every second. So, it uses (2).
+
+>=20
+> Wondering if it has the same bug, it seems it does not:
+> drivers/media/dvb-frontends/dib8000.c#dib8000_get_time_us():3986
+>=20
+> dib8000_get_time_us() seems to loop over multiple layers, and then
+> assigns interleaving to the final layers interleaving (that looks like
+> loop invariant code to me).
+>=20
+> Mauro, should dib7000p_get_time_us() use c->layer[???].interleaving?
+
+I don't think that time interleaving would affect the bit rate.
+I suspect that the dead code on dib8000 is just a dead code.
+
+> I don't see a single reference to `layer` in
+> drivers/media/dvb-frontends/dib7000p.c.
+
+Layers are specific for ISDB-T, but I think DVB-T (or at least DVB-T2)
+may use time interleaving.=20
+
+Yet, as I said, the goal is to estimate the streaming bit rate.=20
+
+I don't remember anymore from where the dib8000 formula came.
+
+My guts tell that time interleaving shouldn't do much changes (if any)
+to the bit rate. I suspect that removing the dead code is likely
+OK, but I'll try to see if I can find something related to where this
+formula came.
+
+>=20
+> >  {
+> >         struct dtv_frontend_properties *c =3D &demod->dtv_property_cach=
+e;
+> >         u64 time_us, tmp64;
+> > -       u32 tmp, denom;
+> > -       int guard, rate_num, rate_denum =3D 1, bits_per_symbol;
+> > -       int interleaving =3D 0, fft_div;
+> > +       u32 denom;
+> > +       int guard, rate_num, rate_denum =3D 1, bits_per_symbol, fft_div;
+> >
+> >         switch (c->guard_interval) {
+> >         case GUARD_INTERVAL_1_4:
+> > @@ -1871,8 +1870,6 @@ static u32 dib7000p_get_time_us(struct dvb_fronte=
+nd *demod)
+> >                 break;
+> >         }
+> >
+> > -       interleaving =3D interleaving;
+> > -
+> >         denom =3D bits_per_symbol * rate_num * fft_div * 384;
+> >
+> >         /* If calculus gets wrong, wait for 1s for the next stats */
+> > @@ -1887,9 +1884,6 @@ static u32 dib7000p_get_time_us(struct dvb_fronte=
+nd *demod)
+> >         time_us +=3D denom / 2;
+> >         do_div(time_us, denom);
+> >
+> > -       tmp =3D 1008 * 96 * interleaving;
+> > -       time_us +=3D tmp + tmp / guard;
+> > -
+> >         return time_us;
+> >  }
+> >
+> > --
+> > 2.18.0
+> > =20
+>=20
+>=20
+
+
+
+Thanks,
+Mauro
