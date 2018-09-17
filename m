@@ -1,71 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:37108 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728807AbeIQWEn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 18:04:43 -0400
-Received: by mail-wr1-f68.google.com with SMTP id u12-v6so17976129wrr.4
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 09:36:35 -0700 (PDT)
+Received: from mga18.intel.com ([134.134.136.126]:4446 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727124AbeIQWPT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Sep 2018 18:15:19 -0400
+Date: Mon, 17 Sep 2018 19:46:34 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Javier Martinez Canillas <javierm@redhat.com>
+Cc: linux-kernel@vger.kernel.org,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] [media] v4l: allow to register dev nodes for
+ individual v4l2 subdevs
+Message-ID: <20180917164634.arevvwkrvdmmteem@paasikivi.fi.intel.com>
+References: <20180904113018.14428-1-javierm@redhat.com>
+ <20180904113018.14428-2-javierm@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <9c33c57e-2ce2-8752-b851-f85c03a7d761@xs4all.nl>
-References: <20180911150938.3844-1-mjourdan@baylibre.com> <9c33c57e-2ce2-8752-b851-f85c03a7d761@xs4all.nl>
-From: Maxime Jourdan <mjourdan@baylibre.com>
-Date: Mon, 17 Sep 2018 18:36:33 +0200
-Message-ID: <CAMO6nay7u4nMZcND6+g-GJAFsFcGrp_GDKBhVjeXVzpjF0ND4Q@mail.gmail.com>
-Subject: Re: [PATCH v2 0/3] Add Amlogic video decoder driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-amlogic@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180904113018.14428-2-javierm@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-09-17 16:51 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> On 09/11/2018 05:09 PM, Maxime Jourdan wrote:
->>  - Moved the single instance check (returning -EBUSY) to start/stop streaming
->>  The check was previously in queue_setup but there was no great location to
->>  clear it except for .close().
->
-> Actually, you can clear it by called VIDIOC_REQBUFS with count set to 0. That
-> freed all buffers and clears this.
->
-> Now, the difference between queue_setup and start/stop streaming is that if you
-> do this in queue_setup you'll know early on that the device is busy. It is
-> reasonable to assume that you only allocate buffers when you also want to start
-> streaming, so that it a good place to know this quickly.
->
-> Whereas with start_streaming you won't know until you call STREAMON, or even later
-> if you start streaming with no buffers queued, since start_streaming won't
-> be called until you have at least 'min_buffers_needed' buffers queued (1 for this
-> driver). So in that case EBUSY won't be returned until the first VIDIOC_QBUF.
->
-> My preference is to check this in queue_setup, but it is up to you to decide.
-> Just be aware of the difference between the two options.
->
-> Regards,
->
->         Hans
+Hi Javier,
 
-I could for instance keep track of which queue(s) have been called
-with queue_setup, catch calls to VIDIOC_REQBUFS with count set to 0,
-and clear the current session once both queues have been reset ?
+On Tue, Sep 04, 2018 at 01:30:17PM +0200, Javier Martinez Canillas wrote:
+> Currently there's only a function to register device nodes for all subdevs
+> of a v4l2 device that are marked with the V4L2_SUBDEV_FL_HAS_DEVNODE flag.
+> 
+> But drivers may want to register device nodes for individual subdevices,
+> so add a v4l2_device_register_subdev_node() for this purpose.
+> 
+> A use case for this function is for media device drivers to register the
+> device nodes in the v4l2 async notifier .bound callback instead of doing
+> a registration for all subdevices in the .complete callback.
 
-You leverage another issue with min_buffers_needed. It's indeed set to
-1 but this value is wrong for the CAPTURE queue. The problem is that
-this value changes depending on the codec and the amount of CAPTURE
-buffers requested by userspace.
-Ultimately I want it set to the total amount of CAPTURE buffers,
-because the hardware needs the full buffer list before starting a
-decode job.
-Am I free to change this queue parameter later, or is m2m_queue_init
-the only place to do it ?
+Thanks for the set.
 
-Thanks,
-Maxime
+I've been doing some work to add events to MC; with Hans's property API
+set, assuming it could be used to tell the registration is complete, we
+have all bits for a complete solution.
+
+As the driver is buggy and fails to work correctly in the case if not every
+sub-devices probes successfully, I see no reason to postpone applying the
+two patches now.
+
+One more comment below. (No need to resend just for that IMO.)
+
+> 
+> Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+> ---
+> 
+>  drivers/media/v4l2-core/v4l2-device.c | 90 ++++++++++++++++-----------
+>  include/media/v4l2-device.h           | 10 +++
+>  2 files changed, 63 insertions(+), 37 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+> index 3940e55c72f1..e5fc51b6604c 100644
+> --- a/drivers/media/v4l2-core/v4l2-device.c
+> +++ b/drivers/media/v4l2-core/v4l2-device.c
+> @@ -222,9 +222,59 @@ static void v4l2_device_release_subdev_node(struct video_device *vdev)
+>  	kfree(vdev);
+>  }
+>  
+> -int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+> +int v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
+> +				     struct v4l2_subdev *sd)
+>  {
+>  	struct video_device *vdev;
+> +	int err;
+> +
+> +	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+> +		return -EINVAL;
+> +
+> +	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+> +	if (!vdev)
+> +		return -ENOMEM;
+> +
+> +	video_set_drvdata(vdev, sd);
+> +	strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+> +	vdev->v4l2_dev = v4l2_dev;
+> +	vdev->fops = &v4l2_subdev_fops;
+> +	vdev->release = v4l2_device_release_subdev_node;
+> +	vdev->ctrl_handler = sd->ctrl_handler;
+> +	err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+> +				      sd->owner);
+> +	if (err < 0) {
+> +		kfree(vdev);
+> +		return err;
+> +	}
+> +	sd->devnode = vdev;
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	sd->entity.info.dev.major = VIDEO_MAJOR;
+> +	sd->entity.info.dev.minor = vdev->minor;
+> +
+> +	/* Interface is created by __video_register_device() */
+> +	if (vdev->v4l2_dev->mdev) {
+> +		struct media_link *link;
+> +
+> +		link = media_create_intf_link(&sd->entity,
+> +					      &vdev->intf_devnode->intf,
+> +					      MEDIA_LNK_FL_ENABLED |
+> +					      MEDIA_LNK_FL_IMMUTABLE);
+> +		if (!link) {
+> +			err = -ENOMEM;
+> +			video_unregister_device(sd->devnode);
+> +			return err;
+> +		}
+> +	}
+> +#endif
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_node);
+> +
+> +int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+> +{
+> +
+>  	struct v4l2_subdev *sd;
+>  	int err;
+>  
+> @@ -238,43 +288,9 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+>  		if (sd->devnode)
+>  			continue;
+>  
+> -		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+> -		if (!vdev) {
+> -			err = -ENOMEM;
+> -			goto clean_up;
+> -		}
+> -
+> -		video_set_drvdata(vdev, sd);
+> -		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+> -		vdev->v4l2_dev = v4l2_dev;
+> -		vdev->fops = &v4l2_subdev_fops;
+> -		vdev->release = v4l2_device_release_subdev_node;
+> -		vdev->ctrl_handler = sd->ctrl_handler;
+> -		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+> -					      sd->owner);
+> -		if (err < 0) {
+> -			kfree(vdev);
+> +		err = v4l2_device_register_subdev_node(v4l2_dev, sd);
+> +		if (err)
+>  			goto clean_up;
+> -		}
+> -		sd->devnode = vdev;
+> -#if defined(CONFIG_MEDIA_CONTROLLER)
+> -		sd->entity.info.dev.major = VIDEO_MAJOR;
+> -		sd->entity.info.dev.minor = vdev->minor;
+> -
+> -		/* Interface is created by __video_register_device() */
+> -		if (vdev->v4l2_dev->mdev) {
+> -			struct media_link *link;
+> -
+> -			link = media_create_intf_link(&sd->entity,
+> -						      &vdev->intf_devnode->intf,
+> -						      MEDIA_LNK_FL_ENABLED |
+> -						      MEDIA_LNK_FL_IMMUTABLE);
+> -			if (!link) {
+> -				err = -ENOMEM;
+> -				goto clean_up;
+> -			}
+> -		}
+> -#endif
+>  	}
+>  	return 0;
+>  
+> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+> index b330e4a08a6b..bf25418a1ad6 100644
+> --- a/include/media/v4l2-device.h
+> +++ b/include/media/v4l2-device.h
+> @@ -185,6 +185,16 @@ int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+>   */
+>  void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+>  
+> +/**
+> + * v4l2_device_register_subdev_node - Registers a device node for a subdev
+> + *	of the v4l2 device.
+> + *
+> + * @v4l2_dev: pointer to struct v4l2_device
+
+struct -> &struct
+
+> + * @sd: pointer to &struct v4l2_subdev
+> + */
+> +int __must_check v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
+> +						  struct v4l2_subdev *sd);
+> +
+>  /**
+>   * v4l2_device_register_subdev_nodes - Registers device nodes for all subdevs
+>   *	of the v4l2 device that are marked with
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
