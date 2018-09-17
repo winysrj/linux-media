@@ -1,72 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:51774 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726826AbeIQPAz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 11:00:55 -0400
-Date: Mon, 17 Sep 2018 10:33:48 +0100
-From: Jonathan Cameron <jonathan.cameron@huawei.com>
-To: Arnd Bergmann <arnd@arndb.de>
-CC: <viro@zeniv.linux.org.uk>, <linux-fsdevel@vger.kernel.org>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        <devel@driverdev.osuosl.org>, <linux-kernel@vger.kernel.org>,
-        <qat-linux@intel.com>, <linux-crypto@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-        <linaro-mm-sig@lists.linaro.org>, <amd-gfx@lists.freedesktop.org>,
-        <linux-input@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-        <linux-rdma@vger.kernel.org>, <linux-nvdimm@lists.01.org>,
-        <linux-nvme@lists.infradead.org>, <linux-pci@vger.kernel.org>,
-        <platform-driver-x86@vger.kernel.org>,
-        <linux-remoteproc@vger.kernel.org>, <sparclinux@vger.kernel.org>,
-        <linux-scsi@vger.kernel.org>, <linux-usb@vger.kernel.org>,
-        <linux-fbdev@vger.kernel.org>, <linuxppc-dev@lists.ozlabs.org>,
-        <linux-btrfs@vger.kernel.org>, <ceph-devel@vger.kernel.org>,
-        <linux-wireless@vger.kernel.org>, <netdev@vger.kernel.org>
-Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
- generic_compat_ioctl_ptrarg
-Message-ID: <20180917103348.00003f31@huawei.com>
-In-Reply-To: <20180912151134.436719-1-arnd@arndb.de>
-References: <20180912150142.157913-1-arnd@arndb.de>
-        <20180912151134.436719-1-arnd@arndb.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42426 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726979AbeIQPJs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Sep 2018 11:09:48 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id C4D0B634C7F
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 12:43:10 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1g1q3i-0000wD-HD
+        for linux-media@vger.kernel.org; Mon, 17 Sep 2018 12:43:10 +0300
+Date: Mon, 17 Sep 2018 12:43:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.20] Small lens driver fixes
+Message-ID: <20180917094310.pbrd6sjy77vzv4tt@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 12 Sep 2018 17:08:52 +0200
-Arnd Bergmann <arnd@arndb.de> wrote:
+Hi Mauro,
 
-> The .ioctl and .compat_ioctl file operations have the same prototype so
-> they can both point to the same function, which works great almost all
-> the time when all the commands are compatible.
-> 
-> One exception is the s390 architecture, where a compat pointer is only
-> 31 bit wide, and converting it into a 64-bit pointer requires calling
-> compat_ptr(). Most drivers here will ever run in s390, but since we now
-> have a generic helper for it, it's easy enough to use it consistently.
-> 
-> I double-checked all these drivers to ensure that all ioctl arguments
-> are used as pointers or are ignored, but are not interpreted as integer
-> values.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
+Here are two patches for assing maintainers for dw9714 and dw9807 and
+a small cleanup for the dw9807-vcm driver.
 
-For IIO part.
+Please pull.
 
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-Thanks,
-> diff --git a/drivers/iio/industrialio-core.c b/drivers/iio/industrialio-core.c
-> index a062cfddc5af..22844b94b0e9 100644
-> --- a/drivers/iio/industrialio-core.c
-> +++ b/drivers/iio/industrialio-core.c
-> @@ -1630,7 +1630,7 @@ static const struct file_operations iio_buffer_fileops = {
->  	.owner = THIS_MODULE,
->  	.llseek = noop_llseek,
->  	.unlocked_ioctl = iio_ioctl,
-> -	.compat_ioctl = iio_ioctl,
-> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
->  };
->  
+The following changes since commit 78cf8c842c111df656c63b5d04997ea4e40ef26a:
+
+  media: drxj: fix spelling mistake in fall-through annotations (2018-09-12 11:21:52 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-2-0
+
+for you to fetch changes up to 7e5b31af58cbc946574c36ca4923d5bb7fe01efd:
+
+  dw9807-vcm: Remove redundant pm_runtime_set_suspended in remove (2018-09-16 01:43:47 +0300)
+
+----------------------------------------------------------------
+some lens driver patches
+
+----------------------------------------------------------------
+Sakari Ailus (2):
+      dt-bindings: dw9714, dw9807-vcm: Add files to MAINTAINERS, rename files
+      dw9807-vcm: Remove redundant pm_runtime_set_suspended in remove
+
+ .../bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} | 0
+ MAINTAINERS                                                             | 2 ++
+ drivers/media/i2c/dw9807-vcm.c                                          | 1 -
+ 3 files changed, 2 insertions(+), 1 deletion(-)
+ rename Documentation/devicetree/bindings/media/i2c/{dongwoon,dw9807.txt => dongwoon,dw9807-vcm.txt} (100%)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
