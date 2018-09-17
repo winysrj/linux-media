@@ -1,69 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:41102 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726910AbeIQQfX (ORCPT
+Received: from relay10.mail.gandi.net ([217.70.178.230]:46737 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726676AbeIQQof (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 12:35:23 -0400
-Received: by mail-lf1-f68.google.com with SMTP id l26-v6so13165170lfc.8
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 04:08:31 -0700 (PDT)
-Date: Mon, 17 Sep 2018 13:08:28 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Biju Das <biju.das@bp.renesas.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Simon Horman <horms@verge.net.au>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Subject: Re: [PATCH 4/5] media: rcar-vin: Enable support for r8a774a1
-Message-ID: <20180917110828.GS18450@bigcity.dyn.berto.se>
-References: <1536589878-26218-1-git-send-email-biju.das@bp.renesas.com>
- <1536589878-26218-5-git-send-email-biju.das@bp.renesas.com>
+        Mon, 17 Sep 2018 12:44:35 -0400
+Date: Mon, 17 Sep 2018 13:17:37 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 5/5] media: i2c: adv748x: Register all input subdevices
+Message-ID: <20180917111737.GI16851@w540>
+References: <1536161231-25221-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1536161231-25221-6-git-send-email-jacopo+renesas@jmondi.org>
+ <bd21dc3e-f5a9-2150-5a27-1470c91f9538@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="EVh9lyqKgK19OcEf"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1536589878-26218-5-git-send-email-biju.das@bp.renesas.com>
+In-Reply-To: <bd21dc3e-f5a9-2150-5a27-1470c91f9538@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Biju,
 
-Thanks for your work.
+--EVh9lyqKgK19OcEf
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On 2018-09-10 15:31:17 +0100, Biju Das wrote:
-> Add the SoC specific information for RZ/G2M(r8a774a1) SoC.
-> The VIN module of RZ/G2M is similar to R-Car M3-W.
-> 
-> Signed-off-by: Biju Das <biju.das@bp.renesas.com>
-> Reviewed-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Hi Kieran,
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+On Sun, Sep 16, 2018 at 03:39:17PM +0100, Kieran Bingham wrote:
+> Hi Jacopo,
+>
+> On 05/09/18 16:27, Jacopo Mondi wrote:
+> > The input subdevice registration, being the link between adv728x's inputs
+>
+> s/adv728x/adv748x/
+>
+> > and outputs fixed, happens at output subdevice registration time. In the
+>
+> 'are fixed, and happens at' ?
+>
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index d3072e1..c0c84d1 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -995,6 +995,10 @@ static const struct rvin_info rcar_info_r8a77970 = {
->  
->  static const struct of_device_id rvin_of_id_table[] = {
->  	{
-> +		.compatible = "renesas,vin-r8a774a1",
-> +		.data = &rcar_info_r8a7796,
-> +	},
-> +	{
->  		.compatible = "renesas,vin-r8a7778",
->  		.data = &rcar_info_m1,
->  	},
-> -- 
-> 2.7.4
-> 
+Are you sure? With your suggestions this would look like
 
--- 
-Regards,
-Niklas Söderlund
+The input subdevice registration, being the link between adv728x's
+inputs are fixed, and happens at output subdevice registration time.
+
+Not a native speaker, but this doesn't seems right to me :)
+>
+> > current design the TXA output subdevice 'registered()' callback registers
+> > the HDMI input subdevice and the TXB output subdevice 'registered()' callback
+> > registers the AFE input subdevice instead. Media links are created
+> > accordingly to the fixed routing.
+> >
+> > As the adv748x driver can now probe with at least a single output port
+> > enabled an input subdevice linked to a disabled output is never registered
+> > to the media graph. Fix this by having the first registered output subdevice
+> > register all the available input subdevices.
+> >
+>
+> If the input device can not be routed to the output device, then does it
+> matter that it's not registered?
+>
+> > This change is necessary to have dynamic routing between the adv748x inputs
+> > and outputs implemented.
+>
+> Indeed, unless it's necessary I feel like a this change or equivalent
+> should be part of a series which introduces dynamic routing.
+>
+> (I.e., not that this patch should be discarded, but perhaps not
+> integrated quite yet)
+>
+
+You're right, without dynamic routing this patch can be safely
+postponed. In the Ebisu case, the AFE frontend, won't simply show up.
+
+Furthermore, this patch registers the subdevice only, does not create
+links, so it has been useful just to make me happy because of seeing
+all subdevices part of the media graph.
+
+Let's post-pone this to dynamic routing implementation, which is not
+far I guess.
+
+Thanks for comments on all other patches, I incorporated your
+suggestions, and will send v3 now.
+
+Thanks
+  j
+
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/i2c/adv748x/adv748x-csi2.c | 85 +++++++++++++++-----------------
+> >  1 file changed, 40 insertions(+), 45 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > index 9e9df51..fd4aa9d 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > @@ -24,42 +24,6 @@ static int adv748x_csi2_set_virtual_channel(struct adv748x_csi2 *tx,
+> >  	return tx_write(tx, ADV748X_CSI_VC_REF, vc << ADV748X_CSI_VC_REF_SHIFT);
+> >  }
+> >
+> > -/**
+> > - * adv748x_csi2_register_link : Register and link internal entities
+> > - *
+> > - * @tx: CSI2 private entity
+> > - * @v4l2_dev: Video registration device
+> > - * @src: Source subdevice to establish link
+> > - * @src_pad: Pad number of source to link to this @tx
+> > - *
+> > - * Ensure that the subdevice is registered against the v4l2_device, and link the
+> > - * source pad to the sink pad of the CSI2 bus entity.
+> > - */
+> > -static int adv748x_csi2_register_link(struct adv748x_csi2 *tx,
+> > -				      struct v4l2_device *v4l2_dev,
+> > -				      struct v4l2_subdev *src,
+> > -				      unsigned int src_pad)
+> > -{
+> > -	int enabled = MEDIA_LNK_FL_ENABLED;
+> > -	int ret;
+> > -
+> > -	/*
+> > -	 * Dynamic linking of the AFE is not supported.
+> > -	 * Register the links as immutable.
+> > -	 */
+> > -	enabled |= MEDIA_LNK_FL_IMMUTABLE;
+> > -
+> > -	if (!src->v4l2_dev) {
+> > -		ret = v4l2_device_register_subdev(v4l2_dev, src);
+> > -		if (ret)
+> > -			return ret;
+> > -	}
+> > -
+> > -	return media_create_pad_link(&src->entity, src_pad,
+> > -				     &tx->sd.entity, ADV748X_CSI2_SINK,
+> > -				     enabled);
+> > -}
+> > -
+> >  /* -----------------------------------------------------------------------------
+> >   * v4l2_subdev_internal_ops
+> >   *
+> > @@ -72,25 +36,56 @@ static int adv748x_csi2_registered(struct v4l2_subdev *sd)
+> >  {
+> >  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+> >  	struct adv748x_state *state = tx->state;
+> > +	struct v4l2_subdev *src_sd;
+> > +	unsigned int src_pad;
+> > +	int ret;
+> >
+> >  	adv_dbg(state, "Registered %s (%s)", is_txa(tx) ? "TXA":"TXB",
+> >  			sd->name);
+> >
+> > +	/* The first registered CSI-2 registers all input subdevices. */
+> > +	src_sd = &state->hdmi.sd;
+> > +	if (!src_sd->v4l2_dev && is_hdmi_enabled(state)) {
+> > +		ret = v4l2_device_register_subdev(sd->v4l2_dev, src_sd);
+> > +		if (ret)
+> > +			return ret;
+> > +	}
+> > +
+> > +	src_sd = &state->afe.sd;
+> > +	if (!src_sd->v4l2_dev && is_afe_enabled(state)) {
+> > +		ret = v4l2_device_register_subdev(sd->v4l2_dev, src_sd);
+> > +		if (ret)
+> > +			goto err_unregister_hdmi;
+> > +	}
+> > +
+>
+>
+> This registers both the AFE and HDMI as subdevices of the first v4l2_dev
+> ... Is this an issue ? (in fact is the v4l2_dev for both CSI/TX devices
+> the same?)
+>
+> What happens if we connect the TXA to one capture VIN device, and the
+> TXB to a completely different input device (this is probably a bit
+> hypothetical at the moment)
+>
+>
+>
+> >  	/*
+> >  	 * The adv748x hardware allows the AFE to route through the TXA, however
+> >  	 * this is not currently supported in this driver.
+> >  	 *
+> >  	 * Link HDMI->TXA, and AFE->TXB directly.
+> >  	 */
+> > -	if (is_txa(tx) && is_hdmi_enabled(state))
+> > -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > -						  &state->hdmi.sd,
+> > -						  ADV748X_HDMI_SOURCE);
+> > -	if (!is_txa(tx) && is_afe_enabled(state))
+> > -		return adv748x_csi2_register_link(tx, sd->v4l2_dev,
+> > -						  &state->afe.sd,
+> > -						  ADV748X_AFE_SOURCE);
+> > -	return 0;
+> > +	if (is_txa(tx)) {
+> > +		if (!is_hdmi_enabled(state))
+> > +			return 0;
+> > +
+> > +		src_sd = &state->hdmi.sd;
+> > +		src_pad = ADV748X_HDMI_SOURCE;
+> > +	} else {
+> > +		if (!is_afe_enabled(state))
+> > +			return 0;
+> > +
+> > +		src_sd = &state->afe.sd;
+> > +		src_pad = ADV748X_AFE_SOURCE;
+> > +	}
+> > +
+> > +	/* Dynamic linking is not supported, register the links as immutable. */
+> > +	return media_create_pad_link(&src_sd->entity, src_pad, &sd->entity,
+> > +				     ADV748X_CSI2_SINK, MEDIA_LNK_FL_ENABLED |
+> > +				     MEDIA_LNK_FL_IMMUTABLE);
+> > +err_unregister_hdmi:
+> > +	v4l2_device_unregister_subdev(&state->hdmi.sd);
+> > +
+> > +	return ret;
+> >  }
+> >
+> >  static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
+> >
+>
+> --
+> Kieran
+>
+
+--EVh9lyqKgK19OcEf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbn41RAAoJEHI0Bo8WoVY81gMP/2gGorWGHigvLISaGjDKPbph
+sCfE8LSBWRBt2g5P8H2aRMFLYqdEQzqO8S3j/OhD4K4GxQYP6gwUjRd0XCyd9cD6
+l3+NXEkp+p/Y/iipHdUI4MdzKhb63m4PBQaZAHJGiCH26hyRi/LcJX5mf3d5gSTG
+hhmv/Oy0ioGT/P7UdYBCRV41ipGWxUfpd1CByONtz/3ScPPvo+cd+ZNoRjDNC2ea
+3UtpsLUoGq9mtAfd6Dq2sqhSFzcv6TxFlECa5b+EddNCwweU61s/YUUyYCqfnp9R
+iD/r4hicjqu3nWR5JJwOmkqKVqx9mBRq88beIJ4iXbbCbKJgVQY3l+pshO97q+op
+43fynWiZR4td5izybd1t9WSkWtBgDL5QQ+kKNCuA8rE/z74ydsIgItM+ab3NLIZA
+mHcO64Lb3Y8t/fFPa58hio2k/r3wgKRPOpUUpyhK2xf4+d3HsX7SYc7ht51m/q+o
+LVOFb4fvoIYNDWzktMzMToZIS1djHsC3tjwf4uPqhMHPpGnlLH4HcaSR7IlZmNNS
+xU3wS9hGMBmfhOuAC4t2m3RhLcU9hPaxMG84tNSj02xtvT2AdJkklUM6jxuEpBfu
+aXBwWVgIkx9lBnxyK1W1x5+oMrKgOV0xaxFueH6GC92ZXsy0SH1GPHG6AaGMw/aI
+RU0edZ7sxBGmBkoq/HQF
+=uGE1
+-----END PGP SIGNATURE-----
+
+--EVh9lyqKgK19OcEf--
