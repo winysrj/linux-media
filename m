@@ -1,112 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:51409 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727081AbeIQXAs (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:53368 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728358AbeIQXAt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 19:00:48 -0400
-Received: by mail-it0-f66.google.com with SMTP id e14-v6so12274569itf.1
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 10:32:27 -0700 (PDT)
+        Mon, 17 Sep 2018 19:00:49 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v6 1/6] dt-bindings: Document the Rockchip VPU bindings
+Date: Mon, 17 Sep 2018 14:30:16 -0300
+Message-Id: <20180917173022.9338-2-ezequiel@collabora.com>
+In-Reply-To: <20180917173022.9338-1-ezequiel@collabora.com>
+References: <20180917173022.9338-1-ezequiel@collabora.com>
 MIME-Version: 1.0
-References: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com> <1537200191-17956-2-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1537200191-17956-2-git-send-email-akinobu.mita@gmail.com>
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-Date: Mon, 17 Sep 2018 10:32:09 -0700
-Message-ID: <CAJCx=gkE2A9sdauQ_xfu_yeXM5ZwNVwpsj1eHbZtGS9DQpeFeA@mail.gmail.com>
-Subject: Re: [PATCH 1/5] media: video-i2c: avoid accessing released memory
- area when removing driver
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        hansverk@cisco.com, mchehab@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 17, 2018 at 9:03 AM Akinobu Mita <akinobu.mita@gmail.com> wrote:
->
-> The struct video_i2c_data is released when video_unregister_device() is
-> called, but it will still be accessed after calling
-> video_unregister_device().
->
-> Use devm_kzalloc() and let the memory be automatically released on driver
-> detach.
->
-> Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
-> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Hans Verkuil <hansverk@cisco.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Add devicetree binding documentation for Rockchip Video Processing
+Unit IP.
 
-Acked-by: Matt Ranostay <matt.ranostay@konsulko.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ .../bindings/media/rockchip-vpu.txt           | 30 +++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
 
-> ---
->  drivers/media/i2c/video-i2c.c | 18 +++++-------------
->  1 file changed, 5 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-> index 06d29d8..b7a2af9 100644
-> --- a/drivers/media/i2c/video-i2c.c
-> +++ b/drivers/media/i2c/video-i2c.c
-> @@ -508,20 +508,15 @@ static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
->         .vidioc_streamoff               = vb2_ioctl_streamoff,
->  };
->
-> -static void video_i2c_release(struct video_device *vdev)
-> -{
-> -       kfree(video_get_drvdata(vdev));
-> -}
-> -
->  static int video_i2c_probe(struct i2c_client *client,
->                              const struct i2c_device_id *id)
->  {
->         struct video_i2c_data *data;
->         struct v4l2_device *v4l2_dev;
->         struct vb2_queue *queue;
-> -       int ret = -ENODEV;
-> +       int ret;
->
-> -       data = kzalloc(sizeof(*data), GFP_KERNEL);
-> +       data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
->         if (!data)
->                 return -ENOMEM;
->
-> @@ -530,7 +525,7 @@ static int video_i2c_probe(struct i2c_client *client,
->         else if (id)
->                 data->chip = &video_i2c_chip[id->driver_data];
->         else
-> -               goto error_free_device;
-> +               return -ENODEV;
->
->         data->client = client;
->         v4l2_dev = &data->v4l2_dev;
-> @@ -538,7 +533,7 @@ static int video_i2c_probe(struct i2c_client *client,
->
->         ret = v4l2_device_register(&client->dev, v4l2_dev);
->         if (ret < 0)
-> -               goto error_free_device;
-> +               return ret;
->
->         mutex_init(&data->lock);
->         mutex_init(&data->queue_lock);
-> @@ -568,7 +563,7 @@ static int video_i2c_probe(struct i2c_client *client,
->         data->vdev.fops = &video_i2c_fops;
->         data->vdev.lock = &data->lock;
->         data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
-> -       data->vdev.release = video_i2c_release;
-> +       data->vdev.release = video_device_release_empty;
->         data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
->                                  V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
->
-> @@ -597,9 +592,6 @@ static int video_i2c_probe(struct i2c_client *client,
->         mutex_destroy(&data->lock);
->         mutex_destroy(&data->queue_lock);
->
-> -error_free_device:
-> -       kfree(data);
-> -
->         return ret;
->  }
->
-> --
-> 2.7.4
->
+diff --git a/Documentation/devicetree/bindings/media/rockchip-vpu.txt b/Documentation/devicetree/bindings/media/rockchip-vpu.txt
+new file mode 100644
+index 000000000000..5e0d421301ca
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-vpu.txt
+@@ -0,0 +1,30 @@
++device-tree bindings for rockchip VPU codec
++
++Rockchip (Video Processing Unit) present in various Rockchip platforms,
++such as RK3288 and RK3399.
++
++Required properties:
++- compatible: value should be one of the following
++		"rockchip,rk3288-vpu";
++		"rockchip,rk3399-vpu";
++- interrupts: encoding and decoding interrupt specifiers
++- interrupt-names: should be "vepu" and "vdpu"
++- clocks: phandle to VPU aclk, hclk clocks
++- clock-names: should be "aclk" and "hclk"
++- power-domains: phandle to power domain node
++- iommus: phandle to a iommu node
++
++Example:
++SoC-specific DT entry:
++	vpu: video-codec@ff9a0000 {
++		compatible = "rockchip,rk3288-vpu";
++		reg = <0x0 0xff9a0000 0x0 0x800>;
++		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
++			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
++		interrupt-names = "vepu", "vdpu";
++		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
++		clock-names = "aclk", "hclk";
++		power-domains = <&power RK3288_PD_VIDEO>;
++		iommus = <&vpu_mmu>;
++	};
++
+-- 
+2.19.0.rc2
