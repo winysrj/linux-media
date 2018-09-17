@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:43594 "EHLO
-        mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726979AbeIQVb3 (ORCPT
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:39411 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726979AbeIQVbb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 17:31:29 -0400
-Received: by mail-pf1-f195.google.com with SMTP id j26-v6so7759592pfi.10
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 09:03:30 -0700 (PDT)
+        Mon, 17 Sep 2018 17:31:31 -0400
+Received: by mail-pg1-f194.google.com with SMTP id i190-v6so7884068pgc.6
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 09:03:32 -0700 (PDT)
 From: Akinobu Mita <akinobu.mita@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Akinobu Mita <akinobu.mita@gmail.com>,
@@ -13,17 +13,19 @@ Cc: Akinobu Mita <akinobu.mita@gmail.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hansverk@cisco.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 2/5] media: video-i2c: use i2c regmap
-Date: Tue, 18 Sep 2018 01:03:08 +0900
-Message-Id: <1537200191-17956-3-git-send-email-akinobu.mita@gmail.com>
+Subject: [PATCH 3/5] media: v4l2-common: add v4l2_find_closest_fract()
+Date: Tue, 18 Sep 2018 01:03:09 +0900
+Message-Id: <1537200191-17956-4-git-send-email-akinobu.mita@gmail.com>
 In-Reply-To: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
 References: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use regmap for i2c register access.  This simplifies register accesses and
-chooses suitable access commands based on the functionality that the
-adapter supports.
+Add a function to locate the closest element in a sorted v4l2_fract array.
+
+The implementation is based on find_closest() macro in linux/util_macros.h
+and the way to compare two v4l2_fract in vivid_vid_cap_s_parm in
+drivers/media/platform/vivid/vivid-vid-cap.c.
 
 Cc: Matt Ranostay <matt.ranostay@konsulko.com>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
@@ -31,139 +33,69 @@ Cc: Hans Verkuil <hansverk@cisco.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- drivers/media/i2c/video-i2c.c | 54 ++++++++++++++++++++++---------------------
- 1 file changed, 28 insertions(+), 26 deletions(-)
+ drivers/media/v4l2-core/v4l2-common.c | 26 ++++++++++++++++++++++++++
+ include/media/v4l2-common.h           | 12 ++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-index b7a2af9..90d389b 100644
---- a/drivers/media/i2c/video-i2c.c
-+++ b/drivers/media/i2c/video-i2c.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of_device.h>
-+#include <linux/regmap.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/videodev2.h>
-@@ -38,7 +39,7 @@ struct video_i2c_buffer {
- };
- 
- struct video_i2c_data {
--	struct i2c_client *client;
-+	struct regmap *regmap;
- 	const struct video_i2c_chip *chip;
- 	struct mutex lock;
- 	spinlock_t slock;
-@@ -62,6 +63,12 @@ static const struct v4l2_frmsize_discrete amg88xx_size = {
- 	.height = 8,
- };
- 
-+static const struct regmap_config amg88xx_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+	.max_register = 0xff
-+};
-+
- struct video_i2c_chip {
- 	/* video dimensions */
- 	const struct v4l2_fmtdesc *format;
-@@ -76,6 +83,8 @@ struct video_i2c_chip {
- 	/* pixel size in bits */
- 	unsigned int bpp;
- 
-+	const struct regmap_config *regmap_config;
-+
- 	/* xfer function */
- 	int (*xfer)(struct video_i2c_data *data, char *buf);
- 
-@@ -85,24 +94,8 @@ struct video_i2c_chip {
- 
- static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
- {
--	struct i2c_client *client = data->client;
--	struct i2c_msg msg[2];
--	u8 reg = 0x80;
--	int ret;
--
--	msg[0].addr = client->addr;
--	msg[0].flags = 0;
--	msg[0].len = 1;
--	msg[0].buf  = (char *)&reg;
--
--	msg[1].addr = client->addr;
--	msg[1].flags = I2C_M_RD;
--	msg[1].len = data->chip->buffer_size;
--	msg[1].buf = (char *)buf;
--
--	ret = i2c_transfer(client->adapter, msg, 2);
--
--	return (ret == 2) ? 0 : -EIO;
-+	return regmap_bulk_read(data->regmap, 0x80, buf,
-+				data->chip->buffer_size);
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index b518b92..91bd460 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -387,6 +387,32 @@ __v4l2_find_nearest_size(const void *array, size_t array_size,
  }
+ EXPORT_SYMBOL_GPL(__v4l2_find_nearest_size);
  
- #if IS_ENABLED(CONFIG_HWMON)
-@@ -133,12 +126,15 @@ static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
- 			u32 attr, int channel, long *val)
- {
- 	struct video_i2c_data *data = dev_get_drvdata(dev);
--	struct i2c_client *client = data->client;
--	int tmp = i2c_smbus_read_word_data(client, 0x0e);
-+	__le16 buf;
-+	int tmp;
- 
--	if (tmp < 0)
-+	tmp = regmap_bulk_read(data->regmap, 0x0e, &buf, 2);
-+	if (tmp)
- 		return tmp;
- 
-+	tmp = le16_to_cpu(buf);
++#define FRACT_CMP(a, OP, b)				\
++	((u64)(a).numerator * (b).denominator OP	\
++	 (u64)(b).numerator * (a).denominator)
 +
- 	/*
- 	 * Check for sign bit, this isn't a two's complement value but an
- 	 * absolute temperature that needs to be inverted in the case of being
-@@ -164,8 +160,9 @@ static const struct hwmon_chip_info amg88xx_chip_info = {
- 
- static int amg88xx_hwmon_init(struct video_i2c_data *data)
- {
--	void *hwmon = devm_hwmon_device_register_with_info(&data->client->dev,
--				"amg88xx", data, &amg88xx_chip_info, NULL);
-+	struct device *dev = regmap_get_device(data->regmap);
-+	void *hwmon = devm_hwmon_device_register_with_info(dev, "amg88xx", data,
-+						&amg88xx_chip_info, NULL);
- 
- 	return PTR_ERR_OR_ZERO(hwmon);
- }
-@@ -182,6 +179,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
- 		.max_fps	= 10,
- 		.buffer_size	= 128,
- 		.bpp		= 16,
-+		.regmap_config	= &amg88xx_regmap_config,
- 		.xfer		= &amg88xx_xfer,
- 		.hwmon_init	= amg88xx_hwmon_init,
- 	},
-@@ -350,7 +348,8 @@ static int video_i2c_querycap(struct file *file, void  *priv,
- 				struct v4l2_capability *vcap)
- {
- 	struct video_i2c_data *data = video_drvdata(file);
--	struct i2c_client *client = data->client;
-+	struct device *dev = regmap_get_device(data->regmap);
-+	struct i2c_client *client = to_i2c_client(dev);
- 
- 	strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
- 	strlcpy(vcap->card, data->vdev.name, sizeof(vcap->card));
-@@ -527,7 +526,10 @@ static int video_i2c_probe(struct i2c_client *client,
- 	else
- 		return -ENODEV;
- 
--	data->client = client;
-+	data->regmap = devm_regmap_init_i2c(client, data->chip->regmap_config);
-+	if (IS_ERR(data->regmap))
-+		return PTR_ERR(data->regmap);
++int v4l2_find_closest_fract(struct v4l2_fract x, const struct v4l2_fract *array,
++			    size_t num)
++{
++	int i;
 +
- 	v4l2_dev = &data->v4l2_dev;
- 	strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
++	for (i = 0; i < num - 1; i++) {
++		struct v4l2_fract a = array[i];
++		struct v4l2_fract b = array[i + 1];
++		struct v4l2_fract midpoint = {
++			.numerator = a.numerator * b.denominator +
++				     b.numerator * a.denominator,
++			.denominator = 2 * a.denominator * b.denominator,
++		};
++
++		if (FRACT_CMP(x, <=, midpoint))
++			break;
++	}
++
++	return i;
++}
++EXPORT_SYMBOL_GPL(v4l2_find_closest_fract);
++
+ void v4l2_get_timestamp(struct timeval *tv)
+ {
+ 	struct timespec ts;
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index cdc87ec..e388f4e 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -350,6 +350,18 @@ __v4l2_find_nearest_size(const void *array, size_t array_size,
+ 			 size_t height_offset, s32 width, s32 height);
  
+ /**
++ * v4l2_find_closest_fract - locate the closest element in a sorted array
++ * @x: The reference value.
++ * @array: The array in which to look for the closest element. Must be sorted
++ *  in ascending order.
++ * @num: number of elements in 'array'.
++ *
++ * Returns the index of the element closest to 'x'.
++ */
++int v4l2_find_closest_fract(struct v4l2_fract x, const struct v4l2_fract *array,
++			    size_t num);
++
++/**
+  * v4l2_get_timestamp - helper routine to get a timestamp to be used when
+  *	filling streaming metadata. Internally, it uses ktime_get_ts(),
+  *	which is the recommended way to get it.
 -- 
 2.7.4
