@@ -1,2726 +1,659 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:30601 "EHLO mga18.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:53678 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727660AbeIQRBO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 13:01:14 -0400
-Date: Mon, 17 Sep 2018 14:34:14 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: bingbu.cao@intel.com
-Cc: linux-media@vger.kernel.org, tfiga@google.com,
-        rajmohan.mani@intel.com, bingbu.cao@linux.intel.com,
-        tian.shu.qiu@intel.com, jian.xu.zheng@intel.com
-Subject: Re: [PATCH v5] media: add imx319 camera sensor driver
-Message-ID: <20180917113413.n6hd5suldwuspio3@paasikivi.fi.intel.com>
-References: <1537163872-14567-1-git-send-email-bingbu.cao@intel.com>
+        id S1727747AbeIQQ7X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Sep 2018 12:59:23 -0400
+Date: Mon, 17 Sep 2018 19:31:24 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: samsung, ov9650: Rely on V4L2-set sub-device
+ names
+Message-ID: <201809171919.G8Ij311q%fengguang.wu@intel.com>
+References: <20180915225102.12850-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="82I3+IH0IqGh5yIs"
 Content-Disposition: inline
-In-Reply-To: <1537163872-14567-1-git-send-email-bingbu.cao@intel.com>
+In-Reply-To: <20180915225102.12850-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bingbu,
 
-Thanks for the update! A few more small comments, I think we're done after
-these.
+--82I3+IH0IqGh5yIs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Mon, Sep 17, 2018 at 01:57:52PM +0800, bingbu.cao@intel.com wrote:
-> From: Bingbu Cao <bingbu.cao@intel.com>
-> 
-> Add a v4l2 sub-device driver for the Sony imx319 image sensor.
-> This is a camera sensor using the i2c bus for control and the
-> csi-2 bus for data.
-> 
-> This driver supports following features:
-> - manual exposure and analog/digital gain control support
-> - vblank/hblank control support
-> -  4 test patterns control support
-> - vflip/hflip control support (will impact the output bayer order)
-> - support following resolutions:
->     - 3264x2448, 3280x2464 @ 30fps
->     - 1936x1096, 1920x1080 @ 60fps
->     - 1640x1232, 1640x922, 1296x736, 1280x720 @ 120fps
-> - support 4 bayer orders output (via change v/hflip)
->     - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
-> 
-> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> 
-> ---
-> 
-> This patch is based on sakari's media-tree git:
-> https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.20-1
-> 
-> Changes from v4 to v5:
->  - use single PLL for all internal clocks
->  - change link frequency to 482.4MHz
->  - adjust frame timing for 2x2 binning modes
->    and enlarge frame readout time
->  - get CSI-2 link frequencies and external clock
->    from firmware
->  - use unlocked __v4l2_ctrl_grab() with change from:
->    https://git.linuxtv.org/sailus/media_tree.git/commit/?h=unlocked-ctrl-grab
-> 
-> Changes since v1:
->  - fix some coding style issues - line breaks
->  - add v4l2_ctrl_grab() to prevent v/hflip change
->    during streaming
->  - add v4l2 ctrl event (un)subscribe support
->  - add more info into commit message
-> 
-> ---
-> ---
->  MAINTAINERS                |    7 +
->  drivers/media/i2c/Kconfig  |   11 +
->  drivers/media/i2c/Makefile |    1 +
->  drivers/media/i2c/imx319.c | 2524 ++++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 2543 insertions(+)
->  create mode 100644 drivers/media/i2c/imx319.c
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index a5b256b25905..abc4abb6f83c 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -13530,6 +13530,13 @@ S:	Maintained
->  F:	drivers/media/i2c/imx274.c
->  F:	Documentation/devicetree/bindings/media/i2c/imx274.txt
->  
-> +SONY IMX319 SENSOR DRIVER
-> +M:	Bingbu Cao <bingbu.cao@intel.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/imx319.c
-> +
->  SONY MEMORYSTICK CARD SUPPORT
->  M:	Alex Dubov <oakad@yahoo.com>
->  W:	http://tifmxx.berlios.de/
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index bfdb494686bf..603ac087975b 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -614,6 +614,17 @@ config VIDEO_IMX274
->  	  This is a V4L2 sensor driver for the Sony IMX274
->  	  CMOS image sensor.
->  
-> +config VIDEO_IMX319
-> +	tristate "Sony IMX319 sensor support"
-> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> +	depends on MEDIA_CAMERA_SUPPORT
-> +	help
-> +	  This is a Video4Linux2 sensor driver for the Sony
-> +	  IMX319 camera.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called imx319.
-> +
->  config VIDEO_OV2640
->  	tristate "OmniVision OV2640 sensor support"
->  	depends on VIDEO_V4L2 && I2C
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index a94eb03d10d4..d10b438577be 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -108,5 +108,6 @@ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
->  obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
->  obj-$(CONFIG_VIDEO_IMX258)	+= imx258.o
->  obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
-> +obj-$(CONFIG_VIDEO_IMX319)	+= imx319.o
->  
->  obj-$(CONFIG_SDR_MAX2175) += max2175.o
-> diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
-> new file mode 100644
-> index 000000000000..43c28c701431
-> --- /dev/null
-> +++ b/drivers/media/i2c/imx319.c
-> @@ -0,0 +1,2524 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// Copyright (C) 2018 Intel Corporation
-> +
-> +#include <asm/unaligned.h>
-> +#include <linux/acpi.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/pm_runtime.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-event.h>
-> +#include <media/v4l2-fwnode.h>
-> +
-> +#define IMX319_REG_MODE_SELECT		0x0100
-> +#define IMX319_MODE_STANDBY		0x00
-> +#define IMX319_MODE_STREAMING		0x01
-> +
-> +/* Chip ID */
-> +#define IMX319_REG_CHIP_ID		0x0016
-> +#define IMX319_CHIP_ID			0x0319
-> +
-> +/* V_TIMING internal */
-> +#define IMX319_REG_FLL			0x0340
-> +#define IMX319_FLL_MAX			0xffff
-> +
-> +/* Exposure control */
-> +#define IMX319_REG_EXPOSURE		0x0202
-> +#define IMX319_EXPOSURE_MIN		1
-> +#define IMX319_EXPOSURE_STEP		1
-> +#define IMX319_EXPOSURE_DEFAULT		0x04f6
-> +
-> +/* Analog gain control */
-> +#define IMX319_REG_ANALOG_GAIN		0x0204
-> +#define IMX319_ANA_GAIN_MIN		0
-> +#define IMX319_ANA_GAIN_MAX		960
-> +#define IMX319_ANA_GAIN_STEP		1
-> +#define IMX319_ANA_GAIN_DEFAULT		0
-> +
-> +/* Digital gain control */
-> +#define IMX319_REG_DPGA_USE_GLOBAL_GAIN	0x3ff9
-> +#define IMX319_REG_DIG_GAIN_GLOBAL	0x020e
-> +#define IMX319_DGTL_GAIN_MIN		256
-> +#define IMX319_DGTL_GAIN_MAX		4095
-> +#define IMX319_DGTL_GAIN_STEP		1
-> +#define IMX319_DGTL_GAIN_DEFAULT	256
-> +
-> +/* Test Pattern Control */
-> +#define IMX319_REG_TEST_PATTERN		0x0600
-> +#define IMX319_TEST_PATTERN_DISABLED		0
-> +#define IMX319_TEST_PATTERN_SOLID_COLOR		1
-> +#define IMX319_TEST_PATTERN_COLOR_BARS		2
-> +#define IMX319_TEST_PATTERN_GRAY_COLOR_BARS	3
-> +#define IMX319_TEST_PATTERN_PN9			4
-> +
-> +/* Flip Control */
-> +#define IMX319_REG_ORIENTATION		0x0101
-> +
-> +/* default link frequency and external clock */
-> +#define IMX319_LINK_FREQ_DEFAULT	482400000
-> +#define IMX319_EXT_CLK			19200000
-> +
-> +struct imx319_reg {
-> +	u16 address;
-> +	u8 val;
-> +};
-> +
-> +struct imx319_reg_list {
-> +	u32 num_of_regs;
-> +	const struct imx319_reg *regs;
-> +};
-> +
-> +/* Mode : resolution and related config&values */
-> +struct imx319_mode {
-> +	/* Frame width */
-> +	u32 width;
-> +	/* Frame height */
-> +	u32 height;
-> +
-> +	/* V-timing */
-> +	u32 fll_def;
-> +	u32 fll_min;
-> +
-> +	/* H-timing */
-> +	u32 llp;
-> +
-> +	/* Default register values */
-> +	struct imx319_reg_list reg_list;
-> +};
-> +
-> +struct imx319_pdata {
+Hi Sakari,
 
-Could you rename this e.g. as imx319_hwcfg as this is not platform data?
+I love your patch! Yet something to improve:
 
-> +	u32 ext_clk;		/* sensor external clk */
-> +	s64 *link_freqs;	/* CSI-2 link frequencies */
-> +};
-> +
-> +struct imx319 {
-> +	struct v4l2_subdev sd;
-> +	struct media_pad pad;
-> +
-> +	struct v4l2_ctrl_handler ctrl_handler;
-> +	/* V4L2 Controls */
-> +	struct v4l2_ctrl *link_freq;
-> +	struct v4l2_ctrl *pixel_rate;
-> +	struct v4l2_ctrl *vblank;
-> +	struct v4l2_ctrl *hblank;
-> +	struct v4l2_ctrl *exposure;
-> +	struct v4l2_ctrl *vflip;
-> +	struct v4l2_ctrl *hflip;
-> +
-> +	/* Current mode */
-> +	const struct imx319_mode *cur_mode;
-> +
-> +	struct imx319_pdata *pdata;
-> +	s64 link_def_freq;	/* CSI-2 link default frequency */
-> +
-> +	/*
-> +	 * Mutex for serialized access:
-> +	 * Protect sensor set pad format and start/stop streaming safely.
-> +	 * Protect access to sensor v4l2 controls.
-> +	 */
-> +	struct mutex mutex;
-> +
-> +	/* Streaming on/off */
-> +	bool streaming;
-> +};
-> +
-> +static const struct imx319_reg imx319_global_regs[] = {
-> +	{ 0x0136, 0x13 },
-> +	{ 0x0137, 0x33 },
-> +	{ 0x3c7e, 0x05 },
-> +	{ 0x3c7f, 0x07 },
-> +	{ 0x4d39, 0x0b },
-> +	{ 0x4d41, 0x33 },
-> +	{ 0x4d43, 0x0c },
-> +	{ 0x4d49, 0x89 },
-> +	{ 0x4e05, 0x0b },
-> +	{ 0x4e0d, 0x33 },
-> +	{ 0x4e0f, 0x0c },
-> +	{ 0x4e15, 0x89 },
-> +	{ 0x4e49, 0x2a },
-> +	{ 0x4e51, 0x33 },
-> +	{ 0x4e53, 0x0c },
-> +	{ 0x4e59, 0x89 },
-> +	{ 0x5601, 0x4f },
-> +	{ 0x560b, 0x45 },
-> +	{ 0x562f, 0x0a },
-> +	{ 0x5643, 0x0a },
-> +	{ 0x5645, 0x0c },
-> +	{ 0x56ef, 0x51 },
-> +	{ 0x586f, 0x33 },
-> +	{ 0x5873, 0x89 },
-> +	{ 0x5905, 0x33 },
-> +	{ 0x5907, 0x89 },
-> +	{ 0x590d, 0x33 },
-> +	{ 0x590f, 0x89 },
-> +	{ 0x5915, 0x33 },
-> +	{ 0x5917, 0x89 },
-> +	{ 0x5969, 0x1c },
-> +	{ 0x596b, 0x72 },
-> +	{ 0x5971, 0x33 },
-> +	{ 0x5973, 0x89 },
-> +	{ 0x5975, 0x33 },
-> +	{ 0x5977, 0x89 },
-> +	{ 0x5979, 0x1c },
-> +	{ 0x597b, 0x72 },
-> +	{ 0x5985, 0x33 },
-> +	{ 0x5987, 0x89 },
-> +	{ 0x5999, 0x1c },
-> +	{ 0x599b, 0x72 },
-> +	{ 0x59a5, 0x33 },
-> +	{ 0x59a7, 0x89 },
-> +	{ 0x7485, 0x08 },
-> +	{ 0x7487, 0x0c },
-> +	{ 0x7489, 0xc7 },
-> +	{ 0x748b, 0x8b },
-> +	{ 0x9004, 0x09 },
-> +	{ 0x9200, 0x6a },
-> +	{ 0x9201, 0x22 },
-> +	{ 0x9202, 0x6a },
-> +	{ 0x9203, 0x23 },
-> +	{ 0x9204, 0x5f },
-> +	{ 0x9205, 0x23 },
-> +	{ 0x9206, 0x5f },
-> +	{ 0x9207, 0x24 },
-> +	{ 0x9208, 0x5f },
-> +	{ 0x9209, 0x26 },
-> +	{ 0x920a, 0x5f },
-> +	{ 0x920b, 0x27 },
-> +	{ 0x920c, 0x5f },
-> +	{ 0x920d, 0x29 },
-> +	{ 0x920e, 0x5f },
-> +	{ 0x920f, 0x2a },
-> +	{ 0x9210, 0x5f },
-> +	{ 0x9211, 0x2c },
-> +	{ 0xbc22, 0x1a },
-> +	{ 0xf01f, 0x04 },
-> +	{ 0xf021, 0x03 },
-> +	{ 0xf023, 0x02 },
-> +	{ 0xf03d, 0x05 },
-> +	{ 0xf03f, 0x03 },
-> +	{ 0xf041, 0x02 },
-> +	{ 0xf0af, 0x04 },
-> +	{ 0xf0b1, 0x03 },
-> +	{ 0xf0b3, 0x02 },
-> +	{ 0xf0cd, 0x05 },
-> +	{ 0xf0cf, 0x03 },
-> +	{ 0xf0d1, 0x02 },
-> +	{ 0xf13f, 0x04 },
-> +	{ 0xf141, 0x03 },
-> +	{ 0xf143, 0x02 },
-> +	{ 0xf15d, 0x05 },
-> +	{ 0xf15f, 0x03 },
-> +	{ 0xf161, 0x02 },
-> +	{ 0xf1cf, 0x04 },
-> +	{ 0xf1d1, 0x03 },
-> +	{ 0xf1d3, 0x02 },
-> +	{ 0xf1ed, 0x05 },
-> +	{ 0xf1ef, 0x03 },
-> +	{ 0xf1f1, 0x02 },
-> +	{ 0xf287, 0x04 },
-> +	{ 0xf289, 0x03 },
-> +	{ 0xf28b, 0x02 },
-> +	{ 0xf2a5, 0x05 },
-> +	{ 0xf2a7, 0x03 },
-> +	{ 0xf2a9, 0x02 },
-> +	{ 0xf2b7, 0x04 },
-> +	{ 0xf2b9, 0x03 },
-> +	{ 0xf2bb, 0x02 },
-> +	{ 0xf2d5, 0x05 },
-> +	{ 0xf2d7, 0x03 },
-> +	{ 0xf2d9, 0x02 },
-> +};
-> +
-> +static const struct imx319_reg_list imx319_global_setting = {
-> +	.num_of_regs = ARRAY_SIZE(imx319_global_regs),
-> +	.regs = imx319_global_regs,
-> +};
-> +
-> +static const struct imx319_reg mode_3264x2448_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x0f },
-> +	{ 0x0343, 0x80 },
-> +	{ 0x0340, 0x0c },
-> +	{ 0x0341, 0xaa },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x00 },
-> +	{ 0x0347, 0x00 },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x09 },
-> +	{ 0x034b, 0x9f },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x00 },
-> +	{ 0x0901, 0x11 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x01 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x00 },
-> +	{ 0x0409, 0x08 },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x08 },
-> +	{ 0x040c, 0x0c },
-> +	{ 0x040d, 0xc0 },
-> +	{ 0x040e, 0x09 },
-> +	{ 0x040f, 0x90 },
-> +	{ 0x034c, 0x0c },
-> +	{ 0x034d, 0xc0 },
-> +	{ 0x034e, 0x09 },
-> +	{ 0x034f, 0x90 },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0x48 },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x01 },
-> +	{ 0x3f79, 0x18 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x00 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x0a },
-> +	{ 0x0203, 0x7a },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const struct imx319_reg mode_3280x2464_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x0f },
-> +	{ 0x0343, 0x80 },
-> +	{ 0x0340, 0x0c },
-> +	{ 0x0341, 0xaa },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x00 },
-> +	{ 0x0347, 0x00 },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x09 },
-> +	{ 0x034b, 0x9f },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x00 },
-> +	{ 0x0901, 0x11 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x01 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x00 },
-> +	{ 0x0409, 0x00 },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x00 },
-> +	{ 0x040c, 0x0c },
-> +	{ 0x040d, 0xd0 },
-> +	{ 0x040e, 0x09 },
-> +	{ 0x040f, 0xa0 },
-> +	{ 0x034c, 0x0c },
-> +	{ 0x034d, 0xd0 },
-> +	{ 0x034e, 0x09 },
-> +	{ 0x034f, 0xa0 },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0x48 },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x01 },
-> +	{ 0x3f79, 0x18 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x00 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x0a },
-> +	{ 0x0203, 0x7a },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const struct imx319_reg mode_1936x1096_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x0f },
-> +	{ 0x0343, 0x80 },
-> +	{ 0x0340, 0x0c },
-> +	{ 0x0341, 0xaa },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x02 },
-> +	{ 0x0347, 0xac },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x06 },
-> +	{ 0x034b, 0xf3 },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x00 },
-> +	{ 0x0901, 0x11 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x01 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x02 },
-> +	{ 0x0409, 0xa0 },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x00 },
-> +	{ 0x040c, 0x07 },
-> +	{ 0x040d, 0x90 },
-> +	{ 0x040e, 0x04 },
-> +	{ 0x040f, 0x48 },
-> +	{ 0x034c, 0x07 },
-> +	{ 0x034d, 0x90 },
-> +	{ 0x034e, 0x04 },
-> +	{ 0x034f, 0x48 },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0x48 },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x01 },
-> +	{ 0x3f79, 0x18 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x00 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x05 },
-> +	{ 0x0203, 0x34 },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const struct imx319_reg mode_1920x1080_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x0f },
-> +	{ 0x0343, 0x80 },
-> +	{ 0x0340, 0x0c },
-> +	{ 0x0341, 0xaa },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x02 },
-> +	{ 0x0347, 0xb4 },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x06 },
-> +	{ 0x034b, 0xeb },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x00 },
-> +	{ 0x0901, 0x11 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x01 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x02 },
-> +	{ 0x0409, 0xa8 },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x00 },
-> +	{ 0x040c, 0x07 },
-> +	{ 0x040d, 0x80 },
-> +	{ 0x040e, 0x04 },
-> +	{ 0x040f, 0x38 },
-> +	{ 0x034c, 0x07 },
-> +	{ 0x034d, 0x80 },
-> +	{ 0x034e, 0x04 },
-> +	{ 0x034f, 0x38 },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0x48 },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x01 },
-> +	{ 0x3f79, 0x18 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x00 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x05 },
-> +	{ 0x0203, 0x34 },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const struct imx319_reg mode_1640x1232_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x08 },
-> +	{ 0x0343, 0x20 },
-> +	{ 0x0340, 0x18 },
-> +	{ 0x0341, 0x2a },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x00 },
-> +	{ 0x0347, 0x00 },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x09 },
-> +	{ 0x034b, 0x9f },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x01 },
-> +	{ 0x0901, 0x22 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x02 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x00 },
-> +	{ 0x0409, 0x00 },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x00 },
-> +	{ 0x040c, 0x06 },
-> +	{ 0x040d, 0x68 },
-> +	{ 0x040e, 0x04 },
-> +	{ 0x040f, 0xd0 },
-> +	{ 0x034c, 0x06 },
-> +	{ 0x034d, 0x68 },
-> +	{ 0x034e, 0x04 },
-> +	{ 0x034f, 0xd0 },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0xba },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x00 },
-> +	{ 0x3f79, 0x34 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x04 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x04 },
-> +	{ 0x0203, 0xf6 },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const struct imx319_reg mode_1640x922_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x08 },
-> +	{ 0x0343, 0x20 },
-> +	{ 0x0340, 0x18 },
-> +	{ 0x0341, 0x2a },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x01 },
-> +	{ 0x0347, 0x30 },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x08 },
-> +	{ 0x034b, 0x6f },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x01 },
-> +	{ 0x0901, 0x22 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x02 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x00 },
-> +	{ 0x0409, 0x00 },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x02 },
-> +	{ 0x040c, 0x06 },
-> +	{ 0x040d, 0x68 },
-> +	{ 0x040e, 0x03 },
-> +	{ 0x040f, 0x9a },
-> +	{ 0x034c, 0x06 },
-> +	{ 0x034d, 0x68 },
-> +	{ 0x034e, 0x03 },
-> +	{ 0x034f, 0x9a },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0xba },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x00 },
-> +	{ 0x3f79, 0x34 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x04 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x04 },
-> +	{ 0x0203, 0xf6 },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const struct imx319_reg mode_1296x736_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x08 },
-> +	{ 0x0343, 0x20 },
-> +	{ 0x0340, 0x18 },
-> +	{ 0x0341, 0x2a },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x01 },
-> +	{ 0x0347, 0xf0 },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x07 },
-> +	{ 0x034b, 0xaf },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x01 },
-> +	{ 0x0901, 0x22 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x02 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x00 },
-> +	{ 0x0409, 0xac },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x00 },
-> +	{ 0x040c, 0x05 },
-> +	{ 0x040d, 0x10 },
-> +	{ 0x040e, 0x02 },
-> +	{ 0x040f, 0xe0 },
-> +	{ 0x034c, 0x05 },
-> +	{ 0x034d, 0x10 },
-> +	{ 0x034e, 0x02 },
-> +	{ 0x034f, 0xe0 },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0xba },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x00 },
-> +	{ 0x3f79, 0x34 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x04 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x04 },
-> +	{ 0x0203, 0xf6 },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const struct imx319_reg mode_1280x720_regs[] = {
-> +	{ 0x0112, 0x0a },
-> +	{ 0x0113, 0x0a },
-> +	{ 0x0114, 0x03 },
-> +	{ 0x0342, 0x08 },
-> +	{ 0x0343, 0x20 },
-> +	{ 0x0340, 0x18 },
-> +	{ 0x0341, 0x2a },
-> +	{ 0x0344, 0x00 },
-> +	{ 0x0345, 0x00 },
-> +	{ 0x0346, 0x02 },
-> +	{ 0x0347, 0x00 },
-> +	{ 0x0348, 0x0c },
-> +	{ 0x0349, 0xcf },
-> +	{ 0x034a, 0x07 },
-> +	{ 0x034b, 0x9f },
-> +	{ 0x0220, 0x00 },
-> +	{ 0x0221, 0x11 },
-> +	{ 0x0381, 0x01 },
-> +	{ 0x0383, 0x01 },
-> +	{ 0x0385, 0x01 },
-> +	{ 0x0387, 0x01 },
-> +	{ 0x0900, 0x01 },
-> +	{ 0x0901, 0x22 },
-> +	{ 0x0902, 0x0a },
-> +	{ 0x3140, 0x02 },
-> +	{ 0x3141, 0x00 },
-> +	{ 0x3f0d, 0x0a },
-> +	{ 0x3f14, 0x01 },
-> +	{ 0x3f3c, 0x02 },
-> +	{ 0x3f4d, 0x01 },
-> +	{ 0x3f4c, 0x01 },
-> +	{ 0x4254, 0x7f },
-> +	{ 0x0401, 0x00 },
-> +	{ 0x0404, 0x00 },
-> +	{ 0x0405, 0x10 },
-> +	{ 0x0408, 0x00 },
-> +	{ 0x0409, 0xb4 },
-> +	{ 0x040a, 0x00 },
-> +	{ 0x040b, 0x00 },
-> +	{ 0x040c, 0x05 },
-> +	{ 0x040d, 0x00 },
-> +	{ 0x040e, 0x02 },
-> +	{ 0x040f, 0xd0 },
-> +	{ 0x034c, 0x05 },
-> +	{ 0x034d, 0x00 },
-> +	{ 0x034e, 0x02 },
-> +	{ 0x034f, 0xd0 },
-> +	{ 0x3261, 0x00 },
-> +	{ 0x3264, 0x00 },
-> +	{ 0x3265, 0x10 },
-> +	{ 0x0301, 0x05 },
-> +	{ 0x0303, 0x04 },
-> +	{ 0x0305, 0x04 },
-> +	{ 0x0306, 0x01 },
-> +	{ 0x0307, 0x92 },
-> +	{ 0x0309, 0x0a },
-> +	{ 0x030b, 0x02 },
-> +	{ 0x030d, 0x02 },
-> +	{ 0x030e, 0x00 },
-> +	{ 0x030f, 0xfa },
-> +	{ 0x0310, 0x00 },
-> +	{ 0x0820, 0x0f },
-> +	{ 0x0821, 0x13 },
-> +	{ 0x0822, 0x33 },
-> +	{ 0x0823, 0x33 },
-> +	{ 0x3e20, 0x01 },
-> +	{ 0x3e37, 0x00 },
-> +	{ 0x3e3b, 0x01 },
-> +	{ 0x38a3, 0x01 },
-> +	{ 0x38a8, 0x00 },
-> +	{ 0x38a9, 0x00 },
-> +	{ 0x38aa, 0x00 },
-> +	{ 0x38ab, 0x00 },
-> +	{ 0x3234, 0x00 },
-> +	{ 0x3fc1, 0x00 },
-> +	{ 0x3235, 0x00 },
-> +	{ 0x3802, 0x00 },
-> +	{ 0x3143, 0x04 },
-> +	{ 0x360a, 0x00 },
-> +	{ 0x0b00, 0x00 },
-> +	{ 0x0106, 0x00 },
-> +	{ 0x0b05, 0x01 },
-> +	{ 0x0b06, 0x01 },
-> +	{ 0x3230, 0x00 },
-> +	{ 0x3602, 0x01 },
-> +	{ 0x3607, 0x01 },
-> +	{ 0x3c00, 0x00 },
-> +	{ 0x3c01, 0xba },
-> +	{ 0x3c02, 0xc8 },
-> +	{ 0x3c03, 0xaa },
-> +	{ 0x3c04, 0x91 },
-> +	{ 0x3c05, 0x54 },
-> +	{ 0x3c06, 0x26 },
-> +	{ 0x3c07, 0x20 },
-> +	{ 0x3c08, 0x51 },
-> +	{ 0x3d80, 0x00 },
-> +	{ 0x3f50, 0x00 },
-> +	{ 0x3f56, 0x00 },
-> +	{ 0x3f57, 0x30 },
-> +	{ 0x3f78, 0x00 },
-> +	{ 0x3f79, 0x34 },
-> +	{ 0x3f7c, 0x00 },
-> +	{ 0x3f7d, 0x00 },
-> +	{ 0x3fba, 0x00 },
-> +	{ 0x3fbb, 0x00 },
-> +	{ 0xa081, 0x04 },
-> +	{ 0xe014, 0x00 },
-> +	{ 0x0202, 0x04 },
-> +	{ 0x0203, 0xf6 },
-> +	{ 0x0224, 0x01 },
-> +	{ 0x0225, 0xf4 },
-> +	{ 0x0204, 0x00 },
-> +	{ 0x0205, 0x00 },
-> +	{ 0x0216, 0x00 },
-> +	{ 0x0217, 0x00 },
-> +	{ 0x020e, 0x01 },
-> +	{ 0x020f, 0x00 },
-> +	{ 0x0210, 0x01 },
-> +	{ 0x0211, 0x00 },
-> +	{ 0x0212, 0x01 },
-> +	{ 0x0213, 0x00 },
-> +	{ 0x0214, 0x01 },
-> +	{ 0x0215, 0x00 },
-> +	{ 0x0218, 0x01 },
-> +	{ 0x0219, 0x00 },
-> +	{ 0x3614, 0x00 },
-> +	{ 0x3616, 0x0d },
-> +	{ 0x3617, 0x56 },
-> +	{ 0xb612, 0x20 },
-> +	{ 0xb613, 0x20 },
-> +	{ 0xb614, 0x20 },
-> +	{ 0xb615, 0x20 },
-> +	{ 0xb616, 0x0a },
-> +	{ 0xb617, 0x0a },
-> +	{ 0xb618, 0x20 },
-> +	{ 0xb619, 0x20 },
-> +	{ 0xb61a, 0x20 },
-> +	{ 0xb61b, 0x20 },
-> +	{ 0xb61c, 0x0a },
-> +	{ 0xb61d, 0x0a },
-> +	{ 0xb666, 0x30 },
-> +	{ 0xb667, 0x30 },
-> +	{ 0xb668, 0x30 },
-> +	{ 0xb669, 0x30 },
-> +	{ 0xb66a, 0x14 },
-> +	{ 0xb66b, 0x14 },
-> +	{ 0xb66c, 0x20 },
-> +	{ 0xb66d, 0x20 },
-> +	{ 0xb66e, 0x20 },
-> +	{ 0xb66f, 0x20 },
-> +	{ 0xb670, 0x10 },
-> +	{ 0xb671, 0x10 },
-> +	{ 0x3237, 0x00 },
-> +	{ 0x3900, 0x00 },
-> +	{ 0x3901, 0x00 },
-> +	{ 0x3902, 0x00 },
-> +	{ 0x3904, 0x00 },
-> +	{ 0x3905, 0x00 },
-> +	{ 0x3906, 0x00 },
-> +	{ 0x3907, 0x00 },
-> +	{ 0x3908, 0x00 },
-> +	{ 0x3909, 0x00 },
-> +	{ 0x3912, 0x00 },
-> +	{ 0x3930, 0x00 },
-> +	{ 0x3931, 0x00 },
-> +	{ 0x3933, 0x00 },
-> +	{ 0x3934, 0x00 },
-> +	{ 0x3935, 0x00 },
-> +	{ 0x3936, 0x00 },
-> +	{ 0x3937, 0x00 },
-> +	{ 0x30ac, 0x00 },
-> +};
-> +
-> +static const char * const imx319_test_pattern_menu[] = {
-> +	"Disabled",
-> +	"100% color bars",
-> +	"Solid color",
-> +	"Fade to gray color bars",
-> +	"PN9"
-> +};
-> +
-> +static const int imx319_test_pattern_val[] = {
-> +	IMX319_TEST_PATTERN_DISABLED,
-> +	IMX319_TEST_PATTERN_COLOR_BARS,
-> +	IMX319_TEST_PATTERN_SOLID_COLOR,
-> +	IMX319_TEST_PATTERN_GRAY_COLOR_BARS,
-> +	IMX319_TEST_PATTERN_PN9,
-> +};
-> +
-> +/* Configurations for supported link frequencies */
-> +/* Menu items for LINK_FREQ V4L2 control */
-> +static s64 link_freq_menu_items[] = {
+[auto build test ERROR on linuxtv-media/master]
+[also build test ERROR on next-20180913]
+[cannot apply to v4.19-rc4]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Const, please.
+url:    https://github.com/0day-ci/linux/commits/Sakari-Ailus/v4l-samsung-ov9650-Rely-on-V4L2-set-sub-device-names/20180916-232558
+base:   git://linuxtv.org/media_tree.git master
+config: i386-randconfig-x0-09171846 (attached as .config)
+compiler: gcc-5 (Debian 5.5.0-3) 5.4.1 20171010
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-> +	IMX319_LINK_FREQ_DEFAULT,
-> +};
-> +
-> +struct imx319_pdata pdata = {
+All errors (new ones prefixed by >>):
 
-Here, too.
+   drivers/media/i2c/s5c73m3/s5c73m3-core.c: In function 's5c73m3_probe':
+>> drivers/media/i2c/s5c73m3/s5c73m3-core.c:1686:2: error: implicit declaration of function 'v4l2_i2c_subdev_set_name' [-Werror=implicit-function-declaration]
+     v4l2_i2c_subdev_set_name(sd, client, NULL, NULL);
+     ^
+   cc1: some warnings being treated as errors
 
-> +	.link_freqs = link_freq_menu_items,
-> +};
-> +
-> +/* Mode configs */
-> +static const struct imx319_mode supported_modes[] = {
-> +	{
-> +		.width = 3280,
-> +		.height = 2464,
-> +		.fll_def = 3242,
-> +		.fll_min = 3242,
-> +		.llp = 3968,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_3280x2464_regs),
-> +			.regs = mode_3280x2464_regs,
-> +		},
-> +	},
-> +	{
-> +		.width = 3264,
-> +		.height = 2448,
-> +		.fll_def = 3242,
-> +		.fll_min = 3242,
-> +		.llp = 3968,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_3264x2448_regs),
-> +			.regs = mode_3264x2448_regs,
-> +		},
-> +	},
-> +	{
-> +		.width = 1936,
-> +		.height = 1096,
-> +		.fll_def = 3242,
-> +		.fll_min = 3242,
-> +		.llp = 3968,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_1936x1096_regs),
-> +			.regs = mode_1936x1096_regs,
-> +		},
-> +	},
-> +	{
-> +		.width = 1920,
-> +		.height = 1080,
-> +		.fll_def = 3242,
-> +		.fll_min = 3242,
-> +		.llp = 3968,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_1920x1080_regs),
-> +			.regs = mode_1920x1080_regs,
-> +		},
-> +	},
-> +	{
-> +		.width = 1640,
-> +		.height = 1232,
-> +		.fll_def = 5146,
-> +		.fll_min = 5146,
-> +		.llp = 2500,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_1640x1232_regs),
-> +			.regs = mode_1640x1232_regs,
-> +		},
-> +	},
-> +	{
-> +		.width = 1640,
-> +		.height = 922,
-> +		.fll_def = 5146,
-> +		.fll_min = 5146,
-> +		.llp = 2500,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_1640x922_regs),
-> +			.regs = mode_1640x922_regs,
-> +		},
-> +	},
-> +	{
-> +		.width = 1296,
-> +		.height = 736,
-> +		.fll_def = 5146,
-> +		.fll_min = 5146,
-> +		.llp = 2500,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_1296x736_regs),
-> +			.regs = mode_1296x736_regs,
-> +		},
-> +	},
-> +	{
-> +		.width = 1280,
-> +		.height = 720,
-> +		.fll_def = 5146,
-> +		.fll_min = 5146,
-> +		.llp = 2500,
-> +		.reg_list = {
-> +			.num_of_regs = ARRAY_SIZE(mode_1280x720_regs),
-> +			.regs = mode_1280x720_regs,
-> +		},
-> +	},
-> +};
-> +
-> +static inline struct imx319 *to_imx319(struct v4l2_subdev *_sd)
-> +{
-> +	return container_of(_sd, struct imx319, sd);
-> +}
-> +
-> +/* Get bayer order based on flip setting. */
-> +static __u32 imx319_get_format_code(struct imx319 *imx319)
+vim +/v4l2_i2c_subdev_set_name +1686 drivers/media/i2c/s5c73m3/s5c73m3-core.c
 
-u32; this is kernel code.
+  1660	
+  1661	static int s5c73m3_probe(struct i2c_client *client,
+  1662					const struct i2c_device_id *id)
+  1663	{
+  1664		struct device *dev = &client->dev;
+  1665		struct v4l2_subdev *sd;
+  1666		struct v4l2_subdev *oif_sd;
+  1667		struct s5c73m3 *state;
+  1668		int ret, i;
+  1669	
+  1670		state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+  1671		if (!state)
+  1672			return -ENOMEM;
+  1673	
+  1674		state->i2c_client = client;
+  1675		ret = s5c73m3_get_platform_data(state);
+  1676		if (ret < 0)
+  1677			return ret;
+  1678	
+  1679		mutex_init(&state->lock);
+  1680		sd = &state->sensor_sd;
+  1681		oif_sd = &state->oif_sd;
+  1682	
+  1683		v4l2_subdev_init(sd, &s5c73m3_subdev_ops);
+  1684		sd->owner = client->dev.driver->owner;
+  1685		v4l2_set_subdevdata(sd, state);
+> 1686		v4l2_i2c_subdev_set_name(sd, client, NULL, NULL);
+  1687	
+  1688		sd->internal_ops = &s5c73m3_internal_ops;
+  1689		sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+  1690	
+  1691		state->sensor_pads[S5C73M3_JPEG_PAD].flags = MEDIA_PAD_FL_SOURCE;
+  1692		state->sensor_pads[S5C73M3_ISP_PAD].flags = MEDIA_PAD_FL_SOURCE;
+  1693		sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
+  1694	
+  1695		ret = media_entity_pads_init(&sd->entity, S5C73M3_NUM_PADS,
+  1696								state->sensor_pads);
+  1697		if (ret < 0)
+  1698			return ret;
+  1699	
+  1700		v4l2_i2c_subdev_init(oif_sd, client, &oif_subdev_ops);
+  1701		v4l2_i2c_subdev_set_name(sd, client, NULL, "-oif");
+  1702	
+  1703		oif_sd->internal_ops = &oif_internal_ops;
+  1704		oif_sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+  1705	
+  1706		state->oif_pads[OIF_ISP_PAD].flags = MEDIA_PAD_FL_SINK;
+  1707		state->oif_pads[OIF_JPEG_PAD].flags = MEDIA_PAD_FL_SINK;
+  1708		state->oif_pads[OIF_SOURCE_PAD].flags = MEDIA_PAD_FL_SOURCE;
+  1709		oif_sd->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
+  1710	
+  1711		ret = media_entity_pads_init(&oif_sd->entity, OIF_NUM_PADS,
+  1712								state->oif_pads);
+  1713		if (ret < 0)
+  1714			return ret;
+  1715	
+  1716		ret = s5c73m3_configure_gpios(state);
+  1717		if (ret)
+  1718			goto out_err;
+  1719	
+  1720		for (i = 0; i < S5C73M3_MAX_SUPPLIES; i++)
+  1721			state->supplies[i].supply = s5c73m3_supply_names[i];
+  1722	
+  1723		ret = devm_regulator_bulk_get(dev, S5C73M3_MAX_SUPPLIES,
+  1724				       state->supplies);
+  1725		if (ret) {
+  1726			dev_err(dev, "failed to get regulators\n");
+  1727			goto out_err;
+  1728		}
+  1729	
+  1730		ret = s5c73m3_init_controls(state);
+  1731		if (ret)
+  1732			goto out_err;
+  1733	
+  1734		state->sensor_pix_size[RES_ISP] = &s5c73m3_isp_resolutions[1];
+  1735		state->sensor_pix_size[RES_JPEG] = &s5c73m3_jpeg_resolutions[1];
+  1736		state->oif_pix_size[RES_ISP] = state->sensor_pix_size[RES_ISP];
+  1737		state->oif_pix_size[RES_JPEG] = state->sensor_pix_size[RES_JPEG];
+  1738	
+  1739		state->mbus_code = S5C73M3_ISP_FMT;
+  1740	
+  1741		state->fiv = &s5c73m3_intervals[S5C73M3_DEFAULT_FRAME_INTERVAL];
+  1742	
+  1743		state->fw_file_version[0] = 'G';
+  1744		state->fw_file_version[1] = 'C';
+  1745	
+  1746		ret = s5c73m3_register_spi_driver(state);
+  1747		if (ret < 0)
+  1748			goto out_err;
+  1749	
+  1750		oif_sd->dev = dev;
+  1751	
+  1752		ret = __s5c73m3_power_on(state);
+  1753		if (ret < 0)
+  1754			goto out_err1;
+  1755	
+  1756		ret = s5c73m3_get_fw_version(state);
+  1757		__s5c73m3_power_off(state);
+  1758	
+  1759		if (ret < 0) {
+  1760			dev_err(dev, "Device detection failed: %d\n", ret);
+  1761			goto out_err1;
+  1762		}
+  1763	
+  1764		ret = v4l2_async_register_subdev(oif_sd);
+  1765		if (ret < 0)
+  1766			goto out_err1;
+  1767	
+  1768		v4l2_info(sd, "%s: completed successfully\n", __func__);
+  1769		return 0;
+  1770	
+  1771	out_err1:
+  1772		s5c73m3_unregister_spi_driver(state);
+  1773	out_err:
+  1774		media_entity_cleanup(&sd->entity);
+  1775		return ret;
+  1776	}
+  1777	
 
-> +{
-> +	/*
-> +	 * Only one bayer order is supported.
-> +	 * It depends on the flip settings.
-> +	 */
-> +	static const __u32 codes[2][2] = {
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-Here, too.
+--82I3+IH0IqGh5yIs
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
-> +		{ MEDIA_BUS_FMT_SRGGB10_1X10, MEDIA_BUS_FMT_SGRBG10_1X10, },
-> +		{ MEDIA_BUS_FMT_SGBRG10_1X10, MEDIA_BUS_FMT_SBGGR10_1X10, },
-> +	};
-> +
+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
 
-In order to avoid locking issues (see below), please add here:
-
-lockdep_assert_held(&imx319->mutex);
-
-> +	return codes[imx319->vflip->val][imx319->hflip->val];
-> +}
-> +
-> +/* Read registers up to 4 at a time */
-> +static int imx319_read_reg(struct imx319 *imx319, u16 reg, u32 len, u32 *val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	struct i2c_msg msgs[2];
-> +	u8 addr_buf[2];
-> +	u8 data_buf[4] = { 0 };
-> +	int ret;
-> +
-> +	if (len > 4)
-> +		return -EINVAL;
-> +
-> +	put_unaligned_be16(reg, addr_buf);
-> +	/* Write register address */
-> +	msgs[0].addr = client->addr;
-> +	msgs[0].flags = 0;
-> +	msgs[0].len = ARRAY_SIZE(addr_buf);
-> +	msgs[0].buf = addr_buf;
-> +
-> +	/* Read data from register */
-> +	msgs[1].addr = client->addr;
-> +	msgs[1].flags = I2C_M_RD;
-> +	msgs[1].len = len;
-> +	msgs[1].buf = &data_buf[4 - len];
-> +
-> +	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-> +	if (ret != ARRAY_SIZE(msgs))
-> +		return -EIO;
-> +
-> +	*val = get_unaligned_be32(data_buf);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Write registers up to 4 at a time */
-> +static int imx319_write_reg(struct imx319 *imx319, u16 reg, u32 len, u32 val)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	u8 buf[6];
-> +
-> +	if (len > 4)
-> +		return -EINVAL;
-> +
-> +	put_unaligned_be16(reg, buf);
-> +	put_unaligned_be32(val << (8 * (4 - len)), buf + 2);
-> +	if (i2c_master_send(client, buf, len + 2) != len + 2)
-> +		return -EIO;
-> +
-> +	return 0;
-> +}
-> +
-> +/* Write a list of registers */
-> +static int imx319_write_regs(struct imx319 *imx319,
-> +			      const struct imx319_reg *regs, u32 len)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	int ret;
-> +	u32 i;
-> +
-> +	for (i = 0; i < len; i++) {
-> +		ret = imx319_write_reg(imx319, regs[i].address, 1, regs[i].val);
-> +		if (ret) {
-> +			dev_err_ratelimited(&client->dev,
-> +					    "write reg 0x%4.4x return err %d",
-> +					    regs[i].address, ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/* Open sub-device */
-> +static int imx319_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	struct v4l2_mbus_framefmt *try_fmt =
-> +		v4l2_subdev_get_try_format(sd, fh->pad, 0);
-> +
-> +	mutex_lock(&imx319->mutex);
-> +
-> +	/* Initialize try_fmt */
-> +	try_fmt->width = imx319->cur_mode->width;
-> +	try_fmt->height = imx319->cur_mode->height;
-> +	try_fmt->code = MEDIA_BUS_FMT_SRGGB10_1X10;
-
-I know I asked to use the default configuration here, but what I forgot was
-that the flip controls affect the media bus code as well, and the media bus
-code here needs to be valid for the given flipping configuration.
-
-Could you switch to using imx319_get_format_code() here, please?
-
-> +	try_fmt->field = V4L2_FIELD_NONE;
-> +
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx319_update_digital_gain(struct imx319 *imx319, u32 d_gain)
-> +{
-> +	int ret;
-> +
-> +	ret = imx319_write_reg(imx319, IMX319_REG_DPGA_USE_GLOBAL_GAIN, 1, 1);
-> +	if (ret)
-> +		return ret;
-
-You could do this write right after powering the sensor on, couldn't you?
-
-> +
-> +	/* Digital gain = (d_gain & 0xFF00) + (d_gain & 0xFF)/256 times */
-> +	return imx319_write_reg(imx319, IMX319_REG_DIG_GAIN_GLOBAL, 2, d_gain);
-> +}
-> +
-> +static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct imx319 *imx319 = container_of(ctrl->handler,
-> +					     struct imx319, ctrl_handler);
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	s64 max;
-> +	int ret;
-> +
-> +	/* Propagate change of current control to all related controls */
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_VBLANK:
-> +		/* Update max exposure while meeting expected vblanking */
-> +		max = imx319->cur_mode->height + ctrl->val - 18;
-> +		__v4l2_ctrl_modify_range(imx319->exposure,
-> +					 imx319->exposure->minimum,
-> +					 max, imx319->exposure->step, max);
-> +		break;
-> +	}
-> +
-> +	/*
-> +	 * Applying V4L2 control value only happens
-> +	 * when power is up for streaming
-> +	 */
-> +	if (pm_runtime_get_if_in_use(&client->dev) == 0)
-> +		return 0;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_ANALOGUE_GAIN:
-> +		/* Analog gain = 1024/(1024 - ctrl->val) times */
-> +		ret = imx319_write_reg(imx319, IMX319_REG_ANALOG_GAIN, 2,
-> +				       ctrl->val);
-> +		break;
-> +	case V4L2_CID_DIGITAL_GAIN:
-> +		ret = imx319_update_digital_gain(imx319, ctrl->val);
-> +		break;
-> +	case V4L2_CID_EXPOSURE:
-> +		ret = imx319_write_reg(imx319, IMX319_REG_EXPOSURE, 2,
-> +				       ctrl->val);
-> +		break;
-> +	case V4L2_CID_VBLANK:
-> +		/* Update FLL that meets expected vertical blanking */
-> +		ret = imx319_write_reg(imx319, IMX319_REG_FLL, 2,
-> +				       imx319->cur_mode->height + ctrl->val);
-> +		break;
-> +	case V4L2_CID_TEST_PATTERN:
-> +		ret = imx319_write_reg(imx319, IMX319_REG_TEST_PATTERN,
-> +				       2, imx319_test_pattern_val[ctrl->val]);
-> +		break;
-> +	case V4L2_CID_HFLIP:
-> +	case V4L2_CID_VFLIP:
-> +		ret = imx319_write_reg(imx319, IMX319_REG_ORIENTATION, 1,
-> +				       imx319->hflip->val |
-> +				       imx319->vflip->val << 1);
-> +		break;
-> +	default:
-> +		ret = -EINVAL;
-> +		dev_info(&client->dev, "ctrl(id:0x%x,val:0x%x) is not handled",
-> +			 ctrl->id, ctrl->val);
-> +		break;
-> +	}
-> +
-> +	pm_runtime_put(&client->dev);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops imx319_ctrl_ops = {
-> +	.s_ctrl = imx319_set_ctrl,
-> +};
-> +
-> +static int imx319_enum_mbus_code(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_pad_config *cfg,
-> +				  struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +
-> +	if (code->index > 0)
-> +		return -EINVAL;
-> +
-> +	code->code = imx319_get_format_code(imx319);
-
-You need to acquire the mutex for imx319_get_format_code().
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx319_enum_frame_size(struct v4l2_subdev *sd,
-> +				   struct v4l2_subdev_pad_config *cfg,
-> +				   struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +
-> +	if (fse->index >= ARRAY_SIZE(supported_modes))
-> +		return -EINVAL;
-> +
-> +	if (fse->code != imx319_get_format_code(imx319))
-
-Same here.
-
-> +		return -EINVAL;
-> +
-> +	fse->min_width = supported_modes[fse->index].width;
-> +	fse->max_width = fse->min_width;
-> +	fse->min_height = supported_modes[fse->index].height;
-> +	fse->max_height = fse->min_height;
-> +
-> +	return 0;
-> +}
-> +
-> +static void imx319_update_pad_format(struct imx319 *imx319,
-> +				     const struct imx319_mode *mode,
-> +				     struct v4l2_subdev_format *fmt)
-> +{
-> +	fmt->format.width = mode->width;
-> +	fmt->format.height = mode->height;
-> +	fmt->format.code = imx319_get_format_code(imx319);
-> +	fmt->format.field = V4L2_FIELD_NONE;
-> +}
-> +
-> +static int imx319_do_get_pad_format(struct imx319 *imx319,
-> +				     struct v4l2_subdev_pad_config *cfg,
-> +				     struct v4l2_subdev_format *fmt)
-> +{
-> +	struct v4l2_mbus_framefmt *framefmt;
-> +	struct v4l2_subdev *sd = &imx319->sd;
-> +
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> +		fmt->format = *framefmt;
-> +	} else {
-> +		imx319_update_pad_format(imx319, imx319->cur_mode, fmt);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx319_get_pad_format(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_pad_config *cfg,
-> +				  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	int ret;
-> +
-> +	mutex_lock(&imx319->mutex);
-> +	ret = imx319_do_get_pad_format(imx319, cfg, fmt);
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static int
-> +imx319_set_pad_format(struct v4l2_subdev *sd,
-> +		       struct v4l2_subdev_pad_config *cfg,
-> +		       struct v4l2_subdev_format *fmt)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	const struct imx319_mode *mode;
-> +	struct v4l2_mbus_framefmt *framefmt;
-> +	s32 vblank_def;
-> +	s32 vblank_min;
-> +	s64 h_blank;
-> +	s64 pixel_rate;
-> +	u32 height;
-> +
-> +	mutex_lock(&imx319->mutex);
-> +
-> +	/*
-> +	 * Only one bayer order is supported.
-> +	 * It depends on the flip settings.
-> +	 */
-> +	fmt->format.code = imx319_get_format_code(imx319);
-> +
-> +	mode = v4l2_find_nearest_size(supported_modes,
-> +				      ARRAY_SIZE(supported_modes),
-> +				      width, height,
-> +				      fmt->format.width, fmt->format.height);
-> +	imx319_update_pad_format(imx319, mode, fmt);
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		framefmt = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-> +		*framefmt = fmt->format;
-> +	} else {
-> +		imx319->cur_mode = mode;
-> +		pixel_rate = (imx319->link_def_freq * 2 * 4) / 10;
-> +		__v4l2_ctrl_s_ctrl_int64(imx319->pixel_rate, pixel_rate);
-> +		/* Update limits and set FPS to default */
-> +		height = imx319->cur_mode->height;
-> +		vblank_def = imx319->cur_mode->fll_def - height;
-> +		vblank_min = imx319->cur_mode->fll_min - height;
-> +		height = IMX319_FLL_MAX - height;
-> +		__v4l2_ctrl_modify_range(imx319->vblank, vblank_min, height, 1,
-> +					 vblank_def);
-> +		__v4l2_ctrl_s_ctrl(imx319->vblank, vblank_def);
-> +		h_blank = mode->llp - imx319->cur_mode->width;
-> +		/*
-> +		 * Currently hblank is not changeable.
-> +		 * So FPS control is done only by vblank.
-> +		 */
-> +		__v4l2_ctrl_modify_range(imx319->hblank, h_blank,
-> +					 h_blank, 1, h_blank);
-> +	}
-> +
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Start streaming */
-> +static int imx319_start_streaming(struct imx319 *imx319)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	const struct imx319_reg_list *reg_list;
-> +	int ret;
-> +
-> +	/* Global Setting */
-> +	reg_list = &imx319_global_setting;
-> +	ret = imx319_write_regs(imx319, reg_list->regs, reg_list->num_of_regs);
-> +	if (ret) {
-> +		dev_err(&client->dev, "failed to set global settings");
-> +		return ret;
-> +	}
-> +
-> +	/* Apply default values of current mode */
-> +	reg_list = &imx319->cur_mode->reg_list;
-> +	ret = imx319_write_regs(imx319, reg_list->regs, reg_list->num_of_regs);
-> +	if (ret) {
-> +		dev_err(&client->dev, "failed to set mode");
-> +		return ret;
-> +	}
-> +
-> +	/* Apply customized values from user */
-> +	ret =  __v4l2_ctrl_handler_setup(imx319->sd.ctrl_handler);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return imx319_write_reg(imx319, IMX319_REG_MODE_SELECT,
-> +				1, IMX319_MODE_STREAMING);
-> +}
-> +
-> +/* Stop streaming */
-> +static int imx319_stop_streaming(struct imx319 *imx319)
-> +{
-> +	return imx319_write_reg(imx319, IMX319_REG_MODE_SELECT,
-> +				1, IMX319_MODE_STANDBY);
-> +}
-> +
-> +static int imx319_set_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	int ret = 0;
-> +
-> +	mutex_lock(&imx319->mutex);
-> +	if (imx319->streaming == enable) {
-> +		mutex_unlock(&imx319->mutex);
-> +		return 0;
-> +	}
-> +
-> +	if (enable) {
-> +		ret = pm_runtime_get_sync(&client->dev);
-> +		if (ret < 0) {
-> +			pm_runtime_put_noidle(&client->dev);
-> +			goto err_unlock;
-> +		}
-> +
-> +		/*
-> +		 * Apply default & customized values
-> +		 * and then start streaming.
-> +		 */
-> +		ret = imx319_start_streaming(imx319);
-> +		if (ret)
-> +			goto err_rpm_put;
-> +	} else {
-> +		imx319_stop_streaming(imx319);
-> +		pm_runtime_put(&client->dev);
-> +	}
-> +
-> +	imx319->streaming = enable;
-> +
-> +	/* vflip and hflip cannot change during streaming */
-> +	__v4l2_ctrl_grab(imx319->vflip, enable);
-> +	__v4l2_ctrl_grab(imx319->hflip, enable);
-> +
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return ret;
-> +
-> +err_rpm_put:
-> +	pm_runtime_put(&client->dev);
-> +err_unlock:
-> +	mutex_unlock(&imx319->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static int __maybe_unused imx319_suspend(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +
-> +	if (imx319->streaming)
-> +		imx319_stop_streaming(imx319);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __maybe_unused imx319_resume(struct device *dev)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +	int ret;
-> +
-> +	if (imx319->streaming) {
-> +		ret = imx319_start_streaming(imx319);
-> +		if (ret)
-> +			goto error;
-> +	}
-> +
-> +	return 0;
-> +
-> +error:
-> +	imx319_stop_streaming(imx319);
-> +	imx319->streaming = 0;
-> +	return ret;
-> +}
-> +
-> +/* Verify chip ID */
-> +static int imx319_identify_module(struct imx319 *imx319)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	int ret;
-> +	u32 val;
-> +
-> +	ret = imx319_read_reg(imx319, IMX319_REG_CHIP_ID, 2, &val);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (val != IMX319_CHIP_ID) {
-> +		dev_err(&client->dev, "chip id mismatch: %x!=%x",
-> +			IMX319_CHIP_ID, val);
-> +		return -EIO;
-> +	}
-
-Newline, please.
-
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_core_ops imx319_subdev_core_ops = {
-> +	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
-> +	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
-> +};
-> +
-> +static const struct v4l2_subdev_video_ops imx319_video_ops = {
-> +	.s_stream = imx319_set_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops imx319_pad_ops = {
-> +	.enum_mbus_code = imx319_enum_mbus_code,
-> +	.get_fmt = imx319_get_pad_format,
-> +	.set_fmt = imx319_set_pad_format,
-> +	.enum_frame_size = imx319_enum_frame_size,
-> +};
-> +
-> +static const struct v4l2_subdev_ops imx319_subdev_ops = {
-> +	.core = &imx319_subdev_core_ops,
-> +	.video = &imx319_video_ops,
-> +	.pad = &imx319_pad_ops,
-> +};
-> +
-> +static const struct media_entity_operations imx319_subdev_entity_ops = {
-> +	.link_validate = v4l2_subdev_link_validate,
-> +};
-> +
-> +static const struct v4l2_subdev_internal_ops imx319_internal_ops = {
-> +	.open = imx319_open,
-> +};
-> +
-> +/* Initialize control handlers */
-> +static int imx319_init_controls(struct imx319 *imx319)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +	struct v4l2_ctrl_handler *ctrl_hdlr;
-> +	s64 exposure_max;
-> +	s64 vblank_def;
-> +	s64 vblank_min;
-> +	s64 hblank;
-> +	s64 pixel_rate;
-> +	const struct imx319_mode *mode;
-> +	int ret;
-> +
-> +	ctrl_hdlr = &imx319->ctrl_handler;
-> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 10);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ctrl_hdlr->lock = &imx319->mutex;
-> +	imx319->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr, &imx319_ctrl_ops,
-> +						   V4L2_CID_LINK_FREQ, 0, 0,
-> +						   imx319->pdata->link_freqs);
-> +	if (imx319->link_freq)
-> +		imx319->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +	/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
-> +	pixel_rate = (imx319->link_def_freq * 2 * 4) / 10;
-> +	/* By default, PIXEL_RATE is read only */
-> +	imx319->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +					       V4L2_CID_PIXEL_RATE, pixel_rate,
-> +					       pixel_rate, 1, pixel_rate);
-> +
-> +	/* Initialze vblank/hblank/exposure parameters based on current mode */
-> +	mode = imx319->cur_mode;
-> +	vblank_def = mode->fll_def - mode->height;
-> +	vblank_min = mode->fll_min - mode->height;
-> +	imx319->vblank = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +					   V4L2_CID_VBLANK, vblank_min,
-> +					   IMX319_FLL_MAX - mode->height,
-> +					   1, vblank_def);
-> +
-> +	hblank = mode->llp - mode->width;
-> +	imx319->hblank = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +					   V4L2_CID_HBLANK, hblank, hblank,
-> +					   1, hblank);
-> +	if (imx319->hblank)
-> +		imx319->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +	exposure_max = mode->fll_def - 18;
-> +	imx319->exposure = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +					     V4L2_CID_EXPOSURE,
-> +					     IMX319_EXPOSURE_MIN, exposure_max,
-> +					     IMX319_EXPOSURE_STEP,
-> +					     IMX319_EXPOSURE_DEFAULT);
-> +
-> +	imx319->hflip = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +					  V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	imx319->vflip = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +					  V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +
-> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-> +			  IMX319_ANA_GAIN_MIN, IMX319_ANA_GAIN_MAX,
-> +			  IMX319_ANA_GAIN_STEP, IMX319_ANA_GAIN_DEFAULT);
-> +
-> +	/* Digital gain */
-> +	v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
-> +			  IMX319_DGTL_GAIN_MIN, IMX319_DGTL_GAIN_MAX,
-> +			  IMX319_DGTL_GAIN_STEP, IMX319_DGTL_GAIN_DEFAULT);
-> +
-> +	v4l2_ctrl_new_std_menu_items(ctrl_hdlr, &imx319_ctrl_ops,
-> +				     V4L2_CID_TEST_PATTERN,
-> +				     ARRAY_SIZE(imx319_test_pattern_menu) - 1,
-> +				     0, 0, imx319_test_pattern_menu);
-> +	if (ctrl_hdlr->error) {
-> +		ret = ctrl_hdlr->error;
-> +		dev_err(&client->dev, "control init failed: %d", ret);
-> +		goto error;
-> +	}
-> +
-> +	imx319->sd.ctrl_handler = ctrl_hdlr;
-> +
-> +	return 0;
-> +
-> +error:
-> +	v4l2_ctrl_handler_free(ctrl_hdlr);
-> +
-> +	return ret;
-> +}
-> +
-> +static void imx319_free_controls(struct imx319 *imx319)
-> +{
-> +	v4l2_ctrl_handler_free(imx319->sd.ctrl_handler);
-
-You don't need a new function to do this; just call
-v4l2_ctrl_handler_free() where you need it.
-
-> +}
-> +
-> +static struct imx319_pdata *imx319_get_pdata(struct device *dev)
-
-Same for this one as for imx319_pdata struct --- the driver does not
-support platform data, so please do not use "pdata".
-
-> +{
-> +	struct imx319_pdata *cfg;
-> +	struct v4l2_fwnode_endpoint *bus_cfg;
-> +	struct fwnode_handle *ep;
-> +	struct fwnode_handle *fwnode = dev_fwnode(dev);
-> +	int i;
-
-unsigned int i
-
-> +	int ret;
-> +
-> +	if (!fwnode)
-> +		return &pdata;
-> +
-> +	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
-> +	if (!ep)
-> +		return NULL;
-> +
-> +	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(ep);
-> +	if (IS_ERR(bus_cfg))
-> +		goto out_err;
-> +
-> +	cfg = devm_kzalloc(dev, sizeof(*cfg), GFP_KERNEL);
-> +	if (!cfg)
-> +		goto out_err;
-> +
-> +	ret = fwnode_property_read_u32(dev_fwnode(dev), "clock-frequency",
-> +					&cfg->ext_clk);
-> +	if (ret) {
-> +		dev_err(dev, "can't get clock frequency");
-> +		goto out_err;
-> +	}
-> +
-> +	dev_dbg(dev, "ext clk: %d", cfg->ext_clk);
-> +	if (cfg->ext_clk != IMX319_EXT_CLK) {
-> +		dev_err(dev, "external clock %d is not supported",
-> +			 cfg->ext_clk);
-> +		goto out_err;
-> +	}
-> +
-> +	dev_dbg(dev, "number of link freqs: %d", bus_cfg->nr_of_link_frequencies);
-> +	if (!bus_cfg->nr_of_link_frequencies) {
-> +		dev_warn(dev, "no link frequencies defined");
-> +		goto out_err;
-> +	}
-> +
-> +	cfg->link_freqs = devm_kcalloc(
-> +		dev, bus_cfg->nr_of_link_frequencies + 1,
-> +		sizeof(*cfg->link_freqs), GFP_KERNEL);
-> +	if (!cfg->link_freqs)
-> +		goto out_err;
-> +
-> +	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
-> +		cfg->link_freqs[i] = bus_cfg->link_frequencies[i];
-> +		dev_dbg(dev, "link_freq[%d] = %lld", i, cfg->link_freqs[i]);
-> +	}
-> +
-> +	v4l2_fwnode_endpoint_free(bus_cfg);
-> +	fwnode_handle_put(ep);
-> +	return cfg;
-> +
-> +out_err:
-> +	v4l2_fwnode_endpoint_free(bus_cfg);
-> +	fwnode_handle_put(ep);
-> +	return NULL;
-> +}
-> +
-> +static int imx319_probe(struct i2c_client *client)
-> +{
-> +	struct imx319 *imx319;
-> +	int ret;
-> +
-> +	imx319 = devm_kzalloc(&client->dev, sizeof(*imx319), GFP_KERNEL);
-> +	if (!imx319)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&imx319->mutex);
-> +
-> +	/* Initialize subdev */
-> +	v4l2_i2c_subdev_init(&imx319->sd, client, &imx319_subdev_ops);
-> +
-> +	/* Check module identity */
-> +	ret = imx319_identify_module(imx319);
-> +	if (ret) {
-> +		dev_err(&client->dev, "failed to find sensor: %d", ret);
-> +		goto error_probe;
-> +	}
-> +
-> +	if (!(imx319->pdata = imx319_get_pdata(&client->dev))) {
-
-Please separate the assigment and the test.
-
-> +		dev_err(&client->dev, "failed to get pdata");
-
-And set ret before goto.
-
-> +		goto error_probe;
-> +	}
-> +
-> +	/* Set default link freqency */
-> +	imx319->link_def_freq = imx319->pdata->link_freqs[0];
-
-Which frequency the register lists are related to? Could you add a check
-for that, and return an error if the check files?
-
-> +
-> +	/* Set default mode to max resolution */
-> +	imx319->cur_mode = &supported_modes[0];
-> +
-> +	ret = imx319_init_controls(imx319);
-> +	if (ret) {
-> +		dev_err(&client->dev, "failed to init controls: %d", ret);
-> +		goto error_probe;
-> +	}
-> +
-> +	/* Initialize subdev */
-> +	imx319->sd.internal_ops = &imx319_internal_ops;
-> +	imx319->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
-> +		V4L2_SUBDEV_FL_HAS_EVENTS;
-> +	imx319->sd.entity.ops = &imx319_subdev_entity_ops;
-> +	imx319->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-> +
-> +	/* Initialize source pad */
-> +	imx319->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	ret = media_entity_pads_init(&imx319->sd.entity, 1, &imx319->pad);
-> +	if (ret) {
-> +		dev_err(&client->dev, "failed to init entity pads: %d", ret);
-> +		goto error_handler_free;
-> +	}
-> +
-> +	ret = v4l2_async_register_subdev_sensor_common(&imx319->sd);
-> +	if (ret < 0)
-> +		goto error_media_entity;
-> +
-> +	/*
-> +	 * Device is already turned on by i2c-core with ACPI domain PM.
-> +	 * Enable runtime PM and turn off the device.
-> +	 */
-> +	pm_runtime_set_active(&client->dev);
-> +	pm_runtime_enable(&client->dev);
-> +	pm_runtime_idle(&client->dev);
-> +
-> +	return 0;
-> +
-> +error_media_entity:
-> +	media_entity_cleanup(&imx319->sd.entity);
-> +
-> +error_handler_free:
-> +	imx319_free_controls(imx319);
-> +
-> +error_probe:
-> +	mutex_destroy(&imx319->mutex);
-> +
-> +	return ret;
-> +}
-> +
-> +static int imx319_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct imx319 *imx319 = to_imx319(sd);
-> +
-> +	v4l2_async_unregister_subdev(sd);
-> +	media_entity_cleanup(&sd->entity);
-> +	imx319_free_controls(imx319);
-> +
-> +	pm_runtime_disable(&client->dev);
-> +	pm_runtime_set_suspended(&client->dev);
-> +
-> +	mutex_destroy(&imx319->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops imx319_pm_ops = {
-> +	SET_SYSTEM_SLEEP_PM_OPS(imx319_suspend, imx319_resume)
-> +};
-> +
-> +static const struct acpi_device_id imx319_acpi_ids[] = {
-> +	{ "SONY319A" },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, imx319_acpi_ids);
-> +
-> +static struct i2c_driver imx319_i2c_driver = {
-> +	.driver = {
-> +		.name = "imx319",
-> +		.pm = &imx319_pm_ops,
-> +		.acpi_match_table = ACPI_PTR(imx319_acpi_ids),
-> +	},
-> +	.probe_new = imx319_probe,
-> +	.remove = imx319_remove,
-> +};
-> +module_i2c_driver(imx319_i2c_driver);
-> +
-> +MODULE_AUTHOR("Qiu, Tianshu <tian.shu.qiu@intel.com>");
-> +MODULE_AUTHOR("Rapolu, Chiranjeevi <chiranjeevi.rapolu@intel.com>");
-> +MODULE_AUTHOR("Bingbu Cao <bingbu.cao@intel.com>");
-> +MODULE_AUTHOR("Yang, Hyungwoo <hyungwoo.yang@intel.com>");
-> +MODULE_DESCRIPTION("Sony imx319 sensor driver");
-> +MODULE_LICENSE("GPL v2");
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+--82I3+IH0IqGh5yIs--
