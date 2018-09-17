@@ -1,100 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:52038 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728172AbeIQWmD (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:53344 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727081AbeIQXAn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 18:42:03 -0400
-Received: by mail-wm1-f67.google.com with SMTP id y2-v6so10539717wma.1
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 10:13:46 -0700 (PDT)
-Subject: Re: [PATCH 1/2] [media] v4l: allow to register dev nodes for
- individual v4l2 subdevs
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org,
-        Tian Shu Qiu <tian.shu.qiu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <20180904113018.14428-1-javierm@redhat.com>
- <20180904113018.14428-2-javierm@redhat.com>
- <20180917164634.arevvwkrvdmmteem@paasikivi.fi.intel.com>
-From: Javier Martinez Canillas <javierm@redhat.com>
-Message-ID: <0788d9f0-b98b-ecf8-c006-7f2f2172561c@redhat.com>
-Date: Mon, 17 Sep 2018 19:13:43 +0200
+        Mon, 17 Sep 2018 19:00:43 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v6 0/6] Add Rockchip VPU JPEG encoder
+Date: Mon, 17 Sep 2018 14:30:15 -0300
+Message-Id: <20180917173022.9338-1-ezequiel@collabora.com>
 MIME-Version: 1.0
-In-Reply-To: <20180917164634.arevvwkrvdmmteem@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This series adds support for JPEG encoding via the VPU block
+present in Rockchip platforms. Currently, support for RK3288
+and RK3399 is included.
 
-On 9/17/18 6:46 PM, Sakari Ailus wrote:
-> Hi Javier,
-> 
-> On Tue, Sep 04, 2018 at 01:30:17PM +0200, Javier Martinez Canillas wrote:
->> Currently there's only a function to register device nodes for all subdevs
->> of a v4l2 device that are marked with the V4L2_SUBDEV_FL_HAS_DEVNODE flag.
->>
->> But drivers may want to register device nodes for individual subdevices,
->> so add a v4l2_device_register_subdev_node() for this purpose.
->>
->> A use case for this function is for media device drivers to register the
->> device nodes in the v4l2 async notifier .bound callback instead of doing
->> a registration for all subdevices in the .complete callback.
-> 
-> Thanks for the set.
-> 
-> I've been doing some work to add events to MC; with Hans's property API
-> set, assuming it could be used to tell the registration is complete, we
-> have all bits for a complete solution.
->
+Please, see the previous versions of this cover letter for
+more information.
 
-Great.
- 
-> As the driver is buggy and fails to work correctly in the case if not every
-> sub-devices probes successfully, I see no reason to postpone applying the
-> two patches now.
->
+Compared to v5, the only change is in the V4L2_CID_JPEG_QUANTIZATION
+control. We've decided to support only baseline profile,
+and only add 8-bit luma and chroma tables.
 
-Yes, agreed.
- 
-> One more comment below. (No need to resend just for that IMO.)
-> 
->>
->> Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+struct v4l2_ctrl_jpeg_quantization {
+       __u8    luma_quantization_matrix[64];
+       __u8    chroma_quantization_matrix[64];
+};
 
-[snip]
+By doing this, it's clear that we don't currently support anything
+but baseline.
 
->>  
->> +/**
->> + * v4l2_device_register_subdev_node - Registers a device node for a subdev
->> + *	of the v4l2 device.
->> + *
->> + * @v4l2_dev: pointer to struct v4l2_device
-> 
-> struct -> &struct
->
+This series should apply cleanly on top of
 
-Thanks, I'm not well versed in kernel-doc / Sphinx markup syntax so I missed it.
+  git://linuxtv.org/hverkuil/media_tree.git br-cedrus tag.
 
-BTW, I copied from another place in include/media/v4l2-device.h, and now I
-notice that it has a mix of "&struct foo", "struct &foo" and "struct foo".
+If everyone is happy with this series, I'd like to route the devicetree
+changes through the rockchip tree, and the rest via the media subsystem.
 
-It would be nice to fix this so cross-reference works properly in all cases.
- 
->> + * @sd: pointer to &struct v4l2_subdev
->> + */
->> +int __must_check v4l2_device_register_subdev_node(struct v4l2_device *v4l2_dev,
->> +						  struct v4l2_subdev *sd);
->> +
->>  /**
->>   * v4l2_device_register_subdev_nodes - Registers device nodes for all subdevs
->>   *	of the v4l2 device that are marked with
-> 
+Compliance
+==========
 
-Best regards,
+(Same results as v3)
+
+v4l2-compliance SHA: d0f4ea7ddab6d0244c4fe1e960bb2aaeefb911b9, 64 bits
+
+Compliance test for device /dev/video0:
+
+Driver Info:
+	Driver name      : rockchip-vpu
+	Card type        : rockchip,rk3399-vpu-enc
+	Bus info         : platform: rockchip-vpu
+	Driver version   : 4.18.0
+	Capabilities     : 0x84204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x04204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+Media Driver Info:
+	Driver name      : rockchip-vpu
+	Model            : rockchip-vpu
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.18.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.18.0
+Interface Info:
+	ID               : 0x0300000c
+	Type             : V4L Video
+Entity Info:
+	ID               : 0x00000001 (1)
+	Name             : rockchip,rk3399-vpu-enc-source
+	Function         : V4L2 I/O
+	Pad 0x01000002   : Source
+	  Link 0x02000008: to remote pad 0x1000005 of entity 'rockchip,rk3399-vpu-enc-proc': Data, Enabled, Immutable
+
+Required ioctls:
+	test MC information (see 'Media Driver Info' above): OK
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second /dev/video0 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 2 Private Controls: 0
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK (Not Supported)
+	test blocking wait: OK
+	test MMAP: OK                                     
+	test USERPTR: OK (Not Supported)
+	test DMABUF: Cannot test, specify --expbuf-device
+
+Total: 48, Succeeded: 48, Failed: 0, Warnings: 0
+
+v6:
+  - As agreed with Hans change the quantization control
+    to support only strict baseline JPEGs, with 8-bit
+    coefficients.
+v5:
+  - Make coefficients 2-byte wide, to support 8-bit and 16-bit
+    precision coefficient. Also, add a 'precision' field, to
+    allow the user to specifiy the coefficient precision.
+  - Minor style changes as requested by Hans.
+  - Get rid of all the unused leftover code.
+  - Move driver to staging. The driver will support video encoding,
+    via the request API. So let's use staging until the
+    controls are stabilized.
+v4:
+  - Change luma and chroma array controls, with a compound
+    control, as suggested by Paul.
+v3:
+  - Refactor driver to allow a more elegant integration with
+    other codec modes (h264 decoding, jpeg decoding, etc).
+    Each variant can now be encoders, decoders or both.
+  - Register driver in the media controller framework,
+    in preparation for the Request API.
+  - Set values for JPEG quantization controls in the core, as suggested
+    by Tomasz and Hans.
+  - Move pm_runtime_get/put to run/done, reducing power consumption.
+    This was possible thanks to Miouyouyou, who pointed out the power
+    domains missing [1].
+  - Use bulk clock API for simpler code.
+v2:
+  - Add devicetree binding documentation and devicetree changes
+  - Add documentation to added pixel format and controls
+  - Address Hans' review comments
+  - Get rid of unused running_ctx field
+  - Fix wrong planar pixel format depths
+  - Other minor changes for v4l2-compliance
+  - Drop .crop support, we will add support for the
+    selector API later, if needed.
+
+[1] https://github.com/Miouyouyou/RockMyy/blob/master/patches/kernel/v4.18/DTS/0026-ARM-DTSI-rk3288-Set-the-VPU-MMU-power-domains.patch
+
+Ezequiel Garcia (4):
+  dt-bindings: Document the Rockchip VPU bindings
+  ARM: dts: rockchip: add VPU device node for RK3288
+  arm64: dts: rockchip: add VPU device node for RK3399
+  media: add Rockchip VPU JPEG encoder driver
+
+Shunqian Zheng (2):
+  media: Add JPEG_RAW format
+  media: Add controls for JPEG quantization tables
+
+ .../bindings/media/rockchip-vpu.txt           |  30 +
+ .../media/uapi/v4l/extended-controls.rst      |  25 +
+ .../media/uapi/v4l/pixfmt-compressed.rst      |   9 +
+ .../media/videodev2.h.rst.exceptions          |   1 +
+ MAINTAINERS                                   |   7 +
+ arch/arm/boot/dts/rk3288.dtsi                 |  14 +-
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi      |  14 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c          |   8 +
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+ drivers/staging/media/Kconfig                 |   2 +
+ drivers/staging/media/Makefile                |   1 +
+ drivers/staging/media/rockchip/vpu/Makefile   |   9 +
+ drivers/staging/media/rockchip/vpu/TODO       |   5 +
+ .../media/rockchip/vpu/rk3288_vpu_hw.c        | 123 ++++
+ .../rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c     | 126 ++++
+ .../media/rockchip/vpu/rk3288_vpu_regs.h      | 442 +++++++++++++
+ .../media/rockchip/vpu/rk3399_vpu_hw.c        | 123 ++++
+ .../rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c     | 154 +++++
+ .../media/rockchip/vpu/rk3399_vpu_regs.h      | 601 +++++++++++++++++
+ .../staging/media/rockchip/vpu/rockchip_vpu.h | 292 +++++++++
+ .../media/rockchip/vpu/rockchip_vpu_common.h  |  31 +
+ .../media/rockchip/vpu/rockchip_vpu_drv.c     | 528 +++++++++++++++
+ .../media/rockchip/vpu/rockchip_vpu_enc.c     | 604 ++++++++++++++++++
+ .../media/rockchip/vpu/rockchip_vpu_hw.h      |  65 ++
+ include/uapi/linux/v4l2-controls.h            |  10 +
+ include/uapi/linux/videodev2.h                |   2 +
+ 26 files changed, 3225 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
+ create mode 100644 drivers/staging/media/rockchip/vpu/Makefile
+ create mode 100644 drivers/staging/media/rockchip/vpu/TODO
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_regs.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_regs.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_hw.h
+
 -- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+2.19.0.rc2
