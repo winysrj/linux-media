@@ -1,66 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42450 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726826AbeIQPNb (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:58714 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726169AbeIQP1V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 11:13:31 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 807E9634C7F
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 12:46:53 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1g1q7J-0000wQ-AK
-        for linux-media@vger.kernel.org; Mon, 17 Sep 2018 12:46:53 +0300
-Date: Mon, 17 Sep 2018 12:46:53 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.20] Ov5640 fixes
-Message-ID: <20180917094652.eogm4x5k4c54rbjt@valkosipuli.retiisi.org.uk>
+        Mon, 17 Sep 2018 11:27:21 -0400
+Subject: Re: [PATCH] venus: vdec: fix decoded data size
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Vikash Garodia <vgarodia@codeaurora.org>
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-kernel@vger.kernel.org, acourbot@chromium.org
+References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
+ <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org>
+ <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
+ <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <33e8d8e3-138e-0031-5b75-4bef114ac75e@xs4all.nl>
+Date: Mon, 17 Sep 2018 12:00:34 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 07/18/2018 04:37 PM, Stanimir Varbanov wrote:
+> Hi,
+> 
+> On 07/18/2018 04:26 PM, Nicolas Dufresne wrote:
+>> Le mercredi 18 juillet 2018 à 14:31 +0300, Stanimir Varbanov a écrit :
+>>> Hi Vikash,
+>>>
+>>> On 07/02/2018 10:44 AM, Vikash Garodia wrote:
+>>>> Exisiting code returns the max of the decoded
+>>>> size and buffer size. It turns out that buffer
+>>>> size is always greater due to hardware alignment
+>>>> requirement. As a result, payload size given to
+>>>> client is incorrect. This change ensures that
+>>>> the bytesused is assigned to actual payload size.
+>>>>
+>>>> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
+>>>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>>>> ---
+>>>>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
+>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/media/platform/qcom/venus/vdec.c
+>>>> b/drivers/media/platform/qcom/venus/vdec.c
+>>>> index d079aeb..ada1d2f 100644
+>>>> --- a/drivers/media/platform/qcom/venus/vdec.c
+>>>> +++ b/drivers/media/platform/qcom/venus/vdec.c
+>>>> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst
+>>>> *inst, unsigned int buf_type,
+>>>>  
+>>>>  		vb = &vbuf->vb2_buf;
+>>>>  		vb->planes[0].bytesused =
+>>>> -			max_t(unsigned int, opb_sz, bytesused);
+>>>> +			min_t(unsigned int, opb_sz, bytesused);
+>>>
+>>> Most probably my intension was to avoid bytesused == 0, but that is
+>>> allowed from v4l2 driver -> userspace direction
+>>
+>> It remains bad practice since it was used by decoders to indicate the
+>> last buffer. Some userspace (some GStreamer versions) will stop working
+>> if you start returning 0.
+> 
+> I think it is legal v4l2 driver to return bytesused = 0 when userspace
+> issues streamoff on both queues before EOS, no? Simply because the
+> capture buffers are empty.
+> 
 
-Here are a bunch of ov5640 fixes and improvements from Jacopo and Hugues.
+Going through some of the older pending patches I found this one:
 
-Please pull.
+So is this patch right or wrong?
 
+It's not clear to me.
 
-The following changes since commit 78cf8c842c111df656c63b5d04997ea4e40ef26a:
+Regards,
 
-  media: drxj: fix spelling mistake in fall-through annotations (2018-09-12 11:21:52 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-5-0
-
-for you to fetch changes up to dc56f982b811f79f66f1d82c9eba519c9aefc649:
-
-  media: ov5640: fix restore of last mode set (2018-09-16 01:59:25 +0300)
-
-----------------------------------------------------------------
-ov5640 patches
-
-----------------------------------------------------------------
-Hugues Fruchet (5):
-      media: ov5640: fix exposure regression
-      media: ov5640: fix auto gain & exposure when changing mode
-      media: ov5640: fix wrong binning value in exposure calculation
-      media: ov5640: fix auto controls values when switching to manual mode
-      media: ov5640: fix restore of last mode set
-
-Jacopo Mondi (2):
-      media: ov5640: Re-work MIPI startup sequence
-      media: ov5640: Fix timings setup code
-
- drivers/media/i2c/ov5640.c | 275 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 172 insertions(+), 103 deletions(-)
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+	Hans
