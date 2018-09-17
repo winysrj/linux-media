@@ -1,73 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:35564 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727858AbeIQUln (ORCPT
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:41751 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726979AbeIQVb1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Sep 2018 16:41:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: kieran.bingham+renesas@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 0/4] media: adv748x: Allow probe with a single output endpoint
-Date: Mon, 17 Sep 2018 18:14:10 +0300
-Message-ID: <14784319.JEm9TEobmr@avalon>
-In-Reply-To: <1537183857-29173-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1537183857-29173-1-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 17 Sep 2018 17:31:27 -0400
+Received: by mail-pg1-f196.google.com with SMTP id s15-v6so7878273pgv.8
+        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 09:03:27 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 1/5] media: video-i2c: avoid accessing released memory area when removing driver
+Date: Tue, 18 Sep 2018 01:03:07 +0900
+Message-Id: <1537200191-17956-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
+References: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+The struct video_i2c_data is released when video_unregister_device() is
+called, but it will still be accessed after calling
+video_unregister_device().
 
-Thank you for the patches.
+Use devm_kzalloc() and let the memory be automatically released on driver
+detach.
 
-On Monday, 17 September 2018 14:30:53 EEST Jacopo Mondi wrote:
-> Hello Laurent, Kieran, Niklas,
->    to address the Ebisu board use case, this series allows the adv748x
-> driver to probe with a single output connection defined.
-> 
-> Compared to v2, I have dropped the last patch, as without any dynamic
-> routing support it is not that helpful, and I've fixed most of commit
-> messages as suggested by Kieran.
-> 
-> I have tested in 3 conditions on Salvator-X M3-W:
-> - AFE input not registered
-> - TXB not registered (Ebisu use case)
-> - AFE and TXB not registered
-> 
-> Let me know if I can help testing this on Ebisu.
+Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ drivers/media/i2c/video-i2c.c | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-For the whole series,
-
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-on Ebisu with your "[PATCH/RFT v2 0/8] arm64: dts: renesas: Ebisu: Add HDMI 
-and CVBS input" patches.
-
-The driver now probes properly and I can capture frames, but they're all black 
-:-S I don't think that's related to this series though.
-
-> v2 -> v3:
-> - Drop v2 patch [5/5]
-> - Add Kieran's tags and modify commit messages as he suggested
-> 
-> Jacopo Mondi (4):
->   media: i2c: adv748x: Support probing a single output
->   media: i2c: adv748x: Handle TX[A|B] power management
->   media: i2c: adv748x: Conditionally enable only CSI-2 outputs
->   media: i2c: adv748x: Register only enabled inputs
-> 
->  drivers/media/i2c/adv748x/adv748x-afe.c  |  2 +-
->  drivers/media/i2c/adv748x/adv748x-core.c | 83  +++++++++++++++-------------
->  drivers/media/i2c/adv748x/adv748x-csi2.c | 29 ++++-------
->  drivers/media/i2c/adv748x/adv748x-hdmi.c |  2 +-
->  drivers/media/i2c/adv748x/adv748x.h      | 19 ++++++--
->  5 files changed, 68 insertions(+), 67 deletions(-)
-
+diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+index 06d29d8..b7a2af9 100644
+--- a/drivers/media/i2c/video-i2c.c
++++ b/drivers/media/i2c/video-i2c.c
+@@ -508,20 +508,15 @@ static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
+ 	.vidioc_streamoff		= vb2_ioctl_streamoff,
+ };
+ 
+-static void video_i2c_release(struct video_device *vdev)
+-{
+-	kfree(video_get_drvdata(vdev));
+-}
+-
+ static int video_i2c_probe(struct i2c_client *client,
+ 			     const struct i2c_device_id *id)
+ {
+ 	struct video_i2c_data *data;
+ 	struct v4l2_device *v4l2_dev;
+ 	struct vb2_queue *queue;
+-	int ret = -ENODEV;
++	int ret;
+ 
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+@@ -530,7 +525,7 @@ static int video_i2c_probe(struct i2c_client *client,
+ 	else if (id)
+ 		data->chip = &video_i2c_chip[id->driver_data];
+ 	else
+-		goto error_free_device;
++		return -ENODEV;
+ 
+ 	data->client = client;
+ 	v4l2_dev = &data->v4l2_dev;
+@@ -538,7 +533,7 @@ static int video_i2c_probe(struct i2c_client *client,
+ 
+ 	ret = v4l2_device_register(&client->dev, v4l2_dev);
+ 	if (ret < 0)
+-		goto error_free_device;
++		return ret;
+ 
+ 	mutex_init(&data->lock);
+ 	mutex_init(&data->queue_lock);
+@@ -568,7 +563,7 @@ static int video_i2c_probe(struct i2c_client *client,
+ 	data->vdev.fops = &video_i2c_fops;
+ 	data->vdev.lock = &data->lock;
+ 	data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
+-	data->vdev.release = video_i2c_release;
++	data->vdev.release = video_device_release_empty;
+ 	data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
+ 				 V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+ 
+@@ -597,9 +592,6 @@ static int video_i2c_probe(struct i2c_client *client,
+ 	mutex_destroy(&data->lock);
+ 	mutex_destroy(&data->queue_lock);
+ 
+-error_free_device:
+-	kfree(data);
+-
+ 	return ret;
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
