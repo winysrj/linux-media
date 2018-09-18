@@ -1,157 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:40662 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729429AbeIREWI (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:32843 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726382AbeIRHUG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 00:22:08 -0400
-Received: by mail-it0-f68.google.com with SMTP id h23-v6so551600ita.5
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2018 15:52:43 -0700 (PDT)
+        Tue, 18 Sep 2018 03:20:06 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 0/3] i2c: adv748x: add support for CSI-2 TXA to work in 1-, 2- and 4-lane mode
+Date: Tue, 18 Sep 2018 03:45:06 +0200
+Message-Id: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com> <20180914114131.jqq737k3qug2tdff@paasikivi.fi.intel.com>
-In-Reply-To: <20180914114131.jqq737k3qug2tdff@paasikivi.fi.intel.com>
-From: Grant Grundler <grundler@chromium.org>
-Date: Mon, 17 Sep 2018 15:52:30 -0700
-Message-ID: <CANEJEGsP7hYtpEVpJrDSjUML_Xja2kj4+oFb98S2ZXn8C+CLNw@mail.gmail.com>
-Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
-To: sakari.ailus@linux.intel.com
-Cc: ping-chung.chen@intel.com, linux-media@vger.kernel.org,
-        andy.yeh@intel.com, jim.lai@intel.com, tfiga@chromium.org,
-        Grant Grundler <grundler@chromium.org>, rajmohan.mani@intel.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 14, 2018 at 4:41 AM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Hi Ping-chung,
->
-> My apologies for the late review.
+Hi,
 
-Yeah...I had the impression this was already accepted. Though it
-should be straight forward to fix up additional things as normal
-patches.
+This series allows the TXA CSI-2 transmitter of the adv748x to function 
+in 1-, 2- and 4- lane mode. Currently the driver fixes the hardware in 
+4-lane mode. The driver looks at the standard DT property 'data-lanes' 
+to determine which mode it should operate in.
 
-[sorry pruning heavily]
-...
-> > +/* HBLANK control - read only */
-> > +#define IMX208_PPL_384MHZ            2248
-> > +#define IMX208_PPL_96MHZ             2248
->
-> Does this generally depend on the link frequency?
+Patch 1/3 adds the DT parsing and storing of the number of lanes. Patch 
+2/3 adds functionality for intercepting and injecting the requested 
+number of lanes when writing the register for NUM_LANES for the TXA 
+register 0x00. Lastly patch 3/3 fixes a type related to lane settings 
+for TXB which is confusing (at lest to me) when reviewing the result of 
+this series.
 
-This was discussed in earlier patch version: in a nutshell, yes.
+Patch 1/3 and 2/3 could be squashed together but as the method in 2/3 is 
+less then obvious since it intercepts the long tables of register writes 
+I thought splitting them could ease review.
 
-...
-> > +/* Configurations for supported link frequencies */
-> > +#define IMX208_MHZ                   (1000*1000ULL)
-> > +#define IMX208_LINK_FREQ_384MHZ              (384ULL * IMX208_MHZ)
-> > +#define IMX208_LINK_FREQ_96MHZ               (96ULL * IMX208_MHZ)
->
-> You could simply write these as 384000000 and 96000000.
+The series is based on the latest media-tree master and is tested on 
+Renesas M3-N in 1-, 2- and 4- lane mode.
 
-The original code did that. I agree IMX208_MHZ makes this much easier to read.
+Niklas Söderlund (3):
+  i2c: adv748x: store number of CSI-2 lanes described in device tree
+  i2c: adv748x: configure number of lanes used for TXA CSI-2 transmitter
+  i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down
 
-...
-> > +     /* Current mode */
-> > +     const struct imx208_mode *cur_mode;
-> > +
-> > +     /*
-> > +      * Mutex for serialized access:
-> > +      * Protect sensor set pad format and start/stop streaming safely.
-> > +      * Protect access to sensor v4l2 controls.
-> > +      */
-> > +     struct mutex imx208_mx;
->
-> How about calling it simply e.g. a "mutex"? The struct is already specific
-> to imx208.
+ drivers/media/i2c/adv748x/adv748x-core.c | 89 +++++++++++++++++++++---
+ drivers/media/i2c/adv748x/adv748x.h      |  1 +
+ 2 files changed, 81 insertions(+), 9 deletions(-)
 
-I specifically asked the code not use "mutex" because trying to find
-this specific use of "mutex" with cscope (ctags) is impossible.
-
-Defining "mutex" in multiple name spaces is asking for trouble even
-though technically it's "safe" to do.
-
-...
-> > +static int imx208_set_pad_format(struct v4l2_subdev *sd,
-> > +                    struct v4l2_subdev_pad_config *cfg,
-> > +                    struct v4l2_subdev_format *fmt)
-> > +{
-> > +     struct imx208 *imx208 = to_imx208(sd);
-> > +     const struct imx208_mode *mode;
-> > +     s32 vblank_def;
-> > +     s32 vblank_min;
-> > +     s64 h_blank;
-> > +     s64 pixel_rate;
-> > +     s64 link_freq;
-> > +
-> > +     mutex_lock(&imx208->imx208_mx);
-> > +
-> > +     fmt->format.code = imx208_get_format_code(imx208);
-> > +     mode = v4l2_find_nearest_size(
-> > +             supported_modes, ARRAY_SIZE(supported_modes), width, height,
-> > +             fmt->format.width, fmt->format.height);
-> > +     imx208_mode_to_pad_format(imx208, mode, fmt);
-> > +     if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > +             *v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
-> > +     } else {
-> > +             imx208->cur_mode = mode;
-> > +             __v4l2_ctrl_s_ctrl(imx208->link_freq, mode->link_freq_index);
-> > +             link_freq = link_freq_menu_items[mode->link_freq_index];
->
-> Same as on the imx319 driver --- the link frequencies that are available
-> need to reflect what is specified in firmware.
-
-<Someone needs to comment here.>  :)
-
-...
-> > +static int imx208_set_stream(struct v4l2_subdev *sd, int enable)
-> > +{
-> > +     struct imx208 *imx208 = to_imx208(sd);
-> > +     struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +     int ret = 0;
-> > +
-> > +     mutex_lock(&imx208->imx208_mx);
-> > +     if (imx208->streaming == enable) {
-> > +             mutex_unlock(&imx208->imx208_mx);
-> > +             return 0;
-> > +     }
-> > +
-> > +     if (enable) {
-> > +             ret = pm_runtime_get_sync(&client->dev);
-> > +             if (ret < 0)
-> > +                     goto err_rpm_put;
-> > +
-> > +             /*
-> > +              * Apply default & customized values
-> > +              * and then start streaming.
-> > +              */
-> > +             ret = imx208_start_streaming(imx208);
-> > +             if (ret)
-> > +                     goto err_rpm_put;
-> > +     } else {
-> > +             imx208_stop_streaming(imx208);
-> > +             pm_runtime_put(&client->dev);
-> > +     }
-> > +
-> > +     imx208->streaming = enable;
-> > +     mutex_unlock(&imx208->imx208_mx);
-> > +
-> > +     /* vflip and hflip cannot change during streaming */
-> > +     v4l2_ctrl_grab(imx208->vflip, enable);
-> > +     v4l2_ctrl_grab(imx208->hflip, enable);
->
-> Please grab before releasing the lock; use __v4l2_ctrl_grab() here:
->
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=unlocked-ctrl-grab>
-
-Is the current implementation not correct or is this just the
-preferred way to "grab"?
-
-(And thanks for pointing at the patch which adds the new "API")
-
-(and I'm ignoring the remaining nit on the assumption it can be
-addressed in the next patch)
-
-cheers,
-grant
+-- 
+2.18.0
