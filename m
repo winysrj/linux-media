@@ -1,121 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:52144 "EHLO mx1.suse.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726759AbeIROtB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 10:49:01 -0400
-Date: Tue, 18 Sep 2018 11:17:14 +0200
-From: Jan Kara <jack@suse.cz>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, Jan Kara <jack@suse.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org,
-        linux-ext4@vger.kernel.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org, Ted Tso <tytso@mit.edu>
-Subject: Re: [PATCH] docs: fix some broken documentation references
-Message-ID: <20180918091714.GG10257@quack2.suse.cz>
-References: <6b47bf56b898c48a0dc3cd42283c9e5c7c23367a.1537210894.git.mchehab+samsung@kernel.org>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:54101 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726768AbeIRPGX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Sep 2018 11:06:23 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
+Subject: [PATCH v3 00/16] i.MX media mem2mem scaler
+Date: Tue, 18 Sep 2018 11:34:05 +0200
+Message-Id: <20180918093421.12930-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6b47bf56b898c48a0dc3cd42283c9e5c7c23367a.1537210894.git.mchehab+samsung@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 17-09-18 15:02:34, Mauro Carvalho Chehab wrote:
-> Some documentation files received recent changes and are
-> pointing to wrong places.
-> 
-> Those references can easily fixed with the help of a
-> script:
-> 
-> 	$ ./scripts/documentation-file-ref-check --fix
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Hi,
 
-Looks good to me. Thanks for fixing this up. You can add:
+this is the third version of the i.MX mem2mem scaler series.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+The driver patch has been moved to the beginning, as Steve suggested.
+I've added his warning patch to catch alignment bugs to the series,
+seam position selection has been fixed for more corner cases, the
+alignment restriction relaxation patches have been merged into one
+patch, and support for tiling with three rows or columns has been added
+to avoid unnecessary overhead.
 
-								Honza
-> ---
->  Documentation/filesystems/dax.txt  | 2 +-
->  Documentation/filesystems/ext2.txt | 2 +-
->  MAINTAINERS                        | 4 ++--
->  net/bridge/Kconfig                 | 2 +-
->  4 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/filesystems/dax.txt b/Documentation/filesystems/dax.txt
-> index 70cb68bed2e8..bc393e0a22b8 100644
-> --- a/Documentation/filesystems/dax.txt
-> +++ b/Documentation/filesystems/dax.txt
-> @@ -75,7 +75,7 @@ exposure of uninitialized data through mmap.
->  
->  These filesystems may be used for inspiration:
->  - ext2: see Documentation/filesystems/ext2.txt
-> -- ext4: see Documentation/filesystems/ext4.txt
-> +- ext4: see Documentation/filesystems/ext4/ext4.rst
->  - xfs:  see Documentation/filesystems/xfs.txt
->  
->  
-> diff --git a/Documentation/filesystems/ext2.txt b/Documentation/filesystems/ext2.txt
-> index 81c0becab225..a45c9fc0747b 100644
-> --- a/Documentation/filesystems/ext2.txt
-> +++ b/Documentation/filesystems/ext2.txt
-> @@ -358,7 +358,7 @@ and are copied into the filesystem.  If a transaction is incomplete at
->  the time of the crash, then there is no guarantee of consistency for
->  the blocks in that transaction so they are discarded (which means any
->  filesystem changes they represent are also lost).
-> -Check Documentation/filesystems/ext4.txt if you want to read more about
-> +Check Documentation/filesystems/ext4/ext4.rst if you want to read more about
->  ext4 and journaling.
->  
->  References
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 9989925f658d..078a4cf6d064 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -840,7 +840,7 @@ ANALOG DEVICES INC ADGS1408 DRIVER
->  M:	Mircea Caprioru <mircea.caprioru@analog.com>
->  S:	Supported
->  F:	drivers/mux/adgs1408.c
-> -F:	Documentation/devicetree/bindings/mux/adgs1408.txt
-> +F:	Documentation/devicetree/bindings/mux/adi,adgs1408.txt
->  
->  ANALOG DEVICES INC ADP5061 DRIVER
->  M:	Stefan Popa <stefan.popa@analog.com>
-> @@ -5515,7 +5515,7 @@ W:	http://ext4.wiki.kernel.org
->  Q:	http://patchwork.ozlabs.org/project/linux-ext4/list/
->  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4.git
->  S:	Maintained
-> -F:	Documentation/filesystems/ext4.txt
-> +F:	Documentation/filesystems/ext4/ext4.rst
->  F:	fs/ext4/
->  
->  Extended Verification Module (EVM)
-> diff --git a/net/bridge/Kconfig b/net/bridge/Kconfig
-> index aa0d3b2f1bb7..3625d6ade45c 100644
-> --- a/net/bridge/Kconfig
-> +++ b/net/bridge/Kconfig
-> @@ -17,7 +17,7 @@ config BRIDGE
->  	  other third party bridge products.
->  
->  	  In order to use the Ethernet bridge, you'll need the bridge
-> -	  configuration tools; see <file:Documentation/networking/bridge.txt>
-> +	  configuration tools; see <file:Documentation/networking/bridge.rst>
->  	  for location. Please read the Bridge mini-HOWTO for more
->  	  information.
->  
-> -- 
-> 2.17.1
-> 
-> 
+Changes since v2:
+ - Rely on ipu_image_convert_adjust() in mem2mem_try_fmt() for format
+   adjustments. This makes the mem2mem driver mostly a V4L2 mem2mem API
+   wrapper around the IPU image converter, and independent of the
+   internal image converter implementation.
+ - Remove the source and destination buffers on error in device_run().
+   Otherwise the conversion is re-attempted apparently over and over
+   again (with WARN() backtraces).
+ - Allow subscribing to control changes.
+ - Fix seam position selection for more corner cases:
+    - Switch width/height properly and align tile top left positions to 8x8
+      IRT block size when rotating.
+    - Align input width to input burst length in case the scaling step
+      flips horizontally.
+    - Fix bottom edge calculation.
+
+Changes since v1:
+ - Fix inverted allow_overshoot logic
+ - Correctly switch horizontal / vertical tile alignment when
+   determining seam positions with the 90° rotator active.
+ - Fix SPDX-License-Identifier and remove superfluous license
+   text.
+ - Fix uninitialized walign in try_fmt
+
+Previous cover letter:
+
+we have image conversion code for scaling and colorspace conversion in
+the IPUv3 base driver for a while. Since the IC hardware can only write
+up to 1024x1024 pixel buffers, it scales to larger output buffers by
+splitting the input and output frame into similarly sized tiles.
+
+This causes the issue that the bilinear interpolation resets at the tile
+boundary: instead of smoothly interpolating across the seam, there is a
+jump in the input sample position that is very apparent for high
+upscaling factors. This can be avoided by slightly changing the scaling
+coefficients to let the left/top tiles overshoot their input sampling
+into the first pixel / line of their right / bottom neighbors. The error
+can be further reduced by letting tiles be differently sized and by
+selecting seam positions that minimize the input sampling position error
+at tile boundaries.
+This is complicated by different DMA start address, burst size, and
+rotator block size alignment requirements, depending on the input and
+output pixel formats, and the fact that flipping happens in different
+places depending on the rotation.
+
+This series implements optimal seam position selection and seam hiding
+with per-tile resizing coefficients and adds a scaling mem2mem device
+to the imx-media driver.
+
+regards
+Philipp
+
+Philipp Zabel (15):
+  media: imx: add mem2mem device
+  gpu: ipu-v3: ipu-ic: allow to manually set resize coefficients
+  gpu: ipu-v3: image-convert: prepare for per-tile configuration
+  gpu: ipu-v3: image-convert: calculate per-tile resize coefficients
+  gpu: ipu-v3: image-convert: reconfigure IC per tile
+  gpu: ipu-v3: image-convert: store tile top/left position
+  gpu: ipu-v3: image-convert: calculate tile dimensions and offsets
+    outside fill_image
+  gpu: ipu-v3: image-convert: move tile alignment helpers
+  gpu: ipu-v3: image-convert: select optimal seam positions
+  gpu: ipu-v3: image-convert: fix debug output for varying tile sizes
+  gpu: ipu-v3: image-convert: relax alignment restrictions
+  gpu: ipu-v3: image-convert: fix bytesperline adjustment
+  gpu: ipu-v3: image-convert: add some ASCII art to the exposition
+  gpu: ipu-v3: image-convert: disable double buffering if necessary
+  gpu: ipu-v3: image-convert: allow three rows or columns
+
+Steve Longerbeam (1):
+  gpu: ipu-cpmem: add WARN_ON_ONCE() for unaligned dma buffers
+
+ drivers/gpu/ipu-v3/ipu-cpmem.c                |   6 +
+ drivers/gpu/ipu-v3/ipu-ic.c                   |  52 +-
+ drivers/gpu/ipu-v3/ipu-image-convert.c        | 919 +++++++++++++++---
+ drivers/staging/media/imx/Kconfig             |   1 +
+ drivers/staging/media/imx/Makefile            |   1 +
+ drivers/staging/media/imx/imx-media-dev.c     |  11 +
+ drivers/staging/media/imx/imx-media-mem2mem.c | 873 +++++++++++++++++
+ drivers/staging/media/imx/imx-media.h         |  10 +
+ include/video/imx-ipu-v3.h                    |   6 +
+ 9 files changed, 1727 insertions(+), 152 deletions(-)
+ create mode 100644 drivers/staging/media/imx/imx-media-mem2mem.c
+
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.19.0
