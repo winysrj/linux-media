@@ -1,85 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:59561 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725779AbeISEiC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 00:38:02 -0400
-Subject: Re: [PATCH] media: imx: Skip every second frame in VDIC DIRECT mode
-To: Hans Verkuil <hverkuil@xs4all.nl>, Marek Vasut <marex@denx.de>,
-        <linux-media@vger.kernel.org>
-CC: Philipp Zabel <p.zabel@pengutronix.de>
-References: <20180407130440.24886-1-marex@denx.de>
- <e769f2b9-e46b-8bf6-d5cd-462f475b9c97@xs4all.nl>
- <529202d4-c1c9-31d6-6e4a-49b4602b1eb6@xs4all.nl>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <72ee25a2-7b26-5cc3-987e-998af4db78e8@mentor.com>
-Date: Tue, 18 Sep 2018 16:02:37 -0700
-MIME-Version: 1.0
-In-Reply-To: <529202d4-c1c9-31d6-6e4a-49b4602b1eb6@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mga14.intel.com ([192.55.52.115]:6107 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725779AbeISFOd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Sep 2018 01:14:33 -0400
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Li, Chao C" <chao.c.li@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+Subject: RE: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
+Date: Tue, 18 Sep 2018 23:39:34 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981505CAF@fmsmsx122.amr.corp.intel.com>
+References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com>
+ <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
+ <749a58a4-24f7-672f-70a9-cfd584af0171@xs4all.nl>
+ <6F87890CF0F5204F892DEA1EF0D77A598150266F@fmsmsx122.amr.corp.intel.com>
+ <20180913113809.tbitfbeue735jpnw@paasikivi.fi.intel.com>
+In-Reply-To: <20180913113809.tbitfbeue735jpnw@paasikivi.fi.intel.com>
 Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
+> -----Original Message-----
+> From: sakari.ailus@linux.intel.com [mailto:sakari.ailus@linux.intel.com]
+> Sent: Thursday, September 13, 2018 4:38 AM
+> To: Mani, Rajmohan <rajmohan.mani@intel.com>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>; Zhi, Yong <yong.zhi@intel.com>; linux-
+> media@vger.kernel.org; tfiga@chromium.org; mchehab@kernel.org;
+> hans.verkuil@cisco.com; laurent.pinchart@ideasonboard.com; Zheng, Jian Xu
+> <jian.xu.zheng@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>; Li, Chao C
+> <chao.c.li@intel.com>; Qiu, Tian Shu <tian.shu.qiu@intel.com>
+> Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
+> 
+> Hi Raj,
+> 
+> My apologies for the delayed reply.
+> 
+> On Fri, Aug 31, 2018 at 11:39:54PM +0000, Mani, Rajmohan wrote:
+> ...
+> > > > +struct ipu3_uapi_af_meta_data {
+> > > > +	__u8 y_table[IPU3_UAPI_AF_Y_TABLE_MAX_SIZE] IPU3_ALIGN;
+> > >
+> > > Here IPU3_ALIGN is put at the end...
+> > >
+> > > > +} __packed;
+> > > > +
+> > > > +/**
+> > > > + * struct ipu3_uapi_af_raw_buffer - AF raw buffer
+> > > > + *
+> > > > + * @meta_data: raw buffer &ipu3_uapi_af_meta_data for auto focus
+> > > > +meta
+> > > data.
+> > > > + */
+> > > > +struct ipu3_uapi_af_raw_buffer {
+> > > > +	IPU3_ALIGN struct ipu3_uapi_af_meta_data meta_data;
+> > >
+> > > ... and here at the start. Is that due to the difference between an
+> > > array and a struct?
+> > >
+> >
+> > No.
+> >
+> > When preparing uAPI kernelDoc using "make htmldocs", the kernel-doc
+> > encounters two type of error/warnings caused by IPU3_ALIGN.
+> >
+> > case 1:
+> > struct IPU3_ALIGN ipu3_uapi_dummy {
+> > 	...
+> > } __packed;
+> >
+> > "error: Cannot parse struct or union!"
+> >
+> > case 2:
+> > struct ipu3_uapi_dummy {
+> > 	struct ipu3_uapi_x x IPU3_ALIGN;
+> > } __packed;
+> >
+> > "warning: Function parameter or member 'IPU3_ALIGN' not described in
+> > 'ipu3_uapi_dummy'"
+> >
+> > Positioned the attribute syntax without altering the mem layout of the
+> > structs, while also making "make htmldocs" to compile fine.
+> >
+> > Let us know if it's okay to ignore Sphinx warnings.
+> 
+> I looked a bit at different options for handling this in scripts/kernel-doc but the
+> difficulty in macro substitution comes in determining where to do the
+> substitution and where not to. That seems unaddressable in the kernel-doc
+> script; most of the time you want the definitions as-is while this is likely the
+> only case where something else might be appropriate. Making IPU3_ALIGN a
+> special case probably wouldn't really fly either.
+> 
+> In this particular case I'd just write open the alignment requirement so kernel-
+> doc can correctly parse it.
 
-On 09/17/2018 03:27 AM, Hans Verkuil wrote:
-> On 05/07/2018 11:54 AM, Hans Verkuil wrote:
->> On 07/04/18 15:04, Marek Vasut wrote:
->>> In VDIC direct mode, the VDIC applies combing filter during and
->>> doubles the framerate, that is, after the first two half-frames
->>> are received and the first frame is emitted by the VDIC, every
->>> subsequent half-frame is patched into the result and a full frame
->>> is produced. The half-frame order in the full frames is as follows
->>> 12 32 34 54 etc.
->>>
->>> Drop every second frame to trim the framerate back to the original
->>> one of the signal and skip the odd patched frames.
->>>
->>> Signed-off-by: Marek Vasut <marex@denx.de>
->>> Cc: Steve Longerbeam <steve_longerbeam@mentor.com>
->>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
->> Steve, Philipp,
->>
->> I saw there was a discussion about this patch, but no clear answer whether
->> or not this patch is OK. If it is, then please Ack this patch.
-> Marking this patch as Obsoleted since I have no seen any activity for a long time.
+Ack.
 
-Hi Hans, yes that's fine.
-
-This needs to be re-worked to allow configuration of input/output 
-frame-rates
-from the VDIC via [gs]_frame_interval.
-
-Steve
-
->
->
->>> ---
->>>   drivers/staging/media/imx/imx-media-vdic.c | 3 +++
->>>   1 file changed, 3 insertions(+)
->>>
->>> diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
->>> index 482250d47e7c..b538bbebedc5 100644
->>> --- a/drivers/staging/media/imx/imx-media-vdic.c
->>> +++ b/drivers/staging/media/imx/imx-media-vdic.c
->>> @@ -289,6 +289,7 @@ static int vdic_setup_direct(struct vdic_priv *priv)
->>>   	/* set VDIC to receive from CSI for direct path */
->>>   	ipu_fsu_link(priv->ipu, IPUV3_CHANNEL_CSI_DIRECT,
->>>   		     IPUV3_CHANNEL_CSI_VDI_PREV);
->>> +	ipu_set_vdi_skip(priv->ipu, 0x2);
->>>   
->>>   	return 0;
->>>   }
->>> @@ -313,6 +314,8 @@ static int vdic_setup_indirect(struct vdic_priv *priv)
->>>   	const struct imx_media_pixfmt *incc;
->>>   	int in_size, ret;
->>>   
->>> +	ipu_set_vdi_skip(priv->ipu, 0x0);
->>> +
->>>   	infmt = &priv->format_mbus[VDIC_SINK_PAD_IDMAC];
->>>   	incc = priv->cc[VDIC_SINK_PAD_IDMAC];
->>>   
->>>
->>
+> 
+> --
+> Kind regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
