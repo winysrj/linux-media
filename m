@@ -1,182 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:53035 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727228AbeIRQ3i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 12:29:38 -0400
-Date: Tue, 18 Sep 2018 13:52:59 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Grant Grundler <grundler@chromium.org>
-Cc: ping-chung.chen@intel.com, linux-media@vger.kernel.org,
-        andy.yeh@intel.com, jim.lai@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com
-Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
-Message-ID: <20180918105258.vmnfkenpzlieycxq@paasikivi.fi.intel.com>
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
- <20180914114131.jqq737k3qug2tdff@paasikivi.fi.intel.com>
- <CANEJEGsP7hYtpEVpJrDSjUML_Xja2kj4+oFb98S2ZXn8C+CLNw@mail.gmail.com>
+Received: from relay9-d.mail.gandi.net ([217.70.183.199]:53663 "EHLO
+        relay9-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728912AbeIRSHZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Sep 2018 14:07:25 -0400
+Date: Tue, 18 Sep 2018 14:34:57 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 3/3] i2c: adv748x: fix typo in comment for TXB CSI-2
+ transmitter power down
+Message-ID: <20180918123457.GR16851@w540>
+References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180918014509.6394-4-niklas.soderlund+renesas@ragnatech.se>
+ <cad3ca03-7741-bbc1-b276-115c4b58fe3f@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="vEk28Nl/eckWL8CC"
 Content-Disposition: inline
-In-Reply-To: <CANEJEGsP7hYtpEVpJrDSjUML_Xja2kj4+oFb98S2ZXn8C+CLNw@mail.gmail.com>
+In-Reply-To: <cad3ca03-7741-bbc1-b276-115c4b58fe3f@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
 
-On Mon, Sep 17, 2018 at 03:52:30PM -0700, Grant Grundler wrote:
-> On Fri, Sep 14, 2018 at 4:41 AM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
+--vEk28Nl/eckWL8CC
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Kieran,
+
+On Tue, Sep 18, 2018 at 10:54:44AM +0100, Kieran Bingham wrote:
+> Hi Niklas,
+>
+> Thank you for the patch,
+>
+> I don't think this conflicts with Jacopo's series at all does it ?
+
+It does, and I think this series should have been (re)based, or the
+other way around, but all these changes should probably go together,
+don't they?
+
+>
+> Perhaps with the amount of adv748x churn currently I should create an
+> integration/for-next branch :-)
+>
+
+Also, but we may be able to handle this a single series, once we have
+Ebisu working.
+
+Thanks
+   j
+
+> On 18/09/18 02:45, Niklas S=C3=B6derlund wrote:
+> > Fix copy-and-past error in comment for TXB CSI-2 transmitter power down
+> > sequence.
 > >
-> > Hi Ping-chung,
+> > Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatec=
+h.se>
+>
+> This looks good and useful to me.
+>
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>
+> > ---
+> >  drivers/media/i2c/adv748x/adv748x-core.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
 > >
-> > My apologies for the late review.
-> 
-> Yeah...I had the impression this was already accepted. Though it
-> should be straight forward to fix up additional things as normal
-> patches.
-
-The remaining issues are rather small and there's still time to get the
-driver to v4.20, so I see no need to postpone these either.
-
-> 
-> [sorry pruning heavily]
-> ...
-> > > +/* HBLANK control - read only */
-> > > +#define IMX208_PPL_384MHZ            2248
-> > > +#define IMX208_PPL_96MHZ             2248
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i=
+2c/adv748x/adv748x-core.c
+> > index 9a82cdf301bccb41..86cb38f4d7cc11c6 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> > @@ -299,7 +299,7 @@ static const struct adv748x_reg_value adv748x_power=
+_down_txb_1lane[] =3D {
 > >
-> > Does this generally depend on the link frequency?
-> 
-> This was discussed in earlier patch version: in a nutshell, yes.
-> 
-> ...
-> > > +/* Configurations for supported link frequencies */
-> > > +#define IMX208_MHZ                   (1000*1000ULL)
-> > > +#define IMX208_LINK_FREQ_384MHZ              (384ULL * IMX208_MHZ)
-> > > +#define IMX208_LINK_FREQ_96MHZ               (96ULL * IMX208_MHZ)
-> >
-> > You could simply write these as 384000000 and 96000000.
-> 
-> The original code did that. I agree IMX208_MHZ makes this much easier to read.
+> >  	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> >  	{ADV748X_PAGE_TXB, 0x1e, 0x00},	/* ADI Required Write */
+> > -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 4-lane MIPI */
+> > +	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> >  	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> >  	{ADV748X_PAGE_TXB, 0xc1, 0x3b},	/* ADI Required Write */
+>
+>
+>
+> --
+> Regards
+> --
+> Kieran
 
-It is not customary to add driver specific defines for that sort of things;
-mostly if you need a plain number you do write a plain number. A sort of an
-exception are the SZ_* macros.
+--vEk28Nl/eckWL8CC
+Content-Type: application/pgp-signature; name="signature.asc"
 
-The above breaks grep, too.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> 
-> ...
-> > > +     /* Current mode */
-> > > +     const struct imx208_mode *cur_mode;
-> > > +
-> > > +     /*
-> > > +      * Mutex for serialized access:
-> > > +      * Protect sensor set pad format and start/stop streaming safely.
-> > > +      * Protect access to sensor v4l2 controls.
-> > > +      */
-> > > +     struct mutex imx208_mx;
-> >
-> > How about calling it simply e.g. a "mutex"? The struct is already specific
-> > to imx208.
-> 
-> I specifically asked the code not use "mutex" because trying to find
-> this specific use of "mutex" with cscope (ctags) is impossible.
+iQIcBAEBAgAGBQJboPDxAAoJEHI0Bo8WoVY8E3IP/0Hcz9weYSGq4cA407x+hqHn
+APVQC7dv5x41lejDmDb63BeJJft3ZleM5tKVuBCWO9UiJUn2qX7a5Cs2IYCQyx9Z
+tlPBkvMsQIPQ7Tki2BSUOljkTJJvm2Hl5hfowwdKUFamorWGeyxVG4Fa7DvKi4vk
+5dEzO5C8blb9o4Fjctn0pQH34zm5K9Ged4dByxi4TeAy+dRA2dpHT5w5NwKNx0FR
+DrT+zLHVDWvhJIAIG6Wve5bYHOC8aMD8/OcJuRijNftZ2Q25lLC85XwzGftzBrcD
+SVFdPcn3X5FxLw3JGtUY9YG1Lewsxq99TlklGnzbs8BCuU4v/isDFfDH/h/TOJtI
+B88at/1Q0inQEuL886VQvIclv/To/TLKG3EVP9jKWyRizLGvZ8XvzQC3/ZsPbXbA
+uVQ5kvoaGlF9702BRecaBlD/2Zfa+dsThv0Ug1PbWzKZiGQSmKiXLOBng8gOkmxV
+yvhYOL1bh6vcTJbihsx9pcbTuxqlRbEImfEDoGY4/X8sOEl0jplSNbrbGSDKMBlN
+/1jSXisKrR0vaf+OIFfakraWq+w80xkk568FYeXyUg76nXzn/1CEmYyVUsLpl45P
+5UPPHKnvK3TaOcbo4YpjaFJWKnz6DizrNI//j6FL54YDkPv1S/U8+4uwU/ehl+HS
+6Q5wjjKBvIzMI7VIk/QE
+=fgxc
+-----END PGP SIGNATURE-----
 
-The mutex is local to the driver, and in this case also to the file.
-Mutexes are commonly called either "mutex" or "lock".
-
-> 
-> Defining "mutex" in multiple name spaces is asking for trouble even
-> though technically it's "safe" to do.
-> 
-> ...
-> > > +static int imx208_set_pad_format(struct v4l2_subdev *sd,
-> > > +                    struct v4l2_subdev_pad_config *cfg,
-> > > +                    struct v4l2_subdev_format *fmt)
-> > > +{
-> > > +     struct imx208 *imx208 = to_imx208(sd);
-> > > +     const struct imx208_mode *mode;
-> > > +     s32 vblank_def;
-> > > +     s32 vblank_min;
-> > > +     s64 h_blank;
-> > > +     s64 pixel_rate;
-> > > +     s64 link_freq;
-> > > +
-> > > +     mutex_lock(&imx208->imx208_mx);
-> > > +
-> > > +     fmt->format.code = imx208_get_format_code(imx208);
-> > > +     mode = v4l2_find_nearest_size(
-> > > +             supported_modes, ARRAY_SIZE(supported_modes), width, height,
-> > > +             fmt->format.width, fmt->format.height);
-> > > +     imx208_mode_to_pad_format(imx208, mode, fmt);
-> > > +     if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > > +             *v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
-> > > +     } else {
-> > > +             imx208->cur_mode = mode;
-> > > +             __v4l2_ctrl_s_ctrl(imx208->link_freq, mode->link_freq_index);
-> > > +             link_freq = link_freq_menu_items[mode->link_freq_index];
-> >
-> > Same as on the imx319 driver --- the link frequencies that are available
-> > need to reflect what is specified in firmware.
-> 
-> <Someone needs to comment here.>  :)
-> 
-> ...
-> > > +static int imx208_set_stream(struct v4l2_subdev *sd, int enable)
-> > > +{
-> > > +     struct imx208 *imx208 = to_imx208(sd);
-> > > +     struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > > +     int ret = 0;
-> > > +
-> > > +     mutex_lock(&imx208->imx208_mx);
-> > > +     if (imx208->streaming == enable) {
-> > > +             mutex_unlock(&imx208->imx208_mx);
-> > > +             return 0;
-> > > +     }
-> > > +
-> > > +     if (enable) {
-> > > +             ret = pm_runtime_get_sync(&client->dev);
-> > > +             if (ret < 0)
-> > > +                     goto err_rpm_put;
-> > > +
-> > > +             /*
-> > > +              * Apply default & customized values
-> > > +              * and then start streaming.
-> > > +              */
-> > > +             ret = imx208_start_streaming(imx208);
-> > > +             if (ret)
-> > > +                     goto err_rpm_put;
-> > > +     } else {
-> > > +             imx208_stop_streaming(imx208);
-> > > +             pm_runtime_put(&client->dev);
-> > > +     }
-> > > +
-> > > +     imx208->streaming = enable;
-> > > +     mutex_unlock(&imx208->imx208_mx);
-> > > +
-> > > +     /* vflip and hflip cannot change during streaming */
-> > > +     v4l2_ctrl_grab(imx208->vflip, enable);
-> > > +     v4l2_ctrl_grab(imx208->hflip, enable);
-> >
-> > Please grab before releasing the lock; use __v4l2_ctrl_grab() here:
-> >
-> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=unlocked-ctrl-grab>
-> 
-> Is the current implementation not correct or is this just the
-> preferred way to "grab"?
-
-The problem with the above is that the controls have not been grabbed
-before the lock is released, therefore allowing them to be changed just
-after starting streaming.
-
-> (And thanks for pointing at the patch which adds the new "API")
-> 
-> (and I'm ignoring the remaining nit on the assumption it can be
-> addressed in the next patch)
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+--vEk28Nl/eckWL8CC--
