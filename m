@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45775 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:45395 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729647AbeIRPG2 (ORCPT
+        with ESMTP id S1729654AbeIRPG3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 11:06:28 -0400
+        Tue, 18 Sep 2018 11:06:29 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org,
         Steve Longerbeam <slongerbeam@gmail.com>
 Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Subject: [PATCH v3 03/16] gpu: ipu-v3: ipu-ic: allow to manually set resize coefficients
-Date: Tue, 18 Sep 2018 11:34:08 +0200
-Message-Id: <20180918093421.12930-4-p.zabel@pengutronix.de>
+Subject: [PATCH v3 09/16] gpu: ipu-v3: image-convert: move tile alignment helpers
+Date: Tue, 18 Sep 2018 11:34:14 +0200
+Message-Id: <20180918093421.12930-10-p.zabel@pengutronix.de>
 In-Reply-To: <20180918093421.12930-1-p.zabel@pengutronix.de>
 References: <20180918093421.12930-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
@@ -18,117 +18,87 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For tiled scaling, we want to compute the scaling coefficients
-externally in such a way that the interpolation overshoots tile
-boundaries and samples up to the first pixel of the next tile.
-Prepare to override the resizing coefficients from the image
-conversion code.
+Move tile_width_align and tile_height_align up so they
+can be used by the tile edge position calculation code.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
 No changes since v2.
 ---
- drivers/gpu/ipu-v3/ipu-ic.c | 52 +++++++++++++++++++++++--------------
- include/video/imx-ipu-v3.h  |  6 +++++
- 2 files changed, 39 insertions(+), 19 deletions(-)
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 54 +++++++++++++-------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-ic.c b/drivers/gpu/ipu-v3/ipu-ic.c
-index 67cc820253a9..594c3cbc8291 100644
---- a/drivers/gpu/ipu-v3/ipu-ic.c
-+++ b/drivers/gpu/ipu-v3/ipu-ic.c
-@@ -442,36 +442,40 @@ int ipu_ic_task_graphics_init(struct ipu_ic *ic,
+diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
+index 830622277588..97061049a9d2 100644
+--- a/drivers/gpu/ipu-v3/ipu-image-convert.c
++++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
+@@ -432,6 +432,33 @@ static int calc_image_resize_coefficients(struct ipu_image_convert_ctx *ctx,
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(ipu_ic_task_graphics_init);
  
--int ipu_ic_task_init(struct ipu_ic *ic,
--		     int in_width, int in_height,
--		     int out_width, int out_height,
--		     enum ipu_color_space in_cs,
--		     enum ipu_color_space out_cs)
-+int ipu_ic_task_init_rsc(struct ipu_ic *ic,
-+			 int in_width, int in_height,
-+			 int out_width, int out_height,
-+			 enum ipu_color_space in_cs,
-+			 enum ipu_color_space out_cs,
-+			 u32 rsc)
- {
- 	struct ipu_ic_priv *priv = ic->priv;
--	u32 reg, downsize_coeff, resize_coeff;
-+	u32 downsize_coeff, resize_coeff;
- 	unsigned long flags;
- 	int ret = 0;
- 
--	/* Setup vertical resizing */
--	ret = calc_resize_coeffs(ic, in_height, out_height,
--				 &resize_coeff, &downsize_coeff);
--	if (ret)
--		return ret;
-+	if (!rsc) {
-+		/* Setup vertical resizing */
- 
--	reg = (downsize_coeff << 30) | (resize_coeff << 16);
-+		ret = calc_resize_coeffs(ic, in_height, out_height,
-+					 &resize_coeff, &downsize_coeff);
-+		if (ret)
-+			return ret;
-+
-+		rsc = (downsize_coeff << 30) | (resize_coeff << 16);
- 
--	/* Setup horizontal resizing */
--	ret = calc_resize_coeffs(ic, in_width, out_width,
--				 &resize_coeff, &downsize_coeff);
--	if (ret)
--		return ret;
-+		/* Setup horizontal resizing */
-+		ret = calc_resize_coeffs(ic, in_width, out_width,
-+					 &resize_coeff, &downsize_coeff);
-+		if (ret)
-+			return ret;
- 
--	reg |= (downsize_coeff << 14) | resize_coeff;
-+		rsc |= (downsize_coeff << 14) | resize_coeff;
-+	}
- 
- 	spin_lock_irqsave(&priv->lock, flags);
- 
--	ipu_ic_write(ic, reg, ic->reg->rsc);
-+	ipu_ic_write(ic, rsc, ic->reg->rsc);
- 
- 	/* Setup color space conversion */
- 	ic->in_cs = in_cs;
-@@ -487,6 +491,16 @@ int ipu_ic_task_init(struct ipu_ic *ic,
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 	return ret;
- }
-+
-+int ipu_ic_task_init(struct ipu_ic *ic,
-+		     int in_width, int in_height,
-+		     int out_width, int out_height,
-+		     enum ipu_color_space in_cs,
-+		     enum ipu_color_space out_cs)
++/*
++ * We have to adjust the tile width such that the tile physaddrs and
++ * U and V plane offsets are multiples of 8 bytes as required by
++ * the IPU DMA Controller. For the planar formats, this corresponds
++ * to a pixel alignment of 16 (but use a more formal equation since
++ * the variables are available). For all the packed formats, 8 is
++ * good enough.
++ */
++static inline u32 tile_width_align(const struct ipu_image_pixfmt *fmt)
 +{
-+	return ipu_ic_task_init_rsc(ic, in_width, in_height, out_width,
-+				    out_height, in_cs, out_cs, 0);
++	return fmt->planar ? 8 * fmt->uv_width_dec : 8;
 +}
- EXPORT_SYMBOL_GPL(ipu_ic_task_init);
++
++/*
++ * For tile height alignment, we have to ensure that the output tile
++ * heights are multiples of 8 lines if the IRT is required by the
++ * given rotation mode (the IRT performs rotations on 8x8 blocks
++ * at a time). If the IRT is not used, or for input image tiles,
++ * 2 lines are good enough.
++ */
++static inline u32 tile_height_align(enum ipu_image_convert_type type,
++				    enum ipu_rotate_mode rot_mode)
++{
++	return (type == IMAGE_CONVERT_OUT &&
++		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
++}
++
+ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
+ 				 struct ipu_image_convert_image *image)
+ {
+@@ -1473,33 +1500,6 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
+ 	return x;
+ }
  
- int ipu_ic_task_idma_init(struct ipu_ic *ic, struct ipuv3_channel *channel,
-diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
-index abbad94e14a1..94f0eec821c8 100644
---- a/include/video/imx-ipu-v3.h
-+++ b/include/video/imx-ipu-v3.h
-@@ -387,6 +387,12 @@ int ipu_ic_task_init(struct ipu_ic *ic,
- 		     int out_width, int out_height,
- 		     enum ipu_color_space in_cs,
- 		     enum ipu_color_space out_cs);
-+int ipu_ic_task_init_rsc(struct ipu_ic *ic,
-+			 int in_width, int in_height,
-+			 int out_width, int out_height,
-+			 enum ipu_color_space in_cs,
-+			 enum ipu_color_space out_cs,
-+			 u32 rsc);
- int ipu_ic_task_graphics_init(struct ipu_ic *ic,
- 			      enum ipu_color_space in_g_cs,
- 			      bool galpha_en, u32 galpha,
+-/*
+- * We have to adjust the tile width such that the tile physaddrs and
+- * U and V plane offsets are multiples of 8 bytes as required by
+- * the IPU DMA Controller. For the planar formats, this corresponds
+- * to a pixel alignment of 16 (but use a more formal equation since
+- * the variables are available). For all the packed formats, 8 is
+- * good enough.
+- */
+-static inline u32 tile_width_align(const struct ipu_image_pixfmt *fmt)
+-{
+-	return fmt->planar ? 8 * fmt->uv_width_dec : 8;
+-}
+-
+-/*
+- * For tile height alignment, we have to ensure that the output tile
+- * heights are multiples of 8 lines if the IRT is required by the
+- * given rotation mode (the IRT performs rotations on 8x8 blocks
+- * at a time). If the IRT is not used, or for input image tiles,
+- * 2 lines are good enough.
+- */
+-static inline u32 tile_height_align(enum ipu_image_convert_type type,
+-				    enum ipu_rotate_mode rot_mode)
+-{
+-	return (type == IMAGE_CONVERT_OUT &&
+-		ipu_rot_mode_is_irt(rot_mode)) ? 8 : 2;
+-}
+-
+ /* Adjusts input/output images to IPU restrictions */
+ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
+ 			      enum ipu_rotate_mode rot_mode)
 -- 
 2.19.0
