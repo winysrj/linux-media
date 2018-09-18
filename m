@@ -1,49 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:59090 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728912AbeIRVQC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 17:16:02 -0400
-From: zhong jiang <zhongjiang@huawei.com>
-To: <mchehab@kernel.org>
-CC: <brad@nextdimension.cc>, <mkrufky@linuxtv.org>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH] media: dvb-frontends: Use kmemdup instead of duplicating its function
-Date: Tue, 18 Sep 2018 23:30:28 +0800
-Message-ID: <1537284628-62020-1-git-send-email-zhongjiang@huawei.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:58982 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729447AbeIRVj6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Sep 2018 17:39:58 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 3/3] i2c: adv748x: fix typo in comment for TXB CSI-2
+ transmitter power down
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180918014509.6394-4-niklas.soderlund+renesas@ragnatech.se>
+ <cad3ca03-7741-bbc1-b276-115c4b58fe3f@ideasonboard.com>
+ <20180918123457.GR16851@w540>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <365aadbb-7090-e60a-25e2-0549baf48215@ideasonboard.com>
+Date: Tue, 18 Sep 2018 17:06:40 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20180918123457.GR16851@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kmemdup has implemented the function that kmalloc() + memcpy().
-We prefer to kmemdup rather than code opened implementation.
+Hi Jacopo,
 
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
----
- drivers/media/dvb-frontends/lgdt3306a.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+On 18/09/18 13:34, jacopo mondi wrote:
+> Hi Kieran,
+> 
+> On Tue, Sep 18, 2018 at 10:54:44AM +0100, Kieran Bingham wrote:
+>> Hi Niklas,
+>>
+>> Thank you for the patch,
+>>
+>> I don't think this conflicts with Jacopo's series at all does it ?
+> 
+> It does, and I think this series should have been (re)based, or the
+> other way around, but all these changes should probably go together,
+> don't they?
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 0e1f5da..abec2e5 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -2205,15 +2205,13 @@ static int lgdt3306a_probe(struct i2c_client *client,
- 	struct dvb_frontend *fe;
- 	int ret;
- 
--	config = kzalloc(sizeof(struct lgdt3306a_config), GFP_KERNEL);
-+	onfig = kmemdup(client->dev.platform_data,
-+			sizeof(struct lgdt3306a_config), GFP_KERNEL);
- 	if (config == NULL) {
- 		ret = -ENOMEM;
- 		goto fail;
- 	}
- 
--	memcpy(config, client->dev.platform_data,
--			sizeof(struct lgdt3306a_config));
--
- 	config->i2c_addr = client->addr;
- 	fe = lgdt3306a_attach(config, client->adapter);
- 	if (fe == NULL) {
+I think when I wrote that comment, I actually meant *just this patch* :-)
+
+I think your series is more mature and closer to integration, so it
+might be that this series should be on top.
+
+
+>>
+>> Perhaps with the amount of adv748x churn currently I should create an
+>> integration/for-next branch :-)
+>>
+> 
+> Also, but we may be able to handle this a single series, once we have
+> Ebisu working.
+> 
+> Thanks
+>    j
+> 
+>> On 18/09/18 02:45, Niklas Söderlund wrote:
+>>> Fix copy-and-past error in comment for TXB CSI-2 transmitter power down
+>>> sequence.
+>>>
+>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>
+>> This looks good and useful to me.
+>>
+>> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>>> ---
+>>>  drivers/media/i2c/adv748x/adv748x-core.c | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+>>> index 9a82cdf301bccb41..86cb38f4d7cc11c6 100644
+>>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+>>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+>>> @@ -299,7 +299,7 @@ static const struct adv748x_reg_value adv748x_power_down_txb_1lane[] = {
+>>>
+>>>  	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+>>>  	{ADV748X_PAGE_TXB, 0x1e, 0x00},	/* ADI Required Write */
+>>> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 4-lane MIPI */
+>>> +	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+>>>  	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+>>>  	{ADV748X_PAGE_TXB, 0xc1, 0x3b},	/* ADI Required Write */
+>>
+>>
+>>
+>> --
+>> Regards
+>> --
+>> Kieran
+
 -- 
-1.7.12.4
+Regards
+--
+Kieran
