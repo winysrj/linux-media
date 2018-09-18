@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:53843 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:54167 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729651AbeIRPG3 (ORCPT
+        with ESMTP id S1729645AbeIRPG3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 18 Sep 2018 11:06:29 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org,
         Steve Longerbeam <slongerbeam@gmail.com>
 Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Subject: [PATCH v3 06/16] gpu: ipu-v3: image-convert: reconfigure IC per tile
-Date: Tue, 18 Sep 2018 11:34:11 +0200
-Message-Id: <20180918093421.12930-7-p.zabel@pengutronix.de>
+Subject: [PATCH v3 02/16] gpu: ipu-cpmem: add WARN_ON_ONCE() for unaligned dma buffers
+Date: Tue, 18 Sep 2018 11:34:07 +0200
+Message-Id: <20180918093421.12930-3-p.zabel@pengutronix.de>
 In-Reply-To: <20180918093421.12930-1-p.zabel@pengutronix.de>
 References: <20180918093421.12930-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
@@ -18,98 +18,49 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For differently sized tiles or if the resizing coefficients change,
-we have to stop, reconfigure, and restart the IC between tiles.
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-No changes since v2.
----
- drivers/gpu/ipu-v3/ipu-image-convert.c | 65 +++++++++++++++++---------
- 1 file changed, 44 insertions(+), 21 deletions(-)
+Add a WARN_ON_ONCE() if either the Y/packed buffer, or the U/V offsets,
+are not aligned on 8-byte boundaries. This will catch alignment
+bugs in DRM, V4L2.
 
-diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index 01a63eb8ccaf..65f0321a7971 100644
---- a/drivers/gpu/ipu-v3/ipu-image-convert.c
-+++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -1137,6 +1137,24 @@ static irqreturn_t do_bh(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+New since v2.
+---
+ drivers/gpu/ipu-v3/ipu-cpmem.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+index a9d2501500a1..7e65954f13c2 100644
+--- a/drivers/gpu/ipu-v3/ipu-cpmem.c
++++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+@@ -259,6 +259,8 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_high_priority);
  
-+static bool ic_settings_changed(struct ipu_image_convert_ctx *ctx)
-+{
-+	unsigned int cur_tile = ctx->next_tile - 1;
-+	unsigned int next_tile = ctx->next_tile;
-+
-+	if (ctx->resize_coeffs_h[cur_tile % ctx->in.num_cols] !=
-+	    ctx->resize_coeffs_h[next_tile % ctx->in.num_cols] ||
-+	    ctx->resize_coeffs_v[cur_tile / ctx->in.num_cols] !=
-+	    ctx->resize_coeffs_v[next_tile / ctx->in.num_cols] ||
-+	    ctx->in.tile[cur_tile].width != ctx->in.tile[next_tile].width ||
-+	    ctx->in.tile[cur_tile].height != ctx->in.tile[next_tile].height ||
-+	    ctx->out.tile[cur_tile].width != ctx->out.tile[next_tile].width ||
-+	    ctx->out.tile[cur_tile].height != ctx->out.tile[next_tile].height)
-+		return true;
-+
-+	return false;
-+}
-+
- /* hold irqlock when calling */
- static irqreturn_t do_irq(struct ipu_image_convert_run *run)
+ void ipu_cpmem_set_buffer(struct ipuv3_channel *ch, int bufnum, dma_addr_t buf)
  {
-@@ -1180,27 +1198,32 @@ static irqreturn_t do_irq(struct ipu_image_convert_run *run)
- 	 * not done, place the next tile buffers.
- 	 */
- 	if (!ctx->double_buffering) {
--
--		src_tile = &s_image->tile[ctx->next_tile];
--		dst_idx = ctx->out_tile_map[ctx->next_tile];
--		dst_tile = &d_image->tile[dst_idx];
--
--		ipu_cpmem_set_buffer(chan->in_chan, 0,
--				     s_image->base.phys0 + src_tile->offset);
--		ipu_cpmem_set_buffer(outch, 0,
--				     d_image->base.phys0 + dst_tile->offset);
--		if (s_image->fmt->planar)
--			ipu_cpmem_set_uv_offset(chan->in_chan,
--						src_tile->u_off,
--						src_tile->v_off);
--		if (d_image->fmt->planar)
--			ipu_cpmem_set_uv_offset(outch,
--						dst_tile->u_off,
--						dst_tile->v_off);
--
--		ipu_idmac_select_buffer(chan->in_chan, 0);
--		ipu_idmac_select_buffer(outch, 0);
--
-+		if (ic_settings_changed(ctx)) {
-+			convert_stop(run);
-+			convert_start(run, ctx->next_tile);
-+		} else {
-+			src_tile = &s_image->tile[ctx->next_tile];
-+			dst_idx = ctx->out_tile_map[ctx->next_tile];
-+			dst_tile = &d_image->tile[dst_idx];
++	WARN_ON_ONCE(buf & 0x7);
 +
-+			ipu_cpmem_set_buffer(chan->in_chan, 0,
-+					     s_image->base.phys0 +
-+					     src_tile->offset);
-+			ipu_cpmem_set_buffer(outch, 0,
-+					     d_image->base.phys0 +
-+					     dst_tile->offset);
-+			if (s_image->fmt->planar)
-+				ipu_cpmem_set_uv_offset(chan->in_chan,
-+							src_tile->u_off,
-+							src_tile->v_off);
-+			if (d_image->fmt->planar)
-+				ipu_cpmem_set_uv_offset(outch,
-+							dst_tile->u_off,
-+							dst_tile->v_off);
-+
-+			ipu_idmac_select_buffer(chan->in_chan, 0);
-+			ipu_idmac_select_buffer(outch, 0);
-+		}
- 	} else if (ctx->next_tile < ctx->num_tiles - 1) {
+ 	if (bufnum)
+ 		ipu_ch_param_write_field(ch, IPU_FIELD_EBA1, buf >> 3);
+ 	else
+@@ -268,6 +270,8 @@ EXPORT_SYMBOL_GPL(ipu_cpmem_set_buffer);
  
- 		src_tile = &s_image->tile[ctx->next_tile + 1];
+ void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off)
+ {
++	WARN_ON_ONCE((u_off & 0x7) || (v_off & 0x7));
++
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_off / 8);
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_off / 8);
+ }
+@@ -435,6 +439,8 @@ void ipu_cpmem_set_yuv_planar_full(struct ipuv3_channel *ch,
+ 				   unsigned int uv_stride,
+ 				   unsigned int u_offset, unsigned int v_offset)
+ {
++	WARN_ON_ONCE((u_offset & 0x7) || (v_offset & 0x7));
++
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, uv_stride - 1);
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_UBO, u_offset / 8);
+ 	ipu_ch_param_write_field(ch, IPU_FIELD_VBO, v_offset / 8);
 -- 
 2.19.0
