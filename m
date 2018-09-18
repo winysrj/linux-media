@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:48803 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729928AbeIRWcN (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:55438 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1730164AbeIRXYz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 18:32:13 -0400
-Subject: Re: [PATCH] media: imx: use well defined 32-bit RGB pixel format
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        <linux-media@vger.kernel.org>
-CC: Steve Longerbeam <slongerbeam@gmail.com>, <kernel@pengutronix.de>
-References: <20180918094231.20815-1-p.zabel@pengutronix.de>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <f6fd645a-b68d-9619-4a52-031ca7955aff@mentor.com>
-Date: Tue, 18 Sep 2018 09:58:10 -0700
+        Tue, 18 Sep 2018 19:24:55 -0400
+Date: Tue, 18 Sep 2018 10:51:08 -0700
+From: Darren Hart <dvhart@infradead.org>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-fsdevel@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        qat-linux@intel.com, linux-crypto@vger.kernel.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org,
+        platform-driver-x86@vger.kernel.org,
+        linux-remoteproc@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
+ generic_compat_ioctl_ptrarg
+Message-ID: <20180918175108.GF35251@wrath>
+References: <20180912150142.157913-1-arnd@arndb.de>
+ <20180912151134.436719-1-arnd@arndb.de>
+ <20180914203506.GE35251@wrath>
+ <20180914205748.GC19965@ZenIV.linux.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20180918094231.20815-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180914205748.GC19965@ZenIV.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Sep 14, 2018 at 09:57:48PM +0100, Al Viro wrote:
+> On Fri, Sep 14, 2018 at 01:35:06PM -0700, Darren Hart wrote:
+>  
+> > Acked-by: Darren Hart (VMware) <dvhart@infradead.org>
+> > 
+> > As for a longer term solution, would it be possible to init fops in such
+> > a way that the compat_ioctl call defaults to generic_compat_ioctl_ptrarg
+> > so we don't have to duplicate this boilerplate for every ioctl fops
+> > structure?
+> 
+> 	Bad idea, that...  Because several years down the road somebody will add
+> an ioctl that takes an unsigned int for argument.  Without so much as looking
+> at your magical mystery macro being used to initialize file_operations.
 
+Fair, being explicit in the declaration as it is currently may be
+preferable then.
 
-On 09/18/2018 02:42 AM, Philipp Zabel wrote:
-> The documentation in Documentation/media/uapi/v4l/pixfmt-packed-rgb.rst
-> tells us that the V4L2_PIX_FMT_RGB32 format is deprecated and must not
-> be used by new drivers. Replace it with V4L2_PIX_FMT_XRGB32.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-
-> ---
->   drivers/staging/media/imx/imx-media-utils.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-> index 8aa13403b09d..0eaa353d5cb3 100644
-> --- a/drivers/staging/media/imx/imx-media-utils.c
-> +++ b/drivers/staging/media/imx/imx-media-utils.c
-> @@ -88,7 +88,7 @@ static const struct imx_media_pixfmt rgb_formats[] = {
->   		.cs     = IPUV3_COLORSPACE_RGB,
->   		.bpp    = 24,
->   	}, {
-> -		.fourcc	= V4L2_PIX_FMT_RGB32,
-> +		.fourcc	= V4L2_PIX_FMT_XRGB32,
->   		.codes  = {MEDIA_BUS_FMT_ARGB8888_1X32},
->   		.cs     = IPUV3_COLORSPACE_RGB,
->   		.bpp    = 32,
-> @@ -212,7 +212,7 @@ static const struct imx_media_pixfmt ipu_yuv_formats[] = {
->   
->   static const struct imx_media_pixfmt ipu_rgb_formats[] = {
->   	{
-> -		.fourcc	= V4L2_PIX_FMT_RGB32,
-> +		.fourcc	= V4L2_PIX_FMT_XRGB32,
->   		.codes  = {MEDIA_BUS_FMT_ARGB8888_1X32},
->   		.cs     = IPUV3_COLORSPACE_RGB,
->   		.bpp    = 32,
+-- 
+Darren Hart
+VMware Open Source Technology Center
