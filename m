@@ -1,173 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:55016 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728828AbeIRQpY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 12:45:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: [PATCH 1/3] i2c: adv748x: store number of CSI-2 lanes described in device tree
-Date: Tue, 18 Sep 2018 14:13:29 +0300
-Message-ID: <1658112.YQ0khu1noY@avalon>
-In-Reply-To: <21b8a885-48c5-70c8-8866-1830c45c27a9@ideasonboard.com>
-References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se> <1715235.WJqBHKOvrx@avalon> <21b8a885-48c5-70c8-8866-1830c45c27a9@ideasonboard.com>
+Received: from mga12.intel.com ([192.55.52.136]:53035 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727228AbeIRQ3i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Sep 2018 12:29:38 -0400
+Date: Tue, 18 Sep 2018 13:52:59 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Grant Grundler <grundler@chromium.org>
+Cc: ping-chung.chen@intel.com, linux-media@vger.kernel.org,
+        andy.yeh@intel.com, jim.lai@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com
+Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
+Message-ID: <20180918105258.vmnfkenpzlieycxq@paasikivi.fi.intel.com>
+References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
+ <20180914114131.jqq737k3qug2tdff@paasikivi.fi.intel.com>
+ <CANEJEGsP7hYtpEVpJrDSjUML_Xja2kj4+oFb98S2ZXn8C+CLNw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CANEJEGsP7hYtpEVpJrDSjUML_Xja2kj4+oFb98S2ZXn8C+CLNw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Grant,
 
-On Tuesday, 18 September 2018 13:51:34 EEST Kieran Bingham wrote:
-> On 18/09/18 11:46, Laurent Pinchart wrote:
-> > On Tuesday, 18 September 2018 13:37:55 EEST Kieran Bingham wrote:
-> >> On 18/09/18 11:28, Laurent Pinchart wrote:
-> >>> On Tuesday, 18 September 2018 13:19:39 EEST Kieran Bingham wrote:
-> >>>> On 18/09/18 02:45, Niklas S=F6derlund wrote:
-> >>>>> The adv748x CSI-2 transmitters TXA and TXB can use different number=
- of
-> >>>>> lines to transmit data on. In order to be able configure the device
-> >>>>> correctly this information need to be parsed from device tree and
-> >>>>> stored in each TX private data structure.
-> >>>>>=20
-> >>>>> TXA supports 1, 2 and 4 lanes while TXB supports 1 lane.
-> >>>>=20
-> >>>> Am I right in assuming that it is the CSI device which specifies the
-> >>>> number of lanes in their DT?
-> >>>=20
-> >>> Do you mean the CSI-2 receiver ? Both the receiver and the transmitter
-> >>> should specify the data lanes in their DT node.
-> >>=20
-> >> Yes, I should have said CSI-2 receiver.
-> >>=20
-> >> Aha - so *both* sides of the link have to specify the lanes and
-> >> presumably match with each other?
-> >=20
-> > Yes, they should certainly match :-)
->=20
-> I assumed so :) - do we need to validate that at a framework level?
-> (or perhaps it already is, all I've only looked at this morning is
-> e-mails :D )
+On Mon, Sep 17, 2018 at 03:52:30PM -0700, Grant Grundler wrote:
+> On Fri, Sep 14, 2018 at 4:41 AM Sakari Ailus
+> <sakari.ailus@linux.intel.com> wrote:
+> >
+> > Hi Ping-chung,
+> >
+> > My apologies for the late review.
+> 
+> Yeah...I had the impression this was already accepted. Though it
+> should be straight forward to fix up additional things as normal
+> patches.
 
-It's not done yet as far as I know. CC'ing Sakari who may have a comment=20
-regarding whether this should be added.
+The remaining issues are rather small and there's still time to get the
+driver to v4.20, so I see no need to postpone these either.
 
-> >>>> Could we make this clear in the commit log (and possibly an extra
-> >>>> comment in the code). At first I was assuming we would have to decla=
-re
-> >>>> the number of lanes in the ADV748x TX DT node, but I don't think tha=
-t's
-> >>>> the case.
-> >>>>=20
-> >>>>> Signed-off-by: Niklas S=F6derlund
-> >>>>> <niklas.soderlund+renesas@ragnatech.se>
-> >>>>> ---
-> >>>>>=20
-> >>>>>  drivers/media/i2c/adv748x/adv748x-core.c | 49 ++++++++++++++++++++=
-+++
-> >>>>>  drivers/media/i2c/adv748x/adv748x.h      |  1 +
-> >>>>>  2 files changed, 50 insertions(+)
-> >>>>>=20
-> >>>>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
-> >>>>> b/drivers/media/i2c/adv748x/adv748x-core.c index
-> >>>>> 85c027bdcd56748d..a93f8ea89a228474 100644
-> >>>>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> >>>>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> >=20
-> > [snip]
-> >=20
-> >>>>> +static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
-> >>>>> +				    unsigned int port,
-> >>>>> +				    struct device_node *ep)
-> >>>>> +{
-> >>>>> +	struct v4l2_fwnode_endpoint vep;
-> >>>>> +	unsigned int num_lanes;
-> >>>>> +	int ret;
-> >>>>> +
-> >>>>> +	if (port !=3D ADV748X_PORT_TXA && port !=3D ADV748X_PORT_TXB)
-> >>>>> +		return 0;
-> >>>>> +
-> >>>>> +	ret =3D v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &vep);
-> >>>>> +	if (ret)
-> >>>>> +		return ret;
-> >>>>> +
-> >>>>> +	num_lanes =3D vep.bus.mipi_csi2.num_data_lanes;
-> >>>>> +
-> >>>>=20
-> >>>> If I'm not mistaken we are parsing /someone elses/ DT node here (the
-> >>>> CSI receiver or such).
-> >>>=20
-> >>> Aren't we parsing our own endpoint ? The ep argument comes from ep_np=
- in
-> >>> adv748x_parse_dt(), and that's the endpoint iterator used with
-> >>>=20
-> >>> 	for_each_endpoint_of_node(state->dev->of_node, ep_np)
-> >>=20
-> >> Bah - my head was polluted with the async subdevice stuff where we were
-> >> getting the endpoint of the other device, but of course that's
-> >> completely unrelated here.
-> >>=20
-> >>>> Is it now guaranteed on the mipi_csi2 bus to have the (correct) lanes
-> >>>> defined?
-> >>>>=20
-> >>>> Do we need to fall back to some safe defaults at all (1 lane?) ?
-> >>>> Actually - perhaps there is no safe default. I guess if the lanes
-> >>>> aren't configured correctly we're not going to get a good signal at =
-the
-> >>>> other end.
-> >>>=20
-> >>> The endpoints should contain a data-lanes property. That's the case in
-> >>> the mainline DT sources, but it's not explicitly stated as a mandatory
-> >>> property. I think we should update the bindings.
-> >>=20
-> >> Yes, - as this code change is making the property mandatory - we should
-> >> certainly state that in the bindings, unless we can fall back to a
-> >> sensible default (perhaps the max supported on that component?)
-> >=20
-> > I'm not sure there's a sensible default, I'd rather specify it explicit=
-ly.
-> > Note that the data-lanes property doesn't just specify the number of
-> > lanes, but also how they are remapped, when that feature is supported by
-> > the CSI-2 transmitter or receiver.
->=20
-> Ok understood. As I feared - we can't really default - because it has to
-> match and be defined.
->=20
-> So making the DT property mandatory really is the way to go then.
->=20
-> >>>>> +	if (vep.base.port =3D=3D ADV748X_PORT_TXA) {
-> >>>>> +		if (num_lanes !=3D 1 && num_lanes !=3D 2 && num_lanes !=3D 4) {
-> >>>>> +			adv_err(state, "TXA: Invalid number (%d) of lanes\n",
-> >>>>> +				num_lanes);
-> >>>>> +			return -EINVAL;
-> >>>>> +		}
-> >>>>> +
-> >>>>> +		state->txa.num_lanes =3D num_lanes;
-> >>>>> +		adv_dbg(state, "TXA: using %d lanes\n", state->txa.num_lanes);
-> >>>>> +	}
-> >>>>> +
-> >>>>> +	if (vep.base.port =3D=3D ADV748X_PORT_TXB) {
-> >>>>> +		if (num_lanes !=3D 1) {
-> >>>>> +			adv_err(state, "TXB: Invalid number (%d) of lanes\n",
-> >>>>> +				num_lanes);
-> >>>>> +			return -EINVAL;
-> >>>>> +		}
-> >>>>> +
-> >>>>> +		state->txb.num_lanes =3D num_lanes;
-> >>>>> +		adv_dbg(state, "TXB: using %d lanes\n", state->txb.num_lanes);
-> >>>>> +	}
-> >>>>> +
-> >>>>> +	return 0;
-> >>>>> +}
-> >=20
-> > [snip]
+> 
+> [sorry pruning heavily]
+> ...
+> > > +/* HBLANK control - read only */
+> > > +#define IMX208_PPL_384MHZ            2248
+> > > +#define IMX208_PPL_96MHZ             2248
+> >
+> > Does this generally depend on the link frequency?
+> 
+> This was discussed in earlier patch version: in a nutshell, yes.
+> 
+> ...
+> > > +/* Configurations for supported link frequencies */
+> > > +#define IMX208_MHZ                   (1000*1000ULL)
+> > > +#define IMX208_LINK_FREQ_384MHZ              (384ULL * IMX208_MHZ)
+> > > +#define IMX208_LINK_FREQ_96MHZ               (96ULL * IMX208_MHZ)
+> >
+> > You could simply write these as 384000000 and 96000000.
+> 
+> The original code did that. I agree IMX208_MHZ makes this much easier to read.
 
-=2D-=20
-Regards,
+It is not customary to add driver specific defines for that sort of things;
+mostly if you need a plain number you do write a plain number. A sort of an
+exception are the SZ_* macros.
 
-Laurent Pinchart
+The above breaks grep, too.
+
+> 
+> ...
+> > > +     /* Current mode */
+> > > +     const struct imx208_mode *cur_mode;
+> > > +
+> > > +     /*
+> > > +      * Mutex for serialized access:
+> > > +      * Protect sensor set pad format and start/stop streaming safely.
+> > > +      * Protect access to sensor v4l2 controls.
+> > > +      */
+> > > +     struct mutex imx208_mx;
+> >
+> > How about calling it simply e.g. a "mutex"? The struct is already specific
+> > to imx208.
+> 
+> I specifically asked the code not use "mutex" because trying to find
+> this specific use of "mutex" with cscope (ctags) is impossible.
+
+The mutex is local to the driver, and in this case also to the file.
+Mutexes are commonly called either "mutex" or "lock".
+
+> 
+> Defining "mutex" in multiple name spaces is asking for trouble even
+> though technically it's "safe" to do.
+> 
+> ...
+> > > +static int imx208_set_pad_format(struct v4l2_subdev *sd,
+> > > +                    struct v4l2_subdev_pad_config *cfg,
+> > > +                    struct v4l2_subdev_format *fmt)
+> > > +{
+> > > +     struct imx208 *imx208 = to_imx208(sd);
+> > > +     const struct imx208_mode *mode;
+> > > +     s32 vblank_def;
+> > > +     s32 vblank_min;
+> > > +     s64 h_blank;
+> > > +     s64 pixel_rate;
+> > > +     s64 link_freq;
+> > > +
+> > > +     mutex_lock(&imx208->imx208_mx);
+> > > +
+> > > +     fmt->format.code = imx208_get_format_code(imx208);
+> > > +     mode = v4l2_find_nearest_size(
+> > > +             supported_modes, ARRAY_SIZE(supported_modes), width, height,
+> > > +             fmt->format.width, fmt->format.height);
+> > > +     imx208_mode_to_pad_format(imx208, mode, fmt);
+> > > +     if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+> > > +             *v4l2_subdev_get_try_format(sd, cfg, fmt->pad) = fmt->format;
+> > > +     } else {
+> > > +             imx208->cur_mode = mode;
+> > > +             __v4l2_ctrl_s_ctrl(imx208->link_freq, mode->link_freq_index);
+> > > +             link_freq = link_freq_menu_items[mode->link_freq_index];
+> >
+> > Same as on the imx319 driver --- the link frequencies that are available
+> > need to reflect what is specified in firmware.
+> 
+> <Someone needs to comment here.>  :)
+> 
+> ...
+> > > +static int imx208_set_stream(struct v4l2_subdev *sd, int enable)
+> > > +{
+> > > +     struct imx208 *imx208 = to_imx208(sd);
+> > > +     struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > > +     int ret = 0;
+> > > +
+> > > +     mutex_lock(&imx208->imx208_mx);
+> > > +     if (imx208->streaming == enable) {
+> > > +             mutex_unlock(&imx208->imx208_mx);
+> > > +             return 0;
+> > > +     }
+> > > +
+> > > +     if (enable) {
+> > > +             ret = pm_runtime_get_sync(&client->dev);
+> > > +             if (ret < 0)
+> > > +                     goto err_rpm_put;
+> > > +
+> > > +             /*
+> > > +              * Apply default & customized values
+> > > +              * and then start streaming.
+> > > +              */
+> > > +             ret = imx208_start_streaming(imx208);
+> > > +             if (ret)
+> > > +                     goto err_rpm_put;
+> > > +     } else {
+> > > +             imx208_stop_streaming(imx208);
+> > > +             pm_runtime_put(&client->dev);
+> > > +     }
+> > > +
+> > > +     imx208->streaming = enable;
+> > > +     mutex_unlock(&imx208->imx208_mx);
+> > > +
+> > > +     /* vflip and hflip cannot change during streaming */
+> > > +     v4l2_ctrl_grab(imx208->vflip, enable);
+> > > +     v4l2_ctrl_grab(imx208->hflip, enable);
+> >
+> > Please grab before releasing the lock; use __v4l2_ctrl_grab() here:
+> >
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=unlocked-ctrl-grab>
+> 
+> Is the current implementation not correct or is this just the
+> preferred way to "grab"?
+
+The problem with the above is that the controls have not been grabbed
+before the lock is released, therefore allowing them to be changed just
+after starting streaming.
+
+> (And thanks for pointing at the patch which adds the new "API")
+> 
+> (and I'm ignoring the remaining nit on the assumption it can be
+> addressed in the next patch)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
