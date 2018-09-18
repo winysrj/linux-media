@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:47138 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:46888 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730260AbeISDek (ORCPT
+        with ESMTP id S1730693AbeISDeb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 23:34:40 -0400
+        Tue, 18 Sep 2018 23:34:31 -0400
 From: Vikash Garodia <vgarodia@codeaurora.org>
 To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
         mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
@@ -12,255 +12,163 @@ Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
         devicetree@vger.kernel.org, acourbot@chromium.org,
         vgarodia@codeaurora.org
-Subject: [PATCH v8 4/5] venus: firmware: add no TZ boot and shutdown routine
-Date: Wed, 19 Sep 2018 03:29:12 +0530
-Message-Id: <1537307954-9729-5-git-send-email-vgarodia@codeaurora.org>
+Subject: [PATCH v8 3/5] venus: firmware: register separate platform_device for firmware loader
+Date: Wed, 19 Sep 2018 03:29:11 +0530
+Message-Id: <1537307954-9729-4-git-send-email-vgarodia@codeaurora.org>
 In-Reply-To: <1537307954-9729-1-git-send-email-vgarodia@codeaurora.org>
 References: <1537307954-9729-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video hardware is mainly comprised of vcodec subsystem and video
-control subsystem. Video control has ARM9 which executes the video
-firmware instructions whereas vcodec does the video frame processing.
-This change adds support to load the video firmware and bring ARM9
-out of reset for platforms which does not have trustzone.
-An iommu domain is associated and managed with the firmware device.
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 
-Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+This registers a firmware platform_device and associate it with
+video-firmware DT subnode. Then calls dma configure to initialize
+dma and iommu.
+
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/platform/qcom/venus/core.c         |  6 +-
- drivers/media/platform/qcom/venus/core.h         |  1 +
- drivers/media/platform/qcom/venus/firmware.c     | 96 +++++++++++++++++++++++-
- drivers/media/platform/qcom/venus/firmware.h     |  2 +-
- drivers/media/platform/qcom/venus/hfi_venus_io.h |  1 +
- 5 files changed, 98 insertions(+), 8 deletions(-)
+ drivers/media/platform/qcom/venus/core.c     | 14 +++++---
+ drivers/media/platform/qcom/venus/core.h     |  3 ++
+ drivers/media/platform/qcom/venus/firmware.c | 54 ++++++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/firmware.h |  2 ++
+ 4 files changed, 69 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index 440f25f..3bd3b8a 100644
+index 75b9785..440f25f 100644
 --- a/drivers/media/platform/qcom/venus/core.c
 +++ b/drivers/media/platform/qcom/venus/core.c
-@@ -76,7 +76,7 @@ static void venus_sys_error_handler(struct work_struct *work)
- 	hfi_core_deinit(core, true);
- 	hfi_destroy(core);
- 	mutex_lock(&core->lock);
--	venus_shutdown(core->dev);
-+	venus_shutdown(core);
+@@ -284,6 +284,14 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_runtime_disable;
  
- 	pm_runtime_put_sync(core->dev);
++	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
++	if (ret)
++		goto err_runtime_disable;
++
++	ret = venus_firmware_init(core);
++	if (ret)
++		goto err_runtime_disable;
++
+ 	ret = venus_boot(core);
+ 	if (ret)
+ 		goto err_runtime_disable;
+@@ -308,10 +316,6 @@ static int venus_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto err_core_deinit;
  
-@@ -327,7 +327,7 @@ static int venus_probe(struct platform_device *pdev)
- err_core_deinit:
- 	hfi_core_deinit(core, false);
- err_venus_shutdown:
--	venus_shutdown(dev);
-+	venus_shutdown(core);
- err_runtime_disable:
- 	pm_runtime_set_suspended(dev);
- 	pm_runtime_disable(dev);
-@@ -348,7 +348,7 @@ static int venus_remove(struct platform_device *pdev)
- 	WARN_ON(ret);
- 
- 	hfi_destroy(core);
--	venus_shutdown(dev);
-+	venus_shutdown(core);
+-	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+-	if (ret)
+-		goto err_dev_unregister;
+-
+ 	ret = pm_runtime_put_sync(dev);
+ 	if (ret)
+ 		goto err_dev_unregister;
+@@ -347,6 +351,8 @@ static int venus_remove(struct platform_device *pdev)
+ 	venus_shutdown(dev);
  	of_platform_depopulate(dev);
  
- 	venus_firmware_deinit(core);
++	venus_firmware_deinit(core);
++
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+ 
 diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index 6f2c82d..baaa1cc 100644
+index dfd5c10..6f2c82d 100644
 --- a/drivers/media/platform/qcom/venus/core.h
 +++ b/drivers/media/platform/qcom/venus/core.h
-@@ -132,6 +132,7 @@ struct venus_core {
+@@ -130,6 +130,9 @@ struct venus_core {
+ 	struct device *dev;
+ 	struct device *dev_dec;
  	struct device *dev_enc;
- 	struct video_firmware {
- 		struct device *dev;
-+		struct iommu_domain *iommu_domain;
- 	} fw;
++	struct video_firmware {
++		struct device *dev;
++	} fw;
  	bool no_tz;
  	struct mutex lock;
+ 	struct list_head instances;
 diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-index a251707..3cf9313 100644
+index 16faba6..a251707 100644
 --- a/drivers/media/platform/qcom/venus/firmware.c
 +++ b/drivers/media/platform/qcom/venus/firmware.c
-@@ -15,6 +15,7 @@
- #include <linux/device.h>
- #include <linux/firmware.h>
- #include <linux/kernel.h>
-+#include <linux/iommu.h>
+@@ -18,6 +18,8 @@
  #include <linux/io.h>
  #include <linux/of.h>
  #include <linux/of_address.h>
-@@ -122,6 +123,56 @@ static int venus_load_fw(struct venus_core *core, const char *fwname,
- 	return ret;
++#include <linux/platform_device.h>
++#include <linux/of_device.h>
+ #include <linux/qcom_scm.h>
+ #include <linux/sizes.h>
+ #include <linux/soc/qcom/mdt_loader.h>
+@@ -144,3 +146,55 @@ int venus_shutdown(struct device *dev)
+ {
+ 	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
  }
- 
-+static int venus_boot_no_tz(struct venus_core *core, phys_addr_t mem_phys,
-+			    size_t mem_size)
++
++int venus_firmware_init(struct venus_core *core)
 +{
-+	struct iommu_domain *iommu;
-+	struct device *dev;
++	struct platform_device_info info;
++	struct platform_device *pdev;
++	struct device_node *np;
 +	int ret;
 +
-+	dev = core->fw.dev;
-+	if (!dev)
-+		return -EPROBE_DEFER;
++	np = of_get_child_by_name(core->dev->of_node, "video-firmware");
++	if (!np)
++		return 0;
 +
-+	iommu = core->fw.iommu_domain;
++	memset(&info, 0, sizeof(info));
++	info.fwnode = &np->fwnode;
++	info.parent = core->dev;
++	info.name = np->name;
++	info.dma_mask = DMA_BIT_MASK(32);
 +
-+	ret = iommu_map(iommu, VENUS_FW_START_ADDR, mem_phys, mem_size,
-+			IOMMU_READ | IOMMU_WRITE | IOMMU_PRIV);
-+	if (ret) {
-+		dev_err(dev, "could not map video firmware region\n");
-+		return ret;
++	pdev = platform_device_register_full(&info);
++	if (IS_ERR(pdev)) {
++		of_node_put(np);
++		return PTR_ERR(pdev);
 +	}
 +
-+	venus_reset_cpu(core);
++	pdev->dev.of_node = np;
 +
-+	return 0;
-+}
-+
-+static int venus_shutdown_no_tz(struct venus_core *core)
-+{
-+	struct iommu_domain *iommu;
-+	size_t unmapped;
-+	u32 reg;
-+	struct device *dev = core->fw.dev;
-+	void __iomem *base = core->base;
-+
-+	/* Assert the reset to ARM9 */
-+	reg = readl_relaxed(base + WRAPPER_A9SS_SW_RESET);
-+	reg |= WRAPPER_A9SS_SW_RESET_BIT;
-+	writel_relaxed(reg, base + WRAPPER_A9SS_SW_RESET);
-+
-+	/* Make sure reset is asserted before the mapping is removed */
-+	mb();
-+
-+	iommu = core->fw.iommu_domain;
-+
-+	unmapped = iommu_unmap(iommu, VENUS_FW_START_ADDR, VENUS_FW_MEM_SIZE);
-+	if (unmapped != VENUS_FW_MEM_SIZE)
-+		dev_err(dev, "failed to unmap firmware\n");
-+
-+	return 0;
-+}
-+
- int venus_boot(struct venus_core *core)
- {
- 	struct device *dev = core->dev;
-@@ -139,17 +190,30 @@ int venus_boot(struct venus_core *core)
- 		return -EINVAL;
- 	}
- 
--	return qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-+	if (core->no_tz)
-+		ret = venus_boot_no_tz(core, mem_phys, mem_size);
-+	else
-+		ret = qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-+
-+	return ret;
- }
- 
--int venus_shutdown(struct device *dev)
-+int venus_shutdown(struct venus_core *core)
- {
--	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
-+	int ret;
-+
-+	if (core->no_tz)
-+		ret = venus_shutdown_no_tz(core);
-+	else
-+		ret = qcom_scm_pas_shutdown(VENUS_PAS_ID);
-+
-+	return ret;
- }
- 
- int venus_firmware_init(struct venus_core *core)
- {
- 	struct platform_device_info info;
-+	struct iommu_domain *iommu_dom;
- 	struct platform_device *pdev;
- 	struct device_node *np;
- 	int ret;
-@@ -172,19 +236,36 @@ int venus_firmware_init(struct venus_core *core)
- 
- 	pdev->dev.of_node = np;
- 
--	ret = of_dma_configure(&pdev->dev, np);
-+	ret = of_dma_configure(&pdev->dev, np, true);
- 	if (ret) {
- 		dev_err(core->dev, "dma configure fail\n");
- 		goto err_unregister;
- 	}
- 
- 	core->fw.dev = &pdev->dev;
-+
-+	iommu_dom = iommu_domain_alloc(&platform_bus_type);
-+	if (!iommu_dom) {
-+		dev_err(core->fw.dev, "Failed to allocate iommu domain\n");
-+		ret = -ENOMEM;
++	ret = of_dma_configure(&pdev->dev, np);
++	if (ret) {
++		dev_err(core->dev, "dma configure fail\n");
 +		goto err_unregister;
 +	}
 +
-+	ret = iommu_attach_device(iommu_dom, core->fw.dev);
-+	if (ret) {
-+		dev_err(core->fw.dev, "could not attach device\n");
-+		goto err_iommu_free;
-+	}
++	core->fw.dev = &pdev->dev;
++	core->no_tz = true;
 +
- 	core->no_tz = true;
-+	core->fw.iommu_domain = iommu_dom;
- 
- 	of_node_put(np);
- 
- 	return 0;
- 
-+err_iommu_free:
-+	iommu_domain_free(iommu_dom);
- err_unregister:
- 	platform_device_unregister(pdev);
- 	of_node_put(np);
-@@ -193,8 +274,15 @@ int venus_firmware_init(struct venus_core *core)
- 
- void venus_firmware_deinit(struct venus_core *core)
- {
-+	struct iommu_domain *iommu;
++	of_node_put(np);
 +
- 	if (!core->fw.dev)
- 		return;
- 
-+	iommu = core->fw.iommu_domain;
++	return 0;
 +
-+	iommu_detach_device(iommu, core->fw.dev);
-+	iommu_domain_free(iommu);
++err_unregister:
++	platform_device_unregister(pdev);
++	of_node_put(np);
++	return ret;
++}
 +
- 	platform_device_unregister(to_platform_device(core->fw.dev));
- }
++void venus_firmware_deinit(struct venus_core *core)
++{
++	if (!core->fw.dev)
++		return;
++
++	platform_device_unregister(to_platform_device(core->fw.dev));
++}
 diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
-index fd7edf0..119a9a4 100644
+index 1343747..fd7edf0 100644
 --- a/drivers/media/platform/qcom/venus/firmware.h
 +++ b/drivers/media/platform/qcom/venus/firmware.h
-@@ -19,7 +19,7 @@
- int venus_firmware_init(struct venus_core *core);
- void venus_firmware_deinit(struct venus_core *core);
+@@ -16,6 +16,8 @@
+ 
+ struct device;
+ 
++int venus_firmware_init(struct venus_core *core);
++void venus_firmware_deinit(struct venus_core *core);
  int venus_boot(struct venus_core *core);
--int venus_shutdown(struct device *dev);
-+int venus_shutdown(struct venus_core *core);
+ int venus_shutdown(struct device *dev);
  int venus_set_hw_state(struct venus_core *core, bool suspend);
- 
- static inline int venus_set_hw_state_suspend(struct venus_core *core)
-diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-index d69f51b..ef0c72a 100644
---- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
-+++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
-@@ -119,6 +119,7 @@
- #define WRAPPER_NONPIX_START_ADDR		(WRAPPER_BASE + 0x1030)
- #define WRAPPER_NONPIX_END_ADDR			(WRAPPER_BASE + 0x1034)
- #define WRAPPER_A9SS_SW_RESET			(WRAPPER_BASE + 0x3000)
-+#define WRAPPER_A9SS_SW_RESET_BIT		BIT(4)
- 
- /* Venus 4xx */
- #define WRAPPER_VCODEC0_MMCC_POWER_STATUS	(WRAPPER_BASE + 0x90)
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
