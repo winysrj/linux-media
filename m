@@ -1,73 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:44919 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:58173 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729662AbeIRPG3 (ORCPT
+        with ESMTP id S1729647AbeIRPGa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 11:06:29 -0400
+        Tue, 18 Sep 2018 11:06:30 -0400
 From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org,
         Steve Longerbeam <slongerbeam@gmail.com>
 Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Subject: [PATCH v3 11/16] gpu: ipu-v3: image-convert: fix debug output for varying tile sizes
-Date: Tue, 18 Sep 2018 11:34:16 +0200
-Message-Id: <20180918093421.12930-12-p.zabel@pengutronix.de>
+Subject: [PATCH v3 14/16] gpu: ipu-v3: image-convert: add some ASCII art to the exposition
+Date: Tue, 18 Sep 2018 11:34:19 +0200
+Message-Id: <20180918093421.12930-15-p.zabel@pengutronix.de>
 In-Reply-To: <20180918093421.12930-1-p.zabel@pengutronix.de>
 References: <20180918093421.12930-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since tile dimensions now vary between tiles, add debug output for each
-tile's position and dimensions.
+Visualize the scaling and rotation pipeline with some ASCII art
+diagrams. Remove the FIXME comment about missing seam prevention.
 
 Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
 No changes since v2.
 ---
- drivers/gpu/ipu-v3/ipu-image-convert.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/gpu/ipu-v3/ipu-image-convert.c | 39 +++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/ipu-v3/ipu-image-convert.c b/drivers/gpu/ipu-v3/ipu-image-convert.c
-index 4a513dea7913..aba973aedb75 100644
+index 16d400b2b3d2..6179d8bd123c 100644
 --- a/drivers/gpu/ipu-v3/ipu-image-convert.c
 +++ b/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -308,12 +308,11 @@ static void dump_format(struct ipu_image_convert_ctx *ctx,
- 	struct ipu_image_convert_priv *priv = chan->priv;
+@@ -37,17 +37,36 @@
+  * when double_buffering boolean is set).
+  *
+  * Note that the input frame must be split up into the same number
+- * of tiles as the output frame.
++ * of tiles as the output frame:
+  *
+- * FIXME: at this point there is no attempt to deal with visible seams
+- * at the tile boundaries when upscaling. The seams are caused by a reset
+- * of the bilinear upscale interpolation when starting a new tile. The
+- * seams are barely visible for small upscale factors, but become
+- * increasingly visible as the upscale factor gets larger, since more
+- * interpolated pixels get thrown out at the tile boundaries. A possilble
+- * fix might be to overlap tiles of different sizes, but this must be done
+- * while also maintaining the IDMAC dma buffer address alignment and 8x8 IRT
+- * alignment restrictions of each tile.
++ *                       +---------+-----+
++ *   +-----+---+         |  A      | B   |
++ *   | A   | B |         |         |     |
++ *   +-----+---+   -->   +---------+-----+
++ *   | C   | D |         |  C      | D   |
++ *   +-----+---+         |         |     |
++ *                       +---------+-----+
++ *
++ * Clockwise 90° rotations are handled by first rescaling into a
++ * reusable temporary tile buffer and then rotating with the 8x8
++ * block rotator, writing to the correct destination:
++ *
++ *                                         +-----+-----+
++ *                                         |     |     |
++ *   +-----+---+         +---------+       | C   | A   |
++ *   | A   | B |         | A,B, |  |       |     |     |
++ *   +-----+---+   -->   | C,D  |  |  -->  |     |     |
++ *   | C   | D |         +---------+       +-----+-----+
++ *   +-----+---+                           | D   | B   |
++ *                                         |     |     |
++ *                                         +-----+-----+
++ *
++ * If the 8x8 block rotator is used, horizontal or vertical flipping
++ * is done during the rotation step, otherwise flipping is done
++ * during the scaling step.
++ * With rotation or flipping, tile order changes between input and
++ * output image. Tiles are numbered row major from top left to bottom
++ * right for both input and output image.
+  */
  
- 	dev_dbg(priv->ipu->dev,
--		"task %u: ctx %p: %s format: %dx%d (%dx%d tiles of size %dx%d), %c%c%c%c\n",
-+		"task %u: ctx %p: %s format: %dx%d (%dx%d tiles), %c%c%c%c\n",
- 		chan->ic_task, ctx,
- 		ic_image->type == IMAGE_CONVERT_OUT ? "Output" : "Input",
- 		ic_image->base.pix.width, ic_image->base.pix.height,
- 		ic_image->num_cols, ic_image->num_rows,
--		ic_image->tile[0].width, ic_image->tile[0].height,
- 		ic_image->fmt->fourcc & 0xff,
- 		(ic_image->fmt->fourcc >> 8) & 0xff,
- 		(ic_image->fmt->fourcc >> 16) & 0xff,
-@@ -786,6 +785,8 @@ static void find_seams(struct ipu_image_convert_ctx *ctx,
- static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
- 				 struct ipu_image_convert_image *image)
- {
-+	struct ipu_image_convert_chan *chan = ctx->chan;
-+	struct ipu_image_convert_priv *priv = chan->priv;
- 	unsigned int i;
- 
- 	for (i = 0; i < ctx->num_tiles; i++) {
-@@ -810,6 +811,13 @@ static void calc_tile_dimensions(struct ipu_image_convert_ctx *ctx,
- 			tile->rot_stride =
- 				(image->fmt->bpp * tile->height) >> 3;
- 		}
-+
-+		dev_dbg(priv->ipu->dev,
-+			"task %u: ctx %p: %s@[%u,%u]: %ux%u@%u,%u\n",
-+			chan->ic_task, ctx,
-+			image->type == IMAGE_CONVERT_IN ? "Input" : "Output",
-+			row, col,
-+			tile->width, tile->height, tile->left, tile->top);
- 	}
- }
- 
+ #define MAX_STRIPES_W    4
 -- 
 2.19.0
