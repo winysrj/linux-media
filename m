@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:45897 "EHLO
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:53515 "EHLO
         metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729843AbeIRSsB (ORCPT
+        with ESMTP id S1729824AbeIRSsA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 14:48:01 -0400
+        Tue, 18 Sep 2018 14:48:00 -0400
 From: Marco Felsch <m.felsch@pengutronix.de>
 To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
 Cc: kernel@pengutronix.de, devicetree@vger.kernel.org,
         p.zabel@pengutronix.de, javierm@redhat.com,
         laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
         afshin.nasser@gmail.com, linux-media@vger.kernel.org
-Subject: [PATCH v3 8/9] media: tvp5150: initialize subdev before parsing device tree
-Date: Tue, 18 Sep 2018 15:14:52 +0200
-Message-Id: <20180918131453.21031-9-m.felsch@pengutronix.de>
+Subject: [PATCH v3 5/9] media: v4l2-subdev: add stubs for v4l2_subdev_get_try_*
+Date: Tue, 18 Sep 2018 15:14:49 +0200
+Message-Id: <20180918131453.21031-6-m.felsch@pengutronix.de>
 In-Reply-To: <20180918131453.21031-1-m.felsch@pengutronix.de>
 References: <20180918131453.21031-1-m.felsch@pengutronix.de>
 MIME-Version: 1.0
@@ -20,44 +20,74 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michael Tretter <m.tretter@pengutronix.de>
+In case of missing CONFIG_VIDEO_V4L2_SUBDEV_API those helpers aren't
+available. So each driver have to add ifdefs around those helpers or
+add the CONFIG_VIDEO_V4L2_SUBDEV_API as dependcy.
 
-There are several debug prints in the tvp5150_parse_dt() function, which
-do not print the prefix, because the v4l2_subdev is not initialized, yet.
+Make these helpers available in case of CONFIG_VIDEO_V4L2_SUBDEV_API
+isn't set to avoid ifdefs. This approach is less error prone too.
 
-Initialize the v4l2_subdev before parsing the device tree to fix the
-debug messages.
-
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
 Signed-off-by: Marco Felsch <m.felsch@pengutronix.de>
 ---
- drivers/media/i2c/tvp5150.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/media/v4l2-subdev.h | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index b34d0e883c06..535e97c7b266 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -2032,6 +2032,9 @@ static int tvp5150_probe(struct i2c_client *c,
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 9102d6ca566e..ce48f1fcf295 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -912,8 +912,6 @@ struct v4l2_subdev_fh {
+ #define to_v4l2_subdev_fh(fh)	\
+ 	container_of(fh, struct v4l2_subdev_fh, vfh)
  
- 	core->regmap = map;
- 	sd = &core->sd;
-+	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
-+	sd->internal_ops = &tvp5150_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- 	if (IS_ENABLED(CONFIG_OF) && np) {
- 		res = tvp5150_parse_dt(core, np);
-@@ -2044,10 +2047,6 @@ static int tvp5150_probe(struct i2c_client *c,
- 		core->mbus_type = V4L2_MBUS_BT656;
- 	}
- 
--	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
--	sd->internal_ops = &tvp5150_internal_ops;
--	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
 -
- 	res = tvp5150_mc_init(sd);
- 	if (res)
- 		goto err_cleanup_dt;
+ /**
+  * v4l2_subdev_get_try_format - ancillary routine to call
+  *	&struct v4l2_subdev_pad_config->try_fmt
+@@ -927,9 +925,13 @@ static inline struct v4l2_mbus_framefmt
+ 			    struct v4l2_subdev_pad_config *cfg,
+ 			    unsigned int pad)
+ {
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	if (WARN_ON(pad >= sd->entity.num_pads))
+ 		pad = 0;
+ 	return &cfg[pad].try_fmt;
++#else
++	return NULL;
++#endif
+ }
+ 
+ /**
+@@ -945,9 +947,13 @@ static inline struct v4l2_rect
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  unsigned int pad)
+ {
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	if (WARN_ON(pad >= sd->entity.num_pads))
+ 		pad = 0;
+ 	return &cfg[pad].try_crop;
++#else
++	return NULL;
++#endif
+ }
+ 
+ /**
+@@ -963,11 +969,14 @@ static inline struct v4l2_rect
+ 			     struct v4l2_subdev_pad_config *cfg,
+ 			     unsigned int pad)
+ {
++#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	if (WARN_ON(pad >= sd->entity.num_pads))
+ 		pad = 0;
+ 	return &cfg[pad].try_compose;
+-}
++#else
++	return NULL;
+ #endif
++}
+ 
+ extern const struct v4l2_file_operations v4l2_subdev_fops;
+ 
 -- 
 2.19.0
