@@ -1,129 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:52404 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731127AbeISQKS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 12:10:18 -0400
-Received: by mail-it0-f66.google.com with SMTP id h3-v6so7566163ita.2
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 03:33:01 -0700 (PDT)
-Received: from mail-it0-f42.google.com (mail-it0-f42.google.com. [209.85.214.42])
-        by smtp.gmail.com with ESMTPSA id o82-v6sm5488735itg.4.2018.09.19.03.32.59
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 19 Sep 2018 03:32:59 -0700 (PDT)
-Received: by mail-it0-f42.google.com with SMTP id h1-v6so7041008itj.4
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 03:32:59 -0700 (PDT)
+Received: from mga04.intel.com ([192.55.52.120]:14507 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1731025AbeISQMv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Sep 2018 12:12:51 -0400
+Date: Wed, 19 Sep 2018 13:35:31 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH 1/5] media: video-i2c: avoid accessing released memory
+ area when removing driver
+Message-ID: <20180919103531.k5yhvngj6gdgdnq2@paasikivi.fi.intel.com>
+References: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
+ <1537200191-17956-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
- <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org> <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
- <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org> <33e8d8e3-138e-0031-5b75-4bef114ac75e@xs4all.nl>
- <36b42952-982c-9048-77fb-72ca45cc7476@linaro.org> <051af6fb-e0e8-4008-99c5-9685ac24e454@xs4all.nl>
-In-Reply-To: <051af6fb-e0e8-4008-99c5-9685ac24e454@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Wed, 19 Sep 2018 19:32:46 +0900
-Message-ID: <CAPBb6MVupMsdhF6Rtk4fm8JeVurrK+ZsuxAQ-BwrTzdSP1xP0Q@mail.gmail.com>
-Subject: Re: [PATCH] venus: vdec: fix decoded data size
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        vgarodia@codeaurora.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1537200191-17956-2-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 17, 2018 at 11:33 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On 09/17/2018 04:30 PM, Stanimir Varbanov wrote:
-> > Hi Hans,
-> >
-> > On 09/17/2018 01:00 PM, Hans Verkuil wrote:
-> >> On 07/18/2018 04:37 PM, Stanimir Varbanov wrote:
-> >>> Hi,
-> >>>
-> >>> On 07/18/2018 04:26 PM, Nicolas Dufresne wrote:
-> >>>> Le mercredi 18 juillet 2018 =C3=A0 14:31 +0300, Stanimir Varbanov a =
-=C3=A9crit :
-> >>>>> Hi Vikash,
-> >>>>>
-> >>>>> On 07/02/2018 10:44 AM, Vikash Garodia wrote:
-> >>>>>> Exisiting code returns the max of the decoded
-> >>>>>> size and buffer size. It turns out that buffer
-> >>>>>> size is always greater due to hardware alignment
-> >>>>>> requirement. As a result, payload size given to
-> >>>>>> client is incorrect. This change ensures that
-> >>>>>> the bytesused is assigned to actual payload size.
-> >>>>>>
-> >>>>>> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
-> >>>>>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
-> >>>>>> ---
-> >>>>>>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
-> >>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>>>>
-> >>>>>> diff --git a/drivers/media/platform/qcom/venus/vdec.c
-> >>>>>> b/drivers/media/platform/qcom/venus/vdec.c
-> >>>>>> index d079aeb..ada1d2f 100644
-> >>>>>> --- a/drivers/media/platform/qcom/venus/vdec.c
-> >>>>>> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> >>>>>> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst
-> >>>>>> *inst, unsigned int buf_type,
-> >>>>>>
-> >>>>>>                  vb =3D &vbuf->vb2_buf;
-> >>>>>>                  vb->planes[0].bytesused =3D
-> >>>>>> -                        max_t(unsigned int, opb_sz, bytesused);
-> >>>>>> +                        min_t(unsigned int, opb_sz, bytesused);
-> >>>>>
-> >>>>> Most probably my intension was to avoid bytesused =3D=3D 0, but tha=
-t is
-> >>>>> allowed from v4l2 driver -> userspace direction
-> >>>>
-> >>>> It remains bad practice since it was used by decoders to indicate th=
-e
-> >>>> last buffer. Some userspace (some GStreamer versions) will stop work=
-ing
-> >>>> if you start returning 0.
-> >>>
-> >>> I think it is legal v4l2 driver to return bytesused =3D 0 when usersp=
-ace
-> >>> issues streamoff on both queues before EOS, no? Simply because the
-> >>> capture buffers are empty.
-> >>>
-> >>
-> >> Going through some of the older pending patches I found this one:
-> >>
-> >> So is this patch right or wrong?
-> >
-> > I'm not sure either, let's not applying it for now (if Nicolas is right
-> > this will break gstreamer plugin).
-> >
->
-> OK, I marked this as Rejected. If you change your mind it can be reposted=
- :-)
+Hi Mita-san,
 
-Mmm I'm not saying it has to be done in the current form, but at the
-moment the returned bytesused seems to be wrong (at least Chrome is
-not happy). We are returning the total size of the buffer instead of
-the actually useful payload.
+On Tue, Sep 18, 2018 at 01:03:07AM +0900, Akinobu Mita wrote:
+> The struct video_i2c_data is released when video_unregister_device() is
+> called, but it will still be accessed after calling
+> video_unregister_device().
+> 
+> Use devm_kzalloc() and let the memory be automatically released on driver
+> detach.
+> 
+> Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
+> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Hans Verkuil <hansverk@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+>  drivers/media/i2c/video-i2c.c | 18 +++++-------------
+>  1 file changed, 5 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> index 06d29d8..b7a2af9 100644
+> --- a/drivers/media/i2c/video-i2c.c
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -508,20 +508,15 @@ static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
+>  	.vidioc_streamoff		= vb2_ioctl_streamoff,
+>  };
+>  
+> -static void video_i2c_release(struct video_device *vdev)
+> -{
+> -	kfree(video_get_drvdata(vdev));
 
-If the intent is to avoid returning bytesused =3D=3D 0 except for the
-special case of the last buffer, how about the following?
+This is actually correct: it ensures that that the device data stays in
+place as long as the device is being accessed. Allocating device data with
+devm_kzalloc() no longer guarantees that, and is not the right thing to do
+for that reason.
 
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -943,8 +943,7 @@ static void vdec_buf_done(struct venus_inst *inst,
-unsigned int buf_type,
-               unsigned int opb_sz =3D venus_helper_get_opb_size(inst);
+> -}
+> -
+>  static int video_i2c_probe(struct i2c_client *client,
+>  			     const struct i2c_device_id *id)
+>  {
+>  	struct video_i2c_data *data;
+>  	struct v4l2_device *v4l2_dev;
+>  	struct vb2_queue *queue;
+> -	int ret = -ENODEV;
+> +	int ret;
+>  
+> -	data = kzalloc(sizeof(*data), GFP_KERNEL);
+> +	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+>  	if (!data)
+>  		return -ENOMEM;
+>  
+> @@ -530,7 +525,7 @@ static int video_i2c_probe(struct i2c_client *client,
+>  	else if (id)
+>  		data->chip = &video_i2c_chip[id->driver_data];
+>  	else
+> -		goto error_free_device;
+> +		return -ENODEV;
+>  
+>  	data->client = client;
+>  	v4l2_dev = &data->v4l2_dev;
+> @@ -538,7 +533,7 @@ static int video_i2c_probe(struct i2c_client *client,
+>  
+>  	ret = v4l2_device_register(&client->dev, v4l2_dev);
+>  	if (ret < 0)
+> -		goto error_free_device;
+> +		return ret;
+>  
+>  	mutex_init(&data->lock);
+>  	mutex_init(&data->queue_lock);
+> @@ -568,7 +563,7 @@ static int video_i2c_probe(struct i2c_client *client,
+>  	data->vdev.fops = &video_i2c_fops;
+>  	data->vdev.lock = &data->lock;
+>  	data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
+> -	data->vdev.release = video_i2c_release;
+> +	data->vdev.release = video_device_release_empty;
+>  	data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
+>  				 V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+>  
+> @@ -597,9 +592,6 @@ static int video_i2c_probe(struct i2c_client *client,
+>  	mutex_destroy(&data->lock);
+>  	mutex_destroy(&data->queue_lock);
+>  
+> -error_free_device:
+> -	kfree(data);
+> -
+>  	return ret;
+>  }
+>  
 
-               vb =3D &vbuf->vb2_buf;
--               vb->planes[0].bytesused =3D
--                       max_t(unsigned int, opb_sz, bytesused);
-+                vb2_set_plane_payload(vb, 0, bytesused ? : opb_sz);
-               vb->planes[0].data_offset =3D data_offset;
-               vb->timestamp =3D timestamp_us * NSEC_PER_USEC;
-               vbuf->sequence =3D inst->sequence_cap++;
+-- 
+Regards,
 
-It works fine for me, and should not return 0 more often than it did
-before (i.e. never). In practice I also never see the firmware
-reporting a payload of zero on SDM845, but maybe older chips differ?
+Sakari Ailus
+sakari.ailus@linux.intel.com
