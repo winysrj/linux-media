@@ -1,167 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:54452 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732122AbeISUiu (ORCPT
+Received: from mail-pf1-f196.google.com ([209.85.210.196]:40515 "EHLO
+        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731665AbeISUis (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 16:38:50 -0400
-Received: by mail-it0-f67.google.com with SMTP id f14-v6so8676661ita.4
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 08:00:30 -0700 (PDT)
-Subject: Re: [PATCH v9 1/5] venus: firmware: add routine to reset ARM9
-To: Alexandre Courbot <acourbot@chromium.org>, vgarodia@codeaurora.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
-        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org
-References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
- <1537314192-26892-2-git-send-email-vgarodia@codeaurora.org>
- <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <97b94b9b-f028-cb8b-a3db-67626dc517ab@linaro.org>
-Date: Wed, 19 Sep 2018 18:00:27 +0300
+        Wed, 19 Sep 2018 16:38:48 -0400
+Received: by mail-pf1-f196.google.com with SMTP id s13-v6so2840919pfi.7
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 08:00:28 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
+ <1537200191-17956-2-git-send-email-akinobu.mita@gmail.com> <20180919103531.k5yhvngj6gdgdnq2@paasikivi.fi.intel.com>
+In-Reply-To: <20180919103531.k5yhvngj6gdgdnq2@paasikivi.fi.intel.com>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Thu, 20 Sep 2018 00:00:17 +0900
+Message-ID: <CAC5umyiO5g5vZGGE4HPpxEkUNUd==GzkfMoavzmWn-gS9+emPw@mail.gmail.com>
+Subject: Re: [PATCH 1/5] media: video-i2c: avoid accessing released memory
+ area when removing driver
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex,
+2018=E5=B9=B49=E6=9C=8819=E6=97=A5(=E6=B0=B4) 19:35 Sakari Ailus <sakari.ai=
+lus@linux.intel.com>:
+>
+> Hi Mita-san,
+>
+> On Tue, Sep 18, 2018 at 01:03:07AM +0900, Akinobu Mita wrote:
+> > The struct video_i2c_data is released when video_unregister_device() is
+> > called, but it will still be accessed after calling
+> > video_unregister_device().
+> >
+> > Use devm_kzalloc() and let the memory be automatically released on driv=
+er
+> > detach.
+> >
+> > Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
+> > Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Cc: Hans Verkuil <hansverk@cisco.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> > ---
+> >  drivers/media/i2c/video-i2c.c | 18 +++++-------------
+> >  1 file changed, 5 insertions(+), 13 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2=
+c.c
+> > index 06d29d8..b7a2af9 100644
+> > --- a/drivers/media/i2c/video-i2c.c
+> > +++ b/drivers/media/i2c/video-i2c.c
+> > @@ -508,20 +508,15 @@ static const struct v4l2_ioctl_ops video_i2c_ioct=
+l_ops =3D {
+> >       .vidioc_streamoff               =3D vb2_ioctl_streamoff,
+> >  };
+> >
+> > -static void video_i2c_release(struct video_device *vdev)
+> > -{
+> > -     kfree(video_get_drvdata(vdev));
+>
+> This is actually correct: it ensures that that the device data stays in
+> place as long as the device is being accessed. Allocating device data wit=
+h
+> devm_kzalloc() no longer guarantees that, and is not the right thing to d=
+o
+> for that reason.
 
-On 09/19/2018 10:32 AM, Alexandre Courbot wrote:
-> On Wed, Sep 19, 2018 at 8:43 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
->>
->> Add routine to reset the ARM9 and brings it out of reset. Also
->> abstract the Venus CPU state handling with a new function. This
->> is in preparation to add PIL functionality in venus driver.
->>
->> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->> ---
->>  drivers/media/platform/qcom/venus/core.h         |  2 ++
->>  drivers/media/platform/qcom/venus/firmware.c     | 33 ++++++++++++++++++++++++
->>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
->>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
->>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
->>  5 files changed, 57 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
->> index 2f02365..dfd5c10 100644
->> --- a/drivers/media/platform/qcom/venus/core.h
->> +++ b/drivers/media/platform/qcom/venus/core.h
->> @@ -98,6 +98,7 @@ struct venus_caps {
->>   * @dev:               convenience struct device pointer
->>   * @dev_dec:   convenience struct device pointer for decoder device
->>   * @dev_enc:   convenience struct device pointer for encoder device
->> + * @no_tz:     a flag that suggests presence of trustzone
-> 
-> Looks like it suggests the absence of trustzone?
-> 
-> Actually I would rename it as use_tz and set it if TrustZone is used.
-> This would avoid double-negative statements like what we see below.
+I have actually inserted printk() each line in video_i2_remove().  When
+rmmod this driver, video_i2c_release() (and also kfree) is called while
+executing video_unregister_device().  Because video_unregister_device()
+releases the last reference to data->vdev.dev, then v4l2_device_release()
+callback executes data->vdev.release.
 
-I find this suggestion reasonable.
+So use after freeing video_i2c_data actually happened.
 
-> 
->>   * @lock:      a lock for this strucure
->>   * @instances: a list_head of all instances
->>   * @insts_count:       num of instances
->> @@ -129,6 +130,7 @@ struct venus_core {
->>         struct device *dev;
->>         struct device *dev_dec;
->>         struct device *dev_enc;
->> +       bool no_tz;
->>         struct mutex lock;
->>         struct list_head instances;
->>         atomic_t insts_count;
->> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
->> index c4a5778..f2ae2f0 100644
->> --- a/drivers/media/platform/qcom/venus/firmware.c
->> +++ b/drivers/media/platform/qcom/venus/firmware.c
->> @@ -22,10 +22,43 @@
->>  #include <linux/sizes.h>
->>  #include <linux/soc/qcom/mdt_loader.h>
->>
->> +#include "core.h"
->>  #include "firmware.h"
->> +#include "hfi_venus_io.h"
->>
->>  #define VENUS_PAS_ID                   9
->>  #define VENUS_FW_MEM_SIZE              (6 * SZ_1M)
->> +#define VENUS_FW_START_ADDR            0x0
->> +
->> +static void venus_reset_cpu(struct venus_core *core)
->> +{
->> +       void __iomem *base = core->base;
->> +
->> +       writel(0, base + WRAPPER_FW_START_ADDR);
->> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_FW_END_ADDR);
->> +       writel(0, base + WRAPPER_CPA_START_ADDR);
->> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
->> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_START_ADDR);
->> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_END_ADDR);
->> +       writel(0x0, base + WRAPPER_CPU_CGC_DIS);
->> +       writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
->> +
->> +       /* Bring ARM9 out of reset */
->> +       writel(0, base + WRAPPER_A9SS_SW_RESET);
->> +}
->> +
->> +int venus_set_hw_state(struct venus_core *core, bool resume)
->> +{
->> +       if (!core->no_tz)
-> 
-> This is the kind of double negative statement I was referring do
-> above: "if we do not not have TrustZone". Turning it into
-> 
->     if (core->use_tz)
-> 
-> would save the reader a few neurons. :)
-> 
->> +               return qcom_scm_set_remote_state(resume, 0);
->> +
->> +       if (resume)
->> +               venus_reset_cpu(core);
->> +       else
->> +               writel(1, core->base + WRAPPER_A9SS_SW_RESET);
->> +
->> +       return 0;
->> +}
->>
->>  int venus_boot(struct device *dev, const char *fwname)
->>  {
->> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
->> index 428efb5..397570c 100644
->> --- a/drivers/media/platform/qcom/venus/firmware.h
->> +++ b/drivers/media/platform/qcom/venus/firmware.h
->> @@ -18,5 +18,16 @@
->>
->>  int venus_boot(struct device *dev, const char *fwname);
->>  int venus_shutdown(struct device *dev);
->> +int venus_set_hw_state(struct venus_core *core, bool suspend);
->> +
->> +static inline int venus_set_hw_state_suspend(struct venus_core *core)
->> +{
->> +       return venus_set_hw_state(core, false);
->> +}
->> +
->> +static inline int venus_set_hw_state_resume(struct venus_core *core)
->> +{
->> +       return venus_set_hw_state(core, true);
->> +}
-> 
-> I think these two venus_set_hw_state_suspend() and
-> venus_set_hw_state_resume() are superfluous, if you want to make the
-> state explicit you can also define an enum { SUSPEND, RESUME } to use
-> as argument of venus_set_hw_state() and call it directly.
+In this patch, devm_kzalloc() is called with client->dev (not with vdev->de=
+v).
+So the allocated memory is released when the last user of client->dev
+is gone (maybe just after video_i2_remove() is finished).
 
-Infact this was by my request, and I wanted to avoid enum and have the
-type of the action in the function name and also avoid one extra
-function argument. Of course it is a matter of taste.
-
--- 
-regards,
-Stan
+> > -}
+> > -
+> >  static int video_i2c_probe(struct i2c_client *client,
+> >                            const struct i2c_device_id *id)
+> >  {
+> >       struct video_i2c_data *data;
+> >       struct v4l2_device *v4l2_dev;
+> >       struct vb2_queue *queue;
+> > -     int ret =3D -ENODEV;
+> > +     int ret;
+> >
+> > -     data =3D kzalloc(sizeof(*data), GFP_KERNEL);
+> > +     data =3D devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+> >       if (!data)
+> >               return -ENOMEM;
+> >
+> > @@ -530,7 +525,7 @@ static int video_i2c_probe(struct i2c_client *clien=
+t,
+> >       else if (id)
+> >               data->chip =3D &video_i2c_chip[id->driver_data];
+> >       else
+> > -             goto error_free_device;
+> > +             return -ENODEV;
+> >
+> >       data->client =3D client;
+> >       v4l2_dev =3D &data->v4l2_dev;
+> > @@ -538,7 +533,7 @@ static int video_i2c_probe(struct i2c_client *clien=
+t,
+> >
+> >       ret =3D v4l2_device_register(&client->dev, v4l2_dev);
+> >       if (ret < 0)
+> > -             goto error_free_device;
+> > +             return ret;
+> >
+> >       mutex_init(&data->lock);
+> >       mutex_init(&data->queue_lock);
+> > @@ -568,7 +563,7 @@ static int video_i2c_probe(struct i2c_client *clien=
+t,
+> >       data->vdev.fops =3D &video_i2c_fops;
+> >       data->vdev.lock =3D &data->lock;
+> >       data->vdev.ioctl_ops =3D &video_i2c_ioctl_ops;
+> > -     data->vdev.release =3D video_i2c_release;
+> > +     data->vdev.release =3D video_device_release_empty;
+> >       data->vdev.device_caps =3D V4L2_CAP_VIDEO_CAPTURE |
+> >                                V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+> >
+> > @@ -597,9 +592,6 @@ static int video_i2c_probe(struct i2c_client *clien=
+t,
+> >       mutex_destroy(&data->lock);
+> >       mutex_destroy(&data->queue_lock);
+> >
+> > -error_free_device:
+> > -     kfree(data);
+> > -
+> >       return ret;
+> >  }
+> >
+>
+> --
+> Regards,
+>
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
