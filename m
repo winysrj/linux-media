@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38565 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725973AbeISNSc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 09:18:32 -0400
-Subject: Re: RFC: stop support for 2.6 kernel in the daily build
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: "Jasmin J." <jasmin@anw.at>
-References: <9e0a811d-f403-ae89-38fa-947356f2c026@xs4all.nl>
-Message-ID: <8490e60c-8e43-c191-ec15-89cdffbb3c61@xs4all.nl>
-Date: Wed, 19 Sep 2018 09:41:46 +0200
+Received: from szxga05-in.huawei.com ([45.249.212.191]:12188 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727669AbeISOFZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Sep 2018 10:05:25 -0400
+From: zhong jiang <zhongjiang@huawei.com>
+To: <mchehab@kernel.org>, <mkrufky@linuxtv.org>
+CC: <brad@nextdimension.cc>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: [RESEND PATCH v2] media: dvb-frontends: Use kmemdup instead of duplicating its function
+Date: Wed, 19 Sep 2018 16:16:09 +0800
+Message-ID: <1537344969-39877-1-git-send-email-zhongjiang@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <9e0a811d-f403-ae89-38fa-947356f2c026@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2018 08:49 AM, Hans Verkuil wrote:
-> SUSE Linux Enterprise Server 12 is on kernel 3.12, and version 11 SP2 or up
-> is on kernel 3.0.
-> 
-> Red Hat's RHEL 7 is on kernel 3.10.
-> 
-> I'm inclined to drop support for 2.6 altogether. If nothing else it
-> simplifies the kernel version handling in media_build.
-> 
-> Whether we should also drop support for 3.0-3.9 is another matter.
-> I wouldn't mind, 3.10 seems to be a reasonable minimum to me, but
-> I might be too optimistic here.
+kmemdup has implemented the function that kmalloc() + memcpy().
+We prefer to kmemdup rather than code opened implementation.
 
-Final reminder: unless someone objects I will drop support for kernels
-3.0-3.9 from the daily build tomorrow.
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+---
+ drivers/media/dvb-frontends/lgdt3306a.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-Pre-3.0 kernels are already dropped.
-
-Regards,
-
-	hans
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 0e1f5da..cee9c83 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -2205,15 +2205,13 @@ static int lgdt3306a_probe(struct i2c_client *client,
+ 	struct dvb_frontend *fe;
+ 	int ret;
+ 
+-	config = kzalloc(sizeof(struct lgdt3306a_config), GFP_KERNEL);
++	config = kmemdup(client->dev.platform_data,
++			 sizeof(struct lgdt3306a_config), GFP_KERNEL);
+ 	if (config == NULL) {
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 	}
+ 
+-	memcpy(config, client->dev.platform_data,
+-			sizeof(struct lgdt3306a_config));
+-
+ 	config->i2c_addr = client->addr;
+ 	fe = lgdt3306a_attach(config, client->adapter);
+ 	if (fe == NULL) {
+-- 
+1.7.12.4
