@@ -1,148 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f196.google.com ([209.85.210.196]:40515 "EHLO
-        mail-pf1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731665AbeISUis (ORCPT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:33716 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727676AbeISVcB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 16:38:48 -0400
-Received: by mail-pf1-f196.google.com with SMTP id s13-v6so2840919pfi.7
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 08:00:28 -0700 (PDT)
-MIME-Version: 1.0
-References: <1537200191-17956-1-git-send-email-akinobu.mita@gmail.com>
- <1537200191-17956-2-git-send-email-akinobu.mita@gmail.com> <20180919103531.k5yhvngj6gdgdnq2@paasikivi.fi.intel.com>
-In-Reply-To: <20180919103531.k5yhvngj6gdgdnq2@paasikivi.fi.intel.com>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Thu, 20 Sep 2018 00:00:17 +0900
-Message-ID: <CAC5umyiO5g5vZGGE4HPpxEkUNUd==GzkfMoavzmWn-gS9+emPw@mail.gmail.com>
-Subject: Re: [PATCH 1/5] media: video-i2c: avoid accessing released memory
- area when removing driver
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Wed, 19 Sep 2018 17:32:01 -0400
+Received: by mail-qt0-f194.google.com with SMTP id r37-v6so5571143qtc.0
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 08:53:28 -0700 (PDT)
+Message-ID: <bec2edfda26ecbac928871ad14d768790e3175a8.camel@ndufresne.ca>
+Subject: Re: [PATCH] venus: vdec: fix decoded data size
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: vgarodia@codeaurora.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Date: Wed, 19 Sep 2018 11:53:25 -0400
+In-Reply-To: <6d65ac0d-80a0-88fe-ed19-4785f2675e36@linaro.org>
+References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
+         <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org>
+         <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
+         <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org>
+         <33e8d8e3-138e-0031-5b75-4bef114ac75e@xs4all.nl>
+         <36b42952-982c-9048-77fb-72ca45cc7476@linaro.org>
+         <051af6fb-e0e8-4008-99c5-9685ac24e454@xs4all.nl>
+         <CAPBb6MVupMsdhF6Rtk4fm8JeVurrK+ZsuxAQ-BwrTzdSP1xP0Q@mail.gmail.com>
+         <6d65ac0d-80a0-88fe-ed19-4785f2675e36@linaro.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-RGb6Gp4tD6j4myXgFZQA"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018=E5=B9=B49=E6=9C=8819=E6=97=A5(=E6=B0=B4) 19:35 Sakari Ailus <sakari.ai=
-lus@linux.intel.com>:
->
-> Hi Mita-san,
->
-> On Tue, Sep 18, 2018 at 01:03:07AM +0900, Akinobu Mita wrote:
-> > The struct video_i2c_data is released when video_unregister_device() is
-> > called, but it will still be accessed after calling
-> > video_unregister_device().
-> >
-> > Use devm_kzalloc() and let the memory be automatically released on driv=
-er
-> > detach.
-> >
-> > Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
-> > Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Cc: Hans Verkuil <hansverk@cisco.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> > ---
-> >  drivers/media/i2c/video-i2c.c | 18 +++++-------------
-> >  1 file changed, 5 insertions(+), 13 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2=
-c.c
-> > index 06d29d8..b7a2af9 100644
-> > --- a/drivers/media/i2c/video-i2c.c
-> > +++ b/drivers/media/i2c/video-i2c.c
-> > @@ -508,20 +508,15 @@ static const struct v4l2_ioctl_ops video_i2c_ioct=
-l_ops =3D {
-> >       .vidioc_streamoff               =3D vb2_ioctl_streamoff,
-> >  };
-> >
-> > -static void video_i2c_release(struct video_device *vdev)
-> > -{
-> > -     kfree(video_get_drvdata(vdev));
->
-> This is actually correct: it ensures that that the device data stays in
-> place as long as the device is being accessed. Allocating device data wit=
-h
-> devm_kzalloc() no longer guarantees that, and is not the right thing to d=
-o
-> for that reason.
 
-I have actually inserted printk() each line in video_i2_remove().  When
-rmmod this driver, video_i2c_release() (and also kfree) is called while
-executing video_unregister_device().  Because video_unregister_device()
-releases the last reference to data->vdev.dev, then v4l2_device_release()
-callback executes data->vdev.release.
+--=-RGb6Gp4tD6j4myXgFZQA
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-So use after freeing video_i2c_data actually happened.
+Le mercredi 19 septembre 2018 =C3=A0 18:02 +0300, Stanimir Varbanov a
+=C3=A9crit :
+> > --- a/drivers/media/platform/qcom/venus/vdec.c
+> > +++ b/drivers/media/platform/qcom/venus/vdec.c
+> > @@ -943,8 +943,7 @@ static void vdec_buf_done(struct venus_inst
+> > *inst,
+> > unsigned int buf_type,
+> >                 unsigned int opb_sz =3D
+> > venus_helper_get_opb_size(inst);
+> >=20
+> >                 vb =3D &vbuf->vb2_buf;
+> > -               vb->planes[0].bytesused =3D
+> > -                       max_t(unsigned int, opb_sz, bytesused);
+> > +                vb2_set_plane_payload(vb, 0, bytesused ? :
+> > opb_sz);
+> >                 vb->planes[0].data_offset =3D data_offset;
+> >                 vb->timestamp =3D timestamp_us * NSEC_PER_USEC;
+> >                 vbuf->sequence =3D inst->sequence_cap++;
+> >=20
+> > It works fine for me, and should not return 0 more often than it
+> > did
+> > before (i.e. never). In practice I also never see the firmware
+> > reporting a payload of zero on SDM845, but maybe older chips
+> > differ?
+>=20
+> yes, it looks fine. Let me test it with older versions.
 
-In this patch, devm_kzalloc() is called with client->dev (not with vdev->de=
-v).
-So the allocated memory is released when the last user of client->dev
-is gone (maybe just after video_i2_remove() is finished).
+What about removing the allow_zero_bytesused flag on this specific
+queue ? Then you can leave it to 0, and the framework will change it to
+the buffer size.
 
-> > -}
-> > -
-> >  static int video_i2c_probe(struct i2c_client *client,
-> >                            const struct i2c_device_id *id)
-> >  {
-> >       struct video_i2c_data *data;
-> >       struct v4l2_device *v4l2_dev;
-> >       struct vb2_queue *queue;
-> > -     int ret =3D -ENODEV;
-> > +     int ret;
-> >
-> > -     data =3D kzalloc(sizeof(*data), GFP_KERNEL);
-> > +     data =3D devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-> >       if (!data)
-> >               return -ENOMEM;
-> >
-> > @@ -530,7 +525,7 @@ static int video_i2c_probe(struct i2c_client *clien=
-t,
-> >       else if (id)
-> >               data->chip =3D &video_i2c_chip[id->driver_data];
-> >       else
-> > -             goto error_free_device;
-> > +             return -ENODEV;
-> >
-> >       data->client =3D client;
-> >       v4l2_dev =3D &data->v4l2_dev;
-> > @@ -538,7 +533,7 @@ static int video_i2c_probe(struct i2c_client *clien=
-t,
-> >
-> >       ret =3D v4l2_device_register(&client->dev, v4l2_dev);
-> >       if (ret < 0)
-> > -             goto error_free_device;
-> > +             return ret;
-> >
-> >       mutex_init(&data->lock);
-> >       mutex_init(&data->queue_lock);
-> > @@ -568,7 +563,7 @@ static int video_i2c_probe(struct i2c_client *clien=
-t,
-> >       data->vdev.fops =3D &video_i2c_fops;
-> >       data->vdev.lock =3D &data->lock;
-> >       data->vdev.ioctl_ops =3D &video_i2c_ioctl_ops;
-> > -     data->vdev.release =3D video_i2c_release;
-> > +     data->vdev.release =3D video_device_release_empty;
-> >       data->vdev.device_caps =3D V4L2_CAP_VIDEO_CAPTURE |
-> >                                V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-> >
-> > @@ -597,9 +592,6 @@ static int video_i2c_probe(struct i2c_client *clien=
-t,
-> >       mutex_destroy(&data->lock);
-> >       mutex_destroy(&data->queue_lock);
-> >
-> > -error_free_device:
-> > -     kfree(data);
-> > -
-> >       return ret;
-> >  }
-> >
->
-> --
-> Regards,
->
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+Nicolas
+
+--=-RGb6Gp4tD6j4myXgFZQA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW6Jw9QAKCRBxUwItrAao
+HFjZAKDRumEFmZk46/FnEsuGsQ6l9tC3ewCfeQOroYDAPOBtlLaONtwjkz7IAgo=
+=7Xsu
+-----END PGP SIGNATURE-----
+
+--=-RGb6Gp4tD6j4myXgFZQA--
