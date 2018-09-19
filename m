@@ -1,26 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:37720 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726972AbeISNJS (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:54576 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726163AbeISNJP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 09:09:18 -0400
-Received: by mail-it0-f66.google.com with SMTP id h20-v6so6510060itf.2
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 00:32:40 -0700 (PDT)
-Received: from mail-it0-f51.google.com (mail-it0-f51.google.com. [209.85.214.51])
-        by smtp.gmail.com with ESMTPSA id r18-v6sm8010487iob.16.2018.09.19.00.32.39
+        Wed, 19 Sep 2018 09:09:15 -0400
+Received: by mail-it0-f67.google.com with SMTP id f14-v6so6954931ita.4
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 00:32:36 -0700 (PDT)
+Received: from mail-io1-f49.google.com (mail-io1-f49.google.com. [209.85.166.49])
+        by smtp.gmail.com with ESMTPSA id k5-v6sm6917179ioj.59.2018.09.19.00.32.34
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 19 Sep 2018 00:32:39 -0700 (PDT)
-Received: by mail-it0-f51.google.com with SMTP id p79-v6so6973222itp.3
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 00:32:39 -0700 (PDT)
+        Wed, 19 Sep 2018 00:32:35 -0700 (PDT)
+Received: by mail-io1-f49.google.com with SMTP id e12-v6so3664183iok.12
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 00:32:34 -0700 (PDT)
 MIME-Version: 1.0
-References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org> <1537314192-26892-6-git-send-email-vgarodia@codeaurora.org>
-In-Reply-To: <1537314192-26892-6-git-send-email-vgarodia@codeaurora.org>
+References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org> <1537314192-26892-2-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1537314192-26892-2-git-send-email-vgarodia@codeaurora.org>
 From: Alexandre Courbot <acourbot@chromium.org>
-Date: Wed, 19 Sep 2018 16:32:27 +0900
-Message-ID: <CAPBb6MV0egcso8fDcfkvc_+Un2PKX+H=fz-1aKFRJ38ciOBd7g@mail.gmail.com>
-Subject: Re: [PATCH v9 5/5] dt-bindings: media: Document bindings for venus
- firmware device
+Date: Wed, 19 Sep 2018 16:32:22 +0900
+Message-ID: <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
+Subject: Re: [PATCH v9 1/5] venus: firmware: add routine to reset ARM9
 To: vgarodia@codeaurora.org
 Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
@@ -35,57 +34,207 @@ Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 19, 2018 at 8:44 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+On Wed, Sep 19, 2018 at 8:43 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
 >
-> Add devicetree binding documentation for firmware loader for video
-> hardware running on qualcomm chip.
+> Add routine to reset the ARM9 and brings it out of reset. Also
+> abstract the Venus CPU state handling with a new function. This
+> is in preparation to add PIL functionality in venus driver.
 >
 > Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
 > ---
->  Documentation/devicetree/bindings/media/qcom,venus.txt | 13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
+>  drivers/media/platform/qcom/venus/core.h         |  2 ++
+>  drivers/media/platform/qcom/venus/firmware.c     | 33 ++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
+>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
+>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
+>  5 files changed, 57 insertions(+), 9 deletions(-)
 >
-> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> index 00d0d1b..7e04586 100644
-> --- a/Documentation/devicetree/bindings/media/qcom,venus.txt
-> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> @@ -53,7 +53,7 @@
->
->  * Subnodes
->  The Venus video-codec node must contain two subnodes representing
-> -video-decoder and video-encoder.
-> +video-decoder and video-encoder, and one optional firmware subnode.
+> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+> index 2f02365..dfd5c10 100644
+> --- a/drivers/media/platform/qcom/venus/core.h
+> +++ b/drivers/media/platform/qcom/venus/core.h
+> @@ -98,6 +98,7 @@ struct venus_caps {
+>   * @dev:               convenience struct device pointer
+>   * @dev_dec:   convenience struct device pointer for decoder device
+>   * @dev_enc:   convenience struct device pointer for encoder device
+> + * @no_tz:     a flag that suggests presence of trustzone
 
-I think I mentioned this in my previous review, but it would be nice
-to explain in which circumstances the firmware node is optional. I.e.
-it should not be specified if TrustZone is used.
+Looks like it suggests the absence of trustzone?
+
+Actually I would rename it as use_tz and set it if TrustZone is used.
+This would avoid double-negative statements like what we see below.
+
+>   * @lock:      a lock for this strucure
+>   * @instances: a list_head of all instances
+>   * @insts_count:       num of instances
+> @@ -129,6 +130,7 @@ struct venus_core {
+>         struct device *dev;
+>         struct device *dev_dec;
+>         struct device *dev_enc;
+> +       bool no_tz;
+>         struct mutex lock;
+>         struct list_head instances;
+>         atomic_t insts_count;
+> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+> index c4a5778..f2ae2f0 100644
+> --- a/drivers/media/platform/qcom/venus/firmware.c
+> +++ b/drivers/media/platform/qcom/venus/firmware.c
+> @@ -22,10 +22,43 @@
+>  #include <linux/sizes.h>
+>  #include <linux/soc/qcom/mdt_loader.h>
+>
+> +#include "core.h"
+>  #include "firmware.h"
+> +#include "hfi_venus_io.h"
+>
+>  #define VENUS_PAS_ID                   9
+>  #define VENUS_FW_MEM_SIZE              (6 * SZ_1M)
+> +#define VENUS_FW_START_ADDR            0x0
+> +
+> +static void venus_reset_cpu(struct venus_core *core)
+> +{
+> +       void __iomem *base = core->base;
+> +
+> +       writel(0, base + WRAPPER_FW_START_ADDR);
+> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_FW_END_ADDR);
+> +       writel(0, base + WRAPPER_CPA_START_ADDR);
+> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
+> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_START_ADDR);
+> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_END_ADDR);
+> +       writel(0x0, base + WRAPPER_CPU_CGC_DIS);
+> +       writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
+> +
+> +       /* Bring ARM9 out of reset */
+> +       writel(0, base + WRAPPER_A9SS_SW_RESET);
+> +}
+> +
+> +int venus_set_hw_state(struct venus_core *core, bool resume)
+> +{
+> +       if (!core->no_tz)
+
+This is the kind of double negative statement I was referring do
+above: "if we do not not have TrustZone". Turning it into
+
+    if (core->use_tz)
+
+would save the reader a few neurons. :)
+
+> +               return qcom_scm_set_remote_state(resume, 0);
+> +
+> +       if (resume)
+> +               venus_reset_cpu(core);
+> +       else
+> +               writel(1, core->base + WRAPPER_A9SS_SW_RESET);
+> +
+> +       return 0;
+> +}
+>
+>  int venus_boot(struct device *dev, const char *fwname)
+>  {
+> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+> index 428efb5..397570c 100644
+> --- a/drivers/media/platform/qcom/venus/firmware.h
+> +++ b/drivers/media/platform/qcom/venus/firmware.h
+> @@ -18,5 +18,16 @@
+>
+>  int venus_boot(struct device *dev, const char *fwname);
+>  int venus_shutdown(struct device *dev);
+> +int venus_set_hw_state(struct venus_core *core, bool suspend);
+> +
+> +static inline int venus_set_hw_state_suspend(struct venus_core *core)
+> +{
+> +       return venus_set_hw_state(core, false);
+> +}
+> +
+> +static inline int venus_set_hw_state_resume(struct venus_core *core)
+> +{
+> +       return venus_set_hw_state(core, true);
+> +}
+
+I think these two venus_set_hw_state_suspend() and
+venus_set_hw_state_resume() are superfluous, if you want to make the
+state explicit you can also define an enum { SUSPEND, RESUME } to use
+as argument of venus_set_hw_state() and call it directly.
 
 >
->  Every of video-encoder or video-decoder subnode should have:
+>  #endif
+> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+> index 1240855..074837e 100644
+> --- a/drivers/media/platform/qcom/venus/hfi_venus.c
+> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+> @@ -19,7 +19,6 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/iopoll.h>
+>  #include <linux/kernel.h>
+> -#include <linux/qcom_scm.h>
+>  #include <linux/slab.h>
 >
-> @@ -79,6 +79,13 @@ Every of video-encoder or video-decoder subnode should have:
->                     power domain which is responsible for collapsing
->                     and restoring power to the subcore.
+>  #include "core.h"
+> @@ -27,6 +26,7 @@
+>  #include "hfi_msgs.h"
+>  #include "hfi_venus.h"
+>  #include "hfi_venus_io.h"
+> +#include "firmware.h"
 >
-> +The firmware subnode must have:
-> +
-> +- iommus:
-> +       Usage: required
-> +       Value type: <prop-encoded-array>
-> +       Definition: A list of phandle and IOMMU specifier pairs.
-> +
->  * An Example
->         video-codec@1d00000 {
->                 compatible = "qcom,msm8916-venus";
-> @@ -105,4 +112,8 @@ Every of video-encoder or video-decoder subnode should have:
->                         clock-names = "core";
->                         power-domains = <&mmcc VENUS_CORE1_GDSC>;
->                 };
-> +
-> +               video-firmware {
-> +                       iommus = <&apps_iommu 0x10b2 0x0>;
-> +               };
->         };
+>  #define HFI_MASK_QHDR_TX_TYPE          0xff000000
+>  #define HFI_MASK_QHDR_RX_TYPE          0x00ff0000
+> @@ -55,11 +55,6 @@
+>  #define IFACEQ_VAR_LARGE_PKT_SIZE      512
+>  #define IFACEQ_VAR_HUGE_PKT_SIZE       (1024 * 12)
+>
+> -enum tzbsp_video_state {
+> -       TZBSP_VIDEO_STATE_SUSPEND = 0,
+> -       TZBSP_VIDEO_STATE_RESUME
+> -};
+> -
+>  struct hfi_queue_table_header {
+>         u32 version;
+>         u32 size;
+> @@ -575,7 +570,7 @@ static int venus_power_off(struct venus_hfi_device *hdev)
+>         if (!hdev->power_enabled)
+>                 return 0;
+>
+> -       ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
+> +       ret = venus_set_hw_state_suspend(hdev->core);
+>         if (ret)
+>                 return ret;
+>
+> @@ -595,7 +590,7 @@ static int venus_power_on(struct venus_hfi_device *hdev)
+>         if (hdev->power_enabled)
+>                 return 0;
+>
+> -       ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_RESUME, 0);
+> +       ret = venus_set_hw_state_resume(hdev->core);
+>         if (ret)
+>                 goto err;
+>
+> @@ -608,7 +603,7 @@ static int venus_power_on(struct venus_hfi_device *hdev)
+>         return 0;
+>
+>  err_suspend:
+> -       qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
+> +       venus_set_hw_state_suspend(hdev->core);
+>  err:
+>         hdev->power_enabled = false;
+>         return ret;
+> diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+> index def0926..d69f51b 100644
+> --- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
+> +++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+> @@ -112,6 +112,13 @@
+>  #define WRAPPER_CPU_STATUS                     (WRAPPER_BASE + 0x2014)
+>  #define WRAPPER_CPU_STATUS_WFI                 BIT(0)
+>  #define WRAPPER_SW_RESET                       (WRAPPER_BASE + 0x3000)
+> +#define WRAPPER_CPA_START_ADDR                 (WRAPPER_BASE + 0x1020)
+> +#define WRAPPER_CPA_END_ADDR                   (WRAPPER_BASE + 0x1024)
+> +#define WRAPPER_FW_START_ADDR                  (WRAPPER_BASE + 0x1028)
+> +#define WRAPPER_FW_END_ADDR                    (WRAPPER_BASE + 0x102C)
+> +#define WRAPPER_NONPIX_START_ADDR              (WRAPPER_BASE + 0x1030)
+> +#define WRAPPER_NONPIX_END_ADDR                        (WRAPPER_BASE + 0x1034)
+> +#define WRAPPER_A9SS_SW_RESET                  (WRAPPER_BASE + 0x3000)
+>
+>  /* Venus 4xx */
+>  #define WRAPPER_VCODEC0_MMCC_POWER_STATUS      (WRAPPER_BASE + 0x90)
 > --
 > The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 > a Linux Foundation Collaborative Project
