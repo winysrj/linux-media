@@ -1,94 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:45147 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727983AbeITAnH (ORCPT
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:42984 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726902AbeITAmc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 20:43:07 -0400
-Date: Wed, 19 Sep 2018 12:03:45 -0700
-From: Nathan Chancellor <natechancellor@gmail.com>
-To: Nick Desaulniers <ndesaulniers@google.com>
-Cc: prabhakar.csengg@gmail.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: davinci: Fix implicit enum conversion warning
-Message-ID: <20180919190345.GA31549@flashbox>
-References: <20180915061615.25308-1-natechancellor@gmail.com>
- <CAKwvOd=FY9_F=yDOPaesM1VmYW0jTaAAYcMTmG6TFwa=ACu62w@mail.gmail.com>
+        Wed, 19 Sep 2018 20:42:32 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAKwvOd=FY9_F=yDOPaesM1VmYW0jTaAAYcMTmG6TFwa=ACu62w@mail.gmail.com>
+In-Reply-To: <20180914224849.27173-6-lolivei@synopsys.com>
+References: <20180914224849.27173-1-lolivei@synopsys.com> <20180914224849.27173-6-lolivei@synopsys.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Wed, 19 Sep 2018 16:03:13 -0300
+Message-ID: <CAOMZO5BU1myguEppOH4FfB_wOGBuFjAzrNQ-eu1hYWthLHBAvA@mail.gmail.com>
+Subject: Re: [PATCH 5/5] media: platform: dwc: Add MIPI CSI-2 controller driver
+To: Luis Oliveira <Luis.Oliveira@synopsys.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        all-jpinto-org-pt02@synopsys.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Thierry Reding <treding@nvidia.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 17, 2018 at 10:39:05AM -0700, Nick Desaulniers wrote:
-> On Fri, Sep 14, 2018 at 11:16 PM Nathan Chancellor
-> <natechancellor@gmail.com> wrote:
-> >
-> > Clang warns when one enumerated type is implicitly converted to another.
-> >
-> > drivers/media/platform/davinci/vpbe_display.c:524:24: warning: implicit
-> > conversion from enumeration type 'enum osd_v_exp_ratio' to different
-> > enumeration type 'enum osd_h_exp_ratio' [-Wenum-conversion]
-> >                         layer_info->h_exp = V_EXP_6_OVER_5;
-> >                                           ~ ^~~~~~~~~~~~~~
-> > 1 warning generated.
-> >
-> > This appears to be a copy and paste error judging from the couple of
-> > lines directly above this statement and the way that height is handled
-> > in the if block above this one.
-> 
-> 
-> The above code for reference looks like:
->    492                 if (h_exp)
->    493                         layer_info->h_exp = H_EXP_9_OVER_8;
-> 
-> so it makes sense to me that:
-> if (h_exp) layer_info->h_exp = H_EXP_...;
-> then
-> if (v_exp) layer_info->v_exp = V_EXP_...;
-> 
-> Thanks for this patch Nathan, looks like an actual bug has been fixed.
-> Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-> 
-> We should send this to stable if/when it lands.  Maybe the maintainers
-> could apply it with:
-> Cc: stable@vger.kernel.org
-> 
+Hi Luis,
 
-Yes, I think this qualifies as stable material. Should I need to send a
-v2, I will add it; otherwise, it can be added by the maintainers at
-their discretion.
+On Fri, Sep 14, 2018 at 7:48 PM, Luis Oliveira
+<Luis.Oliveira@synopsys.com> wrote:
 
-Thanks for the review!
-Nathan
+> +++ b/drivers/media/platform/dwc/dw-csi-plat.c
+> @@ -0,0 +1,508 @@
+> +// SPDX-License-Identifier: GPL-2.0-or-later
 
-> 
-> >
-> > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> > ---
-> >  drivers/media/platform/davinci/vpbe_display.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-> > index d6bf96ad474c..5c235898af7b 100644
-> > --- a/drivers/media/platform/davinci/vpbe_display.c
-> > +++ b/drivers/media/platform/davinci/vpbe_display.c
-> > @@ -521,7 +521,7 @@ vpbe_disp_calculate_scale_factor(struct vpbe_display *disp_dev,
-> >                 else if (v_scale == 4)
-> >                         layer_info->v_zoom = ZOOM_X4;
-> >                 if (v_exp)
-> > -                       layer_info->h_exp = V_EXP_6_OVER_5;
-> > +                       layer_info->v_exp = V_EXP_6_OVER_5;
-> >         } else {
-> >                 /* no scaling, only cropping. Set display area to crop area */
-> >                 cfg->ysize = expected_ysize;
-> > --
-> > 2.18.0
-> >
-> 
-> 
-> -- 
-> Thanks,
-> ~Nick Desaulniers
+According to Documentation/process/license-rules.rst this should be:
+// SPDX-License-Identifier: GPL-2.0+
+
+> +static int
+> +dw_mipi_csi_parse_dt(struct platform_device *pdev, struct mipi_csi_dev *dev)
+> +{
+> +       struct device_node *node = pdev->dev.of_node;
+> +       struct v4l2_fwnode_endpoint endpoint;
+> +       int ret = 0;
+
+No need to assign ret to 0.
+
+> +
+> +       ret = of_property_read_u32(node, "snps,output-type", &dev->hw.output);
+
+> --- /dev/null
+> +++ b/drivers/media/platform/dwc/dw-csi-plat.h
+> @@ -0,0 +1,76 @@
+> +/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+Same as before.
+
+> diff --git a/drivers/media/platform/dwc/dw-mipi-csi.c b/drivers/media/platform/dwc/dw-mipi-csi.c
+> new file mode 100644
+> index 0000000..926b287
+> --- /dev/null
+> +++ b/drivers/media/platform/dwc/dw-mipi-csi.c
+> @@ -0,0 +1,491 @@
+> +// SPDX-License-Identifier: GPL-2.0-or-later
+
+Ditto.
+
+> +void dw_mipi_csi_fill_timings(struct mipi_csi_dev *dev,
+> +                          const struct v4l2_bt_timings *bt)
+> +{
+> +
+
+No need for this empty line.
+
+> +       if (bt == NULL)
+
+> diff --git a/drivers/media/platform/dwc/dw-mipi-csi.h b/drivers/media/platform/dwc/dw-mipi-csi.h
+> new file mode 100644
+> index 0000000..eca0e48
+> --- /dev/null
+> +++ b/drivers/media/platform/dwc/dw-mipi-csi.h
+> @@ -0,0 +1,202 @@
+> +/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+Ditto.
