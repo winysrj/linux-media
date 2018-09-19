@@ -1,128 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:35375 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732100AbeISUlU (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:54452 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732122AbeISUiu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 16:41:20 -0400
-Received: by mail-pl1-f194.google.com with SMTP id g2-v6so2817530plo.2
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 08:03:01 -0700 (PDT)
-Subject: Re: [PATCH] venus: vdec: fix decoded data size
-To: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, vgarodia@codeaurora.org,
+        Wed, 19 Sep 2018 16:38:50 -0400
+Received: by mail-it0-f67.google.com with SMTP id f14-v6so8676661ita.4
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 08:00:30 -0700 (PDT)
+Subject: Re: [PATCH v9 1/5] venus: firmware: add routine to reset ARM9
+To: Alexandre Courbot <acourbot@chromium.org>, vgarodia@codeaurora.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
+        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
- <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org>
- <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
- <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org>
- <33e8d8e3-138e-0031-5b75-4bef114ac75e@xs4all.nl>
- <36b42952-982c-9048-77fb-72ca45cc7476@linaro.org>
- <051af6fb-e0e8-4008-99c5-9685ac24e454@xs4all.nl>
- <CAPBb6MVupMsdhF6Rtk4fm8JeVurrK+ZsuxAQ-BwrTzdSP1xP0Q@mail.gmail.com>
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org
+References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
+ <1537314192-26892-2-git-send-email-vgarodia@codeaurora.org>
+ <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <6d65ac0d-80a0-88fe-ed19-4785f2675e36@linaro.org>
-Date: Wed, 19 Sep 2018 18:02:58 +0300
+Message-ID: <97b94b9b-f028-cb8b-a3db-67626dc517ab@linaro.org>
+Date: Wed, 19 Sep 2018 18:00:27 +0300
 MIME-Version: 1.0
-In-Reply-To: <CAPBb6MVupMsdhF6Rtk4fm8JeVurrK+ZsuxAQ-BwrTzdSP1xP0Q@mail.gmail.com>
+In-Reply-To: <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Alex,
 
-On 09/19/2018 01:32 PM, Alexandre Courbot wrote:
-> On Mon, Sep 17, 2018 at 11:33 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On 09/19/2018 10:32 AM, Alexandre Courbot wrote:
+> On Wed, Sep 19, 2018 at 8:43 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
 >>
->> On 09/17/2018 04:30 PM, Stanimir Varbanov wrote:
->>> Hi Hans,
->>>
->>> On 09/17/2018 01:00 PM, Hans Verkuil wrote:
->>>> On 07/18/2018 04:37 PM, Stanimir Varbanov wrote:
->>>>> Hi,
->>>>>
->>>>> On 07/18/2018 04:26 PM, Nicolas Dufresne wrote:
->>>>>> Le mercredi 18 juillet 2018 à 14:31 +0300, Stanimir Varbanov a écrit :
->>>>>>> Hi Vikash,
->>>>>>>
->>>>>>> On 07/02/2018 10:44 AM, Vikash Garodia wrote:
->>>>>>>> Exisiting code returns the max of the decoded
->>>>>>>> size and buffer size. It turns out that buffer
->>>>>>>> size is always greater due to hardware alignment
->>>>>>>> requirement. As a result, payload size given to
->>>>>>>> client is incorrect. This change ensures that
->>>>>>>> the bytesused is assigned to actual payload size.
->>>>>>>>
->>>>>>>> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
->>>>>>>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->>>>>>>> ---
->>>>>>>>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
->>>>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>>>>
->>>>>>>> diff --git a/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>> b/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>> index d079aeb..ada1d2f 100644
->>>>>>>> --- a/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>> +++ b/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst
->>>>>>>> *inst, unsigned int buf_type,
->>>>>>>>
->>>>>>>>                  vb = &vbuf->vb2_buf;
->>>>>>>>                  vb->planes[0].bytesused =
->>>>>>>> -                        max_t(unsigned int, opb_sz, bytesused);
->>>>>>>> +                        min_t(unsigned int, opb_sz, bytesused);
->>>>>>>
->>>>>>> Most probably my intension was to avoid bytesused == 0, but that is
->>>>>>> allowed from v4l2 driver -> userspace direction
->>>>>>
->>>>>> It remains bad practice since it was used by decoders to indicate the
->>>>>> last buffer. Some userspace (some GStreamer versions) will stop working
->>>>>> if you start returning 0.
->>>>>
->>>>> I think it is legal v4l2 driver to return bytesused = 0 when userspace
->>>>> issues streamoff on both queues before EOS, no? Simply because the
->>>>> capture buffers are empty.
->>>>>
->>>>
->>>> Going through some of the older pending patches I found this one:
->>>>
->>>> So is this patch right or wrong?
->>>
->>> I'm not sure either, let's not applying it for now (if Nicolas is right
->>> this will break gstreamer plugin).
->>>
+>> Add routine to reset the ARM9 and brings it out of reset. Also
+>> abstract the Venus CPU state handling with a new function. This
+>> is in preparation to add PIL functionality in venus driver.
 >>
->> OK, I marked this as Rejected. If you change your mind it can be reposted :-)
+>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/core.h         |  2 ++
+>>  drivers/media/platform/qcom/venus/firmware.c     | 33 ++++++++++++++++++++++++
+>>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
+>>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
+>>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
+>>  5 files changed, 57 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+>> index 2f02365..dfd5c10 100644
+>> --- a/drivers/media/platform/qcom/venus/core.h
+>> +++ b/drivers/media/platform/qcom/venus/core.h
+>> @@ -98,6 +98,7 @@ struct venus_caps {
+>>   * @dev:               convenience struct device pointer
+>>   * @dev_dec:   convenience struct device pointer for decoder device
+>>   * @dev_enc:   convenience struct device pointer for encoder device
+>> + * @no_tz:     a flag that suggests presence of trustzone
 > 
-> Mmm I'm not saying it has to be done in the current form, but at the
-> moment the returned bytesused seems to be wrong (at least Chrome is
-> not happy). We are returning the total size of the buffer instead of
-> the actually useful payload.
+> Looks like it suggests the absence of trustzone?
 > 
-> If the intent is to avoid returning bytesused == 0 except for the
-> special case of the last buffer, how about the following?
-> 
-> --- a/drivers/media/platform/qcom/venus/vdec.c
-> +++ b/drivers/media/platform/qcom/venus/vdec.c
-> @@ -943,8 +943,7 @@ static void vdec_buf_done(struct venus_inst *inst,
-> unsigned int buf_type,
->                unsigned int opb_sz = venus_helper_get_opb_size(inst);
-> 
->                vb = &vbuf->vb2_buf;
-> -               vb->planes[0].bytesused =
-> -                       max_t(unsigned int, opb_sz, bytesused);
-> +                vb2_set_plane_payload(vb, 0, bytesused ? : opb_sz);
->                vb->planes[0].data_offset = data_offset;
->                vb->timestamp = timestamp_us * NSEC_PER_USEC;
->                vbuf->sequence = inst->sequence_cap++;
-> 
-> It works fine for me, and should not return 0 more often than it did
-> before (i.e. never). In practice I also never see the firmware
-> reporting a payload of zero on SDM845, but maybe older chips differ?
+> Actually I would rename it as use_tz and set it if TrustZone is used.
+> This would avoid double-negative statements like what we see below.
 
-yes, it looks fine. Let me test it with older versions.
+I find this suggestion reasonable.
+
+> 
+>>   * @lock:      a lock for this strucure
+>>   * @instances: a list_head of all instances
+>>   * @insts_count:       num of instances
+>> @@ -129,6 +130,7 @@ struct venus_core {
+>>         struct device *dev;
+>>         struct device *dev_dec;
+>>         struct device *dev_enc;
+>> +       bool no_tz;
+>>         struct mutex lock;
+>>         struct list_head instances;
+>>         atomic_t insts_count;
+>> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+>> index c4a5778..f2ae2f0 100644
+>> --- a/drivers/media/platform/qcom/venus/firmware.c
+>> +++ b/drivers/media/platform/qcom/venus/firmware.c
+>> @@ -22,10 +22,43 @@
+>>  #include <linux/sizes.h>
+>>  #include <linux/soc/qcom/mdt_loader.h>
+>>
+>> +#include "core.h"
+>>  #include "firmware.h"
+>> +#include "hfi_venus_io.h"
+>>
+>>  #define VENUS_PAS_ID                   9
+>>  #define VENUS_FW_MEM_SIZE              (6 * SZ_1M)
+>> +#define VENUS_FW_START_ADDR            0x0
+>> +
+>> +static void venus_reset_cpu(struct venus_core *core)
+>> +{
+>> +       void __iomem *base = core->base;
+>> +
+>> +       writel(0, base + WRAPPER_FW_START_ADDR);
+>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_FW_END_ADDR);
+>> +       writel(0, base + WRAPPER_CPA_START_ADDR);
+>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
+>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_START_ADDR);
+>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_END_ADDR);
+>> +       writel(0x0, base + WRAPPER_CPU_CGC_DIS);
+>> +       writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
+>> +
+>> +       /* Bring ARM9 out of reset */
+>> +       writel(0, base + WRAPPER_A9SS_SW_RESET);
+>> +}
+>> +
+>> +int venus_set_hw_state(struct venus_core *core, bool resume)
+>> +{
+>> +       if (!core->no_tz)
+> 
+> This is the kind of double negative statement I was referring do
+> above: "if we do not not have TrustZone". Turning it into
+> 
+>     if (core->use_tz)
+> 
+> would save the reader a few neurons. :)
+> 
+>> +               return qcom_scm_set_remote_state(resume, 0);
+>> +
+>> +       if (resume)
+>> +               venus_reset_cpu(core);
+>> +       else
+>> +               writel(1, core->base + WRAPPER_A9SS_SW_RESET);
+>> +
+>> +       return 0;
+>> +}
+>>
+>>  int venus_boot(struct device *dev, const char *fwname)
+>>  {
+>> diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+>> index 428efb5..397570c 100644
+>> --- a/drivers/media/platform/qcom/venus/firmware.h
+>> +++ b/drivers/media/platform/qcom/venus/firmware.h
+>> @@ -18,5 +18,16 @@
+>>
+>>  int venus_boot(struct device *dev, const char *fwname);
+>>  int venus_shutdown(struct device *dev);
+>> +int venus_set_hw_state(struct venus_core *core, bool suspend);
+>> +
+>> +static inline int venus_set_hw_state_suspend(struct venus_core *core)
+>> +{
+>> +       return venus_set_hw_state(core, false);
+>> +}
+>> +
+>> +static inline int venus_set_hw_state_resume(struct venus_core *core)
+>> +{
+>> +       return venus_set_hw_state(core, true);
+>> +}
+> 
+> I think these two venus_set_hw_state_suspend() and
+> venus_set_hw_state_resume() are superfluous, if you want to make the
+> state explicit you can also define an enum { SUSPEND, RESUME } to use
+> as argument of venus_set_hw_state() and call it directly.
+
+Infact this was by my request, and I wanted to avoid enum and have the
+type of the action in the function name and also avoid one extra
+function argument. Of course it is a matter of taste.
 
 -- 
 regards,
