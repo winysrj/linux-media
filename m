@@ -1,166 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f68.google.com ([209.85.161.68]:38260 "EHLO
-        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725870AbeISJrf (ORCPT
+Received: from mail-yw1-f65.google.com ([209.85.161.65]:41703 "EHLO
+        mail-yw1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726971AbeISJ5X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 05:47:35 -0400
-Received: by mail-yw1-f68.google.com with SMTP id n21-v6so1751276ywh.5
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2018 21:11:36 -0700 (PDT)
-Received: from mail-yw1-f49.google.com (mail-yw1-f49.google.com. [209.85.161.49])
-        by smtp.gmail.com with ESMTPSA id k130-v6sm5614389ywe.29.2018.09.18.21.11.34
+        Wed, 19 Sep 2018 05:57:23 -0400
+Received: by mail-yw1-f65.google.com with SMTP id q129-v6so1754687ywg.8
+        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2018 21:21:22 -0700 (PDT)
+Received: from mail-yw1-f43.google.com (mail-yw1-f43.google.com. [209.85.161.43])
+        by smtp.gmail.com with ESMTPSA id x184-v6sm4689905ywx.75.2018.09.18.21.21.20
         for <linux-media@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 18 Sep 2018 21:11:35 -0700 (PDT)
-Received: by mail-yw1-f49.google.com with SMTP id j131-v6so1739664ywc.13
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2018 21:11:34 -0700 (PDT)
+        Tue, 18 Sep 2018 21:21:20 -0700 (PDT)
+Received: by mail-yw1-f43.google.com with SMTP id n21-v6so1757497ywh.5
+        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2018 21:21:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <1537163872-14567-1-git-send-email-bingbu.cao@intel.com>
-In-Reply-To: <1537163872-14567-1-git-send-email-bingbu.cao@intel.com>
+References: <20180905220011.16612-1-ezequiel@collabora.com>
+ <20180905220011.16612-6-ezequiel@collabora.com> <718d8a73-008a-a610-d090-91cc54a992ad@xs4all.nl>
+ <710d4e77de63b46e6ffd440c9c98ca9af133117f.camel@collabora.com> <928a021c1e402f99eadd20e00aa5ec0cc218edbd.camel@paulk.fr>
+In-Reply-To: <928a021c1e402f99eadd20e00aa5ec0cc218edbd.camel@paulk.fr>
 From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 19 Sep 2018 13:11:22 +0900
-Message-ID: <CAAFQd5Cush43uMPfdp1FKJ+pwB-k573c7XQurbHVbVrKNmRTHA@mail.gmail.com>
-Subject: Re: [PATCH v5] media: add imx319 camera sensor driver
-To: Cao Bing Bu <bingbu.cao@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        bingbu.cao@linux.intel.com,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Date: Wed, 19 Sep 2018 13:21:08 +0900
+Message-ID: <CAAFQd5BieqODJWO0wzHZ_zikU+v8JdiJ2zYu=WPHmZKzJ1EELQ@mail.gmail.com>
+Subject: Re: [PATCH v5 5/6] media: Add controls for JPEG quantization tables
+To: contact@paulk.fr
+Cc: Ezequiel Garcia <ezequiel@collabora.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, myy@miouyouyou.fr,
+        Shunqian Zheng <zhengsq@rock-chips.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bingbu,
+On Sun, Sep 16, 2018 at 1:48 AM Paul Kocialkowski <contact@paulk.fr> wrote:
+>
+> Hi,
+>
+> On Mon, 2018-09-10 at 10:25 -0300, Ezequiel Garcia wrote:
+> > Hi Hans,
+> >
+> > Thanks for the review.
+> >
+> > On Mon, 2018-09-10 at 14:42 +0200, Hans Verkuil wrote:
+> > > On 09/06/2018 12:00 AM, Ezequiel Garcia wrote:
+> > > > From: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > >
+> > > > Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
+> > > > configure the JPEG quantization tables.
+> > > >
+> > > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> > > > ---
+> > > >  .../media/uapi/v4l/extended-controls.rst      | 31 +++++++++++++++++++
+> > > >  .../media/videodev2.h.rst.exceptions          |  1 +
+> > > >  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++
+> > > >  include/uapi/linux/v4l2-controls.h            | 12 +++++++
+> > > >  include/uapi/linux/videodev2.h                |  1 +
+> > > >  5 files changed, 55 insertions(+)
+> > > >
+> > > > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > > index 9f7312bf3365..1335d27d30f3 100644
+> > > > --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> > > > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> > > > @@ -3354,7 +3354,38 @@ JPEG Control IDs
+> > > >      Specify which JPEG markers are included in compressed stream. This
+> > > >      control is valid only for encoders.
+> > > >
+> > > > +.. _jpeg-quant-tables-control:
+> > > >
+> > > > +``V4L2_CID_JPEG_QUANTIZATION (struct)``
+> > > > +    Specifies the luma and chroma quantization matrices for encoding
+> > > > +    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer. The :ref:`itu-t81`
+> > > > +    specification allows 8-bit quantization coefficients for
+> > > > +    baseline profile images, and 8-bit or 16-bit for extended profile
+> > > > +    images. Supporting or not 16-bit precision coefficients is driver-specific.
+> > > > +    Coefficients must be set in JPEG zigzag scan order.
+> > > > +
+> > > > +
+> > > > +.. c:type:: struct v4l2_ctrl_jpeg_quantization
+> > > > +
+> > > > +.. cssclass:: longtable
+> > > > +
+> > > > +.. flat-table:: struct v4l2_ctrl_jpeg_quantization
+> > > > +    :header-rows:  0
+> > > > +    :stub-columns: 0
+> > > > +    :widths:       1 1 2
+> > > > +
+> > > > +    * - __u8
+> > > > +      - ``precision``
+> > > > +      - Specifies the coefficient precision. User shall set 0
+> > > > +        for 8-bit, and 1 for 16-bit.
+> > >
+> > > So does specifying 1 here switch the HW encoder to use extended profile?
+> > > What if the HW only supports baseline? The rockchip driver doesn't appear
+> > > to check the precision field at all...
+> > >
+> >
+> > The driver is missing to check that, when the user sets this control.
+> >
+> > > I think this needs a bit more thought.
+> > >
+> > > I am not at all sure that this is the right place for the precision field.
+> > > This is really about JPEG profiles, so I would kind of expect a JPEG PROFILE
+> > > control (just like other codec profiles), or possibly a new pixelformat for
+> > > extended profiles.
+> > >
+> > > And based on that the driver would interpret these matrix values as 8 or
+> > > 16 bits.
+> > >
+> >
+> > Right, the JPEG profile control is definitely needed. I haven't add it because
+> > it wouldn't be used, since this VPU can only do baseline.
+>
+> Well, I suppose it would still be relevant that you add it for the
+> encoder and only report baseline there.
+>
+> > However, the problem is that some JPEGs in the wild have with 8-bit data and
+> > 16-bit quantization coefficients, as per [1] and [2]:
+> >
+> > [1] https://github.com/martinhath/jpeg-rust/issues/1
+> > [2] https://github.com/libjpeg-turbo/libjpeg-turbo/pull/90
+> >
+> > So, in order to support decoding of these images, I've added the precision
+> > field to the quantization control. The user would be able to set a baseline
+> > or extended profile thru a (future) profile control, and if 16-bit
+> > tables are found, and if the hardware supports them, the driver
+> > would be able to support them.
+> >
+> > Another option, which might be even better, is have explicit baseline
+> > and extended quantization tables controls, e.g.: V4L2_CID_JPEG_QUANT
+> > and V4L2_CID_JPEG_EXT_QUANT.
+>
+> I think this makes more sense than a common structure with an indication
+> bit on how to interpret the data.
+>
+> However, it seems problematic that userspace can't figure out whether
+> 16-bit quant tables are supported with a baseline profile and just has
+> to try and see.
+>
+> Hans, do you think this is an acceptable approach or should we rather
+> stick to the standard here, at the cost of not supporting these pictures
+> that were encoded with this common abuse of the standard?
 
-On Mon, Sep 17, 2018 at 2:53 PM <bingbu.cao@intel.com> wrote:
-[snip]
-> +static int imx319_update_digital_gain(struct imx319 *imx319, u32 d_gain)
-> +{
-> +       int ret;
-> +
-> +       ret = imx319_write_reg(imx319, IMX319_REG_DPGA_USE_GLOBAL_GAIN, 1, 1);
-> +       if (ret)
-> +               return ret;
-> +
-> +       /* Digital gain = (d_gain & 0xFF00) + (d_gain & 0xFF)/256 times */
-
-What's the unit here?
-
-Is the equation above really correct? The range, besides ~0, would be
-from 256.0 to 65280 + 255/256, which sounds strange.
-
-> +       return imx319_write_reg(imx319, IMX319_REG_DIG_GAIN_GLOBAL, 2, d_gain);
-> +}
-> +
-> +static int imx319_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +       struct imx319 *imx319 = container_of(ctrl->handler,
-> +                                            struct imx319, ctrl_handler);
-> +       struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +       s64 max;
-> +       int ret;
-> +
-> +       /* Propagate change of current control to all related controls */
-> +       switch (ctrl->id) {
-> +       case V4L2_CID_VBLANK:
-> +               /* Update max exposure while meeting expected vblanking */
-> +               max = imx319->cur_mode->height + ctrl->val - 18;
-> +               __v4l2_ctrl_modify_range(imx319->exposure,
-> +                                        imx319->exposure->minimum,
-> +                                        max, imx319->exposure->step, max);
-> +               break;
-> +       }
-> +
-> +       /*
-> +        * Applying V4L2 control value only happens
-> +        * when power is up for streaming
-> +        */
-> +       if (pm_runtime_get_if_in_use(&client->dev) == 0)
-
-nit: if (!pm_runtime_get_if_in_use(&client->dev)
-
-> +               return 0;
-> +
-[snip]
-> +/* Initialize control handlers */
-> +static int imx319_init_controls(struct imx319 *imx319)
-> +{
-> +       struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> +       struct v4l2_ctrl_handler *ctrl_hdlr;
-> +       s64 exposure_max;
-> +       s64 vblank_def;
-> +       s64 vblank_min;
-> +       s64 hblank;
-> +       s64 pixel_rate;
-> +       const struct imx319_mode *mode;
-> +       int ret;
-> +
-> +       ctrl_hdlr = &imx319->ctrl_handler;
-> +       ret = v4l2_ctrl_handler_init(ctrl_hdlr, 10);
-> +       if (ret)
-> +               return ret;
-> +
-> +       ctrl_hdlr->lock = &imx319->mutex;
-> +       imx319->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr, &imx319_ctrl_ops,
-> +                                                  V4L2_CID_LINK_FREQ, 0, 0,
-> +                                                  imx319->pdata->link_freqs);
-> +       if (imx319->link_freq)
-> +               imx319->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +       /* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
-> +       pixel_rate = (imx319->link_def_freq * 2 * 4) / 10;
-> +       /* By default, PIXEL_RATE is read only */
-> +       imx319->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +                                              V4L2_CID_PIXEL_RATE, pixel_rate,
-> +                                              pixel_rate, 1, pixel_rate);
-> +
-> +       /* Initialze vblank/hblank/exposure parameters based on current mode */
-> +       mode = imx319->cur_mode;
-> +       vblank_def = mode->fll_def - mode->height;
-> +       vblank_min = mode->fll_min - mode->height;
-> +       imx319->vblank = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +                                          V4L2_CID_VBLANK, vblank_min,
-> +                                          IMX319_FLL_MAX - mode->height,
-> +                                          1, vblank_def);
-> +
-> +       hblank = mode->llp - mode->width;
-> +       imx319->hblank = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +                                          V4L2_CID_HBLANK, hblank, hblank,
-> +                                          1, hblank);
-> +       if (imx319->hblank)
-> +               imx319->hblank->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +
-> +       exposure_max = mode->fll_def - 18;
-> +       imx319->exposure = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +                                            V4L2_CID_EXPOSURE,
-> +                                            IMX319_EXPOSURE_MIN, exposure_max,
-> +                                            IMX319_EXPOSURE_STEP,
-> +                                            IMX319_EXPOSURE_DEFAULT);
-
-Please explain how to interpret the exposure value in a comment.
-
-> +
-> +       imx319->hflip = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +                                         V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +       imx319->vflip = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
-> +                                         V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +
-> +       v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops, V4L2_CID_ANALOGUE_GAIN,
-> +                         IMX319_ANA_GAIN_MIN, IMX319_ANA_GAIN_MAX,
-> +                         IMX319_ANA_GAIN_STEP, IMX319_ANA_GAIN_DEFAULT);
-
-Please explain how the gain value and in what units is calculated in a comment.
-
-> +
-> +       /* Digital gain */
-> +       v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
-> +                         IMX319_DGTL_GAIN_MIN, IMX319_DGTL_GAIN_MAX,
-> +                         IMX319_DGTL_GAIN_STEP, IMX319_DGTL_GAIN_DEFAULT);
-> +
-
-Please explain how the gain value and in what units is calculated in
-the comment.
+Perhaps we just need a control called V4L2_CID_JPEG_QUANT_PRECISION,
+where drivers can set the min/max (e.g. min = 8, max = 16, step = 8)
+to the range they support and user space can select the precision it
+wants, if the hardware gives a choice?
 
 Best regards,
 Tomasz
