@@ -1,179 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53476 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726925AbeISXeF (ORCPT
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:45599 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1733266AbeITAYK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 19:34:05 -0400
+        Wed, 19 Sep 2018 20:24:10 -0400
+Received: by mail-lj1-f195.google.com with SMTP id u83-v6so5992362lje.12
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 11:44:57 -0700 (PDT)
+Subject: Re: [PATCH] rcar-csi2: add R8A77980 support
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
+References: <f6edfd44-7b08-e467-3486-795251816187@cogentembedded.com>
+ <20180806180250.GD1635@bigcity.dyn.berto.se>
+ <e2d1e9ea-f524-31f1-1561-2f0363981938@cogentembedded.com>
+ <20180917111748.GT18450@bigcity.dyn.berto.se>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <662a85e2-a26a-515c-2e0c-05df9f7570d8@cogentembedded.com>
+Date: Wed, 19 Sep 2018 21:44:53 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Wed, 19 Sep 2018 23:25:01 +0530
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
-        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-media-owner@vger.kernel.org
-Subject: Re: [PATCH v9 1/5] venus: firmware: add routine to reset ARM9
-In-Reply-To: <97b94b9b-f028-cb8b-a3db-67626dc517ab@linaro.org>
-References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
- <1537314192-26892-2-git-send-email-vgarodia@codeaurora.org>
- <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
- <97b94b9b-f028-cb8b-a3db-67626dc517ab@linaro.org>
-Message-ID: <175fcecf3be715d2a20b71746c648f1e@codeaurora.org>
+In-Reply-To: <20180917111748.GT18450@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-MW
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018-09-19 20:30, Stanimir Varbanov wrote:
-> Hi Alex,
-> 
-> On 09/19/2018 10:32 AM, Alexandre Courbot wrote:
->> On Wed, Sep 19, 2018 at 8:43 AM Vikash Garodia 
->> <vgarodia@codeaurora.org> wrote:
->>> 
->>> Add routine to reset the ARM9 and brings it out of reset. Also
->>> abstract the Venus CPU state handling with a new function. This
->>> is in preparation to add PIL functionality in venus driver.
->>> 
->>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->>> ---
->>>  drivers/media/platform/qcom/venus/core.h         |  2 ++
->>>  drivers/media/platform/qcom/venus/firmware.c     | 33 
->>> ++++++++++++++++++++++++
->>>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
->>>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
->>>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
->>>  5 files changed, 57 insertions(+), 9 deletions(-)
->>> 
->>> diff --git a/drivers/media/platform/qcom/venus/core.h 
->>> b/drivers/media/platform/qcom/venus/core.h
->>> index 2f02365..dfd5c10 100644
->>> --- a/drivers/media/platform/qcom/venus/core.h
->>> +++ b/drivers/media/platform/qcom/venus/core.h
->>> @@ -98,6 +98,7 @@ struct venus_caps {
->>>   * @dev:               convenience struct device pointer
->>>   * @dev_dec:   convenience struct device pointer for decoder device
->>>   * @dev_enc:   convenience struct device pointer for encoder device
->>> + * @no_tz:     a flag that suggests presence of trustzone
->> 
->> Looks like it suggests the absence of trustzone?
->> 
->> Actually I would rename it as use_tz and set it if TrustZone is used.
->> This would avoid double-negative statements like what we see below.
-> 
-> I find this suggestion reasonable.
+Hello!
 
-Initially i planned to keep it as a positive flag. The reason behind 
-keeping it
-as no_tz was to keep the default value of this flag to 0 indicating tz 
-is present
-by default.
-I can switch it to use_tz though and set it in firmware_init after the 
-presence of
-firmware node is checked.
+On 09/17/2018 02:17 PM, Niklas Söderlund wrote:
 
->> 
->>>   * @lock:      a lock for this strucure
->>>   * @instances: a list_head of all instances
->>>   * @insts_count:       num of instances
->>> @@ -129,6 +130,7 @@ struct venus_core {
->>>         struct device *dev;
->>>         struct device *dev_dec;
->>>         struct device *dev_enc;
->>> +       bool no_tz;
->>>         struct mutex lock;
->>>         struct list_head instances;
->>>         atomic_t insts_count;
->>> diff --git a/drivers/media/platform/qcom/venus/firmware.c 
->>> b/drivers/media/platform/qcom/venus/firmware.c
->>> index c4a5778..f2ae2f0 100644
->>> --- a/drivers/media/platform/qcom/venus/firmware.c
->>> +++ b/drivers/media/platform/qcom/venus/firmware.c
->>> @@ -22,10 +22,43 @@
->>>  #include <linux/sizes.h>
->>>  #include <linux/soc/qcom/mdt_loader.h>
->>> 
->>> +#include "core.h"
->>>  #include "firmware.h"
->>> +#include "hfi_venus_io.h"
->>> 
->>>  #define VENUS_PAS_ID                   9
->>>  #define VENUS_FW_MEM_SIZE              (6 * SZ_1M)
->>> +#define VENUS_FW_START_ADDR            0x0
->>> +
->>> +static void venus_reset_cpu(struct venus_core *core)
->>> +{
->>> +       void __iomem *base = core->base;
->>> +
->>> +       writel(0, base + WRAPPER_FW_START_ADDR);
->>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_FW_END_ADDR);
->>> +       writel(0, base + WRAPPER_CPA_START_ADDR);
->>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
->>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_START_ADDR);
->>> +       writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_END_ADDR);
->>> +       writel(0x0, base + WRAPPER_CPU_CGC_DIS);
->>> +       writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
->>> +
->>> +       /* Bring ARM9 out of reset */
->>> +       writel(0, base + WRAPPER_A9SS_SW_RESET);
->>> +}
->>> +
->>> +int venus_set_hw_state(struct venus_core *core, bool resume)
->>> +{
->>> +       if (!core->no_tz)
->> 
->> This is the kind of double negative statement I was referring do
->> above: "if we do not not have TrustZone". Turning it into
->> 
->>     if (core->use_tz)
->> 
->> would save the reader a few neurons. :)
->> 
->>> +               return qcom_scm_set_remote_state(resume, 0);
->>> +
->>> +       if (resume)
->>> +               venus_reset_cpu(core);
->>> +       else
->>> +               writel(1, core->base + WRAPPER_A9SS_SW_RESET);
->>> +
->>> +       return 0;
->>> +}
->>> 
->>>  int venus_boot(struct device *dev, const char *fwname)
->>>  {
->>> diff --git a/drivers/media/platform/qcom/venus/firmware.h 
->>> b/drivers/media/platform/qcom/venus/firmware.h
->>> index 428efb5..397570c 100644
->>> --- a/drivers/media/platform/qcom/venus/firmware.h
->>> +++ b/drivers/media/platform/qcom/venus/firmware.h
->>> @@ -18,5 +18,16 @@
->>> 
->>>  int venus_boot(struct device *dev, const char *fwname);
->>>  int venus_shutdown(struct device *dev);
->>> +int venus_set_hw_state(struct venus_core *core, bool suspend);
->>> +
->>> +static inline int venus_set_hw_state_suspend(struct venus_core 
->>> *core)
->>> +{
->>> +       return venus_set_hw_state(core, false);
->>> +}
->>> +
->>> +static inline int venus_set_hw_state_resume(struct venus_core *core)
->>> +{
->>> +       return venus_set_hw_state(core, true);
->>> +}
->> 
->> I think these two venus_set_hw_state_suspend() and
->> venus_set_hw_state_resume() are superfluous, if you want to make the
->> state explicit you can also define an enum { SUSPEND, RESUME } to use
->> as argument of venus_set_hw_state() and call it directly.
+>>>> Add the R-Car V3H (AKA R8A77980) SoC support to the R-Car CSI2 driver.
+>>>>
+>>>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>>>
+>>> It looks good but before I add my tag I would like to know if you tested 
+>>> this on a V3H?
+>>
+>>    No, have not tested the upstream patch, seemed too cumbersome (we did 
+>> test the BSP patch AFAIK).
 > 
-> Infact this was by my request, and I wanted to avoid enum and have the
-> type of the action in the function name and also avoid one extra
-> function argument. Of course it is a matter of taste.
+> Did you find time to test this change? I think it looks good but I would 
+
+   Unfortunately, no.
+
+> feel a lot better about this change if I knew it was tested :-) More 
+> often then not have we shaken a bug out of the rcar-{csi2,vin} tree by 
+> adding support for a new SoC.
+> 
+> Also if you for some reason need to resend this series could you split 
+> the DT documentation and driver changes in two separate patches?
+
+   OK.
+
+>>> In the past extending the R-Car CSI-2 receiver to a new 
+>>> SoC always caught some new corner case :-)
+>>>
+>>> I don't have access to a V3H myself otherwise I would of course test it 
+>>> myself.
+>>
+>>    CSI-2 on the Condor board is connected to a pair of MAX9286 GMSL de-serializers
+>> which are connected to 4 (composite?) connectors... There's supposed to be sensor
+>> chip on the other side, AFAIK...
+> 
+> There is experimental patches which are tested on V3M that uses the 
+> MAX9286 GMSL setup if you feel brave and want to try and extend them to 
+> cover V3H ;-P
+
+   Wouldn't hurt having them. :-)
+
+MBR, Sergei
