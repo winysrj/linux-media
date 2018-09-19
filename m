@@ -1,70 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga06-in.huawei.com ([45.249.212.32]:35683 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1726887AbeISHGX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 03:06:23 -0400
-Message-ID: <5BA1A6D0.4090506@huawei.com>
-Date: Wed, 19 Sep 2018 09:30:56 +0800
-From: zhong jiang <zhongjiang@huawei.com>
-MIME-Version: 1.0
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Brad Love <brad@nextdimension.cc>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: dvb-frontends: Use kmemdup instead of duplicating
- its function
-References: <1537284628-62020-1-git-send-email-zhongjiang@huawei.com> <CAOcJUbzfv8DLpRAbAiodqDDQ5wH1uyqjJ-sKN+qJGr=xagQBNg@mail.gmail.com>
-In-Reply-To: <CAOcJUbzfv8DLpRAbAiodqDDQ5wH1uyqjJ-sKN+qJGr=xagQBNg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:54737 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725817AbeISIhR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Sep 2018 04:37:17 -0400
+Message-ID: <6c8cccaf01653af9810ca09285bab51f@smtp-cloud7.xs4all.net>
+Date: Wed, 19 Sep 2018 05:01:27 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2018/9/19 3:58, Michael Ira Krufky wrote:
-> On Tue, Sep 18, 2018 at 11:42 AM zhong jiang <zhongjiang@huawei.com> wrote:
->> kmemdup has implemented the function that kmalloc() + memcpy().
->> We prefer to kmemdup rather than code opened implementation.
->>
->> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
->> ---
->>  drivers/media/dvb-frontends/lgdt3306a.c | 6 ++----
->>  1 file changed, 2 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
->> index 0e1f5da..abec2e5 100644
->> --- a/drivers/media/dvb-frontends/lgdt3306a.c
->> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
->> @@ -2205,15 +2205,13 @@ static int lgdt3306a_probe(struct i2c_client *client,
->>         struct dvb_frontend *fe;
->>         int ret;
->>
->> -       config = kzalloc(sizeof(struct lgdt3306a_config), GFP_KERNEL);
->> +       onfig = kmemdup(client->dev.platform_data,
->> +                       sizeof(struct lgdt3306a_config), GFP_KERNEL);
->>         if (config == NULL) {
->>                 ret = -ENOMEM;
->>                 goto fail;
->>         }
->>
->> -       memcpy(config, client->dev.platform_data,
->> -                       sizeof(struct lgdt3306a_config));
->> -
->>         config->i2c_addr = client->addr;
->>         fe = lgdt3306a_attach(config, client->adapter);
->>         if (fe == NULL) {
-> Thank you for this patch, Zhong.  I suspect, however, that the patch
-> might contain a typo.  It looks like the `c` got dropped off of the
-> `config` variable.
-I am sorry.  It's my fault.:-[ . Will repost
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks,
-zhong jiang
-> Did you test this before sending it in?
->
-> Thanks again and best regards,
->
-> Michael Krufky
->
-> .
->
+Results of the daily build of media_tree:
+
+date:			Wed Sep 19 04:00:16 CEST 2018
+media-tree git hash:	985cdcb08a0488558d1005139596b64d73bee267
+media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
+v4l-utils git hash:	0ed116049b9365658d858d07279779685455fd70
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-3-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.0.101-i686: OK
+linux-3.0.101-x86_64: OK
+linux-3.1.10-i686: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.102-i686: OK
+linux-3.2.102-x86_64: OK
+linux-3.3.8-i686: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.113-i686: OK
+linux-3.4.113-x86_64: OK
+linux-3.5.7-i686: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-i686: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.10-i686: OK
+linux-3.7.10-x86_64: OK
+linux-3.8.13-i686: OK
+linux-3.8.13-x86_64: OK
+linux-3.9.11-i686: OK
+linux-3.9.11-x86_64: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.119-i686: OK
+linux-3.18.119-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.152-i686: OK
+linux-4.4.152-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.124-i686: OK
+linux-4.9.124-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.67-i686: OK
+linux-4.14.67-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.5-i686: OK
+linux-4.18.5-x86_64: OK
+linux-4.19-rc1-i686: OK
+linux-4.19-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
