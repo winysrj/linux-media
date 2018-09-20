@@ -1,56 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:39114 "EHLO
-        mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726193AbeITWDf (ORCPT
+Received: from mail-ed1-f67.google.com ([209.85.208.67]:41622 "EHLO
+        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726193AbeITWDb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 18:03:35 -0400
+        Thu, 20 Sep 2018 18:03:31 -0400
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCH 3/4] [media] ad5820: DT new optional field enable-gpios
-Date: Thu, 20 Sep 2018 18:19:11 +0200
-Message-Id: <20180920161912.17063-3-ricardo.ribalda@gmail.com>
-In-Reply-To: <20180920161912.17063-1-ricardo.ribalda@gmail.com>
-References: <20180920161912.17063-1-ricardo.ribalda@gmail.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/4] [media] ad5820: Define entity function
+Date: Thu, 20 Sep 2018 18:19:09 +0200
+Message-Id: <20180920161912.17063-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document new enable-gpio field. It can be used to disable the part
-without turning down its regulator.
+Without this patch, media_device_register_entity throws a warning:
 
-Cc: devicetree@vger.kernel.org
+dev_warn(mdev->dev,
+	 "Entity type for entity %s was not initialized!\n",
+	 entity->name);
+
 Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- Documentation/devicetree/bindings/media/i2c/ad5820.txt | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/i2c/ad5820.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-index 5940ca11c021..07d577bb37f7 100644
---- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-@@ -8,6 +8,11 @@ Required Properties:
+diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+index 907323f0ca3b..22759aaa2dba 100644
+--- a/drivers/media/i2c/ad5820.c
++++ b/drivers/media/i2c/ad5820.c
+@@ -317,6 +317,7 @@ static int ad5820_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
+ 	coil->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	coil->subdev.internal_ops = &ad5820_internal_ops;
++	coil->subdev.entity.function = MEDIA_ENT_F_LENS;
+ 	strscpy(coil->subdev.name, "ad5820 focus", sizeof(coil->subdev.name));
  
-   - VANA-supply: supply of voltage for VANA pin
- 
-+Optional properties:
-+
-+   - enable-gpios : GPIO spec for the XSHUTDOWN pin. If specified, it will be
-+     asserted when VANA-supply is enabled.
-+
- Example:
- 
-        ad5820: coil@c {
-@@ -15,5 +20,6 @@ Example:
-                reg = <0x0c>;
- 
-                VANA-supply = <&vaux4>;
-+               enable-gpios = <&msmgpio 26 GPIO_ACTIVE_HIGH>;
-        };
- 
+ 	ret = media_entity_pads_init(&coil->subdev.entity, 0, NULL);
 -- 
 2.18.0
