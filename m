@@ -1,64 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f196.google.com ([209.85.215.196]:36929 "EHLO
-        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726082AbeILLjB (ORCPT
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:35838 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1732512AbeITRCD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 07:39:01 -0400
-Received: by mail-pg1-f196.google.com with SMTP id 2-v6so513238pgo.4
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2018 23:35:58 -0700 (PDT)
-From: dorodnic@gmail.com
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, evgeni.raikhel@intel.com,
-        Sergey Dorodnicov <sergey.dorodnicov@intel.com>
-Subject: [PATCH v2 2/2] [media] CNF4 pixel format for media subsystem
-Date: Wed, 12 Sep 2018 02:42:07 -0400
-Message-Id: <1536734527-3770-3-git-send-email-sergey.dorodnicov@intel.com>
-In-Reply-To: <1536734527-3770-1-git-send-email-sergey.dorodnicov@intel.com>
-References: <1536734527-3770-1-git-send-email-sergey.dorodnicov@intel.com>
+        Thu, 20 Sep 2018 13:02:03 -0400
+From: Luis Oliveira <Luis.Oliveira@synopsys.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Joao.Pinto@synopsys.com, festevam@gmail.com,
+        Luis Oliveira <Luis.Oliveira@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Luis Oliveira <luis.oliveira@synopsys.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [V2, 1/5] media: platform: Add a DesignWare folder to have Synopsys drivers
+Date: Thu, 20 Sep 2018 13:16:39 +0200
+Message-Id: <20180920111648.27000-2-lolivei@synopsys.com>
+In-Reply-To: <20180920111648.27000-1-lolivei@synopsys.com>
+References: <20180920111648.27000-1-lolivei@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
+This patch has the intention of make the patch series more clear by creating
+a dwc folder.
 
-Registering new GUID used by Intel RealSense cameras with fourcc CNF4,
-encoding depth sensor confidence information for every pixel.
-
-Signed-off-by: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
-Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Signed-off-by: Luis Oliveira <lolivei@synopsys.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 5 +++++
- drivers/media/usb/uvc/uvcvideo.h   | 3 +++
- 2 files changed, 8 insertions(+)
+Changelog
+v2:
+- Fix Kbuild error with no Makefile present
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index d46dc43..19f129f 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -214,6 +214,11 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.guid		= UVC_GUID_FORMAT_INZI,
- 		.fcc		= V4L2_PIX_FMT_INZI,
- 	},
-+	{
-+		.name		= "4-bit Depth Confidence (Packed)",
-+		.guid		= UVC_GUID_FORMAT_CNF4,
-+		.fcc		= V4L2_PIX_FMT_CNF4,
-+	},
- };
+ drivers/media/platform/Kconfig      | 1 +
+ drivers/media/platform/Makefile     | 3 +++
+ drivers/media/platform/dwc/Kconfig  | 0
+ drivers/media/platform/dwc/Makefile | 0
+ 4 files changed, 4 insertions(+)
+ create mode 100644 drivers/media/platform/dwc/Kconfig
+ create mode 100644 drivers/media/platform/dwc/Makefile
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index f627587..f627a27 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -137,6 +137,7 @@ source "drivers/media/platform/am437x/Kconfig"
+ source "drivers/media/platform/xilinx/Kconfig"
+ source "drivers/media/platform/rcar-vin/Kconfig"
+ source "drivers/media/platform/atmel/Kconfig"
++source "drivers/media/platform/dwc/Kconfig"
  
- /* ------------------------------------------------------------------------
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index e5f5d84..779bab2 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -154,6 +154,9 @@
- #define UVC_GUID_FORMAT_INVI \
- 	{ 'I',  'N',  'V',  'I', 0xdb, 0x57, 0x49, 0x5e, \
- 	 0x8e, 0x3f, 0xf4, 0x79, 0x53, 0x2b, 0x94, 0x6f}
-+#define UVC_GUID_FORMAT_CNF4 \
-+	{ 'C',  ' ',  ' ',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+ config VIDEO_TI_CAL
+ 	tristate "TI CAL (Camera Adaptation Layer) driver"
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 6ab6200..def2f33 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -98,3 +98,6 @@ obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+ obj-y					+= meson/
  
- #define UVC_GUID_FORMAT_D3DFMT_L8 \
- 	{0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, \
+ obj-y					+= cros-ec-cec/
++
++obj-y					+= dwc/
++
+diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
+new file mode 100644
+index 0000000..e69de29
+diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
+new file mode 100644
+index 0000000..e69de29
 -- 
-2.7.4
+2.9.3
