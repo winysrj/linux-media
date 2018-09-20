@@ -1,109 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53407 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727556AbeIUB7f (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 21:59:35 -0400
-Date: Thu, 20 Sep 2018 22:14:20 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 2/4] [media] ad5820: Add support for enable pin
-Message-ID: <20180920201420.GA28766@amd>
-References: <20180920161912.17063-2-ricardo.ribalda@gmail.com>
- <20180920184552.4919-1-ricardo.ribalda@gmail.com>
- <20180920185405.GA26589@amd>
- <CAPybu_2hjrq=r+kpAHKxX59gOXfbqGf9CUPh9CNqv7WGqJsrQQ@mail.gmail.com>
- <20180920190855.GC26589@amd>
- <CAPybu_2mNE7Jmfm2n60Z9Hk_iO+-zLgtu4xn72pJUSXBitVg=g@mail.gmail.com>
+Received: from mail.kernel.org ([198.145.29.99]:33146 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726128AbeIUCCD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Sep 2018 22:02:03 -0400
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
+To: tfiga@chromium.org
+Cc: Grant Grundler <grundler@chromium.org>, ping-chung.chen@intel.com,
+        sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, andy.yeh@intel.com, jim.lai@intel.com,
+        Rajmohan Mani <rajmohan.mani@intel.com>
+References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
+ <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
+ <CANEJEGvZn7oSdtYcwb4qxqiys1_y6GPh+1fZUfdejg2ztSsRmw@mail.gmail.com>
+Message-ID: <4e3e21d3-21f7-48eb-7672-f157c1a4fdcc@kernel.org>
+Date: Thu, 20 Sep 2018 22:16:47 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
-Content-Disposition: inline
-In-Reply-To: <CAPybu_2mNE7Jmfm2n60Z9Hk_iO+-zLgtu4xn72pJUSXBitVg=g@mail.gmail.com>
+In-Reply-To: <CANEJEGvZn7oSdtYcwb4qxqiys1_y6GPh+1fZUfdejg2ztSsRmw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 09/20/2018 06:49 PM, Grant Grundler wrote:
+> On Thu, Sep 20, 2018 at 1:52 AM Tomasz Figa <tfiga@chromium.org> wrote:
+>> On Wed, Aug 8, 2018 at 4:08 PM Ping-chung Chen
+>> <ping-chung.chen@intel.com> wrote:
 
---HcAYCG3uE/tztfnV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>>> +/* Digital gain control */
 
-On Thu 2018-09-20 21:12:44, Ricardo Ribalda Delgado wrote:
-> On Thu, Sep 20, 2018 at 9:08 PM Pavel Machek <pavel@ucw.cz> wrote:
-> >
-> > On Thu 2018-09-20 21:06:16, Ricardo Ribalda Delgado wrote:
-> > > Hi Pavel
-> > >
-> > > On Thu, Sep 20, 2018 at 8:54 PM Pavel Machek <pavel@ucw.cz> wrote:
-> > > >
-> > > > On Thu 2018-09-20 20:45:52, Ricardo Ribalda Delgado wrote:
-> > > > > This patch adds support for a programmable enable pin. It can be =
-used in
-> > > > > situations where the ANA-vcc is not configurable (dummy-regulator=
-), or
-> > > > > just to have a more fine control of the power saving.
-> > > > >
-> > > > > The use of the enable pin is optional.
-> > > > >
-> > > > > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> > > >
-> > > > Do we really want to do that?
-> > > >
-> > > > Would it make more sense to add gpio-regulator and connect ad5820 to
-> > > > it in such case?
-> > > >
-> > >
-> > > My board (based on db820c)  has both:
-> > >
-> > > ad5820: dac@0c {
-> > >    compatible =3D "adi,ad5820";
-> > >    reg =3D <0x0c>;
-> > >
-> > >    VANA-supply =3D <&pm8994_l23>;
-> > >    enable-gpios =3D <&msmgpio 26 GPIO_ACTIVE_HIGH>;
-> > > };
-> >
-> > Well, I'm sure you could have gpio-based regulator powered from
-> > pm8994_l23, and outputting to ad5820.
-> >
-> > Does ad5820 chip have a gpio input for enable?
->=20
-> xshutdown pin:
-> http://www.analog.com/media/en/technical-documentation/data-sheets/AD5821=
-=2Epdf
->=20
-> (AD5820,AD5821, and AD5823 are compatibles, or at least that is waht
-> the module manufacturer says :)
+>>> +#define IMX208_DGTL_GAIN_MIN           0
+>>> +#define IMX208_DGTL_GAIN_MAX           4096
+>>> +#define IMX208_DGTL_GAIN_DEFAULT       0x100
+>>> +#define IMX208_DGTL_GAIN_STEP           1
 
-Aha, sorry for the noise.
+>>> +/* Initialize control handlers */
+>>> +static int imx208_init_controls(struct imx208 *imx208)
+>>> +{
+>> [snip]
+>>> +       v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
+>>> +                         IMX208_DGTL_GAIN_MIN, IMX208_DGTL_GAIN_MAX,
+>>> +                         IMX208_DGTL_GAIN_STEP,
+>>> +                         IMX208_DGTL_GAIN_DEFAULT);
+>>
+>> We have a problem here. The sensor supports only a discrete range of
+>> values here - {1, 2, 4, 8, 16} (multiplied by 256, since the value is
+>> fixed point). This makes it possible for the userspace to set values
+>> that are not allowed by the sensor specification and also leaves no
+>> way to enumerate the supported values.
 
-2,3: Acked-by: Pavel Machek <pavel@ucw.cz>
+The driver could always adjust the value in set_ctrl callback so invalid
+settings are not allowed.
 
-Thanks,
-								Pavel
+I'm not sure if it's best approach but I once did something similar for
+the ov9650 sensor. The gain was fixed point 10-bits value with 4 bits
+for fractional part. The driver reports values multiplied by 16. See 
+ov965x_set_gain() function in drivers/media/i2c/ov9650.c and "Table 4-1.
+Total Gain to Control Bit Correlation" in the OV9650 datasheet for details. 
+The integer menu control just seemed not suitable for 2^10 values. 
+Now the gain control has range 16...1984 out of which only 1024 values 
+are valid. It might not be best approach for a GUI but at least the driver 
+exposes mapping of all valid values, which could be enumerated with 
+VIDIOC_TRY_EXT_CTRLS if required, without a need for a driver-specific 
+user space code.  
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+>> I can see two solutions here:
+>>
+>> 1) Define the control range from 0 to 4 and treat it as an exponent of
+>> 2, so that the value for the sensor becomes (1 << val) * 256.
+>> (Suggested by Sakari offline.)
+>>
+>> This approach has the problem of losing the original unit (and scale)
+>> of the value.
+> 
+> Exactly - will users be confused by this? If we have to explain it,
+> probably not the best choice.
+> 
+>>
+>> 2) Use an integer menu control, which reports only the supported
+>> discrete values - {1, 2, 4, 8, 16}.
+>>
+>> With this approach, userspace can enumerate the real gain values, but
+>> we would either need to introduce a new control (e.g.
+>> V4L2_CID_DIGITAL_GAIN_DISCRETE) or abuse the specification and
+>> register V4L2_CID_DIGITAL_GAIN as an integer menu.
+>>
+>> Any opinions or better ideas?
+> 
+> My $0.02: leave the user UI alone - let users specify/select anything
+> in the range the normal API or UI allows. But have sensor specific
+> code map all values in that range to values the sensor supports. Users
+> will notice how it works when they play with it.  One can "adjust" the
+> mapping so it "feels right".
 
---HcAYCG3uE/tztfnV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAluj/5wACgkQMOfwapXb+vLWCQCePWD+ay3G+of16Itk/4RyVzzv
-auMAn3Lj14BEIoJDo8pHFjDoPnZnx4GI
-=VFDe
------END PGP SIGNATURE-----
-
---HcAYCG3uE/tztfnV--
+--
+Regards,
+Sylwester
