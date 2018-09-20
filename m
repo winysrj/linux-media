@@ -1,215 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:37624 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727518AbeIUDKz (ORCPT
+Received: from mail-lj1-f195.google.com ([209.85.208.195]:42717 "EHLO
+        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727171AbeIUDk6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 23:10:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, mchehab@kernel.org
-Subject: Re: [PATCH v3 1/1] v4l: event: Prevent freeing event subscriptions while accessed
-Date: Fri, 21 Sep 2018 00:25:37 +0300
-Message-ID: <3060033.FijsL0T3jF@avalon>
-In-Reply-To: <20180914110301.12728-1-sakari.ailus@linux.intel.com>
-References: <20180914110301.12728-1-sakari.ailus@linux.intel.com>
+        Thu, 20 Sep 2018 23:40:58 -0400
+Received: by mail-lj1-f195.google.com with SMTP id f1-v6so9767410ljc.9
+        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2018 14:55:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
+ <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
+ <20180920205658.xv57qcmya7xubgyf@valkosipuli.retiisi.org.uk> <1961986.b6erRuqaPp@avalon>
+In-Reply-To: <1961986.b6erRuqaPp@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Thu, 20 Sep 2018 23:55:03 +0200
+Message-ID: <CAPybu_2pCy4EJnih+1pmr43gdh5J0BS_Z0Owb5qpJVkYcDHtyQ@mail.gmail.com>
+Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, tfiga@chromium.org,
+        ping-chung.chen@intel.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        sylwester.nawrocki@gmail.com,
+        linux-media <linux-media@vger.kernel.org>, andy.yeh@intel.com,
+        jim.lai@intel.com, grundler@chromium.org, rajmohan.mani@intel.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+HI
+On Thu, Sep 20, 2018 at 11:13 PM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Sakari,
+>
+> On Thursday, 20 September 2018 23:56:59 EEST Sakari Ailus wrote:
+> > On Thu, Sep 20, 2018 at 05:51:55PM +0900, Tomasz Figa wrote:
+> > > On Wed, Aug 8, 2018 at 4:08 PM Ping-chung Chen wrote:
+> > > [snip]
+> > >
+> > > > +
+> > > > +/* Digital gain control */
+> > > > +#define IMX208_REG_GR_DIGITAL_GAIN     0x020e
+> > > > +#define IMX208_REG_R_DIGITAL_GAIN      0x0210
+> > > > +#define IMX208_REG_B_DIGITAL_GAIN      0x0212
+> > > > +#define IMX208_REG_GB_DIGITAL_GAIN     0x0214
+> > > > +#define IMX208_DGTL_GAIN_MIN           0
+> > > > +#define IMX208_DGTL_GAIN_MAX           4096
+> > > > +#define IMX208_DGTL_GAIN_DEFAULT       0x100
+> > > > +#define IMX208_DGTL_GAIN_STEP           1
+> > > > +
+> > >
+> > > [snip]
+> > >
+> > > > +/* Initialize control handlers */
+> > > > +static int imx208_init_controls(struct imx208 *imx208)
+> > > > +{
+> > >
+> > > [snip]
+> > >
+> > > > +       v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops,
+> > > > V4L2_CID_DIGITAL_GAIN, +                         IMX208_DGTL_GAIN_MIN,
+> > > > IMX208_DGTL_GAIN_MAX, +                         IMX208_DGTL_GAIN_STEP,
+> > > > +                         IMX208_DGTL_GAIN_DEFAULT);
+> > >
+> > > We have a problem here. The sensor supports only a discrete range of
+> > > values here - {1, 2, 4, 8, 16} (multiplied by 256, since the value is
+> > > fixed point). This makes it possible for the userspace to set values
+> > > that are not allowed by the sensor specification and also leaves no
+> > > way to enumerate the supported values.
+> > >
+> > > I can see two solutions here:
+> > >
+> > > 1) Define the control range from 0 to 4 and treat it as an exponent of
+> > > 2, so that the value for the sensor becomes (1 << val) * 256.
+> > > (Suggested by Sakari offline.)
+> > >
+> > > This approach has the problem of losing the original unit (and scale)
+> > > of the value.
+> >
+> > I'd like to add that this is not a property of the proposed solution.
+> >
+> > Rather, the above needs to be accompanied by additional information
+> > provided through VIDIOC_QUERY_EXT_CTRL, i.e. the unit, prefix as well as
+> > other information such as whether the control is linear or exponential (as
+> > in this case).
+> >
+> > > 2) Use an integer menu control, which reports only the supported
+> > > discrete values - {1, 2, 4, 8, 16}.
+> > >
+> > > With this approach, userspace can enumerate the real gain values, but
+> > > we would either need to introduce a new control (e.g.
+> > > V4L2_CID_DIGITAL_GAIN_DISCRETE) or abuse the specification and
+> > > register V4L2_CID_DIGITAL_GAIN as an integer menu.
+> >
+> > New controls in V4L2 are, for the most part, created when there's something
+> > new to control. The documentation of some controls (similar to e.g. gain)
+> > documents a unit as well as a prefix but that's the case only because
+> > there's been no way to tell the unit or prefix otherwise in the API.
+> >
+> > An exception to this are EXPOSURE and EXPOSURE_ABSOLUTE. I'm not entirely
+> > sure how they came to be though. An accident is a possibility as far as I
+> > see.
+>
+> If I remember correctly I introduced the absolute variant for the UVC driver
+> (even though git blame points to Brandon Philips). I don't really remember why
+> though.
+>
+> > Controls that have a documented unit use that unit --- as long as that's
+> > the unit used by the hardware. If it's not, it tends to be that another
+> > unit is used but the user space has currently no way of knowing this. And
+> > the digital gain control is no exception to this.
+> >
+> > So if we want to improve the user space's ability to be informed how the
+> > control values reflect to device configuration, we do need to provide more
+> > information to the user space. One way to do that would be through
+> > VIDIOC_QUERY_EXT_CTRL. The IOCTL struct has plenty of reserved fields ---
+> > just for purposes such as this one.
+>
+> I don't think we can come up with a good way to expose arbitrary mathematical
+> formulas through an ioctl. In my opinion the question is how far we want to
+> go, how precise we need to be.
+>
+> > > Any opinions or better ideas?
 
-Thank you for the patch.
+My 0.02 DKK.  On a similar situation, where userspace was running a
+close loop calibration:
 
-On Friday, 14 September 2018 14:03:01 EEST Sakari Ailus wrote:
-> The event subscriptions are added to the subscribed event list while
-> holding a spinlock, but that lock is subsequently released while still
-> accessing the subscription object. This makes it possible to unsubscribe
-> the event --- and freeing the subscription object's memory --- while
-> the subscription object is simultaneously accessed.
-> 
-> Prevent this by adding a mutex to serialise the event subscription and
-> unsubscription. This also gives a guarantee to the callback ops that the
-> add op has returned before the del op is called.
-> 
-> This change also results in making the elems field less special:
-> subscriptions are only added to the event list once they are fully
-> initialised.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+We have implemented two extra control: eposure_next exposure_pre that
+tell us which one is the next value. Perhaps we could embebed such
+functionality in QUERY_EXT_CTRL.
 
-It wasn't immediately clear to me that the !sev->elems check can be removed 
-because the subscriptions are *now* only added to the event list once they are 
-fully initialized, I thought the sentence documented the current 
-implementation. After realizing that,
+Cheers
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> ---
-> since v1:
-> 
-> - Call the mutex field subscribe_lock instead.
-> 
-> - Move the field that is now subscribe_lock above the subscribed field the
->   write access to which it serialises.
-> 
-> - Improve documentation of the subscribe_lock field.
-> 
-> since v2:
-> 
-> - Acquire spinlock for the duration of list_add() in v4l2_event_subscribe().
-> 
-> - Remove a redundant comment in the same place.
-> 
->  drivers/media/v4l2-core/v4l2-event.c | 38 +++++++++++++++++----------------
->  drivers/media/v4l2-core/v4l2-fh.c    |  2 ++
->  include/media/v4l2-fh.h              |  4 ++++
->  3 files changed, 26 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c
-> b/drivers/media/v4l2-core/v4l2-event.c index 127fe6eb91d9..a3ef1f50a4b3
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -115,14 +115,6 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
-> const struct v4l2_event *e if (sev == NULL)
->  		return;
-> 
-> -	/*
-> -	 * If the event has been added to the fh->subscribed list, but its
-> -	 * add op has not completed yet elems will be 0, treat this as
-> -	 * not being subscribed.
-> -	 */
-> -	if (!sev->elems)
-> -		return;
-> -
->  	/* Increase event sequence number on fh. */
->  	fh->sequence++;
-> 
-> @@ -208,6 +200,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  	struct v4l2_subscribed_event *sev, *found_ev;
->  	unsigned long flags;
->  	unsigned i;
-> +	int ret = 0;
-> 
->  	if (sub->type == V4L2_EVENT_ALL)
->  		return -EINVAL;
-> @@ -225,31 +218,36 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  	sev->flags = sub->flags;
->  	sev->fh = fh;
->  	sev->ops = ops;
-> +	sev->elems = elems;
-> +
-> +	mutex_lock(&fh->subscribe_lock);
-> 
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
->  	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-> -	if (!found_ev)
-> -		list_add(&sev->list, &fh->subscribed);
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> 
->  	if (found_ev) {
-> +		/* Already listening */
->  		kvfree(sev);
-> -		return 0; /* Already listening */
-> +		goto out_unlock;
->  	}
-> 
->  	if (sev->ops && sev->ops->add) {
-> -		int ret = sev->ops->add(sev, elems);
-> +		ret = sev->ops->add(sev, elems);
->  		if (ret) {
-> -			sev->ops = NULL;
-> -			v4l2_event_unsubscribe(fh, sub);
-> -			return ret;
-> +			kvfree(sev);
-> +			goto out_unlock;
->  		}
->  	}
-> 
-> -	/* Mark as ready for use */
-> -	sev->elems = elems;
-> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +	list_add(&sev->list, &fh->subscribed);
-> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> 
-> -	return 0;
-> +out_unlock:
-> +	mutex_unlock(&fh->subscribe_lock);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
-> 
-> @@ -288,6 +286,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->  		return 0;
->  	}
-> 
-> +	mutex_lock(&fh->subscribe_lock);
-> +
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> 
->  	sev = v4l2_event_subscribed(fh, sub->type, sub->id);
-> @@ -305,6 +305,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->  	if (sev && sev->ops && sev->ops->del)
->  		sev->ops->del(sev);
-> 
-> +	mutex_unlock(&fh->subscribe_lock);
-> +
->  	kvfree(sev);
-> 
->  	return 0;
-> diff --git a/drivers/media/v4l2-core/v4l2-fh.c
-> b/drivers/media/v4l2-core/v4l2-fh.c index 3895999bf880..c91a7bd3ecfc 100644
-> --- a/drivers/media/v4l2-core/v4l2-fh.c
-> +++ b/drivers/media/v4l2-core/v4l2-fh.c
-> @@ -45,6 +45,7 @@ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device
-> *vdev) INIT_LIST_HEAD(&fh->available);
->  	INIT_LIST_HEAD(&fh->subscribed);
->  	fh->sequence = -1;
-> +	mutex_init(&fh->subscribe_lock);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fh_init);
-> 
-> @@ -90,6 +91,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
->  		return;
->  	v4l_disable_media_source(fh->vdev);
->  	v4l2_event_unsubscribe_all(fh);
-> +	mutex_destroy(&fh->subscribe_lock);
->  	fh->vdev = NULL;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fh_exit);
-> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-> index ea73fef8bdc0..8586cfb49828 100644
-> --- a/include/media/v4l2-fh.h
-> +++ b/include/media/v4l2-fh.h
-> @@ -38,10 +38,13 @@ struct v4l2_ctrl_handler;
->   * @prio: priority of the file handler, as defined by &enum v4l2_priority
->   *
->   * @wait: event' s wait queue
-> + * @subscribe_lock: serialise changes to the subscribed list; guarantee
-> that + *		    the add and del event callbacks are orderly called
->   * @subscribed: list of subscribed events
->   * @available: list of events waiting to be dequeued
->   * @navailable: number of available events at @available list
->   * @sequence: event sequence number
-> + *
->   * @m2m_ctx: pointer to &struct v4l2_m2m_ctx
->   */
->  struct v4l2_fh {
-> @@ -52,6 +55,7 @@ struct v4l2_fh {
-> 
->  	/* Events */
->  	wait_queue_head_t	wait;
-> +	struct mutex		subscribe_lock;
->  	struct list_head	subscribed;
->  	struct list_head	available;
->  	unsigned int		navailable;
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
 
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ricardo Ribalda
