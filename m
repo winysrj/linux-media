@@ -1,146 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f195.google.com ([209.85.208.195]:42717 "EHLO
-        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727171AbeIUDk6 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37294 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725749AbeIUF3z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 23:40:58 -0400
-Received: by mail-lj1-f195.google.com with SMTP id f1-v6so9767410ljc.9
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2018 14:55:21 -0700 (PDT)
-MIME-Version: 1.0
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
- <20180920205658.xv57qcmya7xubgyf@valkosipuli.retiisi.org.uk> <1961986.b6erRuqaPp@avalon>
-In-Reply-To: <1961986.b6erRuqaPp@avalon>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Thu, 20 Sep 2018 23:55:03 +0200
-Message-ID: <CAPybu_2pCy4EJnih+1pmr43gdh5J0BS_Z0Owb5qpJVkYcDHtyQ@mail.gmail.com>
-Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
+        Fri, 21 Sep 2018 01:29:55 -0400
+Date: Fri, 21 Sep 2018 02:43:53 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, tfiga@chromium.org,
-        ping-chung.chen@intel.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        sylwester.nawrocki@gmail.com,
-        linux-media <linux-media@vger.kernel.org>, andy.yeh@intel.com,
-        jim.lai@intel.com, grundler@chromium.org, rajmohan.mani@intel.com
-Content-Type: text/plain; charset="UTF-8"
+Cc: kieran.bingham@ideasonboard.com,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 1/3] i2c: adv748x: store number of CSI-2 lanes described
+ in device tree
+Message-ID: <20180920234353.azhi55avqkaff4h7@valkosipuli.retiisi.org.uk>
+References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
+ <1715235.WJqBHKOvrx@avalon>
+ <21b8a885-48c5-70c8-8866-1830c45c27a9@ideasonboard.com>
+ <1658112.YQ0khu1noY@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1658112.YQ0khu1noY@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI
-On Thu, Sep 20, 2018 at 11:13 PM Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->
-> Hi Sakari,
->
-> On Thursday, 20 September 2018 23:56:59 EEST Sakari Ailus wrote:
-> > On Thu, Sep 20, 2018 at 05:51:55PM +0900, Tomasz Figa wrote:
-> > > On Wed, Aug 8, 2018 at 4:08 PM Ping-chung Chen wrote:
+Hi Laurent, Kieran,
+
+On Tue, Sep 18, 2018 at 02:13:29PM +0300, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> On Tuesday, 18 September 2018 13:51:34 EEST Kieran Bingham wrote:
+> > On 18/09/18 11:46, Laurent Pinchart wrote:
+> > > On Tuesday, 18 September 2018 13:37:55 EEST Kieran Bingham wrote:
+> > >> On 18/09/18 11:28, Laurent Pinchart wrote:
+> > >>> On Tuesday, 18 September 2018 13:19:39 EEST Kieran Bingham wrote:
+> > >>>> On 18/09/18 02:45, Niklas Söderlund wrote:
+> > >>>>> The adv748x CSI-2 transmitters TXA and TXB can use different number of
+> > >>>>> lines to transmit data on. In order to be able configure the device
+> > >>>>> correctly this information need to be parsed from device tree and
+> > >>>>> stored in each TX private data structure.
+> > >>>>> 
+> > >>>>> TXA supports 1, 2 and 4 lanes while TXB supports 1 lane.
+> > >>>> 
+> > >>>> Am I right in assuming that it is the CSI device which specifies the
+> > >>>> number of lanes in their DT?
+> > >>> 
+> > >>> Do you mean the CSI-2 receiver ? Both the receiver and the transmitter
+> > >>> should specify the data lanes in their DT node.
+> > >> 
+> > >> Yes, I should have said CSI-2 receiver.
+> > >> 
+> > >> Aha - so *both* sides of the link have to specify the lanes and
+> > >> presumably match with each other?
+> > > 
+> > > Yes, they should certainly match :-)
+> > 
+> > I assumed so :) - do we need to validate that at a framework level?
+> > (or perhaps it already is, all I've only looked at this morning is
+> > e-mails :D )
+> 
+> It's not done yet as far as I know. CC'ing Sakari who may have a comment 
+> regarding whether this should be added.
+
+There's no validation done currently. The endpoints are parsed separately
+at the moment, initiated by the respective device driver.
+
+The latest fwnode set brings a concept of default configuration that also
+allows support for setting the default for the number of lanes. This is
+known by the driver, but could not be known by the framework checking the
+configuration across the endpoints. I guess this could be done at the time
+both endpoints have been parsed, as in stored to the async sub-device.
+
+Some checks could indeed be done, but what to do when those checks fail?
+
+That said, I don't think this has really been an issue so far --- if you
+get this wrong the devices just won't work. The last fwnode set greatly
+improves the quality of the debug information printed, so debugging should
+be easier when things go wrong already. And this is already more than we've
+had so far.
+
+> 
+> > >>>> Could we make this clear in the commit log (and possibly an extra
+> > >>>> comment in the code). At first I was assuming we would have to declare
+> > >>>> the number of lanes in the ADV748x TX DT node, but I don't think that's
+> > >>>> the case.
+> > >>>> 
+> > >>>>> Signed-off-by: Niklas Söderlund
+> > >>>>> <niklas.soderlund+renesas@ragnatech.se>
+> > >>>>> ---
+> > >>>>> 
+> > >>>>>  drivers/media/i2c/adv748x/adv748x-core.c | 49 +++++++++++++++++++++++
+> > >>>>>  drivers/media/i2c/adv748x/adv748x.h      |  1 +
+> > >>>>>  2 files changed, 50 insertions(+)
+> > >>>>> 
+> > >>>>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+> > >>>>> b/drivers/media/i2c/adv748x/adv748x-core.c index
+> > >>>>> 85c027bdcd56748d..a93f8ea89a228474 100644
+> > >>>>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> > >>>>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> > > 
 > > > [snip]
-> > >
-> > > > +
-> > > > +/* Digital gain control */
-> > > > +#define IMX208_REG_GR_DIGITAL_GAIN     0x020e
-> > > > +#define IMX208_REG_R_DIGITAL_GAIN      0x0210
-> > > > +#define IMX208_REG_B_DIGITAL_GAIN      0x0212
-> > > > +#define IMX208_REG_GB_DIGITAL_GAIN     0x0214
-> > > > +#define IMX208_DGTL_GAIN_MIN           0
-> > > > +#define IMX208_DGTL_GAIN_MAX           4096
-> > > > +#define IMX208_DGTL_GAIN_DEFAULT       0x100
-> > > > +#define IMX208_DGTL_GAIN_STEP           1
-> > > > +
-> > >
+> > > 
+> > >>>>> +static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
+> > >>>>> +				    unsigned int port,
+> > >>>>> +				    struct device_node *ep)
+> > >>>>> +{
+> > >>>>> +	struct v4l2_fwnode_endpoint vep;
+> > >>>>> +	unsigned int num_lanes;
+> > >>>>> +	int ret;
+> > >>>>> +
+> > >>>>> +	if (port != ADV748X_PORT_TXA && port != ADV748X_PORT_TXB)
+> > >>>>> +		return 0;
+> > >>>>> +
+> > >>>>> +	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &vep);
+> > >>>>> +	if (ret)
+> > >>>>> +		return ret;
+> > >>>>> +
+> > >>>>> +	num_lanes = vep.bus.mipi_csi2.num_data_lanes;
+> > >>>>> +
+> > >>>> 
+> > >>>> If I'm not mistaken we are parsing /someone elses/ DT node here (the
+> > >>>> CSI receiver or such).
+> > >>> 
+> > >>> Aren't we parsing our own endpoint ? The ep argument comes from ep_np in
+> > >>> adv748x_parse_dt(), and that's the endpoint iterator used with
+> > >>> 
+> > >>> 	for_each_endpoint_of_node(state->dev->of_node, ep_np)
+> > >> 
+> > >> Bah - my head was polluted with the async subdevice stuff where we were
+> > >> getting the endpoint of the other device, but of course that's
+> > >> completely unrelated here.
+> > >> 
+> > >>>> Is it now guaranteed on the mipi_csi2 bus to have the (correct) lanes
+> > >>>> defined?
+> > >>>> 
+> > >>>> Do we need to fall back to some safe defaults at all (1 lane?) ?
+> > >>>> Actually - perhaps there is no safe default. I guess if the lanes
+> > >>>> aren't configured correctly we're not going to get a good signal at the
+> > >>>> other end.
+> > >>> 
+> > >>> The endpoints should contain a data-lanes property. That's the case in
+> > >>> the mainline DT sources, but it's not explicitly stated as a mandatory
+> > >>> property. I think we should update the bindings.
+
+Many devices have just a single lane. Do you think this should be mandatory
+in that case as well?
+
+Lane mapping is not a very common feature nowadays; to be fair, I don't
+know other hardware than omap3isp that supports it. The numbers are still
+needed as many devices nowadays support choosing how the lanes are
+distributed across the PHYs.
+
+> > >> 
+> > >> Yes, - as this code change is making the property mandatory - we should
+> > >> certainly state that in the bindings, unless we can fall back to a
+> > >> sensible default (perhaps the max supported on that component?)
+> > > 
+> > > I'm not sure there's a sensible default, I'd rather specify it explicitly.
+> > > Note that the data-lanes property doesn't just specify the number of
+> > > lanes, but also how they are remapped, when that feature is supported by
+> > > the CSI-2 transmitter or receiver.
+> > 
+> > Ok understood. As I feared - we can't really default - because it has to
+> > match and be defined.
+> > 
+> > So making the DT property mandatory really is the way to go then.
+
+I certainly have no objections to making this mandatory for some devices as
+long as it makes sense --- and for devices with just a single data lane
+without remapping with the clock lane it does not.
+
+In that case, the driver would just set the number of lanes in the default
+configuration to zero, and check the configuration it gets back is valid
+--- as usual.
+
+For what it's worth, quite a few parallel interface devices explicitly
+state default configurations in their DT bindings. I admit the data-lanes
+property is not a great candidate for setting a default for (if a device
+has more than a single data lane).
+
+> > 
+> > >>>>> +	if (vep.base.port == ADV748X_PORT_TXA) {
+> > >>>>> +		if (num_lanes != 1 && num_lanes != 2 && num_lanes != 4) {
+> > >>>>> +			adv_err(state, "TXA: Invalid number (%d) of lanes\n",
+> > >>>>> +				num_lanes);
+> > >>>>> +			return -EINVAL;
+> > >>>>> +		}
+> > >>>>> +
+> > >>>>> +		state->txa.num_lanes = num_lanes;
+> > >>>>> +		adv_dbg(state, "TXA: using %d lanes\n", state->txa.num_lanes);
+> > >>>>> +	}
+> > >>>>> +
+> > >>>>> +	if (vep.base.port == ADV748X_PORT_TXB) {
+> > >>>>> +		if (num_lanes != 1) {
+> > >>>>> +			adv_err(state, "TXB: Invalid number (%d) of lanes\n",
+> > >>>>> +				num_lanes);
+> > >>>>> +			return -EINVAL;
+> > >>>>> +		}
+> > >>>>> +
+> > >>>>> +		state->txb.num_lanes = num_lanes;
+> > >>>>> +		adv_dbg(state, "TXB: using %d lanes\n", state->txb.num_lanes);
+> > >>>>> +	}
+> > >>>>> +
+> > >>>>> +	return 0;
+> > >>>>> +}
+> > > 
 > > > [snip]
-> > >
-> > > > +/* Initialize control handlers */
-> > > > +static int imx208_init_controls(struct imx208 *imx208)
-> > > > +{
-> > >
-> > > [snip]
-> > >
-> > > > +       v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops,
-> > > > V4L2_CID_DIGITAL_GAIN, +                         IMX208_DGTL_GAIN_MIN,
-> > > > IMX208_DGTL_GAIN_MAX, +                         IMX208_DGTL_GAIN_STEP,
-> > > > +                         IMX208_DGTL_GAIN_DEFAULT);
-> > >
-> > > We have a problem here. The sensor supports only a discrete range of
-> > > values here - {1, 2, 4, 8, 16} (multiplied by 256, since the value is
-> > > fixed point). This makes it possible for the userspace to set values
-> > > that are not allowed by the sensor specification and also leaves no
-> > > way to enumerate the supported values.
-> > >
-> > > I can see two solutions here:
-> > >
-> > > 1) Define the control range from 0 to 4 and treat it as an exponent of
-> > > 2, so that the value for the sensor becomes (1 << val) * 256.
-> > > (Suggested by Sakari offline.)
-> > >
-> > > This approach has the problem of losing the original unit (and scale)
-> > > of the value.
-> >
-> > I'd like to add that this is not a property of the proposed solution.
-> >
-> > Rather, the above needs to be accompanied by additional information
-> > provided through VIDIOC_QUERY_EXT_CTRL, i.e. the unit, prefix as well as
-> > other information such as whether the control is linear or exponential (as
-> > in this case).
-> >
-> > > 2) Use an integer menu control, which reports only the supported
-> > > discrete values - {1, 2, 4, 8, 16}.
-> > >
-> > > With this approach, userspace can enumerate the real gain values, but
-> > > we would either need to introduce a new control (e.g.
-> > > V4L2_CID_DIGITAL_GAIN_DISCRETE) or abuse the specification and
-> > > register V4L2_CID_DIGITAL_GAIN as an integer menu.
-> >
-> > New controls in V4L2 are, for the most part, created when there's something
-> > new to control. The documentation of some controls (similar to e.g. gain)
-> > documents a unit as well as a prefix but that's the case only because
-> > there's been no way to tell the unit or prefix otherwise in the API.
-> >
-> > An exception to this are EXPOSURE and EXPOSURE_ABSOLUTE. I'm not entirely
-> > sure how they came to be though. An accident is a possibility as far as I
-> > see.
->
-> If I remember correctly I introduced the absolute variant for the UVC driver
-> (even though git blame points to Brandon Philips). I don't really remember why
-> though.
->
-> > Controls that have a documented unit use that unit --- as long as that's
-> > the unit used by the hardware. If it's not, it tends to be that another
-> > unit is used but the user space has currently no way of knowing this. And
-> > the digital gain control is no exception to this.
-> >
-> > So if we want to improve the user space's ability to be informed how the
-> > control values reflect to device configuration, we do need to provide more
-> > information to the user space. One way to do that would be through
-> > VIDIOC_QUERY_EXT_CTRL. The IOCTL struct has plenty of reserved fields ---
-> > just for purposes such as this one.
->
-> I don't think we can come up with a good way to expose arbitrary mathematical
-> formulas through an ioctl. In my opinion the question is how far we want to
-> go, how precise we need to be.
->
-> > > Any opinions or better ideas?
-
-My 0.02 DKK.  On a similar situation, where userspace was running a
-close loop calibration:
-
-We have implemented two extra control: eposure_next exposure_pre that
-tell us which one is the next value. Perhaps we could embebed such
-functionality in QUERY_EXT_CTRL.
-
-Cheers
-
-
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
->
->
-
+> 
 
 -- 
-Ricardo Ribalda
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
