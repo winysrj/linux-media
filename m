@@ -1,114 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:36580 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727171AbeIUCpi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 22:45:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snawrocki@kernel.org>
-Cc: tfiga@chromium.org, Grant Grundler <grundler@chromium.org>,
-        ping-chung.chen@intel.com, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, andy.yeh@intel.com, jim.lai@intel.com,
-        Rajmohan Mani <rajmohan.mani@intel.com>,
-        Helmut Grohne <helmut.grohne@intenta.de>
-Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
-Date: Fri, 21 Sep 2018 00:00:26 +0300
-Message-ID: <2739140.4VmFsgKfYj@avalon>
-In-Reply-To: <4e3e21d3-21f7-48eb-7672-f157c1a4fdcc@kernel.org>
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com> <CANEJEGvZn7oSdtYcwb4qxqiys1_y6GPh+1fZUfdejg2ztSsRmw@mail.gmail.com> <4e3e21d3-21f7-48eb-7672-f157c1a4fdcc@kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:49028 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726582AbeIUCqx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Sep 2018 22:46:53 -0400
+Subject: Re: [RESEND PATCH 1/1] v4l: samsung, ov9650: Rely on V4L2-set
+ sub-device names
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Kyungmin Park <kyungmin.park@samsung.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        Andrzej Hajda <a.hajda@samsung.com>
+References: <20180915225213.12946-1-sakari.ailus@linux.intel.com>
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Message-ID: <7d4b3c0e-5199-7283-ed21-ce063f7ed970@kernel.org>
+Date: Thu, 20 Sep 2018 23:01:26 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20180915225213.12946-1-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sakari,
 
-(CC'ing Helmut Grohne)
-
-On Thursday, 20 September 2018 23:16:47 EEST Sylwester Nawrocki wrote:
-> On 09/20/2018 06:49 PM, Grant Grundler wrote:
-> > On Thu, Sep 20, 2018 at 1:52 AM Tomasz Figa wrote:
-> >> On Wed, Aug 8, 2018 at 4:08 PM Ping-chung Chen wrote:
-> >>> +/* Digital gain control */
-> >>> 
-> >>> +#define IMX208_DGTL_GAIN_MIN           0
-> >>> +#define IMX208_DGTL_GAIN_MAX           4096
-> >>> +#define IMX208_DGTL_GAIN_DEFAULT       0x100
-> >>> +#define IMX208_DGTL_GAIN_STEP           1
-> >>> 
-> >>> +/* Initialize control handlers */
-> >>> +static int imx208_init_controls(struct imx208 *imx208)
-> >>> +{
-> >> 
-> >> [snip]
-> >> 
-> >>> +       v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops,
-> >>> V4L2_CID_DIGITAL_GAIN, +                         IMX208_DGTL_GAIN_MIN,
-> >>> IMX208_DGTL_GAIN_MAX, +                         IMX208_DGTL_GAIN_STEP,
-> >>> +                         IMX208_DGTL_GAIN_DEFAULT);
-> >> 
-> >> We have a problem here. The sensor supports only a discrete range of
-> >> values here - {1, 2, 4, 8, 16} (multiplied by 256, since the value is
-> >> fixed point). This makes it possible for the userspace to set values
-> >> that are not allowed by the sensor specification and also leaves no
-> >> way to enumerate the supported values.
+On 09/16/2018 12:52 AM, Sakari Ailus wrote:
+> v4l2_i2c_subdev_init() sets the name of the sub-devices (as well as
+> entities) to what is fairly certainly known to be unique in the system,
+> even if there were more devices of the same kind.
 > 
-> The driver could always adjust the value in set_ctrl callback so invalid
-> settings are not allowed.
+> These drivers (m5mols, noon010pc30, ov9650, s5c73m3, s5k4ecgx, s5k6aa) set
+> the name to the name of the driver or the module while omitting the
+> device's I²C address and bus, leaving the devices with a static name and
+> effectively limiting the number of such devices in a media device to 1.
 > 
-> I'm not sure if it's best approach but I once did something similar for
-> the ov9650 sensor. The gain was fixed point 10-bits value with 4 bits
-> for fractional part. The driver reports values multiplied by 16. See
-> ov965x_set_gain() function in drivers/media/i2c/ov9650.c and "Table 4-1.
-> Total Gain to Control Bit Correlation" in the OV9650 datasheet for details.
-> The integer menu control just seemed not suitable for 2^10 values.
+> Address this by using the name set by the V4L2 framework.
+> 
+> Signed-off-by: Sakari Ailus<sakari.ailus@linux.intel.com>
+> Reviewed-by: Akinobu Mita<akinobu.mita@gmail.com>  (ov9650)
 
-I've had a similar discussion on IRC recently with Helmut, who posted a nice 
-summary of the problem on the mailing list (see https://www.mail-archive.com/
-linux-media@vger.kernel.org/msg134502.html). This is a known issue, and while 
-I proposed the same approach, I understand that in some cases userspace may 
-need to know exactly what values are acceptable. In such a case, however, I 
-would expect userspace to have knowledge of the particular sensor model, so 
-the information may not need to come from the kernel.
+I'm not against this patch but please don't expect an ack from me as this
+patch breaks existing user space code, scripts using media-ctl, etc. will 
+need to be updated after kernel upgrade. I'm mostly concerned about ov9650
+as other drivers are likely only used by Samsung or are obsoleted.
 
-> Now the gain control has range 16...1984 out of which only 1024 values
-> are valid. It might not be best approach for a GUI but at least the driver
-> exposes mapping of all valid values, which could be enumerated with
-> VIDIOC_TRY_EXT_CTRLS if required, without a need for a driver-specific
-> user space code.
-
-That would be ~2000 ioctl calls, I don't think that's very practical :-S
-
-> >> I can see two solutions here:
-> >> 
-> >> 1) Define the control range from 0 to 4 and treat it as an exponent of
-> >> 2, so that the value for the sensor becomes (1 << val) * 256.
-> >> (Suggested by Sakari offline.)
-> >> 
-> >> This approach has the problem of losing the original unit (and scale)
-> >> of the value.
-> > 
-> > Exactly - will users be confused by this? If we have to explain it,
-> > probably not the best choice.
-> > 
-> >> 2) Use an integer menu control, which reports only the supported
-> >> discrete values - {1, 2, 4, 8, 16}.
-> >> 
-> >> With this approach, userspace can enumerate the real gain values, but
-> >> we would either need to introduce a new control (e.g.
-> >> V4L2_CID_DIGITAL_GAIN_DISCRETE) or abuse the specification and
-> >> register V4L2_CID_DIGITAL_GAIN as an integer menu.
-> >> 
-> >> Any opinions or better ideas?
-> > 
-> > My $0.02: leave the user UI alone - let users specify/select anything
-> > in the range the normal API or UI allows. But have sensor specific
-> > code map all values in that range to values the sensor supports. Users
-> > will notice how it works when they play with it.  One can "adjust" the
-> > mapping so it "feels right".
-
--- 
-Regards,
-
-Laurent Pinchart
+--
+Thanks,
+Sylwester
