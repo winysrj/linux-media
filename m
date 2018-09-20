@@ -1,53 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36028 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726128AbeIUCDs (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:36264 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727252AbeIUCGb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 22:03:48 -0400
-Date: Thu, 20 Sep 2018 23:18:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
+        Thu, 20 Sep 2018 22:06:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 4/4] [media] ad5820: Add support for of-autoload
-Message-ID: <20180920201833.2d2skjn7fkrbdsqx@valkosipuli.retiisi.org.uk>
-References: <20180920161912.17063-4-ricardo.ribalda@gmail.com>
- <20180920183151.2933-1-ricardo.ribalda@gmail.com>
- <2401971.XiI38RXFgU@avalon>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH 3/4] [media] ad5820: DT new optional field enable-gpios
+Date: Thu, 20 Sep 2018 23:21:28 +0300
+Message-ID: <1939782.bRt5jKDIiS@avalon>
+In-Reply-To: <20180920161912.17063-3-ricardo.ribalda@gmail.com>
+References: <20180920161912.17063-1-ricardo.ribalda@gmail.com> <20180920161912.17063-3-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2401971.XiI38RXFgU@avalon>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Ricardo,
 
-On Thu, Sep 20, 2018 at 11:10:23PM +0300, Laurent Pinchart wrote:
-> > +MODULE_DEVICE_TABLE(of, ad5820_of_table);
-> > +
-> >  static SIMPLE_DEV_PM_OPS(ad5820_pm, ad5820_suspend, ad5820_resume);
-> > 
-> >  static struct i2c_driver ad5820_i2c_driver = {
-> >  	.driver		= {
-> >  		.name	= AD5820_NAME,
-> >  		.pm	= &ad5820_pm,
-> > +		.of_match_table = ad5820_of_table,
+Thank you for the patch.
+
+On Thursday, 20 September 2018 19:19:11 EEST Ricardo Ribalda Delgado wrote:
+> Document new enable-gpio field. It can be used to disable the part
+> without turning down its regulator.
 > 
-> As the driver doesn't depend on CONFIG_OF, would it make sense to use 
-> of_config_ptr() (and to compile the of table conditionally on CONFIG_OF) ?
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> b/Documentation/devicetree/bindings/media/i2c/ad5820.txt index
+> 5940ca11c021..07d577bb37f7 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> @@ -8,6 +8,11 @@ Required Properties:
+> 
+>    - VANA-supply: supply of voltage for VANA pin
+> 
+> +Optional properties:
+> +
+> +   - enable-gpios : GPIO spec for the XSHUTDOWN pin.
 
-You get ACPI support as a bonus if you don't use of_config_ptr(). :-) Other
-changes could be needed but this enables probing the driver for a device.
+xshutdown is active-low, so enable is active-high. Should this be documented 
+explicitly, to avoid polarity errors ? Maybe something along the lines of
 
-In this case the probability of anyone using this device on an ACPI system
-could be pretty low though.
+- enable-gpios: GPIO spec for the XSHUTDOWN pin. Note that the polarity of the 
+enable GPIO is the opposite of the XSHUTDOWN pin (asserting the enable GPIO 
+deasserts the XSHUTDOWN signal and vice versa).
+
+> If specified, it will be
+> +     asserted when VANA-supply is enabled.
+
+That documents a driver behaviour, is it needed in DT ?
+
+
+>  Example:
+> 
+>         ad5820: coil@c {
+> @@ -15,5 +20,6 @@ Example:
+>                 reg = <0x0c>;
+> 
+>                 VANA-supply = <&vaux4>;
+> +               enable-gpios = <&msmgpio 26 GPIO_ACTIVE_HIGH>;
+>         };
 
 -- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Laurent Pinchart
