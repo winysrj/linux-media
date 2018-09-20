@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f65.google.com ([209.85.208.65]:42927 "EHLO
+Received: from mail-ed1-f65.google.com ([209.85.208.65]:39116 "EHLO
         mail-ed1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730149AbeITWDd (ORCPT
+        with ESMTP id S1730149AbeITWDh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 18:03:33 -0400
+        Thu, 20 Sep 2018 18:03:37 -0400
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -11,104 +11,47 @@ To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 2/4] [media] ad5820: Add support for enable pin
-Date: Thu, 20 Sep 2018 18:19:10 +0200
-Message-Id: <20180920161912.17063-2-ricardo.ribalda@gmail.com>
+Subject: [PATCH 4/4] [media] ad5820: Add support for of-autoload
+Date: Thu, 20 Sep 2018 18:19:12 +0200
+Message-Id: <20180920161912.17063-4-ricardo.ribalda@gmail.com>
 In-Reply-To: <20180920161912.17063-1-ricardo.ribalda@gmail.com>
 References: <20180920161912.17063-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for a programmable enable pin. It can be used in
-situations where the ANA-vcc is not configurable (dummy-regulator), or
-just to have a more fine control of the power saving.
-
-The use of the enable pin is optional
+Since kernel 4.16, i2c devices with DT compatible tag are modprobed
+using their DT modalias.
+Without this patch, if this driver is build as module it would never
+be autoprobed.
 
 Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/i2c/Kconfig  |  2 +-
- drivers/media/i2c/ad5820.c | 20 ++++++++++++++++++++
- 2 files changed, 21 insertions(+), 1 deletion(-)
+ drivers/media/i2c/ad5820.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index bfdb494686bf..1ba6eaaf58fb 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -321,7 +321,7 @@ config VIDEO_ML86V7667
- 
- config VIDEO_AD5820
- 	tristate "AD5820 lens voice coil support"
--	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	depends on GPIOLIB && I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
- 	---help---
- 	  This is a driver for the AD5820 camera lens voice coil.
- 	  It is used for example in Nokia N900 (RX-51).
 diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index 22759aaa2dba..20931217e3b1 100644
+index 20931217e3b1..d352bc6b6adf 100644
 --- a/drivers/media/i2c/ad5820.c
 +++ b/drivers/media/i2c/ad5820.c
-@@ -27,6 +27,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/gpio/consumer.h>
+@@ -375,12 +375,19 @@ static const struct i2c_device_id ad5820_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
  
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-@@ -55,6 +56,8 @@ struct ad5820_device {
- 	u32 focus_ramp_time;
- 	u32 focus_ramp_mode;
- 
-+	struct gpio_desc *enable_gpio;
++static const struct of_device_id ad5820_of_table[] = {
++	{ .compatible = "adi"AD5820_NAME },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, ad5820_of_table);
 +
- 	struct mutex power_lock;
- 	int power_count;
+ static SIMPLE_DEV_PM_OPS(ad5820_pm, ad5820_suspend, ad5820_resume);
  
-@@ -122,6 +125,9 @@ static int ad5820_power_off(struct ad5820_device *coil, bool standby)
- 		ret = ad5820_update_hw(coil);
- 	}
- 
-+	if (coil->enable_gpio)
-+		gpiod_set_value_cansleep(coil->enable_gpio, 0);
-+
- 	ret2 = regulator_disable(coil->vana);
- 	if (ret)
- 		return ret;
-@@ -136,6 +142,9 @@ static int ad5820_power_on(struct ad5820_device *coil, bool restore)
- 	if (ret < 0)
- 		return ret;
- 
-+	if (coil->enable_gpio)
-+		gpiod_set_value_cansleep(coil->enable_gpio, 1);
-+
- 	if (restore) {
- 		/* Restore the hardware settings. */
- 		coil->standby = false;
-@@ -146,6 +155,8 @@ static int ad5820_power_on(struct ad5820_device *coil, bool restore)
- 	return 0;
- 
- fail:
-+	if (coil->enable_gpio)
-+		gpiod_set_value_cansleep(coil->enable_gpio, 0);
- 	coil->standby = true;
- 	regulator_disable(coil->vana);
- 
-@@ -312,6 +323,15 @@ static int ad5820_probe(struct i2c_client *client,
- 		return ret;
- 	}
- 
-+	coil->enable_gpio = devm_gpiod_get_optional(&client->dev, "enable",
-+						    GPIOD_OUT_LOW);
-+	if (IS_ERR(coil->enable_gpio)) {
-+		ret = PTR_ERR(coil->enable_gpio);
-+		if (ret == -EPROBE_DEFER)
-+			dev_err(&client->dev, "could not get enable gpio\n");
-+		return ret;
-+	}
-+
- 	mutex_init(&coil->power_lock);
- 
- 	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
+ static struct i2c_driver ad5820_i2c_driver = {
+ 	.driver		= {
+ 		.name	= AD5820_NAME,
+ 		.pm	= &ad5820_pm,
++		.of_match_table = ad5820_of_table,
+ 	},
+ 	.probe		= ad5820_probe,
+ 	.remove		= ad5820_remove,
 -- 
 2.18.0
