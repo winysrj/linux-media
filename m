@@ -1,110 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:38525 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726128AbeIUCbF (ORCPT
+Received: from mail-lf1-f67.google.com ([209.85.167.67]:46743 "EHLO
+        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727252AbeIUCdT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 22:31:05 -0400
+        Thu, 20 Sep 2018 22:33:19 -0400
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [[PATCH v3] 1/6] [media] ad5820: Add support for enable pin
-Date: Thu, 20 Sep 2018 22:45:35 +0200
-Message-Id: <20180920204540.28832-1-ricardo.ribalda@gmail.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCH v4 3/7] [media] ad5820: DT new optional field enable-gpios
+Date: Thu, 20 Sep 2018 22:47:47 +0200
+Message-Id: <20180920204751.29117-3-ricardo.ribalda@gmail.com>
+In-Reply-To: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
+References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for a programmable enable pin. It can be used in
-situations where the ANA-vcc is not configurable (dummy-regulator), or
-just to have a more fine control of the power saving.
+Document new enable-gpio field. It can be used to disable the part
+without turning down its regulator.
 
-The use of the enable pin is optional.
-
+Cc: devicetree@vger.kernel.org
 Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/i2c/Kconfig  |  2 +-
- drivers/media/i2c/ad5820.c | 17 +++++++++++++++++
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/media/i2c/ad5820.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index bfdb494686bf..1ba6eaaf58fb 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -321,7 +321,7 @@ config VIDEO_ML86V7667
+diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+index 5940ca11c021..9ccd96d3d5f0 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+@@ -8,6 +8,12 @@ Required Properties:
  
- config VIDEO_AD5820
- 	tristate "AD5820 lens voice coil support"
--	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	depends on GPIOLIB && I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
- 	---help---
- 	  This is a driver for the AD5820 camera lens voice coil.
- 	  It is used for example in Nokia N900 (RX-51).
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index 22759aaa2dba..625867472929 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -27,6 +27,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/gpio/consumer.h>
+   - VANA-supply: supply of voltage for VANA pin
  
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-@@ -55,6 +56,8 @@ struct ad5820_device {
- 	u32 focus_ramp_time;
- 	u32 focus_ramp_mode;
- 
-+	struct gpio_desc *enable_gpio;
++Optional properties:
 +
- 	struct mutex power_lock;
- 	int power_count;
- 
-@@ -122,6 +125,8 @@ static int ad5820_power_off(struct ad5820_device *coil, bool standby)
- 		ret = ad5820_update_hw(coil);
- 	}
- 
-+	gpiod_set_value_cansleep(coil->enable_gpio, 0);
++   - enable-gpios : GPIO spec for the XSHUTDOWN pin. Note that the polarity of
++the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the enable
++GPIO deasserts the XSHUTDOWN signal and vice versa).
 +
- 	ret2 = regulator_disable(coil->vana);
- 	if (ret)
- 		return ret;
-@@ -136,6 +141,8 @@ static int ad5820_power_on(struct ad5820_device *coil, bool restore)
- 	if (ret < 0)
- 		return ret;
+ Example:
  
-+	gpiod_set_value_cansleep(coil->enable_gpio, 1);
-+
- 	if (restore) {
- 		/* Restore the hardware settings. */
- 		coil->standby = false;
-@@ -146,6 +153,7 @@ static int ad5820_power_on(struct ad5820_device *coil, bool restore)
- 	return 0;
+        ad5820: coil@c {
+@@ -15,5 +21,6 @@ Example:
+                reg = <0x0c>;
  
- fail:
-+	gpiod_set_value_cansleep(coil->enable_gpio, 0);
- 	coil->standby = true;
- 	regulator_disable(coil->vana);
+                VANA-supply = <&vaux4>;
++               enable-gpios = <&msmgpio 26 GPIO_ACTIVE_HIGH>;
+        };
  
-@@ -312,6 +320,15 @@ static int ad5820_probe(struct i2c_client *client,
- 		return ret;
- 	}
- 
-+	coil->enable_gpio = devm_gpiod_get_optional(&client->dev, "enable",
-+						    GPIOD_OUT_LOW);
-+	if (IS_ERR(coil->enable_gpio)) {
-+		ret = PTR_ERR(coil->enable_gpio);
-+		if (ret == -EPROBE_DEFER)
-+			dev_err(&client->dev, "could not get enable gpio\n");
-+		return ret;
-+	}
-+
- 	mutex_init(&coil->power_lock);
- 
- 	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
 -- 
 2.18.0
