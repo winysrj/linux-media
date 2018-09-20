@@ -1,76 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:1418 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726201AbeIYPjS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Sep 2018 11:39:18 -0400
-Date: Tue, 25 Sep 2018 12:27:58 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Cc: bingbu.cao@intel.com, linux-media@vger.kernel.org,
-        tfiga@google.com, rajmohan.mani@intel.com, tian.shu.qiu@intel.com,
-        jian.xu.zheng@intel.com
-Subject: Re: [PATCH v6] media: add imx319 camera sensor driver
-Message-ID: <20180925092758.u7hznrjnhtggclql@paasikivi.fi.intel.com>
-References: <1537522915-3499-1-git-send-email-bingbu.cao@intel.com>
- <20180921120647.slvwe3jljupruo2z@kekkonen.localdomain>
- <93059dcc-6091-02a0-2f4e-3b4cf182aa56@linux.intel.com>
- <7680da82-8520-94b9-fab1-358bea077328@linux.intel.com>
- <20180925073300.4bcfgzcejrfes5ud@paasikivi.fi.intel.com>
- <cf5bc142-cd60-1672-2539-7cf903a41acc@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cf5bc142-cd60-1672-2539-7cf903a41acc@linux.intel.com>
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:38525 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726128AbeIUCbF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Sep 2018 22:31:05 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [[PATCH v3] 1/6] [media] ad5820: Add support for enable pin
+Date: Thu, 20 Sep 2018 22:45:35 +0200
+Message-Id: <20180920204540.28832-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bingbu,
+This patch adds support for a programmable enable pin. It can be used in
+situations where the ANA-vcc is not configurable (dummy-regulator), or
+just to have a more fine control of the power saving.
 
-On Tue, Sep 25, 2018 at 05:10:59PM +0800, Bing Bu Cao wrote:
-...
-> >>>>> +/* Initialize control handlers */
-> >>>>> +static int imx319_init_controls(struct imx319 *imx319)
-> >>>>> +{
-> >>>>> +	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> >>>>> +	struct v4l2_ctrl_handler *ctrl_hdlr;
-> >>>>> +	s64 exposure_max;
-> >>>>> +	s64 vblank_def;
-> >>>>> +	s64 vblank_min;
-> >>>>> +	s64 hblank;
-> >>>>> +	s64 pixel_rate;
-> >>>>> +	const struct imx319_mode *mode;
-> >>>>> +	int ret;
-> >>>>> +
-> >>>>> +	ctrl_hdlr = &imx319->ctrl_handler;
-> >>>>> +	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 10);
-> >>>>> +	if (ret)
-> >>>>> +		return ret;
-> >>>>> +
-> >>>>> +	ctrl_hdlr->lock = &imx319->mutex;
-> >>>>> +	imx319->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr, &imx319_ctrl_ops,
-> >>>>> +						   V4L2_CID_LINK_FREQ, 0, 0,
-> >>>>> +						   imx319->hwcfg->link_freqs);
-> >>>> Could you check that the link frequency matches with what the register
-> >>>> lists assume?
-> >>> Sakari, do you mean associate link frequency index with register list?
-> > The driver should only allow using link frequencies that are explicitly
-> > allowed for the system.
-> Sakari, as current driver only support one link frequency, so I think once getting the link frequencies from firmware,
-> driver can simply check and match the values with link_freq_menu_items[0] and only keep 1 item in the menu:
+The use of the enable pin is optional.
 
-Please wrap the lines at around 76 characters, please.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/i2c/Kconfig  |  2 +-
+ drivers/media/i2c/ad5820.c | 17 +++++++++++++++++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-> 
-> max = ARRAY_SIZE(link_freq_menu_items) - 1;
-> imx319->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr, &imx319_ctrl_ops,
-> 					   V4L2_CID_LINK_FREQ, max, 0,
-> 					   link_freq_menu_items);
-> Is it OK?
-
-"max" would be 0 in this case, I presume. Seems fine to me.
-
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index bfdb494686bf..1ba6eaaf58fb 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -321,7 +321,7 @@ config VIDEO_ML86V7667
+ 
+ config VIDEO_AD5820
+ 	tristate "AD5820 lens voice coil support"
+-	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on GPIOLIB && I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+ 	---help---
+ 	  This is a driver for the AD5820 camera lens voice coil.
+ 	  It is used for example in Nokia N900 (RX-51).
+diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+index 22759aaa2dba..625867472929 100644
+--- a/drivers/media/i2c/ad5820.c
++++ b/drivers/media/i2c/ad5820.c
+@@ -27,6 +27,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/gpio/consumer.h>
+ 
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+@@ -55,6 +56,8 @@ struct ad5820_device {
+ 	u32 focus_ramp_time;
+ 	u32 focus_ramp_mode;
+ 
++	struct gpio_desc *enable_gpio;
++
+ 	struct mutex power_lock;
+ 	int power_count;
+ 
+@@ -122,6 +125,8 @@ static int ad5820_power_off(struct ad5820_device *coil, bool standby)
+ 		ret = ad5820_update_hw(coil);
+ 	}
+ 
++	gpiod_set_value_cansleep(coil->enable_gpio, 0);
++
+ 	ret2 = regulator_disable(coil->vana);
+ 	if (ret)
+ 		return ret;
+@@ -136,6 +141,8 @@ static int ad5820_power_on(struct ad5820_device *coil, bool restore)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	gpiod_set_value_cansleep(coil->enable_gpio, 1);
++
+ 	if (restore) {
+ 		/* Restore the hardware settings. */
+ 		coil->standby = false;
+@@ -146,6 +153,7 @@ static int ad5820_power_on(struct ad5820_device *coil, bool restore)
+ 	return 0;
+ 
+ fail:
++	gpiod_set_value_cansleep(coil->enable_gpio, 0);
+ 	coil->standby = true;
+ 	regulator_disable(coil->vana);
+ 
+@@ -312,6 +320,15 @@ static int ad5820_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
++	coil->enable_gpio = devm_gpiod_get_optional(&client->dev, "enable",
++						    GPIOD_OUT_LOW);
++	if (IS_ERR(coil->enable_gpio)) {
++		ret = PTR_ERR(coil->enable_gpio);
++		if (ret == -EPROBE_DEFER)
++			dev_err(&client->dev, "could not get enable gpio\n");
++		return ret;
++	}
++
+ 	mutex_init(&coil->power_lock);
+ 
+ 	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.18.0
