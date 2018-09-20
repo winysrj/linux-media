@@ -1,137 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:48195 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728111AbeITIlo (ORCPT
+Received: from mail-yb1-f196.google.com ([209.85.219.196]:37231 "EHLO
+        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728111AbeITInw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 04:41:44 -0400
-Message-ID: <c00beb22adb7401df6f8a01ffc52b015@smtp-cloud7.xs4all.net>
-Date: Thu, 20 Sep 2018 05:00:31 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Thu, 20 Sep 2018 04:43:52 -0400
+Received: by mail-yb1-f196.google.com with SMTP id b3-v6so2277120yba.4
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 20:02:46 -0700 (PDT)
+Received: from mail-yw1-f43.google.com (mail-yw1-f43.google.com. [209.85.161.43])
+        by smtp.gmail.com with ESMTPSA id g205-v6sm3071871ywb.23.2018.09.19.20.02.44
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 19 Sep 2018 20:02:44 -0700 (PDT)
+Received: by mail-yw1-f43.google.com with SMTP id p206-v6so3171118ywg.12
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 20:02:44 -0700 (PDT)
+MIME-Version: 1.0
+References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
+ <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org> <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
+ <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org> <33e8d8e3-138e-0031-5b75-4bef114ac75e@xs4all.nl>
+ <36b42952-982c-9048-77fb-72ca45cc7476@linaro.org> <051af6fb-e0e8-4008-99c5-9685ac24e454@xs4all.nl>
+ <CAPBb6MVupMsdhF6Rtk4fm8JeVurrK+ZsuxAQ-BwrTzdSP1xP0Q@mail.gmail.com>
+ <6d65ac0d-80a0-88fe-ed19-4785f2675e36@linaro.org> <bec2edfda26ecbac928871ad14d768790e3175a8.camel@ndufresne.ca>
+In-Reply-To: <bec2edfda26ecbac928871ad14d768790e3175a8.camel@ndufresne.ca>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 20 Sep 2018 12:02:32 +0900
+Message-ID: <CAAFQd5DoabbMiiDKOeAuwOztxamFUAoMD3_9Harpvd5O935WvQ@mail.gmail.com>
+Subject: Re: [PATCH] venus: vdec: fix decoded data size
+To: nicolas@ndufresne.ca,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Alexandre Courbot <acourbot@chromium.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, vgarodia@codeaurora.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Sep 20, 2018 at 12:53 AM Nicolas Dufresne <nicolas@ndufresne.ca> wr=
+ote:
+>
+> Le mercredi 19 septembre 2018 =C3=A0 18:02 +0300, Stanimir Varbanov a
+> =C3=A9crit :
+> > > --- a/drivers/media/platform/qcom/venus/vdec.c
+> > > +++ b/drivers/media/platform/qcom/venus/vdec.c
+> > > @@ -943,8 +943,7 @@ static void vdec_buf_done(struct venus_inst
+> > > *inst,
+> > > unsigned int buf_type,
+> > >                 unsigned int opb_sz =3D
+> > > venus_helper_get_opb_size(inst);
+> > >
+> > >                 vb =3D &vbuf->vb2_buf;
+> > > -               vb->planes[0].bytesused =3D
+> > > -                       max_t(unsigned int, opb_sz, bytesused);
+> > > +                vb2_set_plane_payload(vb, 0, bytesused ? :
+> > > opb_sz);
+> > >                 vb->planes[0].data_offset =3D data_offset;
+> > >                 vb->timestamp =3D timestamp_us * NSEC_PER_USEC;
+> > >                 vbuf->sequence =3D inst->sequence_cap++;
+> > >
+> > > It works fine for me, and should not return 0 more often than it
+> > > did
+> > > before (i.e. never). In practice I also never see the firmware
+> > > reporting a payload of zero on SDM845, but maybe older chips
+> > > differ?
+> >
+> > yes, it looks fine. Let me test it with older versions.
+>
+> What about removing the allow_zero_bytesused flag on this specific
+> queue ? Then you can leave it to 0, and the framework will change it to
+> the buffer size.
 
-Results of the daily build of media_tree:
+First of all, why we would ever have 0 in bytesused?
 
-date:			Thu Sep 20 04:00:17 CEST 2018
-media-tree git hash:	985cdcb08a0488558d1005139596b64d73bee267
-media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
-v4l-utils git hash:	0ed116049b9365658d858d07279779685455fd70
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.17.0-3-amd64
+That should never happen normally in the middle of decoding and if it
+happens, then perhaps such buffer should be returned by the driver
+with ERROR state or maybe just silently reused for further decoding.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.0.101-i686: OK
-linux-3.0.101-x86_64: OK
-linux-3.1.10-i686: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.102-i686: OK
-linux-3.2.102-x86_64: OK
-linux-3.3.8-i686: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.113-i686: OK
-linux-3.4.113-x86_64: OK
-linux-3.5.7-i686: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-i686: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.10-i686: OK
-linux-3.7.10-x86_64: OK
-linux-3.8.13-i686: OK
-linux-3.8.13-x86_64: OK
-linux-3.9.11-i686: OK
-linux-3.9.11-x86_64: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.119-i686: OK
-linux-3.18.119-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.152-i686: OK
-linux-4.4.152-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.124-i686: OK
-linux-4.9.124-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.67-i686: OK
-linux-4.14.67-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.5-i686: OK
-linux-4.18.5-x86_64: OK
-linux-4.19-rc1-i686: OK
-linux-4.19-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+The only cases where the value of 0 could happen could be EOS or end
+of the drain sequence (explicit by STOP command or by resolution
+change). In both cases, having 0 bytesused returned from the driver to
+vb2 is perfectly fine, because such buffer would have the
+V4L2_BUF_FLAG_LAST flag set anyway.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
