@@ -1,115 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53712 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726128AbeIUCN5 (ORCPT
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:39258 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726128AbeIUCR6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 22:13:57 -0400
-Date: Thu, 20 Sep 2018 22:28:40 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
+        Thu, 20 Sep 2018 22:17:58 -0400
+MIME-Version: 1.0
+References: <20180920161912.17063-2-ricardo.ribalda@gmail.com>
+ <20180920184552.4919-1-ricardo.ribalda@gmail.com> <20180920185405.GA26589@amd>
+ <CAPybu_2hjrq=r+kpAHKxX59gOXfbqGf9CUPh9CNqv7WGqJsrQQ@mail.gmail.com>
+ <20180920190855.GC26589@amd> <CAPybu_2mNE7Jmfm2n60Z9Hk_iO+-zLgtu4xn72pJUSXBitVg=g@mail.gmail.com>
+ <20180920201420.GA28766@amd> <20180920202122.GA30748@amd>
+In-Reply-To: <20180920202122.GA30748@amd>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Thu, 20 Sep 2018 22:32:23 +0200
+Message-ID: <CAPybu_1w+VWkOZDKSyEBHvcdGAF1wzoFDunUgDLTn7tqP8Dhbw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/4] [media] ad5820: Add support for enable pin
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media <linux-media@vger.kernel.org>,
         LKML <linux-kernel@vger.kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 3/4] [media] ad5820: DT new optional field enable-gpios
-Message-ID: <20180920202840.GA31044@amd>
-References: <20180920161912.17063-1-ricardo.ribalda@gmail.com>
- <20180920161912.17063-3-ricardo.ribalda@gmail.com>
- <1939782.bRt5jKDIiS@avalon>
- <2983018.WjSXnZMEY4@avalon>
- <CAPybu_2Ke7qAx=3LRX6aEbGSD56Z+RhWKX=gEXR6WCgyOegxEw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
-Content-Disposition: inline
-In-Reply-To: <CAPybu_2Ke7qAx=3LRX6aEbGSD56Z+RhWKX=gEXR6WCgyOegxEw@mail.gmail.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu 2018-09-20 22:25:54, Ricardo Ribalda Delgado wrote:
-> Hi
-> On Thu, Sep 20, 2018 at 10:23 PM Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
+Hi
+On Thu, Sep 20, 2018 at 10:21 PM Pavel Machek <pavel@ucw.cz> wrote:
+>
+> Hi!
+>
+> > > > > ad5820: dac@0c {
+> > > > >    compatible = "adi,ad5820";
+> > > > >    reg = <0x0c>;
+> > > > >
+> > > > >    VANA-supply = <&pm8994_l23>;
+> > > > >    enable-gpios = <&msmgpio 26 GPIO_ACTIVE_HIGH>;
+> > > > > };
+> > > >
+> > > > Well, I'm sure you could have gpio-based regulator powered from
+> > > > pm8994_l23, and outputting to ad5820.
+> > > >
+> > > > Does ad5820 chip have a gpio input for enable?
+> > >
+> > > xshutdown pin:
+> > > http://www.analog.com/media/en/technical-documentation/data-sheets/AD5821.pdf
+> > >
+> > > (AD5820,AD5821, and AD5823 are compatibles, or at least that is waht
+> > > the module manufacturer says :)
 > >
-> > On Thursday, 20 September 2018 23:21:28 EEST Laurent Pinchart wrote:
-> > > Hi Ricardo,
-> > >
-> > > Thank you for the patch.
-> > >
-> > > On Thursday, 20 September 2018 19:19:11 EEST Ricardo Ribalda Delgado =
-wrote:
-> > > > Document new enable-gpio field. It can be used to disable the part
-> > > > without turning down its regulator.
-> > > >
-> > > > Cc: devicetree@vger.kernel.org
-> > > > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> > > > ---
-> > > >
-> > > >  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 6 ++++++
-> > > >  1 file changed, 6 insertions(+)
-> > > >
-> > > > diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > > > b/Documentation/devicetree/bindings/media/i2c/ad5820.txt index
-> > > > 5940ca11c021..07d577bb37f7 100644
-> > > > --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > > > +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > > >
-> > > > @@ -8,6 +8,11 @@ Required Properties:
-> > > >    - VANA-supply: supply of voltage for VANA pin
-> > > >
-> > > > +Optional properties:
-> > > > +
-> > > > +   - enable-gpios : GPIO spec for the XSHUTDOWN pin.
-> > >
-> > > xshutdown is active-low, so enable is active-high. Should this be doc=
-umented
-> > > explicitly, to avoid polarity errors ? Maybe something along the line=
-s of
-> > >
-> > > - enable-gpios: GPIO spec for the XSHUTDOWN pin. Note that the polari=
-ty of
-> > > the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the e=
-nable
-> > > GPIO deasserts the XSHUTDOWN signal and vice versa).
->=20
-> Agreed
->=20
+> > Aha, sorry for the noise.
 > >
-> > Or alternatively you could name the property xshutdown-gpios, as explai=
-ned in
-> > my (incorrect) review of 2/4.
->=20
-> I have double negatives :). If there is no other option I will rename
-> it xshutdown, but I want to give it a try to enable.
+> > 2,3: Acked-by: Pavel Machek <pavel@ucw.cz>
+>
+> And I forgot to mention. If ad5821 and ad5823 are compatible, it would
+> be good to mention it somewhere where it is easy to find... That can
+> save quite a bit of work to someone.
+>
 
-I think enable is fine.
+For the ad5821 I have the datasheet and I would not mind adding it
+For the ad5823 I have no datasheet, just a schematic from a camera
+module saying: you can replace ad5823 with ad5821.
 
-									Pavel
+I think I will add this as an extra patch
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+> Thanks,
+>                                                                 Pavel
+>
+>
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
---jRHKVT23PllUwdXP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAlukAvgACgkQMOfwapXb+vKwZgCeM/O6ef+EQUJCEEyJ6OnPsaC+
-3p4AniB7FLELDJ+pEh3iebiI5PzkLqwc
-=+ulO
------END PGP SIGNATURE-----
-
---jRHKVT23PllUwdXP--
+-- 
+Ricardo Ribalda
