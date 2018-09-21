@@ -1,91 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49404 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728148AbeIUQkU (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:44144 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728132AbeIUQ4s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 12:40:20 -0400
-Subject: Re: [PATCH v2 0/3] Add Amlogic video decoder driver
-To: Maxime Jourdan <mjourdan@baylibre.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Fri, 21 Sep 2018 12:56:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-amlogic@lists.infradead.org
-References: <20180911150938.3844-1-mjourdan@baylibre.com>
- <9c33c57e-2ce2-8752-b851-f85c03a7d761@xs4all.nl>
- <CAMO6nay7u4nMZcND6+g-GJAFsFcGrp_GDKBhVjeXVzpjF0ND4Q@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8b8af340-8bd7-092a-4203-fd01fd0cc5c6@xs4all.nl>
-Date: Fri, 21 Sep 2018 12:51:51 +0200
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] [media] imx214: device tree binding
+Date: Fri, 21 Sep 2018 14:08:36 +0300
+Message-ID: <1691180.OMaHrQMLfR@avalon>
+In-Reply-To: <CAPybu_2TyUrUpy1fnFu7bCs6TT0Xot88w=KUhPiAYC+YtjLVVQ@mail.gmail.com>
+References: <20180921100920.8656-1-ricardo.ribalda@gmail.com> <6279061.hCdAfSGG5i@avalon> <CAPybu_2TyUrUpy1fnFu7bCs6TT0Xot88w=KUhPiAYC+YtjLVVQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAMO6nay7u4nMZcND6+g-GJAFsFcGrp_GDKBhVjeXVzpjF0ND4Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/18 18:36, Maxime Jourdan wrote:
-> 2018-09-17 16:51 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
->> On 09/11/2018 05:09 PM, Maxime Jourdan wrote:
->>>  - Moved the single instance check (returning -EBUSY) to start/stop streaming
->>>  The check was previously in queue_setup but there was no great location to
->>>  clear it except for .close().
->>
->> Actually, you can clear it by called VIDIOC_REQBUFS with count set to 0. That
->> freed all buffers and clears this.
->>
->> Now, the difference between queue_setup and start/stop streaming is that if you
->> do this in queue_setup you'll know early on that the device is busy. It is
->> reasonable to assume that you only allocate buffers when you also want to start
->> streaming, so that it a good place to know this quickly.
->>
->> Whereas with start_streaming you won't know until you call STREAMON, or even later
->> if you start streaming with no buffers queued, since start_streaming won't
->> be called until you have at least 'min_buffers_needed' buffers queued (1 for this
->> driver). So in that case EBUSY won't be returned until the first VIDIOC_QBUF.
->>
->> My preference is to check this in queue_setup, but it is up to you to decide.
->> Just be aware of the difference between the two options.
->>
->> Regards,
->>
->>         Hans
+Hi Ricardo,
+
+On Friday, 21 September 2018 14:01:44 EEST Ricardo Ribalda Delgado wrote:
+> On Fri, Sep 21, 2018 at 12:38 PM Laurent Pinchart wrote:
+> > On Friday, 21 September 2018 13:09:19 EEST Ricardo Ribalda Delgado wrote:
+> >> Document bindings for imx214 v4l2 driver.
+> > 
+> > Those are bindings for the IMX214 camera sensor, not for its V4L2 driver.
+> > 
+> >> Cc: devicetree@vger.kernel.org
+> >> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> >> ---
+> >> 
+> >>  .../devicetree/bindings/media/i2c/imx214.txt  | 51 +++++++++++++++++++
+> >>  1 file changed, 51 insertions(+)
+> >>  create mode 100644
+> >>  Documentation/devicetree/bindings/media/i2c/imx214.txt
+> >> 
+> >> diff --git a/Documentation/devicetree/bindings/media/i2c/imx214.txt
+> >> b/Documentation/devicetree/bindings/media/i2c/imx214.txt new file mode
+> >> 100644
+> >> index 000000000000..4ff76d96332e
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/i2c/imx214.txt
+> >> @@ -0,0 +1,51 @@
+> >> +* Sony 1/3.06-Inch 13.13Mp CMOS Digital Image Sensor
+> >> +
+> >> +The Sony imx214 is a 1/3.06-inch CMOS active pixel digital image sensor
+> >> with +an active array size of 4224H x 3176V. It is programmable through
+> >> I2C
+> >> +interface.
+> > 
+> > s/I2C interface/an I2C interface/
+> > 
+> >> The I2C address can be configured to to 0x1a or 0x10, depending
+> >> on +how is wired.
+> > 
+> > Maybe "depending on how the hardware is wired" ?
+> > 
+> >> +Image data is sent through MIPI CSI-2, which is configured as 4 lanes
+> >> +at 1440 Mbps.
+> > 
+> > Can the sensor use less lanes than 4, or is it fixed ?
+> > 
+> >> +Required Properties:
+> >> +- compatible: value should be "sony,imx214" for imx214 sensor
+> >> +- reg: I2C bus address of the device
+> >> +- enable-gpios: Sensor enable GPIO
+> > 
+> > Maybe "GPIO descriptor for the enable pin" ?
+> > 
+> >> +- vdddo-supply: Chip digital IO regulator (1.8V).
+> >> +- vdda-supply: Chip analog regulator (2.7V).
+> >> +- vddd-supply: Chip digital core regulator (1.12V).
+> >> +- clocks = Reference to the xclk clock.
+> >> +- clock-names = Should be "xclk".
+> > 
+> > If there's a single clock, is the name mandatory ?
 > 
-> I could for instance keep track of which queue(s) have been called
-> with queue_setup, catch calls to VIDIOC_REQBUFS with count set to 0,
-> and clear the current session once both queues have been reset ?
+> The drivers is checking for that name.  I am removing that constrain
+> from the driver and fixing the doc
+> 
+> > > +- clock-frequency = Frequency of the xclk clock. Should be <24000000>;
+> > 
+> > The frequency of the clock can be queried at runtime. If you want to
+> > hardcode a specific frequency in DT, you should use the
+> > assigned-clock-rates property.
+> 
+> With the current register_tables I only support that input clock.
 
-I see your point, this is rather awkward. The real problem here is that
-we don't have a 'queue_free' callback. If we'd had that this would be
-a lot easier.
+That's a software constraint then. You can get the programmed clock rate in 
+the driver and return an error at probe time if it doesn't match what you 
+support. Let's not hardcode it in the bindings.
 
-In any case, I am dropping my objections to doing this in start/stop_streaming.
+> >> +Optional Properties:
+> >> +- flash-leds: See ../video-interfaces.txt
+> >> +- lens-focus: See ../video-interfaces.txt
+> >> +
+> >> +The imx274 device node should contain one 'port' child node with
+> >> +an 'endpoint' subnode. For further reading on port node refer to
+> >> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> >> +
+> >> +Example:
+> >> +
+> >> +     camera_rear@1a {
+> >> +             status = "okay";
+> > 
+> > Isn't that the default ?
+> > 
+> >> +             compatible = "sony,imx214";
+> >> +             reg = <0x1a>;
+> >> +             vdddo-supply = <&pm8994_lvs1>;
+> >> +             vddd-supply = <&camera_vddd_1v12>;
+> >> +             vdda-supply = <&pm8994_l17>;
+> >> +             lens-focus = <&ad5820>;
+> >> +             enable-gpios = <&msmgpio 25 GPIO_ACTIVE_HIGH>;
+> >> +             clocks = <&mmcc CAMSS_MCLK0_CLK>;
+> >> +             clock-names = "xclk";
+> >> +             clock-frequency = <24000000>;
+> >> +             port {
+> >> +                             imx214_ep: endpoint {
+> > 
+> > Incorrect indentation ?
+> > 
+> >> +                             clock-lanes = <1>;
+> >> +                             data-lanes = <0 2 3 4>;
+> > 
+> > Those properties are not documented. The data-lanes value is peculiar,
+> > does the sensor support lanes remapping ?
+> 
+> I do not believe that the sensor supports lanes remapping
+> 
+> That is the configuration used on the db820c. Sensors with two CSI lanes
+> have:
+> 
+>                              clock-lanes = <1>;
+>                              data-lanes = <0 2>;
+> 
+> I just extended it to 4 lanes... but I just tried < 1 2 3 4 > and also
+> works fine... so I will fix that.
 
-> You leverage another issue with min_buffers_needed. It's indeed set to
-> 1 but this value is wrong for the CAPTURE queue. The problem is that
-> this value changes depending on the codec and the amount of CAPTURE
-> buffers requested by userspace.
-> Ultimately I want it set to the total amount of CAPTURE buffers,
-> because the hardware needs the full buffer list before starting a
-> decode job.
-> Am I free to change this queue parameter later, or is m2m_queue_init
-> the only place to do it ?
+Let's go for clock-lanes = <0> and data-lanes = <1 2 3 4>; then.
 
-It has to be set before the VIDIOC_STREAMON. After that you cannot
-change it anymore.
+> >> +                             remote-endpoint = <&csiphy0_ep>;
+> >> +                     };
+> >> +             };
+> >> +     };
+> 
+> I am adding all your fixes to my github tree
+> 
+> https://github.com/ribalda/linux/commits/imx214-v3
+> 
+> After people had time to give their reviews I will send v3 to the list
+> (do not want to spam again the list) :P
 
-But I don't think this is all that relevant, since this is something
-that the job_ready() callback should take care of. min_buffers_needed
-is really for hardware where the DMA engine cannot start unless that
-many buffers are queued. But in that case the DMA runs continuously
-capturing video, whereas here these are jobs and the DMA is only
-started when you can actually execute a job.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
