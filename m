@@ -1,61 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0018.hostedemail.com ([216.40.44.18]:45252 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726872AbeINQ4H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Sep 2018 12:56:07 -0400
-Message-ID: <a838a627dd3308908c54f8d84d7fa9c56953b954.camel@perches.com>
-Subject: Re: [PATCH v2] staging: Convert to using %pOFn instead of
- device_node.name
-From: Joe Perches <joe@perches.com>
-To: Rob Herring <robh@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Ian Arkver <ian.arkver.dev@gmail.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org
-Date: Fri, 14 Sep 2018 04:41:47 -0700
-In-Reply-To: <CAL_JsqL=+O=G-0uVdKGcq4T8pSzkdGV1sd_p682-6SFXuNt2mA@mail.gmail.com>
-References: <20180828154433.5693-1-robh@kernel.org>
-         <20180828154433.5693-7-robh@kernel.org> <20180912121705.010a999d@coco.lan>
-         <CAL_JsqK8B46x8bm_aYggJSPAWrMGZ1rZ58uWCmyiSqA2KZpiFg@mail.gmail.com>
-         <c7a3263ac94a6c31bd58c06683d55015be2e8be4.camel@perches.com>
-         <CAL_JsqL=+O=G-0uVdKGcq4T8pSzkdGV1sd_p682-6SFXuNt2mA@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:8872 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2390065AbeIUU4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Sep 2018 16:56:33 -0400
+Date: Fri, 21 Sep 2018 18:07:12 +0300
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 05/18] video/hdmi: Add an enum for HDMI packet types
+Message-ID: <20180921150712.GB5565@intel.com>
+References: <20180920185145.1912-1-ville.syrjala@linux.intel.com>
+ <20180920185145.1912-6-ville.syrjala@linux.intel.com>
+ <cc758a1b-acab-caf1-a374-1f58c48e3e98@cisco.com>
+ <20180921140135.GX5565@intel.com>
+ <55a45f48-f9d8-a28f-c847-d8083d500585@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <55a45f48-f9d8-a28f-c847-d8083d500585@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2018-09-13 at 16:26 -0500, Rob Herring wrote:
-> On Thu, Sep 13, 2018 at 3:45 PM Joe Perches <joe@perches.com> wrote:
+On Fri, Sep 21, 2018 at 04:12:36PM +0200, Hans Verkuil wrote:
+> On 09/21/18 16:01, Ville Syrjälä wrote:
+> > On Fri, Sep 21, 2018 at 10:41:46AM +0200, Hans Verkuil wrote:
+> >> On 09/20/18 20:51, Ville Syrjala wrote:
+> >>> From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> >>>
+> >>> We'll be wanting to send more than just infoframes over HDMI. So add an
+> >>> enum for other packet types.
+> >>>
+> >>> TODO: Maybe just include the infoframe types in the packet type enum
+> >>>       and get rid of the infoframe type enum?
+> >>
+> >> I think that's better, IMHO. With a comment that the types starting with
+> >> 0x81 are defined in CTA-861-G.
+> >>
+> >> It's really the same byte that is being checked, so having two enums is
+> >> a bit misleading. The main difference is really which standard defines
+> >> the packet types.
 > > 
-> > On Wed, 2018-09-12 at 15:26 -0500, Rob Herring wrote:
-> > > A problem with MAINTAINERS is there is no way to tell who applies
-> > > patches for a given path vs. anyone else listed.
-> > 
-> > try the --scm option
+> > Right. The only slight annoyance is that we'll get a bunch of warnings
+> > from the compiler if we don't handle all the enum valus in the switch
+> > statements. If we want to avoid that I guess I could limit this
+> > to just the null, gcp and gamut metadata packets initially and try to
+> > write some actual code for them. Those three are the only ones we
+> > care about in i915 at the moment.
 > 
-> That kind of helps if the maintainer has listed a tree, but gives
-> wrong results if not.
+> Note that I don't have a terribly strong opinion on this, so if using
+> one enum instead of two causes more problems than it is worth, then
+> that's fine with me as well.
+> 
+> But you asked, and given a choice with all other things being equal,
+> then one enum has my preference.
 
-If there isn't a tree listed, it's not really maintained.
+I do agree that it would seem nicer.
 
-> And you still have to figure out who owns which
-> tree. That's not hard, but it's not scriptable.
+But I'm a bit busy with other things at the moment so I might want
+to leave it like this for now and revisit the topic in the
+hopefully-not-too-distant future.
 
-a get_maintainer scripted loop using
-  --maxdepth=<incrementing_from_1> --scm --m --nor --nol
-until a result could work.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >>
+> >>>
+> >>> Cc: Thierry Reding <thierry.reding@gmail.com>
+> >>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> >>> Cc: linux-media@vger.kernel.org
+> >>> Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> >>> ---
+> >>>  include/linux/hdmi.h | 15 +++++++++++++++
+> >>>  1 file changed, 15 insertions(+)
+> >>>
+> >>> diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+> >>> index c76b50a48e48..80521d9591a1 100644
+> >>> --- a/include/linux/hdmi.h
+> >>> +++ b/include/linux/hdmi.h
+> >>> @@ -27,6 +27,21 @@
+> >>>  #include <linux/types.h>
+> >>>  #include <linux/device.h>
+> >>>  
+> >>> +enum hdmi_packet_type {
+> >>> +	HDMI_PACKET_TYPE_NULL = 0x00,
+> >>> +	HDMI_PACKET_TYPE_AUDIO_CLOCK_REGEN = 0x01,
+> >>> +	HDMI_PACKET_TYPE_AUDIO_SAMPLE = 0x02,
+> >>> +	HDMI_PACKET_TYPE_GENERAL_CONTROL = 0x03,
+> >>> +	HDMI_PACKET_TYPE_AUDIO_CP = 0x04,
+> >>> +	HDMI_PACKET_TYPE_ISRC1 = 0x05,
+> >>> +	HDMI_PACKET_TYPE_ISRC2 = 0x06,
+> >>> +	HDMI_PACKET_TYPE_ONE_BIT_AUDIO_SAMPLE = 0x07,
+> >>> +	HDMI_PACKET_TYPE_DST_AUDIO = 0x08,
+> >>> +	HDMI_PACKET_TYPE_HBR_AUDIO_STREAM = 0x09,
+> >>> +	HDMI_PACKET_TYPE_GAMUT_METADATA = 0x0a,
+> >>> +	/* + enum hdmi_infoframe_type */
+> >>> +};
+> >>> +
+> >>>  enum hdmi_infoframe_type {
+> >>>  	HDMI_INFOFRAME_TYPE_VENDOR = 0x81,
+> >>>  	HDMI_INFOFRAME_TYPE_AVI = 0x82,
+> >>>
+> > 
 
-> IMO, we should reserve 'M:' for maintainers with trees and use 'R:'
-> driver maintainers. That's redefining M as "maintainer" rather than
-> "mail patches to". You could still have both for a entry so you can
-> know who to go bug when your patch hasn't been applied.
-
-IMO, most M: entries in MAINTAINERS are either reviewers or
-used-once when created and longer active or just vanity.
+-- 
+Ville Syrjälä
+Intel
