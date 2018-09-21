@@ -1,161 +1,312 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f67.google.com ([209.85.208.67]:35303 "EHLO
-        mail-ed1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726479AbeIUN0M (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:19760 "EHLO
+        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725898AbeIUNyH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 09:26:12 -0400
-Received: by mail-ed1-f67.google.com with SMTP id y20-v6so9947898edq.2
-        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 00:38:33 -0700 (PDT)
-Subject: Re: [PATCH] libv4l: Add support for BAYER10P format conversion
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Fri, 21 Sep 2018 09:54:07 -0400
+Subject: Re: [PATCH 02/18] video/hdmi: Pass buffer size to infoframe unpack
+ functions
+To: Ville Syrjala <ville.syrjala@linux.intel.com>,
+        dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         linux-media@vger.kernel.org
-References: <20180920200406.18066-1-ricardo.ribalda@gmail.com>
-From: Hans de Goede <hdegoede@redhat.com>
-Message-ID: <18939b75-e0b2-5893-f462-90cce035e7f9@redhat.com>
-Date: Fri, 21 Sep 2018 09:38:30 +0200
+References: <20180920185145.1912-1-ville.syrjala@linux.intel.com>
+ <20180920185145.1912-3-ville.syrjala@linux.intel.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <179b9e74-ade0-4d86-4a83-7dd3f02b3546@cisco.com>
+Date: Fri, 21 Sep 2018 10:06:20 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180920200406.18066-1-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <20180920185145.1912-3-ville.syrjala@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 09/20/18 20:51, Ville Syrjala wrote:
+> From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> 
+> To make sure the infoframe unpack functions don't end up examining
+> stack garbage or oopsing, let's pass in the size of the buffer.
+> 
+> v2: Convert tda1997x.c as well (kbuild test robot)
+> 
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 20-09-18 22:04, Ricardo Ribalda Delgado wrote:
-> Add support for 10 bit packet Bayer formats:
-> -V4L2_PIX_FMT_SBGGR10P
-> -V4L2_PIX_FMT_SGBRG10P
-> -V4L2_PIX_FMT_SGRBG10P
-> -V4L2_PIX_FMT_SRGGB10P
-> 
-> These formats pack the 2 LSBs for every 4 pixels in an indeppendent
-> byte.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks,
+
+	Hans
+
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
 > ---
->   lib/libv4lconvert/bayer.c              | 15 +++++++++++
->   lib/libv4lconvert/libv4lconvert-priv.h |  4 +++
->   lib/libv4lconvert/libv4lconvert.c      | 35 ++++++++++++++++++++++++++
->   3 files changed, 54 insertions(+)
+>  drivers/media/i2c/adv7511.c  |  2 +-
+>  drivers/media/i2c/adv7604.c  |  2 +-
+>  drivers/media/i2c/adv7842.c  |  2 +-
+>  drivers/media/i2c/tc358743.c |  2 +-
+>  drivers/media/i2c/tda1997x.c |  4 ++--
+>  drivers/video/hdmi.c         | 51 ++++++++++++++++++++++++++++++++------------
+>  include/linux/hdmi.h         |  2 +-
+>  7 files changed, 44 insertions(+), 21 deletions(-)
 > 
-> diff --git a/lib/libv4lconvert/bayer.c b/lib/libv4lconvert/bayer.c
-> index 4b70ddd9..d7d488f9 100644
-> --- a/lib/libv4lconvert/bayer.c
-> +++ b/lib/libv4lconvert/bayer.c
-> @@ -631,3 +631,18 @@ void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
->   	v4lconvert_border_bayer_line_to_y(bayer + stride, bayer, ydst, width,
->   			!start_with_green, !blue_line);
->   }
+> diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+> index 55c2ea0720d9..b85b181bbb6c 100644
+> --- a/drivers/media/i2c/adv7511.c
+> +++ b/drivers/media/i2c/adv7511.c
+> @@ -550,7 +550,7 @@ static void log_infoframe(struct v4l2_subdev *sd, const struct adv7511_cfg_read_
+>  	buffer[3] = 0;
+>  	buffer[3] = hdmi_infoframe_checksum(buffer, len + 4);
+>  
+> -	if (hdmi_infoframe_unpack(&frame, buffer) < 0) {
+> +	if (hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer)) < 0) {
+>  		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__, cri->desc);
+>  		return;
+>  	}
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 668be2bca57a..2e7a28dbad4e 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -2418,7 +2418,7 @@ static int adv76xx_read_infoframe(struct v4l2_subdev *sd, int index,
+>  		buffer[i + 3] = infoframe_read(sd,
+>  				       adv76xx_cri[index].payload_addr + i);
+>  
+> -	if (hdmi_infoframe_unpack(frame, buffer) < 0) {
+> +	if (hdmi_infoframe_unpack(frame, buffer, sizeof(buffer)) < 0) {
+>  		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__,
+>  			 adv76xx_cri[index].desc);
+>  		return -ENOENT;
+> diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+> index 4f8fbdd00e35..2cfd03f929b2 100644
+> --- a/drivers/media/i2c/adv7842.c
+> +++ b/drivers/media/i2c/adv7842.c
+> @@ -2563,7 +2563,7 @@ static void log_infoframe(struct v4l2_subdev *sd, struct adv7842_cfg_read_infofr
+>  	for (i = 0; i < len; i++)
+>  		buffer[i + 3] = infoframe_read(sd, cri->payload_addr + i);
+>  
+> -	if (hdmi_infoframe_unpack(&frame, buffer) < 0) {
+> +	if (hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer)) < 0) {
+>  		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__, cri->desc);
+>  		return;
+>  	}
+> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+> index 44c41933415a..519bf92508d5 100644
+> --- a/drivers/media/i2c/tc358743.c
+> +++ b/drivers/media/i2c/tc358743.c
+> @@ -444,7 +444,7 @@ static void print_avi_infoframe(struct v4l2_subdev *sd)
+>  
+>  	i2c_rd(sd, PK_AVI_0HEAD, buffer, HDMI_INFOFRAME_SIZE(AVI));
+>  
+> -	if (hdmi_infoframe_unpack(&frame, buffer) < 0) {
+> +	if (hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer)) < 0) {
+>  		v4l2_err(sd, "%s: unpack of AVI infoframe failed\n", __func__);
+>  		return;
+>  	}
+> diff --git a/drivers/media/i2c/tda1997x.c b/drivers/media/i2c/tda1997x.c
+> index d114ac5243ec..195a1fc74ee8 100644
+> --- a/drivers/media/i2c/tda1997x.c
+> +++ b/drivers/media/i2c/tda1997x.c
+> @@ -1253,7 +1253,7 @@ tda1997x_parse_infoframe(struct tda1997x_state *state, u16 addr)
+>  
+>  	/* read data */
+>  	len = io_readn(sd, addr, sizeof(buffer), buffer);
+> -	err = hdmi_infoframe_unpack(&frame, buffer);
+> +	err = hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer));
+>  	if (err) {
+>  		v4l_err(state->client,
+>  			"failed parsing %d byte infoframe: 0x%04x/0x%02x\n",
+> @@ -1928,7 +1928,7 @@ static int tda1997x_log_infoframe(struct v4l2_subdev *sd, int addr)
+>  	/* read data */
+>  	len = io_readn(sd, addr, sizeof(buffer), buffer);
+>  	v4l2_dbg(1, debug, sd, "infoframe: addr=%d len=%d\n", addr, len);
+> -	err = hdmi_infoframe_unpack(&frame, buffer);
+> +	err = hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer));
+>  	if (err) {
+>  		v4l_err(state->client,
+>  			"failed parsing %d byte infoframe: 0x%04x/0x%02x\n",
+> diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
+> index 65b915ea4936..b5d491014b0b 100644
+> --- a/drivers/video/hdmi.c
+> +++ b/drivers/video/hdmi.c
+> @@ -1005,8 +1005,9 @@ EXPORT_SYMBOL(hdmi_infoframe_log);
+>  
+>  /**
+>   * hdmi_avi_infoframe_unpack() - unpack binary buffer to a HDMI AVI infoframe
+> - * @buffer: source buffer
+>   * @frame: HDMI AVI infoframe
+> + * @buffer: source buffer
+> + * @size: size of buffer
+>   *
+>   * Unpacks the information contained in binary @buffer into a structured
+>   * @frame of the HDMI Auxiliary Video (AVI) information frame.
+> @@ -1016,11 +1017,14 @@ EXPORT_SYMBOL(hdmi_infoframe_log);
+>   * Returns 0 on success or a negative error code on failure.
+>   */
+>  static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
+> -				     const void *buffer)
+> +				     const void *buffer, size_t size)
+>  {
+>  	const u8 *ptr = buffer;
+>  	int ret;
+>  
+> +	if (size < HDMI_INFOFRAME_SIZE(AVI))
+> +		return -EINVAL;
 > +
-> +void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
-> +		unsigned char *bayer8, int width, int height)
-> +{
-> +	long i, len = width * height;
-> +	uint32_t *src, *dst;
+>  	if (ptr[0] != HDMI_INFOFRAME_TYPE_AVI ||
+>  	    ptr[1] != 2 ||
+>  	    ptr[2] != HDMI_AVI_INFOFRAME_SIZE)
+> @@ -1068,8 +1072,9 @@ static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
+>  
+>  /**
+>   * hdmi_spd_infoframe_unpack() - unpack binary buffer to a HDMI SPD infoframe
+> - * @buffer: source buffer
+>   * @frame: HDMI SPD infoframe
+> + * @buffer: source buffer
+> + * @size: size of buffer
+>   *
+>   * Unpacks the information contained in binary @buffer into a structured
+>   * @frame of the HDMI Source Product Description (SPD) information frame.
+> @@ -1079,11 +1084,14 @@ static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
+>   * Returns 0 on success or a negative error code on failure.
+>   */
+>  static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
+> -				     const void *buffer)
+> +				     const void *buffer, size_t size)
+>  {
+>  	const u8 *ptr = buffer;
+>  	int ret;
+>  
+> +	if (size < HDMI_INFOFRAME_SIZE(SPD))
+> +		return -EINVAL;
 > +
-> +	src = (uint32_t *)bayer10p;
-> +	dst = (uint32_t *)bayer8;
-> +	for (i = 0; i < len ; i += 4) {
-> +		*dst = *src;
-> +		dst++;
-> +		src = (uint32_t *)(((uint8_t *)src) + 5);
-
-This will lead to unaligned 32 bit integer accesses which will terminate
-the program with an illegal instruction on pretty much all architectures
-except for x86.
-
-You will need to copy the 4 components 1 by 1 so that you only
-use byte accesses.
-
-Also you seem to simply be throwing away the extra 2 bits, although
-that will work I wonder if that is the best we can do?
-
-Regards,
-
-Hans
-
-
-
-> +	}
-> +}
-
-
-
-> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-> index 9a467e10..3020a39e 100644
-> --- a/lib/libv4lconvert/libv4lconvert-priv.h
-> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
-> @@ -264,6 +264,10 @@ void v4lconvert_bayer_to_bgr24(const unsigned char *bayer,
->   void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
->   		int width, int height, const unsigned int stride, unsigned int src_pixfmt, int yvu);
->   
+>  	if (ptr[0] != HDMI_INFOFRAME_TYPE_SPD ||
+>  	    ptr[1] != 1 ||
+>  	    ptr[2] != HDMI_SPD_INFOFRAME_SIZE) {
+> @@ -1106,8 +1114,9 @@ static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
+>  
+>  /**
+>   * hdmi_audio_infoframe_unpack() - unpack binary buffer to a HDMI AUDIO infoframe
+> - * @buffer: source buffer
+>   * @frame: HDMI Audio infoframe
+> + * @buffer: source buffer
+> + * @size: size of buffer
+>   *
+>   * Unpacks the information contained in binary @buffer into a structured
+>   * @frame of the HDMI Audio information frame.
+> @@ -1117,11 +1126,14 @@ static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
+>   * Returns 0 on success or a negative error code on failure.
+>   */
+>  static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
+> -				       const void *buffer)
+> +				       const void *buffer, size_t size)
+>  {
+>  	const u8 *ptr = buffer;
+>  	int ret;
+>  
+> +	if (size < HDMI_INFOFRAME_SIZE(AUDIO))
+> +		return -EINVAL;
 > +
-> +void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
-> +		unsigned char *bayer8, int width, int height);
+>  	if (ptr[0] != HDMI_INFOFRAME_TYPE_AUDIO ||
+>  	    ptr[1] != 1 ||
+>  	    ptr[2] != HDMI_AUDIO_INFOFRAME_SIZE) {
+> @@ -1151,8 +1163,9 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
+>  
+>  /**
+>   * hdmi_vendor_infoframe_unpack() - unpack binary buffer to a HDMI vendor infoframe
+> - * @buffer: source buffer
+>   * @frame: HDMI Vendor infoframe
+> + * @buffer: source buffer
+> + * @size: size of buffer
+>   *
+>   * Unpacks the information contained in binary @buffer into a structured
+>   * @frame of the HDMI Vendor information frame.
+> @@ -1163,7 +1176,7 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
+>   */
+>  static int
+>  hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+> -				 const void *buffer)
+> +				 const void *buffer, size_t size)
+>  {
+>  	const u8 *ptr = buffer;
+>  	size_t length;
+> @@ -1171,6 +1184,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+>  	u8 hdmi_video_format;
+>  	struct hdmi_vendor_infoframe *hvf = &frame->hdmi;
+>  
+> +	if (size < HDMI_INFOFRAME_HEADER_SIZE)
+> +		return -EINVAL;
 > +
->   void v4lconvert_hm12_to_rgb24(const unsigned char *src,
->   		unsigned char *dst, int width, int height);
->   
-> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-> index d666bd97..b3dbf5a0 100644
-> --- a/lib/libv4lconvert/libv4lconvert.c
-> +++ b/lib/libv4lconvert/libv4lconvert.c
-> @@ -133,6 +133,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
->   	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
->   	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
->   	{ V4L2_PIX_FMT_SGRBG10,		16,	 8,	 8,	1 },
-> +	{ V4L2_PIX_FMT_SBGGR10P,	10,	 8,	 8,	1 },
-> +	{ V4L2_PIX_FMT_SGBRG10P,	10,	 8,	 8,	1 },
-> +	{ V4L2_PIX_FMT_SGRBG10P,	10,	 8,	 8,	1 },
-> +	{ V4L2_PIX_FMT_SRGGB10P,	10,	 8,	 8,	1 },
->   	/* compressed bayer */
->   	{ V4L2_PIX_FMT_SPCA561,		 0,	 9,	 9,	1 },
->   	{ V4L2_PIX_FMT_SN9C10X,		 0,	 9,	 9,	1 },
-> @@ -687,6 +691,10 @@ static int v4lconvert_processing_needs_double_conversion(
->   	case V4L2_PIX_FMT_SGBRG8:
->   	case V4L2_PIX_FMT_SGRBG8:
->   	case V4L2_PIX_FMT_SRGGB8:
-> +	case V4L2_PIX_FMT_SBGGR10P:
-> +	case V4L2_PIX_FMT_SGBRG10P:
-> +	case V4L2_PIX_FMT_SGRBG10P:
-> +	case V4L2_PIX_FMT_SRGGB10P:
->   	case V4L2_PIX_FMT_STV0680:
->   		return 0;
->   	}
-> @@ -979,6 +987,33 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
->   	}
->   
->   		/* Raw bayer formats */
-> +	case V4L2_PIX_FMT_SBGGR10P:
-> +	case V4L2_PIX_FMT_SGBRG10P:
-> +	case V4L2_PIX_FMT_SGRBG10P:
-> +	case V4L2_PIX_FMT_SRGGB10P:
-> +		if (src_size < ((width * height * 10)/8)) {
-> +			V4LCONVERT_ERR("short raw bayer10 data frame\n");
-> +			errno = EPIPE;
-> +			result = -1;
-> +		}
-> +		switch (src_pix_fmt) {
-> +		case V4L2_PIX_FMT_SBGGR10P:
-> +			src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
-> +			break;
-> +		case V4L2_PIX_FMT_SGBRG10P:
-> +			src_pix_fmt = V4L2_PIX_FMT_SGBRG8;
-> +			break;
-> +		case V4L2_PIX_FMT_SGRBG10P:
-> +			src_pix_fmt = V4L2_PIX_FMT_SGRBG8;
-> +			break;
-> +		case V4L2_PIX_FMT_SRGGB10P:
-> +			src_pix_fmt = V4L2_PIX_FMT_SRGGB8;
-> +			break;
-> +		}
-> +		v4lconvert_bayer10p_to_bayer8(src, src, width, height);
-> +		bytesperline = width;
+>  	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
+>  	    ptr[1] != 1 ||
+>  	    (ptr[2] != 4 && ptr[2] != 5 && ptr[2] != 6))
+> @@ -1178,6 +1194,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+>  
+>  	length = ptr[2];
+>  
+> +	if (size < HDMI_INFOFRAME_HEADER_SIZE + length)
+> +		return -EINVAL;
 > +
-> +	/* Fall-through*/
->   	case V4L2_PIX_FMT_SBGGR8:
->   	case V4L2_PIX_FMT_SGBRG8:
->   	case V4L2_PIX_FMT_SGRBG8:
+>  	if (hdmi_infoframe_checksum(buffer,
+>  				    HDMI_INFOFRAME_HEADER_SIZE + length) != 0)
+>  		return -EINVAL;
+> @@ -1224,8 +1243,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+>  
+>  /**
+>   * hdmi_infoframe_unpack() - unpack binary buffer to a HDMI infoframe
+> - * @buffer: source buffer
+>   * @frame: HDMI infoframe
+> + * @buffer: source buffer
+> + * @size: size of buffer
+>   *
+>   * Unpacks the information contained in binary buffer @buffer into a structured
+>   * @frame of a HDMI infoframe.
+> @@ -1235,23 +1255,26 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+>   * Returns 0 on success or a negative error code on failure.
+>   */
+>  int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
+> -			  const void *buffer)
+> +			  const void *buffer, size_t size)
+>  {
+>  	int ret;
+>  	const u8 *ptr = buffer;
+>  
+> +	if (size < HDMI_INFOFRAME_HEADER_SIZE)
+> +		return -EINVAL;
+> +
+>  	switch (ptr[0]) {
+>  	case HDMI_INFOFRAME_TYPE_AVI:
+> -		ret = hdmi_avi_infoframe_unpack(&frame->avi, buffer);
+> +		ret = hdmi_avi_infoframe_unpack(&frame->avi, buffer, size);
+>  		break;
+>  	case HDMI_INFOFRAME_TYPE_SPD:
+> -		ret = hdmi_spd_infoframe_unpack(&frame->spd, buffer);
+> +		ret = hdmi_spd_infoframe_unpack(&frame->spd, buffer, size);
+>  		break;
+>  	case HDMI_INFOFRAME_TYPE_AUDIO:
+> -		ret = hdmi_audio_infoframe_unpack(&frame->audio, buffer);
+> +		ret = hdmi_audio_infoframe_unpack(&frame->audio, buffer, size);
+>  		break;
+>  	case HDMI_INFOFRAME_TYPE_VENDOR:
+> -		ret = hdmi_vendor_any_infoframe_unpack(&frame->vendor, buffer);
+> +		ret = hdmi_vendor_any_infoframe_unpack(&frame->vendor, buffer, size);
+>  		break;
+>  	default:
+>  		ret = -EINVAL;
+> diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+> index d3816170c062..a577d4ae2570 100644
+> --- a/include/linux/hdmi.h
+> +++ b/include/linux/hdmi.h
+> @@ -333,7 +333,7 @@ union hdmi_infoframe {
+>  ssize_t
+>  hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size);
+>  int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
+> -			  const void *buffer);
+> +			  const void *buffer, size_t size);
+>  void hdmi_infoframe_log(const char *level, struct device *dev,
+>  			union hdmi_infoframe *frame);
+>  
 > 
