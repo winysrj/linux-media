@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf1-f67.google.com ([209.85.167.67]:35706 "EHLO
-        mail-lf1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726915AbeIZUWm (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39900 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S2389444AbeIUOpc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 16:22:42 -0400
-Received: by mail-lf1-f67.google.com with SMTP id r191-v6so10846281lff.2
-        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2018 07:09:33 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Wed, 26 Sep 2018 16:09:30 +0200
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 3/3] i2c: adv748x: fix typo in comment for TXB CSI-2
- transmitter power down
-Message-ID: <20180926140930.GG32205@bigcity.dyn.berto.se>
-References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
- <20180918014509.6394-4-niklas.soderlund+renesas@ragnatech.se>
- <0a4bb79e-2f5d-f4ee-1c5a-3d9a28d75596@ideasonboard.com>
+        Fri, 21 Sep 2018 10:45:32 -0400
+Date: Fri, 21 Sep 2018 11:57:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [GIT FIXES for 4.19] Prevent freeing media subscriptions while
+ they're being accessed
+Message-ID: <20180921085738.mmupbnn7wjzhchxf@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <0a4bb79e-2f5d-f4ee-1c5a-3d9a28d75596@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Mauro,
 
-On 2018-09-26 14:49:22 +0100, Kieran Bingham wrote:
-> Hi Niklas,
-> 
-> On 18/09/18 02:45, Niklas Söderlund wrote:
-> > Fix copy-and-past error in comment for TXB CSI-2 transmitter power down
-> > sequence.
-> > 
-> 
-> I have collected this patch into my adv748x/for-next branch (and fixed
-> the typo in "copy-and-past" and submitted as a pull request for Hans and
-> Mauro.
+There's just a single patch in this pull request: the one that prevents
+releasing media event subscription memory while it is still being accessed.
 
-Thanks I will drop this patch for my v2.
+Compared to what was last reviewed on the list, I added Cc to stable, for
+this patch applies to 4.14 as well.
 
-> 
-> --
-> Regards
-> 
-> Kieran
-> 
-> 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/i2c/adv748x/adv748x-core.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> > index 9a82cdf301bccb41..86cb38f4d7cc11c6 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> > +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> > @@ -299,7 +299,7 @@ static const struct adv748x_reg_value adv748x_power_down_txb_1lane[] = {
-> >  
-> >  	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
-> >  	{ADV748X_PAGE_TXB, 0x1e, 0x00},	/* ADI Required Write */
-> > -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 4-lane MIPI */
-> > +	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
-> >  	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
-> >  	{ADV748X_PAGE_TXB, 0xc1, 0x3b},	/* ADI Required Write */
-> >  
-> > 
+Older LTS kernels (3.16, 4.4 and 4.9) need changes to the patch. I'll send
+them separately to stable@vger..., cc'ing you, Hans and Laurent as well as
+the list once this is in.
+
+Please pull.
+
+
+The following changes since commit 324493fba77500592bbaa66421729421f139d4b5:
+
+  media: platform: fix cros-ec-cec build error (2018-09-17 14:32:29 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/event-fix-6
+
+for you to fetch changes up to 88372fdff68f864316fbd7d9e9941ae24dc110eb:
+
+  v4l: event: Prevent freeing event subscriptions while accessed (2018-09-21 11:52:08 +0300)
+
+----------------------------------------------------------------
+v4l2 event memory corruption fix
+
+----------------------------------------------------------------
+Sakari Ailus (1):
+      v4l: event: Prevent freeing event subscriptions while accessed
+
+ drivers/media/v4l2-core/v4l2-event.c | 38 +++++++++++++++++++-----------------
+ drivers/media/v4l2-core/v4l2-fh.c    |  2 ++
+ include/media/v4l2-fh.h              |  4 ++++
+ 3 files changed, 26 insertions(+), 18 deletions(-)
 
 -- 
-Regards,
-Niklas Söderlund
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
