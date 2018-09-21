@@ -1,123 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40962 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728229AbeIMCgJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Sep 2018 22:36:09 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree@vger.kernel.org, slongerbeam@gmail.com,
-        niklas.soderlund@ragnatech.se, jacopo@jmondi.org,
-        p.zabel@pengutronix.de, dri-devel@lists.freedesktop.org
-Subject: [PATCH v3 08/23] v4l: fwnode: Detect bus type correctly
-Date: Thu, 13 Sep 2018 00:29:27 +0300
-Message-Id: <20180912212942.19641-9-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
-References: <20180912212942.19641-1-sakari.ailus@linux.intel.com>
+Received: from mga07.intel.com ([134.134.136.100]:26806 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725828AbeIUIOp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Sep 2018 04:14:45 -0400
+Subject: Re: [PATCH v5] media: add imx319 camera sensor driver
+To: Tomasz Figa <tfiga@chromium.org>,
+        Cao Bing Bu <bingbu.cao@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+References: <1537163872-14567-1-git-send-email-bingbu.cao@intel.com>
+ <CAAFQd5Dp8kp6fi8bXr6jODO0Cr4Kqu5L0eSXudsrOkHK6cKdjg@mail.gmail.com>
+From: Bing Bu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <c2998a8f-90bf-e5c8-e45d-e52d2bebcca0@linux.intel.com>
+Date: Fri, 21 Sep 2018 10:31:54 +0800
+MIME-Version: 1.0
+In-Reply-To: <CAAFQd5Dp8kp6fi8bXr6jODO0Cr4Kqu5L0eSXudsrOkHK6cKdjg@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case the device supports multiple video bus types on an endpoint, the
-V4L2 fwnode framework attempts to detect the type based on the available
-information. This wasn't working really well, and sometimes could lead to
-the V4L2 fwnode endpoint struct as being mishandled between the bus types.
 
-Default to Bt.656 if no properties suggesting a bus type are found.
+On 09/18/2018 05:49 PM, Tomasz Figa wrote:
+> Hi Bingbu,
+>
+> On Mon, Sep 17, 2018 at 2:53 PM <bingbu.cao@intel.com> wrote:
+>> From: Bingbu Cao <bingbu.cao@intel.com>
+>>
+>> Add a v4l2 sub-device driver for the Sony imx319 image sensor.
+>> This is a camera sensor using the i2c bus for control and the
+>> csi-2 bus for data.
+> Please see my comments inline. Also, I'd appreciate being CCed on
+> related work in the future.
+Ack.
+Sorry, will add you into the cc-list.
+>
+> [snip]
+>> +
+>> +static const char * const imx319_test_pattern_menu[] = {
+>> +       "Disabled",
+>> +       "100% color bars",
+>> +       "Solid color",
+>> +       "Fade to gray color bars",
+>> +       "PN9"
+>> +};
+>> +
+>> +static const int imx319_test_pattern_val[] = {
+>> +       IMX319_TEST_PATTERN_DISABLED,
+>> +       IMX319_TEST_PATTERN_COLOR_BARS,
+>> +       IMX319_TEST_PATTERN_SOLID_COLOR,
+>> +       IMX319_TEST_PATTERN_GRAY_COLOR_BARS,
+>> +       IMX319_TEST_PATTERN_PN9,
+>> +};
+> This array is not needed. All the entries are equal to corresponding
+> indices, i.e. the array is equivalent to { 0, 1, 2, 3, 4 }. We can use
+> ctrl->val directly.
+Ack.
+> [snip]
+>
+>> +/* Write a list of registers */
+>> +static int imx319_write_regs(struct imx319 *imx319,
+>> +                             const struct imx319_reg *regs, u32 len)
+>> +{
+>> +       struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
+>> +       int ret;
+>> +       u32 i;
+>> +
+>> +       for (i = 0; i < len; i++) {
+>> +               ret = imx319_write_reg(imx319, regs[i].address, 1, regs[i].val);
+>> +               if (ret) {
+>> +                       dev_err_ratelimited(&client->dev,
+>> +
+> Hmm, the message is clipped here. Let me see if it's something with my
+> email client...
+The code here:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Tested-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 31 +++++++++++++++++--------------
- include/media/v4l2-mediabus.h         |  2 ++
- 2 files changed, 19 insertions(+), 14 deletions(-)
+1827 for (i = 0; i < len; i++) {
+1828 ret = imx319_write_reg(imx319, regs[i].address, 1, regs[i].val);
+1829 if (ret) {
+1830 dev_err_ratelimited(&client->dev,
+1831 "write reg 0x%4.4x return err %d",
+1832 regs[i].address, ret);
+1833 return ret;
+1834 }
+1835 } Same as the code shown on your client?
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index d6ba3e5d4356..aa3d28c4a50b 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -114,8 +114,11 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
- 		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
- 	}
- 
--	bus->flags = flags;
--	vep->bus_type = V4L2_MBUS_CSI2_DPHY;
-+	if (lanes_used || have_clk_lane ||
-+	    (flags & ~V4L2_MBUS_CSI2_CONTINUOUS_CLOCK)) {
-+		bus->flags = flags;
-+		vep->bus_type = V4L2_MBUS_CSI2_DPHY;
-+	}
- 
- 	return 0;
- }
-@@ -145,11 +148,6 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 		pr_debug("field-even-active %s\n", v ? "high" : "low");
- 	}
- 
--	if (flags)
--		vep->bus_type = V4L2_MBUS_PARALLEL;
--	else
--		vep->bus_type = V4L2_MBUS_BT656;
--
- 	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v)) {
- 		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
- 			V4L2_MBUS_PCLK_SAMPLE_FALLING;
-@@ -192,13 +190,21 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
- 	}
- 
- 	bus->flags = flags;
--
-+	if (flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+		     V4L2_MBUS_HSYNC_ACTIVE_LOW |
-+		     V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+		     V4L2_MBUS_VSYNC_ACTIVE_LOW |
-+		     V4L2_MBUS_FIELD_EVEN_HIGH |
-+		     V4L2_MBUS_FIELD_EVEN_LOW))
-+		vep->bus_type = V4L2_MBUS_PARALLEL;
-+	else
-+		vep->bus_type = V4L2_MBUS_BT656;
- }
- 
- static void
- v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
- 				    struct v4l2_fwnode_endpoint *vep,
--				    u32 bus_type)
-+				    enum v4l2_fwnode_bus_type bus_type)
- {
- 	struct v4l2_fwnode_bus_mipi_csi1 *bus = &vep->bus.mipi_csi1;
- 	u32 v;
-@@ -250,11 +256,8 @@ static int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
- 		rval = v4l2_fwnode_endpoint_parse_csi2_bus(fwnode, vep);
- 		if (rval)
- 			return rval;
--		/*
--		 * Parse the parallel video bus properties only if none
--		 * of the MIPI CSI-2 specific properties were found.
--		 */
--		if (vep->bus.mipi_csi2.flags == 0)
-+
-+		if (vep->bus_type == V4L2_MBUS_UNKNOWN)
- 			v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep);
- 
- 		break;
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 26e1c644ded6..df1d552e9df6 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -70,6 +70,7 @@
- 
- /**
-  * enum v4l2_mbus_type - media bus type
-+ * @V4L2_MBUS_UNKNOWN:	unknown bus type, no V4L2 mediabus configuration
-  * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-  * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
-  *			also be used for BT.1120
-@@ -79,6 +80,7 @@
-  * @V4L2_MBUS_CSI2_CPHY: MIPI CSI-2 serial interface, with C-PHY
-  */
- enum v4l2_mbus_type {
-+	V4L2_MBUS_UNKNOWN,
- 	V4L2_MBUS_PARALLEL,
- 	V4L2_MBUS_BT656,
- 	V4L2_MBUS_CSI1,
--- 
-2.11.0
+>
+> Best regards,
+> Tomasz
+>
