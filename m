@@ -1,91 +1,403 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:42044 "EHLO mail.bootlin.com"
+Received: from mga07.intel.com ([134.134.136.100]:47361 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728184AbeIUU03 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 16:26:29 -0400
-Date: Fri, 21 Sep 2018 16:37:08 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Luis Oliveira <Luis.Oliveira@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Joao.Pinto@synopsys.com, festevam@gmail.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        id S2390479AbeIUU62 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Sep 2018 16:58:28 -0400
+From: Ville Syrjala <ville.syrjala@linux.intel.com>
+To: dri-devel@lists.freedesktop.org
+Cc: intel-gfx@lists.freedesktop.org,
+        Thierry Reding <thierry.reding@gmail.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: Re: [V2, 0/5]  platform: dwc: Add of DesignWare MIPI CSI-2 Host
-Message-ID: <20180921143708.tw62sci3il5ydmlq@flea>
-References: <20180920111648.27000-1-lolivei@synopsys.com>
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 06/18] video/hdmi: Handle the MPEG Source infoframe
+Date: Fri, 21 Sep 2018 18:09:07 +0300
+Message-Id: <20180921150907.12290-1-ville.syrjala@linux.intel.com>
+In-Reply-To: <20180920185145.1912-7-ville.syrjala@linux.intel.com>
+References: <20180920185145.1912-7-ville.syrjala@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="c7nx7oggbvkdgp5n"
-Content-Disposition: inline
-In-Reply-To: <20180920111648.27000-1-lolivei@synopsys.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Ville Syrjälä <ville.syrjala@linux.intel.com>
 
---c7nx7oggbvkdgp5n
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add the code to deal with the MPEG source infoframe.
 
-Hi Luis,
+Blindly typed from the spec, and totally untested.
 
-On Thu, Sep 20, 2018 at 01:16:38PM +0200, Luis Oliveira wrote:
-> This adds support for Synopsys MIPI CSI-2 Host and MIPI D-PHY.
-> The patch series include support for initialization/configuration of the
-> DW MIPI CSI-2 controller and DW MIPI D-PHY and both include a reference
-> platform driver.
->=20
-> This will enable future SoCs to use this standard approach and possibly
-> create a more clean environment.
->=20
-> This series also documents the dt-bindings needed for the platform driver=
-s.
->=20
-> This was applied in: https://git.linuxtv.org/media_tree.git
+v2: Rebase
 
-I'm currently working on some MIPI D-PHY support through the generic
-phy framework that could benefit your patches.
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+---
+ drivers/video/hdmi.c | 229 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/hdmi.h |  27 ++++++
+ 2 files changed, 256 insertions(+)
 
-https://lwn.net/Articles/764173/
-
-Feel free to comment on that serie if you have any particular
-constraints or if you believe that some issues should be addressed.
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
---c7nx7oggbvkdgp5n
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlulAhMACgkQ0rTAlCFN
-r3QmUQ//XF60LOknBdPj2pSVG9lN/euY3ycx2+GtMHzZmBdoECVoEhdxdxfIvZ+I
-r64m6paIimQyo8Z2ArHZemGgU8z1VtzQTHuB5ySEkIHNN7de7cdJxsu86OR8JU0+
-pcAqSwRYPSP8OcCVPC5uFmlHOnK2sxwRzHYh5UHH/t3LZTcKb2jaGTdzfx+gGPml
-JudjPsm01E+evT0Z26B3b54Lx4EUPlkn+J1RRmkDzwkqjs3RWDQV3uBiXnljI+WJ
-I0s2UAz4VLIs4tNcewW1oGwam8EWoCuY1eFO8qLiu3QHOF52Snd7fII7YjinOXUC
-Iy319+groqiqTZXs7y9XIXWT1bhkXSTM1eZAx0+t4SO+Bl/BKxW6VAxrovqc9yTj
-1eHscjqqcYRJvH/T0Rju/molqN5cpSG56nYH7GkBJNM6Dcn48Q+syotgz3hSD68f
-UlwtUf0vt31jVMykNKbNCLxMDn3z1ahctoB/AbUTwH7fpALHiX0pL3eh2LiTP/zy
-XnmHfg5qzeReieNOKdbMTtBjCNaK61sYeReea5qH9S0MmqwfgZaHNw7nF4sjUV4v
-SZK/rvGIZF9OioPiVygeUEk409stuwFVGaUrzOUIMSlhg5rzXf1uUPX714Ozkr3U
-bK2kwokgLte6uJAuyBRkmw7W0vYELWbmKnhhU+aubo8buMjGtEI=
-=qdj0
------END PGP SIGNATURE-----
-
---c7nx7oggbvkdgp5n--
+diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
+index 08d94ab00467..6f39b9ae56b9 100644
+--- a/drivers/video/hdmi.c
++++ b/drivers/video/hdmi.c
+@@ -706,6 +706,131 @@ hdmi_vendor_any_infoframe_pack(union hdmi_vendor_any_infoframe *frame,
+ 	return hdmi_vendor_any_infoframe_pack_only(frame, buffer, size);
+ }
+ 
++/**
++ * hdmi_mpeg_source_infoframe_init() - initialize an HDMI MPEG Source infoframe
++ * @frame: HDMI MPEG Source infoframe
++ *
++ * Returns 0 on success or a negative error code on failure.
++ */
++int hdmi_mpeg_source_infoframe_init(struct hdmi_mpeg_source_infoframe *frame)
++{
++	memset(frame, 0, sizeof(*frame));
++
++	frame->type = HDMI_INFOFRAME_TYPE_MPEG_SOURCE;
++	frame->version = 1;
++	frame->length = HDMI_MPEG_SOURCE_INFOFRAME_SIZE;
++
++	return 0;
++}
++EXPORT_SYMBOL(hdmi_mpeg_source_infoframe_init);
++
++static int hdmi_mpeg_source_infoframe_check_only(const struct hdmi_mpeg_source_infoframe *frame)
++{
++	if (frame->type != HDMI_INFOFRAME_TYPE_MPEG_SOURCE ||
++	    frame->version != 1 ||
++	    frame->length != HDMI_MPEG_SOURCE_INFOFRAME_SIZE)
++		return -EINVAL;
++
++	return 0;
++}
++
++/**
++ * hdmi_mpeg_source_infoframe_check() - check a HDMI MPEG Source infoframe
++ * @frame: HDMI MPEG Source infoframe
++ *
++ * Validates that the infoframe is consistent and updates derived fields
++ * (eg. length) based on other fields.
++ *
++ * Returns 0 on success or a negative error code on failure.
++ */
++int hdmi_mpeg_source_infoframe_check(struct hdmi_mpeg_source_infoframe *frame)
++{
++	return hdmi_mpeg_source_infoframe_check_only(frame);
++}
++EXPORT_SYMBOL(hdmi_mpeg_source_infoframe_check);
++
++/**
++ * hdmi_mpeg_source_infoframe_pack_only() - write HDMI MPEG Source infoframe to binary buffer
++ * @frame: HDMI MPEG Source infoframe
++ * @buffer: destination buffer
++ * @size: size of buffer
++ *
++ * Packs the information contained in the @frame structure into a binary
++ * representation that can be written into the corresponding controller
++ * registers. Also computes the checksum as required by section 5.3.5 of
++ * the HDMI 1.4 specification.
++ *
++ * Returns the number of bytes packed into the binary buffer or a negative
++ * error code on failure.
++ */
++ssize_t hdmi_mpeg_source_infoframe_pack_only(const struct hdmi_mpeg_source_infoframe *frame,
++					     void *buffer, size_t size)
++{
++	u8 *ptr = buffer;
++	size_t length;
++	int ret;
++
++	ret = hdmi_mpeg_source_infoframe_check_only(frame);
++	if (ret)
++		return ret;
++
++	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
++
++	if (size < length)
++		return -ENOSPC;
++
++	memset(buffer, 0, size);
++
++	ptr[0] = frame->type;
++	ptr[1] = frame->version;
++	ptr[2] = frame->length;
++	ptr[3] = 0; /* checksum */
++
++	/* start infoframe payload */
++	ptr += HDMI_INFOFRAME_HEADER_SIZE;
++
++	ptr[0] = frame->mpeg_bit_rate >> 0;
++	ptr[1] = frame->mpeg_bit_rate >> 8;
++	ptr[2] = frame->mpeg_bit_rate >> 16;
++	ptr[3] = frame->mpeg_bit_rate >> 24;
++	ptr[4] = (frame->field_repeat << 4) | frame->mpeg_frame;
++
++	hdmi_infoframe_set_checksum(buffer, length);
++
++	return length;
++}
++EXPORT_SYMBOL(hdmi_mpeg_source_infoframe_pack_only);
++
++/**
++ * hdmi_mpeg_source_infoframe_pack() - check a HDMI MPEG Source infoframe,
++ *                                     and write it to binary buffer
++ * @frame: HDMI MPEG Source infoframe
++ * @buffer: destination buffer
++ * @size: size of buffer
++ *
++ * Validates that the infoframe is consistent and updates derived fields
++ * (eg. length) based on other fields, after which packs the information
++ * contained in the @frame structure into a binary representation that
++ * can be written into the corresponding controller registers. This function
++ * also computes the checksum as required by section 5.3.5 of the HDMI 1.4
++ * specification.
++ *
++ * Returns the number of bytes packed into the binary buffer or a negative
++ * error code on failure.
++ */
++ssize_t hdmi_mpeg_source_infoframe_pack(struct hdmi_mpeg_source_infoframe *frame,
++					void *buffer, size_t size)
++{
++	int ret;
++
++	ret = hdmi_mpeg_source_infoframe_check(frame);
++	if (ret)
++		return ret;
++
++	return hdmi_mpeg_source_infoframe_pack_only(frame, buffer, size);
++}
++EXPORT_SYMBOL(hdmi_mpeg_source_infoframe_pack);
++
+ /**
+  * hdmi_infoframe_check() - check a HDMI infoframe
+  * @frame: HDMI infoframe
+@@ -727,6 +852,8 @@ hdmi_infoframe_check(union hdmi_infoframe *frame)
+ 		return hdmi_audio_infoframe_check(&frame->audio);
+ 	case HDMI_INFOFRAME_TYPE_VENDOR:
+ 		return hdmi_vendor_any_infoframe_check(&frame->vendor);
++	case HDMI_INFOFRAME_TYPE_MPEG_SOURCE:
++		return hdmi_mpeg_source_infoframe_check(&frame->mpeg_source);
+ 	default:
+ 		WARN(1, "Bad infoframe type %d\n", frame->any.type);
+ 		return -EINVAL;
+@@ -770,6 +897,10 @@ hdmi_infoframe_pack_only(const union hdmi_infoframe *frame, void *buffer, size_t
+ 		length = hdmi_vendor_any_infoframe_pack_only(&frame->vendor,
+ 							     buffer, size);
+ 		break;
++	case HDMI_INFOFRAME_TYPE_MPEG_SOURCE:
++		length = hdmi_mpeg_source_infoframe_pack_only(&frame->mpeg_source,
++							      buffer, size);
++		break;
+ 	default:
+ 		WARN(1, "Bad infoframe type %d\n", frame->any.type);
+ 		length = -EINVAL;
+@@ -816,6 +947,10 @@ hdmi_infoframe_pack(union hdmi_infoframe *frame,
+ 		length = hdmi_vendor_any_infoframe_pack(&frame->vendor,
+ 							buffer, size);
+ 		break;
++	case HDMI_INFOFRAME_TYPE_MPEG_SOURCE:
++		length = hdmi_mpeg_source_infoframe_pack(&frame->mpeg_source,
++							 buffer, size);
++		break;
+ 	default:
+ 		WARN(1, "Bad infoframe type %d\n", frame->any.type);
+ 		length = -EINVAL;
+@@ -838,6 +973,8 @@ static const char *hdmi_infoframe_type_get_name(enum hdmi_infoframe_type type)
+ 		return "Source Product Description (SPD)";
+ 	case HDMI_INFOFRAME_TYPE_AUDIO:
+ 		return "Audio";
++	case HDMI_INFOFRAME_TYPE_MPEG_SOURCE:
++		return "MPEG Source";
+ 	}
+ 	return "Reserved";
+ }
+@@ -1349,6 +1486,46 @@ hdmi_vendor_any_infoframe_log(const char *level,
+ 	}
+ }
+ 
++static const char *
++hdmi_mpeg_frame_get_name(enum hdmi_mpeg_frame frame)
++{
++	if (frame < 0 || frame > 3)
++		return "invalid";
++
++	switch (frame) {
++	case HDMI_MPEG_FRAME_UNKNOWN:
++		return "Unknown";
++	case HDMI_MPEG_FRAME_I_PICTURE:
++		return "I Picture";
++	case HDMI_MPEG_FRAME_B_PICTURE:
++		return "B Picture";
++	case HDMI_MPEG_FRAME_P_PICTURE:
++		return "P Picture";
++	}
++	return "Reserved";
++}
++
++/**
++ * hdmi_mpeg_source_infoframe_log() - log info of HDMI MPEG Source infoframe
++ * @level: logging level
++ * @dev: device
++ * @frame: HDMI MPEG Source infoframe
++ */
++static void hdmi_mpeg_source_infoframe_log(const char *level,
++					   struct device *dev,
++					   const struct hdmi_mpeg_source_infoframe *frame)
++{
++	hdmi_infoframe_log_header(level, dev,
++				  (const struct hdmi_any_infoframe *)frame);
++
++	hdmi_log("    MPEG bit rate: %d Hz\n",
++		 frame->mpeg_bit_rate);
++	hdmi_log("    MPEG frame: %s\n",
++		 hdmi_mpeg_frame_get_name(frame->mpeg_frame));
++	hdmi_log("    field repeat: %s\n",
++		 frame->field_repeat ? "Yes" : "No");
++}
++
+ /**
+  * hdmi_infoframe_log() - log info of HDMI infoframe
+  * @level: logging level
+@@ -1372,6 +1549,9 @@ void hdmi_infoframe_log(const char *level,
+ 	case HDMI_INFOFRAME_TYPE_VENDOR:
+ 		hdmi_vendor_any_infoframe_log(level, dev, &frame->vendor);
+ 		break;
++	case HDMI_INFOFRAME_TYPE_MPEG_SOURCE:
++		hdmi_mpeg_source_infoframe_log(level, dev, &frame->mpeg_source);
++		break;
+ 	}
+ }
+ EXPORT_SYMBOL(hdmi_infoframe_log);
+@@ -1614,6 +1794,52 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
+ 	return 0;
+ }
+ 
++/**
++ * hdmi_mpeg_source_infoframe_unpack() - unpack binary buffer to a HDMI MPEG Source infoframe
++ * @frame: HDMI MPEG Source infoframe
++ * @buffer: source buffer
++ * @size: size of buffer
++ *
++ * Unpacks the information contained in binary @buffer into a structured
++ * @frame of the HDMI MPEG Source information frame.
++ * Also verifies the checksum as required by section 5.3.5 of the HDMI 1.4
++ * specification.
++ *
++ * Returns 0 on success or a negative error code on failure.
++ */
++static int hdmi_mpeg_source_infoframe_unpack(struct hdmi_mpeg_source_infoframe *frame,
++					     const void *buffer, size_t size)
++{
++	const u8 *ptr = buffer;
++	int ret;
++
++	if (size < HDMI_INFOFRAME_SIZE(MPEG_SOURCE))
++		return -EINVAL;
++
++	if (ptr[0] != HDMI_INFOFRAME_TYPE_MPEG_SOURCE ||
++	    ptr[1] != 1 ||
++	    ptr[2] != HDMI_MPEG_SOURCE_INFOFRAME_SIZE) {
++		return -EINVAL;
++	}
++
++	if (hdmi_infoframe_checksum(buffer, HDMI_INFOFRAME_SIZE(MPEG_SOURCE)) != 0)
++		return -EINVAL;
++
++	ret = hdmi_mpeg_source_infoframe_init(frame);
++	if (ret)
++		return ret;
++
++	ptr += HDMI_INFOFRAME_HEADER_SIZE;
++
++	frame->mpeg_bit_rate =
++		(ptr[0] << 0) | (ptr[1] << 8) |
++		(ptr[2] << 16) | (ptr[3] << 24);
++	frame->mpeg_frame = ptr[4] & 0x3;
++	frame->field_repeat = ptr[4] & 0x10;
++
++	return 0;
++}
++
+ /**
+  * hdmi_infoframe_unpack() - unpack binary buffer to a HDMI infoframe
+  * @frame: HDMI infoframe
+@@ -1649,6 +1875,9 @@ int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
+ 	case HDMI_INFOFRAME_TYPE_VENDOR:
+ 		ret = hdmi_vendor_any_infoframe_unpack(&frame->vendor, buffer, size);
+ 		break;
++	case HDMI_INFOFRAME_TYPE_MPEG_SOURCE:
++		ret = hdmi_mpeg_source_infoframe_unpack(&frame->mpeg_source, buffer, size);
++		break;
+ 	default:
+ 		ret = -EINVAL;
+ 		break;
+diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
+index 80521d9591a1..2c9322f7538d 100644
+--- a/include/linux/hdmi.h
++++ b/include/linux/hdmi.h
+@@ -47,6 +47,7 @@ enum hdmi_infoframe_type {
+ 	HDMI_INFOFRAME_TYPE_AVI = 0x82,
+ 	HDMI_INFOFRAME_TYPE_SPD = 0x83,
+ 	HDMI_INFOFRAME_TYPE_AUDIO = 0x84,
++	HDMI_INFOFRAME_TYPE_MPEG_SOURCE = 0x85,
+ };
+ 
+ #define HDMI_IEEE_OUI 0x000c03
+@@ -55,6 +56,7 @@ enum hdmi_infoframe_type {
+ #define HDMI_AVI_INFOFRAME_SIZE    13
+ #define HDMI_SPD_INFOFRAME_SIZE    25
+ #define HDMI_AUDIO_INFOFRAME_SIZE  10
++#define HDMI_MPEG_SOURCE_INFOFRAME_SIZE  10
+ 
+ #define HDMI_INFOFRAME_SIZE(type)	\
+ 	(HDMI_INFOFRAME_HEADER_SIZE + HDMI_ ## type ## _INFOFRAME_SIZE)
+@@ -337,6 +339,29 @@ union hdmi_vendor_any_infoframe {
+ 	struct hdmi_vendor_infoframe hdmi;
+ };
+ 
++enum hdmi_mpeg_frame {
++	HDMI_MPEG_FRAME_UNKNOWN,
++	HDMI_MPEG_FRAME_I_PICTURE,
++	HDMI_MPEG_FRAME_B_PICTURE,
++	HDMI_MPEG_FRAME_P_PICTURE,
++};
++
++struct hdmi_mpeg_source_infoframe {
++	enum hdmi_infoframe_type type;
++	unsigned char version;
++	unsigned char length;
++	unsigned int mpeg_bit_rate;
++	enum hdmi_mpeg_frame mpeg_frame;
++	bool field_repeat;
++};
++
++int hdmi_mpeg_source_infoframe_init(struct hdmi_mpeg_source_infoframe *frame);
++ssize_t hdmi_mpeg_source_infoframe_pack(struct hdmi_mpeg_source_infoframe *frame,
++					void *buffer, size_t size);
++ssize_t hdmi_mpeg_source_infoframe_pack_only(const struct hdmi_mpeg_source_infoframe *frame,
++					     void *buffer, size_t size);
++int hdmi_mpeg_source_infoframe_check(struct hdmi_mpeg_source_infoframe *frame);
++
+ /**
+  * union hdmi_infoframe - overall union of all abstract infoframe representations
+  * @any: generic infoframe
+@@ -344,6 +369,7 @@ union hdmi_vendor_any_infoframe {
+  * @spd: spd infoframe
+  * @vendor: union of all vendor infoframes
+  * @audio: audio infoframe
++ * @mpeg_source: mpeg source infoframe
+  *
+  * This is used by the generic pack function. This works since all infoframes
+  * have the same header which also indicates which type of infoframe should be
+@@ -355,6 +381,7 @@ union hdmi_infoframe {
+ 	struct hdmi_spd_infoframe spd;
+ 	union hdmi_vendor_any_infoframe vendor;
+ 	struct hdmi_audio_infoframe audio;
++	struct hdmi_mpeg_source_infoframe mpeg_source;
+ };
+ 
+ ssize_t hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer,
+-- 
+2.16.4
