@@ -1,55 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41646 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2389749AbeIURwS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 13:52:18 -0400
-Date: Fri, 21 Sep 2018 15:03:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dave Stevenson <dave.stevenson@raspberrypi.org>,
-        kieran.bingham@ideasonboard.com,
-        niklas.soderlund+renesas@ragnatech.se, jacopo@jmondi.org,
-        LMML <linux-media@vger.kernel.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 1/3] i2c: adv748x: store number of CSI-2 lanes described
- in device tree
-Message-ID: <20180921120342.ku3ed3jkn5puavu6@valkosipuli.retiisi.org.uk>
-References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
- <1658112.YQ0khu1noY@avalon>
- <CAAoAYcPrEx9bsB0TZ87N8CqsHhWBDzLStOptv2nv6iyfWZqcZg@mail.gmail.com>
- <6518376.j8BxZoQUpz@avalon>
+Received: from mga01.intel.com ([192.55.52.88]:6845 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2389685AbeIURlD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Sep 2018 13:41:03 -0400
+Date: Fri, 21 Sep 2018 14:51:55 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: "Zhi, Yong" <yong.zhi@intel.com>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+Subject: Re: [PATCH v6 06/12] intel-ipu3: css: Add support for firmware
+ management
+Message-ID: <20180921115154.5uscfe2eqt75ugsp@kekkonen.localdomain>
+References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
+ <1522376100-22098-7-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5BdEvzEv63oXpC1PmPdut8kNmFzdL63nEVqhnLHets2ZA@mail.gmail.com>
+ <C193D76D23A22742993887E6D207B54D3DAFB78C@ORSMSX103.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <6518376.j8BxZoQUpz@avalon>
+In-Reply-To: <C193D76D23A22742993887E6D207B54D3DAFB78C@ORSMSX103.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Yong,
 
-On Fri, Sep 21, 2018 at 01:01:09PM +0300, Laurent Pinchart wrote:
+On Wed, Sep 19, 2018 at 10:57:55PM +0000, Zhi, Yong wrote:
 ...
-> > There is also the oddball one of the TC358743 which dynamically
-> > switches the number of lanes in use based on the data rate required.
-> > That's probably a separate discussion, but is currently dealt with via
-> > g_mbus_config as amended back in Sept 2017 [1].
+> > > +struct imgu_abi_osys_frame_params {
+> > > +       /* Output pins */
+> > > +       __u32 enable;
+> > > +       __u32 format;           /* enum imgu_abi_osys_format */
+> > > +       __u32 flip;
+> > > +       __u32 mirror;
+> > > +       __u32 tiling;           /* enum imgu_abi_osys_tiling */
+> > > +       __u32 width;
+> > > +       __u32 height;
+> > > +       __u32 stride;
+> > > +       __u32 scaled;
+> > > +} __packed;
+> > [snip]
+> > > +/* Defect pixel correction */
+> > > +
+> > > +struct imgu_abi_dpc_config {
+> > > +       __u8 __reserved[240832];
+> > > +} __packed;
+> > 
+> > Do we need this structure? One could just add a reserved field in the parent
+> > structure. Also, just to confirm, is 240832 really the right value here?
+> > Where does it come from? Please create a macro for it, possibly further
+> > breaking it down into the values used to compute this number.
+> > 
 > 
-> This falls into the case of dynamic configuration discovery and negotiation I 
-> mentioned above, and we clearly need to make sure the v4l2_subdev API supports 
-> this use case.
+> We can add a reserved field in the parent structure, the size is based on
+> original definition of dpc config which was removed since it's not
+> enabled/used.
 
-This could be added to struct v4l2_mbus_frame_desc; Niklas has driver that
-uses the framework support here, so this would likely end up merged soon:
+What's your plan with the DPC? If you don't plan to add it now, you could
+as well drop the configuration for that block. If there's a need to add it
+later on, you can still do it by defining a new struct for the buffer. Or
+simply adding it at the end of the existing struct while allowing the use
+of the old size without the DPC configuration.
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/tree/include/media/v4l2-subdev.h?h=vc&id=0cbd2b25b37ef5b2e6a14340dbca6d2d2d5af98e>
-
-The CSI-2 bus parameters are missing there currently but nothing prevents
-adding them. The semantics of set_frame_desc() needs to be probably defined
-better than it currently is.
+There would be a little extra work to do there by that time when DPC
+support would be added, but OTOH it seems silly to have quarter of a
+megabyte of extra stuff to pass around in a struct that's never used.
 
 -- 
 Regards,
 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
