@@ -1,107 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb1-f196.google.com ([209.85.219.196]:32771 "EHLO
-        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725898AbeIUNlQ (ORCPT
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:35815 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2388875AbeIUNct (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 09:41:16 -0400
-Received: by mail-yb1-f196.google.com with SMTP id y9-v6so5069135ybh.0
-        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 00:53:35 -0700 (PDT)
-Received: from mail-yw1-f42.google.com (mail-yw1-f42.google.com. [209.85.161.42])
-        by smtp.gmail.com with ESMTPSA id l127-v6sm4708410ywc.5.2018.09.21.00.53.33
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 21 Sep 2018 00:53:33 -0700 (PDT)
-Received: by mail-yw1-f42.google.com with SMTP id 14-v6so4843771ywe.2
-        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 00:53:33 -0700 (PDT)
+        Fri, 21 Sep 2018 09:32:49 -0400
+Received: by mail-ed1-f68.google.com with SMTP id y20-v6so9961817edq.2
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 00:45:09 -0700 (PDT)
+Subject: Re: [PATCH] libv4l: Add support for BAYER10P format conversion
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+References: <20180920200406.18066-1-ricardo.ribalda@gmail.com>
+ <18939b75-e0b2-5893-f462-90cce035e7f9@redhat.com>
+ <CAPybu_3DGBhdKByNiZgu+aQ+r8PGAQgokr7=0DpnYwWdiqJvwA@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <4152d2d4-efae-d8f5-ceb3-26f93530e5e5@redhat.com>
+Date: Fri, 21 Sep 2018 09:45:07 +0200
 MIME-Version: 1.0
-References: <1537163872-14567-1-git-send-email-bingbu.cao@intel.com>
- <CAAFQd5Dp8kp6fi8bXr6jODO0Cr4Kqu5L0eSXudsrOkHK6cKdjg@mail.gmail.com> <c2998a8f-90bf-e5c8-e45d-e52d2bebcca0@linux.intel.com>
-In-Reply-To: <c2998a8f-90bf-e5c8-e45d-e52d2bebcca0@linux.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Fri, 21 Sep 2018 16:53:21 +0900
-Message-ID: <CAAFQd5DWfwvQG2DYkT+2ONnxDwtBuRRmo5+o=6SLHX2-btE9zA@mail.gmail.com>
-Subject: Re: [PATCH v5] media: add imx319 camera sensor driver
-To: bingbu.cao@linux.intel.com
-Cc: Cao Bing Bu <bingbu.cao@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAPybu_3DGBhdKByNiZgu+aQ+r8PGAQgokr7=0DpnYwWdiqJvwA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 21, 2018 at 11:28 AM Bing Bu Cao <bingbu.cao@linux.intel.com> wrote:
->
->
-> On 09/18/2018 05:49 PM, Tomasz Figa wrote:
-> > Hi Bingbu,
-> >
-> > On Mon, Sep 17, 2018 at 2:53 PM <bingbu.cao@intel.com> wrote:
-> >> From: Bingbu Cao <bingbu.cao@intel.com>
-> >>
-> >> Add a v4l2 sub-device driver for the Sony imx319 image sensor.
-> >> This is a camera sensor using the i2c bus for control and the
-> >> csi-2 bus for data.
-> > Please see my comments inline. Also, I'd appreciate being CCed on
-> > related work in the future.
-> Ack.
-> Sorry, will add you into the cc-list.
-> >
-> > [snip]
-> >> +
-> >> +static const char * const imx319_test_pattern_menu[] = {
-> >> +       "Disabled",
-> >> +       "100% color bars",
-> >> +       "Solid color",
-> >> +       "Fade to gray color bars",
-> >> +       "PN9"
-> >> +};
-> >> +
-> >> +static const int imx319_test_pattern_val[] = {
-> >> +       IMX319_TEST_PATTERN_DISABLED,
-> >> +       IMX319_TEST_PATTERN_COLOR_BARS,
-> >> +       IMX319_TEST_PATTERN_SOLID_COLOR,
-> >> +       IMX319_TEST_PATTERN_GRAY_COLOR_BARS,
-> >> +       IMX319_TEST_PATTERN_PN9,
-> >> +};
-> > This array is not needed. All the entries are equal to corresponding
-> > indices, i.e. the array is equivalent to { 0, 1, 2, 3, 4 }. We can use
-> > ctrl->val directly.
-> Ack.
-> > [snip]
-> >
-> >> +/* Write a list of registers */
-> >> +static int imx319_write_regs(struct imx319 *imx319,
-> >> +                             const struct imx319_reg *regs, u32 len)
-> >> +{
-> >> +       struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
-> >> +       int ret;
-> >> +       u32 i;
-> >> +
-> >> +       for (i = 0; i < len; i++) {
-> >> +               ret = imx319_write_reg(imx319, regs[i].address, 1, regs[i].val);
-> >> +               if (ret) {
-> >> +                       dev_err_ratelimited(&client->dev,
-> >> +
-> > Hmm, the message is clipped here. Let me see if it's something with my
-> > email client...
-> The code here:
->
-> 1827 for (i = 0; i < len; i++) {
-> 1828 ret = imx319_write_reg(imx319, regs[i].address, 1, regs[i].val);
-> 1829 if (ret) {
-> 1830 dev_err_ratelimited(&client->dev,
-> 1831 "write reg 0x%4.4x return err %d",
-> 1832 regs[i].address, ret);
-> 1833 return ret;
-> 1834 }
-> 1835 } Same as the code shown on your client?
+Hi,
 
-That was an issue with my email client, which showed only lines until
-1831. I've worked around it and reviewed rest of the code in next
-reply. Sorry for the noise.
+On 21-09-18 09:40, Ricardo Ribalda Delgado wrote:
+> Hi Hans
+> 
+> On Fri, Sep 21, 2018 at 9:38 AM Hans de Goede <hdegoede@redhat.com> wrote:
+>>
+>> Hi,
+>>
+>> On 20-09-18 22:04, Ricardo Ribalda Delgado wrote:
+>>> Add support for 10 bit packet Bayer formats:
+>>> -V4L2_PIX_FMT_SBGGR10P
+>>> -V4L2_PIX_FMT_SGBRG10P
+>>> -V4L2_PIX_FMT_SGRBG10P
+>>> -V4L2_PIX_FMT_SRGGB10P
+>>>
+>>> These formats pack the 2 LSBs for every 4 pixels in an indeppendent
+>>> byte.
+>>>
+>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>>> ---
+>>>    lib/libv4lconvert/bayer.c              | 15 +++++++++++
+>>>    lib/libv4lconvert/libv4lconvert-priv.h |  4 +++
+>>>    lib/libv4lconvert/libv4lconvert.c      | 35 ++++++++++++++++++++++++++
+>>>    3 files changed, 54 insertions(+)
+>>>
+>>> diff --git a/lib/libv4lconvert/bayer.c b/lib/libv4lconvert/bayer.c
+>>> index 4b70ddd9..d7d488f9 100644
+>>> --- a/lib/libv4lconvert/bayer.c
+>>> +++ b/lib/libv4lconvert/bayer.c
+>>> @@ -631,3 +631,18 @@ void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
+>>>        v4lconvert_border_bayer_line_to_y(bayer + stride, bayer, ydst, width,
+>>>                        !start_with_green, !blue_line);
+>>>    }
+>>> +
+>>> +void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
+>>> +             unsigned char *bayer8, int width, int height)
+>>> +{
+>>> +     long i, len = width * height;
+>>> +     uint32_t *src, *dst;
+>>> +
+>>> +     src = (uint32_t *)bayer10p;
+>>> +     dst = (uint32_t *)bayer8;
+>>> +     for (i = 0; i < len ; i += 4) {
+>>> +             *dst = *src;
+>>> +             dst++;
+>>> +             src = (uint32_t *)(((uint8_t *)src) + 5);
+>>
+>> This will lead to unaligned 32 bit integer accesses which will terminate
+>> the program with an illegal instruction on pretty much all architectures
+>> except for x86.
+> 
+> I see your point, but I am actually using this code on ARM64 with no issues.
 
-Best regards,
-Tomasz
+That is weird, this is definitely illegal on armv7 perhaps the compiler
+recognizes the problem and fixes it in the generated code?
+
+> I will change it.
+
+Thanks.
+
+>>
+>> You will need to copy the 4 components 1 by 1 so that you only
+>> use byte accesses.
+>>
+>> Also you seem to simply be throwing away the extra 2 bits, although
+>> that will work I wonder if that is the best we can do?
+> 
+> Those are the LSB. If the user want the extra resolution has to use
+> the bayer mode.
+
+Ok.
+
+Regards,
+
+Hans
+
+
+
+> 
+>>
+>> Regards,
+>>
+>> Hans
+>>
+>>
+>>
+>>> +     }
+>>> +}
+>>
+>>
+>>
+>>> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+>>> index 9a467e10..3020a39e 100644
+>>> --- a/lib/libv4lconvert/libv4lconvert-priv.h
+>>> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
+>>> @@ -264,6 +264,10 @@ void v4lconvert_bayer_to_bgr24(const unsigned char *bayer,
+>>>    void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
+>>>                int width, int height, const unsigned int stride, unsigned int src_pixfmt, int yvu);
+>>>
+>>> +
+>>> +void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
+>>> +             unsigned char *bayer8, int width, int height);
+>>> +
+>>>    void v4lconvert_hm12_to_rgb24(const unsigned char *src,
+>>>                unsigned char *dst, int width, int height);
+>>>
+>>> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+>>> index d666bd97..b3dbf5a0 100644
+>>> --- a/lib/libv4lconvert/libv4lconvert.c
+>>> +++ b/lib/libv4lconvert/libv4lconvert.c
+>>> @@ -133,6 +133,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>>>        { V4L2_PIX_FMT_SRGGB8,           8,      8,      8,     0 },
+>>>        { V4L2_PIX_FMT_STV0680,          8,      8,      8,     1 },
+>>>        { V4L2_PIX_FMT_SGRBG10,         16,      8,      8,     1 },
+>>> +     { V4L2_PIX_FMT_SBGGR10P,        10,      8,      8,     1 },
+>>> +     { V4L2_PIX_FMT_SGBRG10P,        10,      8,      8,     1 },
+>>> +     { V4L2_PIX_FMT_SGRBG10P,        10,      8,      8,     1 },
+>>> +     { V4L2_PIX_FMT_SRGGB10P,        10,      8,      8,     1 },
+>>>        /* compressed bayer */
+>>>        { V4L2_PIX_FMT_SPCA561,          0,      9,      9,     1 },
+>>>        { V4L2_PIX_FMT_SN9C10X,          0,      9,      9,     1 },
+>>> @@ -687,6 +691,10 @@ static int v4lconvert_processing_needs_double_conversion(
+>>>        case V4L2_PIX_FMT_SGBRG8:
+>>>        case V4L2_PIX_FMT_SGRBG8:
+>>>        case V4L2_PIX_FMT_SRGGB8:
+>>> +     case V4L2_PIX_FMT_SBGGR10P:
+>>> +     case V4L2_PIX_FMT_SGBRG10P:
+>>> +     case V4L2_PIX_FMT_SGRBG10P:
+>>> +     case V4L2_PIX_FMT_SRGGB10P:
+>>>        case V4L2_PIX_FMT_STV0680:
+>>>                return 0;
+>>>        }
+>>> @@ -979,6 +987,33 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>>>        }
+>>>
+>>>                /* Raw bayer formats */
+>>> +     case V4L2_PIX_FMT_SBGGR10P:
+>>> +     case V4L2_PIX_FMT_SGBRG10P:
+>>> +     case V4L2_PIX_FMT_SGRBG10P:
+>>> +     case V4L2_PIX_FMT_SRGGB10P:
+>>> +             if (src_size < ((width * height * 10)/8)) {
+>>> +                     V4LCONVERT_ERR("short raw bayer10 data frame\n");
+>>> +                     errno = EPIPE;
+>>> +                     result = -1;
+>>> +             }
+>>> +             switch (src_pix_fmt) {
+>>> +             case V4L2_PIX_FMT_SBGGR10P:
+>>> +                     src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
+>>> +                     break;
+>>> +             case V4L2_PIX_FMT_SGBRG10P:
+>>> +                     src_pix_fmt = V4L2_PIX_FMT_SGBRG8;
+>>> +                     break;
+>>> +             case V4L2_PIX_FMT_SGRBG10P:
+>>> +                     src_pix_fmt = V4L2_PIX_FMT_SGRBG8;
+>>> +                     break;
+>>> +             case V4L2_PIX_FMT_SRGGB10P:
+>>> +                     src_pix_fmt = V4L2_PIX_FMT_SRGGB8;
+>>> +                     break;
+>>> +             }
+>>> +             v4lconvert_bayer10p_to_bayer8(src, src, width, height);
+>>> +             bytesperline = width;
+>>> +
+>>> +     /* Fall-through*/
+>>>        case V4L2_PIX_FMT_SBGGR8:
+>>>        case V4L2_PIX_FMT_SGBRG8:
+>>>        case V4L2_PIX_FMT_SGRBG8:
+>>>
+> 
+> 
+> 
