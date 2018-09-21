@@ -1,63 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39900 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S2389444AbeIUOpc (ORCPT
+Received: from mail-ed1-f66.google.com ([209.85.208.66]:40230 "EHLO
+        mail-ed1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2389022AbeIUOwK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 10:45:32 -0400
-Date: Fri, 21 Sep 2018 11:57:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [GIT FIXES for 4.19] Prevent freeing media subscriptions while
- they're being accessed
-Message-ID: <20180921085738.mmupbnn7wjzhchxf@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Fri, 21 Sep 2018 10:52:10 -0400
+Received: by mail-ed1-f66.google.com with SMTP id j62-v6so10101722edd.7
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 02:04:15 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2] libv4l: Add support for BAYER10P format conversion
+Date: Fri, 21 Sep 2018 11:04:12 +0200
+Message-Id: <20180921090412.28044-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add support for 10 bit packet Bayer formats:
+-V4L2_PIX_FMT_SBGGR10P
+-V4L2_PIX_FMT_SGBRG10P
+-V4L2_PIX_FMT_SGRBG10P
+-V4L2_PIX_FMT_SRGGB10P
 
-There's just a single patch in this pull request: the one that prevents
-releasing media event subscription memory while it is still being accessed.
+These formats pack the 2 LSBs for every 4 pixels in an indeppendent
+byte.
 
-Compared to what was last reviewed on the list, I added Cc to stable, for
-this patch applies to 4.14 as well.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ lib/libv4lconvert/bayer.c              | 21 ++++++++++++++++
+ lib/libv4lconvert/libv4lconvert-priv.h |  4 +++
+ lib/libv4lconvert/libv4lconvert.c      | 35 ++++++++++++++++++++++++++
+ 3 files changed, 60 insertions(+)
 
-Older LTS kernels (3.16, 4.4 and 4.9) need changes to the patch. I'll send
-them separately to stable@vger..., cc'ing you, Hans and Laurent as well as
-the list once this is in.
-
-Please pull.
-
-
-The following changes since commit 324493fba77500592bbaa66421729421f139d4b5:
-
-  media: platform: fix cros-ec-cec build error (2018-09-17 14:32:29 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/event-fix-6
-
-for you to fetch changes up to 88372fdff68f864316fbd7d9e9941ae24dc110eb:
-
-  v4l: event: Prevent freeing event subscriptions while accessed (2018-09-21 11:52:08 +0300)
-
-----------------------------------------------------------------
-v4l2 event memory corruption fix
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      v4l: event: Prevent freeing event subscriptions while accessed
-
- drivers/media/v4l2-core/v4l2-event.c | 38 +++++++++++++++++++-----------------
- drivers/media/v4l2-core/v4l2-fh.c    |  2 ++
- include/media/v4l2-fh.h              |  4 ++++
- 3 files changed, 26 insertions(+), 18 deletions(-)
-
+diff --git a/lib/libv4lconvert/bayer.c b/lib/libv4lconvert/bayer.c
+index 4b70ddd9..11af6543 100644
+--- a/lib/libv4lconvert/bayer.c
++++ b/lib/libv4lconvert/bayer.c
+@@ -631,3 +631,24 @@ void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
+ 	v4lconvert_border_bayer_line_to_y(bayer + stride, bayer, ydst, width,
+ 			!start_with_green, !blue_line);
+ }
++
++void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
++		unsigned char *bayer8, int width, int height)
++{
++	unsigned long i;
++	unsigned long len = width * height;
++
++	for (i = 0; i < len ; i += 4) {
++		/*
++		 * Do not use a second loop, hoping that
++		 * a clever compiler with understand the
++		 * pattern and will optimize it.
++		 */
++		bayer8[0] = bayer10p[0];
++		bayer8[1] = bayer10p[1];
++		bayer8[2] = bayer10p[2];
++		bayer8[3] = bayer10p[3];
++		bayer10p += 5;
++		bayer8 += 4;
++	}
++}
+diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+index 9a467e10..3020a39e 100644
+--- a/lib/libv4lconvert/libv4lconvert-priv.h
++++ b/lib/libv4lconvert/libv4lconvert-priv.h
+@@ -264,6 +264,10 @@ void v4lconvert_bayer_to_bgr24(const unsigned char *bayer,
+ void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
+ 		int width, int height, const unsigned int stride, unsigned int src_pixfmt, int yvu);
+ 
++
++void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
++		unsigned char *bayer8, int width, int height);
++
+ void v4lconvert_hm12_to_rgb24(const unsigned char *src,
+ 		unsigned char *dst, int width, int height);
+ 
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index d666bd97..b3dbf5a0 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -133,6 +133,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+ 	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
+ 	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
+ 	{ V4L2_PIX_FMT_SGRBG10,		16,	 8,	 8,	1 },
++	{ V4L2_PIX_FMT_SBGGR10P,	10,	 8,	 8,	1 },
++	{ V4L2_PIX_FMT_SGBRG10P,	10,	 8,	 8,	1 },
++	{ V4L2_PIX_FMT_SGRBG10P,	10,	 8,	 8,	1 },
++	{ V4L2_PIX_FMT_SRGGB10P,	10,	 8,	 8,	1 },
+ 	/* compressed bayer */
+ 	{ V4L2_PIX_FMT_SPCA561,		 0,	 9,	 9,	1 },
+ 	{ V4L2_PIX_FMT_SN9C10X,		 0,	 9,	 9,	1 },
+@@ -687,6 +691,10 @@ static int v4lconvert_processing_needs_double_conversion(
+ 	case V4L2_PIX_FMT_SGBRG8:
+ 	case V4L2_PIX_FMT_SGRBG8:
+ 	case V4L2_PIX_FMT_SRGGB8:
++	case V4L2_PIX_FMT_SBGGR10P:
++	case V4L2_PIX_FMT_SGBRG10P:
++	case V4L2_PIX_FMT_SGRBG10P:
++	case V4L2_PIX_FMT_SRGGB10P:
+ 	case V4L2_PIX_FMT_STV0680:
+ 		return 0;
+ 	}
+@@ -979,6 +987,33 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 	}
+ 
+ 		/* Raw bayer formats */
++	case V4L2_PIX_FMT_SBGGR10P:
++	case V4L2_PIX_FMT_SGBRG10P:
++	case V4L2_PIX_FMT_SGRBG10P:
++	case V4L2_PIX_FMT_SRGGB10P:
++		if (src_size < ((width * height * 10)/8)) {
++			V4LCONVERT_ERR("short raw bayer10 data frame\n");
++			errno = EPIPE;
++			result = -1;
++		}
++		switch (src_pix_fmt) {
++		case V4L2_PIX_FMT_SBGGR10P:
++			src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
++			break;
++		case V4L2_PIX_FMT_SGBRG10P:
++			src_pix_fmt = V4L2_PIX_FMT_SGBRG8;
++			break;
++		case V4L2_PIX_FMT_SGRBG10P:
++			src_pix_fmt = V4L2_PIX_FMT_SGRBG8;
++			break;
++		case V4L2_PIX_FMT_SRGGB10P:
++			src_pix_fmt = V4L2_PIX_FMT_SRGGB8;
++			break;
++		}
++		v4lconvert_bayer10p_to_bayer8(src, src, width, height);
++		bytesperline = width;
++
++	/* Fall-through*/
+ 	case V4L2_PIX_FMT_SBGGR8:
+ 	case V4L2_PIX_FMT_SGBRG8:
+ 	case V4L2_PIX_FMT_SGRBG8:
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.18.0
