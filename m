@@ -1,1159 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:59046 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388909AbeIUPQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 11:16:37 -0400
-Date: Fri, 21 Sep 2018 12:28:33 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] [media] imx214: Add imx214 camera sensor driver
-Message-ID: <20180921092833.c3bznrhc3yyarmq4@kekkonen.localdomain>
-References: <20180921085450.19224-1-ricardo.ribalda@gmail.com>
+Received: from mx07-00252a01.pphosted.com ([62.209.51.214]:54080 "EHLO
+        mx07-00252a01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726479AbeIUPcz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Sep 2018 11:32:55 -0400
+Received: from pps.filterd (m0102628.ppops.net [127.0.0.1])
+        by mx07-00252a01.pphosted.com (8.16.0.23/8.16.0.23) with SMTP id w8L9VJIr010290
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 10:33:54 +0100
+Received: from mail-pf1-f197.google.com (mail-pf1-f197.google.com [209.85.210.197])
+        by mx07-00252a01.pphosted.com with ESMTP id 2mmkmdr6r9-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=OK)
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 10:33:54 +0100
+Received: by mail-pf1-f197.google.com with SMTP id e15-v6so6394186pfi.5
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2018 02:33:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180921085450.19224-1-ricardo.ribalda@gmail.com>
+References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
+ <1715235.WJqBHKOvrx@avalon> <21b8a885-48c5-70c8-8866-1830c45c27a9@ideasonboard.com>
+ <1658112.YQ0khu1noY@avalon>
+In-Reply-To: <1658112.YQ0khu1noY@avalon>
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Fri, 21 Sep 2018 10:33:39 +0100
+Message-ID: <CAAoAYcPrEx9bsB0TZ87N8CqsHhWBDzLStOptv2nv6iyfWZqcZg@mail.gmail.com>
+Subject: Re: [PATCH 1/3] i2c: adv748x: store number of CSI-2 lanes described
+ in device tree
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: kieran.bingham@ideasonboard.com,
+        niklas.soderlund+renesas@ragnatech.se, jacopo@jmondi.org,
+        LMML <linux-media@vger.kernel.org>,
+        linux-renesas-soc@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Ricardo!
+Hi All,
 
-Thanks for the patch.
+On Tue, 18 Sep 2018 at 12:13, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Kieran,
+>
+> On Tuesday, 18 September 2018 13:51:34 EEST Kieran Bingham wrote:
+> > On 18/09/18 11:46, Laurent Pinchart wrote:
+> > > On Tuesday, 18 September 2018 13:37:55 EEST Kieran Bingham wrote:
+> > >> On 18/09/18 11:28, Laurent Pinchart wrote:
+> > >>> On Tuesday, 18 September 2018 13:19:39 EEST Kieran Bingham wrote:
+> > >>>> On 18/09/18 02:45, Niklas S=C3=B6derlund wrote:
+> > >>>>> The adv748x CSI-2 transmitters TXA and TXB can use different numb=
+er of
+> > >>>>> lines to transmit data on. In order to be able configure the devi=
+ce
+> > >>>>> correctly this information need to be parsed from device tree and
+> > >>>>> stored in each TX private data structure.
+> > >>>>>
+> > >>>>> TXA supports 1, 2 and 4 lanes while TXB supports 1 lane.
+> > >>>>
+> > >>>> Am I right in assuming that it is the CSI device which specifies t=
+he
+> > >>>> number of lanes in their DT?
+> > >>>
+> > >>> Do you mean the CSI-2 receiver ? Both the receiver and the transmit=
+ter
+> > >>> should specify the data lanes in their DT node.
+> > >>
+> > >> Yes, I should have said CSI-2 receiver.
+> > >>
+> > >> Aha - so *both* sides of the link have to specify the lanes and
+> > >> presumably match with each other?
+> > >
+> > > Yes, they should certainly match :-)
+> >
+> > I assumed so :) - do we need to validate that at a framework level?
+> > (or perhaps it already is, all I've only looked at this morning is
+> > e-mails :D )
+>
+> It's not done yet as far as I know. CC'ing Sakari who may have a comment
+> regarding whether this should be added.
 
-On Fri, Sep 21, 2018 at 10:54:49AM +0200, Ricardo Ribalda Delgado wrote:
-> Add a V4L2 sub-device driver for the Sony IMX214 image sensor.
-> This is a camera sensor using the I2C bus for control and the
-> CSI-2 bus for data.
-> 
-> Tested on a DB820c alike board with Intrinsyc Open-Q 13MP camera.
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  MAINTAINERS                |   8 +
->  drivers/media/i2c/Kconfig  |  12 +
->  drivers/media/i2c/Makefile |   1 +
->  drivers/media/i2c/imx214.c | 994 +++++++++++++++++++++++++++++++++++++
->  4 files changed, 1015 insertions(+)
->  create mode 100644 drivers/media/i2c/imx214.c
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 9989925f658d..2ae68894e700 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -13521,6 +13521,14 @@ S:	Maintained
->  F:	drivers/ssb/
->  F:	include/linux/ssb/
->  
-> +SONY IMX214 SENSOR DRIVER
-> +M:	Ricardo Ribalda <ricardo.ribalda@gmail.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/imx214.c
-> +F:	Documentation/devicetree/bindings/media/i2c/imx214.txt
+(Interested party here due to CSI2 interfacing on the Pi, and I'd like
+to try and get adv748x working on the Pi once I can get some hardware)
 
-DT bindings come before the driver; please swap the order for v2.
+Do they need to match? DT is supposedly describing the hardware. Where
+are you drawing the boundary between the two devices from the
+hardware/devicetree perspective?
 
-> +
->  SONY IMX258 SENSOR DRIVER
->  M:	Sakari Ailus <sakari.ailus@linux.intel.com>
->  L:	linux-media@vger.kernel.org
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index bfdb494686bf..d9416b3a090c 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -595,6 +595,18 @@ config VIDEO_APTINA_PLL
->  config VIDEO_SMIAPP_PLL
->  	tristate
->  
-> +config VIDEO_IMX214
-> +	tristate "Sony IMX214 sensor support"
-> +	depends on GPIOLIB && I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> +	depends on OF
-> +	depends on MEDIA_CAMERA_SUPPORT
-> +	help
-> +	  This is a Video4Linux2 sensor driver for the Sony
-> +	  IMX214 camera.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called imx214.
-> +
->  config VIDEO_IMX258
->  	tristate "Sony IMX258 sensor support"
->  	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index a94eb03d10d4..61305edc6165 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -106,6 +106,7 @@ obj-$(CONFIG_VIDEO_I2C)		+= video-i2c.o
->  obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
->  obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
->  obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
-> +obj-$(CONFIG_VIDEO_IMX214)	+= imx214.o
->  obj-$(CONFIG_VIDEO_IMX258)	+= imx258.o
->  obj-$(CONFIG_VIDEO_IMX274)	+= imx274.o
->  
-> diff --git a/drivers/media/i2c/imx214.c b/drivers/media/i2c/imx214.c
-> new file mode 100644
-> index 000000000000..3a425818036c
-> --- /dev/null
-> +++ b/drivers/media/i2c/imx214.c
-> @@ -0,0 +1,994 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * imx214.c - imx214 sensor driver
-> + *
-> + * Copyright 2018 Qtechnology A/S
-> + *
-> + * Ricardo Ribalda <ricardo.ribalda@gmail.com>
-> + */
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +#include <linux/clk.h>
-> +#include <linux/regulator/consumer.h>
-> +#include <linux/gpio/consumer.h>
-> +#include <linux/delay.h>
-> +#include <linux/regmap.h>
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-fwnode.h>
-> +#include <media/v4l2-subdev.h>
-> +#include <media/v4l2-ctrls.h>
-> +
-> +#define IMX214_VOLTAGE_AVDD		2700000
-> +#define IMX214_VOLTAGE_DVDD		1120000
-> +#define IMX214_VOLTAGE_DOVDD		1800000
+As an example, the CSI2 receiver can support 4 lanes, whilst the
+source only needs 2, or only has 2 connected. As long as the two ends
+agree on the value in use (which will typically match the source),
+then there is no issue.
+It does require the CSI2 receiver driver to validate the remote
+endpoint settings to ensure that the source doesn't try to use more
+lanes than the receiver can cope with. That isn't a big deal as you
+already have the link to the remote end-point. Presumably you're
+already checking it to determine settings such as if the source is
+using continuous clocks or not, unless you expect that to be
+duplicated on both endpoints or your hardware doesn't care.
 
-While I guess there's nothing wrong technically here (or using
-regulator_set_voltage()), the other sensor drivers depend on the voltages
-being set in DT rather than in drivers. The reason could be that as range
-of voltages is fine for a sensor, another device requiring slightly
-different voltage than the nominal voltage of the sensor could be powered
-from the same regulator.
+I'm genuinely interested on views here. On the Pi there will be a
+variety of CSI2 devices connected, generally configured using
+dtoverlays, and they will have varying requirements on number of
+lanes. Standard Pis only have 2 CSI-2 lanes exposed out of a possible
+4 for the peripheral. The Compute Module is the exception where one
+CSI2 interface has all 4 lanes brought out, the other only supports 2
+lanes anyway.
+I'm expecting the CSI2 receiver endpoint data-lanes property to match
+that exposed by the Pi board, whilst the source endpoint data-lanes
+property defines what the source uses. That allows easy validation by
+the driver that the configuration can work. Otherwise an overlay would
+have to write the number of lanes used on both the CSI endpoints and
+potentially configuring it to use more lanes than can be supported.
 
-> +
-> +#define IMX214_DEFAULT_CLK_FREQ	24000000
-> +#define IMX214_DEFAULT_PIXEL_RATE 384000000
-> +#define IMX214_WIDTH 4096
-> +#define IMX214_HEIGHT 2304
-> +#define IMX214_FPS 30
-> +#define IMX214_MBUS_CODE MEDIA_BUS_FMT_SRGGB10_1X10
-> +
-> +struct imx214 {
-> +	struct i2c_client *i2c_client;
-> +	struct device *dev;
-> +	struct clk *xclk;
-> +	struct regmap *regmap;
-> +
-> +	struct v4l2_fwnode_endpoint ep;
-> +	struct v4l2_subdev sd;
-> +	struct media_pad pad;
-> +	struct v4l2_mbus_framefmt fmt;
-> +	struct v4l2_rect crop;
-> +
-> +	struct v4l2_ctrl_handler ctrls;
-> +	struct v4l2_ctrl *pixel_rate;
-> +	struct v4l2_ctrl *link_freq;
-> +
-> +	struct regulator *vdda_regulator;
-> +	struct regulator *vddd_regulator;
-> +	struct regulator *vdddo_regulator;
-> +
-> +	struct gpio_desc *enable_gpio;
-> +
-> +	bool power_on;
-> +};
-> +
-> +struct reg_8 {
-> +	u16 addr;
-> +	u8 val;
-> +};
-> +
-> +static struct reg_8 mode_1920x1080[];
-> +static struct reg_8 mode_4096x2304[];
 
-Const. Could you rearrange the bits to avoid the forward declarations?
+There is also the oddball one of the TC358743 which dynamically
+switches the number of lanes in use based on the data rate required.
+That's probably a separate discussion, but is currently dealt with via
+g_mbus_config as amended back in Sept 2017 [1].
 
-> +
-> +/*
-> + * Declare modes in order, from biggest
-> + * to smallest height.
-> + */
-> +struct imx214_mode {
-> +	u32 width;
-> +	u32 height;
-> +	struct reg_8 *reg_table;
-> +} imx214_modes[] = {
+Cheers,
+  Dave
 
-This should be static const.
+[1] Discussion https://www.spinics.net/lists/linux-media/msg122287.html
+and patch https://www.spinics.net/lists/linux-media/msg122435.html
 
-> +	{
-> +		.width = 4096,
-> +		.height = 2304,
-> +		.reg_table = mode_4096x2304,
-> +	},
-> +	{
-> +		.width = 1920,
-> +		.height = 1080,
-> +		.reg_table = mode_1920x1080,
-> +	},
-> +};
-> +
-> +static inline struct imx214 *to_imx214(struct v4l2_subdev *sd)
-> +{
-> +	return container_of(sd, struct imx214, sd);
-> +}
-> +
-> +static int imx214_set_power_on(struct imx214 *imx214)
-
-Runtime PM support would be nice; you could drop the s_power callback as a
-bonus.
-
-> +{
-> +	int ret;
-> +
-> +	gpiod_set_value_cansleep(imx214->enable_gpio, 0);
-> +	usleep_range(10, 20);
-> +
-> +	ret = regulator_enable(imx214->vdddo_regulator);
-
-Would regulator_bulk_enable() be usable here?
-
-> +	if (ret) {
-> +		dev_err(imx214->dev, "Failed to enable vdddo\n");
-> +		return ret;
-> +	}
-> +
-> +	ret = regulator_enable(imx214->vdda_regulator);
-> +	if (ret < 0) {
-> +		dev_err(imx214->dev, "Failed to enable vdda\n");
-> +		return ret;
-> +	}
-> +
-> +	ret = regulator_enable(imx214->vddd_regulator);
-> +	if (ret) {
-> +		dev_err(imx214->dev, "Failed to enable vddd\n");
-> +		return ret;
-> +	}
-> +
-> +	usleep_range(2000, 3000);
-> +
-> +	ret = clk_prepare_enable(imx214->xclk);
-> +	if (ret < 0) {
-> +		dev_err(imx214->dev, "clk prepare enable failed\n");
-> +		return ret;
-> +	}
-> +
-> +
-> +	gpiod_set_value_cansleep(imx214->enable_gpio, 1);
-> +	usleep_range(12000, 15000);
-> +
-> +	return 0;
-> +}
-> +
-> +static void imx214_set_power_off(struct imx214 *imx214)
-> +{
-> +	gpiod_set_value_cansleep(imx214->enable_gpio, 0);
-> +
-> +	clk_disable_unprepare(imx214->xclk);
-> +
-> +	regulator_disable(imx214->vdda_regulator);
-> +	regulator_disable(imx214->vddd_regulator);
-> +	regulator_disable(imx214->vdddo_regulator);
-
-regulator_bulk_disable()?
-
-> +}
-> +
-> +static int imx214_s_power(struct v4l2_subdev *sd, int on)
-> +{
-> +	struct imx214 *imx214 = to_imx214(sd);
-> +	int ret = 0;
-> +
-> +	on = !!on;
-> +
-> +	if (imx214->power_on == on)
-> +		return 0;
-> +
-> +	if (on)
-> +		ret = imx214_set_power_on(imx214);
-> +	else
-> +		imx214_set_power_off(imx214);
-> +
-> +	imx214->power_on = on;
-> +	return 0;
-> +}
-> +
-> +static int imx214_enum_mbus_code(struct v4l2_subdev *sd,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	if (code->index > 0)
-> +		return -EINVAL;
-> +
-> +	code->code = IMX214_MBUS_CODE;
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx214_enum_frame_size(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_pad_config *cfg,
-> +				  struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	if (fse->code != IMX214_MBUS_CODE)
-> +		return -EINVAL;
-> +
-> +	if (fse->index >= ARRAY_SIZE(imx214_modes))
-> +		return -EINVAL;
-> +
-> +	fse->min_width = fse->max_width = imx214_modes[fse->index].width;
-> +	fse->min_height = fse->max_height = imx214_modes[fse->index].height;
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +static int imx214_s_register(struct v4l2_subdev *subdev,
-> +			      const struct v4l2_dbg_register *reg)
-> +{
-> +	struct imx214 *imx214 = container_of(subdev, struct imx214, sd);
-> +
-> +	regmap_write(imx214->regmap, reg->reg, reg->val);
-> +	return 0;
-
-	return regmap_write() ?
-
-> +}
-> +
-> +static int imx214_g_register(struct v4l2_subdev *subdev,
-> +			      struct v4l2_dbg_register *reg)
-> +{
-> +	struct imx214 *imx214 = container_of(subdev, struct imx214, sd);
-> +	unsigned int aux;
-> +
-> +	reg->size = 1;
-> +	regmap_read(imx214->regmap, reg->reg, &aux);
-> +	reg->val = aux;
-> +	return 0;
-> +}
-> +#endif
-> +
-> +static const struct v4l2_subdev_core_ops imx214_core_ops = {
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +	.g_register = imx214_g_register,
-> +	.s_register = imx214_s_register,
-> +#endif
-> +	.s_power = imx214_s_power,
-> +};
-> +
-> +static struct v4l2_mbus_framefmt *
-> +__imx214_get_pad_format(struct imx214 *imx214,
-> +			struct v4l2_subdev_pad_config *cfg,
-> +			unsigned int pad,
-> +			enum v4l2_subdev_format_whence which)
-> +{
-> +	switch (which) {
-> +	case V4L2_SUBDEV_FORMAT_TRY:
-> +		return v4l2_subdev_get_try_format(&imx214->sd, cfg, pad);
-> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +		return &imx214->fmt;
-> +	default:
-> +		return NULL;
-> +	}
-> +}
-> +
-> +static int imx214_get_format(struct v4l2_subdev *sd,
-> +			     struct v4l2_subdev_pad_config *cfg,
-> +			     struct v4l2_subdev_format *format)
-> +{
-> +	struct imx214 *imx214 = to_imx214(sd);
-> +
-> +	format->format = *__imx214_get_pad_format(imx214, cfg, format->pad,
-> +						  format->which);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct v4l2_rect *
-> +__imx214_get_pad_crop(struct imx214 *imx214, struct v4l2_subdev_pad_config *cfg,
-> +		      unsigned int pad, enum v4l2_subdev_format_whence which)
-> +{
-> +	switch (which) {
-> +	case V4L2_SUBDEV_FORMAT_TRY:
-> +		return v4l2_subdev_get_try_crop(&imx214->sd, cfg, pad);
-> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +		return &imx214->crop;
-> +	default:
-> +		return NULL;
-> +	}
-> +}
-> +
-> +static int imx214_find_mode(u32 height)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; (i < ARRAY_SIZE(imx214_modes) - 1) ; i++)
-> +		if (height >= imx214_modes[i].width)
-> +			return i;
-> +	return i;
-> +}
-> +
-> +static int imx214_set_format(struct v4l2_subdev *sd,
-> +			     struct v4l2_subdev_pad_config *cfg,
-> +			     struct v4l2_subdev_format *format)
-> +{
-> +	struct imx214 *imx214 = to_imx214(sd);
-> +	struct v4l2_mbus_framefmt *__format;
-> +	struct v4l2_rect *__crop;
-> +	int mode;
-> +
-> +	__crop = __imx214_get_pad_crop(imx214, cfg, format->pad, format->which);
-> +
-> +	mode = format ? imx214_find_mode(format->format.height) : 0;
-> +
-> +	__crop->width = imx214_modes[mode].width;
-> +	__crop->height = imx214_modes[mode].height;
-> +
-> +	__format = __imx214_get_pad_format(imx214, cfg, format->pad,
-> +					   format->which);
-> +	__format->width = __crop->width;
-> +	__format->height = __crop->height;
-> +	__format->code = IMX214_MBUS_CODE;
-> +	__format->field = V4L2_FIELD_NONE;
-> +	__format->colorspace = V4L2_COLORSPACE_SRGB;
-> +	__format->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(__format->colorspace);
-> +	__format->quantization = V4L2_MAP_QUANTIZATION_DEFAULT(true,
-> +				__format->colorspace, __format->ycbcr_enc);
-> +	__format->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(__format->colorspace);
-> +
-> +	format->format = *__format;
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx214_get_selection(struct v4l2_subdev *sd,
-> +				struct v4l2_subdev_pad_config *cfg,
-> +				struct v4l2_subdev_selection *sel)
-> +{
-> +	struct imx214 *imx214 = to_imx214(sd);
-> +
-> +	if (sel->target != V4L2_SEL_TGT_CROP)
-> +		return -EINVAL;
-> +
-> +	sel->r = *__imx214_get_pad_crop(imx214, cfg, sel->pad,
-> +					sel->which);
-> +	return 0;
-> +}
-> +
-> +static int imx214_entity_init_cfg(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_pad_config *cfg)
-> +{
-> +	struct v4l2_subdev_format fmt = { };
-> +
-> +	fmt.which = cfg ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-> +	fmt.format.width = imx214_modes[0].width;
-> +	fmt.format.height = imx214_modes[0].height;
-> +
-> +	imx214_set_format(subdev, cfg, &fmt);
-> +
-> +	return 0;
-> +}
-> +
-> +enum { IMX214_TABLE_WAIT_MS = 0,
-> +	IMX214_TABLE_END,
-> +	IMX214_MAX_RETRIES,
-> +	IMX214_WAIT_MS};
-> +
-> +/*From imx214_mode_tbls.h*/
-> +static struct reg_8 mode_4096x2304[] = {
-
-const, please.
-
-> +	{0x0114, 0x03},
-> +	{0x0220, 0x00},
-> +	{0x0221, 0x11},
-> +	{0x0222, 0x01},
-> +	{0x0340, 0x0C},
-> +	{0x0341, 0x7A},
-> +	{0x0342, 0x13},
-> +	{0x0343, 0x90},
-> +	{0x0344, 0x00},
-> +	{0x0345, 0x38},
-> +	{0x0346, 0x01},
-> +	{0x0347, 0x98},
-> +	{0x0348, 0x10},
-> +	{0x0349, 0x37},
-> +	{0x034A, 0x0A},
-> +	{0x034B, 0x97},
-> +	{0x0381, 0x01},
-> +	{0x0383, 0x01},
-> +	{0x0385, 0x01},
-> +	{0x0387, 0x01},
-> +	{0x0900, 0x00},
-> +	{0x0901, 0x00},
-> +	{0x0902, 0x00},
-> +	{0x3000, 0x35},
-> +	{0x3054, 0x01},
-> +	{0x305C, 0x11},
-> +
-> +	{0x0112, 0x0A},
-> +	{0x0113, 0x0A},
-> +	{0x034C, 0x10},
-> +	{0x034D, 0x00},
-> +	{0x034E, 0x09},
-> +	{0x034F, 0x00},
-> +	{0x0401, 0x00},
-> +	{0x0404, 0x00},
-> +	{0x0405, 0x10},
-> +	{0x0408, 0x00},
-> +	{0x0409, 0x00},
-> +	{0x040A, 0x00},
-> +	{0x040B, 0x00},
-> +	{0x040C, 0x10},
-> +	{0x040D, 0x00},
-> +	{0x040E, 0x09},
-> +	{0x040F, 0x00},
-> +
-> +	{0x0301, 0x05},
-> +	{0x0303, 0x02},
-> +	{0x0305, 0x03},
-> +	{0x0306, 0x00},
-> +	{0x0307, 0x96},
-> +	{0x0309, 0x0A},
-> +	{0x030B, 0x01},
-> +	{0x0310, 0x00},
-> +
-> +	{0x0820, 0x12},
-> +	{0x0821, 0xC0},
-> +	{0x0822, 0x00},
-> +	{0x0823, 0x00},
-> +
-> +	{0x3A03, 0x09},
-> +	{0x3A04, 0x50},
-> +	{0x3A05, 0x01},
-> +
-> +	{0x0B06, 0x01},
-> +	{0x30A2, 0x00},
-> +
-> +	{0x30B4, 0x00},
-> +
-> +	{0x3A02, 0xFF},
-> +
-> +	{0x3011, 0x00},
-> +	{0x3013, 0x01},
-> +
-> +	{0x0202, 0x0C},
-> +	{0x0203, 0x70},
-> +	{0x0224, 0x01},
-> +	{0x0225, 0xF4},
-> +
-> +	{0x0204, 0x00},
-> +	{0x0205, 0x00},
-> +	{0x020E, 0x01},
-> +	{0x020F, 0x00},
-> +	{0x0210, 0x01},
-> +	{0x0211, 0x00},
-> +	{0x0212, 0x01},
-> +	{0x0213, 0x00},
-> +	{0x0214, 0x01},
-> +	{0x0215, 0x00},
-> +	{0x0216, 0x00},
-> +	{0x0217, 0x00},
-> +
-> +	{0x4170, 0x00},
-> +	{0x4171, 0x10},
-> +	{0x4176, 0x00},
-> +	{0x4177, 0x3C},
-> +	{0xAE20, 0x04},
-> +	{0xAE21, 0x5C},
-> +
-> +	{IMX214_TABLE_WAIT_MS, 10},
-> +	{0x0138, 0x01},
-> +	{IMX214_TABLE_END, 0x00}
-> +};
-> +
-> +static struct reg_8 mode_1920x1080[] = {
-
-Ditto. Same below.
-
-> +	{0x0114, 0x03},
-> +	{0x0220, 0x00},
-> +	{0x0221, 0x11},
-> +	{0x0222, 0x01},
-> +	{0x0340, 0x0C},
-> +	{0x0341, 0x7A},
-> +	{0x0342, 0x13},
-> +	{0x0343, 0x90},
-> +	{0x0344, 0x04},
-> +	{0x0345, 0x78},
-> +	{0x0346, 0x03},
-> +	{0x0347, 0xFC},
-> +	{0x0348, 0x0B},
-> +	{0x0349, 0xF7},
-> +	{0x034A, 0x08},
-> +	{0x034B, 0x33},
-> +	{0x0381, 0x01},
-> +	{0x0383, 0x01},
-> +	{0x0385, 0x01},
-> +	{0x0387, 0x01},
-> +	{0x0900, 0x00},
-> +	{0x0901, 0x00},
-> +	{0x0902, 0x00},
-> +	{0x3000, 0x35},
-> +	{0x3054, 0x01},
-> +	{0x305C, 0x11},
-> +
-> +	{0x0112, 0x0A},
-> +	{0x0113, 0x0A},
-> +	{0x034C, 0x07},
-> +	{0x034D, 0x80},
-> +	{0x034E, 0x04},
-> +	{0x034F, 0x38},
-> +	{0x0401, 0x00},
-> +	{0x0404, 0x00},
-> +	{0x0405, 0x10},
-> +	{0x0408, 0x00},
-> +	{0x0409, 0x00},
-> +	{0x040A, 0x00},
-> +	{0x040B, 0x00},
-> +	{0x040C, 0x07},
-> +	{0x040D, 0x80},
-> +	{0x040E, 0x04},
-> +	{0x040F, 0x38},
-> +
-> +	{0x0301, 0x05},
-> +	{0x0303, 0x02},
-> +	{0x0305, 0x03},
-> +	{0x0306, 0x00},
-> +	{0x0307, 0x96},
-> +	{0x0309, 0x0A},
-> +	{0x030B, 0x01},
-> +	{0x0310, 0x00},
-> +
-> +	{0x0820, 0x12},
-> +	{0x0821, 0xC0},
-> +	{0x0822, 0x00},
-> +	{0x0823, 0x00},
-> +
-> +	{0x3A03, 0x04},
-> +	{0x3A04, 0xF8},
-> +	{0x3A05, 0x02},
-> +
-> +	{0x0B06, 0x01},
-> +	{0x30A2, 0x00},
-> +
-> +	{0x30B4, 0x00},
-> +
-> +	{0x3A02, 0xFF},
-> +
-> +	{0x3011, 0x00},
-> +	{0x3013, 0x01},
-> +
-> +	{0x0202, 0x0C},
-> +	{0x0203, 0x70},
-> +	{0x0224, 0x01},
-> +	{0x0225, 0xF4},
-> +
-> +	{0x0204, 0x00},
-> +	{0x0205, 0x00},
-> +	{0x020E, 0x01},
-> +	{0x020F, 0x00},
-> +	{0x0210, 0x01},
-> +	{0x0211, 0x00},
-> +	{0x0212, 0x01},
-> +	{0x0213, 0x00},
-> +	{0x0214, 0x01},
-> +	{0x0215, 0x00},
-> +	{0x0216, 0x00},
-> +	{0x0217, 0x00},
-> +
-> +	{0x4170, 0x00},
-> +	{0x4171, 0x10},
-> +	{0x4176, 0x00},
-> +	{0x4177, 0x3C},
-> +	{0xAE20, 0x04},
-> +	{0xAE21, 0x5C},
-> +
-> +	{IMX214_TABLE_WAIT_MS, 10},
-> +	{0x0138, 0x01},
-> +	{IMX214_TABLE_END, 0x00}
-> +};
-> +
-> +static struct reg_8 mode_table_common[] = {
-> +	/* software reset */
-> +
-> +	/* software standby settings */
-> +	{0x0100, 0x00},
-> +
-> +	/* ATR setting */
-> +	{0x9300, 0x02},
-> +
-> +	/* external clock setting */
-> +	{0x0136, 0x18},
-> +	{0x0137, 0x00},
-> +
-> +	/* global setting */
-> +	/* basic config */
-> +	{0x0101, 0x00},
-> +	{0x0105, 0x01},
-> +	{0x0106, 0x01},
-> +	{0x4550, 0x02},
-> +	{0x4601, 0x00},
-> +	{0x4642, 0x05},
-> +	{0x6227, 0x11},
-> +	{0x6276, 0x00},
-> +	{0x900E, 0x06},
-> +	{0xA802, 0x90},
-> +	{0xA803, 0x11},
-> +	{0xA804, 0x62},
-> +	{0xA805, 0x77},
-> +	{0xA806, 0xAE},
-> +	{0xA807, 0x34},
-> +	{0xA808, 0xAE},
-> +	{0xA809, 0x35},
-> +	{0xA80A, 0x62},
-> +	{0xA80B, 0x83},
-> +	{0xAE33, 0x00},
-> +
-> +	/* analog setting */
-> +	{0x4174, 0x00},
-> +	{0x4175, 0x11},
-> +	{0x4612, 0x29},
-> +	{0x461B, 0x12},
-> +	{0x461F, 0x06},
-> +	{0x4635, 0x07},
-> +	{0x4637, 0x30},
-> +	{0x463F, 0x18},
-> +	{0x4641, 0x0D},
-> +	{0x465B, 0x12},
-> +	{0x465F, 0x11},
-> +	{0x4663, 0x11},
-> +	{0x4667, 0x0F},
-> +	{0x466F, 0x0F},
-> +	{0x470E, 0x09},
-> +	{0x4909, 0xAB},
-> +	{0x490B, 0x95},
-> +	{0x4915, 0x5D},
-> +	{0x4A5F, 0xFF},
-> +	{0x4A61, 0xFF},
-> +	{0x4A73, 0x62},
-> +	{0x4A85, 0x00},
-> +	{0x4A87, 0xFF},
-> +
-> +	/* embedded data */
-> +	{0x5041, 0x04},
-> +	{0x583C, 0x04},
-> +	{0x620E, 0x04},
-> +	{0x6EB2, 0x01},
-> +	{0x6EB3, 0x00},
-> +	{0x9300, 0x02},
-> +
-> +	/* imagequality */
-> +	/* HDR setting */
-> +	{0x3001, 0x07},
-> +	{0x6D12, 0x3F},
-> +	{0x6D13, 0xFF},
-> +	{0x9344, 0x03},
-> +	{0x9706, 0x10},
-> +	{0x9707, 0x03},
-> +	{0x9708, 0x03},
-> +	{0x9E04, 0x01},
-> +	{0x9E05, 0x00},
-> +	{0x9E0C, 0x01},
-> +	{0x9E0D, 0x02},
-> +	{0x9E24, 0x00},
-> +	{0x9E25, 0x8C},
-> +	{0x9E26, 0x00},
-> +	{0x9E27, 0x94},
-> +	{0x9E28, 0x00},
-> +	{0x9E29, 0x96},
-> +
-> +	/* CNR parameter setting */
-> +	{0x69DB, 0x01},
-> +
-> +	/* Moire reduction */
-> +	{0x6957, 0x01},
-> +
-> +	/* image enhancment */
-> +	{0x6987, 0x17},
-> +	{0x698A, 0x03},
-> +	{0x698B, 0x03},
-> +
-> +	/* white balanace */
-> +	{0x0B8E, 0x01},
-> +	{0x0B8F, 0x00},
-> +	{0x0B90, 0x01},
-> +	{0x0B91, 0x00},
-> +	{0x0B92, 0x01},
-> +	{0x0B93, 0x00},
-> +	{0x0B94, 0x01},
-> +	{0x0B95, 0x00},
-> +
-> +	/* ATR setting */
-> +	{0x6E50, 0x00},
-> +	{0x6E51, 0x32},
-> +	{0x9340, 0x00},
-> +	{0x9341, 0x3C},
-> +	{0x9342, 0x03},
-> +	{0x9343, 0xFF},
-> +	{IMX214_TABLE_END, 0x00}
-> +};
-> +
-> +#define MAX_CMD 4
-> +static int imx214_write_table(struct imx214 *imx214,
-> +				const struct reg_8 table[])
-> +{
-> +	u8 vals[MAX_CMD];
-> +	int ret;
-> +	int i;
-> +
-> +	for (table = table; table->addr != IMX214_TABLE_END ; table++) {
-> +		if (table->addr == IMX214_TABLE_WAIT_MS) {
-> +			msleep(table->val);
-> +			continue;
-> +		}
-> +
-> +		for (i = 0; i < MAX_CMD; i++) {
-> +			if (table[i].addr != (table[0].addr + i))
-> +				break;
-> +			vals[i] = table[i].val;
-> +		}
-> +
-> +		ret = regmap_bulk_write(imx214->regmap, table->addr, vals, i);
-> +
-> +		if (ret) {
-> +			dev_err(imx214->dev, "write_table error: %d\n", ret);
-> +			return ret;
-> +		}
-> +
-> +		table += i - 1;
-> +
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +
-> +static int imx214_s_stream(struct v4l2_subdev *subdev, int enable)
-> +{
-> +	struct imx214 *imx214 = to_imx214(subdev);
-> +	int ret;
-> +
-> +	if (enable) {
-> +		int mode = imx214_find_mode(imx214->fmt.height);
-> +
-> +		ret = imx214_write_table(imx214, mode_table_common);
-> +		if (ret < 0) {
-> +			dev_err(imx214->dev, "could not sent common table %d\n",
-> +				ret);
-> +			return ret;
-> +		}
-> +		ret = imx214_write_table(imx214, imx214_modes[mode].reg_table);
-> +		if (ret < 0) {
-> +			dev_err(imx214->dev, "could not sent mode table %d\n",
-> +				ret);
-> +			return ret;
-> +		}
-> +		ret = v4l2_ctrl_handler_setup(&imx214->ctrls);
-> +		if (ret < 0) {
-> +			dev_err(imx214->dev, "could not sync v4l2 controls\n");
-> +			return ret;
-> +		}
-> +		ret = regmap_write(imx214->regmap, 0x100, 1);
-> +		if (ret < 0) {
-> +			dev_err(imx214->dev, "could not sent start table %d\n",
-> +				ret);
-> +			return ret;
-> +		}
-> +	} else {
-> +		ret = regmap_write(imx214->regmap, 0x100, 0);
-> +		if (ret < 0) {
-> +			dev_err(imx214->dev, "could not sent stop table %d\n",
-> +				ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx214_g_frame_interval(struct v4l2_subdev *subdev,
-> +				      struct v4l2_subdev_frame_interval *fival)
-> +{
-> +	fival->pad = 0;
-> +	fival->interval.numerator = 1;
-> +	fival->interval.denominator = IMX214_FPS;
-> +
-> +	return 0;
-> +}
-> +
-> +static int imx214_enum_frame_interval(struct v4l2_subdev *subdev,
-> +				struct v4l2_subdev_pad_config *cfg,
-> +				struct v4l2_subdev_frame_interval_enum *fie)
-> +{
-> +	int mode;
-> +
-> +	if (fie->index != 0)
-> +		return -EINVAL;
-> +
-> +	mode = imx214_find_mode(fie->height);
-> +
-> +	fie->code = IMX214_MBUS_CODE;
-> +	fie->width = imx214_modes[mode].width;
-> +	fie->height = imx214_modes[mode].height;
-> +	fie->interval.numerator = 1;
-> +	fie->interval.denominator = IMX214_MBUS_CODE;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops imx214_video_ops = {
-> +	.s_stream = imx214_s_stream,
-> +	.g_frame_interval = imx214_g_frame_interval,
-> +	.s_frame_interval = imx214_g_frame_interval,
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops imx214_subdev_pad_ops = {
-> +	.enum_mbus_code = imx214_enum_mbus_code,
-> +	.enum_frame_size = imx214_enum_frame_size,
-> +	.enum_frame_interval = imx214_enum_frame_interval,
-> +	.get_fmt = imx214_get_format,
-> +	.set_fmt = imx214_set_format,
-> +	.get_selection = imx214_get_selection,
-> +	.init_cfg = imx214_entity_init_cfg,
-> +};
-> +
-> +static const struct v4l2_subdev_ops imx214_subdev_ops = {
-> +	.core = &imx214_core_ops,
-> +	.video = &imx214_video_ops,
-> +	.pad = &imx214_subdev_pad_ops,
-> +};
-> +
-> +static const struct regmap_config sensor_regmap_config = {
-> +	.reg_bits = 16,
-> +	.val_bits = 8,
-> +	.cache_type = REGCACHE_RBTREE,
-> +};
-> +
-> +static int imx214_probe(struct i2c_client *client)
-> +{
-> +	struct device *dev = &client->dev;
-> +	struct imx214 *imx214;
-> +	struct fwnode_handle *endpoint;
-> +	int ret;
-> +	static const s64 link_freq[] = {
-> +		(IMX214_DEFAULT_PIXEL_RATE * 10LL) / 8,
-
-You should check the link frequency matches with that from the firmware.
-
-> +	};
-> +
-> +	imx214 = devm_kzalloc(dev, sizeof(*imx214), GFP_KERNEL);
-> +	if (!imx214)
-> +		return -ENOMEM;
-> +
-> +	imx214->i2c_client = client;
-
-Please drop i2c_client field and use v4l2_get_subdev_data(&imx214->sd)
-instead.
-
-> +	imx214->dev = dev;
-> +
-> +	endpoint = fwnode_graph_get_next_endpoint(
-> +		of_fwnode_handle(client->dev.of_node), NULL);
-> +	if (!endpoint) {
-> +		dev_err(dev, "endpoint node not found\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = v4l2_fwnode_endpoint_parse(endpoint, &imx214->ep);
-> +	fwnode_handle_put(endpoint);
-> +	if (ret < 0) {
-> +		dev_err(dev, "parsing endpoint node failed\n");
-> +		return ret;
-> +	}
-> +
-> +	if (imx214->ep.bus_type != V4L2_MBUS_CSI2) {
-> +		dev_err(dev, "invalid bus type (%u), must be CSI2 (%u)\n",
-> +			imx214->ep.bus_type, V4L2_MBUS_CSI2);
-> +		return -EINVAL;
-> +	}
-> +
-> +	imx214->xclk = devm_clk_get(dev, "xclk");
-> +	if (IS_ERR(imx214->xclk)) {
-> +		dev_err(dev, "could not get xclk");
-> +		return PTR_ERR(imx214->xclk);
-> +	}
-> +
-> +	ret = clk_set_rate(imx214->xclk, IMX214_DEFAULT_CLK_FREQ);
-> +	if (ret) {
-> +		dev_err(dev, "could not set xclk frequency\n");
-> +		return ret;
-> +	}
-> +
-> +	imx214->vdda_regulator = devm_regulator_get(dev, "vdda");
-> +	if (IS_ERR(imx214->vdda_regulator)) {
-> +		dev_err(dev, "cannot get vdda regulator\n");
-> +		return PTR_ERR(imx214->vdda_regulator);
-> +	}
-> +
-> +	ret = regulator_set_voltage(imx214->vdda_regulator,
-> +				    IMX214_VOLTAGE_AVDD,
-> +				    IMX214_VOLTAGE_AVDD);
-> +	if (ret < 0) {
-> +		dev_err(dev, "cannot set vdda voltage\n");
-> +		return ret;
-> +	}
-> +
-> +	imx214->vddd_regulator = devm_regulator_get(dev, "vddd");
-> +	if (IS_ERR(imx214->vddd_regulator)) {
-> +		dev_err(dev, "cannot get core regulator\n");
-> +		return PTR_ERR(imx214->vddd_regulator);
-> +	}
-> +
-> +	ret = regulator_set_voltage(imx214->vddd_regulator,
-> +				    IMX214_VOLTAGE_DVDD,
-> +				    IMX214_VOLTAGE_DVDD);
-> +	if (ret < 0) {
-> +		dev_err(dev, "cannot set vddd voltage\n");
-> +		return ret;
-> +	}
-> +
-> +	imx214->vdddo_regulator = devm_regulator_get(dev, "vdddo");
-> +	if (IS_ERR(imx214->vdddo_regulator)) {
-> +		dev_err(dev, "cannot get vdddo regulator\n");
-> +		return PTR_ERR(imx214->vdddo_regulator);
-> +	}
-> +
-> +	ret = regulator_set_voltage(imx214->vdddo_regulator,
-> +				    IMX214_VOLTAGE_DOVDD,
-> +				    IMX214_VOLTAGE_DOVDD);
-> +	if (ret < 0) {
-> +		dev_err(dev, "cannot set vdddo voltage\n");
-> +		return ret;
-> +	}
-> +
-> +	imx214->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_LOW);
-> +	if (IS_ERR(imx214->enable_gpio)) {
-> +		dev_err(dev, "cannot get enable gpio\n");
-> +		return PTR_ERR(imx214->enable_gpio);
-> +	}
-> +
-> +	imx214->regmap = devm_regmap_init_i2c(client, &sensor_regmap_config);
-> +	if (IS_ERR(imx214->regmap)) {
-> +		dev_err(dev, "regmap init failed\n");
-> +		return PTR_ERR(imx214->regmap);
-> +	}
-> +
-> +	v4l2_ctrl_handler_init(&imx214->ctrls, 2);
-> +
-> +	imx214->pixel_rate = v4l2_ctrl_new_std(&imx214->ctrls, NULL,
-> +					       V4L2_CID_PIXEL_RATE, 0,
-> +					       IMX214_DEFAULT_PIXEL_RATE, 1,
-> +					       IMX214_DEFAULT_PIXEL_RATE);
-> +	imx214->link_freq = v4l2_ctrl_new_int_menu(&imx214->ctrls, NULL,
-> +						   V4L2_CID_LINK_FREQ,
-> +						   ARRAY_SIZE(link_freq) - 1,
-> +						   0, link_freq);
-
-Do I understand this correctly that the driver does not support setting
-e.g. exposure time or gain? Those are very basic features...
-
-You'll also need to ensure the s_ctrl() callback works without s_power()
-being called. My suggestion is to switch to PM runtime; see e.g. the ov1385
-driver in the current media tree master.
-
-> +	if (imx214->link_freq)
-> +		imx214->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> +	ret = imx214->ctrls.error;
-> +	if (ret) {
-> +		dev_err(&client->dev, "%s control init failed (%d)\n",
-> +				__func__, ret);
-
-		goto free_ctrl;
-
-> +		return ret;
-> +	}
-> +
-> +	imx214->sd.ctrl_handler = &imx214->ctrls;
-> +	ret = v4l2_ctrl_handler_setup(imx214->sd.ctrl_handler);
-> +	if (ret) {
-> +		dev_err(&client->dev,
-> +			"Error %d setting default controls\n", ret);
-
-Ditto.
-
-> +		return ret;
-> +	}
-> +
-> +	v4l2_i2c_subdev_init(&imx214->sd, client, &imx214_subdev_ops);
-> +	imx214->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	imx214->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	imx214->sd.dev = &client->dev;
-> +	imx214->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-> +
-> +	ret = media_entity_pads_init(&imx214->sd.entity, 1, &imx214->pad);
-> +	if (ret < 0) {
-> +		dev_err(dev, "could not register media entity\n");
-> +		goto free_ctrl;
-> +	}
-> +
-> +	imx214_entity_init_cfg(&imx214->sd, NULL);
-> +
-> +	ret = v4l2_async_register_subdev_sensor_common(&imx214->sd);
-> +	if (ret < 0) {
-> +		dev_err(dev, "could not register v4l2 device\n");
-> +		goto free_entity;
-> +	}
-> +
-> +	return 0;
-> +
-> +free_entity:
-> +	media_entity_cleanup(&imx214->sd.entity);
-> +free_ctrl:
-> +	v4l2_ctrl_handler_free(&imx214->ctrls);
-> +
-> +	return ret;
-> +}
-> +
-> +static int imx214_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct imx214 *imx214 = to_imx214(sd);
-> +
-> +	v4l2_async_unregister_subdev(&imx214->sd);
-> +	media_entity_cleanup(&imx214->sd.entity);
-> +	v4l2_ctrl_handler_free(&imx214->ctrls);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id imx214_of_match[] = {
-> +	{ .compatible = "sony,imx214" },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(of, imx214_of_match);
-> +
-> +static struct i2c_driver imx214_i2c_driver = {
-> +	.driver = {
-> +		.of_match_table = imx214_of_match,
-> +		.name  = "imx214",
-> +	},
-> +	.probe_new  = imx214_probe,
-> +	.remove = imx214_remove,
-> +};
-> +
-> +module_i2c_driver(imx214_i2c_driver);
-> +
-> +MODULE_DESCRIPTION("Sony IMX214 Camera drier");
-> +MODULE_AUTHOR("Ricardo Ribalda <ricardo.ribalda@gmail.com>");
-> +MODULE_LICENSE("GPL v2");
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+> > >>>> Could we make this clear in the commit log (and possibly an extra
+> > >>>> comment in the code). At first I was assuming we would have to dec=
+lare
+> > >>>> the number of lanes in the ADV748x TX DT node, but I don't think t=
+hat's
+> > >>>> the case.
+> > >>>>
+> > >>>>> Signed-off-by: Niklas S=C3=B6derlund
+> > >>>>> <niklas.soderlund+renesas@ragnatech.se>
+> > >>>>> ---
+> > >>>>>
+> > >>>>>  drivers/media/i2c/adv748x/adv748x-core.c | 49 ++++++++++++++++++=
++++++
+> > >>>>>  drivers/media/i2c/adv748x/adv748x.h      |  1 +
+> > >>>>>  2 files changed, 50 insertions(+)
+> > >>>>>
+> > >>>>> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+> > >>>>> b/drivers/media/i2c/adv748x/adv748x-core.c index
+> > >>>>> 85c027bdcd56748d..a93f8ea89a228474 100644
+> > >>>>> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> > >>>>> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> > >
+> > > [snip]
+> > >
+> > >>>>> +static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
+> > >>>>> +                                   unsigned int port,
+> > >>>>> +                                   struct device_node *ep)
+> > >>>>> +{
+> > >>>>> +       struct v4l2_fwnode_endpoint vep;
+> > >>>>> +       unsigned int num_lanes;
+> > >>>>> +       int ret;
+> > >>>>> +
+> > >>>>> +       if (port !=3D ADV748X_PORT_TXA && port !=3D ADV748X_PORT_=
+TXB)
+> > >>>>> +               return 0;
+> > >>>>> +
+> > >>>>> +       ret =3D v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), =
+&vep);
+> > >>>>> +       if (ret)
+> > >>>>> +               return ret;
+> > >>>>> +
+> > >>>>> +       num_lanes =3D vep.bus.mipi_csi2.num_data_lanes;
+> > >>>>> +
+> > >>>>
+> > >>>> If I'm not mistaken we are parsing /someone elses/ DT node here (t=
+he
+> > >>>> CSI receiver or such).
+> > >>>
+> > >>> Aren't we parsing our own endpoint ? The ep argument comes from ep_=
+np in
+> > >>> adv748x_parse_dt(), and that's the endpoint iterator used with
+> > >>>
+> > >>>   for_each_endpoint_of_node(state->dev->of_node, ep_np)
+> > >>
+> > >> Bah - my head was polluted with the async subdevice stuff where we w=
+ere
+> > >> getting the endpoint of the other device, but of course that's
+> > >> completely unrelated here.
+> > >>
+> > >>>> Is it now guaranteed on the mipi_csi2 bus to have the (correct) la=
+nes
+> > >>>> defined?
+> > >>>>
+> > >>>> Do we need to fall back to some safe defaults at all (1 lane?) ?
+> > >>>> Actually - perhaps there is no safe default. I guess if the lanes
+> > >>>> aren't configured correctly we're not going to get a good signal a=
+t the
+> > >>>> other end.
+> > >>>
+> > >>> The endpoints should contain a data-lanes property. That's the case=
+ in
+> > >>> the mainline DT sources, but it's not explicitly stated as a mandat=
+ory
+> > >>> property. I think we should update the bindings.
+> > >>
+> > >> Yes, - as this code change is making the property mandatory - we sho=
+uld
+> > >> certainly state that in the bindings, unless we can fall back to a
+> > >> sensible default (perhaps the max supported on that component?)
+> > >
+> > > I'm not sure there's a sensible default, I'd rather specify it explic=
+itly.
+> > > Note that the data-lanes property doesn't just specify the number of
+> > > lanes, but also how they are remapped, when that feature is supported=
+ by
+> > > the CSI-2 transmitter or receiver.
+> >
+> > Ok understood. As I feared - we can't really default - because it has t=
+o
+> > match and be defined.
+> >
+> > So making the DT property mandatory really is the way to go then.
+> >
+> > >>>>> +       if (vep.base.port =3D=3D ADV748X_PORT_TXA) {
+> > >>>>> +               if (num_lanes !=3D 1 && num_lanes !=3D 2 && num_l=
+anes !=3D 4) {
+> > >>>>> +                       adv_err(state, "TXA: Invalid number (%d) =
+of lanes\n",
+> > >>>>> +                               num_lanes);
+> > >>>>> +                       return -EINVAL;
+> > >>>>> +               }
+> > >>>>> +
+> > >>>>> +               state->txa.num_lanes =3D num_lanes;
+> > >>>>> +               adv_dbg(state, "TXA: using %d lanes\n", state->tx=
+a.num_lanes);
+> > >>>>> +       }
+> > >>>>> +
+> > >>>>> +       if (vep.base.port =3D=3D ADV748X_PORT_TXB) {
+> > >>>>> +               if (num_lanes !=3D 1) {
+> > >>>>> +                       adv_err(state, "TXB: Invalid number (%d) =
+of lanes\n",
+> > >>>>> +                               num_lanes);
+> > >>>>> +                       return -EINVAL;
+> > >>>>> +               }
+> > >>>>> +
+> > >>>>> +               state->txb.num_lanes =3D num_lanes;
+> > >>>>> +               adv_dbg(state, "TXB: using %d lanes\n", state->tx=
+b.num_lanes);
+> > >>>>> +       }
+> > >>>>> +
+> > >>>>> +       return 0;
+> > >>>>> +}
+> > >
+> > > [snip]
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
