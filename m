@@ -1,117 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39832 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725841AbeIVIjm (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:53362 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726004AbeIVQPJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Sep 2018 04:39:42 -0400
-Message-ID: <35a323a8020bfe0666a37cf21ae81507@smtp-cloud9.xs4all.net>
-Date: Sat, 22 Sep 2018 04:47:48 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sat, 22 Sep 2018 12:15:09 -0400
+Date: Sat, 22 Sep 2018 07:21:59 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Dan Ziemba <zman0900@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
+Subject: Re: 4.18 regression: dvb-usb-v2: General Protection Fault shortly
+ after boot
+Message-ID: <20180922072159.4e0f9a84@coco.lan>
+In-Reply-To: <8b990b3c13db04ee04bcb1b5b3a566f8054754f3.camel@gmail.com>
+References: <8b990b3c13db04ee04bcb1b5b3a566f8054754f3.camel@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Thu, 20 Sep 2018 00:07:09 -0400
+Dan Ziemba <zman0900@gmail.com> escreveu:
 
-Results of the daily build of media_tree:
+> I reported this on bugzilla also a few days ago, but I'm not sure if
+> that is actually the right place to report, so copying to the mailing
+> list...
 
-date:			Sat Sep 22 04:00:16 CEST 2018
-media-tree git hash:	985cdcb08a0488558d1005139596b64d73bee267
-media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
-v4l-utils git hash:	e03a5fe118de918b0778fea4a227db3cb18eda1c
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.17.0-3-amd64
+I saw a report on BZ, but haven't time yet to dig into it. Those
+days, it is usually better to report via the ML.
+ 
+> 
+> Starting with the first 4.18 RC kernel, my system experiences general
+> protection faults leading to kernel panic shortly after the login
+> prompt appears on most boots.  Occasionally that doesn't happen and
+> instead numerous other seemingly random stack traces are printed (bad
+> page map, scheduling while atomic, null pointer deref, etc), but either
+> way the system is unusable.  This bug remains up through the latest
+> mainline kernel 4.19-rc2.
+> 
+> Booting with my USB ATSC tv tuner disconnected prevents the bug from
+> happening.
+> 
+> 
+> Kernel bisection between v4.17 and 4.18-rc1 shows problem is caused by:
+> 
+> 1a0c10ed7bb1 media: dvb-usb-v2: stop using coherent memory for URBs
+> 
+> 
+> Building both 4.18.6 and 4.19-rc2 with that commit reverted resolves
+> the bug for me.  
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.119-i686: OK
-linux-3.18.119-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.152-i686: OK
-linux-4.4.152-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.124-i686: OK
-linux-4.9.124-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.67-i686: OK
-linux-4.14.67-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.5-i686: OK
-linux-4.18.5-x86_64: OK
-linux-4.19-rc1-i686: OK
-linux-4.19-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+There's something really weird on it: that patch changes a code that
+it is only called when the device is streaming. It shouldn't be
+causing GFP/kernel panic, depending if the machine was booted with
+or without it.
 
-Detailed results are available here:
+Perhaps it would be a side effect due to some changes at the USB
+subsystem? There are some changes happening there changing some
+locks.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+I see one minor issue there: it is using GFP_ATOMIC instead
+of GFP_KERNEL.
 
-Full logs are available here:
+Could you please try to change this line:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+	stream->buf_list[stream->buf_num] = kzalloc(size, GFP_ATOMIC);
 
-The Media Infrastructure API from this daily build is here:
+to
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+	stream->buf_list[stream->buf_num] = kzalloc(size, GFP_KERNEL);
+
+Also, it would be great if you could post the GPF logs.
+
+> 
+> 
+> My DVB hardware uses driver mxl111sf:
+> 
+> Bus 002 Device 003: ID 2040:c61b Hauppauge 
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 
+>   bDeviceSubClass         0 
+>   bDeviceProtocol         0 
+>   bMaxPacketSize0        64
+>   idVendor           0x2040 Hauppauge
+>   idProduct          0xc61b 
+>   bcdDevice            0.00
+>   iManufacturer           1 Hauppauge
+>   iProduct                2 WinTV Aero-M
+> 
+> Other system info:
+> 
+> Arch Linux x86_64
+> Intel i7-3770
+> 16 GB ram
+> 
+> Bugzilla:
+> https://bugzilla.kernel.org/show_bug.cgi?id=201055
+> 
+> Arch bug:
+> https://bugs.archlinux.org/task/59990
+> 
+> 
+> Thanks,
+> Dan Ziemba
+> 
+> 
+
+
+
+Thanks,
+Mauro
