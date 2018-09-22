@@ -1,95 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:34624 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2391089AbeIVCaq (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:39832 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725841AbeIVIjm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Sep 2018 22:30:46 -0400
-Date: Fri, 21 Sep 2018 13:40:08 -0700
-From: Nathan Chancellor <natechancellor@gmail.com>
-To: Nick Desaulniers <ndesaulniers@google.com>
-Cc: awalls@md.metrocast.net,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: cx18: Don't check for address of video_dev
-Message-ID: <20180921204008.GA13928@flashbox>
-References: <20180921195736.7977-1-natechancellor@gmail.com>
- <CAKwvOdk-w04qavrzeOg_yCH6gYRE4UEX49TJBEb8wMjRssPDdQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAKwvOdk-w04qavrzeOg_yCH6gYRE4UEX49TJBEb8wMjRssPDdQ@mail.gmail.com>
+        Sat, 22 Sep 2018 04:39:42 -0400
+Message-ID: <35a323a8020bfe0666a37cf21ae81507@smtp-cloud9.xs4all.net>
+Date: Sat, 22 Sep 2018 04:47:48 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 21, 2018 at 01:31:37PM -0700, Nick Desaulniers wrote:
-> On Fri, Sep 21, 2018 at 1:03 PM Nathan Chancellor
-> <natechancellor@gmail.com> wrote:
-> >
-> > Clang warns that the address of a pointer will always evaluated as true
-> > in a boolean context.
-> >
-> > drivers/media/pci/cx18/cx18-driver.c:1255:23: warning: address of
-> > 'cx->streams[i].video_dev' will always evaluate to 'true'
-> > [-Wpointer-bool-conversion]
-> >                 if (&cx->streams[i].video_dev)
-> >                 ~~   ~~~~~~~~~~~~~~~^~~~~~~~~
-> > 1 warning generated.
-> >
-> > Presumably, the contents of video_dev should have been checked, not the
-> > address. This check has been present since 2009, introduced by commit
-> > 21a278b85d3c ("V4L/DVB (11619): cx18: Simplify the work handler for
-> > outgoing mailbox commands")
-> >
-> > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> > ---
-> >
-> > Alternatively, this if statement could just be removed since it has
-> > evaluated to true since 2009 and I assume some issue with this would
-> > have been discovered by now.
-> >
-> >  drivers/media/pci/cx18/cx18-driver.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
-> > index 56763c4ea1a7..753a37c7100a 100644
-> > --- a/drivers/media/pci/cx18/cx18-driver.c
-> > +++ b/drivers/media/pci/cx18/cx18-driver.c
-> > @@ -1252,7 +1252,7 @@ static void cx18_cancel_out_work_orders(struct cx18 *cx)
-> >  {
-> >         int i;
-> >         for (i = 0; i < CX18_MAX_STREAMS; i++)
-> > -               if (&cx->streams[i].video_dev)
-> > +               if (cx->streams[i].video_dev)
-> 
-> cx->streams[i].video_dev has the type `struct video_device video_dev`.
-> So wouldn't this change always be true as well, since the struct is
-> embedded?
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Guess I forgot to compile this with Clang before sending because I now
-get a build error (sigh...)
+Results of the daily build of media_tree:
 
-drivers/media/pci/cx18/cx18-driver.c:1255:3: error: statement requires
-expression of scalar type ('struct video_device' invalid)                                                                              
-                if (cx->streams[i].video_dev)
-                                ^   ~~~~~~~~~~~~~~~~~~~~~~~~
-                                1 error generated.
+date:			Sat Sep 22 04:00:16 CEST 2018
+media-tree git hash:	985cdcb08a0488558d1005139596b64d73bee267
+media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
+v4l-utils git hash:	e03a5fe118de918b0778fea4a227db3cb18eda1c
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-3-amd64
 
-I guess the whole if statement should go unless I'm missing something
-else.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.119-i686: OK
+linux-3.18.119-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.152-i686: OK
+linux-4.4.152-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.124-i686: OK
+linux-4.9.124-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.67-i686: OK
+linux-4.14.67-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.5-i686: OK
+linux-4.18.5-x86_64: OK
+linux-4.19-rc1-i686: OK
+linux-4.19-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Thanks for the review!
-Nathan
+Detailed results are available here:
 
-> >                         cancel_work_sync(&cx->streams[i].out_work_order);
-> >  }
-> >
-> > --
-> > 2.19.0
-> >
-> 
-> 
-> -- 
-> Thanks,
-> ~Nick Desaulniers
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
