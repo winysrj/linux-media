@@ -1,117 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44229 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725968AbeIWIoH (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:34433 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726126AbeIWTkZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Sep 2018 04:44:07 -0400
-Message-ID: <178d4851c06f46e68cafeffe61b9c643@smtp-cloud8.xs4all.net>
-Date: Sun, 23 Sep 2018 04:48:13 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Sun, 23 Sep 2018 15:40:25 -0400
+Received: by mail-wr1-f68.google.com with SMTP id t15so9178926wrx.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2018 06:42:52 -0700 (PDT)
+Subject: Re: [PATCH v2] libv4l: Add support for BAYER10P format conversion
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        linux-media@vger.kernel.org
+References: <20180921090412.28044-1-ricardo.ribalda@gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <469038bb-b22f-c17b-4340-a2cf63690894@redhat.com>
+Date: Sun, 23 Sep 2018 15:42:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <20180921090412.28044-1-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On 21-09-18 11:04, Ricardo Ribalda Delgado wrote:
+> Add support for 10 bit packet Bayer formats:
+> -V4L2_PIX_FMT_SBGGR10P
+> -V4L2_PIX_FMT_SGBRG10P
+> -V4L2_PIX_FMT_SGRBG10P
+> -V4L2_PIX_FMT_SRGGB10P
+> 
+> These formats pack the 2 LSBs for every 4 pixels in an indeppendent
+> byte.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-date:			Sun Sep 23 04:00:17 CEST 2018
-media-tree git hash:	985cdcb08a0488558d1005139596b64d73bee267
-media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
-v4l-utils git hash:	e03a5fe118de918b0778fea4a227db3cb18eda1c
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.17.0-3-amd64
+Patch looks good to me now:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.119-i686: OK
-linux-3.18.119-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.152-i686: OK
-linux-4.4.152-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.124-i686: OK
-linux-4.9.124-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.67-i686: OK
-linux-4.14.67-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.5-i686: OK
-linux-4.18.5-x86_64: OK
-linux-4.19-rc1-i686: OK
-linux-4.19-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Acked-by: Hans de Goede <hdegoede@redhat.com>
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Hans
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> ---
+>   lib/libv4lconvert/bayer.c              | 21 ++++++++++++++++
+>   lib/libv4lconvert/libv4lconvert-priv.h |  4 +++
+>   lib/libv4lconvert/libv4lconvert.c      | 35 ++++++++++++++++++++++++++
+>   3 files changed, 60 insertions(+)
+> 
+> diff --git a/lib/libv4lconvert/bayer.c b/lib/libv4lconvert/bayer.c
+> index 4b70ddd9..11af6543 100644
+> --- a/lib/libv4lconvert/bayer.c
+> +++ b/lib/libv4lconvert/bayer.c
+> @@ -631,3 +631,24 @@ void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
+>   	v4lconvert_border_bayer_line_to_y(bayer + stride, bayer, ydst, width,
+>   			!start_with_green, !blue_line);
+>   }
+> +
+> +void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
+> +		unsigned char *bayer8, int width, int height)
+> +{
+> +	unsigned long i;
+> +	unsigned long len = width * height;
+> +
+> +	for (i = 0; i < len ; i += 4) {
+> +		/*
+> +		 * Do not use a second loop, hoping that
+> +		 * a clever compiler with understand the
+> +		 * pattern and will optimize it.
+> +		 */
+> +		bayer8[0] = bayer10p[0];
+> +		bayer8[1] = bayer10p[1];
+> +		bayer8[2] = bayer10p[2];
+> +		bayer8[3] = bayer10p[3];
+> +		bayer10p += 5;
+> +		bayer8 += 4;
+> +	}
+> +}
+> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+> index 9a467e10..3020a39e 100644
+> --- a/lib/libv4lconvert/libv4lconvert-priv.h
+> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
+> @@ -264,6 +264,10 @@ void v4lconvert_bayer_to_bgr24(const unsigned char *bayer,
+>   void v4lconvert_bayer_to_yuv420(const unsigned char *bayer, unsigned char *yuv,
+>   		int width, int height, const unsigned int stride, unsigned int src_pixfmt, int yvu);
+>   
+> +
+> +void v4lconvert_bayer10p_to_bayer8(unsigned char *bayer10p,
+> +		unsigned char *bayer8, int width, int height);
+> +
+>   void v4lconvert_hm12_to_rgb24(const unsigned char *src,
+>   		unsigned char *dst, int width, int height);
+>   
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index d666bd97..b3dbf5a0 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -133,6 +133,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>   	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
+>   	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
+>   	{ V4L2_PIX_FMT_SGRBG10,		16,	 8,	 8,	1 },
+> +	{ V4L2_PIX_FMT_SBGGR10P,	10,	 8,	 8,	1 },
+> +	{ V4L2_PIX_FMT_SGBRG10P,	10,	 8,	 8,	1 },
+> +	{ V4L2_PIX_FMT_SGRBG10P,	10,	 8,	 8,	1 },
+> +	{ V4L2_PIX_FMT_SRGGB10P,	10,	 8,	 8,	1 },
+>   	/* compressed bayer */
+>   	{ V4L2_PIX_FMT_SPCA561,		 0,	 9,	 9,	1 },
+>   	{ V4L2_PIX_FMT_SN9C10X,		 0,	 9,	 9,	1 },
+> @@ -687,6 +691,10 @@ static int v4lconvert_processing_needs_double_conversion(
+>   	case V4L2_PIX_FMT_SGBRG8:
+>   	case V4L2_PIX_FMT_SGRBG8:
+>   	case V4L2_PIX_FMT_SRGGB8:
+> +	case V4L2_PIX_FMT_SBGGR10P:
+> +	case V4L2_PIX_FMT_SGBRG10P:
+> +	case V4L2_PIX_FMT_SGRBG10P:
+> +	case V4L2_PIX_FMT_SRGGB10P:
+>   	case V4L2_PIX_FMT_STV0680:
+>   		return 0;
+>   	}
+> @@ -979,6 +987,33 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+>   	}
+>   
+>   		/* Raw bayer formats */
+> +	case V4L2_PIX_FMT_SBGGR10P:
+> +	case V4L2_PIX_FMT_SGBRG10P:
+> +	case V4L2_PIX_FMT_SGRBG10P:
+> +	case V4L2_PIX_FMT_SRGGB10P:
+> +		if (src_size < ((width * height * 10)/8)) {
+> +			V4LCONVERT_ERR("short raw bayer10 data frame\n");
+> +			errno = EPIPE;
+> +			result = -1;
+> +		}
+> +		switch (src_pix_fmt) {
+> +		case V4L2_PIX_FMT_SBGGR10P:
+> +			src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
+> +			break;
+> +		case V4L2_PIX_FMT_SGBRG10P:
+> +			src_pix_fmt = V4L2_PIX_FMT_SGBRG8;
+> +			break;
+> +		case V4L2_PIX_FMT_SGRBG10P:
+> +			src_pix_fmt = V4L2_PIX_FMT_SGRBG8;
+> +			break;
+> +		case V4L2_PIX_FMT_SRGGB10P:
+> +			src_pix_fmt = V4L2_PIX_FMT_SRGGB8;
+> +			break;
+> +		}
+> +		v4lconvert_bayer10p_to_bayer8(src, src, width, height);
+> +		bytesperline = width;
+> +
+> +	/* Fall-through*/
+>   	case V4L2_PIX_FMT_SBGGR8:
+>   	case V4L2_PIX_FMT_SGBRG8:
+>   	case V4L2_PIX_FMT_SGRBG8:
+> 
