@@ -1,123 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:45670 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725198AbeIOEHh (ORCPT
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:32808 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726230AbeIWWdY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 00:07:37 -0400
-From: Luis Oliveira <Luis.Oliveira@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: all-jpinto-org-pt02@synopsys.com,
-        Luis Oliveira <Luis.Oliveira@synopsys.com>,
-        Luis Oliveira <luis.oliveira@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH 4/5] Documentation: dt-bindings: Document bindings for DW MIPI CSI-2 Host
-Date: Sat, 15 Sep 2018 00:48:40 +0200
-Message-Id: <20180914224849.27173-5-lolivei@synopsys.com>
-In-Reply-To: <20180914224849.27173-1-lolivei@synopsys.com>
-References: <20180914224849.27173-1-lolivei@synopsys.com>
+        Sun, 23 Sep 2018 18:33:24 -0400
+Received: by mail-pg1-f193.google.com with SMTP id y18-v6so4824286pge.0
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2018 09:35:20 -0700 (PDT)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 4/6] media: vivid: use V4L2_FRACT_COMPARE
+Date: Mon, 24 Sep 2018 01:34:50 +0900
+Message-Id: <1537720492-31201-5-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
+References: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings for Synopsys DesignWare MIPI CSI-2 host.
+Now the equivalent of FRACT_CMP() is added in v4l2 common internal API
+header.
 
-Signed-off-by: Luis Oliveira <lolivei@synopsys.com>
+Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- .../devicetree/bindings/media/snps,dw-csi-plat.txt | 74 ++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-csi-plat.txt
+* v2
+- New patch
 
-diff --git a/Documentation/devicetree/bindings/media/snps,dw-csi-plat.txt b/Documentation/devicetree/bindings/media/snps,dw-csi-plat.txt
-new file mode 100644
-index 0000000..0cc2915
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/snps,dw-csi-plat.txt
-@@ -0,0 +1,74 @@
-+Synopsys DesignWare CSI-2 Host controller
-+
-+Description
-+-----------
-+
-+This HW block is used to receive image coming from an MIPI CSI-2 compatible
-+camera.
-+
-+Required properties:
-+- compatible: shall be "snps,dw-csi-plat"
-+- reg			: physical base address and size of the device memory mapped
-+  registers;
-+- interrupts		: CSI-2 Host interrupt
-+- snps,output-type	: Core output to be used (IPI-> 0 or IDI->1 or BOTH->2) These
-+  			  values choose which of the Core outputs will be used, it
-+			  can be Image Data Interface or Image Pixel Interface.
-+- phys			: List of one PHY specifier (as defined in
-+			  Documentation/devicetree/bindings/phy/phy-bindings.txt).
-+			  This PHY is a MIPI DPHY working in RX mode.
-+- resets		: Reference to a reset controller (optional)
-+
-+Optional properties(if in IPI mode):
-+- snps,ipi-mode 	: Mode to be used when in IPI(Camera -> 0 or Controller -> 1)
-+			  This property defines if the controller will use the video
-+			  timings available
-+			  in the video stream or if it will use pre-defined ones.
-+- snps,ipi-color-mode	: Bus depth to be used in IPI (48 bits -> 0 or 16 bits -> 1)
-+			  This property defines the width of the IPI bus.
-+- snps,ipi-auto-flush	: Data auto-flush (1 -> Yes or 0 -> No). This property defines
-+			  if the data is automatically flushed in each vsync or if
-+			  this process is done manually
-+- snps,virtual-channel	: Virtual channel where data is present when in IPI mode. This
-+			  property chooses the virtual channel which IPI will use to
-+			  retrieve the video stream.
-+
-+The per-board settings:
-+ - port sub-node describing a single endpoint connected to the camera as
-+   described in video-interfaces.txt[1].
-+
-+Example:
-+
-+	csi2_1: csi2@3000 {
-+		compatible = "snps,dw-csi-plat";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		reg = < 0x03000 0x7FF>;
-+		interrupts = <2>;
-+		output-type = <2>;
-+		resets = <&dw_rst 1>;
-+		phys = <&mipi_dphy_rx1 0>;
-+		phy-names = "csi2-dphy";
-+
-+		/* IPI optional Configurations */
-+		snps,ipi-mode = <0>;
-+		snps,ipi-color-mode = <0>;
-+		snps,ipi-auto-flush = <1>;
-+		snps,virtual-channel = <0>;
-+
-+		/* CSI-2 per-board settings */
-+		port@1 {
-+			reg = <1>;
-+			csi1_ep1: endpoint {
-+				remote-endpoint = <&camera_1>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+		port@2 {
-+			csi1_ep2: endpoint {
-+				remote-endpoint = <&vif1_ep>;
-+			};
-+		};
-+	};
-+
-+
+ drivers/media/platform/vivid/vivid-vid-cap.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 1599159..f19c701 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -1824,9 +1824,6 @@ int vivid_vid_cap_g_parm(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-#define FRACT_CMP(a, OP, b)	\
+-	((u64)(a).numerator * (b).denominator  OP  (u64)(b).numerator * (a).denominator)
+-
+ int vivid_vid_cap_s_parm(struct file *file, void *priv,
+ 			  struct v4l2_streamparm *parm)
+ {
+@@ -1847,14 +1844,14 @@ int vivid_vid_cap_s_parm(struct file *file, void *priv,
+ 	if (tpf.denominator == 0)
+ 		tpf = webcam_intervals[ival_sz - 1];
+ 	for (i = 0; i < ival_sz; i++)
+-		if (FRACT_CMP(tpf, >=, webcam_intervals[i]))
++		if (V4L2_FRACT_COMPARE(tpf, >=, webcam_intervals[i]))
+ 			break;
+ 	if (i == ival_sz)
+ 		i = ival_sz - 1;
+ 	dev->webcam_ival_idx = i;
+ 	tpf = webcam_intervals[dev->webcam_ival_idx];
+-	tpf = FRACT_CMP(tpf, <, tpf_min) ? tpf_min : tpf;
+-	tpf = FRACT_CMP(tpf, >, tpf_max) ? tpf_max : tpf;
++	tpf = V4L2_FRACT_COMPARE(tpf, <, tpf_min) ? tpf_min : tpf;
++	tpf = V4L2_FRACT_COMPARE(tpf, >, tpf_max) ? tpf_max : tpf;
+ 
+ 	/* resync the thread's timings */
+ 	dev->cap_seq_resync = true;
 -- 
-2.9.3
+2.7.4
