@@ -1,93 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:42047 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726469AbeI0Jfk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 05:35:40 -0400
-From: "Chen, Ping-chung" <ping-chung.chen@intel.com>
-To: "Yeh, Andy" <andy.yeh@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "sylwester.nawrocki@gmail.com" <sylwester.nawrocki@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        "Lai, Jim" <jim.lai@intel.com>,
-        "grundler@chromium.org" <grundler@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH v5] media: imx208: Add imx208 camera sensor driver
-Date: Thu, 27 Sep 2018 03:19:07 +0000
-Message-ID: <5E40A82D0551C84FA2888225EDABBE093FACDA2D@PGSMSX105.gar.corp.intel.com>
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
- <20180920205658.xv57qcmya7xubgyf@valkosipuli.retiisi.org.uk>
- <1961986.b6erRuqaPp@avalon>
- <CAPybu_2pCy4EJnih+1pmr43gdh5J0BS_Z0Owb5qpJVkYcDHtyQ@mail.gmail.com>
- <5E40A82D0551C84FA2888225EDABBE093FACCF63@PGSMSX105.gar.corp.intel.com>
- <20180925092527.4apdggynxleigvbv@paasikivi.fi.intel.com>
- <5E40A82D0551C84FA2888225EDABBE093FACD5E5@PGSMSX105.gar.corp.intel.com>
- <20180925215442.dugem7hcywaopl6s@kekkonen.localdomain>
- <5E40A82D0551C84FA2888225EDABBE093FACD6AF@PGSMSX105.gar.corp.intel.com>
- <20180926101132.iydcsn6o3qbi32u4@kekkonen.localdomain>
- <8E0971CCB6EA9D41AF58191A2D3978B61D7A567A@PGSMSX111.gar.corp.intel.com>
-In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D7A567A@PGSMSX111.gar.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-io1-f65.google.com ([209.85.166.65]:39547 "EHLO
+        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725919AbeIXFux (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Sep 2018 01:50:53 -0400
+Received: by mail-io1-f65.google.com with SMTP id l7-v6so16310333iok.6
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2018 16:51:25 -0700 (PDT)
 MIME-Version: 1.0
+References: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com> <1537720492-31201-3-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1537720492-31201-3-git-send-email-akinobu.mita@gmail.com>
+From: Matt Ranostay <matt.ranostay@konsulko.com>
+Date: Mon, 24 Sep 2018 07:51:13 +0800
+Message-ID: <CAJCx=gm787kZVhNoG=Zj9m3HC=sfRba738Eocgz8gEg+57Xwhg@mail.gmail.com>
+Subject: Re: [PATCH v2 2/6] media: video-i2c: use i2c regmap
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        Hans Verkuil <hansverk@cisco.com>, mchehab@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
->-----Original Message-----
->From: Yeh, Andy 
->Sent: Wednesday, September 26, 2018 11:19 PM
->To: Sakari Ailus <sakari.ailus@linux.intel.com>; Chen, Ping-chung <ping-chung.chen@intel.com>
-
->Hi Sakari, PC,
-
->sensors that do need >digital gain applied, too --- assuming it'd be 
->combined with the TRY_EXT_CTRLS rounding flags.
->>
->> There might be many kinds of discrete DG formats. For imx208, DG=2^n, 
->> but for other sensors, DG could be 2*n, 5*n, or other styles. If HAL 
->> needs to
+On Mon, Sep 24, 2018 at 12:35 AM Akinobu Mita <akinobu.mita@gmail.com> wrote:
 >
->I guess the most common is multiplication and a bit shift (by e.g. 8), e.g.
->multiplying the value by a 16-bit number with a 8-bit fractional part. 
->The
->imx208 apparently lacks the multiplication and only has the bit shift.
+> Use regmap for i2c register access.  This simplifies register accesses and
+> chooses suitable access commands based on the functionality that the
+> adapter supports.
 >
->Usually there's some sort of technical reason for the choice of the 
->digital gain implementation and therefore I expect at least the vast 
->majority of the implementations to be either of the two.
+> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Hans Verkuil <hansverk@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 
->We shall ensure the expansibility of this architecture to include other kind of styles in the future. Is this API design architecture-wise ok?
+Acked-by: Matt Ranostay <matt.ranostay@konsulko.com>
 
-Indeed. Seems it is hard to cover all rules and HAL needs complex flow to judge the DG value.
-Hi Sakari, could you provide an example that how HAL uses the modified interface to set available digital gain?
-
+> ---
+> * v2
+> - Add thermistor and termperature register address definisions
 >
->> cover all cases, kernel will have to update more information to this 
->> control. Another problem is should HAL take over the SMIA calculation?
->> If so, kernel will also need to update SMIA parameters to user space 
->> (or create an addition filed for SMIA in the configuration XML file).
+>  drivers/media/i2c/video-i2c.c | 60 ++++++++++++++++++++++++-------------------
+>  1 file changed, 34 insertions(+), 26 deletions(-)
 >
->The parameters for the analogue gain model should come from the driver, yes.
->We do not have controls for that purpose but they can (and should) be added.
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> index b7a2af9..fb8509e 100644
+> --- a/drivers/media/i2c/video-i2c.c
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/of_device.h>
+> +#include <linux/regmap.h>
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+>  #include <linux/videodev2.h>
+> @@ -38,7 +39,7 @@ struct video_i2c_buffer {
+>  };
 >
-
->How about still follow PC's proposal to implement in XML? It was in IQ tuning file before which is in userspace. Even I proposed to PC to study with ICG SW team whether this info could be retrieved from 3A algorithm.
-
-Hi Andy, because we has to use total gain instead of AG in 3A for the WA, our tuning data of imx208 will not include SMIA of AG anymore. 
-So HAL has no way to retrieve correct SMIA parameters of AG from 3A.
-
-Thanks,
-PC Chen
-
->--
->Regards,
+>  struct video_i2c_data {
+> -       struct i2c_client *client;
+> +       struct regmap *regmap;
+>         const struct video_i2c_chip *chip;
+>         struct mutex lock;
+>         spinlock_t slock;
+> @@ -62,6 +63,12 @@ static const struct v4l2_frmsize_discrete amg88xx_size = {
+>         .height = 8,
+>  };
 >
->Sakari Ailus
->sakari.ailus@linux.intel.com
+> +static const struct regmap_config amg88xx_regmap_config = {
+> +       .reg_bits = 8,
+> +       .val_bits = 8,
+> +       .max_register = 0xff
+> +};
+> +
+>  struct video_i2c_chip {
+>         /* video dimensions */
+>         const struct v4l2_fmtdesc *format;
+> @@ -76,6 +83,8 @@ struct video_i2c_chip {
+>         /* pixel size in bits */
+>         unsigned int bpp;
+>
+> +       const struct regmap_config *regmap_config;
+> +
+>         /* xfer function */
+>         int (*xfer)(struct video_i2c_data *data, char *buf);
+>
+> @@ -83,26 +92,16 @@ struct video_i2c_chip {
+>         int (*hwmon_init)(struct video_i2c_data *data);
+>  };
+>
+> -static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
+> -{
+> -       struct i2c_client *client = data->client;
+> -       struct i2c_msg msg[2];
+> -       u8 reg = 0x80;
+> -       int ret;
+> -
+> -       msg[0].addr = client->addr;
+> -       msg[0].flags = 0;
+> -       msg[0].len = 1;
+> -       msg[0].buf  = (char *)&reg;
+> -
+> -       msg[1].addr = client->addr;
+> -       msg[1].flags = I2C_M_RD;
+> -       msg[1].len = data->chip->buffer_size;
+> -       msg[1].buf = (char *)buf;
+> +/* Thermistor register */
+> +#define AMG88XX_REG_TTHL       0x0e
+>
+> -       ret = i2c_transfer(client->adapter, msg, 2);
+> +/* Temperature register */
+> +#define AMG88XX_REG_T01L       0x80
+>
+> -       return (ret == 2) ? 0 : -EIO;
+> +static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
+> +{
+> +       return regmap_bulk_read(data->regmap, AMG88XX_REG_T01L, buf,
+> +                               data->chip->buffer_size);
+>  }
+>
+>  #if IS_ENABLED(CONFIG_HWMON)
+> @@ -133,12 +132,15 @@ static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
+>                         u32 attr, int channel, long *val)
+>  {
+>         struct video_i2c_data *data = dev_get_drvdata(dev);
+> -       struct i2c_client *client = data->client;
+> -       int tmp = i2c_smbus_read_word_data(client, 0x0e);
+> +       __le16 buf;
+> +       int tmp;
+>
+> -       if (tmp < 0)
+> +       tmp = regmap_bulk_read(data->regmap, AMG88XX_REG_TTHL, &buf, 2);
+> +       if (tmp)
+>                 return tmp;
+>
+> +       tmp = le16_to_cpu(buf);
+> +
+>         /*
+>          * Check for sign bit, this isn't a two's complement value but an
+>          * absolute temperature that needs to be inverted in the case of being
+> @@ -164,8 +166,9 @@ static const struct hwmon_chip_info amg88xx_chip_info = {
+>
+>  static int amg88xx_hwmon_init(struct video_i2c_data *data)
+>  {
+> -       void *hwmon = devm_hwmon_device_register_with_info(&data->client->dev,
+> -                               "amg88xx", data, &amg88xx_chip_info, NULL);
+> +       struct device *dev = regmap_get_device(data->regmap);
+> +       void *hwmon = devm_hwmon_device_register_with_info(dev, "amg88xx", data,
+> +                                               &amg88xx_chip_info, NULL);
+>
+>         return PTR_ERR_OR_ZERO(hwmon);
+>  }
+> @@ -182,6 +185,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
+>                 .max_fps        = 10,
+>                 .buffer_size    = 128,
+>                 .bpp            = 16,
+> +               .regmap_config  = &amg88xx_regmap_config,
+>                 .xfer           = &amg88xx_xfer,
+>                 .hwmon_init     = amg88xx_hwmon_init,
+>         },
+> @@ -350,7 +354,8 @@ static int video_i2c_querycap(struct file *file, void  *priv,
+>                                 struct v4l2_capability *vcap)
+>  {
+>         struct video_i2c_data *data = video_drvdata(file);
+> -       struct i2c_client *client = data->client;
+> +       struct device *dev = regmap_get_device(data->regmap);
+> +       struct i2c_client *client = to_i2c_client(dev);
+>
+>         strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
+>         strlcpy(vcap->card, data->vdev.name, sizeof(vcap->card));
+> @@ -527,7 +532,10 @@ static int video_i2c_probe(struct i2c_client *client,
+>         else
+>                 return -ENODEV;
+>
+> -       data->client = client;
+> +       data->regmap = devm_regmap_init_i2c(client, data->chip->regmap_config);
+> +       if (IS_ERR(data->regmap))
+> +               return PTR_ERR(data->regmap);
+> +
+>         v4l2_dev = &data->v4l2_dev;
+>         strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
+>
+> --
+> 2.7.4
+>
