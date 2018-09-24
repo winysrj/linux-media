@@ -1,81 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:54484 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726685AbeIRPyZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Sep 2018 11:54:25 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 3/3] i2c: adv748x: fix typo in comment for TXB CSI-2
- transmitter power down
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
+Received: from mga05.intel.com ([192.55.52.43]:15825 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727247AbeIYCgz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Sep 2018 22:36:55 -0400
+Date: Mon, 24 Sep 2018 23:32:52 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20180918014509.6394-1-niklas.soderlund+renesas@ragnatech.se>
- <20180918014509.6394-4-niklas.soderlund+renesas@ragnatech.se>
- <cad3ca03-7741-bbc1-b276-115c4b58fe3f@ideasonboard.com>
-Message-ID: <853bf2a6-ffe8-83c3-f581-6de8072fbda8@ideasonboard.com>
-Date: Tue, 18 Sep 2018 11:22:24 +0100
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] [media] imx214: Add imx214 camera sensor driver
+Message-ID: <20180924203252.wxeclgjc7zvepyhb@kekkonen.localdomain>
+References: <20180921085450.19224-1-ricardo.ribalda@gmail.com>
+ <20180921092833.c3bznrhc3yyarmq4@kekkonen.localdomain>
+ <CAPybu_2J4b8C_AQu5trH6fLG3FAkSvFiUOYt-HFwG+YXK9PkkQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <cad3ca03-7741-bbc1-b276-115c4b58fe3f@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPybu_2J4b8C_AQu5trH6fLG3FAkSvFiUOYt-HFwG+YXK9PkkQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Ricardo,
 
-On 18/09/18 10:54, Kieran Bingham wrote:
-> Hi Niklas,
-> 
-> Thank you for the patch,
-> 
-> I don't think this conflicts with Jacopo's series at all does it ?
-> 
-> Perhaps with the amount of adv748x churn currently I should create an
-> integration/for-next branch :-)
-> 
-> On 18/09/18 02:45, Niklas SÃ¶derlund wrote:
->> Fix copy-and-past error in comment for TXB CSI-2 transmitter power down
->> sequence.
->>
->> Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> This looks good and useful to me.
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
->> ---
->>  drivers/media/i2c/adv748x/adv748x-core.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
->> index 9a82cdf301bccb41..86cb38f4d7cc11c6 100644
->> --- a/drivers/media/i2c/adv748x/adv748x-core.c
->> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
->> @@ -299,7 +299,7 @@ static const struct adv748x_reg_value adv748x_power_down_txb_1lane[] = {
->>  
->>  	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
->>  	{ADV748X_PAGE_TXB, 0x1e, 0x00},	/* ADI Required Write */
->> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 4-lane MIPI */
->> +	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+On Fri, Sep 21, 2018 at 12:15:55PM +0200, Ricardo Ribalda Delgado wrote:
+...
+> > > +static struct reg_8 mode_1920x1080[];
+> > > +static struct reg_8 mode_4096x2304[];
+> >
+> > Const. Could you rearrange the bits to avoid the forward declarations?
+> Const done, but I prefer to keep the forward declaration. Otherwise
+> the long tables will "hide" the mode declaration.
 
-I should just go look at the rest of the code - but it stands out in
-this hunk that we are enabling the lane in our power-down sequence?.
+Well, I guess the long tables do "hide" a bunch of other stuff, too. :-)
+But... I agree there's no trivial way around those tables either.
 
-Perhaps we power it down further in the table which isn't provided by
-the diff.
+It appears I'm not the only one who's commented on the matter of the
+forward declaration.
 
->>  	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
->>  	{ADV748X_PAGE_TXB, 0xc1, 0x3b},	/* ADI Required Write */
+...
+
+> > > +static int imx214_probe(struct i2c_client *client)
+> > > +{
+> > > +     struct device *dev = &client->dev;
+> > > +     struct imx214 *imx214;
+> > > +     struct fwnode_handle *endpoint;
+> > > +     int ret;
+> > > +     static const s64 link_freq[] = {
+> > > +             (IMX214_DEFAULT_PIXEL_RATE * 10LL) / 8,
+> >
+> > You should check the link frequency matches with that from the firmware.
+> 
+> I am not sure what you mean here sorry.
+
+The system firmware holds safe frequencies for the CSI-2 bus on that
+particular system; you should check that the register lists are valid for
+that frequency.
+
+...
+
+> > > +     imx214->pixel_rate = v4l2_ctrl_new_std(&imx214->ctrls, NULL,
+> > > +                                            V4L2_CID_PIXEL_RATE, 0,
+> > > +                                            IMX214_DEFAULT_PIXEL_RATE, 1,
+> > > +                                            IMX214_DEFAULT_PIXEL_RATE);
+> > > +     imx214->link_freq = v4l2_ctrl_new_int_menu(&imx214->ctrls, NULL,
+> > > +                                                V4L2_CID_LINK_FREQ,
+> > > +                                                ARRAY_SIZE(link_freq) - 1,
+> > > +                                                0, link_freq);
+> >
+> > Do I understand this correctly that the driver does not support setting
+> > e.g. exposure time or gain? Those are very basic features...
 > 
 > 
+> Yep :), this is just a first step. I do not have the register set from
+> the device :(. So I am reverse engineering a lot of things.
+> I will add more controls as I am done with them.
+
+Looking at the registers you have in the register list, the sensor's
+registers appear similar to those used by the smiapp driver (the old SMIA
+standard).
+
+I'd guess the same register would work for setting the exposure time. I'm
+less certain about the limits though.
+
 > 
+> >
+> > You'll also need to ensure the s_ctrl() callback works without s_power()
+> > being called. My suggestion is to switch to PM runtime; see e.g. the ov1385
+> > driver in the current media tree master.
+> 
+> 
+> There is one limitation with this chip on the dragonboard. I2c only
+> works if the camss is ON. Therefore whatever s_ctrl needs to be
+> cached and written at streamon.
+
+That's something that doesn't belong to this driver. It's the I²C adapter
+driver / camss issue, and not necessarily related to drivers only. Is the
+I²C controller part of the camss btw.?
 
 -- 
-Regards
---
-Kieran
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
