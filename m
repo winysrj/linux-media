@@ -1,185 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f65.google.com ([209.85.166.65]:39547 "EHLO
-        mail-io1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725919AbeIXFux (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46789 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726199AbeIXIr1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Sep 2018 01:50:53 -0400
-Received: by mail-io1-f65.google.com with SMTP id l7-v6so16310333iok.6
-        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2018 16:51:25 -0700 (PDT)
-MIME-Version: 1.0
-References: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com> <1537720492-31201-3-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1537720492-31201-3-git-send-email-akinobu.mita@gmail.com>
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-Date: Mon, 24 Sep 2018 07:51:13 +0800
-Message-ID: <CAJCx=gm787kZVhNoG=Zj9m3HC=sfRba738Eocgz8gEg+57Xwhg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/6] media: video-i2c: use i2c regmap
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        Hans Verkuil <hansverk@cisco.com>, mchehab@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        Mon, 24 Sep 2018 04:47:27 -0400
+Message-ID: <495ffda703368fff0ac9d9d969c7f4ab@smtp-cloud8.xs4all.net>
+Date: Mon, 24 Sep 2018 04:47:27 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 24, 2018 at 12:35 AM Akinobu Mita <akinobu.mita@gmail.com> wrote:
->
-> Use regmap for i2c register access.  This simplifies register accesses and
-> chooses suitable access commands based on the functionality that the
-> adapter supports.
->
-> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Hans Verkuil <hansverk@cisco.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Matt Ranostay <matt.ranostay@konsulko.com>
+Results of the daily build of media_tree:
 
-> ---
-> * v2
-> - Add thermistor and termperature register address definisions
->
->  drivers/media/i2c/video-i2c.c | 60 ++++++++++++++++++++++++-------------------
->  1 file changed, 34 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-> index b7a2af9..fb8509e 100644
-> --- a/drivers/media/i2c/video-i2c.c
-> +++ b/drivers/media/i2c/video-i2c.c
-> @@ -17,6 +17,7 @@
->  #include <linux/module.h>
->  #include <linux/mutex.h>
->  #include <linux/of_device.h>
-> +#include <linux/regmap.h>
->  #include <linux/sched.h>
->  #include <linux/slab.h>
->  #include <linux/videodev2.h>
-> @@ -38,7 +39,7 @@ struct video_i2c_buffer {
->  };
->
->  struct video_i2c_data {
-> -       struct i2c_client *client;
-> +       struct regmap *regmap;
->         const struct video_i2c_chip *chip;
->         struct mutex lock;
->         spinlock_t slock;
-> @@ -62,6 +63,12 @@ static const struct v4l2_frmsize_discrete amg88xx_size = {
->         .height = 8,
->  };
->
-> +static const struct regmap_config amg88xx_regmap_config = {
-> +       .reg_bits = 8,
-> +       .val_bits = 8,
-> +       .max_register = 0xff
-> +};
-> +
->  struct video_i2c_chip {
->         /* video dimensions */
->         const struct v4l2_fmtdesc *format;
-> @@ -76,6 +83,8 @@ struct video_i2c_chip {
->         /* pixel size in bits */
->         unsigned int bpp;
->
-> +       const struct regmap_config *regmap_config;
-> +
->         /* xfer function */
->         int (*xfer)(struct video_i2c_data *data, char *buf);
->
-> @@ -83,26 +92,16 @@ struct video_i2c_chip {
->         int (*hwmon_init)(struct video_i2c_data *data);
->  };
->
-> -static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
-> -{
-> -       struct i2c_client *client = data->client;
-> -       struct i2c_msg msg[2];
-> -       u8 reg = 0x80;
-> -       int ret;
-> -
-> -       msg[0].addr = client->addr;
-> -       msg[0].flags = 0;
-> -       msg[0].len = 1;
-> -       msg[0].buf  = (char *)&reg;
-> -
-> -       msg[1].addr = client->addr;
-> -       msg[1].flags = I2C_M_RD;
-> -       msg[1].len = data->chip->buffer_size;
-> -       msg[1].buf = (char *)buf;
-> +/* Thermistor register */
-> +#define AMG88XX_REG_TTHL       0x0e
->
-> -       ret = i2c_transfer(client->adapter, msg, 2);
-> +/* Temperature register */
-> +#define AMG88XX_REG_T01L       0x80
->
-> -       return (ret == 2) ? 0 : -EIO;
-> +static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
-> +{
-> +       return regmap_bulk_read(data->regmap, AMG88XX_REG_T01L, buf,
-> +                               data->chip->buffer_size);
->  }
->
->  #if IS_ENABLED(CONFIG_HWMON)
-> @@ -133,12 +132,15 @@ static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
->                         u32 attr, int channel, long *val)
->  {
->         struct video_i2c_data *data = dev_get_drvdata(dev);
-> -       struct i2c_client *client = data->client;
-> -       int tmp = i2c_smbus_read_word_data(client, 0x0e);
-> +       __le16 buf;
-> +       int tmp;
->
-> -       if (tmp < 0)
-> +       tmp = regmap_bulk_read(data->regmap, AMG88XX_REG_TTHL, &buf, 2);
-> +       if (tmp)
->                 return tmp;
->
-> +       tmp = le16_to_cpu(buf);
-> +
->         /*
->          * Check for sign bit, this isn't a two's complement value but an
->          * absolute temperature that needs to be inverted in the case of being
-> @@ -164,8 +166,9 @@ static const struct hwmon_chip_info amg88xx_chip_info = {
->
->  static int amg88xx_hwmon_init(struct video_i2c_data *data)
->  {
-> -       void *hwmon = devm_hwmon_device_register_with_info(&data->client->dev,
-> -                               "amg88xx", data, &amg88xx_chip_info, NULL);
-> +       struct device *dev = regmap_get_device(data->regmap);
-> +       void *hwmon = devm_hwmon_device_register_with_info(dev, "amg88xx", data,
-> +                                               &amg88xx_chip_info, NULL);
->
->         return PTR_ERR_OR_ZERO(hwmon);
->  }
-> @@ -182,6 +185,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
->                 .max_fps        = 10,
->                 .buffer_size    = 128,
->                 .bpp            = 16,
-> +               .regmap_config  = &amg88xx_regmap_config,
->                 .xfer           = &amg88xx_xfer,
->                 .hwmon_init     = amg88xx_hwmon_init,
->         },
-> @@ -350,7 +354,8 @@ static int video_i2c_querycap(struct file *file, void  *priv,
->                                 struct v4l2_capability *vcap)
->  {
->         struct video_i2c_data *data = video_drvdata(file);
-> -       struct i2c_client *client = data->client;
-> +       struct device *dev = regmap_get_device(data->regmap);
-> +       struct i2c_client *client = to_i2c_client(dev);
->
->         strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
->         strlcpy(vcap->card, data->vdev.name, sizeof(vcap->card));
-> @@ -527,7 +532,10 @@ static int video_i2c_probe(struct i2c_client *client,
->         else
->                 return -ENODEV;
->
-> -       data->client = client;
-> +       data->regmap = devm_regmap_init_i2c(client, data->chip->regmap_config);
-> +       if (IS_ERR(data->regmap))
-> +               return PTR_ERR(data->regmap);
-> +
->         v4l2_dev = &data->v4l2_dev;
->         strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
->
-> --
-> 2.7.4
->
+date:			Mon Sep 24 04:00:16 CEST 2018
+media-tree git hash:	985cdcb08a0488558d1005139596b64d73bee267
+media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
+v4l-utils git hash:	e03a5fe118de918b0778fea4a227db3cb18eda1c
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.17.0-3-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.119-i686: OK
+linux-3.18.119-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.152-i686: OK
+linux-4.4.152-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.124-i686: OK
+linux-4.9.124-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.67-i686: OK
+linux-4.14.67-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.5-i686: OK
+linux-4.18.5-x86_64: OK
+linux-4.19-rc1-i686: OK
+linux-4.19-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
