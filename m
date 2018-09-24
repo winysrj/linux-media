@@ -1,97 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:43474 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728005AbeIPBev (ORCPT
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:37611 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726316AbeIYCXH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Sep 2018 21:34:51 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Marco Felsch <m.felsch@pengutronix.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Nasser Afshin <afshin.nasser@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Javier Martinez Canillas <javierm@redhat.com>
-Subject: [PATCH v2 10/14] media: tvp5150: declare its own pads
-Date: Sat, 15 Sep 2018 17:14:25 -0300
-Message-Id: <c4be32e78825034694fc8fab35b2df5ad00dfaf9.1537042262.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
-References: <cover.1537042262.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1537042262.git.mchehab+samsung@kernel.org>
-References: <cover.1537042262.git.mchehab+samsung@kernel.org>
+        Mon, 24 Sep 2018 22:23:07 -0400
+MIME-Version: 1.0
+References: <20180912150142.157913-1-arnd@arndb.de> <20180912151134.436719-1-arnd@arndb.de>
+ <20180914203506.GE35251@wrath> <20180914205748.GC19965@ZenIV.linux.org.uk>
+ <20180918175108.GF35251@wrath> <20180918175952.GJ11367@ziepe.ca>
+In-Reply-To: <20180918175952.GJ11367@ziepe.ca>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 24 Sep 2018 22:18:52 +0200
+Message-ID: <CAK8P3a17GY89in7PeLk1F2T-0Xq=sCrwwntM+Y4BCpXheUC+qQ@mail.gmail.com>
+Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to generic_compat_ioctl_ptrarg
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Darren Hart <dvhart@infradead.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        gregkh <gregkh@linuxfoundation.org>,
+        David Miller <davem@davemloft.net>,
+        driverdevel <devel@driverdev.osuosl.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        qat-linux@intel.com,
+        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE"
+        <linux-crypto@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        "open list:HID CORE LAYER" <linux-input@vger.kernel.org>,
+        linux-iio@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>,
+        linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org,
+        linux-pci <linux-pci@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        linux-remoteproc@vger.kernel.org,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        linux-fbdev@vger.kernel.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-btrfs <linux-btrfs@vger.kernel.org>,
+        ceph-devel <ceph-devel@vger.kernel.org>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        Networking <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we don't need anymore to share pad numbers with similar
-drivers, use its own pad definition instead of a global
-model.
+On Tue, Sep 18, 2018 at 7:59 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>
+> On Tue, Sep 18, 2018 at 10:51:08AM -0700, Darren Hart wrote:
+> > On Fri, Sep 14, 2018 at 09:57:48PM +0100, Al Viro wrote:
+> > > On Fri, Sep 14, 2018 at 01:35:06PM -0700, Darren Hart wrote:
+> > >
+> > > > Acked-by: Darren Hart (VMware) <dvhart@infradead.org>
+> > > >
+> > > > As for a longer term solution, would it be possible to init fops in such
+> > > > a way that the compat_ioctl call defaults to generic_compat_ioctl_ptrarg
+> > > > so we don't have to duplicate this boilerplate for every ioctl fops
+> > > > structure?
+> > >
+> > >     Bad idea, that...  Because several years down the road somebody will add
+> > > an ioctl that takes an unsigned int for argument.  Without so much as looking
+> > > at your magical mystery macro being used to initialize file_operations.
+> >
+> > Fair, being explicit in the declaration as it is currently may be
+> > preferable then.
+>
+> It would be much cleaner and safer if you could arrange things to add
+> something like this to struct file_operations:
+>
+>   long (*ptr_ioctl) (struct file *, unsigned int, void __user *);
+>
+> Where the core code automatically converts the unsigned long to the
+> void __user * as appropriate.
+>
+> Then it just works right always and the compiler will help address
+> Al's concern down the road.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/i2c/tvp5150.c | 22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+I think if we wanted to do this with a new file operation, the best
+way would be to do the copy_from_user()/copy_to_user() in the caller
+as well.
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 94841cf81a7d..1f3dc2702954 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -38,10 +38,16 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
- 
- #define dprintk0(__dev, __arg...) dev_dbg_lvl(__dev, 0, 0, __arg)
- 
-+enum tvp5150_pads {
-+       TVP5150_PAD_IF_INPUT,
-+       TVP5150_PAD_VID_OUT,
-+       TVP5150_NUM_PADS
-+};
-+
- struct tvp5150 {
- 	struct v4l2_subdev sd;
- #ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_pad pads[DEMOD_NUM_PADS];
-+	struct media_pad pads[TVP5150_NUM_PADS];
- 	struct media_entity input_ent[TVP5150_INPUT_NUM];
- 	struct media_pad input_pad[TVP5150_INPUT_NUM];
- #endif
-@@ -866,7 +872,7 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 	struct v4l2_mbus_framefmt *f;
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 
--	if (!format || (format->pad != DEMOD_PAD_VID_OUT))
-+	if (!format || (format->pad != TVP5150_PAD_VID_OUT))
- 		return -EINVAL;
- 
- 	f = &format->format;
-@@ -1217,7 +1223,7 @@ static int tvp5150_registered(struct v4l2_subdev *sd)
- 			return ret;
- 
- 		ret = media_create_pad_link(input, 0, &sd->entity,
--					    DEMOD_PAD_IF_INPUT, 0);
-+					    TVP5150_PAD_IF_INPUT, 0);
- 		if (ret < 0) {
- 			media_device_unregister_entity(input);
- 			return ret;
-@@ -1499,14 +1505,14 @@ static int tvp5150_probe(struct i2c_client *c,
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
--	core->pads[DEMOD_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
--	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	core->pads[DEMOD_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
-+	core->pads[TVP5150_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	core->pads[TVP5150_PAD_IF_INPUT].sig_type = PAD_SIGNAL_ANALOG;
-+	core->pads[TVP5150_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	core->pads[TVP5150_PAD_VID_OUT].sig_type = PAD_SIGNAL_DV;
- 
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
--	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
-+	res = media_entity_pads_init(&sd->entity, TVP5150_NUM_PADS, core->pads);
- 	if (res < 0)
- 		return res;
- 
--- 
-2.17.1
+We already do this inside of some subsystems, notably drivers/media/,
+and it simplifies the implementation of the ioctl handler function
+significantly. We obviously cannot do this in general, both because of
+traditional drivers that have 16-bit command codes (drivers/tty and others)
+and also because of drivers that by accident defined the commands
+incorrectly and use the wrong type or the wrong direction in the
+definition.
+
+       Arnd
