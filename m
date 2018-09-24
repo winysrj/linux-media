@@ -1,132 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47705 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729068AbeIXUoo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60308 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728421AbeIXUo5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Sep 2018 16:44:44 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [ANN] Draft Agenda for the media summit on Thursday Oct 25th in
- Edinburgh
-Message-ID: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
-Date: Mon, 24 Sep 2018 16:42:13 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 24 Sep 2018 16:44:57 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, h.grohne@intenta.de
+Subject: [PATCH 1/1] v4l: Remove support for crop default target in subdev drivers
+Date: Mon, 24 Sep 2018 17:42:27 +0300
+Message-Id: <20180924144227.31237-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The V4L2 sub-device API does not support the crop default target. A number
+of drivers apparently still did support this, likely as it was needed by
+the SoC camera framework. Drop support for the default crop rectaingle in
+sub-device drivers, and use the bround in SoC camera instead.
 
-We are organizing a media mini-summit on Thursday October 25th in
-Edinburgh, Edinburgh International Conference Centre.
+Reported-by: Helmut Grohne <h.grohne@intenta.de>
+Suggested-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/ak881x.c                         | 1 -
+ drivers/media/i2c/mt9m111.c                        | 1 -
+ drivers/media/i2c/mt9t112.c                        | 6 ------
+ drivers/media/i2c/ov2640.c                         | 1 -
+ drivers/media/i2c/ov6650.c                         | 1 -
+ drivers/media/i2c/ov772x.c                         | 1 -
+ drivers/media/i2c/rj54n1cb0c.c                     | 1 -
+ drivers/media/i2c/soc_camera/mt9m001.c             | 1 -
+ drivers/media/i2c/soc_camera/mt9t112.c             | 6 ------
+ drivers/media/i2c/soc_camera/mt9v022.c             | 1 -
+ drivers/media/i2c/soc_camera/ov5642.c              | 1 -
+ drivers/media/i2c/soc_camera/ov772x.c              | 1 -
+ drivers/media/i2c/soc_camera/ov9640.c              | 1 -
+ drivers/media/i2c/soc_camera/ov9740.c              | 1 -
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          | 1 -
+ drivers/media/i2c/tvp5150.c                        | 1 -
+ drivers/media/platform/soc_camera/soc_scale_crop.c | 2 +-
+ drivers/staging/media/imx074/imx074.c              | 1 -
+ drivers/staging/media/mt9t031/mt9t031.c            | 1 -
+ 19 files changed, 1 insertion(+), 29 deletions(-)
 
-If you plan to attend, please let Mauro know. It is open for all, but
-we have a limited number of seats.
-
-Name of the room for the summit: TBD
-
-Currently known attendees (please add/remove names as needed):
-
-Sakari Ailus <sakari.ailus@iki.fi>
-Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Ezequiel Garcia <ezequiel@collabora.com>
-Michael Ira Krufky <mkrufky@linuxtv.org>
-Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Hans Verkuil <hverkuil@xs4all.nl>
-Sean Young <sean@mess.org>
-
-Agenda (First draft!)
-=====================
-
-General remarks: the given start/end times for the various topics are
-approximate since it is always hard to predict how long a discussion will take.
-If people are attending other summits and those conflict with specific media
-topics they want to be part of, then let me know and we can rearrange the
-schedule to (hopefully) accommodate that.
-
-9:00-9:15: Introduction (Hans Verkuil)
-
-9:15-9:30: Status of the HDMI CEC kernel support (Hans Verkuil)
-	Give a quick overview of the status: what has been merged, what is
-	still pending, what is under development.
-
-9:30-9:45: Save/restore controls from MTD (Ricardo Ribalda Delgado)
-	Industrial/Scientific sensors usually come with very extensive
-	calibration information such as: per column gain, list of dead
-	pixels, temperature sensor offset... etc
-
-	We are saving that information on an flash device that is located
-	by the sensor.
-
-	Show how we are integrating that calibration flash with v4l2-ctrl.
-	And if this feature is useful for someone else and upstream it.
-
-9:45-11:00: Complex Cameras (Mauro Carvalho Chehab)
-	I expect that we could have something to discuss there about complex
-	cameras. So, I'd reserve a 50 mins slot for it.
-
-	The idea is to discuss about the undergoing work with complex camera
-	development is happening.
-
-	As we're working to merge request API, another topic for discussion
-	is how to add support for requests on it (or on a separate but related
-	library).
-
-11:00-11:15: Break
-
-11:15-12:00: Automated Testing (Ezequiel Garcia)
-	There is a lot of discussion going on around testing,
-	so it's a good opportunity for us to talk about our
-	current testing infrastructure.
-
-	We are already doing a good job with v4l2-compliance.
-	Can we do more?
-
-Lunch
-
-13:30-14:30: Stateless Codec userspace (Hans Verkuil)
-	Support for stateless codecs and Request API should be merged for
-	4.20, and the next step is to discuss how to organize the userspace
-	support.
-
-	Hopefully by the time the media summit starts we'll have some better
-	ideas of what we want in this area.
-
-14:30-15:15: Which ioctls should be replaced with better versions? (Hans Verkuil)
-	Some parts of the V4L2 API are awkward to use and I think it would be
-	a good idea to look at possible candidates for that.
-
-	Examples are the ioctls that use struct v4l2_buffer: the multiplanar support is
-	really horrible, and writing code to support both single and multiplanar is hard.
-	We are also running out of fields and the timeval isn't y2038 compliant.
-
-	A proof-of-concept is here:
-
-	https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
-
-	It's a bit old, but it gives a good impression of what I have in mind.
-
-	Another candidate is VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS:
-	expressing frame intervals as a fraction is really awkward and so is the fact
-	that the subdev and 'normal' ioctls are not the same.
-
-	Discuss what possible other ioctls are candidates for a refresh.
-
-15:15-15:30: Break
-
-15:30-16:00: Discuss the media development process
-	Since we are all here, discuss any issues there may be with the media
-	subsystem development process. Anything to improve?
-
-16:00-16:15: Wrap up
-	Create action items (and who will take care of them) if needed.
-	Summarize and conclude the day.
-
-End of the day: Key Signing Party
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/ak881x.c b/drivers/media/i2c/ak881x.c
+index 16682c8477d1..30f9db1351b9 100644
+--- a/drivers/media/i2c/ak881x.c
++++ b/drivers/media/i2c/ak881x.c
+@@ -136,7 +136,6 @@ static int ak881x_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = 720;
+diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+index efda1aa95ca0..1395986a07bb 100644
+--- a/drivers/media/i2c/mt9m111.c
++++ b/drivers/media/i2c/mt9m111.c
+@@ -445,7 +445,6 @@ static int mt9m111_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = MT9M111_MIN_DARK_COLS;
+ 		sel->r.top = MT9M111_MIN_DARK_ROWS;
+ 		sel->r.width = MT9M111_MAX_WIDTH;
+diff --git a/drivers/media/i2c/mt9t112.c b/drivers/media/i2c/mt9t112.c
+index af8cca984215..ef353a244e33 100644
+--- a/drivers/media/i2c/mt9t112.c
++++ b/drivers/media/i2c/mt9t112.c
+@@ -888,12 +888,6 @@ static int mt9t112_get_selection(struct v4l2_subdev *sd,
+ 		sel->r.width = MAX_WIDTH;
+ 		sel->r.height = MAX_HEIGHT;
+ 		return 0;
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+-		sel->r.left = 0;
+-		sel->r.top = 0;
+-		sel->r.width = VGA_WIDTH;
+-		sel->r.height = VGA_HEIGHT;
+-		return 0;
+ 	case V4L2_SEL_TGT_CROP:
+ 		sel->r = priv->frame;
+ 		return 0;
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index beb722065152..20a8853ba1e2 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -1010,7 +1010,6 @@ static int ov2640_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 	case V4L2_SEL_TGT_CROP:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+diff --git a/drivers/media/i2c/ov6650.c b/drivers/media/i2c/ov6650.c
+index 17a34b4a819d..5d1b218bb7f0 100644
+--- a/drivers/media/i2c/ov6650.c
++++ b/drivers/media/i2c/ov6650.c
+@@ -449,7 +449,6 @@ static int ov6650_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = DEF_HSTRT << 1;
+ 		sel->r.top = DEF_VSTRT << 1;
+ 		sel->r.width = W_CIF;
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 161bc7c8535d..fefff7fd7d68 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -1147,7 +1147,6 @@ static int ov772x_get_selection(struct v4l2_subdev *sd,
+ 	sel->r.top = 0;
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 	case V4L2_SEL_TGT_CROP:
+ 		sel->r.width = priv->win->rect.width;
+ 		sel->r.height = priv->win->rect.height;
+diff --git a/drivers/media/i2c/rj54n1cb0c.c b/drivers/media/i2c/rj54n1cb0c.c
+index 6ad998ad1b16..4cc51e001874 100644
+--- a/drivers/media/i2c/rj54n1cb0c.c
++++ b/drivers/media/i2c/rj54n1cb0c.c
+@@ -589,7 +589,6 @@ static int rj54n1_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = RJ54N1_COLUMN_SKIP;
+ 		sel->r.top = RJ54N1_ROW_SKIP;
+ 		sel->r.width = RJ54N1_MAX_WIDTH;
+diff --git a/drivers/media/i2c/soc_camera/mt9m001.c b/drivers/media/i2c/soc_camera/mt9m001.c
+index 1bfb0d53059e..a1a85ff838c5 100644
+--- a/drivers/media/i2c/soc_camera/mt9m001.c
++++ b/drivers/media/i2c/soc_camera/mt9m001.c
+@@ -243,7 +243,6 @@ static int mt9m001_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = MT9M001_COLUMN_SKIP;
+ 		sel->r.top = MT9M001_ROW_SKIP;
+ 		sel->r.width = MT9M001_MAX_WIDTH;
+diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
+index b53c36dfa469..ea1ff270bc2d 100644
+--- a/drivers/media/i2c/soc_camera/mt9t112.c
++++ b/drivers/media/i2c/soc_camera/mt9t112.c
+@@ -884,12 +884,6 @@ static int mt9t112_get_selection(struct v4l2_subdev *sd,
+ 		sel->r.width = MAX_WIDTH;
+ 		sel->r.height = MAX_HEIGHT;
+ 		return 0;
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+-		sel->r.left = 0;
+-		sel->r.top = 0;
+-		sel->r.width = VGA_WIDTH;
+-		sel->r.height = VGA_HEIGHT;
+-		return 0;
+ 	case V4L2_SEL_TGT_CROP:
+ 		sel->r = priv->frame;
+ 		return 0;
+diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
+index 762f06919329..6d922b17ea94 100644
+--- a/drivers/media/i2c/soc_camera/mt9v022.c
++++ b/drivers/media/i2c/soc_camera/mt9v022.c
+@@ -368,7 +368,6 @@ static int mt9v022_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = MT9V022_COLUMN_SKIP;
+ 		sel->r.top = MT9V022_ROW_SKIP;
+ 		sel->r.width = MT9V022_MAX_WIDTH;
+diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/ov5642.c
+index 39f420db9c70..c6c41b03c0ef 100644
+--- a/drivers/media/i2c/soc_camera/ov5642.c
++++ b/drivers/media/i2c/soc_camera/ov5642.c
+@@ -896,7 +896,6 @@ static int ov5642_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = OV5642_MAX_WIDTH;
+diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
+index 14377af7c888..fafd372527b2 100644
+--- a/drivers/media/i2c/soc_camera/ov772x.c
++++ b/drivers/media/i2c/soc_camera/ov772x.c
+@@ -862,7 +862,6 @@ static int ov772x_get_selection(struct v4l2_subdev *sd,
+ 	sel->r.top = 0;
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.width = OV772X_MAX_WIDTH;
+ 		sel->r.height = OV772X_MAX_HEIGHT;
+ 		return 0;
+diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/ov9640.c
+index c63948989688..eb91b8240083 100644
+--- a/drivers/media/i2c/soc_camera/ov9640.c
++++ b/drivers/media/i2c/soc_camera/ov9640.c
+@@ -554,7 +554,6 @@ static int ov9640_get_selection(struct v4l2_subdev *sd,
+ 	sel->r.top = 0;
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 	case V4L2_SEL_TGT_CROP:
+ 		sel->r.width = W_SXGA;
+ 		sel->r.height = H_SXGA;
+diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
+index 755de2289c39..a07d3145d1b4 100644
+--- a/drivers/media/i2c/soc_camera/ov9740.c
++++ b/drivers/media/i2c/soc_camera/ov9740.c
+@@ -730,7 +730,6 @@ static int ov9740_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 	case V4L2_SEL_TGT_CROP:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+diff --git a/drivers/media/i2c/soc_camera/rj54n1cb0c.c b/drivers/media/i2c/soc_camera/rj54n1cb0c.c
+index 02398d0bc649..f0cb49a6167b 100644
+--- a/drivers/media/i2c/soc_camera/rj54n1cb0c.c
++++ b/drivers/media/i2c/soc_camera/rj54n1cb0c.c
+@@ -591,7 +591,6 @@ static int rj54n1_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = RJ54N1_COLUMN_SKIP;
+ 		sel->r.top = RJ54N1_ROW_SKIP;
+ 		sel->r.width = RJ54N1_MAX_WIDTH;
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index f5b234e4599d..4f746e02de22 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1082,7 +1082,6 @@ static int tvp5150_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = TVP5150_H_MAX;
+diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
+index 6164102e6f9f..8d25ca0490f7 100644
+--- a/drivers/media/platform/soc_camera/soc_scale_crop.c
++++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
+@@ -52,7 +52,7 @@ int soc_camera_client_g_rect(struct v4l2_subdev *sd, struct v4l2_rect *rect)
+ 		return ret;
+ 	}
+ 
+-	sdsel.target = V4L2_SEL_TGT_CROP_DEFAULT;
++	sdsel.target = V4L2_SEL_TGT_CROP_BOUNDS;
+ 	ret = v4l2_subdev_call(sd, pad, get_selection, NULL, &sdsel);
+ 	if (!ret)
+ 		*rect = sdsel.r;
+diff --git a/drivers/staging/media/imx074/imx074.c b/drivers/staging/media/imx074/imx074.c
+index 77f1e0243d6e..c5256903e59f 100644
+--- a/drivers/staging/media/imx074/imx074.c
++++ b/drivers/staging/media/imx074/imx074.c
+@@ -223,7 +223,6 @@ static int imx074_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 	case V4L2_SEL_TGT_CROP:
+ 		return 0;
+ 	default:
+diff --git a/drivers/staging/media/mt9t031/mt9t031.c b/drivers/staging/media/mt9t031/mt9t031.c
+index 4802d30e47de..4ff179302b4f 100644
+--- a/drivers/staging/media/mt9t031/mt9t031.c
++++ b/drivers/staging/media/mt9t031/mt9t031.c
+@@ -330,7 +330,6 @@ static int mt9t031_get_selection(struct v4l2_subdev *sd,
+ 
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+-	case V4L2_SEL_TGT_CROP_DEFAULT:
+ 		sel->r.left = MT9T031_COLUMN_SKIP;
+ 		sel->r.top = MT9T031_ROW_SKIP;
+ 		sel->r.width = MT9T031_MAX_WIDTH;
+-- 
+2.11.0
