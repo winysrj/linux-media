@@ -1,120 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:59369 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729619AbeIXXUB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Sep 2018 19:20:01 -0400
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
-Subject: RE: [PATCH v6 12/12] intel-ipu3: Add imgu top level pci device
- driver
-Date: Mon, 24 Sep 2018 17:16:30 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D3DB06741@ORSMSX106.amr.corp.intel.com>
-References: <1522376100-22098-1-git-send-email-yong.zhi@intel.com>
- <1522376100-22098-13-git-send-email-yong.zhi@intel.com>
- <CAAFQd5CdV2BxBnW4Z70q7Sm0j=e1eO0MTTScFs-zPnMH8JHELw@mail.gmail.com>
- <C193D76D23A22742993887E6D207B54D3DAFA2B2@ORSMSX103.amr.corp.intel.com>
- <CAAFQd5AvejyUy_BurfA8uo5hXCVCXjPfj+-cNXYFduk77LuuSg@mail.gmail.com>
-In-Reply-To: <CAAFQd5AvejyUy_BurfA8uo5hXCVCXjPfj+-cNXYFduk77LuuSg@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41989 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726139AbeIXXoc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Sep 2018 19:44:32 -0400
+Subject: Re: [ANN] Draft Agenda for the media summit on Thursday Oct 25th in
+ Edinburgh
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
+ <20180924141228.10227b1d@coco.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <12eb26b5-a701-68d9-b81b-576812ff7169@xs4all.nl>
+Date: Mon, 24 Sep 2018 19:41:13 +0200
 MIME-Version: 1.0
+In-Reply-To: <20180924141228.10227b1d@coco.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIFRvbWFzeiwNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51
-eC1tZWRpYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4gb3du
-ZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgVG9tYXN6IEZpZ2ENCj4gU2VudDogVHVl
-c2RheSwgU2VwdGVtYmVyIDE4LCAyMDE4IDEwOjIzIEFNDQo+IFRvOiBaaGksIFlvbmcgPHlvbmcu
-emhpQGludGVsLmNvbT4NCj4gQ2M6IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGludXgtbWVk
-aWFAdmdlci5rZXJuZWwub3JnPjsgU2FrYXJpIEFpbHVzDQo+IDxzYWthcmkuYWlsdXNAbGludXgu
-aW50ZWwuY29tPjsgTWFuaSwgUmFqbW9oYW4NCj4gPHJham1vaGFuLm1hbmlAaW50ZWwuY29tPjsg
-VG9pdm9uZW4sIFR1dWtrYQ0KPiA8dHV1a2thLnRvaXZvbmVuQGludGVsLmNvbT47IEh1LCBKZXJy
-eSBXIDxqZXJyeS53Lmh1QGludGVsLmNvbT47IFpoZW5nLA0KPiBKaWFuIFh1IDxqaWFuLnh1Lnpo
-ZW5nQGludGVsLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2NiAxMi8xMl0gaW50ZWwtaXB1
-MzogQWRkIGltZ3UgdG9wIGxldmVsIHBjaSBkZXZpY2UNCj4gZHJpdmVyDQo+IA0KPiBPbiBNb24s
-IFNlcCAxNywgMjAxOCBhdCA1OjIwIEFNIFpoaSwgWW9uZyA8eW9uZy56aGlAaW50ZWwuY29tPiB3
-cm90ZToNCj4gPg0KPiA+IEhpLCBUb21hc3osDQo+ID4NCj4gPiBUaGFua3MgZm9yIHRoZSBjb2Rl
-IHJldmlldy4NCj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+IEZy
-b206IGxpbnV4LW1lZGlhLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW1lZGlh
-LQ0KPiA+ID4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgVG9tYXN6IEZpZ2EN
-Cj4gPiA+IFNlbnQ6IE1vbmRheSwgSnVseSAyLCAyMDE4IDM6MDggQU0NCj4gPiA+IFRvOiBaaGks
-IFlvbmcgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gPiA+IENjOiBMaW51eCBNZWRpYSBNYWlsaW5n
-IExpc3QgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaQ0KPiA+ID4gQWlsdXMg
-PHNha2FyaS5haWx1c0BsaW51eC5pbnRlbC5jb20+OyBNYW5pLCBSYWptb2hhbg0KPiA+ID4gPHJh
-am1vaGFuLm1hbmlAaW50ZWwuY29tPjsgVG9pdm9uZW4sIFR1dWtrYQ0KPiA+ID4gPHR1dWtrYS50
-b2l2b25lbkBpbnRlbC5jb20+OyBIdSwgSmVycnkgVyA8amVycnkudy5odUBpbnRlbC5jb20+Ow0K
-PiA+ID4gWmhlbmcsIEppYW4gWHUgPGppYW4ueHUuemhlbmdAaW50ZWwuY29tPg0KPiA+ID4gU3Vi
-amVjdDogUmU6IFtQQVRDSCB2NiAxMi8xMl0gaW50ZWwtaXB1MzogQWRkIGltZ3UgdG9wIGxldmVs
-IHBjaQ0KPiA+ID4gZGV2aWNlIGRyaXZlcg0KPiA+ID4NCj4gPiA+IEhpIFlvbmcsDQo+ID4gPg0K
-PiA+ID4gT24gRnJpLCBNYXIgMzAsIDIwMTggYXQgMTE6MTUgQU0gWW9uZyBaaGkgPHlvbmcuemhp
-QGludGVsLmNvbT4NCj4gd3JvdGU6DQo+ID4gPiA+ICsvKg0KPiA+ID4gPiArICogUXVldWUgYXMg
-bWFueSBidWZmZXJzIHRvIENTUyBhcyBwb3NzaWJsZS4gSWYgYWxsIGJ1ZmZlcnMgZG9uJ3QNCj4g
-PiA+ID4gK2ZpdCBpbnRvDQo+ID4gPiA+ICsgKiBDU1MgYnVmZmVyIHF1ZXVlcywgdGhleSByZW1h
-aW4gdW5xdWV1ZWQgYW5kIHdpbGwgYmUgcXVldWVkIGxhdGVyLg0KPiA+ID4gPiArICovDQo+ID4g
-PiA+ICtpbnQgaW1ndV9xdWV1ZV9idWZmZXJzKHN0cnVjdCBpbWd1X2RldmljZSAqaW1ndSwgYm9v
-bCBpbml0aWFsKSB7DQo+ID4gPiA+ICsgICAgICAgdW5zaWduZWQgaW50IG5vZGU7DQo+ID4gPiA+
-ICsgICAgICAgaW50IHIgPSAwOw0KPiA+ID4gPiArICAgICAgIHN0cnVjdCBpbWd1X2J1ZmZlciAq
-aWJ1ZjsNCj4gPiA+ID4gKw0KPiA+ID4gPiArICAgICAgIGlmICghaXB1M19jc3NfaXNfc3RyZWFt
-aW5nKCZpbWd1LT5jc3MpKQ0KPiA+ID4gPiArICAgICAgICAgICAgICAgcmV0dXJuIDA7DQo+ID4g
-PiA+ICsNCj4gPiA+ID4gKyAgICAgICBtdXRleF9sb2NrKCZpbWd1LT5sb2NrKTsNCj4gPiA+ID4g
-Kw0KPiA+ID4gPiArICAgICAgIC8qIEJ1ZmZlciBzZXQgaXMgcXVldWVkIHRvIEZXIG9ubHkgd2hl
-biBpbnB1dCBidWZmZXIgaXMgcmVhZHkgKi8NCj4gPiA+ID4gKyAgICAgICBpZiAoIWltZ3VfcXVl
-dWVfZ2V0YnVmKGltZ3UsIElNR1VfTk9ERV9JTikpIHsNCj4gPiA+ID4gKyAgICAgICAgICAgICAg
-IG11dGV4X3VubG9jaygmaW1ndS0+bG9jayk7DQo+ID4gPiA+ICsgICAgICAgICAgICAgICByZXR1
-cm4gMDsNCj4gPiA+ID4gKyAgICAgICB9DQo+ID4gPiA+ICsgICAgICAgZm9yIChub2RlID0gSU1H
-VV9OT0RFX0lOICsgMTsgMTsgbm9kZSA9IChub2RlICsgMSkgJQ0KPiA+ID4gPiArIElNR1VfTk9E
-RV9OVU0pIHsNCj4gPiA+DQo+ID4gPiBTaG91bGRuJ3Qgd2UgbWFrZSAobm9kZSAhPSBJTUdVX05P
-REVfSU4gfHwNCj4gaW1ndV9xdWV1ZV9nZXRidWYoaW1ndSwNCj4gPiA+IElNR1VfTk9ERV9JTikp
-IHRoZSBjb25kaXRpb24gaGVyZSwgcmF0aGVyIHRoYW4gMT8NCj4gPiA+DQo+ID4gPiBUaGlzIHdv
-dWxkIGFsc28gbGV0IHVzIHJlbW92ZSB0aGUgZXhwbGljaXQgY2FsbCB0bw0KPiA+ID4gaW1ndV9x
-dWV1ZV9nZXRidWYoKSBhYm92ZSB0aGUgbG9vcC4NCj4gPiA+DQo+ID4NCj4gPiBBY2ssIHdpbGwg
-bWFrZSB0aGUgc3VnZ2VzdGVkIGNoYW5nZXMgcmVnYXJkaW5nIHRoZSBsb29wIGNvbmRpdGlvbg0K
-PiBldmFsdWF0aW9uLg0KPiANCj4gSnVzdCB0byBtYWtlIHN1cmUsIHRoZSBzdWdnZXN0aW9uIGFs
-c28gaW5jbHVkZXMgc3RhcnRpbmcgZnJvbQ0KPiBJTUdVX05PREVfSU4gKG5vdCArIDEpLCBpLmUu
-DQo+IA0KPiBmb3IgKG5vZGUgPSBJTUdVX05PREVfSU47DQo+ICAgICAgbm9kZSAhPSBJTUdVX05P
-REVfSU4gfHwgaW1ndV9xdWV1ZV9nZXRidWYoaW1ndSwgSU1HVV9OT0RFX0lOKTsNCj4gICAgICBu
-b2RlID0gKG5vZGUgKyAxKSAlIElNR1VfTk9ERV9OVU0pIHsNCj4gICAgICAgICAvLyAuLi4NCj4g
-fQ0KPiANCg0KVGhhbmtzIGZvciB0aGUgY2xhcmlmaWNhdGlvbi4gDQoNCj4gPiA+ID4gK3N0YXRp
-YyBpbnQgX19tYXliZV91bnVzZWQgaW1ndV9zdXNwZW5kKHN0cnVjdCBkZXZpY2UgKmRldikgew0K
-PiA+ID4gPiArICAgICAgIHN0cnVjdCBwY2lfZGV2ICpwY2lfZGV2ID0gdG9fcGNpX2RldihkZXYp
-Ow0KPiA+ID4gPiArICAgICAgIHN0cnVjdCBpbWd1X2RldmljZSAqaW1ndSA9IHBjaV9nZXRfZHJ2
-ZGF0YShwY2lfZGV2KTsNCj4gPiA+ID4gKyAgICAgICB1bnNpZ25lZCBsb25nIGV4cGlyZTsNCj4g
-PiA+ID4gKw0KPiA+ID4gPiArICAgICAgIGRldl9kYmcoZGV2LCAiZW50ZXIgJXNcbiIsIF9fZnVu
-Y19fKTsNCj4gPiA+ID4gKyAgICAgICBpbWd1LT5zdXNwZW5kX2luX3N0cmVhbSA9IGlwdTNfY3Nz
-X2lzX3N0cmVhbWluZygmaW1ndS0NCj4gPmNzcyk7DQo+ID4gPiA+ICsgICAgICAgaWYgKCFpbWd1
-LT5zdXNwZW5kX2luX3N0cmVhbSkNCj4gPiA+ID4gKyAgICAgICAgICAgICAgIGdvdG8gb3V0Ow0K
-PiA+ID4gPiArICAgICAgIC8qIEJsb2NrIG5ldyBidWZmZXJzIHRvIGJlIHF1ZXVlZCB0byBDU1Mu
-ICovDQo+ID4gPiA+ICsgICAgICAgYXRvbWljX3NldCgmaW1ndS0+cWJ1Zl9iYXJyaWVyLCAxKTsN
-Cj4gPiA+ID4gKyAgICAgICAvKg0KPiA+ID4gPiArICAgICAgICAqIFdhaXQgZm9yIGN1cnJlbnRs
-eSBydW5uaW5nIGlycSBoYW5kbGVyIHRvIGJlIGRvbmUgc28gdGhhdA0KPiA+ID4gPiArICAgICAg
-ICAqIG5vIG5ldyBidWZmZXJzIHdpbGwgYmUgcXVldWVkIHRvIGZ3IGxhdGVyLg0KPiA+ID4gPiAr
-ICAgICAgICAqLw0KPiA+ID4gPiArICAgICAgIHN5bmNocm9uaXplX2lycShwY2lfZGV2LT5pcnEp
-Ow0KPiA+ID4gPiArICAgICAgIC8qIFdhaXQgdW50aWwgYWxsIGJ1ZmZlcnMgaW4gQ1NTIGFyZSBk
-b25lLiAqLw0KPiA+ID4gPiArICAgICAgIGV4cGlyZSA9IGppZmZpZXMgKyBtc2Vjc190b19qaWZm
-aWVzKDEwMDApOw0KPiA+ID4gPiArICAgICAgIHdoaWxlICghaXB1M19jc3NfcXVldWVfZW1wdHko
-JmltZ3UtPmNzcykpIHsNCj4gPiA+ID4gKyAgICAgICAgICAgICAgIGlmICh0aW1lX2lzX2JlZm9y
-ZV9qaWZmaWVzKGV4cGlyZSkpIHsNCj4gPiA+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgZGV2
-X2VycihkZXYsICJ3YWl0IGJ1ZmZlciBkcmFpbiB0aW1lb3V0LlxuIik7DQo+ID4gPiA+ICsgICAg
-ICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KPiA+ID4gPiArICAgICAgICAgICAgICAgfQ0KPiA+
-ID4gPiArICAgICAgIH0NCj4gPiA+DQo+ID4gPiBVaG0uIFdlIHN0cnVnZ2xlIHRvIHNhdmUgc29t
-ZSBwb3dlciBieSBzdXNwZW5kaW5nIHRoZSBkZXZpY2Ugb25seSB0bw0KPiA+ID4gZW5kIHVwIHdp
-dGggYW4gdWdseSBidXN5IHdhaXQgdGhhdCBjb3VsZCB0YWtlIGV2ZW4gYSBzZWNvbmQgaGVyZS4N
-Cj4gPiA+IFRoaXMgZG9lc24ndCBtYWtlIGFueSBzZW5zZS4NCj4gPiA+DQo+ID4gPiBXZSBoYWQg
-YSB3b3JraW5nIHNvbHV0aW9uIHVzaW5nIGEgd2FpdCBxdWV1ZSBpbiBwcmV2aW91cyByZXZpc2lv
-biBbMV0uDQo+ID4gPiBXaGF0IGhhcHBlbmVkIHRvIGl0Pw0KPiA+ID4NCj4gPiA+IFsxXSBodHRw
-czovL2Nocm9taXVtLQ0KPiA+ID4NCj4gcmV2aWV3Lmdvb2dsZXNvdXJjZS5jb20vYy9jaHJvbWl1
-bW9zL3RoaXJkX3BhcnR5L2tlcm5lbC8rLzEwMjk1OTQvMg0KPiA+ID4gL2RyaXZlcnMvbWVkaWEv
-cGNpL2ludGVsL2lwdTMvaXB1My5jI2I5MTMNCj4gPiA+IChzZWUgdGhlIGxlZnQgc2lkZSkNCj4g
-PiA+DQo+ID4NCj4gPiBUaGUgY29kZSBoZXJlIHdhcyBiYXNlZCBvbiBhbiBvbGQgdmVyc2lvbiBv
-ZiBwYXRjaCAiaXB1My1pbWd1OiBBdm9pZA0KPiBtaWdodCBzbGVlcCBvcGVyYXRpb25zIGluIHN1
-c3BlbmQgY2FsbGJhY2siIGF0IHN1Ym1pc3Npb24sIHNvIGl0IGRpZCBoYXZlDQo+IGJ1Zl9kcmFp
-bl93cSwgc29ycnkgZm9yIHRoZSBjb25mdXNpb24uDQo+ID4NCj4gDQo+IEkgZ3Vlc3MgdGhhdCBt
-ZWFucyB0aGF0IHY3IGlzIGdvaW5nIHRvIGhhdmUgdGhlIHdvcmtxdWV1ZSBiYWNrPyA6KQ0KPiAN
-Cg0KWWVzLCB0aGF0J3MgdGhlIHBsYW4uDQoNCg0KPiBCZXN0IHJlZ2FyZHMsDQo+IFRvbWFzeg0K
+On 09/24/2018 07:12 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 24 Sep 2018 16:42:13 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> Hi all,
+>>
+>> We are organizing a media mini-summit on Thursday October 25th in
+>> Edinburgh, Edinburgh International Conference Centre.
+>>
+>> If you plan to attend, please let Mauro know. It is open for all, but
+>> we have a limited number of seats.
+> 
+> No need to let me explicitly know in advance, but be sure to register for
+> it at the ELCE/OSS register site. I'll use their tracking system to
+> know who will be there. We have a limited number of seats there, and
+> I'm relying on their system to control the number of attendees for
+> us.
+
+Do you have a link of where to register? How many registrations do we have now?
+
+Regards,
+
+	Hans
+
+> 
+>>
+>> Name of the room for the summit: TBD
+> 
+> I'll get the room name with the event organizers and post it later
+> on this thread.
+> 
+>>
+>> Currently known attendees (please add/remove names as needed):
+>>
+>> Sakari Ailus <sakari.ailus@iki.fi>
+>> Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>> Ezequiel Garcia <ezequiel@collabora.com>
+>> Michael Ira Krufky <mkrufky@linuxtv.org>
+>> Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> Hans Verkuil <hverkuil@xs4all.nl>
+>> Sean Young <sean@mess.org>
+>>
+>> Agenda (First draft!)
+>> =====================
+>>
+>> General remarks: the given start/end times for the various topics are
+>> approximate since it is always hard to predict how long a discussion will take.
+>> If people are attending other summits and those conflict with specific media
+>> topics they want to be part of, then let me know and we can rearrange the
+>> schedule to (hopefully) accommodate that.
+>>
+>> 9:00-9:15: Introduction (Hans Verkuil)
+>>
+>> 9:15-9:30: Status of the HDMI CEC kernel support (Hans Verkuil)
+>> 	Give a quick overview of the status: what has been merged, what is
+>> 	still pending, what is under development.
+>>
+>> 9:30-9:45: Save/restore controls from MTD (Ricardo Ribalda Delgado)
+>> 	Industrial/Scientific sensors usually come with very extensive
+>> 	calibration information such as: per column gain, list of dead
+>> 	pixels, temperature sensor offset... etc
+>>
+>> 	We are saving that information on an flash device that is located
+>> 	by the sensor.
+>>
+>> 	Show how we are integrating that calibration flash with v4l2-ctrl.
+>> 	And if this feature is useful for someone else and upstream it.
+>>
+>> 9:45-11:00: Complex Cameras (Mauro Carvalho Chehab)
+>> 	I expect that we could have something to discuss there about complex
+>> 	cameras. So, I'd reserve a 50 mins slot for it.
+>>
+>> 	The idea is to discuss about the undergoing work with complex camera
+>> 	development is happening.
+>>
+>> 	As we're working to merge request API, another topic for discussion
+>> 	is how to add support for requests on it (or on a separate but related
+>> 	library).
+>>
+>> 11:00-11:15: Break
+>>
+>> 11:15-12:00: Automated Testing (Ezequiel Garcia)
+>> 	There is a lot of discussion going on around testing,
+>> 	so it's a good opportunity for us to talk about our
+>> 	current testing infrastructure.
+>>
+>> 	We are already doing a good job with v4l2-compliance.
+>> 	Can we do more?
+>>
+>> Lunch
+>>
+>> 13:30-14:30: Stateless Codec userspace (Hans Verkuil)
+>> 	Support for stateless codecs and Request API should be merged for
+>> 	4.20, and the next step is to discuss how to organize the userspace
+>> 	support.
+>>
+>> 	Hopefully by the time the media summit starts we'll have some better
+>> 	ideas of what we want in this area.
+>>
+>> 14:30-15:15: Which ioctls should be replaced with better versions? (Hans Verkuil)
+>> 	Some parts of the V4L2 API are awkward to use and I think it would be
+>> 	a good idea to look at possible candidates for that.
+>>
+>> 	Examples are the ioctls that use struct v4l2_buffer: the multiplanar support is
+>> 	really horrible, and writing code to support both single and multiplanar is hard.
+>> 	We are also running out of fields and the timeval isn't y2038 compliant.
+>>
+>> 	A proof-of-concept is here:
+>>
+>> 	https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
+>>
+>> 	It's a bit old, but it gives a good impression of what I have in mind.
+>>
+>> 	Another candidate is VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS:
+>> 	expressing frame intervals as a fraction is really awkward and so is the fact
+>> 	that the subdev and 'normal' ioctls are not the same.
+>>
+>> 	Discuss what possible other ioctls are candidates for a refresh.
+>>
+>> 15:15-15:30: Break
+>>
+>> 15:30-16:00: Discuss the media development process
+>> 	Since we are all here, discuss any issues there may be with the media
+>> 	subsystem development process. Anything to improve?
+>>
+>> 16:00-16:15: Wrap up
+>> 	Create action items (and who will take care of them) if needed.
+>> 	Summarize and conclude the day.
+>>
+>> End of the day: Key Signing Party
+>>
+>> Regards,
+>>
+>> 	Hans
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
