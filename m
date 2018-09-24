@@ -1,197 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f66.google.com ([209.85.161.66]:35193 "EHLO
-        mail-yw1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727796AbeISPzN (ORCPT
+Received: from mail-qt1-f196.google.com ([209.85.160.196]:43232 "EHLO
+        mail-qt1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728463AbeIYDV2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Sep 2018 11:55:13 -0400
-Received: by mail-yw1-f66.google.com with SMTP id 14-v6so2048382ywe.2
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 03:18:00 -0700 (PDT)
-Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com. [209.85.219.181])
-        by smtp.gmail.com with ESMTPSA id u191-v6sm1983699ywc.0.2018.09.19.03.17.57
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 19 Sep 2018 03:17:57 -0700 (PDT)
-Received: by mail-yb1-f181.google.com with SMTP id 184-v6so2145521ybg.1
-        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2018 03:17:57 -0700 (PDT)
+        Mon, 24 Sep 2018 23:21:28 -0400
 MIME-Version: 1.0
-References: <20180724140621.59624-1-tfiga@chromium.org> <20180724140621.59624-2-tfiga@chromium.org>
- <37a8faea-a226-2d52-36d4-f9df194623cc@xs4all.nl> <CAAFQd5BgGEBmd8gNGc-qqtUtLo=Mh8U+TVTWRsKYMv1LmeBQMA@mail.gmail.com>
-In-Reply-To: <CAAFQd5BgGEBmd8gNGc-qqtUtLo=Mh8U+TVTWRsKYMv1LmeBQMA@mail.gmail.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 19 Sep 2018 19:17:44 +0900
-Message-ID: <CAAFQd5Ba+8_wpCr2D2OUSRt-PbRUPk4MV1OxMzEetntL169fBA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: docs-rst: Document memory-to-memory video
- decoder interface
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+References: <20180912150142.157913-1-arnd@arndb.de> <20180912151134.436719-1-arnd@arndb.de>
+ <20180914203506.GE35251@wrath> <20180914205748.GC19965@ZenIV.linux.org.uk>
+ <20180918175108.GF35251@wrath> <20180918175952.GJ11367@ziepe.ca>
+ <CAK8P3a17GY89in7PeLk1F2T-0Xq=sCrwwntM+Y4BCpXheUC+qQ@mail.gmail.com> <20180924203505.GC6008@ziepe.ca>
+In-Reply-To: <20180924203505.GC6008@ziepe.ca>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 24 Sep 2018 23:17:01 +0200
+Message-ID: <CAK8P3a1Bh9NnncbcT0X4fKWC7B0FnqYyEMUwB6MvmzaNO7VhFQ@mail.gmail.com>
+Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to generic_compat_ioctl_ptrarg
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Darren Hart <dvhart@infradead.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        gregkh <gregkh@linuxfoundation.org>,
+        David Miller <davem@davemloft.net>,
+        driverdevel <devel@driverdev.osuosl.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
-        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-        jtp.park@samsung.com, Philipp Zabel <p.zabel@pengutronix.de>,
-        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
-        <tiffany.lin@mediatek.com>,
-        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
-        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
-        nicolas@ndufresne.ca,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dave.stevenson@raspberrypi.org,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Maxime Jourdan <maxi.jourdan@wanadoo.fr>
+        qat-linux@intel.com,
+        "open list:HARDWARE RANDOM NUMBER GENERATOR CORE"
+        <linux-crypto@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org,
+        "open list:HID CORE LAYER" <linux-input@vger.kernel.org>,
+        linux-iio@vger.kernel.org, linux-rdma <linux-rdma@vger.kernel.org>,
+        linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org,
+        linux-pci <linux-pci@vger.kernel.org>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        linux-remoteproc@vger.kernel.org,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        linux-fbdev@vger.kernel.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-btrfs <linux-btrfs@vger.kernel.org>,
+        ceph-devel <ceph-devel@vger.kernel.org>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        Networking <netdev@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Thu, Jul 26, 2018 at 7:20 PM Tomasz Figa <tfiga@chromium.org> wrote:
+On Mon, Sep 24, 2018 at 10:35 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Mon, Sep 24, 2018 at 10:18:52PM +0200, Arnd Bergmann wrote:
+> > On Tue, Sep 18, 2018 at 7:59 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > > On Tue, Sep 18, 2018 at 10:51:08AM -0700, Darren Hart wrote:
+> > > > On Fri, Sep 14, 2018 at 09:57:48PM +0100, Al Viro wrote:
+> > > > > On Fri, Sep 14, 2018 at 01:35:06PM -0700, Darren Hart wrote:
+> > We already do this inside of some subsystems, notably drivers/media/,
+> > and it simplifies the implementation of the ioctl handler function
+> > significantly. We obviously cannot do this in general, both because of
+> > traditional drivers that have 16-bit command codes (drivers/tty and others)
+> > and also because of drivers that by accident defined the commands
+> > incorrectly and use the wrong type or the wrong direction in the
+> > definition.
 >
-> Hi Hans,
+> That could work well, but the first idea could be done globally and
+> mechanically, while this would require very careful per-driver
+> investigation.
 >
-> On Wed, Jul 25, 2018 at 8:59 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > Hi Tomasz,
-> >
-> > Many, many thanks for working on this! It's a great document and when d=
-one
-> > it will be very useful indeed.
-> >
-> > Review comments follow...
+> Particularly if the core code has worse performance.. ie due to
+> kmalloc calls or something.
 >
-> Thanks for review!
->
-> >
-> > On 24/07/18 16:06, Tomasz Figa wrote:
-[snip]
-> > > +13. Allocate destination (raw format) buffers via :c:func:`VIDIOC_RE=
-QBUFS`
-> > > +    on the ``CAPTURE`` queue.
-> > > +
-> > > +    * **Required fields:**
-> > > +
-> > > +      ``count``
-> > > +          requested number of buffers to allocate; greater than zero
-> > > +
-> > > +      ``type``
-> > > +          a ``V4L2_BUF_TYPE_*`` enum appropriate for ``CAPTURE``
-> > > +
-> > > +      ``memory``
-> > > +          follows standard semantics
-> > > +
-> > > +    * **Return fields:**
-> > > +
-> > > +      ``count``
-> > > +          adjusted to allocated number of buffers
-> > > +
-> > > +    * The driver must adjust count to minimum of required number of
-> > > +      destination buffers for given format and stream configuration =
-and the
-> > > +      count passed. The client must check this value after the ioctl
-> > > +      returns to get the number of buffers allocated.
-> > > +
-> > > +    .. note::
-> > > +
-> > > +       To allocate more than minimum number of buffers (for pipeline
-> > > +       depth), use G_CTRL(``V4L2_CID_MIN_BUFFERS_FOR_CAPTURE``) to
-> > > +       get minimum number of buffers required, and pass the obtained=
- value
-> > > +       plus the number of additional buffers needed in count to
-> > > +       :c:func:`VIDIOC_REQBUFS`.
-> >
-> >
-> > I think we should mention here the option of using VIDIOC_CREATE_BUFS i=
-n order
-> > to allocate buffers larger than the current CAPTURE format in order to =
-accommodate
-> > future resolution changes.
->
-> Ack.
->
+> I think it would make more sense to start by having the core do the
+> case to __user and then add another entry point to have the core do
+> the copy_from_user, and so on.
 
-I'm about to add a paragraph to describe this, but there is one detail
-to iron out.
+Having six separate callback pointers to implement a single
+system call seems a bit excessive though.
 
-The VIDIOC_CREATE_BUFS ioctl accepts a v4l2_format struct. Userspace
-needs to fill in this struct and the specs says that
-
-  "Usually this will be done using the VIDIOC_TRY_FMT or VIDIOC_G_FMT
-ioctls to ensure that the requested format is supported by the
-driver."
-
-However, in case of a decoder, those calls would fixup the format to
-match the currently parsed stream, which would likely resolve to the
-current coded resolution (~hardware alignment). How do we get a format
-for the desired maximum resolution?
-
-[snip].
-> > > +
-> > > +     * The driver is also allowed to and may not return all decoded =
-frames
-[snip]
-> > > +       queued but not decode before the seek sequence was initiated.=
- For
-> >
-> > Very confusing sentence. I think you mean this:
-> >
-> >           The driver may not return all decoded frames that where ready=
- for
-> >           dequeueing from before the seek sequence was initiated.
-> >
-> > Is this really true? Once decoded frames are marked as buffer_done by t=
-he
-> > driver there is no reason for them to be removed. Or you mean something=
- else
-> > here, e.g. the frames are decoded, but the buffers not yet given back t=
-o vb2.
-> >
->
-> Exactly "the frames are decoded, but the buffers not yet given back to
-> vb2", for example, if reordering takes place. However, if one stops
-> streaming before dequeuing all buffers, they are implicitly returned
-> (reset to the state after REQBUFS) and can't be dequeued anymore, so
-> the frames are lost, even if the driver returned them. I guess the
-> sentence was really unfortunate indeed.
->
-
-Actually, that's not the only case.
-
-The documentation is written from userspace point of view. Queuing an
-OUTPUT buffer is not equivalent to having it decoded (and a CAPTURE
-buffer given back to vb2). If the userspace queues a buffer and then
-stops streaming, the buffer might have been still waiting in the
-queue, for decoding of previous buffers to finish.
-
-So basically by "queued frames" I meant "OUTPUT buffers queued by
-userspace and not sent to the hardware yet" and by "decoded frames" I
-meant "CAPTURE buffers containing matching frames given back to vb2".
-
-How about rewording like this:
-
-     * The ``VIDIOC_STREAMOFF`` operation discards any remaining queued
-       ``OUTPUT`` buffers, which means that not all of the ``OUTPUT`` buffe=
-rs
-       queued before the seek may have matching ``CAPTURE`` buffers produce=
-d.
-       For example, [...]
-
-> > > +       example, given an ``OUTPUT`` queue sequence: QBUF(A), QBUF(B)=
-,
-> > > +       STREAMOFF(OUT), STREAMON(OUT), QBUF(G), QBUF(H), any of the
-> > > +       following results on the ``CAPTURE`` queue is allowed: {A=E2=
-=80=99, B=E2=80=99, G=E2=80=99,
-> > > +       H=E2=80=99}, {A=E2=80=99, G=E2=80=99, H=E2=80=99}, {G=E2=80=
-=99, H=E2=80=99}.
-> > > +
-> > > +   .. note::
-> > > +
-> > > +      To achieve instantaneous seek, the client may restart streamin=
-g on
-> > > +      ``CAPTURE`` queue to discard decoded, but not yet dequeued buf=
-fers.
-
-Best regards,
-Tomasz
+        Arnd
