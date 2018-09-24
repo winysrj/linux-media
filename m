@@ -1,121 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:44967 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726929AbeI0PEK (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:47122 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731178AbeIXWJf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 11:04:10 -0400
-Received: by mail-wr1-f68.google.com with SMTP id v16-v6so1626009wro.11
-        for <linux-media@vger.kernel.org>; Thu, 27 Sep 2018 01:47:01 -0700 (PDT)
+        Mon, 24 Sep 2018 18:09:35 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [ANN] Draft Agenda for the media summit on Thursday Oct 25th in
+ Edinburgh
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Message-ID: <7474e646-bb74-d944-a948-fa85b6f14bd8@ideasonboard.com>
+Date: Mon, 24 Sep 2018 17:06:39 +0100
 MIME-Version: 1.0
-References: <20180911150938.3844-1-mjourdan@baylibre.com> <9c33c57e-2ce2-8752-b851-f85c03a7d761@xs4all.nl>
- <CAMO6nay7u4nMZcND6+g-GJAFsFcGrp_GDKBhVjeXVzpjF0ND4Q@mail.gmail.com> <8b8af340-8bd7-092a-4203-fd01fd0cc5c6@xs4all.nl>
-In-Reply-To: <8b8af340-8bd7-092a-4203-fd01fd0cc5c6@xs4all.nl>
-From: Maxime Jourdan <mjourdan@baylibre.com>
-Date: Thu, 27 Sep 2018 10:46:49 +0200
-Message-ID: <CAMO6naxf_+HiRf8fEs65NP+c1OLMvPSs71SKxwWg-zZO+mSiyw@mail.gmail.com>
-Subject: Re: [PATCH v2 0/3] Add Amlogic video decoder driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-amlogic@lists.infradead.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le ven. 21 sept. 2018 =C3=A0 12:51, Hans Verkuil <hverkuil@xs4all.nl> a =C3=
-=A9crit :
->
-> On 09/17/18 18:36, Maxime Jourdan wrote:
-> > 2018-09-17 16:51 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> >> On 09/11/2018 05:09 PM, Maxime Jourdan wrote:
-> >>>  - Moved the single instance check (returning -EBUSY) to start/stop s=
-treaming
-> >>>  The check was previously in queue_setup but there was no great locat=
-ion to
-> >>>  clear it except for .close().
-> >>
-> >> Actually, you can clear it by called VIDIOC_REQBUFS with count set to =
-0. That
-> >> freed all buffers and clears this.
-> >>
-> >> Now, the difference between queue_setup and start/stop streaming is th=
-at if you
-> >> do this in queue_setup you'll know early on that the device is busy. I=
-t is
-> >> reasonable to assume that you only allocate buffers when you also want=
- to start
-> >> streaming, so that it a good place to know this quickly.
-> >>
-> >> Whereas with start_streaming you won't know until you call STREAMON, o=
-r even later
-> >> if you start streaming with no buffers queued, since start_streaming w=
-on't
-> >> be called until you have at least 'min_buffers_needed' buffers queued =
-(1 for this
-> >> driver). So in that case EBUSY won't be returned until the first VIDIO=
-C_QBUF.
-> >>
-> >> My preference is to check this in queue_setup, but it is up to you to =
-decide.
-> >> Just be aware of the difference between the two options.
-> >>
-> >> Regards,
-> >>
-> >>         Hans
-> >
-> > I could for instance keep track of which queue(s) have been called
-> > with queue_setup, catch calls to VIDIOC_REQBUFS with count set to 0,
-> > and clear the current session once both queues have been reset ?
->
-> I see your point, this is rather awkward. The real problem here is that
-> we don't have a 'queue_free' callback. If we'd had that this would be
-> a lot easier.
->
-> In any case, I am dropping my objections to doing this in start/stop_stre=
-aming.
+Hi Hans, Mauro,
 
-Ack.
+I believe I selected attendance when registering for the conference, but
+please add my name to the list here as well.
 
-> > You leverage another issue with min_buffers_needed. It's indeed set to
-> > 1 but this value is wrong for the CAPTURE queue. The problem is that
-> > this value changes depending on the codec and the amount of CAPTURE
-> > buffers requested by userspace.
-> > Ultimately I want it set to the total amount of CAPTURE buffers,
-> > because the hardware needs the full buffer list before starting a
-> > decode job.
-> > Am I free to change this queue parameter later, or is m2m_queue_init
-> > the only place to do it ?
->
-> It has to be set before the VIDIOC_STREAMON. After that you cannot
-> change it anymore.
->
-> But I don't think this is all that relevant, since this is something
-> that the job_ready() callback should take care of. min_buffers_needed
-> is really for hardware where the DMA engine cannot start unless that
-> many buffers are queued. But in that case the DMA runs continuously
-> capturing video, whereas here these are jobs and the DMA is only
-> started when you can actually execute a job.
+I have a small topic which might start off in the hallway track before
+hand that I'd like to kick off too.
 
-After doing some testing, overriding min_buffers_needed in queue_setup
-is what works best for me.
+"Fault tolerant V4L2" ...
 
-When doing the initialization in start_streaming, the complete buffer
-list needs to be configured in HW. The firmware can then choose any
-buffer from this list during decoding later on.
+In other words, how should we handle complex devices which do not 'fully
+probe'.
 
-I do this initialization by iterating with v4l2_m2m_for_each_dst_buf,
-which requires all CAPTURE buffers to be queued in.
+In our instance, with our GMSL driver implementation - we have an 8
+camera system, described as such in DT.
 
-Cheers,
-Maxime
+If one of the cameras is disconnected, or does not fully probe - then
+all of the remaining cameras are unavailable, as they are all subdevices
+from the MAX9286 => CSI2 => VIN chain.
 
+Originally we had async subdevice registration at probe time so that
+they appear as they are ready - but I believe earlier review comments
+determined that this goes against the V4L2 spec, and if the system state
+is not correct - then it's just a flat out failure.
+
+I'd like to discuss (or start to discuss) how we should handle cases
+such as a missing *non-essential* subdevice in a safety critical system.
+
+For instance, imagine here that two cameras are digital wing mirrors,
+and one gets knocked off by a lorry ... I'd like to know that all the
+remaining 'digital eyes' can still function :)
+
+I had hoped to send a more clear proposal on this topic with patch
+examples based on our driver - but I'm afraid my talk didn't get
+accepted for ELCE and so I haven't had chance (/been forced) to spend
+time on this topic yet :-)
+
+Further discussion on this could be how to get devices to re-probe at
+runtime too - or retry their probe sequences at least, which might
+perhaps even be a higher level than linux-media.
+
+Regards
+
+Kieran
+
+
+On 24/09/18 15:42, Hans Verkuil wrote:
+> Hi all,
+> 
+> We are organizing a media mini-summit on Thursday October 25th in
+> Edinburgh, Edinburgh International Conference Centre.
+> 
+> If you plan to attend, please let Mauro know. It is open for all, but
+> we have a limited number of seats.
+> 
+> Name of the room for the summit: TBD
+> 
+> Currently known attendees (please add/remove names as needed):
+> 
+> Sakari Ailus <sakari.ailus@iki.fi>
+> Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Ezequiel Garcia <ezequiel@collabora.com>
+> Michael Ira Krufky <mkrufky@linuxtv.org>
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> Hans Verkuil <hverkuil@xs4all.nl>
+> Sean Young <sean@mess.org>
+> 
+> Agenda (First draft!)
+> =====================
+> 
+> General remarks: the given start/end times for the various topics are
+> approximate since it is always hard to predict how long a discussion will take.
+> If people are attending other summits and those conflict with specific media
+> topics they want to be part of, then let me know and we can rearrange the
+> schedule to (hopefully) accommodate that.
+> 
+> 9:00-9:15: Introduction (Hans Verkuil)
+> 
+> 9:15-9:30: Status of the HDMI CEC kernel support (Hans Verkuil)
+> 	Give a quick overview of the status: what has been merged, what is
+> 	still pending, what is under development.
+> 
+> 9:30-9:45: Save/restore controls from MTD (Ricardo Ribalda Delgado)
+> 	Industrial/Scientific sensors usually come with very extensive
+> 	calibration information such as: per column gain, list of dead
+> 	pixels, temperature sensor offset... etc
+> 
+> 	We are saving that information on an flash device that is located
+> 	by the sensor.
+> 
+> 	Show how we are integrating that calibration flash with v4l2-ctrl.
+> 	And if this feature is useful for someone else and upstream it.
+> 
+> 9:45-11:00: Complex Cameras (Mauro Carvalho Chehab)
+> 	I expect that we could have something to discuss there about complex
+> 	cameras. So, I'd reserve a 50 mins slot for it.
+> 
+> 	The idea is to discuss about the undergoing work with complex camera
+> 	development is happening.
+> 
+> 	As we're working to merge request API, another topic for discussion
+> 	is how to add support for requests on it (or on a separate but related
+> 	library).
+> 
+> 11:00-11:15: Break
+> 
+> 11:15-12:00: Automated Testing (Ezequiel Garcia)
+> 	There is a lot of discussion going on around testing,
+> 	so it's a good opportunity for us to talk about our
+> 	current testing infrastructure.
+> 
+> 	We are already doing a good job with v4l2-compliance.
+> 	Can we do more?
+> 
+> Lunch
+> 
+> 13:30-14:30: Stateless Codec userspace (Hans Verkuil)
+> 	Support for stateless codecs and Request API should be merged for
+> 	4.20, and the next step is to discuss how to organize the userspace
+> 	support.
+> 
+> 	Hopefully by the time the media summit starts we'll have some better
+> 	ideas of what we want in this area.
+> 
+> 14:30-15:15: Which ioctls should be replaced with better versions? (Hans Verkuil)
+> 	Some parts of the V4L2 API are awkward to use and I think it would be
+> 	a good idea to look at possible candidates for that.
+> 
+> 	Examples are the ioctls that use struct v4l2_buffer: the multiplanar support is
+> 	really horrible, and writing code to support both single and multiplanar is hard.
+> 	We are also running out of fields and the timeval isn't y2038 compliant.
+> 
+> 	A proof-of-concept is here:
+> 
+> 	https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
+> 
+> 	It's a bit old, but it gives a good impression of what I have in mind.
+> 
+> 	Another candidate is VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS:
+> 	expressing frame intervals as a fraction is really awkward and so is the fact
+> 	that the subdev and 'normal' ioctls are not the same.
+> 
+> 	Discuss what possible other ioctls are candidates for a refresh.
+> 
+> 15:15-15:30: Break
+> 
+> 15:30-16:00: Discuss the media development process
+> 	Since we are all here, discuss any issues there may be with the media
+> 	subsystem development process. Anything to improve?
+> 
+> 16:00-16:15: Wrap up
+> 	Create action items (and who will take care of them) if needed.
+> 	Summarize and conclude the day.
+> 
+> End of the day: Key Signing Party
+> 
 > Regards,
->
->         Hans
+> 
+> 	Hans
+> 
+
+-- 
+Regards
+--
+Kieran
