@@ -1,76 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:47122 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731178AbeIXWJf (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:45216 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728988AbeIXXP5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Sep 2018 18:09:35 -0400
-Reply-To: kieran.bingham@ideasonboard.com
+        Mon, 24 Sep 2018 19:15:57 -0400
+Date: Mon, 24 Sep 2018 14:12:36 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Subject: Re: [ANN] Draft Agenda for the media summit on Thursday Oct 25th in
  Edinburgh
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Jacopo Mondi <jacopo@jmondi.org>
-Message-ID: <7474e646-bb74-d944-a948-fa85b6f14bd8@ideasonboard.com>
-Date: Mon, 24 Sep 2018 17:06:39 +0100
-MIME-Version: 1.0
+Message-ID: <20180924141228.10227b1d@coco.lan>
 In-Reply-To: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+References: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans, Mauro,
+Em Mon, 24 Sep 2018 16:42:13 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-I believe I selected attendance when registering for the conference, but
-please add my name to the list here as well.
-
-I have a small topic which might start off in the hallway track before
-hand that I'd like to kick off too.
-
-"Fault tolerant V4L2" ...
-
-In other words, how should we handle complex devices which do not 'fully
-probe'.
-
-In our instance, with our GMSL driver implementation - we have an 8
-camera system, described as such in DT.
-
-If one of the cameras is disconnected, or does not fully probe - then
-all of the remaining cameras are unavailable, as they are all subdevices
-from the MAX9286 => CSI2 => VIN chain.
-
-Originally we had async subdevice registration at probe time so that
-they appear as they are ready - but I believe earlier review comments
-determined that this goes against the V4L2 spec, and if the system state
-is not correct - then it's just a flat out failure.
-
-I'd like to discuss (or start to discuss) how we should handle cases
-such as a missing *non-essential* subdevice in a safety critical system.
-
-For instance, imagine here that two cameras are digital wing mirrors,
-and one gets knocked off by a lorry ... I'd like to know that all the
-remaining 'digital eyes' can still function :)
-
-I had hoped to send a more clear proposal on this topic with patch
-examples based on our driver - but I'm afraid my talk didn't get
-accepted for ELCE and so I haven't had chance (/been forced) to spend
-time on this topic yet :-)
-
-Further discussion on this could be how to get devices to re-probe at
-runtime too - or retry their probe sequences at least, which might
-perhaps even be a higher level than linux-media.
-
-Regards
-
-Kieran
-
-
-On 24/09/18 15:42, Hans Verkuil wrote:
 > Hi all,
 > 
 > We are organizing a media mini-summit on Thursday October 25th in
@@ -78,8 +29,19 @@ On 24/09/18 15:42, Hans Verkuil wrote:
 > 
 > If you plan to attend, please let Mauro know. It is open for all, but
 > we have a limited number of seats.
+
+No need to let me explicitly know in advance, but be sure to register for
+it at the ELCE/OSS register site. I'll use their tracking system to
+know who will be there. We have a limited number of seats there, and
+I'm relying on their system to control the number of attendees for
+us.
+
 > 
 > Name of the room for the summit: TBD
+
+I'll get the room name with the event organizers and post it later
+on this thread.
+
 > 
 > Currently known attendees (please add/remove names as needed):
 > 
@@ -184,9 +146,8 @@ On 24/09/18 15:42, Hans Verkuil wrote:
 > Regards,
 > 
 > 	Hans
-> 
 
--- 
-Regards
---
-Kieran
+
+
+Thanks,
+Mauro
