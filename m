@@ -1,304 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:46680 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727337AbeIXUlt (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60122 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1725982AbeIXUbK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Sep 2018 16:41:49 -0400
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 29/30] rcar-csi2: use frame description information to
- configure CSI-2 bus
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
- <20180823132544.521-30-niklas.soderlund+renesas@ragnatech.se>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <68488672-cc7d-be85-c666-3cc1c2c5feca@ideasonboard.com>
-Date: Mon, 24 Sep 2018 15:39:15 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180823132544.521-30-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+        Mon, 24 Sep 2018 16:31:10 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Kyungmin Park <kyungmin.park@samsung.com>,
+        Heungjun Kim <riverful.kim@samsung.com>,
+        Akinobu Mita <akinobu.mita@gmail.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH 1/1] v4l: i2c: Add a comment not to use static sub-device names in the future
+Date: Mon, 24 Sep 2018 17:28:44 +0300
+Message-Id: <20180924142844.5943-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+A number of sub-device drivers used a static name for the sub-device, and
+thus the media entity. As the entity name must be unique within a media
+device, this makes it impossible to have more than one instance of each
+device in a media device. This is a rather severe limitation.
 
-On 23/08/18 14:25, Niklas Söderlund wrote:
-> The driver can now access frame descriptor information, use it when
-> configuring the CSI-2 bus. Only enable the virtual channels which are
-> described in the frame descriptor and calculate the link based on all
-> enabled streams.
-> 
-> With multiplexed stream supported it's now meaningful to have different
-> formats on the different source pads. Make source formats independent
-> off each other and disallowing a format on the multiplexed sink pad.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 135 ++++++++++++++------
->  1 file changed, 98 insertions(+), 37 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> index dc5ae8025832ab6e..467722007b328e4e 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -304,25 +304,22 @@ static const struct rcsi2_mbps_reg hsfreqrange_m3w_h3es1[] = {
->  #define CSI0CLKFREQRANGE(n)		((n & 0x3f) << 16)
->  
->  struct rcar_csi2_format {
-> -	u32 code;
->  	unsigned int datatype;
->  	unsigned int bpp;
->  };
->  
->  static const struct rcar_csi2_format rcar_csi2_formats[] = {
-> -	{ .code = MEDIA_BUS_FMT_RGB888_1X24,	.datatype = 0x24, .bpp = 24 },
-> -	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,	.datatype = 0x1e, .bpp = 16 },
-> -	{ .code = MEDIA_BUS_FMT_YUYV8_1X16,	.datatype = 0x1e, .bpp = 16 },
-> -	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,	.datatype = 0x1e, .bpp = 16 },
-> -	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,	.datatype = 0x1e, .bpp = 20 },
-> +	{ .datatype = 0x1e, .bpp = 16 },
-> +	{ .datatype = 0x24, .bpp = 24 },
+Instead of fixing these drivers, add a comment to the drivers noting that
+such static names may not be used in the future.
 
-We're transforming this table with 3 values for .bpp {24, 20, and 16}
-into a table with only 2. {16, 24}.
+The alternative of fixing the drivers is troublesome as the entity (as
+well as sub-device) name is part of the uAPI. Changing that is almost
+certain to break something. As these devices are old but no-one has
+encountered a problem with the static names, leave it as-is.
 
-MEDIA_BUS_FMT_YUYV10_2X10 will now be truncated into a 16 bpp format. Is
-that valid in this use case?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/m5mols/m5mols_core.c   | 1 +
+ drivers/media/i2c/noon010pc30.c          | 1 +
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c | 1 +
+ drivers/media/i2c/s5k4ecgx.c             | 1 +
+ drivers/media/i2c/s5k6aa.c               | 1 +
+ 5 files changed, 5 insertions(+)
 
-
->  };
->  
-> -static const struct rcar_csi2_format *rcsi2_code_to_fmt(unsigned int code)
-> +static const struct rcar_csi2_format
-> +*rcsi2_datatype_to_fmt(unsigned int datatype)
->  {
->  	unsigned int i;
->  
->  	for (i = 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
-> -		if (rcar_csi2_formats[i].code == code)
-> +		if (rcar_csi2_formats[i].datatype == datatype)
->  			return &rcar_csi2_formats[i];
->  
->  	return NULL;
-> @@ -337,6 +334,14 @@ enum rcar_csi2_pads {
->  	NR_OF_RCAR_CSI2_PAD,
->  };
->  
-> +static int rcsi2_pad_to_vc(unsigned int pad)
-> +{
-> +	if (pad < RCAR_CSI2_SOURCE_VC0 || pad > RCAR_CSI2_SOURCE_VC3)
-> +		return -EINVAL;
-> +
-> +	return pad - RCAR_CSI2_SOURCE_VC0;
-> +}
-> +
->  struct rcar_csi2_info {
->  	int (*init_phtw)(struct rcar_csi2 *priv, unsigned int mbps);
->  	int (*confirm_start)(struct rcar_csi2 *priv);
-> @@ -357,7 +362,7 @@ struct rcar_csi2 {
->  	struct v4l2_async_subdev asd;
->  	struct v4l2_subdev *remote;
->  
-> -	struct v4l2_mbus_framefmt mf;
-> +	struct v4l2_mbus_framefmt mf[4];
->  
->  	struct mutex lock;
->  	int stream_count;
-> @@ -393,6 +398,32 @@ static void rcsi2_reset(struct rcar_csi2 *priv)
->  	rcsi2_write(priv, SRST_REG, 0);
->  }
->  
-> +static int rcsi2_get_remote_frame_desc(struct rcar_csi2 *priv,
-> +				       struct v4l2_mbus_frame_desc *fd)
-> +{
-> +	struct media_pad *pad;
-> +	int ret;
-> +
-> +	if (!priv->remote)
-> +		return -ENODEV;
-> +
-> +	pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
-> +	if (!pad)
-> +		return -ENODEV;
-> +
-> +	ret = v4l2_subdev_call(priv->remote, pad, get_frame_desc,
-> +			       pad->index, fd);
-> +	if (ret)
-> +		return -ENODEV;
-> +
-> +	if (fd->type != V4L2_MBUS_FRAME_DESC_TYPE_CSI2) {
-> +		dev_err(priv->dev, "Frame desc do not describe CSI-2 link");
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int rcsi2_wait_phy_start(struct rcar_csi2 *priv)
->  {
->  	unsigned int timeout;
-> @@ -431,10 +462,12 @@ static int rcsi2_set_phypll(struct rcar_csi2 *priv, unsigned int mbps)
->  	return 0;
->  }
->  
-> -static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
-> +static int rcsi2_calc_mbps(struct rcar_csi2 *priv,
-> +			   struct v4l2_mbus_frame_desc *fd)
->  {
->  	struct v4l2_subdev *source;
->  	struct v4l2_ctrl *ctrl;
-> +	unsigned int i, bpp = 0;
->  	u64 mbps;
->  
->  	if (!priv->remote)
-> @@ -450,6 +483,21 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
->  		return -EINVAL;
->  	}
->  
-> +	/* Calculate total bpp */
-> +	for (i = 0; i < fd->num_entries; i++) {
-> +		const struct rcar_csi2_format *format;
-> +
-> +		format = rcsi2_datatype_to_fmt(
-> +					fd->entry[i].bus.csi2.data_type);
-> +		if (!format) {
-> +			dev_err(priv->dev, "Unknown data type: %d\n",
-> +				fd->entry[i].bus.csi2.data_type);
-> +			return -EINVAL;
-> +		}
-> +
-> +		bpp += format->bpp;
-> +	}
-> +
->  	/*
->  	 * Calculate the phypll in mbps.
->  	 * link_freq = (pixel_rate * bits_per_sample) / (2 * nr_of_lanes)
-> @@ -463,42 +511,40 @@ static int rcsi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
->  
->  static int rcsi2_start(struct rcar_csi2 *priv)
->  {
-> -	const struct rcar_csi2_format *format;
-> +	struct v4l2_mbus_frame_desc fd;
->  	u32 phycnt, vcdt = 0, vcdt2 = 0;
->  	unsigned int i;
->  	int mbps, ret;
->  
-> -	dev_dbg(priv->dev, "Input size (%ux%u%c)\n",
-> -		priv->mf.width, priv->mf.height,
-> -		priv->mf.field == V4L2_FIELD_NONE ? 'p' : 'i');
-> -
-> -	/* Code is validated in set_fmt. */
-> -	format = rcsi2_code_to_fmt(priv->mf.code);
-> +	/* Get information about multiplexed link. */
-> +	ret = rcsi2_get_remote_frame_desc(priv, &fd);
-> +	if (ret)
-> +		return ret;
->  
-> -	/*
-> -	 * Enable all Virtual Channels.
-> -	 *
-> -	 * NOTE: It's not possible to get individual datatype for each
-> -	 *       source virtual channel. Once this is possible in V4L2
-> -	 *       it should be used here.
-> -	 */
-> -	for (i = 0; i < 4; i++) {
-> +	for (i = 0; i < fd.num_entries; i++) {
-> +		struct v4l2_mbus_frame_desc_entry *entry = &fd.entry[i];
->  		u32 vcdt_part;
->  
-> -		vcdt_part = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
-> -			VCDT_SEL_DT(format->datatype);
-> +		vcdt_part = VCDT_SEL_VC(entry->bus.csi2.channel) |
-> +			VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
-> +			VCDT_SEL_DT(entry->bus.csi2.data_type);
->  
->  		/* Store in correct reg and offset. */
-> -		if (i < 2)
-> -			vcdt |= vcdt_part << ((i % 2) * 16);
-> +		if (entry->bus.csi2.channel < 2)
-> +			vcdt |= vcdt_part <<
-> +				((entry->bus.csi2.channel % 2) * 16);
->  		else
-> -			vcdt2 |= vcdt_part << ((i % 2) * 16);
-> +			vcdt2 |= vcdt_part <<
-> +				((entry->bus.csi2.channel % 2) * 16);
-> +
-> +		dev_dbg(priv->dev, "VC%d datatype: 0x%x\n",
-> +			entry->bus.csi2.channel, entry->bus.csi2.data_type);
->  	}
->  
->  	phycnt = PHYCNT_ENABLECLK;
->  	phycnt |= (1 << priv->lanes) - 1;
->  
-> -	mbps = rcsi2_calc_mbps(priv, format->bpp);
-> +	mbps = rcsi2_calc_mbps(priv, &fd);
->  	if (mbps < 0)
->  		return mbps;
->  
-> @@ -619,14 +665,16 @@ static int rcsi2_set_pad_format(struct v4l2_subdev *sd,
->  {
->  	struct rcar_csi2 *priv = sd_to_csi2(sd);
->  	struct v4l2_mbus_framefmt *framefmt;
-> +	int vc;
->  
-> -	if (!rcsi2_code_to_fmt(format->format.code))
-> -		format->format.code = rcar_csi2_formats[0].code;
-> +	vc = rcsi2_pad_to_vc(format->pad);
-> +	if (vc < 0)
-> +		return vc;
->  
->  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> -		priv->mf = format->format;
-> +		priv->mf[vc] = format->format;
->  	} else {
-> -		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-> +		framefmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
->  		*framefmt = format->format;
->  	}
->  
-> @@ -638,11 +686,17 @@ static int rcsi2_get_pad_format(struct v4l2_subdev *sd,
->  				struct v4l2_subdev_format *format)
->  {
->  	struct rcar_csi2 *priv = sd_to_csi2(sd);
-> +	int vc;
-> +
-> +	vc = rcsi2_pad_to_vc(format->pad);
-> +	if (vc < 0)
-> +		return vc;
->  
->  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> -		format->format = priv->mf;
-> +		format->format = priv->mf[vc];
->  	else
-> -		format->format = *v4l2_subdev_get_try_format(sd, cfg, 0);
-> +		format->format = *v4l2_subdev_get_try_format(sd, cfg,
-> +							     format->pad);
->  
->  	return 0;
->  }
-> @@ -672,6 +726,13 @@ static int rcsi2_notify_bound(struct v4l2_async_notifier *notifier,
->  	struct rcar_csi2 *priv = notifier_to_csi2(notifier);
->  	int pad;
->  
-> +	if (!v4l2_subdev_has_op(subdev, pad, get_frame_desc)) {
-> +		dev_err(priv->dev,
-> +			"Failed as '%s' do not support frame descriptors\n",
-> +			subdev->name);
-> +		return -EINVAL;
-> +	}
-> +
->  	pad = media_entity_get_fwnode_pad(&subdev->entity, asd->match.fwnode,
->  					  MEDIA_PAD_FL_SOURCE);
->  	if (pad < 0) {
-> 
-
+diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+index 155424a43d4c..b8b2bf4cbfb2 100644
+--- a/drivers/media/i2c/m5mols/m5mols_core.c
++++ b/drivers/media/i2c/m5mols/m5mols_core.c
+@@ -987,6 +987,7 @@ static int m5mols_probe(struct i2c_client *client,
+ 
+ 	sd = &info->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &m5mols_ops);
++	/* Static name; NEVER use in new drivers! */
+ 	strscpy(sd->name, MODULE_NAME, sizeof(sd->name));
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+diff --git a/drivers/media/i2c/noon010pc30.c b/drivers/media/i2c/noon010pc30.c
+index 4698e40fedd2..11479e65a9ae 100644
+--- a/drivers/media/i2c/noon010pc30.c
++++ b/drivers/media/i2c/noon010pc30.c
+@@ -720,6 +720,7 @@ static int noon010_probe(struct i2c_client *client,
+ 	mutex_init(&info->lock);
+ 	sd = &info->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
++	/* Static name; NEVER use in new drivers! */
+ 	strscpy(sd->name, MODULE_NAME, sizeof(sd->name));
+ 
+ 	sd->internal_ops = &noon010_subdev_internal_ops;
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index 21ca5186f9ed..c4145194251f 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -1698,6 +1698,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+ 		return ret;
+ 
+ 	v4l2_i2c_subdev_init(oif_sd, client, &oif_subdev_ops);
++	/* Static name; NEVER use in new drivers! */
+ 	strscpy(oif_sd->name, "S5C73M3-OIF", sizeof(oif_sd->name));
+ 
+ 	oif_sd->internal_ops = &oif_internal_ops;
+diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
+index 8c0dca6cb20c..79aa2740edc4 100644
+--- a/drivers/media/i2c/s5k4ecgx.c
++++ b/drivers/media/i2c/s5k4ecgx.c
+@@ -954,6 +954,7 @@ static int s5k4ecgx_probe(struct i2c_client *client,
+ 	sd = &priv->sd;
+ 	/* Registering subdev */
+ 	v4l2_i2c_subdev_init(sd, client, &s5k4ecgx_ops);
++	/* Static name; NEVER use in new drivers! */
+ 	strscpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
+ 
+ 	sd->internal_ops = &s5k4ecgx_subdev_internal_ops;
+diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+index 52ca033f7069..63cf8db82e7d 100644
+--- a/drivers/media/i2c/s5k6aa.c
++++ b/drivers/media/i2c/s5k6aa.c
+@@ -1576,6 +1576,7 @@ static int s5k6aa_probe(struct i2c_client *client,
+ 
+ 	sd = &s5k6aa->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &s5k6aa_subdev_ops);
++	/* Static name; NEVER use in new drivers! */
+ 	strscpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+ 
+ 	sd->internal_ops = &s5k6aa_subdev_internal_ops;
 -- 
-Regards
---
-Kieran
+2.11.0
