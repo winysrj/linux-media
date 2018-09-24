@@ -1,56 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.intenta.de ([178.249.25.132]:35156 "EHLO mail.intenta.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725992AbeIXQRV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Sep 2018 12:17:21 -0400
-Received: from [10.10.16.42] (port=19784 helo=ICSMA001.intenta.de)
-        by mail.intenta.de with esmtps (TLSv1.2:AES256-SHA:256)
-        (Exim 4.82_1-5b7a7c0-XX)
-        (envelope-from <Helmut.Grohne@intenta.de>)
-        id 1g4NuD-0004lT-2s
-        for linux-media@vger.kernel.org; Mon, 24 Sep 2018 12:15:53 +0200
-Date: Mon, 24 Sep 2018 12:15:53 +0200
-From: Helmut Grohne <helmut.grohne@intenta.de>
-To: <linux-media@vger.kernel.org>
-Subject: Use of V4L2_SEL_TGT_CROP_DEFAULT in i2c subdev drivers
-Message-ID: <20180924101551.ijcyykf244sb6c4m@laureti-dev>
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33767 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727229AbeIXRDV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Sep 2018 13:03:21 -0400
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] am335x-boneblack-common.dtsi: add cec support
+Message-ID: <c1a57790-ec91-103a-818a-40d7284cc502@xs4all.nl>
+Date: Mon, 24 Sep 2018 13:01:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add CEC support to the tda998x.
 
-Documentation/media/uapi/v4l/v4l2-selection-targets.rst says that
-V4L2_SEL_TGT_CROP_DEFAULT is not valid for subdev drivers. Looking into
-drivers/media/i2c (which contains only subdev drivers except for
-video-i2c.c), the following drivers implement V4L2_SEL_TGT_CROP_DEFAULT:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Note: this relies on this gpio patch series:
 
-ak881x.c
-mt9m111.c
-mt9t112.c
-ov2640.c
-ov6650.c
-ov772x.c
-rj54n1cb0c.c
-soc_camera/mt9m001.c
-soc_camera/mt9t112.c
-soc_camera/mt9v022.c
-soc_camera/ov5642.c
-soc_camera/ov772x.c
-soc_camera/ov9640.c
-soc_camera/ov9740.c
-soc_camera/rj54n1cb0c.c
-tvp5150.c
+https://www.spinics.net/lists/linux-gpio/msg32401.html
 
-The majority of drivers behave equally for V4L2_SEL_TGT_CROP_DEFAULT and
-V4L2_SEL_TGT_CROP_BOUNDS. The only exceptions are mt9t112.c and
-soc_camera/mt9t112.c. Actually these two look very similar. A
-significant fraction of differences is white space, case and operand
-order.
+and this follow-up gpio patch:
 
-Is this a bug in 16 drivers? Is this a documentation bug? Am I getting
-something wrong?
+https://www.spinics.net/lists/linux-gpio/msg32551.html
 
-Helmut
+that will appear in 4.20.
+
+Tested with my BeagleBone Black board.
+
+Regards,
+
+	Hans
+---
+ arch/arm/boot/dts/am335x-boneblack-common.dtsi | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-boneblack-common.dtsi b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+index 325daae40278..07e6b36d17c4 100644
+--- a/arch/arm/boot/dts/am335x-boneblack-common.dtsi
++++ b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+@@ -7,6 +7,7 @@
+  */
+
+ #include <dt-bindings/display/tda998x.h>
++#include <dt-bindings/interrupt-controller/irq.h>
+
+ &ldo3_reg {
+ 	regulator-min-microvolt = <1800000>;
+@@ -91,6 +92,8 @@
+ 	tda19988: tda19988 {
+ 		compatible = "nxp,tda998x";
+ 		reg = <0x70>;
++		nxp,calib-gpios = <&gpio1 25 0>;
++		interrupts-extended = <&gpio1 25 IRQ_TYPE_LEVEL_LOW>;
+
+ 		pinctrl-names = "default", "off";
+ 		pinctrl-0 = <&nxp_hdmi_bonelt_pins>;
+-- 
+2.19.0
