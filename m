@@ -1,74 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:45646 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728231AbeIZBgk (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:33063 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726242AbeIZDNy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Sep 2018 21:36:40 -0400
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w8PJIkHq042358
-        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2018 15:27:35 -0400
-Received: from e32.co.us.ibm.com (e32.co.us.ibm.com [32.97.110.150])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2mqt66jjtc-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2018 15:27:35 -0400
-Received: from localhost
-        by e32.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <eajames@linux.ibm.com>;
-        Tue, 25 Sep 2018 13:27:34 -0600
-From: Eddie James <eajames@linux.ibm.com>
-To: linux-kernel@vger.kernel.org
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
-        linux-aspeed@lists.ozlabs.org, andrew@aj.id.au,
-        openbmc@lists.ozlabs.org, robh+dt@kernel.org,
-        linux-media@vger.kernel.org, mchehab@kernel.org, joel@jms.id.au,
-        hverkuil@xs4all.nl, Eddie James <eajames@linux.ibm.com>
-Subject: [PATCH v3 1/2] dt-bindings: media: Add Aspeed Video Engine binding documentation
-Date: Tue, 25 Sep 2018 14:27:08 -0500
-In-Reply-To: <1537903629-14003-1-git-send-email-eajames@linux.ibm.com>
-References: <1537903629-14003-1-git-send-email-eajames@linux.ibm.com>
-Message-Id: <1537903629-14003-2-git-send-email-eajames@linux.ibm.com>
+        Tue, 25 Sep 2018 23:13:54 -0400
+Subject: Re: [PATCH v6 02/17] media: v4l2: async: Allow searching for asd of
+ any type
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+CC: <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+ <1531175957-1973-3-git-send-email-steve_longerbeam@mentor.com>
+ <20180924140604.23e2b56f@coco.lan>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <a8ea673c-a519-81e8-35b1-9d4a224dcbf5@mentor.com>
+Date: Tue, 25 Sep 2018 14:04:21 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180924140604.23e2b56f@coco.lan>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the bindings.
+Hi Mauro,
 
-Signed-off-by: Eddie James <eajames@linux.ibm.com>
----
- .../devicetree/bindings/media/aspeed-video.txt     | 26 ++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/aspeed-video.txt
 
-diff --git a/Documentation/devicetree/bindings/media/aspeed-video.txt b/Documentation/devicetree/bindings/media/aspeed-video.txt
-new file mode 100644
-index 0000000..f1af528
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/aspeed-video.txt
-@@ -0,0 +1,26 @@
-+* Device tree bindings for Aspeed Video Engine
-+
-+The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs can
-+capture and compress video data from digital or analog sources.
-+
-+Required properties:
-+ - compatible:		"aspeed,ast2400-video-engine" or
-+			"aspeed,ast2500-video-engine"
-+ - reg:			contains the offset and length of the VE memory region
-+ - clocks:		clock specifiers for the syscon clocks associated with
-+			the VE (ordering must match the clock-names property)
-+ - clock-names:		"vclk" and "eclk"
-+ - resets:		reset specifier for the syscon reset associaated with
-+			the VE
-+ - interrupts:		the interrupt associated with the VE on this platform
-+
-+Example:
-+
-+video-engine@1e700000 {
-+    compatible = "aspeed,ast2500-video-engine";
-+    reg = <0x1e700000 0x20000>;
-+    clocks = <&syscon ASPEED_CLK_GATE_VCLK>, <&syscon ASPEED_CLK_GATE_ECLK>;
-+    clock-names = "vclk", "eclk";
-+    resets = <&syscon ASPEED_RESET_VIDEO>;
-+    interrupts = <7>;
-+};
--- 
-1.8.3.1
+On 09/24/2018 10:06 AM, Mauro Carvalho Chehab wrote:
+> Em Mon,  9 Jul 2018 15:39:02 -0700
+> Steve Longerbeam <slongerbeam@gmail.com> escreveu:
+>
+>> Generalize v4l2_async_notifier_fwnode_has_async_subdev() to allow
+>> searching for any type of async subdev, not just fwnodes. Rename to
+>> v4l2_async_notifier_has_async_subdev() and pass it an asd pointer.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> ---
+>> Changes since v5:
+>> - none
+>> Changes since v4:
+>> - none
+>> Changes since v3:
+>> - removed TODO to support asd compare with CUSTOM match type in
+>>    asd_equal().
+>> Changes since v2:
+>> - code optimization in asd_equal(), and remove unneeded braces,
+>>    suggested by Sakari Ailus.
+>> Changes since v1:
+>> - none
+>> ---
+>>   drivers/media/v4l2-core/v4l2-async.c | 73 +++++++++++++++++++++---------------
+>>   1 file changed, 43 insertions(+), 30 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+>> index 2b08d03..0e7e529 100644
+>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>> @@ -124,6 +124,31 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+>>   	return NULL;
+>>   }
+>>   
+>> +/* Compare two asd's for equivalence */
+> Please, on comments, instead of "asd" prefer to use what this 3 random
+> letters mean, e. g.:
+> 	asd -> asynchronous subdevice
+
+Ok, I will change the comment to read:
+
+/* Compare two async subdevice descriptors for equivalence */
+
+>
+>> +static bool asd_equal(struct v4l2_async_subdev *asd_x,
+>> +		      struct v4l2_async_subdev *asd_y)
+>> +{
+>> +	if (asd_x->match_type != asd_y->match_type)
+>> +		return false;
+>> +
+>> +	switch (asd_x->match_type) {
+>> +	case V4L2_ASYNC_MATCH_DEVNAME:
+>> +		return strcmp(asd_x->match.device_name,
+>> +			      asd_y->match.device_name) == 0;
+>> +	case V4L2_ASYNC_MATCH_I2C:
+>> +		return asd_x->match.i2c.adapter_id ==
+>> +			asd_y->match.i2c.adapter_id &&
+>> +			asd_x->match.i2c.address ==
+>> +			asd_y->match.i2c.address;
+>> +	case V4L2_ASYNC_MATCH_FWNODE:
+>> +		return asd_x->match.fwnode == asd_y->match.fwnode;
+>> +	default:
+>> +		break;
+>> +	}
+>> +
+>> +	return false;
+>> +}
+>> +
+>>   /* Find the sub-device notifier registered by a sub-device driver. */
+>>   static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+>>   	struct v4l2_subdev *sd)
+>> @@ -308,29 +333,22 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+>>   	notifier->parent = NULL;
+>>   }
+>>   
+>> -/* See if an fwnode can be found in a notifier's lists. */
+>> -static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+>> -	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
+>> +/* See if an async sub-device can be found in a notifier's lists. */
+>> +static bool __v4l2_async_notifier_has_async_subdev(
+>> +	struct v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
+> This is a minor issue, but checkpatch complains (with reason)
+> (with --strict) about the above:
+>
+> 	CHECK: Lines should not end with a '('
+> 	#63: FILE: drivers/media/v4l2-core/v4l2-async.c:337:
+> 	+static bool __v4l2_async_notifier_has_async_subdev(
+>
+> Better to declare it, instead, as:
+>
+> static bool
+> __v4l2_async_notifier_has_async_subdev(struct v4l2_async_notifier *notifier,
+> 				       struct v4l2_async_subdev *asd)
+>
+> Similar warnings appear on other places:
+> CHECK: Lines should not end with a '('
+> #102: FILE: drivers/media/v4l2-core/v4l2-async.c:362:
+> +static bool v4l2_async_notifier_has_async_subdev(
+>
+> CHECK: Lines should not end with a '('
+> #141: FILE: drivers/media/v4l2-core/v4l2-async.c:410:
+> +			if (v4l2_async_notifier_has_async_subdev(
+
+Will fix.
+
+>
+> Btw, Checkpatch also complains that the author's email is different
+> than the SOB's one:
+>
+> WARNING: Missing Signed-off-by: line by nominal patch author 'Steve Longerbeam <slongerbeam@gmail.com>'
+>
+> (the some comes with Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>)
+>
+> I suspect that other patches on this series will suffer from the same issue.
+
+Will fix when submitting v7.
+
+> <snip>
+>
+>> @@ -392,12 +406,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>>   		case V4L2_ASYNC_MATCH_CUSTOM:
+>>   		case V4L2_ASYNC_MATCH_DEVNAME:
+>>   		case V4L2_ASYNC_MATCH_I2C:
+>> -			break;
+>>   		case V4L2_ASYNC_MATCH_FWNODE:
+>> -			if (v4l2_async_notifier_fwnode_has_async_subdev(
+>> -				    notifier, asd->match.fwnode, i)) {
+>> +			if (v4l2_async_notifier_has_async_subdev(
+>> +				    notifier, asd, i)) {
+>>   				dev_err(dev,
+>> -					"fwnode has already been registered or in notifier's subdev list\n");
+>> +					"asd has already been registered or in notifier's subdev list\n");
+> Please, never use "asd" on messages printed to the user. While someone
+> may understand it while reading the source code, for a poor use,
+> "asd" is just a random sequence of 3 characters.
+
+I will change the message to read:
+
+"subdev descriptor already listed in this or other notifiers".
+
+
+Steve
