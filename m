@@ -1,119 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:11803 "EHLO mga05.intel.com"
+Received: from mail.intenta.de ([178.249.25.132]:44231 "EHLO mail.intenta.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726031AbeIYLnp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Sep 2018 07:43:45 -0400
-Date: Tue, 25 Sep 2018 13:37:32 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 4158757395b300b6eb308fc20b96d1d231484413
-Message-ID: <5ba9c99c.LGAw0J7LhMo/bzhV%lkp@intel.com>
+        id S1725843AbeIYMjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 25 Sep 2018 08:39:42 -0400
+Date: Tue, 25 Sep 2018 08:33:29 +0200
+From: Helmut Grohne <helmut.grohne@intenta.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: Re: [PATCH 1/1] v4l: Remove support for crop default target in
+ subdev drivers
+Message-ID: <20180925063329.vnes4q2rdzn4e7c7@laureti-dev>
+References: <20180924144227.31237-1-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20180924144227.31237-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 4158757395b300b6eb308fc20b96d1d231484413  media: davinci: Fix implicit enum conversion warning
+On Mon, Sep 24, 2018 at 04:42:27PM +0200, Sakari Ailus wrote:
+> --- a/drivers/media/i2c/mt9t112.c
+> +++ b/drivers/media/i2c/mt9t112.c
+> @@ -888,12 +888,6 @@ static int mt9t112_get_selection(struct v4l2_subdev *sd,
+>  		sel->r.width = MAX_WIDTH;
+>  		sel->r.height = MAX_HEIGHT;
+>  		return 0;
+> -	case V4L2_SEL_TGT_CROP_DEFAULT:
+> -		sel->r.left = 0;
+> -		sel->r.top = 0;
+> -		sel->r.width = VGA_WIDTH;
+> -		sel->r.height = VGA_HEIGHT;
+> -		return 0;
+>  	case V4L2_SEL_TGT_CROP:
+>  		sel->r = priv->frame;
+>  		return 0;
 
-elapsed time: 228m
+Together with the change in soc_scale_crop.c, this constitutes an
+(unintentional?) behaviour change. It was formerly reporting 640x480 and
+will now be reporting 2048x1536. I cannot tell whether that is
+reasonable.
 
-configs tested: 87
+> --- a/drivers/media/i2c/soc_camera/mt9t112.c
+> +++ b/drivers/media/i2c/soc_camera/mt9t112.c
+> @@ -884,12 +884,6 @@ static int mt9t112_get_selection(struct v4l2_subdev *sd,
+>  		sel->r.width = MAX_WIDTH;
+>  		sel->r.height = MAX_HEIGHT;
+>  		return 0;
+> -	case V4L2_SEL_TGT_CROP_DEFAULT:
+> -		sel->r.left = 0;
+> -		sel->r.top = 0;
+> -		sel->r.width = VGA_WIDTH;
+> -		sel->r.height = VGA_HEIGHT;
+> -		return 0;
+>  	case V4L2_SEL_TGT_CROP:
+>  		sel->r = priv->frame;
+>  		return 0;
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This one looks duplicate. Is there a good reason to have two drivers for
+mt9t112? This is lilely out of scope for the patch. Cced Jacopo Mondi as
+he introduced the copy.
 
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-i386                   randconfig-x010-201838
-i386                   randconfig-x011-201838
-i386                   randconfig-x012-201838
-i386                   randconfig-x013-201838
-i386                   randconfig-x014-201838
-i386                   randconfig-x015-201838
-i386                   randconfig-x016-201838
-i386                   randconfig-x017-201838
-i386                   randconfig-x018-201838
-i386                   randconfig-x019-201838
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-x86_64                 randconfig-x000-201838
-x86_64                 randconfig-x001-201838
-x86_64                 randconfig-x002-201838
-x86_64                 randconfig-x003-201838
-x86_64                 randconfig-x004-201838
-x86_64                 randconfig-x005-201838
-x86_64                 randconfig-x006-201838
-x86_64                 randconfig-x007-201838
-x86_64                 randconfig-x008-201838
-x86_64                 randconfig-x009-201838
-i386                             allmodconfig
-i386                   randconfig-x000-201838
-i386                   randconfig-x001-201838
-i386                   randconfig-x002-201838
-i386                   randconfig-x003-201838
-i386                   randconfig-x004-201838
-i386                   randconfig-x005-201838
-i386                   randconfig-x006-201838
-i386                   randconfig-x007-201838
-i386                   randconfig-x008-201838
-i386                   randconfig-x009-201838
-x86_64                 randconfig-x010-201838
-x86_64                 randconfig-x011-201838
-x86_64                 randconfig-x012-201838
-x86_64                 randconfig-x013-201838
-x86_64                 randconfig-x014-201838
-x86_64                 randconfig-x015-201838
-x86_64                 randconfig-x016-201838
-x86_64                 randconfig-x017-201838
-x86_64                 randconfig-x018-201838
-x86_64                 randconfig-x019-201838
-ia64                             alldefconfig
-ia64                              allnoconfig
-ia64                                defconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-openrisc                    or1ksim_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-c6x                        evmc6678_defconfig
-h8300                    h8300h-sim_defconfig
-nios2                         10m50_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-arm                          nuc960_defconfig
-powerpc                       eiger_defconfig
-powerpc                     sbc8548_defconfig
-sh                   sh7724_generic_defconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-i386                     randconfig-s0-201838
-i386                     randconfig-s1-201838
-i386                     randconfig-s2-201838
-i386                     randconfig-s3-201838
-x86_64                 randconfig-s3-09251250
-x86_64                 randconfig-s4-09251250
-x86_64                 randconfig-s5-09251250
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-powerpc                       ebony_defconfig
-x86_64                 randconfig-h0-09251147
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                                     txx9
+Other than your patch looks fine to me.
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Helmut
