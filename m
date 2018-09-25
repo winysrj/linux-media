@@ -1,230 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:57778 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727354AbeIZBYQ (ORCPT
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:44706 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727546AbeIZBgV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Sep 2018 21:24:16 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: [PATCH v3] media: docs: add glossary.rst with common terms used at V4L2 spec
-Date: Tue, 25 Sep 2018 16:14:51 -0300
-Message-Id: <02e399c34a614182ecfa4212cc610fe7d57024f4.1537902727.git.mchehab+samsung@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 25 Sep 2018 21:36:21 -0400
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w8PJIw69052867
+        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2018 15:27:17 -0400
+Received: from e32.co.us.ibm.com (e32.co.us.ibm.com [32.97.110.150])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2mqrq1xrke-1
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2018 15:27:17 -0400
+Received: from localhost
+        by e32.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-media@vger.kernel.org> from <eajames@linux.ibm.com>;
+        Tue, 25 Sep 2018 13:27:16 -0600
+From: Eddie James <eajames@linux.ibm.com>
+To: linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
+        linux-aspeed@lists.ozlabs.org, andrew@aj.id.au,
+        openbmc@lists.ozlabs.org, robh+dt@kernel.org,
+        linux-media@vger.kernel.org, mchehab@kernel.org, joel@jms.id.au,
+        hverkuil@xs4all.nl, Eddie James <eajames@linux.ibm.com>
+Subject: [PATCH v3 0/2] media: platform: Add Aspeed Video Engine Driver
+Date: Tue, 25 Sep 2018 14:27:07 -0500
+Message-Id: <1537903629-14003-1-git-send-email-eajames@linux.ibm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
+can capture and compress video data from digital or analog sources. With
+the Aspeed chip acting as a service processor, the Video Engine can
+capture the host processor graphics output.
 
-Add a glossary of terms used within the media userspace API
-documentation, as several concepts are complex enough to cause
-misunderstandings.
+This series adds a V4L2 driver for the VE, providing the usual V4L2 streaming
+interface by way of videobuf2. Each frame, the driver triggers the hardware to
+capture the host graphics output and compress it to JPEG format.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
+I was unable to cross compile v4l2-compliance for ARM with our OpenBMC
+toolchain. Although bootstrap, configure, and make were successful, no binaries
+were generated... I was able to build v4l-utils 1.12.3 from the OpenEmbedded
+project, with the output below:
 
-v3:
-  - Add SPDX header and dual-license the glossary
-  - Make glossary generic enough to be used for all media uAPI documentation;
-  - Add a few new items to the glossary, to imply that it covers not only V4L2;
-  - Move it to the uAPI document as a hole.
+v4l2-compliance SHA   : not available
 
-v2: Did some changes based on Sakari's feedback.
+Driver Info:
+	Driver name   : aspeed-video
+	Card type     : Aspeed Video Engine
+	Bus info      : platform:aspeed-video
+	Driver version: 4.18.8
+	Capabilities  : 0x85200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x05200001
+		Video Capture
+		Read/Write
+		Streaming
+		Extended Pix Format
 
- Documentation/media/media_uapi.rst    |   3 +
- Documentation/media/uapi/glossary.rst | 162 ++++++++++++++++++++++++++
- 2 files changed, 165 insertions(+)
- create mode 100644 Documentation/media/uapi/glossary.rst
+Compliance test for device /dev/video0 (not using libv4l2):
 
-diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-index 28eb35a1f965..41f091a26003 100644
---- a/Documentation/media/media_uapi.rst
-+++ b/Documentation/media/media_uapi.rst
-@@ -2,6 +2,8 @@
- 
- .. include:: <isonum.txt>
- 
-+.. _media_uapi:
-+
- ########################################
- Linux Media Infrastructure userspace API
- ########################################
-@@ -31,3 +33,4 @@ License".
-     uapi/cec/cec-api
-     uapi/gen-errors
-     uapi/fdl-appendix
-+    uapi/glossary
-diff --git a/Documentation/media/uapi/glossary.rst b/Documentation/media/uapi/glossary.rst
-new file mode 100644
-index 000000000000..9e2a2b29e8b2
---- /dev/null
-+++ b/Documentation/media/uapi/glossary.rst
-@@ -0,0 +1,162 @@
-+.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later
-+
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
-+
-+========
-+Glossary
-+========
-+
-+.. note::
-+
-+   This goal of section is to standardize the terms used within the media
-+   userspace API documentation. It is written incrementally as they are
-+   standardized in the media documentation.
-+
-+   So, it is a Work In Progress.
-+
-+.. Please keep the glossary entries in alphabetical order
-+
-+.. glossary::
-+
-+    Bridge driver
-+	A device driver that implements the main logic to talk with
-+	a media hardware.
-+
-+	For V4L2 hardware, this is also known as V4L2 main driver.
-+
-+    Consumer Electronics Control API
-+	An API designed to receive and transmit data via a HDMI
-+	CEC interface.
-+
-+	See :ref:`cec`.
-+
-+    Device Node
-+	A character device node in the file system used to control and do
-+	input/output data transfers from/to a Kernel driver.
-+
-+    Digital TV API - DVB API
-+	An API designed to control the media device components related to
-+	digital TV, including frontends, demuxes, streaming, conditional
-+	access, etc.
-+
-+	See :ref:`dvbapi`.
-+
-+    Digital Signal Processor - DSP
-+	A specialized microprocessor, with its architecture optimized for
-+	the operational needs of digital signal processing.
-+
-+    Driver
-+	Part of the Linux Kernel that implements support for a hardware
-+	component.
-+
-+    Field-programmable Gate Array - FPGA
-+	A field-programmable gate array (FPGA) is an integrated circuit
-+	designed to be configured by a customer or a designer after
-+	manufacturing.
-+
-+	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-+
-+    Inter-Integrated Circuit - I²C
-+	A  multi-master, multi-slave, packet switched, single-ended,
-+	serial computer bus used to control some hardware components
-+	like sub-device hardware components.
-+
-+	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-+
-+    Integrated circuit - IC
-+	A set of electronic circuits on one small flat piece of
-+	semiconductor material, normally silicon.
-+
-+	Also known as chip.
-+
-+    Intelectual property core - IP block
-+	In electronic design a semiconductor intellectual property core,
-+	is a reusable unit of logic, cell, or integrated circuit layout
-+	design that is the intellectual property of one party.
-+	IP cores may be licensed to another party or can be owned
-+	and used by a single party alone.
-+
-+	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-+
-+    Image Signal Processor - ISP
-+	A specialised processor that implements a set of algorithms for
-+	processing image data. ISPs may implement algorithms for lens
-+	shading correction, demosaic, scaling and pixel format conversion
-+	as well as produce statistics for the use of the control
-+	algorithms (e.g. automatic exposure, white balance and focus).
-+
-+    Media API
-+	A set of userspace APIs used to control a media hardware.
-+
-+	See :ref:`media_uapi`.
-+
-+    Media Controller
-+	An API designed to expose and control devices and sub-devices'
-+	relationships to applications.
-+
-+	See :ref:`media_controller`.
-+
-+    Media Hardware
-+	Subset of a hardware that is supported by the Linux Media API.
-+
-+	Includes audio and video capture and playback hardware,
-+	digital and analog TV, camera sensors, ISPs, remote controllers,
-+	codecs, HDMI Consumer Electronics Control, HDMI capture, etc.
-+
-+
-+	See :ref:`media_uapi`.
-+
-+
-+    Microprocessor
-+	An electronic circuitry that carries out the instructions
-+	of a computer program by performing the basic arithmetic, logical,
-+	control and input/output (I/O) operations specified by the
-+	instructions on a single integrated circuit.
-+
-+    Remote Controller API
-+	An API designed to receive and transmit data from remote
-+	controllers.
-+
-+	See :ref:`remote_controllers`.
-+
-+    SMBus
-+	A subset of I²C, with defines a stricter usage of the bus.
-+
-+    Serial Peripheral Interface Bus - SPI
-+	Synchronous serial communication interface specification used for
-+	short distance communication, primarily in embedded systems.
-+
-+    System on a Chip - SoC
-+	An integrated circuit that integrates all components of a computer
-+	or other electronic systems.
-+
-+    Sub-device hardware components
-+	V4L2 hardware components that aren't controlled by a
-+	V4L2 main driver.
-+
-+    V4L2 userspace API - V4L2 API
-+       The userspace API defined at :ref:`v4l2spec`, with is used to control
-+       a V4L2 hardware.
-+
-+    V4L2 hardware
-+       Part of a media hardware with is supported by the V4L2
-+       userspace API.
-+
-+    V4L2 main driver
-+	A V4L2 device driver that implements the main logic to talk with
-+	a V4L2 hardware.
-+
-+    V4L2 sub-device
-+	Part of a media hardware that it is implemented by a device
-+	driver that is not part of the main V4L2 driver.
-+
-+	See :ref:`subdev`.
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK
+	test VIDIOC_DV_TIMINGS_CAP: OK
+	test VIDIOC_G/S_EDID: OK
+
+Test input 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		warn: ../../../v4l-utils-1.12.3/utils/v4l2-compliance/v4l2-test-controls.cpp(811): V4L2_CID_DV_RX_POWER_PRESENT not found for input 0
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 3 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK (Not Supported)
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK
+	test MMAP: OK                                     
+	test USERPTR: OK (Not Supported)
+	test DMABUF: OK (Not Supported)
+
+
+Total: 47, Succeeded: 47, Failed: 0, Warnings: 1
+
+Changes since v2:
+ - Switch to streaming interface. This involved a lot of changes.
+ - Rework memory allocation due to using videobuf2 buffers, but also only
+   allocate the necessary size of source buffer rather than the max size
+
+Changes since v1:
+ - Removed le32_to_cpu calls for JPEG header data
+ - Reworked v4l2 ioctls to be compliant.
+ - Added JPEG controls
+ - Updated devicetree docs according to Rob's suggestions.
+ - Added myself to MAINTAINERS
+
+Eddie James (2):
+  dt-bindings: media: Add Aspeed Video Engine binding documentation
+  media: platform: Add Aspeed Video Engine driver
+
+ .../devicetree/bindings/media/aspeed-video.txt     |   26 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |    8 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/aspeed-video.c              | 1645 ++++++++++++++++++++
+ 5 files changed, 1688 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/aspeed-video.txt
+ create mode 100644 drivers/media/platform/aspeed-video.c
+
 -- 
-2.17.1
+1.8.3.1
