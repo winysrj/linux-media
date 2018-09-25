@@ -1,54 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:60070 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:60080 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726586AbeIYSOc (ORCPT
+        with ESMTP id S1728721AbeIYSOc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
         Tue, 25 Sep 2018 14:14:32 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 0/3] Add a glossary and fix some issues at open.rst docs
-Date: Tue, 25 Sep 2018 09:06:50 -0300
-Message-Id: <cover.1537876293.git.mchehab+samsung@kernel.org>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: [PATCH 2/3] media: open.rst: better document device node naming
+Date: Tue, 25 Sep 2018 09:06:52 -0300
+Message-Id: <0938dc20b6496789bf7c36f0f0162c5b62a2663c.1537876293.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1537876293.git.mchehab+samsung@kernel.org>
+References: <cover.1537876293.git.mchehab+samsung@kernel.org>
+MIME-Version: 1.0
+In-Reply-To: <cover.1537876293.git.mchehab+samsung@kernel.org>
+References: <cover.1537876293.git.mchehab+samsung@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those three patches were part of an attempt to add definitions for
-some terms used at the media subsystem:
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-	https://lwn.net/Articles/732022/
+Right now, only kAPI documentation describes the device naming.
+However, such description is needed at the uAPI too. Add it,
+and describe how to get an unique identify for a given device.
 
-On that time, the first patch generated heated discussions, on terms
-related to mc-centric/vdev-centric. The cern of the discussions were
-how to call the subdev API and the non-subdev API part of the 
-video4linux API.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ Documentation/media/uapi/v4l/open.rst | 44 +++++++++++++++++++++++++--
+ 1 file changed, 41 insertions(+), 3 deletions(-)
 
-I ended by being side-tracked by other things, and didn't have a chance
-to submit an updated version.
-
-Well, now I'm doing things differently: at the glossary.rst, I removed
-everything related to hardware control. So, it should contain only the
-terms that there aren't any divergences. So, I hope we can manage to
-merge it this time.
-
-After having this series merged, I'll address again the MC/vdev centric
-hardware control on a separate patchset, perhaps using a different
-approach together with the new glossary definitions related
-to it.
-
-Mauro Carvalho Chehab (3):
-  media: add glossary.rst with common terms used at V4L2 spec
-  media: open.rst: better document device node naming
-  media: open.rst: remove the minor number range
-
- Documentation/media/uapi/v4l/glossary.rst | 108 ++++++++++++++++++++++
- Documentation/media/uapi/v4l/open.rst     |  53 +++++++++--
- Documentation/media/uapi/v4l/v4l2.rst     |   1 +
- 3 files changed, 154 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/glossary.rst
-
+diff --git a/Documentation/media/uapi/v4l/open.rst b/Documentation/media/uapi/v4l/open.rst
+index afd116edb40d..7e7aad784388 100644
+--- a/Documentation/media/uapi/v4l/open.rst
++++ b/Documentation/media/uapi/v4l/open.rst
+@@ -7,12 +7,14 @@ Opening and Closing Devices
+ ***************************
+ 
+ 
+-Device Naming
+-=============
++.. _v4l2_device_naming:
++
++V4L2 Device Node Naming
++=======================
+ 
+ V4L2 drivers are implemented as kernel modules, loaded manually by the
+ system administrator or automatically when a device is first discovered.
+-The driver modules plug into the "videodev" kernel module. It provides
++The driver modules plug into the ``videodev`` kernel module. It provides
+ helper functions and a common application interface specified in this
+ document.
+ 
+@@ -23,6 +25,42 @@ option CONFIG_VIDEO_FIXED_MINOR_RANGES. In that case minor numbers
+ are allocated in ranges depending on the device node type (video, radio,
+ etc.).
+ 
++The existing V4L2 device node types are:
++
++======================== ======================================================
++Default device node name Usage
++======================== ======================================================
++``/dev/videoX``		 Video input/output devices
++``/dev/vbiX``		 Vertical blank data (i.e. closed captions, teletext)
++``/dev/radioX``		 Radio tuners and modulators
++``/dev/swradioX``	 Software Defined Radio tuners and modulators
++``/dev/v4l-touchX``	 Touch sensors
++======================== ======================================================
++
++Where ``X`` is a non-negative number.
++
++.. note::
++
++   1. The actual device node name is system-dependent, as udev rules may apply.
++   2. There is no guarantee that ``X`` will remain the same for the same
++      device, as the number depends on the device driver's probe order.
++      If you need an unique name, udev default rules produce
++      ``/dev/v4l/by-id/`` and ``/dev/v4l/by-path/`` directories containing
++      links that can be used uniquely to identify a V4L2 device node::
++
++	$ tree /dev/v4l
++	/dev/v4l
++	├── by-id
++	│   └── usb-OmniVision._USB_Camera-B4.04.27.1-video-index0 -> ../../video0
++	└── by-path
++	    └── pci-0000:00:14.0-usb-0:2:1.0-video-index0 -> ../../video0
++
++   3. **V4L2 sub-device nodes** (e. g. ``/dev/v4l-sudevX``) provide a
++      different API and aren't considered as V4L2 device nodes.
++
++      They are covered at :ref:`subdev`.
++
++
+ Many drivers support "video_nr", "radio_nr" or "vbi_nr" module
+ options to select specific video/radio/vbi node numbers. This allows the
+ user to request that the device node is named e.g. /dev/video5 instead
 -- 
 2.17.1
