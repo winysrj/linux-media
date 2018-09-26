@@ -1,142 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:56987 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726404AbeIZQXw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 12:23:52 -0400
-Date: Wed, 26 Sep 2018 13:11:32 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Chen, Ping-chung" <ping-chung.chen@intel.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "sylwester.nawrocki@gmail.com" <sylwester.nawrocki@gmail.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        "Yeh, Andy" <andy.yeh@intel.com>, "Lai, Jim" <jim.lai@intel.com>,
-        "grundler@chromium.org" <grundler@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
-Message-ID: <20180926101132.iydcsn6o3qbi32u4@kekkonen.localdomain>
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
- <20180920205658.xv57qcmya7xubgyf@valkosipuli.retiisi.org.uk>
- <1961986.b6erRuqaPp@avalon>
- <CAPybu_2pCy4EJnih+1pmr43gdh5J0BS_Z0Owb5qpJVkYcDHtyQ@mail.gmail.com>
- <5E40A82D0551C84FA2888225EDABBE093FACCF63@PGSMSX105.gar.corp.intel.com>
- <20180925092527.4apdggynxleigvbv@paasikivi.fi.intel.com>
- <5E40A82D0551C84FA2888225EDABBE093FACD5E5@PGSMSX105.gar.corp.intel.com>
- <20180925215442.dugem7hcywaopl6s@kekkonen.localdomain>
- <5E40A82D0551C84FA2888225EDABBE093FACD6AF@PGSMSX105.gar.corp.intel.com>
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:39181 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726355AbeIZLhv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Sep 2018 07:37:51 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5E40A82D0551C84FA2888225EDABBE093FACD6AF@PGSMSX105.gar.corp.intel.com>
+References: <20180921085450.19224-1-ricardo.ribalda@gmail.com>
+ <20180921092833.c3bznrhc3yyarmq4@kekkonen.localdomain> <CAPybu_2J4b8C_AQu5trH6fLG3FAkSvFiUOYt-HFwG+YXK9PkkQ@mail.gmail.com>
+ <20180924203252.wxeclgjc7zvepyhb@kekkonen.localdomain>
+In-Reply-To: <20180924203252.wxeclgjc7zvepyhb@kekkonen.localdomain>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 26 Sep 2018 07:26:24 +0200
+Message-ID: <CAPybu_3WF3x42k814dvEwqrMMfaxt2s4OpuK3BGMobBfmsgQ5Q@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] imx214: Add imx214 camera sensor driver
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ping-chung,
+Hello Sakari
+On Mon, Sep 24, 2018 at 10:32 PM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> Hi Ricardo,
+>
+> On Fri, Sep 21, 2018 at 12:15:55PM +0200, Ricardo Ribalda Delgado wrote:
+> ...
+> > > > +static struct reg_8 mode_1920x1080[];
+> > > > +static struct reg_8 mode_4096x2304[];
+> > >
+> > > Const. Could you rearrange the bits to avoid the forward declarations=
+?
+> > Const done, but I prefer to keep the forward declaration. Otherwise
+> > the long tables will "hide" the mode declaration.
+>
+> Well, I guess the long tables do "hide" a bunch of other stuff, too. :-)
+> But... I agree there's no trivial way around those tables either.
+>
+> It appears I'm not the only one who's commented on the matter of the
+> forward declaration.
 
-On Wed, Sep 26, 2018 at 02:27:01AM +0000, Chen, Ping-chung wrote:
-> Hi Sakari,
-> 
-> >-----Original Message-----
-> >From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com] 
-> >Sent: Wednesday, September 26, 2018 5:55 AM
-> 
-> >Hi Ping-chung,
-> 
-> >On Tue, Sep 25, 2018 at 10:17:48AM +0000, Chen, Ping-chung wrote:
-> >...
-> > > > > Controls that have a documented unit use that unit --- as long 
-> > > > > as that's the unit used by the hardware. If it's not, it tends 
-> > > > > to be that another unit is used but the user space has currently 
-> > > > > no way of knowing this. And the digital gain control is no exception to this.
-> > > > >
-> > > > > So if we want to improve the user space's ability to be informed 
-> > > > > how the control values reflect to device configuration, we do 
-> > > > > need to provide more information to the user space. One way to 
-> > > > > do that would be through VIDIOC_QUERY_EXT_CTRL. The IOCTL struct 
-> > > > > has plenty of reserved fields --- just for purposes such as this one.
-> > > >
-> > > > I don't think we can come up with a good way to expose arbitrary 
-> > > > mathematical formulas through an ioctl. In my opinion the question 
-> > > > is how far we want to go, how precise we need to be.
-> > > >
-> > > > > > Any opinions or better ideas?
-> > > 
-> > > >My 0.02 DKK.  On a similar situation, where userspace was running a close loop calibration:
-> > > 
-> > > >We have implemented two extra control: eposure_next exposure_pre that tell us which one is the next value. Perhaps we could embebed such functionality in QUERY_EXT_CTRL.
-> > > 
-> > > >Cheers
-> > > 
-> > > How about creating an additional control to handle the case of 
-> > > V4L2_CID_GAIN in the imx208 driver? HAL can set AG and DG separately 
-> > > for the general sensor usage by V4L2_CID_ANALOGUE_GAIN and 
-> > > V4L2_CID_DIGITAL_GAIN but call V4L2_CID_GAIN for the condition of 
-> > > setting total_gain=AGxDG.
-> > 
-> > >How do you update the two other controls if the user updates the V4L2_CID_GAIN control?
-> > 
-> > In imx208 driver:
-> > 
-> > Add two pointers *digital_gain and *analog_gain of v4l2_ctrl in the global structure imx208.
-> > static int imx208_init_controls(struct imx208 *imx208) {
-> > Imx208->digital_gain = v4l2_ctrl_new_std(..., V4L2_CID_DIGITAL_GAIN, 
-> > Imx208->...); analog_gain = 
-> > Imx208->v4l2_ctrl_new_std(...,V4L2_CID_ANALOGUE_GAIN, ...);
-> > 
-> > static int imx208_set_ctrl(struct v4l2_ctrl *ctrl) { ...
-> > 	case V4L2_CID_ANALOGUE_GAIN:
-> > 		ret = imx208_write_reg(imx208, IMX208_REG_ANALOG_GAIN, 2, ctrl->val);
-> > 		break;
-> > 	case V4L2_CID_DIGITAL_GAIN:
-> > 		ret = imx208_update_digital_gain(imx208, 2, ctrl->val);
-> > 		break;
-> > 	case V4L2_CID_ GAIN:
-> > 		ret = imx208_update_gain(imx208, 2, ctrl->val);  // total gain
-> > 		break;
-> > }
-> > 
-> > Then the implementation of imx208_update_gain():
-> > static int imx208_update_gain(struct imx208 *imx208, u32 len, u32 val) 
-> > {
-> > 	digital_gain = (val - 1) / ag_max;
-> > 	digital_gain = map_to_real_DG(digital_gain);  		// map to 1x, 2x, 4x, 8x, 16x
-> > 	digital_gain_code = digital_gain << 8			//  DGx256 for DG_code
-> > 	ret = imx208_update_digital_gain(imx208, 2, digital_gain_code); 
-> > 	imx208->digital_gain->val = digital_gain_code;
-> > 	analog_gain = val/digital_gain;
-> > 	analog_gain_code = SMIA_AG_to_Code(analog_gain);  // AG = 256/(256-ag_code)
-> > 	ret = imx208_write_reg(imx208, IMX208_REG_ANALOG_GAIN, 2, analog_gain_code);
-> > 	imx208->digital_gain->val = analog_gain_code;
-> 
-> >How about putting this piece of code to the user space instead?
-> 
-> >Some work would be needed to generalise it in order for it to work on other sensors that do need >digital gain applied, too --- assuming it'd be combined with the TRY_EXT_CTRLS rounding flags.
-> 
-> There might be many kinds of discrete DG formats. For imx208, DG=2^n, but
-> for other sensors, DG could be 2*n, 5*n, or other styles. If HAL needs to
+Ok, I will change it, Eppur si muove  ;)
+>
+> ...
+>
+> > > > +static int imx214_probe(struct i2c_client *client)
+> > > > +{
+> > > > +     struct device *dev =3D &client->dev;
+> > > > +     struct imx214 *imx214;
+> > > > +     struct fwnode_handle *endpoint;
+> > > > +     int ret;
+> > > > +     static const s64 link_freq[] =3D {
+> > > > +             (IMX214_DEFAULT_PIXEL_RATE * 10LL) / 8,
+> > >
+> > > You should check the link frequency matches with that from the firmwa=
+re.
+> >
+> > I am not sure what you mean here sorry.
+>
+> The system firmware holds safe frequencies for the CSI-2 bus on that
+> particular system; you should check that the register lists are valid for
+> that frequency.
+>
+> ...
+>
+> > > > +     imx214->pixel_rate =3D v4l2_ctrl_new_std(&imx214->ctrls, NULL=
+,
+> > > > +                                            V4L2_CID_PIXEL_RATE, 0=
+,
+> > > > +                                            IMX214_DEFAULT_PIXEL_R=
+ATE, 1,
+> > > > +                                            IMX214_DEFAULT_PIXEL_R=
+ATE);
+> > > > +     imx214->link_freq =3D v4l2_ctrl_new_int_menu(&imx214->ctrls, =
+NULL,
+> > > > +                                                V4L2_CID_LINK_FREQ=
+,
+> > > > +                                                ARRAY_SIZE(link_fr=
+eq) - 1,
+> > > > +                                                0, link_freq);
+> > >
+> > > Do I understand this correctly that the driver does not support setti=
+ng
+> > > e.g. exposure time or gain? Those are very basic features...
+> >
+> >
+> > Yep :), this is just a first step. I do not have the register set from
+> > the device :(. So I am reverse engineering a lot of things.
+> > I will add more controls as I am done with them.
+>
+> Looking at the registers you have in the register list, the sensor's
+> registers appear similar to those used by the smiapp driver (the old SMIA
+> standard).
+>
+> I'd guess the same register would work for setting the exposure time. I'm
+> less certain about the limits though.
 
-I guess the most common is multiplication and a bit shift (by e.g. 8), e.g.
-multiplying the value by a 16-bit number with a 8-bit fractional part. The
-imx208 apparently lacks the multiplication and only has the bit shift.
+Thanks for the pointer! I will try this out and probably add it as a patch.
 
-Usually there's some sort of technical reason for the choice of the digital
-gain implementation and therefore I expect at least the vast majority of
-the implementations to be either of the two.
+>
+> >
+> > >
+> > > You'll also need to ensure the s_ctrl() callback works without s_powe=
+r()
+> > > being called. My suggestion is to switch to PM runtime; see e.g. the =
+ov1385
+> > > driver in the current media tree master.
+> >
+> >
+> > There is one limitation with this chip on the dragonboard. I2c only
+> > works if the camss is ON. Therefore whatever s_ctrl needs to be
+> > cached and written at streamon.
+>
+> That's something that doesn't belong to this driver. It's the I=E6=B6=8E =
+adapter
+> driver / camss issue, and not necessarily related to drivers only. Is the
+> I=E6=B6=8E controller part of the camss btw.?
 
-> cover all cases, kernel will have to update more information to this
-> control. Another problem is should HAL take over the SMIA calculation? If
-> so, kernel will also need to update SMIA parameters to user space (or
-> create an addition filed for SMIA in the configuration XML file).
+I am with you here. The i2c controller is a different driver but is
+integrated with camss. Checkout
+https://patchwork.kernel.org/patch/10569961/ I am interacting with
+Todor and Vinod to enable the i2c port indepently with camss. At least
+now it does not kill the port after an i2c timeout :)
 
-The parameters for the analogue gain model should come from the driver,
-yes. We do not have controls for that purpose but they can (and should) be
-added.
+Will fix the fwd declaration and the csi-2 register. Then I wll upload
+it to my github, try it on real hw next monday and send back to the
+mailing list
 
--- 
-Regards,
+Thanks!
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+>
+> --
+> Regards,
+>
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+
+
+
+--=20
+Ricardo Ribalda
