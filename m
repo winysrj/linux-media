@@ -1,97 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:38217 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727055AbeIZOFw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 10:05:52 -0400
-Date: Wed, 26 Sep 2018 10:54:06 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] [media] imx214: Add imx214 camera sensor driver
-Message-ID: <20180926075406.2rvwaxmdk6jsluas@kekkonen.localdomain>
-References: <20180921085450.19224-1-ricardo.ribalda@gmail.com>
- <20180921092833.c3bznrhc3yyarmq4@kekkonen.localdomain>
- <CAPybu_2J4b8C_AQu5trH6fLG3FAkSvFiUOYt-HFwG+YXK9PkkQ@mail.gmail.com>
- <20180924203252.wxeclgjc7zvepyhb@kekkonen.localdomain>
- <CAPybu_3WF3x42k814dvEwqrMMfaxt2s4OpuK3BGMobBfmsgQ5Q@mail.gmail.com>
- <CAPybu_0quOqpSrCooOgesnsZBSL1vthmff4SmPdY2=_VvTch5g@mail.gmail.com>
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:43401 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727370AbeIZOCv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Sep 2018 10:02:51 -0400
+Received: by mail-wr1-f68.google.com with SMTP id z14-v6so8412478wrs.10
+        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2018 00:51:12 -0700 (PDT)
+Subject: Re: [PATCH v9 3/5] venus: firmware: register separate platform_device
+ for firmware loader
+To: Vikash Garodia <vgarodia@codeaurora.org>,
+        stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
+        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org
+References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
+ <1537314192-26892-4-git-send-email-vgarodia@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <b1753857-70d9-c909-26b6-2b5ff3468bd9@linaro.org>
+Date: Wed, 26 Sep 2018 10:51:08 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPybu_0quOqpSrCooOgesnsZBSL1vthmff4SmPdY2=_VvTch5g@mail.gmail.com>
+In-Reply-To: <1537314192-26892-4-git-send-email-vgarodia@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Ricardo!
+Hi Vikash,
 
-On Wed, Sep 26, 2018 at 08:06:55AM +0200, Ricardo Ribalda Delgado wrote:
-> Hi Sakari
-> On Wed, Sep 26, 2018 at 7:26 AM Ricardo Ribalda Delgado
-> <ricardo.ribalda@gmail.com> wrote:
-> >
-> > Hello Sakari
-> > On Mon, Sep 24, 2018 at 10:32 PM Sakari Ailus
-> > <sakari.ailus@linux.intel.com> wrote:
-> > >
-> > > Hi Ricardo,
-> > >
-> > > On Fri, Sep 21, 2018 at 12:15:55PM +0200, Ricardo Ribalda Delgado wrote:
-> > > ...
-> > > > > > +static struct reg_8 mode_1920x1080[];
-> > > > > > +static struct reg_8 mode_4096x2304[];
-> > > > >
-> > > > > Const. Could you rearrange the bits to avoid the forward declarations?
-> > > > Const done, but I prefer to keep the forward declaration. Otherwise
-> > > > the long tables will "hide" the mode declaration.
-> > >
-> > > Well, I guess the long tables do "hide" a bunch of other stuff, too. :-)
-> > > But... I agree there's no trivial way around those tables either.
-> > >
-> > > It appears I'm not the only one who's commented on the matter of the
-> > > forward declaration.
-> >
-> > Ok, I will change it, Eppur si muove  ;)
-> > >
-> > > ...
-> > >
-> > > > > > +static int imx214_probe(struct i2c_client *client)
-> > > > > > +{
-> > > > > > +     struct device *dev = &client->dev;
-> > > > > > +     struct imx214 *imx214;
-> > > > > > +     struct fwnode_handle *endpoint;
-> > > > > > +     int ret;
-> > > > > > +     static const s64 link_freq[] = {
-> > > > > > +             (IMX214_DEFAULT_PIXEL_RATE * 10LL) / 8,
-> > > > >
-> > > > > You should check the link frequency matches with that from the firmware.
-> > > >
-> > > > I am not sure what you mean here sorry.
-> > >
-> > > The system firmware holds safe frequencies for the CSI-2 bus on that
-> > > particular system; you should check that the register lists are valid for
-> > > that frequency.
-> > >
+On 09/19/2018 02:43 AM, Vikash Garodia wrote:
+> From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 > 
-> Can you point me to a driver that does this? Just for the example. Thanks
+> This registers a firmware platform_device and associate it with
+> video-firmware DT subnode. Then calls dma configure to initialize
+> dma and iommu.
 
-The imx319 driver:
+Please replace the description with something like this:
 
-<URL:https://patchwork.linuxtv.org/patch/52233/>
+This registers a firmware platform_device and associates it with
+video-firmware DT subnode, by that way we are able to parse iommu
+configuration.
 
-> > I am with you here. The i2c controller is a different driver but is
-> > integrated with camss. Checkout
-> > https://patchwork.kernel.org/patch/10569961/ I am interacting with
-> > Todor and Vinod to enable the i2c port indepently with camss. At least
-> > now it does not kill the port after an i2c timeout :)
-
-Nice!!
+> 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/core.c     | 14 +++++---
+>  drivers/media/platform/qcom/venus/core.h     |  3 ++
+>  drivers/media/platform/qcom/venus/firmware.c | 54 ++++++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/firmware.h |  2 ++
+>  4 files changed, 69 insertions(+), 4 deletions(-)
+> 
 
 -- 
-Cheers,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+regards,
+Stan
