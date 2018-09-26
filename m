@@ -1,147 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55778 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727017AbeIZUlJ (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:52444 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727205AbeIZU56 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 16:41:09 -0400
-Subject: Re: [ANN] Draft Agenda for the media summit on Thursday Oct 25th in
- Edinburgh
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <cf0bfec4-2bc5-e264-9bbc-23fe264e3815@collabora.com>
-Date: Wed, 26 Sep 2018 11:27:45 -0300
+        Wed, 26 Sep 2018 16:57:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Pravin Shedge <pravin.shedge4linux@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Shuah Khan <shuah@kernel.org>
+Subject: Re: [PATCH 03/13] v4l2-mc: switch it to use the new approach to setup pipelines
+Date: Wed, 26 Sep 2018 17:44:53 +0300
+Message-ID: <6034562.6tWgEtGTRM@avalon>
+In-Reply-To: <f3a56b9bb4210885f005c96cddf5773c2c4e0cd1.1533138685.git.mchehab+samsung@kernel.org>
+References: <cover.1533138685.git.mchehab+samsung@kernel.org> <f3a56b9bb4210885f005c96cddf5773c2c4e0cd1.1533138685.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Mauro,
+Hi Mauro,
 
+Thank you for the patch.
 
-On 9/24/18 11:42 AM, Hans Verkuil wrote:
-> Hi all,
-> 
-> We are organizing a media mini-summit on Thursday October 25th in
-> Edinburgh, Edinburgh International Conference Centre.
-> 
-> If you plan to attend, please let Mauro know. It is open for all, but
-> we have a limited number of seats.
+On Wednesday, 1 August 2018 18:55:05 EEST Mauro Carvalho Chehab wrote:
+> Instead of relying on a static map for pids, use the new sig_type
+> "taint" type to setup the pipelines with the same tipe between
 
-I believe I also I selected attendance when registering for the
-conference. Please add my name too.
+s/tipe/type/
 
+> different entities.
 > 
-> Name of the room for the summit: TBD
+> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+> ---
+>  drivers/media/media-entity.c      | 26 +++++++++++
+>  drivers/media/v4l2-core/v4l2-mc.c | 73 ++++++++++++++++++++++++-------
+>  include/media/media-entity.h      | 19 ++++++++
+>  3 files changed, 101 insertions(+), 17 deletions(-)
 > 
-> Currently known attendees (please add/remove names as needed):
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 3498551e618e..0b1cb3559140 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -662,6 +662,32 @@ static void __media_entity_remove_link(struct
+> media_entity *entity, kfree(link);
+>  }
 > 
-> Sakari Ailus <sakari.ailus@iki.fi>
-> Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Ezequiel Garcia <ezequiel@collabora.com>
-> Michael Ira Krufky <mkrufky@linuxtv.org>
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> Hans Verkuil <hverkuil@xs4all.nl>
-> Sean Young <sean@mess.org>
-> 
-> Agenda (First draft!)
-> =====================
-> 
-> General remarks: the given start/end times for the various topics are
-> approximate since it is always hard to predict how long a discussion will take.
-> If people are attending other summits and those conflict with specific media
-> topics they want to be part of, then let me know and we can rearrange the
-> schedule to (hopefully) accommodate that.
-> 
-> 9:00-9:15: Introduction (Hans Verkuil)
-> 
-> 9:15-9:30: Status of the HDMI CEC kernel support (Hans Verkuil)
-> 	Give a quick overview of the status: what has been merged, what is
-> 	still pending, what is under development.
-> 
-> 9:30-9:45: Save/restore controls from MTD (Ricardo Ribalda Delgado)
-> 	Industrial/Scientific sensors usually come with very extensive
-> 	calibration information such as: per column gain, list of dead
-> 	pixels, temperature sensor offset... etc
-> 
-> 	We are saving that information on an flash device that is located
-> 	by the sensor.
-> 
-> 	Show how we are integrating that calibration flash with v4l2-ctrl.
-> 	And if this feature is useful for someone else and upstream it.
-> 
-> 9:45-11:00: Complex Cameras (Mauro Carvalho Chehab)
-> 	I expect that we could have something to discuss there about complex
-> 	cameras. So, I'd reserve a 50 mins slot for it.
-> 
-> 	The idea is to discuss about the undergoing work with complex camera
-> 	development is happening.
-> 
-> 	As we're working to merge request API, another topic for discussion
-> 	is how to add support for requests on it (or on a separate but related
-> 	library).
-> 
-> 11:00-11:15: Break
-> 
-> 11:15-12:00: Automated Testing (Ezequiel Garcia)
-> 	There is a lot of discussion going on around testing,
-> 	so it's a good opportunity for us to talk about our
-> 	current testing infrastructure.
-> 
-> 	We are already doing a good job with v4l2-compliance.
-> 	Can we do more?
-> 
-> Lunch
-> 
-> 13:30-14:30: Stateless Codec userspace (Hans Verkuil)
-> 	Support for stateless codecs and Request API should be merged for
-> 	4.20, and the next step is to discuss how to organize the userspace
-> 	support.
-> 
-> 	Hopefully by the time the media summit starts we'll have some better
-> 	ideas of what we want in this area.
-> 
-> 14:30-15:15: Which ioctls should be replaced with better versions? (Hans Verkuil)
-> 	Some parts of the V4L2 API are awkward to use and I think it would be
-> 	a good idea to look at possible candidates for that.
-> 
-> 	Examples are the ioctls that use struct v4l2_buffer: the multiplanar support is
-> 	really horrible, and writing code to support both single and multiplanar is hard.
-> 	We are also running out of fields and the timeval isn't y2038 compliant.
-> 
-> 	A proof-of-concept is here:
-> 
-> 	https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
-> 
-> 	It's a bit old, but it gives a good impression of what I have in mind.
-> 
-> 	Another candidate is VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS:
-> 	expressing frame intervals as a fraction is really awkward and so is the fact
-> 	that the subdev and 'normal' ioctls are not the same.
-> 
-> 	Discuss what possible other ioctls are candidates for a refresh.
-> 
-> 15:15-15:30: Break
-> 
-> 15:30-16:00: Discuss the media development process
-> 	Since we are all here, discuss any issues there may be with the media
-> 	subsystem development process. Anything to improve?
-> 
-> 16:00-16:15: Wrap up
-> 	Create action items (and who will take care of them) if needed.
-> 	Summarize and conclude the day.
-> 
-> End of the day: Key Signing Party
-> 
-> Regards,
-> 
-> 	Hans
-> 
+> +int media_get_pad_index(struct media_entity *entity, bool is_sink,
+> +			enum media_pad_signal_type sig_type)
+> +{
+> +	int i;
 
-Thanks
-Helen
+is is never negative, please use an unsigned int.
+
+> +	bool pad_is_sink;
+> +
+> +	if (!entity)
+> +		return -EINVAL;
+> +
+> +	for (i = 0; i < entity->num_pads; i++) {
+> +		if (entity->pads[i].flags == MEDIA_PAD_FL_SINK)
+> +			pad_is_sink = true;
+> +		else if (entity->pads[i].flags == MEDIA_PAD_FL_SOURCE)
+> +			pad_is_sink = false;
+> +		else
+> +			continue;	/* This is an error! */
+> +
+> +		if (pad_is_sink != is_sink)
+> +			continue;
+> +		if (entity->pads[i].sig_type == sig_type)
+> +			return i;
+> +	}
+> +	return -EINVAL;
+> +}
+> +EXPORT_SYMBOL_GPL(media_get_pad_index);
+> +
+>  int
+>  media_create_pad_link(struct media_entity *source, u16 source_pad,
+>  			 struct media_entity *sink, u16 sink_pad, u32 flags)
+> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
+> b/drivers/media/v4l2-core/v4l2-mc.c index 982bab3530f6..1925e1a3b861 100644
+> --- a/drivers/media/v4l2-core/v4l2-mc.c
+> +++ b/drivers/media/v4l2-core/v4l2-mc.c
+> @@ -28,7 +28,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+>  	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
+>  	bool is_webcam = false;
+>  	u32 flags;
+> -	int ret;
+> +	int ret, pad_sink, pad_source;
+> 
+>  	if (!mdev)
+>  		return 0;
+> @@ -97,29 +97,52 @@ int v4l2_mc_create_media_graph(struct media_device
+> *mdev) /* Link the tuner and IF video output pads */
+>  	if (tuner) {
+>  		if (if_vid) {
+> -			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+> -						    if_vid,
+> -						    IF_VID_DEC_PAD_IF_INPUT,
+> +			pad_source = media_get_pad_index(tuner, false,
+> +							 PAD_SIGNAL_ANALOG);
+> +			pad_sink = media_get_pad_index(if_vid, true,
+> +						       PAD_SIGNAL_ANALOG);
+> +			if (pad_source < 0 || pad_sink < 0)
+> +				return -EINVAL;
+> +			ret = media_create_pad_link(tuner, pad_source,
+> +						    if_vid, pad_sink,
+>  						    MEDIA_LNK_FL_ENABLED);
+>  			if (ret)
+>  				return ret;
+> -			ret = media_create_pad_link(if_vid, IF_VID_DEC_PAD_OUT,
+> -						decoder, DEMOD_PAD_IF_INPUT,
+> +
+> +			pad_source = media_get_pad_index(if_vid, false,
+> +							 PAD_SIGNAL_DV);
+> +			pad_sink = media_get_pad_index(decoder, true,
+> +						       PAD_SIGNAL_DV);
+> +			if (pad_source < 0 || pad_sink < 0)
+> +				return -EINVAL;
+> +			ret = media_create_pad_link(if_vid, pad_source,
+> +						decoder, pad_sink,
+>  						MEDIA_LNK_FL_ENABLED);
+>  			if (ret)
+>  				return ret;
+>  		} else {
+> -			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+> -						decoder, DEMOD_PAD_IF_INPUT,
+> +			pad_source = media_get_pad_index(tuner, false,
+> +							 PAD_SIGNAL_ANALOG);
+> +			pad_sink = media_get_pad_index(decoder, true,
+> +						       PAD_SIGNAL_ANALOG);
+> +			if (pad_source < 0 || pad_sink < 0)
+> +				return -EINVAL;
+> +			ret = media_create_pad_link(tuner, pad_source,
+> +						decoder, pad_sink,
+>  						MEDIA_LNK_FL_ENABLED);
+>  			if (ret)
+>  				return ret;
+>  		}
+> 
+>  		if (if_aud) {
+> -			ret = media_create_pad_link(tuner, TUNER_PAD_AUD_OUT,
+> -						    if_aud,
+> -						    IF_AUD_DEC_PAD_IF_INPUT,
+> +			pad_source = media_get_pad_index(tuner, false,
+> +							 PAD_SIGNAL_AUDIO);
+> +			pad_sink = media_get_pad_index(decoder, true,
+> +						       PAD_SIGNAL_AUDIO);
+> +			if (pad_source < 0 || pad_sink < 0)
+> +				return -EINVAL;
+> +			ret = media_create_pad_link(tuner, pad_source,
+> +						    if_aud, pad_sink,
+>  						    MEDIA_LNK_FL_ENABLED);
+>  			if (ret)
+>  				return ret;
+> @@ -131,7 +154,10 @@ int v4l2_mc_create_media_graph(struct media_device
+> *mdev)
+> 
+>  	/* Create demod to V4L, VBI and SDR radio links */
+>  	if (io_v4l) {
+> -		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+> +		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
+> +		if (pad_source < 0)
+> +			return -EINVAL;
+> +		ret = media_create_pad_link(decoder, pad_source,
+>  					io_v4l, 0,
+>  					MEDIA_LNK_FL_ENABLED);
+>  		if (ret)
+> @@ -139,7 +165,10 @@ int v4l2_mc_create_media_graph(struct media_device
+> *mdev) }
+> 
+>  	if (io_swradio) {
+> -		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+> +		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
+> +		if (pad_source < 0)
+> +			return -EINVAL;
+> +		ret = media_create_pad_link(decoder, pad_source,
+>  					io_swradio, 0,
+>  					MEDIA_LNK_FL_ENABLED);
+>  		if (ret)
+> @@ -147,7 +176,10 @@ int v4l2_mc_create_media_graph(struct media_device
+> *mdev) }
+> 
+>  	if (io_vbi) {
+> -		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+> +		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
+> +		if (pad_source < 0)
+> +			return -EINVAL;
+> +		ret = media_create_pad_link(decoder, pad_source,
+>  					    io_vbi, 0,
+>  					    MEDIA_LNK_FL_ENABLED);
+>  		if (ret)
+> @@ -161,15 +193,22 @@ int v4l2_mc_create_media_graph(struct media_device
+> *mdev) case MEDIA_ENT_F_CONN_RF:
+>  			if (!tuner)
+>  				continue;
+> -
+> +			pad_source = media_get_pad_index(tuner, false,
+> +							 PAD_SIGNAL_ANALOG);
+> +			if (pad_source < 0)
+> +				return -EINVAL;
+>  			ret = media_create_pad_link(entity, 0, tuner,
+> -						    TUNER_PAD_RF_INPUT,
+> +						    pad_source,
+>  						    flags);
+>  			break;
+>  		case MEDIA_ENT_F_CONN_SVIDEO:
+>  		case MEDIA_ENT_F_CONN_COMPOSITE:
+> +			pad_sink = media_get_pad_index(decoder, true,
+> +						       PAD_SIGNAL_ANALOG);
+> +			if (pad_sink < 0)
+> +				return -EINVAL;
+>  			ret = media_create_pad_link(entity, 0, decoder,
+> -						    DEMOD_PAD_IF_INPUT,
+> +						    pad_sink,
+>  						    flags);
+>  			break;
+>  		default:
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 8bfbe6b59fa9..ac8b93e46167 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -675,6 +675,25 @@ static inline void media_entity_cleanup(struct
+> media_entity *entity) {} #define media_entity_cleanup(entity) do { } while
+> (false)
+>  #endif
+> 
+> +
+
+Extra blank line.
+
+> +/**
+> + * media_get_pad_index() - retrieves a pad index from an entity
+
+I think a better name would be media_entity_find_pad(), similarly to 
+media_entity_find_link(), as the function searches for a pad given a direction 
+and signal type. A *_get_*() function name hints of reference counting.
+
+> + *
+> + * @entity:	entity where the pads belong
+> + * @is_sink:	true if the pad is a sink, false if it is a source
+
+Could we use pad flags instead ? It's easier to read
+
+	pad = media_get_pad_index(entity, MEDIA_PAD_FL_SINK, ...);
+
+than
+
+	pad = media_get_pad_index(entity, true, ...);
+
+As an added bonus that would allow the caller to search for any pad with a 
+given signal type by specifying MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_SOURCE.
+
+> + * @sig_type:	type of signal of the pad to be search
+> + *
+> + * This helper function finds the first pad index inside an entity that
+> + * satisfies both @is_sink and @sig_type conditions.
+> + *
+> + * Return:
+> + *
+> + * On success, return the pad number. If the pad was not found or the media
+> + * entity is a NULL pointer, return -EINVAL.
+> + */
+> +int media_get_pad_index(struct media_entity *entity, bool is_sink,
+> +			enum media_pad_signal_type sig_type);
+> +
+>  /**
+>   * media_create_pad_link() - creates a link between two entities.
+>   *
+
+-- 
+Regards,
+
+Laurent Pinchart
