@@ -1,58 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:43401 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727370AbeIZOCv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52924 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726638AbeIZOSA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 10:02:51 -0400
-Received: by mail-wr1-f68.google.com with SMTP id z14-v6so8412478wrs.10
-        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2018 00:51:12 -0700 (PDT)
-Subject: Re: [PATCH v9 3/5] venus: firmware: register separate platform_device
- for firmware loader
-To: Vikash Garodia <vgarodia@codeaurora.org>,
-        stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org, robh@kernel.org, mark.rutland@arm.com,
-        andy.gross@linaro.org, arnd@arndb.de, bjorn.andersson@linaro.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, acourbot@chromium.org
-References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
- <1537314192-26892-4-git-send-email-vgarodia@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <b1753857-70d9-c909-26b6-2b5ff3468bd9@linaro.org>
-Date: Wed, 26 Sep 2018 10:51:08 +0300
+        Wed, 26 Sep 2018 10:18:00 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id ED9FF634C7E
+        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2018 11:06:17 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1g54pt-0001Db-P1
+        for linux-media@vger.kernel.org; Wed, 26 Sep 2018 11:06:17 +0300
+Date: Wed, 26 Sep 2018 11:06:17 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.20] More fixes and cleanups for 4.20
+Message-ID: <20180926080617.xbk5ctvzv4rzbm4o@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1537314192-26892-4-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikash,
+Hi Mauro,
 
-On 09/19/2018 02:43 AM, Vikash Garodia wrote:
-> From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> 
-> This registers a firmware platform_device and associate it with
-> video-firmware DT subnode. Then calls dma configure to initialize
-> dma and iommu.
+Here are a few cleanups and fixes for 4.20. Sensor drivers as well as
+sub-device crop target alignment with API documentation.
 
-Please replace the description with something like this:
+Please pull.
 
-This registers a firmware platform_device and associates it with
-video-firmware DT subnode, by that way we are able to parse iommu
-configuration.
 
-> 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
->  drivers/media/platform/qcom/venus/core.c     | 14 +++++---
->  drivers/media/platform/qcom/venus/core.h     |  3 ++
->  drivers/media/platform/qcom/venus/firmware.c | 54 ++++++++++++++++++++++++++++
->  drivers/media/platform/qcom/venus/firmware.h |  2 ++
->  4 files changed, 69 insertions(+), 4 deletions(-)
-> 
+The following changes since commit 985cdcb08a0488558d1005139596b64d73bee267:
+
+  media: ov5640: fix restore of last mode set (2018-09-17 15:33:38 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-7-sign
+
+for you to fetch changes up to e5b39730005e5f6fd3346b6d27d55e9f57e35212:
+
+  media: smiapp: Remove unused loop (2018-09-26 10:20:43 +0300)
+
+----------------------------------------------------------------
+no crop bounds on subdevs, ov5640 fix...
+
+----------------------------------------------------------------
+Hugues Fruchet (1):
+      media: ov5640: use JPEG mode 3 for 720p
+
+Ricardo Ribalda Delgado (1):
+      media: smiapp: Remove unused loop
+
+Sakari Ailus (2):
+      v4l: i2c: Add a comment not to use static sub-device names in the future
+      v4l: Remove support for crop default target in subdev drivers
+
+ drivers/media/i2c/ak881x.c                         | 1 -
+ drivers/media/i2c/m5mols/m5mols_core.c             | 1 +
+ drivers/media/i2c/mt9m111.c                        | 1 -
+ drivers/media/i2c/mt9t112.c                        | 6 ------
+ drivers/media/i2c/noon010pc30.c                    | 1 +
+ drivers/media/i2c/ov2640.c                         | 1 -
+ drivers/media/i2c/ov5640.c                         | 2 +-
+ drivers/media/i2c/ov6650.c                         | 1 -
+ drivers/media/i2c/ov772x.c                         | 1 -
+ drivers/media/i2c/rj54n1cb0c.c                     | 1 -
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           | 1 +
+ drivers/media/i2c/s5k4ecgx.c                       | 1 +
+ drivers/media/i2c/s5k6aa.c                         | 1 +
+ drivers/media/i2c/smiapp/smiapp-core.c             | 4 +---
+ drivers/media/i2c/soc_camera/mt9m001.c             | 1 -
+ drivers/media/i2c/soc_camera/mt9t112.c             | 6 ------
+ drivers/media/i2c/soc_camera/mt9v022.c             | 1 -
+ drivers/media/i2c/soc_camera/ov5642.c              | 1 -
+ drivers/media/i2c/soc_camera/ov772x.c              | 1 -
+ drivers/media/i2c/soc_camera/ov9640.c              | 1 -
+ drivers/media/i2c/soc_camera/ov9740.c              | 1 -
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          | 1 -
+ drivers/media/i2c/tvp5150.c                        | 1 -
+ drivers/media/platform/soc_camera/soc_scale_crop.c | 2 +-
+ drivers/staging/media/imx074/imx074.c              | 1 -
+ drivers/staging/media/mt9t031/mt9t031.c            | 1 -
+ 26 files changed, 8 insertions(+), 33 deletions(-)
 
 -- 
-regards,
-Stan
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
