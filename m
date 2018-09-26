@@ -1,67 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52308 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726978AbeIZNbd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 09:31:33 -0400
-Date: Wed, 26 Sep 2018 10:20:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: smiapp: Remove unused loop
-Message-ID: <20180926072000.a54kfocjcka6o2lu@valkosipuli.retiisi.org.uk>
-References: <20180926061242.8130-1-ricardo.ribalda@gmail.com>
+Received: from mga17.intel.com ([192.55.52.151]:14717 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726593AbeIZNuW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Sep 2018 09:50:22 -0400
+Date: Wed, 26 Sep 2018 10:38:44 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Helmut Grohne <helmut.grohne@intenta.de>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: Re: [PATCH 1/1] v4l: Remove support for crop default target in
+ subdev drivers
+Message-ID: <20180926073844.m7ioanhq2zzlcfcb@kekkonen.localdomain>
+References: <20180924144227.31237-1-sakari.ailus@linux.intel.com>
+ <20180925063329.vnes4q2rdzn4e7c7@laureti-dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180926061242.8130-1-ricardo.ribalda@gmail.com>
+In-Reply-To: <20180925063329.vnes4q2rdzn4e7c7@laureti-dev>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ricardo,
+Hi Helmut,
 
-On Wed, Sep 26, 2018 at 08:12:42AM +0200, Ricardo Ribalda Delgado wrote:
-> The loop seemed to be made to calculate max, but max is not used in that
-> function.
+On Tue, Sep 25, 2018 at 08:33:29AM +0200, Helmut Grohne wrote:
+> On Mon, Sep 24, 2018 at 04:42:27PM +0200, Sakari Ailus wrote:
+> > --- a/drivers/media/i2c/mt9t112.c
+> > +++ b/drivers/media/i2c/mt9t112.c
+> > @@ -888,12 +888,6 @@ static int mt9t112_get_selection(struct v4l2_subdev *sd,
+> >  		sel->r.width = MAX_WIDTH;
+> >  		sel->r.height = MAX_HEIGHT;
+> >  		return 0;
+> > -	case V4L2_SEL_TGT_CROP_DEFAULT:
+> > -		sel->r.left = 0;
+> > -		sel->r.top = 0;
+> > -		sel->r.width = VGA_WIDTH;
+> > -		sel->r.height = VGA_HEIGHT;
+> > -		return 0;
+> >  	case V4L2_SEL_TGT_CROP:
+> >  		sel->r = priv->frame;
+> >  		return 0;
 > 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> Together with the change in soc_scale_crop.c, this constitutes an
+> (unintentional?) behaviour change. It was formerly reporting 640x480 and
+> will now be reporting 2048x1536. I cannot tell whether that is
+> reasonable.
 
-The code has been left there probably when the valid link frequency
-calculation was changed.
+I'd say "yes". This is the only sub-device driver that puts a default other
+than the bounds there. Its source is SoC camera as you see below.
 
-Thanks!
-
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> index 99f3b295ae3c..bccbf4c841d6 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -624,7 +624,7 @@ static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
->  {
->  	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
->  		sensor->csi_format->compressed - sensor->compressed_min_bpp];
-> -	unsigned int max, i;
-> +	unsigned int i;
->  
->  	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
->  		int max_value = (1 << sensor->csi_format->width) - 1;
-> @@ -635,8 +635,6 @@ static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
->  				0, max_value, 1, max_value);
->  	}
->  
-> -	for (max = 0; sensor->hwcfg->op_sys_clock[max + 1]; max++);
-> -
->  	sensor->link_freq = v4l2_ctrl_new_int_menu(
->  		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
->  		V4L2_CID_LINK_FREQ, __fls(*valid_link_freqs),
-> -- 
-> 2.19.0
+> > --- a/drivers/media/i2c/soc_camera/mt9t112.c
+> > +++ b/drivers/media/i2c/soc_camera/mt9t112.c
+> > @@ -884,12 +884,6 @@ static int mt9t112_get_selection(struct v4l2_subdev *sd,
+> >  		sel->r.width = MAX_WIDTH;
+> >  		sel->r.height = MAX_HEIGHT;
+> >  		return 0;
+> > -	case V4L2_SEL_TGT_CROP_DEFAULT:
+> > -		sel->r.left = 0;
+> > -		sel->r.top = 0;
+> > -		sel->r.width = VGA_WIDTH;
+> > -		sel->r.height = VGA_HEIGHT;
+> > -		return 0;
+> >  	case V4L2_SEL_TGT_CROP:
+> >  		sel->r = priv->frame;
+> >  		return 0;
 > 
+> This one looks duplicate. Is there a good reason to have two drivers for
+> mt9t112? This is lilely out of scope for the patch. Cced Jacopo Mondi as
+> he introduced the copy.
+> 
+> Other than your patch looks fine to me.
+> 
+> Helmut
 
 -- 
+Kind regards,
+
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
