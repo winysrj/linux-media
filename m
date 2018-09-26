@@ -1,278 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:52444 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727205AbeIZU56 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 16:57:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Pravin Shedge <pravin.shedge4linux@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Shuah Khan <shuah@kernel.org>
-Subject: Re: [PATCH 03/13] v4l2-mc: switch it to use the new approach to setup pipelines
-Date: Wed, 26 Sep 2018 17:44:53 +0300
-Message-ID: <6034562.6tWgEtGTRM@avalon>
-In-Reply-To: <f3a56b9bb4210885f005c96cddf5773c2c4e0cd1.1533138685.git.mchehab+samsung@kernel.org>
-References: <cover.1533138685.git.mchehab+samsung@kernel.org> <f3a56b9bb4210885f005c96cddf5773c2c4e0cd1.1533138685.git.mchehab+samsung@kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+Received: from mga02.intel.com ([134.134.136.20]:35891 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727104AbeIZVd5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Sep 2018 17:33:57 -0400
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Chen, Ping-chung" <ping-chung.chen@intel.com>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "sylwester.nawrocki@gmail.com" <sylwester.nawrocki@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        "Lai, Jim" <jim.lai@intel.com>,
+        "grundler@chromium.org" <grundler@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v5] media: imx208: Add imx208 camera sensor driver
+Date: Wed, 26 Sep 2018 15:19:16 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D7A567A@PGSMSX111.gar.corp.intel.com>
+References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
+ <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
+ <20180920205658.xv57qcmya7xubgyf@valkosipuli.retiisi.org.uk>
+ <1961986.b6erRuqaPp@avalon>
+ <CAPybu_2pCy4EJnih+1pmr43gdh5J0BS_Z0Owb5qpJVkYcDHtyQ@mail.gmail.com>
+ <5E40A82D0551C84FA2888225EDABBE093FACCF63@PGSMSX105.gar.corp.intel.com>
+ <20180925092527.4apdggynxleigvbv@paasikivi.fi.intel.com>
+ <5E40A82D0551C84FA2888225EDABBE093FACD5E5@PGSMSX105.gar.corp.intel.com>
+ <20180925215442.dugem7hcywaopl6s@kekkonen.localdomain>
+ <5E40A82D0551C84FA2888225EDABBE093FACD6AF@PGSMSX105.gar.corp.intel.com>
+ <20180926101132.iydcsn6o3qbi32u4@kekkonen.localdomain>
+In-Reply-To: <20180926101132.iydcsn6o3qbi32u4@kekkonen.localdomain>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sakari, PC,
 
-Thank you for the patch.
+>-----Original Message-----
+>From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+>Sent: Wednesday, September 26, 2018 6:12 PM
+>To: Chen, Ping-chung <ping-chung.chen@intel.com>
+>Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>; Laurent Pinchart
+><laurent.pinchart@ideasonboard.com>; Sakari Ailus <sakari.ailus@iki.fi>;
+>tfiga@chromium.org; sylwester.nawrocki@gmail.com; linux-media <linux-
+>media@vger.kernel.org>; Yeh, Andy <andy.yeh@intel.com>; Lai, Jim
+><jim.lai@intel.com>; grundler@chromium.org; Mani, Rajmohan
+><rajmohan.mani@intel.com>
+>Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
+>
+>Hi Ping-chung,
+>
+>On Wed, Sep 26, 2018 at 02:27:01AM +0000, Chen, Ping-chung wrote:
+>> Hi Sakari,
+>>
+>> >-----Original Message-----
+>> >From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
+>> >Sent: Wednesday, September 26, 2018 5:55 AM
+>>
+>> >Hi Ping-chung,
+>>
+>> >On Tue, Sep 25, 2018 at 10:17:48AM +0000, Chen, Ping-chung wrote:
+>> >...
+>> > > > > Controls that have a documented unit use that unit --- as long
+>> > > > > as that's the unit used by the hardware. If it's not, it tends
+>> > > > > to be that another unit is used but the user space has
+>> > > > > currently no way of knowing this. And the digital gain control is no
+>exception to this.
+>> > > > >
+>> > > > > So if we want to improve the user space's ability to be
+>> > > > > informed how the control values reflect to device
+>> > > > > configuration, we do need to provide more information to the
+>> > > > > user space. One way to do that would be through
+>> > > > > VIDIOC_QUERY_EXT_CTRL. The IOCTL struct has plenty of reserved
+>fields --- just for purposes such as this one.
+>> > > >
+>> > > > I don't think we can come up with a good way to expose arbitrary
+>> > > > mathematical formulas through an ioctl. In my opinion the
+>> > > > question is how far we want to go, how precise we need to be.
+>> > > >
+>> > > > > > Any opinions or better ideas?
+>> > >
+>> > > >My 0.02 DKK.  On a similar situation, where userspace was running a
+>close loop calibration:
+>> > >
+>> > > >We have implemented two extra control: eposure_next exposure_pre
+>that tell us which one is the next value. Perhaps we could embebed such
+>functionality in QUERY_EXT_CTRL.
+>> > >
+>> > > >Cheers
+>> > >
+>> > > How about creating an additional control to handle the case of
+>> > > V4L2_CID_GAIN in the imx208 driver? HAL can set AG and DG
+>> > > separately for the general sensor usage by V4L2_CID_ANALOGUE_GAIN
+>> > > and V4L2_CID_DIGITAL_GAIN but call V4L2_CID_GAIN for the condition
+>> > > of setting total_gain=AGxDG.
+>> >
+>> > >How do you update the two other controls if the user updates the
+>V4L2_CID_GAIN control?
+>> >
+>> > In imx208 driver:
+>> >
+>> > Add two pointers *digital_gain and *analog_gain of v4l2_ctrl in the global
+>structure imx208.
+>> > static int imx208_init_controls(struct imx208 *imx208) {
+>> > Imx208->digital_gain = v4l2_ctrl_new_std(..., V4L2_CID_DIGITAL_GAIN,
+>> > Imx208->...); analog_gain =
+>> > Imx208->v4l2_ctrl_new_std(...,V4L2_CID_ANALOGUE_GAIN, ...);
+>> >
+>> > static int imx208_set_ctrl(struct v4l2_ctrl *ctrl) { ...
+>> > 	case V4L2_CID_ANALOGUE_GAIN:
+>> > 		ret = imx208_write_reg(imx208, IMX208_REG_ANALOG_GAIN, 2,
+>ctrl->val);
+>> > 		break;
+>> > 	case V4L2_CID_DIGITAL_GAIN:
+>> > 		ret = imx208_update_digital_gain(imx208, 2, ctrl->val);
+>> > 		break;
+>> > 	case V4L2_CID_ GAIN:
+>> > 		ret = imx208_update_gain(imx208, 2, ctrl->val);  // total gain
+>> > 		break;
+>> > }
+>> >
+>> > Then the implementation of imx208_update_gain():
+>> > static int imx208_update_gain(struct imx208 *imx208, u32 len, u32
+>> > val) {
+>> > 	digital_gain = (val - 1) / ag_max;
+>> > 	digital_gain = map_to_real_DG(digital_gain);  		// map to 1x,
+>2x, 4x, 8x, 16x
+>> > 	digital_gain_code = digital_gain << 8			//  DGx256 for
+>DG_code
+>> > 	ret = imx208_update_digital_gain(imx208, 2, digital_gain_code);
+>> > 	imx208->digital_gain->val = digital_gain_code;
+>> > 	analog_gain = val/digital_gain;
+>> > 	analog_gain_code = SMIA_AG_to_Code(analog_gain);  // AG =
+>256/(256-ag_code)
+>> > 	ret = imx208_write_reg(imx208, IMX208_REG_ANALOG_GAIN, 2,
+>analog_gain_code);
+>> > 	imx208->digital_gain->val = analog_gain_code;
+>>
+>> >How about putting this piece of code to the user space instead?
+>>
+>> >Some work would be needed to generalise it in order for it to work on other
+>sensors that do need >digital gain applied, too --- assuming it'd be combined
+>with the TRY_EXT_CTRLS rounding flags.
+>>
+>> There might be many kinds of discrete DG formats. For imx208, DG=2^n,
+>> but for other sensors, DG could be 2*n, 5*n, or other styles. If HAL
+>> needs to
+>
+>I guess the most common is multiplication and a bit shift (by e.g. 8), e.g.
+>multiplying the value by a 16-bit number with a 8-bit fractional part. The
+>imx208 apparently lacks the multiplication and only has the bit shift.
+>
+>Usually there's some sort of technical reason for the choice of the digital gain
+>implementation and therefore I expect at least the vast majority of the
+>implementations to be either of the two.
 
-On Wednesday, 1 August 2018 18:55:05 EEST Mauro Carvalho Chehab wrote:
-> Instead of relying on a static map for pids, use the new sig_type
-> "taint" type to setup the pipelines with the same tipe between
+We shall ensure the expansibility of this architecture to include other kind of styles in the future. Is this API design architecture-wise ok?
 
-s/tipe/type/
+>
+>> cover all cases, kernel will have to update more information to this
+>> control. Another problem is should HAL take over the SMIA calculation?
+>> If so, kernel will also need to update SMIA parameters to user space
+>> (or create an addition filed for SMIA in the configuration XML file).
+>
+>The parameters for the analogue gain model should come from the driver, yes.
+>We do not have controls for that purpose but they can (and should) be added.
+>
 
-> different entities.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  drivers/media/media-entity.c      | 26 +++++++++++
->  drivers/media/v4l2-core/v4l2-mc.c | 73 ++++++++++++++++++++++++-------
->  include/media/media-entity.h      | 19 ++++++++
->  3 files changed, 101 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 3498551e618e..0b1cb3559140 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -662,6 +662,32 @@ static void __media_entity_remove_link(struct
-> media_entity *entity, kfree(link);
->  }
-> 
-> +int media_get_pad_index(struct media_entity *entity, bool is_sink,
-> +			enum media_pad_signal_type sig_type)
-> +{
-> +	int i;
+How about still follow PC's proposal to implement in XML? It was in IQ tuning file before which is in userspace. Even I proposed to PC to study with ICG SW team whether this info could be retrieved from 3A algorithm.
 
-is is never negative, please use an unsigned int.
-
-> +	bool pad_is_sink;
-> +
-> +	if (!entity)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < entity->num_pads; i++) {
-> +		if (entity->pads[i].flags == MEDIA_PAD_FL_SINK)
-> +			pad_is_sink = true;
-> +		else if (entity->pads[i].flags == MEDIA_PAD_FL_SOURCE)
-> +			pad_is_sink = false;
-> +		else
-> +			continue;	/* This is an error! */
-> +
-> +		if (pad_is_sink != is_sink)
-> +			continue;
-> +		if (entity->pads[i].sig_type == sig_type)
-> +			return i;
-> +	}
-> +	return -EINVAL;
-> +}
-> +EXPORT_SYMBOL_GPL(media_get_pad_index);
-> +
->  int
->  media_create_pad_link(struct media_entity *source, u16 source_pad,
->  			 struct media_entity *sink, u16 sink_pad, u32 flags)
-> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
-> b/drivers/media/v4l2-core/v4l2-mc.c index 982bab3530f6..1925e1a3b861 100644
-> --- a/drivers/media/v4l2-core/v4l2-mc.c
-> +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> @@ -28,7 +28,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
->  	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
->  	bool is_webcam = false;
->  	u32 flags;
-> -	int ret;
-> +	int ret, pad_sink, pad_source;
-> 
->  	if (!mdev)
->  		return 0;
-> @@ -97,29 +97,52 @@ int v4l2_mc_create_media_graph(struct media_device
-> *mdev) /* Link the tuner and IF video output pads */
->  	if (tuner) {
->  		if (if_vid) {
-> -			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
-> -						    if_vid,
-> -						    IF_VID_DEC_PAD_IF_INPUT,
-> +			pad_source = media_get_pad_index(tuner, false,
-> +							 PAD_SIGNAL_ANALOG);
-> +			pad_sink = media_get_pad_index(if_vid, true,
-> +						       PAD_SIGNAL_ANALOG);
-> +			if (pad_source < 0 || pad_sink < 0)
-> +				return -EINVAL;
-> +			ret = media_create_pad_link(tuner, pad_source,
-> +						    if_vid, pad_sink,
->  						    MEDIA_LNK_FL_ENABLED);
->  			if (ret)
->  				return ret;
-> -			ret = media_create_pad_link(if_vid, IF_VID_DEC_PAD_OUT,
-> -						decoder, DEMOD_PAD_IF_INPUT,
-> +
-> +			pad_source = media_get_pad_index(if_vid, false,
-> +							 PAD_SIGNAL_DV);
-> +			pad_sink = media_get_pad_index(decoder, true,
-> +						       PAD_SIGNAL_DV);
-> +			if (pad_source < 0 || pad_sink < 0)
-> +				return -EINVAL;
-> +			ret = media_create_pad_link(if_vid, pad_source,
-> +						decoder, pad_sink,
->  						MEDIA_LNK_FL_ENABLED);
->  			if (ret)
->  				return ret;
->  		} else {
-> -			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
-> -						decoder, DEMOD_PAD_IF_INPUT,
-> +			pad_source = media_get_pad_index(tuner, false,
-> +							 PAD_SIGNAL_ANALOG);
-> +			pad_sink = media_get_pad_index(decoder, true,
-> +						       PAD_SIGNAL_ANALOG);
-> +			if (pad_source < 0 || pad_sink < 0)
-> +				return -EINVAL;
-> +			ret = media_create_pad_link(tuner, pad_source,
-> +						decoder, pad_sink,
->  						MEDIA_LNK_FL_ENABLED);
->  			if (ret)
->  				return ret;
->  		}
-> 
->  		if (if_aud) {
-> -			ret = media_create_pad_link(tuner, TUNER_PAD_AUD_OUT,
-> -						    if_aud,
-> -						    IF_AUD_DEC_PAD_IF_INPUT,
-> +			pad_source = media_get_pad_index(tuner, false,
-> +							 PAD_SIGNAL_AUDIO);
-> +			pad_sink = media_get_pad_index(decoder, true,
-> +						       PAD_SIGNAL_AUDIO);
-> +			if (pad_source < 0 || pad_sink < 0)
-> +				return -EINVAL;
-> +			ret = media_create_pad_link(tuner, pad_source,
-> +						    if_aud, pad_sink,
->  						    MEDIA_LNK_FL_ENABLED);
->  			if (ret)
->  				return ret;
-> @@ -131,7 +154,10 @@ int v4l2_mc_create_media_graph(struct media_device
-> *mdev)
-> 
->  	/* Create demod to V4L, VBI and SDR radio links */
->  	if (io_v4l) {
-> -		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-> +		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-> +		if (pad_source < 0)
-> +			return -EINVAL;
-> +		ret = media_create_pad_link(decoder, pad_source,
->  					io_v4l, 0,
->  					MEDIA_LNK_FL_ENABLED);
->  		if (ret)
-> @@ -139,7 +165,10 @@ int v4l2_mc_create_media_graph(struct media_device
-> *mdev) }
-> 
->  	if (io_swradio) {
-> -		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-> +		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-> +		if (pad_source < 0)
-> +			return -EINVAL;
-> +		ret = media_create_pad_link(decoder, pad_source,
->  					io_swradio, 0,
->  					MEDIA_LNK_FL_ENABLED);
->  		if (ret)
-> @@ -147,7 +176,10 @@ int v4l2_mc_create_media_graph(struct media_device
-> *mdev) }
-> 
->  	if (io_vbi) {
-> -		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-> +		pad_source = media_get_pad_index(decoder, false, PAD_SIGNAL_DV);
-> +		if (pad_source < 0)
-> +			return -EINVAL;
-> +		ret = media_create_pad_link(decoder, pad_source,
->  					    io_vbi, 0,
->  					    MEDIA_LNK_FL_ENABLED);
->  		if (ret)
-> @@ -161,15 +193,22 @@ int v4l2_mc_create_media_graph(struct media_device
-> *mdev) case MEDIA_ENT_F_CONN_RF:
->  			if (!tuner)
->  				continue;
-> -
-> +			pad_source = media_get_pad_index(tuner, false,
-> +							 PAD_SIGNAL_ANALOG);
-> +			if (pad_source < 0)
-> +				return -EINVAL;
->  			ret = media_create_pad_link(entity, 0, tuner,
-> -						    TUNER_PAD_RF_INPUT,
-> +						    pad_source,
->  						    flags);
->  			break;
->  		case MEDIA_ENT_F_CONN_SVIDEO:
->  		case MEDIA_ENT_F_CONN_COMPOSITE:
-> +			pad_sink = media_get_pad_index(decoder, true,
-> +						       PAD_SIGNAL_ANALOG);
-> +			if (pad_sink < 0)
-> +				return -EINVAL;
->  			ret = media_create_pad_link(entity, 0, decoder,
-> -						    DEMOD_PAD_IF_INPUT,
-> +						    pad_sink,
->  						    flags);
->  			break;
->  		default:
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 8bfbe6b59fa9..ac8b93e46167 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -675,6 +675,25 @@ static inline void media_entity_cleanup(struct
-> media_entity *entity) {} #define media_entity_cleanup(entity) do { } while
-> (false)
->  #endif
-> 
-> +
-
-Extra blank line.
-
-> +/**
-> + * media_get_pad_index() - retrieves a pad index from an entity
-
-I think a better name would be media_entity_find_pad(), similarly to 
-media_entity_find_link(), as the function searches for a pad given a direction 
-and signal type. A *_get_*() function name hints of reference counting.
-
-> + *
-> + * @entity:	entity where the pads belong
-> + * @is_sink:	true if the pad is a sink, false if it is a source
-
-Could we use pad flags instead ? It's easier to read
-
-	pad = media_get_pad_index(entity, MEDIA_PAD_FL_SINK, ...);
-
-than
-
-	pad = media_get_pad_index(entity, true, ...);
-
-As an added bonus that would allow the caller to search for any pad with a 
-given signal type by specifying MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_SOURCE.
-
-> + * @sig_type:	type of signal of the pad to be search
-> + *
-> + * This helper function finds the first pad index inside an entity that
-> + * satisfies both @is_sink and @sig_type conditions.
-> + *
-> + * Return:
-> + *
-> + * On success, return the pad number. If the pad was not found or the media
-> + * entity is a NULL pointer, return -EINVAL.
-> + */
-> +int media_get_pad_index(struct media_entity *entity, bool is_sink,
-> +			enum media_pad_signal_type sig_type);
-> +
->  /**
->   * media_create_pad_link() - creates a link between two entities.
->   *
-
--- 
-Regards,
-
-Laurent Pinchart
+>--
+>Regards,
+>
+>Sakari Ailus
+>sakari.ailus@linux.intel.com
