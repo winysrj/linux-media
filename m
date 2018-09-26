@@ -1,116 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36438 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727680AbeIUCmX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Sep 2018 22:42:23 -0400
-Date: Thu, 20 Sep 2018 23:56:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: ping-chung.chen@intel.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        sylwester.nawrocki@gmail.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Yeh, Andy" <andy.yeh@intel.com>, "Lai, Jim" <jim.lai@intel.com>,
-        Grant Grundler <grundler@chromium.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
-Message-ID: <20180920205658.xv57qcmya7xubgyf@valkosipuli.retiisi.org.uk>
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
- <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
+Received: from mga12.intel.com ([192.55.52.136]:64510 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726436AbeIZOQa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Sep 2018 10:16:30 -0400
+Subject: Re: [PATCH v7] media: add imx319 camera sensor driver
+To: Sakari Ailus <sakari.ailus@linux.intel.com>, bingbu.cao@intel.com
+Cc: linux-media@vger.kernel.org, tfiga@google.com,
+        rajmohan.mani@intel.com, tian.shu.qiu@intel.com,
+        jian.xu.zheng@intel.com, chiranjeevi.rapolu@intel.com
+References: <1537929738-27745-1-git-send-email-bingbu.cao@intel.com>
+ <20180926075716.zjyt6kn2hb6nx7mp@kekkonen.localdomain>
+From: Bing Bu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <dbffa644-2182-0277-25d1-2e73b6c3eac6@linux.intel.com>
+Date: Wed, 26 Sep 2018 16:08:50 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
+In-Reply-To: <20180926075716.zjyt6kn2hb6nx7mp@kekkonen.localdomain>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
 
-On Thu, Sep 20, 2018 at 05:51:55PM +0900, Tomasz Figa wrote:
-> [+Laurent and Sylwester]
-> 
-> On Wed, Aug 8, 2018 at 4:08 PM Ping-chung Chen
-> <ping-chung.chen@intel.com> wrote:
-> [snip]
-> > +
-> > +/* Digital gain control */
-> > +#define IMX208_REG_GR_DIGITAL_GAIN     0x020e
-> > +#define IMX208_REG_R_DIGITAL_GAIN      0x0210
-> > +#define IMX208_REG_B_DIGITAL_GAIN      0x0212
-> > +#define IMX208_REG_GB_DIGITAL_GAIN     0x0214
-> > +#define IMX208_DGTL_GAIN_MIN           0
-> > +#define IMX208_DGTL_GAIN_MAX           4096
-> > +#define IMX208_DGTL_GAIN_DEFAULT       0x100
-> > +#define IMX208_DGTL_GAIN_STEP           1
-> > +
-> [snip]
-> > +/* Initialize control handlers */
-> > +static int imx208_init_controls(struct imx208 *imx208)
-> > +{
-> [snip]
-> > +       v4l2_ctrl_new_std(ctrl_hdlr, &imx208_ctrl_ops, V4L2_CID_DIGITAL_GAIN,
-> > +                         IMX208_DGTL_GAIN_MIN, IMX208_DGTL_GAIN_MAX,
-> > +                         IMX208_DGTL_GAIN_STEP,
-> > +                         IMX208_DGTL_GAIN_DEFAULT);
-> 
-> We have a problem here. The sensor supports only a discrete range of
-> values here - {1, 2, 4, 8, 16} (multiplied by 256, since the value is
-> fixed point). This makes it possible for the userspace to set values
-> that are not allowed by the sensor specification and also leaves no
-> way to enumerate the supported values.
-> 
-> I can see two solutions here:
-> 
-> 1) Define the control range from 0 to 4 and treat it as an exponent of
-> 2, so that the value for the sensor becomes (1 << val) * 256.
-> (Suggested by Sakari offline.)
-> 
-> This approach has the problem of losing the original unit (and scale)
-> of the value.
 
-I'd like to add that this is not a property of the proposed solution.
+On 09/26/2018 03:57 PM, Sakari Ailus wrote:
+> Hi Bingbu,
+>
+> On Wed, Sep 26, 2018 at 10:42:18AM +0800, bingbu.cao@intel.com wrote:
+>> From: Bingbu Cao <bingbu.cao@intel.com>
+>>
+>> Add a v4l2 sub-device driver for the Sony imx319 image sensor.
+>> This is a camera sensor using the i2c bus for control and the
+>> csi-2 bus for data.
+>>
+>> This driver supports following features:
+>> - manual exposure and analog/digital gain control support
+>> - vblank/hblank control support
+>> -  4 test patterns control support
+>> - vflip/hflip control support (will impact the output bayer order)
+>> - support following resolutions:
+>>     - 3264x2448, 3280x2464 @ 30fps
+>>     - 1936x1096, 1920x1080 @ 60fps
+>>     - 1640x1232, 1640x922, 1296x736, 1280x720 @ 120fps
+>> - support 4 bayer orders output (via change v/hflip)
+>>     - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
+>>
+>> Cc: Tomasz Figa <tfiga@chromium.org>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+>> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+>>
+>> ---
+>>
+>> This patch is based on sakari's media-tree git:
+>> https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.20-1
+>>
+>> Changes from v5:
+>>  - add some comments for gain calculation
+>>  - use lock to protect the format
+>>  - fix some style issues
+> Thanks for the update!
+>
+> I've applied the patch with the following diff. Dividing a 64-bit number
+> generally requires do_div() which was missed in the review:
 
-Rather, the above needs to be accompanied by additional information
-provided through VIDIOC_QUERY_EXT_CTRL, i.e. the unit, prefix as well as
-other information such as whether the control is linear or exponential (as
-in this case).
-
-> 
-> 2) Use an integer menu control, which reports only the supported
-> discrete values - {1, 2, 4, 8, 16}.
-> 
-> With this approach, userspace can enumerate the real gain values, but
-> we would either need to introduce a new control (e.g.
-> V4L2_CID_DIGITAL_GAIN_DISCRETE) or abuse the specification and
-> register V4L2_CID_DIGITAL_GAIN as an integer menu.
-
-New controls in V4L2 are, for the most part, created when there's something
-new to control. The documentation of some controls (similar to e.g. gain)
-documents a unit as well as a prefix but that's the case only because
-there's been no way to tell the unit or prefix otherwise in the API.
-
-An exception to this are EXPOSURE and EXPOSURE_ABSOLUTE. I'm not entirely
-sure how they came to be though. An accident is a possibility as far as I
-see.
-
-Controls that have a documented unit use that unit --- as long as that's
-the unit used by the hardware. If it's not, it tends to be that another
-unit is used but the user space has currently no way of knowing this. And
-the digital gain control is no exception to this.
-
-So if we want to improve the user space's ability to be informed how the
-control values reflect to device configuration, we do need to provide more
-information to the user space. One way to do that would be through
-VIDIOC_QUERY_EXT_CTRL. The IOCTL struct has plenty of reserved fields ---
-just for purposes such as this one.
-
-> 
-> Any opinions or better ideas?
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Thanks!
+>
+> diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
+> index e10d60f500dd..37c31d17ecf0 100644
+> --- a/drivers/media/i2c/imx319.c
+> +++ b/drivers/media/i2c/imx319.c
+> @@ -2038,7 +2038,7 @@ imx319_set_pad_format(struct v4l2_subdev *sd,
+>  	s32 vblank_def;
+>  	s32 vblank_min;
+>  	s64 h_blank;
+> -	s64 pixel_rate;
+> +	u64 pixel_rate;
+>  	u32 height;
+>  
+>  	mutex_lock(&imx319->mutex);
+> @@ -2059,7 +2059,8 @@ imx319_set_pad_format(struct v4l2_subdev *sd,
+>  		*framefmt = fmt->format;
+>  	} else {
+>  		imx319->cur_mode = mode;
+> -		pixel_rate = (imx319->link_def_freq * 2 * 4) / 10;
+> +		pixel_rate = imx319->link_def_freq * 2 * 4;
+> +		do_div(pixel_rate, 10);
+>  		__v4l2_ctrl_s_ctrl_int64(imx319->pixel_rate, pixel_rate);
+>  		/* Update limits and set FPS to default */
+>  		height = imx319->cur_mode->height;
+> @@ -2268,7 +2269,7 @@ static int imx319_init_controls(struct imx319 *imx319)
+>  	s64 vblank_def;
+>  	s64 vblank_min;
+>  	s64 hblank;
+> -	s64 pixel_rate;
+> +	u64 pixel_rate;
+>  	const struct imx319_mode *mode;
+>  	u32 max;
+>  	int ret;
+> @@ -2287,7 +2288,8 @@ static int imx319_init_controls(struct imx319 *imx319)
+>  		imx319->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  
+>  	/* pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample */
+> -	pixel_rate = (imx319->link_def_freq * 2 * 4) / 10;
+> +	pixel_rate = imx319->link_def_freq * 2 * 4;
+> +	do_div(pixel_rate, 10);
+>  	/* By default, PIXEL_RATE is read only */
+>  	imx319->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &imx319_ctrl_ops,
+>  					       V4L2_CID_PIXEL_RATE, pixel_rate,
+>
