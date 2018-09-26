@@ -1,65 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:39992 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726947AbeI0CJs (ORCPT
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:34294 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726463AbeI0Cok (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 22:09:48 -0400
-Date: Wed, 26 Sep 2018 16:54:49 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANN] Draft Agenda for the media summit on Thursday Oct 25th in
- Edinburgh
-Message-ID: <20180926165449.139fdc40@coco.lan>
-In-Reply-To: <12eb26b5-a701-68d9-b81b-576812ff7169@xs4all.nl>
-References: <9ee40db8-244b-c019-be7d-39925e87bf6f@xs4all.nl>
-        <20180924141228.10227b1d@coco.lan>
-        <12eb26b5-a701-68d9-b81b-576812ff7169@xs4all.nl>
+        Wed, 26 Sep 2018 22:44:40 -0400
+Date: Wed, 26 Sep 2018 15:29:57 -0500
+From: Rob Herring <robh@kernel.org>
+To: Maxime Jourdan <mjourdan@baylibre.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxime Jourdan <mjourdan@baylibre.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-amlogic@lists.infradead.org
+Subject: Re: [PATCH v2 1/3] dt-bindings: media: add Amlogic Video Decoder
+ Bindings
+Message-ID: <20180926202957.GA23380@bogus>
+References: <20180911150938.3844-1-mjourdan@baylibre.com>
+ <20180911150938.3844-2-mjourdan@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180911150938.3844-2-mjourdan@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 Sep 2018 19:41:13 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On 09/24/2018 07:12 PM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 24 Sep 2018 16:42:13 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> Hi all,
-> >>
-> >> We are organizing a media mini-summit on Thursday October 25th in
-> >> Edinburgh, Edinburgh International Conference Centre.
-> >>
-> >> If you plan to attend, please let Mauro know. It is open for all, but
-> >> we have a limited number of seats.  
-> > 
-> > No need to let me explicitly know in advance, but be sure to register for
-> > it at the ELCE/OSS register site. I'll use their tracking system to
-> > know who will be there. We have a limited number of seats there, and
-> > I'm relying on their system to control the number of attendees for
-> > us.  
+On Tue, 11 Sep 2018 17:09:36 +0200, Maxime Jourdan wrote:
+> Add documentation for the meson vdec dts node.
 > 
-> How many registrations do we have now?
+> Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
+> ---
+>  .../bindings/media/amlogic,vdec.txt           | 71 +++++++++++++++++++
+>  1 file changed, 71 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/amlogic,vdec.txt
+> 
 
-At the moment, there are 75 people subscribed to it! From them, on
-a quick glance, I was able to recognize ~18 names from people that are
-already contributors to media.
-
-Yet, running:
-
-	$ IFS=$'\n'; for i in $(cat ~/Documentos/attendees_list.csv|cut -d\; -f1-2|sed 's,;, ,'); do echo -n "$i;";git log --oneline --author "$i" |wc -l; done
-
-I noticed 32 people[1] that submitted at least one Kernel patch (either to
-media or to other subsystems), where 30 of them submitted more than 7
-patches.
-
-So, I guess we'll have full house this time.
-
-Thanks,
-Mauro
-
-[1] I'm seeking for names, not e-mails. So, this is just a hint,
-as it may have more than one people with the same name.
+Reviewed-by: Rob Herring <robh@kernel.org>
