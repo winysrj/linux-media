@@ -1,168 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f195.google.com ([209.85.208.195]:42928 "EHLO
-        mail-lj1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726355AbeIZMSb (ORCPT
+Received: from mail-lf1-f66.google.com ([209.85.167.66]:39177 "EHLO
+        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726355AbeIZMYF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 08:18:31 -0400
-MIME-Version: 1.0
-References: <20180921085450.19224-1-ricardo.ribalda@gmail.com>
- <20180921092833.c3bznrhc3yyarmq4@kekkonen.localdomain> <CAPybu_2J4b8C_AQu5trH6fLG3FAkSvFiUOYt-HFwG+YXK9PkkQ@mail.gmail.com>
- <20180924203252.wxeclgjc7zvepyhb@kekkonen.localdomain> <CAPybu_3WF3x42k814dvEwqrMMfaxt2s4OpuK3BGMobBfmsgQ5Q@mail.gmail.com>
-In-Reply-To: <CAPybu_3WF3x42k814dvEwqrMMfaxt2s4OpuK3BGMobBfmsgQ5Q@mail.gmail.com>
+        Wed, 26 Sep 2018 08:24:05 -0400
+Received: by mail-lf1-f66.google.com with SMTP id w21-v6so8168346lff.6
+        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2018 23:12:47 -0700 (PDT)
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 26 Sep 2018 08:06:55 +0200
-Message-ID: <CAPybu_0quOqpSrCooOgesnsZBSL1vthmff4SmPdY2=_VvTch5g@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] imx214: Add imx214 camera sensor driver
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH] media: smiapp: Remove unused loop
+Date: Wed, 26 Sep 2018 08:12:42 +0200
+Message-Id: <20180926061242.8130-1-ricardo.ribalda@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
-On Wed, Sep 26, 2018 at 7:26 AM Ricardo Ribalda Delgado
-<ricardo.ribalda@gmail.com> wrote:
->
-> Hello Sakari
-> On Mon, Sep 24, 2018 at 10:32 PM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> >
-> > Hi Ricardo,
-> >
-> > On Fri, Sep 21, 2018 at 12:15:55PM +0200, Ricardo Ribalda Delgado wrote=
-:
-> > ...
-> > > > > +static struct reg_8 mode_1920x1080[];
-> > > > > +static struct reg_8 mode_4096x2304[];
-> > > >
-> > > > Const. Could you rearrange the bits to avoid the forward declaratio=
-ns?
-> > > Const done, but I prefer to keep the forward declaration. Otherwise
-> > > the long tables will "hide" the mode declaration.
-> >
-> > Well, I guess the long tables do "hide" a bunch of other stuff, too. :-=
-)
-> > But... I agree there's no trivial way around those tables either.
-> >
-> > It appears I'm not the only one who's commented on the matter of the
-> > forward declaration.
->
-> Ok, I will change it, Eppur si muove  ;)
-> >
-> > ...
-> >
-> > > > > +static int imx214_probe(struct i2c_client *client)
-> > > > > +{
-> > > > > +     struct device *dev =3D &client->dev;
-> > > > > +     struct imx214 *imx214;
-> > > > > +     struct fwnode_handle *endpoint;
-> > > > > +     int ret;
-> > > > > +     static const s64 link_freq[] =3D {
-> > > > > +             (IMX214_DEFAULT_PIXEL_RATE * 10LL) / 8,
-> > > >
-> > > > You should check the link frequency matches with that from the firm=
-ware.
-> > >
-> > > I am not sure what you mean here sorry.
-> >
-> > The system firmware holds safe frequencies for the CSI-2 bus on that
-> > particular system; you should check that the register lists are valid f=
-or
-> > that frequency.
-> >
+The loop seemed to be made to calculate max, but max is not used in that
+function.
 
-Can you point me to a driver that does this? Just for the example. Thanks
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-> > ...
-> >
-> > > > > +     imx214->pixel_rate =3D v4l2_ctrl_new_std(&imx214->ctrls, NU=
-LL,
-> > > > > +                                            V4L2_CID_PIXEL_RATE,=
- 0,
-> > > > > +                                            IMX214_DEFAULT_PIXEL=
-_RATE, 1,
-> > > > > +                                            IMX214_DEFAULT_PIXEL=
-_RATE);
-> > > > > +     imx214->link_freq =3D v4l2_ctrl_new_int_menu(&imx214->ctrls=
-, NULL,
-> > > > > +                                                V4L2_CID_LINK_FR=
-EQ,
-> > > > > +                                                ARRAY_SIZE(link_=
-freq) - 1,
-> > > > > +                                                0, link_freq);
-> > > >
-> > > > Do I understand this correctly that the driver does not support set=
-ting
-> > > > e.g. exposure time or gain? Those are very basic features...
-> > >
-> > >
-> > > Yep :), this is just a first step. I do not have the register set fro=
-m
-> > > the device :(. So I am reverse engineering a lot of things.
-> > > I will add more controls as I am done with them.
-> >
-> > Looking at the registers you have in the register list, the sensor's
-> > registers appear similar to those used by the smiapp driver (the old SM=
-IA
-> > standard).
-> >
-> > I'd guess the same register would work for setting the exposure time. I=
-'m
-> > less certain about the limits though.
->
-> Thanks for the pointer! I will try this out and probably add it as a patc=
-h.
->
-> >
-> > >
-> > > >
-> > > > You'll also need to ensure the s_ctrl() callback works without s_po=
-wer()
-> > > > being called. My suggestion is to switch to PM runtime; see e.g. th=
-e ov1385
-> > > > driver in the current media tree master.
-> > >
-> > >
-> > > There is one limitation with this chip on the dragonboard. I2c only
-> > > works if the camss is ON. Therefore whatever s_ctrl needs to be
-> > > cached and written at streamon.
-> >
-> > That's something that doesn't belong to this driver. It's the I=E6=B6=
-=8E adapter
-> > driver / camss issue, and not necessarily related to drivers only. Is t=
-he
-> > I=E6=B6=8E controller part of the camss btw.?
->
-> I am with you here. The i2c controller is a different driver but is
-> integrated with camss. Checkout
-> https://patchwork.kernel.org/patch/10569961/ I am interacting with
-> Todor and Vinod to enable the i2c port indepently with camss. At least
-> now it does not kill the port after an i2c timeout :)
->
-> Will fix the fwd declaration and the csi-2 register. Then I wll upload
-> it to my github, try it on real hw next monday and send back to the
-> mailing list
->
-> Thanks!
->
-> >
-> > --
-> > Regards,
-> >
-> > Sakari Ailus
-> > sakari.ailus@linux.intel.com
->
->
->
-> --
-> Ricardo Ribalda
-
-
-
---=20
-Ricardo Ribalda
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 99f3b295ae3c..bccbf4c841d6 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -624,7 +624,7 @@ static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
+ {
+ 	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
+ 		sensor->csi_format->compressed - sensor->compressed_min_bpp];
+-	unsigned int max, i;
++	unsigned int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
+ 		int max_value = (1 << sensor->csi_format->width) - 1;
+@@ -635,8 +635,6 @@ static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
+ 				0, max_value, 1, max_value);
+ 	}
+ 
+-	for (max = 0; sensor->hwcfg->op_sys_clock[max + 1]; max++);
+-
+ 	sensor->link_freq = v4l2_ctrl_new_int_menu(
+ 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
+ 		V4L2_CID_LINK_FREQ, __fls(*valid_link_freqs),
+-- 
+2.19.0
