@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:11363 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726914AbeI0DcC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 23:32:02 -0400
-Date: Thu, 27 Sep 2018 00:17:06 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Akinobu Mita <akinobu.mita@gmail.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: ov9650: avoid maybe-uninitialized warnings
-Message-ID: <20180926211706.eswbm2hgbmgy2oog@kekkonen.localdomain>
-References: <20180926125127.2004280-1-arnd@arndb.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60796 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726107AbeI0Dh5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Sep 2018 23:37:57 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 96BFF634C7D
+        for <linux-media@vger.kernel.org>; Thu, 27 Sep 2018 00:23:02 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1g5HGw-0001J7-A9
+        for linux-media@vger.kernel.org; Thu, 27 Sep 2018 00:23:02 +0300
+Date: Thu, 27 Sep 2018 00:23:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.20] Unlocked control grab and imx319 driver
+Message-ID: <20180926212302.yk3f5k7hqhp6vufl@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180926125127.2004280-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hi Mauro,
 
-On Wed, Sep 26, 2018 at 02:51:01PM +0200, Arnd Bergmann wrote:
-> The regmap change causes multiple warnings like
-> 
-> drivers/media/i2c/ov9650.c: In function 'ov965x_g_volatile_ctrl':
-> drivers/media/i2c/ov9650.c:889:29: error: 'reg2' may be used uninitialized in this function [-Werror=maybe-uninitialized]
->    exposure = ((reg2 & 0x3f) << 10) | (reg1 << 2) |
->               ~~~~~~~~~~~~~~~^~~~~~
-> 
-> It is apparently hard for the compiler to see here if ov965x_read()
-> returned successfully or not. Besides, we have a v4l2_dbg() statement
-> that prints an uninitialized value if regmap_read() fails.
-> 
-> Adding an 'else' clause avoids the ambiguity.
+Here's a driver for Sony imx319 sensor and an unlocked version of
+v4l2_ctrl_grab() which is used by the driver.
 
-Thanks!
+Please pull.
 
-I'm not sure what happened here but the two lines use spaces for
-indentation. I've replaced those with tabs.
 
-> 
-> Fixes: 361f3803adfe ("media: ov9650: use SCCB regmap")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/i2c/ov9650.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index 3c9e6798d14b..77944da31de1 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -433,6 +433,8 @@ static int ov965x_read(struct ov965x *ov965x, u8 addr, u8 *val)
->  	ret = regmap_read(ov965x->regmap, addr, &buf);
->  	if (!ret)
->  		*val = buf;
-> +        else
-> +                *val = -1;
->  
->  	v4l2_dbg(2, debug, &ov965x->sd, "%s: 0x%02x @ 0x%02x. (%d)\n",
->  		 __func__, *val, addr, ret);
+The following changes since commit 985cdcb08a0488558d1005139596b64d73bee267:
+
+  media: ov5640: fix restore of last mode set (2018-09-17 15:33:38 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-8-sign-2
+
+for you to fetch changes up to 0e5924d5c0051228a59adffa1e48777f9ebd60de:
+
+  media: add imx319 camera sensor driver (2018-09-27 00:19:40 +0300)
+
+----------------------------------------------------------------
+v4l2_ctrl_grab and imx319
+
+----------------------------------------------------------------
+Bingbu Cao (1):
+      media: add imx319 camera sensor driver
+
+Sakari Ailus (2):
+      v4l: ctrl: Remove old documentation from v4l2_ctrl_grab
+      v4l: ctrl: Provide unlocked variant of v4l2_ctrl_grab
+
+ MAINTAINERS                          |    7 +
+ drivers/media/i2c/Kconfig            |   11 +
+ drivers/media/i2c/Makefile           |    1 +
+ drivers/media/i2c/imx319.c           | 2558 ++++++++++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c |   14 +-
+ include/media/v4l2-ctrls.h           |   26 +-
+ 6 files changed, 2606 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/media/i2c/imx319.c
 
 -- 
-Kind regards,
-
 Sakari Ailus
-sakari.ailus@linux.intel.com
+e-mail: sakari.ailus@iki.fi
