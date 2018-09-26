@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:39177 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726355AbeIZMYF (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:37810 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726375AbeIZMZg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 08:24:05 -0400
-Received: by mail-lf1-f66.google.com with SMTP id w21-v6so8168346lff.6
-        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2018 23:12:47 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] media: smiapp: Remove unused loop
-Date: Wed, 26 Sep 2018 08:12:42 +0200
-Message-Id: <20180926061242.8130-1-ricardo.ribalda@gmail.com>
+        Wed, 26 Sep 2018 08:25:36 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 26 Sep 2018 11:44:18 +0530
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: Rob Herring <robh@kernel.org>
+Cc: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, mark.rutland@arm.com, andy.gross@linaro.org,
+        arnd@arndb.de, bjorn.andersson@linaro.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, acourbot@chromium.org,
+        linux-media-owner@vger.kernel.org
+Subject: Re: [PATCH v9 5/5] dt-bindings: media: Document bindings for venus
+ firmware device
+In-Reply-To: <20180925152415.GB21227@bogus>
+References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
+ <1537314192-26892-6-git-send-email-vgarodia@codeaurora.org>
+ <20180925152415.GB21227@bogus>
+Message-ID: <ee4208e75eae8196318521976b861505@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The loop seemed to be made to calculate max, but max is not used in that
-function.
+Hi Rob,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+On 2018-09-25 20:54, Rob Herring wrote:
+> On Wed, Sep 19, 2018 at 05:13:12AM +0530, Vikash Garodia wrote:
+>> Add devicetree binding documentation for firmware loader for video
+>> hardware running on qualcomm chip.
+>> 
+>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>> ---
+>>  Documentation/devicetree/bindings/media/qcom,venus.txt | 13 
+>> ++++++++++++-
+>>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> Something change in this? If not, then please add acks/reviewed-bys 
+> when
+> posting new versions.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 99f3b295ae3c..bccbf4c841d6 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -624,7 +624,7 @@ static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
- {
- 	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
- 		sensor->csi_format->compressed - sensor->compressed_min_bpp];
--	unsigned int max, i;
-+	unsigned int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
- 		int max_value = (1 << sensor->csi_format->width) - 1;
-@@ -635,8 +635,6 @@ static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
- 				0, max_value, 1, max_value);
- 	}
- 
--	for (max = 0; sensor->hwcfg->op_sys_clock[max + 1]; max++);
--
- 	sensor->link_freq = v4l2_ctrl_new_int_menu(
- 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
- 		V4L2_CID_LINK_FREQ, __fls(*valid_link_freqs),
--- 
-2.19.0
+Same as the one reviewed by you earlier. Will add your review-by 
+signature.
