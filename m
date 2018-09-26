@@ -1,59 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp202.alice.it ([82.57.200.98]:42802 "EHLO smtp202.alice.it"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726401AbeIZQCj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 12:02:39 -0400
-Received: from [172.13.1.12] (79.3.133.33) by smtp202.alice.it (8.6.060.43) (authenticated as antonio.tringali)
-        id 5BA96D9E015B0131 for linux-media@vger.kernel.org; Wed, 26 Sep 2018 11:50:14 +0200
-From: Antonio Tringali <antonio.tringali@alice.it>
-Subject: Capturing camera frames from an i.MX51 board.
-To: linux-media@vger.kernel.org
-Message-ID: <a80cd5d7-fc4c-03e2-74a2-696407611bad@alice.it>
-Date: Wed, 26 Sep 2018 11:50:14 +0200
+Received: from relay1.mentorg.com ([192.94.38.131]:47672 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726361AbeIZHP4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Sep 2018 03:15:56 -0400
+Subject: Re: [PATCH v6 02/17] media: v4l2: async: Allow searching for asd of
+ any type
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <1531175957-1973-1-git-send-email-steve_longerbeam@mentor.com>
+ <1531175957-1973-3-git-send-email-steve_longerbeam@mentor.com>
+ <20180924140604.23e2b56f@coco.lan>
+ <a8ea673c-a519-81e8-35b1-9d4a224dcbf5@mentor.com>
+ <20180925192045.59c83e3d@coco.lan>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <36fd43b2-695d-b990-bec2-c4d88ccb8e88@mentor.com>
+Date: Tue, 25 Sep 2018 18:05:36 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Language: it-IT
+In-Reply-To: <20180925192045.59c83e3d@coco.lan>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Dear linux-media Developers,
-I was assigned the task to port a recent kernel (4.18.6, downloaded from 
-kernel.org) to an old imx51-babbage style board. It works with a 2.6.36 
-kernel.
 
-  I know, i.MX51 is "mature" in NXP lingo. Not supported anymore in my 
-mind, but work is work.
 
-  The i.MX51 board uses a monochrome Aptina MT9V024 driver for the 
-sensor. I patched the DTS and imx-media driver in 
-drivers/staging/media/imx only to later find out that my experience was 
-very similar to the one described in this thread:
+On 09/25/2018 03:20 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 25 Sep 2018 14:04:21 -0700
+> Steve Longerbeam <steve_longerbeam@mentor.com> escreveu:
+>
+>>>   
+>>>> @@ -392,12 +406,11 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>>>>    		case V4L2_ASYNC_MATCH_CUSTOM:
+>>>>    		case V4L2_ASYNC_MATCH_DEVNAME:
+>>>>    		case V4L2_ASYNC_MATCH_I2C:
+>>>> -			break;
+>>>>    		case V4L2_ASYNC_MATCH_FWNODE:
+>>>> -			if (v4l2_async_notifier_fwnode_has_async_subdev(
+>>>> -				    notifier, asd->match.fwnode, i)) {
+>>>> +			if (v4l2_async_notifier_has_async_subdev(
+>>>> +				    notifier, asd, i)) {
+>>>>    				dev_err(dev,
+>>>> -					"fwnode has already been registered or in notifier's subdev list\n");
+>>>> +					"asd has already been registered or in notifier's subdev list\n");
+>>> Please, never use "asd" on messages printed to the user. While someone
+>>> may understand it while reading the source code, for a poor use,
+>>> "asd" is just a random sequence of 3 characters.
+>> I will change the message to read:
+>>
+>> "subdev descriptor already listed in this or other notifiers".
+> Perfect!
 
-https://www.spinics.net/lists/linux-media/msg129273.html
+But the error message is removed in the subsequent patch
+"[PATCH 03/17] media: v4l2: async: Add v4l2_async_notifier_add_subdev".
 
-  Trying to start a capture yields EPIPE from v4l2-ctl. Following 
-pointers I found that the node pertaining the ipu_csi0 has two NULL 
-pointers for sink and src_pad in the V4L2 subdev and csi_link_setup() in 
-imx-media-csi.c is never invoked.
+I could bring it back as a dev_dbg() in v4l2_async_notifier_asd_valid(), but
+this shouldn't be a dev_err() anymore since it is up to the media platform
+to decide whether an already existing subdev descriptor is an error.
 
-  So I will not repeat the questions in the previous thread, because I 
-suppose I would not get any answer. I have to evaluate which of these 
-two paths costs less:
-
-1. Debug imx-media for my architecture, knowing that it is really 
-specialized for i.MX6.
-
-2. Find another Linux kernel branch supporting i.MX51 and the Aptina driver.
-
-  Is there any such thing as point (2)?
-
-  I found:
-
-http://git.freescale.com/git/cgit.cgi/imx/linux-imx.git/?h=imx_4.9.11_1.0.0_ga
-
-but this branch directly supports OV564x sensors only. I have to 
-minimize time/cost at this point, avoiding to write/rewrite a driver.
-
-  Thank you in advance,
-Antonio Tringali
+Steve
