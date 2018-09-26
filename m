@@ -1,81 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:32975 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726768AbeIZTux (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:50926 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727017AbeIZT6l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Sep 2018 15:50:53 -0400
-Date: Wed, 26 Sep 2018 15:37:38 +0200
-From: Philipp Zabel <pza@pengutronix.de>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: imx-pxp: include linux/interrupt.h
-Message-ID: <20180926133738.GA19690@pengutronix.de>
-References: <20180926130139.2320343-1-arnd@arndb.de>
+        Wed, 26 Sep 2018 15:58:41 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [GIT PULL FOR linux-media] adv748x/for-next
+Date: Wed, 26 Sep 2018 14:45:33 +0100
+Message-Id: <20180926134533.28420-1-kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180926130139.2320343-1-arnd@arndb.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hi Hans, Mauro,
 
-On Wed, Sep 26, 2018 at 03:01:26PM +0200, Arnd Bergmann wrote:
-> The newly added driver fails to build in some configurations due to a
-> missing header inclusion:
+Please consider including these updates for linux-media
 
-Thank you, did you see this error on an older kernel version and rebase
-the patch afterwards?
+--
+Regards
 
-> drivers/media/platform/imx-pxp.c:988:8: error: unknown type name 'irqreturn_t'
->  static irqreturn_t pxp_irq_handler(int irq, void *dev_id)
->         ^~~~~~~~~~~
-> drivers/media/platform/imx-pxp.c: In function 'pxp_irq_handler':
-> drivers/media/platform/imx-pxp.c:1012:9: error: 'IRQ_HANDLED' undeclared (first use in this function); did you mean 'IRQ_MODE'?
->   return IRQ_HANDLED;
->          ^~~~~~~~~~~
->          IRQ_MODE
-> drivers/media/platform/imx-pxp.c:1012:9: note: each undeclared identifier is reported only once for each function it appears in
-> drivers/media/platform/imx-pxp.c: In function 'pxp_probe':
-> drivers/media/platform/imx-pxp.c:1660:8: error: implicit declaration of function 'devm_request_threaded_irq'; did you mean 'devm_request_region'? [-Werror=implicit-function-declaration]
->   ret = devm_request_threaded_irq(&pdev->dev, irq, NULL, pxp_irq_handler,
->         ^~~~~~~~~~~~~~~~~~~~~~~~~
->         devm_request_region
-> drivers/media/platform/imx-pxp.c:1661:4: error: 'IRQF_ONESHOT' undeclared (first use in this function); did you mean 'SA_ONESHOT'?
->     IRQF_ONESHOT, dev_name(&pdev->dev), dev);
->
-> Fixes: 51abcf7fdb70 ("media: imx-pxp: add i.MX Pixel Pipeline driver")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/platform/imx-pxp.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/imx-pxp.c b/drivers/media/platform/imx-pxp.c
-> index 229c23ae4029..b76cd0e8313c 100644
-> --- a/drivers/media/platform/imx-pxp.c
-> +++ b/drivers/media/platform/imx-pxp.c
-> @@ -16,6 +16,7 @@
->  #include <linux/interrupt.h>
+Kieran
 
-This line was recently added in commit b4fbf423cef9 ("media: imx-pxp:
-fix compilation on i386 or x86_64")
+The following changes since commit 4158757395b300b6eb308fc20b96d1d231484413:
 
->  #include <linux/io.h>
->  #include <linux/iopoll.h>
-> +#include <linux/interrupt.h>
+  media: davinci: Fix implicit enum conversion warning (2018-09-24 09:43:13 -0400)
 
-So this should not be necessary anymore.
+are available in the Git repository at:
 
->  #include <linux/module.h>
->  #include <linux/of.h>
->  #include <linux/sched.h>
-> -- 
-> 2.18.0
-> 
-> 
+  git://git.kernel.org/pub/scm/linux/kernel/git/kbingham/rcar.git adv748x/for-next
 
-regards
-Philipp
+for you to fetch changes up to b3abd58a66523a5e5b6644ff481fdf74f942e083:
+
+  media: i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down (2018-09-26 14:14:33 +0100)
+
+----------------------------------------------------------------
+Jacopo Mondi (4):
+      media: i2c: adv748x: Support probing a single output
+      media: i2c: adv748x: Handle TX[A|B] power management
+      media: i2c: adv748x: Conditionally enable only CSI-2 outputs
+      media: i2c: adv748x: Register only enabled inputs
+
+Niklas Söderlund (1):
+      media: i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down
+
+ drivers/media/i2c/adv748x/adv748x-afe.c  |  2 +-
+ drivers/media/i2c/adv748x/adv748x-core.c | 85 +++++++++++++++++---------------
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 29 ++++-------
+ drivers/media/i2c/adv748x/adv748x-hdmi.c |  2 +-
+ drivers/media/i2c/adv748x/adv748x.h      | 19 +++++--
+ 5 files changed, 69 insertions(+), 68 deletions(-)
