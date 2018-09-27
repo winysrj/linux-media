@@ -1,84 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59932 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726929AbeI0Q1R (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.133]:58874 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726991AbeI0Qb3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 12:27:17 -0400
-Subject: Re: [PATCH] media: intel-ipu3: cio2: register the mdev on v4l2 async
- notifier complete
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+        Thu, 27 Sep 2018 12:31:29 -0400
+Date: Thu, 27 Sep 2018 07:13:30 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Javier Martinez Canillas <javierm@redhat.com>,
-        Bing Bu Cao <bingbu.cao@linux.intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <20180831152045.9957-1-javierm@redhat.com>
- <cd307d41-ed19-5ab0-cbdb-a743cdb76e09@linux.intel.com>
- <c1e54228-a21a-b4a2-1083-c75b2dda797c@redhat.com>
- <b15b236e-e0a7-8b2f-1e1f-196c9dc04f4d@linux.intel.com>
- <44eb94a8-3712-155b-b3ab-35538f5b6b38@redhat.com>
- <F4B393EC1A37C8418714AECDAAEF72A93C9A39FC@shsmsx102.ccr.corp.intel.com>
- <20180904064605.6prcawieb4ooxtyl@paasikivi.fi.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5c6944ec-ee1f-8be6-3eff-2c65fd888222@xs4all.nl>
-Date: Thu, 27 Sep 2018 12:09:43 +0200
+        Jian Xu Zheng <jian.xu.zheng@intel.com>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/2] media: intel-ipu3: allow the media graph to be used
+ even if a subdev fails
+Message-ID: <20180927071330.1fa3cfdd@coco.lan>
+In-Reply-To: <0e31ae40-276e-22be-c6aa-b62f8dbea79e@xs4all.nl>
+References: <20180904113018.14428-1-javierm@redhat.com>
+        <0e31ae40-276e-22be-c6aa-b62f8dbea79e@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180904064605.6prcawieb4ooxtyl@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/04/2018 08:46 AM, Sakari Ailus wrote:
-> Hi Javier, Tian Shu,
-> 
-> On Tue, Sep 04, 2018 at 05:01:56AM +0000, Qiu, Tian Shu wrote:
->> Hi,
->>
->> Raise my point.
->> The case here is that we have multiple sensors connected to CIO2. The sensors work independently. So failure on one sensor should not block the function of the other.
->> That is, we should not rely on that all sensors are ready before allowing user to operate on the ready cameras.
->> Sometimes due to hardware issues or incompleteness, we did met the case that one sensor is not probing properly. And in this case, the current implementation blocks us using the working one.
->> What I can think now to solve this are:
->> 1. Register multiple media devices. One for each sensor path. This will increase media device count.
->> 2. Use .bound callback to create the link and register the subdev node for each sensor. Leave .complete empty.
->>      Not sure if this breaks the rule of media framework. And also have not found an API to register one single subdev node.
-> 
-> I'd prefer to keep the driver as-is.
-> 
-> Even if the media device is only created once all the sub-devices are
-> around, the devices are still created one by one so there's no way to
-> prevent the user space seeing a partially registered media device complex.
-> 
-> In general that doesn't happen as the sensors are typically registered
-> early during system boot.
-> 
-> Javier is right in asking a way for the user to know whether everything is
-> fully initialised. That should be added but I don't think it is in any way
-> specific to the cio2 driver.
-> 
+Em Thu, 27 Sep 2018 11:52:35 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Today we have no userspace mechanism to deal with partially initialized topologies.
-Instead if parts fails to come up we shouldn't register any media device and
-instead (once we discover that something is broken) tear everything down.
+> Hi Javier,
+>=20
+> On 09/04/2018 01:30 PM, Javier Martinez Canillas wrote:
+> > Hello,
+> >=20
+> > This series allows the ipu3-cio2 driver to properly expose a subset of =
+the
+> > media graph even if some drivers for the pending subdevices fail to pro=
+be.
+> >=20
+> > Currently the driver exposes a non-functional graph since the pad links=
+ are
+> > created and the subdev dev nodes are registered in the v4l2 async .comp=
+lete
+> > callback. Instead, these operations should be done in the .bound callba=
+ck.
+> >=20
+> > Patch #1 just adds a v4l2_device_register_subdev_node() function to all=
+ow
+> > registering a single device node for a subdev of a v4l2 device.
+> >=20
+> > Patch #2 moves the logic of the ipu3-cio2 .complete callback to the .bo=
+und
+> > callback. The .complete callback is just removed since is empy after th=
+at. =20
+>=20
+> Sorry, I missed this series until you pointed to it on irc just now :-)
+>=20
+> I have discussed this topic before with Sakari and Laurent. My main probl=
+em
+> with this is how an application can discover that not everything is onlin=
+e?
+> And which parts are offline?
 
-In fact, video/subdev/media devices shouldn't be registered until everything is
-complete.
+Via the media controller? It should be possible for an application to see
+if a videonode is missing using it.
 
-I know we want to allow for partial bring up as well, and I fully agree with that,
-but in that case someone needs to write an RFC with a proposal how userspace should
-handle this.
+> Perhaps a car with 10 cameras can function with 9, but not with 8. How wo=
+uld
+> userspace know?
 
-We've discussed this in the past, but I have not seen such an RFC.
+I guess this is not the only case where someone submitted a patch for
+a driver that would keep working if some device node registration fails.
 
-So until we add support for partial bringup I think this patch does the right
-thing since otherwise this is out-of-spec.
+It could be just d=C3=A9j=C3=A0 vu, but I have a vague sensation that I mer=
+ged something=20
+similar to it in the past on another driver, but I can't remember any detai=
+ls.
 
-Regards,
+>=20
+> I completely agree that we need to support these advanced scenarios (incl=
+uding
+> what happens when a camera suddenly fails), but it is the userspace aspec=
+ts
+> for which I would like to see an RFC first before you can do these things.
 
-	Hans
+Dynamic runtime fails should likely rise some signal. Perhaps a sort of
+media controller event?
+
+>=20
+> Regards,
+>=20
+> 	Hans
+>=20
+> >=20
+> > Best regards,
+> > Javier
+> >=20
+> >=20
+> > Javier Martinez Canillas (2):
+> >   [media] v4l: allow to register dev nodes for individual v4l2 subdevs
+> >   media: intel-ipu3: create pad links and register subdev nodes at bound
+> >     time
+> >=20
+> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 66 ++++++-----------
+> >  drivers/media/v4l2-core/v4l2-device.c    | 90 ++++++++++++++----------
+> >  include/media/v4l2-device.h              | 10 +++
+> >  3 files changed, 85 insertions(+), 81 deletions(-)
+> >  =20
+>=20
+
+
+
+Thanks,
+Mauro
