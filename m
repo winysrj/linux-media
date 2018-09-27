@@ -1,111 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay8-d.mail.gandi.net ([217.70.183.201]:40001 "EHLO
-        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727223AbeI0TQR (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:16209 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727307AbeI0VFC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 15:16:17 -0400
-Date: Thu, 27 Sep 2018 14:58:04 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Michal Simek <michal.simek@xilinx.com>
-Subject: Re: [PATCH 07/30] media: entity: Add has_route entity operation
-Message-ID: <20180927125804.GC20786@w540>
-References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
- <20180823132544.521-8-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 27 Sep 2018 17:05:02 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-stm32@st-md-mailman.stormreply.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: [PATCH 2/4] media: v4l2-core: add pixel clock max frequency parallel port property
+Date: Thu, 27 Sep 2018 16:46:05 +0200
+Message-ID: <1538059567-8381-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
+References: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="2/5bycvrmDh4d1IB"
-Content-Disposition: inline
-In-Reply-To: <20180823132544.521-8-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add pclk-max-frequency property in parallel port endpoint in order
+to inform sensor of the maximum pixel clock frequency admissible
+by camera interface that is connected on.
 
---2/5bycvrmDh4d1IB
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 3 +++
+ include/media/v4l2-fwnode.h           | 2 ++
+ 2 files changed, 5 insertions(+)
 
-Hello,
-   thank you all for the patches!
-
-On Thu, Aug 23, 2018 at 03:25:21PM +0200, Niklas S=C3=B6derlund wrote:
-> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> The optional operation can be used by entities to report whether two
-> pads are internally connected.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  include/media/media-entity.h | 5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 532c438b9eb862c5..07df1b8d85a3c1ba 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -193,6 +193,9 @@ struct media_pad {
->   * @link_validate:	Return whether a link is valid from the entity point =
-of
->   *			view. The media_pipeline_start() function
->   *			validates all links by calling this operation. Optional.
-> + * @has_route:		Return whether a route exists inside the entity between
-> + *			two given pads. Optional. If the operation isn't
-> + *			implemented all pads will be considered as connected.
->   *
->   * .. note::
->   *
-> @@ -205,6 +208,8 @@ struct media_entity_operations {
->  			  const struct media_pad *local,
->  			  const struct media_pad *remote, u32 flags);
->  	int (*link_validate)(struct media_link *link);
-> +	bool (*has_route)(struct media_entity *entity, unsigned int pad0,
-> +			  unsigned int pad1);
-
-In one next patch in the series:
-[PATCH 09/30] media: entity: Swap pads if route is checked from source to s=
-ink
-the media_entity_has_route() operations ensures the sink pad is always
-the first one. Could we make it explicit in the paramters name and
-documentation to ease understanding when driver will have to implement this?
-
-Thanks
-   j
-
-
-
->  };
->
->  /**
-> --
-> 2.18.0
->
-
---2/5bycvrmDh4d1IB
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbrNPZAAoJEHI0Bo8WoVY8ZKIQAKS+DJA/Kwr7iJ8njQrIrBjp
-1LyQuGlAe286CPoH2Coe2/5F2BhFLCQIs2WVwT5txx4zTBOwebScUxsLkZ/rI13o
-6a/vUac4zUPrvLURyCWv5KzeW7djHZ+ZJQTQ086tyIv+KWzVIzm5EjLroCHl3uu3
-r85IRAkbqv9wIwd1zR8rHMWO1+bNBw91L+bPUGHdpWgqNE2Q+Z5JR+kRvZb3BfAj
-LsN/3bEY3NVQAzVE3ZkCKB9/f+LgyyCFWd4d0j+iHdw7WMQmnA7EntpwuPNUoGD6
-nYnAniOyhVjODIdPU75fYbVp0rli8PjySrmOlGNzfkOIAE9FufisAtnv5TQcSP9k
-VgIaQOCwu3G5ABnc/c4adZMQ8kXT/Jbfn7Dy8t8Hx4pN2ReNejP7rga7eCtAbMAc
-8/fGJE/InXOFxQoUryY1cYndR6Md0vgCbQUjLo/PkOSwlfYbd5ExpYNC14WJ7wUe
-7POffMBXDbowd+FMP6G0q0LsfN5Np+NZVFLhi1QgUYDjEW1tan63VOpIXbYow1n7
-0JQQbL8B48gq7zw0lAGLATpR0MY1MEqNTvfZR6lzReB78w8HonE/VUiykIwICG7o
-mpsv2J/phXIpuOXQUnULzp1I/HlIUU32J96xaUIBuIbpr+jhHEhxevgc4fpyTAb4
-gsvnZx6afaZkqkMYszwF
-=yIN1
------END PGP SIGNATURE-----
-
---2/5bycvrmDh4d1IB--
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 169bdbb..505338e 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -158,6 +158,9 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+ 		flags |= v ? V4L2_MBUS_DATA_ENABLE_HIGH :
+ 			V4L2_MBUS_DATA_ENABLE_LOW;
+ 
++	if (!fwnode_property_read_u32(fwnode, "pclk-max-frequency", &v))
++		bus->pclk_max_frequency = v;
++
+ 	bus->flags = flags;
+ 
+ }
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 9cccab6..946b48d 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -52,11 +52,13 @@ struct v4l2_fwnode_bus_mipi_csi2 {
+  * @flags: media bus (V4L2_MBUS_*) flags
+  * @bus_width: bus width in bits
+  * @data_shift: data shift in bits
++ * @max_pclk_frequency: maximum pixel clock in hertz
+  */
+ struct v4l2_fwnode_bus_parallel {
+ 	unsigned int flags;
+ 	unsigned char bus_width;
+ 	unsigned char data_shift;
++	unsigned int pclk_max_frequency;
+ };
+ 
+ /**
+-- 
+2.7.4
