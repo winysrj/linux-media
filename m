@@ -1,104 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:51586 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727130AbeI0RWO (ORCPT
+Received: from relay8-d.mail.gandi.net ([217.70.183.201]:40001 "EHLO
+        relay8-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727223AbeI0TQR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 13:22:14 -0400
-Received: by mail-wm1-f66.google.com with SMTP id y25-v6so5445363wmi.1
-        for <linux-media@vger.kernel.org>; Thu, 27 Sep 2018 04:04:29 -0700 (PDT)
-Subject: Re: [PATCH] media: intel-ipu3: cio2: register the mdev on v4l2 async
- notifier complete
-To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Thu, 27 Sep 2018 15:16:17 -0400
+Date: Thu, 27 Sep 2018 14:58:04 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Cc: Bing Bu Cao <bingbu.cao@linux.intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <20180831152045.9957-1-javierm@redhat.com>
- <cd307d41-ed19-5ab0-cbdb-a743cdb76e09@linux.intel.com>
- <c1e54228-a21a-b4a2-1083-c75b2dda797c@redhat.com>
- <b15b236e-e0a7-8b2f-1e1f-196c9dc04f4d@linux.intel.com>
- <44eb94a8-3712-155b-b3ab-35538f5b6b38@redhat.com>
- <F4B393EC1A37C8418714AECDAAEF72A93C9A39FC@shsmsx102.ccr.corp.intel.com>
- <20180904064605.6prcawieb4ooxtyl@paasikivi.fi.intel.com>
- <5c6944ec-ee1f-8be6-3eff-2c65fd888222@xs4all.nl>
-From: Javier Martinez Canillas <javierm@redhat.com>
-Message-ID: <c96b6681-89df-6dbf-f81d-512c016bae8f@redhat.com>
-Date: Thu, 27 Sep 2018 13:04:26 +0200
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Michal Simek <michal.simek@xilinx.com>
+Subject: Re: [PATCH 07/30] media: entity: Add has_route entity operation
+Message-ID: <20180927125804.GC20786@w540>
+References: <20180823132544.521-1-niklas.soderlund+renesas@ragnatech.se>
+ <20180823132544.521-8-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <5c6944ec-ee1f-8be6-3eff-2c65fd888222@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="2/5bycvrmDh4d1IB"
+Content-Disposition: inline
+In-Reply-To: <20180823132544.521-8-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thanks a lot for your feedback.
+--2/5bycvrmDh4d1IB
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 09/27/2018 12:09 PM, Hans Verkuil wrote:
-> On 09/04/2018 08:46 AM, Sakari Ailus wrote:
->> Hi Javier, Tian Shu,
->>
->> On Tue, Sep 04, 2018 at 05:01:56AM +0000, Qiu, Tian Shu wrote:
->>> Hi,
->>>
->>> Raise my point.
->>> The case here is that we have multiple sensors connected to CIO2. The sensors work independently. So failure on one sensor should not block the function of the other.
->>> That is, we should not rely on that all sensors are ready before allowing user to operate on the ready cameras.
->>> Sometimes due to hardware issues or incompleteness, we did met the case that one sensor is not probing properly. And in this case, the current implementation blocks us using the working one.
->>> What I can think now to solve this are:
->>> 1. Register multiple media devices. One for each sensor path. This will increase media device count.
->>> 2. Use .bound callback to create the link and register the subdev node for each sensor. Leave .complete empty.
->>>      Not sure if this breaks the rule of media framework. And also have not found an API to register one single subdev node.
->>
->> I'd prefer to keep the driver as-is.
->>
->> Even if the media device is only created once all the sub-devices are
->> around, the devices are still created one by one so there's no way to
->> prevent the user space seeing a partially registered media device complex.
->>
->> In general that doesn't happen as the sensors are typically registered
->> early during system boot.
->>
->> Javier is right in asking a way for the user to know whether everything is
->> fully initialised. That should be added but I don't think it is in any way
->> specific to the cio2 driver.
->>
-> 
-> Today we have no userspace mechanism to deal with partially initialized topologies.
-> Instead if parts fails to come up we shouldn't register any media device and
-> instead (once we discover that something is broken) tear everything down.
-> 
-> In fact, video/subdev/media devices shouldn't be registered until everything is
-> complete.
-> 
-> I know we want to allow for partial bring up as well, and I fully agree with that,
-> but in that case someone needs to write an RFC with a proposal how userspace should
-> handle this.
+Hello,
+   thank you all for the patches!
+
+On Thu, Aug 23, 2018 at 03:25:21PM +0200, Niklas S=C3=B6derlund wrote:
+> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> The optional operation can be used by entities to report whether two
+> pads are internally connected.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/media/media-entity.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 532c438b9eb862c5..07df1b8d85a3c1ba 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -193,6 +193,9 @@ struct media_pad {
+>   * @link_validate:	Return whether a link is valid from the entity point =
+of
+>   *			view. The media_pipeline_start() function
+>   *			validates all links by calling this operation. Optional.
+> + * @has_route:		Return whether a route exists inside the entity between
+> + *			two given pads. Optional. If the operation isn't
+> + *			implemented all pads will be considered as connected.
+>   *
+>   * .. note::
+>   *
+> @@ -205,6 +208,8 @@ struct media_entity_operations {
+>  			  const struct media_pad *local,
+>  			  const struct media_pad *remote, u32 flags);
+>  	int (*link_validate)(struct media_link *link);
+> +	bool (*has_route)(struct media_entity *entity, unsigned int pad0,
+> +			  unsigned int pad1);
+
+In one next patch in the series:
+[PATCH 09/30] media: entity: Swap pads if route is checked from source to s=
+ink
+the media_entity_has_route() operations ensures the sink pad is always
+the first one. Could we make it explicit in the paramters name and
+documentation to ease understanding when driver will have to implement this?
+
+Thanks
+   j
+
+
+
+>  };
+>
+>  /**
+> --
+> 2.18.0
 >
 
-I'm OK with $SUBJECT to be merged until we have a mechanism to let user-space
-know about the media topology state. Later we can revisit the patches in [0],
-once we have that support.
+--2/5bycvrmDh4d1IB
+Content-Type: application/pgp-signature; name="signature.asc"
 
-[0]: https://patchwork.kernel.org/cover/10587183/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> We've discussed this in the past, but I have not seen such an RFC.
-> 
-> So until we add support for partial bringup I think this patch does the right
-> thing since otherwise this is out-of-spec.
->
+iQIcBAEBAgAGBQJbrNPZAAoJEHI0Bo8WoVY8ZKIQAKS+DJA/Kwr7iJ8njQrIrBjp
+1LyQuGlAe286CPoH2Coe2/5F2BhFLCQIs2WVwT5txx4zTBOwebScUxsLkZ/rI13o
+6a/vUac4zUPrvLURyCWv5KzeW7djHZ+ZJQTQ086tyIv+KWzVIzm5EjLroCHl3uu3
+r85IRAkbqv9wIwd1zR8rHMWO1+bNBw91L+bPUGHdpWgqNE2Q+Z5JR+kRvZb3BfAj
+LsN/3bEY3NVQAzVE3ZkCKB9/f+LgyyCFWd4d0j+iHdw7WMQmnA7EntpwuPNUoGD6
+nYnAniOyhVjODIdPU75fYbVp0rli8PjySrmOlGNzfkOIAE9FufisAtnv5TQcSP9k
+VgIaQOCwu3G5ABnc/c4adZMQ8kXT/Jbfn7Dy8t8Hx4pN2ReNejP7rga7eCtAbMAc
+8/fGJE/InXOFxQoUryY1cYndR6Md0vgCbQUjLo/PkOSwlfYbd5ExpYNC14WJ7wUe
+7POffMBXDbowd+FMP6G0q0LsfN5Np+NZVFLhi1QgUYDjEW1tan63VOpIXbYow1n7
+0JQQbL8B48gq7zw0lAGLATpR0MY1MEqNTvfZR6lzReB78w8HonE/VUiykIwICG7o
+mpsv2J/phXIpuOXQUnULzp1I/HlIUU32J96xaUIBuIbpr+jhHEhxevgc4fpyTAb4
+gsvnZx6afaZkqkMYszwF
+=yIN1
+-----END PGP SIGNATURE-----
 
-Does this mean I have your Acked-by?
-
-Best regards,
--- 
-Javier Martinez Canillas
-Software Engineer - Desktop Hardware Enablement
-Red Hat
+--2/5bycvrmDh4d1IB--
