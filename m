@@ -1,77 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-15.mail.aliyun.com ([115.124.20.15]:49724 "EHLO
-        out20-15.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726378AbeI0HPU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 03:15:20 -0400
-Date: Thu, 27 Sep 2018 08:59:23 +0800
-From: Yong <yong.deng@magewell.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: maxime.ripard@bootlin.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Thierry Reding <treding@nvidia.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v11 1/2] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-Id: <20180927085923.cf24d7e2fba7f38637aff7c4@magewell.com>
-In-Reply-To: <1568838.d8CnAYTeDB@avalon>
-References: <1537951204-24672-1-git-send-email-yong.deng@magewell.com>
-        <7197338.mhOH8fQaEM@avalon>
-        <20180926103547.5ubb6xjkl7xngmfg@flea>
-        <1568838.d8CnAYTeDB@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mga06.intel.com ([134.134.136.31]:40847 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727015AbeI0JUf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Sep 2018 05:20:35 -0400
+Date: Thu, 27 Sep 2018 10:59:19 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Paul Kocialkowski <paul.kocialkowski@bootlin.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [linuxtv-media:request_api 77/77]
+ drivers/staging/media/sunxi/cedrus/cedrus.c:93 cedrus_init_ctrls() error:
+ potential null dereference 'ctx->ctrls'.  (kzalloc returns null)
+Message-ID: <201809271018.4tzPg0aH%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+tree:   git://linuxtv.org/media_tree.git request_api
+head:   50e761516f2b8c0cdeb31a8c6ca1b4ef98cd13f1
+commit: 50e761516f2b8c0cdeb31a8c6ca1b4ef98cd13f1 [77/77] media: platform: Add Cedrus VPU decoder driver
 
-On Wed, 26 Sep 2018 13:38:08 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+smatch warnings:
+drivers/staging/media/sunxi/cedrus/cedrus.c:93 cedrus_init_ctrls() error: potential null dereference 'ctx->ctrls'.  (kzalloc returns null)
 
-> Hi Maxime,
-> 
-> On Wednesday, 26 September 2018 13:35:47 EEST maxime.ripard@bootlin.com wrote:
-> > On Wed, Sep 26, 2018 at 01:19:34PM +0300, Laurent Pinchart wrote:
-> > > > +Endpoint node properties for CSI1
-> > > > +---------------------------------
-> > > 
-> > > Should you list the CSI0 properties as well ? As the driver in patch 2/2
-> > > doesn't support the CSI-2 interface I assume you have left out CSI0 for
-> > > now, but it should still be listed in the bindings. I'm fine with fixing
-> > > this as a follow-up patch to avoid missing the v4.20 merge window, but if
-> > > you end up resubmitting the series, could you please address the problem
-> > > ?
-> > 
-> > That driver is not available, and the documentation isn't either, so
-> > there's no easy way to tell which properties are going to be needed
-> > before doing the actual work of reverse engineering it and writing a
-> > driver for it. Unfortunately...
-> 
-> While DT bindings should be independent from driver implementations, I agree 
-> it's difficult to develop good bindings without hardware documentation and 
-> without at least one working driver implementation.
-> 
-> How about just explicitly stating that these bindings don't support CSI0 yet ?
+vim +93 drivers/staging/media/sunxi/cedrus/cedrus.c
 
-OK.
+    57	
+    58	static int cedrus_init_ctrls(struct cedrus_dev *dev, struct cedrus_ctx *ctx)
+    59	{
+    60		struct v4l2_ctrl_handler *hdl = &ctx->hdl;
+    61		struct v4l2_ctrl *ctrl;
+    62		unsigned int ctrl_size;
+    63		unsigned int i;
+    64	
+    65		v4l2_ctrl_handler_init(hdl, CEDRUS_CONTROLS_COUNT);
+    66		if (hdl->error) {
+    67			v4l2_err(&dev->v4l2_dev,
+    68				 "Failed to initialize control handler\n");
+    69			return hdl->error;
+    70		}
+    71	
+    72		ctrl_size = sizeof(ctrl) * CEDRUS_CONTROLS_COUNT + 1;
+    73	
+    74		ctx->ctrls = kzalloc(ctrl_size, GFP_KERNEL);
+    75		memset(ctx->ctrls, 0, ctrl_size);
+    76	
+    77		for (i = 0; i < CEDRUS_CONTROLS_COUNT; i++) {
+    78			struct v4l2_ctrl_config cfg = { 0 };
+    79	
+    80			cfg.elem_size = cedrus_controls[i].elem_size;
+    81			cfg.id = cedrus_controls[i].id;
+    82	
+    83			ctrl = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+    84			if (hdl->error) {
+    85				v4l2_err(&dev->v4l2_dev,
+    86					 "Failed to create new custom control\n");
+    87	
+    88				v4l2_ctrl_handler_free(hdl);
+    89				kfree(ctx->ctrls);
+    90				return hdl->error;
+    91			}
+    92	
+  > 93			ctx->ctrls[i] = ctrl;
+    94		}
+    95	
+    96		ctx->fh.ctrl_handler = hdl;
+    97		v4l2_ctrl_handler_setup(hdl);
+    98	
+    99		return 0;
+   100	}
+   101	
 
-Thanks,
-Yong
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
