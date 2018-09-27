@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0222.hostedemail.com ([216.40.44.222]:34696 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1725985AbeI2EW7 (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:49050 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727503AbeI0VFB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Sep 2018 00:22:59 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: Eugen Hristev <eugen.hristev@microchip.com>,
-        linux-media@vger.kernel.org
-Subject: Bad MAINTAINERS pattern in section 'MICROCHIP ISC DRIVER'
-Date: Fri, 28 Sep 2018 14:57:14 -0700
-Message-Id: <20180928215714.30346-1-joe@perches.com>
+        Thu, 27 Sep 2018 17:05:01 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-stm32@st-md-mailman.stormreply.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: [PATCH 0/4] OV5640: reduce rate according to maximum pixel clock
+Date: Thu, 27 Sep 2018 16:46:03 +0200
+Message-ID: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please fix this defect appropriately.
+This patch serie aims to reduce parallel port rate according to maximum pixel
+clock frequency admissible by camera interface in front of the sensor.
+This allows to support any resolutions/framerate requests by decreasing
+the framerate according to maximum camera interface capabilities.
+This allows typically to enable 5Mp YUV/RGB frame capture even if 15fps
+framerate could not be reached by platform.
 
-linux-next MAINTAINERS section:
+This work is based on OV5640 Maxime Ripard's runtime clock computing serie [1]
+which allows to adapt the clock tree registers according to maximum pixel
+clock.
 
-	9542	MICROCHIP ISC DRIVER
-	9543	M:	Eugen Hristev <eugen.hristev@microchip.com>
-	9544	L:	linux-media@vger.kernel.org
-	9545	S:	Supported
-	9546	F:	drivers/media/platform/atmel/atmel-isc.c
-	9547	F:	drivers/media/platform/atmel/atmel-isc-regs.h
--->	9548	F:	devicetree/bindings/media/atmel-isc.txt
+Then the first patch adds handling of pclk divider registers
+DVP_PCLK_DIVIDER (0x3824) and VFIFO_CTRL0C (0x460c) in order to
+correlate the rate to the effective pixel clock output on parallel interface.
 
-Commit that introduced this:
+A new devicetree property "pclk-max-frequency" is introduced in order
+to inform sensor of the camera interface maximum admissible pixel clock.
+This new devicetree property handling is added to V4L2 core.
 
-commit 71fb2c74287d186938cde830ad8980f57a38b597
- Author: Songjun Wu <songjun.wu@microchip.com>
- Date:   Wed Aug 17 03:05:29 2016 -0300
- 
-     [media] MAINTAINERS: atmel-isc: add entry for Atmel ISC
-     
-     Add the MAINTAINERS' entry for Microchip / Atmel Image Sensor Controller.
-     
-     Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
-     Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-     Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-     Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
- 
-  MAINTAINERS | 8 ++++++++
-  1 file changed, 8 insertions(+)
+Then OV5640 ov5640_set_dvp_pclk() is modified to clip rate according
+to optional maximum pixel clock property.
 
-No commit with devicetree/bindings/media/atmel-isc.txt found
+References:
+  [1] [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements https://www.mail-archive.com/linux-media@vger.kernel.org/msg131655.html
+
+Hugues Fruchet (4):
+  media: ov5640: move parallel port pixel clock divider out of registers
+    set
+  media: v4l2-core: add pixel clock max frequency parallel port property
+  media: dt-bindings: media: Document pclk-max-frequency property
+  media: ov5640: reduce rate according to maximum pixel clock frequency
+
+ .../devicetree/bindings/media/video-interfaces.txt |  2 +
+ drivers/media/i2c/ov5640.c                         | 78 ++++++++++++++++------
+ drivers/media/v4l2-core/v4l2-fwnode.c              |  3 +
+ include/media/v4l2-fwnode.h                        |  2 +
+ 4 files changed, 65 insertions(+), 20 deletions(-)
+
+-- 
+2.7.4
