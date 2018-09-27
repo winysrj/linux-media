@@ -1,113 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:23869 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727262AbeI0WSP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 18:18:15 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sakari Ailus" <sakari.ailus@linux.intel.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        jacopo mondi <jacopo@jmondi.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
-Date: Thu, 27 Sep 2018 15:59:04 +0000
-Message-ID: <b3bac06f-f4d6-7620-2c3d-f8a852920f56@st.com>
-References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
-In-Reply-To: <20180517085405.10104-1-maxime.ripard@bootlin.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <F2A9A07435A9FF44984BF5ED519C52B6@st.com>
-Content-Transfer-Encoding: base64
+Received: from mail.bootlin.com ([62.4.15.54]:33018 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727223AbeI0Xpn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Sep 2018 19:45:43 -0400
+Date: Thu, 27 Sep 2018 19:26:21 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH 3/4] media: dt-bindings: media: Document
+ pclk-max-frequency property
+Message-ID: <20180927172621.5ohzrplohwdipubv@flea>
+References: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
+ <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF4aW1lICYgYWxsIE9WNTY0MCBzdGFrZWhvbGRlcnMsDQoNCkkndmUganVzdCBwdXNoZWQg
-YSBuZXcgcGF0Y2hzZXQgYWxzbyByZWxhdGVkIHRvIHJhdGUvcGl4ZWwgY2xvY2sgDQpoYW5kbGlu
-ZyBbMV0sIGJhc2VkIG9uIHlvdXIgVjMgZ3JlYXQgd29yazoNCiA+ICAgIG1lZGlhOiBvdjU2NDA6
-IEFkanVzdCB0aGUgY2xvY2sgYmFzZWQgb24gdGhlIGV4cGVjdGVkIHJhdGUNCiA+ICAgIG1lZGlh
-OiBvdjU2NDA6IFJlbW92ZSB0aGUgY2xvY2tzIHJlZ2lzdGVycyBpbml0aWFsaXphdGlvbg0KID4g
-ICAgbWVkaWE6IG92NTY0MDogUmVtb3ZlIHJlZHVuZGFudCBkZWZpbmVzDQogPiAgICBtZWRpYTog
-b3Y1NjQwOiBSZW1vdmUgcmVkdW5kYW50IHJlZ2lzdGVyIHNldHVwDQogPiAgICBtZWRpYTogb3Y1
-NjQwOiBDb21wdXRlIHRoZSBjbG9jayByYXRlIGF0IHJ1bnRpbWUNCiA+ICAgIG1lZGlhOiBvdjU2
-NDA6IFJlbW92ZSBwaXhlbCBjbG9jayByYXRlcw0KID4gICAgbWVkaWE6IG92NTY0MDogRW5oYW5j
-ZSBGUFMgaGFuZGxpbmcNCg0KVGhpcyBpcyB3b3JraW5nIHBlcmZlY3RseSBmaW5lIG9uIG15IHBh
-cmFsbGVsIHNldHVwIGFuZCBhbGxvd3MgbWUgdG8gDQp3ZWxsIHN1cHBvcnQgVkdBQDMwZnBzIChp
-bnN0ZWFkIDI3KSBhbmQgYWxzbyBzdXBwb3J0IFhHQSgxMDI0eDc2OClAMTVmcHMgDQp0aGF0IEkg
-bmV2ZXIgc2VlbiB3b3JraW5nIGJlZm9yZS4NClNvIGF0IGxlYXN0IGZvciB0aGUgcGFyYWxsZWwg
-c2V0dXAsIHRoaXMgc2VyaWUgaXMgd29ya2luZyBmaW5lIGZvciBhbGwgDQp0aGUgZGlzY3JldGUg
-cmVzb2x1dGlvbnMgYW5kIGZyYW1lcmF0ZSBleHBvc2VkIGJ5IHRoZSBkcml2ZXIgZm9yIHRoZSBt
-b21lbnQ6DQoqIFFDSUYgMTc2eDE0NCAxNS8zMGZwcw0KKiBRVkdBIDMyMHgyNDAgMTUvMzBmcHMN
-CiogVkdBIDY0MHg0ODAgMTUvMzBmcHMNCiogNDgwcCA3MjB4NDgwIDE1LzMwZnBzDQoqIFhHQSAx
-MDI0eDc2OCAxNS8zMGZwcw0KKiA3MjBwIDEyODB4NzIwIDE1LzMwZnBzDQoqIDEwODBwIDE5MjB4
-MTA4MCAxNS8zMGZwcw0KKiA1TXAgMjU5MngxOTQ0IDE1ZnBzDQoNCk1vcmVvdmVyIEknbSBub3Qg
-Y2xlYXIgb24gcmVsYXRpb25zaGlwIGJldHdlZW4gcmF0ZSBhbmQgcGl4ZWwgY2xvY2sgDQpmcmVx
-dWVuY3kuDQpJJ3ZlIHVuZGVyc3Rvb2QgdGhhdCB0byBEVlBfUENMS19ESVZJREVSICgweDM4MjQp
-IHJlZ2lzdGVyDQphbmQgVkZJRk9fQ1RSTDBDICgweDQ2MGMpIGFmZmVjdHMgdGhlIGVmZmVjdGl2
-ZSBwaXhlbCBjbG9jayBmcmVxdWVuY3kuDQpBbGwgdGhlIHJlc29sdXRpb25zIHVwIHRvIDcyMHg1
-NzYgYXJlIGZvcmNpbmcgYSBtYW51YWwgdmFsdWUgb2YgMiBmb3IgDQpkaXZpZGVyICgweDQ2MGM9
-MHgyMiksIGJ1dCBpbmNsdWRpbmcgNzIwcCBhbmQgbW9yZSwgdGhlIGRpdmlkZXIgdmFsdWUgaXMg
-DQpjb250cm9sbGVkIGJ5ICJhdXRvLW1vZGUiICgweDQ2MGM9MHgyMCkuLi4gZnJvbSB3aGF0IEkg
-bWVhc3VyZWQgYW5kDQp1bmRlcnN0b29kLCBmb3IgdGhvc2UgcmVzb2x1dGlvbnMsIHRoZSBkaXZp
-ZGVyIG11c3QgYmUgc2V0IHRvIDEgaW4gb3JkZXIgDQp0aGF0IHlvdXIgcmF0ZSBjb21wdXRhdGlv
-biBtYXRjaCB0aGUgZWZmZWN0aXZlIHBpeGVsIGNsb2NrIG9uIG91dHB1dCwgDQpzZWUgWzJdLg0K
-DQpTbyBJIHdvbmRlciBpZiB0aGlzIFBDTEsgZGl2aWRlciByZWdpc3RlciBzaG91bGQgYmUgaW5j
-bHVkZWQNCm9yIG5vdCBpbnRvIHlvdXIgcmF0ZSBjb21wdXRhdGlvbiwgd2hhdCBkbyB5b3UgdGhp
-bmsgPw0KDQoNClsxXSBPVjU2NDA6IHJlZHVjZSByYXRlIGFjY29yZGluZyB0byBtYXhpbXVtIHBp
-eGVsIGNsb2NrIA0KaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNn
-MTQwOTU4Lmh0bWw6DQpbMl0gbWVkaWE6IG92NTY0MDogbW92ZSBwYXJhbGxlbCBwb3J0IHBpeGVs
-IGNsb2NrIGRpdmlkZXIgb3V0IG9mIA0KcmVnaXN0ZXJzIHNldCBodHRwczovL3d3dy5zcGluaWNz
-Lm5ldC9saXN0cy9saW51eC1tZWRpYS9tc2cxNDA5NjAuaHRtbA0KDQpCUiwNCkh1Z3Vlcy4NCg0K
-T24gMDUvMTcvMjAxOCAxMDo1MyBBTSwgTWF4aW1lIFJpcGFyZCB3cm90ZToNCj4gSGksDQo+IA0K
-PiBIZXJlIGlzIGEgInNtYWxsIiBzZXJpZXMgdGhhdCBtb3N0bHkgY2xlYW5zIHVwIHRoZSBvdjU2
-NDAgZHJpdmVyIGNvZGUsDQo+IHNsb3dseSBnZXR0aW5nIHJpZCBvZiB0aGUgYmlnIGRhdGEgYXJy
-YXkgZm9yIG1vcmUgdW5kZXJzdGFuZGFibGUgY29kZQ0KPiAoaG9wZWZ1bGx5KS4NCj4gDQo+IFRo
-ZSBiaWdnZXN0IGFkZGl0aW9uIHdvdWxkIGJlIHRoZSBjbG9jayByYXRlIGNvbXB1dGF0aW9uIGF0
-IHJ1bnRpbWUsDQo+IGluc3RlYWQgb2YgcmVseWluZyBvbiB0aG9zZSBhcnJheXMgdG8gc2V0dXAg
-dGhlIGNsb2NrIHRyZWUNCj4gcHJvcGVybHkuIEFzIGEgc2lkZSBlZmZlY3QsIGl0IGZpeGVzIHRo
-ZSBmcmFtZXJhdGUgdGhhdCB3YXMgb2ZmIGJ5DQo+IGFyb3VuZCAxMCUgb24gdGhlIHNtYWxsZXIg
-cmVzb2x1dGlvbnMsIGFuZCB3ZSBub3cgc3VwcG9ydCA2MGZwcy4NCj4gDQo+IFRoaXMgYWxzbyBp
-bnRyb2R1Y2VzIGEgYnVuY2ggb2YgbmV3IGZlYXR1cmVzLg0KPiANCj4gTGV0IG1lIGtub3cgd2hh
-dCB5b3UgdGhpbmssDQo+IE1heGltZQ0KPiANCj4gQ2hhbmdlcyBmcm9tIHYyOg0KPiAgICAtIFJl
-YmFzZWQgb24gbGF0ZXN0IFNha2FyaSBQUg0KPiAgICAtIEZpeGVkIHRoZSBpc3N1ZXMgcmVwb3J0
-ZWQgYnkgSHVndWVzOiBpbXByb3BlciBGUFMgcmV0dXJuZWQgZm9yDQo+ICAgICAgZm9ybWF0cywg
-aW1wcm9wZXIgcm91bmRpbmcgb2YgdGhlIEZQUywgc29tZSB3aXRoIGhpcyBzdWdnZXN0aW9ucywN
-Cj4gICAgICBzb21lIGJ5IHNpbXBsaWZ5aW5nIHRoZSBsb2dpYy4NCj4gICAgLSBFeHBhbmRlZCB0
-aGUgY2xvY2sgdHJlZSBjb21tZW50cyBiYXNlZCBvbiB0aGUgZmVlZGJhY2sgZnJvbSBTYW11ZWwN
-Cj4gICAgICBCb2Jyb3dpY3ogYW5kIExvaWMgUG91bGFpbg0KPiAgICAtIE1lcmdlZCBzb21lIG9m
-IHRoZSBjaGFuZ2VzIG1hZGUgYnkgU2FtdWVsIEJvYnJvd2ljeiB0byBmaXggdGhlDQo+ICAgICAg
-TUlQSSByYXRlIGNvbXB1dGF0aW9uLCBmaXggdGhlIGNhbGwgc2l0ZXMgb2YgdGhlDQo+ICAgICAg
-b3Y1NjQwX3NldF90aW1pbmdzIGZ1bmN0aW9uLCB0aGUgYXV0by1leHBvc3VyZSBjYWxjdWxhdGlv
-biBjYWxsLA0KPiAgICAgIGV0Yy4NCj4gICAgLSBTcGxpdCB0aGUgcGF0Y2hlcyBpbnRvIHNtYWxs
-ZXIgb25lcyBpbiBvcmRlciB0byBtYWtlIGl0IG1vcmUNCj4gICAgICByZWFkYWJsZSAoaG9wZWZ1
-bGx5KQ0KPiANCj4gQ2hhbmdlcyBmcm9tIHYxOg0KPiAgICAtIEludGVncmF0ZWQgSHVndWVzJyBz
-dWdnZXN0aW9ucyB0byBmaXggdjRsMi1jb21wbGlhbmNlDQo+ICAgIC0gRml4ZWQgdGhlIGJ1cyB3
-aWR0aCB3aXRoIEpQRUcNCj4gICAgLSBEcm9wcGVkIHRoZSBjbG9jayByYXRlIGNhbGN1bGF0aW9u
-IGxvb3BzIGZvciBzb21ldGhpbmcgc2ltcGxlciBhcw0KPiAgICAgIHN1Z2dlc3RlZCBieSBTYWth
-cmkNCj4gICAgLSBDYWNoZSB0aGUgZXhwb3N1cmUgdmFsdWUgaW5zdGVhZCBvZiB1c2luZyB0aGUg
-Y29udHJvbCB2YWx1ZQ0KPiAgICAtIFJlYmFzZWQgb24gdG9wIG9mIDQuMTcNCj4gDQo+IE1heGlt
-ZSBSaXBhcmQgKDExKToNCj4gICAgbWVkaWE6IG92NTY0MDogQWRqdXN0IHRoZSBjbG9jayBiYXNl
-ZCBvbiB0aGUgZXhwZWN0ZWQgcmF0ZQ0KPiAgICBtZWRpYTogb3Y1NjQwOiBSZW1vdmUgdGhlIGNs
-b2NrcyByZWdpc3RlcnMgaW5pdGlhbGl6YXRpb24NCj4gICAgbWVkaWE6IG92NTY0MDogUmVtb3Zl
-IHJlZHVuZGFudCBkZWZpbmVzDQo+ICAgIG1lZGlhOiBvdjU2NDA6IFJlbW92ZSByZWR1bmRhbnQg
-cmVnaXN0ZXIgc2V0dXANCj4gICAgbWVkaWE6IG92NTY0MDogQ29tcHV0ZSB0aGUgY2xvY2sgcmF0
-ZSBhdCBydW50aW1lDQo+ICAgIG1lZGlhOiBvdjU2NDA6IFJlbW92ZSBwaXhlbCBjbG9jayByYXRl
-cw0KPiAgICBtZWRpYTogb3Y1NjQwOiBFbmhhbmNlIEZQUyBoYW5kbGluZw0KPiAgICBtZWRpYTog
-b3Y1NjQwOiBNYWtlIHRoZSByZXR1cm4gcmF0ZSB0eXBlIG1vcmUgZXhwbGljaXQNCj4gICAgbWVk
-aWE6IG92NTY0MDogTWFrZSB0aGUgRlBTIGNsYW1waW5nIC8gcm91bmRpbmcgbW9yZSBleHRlbmRh
-YmxlDQo+ICAgIG1lZGlhOiBvdjU2NDA6IEFkZCA2MCBmcHMgc3VwcG9ydA0KPiAgICBtZWRpYTog
-b3Y1NjQwOiBSZW1vdmUgZHVwbGljYXRlIGF1dG8tZXhwb3N1cmUgc2V0dXANCj4gDQo+IFNhbXVl
-bCBCb2Jyb3dpY3ogKDEpOg0KPiAgICBtZWRpYTogb3Y1NjQwOiBGaXggdGltaW5ncyBzZXR1cCBj
-b2RlDQo+IA0KPiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgNzAxICsrKysrKysrKysr
-KysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0NCj4gICAxIGZpbGUgY2hhbmdlZCwgMzkyIGluc2Vy
-dGlvbnMoKyksIDMwOSBkZWxldGlvbnMoLSkNCj4g
+Hi!
+
+On Thu, Sep 27, 2018 at 04:46:06PM +0200, Hugues Fruchet wrote:
+> This optional property aims to inform parallel video devices
+> of the maximum pixel clock frequency admissible by host video
+> interface. If bandwidth of data to be transferred requires a
+> pixel clock which is higher than this value, parallel video
+> device could then typically adapt framerate to reach
+> this constraint.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index baf9d97..fa4c112 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -147,6 +147,8 @@ Optional endpoint properties
+>    as 0 (normal). This property is valid for serial busses only.
+>  - strobe: Whether the clock signal is used as clock (0) or strobe (1). Used
+>    with CCP2, for instance.
+> +- pclk-max-frequency: maximum pixel clock frequency admissible by video
+> +  host interface.
+
+That seems to be a property of the capture device, not the camera
+itself. Can't that be negotiated through the media API?
+
+Maxime
+
+-- 
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
