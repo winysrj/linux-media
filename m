@@ -1,67 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:49050 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727503AbeI0VFB (ORCPT
+Received: from relay10.mail.gandi.net ([217.70.178.230]:59781 "EHLO
+        relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726669AbeI0NxK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 17:05:01 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-stm32@st-md-mailman.stormreply.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jacopo Mondi <jacopo@jmondi.org>
-Subject: [PATCH 0/4] OV5640: reduce rate according to maximum pixel clock
-Date: Thu, 27 Sep 2018 16:46:03 +0200
-Message-ID: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
+        Thu, 27 Sep 2018 09:53:10 -0400
+Date: Thu, 27 Sep 2018 09:36:13 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] rcar-vin: fix redeclaration of symbol
+Message-ID: <20180927073613.GB20786@w540>
+References: <20180926214006.28486-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="+g7M9IMkV8truYOl"
+Content-Disposition: inline
+In-Reply-To: <20180926214006.28486-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch serie aims to reduce parallel port rate according to maximum pixel
-clock frequency admissible by camera interface in front of the sensor.
-This allows to support any resolutions/framerate requests by decreasing
-the framerate according to maximum camera interface capabilities.
-This allows typically to enable 5Mp YUV/RGB frame capture even if 15fps
-framerate could not be reached by platform.
 
-This work is based on OV5640 Maxime Ripard's runtime clock computing serie [1]
-which allows to adapt the clock tree registers according to maximum pixel
-clock.
+--+g7M9IMkV8truYOl
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Then the first patch adds handling of pclk divider registers
-DVP_PCLK_DIVIDER (0x3824) and VFIFO_CTRL0C (0x460c) in order to
-correlate the rate to the effective pixel clock output on parallel interface.
+Hi Niklas,
 
-A new devicetree property "pclk-max-frequency" is introduced in order
-to inform sensor of the camera interface maximum admissible pixel clock.
-This new devicetree property handling is added to V4L2 core.
+On Wed, Sep 26, 2018 at 11:40:06PM +0200, Niklas S=C3=B6derlund wrote:
+> When adding support for parallel subdev for Gen3 it was missed that the
+> symbol 'i' in rvin_group_link_notify() was already declare, remove the
+> dupe as it's only used as a loop variable this have no functional
+> change. This fixes warning:
+>
+>     rcar-core.c:117:52: originally declared here
+>     rcar-core.c:173:30: warning: symbol 'i' shadows an earlier one
+>
+> Fixes: 1284605dc821cebd ("media: rcar-vin: Handle parallel subdev in link=
+_notify")
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
 
-Then OV5640 ov5640_set_dvp_pclk() is modified to clip rate according
-to optional maximum pixel clock property.
+Acked-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-References:
-  [1] [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements https://www.mail-archive.com/linux-media@vger.kernel.org/msg131655.html
+Thanks
+  j
 
-Hugues Fruchet (4):
-  media: ov5640: move parallel port pixel clock divider out of registers
-    set
-  media: v4l2-core: add pixel clock max frequency parallel port property
-  media: dt-bindings: media: Document pclk-max-frequency property
-  media: ov5640: reduce rate according to maximum pixel clock frequency
+> ---
+>  drivers/media/platform/rcar-vin/rcar-core.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/=
+platform/rcar-vin/rcar-core.c
+> index 5dd16af3625c333b..01e418c2d4c6792e 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -170,7 +170,6 @@ static int rvin_group_link_notify(struct media_link *=
+link, u32 flags,
+>
+>  	if (csi_id =3D=3D -ENODEV) {
+>  		struct v4l2_subdev *sd;
+> -		unsigned int i;
+>
+>  		/*
+>  		 * Make sure the source entity subdevice is registered as
+> --
+> 2.19.0
+>
 
- .../devicetree/bindings/media/video-interfaces.txt |  2 +
- drivers/media/i2c/ov5640.c                         | 78 ++++++++++++++++------
- drivers/media/v4l2-core/v4l2-fwnode.c              |  3 +
- include/media/v4l2-fwnode.h                        |  2 +
- 4 files changed, 65 insertions(+), 20 deletions(-)
+--+g7M9IMkV8truYOl
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-2.7.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbrIhtAAoJEHI0Bo8WoVY8hvoP/2TB5oq9r1FtvmDCBiVq5y13
+ZtzYE4orGKeTPyrphRniRzfy7mtQzz4ll5PgxsL5yklQpcx0nhdj79cGoqEk9gL/
+p2v6yduAmh0PZVNak6wsdZ8iiuJfX767DypCAbNqMVi7akDAhG2NVHQNX/UTnJC7
+PDxE8sdFfV2bYR0ndflghgv3suGX3miot3QVYkTAK2du/4qF5vmV7roL/5TQmTUq
+epggfhQaAdwxaIkp2rlO+nTbA0egw57mDQ8oD4hI8JyAQL44v//qUetkjUP6Sv/B
+Jj0uyi1jQIippLGtyttulVOgBkM9qh6Kq3IIYlZ5LhV5/qB/Tu22U2Gw6oXeHM9K
+txG1SWOaPOHpztlgCTanRV14pZ2hsgVPuBkPqZO/pIFWVxu73REcxJ5J/Ix1+DFk
+eCgxr7xPvosR+OaJeCgh5scbm+DZLLX4odY6kaDVre6BT1q9DRXW7rNUnaZxu3CK
+GdPDpQZHZWPnd8j0BkNMG18GRc8y0eP2UM7eI3wirvWvYOOVjpcugUp9aFvefi6j
+9j5p69IDtx7YuxZZWPo9y7um6NCeTvRpCwVpEGeBXektn8XBJkjfOlYdak4GA4Xm
+pd/Zv34n0JmoxvRnUigATMaNUnm1USFMdKiaaSS85cIsMa8cBAyuHHK8hi1toyww
+0DCutlHcvmxsyPXjHoKd
+=Y6L+
+-----END PGP SIGNATURE-----
+
+--+g7M9IMkV8truYOl--
