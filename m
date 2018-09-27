@@ -1,66 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:33018 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727223AbeI0Xpn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 19:45:43 -0400
-Date: Thu, 27 Sep 2018 19:26:21 +0200
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mail-oi1-f193.google.com ([209.85.167.193]:35706 "EHLO
+        mail-oi1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727404AbeI1AnM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Sep 2018 20:43:12 -0400
+Date: Thu, 27 Sep 2018 13:23:38 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jacopo Mondi <jacopo@jmondi.org>
-Subject: Re: [PATCH 3/4] media: dt-bindings: media: Document
- pclk-max-frequency property
-Message-ID: <20180927172621.5ohzrplohwdipubv@flea>
-References: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
- <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 7/7] [media] ad5820: DT new compatible devices
+Message-ID: <20180927182338.GA1094@bogus>
+References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
+ <20180920204751.29117-7-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <20180920204751.29117-7-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
-
-On Thu, Sep 27, 2018 at 04:46:06PM +0200, Hugues Fruchet wrote:
-> This optional property aims to inform parallel video devices
-> of the maximum pixel clock frequency admissible by host video
-> interface. If bandwidth of data to be transferred requires a
-> pixel clock which is higher than this value, parallel video
-> device could then typically adapt framerate to reach
-> this constraint.
+On Thu, 20 Sep 2018 22:47:51 +0200, Ricardo Ribalda Delgado wrote:
+> Document new compatible devices.
 > 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 > ---
->  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
->  1 file changed, 2 insertions(+)
+>  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 > 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index baf9d97..fa4c112 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -147,6 +147,8 @@ Optional endpoint properties
->    as 0 (normal). This property is valid for serial busses only.
->  - strobe: Whether the clock signal is used as clock (0) or strobe (1). Used
->    with CCP2, for instance.
-> +- pclk-max-frequency: maximum pixel clock frequency admissible by video
-> +  host interface.
 
-That seems to be a property of the capture device, not the camera
-itself. Can't that be negotiated through the media API?
-
-Maxime
-
--- 
-Maxime Ripard, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
+Reviewed-by: Rob Herring <robh@kernel.org>
