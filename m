@@ -1,299 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:45929 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726230AbeIWWd3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Sep 2018 18:33:29 -0400
-Received: by mail-pg1-f194.google.com with SMTP id t70-v6so3318192pgd.12
-        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2018 09:35:25 -0700 (PDT)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 6/6] media: video-i2c: support runtime PM
-Date: Mon, 24 Sep 2018 01:34:52 +0900
-Message-Id: <1537720492-31201-7-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
-References: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mga05.intel.com ([192.55.52.43]:42047 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726469AbeI0Jfk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Sep 2018 05:35:40 -0400
+From: "Chen, Ping-chung" <ping-chung.chen@intel.com>
+To: "Yeh, Andy" <andy.yeh@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "sylwester.nawrocki@gmail.com" <sylwester.nawrocki@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        "Lai, Jim" <jim.lai@intel.com>,
+        "grundler@chromium.org" <grundler@chromium.org>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH v5] media: imx208: Add imx208 camera sensor driver
+Date: Thu, 27 Sep 2018 03:19:07 +0000
+Message-ID: <5E40A82D0551C84FA2888225EDABBE093FACDA2D@PGSMSX105.gar.corp.intel.com>
+References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
+ <CAAFQd5D=ze1nSCXwUxOm58+oiWNwuZDS5PvuR+xtNH0=YhA7NQ@mail.gmail.com>
+ <20180920205658.xv57qcmya7xubgyf@valkosipuli.retiisi.org.uk>
+ <1961986.b6erRuqaPp@avalon>
+ <CAPybu_2pCy4EJnih+1pmr43gdh5J0BS_Z0Owb5qpJVkYcDHtyQ@mail.gmail.com>
+ <5E40A82D0551C84FA2888225EDABBE093FACCF63@PGSMSX105.gar.corp.intel.com>
+ <20180925092527.4apdggynxleigvbv@paasikivi.fi.intel.com>
+ <5E40A82D0551C84FA2888225EDABBE093FACD5E5@PGSMSX105.gar.corp.intel.com>
+ <20180925215442.dugem7hcywaopl6s@kekkonen.localdomain>
+ <5E40A82D0551C84FA2888225EDABBE093FACD6AF@PGSMSX105.gar.corp.intel.com>
+ <20180926101132.iydcsn6o3qbi32u4@kekkonen.localdomain>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D7A567A@PGSMSX111.gar.corp.intel.com>
+In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D7A567A@PGSMSX111.gar.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-AMG88xx has a register for setting operating mode.  This adds support
-runtime PM by changing the operating mode.
+Hi,
 
-The instruction for changing sleep mode to normal mode is from the
-reference specifications.
+>-----Original Message-----
+>From: Yeh, Andy 
+>Sent: Wednesday, September 26, 2018 11:19 PM
+>To: Sakari Ailus <sakari.ailus@linux.intel.com>; Chen, Ping-chung <ping-chung.chen@intel.com>
 
-https://docid81hrs3j1.cloudfront.net/medialibrary/2017/11/PANA-S-A0002141979-1.pdf
+>Hi Sakari, PC,
 
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hansverk@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Reviewed-by: Matt Ranostay <matt.ranostay@konsulko.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* v2
-- Add Reviewed-by tag
-- Add comment for register address definisions
+>sensors that do need >digital gain applied, too --- assuming it'd be 
+>combined with the TRY_EXT_CTRLS rounding flags.
+>>
+>> There might be many kinds of discrete DG formats. For imx208, DG=2^n, 
+>> but for other sensors, DG could be 2*n, 5*n, or other styles. If HAL 
+>> needs to
+>
+>I guess the most common is multiplication and a bit shift (by e.g. 8), e.g.
+>multiplying the value by a 16-bit number with a 8-bit fractional part. 
+>The
+>imx208 apparently lacks the multiplication and only has the bit shift.
+>
+>Usually there's some sort of technical reason for the choice of the 
+>digital gain implementation and therefore I expect at least the vast 
+>majority of the implementations to be either of the two.
 
- drivers/media/i2c/video-i2c.c | 142 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 140 insertions(+), 2 deletions(-)
+>We shall ensure the expansibility of this architecture to include other kind of styles in the future. Is this API design architecture-wise ok?
 
-diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-index 6dd1929..f7058cf 100644
---- a/drivers/media/i2c/video-i2c.c
-+++ b/drivers/media/i2c/video-i2c.c
-@@ -17,6 +17,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/of_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/regmap.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-@@ -94,10 +95,23 @@ struct video_i2c_chip {
- 	/* xfer function */
- 	int (*xfer)(struct video_i2c_data *data, char *buf);
- 
-+	/* power control function */
-+	int (*set_power)(struct video_i2c_data *data, bool on);
-+
- 	/* hwmon init function */
- 	int (*hwmon_init)(struct video_i2c_data *data);
- };
- 
-+/* Power control register */
-+#define AMG88XX_REG_PCTL	0x00
-+#define AMG88XX_PCTL_NORMAL		0x00
-+#define AMG88XX_PCTL_SLEEP		0x10
-+
-+/* Reset register */
-+#define AMG88XX_REG_RST		0x01
-+#define AMG88XX_RST_FLAG		0x30
-+#define AMG88XX_RST_INIT		0x3f
-+
- /* Frame rate register */
- #define AMG88XX_REG_FPSC	0x02
- #define AMG88XX_FPSC_1FPS		BIT(0)
-@@ -127,6 +141,59 @@ static int amg88xx_setup(struct video_i2c_data *data)
- 	return regmap_update_bits(data->regmap, AMG88XX_REG_FPSC, mask, val);
- }
- 
-+static int amg88xx_set_power_on(struct video_i2c_data *data)
-+{
-+	int ret;
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_NORMAL);
-+	if (ret)
-+		return ret;
-+
-+	msleep(50);
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_INIT);
-+	if (ret)
-+		return ret;
-+
-+	msleep(2);
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_FLAG);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Wait two frames before reading thermistor and temperature registers
-+	 */
-+	msleep(200);
-+
-+	return 0;
-+}
-+
-+static int amg88xx_set_power_off(struct video_i2c_data *data)
-+{
-+	int ret;
-+
-+	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_SLEEP);
-+	if (ret)
-+		return ret;
-+	/*
-+	 * Wait for a while to avoid resuming normal mode immediately after
-+	 * entering sleep mode, otherwise the device occasionally goes wrong
-+	 * (thermistor and temperature registers are not updated at all)
-+	 */
-+	msleep(100);
-+
-+	return 0;
-+}
-+
-+static int amg88xx_set_power(struct video_i2c_data *data, bool on)
-+{
-+	if (on)
-+		return amg88xx_set_power_on(data);
-+
-+	return amg88xx_set_power_off(data);
-+}
-+
- #if IS_ENABLED(CONFIG_HWMON)
- 
- static const u32 amg88xx_temp_config[] = {
-@@ -158,7 +225,15 @@ static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
- 	__le16 buf;
- 	int tmp;
- 
-+	tmp = pm_runtime_get_sync(regmap_get_device(data->regmap));
-+	if (tmp < 0) {
-+		pm_runtime_put_noidle(regmap_get_device(data->regmap));
-+		return tmp;
-+	}
-+
- 	tmp = regmap_bulk_read(data->regmap, AMG88XX_REG_TTHL, &buf, 2);
-+	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
-+	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
- 	if (tmp)
- 		return tmp;
- 
-@@ -217,6 +292,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
- 		.regmap_config	= &amg88xx_regmap_config,
- 		.setup		= &amg88xx_setup,
- 		.xfer		= &amg88xx_xfer,
-+		.set_power	= amg88xx_set_power,
- 		.hwmon_init	= amg88xx_hwmon_init,
- 	},
- };
-@@ -343,14 +419,21 @@ static void video_i2c_del_list(struct vb2_queue *vq, enum vb2_buffer_state state
- static int start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct video_i2c_data *data = vb2_get_drv_priv(vq);
-+	struct device *dev = regmap_get_device(data->regmap);
- 	int ret;
- 
- 	if (data->kthread_vid_cap)
- 		return 0;
- 
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0) {
-+		pm_runtime_put_noidle(dev);
-+		goto error_del_list;
-+	}
-+
- 	ret = data->chip->setup(data);
- 	if (ret)
--		goto error_del_list;
-+		goto error_rpm_put;
- 
- 	data->sequence = 0;
- 	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
-@@ -359,6 +442,9 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (!ret)
- 		return 0;
- 
-+error_rpm_put:
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
- error_del_list:
- 	video_i2c_del_list(vq, VB2_BUF_STATE_QUEUED);
- 
-@@ -374,6 +460,8 @@ static void stop_streaming(struct vb2_queue *vq)
- 
- 	kthread_stop(data->kthread_vid_cap);
- 	data->kthread_vid_cap = NULL;
-+	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
-+	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
- 
- 	video_i2c_del_list(vq, VB2_BUF_STATE_ERROR);
- }
-@@ -635,6 +723,18 @@ static int video_i2c_probe(struct i2c_client *client,
- 	video_set_drvdata(&data->vdev, data);
- 	i2c_set_clientdata(client, data);
- 
-+	ret = data->chip->set_power(data, true);
-+	if (ret)
-+		goto error_unregister_device;
-+
-+	pm_runtime_get_noresume(&client->dev);
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_set_autosuspend_delay(&client->dev, 2000);
-+	pm_runtime_use_autosuspend(&client->dev);
-+	pm_runtime_mark_last_busy(&client->dev);
-+	pm_runtime_put_autosuspend(&client->dev);
-+
- 	if (data->chip->hwmon_init) {
- 		ret = data->chip->hwmon_init(data);
- 		if (ret < 0) {
-@@ -645,10 +745,17 @@ static int video_i2c_probe(struct i2c_client *client,
- 
- 	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0)
--		goto error_unregister_device;
-+		goto error_pm_disable;
- 
- 	return 0;
- 
-+error_pm_disable:
-+	pm_runtime_get_sync(&client->dev);
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
-+	data->chip->set_power(data, false);
-+
- error_unregister_device:
- 	v4l2_device_unregister(v4l2_dev);
- 	mutex_destroy(&data->lock);
-@@ -662,6 +769,13 @@ static int video_i2c_remove(struct i2c_client *client)
- 	struct video_i2c_data *data = i2c_get_clientdata(client);
- 
- 	video_unregister_device(&data->vdev);
-+
-+	pm_runtime_get_sync(&client->dev);
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_put_noidle(&client->dev);
-+	data->chip->set_power(data, false);
-+
- 	v4l2_device_unregister(&data->v4l2_dev);
- 
- 	mutex_destroy(&data->lock);
-@@ -670,6 +784,29 @@ static int video_i2c_remove(struct i2c_client *client)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
-+
-+static int video_i2c_pm_runtime_suspend(struct device *dev)
-+{
-+	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
-+
-+	return data->chip->set_power(data, false);
-+}
-+
-+static int video_i2c_pm_runtime_resume(struct device *dev)
-+{
-+	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
-+
-+	return data->chip->set_power(data, true);
-+}
-+
-+#endif
-+
-+static const struct dev_pm_ops video_i2c_pm_ops = {
-+	SET_RUNTIME_PM_OPS(video_i2c_pm_runtime_suspend,
-+			   video_i2c_pm_runtime_resume, NULL)
-+};
-+
- static const struct i2c_device_id video_i2c_id_table[] = {
- 	{ "amg88xx", AMG88XX },
- 	{}
-@@ -686,6 +823,7 @@ static struct i2c_driver video_i2c_driver = {
- 	.driver = {
- 		.name	= VIDEO_I2C_DRIVER,
- 		.of_match_table = video_i2c_of_match,
-+		.pm	= &video_i2c_pm_ops,
- 	},
- 	.probe		= video_i2c_probe,
- 	.remove		= video_i2c_remove,
--- 
-2.7.4
+Indeed. Seems it is hard to cover all rules and HAL needs complex flow to judge the DG value.
+Hi Sakari, could you provide an example that how HAL uses the modified interface to set available digital gain?
+
+>
+>> cover all cases, kernel will have to update more information to this 
+>> control. Another problem is should HAL take over the SMIA calculation?
+>> If so, kernel will also need to update SMIA parameters to user space 
+>> (or create an addition filed for SMIA in the configuration XML file).
+>
+>The parameters for the analogue gain model should come from the driver, yes.
+>We do not have controls for that purpose but they can (and should) be added.
+>
+
+>How about still follow PC's proposal to implement in XML? It was in IQ tuning file before which is in userspace. Even I proposed to PC to study with ICG SW team whether this info could be retrieved from 3A algorithm.
+
+Hi Andy, because we has to use total gain instead of AG in 3A for the WA, our tuning data of imx208 will not include SMIA of AG anymore. 
+So HAL has no way to retrieve correct SMIA parameters of AG from 3A.
+
+Thanks,
+PC Chen
+
+>--
+>Regards,
+>
+>Sakari Ailus
+>sakari.ailus@linux.intel.com
