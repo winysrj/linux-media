@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:48166 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727541AbeI0VFD (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:18362 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727522AbeI0VFF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Sep 2018 17:05:03 -0400
+        Thu, 27 Sep 2018 17:05:05 -0400
 From: Hugues Fruchet <hugues.fruchet@st.com>
 To: Steve Longerbeam <slongerbeam@gmail.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
@@ -17,9 +17,9 @@ CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
         Hugues Fruchet <hugues.fruchet@st.com>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>,
         Jacopo Mondi <jacopo@jmondi.org>
-Subject: [PATCH 3/4] media: dt-bindings: media: Document pclk-max-frequency property
-Date: Thu, 27 Sep 2018 16:46:06 +0200
-Message-ID: <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
+Subject: [PATCH 4/4] media: ov5640: reduce rate according to maximum pixel clock frequency
+Date: Thu, 27 Sep 2018 16:46:07 +0200
+Message-ID: <1538059567-8381-5-git-send-email-hugues.fruchet@st.com>
 In-Reply-To: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
 References: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
@@ -27,30 +27,45 @@ Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This optional property aims to inform parallel video devices
-of the maximum pixel clock frequency admissible by host video
-interface. If bandwidth of data to be transferred requires a
-pixel clock which is higher than this value, parallel video
-device could then typically adapt framerate to reach
-this constraint.
+Reduce parallel port rate according to maximum pixel clock frequency
+admissible by camera interface.
+This allows to support any resolutions/framerate requests by decreasing
+the framerate according to maximum camera interface capabilities.
 
 Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/i2c/ov5640.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index baf9d97..fa4c112 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -147,6 +147,8 @@ Optional endpoint properties
-   as 0 (normal). This property is valid for serial busses only.
- - strobe: Whether the clock signal is used as clock (0) or strobe (1). Used
-   with CCP2, for instance.
-+- pclk-max-frequency: maximum pixel clock frequency admissible by video
-+  host interface.
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index da4d754..9f3c32e 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -918,6 +918,8 @@ static int ov5640_set_dvp_pclk(struct ov5640_dev *sensor,
+ {
+ 	u8 prediv, mult, sysdiv, pll_rdiv, bit_div, pclk_div;
+ 	int ret;
++	struct i2c_client *client = sensor->i2c_client;
++	unsigned int pclk_freq, max_pclk_freq;
+ 	/*
+ 	 * FIXME, value of PCLK divider deduced from
+ 	 * mode registers hardcoded sequence and tests
+@@ -941,6 +943,16 @@ static int ov5640_set_dvp_pclk(struct ov5640_dev *sensor,
+ 	if (ret)
+ 		return ret;
  
- Example
- -------
++	pclk_freq = rate / dvp_pclk_divider;
++	max_pclk_freq = sensor->ep.bus.parallel.pclk_max_frequency;
++
++	/* clip rate according to optional maximum pixel clock limit */
++	if (max_pclk_freq && pclk_freq > max_pclk_freq) {
++		rate = max_pclk_freq * dvp_pclk_divider;
++		dev_dbg(&client->dev, "DVP pixel clock too high (%d > %d Hz), reducing rate...\n",
++			pclk_freq, max_pclk_freq);
++	}
++
+ 	ov5640_calc_pclk(sensor, rate, &prediv, &mult, &sysdiv, &pll_rdiv,
+ 			 &bit_div, &pclk_div);
+ 
 -- 
 2.7.4
