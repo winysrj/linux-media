@@ -1,24 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ed1-f68.google.com ([209.85.208.68]:46854 "EHLO
-        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728920AbeI1UG6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Sep 2018 16:06:58 -0400
-MIME-Version: 1.0
-References: <1537951204-24672-1-git-send-email-yong.deng@magewell.com>
- <20180928093833.gwmskm2jvby6x4s6@paasikivi.fi.intel.com> <14114604.4rraf0qJLU@avalon>
- <20180928102345.r2g342tg5mgcwfw6@paasikivi.fi.intel.com> <CAGb2v65YpPRHb5YiGJhC8NX5F5i3+1rW5y6Dq5L+pNN3U_uLdQ@mail.gmail.com>
- <20180928125601.6ye5tvrmh57amvh5@paasikivi.fi.intel.com>
-In-Reply-To: <20180928125601.6ye5tvrmh57amvh5@paasikivi.fi.intel.com>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Fri, 28 Sep 2018 21:42:50 +0800
-Message-ID: <CAGb2v67v0No0=JSt4HQCWeKKTz4gSHUfdyv16T-=4dxGB=JCow@mail.gmail.com>
-Subject: Re: [PATCH v11 1/2] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mga17.intel.com ([192.55.52.151]:47453 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726603AbeI1UGW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Sep 2018 16:06:22 -0400
+Date: Fri, 28 Sep 2018 16:42:24 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+Cc: Chen-Yu Tsai <wens@csie.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Yong Deng <yong.deng@magewell.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
@@ -38,124 +28,139 @@ Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
         linux-kernel <linux-kernel@vger.kernel.org>,
         linux-sunxi <linux-sunxi@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v11 1/2] dt-bindings: media: Add Allwinner V3s Camera
+ Sensor Interface (CSI)
+Message-ID: <20180928134224.upempos55x6qkwqr@paasikivi.fi.intel.com>
+References: <1537951204-24672-1-git-send-email-yong.deng@magewell.com>
+ <20180928093833.gwmskm2jvby6x4s6@paasikivi.fi.intel.com>
+ <14114604.4rraf0qJLU@avalon>
+ <20180928102345.r2g342tg5mgcwfw6@paasikivi.fi.intel.com>
+ <CAGb2v65YpPRHb5YiGJhC8NX5F5i3+1rW5y6Dq5L+pNN3U_uLdQ@mail.gmail.com>
+ <20180928125601.6ye5tvrmh57amvh5@paasikivi.fi.intel.com>
+ <20180928133642.3vmjm766cdm2oh6e@flea>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180928133642.3vmjm766cdm2oh6e@flea>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Maxime,
 
-On Fri, Sep 28, 2018 at 8:56 PM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Hi Chen-Yu,
->
-> On Fri, Sep 28, 2018 at 07:10:58PM +0800, Chen-Yu Tsai wrote:
-> > On Fri, Sep 28, 2018 at 6:23 PM Sakari Ailus
-> > <sakari.ailus@linux.intel.com> wrote:
-> > >
-> > > Hi Laurent,
-> > >
-> > > On Fri, Sep 28, 2018 at 12:45:12PM +0300, Laurent Pinchart wrote:
-> > > > Hi Sakari,
+On Fri, Sep 28, 2018 at 03:36:42PM +0200, Maxime Ripard wrote:
+> Hi Sakari,
+> 
+> Thanks for taking the time to review.
+> 
+> On Fri, Sep 28, 2018 at 03:56:01PM +0300, Sakari Ailus wrote:
+> > Hi Chen-Yu,
+> > 
+> > On Fri, Sep 28, 2018 at 07:10:58PM +0800, Chen-Yu Tsai wrote:
+> > > On Fri, Sep 28, 2018 at 6:23 PM Sakari Ailus
+> > > <sakari.ailus@linux.intel.com> wrote:
 > > > >
-> > > > On Friday, 28 September 2018 12:38:33 EEST Sakari Ailus wrote:
-> > > > > On Wed, Sep 26, 2018 at 04:40:04PM +0800, Yong Deng wrote:
-> > > > > > Add binding documentation for Allwinner V3s CSI.
+> > > > Hi Laurent,
+> > > >
+> > > > On Fri, Sep 28, 2018 at 12:45:12PM +0300, Laurent Pinchart wrote:
+> > > > > Hi Sakari,
+> > > > >
+> > > > > On Friday, 28 September 2018 12:38:33 EEST Sakari Ailus wrote:
+> > > > > > On Wed, Sep 26, 2018 at 04:40:04PM +0800, Yong Deng wrote:
+> > > > > > > Add binding documentation for Allwinner V3s CSI.
+> > > > > > >
+> > > > > > > Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
+> > > > > > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > > > > > >
-> > > > > > Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > > > > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > > >
-> > > > > I know... but I have a few more comments.
-> > > > >
-> > > > > > Reviewed-by: Rob Herring <robh@kernel.org>
-> > > > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > > > > > ---
+> > > > > > I know... but I have a few more comments.
 > > > > > >
-> > > > > >  .../devicetree/bindings/media/sun6i-csi.txt        | 59 +++++++++++++++++
-> > > > > >  1 file changed, 59 insertions(+)
-> > > > > >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > > > > > > Reviewed-by: Rob Herring <robh@kernel.org>
+> > > > > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > > > > > > ---
+> > > > > > >
+> > > > > > >  .../devicetree/bindings/media/sun6i-csi.txt        | 59 +++++++++++++++++
+> > > > > > >  1 file changed, 59 insertions(+)
+> > > > > > >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > > > > > >
+> > > > > > > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > > > > > > b/Documentation/devicetree/bindings/media/sun6i-csi.txt new file mode
+> > > > > > > 100644
+> > > > > > > index 000000000000..2ff47a9507a6
+> > > > > > > --- /dev/null
+> > > > > > > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > > > > > > @@ -0,0 +1,59 @@
+> > > > > > > +Allwinner V3s Camera Sensor Interface
+> > > > > > > +-------------------------------------
+> > > > > > > +
+> > > > > > > +Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+> > > > > > > +interface and CSI1 is used for parallel interface.
+> > > > > > > +
+> > > > > > > +Required properties:
+> > > > > > > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> > > > > > > +  - reg: base address and size of the memory-mapped region.
+> > > > > > > +  - interrupts: interrupt associated to this IP
+> > > > > > > +  - clocks: phandles to the clocks feeding the CSI
+> > > > > > > +    * bus: the CSI interface clock
+> > > > > > > +    * mod: the CSI module clock
+> > > > > > > +    * ram: the CSI DRAM clock
+> > > > > > > +  - clock-names: the clock names mentioned above
+> > > > > > > +  - resets: phandles to the reset line driving the CSI
+> > > > > > > +
+> > > > > > > +Each CSI node should contain one 'port' child node with one child
+> > > > > > > 'endpoint' +node, according to the bindings defined in
+> > > > > > > +Documentation/devicetree/bindings/media/video-interfaces.txt. As
+> > > > > > > mentioned
+> > > > > > > +above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel
+> > > > > > > or +Bt656 for CSI1.
 > > > > > >
-> > > > > > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > > > b/Documentation/devicetree/bindings/media/sun6i-csi.txt new file mode
-> > > > > > 100644
-> > > > > > index 000000000000..2ff47a9507a6
-> > > > > > --- /dev/null
-> > > > > > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > > > @@ -0,0 +1,59 @@
-> > > > > > +Allwinner V3s Camera Sensor Interface
-> > > > > > +-------------------------------------
-> > > > > > +
-> > > > > > +Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> > > > > > +interface and CSI1 is used for parallel interface.
-> > > > > > +
-> > > > > > +Required properties:
-> > > > > > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> > > > > > +  - reg: base address and size of the memory-mapped region.
-> > > > > > +  - interrupts: interrupt associated to this IP
-> > > > > > +  - clocks: phandles to the clocks feeding the CSI
-> > > > > > +    * bus: the CSI interface clock
-> > > > > > +    * mod: the CSI module clock
-> > > > > > +    * ram: the CSI DRAM clock
-> > > > > > +  - clock-names: the clock names mentioned above
-> > > > > > +  - resets: phandles to the reset line driving the CSI
-> > > > > > +
-> > > > > > +Each CSI node should contain one 'port' child node with one child
-> > > > > > 'endpoint' +node, according to the bindings defined in
-> > > > > > +Documentation/devicetree/bindings/media/video-interfaces.txt. As
-> > > > > > mentioned
-> > > > > > +above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel
-> > > > > > or +Bt656 for CSI1.
+> > > > > > Which port represents CSI0 and which one is CSI1? That needs to be
+> > > > > > documented.
 > > > > >
-> > > > > Which port represents CSI0 and which one is CSI1? That needs to be
-> > > > > documented.
-> > > >
-> > > > There are two CSI devices, named CSI0 and CSI1, with one port each. The CSI0
-> > > > device supports CSI-2 only, and the CSI1 device parallel (BT.601 or BT.656)
-> > > > only.
-> > > >
-> > > > > > +
-> > > > > > +Endpoint node properties for CSI1
+> > > > > There are two CSI devices, named CSI0 and CSI1, with one port each. The CSI0
+> > > > > device supports CSI-2 only, and the CSI1 device parallel (BT.601 or BT.656)
+> > > > > only.
 > > > > >
-> > > > > How about CSI0? I'd expect at least data-lanes, and clock-lanes as well if
-> > > > > the hardware supports lane mapping.
+> > > > > > > +
+> > > > > > > +Endpoint node properties for CSI1
+> > > > > >
+> > > > > > How about CSI0? I'd expect at least data-lanes, and clock-lanes as well if
+> > > > > > the hardware supports lane mapping.
+> > > > >
+> > > > > I enquired about that too. As far as I understand, CSI0 isn't supported yet in
+> > > > > the driver due to lack of documentation and lack of open-source vendor-
+> > > > > provided source code. While DT bindings are not tied to driver
+> > > > > implementations, it's not the best idea to design DT bindings without at least
+> > > > > one working implementation to test them. I thus proposed just listing CSI0 as
+> > > > > being unsupported for now.
 > > > >
-> > > > I enquired about that too. As far as I understand, CSI0 isn't supported yet in
-> > > > the driver due to lack of documentation and lack of open-source vendor-
-> > > > provided source code. While DT bindings are not tied to driver
-> > > > implementations, it's not the best idea to design DT bindings without at least
-> > > > one working implementation to test them. I thus proposed just listing CSI0 as
-> > > > being unsupported for now.
-> > >
-> > > Ack.
-> > >
-> > > We should still define which receiver corresponds to a given port. Probably
-> > > 1 for CSI1 would make sense, in order to avoid changing the order the
-> > > hardware already uses. 0 doesn't need to be documented no IMO.
-> > >
-> > > What do you think?
-> >
-> > AFAICT it would be a completely seperate node, since they have different address
-> > spaces, clocks and reset controls. So there's no possibility of confusion.
-> >
-> > According to Yong, CSI0 is tied internally to some unknown MIPI CSI2-receiver,
-> > which is the undocumented part. CSI1 has its parallel data pins exposed to the
-> > outside.
->
-> Thanks for clearing up the confusion. If these are truly different kinds of
-> devices, then don't they also deserve different compatible strings? And
-> possibly also different DT binding documentation in a separate file.
+> > > > Ack.
+> > > >
+> > > > We should still define which receiver corresponds to a given port. Probably
+> > > > 1 for CSI1 would make sense, in order to avoid changing the order the
+> > > > hardware already uses. 0 doesn't need to be documented no IMO.
+> > > >
+> > > > What do you think?
+> > > 
+> > > AFAICT it would be a completely seperate node, since they have different address
+> > > spaces, clocks and reset controls. So there's no possibility of confusion.
+> > > 
+> > > According to Yong, CSI0 is tied internally to some unknown MIPI CSI2-receiver,
+> > > which is the undocumented part. CSI1 has its parallel data pins exposed to the
+> > > outside.
+> > 
+> > Thanks for clearing up the confusion. If these are truly different kinds of
+> > devices, then don't they also deserve different compatible strings? And
+> > possibly also different DT binding documentation in a separate file.
+> 
+> It can, and will if it's ever supported, but I'm not quite sure what's
+> confusing you about those bindings. It never claims to support CSI0,
+> and we will only add a new document and compatible and whatever is
+> needed when we'll have the need for it?
 
-Allwinner's documents aren't particularly clear about this. AFAICT it does not
-say anything about them being different. The CSI section gives a register table
-with two base addresses. The V3S SDK listed on linux-sunxi wiki also doesn't
-differentiate between the two. What's more is there's actually code and register
-addresses for the MIPI stuff [1], though the license is questionable,
-as with most
-BSPs. It indeed seems like a CSI controller, which basically just takes whatever
-input it is configured for and sends it to either a downstream ISP or DRAM.
-There are MIPI-CSI receiver and DPHY blocks in addresses following CSI0, but we
-can treat them as separate hardware blocks.
+Apart from the endpoint node documentation, the rest appears to apply to
+both CSI0 and CSI1. If they're truly different kind of devices, then they
+do need different compatible strings, don't they? Currently they're both
+documented to be using the same.
 
-ChenYu
-
-[1] https://github.com/yeashen/v3s-linux-sdk/blob/master/linux-3.4/drivers/media/video/sunxi-vfe/platform/sun8iw8p1_vfe_cfg.h#L27
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
