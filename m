@@ -1,177 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:2104 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729181AbeI1Qq4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Sep 2018 12:46:56 -0400
-Date: Fri, 28 Sep 2018 13:23:45 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "\"David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Thierry Reding <treding@nvidia.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v11 1/2] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-ID: <20180928102345.r2g342tg5mgcwfw6@paasikivi.fi.intel.com>
-References: <1537951204-24672-1-git-send-email-yong.deng@magewell.com>
- <20180928093833.gwmskm2jvby6x4s6@paasikivi.fi.intel.com>
- <14114604.4rraf0qJLU@avalon>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:60783 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729116AbeI1Qas (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Sep 2018 12:30:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 1/3] uapi/linux/media.h: add property support
+Date: Fri, 28 Sep 2018 12:07:43 +0200
+Message-Id: <20180928100745.4946-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180928100745.4946-1-hverkuil@xs4all.nl>
+References: <20180928100745.4946-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <14114604.4rraf0qJLU@avalon>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Fri, Sep 28, 2018 at 12:45:12PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Friday, 28 September 2018 12:38:33 EEST Sakari Ailus wrote:
-> > On Wed, Sep 26, 2018 at 04:40:04PM +0800, Yong Deng wrote:
-> > > Add binding documentation for Allwinner V3s CSI.
-> > > 
-> > > Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > 
-> > I know... but I have a few more comments.
-> > 
-> > > Reviewed-by: Rob Herring <robh@kernel.org>
-> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > > ---
-> > > 
-> > >  .../devicetree/bindings/media/sun6i-csi.txt        | 59 +++++++++++++++++
-> > >  1 file changed, 59 insertions(+)
-> > >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > b/Documentation/devicetree/bindings/media/sun6i-csi.txt new file mode
-> > > 100644
-> > > index 000000000000..2ff47a9507a6
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > @@ -0,0 +1,59 @@
-> > > +Allwinner V3s Camera Sensor Interface
-> > > +-------------------------------------
-> > > +
-> > > +Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> > > +interface and CSI1 is used for parallel interface.
-> > > +
-> > > +Required properties:
-> > > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> > > +  - reg: base address and size of the memory-mapped region.
-> > > +  - interrupts: interrupt associated to this IP
-> > > +  - clocks: phandles to the clocks feeding the CSI
-> > > +    * bus: the CSI interface clock
-> > > +    * mod: the CSI module clock
-> > > +    * ram: the CSI DRAM clock
-> > > +  - clock-names: the clock names mentioned above
-> > > +  - resets: phandles to the reset line driving the CSI
-> > > +
-> > > +Each CSI node should contain one 'port' child node with one child
-> > > 'endpoint' +node, according to the bindings defined in
-> > > +Documentation/devicetree/bindings/media/video-interfaces.txt. As
-> > > mentioned
-> > > +above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel
-> > > or +Bt656 for CSI1.
-> > 
-> > Which port represents CSI0 and which one is CSI1? That needs to be
-> > documented.
-> 
-> There are two CSI devices, named CSI0 and CSI1, with one port each. The CSI0 
-> device supports CSI-2 only, and the CSI1 device parallel (BT.601 or BT.656) 
-> only.
-> 
-> > > +
-> > > +Endpoint node properties for CSI1
-> > 
-> > How about CSI0? I'd expect at least data-lanes, and clock-lanes as well if
-> > the hardware supports lane mapping.
-> 
-> I enquired about that too. As far as I understand, CSI0 isn't supported yet in 
-> the driver due to lack of documentation and lack of open-source vendor-
-> provided source code. While DT bindings are not tied to driver 
-> implementations, it's not the best idea to design DT bindings without at least 
-> one working implementation to test them. I thus proposed just listing CSI0 as 
-> being unsupported for now.
+Add a new topology struct that includes properties.
 
-Ack.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/media.h | 71 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 68 insertions(+), 3 deletions(-)
 
-We should still define which receiver corresponds to a given port. Probably
-1 for CSI1 would make sense, in order to avoid changing the order the
-hardware already uses. 0 doesn't need to be documented no IMO.
-
-What do you think?
-
-> 
-> > > +---------------------------------
-> > > +
-> > > +- remote-endpoint	: (required) a phandle to the bus receiver's endpoint
-> > > +			   node
-> > > +- bus-width:		: (required) must be 8, 10, 12 or 16
-> > > +- pclk-sample		: (optional) (default: sample on falling edge)
-> > 
-> > Could you add that video-interfaces.txt contains documentation of these
-> > properties as well? There's a reference above but only discusses port and
-> > endpoint nodes.
-> > 
-> > > +- hsync-active		: (only required for parallel)
-> > > +- vsync-active		: (only required for parallel)
-> > 
-> > As you support both Bt656 and parallel (with sync signals), you can detect
-> > the interface type from the presence of these properties. I think you
-> > should also say that these properties are not allowed on Bt656. So I'd
-> > change this to e.g.
-> > 
-> > 	(required; parallel-only)
-> > 
-> > > +
-> > > +Example:
-> > > +
-> > > +csi1: csi@1cb4000 {
-> > > +	compatible = "allwinner,sun8i-v3s-csi";
-> > > +	reg = <0x01cb4000 0x1000>;
-> > > +	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> > > +	clocks = <&ccu CLK_BUS_CSI>,
-> > > +		 <&ccu CLK_CSI1_SCLK>,
-> > > +		 <&ccu CLK_DRAM_CSI>;
-> > > +	clock-names = "bus", "mod", "ram";
-> > > +	resets = <&ccu RST_BUS_CSI>;
-> > > +
-> > > +	port {
-> > > +		/* Parallel bus endpoint */
-> > > +		csi1_ep: endpoint {
-> > > +			remote-endpoint = <&adv7611_ep>;
-> > > +			bus-width = <16>;
-> > > +
-> > > +			/* If hsync-active/vsync-active are missing,
-> > > +			   embedded BT.656 sync is used */
-> > > +			hsync-active = <0>; /* Active low */
-> > > +			vsync-active = <0>; /* Active low */
-> > > +			pclk-sample = <1>;  /* Rising */
-> > > +		};
-> > > +	};
-> > > +};
-
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 36f76e777ef9..755e446f699e 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -144,6 +144,8 @@ struct media_device_info {
+ /* Entity flags */
+ #define MEDIA_ENT_FL_DEFAULT			(1 << 0)
+ #define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
++#define MEDIA_ENT_FL_PAD_IDX			(1 << 2)
++#define MEDIA_ENT_FL_PROP_IDX			(1 << 3)
+ 
+ /* OR with the entity id value to find the next entity */
+ #define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+@@ -210,6 +212,8 @@ struct media_entity_desc {
+ #define MEDIA_PAD_FL_SINK			(1 << 0)
+ #define MEDIA_PAD_FL_SOURCE			(1 << 1)
+ #define MEDIA_PAD_FL_MUST_CONNECT		(1 << 2)
++#define MEDIA_PAD_FL_LINK_IDX			(1 << 3)
++#define MEDIA_PAD_FL_PROP_IDX			(1 << 4)
+ 
+ struct media_pad_desc {
+ 	__u32 entity;		/* entity ID */
+@@ -296,7 +300,9 @@ struct media_v2_entity {
+ 	char name[64];
+ 	__u32 function;		/* Main function of the entity */
+ 	__u32 flags;
+-	__u32 reserved[5];
++	__u16 pad_idx;
++	__u16 prop_idx;
++	__u32 reserved[4];
+ } __attribute__ ((packed));
+ 
+ /* Should match the specific fields at media_intf_devnode */
+@@ -305,11 +311,14 @@ struct media_v2_intf_devnode {
+ 	__u32 minor;
+ } __attribute__ ((packed));
+ 
++#define MEDIA_INTF_FL_LINK_IDX			(1 << 0)
++
+ struct media_v2_interface {
+ 	__u32 id;
+ 	__u32 intf_type;
+ 	__u32 flags;
+-	__u32 reserved[9];
++	__u16 link_idx;
++	__u16 reserved[17];
+ 
+ 	union {
+ 		struct media_v2_intf_devnode devnode;
+@@ -331,7 +340,9 @@ struct media_v2_pad {
+ 	__u32 entity_id;
+ 	__u32 flags;
+ 	__u32 index;
+-	__u32 reserved[4];
++	__u16 link_idx;
++	__u16 prop_idx;
++	__u32 reserved[3];
+ } __attribute__ ((packed));
+ 
+ struct media_v2_link {
+@@ -342,6 +353,54 @@ struct media_v2_link {
+ 	__u32 reserved[6];
+ } __attribute__ ((packed));
+ 
++#define MEDIA_PROP_TYPE_GROUP	1
++#define MEDIA_PROP_TYPE_U64	2
++#define MEDIA_PROP_TYPE_S64	3
++#define MEDIA_PROP_TYPE_STRING	4
++
++#define MEDIA_PROP_FL_PROP_IDX			(1 << 0)
++
++/**
++ * struct media_v2_prop - A media property
++ *
++ * @id:		The unique non-zero ID of this property
++ * @owner_id:	The ID of the object this property belongs to
++ * @type:	Property type
++ * @flags:	Property flags
++ * @name:	Property name
++ * @payload_size: Property payload size, 0 for U64/S64
++ * @payload_offset: Property payload starts at this offset from &prop.id.
++ *		This is 0 for U64/S64.
++ * @prop_idx:	Index to sub-properties, 0 means there are no sub-properties.
++ * @reserved:	Property reserved field, will be zeroed.
++ */
++struct media_v2_prop {
++	__u32 id;
++	__u32 owner_id;
++	__u32 type;
++	__u32 flags;
++	char name[32];
++	__u32 payload_size;
++	__u32 payload_offset;
++	__u16 prop_idx;
++	__u16 reserved[35];
++} __attribute__ ((packed));
++
++static inline const char *media_prop2s(const struct media_v2_prop *prop)
++{
++	return (const char *)prop + prop->payload_offset;
++}
++
++static inline __u64 media_prop2u64(const struct media_v2_prop *prop)
++{
++	return *(const __u64 *)((const char *)prop + prop->payload_offset);
++}
++
++static inline __s64 media_prop2s64(const struct media_v2_prop *prop)
++{
++	return *(const __s64 *)((const char *)prop + prop->payload_offset);
++}
++
+ struct media_v2_topology {
+ 	__u64 topology_version;
+ 
+@@ -360,6 +419,10 @@ struct media_v2_topology {
+ 	__u32 num_links;
+ 	__u32 reserved4;
+ 	__u64 ptr_links;
++
++	__u32 num_props;
++	__u32 props_payload_size;
++	__u64 ptr_props;
+ } __attribute__ ((packed));
+ 
+ /* ioctls */
+@@ -368,6 +431,8 @@ struct media_v2_topology {
+ #define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+ #define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
++/* Old MEDIA_IOC_G_TOPOLOGY ioctl without props support */
++#define MEDIA_IOC_G_TOPOLOGY_OLD 0xc0487c04
+ #define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+ 
+ #ifndef __KERNEL__
 -- 
-Terveisin,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.19.0
