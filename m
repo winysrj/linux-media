@@ -1,148 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:45865 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726934AbeI1TTr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Sep 2018 15:19:47 -0400
-Date: Fri, 28 Sep 2018 15:56:01 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Chen-Yu Tsai <wens@csie.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Yong Deng <yong.deng@magewell.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        David Miller <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Thierry Reding <treding@nvidia.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>
-Subject: Re: [PATCH v11 1/2] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-ID: <20180928125601.6ye5tvrmh57amvh5@paasikivi.fi.intel.com>
-References: <1537951204-24672-1-git-send-email-yong.deng@magewell.com>
- <20180928093833.gwmskm2jvby6x4s6@paasikivi.fi.intel.com>
- <14114604.4rraf0qJLU@avalon>
- <20180928102345.r2g342tg5mgcwfw6@paasikivi.fi.intel.com>
- <CAGb2v65YpPRHb5YiGJhC8NX5F5i3+1rW5y6Dq5L+pNN3U_uLdQ@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:52598 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726291AbeI1TQU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Sep 2018 15:16:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrea Merello <andrea.merello@gmail.com>
+Cc: hyun.kwon@xilinx.com, mchehab@kernel.org, michal.simek@xilinx.com,
+        linux-media@vger.kernel.org, Mirco Di Salvo <mirco.disalvo@iit.it>
+Subject: Re: [PATCH] [media] v4l: xilinx: fix typo in formats table
+Date: Fri, 28 Sep 2018 15:52:55 +0300
+Message-ID: <1859576.n3v8JWS4oW@avalon>
+In-Reply-To: <20180928073213.10022-1-andrea.merello@gmail.com>
+References: <20180928073213.10022-1-andrea.merello@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGb2v65YpPRHb5YiGJhC8NX5F5i3+1rW5y6Dq5L+pNN3U_uLdQ@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chen-Yu,
+Hi Andrea,
 
-On Fri, Sep 28, 2018 at 07:10:58PM +0800, Chen-Yu Tsai wrote:
-> On Fri, Sep 28, 2018 at 6:23 PM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> >
-> > Hi Laurent,
-> >
-> > On Fri, Sep 28, 2018 at 12:45:12PM +0300, Laurent Pinchart wrote:
-> > > Hi Sakari,
-> > >
-> > > On Friday, 28 September 2018 12:38:33 EEST Sakari Ailus wrote:
-> > > > On Wed, Sep 26, 2018 at 04:40:04PM +0800, Yong Deng wrote:
-> > > > > Add binding documentation for Allwinner V3s CSI.
-> > > > >
-> > > > > Acked-by: Maxime Ripard <maxime.ripard@bootlin.com>
-> > > > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > >
-> > > > I know... but I have a few more comments.
-> > > >
-> > > > > Reviewed-by: Rob Herring <robh@kernel.org>
-> > > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > > > > ---
-> > > > >
-> > > > >  .../devicetree/bindings/media/sun6i-csi.txt        | 59 +++++++++++++++++
-> > > > >  1 file changed, 59 insertions(+)
-> > > > >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > >
-> > > > > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > > b/Documentation/devicetree/bindings/media/sun6i-csi.txt new file mode
-> > > > > 100644
-> > > > > index 000000000000..2ff47a9507a6
-> > > > > --- /dev/null
-> > > > > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > > @@ -0,0 +1,59 @@
-> > > > > +Allwinner V3s Camera Sensor Interface
-> > > > > +-------------------------------------
-> > > > > +
-> > > > > +Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> > > > > +interface and CSI1 is used for parallel interface.
-> > > > > +
-> > > > > +Required properties:
-> > > > > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> > > > > +  - reg: base address and size of the memory-mapped region.
-> > > > > +  - interrupts: interrupt associated to this IP
-> > > > > +  - clocks: phandles to the clocks feeding the CSI
-> > > > > +    * bus: the CSI interface clock
-> > > > > +    * mod: the CSI module clock
-> > > > > +    * ram: the CSI DRAM clock
-> > > > > +  - clock-names: the clock names mentioned above
-> > > > > +  - resets: phandles to the reset line driving the CSI
-> > > > > +
-> > > > > +Each CSI node should contain one 'port' child node with one child
-> > > > > 'endpoint' +node, according to the bindings defined in
-> > > > > +Documentation/devicetree/bindings/media/video-interfaces.txt. As
-> > > > > mentioned
-> > > > > +above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel
-> > > > > or +Bt656 for CSI1.
-> > > >
-> > > > Which port represents CSI0 and which one is CSI1? That needs to be
-> > > > documented.
-> > >
-> > > There are two CSI devices, named CSI0 and CSI1, with one port each. The CSI0
-> > > device supports CSI-2 only, and the CSI1 device parallel (BT.601 or BT.656)
-> > > only.
-> > >
-> > > > > +
-> > > > > +Endpoint node properties for CSI1
-> > > >
-> > > > How about CSI0? I'd expect at least data-lanes, and clock-lanes as well if
-> > > > the hardware supports lane mapping.
-> > >
-> > > I enquired about that too. As far as I understand, CSI0 isn't supported yet in
-> > > the driver due to lack of documentation and lack of open-source vendor-
-> > > provided source code. While DT bindings are not tied to driver
-> > > implementations, it's not the best idea to design DT bindings without at least
-> > > one working implementation to test them. I thus proposed just listing CSI0 as
-> > > being unsupported for now.
-> >
-> > Ack.
-> >
-> > We should still define which receiver corresponds to a given port. Probably
-> > 1 for CSI1 would make sense, in order to avoid changing the order the
-> > hardware already uses. 0 doesn't need to be documented no IMO.
-> >
-> > What do you think?
-> 
-> AFAICT it would be a completely seperate node, since they have different address
-> spaces, clocks and reset controls. So there's no possibility of confusion.
-> 
-> According to Yong, CSI0 is tied internally to some unknown MIPI CSI2-receiver,
-> which is the undocumented part. CSI1 has its parallel data pins exposed to the
-> outside.
+Thank you for the patch.
 
-Thanks for clearing up the confusion. If these are truly different kinds of
-devices, then don't they also deserve different compatible strings? And
-possibly also different DT binding documentation in a separate file.
+On Friday, 28 September 2018 10:32:13 EEST Andrea Merello wrote:
+> In formats table the entry for CFA pattern "rggb" has GRBG fourcc.
+> This patch fixes it.
+> 
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Mirco Di Salvo <mirco.disalvo@iit.it>
+> Signed-off-by: Andrea Merello <andrea.merello@gmail.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Michal, should I take the patch in my tree ?
+
+> ---
+>  drivers/media/platform/xilinx/xilinx-vip.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/xilinx/xilinx-vip.c
+> b/drivers/media/platform/xilinx/xilinx-vip.c index
+> 311259129504..e9567cdfb89b 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vip.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vip.c
+> @@ -36,7 +36,7 @@ static const struct xvip_video_format xvip_video_formats[]
+> = { { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
+>  	  1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
+>  	{ XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
+> -	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
+> +	  1, V4L2_PIX_FMT_SRGGB8, "Bayer 8-bit RGGB" },
+>  	{ XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
+>  	  1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
+>  	{ XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
 
 -- 
 Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Laurent Pinchart
