@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42342 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726121AbeI1Uo7 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:39765 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726665AbeI1UYP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Sep 2018 16:44:59 -0400
-Subject: Re: [PATCH 3/5] Documentation: media: Document control exponential
- bases, units, prefixes
+        Fri, 28 Sep 2018 16:24:15 -0400
+Subject: Re: [PATCH 2/5] v4l: controls: Add support for exponential bases,
+ prefixes and units
 To: Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org
 Cc: tfiga@chromium.org, bingbu.cao@intel.com, jian.xu.zheng@intel.com,
@@ -15,280 +15,101 @@ Cc: tfiga@chromium.org, bingbu.cao@intel.com, jian.xu.zheng@intel.com,
         helmut.grohne@intenta.de, laurent.pinchart@ideasonboard.com,
         snawrocki@kernel.org
 References: <20180925101434.20327-1-sakari.ailus@linux.intel.com>
- <20180925101434.20327-4-sakari.ailus@linux.intel.com>
+ <20180925101434.20327-3-sakari.ailus@linux.intel.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9393e0c9-1808-35e0-1b22-9d2e9823f8cf@xs4all.nl>
-Date: Fri, 28 Sep 2018 16:20:55 +0200
+Message-ID: <ed5a453b-41d3-6ab5-2bc2-8cab309ac749@xs4all.nl>
+Date: Fri, 28 Sep 2018 16:00:17 +0200
 MIME-Version: 1.0
-In-Reply-To: <20180925101434.20327-4-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180925101434.20327-3-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 On 09/25/2018 12:14 PM, Sakari Ailus wrote:
-> Document V4L2 control exponential bases, units and prefixes, as well as
-> the control flag telling a control value is an exponent.
+> Add support for exponential bases, prefixes as well as units for V4L2
+> controls. This makes it possible to convey information on the relation
+> between the control value and the hardware feature being controlled.
 > 
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  Documentation/media/uapi/v4l/extended-controls.rst |   2 +
->  Documentation/media/uapi/v4l/vidioc-queryctrl.rst  | 152 ++++++++++++++++++++-
->  Documentation/media/videodev2.h.rst.exceptions     |  22 +++
->  3 files changed, 175 insertions(+), 1 deletion(-)
+>  include/uapi/linux/videodev2.h | 32 +++++++++++++++++++++++++++++++-
+>  1 file changed, 31 insertions(+), 1 deletion(-)
 > 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index 9f7312bf33651..8461fd92d1b9e 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -3460,6 +3460,8 @@ Image Process Control IDs
->      by selecting the desired horizontal and vertical blanking. The unit
->      of this control is Hz.
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index ae083978988f1..23b02f2db85a1 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1652,6 +1652,32 @@ struct v4l2_queryctrl {
+>  	__u32		     reserved[2];
+>  };
 >  
-> +.. _v4l2_cid_pixel_rate:
+> +/* V4L2 control exponential bases */
+> +#define V4L2_CTRL_BASE_UNDEFINED	0
+> +#define V4L2_CTRL_BASE_LINEAR		1
+
+I'm not really sure you need BASE_LINEAR. That is effectively the same
+as UNDEFINED since what else can you do? It's also weird to have this
+as 'base' if the EXPONENTIAL flag is set.
+
+I don't see why you need the EXPONENTIAL flag at all: if this is non-0,
+then you know the exponential base.
+
+> +#define V4L2_CTRL_BASE_2		2
+> +#define V4L2_CTRL_BASE_10		10
 > +
->  ``V4L2_CID_PIXEL_RATE (64-bit integer)``
->      Pixel rate in the source pads of the subdev. This control is
->      read-only and its unit is pixels / second.
-> diff --git a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> index ff2d131223b84..472378f5d7566 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-queryctrl.rst
-> @@ -269,8 +269,22 @@ See also the examples in :ref:`control`.
->        - ``dims[V4L2_CTRL_MAX_DIMS]``
->        - The size of each dimension. The first ``nr_of_dims`` elements of
->  	this array must be non-zero, all remaining elements must be zero.
-> +    * - __u8
-> +      - ``base``
-> +      - The exponential base of the control value. Valid only if the
-> +	:ref:`V4L2_CTRL_FLAG_EXPONENTIAL <FLAG_EXPONENTIAL>` control flag is
-> +	set. This is an enumeration.
-> +    * - __u8
-> +      - ``prefix``
-> +      - Prefix of the unit. This is an enumeration.
-> +    * - __u16
-> +      - ``unit``
-> +      - Unit of the value. Together with the ``prefix`` as well as the ``base``
-> +	field (if :ref:`V4L2_CTRL_FLAG_EXPONENTIAL <FLAG_EXPONENTIAL>` is set),
-> +	defines the relation between the control value and the property of the
-> +	hardware being controlled. This is an enumeration.
->      * - __u32
-> -      - ``reserved``\ [32]
-> +      - ``reserved``\ [31]
->        - Reserved for future extensions. Applications and drivers must set
->  	the array to zero.
+> +/* V4L2 control unit prefixes */
+> +#define V4L2_CTRL_PREFIX_NANO		-9
+> +#define V4L2_CTRL_PREFIX_MICRO		-6
+> +#define V4L2_CTRL_PREFIX_MILLI		-3
+> +#define V4L2_CTRL_PREFIX_1		0
+
+I would prefer PREFIX_NONE, since there is no prefix in this case.
+
+I assume this prefix is only valid if the unit is not UNDEFINED and not
+NONE?
+
+Is 'base' also dependent on a valid unit? (it doesn't appear to be)
+
+> +#define V4L2_CTRL_PREFIX_KILO		3
+> +#define V4L2_CTRL_PREFIX_MEGA		6
+> +#define V4L2_CTRL_PREFIX_GIGA		9
+> +
+> +/* V4L2 control units */
+> +#define V4L2_CTRL_UNIT_UNDEFINED	0
+> +#define V4L2_CTRL_UNIT_NONE		1
+> +#define V4L2_CTRL_UNIT_SECOND		2
+> +#define V4L2_CTRL_UNIT_AMPERE		3
+> +#define V4L2_CTRL_UNIT_LINE		4
+> +#define V4L2_CTRL_UNIT_PIXEL		5
+> +#define V4L2_CTRL_UNIT_PIXELS_PER_SEC	6
+> +#define V4L2_CTRL_UNIT_HZ		7
+> +
+> +
+>  /*  Used in the VIDIOC_QUERY_EXT_CTRL ioctl for querying extended controls */
+>  struct v4l2_query_ext_ctrl {
+>  	__u32		     id;
+> @@ -1666,7 +1692,10 @@ struct v4l2_query_ext_ctrl {
+>  	__u32                elems;
+>  	__u32                nr_of_dims;
+>  	__u32                dims[V4L2_CTRL_MAX_DIMS];
+> -	__u32		     reserved[32];
+> +	__u8		     base;
+> +	__s8		     prefix;
+> +	__u16		     unit;
+> +	__u32		     reserved[31];
+>  };
 >  
-> @@ -523,6 +537,142 @@ See also the examples in :ref:`control`.
->  	streaming is in progress since most drivers do not support changing
->  	the format in that case.
+>  /*  Used in the VIDIOC_QUERYMENU ioctl for querying menu items */
+> @@ -1692,6 +1721,7 @@ struct v4l2_querymenu {
+>  #define V4L2_CTRL_FLAG_HAS_PAYLOAD	0x00000100
+>  #define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE	0x00000200
+>  #define V4L2_CTRL_FLAG_MODIFY_LAYOUT	0x00000400
+> +#define V4L2_CTRL_FLAG_EXPONENTIAL	0x00000800
 >  
-> +    * .. _FLAG_EXPONENTIAL:
-> +
-> +      - ``V4L2_CTRL_FLAG_EXPONENTIAL``
-> +      - 0x00000800
-> +
-> +      - The value of the control has an exponential relation to the feature
-> +	being controled instead of a linear relation. In other words, the value
-
-controled -> controlled
-
-> +	of the control is an exponent of the base specified in the
-> +        base field in &struct v4l2_query_ext_ctrl.
-
-It would be nice if you can add some math here. See colorspaces-details.rst
-for examples of that.
-
-> +
-> +
-> +.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-> +
-> +.. _control-bases:
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: Control Exponential Bases
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +    :widths:       3 1 4
-> +
-> +    * - Base Name
-> +      - Value
-> +      - Description
-> +
-> +    * - ``V4L2_CTRL_BASE_UNDEFINED``
-> +      - 0
-> +      - The control exponential base is not defined.
-> +
-> +    * - ``V4L2_CTRL_BASE_LINEAR``
-> +      - 1
-> +      - The control is linear.
-> +
-> +    * - ``V4L2_CTRL_BASE_2``
-> +      - 2
-> +      - The base of the control is 2.
-> +
-> +    * - ``V4L2_CTRL_BASE_10``
-> +      - 10
-> +      - The base of the control is 10.
-> +
-> +.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-> +
-> +.. _control-prefixes:
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: Control Prefixes
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +    :widths:       3 1 4
-> +
-> +    * - Prefix Name
-> +      - Value
-> +      - Description
-> +
-> +    * - ``V4L2_CTRL_PREFIX_NANO``
-> +      - -9
-> +      - Nano
-> +
-> +    * - ``V4L2_CTRL_PREFIX_MICRO``
-> +      - -6
-> +      - Micro
-> +
-> +    * - ``V4L2_CTRL_PREFIX_MILLI``
-> +      - -3
-> +      - Milli
-> +
-> +    * - ``V4L2_CTRL_PREFIX_1``
-> +      - 0
-> +      - \-
-> +
-> +    * - ``V4L2_CTRL_PREFIX_KILO``
-> +      - 3
-> +      - Kilo
-> +
-> +    * - ``V4L2_CTRL_PREFIX_MEGA``
-> +      - 6
-> +      - Mega
-> +
-> +    * - ``V4L2_CTRL_PREFIX_GIGA``
-> +      - 9
-> +      - Giga
-> +
-> +.. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
-> +
-> +.. _control-units:
-> +
-> +.. cssclass:: longtable
-> +
-> +.. flat-table:: Control Units
-> +    :header-rows:  1
-> +    :stub-columns: 0
-> +    :widths:       3 1 4
-> +
-> +    * - Unit Name
-> +      - Value
-> +      - Description
-> +
-> +    * - ``V4L2_CTRL_UNIT_UNDEFINED``
-> +      - 0
-> +      - The unit of the control is not defined.
-> +
-> +    * - ``V4L2_CTRL_UNIT_NONE``
-> +      - 1
-> +      - The control has no unit.
-> +
-> +    * - ``V4L2_CTRL_UNIT_SECOND``
-> +      - 2
-> +      - Second
-> +
-> +    * - ``V4L2_CTRL_UNIT_AMPERE``
-> +      - 3
-> +      - Ampère
-> +
-> +    * - ``V4L2_CTRL_UNIT_LINE``
-> +      - 4
-> +      - A line of pixels in sensor's pixel matrix. This is a unit of time
-> +        commonly used by camera sensors in e.g. exposure control, i.e. the time
-> +        it takes for a sensor to read a line of pixels from the sensor's pixel
-> +	matrix. See :ref:`V4L2_CID_PIXEL_RATE <V4L2_CID_PIXEL_RATE>`.
-
-That's a bad name. I'd call it a PIXEL_LINE or FRAME_LINE or something like that.
-When I first saw the define I thought it applied to a gpio line or a bus line or
-something like that.
-
-> +
-> +    * - ``V4L2_CTRL_UNIT_PIXEL``
-> +      - 5
-> +      - A pixel in sensor's pixel matrix. This is a unit of time commonly used
-> +        by camera sensors in e.g. exposure control, i.e. the time it takes for
-> +	a sensor to read a pixel from the sensor's pixel matrix.
-> +
-> +    * - ``V4L2_CTRL_UNIT_PIXEL``
-
-Duplicate name as above. You meant PIXELS_PER_SECOND.
-
-I use this technique these days to avoid having to add defines to the videodev2.h.rst.exceptions
-file:
-
-    * .. _`V4L2-CTRL-UNIT-PIXEL`:
-
-      - ``V4L2_CTRL_UNIT_PIXEL``
-      - 5
-      - A pixel in sensor's pixel matrix. This is a unit of time commonly used
-        by camera sensors in e.g. exposure control, i.e. the time it takes for
-	a sensor to read a pixel from the sensor's pixel matrix.
-
-> +      - 6
-> +      - Pixels per second
-> +
-> +    * - ``V4L2_CTRL_UNIT_HZ
-> +      - 7
-> +      - Hertz
->  
->  Return Value
->  ============
-> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-> index 63fa131729c09..8183a4f3554b0 100644
-> --- a/Documentation/media/videodev2.h.rst.exceptions
-> +++ b/Documentation/media/videodev2.h.rst.exceptions
-> @@ -343,11 +343,33 @@ replace define V4L2_CTRL_FLAG_VOLATILE control-flags
->  replace define V4L2_CTRL_FLAG_HAS_PAYLOAD control-flags
->  replace define V4L2_CTRL_FLAG_EXECUTE_ON_WRITE control-flags
->  replace define V4L2_CTRL_FLAG_MODIFY_LAYOUT control-flags
-> +replace define V4L2_CTRL_FLAG_EXPONENTIAL control-flags
->  
->  replace define V4L2_CTRL_FLAG_NEXT_CTRL control
->  replace define V4L2_CTRL_FLAG_NEXT_COMPOUND control
->  replace define V4L2_CID_PRIVATE_BASE control
->  
-> +# V4L2 control bases, prefixes and units
-> +replace define V4L2_CTRL_BASE_UNDEFINED control-bases
-> +replace define V4L2_CTRL_BASE_LINEAR control-bases
-> +replace define V4L2_CTRL_BASE_2 control-bases
-> +replace define V4L2_CTRL_BASE_10 control-bases
-> +
-> +replace define V4L2_CTRL_PREFIX_NANO control-prefixes
-> +replace define V4L2_CTRL_PREFIX_MICRO control-prefixes
-> +replace define V4L2_CTRL_PREFIX_MILLI control-prefixes
-> +replace define V4L2_CTRL_PREFIX_1 control-prefixes
-> +replace define V4L2_CTRL_PREFIX_KILO control-prefixes
-> +replace define V4L2_CTRL_PREFIX_MEGA control-prefixes
-> +replace define V4L2_CTRL_PREFIX_GIGA control-prefixes
-> +
-> +replace define V4L2_CTRL_UNIT_UNDEFINED control-units
-> +replace define V4L2_CTRL_UNIT_NONE control-units
-> +replace define V4L2_CTRL_UNIT_SECOND control-units
-> +replace define V4L2_CTRL_UNIT_AMPERE control-units
-> +replace define V4L2_CTRL_UNIT_LINE control-units
-> +replace define V4L2_CTRL_UNIT_PIXEL control-units
-
-You need to add PIXELS_PER_SECOND here as well.
-
-> +
->  # V4L2 tuner
->  
->  replace define V4L2_TUNER_CAP_LOW tuner-capability
+>  /*  Query flags, to be ORed with the control ID */
+>  #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
 > 
 
 Regards,
