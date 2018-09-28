@@ -1,181 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:57047 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53545 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729308AbeI1SIu (ORCPT
+        by vger.kernel.org with ESMTP id S1729257AbeI1SRb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Sep 2018 14:08:50 -0400
-Subject: Re: [PATCH v3 0/2] media: platform: Add Aspeed Video Engine Driver
-To: Eddie James <eajames@linux.ibm.com>, linux-kernel@vger.kernel.org
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
-        linux-aspeed@lists.ozlabs.org, andrew@aj.id.au,
-        openbmc@lists.ozlabs.org, robh+dt@kernel.org,
-        linux-media@vger.kernel.org, mchehab@kernel.org, joel@jms.id.au
-References: <1537903629-14003-1-git-send-email-eajames@linux.ibm.com>
+        Fri, 28 Sep 2018 14:17:31 -0400
+Subject: Re: [PATCH v6 1/6] dt-bindings: Document the Rockchip VPU bindings
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>
+References: <20180917173022.9338-1-ezequiel@collabora.com>
+ <20180917173022.9338-2-ezequiel@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <71bf665e-6d9b-a8f9-8e8f-7354dd095cc9@xs4all.nl>
-Date: Fri, 28 Sep 2018 13:45:23 +0200
+Message-ID: <2184b772-2b40-289f-5537-7ebb693479fd@xs4all.nl>
+Date: Fri, 28 Sep 2018 13:53:56 +0200
 MIME-Version: 1.0
-In-Reply-To: <1537903629-14003-1-git-send-email-eajames@linux.ibm.com>
+In-Reply-To: <20180917173022.9338-2-ezequiel@collabora.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eddie,
-
-On 09/25/2018 09:27 PM, Eddie James wrote:
-> The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
-> can capture and compress video data from digital or analog sources. With
-> the Aspeed chip acting as a service processor, the Video Engine can
-> capture the host processor graphics output.
+On 09/17/2018 07:30 PM, Ezequiel Garcia wrote:
+> Add devicetree binding documentation for Rockchip Video Processing
+> Unit IP.
 > 
-> This series adds a V4L2 driver for the VE, providing the usual V4L2 streaming
-> interface by way of videobuf2. Each frame, the driver triggers the hardware to
-> capture the host graphics output and compress it to JPEG format.
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  .../bindings/media/rockchip-vpu.txt           | 30 +++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rockchip-vpu.txt b/Documentation/devicetree/bindings/media/rockchip-vpu.txt
+> new file mode 100644
+> index 000000000000..5e0d421301ca
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/rockchip-vpu.txt
+> @@ -0,0 +1,30 @@
+> +device-tree bindings for rockchip VPU codec
+> +
+> +Rockchip (Video Processing Unit) present in various Rockchip platforms,
+> +such as RK3288 and RK3399.
+> +
+> +Required properties:
+> +- compatible: value should be one of the following
+> +		"rockchip,rk3288-vpu";
+> +		"rockchip,rk3399-vpu";
+> +- interrupts: encoding and decoding interrupt specifiers
+> +- interrupt-names: should be "vepu" and "vdpu"
+> +- clocks: phandle to VPU aclk, hclk clocks
+> +- clock-names: should be "aclk" and "hclk"
+> +- power-domains: phandle to power domain node
+> +- iommus: phandle to a iommu node
+> +
+> +Example:
+> +SoC-specific DT entry:
+> +	vpu: video-codec@ff9a0000 {
+> +		compatible = "rockchip,rk3288-vpu";
+> +		reg = <0x0 0xff9a0000 0x0 0x800>;
+> +		interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
+> +			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
+> +		interrupt-names = "vepu", "vdpu";
+> +		clocks = <&cru ACLK_VCODEC>, <&cru HCLK_VCODEC>;
+> +		clock-names = "aclk", "hclk";
+> +		power-domains = <&power RK3288_PD_VIDEO>;
+> +		iommus = <&vpu_mmu>;
+> +	};
+> +
+> 
 
-This is starting to look really nice. Are the performance issues you had originally
-with the streaming API now solved?
+Please remove this empty last line to avoid this warning:
 
-I reviewed patch 2/2 and I think it is best if you incorporate my comments and post
-a v4. At that point I will take a closer look at the DV_TIMINGS implementation in the
-driver, esp. enum_dv_timings and dv_timings_cap.
+.git/rebase-apply/patch:41: new blank line at EOF.
 
-In any case, I am much happier about this v3, this was a big step forward.
-
-Thank you for all your work!
+Thanks!
 
 	Hans
-
-> 
-> I was unable to cross compile v4l2-compliance for ARM with our OpenBMC
-> toolchain. Although bootstrap, configure, and make were successful, no binaries
-> were generated... I was able to build v4l-utils 1.12.3 from the OpenEmbedded
-> project, with the output below:
-> 
-> v4l2-compliance SHA   : not available
-> 
-> Driver Info:
-> 	Driver name   : aspeed-video
-> 	Card type     : Aspeed Video Engine
-> 	Bus info      : platform:aspeed-video
-> 	Driver version: 4.18.8
-> 	Capabilities  : 0x85200001
-> 		Video Capture
-> 		Read/Write
-> 		Streaming
-> 		Extended Pix Format
-> 		Device Capabilities
-> 	Device Caps   : 0x05200001
-> 		Video Capture
-> 		Read/Write
-> 		Streaming
-> 		Extended Pix Format
-> 
-> Compliance test for device /dev/video0 (not using libv4l2):
-> 
-> Required ioctls:
-> 	test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
-> 	test second video open: OK
-> 	test VIDIOC_QUERYCAP: OK
-> 	test VIDIOC_G/S_PRIORITY: OK
-> 	test for unlimited opens: OK
-> 
-> Debug ioctls:
-> 	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-> 	test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
-> 	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMINPUT: OK
-> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-> 	Inputs: 1 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
-> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
-> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK
-> 	test VIDIOC_DV_TIMINGS_CAP: OK
-> 	test VIDIOC_G/S_EDID: OK
-> 
-> Test input 0:
-> 
-> 	Control ioctls:
-> 		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-> 		test VIDIOC_QUERYCTRL: OK
-> 		test VIDIOC_G/S_CTRL: OK
-> 		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-> 		warn: ../../../v4l-utils-1.12.3/utils/v4l2-compliance/v4l2-test-controls.cpp(811): V4L2_CID_DV_RX_POWER_PRESENT not found for input 0
-> 		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-> 		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> 		Standard Controls: 3 Private Controls: 0
-> 
-> 	Format ioctls:
-> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> 		test VIDIOC_G/S_PARM: OK
-> 		test VIDIOC_G_FBUF: OK (Not Supported)
-> 		test VIDIOC_G_FMT: OK
-> 		test VIDIOC_TRY_FMT: OK
-> 		test VIDIOC_S_FMT: OK
-> 		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 		test Cropping: OK (Not Supported)
-> 		test Composing: OK (Not Supported)
-> 		test Scaling: OK (Not Supported)
-> 
-> 	Codec ioctls:
-> 		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-> 		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-> 		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
-> 	Buffer ioctls:
-> 		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> 		test VIDIOC_EXPBUF: OK (Not Supported)
-> 
-> Test input 0:
-> 
-> Streaming ioctls:
-> 	test read/write: OK
-> 	test MMAP: OK                                     
-> 	test USERPTR: OK (Not Supported)
-> 	test DMABUF: OK (Not Supported)
-> 
-> 
-> Total: 47, Succeeded: 47, Failed: 0, Warnings: 1
-> 
-> Changes since v2:
->  - Switch to streaming interface. This involved a lot of changes.
->  - Rework memory allocation due to using videobuf2 buffers, but also only
->    allocate the necessary size of source buffer rather than the max size
-> 
-> Changes since v1:
->  - Removed le32_to_cpu calls for JPEG header data
->  - Reworked v4l2 ioctls to be compliant.
->  - Added JPEG controls
->  - Updated devicetree docs according to Rob's suggestions.
->  - Added myself to MAINTAINERS
-> 
-> Eddie James (2):
->   dt-bindings: media: Add Aspeed Video Engine binding documentation
->   media: platform: Add Aspeed Video Engine driver
-> 
->  .../devicetree/bindings/media/aspeed-video.txt     |   26 +
->  MAINTAINERS                                        |    8 +
->  drivers/media/platform/Kconfig                     |    8 +
->  drivers/media/platform/Makefile                    |    1 +
->  drivers/media/platform/aspeed-video.c              | 1645 ++++++++++++++++++++
->  5 files changed, 1688 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/aspeed-video.txt
->  create mode 100644 drivers/media/platform/aspeed-video.c
-> 
