@@ -1,117 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:58964 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726271AbeI1Jx4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34882 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726106AbeI1NZc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Sep 2018 05:53:56 -0400
-Message-ID: <039906f3f80df1d2a80344d86f49ea04@smtp-cloud9.xs4all.net>
-Date: Fri, 28 Sep 2018 05:32:18 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Fri, 28 Sep 2018 09:25:32 -0400
+Date: Fri, 28 Sep 2018 10:03:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH 3/4] media: dt-bindings: media: Document
+ pclk-max-frequency property
+Message-ID: <20180928070312.a22olexufppfejes@valkosipuli.retiisi.org.uk>
+References: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
+ <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hugues,
 
-Results of the daily build of media_tree:
+On Thu, Sep 27, 2018 at 04:46:06PM +0200, Hugues Fruchet wrote:
+> This optional property aims to inform parallel video devices
+> of the maximum pixel clock frequency admissible by host video
+> interface. If bandwidth of data to be transferred requires a
+> pixel clock which is higher than this value, parallel video
+> device could then typically adapt framerate to reach
+> this constraint.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index baf9d97..fa4c112 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -147,6 +147,8 @@ Optional endpoint properties
+>    as 0 (normal). This property is valid for serial busses only.
+>  - strobe: Whether the clock signal is used as clock (0) or strobe (1). Used
+>    with CCP2, for instance.
+> +- pclk-max-frequency: maximum pixel clock frequency admissible by video
+> +  host interface.
 
-date:			Fri Sep 28 05:00:11 CEST 2018
-media-tree git hash:	4158757395b300b6eb308fc20b96d1d231484413
-media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
-v4l-utils git hash:	3874aa8eb1ff0c2e103d024ba5af915b1b26f098
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.10-marune
+Is there a limit on the pixel clock or the link frequency?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.158-i686: OK
-linux-4.4.158-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.129-i686: OK
-linux-4.9.129-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.72-i686: OK
-linux-4.14.72-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.10-i686: OK
-linux-4.18.10-x86_64: OK
-linux-4.19-rc5-i686: OK
-linux-4.19-rc5-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+We do have a property for the link frequency and a control for the pixel
+lock as well as for the link frequency. Could these be used for the
+purpose?
 
-Detailed results are available here:
+The link frequency in general should be specified for the board, and that
+limits the pixel clock as well in the case the bus transfers a given number
+of pixels per clock.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+The OMAP3ISP driver also address this by reading back the pixel clock from
+the sensor before starting streaming.
 
-Full logs are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
