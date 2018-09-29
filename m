@@ -1,73 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:38051 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726999AbeI3CYQ (ORCPT
+Received: from mail-pf1-f193.google.com ([209.85.210.193]:38806 "EHLO
+        mail-pf1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728015AbeI3CYr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Sep 2018 22:24:16 -0400
+        Sat, 29 Sep 2018 22:24:47 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sebastian Reichel <sre@kernel.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Tomasz Figa <tfiga@chromium.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [RESEND PATCH v7 01/17] media: v4l2-fwnode: ignore endpoints that have no remote port parent
-Date: Sat, 29 Sep 2018 12:54:04 -0700
-Message-Id: <20180929195420.28579-2-slongerbeam@gmail.com>
+Subject: [RESEND PATCH v7 12/17] media: staging/imx: Rename root notifier
+Date: Sat, 29 Sep 2018 12:54:15 -0700
+Message-Id: <20180929195420.28579-13-slongerbeam@gmail.com>
 In-Reply-To: <20180929195420.28579-1-slongerbeam@gmail.com>
 References: <20180929195420.28579-1-slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation/devicetree/bindings/media/video-interfaces.txt states that
-the 'remote-endpoint' property is optional.
-
-So v4l2_async_notifier_fwnode_parse_endpoint() should not return error
-if the endpoint has no remote port parent. Just ignore the endpoint,
-skip adding an asd to the notifier and return 0.
-__v4l2_async_notifier_parse_fwnode_endpoints() will then continue
-parsing the remaining port endpoints of the device.
+Rename the imx-media root async notifier from "subdev_notifier" to
+simply "notifier", so as not to confuse it with true subdev notifiers.
+No functional changes.
 
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Changes since v6:
-- none
-Changes since v5:
-- none
-Changes since v4:
-- none
-Changes since v3:
-- none
-Changes since v2:
-- none
-Changes since v1:
-- don't pass an empty endpoint to the parse_endpoint callback,
-  v4l2_async_notifier_fwnode_parse_endpoint() now just ignores them
-  and returns success. The current users of
-  v4l2_async_notifier_parse_fwnode_endpoints() (omap3isp, rcar-vin,
-  intel-ipu3) no longer need modification.
----
- drivers/media/v4l2-core/v4l2-fwnode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/imx/imx-media-dev.c | 14 +++++++-------
+ drivers/staging/media/imx/imx-media.h     |  2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-index 169bdbb1f61a..0b8c736b1606 100644
---- a/drivers/media/v4l2-core/v4l2-fwnode.c
-+++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-@@ -367,7 +367,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
- 		fwnode_graph_get_remote_port_parent(endpoint);
- 	if (!asd->match.fwnode) {
- 		dev_warn(dev, "bad remote port parent\n");
--		ret = -EINVAL;
-+		ret = -ENOTCONN;
- 		goto out_err;
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index 718954f969bd..a9faee4b2495 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -29,7 +29,7 @@
+ 
+ static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
+ {
+-	return container_of(n, struct imx_media_dev, subdev_notifier);
++	return container_of(n, struct imx_media_dev, notifier);
+ }
+ 
+ /*
+@@ -113,7 +113,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 
+ 	list_add_tail(&imxasd->list, &imxmd->asd_list);
+ 
+-	imxmd->subdev_notifier.num_subdevs++;
++	imxmd->notifier.num_subdevs++;
+ 
+ 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
+ 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
+@@ -532,7 +532,7 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		goto unreg_dev;
  	}
  
+-	num_subdevs = imxmd->subdev_notifier.num_subdevs;
++	num_subdevs = imxmd->notifier.num_subdevs;
+ 
+ 	/* no subdevs? just bail */
+ 	if (num_subdevs == 0) {
+@@ -552,10 +552,10 @@ static int imx_media_probe(struct platform_device *pdev)
+ 		subdevs[i++] = &imxasd->asd;
+ 
+ 	/* prepare the async subdev notifier and register it */
+-	imxmd->subdev_notifier.subdevs = subdevs;
+-	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
++	imxmd->notifier.subdevs = subdevs;
++	imxmd->notifier.ops = &imx_media_subdev_ops;
+ 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
+-					   &imxmd->subdev_notifier);
++					   &imxmd->notifier);
+ 	if (ret) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+ 			 "v4l2_async_notifier_register failed with %d\n", ret);
+@@ -580,7 +580,7 @@ static int imx_media_remove(struct platform_device *pdev)
+ 
+ 	v4l2_info(&imxmd->v4l2_dev, "Removing imx-media\n");
+ 
+-	v4l2_async_notifier_unregister(&imxmd->subdev_notifier);
++	v4l2_async_notifier_unregister(&imxmd->notifier);
+ 	imx_media_remove_internal_subdevs(imxmd);
+ 	v4l2_device_unregister(&imxmd->v4l2_dev);
+ 	media_device_unregister(&imxmd->md);
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index 57bd094cf765..227b79ccc194 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -150,7 +150,7 @@ struct imx_media_dev {
+ 
+ 	/* for async subdev registration */
+ 	struct list_head asd_list;
+-	struct v4l2_async_notifier subdev_notifier;
++	struct v4l2_async_notifier notifier;
+ };
+ 
+ enum codespace_sel {
 -- 
 2.17.1
