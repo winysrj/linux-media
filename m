@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38025 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727865AbeI2Rxt (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:52836 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727865AbeI2S26 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Sep 2018 13:53:49 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: zoran: fix spelling mistake "queing" -> "queuing"
-Date: Sat, 29 Sep 2018 12:25:39 +0100
-Message-Id: <20180929112539.9667-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+        Sat, 29 Sep 2018 14:28:58 -0400
+From: Srinu Gorle <sgorle@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        sgorle@codeaurora.org
+Cc: acourbot@chromium.org, vgarodia@codeaurora.org
+Subject: [PATCH v1 0/5] Venus - Decode reconfig sequence
+Date: Sat, 29 Sep 2018 17:30:27 +0530
+Message-Id: <1538222432-25894-1-git-send-email-sgorle@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Hello,
 
-Trivial fix to spelling mistake in kernel warning message
+The patch set mainly adds logic to handle multiresolution clips
+for video decode. And also added few miscellaneous fixes.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/staging/media/zoran/zoran_driver.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The patch set is based on top of recent Venus updates - PIL v9 patches
+posted by Vikash Garodia.
+This patch series to align with https://patchwork.linuxtv.org/patch/52153/ 
 
-diff --git a/drivers/staging/media/zoran/zoran_driver.c b/drivers/staging/media/zoran/zoran_driver.c
-index e30c3ef31a9b..27c76e2eeb41 100644
---- a/drivers/staging/media/zoran/zoran_driver.c
-+++ b/drivers/staging/media/zoran/zoran_driver.c
-@@ -692,7 +692,7 @@ static int zoran_jpg_queue_frame(struct zoran_fh *fh, int num,
- 		case BUZ_STATE_DONE:
- 			dprintk(2,
- 				KERN_WARNING
--				"%s: %s - queing frame in BUZ_STATE_DONE state!?\n",
-+				"%s: %s - queuing frame in BUZ_STATE_DONE state!?\n",
- 				ZR_DEVNAME(zr), __func__);
- 			/* fall through */
- 		case BUZ_STATE_USER:
+Comments are welcome!
+
+Regards,
+Srinu Gorle
+
+Srinu Gorle (5):
+  media: venus: handle video decoder resolution change
+  media: venus: dynamically configure codec type
+  media: venus: do not destroy video session during queue setup
+  media: venus: video decoder drop frames handling
+  media: venus: update number of bytes used field properly for EOS
+    frames
+
+ drivers/media/platform/qcom/venus/helpers.c | 210 ++++++++++++++++++++--------
+ drivers/media/platform/qcom/venus/helpers.h |   4 +
+ drivers/media/platform/qcom/venus/hfi.c     |   8 +-
+ drivers/media/platform/qcom/venus/hfi.h     |   2 +-
+ drivers/media/platform/qcom/venus/vdec.c    | 114 +++++++++++++--
+ drivers/media/platform/qcom/venus/venc.c    |  20 ++-
+ 6 files changed, 285 insertions(+), 73 deletions(-)
+
 -- 
-2.17.1
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
