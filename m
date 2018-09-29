@@ -1,319 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf1-f195.google.com ([209.85.210.195]:37298 "EHLO
+Received: from mail-pf1-f195.google.com ([209.85.210.195]:44515 "EHLO
         mail-pf1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728583AbeI3CZA (ORCPT
+        with ESMTP id S1728015AbeI3CYu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Sep 2018 22:25:00 -0400
+        Sat, 29 Sep 2018 22:24:50 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sebastian Reichel <sre@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [RESEND PATCH v7 16/17] media: v4l2: async: Remove notifier subdevs array
-Date: Sat, 29 Sep 2018 12:54:19 -0700
-Message-Id: <20180929195420.28579-17-slongerbeam@gmail.com>
+Subject: [RESEND PATCH v7 14/17] media: staging/imx: TODO: Remove one assumption about OF graph parsing
+Date: Sat, 29 Sep 2018 12:54:17 -0700
+Message-Id: <20180929195420.28579-15-slongerbeam@gmail.com>
 In-Reply-To: <20180929195420.28579-1-slongerbeam@gmail.com>
 References: <20180929195420.28579-1-slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All platform drivers have been converted to use
-v4l2_async_notifier_add_subdev(), in place of adding
-asd's to the notifier subdevs array. So the subdevs
-array can now be removed from struct v4l2_async_notifier,
-and remove the backward compatibility support for that
-array in v4l2-async.c.
+The move to subdev notifiers fixes one assumption of OF graph parsing.
+If a subdevice has non-video related ports, the subdev driver knows not
+to follow those ports when adding remote devices to its subdev notifier.
 
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
 ---
-Changes since v6:
-- none
-Changes since v5:
-- also remove notifier num_subdevs and V4L2_MAX_SUBDEVS macro.
-  Suggested by Sakari Ailus.
----
- drivers/media/v4l2-core/v4l2-async.c | 114 ++++++---------------------
- include/media/v4l2-async.h           |  21 ++---
- include/media/v4l2-fwnode.h          |  12 ---
- 3 files changed, 30 insertions(+), 117 deletions(-)
+ drivers/staging/media/imx/TODO | 29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index b0eb31efcbfe..70adbd9a01a2 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -359,32 +359,24 @@ __v4l2_async_notifier_has_async_subdev(struct v4l2_async_notifier *notifier,
- /*
-  * Find out whether an async sub-device was set up already or
-  * whether it exists in a given notifier before @this_index.
-+ * If @this_index < 0, search the notifier's entire @asd_list.
-  */
- static bool
- v4l2_async_notifier_has_async_subdev(struct v4l2_async_notifier *notifier,
- 				     struct v4l2_async_subdev *asd,
--				     unsigned int this_index)
-+				     int this_index)
- {
- 	struct v4l2_async_subdev *asd_y;
--	unsigned int j;
-+	int j = 0;
+diff --git a/drivers/staging/media/imx/TODO b/drivers/staging/media/imx/TODO
+index 9eb7326f3fc6..aeeb15494a49 100644
+--- a/drivers/staging/media/imx/TODO
++++ b/drivers/staging/media/imx/TODO
+@@ -17,29 +17,15 @@
+   decided whether this feature is useful enough to make it generally
+   available by exporting to v4l2-core.
  
- 	lockdep_assert_held(&list_lock);
+-- The OF graph is walked at probe time to form the list of fwnodes to
+-  be passed to v4l2_async_notifier_register(), starting from the IPU
+-  CSI ports. And after all async subdevices have been bound,
+-  v4l2_fwnode_parse_link() is used to form the media links between
+-  the entities discovered by walking the OF graph.
++- After all async subdevices have been bound, v4l2_fwnode_parse_link()
++  is used to form the media links between the devices discovered in
++  the OF graph.
  
- 	/* Check that an asd is not being added more than once. */
--	if (notifier->subdevs) {
--		for (j = 0; j < this_index; j++) {
--			asd_y = notifier->subdevs[j];
--			if (asd_equal(asd, asd_y))
--				return true;
--		}
--	} else {
--		j = 0;
--		list_for_each_entry(asd_y, &notifier->asd_list, asd_list) {
--			if (j++ >= this_index)
--				break;
--			if (asd_equal(asd, asd_y))
--				return true;
--		}
-+	list_for_each_entry(asd_y, &notifier->asd_list, asd_list) {
-+		if (this_index >= 0 && j++ >= this_index)
-+			break;
-+		if (asd_equal(asd, asd_y))
-+			return true;
- 	}
+   While this approach allows support for arbitrary OF graphs, there
+   are some assumptions for this to work:
  
- 	/* Check that an asd does not exist in other notifiers. */
-@@ -397,7 +389,7 @@ v4l2_async_notifier_has_async_subdev(struct v4l2_async_notifier *notifier,
- 
- static int v4l2_async_notifier_asd_valid(struct v4l2_async_notifier *notifier,
- 					 struct v4l2_async_subdev *asd,
--					 unsigned int this_index)
-+					 int this_index)
- {
- 	struct device *dev =
- 		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
-@@ -438,36 +430,19 @@ EXPORT_SYMBOL(v4l2_async_notifier_init);
- static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
- 	struct v4l2_async_subdev *asd;
--	int ret;
--	int i;
+-  1. All port parent nodes reachable in the graph from the IPU CSI
+-     ports bind to V4L2 async subdevice drivers.
 -
--	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
--		return -EINVAL;
-+	int ret, i = 0;
- 
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
- 
- 	mutex_lock(&list_lock);
- 
--	if (notifier->subdevs) {
--		for (i = 0; i < notifier->num_subdevs; i++) {
--			asd = notifier->subdevs[i];
+-     If a device has mixed-use ports such as video plus audio, the
+-     endpoints from the audio ports are followed to devices that must
+-     bind to V4L2 subdevice drivers, and not for example, to an ALSA
+-     driver or a non-V4L2 media driver. If the device were bound to
+-     such a driver, imx-media would never get an async completion
+-     notification because the device fwnode was added to the async
+-     list, but the driver does not interface with the V4L2 async
+-     framework.
 -
--			ret = v4l2_async_notifier_asd_valid(notifier, asd, i);
--			if (ret)
--				goto err_unlock;
-+	list_for_each_entry(asd, &notifier->asd_list, asd_list) {
-+		ret = v4l2_async_notifier_asd_valid(notifier, asd, i++);
-+		if (ret)
-+			goto err_unlock;
+-  2. Every port reachable in the graph is treated as a media pad,
+-     owned by the V4L2 subdevice that is bound to the port's parent.
++  1. If a port owned by a device in the graph has endpoint nodes, the
++     port is treated as a media pad.
  
--			list_add_tail(&asd->list, &notifier->waiting);
--		}
--	} else {
--		i = 0;
--		list_for_each_entry(asd, &notifier->asd_list, asd_list) {
--			ret = v4l2_async_notifier_asd_valid(notifier, asd, i++);
--			if (ret)
--				goto err_unlock;
--
--			list_add_tail(&asd->list, &notifier->waiting);
--		}
-+		list_add_tail(&asd->list, &notifier->waiting);
- 	}
+      This presents problems for devices that don't make this port = pad
+      assumption. Examples are SMIAPP compatible cameras which define only
+@@ -54,9 +40,8 @@
+      possible long-term solution is to implement a subdev API that
+      maps a port id to a media pad index.
  
- 	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-@@ -560,45 +535,22 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- static void __v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
- {
- 	struct v4l2_async_subdev *asd, *tmp;
--	unsigned int i;
+-  3. Every endpoint of a port reachable in the graph is treated as
+-     a media link, between V4L2 subdevices that are bound to the
+-     port parents of the local and remote endpoints.
++  2. Every endpoint of a port owned by a device in the graph is treated
++     as a media link.
  
- 	if (!notifier)
- 		return;
- 
--	if (notifier->subdevs) {
--		for (i = 0; i < notifier->num_subdevs; i++) {
--			asd = notifier->subdevs[i];
--
--			switch (asd->match_type) {
--			case V4L2_ASYNC_MATCH_FWNODE:
--				fwnode_handle_put(asd->match.fwnode);
--				break;
--			default:
--				break;
--			}
--
--			kfree(asd);
-+	list_for_each_entry_safe(asd, tmp, &notifier->asd_list, asd_list) {
-+		switch (asd->match_type) {
-+		case V4L2_ASYNC_MATCH_FWNODE:
-+			fwnode_handle_put(asd->match.fwnode);
-+			break;
-+		default:
-+			break;
- 		}
- 
--		kvfree(notifier->subdevs);
--		notifier->subdevs = NULL;
--	} else {
--		list_for_each_entry_safe(asd, tmp,
--					 &notifier->asd_list, asd_list) {
--			switch (asd->match_type) {
--			case V4L2_ASYNC_MATCH_FWNODE:
--				fwnode_handle_put(asd->match.fwnode);
--				break;
--			default:
--				break;
--			}
--
--			list_del(&asd->asd_list);
--			kfree(asd);
--		}
-+		list_del(&asd->asd_list);
-+		kfree(asd);
- 	}
--
--	notifier->num_subdevs = 0;
- }
- 
- void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
-@@ -618,27 +570,11 @@ int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
- 
- 	mutex_lock(&list_lock);
- 
--	if (notifier->num_subdevs >= V4L2_MAX_SUBDEVS) {
--		ret = -EINVAL;
--		goto unlock;
--	}
--
--	/*
--	 * If caller uses this function, it cannot also allocate and
--	 * place asd's in the notifier->subdevs array.
--	 */
--	if (WARN_ON(notifier->subdevs)) {
--		ret = -EINVAL;
--		goto unlock;
--	}
--
--	ret = v4l2_async_notifier_asd_valid(notifier, asd,
--					    notifier->num_subdevs);
-+	ret = v4l2_async_notifier_asd_valid(notifier, asd, -1);
- 	if (ret)
- 		goto unlock;
- 
- 	list_add_tail(&asd->asd_list, &notifier->asd_list);
--	notifier->num_subdevs++;
- 
- unlock:
- 	mutex_unlock(&list_lock);
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 16b1e2b097c1..89b152f52ef9 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -20,9 +20,6 @@ struct v4l2_device;
- struct v4l2_subdev;
- struct v4l2_async_notifier;
- 
--/* A random max subdevice number, used to allocate an array on stack */
--#define V4L2_MAX_SUBDEVS 128U
--
- /**
-  * enum v4l2_async_match_type - type of asynchronous subdevice logic to be used
-  *	in order to identify a match
-@@ -124,20 +121,16 @@ struct v4l2_async_notifier_operations {
-  * struct v4l2_async_notifier - v4l2_device notifier data
-  *
-  * @ops:	notifier operations
-- * @num_subdevs: number of subdevices used in the subdevs array
-- * @subdevs:	array of pointers to subdevice descriptors
-  * @v4l2_dev:	v4l2_device of the root notifier, NULL otherwise
-  * @sd:		sub-device that registered the notifier, NULL otherwise
-  * @parent:	parent notifier
-- * @asd_list:	master list of struct v4l2_async_subdev, replaces @subdevs
-+ * @asd_list:	master list of struct v4l2_async_subdev
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_subdev, already probed
-  * @list:	member in a global list of notifiers
-  */
- struct v4l2_async_notifier {
- 	const struct v4l2_async_notifier_operations *ops;
--	unsigned int num_subdevs;
--	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
- 	struct v4l2_subdev *sd;
- 	struct v4l2_async_notifier *parent;
-@@ -164,10 +157,8 @@ void v4l2_async_notifier_init(struct v4l2_async_notifier *notifier);
-  * @notifier: pointer to &struct v4l2_async_notifier
-  * @asd: pointer to &struct v4l2_async_subdev
-  *
-- * This can be used before registering a notifier to add an
-- * asd to the notifiers @asd_list. If the caller uses this
-- * method to compose an asd list, it must never allocate
-- * or place asd's in the @subdevs array.
-+ * Call this function before registering a notifier to link the
-+ * provided asd to the notifiers master @asd_list.
-  */
- int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_async_subdev *asd);
-@@ -184,10 +175,8 @@ int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
-  *		     the driver's async sub-device struct, i.e. both
-  *		     begin at the same memory address.
-  *
-- * This can be used before registering a notifier to add a
-- * fwnode-matched asd to the notifiers master asd_list. If the caller
-- * uses this method to compose an asd list, it must never allocate
-- * or place asd's in the @subdevs array.
-+ * Allocate a fwnode-matched asd of size asd_struct_size, and add it
-+ * to the notifiers @asd_list.
-  */
- struct v4l2_async_subdev *
- v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
-diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-index 031ebb069dcb..8b4873c37098 100644
---- a/include/media/v4l2-fwnode.h
-+++ b/include/media/v4l2-fwnode.h
-@@ -259,12 +259,6 @@ typedef int (*parse_endpoint_func)(struct device *dev,
-  * This function may not be called on a registered notifier and may be called on
-  * a notifier only once.
-  *
-- * Do not allocate the notifier's subdevs array, or change the notifier's
-- * num_subdevs field. This is because this function uses
-- * @v4l2_async_notifier_add_subdev to populate the notifier's asd_list,
-- * which is in-place-of the subdevs array which must remain unallocated
-- * and unused.
-- *
-  * The &struct v4l2_fwnode_endpoint passed to the callback function
-  * @parse_endpoint is released once the function is finished. If there is a need
-  * to retain that configuration, the user needs to allocate memory for it.
-@@ -316,12 +310,6 @@ int v4l2_async_notifier_parse_fwnode_endpoints(
-  * This function may not be called on a registered notifier and may be called on
-  * a notifier only once per port.
-  *
-- * Do not allocate the notifier's subdevs array, or change the notifier's
-- * num_subdevs field. This is because this function uses
-- * @v4l2_async_notifier_add_subdev to populate the notifier's asd_list,
-- * which is in-place-of the subdevs array which must remain unallocated
-- * and unused.
-- *
-  * The &struct v4l2_fwnode_endpoint passed to the callback function
-  * @parse_endpoint is released once the function is finished. If there is a need
-  * to retain that configuration, the user needs to allocate memory for it.
+      Which means a port must not contain mixed-use endpoints, they
+      must all refer to media links between V4L2 subdevices.
 -- 
 2.17.1
