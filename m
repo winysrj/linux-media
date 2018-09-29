@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:35923 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728015AbeI3CYl (ORCPT
+Received: from mail-pg1-f196.google.com ([209.85.215.196]:44716 "EHLO
+        mail-pg1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728361AbeI3CYj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Sep 2018 22:24:41 -0400
+        Sat, 29 Sep 2018 22:24:39 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
@@ -12,97 +12,108 @@ Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [RESEND PATCH v7 09/17] media: imx: mipi csi-2: Register a subdev notifier
-Date: Sat, 29 Sep 2018 12:54:12 -0700
-Message-Id: <20180929195420.28579-10-slongerbeam@gmail.com>
+Subject: [RESEND PATCH v7 08/17] media: imx: csi: Register a subdev notifier
+Date: Sat, 29 Sep 2018 12:54:11 -0700
+Message-Id: <20180929195420.28579-9-slongerbeam@gmail.com>
 In-Reply-To: <20180929195420.28579-1-slongerbeam@gmail.com>
 References: <20180929195420.28579-1-slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse neighbor remote devices on the MIPI CSI-2 input port, add
-them to a subdev notifier, and register the subdev notifier for the
-MIPI CSI-2 receiver, by calling v4l2_async_register_fwnode_subdev().
-
-csi2_parse_endpoints() is modified to be the parse_endpoint callback.
+Parse neighbor remote devices on the CSI port, and add them to a subdev
+notifier, by calling v4l2_async_notifier_parse_fwnode_endpoints_by_port()
+using the CSI's port id. And register the subdev notifier for the CSI.
 
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
 ---
- drivers/staging/media/imx/imx6-mipi-csi2.c | 31 ++++++++++------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+Changes since v6:
+- none
+Changes since v5:
+- add call to v4l2_async_notifier_init().
+Changes since v4:
+- none
+Changes since v3:
+- v4l2_async_register_fwnode_subdev() no longer supports parsing
+  port sub-devices, so call
+  v4l2_async_notifier_parse_fwnode_endpoints_by_port() directly.
+---
+ drivers/staging/media/imx/imx-media-csi.c | 57 ++++++++++++++++++++++-
+ 1 file changed, 56 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
-index 7b457a4b7df5..d60a52cfc69c 100644
---- a/drivers/staging/media/imx/imx6-mipi-csi2.c
-+++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
-@@ -551,35 +551,34 @@ static const struct v4l2_subdev_internal_ops csi2_internal_ops = {
- 	.registered = csi2_registered,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 4acdd7ae612b..bca13846ce6d 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1783,6 +1783,61 @@ static const struct v4l2_subdev_internal_ops csi_internal_ops = {
+ 	.unregistered = csi_unregistered,
  };
  
--static int csi2_parse_endpoints(struct csi2_dev *csi2)
-+static int csi2_parse_endpoint(struct device *dev,
-+			       struct v4l2_fwnode_endpoint *vep,
-+			       struct v4l2_async_subdev *asd)
- {
--	struct device_node *node = csi2->dev->of_node;
--	struct device_node *epnode;
--	struct v4l2_fwnode_endpoint ep;
-+	struct v4l2_subdev *sd = dev_get_drvdata(dev);
-+	struct csi2_dev *csi2 = sd_to_dev(sd);
- 
--	epnode = of_graph_get_endpoint_by_regs(node, 0, -1);
--	if (!epnode) {
--		v4l2_err(&csi2->sd, "failed to get sink endpoint node\n");
-+	if (!fwnode_device_is_available(asd->match.fwnode)) {
-+		v4l2_err(&csi2->sd, "remote is not available\n");
- 		return -EINVAL;
- 	}
- 
--	v4l2_fwnode_endpoint_parse(of_fwnode_handle(epnode), &ep);
--	of_node_put(epnode);
--
--	if (ep.bus_type != V4L2_MBUS_CSI2) {
-+	if (vep->bus_type != V4L2_MBUS_CSI2) {
- 		v4l2_err(&csi2->sd, "invalid bus type, must be MIPI CSI2\n");
- 		return -EINVAL;
- 	}
- 
--	csi2->bus = ep.bus.mipi_csi2;
-+	csi2->bus = vep->bus.mipi_csi2;
- 
- 	dev_dbg(csi2->dev, "data lanes: %d\n", csi2->bus.num_data_lanes);
- 	dev_dbg(csi2->dev, "flags: 0x%08x\n", csi2->bus.flags);
++static int imx_csi_parse_endpoint(struct device *dev,
++				  struct v4l2_fwnode_endpoint *vep,
++				  struct v4l2_async_subdev *asd)
++{
++	return fwnode_device_is_available(asd->match.fwnode) ? 0 : -EINVAL;
++}
 +
- 	return 0;
- }
- 
- static int csi2_probe(struct platform_device *pdev)
++static int imx_csi_async_register(struct csi_priv *priv)
++{
++	struct v4l2_async_notifier *notifier;
++	struct fwnode_handle *fwnode;
++	unsigned int port;
++	int ret;
++
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	v4l2_async_notifier_init(notifier);
++
++	fwnode = dev_fwnode(priv->dev);
++
++	/* get this CSI's port id */
++	ret = fwnode_property_read_u32(fwnode, "reg", &port);
++	if (ret < 0)
++		goto out_free;
++
++	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++		priv->dev->parent, notifier, sizeof(struct v4l2_async_subdev),
++		port, imx_csi_parse_endpoint);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_subdev_notifier_register(&priv->sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(&priv->sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	priv->sd.subdev_notifier = notifier;
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++out_free:
++	kfree(notifier);
++
++	return ret;
++}
++
+ static int imx_csi_probe(struct platform_device *pdev)
  {
-+	unsigned int sink_port = 0;
- 	struct csi2_dev *csi2;
- 	struct resource *res;
- 	int ret;
-@@ -601,10 +600,6 @@ static int csi2_probe(struct platform_device *pdev)
- 	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
- 	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
+ 	struct ipu_client_platformdata *pdata;
+@@ -1852,7 +1907,7 @@ static int imx_csi_probe(struct platform_device *pdev)
+ 			goto free;
+ 	}
  
--	ret = csi2_parse_endpoints(csi2);
--	if (ret)
--		return ret;
--
- 	csi2->pllref_clk = devm_clk_get(&pdev->dev, "ref");
- 	if (IS_ERR(csi2->pllref_clk)) {
- 		v4l2_err(&csi2->sd, "failed to get pll reference clock\n");
-@@ -654,7 +649,9 @@ static int csi2_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, &csi2->sd);
- 
--	ret = v4l2_async_register_subdev(&csi2->sd);
-+	ret = v4l2_async_register_fwnode_subdev(
-+		&csi2->sd, sizeof(struct v4l2_async_subdev),
-+		&sink_port, 1, csi2_parse_endpoint);
+-	ret = v4l2_async_register_subdev(&priv->sd);
++	ret = imx_csi_async_register(priv);
  	if (ret)
- 		goto dphy_off;
+ 		goto free;
  
 -- 
 2.17.1
