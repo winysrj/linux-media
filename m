@@ -1,58 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53194 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:53292 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728241AbeI2S3K (ORCPT
+        with ESMTP id S1727979AbeI2S3O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Sep 2018 14:29:10 -0400
+        Sat, 29 Sep 2018 14:29:14 -0400
 From: Srinu Gorle <sgorle@codeaurora.org>
 To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
         mchehab@kernel.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         sgorle@codeaurora.org
 Cc: acourbot@chromium.org, vgarodia@codeaurora.org
-Subject: [PATCH v1 3/5] media: venus: do not destroy video session during queue setup
-Date: Sat, 29 Sep 2018 17:30:30 +0530
-Message-Id: <1538222432-25894-4-git-send-email-sgorle@codeaurora.org>
+Subject: [PATCH v1 4/5] media: venus: video decoder drop frames handling
+Date: Sat, 29 Sep 2018 17:30:31 +0530
+Message-Id: <1538222432-25894-5-git-send-email-sgorle@codeaurora.org>
 In-Reply-To: <1538222432-25894-1-git-send-email-sgorle@codeaurora.org>
 References: <1538222432-25894-1-git-send-email-sgorle@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- open and close video sessions for plane properties is incorrect.
-- add check to ensure, same instance persist from driver open to close.
+- when drop frame flag received from venus h/w, reset buffer
+  parameters and update v4l2 buffer flags as error buffer.
 
 Signed-off-by: Srinu Gorle <sgorle@codeaurora.org>
 ---
- drivers/media/platform/qcom/venus/hfi.c  | 3 +++
- drivers/media/platform/qcom/venus/vdec.c | 2 ++
- 2 files changed, 5 insertions(+)
+ drivers/media/platform/qcom/venus/vdec.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
-index 36a4784..59c34ba 100644
---- a/drivers/media/platform/qcom/venus/hfi.c
-+++ b/drivers/media/platform/qcom/venus/hfi.c
-@@ -207,6 +207,9 @@ int hfi_session_init(struct venus_inst *inst, u32 pixfmt)
- 	const struct hfi_ops *ops = core->ops;
- 	int ret;
- 
-+	if (inst->state >= INST_INIT && inst->state < INST_STOP)
-+		return 0;
-+
- 	inst->hfi_codec = to_codec_type(pixfmt);
- 	reinit_completion(&inst->done);
- 
 diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index afe3b36..0035cf2 100644
+index 0035cf2..311f209 100644
 --- a/drivers/media/platform/qcom/venus/vdec.c
 +++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -700,6 +700,8 @@ static int vdec_num_buffers(struct venus_inst *inst, unsigned int *in_num,
+@@ -991,6 +991,12 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
+ 	if (hfi_flags & HFI_BUFFERFLAG_DATACORRUPT)
+ 		state = VB2_BUF_STATE_ERROR;
  
- 	*out_num = HFI_BUFREQ_COUNT_MIN(&bufreq, ver);
- 
-+	return 0;
++	if (hfi_flags & HFI_BUFFERFLAG_DROP_FRAME) {
++		vb->planes[0].bytesused = 0;
++		vb->timestamp = 0;
++		state = VB2_BUF_STATE_ERROR;
++	}
 +
- deinit:
- 	hfi_session_deinit(inst);
+ 	v4l2_m2m_buf_done(vbuf, state);
+ }
  
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
