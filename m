@@ -1,197 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:40890 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727431AbeI3BLj (ORCPT
+Received: from forward100j.mail.yandex.net ([5.45.198.240]:35968 "EHLO
+        forward100j.mail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727743AbeI3B3g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Sep 2018 21:11:39 -0400
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-To: <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: [PATCH v7 04/17] media: v4l2: async: Add convenience functions to allocate and add asd's
-Date: Sat, 29 Sep 2018 11:40:39 -0700
-Message-ID: <20180929184052.19479-5-steve_longerbeam@mentor.com>
-In-Reply-To: <20180929184052.19479-1-steve_longerbeam@mentor.com>
-References: <20180929184052.19479-1-steve_longerbeam@mentor.com>
+        Sat, 29 Sep 2018 21:29:36 -0400
+From: Andrey Abramov <st5pub@yandex.ru>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Andrey Abramov <st5pub@yandex.ru>
+Subject: [PATCH] Staging: media: replaced deprecated probe method
+Date: Sat, 29 Sep 2018 21:51:50 +0300
+Message-Id: <20180929185150.16657-1-st5pub@yandex.ru>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add these convenience functions, which allocate an asd of match type
-fwnode, i2c, or device-name, of size asd_struct_size, and then adds
-them to the notifier asd_list.
+drivers/staging/media/bcm2048/radio-bcm2048.c replaced i2c_driver::probe with i2c_driver::probe_new, because documentation says that i2c_driver::probe "soon to be deprecated"
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Andrey Abramov <st5pub@yandex.ru>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 76 ++++++++++++++++++++++++++++
- include/media/v4l2-async.h           | 62 +++++++++++++++++++++++
- 2 files changed, 138 insertions(+)
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 7925875d09b7..196573f4ec48 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -650,6 +650,82 @@ int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
- }
- EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_subdev);
- 
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
-+				      struct fwnode_handle *fwnode,
-+				      unsigned int asd_struct_size)
-+{
-+	struct v4l2_async_subdev *asd;
-+	int ret;
-+
-+	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return ERR_PTR(-ENOMEM);
-+
-+	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-+	asd->match.fwnode = fwnode;
-+
-+	ret = v4l2_async_notifier_add_subdev(notifier, asd);
-+	if (ret) {
-+		kfree(asd);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return asd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_fwnode_subdev);
-+
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_i2c_subdev(struct v4l2_async_notifier *notifier,
-+				   int adapter_id, unsigned short address,
-+				   unsigned int asd_struct_size)
-+{
-+	struct v4l2_async_subdev *asd;
-+	int ret;
-+
-+	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return ERR_PTR(-ENOMEM);
-+
-+	asd->match_type = V4L2_ASYNC_MATCH_I2C;
-+	asd->match.i2c.adapter_id = adapter_id;
-+	asd->match.i2c.address = address;
-+
-+	ret = v4l2_async_notifier_add_subdev(notifier, asd);
-+	if (ret) {
-+		kfree(asd);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return asd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_i2c_subdev);
-+
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_devname_subdev(struct v4l2_async_notifier *notifier,
-+				       const char *device_name,
-+				       unsigned int asd_struct_size)
-+{
-+	struct v4l2_async_subdev *asd;
-+	int ret;
-+
-+	asd = kzalloc(asd_struct_size, GFP_KERNEL);
-+	if (!asd)
-+		return ERR_PTR(-ENOMEM);
-+
-+	asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
-+	asd->match.device_name = device_name;
-+
-+	ret = v4l2_async_notifier_add_subdev(notifier, asd);
-+	if (ret) {
-+		kfree(asd);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return asd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_async_notifier_add_devname_subdev);
-+
- int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index a90b2eb112f9..756f7f08c713 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -2574,8 +2574,7 @@ static const struct video_device bcm2048_viddev_template = {
+ /*
+  *	I2C driver interface
+  */
+-static int bcm2048_i2c_driver_probe(struct i2c_client *client,
+-				    const struct i2c_device_id *id)
++static int bcm2048_i2c_driver_probe_new(struct i2c_client *client)
  {
- 	struct v4l2_async_notifier *subdev_notifier;
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index ab4d7acb7960..3489e4ccb29b 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -174,6 +174,68 @@ void v4l2_async_notifier_init(struct v4l2_async_notifier *notifier);
- int v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_async_subdev *asd);
- 
-+/**
-+ * v4l2_async_notifier_add_fwnode_subdev - Allocate and add a fwnode async
-+ *				subdev to the notifier's master asd_list.
-+ *
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ * @fwnode: fwnode handle of the sub-device to be matched
-+ * @asd_struct_size: size of the driver's async sub-device struct, including
-+ *		     sizeof(struct v4l2_async_subdev). The &struct
-+ *		     v4l2_async_subdev shall be the first member of
-+ *		     the driver's async sub-device struct, i.e. both
-+ *		     begin at the same memory address.
-+ *
-+ * This can be used before registering a notifier to add a
-+ * fwnode-matched asd to the notifiers master asd_list. If the caller
-+ * uses this method to compose an asd list, it must never allocate
-+ * or place asd's in the @subdevs array.
-+ */
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_fwnode_subdev(struct v4l2_async_notifier *notifier,
-+				      struct fwnode_handle *fwnode,
-+				      unsigned int asd_struct_size);
-+
-+/**
-+ * v4l2_async_notifier_add_i2c_subdev - Allocate and add an i2c async
-+ *				subdev to the notifier's master asd_list.
-+ *
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ * @adapter_id: I2C adapter ID to be matched
-+ * @address: I2C address of sub-device to be matched
-+ * @asd_struct_size: size of the driver's async sub-device struct, including
-+ *		     sizeof(struct v4l2_async_subdev). The &struct
-+ *		     v4l2_async_subdev shall be the first member of
-+ *		     the driver's async sub-device struct, i.e. both
-+ *		     begin at the same memory address.
-+ *
-+ * Same as above but for I2C matched sub-devices.
-+ */
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_i2c_subdev(struct v4l2_async_notifier *notifier,
-+				   int adapter_id, unsigned short address,
-+				   unsigned int asd_struct_size);
-+
-+/**
-+ * v4l2_async_notifier_add_devname_subdev - Allocate and add a device-name
-+ *				async subdev to the notifier's master asd_list.
-+ *
-+ * @notifier: pointer to &struct v4l2_async_notifier
-+ * @device_name: device name string to be matched
-+ * @asd_struct_size: size of the driver's async sub-device struct, including
-+ *		     sizeof(struct v4l2_async_subdev). The &struct
-+ *		     v4l2_async_subdev shall be the first member of
-+ *		     the driver's async sub-device struct, i.e. both
-+ *		     begin at the same memory address.
-+ *
-+ * Same as above but for device-name matched sub-devices.
-+ */
-+struct v4l2_async_subdev *
-+v4l2_async_notifier_add_devname_subdev(struct v4l2_async_notifier *notifier,
-+				       const char *device_name,
-+				       unsigned int asd_struct_size);
-+
-+
- /**
-  * v4l2_async_notifier_register - registers a subdevice asynchronous notifier
-  *
+ 	struct bcm2048_device *bdev;
+ 	int err;
+@@ -2679,7 +2678,7 @@ static struct i2c_driver bcm2048_i2c_driver = {
+ 	.driver		= {
+ 		.name	= BCM2048_DRIVER_NAME,
+ 	},
+-	.probe		= bcm2048_i2c_driver_probe,
++	.probe_new	= bcm2048_i2c_driver_probe_new,
+ 	.remove		= bcm2048_i2c_driver_remove,
+ 	.id_table	= bcm2048_id,
+ };
 -- 
-2.17.1
+2.19.0
