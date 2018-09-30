@@ -1,60 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:36489 "EHLO
-        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728220AbeI3TTg (ORCPT
+Received: from mail-wm1-f53.google.com ([209.85.128.53]:50254 "EHLO
+        mail-wm1-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727519AbeI3WuO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 30 Sep 2018 15:19:36 -0400
-Date: Sun, 30 Sep 2018 05:39:25 -0700
-From: Greg KH <greg@kroah.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: stable@vger.kernel.org, linux-media@vger.kernel.org,
-        eric.bachard@free.fr
-Subject: Re: [PATCH] media: uvcvideo: Support UVC 1.5 video probe & commit
- controls
-Message-ID: <20180930123925.GB20353@kroah.com>
-References: <20180930103816.5115-1-laurent.pinchart@ideasonboard.com>
+        Sun, 30 Sep 2018 18:50:14 -0400
+Received: by mail-wm1-f53.google.com with SMTP id s12-v6so6381825wmc.0
+        for <linux-media@vger.kernel.org>; Sun, 30 Sep 2018 09:16:35 -0700 (PDT)
+Subject: [Regression] DVBSky S960CI hard broken in 4.18
+From: Oliver Freyermuth <o.freyermuth@googlemail.com>
+To: linux-media@vger.kernel.org
+References: <34094978-8c08-bf65-bbb4-edfaf2afb5e7@googlemail.com>
+Cc: mchehab+samsung@kernel.org
+Message-ID: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
+Date: Sun, 30 Sep 2018 18:16:32 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180930103816.5115-1-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <34094978-8c08-bf65-bbb4-edfaf2afb5e7@googlemail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 30, 2018 at 01:38:16PM +0300, Laurent Pinchart wrote:
-> From: ming_qian <ming_qian@realsil.com.cn>
-> 
-> commit f620d1d7afc7db57ab59f35000752840c91f67e7 upstream.
-> 
-> The length of UVC 1.5 video control is 48, and it is 34 for UVC 1.1.
-> Change it to 48 for UVC 1.5 device, and the UVC 1.5 device can be
-> recognized.
-> 
-> More changes to the driver are needed for full UVC 1.5 compatibility.
-> However, at least the UVC 1.5 Realtek RTS5847/RTS5852 cameras have been
-> reported to work well.
-> 
-> [laurent.pinchart@ideasonboard.com: Factor out code to helper function, update size checks]
-> 
-> Signed-off-by: ming_qian <ming_qian@realsil.com.cn>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Tested-by: Ana Guerrero Lopez <ana.guerrero@collabora.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 24 ++++++++++++++++++------
->  1 file changed, 18 insertions(+), 6 deletions(-)
-> 
-> Hello,
-> 
-> This patch was originally marked as a stable candidate, but a driver-wide
-> switch from __u{8,16,32} to u{8,16,32} created conflicts that prevented
-> backporting. This version fixes the conflicts and is otherwise not modified.
-> 
-> The decision to mark the patch as a stable candidate came after reports from
-> distro users that their UVC 1.5 camera was otherwise unusable. A guide has
-> even been published to tell Debian users how to patch their kernel to fix the
-> problem. Including the fix in stable will make their life much easier.
+Hi all,
 
-Now queued up, thanks.
+sorry to bump this, but I wonder whether I could help by submitting a [PATCH] reverting the buggy change from 7d95fb7 ? 
+As discussed in https://bugzilla.kernel.org/show_bug.cgi?id=199323 , the widespread card is unusable since 7d95fb7 . 
 
-greg k-h
+Please include me in any replies, I am not subscribed to the list. 
+
+Cheers,
+	Oliver
+
+Am 24.09.18 um 22:26 schrieb Oliver Freyermuth:
+> Dear DVB experts,
+> 
+> commit:
+> 7d95fb7 - media: dvbsky: use just one mutex for serializing device R/W ops
+> hard breaks DVBSky cards. 
+> Also the previous locking commits have caused several runtime issues. 
+> 
+> Since the bug tracker is not regularly checked, I'd love to make everybody aware of the corresponding issue
+> with much more detail: 
+> https://bugzilla.kernel.org/show_bug.cgi?id=199323
+> which has gotten large attention from several users. 
+> 
+> From my side, I can confirm that reverting 7d95fb7 makes the card work again for me. on 4.18. 
+> With 7d95fb7 applied, the card tunes fine, but does not deliver any data. 
+> 
+> Please include me in any replies, I am not subscribed to the list. 
+> 
+> Cheers and all the best,
+> 	Oliver
+> 
