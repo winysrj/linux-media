@@ -1,129 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:52214 "EHLO
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36368 "EHLO
         lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728804AbeJAQRB (ORCPT
+        by vger.kernel.org with ESMTP id S1729035AbeJAQd0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 12:17:01 -0400
-Subject: Re: [PATCH v2 1/6] media: video-i2c: avoid accessing released memory
- area when removing driver
-To: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
- <1537720492-31201-2-git-send-email-akinobu.mita@gmail.com>
+        Mon, 1 Oct 2018 12:33:26 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <faa8cdeb-d824-f2ef-9d87-53d1af3ec468@xs4all.nl>
-Date: Mon, 1 Oct 2018 11:40:00 +0200
+Subject: [GIT PULL FOR v4.20] Various fixes
+Message-ID: <616ee393-6487-5830-08ee-2d916912be37@xs4all.nl>
+Date: Mon, 1 Oct 2018 11:56:22 +0200
 MIME-Version: 1.0
-In-Reply-To: <1537720492-31201-2-git-send-email-akinobu.mita@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/23/2018 06:34 PM, Akinobu Mita wrote:
-> The video_i2c_data is allocated by kzalloc and released by the video
-> device's release callback.  The release callback is called when
-> video_unregister_device() is called, but it will still be accessed after
-> calling video_unregister_device().
-> 
-> Fix the use after free by allocating video_i2c_data by devm_kzalloc() with
-> i2c_client->dev so that it will automatically be released when the i2c
-> driver is removed.
+The following changes since commit 4158757395b300b6eb308fc20b96d1d231484413:
 
-Hmm. The patch is right, but the explanation isn't. The core problem is
-that vdev.release was set to video_i2c_release, but that should only be
-used if struct video_device was kzalloc'ed. But in this case it is embedded
-in a larger struct, and then vdev.release should always be set to
-video_device_release_empty.
+  media: davinci: Fix implicit enum conversion warning (2018-09-24 09:43:13 -0400)
 
-That was the real reason for the invalid access.
+are available in the Git repository at:
 
-Regards,
+  git://linuxtv.org/hverkuil/media_tree.git tags/tag-v4.20d
 
-	Hans
+for you to fetch changes up to f7a1170fcc19617647c78262a79abdec7b0a08cd:
 
-> 
-> Fixes: 5cebaac60974 ("media: video-i2c: add video-i2c driver")
-> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Hans Verkuil <hansverk@cisco.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Acked-by: Matt Ranostay <matt.ranostay@konsulko.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
-> * v2
-> - Update commit log to clarify the use after free
-> - Add Acked-by tag
-> 
->  drivers/media/i2c/video-i2c.c | 18 +++++-------------
->  1 file changed, 5 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-> index 06d29d8..b7a2af9 100644
-> --- a/drivers/media/i2c/video-i2c.c
-> +++ b/drivers/media/i2c/video-i2c.c
-> @@ -508,20 +508,15 @@ static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
->  	.vidioc_streamoff		= vb2_ioctl_streamoff,
->  };
->  
-> -static void video_i2c_release(struct video_device *vdev)
-> -{
-> -	kfree(video_get_drvdata(vdev));
-> -}
-> -
->  static int video_i2c_probe(struct i2c_client *client,
->  			     const struct i2c_device_id *id)
->  {
->  	struct video_i2c_data *data;
->  	struct v4l2_device *v4l2_dev;
->  	struct vb2_queue *queue;
-> -	int ret = -ENODEV;
-> +	int ret;
->  
-> -	data = kzalloc(sizeof(*data), GFP_KERNEL);
-> +	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
->  	if (!data)
->  		return -ENOMEM;
->  
-> @@ -530,7 +525,7 @@ static int video_i2c_probe(struct i2c_client *client,
->  	else if (id)
->  		data->chip = &video_i2c_chip[id->driver_data];
->  	else
-> -		goto error_free_device;
-> +		return -ENODEV;
->  
->  	data->client = client;
->  	v4l2_dev = &data->v4l2_dev;
-> @@ -538,7 +533,7 @@ static int video_i2c_probe(struct i2c_client *client,
->  
->  	ret = v4l2_device_register(&client->dev, v4l2_dev);
->  	if (ret < 0)
-> -		goto error_free_device;
-> +		return ret;
->  
->  	mutex_init(&data->lock);
->  	mutex_init(&data->queue_lock);
-> @@ -568,7 +563,7 @@ static int video_i2c_probe(struct i2c_client *client,
->  	data->vdev.fops = &video_i2c_fops;
->  	data->vdev.lock = &data->lock;
->  	data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
-> -	data->vdev.release = video_i2c_release;
-> +	data->vdev.release = video_device_release_empty;
->  	data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
->  				 V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
->  
-> @@ -597,9 +592,6 @@ static int video_i2c_probe(struct i2c_client *client,
->  	mutex_destroy(&data->lock);
->  	mutex_destroy(&data->queue_lock);
->  
-> -error_free_device:
-> -	kfree(data);
-> -
->  	return ret;
->  }
->  
-> 
+  media: i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down (2018-10-01 11:09:09 +0200)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      media: imx-pxp: include linux/interrupt.h
+
+Benjamin Gaignard (1):
+      MAINTAINERS: fix reference to STI CEC driver
+
+Colin Ian King (1):
+      media: zoran: fix spelling mistake "queing" -> "queuing"
+
+Dan Carpenter (1):
+      VPU: mediatek: don't pass an unused parameter
+
+Hans Verkuil (1):
+      vidioc-dqevent.rst: clarify V4L2_EVENT_SRC_CH_RESOLUTION
+
+Hugues Fruchet (1):
+      media: stm32-dcmi: only enable IT frame on JPEG capture
+
+Jacopo Mondi (4):
+      media: i2c: adv748x: Support probing a single output
+      media: i2c: adv748x: Handle TX[A|B] power management
+      media: i2c: adv748x: Conditionally enable only CSI-2 outputs
+      media: i2c: adv748x: Register only enabled inputs
+
+Laurent Pinchart (1):
+      MAINTAINERS: Remove stale file entry for the Atmel ISI driver
+
+Nathan Chancellor (1):
+      media: pxa_camera: Fix check for pdev->dev.of_node
+
+Niklas Söderlund (2):
+      rcar-vin: fix redeclaration of symbol
+      media: i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down
+
+Philipp Zabel (1):
+      media: imx: use well defined 32-bit RGB pixel format
+
+zhong jiang (1):
+      media: qcom: remove duplicated include file
+
+ Documentation/media/uapi/v4l/vidioc-dqevent.rst | 12 +++++++-
+ MAINTAINERS                                     |  3 +-
+ drivers/media/i2c/adv748x/adv748x-afe.c         |  2 +-
+ drivers/media/i2c/adv748x/adv748x-core.c        | 85 +++++++++++++++++++++++++++--------------------------
+ drivers/media/i2c/adv748x/adv748x-csi2.c        | 29 ++++++------------
+ drivers/media/i2c/adv748x/adv748x-hdmi.c        |  2 +-
+ drivers/media/i2c/adv748x/adv748x.h             | 19 ++++++++----
+ drivers/media/platform/imx-pxp.c                |  1 +
+ drivers/media/platform/mtk-vpu/mtk_vpu.c        |  7 ++---
+ drivers/media/platform/pxa_camera.c             |  2 +-
+ drivers/media/platform/qcom/camss/camss.h       |  1 -
+ drivers/media/platform/rcar-vin/rcar-core.c     |  1 -
+ drivers/media/platform/stm32/stm32-dcmi.c       |  5 +++-
+ drivers/staging/media/imx/imx-media-utils.c     |  4 +--
+ drivers/staging/media/zoran/zoran_driver.c      |  2 +-
+ 15 files changed, 93 insertions(+), 82 deletions(-)
