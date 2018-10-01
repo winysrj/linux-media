@@ -1,62 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0068.outbound.protection.outlook.com ([104.47.42.68]:45726
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1728979AbeJAUoq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 16:44:46 -0400
-Subject: Re: [PATCH] [media] v4l: xilinx: fix typo in formats table
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Michal Simek <michal.simek@xilinx.com>
-CC: Andrea Merello <andrea.merello@gmail.com>, <hyun.kwon@xilinx.com>,
-        <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
-        Mirco Di Salvo <mirco.disalvo@iit.it>
-References: <20180928073213.10022-1-andrea.merello@gmail.com>
- <118342352.6u92UtmAFX@avalon>
- <1e89141f-e05f-ecd0-9ac1-561db42494fe@xilinx.com>
- <41582264.lkmszr6VXR@avalon>
-From: Michal Simek <michal.simek@xilinx.com>
-Message-ID: <fc59d581-f2fe-52f1-2e73-7d3688cecacf@xilinx.com>
-Date: Mon, 1 Oct 2018 16:06:28 +0200
-MIME-Version: 1.0
-In-Reply-To: <41582264.lkmszr6VXR@avalon>
-Content-Type: text/plain; charset="utf-8"
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:38696 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729272AbeJAUur (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 16:50:47 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Sakari Ailus" <sakari.ailus@linux.intel.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        jacopo mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
+Date: Mon, 1 Oct 2018 14:12:31 +0000
+Message-ID: <56139505-6e5c-6d7f-027d-54b51c70b179@st.com>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+ <b3bac06f-f4d6-7620-2c3d-f8a852920f56@st.com>
+ <20180928160507.4jerbp4dqgz6l4qu@flea>
+In-Reply-To: <20180928160507.4jerbp4dqgz6l4qu@flea>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <028DFE579082F74FA3E9844D562D2059@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1.10.2018 15:36, Laurent Pinchart wrote:
-> Hi Michal,
-> 
-> On Monday, 1 October 2018 16:28:32 EEST Michal Simek wrote:
->> On 1.10.2018 15:26, Laurent Pinchart wrote:
->>> On Monday, 1 October 2018 15:45:49 EEST Michal Simek wrote:
->>>> On 28.9.2018 14:52, Laurent Pinchart wrote:
->>>>> On Friday, 28 September 2018 10:32:13 EEST Andrea Merello wrote:
->>>>>> In formats table the entry for CFA pattern "rggb" has GRBG fourcc.
->>>>>> This patch fixes it.
->>>>>>
->>>>>> Cc: linux-media@vger.kernel.org
->>>>>> Signed-off-by: Mirco Di Salvo <mirco.disalvo@iit.it>
->>>>>> Signed-off-by: Andrea Merello <andrea.merello@gmail.com>
->>>>>
->>>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>>
->>>>> Michal, should I take the patch in my tree ?
->>>>
->>>> definitely. I am not collecting patches for media tree.
->>>
->>> Taken in my tree.
->>>
->>> By the way, have we reached any conclusion regarding
->>> https://lkml.org/lkml/
->>> 2017/12/18/112 ?
->>
->> Xilinx has started to use SPDX without any issue. It means conversion
->> should be fine to do.
-> 
-> That's good to know, I'll resubmit the patch then, and CC you to get an ack.
-> 
-
-Sure go ahead.
-M
+SGkgTWF4aW1lLA0KDQpPbiAwOS8yOC8yMDE4IDA2OjA1IFBNLCBNYXhpbWUgUmlwYXJkIHdyb3Rl
+Og0KPiBIaSBIdWd1ZXMsDQo+IA0KPiBPbiBUaHUsIFNlcCAyNywgMjAxOCBhdCAwMzo1OTowNFBN
+ICswMDAwLCBIdWd1ZXMgRlJVQ0hFVCB3cm90ZToNCj4+IEhpIE1heGltZSAmIGFsbCBPVjU2NDAg
+c3Rha2Vob2xkZXJzLA0KPj4NCj4+IEkndmUganVzdCBwdXNoZWQgYSBuZXcgcGF0Y2hzZXQgYWxz
+byByZWxhdGVkIHRvIHJhdGUvcGl4ZWwgY2xvY2sNCj4+IGhhbmRsaW5nIFsxXSwgYmFzZWQgb24g
+eW91ciBWMyBncmVhdCB3b3JrOg0KPj4gICA+ICAgIG1lZGlhOiBvdjU2NDA6IEFkanVzdCB0aGUg
+Y2xvY2sgYmFzZWQgb24gdGhlIGV4cGVjdGVkIHJhdGUNCj4+ICAgPiAgICBtZWRpYTogb3Y1NjQw
+OiBSZW1vdmUgdGhlIGNsb2NrcyByZWdpc3RlcnMgaW5pdGlhbGl6YXRpb24NCj4+ICAgPiAgICBt
+ZWRpYTogb3Y1NjQwOiBSZW1vdmUgcmVkdW5kYW50IGRlZmluZXMNCj4+ICAgPiAgICBtZWRpYTog
+b3Y1NjQwOiBSZW1vdmUgcmVkdW5kYW50IHJlZ2lzdGVyIHNldHVwDQo+PiAgID4gICAgbWVkaWE6
+IG92NTY0MDogQ29tcHV0ZSB0aGUgY2xvY2sgcmF0ZSBhdCBydW50aW1lDQo+PiAgID4gICAgbWVk
+aWE6IG92NTY0MDogUmVtb3ZlIHBpeGVsIGNsb2NrIHJhdGVzDQo+PiAgID4gICAgbWVkaWE6IG92
+NTY0MDogRW5oYW5jZSBGUFMgaGFuZGxpbmcNCj4+DQo+PiBUaGlzIGlzIHdvcmtpbmcgcGVyZmVj
+dGx5IGZpbmUgb24gbXkgcGFyYWxsZWwgc2V0dXAgYW5kIGFsbG93cyBtZSB0bw0KPj4gd2VsbCBz
+dXBwb3J0IFZHQUAzMGZwcyAoaW5zdGVhZCAyNykgYW5kIGFsc28gc3VwcG9ydCBYR0EoMTAyNHg3
+NjgpQDE1ZnBzDQo+PiB0aGF0IEkgbmV2ZXIgc2VlbiB3b3JraW5nIGJlZm9yZS4NCj4+IFNvIGF0
+IGxlYXN0IGZvciB0aGUgcGFyYWxsZWwgc2V0dXAsIHRoaXMgc2VyaWUgaXMgd29ya2luZyBmaW5l
+IGZvciBhbGwNCj4+IHRoZSBkaXNjcmV0ZSByZXNvbHV0aW9ucyBhbmQgZnJhbWVyYXRlIGV4cG9z
+ZWQgYnkgdGhlIGRyaXZlciBmb3IgdGhlIG1vbWVudDoNCj4+ICogUUNJRiAxNzZ4MTQ0IDE1LzMw
+ZnBzDQo+PiAqIFFWR0EgMzIweDI0MCAxNS8zMGZwcw0KPj4gKiBWR0EgNjQweDQ4MCAxNS8zMGZw
+cw0KPj4gKiA0ODBwIDcyMHg0ODAgMTUvMzBmcHMNCj4+ICogWEdBIDEwMjR4NzY4IDE1LzMwZnBz
+DQo+PiAqIDcyMHAgMTI4MHg3MjAgMTUvMzBmcHMNCj4+ICogMTA4MHAgMTkyMHgxMDgwIDE1LzMw
+ZnBzDQo+PiAqIDVNcCAyNTkyeDE5NDQgMTVmcHMNCj4gDQo+IEknbSBnbGFkIHRoaXMgaXMgd29y
+a2luZyBmb3IgeW91IGFzIHdlbGwuIEkgZ3Vlc3MgSSdsbCByZXN1Ym1pdCB0aGVzZQ0KPiBwYXRj
+aGVzLCBidXQgdGhpcyB0aW1lIG1ha2luZyBzdXJlIHNvbWVvbmUgd2l0aCBhIENTSSBzZXR1cCB0
+ZXN0cw0KPiBiZWZvcmUgbWVyZ2luZy4gSSBjcnRhaW5seSBkb24ndCB3YW50IHRvIHJlcGVhdCB0
+aGUgcHJldmlvdXMgZGlzYXN0ZXIuDQo+IA0KPiBEbyB5b3UgaGF2ZSB0aG9zZSBwYXRjaGVzIHJl
+YmFzZWQgc29tZXdoZXJlPyBJJ20gbm90IHF1aXRlIHN1cmUgaG93IHRvDQo+IGZpeCB0aGUgY29u
+ZmxpY3Qgd2l0aCB0aGUgdjRsMl9maW5kX25lYXJlc3Rfc2l6ZSBhZGRpdGlvbi4NCj4gDQo+PiBN
+b3Jlb3ZlciBJJ20gbm90IGNsZWFyIG9uIHJlbGF0aW9uc2hpcCBiZXR3ZWVuIHJhdGUgYW5kIHBp
+eGVsIGNsb2NrDQo+PiBmcmVxdWVuY3kuDQo+PiBJJ3ZlIHVuZGVyc3Rvb2QgdGhhdCB0byBEVlBf
+UENMS19ESVZJREVSICgweDM4MjQpIHJlZ2lzdGVyDQo+PiBhbmQgVkZJRk9fQ1RSTDBDICgweDQ2
+MGMpIGFmZmVjdHMgdGhlIGVmZmVjdGl2ZSBwaXhlbCBjbG9jayBmcmVxdWVuY3kuDQo+PiBBbGwg
+dGhlIHJlc29sdXRpb25zIHVwIHRvIDcyMHg1NzYgYXJlIGZvcmNpbmcgYSBtYW51YWwgdmFsdWUg
+b2YgMiBmb3INCj4+IGRpdmlkZXIgKDB4NDYwYz0weDIyKSwgYnV0IGluY2x1ZGluZyA3MjBwIGFu
+ZCBtb3JlLCB0aGUgZGl2aWRlciB2YWx1ZSBpcw0KPj4gY29udHJvbGxlZCBieSAiYXV0by1tb2Rl
+IiAoMHg0NjBjPTB4MjApLi4uIGZyb20gd2hhdCBJIG1lYXN1cmVkIGFuZA0KPj4gdW5kZXJzdG9v
+ZCwgZm9yIHRob3NlIHJlc29sdXRpb25zLCB0aGUgZGl2aWRlciBtdXN0IGJlIHNldCB0byAxIGlu
+IG9yZGVyDQo+PiB0aGF0IHlvdXIgcmF0ZSBjb21wdXRhdGlvbiBtYXRjaCB0aGUgZWZmZWN0aXZl
+IHBpeGVsIGNsb2NrIG9uIG91dHB1dCwNCj4+IHNlZSBbMl0uDQo+Pg0KPj4gU28gSSB3b25kZXIg
+aWYgdGhpcyBQQ0xLIGRpdmlkZXIgcmVnaXN0ZXIgc2hvdWxkIGJlIGluY2x1ZGVkDQo+PiBvciBu
+b3QgaW50byB5b3VyIHJhdGUgY29tcHV0YXRpb24sIHdoYXQgZG8geW91IHRoaW5rID8NCj4gDQo+
+IEhhdmUgeW91IHRyaWVkIGNoYW5nZSB0aGUgUENMSyBkaXZpZGVyIHdoaWxlIGluIGF1dG8tbW9k
+ZT8gSUlSQywgSSBkaWQNCj4gdGhhdCBhbmQgaXQgd2FzIGFmZmVjdGluZyB0aGUgUENMSyByYXRl
+IG9uIG15IHNjb3BlLCBidXQgSSB3b3VsZG4ndCBiZQ0KPiBkZWZpbml0aXZlIGFib3V0IGl0Lg0K
+DQpJIGhhdmUgdGVzdGVkIHRvIGNoYW5nZSBQQ0xLIGRpdmlkZXIgd2hpbGUgaW4gYXV0byBtb2Rl
+IGJ1dCBubyBlZmZlY3QuDQoNCj4gDQo+IENhbiB3ZSBhbHdheXMgc2V0IHRoZSBtb2RlIHRvIGF1
+dG8gYW5kIGRpdmlkZXIgdG8gMSwgZXZlbiBmb3IgdGhlDQo+IGxvd2VyIHJlc29sdXRpb25zPw0K
+VGhpcyBpcyBicmVha2luZyAxNzZ4MTQ0QDMwZnBzIG9uIG15IHNpZGUsIGJlY2F1c2Ugb2YgcGl4
+ZWwgY2xvY2sgdG9vIA0KaGlnaCAoMTEyTUh6IHZzIDcwIE1IeiBtYXgpLg0KDQpJbnN0ZWFkIG9m
+IHVzaW5nIGF1dG8gbW9kZSwgbXkgcHJvcG9zYWwgd2FzIHRoZSBpbnZlcnNlOiB1c2UgbWFudWFs
+IG1vZGUgDQp3aXRoIHRoZSBwcm9wZXIgZGl2aWRlciB0byBmaXQgdGhlIG1heCBwaXhlbCBjbG9j
+ayBjb25zdHJhaW50Lg0KDQoNCkJSLA0KSHVndWVzLg==
