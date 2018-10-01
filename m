@@ -1,118 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f194.google.com ([209.85.208.194]:36749 "EHLO
-        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726386AbeJAOzv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 10:55:51 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52184 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1727333AbeJAOsM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 10:48:12 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 336C5634C7D
+        for <linux-media@vger.kernel.org>; Mon,  1 Oct 2018 11:11:40 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1g6tIq-0000ux-13
+        for linux-media@vger.kernel.org; Mon, 01 Oct 2018 11:11:40 +0300
+Date: Mon, 1 Oct 2018 11:11:39 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.20] Unlocked V4L2 control grab, imx{319, 355} drivers
+Message-ID: <20181001081139.wo3ldnsl5eb75yze@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
- <20180920204751.29117-6-ricardo.ribalda@gmail.com> <20180927193508.r25owgcwfeui2x7k@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20180927193508.r25owgcwfeui2x7k@valkosipuli.retiisi.org.uk>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 1 Oct 2018 10:19:00 +0200
-Message-ID: <CAPybu_3sh8KVZZruPrvvjEN=5=b56ciUjJXL5PK6GdV3mRG_Vg@mail.gmail.com>
-Subject: Re: [PATCH v4 6/7] [media] ad5820: Add support for ad5821 and ad5823
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
-On Thu, Sep 27, 2018 at 9:35 PM Sakari Ailus <sakari.ailus@iki.fi> wrote:
->
-> Hi Ricardo,
->
-> On Thu, Sep 20, 2018 at 10:47:50PM +0200, Ricardo Ribalda Delgado wrote:
-> > According to the datasheet, both AD5821 and AD5820 share a compatible
-> > register-set:
-> > http://www.analog.com/media/en/technical-documentation/data-sheets/AD5821.pdf
-> >
-> > Some camera modules also refer that AD5823 is a replacement of AD5820:
-> > https://download.kamami.com/p564094-OV8865_DS.pdf
->
-> A silly question --- the maximum current of these devices differs from each
-> other. Is the control value range still the same?
+Hi Mauro,
 
-AFAIK yes, and fortuntately/unfortunatelly the control interface is in
-a value, not in Amp, so there is nothing to convert on the driver.
+Here are drivers for Sony imx319 and imx355 sensors and an unlocked version
+of v4l2_ctrl_grab() which is used by the driver.
 
-Regards!
-
->
-> >
-> > Suggested-by: Pavel Machek <pavel@ucw.cz>
-> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> > ---
-> >  drivers/media/i2c/ad5820.c | 12 ++++++++----
-> >  1 file changed, 8 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-> > index 5d1185e7f78d..c52af302d516 100644
-> > --- a/drivers/media/i2c/ad5820.c
-> > +++ b/drivers/media/i2c/ad5820.c
-> > @@ -34,8 +34,6 @@
-> >  #include <media/v4l2-device.h>
-> >  #include <media/v4l2-subdev.h>
-> >
-> > -#define AD5820_NAME          "ad5820"
-> > -
-> >  /* Register definitions */
-> >  #define AD5820_POWER_DOWN            (1 << 15)
-> >  #define AD5820_DAC_SHIFT             4
-> > @@ -368,7 +366,9 @@ static int ad5820_remove(struct i2c_client *client)
-> >  }
-> >
-> >  static const struct i2c_device_id ad5820_id_table[] = {
-> > -     { AD5820_NAME, 0 },
-> > +     { "ad5820", 0 },
-> > +     { "ad5821", 0 },
-> > +     { "ad5823", 0 },
-> >       { }
-> >  };
-> >  MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
-> > @@ -376,6 +376,8 @@ MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
-> >  #ifdef CONFIG_OF
-> >  static const struct of_device_id ad5820_of_table[] = {
-> >       { .compatible = "adi,ad5820" },
-> > +     { .compatible = "adi,ad5821" },
-> > +     { .compatible = "adi,ad5823" },
->
-> You could set the subdev name accordingly as well.
->
-> >       { }
-> >  };
-> >  MODULE_DEVICE_TABLE(of, ad5820_of_table);
-> > @@ -384,6 +386,8 @@ MODULE_DEVICE_TABLE(of, ad5820_of_table);
-> >  #ifdef CONFIG_ACPI
-> >  static const struct acpi_device_id ad5820_acpi_ids[] = {
-> >       { "AD5820" },
-> > +     { "AD5821" },
-> > +     { "AD5823" },
-> >       { }
-> >  };
-> >
-> > @@ -394,7 +398,7 @@ static SIMPLE_DEV_PM_OPS(ad5820_pm, ad5820_suspend, ad5820_resume);
-> >
-> >  static struct i2c_driver ad5820_i2c_driver = {
-> >       .driver         = {
-> > -             .name   = AD5820_NAME,
-> > +             .name   = "ad5820",
-> >               .pm     = &ad5820_pm,
-> >               .of_match_table = of_match_ptr(ad5820_of_table),
-> >               .acpi_match_table = ACPI_PTR(ad5820_acpi_ids),
->
-> --
-> Regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+Please pull.
 
 
+The following changes since commit 985cdcb08a0488558d1005139596b64d73bee267:
+
+  media: ov5640: fix restore of last mode set (2018-09-17 15:33:38 -0400)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-10-sign
+
+for you to fetch changes up to d96444e7c6c6381e16d09c46feee46979ae3672b:
+
+  media: add imx355 camera sensor driver (2018-10-01 10:30:40 +0300)
+
+----------------------------------------------------------------
+unlocked v4l2 ctrl grab, imx{319, 355}
+
+----------------------------------------------------------------
+Bingbu Cao (2):
+      media: add imx319 camera sensor driver
+      media: add imx355 camera sensor driver
+
+Sakari Ailus (2):
+      v4l: ctrl: Remove old documentation from v4l2_ctrl_grab
+      v4l: ctrl: Provide unlocked variant of v4l2_ctrl_grab
+
+ MAINTAINERS                          |   14 +
+ drivers/media/i2c/Kconfig            |   22 +
+ drivers/media/i2c/Makefile           |    2 +
+ drivers/media/i2c/imx319.c           | 2558 ++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/imx355.c           | 1858 ++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c |   14 +-
+ include/media/v4l2-ctrls.h           |   26 +-
+ 7 files changed, 4483 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/media/i2c/imx319.c
+ create mode 100644 drivers/media/i2c/imx355.c
 
 -- 
-Ricardo Ribalda
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
