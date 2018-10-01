@@ -1,91 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36368 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729035AbeJAQd0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 12:33:26 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.20] Various fixes
-Message-ID: <616ee393-6487-5830-08ee-2d916912be37@xs4all.nl>
-Date: Mon, 1 Oct 2018 11:56:22 +0200
+Received: from userp2120.oracle.com ([156.151.31.85]:48800 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729045AbeJAQ3Y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 12:29:24 -0400
+Date: Mon, 1 Oct 2018 12:52:14 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andrey Abramov <st5pub@yandex.ru>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: replaced deprecated probe method
+Message-ID: <20181001095214.pjp7cshbi3nxq6w5@mwanda>
+References: <20181001094229.9148-1-st5pub@yandex.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181001094229.9148-1-st5pub@yandex.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 4158757395b300b6eb308fc20b96d1d231484413:
+On Mon, Oct 01, 2018 at 12:42:29PM +0300, Andrey Abramov wrote:
+> Replaced i2c_driver::probe with i2c_driver::probe_new,
+> 	because documentation says that probe method is "soon to be deprecated".
+> And fixed problems of the previous attempt.
 
-  media: davinci: Fix implicit enum conversion warning (2018-09-24 09:43:13 -0400)
+I'm sorry to complain again...  Please, don't reference the "previous
+attempt" in the commit message.  The previous attempt is gone so no one
+will remember what you are talking about after tomorrow.  This is how
+you resend a patch.
 
-are available in the Git repository at:
+Change the subject to:
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/tag-v4.20d
+Subject: [PATCH v3] Staging: media: replace deprecated probe method
 
-for you to fetch changes up to f7a1170fcc19617647c78262a79abdec7b0a08cd:
+> 
+> Signed-off-by: Andrey Abramov <st5pub@yandex.ru>
+> ---
+>  drivers/staging/media/bcm2048/radio-bcm2048.c | 5 ++---
 
-  media: i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down (2018-10-01 11:09:09 +0200)
+Then right after the --- line put:
 
-----------------------------------------------------------------
-Tag branch
+v3:  fix commit message
 
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      media: imx-pxp: include linux/interrupt.h
+That part of the commit message will be removed when we apply the patch.
 
-Benjamin Gaignard (1):
-      MAINTAINERS: fix reference to STI CEC driver
-
-Colin Ian King (1):
-      media: zoran: fix spelling mistake "queing" -> "queuing"
-
-Dan Carpenter (1):
-      VPU: mediatek: don't pass an unused parameter
-
-Hans Verkuil (1):
-      vidioc-dqevent.rst: clarify V4L2_EVENT_SRC_CH_RESOLUTION
-
-Hugues Fruchet (1):
-      media: stm32-dcmi: only enable IT frame on JPEG capture
-
-Jacopo Mondi (4):
-      media: i2c: adv748x: Support probing a single output
-      media: i2c: adv748x: Handle TX[A|B] power management
-      media: i2c: adv748x: Conditionally enable only CSI-2 outputs
-      media: i2c: adv748x: Register only enabled inputs
-
-Laurent Pinchart (1):
-      MAINTAINERS: Remove stale file entry for the Atmel ISI driver
-
-Nathan Chancellor (1):
-      media: pxa_camera: Fix check for pdev->dev.of_node
-
-Niklas Söderlund (2):
-      rcar-vin: fix redeclaration of symbol
-      media: i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down
-
-Philipp Zabel (1):
-      media: imx: use well defined 32-bit RGB pixel format
-
-zhong jiang (1):
-      media: qcom: remove duplicated include file
-
- Documentation/media/uapi/v4l/vidioc-dqevent.rst | 12 +++++++-
- MAINTAINERS                                     |  3 +-
- drivers/media/i2c/adv748x/adv748x-afe.c         |  2 +-
- drivers/media/i2c/adv748x/adv748x-core.c        | 85 +++++++++++++++++++++++++++--------------------------
- drivers/media/i2c/adv748x/adv748x-csi2.c        | 29 ++++++------------
- drivers/media/i2c/adv748x/adv748x-hdmi.c        |  2 +-
- drivers/media/i2c/adv748x/adv748x.h             | 19 ++++++++----
- drivers/media/platform/imx-pxp.c                |  1 +
- drivers/media/platform/mtk-vpu/mtk_vpu.c        |  7 ++---
- drivers/media/platform/pxa_camera.c             |  2 +-
- drivers/media/platform/qcom/camss/camss.h       |  1 -
- drivers/media/platform/rcar-vin/rcar-core.c     |  1 -
- drivers/media/platform/stm32/stm32-dcmi.c       |  5 +++-
- drivers/staging/media/imx/imx-media-utils.c     |  4 +--
- drivers/staging/media/zoran/zoran_driver.c      |  2 +-
- 15 files changed, 93 insertions(+), 82 deletions(-)
+regards,
+dan carpenter
