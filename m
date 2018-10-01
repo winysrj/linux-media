@@ -1,87 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:48071 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1729439AbeJAVcX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 17:32:23 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-stm32@st-md-mailman.stormreply.com"
-        <linux-stm32@st-md-mailman.stormreply.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jacopo Mondi <jacopo@jmondi.org>
-Subject: Re: [PATCH 3/4] media: dt-bindings: media: Document
- pclk-max-frequency property
-Date: Mon, 1 Oct 2018 14:53:30 +0000
-Message-ID: <1e57c359-9916-0629-7a33-48435204db94@st.com>
-References: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
- <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
- <20180928070312.a22olexufppfejes@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20180928070312.a22olexufppfejes@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <52487EC1A447024282EC935AD05A70C2@st.com>
-Content-Transfer-Encoding: base64
+Received: from mail.kernel.org ([198.145.29.99]:56538 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1729412AbeJAVkJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 17:40:09 -0400
 MIME-Version: 1.0
+References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
+ <20180920204751.29117-3-ricardo.ribalda@gmail.com> <20180927182311.GA27227@bogus>
+ <CAPybu_0CCco6M6A1JsGUTo2P7rvqN1qPnMmuee7UsXxdkmaNBw@mail.gmail.com>
+ <CAL_JsqLM9E45nvSToQV=XDwTmppkYcsPd-Ddzy+AJ8GP==aL+A@mail.gmail.com> <CAPybu_0+F-o03qfg6u3RjgCJaeqzEoma4Niz-H9=0bSHJo+9jg@mail.gmail.com>
+In-Reply-To: <CAPybu_0+F-o03qfg6u3RjgCJaeqzEoma4Niz-H9=0bSHJo+9jg@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Date: Mon, 1 Oct 2018 10:01:42 -0500
+Message-ID: <CAL_JsqJ32c3FXrUmCO0N16GcrUJ53tj5rp3VvV0s5H1NybwqKQ@mail.gmail.com>
+Subject: Re: [PATCH v4 3/7] [media] ad5820: DT new optional field enable-gpios
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU2FrYXJpLA0KDQpPbiAwOS8yOC8yMDE4IDA5OjAzIEFNLCBTYWthcmkgQWlsdXMgd3JvdGU6
-DQo+IEhpIEh1Z3VlcywNCj4gDQo+IE9uIFRodSwgU2VwIDI3LCAyMDE4IGF0IDA0OjQ2OjA2UE0g
-KzAyMDAsIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4gVGhpcyBvcHRpb25hbCBwcm9wZXJ0eSBh
-aW1zIHRvIGluZm9ybSBwYXJhbGxlbCB2aWRlbyBkZXZpY2VzDQo+PiBvZiB0aGUgbWF4aW11bSBw
-aXhlbCBjbG9jayBmcmVxdWVuY3kgYWRtaXNzaWJsZSBieSBob3N0IHZpZGVvDQo+PiBpbnRlcmZh
-Y2UuIElmIGJhbmR3aWR0aCBvZiBkYXRhIHRvIGJlIHRyYW5zZmVycmVkIHJlcXVpcmVzIGENCj4+
-IHBpeGVsIGNsb2NrIHdoaWNoIGlzIGhpZ2hlciB0aGFuIHRoaXMgdmFsdWUsIHBhcmFsbGVsIHZp
-ZGVvDQo+PiBkZXZpY2UgY291bGQgdGhlbiB0eXBpY2FsbHkgYWRhcHQgZnJhbWVyYXRlIHRvIHJl
-YWNoDQo+PiB0aGlzIGNvbnN0cmFpbnQuDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogSHVndWVzIEZy
-dWNoZXQgPGh1Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4+IC0tLQ0KPj4gICBEb2N1bWVudGF0aW9u
-L2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNlcy50eHQgfCAyICsrDQo+
-PiAgIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKykNCj4+DQo+PiBkaWZmIC0tZ2l0IGEv
-RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL3ZpZGVvLWludGVyZmFjZXMu
-dHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL3ZpZGVvLWludGVy
-ZmFjZXMudHh0DQo+PiBpbmRleCBiYWY5ZDk3Li5mYTRjMTEyIDEwMDY0NA0KPj4gLS0tIGEvRG9j
-dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL3ZpZGVvLWludGVyZmFjZXMudHh0
-DQo+PiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8t
-aW50ZXJmYWNlcy50eHQNCj4+IEBAIC0xNDcsNiArMTQ3LDggQEAgT3B0aW9uYWwgZW5kcG9pbnQg
-cHJvcGVydGllcw0KPj4gICAgIGFzIDAgKG5vcm1hbCkuIFRoaXMgcHJvcGVydHkgaXMgdmFsaWQg
-Zm9yIHNlcmlhbCBidXNzZXMgb25seS4NCj4+ICAgLSBzdHJvYmU6IFdoZXRoZXIgdGhlIGNsb2Nr
-IHNpZ25hbCBpcyB1c2VkIGFzIGNsb2NrICgwKSBvciBzdHJvYmUgKDEpLiBVc2VkDQo+PiAgICAg
-d2l0aCBDQ1AyLCBmb3IgaW5zdGFuY2UuDQo+PiArLSBwY2xrLW1heC1mcmVxdWVuY3k6IG1heGlt
-dW0gcGl4ZWwgY2xvY2sgZnJlcXVlbmN5IGFkbWlzc2libGUgYnkgdmlkZW8NCj4+ICsgIGhvc3Qg
-aW50ZXJmYWNlLg0KPiANCj4gSXMgdGhlcmUgYSBsaW1pdCBvbiB0aGUgcGl4ZWwgY2xvY2sgb3Ig
-dGhlIGxpbmsgZnJlcXVlbmN5Pw0KDQpUaGUgY29uc3RyYWludCBpcyB0aGUgZnJlcXVlbmN5IG9m
-IHRoZSBjbG9jayBpbiBpbnB1dCBvZiB0aGUgU29DIChwaXhlbCANCmNsb2NrIGxpbmUpLg0KDQo+
-IA0KPiBXZSBkbyBoYXZlIGEgcHJvcGVydHkgZm9yIHRoZSBsaW5rIGZyZXF1ZW5jeSBhbmQgYSBj
-b250cm9sIGZvciB0aGUgcGl4ZWwNCj4gbG9jayBhcyB3ZWxsIGFzIGZvciB0aGUgbGluayBmcmVx
-dWVuY3kuIENvdWxkIHRoZXNlIGJlIHVzZWQgZm9yIHRoZQ0KPiBwdXJwb3NlPw0KDQpBcyB0aGlz
-IHdhcyBkb2N1bWVudGVkIG1haW5seSBmb3IgTUlQSS1DU0kyIEkgd2FzIG5vdCBjbGVhciBpZiB0
-aGlzIA0KY291bGQgYmUgdXNlZCBvciBub3QsIGJ1dCB2aWRlby1pbnRlcmZhY2UudHh0IGJpbmRp
-bmcgbGV0IG9wZW4gdGhlIGRvb3INCnRvIHBhcmFsbGVsIHBvcnQgdXNhZ2UuLi4NCkkgaGFkIGFs
-c28gc29tZSBoZXNpdGF0aW9ucyB0byB1c2UgdGhpcyBwcm9wZXJ0eSBiZWNhdXNlIHdoYXQgSSB3
-YXMgDQpzZWFyY2hpbmcgZm9yIGhlcmUgd2FzIGEgbWF4aW11bSBsaW1pdCB0byBub3QgZXhjZWVk
-IHdoaWxlIA0KImxpbmstZnJlcXVlbmNpZXMiIGlzIGRlc2NyaWJlZCBhcyBmcmVxdWVuY2llcyB0
-byB1c2U6ICJBbGxvd2VkIGRhdGEgYnVzIA0KZnJlcXVlbmNpZXMiLg0KVGhlIGZhY3QgdGhhdCB0
-aGVyZSB3YXMgc2V2ZXJhbCBlbnRyaWVzIGZvciB0aGlzIHByb3BlcnR5IHdhcyBhbHNvIHF1aXRl
-IA0KY29uZnVzaW5nLg0KV2hhdCBJIGNhbiBkbyBpcyB0byB1c2UgdGhpcyBwcm9wZXJ0eSBhbmQg
-YWRkIGEgY29tbWVudCBleHBsYWluaW5nIHRoYXQgDQp0aGlzIGNhbiBhbHNvIGJlIHVzZWQgZm9y
-IHBhcmFsbGVsIHBvcnQgYXMgdGhlIGZyZXF1ZW5jeSB0byBub3QgZXhjZWVkIA0Kb24gcGl4ZWwg
-Y2xvY2sgc2lnbmFsLCB3aGF0IGRvIHlvdSB0aGluayBhYm91dCBpdCA/DQoNCkNoZWNraW5nIGRy
-aXZlcnMgd2hpY2ggYXJlIGltcGxlbWVudGluZyAibGluay1mcmVxdWVuY2llcyIsIEkndmUgZm91
-bmQgDQpPVjI2NTkgc2Vuc29yIHdoaWNoIGlzIGRvaW5nIGFsbW9zdCB3aGF0IEkgd2FudCB0bywg
-aWUgY29tcHV0ZSB0aGUgY2xvY2sgDQpyYXRlIGRlcGVuZGluZyBvbiBsaW5rLWZyZXF1ZW5jeSwg
-c2VlIG92MjY1OV9wbGxfY2FsY19wYXJhbXMoKS4NCg0KPiANCj4gVGhlIGxpbmsgZnJlcXVlbmN5
-IGluIGdlbmVyYWwgc2hvdWxkIGJlIHNwZWNpZmllZCBmb3IgdGhlIGJvYXJkLCBhbmQgdGhhdA0K
-PiBsaW1pdHMgdGhlIHBpeGVsIGNsb2NrIGFzIHdlbGwgaW4gdGhlIGNhc2UgdGhlIGJ1cyB0cmFu
-c2ZlcnMgYSBnaXZlbiBudW1iZXINCj4gb2YgcGl4ZWxzIHBlciBjbG9jay4NCj4gDQo+IFRoZSBP
-TUFQM0lTUCBkcml2ZXIgYWxzbyBhZGRyZXNzIHRoaXMgYnkgcmVhZGluZyBiYWNrIHRoZSBwaXhl
-bCBjbG9jayBmcm9tDQo+IHRoZSBzZW5zb3IgYmVmb3JlIHN0YXJ0aW5nIHN0cmVhbWluZy4NCj4g
-DQoNCkJSLA0KSHVndWVzLg==
+On Mon, Oct 1, 2018 at 7:40 AM Ricardo Ribalda Delgado
+<ricardo.ribalda@gmail.com> wrote:
+>
+> Hi
+> On Mon, Oct 1, 2018 at 2:36 PM Rob Herring <robh@kernel.org> wrote:
+> >
+> > On Mon, Oct 1, 2018 at 3:20 AM Ricardo Ribalda Delgado
+> > <ricardo.ribalda@gmail.com> wrote:
+> > >
+> > > Hi Rob
+> > > On Thu, Sep 27, 2018 at 8:23 PM Rob Herring <robh@kernel.org> wrote:
+> > > >
+> > > > On Thu, Sep 20, 2018 at 10:47:47PM +0200, Ricardo Ribalda Delgado wrote:
+> > > > > Document new enable-gpio field. It can be used to disable the part
+> > > >
+> > > > enable-gpios
+> > > >
+> > > > > without turning down its regulator.
+> > > > >
+> > > > > Cc: devicetree@vger.kernel.org
+> > > > > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > > > > Acked-by: Pavel Machek <pavel@ucw.cz>
+> > > > > ---
+> > > > >  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 7 +++++++
+> > > > >  1 file changed, 7 insertions(+)
+> > > > >
+> > > > > diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > > > > index 5940ca11c021..9ccd96d3d5f0 100644
+> > > > > --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > > > > +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > > > > @@ -8,6 +8,12 @@ Required Properties:
+> > > > >
+> > > > >    - VANA-supply: supply of voltage for VANA pin
+> > > > >
+> > > > > +Optional properties:
+> > > > > +
+> > > > > +   - enable-gpios : GPIO spec for the XSHUTDOWN pin. Note that the polarity of
+> > > > > +the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the enable
+> > > > > +GPIO deasserts the XSHUTDOWN signal and vice versa).
+> > > >
+> > > > shutdown-gpios is also standard and seems like it would make more sense
+> > > > here. Yes, it is a bit redundant to have both, but things just evolved
+> > > > that way and we don't want to totally abandon the hardware names (just
+> > > > all the variants).
+> > > >
+> > >
+> > > Sorry to insist
+> > >
+> > > The pin is called xshutdown, not shutdown and is inverse logic,
+> > > Wouldnt it make more sense to use the name
+> > > enable-gpios?
+> >
+> > Inverse of what? shutdown-gpios is the inverse of enable-gpios. By
+> > using shutdown-gpios you can just get rid of "Note that the polarity
+> > of the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the
+> > enable GPIO deasserts the XSHUTDOWN signal and vice versa)."
+>
+> The pin is called XSHUTDOWN
+>
+> 0V means shutdown
+>
+> 3.3V means enable
+>
+> This is why I think is more clear to use enable as name in the device tree.
+
+Neither enable-gpios nor shutdown-gpios have a defined polarity. The
+polarity is part of the flags cell in the specifier.
+
+Rob
