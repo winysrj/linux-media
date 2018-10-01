@@ -1,72 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk1-f176.google.com ([209.85.222.176]:37244 "EHLO
-        mail-qk1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728979AbeJATUh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 15:20:37 -0400
-Received: by mail-qk1-f176.google.com with SMTP id x8-v6so285964qka.4
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2018 05:42:58 -0700 (PDT)
-Message-ID: <d24d3977163f6c05cd65210b743f4e0dc321388d.camel@ndufresne.ca>
-Subject: Re: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Mon, 01 Oct 2018 08:42:56 -0400
-In-Reply-To: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
-References: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:40556 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729017AbeJATR6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 15:17:58 -0400
+MIME-Version: 1.0
+References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
+ <20180920204751.29117-3-ricardo.ribalda@gmail.com> <20180927182311.GA27227@bogus>
+ <CAPybu_0CCco6M6A1JsGUTo2P7rvqN1qPnMmuee7UsXxdkmaNBw@mail.gmail.com> <CAL_JsqLM9E45nvSToQV=XDwTmppkYcsPd-Ddzy+AJ8GP==aL+A@mail.gmail.com>
+In-Reply-To: <CAL_JsqLM9E45nvSToQV=XDwTmppkYcsPd-Ddzy+AJ8GP==aL+A@mail.gmail.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 1 Oct 2018 14:40:02 +0200
+Message-ID: <CAPybu_0+F-o03qfg6u3RjgCJaeqzEoma4Niz-H9=0bSHJo+9jg@mail.gmail.com>
+Subject: Re: [PATCH v4 3/7] [media] ad5820: DT new optional field enable-gpios
+To: Rob Herring <robh@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        devicetree@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Hi
+On Mon, Oct 1, 2018 at 2:36 PM Rob Herring <robh@kernel.org> wrote:
+>
+> On Mon, Oct 1, 2018 at 3:20 AM Ricardo Ribalda Delgado
+> <ricardo.ribalda@gmail.com> wrote:
+> >
+> > Hi Rob
+> > On Thu, Sep 27, 2018 at 8:23 PM Rob Herring <robh@kernel.org> wrote:
+> > >
+> > > On Thu, Sep 20, 2018 at 10:47:47PM +0200, Ricardo Ribalda Delgado wrote:
+> > > > Document new enable-gpio field. It can be used to disable the part
+> > >
+> > > enable-gpios
+> > >
+> > > > without turning down its regulator.
+> > > >
+> > > > Cc: devicetree@vger.kernel.org
+> > > > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > > > Acked-by: Pavel Machek <pavel@ucw.cz>
+> > > > ---
+> > > >  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 7 +++++++
+> > > >  1 file changed, 7 insertions(+)
+> > > >
+> > > > diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > > > index 5940ca11c021..9ccd96d3d5f0 100644
+> > > > --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > > > +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > > > @@ -8,6 +8,12 @@ Required Properties:
+> > > >
+> > > >    - VANA-supply: supply of voltage for VANA pin
+> > > >
+> > > > +Optional properties:
+> > > > +
+> > > > +   - enable-gpios : GPIO spec for the XSHUTDOWN pin. Note that the polarity of
+> > > > +the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the enable
+> > > > +GPIO deasserts the XSHUTDOWN signal and vice versa).
+> > >
+> > > shutdown-gpios is also standard and seems like it would make more sense
+> > > here. Yes, it is a bit redundant to have both, but things just evolved
+> > > that way and we don't want to totally abandon the hardware names (just
+> > > all the variants).
+> > >
+> >
+> > Sorry to insist
+> >
+> > The pin is called xshutdown, not shutdown and is inverse logic,
+> > Wouldnt it make more sense to use the name
+> > enable-gpios?
+>
+> Inverse of what? shutdown-gpios is the inverse of enable-gpios. By
+> using shutdown-gpios you can just get rid of "Note that the polarity
+> of the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the
+> enable GPIO deasserts the XSHUTDOWN signal and vice versa)."
 
-Le lundi 01 octobre 2018 à 10:43 +0200, Hans Verkuil a écrit :
-> It turns out that we have both JPEG and Motion-JPEG pixel formats defined.
-> 
-> Furthermore, some drivers support one, some the other and some both.
-> 
-> These pixelformats both mean the same.
-> 
-> I propose that we settle on JPEG (since it seems to be used most often) and
-> add JPEG support to those drivers that currently only use MJPEG.
+The pin is called XSHUTDOWN
 
-Thanks for looking into this. As per GStreamer code, I see 3 alias for
-JPEG. V4L2_PIX_FMT_MJPEG/JPEG/PJPG. I don't know the context, this code
-was written before I knew GStreamer existed. It's possible there is a
-subtle difference, I have never looked at it, but clearly all our JPEG
-decoder handle these as being the same.
+0V means shutdown
 
-https://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/sys/v4l2/gstv4l2object.c#n956
+3.3V means enable
 
-> 
-> We also need to update the V4L2_PIX_FMT_JPEG documentation since it just says
-> TBD:
-> 
-> https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-compressed.html
-> 
-> $ git grep -l V4L2_PIX_FMT_MJPEG
-> drivers/media/pci/meye/meye.c
-> drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> drivers/media/platform/sti/delta/delta-cfg.h
-> drivers/media/platform/sti/delta/delta-mjpeg-dec.c
-> drivers/media/usb/cpia2/cpia2_v4l.c
-> drivers/media/usb/go7007/go7007-driver.c
-> drivers/media/usb/go7007/go7007-fw.c
-> drivers/media/usb/go7007/go7007-v4l2.c
-> drivers/media/usb/s2255/s2255drv.c
-> drivers/media/usb/uvc/uvc_driver.c
-> drivers/staging/media/zoran/zoran_driver.c
-> drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-> drivers/usb/gadget/function/uvc_v4l2.c
-> 
-> It looks like s2255 and cpia2 support both already, so that would leave
-> 8 drivers that need to be modified, uvc being the most important of the
-> lot.
-> 
-> Any comments?
-> 
-> Regards,
-> 
-> 	Hans
+This is why I think is more clear to use enable as name in the device tree.
+
+>
+> This looks to me like a case of just standardizing the name so for
+> example we just have "reset" instead of many flavors like rst, RSTb,
+> RESETb, RESETn, nRESET, etc.
+>
+> Rob
+
+
+
+-- 
+Ricardo Ribalda
