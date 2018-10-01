@@ -1,97 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:44789 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729496AbeJAVIu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 17:08:50 -0400
-Received: by mail-wr1-f66.google.com with SMTP id 63-v6so6947514wra.11
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2018 07:30:43 -0700 (PDT)
-Subject: Re: [PATCH v9 1/5] venus: firmware: add routine to reset ARM9
-To: Alexandre Courbot <acourbot@chromium.org>, vgarodia@codeaurora.org
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:48071 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1729439AbeJAVcX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 17:32:23 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
-        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-media-owner@vger.kernel.org
-References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
- <1537314192-26892-2-git-send-email-vgarodia@codeaurora.org>
- <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
- <97b94b9b-f028-cb8b-a3db-67626dc517ab@linaro.org>
- <175fcecf3be715d2a20b71746c648f1e@codeaurora.org>
- <CAPBb6MUo6X+L7UYgmw8qUe_2CiZEBKGxaREFhZGRU1jGq0fO=g@mail.gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <cdc7769d-8bea-ac78-355e-07347ac8aaf1@linaro.org>
-Date: Mon, 1 Oct 2018 17:30:40 +0300
-MIME-Version: 1.0
-In-Reply-To: <CAPBb6MUo6X+L7UYgmw8qUe_2CiZEBKGxaREFhZGRU1jGq0fO=g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-stm32@st-md-mailman.stormreply.com"
+        <linux-stm32@st-md-mailman.stormreply.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH 3/4] media: dt-bindings: media: Document
+ pclk-max-frequency property
+Date: Mon, 1 Oct 2018 14:53:30 +0000
+Message-ID: <1e57c359-9916-0629-7a33-48435204db94@st.com>
+References: <1538059567-8381-1-git-send-email-hugues.fruchet@st.com>
+ <1538059567-8381-4-git-send-email-hugues.fruchet@st.com>
+ <20180928070312.a22olexufppfejes@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180928070312.a22olexufppfejes@valkosipuli.retiisi.org.uk>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <52487EC1A447024282EC935AD05A70C2@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 09/20/2018 06:31 AM, Alexandre Courbot wrote:
-> On Thu, Sep 20, 2018 at 2:55 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
->>
->> On 2018-09-19 20:30, Stanimir Varbanov wrote:
->>> Hi Alex,
->>>
->>> On 09/19/2018 10:32 AM, Alexandre Courbot wrote:
->>>> On Wed, Sep 19, 2018 at 8:43 AM Vikash Garodia
->>>> <vgarodia@codeaurora.org> wrote:
->>>>>
->>>>> Add routine to reset the ARM9 and brings it out of reset. Also
->>>>> abstract the Venus CPU state handling with a new function. This
->>>>> is in preparation to add PIL functionality in venus driver.
->>>>>
->>>>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->>>>> ---
->>>>>  drivers/media/platform/qcom/venus/core.h         |  2 ++
->>>>>  drivers/media/platform/qcom/venus/firmware.c     | 33
->>>>> ++++++++++++++++++++++++
->>>>>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
->>>>>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
->>>>>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
->>>>>  5 files changed, 57 insertions(+), 9 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/platform/qcom/venus/core.h
->>>>> b/drivers/media/platform/qcom/venus/core.h
->>>>> index 2f02365..dfd5c10 100644
->>>>> --- a/drivers/media/platform/qcom/venus/core.h
->>>>> +++ b/drivers/media/platform/qcom/venus/core.h
->>>>> @@ -98,6 +98,7 @@ struct venus_caps {
->>>>>   * @dev:               convenience struct device pointer
->>>>>   * @dev_dec:   convenience struct device pointer for decoder device
->>>>>   * @dev_enc:   convenience struct device pointer for encoder device
->>>>> + * @no_tz:     a flag that suggests presence of trustzone
->>>>
->>>> Looks like it suggests the absence of trustzone?
->>>>
->>>> Actually I would rename it as use_tz and set it if TrustZone is used.
->>>> This would avoid double-negative statements like what we see below.
->>>
->>> I find this suggestion reasonable.
->>
->> Initially i planned to keep it as a positive flag. The reason behind
->> keeping it
->> as no_tz was to keep the default value of this flag to 0 indicating tz
->> is present
->> by default.
->> I can switch it to use_tz though and set it in firmware_init after the
->> presence of
->> firmware node is checked.
-> 
-> Making sure the flag is explicitly initialized instead of relying on
-> default initialization is another good reason to have that change
-> IMHO. :)
-
-Vikash, care to send a new version, or will fix that with follow up patches?
-
--- 
-regards,
-Stan
+SGkgU2FrYXJpLA0KDQpPbiAwOS8yOC8yMDE4IDA5OjAzIEFNLCBTYWthcmkgQWlsdXMgd3JvdGU6
+DQo+IEhpIEh1Z3VlcywNCj4gDQo+IE9uIFRodSwgU2VwIDI3LCAyMDE4IGF0IDA0OjQ2OjA2UE0g
+KzAyMDAsIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4gVGhpcyBvcHRpb25hbCBwcm9wZXJ0eSBh
+aW1zIHRvIGluZm9ybSBwYXJhbGxlbCB2aWRlbyBkZXZpY2VzDQo+PiBvZiB0aGUgbWF4aW11bSBw
+aXhlbCBjbG9jayBmcmVxdWVuY3kgYWRtaXNzaWJsZSBieSBob3N0IHZpZGVvDQo+PiBpbnRlcmZh
+Y2UuIElmIGJhbmR3aWR0aCBvZiBkYXRhIHRvIGJlIHRyYW5zZmVycmVkIHJlcXVpcmVzIGENCj4+
+IHBpeGVsIGNsb2NrIHdoaWNoIGlzIGhpZ2hlciB0aGFuIHRoaXMgdmFsdWUsIHBhcmFsbGVsIHZp
+ZGVvDQo+PiBkZXZpY2UgY291bGQgdGhlbiB0eXBpY2FsbHkgYWRhcHQgZnJhbWVyYXRlIHRvIHJl
+YWNoDQo+PiB0aGlzIGNvbnN0cmFpbnQuDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogSHVndWVzIEZy
+dWNoZXQgPGh1Z3Vlcy5mcnVjaGV0QHN0LmNvbT4NCj4+IC0tLQ0KPj4gICBEb2N1bWVudGF0aW9u
+L2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNlcy50eHQgfCAyICsrDQo+
+PiAgIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKykNCj4+DQo+PiBkaWZmIC0tZ2l0IGEv
+RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL3ZpZGVvLWludGVyZmFjZXMu
+dHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL3ZpZGVvLWludGVy
+ZmFjZXMudHh0DQo+PiBpbmRleCBiYWY5ZDk3Li5mYTRjMTEyIDEwMDY0NA0KPj4gLS0tIGEvRG9j
+dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL3ZpZGVvLWludGVyZmFjZXMudHh0
+DQo+PiArKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8t
+aW50ZXJmYWNlcy50eHQNCj4+IEBAIC0xNDcsNiArMTQ3LDggQEAgT3B0aW9uYWwgZW5kcG9pbnQg
+cHJvcGVydGllcw0KPj4gICAgIGFzIDAgKG5vcm1hbCkuIFRoaXMgcHJvcGVydHkgaXMgdmFsaWQg
+Zm9yIHNlcmlhbCBidXNzZXMgb25seS4NCj4+ICAgLSBzdHJvYmU6IFdoZXRoZXIgdGhlIGNsb2Nr
+IHNpZ25hbCBpcyB1c2VkIGFzIGNsb2NrICgwKSBvciBzdHJvYmUgKDEpLiBVc2VkDQo+PiAgICAg
+d2l0aCBDQ1AyLCBmb3IgaW5zdGFuY2UuDQo+PiArLSBwY2xrLW1heC1mcmVxdWVuY3k6IG1heGlt
+dW0gcGl4ZWwgY2xvY2sgZnJlcXVlbmN5IGFkbWlzc2libGUgYnkgdmlkZW8NCj4+ICsgIGhvc3Qg
+aW50ZXJmYWNlLg0KPiANCj4gSXMgdGhlcmUgYSBsaW1pdCBvbiB0aGUgcGl4ZWwgY2xvY2sgb3Ig
+dGhlIGxpbmsgZnJlcXVlbmN5Pw0KDQpUaGUgY29uc3RyYWludCBpcyB0aGUgZnJlcXVlbmN5IG9m
+IHRoZSBjbG9jayBpbiBpbnB1dCBvZiB0aGUgU29DIChwaXhlbCANCmNsb2NrIGxpbmUpLg0KDQo+
+IA0KPiBXZSBkbyBoYXZlIGEgcHJvcGVydHkgZm9yIHRoZSBsaW5rIGZyZXF1ZW5jeSBhbmQgYSBj
+b250cm9sIGZvciB0aGUgcGl4ZWwNCj4gbG9jayBhcyB3ZWxsIGFzIGZvciB0aGUgbGluayBmcmVx
+dWVuY3kuIENvdWxkIHRoZXNlIGJlIHVzZWQgZm9yIHRoZQ0KPiBwdXJwb3NlPw0KDQpBcyB0aGlz
+IHdhcyBkb2N1bWVudGVkIG1haW5seSBmb3IgTUlQSS1DU0kyIEkgd2FzIG5vdCBjbGVhciBpZiB0
+aGlzIA0KY291bGQgYmUgdXNlZCBvciBub3QsIGJ1dCB2aWRlby1pbnRlcmZhY2UudHh0IGJpbmRp
+bmcgbGV0IG9wZW4gdGhlIGRvb3INCnRvIHBhcmFsbGVsIHBvcnQgdXNhZ2UuLi4NCkkgaGFkIGFs
+c28gc29tZSBoZXNpdGF0aW9ucyB0byB1c2UgdGhpcyBwcm9wZXJ0eSBiZWNhdXNlIHdoYXQgSSB3
+YXMgDQpzZWFyY2hpbmcgZm9yIGhlcmUgd2FzIGEgbWF4aW11bSBsaW1pdCB0byBub3QgZXhjZWVk
+IHdoaWxlIA0KImxpbmstZnJlcXVlbmNpZXMiIGlzIGRlc2NyaWJlZCBhcyBmcmVxdWVuY2llcyB0
+byB1c2U6ICJBbGxvd2VkIGRhdGEgYnVzIA0KZnJlcXVlbmNpZXMiLg0KVGhlIGZhY3QgdGhhdCB0
+aGVyZSB3YXMgc2V2ZXJhbCBlbnRyaWVzIGZvciB0aGlzIHByb3BlcnR5IHdhcyBhbHNvIHF1aXRl
+IA0KY29uZnVzaW5nLg0KV2hhdCBJIGNhbiBkbyBpcyB0byB1c2UgdGhpcyBwcm9wZXJ0eSBhbmQg
+YWRkIGEgY29tbWVudCBleHBsYWluaW5nIHRoYXQgDQp0aGlzIGNhbiBhbHNvIGJlIHVzZWQgZm9y
+IHBhcmFsbGVsIHBvcnQgYXMgdGhlIGZyZXF1ZW5jeSB0byBub3QgZXhjZWVkIA0Kb24gcGl4ZWwg
+Y2xvY2sgc2lnbmFsLCB3aGF0IGRvIHlvdSB0aGluayBhYm91dCBpdCA/DQoNCkNoZWNraW5nIGRy
+aXZlcnMgd2hpY2ggYXJlIGltcGxlbWVudGluZyAibGluay1mcmVxdWVuY2llcyIsIEkndmUgZm91
+bmQgDQpPVjI2NTkgc2Vuc29yIHdoaWNoIGlzIGRvaW5nIGFsbW9zdCB3aGF0IEkgd2FudCB0bywg
+aWUgY29tcHV0ZSB0aGUgY2xvY2sgDQpyYXRlIGRlcGVuZGluZyBvbiBsaW5rLWZyZXF1ZW5jeSwg
+c2VlIG92MjY1OV9wbGxfY2FsY19wYXJhbXMoKS4NCg0KPiANCj4gVGhlIGxpbmsgZnJlcXVlbmN5
+IGluIGdlbmVyYWwgc2hvdWxkIGJlIHNwZWNpZmllZCBmb3IgdGhlIGJvYXJkLCBhbmQgdGhhdA0K
+PiBsaW1pdHMgdGhlIHBpeGVsIGNsb2NrIGFzIHdlbGwgaW4gdGhlIGNhc2UgdGhlIGJ1cyB0cmFu
+c2ZlcnMgYSBnaXZlbiBudW1iZXINCj4gb2YgcGl4ZWxzIHBlciBjbG9jay4NCj4gDQo+IFRoZSBP
+TUFQM0lTUCBkcml2ZXIgYWxzbyBhZGRyZXNzIHRoaXMgYnkgcmVhZGluZyBiYWNrIHRoZSBwaXhl
+bCBjbG9jayBmcm9tDQo+IHRoZSBzZW5zb3IgYmVmb3JlIHN0YXJ0aW5nIHN0cmVhbWluZy4NCj4g
+DQoNCkJSLA0KSHVndWVzLg==
