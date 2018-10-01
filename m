@@ -1,88 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:38696 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729272AbeJAUur (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 16:50:47 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sakari Ailus" <sakari.ailus@linux.intel.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        jacopo mondi <jacopo@jmondi.org>
-Subject: Re: [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
-Date: Mon, 1 Oct 2018 14:12:31 +0000
-Message-ID: <56139505-6e5c-6d7f-027d-54b51c70b179@st.com>
-References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
- <b3bac06f-f4d6-7620-2c3d-f8a852920f56@st.com>
- <20180928160507.4jerbp4dqgz6l4qu@flea>
-In-Reply-To: <20180928160507.4jerbp4dqgz6l4qu@flea>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <028DFE579082F74FA3E9844D562D2059@st.com>
-Content-Transfer-Encoding: base64
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:44789 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729496AbeJAVIu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 17:08:50 -0400
+Received: by mail-wr1-f66.google.com with SMTP id 63-v6so6947514wra.11
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2018 07:30:43 -0700 (PDT)
+Subject: Re: [PATCH v9 1/5] venus: firmware: add routine to reset ARM9
+To: Alexandre Courbot <acourbot@chromium.org>, vgarodia@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>, robh@kernel.org,
+        mark.rutland@arm.com, Andy Gross <andy.gross@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, bjorn.andersson@linaro.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-media-owner@vger.kernel.org
+References: <1537314192-26892-1-git-send-email-vgarodia@codeaurora.org>
+ <1537314192-26892-2-git-send-email-vgarodia@codeaurora.org>
+ <CAPBb6MXMv_TD2dbxyM+D2p3pWfCJpQ-_FHK6WdkAEgBhwTdL6g@mail.gmail.com>
+ <97b94b9b-f028-cb8b-a3db-67626dc517ab@linaro.org>
+ <175fcecf3be715d2a20b71746c648f1e@codeaurora.org>
+ <CAPBb6MUo6X+L7UYgmw8qUe_2CiZEBKGxaREFhZGRU1jGq0fO=g@mail.gmail.com>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <cdc7769d-8bea-ac78-355e-07347ac8aaf1@linaro.org>
+Date: Mon, 1 Oct 2018 17:30:40 +0300
 MIME-Version: 1.0
+In-Reply-To: <CAPBb6MUo6X+L7UYgmw8qUe_2CiZEBKGxaREFhZGRU1jGq0fO=g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF4aW1lLA0KDQpPbiAwOS8yOC8yMDE4IDA2OjA1IFBNLCBNYXhpbWUgUmlwYXJkIHdyb3Rl
-Og0KPiBIaSBIdWd1ZXMsDQo+IA0KPiBPbiBUaHUsIFNlcCAyNywgMjAxOCBhdCAwMzo1OTowNFBN
-ICswMDAwLCBIdWd1ZXMgRlJVQ0hFVCB3cm90ZToNCj4+IEhpIE1heGltZSAmIGFsbCBPVjU2NDAg
-c3Rha2Vob2xkZXJzLA0KPj4NCj4+IEkndmUganVzdCBwdXNoZWQgYSBuZXcgcGF0Y2hzZXQgYWxz
-byByZWxhdGVkIHRvIHJhdGUvcGl4ZWwgY2xvY2sNCj4+IGhhbmRsaW5nIFsxXSwgYmFzZWQgb24g
-eW91ciBWMyBncmVhdCB3b3JrOg0KPj4gICA+ICAgIG1lZGlhOiBvdjU2NDA6IEFkanVzdCB0aGUg
-Y2xvY2sgYmFzZWQgb24gdGhlIGV4cGVjdGVkIHJhdGUNCj4+ICAgPiAgICBtZWRpYTogb3Y1NjQw
-OiBSZW1vdmUgdGhlIGNsb2NrcyByZWdpc3RlcnMgaW5pdGlhbGl6YXRpb24NCj4+ICAgPiAgICBt
-ZWRpYTogb3Y1NjQwOiBSZW1vdmUgcmVkdW5kYW50IGRlZmluZXMNCj4+ICAgPiAgICBtZWRpYTog
-b3Y1NjQwOiBSZW1vdmUgcmVkdW5kYW50IHJlZ2lzdGVyIHNldHVwDQo+PiAgID4gICAgbWVkaWE6
-IG92NTY0MDogQ29tcHV0ZSB0aGUgY2xvY2sgcmF0ZSBhdCBydW50aW1lDQo+PiAgID4gICAgbWVk
-aWE6IG92NTY0MDogUmVtb3ZlIHBpeGVsIGNsb2NrIHJhdGVzDQo+PiAgID4gICAgbWVkaWE6IG92
-NTY0MDogRW5oYW5jZSBGUFMgaGFuZGxpbmcNCj4+DQo+PiBUaGlzIGlzIHdvcmtpbmcgcGVyZmVj
-dGx5IGZpbmUgb24gbXkgcGFyYWxsZWwgc2V0dXAgYW5kIGFsbG93cyBtZSB0bw0KPj4gd2VsbCBz
-dXBwb3J0IFZHQUAzMGZwcyAoaW5zdGVhZCAyNykgYW5kIGFsc28gc3VwcG9ydCBYR0EoMTAyNHg3
-NjgpQDE1ZnBzDQo+PiB0aGF0IEkgbmV2ZXIgc2VlbiB3b3JraW5nIGJlZm9yZS4NCj4+IFNvIGF0
-IGxlYXN0IGZvciB0aGUgcGFyYWxsZWwgc2V0dXAsIHRoaXMgc2VyaWUgaXMgd29ya2luZyBmaW5l
-IGZvciBhbGwNCj4+IHRoZSBkaXNjcmV0ZSByZXNvbHV0aW9ucyBhbmQgZnJhbWVyYXRlIGV4cG9z
-ZWQgYnkgdGhlIGRyaXZlciBmb3IgdGhlIG1vbWVudDoNCj4+ICogUUNJRiAxNzZ4MTQ0IDE1LzMw
-ZnBzDQo+PiAqIFFWR0EgMzIweDI0MCAxNS8zMGZwcw0KPj4gKiBWR0EgNjQweDQ4MCAxNS8zMGZw
-cw0KPj4gKiA0ODBwIDcyMHg0ODAgMTUvMzBmcHMNCj4+ICogWEdBIDEwMjR4NzY4IDE1LzMwZnBz
-DQo+PiAqIDcyMHAgMTI4MHg3MjAgMTUvMzBmcHMNCj4+ICogMTA4MHAgMTkyMHgxMDgwIDE1LzMw
-ZnBzDQo+PiAqIDVNcCAyNTkyeDE5NDQgMTVmcHMNCj4gDQo+IEknbSBnbGFkIHRoaXMgaXMgd29y
-a2luZyBmb3IgeW91IGFzIHdlbGwuIEkgZ3Vlc3MgSSdsbCByZXN1Ym1pdCB0aGVzZQ0KPiBwYXRj
-aGVzLCBidXQgdGhpcyB0aW1lIG1ha2luZyBzdXJlIHNvbWVvbmUgd2l0aCBhIENTSSBzZXR1cCB0
-ZXN0cw0KPiBiZWZvcmUgbWVyZ2luZy4gSSBjcnRhaW5seSBkb24ndCB3YW50IHRvIHJlcGVhdCB0
-aGUgcHJldmlvdXMgZGlzYXN0ZXIuDQo+IA0KPiBEbyB5b3UgaGF2ZSB0aG9zZSBwYXRjaGVzIHJl
-YmFzZWQgc29tZXdoZXJlPyBJJ20gbm90IHF1aXRlIHN1cmUgaG93IHRvDQo+IGZpeCB0aGUgY29u
-ZmxpY3Qgd2l0aCB0aGUgdjRsMl9maW5kX25lYXJlc3Rfc2l6ZSBhZGRpdGlvbi4NCj4gDQo+PiBN
-b3Jlb3ZlciBJJ20gbm90IGNsZWFyIG9uIHJlbGF0aW9uc2hpcCBiZXR3ZWVuIHJhdGUgYW5kIHBp
-eGVsIGNsb2NrDQo+PiBmcmVxdWVuY3kuDQo+PiBJJ3ZlIHVuZGVyc3Rvb2QgdGhhdCB0byBEVlBf
-UENMS19ESVZJREVSICgweDM4MjQpIHJlZ2lzdGVyDQo+PiBhbmQgVkZJRk9fQ1RSTDBDICgweDQ2
-MGMpIGFmZmVjdHMgdGhlIGVmZmVjdGl2ZSBwaXhlbCBjbG9jayBmcmVxdWVuY3kuDQo+PiBBbGwg
-dGhlIHJlc29sdXRpb25zIHVwIHRvIDcyMHg1NzYgYXJlIGZvcmNpbmcgYSBtYW51YWwgdmFsdWUg
-b2YgMiBmb3INCj4+IGRpdmlkZXIgKDB4NDYwYz0weDIyKSwgYnV0IGluY2x1ZGluZyA3MjBwIGFu
-ZCBtb3JlLCB0aGUgZGl2aWRlciB2YWx1ZSBpcw0KPj4gY29udHJvbGxlZCBieSAiYXV0by1tb2Rl
-IiAoMHg0NjBjPTB4MjApLi4uIGZyb20gd2hhdCBJIG1lYXN1cmVkIGFuZA0KPj4gdW5kZXJzdG9v
-ZCwgZm9yIHRob3NlIHJlc29sdXRpb25zLCB0aGUgZGl2aWRlciBtdXN0IGJlIHNldCB0byAxIGlu
-IG9yZGVyDQo+PiB0aGF0IHlvdXIgcmF0ZSBjb21wdXRhdGlvbiBtYXRjaCB0aGUgZWZmZWN0aXZl
-IHBpeGVsIGNsb2NrIG9uIG91dHB1dCwNCj4+IHNlZSBbMl0uDQo+Pg0KPj4gU28gSSB3b25kZXIg
-aWYgdGhpcyBQQ0xLIGRpdmlkZXIgcmVnaXN0ZXIgc2hvdWxkIGJlIGluY2x1ZGVkDQo+PiBvciBu
-b3QgaW50byB5b3VyIHJhdGUgY29tcHV0YXRpb24sIHdoYXQgZG8geW91IHRoaW5rID8NCj4gDQo+
-IEhhdmUgeW91IHRyaWVkIGNoYW5nZSB0aGUgUENMSyBkaXZpZGVyIHdoaWxlIGluIGF1dG8tbW9k
-ZT8gSUlSQywgSSBkaWQNCj4gdGhhdCBhbmQgaXQgd2FzIGFmZmVjdGluZyB0aGUgUENMSyByYXRl
-IG9uIG15IHNjb3BlLCBidXQgSSB3b3VsZG4ndCBiZQ0KPiBkZWZpbml0aXZlIGFib3V0IGl0Lg0K
-DQpJIGhhdmUgdGVzdGVkIHRvIGNoYW5nZSBQQ0xLIGRpdmlkZXIgd2hpbGUgaW4gYXV0byBtb2Rl
-IGJ1dCBubyBlZmZlY3QuDQoNCj4gDQo+IENhbiB3ZSBhbHdheXMgc2V0IHRoZSBtb2RlIHRvIGF1
-dG8gYW5kIGRpdmlkZXIgdG8gMSwgZXZlbiBmb3IgdGhlDQo+IGxvd2VyIHJlc29sdXRpb25zPw0K
-VGhpcyBpcyBicmVha2luZyAxNzZ4MTQ0QDMwZnBzIG9uIG15IHNpZGUsIGJlY2F1c2Ugb2YgcGl4
-ZWwgY2xvY2sgdG9vIA0KaGlnaCAoMTEyTUh6IHZzIDcwIE1IeiBtYXgpLg0KDQpJbnN0ZWFkIG9m
-IHVzaW5nIGF1dG8gbW9kZSwgbXkgcHJvcG9zYWwgd2FzIHRoZSBpbnZlcnNlOiB1c2UgbWFudWFs
-IG1vZGUgDQp3aXRoIHRoZSBwcm9wZXIgZGl2aWRlciB0byBmaXQgdGhlIG1heCBwaXhlbCBjbG9j
-ayBjb25zdHJhaW50Lg0KDQoNCkJSLA0KSHVndWVzLg==
+Hi,
+
+On 09/20/2018 06:31 AM, Alexandre Courbot wrote:
+> On Thu, Sep 20, 2018 at 2:55 AM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>>
+>> On 2018-09-19 20:30, Stanimir Varbanov wrote:
+>>> Hi Alex,
+>>>
+>>> On 09/19/2018 10:32 AM, Alexandre Courbot wrote:
+>>>> On Wed, Sep 19, 2018 at 8:43 AM Vikash Garodia
+>>>> <vgarodia@codeaurora.org> wrote:
+>>>>>
+>>>>> Add routine to reset the ARM9 and brings it out of reset. Also
+>>>>> abstract the Venus CPU state handling with a new function. This
+>>>>> is in preparation to add PIL functionality in venus driver.
+>>>>>
+>>>>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+>>>>> ---
+>>>>>  drivers/media/platform/qcom/venus/core.h         |  2 ++
+>>>>>  drivers/media/platform/qcom/venus/firmware.c     | 33
+>>>>> ++++++++++++++++++++++++
+>>>>>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
+>>>>>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
+>>>>>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
+>>>>>  5 files changed, 57 insertions(+), 9 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/qcom/venus/core.h
+>>>>> b/drivers/media/platform/qcom/venus/core.h
+>>>>> index 2f02365..dfd5c10 100644
+>>>>> --- a/drivers/media/platform/qcom/venus/core.h
+>>>>> +++ b/drivers/media/platform/qcom/venus/core.h
+>>>>> @@ -98,6 +98,7 @@ struct venus_caps {
+>>>>>   * @dev:               convenience struct device pointer
+>>>>>   * @dev_dec:   convenience struct device pointer for decoder device
+>>>>>   * @dev_enc:   convenience struct device pointer for encoder device
+>>>>> + * @no_tz:     a flag that suggests presence of trustzone
+>>>>
+>>>> Looks like it suggests the absence of trustzone?
+>>>>
+>>>> Actually I would rename it as use_tz and set it if TrustZone is used.
+>>>> This would avoid double-negative statements like what we see below.
+>>>
+>>> I find this suggestion reasonable.
+>>
+>> Initially i planned to keep it as a positive flag. The reason behind
+>> keeping it
+>> as no_tz was to keep the default value of this flag to 0 indicating tz
+>> is present
+>> by default.
+>> I can switch it to use_tz though and set it in firmware_init after the
+>> presence of
+>> firmware node is checked.
+> 
+> Making sure the flag is explicitly initialized instead of relying on
+> default initialization is another good reason to have that change
+> IMHO. :)
+
+Vikash, care to send a new version, or will fix that with follow up patches?
+
+-- 
+regards,
+Stan
