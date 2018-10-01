@@ -1,48 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr700066.outbound.protection.outlook.com ([40.107.70.66]:56483
-        "EHLO NAM04-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1729152AbeJATXr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 15:23:47 -0400
-Subject: Re: [PATCH] [media] v4l: xilinx: fix typo in formats table
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Andrea Merello <andrea.merello@gmail.com>
-CC: <hyun.kwon@xilinx.com>, <mchehab@kernel.org>,
-        <michal.simek@xilinx.com>, <linux-media@vger.kernel.org>,
-        Mirco Di Salvo <mirco.disalvo@iit.it>
-References: <20180928073213.10022-1-andrea.merello@gmail.com>
- <1859576.n3v8JWS4oW@avalon>
-From: Michal Simek <michal.simek@xilinx.com>
-Message-ID: <05f39fbf-7097-9d89-c019-c2398aed2201@xilinx.com>
-Date: Mon, 1 Oct 2018 14:45:49 +0200
-MIME-Version: 1.0
-In-Reply-To: <1859576.n3v8JWS4oW@avalon>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-qk1-f176.google.com ([209.85.222.176]:37244 "EHLO
+        mail-qk1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728979AbeJATUh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 15:20:37 -0400
+Received: by mail-qk1-f176.google.com with SMTP id x8-v6so285964qka.4
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2018 05:42:58 -0700 (PDT)
+Message-ID: <d24d3977163f6c05cd65210b743f4e0dc321388d.camel@ndufresne.ca>
+Subject: Re: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Mon, 01 Oct 2018 08:42:56 -0400
+In-Reply-To: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
+References: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello Hans,
 
-On 28.9.2018 14:52, Laurent Pinchart wrote:
-> Hi Andrea,
+Le lundi 01 octobre 2018 à 10:43 +0200, Hans Verkuil a écrit :
+> It turns out that we have both JPEG and Motion-JPEG pixel formats defined.
 > 
-> Thank you for the patch.
+> Furthermore, some drivers support one, some the other and some both.
 > 
-> On Friday, 28 September 2018 10:32:13 EEST Andrea Merello wrote:
->> In formats table the entry for CFA pattern "rggb" has GRBG fourcc.
->> This patch fixes it.
->>
->> Cc: linux-media@vger.kernel.org
->> Signed-off-by: Mirco Di Salvo <mirco.disalvo@iit.it>
->> Signed-off-by: Andrea Merello <andrea.merello@gmail.com>
+> These pixelformats both mean the same.
 > 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Michal, should I take the patch in my tree ?
+> I propose that we settle on JPEG (since it seems to be used most often) and
+> add JPEG support to those drivers that currently only use MJPEG.
 
-definitely. I am not collecting patches for media tree.
+Thanks for looking into this. As per GStreamer code, I see 3 alias for
+JPEG. V4L2_PIX_FMT_MJPEG/JPEG/PJPG. I don't know the context, this code
+was written before I knew GStreamer existed. It's possible there is a
+subtle difference, I have never looked at it, but clearly all our JPEG
+decoder handle these as being the same.
 
-Thanks,
-Michal
+https://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/sys/v4l2/gstv4l2object.c#n956
+
+> 
+> We also need to update the V4L2_PIX_FMT_JPEG documentation since it just says
+> TBD:
+> 
+> https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-compressed.html
+> 
+> $ git grep -l V4L2_PIX_FMT_MJPEG
+> drivers/media/pci/meye/meye.c
+> drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+> drivers/media/platform/sti/delta/delta-cfg.h
+> drivers/media/platform/sti/delta/delta-mjpeg-dec.c
+> drivers/media/usb/cpia2/cpia2_v4l.c
+> drivers/media/usb/go7007/go7007-driver.c
+> drivers/media/usb/go7007/go7007-fw.c
+> drivers/media/usb/go7007/go7007-v4l2.c
+> drivers/media/usb/s2255/s2255drv.c
+> drivers/media/usb/uvc/uvc_driver.c
+> drivers/staging/media/zoran/zoran_driver.c
+> drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
+> drivers/usb/gadget/function/uvc_v4l2.c
+> 
+> It looks like s2255 and cpia2 support both already, so that would leave
+> 8 drivers that need to be modified, uvc being the most important of the
+> lot.
+> 
+> Any comments?
+> 
+> Regards,
+> 
+> 	Hans
