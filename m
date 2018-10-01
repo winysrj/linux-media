@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53452 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725735AbeJAXKj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 19:10:39 -0400
-Message-ID: <177bb7e7efe18c4026c1e44b9cd9f73dc8352561.camel@collabora.com>
-Subject: Re: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG
-From: Ezequiel Garcia <ezequiel@collabora.com>
+Received: from mail-eopbgr690081.outbound.protection.outlook.com ([40.107.69.81]:59672
+        "EHLO NAM04-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1729182AbeJAUGm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 16:06:42 -0400
+Subject: Re: [PATCH] [media] v4l: xilinx: fix typo in formats table
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 01 Oct 2018 13:31:54 -0300
-In-Reply-To: <1670593.gmhJL1mYtv@avalon>
-References: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
-         <2438028.OjeO6a9KTA@avalon>
-         <71200c21-1073-789c-aa94-813042afc352@xs4all.nl>
-         <1670593.gmhJL1mYtv@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Michal Simek <michal.simek@xilinx.com>
+CC: Andrea Merello <andrea.merello@gmail.com>, <hyun.kwon@xilinx.com>,
+        <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
+        Mirco Di Salvo <mirco.disalvo@iit.it>
+References: <20180928073213.10022-1-andrea.merello@gmail.com>
+ <1859576.n3v8JWS4oW@avalon> <05f39fbf-7097-9d89-c019-c2398aed2201@xilinx.com>
+ <118342352.6u92UtmAFX@avalon>
+From: Michal Simek <michal.simek@xilinx.com>
+Message-ID: <1e89141f-e05f-ecd0-9ac1-561db42494fe@xilinx.com>
+Date: Mon, 1 Oct 2018 15:28:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <118342352.6u92UtmAFX@avalon>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Laurent,
 
-Thanks for looking into. I remember MJPEG vs. JPEG being a source
-of confusion for me a few years ago, so clarification is greatly
-welcome :-)
-
-On Mon, 2018-10-01 at 15:03 +0300, Laurent Pinchart wrote:
-> Hi Hans,
+On 1.10.2018 15:26, Laurent Pinchart wrote:
+> Hi Michal,
 > 
-> On Monday, 1 October 2018 14:54:29 EEST Hans Verkuil wrote:
-> > On 10/01/2018 01:48 PM, Laurent Pinchart wrote:
-> > > On Monday, 1 October 2018 11:43:04 EEST Hans Verkuil wrote:
-> > > > It turns out that we have both JPEG and Motion-JPEG pixel formats
-> > > > defined.
-> > > > 
-> > > > Furthermore, some drivers support one, some the other and some both.
-> > > > 
-> > > > These pixelformats both mean the same.
-> > > 
-> > > Do they ? I thought MJPEG was JPEG using fixed Huffman tables that were
-> > > not included in the JPEG headers.
-> > 
-> > I'm not aware of any difference. If there is one, then it is certainly not
-> > documented.
+> On Monday, 1 October 2018 15:45:49 EEST Michal Simek wrote:
+>> On 28.9.2018 14:52, Laurent Pinchart wrote:
+>>> On Friday, 28 September 2018 10:32:13 EEST Andrea Merello wrote:
+>>>> In formats table the entry for CFA pattern "rggb" has GRBG fourcc.
+>>>> This patch fixes it.
+>>>>
+>>>> Cc: linux-media@vger.kernel.org
+>>>> Signed-off-by: Mirco Di Salvo <mirco.disalvo@iit.it>
+>>>> Signed-off-by: Andrea Merello <andrea.merello@gmail.com>
+>>>
+>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>
+>>> Michal, should I take the patch in my tree ?
+>>
+>> definitely. I am not collecting patches for media tree.
 > 
-> What I can tell for sure is that many UVC devices don't include Huffman tables 
-> in their JPEG headers.
+> Taken in my tree.
 > 
-> > Ezequiel, since you've been working with this recently, do you know anything
-> > about this?
-> 
-> 
+> By the way, have we reached any conclusion regarding https://lkml.org/lkml/
+> 2017/12/18/112 ?
 
-JPEG frames must include huffman and quantization tables, as per the standard.
-
-AFAIK, there's no MJPEG specification per-se and vendors specify its own
-way of conveying a Motion JPEG stream.
-
-For instance, omiting the huffman table seems to be a vendor thing. Microsoft
-explicitly omits the huffman tables from each frame:
-
-https://www.fileformat.info/format/bmp/spec/b7c72ebab8064da48ae5ed0c053c67a4/view.htm
-
-Others could be following the same things.
-
-Like I mentioned before, Gstreamer always check for missing huffman table
-and adds one if missing. Gstreamer has other quirks for missing markers,
-e.g. deal with a missing EOI:
-
-https://github.com/GStreamer/gst-plugins-good/commit/10ff3c8e14e8fba9e0a5d696dce0bea27de644d7
-
-I think Hans suggestion of settling on JPEG makes sense and it would
-be consistent with Gstreamer. Otherwise, we should specify exactly what we
-understand by MJPEG, but I don't think it's worth it.
+Xilinx has started to use SPDX without any issue. It means conversion
+should be fine to do.
 
 Thanks,
-Ezequiel
+Michal
