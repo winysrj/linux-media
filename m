@@ -1,151 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48675 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728921AbeJASop (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 14:44:45 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [ANN] Draft Agenda (v2) for the media summit on Thursday Oct 25th in
- Edinburgh
-Message-ID: <63afc814-8b77-0762-bd0f-4f533513f983@xs4all.nl>
-Date: Mon, 1 Oct 2018 14:07:10 +0200
+Received: from perceval.ideasonboard.com ([213.167.242.64]:49982 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729182AbeJAUKr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 16:10:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG
+Date: Mon, 01 Oct 2018 16:33:12 +0300
+Message-ID: <3032208.Lnne8Zlx0s@avalon>
+In-Reply-To: <d24d3977163f6c05cd65210b743f4e0dc321388d.camel@ndufresne.ca>
+References: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl> <d24d3977163f6c05cd65210b743f4e0dc321388d.camel@ndufresne.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hello,
 
-We are organizing a media mini-summit on Thursday October 25th in
-Edinburgh, Edinburgh International Conference Centre.
+On Monday, 1 October 2018 15:42:56 EEST Nicolas Dufresne wrote:
+> Le lundi 01 octobre 2018 =E0 10:43 +0200, Hans Verkuil a =E9crit :
+> > It turns out that we have both JPEG and Motion-JPEG pixel formats defin=
+ed.
+> >=20
+> > Furthermore, some drivers support one, some the other and some both.
+> >=20
+> > These pixelformats both mean the same.
+> >=20
+> > I propose that we settle on JPEG (since it seems to be used most often)
+> > and add JPEG support to those drivers that currently only use MJPEG.
+>=20
+> Thanks for looking into this. As per GStreamer code, I see 3 alias for
+> JPEG. V4L2_PIX_FMT_MJPEG/JPEG/PJPG. I don't know the context, this code
+> was written before I knew GStreamer existed. It's possible there is a
+> subtle difference, I have never looked at it, but clearly all our JPEG
+> decoder handle these as being the same.
+>=20
+> https://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/sys/v4l2/gst=
+v4l
+> 2object.c#n956
 
-If you plan to attend, please register on the ELCE/OSS site since we're
-using there tracking system:
+Some old code to give a bit of context:
 
-https://events.linuxfoundation.org/events/elc-openiot-europe-2018/register/
+https://github.com/TimSC/mjpeg/
 
-Name of the room for the summit: Tinto, Level 0 of the EICC
+It should be feasible to implement a decoder that inserts the right Huffman=
+=20
+table when none exists, but it has to be explicitly handled. An out-of-band=
+=20
+mechanism to convey the information seems potentially useful to me.
 
-We had 75 people sign up for the summit as of a week ago, which is quite
-amazing. I'm not listing all of them here, just those that I know are active
-media developers:
+> > We also need to update the V4L2_PIX_FMT_JPEG documentation since it just
+> > says TBD:
+> >=20
+> > https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-comp=
+res
+> > sed.html
+> >=20
+> > $ git grep -l V4L2_PIX_FMT_MJPEG
+> > drivers/media/pci/meye/meye.c
+> > drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+> > drivers/media/platform/sti/delta/delta-cfg.h
+> > drivers/media/platform/sti/delta/delta-mjpeg-dec.c
+> > drivers/media/usb/cpia2/cpia2_v4l.c
+> > drivers/media/usb/go7007/go7007-driver.c
+> > drivers/media/usb/go7007/go7007-fw.c
+> > drivers/media/usb/go7007/go7007-v4l2.c
+> > drivers/media/usb/s2255/s2255drv.c
+> > drivers/media/usb/uvc/uvc_driver.c
+> > drivers/staging/media/zoran/zoran_driver.c
+> > drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
+> > drivers/usb/gadget/function/uvc_v4l2.c
+> >=20
+> > It looks like s2255 and cpia2 support both already, so that would leave
+> > 8 drivers that need to be modified, uvc being the most important of the
+> > lot.
+> >=20
+> > Any comments?
 
-Sakari Ailus <sakari.ailus@linux.intel.com>
-Neil Armstrong <narmstrong@baylibre.com>
-Kieran Bingham <kieran.bingham@ideasonboard.com>
-Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Nicolas Dufresne <nicolas@ndufresne.ca> (Collabora)
-Ezequiel Garcia <ezequiel@collabora.com>
-Helen Koike <helen.koike@collabora.com>
-Michael Ira Krufky <mkrufky@linuxtv.org> (Vimeo/Livestream)
-Brad Love <brad@nextdimension.cc>
-Jacopo Mondi <jacopo+renesas@jmondi.org>
-Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> (Qtechnology A/S)
-Maxime Ripard <maxime.ripard@bootlin.com>
-Niklas Söderlund <niklas.soderlund@ragnatech.se>
-Hans Verkuil <hverkuil@xs4all.nl> (Cisco)
-Sean Young <sean@mess.org> (Monax)
+=2D-=20
+Regards,
 
-Agenda
-======
-
-General remarks: the given start/end times for the various topics are
-approximate since it is always hard to predict how long a discussion will take.
-If people are attending other summits and those conflict with specific topics
-they want to be part of, then let me know and we can rearrange the schedule
-to (hopefully) accomodate that.
-
-Let me know asap if there are problems with this schedule, or if new topics
-are requested.
-
-9:00-9:20: Introduction (Hans Verkuil)
-	Settling in, hooking everything up, getting wifi/projector/etc.
-	to work, drinking coffee/tea/water and a short intro :-)
-
-9:20-9:30: Status of the HDMI CEC kernel support (Hans Verkuil)
-	Give a quick overview of the status: what has been merged, what is
-	still pending, what is under development.
-
-9:35-9:45: Status of the RC kernel support (Sean Young)
-	A 10 minute status update on rc-core, present and future. I'll give a
-	brief presentation and leave some time for discussion.
-
-9:45-10:00: Save/restore controls from MTD (Ricardo Ribalda Delgado)
-	Industrial/Scientific sensors usually come with very extensive
-	calibration information such as: per column gain, list of dead
-	pixels, temperature sensor offset... etc
-
-	We are saving that information on an flash device that is located
-	by the sensor.
-
-	Show how we are integrating that calibration flash with v4l2-ctrl.
-	And if this feature is useful for someone else and upstream it.
-
-10:00-11:00: Complex Cameras (Mauro Carvalho Chehab)
-	The idea is to discuss about the undergoing work with complex camera
-	development is happening.
-
-	As we're working to merge request API, another topic for discussion
-	is how to add support for requests on it (or on a separate but related
-	library).
-
-11:00-11:15: Break
-
-11:15-12:00: Automated Testing (Ezequiel Garcia)
-	There is a lot of discussion going on around testing,
-	so it's a good opportunity for us to talk about our
-	current testing infrastructure.
-
-	We are already doing a good job with v4l2-compliance.
-	Can we do more?
-
-Lunch
-
-13:30-14:30: Stateless Codec userspace (Hans Verkuil)
-	Support for stateless codecs and Request API should be merged for
-	4.20, and the next step is to discuss how to organize the userspace
-	support.
-
-	Hopefully by the time the media summit starts we'll have some better
-	ideas of what we want in this area.
-
-14:30-15:15: Which ioctls should be replaced with better versions? (Hans Verkuil)
-	Some parts of the V4L2 API are awkward to use and I think it would be
-	a good idea to look at possible candidates for that.
-
-	Examples are the ioctls that use struct v4l2_buffer: the multiplanar support is
-	really horrible, and writing code to support both single and multiplanar is hard.
-	We are also running out of fields and the timeval isn't y2038 compliant.
-
-	A proof-of-concept is here:
-
-	https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
-
-	It's a bit old, but it gives a good impression of what I have in mind.
-
-	Another candidate is VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS:
-	expressing frame intervals as a fraction is really awkward and so is the fact
-	that the subdev and 'normal' ioctls are not the same.
-
-	Discuss what possible other ioctls are candidates for a refresh.
-
-15:15-15:30: Break
-
-15:30-16:00: Fault tolerant V4L2 (Kieran Bingham)
-	In other words, how should we handle complex devices which do not 'fully
-	probe' since one or more subdevices (e.g. sensors) are broken (or break
-	while in use!).
-
-16:00-16:30: Discuss the media development process
-	Since we are all here, discuss any issues there may be with the media
-	subsystem development process. Anything to improve?
-
-16:30-16:45: Wrap up
-	Create action items (and who will take care of them) if needed.
-	Summarize and conclude the day.
-
-End of the day: Key Signing Party
+Laurent Pinchart
