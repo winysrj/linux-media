@@ -1,127 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:52004 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726529AbeJAWeI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 18:34:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Rob Herring <robh@kernel.org>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 3/7] [media] ad5820: DT new optional field enable-gpios
-Date: Mon, 01 Oct 2018 18:55:56 +0300
-Message-ID: <1740213.b4QuNDOMfZ@avalon>
-In-Reply-To: <CAL_JsqJ32c3FXrUmCO0N16GcrUJ53tj5rp3VvV0s5H1NybwqKQ@mail.gmail.com>
-References: <20180920204751.29117-1-ricardo.ribalda@gmail.com> <CAPybu_0+F-o03qfg6u3RjgCJaeqzEoma4Niz-H9=0bSHJo+9jg@mail.gmail.com> <CAL_JsqJ32c3FXrUmCO0N16GcrUJ53tj5rp3VvV0s5H1NybwqKQ@mail.gmail.com>
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:33300 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725740AbeJAWcs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 18:32:48 -0400
+Received: by mail-wr1-f67.google.com with SMTP id e4-v6so728347wrs.0
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2018 08:54:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+References: <20181001152649.15975-1-mjourdan@baylibre.com> <CA+5PVA6gn5XqP69M4K2bKzR12RC+JujERYDqtBZnScy=0EAfFA@mail.gmail.com>
+In-Reply-To: <CA+5PVA6gn5XqP69M4K2bKzR12RC+JujERYDqtBZnScy=0EAfFA@mail.gmail.com>
+From: Maxime Jourdan <mjourdan@baylibre.com>
+Date: Mon, 1 Oct 2018 17:54:08 +0200
+Message-ID: <CAMO6nay02aFiWZMzs_9-eV2jDpeEp9Rfd7VLTD5+KPo9bHK_CQ@mail.gmail.com>
+Subject: Re: [linux-firmware] [GIT PULL] amlogic: add video decoder firmwares
+To: jwboyer@kernel.org
+Cc: linux-firmware@kernel.org, Jerome Brunet <jbrunet@baylibre.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon, Oct 1, 2018 at 5:36 PM Josh Boyer <jwboyer@kernel.org> wrote:
+>
+> On Mon, Oct 1, 2018 at 11:27 AM Maxime Jourdan <mjourdan@baylibre.com> wrote:
+> >
+> > Hello,
+> >
+> > Below is a pull request to add the firmwares required by the Amlogic video
+> > decoder.
+> >
+> > The firmwares were dumped from GPLv2+ in-kernel source files from Amlogic's
+> > vendor kernel, in their buildroot package
+> > "buildroot_openlinux_kernel_4.9_wayland_20180316"
+> >
+> > You can find an example of such a file in an older kernel here:
+> > https://github.com/hardkernel/linux/blob/odroidc2-3.14.y/drivers/amlogic/amports/arch/ucode/mpeg12/vmpeg12_mc.c
+> >
+> > The corresponding driver is currently being upstreamed:
+> > https://lore.kernel.org/patchwork/cover/993093/
+> >
+> > Regards,
+> > Maxime
+> >
+> > The following changes since commit 7c81f23ad903f72e87e2102d8f52408305c0f7a2:
+> >
+> >   ti-connectivity: add firmware for CC2560(A) Bluetooth (2018-10-01 10:08:30 -0400)
+> >
+> > are available in the Git repository at:
+> >
+> >   https://github.com/Elyotna/linux-firmware.git
+>
+> This seems questionable to me.  You have the license listed as GPLv2
+> or later, which is what the header file originally had but you have no
+> corresponding source included in your commit and it's completely
+> unclear who would be fulfilling the GPL obligations around this.  Even
+> less clear is how one would take whatever source is provided and turn
+> them back into the binaries you've provided.  Have you contacted AM
+> Logic to see if they can post the firmware files themselves or confirm
+> the license should be GPLv2?
+>
+> josh
+>
 
-On Monday, 1 October 2018 18:01:42 EEST Rob Herring wrote:
-> On Mon, Oct 1, 2018 at 7:40 AM Ricardo Ribalda Delgado wrote:
-> > On Mon, Oct 1, 2018 at 2:36 PM Rob Herring wrote:
-> >> On Mon, Oct 1, 2018 at 3:20 AM Ricardo Ribalda Delgado wrote:
-> >>> On Thu, Sep 27, 2018 at 8:23 PM Rob Herring wrote:
-> >>>> On Thu, Sep 20, 2018 at 10:47:47PM +0200, Ricardo Ribalda Delgado 
-wrote:
-> >>>>> Document new enable-gpio field. It can be used to disable the part
-> >>>>> enable-gpios without turning down its regulator.
-> >>>>> 
-> >>>>> Cc: devicetree@vger.kernel.org
-> >>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> >>>>> Acked-by: Pavel Machek <pavel@ucw.cz>
-> >>>>> ---
-> >>>>> 
-> >>>>>  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 7
-> >>>>>  +++++++
-> >>>>>  1 file changed, 7 insertions(+)
-> >>>>> 
-> >>>>> diff --git
-> >>>>> a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> >>>>> b/Documentation/devicetree/bindings/media/i2c/ad5820.txt index
-> >>>>> 5940ca11c021..9ccd96d3d5f0 100644
-> >>>>> --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> >>>>> +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> >>>>> 
-> >>>>> @@ -8,6 +8,12 @@ Required Properties:
-> >>>>>    - VANA-supply: supply of voltage for VANA pin
-> >>>>> 
-> >>>>> +Optional properties:
-> >>>>> +
-> >>>>> +   - enable-gpios : GPIO spec for the XSHUTDOWN pin. Note that
-> >>>>> the polarity of +the enable GPIO is the opposite of the XSHUTDOWN
-> >>>>> pin (asserting the enable +GPIO deasserts the XSHUTDOWN signal
-> >>>>> and vice versa).
-> >>>> 
-> >>>> shutdown-gpios is also standard and seems like it would make more
-> >>>> sense here. Yes, it is a bit redundant to have both, but things just
-> >>>> evolved that way and we don't want to totally abandon the hardware
-> >>>> names (just all the variants).
-> >>> 
-> >>> Sorry to insist
-> >>> 
-> >>> The pin is called xshutdown, not shutdown and is inverse logic,
-> >>> Wouldnt it make more sense to use the name enable-gpios?
-> >> 
-> >> Inverse of what? shutdown-gpios is the inverse of enable-gpios. By
-> >> using shutdown-gpios you can just get rid of "Note that the polarity
-> >> of the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the
-> >> enable GPIO deasserts the XSHUTDOWN signal and vice versa)."
-> > 
-> > The pin is called XSHUTDOWN
-> > 
-> > 0V means shutdown
-> > 
-> > 3.3V means enable
-> > 
-> > This is why I think is more clear to use enable as name in the device
-> > tree.
-> 
-> Neither enable-gpios nor shutdown-gpios have a defined polarity. The
-> polarity is part of the flags cell in the specifier.
+Hi Josh,
 
-To be precise, the polarity is the relationship between the logical level (low 
-or high) *on the GPIO side* and the logical state (asserted or deasserted) of 
-the signal *on the device side*. This is important in order to take all 
-components on the signal path into account, such as inverters on the board. 
-The polarity does tell what level to output on the GPIO in order to achieve a 
-given effect.
+I see your point. The "source" files that are GPLv2+ in the vendor
+kernel only contain binary arrays, and there is no actual source code
+available for these firmwares. I had hoped this would at least mean we
+could redistribute the binary firmwares.
 
-The polarity, however, doesn't dictate what effect is expected. This is 
-defined by the DT bindings (together with the documentation of the device). 
-For instance an enable-gpios property in DT implies that an asserted logical 
-state will enable the device. The GPIO polarity flags thus take into account a 
-possible inverter at the device input (as in the difference between the ENABLE 
-and nENABLE signals), but stops there.
+I will contact Amlogic and (hopefully) follow up with clarified
+licensing regarding the firmwares.
 
-In this case, we have an XSHUTDOWN pin that will shut the device down when 
-driven to 0V. If we call the related DT property shutdown, its logical level 
-will be the inverse of XSHUTDOWN: the signal will need to be driven low to 
-assert the shutdown effect. The GPIO flags will thus need to take this into 
-account, and documenting it in DT could be useful to avoid errors.
-
-On the other hand, if we call the related DT property enable its logical level 
-will the the same as XSHUTDOWN: the signal will need to be driven high to 
-assert the enable effect.
-
-On the driver side we would have to deassert shutdown or assert enable to 
-enable the device.
-
-I don't mind which option is selected, as long as the DT bindings are clear 
-(without any inverter in the signal path beside the one inside the ad5820, the 
-polarity would need to be high for the enable case and low for the shutdown 
-case).
-
--- 
 Regards,
-
-Laurent Pinchart
+Maxime
