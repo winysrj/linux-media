@@ -1,75 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:44347 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729439AbeJAWF2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 18:05:28 -0400
-Received: by mail-wr1-f66.google.com with SMTP id 63-v6so7180905wra.11
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2018 08:27:08 -0700 (PDT)
-From: Maxime Jourdan <mjourdan@baylibre.com>
-To: linux-firmware@kernel.org
-Cc: Maxime Jourdan <mjourdan@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [linux-firmware] [GIT PULL] amlogic: add video decoder firmwares
-Date: Mon,  1 Oct 2018 17:26:49 +0200
-Message-Id: <20181001152649.15975-1-mjourdan@baylibre.com>
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:40162 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729488AbeJAWAc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 18:00:32 -0400
+From: Nathan Chancellor <natechancellor@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH v2] media: cx18: Don't check for address of video_dev
+Date: Mon,  1 Oct 2018 08:21:11 -0700
+Message-Id: <20181001152110.20780-1-natechancellor@gmail.com>
+In-Reply-To: <20180921195736.7977-1-natechancellor@gmail.com>
+References: <20180921195736.7977-1-natechancellor@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Clang warns that the address of a pointer will always evaluated as true
+in a boolean context.
 
-Below is a pull request to add the firmwares required by the Amlogic video
-decoder.
+drivers/media/pci/cx18/cx18-driver.c:1255:23: warning: address of
+'cx->streams[i].video_dev' will always evaluate to 'true'
+[-Wpointer-bool-conversion]
+                if (&cx->streams[i].video_dev)
+                ~~   ~~~~~~~~~~~~~~~^~~~~~~~~
+1 warning generated.
 
-The firmwares were dumped from GPLv2+ in-kernel source files from Amlogic's
-vendor kernel, in their buildroot package
-"buildroot_openlinux_kernel_4.9_wayland_20180316"
+Check whether v4l2_dev is null, not the address, so that the statement
+doesn't fire all the time. This check has been present since 2009,
+introduced by commit 21a278b85d3c ("V4L/DVB (11619): cx18: Simplify the
+work handler for outgoing mailbox commands")
 
-You can find an example of such a file in an older kernel here:
-https://github.com/hardkernel/linux/blob/odroidc2-3.14.y/drivers/amlogic/amports/arch/ucode/mpeg12/vmpeg12_mc.c
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
 
-The corresponding driver is currently being upstreamed:
-https://lore.kernel.org/patchwork/cover/993093/
+v1 -> v2:
 
-Regards,
-Maxime
+* Fix build error and logic per review from Hans
 
-The following changes since commit 7c81f23ad903f72e87e2102d8f52408305c0f7a2:
+ drivers/media/pci/cx18/cx18-driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-  ti-connectivity: add firmware for CC2560(A) Bluetooth (2018-10-01 10:08:30 -0400)
-
-are available in the Git repository at:
-
-  https://github.com/Elyotna/linux-firmware.git 
-
-for you to fetch changes up to b99cf8dcfb6e7a3dd00bdb6aa4f6c71cb6b42e58:
-
-  amlogic: add video decoder firmwares (2018-10-01 17:06:18 +0200)
-
-----------------------------------------------------------------
-Maxime Jourdan (1):
-      amlogic: add video decoder firmwares
-
- WHENCE                  |  16 ++++++++++++++++
- amlogic/gx/h263_mc      | Bin 0 -> 16384 bytes
- amlogic/gx/vh265_mc     | Bin 0 -> 16384 bytes
- amlogic/gx/vh265_mc_mmu | Bin 0 -> 16384 bytes
- amlogic/gx/vmjpeg_mc    | Bin 0 -> 16384 bytes
- amlogic/gx/vmpeg12_mc   | Bin 0 -> 16384 bytes
- amlogic/gx/vmpeg4_mc_5  | Bin 0 -> 16384 bytes
- amlogic/gxbb/vh264_mc   | Bin 0 -> 36864 bytes
- amlogic/gxl/vh264_mc    | Bin 0 -> 36864 bytes
- amlogic/gxm/vh264_mc    | Bin 0 -> 36864 bytes
- 10 files changed, 16 insertions(+)
- create mode 100644 amlogic/gx/h263_mc
- create mode 100644 amlogic/gx/vh265_mc
- create mode 100644 amlogic/gx/vh265_mc_mmu
- create mode 100644 amlogic/gx/vmjpeg_mc
- create mode 100644 amlogic/gx/vmpeg12_mc
- create mode 100644 amlogic/gx/vmpeg4_mc_5
- create mode 100644 amlogic/gxbb/vh264_mc
- create mode 100644 amlogic/gxl/vh264_mc
- create mode 100644 amlogic/gxm/vh264_mc
+diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+index 56763c4ea1a7..a6ba4ca5aa91 100644
+--- a/drivers/media/pci/cx18/cx18-driver.c
++++ b/drivers/media/pci/cx18/cx18-driver.c
+@@ -1252,7 +1252,7 @@ static void cx18_cancel_out_work_orders(struct cx18 *cx)
+ {
+ 	int i;
+ 	for (i = 0; i < CX18_MAX_STREAMS; i++)
+-		if (&cx->streams[i].video_dev)
++		if (cx->streams[i].video_dev.v4l2_dev)
+ 			cancel_work_sync(&cx->streams[i].out_work_order);
+ }
+ 
+-- 
+2.19.0
