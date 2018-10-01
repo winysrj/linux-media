@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50574 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728804AbeJAPTr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 11:19:47 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Message-ID: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
-Date: Mon, 1 Oct 2018 10:43:04 +0200
+Received: from mail.intenta.de ([178.249.25.132]:29077 "EHLO mail.intenta.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728945AbeJAQFD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 12:05:03 -0400
+Date: Mon, 1 Oct 2018 11:27:58 +0200
+From: Helmut Grohne <helmut.grohne@intenta.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "bingbu.cao@intel.com" <bingbu.cao@intel.com>,
+        "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>,
+        "rajmohan.mani@intel.com" <rajmohan.mani@intel.com>,
+        "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>,
+        "ricardo.ribalda@gmail.com" <ricardo.ribalda@gmail.com>,
+        "grundler@chromium.org" <grundler@chromium.org>,
+        "ping-chung.chen@intel.com" <ping-chung.chen@intel.com>,
+        "andy.yeh@intel.com" <andy.yeh@intel.com>,
+        "jim.lai@intel.com" <jim.lai@intel.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "snawrocki@kernel.org" <snawrocki@kernel.org>
+Subject: Re: [PATCH 2/5] v4l: controls: Add support for exponential bases,
+ prefixes and units
+Message-ID: <20181001092758.ionkxntgduvq2puv@laureti-dev>
+References: <20180925101434.20327-1-sakari.ailus@linux.intel.com>
+ <20180925101434.20327-3-sakari.ailus@linux.intel.com>
+ <ed5a453b-41d3-6ab5-2bc2-8cab309ac749@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <ed5a453b-41d3-6ab5-2bc2-8cab309ac749@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It turns out that we have both JPEG and Motion-JPEG pixel formats defined.
+On Fri, Sep 28, 2018 at 04:00:17PM +0200, Hans Verkuil wrote:
+> On 09/25/2018 12:14 PM, Sakari Ailus wrote:
+> > +/* V4L2 control unit prefixes */
+> > +#define V4L2_CTRL_PREFIX_NANO		-9
+> > +#define V4L2_CTRL_PREFIX_MICRO		-6
+> > +#define V4L2_CTRL_PREFIX_MILLI		-3
+> > +#define V4L2_CTRL_PREFIX_1		0
+> 
+> I would prefer PREFIX_NONE, since there is no prefix in this case.
+> 
+> I assume this prefix is only valid if the unit is not UNDEFINED and not
+> NONE?
 
-Furthermore, some drivers support one, some the other and some both.
+Why should it? The prefix is concerned with rescaling a value prior to
+presenting it to a user. Even a unitless quantity or a value of
+undefined unit can be reasonably scaled. Displaying a unit and scaling
+look like orthogonal concepts to me.
 
-These pixelformats both mean the same.
+> Is 'base' also dependent on a valid unit? (it doesn't appear to be)
 
-I propose that we settle on JPEG (since it seems to be used most often) and
-add JPEG support to those drivers that currently only use MJPEG.
+I'd argue it should not depend on a valid unit like the prefix.
 
-We also need to update the V4L2_PIX_FMT_JPEG documentation since it just says
-TBD:
-
-https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-compressed.html
-
-$ git grep -l V4L2_PIX_FMT_MJPEG
-drivers/media/pci/meye/meye.c
-drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-drivers/media/platform/sti/delta/delta-cfg.h
-drivers/media/platform/sti/delta/delta-mjpeg-dec.c
-drivers/media/usb/cpia2/cpia2_v4l.c
-drivers/media/usb/go7007/go7007-driver.c
-drivers/media/usb/go7007/go7007-fw.c
-drivers/media/usb/go7007/go7007-v4l2.c
-drivers/media/usb/s2255/s2255drv.c
-drivers/media/usb/uvc/uvc_driver.c
-drivers/staging/media/zoran/zoran_driver.c
-drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
-drivers/usb/gadget/function/uvc_v4l2.c
-
-It looks like s2255 and cpia2 support both already, so that would leave
-8 drivers that need to be modified, uvc being the most important of the
-lot.
-
-Any comments?
-
-Regards,
-
-	Hans
+Helmut
