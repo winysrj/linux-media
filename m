@@ -1,117 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.intenta.de ([178.249.25.132]:31333 "EHLO mail.intenta.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728891AbeJAR1Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 13:27:24 -0400
-Date: Mon, 1 Oct 2018 12:50:02 +0200
-From: Helmut Grohne <helmut.grohne@intenta.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <snawrocki@kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        Grant Grundler <grundler@chromium.org>,
-        "ping-chung.chen@intel.com" <ping-chung.chen@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "andy.yeh@intel.com" <andy.yeh@intel.com>,
-        "jim.lai@intel.com" <jim.lai@intel.com>,
-        Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: Re: [PATCH v5] media: imx208: Add imx208 camera sensor driver
-Message-ID: <20181001105002.p6hvpbrjzzimi4rq@laureti-dev>
-References: <1533712560-17357-1-git-send-email-ping-chung.chen@intel.com>
- <2739140.4VmFsgKfYj@avalon>
- <20180921072337.axxyy2cmvgkqrkci@laureti-dev>
- <2841198.gTOBNDXT1f@avalon>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53392 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728791AbeJARgo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 13:36:44 -0400
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id C4C4F634C7D
+        for <linux-media@vger.kernel.org>; Mon,  1 Oct 2018 13:59:29 +0300 (EEST)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1g6vvF-0000vs-JO
+        for linux-media@vger.kernel.org; Mon, 01 Oct 2018 13:59:29 +0300
+Date: Mon, 1 Oct 2018 13:59:29 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL v2 for 4.20] Big V4L2 fwnode patchset
+Message-ID: <20181001105929.qmgksm4em6gr72t2@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2841198.gTOBNDXT1f@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Mauro,
 
-On Fri, Sep 28, 2018 at 03:49:38PM +0200, Laurent Pinchart wrote:
-> I don't think we'll reach an agreement here if we don't start talking about 
-> real use cases. Would you have some to share ?
+This set contains the big V4L2 fwnode framework rework, including mine and
+Steve's patches. What is now possible includes tonnes of bugs fixed,
+default V4L2 fwnode endpoint configuration as well as less manual DT
+parsing in the i.MX driver.
 
-Fair enough, but at that point, we very much disconnect from the imx208
-in the subject.
+Since v1:
 
-I'm working with a stereo camera. In that setup, you have two image
-sensors and infer a three dimensional structure from images captured at
-equal time points. For that to happen, it is important that the image
-sensors use the same settings. In particular, settings such as expoure
-and gain must match. That in turn means that you cannot use the
-automatic exposure mode that comes with your image sensor.
+- Updated fwnode patches from Steve, to address review comments (most
+  importantly author vs. SoB difference).
 
-This is one reason for implementing exposure control outside of the
-image sensor. Typically you can categorize your parameters into three
-classes that affect the brightness of an image: aperture, shutter speed
-and some kind of gain. If you know the units of these parameters, you
-can estimate the effect of changing them on the resulting image.
+- Rebase on current media-tree master.
 
-The algorithm for controlling brightness can be quite generic if you
-know the units. V4L2_CID_EXPOSURE_ABSOLUTE is given in 100 µs. That
-tends to work well. Typically, you prefer increasing exposure over
-increasing gain to avoid noise. Similarly, you prefer increasing
-analogue gain over increasing digital gain. On the other hand, there is
-a limit on exposure to avoid motion blur. If an algorithm knows valid
-values for these parameters, it can produce settings independently of
-what concrete image sensor you use.
+- Added Jacopo's patchset adding default OF configuration for the
+  renesas-ceu driver --- dependent on the rest of the set.
 
-> > >>>> I can see two solutions here:
-> > >>>> 
-> > >>>> 1) Define the control range from 0 to 4 and treat it as an exponent
-> > >>>> of 2, so that the value for the sensor becomes (1 << val) * 256.
-> > >>>> (Suggested by Sakari offline.)
-> > >>>> 
-> > >>>> This approach has the problem of losing the original unit (and scale)
-> > >>>> of the value.
-> > 
-> > This approach is the one where users will need to know which sensor they
-> > talk to. The one where the hardware abstraction happens in userspace.
-> > Can we please not do that?
-> 
-> Let's talk about it based on real use cases.
+Please pull.
 
-So if you change your gain from 0 to 1, your image becomes roughly twice
-as bright. In the typical scenario that's too bright, so when increasing
-gain, you simultaneously decrease something else (e.g. exposure). But if
-you don't know the effect of your gain change, you cannot tell how much
-your exposure needs to be reduced. The only way out here is just doing
-it and reducing exposure afterwards. Users tend to not like the
-flickering resulting from this approach.
 
-> >  * If it is non-linear and has fewer than X (1025?) values, use the
-> >    integer menu.
-> 
-> 1024 ioctl calls to query the menu values ? :-( We need a better API than 
-> that. I'm also concerned that it wouldn't be very usable by userspace. Having 
-> a list of supported values is one thing, making efficient use of it is 
-> another. Again, use cases :-)
+The following changes since commit 4158757395b300b6eb308fc20b96d1d231484413:
 
-You only need to query it once, but I'm not opposed to a better API
-either. I just don't think it is that important or urgent.
+  media: davinci: Fix implicit enum conversion warning (2018-09-24 09:43:13 -0400)
 
-> I expect many algorithms to need a mathematical view of the valid values, not 
-> just a list. What particular algorithms do you have in mind ?
+are available in the git repository at:
 
-A very simple algorithm could go like this:
- * Assume that exposure time and gain have a linear effect on the
-   brightness of a captured image. This tends to not hold exactly, but
-   close enough.
- * Compare brightness of the previous frame with a target value.
- * Compute the product of current exposure time and gain. Adapt the
-   product according to the brightness error.
- * Distribute this product to exposure time and gain such that exposure
-   time is maximal below a user-defined limit and that gain is one of
-   the valid values.
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/v4l2-fwnode-v3.1-3-sign
 
-All you need to know for using this besides V4L2_CID_EXPOSURE_ABSOLUTE,
-is the valid gain values.
+for you to fetch changes up to 0159592728d2acd15defca7172d38ad6fb7bbe36:
 
-Now I wonder, does this help in reaching a conclusion about whether
-querying valid gain values is a relevant use case?
+  media: renesas-ceu: Use default mbus settings (2018-10-01 13:44:06 +0300)
 
-Helmut
+----------------------------------------------------------------
+Big v4l2 fwnode set plus Jacopo's renesas-ceu patches
+
+----------------------------------------------------------------
+Jacopo Mondi (3):
+      dt-bindings: media: renesas-ceu: Refer to video-interfaces.txt
+      dt-bindings: media: renesas-ceu: Add more endpoint properties
+      media: renesas-ceu: Use default mbus settings
+
+Sakari Ailus (23):
+      v4l: fwnode: Add debug prints for V4L2 endpoint property parsing
+      v4l: fwnode: Use fwnode_graph_for_each_endpoint
+      v4l: fwnode: The CSI-2 clock is continuous if it's not non-continuous
+      dt-bindings: media: Specify bus type for MIPI D-PHY, others, explicitly
+      v4l: fwnode: Add definitions for CSI-2 D-PHY, parallel and Bt.656 busses
+      v4l: mediabus: Recognise CSI-2 D-PHY and C-PHY
+      v4l: fwnode: Let the caller provide V4L2 fwnode endpoint
+      v4l: fwnode: Detect bus type correctly
+      v4l: fwnode: Make use of newly specified bus types
+      v4l: fwnode: Read lane inversion information despite lane numbering
+      v4l: fwnode: Only assign configuration if there is no error
+      v4l: fwnode: Support driver-defined lane mapping defaults
+      v4l: fwnode: Support default CSI-2 lane mapping for drivers
+      v4l: fwnode: Parse the graph endpoint as last
+      v4l: fwnode: Use default parallel flags
+      v4l: fwnode: Initialise the V4L2 fwnode endpoints to zero
+      v4l: fwnode: Only zero the struct if bus type is set to V4L2_MBUS_UNKNOWN
+      v4l: fwnode: Use media bus type for bus parser selection
+      v4l: fwnode: Print bus type
+      v4l: fwnode: Use V4L2 fwnode endpoint media bus type if set
+      v4l: fwnode: Support parsing of CSI-2 C-PHY endpoints
+      v4l: fwnode: Update V4L2 fwnode endpoint parsing documentation
+      smiapp: Query the V4L2 endpoint for a specific bus type
+
+Steve Longerbeam (17):
+      media: v4l2-fwnode: ignore endpoints that have no remote port parent
+      media: v4l2: async: Allow searching for asd of any type
+      media: v4l2: async: Add v4l2_async_notifier_add_subdev
+      media: v4l2: async: Add convenience functions to allocate and add asd's
+      media: v4l2-fwnode: Switch to v4l2_async_notifier_add_subdev
+      media: v4l2-fwnode: Add a convenience function for registering subdevs with notifiers
+      media: platform: video-mux: Register a subdev notifier
+      media: imx: csi: Register a subdev notifier
+      media: imx: mipi csi-2: Register a subdev notifier
+      media: staging/imx: of: Remove recursive graph walk
+      media: staging/imx: Loop through all registered subdevs for media links
+      media: staging/imx: Rename root notifier
+      media: staging/imx: Switch to v4l2_async_notifier_add_*_subdev
+      media: staging/imx: TODO: Remove one assumption about OF graph parsing
+      media: platform: Switch to v4l2_async_notifier_add_subdev
+      media: v4l2: async: Remove notifier subdevs array
+      v4l2-subdev.rst: Update doc regarding subdev descriptors
+
+ .../devicetree/bindings/media/renesas,ceu.txt      |  14 +-
+ .../devicetree/bindings/media/video-interfaces.txt |   4 +-
+ Documentation/media/kapi/v4l2-subdev.rst           |  30 +-
+ arch/arm/boot/dts/gr-peach-audiocamerashield.dtsi  |   4 -
+ drivers/gpu/ipu-v3/ipu-csi.c                       |   6 +-
+ drivers/media/i2c/adv7180.c                        |   2 +-
+ drivers/media/i2c/adv7604.c                        |   2 +-
+ drivers/media/i2c/mt9v032.c                        |   2 +-
+ drivers/media/i2c/ov2659.c                         |  14 +-
+ drivers/media/i2c/ov5640.c                         |   6 +-
+ drivers/media/i2c/ov5645.c                         |   2 +-
+ drivers/media/i2c/ov5647.c                         |   2 +-
+ drivers/media/i2c/ov7251.c                         |   4 +-
+ drivers/media/i2c/ov7670.c                         |   2 +-
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |   4 +-
+ drivers/media/i2c/s5k5baf.c                        |   6 +-
+ drivers/media/i2c/s5k6aa.c                         |   2 +-
+ drivers/media/i2c/smiapp/smiapp-core.c             |  34 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   2 +-
+ drivers/media/i2c/tc358743.c                       |  28 +-
+ drivers/media/i2c/tda1997x.c                       |   2 +-
+ drivers/media/i2c/tvp514x.c                        |   2 +-
+ drivers/media/i2c/tvp5150.c                        |   2 +-
+ drivers/media/i2c/tvp7002.c                        |   2 +-
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c           |  16 +-
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/am437x/am437x-vpfe.c        |  84 +--
+ drivers/media/platform/atmel/atmel-isc.c           |  18 +-
+ drivers/media/platform/atmel/atmel-isi.c           |  19 +-
+ drivers/media/platform/cadence/cdns-csi2rx.c       |  32 +-
+ drivers/media/platform/cadence/cdns-csi2tx.c       |   4 +-
+ drivers/media/platform/davinci/vpif_capture.c      |  73 ++-
+ drivers/media/platform/davinci/vpif_display.c      |  20 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  34 +-
+ drivers/media/platform/exynos4-is/media-dev.h      |   1 -
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   2 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c    |   4 +-
+ drivers/media/platform/marvell-ccic/mmp-driver.c   |   2 +-
+ drivers/media/platform/omap3isp/isp.c              |   3 +-
+ drivers/media/platform/pxa_camera.c                |  29 +-
+ drivers/media/platform/qcom/camss/camss.c          |  89 ++-
+ drivers/media/platform/qcom/camss/camss.h          |   2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        |   6 +-
+ drivers/media/platform/rcar-vin/rcar-csi2.c        |  26 +-
+ drivers/media/platform/rcar_drif.c                 |  18 +-
+ drivers/media/platform/renesas-ceu.c               |  72 ++-
+ drivers/media/platform/soc_camera/soc_camera.c     |  35 +-
+ drivers/media/platform/soc_camera/soc_mediabus.c   |   2 +-
+ drivers/media/platform/stm32/stm32-dcmi.c          |  28 +-
+ drivers/media/platform/ti-vpe/cal.c                |  35 +-
+ drivers/media/platform/video-mux.c                 |  36 +-
+ drivers/media/platform/xilinx/xilinx-vipp.c        | 173 +++--
+ drivers/media/platform/xilinx/xilinx-vipp.h        |   4 -
+ drivers/media/v4l2-core/v4l2-async.c               | 268 ++++++--
+ drivers/media/v4l2-core/v4l2-fwnode.c              | 701 ++++++++++++++-------
+ drivers/staging/media/imx/TODO                     |  29 +-
+ drivers/staging/media/imx/imx-media-csi.c          |  67 +-
+ drivers/staging/media/imx/imx-media-dev.c          | 145 ++---
+ drivers/staging/media/imx/imx-media-internal-sd.c  |   5 +-
+ drivers/staging/media/imx/imx-media-of.c           | 106 +---
+ drivers/staging/media/imx/imx-media.h              |   6 +-
+ drivers/staging/media/imx/imx6-mipi-csi2.c         |  31 +-
+ drivers/staging/media/imx074/imx074.c              |   2 +-
+ include/media/v4l2-async.h                         | 101 ++-
+ include/media/v4l2-fwnode.h                        | 112 +++-
+ include/media/v4l2-mediabus.h                      |   8 +-
+ 66 files changed, 1593 insertions(+), 1034 deletions(-)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
