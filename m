@@ -1,74 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52184 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727333AbeJAOsM (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:56405 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728806AbeJAPHe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Oct 2018 10:48:12 -0400
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 336C5634C7D
-        for <linux-media@vger.kernel.org>; Mon,  1 Oct 2018 11:11:40 +0300 (EEST)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1g6tIq-0000ux-13
-        for linux-media@vger.kernel.org; Mon, 01 Oct 2018 11:11:40 +0300
-Date: Mon, 1 Oct 2018 11:11:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.20] Unlocked V4L2 control grab, imx{319, 355} drivers
-Message-ID: <20181001081139.wo3ldnsl5eb75yze@valkosipuli.retiisi.org.uk>
+        Mon, 1 Oct 2018 11:07:34 -0400
+Subject: Re: [PATCH] media: cx18: Don't check for address of video_dev
+To: Nathan Chancellor <natechancellor@gmail.com>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Nick Desaulniers <ndesaulniers@google.com>
+References: <20180921195736.7977-1-natechancellor@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <440b7ec3-b0b6-c96b-93de-4b6a3be44eac@xs4all.nl>
+Date: Mon, 1 Oct 2018 10:30:54 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20180921195736.7977-1-natechancellor@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 09/21/2018 09:57 PM, Nathan Chancellor wrote:
+> Clang warns that the address of a pointer will always evaluated as true
+> in a boolean context.
+> 
+> drivers/media/pci/cx18/cx18-driver.c:1255:23: warning: address of
+> 'cx->streams[i].video_dev' will always evaluate to 'true'
+> [-Wpointer-bool-conversion]
+>                 if (&cx->streams[i].video_dev)
+>                 ~~   ~~~~~~~~~~~~~~~^~~~~~~~~
+> 1 warning generated.
+> 
+> Presumably, the contents of video_dev should have been checked, not the
+> address. This check has been present since 2009, introduced by commit
+> 21a278b85d3c ("V4L/DVB (11619): cx18: Simplify the work handler for
+> outgoing mailbox commands")
+> 
+> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> ---
+> 
+> Alternatively, this if statement could just be removed since it has
+> evaluated to true since 2009 and I assume some issue with this would
+> have been discovered by now.
+> 
+>  drivers/media/pci/cx18/cx18-driver.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/pci/cx18/cx18-driver.c b/drivers/media/pci/cx18/cx18-driver.c
+> index 56763c4ea1a7..753a37c7100a 100644
+> --- a/drivers/media/pci/cx18/cx18-driver.c
+> +++ b/drivers/media/pci/cx18/cx18-driver.c
+> @@ -1252,7 +1252,7 @@ static void cx18_cancel_out_work_orders(struct cx18 *cx)
+>  {
+>  	int i;
+>  	for (i = 0; i < CX18_MAX_STREAMS; i++)
+> -		if (&cx->streams[i].video_dev)
+> +		if (cx->streams[i].video_dev)
 
-Here are drivers for Sony imx319 and imx355 sensors and an unlocked version
-of v4l2_ctrl_grab() which is used by the driver.
+This should read:
 
-Please pull.
+		if (cx->streams[i].video_dev.v4l2_dev)
 
+If cx->streams[i].video_dev.v4l2_dev == NULL, then the stream is not in use
+and there is no need to cancel any work.
 
-The following changes since commit 985cdcb08a0488558d1005139596b64d73bee267:
+Can you post a v2?
 
-  media: ov5640: fix restore of last mode set (2018-09-17 15:33:38 -0400)
+>  			cancel_work_sync(&cx->streams[i].out_work_order);
+>  }
+>  
+> 
 
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-10-sign
-
-for you to fetch changes up to d96444e7c6c6381e16d09c46feee46979ae3672b:
-
-  media: add imx355 camera sensor driver (2018-10-01 10:30:40 +0300)
-
-----------------------------------------------------------------
-unlocked v4l2 ctrl grab, imx{319, 355}
-
-----------------------------------------------------------------
-Bingbu Cao (2):
-      media: add imx319 camera sensor driver
-      media: add imx355 camera sensor driver
-
-Sakari Ailus (2):
-      v4l: ctrl: Remove old documentation from v4l2_ctrl_grab
-      v4l: ctrl: Provide unlocked variant of v4l2_ctrl_grab
-
- MAINTAINERS                          |   14 +
- drivers/media/i2c/Kconfig            |   22 +
- drivers/media/i2c/Makefile           |    2 +
- drivers/media/i2c/imx319.c           | 2558 ++++++++++++++++++++++++++++++++++
- drivers/media/i2c/imx355.c           | 1858 ++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c |   14 +-
- include/media/v4l2-ctrls.h           |   26 +-
- 7 files changed, 4483 insertions(+), 11 deletions(-)
- create mode 100644 drivers/media/i2c/imx319.c
- create mode 100644 drivers/media/i2c/imx355.c
-
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+	Hans
