@@ -1,76 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f67.google.com ([209.85.221.67]:33300 "EHLO
-        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725740AbeJAWcs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 18:32:48 -0400
-Received: by mail-wr1-f67.google.com with SMTP id e4-v6so728347wrs.0
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2018 08:54:21 -0700 (PDT)
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:47556 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725906AbeJAXHk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 1 Oct 2018 19:07:40 -0400
+Subject: Re: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG
+To: Ezequiel Garcia <ezequiel@collabora.com>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
+ <d24d3977163f6c05cd65210b743f4e0dc321388d.camel@ndufresne.ca>
+ <29bc7b9ffd2ca761cc6df88ff113bb6bcc844e1d.camel@collabora.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0ea4fe85-508a-8a9d-0abe-7ae06b0146d3@xs4all.nl>
+Date: Mon, 1 Oct 2018 18:28:58 +0200
 MIME-Version: 1.0
-References: <20181001152649.15975-1-mjourdan@baylibre.com> <CA+5PVA6gn5XqP69M4K2bKzR12RC+JujERYDqtBZnScy=0EAfFA@mail.gmail.com>
-In-Reply-To: <CA+5PVA6gn5XqP69M4K2bKzR12RC+JujERYDqtBZnScy=0EAfFA@mail.gmail.com>
-From: Maxime Jourdan <mjourdan@baylibre.com>
-Date: Mon, 1 Oct 2018 17:54:08 +0200
-Message-ID: <CAMO6nay02aFiWZMzs_9-eV2jDpeEp9Rfd7VLTD5+KPo9bHK_CQ@mail.gmail.com>
-Subject: Re: [linux-firmware] [GIT PULL] amlogic: add video decoder firmwares
-To: jwboyer@kernel.org
-Cc: linux-firmware@kernel.org, Jerome Brunet <jbrunet@baylibre.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-amlogic@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <29bc7b9ffd2ca761cc6df88ff113bb6bcc844e1d.camel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 1, 2018 at 5:36 PM Josh Boyer <jwboyer@kernel.org> wrote:
->
-> On Mon, Oct 1, 2018 at 11:27 AM Maxime Jourdan <mjourdan@baylibre.com> wrote:
-> >
-> > Hello,
-> >
-> > Below is a pull request to add the firmwares required by the Amlogic video
-> > decoder.
-> >
-> > The firmwares were dumped from GPLv2+ in-kernel source files from Amlogic's
-> > vendor kernel, in their buildroot package
-> > "buildroot_openlinux_kernel_4.9_wayland_20180316"
-> >
-> > You can find an example of such a file in an older kernel here:
-> > https://github.com/hardkernel/linux/blob/odroidc2-3.14.y/drivers/amlogic/amports/arch/ucode/mpeg12/vmpeg12_mc.c
-> >
-> > The corresponding driver is currently being upstreamed:
-> > https://lore.kernel.org/patchwork/cover/993093/
-> >
-> > Regards,
-> > Maxime
-> >
-> > The following changes since commit 7c81f23ad903f72e87e2102d8f52408305c0f7a2:
-> >
-> >   ti-connectivity: add firmware for CC2560(A) Bluetooth (2018-10-01 10:08:30 -0400)
-> >
-> > are available in the Git repository at:
-> >
-> >   https://github.com/Elyotna/linux-firmware.git
->
-> This seems questionable to me.  You have the license listed as GPLv2
-> or later, which is what the header file originally had but you have no
-> corresponding source included in your commit and it's completely
-> unclear who would be fulfilling the GPL obligations around this.  Even
-> less clear is how one would take whatever source is provided and turn
-> them back into the binaries you've provided.  Have you contacted AM
-> Logic to see if they can post the firmware files themselves or confirm
-> the license should be GPLv2?
->
-> josh
->
+On 10/01/2018 06:12 PM, Ezequiel Garcia wrote:
+> On Mon, 2018-10-01 at 08:42 -0400, Nicolas Dufresne wrote:
+>> Hello Hans,
+>>
+>> Le lundi 01 octobre 2018 à 10:43 +0200, Hans Verkuil a écrit :
+>>> It turns out that we have both JPEG and Motion-JPEG pixel formats defined.
+>>>
+>>> Furthermore, some drivers support one, some the other and some both.
+>>>
+>>> These pixelformats both mean the same.
+>>>
+>>> I propose that we settle on JPEG (since it seems to be used most often) and
+>>> add JPEG support to those drivers that currently only use MJPEG.
+>>
+>> Thanks for looking into this. As per GStreamer code, I see 3 alias for
+>> JPEG. V4L2_PIX_FMT_MJPEG/JPEG/PJPG. I don't know the context, this code
+>> was written before I knew GStreamer existed. It's possible there is a
+>> subtle difference, I have never looked at it, but clearly all our JPEG
+>> decoder handle these as being the same.
+>>
+>> https://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/sys/v4l2/gstv4l2object.c#n956
+>>
+> 
+> To add more data points on the gstreamer side, there's really no difference
+> between gstreamer's types image/jpeg and video/x-jpeg.
+> 
+> Notably, jpegdec element just stuffs a huffman table if one is missing,
+> for any jpeg:
+> 
+> https://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/ext/jpeg/gstjpegdec.c#n584
 
-Hi Josh,
+lib/libv4lconvert/libv4lconvert.c also treats JPEG and MJPEG the same.
 
-I see your point. The "source" files that are GPLv2+ in the vendor
-kernel only contain binary arrays, and there is no actual source code
-available for these firmwares. I had hoped this would at least mean we
-could redistribute the binary firmwares.
-
-I will contact Amlogic and (hopefully) follow up with clarified
-licensing regarding the firmwares.
+It looks like JPEG and MJPEG are randomly used and I don't think you can assume
+that one will have a huffman table and not the other.
 
 Regards,
-Maxime
+
+	Hans
+
+> 
+>>>
+>>> We also need to update the V4L2_PIX_FMT_JPEG documentation since it just says
+>>> TBD:
+>>>
+>>> https://www.linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-compressed.html
+>>>
+>>> $ git grep -l V4L2_PIX_FMT_MJPEG
+>>> drivers/media/pci/meye/meye.c
+>>> drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+>>> drivers/media/platform/sti/delta/delta-cfg.h
+>>> drivers/media/platform/sti/delta/delta-mjpeg-dec.c
+>>> drivers/media/usb/cpia2/cpia2_v4l.c
+>>> drivers/media/usb/go7007/go7007-driver.c
+>>> drivers/media/usb/go7007/go7007-fw.c
+>>> drivers/media/usb/go7007/go7007-v4l2.c
+>>> drivers/media/usb/s2255/s2255drv.c
+>>> drivers/media/usb/uvc/uvc_driver.c
+>>> drivers/staging/media/zoran/zoran_driver.c
+>>> drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
+>>> drivers/usb/gadget/function/uvc_v4l2.c
+>>>
+>>> It looks like s2255 and cpia2 support both already, so that would leave
+>>> 8 drivers that need to be modified, uvc being the most important of the
+>>> lot.
+>>>
+>>> Any comments?
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>
+>>
+> 
