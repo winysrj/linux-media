@@ -1,76 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:44171 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726386AbeJAO5O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 10:57:14 -0400
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:14853 "EHLO
+        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726386AbeJAO4P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 10:56:15 -0400
+Subject: Re: [PATCH] MAINTAINERS: fix reference to STI CEC driver
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        gregkh@linuxfoundation.org, mchehab+samsung@kernel.org,
+        akpm@linux-foundation.org, hans.verkuil@cisco.com, joe@perches.com
+Cc: linux-kernel@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@st.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20181001074640.16342-1-benjamin.gaignard@st.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <0980c4e8-f2f6-c480-66f0-9638b624b0b0@cisco.com>
+Date: Mon, 1 Oct 2018 10:19:19 +0200
 MIME-Version: 1.0
-References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
- <20180920204751.29117-3-ricardo.ribalda@gmail.com> <20180927182311.GA27227@bogus>
-In-Reply-To: <20180927182311.GA27227@bogus>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Mon, 1 Oct 2018 10:20:23 +0200
-Message-ID: <CAPybu_0CCco6M6A1JsGUTo2P7rvqN1qPnMmuee7UsXxdkmaNBw@mail.gmail.com>
-Subject: Re: [PATCH v4 3/7] [media] ad5820: DT new optional field enable-gpios
-To: Rob Herring <robh@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        devicetree@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181001074640.16342-1-benjamin.gaignard@st.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob
-On Thu, Sep 27, 2018 at 8:23 PM Rob Herring <robh@kernel.org> wrote:
->
-> On Thu, Sep 20, 2018 at 10:47:47PM +0200, Ricardo Ribalda Delgado wrote:
-> > Document new enable-gpio field. It can be used to disable the part
->
-> enable-gpios
->
-> > without turning down its regulator.
-> >
-> > Cc: devicetree@vger.kernel.org
-> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> > Acked-by: Pavel Machek <pavel@ucw.cz>
-> > ---
-> >  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 7 +++++++
-> >  1 file changed, 7 insertions(+)
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > index 5940ca11c021..9ccd96d3d5f0 100644
-> > --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
-> > @@ -8,6 +8,12 @@ Required Properties:
-> >
-> >    - VANA-supply: supply of voltage for VANA pin
-> >
-> > +Optional properties:
-> > +
-> > +   - enable-gpios : GPIO spec for the XSHUTDOWN pin. Note that the polarity of
-> > +the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the enable
-> > +GPIO deasserts the XSHUTDOWN signal and vice versa).
->
-> shutdown-gpios is also standard and seems like it would make more sense
-> here. Yes, it is a bit redundant to have both, but things just evolved
-> that way and we don't want to totally abandon the hardware names (just
-> all the variants).
->
+On 01/10/18 09:46, Benjamin Gaignard wrote:
+> STI CEC driver has move from staging directory to media/platform/sti/cec/
+> 
+> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@st.com>
 
-Sorry to insist
+Added CC to linux-media so it's picked up by patchwork.
 
-The pin is called xshutdown, not shutdown and is inverse logic,
-Wouldnt it make more sense to use the name
-enable-gpios?
+	Hans
 
-Regards
-
-> Rob
-
-
-
--- 
-Ricardo Ribalda
+> ---
+>  MAINTAINERS | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index b22e7fdfd2ea..8aa973410e2f 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -13870,7 +13870,7 @@ F:	sound/soc/sti/
+>  STI CEC DRIVER
+>  M:	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>  S:	Maintained
+> -F:	drivers/staging/media/st-cec/
+> +F:	drivers/media/platform/sti/cec/
+>  F:	Documentation/devicetree/bindings/media/stih-cec.txt
+>  
+>  STK1160 USB VIDEO CAPTURE DRIVER
+> 
