@@ -1,51 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:14853 "EHLO
-        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726386AbeJAO4P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 10:56:15 -0400
-Subject: Re: [PATCH] MAINTAINERS: fix reference to STI CEC driver
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        gregkh@linuxfoundation.org, mchehab+samsung@kernel.org,
-        akpm@linux-foundation.org, hans.verkuil@cisco.com, joe@perches.com
-Cc: linux-kernel@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@st.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20181001074640.16342-1-benjamin.gaignard@st.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <0980c4e8-f2f6-c480-66f0-9638b624b0b0@cisco.com>
-Date: Mon, 1 Oct 2018 10:19:19 +0200
+Received: from mail-lj1-f194.google.com ([209.85.208.194]:36749 "EHLO
+        mail-lj1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726386AbeJAOzv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2018 10:55:51 -0400
 MIME-Version: 1.0
-In-Reply-To: <20181001074640.16342-1-benjamin.gaignard@st.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
+ <20180920204751.29117-6-ricardo.ribalda@gmail.com> <20180927193508.r25owgcwfeui2x7k@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20180927193508.r25owgcwfeui2x7k@valkosipuli.retiisi.org.uk>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 1 Oct 2018 10:19:00 +0200
+Message-ID: <CAPybu_3sh8KVZZruPrvvjEN=5=b56ciUjJXL5PK6GdV3mRG_Vg@mail.gmail.com>
+Subject: Re: [PATCH v4 6/7] [media] ad5820: Add support for ad5821 and ad5823
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/18 09:46, Benjamin Gaignard wrote:
-> STI CEC driver has move from staging directory to media/platform/sti/cec/
-> 
-> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@st.com>
+Hi Sakari
+On Thu, Sep 27, 2018 at 9:35 PM Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>
+> Hi Ricardo,
+>
+> On Thu, Sep 20, 2018 at 10:47:50PM +0200, Ricardo Ribalda Delgado wrote:
+> > According to the datasheet, both AD5821 and AD5820 share a compatible
+> > register-set:
+> > http://www.analog.com/media/en/technical-documentation/data-sheets/AD5821.pdf
+> >
+> > Some camera modules also refer that AD5823 is a replacement of AD5820:
+> > https://download.kamami.com/p564094-OV8865_DS.pdf
+>
+> A silly question --- the maximum current of these devices differs from each
+> other. Is the control value range still the same?
 
-Added CC to linux-media so it's picked up by patchwork.
+AFAIK yes, and fortuntately/unfortunatelly the control interface is in
+a value, not in Amp, so there is nothing to convert on the driver.
 
-	Hans
+Regards!
 
-> ---
->  MAINTAINERS | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b22e7fdfd2ea..8aa973410e2f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -13870,7 +13870,7 @@ F:	sound/soc/sti/
->  STI CEC DRIVER
->  M:	Benjamin Gaignard <benjamin.gaignard@linaro.org>
->  S:	Maintained
-> -F:	drivers/staging/media/st-cec/
-> +F:	drivers/media/platform/sti/cec/
->  F:	Documentation/devicetree/bindings/media/stih-cec.txt
->  
->  STK1160 USB VIDEO CAPTURE DRIVER
-> 
+>
+> >
+> > Suggested-by: Pavel Machek <pavel@ucw.cz>
+> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > ---
+> >  drivers/media/i2c/ad5820.c | 12 ++++++++----
+> >  1 file changed, 8 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+> > index 5d1185e7f78d..c52af302d516 100644
+> > --- a/drivers/media/i2c/ad5820.c
+> > +++ b/drivers/media/i2c/ad5820.c
+> > @@ -34,8 +34,6 @@
+> >  #include <media/v4l2-device.h>
+> >  #include <media/v4l2-subdev.h>
+> >
+> > -#define AD5820_NAME          "ad5820"
+> > -
+> >  /* Register definitions */
+> >  #define AD5820_POWER_DOWN            (1 << 15)
+> >  #define AD5820_DAC_SHIFT             4
+> > @@ -368,7 +366,9 @@ static int ad5820_remove(struct i2c_client *client)
+> >  }
+> >
+> >  static const struct i2c_device_id ad5820_id_table[] = {
+> > -     { AD5820_NAME, 0 },
+> > +     { "ad5820", 0 },
+> > +     { "ad5821", 0 },
+> > +     { "ad5823", 0 },
+> >       { }
+> >  };
+> >  MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
+> > @@ -376,6 +376,8 @@ MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
+> >  #ifdef CONFIG_OF
+> >  static const struct of_device_id ad5820_of_table[] = {
+> >       { .compatible = "adi,ad5820" },
+> > +     { .compatible = "adi,ad5821" },
+> > +     { .compatible = "adi,ad5823" },
+>
+> You could set the subdev name accordingly as well.
+>
+> >       { }
+> >  };
+> >  MODULE_DEVICE_TABLE(of, ad5820_of_table);
+> > @@ -384,6 +386,8 @@ MODULE_DEVICE_TABLE(of, ad5820_of_table);
+> >  #ifdef CONFIG_ACPI
+> >  static const struct acpi_device_id ad5820_acpi_ids[] = {
+> >       { "AD5820" },
+> > +     { "AD5821" },
+> > +     { "AD5823" },
+> >       { }
+> >  };
+> >
+> > @@ -394,7 +398,7 @@ static SIMPLE_DEV_PM_OPS(ad5820_pm, ad5820_suspend, ad5820_resume);
+> >
+> >  static struct i2c_driver ad5820_i2c_driver = {
+> >       .driver         = {
+> > -             .name   = AD5820_NAME,
+> > +             .name   = "ad5820",
+> >               .pm     = &ad5820_pm,
+> >               .of_match_table = of_match_ptr(ad5820_of_table),
+> >               .acpi_match_table = ACPI_PTR(ad5820_acpi_ids),
+>
+> --
+> Regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
+
+
+
+-- 
+Ricardo Ribalda
