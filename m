@@ -1,145 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:55477 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726822AbeJBOUP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2018 10:20:15 -0400
-Received: by mail-wm1-f66.google.com with SMTP id 206-v6so1135521wmb.5
-        for <linux-media@vger.kernel.org>; Tue, 02 Oct 2018 00:38:20 -0700 (PDT)
-Subject: Re: [PATCH] venus: vdec: fix decoded data size
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, vgarodia@codeaurora.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-References: <1530517447-29296-1-git-send-email-vgarodia@codeaurora.org>
- <01451f8e-aea3-b276-cb01-b0666a837d62@linaro.org>
- <4ce55726d810e308a2cae3f84bca7140bed48c7d.camel@ndufresne.ca>
- <92f6f79a-02ae-d23e-1b97-fc41fd921c89@linaro.org>
- <33e8d8e3-138e-0031-5b75-4bef114ac75e@xs4all.nl>
- <36b42952-982c-9048-77fb-72ca45cc7476@linaro.org>
- <051af6fb-e0e8-4008-99c5-9685ac24e454@xs4all.nl>
- <CAPBb6MVupMsdhF6Rtk4fm8JeVurrK+ZsuxAQ-BwrTzdSP1xP0Q@mail.gmail.com>
- <6d65ac0d-80a0-88fe-ed19-4785f2675e36@linaro.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <18c14931-15b4-190e-eb03-5cae8f8db381@linaro.org>
-Date: Tue, 2 Oct 2018 10:38:18 +0300
+Received: from perceval.ideasonboard.com ([213.167.242.64]:40578 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726244AbeJBRSC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2018 13:18:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v5 2/6] [media] ad5820: DT new optional field enable-gpios
+Date: Tue, 02 Oct 2018 13:35:40 +0300
+Message-ID: <2128166.ZAkUExjJHM@avalon>
+In-Reply-To: <20181002073222.11368-2-ricardo.ribalda@gmail.com>
+References: <20181002073222.11368-1-ricardo.ribalda@gmail.com> <20181002073222.11368-2-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <6d65ac0d-80a0-88fe-ed19-4785f2675e36@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Ricardo,
 
-On 09/19/2018 06:02 PM, Stanimir Varbanov wrote:
-> Hi Alex,
+Thank you for the patch.
+
+On Tuesday, 2 October 2018 10:32:18 EEST Ricardo Ribalda Delgado wrote:
+> Document new enable-gpio field. It can be used to disable the part
+> without turning down its regulator.
 > 
-> On 09/19/2018 01:32 PM, Alexandre Courbot wrote:
->> On Mon, Sep 17, 2018 at 11:33 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>
->>> On 09/17/2018 04:30 PM, Stanimir Varbanov wrote:
->>>> Hi Hans,
->>>>
->>>> On 09/17/2018 01:00 PM, Hans Verkuil wrote:
->>>>> On 07/18/2018 04:37 PM, Stanimir Varbanov wrote:
->>>>>> Hi,
->>>>>>
->>>>>> On 07/18/2018 04:26 PM, Nicolas Dufresne wrote:
->>>>>>> Le mercredi 18 juillet 2018 à 14:31 +0300, Stanimir Varbanov a écrit :
->>>>>>>> Hi Vikash,
->>>>>>>>
->>>>>>>> On 07/02/2018 10:44 AM, Vikash Garodia wrote:
->>>>>>>>> Exisiting code returns the max of the decoded
->>>>>>>>> size and buffer size. It turns out that buffer
->>>>>>>>> size is always greater due to hardware alignment
->>>>>>>>> requirement. As a result, payload size given to
->>>>>>>>> client is incorrect. This change ensures that
->>>>>>>>> the bytesused is assigned to actual payload size.
->>>>>>>>>
->>>>>>>>> Change-Id: Ie6f3429c0cb23f682544748d181fa4fa63ca2e28
->>>>>>>>> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
->>>>>>>>> ---
->>>>>>>>>  drivers/media/platform/qcom/venus/vdec.c | 2 +-
->>>>>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>>>>>
->>>>>>>>> diff --git a/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>>> b/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>>> index d079aeb..ada1d2f 100644
->>>>>>>>> --- a/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>>> +++ b/drivers/media/platform/qcom/venus/vdec.c
->>>>>>>>> @@ -890,7 +890,7 @@ static void vdec_buf_done(struct venus_inst
->>>>>>>>> *inst, unsigned int buf_type,
->>>>>>>>>
->>>>>>>>>                  vb = &vbuf->vb2_buf;
->>>>>>>>>                  vb->planes[0].bytesused =
->>>>>>>>> -                        max_t(unsigned int, opb_sz, bytesused);
->>>>>>>>> +                        min_t(unsigned int, opb_sz, bytesused);
->>>>>>>>
->>>>>>>> Most probably my intension was to avoid bytesused == 0, but that is
->>>>>>>> allowed from v4l2 driver -> userspace direction
->>>>>>>
->>>>>>> It remains bad practice since it was used by decoders to indicate the
->>>>>>> last buffer. Some userspace (some GStreamer versions) will stop working
->>>>>>> if you start returning 0.
->>>>>>
->>>>>> I think it is legal v4l2 driver to return bytesused = 0 when userspace
->>>>>> issues streamoff on both queues before EOS, no? Simply because the
->>>>>> capture buffers are empty.
->>>>>>
->>>>>
->>>>> Going through some of the older pending patches I found this one:
->>>>>
->>>>> So is this patch right or wrong?
->>>>
->>>> I'm not sure either, let's not applying it for now (if Nicolas is right
->>>> this will break gstreamer plugin).
->>>>
->>>
->>> OK, I marked this as Rejected. If you change your mind it can be reposted :-)
->>
->> Mmm I'm not saying it has to be done in the current form, but at the
->> moment the returned bytesused seems to be wrong (at least Chrome is
->> not happy). We are returning the total size of the buffer instead of
->> the actually useful payload.
->>
->> If the intent is to avoid returning bytesused == 0 except for the
->> special case of the last buffer, how about the following?
->>
->> --- a/drivers/media/platform/qcom/venus/vdec.c
->> +++ b/drivers/media/platform/qcom/venus/vdec.c
->> @@ -943,8 +943,7 @@ static void vdec_buf_done(struct venus_inst *inst,
->> unsigned int buf_type,
->>                unsigned int opb_sz = venus_helper_get_opb_size(inst);
->>
->>                vb = &vbuf->vb2_buf;
->> -               vb->planes[0].bytesused =
->> -                       max_t(unsigned int, opb_sz, bytesused);
->> +                vb2_set_plane_payload(vb, 0, bytesused ? : opb_sz);
->>                vb->planes[0].data_offset = data_offset;
->>                vb->timestamp = timestamp_us * NSEC_PER_USEC;
->>                vbuf->sequence = inst->sequence_cap++;
->>
->> It works fine for me, and should not return 0 more often than it did
->> before (i.e. never). In practice I also never see the firmware
->> reporting a payload of zero on SDM845, but maybe older chips differ?
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> yes, it looks fine. Let me test it with older versions.
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> b/Documentation/devicetree/bindings/media/i2c/ad5820.txt index
+> 5940ca11c021..9ccd96d3d5f0 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> @@ -8,6 +8,12 @@ Required Properties:
 > 
+>    - VANA-supply: supply of voltage for VANA pin
+> 
+> +Optional properties:
+> +
+> +   - enable-gpios : GPIO spec for the XSHUTDOWN pin. Note that the polarity
+> of +the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the
+> enable +GPIO deasserts the XSHUTDOWN signal and vice versa).
 
-OK, I played a bit with vb2_set_plane_payload(vb, 0, bytesused)
+After reading this one more time, I think the text is at the very least 
+confusing. The logic level of the enable GPIO is the same as the logic level 
+of the XSHUTDOWN pin. The latter being active low, asserting "enable" will 
+deassert "shutdown", but talking about "desserting XSHUTDOWN" is confusing.
 
-On v1 I see a buffer with LAST flag and bytesused == 0 (when
-V4L2_DEC_CMD_STOP is used), after that after session_stop (first
-streamoff) is called I see the rest of the capture buffers returned with
-bytesused == 0.
+>  Example:
+> 
+>         ad5820: coil@c {
+> @@ -15,5 +21,6 @@ Example:
+>                 reg = <0x0c>;
+> 
+>                 VANA-supply = <&vaux4>;
+> +               enable-gpios = <&msmgpio 26 GPIO_ACTIVE_HIGH>;
+>         };
 
-So I think we can go ahead.
-
-Vikash, can you resend with such a change?
 
 -- 
-regards,
-Stan
+Regards,
+
+Laurent Pinchart
