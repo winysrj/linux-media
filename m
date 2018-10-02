@@ -1,688 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56669 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726492AbeJBNTY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 Oct 2018 09:19:24 -0400
-Subject: Re: [PATCH v3 04/18] video/hdmi: Constify infoframe passed to the
- pack functions
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
-        dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-References: <20180920185145.1912-5-ville.syrjala@linux.intel.com>
- <20180921143332.28970-1-ville.syrjala@linux.intel.com>
- <20181001191037.GN9144@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <72df32c4-fd18-a3ec-9c4f-c607abf9e949@xs4all.nl>
-Date: Tue, 2 Oct 2018 08:37:38 +0200
+Received: from mail-lf1-f68.google.com ([209.85.167.68]:35893 "EHLO
+        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726783AbeJBOAT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2018 10:00:19 -0400
 MIME-Version: 1.0
-In-Reply-To: <20181001191037.GN9144@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+References: <20180920204751.29117-1-ricardo.ribalda@gmail.com>
+ <CAPybu_0+F-o03qfg6u3RjgCJaeqzEoma4Niz-H9=0bSHJo+9jg@mail.gmail.com>
+ <CAL_JsqJ32c3FXrUmCO0N16GcrUJ53tj5rp3VvV0s5H1NybwqKQ@mail.gmail.com> <1740213.b4QuNDOMfZ@avalon>
+In-Reply-To: <1740213.b4QuNDOMfZ@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 2 Oct 2018 09:18:12 +0200
+Message-ID: <CAPybu_3t6psN6si+btpG3f=zE7QqNoL2DatdT504N_DGdVqFVw@mail.gmail.com>
+Subject: Re: [PATCH v4 3/7] [media] ad5820: DT new optional field enable-gpios
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Rob Herring <robh@kernel.org>, Pavel Machek <pavel@ucw.cz>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/01/2018 09:10 PM, Ville Syrjälä wrote:
-> On Fri, Sep 21, 2018 at 05:33:32PM +0300, Ville Syrjala wrote:
->> From: Ville Syrjälä <ville.syrjala@linux.intel.com>
->>
->> Let's make the infoframe pack functions usable with a const infoframe
->> structure. This allows us to precompute the infoframe earlier, and still
->> pack it later when we're no longer allowed to modify the structure.
->> So now we end up with a _check()+_pack_only() or _pack() functions
->> depending on whether you want to precompute the infoframes or not.
->> The names aren't great but I was lazy and didn't want to change all the
->> drivers.
->>
->> v2: Deal with exynos churn
->>     Actually export the new funcs
->> v3: Fix various documentation fails (Hans)
-> 
-> Hans, any more concerns about this patch?
+Hi Laurent
+On Mon, Oct 1, 2018 at 5:55 PM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hello,
+>
+> On Monday, 1 October 2018 18:01:42 EEST Rob Herring wrote:
+> > On Mon, Oct 1, 2018 at 7:40 AM Ricardo Ribalda Delgado wrote:
+> > > On Mon, Oct 1, 2018 at 2:36 PM Rob Herring wrote:
+> > >> On Mon, Oct 1, 2018 at 3:20 AM Ricardo Ribalda Delgado wrote:
+> > >>> On Thu, Sep 27, 2018 at 8:23 PM Rob Herring wrote:
+> > >>>> On Thu, Sep 20, 2018 at 10:47:47PM +0200, Ricardo Ribalda Delgado
+> wrote:
+> > >>>>> Document new enable-gpio field. It can be used to disable the part
+> > >>>>> enable-gpios without turning down its regulator.
+> > >>>>>
+> > >>>>> Cc: devicetree@vger.kernel.org
+> > >>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > >>>>> Acked-by: Pavel Machek <pavel@ucw.cz>
+> > >>>>> ---
+> > >>>>>
+> > >>>>>  Documentation/devicetree/bindings/media/i2c/ad5820.txt | 7
+> > >>>>>  +++++++
+> > >>>>>  1 file changed, 7 insertions(+)
+> > >>>>>
+> > >>>>> diff --git
+> > >>>>> a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > >>>>> b/Documentation/devicetree/bindings/media/i2c/ad5820.txt index
+> > >>>>> 5940ca11c021..9ccd96d3d5f0 100644
+> > >>>>> --- a/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > >>>>> +++ b/Documentation/devicetree/bindings/media/i2c/ad5820.txt
+> > >>>>>
+> > >>>>> @@ -8,6 +8,12 @@ Required Properties:
+> > >>>>>    - VANA-supply: supply of voltage for VANA pin
+> > >>>>>
+> > >>>>> +Optional properties:
+> > >>>>> +
+> > >>>>> +   - enable-gpios : GPIO spec for the XSHUTDOWN pin. Note that
+> > >>>>> the polarity of +the enable GPIO is the opposite of the XSHUTDOWN
+> > >>>>> pin (asserting the enable +GPIO deasserts the XSHUTDOWN signal
+> > >>>>> and vice versa).
+> > >>>>
+> > >>>> shutdown-gpios is also standard and seems like it would make more
+> > >>>> sense here. Yes, it is a bit redundant to have both, but things just
+> > >>>> evolved that way and we don't want to totally abandon the hardware
+> > >>>> names (just all the variants).
+> > >>>
+> > >>> Sorry to insist
+> > >>>
+> > >>> The pin is called xshutdown, not shutdown and is inverse logic,
+> > >>> Wouldnt it make more sense to use the name enable-gpios?
+> > >>
+> > >> Inverse of what? shutdown-gpios is the inverse of enable-gpios. By
+> > >> using shutdown-gpios you can just get rid of "Note that the polarity
+> > >> of the enable GPIO is the opposite of the XSHUTDOWN pin (asserting the
+> > >> enable GPIO deasserts the XSHUTDOWN signal and vice versa)."
+> > >
+> > > The pin is called XSHUTDOWN
+> > >
+> > > 0V means shutdown
+> > >
+> > > 3.3V means enable
+> > >
+> > > This is why I think is more clear to use enable as name in the device
+> > > tree.
+> >
+> > Neither enable-gpios nor shutdown-gpios have a defined polarity. The
+> > polarity is part of the flags cell in the specifier.
+>
+> To be precise, the polarity is the relationship between the logical level (low
+> or high) *on the GPIO side* and the logical state (asserted or deasserted) of
+> the signal *on the device side*. This is important in order to take all
+> components on the signal path into account, such as inverters on the board.
+> The polarity does tell what level to output on the GPIO in order to achieve a
+> given effect.
+>
+> The polarity, however, doesn't dictate what effect is expected. This is
+> defined by the DT bindings (together with the documentation of the device).
+> For instance an enable-gpios property in DT implies that an asserted logical
+> state will enable the device. The GPIO polarity flags thus take into account a
+> possible inverter at the device input (as in the difference between the ENABLE
+> and nENABLE signals), but stops there.
+>
+> In this case, we have an XSHUTDOWN pin that will shut the device down when
+> driven to 0V. If we call the related DT property shutdown, its logical level
+> will be the inverse of XSHUTDOWN: the signal will need to be driven low to
+> assert the shutdown effect. The GPIO flags will thus need to take this into
+> account, and documenting it in DT could be useful to avoid errors.
+>
+> On the other hand, if we call the related DT property enable its logical level
+> will the the same as XSHUTDOWN: the signal will need to be driven high to
+> assert the enable effect.
+>
+> On the driver side we would have to deassert shutdown or assert enable to
+> enable the device.
+>
+> I don't mind which option is selected, as long as the DT bindings are clear
+> (without any inverter in the signal path beside the one inside the ad5820, the
+> polarity would need to be high for the enable case and low for the shutdown
+> case).
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks for the clarification. I definitely prefer the name enable, so
+if there is no strong opposition against it I will
+send it with that name.
 
-Regards,
+Best regards!
 
-	Hans
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
 
-> 
->>
->> Cc: Thierry Reding <thierry.reding@gmail.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: linux-media@vger.kernel.org
->> Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
->> ---
->>  drivers/video/hdmi.c | 425 +++++++++++++++++++++++++++++++++++++++++++++++----
->>  include/linux/hdmi.h |  19 ++-
->>  2 files changed, 416 insertions(+), 28 deletions(-)
->>
->> diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
->> index 53e7ee2c83fc..08d94ab00467 100644
->> --- a/drivers/video/hdmi.c
->> +++ b/drivers/video/hdmi.c
->> @@ -68,8 +68,36 @@ int hdmi_avi_infoframe_init(struct hdmi_avi_infoframe *frame)
->>  }
->>  EXPORT_SYMBOL(hdmi_avi_infoframe_init);
->>  
->> +static int hdmi_avi_infoframe_check_only(const struct hdmi_avi_infoframe *frame)
->> +{
->> +	if (frame->type != HDMI_INFOFRAME_TYPE_AVI ||
->> +	    frame->version != 2 ||
->> +	    frame->length != HDMI_AVI_INFOFRAME_SIZE)
->> +		return -EINVAL;
->> +
->> +	if (frame->picture_aspect > HDMI_PICTURE_ASPECT_16_9)
->> +		return -EINVAL;
->> +
->> +	return 0;
->> +}
->> +
->>  /**
->> - * hdmi_avi_infoframe_pack() - write HDMI AVI infoframe to binary buffer
->> + * hdmi_avi_infoframe_check() - check a HDMI AVI infoframe
->> + * @frame: HDMI AVI infoframe
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields.
->> + *
->> + * Returns 0 on success or a negative error code on failure.
->> + */
->> +int hdmi_avi_infoframe_check(struct hdmi_avi_infoframe *frame)
->> +{
->> +	return hdmi_avi_infoframe_check_only(frame);
->> +}
->> +EXPORT_SYMBOL(hdmi_avi_infoframe_check);
->> +
->> +/**
->> + * hdmi_avi_infoframe_pack_only() - write HDMI AVI infoframe to binary buffer
->>   * @frame: HDMI AVI infoframe
->>   * @buffer: destination buffer
->>   * @size: size of buffer
->> @@ -82,20 +110,22 @@ EXPORT_SYMBOL(hdmi_avi_infoframe_init);
->>   * Returns the number of bytes packed into the binary buffer or a negative
->>   * error code on failure.
->>   */
->> -ssize_t hdmi_avi_infoframe_pack(struct hdmi_avi_infoframe *frame, void *buffer,
->> -				size_t size)
->> +ssize_t hdmi_avi_infoframe_pack_only(const struct hdmi_avi_infoframe *frame,
->> +				     void *buffer, size_t size)
->>  {
->>  	u8 *ptr = buffer;
->>  	size_t length;
->> +	int ret;
->> +
->> +	ret = hdmi_avi_infoframe_check_only(frame);
->> +	if (ret)
->> +		return ret;
->>  
->>  	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
->>  
->>  	if (size < length)
->>  		return -ENOSPC;
->>  
->> -	if (frame->picture_aspect > HDMI_PICTURE_ASPECT_16_9)
->> -		return -EINVAL;
->> -
->>  	memset(buffer, 0, size);
->>  
->>  	ptr[0] = frame->type;
->> @@ -152,6 +182,36 @@ ssize_t hdmi_avi_infoframe_pack(struct hdmi_avi_infoframe *frame, void *buffer,
->>  
->>  	return length;
->>  }
->> +EXPORT_SYMBOL(hdmi_avi_infoframe_pack_only);
->> +
->> +/**
->> + * hdmi_avi_infoframe_pack() - check a HDMI AVI infoframe,
->> + *                             and write it to binary buffer
->> + * @frame: HDMI AVI infoframe
->> + * @buffer: destination buffer
->> + * @size: size of buffer
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields, after which it packs the information
->> + * contained in the @frame structure into a binary representation that
->> + * can be written into the corresponding controller registers. This function
->> + * also computes the checksum as required by section 5.3.5 of the HDMI 1.4
->> + * specification.
->> + *
->> + * Returns the number of bytes packed into the binary buffer or a negative
->> + * error code on failure.
->> + */
->> +ssize_t hdmi_avi_infoframe_pack(struct hdmi_avi_infoframe *frame,
->> +				void *buffer, size_t size)
->> +{
->> +	int ret;
->> +
->> +	ret = hdmi_avi_infoframe_check(frame);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return hdmi_avi_infoframe_pack_only(frame, buffer, size);
->> +}
->>  EXPORT_SYMBOL(hdmi_avi_infoframe_pack);
->>  
->>  /**
->> @@ -178,8 +238,33 @@ int hdmi_spd_infoframe_init(struct hdmi_spd_infoframe *frame,
->>  }
->>  EXPORT_SYMBOL(hdmi_spd_infoframe_init);
->>  
->> +static int hdmi_spd_infoframe_check_only(const struct hdmi_spd_infoframe *frame)
->> +{
->> +	if (frame->type != HDMI_INFOFRAME_TYPE_SPD ||
->> +	    frame->version != 1 ||
->> +	    frame->length != HDMI_SPD_INFOFRAME_SIZE)
->> +		return -EINVAL;
->> +
->> +	return 0;
->> +}
->> +
->>  /**
->> - * hdmi_spd_infoframe_pack() - write HDMI SPD infoframe to binary buffer
->> + * hdmi_spd_infoframe_check() - check a HDMI SPD infoframe
->> + * @frame: HDMI SPD infoframe
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields.
->> + *
->> + * Returns 0 on success or a negative error code on failure.
->> + */
->> +int hdmi_spd_infoframe_check(struct hdmi_spd_infoframe *frame)
->> +{
->> +	return hdmi_spd_infoframe_check_only(frame);
->> +}
->> +EXPORT_SYMBOL(hdmi_spd_infoframe_check);
->> +
->> +/**
->> + * hdmi_spd_infoframe_pack_only() - write HDMI SPD infoframe to binary buffer
->>   * @frame: HDMI SPD infoframe
->>   * @buffer: destination buffer
->>   * @size: size of buffer
->> @@ -192,11 +277,16 @@ EXPORT_SYMBOL(hdmi_spd_infoframe_init);
->>   * Returns the number of bytes packed into the binary buffer or a negative
->>   * error code on failure.
->>   */
->> -ssize_t hdmi_spd_infoframe_pack(struct hdmi_spd_infoframe *frame, void *buffer,
->> -				size_t size)
->> +ssize_t hdmi_spd_infoframe_pack_only(const struct hdmi_spd_infoframe *frame,
->> +				     void *buffer, size_t size)
->>  {
->>  	u8 *ptr = buffer;
->>  	size_t length;
->> +	int ret;
->> +
->> +	ret = hdmi_spd_infoframe_check_only(frame);
->> +	if (ret)
->> +		return ret;
->>  
->>  	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
->>  
->> @@ -222,6 +312,36 @@ ssize_t hdmi_spd_infoframe_pack(struct hdmi_spd_infoframe *frame, void *buffer,
->>  
->>  	return length;
->>  }
->> +EXPORT_SYMBOL(hdmi_spd_infoframe_pack_only);
->> +
->> +/**
->> + * hdmi_spd_infoframe_pack() - check a HDMI SPD infoframe,
->> + *                             and write it to binary buffer
->> + * @frame: HDMI SPD infoframe
->> + * @buffer: destination buffer
->> + * @size: size of buffer
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields, after which it packs the information
->> + * contained in the @frame structure into a binary representation that
->> + * can be written into the corresponding controller registers. This function
->> + * also computes the checksum as required by section 5.3.5 of the HDMI 1.4
->> + * specification.
->> + *
->> + * Returns the number of bytes packed into the binary buffer or a negative
->> + * error code on failure.
->> + */
->> +ssize_t hdmi_spd_infoframe_pack(struct hdmi_spd_infoframe *frame,
->> +				void *buffer, size_t size)
->> +{
->> +	int ret;
->> +
->> +	ret = hdmi_spd_infoframe_check(frame);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return hdmi_spd_infoframe_pack_only(frame, buffer, size);
->> +}
->>  EXPORT_SYMBOL(hdmi_spd_infoframe_pack);
->>  
->>  /**
->> @@ -242,8 +362,33 @@ int hdmi_audio_infoframe_init(struct hdmi_audio_infoframe *frame)
->>  }
->>  EXPORT_SYMBOL(hdmi_audio_infoframe_init);
->>  
->> +static int hdmi_audio_infoframe_check_only(const struct hdmi_audio_infoframe *frame)
->> +{
->> +	if (frame->type != HDMI_INFOFRAME_TYPE_AUDIO ||
->> +	    frame->version != 1 ||
->> +	    frame->length != HDMI_AUDIO_INFOFRAME_SIZE)
->> +		return -EINVAL;
->> +
->> +	return 0;
->> +}
->> +
->> +/**
->> + * hdmi_audio_infoframe_check() - check a HDMI audio infoframe
->> + * @frame: HDMI audio infoframe
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields.
->> + *
->> + * Returns 0 on success or a negative error code on failure.
->> + */
->> +int hdmi_audio_infoframe_check(struct hdmi_audio_infoframe *frame)
->> +{
->> +	return hdmi_audio_infoframe_check_only(frame);
->> +}
->> +EXPORT_SYMBOL(hdmi_audio_infoframe_check);
->> +
->>  /**
->> - * hdmi_audio_infoframe_pack() - write HDMI audio infoframe to binary buffer
->> + * hdmi_audio_infoframe_pack_only() - write HDMI audio infoframe to binary buffer
->>   * @frame: HDMI audio infoframe
->>   * @buffer: destination buffer
->>   * @size: size of buffer
->> @@ -256,12 +401,17 @@ EXPORT_SYMBOL(hdmi_audio_infoframe_init);
->>   * Returns the number of bytes packed into the binary buffer or a negative
->>   * error code on failure.
->>   */
->> -ssize_t hdmi_audio_infoframe_pack(struct hdmi_audio_infoframe *frame,
->> -				  void *buffer, size_t size)
->> +ssize_t hdmi_audio_infoframe_pack_only(const struct hdmi_audio_infoframe *frame,
->> +				       void *buffer, size_t size)
->>  {
->>  	unsigned char channels;
->>  	u8 *ptr = buffer;
->>  	size_t length;
->> +	int ret;
->> +
->> +	ret = hdmi_audio_infoframe_check_only(frame);
->> +	if (ret)
->> +		return ret;
->>  
->>  	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
->>  
->> @@ -297,6 +447,36 @@ ssize_t hdmi_audio_infoframe_pack(struct hdmi_audio_infoframe *frame,
->>  
->>  	return length;
->>  }
->> +EXPORT_SYMBOL(hdmi_audio_infoframe_pack_only);
->> +
->> +/**
->> + * hdmi_audio_infoframe_pack() - check a HDMI Audio infoframe,
->> + *                               and write it to binary buffer
->> + * @frame: HDMI Audio infoframe
->> + * @buffer: destination buffer
->> + * @size: size of buffer
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields, after which it packs the information
->> + * contained in the @frame structure into a binary representation that
->> + * can be written into the corresponding controller registers. This function
->> + * also computes the checksum as required by section 5.3.5 of the HDMI 1.4
->> + * specification.
->> + *
->> + * Returns the number of bytes packed into the binary buffer or a negative
->> + * error code on failure.
->> + */
->> +ssize_t hdmi_audio_infoframe_pack(struct hdmi_audio_infoframe *frame,
->> +				  void *buffer, size_t size)
->> +{
->> +	int ret;
->> +
->> +	ret = hdmi_audio_infoframe_check(frame);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return hdmi_audio_infoframe_pack_only(frame, buffer, size);
->> +}
->>  EXPORT_SYMBOL(hdmi_audio_infoframe_pack);
->>  
->>  /**
->> @@ -319,6 +499,7 @@ int hdmi_vendor_infoframe_init(struct hdmi_vendor_infoframe *frame)
->>  	 * value
->>  	 */
->>  	frame->s3d_struct = HDMI_3D_STRUCTURE_INVALID;
->> +	frame->length = 4;
->>  
->>  	return 0;
->>  }
->> @@ -335,8 +516,42 @@ static int hdmi_vendor_infoframe_length(const struct hdmi_vendor_infoframe *fram
->>  		return 4;
->>  }
->>  
->> +static int hdmi_vendor_infoframe_check_only(const struct hdmi_vendor_infoframe *frame)
->> +{
->> +	if (frame->type != HDMI_INFOFRAME_TYPE_VENDOR ||
->> +	    frame->version != 1 ||
->> +	    frame->oui != HDMI_IEEE_OUI)
->> +		return -EINVAL;
->> +
->> +	/* only one of those can be supplied */
->> +	if (frame->vic != 0 && frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
->> +		return -EINVAL;
->> +
->> +	if (frame->length != hdmi_vendor_infoframe_length(frame))
->> +		return -EINVAL;
->> +
->> +	return 0;
->> +}
->> +
->>  /**
->> - * hdmi_vendor_infoframe_pack() - write a HDMI vendor infoframe to binary buffer
->> + * hdmi_vendor_infoframe_check() - check a HDMI vendor infoframe
->> + * @frame: HDMI infoframe
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields.
->> + *
->> + * Returns 0 on success or a negative error code on failure.
->> + */
->> +int hdmi_vendor_infoframe_check(struct hdmi_vendor_infoframe *frame)
->> +{
->> +	frame->length = hdmi_vendor_infoframe_length(frame);
->> +
->> +	return hdmi_vendor_infoframe_check_only(frame);
->> +}
->> +EXPORT_SYMBOL(hdmi_vendor_infoframe_check);
->> +
->> +/**
->> + * hdmi_vendor_infoframe_pack_only() - write a HDMI vendor infoframe to binary buffer
->>   * @frame: HDMI infoframe
->>   * @buffer: destination buffer
->>   * @size: size of buffer
->> @@ -349,17 +564,16 @@ static int hdmi_vendor_infoframe_length(const struct hdmi_vendor_infoframe *fram
->>   * Returns the number of bytes packed into the binary buffer or a negative
->>   * error code on failure.
->>   */
->> -ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
->> -				 void *buffer, size_t size)
->> +ssize_t hdmi_vendor_infoframe_pack_only(const struct hdmi_vendor_infoframe *frame,
->> +					void *buffer, size_t size)
->>  {
->>  	u8 *ptr = buffer;
->>  	size_t length;
->> +	int ret;
->>  
->> -	/* only one of those can be supplied */
->> -	if (frame->vic != 0 && frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
->> -		return -EINVAL;
->> -
->> -	frame->length = hdmi_vendor_infoframe_length(frame);
->> +	ret = hdmi_vendor_infoframe_check_only(frame);
->> +	if (ret)
->> +		return ret;
->>  
->>  	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
->>  
->> @@ -394,24 +608,134 @@ ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
->>  
->>  	return length;
->>  }
->> +EXPORT_SYMBOL(hdmi_vendor_infoframe_pack_only);
->> +
->> +/**
->> + * hdmi_vendor_infoframe_pack() - check a HDMI Vendor infoframe,
->> + *                                and write it to binary buffer
->> + * @frame: HDMI Vendor infoframe
->> + * @buffer: destination buffer
->> + * @size: size of buffer
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields, after which it packs the information
->> + * contained in the @frame structure into a binary representation that
->> + * can be written into the corresponding controller registers. This function
->> + * also computes the checksum as required by section 5.3.5 of the HDMI 1.4
->> + * specification.
->> + *
->> + * Returns the number of bytes packed into the binary buffer or a negative
->> + * error code on failure.
->> + */
->> +ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
->> +				   void *buffer, size_t size)
->> +{
->> +	int ret;
->> +
->> +	ret = hdmi_vendor_infoframe_check(frame);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return hdmi_vendor_infoframe_pack_only(frame, buffer, size);
->> +}
->>  EXPORT_SYMBOL(hdmi_vendor_infoframe_pack);
->>  
->> +static int
->> +hdmi_vendor_any_infoframe_check_only(const union hdmi_vendor_any_infoframe *frame)
->> +{
->> +	if (frame->any.type != HDMI_INFOFRAME_TYPE_VENDOR ||
->> +	    frame->any.version != 1)
->> +		return -EINVAL;
->> +
->> +	return 0;
->> +}
->> +
->>  /*
->> - * hdmi_vendor_any_infoframe_pack() - write a vendor infoframe to binary buffer
->> + * hdmi_vendor_any_infoframe_check() - check a vendor infoframe
->> + */
->> +static int
->> +hdmi_vendor_any_infoframe_check(union hdmi_vendor_any_infoframe *frame)
->> +{
->> +	int ret;
->> +
->> +	ret = hdmi_vendor_any_infoframe_check_only(frame);
->> +	if (ret)
->> +		return ret;
->> +
->> +	/* we only know about HDMI vendor infoframes */
->> +	if (frame->any.oui != HDMI_IEEE_OUI)
->> +		return -EINVAL;
->> +
->> +	return hdmi_vendor_infoframe_check(&frame->hdmi);
->> +}
->> +
->> +/*
->> + * hdmi_vendor_any_infoframe_pack_only() - write a vendor infoframe to binary buffer
->>   */
->>  static ssize_t
->> -hdmi_vendor_any_infoframe_pack(union hdmi_vendor_any_infoframe *frame,
->> -			   void *buffer, size_t size)
->> +hdmi_vendor_any_infoframe_pack_only(const union hdmi_vendor_any_infoframe *frame,
->> +				    void *buffer, size_t size)
->>  {
->> +	int ret;
->> +
->> +	ret = hdmi_vendor_any_infoframe_check_only(frame);
->> +	if (ret)
->> +		return ret;
->> +
->>  	/* we only know about HDMI vendor infoframes */
->>  	if (frame->any.oui != HDMI_IEEE_OUI)
->>  		return -EINVAL;
->>  
->> -	return hdmi_vendor_infoframe_pack(&frame->hdmi, buffer, size);
->> +	return hdmi_vendor_infoframe_pack_only(&frame->hdmi, buffer, size);
->> +}
->> +
->> +/*
->> + * hdmi_vendor_any_infoframe_pack() - check a vendor infoframe,
->> + *                                    and write it to binary buffer
->> + */
->> +static ssize_t
->> +hdmi_vendor_any_infoframe_pack(union hdmi_vendor_any_infoframe *frame,
->> +			       void *buffer, size_t size)
->> +{
->> +	int ret;
->> +
->> +	ret = hdmi_vendor_any_infoframe_check(frame);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return hdmi_vendor_any_infoframe_pack_only(frame, buffer, size);
->> +}
->> +
->> +/**
->> + * hdmi_infoframe_check() - check a HDMI infoframe
->> + * @frame: HDMI infoframe
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields.
->> + *
->> + * Returns 0 on success or a negative error code on failure.
->> + */
->> +int
->> +hdmi_infoframe_check(union hdmi_infoframe *frame)
->> +{
->> +	switch (frame->any.type) {
->> +	case HDMI_INFOFRAME_TYPE_AVI:
->> +		return hdmi_avi_infoframe_check(&frame->avi);
->> +	case HDMI_INFOFRAME_TYPE_SPD:
->> +		return hdmi_spd_infoframe_check(&frame->spd);
->> +	case HDMI_INFOFRAME_TYPE_AUDIO:
->> +		return hdmi_audio_infoframe_check(&frame->audio);
->> +	case HDMI_INFOFRAME_TYPE_VENDOR:
->> +		return hdmi_vendor_any_infoframe_check(&frame->vendor);
->> +	default:
->> +		WARN(1, "Bad infoframe type %d\n", frame->any.type);
->> +		return -EINVAL;
->> +	}
->>  }
->> +EXPORT_SYMBOL(hdmi_infoframe_check);
->>  
->>  /**
->> - * hdmi_infoframe_pack() - write a HDMI infoframe to binary buffer
->> + * hdmi_infoframe_pack_only() - write a HDMI infoframe to binary buffer
->>   * @frame: HDMI infoframe
->>   * @buffer: destination buffer
->>   * @size: size of buffer
->> @@ -425,7 +749,56 @@ hdmi_vendor_any_infoframe_pack(union hdmi_vendor_any_infoframe *frame,
->>   * error code on failure.
->>   */
->>  ssize_t
->> -hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size)
->> +hdmi_infoframe_pack_only(const union hdmi_infoframe *frame, void *buffer, size_t size)
->> +{
->> +	ssize_t length;
->> +
->> +	switch (frame->any.type) {
->> +	case HDMI_INFOFRAME_TYPE_AVI:
->> +		length = hdmi_avi_infoframe_pack_only(&frame->avi,
->> +						      buffer, size);
->> +		break;
->> +	case HDMI_INFOFRAME_TYPE_SPD:
->> +		length = hdmi_spd_infoframe_pack_only(&frame->spd,
->> +						      buffer, size);
->> +		break;
->> +	case HDMI_INFOFRAME_TYPE_AUDIO:
->> +		length = hdmi_audio_infoframe_pack_only(&frame->audio,
->> +							buffer, size);
->> +		break;
->> +	case HDMI_INFOFRAME_TYPE_VENDOR:
->> +		length = hdmi_vendor_any_infoframe_pack_only(&frame->vendor,
->> +							     buffer, size);
->> +		break;
->> +	default:
->> +		WARN(1, "Bad infoframe type %d\n", frame->any.type);
->> +		length = -EINVAL;
->> +	}
->> +
->> +	return length;
->> +}
->> +EXPORT_SYMBOL(hdmi_infoframe_pack_only);
->> +
->> +/**
->> + * hdmi_infoframe_pack() - check a HDMI infoframe,
->> + *                         and write it to binary buffer
->> + * @frame: HDMI infoframe
->> + * @buffer: destination buffer
->> + * @size: size of buffer
->> + *
->> + * Validates that the infoframe is consistent and updates derived fields
->> + * (eg. length) based on other fields, after which it packs the information
->> + * contained in the @frame structure into a binary representation that
->> + * can be written into the corresponding controller registers. This function
->> + * also computes the checksum as required by section 5.3.5 of the HDMI 1.4
->> + * specification.
->> + *
->> + * Returns the number of bytes packed into the binary buffer or a negative
->> + * error code on failure.
->> + */
->> +ssize_t
->> +hdmi_infoframe_pack(union hdmi_infoframe *frame,
->> +		    void *buffer, size_t size)
->>  {
->>  	ssize_t length;
->>  
->> diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
->> index bce1abb1fe57..c76b50a48e48 100644
->> --- a/include/linux/hdmi.h
->> +++ b/include/linux/hdmi.h
->> @@ -163,6 +163,9 @@ struct hdmi_avi_infoframe {
->>  int hdmi_avi_infoframe_init(struct hdmi_avi_infoframe *frame);
->>  ssize_t hdmi_avi_infoframe_pack(struct hdmi_avi_infoframe *frame, void *buffer,
->>  				size_t size);
->> +ssize_t hdmi_avi_infoframe_pack_only(const struct hdmi_avi_infoframe *frame,
->> +				     void *buffer, size_t size);
->> +int hdmi_avi_infoframe_check(struct hdmi_avi_infoframe *frame);
->>  
->>  enum hdmi_spd_sdi {
->>  	HDMI_SPD_SDI_UNKNOWN,
->> @@ -194,6 +197,9 @@ int hdmi_spd_infoframe_init(struct hdmi_spd_infoframe *frame,
->>  			    const char *vendor, const char *product);
->>  ssize_t hdmi_spd_infoframe_pack(struct hdmi_spd_infoframe *frame, void *buffer,
->>  				size_t size);
->> +ssize_t hdmi_spd_infoframe_pack_only(const struct hdmi_spd_infoframe *frame,
->> +				     void *buffer, size_t size);
->> +int hdmi_spd_infoframe_check(struct hdmi_spd_infoframe *frame);
->>  
->>  enum hdmi_audio_coding_type {
->>  	HDMI_AUDIO_CODING_TYPE_STREAM,
->> @@ -272,6 +278,9 @@ struct hdmi_audio_infoframe {
->>  int hdmi_audio_infoframe_init(struct hdmi_audio_infoframe *frame);
->>  ssize_t hdmi_audio_infoframe_pack(struct hdmi_audio_infoframe *frame,
->>  				  void *buffer, size_t size);
->> +ssize_t hdmi_audio_infoframe_pack_only(const struct hdmi_audio_infoframe *frame,
->> +				       void *buffer, size_t size);
->> +int hdmi_audio_infoframe_check(struct hdmi_audio_infoframe *frame);
->>  
->>  enum hdmi_3d_structure {
->>  	HDMI_3D_STRUCTURE_INVALID = -1,
->> @@ -299,6 +308,9 @@ struct hdmi_vendor_infoframe {
->>  int hdmi_vendor_infoframe_init(struct hdmi_vendor_infoframe *frame);
->>  ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
->>  				   void *buffer, size_t size);
->> +ssize_t hdmi_vendor_infoframe_pack_only(const struct hdmi_vendor_infoframe *frame,
->> +					void *buffer, size_t size);
->> +int hdmi_vendor_infoframe_check(struct hdmi_vendor_infoframe *frame);
->>  
->>  union hdmi_vendor_any_infoframe {
->>  	struct {
->> @@ -330,8 +342,11 @@ union hdmi_infoframe {
->>  	struct hdmi_audio_infoframe audio;
->>  };
->>  
->> -ssize_t
->> -hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size);
->> +ssize_t hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer,
->> +			    size_t size);
->> +ssize_t hdmi_infoframe_pack_only(const union hdmi_infoframe *frame,
->> +				 void *buffer, size_t size);
->> +int hdmi_infoframe_check(union hdmi_infoframe *frame);
->>  int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
->>  			  const void *buffer, size_t size);
->>  void hdmi_infoframe_log(const char *level, struct device *dev,
->> -- 
->> 2.16.4
-> 
+
+-- 
+Ricardo Ribalda
