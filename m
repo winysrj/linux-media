@@ -1,245 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2420 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725799AbeJDFr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 01:47:29 -0400
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: "Zhi, Yong" <yong.zhi@intel.com>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Li, Chao C" <chao.c.li@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Subject: RE: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
-Date: Wed, 3 Oct 2018 22:56:19 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981514022@fmsmsx122.amr.corp.intel.com>
-References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com>
-        <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
-        <749a58a4-24f7-672f-70a9-cfd584af0171@xs4all.nl>
- <20180813174950.6fd3915f@coco.lan>
-In-Reply-To: <20180813174950.6fd3915f@coco.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:44832 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725922AbeJDGMI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 02:12:08 -0400
+Received: by mail-wr1-f65.google.com with SMTP id 63-v6so7870158wra.11
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2018 16:21:37 -0700 (PDT)
+Subject: Re: [PATCH v3 00/14] imx-media: Fixes for interlaced capture
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
+ <db3940a6-d837-9b6a-1f1e-122dda1e1650@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <0701dea4-f3b7-fda9-0dd0-f717a868991d@gmail.com>
+Date: Wed, 3 Oct 2018 16:21:31 -0700
 MIME-Version: 1.0
+In-Reply-To: <db3940a6-d837-9b6a-1f1e-122dda1e1650@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF1cm8sDQoNClRoYW5rcyBmb3IgdGhlIHJldmlld3MuDQoNCj4gU3ViamVjdDogUmU6IFtQ
-QVRDSCB2MSAyLzJdIHY0bDogRG9jdW1lbnQgSW50ZWwgSVBVMyBtZXRhIGRhdGEgdUFQSQ0KPiAN
-Cj4gRW0gTW9uLCAxMyBBdWcgMjAxOCAxNTo0MjozNCArMDIwMA0KPiBIYW5zIFZlcmt1aWwgPGh2
-ZXJrdWlsQHhzNGFsbC5ubD4gZXNjcmV2ZXU6DQo+IA0KPiA+IE9uIDE1LzA2LzE4IDA1OjI5LCBZ
-b25nIFpoaSB3cm90ZToNCj4gPiA+IFRoZXNlIG1ldGEgZm9ybWF0cyBhcmUgdXNlZCBvbiBJbnRl
-bCBJUFUzIEltZ1UgdmlkZW8gcXVldWVzDQo+ID4gPiB0byBjYXJyeSAzQSBzdGF0aXN0aWNzIGFu
-ZCBJU1AgcGlwZWxpbmUgcGFyYW1ldGVycy4NCj4gPiA+DQo+ID4gPiBWNEwyX01FVEFfRk1UX0lQ
-VTNfM0ENCj4gPiA+IFY0TDJfTUVUQV9GTVRfSVBVM19QQVJBTVMNCj4gPiA+DQo+ID4gPiBTaWdu
-ZWQtb2ZmLWJ5OiBZb25nIFpoaSA8eW9uZy56aGlAaW50ZWwuY29tPg0KPiA+ID4gU2lnbmVkLW9m
-Zi1ieTogQ2hhbyBDIExpIDxjaGFvLmMubGlAaW50ZWwuY29tPg0KPiA+ID4gU2lnbmVkLW9mZi1i
-eTogUmFqbW9oYW4gTWFuaSA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+DQo+ID4gPiAtLS0NCj4g
-PiA+ICBEb2N1bWVudGF0aW9uL21lZGlhL3VhcGkvdjRsL21ldGEtZm9ybWF0cy5yc3QgICAgICB8
-ICAgIDEgKw0KPiA+ID4gIC4uLi9tZWRpYS91YXBpL3Y0bC9waXhmbXQtbWV0YS1pbnRlbC1pcHUz
-LnJzdCAgICAgIHwgIDE3NCArKw0KPiA+ID4gIGluY2x1ZGUvdWFwaS9saW51eC9pbnRlbC1pcHUz
-LmggICAgICAgICAgICAgICAgICAgIHwgMjgxNiArKysrKysrKysrKysrKysrKysrKw0KPiA+ID4g
-IDMgZmlsZXMgY2hhbmdlZCwgMjk5MSBpbnNlcnRpb25zKCspDQo+ID4gPiAgY3JlYXRlIG1vZGUg
-MTAwNjQ0IERvY3VtZW50YXRpb24vbWVkaWEvdWFwaS92NGwvcGl4Zm10LW1ldGEtaW50ZWwtDQo+
-IGlwdTMucnN0DQo+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGluY2x1ZGUvdWFwaS9saW51eC9p
-bnRlbC1pcHUzLmgNCj4gPiA+DQo+ID4gPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9tZWRp
-YS91YXBpL3Y0bC9tZXRhLWZvcm1hdHMucnN0DQo+IGIvRG9jdW1lbnRhdGlvbi9tZWRpYS91YXBp
-L3Y0bC9tZXRhLWZvcm1hdHMucnN0DQo+ID4gPiBpbmRleCAwYzRlMWVjLi5iODg3ZmNhIDEwMDY0
-NA0KPiA+ID4gLS0tIGEvRG9jdW1lbnRhdGlvbi9tZWRpYS91YXBpL3Y0bC9tZXRhLWZvcm1hdHMu
-cnN0DQo+ID4gPiArKysgYi9Eb2N1bWVudGF0aW9uL21lZGlhL3VhcGkvdjRsL21ldGEtZm9ybWF0
-cy5yc3QNCj4gPiA+IEBAIC0xMiw2ICsxMiw3IEBAIFRoZXNlIGZvcm1hdHMgYXJlIHVzZWQgZm9y
-IHRoZSA6cmVmOmBtZXRhZGF0YWANCj4gaW50ZXJmYWNlIG9ubHkuDQo+ID4gPiAgLi4gdG9jdHJl
-ZTo6DQo+ID4gPiAgICAgIDptYXhkZXB0aDogMQ0KPiA+ID4NCj4gPiA+ICsgICAgcGl4Zm10LW1l
-dGEtaW50ZWwtaXB1Mw0KPiA+ID4gICAgICBwaXhmbXQtbWV0YS11dmMNCj4gPiA+ICAgICAgcGl4
-Zm10LW1ldGEtdnNwMS1oZ28NCj4gPiA+ICAgICAgcGl4Zm10LW1ldGEtdnNwMS1oZ3QNCj4gPiA+
-IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL21lZGlhL3VhcGkvdjRsL3BpeGZtdC1tZXRhLWlu
-dGVsLWlwdTMucnN0DQo+IGIvRG9jdW1lbnRhdGlvbi9tZWRpYS91YXBpL3Y0bC9waXhmbXQtbWV0
-YS1pbnRlbC1pcHUzLnJzdA0KPiA+ID4gbmV3IGZpbGUgbW9kZSAxMDA2NDQNCj4gPiA+IGluZGV4
-IDAwMDAwMDAuLjVjMDUwZTYNCj4gPiA+IC0tLSAvZGV2L251bGwNCj4gPiA+ICsrKyBiL0RvY3Vt
-ZW50YXRpb24vbWVkaWEvdWFwaS92NGwvcGl4Zm10LW1ldGEtaW50ZWwtaXB1My5yc3QNCj4gPiA+
-IEBAIC0wLDAgKzEsMTc0IEBADQo+ID4gPiArLi4gLSotIGNvZGluZzogdXRmLTg7IG1vZGU6IHJz
-dCAtKi0NCj4gPiA+ICsNCj4gPiA+ICsuLiBfaW50ZWwtaXB1MzoNCj4gPiA+ICsNCj4gPiA+DQo+
-ICsqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioNCj4gKioqDQo+ID4gPiArVjRMMl9NRVRBX0ZNVF9JUFUzX1BBUkFNUyAoJ2lwM3An
-KSwgVjRMMl9NRVRBX0ZNVF9JUFUzXzNBDQo+ICgnaXAzcycpDQo+ID4gPg0KPiArKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqDQo+
-ICoqKg0KPiA+ID4gKw0KPiA+ID4gKy4uIGM6dHlwZTo6IGlwdTNfdWFwaV9zdGF0c18zYQ0KPiA+
-ID4gKw0KPiA+ID4gKzNBIHN0YXRpc3RpY3MNCj4gPiA+ICs9PT09PT09PT09PT09DQo+ID4gPiAr
-DQo+ID4gPiArRm9yIElQVTMgSW1nVSwgdGhlIDNBIHN0YXRpc3RpY3MgYWNjZWxlcmF0b3JzIGNv
-bGxlY3QgZGlmZmVyZW50IHN0YXRpc3RpY3Mgb3Zlcg0KPiA+ID4gK2FuIGlucHV0IGJheWVyIGZy
-YW1lLiBUaG9zZSBzdGF0aXN0aWNzLCBkZWZpbmVkIGluIGRhdGEgc3RydWN0DQo+ID4gPiArOmM6
-dHlwZTpgaXB1M191YXBpX3N0YXRzXzNhYCwgYXJlIG1ldGEgb3V0cHV0IG9idGFpbmVkIGZyb20g
-ImlwdTMtaW1ndQ0KPiAzYSBzdGF0Ig0KPiA+ID4gK3ZpZGVvIG5vZGUsIHdoaWNoIGFyZSB0aGVu
-IHBhc3NlZCB0byB1c2VyIHNwYWNlIGZvciBzdGF0aXN0aWNzIGFuYWx5c2lzDQo+ID4gPiArdXNp
-bmcgOmM6dHlwZTpgdjRsMl9tZXRhX2Zvcm1hdGAgaW50ZXJmYWNlLg0KPiA+ID4gKw0KPiA+ID4g
-K1RoZSBzdGF0aXN0aWNzIGNvbGxlY3RlZCBhcmUgQVdCIChBdXRvLXdoaXRlIGJhbGFuY2UpIFJH
-QlMgY2VsbHMsIEFXQg0KPiBmaWx0ZXINCj4gDQo+IEp1c3QgbGlrZSB5b3UgZGlkIHdpdGggQVdC
-LCBBRiBhbmQgQUUsIHBsZWFzZSBwbGFjZSB0aGUgZnVsbCBuYW1lIGluDQo+IHBhcmVudGhlc2lz
-DQo+IGZvciBSR0JTIGFuZCBBV0IuDQo+IA0KDQpBY2sNCg0KPiA+ID4gK3Jlc3BvbnNlLCBBRiAo
-QXV0by1mb2N1cykgZmlsdGVyIHJlc3BvbnNlLCBhbmQgQUUgKEF1dG8tZXhwb3N1cmUpDQo+IGhp
-c3RvZ3JhbS4NCj4gPiA+ICsNCj4gPiA+ICtzdHJ1Y3QgOmM6dHlwZTpgaXB1M191YXBpXzRhX2Nv
-bmZpZ2Agc2F2ZXMgY29uZmlndXJhYmxlIHBhcmFtZXRlcnMgZm9yIGFsbA0KPiBhYm92ZS4NCj4g
-PiA+ICsNCj4gPiA+ICsNCj4gPiA+ICsuLiBjb2RlLWJsb2NrOjogYw0KPiA+ID4gKw0KPiA+ID4g
-Kw0KPiA+ID4gKyAgICAgc3RydWN0IGlwdTNfdWFwaV9zdGF0c18zYSB7DQo+ID4gPiArCUlQVTNf
-QUxJR04gc3RydWN0IGlwdTNfdWFwaV9hd2JfcmF3X2J1ZmZlciBhd2JfcmF3X2J1ZmZlcjsNCj4g
-Pg0KPiA+IElQVTNfQUxJR04/IFdoYXQncyB0aGF0Pw0KPiA+DQo+ID4gT0ssIGFmdGVyIHJlYWRp
-bmcgdGhlIGhlYWRlciBJIHNlZSB3aGF0IGl0IGRvZXMsIGJ1dCBJIHRoaW5rIHlvdSBzaG91bGQN
-Cj4gPiBkcm9wIGl0IGluIHRoZSBkb2N1bWVudGF0aW9uIHNpbmNlIGl0IGRvZXNuJ3QgaGVscCB0
-aGUgcmVhZGVyLg0KPiANCj4gWWVhaCwgdGhhdCBJUFUzX0FMSUdOIGlzIGNvbmZ1c2luZy4NCj4g
-DQo+IFlldCwgaW5zdGVhZCBvZiBqdXN0IGRyb3BwaW5nLCBJIHdvdWxkIHJlcGxhY2UgaXQgYnkg
-YSBjb21tZW50DQo+IHRvIGV4cGxhaW4gdGhhdCB0aGUgc3RydWN0IGlzIDMyLWJ5dGVzIGFsaWdu
-ZWQuDQo+IA0KDQpBY2sNCg0KPiBPbiBhIHNlcGFyYXRlIChidXQgcmVsYXRlZCkgY29tbWVudCwg
-eW91J3JlIGRlY2xhcmluZyBpdCBhczoNCj4gDQo+IAkjZGVmaW5lIElQVTNfQUxJR04NCj4gCV9f
-YXR0cmlidXRlX18oKGFsaWduZWQoSVBVM19VQVBJX0lTUF9XT1JEX0JZVEVTKSkpDQo+IA0KPiBU
-aGlzIGlzIGEgZ2NjLXNwZWNpZmljIGRpYWxlY3QuIEJldHRlciB0byB1c2UsIGluc3RlYWQsIF9f
-YWxpZ25lZCh4KQ0KPiB3aGljaCBpcyBkZWZpbmVkIGFzOg0KPiANCj4gI2RlZmluZSBfX2FsaWdu
-ZWQoeCkJCV9fYXR0cmlidXRlX18oKGFsaWduZWQoeCkpKQ0KPiANCg0KQXMgZGlzY3Vzc2VkIGlu
-IHRoZSBvdGhlciB0aHJlYWQsIHRoZSBmb2xsb3dpbmcgd2lsbCBiZSB1c2VkIGRpcmVjdGx5LA0K
-YXMgYXBwbGljYWJsZSBmb3IgcmVxdWlyZWQgZGF0YSBzdHJ1Y3R1cmVzLg0KDQpfX2F0dHJpYnV0
-ZV9fKChhbGlnbmVkKDMyKSkpDQoNCltzbmlwXQ0KDQo+ID4gPiArDQo+ID4gPiArI2RlZmluZSBJ
-UFUzX1VBUElfSVNQX1dPUkRfQllURVMJCQkzMg0KPiA+ID4gKyNkZWZpbmUgSU1HVV9BQklfUEFE
-CV9fYWxpZ25lZChJUFUzX1VBUElfSVNQX1dPUkRfQllURVMpDQo+ID4gPiArI2RlZmluZSBJUFUz
-X0FMSUdODQo+IAlfX2F0dHJpYnV0ZV9fKChhbGlnbmVkKElQVTNfVUFQSV9JU1BfV09SRF9CWVRF
-UykpKQ0KPiA+DQo+ID4gVGhhdCdzIHdlaXJkLiBJc24ndCBfX2FsaWduZWQgaWRlbnRpY2FsIHRv
-IF9fYXR0cmlidXRlX18oKGFsaWduZWQoID8NCj4gPiBJZiBzbywgdGhlbiB0aGVzZSBsYXN0IHR3
-byBkZWZpbmVzIGFyZSBhbHNvIGlkZW50aWNhbC4NCj4gDQo+IFllcywgQUZBSUtUIHRoZXkncmUg
-aWRlbnRpY2FsIGFuZCBfX2FsaWduZWQoKSBpcyB0aGUgcHJlZmVycmVkIGZvcm0uDQo+IA0KDQpB
-cyBkaXNjdXNzZWQgaW4gdGhlIG90aGVyIHRocmVhZCwgdGhlIGZvbGxvd2luZyB3aWxsIGJlIHVz
-ZWQgZGlyZWN0bHksDQphcyBhcHBsaWNhYmxlIGZvciByZXF1aXJlZCBkYXRhIHN0cnVjdHVyZXMu
-DQoNCl9fYXR0cmlidXRlX18oKGFsaWduZWQoeCkpKQ0KDQo+ID4NCj4gPiBXaHkgaXMgaXQgYWxp
-Z25lZCB0byBhIDMyIGJ5dGVzPyBJcyBpdCBhIGhhcmR3YXJlIHJlcXVpcmVtZW50Pw0KPiA+DQo+
-ID4gPiArDQo+ID4gPiArLyoqKioqKioqKioqKioqKioqKiogaXB1M191YXBpX3N0YXRzXzNhICoq
-KioqKioqKioqKioqKioqKiovDQo+ID4gPiArDQo+ID4gPiArI2RlZmluZSBJUFUzX1VBUElfTUFY
-X1NUUklQRVMJCQkJMg0KPiA+ID4gKyNkZWZpbmUgSVBVM19VQVBJX01BWF9CVUJCTEVfU0laRQkJ
-CTEwDQo+ID4gPiArDQo+ID4gPiArI2RlZmluZSBJUFUzX1VBUElfR1JJRF9TVEFSVF9NQVNLCQkJ
-KEJJVCgxMikgLSAxKQ0KPiA+ID4gKyNkZWZpbmUgSVBVM19VQVBJX0dSSURfWV9TVEFSVF9FTgkJ
-CUJJVCgxNSkNCj4gPiA+ICsNCj4gPiA+ICsvKiBjb250cm9scyBnZW5lcmF0aW9uIG9mIG1ldGFf
-ZGF0YSAobGlrZSBGRiBlbmFibGUvZGlzYWJsZSkgKi8NCj4gPiA+ICsjZGVmaW5lIElQVTNfVUFQ
-SV9BV0JfUkdCU19USFJfQl9FTgkJCUJJVCgxNCkNCj4gPiA+ICsjZGVmaW5lIElQVTNfVUFQSV9B
-V0JfUkdCU19USFJfQl9JTkNMX1NBVAkJQklUKDE1KQ0KPiA+ID4gKw0KPiA+ID4gKy8qKg0KPiA+
-ID4gKyAqIHN0cnVjdCBpcHUzX3VhcGlfZ3JpZF9jb25maWcgLSBHcmlkIHBsYW5lIGNvbmZpZw0K
-PiA+ID4gKyAqDQo+ID4gPiArICogQHdpZHRoOglHcmlkIGhvcml6b250YWwgZGltZW5zaW9ucywg
-aW4gbnVtYmVyIG9mIGdyaWQgYmxvY2tzKGNlbGxzKS4NCj4gPiA+ICsgKiBAaGVpZ2h0OglHcmlk
-IHZlcnRpY2FsIGRpbWVuc2lvbnMsIGluIG51bWJlciBvZiBncmlkIGNlbGxzLg0KPiA+ID4gKyAq
-IEBibG9ja193aWR0aF9sb2cyOglMb2cyIG9mIHRoZSB3aWR0aCBvZiBlYWNoIGNlbGwgaW4gcGl4
-ZWxzLg0KPiA+ID4gKyAqCQkJZm9yICgyXjMsIDJeNCwgMl41LCAyXjYsIDJeNyksIHZhbHVlcyBb
-MywgN10uDQo+IA0KPiBXaGF0IGFyZSB5b3UgbWVhbmluZyBieSBbMywgN10gaGVyZT8NCg0KQWxs
-IGludGVnZXJzIGZyb20gMyB0aHJvdWdoIDcsIGluY2x1ZGluZyAzIGFuZCA3Lg0KDQo+IEZyb20g
-c29tZSBjb21tZW50IHlvdSBoYWQgbGF0ZXIsDQo+IEkgZ3Vlc3MgeW91J3JlIG1lYW5pbmcgdGhh
-dCBvbmx5IDMgb3IgNyBhcmUgdGhlIHZhbGlkIHZhbHVlcy4NCj4gDQo+IFlldCwgeW91J3JlIGxp
-c3RpbmcgZnJvbSAyXjMgdG8gMl43LCBhbmQgdGhhdCdzIGNvbmZ1c2luZy4gUGVyaGFwcw0KPiB5
-b3Ugd2FudCB0byBzYXksIGluc3RlYWQsIHRoYXQgdGhlIHZhbGlkIHZhbHVlcyBhcmUgYXQgdGhl
-IDMuLjcgcmFuZ2U/DQo+IElmIHNvLCBwbGVhc2UgdXNlIHNvbWV0aGluZyBsaWtlICJ2YWx1ZXMg
-YXQgdGhlIFszLi43XSByYW5nZSIuDQo+IA0KDQpBcyBTYWthcmkgcG9pbnRlZCAvIHByZWZlcnJl
-ZCBpbiB0aGUgb3RoZXIgdGhyZWFkLCB3ZSB3aWxsIHVzZSB0aGUgZm9ybWF0DQpbMywgN10gdG8g
-cmVwcmVzZW50IGFsbCBpbnRlZ2VycyBiZXR3ZWVuIDMgYW5kIDcsIGluY2x1ZGluZyAzIGFuZCA3
-Lg0KDQo+ID4gPiArICogQGJsb2NrX2hlaWdodF9sb2cyOglMb2cyIG9mIHRoZSBoZWlnaHQgb2Yg
-ZWFjaCBjZWxsIGluIHBpeGVscy4NCj4gPiA+ICsgKgkJCWZvciAoMl4zLCAyXjQsIDJeNSwgMl42
-LCAyXjcpLCB2YWx1ZXMgWzMsIDddLg0KPiANCj4gU2FtZSBoZXJlLg0KPiANCg0KQWNrLg0KWzMs
-IDddIGZvcm1hdCB3aWxsIGJlIHVzZWQgdW5pZm9ybWx5Lg0KDQpbc25pcF0NCg0KPiA+ID4gKyAq
-IEB3aWR0aDogR3JpZCBob3Jpem9udGFsIGRpbWVuc2lvbnMuIFZhbHVlOiBbMTYsMzJdLCBkZWZh
-dWx0IDE2Lg0KPiANCj4gaWYgWzE2LDMyXSBpcyBhIHJhbmdlLCBwbGVhc2UgdXNlIFsxNi4uMzJd
-LiBJZiBvbmx5IDE2IG9yIDMyIGFyZQ0KPiB2YWxpZCB2YWx1ZXMsIHBsZWFzZSBzYXkgc29tZXRo
-aW5nIGxpa2U6DQo+IA0KPiAJVmFsdWU6IDE2IG9yIDMyLiBEZWZhdWx0cyB0byAxNi4NCj4gDQo+
-IFNhbWUgdG8gb3RoZXIgcGxhY2VzLg0KPiANCj4gPiA+ICsgKiBAaGVpZ2h0OiBHcmlkIHZlcnRp
-Y2FsIGRpbWVuc2lvbnMuIFZhbHVlOiBbMTYsMjRdLCBkZWZhdWx0IDE2Lg0KPiANCj4gU2FtZSBo
-ZXJlLg0KPiANCg0KWzE2LCAzMl0gaXMgYSByYW5nZS4NCihBcyBTYWthcmkgcG9pbnRlZCBbMTYs
-IDMyXSBpcyB0aGUgc2FtZSBhcyBbMTYuLjMyXS4gV2Ugd2lsbCB1c2UgdGhlIGZvcm1lcg0KZm9y
-bWF0IHVuaWZvcm1seSkuDQoNCltzbmlwXQ0KDQo+ID4gPiArLyoqDQo+ID4gPiArICogc3RydWN0
-IGlwdTNfdWFwaV9hZl9tZXRhX2RhdGEgLSBBRiBtZXRhIGRhdGENCj4gPiA+ICsgKg0KPiA+ID4g
-KyAqIEB5X3RhYmxlOglFYWNoIGNvbG9yIGNvbXBvbmVudCB3aWxsIGJlIGNvbnZvbHZlZCBzZXBh
-cmF0ZWx5DQo+IHdpdGggZmlsdGVyMQ0KPiA+ID4gKyAqCQlhbmQgZmlsdGVyMiBhbmQgdGhlIHJl
-c3VsdCB3aWxsIGJlIHN1bW1lZCBvdXQgYW5kIGF2ZXJhZ2VkIGZvcg0KPiA+ID4gKyAqCQllYWNo
-IGNlbGwuDQo+ID4gPiArICovDQo+ID4gPiArc3RydWN0IGlwdTNfdWFwaV9hZl9tZXRhX2RhdGEg
-ew0KPiA+ID4gKwlfX3U4IHlfdGFibGVbSVBVM19VQVBJX0FGX1lfVEFCTEVfTUFYX1NJWkVdIElQ
-VTNfQUxJR047DQo+ID4NCj4gPiBIZXJlIElQVTNfQUxJR04gaXMgcHV0IGF0IHRoZSBlbmQuLi4N
-Cj4gPg0KPiA+ID4gK30gX19wYWNrZWQ7DQo+ID4gPiArDQo+ID4gPiArLyoqDQo+ID4gPiArICog
-c3RydWN0IGlwdTNfdWFwaV9hZl9yYXdfYnVmZmVyIC0gQUYgcmF3IGJ1ZmZlcg0KPiA+ID4gKyAq
-DQo+ID4gPiArICogQG1ldGFfZGF0YTogcmF3IGJ1ZmZlciAmaXB1M191YXBpX2FmX21ldGFfZGF0
-YSBmb3IgYXV0byBmb2N1cw0KPiBtZXRhIGRhdGEuDQo+ID4gPiArICovDQo+ID4gPiArc3RydWN0
-IGlwdTNfdWFwaV9hZl9yYXdfYnVmZmVyIHsNCj4gPiA+ICsJSVBVM19BTElHTiBzdHJ1Y3QgaXB1
-M191YXBpX2FmX21ldGFfZGF0YSBtZXRhX2RhdGE7DQo+ID4NCj4gPiAuLi4gYW5kIGhlcmUgYXQg
-dGhlIHN0YXJ0LiBJcyB0aGF0IGR1ZSB0byB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuIGFuIGFycmF5
-IGFuZCBhDQo+IHN0cnVjdD8NCj4gDQoNCk5vLg0KVGhpcyB3YXMgZG9uZSB0byB3b3JrIGFyb3Vu
-ZCB0aGUgU3BoaW54IC8ga2VybmVsZG9jIGdlbmVyYXRpb24gYXMgDQpkaXNjdXNzZWQgaW4gdGhl
-IG90aGVyIHRocmVhZC4NCg0KPiBJZiBwbGFjaW5nIGl0IGF0IHRoZSBlbmQgd29ya3MgKEkgZ3Vl
-c3MgaXQgd29ya3MgZm9yIHN0cnVjdHMpLCBJIHdvdWxkDQo+IHByZWZlciBpdCBhbHdheXMgYXQg
-dGhlIGVuZC4NCj4gDQo+IEJ0dywgSU1PLCBJIHdvdWxkLCBpbnN0ZWFkIGJlIGRvaW5nIHNvbWV0
-aGluZyBsaWtlOg0KPiANCj4gCSNkZWZpbmUgSVBVM19BTElHTgkzMg0KPiANCj4gKGUuIGcuIHNv
-bWUgc2hvcnQgbmFtZSAtIElQVTNfVUFQSV9JU1BfV09SRF9CWVRFUyBpcyB0b28gYmlnIHRvIG15
-IHRhc3RlIDotKQ0KPiApDQo+IA0KPiBhbmQgcmVwbGFjZSBhbGwgb2NjdXJyZW5jZXMgb2YgaXQg
-Ynk6DQo+IA0KPiAJSVBVM19BTElHTiAtPiBfX2FsaWduZWQoSVBVM19BTElHTikNCj4gDQo+IFRo
-YXQgd291bGQgbWFrZSBpdCBhIHdheSBlYXNpZXIgdG8gcmVhZCBhbmQgcmV2aWV3Lg0KPiANCg0K
-QWNrLg0KDQpTaW5jZSBTcGhpbnggLyBrZXJuZWwgZG9jIGdlbmVyYXRpb24gaGFzIHdhcm5pbmdz
-IC8gZXJyb3JzLCB3ZSB3aWxsIHN0aWNrIHdpdGgNCnRoZSBmb2xsb3dpbmcgZm9ybWF0Lg0KDQpf
-X2F0dHJpYnV0ZV9fKChhbGlnbmVkKDMyKSkpDQoNCltzbmlwXQ0KDQo+ID4gPiArICogQGNpOglJ
-bnRlbnNpdHkgY29lZmZpY2llbnQgZm9yIHRocmVzaG9sZCBjYWxjdWxhdGlvbi4gdTMuMiwgcmFu
-Z2UNCj4gWzAuLjcuNzVdDQo+IA0KPiBobW0uLi4gNy43NT8/PyBjaSBpcyBhbiBfdTMyIHdpdGgg
-NSBiaXRzLi4uIGl0IGNhbid0IGJlIGEgZmxvYXRpbmcgcG9pbnQgdmFsdWUhDQo+IA0KPiBhbHNv
-LCB3aGF0IGRvIHlvdSBtZWFuIGJ5IHUzLjI/DQo+IA0KDQpCeSB1My4yLCB3ZSBtZWFuIGFuIHVu
-c2lnbmVkIGludGVnZXIgd2l0aCA1IGJpdHMsIHdpdGggMyBtb3N0IHNpZ25pZmljYW50DQpiaXRz
-IHVzZWQgZm9yIHRoZSBkZWNpbWFsIG51bWJlciBhbmQgdGhlIDIgbGVhc3Qgc2lnbmlmaWNhbnQg
-Yml0cyB1c2VkIGZvcg0KdGhlIGZyYWN0aW9uYWwgcGFydC4NCg0KU28sIDcuNzUsIHdpbGwgYmUg
-cmVwcmVzZW50ZWQgYXMgMTExMTFiLCB3aXRoIDExMWIgZ2l2aW5nIDcsIDExYiByZXN1bHRpbmcN
-CmluIDAuNzUgKDMgdGltZXMgMC4yNSksIGFzIGVhY2ggdW5pdCBvZiBmcmFjdGlvbmFsIHBhcnQg
-aGFzIGEgdmFsdWUgb2YgMC4yNS4NCg0KV2lsbCBmaXggdGhlIGRvY3VtZW50YXRpb24gYWNjb3Jk
-aW5nbHkuDQoNCltzbmlwXQ0KDQo+ID4gPiArICogQWxsIGFib3ZlIGhhcyBwcmVjaXNpb24gdTAu
-NCwgcmFuZ2UgWzAuLjB4Rl0uDQo+IA0KPiBhZ2Fpbiwgd2hhdCBkbyB5b3UgbWVhbiBieSB1MC40
-PyANCg0KdW5zaWduZWQgaW50ZWdlciB3aXRoIDAgYml0cyB1c2VkIGZvciByZXByZXNlbnRpbmcg
-d2hvbGUgbnVtYmVyLA0Kd2l0aCA0IGxlYXN0IHNpZ25pZmljYW50IGJpdHMgdXNlZCB0byByZXBy
-ZXNlbnQgdGhlIGZyYWN0aW9uYWwgcGFydC4NCg0KPiBGb3IgaGV4YWRlY2ltYWwgdmFsdWVzICho
-ZXJlIGFuZA0KPiBldmVyeXdoZXJlKQ0KPiBwbGVhc2UgcHJlZmVyIGxvd2VjYXNlLg0KPiANCg0K
-QWNrDQoNCltzbmlwXQ0KDQo+IA0KPiBGb3IgY29oZXJlbmN5IGFsb25nIHRoZSBoZWFkZXIsIHBs
-ZWFzZSByZXByZXNlbnQgcmFuZ2VzDQo+IHRoZSBzYW1lIHdheS4gT24gb3RoZXIgcGxhY2VzLCB5
-b3UgdXNlZCBbbWluLi5tYXhdLg0KPiANCg0KQWNrDQpUaGlzIHdpbGwgYmUgcmVwcmVzZW50ZWQg
-YXMgW21pbiwgbWF4XSB1bmlmb3JtbHkuDQoNCltzbmlwXQ0KDQo+ID4gPiArICogQGx1dDoJMjU2
-IHRhYnVsYXRlZCB2YWx1ZXMgb2YgdGhlIGdhbW1hIGZ1bmN0aW9uLiBMVVRbMV0uLiBMVVRbMjU2
-XQ0KPiA+ID4gKyAqCQlmb3JtYXQgdTEzLjAsIHJhbmdlICgwLCA4MTkxKS4NCj4gDQo+IFNhbWUg
-bm90ZSBhYm91dCByYW5nZXMgaGVyZS4uLiBVc2UganVzdCBvbmUgdHlwZSBvZiBjb252ZW50aW9u
-Li4uDQo+IA0KDQpBY2sNCg0KW3NuaXBdDQoNCj4gPiA+ICsgKiBAY29lZmZfYjM6CUJpYXMgM3gx
-IGNvZWZmaWNpZW50cywgczEzLDAgcmFuZ2UgWy04MTkxLCA4MTgxXSwgZGVmYXVsdA0KPiAwLg0K
-PiANCj4gYW5kIGhlcmUuDQo+IA0KDQpBY2sNCg0KW3NuaXBdDQoNCj4gPiA+ICsgKiBAZHNfYzEy
-OglyYW5nZSAwLCAzDQo+ID4gPiArICogQGRzX2MxMzoJcmFuZ2UgMCwgMw0KPiANCj4gYW5kIGhl
-cmUgYW5kIHNpbWlsYXIgcGxhY2VzIGJlbG93Lg0KPiANCg0KQWNrDQoNCltzbmlwXQ0KDQo+ID4g
-PiArc3RydWN0IGlwdTNfdWFwaV9hbnJfc3RpdGNoX2NvbmZpZyB7DQo+ID4gPiArCV9fdTMyIGFu
-cl9zdGl0Y2hfZW47DQo+ID4gPiArCV9fdTggX19yZXNlcnZlZFs0NF07DQo+IA0KPiBCZXR0ZXIg
-dG8gdXNlIF9fYWxpZ25lZCgpIGhlcmUgYW5kIG9uIG90aGVyIHNpbWlsYXIgcGxhY2VzIHdoZXJl
-IHlvdQ0KPiBhZGRlZCBfX3Jlc2VydmVkIGZpZWxkcy4NCj4gDQoNCl9fcmVzZXJ2ZWQgZmllbGRz
-IGFyZSB1c2VkIGluIHBsYWNlcywgZm9yIGZ1dHVyZSBuZWVkcy4NCg0KX19hbGlnbmVkIGlzIHVz
-ZWQgZm9yIGNhc2VzIHdoZXJlIDMyIGJ5dGUgYWxpZ25tZW50IGlzIHJlcXVpcmVkIGJ5IElQVTMg
-aHcuDQogDQpbc25pcF0NCg0KPiA+ID4gKwlJUFUzX0FMSUdOIHN0cnVjdCBpcHUzX3VhcGlfeXV2
-cDFfeWRzX2NvbmZpZyB5ZHM7DQo+ID4gPiArCUlQVTNfQUxJR04gc3RydWN0IGlwdTNfdWFwaV95
-dXZwMV9jaG5yX2NvbmZpZyBjaG5yOw0KPiA+ID4gKwlJUFUzX0FMSUdOIF9fdTggX19yZXNlcnZl
-ZDFbNTE2XTsNCj4gDQo+IFdvdyEgbG90cyBvZiBlbXB0eSBzcGFjZSBoZXJlISBJIHdvdWxkLCBp
-bnN0ZWFkLCBkbyBzb21ldGhpbmcgbGlrZToNCj4gDQo+IHN0cnVjdCBpcHUzX3VhcGlfeXV2cDFf
-Y2hucl9jb25maWcgY2huciBfX2FsaWduZWQoSVBVM19BTElHTiAqIDUxNyk7DQo+IA0KDQpUaGVz
-ZSBfX3Jlc2VydmVkWCBmaWVsZHMgd2VyZSBsZWZ0IGFzIHN1Y2ggdG8gaGF2ZSBiYWNrd2FyZCBj
-b21wYXRpYmlsaXR5DQp3aXRoIHVzZXIgc3BhY2UgY29kZSAoYXQgdGhlIHRpbWUgb2YgdGhpcyBw
-YXRjaCBzdWJtaXNzaW9uKS4NCldpbGwgY2xlYW4gdGhpcyB1cCBpbiB0aGUgbmV4dCBwYXRjaCBz
-ZXQuDQoNCj4gPiA+ICsJSVBVM19BTElHTiBzdHJ1Y3QgaXB1M191YXBpX3l1dnAxX3lkc19jb25m
-aWcgeWRzMjsNCj4gPiA+ICsJSVBVM19BTElHTiBzdHJ1Y3QgaXB1M191YXBpX3l1dnAyX3RjY19z
-dGF0aWNfY29uZmlnIHRjYzsNCj4gPiA+ICsJX191OCBfX3Jlc2VydmVkMlsxMTUyXTsNCj4gDQo+
-IGFuZCBzb21ldGhpbmcgc2ltaWxhciBoZXJlLg0KPiANCg0KRGl0dG8NCg0KW3NuaXBdDQoNCj4g
-PiA+DQo+ID4NCj4gPiBTbyB0aGUgbGV2ZWwgb2YgZG9jdW1lbnRhdGlvbiBsb29rcyBnb29kIHRv
-IG1lLg0KPiANCj4gU2FtZSBmb3IgbWUuIFNlZSBhYm92ZSBmb3IgbXkgY29tbWVudHMuDQo+IA0K
-DQpHb29kIHRvIGtub3cuDQoNCj4gPiBUaGUgdXNlIG9mIElQVTNfQUxJR04sIHBhZGRpbmcgYW5k
-IHJlc2VydmVkIGZpZWxkcw0KPiA+IHNlZW1zIGEgYml0IG9mIGEgbWl4IHRvIG1lLCBpdCdzIG5v
-dCBhbHdheXMgY2xlYXIgd2h5IGEgY2VydGFpbiBhcHByb2FjaCBpcw0KPiB0YWtlbi4NCj4gPg0K
-PiA+IERpZCB5b3UgY2hlY2sgaWYgdGhlIGxheW91dCBvZiBhbGwgdGhlc2Ugc3RydWN0cyBpcyB0
-aGUgc2FtZSBiZXR3ZWVuIDMyIGFuZCA2NA0KPiBiaXQgY29kZT8NCj4gPiBJIHdvdWxkIHJlY29t
-bWVuZCB0aGF0IHlvdSBhdXRvbWF0ZSB0aGlzIChlLmcuIGFiaS1kdW1wZXIgbWlnaHQgYmUgdXNl
-ZnVsDQo+IGZvciB0aGlzKS4NCj4gPiBJIGRvIG5lZWQgdG8gaGF2ZSBjb25maXJtYXRpb24gdGhh
-dCB0aGV5IGFyZSBpbmRlZWQgaWRlbnRpY2FsLg0KPiANCj4gWWVhaCwgYWRkaW5nIGEgMzIgYml0
-cyBjb21wYXQgY29kZSBoZXJlIHdvdWxkIGJlIHJlYWxseSBwYWluZnVsLiBMZXQncw0KPiBhdm9p
-ZCBpdCBpZiBwb3NzaWJsZS4NCj4gDQoNClRoaXMgaXMgdGFrZW4gY2FyZSBhcyB3ZSBoYXZlIHZl
-cmlmaWVkIHRoZSBzaXplIGFuZCBsYXlvdXQgb2YgdGhlIHN0cnVjdHMNCnJlbWFpbiB0aGUgc2Ft
-ZSBhY3Jvc3MgMzIgYml0IGFuZCA2NCBiaXQgYnVpbGRzLg0KDQpUaGFua3MNClJhag0K
+Hi Hans,
+
+
+On 10/01/2018 03:07 AM, Hans Verkuil wrote:
+> Hi Steve,
+>
+> On 08/01/2018 09:12 PM, Steve Longerbeam wrote:
+>> A set of patches that fixes some bugs with capturing from an
+>> interlaced source, and incompatibilites between IDMAC interlace
+>> interweaving and 4:2:0 data write reduction.
+> I reviewed this series and it looks fine to me.
+
+Cool.
+
+>
+> It appears that the ipu* patches are already merged, so can you rebase and
+> repost?
+
+Done. There are still two ipu* patches that still need a merge:
+
+gpu: ipu-csi: Swap fields according to input/output field types
+gpu: ipu-v3: Add planar support to interlaced scan
+
+so those will still be included in the v4 submission.
+
+>
+> I would also like to see the 'v4l2-compliance -f' for an interlaced source,
+> if at all possible.
+
+Sure, I've run 'v4l2-compliance -f' on two configured pipelines: unprocessed
+capture (no scaling, CSC, rotation using ipu), and a VDIC de-interlace 
+pipeline.
+
+I have the text output, the output is huge but here is the abbreviated 
+results:
+
+Unprocessed pipeline:
+
+root@mx6q:/home/fu# v4l2-compliance -d4 -f
+v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
+<snip>
+test VIDIOC_G/S/ENUMINPUT: FAIL
+<snip>
+test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+<snip>
+
+Total: 715, Succeeded: 713, Failed: 2, Warnings: 0
+
+
+VDIC de-interlace pipeline:
+
+root@mx6q:/home/fu# v4l2-compliance -d1 -f
+v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
+<snip>
+test VIDIOC_G/S/ENUMINPUT: FAIL
+<snip>
+test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+<snip>
+test VIDIOC_G/S_PARM: FAIL
+<snip>
+
+Total: 50, Succeeded: 47, Failed: 3, Warnings: 1
+
+I will send you the full output privately.
+
+
+>
+> For that matter, were you able to test all the field formats?
+
+Yes. I've tested on imx6q SabreAuto with the ADV7180 alternate source,
+all of the following are tested and produce good video:
+
+ntsc alternate -> interlaced-tb
+ntsc alternate -> interlaced-bt
+ntsc alternate -> none (VDIC pipeline)
+ntsc alternate -> none (VDIC pipeline)
+
+pal alternate -> interlaced-tb
+pal alternate -> interlaced-bt
+pal alternate -> none (VDIC pipeline)
+pal alternate -> none (VDIC pipeline)
+
+Steve
+
+
+>
+>> History:
+>> v3:
+>> - add support for/fix interweaved scan with YUV planar output.
+>> - fix bug in 4:2:0 U/V offset macros.
+>> - add patch that generalizes behavior of field swap in
+>>    ipu_csi_init_interface().
+>> - add support for interweaved scan with field order swap.
+>>    Suggested by Philipp Zabel.
+>> - in v2, inteweave scan was determined using field types of
+>>    CSI (and PRPENCVF) at the sink and source pads. In v3, this
+>>    has been moved one hop downstream: interweave is now determined
+>>    using field type at source pad, and field type selected at
+>>    capture interface. Suggested by Philipp.
+>> - make sure to double CSI crop target height when input field
+>>    type in alternate.
+>> - more updates to media driver doc to reflect above.
+>>
+>> v2:
+>> - update media driver doc.
+>> - enable idmac interweave only if input field is sequential/alternate,
+>>    and output field is 'interlaced*'.
+>> - move field try logic out of *try_fmt and into separate function.
+>> - fix bug with resetting crop/compose rectangles.
+>> - add a patch that fixes a field order bug in VDIC indirect mode.
+>> - remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
+>>    Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
+>> - add macro V4L2_FIELD_IS_INTERLACED().
+>>
+>>
+>> Philipp Zabel (1):
+>>    gpu: ipu-v3: Allow negative offsets for interlaced scanning
+>>
+>> Steve Longerbeam (13):
+>>    media: videodev2.h: Add more field helper macros
+>>    gpu: ipu-csi: Check for field type alternate
+>>    gpu: ipu-csi: Swap fields according to input/output field types
+>>    gpu: ipu-v3: Fix U/V offset macros for planar 4:2:0
+>>    gpu: ipu-v3: Add planar support to interlaced scan
+>>    media: imx: Fix field negotiation
+>>    media: imx-csi: Double crop height for alternate fields at sink
+>>    media: imx: interweave and odd-chroma-row skip are incompatible
+>>    media: imx-csi: Allow skipping odd chroma rows for YVU420
+>>    media: imx: vdic: rely on VDIC for correct field order
+>>    media: imx-csi: Move crop/compose reset after filling default mbus
+>>      fields
+>>    media: imx: Allow interweave with top/bottom lines swapped
+>>    media: imx.rst: Update doc to reflect fixes to interlaced capture
+>>
+>>   Documentation/media/v4l-drivers/imx.rst       |  93 ++++++++++-----
+>>   drivers/gpu/ipu-v3/ipu-cpmem.c                |  45 ++++++-
+>>   drivers/gpu/ipu-v3/ipu-csi.c                  | 136 ++++++++++++++-------
+>>   drivers/staging/media/imx/imx-ic-prpencvf.c   |  48 ++++++--
+>>   drivers/staging/media/imx/imx-media-capture.c |  14 +++
+>>   drivers/staging/media/imx/imx-media-csi.c     | 166 ++++++++++++++++++--------
+>>   drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
+>>   include/uapi/linux/videodev2.h                |   7 ++
+>>   include/video/imx-ipu-v3.h                    |   6 +-
+>>   9 files changed, 377 insertions(+), 150 deletions(-)
+>>
