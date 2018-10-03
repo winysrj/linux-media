@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60958 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727347AbeJCP5T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Oct 2018 11:57:19 -0400
+        id S1727347AbeJCP5L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Oct 2018 11:57:11 -0400
 From: Matthias Brugger <matthias.bgg@gmail.com>
 To: robh+dt@kernel.org, mark.rutland@arm.com, joro@8bytes.org,
         arnd@arndb.de
@@ -14,9 +14,9 @@ Cc: rick.chang@mediatek.com, bin.liu@mediatek.com, mchehab@kernel.org,
         linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org,
         linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         linux-mediatek@lists.infradead.org
-Subject: [PATCH 4/4] dt-bindings: mediatek: Add bindig for MT7623 IOMMU and SMI
-Date: Wed,  3 Oct 2018 11:09:12 +0200
-Message-Id: <20181003090912.30501-5-matthias.bgg@gmail.com>
+Subject: [PATCH 2/4] dt-bindings: iommu: mediatek: Add binding for MT7623
+Date: Wed,  3 Oct 2018 11:09:10 +0200
+Message-Id: <20181003090912.30501-3-matthias.bgg@gmail.com>
 In-Reply-To: <20181003090912.30501-1-matthias.bgg@gmail.com>
 References: <20181003090912.30501-1-matthias.bgg@gmail.com>
 MIME-Version: 1.0
@@ -24,47 +24,34 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add the binding documentation for the iommu and smi
-devices on the MT7623 SoC.
+This patch adds binding documentation for MT7623 SoC.
 
 Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
 ---
- .../bindings/memory-controllers/mediatek,smi-common.txt        | 1 +
- .../bindings/memory-controllers/mediatek,smi-larb.txt          | 3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/iommu/mediatek,iommu.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-common.txt b/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-common.txt
-index 615abdd0eb0d..e937ddd871a6 100644
---- a/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-common.txt
-+++ b/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-common.txt
-@@ -17,6 +17,7 @@ Required properties:
- - compatible : must be one of :
- 	"mediatek,mt2701-smi-common"
- 	"mediatek,mt2712-smi-common"
-+	"mediatek,mt7623-smi-common", "mediatek,mt2701-smi-common"
- 	"mediatek,mt8173-smi-common"
- - reg : the register and size of the SMI block.
- - power-domains : a phandle to the power domain of this local arbiter.
-diff --git a/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt b/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-index 083155cdc2a0..94eddcae77ab 100644
---- a/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-+++ b/Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-@@ -6,6 +6,7 @@ Required properties:
- - compatible : must be one of :
- 		"mediatek,mt2701-smi-larb"
- 		"mediatek,mt2712-smi-larb"
-+		"mediatek,mt7623-smi-larb", "mediatek,mt2701-smi-larb"
- 		"mediatek,mt8173-smi-larb"
- - reg : the register and size of this local arbiter.
- - mediatek,smi : a phandle to the smi_common node.
-@@ -16,7 +17,7 @@ Required properties:
- 	    the register.
-   - "smi" : It's the clock for transfer data and command.
+diff --git a/Documentation/devicetree/bindings/iommu/mediatek,iommu.txt b/Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
+index df5db732138d..6922db598def 100644
+--- a/Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
++++ b/Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
+@@ -41,6 +41,8 @@ Required properties:
+ - compatible : must be one of the following string:
+ 	"mediatek,mt2701-m4u" for mt2701 which uses generation one m4u HW.
+ 	"mediatek,mt2712-m4u" for mt2712 which uses generation two m4u HW.
++	"mediatek,mt7623-m4u", "mediatek,mt2701-m4u" for mt7623 which uses
++						     generation one m4u HW.
+ 	"mediatek,mt8173-m4u" for mt8173 which uses generation two m4u HW.
+ - reg : m4u register base and size.
+ - interrupts : the interrupt of m4u.
+@@ -51,7 +53,7 @@ Required properties:
+ 	according to the local arbiter index, like larb0, larb1, larb2...
+ - iommu-cells : must be 1. This is the mtk_m4u_id according to the HW.
+ 	Specifies the mtk_m4u_id as defined in
+-	dt-binding/memory/mt2701-larb-port.h for mt2701,
++	dt-binding/memory/mt2701-larb-port.h for mt2701, mt7623
+ 	dt-binding/memory/mt2712-larb-port.h for mt2712, and
+ 	dt-binding/memory/mt8173-larb-port.h for mt8173.
  
--Required property for mt2701 and mt2712:
-+Required property for mt2701, mt2712 and mt7623:
- - mediatek,larb-id :the hardware id of this larb.
- 
- Example:
 -- 
 2.19.0
