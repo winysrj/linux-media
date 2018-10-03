@@ -1,179 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60686 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727347AbeJCP5H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Oct 2018 11:57:07 -0400
-From: Matthias Brugger <matthias.bgg@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, joro@8bytes.org,
-        arnd@arndb.de
-Cc: rick.chang@mediatek.com, bin.liu@mediatek.com, mchehab@kernel.org,
-        matthias.bgg@gmail.com, sboyd@codeaurora.org,
-        sean.wang@mediatek.com, chen.zhong@mediatek.com,
-        weiyi.lu@mediatek.com, ryder.lee@mediatek.com,
-        yong.wu@mediatek.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org
-Subject: [PATCH 1/4] dt-bindings: clock: mediatek: add support for MT7623
-Date: Wed,  3 Oct 2018 11:09:09 +0200
-Message-Id: <20181003090912.30501-2-matthias.bgg@gmail.com>
-In-Reply-To: <20181003090912.30501-1-matthias.bgg@gmail.com>
-References: <20181003090912.30501-1-matthias.bgg@gmail.com>
+Received: from mail-yw1-f67.google.com ([209.85.161.67]:34806 "EHLO
+        mail-yw1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727188AbeJCQDp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2018 12:03:45 -0400
+Received: by mail-yw1-f67.google.com with SMTP id m129-v6so1996414ywc.1
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2018 02:16:13 -0700 (PDT)
+Received: from mail-yw1-f41.google.com (mail-yw1-f41.google.com. [209.85.161.41])
+        by smtp.gmail.com with ESMTPSA id q126-v6sm290145ywf.7.2018.10.03.02.16.11
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 03 Oct 2018 02:16:11 -0700 (PDT)
+Received: by mail-yw1-f41.google.com with SMTP id l79-v6so1982330ywc.7
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2018 02:16:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20180925101434.20327-1-sakari.ailus@linux.intel.com>
+ <20180925114802.ywbboqlfxe56qeei@laureti-dev> <20180925123031.b6ay5piaqymi7kht@paasikivi.fi.intel.com>
+In-Reply-To: <20180925123031.b6ay5piaqymi7kht@paasikivi.fi.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 3 Oct 2018 18:15:58 +0900
+Message-ID: <CAAFQd5AYaXfRCfOduZhDRoMLFSOGMSdjWZBtW0hUhBJcA-GYcA@mail.gmail.com>
+Subject: Re: [PATCH 0/5] Add units to controls
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: helmut.grohne@intenta.de,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Cao Bing Bu <bingbu.cao@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        Grant Grundler <grundler@chromium.org>,
+        ping-chung.chen@intel.com, "Yeh, Andy" <andy.yeh@intel.com>,
+        "Lai, Jim" <jim.lai@intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        snawrocki@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds bindings for apmixedsys, audsys, bpsys, ethsys,
-hifsys, imgsys, infracfg, mmsys, pericfg, topckgen and vdecsys
-for MT6723.
+On Tue, Sep 25, 2018 at 9:30 PM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+[snip]
+> On Tue, Sep 25, 2018 at 01:48:02PM +0200, Helmut Grohne wrote:
+> > On Tue, Sep 25, 2018 at 12:14:29PM +0200, Sakari Ailus wrote:
+[snip]
+> > > Regarding Ricardo's suggestion --- I was thinking of adding a control flag
+> > > (yes, there are a few bits available) to tell how to round the value. The
+> > > user could use the TRY_EXT_CTRLS IOCTL to figure out the next (or
+> > > previous) control value by incrementing the current value and setting the
+> > > appropriate flag. This is out of the scope of this set though.
+> >
+> > This approach sounds really useful to me. Having control over the
+> > rounding would allow reading supported control values with reasonable
+> > effort. With such an approach, a very sparsely populated control becomes
+> > feasible and with integer64 controls that'd likely allow representing
+> > most exponential controls with linear values. If going this route, I
+> > don't see an application of V4L2_CTRL_FLAG_EXPONENTIAL.
+>
+> Yes, I think the flag can be dropped as I suggested.
 
-Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
----
- .../devicetree/bindings/arm/mediatek/mediatek,apmixedsys.txt     | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,audsys.txt         | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,bdpsys.txt         | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,ethsys.txt         | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,hifsys.txt         | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,imgsys.txt         | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,infracfg.txt       | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,mmsys.txt          | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,pericfg.txt        | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,topckgen.txt       | 1 +
- .../devicetree/bindings/arm/mediatek/mediatek,vdecsys.txt        | 1 +
- 11 files changed, 11 insertions(+)
+Wouldn't that be just a duplicate of menu controls? Integer controls
+are supposed to be described by min, max and step and any value
+matching those should be valid.
 
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,apmixedsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,apmixedsys.txt
-index b404d592ce58..4e4a3c0ab9ab 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,apmixedsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,apmixedsys.txt
-@@ -10,6 +10,7 @@ Required Properties:
- 	- "mediatek,mt2712-apmixedsys", "syscon"
- 	- "mediatek,mt6797-apmixedsys"
- 	- "mediatek,mt7622-apmixedsys"
-+	- "mediatek,mt7623-apmixedsys", "mediatek,mt2701-apmixedsys"
- 	- "mediatek,mt8135-apmixedsys"
- 	- "mediatek,mt8173-apmixedsys"
- - #clock-cells: Must be 1
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,audsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,audsys.txt
-index 34a69ba67f13..d1606b2c3e63 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,audsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,audsys.txt
-@@ -8,6 +8,7 @@ Required Properties:
- - compatible: Should be one of:
- 	- "mediatek,mt2701-audsys", "syscon"
- 	- "mediatek,mt7622-audsys", "syscon"
-+	- "mediatek,mt7623-audsys", "mediatek,mt2701-audsys", "syscon"
- - #clock-cells: Must be 1
- 
- The AUDSYS controller uses the common clk binding from
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,bdpsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,bdpsys.txt
-index 4010e37c53a0..149567a38215 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,bdpsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,bdpsys.txt
-@@ -8,6 +8,7 @@ Required Properties:
- - compatible: Should be:
- 	- "mediatek,mt2701-bdpsys", "syscon"
- 	- "mediatek,mt2712-bdpsys", "syscon"
-+	- "mediatek,mt7623-bdpsys", "mediatek,mt2701-bdpsys", "syscon"
- - #clock-cells: Must be 1
- 
- The bdpsys controller uses the common clk binding from
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,ethsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,ethsys.txt
-index 8f5335b480ac..f17cfe64255d 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,ethsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,ethsys.txt
-@@ -8,6 +8,7 @@ Required Properties:
- - compatible: Should be:
- 	- "mediatek,mt2701-ethsys", "syscon"
- 	- "mediatek,mt7622-ethsys", "syscon"
-+	- "mediatek,mt7623-ethsys", "mediatek,mt2701-ethsys", "syscon"
- - #clock-cells: Must be 1
- - #reset-cells: Must be 1
- 
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,hifsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,hifsys.txt
-index f5629d64cef2..323905af82c3 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,hifsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,hifsys.txt
-@@ -9,6 +9,7 @@ Required Properties:
- - compatible: Should be:
- 	- "mediatek,mt2701-hifsys", "syscon"
- 	- "mediatek,mt7622-hifsys", "syscon"
-+	- "mediatek,mt7623-hifsys", "mediatek,mt2701-hifsys", "syscon"
- - #clock-cells: Must be 1
- 
- The hifsys controller uses the common clk binding from
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,imgsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,imgsys.txt
-index 868bd51a98be..3f99672163e3 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,imgsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,imgsys.txt
-@@ -9,6 +9,7 @@ Required Properties:
- 	- "mediatek,mt2701-imgsys", "syscon"
- 	- "mediatek,mt2712-imgsys", "syscon"
- 	- "mediatek,mt6797-imgsys", "syscon"
-+	- "mediatek,mt7623-imgsys", "mediatek,mt2701-imgsys", "syscon"
- 	- "mediatek,mt8173-imgsys", "syscon"
- - #clock-cells: Must be 1
- 
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,infracfg.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,infracfg.txt
-index 566f153f9f83..89f4272a1441 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,infracfg.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,infracfg.txt
-@@ -11,6 +11,7 @@ Required Properties:
- 	- "mediatek,mt2712-infracfg", "syscon"
- 	- "mediatek,mt6797-infracfg", "syscon"
- 	- "mediatek,mt7622-infracfg", "syscon"
-+	- "mediatek,mt7623-infracfg", "mediatek,mt2701-infracfg", "syscon"
- 	- "mediatek,mt8135-infracfg", "syscon"
- 	- "mediatek,mt8173-infracfg", "syscon"
- - #clock-cells: Must be 1
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,mmsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,mmsys.txt
-index 4eb8bbe15c01..15d977afad31 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,mmsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,mmsys.txt
-@@ -9,6 +9,7 @@ Required Properties:
- 	- "mediatek,mt2701-mmsys", "syscon"
- 	- "mediatek,mt2712-mmsys", "syscon"
- 	- "mediatek,mt6797-mmsys", "syscon"
-+	- "mediatek,mt7623-mmsys", "mediatek,mt2701-mmsys", "syscon"
- 	- "mediatek,mt8173-mmsys", "syscon"
- - #clock-cells: Must be 1
- 
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,pericfg.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,pericfg.txt
-index fb58ca8c2770..6755514deb80 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,pericfg.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,pericfg.txt
-@@ -10,6 +10,7 @@ Required Properties:
- 	- "mediatek,mt2701-pericfg", "syscon"
- 	- "mediatek,mt2712-pericfg", "syscon"
- 	- "mediatek,mt7622-pericfg", "syscon"
-+	- "mediatek,mt7623-pericfg", "mediatek,mt2701-pericfg", "syscon"
- 	- "mediatek,mt8135-pericfg", "syscon"
- 	- "mediatek,mt8173-pericfg", "syscon"
- - #clock-cells: Must be 1
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,topckgen.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,topckgen.txt
-index 24014a7e2332..d849465b8c99 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,topckgen.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,topckgen.txt
-@@ -10,6 +10,7 @@ Required Properties:
- 	- "mediatek,mt2712-topckgen", "syscon"
- 	- "mediatek,mt6797-topckgen"
- 	- "mediatek,mt7622-topckgen"
-+	- "mediatek,mt7623-topckgen", "mediatek,mt2701-topckgen"
- 	- "mediatek,mt8135-topckgen"
- 	- "mediatek,mt8173-topckgen"
- - #clock-cells: Must be 1
-diff --git a/Documentation/devicetree/bindings/arm/mediatek/mediatek,vdecsys.txt b/Documentation/devicetree/bindings/arm/mediatek/mediatek,vdecsys.txt
-index ea40d05089f8..3212afc753c8 100644
---- a/Documentation/devicetree/bindings/arm/mediatek/mediatek,vdecsys.txt
-+++ b/Documentation/devicetree/bindings/arm/mediatek/mediatek,vdecsys.txt
-@@ -9,6 +9,7 @@ Required Properties:
- 	- "mediatek,mt2701-vdecsys", "syscon"
- 	- "mediatek,mt2712-vdecsys", "syscon"
- 	- "mediatek,mt6797-vdecsys", "syscon"
-+	- "mediatek,mt7623-vdecsys", "mediatek,mt2701-vdecsys", "syscon"
- 	- "mediatek,mt8173-vdecsys", "syscon"
- - #clock-cells: Must be 1
- 
--- 
-2.19.0
+Rather than introducing such tricky semantics, perhaps it would make
+more sense to allow controls to be of different type, depending on the
+driver? A driver that supports a contiguous range, would report the
+control as INTEGER, while one that doesn't, would report it as
+INTEGER_MENU.
+
+Putting that aside, V4L2_CTRL_FLAG_EXPONENTIAL would actually make it
+easier to enumerate the supported values to the userspace. Just one
+QUERYCTRL would be needed, instead of 1 ioctl for each possible value.
+(Although for the exponential case I wouldn't expect too many values
+indeed...)
+
+>
+> >
+> > Thus, I think that control over the rounding is tightly related to this
+> > patchset and needs to be discussed together.
+>
+> It addresses some of the same problem area but the implementation is
+> orthogonal to this.
+>
+> Providing that would probably make the base field less useful: the valid
+> control values could be enumerated by the user using TRY_EXT_CTRLS without
+> the need to tell the valid values are powers of e.g. two.
+>
+> I don't really have a strong opinion on that actually when it comes to the
+> API itself. The imx208 driver could proceed to use linear relation between
+> the control value and the digital gain. My worry is just the driver
+> implementation: this may not be entirely trivial. There's still no way to
+> address this problem in a generic way otherwise.
+
+What's not trivial for the imx208 driver? It just registers an integer
+control with a range from 0 to 4 and takes (1 << ctrl->val) as the
+value for the hardware.
+
+Best regards,
+Tomasz
