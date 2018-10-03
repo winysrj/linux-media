@@ -1,95 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:33261 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726619AbeJCTPN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Oct 2018 15:15:13 -0400
-Subject: Re: [PATCH v2 0/2] [media] Depth confidence pixel-format for Intel
- RealSense cameras
-To: "Raikhel, Evgeni" <evgeni.raikhel@intel.com>,
-        "dorodnic@gmail.com" <dorodnic@gmail.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "Dorodnicov, Sergey" <sergey.dorodnicov@intel.com>
-References: <1536734527-3770-1-git-send-email-sergey.dorodnicov@intel.com>
- <f752d94f-d1fc-5276-aa58-ef7cdff6b21b@xs4all.nl>
- <AA09C8071EEEFC44A7852ADCECA86673726CDB16@hasmsx107.ger.corp.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <348ff3bc-7fce-57ab-05a2-3d7bfd232e6e@xs4all.nl>
-Date: Wed, 3 Oct 2018 14:26:55 +0200
+Received: from mail-wm1-f68.google.com ([209.85.128.68]:53931 "EHLO
+        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726691AbeJCTYy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2018 15:24:54 -0400
+Received: by mail-wm1-f68.google.com with SMTP id b19-v6so5556155wme.3
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2018 05:36:40 -0700 (PDT)
+Subject: Re: [PATCH] venus: vdec: fix decoded data size
+To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org
+References: <1538566221-21369-1-git-send-email-vgarodia@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <ccce4e75-e800-1d10-2350-463d4a72d481@linaro.org>
+Date: Wed, 3 Oct 2018 15:36:37 +0300
 MIME-Version: 1.0
-In-Reply-To: <AA09C8071EEEFC44A7852ADCECA86673726CDB16@hasmsx107.ger.corp.intel.com>
+In-Reply-To: <1538566221-21369-1-git-send-email-vgarodia@codeaurora.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/18 14:08, Raikhel, Evgeni wrote:
-> Hans hello,
-> 
-> Can you update this patch series status ?
-> Thanks in advance,
-> 
-> With regards,
-> Evgeni
-> 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-> Sent: Wednesday, September 12, 2018 09:40
-> To: dorodnic@gmail.com; linux-media@vger.kernel.org
-> Cc: laurent.pinchart@ideasonboard.com; Raikhel, Evgeni <evgeni.raikhel@intel.com>; Dorodnicov, Sergey <sergey.dorodnicov@intel.com>
-> Subject: Re: [PATCH v2 0/2] [media] Depth confidence pixel-format for Intel RealSense cameras
-> 
-> On 09/12/2018 08:42 AM, dorodnic@gmail.com wrote:
->> From: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
->>
->> Define new fourcc describing depth sensor confidence data used in Intel RealSense cameras.
->> Confidence information is stored as packed 4 bits per pixel single-plane image.
->> The patches were tested on 4.18-rc2 and merged with media_tree/master.
->> Addressing code-review comments by Hans Verkuil <hverkuil@xs4all.nl> 
->> and Laurent Pinchart <laurent.pinchart@ideasonboard.com>.
->>
->> Sergey Dorodnicov (2):
->>   CNF4 fourcc for 4 bit-per-pixel packed depth confidence information
->>   CNF4 pixel format for media subsystem
->>
->>  Documentation/media/uapi/v4l/depth-formats.rst |  1 +
->>  Documentation/media/uapi/v4l/pixfmt-cnf4.rst   | 31 ++++++++++++++++++++++++++
->>  drivers/media/usb/uvc/uvc_driver.c             |  5 +++++
->>  drivers/media/usb/uvc/uvcvideo.h               |  3 +++
->>  drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
->>  include/uapi/linux/videodev2.h                 |  1 +
->>  6 files changed, 42 insertions(+)
->>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-cnf4.rst
->>
-> 
-> Laurent, this looks good to me. Do you want to take this series or shall I?
-> 
-> If you take it, then you can add my:
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> to these patches. If you want me to take it, then I'll need your Ack of course.
+Hi Vikash,
 
-Still waiting for a reply from Laurent. But thanks for reminding us,
-I've pinged Laurent and he will hopefully come back with an Ack or review
-by the end of the week.
+On 10/03/2018 02:30 PM, Vikash Garodia wrote:
+> Exisiting code returns the max of the decoded size and buffer size.
+> It turns out that buffer size is always greater due to hardware
+> alignment requirement. As a result, payload size given to client
+> is incorrect. This change ensures that the bytesused is assigned
+> to actual payload size, when available.
+> 
+> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/vdec.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> index 991e158..189ec97 100644
+> --- a/drivers/media/platform/qcom/venus/vdec.c
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -888,8 +888,7 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
+>  		unsigned int opb_sz = venus_helper_get_opb_size(inst);
+>  
+>  		vb = &vbuf->vb2_buf;
+> -		vb->planes[0].bytesused =
+> -			max_t(unsigned int, opb_sz, bytesused);
+> +		vb2_set_plane_payload(vb, 0, bytesused ? : opb_sz);
+>  		vb->planes[0].data_offset = data_offset;
+>  		vb->timestamp = timestamp_us * NSEC_PER_USEC;
+>  		vbuf->sequence = inst->sequence_cap++;
+> 
 
-Regards,
+Acked-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> ---------------------------------------------------------------------
-> Intel Israel (74) Limited
-> 
-> This e-mail and any attachments may contain confidential material for
-> the sole use of the intended recipient(s). Any review or distribution
-> by others is strictly prohibited. If you are not the intended
-> recipient, please contact the sender and delete all copies.
-> 
+-- 
+regards,
+Stan
