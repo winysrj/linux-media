@@ -1,260 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33026 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726511AbeJHSTw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Oct 2018 14:19:52 -0400
-Subject: Re: [PATCH v5] media: docs: add glossary.rst with common terms used
- at V4L2 spec
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <44e7493e10f34cacbe7ca27012cd68b1f9446284.1538665378.git.mchehab+samsung@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3484cee2-76b2-e8ae-e017-769e647f017c@xs4all.nl>
-Date: Mon, 8 Oct 2018 13:08:31 +0200
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:42944 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726619AbeJCNK6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2018 09:10:58 -0400
 MIME-Version: 1.0
-In-Reply-To: <44e7493e10f34cacbe7ca27012cd68b1f9446284.1538665378.git.mchehab+samsung@kernel.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+References: <20181002140515.16299-1-ricardo.ribalda@gmail.com> <4555006.y1GbRfQLCO@avalon>
+In-Reply-To: <4555006.y1GbRfQLCO@avalon>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 3 Oct 2018 08:23:43 +0200
+Message-ID: <CAPybu_02_hMAVWO2r1-t+S60HPaqEtnQzgF-Moxg7Zx+-PGj6A@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] [media] imx214: device tree binding
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>, jacopo@jmondi.org,
+        phdm@macq.eu, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/04/2018 05:03 PM, Mauro Carvalho Chehab wrote:
-> From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> 
-> Add a glossary of terms used within the media userspace API
-> documentation, as several concepts are complex enough to cause
-> misunderstandings.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Hi Laurent
+On Tue, Oct 2, 2018 at 10:06 PM Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
+> Hi Ricardo,
+>
+> Thank you for the patch.
+>
+> On Tuesday, 2 October 2018 17:05:15 EEST Ricardo Ribalda Delgado wrote:
+> > Document bindings for imx214 camera sensor
+> >
+> > Cc: devicetree@vger.kernel.org
+> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > ---
+> > Changelog from v3:
+> >
+> > Sakari Ailus:
+> > -s/should/shall/
+> > -remove clock-lanes
+> >
+> > Philippe De Muyter:
+> > -s/imx274/imx214/
+> >
+> > Laurent Pinchart:
+> > -s/to to/to/
+> > -Better description of lanes
+> > -clock-names: Shall be "xclk"
+> > -Drop clock-freq
+> >
+> >  .../devicetree/bindings/media/i2c/imx214.txt  | 53 +++++++++++++++++++
+> >  1 file changed, 53 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/i2c/imx214.txt
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/imx214.txt
+> > b/Documentation/devicetree/bindings/media/i2c/imx214.txt new file mode
+> > 100644
+> > index 000000000000..421a019ab7f9
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/imx214.txt
+> > @@ -0,0 +1,53 @@
+> > +* Sony 1/3.06-Inch 13.13Mp CMOS Digital Image Sensor
+> > +
+> > +The Sony imx214 is a 1/3.06-inch CMOS active pixel digital image sensor
+> > with +an active array size of 4224H x 3200V. It is programmable through an
+> > I2C +interface. The I2C address can be configured to 0x1a or 0x10,
+> > depending on +how the hardware is wired.
+> > +Image data is sent through MIPI CSI-2, through 2 or 4 lanes at a maximum
+> > +throughput of 1.2Gbps/lane.
+> > +
+> > +
+> > +Required Properties:
+> > +- compatible: value should be "sony,imx214" for imx214 sensor
+> > +- reg: I2C bus address of the device
+> > +- enable-gpios: GPIO descriptor for the enable pin.
+> > +- vdddo-supply: Chip digital IO regulator (1.8V).
+> > +- vdda-supply: Chip analog regulator (2.7V).
+> > +- vddd-supply: Chip digital core regulator (1.12V).
+> > +- clocks: Reference to the xclk clock.
+> > +- clock-names:  Shall be "xclk".
+> > +
+> > +Optional Properties:
+> > +- flash-leds: See ../video-interfaces.txt
+> > +- lens-focus: See ../video-interfaces.txt
+> > +
+> > +The imx214 device node shall contain one 'port' child node with
+> > +an 'endpoint' subnode. For further reading on port node refer to
+> > +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > +
+> > +Required Properties on endpoint:
+> > +- data-lanes: check ../video-interfaces.txt
+>
+> As I suppose you got access to the datasheet which doesn't appear to be
+> public, I'll take this as an opportunity to fish for information :-) Does the
+> sensor support remapping data lanes ? Could you please document that here ?
+>
+> You should also state that only the 2 lanes and 4 lanes options are valid, and
+> what lanes can be used in those cases. I assume that would be <1 2> and <1 2 3
+> 4>, but if other options are possible, it would be useful to document that.
 
-With the understanding that this is a work in progress:
+I wish I had. This is the best documentation that I got access to,
+after a lot of googling:
+http://www.ahdsensor.com/downloadRepository/3acdda8d-b531-4a76-a27d-9dd09be980ee.pdf
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I never understood this secrecy around datasheets. How the f*&& are we
+going to buy chips and make desings around them if we cannot get
+information?! Sorry that was my daily vent
 
-There are always things that can be improved/added, but let's not postpone
-this any longer. A glossary is useful to have, even if incomplete/imperfect.
+The 2 and 4 lane option was obtained from the functional description
+of the chip (page 1). The obvious order would be <1 2>, but I have
+also seen <1 3> in other chips, so I rather not mention it on the
+devicetree doc.
 
-Regards,
+Thanks a lot for your review :)
 
-	Hans
+>
+> With this updated,
+>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> > +- link-frequencies: check ../video-interfaces.txt
+> > +- remote-endpoint: check ../video-interfaces.txt
+> > +
+> > +Example:
+> > +
+> > +     camera_rear@1a {
+> > +             compatible = "sony,imx214";
+> > +             reg = <0x1a>;
+> > +             vdddo-supply = <&pm8994_lvs1>;
+> > +             vddd-supply = <&camera_vddd_1v12>;
+> > +             vdda-supply = <&pm8994_l17>;
+> > +             lens-focus = <&ad5820>;
+> > +             enable-gpios = <&msmgpio 25 GPIO_ACTIVE_HIGH>;
+> > +             clocks = <&mmcc CAMSS_MCLK0_CLK>;
+> > +             clock-names = "xclk";
+> > +             port {
+> > +                     imx214_ep: endpoint {
+> > +                             data-lanes = <1 2 3 4>;
+> > +                             link-frequencies = /bits/ 64 <480000000>;
+> > +                             remote-endpoint = <&csiphy0_ep>;
+> > +                     };
+> > +             };
+> > +     };
+>
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
 
-> ---
->  Documentation/media/media_uapi.rst    |   3 +
->  Documentation/media/uapi/glossary.rst | 185 ++++++++++++++++++++++++++
->  2 files changed, 188 insertions(+)
->  create mode 100644 Documentation/media/uapi/glossary.rst
-> 
-> diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-> index 28eb35a1f965..41f091a26003 100644
-> --- a/Documentation/media/media_uapi.rst
-> +++ b/Documentation/media/media_uapi.rst
-> @@ -2,6 +2,8 @@
->  
->  .. include:: <isonum.txt>
->  
-> +.. _media_uapi:
-> +
->  ########################################
->  Linux Media Infrastructure userspace API
->  ########################################
-> @@ -31,3 +33,4 @@ License".
->      uapi/cec/cec-api
->      uapi/gen-errors
->      uapi/fdl-appendix
-> +    uapi/glossary
-> diff --git a/Documentation/media/uapi/glossary.rst b/Documentation/media/uapi/glossary.rst
-> new file mode 100644
-> index 000000000000..1dce36707509
-> --- /dev/null
-> +++ b/Documentation/media/uapi/glossary.rst
-> @@ -0,0 +1,185 @@
-> +.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later
-> +
-> +.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-> +..
-> +.. For GFDL-1.1-or-later, see:
-> +..
-> +.. Permission is granted to copy, distribute and/or modify this document
-> +.. under the terms of the GNU Free Documentation License, Version 1.1 or
-> +.. any later version published by the Free Software Foundation, with no
-> +.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-> +.. A copy of the license is included at
-> +.. Documentation/media/uapi/fdl-appendix.rst.
-> +
-> +========
-> +Glossary
-> +========
-> +
-> +.. note::
-> +
-> +   This goal of this section is to standardize the terms used within the media
-> +   userspace API documentation. It is written incrementally as they are
-> +   standardized in the media documentation.
-> +
-> +   So, it is a Work In Progress.
-> +
-> +.. Please keep the glossary entries in alphabetical order
-> +
-> +.. glossary::
-> +
-> +    Bridge Driver
-> +	A :term:`device driver` that implements the main logic to talk with
-> +	media hardware.
-> +
-> +    CEC API
-> +	**Consumer Electronics Control API**
-> +
-> +	An API designed to receive and transmit data via an HDMI
-> +	CEC interface.
-> +
-> +	See :ref:`cec`.
-> +
-> +    Device Driver
-> +	Part of the Linux Kernel that implements support for a hardware
-> +	component.
-> +
-> +    Device Node
-> +	A character device node in the file system used to control and
-> +	ransfer data in and out of a Kernel driver.
-> +
-> +    Digital TV API
-> +	**Previously known as DVB API**
-> +
-> +	An API designed to control a subset of the :term:`Media Hardware`
-> +	that implements	digital TV.
-> +
-> +	See :ref:`dvbapi`.
-> +
-> +    DSP
-> +        **Digital Signal Processor**
-> +
-> +	A specialized :term:`Microprocessor`, with its architecture
-> +	optimized for the operational needs of digital signal processing.
-> +
-> +    FPGA
-> +	**Field-programmable Gate Array**
-> +
-> +	An :term:`IC` circuit designed to be configured by a customer or
-> +	a designer after manufacturing.
-> +
-> +	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-> +
-> +    I²C
-> +	**Inter-Integrated Circuit**
-> +
-> +	A  multi-master, multi-slave, packet switched, single-ended,
-> +	serial computer bus used to control some hardware components
-> +	like sub-device hardware components.
-> +
-> +	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-> +
-> +    IC
-> +	**Integrated circuit**
-> +
-> +	A set of electronic circuits on one small flat piece of
-> +	semiconductor material, normally silicon.
-> +
-> +	Also known as chip.
-> +
-> +    IP Block
-> +	**Intellectual property core**
-> +
-> +	In electronic design a semiconductor intellectual property core,
-> +	is a reusable unit of logic, cell, or integrated circuit layout
-> +	design that is the intellectual property of one party.
-> +	IP Blocks may be licensed to another party or can be owned
-> +	and used by a single party alone.
-> +
-> +	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-> +
-> +    ISP
-> +	**Image Signal Processor**
-> +
-> +	A specialized processor that implements a set of algorithms for
-> +	processing image data. ISPs may implement algorithms for lens
-> +	shading correction, demosaicing, scaling and pixel format conversion
-> +	as well as produce statistics for the use of the control
-> +	algorithms (e.g. automatic exposure, white balance and focus).
-> +
-> +    Media API
-> +	A set of userspace APIs used to control the media hardware. It is
-> +	composed by:
-> +
-> +	  - :term:`CEC API`;
-> +	  - :term:`Digital TV API`;
-> +	  - :term:`MC API`;
-> +	  - :term:`RC API`; and
-> +	  - :term:`V4L2 API`.
-> +
-> +	See :ref:`media_uapi`.
-> +
-> +    MC API
-> +	**Media Controller API**
-> +
-> +	An API designed to expose and control the relationships between
-> +	devices and sub-devices.
-> +
-> +	See :ref:`media_controller`.
-> +
-> +    Media Hardware
-> +	Subset of the hardware that is supported by the Linux Media API.
-> +
-> +	This includes audio and video capture and playback hardware,
-> +	digital and analog TV, camera sensors, ISPs, remote controllers,
-> +	codecs, HDMI Consumer Electronics Control, HDMI capture, etc.
-> +
-> +
-> +	See :ref:`media_uapi`.
-> +
-> +    Microprocessor
-> +	Electronic circuitry that carries out the instructions of a
-> +	computer program by performing the basic arithmetic, logical,
-> +	control and input/output (I/O) operations specified by the
-> +	instructions on a single integrated circuit.
-> +
-> +    RC API
-> +	**Remote Controller API**
-> +
-> +	An API designed to receive and transmit data from remote
-> +	controllers.
-> +
-> +	See :ref:`remote_controllers`.
-> +
-> +    SMBus
-> +	A subset of I²C, which defines a stricter usage of the bus.
-> +
-> +    SPI
-> +	**Serial Peripheral Interface Bus**
-> +
-> +	Synchronous serial communication interface specification used for
-> +	short distance communication, primarily in embedded systems.
-> +
-> +    SoC
-> +	**System on a Chip**
-> +
-> +	An integrated circuit that integrates all components of a computer
-> +	or other electronic systems.
-> +
-> +    V4L2 API
-> +	**V4L2 userspace API**
-> +
-> +	The userspace API defined in :ref:`v4l2spec`, which is used to
-> +	control a V4L2 hardware.
-> +
-> +    V4L2 Hardware
-> +	Part of a media hardware with is supported by the :term:`V4L2 API`.
-> +
-> +    V4L2 Sub-device
-> +	V4L2 hardware components that aren't controlled by a
-> +	:term:`bridge driver`.
-> +
-> +    V4L2 Sub-device API
-> +	Part of the :term:`V4L2 API` which control
-> +	:term:`V4L2 sub-devices <V4L2 Sub-device>`.
-> +
-> +	See :ref:`subdev`.
-> 
+
+-- 
+Ricardo Ribalda
