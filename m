@@ -1,45 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53114 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726547AbeJCSSh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2018 14:18:37 -0400
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
-        vgarodia@codeaurora.org
-Subject: [PATCH] venus: vdec: fix decoded data size
-Date: Wed,  3 Oct 2018 17:00:21 +0530
-Message-Id: <1538566221-21369-1-git-send-email-vgarodia@codeaurora.org>
+Received: from mga06.intel.com ([134.134.136.31]:54276 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726746AbeJCS4q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Oct 2018 14:56:46 -0400
+From: "Raikhel, Evgeni" <evgeni.raikhel@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        "dorodnic@gmail.com" <dorodnic@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Dorodnicov, Sergey" <sergey.dorodnicov@intel.com>
+Subject: RE: [PATCH v2 0/2] [media] Depth confidence pixel-format for Intel
+ RealSense cameras
+Date: Wed, 3 Oct 2018 12:08:29 +0000
+Message-ID: <AA09C8071EEEFC44A7852ADCECA86673726CDB16@hasmsx107.ger.corp.intel.com>
+References: <1536734527-3770-1-git-send-email-sergey.dorodnicov@intel.com>
+ <f752d94f-d1fc-5276-aa58-ef7cdff6b21b@xs4all.nl>
+In-Reply-To: <f752d94f-d1fc-5276-aa58-ef7cdff6b21b@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exisiting code returns the max of the decoded size and buffer size.
-It turns out that buffer size is always greater due to hardware
-alignment requirement. As a result, payload size given to client
-is incorrect. This change ensures that the bytesused is assigned
-to actual payload size, when available.
-
-Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
----
- drivers/media/platform/qcom/venus/vdec.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
-index 991e158..189ec97 100644
---- a/drivers/media/platform/qcom/venus/vdec.c
-+++ b/drivers/media/platform/qcom/venus/vdec.c
-@@ -888,8 +888,7 @@ static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
- 		unsigned int opb_sz = venus_helper_get_opb_size(inst);
- 
- 		vb = &vbuf->vb2_buf;
--		vb->planes[0].bytesused =
--			max_t(unsigned int, opb_sz, bytesused);
-+		vb2_set_plane_payload(vb, 0, bytesused ? : opb_sz);
- 		vb->planes[0].data_offset = data_offset;
- 		vb->timestamp = timestamp_us * NSEC_PER_USEC;
- 		vbuf->sequence = inst->sequence_cap++;
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+SGFucyBoZWxsbywNCg0KQ2FuIHlvdSB1cGRhdGUgdGhpcyBwYXRjaCBzZXJpZXMgc3RhdHVzID8N
+ClRoYW5rcyBpbiBhZHZhbmNlLA0KDQpXaXRoIHJlZ2FyZHMsDQpFdmdlbmkNCg0KLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IEhhbnMgVmVya3VpbCBbbWFpbHRvOmh2ZXJrdWlsQHhz
+NGFsbC5ubF0gDQpTZW50OiBXZWRuZXNkYXksIFNlcHRlbWJlciAxMiwgMjAxOCAwOTo0MA0KVG86
+IGRvcm9kbmljQGdtYWlsLmNvbTsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQpDYzogbGF1
+cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQuY29tOyBSYWlraGVsLCBFdmdlbmkgPGV2Z2VuaS5y
+YWlraGVsQGludGVsLmNvbT47IERvcm9kbmljb3YsIFNlcmdleSA8c2VyZ2V5LmRvcm9kbmljb3ZA
+aW50ZWwuY29tPg0KU3ViamVjdDogUmU6IFtQQVRDSCB2MiAwLzJdIFttZWRpYV0gRGVwdGggY29u
+ZmlkZW5jZSBwaXhlbC1mb3JtYXQgZm9yIEludGVsIFJlYWxTZW5zZSBjYW1lcmFzDQoNCk9uIDA5
+LzEyLzIwMTggMDg6NDIgQU0sIGRvcm9kbmljQGdtYWlsLmNvbSB3cm90ZToNCj4gRnJvbTogU2Vy
+Z2V5IERvcm9kbmljb3YgPHNlcmdleS5kb3JvZG5pY292QGludGVsLmNvbT4NCj4gDQo+IERlZmlu
+ZSBuZXcgZm91cmNjIGRlc2NyaWJpbmcgZGVwdGggc2Vuc29yIGNvbmZpZGVuY2UgZGF0YSB1c2Vk
+IGluIEludGVsIFJlYWxTZW5zZSBjYW1lcmFzLg0KPiBDb25maWRlbmNlIGluZm9ybWF0aW9uIGlz
+IHN0b3JlZCBhcyBwYWNrZWQgNCBiaXRzIHBlciBwaXhlbCBzaW5nbGUtcGxhbmUgaW1hZ2UuDQo+
+IFRoZSBwYXRjaGVzIHdlcmUgdGVzdGVkIG9uIDQuMTgtcmMyIGFuZCBtZXJnZWQgd2l0aCBtZWRp
+YV90cmVlL21hc3Rlci4NCj4gQWRkcmVzc2luZyBjb2RlLXJldmlldyBjb21tZW50cyBieSBIYW5z
+IFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4gDQo+IGFuZCBMYXVyZW50IFBpbmNoYXJ0IDxs
+YXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+Lg0KPiANCj4gU2VyZ2V5IERvcm9kbmlj
+b3YgKDIpOg0KPiAgIENORjQgZm91cmNjIGZvciA0IGJpdC1wZXItcGl4ZWwgcGFja2VkIGRlcHRo
+IGNvbmZpZGVuY2UgaW5mb3JtYXRpb24NCj4gICBDTkY0IHBpeGVsIGZvcm1hdCBmb3IgbWVkaWEg
+c3Vic3lzdGVtDQo+IA0KPiAgRG9jdW1lbnRhdGlvbi9tZWRpYS91YXBpL3Y0bC9kZXB0aC1mb3Jt
+YXRzLnJzdCB8ICAxICsNCj4gIERvY3VtZW50YXRpb24vbWVkaWEvdWFwaS92NGwvcGl4Zm10LWNu
+ZjQucnN0ICAgfCAzMSArKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiAgZHJpdmVycy9tZWRp
+YS91c2IvdXZjL3V2Y19kcml2ZXIuYyAgICAgICAgICAgICB8ICA1ICsrKysrDQo+ICBkcml2ZXJz
+L21lZGlhL3VzYi91dmMvdXZjdmlkZW8uaCAgICAgICAgICAgICAgIHwgIDMgKysrDQo+ICBkcml2
+ZXJzL21lZGlhL3Y0bDItY29yZS92NGwyLWlvY3RsLmMgICAgICAgICAgIHwgIDEgKw0KPiAgaW5j
+bHVkZS91YXBpL2xpbnV4L3ZpZGVvZGV2Mi5oICAgICAgICAgICAgICAgICB8ICAxICsNCj4gIDYg
+ZmlsZXMgY2hhbmdlZCwgNDIgaW5zZXJ0aW9ucygrKQ0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IERv
+Y3VtZW50YXRpb24vbWVkaWEvdWFwaS92NGwvcGl4Zm10LWNuZjQucnN0DQo+IA0KDQpMYXVyZW50
+LCB0aGlzIGxvb2tzIGdvb2QgdG8gbWUuIERvIHlvdSB3YW50IHRvIHRha2UgdGhpcyBzZXJpZXMg
+b3Igc2hhbGwgST8NCg0KSWYgeW91IHRha2UgaXQsIHRoZW4geW91IGNhbiBhZGQgbXk6DQoNCkFj
+a2VkLWJ5OiBIYW5zIFZlcmt1aWwgPGhhbnMudmVya3VpbEBjaXNjby5jb20+DQoNCnRvIHRoZXNl
+IHBhdGNoZXMuIElmIHlvdSB3YW50IG1lIHRvIHRha2UgaXQsIHRoZW4gSSdsbCBuZWVkIHlvdXIg
+QWNrIG9mIGNvdXJzZS4NCg0KUmVnYXJkcywNCg0KCUhhbnMNCi0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBJ
+c3JhZWwgKDc0KSBMaW1pdGVkCgpUaGlzIGUtbWFpbCBhbmQgYW55IGF0dGFjaG1lbnRzIG1heSBj
+b250YWluIGNvbmZpZGVudGlhbCBtYXRlcmlhbCBmb3IKdGhlIHNvbGUgdXNlIG9mIHRoZSBpbnRl
+bmRlZCByZWNpcGllbnQocykuIEFueSByZXZpZXcgb3IgZGlzdHJpYnV0aW9uCmJ5IG90aGVycyBp
+cyBzdHJpY3RseSBwcm9oaWJpdGVkLiBJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5kZWQKcmVjaXBp
+ZW50LCBwbGVhc2UgY29udGFjdCB0aGUgc2VuZGVyIGFuZCBkZWxldGUgYWxsIGNvcGllcy4K
