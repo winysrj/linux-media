@@ -1,28 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f67.google.com ([209.85.166.67]:41043 "EHLO
-        mail-io1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726969AbeJDDmC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2018 23:42:02 -0400
-Received: by mail-io1-f67.google.com with SMTP id q4-v6so6188224iob.8
-        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2018 13:52:01 -0700 (PDT)
+Received: from mga04.intel.com ([192.55.52.120]:34231 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725799AbeJDFEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 01:04:34 -0400
+Date: Thu, 4 Oct 2018 01:14:15 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-media <linux-media@vger.kernel.org>, jacopo@jmondi.org
+Subject: Re: [PATCH v5 2/2] [media] imx214: Add imx214 camera sensor driver
+Message-ID: <20181003221415.jgpeea5ligm7oyr6@kekkonen.localdomain>
+References: <20181003130951.19140-1-ricardo.ribalda@gmail.com>
+ <20181003194658.zj6jkfmpbrkmnlen@kekkonen.localdomain>
+ <CAPybu_0Og50WhkO2hHmg5cLQ6a2sx+KEp3_DOTKS=AJ2Shf3YQ@mail.gmail.com>
 MIME-Version: 1.0
-From: cool Adams <coola5794@gmail.com>
-Date: Wed, 3 Oct 2018 16:52:00 -0400
-Message-ID: <CAHgLUhQ7sm1EJscEQ=dLtWVydO=yGG+7m_7iBSK3q9j2s25sPA@mail.gmail.com>
-Subject: DRIVER NEEDED ASAP!!!
-To: infotrollmarket@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPybu_0Og50WhkO2hHmg5cLQ6a2sx+KEp3_DOTKS=AJ2Shf3YQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quality Home Vocation   is looking for  good driver to pick our client
-from the airport as soon as they
-arrives the country for the Vocation ,  if you are still looking for a
-driving job, get back to us asap  . Send your resume to our private
-email. qualityhomevocation012@gmail.com   Compensation: $800 a week.
-With flexible work hours,  Thanks. Or copy the link and fill up the
-form below
-    https://wellsfabit32896.wufoo.com/forms/driver-needed-as-soon-as-possible
+On Wed, Oct 03, 2018 at 10:24:17PM +0200, Ricardo Ribalda Delgado wrote:
+...
+> > > +static int imx214_enum_frame_size(struct v4l2_subdev *subdev,
+> > > +                               struct v4l2_subdev_pad_config *cfg,
+> > > +                               struct v4l2_subdev_frame_size_enum *fse)
+> > > +{
+> > > +     if (fse->code != IMX214_MBUS_CODE)
+> > > +             return -EINVAL;
+> > > +
+> > > +     if (fse->index >= ARRAY_SIZE(imx214_modes))
+> >
+> > array_index_nospec() ?? I find it scary that you'd need that in drivers.
+> > :-o
 
+Uh... not needed. 
 
-i will be waiting to read from you asap.
+The value is just sent back to the user as such so this is fine AFAICT.
+
+> >
+> > > +             return -EINVAL;
+> > > +
+> > > +     fse->min_width = fse->max_width = imx214_modes[fse->index].width;
+> > > +     fse->min_height = fse->max_height = imx214_modes[fse->index].height;
+> > > +
+> > > +     return 0;
+> > > +}
+
+...
+
+> > > +     /*
+> > > +      * WARNING!
+> > > +      * Values obtained reverse engineering blobs and/or devices.
+> > > +      * Ranges and functionality might be wrong.
+> > > +      *
+> > > +      * Sony, please release some register set documentation for the
+> > > +      * device.
+> > > +      *
+> > > +      * Yours sincerely, Ricardo.
+> > > +      */
+> > > +     imx214->exposure = v4l2_ctrl_new_std(&imx214->ctrls, &imx214_ctrl_ops,
+> > > +                                          V4L2_CID_EXPOSURE,
+> > > +                                          0, 0xffff, 1, 0x0c70);
+> >
+> > The exposure is in lines so it can't exceed frame height + blanking.
+> > There's a marginal, too. I don't know what it might be for this sensor
+> > though. Usually it's small, such as 8 or 16. The image will almost
+> > certainly be garbled if you exceed the allowed value.
+> >Seems that this sensor
+> 
+> On this sensor what I am experiencing instead of garbage is that the
+> fps gets reduced. So I believe it is fine to
+> set it up this way.
+
+That's rather confusing as well. The user should explicitly need to change
+fps first, rather than it happening as a side effect of a seemingly
+unrelated control.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
