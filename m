@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:59979 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725740AbeJGBF7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2018 21:05:59 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: cx231xx: fix potential sign-extension overflow on large shift
-Date: Sat,  6 Oct 2018 19:01:42 +0100
-Message-Id: <20181006180142.28443-1-colin.king@canonical.com>
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:39714 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726943AbeJCNyL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2018 09:54:11 -0400
+Received: by mail-pg1-f195.google.com with SMTP id r9-v6so1125027pgv.6
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2018 00:07:07 -0700 (PDT)
+From: Keiichi Watanabe <keiichiw@chromium.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org, tfiga@chromium.org,
+        jcliang@chromium.org, shik@chromium.org, keiichiw@chromium.org
+Subject: [PATCH] media: vivid: Support 480p for webcam capture
+Date: Wed,  3 Oct 2018 16:06:56 +0900
+Message-Id: <20181003070656.193854-1-keiichiw@chromium.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Support 640x480 as a frame size for video input devices of vivid.
 
-Shifting the u8 value[3] by an int can lead to sign-extension
-overflow. For example, if value[3] is 0xff and the shift is 24 then it
-is promoted to int and then the top bit is sign-extended so that all
-upper 32 bits are set.  Fix this by casting value[3] to a u32 before
-the shift.
-
-Detected by CoverityScan, CID#1016522 ("Unintended sign extension")
-
-Fixes: e0d3bafd0258 ("V4L/DVB (10954): Add cx231xx USB driver")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
 ---
- drivers/media/usb/cx231xx/cx231xx-video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/vivid/vivid-vid-cap.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 29160df76cf7..f2f034c5cd62 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1389,7 +1389,7 @@ int cx231xx_g_register(struct file *file, void *priv,
- 		ret = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
- 				(u16)reg->reg, value, 4);
- 		reg->val = value[0] | value[1] << 8 |
--			value[2] << 16 | value[3] << 24;
-+			value[2] << 16 | (u32)value[3] << 24;
- 		reg->size = 4;
- 		break;
- 	case 1:	/* AFE - read byte */
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 58e14dd1dcd3..da80bf4bc365 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -51,7 +51,7 @@ static const struct vivid_fmt formats_ovl[] = {
+ };
+ 
+ /* The number of discrete webcam framesizes */
+-#define VIVID_WEBCAM_SIZES 5
++#define VIVID_WEBCAM_SIZES 6
+ /* The number of discrete webcam frameintervals */
+ #define VIVID_WEBCAM_IVALS (VIVID_WEBCAM_SIZES * 2)
+ 
+@@ -59,6 +59,7 @@ static const struct vivid_fmt formats_ovl[] = {
+ static const struct v4l2_frmsize_discrete webcam_sizes[VIVID_WEBCAM_SIZES] = {
+ 	{  320, 180 },
+ 	{  640, 360 },
++	{  640, 480 },
+ 	{ 1280, 720 },
+ 	{ 1920, 1080 },
+ 	{ 3840, 2160 },
+@@ -75,6 +76,8 @@ static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
+ 	{  1, 5 },
+ 	{  1, 10 },
+ 	{  1, 15 },
++	{  1, 15 },
++	{  1, 25 },
+ 	{  1, 25 },
+ 	{  1, 30 },
+ 	{  1, 50 },
 -- 
-2.17.1
+2.19.0.605.g01d371f741-goog
