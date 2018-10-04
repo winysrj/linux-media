@@ -1,466 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:37636 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727367AbeJDUUd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 16:20:33 -0400
-Date: Thu, 4 Oct 2018 10:27:06 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v3] media: docs: add glossary.rst with common terms used
- at V4L2 spec
-Message-ID: <20181004102706.53d5eb97@coco.lan>
-In-Reply-To: <2646453.94SmjfbUfy@avalon>
-References: <02e399c34a614182ecfa4212cc610fe7d57024f4.1537902727.git.mchehab+samsung@kernel.org>
-        <2646453.94SmjfbUfy@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from leonov.paulk.fr ([185.233.101.22]:32874 "EHLO leonov.paulk.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727203AbeJDSmS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 14:42:18 -0400
+Message-ID: <5846814403f61b09c1597bd89e6ffc37ccfb9d53.camel@paulk.fr>
+Subject: Re: [RFC PATCH] media: docs-rst: Document m2m stateless video
+ decoder interface
+From: Paul Kocialkowski <contact@paulk.fr>
+To: Tomasz Figa <tfiga@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Date: Thu, 04 Oct 2018 13:49:42 +0200
+In-Reply-To: <CAAFQd5D7OGfMJks=mP-f3jEXCzwN6MVYNN5a8JFVJZvkF_wH+Q@mail.gmail.com>
+References: <20180831074743.235010-1-acourbot@chromium.org>
+         <b8a80df8-fd07-6820-3021-670c360ff306@xs4all.nl>
+         <38b32d24-6957-4bee-9168-b3afbfcae083@xs4all.nl>
+         <a5c47693-4d66-1afc-9053-45bbbbef9d7c@xs4all.nl>
+         <CAPBb6MXrEPz7Z60zUp-m4pWUB7t9p1iFSqqp9s4Gjqj9i3v4sA@mail.gmail.com>
+         <01f1723c-8fd0-8f34-0862-624d2bbf51e3@xs4all.nl>
+         <CAPBb6MV_m9X6d2Jefk+CU+bxOq8Jnz6XcE++_qDfgQ8Jdd1FYQ@mail.gmail.com>
+         <CAAFQd5D7OGfMJks=mP-f3jEXCzwN6MVYNN5a8JFVJZvkF_wH+Q@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-51qpwwEIPQrAzYDtynz4"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 04 Oct 2018 14:41:30 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-> Hi Mauro,
->=20
-> (CC'ing Kieran)
->=20
-> Thank you for the patch.
->=20
-> On Tuesday, 25 September 2018 22:14:51 EEST Mauro Carvalho Chehab wrote:
-> > From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+--=-51qpwwEIPQrAzYDtynz4
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+Le mercredi 03 octobre 2018 =C3=A0 19:13 +0900, Tomasz Figa a =C3=A9crit :
+> On Tue, Sep 18, 2018 at 5:02 PM Alexandre Courbot <acourbot@chromium.org>=
+ wrote:
+> > Hi Hans, sorry for the late reply.
 > >=20
-> > Add a glossary of terms used within the media userspace API
-> > documentation, as several concepts are complex enough to cause
-> > misunderstandings.
+> > On Tue, Sep 11, 2018 at 6:09 PM Hans Verkuil <hverkuil@xs4all.nl> wrote=
+:
+> > > On 09/11/18 10:40, Alexandre Courbot wrote:
+> > > > On Mon, Sep 10, 2018 at 9:49 PM Hans Verkuil <hverkuil@xs4all.nl> w=
+rote:
+> > > > > On 09/10/2018 01:57 PM, Hans Verkuil wrote:
+> > > > > > On 09/10/2018 01:25 PM, Hans Verkuil wrote:
+> > > > > > > > +
+> > > > > > > > +Decoding
+> > > > > > > > +=3D=3D=3D=3D=3D=3D=3D=3D
+> > > > > > > > +
+> > > > > > > > +For each frame, the client is responsible for submitting a=
+ request to which the
+> > > > > > > > +following is attached:
+> > > > > > > > +
+> > > > > > > > +* Exactly one frame worth of encoded data in a buffer subm=
+itted to the
+> > > > > > > > +  ``OUTPUT`` queue,
+> > > > > > > > +* All the controls relevant to the format being decoded (s=
+ee below for details).
+> > > > > > > > +
+> > > > > > > > +``CAPTURE`` buffers must not be part of the request, but m=
+ust be queued
+> > > > > > > > +independently. The driver will pick one of the queued ``CA=
+PTURE`` buffers and
+> > > > > > > > +decode the frame into it. Although the client has no contr=
+ol over which
+> > > > > > > > +``CAPTURE`` buffer will be used with a given ``OUTPUT`` bu=
+ffer, it is guaranteed
+> > > > > > > > +that ``CAPTURE`` buffers will be returned in decode order =
+(i.e. the same order
+> > > > > > > > +as ``OUTPUT`` buffers were submitted), so it is trivial to=
+ associate a dequeued
+> > > > > > > > +``CAPTURE`` buffer to its originating request and ``OUTPUT=
+`` buffer.
+> > > > > > > > +
+> > > > > > > > +If the request is submitted without an ``OUTPUT`` buffer o=
+r if one of the
+> > > > > > > > +required controls are missing, then :c:func:`MEDIA_REQUEST=
+_IOC_QUEUE` will return
+> > > > > > > > +``-EINVAL``.
+> > > > > > >=20
+> > > > > > > Not entirely true: if buffers are missing, then ENOENT is ret=
+urned. Missing required
+> > > > > > > controls or more than one OUTPUT buffer will result in EINVAL=
+. This per the latest
+> > > > > > > Request API changes.
+> > > > > > >=20
+> > > > > > >  Decoding errors are signaled by the ``CAPTURE`` buffers bein=
+g
+> > > > > > > > +dequeued carrying the ``V4L2_BUF_FLAG_ERROR`` flag.
+> > > > > > >=20
+> > > > > > > Add here that if the reference frame had an error, then all o=
+ther frames that refer
+> > > > > > > to it should also set the ERROR flag. It is up to userspace t=
+o decide whether or
+> > > > > > > not to drop them (part of the frame might still be valid).
+> > > > > > >=20
+> > > > > > > I am not sure whether this should be documented, but there ar=
+e some additional
+> > > > > > > restrictions w.r.t. reference frames:
+> > > > > > >=20
+> > > > > > > Since decoders need access to the decoded reference frames th=
+ere are some corner
+> > > > > > > cases that need to be checked:
+> > > > > > >=20
+> > > > > > > 1) V4L2_MEMORY_USERPTR cannot be used for the capture queue: =
+the driver does not
+> > > > > > >    know when a malloced but dequeued buffer is freed, so the =
+reference frame
+> > > > > > >    could suddenly be gone.
+> > > > > > >=20
+> > > > > > > 2) V4L2_MEMORY_DMABUF can be used, but drivers should check t=
+hat the dma buffer is
+> > > > > > >    still available AND increase the dmabuf refcount while it =
+is used by the HW.
+> > > > > > >=20
+> > > > > > > 3) What to do if userspace has requeued a buffer containing a=
+ reference frame,
+> > > > > > >    and you want to decode a B/P-frame that refers to that buf=
+fer? We need to
+> > > > > > >    check against that: I think that when you queue a capture =
+buffer whose index
+> > > > > > >    is used in a pending request as a reference frame, than th=
+at should fail with
+> > > > > > >    an error. And trying to queue a request referring to a buf=
+fer that has been
+> > > > > > >    requeued should also fail.
+> > > > > > >=20
+> > > > > > > We might need to add some support for this in v4l2-mem2mem.c =
+or vb2.
+> > > > > > >=20
+> > > > > > > We will have similar (but not quite identical) issues with st=
+ateless encoders.
+> > > > > >=20
+> > > > > > Related to this is the question whether buffer indices that are=
+ used to refer
+> > > > > > to reference frames should refer to the capture or output queue=
+.
+> > > > > >=20
+> > > > > > Using capture indices works if you never queue more than one re=
+quest at a time:
+> > > > > > you know exactly what the capture buffer index is of the decode=
+d I-frame, and
+> > > > > > you can use that in the following requests.
+> > > > > >=20
+> > > > > > But if multiple requests are queued, then you don't necessarily=
+ know to which
+> > > > > > capture buffer an I-frame will be decoded, so then you can't pr=
+ovide this index
+> > > > > > to following B/P-frames. This puts restrictions on userspace: y=
+ou can only
+> > > > > > queue B/P-frames once you have decoded the I-frame. This might =
+be perfectly
+> > > > > > acceptable, though.
+> > > >=20
+> > > > IIUC at the moment we are indeed using CAPTURE buffer indexes, e.g:
+> > > >=20
+> > > > .. flat-table:: struct v4l2_ctrl_mpeg2_slice_params
+> > > >   ..
+> > > >       - ``backward_ref_index``
+> > > >       - Index for the V4L2 buffer to use as backward reference, use=
+d
+> > > > with
+> > > >        B-coded and P-coded frames.
+> > > >=20
+> > > > So I wonder how is the user-space currently exercising Cedrus doing
+> > > > here? Waiting for each frame used as a reference to be dequeued?
+> > >=20
+> > > No, the assumption is (if I understand correctly) that userspace won'=
+t
+> > > touch the memory of the dequeued reference buffer so HW can just poin=
+t
+> > > to it.
+> > >=20
+> > > Paul, please correct me if I am wrong.
+> > >=20
+> > > What does chromeOS do?
 > >=20
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > ---
+> > At the moment Chrome OS (using the config store) queues the OUTPUT and
+> > CAPTURE buffers together, i.e. in the same request. The CAPTURE buffer
+> > is not tied to the request in any way, but what seems to matter here
+> > is the queue order. If drivers process CAPTURE drivers sequentially,
+> > then you can know which CAPTURE buffer will be used for the request.
 > >=20
-> > v3:
-> >   - Add SPDX header and dual-license the glossary
-> >   - Make glossary generic enough to be used for all media uAPI
-> > documentation; - Add a few new items to the glossary, to imply that it
-> > covers not only V4L2; - Move it to the uAPI document as a hole.
-> >=20
-> > v2: Did some changes based on Sakari's feedback.
-> >=20
-> >  Documentation/media/media_uapi.rst    |   3 +
-> >  Documentation/media/uapi/glossary.rst | 162 ++++++++++++++++++++++++++
-> >  2 files changed, 165 insertions(+)
-> >  create mode 100644 Documentation/media/uapi/glossary.rst
-> >=20
-> > diff --git a/Documentation/media/media_uapi.rst
-> > b/Documentation/media/media_uapi.rst index 28eb35a1f965..41f091a26003
-> > 100644
-> > --- a/Documentation/media/media_uapi.rst
-> > +++ b/Documentation/media/media_uapi.rst
-> > @@ -2,6 +2,8 @@
-> >=20
-> >  .. include:: <isonum.txt>
-> >=20
-> > +.. _media_uapi:
-> > +
-> >  ########################################
-> >  Linux Media Infrastructure userspace API
-> >  ########################################
-> > @@ -31,3 +33,4 @@ License".
-> >      uapi/cec/cec-api
-> >      uapi/gen-errors
-> >      uapi/fdl-appendix
-> > +    uapi/glossary =20
+> > The corollary of that is that CAPTURE buffers cannot be re-queued
+> > until they are not referenced anymore, something the Chrome OS
+> > userspace also takes care of. Would it be a problem to make this the
+> > default expectation instead of having the kernel check and reorder
+> > CAPTURE buffers? The worst that can happen AFAICT is is frame
+> > corruption, and processing queued CAPTURE buffers sequentially would
+> > allow us to use the V4L2 buffer ID to reference frames. That's still
+> > the most intuitive way to do, using relative frame indexes (i.e. X
+> > frames ago) adds complexity and the potential for misuse and bugs.
 >=20
-> Is there an easy way to cross-reference to the glossary when terms are us=
-ed ?
-
-According with Sphinx documentation, there is:
-	:term:`some glossary term`
-
-But, on the tests I did here, it didn't really work with Sphinx 1.4.
-
-It is actually on my TODO list to seek for a good way to address it
-(and to find/replace occurrences of the terms at the documentation
-to add cross-refs).
-
+> +1
 >=20
-> > diff --git a/Documentation/media/uapi/glossary.rst
-> > b/Documentation/media/uapi/glossary.rst new file mode 100644
-> > index 000000000000..9e2a2b29e8b2
-> > --- /dev/null
-> > +++ b/Documentation/media/uapi/glossary.rst
-> > @@ -0,0 +1,162 @@
-> > +.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later
-> > +
-> > +.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-> > +..
-> > +.. For GFDL-1.1-or-later, see:
-> > +..
-> > +.. Permission is granted to copy, distribute and/or modify this docume=
-nt
-> > +.. under the terms of the GNU Free Documentation License, Version 1.1 =
-or
-> > +.. any later version published by the Free Software Foundation, with no
-> > +.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-> > +.. A copy of the license is included at
-> > +.. Documentation/media/uapi/fdl-appendix.rst.
-> > +
-> > +=3D=3D=3D=3D=3D=3D=3D=3D
-> > +Glossary
-> > +=3D=3D=3D=3D=3D=3D=3D=3D
-> > +
-> > +.. note::
-> > +
-> > +   This goal of section is to standardize the terms used within the me=
-dia
-> > +   userspace API documentation. It is written incrementally as they are
-> > +   standardized in the media documentation.
-> > +
-> > +   So, it is a Work In Progress.
-> > +
-> > +.. Please keep the glossary entries in alphabetical order
-> > +
-> > +.. glossary::
-> > +
-> > +    Bridge driver =20
->=20
-> Shouldn't all words start with a capital letter ?
+> The stateless API delegates the reference frame management to the
+> client and I don't see why we should be protecting the client from
+> itself. In particular, as I suggested in another email, there can be
+> valid cases where requeuing CAPTURE buffers while still on the
+> reference list is okay.
 
-I guess it is a matter of preference.
+I agree that it's best to delegate this to the client, to alleviate the
+complexity of dealing with relative indexes in the driver. From what
+I've seen, players take care of allocating enough buffers so that re-
+queuing CAPTURE buffers is not a problem in practice (they are no
+longer used as reference when re-queued). What I've seen is that
+buffers are simply rotated at each frame and that just works with
+enough buffers allocated.
 
-Right now, I'm capitalizing stuff only when they have acronyms
-(like Digital Signal Processor - DSP), but I'm ok of doing it
-to the other terms as well.
+=46rom that perspective, it would probably also make sense to ask that
+userspace provides CAPTURE buffers indexes for references (and thus
+stays in charge of the CAPTURE-OUTPUT association).
 
->=20
-> > +	A device driver that implements the main logic to talk with
-> > +	a media hardware. =20
->=20
-> Terms that are part of the glossary should also be capitalized (and cross-
-> referenced within the glossary).
+We could also have the driver keep that association and ask userspace
+to provide OUTPUT buffers indexes for references. This seems more
+consistent from an API perspective (requests associate OUTPUT buffers
+with metadata, so that's the unit that naturally identifies a frame).
 
-For now, it doesn't matter much. When we add cross references, it will use
-either :ref: or :term:, so the actual text will be inserted by
-Sphinx.
+However, I'm pretty sure that userspace would also have to keep the
+association one way or another to decide which buffer can be reused
+safely, so it seems to me like keeping CAPTURE indexes would reduce the
+driver overhead without really complexifying userspace much.
 
->=20
-> Hardware is still uncountable in English. I know we've discussed this=20
-> previously, but if we want to write a glossary, it should be in English. =
-Maybe=20
-> we need to involve a native English speaker here. Kieran ? :-)
+What do you think?
 
-I'll replace:
+Cheers,
 
-	a media hardware -> media hardware
+Paul
 
->=20
-> Additionally, I don't think the definition is correct. Bridges, as define=
-d in=20
-> V4L2, are opposed to subdevs, while "media hardware" in your definition=20
-> includes everything. This needs to be clarified.
+--=20
+Developer of free digital technology and hardware support.
 
-Please notice that the goal of this glossary is to be generic, and not
-specific to V4L2. Extra care should be taken if we want to talk about
-"subdevs" here, as such concept doesn't exist on DVB, CEC or RC (but
-"main driver" does).
+Website: https://www.paulk.fr/
+Coding blog: https://code.paulk.fr/
+Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
 
-Also, I don't think that a subdev driver would fit into
-"implements the main logic to talk with media hardware."
+--=-51qpwwEIPQrAzYDtynz4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Anyway, if you have a better definition, feel free to suggest.
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAABCAAdFiEEAbcMXZQMtj1fphLChP3B6o/ulQwFAlu1/lYACgkQhP3B6o/u
+lQzr+g//e4O/rYOIZpsYqyqEWs9RDvXSCj2xW/h3nls2OLJ2ywvOmk6tdt9ByIKo
+AMQhq9NAUtflzujMf/C8nCCQa3fyC9kNETMN+RIigXo8l6SWmEaTN/X13IfciUKP
+qD6lssomrAFWhhbzfEidkXIU+tsJM9nfhPoLAnOgeCugezzvmwZaT7TALQZIF9sh
+CqP8qiiIVT+zblIq/tiLpXx97WpGVnkz/xButj+03Zhy1clp07TemmyIythHaAIp
+fGgKVUxJesiqOa6Fe/Q3Mw/6ebvHjusj0wHUZma3jiqXfCcPsrQhYKaHJIVwDJmd
+KfCIl0HfLvD77SYOWBwGCQ9+2+4DayqW6y9Y7GaNYFsantUYxmUPBvdPxf9vKmC0
+fiQFvWj9AUhfQ2k9E36DXnHt4KvTDaS0bm6DmbQ/cYb+MTZ3zrc1el5aeK64DX+n
+NihGGB9uRGrcUPyRnafyPc/3kc/6lsjoKej/hTTul0iXw/MPTledtubquycfSStS
+6XwErIQFjNrez78UD0lSFrQ/3NUf5lwk5vaA9YZUD+GSsoqPrjXJJlpSalmon7+R
+2mwCLs2nc+oI5P1QDm2NOTCiujQUsrPUVbBCAsOZaY+TUDyTLUWoXPNWdqirZxRn
+YxO4hlvnlm5lIdXvs3EhYHLHgEPSw3Xa+6PoC1tKj8QXoJRWcP4=
+=meRo
+-----END PGP SIGNATURE-----
 
->=20
-> > +	For V4L2 hardware, this is also known as V4L2 main driver. =20
->=20
-> Do we use the term V4L2 main driver in the V4L2 spec ?
-
-Right now, I don't think we use, but this is something that we'll
-need to, in order to define hardware controls.
-
-Anyway, I'll remove the reference for a V4L2 hardware from this patch,
-moving to the one that talks about vdev-centric/mc-centric.
-
->=20
-> > +    Consumer Electronics Control API
-> > +	An API designed to receive and transmit data via a HDMI
-> > +	CEC interface. =20
->=20
-> So the definition of "Consumer Electronics Control" is CEC ? :-) It would=
- be=20
-> more useful to do it the other way around, define CEC as Consumer Electro=
-nics=20
-> Control, and explain what it is.
-
-Just like I answered to Hans with regards to Digital TV API, this is just
-a boilerplate for CEC-related stuff.
-
-The terms used by CEC should be added on a future patch.
-
->=20
-> > +	See :ref:`cec`.
-> > +
-> > +    Device Node
-> > +	A character device node in the file system used to control and do
-> > +	input/output data transfers from/to a Kernel driver. =20
->=20
-> Maybe "and transfer data in and out of a kernel driver" ?
-
-Works for me.
-
->=20
-> > +
-> > +    Digital TV API - DVB API =20
->=20
-> Is DVB the same as Digital TV ? The digital video API (https://linuxtv.or=
-g/
-> downloads/v4l-dvb-apis-new/uapi/v4l/dv-timings.html) is sometimes referre=
-d to=20
-> digital TV too. How about standardizing on DVB and avoiding digital TV=20
-> completely in the specification ?
-
-Actually, we did the reverse. This was known as DVB API, but, as DVB
-is a specific TV standard, used mainly in Europe, and the API was
-extended to work also with non-European standards, we replaced
-
-	DVB -> Digital TV (or DTV)=20
-
-at the docs at the places it wouldn't be breaking userspace or
-when it refers to the European standard.
-
->=20
-> > +	An API designed to control the media device components related to
-> > +	digital TV, including frontends, demuxes, streaming, conditional
-> > +	access, etc.
-> > +
-> > +	See :ref:`dvbapi`.
-> > +
-> > +    Digital Signal Processor - DSP =20
->=20
-> Here and below I would put the abbreviation first. If someone looks up a =
-term=20
-> in the glossary because they don't know what it means, they're more likel=
-y to=20
-> search for the abbreviation, not the full term.
-
-Makes sense.
-
->=20
-> > +	A specialized microprocessor, with its architecture optimized for
-> > +	the operational needs of digital signal processing. =20
->=20
-> Stupid question, do we need this entry in the glossary ? The term DSP doe=
-sn't=20
-> seem to be used anywhere in the documentation, and in a video context, I=
-=20
-> expect the definition of ISP to be more relevant.
-
-It is used inside the glossary to define other terms. Also, we may
-need to use it when talking about codecs.
-
->=20
-> I also wonder whether we shouldn't drop terms that are defined by the ind=
-ustry=20
-> (such as DSP, FPGA, I2C, IC, IP core, ISP, Microprocessor, SMBus and SPI)=
-, and=20
-> only focus on terms that have a custom definition in the Linux media=20
-> subsystem.
-
-I don't think it hurts to have definitions for them. IMO, if we use a term,
-we need to define it, in order to let clear about what we're talking about.
-That also helps new Kernel developers to start understanding our documentat=
-ion.
-
-IMHO, it is complex enough to justify such glossary.
-
->=20
-> > +    Driver
-> > +	Part of the Linux Kernel that implements support for a hardware
-> > +	component.
-> > +
-> > +    Field-programmable Gate Array - FPGA
-> > +	A field-programmable gate array (FPGA) is an integrated circuit
-> > +	designed to be configured by a customer or a designer after
-> > +	manufacturing.
-> > +
-> > +	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-> > +
-> > +    Inter-Integrated Circuit - I=C2=B2C
-> > +	A  multi-master, multi-slave, packet switched, single-ended,
-> > +	serial computer bus used to control some hardware components
-> > +	like sub-device hardware components.
-> > +
-> > +	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-> > +
-> > +    Integrated circuit - IC
-> > +	A set of electronic circuits on one small flat piece of
-> > +	semiconductor material, normally silicon.
-> > +
-> > +	Also known as chip.
-> > +
-> > +    Intelectual property core - IP block
-> > +	In electronic design a semiconductor intellectual property core,
-> > +	is a reusable unit of logic, cell, or integrated circuit layout
-> > +	design that is the intellectual property of one party.
-> > +	IP cores may be licensed to another party or can be owned
-> > +	and used by a single party alone.
-> > +
-> > +	See
-> > https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-> > +
-> > +    Image Signal Processor - ISP
-> > +	A specialised processor that implements a set of algorithms for
-> > +	processing image data. ISPs may implement algorithms for lens
-> > +	shading correction, demosaic, scaling and pixel format conversion
-> > +	as well as produce statistics for the use of the control
-> > +	algorithms (e.g. automatic exposure, white balance and focus).
-> > +
-> > +    Media API
-> > +	A set of userspace APIs used to control a media hardware. =20
->=20
-> How about explcitly listing the APIs that the umbrella term "Media API" c=
-overs=20
-> ?
-
-Makes sense. I'll add.
-
->=20
-> > +	See :ref:`media_uapi`.
-> > +
-> > +    Media Controller
-> > +	An API designed to expose and control devices and sub-devices'
-> > +	relationships to applications. =20
->=20
-> What do you mean by "relationships to applications" ?
-
-This was proposed by Sakari. Hans proposed a new definition for it:
-
-    Media Controller
-        An API designed to expose and control the relationships between
-        devices and sub-devices.
-
-        See :ref:`media_controller`.
-
->=20
-> > +	See :ref:`media_controller`.
-> > +
-> > +    Media Hardware
-> > +	Subset of a hardware that is supported by the Linux Media API.
-> > +
-> > +	Includes audio and video capture and playback hardware,
-> > +	digital and analog TV, camera sensors, ISPs, remote controllers,
-> > +	codecs, HDMI Consumer Electronics Control, HDMI capture, etc.
-> > +
-> > +
-> > +	See :ref:`media_uapi`.
-> > +
-> > + =20
->=20
-> Extra blank space ?
-
-Yes, already removed.
-
->=20
-> > +    Microprocessor
-> > +	An electronic circuitry that carries out the instructions
-> > +	of a computer program by performing the basic arithmetic, logical,
-> > +	control and input/output (I/O) operations specified by the
-> > +	instructions on a single integrated circuit.
-> > +
-> > +    Remote Controller API
-> > +	An API designed to receive and transmit data from remote
-> > +	controllers.
-> > +
-> > +	See :ref:`remote_controllers`.
-> > +
-> > +    SMBus
-> > +	A subset of I=C2=B2C, with defines a stricter usage of the bus.
-> > +
-> > +    Serial Peripheral Interface Bus - SPI
-> > +	Synchronous serial communication interface specification used for
-> > +	short distance communication, primarily in embedded systems.
-> > +
-> > +    System on a Chip - SoC
-> > +	An integrated circuit that integrates all components of a computer
-> > +	or other electronic systems.
-> > +
-> > +    Sub-device hardware components
-> > +	V4L2 hardware components that aren't controlled by a
-> > +	V4L2 main driver.
-> > +
-> > +    V4L2 userspace API - V4L2 API
-> > +       The userspace API defined at :ref:`v4l2spec`, with is used to =
-=20
->=20
-> s/at/in/
-
-ok.
-
->=20
-> > control
-> > +       a V4L2 hardware.
-> > +
-> > +    V4L2 hardware
-> > +       Part of a media hardware with is supported by the V4L2
-> > +       userspace API. =20
->=20
-> That's kind of a circular definition, isn't it ?
-
-I don't think so. The only thing that defines a "V4L2 hardware"
-(or whatever other term it would be used to describe a hardware
-subset that is used by V4L2) is really the API.
-
-There are *lots* of cases where the same IC has support for
-V4L2, RC, ALSA and DVB, all integrated. On several cases, the
-hardware it just a microcontroller (or FPGA) with I/O pins and
-the needed logic to control audio, video streaming and remote
-controllers.
-
-For example, an em28xx chip has internally a firmware that uses=20
-an 8051-based CPU, having pins that are used for RC, analog and
-digital TV.
-
-[1] http://standwell.cn/Uploadfiles/20151022154755309.pdf
-
-> > +    V4L2 main driver
-> > +	A V4L2 device driver that implements the main logic to talk with
-> > +	a V4L2 hardware.
-> > +
-> > +    V4L2 sub-device
-> > +	Part of a media hardware that it is implemented by a device =20
->=20
-> s/it is/is/
-
-Ok.
-
->=20
-> > +	driver that is not part of the main V4L2 driver. =20
->=20
-> I don't think that's correct a V4L2 subdev is a software object, not a pi=
-ece=20
-> of hardware.
-
-It is a software object used to control part of the hardware.
-
-Also, usually, it is a way easier to identify what part of
-the hardware is controlled by a V4L2 subdev than what part
-is controlled by a main driver.
-
-Think for example on a sensor subdev - with controls=20
-something that it is physically distinct from an IP block
-inside some SoC.
-
-Do you have a better definition?
-
-
->=20
-> > +	See :ref:`subdev`. =20
->=20
-
-
-
-Thanks,
-Mauro
+--=-51qpwwEIPQrAzYDtynz4--
