@@ -1,366 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:36187 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725997AbeJEFmu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 01:42:50 -0400
-Date: Thu, 4 Oct 2018 23:47:10 +0100
-From: Sean Young <sean@mess.org>
-To: ektor5 <ek5.chimenti@gmail.com>
-Cc: hverkuil@xs4all.nl, luca.pisani@udoo.org, jose.abreu@synopsys.com,
-        sakari.ailus@linux.intel.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] seco-cec: add Consumer-IR support
-Message-ID: <20181004224710.nl4czt3ury4pkb6x@gofer.mess.org>
-References: <cover.1538474121.git.ek5.chimenti@gmail.com>
- <beeab2fa9a2906ecaebb225dc88ca4c0c88dd14b.1538474121.git.ek5.chimenti@gmail.com>
- <20181004134927.ox7alorufq56f2ux@gofer.mess.org>
- <20181004214643.4flghzsjrczmwpjd@Ettosoft-T55>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181004214643.4flghzsjrczmwpjd@Ettosoft-T55>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:34720 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726716AbeJEGfd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 02:35:33 -0400
+Message-ID: <5ce82f591ab9bd1a9a0a476f01bbf4f0fe4ab0e2.camel@collabora.com>
+Subject: Re: [PATCH v6 0/6] Add Rockchip VPU JPEG encoder
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-rockchip@lists.infradead.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>
+Date: Thu, 04 Oct 2018 20:39:31 -0300
+In-Reply-To: <faca3960d0478610b73071b471acfa26df987985.camel@collabora.com>
+References: <20180917173022.9338-1-ezequiel@collabora.com>
+         <7bd9573e-e0c6-71a6-84ed-deb0904593fd@xs4all.nl>
+         <faca3960d0478610b73071b471acfa26df987985.camel@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ettore,
-
-On Thu, Oct 04, 2018 at 11:46:45PM +0200, ektor5 wrote:
-> Hi Sean,
-> 
-> On Thu, Oct 04, 2018 at 02:49:27PM +0100, Sean Young wrote:
-> > On Tue, Oct 02, 2018 at 06:59:56PM +0200, ektor5 wrote:
-> > > From: Ettore Chimenti <ek5.chimenti@gmail.com>
+On Mon, 2018-10-01 at 14:54 -0300, Ezequiel Garcia wrote:
+> On Fri, 2018-09-28 at 14:33 +0200, Hans Verkuil wrote:
+> > On 09/17/2018 07:30 PM, Ezequiel Garcia wrote:
+> > > This series adds support for JPEG encoding via the VPU block
+> > > present in Rockchip platforms. Currently, support for RK3288
+> > > and RK3399 is included.
 > > > 
-> > > Introduce support for Consumer-IR into seco-cec driver, as it shares the
-> > > same interrupt for receiving messages.
-> > > The device decodes RC5 signals only, defaults to hauppauge mapping.
-> > > It will spawn an input interface using the RC framework (like CEC
-> > > device).
+> > > Please, see the previous versions of this cover letter for
+> > > more information.
 > > > 
-> > > Signed-off-by: Ettore Chimenti <ek5.chimenti@gmail.com>
-> > > ---
-> > >  drivers/media/platform/Kconfig             |  10 ++
-> > >  drivers/media/platform/seco-cec/seco-cec.c | 136 ++++++++++++++++++++-
-> > >  drivers/media/platform/seco-cec/seco-cec.h |  11 ++
-> > >  3 files changed, 154 insertions(+), 3 deletions(-)
+> > > Compared to v5, the only change is in the V4L2_CID_JPEG_QUANTIZATION
+> > > control. We've decided to support only baseline profile,
+> > > and only add 8-bit luma and chroma tables.
 > > > 
-> > > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> > > index f477764b902a..5833f488eef8 100644
-> > > --- a/drivers/media/platform/Kconfig
-> > > +++ b/drivers/media/platform/Kconfig
-> > > @@ -624,6 +624,16 @@ config VIDEO_SECO_CEC
-> > >           CEC bus is present in the HDMI connector and enables communication
-> > >           between compatible devices.
-> > >  
-> > > +config VIDEO_SECO_RC
-> > > +       bool "SECO Boards IR RC5 support"
-> > > +       depends on VIDEO_SECO_CEC
-> > > +       select RC_CORE
-> > > +       help
-> > > +	 If you say yes here you will get support for the
-> > > +	 SECO Boards Consumer-IR in seco-cec driver.
-> > > +         The embedded controller supports RC5 protocol only, default mapping
-> > > +         is set to rc-hauppauge.
+> > > struct v4l2_ctrl_jpeg_quantization {
+> > >        __u8    luma_quantization_matrix[64];
+> > >        __u8    chroma_quantization_matrix[64];
+> > > };
+> > > 
+> > > By doing this, it's clear that we don't currently support anything
+> > > but baseline.
+> > > 
+> > > This series should apply cleanly on top of
+> > > 
+> > >   git://linuxtv.org/hverkuil/media_tree.git br-cedrus tag.
+> > > 
+> > > If everyone is happy with this series, I'd like to route the devicetree
+> > > changes through the rockchip tree, and the rest via the media subsystem.
 > > 
-> > Strange mixture of spaces/tabs.
-> 
-> Ops. Yes, will fix.
-> 
+> > OK, so I have what is no doubt an annoying question: do we really need
+> > a JPEG_RAW format?
 > > 
-> > > +
-> > >  endif #CEC_PLATFORM_DRIVERS
-> > >  
-> > >  menuconfig SDR_PLATFORM_DRIVERS
-> > > diff --git a/drivers/media/platform/seco-cec/seco-cec.c b/drivers/media/platform/seco-cec/seco-cec.c
-> > > index ba3b7c144a87..ee1949395cf4 100644
-> > > --- a/drivers/media/platform/seco-cec/seco-cec.c
-> > > +++ b/drivers/media/platform/seco-cec/seco-cec.c
-> > > @@ -28,6 +28,9 @@ struct secocec_data {
-> > >  	struct platform_device *pdev;
-> > >  	struct cec_adapter *cec_adap;
-> > >  	struct cec_notifier *notifier;
-> > > +	struct rc_dev *irda_rc;
-> > > +	char irda_input_name[32];
-> > > +	char irda_input_phys[32];
-> > 
-> > IrDA is a completely different encoding than RC-5, CIR or anything rc-core
-> > supports; RC-5 is much lower transmission speed. Please do not conflate
-> > the two, and rename it either ir_input_phys or rc_input_phys (same for the
-> > rest of the functions/members in the rest of the file).
 > 
-> Yes, I figured out that in the middle of developing. I got rid of most
-> of the "irda" references, but I have accidentally left some of them.
-> Will finish the work.
+> Not annoying, as it helps clarify a few things :-)
+> I think we do need the JPEG_RAW format. The way I see it, using
+> JPEG opens a can of worms...
 > 
+> > The JPEG header is really easy to parse for a decoder and really easy to
+> > prepend to the compressed image for the encoder.
 > > 
-> > >  	int irq;
-> > >  };
-> > >  
-> > > @@ -383,6 +386,119 @@ struct cec_adap_ops secocec_cec_adap_ops = {
-> > >  	.adap_transmit = secocec_adap_transmit,
-> > >  };
-> > >  
-> > > +#ifdef CONFIG_VIDEO_SECO_RC
-> > > +static int secocec_irda_probe(void *priv)
-> > > +{
-> > > +	struct secocec_data *cec = priv;
-> > > +	struct device *dev = cec->dev;
-> > > +	int status;
-> > > +	u16 val;
-> > > +
-> > > +	/* Prepare the RC input device */
-> > > +	cec->irda_rc = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
-> > > +	if (!cec->irda_rc) {
-> > > +		dev_err(dev, "Failed to allocate memory for rc_dev");
+> > The only reason I can see for a JPEG_RAW is if the image must start at
+> > some specific address alignment. Although even then you can just pad the
+> > JPEG header that you will add according to the alignment requirements.
 > > 
-> > No need to dev_err() here, kmalloc() will have already reported the error.
+> > I know I am very late with this question, but I never looked all that
+> > closely at what a JPEG header looks like. But this helped:
+> > 
+> > https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
+> > 
+> > and it doesn't seem difficult at all to parse or create the header.
+> > 
+> > 
 > 
-> Ok, will remove.
+> ... I think that having JPEG_RAW as the compressed format
+> is much more clear for userspace, as it explicitly specifies
+> what is expected.
 > 
-> > 
-> > > +		return -ENOMEM;
-> > > +	}
-> > > +
-> > > +	snprintf(cec->irda_input_name, sizeof(cec->irda_input_name),
-> > > +		 "IrDA RC for %s", dev_name(dev));
-> > 
-> > Since it's an RC device there is no need to put RC in the name. Just
-> > use dev_name() as the device_name.
+> This way, for a stateless encoder, applications are required
+> to set quantization and/or entropy tables, and are then in
+> charge of using the compressed JPEG_RAW payload in whatever form
+> they want. Stupid simple.
 > 
-> I took that from CEC RC Passthrough device name.
+> On the other side, if the stateless encoder driver supports
+> JPEG (creating headers in-kernel), it means that:
+> 
+> *) applications should pass a quality control, if supported,
+> and the driver will use hardcoded tables or...
+> 
+> *) applications pass quantization control and, if supported,
+> entropy control. The kernel uses them to create the JPEG frame.
+> But also, some drivers (e.g. Rockchip), use default entropy
+> tables, which should now be in the kernel.
+> 
+> So the application would have to query controls to find out
+> what to do. Not exactly hard, but I think having the JPEG_RAW
+> is much simpler and more clear.
+> 
+> Now, for stateless decoders, supporting JPEG_RAW means
+> the application has to pass quantization and entropy
+> controls, probably using the Request API.
+> Given the application has parsed the JPEG,
+> it knows the width and height and can request
+> buffers accordingly.
+> 
+> The hardware is stateless, and so is the driver.
+> 
+> On the other hand, supporting JPEG would mean that
+> drivers will have to parse the image, extracting
+> the quantization and entropy tables.
+> 
+> Format negotiation is now more complex,
+> either we follow the stateful spec, introducing a little
+> state machine in the driver... or we use the Request API,
+> but that means parsing on both sides kernel and application.
+> 
+> Either way, using JPEG_RAW is just waaay simpler and puts
+> things where they belong. 
+> 
 
-Thanks for pointing that out, I've just submitted a patch to fix that one
-as well:
+As discussed on IRC, I'm sending a v7 for this series,
+fixing only the checkpatch issues and the extra line in the
+binding document.
 
-	https://patchwork.linuxtv.org/patch/52376/
+We've agreed to move forward with JPEG_RAW, for the reasons
+stated above.
 
-Hans, what do you think?
+Plus, we've agreed to keep this in staging until the userspace
+support for JPEG_RAW format is clear.
 
-> 
-> > 
-> > > +	snprintf(cec->irda_input_phys, sizeof(cec->irda_input_phys),
-> > > +		 "%s/input0", dev_name(dev));
-> > > +
-> > > +	cec->irda_rc->device_name = cec->irda_input_name;
-> > > +	cec->irda_rc->input_phys = cec->irda_input_phys;
-> > > +	cec->irda_rc->input_id.bustype = BUS_HOST;
-> > > +	cec->irda_rc->input_id.vendor = 0;
-> > > +	cec->irda_rc->input_id.product = 0;
-> > > +	cec->irda_rc->input_id.version = 1;
-> > > +	cec->irda_rc->driver_name = SECOCEC_DEV_NAME;
-> > > +	cec->irda_rc->allowed_protocols = RC_PROTO_BIT_RC5;
-> > > +	cec->irda_rc->enabled_protocols = RC_PROTO_BIT_RC5;
-> > 
-> > No need to set enabled_protocols.
-> 
-> Ok.
-> 
-> > 
-> > > +	cec->irda_rc->priv = cec;
-> > > +	cec->irda_rc->map_name = RC_MAP_HAUPPAUGE;
-> > > +	cec->irda_rc->timeout = MS_TO_NS(100);
-> > > +
-> > > +	/* Clear the status register */
-> > > +	status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
-> > > +	if (status != 0)
-> > > +		goto err;
-> > > +
-> > > +	status = smb_wr16(SECOCEC_STATUS_REG_1, val);
-> > > +	if (status != 0)
-> > > +		goto err;
-> > > +
-> > > +	/* Enable the interrupts */
-> > > +	status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
-> > > +	if (status != 0)
-> > > +		goto err;
-> > > +
-> > > +	status = smb_wr16(SECOCEC_ENABLE_REG_1,
-> > > +			  val | SECOCEC_ENABLE_REG_1_IR);
-> > > +	if (status != 0)
-> > > +		goto err;
-> > > +
-> > > +	dev_dbg(dev, "IR enabled");
-> > > +
-> > > +	status = devm_rc_register_device(dev, cec->irda_rc);
-> > > +
-> > > +	if (status) {
-> > > +		dev_err(dev, "Failed to prepare input device");
-> > > +		cec->irda_rc = NULL;
-> > > +		goto err;
-> > > +	}
-> > > +
-> > > +	return 0;
-> > > +
-> > > +err:
-> > > +	smb_rd16(SECOCEC_ENABLE_REG_1, &val);
-> > > +
-> > > +	smb_wr16(SECOCEC_ENABLE_REG_1,
-> > > +		 val & ~SECOCEC_ENABLE_REG_1_IR);
-> > > +
-> > > +	dev_dbg(dev, "IR disabled");
-> > > +	return status;
-> > > +}
-> > > +
-> > > +static int secocec_irda_rx(struct secocec_data *priv)
-> > > +{
-> > > +	struct secocec_data *cec = priv;
-> > > +	struct device *dev = cec->dev;
-> > > +	u16 val, status, key, addr, toggle;
-> > > +
-> > > +	if (!cec->irda_rc)
-> > > +		return -ENODEV;
-> > > +
-> > > +	status = smb_rd16(SECOCEC_IR_READ_DATA, &val);
-> > > +	if (status != 0)
-> > > +		goto err;
-> > > +
-> > > +	key = val & SECOCEC_IR_COMMAND_MASK;
-> > > +	addr = (val & SECOCEC_IR_ADDRESS_MASK) >> SECOCEC_IR_ADDRESS_SHL;
-> > > +	toggle = (val & SECOCEC_IR_TOGGLE_MASK) >> SECOCEC_IR_TOGGLE_SHL;
-> > > +
-> > > +	rc_keydown(cec->irda_rc, RC_PROTO_RC5, key, toggle);
-> > 
-> > Here you are just reported the key, not the address. Please use:
-> > 
-> > 	rc_keydown(cec->rc, RC_PROTO_RC5, RC_SCANCODE_RC5(addr, key), toggle);
-> > 
-> > In fact, you could do:
-> > 
-> > 	rc_keydown(cec->rc, RC_PROTO_RC5, val & 0x1f7f, toggle);
-> > 
-> > I presume the compile is clever enough to fold those shift instructions.
-> 
-> I wondered why the address wasn't used, it had to be together. Thanks. :)
-> 
-> > 
-> > > +
-> > > +	dev_dbg(dev, "IR key pressed: 0x%02x addr 0x%02x toggle 0x%02x", key,
-> > > +		addr, toggle);
-> > > +
-> > > +	return 0;
-> > > +
-> > > +err:
-> > > +	dev_err(dev, "IR Receive message failed (%d)", status);
-> > > +	return -EIO;
-> > > +}
-> > > +#else
-> > > +static void secocec_irda_rx(struct secocec_data *priv)
-> > > +{
-> > > +}
-> > > +
-> > > +static int secocec_irda_probe(void *priv)
-> > > +{
-> > > +	return 0;
-> > > +}
-> > > +#endif
-> > > +
-> > >  static irqreturn_t secocec_irq_handler(int irq, void *priv)
-> > >  {
-> > >  	struct secocec_data *cec = priv;
-> > > @@ -420,7 +536,8 @@ static irqreturn_t secocec_irq_handler(int irq, void *priv)
-> > >  	if (status_val & SECOCEC_STATUS_REG_1_IR) {
-> > >  		dev_dbg(dev, "IR RC5 Interrupt Caught");
-> > >  		val |= SECOCEC_STATUS_REG_1_IR;
-> > > -		/* TODO IRDA RX */
-> > > +
-> > > +		secocec_irda_rx(cec);
-> > >  	}
-> > >  
-> > >  	/*  Reset status register */
-> > > @@ -595,6 +712,10 @@ static int secocec_probe(struct platform_device *pdev)
-> > >  	if (secocec->notifier)
-> > >  		cec_register_cec_notifier(secocec->cec_adap, secocec->notifier);
-> > >  
-> > > +	ret = secocec_irda_probe(secocec);
-> > > +	if (ret)
-> > > +		goto err_delete_adapter;
-> > > +
-> > >  	platform_set_drvdata(pdev, secocec);
-> > >  
-> > >  	dev_dbg(dev, "Device registered");
-> > > @@ -614,7 +735,16 @@ static int secocec_probe(struct platform_device *pdev)
-> > >  static int secocec_remove(struct platform_device *pdev)
-> > >  {
-> > >  	struct secocec_data *secocec = platform_get_drvdata(pdev);
-> > > +	u16 val;
-> > > +
-> > > +	if (secocec->irda_rc) {
-> > > +		smb_rd16(SECOCEC_ENABLE_REG_1, &val);
-> > >  
-> > > +		smb_wr16(SECOCEC_ENABLE_REG_1,
-> > > +			 val & ~SECOCEC_ENABLE_REG_1_IR);
-> > 
-> > Those two fit on one line.
-> > 
-> > > +
-> > > +		dev_dbg(&pdev->dev, "IR disabled");
-> > > +	}
-> > >  	cec_unregister_adapter(secocec->cec_adap);
-> > >  
-> > >  	if (secocec->notifier)
-> > > @@ -632,8 +762,8 @@ static int secocec_remove(struct platform_device *pdev)
-> > >  #ifdef CONFIG_PM_SLEEP
-> > >  static int secocec_suspend(struct device *dev)
-> > >  {
-> > > -	u16 val;
-> > >  	int status;
-> > > +	u16 val;
-> > >  
-> > >  	dev_dbg(dev, "Device going to suspend, disabling");
-> > >  
-> > > @@ -665,8 +795,8 @@ static int secocec_suspend(struct device *dev)
-> > >  
-> > >  static int secocec_resume(struct device *dev)
-> > >  {
-> > > -	u16 val;
-> > >  	int status;
-> > > +	u16 val;
-> > >  
-> > >  	dev_dbg(dev, "Resuming device from suspend");
-> > >  
-> > > diff --git a/drivers/media/platform/seco-cec/seco-cec.h b/drivers/media/platform/seco-cec/seco-cec.h
-> > > index cc7f0cba8e9e..c00660104a3e 100644
-> > > --- a/drivers/media/platform/seco-cec/seco-cec.h
-> > > +++ b/drivers/media/platform/seco-cec/seco-cec.h
-> > > @@ -101,6 +101,17 @@
-> > >  
-> > >  #define SECOCEC_IR_READ_DATA		0x3e
-> > >  
-> > > +/*
-> > > + * IR
-> > > + */
-> > > +
-> > > +#define SECOCEC_IR_COMMAND_MASK		0x007F
-> > > +#define SECOCEC_IR_COMMAND_SHL		0
-> > > +#define SECOCEC_IR_ADDRESS_MASK		0x1F00
-> > > +#define SECOCEC_IR_ADDRESS_SHL		7
-> > > +#define SECOCEC_IR_TOGGLE_MASK		0x8000
-> > > +#define SECOCEC_IR_TOGGLE_SHL		15
-> > > +
-> > >  /*
-> > >   * Enabling register
-> > >   */
-> > > -- 
-> > > 2.18.0
-> > 
-> > Thanks,
-> > Sean
-> 
-> Thanks a lot,
-> 	Ettore
-
-Thanks,
-Sean
+Regards,
+Ezequiel
