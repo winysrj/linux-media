@@ -1,8 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:33186 "EHLO
-        vsp-unauthed02.binero.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727977AbeJEDhb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 23:37:31 -0400
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:33205 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727783AbeJEDhc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 23:37:32 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
 To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -10,9 +11,9 @@ To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
 Cc: linux-renesas-soc@vger.kernel.org,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2 3/5] i2c: adv748x: reuse power up sequence when initializing CSI-2
-Date: Thu,  4 Oct 2018 22:41:36 +0200
-Message-Id: <20181004204138.2784-4-niklas.soderlund@ragnatech.se>
+Subject: [PATCH v2 4/5] i2c: adv748x: store number of CSI-2 lanes described in device tree
+Date: Thu,  4 Oct 2018 22:41:37 +0200
+Message-Id: <20181004204138.2784-5-niklas.soderlund@ragnatech.se>
 In-Reply-To: <20181004204138.2784-1-niklas.soderlund@ragnatech.se>
 References: <20181004204138.2784-1-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
@@ -23,74 +24,116 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Instead of duplicate the register writes to power on the CSI-2
-transmitter when initialization the hardware reuse the dedicated power
-control functions.
+The adv748x CSI-2 transmitters TXA and TXB can use different number of
+lanes to transmit data. In order to be able to configure the device
+correctly this information need to be parsed from device tree and stored
+in each TX private data structure.
+
+TXA supports 1, 2 and 4 lanes while TXB supports 1 lane.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 ---
- drivers/media/i2c/adv748x/adv748x-core.c | 28 ++----------------------
- 1 file changed, 2 insertions(+), 26 deletions(-)
+* Changes since v1
+- Use %u instead of %d to print unsigned int.
+- Fix spelling in commit message, thanks Laurent.
+---
+ drivers/media/i2c/adv748x/adv748x-core.c | 49 ++++++++++++++++++++++++
+ drivers/media/i2c/adv748x/adv748x.h      |  1 +
+ 2 files changed, 50 insertions(+)
 
 diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-index 721ed6552bc1cde6..41cc0cdd6a5fcef5 100644
+index 41cc0cdd6a5fcef5..3836dd3025d6ffb7 100644
 --- a/drivers/media/i2c/adv748x/adv748x-core.c
 +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-@@ -390,19 +390,6 @@ static const struct adv748x_reg_value adv748x_init_txa_4lane[] = {
- 	{ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI Required Write */
- 	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+@@ -23,6 +23,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dv-timings.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-ioctl.h>
  
--	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
--	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
--
--	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
--	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
--	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
--	{ADV748X_PAGE_TXA, 0x00, 0x24 },/* Power-up CSI-TX */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXA, 0xc1, 0x2b},	/* ADI Required Write */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXA, 0x31, 0x80},	/* ADI Required Write */
--
- 	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
- };
+ #include "adv748x.h"
+@@ -523,12 +524,55 @@ void adv748x_subdev_init(struct v4l2_subdev *sd, struct adv748x_state *state,
+ 	sd->entity.ops = &adv748x_media_ops;
+ }
  
-@@ -442,19 +429,6 @@ static const struct adv748x_reg_value adv748x_init_txb_1lane[] = {
- 	{ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI Required Write */
- 	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
++static int adv748x_parse_csi2_lanes(struct adv748x_state *state,
++				    unsigned int port,
++				    struct device_node *ep)
++{
++	struct v4l2_fwnode_endpoint vep;
++	unsigned int num_lanes;
++	int ret;
++
++	if (port != ADV748X_PORT_TXA && port != ADV748X_PORT_TXB)
++		return 0;
++
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &vep);
++	if (ret)
++		return ret;
++
++	num_lanes = vep.bus.mipi_csi2.num_data_lanes;
++
++	if (vep.base.port == ADV748X_PORT_TXA) {
++		if (num_lanes != 1 && num_lanes != 2 && num_lanes != 4) {
++			adv_err(state, "TXA: Invalid number (%u) of lanes\n",
++				num_lanes);
++			return -EINVAL;
++		}
++
++		state->txa.num_lanes = num_lanes;
++		adv_dbg(state, "TXA: using %u lanes\n", state->txa.num_lanes);
++	}
++
++	if (vep.base.port == ADV748X_PORT_TXB) {
++		if (num_lanes != 1) {
++			adv_err(state, "TXB: Invalid number (%u) of lanes\n",
++				num_lanes);
++			return -EINVAL;
++		}
++
++		state->txb.num_lanes = num_lanes;
++		adv_dbg(state, "TXB: using %u lanes\n", state->txb.num_lanes);
++	}
++
++	return 0;
++}
++
+ static int adv748x_parse_dt(struct adv748x_state *state)
+ {
+ 	struct device_node *ep_np = NULL;
+ 	struct of_endpoint ep;
+ 	bool out_found = false;
+ 	bool in_found = false;
++	int ret;
  
--	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
--	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
--
--	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
--	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
--	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
--	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXB, 0xc1, 0x2b},	/* ADI Required Write */
--	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
--	{ADV748X_PAGE_TXB, 0x31, 0x80},	/* ADI Required Write */
--
- 	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
- };
+ 	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
+ 		of_graph_parse_endpoint(ep_np, &ep);
+@@ -559,6 +603,11 @@ static int adv748x_parse_dt(struct adv748x_state *state)
+ 			in_found = true;
+ 		else
+ 			out_found = true;
++
++		/* Store number of CSI-2 lanes used for TXA and TXB. */
++		ret = adv748x_parse_csi2_lanes(state, ep.port, ep_np);
++		if (ret)
++			return ret;
+ 	}
  
-@@ -476,6 +450,7 @@ static int adv748x_reset(struct adv748x_state *state)
- 	if (ret)
- 		return ret;
+ 	return in_found && out_found ? 0 : -ENODEV;
+diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+index 39c2fdc3b41667d8..b482c7fe6957eb85 100644
+--- a/drivers/media/i2c/adv748x/adv748x.h
++++ b/drivers/media/i2c/adv748x/adv748x.h
+@@ -79,6 +79,7 @@ struct adv748x_csi2 {
+ 	struct v4l2_mbus_framefmt format;
+ 	unsigned int page;
+ 	unsigned int port;
++	unsigned int num_lanes;
  
-+	adv748x_tx_power(&state->txa, 1);
- 	adv748x_tx_power(&state->txa, 0);
- 
- 	/* Init and power down TXB */
-@@ -483,6 +458,7 @@ static int adv748x_reset(struct adv748x_state *state)
- 	if (ret)
- 		return ret;
- 
-+	adv748x_tx_power(&state->txb, 1);
- 	adv748x_tx_power(&state->txb, 0);
- 
- 	/* Disable chip powerdown & Enable HDMI Rx block */
+ 	struct media_pad pads[ADV748X_CSI2_NR_PADS];
+ 	struct v4l2_ctrl_handler ctrl_hdl;
 -- 
 2.19.0
