@@ -1,182 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:57001 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727264AbeJDUfB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 16:35:01 -0400
-Subject: Re: [PATCH v3 00/14] imx-media: Fixes for interlaced capture
-To: Steve Longerbeam <slongerbeam@gmail.com>,
+Received: from youngberry.canonical.com ([91.189.89.112]:44658 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727314AbeJDUwd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 16:52:33 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         linux-media@vger.kernel.org
-References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
- <db3940a6-d837-9b6a-1f1e-122dda1e1650@xs4all.nl>
- <0701dea4-f3b7-fda9-0dd0-f717a868991d@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fcfade70-b5c2-7ce2-ab04-1471e61eedd4@xs4all.nl>
-Date: Thu, 4 Oct 2018 15:41:34 +0200
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: bttv-input: make const array addr_list static
+Date: Thu,  4 Oct 2018 14:59:06 +0100
+Message-Id: <20181004135906.20320-1-colin.king@canonical.com>
 MIME-Version: 1.0
-In-Reply-To: <0701dea4-f3b7-fda9-0dd0-f717a868991d@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/04/18 01:21, Steve Longerbeam wrote:
-> Hi Hans,
-> 
-> 
-> On 10/01/2018 03:07 AM, Hans Verkuil wrote:
->> Hi Steve,
->>
->> On 08/01/2018 09:12 PM, Steve Longerbeam wrote:
->>> A set of patches that fixes some bugs with capturing from an
->>> interlaced source, and incompatibilites between IDMAC interlace
->>> interweaving and 4:2:0 data write reduction.
->> I reviewed this series and it looks fine to me.
-> 
-> Cool.
-> 
->>
->> It appears that the ipu* patches are already merged, so can you rebase and
->> repost?
-> 
-> Done. There are still two ipu* patches that still need a merge:
-> 
-> gpu: ipu-csi: Swap fields according to input/output field types
-> gpu: ipu-v3: Add planar support to interlaced scan
-> 
-> so those will still be included in the v4 submission.
-> 
->>
->> I would also like to see the 'v4l2-compliance -f' for an interlaced source,
->> if at all possible.
-> 
-> Sure, I've run 'v4l2-compliance -f' on two configured pipelines: unprocessed
-> capture (no scaling, CSC, rotation using ipu), and a VDIC de-interlace 
-> pipeline.
-> 
-> I have the text output, the output is huge but here is the abbreviated 
-> results:
-> 
-> Unprocessed pipeline:
-> 
-> root@mx6q:/home/fu# v4l2-compliance -d4 -f
-> v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
-> <snip>
-> test VIDIOC_G/S/ENUMINPUT: FAIL
-> <snip>
-> test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+From: Colin Ian King <colin.king@canonical.com>
 
-This looks like something that should work. Not relevant for this patch
-series, but something you should look into.
+The const array addr_list can be made static, saves populating it on
+the stack and will make it read-only.
 
-> <snip>
-> 
-> Total: 715, Succeeded: 713, Failed: 2, Warnings: 0
-> 
-> 
-> VDIC de-interlace pipeline:
-> 
-> root@mx6q:/home/fu# v4l2-compliance -d1 -f
-> v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
-> <snip>
-> test VIDIOC_G/S/ENUMINPUT: FAIL
-> <snip>
-> test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-> <snip>
-> test VIDIOC_G/S_PARM: FAIL
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/pci/bt8xx/bttv-input.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Same here: this appears to be an actual bug. But also not related to this
-patch series.
-
-Regards,
-
-	Hans
-
-> <snip>
-> 
-> Total: 50, Succeeded: 47, Failed: 3, Warnings: 1
-> 
-> I will send you the full output privately.
-> 
-> 
->>
->> For that matter, were you able to test all the field formats?
-> 
-> Yes. I've tested on imx6q SabreAuto with the ADV7180 alternate source,
-> all of the following are tested and produce good video:
-> 
-> ntsc alternate -> interlaced-tb
-> ntsc alternate -> interlaced-bt
-> ntsc alternate -> none (VDIC pipeline)
-> ntsc alternate -> none (VDIC pipeline)
-> 
-> pal alternate -> interlaced-tb
-> pal alternate -> interlaced-bt
-> pal alternate -> none (VDIC pipeline)
-> pal alternate -> none (VDIC pipeline)
-> 
-> Steve
-> 
-> 
->>
->>> History:
->>> v3:
->>> - add support for/fix interweaved scan with YUV planar output.
->>> - fix bug in 4:2:0 U/V offset macros.
->>> - add patch that generalizes behavior of field swap in
->>>    ipu_csi_init_interface().
->>> - add support for interweaved scan with field order swap.
->>>    Suggested by Philipp Zabel.
->>> - in v2, inteweave scan was determined using field types of
->>>    CSI (and PRPENCVF) at the sink and source pads. In v3, this
->>>    has been moved one hop downstream: interweave is now determined
->>>    using field type at source pad, and field type selected at
->>>    capture interface. Suggested by Philipp.
->>> - make sure to double CSI crop target height when input field
->>>    type in alternate.
->>> - more updates to media driver doc to reflect above.
->>>
->>> v2:
->>> - update media driver doc.
->>> - enable idmac interweave only if input field is sequential/alternate,
->>>    and output field is 'interlaced*'.
->>> - move field try logic out of *try_fmt and into separate function.
->>> - fix bug with resetting crop/compose rectangles.
->>> - add a patch that fixes a field order bug in VDIC indirect mode.
->>> - remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
->>>    Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
->>> - add macro V4L2_FIELD_IS_INTERLACED().
->>>
->>>
->>> Philipp Zabel (1):
->>>    gpu: ipu-v3: Allow negative offsets for interlaced scanning
->>>
->>> Steve Longerbeam (13):
->>>    media: videodev2.h: Add more field helper macros
->>>    gpu: ipu-csi: Check for field type alternate
->>>    gpu: ipu-csi: Swap fields according to input/output field types
->>>    gpu: ipu-v3: Fix U/V offset macros for planar 4:2:0
->>>    gpu: ipu-v3: Add planar support to interlaced scan
->>>    media: imx: Fix field negotiation
->>>    media: imx-csi: Double crop height for alternate fields at sink
->>>    media: imx: interweave and odd-chroma-row skip are incompatible
->>>    media: imx-csi: Allow skipping odd chroma rows for YVU420
->>>    media: imx: vdic: rely on VDIC for correct field order
->>>    media: imx-csi: Move crop/compose reset after filling default mbus
->>>      fields
->>>    media: imx: Allow interweave with top/bottom lines swapped
->>>    media: imx.rst: Update doc to reflect fixes to interlaced capture
->>>
->>>   Documentation/media/v4l-drivers/imx.rst       |  93 ++++++++++-----
->>>   drivers/gpu/ipu-v3/ipu-cpmem.c                |  45 ++++++-
->>>   drivers/gpu/ipu-v3/ipu-csi.c                  | 136 ++++++++++++++-------
->>>   drivers/staging/media/imx/imx-ic-prpencvf.c   |  48 ++++++--
->>>   drivers/staging/media/imx/imx-media-capture.c |  14 +++
->>>   drivers/staging/media/imx/imx-media-csi.c     | 166 ++++++++++++++++++--------
->>>   drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
->>>   include/uapi/linux/videodev2.h                |   7 ++
->>>   include/video/imx-ipu-v3.h                    |   6 +-
->>>   9 files changed, 377 insertions(+), 150 deletions(-)
->>>
-> 
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index 5cf929370398..d34fbaa027c2 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -370,7 +370,7 @@ static int get_key_pv951(struct IR_i2c *ir, enum rc_proto *protocol,
+ /* Instantiate the I2C IR receiver device, if present */
+ void init_bttv_i2c_ir(struct bttv *btv)
+ {
+-	const unsigned short addr_list[] = {
++	static const unsigned short addr_list[] = {
+ 		0x1a, 0x18, 0x64, 0x30, 0x71,
+ 		I2C_CLIENT_END
+ 	};
+-- 
+2.17.1
