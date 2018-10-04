@@ -1,116 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:51354 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727354AbeJEDKO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 23:10:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] rcar-vin: declare which VINs can use a Up Down Scaler (UDS)
-Date: Thu, 04 Oct 2018 23:15:38 +0300
-Message-ID: <3830300.X5acWg0Hot@avalon>
-In-Reply-To: <20181004200402.15113-4-niklas.soderlund+renesas@ragnatech.se>
-References: <20181004200402.15113-1-niklas.soderlund+renesas@ragnatech.se> <20181004200402.15113-4-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:41882 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727354AbeJEDLF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 23:11:05 -0400
+Received: by mail-pg1-f194.google.com with SMTP id 23-v6so3651136pgc.8
+        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 13:16:14 -0700 (PDT)
+Subject: Re: [PATCH v4 00/11] imx-media: Fixes for interlaced capture
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <20181004185401.15751-1-slongerbeam@gmail.com>
+ <4e521c80-7041-e5d8-cfa6-c05af07d5cf1@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <0a65391a-66dc-c7f7-2240-b4bfc5642875@gmail.com>
+Date: Thu, 4 Oct 2018 13:16:07 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <4e521c80-7041-e5d8-cfa6-c05af07d5cf1@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-Thank you for the patch.
-
-On Thursday, 4 October 2018 23:04:02 EEST Niklas S=F6derlund wrote:
-> Add information about which VINs on which SoC have access to a UDS
-> scaler.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 18 ++++++++++++++++++
->  1 file changed, 18 insertions(+)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 01e418c2d4c6792e..337ae8bbe1e0b14c 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -919,12 +919,21 @@ static const struct rvin_group_route
-> rcar_info_r8a7795_routes[] =3D { { /* Sentinel */ }
->  };
->=20
-> +static const struct rvin_group_scaler rcar_info_h3_m3w_m3n_scalers[] =3D=
- {
-> +	{ .vin =3D 0, .companion =3D 1 },
-> +	{ .vin =3D 1, .companion =3D 0 },
-> +	{ .vin =3D 4, .companion =3D 5 },
-> +	{ .vin =3D 5, .companion =3D 4 },
-> +	{ /* Sentinel */ }
-> +};
-> +
->  static const struct rvin_info rcar_info_r8a7795 =3D {
->  	.model =3D RCAR_GEN3,
->  	.use_mc =3D true,
->  	.max_width =3D 4096,
->  	.max_height =3D 4096,
->  	.routes =3D rcar_info_r8a7795_routes,
-> +	.scalers =3D rcar_info_h3_m3w_m3n_scalers,
->  };
->=20
->  static const struct rvin_group_route rcar_info_r8a7795es1_routes[] =3D {
-> @@ -979,6 +988,7 @@ static const struct rvin_info rcar_info_r8a7795es1 =
-=3D {
->  	.max_width =3D 4096,
->  	.max_height =3D 4096,
->  	.routes =3D rcar_info_r8a7795es1_routes,
-> +	.scalers =3D rcar_info_h3_m3w_m3n_scalers,
->  };
->=20
->  static const struct rvin_group_route rcar_info_r8a7796_routes[] =3D {
-> @@ -1019,6 +1029,7 @@ static const struct rvin_info rcar_info_r8a7796 =3D=
- {
->  	.max_width =3D 4096,
->  	.max_height =3D 4096,
->  	.routes =3D rcar_info_r8a7796_routes,
-> +	.scalers =3D rcar_info_h3_m3w_m3n_scalers,
->  };
->=20
->  static const struct rvin_group_route rcar_info_r8a77965_routes[] =3D {
-> @@ -1063,6 +1074,7 @@ static const struct rvin_info rcar_info_r8a77965 =
-=3D {
->  	.max_width =3D 4096,
->  	.max_height =3D 4096,
->  	.routes =3D rcar_info_r8a77965_routes,
-> +	.scalers =3D rcar_info_h3_m3w_m3n_scalers,
->  };
->=20
->  static const struct rvin_group_route rcar_info_r8a77970_routes[] =3D {
-> @@ -1088,12 +1100,18 @@ static const struct rvin_group_route
-> rcar_info_r8a77995_routes[] =3D { { /* Sentinel */ }
->  };
->=20
-> +static const struct rvin_group_scaler rcar_info_r8a77995_scalers[] =3D {
-> +	{ .vin =3D 4, .companion =3D -1 },
-> +	{ /* Sentinel */ }
-> +};
-> +
->  static const struct rvin_info rcar_info_r8a77995 =3D {
->  	.model =3D RCAR_GEN3,
->  	.use_mc =3D true,
->  	.max_width =3D 4096,
->  	.max_height =3D 4096,
->  	.routes =3D rcar_info_r8a77995_routes,
-> +	.scalers =3D rcar_info_r8a77995_scalers,
->  };
->=20
->  static const struct of_device_id rvin_of_id_table[] =3D {
 
 
-=2D-=20
-Regards,
+On 10/04/2018 12:34 PM, Hans Verkuil wrote:
+> On 10/04/2018 08:53 PM, Steve Longerbeam wrote:
+>> A set of patches that fixes some bugs with capturing from an
+>> interlaced source, and incompatibilites between IDMAC interlace
+>> interweaving and 4:2:0 data write reduction.
+>>
+>> History:
+>> v4:
+>> - rebased to latest media-tree master branch.
+>> - Make patch author and SoB email addresses the same.
+>>
+>> v3:
+>> - add support for/fix interweaved scan with YUV planar output.
+>> - fix bug in 4:2:0 U/V offset macros.
+>> - add patch that generalizes behavior of field swap in
+>>    ipu_csi_init_interface().
+>> - add support for interweaved scan with field order swap.
+>>    Suggested by Philipp Zabel.
+>> - in v2, inteweave scan was determined using field types of
+>>    CSI (and PRPENCVF) at the sink and source pads. In v3, this
+>>    has been moved one hop downstream: interweave is now determined
+>>    using field type at source pad, and field type selected at
+>>    capture interface. Suggested by Philipp.
+>> - make sure to double CSI crop target height when input field
+>>    type in alternate.
+>> - more updates to media driver doc to reflect above.
+>>
+>> v2:
+>> - update media driver doc.
+>> - enable idmac interweave only if input field is sequential/alternate,
+>>    and output field is 'interlaced*'.
+>> - move field try logic out of *try_fmt and into separate function.
+>> - fix bug with resetting crop/compose rectangles.
+>> - add a patch that fixes a field order bug in VDIC indirect mode.
+>> - remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
+>>    Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
+>> - add macro V4L2_FIELD_IS_INTERLACED().
+>>
+>>
+>> Steve Longerbeam (11):
+>>    media: videodev2.h: Add more field helper macros
+>>    gpu: ipu-csi: Swap fields according to input/output field types
+>>    gpu: ipu-v3: Add planar support to interlaced scan
+> What should I do with these patches? Do they go through us? Or the drm
+> subsystem (or whoever handles this)?
+>
+> If it goes through another subsystem, then I can Ack them.
 
-Laurent Pinchart
+Hi Hans, sorry you are right. Philipp Zabel needs to merge these
+to his imx-drm/fixes tree. Then we need to wait for them to filter
+over to media-tree. Same old slow process, I wish this were faster,
+but that is the drawback of changes that span subsystems.
+
+I will submit the above patches to dri-devel ML. And resubmit this
+series once they hit media-tree.
+
+Steve
+
+
+>
+>>    media: imx: Fix field negotiation
+>>    media: imx-csi: Double crop height for alternate fields at sink
+>>    media: imx: interweave and odd-chroma-row skip are incompatible
+>>    media: imx-csi: Allow skipping odd chroma rows for YVU420
+>>    media: imx: vdic: rely on VDIC for correct field order
+>>    media: imx-csi: Move crop/compose reset after filling default mbus
+>>      fields
+>>    media: imx: Allow interweave with top/bottom lines swapped
+>>    media: imx.rst: Update doc to reflect fixes to interlaced capture
+>>
+>>   Documentation/media/v4l-drivers/imx.rst       |  93 ++++++----
+>>   drivers/gpu/ipu-v3/ipu-cpmem.c                |  26 ++-
+>>   drivers/gpu/ipu-v3/ipu-csi.c                  | 132 ++++++++++----
+>>   drivers/staging/media/imx/imx-ic-prpencvf.c   |  48 +++--
+>>   drivers/staging/media/imx/imx-media-capture.c |  14 ++
+>>   drivers/staging/media/imx/imx-media-csi.c     | 166 ++++++++++++------
+>>   drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
+>>   include/uapi/linux/videodev2.h                |   7 +
+>>   include/video/imx-ipu-v3.h                    |   6 +-
+>>   9 files changed, 359 insertions(+), 145 deletions(-)
+>>
