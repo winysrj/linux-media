@@ -1,91 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt1-f169.google.com ([209.85.160.169]:37144 "EHLO
-        mail-qt1-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727672AbeJEBEc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 21:04:32 -0400
-Received: by mail-qt1-f169.google.com with SMTP id d14-v6so2319761qto.4
-        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 11:10:07 -0700 (PDT)
-Message-ID: <5085f73bc44424b20f1bd0dc1332d9baabecb090.camel@ndufresne.ca>
-Subject: Re: [RFC PATCH v2] media: docs-rst: Document m2m stateless video
- decoder interface
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Paul Kocialkowski <contact@paulk.fr>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <posciak@chromium.org>,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Date: Thu, 04 Oct 2018 14:10:04 -0400
-In-Reply-To: <f1fa989b372b514f0a7534057de80b0c453cc8a3.camel@paulk.fr>
-References: <20181004081119.102575-1-acourbot@chromium.org>
-         <f1fa989b372b514f0a7534057de80b0c453cc8a3.camel@paulk.fr>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-WITFkROoIaAo+RDmdg+G"
-Mime-Version: 1.0
+Received: from mail-wr1-f67.google.com ([209.85.221.67]:33079 "EHLO
+        mail-wr1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727407AbeJEBVX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 21:21:23 -0400
+Received: by mail-wr1-f67.google.com with SMTP id e4-v6so11003962wrs.0
+        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 11:26:55 -0700 (PDT)
+Subject: Re: [PATCH v3 00/14] imx-media: Fixes for interlaced capture
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
+ <db3940a6-d837-9b6a-1f1e-122dda1e1650@xs4all.nl>
+ <0701dea4-f3b7-fda9-0dd0-f717a868991d@gmail.com>
+ <fcfade70-b5c2-7ce2-ab04-1471e61eedd4@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <79e24ed6-080c-6259-84a0-baf4a8e42d0f@gmail.com>
+Date: Thu, 4 Oct 2018 11:26:50 -0700
+MIME-Version: 1.0
+In-Reply-To: <fcfade70-b5c2-7ce2-ab04-1471e61eedd4@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-WITFkROoIaAo+RDmdg+G
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-Le jeudi 04 octobre 2018 =C3=A0 14:47 +0200, Paul Kocialkowski a =C3=A9crit=
- :
-> > +    Instance of struct v4l2_ctrl_h264_scaling_matrix, containing the s=
-caling
-> > +    matrix to use when decoding the next queued frame. Applicable to t=
-he H.264
-> > +    stateless decoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAM``
->=20
-> Ditto with "H264_SLICE_PARAMS".
->=20
-> > +    Array of struct v4l2_ctrl_h264_slice_param, containing at least as=
- many
-> > +    entries as there are slices in the corresponding ``OUTPUT`` buffer=
-.
-> > +    Applicable to the H.264 stateless decoder.
-> > +
-> > +``V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAM``
-> > +    Instance of struct v4l2_ctrl_h264_decode_param, containing the hig=
-h-level
-> > +    decoding parameters for a H.264 frame. Applicable to the H.264 sta=
-teless
-> > +    decoder.
->=20
-> Since we require all the macroblocks to decode one frame to be held in
-> the same OUTPUT buffer, it probably doesn't make sense to keep
-> DECODE_PARAM and SLICE_PARAM distinct.
->=20
-> I would suggest merging both in "SLICE_PARAMS", similarly to what I
-> have proposed for H.265: https://patchwork.kernel.org/patch/10578023/
->=20
-> What do you think?
+On 10/04/2018 06:41 AM, Hans Verkuil wrote:
+> On 10/04/18 01:21, Steve Longerbeam wrote:
+>> Hi Hans,
+>>
+>>
+>> On 10/01/2018 03:07 AM, Hans Verkuil wrote:
+>>> Hi Steve,
+>>>
+>>> On 08/01/2018 09:12 PM, Steve Longerbeam wrote:
+>>>> A set of patches that fixes some bugs with capturing from an
+>>>> interlaced source, and incompatibilites between IDMAC interlace
+>>>> interweaving and 4:2:0 data write reduction.
+>>> I reviewed this series and it looks fine to me.
+>> Cool.
+>>
+>>> It appears that the ipu* patches are already merged, so can you rebase and
+>>> repost?
+>> Done. There are still two ipu* patches that still need a merge:
+>>
+>> gpu: ipu-csi: Swap fields according to input/output field types
+>> gpu: ipu-v3: Add planar support to interlaced scan
+>>
+>> so those will still be included in the v4 submission.
+>>
+>>> I would also like to see the 'v4l2-compliance -f' for an interlaced source,
+>>> if at all possible.
+>> Sure, I've run 'v4l2-compliance -f' on two configured pipelines: unprocessed
+>> capture (no scaling, CSC, rotation using ipu), and a VDIC de-interlace
+>> pipeline.
+>>
+>> I have the text output, the output is huge but here is the abbreviated
+>> results:
+>>
+>> Unprocessed pipeline:
+>>
+>> root@mx6q:/home/fu# v4l2-compliance -d4 -f
+>> v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
+>> <snip>
+>> test VIDIOC_G/S/ENUMINPUT: FAIL
+>> <snip>
+>> test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+> This looks like something that should work. Not relevant for this patch
+> series, but something you should look into.
 
-I don't understand why we add this arbitrary restriction of "all the
-macroblocks to decode one frame". The bitstream may contain multiple
-NALs per frame (e.g. slices), and stateless API shall pass each NAL
-separately imho. The driver can then decide to combine them if needed,
-or to keep them seperate. I would expect most decoder to decode each
-slice independently from each other, even though they write into the
-same frame.
+Yes, I've been meaning to implement (UN)SUBSCRIBE_EVENT/DQEVENT
+at the capture interface. I'll send a patch soon.
 
-Nicolas
+>
+>> <snip>
+>>
+>> Total: 715, Succeeded: 713, Failed: 2, Warnings: 0
+>>
+>>
+>> VDIC de-interlace pipeline:
+>>
+>> root@mx6q:/home/fu# v4l2-compliance -d1 -f
+>> v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
+>> <snip>
+>> test VIDIOC_G/S/ENUMINPUT: FAIL
+>> <snip>
+>> test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+>> <snip>
+>> test VIDIOC_G/S_PARM: FAIL
+> Same here: this appears to be an actual bug. But also not related to this
+> patch series.
 
---=-WITFkROoIaAo+RDmdg+G
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+It's because the capture interface passes vidioc_[gs]_parm down to its
+connected source subdevice as [gs]_frame_interval, which in this case
+is PRPVF, which just accepts whatever frame interval is requested. Not
+sure why v4l2-compliance reports an error, but perhaps [gs]_frame_interval
+should be chained, until it reaches a subdevice that actually cares about
+frame intervals (in this case CSI and VDIC), similar to how [gs]_stream is
+chained. Anyway something else to look at later.
 
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCW7ZXfAAKCRBxUwItrAao
-HN+lAJ9mLHnynjV7/5/fV/twzlfr93Ny3gCfQWLpOzVsima2HI6MxxdFSOCBSBE=
-=qB0v
------END PGP SIGNATURE-----
-
---=-WITFkROoIaAo+RDmdg+G--
+Steve
