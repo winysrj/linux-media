@@ -1,542 +1,1111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:46180 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727234AbeJDSp7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 14:45:59 -0400
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48544 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727234AbeJDSqC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 14:46:02 -0400
+Subject: Re: [PATCH 1/2] media: add SECO cec driver
+To: jacopo mondi <jacopo@jmondi.org>, ektor5 <ek5.chimenti@gmail.com>
+Cc: luca.pisani@udoo.org, jose.abreu@synopsys.com, sean@mess.org,
+        sakari.ailus@linux.intel.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.1538474121.git.ek5.chimenti@gmail.com>
+ <c212cb1142a412f980176b9c86fa7f6c96092cb1.1538474121.git.ek5.chimenti@gmail.com>
+ <20181003093532.GF20786@w540>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c2bfdb30-e8ed-7a4e-422d-ca852db988e9@xs4all.nl>
 Date: Thu, 4 Oct 2018 13:52:54 +0200
-From: Benjamin Valentin <benpicco@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Anssi Hannula <anssi.hannula@iki.fi>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        linux-input@vger.kernel.org
-Subject: [PATCHv2] media: rc: add driver for Xbox DVD Movie Playback Kit
-Message-ID: <20181004135254.07b1b3b3@rechenknecht2k11>
-In-Reply-To: <20181004035234.08507a71@rechenknecht2k11>
-References: <20181004035234.08507a71@rechenknecht2k11>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20181003093532.GF20786@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Xbox DVD Movie Playback Kit is a USB dongle with an IR remote for the
-Original Xbox.
+On 10/03/18 11:35, jacopo mondi wrote:
+> Hi Ettore,
+>     thanks for the patch.
+> 
+> A few comments below, please have a look...
+> 
+> On Tue, Oct 02, 2018 at 06:59:55PM +0200, ektor5 wrote:
+>> From: Ettore Chimenti <ek5.chimenti@gmail.com>
+>>
+>> This patch adds support to the CEC device implemented with a STM32
+>> microcontroller in X86 SECO Boards, including UDOO X86.
+>>
+>> The communication is achieved via Braswell integrated SMBus
+>> (i2c-i801). The driver use direct access to the PCI addresses, due to
+>> the limitations of the specific driver in presence of ACPI calls.
+>>
+>> The basic functionalities are tested with success with cec-ctl and
+>> cec-compliance.
+>>
+>> Inspired by cros-ec-cec implementation, attaches to i915 driver
+>> cec-notifier.
+>>
+>> Signed-off-by: Ettore Chimenti <ek5.chimenti@gmail.com>
+>> ---
+>>  MAINTAINERS                                |   6 +
+>>  drivers/media/platform/Kconfig             |  11 +
+>>  drivers/media/platform/Makefile            |   4 +
+>>  drivers/media/platform/seco-cec/Makefile   |   1 +
+>>  drivers/media/platform/seco-cec/seco-cec.c | 729 +++++++++++++++++++++
+>>  drivers/media/platform/seco-cec/seco-cec.h | 132 ++++
+>>  6 files changed, 883 insertions(+)
+>>  create mode 100644 drivers/media/platform/seco-cec/Makefile
+>>  create mode 100644 drivers/media/platform/seco-cec/seco-cec.c
+>>  create mode 100644 drivers/media/platform/seco-cec/seco-cec.h
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index 4ece30f15777..1062912a5ff4 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -12972,6 +12972,12 @@ L:	sdricohcs-devel@lists.sourceforge.net (subscribers-only)
+>>  S:	Maintained
+>>  F:	drivers/mmc/host/sdricoh_cs.c
+>>
+>> +SECO BOARDS CEC DRIVER
+>> +M:	Ettore Chimenti <ek5.chimenti@gmail.com>
+>> +S:	Maintained
+>> +F:	drivers/media/platform/seco-cec/seco-cec.c
+>> +F:	drivers/media/platform/seco-cec/seco-cec.h
+>> +
+>>  SECURE COMPUTING
+>>  M:	Kees Cook <keescook@chromium.org>
+>>  R:	Andy Lutomirski <luto@amacapital.net>
+>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>> index 94c1fe0e9787..f477764b902a 100644
+>> --- a/drivers/media/platform/Kconfig
+>> +++ b/drivers/media/platform/Kconfig
+>> @@ -613,6 +613,17 @@ config VIDEO_TEGRA_HDMI_CEC
+>>  	 The CEC bus is present in the HDMI connector and enables communication
+>>  	 between compatible devices.
+>>
+>> +config VIDEO_SECO_CEC
+>> +       tristate "SECO Boards HDMI CEC driver"
+>> +       depends on (X86 || IA64) || COMPILE_TEST
+>> +       select CEC_CORE
+>> +       select CEC_NOTIFIER
+>> +       help
+>> +         This is a driver for SECO Boards integrated CEC interface. It uses the
+>> +         generic CEC framework interface.
+> 
+> Is it worth mentioning the software framework used for implementing the driver?
+> Anyway, I see this is common to most of the CEC drivers here, so I
+> guess it is fine
 
-Historically it has been supported by the out-of-tree lirc_xbox driver,
-but this one has fallen out of favour and was just dropped from popular
-Kodi (formerly XBMC) distributions.
+It's not worth mentioning :-)
 
-This driver is heaviely based on the ati_remote driver where all the
-boilerplate was taken from - I was mostly just removing code.
+Not sure how and why that phrase crept into cec driver Kconfigs.
 
-Signed-off-by: Benjamin Valentin <benpicco@googlemail.com>
----
-Changes since v1:
+> 
+>> +         CEC bus is present in the HDMI connector and enables communication
+>> +         between compatible devices.
+>> +
+>>  endif #CEC_PLATFORM_DRIVERS
+>>
+>>  menuconfig SDR_PLATFORM_DRIVERS
+>> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+>> index 41322ab65802..cc7365c787ba 100644
+>> --- a/drivers/media/platform/Makefile
+>> +++ b/drivers/media/platform/Makefile
+>> @@ -53,6 +53,10 @@ obj-$(CONFIG_VIDEO_TEGRA_HDMI_CEC)	+= tegra-cec/
+>>
+>>  obj-y					+= stm32/
+>>
+>> +obj-$(CONFIG_VIDEO_SECO_CEC)		+= seco-cec/
+>> +
+>> +obj-y                                   += blackfin/
+>> +
+> 
+> Ups! Is this a leftover from some BSP code? It breaks the build on
+> media-tree master (and I guess on master too)
+> 
+>>  obj-y					+= davinci/
+>>
+>>  obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
+>> diff --git a/drivers/media/platform/seco-cec/Makefile b/drivers/media/platform/seco-cec/Makefile
+>> new file mode 100644
+>> index 000000000000..a3f2c6bd3ac0
+>> --- /dev/null
+>> +++ b/drivers/media/platform/seco-cec/Makefile
+>> @@ -0,0 +1 @@
+>> +obj-$(CONFIG_VIDEO_SECO_CEC) += seco-cec.o
+> 
+> This can simply be obj-y as you parse this makefile entry
+> conditionally to the presence of the CONFIG_VIDEO_SECO_CEC symbol
+> 
+>> diff --git a/drivers/media/platform/seco-cec/seco-cec.c b/drivers/media/platform/seco-cec/seco-cec.c
+>> new file mode 100644
+>> index 000000000000..ba3b7c144a87
+>> --- /dev/null
+>> +++ b/drivers/media/platform/seco-cec/seco-cec.c
+>> @@ -0,0 +1,729 @@
+>> +// SPDX-License-Identifier: GPL-2.0 AND BSD-3-Clause
+> 
+> Just make sure the AND is what you want (I only see OR clauses in
+> drivers/ code). See Documentation/process/license-rules.rst
+> 
+>> +/*
+>> + *
+> Nit: empty comment line
+>> + * CEC driver for SECO X86 Boards
+>> + *
+>> + * Author:  Ettore Chimenti <ek5.chimenti@gmail.com>
+>> + * Copyright (C) 2018, SECO Srl.
+>> + * Copyright (C) 2018, Aidilab Srl.
+>> + *
+> Nit: empty comment line
+>> + */
+>> +
+>> +#include <linux/interrupt.h>
+>> +#include <linux/gpio.h>
+>> +#include <linux/gpio/consumer.h>
+>> +#include <linux/acpi.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/delay.h>
+>> +#include <linux/pci.h>
+>> +#include <linux/dmi.h>
+>> +
+>> +/* CEC Framework */
+>> +#include <media/cec.h>
+>> +
+>> +#include "seco-cec.h"
+> 
+> I would question why a header file is needed as it is not included by
+> anything else
+> 
+>> +
+>> +struct secocec_data {
+>> +	struct device *dev;
+>> +	struct platform_device *pdev;
+>> +	struct cec_adapter *cec_adap;
+>> +	struct cec_notifier *notifier;
+>> +	int irq;
+>> +};
+>> +
+>> +#define smb_wr16(cmd, data) smb_word_op(CMD_WORD_DATA, SECOCEC_MICRO_ADDRESS, \
+>> +					     cmd, data, SMBUS_WRITE, NULL)
+>> +#define smb_rd16(cmd, res) smb_word_op(CMD_WORD_DATA, SECOCEC_MICRO_ADDRESS, \
+>> +				       cmd, 0, SMBUS_READ, res)
+>> +
+>> +static int smb_word_op(short data_format, u16 slave_addr, u8 cmd, u16 data,
+>> +		       u8 operation, u16 *result)
+>> +{
+>> +	unsigned int count;
+>> +	short _data_format;
+>> +	int ret, status = 0;
+> 
+> In the rest of the function ret is used only once, and you can use
+> status in its place. Please drop one of the two.
+> 
+>> +
+>> +	switch (data_format) {
+>> +	case CMD_BYTE_DATA:
+>> +		_data_format = BRA_SMB_CMD_BYTE_DATA;
+>> +		break;
+>> +	case CMD_WORD_DATA:
+>> +		_data_format = BRA_SMB_CMD_WORD_DATA;
+>> +		break;
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/* Active wait until ready */
+>> +	for (count = 0; count <= SMBTIMEOUT; ++count) {
+>> +		if (!(inb(HSTS) & BRA_INUSE_STS))
+>> +			break;
+>> +		udelay(SMB_POLL_UDELAY);
+>> +	}
+>> +
+>> +	if (count > SMBTIMEOUT) {
+>> +		/* Reset the lock instead of failing */
+>> +		outb(0xff, HSTS);
+>> +		pr_warn("%s: SMBTIMEOUT\n", __func__);
+> 
+> No pr_debug/pr_warn if possible, please.
+> 
+>> +	}
+>> +
+>> +	outb(0x00, HCNT);
+>> +	outb((u8)(slave_addr & 0xfe) | operation, XMIT_SLVA);
+>> +	outb(cmd, HCMD);
+>> +	inb(HCNT);
+>> +
+>> +	if (operation == SMBUS_WRITE) {
+>> +		outb((u8)data, HDAT0);
+>> +		outb((u8)(data >> 8), HDAT1);
+>> +		pr_debug("%s: WRITE (0x%02x - count %05d): 0x%04x\n",
+>> +			 __func__, cmd, count, data);
+>> +	}
+>> +
+>> +	outb(BRA_START + _data_format, HCNT);
+>> +
+>> +	for (count = 0; count <= SMBTIMEOUT; count++) {
+>> +		if (!(inb(HSTS) & BRA_HOST_BUSY))
+>> +			break;
+>> +		udelay(SMB_POLL_UDELAY);
+>> +	}
+>> +
+>> +	if (count > SMBTIMEOUT) {
+>> +		pr_debug("%s: SMBTIMEOUT_1\n", __func__);
+>> +		status = -EBUSY;
+>> +		goto err;
+>> +	}
+>> +
+>> +	ret = inb(HSTS);
+>> +	if (ret & BRA_HSTS_ERR_MASK) {
+>> +		pr_debug("%s: HSTS(0x%02X): 0x%X\n", __func__, cmd, ret);
+>> +		status = -EIO;
+>> +		goto err;
+>> +	}
+>> +
+>> +	if (operation == SMBUS_READ) {
+>> +		*result = ((inb(HDAT0) & 0xff) + ((inb(HDAT1) & 0xff) << 8));
+>> +		pr_debug("%s: READ (0x%02x - count %05d): 0x%04x\n",
+>> +			 __func__, cmd, count, *result);
+>> +	}
+>> +
+>> +err:
+>> +	outb(0xff, HSTS);
+>> +	return status;
+>> +}
+>> +
+>> +static int secocec_adap_enable(struct cec_adapter *adap, bool enable)
+>> +{
+>> +	struct secocec_data *cec = cec_get_drvdata(adap);
+>> +	struct device *dev = cec->dev;
+>> +	u16 val = 0;
+>> +	int status;
+>> +
+>> +	if (enable) {
+>> +		/* Clear the status register */
+>> +		status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		status = smb_wr16(SECOCEC_STATUS_REG_1, val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		/* Enable the interrupts */
+>> +		status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		status = smb_wr16(SECOCEC_ENABLE_REG_1,
+>> +				  val | SECOCEC_ENABLE_REG_1_CEC);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		dev_dbg(dev, "Device enabled");
+>> +
+> 
+> Empty line
+> 
+>> +	} else {
+>> +		/* Clear the status register */
+>> +		status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		status = smb_wr16(SECOCEC_STATUS_REG_1, val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		/* Disable the interrupts */
+>> +		status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		status = smb_wr16(SECOCEC_ENABLE_REG_1, val &
+>> +				  ~SECOCEC_ENABLE_REG_1_CEC &
+>> +				  ~SECOCEC_ENABLE_REG_1_IR);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		dev_dbg(dev, "Device disabled");
+>> +	}
+>> +
+>> +	return 0;
+>> +err:
+>> +	dev_err(dev, "Adapter setup failed (%d)", status);
+>> +	return status;
+>> +}
+>> +
+>> +static int secocec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
+>> +{
+>> +	u16 enable_val = 0;
+>> +	int status;
+>> +
+>> +	/* Disable device */
+>> +	status = smb_rd16(SECOCEC_ENABLE_REG_1, &enable_val);
+>> +	if (status)
+>> +		return status;
+>> +
+>> +	status = smb_wr16(SECOCEC_ENABLE_REG_1,
+>> +			  enable_val & ~SECOCEC_ENABLE_REG_1_CEC);
+>> +	if (status)
+>> +		return status;
+>> +
+>> +	/* Write logical address */
+>> +	status = smb_wr16(SECOCEC_DEVICE_LA, logical_addr);
+>> +	if (status)
+>> +		return status;
+>> +
+>> +	/* Re-enable device */
+>> +	status = smb_wr16(SECOCEC_ENABLE_REG_1,
+>> +			  enable_val | SECOCEC_ENABLE_REG_1_CEC);
+>> +	if (status)
+>> +		return status;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int secocec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+>> +				 u32 signal_free_time, struct cec_msg *msg)
+>> +{
+>> +	struct secocec_data *cec = cec_get_drvdata(adap);
+>> +	struct device *dev = cec->dev;
+>> +	u16 payload_len, payload_id_len, destination, val = 0;
+>> +	u8 *payload_msg;
+>> +	int status;
+>> +	u8 i;
+>> +
+>> +	/* Device msg len already accounts for header */
+>> +	payload_id_len = msg->len - 1;
+>> +
+>> +	/* Send data length */
+>> +	status = smb_wr16(SECOCEC_WRITE_DATA_LENGTH, payload_id_len);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	/* Send Operation ID if present */
+>> +	if (payload_id_len > 0) {
+>> +		status = smb_wr16(SECOCEC_WRITE_OPERATION_ID, msg->msg[1]);
+>> +		if (status)
+>> +			goto err;
+>> +	}
+>> +	/* Send data if present */
+>> +	if (payload_id_len > 1) {
+>> +		/* Only data; */
+>> +		payload_len = msg->len - 2;
+>> +		payload_msg = &msg->msg[2];
+>> +
+>> +		/* Copy message into registers */
+>> +		for (i = 0; i < payload_len / 2 + payload_len % 2; i++) {
+>> +			/* hi byte */
+>> +			val = payload_msg[(i << 1) + 1] << 8;
+>> +
+>> +			/* lo byte */
+>> +			val |= payload_msg[(i << 1)];
+>> +
+>> +			status = smb_wr16(SECOCEC_WRITE_DATA_00 + i, val);
+>> +			if (status)
+>> +				goto err;
+>> +		}
+>> +	}
+>> +	/* Send msg source/destination and fire msg */
+>> +	destination = msg->msg[0];
+>> +	status = smb_wr16(SECOCEC_WRITE_BYTE0, destination);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	return 0;
+>> +
+>> +err:
+>> +	dev_err(dev, "Transmit failed (%d)", status);
+>> +	return status;
+>> +}
+>> +
+>> +static int secocec_tx_done(struct cec_adapter *adap, u16 status_val)
+>> +{
+>> +	int status = 0;
+>> +
+>> +	if (status_val & SECOCEC_STATUS_TX_ERROR_MASK) {
+>> +		if (status_val & SECOCEC_STATUS_TX_NACK_ERROR) {
+>> +			cec_transmit_attempt_done(adap, CEC_TX_STATUS_NACK);
+>> +			status = -EAGAIN;
+>> +		} else {
+>> +			cec_transmit_attempt_done(adap, CEC_TX_STATUS_ERROR);
+>> +			status = -EIO;
+>> +		}
+>> +	} else {
+>> +		cec_transmit_attempt_done(adap, CEC_TX_STATUS_OK);
+>> +	}
+>> +
+>> +	/* Reset status reg */
+>> +	status_val = SECOCEC_STATUS_TX_ERROR_MASK |
+>> +		SECOCEC_STATUS_MSG_SENT_MASK |
+>> +		SECOCEC_STATUS_TX_NACK_ERROR;
+>> +	smb_wr16(SECOCEC_STATUS, status_val);
+>> +
+>> +	return status;
+>> +}
+>> +
+>> +static int secocec_rx_done(struct cec_adapter *adap, u16 status_val)
+>> +{
+>> +	struct secocec_data *cec = cec_get_drvdata(adap);
+>> +	struct device *dev = cec->dev;
+>> +	struct cec_msg msg = { };
+>> +	bool flag_overflow = false;
+>> +	u8 payload_len, i = 0;
+>> +	u8 *payload_msg;
+>> +	u16 val = 0;
+>> +	int status;
+>> +
+>> +	if (status_val & SECOCEC_STATUS_RX_OVERFLOW_MASK) {
+>> +		dev_warn(dev, "Received more than 16 bytes. Discarding");
+>> +		flag_overflow = true;
+>> +	}
+>> +
+>> +	if (status_val & SECOCEC_STATUS_RX_ERROR_MASK) {
+>> +		dev_warn(dev, "Message received with errors. Discarding");
+>> +		status = -EIO;
+>> +		goto rxerr;
+>> +	}
+>> +
+>> +	/* Read message length */
+>> +	status = smb_rd16(SECOCEC_READ_DATA_LENGTH, &val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	dev_dbg(dev, "Incoming message (payload len %d):", val);
+>> +
+>> +	/* Device msg len already accounts for the header */
+>> +	msg.len = min(val + 1, CEC_MAX_MSG_SIZE);
+>> +
+>> +	/* Read logical address */
+>> +	status = smb_rd16(SECOCEC_READ_BYTE0, &val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	/* device stores source LA and destination */
+>> +	msg.msg[0] = val;
+>> +
+>> +	/* Read operation ID if present */
+>> +	if (msg.len > 0) {
+> 
+> Am I wrong or msg.len is at least (val + 1) and val is never negative?
+> If that's true, this condition is always verified.
+> 
+>> +		status = smb_rd16(SECOCEC_READ_OPERATION_ID, &val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		msg.msg[1] = val;
+>> +	}
+>> +
+>> +	/* Read data if present */
+>> +	if (msg.len > 1) {
+>> +		payload_len = msg.len - 2;
+>> +		payload_msg = &msg.msg[2];
+>> +
+>> +		/* device stores 2 bytes in every 16-bit val */
+>> +		for (i = 0; i < payload_len / 2 + payload_len % 2; i++) {
+>> +			status = smb_rd16(SECOCEC_READ_DATA_00 + i, &val);
+>> +			if (status)
+>> +				goto err;
+>> +
+>> +			/* low byte, skipping header */
+>> +			payload_msg[(i << 1)] = val & 0x00ff;
+>> +
+>> +			/* hi byte */
+>> +			payload_msg[(i << 1) + 1] = (val & 0xff00) >> 8;
+>> +		}
+>> +	}
+>> +
+>> +	cec_received_msg(cec->cec_adap, &msg);
+>> +
+>> +	/* Reset status reg */
+>> +	status_val = SECOCEC_STATUS_MSG_RECEIVED_MASK;
+>> +	if (flag_overflow)
+>> +		status_val |= SECOCEC_STATUS_RX_OVERFLOW_MASK;
+>> +
+>> +	status = smb_wr16(SECOCEC_STATUS, status_val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	dev_dbg(dev, "Message received successfully");
+>> +
+>> +	return 0;
+>> +
+>> +rxerr:
+>> +	/* Reset error reg */
+>> +	status_val = SECOCEC_STATUS_MSG_RECEIVED_MASK |
+>> +		SECOCEC_STATUS_RX_ERROR_MASK;
+>> +	if (flag_overflow)
+>> +		status_val |= SECOCEC_STATUS_RX_OVERFLOW_MASK;
+>> +	smb_wr16(SECOCEC_STATUS, status_val);
+>> +
+>> +err:
+>> +	dev_err(dev, "Receive message failed (%d)", status);
+>> +	return status;
+>> +}
+>> +
+>> +struct cec_adap_ops secocec_cec_adap_ops = {
+>> +	/* Low-level callbacks */
+>> +	.adap_enable = secocec_adap_enable,
+>> +	.adap_log_addr = secocec_adap_log_addr,
+>> +	.adap_transmit = secocec_adap_transmit,
+>> +};
+>> +
+>> +static irqreturn_t secocec_irq_handler(int irq, void *priv)
+>> +{
+>> +	struct secocec_data *cec = priv;
+>> +	struct device *dev = cec->dev;
+>> +	u16 status_val, cec_val, val = 0;
+>> +	int status;
+>> +
+>> +	/*  Read status register */
+>> +	status = smb_rd16(SECOCEC_STATUS_REG_1, &status_val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	if (status_val & SECOCEC_STATUS_REG_1_CEC) {
+>> +		dev_dbg(dev, "+++++ CEC Interrupt Caught");
+> 
+> Just be carefull in too much printouts while handling interrupts.
+> Also, I would not insert custom printout formats (here and below in
+> this functions). I would simply drop this one.
+> 
+>> +
+>> +		/* Read CEC status register */
+>> +		status = smb_rd16(SECOCEC_STATUS, &cec_val);
+>> +		if (status)
+>> +			goto err;
+>> +
+>> +		if (cec_val & SECOCEC_STATUS_MSG_RECEIVED_MASK)
+>> +			secocec_rx_done(cec->cec_adap, cec_val);
+>> +
+>> +		if (cec_val & SECOCEC_STATUS_MSG_SENT_MASK)
+>> +			secocec_tx_done(cec->cec_adap, cec_val);
+>> +
+>> +		if ((~cec_val & SECOCEC_STATUS_MSG_SENT_MASK) &&
+>> +		    (~cec_val & SECOCEC_STATUS_MSG_RECEIVED_MASK))
+>> +			dev_warn(dev,
+>> +				 "Message not received or sent, but interrupt fired \\_\"._/");
+> 
+> No custom funny printouts please :)
+> 
+>> +
+>> +		val = SECOCEC_STATUS_REG_1_CEC;
+>> +	}
+>> +
+>> +	if (status_val & SECOCEC_STATUS_REG_1_IR) {
+>> +		dev_dbg(dev, "IR RC5 Interrupt Caught");
+> 
+> How frequent is this one? Do you need to print it out?
+> 
+>> +		val |= SECOCEC_STATUS_REG_1_IR;
+>> +		/* TODO IRDA RX */
+>> +	}
+>> +
+>> +	/*  Reset status register */
+>> +	status = smb_wr16(SECOCEC_STATUS_REG_1, val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	dev_dbg(dev, "----- CEC Interrupt Handled");
+> 
+> Drop this one please
+> 
+>> +
+>> +	return IRQ_HANDLED;
+>> +
+>> +err:
+>> +	dev_err(dev, "IRQ: Read/Write SMBus operation failed (%d)", status);
+>> +
+>> +	/*  Reset status register */
+>> +	val = SECOCEC_STATUS_REG_1_CEC | SECOCEC_STATUS_REG_1_IR;
+>> +	smb_wr16(SECOCEC_STATUS_REG_1, val);
+>> +
+>> +	return IRQ_HANDLED;
+>> +}
+>> +
+>> +struct cec_dmi_match {
+>> +	char *sys_vendor;
+>> +	char *product_name;
+>> +	char *devname;
+>> +	char *conn;
+>> +};
+>> +
+>> +static const struct cec_dmi_match secocec_dmi_match_table[] = {
+>> +	/* UDOO X86 */
+>> +	{ "SECO", "UDOO x86", "0000:00:02.0", "Port B" },
+>> +};
+>> +
+>> +static int secocec_cec_get_notifier(struct cec_notifier **notify)
 
-I discovered some more dead code leftover from the ati_remote driver.
-I also removed the open_mutex which I think is not needed here since
-this driver, unlike ati_remote, doesn't register both a rc and an input
-device.
-This also allowed me to collapse some functions.
+If you compare this driver with cros-ec-cec.c, then you'll see that
+there this function is under "#if IS_ENABLED(CONFIG_PCI) && IS_ENABLED(CONFIG_DMI)".
 
- MAINTAINERS                            |   6 +
- drivers/media/rc/Kconfig               |  11 +
- drivers/media/rc/Makefile              |   1 +
- drivers/media/rc/keymaps/Makefile      |   1 +
- drivers/media/rc/keymaps/rc-xbox-dvd.c |  63 +++++
- drivers/media/rc/xbox_remote.c         | 342 +++++++++++++++++++++++++
- include/media/rc-map.h                 |   1 +
- 7 files changed, 425 insertions(+)
- create mode 100644 drivers/media/rc/keymaps/rc-xbox-dvd.c
- create mode 100644 drivers/media/rc/xbox_remote.c
+I think you should do the same and (just like cros-ec-cec.c) add a dummy function
+in the #else part.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 22065048d89d..712a51a1a955 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -15973,6 +15973,12 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git x86/vdso
- S:	Maintained
- F:	arch/x86/entry/vdso/
- 
-+XBOX DVD IR REMOTE
-+M:	Benjamin Valentin <benpicco@googlemail.com>
-+S:	Maintained
-+F:	drivers/media/rc/xbox_remote.c
-+F:	drivers/media/rc/keymaps/rc-xbox-dvd.c
-+
- XC2028/3028 TUNER DRIVER
- M:	Mauro Carvalho Chehab <mchehab@kernel.org>
- L:	linux-media@vger.kernel.org
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 1021c08a9ba4..05489294ebbc 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -493,6 +493,17 @@ config IR_TANGO
- 	   The HW decoder supports NEC, RC-5, RC-6 IR protocols.
- 	   When compiled as a module, look for tango-ir.
- 
-+config CONFIG_RC_XBOX_DVD
-+	tristate "Xbox DVD Movie Playback Kit"
-+	depends on RC_CORE
-+	select USB
-+	help
-+	   Say Y here if you want to use the Xbox DVD Movie Playback Kit.
-+	   These are IR remotes with USB receivers for the Original Xbox (2001).
-+
-+	   To compile this driver as a module, choose M here: the module will be
-+	   called xbox_remote.
-+
- config IR_ZX
- 	tristate "ZTE ZX IR remote control"
- 	depends on RC_CORE
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index e0340d043fe8..92c163816849 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -48,3 +48,4 @@ obj-$(CONFIG_IR_SIR) += sir_ir.o
- obj-$(CONFIG_IR_MTK) += mtk-cir.o
- obj-$(CONFIG_IR_ZX) += zx-irdec.o
- obj-$(CONFIG_IR_TANGO) += tango-ir.o
-+obj-$(CONFIG_RC_XBOX_DVD) += xbox_remote.o
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index d6b913a3032d..5b1399af6b3a 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -116,4 +116,5 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-winfast.o \
- 			rc-winfast-usbii-deluxe.o \
- 			rc-su3000.o \
-+			rc-xbox-dvd.o \
- 			rc-zx-irdec.o
-diff --git a/drivers/media/rc/keymaps/rc-xbox-dvd.c b/drivers/media/rc/keymaps/rc-xbox-dvd.c
-new file mode 100644
-index 000000000000..61da6706715c
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-xbox-dvd.c
-@@ -0,0 +1,63 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+// Keytable for Xbox DVD remote
-+// Copyright (c) 2018 by Benjamin Valentin <benpicco@googlemail.com>
-+
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+
-+/* based on lircd.conf.xbox */
-+static struct rc_map_table xbox_dvd[] = {
-+	{0x0b, KEY_OK},
-+	{0xa6, KEY_UP},
-+	{0xa7, KEY_DOWN},
-+	{0xa8, KEY_RIGHT},
-+	{0xa9, KEY_LEFT},
-+	{0xc3, KEY_INFO},
-+
-+	{0xc6, KEY_9},
-+	{0xc7, KEY_8},
-+	{0xc8, KEY_7},
-+	{0xc9, KEY_6},
-+	{0xca, KEY_5},
-+	{0xcb, KEY_4},
-+	{0xcc, KEY_3},
-+	{0xcd, KEY_2},
-+	{0xce, KEY_1},
-+	{0xcf, KEY_0},
-+
-+	{0xd5, KEY_ANGLE},
-+	{0xd8, KEY_BACK},
-+	{0xdd, KEY_PREVIOUSSONG},
-+	{0xdf, KEY_NEXTSONG},
-+	{0xe0, KEY_STOP},
-+	{0xe2, KEY_REWIND},
-+	{0xe3, KEY_FASTFORWARD},
-+	{0xe5, KEY_TITLE},
-+	{0xe6, KEY_PAUSE},
-+	{0xea, KEY_PLAY},
-+	{0xf7, KEY_MENU},
-+};
-+
-+static struct rc_map_list xbox_dvd_map = {
-+	.map = {
-+		.scan     = xbox_dvd,
-+		.size     = ARRAY_SIZE(xbox_dvd),
-+		.rc_proto = RC_PROTO_UNKNOWN,
-+		.name     = RC_MAP_XBOX_DVD,
-+	}
-+};
-+
-+static int __init init_rc_map(void)
-+{
-+	return rc_map_register(&xbox_dvd_map);
-+}
-+
-+static void __exit exit_rc_map(void)
-+{
-+	rc_map_unregister(&xbox_dvd_map);
-+}
-+
-+module_init(init_rc_map)
-+module_exit(exit_rc_map)
-+
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/rc/xbox_remote.c b/drivers/media/rc/xbox_remote.c
-new file mode 100644
-index 000000000000..c8a7ce7e7f60
---- /dev/null
-+++ b/drivers/media/rc/xbox_remote.c
-@@ -0,0 +1,342 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+// Driver for Xbox DVD Movie Playback Kit
-+// Copyright (c) 2018 by Benjamin Valentin <benpicco@googlemail.com>
-+
-+/*
-+ *  Xbox DVD Movie Playback Kit USB IR dongle support
-+ *
-+ *  The driver was derived from the ati_remote driver 2.2.1 and used information from lirc_xbox.c
-+ *                Copyright (c) 2011, 2012 Anssi Hannula <anssi.hannula@iki.fi>
-+ *                Copyright (c) 2004 Torrey Hoffman <thoffman@arnor.net>
-+ *                Copyright (c) 2002 Vladimir Dergachev
-+ *                Copyright (c) 2003-2004 Paul Miller <pmiller9@users.sourceforge.net>
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/usb/input.h>
-+#include <media/rc-core.h>
-+
-+/*
-+ * Module and Version Information, Module Parameters
-+ */
-+
-+#define DRIVER_VERSION	"1.0.0"
-+#define DRIVER_AUTHOR	"Benjamin Valentin <benpicco@flauschlabor.de>"
-+#define DRIVER_DESC		"Xbox DVD USB Remote Control"
-+
-+#define NAME_BUFSIZE      80    /* size of product name, path buffers */
-+#define DATA_BUFSIZE      16    /* size of URB data buffers */
-+
-+static int debug;
-+module_param(debug, int, 0644);
-+MODULE_PARM_DESC(debug, "Enable extra debug messages and information");
-+
-+#define dbginfo(dev, format, arg...) \
-+	do { if (debug) dev_info(dev, format, ## arg); } while (0)
-+#undef err
-+#define err(format, arg...) printk(KERN_ERR format, ## arg)
-+
-+/* USB vendor ids for XBOX DVD Dongles */
-+#define VENDOR_GAMESTER     0x040b
-+#define VENDOR_MICROSOFT    0x045e
-+
-+static const struct usb_device_id xbox_remote_table[] = {
-+	/* Gamester Xbox DVD Movie Playback Kit IR */
-+	{
-+		USB_DEVICE(VENDOR_GAMESTER, 0x6521),
-+	},
-+	/* Microsoft Xbox DVD Movie Playback Kit IR */
-+	{
-+		USB_DEVICE(VENDOR_MICROSOFT, 0x0284),
-+	},
-+	{}	/* Terminating entry */
-+};
-+
-+MODULE_DEVICE_TABLE(usb, xbox_remote_table);
-+
-+struct xbox_remote {
-+	struct rc_dev *rdev;
-+	struct usb_device *udev;
-+	struct usb_interface *interface;
-+
-+	struct urb *irq_urb;
-+	struct usb_endpoint_descriptor *endpoint_in;
-+	unsigned char *inbuf;
-+	dma_addr_t inbuf_dma;
-+
-+	char rc_name[NAME_BUFSIZE];
-+	char rc_phys[NAME_BUFSIZE];
-+};
-+
-+static int xbox_remote_rc_open(struct rc_dev *rdev)
-+{
-+	struct xbox_remote *xbox_remote = rdev->priv;
-+
-+	/* On first open, submit the read urb which was set up previously. */
-+	xbox_remote->irq_urb->dev = xbox_remote->udev;
-+	if (usb_submit_urb(xbox_remote->irq_urb, GFP_KERNEL)) {
-+		dev_err(&xbox_remote->interface->dev,
-+			"%s: usb_submit_urb failed!\n", __func__);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static void xbox_remote_rc_close(struct rc_dev *rdev)
-+{
-+	struct xbox_remote *xbox_remote = rdev->priv;
-+	usb_kill_urb(xbox_remote->irq_urb);
-+}
-+
-+/*
-+ * xbox_remote_report_input
-+ */
-+static void xbox_remote_input_report(struct urb *urb)
-+{
-+	struct xbox_remote *xbox_remote = urb->context;
-+	unsigned char *data = xbox_remote->inbuf;
-+
-+	/*
-+	 * data[0] = 0x00
-+	 * data[1] = length - always 0x06
-+	 * data[2] = the key code
-+	 * data[3] = high part of key code? - always 0x0a
-+	 * data[4] = last_press_ms (low)
-+	 * data[5] = last_press_ms (high)
-+	 */
-+
-+	/* Deal with strange looking inputs */
-+	if (urb->actual_length != 6 || urb->actual_length != data[1]) {
-+		dev_warn(&urb->dev->dev, "Weird data, len=%d: %*ph\n", urb->actual_length, urb->actual_length, data);
-+		return;
-+	}
-+
-+	dbginfo(&urb->dev->dev, "got data, len=%d: %*ph\n", urb->actual_length, urb->actual_length, data);
-+	rc_keydown(xbox_remote->rdev, RC_PROTO_UNKNOWN, data[2], 0);
-+}
-+
-+/*
-+ * xbox_remote_irq_in
-+ */
-+static void xbox_remote_irq_in(struct urb *urb)
-+{
-+	struct xbox_remote *xbox_remote = urb->context;
-+	int retval;
-+
-+	switch (urb->status) {
-+	case 0:			/* success */
-+		xbox_remote_input_report(urb);
-+		break;
-+	case -ECONNRESET:	/* unlink */
-+	case -ENOENT:
-+	case -ESHUTDOWN:
-+		dev_dbg(&xbox_remote->interface->dev,
-+			"%s: urb error status, unlink?\n",
-+			__func__);
-+		return;
-+	default:		/* error */
-+		dev_dbg(&xbox_remote->interface->dev,
-+			"%s: Nonzero urb status %d\n",
-+			__func__, urb->status);
-+	}
-+
-+	retval = usb_submit_urb(urb, GFP_ATOMIC);
-+	if (retval)
-+		dev_err(&xbox_remote->interface->dev,
-+			"%s: usb_submit_urb()=%d\n",
-+			__func__, retval);
-+}
-+
-+/*
-+ * xbox_remote_alloc_buffers
-+ */
-+static int xbox_remote_alloc_buffers(struct usb_device *udev,
-+				    struct xbox_remote *xbox_remote)
-+{
-+	xbox_remote->inbuf = usb_alloc_coherent(udev, DATA_BUFSIZE, GFP_ATOMIC,
-+					       &xbox_remote->inbuf_dma);
-+	if (!xbox_remote->inbuf)
-+		return -1;
-+
-+	xbox_remote->irq_urb = usb_alloc_urb(0, GFP_KERNEL);
-+	if (!xbox_remote->irq_urb)
-+		return -1;
-+
-+	return 0;
-+}
-+
-+/*
-+ * xbox_remote_free_buffers
-+ */
-+static void xbox_remote_free_buffers(struct xbox_remote *xbox_remote)
-+{
-+	usb_free_urb(xbox_remote->irq_urb);
-+
-+	usb_free_coherent(xbox_remote->udev, DATA_BUFSIZE,
-+		xbox_remote->inbuf, xbox_remote->inbuf_dma);
-+}
-+
-+static void xbox_remote_rc_init(struct xbox_remote *xbox_remote)
-+{
-+	struct rc_dev *rdev = xbox_remote->rdev;
-+
-+	rdev->priv = xbox_remote;
-+	rdev->allowed_protocols = RC_PROTO_BIT_UNKNOWN;
-+	rdev->driver_name = "xbox_remote";
-+
-+	rdev->open = xbox_remote_rc_open;
-+	rdev->close = xbox_remote_rc_close;
-+
-+	rdev->device_name = xbox_remote->rc_name;
-+	rdev->input_phys = xbox_remote->rc_phys;
-+
-+	usb_to_input_id(xbox_remote->udev, &rdev->input_id);
-+	rdev->dev.parent = &xbox_remote->interface->dev;
-+}
-+
-+static int xbox_remote_initialize(struct xbox_remote *xbox_remote)
-+{
-+	struct usb_device *udev = xbox_remote->udev;
-+	int pipe, maxp;
-+
-+	/* Set up irq_urb */
-+	pipe = usb_rcvintpipe(udev, xbox_remote->endpoint_in->bEndpointAddress);
-+	maxp = usb_maxpacket(udev, pipe, usb_pipeout(pipe));
-+	maxp = (maxp > DATA_BUFSIZE) ? DATA_BUFSIZE : maxp;
-+
-+	usb_fill_int_urb(xbox_remote->irq_urb, udev, pipe, xbox_remote->inbuf,
-+			 maxp, xbox_remote_irq_in, xbox_remote,
-+			 xbox_remote->endpoint_in->bInterval);
-+	xbox_remote->irq_urb->transfer_dma = xbox_remote->inbuf_dma;
-+	xbox_remote->irq_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-+
-+	return 0;
-+}
-+
-+/*
-+ * xbox_remote_probe
-+ */
-+static int xbox_remote_probe(struct usb_interface *interface,
-+	const struct usb_device_id *id)
-+{
-+	struct usb_device *udev = interface_to_usbdev(interface);
-+	struct usb_host_interface *iface_host = interface->cur_altsetting;
-+	struct usb_endpoint_descriptor *endpoint_in;
-+	struct xbox_remote *xbox_remote;
-+	struct rc_dev *rc_dev;
-+	int err = -ENOMEM;
-+
-+	// why is there also a device with no endpoints?
-+	if (iface_host->desc.bNumEndpoints == 0)
-+		return -ENODEV;
-+
-+	if (iface_host->desc.bNumEndpoints != 1) {
-+		err("%s: Unexpected desc.bNumEndpoints: %d\n", __func__, iface_host->desc.bNumEndpoints);
-+		return -ENODEV;
-+	}
-+
-+	endpoint_in = &iface_host->endpoint[0].desc;
-+
-+	if (!usb_endpoint_is_int_in(endpoint_in)) {
-+		err("%s: Unexpected endpoint_in\n", __func__);
-+		return -ENODEV;
-+	}
-+	if (le16_to_cpu(endpoint_in->wMaxPacketSize) == 0) {
-+		err("%s: endpoint_in message size==0?\n", __func__);
-+		return -ENODEV;
-+	}
-+
-+	xbox_remote = kzalloc(sizeof(*xbox_remote), GFP_KERNEL);
-+	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
-+	if (!xbox_remote || !rc_dev)
-+		goto exit_free_dev_rdev;
-+
-+	/* Allocate URB buffers, URBs */
-+	if (xbox_remote_alloc_buffers(udev, xbox_remote))
-+		goto exit_free_buffers;
-+
-+	xbox_remote->endpoint_in = endpoint_in;
-+	xbox_remote->udev = udev;
-+	xbox_remote->rdev = rc_dev;
-+	xbox_remote->interface = interface;
-+
-+	usb_make_path(udev, xbox_remote->rc_phys, sizeof(xbox_remote->rc_phys));
-+
-+	strlcat(xbox_remote->rc_phys, "/input0", sizeof(xbox_remote->rc_phys));
-+
-+	snprintf(xbox_remote->rc_name, sizeof(xbox_remote->rc_name), "%s%s%s",
-+		udev->manufacturer ?: "",
-+		udev->manufacturer && udev->product ? " " : "",
-+		udev->product ?: "");
-+
-+	if (!strlen(xbox_remote->rc_name))
-+		snprintf(xbox_remote->rc_name, sizeof(xbox_remote->rc_name),
-+			DRIVER_DESC "(%04x,%04x)",
-+			le16_to_cpu(xbox_remote->udev->descriptor.idVendor),
-+			le16_to_cpu(xbox_remote->udev->descriptor.idProduct));
-+
-+	rc_dev->map_name = RC_MAP_XBOX_DVD; /* default map */
-+
-+	xbox_remote_rc_init(xbox_remote);
-+
-+	/* Device Hardware Initialization - fills in xbox_remote->idev from udev. */
-+	err = xbox_remote_initialize(xbox_remote);
-+	if (err)
-+		goto exit_kill_urbs;
-+
-+	/* Set up and register rc device */
-+	err = rc_register_device(xbox_remote->rdev);
-+	if (err)
-+		goto exit_kill_urbs;
-+
-+	usb_set_intfdata(interface, xbox_remote);
-+
-+	return 0;
-+
-+exit_kill_urbs:
-+	usb_kill_urb(xbox_remote->irq_urb);
-+exit_free_buffers:
-+	xbox_remote_free_buffers(xbox_remote);
-+exit_free_dev_rdev:
-+	rc_free_device(rc_dev);
-+	kfree(xbox_remote);
-+
-+	return err;
-+}
-+
-+/*
-+ * xbox_remote_disconnect
-+ */
-+static void xbox_remote_disconnect(struct usb_interface *interface)
-+{
-+	struct xbox_remote *xbox_remote;
-+
-+	xbox_remote = usb_get_intfdata(interface);
-+	usb_set_intfdata(interface, NULL);
-+	if (!xbox_remote) {
-+		dev_warn(&interface->dev, "%s - null device?\n", __func__);
-+		return;
-+	}
-+
-+	usb_kill_urb(xbox_remote->irq_urb);
-+	rc_unregister_device(xbox_remote->rdev);
-+	xbox_remote_free_buffers(xbox_remote);
-+	kfree(xbox_remote);
-+}
-+
-+/* usb specific object to register with the usb subsystem */
-+static struct usb_driver xbox_remote_driver = {
-+	.name         = "xbox_remote",
-+	.probe        = xbox_remote_probe,
-+	.disconnect   = xbox_remote_disconnect,
-+	.id_table     = xbox_remote_table,
-+};
-+
-+module_usb_driver(xbox_remote_driver);
-+
-+MODULE_AUTHOR(DRIVER_AUTHOR);
-+MODULE_DESCRIPTION(DRIVER_DESC);
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index bfa3017cecba..d621acadfbf3 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -277,6 +277,7 @@ struct rc_map *rc_map_get(const char *name);
- #define RC_MAP_WINFAST                   "rc-winfast"
- #define RC_MAP_WINFAST_USBII_DELUXE      "rc-winfast-usbii-deluxe"
- #define RC_MAP_SU3000                    "rc-su3000"
-+#define RC_MAP_XBOX_DVD                  "rc-xbox-dvd"
- #define RC_MAP_ZX_IRDEC                  "rc-zx-irdec"
- 
- /*
--- 
-2.17.1
+>> +{
+>> +	int i;
+>> +
+>> +	for (i = 0 ; i < ARRAY_SIZE(secocec_dmi_match_table) ; ++i) {
+>> +		const struct cec_dmi_match *m = &secocec_dmi_match_table[i];
+>> +
+>> +		if (dmi_match(DMI_SYS_VENDOR, m->sys_vendor) &&
+>> +		    dmi_match(DMI_PRODUCT_NAME, m->product_name)) {
+>> +			struct device *d;
+>> +
+>> +			/* Find the device, bail out if not yet registered */
+>> +			d = bus_find_device_by_name(&pci_bus_type, NULL,
+>> +						    m->devname);
+>> +			if (!d)
+>> +				return -EPROBE_DEFER;
+>> +
+>> +			*notify = cec_notifier_get_conn(d, m->conn);
+> 
+> Nit: it's usually nice to have an empty line before return (here and in
+> other places). Not mandatory though.
+> 
+>> +			return 0;
+>> +		}
+>> +	}
+>> +
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +static int secocec_acpi_probe(struct secocec_data *sdev)
+>> +{
+>> +	struct device *dev = sdev->dev;
+>> +	struct gpio_desc *gpio;
+>> +	int irq = 0;
+>> +
+>> +	gpio = devm_gpiod_get(dev, NULL, GPIOF_IN);
+>> +	if (IS_ERR(gpio)) {
+>> +		dev_err(dev, "Cannot request interrupt gpio");
+>> +		return PTR_ERR(gpio);
+>> +	}
+>> +
+>> +	irq = gpiod_to_irq(gpio);
+>> +	if (irq < 0) {
+>> +		dev_err(dev, "Cannot find valid irq");
+>> +		return -ENODEV;
+>> +	}
+>> +	dev_dbg(dev, "irq-gpio is bound to IRQ %d", irq);
+>> +
+>> +	sdev->irq = irq;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int secocec_probe(struct platform_device *pdev)
+>> +{
+>> +	struct secocec_data *secocec;
+>> +	struct device *dev = &pdev->dev;
+>> +	u8 cec_caps;
+>> +	int ret;
+>> +	u16 val;
+>> +
+>> +	secocec = devm_kzalloc(dev, sizeof(*secocec), GFP_KERNEL);
+>> +	if (!secocec)
+>> +		return -ENOMEM;
+>> +
+>> +	dev_set_drvdata(dev, secocec);
+>> +
+>> +	/* Request SMBus regions */
+>> +	if (!request_muxed_region(BRA_SMB_BASE_ADDR, 7, "CEC00001")) {
+>> +		dev_err(dev, "Request memory region failed");
+>> +		return -ENXIO;
+>> +	}
+>> +
+>> +	secocec->pdev = pdev;
+>> +	secocec->dev = dev;
+>> +
+>> +	if (!has_acpi_companion(dev)) {
+>> +		dev_dbg(dev, "Cannot find any ACPI companion");
+>> +		ret = -ENODEV;
+>> +		goto err;
+>> +	}
+>> +
+>> +	ret = secocec_acpi_probe(secocec);
+>> +	if (ret) {
+>> +		dev_err(dev, "Cannot assign gpio to IRQ");
+>> +		ret = -ENODEV;
+>> +		goto err;
+>> +	}
+>> +
+>> +	dev_dbg(dev, "IRQ detected at %d", secocec->irq);
+>> +
+>> +	/* Firmware version check */
+>> +	ret = smb_rd16(SECOCEC_VERSION, &val);
+>> +	if (ret) {
+>> +		dev_err(dev, "Cannot check fw version");
+>> +		goto err;
+>> +	}
+>> +	if (val < SECOCEC_LATEST_FW) {
+>> +		dev_err(dev, "CEC Firmware not supported (v.%04x). Use ver > v.%04x",
+>> +			val, SECOCEC_LATEST_FW);
+>> +		ret = -EINVAL;
+>> +		goto err;
+>> +	}
+>> +
+>> +#ifdef CONFIG_CEC_NOTIFIER
+> 
+> Your Kconfig entry selects CEC_NOTIFIER.
+
+Yes, this #ifdef line can be dropped.
+
+> 
+> (I won't comment on the cec_notifier handling part, as I don't know
+> much. I just see other drivers registering and getting the notifier
+> using the cec_notifier_ functions, while it seems to me you don't.
+> Maybe it's fine...)
+
+It's fine :-)
+
+> 
+>> +	ret = secocec_cec_get_notifier(&secocec->notifier);
+>> +	if (ret) {
+>> +		dev_err(dev, "no CEC notifier available\n");
+>> +		goto err;
+>> +	}
+>> +#endif
+>> +
+>> +	ret = devm_request_threaded_irq(dev,
+>> +					secocec->irq,
+>> +					NULL,
+>> +					secocec_irq_handler,
+>> +					IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+>> +					dev_name(&pdev->dev), secocec);
+>> +
+>> +	if (ret) {
+>> +		dev_err(dev, "Cannot request IRQ %d", secocec->irq);
+>> +		ret = -EIO;
+>> +		goto err;
+>> +	}
+>> +
+>> +	/* Allocate CEC adapter */
+>> +	cec_caps = CEC_CAP_DEFAULTS;
+>> +
+>> +	secocec->cec_adap = cec_allocate_adapter(&secocec_cec_adap_ops,
+>> +						 secocec,
+>> +						 dev_name(dev),
+>> +						 cec_caps, SECOCEC_MAX_ADDRS);
+
+You can drop cec_caps and just pass CEC_CAP_DEFAULTS directly.
+
+>> +
+>> +	if (IS_ERR(secocec->cec_adap)) {
+>> +		ret = PTR_ERR(secocec->cec_adap);
+>> +		goto err;
+>> +	}
+>> +
+>> +	ret = cec_register_adapter(secocec->cec_adap, dev);
+>> +	if (ret)
+>> +		goto err_delete_adapter;
+>> +
+>> +	if (secocec->notifier)
+>> +		cec_register_cec_notifier(secocec->cec_adap, secocec->notifier);
+>> +
+>> +	platform_set_drvdata(pdev, secocec);
+>> +
+>> +	dev_dbg(dev, "Device registered");
+>> +
+>> +	return ret;
+>> +
+>> +err_delete_adapter:
+>> +	cec_delete_adapter(secocec->cec_adap);
+>> +err:
+>> +	dev_err(dev, "%s device probe failed\n", dev_name(dev));
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +/* ----------------------------------------------------------------------- */
+>> +
+>> +static int secocec_remove(struct platform_device *pdev)
+>> +{
+>> +	struct secocec_data *secocec = platform_get_drvdata(pdev);
+>> +
+>> +	cec_unregister_adapter(secocec->cec_adap);
+>> +
+>> +	if (secocec->notifier)
+>> +		cec_notifier_put(secocec->notifier);
+>> +
+>> +	release_region(BRA_SMB_BASE_ADDR, 7);
+>> +
+>> +	dev_dbg(&pdev->dev, "CEC device removed");
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/* ----------------------------------------------------------------------- */
+>> +
+>> +#ifdef CONFIG_PM_SLEEP
+> 
+> I see CONFIG_PM_SLEEP is only selected if support for
+> 'suspend'/'hibernate' is enabled. Is this what you want, or you should
+> check for CONFIG_PM?
+> 
+>> +static int secocec_suspend(struct device *dev)
+>> +{
+>> +	u16 val;
+>> +	int status;
+>> +
+>> +	dev_dbg(dev, "Device going to suspend, disabling");
+>> +
+>> +	/* Clear the status register */
+>> +	status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	status = smb_wr16(SECOCEC_STATUS_REG_1, val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	/* Disable the interrupts */
+>> +	status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	status = smb_wr16(SECOCEC_ENABLE_REG_1, val &
+>> +			  ~SECOCEC_ENABLE_REG_1_CEC & ~SECOCEC_ENABLE_REG_1_IR);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	return 0;
+>> +
+>> +err:
+>> +	dev_err(dev, "Suspend failed (err: %d)", status);
+>> +	return status;
+>> +}
+>> +
+>> +static int secocec_resume(struct device *dev)
+>> +{
+>> +	u16 val;
+>> +	int status;
+>> +
+>> +	dev_dbg(dev, "Resuming device from suspend");
+>> +
+>> +	/* Clear the status register */
+>> +	status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	status = smb_wr16(SECOCEC_STATUS_REG_1, val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	/* Enable the interrupts */
+>> +	status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	status = smb_wr16(SECOCEC_ENABLE_REG_1, val | SECOCEC_ENABLE_REG_1_CEC);
+>> +	if (status)
+>> +		goto err;
+>> +
+>> +	dev_dbg(dev, "Device resumed from suspend");
+>> +
+>> +	return 0;
+>> +
+>> +err:
+>> +	dev_err(dev, "Resume failed (err: %d)", status);
+>> +	return status;
+>> +}
+>> +
+>> +static SIMPLE_DEV_PM_OPS(secocec_pm_ops, secocec_suspend, secocec_resume);
+>> +#define SECOCEC_PM_OPS (&secocec_pm_ops)
+>> +#else
+>> +#define SECOCEC_PM_OPS NULL
+>> +#endif
+>> +
+>> +#ifdef CONFIG_ACPI
+>> +static const struct acpi_device_id secocec_acpi_match[] = {
+>> +	{"CEC00001", 0},
+>> +	{},
+>> +};
+>> +
+>> +MODULE_DEVICE_TABLE(acpi, secocec_acpi_match);
+>> +#endif
+>> +
+>> +static struct platform_driver secocec_driver = {
+>> +	.driver = {
+>> +		   .name = SECOCEC_DEV_NAME,
+>> +		   .acpi_match_table = ACPI_PTR(secocec_acpi_match),
+>> +		   .pm = SECOCEC_PM_OPS,
+>> +	},
+>> +	.probe = secocec_probe,
+>> +	.remove = secocec_remove,
+>> +};
+> 
+> As you can see most of my comments are nits or trivial things. I would
+> wait for more feedbacks on the CEC and x86/SMbus part from others before
+> sending v2 if I were you :)
+> 
+> Thanks
+>    j
+> 
+> 
+>> +
+>> +module_platform_driver(secocec_driver);
+>> +
+>> +MODULE_DESCRIPTION("SECO CEC X86 Driver");
+>> +MODULE_AUTHOR("Ettore Chimenti <ek5.chimenti@gmail.com>");
+>> +MODULE_LICENSE("Dual BSD/GPL");
+>> diff --git a/drivers/media/platform/seco-cec/seco-cec.h b/drivers/media/platform/seco-cec/seco-cec.h
+>> new file mode 100644
+>> index 000000000000..cc7f0cba8e9e
+>> --- /dev/null
+>> +++ b/drivers/media/platform/seco-cec/seco-cec.h
+>> @@ -0,0 +1,132 @@
+>> +/* SPDX-License-Identifier: GPL-2.0 AND BSD-3-Clause */
+>> +/*
+>> + *
+>> + * SECO X86 Boards CEC register defines
+>> + *
+>> + * Author:  Ettore Chimenti <ek5.chimenti@gmail.com>
+>> + * Copyright (C) 2018, SECO Srl.
+>> + * Copyright (C) 2018, Aidilab Srl.
+>> + *
+>> + */
+>> +
+>> +#ifndef __SECO_CEC_H__
+>> +#define __SECO_CEC_H__
+>> +
+>> +#define SECOCEC_MAX_ADDRS		1
+>> +#define SECOCEC_DEV_NAME		"secocec"
+>> +#define SECOCEC_LATEST_FW		0x0f0b
+>> +
+>> +#define SMBTIMEOUT			0xffff
+>> +#define SMB_POLL_UDELAY			10
+>> +
+>> +#define SMBUS_WRITE			0
+>> +#define SMBUS_READ			1
+>> +
+>> +#define CMD_BYTE_DATA			0
+>> +#define CMD_WORD_DATA			1
+>> +
+>> +/*
+>> + * SMBus definitons for Braswell
+>> + */
+>> +
+>> +#define BRA_DONE_STATUS			BIT(7)
+>> +#define BRA_INUSE_STS			BIT(6)
+>> +#define BRA_FAILED_OP			BIT(4)
+>> +#define BRA_BUS_ERR			BIT(3)
+>> +#define BRA_DEV_ERR			BIT(2)
+>> +#define BRA_INTR			BIT(1)
+>> +#define BRA_HOST_BUSY			BIT(0)
+>> +#define BRA_HSTS_ERR_MASK   (BRA_FAILED_OP | BRA_BUS_ERR | BRA_DEV_ERR)
+>> +
+>> +#define BRA_PEC_EN			BIT(7)
+>> +#define BRA_START			BIT(6)
+>> +#define BRA_LAST__BYTE			BIT(5)
+>> +#define BRA_INTREN			BIT(0)
+>> +#define BRA_SMB_CMD			(7 << 2)
+>> +#define BRA_SMB_CMD_QUICK		(0 << 2)
+>> +#define BRA_SMB_CMD_BYTE		(1 << 2)
+>> +#define BRA_SMB_CMD_BYTE_DATA		(2 << 2)
+>> +#define BRA_SMB_CMD_WORD_DATA		(3 << 2)
+>> +#define BRA_SMB_CMD_PROCESS_CALL	(4 << 2)
+>> +#define BRA_SMB_CMD_BLOCK		(5 << 2)
+>> +#define BRA_SMB_CMD_I2CREAD		(6 << 2)
+>> +#define BRA_SMB_CMD_BLOCK_PROCESS	(7 << 2)
+>> +
+>> +#define BRA_SMB_BASE_ADDR  0x2040
+>> +#define HSTS               (BRA_SMB_BASE_ADDR + 0)
+>> +#define HCNT               (BRA_SMB_BASE_ADDR + 2)
+>> +#define HCMD               (BRA_SMB_BASE_ADDR + 3)
+>> +#define XMIT_SLVA          (BRA_SMB_BASE_ADDR + 4)
+>> +#define HDAT0              (BRA_SMB_BASE_ADDR + 5)
+>> +#define HDAT1              (BRA_SMB_BASE_ADDR + 6)
+>> +
+>> +/*
+>> + * Microcontroller Address
+>> + */
+>> +
+>> +#define SECOCEC_MICRO_ADDRESS		0x40
+>> +
+>> +/*
+>> + * STM32 SMBus Registers
+>> + */
+>> +
+>> +#define SECOCEC_VERSION			0x00
+>> +#define SECOCEC_ENABLE_REG_1		0x01
+>> +#define SECOCEC_ENABLE_REG_2		0x02
+>> +#define SECOCEC_STATUS_REG_1		0x03
+>> +#define SECOCEC_STATUS_REG_2		0x04
+>> +
+>> +#define SECOCEC_STATUS			0x28
+>> +#define SECOCEC_DEVICE_LA		0x29
+>> +#define SECOCEC_READ_OPERATION_ID	0x2a
+>> +#define SECOCEC_READ_DATA_LENGTH	0x2b
+>> +#define SECOCEC_READ_DATA_00		0x2c
+>> +#define SECOCEC_READ_DATA_02		0x2d
+>> +#define SECOCEC_READ_DATA_04		0x2e
+>> +#define SECOCEC_READ_DATA_06		0x2f
+>> +#define SECOCEC_READ_DATA_08		0x30
+>> +#define SECOCEC_READ_DATA_10		0x31
+>> +#define SECOCEC_READ_DATA_12		0x32
+>> +#define SECOCEC_READ_BYTE0		0x33
+>> +#define SECOCEC_WRITE_OPERATION_ID	0x34
+>> +#define SECOCEC_WRITE_DATA_LENGTH	0x35
+>> +#define SECOCEC_WRITE_DATA_00		0x36
+>> +#define SECOCEC_WRITE_DATA_02		0x37
+>> +#define SECOCEC_WRITE_DATA_04		0x38
+>> +#define SECOCEC_WRITE_DATA_06		0x39
+>> +#define SECOCEC_WRITE_DATA_08		0x3a
+>> +#define SECOCEC_WRITE_DATA_10		0x3b
+>> +#define SECOCEC_WRITE_DATA_12		0x3c
+>> +#define SECOCEC_WRITE_BYTE0		0x3d
+>> +
+>> +#define SECOCEC_IR_READ_DATA		0x3e
+>> +
+>> +/*
+>> + * Enabling register
+>> + */
+>> +
+>> +#define SECOCEC_ENABLE_REG_1_CEC		0x1000
+>> +#define SECOCEC_ENABLE_REG_1_IR			0x2000
+>> +#define SECOCEC_ENABLE_REG_1_IR_PASSTHROUGH	0x4000
+>> +
+>> +/*
+>> + * Status register
+>> + */
+>> +
+>> +#define SECOCEC_STATUS_REG_1_CEC	SECOCEC_ENABLE_REG_1_CEC
+>> +#define SECOCEC_STATUS_REG_1_IR		SECOCEC_ENABLE_REG_1_IR
+>> +#define SECOCEC_STATUS_REG_1_IR_PASSTHR	SECOCEC_ENABLE_REG_1_IR_PASSTHR
+>> +
+>> +/*
+>> + * Status data
+>> + */
+>> +
+>> +#define SECOCEC_STATUS_MSG_RECEIVED_MASK	BIT(0)
+>> +#define SECOCEC_STATUS_RX_ERROR_MASK		BIT(1)
+>> +#define SECOCEC_STATUS_MSG_SENT_MASK		BIT(2)
+>> +#define SECOCEC_STATUS_TX_ERROR_MASK		BIT(3)
+>> +
+>> +#define SECOCEC_STATUS_TX_NACK_ERROR		BIT(4)
+>> +#define SECOCEC_STATUS_RX_OVERFLOW_MASK		BIT(5)
+>> +
+>> +#endif /* __SECO_CEC_H__ */
+>> --
+>> 2.18.0
+>>
+
+Regards,
+
+	Hans
