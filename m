@@ -1,323 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:40526 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727183AbeJDSeJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 14:34:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v3] media: docs: add glossary.rst with common terms used at V4L2 spec
-Date: Thu, 04 Oct 2018 14:41:30 +0300
-Message-ID: <2646453.94SmjfbUfy@avalon>
-In-Reply-To: <02e399c34a614182ecfa4212cc610fe7d57024f4.1537902727.git.mchehab+samsung@kernel.org>
-References: <02e399c34a614182ecfa4212cc610fe7d57024f4.1537902727.git.mchehab+samsung@kernel.org>
+Received: from gofer.mess.org ([88.97.38.141]:49247 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727354AbeJDUmy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 16:42:54 -0400
+Date: Thu, 4 Oct 2018 14:49:27 +0100
+From: Sean Young <sean@mess.org>
+To: ektor5 <ek5.chimenti@gmail.com>
+Cc: hverkuil@xs4all.nl, luca.pisani@udoo.org, jose.abreu@synopsys.com,
+        sakari.ailus@linux.intel.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] seco-cec: add Consumer-IR support
+Message-ID: <20181004134927.ox7alorufq56f2ux@gofer.mess.org>
+References: <cover.1538474121.git.ek5.chimenti@gmail.com>
+ <beeab2fa9a2906ecaebb225dc88ca4c0c88dd14b.1538474121.git.ek5.chimenti@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <beeab2fa9a2906ecaebb225dc88ca4c0c88dd14b.1538474121.git.ek5.chimenti@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-(CC'ing Kieran)
-
-Thank you for the patch.
-
-On Tuesday, 25 September 2018 22:14:51 EEST Mauro Carvalho Chehab wrote:
-> From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->=20
-> Add a glossary of terms used within the media userspace API
-> documentation, as several concepts are complex enough to cause
-> misunderstandings.
->=20
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+On Tue, Oct 02, 2018 at 06:59:56PM +0200, ektor5 wrote:
+> From: Ettore Chimenti <ek5.chimenti@gmail.com>
+> 
+> Introduce support for Consumer-IR into seco-cec driver, as it shares the
+> same interrupt for receiving messages.
+> The device decodes RC5 signals only, defaults to hauppauge mapping.
+> It will spawn an input interface using the RC framework (like CEC
+> device).
+> 
+> Signed-off-by: Ettore Chimenti <ek5.chimenti@gmail.com>
 > ---
->=20
-> v3:
->   - Add SPDX header and dual-license the glossary
->   - Make glossary generic enough to be used for all media uAPI
-> documentation; - Add a few new items to the glossary, to imply that it
-> covers not only V4L2; - Move it to the uAPI document as a hole.
->=20
-> v2: Did some changes based on Sakari's feedback.
->=20
->  Documentation/media/media_uapi.rst    |   3 +
->  Documentation/media/uapi/glossary.rst | 162 ++++++++++++++++++++++++++
->  2 files changed, 165 insertions(+)
->  create mode 100644 Documentation/media/uapi/glossary.rst
->=20
-> diff --git a/Documentation/media/media_uapi.rst
-> b/Documentation/media/media_uapi.rst index 28eb35a1f965..41f091a26003
-> 100644
-> --- a/Documentation/media/media_uapi.rst
-> +++ b/Documentation/media/media_uapi.rst
-> @@ -2,6 +2,8 @@
->=20
->  .. include:: <isonum.txt>
->=20
-> +.. _media_uapi:
-> +
->  ########################################
->  Linux Media Infrastructure userspace API
->  ########################################
-> @@ -31,3 +33,4 @@ License".
->      uapi/cec/cec-api
->      uapi/gen-errors
->      uapi/fdl-appendix
-> +    uapi/glossary
+>  drivers/media/platform/Kconfig             |  10 ++
+>  drivers/media/platform/seco-cec/seco-cec.c | 136 ++++++++++++++++++++-
+>  drivers/media/platform/seco-cec/seco-cec.h |  11 ++
+>  3 files changed, 154 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index f477764b902a..5833f488eef8 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -624,6 +624,16 @@ config VIDEO_SECO_CEC
+>           CEC bus is present in the HDMI connector and enables communication
+>           between compatible devices.
+>  
+> +config VIDEO_SECO_RC
+> +       bool "SECO Boards IR RC5 support"
+> +       depends on VIDEO_SECO_CEC
+> +       select RC_CORE
+> +       help
+> +	 If you say yes here you will get support for the
+> +	 SECO Boards Consumer-IR in seco-cec driver.
+> +         The embedded controller supports RC5 protocol only, default mapping
+> +         is set to rc-hauppauge.
 
-Is there an easy way to cross-reference to the glossary when terms are used=
- ?
-
-> diff --git a/Documentation/media/uapi/glossary.rst
-> b/Documentation/media/uapi/glossary.rst new file mode 100644
-> index 000000000000..9e2a2b29e8b2
-> --- /dev/null
-> +++ b/Documentation/media/uapi/glossary.rst
-> @@ -0,0 +1,162 @@
-> +.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later
-> +
-> +.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-> +..
-> +.. For GFDL-1.1-or-later, see:
-> +..
-> +.. Permission is granted to copy, distribute and/or modify this document
-> +.. under the terms of the GNU Free Documentation License, Version 1.1 or
-> +.. any later version published by the Free Software Foundation, with no
-> +.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-> +.. A copy of the license is included at
-> +.. Documentation/media/uapi/fdl-appendix.rst.
-> +
-> +=3D=3D=3D=3D=3D=3D=3D=3D
-> +Glossary
-> +=3D=3D=3D=3D=3D=3D=3D=3D
-> +
-> +.. note::
-> +
-> +   This goal of section is to standardize the terms used within the media
-> +   userspace API documentation. It is written incrementally as they are
-> +   standardized in the media documentation.
-> +
-> +   So, it is a Work In Progress.
-> +
-> +.. Please keep the glossary entries in alphabetical order
-> +
-> +.. glossary::
-> +
-> +    Bridge driver
-
-Shouldn't all words start with a capital letter ?
-
-> +	A device driver that implements the main logic to talk with
-> +	a media hardware.
-
-Terms that are part of the glossary should also be capitalized (and cross-
-referenced within the glossary).
-
-Hardware is still uncountable in English. I know we've discussed this=20
-previously, but if we want to write a glossary, it should be in English. Ma=
-ybe=20
-we need to involve a native English speaker here. Kieran ? :-)
-
-Additionally, I don't think the definition is correct. Bridges, as defined =
-in=20
-V4L2, are opposed to subdevs, while "media hardware" in your definition=20
-includes everything. This needs to be clarified.
-
-> +	For V4L2 hardware, this is also known as V4L2 main driver.
-
-Do we use the term V4L2 main driver in the V4L2 spec ?
-
-> +    Consumer Electronics Control API
-> +	An API designed to receive and transmit data via a HDMI
-> +	CEC interface.
-
-So the definition of "Consumer Electronics Control" is CEC ? :-) It would b=
-e=20
-more useful to do it the other way around, define CEC as Consumer Electroni=
-cs=20
-Control, and explain what it is.
-
-> +	See :ref:`cec`.
-> +
-> +    Device Node
-> +	A character device node in the file system used to control and do
-> +	input/output data transfers from/to a Kernel driver.
-
-Maybe "and transfer data in and out of a kernel driver" ?
+Strange mixture of spaces/tabs.
 
 > +
-> +    Digital TV API - DVB API
+>  endif #CEC_PLATFORM_DRIVERS
+>  
+>  menuconfig SDR_PLATFORM_DRIVERS
+> diff --git a/drivers/media/platform/seco-cec/seco-cec.c b/drivers/media/platform/seco-cec/seco-cec.c
+> index ba3b7c144a87..ee1949395cf4 100644
+> --- a/drivers/media/platform/seco-cec/seco-cec.c
+> +++ b/drivers/media/platform/seco-cec/seco-cec.c
+> @@ -28,6 +28,9 @@ struct secocec_data {
+>  	struct platform_device *pdev;
+>  	struct cec_adapter *cec_adap;
+>  	struct cec_notifier *notifier;
+> +	struct rc_dev *irda_rc;
+> +	char irda_input_name[32];
+> +	char irda_input_phys[32];
 
-Is DVB the same as Digital TV ? The digital video API (https://linuxtv.org/
-downloads/v4l-dvb-apis-new/uapi/v4l/dv-timings.html) is sometimes referred =
-to=20
-digital TV too. How about standardizing on DVB and avoiding digital TV=20
-completely in the specification ?
+IrDA is a completely different encoding than RC-5, CIR or anything rc-core
+supports; RC-5 is much lower transmission speed. Please do not conflate
+the two, and rename it either ir_input_phys or rc_input_phys (same for the
+rest of the functions/members in the rest of the file).
 
-> +	An API designed to control the media device components related to
-> +	digital TV, including frontends, demuxes, streaming, conditional
-> +	access, etc.
+>  	int irq;
+>  };
+>  
+> @@ -383,6 +386,119 @@ struct cec_adap_ops secocec_cec_adap_ops = {
+>  	.adap_transmit = secocec_adap_transmit,
+>  };
+>  
+> +#ifdef CONFIG_VIDEO_SECO_RC
+> +static int secocec_irda_probe(void *priv)
+> +{
+> +	struct secocec_data *cec = priv;
+> +	struct device *dev = cec->dev;
+> +	int status;
+> +	u16 val;
 > +
-> +	See :ref:`dvbapi`.
-> +
-> +    Digital Signal Processor - DSP
+> +	/* Prepare the RC input device */
+> +	cec->irda_rc = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
+> +	if (!cec->irda_rc) {
+> +		dev_err(dev, "Failed to allocate memory for rc_dev");
 
-Here and below I would put the abbreviation first. If someone looks up a te=
-rm=20
-in the glossary because they don't know what it means, they're more likely =
-to=20
-search for the abbreviation, not the full term.
+No need to dev_err() here, kmalloc() will have already reported the error.
 
-> +	A specialized microprocessor, with its architecture optimized for
-> +	the operational needs of digital signal processing.
+> +		return -ENOMEM;
+> +	}
+> +
+> +	snprintf(cec->irda_input_name, sizeof(cec->irda_input_name),
+> +		 "IrDA RC for %s", dev_name(dev));
 
-Stupid question, do we need this entry in the glossary ? The term DSP doesn=
-'t=20
-seem to be used anywhere in the documentation, and in a video context, I=20
-expect the definition of ISP to be more relevant.
+Since it's an RC device there is no need to put RC in the name. Just
+use dev_name() as the device_name.
 
-I also wonder whether we shouldn't drop terms that are defined by the indus=
-try=20
-(such as DSP, FPGA, I2C, IC, IP core, ISP, Microprocessor, SMBus and SPI), =
-and=20
-only focus on terms that have a custom definition in the Linux media=20
-subsystem.
+> +	snprintf(cec->irda_input_phys, sizeof(cec->irda_input_phys),
+> +		 "%s/input0", dev_name(dev));
+> +
+> +	cec->irda_rc->device_name = cec->irda_input_name;
+> +	cec->irda_rc->input_phys = cec->irda_input_phys;
+> +	cec->irda_rc->input_id.bustype = BUS_HOST;
+> +	cec->irda_rc->input_id.vendor = 0;
+> +	cec->irda_rc->input_id.product = 0;
+> +	cec->irda_rc->input_id.version = 1;
+> +	cec->irda_rc->driver_name = SECOCEC_DEV_NAME;
+> +	cec->irda_rc->allowed_protocols = RC_PROTO_BIT_RC5;
+> +	cec->irda_rc->enabled_protocols = RC_PROTO_BIT_RC5;
 
-> +    Driver
-> +	Part of the Linux Kernel that implements support for a hardware
-> +	component.
-> +
-> +    Field-programmable Gate Array - FPGA
-> +	A field-programmable gate array (FPGA) is an integrated circuit
-> +	designed to be configured by a customer or a designer after
-> +	manufacturing.
-> +
-> +	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-> +
-> +    Inter-Integrated Circuit - I=B2C
-> +	A  multi-master, multi-slave, packet switched, single-ended,
-> +	serial computer bus used to control some hardware components
-> +	like sub-device hardware components.
-> +
-> +	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-> +
-> +    Integrated circuit - IC
-> +	A set of electronic circuits on one small flat piece of
-> +	semiconductor material, normally silicon.
-> +
-> +	Also known as chip.
-> +
-> +    Intelectual property core - IP block
-> +	In electronic design a semiconductor intellectual property core,
-> +	is a reusable unit of logic, cell, or integrated circuit layout
-> +	design that is the intellectual property of one party.
-> +	IP cores may be licensed to another party or can be owned
-> +	and used by a single party alone.
-> +
-> +	See
-> https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-> +
-> +    Image Signal Processor - ISP
-> +	A specialised processor that implements a set of algorithms for
-> +	processing image data. ISPs may implement algorithms for lens
-> +	shading correction, demosaic, scaling and pixel format conversion
-> +	as well as produce statistics for the use of the control
-> +	algorithms (e.g. automatic exposure, white balance and focus).
-> +
-> +    Media API
-> +	A set of userspace APIs used to control a media hardware.
+No need to set enabled_protocols.
 
-How about explcitly listing the APIs that the umbrella term "Media API" cov=
-ers=20
-?
+> +	cec->irda_rc->priv = cec;
+> +	cec->irda_rc->map_name = RC_MAP_HAUPPAUGE;
+> +	cec->irda_rc->timeout = MS_TO_NS(100);
+> +
+> +	/* Clear the status register */
+> +	status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
+> +	if (status != 0)
+> +		goto err;
+> +
+> +	status = smb_wr16(SECOCEC_STATUS_REG_1, val);
+> +	if (status != 0)
+> +		goto err;
+> +
+> +	/* Enable the interrupts */
+> +	status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+> +	if (status != 0)
+> +		goto err;
+> +
+> +	status = smb_wr16(SECOCEC_ENABLE_REG_1,
+> +			  val | SECOCEC_ENABLE_REG_1_IR);
+> +	if (status != 0)
+> +		goto err;
+> +
+> +	dev_dbg(dev, "IR enabled");
+> +
+> +	status = devm_rc_register_device(dev, cec->irda_rc);
+> +
+> +	if (status) {
+> +		dev_err(dev, "Failed to prepare input device");
+> +		cec->irda_rc = NULL;
+> +		goto err;
+> +	}
+> +
+> +	return 0;
+> +
+> +err:
+> +	smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+> +
+> +	smb_wr16(SECOCEC_ENABLE_REG_1,
+> +		 val & ~SECOCEC_ENABLE_REG_1_IR);
+> +
+> +	dev_dbg(dev, "IR disabled");
+> +	return status;
+> +}
+> +
+> +static int secocec_irda_rx(struct secocec_data *priv)
+> +{
+> +	struct secocec_data *cec = priv;
+> +	struct device *dev = cec->dev;
+> +	u16 val, status, key, addr, toggle;
+> +
+> +	if (!cec->irda_rc)
+> +		return -ENODEV;
+> +
+> +	status = smb_rd16(SECOCEC_IR_READ_DATA, &val);
+> +	if (status != 0)
+> +		goto err;
+> +
+> +	key = val & SECOCEC_IR_COMMAND_MASK;
+> +	addr = (val & SECOCEC_IR_ADDRESS_MASK) >> SECOCEC_IR_ADDRESS_SHL;
+> +	toggle = (val & SECOCEC_IR_TOGGLE_MASK) >> SECOCEC_IR_TOGGLE_SHL;
+> +
+> +	rc_keydown(cec->irda_rc, RC_PROTO_RC5, key, toggle);
 
-> +	See :ref:`media_uapi`.
-> +
-> +    Media Controller
-> +	An API designed to expose and control devices and sub-devices'
-> +	relationships to applications.
+Here you are just reported the key, not the address. Please use:
 
-What do you mean by "relationships to applications" ?
+	rc_keydown(cec->rc, RC_PROTO_RC5, RC_SCANCODE_RC5(addr, key), toggle);
 
-> +	See :ref:`media_controller`.
-> +
-> +    Media Hardware
-> +	Subset of a hardware that is supported by the Linux Media API.
-> +
-> +	Includes audio and video capture and playback hardware,
-> +	digital and analog TV, camera sensors, ISPs, remote controllers,
-> +	codecs, HDMI Consumer Electronics Control, HDMI capture, etc.
-> +
-> +
-> +	See :ref:`media_uapi`.
-> +
-> +
+In fact, you could do:
 
-Extra blank space ?
+	rc_keydown(cec->rc, RC_PROTO_RC5, val & 0x1f7f, toggle);
 
-> +    Microprocessor
-> +	An electronic circuitry that carries out the instructions
-> +	of a computer program by performing the basic arithmetic, logical,
-> +	control and input/output (I/O) operations specified by the
-> +	instructions on a single integrated circuit.
+I presume the compile is clever enough to fold those shift instructions.
+
 > +
-> +    Remote Controller API
-> +	An API designed to receive and transmit data from remote
-> +	controllers.
+> +	dev_dbg(dev, "IR key pressed: 0x%02x addr 0x%02x toggle 0x%02x", key,
+> +		addr, toggle);
 > +
-> +	See :ref:`remote_controllers`.
+> +	return 0;
 > +
-> +    SMBus
-> +	A subset of I=B2C, with defines a stricter usage of the bus.
+> +err:
+> +	dev_err(dev, "IR Receive message failed (%d)", status);
+> +	return -EIO;
+> +}
+> +#else
+> +static void secocec_irda_rx(struct secocec_data *priv)
+> +{
+> +}
 > +
-> +    Serial Peripheral Interface Bus - SPI
-> +	Synchronous serial communication interface specification used for
-> +	short distance communication, primarily in embedded systems.
+> +static int secocec_irda_probe(void *priv)
+> +{
+> +	return 0;
+> +}
+> +#endif
 > +
-> +    System on a Chip - SoC
-> +	An integrated circuit that integrates all components of a computer
-> +	or other electronic systems.
+>  static irqreturn_t secocec_irq_handler(int irq, void *priv)
+>  {
+>  	struct secocec_data *cec = priv;
+> @@ -420,7 +536,8 @@ static irqreturn_t secocec_irq_handler(int irq, void *priv)
+>  	if (status_val & SECOCEC_STATUS_REG_1_IR) {
+>  		dev_dbg(dev, "IR RC5 Interrupt Caught");
+>  		val |= SECOCEC_STATUS_REG_1_IR;
+> -		/* TODO IRDA RX */
 > +
-> +    Sub-device hardware components
-> +	V4L2 hardware components that aren't controlled by a
-> +	V4L2 main driver.
+> +		secocec_irda_rx(cec);
+>  	}
+>  
+>  	/*  Reset status register */
+> @@ -595,6 +712,10 @@ static int secocec_probe(struct platform_device *pdev)
+>  	if (secocec->notifier)
+>  		cec_register_cec_notifier(secocec->cec_adap, secocec->notifier);
+>  
+> +	ret = secocec_irda_probe(secocec);
+> +	if (ret)
+> +		goto err_delete_adapter;
 > +
-> +    V4L2 userspace API - V4L2 API
-> +       The userspace API defined at :ref:`v4l2spec`, with is used to
-
-s/at/in/
-
-> control
-> +       a V4L2 hardware.
+>  	platform_set_drvdata(pdev, secocec);
+>  
+>  	dev_dbg(dev, "Device registered");
+> @@ -614,7 +735,16 @@ static int secocec_probe(struct platform_device *pdev)
+>  static int secocec_remove(struct platform_device *pdev)
+>  {
+>  	struct secocec_data *secocec = platform_get_drvdata(pdev);
+> +	u16 val;
 > +
-> +    V4L2 hardware
-> +       Part of a media hardware with is supported by the V4L2
-> +       userspace API.
+> +	if (secocec->irda_rc) {
+> +		smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+>  
+> +		smb_wr16(SECOCEC_ENABLE_REG_1,
+> +			 val & ~SECOCEC_ENABLE_REG_1_IR);
 
-That's kind of a circular definition, isn't it ?
+Those two fit on one line.
 
-> +    V4L2 main driver
-> +	A V4L2 device driver that implements the main logic to talk with
-> +	a V4L2 hardware.
 > +
-> +    V4L2 sub-device
-> +	Part of a media hardware that it is implemented by a device
+> +		dev_dbg(&pdev->dev, "IR disabled");
+> +	}
+>  	cec_unregister_adapter(secocec->cec_adap);
+>  
+>  	if (secocec->notifier)
+> @@ -632,8 +762,8 @@ static int secocec_remove(struct platform_device *pdev)
+>  #ifdef CONFIG_PM_SLEEP
+>  static int secocec_suspend(struct device *dev)
+>  {
+> -	u16 val;
+>  	int status;
+> +	u16 val;
+>  
+>  	dev_dbg(dev, "Device going to suspend, disabling");
+>  
+> @@ -665,8 +795,8 @@ static int secocec_suspend(struct device *dev)
+>  
+>  static int secocec_resume(struct device *dev)
+>  {
+> -	u16 val;
+>  	int status;
+> +	u16 val;
+>  
+>  	dev_dbg(dev, "Resuming device from suspend");
+>  
+> diff --git a/drivers/media/platform/seco-cec/seco-cec.h b/drivers/media/platform/seco-cec/seco-cec.h
+> index cc7f0cba8e9e..c00660104a3e 100644
+> --- a/drivers/media/platform/seco-cec/seco-cec.h
+> +++ b/drivers/media/platform/seco-cec/seco-cec.h
+> @@ -101,6 +101,17 @@
+>  
+>  #define SECOCEC_IR_READ_DATA		0x3e
+>  
+> +/*
+> + * IR
+> + */
+> +
+> +#define SECOCEC_IR_COMMAND_MASK		0x007F
+> +#define SECOCEC_IR_COMMAND_SHL		0
+> +#define SECOCEC_IR_ADDRESS_MASK		0x1F00
+> +#define SECOCEC_IR_ADDRESS_SHL		7
+> +#define SECOCEC_IR_TOGGLE_MASK		0x8000
+> +#define SECOCEC_IR_TOGGLE_SHL		15
+> +
+>  /*
+>   * Enabling register
+>   */
+> -- 
+> 2.18.0
 
-s/it is/is/
-
-> +	driver that is not part of the main V4L2 driver.
-
-I don't think that's correct a V4L2 subdev is a software object, not a piec=
-e=20
-of hardware.
-
-> +	See :ref:`subdev`.
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+Thanks,
+Sean
