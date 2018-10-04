@@ -1,243 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:46758 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727354AbeJDV5H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 17:57:07 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: [PATCH v5] media: docs: add glossary.rst with common terms used at V4L2 spec
-Date: Thu,  4 Oct 2018 12:03:20 -0300
-Message-Id: <44e7493e10f34cacbe7ca27012cd68b1f9446284.1538665378.git.mchehab+samsung@kernel.org>
+Received: from mail.bootlin.com ([62.4.15.54]:42413 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727354AbeJDV5o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 17:57:44 -0400
+Date: Thu, 4 Oct 2018 17:04:02 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        jacopo mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH v3 00/12] media: ov5640: Misc cleanup and improvements
+Message-ID: <20181004150402.uqqmkwbzvmotaq6r@flea>
+References: <20180517085405.10104-1-maxime.ripard@bootlin.com>
+ <b3bac06f-f4d6-7620-2c3d-f8a852920f56@st.com>
+ <20180928160507.4jerbp4dqgz6l4qu@flea>
+ <56139505-6e5c-6d7f-027d-54b51c70b179@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="gaskgnzet4jza5gm"
+Content-Disposition: inline
+In-Reply-To: <56139505-6e5c-6d7f-027d-54b51c70b179@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Add a glossary of terms used within the media userspace API
-documentation, as several concepts are complex enough to cause
-misunderstandings.
+--gaskgnzet4jza5gm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- Documentation/media/media_uapi.rst    |   3 +
- Documentation/media/uapi/glossary.rst | 185 ++++++++++++++++++++++++++
- 2 files changed, 188 insertions(+)
- create mode 100644 Documentation/media/uapi/glossary.rst
+Hi!
 
-diff --git a/Documentation/media/media_uapi.rst b/Documentation/media/media_uapi.rst
-index 28eb35a1f965..41f091a26003 100644
---- a/Documentation/media/media_uapi.rst
-+++ b/Documentation/media/media_uapi.rst
-@@ -2,6 +2,8 @@
- 
- .. include:: <isonum.txt>
- 
-+.. _media_uapi:
-+
- ########################################
- Linux Media Infrastructure userspace API
- ########################################
-@@ -31,3 +33,4 @@ License".
-     uapi/cec/cec-api
-     uapi/gen-errors
-     uapi/fdl-appendix
-+    uapi/glossary
-diff --git a/Documentation/media/uapi/glossary.rst b/Documentation/media/uapi/glossary.rst
-new file mode 100644
-index 000000000000..1dce36707509
---- /dev/null
-+++ b/Documentation/media/uapi/glossary.rst
-@@ -0,0 +1,185 @@
-+.. SPDX-License-Identifier: GPL-2.0 OR GFDL-1.1-or-later
-+
-+.. For GPL-2.0, see LICENSES/preferred/GPL-2.0
-+..
-+.. For GFDL-1.1-or-later, see:
-+..
-+.. Permission is granted to copy, distribute and/or modify this document
-+.. under the terms of the GNU Free Documentation License, Version 1.1 or
-+.. any later version published by the Free Software Foundation, with no
-+.. Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.
-+.. A copy of the license is included at
-+.. Documentation/media/uapi/fdl-appendix.rst.
-+
-+========
-+Glossary
-+========
-+
-+.. note::
-+
-+   This goal of this section is to standardize the terms used within the media
-+   userspace API documentation. It is written incrementally as they are
-+   standardized in the media documentation.
-+
-+   So, it is a Work In Progress.
-+
-+.. Please keep the glossary entries in alphabetical order
-+
-+.. glossary::
-+
-+    Bridge Driver
-+	A :term:`device driver` that implements the main logic to talk with
-+	media hardware.
-+
-+    CEC API
-+	**Consumer Electronics Control API**
-+
-+	An API designed to receive and transmit data via an HDMI
-+	CEC interface.
-+
-+	See :ref:`cec`.
-+
-+    Device Driver
-+	Part of the Linux Kernel that implements support for a hardware
-+	component.
-+
-+    Device Node
-+	A character device node in the file system used to control and
-+	ransfer data in and out of a Kernel driver.
-+
-+    Digital TV API
-+	**Previously known as DVB API**
-+
-+	An API designed to control a subset of the :term:`Media Hardware`
-+	that implements	digital TV.
-+
-+	See :ref:`dvbapi`.
-+
-+    DSP
-+        **Digital Signal Processor**
-+
-+	A specialized :term:`Microprocessor`, with its architecture
-+	optimized for the operational needs of digital signal processing.
-+
-+    FPGA
-+	**Field-programmable Gate Array**
-+
-+	An :term:`IC` circuit designed to be configured by a customer or
-+	a designer after manufacturing.
-+
-+	See https://en.wikipedia.org/wiki/Field-programmable_gate_array.
-+
-+    I²C
-+	**Inter-Integrated Circuit**
-+
-+	A  multi-master, multi-slave, packet switched, single-ended,
-+	serial computer bus used to control some hardware components
-+	like sub-device hardware components.
-+
-+	See http://www.nxp.com/docs/en/user-guide/UM10204.pdf.
-+
-+    IC
-+	**Integrated circuit**
-+
-+	A set of electronic circuits on one small flat piece of
-+	semiconductor material, normally silicon.
-+
-+	Also known as chip.
-+
-+    IP Block
-+	**Intellectual property core**
-+
-+	In electronic design a semiconductor intellectual property core,
-+	is a reusable unit of logic, cell, or integrated circuit layout
-+	design that is the intellectual property of one party.
-+	IP Blocks may be licensed to another party or can be owned
-+	and used by a single party alone.
-+
-+	See https://en.wikipedia.org/wiki/Semiconductor_intellectual_property_core).
-+
-+    ISP
-+	**Image Signal Processor**
-+
-+	A specialized processor that implements a set of algorithms for
-+	processing image data. ISPs may implement algorithms for lens
-+	shading correction, demosaicing, scaling and pixel format conversion
-+	as well as produce statistics for the use of the control
-+	algorithms (e.g. automatic exposure, white balance and focus).
-+
-+    Media API
-+	A set of userspace APIs used to control the media hardware. It is
-+	composed by:
-+
-+	  - :term:`CEC API`;
-+	  - :term:`Digital TV API`;
-+	  - :term:`MC API`;
-+	  - :term:`RC API`; and
-+	  - :term:`V4L2 API`.
-+
-+	See :ref:`media_uapi`.
-+
-+    MC API
-+	**Media Controller API**
-+
-+	An API designed to expose and control the relationships between
-+	devices and sub-devices.
-+
-+	See :ref:`media_controller`.
-+
-+    Media Hardware
-+	Subset of the hardware that is supported by the Linux Media API.
-+
-+	This includes audio and video capture and playback hardware,
-+	digital and analog TV, camera sensors, ISPs, remote controllers,
-+	codecs, HDMI Consumer Electronics Control, HDMI capture, etc.
-+
-+
-+	See :ref:`media_uapi`.
-+
-+    Microprocessor
-+	Electronic circuitry that carries out the instructions of a
-+	computer program by performing the basic arithmetic, logical,
-+	control and input/output (I/O) operations specified by the
-+	instructions on a single integrated circuit.
-+
-+    RC API
-+	**Remote Controller API**
-+
-+	An API designed to receive and transmit data from remote
-+	controllers.
-+
-+	See :ref:`remote_controllers`.
-+
-+    SMBus
-+	A subset of I²C, which defines a stricter usage of the bus.
-+
-+    SPI
-+	**Serial Peripheral Interface Bus**
-+
-+	Synchronous serial communication interface specification used for
-+	short distance communication, primarily in embedded systems.
-+
-+    SoC
-+	**System on a Chip**
-+
-+	An integrated circuit that integrates all components of a computer
-+	or other electronic systems.
-+
-+    V4L2 API
-+	**V4L2 userspace API**
-+
-+	The userspace API defined in :ref:`v4l2spec`, which is used to
-+	control a V4L2 hardware.
-+
-+    V4L2 Hardware
-+	Part of a media hardware with is supported by the :term:`V4L2 API`.
-+
-+    V4L2 Sub-device
-+	V4L2 hardware components that aren't controlled by a
-+	:term:`bridge driver`.
-+
-+    V4L2 Sub-device API
-+	Part of the :term:`V4L2 API` which control
-+	:term:`V4L2 sub-devices <V4L2 Sub-device>`.
-+
-+	See :ref:`subdev`.
--- 
-2.17.1
+On Mon, Oct 01, 2018 at 02:12:31PM +0000, Hugues FRUCHET wrote:
+> >> This is working perfectly fine on my parallel setup and allows me to
+> >> well support VGA@30fps (instead 27) and also support XGA(1024x768)@15f=
+ps
+> >> that I never seen working before.
+> >> So at least for the parallel setup, this serie is working fine for all
+> >> the discrete resolutions and framerate exposed by the driver for the m=
+oment:
+> >> * QCIF 176x144 15/30fps
+> >> * QVGA 320x240 15/30fps
+> >> * VGA 640x480 15/30fps
+> >> * 480p 720x480 15/30fps
+> >> * XGA 1024x768 15/30fps
+> >> * 720p 1280x720 15/30fps
+> >> * 1080p 1920x1080 15/30fps
+> >> * 5Mp 2592x1944 15fps
+> >=20
+> > I'm glad this is working for you as well. I guess I'll resubmit these
+> > patches, but this time making sure someone with a CSI setup tests
+> > before merging. I crtainly don't want to repeat the previous disaster.
+> >=20
+> > Do you have those patches rebased somewhere? I'm not quite sure how to
+> > fix the conflict with the v4l2_find_nearest_size addition.
+> >=20
+> >> Moreover I'm not clear on relationship between rate and pixel clock
+> >> frequency.
+> >> I've understood that to DVP_PCLK_DIVIDER (0x3824) register
+> >> and VFIFO_CTRL0C (0x460c) affects the effective pixel clock frequency.
+> >> All the resolutions up to 720x576 are forcing a manual value of 2 for
+> >> divider (0x460c=3D0x22), but including 720p and more, the divider valu=
+e is
+> >> controlled by "auto-mode" (0x460c=3D0x20)... from what I measured and
+> >> understood, for those resolutions, the divider must be set to 1 in ord=
+er
+> >> that your rate computation match the effective pixel clock on output,
+> >> see [2].
+> >>
+> >> So I wonder if this PCLK divider register should be included
+> >> or not into your rate computation, what do you think ?
+> >=20
+> > Have you tried change the PCLK divider while in auto-mode? IIRC, I did
+> > that and it was affecting the PCLK rate on my scope, but I wouldn't be
+> > definitive about it.
+>=20
+> I have tested to change PCLK divider while in auto mode but no effect.
+>=20
+> > Can we always set the mode to auto and divider to 1, even for the
+> > lower resolutions?
+>
+> This is breaking 176x144@30fps on my side, because of pixel clock too=20
+> high (112MHz vs 70 MHz max).
+
+Ok.
+
+> Instead of using auto mode, my proposal was the inverse: use manual mode=
+=20
+> with the proper divider to fit the max pixel clock constraint.
+
+Oh. That would work for me too yeah. How do you want to deal with it?
+Should I send your rebased patches, and you add that change as a
+subsequent patch?
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--gaskgnzet4jza5gm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlu2K+EACgkQ0rTAlCFN
+r3TxJQ//d+he84BGCsCPK/a98Kx9LPyqqYqNQpdGr3m5OE/X+v1qZof50ImfJiY+
+eEdM8s3xAQ8W2HIw9mKQ5tnMYD7QD8odfXM3CVzRLthznMeFre6XZT3pVfX7EIUz
+GfO3iktngOuBZF82Gl9gRhgCACDPYDSKPtBVlkWUJ9q5eulAGv3PvtBOeQq2pEsT
+1a38pwYc5w+FBybkLvhyExNlN7+zDua6TPvYhKIHM27BZBbvv5UczF4SzOz19Hxo
+cfvgnYBW4auzEtwwx8fV+jRUtPVs2tG5bAV8UWzG/4N+tDb0FNFWQQZW4GLxuewJ
+RnRHVCDapw3Ni8KZl+b3cWVLo7ufhb8aBp+FfmcVYKP9yaltsNmVWOnz9OpR4zr5
+MJnUup8p2NQgb4U3TV8Y4PfF1ScnfIopTLudre28I/nk82mgjyE3ZCRuskRcWqn5
+T1ay0zvSelN63uxce6TpCB5PvgGTAX1NX89U1c3b1kxY63P9pQmhyeRIUfRKwJFp
+ug95i/Na1pCPPxA3llqT+Uyb1QLIiQtAvNlGmxZ0iexdyFiPTVXX3StgRON/a6BD
+36YeN2UbTxLscatgsX6vOR37dF3tRXhZQu32OvX5/pgeE5l1UMUJy5ZeNlRSNv6O
+btDNYhVUQqHJG8w0SA3i4eej7YYAse3QuwFJ5e6N1cMLNrQJJ78=
+=iktS
+-----END PGP SIGNATURE-----
+
+--gaskgnzet4jza5gm--
