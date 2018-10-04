@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:35058 "EHLO
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:35001 "EHLO
         lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727256AbeJDTzW (ORCPT
+        by vger.kernel.org with ESMTP id S1727367AbeJDUFz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 15:55:22 -0400
+        Thu, 4 Oct 2018 16:05:55 -0400
 Subject: Re: [PATCH v3 2/2] media: platform: Add Aspeed Video Engine driver
 To: Eddie James <eajames@linux.vnet.ibm.com>,
         Eddie James <eajames@linux.ibm.com>,
@@ -15,19 +15,19 @@ Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
 References: <1537903629-14003-1-git-send-email-eajames@linux.ibm.com>
  <1537903629-14003-3-git-send-email-eajames@linux.ibm.com>
  <a78d4c7a-ac58-c23d-a683-23dce54be993@xs4all.nl>
- <8ca47483-5347-c40d-0d01-4f13e88f8cde@linux.vnet.ibm.com>
+ <ca4757b9-0825-bbbf-b388-0295fd13bad7@linux.vnet.ibm.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d7c82025-5c9a-6a64-75e0-f0d84d149dde@xs4all.nl>
-Date: Thu, 4 Oct 2018 15:02:02 +0200
+Message-ID: <373d2ca3-a6cd-8d87-2bbc-613d65305170@xs4all.nl>
+Date: Thu, 4 Oct 2018 15:12:34 +0200
 MIME-Version: 1.0
-In-Reply-To: <8ca47483-5347-c40d-0d01-4f13e88f8cde@linux.vnet.ibm.com>
+In-Reply-To: <ca4757b9-0825-bbbf-b388-0295fd13bad7@linux.vnet.ibm.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/18 22:26, Eddie James wrote:
+On 10/03/18 22:43, Eddie James wrote:
 > 
 > 
 > On 09/28/2018 06:30 AM, Hans Verkuil wrote:
@@ -40,69 +40,43 @@ On 10/03/18 22:26, Eddie James wrote:
 >>> Add a V4L2 driver to capture video data and compress it to JPEG images.
 >>> Make the video frames available through the V4L2 streaming interface.
 >>>
->>> +		memcpy(&table[base], aspeed_video_jpeg_dct[i],
->>> +		       sizeof(aspeed_video_jpeg_dct[i]));
->>> +
->>> +		base += ASPEED_VIDEO_JPEG_DCT_SIZE;
->>> +		memcpy(&table[base], aspeed_video_jpeg_quant,
->>> +		       sizeof(aspeed_video_jpeg_quant));
->>> +
->>> +		if (yuv420)
->>> +			table[base + 2] = 0x00220103;
+>>> Signed-off-by: Eddie James <eajames@linux.ibm.com>
+> 
 >>> +	}
->>> +}
 >>> +
->>> +static void aspeed_video_update(struct aspeed_video *video, u32 reg,
->>> +				unsigned long mask, u32 bits)
->> You probably want to use u32 for the mask.
+>>> +	video->height = (bottom - top) + 1;
+>>> +	video->width = (right - left) + 1;
+>>> +	size = video->height * video->width;
+>> It looks like you can actually determine the blanking width/height and
+>> possibly even more detailed information that would be very useful to
+>> show with the DV_TIMINGS ioctls.
 > 
-> Using a u32 there results in:
-> 
-> warning: large integer implicitly truncated to unsigned type [-Woverflow]
-> 
-> everywhere I call aspeed_video_update. Not sure what the deal is. Any 
-> suggestions?
+> Hmm. This information is related to the video signal captured from the 
+> host. That information has nothing to do with the buffer that is 
+> compressed and grabbed by the driver and ultimately provided to 
+> userspace. Isn't the timing information meaningless for JPEG frames?
 
-The BIT and GENMASK macros produce unsigned long values.
+It helps in debugging. Basically you are implementing a receiver for a
+video signal. So if for some reason you cannot support the video timings
+that the host sends, then it is very useful to have QUERY_DV_TIMINGS report
+as much information about the signal as possible.
 
-I think it is easier if instead of passing a mask (i.e. the bits you want
-to keep) you pass the bits you want to clear and replace with new ones.
+BTW, out of curiosity, how are the host video signals connected to the
+aspeed? Is it still a VGA video signal?
 
-So 'u32 clear' instead of 'unsigned long mask'.
+Looking at product briefs it appears that it is VGA. So I guess the aspeed
+'sniffs' the VGA signals from the host and can capture the video that way.
+Is that correct?
 
-The problem occurs because e.g. ~BIT(10) expands to an unsigned long with
-all bits except for bit 10 set to 1. And passing that to an u32 will obviously
-fail.
+If so, then this driver is a VGA receiver and should act like that.
+The host can configure its VGA transmitter to invalid timings, or weird
+values, and you need to be able to handle that in your driver.
 
-But just passing BIT(10) is fine since that fits in an u32.
+> Forgot to include this question in my previous reply, sorry for the 
+> additional mail.
+
+No problem! Happy to help.
 
 Regards,
 
 	Hans
-
-> 
-> Thanks,
-> Eddie
-> 
->>
->>> +{
->>> +	u32 t = readl(video->base + reg);
->>> +	u32 before = t;
->>> +
->>> +	t &= mask;
->>> +	t |= bits;
->>> +	writel(t, video->base + reg);
->>> +	dev_dbg(video->dev, "update %03x[%08x -> %08x]\n", reg, before,
->>>
->>> +
->>> +module_platform_driver(aspeed_video_driver);
->>> +
->>> +MODULE_DESCRIPTION("ASPEED Video Engine Driver");
->>> +MODULE_AUTHOR("Eddie James");
->>> +MODULE_LICENSE("GPL v2");
->>>
->> Regards,
->>
->> 	Hans
->>
-> 
