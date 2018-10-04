@@ -1,61 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:53694 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727183AbeJDSPc (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:55771 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727109AbeJDSJm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 14:15:32 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        <linux-stm32@st-md-mailman.stormreply.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Jacopo Mondi <jacopo@jmondi.org>
-Subject: [PATCH] media: ov5640: fix framerate update
-Date: Thu, 4 Oct 2018 13:21:57 +0200
-Message-ID: <1538652117-4210-1-git-send-email-hugues.fruchet@st.com>
+        Thu, 4 Oct 2018 14:09:42 -0400
+Subject: Re: [PATCH 2/2] media: vivid: Add 16-bit bayer to format list
+To: bwinther@cisco.com, linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com
+References: <20181004110114.3150-1-bwinther@cisco.com>
+ <20181004110114.3150-2-bwinther@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <00c43925-6e3e-9dcb-37e5-5d48863937f4@xs4all.nl>
+Date: Thu, 4 Oct 2018 13:16:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20181004110114.3150-2-bwinther@cisco.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changing framerate right before streamon had no effect,
-the new framerate value was taken into account only at
-next streamon, fix this.
+On 10/04/18 13:01, bwinther@cisco.com wrote:
+> From: Bård Eirik Winther <bwinther@cisco.com>
+> 
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/i2c/ov5640.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+Same here: missing commit message.
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 664ffac..8599e17 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2573,8 +2573,6 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 	if (frame_rate < 0)
- 		frame_rate = OV5640_15_FPS;
- 
--	sensor->current_fr = frame_rate;
--	sensor->frame_interval = fi->interval;
- 	mode = ov5640_find_mode(sensor, frame_rate, mode->hact,
- 				mode->vact, true);
- 	if (!mode) {
-@@ -2582,7 +2580,10 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
- 		goto out;
- 	}
- 
--	if (mode != sensor->current_mode) {
-+	if (mode != sensor->current_mode ||
-+	    frame_rate != sensor->current_fr) {
-+		sensor->current_fr = frame_rate;
-+		sensor->frame_interval = fi->interval;
- 		sensor->current_mode = mode;
- 		sensor->pending_mode_change = true;
- 	}
--- 
-2.7.4
+This patch looks good otherwise.
+
+Regards,
+
+	Hans
+
+> Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+> ---
+>  .../media/platform/vivid/vivid-vid-common.c   | 28 +++++++++++++++++++
+>  1 file changed, 28 insertions(+)
+> 
+> diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
+> index 27a0000a5973..9645a91b8782 100644
+> --- a/drivers/media/platform/vivid/vivid-vid-common.c
+> +++ b/drivers/media/platform/vivid/vivid-vid-common.c
+> @@ -449,6 +449,34 @@ struct vivid_fmt vivid_formats[] = {
+>  		.planes   = 1,
+>  		.buffers = 1,
+>  	},
+> +	{
+> +		.fourcc   = V4L2_PIX_FMT_SBGGR16, /* Bayer BG/GR */
+> +		.vdownsampling = { 1 },
+> +		.bit_depth = { 16 },
+> +		.planes   = 1,
+> +		.buffers = 1,
+> +	},
+> +	{
+> +		.fourcc   = V4L2_PIX_FMT_SGBRG16, /* Bayer GB/RG */
+> +		.vdownsampling = { 1 },
+> +		.bit_depth = { 16 },
+> +		.planes   = 1,
+> +		.buffers = 1,
+> +	},
+> +	{
+> +		.fourcc   = V4L2_PIX_FMT_SGRBG16, /* Bayer GR/BG */
+> +		.vdownsampling = { 1 },
+> +		.bit_depth = { 16 },
+> +		.planes   = 1,
+> +		.buffers = 1,
+> +	},
+> +	{
+> +		.fourcc   = V4L2_PIX_FMT_SRGGB16, /* Bayer RG/GB */
+> +		.vdownsampling = { 1 },
+> +		.bit_depth = { 16 },
+> +		.planes   = 1,
+> +		.buffers = 1,
+> +	},
+>  	{
+>  		.fourcc   = V4L2_PIX_FMT_HSV24, /* HSV 24bits */
+>  		.color_enc = TGP_COLOR_ENC_HSV,
+> 
