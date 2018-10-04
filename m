@@ -1,42 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:45837 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727499AbeJEC5V (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:47461 "EHLO
+        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727444AbeJEDAO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 22:57:21 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: s5p_mfc and H.264 frame cropping question
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Stanimir Varbanov <svarbanov@mm-sol.com>
-Message-ID: <5eebb2ed-8f58-84c3-6589-a2579c0004dd@xs4all.nl>
-Date: Thu, 4 Oct 2018 22:02:27 +0200
+        Thu, 4 Oct 2018 23:00:14 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v2 0/3] rcar-vin: add support for UDS (Up Down Scaler)
+Date: Thu,  4 Oct 2018 22:03:59 +0200
+Message-Id: <20181004200402.15113-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi,
 
-I'm looking at removing the last users of vidioc_g/s_crop from the driver and
-I came across vidioc_g_crop in drivers/media/platform/s5p-mfc/s5p_mfc_dec.c.
+This series adds support for Renesas R-Car Gen3 VIN Up Down Scaler
+(UDS). Some VIN instances have access to a often shared UDS which can be
+used to scale the captured image up or down. If the scaler is shared it
+can only be used exclusively by one VIN at a time, switching in runtime
+and detection if a UDS are in use is supported in this series. If the
+user tries to start a capture on a VIN which would require the use of a
+scaler but that scaler is in use -EBUSY is returned.
 
-What this really does AFAICS is return the H.264 frame crop as read from the
-bitstream. This has nothing to do with regular cropping/composing but it might be
-something that could be implemented as a new selection target.
+Patch 1/3 fix a format alignment issue found when working with UDS
+support. While patch 2/3 ands the UDS logic and 3/3 defines which VIN on
+which SoC have access to a UDS and how it's shared.
 
-I'm not really sure what to do with the existing code since it is an abuse of
-the crop API, but I guess the first step is to decide how this should be handled
-properly.
+The series is based on top of media-tree/master and is tested on R-Car
+Gen3 H3, M3-W, M3-N and Gen2 Koelsch (checking for regressions as Gen2
+have no UDS).
 
-Are there other decoders that can retrieve this information? Should this be
-mentioned in the stateful codec API?
+* Changes since v1
+- Patch 1/3 have been replaced with a less strict version after good 
+  comments from Hans.
 
-Regards,
+Niklas Söderlund (3):
+  rcar-vin: align width before stream start
+  rcar-vin: add support for UDS (Up Down Scaler)
+  rcar-vin: declare which VINs can use a Up Down Scaler (UDS)
 
-	Hans
+ drivers/media/platform/rcar-vin/rcar-core.c |  18 +++
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 139 ++++++++++++++++++--
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |   9 ++
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  24 ++++
+ 4 files changed, 180 insertions(+), 10 deletions(-)
+
+-- 
+2.19.0
