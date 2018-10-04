@@ -1,105 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f194.google.com ([209.85.215.194]:41882 "EHLO
-        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727354AbeJEDLF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 23:11:05 -0400
-Received: by mail-pg1-f194.google.com with SMTP id 23-v6so3651136pgc.8
-        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 13:16:14 -0700 (PDT)
-Subject: Re: [PATCH v4 00/11] imx-media: Fixes for interlaced capture
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <20181004185401.15751-1-slongerbeam@gmail.com>
- <4e521c80-7041-e5d8-cfa6-c05af07d5cf1@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <0a65391a-66dc-c7f7-2240-b4bfc5642875@gmail.com>
-Date: Thu, 4 Oct 2018 13:16:07 -0700
+Received: from mail-lj1-f171.google.com ([209.85.208.171]:34741 "EHLO
+        mail-lj1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727787AbeJEDYt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 23:24:49 -0400
+Received: by mail-lj1-f171.google.com with SMTP id j17-v6so323069lja.1
+        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 13:29:53 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 4 Oct 2018 22:29:51 +0200
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] rcar-vin: align width before stream start
+Message-ID: <20181004202950.GQ24305@bigcity.dyn.berto.se>
+References: <20181004200402.15113-1-niklas.soderlund+renesas@ragnatech.se>
+ <20181004200402.15113-2-niklas.soderlund+renesas@ragnatech.se>
+ <3937980.o2kZMfQ5OL@avalon>
 MIME-Version: 1.0
-In-Reply-To: <4e521c80-7041-e5d8-cfa6-c05af07d5cf1@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3937980.o2kZMfQ5OL@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
+Thanks for your feedback.
 
-On 10/04/2018 12:34 PM, Hans Verkuil wrote:
-> On 10/04/2018 08:53 PM, Steve Longerbeam wrote:
->> A set of patches that fixes some bugs with capturing from an
->> interlaced source, and incompatibilites between IDMAC interlace
->> interweaving and 4:2:0 data write reduction.
->>
->> History:
->> v4:
->> - rebased to latest media-tree master branch.
->> - Make patch author and SoB email addresses the same.
->>
->> v3:
->> - add support for/fix interweaved scan with YUV planar output.
->> - fix bug in 4:2:0 U/V offset macros.
->> - add patch that generalizes behavior of field swap in
->>    ipu_csi_init_interface().
->> - add support for interweaved scan with field order swap.
->>    Suggested by Philipp Zabel.
->> - in v2, inteweave scan was determined using field types of
->>    CSI (and PRPENCVF) at the sink and source pads. In v3, this
->>    has been moved one hop downstream: interweave is now determined
->>    using field type at source pad, and field type selected at
->>    capture interface. Suggested by Philipp.
->> - make sure to double CSI crop target height when input field
->>    type in alternate.
->> - more updates to media driver doc to reflect above.
->>
->> v2:
->> - update media driver doc.
->> - enable idmac interweave only if input field is sequential/alternate,
->>    and output field is 'interlaced*'.
->> - move field try logic out of *try_fmt and into separate function.
->> - fix bug with resetting crop/compose rectangles.
->> - add a patch that fixes a field order bug in VDIC indirect mode.
->> - remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
->>    Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
->> - add macro V4L2_FIELD_IS_INTERLACED().
->>
->>
->> Steve Longerbeam (11):
->>    media: videodev2.h: Add more field helper macros
->>    gpu: ipu-csi: Swap fields according to input/output field types
->>    gpu: ipu-v3: Add planar support to interlaced scan
-> What should I do with these patches? Do they go through us? Or the drm
-> subsystem (or whoever handles this)?
->
-> If it goes through another subsystem, then I can Ack them.
+On 2018-10-04 23:11:50 +0300, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> Thank you for the patch.
+> 
+> On Thursday, 4 October 2018 23:04:00 EEST Niklas Söderlund wrote:
+> > Instead of aligning the image width to match the image stride at stream
+> > start time do so when configuring the format. This allows the format
+> > width to strictly match the image stride which is useful when enabling
+> > scaling on Gen3.
+> 
+> But is this required ? Aren't there use cases where an image with a width not 
+> aligned with the stride requirements should be captured ? As long as the 
+> stride itself matches the hardware requirements, I don't see a reason to 
+> disallow that.
 
-Hi Hans, sorry you are right. Philipp Zabel needs to merge these
-to his imx-drm/fixes tree. Then we need to wait for them to filter
-over to media-tree. Same old slow process, I wish this were faster,
-but that is the drawback of changes that span subsystems.
+Yes there is a use-case for that. And the rcar-vin driver is starting to 
+reaching a point where the whole format handling for buffers, source 
+format, croping and scaling needs to be rewritten to enable more valid 
+use-cases.
 
-I will submit the above patches to dri-devel ML. And resubmit this
-series once they hit media-tree.
+This fix is however in my view required at this time with the current 
+driver design. If we keep aligning the width at stream on and enable the 
+UDS it becomes apparent that when the alignment is needed the values for 
+the stride register conflicts which how the scaling coefficients are 
+calculated and the captured frame is distorted.
 
-Steve
+My hope is to add upstream to support for the UDS, support for 
+sequential field captures and some more output pixel formats. And once 
+the driver feature complete on Gen3 come back and simplify and if 
+possible align the Gen2 and Gen3 format handling which in part adds to 
+the somewhat messy current state.
 
+> 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/platform/rcar-vin/rcar-dma.c  | 5 +----
+> >  drivers/media/platform/rcar-vin/rcar-v4l2.c | 9 +++++++++
+> >  2 files changed, 10 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> > 92323310f7352147..e752bc86e40153b1 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> > @@ -597,10 +597,7 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+> >  	if (vin->info->model != RCAR_GEN3)
+> >  		rvin_crop_scale_comp_gen2(vin);
+> > 
+> > -	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
+> > -		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
+> > -	else
+> > -		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
+> > +	rvin_write(vin, vin->format.width, VNIS_REG);
+> >  }
+> > 
+> >  /*
+> > ---------------------------------------------------------------------------
+> > -- diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> > dc77682b47857c97..94bc559a0cb1e47a 100644
+> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> > @@ -96,6 +96,15 @@ static void rvin_format_align(struct rvin_dev *vin,
+> > struct v4l2_pix_format *pix) pix->pixelformat == V4L2_PIX_FMT_XBGR32))
+> >  		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+> > 
+> > +	switch (pix->pixelformat) {
+> > +	case V4L2_PIX_FMT_NV16:
+> > +		pix->width = ALIGN(pix->width, 0x20);
+> > +		break;
+> > +	default:
+> > +		pix->width = ALIGN(pix->width, 0x10);
+> > +		break;
+> > +	}
+> > +
+> >  	switch (pix->field) {
+> >  	case V4L2_FIELD_TOP:
+> >  	case V4L2_FIELD_BOTTOM:
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
+> 
 
->
->>    media: imx: Fix field negotiation
->>    media: imx-csi: Double crop height for alternate fields at sink
->>    media: imx: interweave and odd-chroma-row skip are incompatible
->>    media: imx-csi: Allow skipping odd chroma rows for YVU420
->>    media: imx: vdic: rely on VDIC for correct field order
->>    media: imx-csi: Move crop/compose reset after filling default mbus
->>      fields
->>    media: imx: Allow interweave with top/bottom lines swapped
->>    media: imx.rst: Update doc to reflect fixes to interlaced capture
->>
->>   Documentation/media/v4l-drivers/imx.rst       |  93 ++++++----
->>   drivers/gpu/ipu-v3/ipu-cpmem.c                |  26 ++-
->>   drivers/gpu/ipu-v3/ipu-csi.c                  | 132 ++++++++++----
->>   drivers/staging/media/imx/imx-ic-prpencvf.c   |  48 +++--
->>   drivers/staging/media/imx/imx-media-capture.c |  14 ++
->>   drivers/staging/media/imx/imx-media-csi.c     | 166 ++++++++++++------
->>   drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
->>   include/uapi/linux/videodev2.h                |   7 +
->>   include/video/imx-ipu-v3.h                    |   6 +-
->>   9 files changed, 359 insertions(+), 145 deletions(-)
->>
+-- 
+Regards,
+Niklas Söderlund
