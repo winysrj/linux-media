@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leonov.paulk.fr ([185.233.101.22]:32890 "EHLO leonov.paulk.fr"
+Received: from leonov.paulk.fr ([185.233.101.22]:32902 "EHLO leonov.paulk.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727209AbeJDTeC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 15:34:02 -0400
-Message-ID: <7bd6883f43f3ffa1803975236eb18b5e63d3455a.camel@paulk.fr>
+        id S1727264AbeJDTkB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 15:40:01 -0400
+Message-ID: <f1fa989b372b514f0a7534057de80b0c453cc8a3.camel@paulk.fr>
 Subject: Re: [RFC PATCH v2] media: docs-rst: Document m2m stateless video
  decoder interface
 From: Paul Kocialkowski <contact@paulk.fr>
@@ -14,178 +14,180 @@ To: Alexandre Courbot <acourbot@chromium.org>,
         Pawel Osciak <posciak@chromium.org>,
         linux-media@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
-Date: Thu, 04 Oct 2018 14:41:16 +0200
+Date: Thu, 04 Oct 2018 14:47:15 +0200
 In-Reply-To: <20181004081119.102575-1-acourbot@chromium.org>
 References: <20181004081119.102575-1-acourbot@chromium.org>
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-XFlIZIV3Xqx2G6LAfA6k"
+        protocol="application/pgp-signature"; boundary="=-l7yD+FRf9c6VTMlKiqgB"
 Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-XFlIZIV3Xqx2G6LAfA6k
+--=-l7yD+FRf9c6VTMlKiqgB
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Alexandre,
+Hi,
 
-Thanks for submitting this second version of the RFC, it is very
-appreciated! I will try to provide useful feedback here and hopefully
-be more reactive than during v1 review!
-
-Most of it looks good to me, but there is a specific point I'd like to
-keep discussing.
+Here are a few minor suggestion about H.264 controls.
 
 Le jeudi 04 octobre 2018 =C3=A0 17:11 +0900, Alexandre Courbot a =C3=A9crit=
  :
-> This patch documents the protocol that user-space should follow when
-> communicating with stateless video decoders. It is based on the
-> following references:
->=20
-> * The current protocol used by Chromium (converted from config store to
->   request API)
->=20
-> * The submitted Cedrus VPU driver
->=20
-> As such, some things may not be entirely consistent with the current
-> state of drivers, so it would be great if all stakeholders could point
-> out these inconsistencies. :)
->=20
-> This patch is supposed to be applied on top of the Request API V18 as
-> well as the memory-to-memory video decoder interface series by Tomasz
-> Figa.
->=20
-> Changes since V1:
->=20
-> * Applied fixes received as feedback,
-> * Moved controls descriptions to the extended controls file,
-> * Document reference frame management and referencing (need Hans' feedbac=
-k on
->   that).
->=20
-> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> ---
->  .../media/uapi/v4l/dev-stateless-decoder.rst  | 348 ++++++++++++++++++
->  Documentation/media/uapi/v4l/devices.rst      |   1 +
->  .../media/uapi/v4l/extended-controls.rst      |  25 ++
->  .../media/uapi/v4l/pixfmt-compressed.rst      |  54 ++-
->  4 files changed, 424 insertions(+), 4 deletions(-)
->  create mode 100644 Documentation/media/uapi/v4l/dev-stateless-decoder.rs=
-t
->=20
-> diff --git a/Documentation/media/uapi/v4l/dev-stateless-decoder.rst b/Doc=
-umentation/media/uapi/v4l/dev-stateless-decoder.rst
-> new file mode 100644
-> index 000000000000..e54246df18d0
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/dev-stateless-decoder.rst
-> @@ -0,0 +1,348 @@
-> +.. -*- coding: utf-8; mode: rst -*-
+> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documen=
+tation/media/uapi/v4l/extended-controls.rst
+> index a9252225b63e..9d06d853d4ff 100644
+> --- a/Documentation/media/uapi/v4l/extended-controls.rst
+> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
+> @@ -810,6 +810,31 @@ enum v4l2_mpeg_video_bitrate_mode -
+>      otherwise the decoder expects a single frame in per buffer.
+>      Applicable to the decoder, all codecs.
+> =20
+> +.. _v4l2-mpeg-h264:
 > +
-> +.. _stateless_decoder:
+> +``V4L2_CID_MPEG_VIDEO_H264_SPS``
+> +    Instance of struct v4l2_ctrl_h264_sps, containing the SPS of to use =
+with
+> +    the next queued frame. Applicable to the H.264 stateless decoder.
 > +
-> +**************************************************
-> +Memory-to-memory Stateless Video Decoder Interface
-> +**************************************************
+> +``V4L2_CID_MPEG_VIDEO_H264_PPS``
+> +    Instance of struct v4l2_ctrl_h264_pps, containing the PPS of to use =
+with
+> +    the next queued frame. Applicable to the H.264 stateless decoder.
 > +
-> +A stateless decoder is a decoder that works without retaining any kind o=
-f state
-> +between processing frames. This means that each frame is decoded indepen=
-dently
-> +of any previous and future frames, and that the client is responsible fo=
-r
-> +maintaining the decoding state and providing it to the driver. This is i=
-n
-> +contrast to the stateful video decoder interface, where the hardware mai=
-ntains
-> +the decoding state and all the client has to do is to provide the raw en=
-coded
-> +stream.
+> +``V4L2_CID_MPEG_VIDEO_H264_SCALING_MATRIX``
+
+For consistency with MPEG-2 and upcoming JPEG, I think we should call
+this "H264_QUANTIZATION".
+
+> +    Instance of struct v4l2_ctrl_h264_scaling_matrix, containing the sca=
+ling
+> +    matrix to use when decoding the next queued frame. Applicable to the=
+ H.264
+> +    stateless decoder.
 > +
-> +This section describes how user-space ("the client") is expected to comm=
-unicate
-> +with such decoders in order to successfully decode an encoded stream. Co=
-mpared
-> +to stateful codecs, the driver/client sequence is simpler, but the cost =
-of this
-> +simplicity is extra complexity in the client which must maintain a consi=
-stent
-> +decoding state.
+> +``V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAM``
+
+Ditto with "H264_SLICE_PARAMS".
+
+> +    Array of struct v4l2_ctrl_h264_slice_param, containing at least as m=
+any
+> +    entries as there are slices in the corresponding ``OUTPUT`` buffer.
+> +    Applicable to the H.264 stateless decoder.
 > +
-> +Querying capabilities
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> +
-> +1. To enumerate the set of coded formats supported by the driver, the cl=
-ient
-> +   calls :c:func:`VIDIOC_ENUM_FMT` on the ``OUTPUT`` queue.
-> +
-> +   * The driver must always return the full set of supported ``OUTPUT`` =
-formats,
-> +     irrespective of the format currently set on the ``CAPTURE`` queue.
-> +
-> +2. To enumerate the set of supported raw formats, the client calls
-> +   :c:func:`VIDIOC_ENUM_FMT` on the ``CAPTURE`` queue.
-> +
-> +   * The driver must return only the formats supported for the format cu=
-rrently
-> +     active on the ``OUTPUT`` queue.
-> +
-> +   * Depending on the currently set ``OUTPUT`` format, the set of suppor=
-ted raw
-> +     formats may depend on the value of some controls (e.g. H264 or VP9
-> +     profile). The client is responsible for making sure that these cont=
-rols
-> +     are set to the desired value before querying the ``CAPTURE`` queue.
+> +``V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAM``
+> +    Instance of struct v4l2_ctrl_h264_decode_param, containing the high-=
+level
+> +    decoding parameters for a H.264 frame. Applicable to the H.264 state=
+less
+> +    decoder.
 
-I still think we have a problem when enumerating CAPTURE formats, that
-providing the profile/level information does not help solving.
+Since we require all the macroblocks to decode one frame to be held in
+the same OUTPUT buffer, it probably doesn't make sense to keep
+DECODE_PARAM and SLICE_PARAM distinct.
 
-=46rom previous emails on v1 (to which I failed to react to), it seems
-that the consensus was to set the profile/level indication beforehand
-to reduce the subset of possible formats and return that as enumerated
-possible formats.
-
-However, it does not really solve the issue here, given the following
-distinct cases:
-
-1. The VPU can only output the format for the decoded frame and that
-format is not known until the first buffer metadata is passed.
-Everything that is reported as supported at this point should be
-understood as supported formats for the decoded bitstreams, but
-userspace would have to pick the one matching the decoded format of the
-bitstream to decode. I don't really see the point of trying to reduce
-that list by providing the profile/level.
-
-2. The VPU has some format conversion block in its pipeline and can
-actually provide a range of different formats for CAPTURE buffers,
-independently from the format of the decoded bitstream.
-
-Either way, I think (correct me if I'm wrong) that players do know the
-format from the decoded bitstream here, so enumeration only makes sense
-for case 2.
-
-Something we could do is to not enumerate any format for case 1., which
-we would specify as an indication that only the decoded bitstream
-format must be set. Then in case 2., we would enumerate the possible
-formats.
-
-For case 1., having the driver expose the supported profiles ensures
-that any format in a supported profile is valid although not
-enumerated.
-
-Alternatively, we could go with a control that indicates whether the
-driver supports a format decorrelated from the decoded bitstream format
-and still enumerate all formats in case 1., with the implication that
-only the right one must be picked by userspace. Here again, I don't see
-the point of reducing the list by setting the profile/level.
-
-So my goal here is to clearly enable userspace to distinguish between
-the two situations.
+I would suggest merging both in "SLICE_PARAMS", similarly to what I
+have proposed for H.265: https://patchwork.kernel.org/patch/10578023/
 
 What do you think?
 
+Cheers,
+
 Paul
+
+>  ``V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE (boolean)``
+>      Enable writing sample aspect ratio in the Video Usability
+>      Information. Applicable to the H264 encoder.
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documen=
+tation/media/uapi/v4l/pixfmt-compressed.rst
+> index a86b59f770dd..a03637fda8f9 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> @@ -35,6 +35,42 @@ Compressed Formats
+>        - ``V4L2_PIX_FMT_H264``
+>        - 'H264'
+>        - H264 video elementary stream with start codes.
+> +    * .. _V4L2-PIX-FMT-H264-SLICE:
+> +
+> +      - ``V4L2_PIX_FMT_H264_SLICE``
+> +      - 'H264'
+> +      - H264 parsed slice data, as extracted from the H264 bitstream.
+> +        This format is adapted for stateless video decoders using the M2=
+M and
+> +        Request APIs.
+> +
+> +        ``OUTPUT`` buffers must contain all the macroblock slices of a g=
+iven
+> +        frame, i.e. if a frame requires several macroblock slices to be =
+entirely
+> +        decoded, then all these slices must be provided. In addition, th=
+e
+> +        following metadata controls must be set on the request for each =
+frame:
+> +
+> +        V4L2_CID_MPEG_VIDEO_H264_SPS
+> +           Instance of struct v4l2_ctrl_h264_sps, containing the SPS of =
+to use
+> +           with the frame.
+> +
+> +        V4L2_CID_MPEG_VIDEO_H264_PPS
+> +           Instance of struct v4l2_ctrl_h264_pps, containing the PPS of =
+to use
+> +           with the frame.
+> +
+> +        V4L2_CID_MPEG_VIDEO_H264_SCALING_MATRIX
+> +           Instance of struct v4l2_ctrl_h264_scaling_matrix, containing =
+the
+> +           scaling matrix to use when decoding the frame.
+> +
+> +        V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAM
+> +           Array of struct v4l2_ctrl_h264_slice_param, containing at lea=
+st as
+> +           many entries as there are slices in the corresponding ``OUTPU=
+T``
+> +           buffer.
+> +
+> +        V4L2_CID_MPEG_VIDEO_H264_DECODE_PARAM
+> +           Instance of struct v4l2_ctrl_h264_decode_param, containing th=
+e
+> +           high-level decoding parameters for a H.264 frame.
+> +
+> +        See the :ref:`associated Codec Control IDs <v4l2-mpeg-h264>` for=
+ the
+> +        format of these controls.
+>      * .. _V4L2-PIX-FMT-H264-NO-SC:
+> =20
+>        - ``V4L2_PIX_FMT_H264_NO_SC``
+> @@ -67,10 +103,20 @@ Compressed Formats
+>        - MPEG-2 parsed slice data, as extracted from the MPEG-2 bitstream=
+.
+>  	This format is adapted for stateless video decoders that implement a
+>  	MPEG-2 pipeline (using the Memory to Memory and Media Request APIs).
+> -	Metadata associated with the frame to decode is required to be passed
+> -	through the ``V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS`` control and
+> -	quantization matrices can optionally be specified through the
+> -	``V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION`` control.
+> +
+> +        ``OUTPUT`` buffers must contain all the macroblock slices of a g=
+iven
+> +        frame, i.e. if a frame requires several macroblock slices to be =
+entirely
+> +        decoded, then all these slices must be provided. In addition, th=
+e
+> +        following metadata controls must be set on the request for each =
+frame:
+> +
+> +        V4L2_CID_MPEG_VIDEO_MPEG2_SLICE_PARAMS
+> +          Slice parameters (one per slice) for the current frame.
+> +
+> +        Optional controls:
+> +
+> +        V4L2_CID_MPEG_VIDEO_MPEG2_QUANTIZATION
+> +          Quantization matrices for the current frame.
+> +
+>  	See the :ref:`associated Codec Control IDs <v4l2-mpeg-mpeg2>`.
+>  	Buffers associated with this pixel format must contain the appropriate
+>  	number of macroblocks to decode a full corresponding frame.
 
 --=20
 Developer of free digital technology and hardware support.
@@ -194,26 +196,26 @@ Website: https://www.paulk.fr/
 Coding blog: https://code.paulk.fr/
 Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
 
---=-XFlIZIV3Xqx2G6LAfA6k
+--=-l7yD+FRf9c6VTMlKiqgB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEAbcMXZQMtj1fphLChP3B6o/ulQwFAlu2CmwACgkQhP3B6o/u
-lQyL1xAAkl8xJCVJpSpqFMRj//CKVLJC4TX8GuLWFl301j87kaoEwFPQTFQ31e+g
-RfOfe6o1PauIl8e58PYBjFF6uUYZMOm0a2xRgARhXqcUPnq5C4jNuqJe/MaGSROx
-ZscrPNmrEw9bkSRj1coafVy1dLAYoAocGvDYI9EHFoqd/2DXdPLgEOyK4LGt05Tl
-SmXQoUeMURemaRuGz9lUXqoEF3s45wZPY1YNqy341tVDFcYBuRDm2XzZodZvEGqK
-E24xvsUHXx8FbR1Vu06np4kTNLfU8Q7nnJDoJksRzBmTZo3+lAsbYd/CJvU+1XlH
-vj12sVNRRrQaMnyrGEpqdFdqcofw6aeeSLmSW4sRP4SwzAJLOA7bQzK/gnKmfOlW
-zf+2jNmoOFUDsO+xScDNoS27Pulo6PUrr0uPJnOg6f1v/ChpZel3kbzb/JFuBOD9
-XZWyeykM65pAESUBleCIFKTebP2Vg90u2LrN7sx0gP8Vl0MrdRD7O6xTRzMhkBgj
-8nZfsJlLpSH2NBJdXSkt09lIYrIEpUuCOUA4zqX9n07eVd3qUTuPgQmEZh7DF1EG
-OKVq0KjILTsuFZabBP+v+4N/kcYqD077Deznc2E+ewC1oYgyOJR6WuAFaUyL3SI/
-YBGoiq+xQbVcoUttF4oYhMgxJSdSkcKFDOARKMgMNd5AA6a2xhs=
-=BirM
+iQIzBAABCAAdFiEEAbcMXZQMtj1fphLChP3B6o/ulQwFAlu2C9MACgkQhP3B6o/u
+lQyF8g/7BcJzpArDhXm3SdS567/6MloaMKK6coAlzMCGLKNJ5K4ncI8FxHhuPVHa
+UKRgxVFC1tHSleBRBCx35g8Nzf2TA9DTmlz/9gOP6/3jnQtznIB2kcrlGeZlKgxx
+L+gtjy3HNJwhiofw+i22e/GDRp41udey9zlZgbk95tgufovhMRy9VwUQH9mLICh2
+x/jw4tVpkinvlaksCZsKKFNIdRhSS//UTn8tvUxQ9AUAgVndTCDumzpwxAkY8YyU
+jZ1f3cqOZd998huACwzGsd4FBXmulhTAr0kHh29mQ4Nq93BvvAvebaIf1VI6jaol
+WyoihZa+MdsGZKWSIK1BYzmURqGjCcfsvG8idndwf0jhGD61FnEi8PwSmw5Ntabf
+rnojKCJFNogGrd4gBiwoOtLNUccpqFFpGB//fJxQtTz/FZDxHhUkO5LnbbwdGTlK
+b2lZQU3v4cv5Sxipkc9g/UhpU4AMujF+61H7fXAITHrfRycJCXuF9wHSenIeMDqt
+S0UbY6apLod3E7UVaK8wH9qHwI3D5qJ4KKgWeK4PyBg8j0/k/kDvkQ3497h0S0X9
+Ltpn616vZepxdlwqxp8KsTFmsBkqJMyvQ8KObUihf99FipAr9P41hZb1AqkYTgBG
+853GfpTPOIkP7v+c3atdGbJXdgL1kHrXpCvunSDuA+uN4v/qSDU=
+=1x/v
 -----END PGP SIGNATURE-----
 
---=-XFlIZIV3Xqx2G6LAfA6k--
+--=-l7yD+FRf9c6VTMlKiqgB--
