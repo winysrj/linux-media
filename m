@@ -1,77 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:28054 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727046AbeJDOAl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 10:00:41 -0400
-Date: Thu, 4 Oct 2018 10:08:41 +0300
-From: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Li, Chao C" <chao.c.li@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
-Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
-Message-ID: <20181004070841.cxfjsc5d5ul6l7pe@paasikivi.fi.intel.com>
-References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com>
- <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
- <749a58a4-24f7-672f-70a9-cfd584af0171@xs4all.nl>
- <20180813174950.6fd3915f@coco.lan>
- <6F87890CF0F5204F892DEA1EF0D77A5981514022@fmsmsx122.amr.corp.intel.com>
+Received: from mail-yb1-f194.google.com ([209.85.219.194]:34348 "EHLO
+        mail-yb1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727253AbeJDO2d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 10:28:33 -0400
+Received: by mail-yb1-f194.google.com with SMTP id 184-v6so3533167ybg.1
+        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 00:36:39 -0700 (PDT)
+Received: from mail-yw1-f53.google.com (mail-yw1-f53.google.com. [209.85.161.53])
+        by smtp.gmail.com with ESMTPSA id l69-v6sm1623328ywl.51.2018.10.04.00.36.37
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 04 Oct 2018 00:36:37 -0700 (PDT)
+Received: by mail-yw1-f53.google.com with SMTP id e201-v6so3401255ywa.3
+        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 00:36:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A5981514022@fmsmsx122.amr.corp.intel.com>
+References: <20181002113148.14897-1-mjourdan@baylibre.com> <f681dac8-0698-e0b3-eb15-94a46797a0ea@xs4all.nl>
+ <CAMO6nazEn__GJPPRzwhT6BFhOu8EPPXkK_zsrrkzfu_VJUCvhg@mail.gmail.com>
+In-Reply-To: <CAMO6nazEn__GJPPRzwhT6BFhOu8EPPXkK_zsrrkzfu_VJUCvhg@mail.gmail.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 4 Oct 2018 16:36:26 +0900
+Message-ID: <CAAFQd5BTBVEGrVcY+tNYSFrZQ7m2PngiYGnpYO8hQEA=JDxTYA@mail.gmail.com>
+Subject: Re: [RFC PATCH] media: v4l2-ctrl: Add control for specific
+ V4L2_EVENT_SRC_CH_RESOLUTION support
+To: mjourdan@baylibre.com
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Raj,
+On Wed, Oct 3, 2018 at 7:02 PM Maxime Jourdan <mjourdan@baylibre.com> wrote:
+>
+> On Tue, Oct 2, 2018 at 1:43 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> > On 10/02/18 13:31, Maxime Jourdan wrote:
+> > > For drivers that expose both an OUTPUT queue and
+> > > V4L2_EVENT_SRC_CH_RESOLUTION such as video decoders, it is
+> > > possible that support for this event is limited to a subset
+> > > of the enumerated OUTPUT formats.
+> > >
+> > > This adds V4L2_CID_SUPPORTS_CH_RESOLUTION that allows such a driver to
+> > > notify userspace of per-format support for this event.
+> >
+> > An alternative is a flag returned by ENUMFMT.
+> >
+> > I would definitely invert the flag/control since the default should be
+> > that this event is supported for these types of devices. Instead you
+> > want to signal the exception (not supported).
+> >
+> > I think a format flag is better since this is really tied to the format
+> > for this particular driver.
+> >
+> > This is a limitation of this hardware/firmware, right? It is not a
+> > limitation of the format itself?
+> >
+> > And basically the decoder hardware cannot report when the resolution
+> > changes midstream? What happens if userspace does not take this into
+> > account and just continue? DMA overflow? Hope not.
+> >
+>
+> I tested it: yep, DMA overflow if you're not careful. A solution is to
+> always allocate buffers that can hold the maximum decodable picture
+> size.
+>
+> Upon further investigation, the firmwares for older codecs (MPEG2 &
+> MPEG4) expose registers to fetch the parsed width/height.
+> There is one issue however: the decoder starts decoding right away,
+> and we can gather the width/height only on the first frame decoded,
+> which is the first interrupt we get.
+>
+> So I can send out a V4L2_EVENT_SRC_CH_RESOLUTION, the last remaining
+> problem is that these codecs don't support dynamically changing the
+> capture buffers, so you can't do a streamoff/reqbufs/streamon on the
+> capture queue without doing a full reset and losing the pending
+> capture/output frames.
 
-On Wed, Oct 03, 2018 at 10:56:19PM +0000, Mani, Rajmohan wrote:
-...
-> > From some comment you had later,
-> > I guess you're meaning that only 3 or 7 are the valid values.
-> > 
-> > Yet, you're listing from 2^3 to 2^7, and that's confusing. Perhaps
-> > you want to say, instead, that the valid values are at the 3..7 range?
-> > If so, please use something like "values at the [3..7] range".
-> > 
-> 
-> As Sakari pointed / preferred in the other thread, we will use the format
-> [3, 7] to represent all integers between 3 and 7, including 3 and 7.
+I believe that, if there was a resolution change, you need to do a
+full reset anyway, before you can continue decoding. So it doesn't
+sound like a problem. Or am I missing something?
 
-Feel free to add a reference to this in the format documentation:
+>
+> And then there's MJPEG where you just can't gather the width/height
+> and must rely on userspace setting it. Also need to allocate max size
+> capture buffers for that one.
 
-<URL:https://en.wikipedia.org/wiki/Interval_(mathematics)>
+I guess that could be a case for the JPEG_RAW format, which moves the
+responsibility for parsing the headers and setting relevant parameters
+(format, controls) to userspace.
 
-I guess the right place would be the top parameter format ReST document.
+>
+> I end up needing two ENUMFMT flags:
+>  - the format doesn't support V4L2_EVENT_SRC_CH_RESOLUTION
+>  - the format doesn't support dynamically changing the capture buffers
+> (but you can keep going with the original buffer set)
+>
+> Would this be okay ?
 
-...
+With my replies above, would you still need any of those?
 
-> > > > + * All above has precision u0.4, range [0..0xF].
-> > 
-> > again, what do you mean by u0.4? 
-> 
-> unsigned integer with 0 bits used for representing whole number,
-> with 4 least significant bits used to represent the fractional part.
+Best regards,
+Tomasz
 
-You could refer to this:
-
-<URL:https://en.wikipedia.org/wiki/Q_(number_format)>
-
-The ux.y notation is more common in the context of software but I couldn't
-find any decent document to refer to.
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+>
+> Regards,
+> Maxime
+>
+> > Regards,
+> >
+> >         Hans
+> >
+> > >
+> > > RFC notes: This patch is motivated by the work I'm doing on the Amlogic
+> > > video decoder where the firmwares allow me to support
+> > > V4L2_EVENT_SRC_CH_RESOLUTION for newer formats (H.264, HEVC..) but
+> > > can't support it for older ones (MPEG2, MPEG4, MJPEG..).
+> > > For the latter formats, userspace is expected to set the resolution via
+> > > S_FMT prior to decoding.
+> > >
+> > > Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
+> > > ---
+> > >  Documentation/media/uapi/v4l/control.rst | 7 +++++++
+> > >  drivers/media/v4l2-core/v4l2-ctrls.c     | 3 +++
+> > >  include/uapi/linux/v4l2-controls.h       | 4 +++-
+> > >  3 files changed, 13 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/Documentation/media/uapi/v4l/control.rst b/Documentation/media/uapi/v4l/control.rst
+> > > index c1e6adbe83d7..029a4e88bfd5 100644
+> > > --- a/Documentation/media/uapi/v4l/control.rst
+> > > +++ b/Documentation/media/uapi/v4l/control.rst
+> > > @@ -297,6 +297,13 @@ Control IDs
+> > >      set the alpha component value of all pixels for further processing
+> > >      in the device.
+> > >
+> > > +``V4L2_CID_SUPPORTS_CH_RESOLUTION`` ``(boolean)``
+> > > +    This is a read-only control that can be read by the application when
+> > > +    the driver exposes an OUTPUT queue and event
+> > > +    ``V4L2_EVENT_SRC_CH_RESOLUTION`` but doesn't support it for every
+> > > +    OUTPUT format. It returns true if the currently selected OUTPUT format
+> > > +    supports this event.
+> > > +
+> > >  ``V4L2_CID_LASTP1``
+> > >      End of the predefined control IDs (currently
+> > >      ``V4L2_CID_ALPHA_COMPONENT`` + 1).
+> > > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > > index 599c1cbff3b9..a8037ff3935a 100644
+> > > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > > @@ -739,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+> > >       case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:   return "Min Number of Output Buffers";
+> > >       case V4L2_CID_ALPHA_COMPONENT:          return "Alpha Component";
+> > >       case V4L2_CID_COLORFX_CBCR:             return "Color Effects, CbCr";
+> > > +     case V4L2_CID_SUPPORTS_CH_RESOLUTION:   return "Supports Change Resolution";
+> > >
+> > >       /* Codec controls */
+> > >       /* The MPEG controls are applicable to all codec controls
+> > > @@ -1074,6 +1075,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+> > >       *flags = 0;
+> > >
+> > >       switch (id) {
+> > > +     case V4L2_CID_SUPPORTS_CH_RESOLUTION:
+> > > +             *flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> > >       case V4L2_CID_AUDIO_MUTE:
+> > >       case V4L2_CID_AUDIO_LOUDNESS:
+> > >       case V4L2_CID_AUTO_WHITE_BALANCE:
+> > > diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> > > index e4ee10ee917d..c874fdd28f40 100644
+> > > --- a/include/uapi/linux/v4l2-controls.h
+> > > +++ b/include/uapi/linux/v4l2-controls.h
+> > > @@ -141,8 +141,10 @@ enum v4l2_colorfx {
+> > >  #define V4L2_CID_ALPHA_COMPONENT             (V4L2_CID_BASE+41)
+> > >  #define V4L2_CID_COLORFX_CBCR                        (V4L2_CID_BASE+42)
+> > >
+> > > +#define V4L2_CID_SUPPORTS_CH_RESOLUTION              (V4L2_CID_BASE+43)
+> > > +
+> > >  /* last CID + 1 */
+> > > -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+43)
+> > > +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+44)
+> > >
+> > >  /* USER-class private control IDs */
+> > >
+> > >
+> >
