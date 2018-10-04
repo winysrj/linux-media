@@ -1,169 +1,560 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f65.google.com ([209.85.221.65]:44832 "EHLO
-        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725922AbeJDGMI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 02:12:08 -0400
-Received: by mail-wr1-f65.google.com with SMTP id 63-v6so7870158wra.11
-        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2018 16:21:37 -0700 (PDT)
-Subject: Re: [PATCH v3 00/14] imx-media: Fixes for interlaced capture
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-References: <1533150747-30677-1-git-send-email-steve_longerbeam@mentor.com>
- <db3940a6-d837-9b6a-1f1e-122dda1e1650@xs4all.nl>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <0701dea4-f3b7-fda9-0dd0-f717a868991d@gmail.com>
-Date: Wed, 3 Oct 2018 16:21:31 -0700
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:39532 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726735AbeJDInj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 04:43:39 -0400
+Date: Thu, 4 Oct 2018 03:52:34 +0200
+From: Benjamin Valentin <benpicco@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Anssi Hannula <anssi.hannula@iki.fi>,
+        Paul Miller <pmiller9@users.sourceforge.net>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        linux-input@vger.kernel.org
+Subject: [PATCH] media: rc: add driver for Xbox DVD Movie Playback Kit
+Message-ID: <20181004035234.08507a71@rechenknecht2k11>
 MIME-Version: 1.0
-In-Reply-To: <db3940a6-d837-9b6a-1f1e-122dda1e1650@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The Xbox DVD Movie Playback Kit is a USB dongle with an IR remote for the
+Original Xbox.
 
+Historically it has been supported by the out-of-tree lirc_xbox driver,
+but this one has fallen out of favour and was just dropped from popular
+Kodi (formerly XBMC) distributions.
 
-On 10/01/2018 03:07 AM, Hans Verkuil wrote:
-> Hi Steve,
->
-> On 08/01/2018 09:12 PM, Steve Longerbeam wrote:
->> A set of patches that fixes some bugs with capturing from an
->> interlaced source, and incompatibilites between IDMAC interlace
->> interweaving and 4:2:0 data write reduction.
-> I reviewed this series and it looks fine to me.
+This driver is heavily based on the ati_remote driver where all the
+boilerplate was taken from - I was mostly just removing code.
 
-Cool.
+Signed-off-by: Benjamin Valentin <benpicco@googlemail.com>
+---
+ MAINTAINERS                            |   6 +
+ drivers/media/rc/Kconfig               |  11 +
+ drivers/media/rc/Makefile              |   1 +
+ drivers/media/rc/keymaps/Makefile      |   1 +
+ drivers/media/rc/keymaps/rc-xbox-dvd.c |  63 +++++
+ drivers/media/rc/xbox_remote.c         | 369 +++++++++++++++++++++++++
+ include/media/rc-map.h                 |   1 +
+ 7 files changed, 452 insertions(+)
+ create mode 100644 drivers/media/rc/keymaps/rc-xbox-dvd.c
+ create mode 100644 drivers/media/rc/xbox_remote.c
 
->
-> It appears that the ipu* patches are already merged, so can you rebase and
-> repost?
-
-Done. There are still two ipu* patches that still need a merge:
-
-gpu: ipu-csi: Swap fields according to input/output field types
-gpu: ipu-v3: Add planar support to interlaced scan
-
-so those will still be included in the v4 submission.
-
->
-> I would also like to see the 'v4l2-compliance -f' for an interlaced source,
-> if at all possible.
-
-Sure, I've run 'v4l2-compliance -f' on two configured pipelines: unprocessed
-capture (no scaling, CSC, rotation using ipu), and a VDIC de-interlace 
-pipeline.
-
-I have the text output, the output is huge but here is the abbreviated 
-results:
-
-Unprocessed pipeline:
-
-root@mx6q:/home/fu# v4l2-compliance -d4 -f
-v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
-<snip>
-test VIDIOC_G/S/ENUMINPUT: FAIL
-<snip>
-test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-<snip>
-
-Total: 715, Succeeded: 713, Failed: 2, Warnings: 0
-
-
-VDIC de-interlace pipeline:
-
-root@mx6q:/home/fu# v4l2-compliance -d1 -f
-v4l2-compliance SHA   : 2d35de61ac90b030fe15439809b807014e9751fe
-<snip>
-test VIDIOC_G/S/ENUMINPUT: FAIL
-<snip>
-test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-<snip>
-test VIDIOC_G/S_PARM: FAIL
-<snip>
-
-Total: 50, Succeeded: 47, Failed: 3, Warnings: 1
-
-I will send you the full output privately.
-
-
->
-> For that matter, were you able to test all the field formats?
-
-Yes. I've tested on imx6q SabreAuto with the ADV7180 alternate source,
-all of the following are tested and produce good video:
-
-ntsc alternate -> interlaced-tb
-ntsc alternate -> interlaced-bt
-ntsc alternate -> none (VDIC pipeline)
-ntsc alternate -> none (VDIC pipeline)
-
-pal alternate -> interlaced-tb
-pal alternate -> interlaced-bt
-pal alternate -> none (VDIC pipeline)
-pal alternate -> none (VDIC pipeline)
-
-Steve
-
-
->
->> History:
->> v3:
->> - add support for/fix interweaved scan with YUV planar output.
->> - fix bug in 4:2:0 U/V offset macros.
->> - add patch that generalizes behavior of field swap in
->>    ipu_csi_init_interface().
->> - add support for interweaved scan with field order swap.
->>    Suggested by Philipp Zabel.
->> - in v2, inteweave scan was determined using field types of
->>    CSI (and PRPENCVF) at the sink and source pads. In v3, this
->>    has been moved one hop downstream: interweave is now determined
->>    using field type at source pad, and field type selected at
->>    capture interface. Suggested by Philipp.
->> - make sure to double CSI crop target height when input field
->>    type in alternate.
->> - more updates to media driver doc to reflect above.
->>
->> v2:
->> - update media driver doc.
->> - enable idmac interweave only if input field is sequential/alternate,
->>    and output field is 'interlaced*'.
->> - move field try logic out of *try_fmt and into separate function.
->> - fix bug with resetting crop/compose rectangles.
->> - add a patch that fixes a field order bug in VDIC indirect mode.
->> - remove alternate field type from V4L2_FIELD_IS_SEQUENTIAL() macro
->>    Suggested-by: Nicolas Dufresne <nicolas@ndufresne.ca>.
->> - add macro V4L2_FIELD_IS_INTERLACED().
->>
->>
->> Philipp Zabel (1):
->>    gpu: ipu-v3: Allow negative offsets for interlaced scanning
->>
->> Steve Longerbeam (13):
->>    media: videodev2.h: Add more field helper macros
->>    gpu: ipu-csi: Check for field type alternate
->>    gpu: ipu-csi: Swap fields according to input/output field types
->>    gpu: ipu-v3: Fix U/V offset macros for planar 4:2:0
->>    gpu: ipu-v3: Add planar support to interlaced scan
->>    media: imx: Fix field negotiation
->>    media: imx-csi: Double crop height for alternate fields at sink
->>    media: imx: interweave and odd-chroma-row skip are incompatible
->>    media: imx-csi: Allow skipping odd chroma rows for YVU420
->>    media: imx: vdic: rely on VDIC for correct field order
->>    media: imx-csi: Move crop/compose reset after filling default mbus
->>      fields
->>    media: imx: Allow interweave with top/bottom lines swapped
->>    media: imx.rst: Update doc to reflect fixes to interlaced capture
->>
->>   Documentation/media/v4l-drivers/imx.rst       |  93 ++++++++++-----
->>   drivers/gpu/ipu-v3/ipu-cpmem.c                |  45 ++++++-
->>   drivers/gpu/ipu-v3/ipu-csi.c                  | 136 ++++++++++++++-------
->>   drivers/staging/media/imx/imx-ic-prpencvf.c   |  48 ++++++--
->>   drivers/staging/media/imx/imx-media-capture.c |  14 +++
->>   drivers/staging/media/imx/imx-media-csi.c     | 166 ++++++++++++++++++--------
->>   drivers/staging/media/imx/imx-media-vdic.c    |  12 +-
->>   include/uapi/linux/videodev2.h                |   7 ++
->>   include/video/imx-ipu-v3.h                    |   6 +-
->>   9 files changed, 377 insertions(+), 150 deletions(-)
->>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 22065048d89d..712a51a1a955 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -15973,6 +15973,12 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git x86/vdso
+ S:	Maintained
+ F:	arch/x86/entry/vdso/
+ 
++XBOX DVD IR REMOTE
++M:	Benjamin Valentin <benpicco@googlemail.com>
++S:	Maintained
++F:	drivers/media/rc/xbox_remote.c
++F:	drivers/media/rc/keymaps/rc-xbox-dvd.c
++
+ XC2028/3028 TUNER DRIVER
+ M:	Mauro Carvalho Chehab <mchehab@kernel.org>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 1021c08a9ba4..05489294ebbc 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -493,6 +493,17 @@ config IR_TANGO
+ 	   The HW decoder supports NEC, RC-5, RC-6 IR protocols.
+ 	   When compiled as a module, look for tango-ir.
+ 
++config CONFIG_RC_XBOX_DVD
++	tristate "Xbox DVD Movie Playback Kit"
++	depends on RC_CORE
++	select USB
++	help
++	   Say Y here if you want to use the Xbox DVD Movie Playback Kit.
++	   These are IR remotes with USB receivers for the Original Xbox (2001).
++
++	   To compile this driver as a module, choose M here: the module will be
++	   called xbox_remote.
++
+ config IR_ZX
+ 	tristate "ZTE ZX IR remote control"
+ 	depends on RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index e0340d043fe8..92c163816849 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -48,3 +48,4 @@ obj-$(CONFIG_IR_SIR) += sir_ir.o
+ obj-$(CONFIG_IR_MTK) += mtk-cir.o
+ obj-$(CONFIG_IR_ZX) += zx-irdec.o
+ obj-$(CONFIG_IR_TANGO) += tango-ir.o
++obj-$(CONFIG_RC_XBOX_DVD) += xbox_remote.o
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index d6b913a3032d..5b1399af6b3a 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -116,4 +116,5 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-winfast.o \
+ 			rc-winfast-usbii-deluxe.o \
+ 			rc-su3000.o \
++			rc-xbox-dvd.o \
+ 			rc-zx-irdec.o
+diff --git a/drivers/media/rc/keymaps/rc-xbox-dvd.c b/drivers/media/rc/keymaps/rc-xbox-dvd.c
+new file mode 100644
+index 000000000000..61da6706715c
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-xbox-dvd.c
+@@ -0,0 +1,63 @@
++// SPDX-License-Identifier: GPL-2.0+
++// Keytable for Xbox DVD remote
++// Copyright (c) 2018 by Benjamin Valentin <benpicco@googlemail.com>
++
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++/* based on lircd.conf.xbox */
++static struct rc_map_table xbox_dvd[] = {
++	{0x0b, KEY_OK},
++	{0xa6, KEY_UP},
++	{0xa7, KEY_DOWN},
++	{0xa8, KEY_RIGHT},
++	{0xa9, KEY_LEFT},
++	{0xc3, KEY_INFO},
++
++	{0xc6, KEY_9},
++	{0xc7, KEY_8},
++	{0xc8, KEY_7},
++	{0xc9, KEY_6},
++	{0xca, KEY_5},
++	{0xcb, KEY_4},
++	{0xcc, KEY_3},
++	{0xcd, KEY_2},
++	{0xce, KEY_1},
++	{0xcf, KEY_0},
++
++	{0xd5, KEY_ANGLE},
++	{0xd8, KEY_BACK},
++	{0xdd, KEY_PREVIOUSSONG},
++	{0xdf, KEY_NEXTSONG},
++	{0xe0, KEY_STOP},
++	{0xe2, KEY_REWIND},
++	{0xe3, KEY_FASTFORWARD},
++	{0xe5, KEY_TITLE},
++	{0xe6, KEY_PAUSE},
++	{0xea, KEY_PLAY},
++	{0xf7, KEY_MENU},
++};
++
++static struct rc_map_list xbox_dvd_map = {
++	.map = {
++		.scan     = xbox_dvd,
++		.size     = ARRAY_SIZE(xbox_dvd),
++		.rc_proto = RC_PROTO_UNKNOWN,
++		.name     = RC_MAP_XBOX_DVD,
++	}
++};
++
++static int __init init_rc_map(void)
++{
++	return rc_map_register(&xbox_dvd_map);
++}
++
++static void __exit exit_rc_map(void)
++{
++	rc_map_unregister(&xbox_dvd_map);
++}
++
++module_init(init_rc_map)
++module_exit(exit_rc_map)
++
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/rc/xbox_remote.c b/drivers/media/rc/xbox_remote.c
+new file mode 100644
+index 000000000000..73339b89f283
+--- /dev/null
++++ b/drivers/media/rc/xbox_remote.c
+@@ -0,0 +1,369 @@
++// SPDX-License-Identifier: GPL-2.0+
++// Driver for Xbox DVD Movie Playback Kit
++// Copyright (c) 2018 by Benjamin Valentin <benpicco@googlemail.com>
++
++/*
++ *  Xbox DVD Movie Playback Kit USB IR dongle support
++ *
++ *  The driver was derived from the ati_remote driver 2.2.1 and used information from lirc_xbox.c
++ *                Copyright (c) 2011, 2012 Anssi Hannula <anssi.hannula@iki.fi>
++ *                Copyright (c) 2004 Torrey Hoffman <thoffman@arnor.net>
++ *                Copyright (c) 2002 Vladimir Dergachev
++ *                Copyright (c) 2003-2004 Paul Miller <pmiller9@users.sourceforge.net>
++ */
++
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/usb/input.h>
++#include <media/rc-core.h>
++
++/*
++ * Module and Version Information, Module Parameters
++ */
++
++#define DRIVER_VERSION	"1.0.0"
++#define DRIVER_AUTHOR	"Benjamin Valentin <benpicco@flauschlabor.de>"
++#define DRIVER_DESC		"Xbox DVD USB Remote Control"
++
++#define NAME_BUFSIZE      80    /* size of product name, path buffers */
++#define DATA_BUFSIZE      16    /* size of URB data buffers */
++
++static int debug;
++module_param(debug, int, 0644);
++MODULE_PARM_DESC(debug, "Enable extra debug messages and information");
++
++#define dbginfo(dev, format, arg...) \
++	do { if (debug) dev_info(dev, format, ## arg); } while (0)
++#undef err
++#define err(format, arg...) printk(KERN_ERR format, ## arg)
++
++/* USB vendor ids for XBOX DVD Dongles */
++#define VENDOR_GAMESTER     0x040b
++#define VENDOR_MICROSOFT    0x045e
++
++static const struct usb_device_id xbox_remote_table[] = {
++	/* Gamester Xbox DVD Movie Playback Kit IR */
++	{
++		USB_DEVICE(VENDOR_GAMESTER, 0x6521),
++	},
++	/* Microsoft Xbox DVD Movie Playback Kit IR */
++	{
++		USB_DEVICE(VENDOR_MICROSOFT, 0x0284),
++	},
++	{}	/* Terminating entry */
++};
++
++MODULE_DEVICE_TABLE(usb, xbox_remote_table);
++
++struct xbox_remote {
++	struct rc_dev *rdev;
++	struct usb_device *udev;
++	struct usb_interface *interface;
++
++	struct urb *irq_urb;
++	struct usb_endpoint_descriptor *endpoint_in;
++	unsigned char *inbuf;
++	dma_addr_t inbuf_dma;
++
++	char rc_name[NAME_BUFSIZE];
++	char rc_phys[NAME_BUFSIZE];
++
++	struct mutex open_mutex;
++};
++
++/*
++ * xbox_remote_open
++ */
++static int xbox_remote_open(struct xbox_remote *xbox_remote)
++{
++	int err = 0;
++
++	mutex_lock(&xbox_remote->open_mutex);
++
++	/* On first open, submit the read urb which was set up previously. */
++	xbox_remote->irq_urb->dev = xbox_remote->udev;
++	if (usb_submit_urb(xbox_remote->irq_urb, GFP_KERNEL)) {
++		dev_err(&xbox_remote->interface->dev,
++			"%s: usb_submit_urb failed!\n", __func__);
++		err = -EIO;
++	}
++
++	mutex_unlock(&xbox_remote->open_mutex);
++	return err;
++}
++
++/*
++ * xbox_remote_close
++ */
++static void xbox_remote_close(struct xbox_remote *xbox_remote)
++{
++	mutex_lock(&xbox_remote->open_mutex);
++	usb_kill_urb(xbox_remote->irq_urb);
++	mutex_unlock(&xbox_remote->open_mutex);
++}
++
++static int xbox_remote_rc_open(struct rc_dev *rdev)
++{
++	struct xbox_remote *xbox_remote = rdev->priv;
++	return xbox_remote_open(xbox_remote);
++}
++
++static void xbox_remote_rc_close(struct rc_dev *rdev)
++{
++	struct xbox_remote *xbox_remote = rdev->priv;
++	xbox_remote_close(xbox_remote);
++}
++
++/*
++ * xbox_remote_report_input
++ */
++static void xbox_remote_input_report(struct urb *urb)
++{
++	struct xbox_remote *xbox_remote = urb->context;
++	unsigned char *data = xbox_remote->inbuf;
++
++	/*
++	 * data[0] = 0x00
++	 * data[1] = length - always 0x06
++	 * data[2] = the key code
++	 * data[3] = high part of key code? - always 0x0a
++	 * data[4] = last_press_ms (low)
++	 * data[5] = last_press_ms (high)
++	 */
++
++	/* Deal with strange looking inputs */
++	if (urb->actual_length != 6 || urb->actual_length != data[1]) {
++		dev_warn(&urb->dev->dev, "Weird data, len=%d: %*ph\n", urb->actual_length, urb->actual_length, data);
++		return;
++	}
++
++	dbginfo(&urb->dev->dev, "got data, len=%d: %*ph\n", urb->actual_length, urb->actual_length, data);
++	rc_keydown(xbox_remote->rdev, RC_PROTO_UNKNOWN, data[2], 0);
++}
++
++/*
++ * xbox_remote_irq_in
++ */
++static void xbox_remote_irq_in(struct urb *urb)
++{
++	struct xbox_remote *xbox_remote = urb->context;
++	int retval;
++
++	switch (urb->status) {
++	case 0:			/* success */
++		xbox_remote_input_report(urb);
++		break;
++	case -ECONNRESET:	/* unlink */
++	case -ENOENT:
++	case -ESHUTDOWN:
++		dev_dbg(&xbox_remote->interface->dev,
++			"%s: urb error status, unlink?\n",
++			__func__);
++		return;
++	default:		/* error */
++		dev_dbg(&xbox_remote->interface->dev,
++			"%s: Nonzero urb status %d\n",
++			__func__, urb->status);
++	}
++
++	retval = usb_submit_urb(urb, GFP_ATOMIC);
++	if (retval)
++		dev_err(&xbox_remote->interface->dev,
++			"%s: usb_submit_urb()=%d\n",
++			__func__, retval);
++}
++
++/*
++ * xbox_remote_alloc_buffers
++ */
++static int xbox_remote_alloc_buffers(struct usb_device *udev,
++				    struct xbox_remote *xbox_remote)
++{
++	xbox_remote->inbuf = usb_alloc_coherent(udev, DATA_BUFSIZE, GFP_ATOMIC,
++					       &xbox_remote->inbuf_dma);
++	if (!xbox_remote->inbuf)
++		return -1;
++
++	xbox_remote->irq_urb = usb_alloc_urb(0, GFP_KERNEL);
++	if (!xbox_remote->irq_urb)
++		return -1;
++
++	return 0;
++}
++
++/*
++ * xbox_remote_free_buffers
++ */
++static void xbox_remote_free_buffers(struct xbox_remote *xbox_remote)
++{
++	usb_free_urb(xbox_remote->irq_urb);
++
++	usb_free_coherent(xbox_remote->udev, DATA_BUFSIZE,
++		xbox_remote->inbuf, xbox_remote->inbuf_dma);
++}
++
++static void xbox_remote_rc_init(struct xbox_remote *xbox_remote)
++{
++	struct rc_dev *rdev = xbox_remote->rdev;
++
++	rdev->priv = xbox_remote;
++	rdev->allowed_protocols = RC_PROTO_BIT_UNKNOWN;
++	rdev->driver_name = "xbox_remote";
++
++	rdev->open = xbox_remote_rc_open;
++	rdev->close = xbox_remote_rc_close;
++
++	rdev->device_name = xbox_remote->rc_name;
++	rdev->input_phys = xbox_remote->rc_phys;
++
++	usb_to_input_id(xbox_remote->udev, &rdev->input_id);
++	rdev->dev.parent = &xbox_remote->interface->dev;
++}
++
++static int xbox_remote_initialize(struct xbox_remote *xbox_remote)
++{
++	struct usb_device *udev = xbox_remote->udev;
++	int pipe, maxp;
++
++	/* Set up irq_urb */
++	pipe = usb_rcvintpipe(udev, xbox_remote->endpoint_in->bEndpointAddress);
++	maxp = usb_maxpacket(udev, pipe, usb_pipeout(pipe));
++	maxp = (maxp > DATA_BUFSIZE) ? DATA_BUFSIZE : maxp;
++
++	usb_fill_int_urb(xbox_remote->irq_urb, udev, pipe, xbox_remote->inbuf,
++			 maxp, xbox_remote_irq_in, xbox_remote,
++			 xbox_remote->endpoint_in->bInterval);
++	xbox_remote->irq_urb->transfer_dma = xbox_remote->inbuf_dma;
++	xbox_remote->irq_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
++
++	return 0;
++}
++
++/*
++ * xbox_remote_probe
++ */
++static int xbox_remote_probe(struct usb_interface *interface,
++	const struct usb_device_id *id)
++{
++	struct usb_device *udev = interface_to_usbdev(interface);
++	struct usb_host_interface *iface_host = interface->cur_altsetting;
++	struct usb_endpoint_descriptor *endpoint_in;
++	struct xbox_remote *xbox_remote;
++	struct input_dev *input_dev;
++	struct rc_dev *rc_dev;
++	int err = -ENOMEM;
++
++	// why is there also a device with no endpoints?
++	if (iface_host->desc.bNumEndpoints == 0)
++		return -ENODEV;
++
++	if (iface_host->desc.bNumEndpoints != 1) {
++		err("%s: Unexpected desc.bNumEndpoints: %d\n", __func__, iface_host->desc.bNumEndpoints);
++		return -ENODEV;
++	}
++
++	endpoint_in = &iface_host->endpoint[0].desc;
++
++	if (!usb_endpoint_is_int_in(endpoint_in)) {
++		err("%s: Unexpected endpoint_in\n", __func__);
++		return -ENODEV;
++	}
++	if (le16_to_cpu(endpoint_in->wMaxPacketSize) == 0) {
++		err("%s: endpoint_in message size==0?\n", __func__);
++		return -ENODEV;
++	}
++
++	xbox_remote = kzalloc(sizeof(*xbox_remote), GFP_KERNEL);
++	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
++	if (!xbox_remote || !rc_dev)
++		goto exit_free_dev_rdev;
++
++	/* Allocate URB buffers, URBs */
++	if (xbox_remote_alloc_buffers(udev, xbox_remote))
++		goto exit_free_buffers;
++
++	xbox_remote->endpoint_in = endpoint_in;
++	xbox_remote->udev = udev;
++	xbox_remote->rdev = rc_dev;
++	xbox_remote->interface = interface;
++
++	usb_make_path(udev, xbox_remote->rc_phys, sizeof(xbox_remote->rc_phys));
++
++	strlcat(xbox_remote->rc_phys, "/input0", sizeof(xbox_remote->rc_phys));
++
++	snprintf(xbox_remote->rc_name, sizeof(xbox_remote->rc_name), "%s%s%s",
++		udev->manufacturer ?: "",
++		udev->manufacturer && udev->product ? " " : "",
++		udev->product ?: "");
++
++	if (!strlen(xbox_remote->rc_name))
++		snprintf(xbox_remote->rc_name, sizeof(xbox_remote->rc_name),
++			DRIVER_DESC "(%04x,%04x)",
++			le16_to_cpu(xbox_remote->udev->descriptor.idVendor),
++			le16_to_cpu(xbox_remote->udev->descriptor.idProduct));
++
++	rc_dev->map_name = RC_MAP_XBOX_DVD; /* default map */
++
++	xbox_remote_rc_init(xbox_remote);
++	mutex_init(&xbox_remote->open_mutex);
++
++	/* Device Hardware Initialization - fills in xbox_remote->idev from udev. */
++	err = xbox_remote_initialize(xbox_remote);
++	if (err)
++		goto exit_kill_urbs;
++
++	/* Set up and register rc device */
++	err = rc_register_device(xbox_remote->rdev);
++	if (err)
++		goto exit_kill_urbs;
++
++	usb_set_intfdata(interface, xbox_remote);
++	return 0;
++
++	input_free_device(input_dev);
++	rc_unregister_device(rc_dev);
++	rc_dev = NULL;
++ exit_kill_urbs:
++	usb_kill_urb(xbox_remote->irq_urb);
++ exit_free_buffers:
++	xbox_remote_free_buffers(xbox_remote);
++ exit_free_dev_rdev:
++	 rc_free_device(rc_dev);
++	kfree(xbox_remote);
++	return err;
++}
++
++/*
++ * xbox_remote_disconnect
++ */
++static void xbox_remote_disconnect(struct usb_interface *interface)
++{
++	struct xbox_remote *xbox_remote;
++
++	xbox_remote = usb_get_intfdata(interface);
++	usb_set_intfdata(interface, NULL);
++	if (!xbox_remote) {
++		dev_warn(&interface->dev, "%s - null device?\n", __func__);
++		return;
++	}
++
++	usb_kill_urb(xbox_remote->irq_urb);
++	rc_unregister_device(xbox_remote->rdev);
++	xbox_remote_free_buffers(xbox_remote);
++	kfree(xbox_remote);
++}
++
++/* usb specific object to register with the usb subsystem */
++static struct usb_driver xbox_remote_driver = {
++	.name         = "xbox_remote",
++	.probe        = xbox_remote_probe,
++	.disconnect   = xbox_remote_disconnect,
++	.id_table     = xbox_remote_table,
++};
++
++module_usb_driver(xbox_remote_driver);
++
++MODULE_AUTHOR(DRIVER_AUTHOR);
++MODULE_DESCRIPTION(DRIVER_DESC);
++MODULE_LICENSE("GPL");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index bfa3017cecba..d621acadfbf3 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -277,6 +277,7 @@ struct rc_map *rc_map_get(const char *name);
+ #define RC_MAP_WINFAST                   "rc-winfast"
+ #define RC_MAP_WINFAST_USBII_DELUXE      "rc-winfast-usbii-deluxe"
+ #define RC_MAP_SU3000                    "rc-su3000"
++#define RC_MAP_XBOX_DVD                  "rc-xbox-dvd"
+ #define RC_MAP_ZX_IRDEC                  "rc-zx-irdec"
+ 
+ /*
+-- 
+2.17.1
