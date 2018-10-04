@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:52798 "EHLO
+Received: from perceval.ideasonboard.com ([213.167.242.64]:52754 "EHLO
         perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727732AbeJEEzz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 00:55:55 -0400
+        with ESMTP id S1727121AbeJEEx4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 00:53:56 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
         <niklas.soderlund@ragnatech.se>
@@ -10,84 +10,106 @@ Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
         Jacopo Mondi <jacopo@jmondi.org>, linux-media@vger.kernel.org,
         linux-renesas-soc@vger.kernel.org,
         Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] dt-bindings: adv748x: make data-lanes property mandatory for CSI-2 endpoints
-Date: Fri, 05 Oct 2018 01:00:47 +0300
-Message-ID: <18767245.bJLhzbqhM5@avalon>
-In-Reply-To: <2082037.FqgpqPMGh4@avalon>
-References: <20181004204138.2784-1-niklas.soderlund@ragnatech.se> <20181004204138.2784-2-niklas.soderlund@ragnatech.se> <2082037.FqgpqPMGh4@avalon>
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: Re: [PATCH v2 3/5] i2c: adv748x: reuse power up sequence when initializing CSI-2
+Date: Fri, 05 Oct 2018 00:58:48 +0300
+Message-ID: <1636157.lAsdG5Pq9I@avalon>
+In-Reply-To: <20181004204138.2784-4-niklas.soderlund@ragnatech.se>
+References: <20181004204138.2784-1-niklas.soderlund@ragnatech.se> <20181004204138.2784-4-niklas.soderlund@ragnatech.se>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again,
+Hi Niklas,
 
-On Friday, 5 October 2018 00:42:17 EEST Laurent Pinchart wrote:
-> On Thursday, 4 October 2018 23:41:34 EEST Niklas S=F6derlund wrote:
-> > From: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> >=20
-> > The CSI-2 transmitters can use a different number of lanes to transmit
-> > data. Make the data-lanes mandatory for the endpoints describe the
->=20
-> s/describe/that describe/ ?
->=20
-> > transmitters as no good default can be set to fallback on.
-> >=20
-> > Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.s=
-e>
-> > ---
-> >=20
-> >  Documentation/devicetree/bindings/media/i2c/adv748x.txt | 3 +++
-> >  1 file changed, 3 insertions(+)
-> >=20
-> > diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> > b/Documentation/devicetree/bindings/media/i2c/adv748x.txt index
-> > 5dddc95f9cc46084..f9dac01ab795fc28 100644
-> > --- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> > +++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
-> > @@ -50,6 +50,9 @@ are numbered as follows.
-> >=20
-> >  The digital output port nodes must contain at least one endpoint.
-> >=20
-> > +The endpoints described in TXA and TXB ports must if present contain
-> > +the data-lanes property as described in video-interfaces.txt.
-> > +
->=20
-> Would it make sense to merge those two paragraphs, as they refer to the s=
-ame
-> endpoint ?
->=20
-> "The digital output port nodes, when present, shall contain at least one
-> endpoint. Each of those endpoints shall contain the data-lanes property as
-> described in video-interfaces.txt."
->=20
-> (DT bindings normally use "shall" instead of "must", but that hasn't real=
-ly
-> been enforced.)
->=20
-> If you want to keep the paragraphs separate, I would recommend using
-> "digital output ports" instead of "TXA and TXB" in the second paragraph f=
-or
-> consistency (or the other way around).
->=20
-> I'm fine with any of the above option, so please pick your favourite, and
-> add
->=20
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thank you for the patch.
 
-I just realized that TXB only supports a single data lane, so we may want n=
-ot=20
-to have a data-lanes property for TXB.
+On Thursday, 4 October 2018 23:41:36 EEST Niklas S=F6derlund wrote:
+> From: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+>=20
+> Instead of duplicate the register writes to power on the CSI-2
+> transmitter when initialization the hardware reuse the dedicated power
+> control functions.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/i2c/adv748x/adv748x-core.c | 28 ++----------------------
+>  1 file changed, 2 insertions(+), 26 deletions(-)
 
-> >  Ports are optional if they are not connected to anything at the hardwa=
-re
-> >=20
-> > level.
-> >=20
-> >  Example:
+Nice diffstat.
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Please see below for an additional comment.
+
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c
+> b/drivers/media/i2c/adv748x/adv748x-core.c index
+> 721ed6552bc1cde6..41cc0cdd6a5fcef5 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -390,19 +390,6 @@ static const struct adv748x_reg_value
+> adv748x_init_txa_4lane[] =3D { {ADV748X_PAGE_TXA, 0x72, 0x11},	/* ADI
+> Required Write */
+>  	{ADV748X_PAGE_TXA, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+>=20
+> -	{ADV748X_PAGE_TXA, 0x00, 0x84},	/* Enable 4-lane MIPI */
+> -	{ADV748X_PAGE_TXA, 0x00, 0xa4},	/* Set Auto DPHY Timing */
+> -
+> -	{ADV748X_PAGE_TXA, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXA, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXA, 0x00, 0x24 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXA, 0x31, 0x80},	/* ADI Required Write */
+> -
+>  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+>  };
+>=20
+> @@ -442,19 +429,6 @@ static const struct adv748x_reg_value
+> adv748x_init_txb_1lane[] =3D { {ADV748X_PAGE_TXB, 0x72, 0x11},	/* ADI
+> Required Write */
+>  	{ADV748X_PAGE_TXB, 0xf0, 0x00},	/* i2c_dphy_pwdn - 1'b0 */
+>=20
+> -	{ADV748X_PAGE_TXB, 0x00, 0x81},	/* Enable 1-lane MIPI */
+> -	{ADV748X_PAGE_TXB, 0x00, 0xa1},	/* Set Auto DPHY Timing */
+> -
+> -	{ADV748X_PAGE_TXB, 0x31, 0x82},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0x1e, 0x40},	/* ADI Required Write */
+> -	{ADV748X_PAGE_TXB, 0xda, 0x01},	/* i2c_mipi_pll_en - 1'b1 */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x02},/* delay 2 */
+> -	{ADV748X_PAGE_TXB, 0x00, 0x21 },/* Power-up CSI-TX */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0xc1, 0x2b},	/* ADI Required Write */
+> -	{ADV748X_PAGE_WAIT, 0x00, 0x01},/* delay 1 */
+> -	{ADV748X_PAGE_TXB, 0x31, 0x80},	/* ADI Required Write */
+> -
+>  	{ADV748X_PAGE_EOR, 0xff, 0xff}	/* End of register table */
+>  };
+>=20
+> @@ -476,6 +450,7 @@ static int adv748x_reset(struct adv748x_state *state)
+>  	if (ret)
+>  		return ret;
+>=20
+> +	adv748x_tx_power(&state->txa, 1);
+>  	adv748x_tx_power(&state->txa, 0);
+
+This makes me think there's room for further improvement :-)
+
+>  	/* Init and power down TXB */
+> @@ -483,6 +458,7 @@ static int adv748x_reset(struct adv748x_state *state)
+>  	if (ret)
+>  		return ret;
+>=20
+> +	adv748x_tx_power(&state->txb, 1);
+>  	adv748x_tx_power(&state->txb, 0);
+>=20
+>  	/* Disable chip powerdown & Enable HDMI Rx block */
+
 
 =2D-=20
 Regards,
