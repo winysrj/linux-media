@@ -1,113 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa4.microchip.iphmx.com ([68.232.154.123]:45262 "EHLO
-        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726481AbeJBNBN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2018 09:01:13 -0400
-Subject: Re: [PATCH] MAINTAINERS: Remove stale file entry for the Atmel ISI
- driver
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Joe Perches <joe@perches.com>, Josh Wu <josh.wu@atmel.com>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>
-References: <20180930065448.5019-1-laurent.pinchart@ideasonboard.com>
- <20180930063034.1dab99d9@coco.lan>
- <7150c1de00db05ec3c1a53611c156fb823d7f345.camel@perches.com>
- <20181001135101.536b4c22@coco.lan>
-From: Eugen Hristev <eugen.hristev@microchip.com>
-Message-ID: <0a181f1b-9720-d041-55c5-9df5bde3b920@microchip.com>
-Date: Tue, 2 Oct 2018 09:15:45 +0300
+Received: from bombadil.infradead.org ([198.137.202.133]:57982 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727615AbeJEBqJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 21:46:09 -0400
+Date: Thu, 4 Oct 2018 15:51:32 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>
+Subject: Re: [GIT PULL FOR v4.20] Various fixes
+Message-ID: <20181004155132.40bb0405@coco.lan>
+In-Reply-To: <616ee393-6487-5830-08ee-2d916912be37@xs4all.nl>
+References: <616ee393-6487-5830-08ee-2d916912be37@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20181001135101.536b4c22@coco.lan>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Mon, 1 Oct 2018 11:56:22 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
+> The following changes since commit 4158757395b300b6eb308fc20b96d1d231484413:
+> 
+>   media: davinci: Fix implicit enum conversion warning (2018-09-24 09:43:13 -0400)
+> 
+> are available in the Git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git tags/tag-v4.20d
+> 
+> for you to fetch changes up to f7a1170fcc19617647c78262a79abdec7b0a08cd:
+> 
+>   media: i2c: adv748x: fix typo in comment for TXB CSI-2 transmitter power down (2018-10-01 11:09:09 +0200)
+> 
+> ----------------------------------------------------------------
+> Tag branch
+> 
+> ----------------------------------------------------------------
+> Arnd Bergmann (1):
+>       media: imx-pxp: include linux/interrupt.h
+> 
+> Benjamin Gaignard (1):
+>       MAINTAINERS: fix reference to STI CEC driver
+> 
+> Colin Ian King (1):
+>       media: zoran: fix spelling mistake "queing" -> "queuing"
+> 
+> Dan Carpenter (1):
+>       VPU: mediatek: don't pass an unused parameter
+> 
+> Hans Verkuil (1):
+>       vidioc-dqevent.rst: clarify V4L2_EVENT_SRC_CH_RESOLUTION
+> 
+> Hugues Fruchet (1):
+>       media: stm32-dcmi: only enable IT frame on JPEG capture
+> 
+> Jacopo Mondi (4):
+>       media: i2c: adv748x: Support probing a single output
+>       media: i2c: adv748x: Handle TX[A|B] power management
+>       media: i2c: adv748x: Conditionally enable only CSI-2 outputs
+>       media: i2c: adv748x: Register only enabled inputs
+> 
+> Laurent Pinchart (1):
+>       MAINTAINERS: Remove stale file entry for the Atmel ISI driver
 
-On 01.10.2018 19:51, Mauro Carvalho Chehab wrote:
-> Em Sun, 30 Sep 2018 02:40:35 -0700
-> Joe Perches <joe@perches.com> escreveu:
-> 
->> On Sun, 2018-09-30 at 06:30 -0300, Mauro Carvalho Chehab wrote:
->>> Em Sun, 30 Sep 2018 09:54:48 +0300
->>> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
->>>    
->>>> include/media/atmel-isi got removed three years ago without the
->>>> MAINTAINERS file being updated. Remove the stale entry.
->>>>
->>>> Fixes: 40a78f36fc92 ("[media] v4l: atmel-isi: Remove support for platform data")
->>>> Reported-by: Joe Perches <joe@perches.com>
->>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>> ---
->>>>   MAINTAINERS | 1 -
->>>>   1 file changed, 1 deletion(-)
->>>>
->>>>
->>>> diff --git a/MAINTAINERS b/MAINTAINERS
->> []
->>>> @@ -2497,7 +2497,6 @@ M:	Ludovic Desroches <ludovic.desroches@microchip.com>
->>>>   L:	linux-media@vger.kernel.org
->>>>   S:	Supported
->>>>   F:	drivers/media/platform/atmel/atmel-isi.c
->>>> -F:	include/media/atmel-isi.h
->>>
->>> I guess the right fix would be to replace it by:
->>>
->>> F: drivers/media/platform/atmel/atmel-isi.h
->>
->> Or replace both F entries with:
->>
->> F:	drivers/media/platform/atmel/atmel-isi.*
->>
->> Or combine the 2 MICROCHIP sections into one
->>
->> MICROCHIP ISC DRIVER
->> M:	Eugen Hristev <eugen.hristev@microchip.com>
->> L:	linux-media@vger.kernel.org
->> S:	Supported
->> F:	drivers/media/platform/atmel/atmel-isc.c
->> F:	drivers/media/platform/atmel/atmel-isc-regs.h
->> F:	devicetree/bindings/media/atmel-isc.txt
->>
->> MICROCHIP ISI DRIVER
->> M:	Eugen Hristev <eugen.hristev@microchip.com>
->> L:	linux-media@vger.kernel.org
->> S:	Supported
->> F:	drivers/media/platform/atmel/atmel-isi.c
->> F:	include/media/atmel-isi.h
->>
->> and maybe use something like:
->>
->> MICROCHIP MEDIA DRIVERS
->> M:	Eugen Hristev <eugen.hristev@microchip.com>
->> L:	
->> linux-media@vger.kernel.org
->> S:	Supported
->> F:	drivers/media/platform/atmel/
->> F:	devicetree/bindings/media/atmel-isc.txt
-> 
-> Yeah, combining both of them seems a good alternative to me.
-> 
-> Eugen/Ludovic/Josh,
-> 
-> Comments?
+Dropped this patch, as it is not right: the file was just moved to
+a different place. Posted a replacement patch for it at the ML.
 
-I am OK with combining them.
+Applied the remaining ones.
 
-Thanks
-> 
-> Regards,
-> Mauro
-> 
->>
->>
-> 
-> 
-> 
-> Thanks,
-> Mauro
-> 
+Regards,
+Mauro
