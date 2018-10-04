@@ -1,117 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:53459 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726852AbeJDKXC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Oct 2018 06:23:02 -0400
-Message-ID: <e8e37c49c4ae8f5780923e0257e78e6d@smtp-cloud7.xs4all.net>
-Date: Thu, 04 Oct 2018 05:31:48 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mga04.intel.com ([192.55.52.120]:28054 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727046AbeJDOAl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Oct 2018 10:00:41 -0400
+Date: Thu, 4 Oct 2018 10:08:41 +0300
+From: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "laurent.pinchart@ideasonboard.com"
+        <laurent.pinchart@ideasonboard.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "Li, Chao C" <chao.c.li@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>
+Subject: Re: [PATCH v1 2/2] v4l: Document Intel IPU3 meta data uAPI
+Message-ID: <20181004070841.cxfjsc5d5ul6l7pe@paasikivi.fi.intel.com>
+References: <1529033373-15724-1-git-send-email-yong.zhi@intel.com>
+ <1529033373-15724-3-git-send-email-yong.zhi@intel.com>
+ <749a58a4-24f7-672f-70a9-cfd584af0171@xs4all.nl>
+ <20180813174950.6fd3915f@coco.lan>
+ <6F87890CF0F5204F892DEA1EF0D77A5981514022@fmsmsx122.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A5981514022@fmsmsx122.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Raj,
 
-Results of the daily build of media_tree:
+On Wed, Oct 03, 2018 at 10:56:19PM +0000, Mani, Rajmohan wrote:
+...
+> > From some comment you had later,
+> > I guess you're meaning that only 3 or 7 are the valid values.
+> > 
+> > Yet, you're listing from 2^3 to 2^7, and that's confusing. Perhaps
+> > you want to say, instead, that the valid values are at the 3..7 range?
+> > If so, please use something like "values at the [3..7] range".
+> > 
+> 
+> As Sakari pointed / preferred in the other thread, we will use the format
+> [3, 7] to represent all integers between 3 and 7, including 3 and 7.
 
-date:			Thu Oct  4 05:00:10 CEST 2018
-media-tree git hash:	5f108da55c6a928d0305163731bca2ac94ab233b
-media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
-v4l-utils git hash:	3598047c70e395d8ee0da5519996bc0126f18262
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.1.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
+Feel free to add a reference to this in the format documentation:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.158-i686: OK
-linux-4.4.158-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.129-i686: OK
-linux-4.9.129-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.72-i686: OK
-linux-4.14.72-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.10-i686: OK
-linux-4.18.10-x86_64: OK
-linux-4.19-rc5-i686: OK
-linux-4.19-rc5-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+<URL:https://en.wikipedia.org/wiki/Interval_(mathematics)>
 
-Detailed results are available here:
+I guess the right place would be the top parameter format ReST document.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+...
 
-Full logs are available here:
+> > > > + * All above has precision u0.4, range [0..0xF].
+> > 
+> > again, what do you mean by u0.4? 
+> 
+> unsigned integer with 0 bits used for representing whole number,
+> with 4 least significant bits used to represent the fractional part.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+You could refer to this:
 
-The Media Infrastructure API from this daily build is here:
+<URL:https://en.wikipedia.org/wiki/Q_(number_format)>
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+The ux.y notation is more common in the context of software but I couldn't
+find any decent document to refer to.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
