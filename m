@@ -1,105 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33374 "EHLO
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:53141 "EHLO
         lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727025AbeJENz1 (ORCPT
+        by vger.kernel.org with ESMTP id S1728170AbeJEOqr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 09:55:27 -0400
-Subject: Re: s5p_mfc and H.264 frame cropping question
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        snawrocki@kernel.org, nicolas@ndufresne.ca,
-        maxime.ripard@free-electrons.com, svarbanov@mm-sol.com
-References: <5eebb2ed-8f58-84c3-6589-a2579c0004dd@xs4all.nl>
- <CAAFQd5C3VX4YQ8gqg8GONxn9jVMgTZ4A6ryrpg+aNwiWrVdE2A@mail.gmail.com>
+        Fri, 5 Oct 2018 10:46:47 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <48187103-d0f2-b134-27f4-dae6781a4f1b@xs4all.nl>
-Date: Fri, 5 Oct 2018 08:58:01 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAAFQd5C3VX4YQ8gqg8GONxn9jVMgTZ4A6ryrpg+aNwiWrVdE2A@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Tomasz Figa <tfiga@chromium.org>, snawrocki@kernel.org
+Subject: [RFC PATCH 00/11] Convert last remaining g/s_crop/cropcap drivers
+Date: Fri,  5 Oct 2018 09:49:00 +0200
+Message-Id: <20181005074911.47574-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/05/2018 05:12 AM, Tomasz Figa wrote:
-> Hi Hans,
-> 
-> On Fri, Oct 5, 2018 at 5:02 AM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> Hi all,
->>
->> I'm looking at removing the last users of vidioc_g/s_crop from the driver and
->> I came across vidioc_g_crop in drivers/media/platform/s5p-mfc/s5p_mfc_dec.c.
->>
->> What this really does AFAICS is return the H.264 frame crop as read from the
->> bitstream. This has nothing to do with regular cropping/composing but it might be
->> something that could be implemented as a new selection target.
-> 
-> It has a lot to do, because the output frame buffer may contain (and
-> on the hardware I worked with, s5p-mfc and mtk-vcodec, indeed does)
-> the whole encoded stream and the frame crop from the bitstream
-> specifies the rectangle within it that corresponds to the part that
-> should be displayed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes, but is that part actually cropped? Or is the full uncropped image DMAed
-to the capture buffer?
+This patch series converts the last remaining drivers that use g/s_crop and
+cropcap to g/s_selection.
 
-To take a practical example: a H.264 stream with a 1920x1088 image and a frame
-crop rectangle of 1920x1080. What is the G_FMT width/height for the decoder
-capture stream: 1920x1088 or 1920x1080?
+The first two patches do some minor code cleanup.
 
-If it is 1920x1088, then you have a compose rectangle. If it is 1920x1080 then
-you have a crop rectangle.
+The third patch adds a new video_device flag to indicate that the driver
+inverts the normal usage of g/s_crop/cropcap. This applies to the old
+Samsung drivers that predate the Selection API and that abused the existing
+crop API.
 
-As far as I can tell from this driver it actually has a compose rectangle
-and the use of g_crop is wrong and is there due to historical reasons (the
-driver predates the selection API).
+The next three patches do some code cleanup and prepare drivers for the
+removal of g/s_crop and ensure that cropcap only returns the pixelaspect.
 
-> 
->>
->> I'm not really sure what to do with the existing code since it is an abuse of
->> the crop API, but I guess the first step is to decide how this should be handled
->> properly.
->>
->> Are there other decoders that can retrieve this information? Should this be
->> mentioned in the stateful codec API?
-> 
-> coda [1], mtk-vcodec [2] and venus [3] expose this using the
-> V4L2_SEL_TGT_COMPOSE selection target. v1 of the specification defines
-> the selection targets in a way, which is compatible with that:
-> V4L2_SEL_TGT_COMPOSE defaults to V4L2_SEL_TGT_COMPOSE_DEFAULT, which
-> equals to V4L2_SEL_TGT_CROP, which defaults to
-> V4L2_SEL_TGT_CROP_DEFAULT, which is defined as follows:
-> 
-> +      ``V4L2_SEL_TGT_CROP_DEFAULT``
-> +          a rectangle covering the part of the frame buffer that contains
-> +          meaningful picture data (visible area); width and height will be
-> +          equal to visible resolution of the stream
+The next three patches convert the remaining Samsung drivers and set the
+QUIRK flag for all three.
 
-Where do you get that from? That's the crop definition for an output stream,
-not a capture stream (assuming we have a codec).
+The final two patches remove vidioc_g/s_crop and rename vidioc_cropcap
+to vidioc_g_pixelaspect.
 
-I kind of lost you with "which equals to V4L2_SEL_TGT_CROP".
+I would really appreciate it if someone from Samsung can test these
+three drivers or at the very least review the code.
 
-In any case, this particular driver should implement g_selection for
-CAPTURE and implement the COMPOSE targets. That makes sense.
+Niklas, this series supersedes your 'v4l2-ioctl: fix CROPCAP type handling'
+patch. Sorry about that :-)
 
 Regards,
 
 	Hans
 
-> 
-> AFAIR s5p-mfc was added before the selection API went into active use,
-> so there is some user space that relies on the crop API. We should
-> make the driver expose proper selection targets and add a comment next
-> to the crop API implementation explaining the historical reasons. The
-> specification should mention only the selection API.
-> 
-> [1] https://elixir.bootlin.com/linux/v4.19-rc6/source/drivers/media/platform/coda/coda-common.c#L892
-> [2] https://elixir.bootlin.com/linux/v4.19-rc6/source/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c#L740
-> [3] https://elixir.bootlin.com/linux/v4.19-rc6/source/drivers/media/platform/qcom/venus/vdec.c#L300
-> 
-> Best regards,
-> Tomasz
-> 
+Hans Verkuil (11):
+  v4l2-ioctl: don't use CROP/COMPOSE_ACTIVE
+  v4l2-common.h: put backwards compat defines under #ifndef __KERNEL__
+  v4l2-ioctl: add QUIRK_INVERTED_CROP
+  davinci/vpbe: drop unused g_cropcap
+  cropcap/g_selection split
+  exynos-gsc: replace v4l2_crop by v4l2_selection
+  s5p_mfc_dec.c: convert g_crop to g_selection
+  exynos4-is: convert g/s_crop to g/s_selection
+  s5p-g2d: convert g/s_crop to g/s_selection
+  v4l2-ioctl: remove unused vidioc_g/s_crop
+  vidioc_cropcap -> vidioc_g_pixelaspect
+
+ drivers/media/pci/bt8xx/bttv-driver.c         |  12 +-
+ drivers/media/pci/cobalt/cobalt-v4l2.c        |  48 +++++--
+ drivers/media/pci/cx18/cx18-ioctl.c           |  13 +-
+ drivers/media/pci/cx23885/cx23885-video.c     |  40 ++++--
+ drivers/media/pci/ivtv/ivtv-ioctl.c           |  17 +--
+ drivers/media/pci/saa7134/saa7134-video.c     |  21 ++-
+ drivers/media/platform/am437x/am437x-vpfe.c   |  31 ++---
+ drivers/media/platform/davinci/vpbe.c         |  23 ----
+ drivers/media/platform/davinci/vpbe_display.c |  10 +-
+ drivers/media/platform/davinci/vpfe_capture.c |  12 +-
+ drivers/media/platform/exynos-gsc/gsc-core.c  |  57 +++-----
+ drivers/media/platform/exynos-gsc/gsc-core.h  |   3 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c   |  23 ++--
+ drivers/media/platform/exynos4-is/fimc-core.h |   6 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c  | 130 ++++++++++--------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c   |  10 +-
+ drivers/media/platform/s5p-g2d/g2d.c          | 102 +++++++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      |   1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |  49 ++++---
+ drivers/media/platform/vivid/vivid-core.c     |   9 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c  |  18 ++-
+ drivers/media/platform/vivid/vivid-vid-cap.h  |   2 +-
+ drivers/media/platform/vivid/vivid-vid-out.c  |  18 ++-
+ drivers/media/platform/vivid/vivid-vid-out.h  |   2 +-
+ drivers/media/usb/au0828/au0828-video.c       |  38 +++--
+ drivers/media/usb/cpia2/cpia2_v4l.c           |  31 +++--
+ drivers/media/usb/cx231xx/cx231xx-417.c       |  41 ++++--
+ drivers/media/usb/cx231xx/cx231xx-video.c     |  41 ++++--
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      |  13 +-
+ drivers/media/v4l2-core/v4l2-dev.c            |   8 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  44 ++++--
+ include/media/davinci/vpbe.h                  |   4 -
+ include/media/v4l2-dev.h                      |  13 +-
+ include/media/v4l2-ioctl.h                    |  16 +--
+ include/uapi/linux/v4l2-common.h              |  28 ++--
+ 35 files changed, 537 insertions(+), 397 deletions(-)
+
+-- 
+2.18.0
