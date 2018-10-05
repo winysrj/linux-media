@@ -1,98 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lj1-f193.google.com ([209.85.208.193]:39094 "EHLO
-        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727722AbeJER2e (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:28:34 -0400
-Received: by mail-lj1-f193.google.com with SMTP id p1-v6so7274684ljg.6
-        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2018 03:30:23 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 5 Oct 2018 12:30:21 +0200
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@chromium.org>,
-        snawrocki@kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 02/11] v4l2-common.h: put backwards compat defines
- under #ifndef __KERNEL__
-Message-ID: <20181005103021.GS24305@bigcity.dyn.berto.se>
-References: <20181005074911.47574-1-hverkuil@xs4all.nl>
- <20181005074911.47574-3-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181005074911.47574-3-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.133]:43970 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727955AbeJER1x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:27:53 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: [PATCH v2 2/3] media: v4l2-fwnode: cleanup functions that parse endpoints
+Date: Fri,  5 Oct 2018 06:29:37 -0400
+Message-Id: <c51e517654f554caa2be038672a43f5e22f99666.1538735151.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1538735151.git.mchehab+samsung@kernel.org>
+References: <cover.1538735151.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1538735151.git.mchehab+samsung@kernel.org>
+References: <cover.1538735151.git.mchehab+samsung@kernel.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+There is already a typedef for the parse endpoint function.
+However, instead of using it, it is redefined at the C file
+(and on one of the function headers).
 
-Thanks for your patch.
+Replace them by the function typedef, in order to cleanup
+several related coding style warnings.
 
-On 2018-10-05 09:49:02 +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This ensures that they won't be used in kernel code.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/v4l2-core/v4l2-fwnode.c | 64 ++++++++++++---------------
+ include/media/v4l2-fwnode.h           | 19 ++++----
+ 2 files changed, 37 insertions(+), 46 deletions(-)
 
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> ---
->  include/uapi/linux/v4l2-common.h | 28 +++++++++++++++-------------
->  1 file changed, 15 insertions(+), 13 deletions(-)
-> 
-> diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
-> index 4f7b892377cd..7d21c1634b4d 100644
-> --- a/include/uapi/linux/v4l2-common.h
-> +++ b/include/uapi/linux/v4l2-common.h
-> @@ -79,24 +79,11 @@
->  /* Current composing area plus all padding pixels */
->  #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
->  
-> -/* Backward compatibility target definitions --- to be removed. */
-> -#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
-> -#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
-> -#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL	V4L2_SEL_TGT_CROP
-> -#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL V4L2_SEL_TGT_COMPOSE
-> -#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS	V4L2_SEL_TGT_CROP_BOUNDS
-> -#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS V4L2_SEL_TGT_COMPOSE_BOUNDS
-> -
->  /* Selection flags */
->  #define V4L2_SEL_FLAG_GE		(1 << 0)
->  #define V4L2_SEL_FLAG_LE		(1 << 1)
->  #define V4L2_SEL_FLAG_KEEP_CONFIG	(1 << 2)
->  
-> -/* Backward compatibility flag definitions --- to be removed. */
-> -#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE	V4L2_SEL_FLAG_GE
-> -#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE	V4L2_SEL_FLAG_LE
-> -#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG V4L2_SEL_FLAG_KEEP_CONFIG
-> -
->  struct v4l2_edid {
->  	__u32 pad;
->  	__u32 start_block;
-> @@ -105,4 +92,19 @@ struct v4l2_edid {
->  	__u8  *edid;
->  };
->  
-> +#ifndef __KERNEL__
-> +/* Backward compatibility target definitions --- to be removed. */
-> +#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
-> +#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
-> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL	V4L2_SEL_TGT_CROP
-> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL V4L2_SEL_TGT_COMPOSE
-> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS	V4L2_SEL_TGT_CROP_BOUNDS
-> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS V4L2_SEL_TGT_COMPOSE_BOUNDS
-> +
-> +/* Backward compatibility flag definitions --- to be removed. */
-> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE	V4L2_SEL_FLAG_GE
-> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE	V4L2_SEL_FLAG_LE
-> +#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG V4L2_SEL_FLAG_KEEP_CONFIG
-> +#endif
-> +
->  #endif /* __V4L2_COMMON__ */
-> -- 
-> 2.18.0
-> 
-
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 4e518d5fddd8..a7c2487154a4 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -596,12 +596,10 @@ EXPORT_SYMBOL_GPL(v4l2_fwnode_put_link);
+ 
+ static int
+ v4l2_async_notifier_fwnode_parse_endpoint(struct device *dev,
+-		struct v4l2_async_notifier *notifier,
+-		struct fwnode_handle *endpoint,
+-		unsigned int asd_struct_size,
+-		int (*parse_endpoint)(struct device *dev,
+-				      struct v4l2_fwnode_endpoint *vep,
+-				      struct v4l2_async_subdev *asd))
++					  struct v4l2_async_notifier *notifier,
++					  struct fwnode_handle *endpoint,
++					  unsigned int asd_struct_size,
++					  parse_endpoint_func parse_endpoint)
+ {
+ 	struct v4l2_fwnode_endpoint vep = { .bus_type = 0 };
+ 	struct v4l2_async_subdev *asd;
+@@ -657,13 +655,12 @@ v4l2_async_notifier_fwnode_parse_endpoint(struct device *dev,
+ }
+ 
+ static int
+-__v4l2_async_notifier_parse_fwnode_endpoints(struct device *dev,
+-			struct v4l2_async_notifier *notifier,
+-			size_t asd_struct_size,
+-			unsigned int port, bool has_port,
+-			int (*parse_endpoint)(struct device *dev,
+-					      struct v4l2_fwnode_endpoint *vep,
+-					      struct v4l2_async_subdev *asd))
++__v4l2_async_notifier_parse_fwnode_ep(struct device *dev,
++				      struct v4l2_async_notifier *notifier,
++				      size_t asd_struct_size,
++				      unsigned int port,
++				      bool has_port,
++				      parse_endpoint_func parse_endpoint)
+ {
+ 	struct fwnode_handle *fwnode;
+ 	int ret = 0;
+@@ -708,31 +705,27 @@ __v4l2_async_notifier_parse_fwnode_endpoints(struct device *dev,
+ 
+ int
+ v4l2_async_notifier_parse_fwnode_endpoints(struct device *dev,
+-		struct v4l2_async_notifier *notifier,
+-		size_t asd_struct_size,
+-		int (*parse_endpoint)(struct device *dev,
+-				      struct v4l2_fwnode_endpoint *vep,
+-				      struct v4l2_async_subdev *asd))
++					   struct v4l2_async_notifier *notifier,
++					   size_t asd_struct_size,
++					   parse_endpoint_func parse_endpoint)
+ {
+-	return __v4l2_async_notifier_parse_fwnode_endpoints(dev, notifier,
+-							    asd_struct_size, 0,
+-							    false,
+-							    parse_endpoint);
++	return __v4l2_async_notifier_parse_fwnode_ep(dev, notifier,
++						     asd_struct_size, 0,
++						     false, parse_endpoint);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints);
+ 
+ int
+ v4l2_async_notifier_parse_fwnode_endpoints_by_port(struct device *dev,
+-			struct v4l2_async_notifier *notifier,
+-			size_t asd_struct_size, unsigned int port,
+-			int (*parse_endpoint)(struct device *dev,
+-					      struct v4l2_fwnode_endpoint *vep,
+-					      struct v4l2_async_subdev *asd))
++						   struct v4l2_async_notifier *notifier,
++						   size_t asd_struct_size,
++						   unsigned int port,
++						   parse_endpoint_func parse_endpoint)
+ {
+-	return __v4l2_async_notifier_parse_fwnode_endpoints(dev, notifier,
+-							    asd_struct_size,
+-							    port, true,
+-							    parse_endpoint);
++	return __v4l2_async_notifier_parse_fwnode_ep(dev, notifier,
++						     asd_struct_size,
++						     port, true,
++						     parse_endpoint);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
+ 
+@@ -1176,11 +1169,10 @@ int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
+ EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
+ 
+ int v4l2_async_register_fwnode_subdev(struct v4l2_subdev *sd,
+-			size_t asd_struct_size,
+-			unsigned int *ports, unsigned int num_ports,
+-			int (*parse_endpoint)(struct device *dev,
+-					      struct v4l2_fwnode_endpoint *vep,
+-					      struct v4l2_async_subdev *asd))
++				      size_t asd_struct_size,
++				      unsigned int *ports,
++				      unsigned int num_ports,
++				      parse_endpoint_func parse_endpoint)
+ {
+ 	struct v4l2_async_notifier *notifier;
+ 	struct device *dev = sd->dev;
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index 21b3f9e5c269..6d9d9f1839ac 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -346,9 +346,10 @@ v4l2_async_notifier_parse_fwnode_endpoints(struct device *dev,
+  */
+ int
+ v4l2_async_notifier_parse_fwnode_endpoints_by_port(struct device *dev,
+-				struct v4l2_async_notifier *notifier,
+-				size_t asd_struct_size, unsigned int port,
+-				parse_endpoint_func parse_endpoint);
++						   struct v4l2_async_notifier *notifier,
++						   size_t asd_struct_size,
++						   unsigned int port,
++						   parse_endpoint_func parse_endpoint);
+ 
+ /**
+  * v4l2_fwnode_reference_parse_sensor_common - parse common references on
+@@ -369,7 +370,7 @@ v4l2_async_notifier_parse_fwnode_endpoints_by_port(struct device *dev,
+  *	   -EINVAL if property parsing failed
+  */
+ int v4l2_async_notifier_parse_fwnode_sensor_common(struct device *dev,
+-					struct v4l2_async_notifier *notifier);
++						   struct v4l2_async_notifier *notifier);
+ 
+ /**
+  * v4l2_async_register_fwnode_subdev - registers a sub-device to the
+@@ -403,11 +404,9 @@ int v4l2_async_notifier_parse_fwnode_sensor_common(struct device *dev,
+  */
+ int
+ v4l2_async_register_fwnode_subdev(struct v4l2_subdev *sd,
+-			size_t asd_struct_size,
+-			unsigned int *ports,
+-			unsigned int num_ports,
+-			int (*parse_endpoint)(struct device *dev,
+-					      struct v4l2_fwnode_endpoint *vep,
+-					      struct v4l2_async_subdev *asd));
++				  size_t asd_struct_size,
++				  unsigned int *ports,
++				  unsigned int num_ports,
++				  parse_endpoint_func parse_endpoint);
+ 
+ #endif /* _V4L2_FWNODE_H */
 -- 
-Regards,
-Niklas Söderlund
+2.17.1
