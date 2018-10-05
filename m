@@ -1,103 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:43524 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728139AbeJFDDe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 23:03:34 -0400
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id w95K1pJs111886
-        for <linux-media@vger.kernel.org>; Fri, 5 Oct 2018 16:03:17 -0400
-Received: from e17.ny.us.ibm.com (e17.ny.us.ibm.com [129.33.205.207])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2mxcy9v2g1-1
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2018 16:03:17 -0400
-Received: from localhost
-        by e17.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <eajames@linux.vnet.ibm.com>;
-        Fri, 5 Oct 2018 16:03:16 -0400
-Subject: Re: [PATCH v3 2/2] media: platform: Add Aspeed Video Engine driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Eddie James <eajames@linux.ibm.com>,
-        linux-kernel@vger.kernel.org
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
-        linux-aspeed@lists.ozlabs.org, andrew@aj.id.au,
-        openbmc@lists.ozlabs.org, robh+dt@kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-References: <1537903629-14003-1-git-send-email-eajames@linux.ibm.com>
- <1537903629-14003-3-git-send-email-eajames@linux.ibm.com>
- <a78d4c7a-ac58-c23d-a683-23dce54be993@xs4all.nl>
- <ca4757b9-0825-bbbf-b388-0295fd13bad7@linux.vnet.ibm.com>
- <373d2ca3-a6cd-8d87-2bbc-613d65305170@xs4all.nl>
-From: Eddie James <eajames@linux.vnet.ibm.com>
-Date: Fri, 5 Oct 2018 15:03:11 -0500
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:37752 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728139AbeJFDdJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 23:33:09 -0400
+Date: Fri, 5 Oct 2018 15:32:46 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        jacopo@jmondi.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v8 1/3] [media] imx214: device tree binding
+Message-ID: <20181005203246.GA28765@bogus>
+References: <20181005124940.15539-1-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <373d2ca3-a6cd-8d87-2bbc-613d65305170@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-Message-Id: <8476027d-80d5-2787-944b-eb3f5af717c3@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181005124940.15539-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Oct 05, 2018 at 02:49:37PM +0200, Ricardo Ribalda Delgado wrote:
+> From: Ricardo Ribalda <ricardo.ribalda@gmail.com>
+> 
+> Document bindings for imx214 camera sensor
+> 
+> Cc: devicetree@vger.kernel.org
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
+checkpatch.pl complains that the author and S-o-b don't match.
 
-On 10/04/2018 08:12 AM, Hans Verkuil wrote:
-> On 10/03/18 22:43, Eddie James wrote:
->>
->> On 09/28/2018 06:30 AM, Hans Verkuil wrote:
->>> On 09/25/2018 09:27 PM, Eddie James wrote:
->>>> The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
->>>> can capture and compress video data from digital or analog sources. With
->>>> the Aspeed chip acting a service processor, the Video Engine can capture
->>>> the host processor graphics output.
->>>>
->>>> Add a V4L2 driver to capture video data and compress it to JPEG images.
->>>> Make the video frames available through the V4L2 streaming interface.
->>>>
->>>> Signed-off-by: Eddie James <eajames@linux.ibm.com>
->>>> +	}
->>>> +
->>>> +	video->height = (bottom - top) + 1;
->>>> +	video->width = (right - left) + 1;
->>>> +	size = video->height * video->width;
->>> It looks like you can actually determine the blanking width/height and
->>> possibly even more detailed information that would be very useful to
->>> show with the DV_TIMINGS ioctls.
->> Hmm. This information is related to the video signal captured from the
->> host. That information has nothing to do with the buffer that is
->> compressed and grabbed by the driver and ultimately provided to
->> userspace. Isn't the timing information meaningless for JPEG frames?
-> It helps in debugging. Basically you are implementing a receiver for a
-> video signal. So if for some reason you cannot support the video timings
-> that the host sends, then it is very useful to have QUERY_DV_TIMINGS report
-> as much information about the signal as possible.
->
-> BTW, out of curiosity, how are the host video signals connected to the
-> aspeed? Is it still a VGA video signal?
->
-> Looking at product briefs it appears that it is VGA. So I guess the aspeed
-> 'sniffs' the VGA signals from the host and can capture the video that way.
-> Is that correct?
+> ---
+>  .../devicetree/bindings/media/i2c/imx214.txt  | 53 +++++++++++++++++++
 
-I believe it is a VGA signal from the host, but the Aspeed Video Engine 
-somewhat abstracts that away; not all the signal information that the 
-engine is receiving is available to the BMC interface. I did add the 
-timing information I could access to the latest patch set. As you say, 
-it could be useful for debugging if weird things are happening.
+sony,imx214.txt is preferred.
 
-Thanks!
-Eddie
+>  1 file changed, 53 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/imx214.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/imx214.txt b/Documentation/devicetree/bindings/media/i2c/imx214.txt
+> new file mode 100644
+> index 000000000000..421a019ab7f9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/imx214.txt
+> @@ -0,0 +1,53 @@
+> +* Sony 1/3.06-Inch 13.13Mp CMOS Digital Image Sensor
+> +
+> +The Sony imx214 is a 1/3.06-inch CMOS active pixel digital image sensor with
+> +an active array size of 4224H x 3200V. It is programmable through an I2C
+> +interface. The I2C address can be configured to 0x1a or 0x10, depending on
+> +how the hardware is wired.
 
->
-> If so, then this driver is a VGA receiver and should act like that.
-> The host can configure its VGA transmitter to invalid timings, or weird
-> values, and you need to be able to handle that in your driver.
->
->> Forgot to include this question in my previous reply, sorry for the
->> additional mail.
-> No problem! Happy to help.
->
-> Regards,
->
-> 	Hans
->
+Move the addresses to reg description.
+
+> +Image data is sent through MIPI CSI-2, through 2 or 4 lanes at a maximum
+> +throughput of 1.2Gbps/lane.
+> +
+> +
+> +Required Properties:
+> +- compatible: value should be "sony,imx214" for imx214 sensor
+> +- reg: I2C bus address of the device
+> +- enable-gpios: GPIO descriptor for the enable pin.
+> +- vdddo-supply: Chip digital IO regulator (1.8V).
+> +- vdda-supply: Chip analog regulator (2.7V).
+> +- vddd-supply: Chip digital core regulator (1.12V).
+> +- clocks: Reference to the xclk clock.
+> +- clock-names:  Shall be "xclk".
+> +
+> +Optional Properties:
+> +- flash-leds: See ../video-interfaces.txt
+> +- lens-focus: See ../video-interfaces.txt
+> +
+> +The imx214 device node shall contain one 'port' child node with
+> +an 'endpoint' subnode. For further reading on port node refer to
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Required Properties on endpoint:
+> +- data-lanes: check ../video-interfaces.txt
+> +- link-frequencies: check ../video-interfaces.txt
+> +- remote-endpoint: check ../video-interfaces.txt
+> +
+> +Example:
+> +
+> +	camera_rear@1a {
+
+camera-sensor@1a
+
+If you need location, then perhaps use 'label'.
+
+> +		compatible = "sony,imx214";
+> +		reg = <0x1a>;
+> +		vdddo-supply = <&pm8994_lvs1>;
+> +		vddd-supply = <&camera_vddd_1v12>;
+> +		vdda-supply = <&pm8994_l17>;
+> +		lens-focus = <&ad5820>;
+> +		enable-gpios = <&msmgpio 25 GPIO_ACTIVE_HIGH>;
+> +		clocks = <&mmcc CAMSS_MCLK0_CLK>;
+> +		clock-names = "xclk";
+> +		port {
+> +			imx214_ep: endpoint {
+> +				data-lanes = <1 2 3 4>;
+> +				link-frequencies = /bits/ 64 <480000000>;
+> +				remote-endpoint = <&csiphy0_ep>;
+> +			};
+> +		};
+> +	};
+> -- 
+> 2.19.0
+> 
