@@ -1,122 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:41656 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727581AbeJERuZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 13:50:25 -0400
-Subject: Re: [RFC PATCH 10/11] v4l2-ioctl: remove unused vidioc_g/s_crop
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@chromium.org>,
-        snawrocki@kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20181005074911.47574-1-hverkuil@xs4all.nl>
- <20181005074911.47574-11-hverkuil@xs4all.nl>
- <20181005104741.GU24305@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d9bd2cca-4d72-90f7-12cf-f4ebc2429831@xs4all.nl>
-Date: Fri, 5 Oct 2018 12:52:05 +0200
-MIME-Version: 1.0
-In-Reply-To: <20181005104741.GU24305@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:52015 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727581AbeJERvD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:51:03 -0400
+Message-ID: <1538736767.3545.20.camel@pengutronix.de>
+Subject: Re: [PATCH v4 11/11] media: imx.rst: Update doc to reflect fixes to
+ interlaced capture
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Date: Fri, 05 Oct 2018 12:52:47 +0200
+In-Reply-To: <20181004185401.15751-12-slongerbeam@gmail.com>
+References: <20181004185401.15751-1-slongerbeam@gmail.com>
+         <20181004185401.15751-12-slongerbeam@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/05/18 12:47, Niklas Söderlund wrote:
-> Hi Hans,
-> 
-> Thanks for your work.
-> 
-> On 2018-10-05 09:49:10 +0200, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Now that all drivers have dropped vidioc_g/s_crop we can remove
->> support for them in the V4L2 core.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> If the quirk patch hurt my head this makes me smile!
+Hi Steve,
 
-There you go, they cancel each other out in your head :-)
-
-Regards,
-
-	Hans
-
+On Thu, 2018-10-04 at 11:54 -0700, Steve Longerbeam wrote:
+> Also add an example pipeline for unconverted capture with interweave
+> on SabreAuto.
 > 
-> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> ---
+> Changes since v3:
+> - none.
+> Changes since v2:
+> - expand on idmac interweave behavior in CSI subdev.
+> - switch second SabreAuto pipeline example to PAL to give
+>   both NTSC and PAL examples.
+> - Cleanup some language in various places.
+> ---
+>  Documentation/media/v4l-drivers/imx.rst | 93 ++++++++++++++++---------
+>  1 file changed, 60 insertions(+), 33 deletions(-)
 > 
->> ---
->>  drivers/media/v4l2-core/v4l2-dev.c   | 4 ++--
->>  drivers/media/v4l2-core/v4l2-ioctl.c | 4 ----
->>  include/media/v4l2-ioctl.h           | 8 --------
->>  3 files changed, 2 insertions(+), 14 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
->> index 69e775930fc4..d81141d51faa 100644
->> --- a/drivers/media/v4l2-core/v4l2-dev.c
->> +++ b/drivers/media/v4l2-core/v4l2-dev.c
->> @@ -621,9 +621,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
->>  		SET_VALID_IOCTL(ops, VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd);
->>  		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMESIZES, vidioc_enum_framesizes);
->>  		SET_VALID_IOCTL(ops, VIDIOC_ENUM_FRAMEINTERVALS, vidioc_enum_frameintervals);
->> -		if (ops->vidioc_g_crop || ops->vidioc_g_selection)
->> +		if (ops->vidioc_g_selection)
->>  			set_bit(_IOC_NR(VIDIOC_G_CROP), valid_ioctls);
->> -		if (ops->vidioc_s_crop || ops->vidioc_s_selection)
->> +		if (ops->vidioc_s_selection)
->>  			set_bit(_IOC_NR(VIDIOC_S_CROP), valid_ioctls);
->>  		SET_VALID_IOCTL(ops, VIDIOC_G_SELECTION, vidioc_g_selection);
->>  		SET_VALID_IOCTL(ops, VIDIOC_S_SELECTION, vidioc_s_selection);
->> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
->> index 63a92285de39..a59954d351a2 100644
->> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->> @@ -2207,8 +2207,6 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
->>  	};
->>  	int ret;
->>  
->> -	if (ops->vidioc_g_crop)
->> -		return ops->vidioc_g_crop(file, fh, p);
->>  	/* simulate capture crop using selection api */
->>  
->>  	/* crop means compose for output devices */
->> @@ -2239,8 +2237,6 @@ static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
->>  		.r = p->c,
->>  	};
->>  
->> -	if (ops->vidioc_s_crop)
->> -		return ops->vidioc_s_crop(file, fh, p);
->>  	/* simulate capture crop using selection api */
->>  
->>  	/* crop means compose for output devices */
->> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
->> index 5848d92c30da..85fdd3f4b8ad 100644
->> --- a/include/media/v4l2-ioctl.h
->> +++ b/include/media/v4l2-ioctl.h
->> @@ -222,10 +222,6 @@ struct v4l2_fh;
->>   *	:ref:`VIDIOC_S_MODULATOR <vidioc_g_modulator>` ioctl
->>   * @vidioc_cropcap: pointer to the function that implements
->>   *	:ref:`VIDIOC_CROPCAP <vidioc_cropcap>` ioctl
->> - * @vidioc_g_crop: pointer to the function that implements
->> - *	:ref:`VIDIOC_G_CROP <vidioc_g_crop>` ioctl
->> - * @vidioc_s_crop: pointer to the function that implements
->> - *	:ref:`VIDIOC_S_CROP <vidioc_g_crop>` ioctl
->>   * @vidioc_g_selection: pointer to the function that implements
->>   *	:ref:`VIDIOC_G_SELECTION <vidioc_g_selection>` ioctl
->>   * @vidioc_s_selection: pointer to the function that implements
->> @@ -493,10 +489,6 @@ struct v4l2_ioctl_ops {
->>  	/* Crop ioctls */
->>  	int (*vidioc_cropcap)(struct file *file, void *fh,
->>  			      struct v4l2_cropcap *a);
->> -	int (*vidioc_g_crop)(struct file *file, void *fh,
->> -			     struct v4l2_crop *a);
->> -	int (*vidioc_s_crop)(struct file *file, void *fh,
->> -			     const struct v4l2_crop *a);
->>  	int (*vidioc_g_selection)(struct file *file, void *fh,
->>  				  struct v4l2_selection *s);
->>  	int (*vidioc_s_selection)(struct file *file, void *fh,
->> -- 
->> 2.18.0
->>
-> 
+> diff --git a/Documentation/media/v4l-drivers/imx.rst b/Documentation/media/v4l-drivers/imx.rst
+> index 65d3d15eb159..1f6279d418ed 100644
+> --- a/Documentation/media/v4l-drivers/imx.rst
+> +++ b/Documentation/media/v4l-drivers/imx.rst
+> @@ -22,8 +22,8 @@ memory. Various dedicated DMA channels exist for both video capture and
+>  display paths. During transfer, the IDMAC is also capable of vertical
+>  image flip, 8x8 block transfer (see IRT description), pixel component
+>  re-ordering (for example UYVY to YUYV) within the same colorspace, and
+> -even packed <--> planar conversion. It can also perform a simple
+> -de-interlacing by interleaving even and odd lines during transfer
+> +packed <--> planar conversion. The IDMAC can also perform a simple
+> +de-interlacing by interweaving even and odd lines during transfer
+>  (without motion compensation which requires the VDIC).
+>  
+>  The CSI is the backend capture unit that interfaces directly with
+> @@ -173,15 +173,19 @@ via the SMFC and an IDMAC channel, bypassing IC pre-processing. This
+>  source pad is routed to a capture device node, with a node name of the
+>  format "ipuX_csiY capture".
+>  
+> -Note that since the IDMAC source pad makes use of an IDMAC channel, it
+> -can do pixel reordering within the same colorspace. For example, the
+> +Note that since the IDMAC source pad makes use of an IDMAC channel, the
+> +CSI can do pixel reordering within the same colorspace. For example, the
+
+This change is unrelated to interlacing, and sounds like the CSI
+hardware does pixel reordering, which only partially correct.
+The CSI either passes through its input unchanged, or turns any known
+input format into either 32-bit ARGB or AYUV.
+
+>  sink pad can take UYVY2X8, but the IDMAC source pad can output YUYV2X8.
+>  If the sink pad is receiving YUV, the output at the capture device can
+>  also be converted to a planar YUV format such as YUV420.
+>  
+> -It will also perform simple de-interlace without motion compensation,
+> -which is activated if the sink pad's field type is an interlaced type,
+> -and the IDMAC source pad field type is set to none.
+> +The CSI will also perform simple interweave without motion compensation,
+
+Again the CSI. It is the IDMAC that interweaves, not the CSI.
+
+> +which is activated if the source pad's field type is sequential top-bottom
+> +or bottom-top or alternate, and the capture interface field type is set
+> +to interlaced (t-b, b-t, or unqualified interlaced). The capture interface
+> +will enforce the same field order if the source pad field type is seq-bt
+> +or seq-tb. However if the source pad's field type is alternate, any
+> +interlaced type at the capture interface will be accepted.
+
+This part is fine, though, as are the following changes. I'd just like
+to avoid giving the wrong impression that the CSI does line interweaving
+or pixel reordering into the output pixel format.
+
+regards
+Philipp
