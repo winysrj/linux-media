@@ -1,160 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:58795 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727354AbeJERlz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:41:55 -0400
-Message-ID: <1538736221.3545.17.camel@pengutronix.de>
-Subject: Re: [PATCH v4 10/11] media: imx: Allow interweave with top/bottom
- lines swapped
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        open list <linux-kernel@vger.kernel.org>
-Date: Fri, 05 Oct 2018 12:43:41 +0200
-In-Reply-To: <20181004185401.15751-11-slongerbeam@gmail.com>
-References: <20181004185401.15751-1-slongerbeam@gmail.com>
-         <20181004185401.15751-11-slongerbeam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-lj1-f196.google.com ([209.85.208.196]:35366 "EHLO
+        mail-lj1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727581AbeJERm4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:42:56 -0400
+Received: by mail-lj1-f196.google.com with SMTP id o14-v6so11206636ljj.2
+        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2018 03:44:41 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Fri, 5 Oct 2018 12:44:39 +0200
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@chromium.org>,
+        snawrocki@kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 03/11] v4l2-ioctl: add QUIRK_INVERTED_CROP
+Message-ID: <20181005104439.GT24305@bigcity.dyn.berto.se>
+References: <20181005074911.47574-1-hverkuil@xs4all.nl>
+ <20181005074911.47574-4-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181005074911.47574-4-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Hi Hans,
 
-On Thu, 2018-10-04 at 11:54 -0700, Steve Longerbeam wrote:
-> Allow sequential->interlaced interweaving but with top/bottom
-> lines swapped to the output buffer.
+Thanks for your patch.
+
+On 2018-10-05 09:49:03 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> This can be accomplished by adding one line length to IDMAC output
-> channel address, with a negative line length for the interlace offset.
+> Some old Samsung drivers use the legacy crop API incorrectly:
+> the crop and compose targets are swapped. Normally VIDIOC_G_CROP
+> will return the CROP rectangle of a CAPTURE stream and the COMPOSE
+> rectangle of an OUTPUT stream.
 > 
-> This is to allow the seq-bt -> interlaced-bt transformation, where
-> bottom lines are still dominant (older in time) but with top lines
-> first in the interweaved output buffer.
+> The Samsung drivers do the opposite. Note that these drivers predate
+> the selection API.
 > 
-> With this support, the CSI can now allow seq-bt at its source pads,
-> e.g. the following transformations are allowed in CSI from sink to
-> source:
+> If this 'QUIRK' flag is set, then the v4l2-ioctl core will swap
+> the CROP and COMPOSE targets as well.
 > 
-> seq-tb -> seq-bt
-> seq-bt -> seq-bt
-> alternate -> seq-bt
+> That way backwards compatibility is ensured and we can convert the
+> Samsung drivers to the selection API.
 > 
-> Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+I understand the need for this quirk but it make my head hurt :-)
+
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
 > ---
->  drivers/staging/media/imx/imx-ic-prpencvf.c | 17 +++++++-
->  drivers/staging/media/imx/imx-media-csi.c   | 46 +++++++++++++++++----
->  2 files changed, 53 insertions(+), 10 deletions(-)
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 17 ++++++++++++++++-
+>  include/media/v4l2-dev.h             | 13 +++++++++++--
+>  2 files changed, 27 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-> index cf76b0432371..1499b0c62d74 100644
-> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-> @@ -106,6 +106,8 @@ struct prp_priv {
->  	u32 frame_sequence; /* frame sequence counter */
->  	bool last_eof;  /* waiting for last EOF at stream off */
->  	bool nfb4eof;    /* NFB4EOF encountered during streaming */
-> +	u32 interweave_offset; /* interweave line offset to swap
-> +				  top/bottom lines */
-
-We have to store this instead of using vdev->fmt.fmt.bytesperline
-because this potentially is the pre-rotation stride instead?
-
->  	struct completion last_eof_comp;
->  };
->  
-> @@ -235,6 +237,9 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
->  	if (ipu_idmac_buffer_is_ready(ch, priv->ipu_buf_num))
->  		ipu_idmac_clear_buffer(ch, priv->ipu_buf_num);
->  
-> +	if (ch == priv->out_ch)
-> +		phys += priv->interweave_offset;
-> +
->  	ipu_cpmem_set_buffer(ch, priv->ipu_buf_num, phys);
->  }
->  
-> @@ -388,6 +393,13 @@ static int prp_setup_channel(struct prp_priv *priv,
->  			(image.pix.width * outcc->bpp) >> 3;
->  	}
->  
-> +	priv->interweave_offset = 0;
-> +
-> +	if (interweave && image.pix.field == V4L2_FIELD_INTERLACED_BT) {
-> +		image.rect.top = 1;
-> +		priv->interweave_offset = image.pix.bytesperline;
-> +	}
-> +
->  	image.phys0 = addr0;
->  	image.phys1 = addr1;
->  
-> @@ -425,7 +437,10 @@ static int prp_setup_channel(struct prp_priv *priv,
->  		ipu_cpmem_set_rotation(channel, rot_mode);
->  
->  	if (interweave)
-> -		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline,
-> +		ipu_cpmem_interlaced_scan(channel,
-> +					  priv->interweave_offset ?
-> +					  -image.pix.bytesperline :
-> +					  image.pix.bytesperline,
->  					  image.pix.pixelformat);
->  
->  	ret = ipu_ic_task_idma_init(priv->ic, channel,
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index 679295da5dde..592f7d6edec1 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -114,6 +114,8 @@ struct csi_priv {
->  	u32 frame_sequence; /* frame sequence counter */
->  	bool last_eof;   /* waiting for last EOF at stream off */
->  	bool nfb4eof;    /* NFB4EOF encountered during streaming */
-> +	u32 interweave_offset; /* interweave line offset to swap
-> +				  top/bottom lines */
-
-This doesn't seem necessary. Since there is no rotation here, the offset
-is just vdev->fmt.fmt.pix.bytesperline if interweave_swap is enabled.
-Maybe turn this into a bool interweave_swap?
-
->  	struct completion last_eof_comp;
->  };
->  
-> @@ -286,7 +288,8 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
->  	if (ipu_idmac_buffer_is_ready(priv->idmac_ch, priv->ipu_buf_num))
->  		ipu_idmac_clear_buffer(priv->idmac_ch, priv->ipu_buf_num);
->  
-> -	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num, phys);
-> +	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num,
-> +			     phys + priv->interweave_offset);
->  }
->  
->  static irqreturn_t csi_idmac_eof_interrupt(int irq, void *dev_id)
-> @@ -396,10 +399,10 @@ static void csi_idmac_unsetup_vb2_buf(struct csi_priv *priv,
->  static int csi_idmac_setup_channel(struct csi_priv *priv)
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 9c2370e4d05c..63a92285de39 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -2200,6 +2200,7 @@ static int v4l_s_selection(const struct v4l2_ioctl_ops *ops,
+>  static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
+>  				struct file *file, void *fh, void *arg)
 >  {
->  	struct imx_media_video_dev *vdev = priv->vdev;
-> +	bool passthrough, interweave, interweave_swap;
->  	const struct imx_media_pixfmt *incc;
->  	struct v4l2_mbus_framefmt *infmt;
->  	struct v4l2_mbus_framefmt *outfmt;
-> -	bool passthrough, interweave;
->  	struct ipu_image image;
->  	u32 passthrough_bits;
->  	u32 passthrough_cycles;
-> @@ -433,6 +436,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
->  	 */
->  	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
->  		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
-> +	interweave_swap = interweave &&
-> +		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+> +	struct video_device *vfd = video_devdata(file);
+>  	struct v4l2_crop *p = arg;
+>  	struct v4l2_selection s = {
+>  		.type = p->type,
+> @@ -2216,6 +2217,10 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
+>  	else
+>  		s.target = V4L2_SEL_TGT_CROP;
+>  
+> +	if (test_bit(V4L2_FL_QUIRK_INVERTED_CROP, &vfd->flags))
+> +		s.target = s.target == V4L2_SEL_TGT_COMPOSE ?
+> +			V4L2_SEL_TGT_CROP : V4L2_SEL_TGT_COMPOSE;
+> +
+>  	ret = v4l_g_selection(ops, file, fh, &s);
+>  
+>  	/* copying results to old structure on success */
+> @@ -2227,6 +2232,7 @@ static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
+>  static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
+>  				struct file *file, void *fh, void *arg)
+>  {
+> +	struct video_device *vfd = video_devdata(file);
+>  	struct v4l2_crop *p = arg;
+>  	struct v4l2_selection s = {
+>  		.type = p->type,
+> @@ -2243,12 +2249,17 @@ static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
+>  	else
+>  		s.target = V4L2_SEL_TGT_CROP;
+>  
+> +	if (test_bit(V4L2_FL_QUIRK_INVERTED_CROP, &vfd->flags))
+> +		s.target = s.target == V4L2_SEL_TGT_COMPOSE ?
+> +			V4L2_SEL_TGT_CROP : V4L2_SEL_TGT_COMPOSE;
+> +
+>  	return v4l_s_selection(ops, file, fh, &s);
+>  }
+>  
+>  static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+>  				struct file *file, void *fh, void *arg)
+>  {
+> +	struct video_device *vfd = video_devdata(file);
+>  	struct v4l2_cropcap *p = arg;
+>  	struct v4l2_selection s = { .type = p->type };
+>  	int ret = 0;
+> @@ -2285,13 +2296,17 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+>  	else
+>  		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
+>  
+> +	if (test_bit(V4L2_FL_QUIRK_INVERTED_CROP, &vfd->flags))
+> +		s.target = s.target == V4L2_SEL_TGT_COMPOSE_BOUNDS ?
+> +			V4L2_SEL_TGT_CROP_BOUNDS : V4L2_SEL_TGT_COMPOSE_BOUNDS;
+> +
+>  	ret = v4l_g_selection(ops, file, fh, &s);
+>  	if (ret)
+>  		return ret;
+>  	p->bounds = s.r;
+>  
+>  	/* obtaining defrect */
+> -	if (V4L2_TYPE_IS_OUTPUT(p->type))
+> +	if (s.target == V4L2_SEL_TGT_COMPOSE_BOUNDS)
+>  		s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
+>  	else
+>  		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index 456ac13eca1d..48531e57cc5a 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -74,10 +74,19 @@ struct v4l2_ctrl_handler;
+>   *	indicates that file->private_data points to &struct v4l2_fh.
+>   *	This flag is set by the core when v4l2_fh_init() is called.
+>   *	All new drivers should use it.
+> + * @V4L2_FL_QUIRK_INVERTED_CROP:
+> + *	some old M2M drivers use g/s_crop/cropcap incorrectly: crop and
+> + *	compose are swapped. If this flag is set, then the selection
+> + *	targets are swapped in the g/s_crop/cropcap functions in v4l2-ioctl.c.
+> + *	This allows those drivers to correctly implement the selection API,
+> + *	but the old crop API will still work as expected in order to preserve
+> + *	backwards compatibility.
+> + *	Never set this flag for new drivers.
+>   */
+>  enum v4l2_video_device_flags {
+> -	V4L2_FL_REGISTERED	= 0,
+> -	V4L2_FL_USES_V4L2_FH	= 1,
+> +	V4L2_FL_REGISTERED		= 0,
+> +	V4L2_FL_USES_V4L2_FH		= 1,
+> +	V4L2_FL_QUIRK_INVERTED_CROP	= 2,
+>  };
+>  
+>  /* Priority helper functions */
+> -- 
+> 2.18.0
+> 
 
-Although this could just as well be recalculated in csi_vb2_buf_done.
-Apart from that,
-
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
-
-regards
-Philipp
+-- 
+Regards,
+Niklas Söderlund
