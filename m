@@ -1,128 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:46398 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728139AbeJEVLa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 17:11:30 -0400
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Bingbu Cao <bingbu.cao@intel.com>
-Subject: [PATCH] media: imx319: fix a few coding style issues
-Date: Fri,  5 Oct 2018 10:12:32 -0400
-Message-Id: <7b74068d5d852fa80bd0314683cf4bf41fd870cc.1538748750.git.mchehab+samsung@kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:47973 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728139AbeJEVMG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Oct 2018 17:12:06 -0400
+Subject: Re: [PATCH 4/5] omapdrm/dss/hdmi4_cec.c: clear TX FIFO before
+ transmit_done
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+References: <20181004090900.32915-1-hverkuil@xs4all.nl>
+ <20181004090900.32915-5-hverkuil@xs4all.nl>
+Message-ID: <33ddd03f-91aa-6c19-380e-a81abf390180@xs4all.nl>
+Date: Fri, 5 Oct 2018 16:13:05 +0200
+MIME-Version: 1.0
+In-Reply-To: <20181004090900.32915-5-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Function alignments are off by 1 space, as reported by
-checkpatch.pl --strict.
+Tomi,
 
-Fix those.
+Can you review this patch and the next? They should go to 4.20.
+This patch in particular is a nasty one, hard to reproduce.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
----
- drivers/media/i2c/imx319.c | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+This patch should also be Cc-ed to stable for 4.15 and up.
 
-diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
-index 329049f7e64d..0d3e27812b93 100644
---- a/drivers/media/i2c/imx319.c
-+++ b/drivers/media/i2c/imx319.c
-@@ -1836,7 +1836,7 @@ static int imx319_write_reg(struct imx319 *imx319, u16 reg, u32 len, u32 val)
- 
- /* Write a list of registers */
- static int imx319_write_regs(struct imx319 *imx319,
--			      const struct imx319_reg *regs, u32 len)
-+			     const struct imx319_reg *regs, u32 len)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&imx319->sd);
- 	int ret;
-@@ -1947,8 +1947,8 @@ static const struct v4l2_ctrl_ops imx319_ctrl_ops = {
- };
- 
- static int imx319_enum_mbus_code(struct v4l2_subdev *sd,
--				  struct v4l2_subdev_pad_config *cfg,
--				  struct v4l2_subdev_mbus_code_enum *code)
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_mbus_code_enum *code)
- {
- 	struct imx319 *imx319 = to_imx319(sd);
- 
-@@ -1963,8 +1963,8 @@ static int imx319_enum_mbus_code(struct v4l2_subdev *sd,
- }
- 
- static int imx319_enum_frame_size(struct v4l2_subdev *sd,
--				   struct v4l2_subdev_pad_config *cfg,
--				   struct v4l2_subdev_frame_size_enum *fse)
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_frame_size_enum *fse)
- {
- 	struct imx319 *imx319 = to_imx319(sd);
- 
-@@ -1997,8 +1997,8 @@ static void imx319_update_pad_format(struct imx319 *imx319,
- }
- 
- static int imx319_do_get_pad_format(struct imx319 *imx319,
--				     struct v4l2_subdev_pad_config *cfg,
--				     struct v4l2_subdev_format *fmt)
-+				    struct v4l2_subdev_pad_config *cfg,
-+				    struct v4l2_subdev_format *fmt)
- {
- 	struct v4l2_mbus_framefmt *framefmt;
- 	struct v4l2_subdev *sd = &imx319->sd;
-@@ -2014,8 +2014,8 @@ static int imx319_do_get_pad_format(struct imx319 *imx319,
- }
- 
- static int imx319_get_pad_format(struct v4l2_subdev *sd,
--				  struct v4l2_subdev_pad_config *cfg,
--				  struct v4l2_subdev_format *fmt)
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_format *fmt)
- {
- 	struct imx319 *imx319 = to_imx319(sd);
- 	int ret;
-@@ -2029,8 +2029,8 @@ static int imx319_get_pad_format(struct v4l2_subdev *sd,
- 
- static int
- imx319_set_pad_format(struct v4l2_subdev *sd,
--		       struct v4l2_subdev_pad_config *cfg,
--		       struct v4l2_subdev_format *fmt)
-+		      struct v4l2_subdev_pad_config *cfg,
-+		      struct v4l2_subdev_format *fmt)
- {
- 	struct imx319 *imx319 = to_imx319(sd);
- 	const struct imx319_mode *mode;
-@@ -2380,7 +2380,7 @@ static struct imx319_hwcfg *imx319_get_hwcfg(struct device *dev)
- 		goto out_err;
- 
- 	ret = fwnode_property_read_u32(dev_fwnode(dev), "clock-frequency",
--					&cfg->ext_clk);
-+				       &cfg->ext_clk);
- 	if (ret) {
- 		dev_err(dev, "can't get clock frequency");
- 		goto out_err;
-@@ -2389,7 +2389,7 @@ static struct imx319_hwcfg *imx319_get_hwcfg(struct device *dev)
- 	dev_dbg(dev, "ext clk: %d", cfg->ext_clk);
- 	if (cfg->ext_clk != IMX319_EXT_CLK) {
- 		dev_err(dev, "external clock %d is not supported",
--			 cfg->ext_clk);
-+			cfg->ext_clk);
- 		goto out_err;
- 	}
- 
-@@ -2400,9 +2400,9 @@ static struct imx319_hwcfg *imx319_get_hwcfg(struct device *dev)
- 	}
- 
- 	cfg->nr_of_link_freqs = bus_cfg.nr_of_link_frequencies;
--	cfg->link_freqs = devm_kcalloc(
--		dev, bus_cfg.nr_of_link_frequencies + 1,
--		sizeof(*cfg->link_freqs), GFP_KERNEL);
-+	cfg->link_freqs = devm_kcalloc(dev,
-+				       bus_cfg.nr_of_link_frequencies + 1,
-+				       sizeof(*cfg->link_freqs), GFP_KERNEL);
- 	if (!cfg->link_freqs)
- 		goto out_err;
- 
--- 
-2.17.1
+Tracking down randomly disappearing CEC transmits was no fun :-(
+
+Regards,
+
+	Hans
+
+On 10/04/18 11:08, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The TX FIFO has to be cleared if the transmit failed due to e.g.
+> a NACK condition, otherwise the hardware will keep trying to
+> transmit the message.
+> 
+> An attempt was made to do this, but it was done after the call to
+> cec_transmit_done, which can cause a race condition since the call
+> to cec_transmit_done can cause a new transmit to be issued, and
+> then attempting to clear the TX FIFO will actually clear the new
+> transmit instead of the old transmit and the new transmit simply
+> never happens.
+> 
+> By clearing the FIFO before transmit_done is called this race
+> is fixed.
+> 
+> Note that there is no reason to clear the FIFO if the transmit
+> was successful, so the attempt to clear the FIFO in that case
+> was dropped.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c | 35 ++++++++++++-------------
+>  1 file changed, 17 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+> index 340383150fb9..dee66a5101b5 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+> @@ -106,6 +106,22 @@ static void hdmi_cec_received_msg(struct hdmi_core_data *core)
+>  	}
+>  }
+>  
+> +static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
+> +{
+> +	struct hdmi_core_data *core = cec_get_drvdata(adap);
+> +	int retry = HDMI_CORE_CEC_RETRY;
+> +	int temp;
+> +
+> +	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
+> +	while (retry) {
+> +		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
+> +		if (FLD_GET(temp, 7, 7) == 0)
+> +			break;
+> +		retry--;
+> +	}
+> +	return retry != 0;
+> +}
+> +
+>  void hdmi4_cec_irq(struct hdmi_core_data *core)
+>  {
+>  	u32 stat0 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0);
+> @@ -117,36 +133,19 @@ void hdmi4_cec_irq(struct hdmi_core_data *core)
+>  	if (stat0 & 0x20) {
+>  		cec_transmit_done(core->adap, CEC_TX_STATUS_OK,
+>  				  0, 0, 0, 0);
+> -		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
+>  	} else if (stat1 & 0x02) {
+>  		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
+>  
+> +		hdmi_cec_clear_tx_fifo(core->adap);
+>  		cec_transmit_done(core->adap,
+>  				  CEC_TX_STATUS_NACK |
+>  				  CEC_TX_STATUS_MAX_RETRIES,
+>  				  0, (dbg3 >> 4) & 7, 0, 0);
+> -		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
+>  	}
+>  	if (stat0 & 0x02)
+>  		hdmi_cec_received_msg(core);
+>  }
+>  
+> -static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
+> -{
+> -	struct hdmi_core_data *core = cec_get_drvdata(adap);
+> -	int retry = HDMI_CORE_CEC_RETRY;
+> -	int temp;
+> -
+> -	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
+> -	while (retry) {
+> -		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
+> -		if (FLD_GET(temp, 7, 7) == 0)
+> -			break;
+> -		retry--;
+> -	}
+> -	return retry != 0;
+> -}
+> -
+>  static bool hdmi_cec_clear_rx_fifo(struct cec_adapter *adap)
+>  {
+>  	struct hdmi_core_data *core = cec_get_drvdata(adap);
+> 
