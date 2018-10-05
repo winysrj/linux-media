@@ -1,166 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:34918 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726038AbeJEHJH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 03:09:07 -0400
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-rockchip@lists.infradead.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Heiko Stuebner <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v7 5/6] media: Add controls for JPEG quantization tables
-Date: Thu,  4 Oct 2018 21:12:25 -0300
-Message-Id: <20181005001226.12789-6-ezequiel@collabora.com>
-In-Reply-To: <20181005001226.12789-1-ezequiel@collabora.com>
-References: <20181005001226.12789-1-ezequiel@collabora.com>
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:14510 "EHLO
+        bin-mail-out-05.binero.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726073AbeJEHWY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Oct 2018 03:22:24 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] v4l2-ioctl: fix CROPCAP type handling
+Date: Fri,  5 Oct 2018 02:24:54 +0200
+Message-Id: <20181005002454.2387-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+The type field in struct v4l2_cropcap is supposed to never use the
+_MPLANE variants. E.g. if the driver supports V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+then userspace should still pass V4L2_BUF_TYPE_VIDEO_CAPTURE.
 
-Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
-configure the JPEG quantization tables.
+To fix that code is added to the v4l2 core that maps the _MPLANE buffer
+types to their regular equivalents before calling the driver.
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+Effectively this allows for userspace to use either _MPLANE or the regular
+buffer type. This keeps backwards compatibility while making things easier
+for userspace.
+
+Since drivers now never see the _MPLANE buffer types the exynos driver
+had to be adapted as well.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- .../media/uapi/v4l/extended-controls.rst      | 25 +++++++++++++++++++
- .../media/videodev2.h.rst.exceptions          |  1 +
- drivers/media/v4l2-core/v4l2-ctrls.c          |  8 ++++++
- include/uapi/linux/v4l2-controls.h            | 10 ++++++++
- include/uapi/linux/videodev2.h                |  1 +
- 5 files changed, 45 insertions(+)
+Hi,
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index 65a1d873196b..6effae175be1 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -3530,7 +3530,32 @@ JPEG Control IDs
-     Specify which JPEG markers are included in compressed stream. This
-     control is valid only for encoders.
+This solves the v4l2-compliance failure on R-Car platforms which became 
+apparent on with the v4l-utils commit [1].
+
+I have checked all vidioc_cropcap callers and I can only find the exynos 
+driver who do not already do the right thing. Please note that the 
+exynos driver change is only compile tested.
+
+1. d26e4941419b05fc ("v4l2-compliance: allow both regular and mplane 
+   variants for crop API")
+
+Regards,
+Niklas
+---
+ drivers/media/platform/exynos4-is/fimc-m2m.c | 9 ++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c         | 9 ++++++++-
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+index a19f8b164a47d460..57ba713708d5e175 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -389,9 +389,12 @@ static int fimc_m2m_cropcap(struct file *file, void *fh,
+ 	struct fimc_ctx *ctx = fh_to_ctx(fh);
+ 	struct fimc_frame *frame;
  
-+.. _jpeg-quant-tables-control:
+-	frame = ctx_get_frame(ctx, cr->type);
+-	if (IS_ERR(frame))
+-		return PTR_ERR(frame);
++	if (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		frame = &ctx->s_frame;
++	else if (cr->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		frame = &ctx->d_frame;
++	else
++		return -EINVAL;
  
-+``V4L2_CID_JPEG_QUANTIZATION (struct)``
-+    Specifies the luma and chroma quantization matrices for encoding
-+    or decoding a V4L2_PIX_FMT_JPEG_RAW format buffer.
-+    This control supports 8-bit quantization coefficients, for
-+    the baseline profile, as specified by :ref:`itu-t81`.
-+    Coefficients must be set in JPEG zigzag scan order.
-+
-+
-+.. c:type:: struct v4l2_ctrl_jpeg_quantization
-+
-+.. cssclass:: longtable
-+
-+.. flat-table:: struct v4l2_ctrl_jpeg_quantization
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       1 1 2
-+
-+    * - __u8
-+      - ``luma_quantization_matrix[64]``
-+      - Sets the luma quantization table.
-+
-+    * - __u8
-+      - ``chroma_quantization_matrix[64]``
-+      - Sets the chroma quantization table.
+ 	cr->bounds.left = 0;
+ 	cr->bounds.top = 0;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7de041bae84fb2f2..a8db0870411db84a 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2251,6 +2251,7 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct v4l2_cropcap *p = arg;
+ 	struct v4l2_selection s = { .type = p->type };
++	u32 old_type = p->type;
+ 	int ret = 0;
  
- .. flat-table::
-     :header-rows:  0
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index 30ba0d6f546f..bd210f7d0afc 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -131,6 +131,7 @@ replace symbol V4L2_CTRL_TYPE_U32 :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_U8 :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS :c:type:`v4l2_ctrl_type`
- replace symbol V4L2_CTRL_TYPE_MPEG2_QUANTIZATION :c:type:`v4l2_ctrl_type`
-+replace symbol V4L2_CTRL_TYPE_JPEG_QUANTIZATION :c:type:`v4l2_ctrl_type`
+ 	/* setting trivial pixelaspect */
+@@ -2264,8 +2265,14 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ 	if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_g_selection))
+ 		return -ENOTTY;
  
- # V4L2 capability defines
- replace define V4L2_CAP_VIDEO_CAPTURE device-capabilities
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 65e3cf838ac7..a8612ad42010 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1001,6 +1001,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
- 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
-+	case V4L2_CID_JPEG_QUANTIZATION:	return "JPEG Quantization Tables";
+-	if (ops->vidioc_cropcap)
++	if (ops->vidioc_cropcap) {
++		if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++			p->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++			p->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+ 		ret = ops->vidioc_cropcap(file, fh, p);
++		p->type = old_type;
++	}
  
- 	/* Image source controls */
- 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-@@ -1288,6 +1289,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DETECT_MD_REGION_GRID:
- 		*type = V4L2_CTRL_TYPE_U8;
- 		break;
-+	case V4L2_CID_JPEG_QUANTIZATION:
-+		*type = V4L2_CTRL_TYPE_JPEG_QUANTIZATION;
-+		break;
- 	case V4L2_CID_DETECT_MD_THRESHOLD_GRID:
- 		*type = V4L2_CTRL_TYPE_U16;
- 		break;
-@@ -1667,6 +1671,7 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
-+	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
- 		return 0;
- 
- 	default:
-@@ -2249,6 +2254,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	case V4L2_CTRL_TYPE_MPEG2_QUANTIZATION:
- 		elem_size = sizeof(struct v4l2_ctrl_mpeg2_quantization);
- 		break;
-+	case V4L2_CTRL_TYPE_JPEG_QUANTIZATION:
-+		elem_size = sizeof(struct v4l2_ctrl_jpeg_quantization);
-+		break;
- 	default:
- 		if (type < V4L2_CTRL_COMPOUND_TYPES)
- 			elem_size = sizeof(s32);
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 51b095898f4b..5a8bdb732cfe 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -990,6 +990,16 @@ enum v4l2_jpeg_chroma_subsampling {
- #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
- #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
- 
-+#define V4L2_CID_JPEG_QUANTIZATION		(V4L2_CID_JPEG_CLASS_BASE + 5)
-+struct v4l2_ctrl_jpeg_quantization {
-+	/* ITU-T.81 specifies two quantization coefficient precisions:
-+	 * 8-bit for baseline profile,
-+	 * 8-bit or 16-bit for extended profile.
-+	 * This control only supports the former, for the baseline profile.
-+	 */
-+	__u8	luma_quantization_matrix[64];
-+	__u8	chroma_quantization_matrix[64];
-+};
- 
- /* Image source controls */
- #define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c7b5df4eb83..bc4a11788f3d 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1660,6 +1660,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_U32	     = 0x0102,
- 	V4L2_CTRL_TYPE_MPEG2_SLICE_PARAMS = 0x0103,
- 	V4L2_CTRL_TYPE_MPEG2_QUANTIZATION = 0x0104,
-+	V4L2_CTRL_TYPE_JPEG_QUANTIZATION = 0x0105,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+ 	if (!ops->vidioc_g_selection)
+ 		return ret;
 -- 
-2.19.0.rc2
+2.19.0
