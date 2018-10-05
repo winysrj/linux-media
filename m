@@ -1,139 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:34720 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:34838 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726716AbeJEGfd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 02:35:33 -0400
-Message-ID: <5ce82f591ab9bd1a9a0a476f01bbf4f0fe4ab0e2.camel@collabora.com>
-Subject: Re: [PATCH v6 0/6] Add Rockchip VPU JPEG encoder
+        with ESMTP id S1726038AbeJEHIk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 03:08:40 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-rockchip@lists.infradead.org
+To: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
         Nicolas Dufresne <nicolas.dufresne@collabora.com>,
         Tomasz Figa <tfiga@chromium.org>,
         Heiko Stuebner <heiko@sntech.de>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>
-Date: Thu, 04 Oct 2018 20:39:31 -0300
-In-Reply-To: <faca3960d0478610b73071b471acfa26df987985.camel@collabora.com>
-References: <20180917173022.9338-1-ezequiel@collabora.com>
-         <7bd9573e-e0c6-71a6-84ed-deb0904593fd@xs4all.nl>
-         <faca3960d0478610b73071b471acfa26df987985.camel@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Miouyouyou <myy@miouyouyou.fr>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v7 0/6] Add Rockchip VPU JPEG encoder
+Date: Thu,  4 Oct 2018 21:12:20 -0300
+Message-Id: <20181005001226.12789-1-ezequiel@collabora.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-10-01 at 14:54 -0300, Ezequiel Garcia wrote:
-> On Fri, 2018-09-28 at 14:33 +0200, Hans Verkuil wrote:
-> > On 09/17/2018 07:30 PM, Ezequiel Garcia wrote:
-> > > This series adds support for JPEG encoding via the VPU block
-> > > present in Rockchip platforms. Currently, support for RK3288
-> > > and RK3399 is included.
-> > > 
-> > > Please, see the previous versions of this cover letter for
-> > > more information.
-> > > 
-> > > Compared to v5, the only change is in the V4L2_CID_JPEG_QUANTIZATION
-> > > control. We've decided to support only baseline profile,
-> > > and only add 8-bit luma and chroma tables.
-> > > 
-> > > struct v4l2_ctrl_jpeg_quantization {
-> > >        __u8    luma_quantization_matrix[64];
-> > >        __u8    chroma_quantization_matrix[64];
-> > > };
-> > > 
-> > > By doing this, it's clear that we don't currently support anything
-> > > but baseline.
-> > > 
-> > > This series should apply cleanly on top of
-> > > 
-> > >   git://linuxtv.org/hverkuil/media_tree.git br-cedrus tag.
-> > > 
-> > > If everyone is happy with this series, I'd like to route the devicetree
-> > > changes through the rockchip tree, and the rest via the media subsystem.
-> > 
-> > OK, so I have what is no doubt an annoying question: do we really need
-> > a JPEG_RAW format?
-> > 
-> 
-> Not annoying, as it helps clarify a few things :-)
-> I think we do need the JPEG_RAW format. The way I see it, using
-> JPEG opens a can of worms...
-> 
-> > The JPEG header is really easy to parse for a decoder and really easy to
-> > prepend to the compressed image for the encoder.
-> > 
-> > The only reason I can see for a JPEG_RAW is if the image must start at
-> > some specific address alignment. Although even then you can just pad the
-> > JPEG header that you will add according to the alignment requirements.
-> > 
-> > I know I am very late with this question, but I never looked all that
-> > closely at what a JPEG header looks like. But this helped:
-> > 
-> > https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
-> > 
-> > and it doesn't seem difficult at all to parse or create the header.
-> > 
-> > 
-> 
-> ... I think that having JPEG_RAW as the compressed format
-> is much more clear for userspace, as it explicitly specifies
-> what is expected.
-> 
-> This way, for a stateless encoder, applications are required
-> to set quantization and/or entropy tables, and are then in
-> charge of using the compressed JPEG_RAW payload in whatever form
-> they want. Stupid simple.
-> 
-> On the other side, if the stateless encoder driver supports
-> JPEG (creating headers in-kernel), it means that:
-> 
-> *) applications should pass a quality control, if supported,
-> and the driver will use hardcoded tables or...
-> 
-> *) applications pass quantization control and, if supported,
-> entropy control. The kernel uses them to create the JPEG frame.
-> But also, some drivers (e.g. Rockchip), use default entropy
-> tables, which should now be in the kernel.
-> 
-> So the application would have to query controls to find out
-> what to do. Not exactly hard, but I think having the JPEG_RAW
-> is much simpler and more clear.
-> 
-> Now, for stateless decoders, supporting JPEG_RAW means
-> the application has to pass quantization and entropy
-> controls, probably using the Request API.
-> Given the application has parsed the JPEG,
-> it knows the width and height and can request
-> buffers accordingly.
-> 
-> The hardware is stateless, and so is the driver.
-> 
-> On the other hand, supporting JPEG would mean that
-> drivers will have to parse the image, extracting
-> the quantization and entropy tables.
-> 
-> Format negotiation is now more complex,
-> either we follow the stateful spec, introducing a little
-> state machine in the driver... or we use the Request API,
-> but that means parsing on both sides kernel and application.
-> 
-> Either way, using JPEG_RAW is just waaay simpler and puts
-> things where they belong. 
-> 
+This series adds support for JPEG encoding via the VPU block
+present in Rockchip platforms. Currently, support for RK3288
+and RK3399 is included.
 
-As discussed on IRC, I'm sending a v7 for this series,
-fixing only the checkpatch issues and the extra line in the
-binding document.
+Please, see the previous versions of this cover letter for
+more information.
 
-We've agreed to move forward with JPEG_RAW, for the reasons
-stated above.
+This series should apply cleanly on top of
 
-Plus, we've agreed to keep this in staging until the userspace
-support for JPEG_RAW format is clear.
+  git://linuxtv.org/hverkuil/media_tree.git br-cedrus tag.
 
-Regards,
-Ezequiel
+If everyone is happy with this series, I'd like to route the devicetree
+changes through the rockchip tree, and the rest via the media subsystem.
+
+Compliance
+==========
+
+(Same results as v3)
+
+v4l2-compliance SHA: d0f4ea7ddab6d0244c4fe1e960bb2aaeefb911b9, 64 bits
+
+Compliance test for device /dev/video0:
+
+Driver Info:
+	Driver name      : rockchip-vpu
+	Card type        : rockchip,rk3399-vpu-enc
+	Bus info         : platform: rockchip-vpu
+	Driver version   : 4.18.0
+	Capabilities     : 0x84204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps      : 0x04204000
+		Video Memory-to-Memory Multiplanar
+		Streaming
+		Extended Pix Format
+Media Driver Info:
+	Driver name      : rockchip-vpu
+	Model            : rockchip-vpu
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.18.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.18.0
+Interface Info:
+	ID               : 0x0300000c
+	Type             : V4L Video
+Entity Info:
+	ID               : 0x00000001 (1)
+	Name             : rockchip,rk3399-vpu-enc-source
+	Function         : V4L2 I/O
+	Pad 0x01000002   : Source
+	  Link 0x02000008: to remote pad 0x1000005 of entity 'rockchip,rk3399-vpu-enc-proc': Data, Enabled, Immutable
+
+Required ioctls:
+	test MC information (see 'Media Driver Info' above): OK
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second /dev/video0 open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Control ioctls:
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+	test VIDIOC_QUERYCTRL: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 2 Private Controls: 0
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+	test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+	test read/write: OK (Not Supported)
+	test blocking wait: OK
+	test MMAP: OK                                     
+	test USERPTR: OK (Not Supported)
+	test DMABUF: Cannot test, specify --expbuf-device
+
+Total: 48, Succeeded: 48, Failed: 0, Warnings: 0
+
+v7:
+  - Fix checkpatch --strict issues.
+  - Fix extra blank line in binding doc.
+
+v6:
+  - As agreed with Hans change the quantization control
+    to support only strict baseline JPEGs, with 8-bit
+    coefficients.
+v5:
+  - Make coefficients 2-byte wide, to support 8-bit and 16-bit
+    precision coefficient. Also, add a 'precision' field, to
+    allow the user to specifiy the coefficient precision.
+  - Minor style changes as requested by Hans.
+  - Get rid of all the unused leftover code.
+  - Move driver to staging. The driver will support video encoding,
+    via the request API. So let's use staging until the
+    controls are stabilized.
+v4:
+  - Change luma and chroma array controls, with a compound
+    control, as suggested by Paul.
+v3:
+  - Refactor driver to allow a more elegant integration with
+    other codec modes (h264 decoding, jpeg decoding, etc).
+    Each variant can now be encoders, decoders or both.
+  - Register driver in the media controller framework,
+    in preparation for the Request API.
+  - Set values for JPEG quantization controls in the core, as suggested
+    by Tomasz and Hans.
+  - Move pm_runtime_get/put to run/done, reducing power consumption.
+    This was possible thanks to Miouyouyou, who pointed out the power
+    domains missing [1].
+  - Use bulk clock API for simpler code.
+v2:
+  - Add devicetree binding documentation and devicetree changes
+  - Add documentation to added pixel format and controls
+  - Address Hans' review comments
+  - Get rid of unused running_ctx field
+  - Fix wrong planar pixel format depths
+  - Other minor changes for v4l2-compliance
+  - Drop .crop support, we will add support for the
+    selector API later, if needed.
+
+[1] https://github.com/Miouyouyou/RockMyy/blob/master/patches/kernel/v4.18/DTS/0026-ARM-DTSI-rk3288-Set-the-VPU-MMU-power-domains.patch
+
+Ezequiel Garcia (4):
+  dt-bindings: Document the Rockchip VPU bindings
+  ARM: dts: rockchip: add VPU device node for RK3288
+  arm64: dts: rockchip: add VPU device node for RK3399
+  media: add Rockchip VPU JPEG encoder driver
+
+Shunqian Zheng (2):
+  media: Add JPEG_RAW format
+  media: Add controls for JPEG quantization tables
+
+ .../bindings/media/rockchip-vpu.txt           |  29 +
+ .../media/uapi/v4l/extended-controls.rst      |  25 +
+ .../media/uapi/v4l/pixfmt-compressed.rst      |   9 +
+ .../media/videodev2.h.rst.exceptions          |   1 +
+ MAINTAINERS                                   |   7 +
+ arch/arm/boot/dts/rk3288.dtsi                 |  14 +-
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi      |  14 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c          |   8 +
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   1 +
+ drivers/staging/media/Kconfig                 |   2 +
+ drivers/staging/media/Makefile                |   1 +
+ drivers/staging/media/rockchip/vpu/Kconfig    |  13 +
+ drivers/staging/media/rockchip/vpu/Makefile   |   9 +
+ drivers/staging/media/rockchip/vpu/TODO       |   9 +
+ .../media/rockchip/vpu/rk3288_vpu_hw.c        | 125 ++++
+ .../rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c     | 127 ++++
+ .../media/rockchip/vpu/rk3288_vpu_regs.h      | 442 +++++++++++++
+ .../media/rockchip/vpu/rk3399_vpu_hw.c        | 125 ++++
+ .../rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c     | 155 +++++
+ .../media/rockchip/vpu/rk3399_vpu_regs.h      | 600 +++++++++++++++++
+ .../staging/media/rockchip/vpu/rockchip_vpu.h | 278 ++++++++
+ .../media/rockchip/vpu/rockchip_vpu_common.h  |  31 +
+ .../media/rockchip/vpu/rockchip_vpu_drv.c     | 527 +++++++++++++++
+ .../media/rockchip/vpu/rockchip_vpu_enc.c     | 606 ++++++++++++++++++
+ .../media/rockchip/vpu/rockchip_vpu_hw.h      |  65 ++
+ include/uapi/linux/v4l2-controls.h            |  10 +
+ include/uapi/linux/videodev2.h                |   2 +
+ 27 files changed, 3233 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
+ create mode 100644 drivers/staging/media/rockchip/vpu/Kconfig
+ create mode 100644 drivers/staging/media/rockchip/vpu/Makefile
+ create mode 100644 drivers/staging/media/rockchip/vpu/TODO
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_regs.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_regs.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
+ create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_hw.h
+
+-- 
+2.19.0.rc2
