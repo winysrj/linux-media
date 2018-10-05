@@ -1,81 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:42578 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725749AbeJIFN2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 01:13:28 -0400
-Subject: Re: [PATCH v4 02/11] gpu: ipu-csi: Swap fields according to
- input/output field types
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        "open list:DRM DRIVERS FOR FREESCALE IMX"
-        <dri-devel@lists.freedesktop.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
-        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>
-References: <20181004185401.15751-1-slongerbeam@gmail.com>
- <20181004185401.15751-3-slongerbeam@gmail.com>
- <1538732679.3545.5.camel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <e2ae98c2-a6a3-19b9-bd85-664e5f80c4ab@gmail.com>
-Date: Mon, 8 Oct 2018 14:59:30 -0700
-MIME-Version: 1.0
-In-Reply-To: <1538732679.3545.5.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:55561 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728582AbeJEUgi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Oct 2018 16:36:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 6/6] cec-gpio: select correct Signal Free Time
+Date: Fri,  5 Oct 2018 15:37:45 +0200
+Message-Id: <20181005133745.8593-7-hverkuil@xs4all.nl>
+In-Reply-To: <20181005133745.8593-1-hverkuil@xs4all.nl>
+References: <20181005133745.8593-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+If a receive is in progress or starts before the transmit has
+a chance, then lower the Signal Free Time of the upcoming transmit
+to no more than CEC_SIGNAL_FREE_TIME_NEW_INITIATOR.
 
-On 10/05/2018 02:44 AM, Philipp Zabel wrote:
-> Hi Steve,
->
-> On Thu, 2018-10-04 at 11:53 -0700, Steve Longerbeam wrote:
->
->
->> +
->> +		/* framelines for NTSC / PAL */
->> +		height = (std & V4L2_STD_525_60) ? 525 : 625;
-> I think this is a bit convoluted. Instead of initializing std, then
-> possibly changing it, and then comparing to the inital value, and then
-> checking it again to determine the new height, why not just:
->
-> 		if (width == 720 && height == 480) {
-> 			std = V4L2_STD_NTSC;
-> 			height = 525;
-> 		} else if (width == 720 && height == 576) {
-> 			std = V4L2_STD_PAL;
-> 			height = 625;
-> 		} else {
-> 			dev_err(csi->ipu->dev,
-> 				"Unsupported interlaced video mode\n");
-> 			ret = -EINVAL;
-> 			goto out_unlock;
-> 		}
->
-> ?
+This is per the specification requirements.
 
-Yes that was a bit convoluted, fixed.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-pin.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
->
->>   
->>   	/*
->>   	 * if cycles is set, we need to handle this over multiple cycles as
->>   	 * generic/bayer data
->>   	 */
->> -	if (is_parallel_bus(&priv->upstream_ep) && incc->cycles) {
->> -		if_fmt.width *= incc->cycles;
-> If the input format width passed to ipu_csi_init_interface is not
-> multiplied by the number of cycles per pixel anymore, width in the
-> CSI_SENS_FRM_SIZE register will be set to the unmultiplied value from
-> infmt.
-> This breaks 779680e2e793 ("media: imx: add support for RGB565_2X8 on
-> parallel bus").
-
-Oops, that was a mistake, thanks for catching, fixed.
-
-Steve
+diff --git a/drivers/media/cec/cec-pin.c b/drivers/media/cec/cec-pin.c
+index 6e311424f0dc..635db8e70ead 100644
+--- a/drivers/media/cec/cec-pin.c
++++ b/drivers/media/cec/cec-pin.c
+@@ -935,6 +935,17 @@ static enum hrtimer_restart cec_pin_timer(struct hrtimer *timer)
+ 			/* Start bit, switch to receive state */
+ 			pin->ts = ts;
+ 			pin->state = CEC_ST_RX_START_BIT_LOW;
++			/*
++			 * If a transmit is pending, then that transmit should
++			 * use a signal free time of no more than
++			 * CEC_SIGNAL_FREE_TIME_NEW_INITIATOR since it will
++			 * have a new initiator due to the receive that is now
++			 * starting.
++			 */
++			if (pin->tx_msg.len && pin->tx_signal_free_time >
++			    CEC_SIGNAL_FREE_TIME_NEW_INITIATOR)
++				pin->tx_signal_free_time =
++					CEC_SIGNAL_FREE_TIME_NEW_INITIATOR;
+ 			break;
+ 		}
+ 		if (ktime_to_ns(pin->ts) == 0)
+@@ -1157,6 +1168,15 @@ static int cec_pin_adap_transmit(struct cec_adapter *adap, u8 attempts,
+ {
+ 	struct cec_pin *pin = adap->pin;
+ 
++	/*
++	 * If a receive is in progress, then this transmit should use
++	 * a signal free time of max CEC_SIGNAL_FREE_TIME_NEW_INITIATOR
++	 * since when it starts transmitting it will have a new initiator.
++	 */
++	if (pin->state != CEC_ST_IDLE &&
++	    signal_free_time > CEC_SIGNAL_FREE_TIME_NEW_INITIATOR)
++		signal_free_time = CEC_SIGNAL_FREE_TIME_NEW_INITIATOR;
++
+ 	pin->tx_signal_free_time = signal_free_time;
+ 	pin->tx_extra_bytes = 0;
+ 	pin->tx_msg = *msg;
+-- 
+2.18.0
