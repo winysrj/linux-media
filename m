@@ -1,51 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:44020 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727572AbeJER3i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:29:38 -0400
-Date: Fri, 5 Oct 2018 07:31:23 -0300
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH 3/3] media: v4l2-fwnode: simplify
- v4l2_fwnode_reference_parse_int_props() call
-Message-ID: <20181005073123.28e40cea@coco.lan>
-In-Reply-To: <20181005100604.pfslnij52rfjgwvj@paasikivi.fi.intel.com>
-References: <cover.1538690587.git.mchehab+samsung@kernel.org>
-        <463ae4be895e592aa575d55530a615e22a1934b3.1538690587.git.mchehab+samsung@kernel.org>
-        <20181005080310.74skdxkbvt37yd2j@paasikivi.fi.intel.com>
-        <20181005065449.0a1ab62f@coco.lan>
-        <20181005100604.pfslnij52rfjgwvj@paasikivi.fi.intel.com>
+Received: from mail-lj1-f193.google.com ([209.85.208.193]:39094 "EHLO
+        mail-lj1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727722AbeJER2e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:28:34 -0400
+Received: by mail-lj1-f193.google.com with SMTP id p1-v6so7274684ljg.6
+        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2018 03:30:23 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Fri, 5 Oct 2018 12:30:21 +0200
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@chromium.org>,
+        snawrocki@kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 02/11] v4l2-common.h: put backwards compat defines
+ under #ifndef __KERNEL__
+Message-ID: <20181005103021.GS24305@bigcity.dyn.berto.se>
+References: <20181005074911.47574-1-hverkuil@xs4all.nl>
+ <20181005074911.47574-3-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181005074911.47574-3-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 5 Oct 2018 13:06:04 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Hi Hans,
 
-> > > > -	unsigned int i;    
-> > > 
-> > > I'd like to keep this here.  
-> > 
-> > Why? IMHO, it makes harder to read (yet, if you insist, I'm ok with 
-> > both ways).  
+Thanks for your patch.
+
+On 2018-10-05 09:49:02 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Generally loop, temporary, return etc. variables are nice to declare as
-> last. That is the practice in this file and generally in kernel code,
-> albeit with variable degree of application.
+> This ensures that they won't be used in kernel code.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I've seen more than one practice of ordering arguments at the Kernel :-)
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Anyway, I kept it there on the version I just sent.
+> ---
+>  include/uapi/linux/v4l2-common.h | 28 +++++++++++++++-------------
+>  1 file changed, 15 insertions(+), 13 deletions(-)
+> 
+> diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+> index 4f7b892377cd..7d21c1634b4d 100644
+> --- a/include/uapi/linux/v4l2-common.h
+> +++ b/include/uapi/linux/v4l2-common.h
+> @@ -79,24 +79,11 @@
+>  /* Current composing area plus all padding pixels */
+>  #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
+>  
+> -/* Backward compatibility target definitions --- to be removed. */
+> -#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+> -#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
+> -#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL	V4L2_SEL_TGT_CROP
+> -#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL V4L2_SEL_TGT_COMPOSE
+> -#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS	V4L2_SEL_TGT_CROP_BOUNDS
+> -#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS V4L2_SEL_TGT_COMPOSE_BOUNDS
+> -
+>  /* Selection flags */
+>  #define V4L2_SEL_FLAG_GE		(1 << 0)
+>  #define V4L2_SEL_FLAG_LE		(1 << 1)
+>  #define V4L2_SEL_FLAG_KEEP_CONFIG	(1 << 2)
+>  
+> -/* Backward compatibility flag definitions --- to be removed. */
+> -#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE	V4L2_SEL_FLAG_GE
+> -#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE	V4L2_SEL_FLAG_LE
+> -#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG V4L2_SEL_FLAG_KEEP_CONFIG
+> -
+>  struct v4l2_edid {
+>  	__u32 pad;
+>  	__u32 start_block;
+> @@ -105,4 +92,19 @@ struct v4l2_edid {
+>  	__u8  *edid;
+>  };
+>  
+> +#ifndef __KERNEL__
+> +/* Backward compatibility target definitions --- to be removed. */
+> +#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+> +#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL	V4L2_SEL_TGT_CROP
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL V4L2_SEL_TGT_COMPOSE
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS	V4L2_SEL_TGT_CROP_BOUNDS
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS V4L2_SEL_TGT_COMPOSE_BOUNDS
+> +
+> +/* Backward compatibility flag definitions --- to be removed. */
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE	V4L2_SEL_FLAG_GE
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE	V4L2_SEL_FLAG_LE
+> +#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG V4L2_SEL_FLAG_KEEP_CONFIG
+> +#endif
+> +
+>  #endif /* __V4L2_COMMON__ */
+> -- 
+> 2.18.0
+> 
 
-
-Thanks,
-Mauro
+-- 
+Regards,
+Niklas Söderlund
