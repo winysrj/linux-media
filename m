@@ -1,128 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:47973 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728139AbeJEVMG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 17:12:06 -0400
-Subject: Re: [PATCH 4/5] omapdrm/dss/hdmi4_cec.c: clear TX FIFO before
- transmit_done
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-References: <20181004090900.32915-1-hverkuil@xs4all.nl>
- <20181004090900.32915-5-hverkuil@xs4all.nl>
-Message-ID: <33ddd03f-91aa-6c19-380e-a81abf390180@xs4all.nl>
-Date: Fri, 5 Oct 2018 16:13:05 +0200
-MIME-Version: 1.0
-In-Reply-To: <20181004090900.32915-5-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.133]:53536 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727968AbeJEVYD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 17:24:03 -0400
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Oliver Freyermuth <o.freyermuth@googlemail.com>,
+        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>,
+        stable@vger.kernel.org
+Subject: [PATCH] Revert "media: dvbsky: use just one mutex for serializing device R/W ops"
+Date: Fri,  5 Oct 2018 10:25:01 -0400
+Message-Id: <b39aa816886da2b57ecdfad85f06b4940bcb5d02.1538749479.git.mchehab+samsung@kernel.org>
+In-Reply-To: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
+References: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tomi,
+As pointed at:
+	https://bugzilla.kernel.org/show_bug.cgi?id=199323
 
-Can you review this patch and the next? They should go to 4.20.
-This patch in particular is a nasty one, hard to reproduce.
+This patch causes a bad effect on RPi. I suspect that the root
+cause is at the USB RPi driver, with uses high priority
+interrupts instead of normal ones. Anyway, as this patch
+is mostly a cleanup, better to revert it.
 
-This patch should also be Cc-ed to stable for 4.15 and up.
+This reverts commit 7d95fb746c4eece67308f1642a666ea1ebdbd2cc.
 
-Tracking down randomly disappearing CEC transmits was no fun :-(
+Cc: stable@vger.kernel.org # For Kernel 4.18
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ drivers/media/usb/dvb-usb-v2/dvbsky.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-Regards,
-
-	Hans
-
-On 10/04/18 11:08, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The TX FIFO has to be cleared if the transmit failed due to e.g.
-> a NACK condition, otherwise the hardware will keep trying to
-> transmit the message.
-> 
-> An attempt was made to do this, but it was done after the call to
-> cec_transmit_done, which can cause a race condition since the call
-> to cec_transmit_done can cause a new transmit to be issued, and
-> then attempting to clear the TX FIFO will actually clear the new
-> transmit instead of the old transmit and the new transmit simply
-> never happens.
-> 
-> By clearing the FIFO before transmit_done is called this race
-> is fixed.
-> 
-> Note that there is no reason to clear the FIFO if the transmit
-> was successful, so the attempt to clear the FIFO in that case
-> was dropped.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c | 35 ++++++++++++-------------
->  1 file changed, 17 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-> index 340383150fb9..dee66a5101b5 100644
-> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-> @@ -106,6 +106,22 @@ static void hdmi_cec_received_msg(struct hdmi_core_data *core)
->  	}
->  }
->  
-> +static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
-> +{
-> +	struct hdmi_core_data *core = cec_get_drvdata(adap);
-> +	int retry = HDMI_CORE_CEC_RETRY;
-> +	int temp;
-> +
-> +	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-> +	while (retry) {
-> +		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-> +		if (FLD_GET(temp, 7, 7) == 0)
-> +			break;
-> +		retry--;
-> +	}
-> +	return retry != 0;
-> +}
-> +
->  void hdmi4_cec_irq(struct hdmi_core_data *core)
->  {
->  	u32 stat0 = hdmi_read_reg(core->base, HDMI_CEC_INT_STATUS_0);
-> @@ -117,36 +133,19 @@ void hdmi4_cec_irq(struct hdmi_core_data *core)
->  	if (stat0 & 0x20) {
->  		cec_transmit_done(core->adap, CEC_TX_STATUS_OK,
->  				  0, 0, 0, 0);
-> -		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
->  	} else if (stat1 & 0x02) {
->  		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
->  
-> +		hdmi_cec_clear_tx_fifo(core->adap);
->  		cec_transmit_done(core->adap,
->  				  CEC_TX_STATUS_NACK |
->  				  CEC_TX_STATUS_MAX_RETRIES,
->  				  0, (dbg3 >> 4) & 7, 0, 0);
-> -		REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
->  	}
->  	if (stat0 & 0x02)
->  		hdmi_cec_received_msg(core);
->  }
->  
-> -static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
-> -{
-> -	struct hdmi_core_data *core = cec_get_drvdata(adap);
-> -	int retry = HDMI_CORE_CEC_RETRY;
-> -	int temp;
-> -
-> -	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
-> -	while (retry) {
-> -		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-> -		if (FLD_GET(temp, 7, 7) == 0)
-> -			break;
-> -		retry--;
-> -	}
-> -	return retry != 0;
-> -}
-> -
->  static bool hdmi_cec_clear_rx_fifo(struct cec_adapter *adap)
->  {
->  	struct hdmi_core_data *core = cec_get_drvdata(adap);
-> 
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 1aa88d94e57f..e28bd8836751 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -31,6 +31,7 @@ MODULE_PARM_DESC(disable_rc, "Disable inbuilt IR receiver.");
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ struct dvbsky_state {
++	struct mutex stream_mutex;
+ 	u8 ibuf[DVBSKY_BUF_LEN];
+ 	u8 obuf[DVBSKY_BUF_LEN];
+ 	u8 last_lock;
+@@ -67,17 +68,18 @@ static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
+ 
+ static int dvbsky_stream_ctrl(struct dvb_usb_device *d, u8 onoff)
+ {
++	struct dvbsky_state *state = d_to_priv(d);
+ 	int ret;
+-	static u8 obuf_pre[3] = { 0x37, 0, 0 };
+-	static u8 obuf_post[3] = { 0x36, 3, 0 };
++	u8 obuf_pre[3] = { 0x37, 0, 0 };
++	u8 obuf_post[3] = { 0x36, 3, 0 };
+ 
+-	mutex_lock(&d->usb_mutex);
+-	ret = dvb_usbv2_generic_rw_locked(d, obuf_pre, 3, NULL, 0);
++	mutex_lock(&state->stream_mutex);
++	ret = dvbsky_usb_generic_rw(d, obuf_pre, 3, NULL, 0);
+ 	if (!ret && onoff) {
+ 		msleep(20);
+-		ret = dvb_usbv2_generic_rw_locked(d, obuf_post, 3, NULL, 0);
++		ret = dvbsky_usb_generic_rw(d, obuf_post, 3, NULL, 0);
+ 	}
+-	mutex_unlock(&d->usb_mutex);
++	mutex_unlock(&state->stream_mutex);
+ 	return ret;
+ }
+ 
+@@ -606,6 +608,8 @@ static int dvbsky_init(struct dvb_usb_device *d)
+ 	if (ret)
+ 		return ret;
+ 	*/
++	mutex_init(&state->stream_mutex);
++
+ 	state->last_lock = 0;
+ 
+ 	return 0;
+-- 
+2.17.1
