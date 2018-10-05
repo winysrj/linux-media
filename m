@@ -1,204 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47784 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727701AbeJETuk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 15:50:40 -0400
-Date: Fri, 5 Oct 2018 15:52:02 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: bingbu.cao@intel.com
-Subject: [GIT PULL v2 for 4.20] Unlocked V4L2 control grab, imx{319, 355}
- drivers
-Message-ID: <20181005125202.iux6w2niftxzgqxu@valkosipuli.retiisi.org.uk>
+Received: from mail-ed1-f44.google.com ([209.85.208.44]:33428 "EHLO
+        mail-ed1-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727701AbeJET5H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 15:57:07 -0400
+Received: by mail-ed1-f44.google.com with SMTP id h13-v6so88347edq.0
+        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2018 05:58:29 -0700 (PDT)
+Subject: Re: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Dave Stevenson <dave.stevenson@raspberrypi.org>
+Cc: ezequiel@collabora.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        LMML <linux-media@vger.kernel.org>
+References: <03c10b29-6ead-1aa2-334a-c6357004a5ac@xs4all.nl>
+ <2438028.OjeO6a9KTA@avalon> <71200c21-1073-789c-aa94-813042afc352@xs4all.nl>
+ <1670593.gmhJL1mYtv@avalon>
+ <177bb7e7efe18c4026c1e44b9cd9f73dc8352561.camel@collabora.com>
+ <CAAoAYcN7XyjHtHMg9_Z_vpnT_wjp6EUU=MTUZZmb2uwpVfZ52w@mail.gmail.com>
+ <20181005085523.0e73d18d@coco.lan>
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <dc92616c-6450-b06c-ae4c-290260c8fc4c@redhat.com>
+Date: Fri, 5 Oct 2018 14:58:26 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20181005085523.0e73d18d@coco.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-Here are drivers for Sony imx319 and imx355 sensors and an unlocked version
-of v4l2_ctrl_grab() which is used by the driver.
+On 05-10-18 13:55, Mauro Carvalho Chehab wrote:
+> Em Mon, 1 Oct 2018 18:19:21 +0100
+> Dave Stevenson <dave.stevenson@raspberrypi.org> escreveu:
+> 
+>> Hi All,
+>>
+>> On Mon, 1 Oct 2018 at 17:32, Ezequiel Garcia <ezequiel@collabora.com> wrote:
+>>>
+>>> Hi Hans,
+>>>
+>>> Thanks for looking into. I remember MJPEG vs. JPEG being a source
+>>> of confusion for me a few years ago, so clarification is greatly
+>>> welcome :-)
+>>>
+>>> On Mon, 2018-10-01 at 15:03 +0300, Laurent Pinchart wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On Monday, 1 October 2018 14:54:29 EEST Hans Verkuil wrote:
+>>>>> On 10/01/2018 01:48 PM, Laurent Pinchart wrote:
+>>>>>> On Monday, 1 October 2018 11:43:04 EEST Hans Verkuil wrote:
+>>>>>>> It turns out that we have both JPEG and Motion-JPEG pixel formats
+>>>>>>> defined.
+>>>>>>>
+>>>>>>> Furthermore, some drivers support one, some the other and some both.
+>>>>>>>
+>>>>>>> These pixelformats both mean the same.
+>>>>>>
+>>>>>> Do they ? I thought MJPEG was JPEG using fixed Huffman tables that were
+>>>>>> not included in the JPEG headers.
+>>>>>
+>>>>> I'm not aware of any difference. If there is one, then it is certainly not
+>>>>> documented.
+>>>>
+>>>> What I can tell for sure is that many UVC devices don't include Huffman tables
+>>>> in their JPEG headers.
+>>>>   
+>>>>> Ezequiel, since you've been working with this recently, do you know anything
+>>>>> about this?
+>>>>
+>>>>   
+>>>
+>>> JPEG frames must include huffman and quantization tables, as per the standard.
+>>>
+>>> AFAIK, there's no MJPEG specification per-se and vendors specify its own
+>>> way of conveying a Motion JPEG stream.
+>>
+>> There is the specfication for MJPEG in Quicktime containers, which
+>> defines the MJPEG-A and MJPEG-B variants [1].
+>> MJPEG-B is not a concatenation of JPEG frames as the framing is
+>> different, so can't really be combined into V4L2_PIX_FMT_JPEG.
+>> Have people encountered devices that produce MJPEG-A or MJPEG-B via
+>> V4L2? I haven't, but I have been forced to support both variants on
+>> decode.
+> 
+> Checking it is not an easy task. I *suspect* that those cameras are all
+> MJPEG-A, as the libv4l decoder uses tinyjpeg library to handle both
+> JPEG and MJPEG.
+> 
+> Maybe Hans de Goede knows more about that, and may have actually tested
+> it with different camera models.
 
-Since v1, I've rebased this on the current master --- with the fwnode
-patches.
+I've tested the JPG path in libv4l with quite a lot of cameras and
+sofar it has worked for all of them. There are some non UVC cameras where
+the hardware produces raw JPG data, but in that case the kernel driver
+prefixes a JPG header to each frame so that it looks like a regular JPG.
 
-Please pull.
-
-The diff is here and effectively the same for both drivers:
-
-diff --git a/drivers/media/i2c/imx319.c b/drivers/media/i2c/imx319.c
-index 37c31d17ecf0..329049f7e64d 100644
---- a/drivers/media/i2c/imx319.c
-+++ b/drivers/media/i2c/imx319.c
-@@ -2356,7 +2356,9 @@ static int imx319_init_controls(struct imx319 *imx319)
- static struct imx319_hwcfg *imx319_get_hwcfg(struct device *dev)
- {
- 	struct imx319_hwcfg *cfg;
--	struct v4l2_fwnode_endpoint *bus_cfg;
-+	struct v4l2_fwnode_endpoint bus_cfg = {
-+		.bus_type = V4L2_MBUS_CSI2_DPHY
-+	};
- 	struct fwnode_handle *ep;
- 	struct fwnode_handle *fwnode = dev_fwnode(dev);
- 	unsigned int i;
-@@ -2369,8 +2371,8 @@ static struct imx319_hwcfg *imx319_get_hwcfg(struct device *dev)
- 	if (!ep)
- 		return NULL;
- 
--	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(ep);
--	if (IS_ERR(bus_cfg))
-+	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
-+	if (ret)
- 		goto out_err;
- 
- 	cfg = devm_kzalloc(dev, sizeof(*cfg), GFP_KERNEL);
-@@ -2391,30 +2393,30 @@ static struct imx319_hwcfg *imx319_get_hwcfg(struct device *dev)
- 		goto out_err;
- 	}
- 
--	dev_dbg(dev, "num of link freqs: %d", bus_cfg->nr_of_link_frequencies);
--	if (!bus_cfg->nr_of_link_frequencies) {
-+	dev_dbg(dev, "num of link freqs: %d", bus_cfg.nr_of_link_frequencies);
-+	if (!bus_cfg.nr_of_link_frequencies) {
- 		dev_warn(dev, "no link frequencies defined");
- 		goto out_err;
- 	}
- 
--	cfg->nr_of_link_freqs = bus_cfg->nr_of_link_frequencies;
-+	cfg->nr_of_link_freqs = bus_cfg.nr_of_link_frequencies;
- 	cfg->link_freqs = devm_kcalloc(
--		dev, bus_cfg->nr_of_link_frequencies + 1,
-+		dev, bus_cfg.nr_of_link_frequencies + 1,
- 		sizeof(*cfg->link_freqs), GFP_KERNEL);
- 	if (!cfg->link_freqs)
- 		goto out_err;
- 
--	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
--		cfg->link_freqs[i] = bus_cfg->link_frequencies[i];
-+	for (i = 0; i < bus_cfg.nr_of_link_frequencies; i++) {
-+		cfg->link_freqs[i] = bus_cfg.link_frequencies[i];
- 		dev_dbg(dev, "link_freq[%d] = %lld", i, cfg->link_freqs[i]);
- 	}
- 
--	v4l2_fwnode_endpoint_free(bus_cfg);
-+	v4l2_fwnode_endpoint_free(&bus_cfg);
- 	fwnode_handle_put(ep);
- 	return cfg;
- 
- out_err:
--	v4l2_fwnode_endpoint_free(bus_cfg);
-+	v4l2_fwnode_endpoint_free(&bus_cfg);
- 	fwnode_handle_put(ep);
- 	return NULL;
- }
-diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
-index 3baa0edc57a9..803df2a014bb 100644
---- a/drivers/media/i2c/imx355.c
-+++ b/drivers/media/i2c/imx355.c
-@@ -1656,7 +1656,9 @@ static int imx355_init_controls(struct imx355 *imx355)
- static struct imx355_hwcfg *imx355_get_hwcfg(struct device *dev)
- {
- 	struct imx355_hwcfg *cfg;
--	struct v4l2_fwnode_endpoint *bus_cfg;
-+	struct v4l2_fwnode_endpoint bus_cfg = {
-+		.bus_type = V4L2_MBUS_CSI2_DPHY
-+	};
- 	struct fwnode_handle *ep;
- 	struct fwnode_handle *fwnode = dev_fwnode(dev);
- 	unsigned int i;
-@@ -1669,8 +1671,8 @@ static struct imx355_hwcfg *imx355_get_hwcfg(struct device *dev)
- 	if (!ep)
- 		return NULL;
- 
--	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(ep);
--	if (IS_ERR(bus_cfg))
-+	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &bus_cfg);
-+	if (ret)
- 		goto out_err;
- 
- 	cfg = devm_kzalloc(dev, sizeof(*cfg), GFP_KERNEL);
-@@ -1691,30 +1693,30 @@ static struct imx355_hwcfg *imx355_get_hwcfg(struct device *dev)
- 		goto out_err;
- 	}
- 
--	dev_dbg(dev, "num of link freqs: %d", bus_cfg->nr_of_link_frequencies);
--	if (!bus_cfg->nr_of_link_frequencies) {
-+	dev_dbg(dev, "num of link freqs: %d", bus_cfg.nr_of_link_frequencies);
-+	if (!bus_cfg.nr_of_link_frequencies) {
- 		dev_warn(dev, "no link frequencies defined");
- 		goto out_err;
- 	}
- 
--	cfg->nr_of_link_freqs = bus_cfg->nr_of_link_frequencies;
-+	cfg->nr_of_link_freqs = bus_cfg.nr_of_link_frequencies;
- 	cfg->link_freqs = devm_kcalloc(
--		dev, bus_cfg->nr_of_link_frequencies + 1,
-+		dev, bus_cfg.nr_of_link_frequencies + 1,
- 		sizeof(*cfg->link_freqs), GFP_KERNEL);
- 	if (!cfg->link_freqs)
- 		goto out_err;
- 
--	for (i = 0; i < bus_cfg->nr_of_link_frequencies; i++) {
--		cfg->link_freqs[i] = bus_cfg->link_frequencies[i];
-+	for (i = 0; i < bus_cfg.nr_of_link_frequencies; i++) {
-+		cfg->link_freqs[i] = bus_cfg.link_frequencies[i];
- 		dev_dbg(dev, "link_freq[%d] = %lld", i, cfg->link_freqs[i]);
- 	}
- 
--	v4l2_fwnode_endpoint_free(bus_cfg);
-+	v4l2_fwnode_endpoint_free(&bus_cfg);
- 	fwnode_handle_put(ep);
- 	return cfg;
- 
- out_err:
--	v4l2_fwnode_endpoint_free(bus_cfg);
-+	v4l2_fwnode_endpoint_free(&bus_cfg);
- 	fwnode_handle_put(ep);
- 	return NULL;
- }
-
-
-The following changes since commit 158bc148a31ea22a2ef8cbaf4d968476bddefbc0:
-
-  media: rc: mce_kbd: input events via rc-core's input device (2018-10-05 06:56:24 -0400)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-10-sign-2
-
-for you to fetch changes up to 83da403a4a89dc1990b9d0f99ba16bc6d230eb02:
-
-  media: add imx355 camera sensor driver (2018-10-05 14:46:35 +0300)
-
-----------------------------------------------------------------
-unlocked V4L2 ctrl grab; imx319 and imx355 drivers
-
-----------------------------------------------------------------
-Bingbu Cao (2):
-      media: add imx319 camera sensor driver
-      media: add imx355 camera sensor driver
-
-Sakari Ailus (2):
-      v4l: ctrl: Remove old documentation from v4l2_ctrl_grab
-      v4l: ctrl: Provide unlocked variant of v4l2_ctrl_grab
-
- MAINTAINERS                          |   14 +
- drivers/media/i2c/Kconfig            |   22 +
- drivers/media/i2c/Makefile           |    2 +
- drivers/media/i2c/imx319.c           | 2560 ++++++++++++++++++++++++++++++++++
- drivers/media/i2c/imx355.c           | 1860 ++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c |   14 +-
- include/media/v4l2-ctrls.h           |   26 +-
- 7 files changed, 4487 insertions(+), 11 deletions(-)
- create mode 100644 drivers/media/i2c/imx319.c
- create mode 100644 drivers/media/i2c/imx355.c
-
-
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Hans
+
+
+
+> 
+>>
+>> On that thought, whilst capture devices generally don't care, is there
+>> a need to differentiate for M2M codec devices which can support
+>> encoding the variants? Or likewise on M2M decoders that support only
+>> JPEG, how do they tell userspace that they don't support MJPEG-A or
+>> MJPEG-B?
+>>
+>>    Dave
+>>
+>> [1] https://developer.apple.com/standards/qtff-2001.pdf
+>>
+>>> For instance, omiting the huffman table seems to be a vendor thing. Microsoft
+>>> explicitly omits the huffman tables from each frame:
+>>>
+>>> https://www.fileformat.info/format/bmp/spec/b7c72ebab8064da48ae5ed0c053c67a4/view.htm
+>>>
+>>> Others could be following the same things.
+>>>
+>>> Like I mentioned before, Gstreamer always check for missing huffman table
+>>> and adds one if missing. Gstreamer has other quirks for missing markers,
+>>> e.g. deal with a missing EOI:
+>>>
+>>> https://github.com/GStreamer/gst-plugins-good/commit/10ff3c8e14e8fba9e0a5d696dce0bea27de644d7
+>>>
+>>> I think Hans suggestion of settling on JPEG makes sense and it would
+>>> be consistent with Gstreamer. Otherwise, we should specify exactly what we
+>>> understand by MJPEG, but I don't think it's worth it.
+>>>
+>>> Thanks,
+>>> Ezequiel
+> 
+> 
+> 
+> Thanks,
+> Mauro
+> 
