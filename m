@@ -1,101 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa5.microchip.iphmx.com ([216.71.150.166]:33566 "EHLO
-        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726304AbeJBNR1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2018 09:17:27 -0400
-Date: Tue, 2 Oct 2018 08:35:47 +0200
-From: Ludovic Desroches <ludovic.desroches@microchip.com>
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-CC: Joe Perches <joe@perches.com>,
-        Eugen Hristev <eugen.hristev@microchip.com>,
-        Josh Wu <josh.wu@atmel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] MAINTAINERS: Remove stale file entry for the Atmel ISI
- driver
-Message-ID: <20181002063547.ul7htrd54x7iksxy@M43218.corp.atmel.com>
-References: <20180930065448.5019-1-laurent.pinchart@ideasonboard.com>
- <20180930063034.1dab99d9@coco.lan>
- <7150c1de00db05ec3c1a53611c156fb823d7f345.camel@perches.com>
- <20181001135101.536b4c22@coco.lan>
+Received: from bombadil.infradead.org ([198.137.202.133]:36332 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728081AbeJEW34 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 18:29:56 -0400
+Date: Fri, 5 Oct 2018 12:30:37 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Oliver Freyermuth <o.freyermuth@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Stefan =?UTF-8?B?QnLDvG5z?= <stefan.bruens@rwth-aachen.de>
+Subject: Re: [PATCH RESEND] Revert "media: dvbsky: use just one mutex for
+ serializing device R/W ops"
+Message-ID: <20181005123037.64b9f24c@coco.lan>
+In-Reply-To: <4333a303-c06b-e641-20de-7b51058e0287@googlemail.com>
+References: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
+        <b39aa816886da2b57ecdfad85f06b4940bcb5d02.1538749539.git.mchehab+samsung@kernel.org>
+        <4333a303-c06b-e641-20de-7b51058e0287@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20181001135101.536b4c22@coco.lan>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 01, 2018 at 01:51:01PM -0300, Mauro Carvalho Chehab wrote:
-> Em Sun, 30 Sep 2018 02:40:35 -0700
-> Joe Perches <joe@perches.com> escreveu:
-> 
-> > On Sun, 2018-09-30 at 06:30 -0300, Mauro Carvalho Chehab wrote:
-> > > Em Sun, 30 Sep 2018 09:54:48 +0300
-> > > Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> > >   
-> > > > include/media/atmel-isi got removed three years ago without the
-> > > > MAINTAINERS file being updated. Remove the stale entry.
-> > > > 
-> > > > Fixes: 40a78f36fc92 ("[media] v4l: atmel-isi: Remove support for platform data")
-> > > > Reported-by: Joe Perches <joe@perches.com>
-> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > ---
-> > > >  MAINTAINERS | 1 -
-> > > >  1 file changed, 1 deletion(-)
-> > > > 
-> > > > 
-> > > > diff --git a/MAINTAINERS b/MAINTAINERS  
-> > []
-> > > > @@ -2497,7 +2497,6 @@ M:	Ludovic Desroches <ludovic.desroches@microchip.com>
-> > > >  L:	linux-media@vger.kernel.org
-> > > >  S:	Supported
-> > > >  F:	drivers/media/platform/atmel/atmel-isi.c
-> > > > -F:	include/media/atmel-isi.h  
-> > > 
-> > > I guess the right fix would be to replace it by:
-> > > 
-> > > F: drivers/media/platform/atmel/atmel-isi.h  
-> > 
-> > Or replace both F entries with:
-> > 
-> > F:	drivers/media/platform/atmel/atmel-isi.*
-> > 
-> > Or combine the 2 MICROCHIP sections into one
-> > 
-> > MICROCHIP ISC DRIVER
-> > M:	Eugen Hristev <eugen.hristev@microchip.com>
-> > L:	linux-media@vger.kernel.org
-> > S:	Supported
-> > F:	drivers/media/platform/atmel/atmel-isc.c
-> > F:	drivers/media/platform/atmel/atmel-isc-regs.h
-> > F:	devicetree/bindings/media/atmel-isc.txt
-> > 
-> > MICROCHIP ISI DRIVER
-> > M:	Eugen Hristev <eugen.hristev@microchip.com>
-> > L:	linux-media@vger.kernel.org
-> > S:	Supported
-> > F:	drivers/media/platform/atmel/atmel-isi.c
-> > F:	include/media/atmel-isi.h
-> > 
-> > and maybe use something like:
-> > 
-> > MICROCHIP MEDIA DRIVERS
-> > M:	Eugen Hristev <eugen.hristev@microchip.com>
-> > L:	
-> > linux-media@vger.kernel.org
-> > S:	Supported
-> > F:	drivers/media/platform/atmel/
-> > F:	devicetree/bindings/media/atmel-isc.txt
-> 
-> Yeah, combining both of them seems a good alternative to me.
-> 
-> Eugen/Ludovic/Josh,
-> 
-> Comments?
+Em Fri, 5 Oct 2018 16:34:28 +0200
+Oliver Freyermuth <o.freyermuth@googlemail.com> escreveu:
 
-I have no strong opinion about it. The devices are different but usually
-there is one person per topic so combining them makes sense.
+> Dear Mauro,
+> 
+> thanks! Just to clarify, the issue I described in https://bugzilla.kernel.org/show_bug.cgi?id=199323
+> was on an Intel x86_64 system, with an onboard USB Controller handled by the standard xhci driver,
+> so this does not affect RPi alone. 
 
-Regards
+That's weird... I tested such patch here before applying (and it was
+tested by someone else, as far as I know), and it worked fine.
 
-Ludovic
+Perhaps the x86 bug is related to some recent changes at the USB
+subsystem. Dunno.
+
+Anyway, patch revert applied upstream.
+
+Regards,
+Mauro
