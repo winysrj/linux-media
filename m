@@ -1,46 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:44811 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728422AbeJEUgh (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55671 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727581AbeJEVCN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 16:36:37 -0400
+        Fri, 5 Oct 2018 17:02:13 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/6] adv7604: when the EDID is cleared, unconfigure CEC as well
-Date: Fri,  5 Oct 2018 15:37:42 +0200
-Message-Id: <20181005133745.8593-4-hverkuil@xs4all.nl>
-In-Reply-To: <20181005133745.8593-1-hverkuil@xs4all.nl>
-References: <20181005133745.8593-1-hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.20] Various cec fixes
+Message-ID: <85477394-3456-d7ee-6641-c653f5f19673@xs4all.nl>
+Date: Fri, 5 Oct 2018 16:03:16 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This pull request fixes various CEC bugs. The following patches are also
+CCed to stable for 4.18:
 
-When there is no EDID the CEC adapter should be unconfigured as
-well. So call cec_phys_addr_invalidate() when this happens.
+      cec: add new tx/rx status bits to detect aborts/timeouts
+      adv7604: when the EDID is cleared, unconfigure CEC as well
+      adv7842: when the EDID is cleared, unconfigure CEC as well
+      cec: fix the Signal Free Time calculation
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7604.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+The 'add new tx/rx status bits' is strictly speaking not a bug fix, but
+the absence of these status bits made finding the real bug
+(https://patchwork.linuxtv.org/patch/52329/) much harder than it should
+have been.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 1c89959b1509..9eb7c70a7712 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2284,8 +2284,10 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		state->aspect_ratio.numerator = 16;
- 		state->aspect_ratio.denominator = 9;
- 
--		if (!state->edid.present)
-+		if (!state->edid.present) {
- 			state->edid.blocks = 0;
-+			cec_phys_addr_invalidate(state->cec_adap);
-+		}
- 
- 		v4l2_dbg(2, debug, sd, "%s: clear EDID pad %d, edid.present = 0x%x\n",
- 				__func__, edid->pad, state->edid.present);
--- 
-2.18.0
+Regards,
+
+	Hans
+
+The following changes since commit f492fb4f5b41e8e62051e710369320e9ffa7a1ea:
+
+  media: MAINTAINERS: Fix entry for the renamed dw9807 driver (2018-10-05 08:40:00 -0400)
+
+are available in the Git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git tags/br-cec-media2
+
+for you to fetch changes up to 75773002b711836690aed39d6702b87165136aa5:
+
+  media: cec: name for RC passthrough device does not need 'RC for' (2018-10-05 15:54:06 +0200)
+
+----------------------------------------------------------------
+Tag branch
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      cec-core.rst: improve cec_transmit_done documentation
+      cec: add new tx/rx status bits to detect aborts/timeouts
+      adv7604: when the EDID is cleared, unconfigure CEC as well
+      adv7842: when the EDID is cleared, unconfigure CEC as well
+      cec: fix the Signal Free Time calculation
+      cec-gpio: select correct Signal Free Time
+
+Sean Young (1):
+      media: cec: name for RC passthrough device does not need 'RC for'
+
+ Documentation/media/kapi/cec-core.rst            |  4 ++++
+ Documentation/media/uapi/cec/cec-ioc-receive.rst | 25 ++++++++++++++++++--
+ drivers/media/cec/cec-adap.c                     | 92 ++++++++++++++++++++---------------------------------------------------
+ drivers/media/cec/cec-core.c                     |  6 ++---
+ drivers/media/cec/cec-pin.c                      | 20 ++++++++++++++++
+ drivers/media/i2c/adv7604.c                      |  4 +++-
+ drivers/media/i2c/adv7842.c                      |  4 +++-
+ include/media/cec.h                              |  4 +---
+ include/uapi/linux/cec.h                         |  3 +++
+ 9 files changed, 84 insertions(+), 78 deletions(-)
