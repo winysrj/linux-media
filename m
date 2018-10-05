@@ -1,85 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:53536 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:51616 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727968AbeJEVYD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 17:24:03 -0400
+        with ESMTP id S1727968AbeJEVRi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 17:17:38 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Oliver Freyermuth <o.freyermuth@googlemail.com>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>,
-        stable@vger.kernel.org
-Subject: [PATCH] Revert "media: dvbsky: use just one mutex for serializing device R/W ops"
-Date: Fri,  5 Oct 2018 10:25:01 -0400
-Message-Id: <b39aa816886da2b57ecdfad85f06b4940bcb5d02.1538749479.git.mchehab+samsung@kernel.org>
-In-Reply-To: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
-References: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
+        Tianshu Qiu <tian.shu.qiu@intel.com>
+Subject: [PATCH] media: imx355: fix a few coding style issues
+Date: Fri,  5 Oct 2018 10:18:39 -0400
+Message-Id: <0bd81e42f9b1466000835989c94b4048a87c3a6c.1538749118.git.mchehab+samsung@kernel.org>
 To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As pointed at:
-	https://bugzilla.kernel.org/show_bug.cgi?id=199323
+Function alignments are off by 1 space, as reported by
+checkpatch.pl --strict.
 
-This patch causes a bad effect on RPi. I suspect that the root
-cause is at the USB RPi driver, with uses high priority
-interrupts instead of normal ones. Anyway, as this patch
-is mostly a cleanup, better to revert it.
+Fix those.
 
-This reverts commit 7d95fb746c4eece67308f1642a666ea1ebdbd2cc.
-
-Cc: stable@vger.kernel.org # For Kernel 4.18
 Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/media/i2c/imx355.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index 1aa88d94e57f..e28bd8836751 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -31,6 +31,7 @@ MODULE_PARM_DESC(disable_rc, "Disable inbuilt IR receiver.");
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+diff --git a/drivers/media/i2c/imx355.c b/drivers/media/i2c/imx355.c
+index 803df2a014bb..20c8eea5db4b 100644
+--- a/drivers/media/i2c/imx355.c
++++ b/drivers/media/i2c/imx355.c
+@@ -1136,7 +1136,7 @@ static int imx355_write_reg(struct imx355 *imx355, u16 reg, u32 len, u32 val)
  
- struct dvbsky_state {
-+	struct mutex stream_mutex;
- 	u8 ibuf[DVBSKY_BUF_LEN];
- 	u8 obuf[DVBSKY_BUF_LEN];
- 	u8 last_lock;
-@@ -67,17 +68,18 @@ static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
- 
- static int dvbsky_stream_ctrl(struct dvb_usb_device *d, u8 onoff)
+ /* Write a list of registers */
+ static int imx355_write_regs(struct imx355 *imx355,
+-			      const struct imx355_reg *regs, u32 len)
++			     const struct imx355_reg *regs, u32 len)
  {
-+	struct dvbsky_state *state = d_to_priv(d);
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx355->sd);
  	int ret;
--	static u8 obuf_pre[3] = { 0x37, 0, 0 };
--	static u8 obuf_post[3] = { 0x36, 3, 0 };
-+	u8 obuf_pre[3] = { 0x37, 0, 0 };
-+	u8 obuf_post[3] = { 0x36, 3, 0 };
+@@ -1248,8 +1248,8 @@ static const struct v4l2_ctrl_ops imx355_ctrl_ops = {
+ };
  
--	mutex_lock(&d->usb_mutex);
--	ret = dvb_usbv2_generic_rw_locked(d, obuf_pre, 3, NULL, 0);
-+	mutex_lock(&state->stream_mutex);
-+	ret = dvbsky_usb_generic_rw(d, obuf_pre, 3, NULL, 0);
- 	if (!ret && onoff) {
- 		msleep(20);
--		ret = dvb_usbv2_generic_rw_locked(d, obuf_post, 3, NULL, 0);
-+		ret = dvbsky_usb_generic_rw(d, obuf_post, 3, NULL, 0);
- 	}
--	mutex_unlock(&d->usb_mutex);
-+	mutex_unlock(&state->stream_mutex);
- 	return ret;
+ static int imx355_enum_mbus_code(struct v4l2_subdev *sd,
+-				  struct v4l2_subdev_pad_config *cfg,
+-				  struct v4l2_subdev_mbus_code_enum *code)
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_mbus_code_enum *code)
+ {
+ 	struct imx355 *imx355 = to_imx355(sd);
+ 
+@@ -1264,8 +1264,8 @@ static int imx355_enum_mbus_code(struct v4l2_subdev *sd,
  }
  
-@@ -606,6 +608,8 @@ static int dvbsky_init(struct dvb_usb_device *d)
- 	if (ret)
- 		return ret;
- 	*/
-+	mutex_init(&state->stream_mutex);
-+
- 	state->last_lock = 0;
+ static int imx355_enum_frame_size(struct v4l2_subdev *sd,
+-				   struct v4l2_subdev_pad_config *cfg,
+-				   struct v4l2_subdev_frame_size_enum *fse)
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
+ {
+ 	struct imx355 *imx355 = to_imx355(sd);
  
- 	return 0;
+@@ -1298,8 +1298,8 @@ static void imx355_update_pad_format(struct imx355 *imx355,
+ }
+ 
+ static int imx355_do_get_pad_format(struct imx355 *imx355,
+-				     struct v4l2_subdev_pad_config *cfg,
+-				     struct v4l2_subdev_format *fmt)
++				    struct v4l2_subdev_pad_config *cfg,
++				    struct v4l2_subdev_format *fmt)
+ {
+ 	struct v4l2_mbus_framefmt *framefmt;
+ 	struct v4l2_subdev *sd = &imx355->sd;
+@@ -1315,8 +1315,8 @@ static int imx355_do_get_pad_format(struct imx355 *imx355,
+ }
+ 
+ static int imx355_get_pad_format(struct v4l2_subdev *sd,
+-				  struct v4l2_subdev_pad_config *cfg,
+-				  struct v4l2_subdev_format *fmt)
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_format *fmt)
+ {
+ 	struct imx355 *imx355 = to_imx355(sd);
+ 	int ret;
+@@ -1330,8 +1330,8 @@ static int imx355_get_pad_format(struct v4l2_subdev *sd,
+ 
+ static int
+ imx355_set_pad_format(struct v4l2_subdev *sd,
+-		       struct v4l2_subdev_pad_config *cfg,
+-		       struct v4l2_subdev_format *fmt)
++		      struct v4l2_subdev_pad_config *cfg,
++		      struct v4l2_subdev_format *fmt)
+ {
+ 	struct imx355 *imx355 = to_imx355(sd);
+ 	const struct imx355_mode *mode;
+@@ -1680,7 +1680,7 @@ static struct imx355_hwcfg *imx355_get_hwcfg(struct device *dev)
+ 		goto out_err;
+ 
+ 	ret = fwnode_property_read_u32(dev_fwnode(dev), "clock-frequency",
+-					&cfg->ext_clk);
++				       &cfg->ext_clk);
+ 	if (ret) {
+ 		dev_err(dev, "can't get clock frequency");
+ 		goto out_err;
+@@ -1689,7 +1689,7 @@ static struct imx355_hwcfg *imx355_get_hwcfg(struct device *dev)
+ 	dev_dbg(dev, "ext clk: %d", cfg->ext_clk);
+ 	if (cfg->ext_clk != IMX355_EXT_CLK) {
+ 		dev_err(dev, "external clock %d is not supported",
+-			 cfg->ext_clk);
++			cfg->ext_clk);
+ 		goto out_err;
+ 	}
+ 
+@@ -1700,9 +1700,9 @@ static struct imx355_hwcfg *imx355_get_hwcfg(struct device *dev)
+ 	}
+ 
+ 	cfg->nr_of_link_freqs = bus_cfg.nr_of_link_frequencies;
+-	cfg->link_freqs = devm_kcalloc(
+-		dev, bus_cfg.nr_of_link_frequencies + 1,
+-		sizeof(*cfg->link_freqs), GFP_KERNEL);
++	cfg->link_freqs = devm_kcalloc(dev,
++				       bus_cfg.nr_of_link_frequencies + 1,
++				       sizeof(*cfg->link_freqs), GFP_KERNEL);
+ 	if (!cfg->link_freqs)
+ 		goto out_err;
+ 
 -- 
 2.17.1
