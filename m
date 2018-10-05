@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:52120 "EHLO
-        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727572AbeJEWTY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 18:19:24 -0400
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH] mceusb: Include three Hauppauge USB dvb device with IR rx
-Date: Fri,  5 Oct 2018 10:19:49 -0500
-Message-Id: <1538752789-3403-1-git-send-email-brad@nextdimension.cc>
+Received: from mga02.intel.com ([134.134.136.20]:27577 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727735AbeJEWdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Oct 2018 18:33:08 -0400
+Date: Fri, 5 Oct 2018 18:33:25 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH v2 0/6] media: video-i2c: support changing frame interval
+ and runtime PM
+Message-ID: <20181005153325.d22ygx4zmowmvpg3@paasikivi.fi.intel.com>
+References: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The three following Hauppauge USB DVB devices have IR receivers, but
-lacked the support in mceusb to enable it:
-- WinTV-HVR-935C
-- WinTV-HVR-955Q
-- WinTV-HVR-975
+On Mon, Sep 24, 2018 at 01:34:46AM +0900, Akinobu Mita wrote:
+> This patchset adds support for changing frame interval and runtime PM for
+> video-i2c driver.  This also adds an helper macro to v4l2 common
+> internal API that is used to to find a suitable frame interval.
+> 
+> There are a couple of unrelated changes that are included for simplifying
+> driver initialization code and register accesses.
+> 
+> * v2
+> - Add Acked-by and Reviewed-by tags
+> - Update commit log to clarify the use after free
+> - Add thermistor and termperature register address definisions
+> - Stop adding v4l2_find_closest_fract() in v4l2 common internal API
+> - Add V4L2_FRACT_COMPARE() macro in v4l2 common internal API
+> - Use V4L2_FRACT_COMPARE() to find suitable frame interval instead of
+>   v4l2_find_closest_fract()
+> - Add comment for register address definisions
+> 
+> Akinobu Mita (6):
+>   media: video-i2c: avoid accessing released memory area when removing
+>     driver
+>   media: video-i2c: use i2c regmap
+>   media: v4l2-common: add V4L2_FRACT_COMPARE
+>   media: vivid: use V4L2_FRACT_COMPARE
+>   media: video-i2c: support changing frame interval
+>   media: video-i2c: support runtime PM
 
-Tested HVR-955Q and HVR-975 plus RC5 remote and irw, works as intended.
+For patches 2--6:
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/rc/mceusb.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 4c0c800..b6db968 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -432,6 +432,15 @@ static const struct usb_device_id mceusb_dev_table[] = {
- 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
- 	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb139),
- 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-+	/* Hauppauge WinTV-HVR-935C - based on cx231xx */
-+	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb151),
-+	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-+	/* Hauppauge WinTV-HVR-955Q - based on cx231xx */
-+	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb123),
-+	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-+	/* Hauppauge WinTV-HVR-975 - based on cx231xx */
-+	{ USB_DEVICE(VENDOR_HAUPPAUGE, 0xb150),
-+	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
- 	{ USB_DEVICE(VENDOR_PCTV, 0x0259),
- 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
- 	{ USB_DEVICE(VENDOR_PCTV, 0x025e),
 -- 
-2.7.4
+Sakari Ailus
+sakari.ailus@linux.intel.com
