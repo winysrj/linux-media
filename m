@@ -1,43 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.133]:36332 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.133]:53566 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728081AbeJEW34 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 18:29:56 -0400
-Date: Fri, 5 Oct 2018 12:30:37 -0300
+        with ESMTP id S1727968AbeJEVZM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 17:25:12 -0400
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-To: Oliver Freyermuth <o.freyermuth@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Stefan =?UTF-8?B?QnLDvG5z?= <stefan.bruens@rwth-aachen.de>
-Subject: Re: [PATCH RESEND] Revert "media: dvbsky: use just one mutex for
- serializing device R/W ops"
-Message-ID: <20181005123037.64b9f24c@coco.lan>
-In-Reply-To: <4333a303-c06b-e641-20de-7b51058e0287@googlemail.com>
+        Oliver Freyermuth <o.freyermuth@googlemail.com>,
+        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>,
+        stable@vger.kernel.org
+Subject: [PATCH RESEND] Revert "media: dvbsky: use just one mutex for serializing device R/W ops"
+Date: Fri,  5 Oct 2018 10:26:11 -0400
+Message-Id: <b39aa816886da2b57ecdfad85f06b4940bcb5d02.1538749539.git.mchehab+samsung@kernel.org>
+In-Reply-To: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
 References: <d0042374-b508-7cb2-cb93-5f4a1951ec95@googlemail.com>
-        <b39aa816886da2b57ecdfad85f06b4940bcb5d02.1538749539.git.mchehab+samsung@kernel.org>
-        <4333a303-c06b-e641-20de-7b51058e0287@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 5 Oct 2018 16:34:28 +0200
-Oliver Freyermuth <o.freyermuth@googlemail.com> escreveu:
+As pointed at:
+	https://bugzilla.kernel.org/show_bug.cgi?id=199323
 
-> Dear Mauro,
-> 
-> thanks! Just to clarify, the issue I described in https://bugzilla.kernel.org/show_bug.cgi?id=199323
-> was on an Intel x86_64 system, with an onboard USB Controller handled by the standard xhci driver,
-> so this does not affect RPi alone. 
+This patch causes a bad effect on RPi. I suspect that the root
+cause is at the USB RPi driver, with uses high priority
+interrupts instead of normal ones. Anyway, as this patch
+is mostly a cleanup, better to revert it.
 
-That's weird... I tested such patch here before applying (and it was
-tested by someone else, as far as I know), and it worked fine.
+This reverts commit 7d95fb746c4eece67308f1642a666ea1ebdbd2cc.
 
-Perhaps the x86 bug is related to some recent changes at the USB
-subsystem. Dunno.
+Cc: stable@vger.kernel.org # For Kernel 4.18
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
 
-Anyway, patch revert applied upstream.
+Re-sending it with the right message ID
 
-Regards,
-Mauro
+ drivers/media/usb/dvb-usb-v2/dvbsky.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 1aa88d94e57f..e28bd8836751 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -31,6 +31,7 @@ MODULE_PARM_DESC(disable_rc, "Disable inbuilt IR receiver.");
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ struct dvbsky_state {
++	struct mutex stream_mutex;
+ 	u8 ibuf[DVBSKY_BUF_LEN];
+ 	u8 obuf[DVBSKY_BUF_LEN];
+ 	u8 last_lock;
+@@ -67,17 +68,18 @@ static int dvbsky_usb_generic_rw(struct dvb_usb_device *d,
+ 
+ static int dvbsky_stream_ctrl(struct dvb_usb_device *d, u8 onoff)
+ {
++	struct dvbsky_state *state = d_to_priv(d);
+ 	int ret;
+-	static u8 obuf_pre[3] = { 0x37, 0, 0 };
+-	static u8 obuf_post[3] = { 0x36, 3, 0 };
++	u8 obuf_pre[3] = { 0x37, 0, 0 };
++	u8 obuf_post[3] = { 0x36, 3, 0 };
+ 
+-	mutex_lock(&d->usb_mutex);
+-	ret = dvb_usbv2_generic_rw_locked(d, obuf_pre, 3, NULL, 0);
++	mutex_lock(&state->stream_mutex);
++	ret = dvbsky_usb_generic_rw(d, obuf_pre, 3, NULL, 0);
+ 	if (!ret && onoff) {
+ 		msleep(20);
+-		ret = dvb_usbv2_generic_rw_locked(d, obuf_post, 3, NULL, 0);
++		ret = dvbsky_usb_generic_rw(d, obuf_post, 3, NULL, 0);
+ 	}
+-	mutex_unlock(&d->usb_mutex);
++	mutex_unlock(&state->stream_mutex);
+ 	return ret;
+ }
+ 
+@@ -606,6 +608,8 @@ static int dvbsky_init(struct dvb_usb_device *d)
+ 	if (ret)
+ 		return ret;
+ 	*/
++	mutex_init(&state->stream_mutex);
++
+ 	state->last_lock = 0;
+ 
+ 	return 0;
+-- 
+2.17.1
