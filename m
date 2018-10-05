@@ -1,103 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:35901 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727750AbeJEPcC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Oct 2018 11:32:02 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Ezequiel Garcia <ezequiel@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.20] Add Rockchip VPU JPEG encoder
-Message-ID: <12e4b124-7a0c-aa0a-40f4-f6fcd0dfb19e@xs4all.nl>
-Date: Fri, 5 Oct 2018 10:34:17 +0200
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:42177 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728479AbeJEPrf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 11:47:35 -0400
+Date: Fri, 5 Oct 2018 10:49:45 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Niklas =?utf-8?Q?S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] dt-bindings: adv748x: make data-lanes property
+ mandatory for CSI-2 endpoints
+Message-ID: <20181005084945.GL31281@w540>
+References: <20181004204138.2784-1-niklas.soderlund@ragnatech.se>
+ <20181004204138.2784-2-niklas.soderlund@ragnatech.se>
+ <2082037.FqgpqPMGh4@avalon>
+ <18767245.bJLhzbqhM5@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="j3olVFx0FsM75XyV"
+Content-Disposition: inline
+In-Reply-To: <18767245.bJLhzbqhM5@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds the Rockchip VPU JPEG encoder staging driver.
 
-Note: this goes on top of the request_api branch!
+--j3olVFx0FsM75XyV
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It does not use the request API as such, but it would otherwise conflict
-with that series, so it is easier to just base it on top of the request_api
-branch.
+Hi Laurent, Niklas,
 
-You will get a linker warning about a missing sunxi_sram_release symbol. That is
-resolved by this patch:
+On Fri, Oct 05, 2018 at 01:00:47AM +0300, Laurent Pinchart wrote:
+> Hello again,
+>
+> On Friday, 5 October 2018 00:42:17 EEST Laurent Pinchart wrote:
+> > On Thursday, 4 October 2018 23:41:34 EEST Niklas S=C3=B6derlund wrote:
+> > > From: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.se>
+> > >
+> > > The CSI-2 transmitters can use a different number of lanes to transmit
+> > > data. Make the data-lanes mandatory for the endpoints describe the
+> >
+> > s/describe/that describe/ ?
+> >
+> > > transmitters as no good default can be set to fallback on.
+> > >
+> > > Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnat=
+ech.se>
+> > > ---
+> > >
+> > >  Documentation/devicetree/bindings/media/i2c/adv748x.txt | 3 +++
+> > >  1 file changed, 3 insertions(+)
+> > >
+> > > diff --git a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> > > b/Documentation/devicetree/bindings/media/i2c/adv748x.txt index
+> > > 5dddc95f9cc46084..f9dac01ab795fc28 100644
+> > > --- a/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> > > +++ b/Documentation/devicetree/bindings/media/i2c/adv748x.txt
+> > > @@ -50,6 +50,9 @@ are numbered as follows.
+> > >
+> > >  The digital output port nodes must contain at least one endpoint.
+> > >
+> > > +The endpoints described in TXA and TXB ports must if present contain
+> > > +the data-lanes property as described in video-interfaces.txt.
+> > > +
+> >
+> > Would it make sense to merge those two paragraphs, as they refer to the=
+ same
+> > endpoint ?
+> >
+> > "The digital output port nodes, when present, shall contain at least one
+> > endpoint. Each of those endpoints shall contain the data-lanes property=
+ as
+> > described in video-interfaces.txt."
+> >
+> > (DT bindings normally use "shall" instead of "must", but that hasn't re=
+ally
+> > been enforced.)
+> >
+> > If you want to keep the paragraphs separate, I would recommend using
+> > "digital output ports" instead of "TXA and TXB" in the second paragraph=
+ for
+> > consistency (or the other way around).
+> >
+> > I'm fine with any of the above option, so please pick your favourite, a=
+nd
+> > add
+> >
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> I just realized that TXB only supports a single data lane, so we may want=
+ not
+> to have a data-lanes property for TXB.
+>
 
-https://lkml.org/lkml/2018/9/9/113
+Isn't it better to restrict its value to <1> but make it mandatory
+anyhow? I understand conceptually that property should not be there,
+as it has a single acceptable value, but otherwise we need to traeat
+differently the two output ports, in documentation and code.
 
-Which will go into 4.20 through another subsystem.
+Why not inserting a paragraph with the required endpoint properties
+description?
 
-Regards,
+Eg:
 
-	Hans
+ Required endpoint properties:
+ - data-lanes: See "video-interfaces.txt" for description. The property
+   is mandatory for CSI-2 output endpoints and the accepted values
+   depends on which endpoint the property is applied to:
+   - TXA: accepted values are <1>, <2>, <4>
+   - TXB: accepted value is <1>
 
-The following changes since commit 50e761516f2b8c0cdeb31a8c6ca1b4ef98cd13f1:
+> > >  Ports are optional if they are not connected to anything at the hard=
+ware
+> > >
+> > > level.
+> > >
+> > >  Example:
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+>
+>
 
-  media: platform: Add Cedrus VPU decoder driver (2018-09-24 10:47:10 -0400)
+--j3olVFx0FsM75XyV
+Content-Type: application/pgp-signature; name="signature.asc"
 
-are available in the Git repository at:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-  git://linuxtv.org/hverkuil/media_tree.git tags/br-rkjpeg
+iQIcBAEBAgAGBQJbtyWpAAoJEHI0Bo8WoVY8NWQP/AwHy565Abbcd35+Drcgnev9
+9AyXKWPdSxeiS3ZZNe0FAz76BEMEAGu5Ko4CMEpNg+eDI696+y8tna0QGLwqpY8q
+mJJ/X0dxpcEb/3CB9mJnn86NdFUuWqcxPrbWKVlMS3h/4rClH5spB2YBXFkmnnD4
+AHKwPFcjTDB/qKn2xS3wRhauRZ+HGfv/M0QQW79rNCfvS3c2x+dEWMfbbPyCcp/3
+t0N8ySlsVxeVsjNJ2zCTy/8kHzC7Nx7OnbKeIJxiF+2sDZ/HcL5fwU1gH4IrqpoF
+IyngWNXOEvkGhaUofN7RPcLy03HdvORU5YsnhwUBMsL7af3po5UhmDx9iHm88HmC
+9OGW2awak+3vlbPtKN2eLZdMSpBKyKiNKGYTv0agKZU4h+x89icDWVGgHV+1On31
+G4Hm9HY7lEAbLLG3BKt1Juu156VCanHtYmsz7VCLelOnMD5XxxIHwe3zVLNiMAa1
+XoYuDrATyXDBkXOSmn60k9YqwfKdWMVj9SGihNsyRotsAvED4/qLzQ2gsn8i7MJz
+zOM4oqAQms9/iGxsnq80jniOlut9xqDep8mDHVhIdrcOSFvPCi1OGmfnjwEmKCT2
+Txu1FhNO4UR312c/ksjUVxqN/tZbf/CizRNPRuSeZDCNQX8rVxl/NW7a7imQ+ML4
+CyWTSAC0zUlrBiS56qVQ
+=HlTB
+-----END PGP SIGNATURE-----
 
-for you to fetch changes up to 8241137a4f3fb2c83a212887862c38f309736e82:
-
-  media: add Rockchip VPU JPEG encoder driver (2018-10-05 10:28:55 +0200)
-
-----------------------------------------------------------------
-Tag branch
-
-----------------------------------------------------------------
-Ezequiel Garcia (2):
-      dt-bindings: Document the Rockchip VPU bindings
-      media: add Rockchip VPU JPEG encoder driver
-
-Shunqian Zheng (2):
-      media: Add JPEG_RAW format
-      media: Add controls for JPEG quantization tables
-
- Documentation/devicetree/bindings/media/rockchip-vpu.txt    |  29 +++
- Documentation/media/uapi/v4l/extended-controls.rst          |  25 ++
- Documentation/media/uapi/v4l/pixfmt-compressed.rst          |   9 +
- Documentation/media/videodev2.h.rst.exceptions              |   1 +
- MAINTAINERS                                                 |   7 +
- drivers/media/v4l2-core/v4l2-ctrls.c                        |   8 +
- drivers/media/v4l2-core/v4l2-ioctl.c                        |   1 +
- drivers/staging/media/Kconfig                               |   2 +
- drivers/staging/media/Makefile                              |   1 +
- drivers/staging/media/rockchip/vpu/Kconfig                  |  12 +
- drivers/staging/media/rockchip/vpu/Makefile                 |   9 +
- drivers/staging/media/rockchip/vpu/TODO                     |   9 +
- drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c          | 125 ++++++++++
- drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c | 127 +++++++++++
- drivers/staging/media/rockchip/vpu/rk3288_vpu_regs.h        | 442 ++++++++++++++++++++++++++++++++++++
- drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c          | 125 ++++++++++
- drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c | 155 +++++++++++++
- drivers/staging/media/rockchip/vpu/rk3399_vpu_regs.h        | 600 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/rockchip/vpu/rockchip_vpu.h           | 278 +++++++++++++++++++++++
- drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h    |  31 +++
- drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c       | 527 ++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c       | 606 +++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/rockchip/vpu/rockchip_vpu_hw.h        |  65 ++++++
- include/uapi/linux/v4l2-controls.h                          |  10 +
- include/uapi/linux/videodev2.h                              |   2 +
- 25 files changed, 3206 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-vpu.txt
- create mode 100644 drivers/staging/media/rockchip/vpu/Kconfig
- create mode 100644 drivers/staging/media/rockchip/vpu/Makefile
- create mode 100644 drivers/staging/media/rockchip/vpu/TODO
- create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw.c
- create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_hw_jpeg_enc.c
- create mode 100644 drivers/staging/media/rockchip/vpu/rk3288_vpu_regs.h
- create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw.c
- create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_hw_jpeg_enc.c
- create mode 100644 drivers/staging/media/rockchip/vpu/rk3399_vpu_regs.h
- create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu.h
- create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_common.h
- create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_drv.c
- create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_enc.c
- create mode 100644 drivers/staging/media/rockchip/vpu/rockchip_vpu_hw.h
+--j3olVFx0FsM75XyV--
