@@ -1,122 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf1-f68.google.com ([209.85.167.68]:41130 "EHLO
-        mail-lf1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727974AbeJERzG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 13:55:06 -0400
-Received: by mail-lf1-f68.google.com with SMTP id q39-v6so9026895lfi.8
-        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2018 03:56:48 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 5 Oct 2018 12:56:46 +0200
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Tomasz Figa <tfiga@chromium.org>,
-        snawrocki@kernel.org
-Subject: Re: [RFC PATCH 00/11] Convert last remaining g/s_crop/cropcap drivers
-Message-ID: <20181005105646.GW24305@bigcity.dyn.berto.se>
-References: <20181005074911.47574-1-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.133]:58306 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727581AbeJESHs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 14:07:48 -0400
+Date: Fri, 5 Oct 2018 08:09:24 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Ezequiel Garcia <ezequiel@collabora.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-rockchip@lists.infradead.org,
+        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Miouyouyou <myy@miouyouyou.fr>,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: Re: [PATCH v7 4/6] media: Add JPEG_RAW format
+Message-ID: <20181005080924.78a1654b@coco.lan>
+In-Reply-To: <20181005001226.12789-5-ezequiel@collabora.com>
+References: <20181005001226.12789-1-ezequiel@collabora.com>
+        <20181005001226.12789-5-ezequiel@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181005074911.47574-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Thu,  4 Oct 2018 21:12:24 -0300
+Ezequiel Garcia <ezequiel@collabora.com> escreveu:
 
-I like this series, nice work!
+> From: Shunqian Zheng <zhengsq@rock-chips.com>
+> 
+> Add V4L2_PIX_FMT_JPEG_RAW format that does not contain
+> JPEG header in the output frame.
+> 
+> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/pixfmt-compressed.rst | 9 +++++++++
+>  drivers/media/v4l2-core/v4l2-ioctl.c               | 1 +
+>  include/uapi/linux/videodev2.h                     | 1 +
+>  3 files changed, 11 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> index ba0f6c49d9bf..ad73076276ec 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
+> @@ -23,6 +23,15 @@ Compressed Formats
+>        - 'JPEG'
+>        - TBD. See also :ref:`VIDIOC_G_JPEGCOMP <VIDIOC_G_JPEGCOMP>`,
+>  	:ref:`VIDIOC_S_JPEGCOMP <VIDIOC_G_JPEGCOMP>`.
+> +    * .. _V4L2-PIX-FMT-JPEG-RAW:
+> +
+> +      - ``V4L2_PIX_FMT_JPEG_RAW``
+> +      - 'Raw JPEG'
+> +      - Raw JPEG bitstream, containing a compressed payload. This format
+> +        contains an image scan, i.e. without any metadata or headers.
+> +        The user is expected to set the needed metadata such as
+> +        quantization and entropy encoding tables, via ``V4L2_CID_JPEG``
+> +        controls, see :ref:`jpeg-control-id`.
 
-On 2018-10-05 09:49:00 +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series converts the last remaining drivers that use g/s_crop and
-> cropcap to g/s_selection.
-> 
-> The first two patches do some minor code cleanup.
-> 
-> The third patch adds a new video_device flag to indicate that the driver
-> inverts the normal usage of g/s_crop/cropcap. This applies to the old
-> Samsung drivers that predate the Selection API and that abused the existing
-> crop API.
-> 
-> The next three patches do some code cleanup and prepare drivers for the
-> removal of g/s_crop and ensure that cropcap only returns the pixelaspect.
-> 
-> The next three patches convert the remaining Samsung drivers and set the
-> QUIRK flag for all three.
-> 
-> The final two patches remove vidioc_g/s_crop and rename vidioc_cropcap
-> to vidioc_g_pixelaspect.
-> 
-> I would really appreciate it if someone from Samsung can test these
-> three drivers or at the very least review the code.
-> 
-> Niklas, this series supersedes your 'v4l2-ioctl: fix CROPCAP type handling'
-> patch. Sorry about that :-)
+IMO, it is not very clear when someone should use V4L2_CID_JPEG or
+V4L2_PIX_FMT_JPEG_RAW. Some drivers do add a JPEG header internally.
 
-No worries, I'm happy my tests run without errors again :-) If 
-appropriate fell free to add for the v4l2 and rcar-vin portions:
+Also, if we're now starting to accept headerless JPEG images, you should
+very patch libv4l as well, in order to accept this new format.
 
-Tested-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Hans Verkuil (11):
->   v4l2-ioctl: don't use CROP/COMPOSE_ACTIVE
->   v4l2-common.h: put backwards compat defines under #ifndef __KERNEL__
->   v4l2-ioctl: add QUIRK_INVERTED_CROP
->   davinci/vpbe: drop unused g_cropcap
->   cropcap/g_selection split
->   exynos-gsc: replace v4l2_crop by v4l2_selection
->   s5p_mfc_dec.c: convert g_crop to g_selection
->   exynos4-is: convert g/s_crop to g/s_selection
->   s5p-g2d: convert g/s_crop to g/s_selection
->   v4l2-ioctl: remove unused vidioc_g/s_crop
->   vidioc_cropcap -> vidioc_g_pixelaspect
-> 
->  drivers/media/pci/bt8xx/bttv-driver.c         |  12 +-
->  drivers/media/pci/cobalt/cobalt-v4l2.c        |  48 +++++--
->  drivers/media/pci/cx18/cx18-ioctl.c           |  13 +-
->  drivers/media/pci/cx23885/cx23885-video.c     |  40 ++++--
->  drivers/media/pci/ivtv/ivtv-ioctl.c           |  17 +--
->  drivers/media/pci/saa7134/saa7134-video.c     |  21 ++-
->  drivers/media/platform/am437x/am437x-vpfe.c   |  31 ++---
->  drivers/media/platform/davinci/vpbe.c         |  23 ----
->  drivers/media/platform/davinci/vpbe_display.c |  10 +-
->  drivers/media/platform/davinci/vpfe_capture.c |  12 +-
->  drivers/media/platform/exynos-gsc/gsc-core.c  |  57 +++-----
->  drivers/media/platform/exynos-gsc/gsc-core.h  |   3 +-
->  drivers/media/platform/exynos-gsc/gsc-m2m.c   |  23 ++--
->  drivers/media/platform/exynos4-is/fimc-core.h |   6 +-
->  drivers/media/platform/exynos4-is/fimc-m2m.c  | 130 ++++++++++--------
->  drivers/media/platform/rcar-vin/rcar-v4l2.c   |  10 +-
->  drivers/media/platform/s5p-g2d/g2d.c          | 102 +++++++++-----
->  drivers/media/platform/s5p-mfc/s5p_mfc.c      |   1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |  49 ++++---
->  drivers/media/platform/vivid/vivid-core.c     |   9 +-
->  drivers/media/platform/vivid/vivid-vid-cap.c  |  18 ++-
->  drivers/media/platform/vivid/vivid-vid-cap.h  |   2 +-
->  drivers/media/platform/vivid/vivid-vid-out.c  |  18 ++-
->  drivers/media/platform/vivid/vivid-vid-out.h  |   2 +-
->  drivers/media/usb/au0828/au0828-video.c       |  38 +++--
->  drivers/media/usb/cpia2/cpia2_v4l.c           |  31 +++--
->  drivers/media/usb/cx231xx/cx231xx-417.c       |  41 ++++--
->  drivers/media/usb/cx231xx/cx231xx-video.c     |  41 ++++--
->  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c      |  13 +-
->  drivers/media/v4l2-core/v4l2-dev.c            |   8 +-
->  drivers/media/v4l2-core/v4l2-ioctl.c          |  44 ++++--
->  include/media/davinci/vpbe.h                  |   4 -
->  include/media/v4l2-dev.h                      |  13 +-
->  include/media/v4l2-ioctl.h                    |  16 +--
->  include/uapi/linux/v4l2-common.h              |  28 ++--
->  35 files changed, 537 insertions(+), 397 deletions(-)
-> 
-> -- 
-> 2.18.0
-> 
-
--- 
 Regards,
-Niklas Söderlund
+
+Thanks,
+Mauro
