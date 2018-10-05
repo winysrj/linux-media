@@ -1,87 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:59826 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727183AbeJDSDm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2018 14:03:42 -0400
-From: bwinther@cisco.com
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com,
-        =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-Subject: [PATCH 1/2] media: v4l2-tpg-core: Add 16-bit bayer
-Date: Thu,  4 Oct 2018 13:01:13 +0200
-Message-Id: <20181004110114.3150-1-bwinther@cisco.com>
+Received: from mail-yb1-f193.google.com ([209.85.219.193]:36822 "EHLO
+        mail-yb1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726826AbeJELbX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 07:31:23 -0400
+Received: by mail-yb1-f193.google.com with SMTP id 5-v6so4928068ybf.3
+        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2018 21:34:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <1494255810-12672-1-git-send-email-sakari.ailus@linux.intel.com> <1494255810-12672-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1494255810-12672-4-git-send-email-sakari.ailus@linux.intel.com>
+From: Tomasz Figa <tfiga@google.com>
+Date: Fri, 5 Oct 2018 13:34:17 +0900
+Message-ID: <CAAFQd5B3XF7oqDHtPwZ_vmtjY-hTwm36S=9+m-J6+60Y2UoLAg@mail.gmail.com>
+Subject: Re: [RFC v4 03/18] vb2: Move cache synchronisation from buffer done
+ to dqbuf handler
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>, labbott@redhat.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Bård Eirik Winther <bwinther@cisco.com>
+Hi Sakari, Hans,
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 28 +++++++++++++++++++
- 1 file changed, 28 insertions(+)
+On Tue, May 9, 2017 at 12:05 AM Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+>
+> The cache synchronisation may be a time consuming operation and thus not
+> best performed in an interrupt which is a typical context for
+> vb2_buffer_done() calls. This may consume up to tens of ms on some
+> machines, depending on the buffer size.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 8bf3369..e866115 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -889,7 +889,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  {
+>         struct vb2_queue *q = vb->vb2_queue;
+>         unsigned long flags;
+> -       unsigned int plane;
+>
+>         if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+>                 return;
+> @@ -910,10 +909,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>         dprintk(4, "done processing on buffer %d, state: %d\n",
+>                         vb->index, state);
+>
+> -       /* sync buffers */
+> -       for (plane = 0; plane < vb->num_planes; ++plane)
+> -               call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> -
+>         spin_lock_irqsave(&q->done_lock, flags);
+>         if (state == VB2_BUF_STATE_QUEUED ||
+>             state == VB2_BUF_STATE_REQUEUEING) {
+> @@ -1573,6 +1568,10 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+>
+>         vb->state = VB2_BUF_STATE_DEQUEUED;
+>
+> +       /* sync buffers */
+> +       for (i = 0; i < vb->num_planes; ++i)
+> +               call_void_memop(vb, finish, vb->planes[i].mem_priv);
+> +
 
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index f3d9c1140ffa..76b125ebee6d 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -202,6 +202,10 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_SGBRG12:
- 	case V4L2_PIX_FMT_SGRBG12:
- 	case V4L2_PIX_FMT_SRGGB12:
-+	case V4L2_PIX_FMT_SBGGR16:
-+	case V4L2_PIX_FMT_SGBRG16:
-+	case V4L2_PIX_FMT_SGRBG16:
-+	case V4L2_PIX_FMT_SRGGB16:
- 		tpg->interleaved = true;
- 		tpg->vdownsampling[1] = 1;
- 		tpg->hdownsampling[1] = 1;
-@@ -394,6 +398,10 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
- 	case V4L2_PIX_FMT_SGRBG12:
- 	case V4L2_PIX_FMT_SGBRG12:
- 	case V4L2_PIX_FMT_SBGGR12:
-+	case V4L2_PIX_FMT_SRGGB16:
-+	case V4L2_PIX_FMT_SGRBG16:
-+	case V4L2_PIX_FMT_SGBRG16:
-+	case V4L2_PIX_FMT_SBGGR16:
- 		tpg->twopixelsize[0] = 4;
- 		tpg->twopixelsize[1] = 4;
- 		break;
-@@ -1358,6 +1366,22 @@ static void gen_twopix(struct tpg_data *tpg,
- 		buf[0][offset] |= (buf[0][offset] >> 4) & 0xf;
- 		buf[1][offset] |= (buf[1][offset] >> 4) & 0xf;
- 		break;
-+	case V4L2_PIX_FMT_SBGGR16:
-+		buf[0][offset] = buf[0][offset + 1] = odd ? g_u_s : b_v;
-+		buf[1][offset] = buf[1][offset + 1] = odd ? r_y_h : g_u_s;
-+		break;
-+	case V4L2_PIX_FMT_SGBRG16:
-+		buf[0][offset] = buf[0][offset + 1] = odd ? b_v : g_u_s;
-+		buf[1][offset] = buf[1][offset + 1] = odd ? g_u_s : r_y_h;
-+		break;
-+	case V4L2_PIX_FMT_SGRBG16:
-+		buf[0][offset] = buf[0][offset + 1] = odd ? r_y_h : g_u_s;
-+		buf[1][offset] = buf[1][offset + 1] = odd ? g_u_s : b_v;
-+		break;
-+	case V4L2_PIX_FMT_SRGGB16:
-+		buf[0][offset] = buf[0][offset + 1] = odd ? g_u_s : r_y_h;
-+		buf[1][offset] = buf[1][offset + 1] = odd ? b_v : g_u_s;
-+		break;
- 	}
- }
- 
-@@ -1376,6 +1400,10 @@ unsigned tpg_g_interleaved_plane(const struct tpg_data *tpg, unsigned buf_line)
- 	case V4L2_PIX_FMT_SGBRG12:
- 	case V4L2_PIX_FMT_SGRBG12:
- 	case V4L2_PIX_FMT_SRGGB12:
-+	case V4L2_PIX_FMT_SBGGR16:
-+	case V4L2_PIX_FMT_SGBRG16:
-+	case V4L2_PIX_FMT_SGRBG16:
-+	case V4L2_PIX_FMT_SRGGB16:
- 		return buf_line & 1;
- 	default:
- 		return 0;
--- 
-2.17.1
+Sorry for digging up this old patch. Posting for reference, in case
+someone decides to use or take over this patch.
+
+This piece of code seems to be executed after queue's .buf_finish()
+callback. The latter is allowed to access the buffer contents, so it
+looks like we're breaking it, because it would now access the buffer
+before the cache is synchronized.
+
+Best regards,
+Tomasz
