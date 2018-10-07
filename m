@@ -1,14 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:41110 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726304AbeJCKSX (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:37636 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726236AbeJGKam (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Oct 2018 06:18:23 -0400
-Message-ID: <76b30a24301580cceb506d30b27d5965@smtp-cloud7.xs4all.net>
-Date: Wed, 03 Oct 2018 05:31:50 +0200
+        Sun, 7 Oct 2018 06:30:42 -0400
+Message-ID: <bbab422c4361a3be97b176e1bab6306f@smtp-cloud8.xs4all.net>
+Date: Sun, 07 Oct 2018 05:24:58 +0200
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -17,12 +17,12 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Wed Oct  3 05:00:10 CEST 2018
-media-tree git hash:	4158757395b300b6eb308fc20b96d1d231484413
+date:			Sun Oct  7 05:00:09 CEST 2018
+media-tree git hash:	557c97b5133669297be561e6091da9ab6e488e65
 media_build git hash:	44385b9c61ecc27059a651885895c8ea09cd4179
-v4l-utils git hash:	7bde5ef172bd4a09b9544788ba9c5dbb1aa9994a
+v4l-utils git hash:	420c76a642eb3b52b52860674ef8c8135d137e0d
 edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.1.0
+gcc version:		i686-linux-gcc (GCC) 8.2.0
 sparse version:		0.5.2
 smatch version:		0.5.1
 host hardware:		x86_64
@@ -40,77 +40,77 @@ linux-git-powerpc64: OK
 linux-git-sh: OK
 linux-git-x86_64: OK
 Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.158-i686: OK
-linux-4.4.158-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.129-i686: OK
-linux-4.9.129-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.72-i686: OK
-linux-4.14.72-x86_64: OK
+linux-3.10.108-i686: ERRORS
+linux-3.10.108-x86_64: ERRORS
+linux-3.11.10-i686: ERRORS
+linux-3.11.10-x86_64: ERRORS
+linux-3.12.74-i686: ERRORS
+linux-3.12.74-x86_64: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.79-i686: ERRORS
+linux-3.14.79-x86_64: ERRORS
+linux-3.15.10-i686: ERRORS
+linux-3.15.10-x86_64: ERRORS
+linux-3.16.57-i686: ERRORS
+linux-3.16.57-x86_64: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.123-i686: ERRORS
+linux-3.18.123-x86_64: ERRORS
+linux-3.19.8-i686: ERRORS
+linux-3.19.8-x86_64: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.52-i686: ERRORS
+linux-4.1.52-x86_64: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.158-i686: ERRORS
+linux-4.4.158-x86_64: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.10-i686: ERRORS
+linux-4.7.10-x86_64: ERRORS
+linux-4.8.17-i686: ERRORS
+linux-4.8.17-x86_64: ERRORS
+linux-4.9.129-i686: ERRORS
+linux-4.9.129-x86_64: ERRORS
+linux-4.10.17-i686: ERRORS
+linux-4.10.17-x86_64: ERRORS
+linux-4.11.12-i686: ERRORS
+linux-4.11.12-x86_64: ERRORS
+linux-4.12.14-i686: ERRORS
+linux-4.12.14-x86_64: ERRORS
+linux-4.13.16-i686: ERRORS
+linux-4.13.16-x86_64: ERRORS
+linux-4.14.72-i686: ERRORS
+linux-4.14.72-x86_64: ERRORS
 linux-4.15.18-i686: OK
 linux-4.15.18-x86_64: OK
 linux-4.16.18-i686: OK
 linux-4.16.18-x86_64: OK
 linux-4.17.19-i686: OK
 linux-4.17.19-x86_64: OK
-linux-4.18.10-i686: OK
-linux-4.18.10-x86_64: OK
-linux-4.19-rc5-i686: OK
-linux-4.19-rc5-x86_64: OK
+linux-4.18.10-i686: ERRORS
+linux-4.18.10-x86_64: ERRORS
+linux-4.19-rc5-i686: ERRORS
+linux-4.19-rc5-x86_64: ERRORS
 apps: OK
 spec-git: OK
 sparse: WARNINGS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
