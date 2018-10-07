@@ -1,46 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:58114 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726402AbeJGPd6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 Oct 2018 11:33:58 -0400
-Subject: Re: [Outreachy kernel] [PATCH vicodec] media: pvrusb2: replace
- `printk` with `pr_*`
-To: Sasha Levin <sashal@kernel.org>,
-        Dafna Hirschfeld <dafna3@gmail.com>
-Cc: isely@pobox.com, mchehab@kernel.org, helen.koike@collabora.com,
-        outreachy-kernel@googlegroups.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20181006192138.11349-1-dafna3@gmail.com>
- <20181006230359.GB32006@sasha-vm>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bdf81e02-cec3-501e-4cb9-0c2f2b0f12da@xs4all.nl>
-Date: Sun, 7 Oct 2018 10:27:22 +0200
+Received: from mail-vs1-f51.google.com ([209.85.217.51]:44998 "EHLO
+        mail-vs1-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726427AbeJGPto (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2018 11:49:44 -0400
+Received: by mail-vs1-f51.google.com with SMTP id v18-v6so9773944vsl.11
+        for <linux-media@vger.kernel.org>; Sun, 07 Oct 2018 01:43:11 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20181006230359.GB32006@sasha-vm>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+From: Dafna Hirschfeld <dafna3@gmail.com>
+Date: Sun, 7 Oct 2018 11:42:59 +0300
+Message-ID: <CAJ1myNQVJG6w1Q59iy8ndFNxVZ1UEKYYWKKJTc=YyqZzY2H1xQ@mail.gmail.com>
+Subject: Problem with example program from https://gitlab.collabora.com/koike/v4l2-codec.git
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: helen.koike@collabora.com, hverkuil@xs4all.nl
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/07/2018 01:03 AM, Sasha Levin wrote:
-> On Sat, Oct 06, 2018 at 10:21:38PM +0300, Dafna Hirschfeld wrote:
->> Replace calls to `printk` with the appropriate `pr_*`
->> macro.
-> 
-> Hi Dafna,
-> 
-> I'd encourage you to look into the dev_ family of print functions (such
-> as dev_info() ). They can avoid having to repeat the driver name in
-> every print call.
+Hi,
+As part of applying to the outreachy program,
+I compiled the code in https://gitlab.collabora.com/koike/v4l2-codec.git
+I get errors running it.
+When I install vicodec.ko I see in the kernel log:
 
-Not for this driver. The hdw->name is the right prefix to use and the code
-already uses it.
+[10752.727509] vicodec vicodec.0: Device registered as /dev/video2
+[10752.727534] vicodec vicodec.0: Device registered as /dev/video3
 
-For almost any other media driver Sasha would be right, just not this one
-due to historical reasons.
+I think /dev/video0, /dev/video1 are already used by uvcvideo
 
-Regards,
+The dev file used in v4l2-decode.c is "/dev/video1"
 
-	Hans
+When running the code as is, it prints:
+"mmap: Invalid argument"
+
+Changing the code of v4l2-decode.c to use "/dev/video0" prints:
+"Driver didn't accept RGB24 format. Can't proceed."
+
+Changing it to use "/dev/video2" prints:
+"Driver didn't accept FWHT format. Can't proceed."
+
+Changing it to use "/dev/video3" prints:
+"Driver didn't accept RGB24 format. Can't proceed."
+
+I tried it on both kernel and modules 4.19.0-rc4+ compiled from
+https://git.linuxtv.org/linux.git
+and kenel and modules 4.19.0-rc1+ compiled from git://linuxtv.org/media_tree.git
+
+Any idea what is the problem or how to investigate ?
+Thanks,
+
+Dafna Hirschfeld
