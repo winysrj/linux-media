@@ -1,91 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:48193 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726967AbeJHScR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Oct 2018 14:32:17 -0400
-Subject: Re: [PATCH v2 1/6] media: video-i2c: avoid accessing released memory
- area when removing driver
-To: Akinobu Mita <akinobu.mita@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Matt Ranostay <matt.ranostay@konsulko.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1537720492-31201-1-git-send-email-akinobu.mita@gmail.com>
- <1537720492-31201-2-git-send-email-akinobu.mita@gmail.com>
- <faa8cdeb-d824-f2ef-9d87-53d1af3ec468@xs4all.nl>
- <20181005093337.ncqqqn74slsfdrhj@paasikivi.fi.intel.com>
- <CAC5umyieGAE4TFb3Sv-n36WqpC4f+NuTEe_Z-07jYTJXOgAsmQ@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4b8567cc-844c-bf60-7524-7b633b358b05@xs4all.nl>
-Date: Mon, 8 Oct 2018 13:20:56 +0200
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:47464 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726207AbeJGUE5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2018 16:04:57 -0400
+Subject: Re: [PATCH vicodec] media: pvrusb2: replace `printk` with `pr_*`
+To: Dafna Hirschfeld <dafna3@gmail.com>, isely@pobox.com,
+        mchehab@kernel.org, hverkuil@xs4all.nl
+Cc: outreachy-kernel@googlegroups.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20181006192138.11349-1-dafna3@gmail.com>
+From: Helen Koike <helen.koike@collabora.com>
+Message-ID: <38206d73-978d-4ee3-0ba8-d6971578ac94@collabora.com>
+Date: Sun, 7 Oct 2018 09:57:42 -0300
 MIME-Version: 1.0
-In-Reply-To: <CAC5umyieGAE4TFb3Sv-n36WqpC4f+NuTEe_Z-07jYTJXOgAsmQ@mail.gmail.com>
+In-Reply-To: <20181006192138.11349-1-dafna3@gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/05/2018 04:59 PM, Akinobu Mita wrote:
-> 2018年10月5日(金) 18:36 Sakari Ailus <sakari.ailus@linux.intel.com>:
->>
->> Hi Hans,
->>
->> On Mon, Oct 01, 2018 at 11:40:00AM +0200, Hans Verkuil wrote:
->>> On 09/23/2018 06:34 PM, Akinobu Mita wrote:
->>>> The video_i2c_data is allocated by kzalloc and released by the video
->>>> device's release callback.  The release callback is called when
->>>> video_unregister_device() is called, but it will still be accessed after
->>>> calling video_unregister_device().
->>>>
->>>> Fix the use after free by allocating video_i2c_data by devm_kzalloc() with
->>>> i2c_client->dev so that it will automatically be released when the i2c
->>>> driver is removed.
->>>
->>> Hmm. The patch is right, but the explanation isn't. The core problem is
->>> that vdev.release was set to video_i2c_release, but that should only be
->>> used if struct video_device was kzalloc'ed. But in this case it is embedded
->>> in a larger struct, and then vdev.release should always be set to
->>> video_device_release_empty.
->>
->> When the driver is unbound, what's acquired using the devm_() family of
->> functions is released. At the same time, the user still holds a file
->> handle, and can issue IOCTLs --- but the device's data structures no longer
->> exist.
->>
->> That's not ok, and also the reason why we have the release callback.
->>
->> While there are issues elsewhere, this bit of the V4L2 / MC frameworks is
->> fine.
->>
->> Or am I missing something?
+Hi Dafna,
+
+Thanks for you patch.
+
+On 10/6/18 4:21 PM, Dafna Hirschfeld wrote:
+> Replace calls to `printk` with the appropriate `pr_*`
+> macro.
 > 
-> How about moving the lines causing use-after-free to release callback
-> like below?
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c      |  8 ++++----
+>  drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 14 ++++++--------
+>  drivers/media/usb/pvrusb2/pvrusb2-main.c     |  4 ++--
+>  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |  4 ++--
+
+Could you also update drivers/media/usb/pvrusb2/pvrusb2-debug.h please?
+So we can get rid of all the printk in this driver.
+
+>  4 files changed, 14 insertions(+), 16 deletions(-)
 > 
-> static void video_i2c_release(struct video_device *vdev)
-> {
->         struct video_i2c_data *data = video_get_drvdata(vdev);
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> index a8519da0020b..7702285c1519 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> @@ -3293,12 +3293,12 @@ void pvr2_hdw_trigger_module_log(struct pvr2_hdw *hdw)
+>  	int nr = pvr2_hdw_get_unit_number(hdw);
+>  	LOCK_TAKE(hdw->big_lock);
+>  	do {
+> -		printk(KERN_INFO "pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
+> +		pr_info("pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
+>  		v4l2_device_call_all(&hdw->v4l2_dev, 0, core, log_status);
+>  		pvr2_trace(PVR2_TRACE_INFO,"cx2341x config:");
+>  		cx2341x_log_status(&hdw->enc_ctl_state, "pvrusb2");
+>  		pvr2_hdw_state_log_state(hdw);
+> -		printk(KERN_INFO "pvrusb2: ==================  END STATUS CARD #%d  ==================\n", nr);
+> +		pr_info("pvrusb2: ==================  END STATUS CARD #%d  ==================\n", nr);
+>  	} while (0);
+>  	LOCK_GIVE(hdw->big_lock);
+>  }
+> @@ -4851,7 +4851,7 @@ static void pvr2_hdw_state_log_state(struct pvr2_hdw *hdw)
+>  	for (idx = 0; ; idx++) {
+>  		ccnt = pvr2_hdw_report_unlocked(hdw,idx,buf,sizeof(buf));
+>  		if (!ccnt) break;
+> -		printk(KERN_INFO "%s %.*s\n",hdw->name,ccnt,buf);
+> +		pr_info("%s %.*s\n", hdw->name, ccnt, buf);
+>  	}
+>  	ccnt = pvr2_hdw_report_clients(hdw, buf, sizeof(buf));
+>  	if (ccnt >= sizeof(buf))
+> @@ -4863,7 +4863,7 @@ static void pvr2_hdw_state_log_state(struct pvr2_hdw *hdw)
+>  		while ((lcnt + ucnt < ccnt) && (buf[lcnt + ucnt] != '\n')) {
+>  			lcnt++;
+>  		}
+> -		printk(KERN_INFO "%s %.*s\n", hdw->name, lcnt, buf + ucnt);
+> +		pr_info("%s %.*s\n", hdw->name, lcnt, buf + ucnt);
+>  		ucnt += lcnt + 1;
+>  	}
+>  }> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+> index ec7d32759e39..06c7e875fa0f 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+> @@ -478,8 +478,7 @@ static int pvr2_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  		unsigned int idx,offs,cnt;
+>  		for (idx = 0; idx < num; idx++) {
+>  			cnt = msgs[idx].len;
+> -			printk(KERN_INFO
+> -			       "pvrusb2 i2c xfer %u/%u: addr=0x%x len=%d %s",
+> +			pr_info("pvrusb2 i2c xfer %u/%u: addr=0x%x len=%d %s",
+>  			       idx+1,num,
+>  			       msgs[idx].addr,
+>  			       cnt,
+> @@ -501,8 +500,7 @@ static int pvr2_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			printk(KERN_CONT "\n");
+>  		}
+>  		if (!num) {
+> -			printk(KERN_INFO
+> -			       "pvrusb2 i2c xfer null transfer result=%d\n",
+> +			pr_info("pvrusb2 i2c xfer null transfer result=%d\n",
+>  			       ret);
+>  		}
+>  	}
+> @@ -542,14 +540,14 @@ static int do_i2c_probe(struct pvr2_hdw *hdw, int addr)
+>  static void do_i2c_scan(struct pvr2_hdw *hdw)
+>  {
+>  	int i;
+> -	printk(KERN_INFO "%s: i2c scan beginning\n", hdw->name);
+> +	pr_info("%s: i2c scan beginning\n", hdw->name);
+>  	for (i = 0; i < 128; i++) {
+>  		if (do_i2c_probe(hdw, i)) {
+> -			printk(KERN_INFO "%s: i2c scan: found device @ 0x%x\n",
+> +			pr_info("%s: i2c scan: found device @ 0x%x\n",
+>  			       hdw->name, i);
+>  		}
+>  	}
+> -	printk(KERN_INFO "%s: i2c scan done.\n", hdw->name);
+> +	pr_info("%s: i2c scan done.\n", hdw->name);
+>  }
+>  
+>  static void pvr2_i2c_register_ir(struct pvr2_hdw *hdw)
+> @@ -612,7 +610,7 @@ void pvr2_i2c_core_init(struct pvr2_hdw *hdw)
+>  
+>  	/* However, deal with various special cases for 24xxx hardware. */
+>  	if (ir_mode[hdw->unit_number] == 0) {
+> -		printk(KERN_INFO "%s: IR disabled\n",hdw->name);
+> +		pr_info("%s: IR disabled\n", hdw->name);
+>  		hdw->i2c_func[0x18] = i2c_black_hole;
+>  	} else if (ir_mode[hdw->unit_number] == 1) {
+>  		if (hdw->ir_scheme_active == PVR2_IR_SCHEME_24XXX) {
+
+This file has some printk(KERN_CONT, I believe you can also change it to
+pr_cont.
+
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-main.c b/drivers/media/usb/pvrusb2/pvrusb2-main.c
+> index cbe2c3a22458..23672dd352f5 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-main.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-main.c
+> @@ -132,10 +132,10 @@ static int __init pvr_init(void)
+>  	ret = usb_register(&pvr_driver);
+>  
+>  	if (ret == 0)
+> -		printk(KERN_INFO "pvrusb2: " DRIVER_VERSION ":"
+> +		pr_info("pvrusb2: " DRIVER_VERSION ":"
+>  		       DRIVER_DESC "\n");
+>  	if (pvrusb2_debug)
+> -		printk(KERN_INFO "pvrusb2: Debug mask is %d (0x%x)\n",
+> +		pr_info("pvrusb2: Debug mask is %d (0x%x)\n",
+>  		       pvrusb2_debug,pvrusb2_debug);
+>  
+>  	pvr2_trace(PVR2_TRACE_INIT,"pvr_init complete");
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> index cea232a3302d..97a93ed4bcda 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> @@ -869,7 +869,7 @@ static void pvr2_v4l2_dev_destroy(struct pvr2_v4l2_dev *dip)
+>  	   are gone. */
+>  	video_unregister_device(&dip->devbase);
+>  
+> -	printk(KERN_INFO "%s\n", msg);
+> +	pr_info("%s\n", msg);
+>  
+>  }
+>  
+> @@ -1260,7 +1260,7 @@ static void pvr2_v4l2_dev_init(struct pvr2_v4l2_dev *dip,
+>  			": Failed to register pvrusb2 v4l device\n");
+>  	}
+>  
+> -	printk(KERN_INFO "pvrusb2: registered device %s [%s]\n",
+> +	pr_info("pvrusb2: registered device %s [%s]\n",
+>  	       video_device_node_name(&dip->devbase),
+>  	       pvr2_config_get_name(dip->config));
+>  
 > 
->         v4l2_device_unregister(&data->v4l2_dev);
->         mutex_destroy(&data->lock);
->         mutex_destroy(&data->queue_lock);
->         kfree(data);
-> }
-> 
 
-You can test this with v4l2-ctl:
 
-v4l2-ctl --sleep 10
-
-This sleeps 10s, then calls QUERYCAP and closes the file handle.
-
-In another shell you can unbind the driver while v4l2-ctl is sleeping.
-
-Hopefully this works without crashing anything :-)
-
-Regards,
-
-	Hans
+Thanks
+Helen
