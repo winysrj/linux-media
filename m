@@ -1,139 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:37555 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726547AbeJCRfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Oct 2018 13:35:18 -0400
-Date: Wed, 3 Oct 2018 13:47:25 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>, jacopo@jmondi.org,
-        phdm@macq.eu, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 1/2] [media] imx214: device tree binding
-Message-ID: <20181003104724.rgguu2gmoegnqspe@paasikivi.fi.intel.com>
-References: <20181002140515.16299-1-ricardo.ribalda@gmail.com>
- <4555006.y1GbRfQLCO@avalon>
- <CAPybu_02_hMAVWO2r1-t+S60HPaqEtnQzgF-Moxg7Zx+-PGj6A@mail.gmail.com>
- <20181003104251.ly3uusi4lqbeqize@paasikivi.fi.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.133]:58358 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726159AbeJIAPs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 20:15:48 -0400
+Date: Mon, 8 Oct 2018 14:03:02 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Keiichi Watanabe <keiichiw@chromium.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org, tfiga@chromium.org,
+        jcliang@chromium.org, shik@chromium.org
+Subject: Re: [PATCH] media: vivid: Support 480p for webcam capture
+Message-ID: <20181008140302.2239633f@coco.lan>
+In-Reply-To: <b2dc51d7-fc92-2e7b-3a07-55a076b95d8b@ideasonboard.com>
+References: <20181003070656.193854-1-keiichiw@chromium.org>
+        <b2dc51d7-fc92-2e7b-3a07-55a076b95d8b@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181003104251.ly3uusi4lqbeqize@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 03, 2018 at 01:42:51PM +0300, Sakari Ailus wrote:
-> On Wed, Oct 03, 2018 at 08:23:43AM +0200, Ricardo Ribalda Delgado wrote:
-> > Hi Laurent
-> > On Tue, Oct 2, 2018 at 10:06 PM Laurent Pinchart
-> > <laurent.pinchart@ideasonboard.com> wrote:
-> > >
-> > > Hi Ricardo,
-> > >
-> > > Thank you for the patch.
-> > >
-> > > On Tuesday, 2 October 2018 17:05:15 EEST Ricardo Ribalda Delgado wrote:
-> > > > Document bindings for imx214 camera sensor
-> > > >
-> > > > Cc: devicetree@vger.kernel.org
-> > > > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> > > > ---
-> > > > Changelog from v3:
-> > > >
-> > > > Sakari Ailus:
-> > > > -s/should/shall/
-> > > > -remove clock-lanes
-> > > >
-> > > > Philippe De Muyter:
-> > > > -s/imx274/imx214/
-> > > >
-> > > > Laurent Pinchart:
-> > > > -s/to to/to/
-> > > > -Better description of lanes
-> > > > -clock-names: Shall be "xclk"
-> > > > -Drop clock-freq
-> > > >
-> > > >  .../devicetree/bindings/media/i2c/imx214.txt  | 53 +++++++++++++++++++
-> > > >  1 file changed, 53 insertions(+)
-> > > >  create mode 100644 Documentation/devicetree/bindings/media/i2c/imx214.txt
-> > > >
-> > > > diff --git a/Documentation/devicetree/bindings/media/i2c/imx214.txt
-> > > > b/Documentation/devicetree/bindings/media/i2c/imx214.txt new file mode
-> > > > 100644
-> > > > index 000000000000..421a019ab7f9
-> > > > --- /dev/null
-> > > > +++ b/Documentation/devicetree/bindings/media/i2c/imx214.txt
-> > > > @@ -0,0 +1,53 @@
-> > > > +* Sony 1/3.06-Inch 13.13Mp CMOS Digital Image Sensor
-> > > > +
-> > > > +The Sony imx214 is a 1/3.06-inch CMOS active pixel digital image sensor
-> > > > with +an active array size of 4224H x 3200V. It is programmable through an
-> > > > I2C +interface. The I2C address can be configured to 0x1a or 0x10,
-> > > > depending on +how the hardware is wired.
-> > > > +Image data is sent through MIPI CSI-2, through 2 or 4 lanes at a maximum
-> > > > +throughput of 1.2Gbps/lane.
-> > > > +
-> > > > +
-> > > > +Required Properties:
-> > > > +- compatible: value should be "sony,imx214" for imx214 sensor
-> > > > +- reg: I2C bus address of the device
-> > > > +- enable-gpios: GPIO descriptor for the enable pin.
-> > > > +- vdddo-supply: Chip digital IO regulator (1.8V).
-> > > > +- vdda-supply: Chip analog regulator (2.7V).
-> > > > +- vddd-supply: Chip digital core regulator (1.12V).
-> > > > +- clocks: Reference to the xclk clock.
-> > > > +- clock-names:  Shall be "xclk".
-> > > > +
-> > > > +Optional Properties:
-> > > > +- flash-leds: See ../video-interfaces.txt
-> > > > +- lens-focus: See ../video-interfaces.txt
-> > > > +
-> > > > +The imx214 device node shall contain one 'port' child node with
-> > > > +an 'endpoint' subnode. For further reading on port node refer to
-> > > > +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > > > +
-> > > > +Required Properties on endpoint:
-> > > > +- data-lanes: check ../video-interfaces.txt
-> > >
-> > > As I suppose you got access to the datasheet which doesn't appear to be
-> > > public, I'll take this as an opportunity to fish for information :-) Does the
-> > > sensor support remapping data lanes ? Could you please document that here ?
-> > >
-> > > You should also state that only the 2 lanes and 4 lanes options are valid, and
-> > > what lanes can be used in those cases. I assume that would be <1 2> and <1 2 3
-> > > 4>, but if other options are possible, it would be useful to document that.
-> > 
-> > I wish I had. This is the best documentation that I got access to,
-> > after a lot of googling:
-> > http://www.ahdsensor.com/downloadRepository/3acdda8d-b531-4a76-a27d-9dd09be980ee.pdf
-> > 
-> > I never understood this secrecy around datasheets. How the f*&& are we
-> > going to buy chips and make desings around them if we cannot get
-> > information?! Sorry that was my daily vent
-> > 
-> > The 2 and 4 lane option was obtained from the functional description
-> > of the chip (page 1). The obvious order would be <1 2>, but I have
-> > also seen <1 3> in other chips, so I rather not mention it on the
-> > devicetree doc.
-> 
-> <1 3> makes sense if lane remapping is supported by the hardware. If it's
-> not, you should use a monotonically incrementing sequence.
+Em Wed, 3 Oct 2018 12:14:22 +0100
+Kieran Bingham <kieran.bingham@ideasonboard.com> escreveu:
 
-The DT binding documentation states that if lane reordering is not
-supported, monotonically incremented values shall be used. So no need to
-put that here.
+> > @@ -75,6 +76,8 @@ static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
+> >  	{  1, 5 },
+> >  	{  1, 10 },
+> >  	{  1, 15 },
+> > +	{  1, 15 },
+> > +	{  1, 25 },  
 
-The reader would probably need some hardware documentation for creating a
-board to begin with, and could obtain the information on lane remapping
-support from the datasheet. I think more elaborate documentation in this
-area makes sense for CSI-2 receiver drivers, especially those with multiple
-receivers that can share lanes.
+As the code requires that VIVID_WEBCAM_IVALS would be twice the number
+of resolutions, I understand why you're doing that.
 
--- 
-Kind regards,
+> But won't this add duplicates of 25 and 15 FPS to all the frame sizes
+> smaller than 1280,720 ? Or are they filtered out?
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+However, I agree with Kieran: looking at the code, it sounds to me that
+it will indeed duplicate 1/15 and 1/25 intervals.
+
+I suggest add two other intervals there, like:
+	12.5 fps and 29.995 fps, e. g.:
+
+static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
+        {  1, 1 },
+        {  1, 2 },
+        {  1, 4 },
+        {  1, 5 },
+        {  1, 10 },
+        {  1, 15 },
+	{  2, 50 },
+        {  1, 25 },
+        {  1, 30 },
+        {  1, 40 },
+        {  1, 50 },
+	{  1001, 30000 },
+        {  1, 60 },
+};
+
+Provided, of course, that vivid would support producing images
+at fractional rate. I didn't check. If not, then simply add
+1/20 and 1/40.
+
+> Now the difficulty is adding smaller frame rates (like 1,1, 1,2) would
+> effect/reduce the output rates of the larger frame sizes, so how about
+> adding some high rate support (any two from 1/{60,75,90,100,120}) instead?
+
+Last week, I got a crash with vivid running at 30 fps, while running an 
+event's race code, on a i7core (there, the code was switching all video
+controls while subscribing/unsubscribing events). The same code worked
+with lower fps.
+
+While I didn't have time to debug it yet, I suspect that it has to do
+with the time spent to produce a frame on vivid. So, while it would be
+nice to have high rate support, I'm not sure if this is doable. It may,
+but perhaps we need to disable some possible video output formats, as some
+types may consume more time to build frames.
+
+Thanks,
+Mauro
