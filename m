@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mleia.com ([178.79.152.223]:35472 "EHLO mail.mleia.com"
+Received: from mleia.com ([178.79.152.223]:35500 "EHLO mail.mleia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726969AbeJIEZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Oct 2018 00:25:57 -0400
+        id S1725835AbeJIEZz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Oct 2018 00:25:55 -0400
 From: Vladimir Zapolskiy <vz@mleia.com>
 To: Lee Jones <lee.jones@linaro.org>,
         Linus Walleij <linus.walleij@linaro.org>,
@@ -13,9 +13,9 @@ Cc: Marek Vasut <marek.vasut@gmail.com>,
         linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: [PATCH 6/7] pinctrl: ds90ux9xx: add TI DS90Ux9xx pinmux and GPIO controller driver
-Date: Tue,  9 Oct 2018 00:12:04 +0300
-Message-Id: <20181008211205.2900-7-vz@mleia.com>
+Subject: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD driver
+Date: Tue,  9 Oct 2018 00:12:02 +0300
+Message-Id: <20181008211205.2900-5-vz@mleia.com>
 In-Reply-To: <20181008211205.2900-1-vz@mleia.com>
 References: <20181008211205.2900-1-vz@mleia.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -23,1026 +23,1006 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 
-The change adds an MFD cell driver for managing pin functions on
-TI DS90Ux9xx de-/serializers.
+The change adds I2C device driver for TI DS90Ux9xx de-/serializers,
+support of subdevice controllers is done in separate drivers, because
+not all IC functionality may be needed in particular situations, and
+this can be fine grained controlled in device tree.
+
+The development of the driver was a collaborative work, the
+contribution done by Balasubramani Vivekanandan includes:
+* original implementation of the driver based on a reference driver,
+* regmap powered interrupt controller support on serializers,
+* support of implicitly or improperly specified in device tree ICs,
+* support of device properties and attributes: backward compatible
+  mode, low frequency operation mode, spread spectrum clock generator.
+
+Contribution by Steve Longerbeam:
+* added ds90ux9xx_read_indirect() function,
+* moved number of links property and added ds90ux9xx_num_fpd_links(),
+* moved and updated ds90ux9xx_get_link_status() function to core driver,
+* added fpd_link_show device attribute.
+
+Sandeep Jain added support of pixel clock edge configuration.
 
 Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 ---
- drivers/pinctrl/Kconfig             |  11 +
- drivers/pinctrl/Makefile            |   1 +
- drivers/pinctrl/pinctrl-ds90ux9xx.c | 970 ++++++++++++++++++++++++++++
- 3 files changed, 982 insertions(+)
- create mode 100644 drivers/pinctrl/pinctrl-ds90ux9xx.c
+ drivers/mfd/Kconfig           |  14 +
+ drivers/mfd/Makefile          |   1 +
+ drivers/mfd/ds90ux9xx-core.c  | 879 ++++++++++++++++++++++++++++++++++
+ include/linux/mfd/ds90ux9xx.h |  42 ++
+ 4 files changed, 936 insertions(+)
+ create mode 100644 drivers/mfd/ds90ux9xx-core.c
+ create mode 100644 include/linux/mfd/ds90ux9xx.h
 
-diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
-index 978b2ed4d014..9350263cac4b 100644
---- a/drivers/pinctrl/Kconfig
-+++ b/drivers/pinctrl/Kconfig
-@@ -123,6 +123,17 @@ config PINCTRL_DIGICOLOR
- 	select PINMUX
- 	select GENERIC_PINCONF
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 8c5dfdce4326..a969fa123f64 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -1280,6 +1280,20 @@ config MFD_DM355EVM_MSP
+ 	  boards.  MSP430 firmware manages resets and power sequencing,
+ 	  inputs from buttons and the IR remote, LEDs, an RTC, and more.
  
-+config PINCTRL_DS90UX9XX
-+	tristate "TI DS90Ux9xx pin multiplexer and GPIO driver"
-+	depends on MFD_DS90UX9XX
-+	default MFD_DS90UX9XX
-+	select GPIOLIB
-+	select PINMUX
-+	select GENERIC_PINCONF
++config MFD_DS90UX9XX
++	tristate "TI DS90Ux9xx FPD-Link de-/serializer driver"
++	depends on I2C && OF
++	select MFD_CORE
++	select REGMAP_I2C
 +	help
-+	  Select this option to enable pinmux and GPIO bridge/controller
-+	  driver for the TI DS90Ux9xx de-/serializer chip family.
++	  Say yes here to enable support for TI DS90UX9XX de-/serializer ICs.
 +
- config PINCTRL_LANTIQ
- 	bool
- 	depends on LANTIQ
-diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
-index 8e127bd8610f..34fc2dbfb9c1 100644
---- a/drivers/pinctrl/Makefile
-+++ b/drivers/pinctrl/Makefile
-@@ -16,6 +16,7 @@ obj-$(CONFIG_PINCTRL_AT91PIO4)	+= pinctrl-at91-pio4.o
- obj-$(CONFIG_PINCTRL_AMD)	+= pinctrl-amd.o
- obj-$(CONFIG_PINCTRL_DA850_PUPD) += pinctrl-da850-pupd.o
- obj-$(CONFIG_PINCTRL_DIGICOLOR)	+= pinctrl-digicolor.o
-+obj-$(CONFIG_PINCTRL_DS90UX9XX)	+= pinctrl-ds90ux9xx.o
- obj-$(CONFIG_PINCTRL_FALCON)	+= pinctrl-falcon.o
- obj-$(CONFIG_PINCTRL_GEMINI)	+= pinctrl-gemini.o
- obj-$(CONFIG_PINCTRL_MAX77620)	+= pinctrl-max77620.o
-diff --git a/drivers/pinctrl/pinctrl-ds90ux9xx.c b/drivers/pinctrl/pinctrl-ds90ux9xx.c
++	  This driver provides basic support for setting up the de-/serializer
++	  chips. Additional functionalities like connection handling to
++	  remote de-/serializers, I2C bridging, pin multiplexing, GPIO
++	  controller and so on are provided by separate drivers and should
++	  enabled individually.
++
+ config MFD_LP3943
+ 	tristate "TI/National Semiconductor LP3943 MFD Driver"
+ 	depends on I2C
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 12980a4ad460..cc92bf5394b7 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -224,6 +224,7 @@ obj-$(CONFIG_MFD_HI655X_PMIC)   += hi655x-pmic.o
+ obj-$(CONFIG_MFD_DLN2)		+= dln2.o
+ obj-$(CONFIG_MFD_RT5033)	+= rt5033.o
+ obj-$(CONFIG_MFD_SKY81452)	+= sky81452.o
++obj-$(CONFIG_MFD_DS90UX9XX)	+= ds90ux9xx-core.o
+ 
+ intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
+ obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
+diff --git a/drivers/mfd/ds90ux9xx-core.c b/drivers/mfd/ds90ux9xx-core.c
 new file mode 100644
-index 000000000000..7fdb5c15743a
+index 000000000000..ad96c109a451
 --- /dev/null
-+++ b/drivers/pinctrl/pinctrl-ds90ux9xx.c
-@@ -0,0 +1,970 @@
++++ b/drivers/mfd/ds90ux9xx-core.c
+@@ -0,0 +1,879 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
-+ * Pinmux and GPIO controller driver for TI DS90Ux9xx De-/Serializer hardware
++ * TI DS90Ux9xx MFD driver
 + *
 + * Copyright (c) 2017-2018 Mentor Graphics Inc.
 + */
 +
-+#include <linux/gpio/driver.h>
++#include <linux/delay.h>
++#include <linux/gpio/consumer.h>
++#include <linux/i2c.h>
++#include <linux/mfd/core.h>
 +#include <linux/mfd/ds90ux9xx.h>
 +#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <linux/pinctrl/pinconf-generic.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/platform_device.h>
++#include <linux/mutex.h>
++#include <linux/of_platform.h>
 +#include <linux/regmap.h>
-+#include <linux/sysfs.h>
 +
-+#include "pinctrl-utils.h"
++/* Serializer Registers */
++#define SER_REG_MODE_SELECT		0x04
++#define SER_REG_GEN_STATUS		0x0C
++#define SER_REG_CTRL_STATUS		0x13
 +
-+#define SER_REG_PIN_CTRL		0x12
-+#define PIN_CTRL_RGB18			BIT(2)
-+#define PIN_CTRL_I2S_DATA_ISLAND	BIT(1)
-+#define PIN_CTRL_I2S_CHANNEL_B		(BIT(0) | BIT(3))
++/* Deserializer Registers */
++#define DES_REG_GEN_CONFIG0		0x02
++#define DES_REG_GEN_STATUS		0x1C
++#define DES_REG_MODE_STATUS		0x23
++#define DES_REG_SSCG_CTRL		0x2C
++#define DES_REG_DUAL_RX_CTRL		0x34
++#define DES_REG_MAPSEL			0x49
++#define DES_REG_INDIRECT_ADDR		0x6C
++#define DES_REG_INDIRECT_DATA		0x6D
 +
-+#define SER_REG_I2S_SURROUND		0x1A
-+#define PIN_CTRL_I2S_SURR_BIT		BIT(0)
++#define DES_FPD_MODE_MASK		(BIT(4) | BIT(3))
++#define DES_FPD_HW_MODE_AUTO		0x0
++#define DES_FPD_HW_MODE_PRIMARY		BIT(4)
++#define DES_FPD_HW_MODE_SECONDARY	(BIT(4) | BIT(3))
 +
-+#define DES_REG_INDIRECT_PASS		0x16
++#define SSCG_REG_MASK			0x0F
++#define SSCG_MAX_VALUE			0x7
++#define SSCG_ENABLE			BIT(3)
 +
-+#define OUTPUT_HIGH			BIT(3)
-+#define REMOTE_CONTROL			BIT(2)
-+#define DIR_INPUT			BIT(1)
-+#define ENABLE_GPIO			BIT(0)
++/* Common Registers and bitfields */
++#define SER_DES_REG_CONFIG		0x03
 +
-+#define GPIO_AS_INPUT			(ENABLE_GPIO | DIR_INPUT)
-+#define GPIO_AS_OUTPUT			ENABLE_GPIO
-+#define GPIO_OUTPUT_HIGH		(GPIO_AS_OUTPUT | OUTPUT_HIGH)
-+#define GPIO_OUTPUT_LOW			GPIO_AS_OUTPUT
-+#define GPIO_OUTPUT_REMOTE		(GPIO_AS_OUTPUT | REMOTE_CONTROL)
++#define SER_DE_GATE_RGB			BIT(4)
++#define DES_DE_GATE_RGB			BIT(1)
 +
-+#define DS90UX9XX_MAX_GROUP_PINS	6
++#define PIXEL_CLK_EDGE_RISING		BIT(0)
 +
-+struct ds90ux9xx_gpio {
-+	const u8 cfg_reg;
-+	const u8 cfg_mask;
-+	const u8 stat_reg;
-+	const u8 stat_bit;
-+	const bool input;
++#define MAPSEL_MASK			(BIT(6) | BIT(5))
++#define MAPSEL_SET			BIT(6)
++#define MAPSEL_MSB			BIT(5)
++
++#define BKWD_MODE_OVERRIDE		BIT(3)
++#define BKWD_MODE_ENABLED		BIT(2)
++#define LF_MODE_OVERRIDE		BIT(1)
++#define LF_MODE_ENABLED			BIT(0)
++
++#define LF_MODE_PIN_STATUS		BIT(3)
++#define BKWD_MODE_PIN_STATUS		BIT(1)
++
++#define GEN_STATUS_LOCK			BIT(0)
++
++#define SER_DES_DEVICE_ID_REG		0xF0
++#define DEVICE_ID_LEN			6
++
++enum ds90ux9xx_capability {
++	DS90UX9XX_CAP_SERIALIZER,
++	DS90UX9XX_CAP_HDCP,
++	DS90UX9XX_CAP_MODES,
++	DS90UX9XX_CAP_SSCG,
++	DS90UX9XX_CAP_PIXEL_CLK_EDGE,
++	DS90UX9XX_CAP_MAPSEL,
++	DS90UX9XX_CAP_DE_GATE,
 +};
 +
-+#define DS90UX9XX_PIN_GPIO_SIMPLE(_cfg, _high, _input)		\
-+	{							\
-+		.cfg_reg	= _cfg,				\
-+		.cfg_mask	= _high ? 0xf0 : 0x0f,		\
-+		.stat_reg	= 0x0,				\
-+		.stat_bit	= 0x0,				\
-+		.input		= _input ? true : false,	\
-+	}
-+
-+#define DS90UX9XX_PIN_GPIO(_cfg, _high, _stat, _bit)		\
-+	{							\
-+		.cfg_reg	= _cfg,				\
-+		.cfg_mask	= _high ? 0xf0 : 0x0f,		\
-+		.stat_reg	= _stat,			\
-+		.stat_bit	= BIT(_bit),			\
-+		.input		= true,				\
-+	}
-+
-+enum ds90ux9xx_function {
-+	DS90UX9XX_FUNC_NONE,
-+	DS90UX9XX_FUNC_GPIO,
-+	DS90UX9XX_FUNC_REMOTE,
-+	DS90UX9XX_FUNC_PASS,
-+	DS90UX9XX_FUNC_I2S_1,
-+	DS90UX9XX_FUNC_I2S_2,
-+	DS90UX9XX_FUNC_I2S_3,
-+	DS90UX9XX_FUNC_I2S_4,
-+	DS90UX9XX_FUNC_I2S_M,
-+	DS90UX9XX_FUNC_PARALLEL,
++struct ds90ux9xx_device_property {
++	const char id[DEVICE_ID_LEN];
++	unsigned int num_links;
++	const u32 caps;
 +};
 +
-+struct ds90ux9xx_pin {
-+	const unsigned int id;
-+	const char *name;
-+	const u32 func_mask;
-+	const u8 pass_bit;
-+	const struct ds90ux9xx_gpio gpio;
-+};
-+
-+#define TO_BIT(_f)	(DS90UX9XX_FUNC_##_f ? BIT(DS90UX9XX_FUNC_##_f) : 0)
-+#define DS90UX9XX_GPIO(_pin, _name, _f1, _f2, _f3)			\
-+	[_pin] = {							\
-+		.id = _pin,						\
-+		.name = _name,						\
-+		.func_mask = TO_BIT(GPIO) | TO_BIT(_f2) | TO_BIT(_f3),	\
-+		.gpio = DS90UX9XX_PIN_##_f1,				\
-+	}
-+
-+#define DS90UX940_GPIO(_pin, _name, _f1, _f2, _f3, _pass)		\
-+	[_pin] = {							\
-+		.id = _pin,						\
-+		.name = _name,						\
-+		.func_mask = TO_BIT(GPIO) | TO_BIT(PASS) |		\
-+			     TO_BIT(_f2) | TO_BIT(_f3),			\
-+		.pass_bit = BIT(_pass),					\
-+		.gpio = DS90UX9XX_PIN_##_f1,				\
-+	}
-+
-+struct ds90ux9xx_pinctrl_data {
-+	const char *name;
-+	const struct ds90ux9xx_pin *pins;
-+	const struct pinctrl_pin_desc *pins_desc;
-+	const unsigned int npins;
-+	const enum ds90ux9xx_function *functions;
-+	const unsigned int nfunctions;
-+};
-+
-+static const struct pinctrl_pin_desc ds90ux925_926_pins_desc[] = {
-+	PINCTRL_PIN(0, "gpio0"),	/* DS90Ux925 pin 25, DS90Ux926 pin 41 */
-+	PINCTRL_PIN(1, "gpio1"),	/* DS90Ux925 pin 26, DS90Ux926 pin 40 */
-+	PINCTRL_PIN(2, "gpio2"),	/* DS90Ux925 pin 35, DS90Ux926 pin 28 */
-+	PINCTRL_PIN(3, "gpio3"),	/* DS90Ux925 pin 36, DS90Ux926 pin 27 */
-+	PINCTRL_PIN(4, "gpio4"),	/* DS90Ux925 pin 43, DS90Ux926 pin 19 */
-+	PINCTRL_PIN(5, "gpio5"),	/* DS90Ux925 pin 44, DS90Ux926 pin 18 */
-+	PINCTRL_PIN(6, "gpio6"),	/* DS90Ux925 pin 11, DS90Ux926 pin 45 */
-+	PINCTRL_PIN(7, "gpio7"),	/* DS90Ux925 pin 12, DS90Ux926 pin 30 */
-+	PINCTRL_PIN(8, "gpio8"),	/* DS90Ux925 pin 13, DS90Ux926 pin  1 */
-+};
-+
-+static const struct pinctrl_pin_desc ds90ux927_928_pins_desc[] = {
-+	PINCTRL_PIN(0, "gpio0"),	/* DS90Ux927 pin 39, DS90Ux928 pin 14 */
-+	PINCTRL_PIN(1, "gpio1"),	/* DS90Ux927 pin 40, DS90Ux928 pin 13 */
-+	PINCTRL_PIN(2, "gpio2"),	/* DS90Ux927 pin  5, DS90Ux928 pin 37 */
-+	PINCTRL_PIN(3, "gpio3"),	/* DS90Ux927 pin  6, DS90Ux928 pin 36 */
-+	PINCTRL_PIN(4, "gpio5"),	/* DS90Ux927 pin  4, DS90Ux928 pin  3 */
-+	PINCTRL_PIN(5, "gpio6"),	/* DS90Ux927 pin  3, DS90Ux928 pin  7 */
-+	PINCTRL_PIN(6, "gpio7"),	/* DS90Ux927 pin  2, DS90Ux928 pin 10 */
-+	PINCTRL_PIN(7, "gpio8"),	/* DS90Ux927 pin  1, DS90Ux928 pin  8 */
-+};
-+
-+static const struct pinctrl_pin_desc ds90ux940_pins_desc[] = {
-+	PINCTRL_PIN(0, "gpio0"),	/* DS90Ux940 pin  7 */
-+	PINCTRL_PIN(1, "gpio1"),	/* DS90Ux940 pin  8 */
-+	PINCTRL_PIN(2, "gpio2"),	/* DS90Ux940 pin 10 */
-+	PINCTRL_PIN(3, "gpio3"),	/* DS90Ux940 pin  9 */
-+	PINCTRL_PIN(4, "gpio5"),	/* DS90Ux940 pin 11 */
-+	PINCTRL_PIN(5, "gpio6"),	/* DS90Ux940 pin 12 */
-+	PINCTRL_PIN(6, "gpio7"),	/* DS90Ux940 pin 14 */
-+	PINCTRL_PIN(7, "gpio8"),	/* DS90Ux940 pin 13 */
-+	PINCTRL_PIN(8, "gpio9"),	/* DS90Ux940 pin 15 */
-+};
-+
-+static const struct ds90ux9xx_pin ds90ux925_pins[] = {
-+	DS90UX9XX_GPIO(0, "gpio0", GPIO_SIMPLE(0x0d, 0, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(1, "gpio1", GPIO_SIMPLE(0x0e, 0, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(2, "gpio2", GPIO_SIMPLE(0x0e, 1, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(3, "gpio3", GPIO_SIMPLE(0x0f, 0, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(4, "gpio4", GPIO_SIMPLE(0x0f, 1, 0),   NONE, PARALLEL),
-+	DS90UX9XX_GPIO(5, "gpio5", GPIO_SIMPLE(0x10, 0, 0),  I2S_2, PARALLEL),
-+	DS90UX9XX_GPIO(6, "gpio6", GPIO_SIMPLE(0x10, 1, 0),  I2S_1,     NONE),
-+	DS90UX9XX_GPIO(7, "gpio7", GPIO_SIMPLE(0x11, 0, 0),  I2S_1,     NONE),
-+	DS90UX9XX_GPIO(8, "gpio8", GPIO_SIMPLE(0x11, 1, 0),  I2S_1,     NONE),
-+};
-+
-+static const struct ds90ux9xx_pin ds90ux926_pins[] = {
-+	DS90UX9XX_GPIO(0, "gpio0", GPIO_SIMPLE(0x1d, 0, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(1, "gpio1", GPIO_SIMPLE(0x1e, 0, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(2, "gpio2", GPIO_SIMPLE(0x1e, 1, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(3, "gpio3", GPIO_SIMPLE(0x1f, 0, 1), REMOTE, PARALLEL),
-+	DS90UX9XX_GPIO(4, "gpio4", GPIO_SIMPLE(0x1f, 1, 0),   NONE, PARALLEL),
-+	DS90UX9XX_GPIO(5, "gpio5", GPIO_SIMPLE(0x20, 0, 0),  I2S_2, PARALLEL),
-+	DS90UX9XX_GPIO(6, "gpio6", GPIO_SIMPLE(0x20, 1, 0),  I2S_1,     NONE),
-+	DS90UX9XX_GPIO(7, "gpio7", GPIO_SIMPLE(0x21, 0, 0),  I2S_1,     NONE),
-+	DS90UX9XX_GPIO(8, "gpio8", GPIO_SIMPLE(0x21, 1, 0),  I2S_1,     NONE),
-+};
-+
-+static const struct ds90ux9xx_pin ds90ux927_pins[] = {
-+	DS90UX9XX_GPIO(0, "gpio0", GPIO(0x0d, 0, 0x1c, 0), REMOTE,  NONE),
-+	DS90UX9XX_GPIO(1, "gpio1", GPIO(0x0e, 0, 0x1c, 1), REMOTE,  NONE),
-+	DS90UX9XX_GPIO(2, "gpio2", GPIO(0x0e, 1, 0x1c, 2), REMOTE, I2S_3),
-+	DS90UX9XX_GPIO(3, "gpio3", GPIO(0x0f, 0, 0x1c, 3), REMOTE, I2S_4),
-+	DS90UX9XX_GPIO(4, "gpio5", GPIO(0x10, 0, 0x1c, 5),   NONE, I2S_2),
-+	DS90UX9XX_GPIO(5, "gpio6", GPIO(0x10, 1, 0x1c, 6),   NONE, I2S_1),
-+	DS90UX9XX_GPIO(6, "gpio7", GPIO(0x11, 0, 0x1c, 7),   NONE, I2S_1),
-+	DS90UX9XX_GPIO(7, "gpio8", GPIO(0x11, 1, 0x1d, 0),   NONE, I2S_1),
-+};
-+
-+static const struct ds90ux9xx_pin ds90ux928_pins[] = {
-+	DS90UX9XX_GPIO(0, "gpio0", GPIO(0x1d, 0, 0x6e, 0), REMOTE, I2S_M),
-+	DS90UX9XX_GPIO(1, "gpio1", GPIO(0x1e, 0, 0x6e, 1), REMOTE, I2S_M),
-+	DS90UX9XX_GPIO(2, "gpio2", GPIO(0x1e, 1, 0x6e, 2), REMOTE, I2S_3),
-+	DS90UX9XX_GPIO(3, "gpio3", GPIO(0x1f, 0, 0x6e, 3), REMOTE, I2S_4),
-+	DS90UX9XX_GPIO(4, "gpio5", GPIO(0x20, 0, 0x6e, 5),   NONE, I2S_2),
-+	DS90UX9XX_GPIO(5, "gpio6", GPIO(0x20, 1, 0x6e, 6),   NONE, I2S_1),
-+	DS90UX9XX_GPIO(6, "gpio7", GPIO(0x21, 0, 0x6e, 7),   NONE, I2S_1),
-+	DS90UX9XX_GPIO(7, "gpio8", GPIO(0x21, 1, 0x6f, 0),   NONE, I2S_1),
-+};
-+
-+static const struct ds90ux9xx_pin ds90ux940_pins[] = {
-+	DS90UX940_GPIO(0, "gpio0", GPIO(0x1d, 0, 0x6e, 0), REMOTE, I2S_M, 1),
-+	DS90UX9XX_GPIO(1, "gpio1", GPIO(0x1e, 0, 0x6e, 1), REMOTE, I2S_M),
-+	DS90UX9XX_GPIO(2, "gpio2", GPIO(0x1e, 1, 0x6e, 2), REMOTE, I2S_3),
-+	DS90UX940_GPIO(3, "gpio3", GPIO(0x1f, 0, 0x6e, 3), REMOTE, I2S_4, 2),
-+	DS90UX9XX_GPIO(4, "gpio5", GPIO(0x20, 0, 0x6e, 5),   NONE, I2S_2),
-+	DS90UX9XX_GPIO(5, "gpio6", GPIO(0x20, 1, 0x6e, 6),   NONE, I2S_1),
-+	DS90UX9XX_GPIO(6, "gpio7", GPIO(0x21, 0, 0x6e, 7),   NONE, I2S_1),
-+	DS90UX9XX_GPIO(7, "gpio8", GPIO(0x21, 1, 0x6f, 0),   NONE, I2S_1),
-+	DS90UX9XX_GPIO(8, "gpio9", GPIO_SIMPLE(0x1a, 0, 1),  NONE, I2S_M),
-+};
-+
-+static const enum ds90ux9xx_function ds90ux925_926_pin_functions[] = {
-+	DS90UX9XX_FUNC_GPIO,
-+	DS90UX9XX_FUNC_REMOTE,
-+	DS90UX9XX_FUNC_I2S_1,
-+	DS90UX9XX_FUNC_I2S_2,
-+	DS90UX9XX_FUNC_PARALLEL,
-+};
-+
-+static const enum ds90ux9xx_function ds90ux927_pin_functions[] = {
-+	DS90UX9XX_FUNC_GPIO,
-+	DS90UX9XX_FUNC_REMOTE,
-+	DS90UX9XX_FUNC_I2S_1,
-+	DS90UX9XX_FUNC_I2S_2,
-+	DS90UX9XX_FUNC_I2S_3,
-+	DS90UX9XX_FUNC_I2S_4,
-+};
-+
-+static const enum ds90ux9xx_function ds90ux928_pin_functions[] = {
-+	DS90UX9XX_FUNC_GPIO,
-+	DS90UX9XX_FUNC_REMOTE,
-+	DS90UX9XX_FUNC_I2S_1,
-+	DS90UX9XX_FUNC_I2S_2,
-+	DS90UX9XX_FUNC_I2S_3,
-+	DS90UX9XX_FUNC_I2S_4,
-+	DS90UX9XX_FUNC_I2S_M,
-+};
-+
-+static const enum ds90ux9xx_function ds90ux940_pin_functions[] = {
-+	DS90UX9XX_FUNC_GPIO,
-+	DS90UX9XX_FUNC_REMOTE,
-+	DS90UX9XX_FUNC_PASS,
-+	DS90UX9XX_FUNC_I2S_1,
-+	DS90UX9XX_FUNC_I2S_2,
-+	DS90UX9XX_FUNC_I2S_3,
-+	DS90UX9XX_FUNC_I2S_4,
-+	DS90UX9XX_FUNC_I2S_M,
-+};
-+
-+static const struct ds90ux9xx_pinctrl_data ds90ux925_pinctrl = {
-+	.name = "ds90ux925",
-+	.pins_desc = ds90ux925_926_pins_desc,
-+	.pins = ds90ux925_pins,
-+	.npins = ARRAY_SIZE(ds90ux925_pins),
-+	.functions = ds90ux925_926_pin_functions,
-+	.nfunctions = ARRAY_SIZE(ds90ux925_926_pin_functions),
-+};
-+
-+static const struct ds90ux9xx_pinctrl_data ds90ux926_pinctrl = {
-+	.name = "ds90ux926",
-+	.pins_desc = ds90ux925_926_pins_desc,
-+	.pins = ds90ux926_pins,
-+	.npins = ARRAY_SIZE(ds90ux926_pins),
-+	.functions = ds90ux925_926_pin_functions,
-+	.nfunctions = ARRAY_SIZE(ds90ux925_926_pin_functions),
-+};
-+
-+static const struct ds90ux9xx_pinctrl_data ds90ux927_pinctrl = {
-+	.name = "ds90ux927",
-+	.pins_desc = ds90ux927_928_pins_desc,
-+	.pins = ds90ux927_pins,
-+	.npins = ARRAY_SIZE(ds90ux927_pins),
-+	.functions = ds90ux927_pin_functions,
-+	.nfunctions = ARRAY_SIZE(ds90ux927_pin_functions),
-+};
-+
-+static const struct ds90ux9xx_pinctrl_data ds90ux928_pinctrl = {
-+	.name = "ds90ux928",
-+	.pins_desc = ds90ux927_928_pins_desc,
-+	.pins = ds90ux928_pins,
-+	.npins = ARRAY_SIZE(ds90ux928_pins),
-+	.functions = ds90ux928_pin_functions,
-+	.nfunctions = ARRAY_SIZE(ds90ux928_pin_functions),
-+};
-+
-+static const struct ds90ux9xx_pinctrl_data ds90ux940_pinctrl = {
-+	.name = "ds90ux940",
-+	.pins_desc = ds90ux940_pins_desc,
-+	.pins = ds90ux940_pins,
-+	.npins = ARRAY_SIZE(ds90ux940_pins),
-+	.functions = ds90ux940_pin_functions,
-+	.nfunctions = ARRAY_SIZE(ds90ux940_pin_functions),
-+};
-+
-+struct ds90ux9xx_pin_function {
-+	enum ds90ux9xx_function id;
-+	const char **groups;
-+	unsigned int ngroups;
-+};
-+
-+struct ds90ux9xx_pin_group {
-+	const char *name;
-+	unsigned int pins[DS90UX9XX_MAX_GROUP_PINS];
-+	unsigned int npins;
-+};
-+
-+struct ds90ux9xx_pinctrl {
++struct ds90ux9xx {
 +	struct device *dev;
 +	struct regmap *regmap;
-+
-+	struct pinctrl_dev *pctrl;
-+	struct pinctrl_desc desc;
-+
-+	struct ds90ux9xx_pin_function *functions;
-+	unsigned int nfunctions;
-+
-+	struct ds90ux9xx_pin_group *groups;
-+	unsigned int ngroups;
-+
-+	const struct ds90ux9xx_pin *pins;
-+	unsigned int npins;
-+
-+	struct gpio_chip gpiochip;
-+	unsigned int ngpios;
++	struct mutex indirect;	/* serializes access to indirect registers */
++	struct gpio_desc *power_gpio;
++	enum ds90ux9xx_device_id dev_id;
++	const struct ds90ux9xx_device_property *property;
 +};
 +
-+static const char *const ds90ux9xx_func_names[] = {
-+	[DS90UX9XX_FUNC_NONE]		= "none",
-+	[DS90UX9XX_FUNC_GPIO]		= "gpio",
-+	[DS90UX9XX_FUNC_REMOTE]		= "gpio-remote",
-+	[DS90UX9XX_FUNC_PASS]		= "pass",
-+	[DS90UX9XX_FUNC_I2S_1]		= "i2s-1",
-+	[DS90UX9XX_FUNC_I2S_2]		= "i2s-2",
-+	[DS90UX9XX_FUNC_I2S_3]		= "i2s-3",
-+	[DS90UX9XX_FUNC_I2S_4]		= "i2s-4",
-+	[DS90UX9XX_FUNC_I2S_M]		= "i2s-m",
-+	[DS90UX9XX_FUNC_PARALLEL]	= "parallel",
++#define TO_CAP(_cap, _enabled)	(_enabled ? BIT(DS90UX9XX_CAP_ ## _cap) : 0x0)
++
++#define DS90UX9XX_DEVICE(_id, _links, _ser, _hdcp, _modes, _sscg,	\
++			 _pixel, _mapsel, _de_gate)			\
++	[TI_DS90 ## _id] = {						\
++		.id = "_" __stringify(_id),				\
++		.num_links = _links,					\
++		.caps =							\
++			TO_CAP(SERIALIZER, _ser)	|		\
++			TO_CAP(HDCP, _hdcp)		|		\
++			TO_CAP(MODES, _modes)		|		\
++			TO_CAP(SSCG, _sscg)		|		\
++			TO_CAP(PIXEL_CLK_EDGE, _pixel)	|		\
++			TO_CAP(MAPSEL, _mapsel)		|		\
++			TO_CAP(DE_GATE, _de_gate)			\
++	}
++
++static const struct ds90ux9xx_device_property ds90ux9xx_devices[] =  {
++	/*
++	 * List of TI DS90Ux9xx properties:
++	 *      # FPD-links, serializer, HDCP, BW/LF modes, SSCG,
++	 *      pixel clock edge, mapsel, RGB DE Gate
++	 */
++	DS90UX9XX_DEVICE(UB925, 1, 1, 0, 1, 0, 1, 0, 1),
++	DS90UX9XX_DEVICE(UH925, 1, 1, 1, 1, 0, 1, 0, 1),
++	DS90UX9XX_DEVICE(UB927, 1, 1, 0, 1, 0, 0, 1, 1),
++	DS90UX9XX_DEVICE(UH927, 1, 1, 1, 1, 0, 0, 1, 1),
++	DS90UX9XX_DEVICE(UB926, 1, 0, 0, 1, 1, 1, 0, 0),
++	DS90UX9XX_DEVICE(UH926, 1, 0, 1, 1, 1, 1, 0, 0),
++	DS90UX9XX_DEVICE(UB928, 1, 0, 0, 1, 0, 0, 1, 0),
++	DS90UX9XX_DEVICE(UH928, 1, 0, 1, 1, 0, 0, 1, 0),
++	DS90UX9XX_DEVICE(UB940, 2, 0, 0, 0, 0, 0, 0, 1),
++	DS90UX9XX_DEVICE(UH940, 2, 0, 1, 0, 0, 0, 0, 1),
 +};
 +
-+static bool ds90ux9xx_func_in_group(u32 func_mask, enum ds90ux9xx_function id)
++static const struct regmap_config ds90ux9xx_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 0xFF,
++	.cache_type = REGCACHE_NONE,
++};
++
++static bool ds90ux9xx_has_capability(struct ds90ux9xx *ds90ux9xx,
++				     enum ds90ux9xx_capability cap)
 +{
-+	u32 mask = BIT(id);
-+
-+	if (id == DS90UX9XX_FUNC_I2S_4) {
-+		mask |= BIT(DS90UX9XX_FUNC_I2S_3);
-+		id = DS90UX9XX_FUNC_I2S_3;
-+	}
-+
-+	if (id == DS90UX9XX_FUNC_I2S_3) {
-+		mask |= BIT(DS90UX9XX_FUNC_I2S_2);
-+		id = DS90UX9XX_FUNC_I2S_2;
-+	}
-+
-+	if (id == DS90UX9XX_FUNC_I2S_2)
-+		mask |= BIT(DS90UX9XX_FUNC_I2S_1);
-+
-+	return func_mask & mask;
++	return ds90ux9xx->property->caps & BIT(cap);
 +}
 +
-+static bool ds90ux9xx_pin_function(enum ds90ux9xx_function id)
++bool ds90ux9xx_is_serializer(struct device *dev)
 +{
-+	if (id == DS90UX9XX_FUNC_GPIO || id == DS90UX9XX_FUNC_REMOTE ||
-+	    id == DS90UX9XX_FUNC_PASS)
-+		return true;
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
 +
-+	return false;
++	return ds90ux9xx_has_capability(ds90ux9xx, DS90UX9XX_CAP_SERIALIZER);
++}
++EXPORT_SYMBOL_GPL(ds90ux9xx_is_serializer);
++
++unsigned int ds90ux9xx_num_fpd_links(struct device *dev)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++
++	return ds90ux9xx->property->num_links;
++}
++EXPORT_SYMBOL_GPL(ds90ux9xx_num_fpd_links);
++
++int ds90ux9xx_update_bits_indirect(struct device *dev, u8 reg, u8 mask, u8 val)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&ds90ux9xx->indirect);
++
++	ret = regmap_write(ds90ux9xx->regmap, DES_REG_INDIRECT_ADDR, reg);
++	if (ret) {
++		mutex_unlock(&ds90ux9xx->indirect);
++		return ret;
++	}
++
++	ret = regmap_update_bits(ds90ux9xx->regmap, DES_REG_INDIRECT_DATA,
++				 mask, val);
++
++	mutex_unlock(&ds90ux9xx->indirect);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(ds90ux9xx_update_bits_indirect);
++
++int ds90ux9xx_write_indirect(struct device *dev, u8 reg, u8 val)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&ds90ux9xx->indirect);
++
++	ret = regmap_write(ds90ux9xx->regmap, DES_REG_INDIRECT_ADDR, reg);
++	if (ret) {
++		mutex_unlock(&ds90ux9xx->indirect);
++		return ret;
++	}
++
++	ret = regmap_write(ds90ux9xx->regmap, DES_REG_INDIRECT_DATA, val);
++
++	mutex_unlock(&ds90ux9xx->indirect);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(ds90ux9xx_write_indirect);
++
++int ds90ux9xx_read_indirect(struct device *dev, u8 reg, u8 *val)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int data;
++	int ret;
++
++	mutex_lock(&ds90ux9xx->indirect);
++
++	ret = regmap_write(ds90ux9xx->regmap, DES_REG_INDIRECT_ADDR, reg);
++	if (ret) {
++		mutex_unlock(&ds90ux9xx->indirect);
++		return ret;
++	}
++
++	ret = regmap_read(ds90ux9xx->regmap, DES_REG_INDIRECT_DATA, &data);
++
++	mutex_unlock(&ds90ux9xx->indirect);
++
++	if (!ret)
++		*val = data;
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(ds90ux9xx_read_indirect);
++
++static int ds90ux9xx_read_active_link(struct ds90ux9xx *ds90ux9xx,
++				      unsigned int *link)
++{
++	unsigned int val;
++	int ret;
++
++	if (ds90ux9xx->property->num_links == 1) {
++		*link = 0;
++		return 0;
++	}
++
++	ret = regmap_read(ds90ux9xx->regmap, DES_REG_DUAL_RX_CTRL, &val);
++	if (ret) {
++		dev_err(ds90ux9xx->dev, "Failed to read FPD mode\n");
++		return ret;
++	}
++
++	switch (val & DES_FPD_MODE_MASK) {
++	case DES_FPD_HW_MODE_AUTO:
++	case DES_FPD_HW_MODE_PRIMARY:
++		*link = 0;
++		break;
++	case DES_FPD_HW_MODE_SECONDARY:
++		*link = 1;
++		break;
++	default:
++		dev_err(ds90ux9xx->dev, "Unhandled FPD mode\n");
++		return -EINVAL;
++	}
++
++	return 0;
 +}
 +
-+static int ds90ux9xx_populate_groups(struct ds90ux9xx_pinctrl *pctrl,
-+				     const struct ds90ux9xx_pinctrl_data *cfg)
++/* Note that lock status is reported if video pattern generator is enabled */
++int ds90ux9xx_get_link_status(struct device *dev, unsigned int *link,
++			      bool *locked)
 +{
-+	struct ds90ux9xx_pin_function *func;
-+	struct ds90ux9xx_pin_group *group;
-+	enum ds90ux9xx_function func_id;
-+	unsigned int i, j, n;
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int reg, status;
++	int ret;
 +
-+	pctrl->pins = cfg->pins;
-+	pctrl->npins = cfg->npins;
++	ret = ds90ux9xx_read_active_link(ds90ux9xx, link);
++	if (ret)
++		return ret;
 +
-+	/* Assert that only GPIO pins are muxed, it may be changed in future */
-+	for (j = 0; j < pctrl->npins; j++)
-+		if (!(pctrl->pins[j].func_mask & BIT(DS90UX9XX_FUNC_GPIO)))
-+			return -EINVAL;
++	if (ds90ux9xx_is_serializer(dev))
++		reg = SER_REG_GEN_STATUS;
++	else
++		reg = DES_REG_GEN_STATUS;
 +
-+	pctrl->ngpios = pctrl->npins;
++	ret = regmap_read(ds90ux9xx->regmap, reg, &status);
++	if (ret) {
++		dev_err(dev, "Unable to get lock status\n");
++		return ret;
++	}
 +
-+	pctrl->nfunctions = cfg->nfunctions;
-+	pctrl->functions = devm_kcalloc(pctrl->dev, pctrl->nfunctions,
-+					sizeof(*pctrl->functions), GFP_KERNEL);
-+	if (!pctrl->functions)
-+		return -ENOMEM;
++	*locked = status & GEN_STATUS_LOCK ? true : false;
 +
-+	for (i = 0; i < pctrl->nfunctions; i++) {
-+		func = &pctrl->functions[i];
-+		func->id = cfg->functions[i];
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ds90ux9xx_get_link_status);
 +
-+		/*
-+		 * Number of pin groups is a sum of pins and pin group functions
-+		 */
-+		if (ds90ux9xx_pin_function(func->id)) {
-+			for (j = 0; j < pctrl->npins; j++) {
-+				if (func->id == DS90UX9XX_FUNC_GPIO)
-+					pctrl->ngroups++;
++enum ds90ux9xx_device_id ds90ux9xx_get_ic_type(struct device *dev)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
 +
-+				if (pctrl->pins[j].func_mask & BIT(func->id))
-+					func->ngroups++;
-+			}
-+		} else {
-+			pctrl->ngroups++;
-+			func->ngroups = 1;
-+		}
++	return ds90ux9xx->dev_id;
++}
++EXPORT_SYMBOL_GPL(ds90ux9xx_get_ic_type);
 +
-+		func->groups = devm_kcalloc(pctrl->dev, func->ngroups,
-+					    sizeof(*func->groups), GFP_KERNEL);
-+		if (!func->groups)
-+			return -ENOMEM;
++static int ds90ux9xx_set_de_gate(struct ds90ux9xx *ds90ux9xx, bool enable)
++{
++	unsigned int reg, val;
 +
-+		if (ds90ux9xx_pin_function(func->id)) {
-+			n = 0;
-+			for (j = 0; j < pctrl->npins; j++)
-+				if (pctrl->pins[j].func_mask & BIT(func->id))
-+					func->groups[n++] = pctrl->pins[j].name;
-+		} else {
-+			/* Group name matches function name */
-+			func->groups[0] = ds90ux9xx_func_names[func->id];
++	if (!ds90ux9xx_has_capability(ds90ux9xx, DS90UX9XX_CAP_DE_GATE))
++		return 0;
++
++	if (ds90ux9xx_is_serializer(ds90ux9xx->dev)) {
++		reg = SER_REG_MODE_SELECT;
++		val = SER_DE_GATE_RGB;
++	} else {
++		reg = SER_DES_REG_CONFIG;
++		val = DES_DE_GATE_RGB;
++	}
++
++	return regmap_update_bits(ds90ux9xx->regmap, reg, val,
++				  enable ? val : 0x0);
++}
++
++static int ds90ux9xx_set_bcmode(struct ds90ux9xx *ds90ux9xx, bool enable)
++{
++	unsigned int reg, val;
++	int ret;
++
++	if (ds90ux9xx_is_serializer(ds90ux9xx->dev))
++		reg = SER_REG_MODE_SELECT;
++	else
++		reg = DES_REG_GEN_CONFIG0;
++
++	val = BKWD_MODE_OVERRIDE;
++	if (enable)
++		val |= BKWD_MODE_ENABLED;
++
++	ret = regmap_update_bits(ds90ux9xx->regmap, reg,
++				 BKWD_MODE_OVERRIDE | BKWD_MODE_ENABLED, val);
++	if (ret)
++		return ret;
++
++	return ds90ux9xx_set_de_gate(ds90ux9xx, !enable);
++}
++
++static int ds90ux9xx_set_lfmode(struct ds90ux9xx *ds90ux9xx, bool enable)
++{
++	unsigned int reg, val;
++
++	if (ds90ux9xx_is_serializer(ds90ux9xx->dev))
++		reg = SER_REG_MODE_SELECT;
++	else
++		reg = DES_REG_GEN_CONFIG0;
++
++	val = LF_MODE_OVERRIDE;
++	if (enable)
++		val |= LF_MODE_ENABLED;
++
++	return regmap_update_bits(ds90ux9xx->regmap, reg,
++				  LF_MODE_OVERRIDE | LF_MODE_ENABLED, val);
++}
++
++static int ds90ux9xx_set_sscg(struct ds90ux9xx *ds90ux9xx, unsigned int val)
++{
++	if ((val & ~SSCG_ENABLE) > SSCG_MAX_VALUE) {
++		dev_err(ds90ux9xx->dev, "Invalid SSCG value: %#x", val);
++		return -EINVAL;
++	}
++
++	return regmap_write(ds90ux9xx->regmap, DES_REG_SSCG_CTRL, val);
++}
++
++static int ds90ux9xx_set_pixel_clk_edge(struct ds90ux9xx *ds90ux9xx,
++					bool rising)
++{
++	return regmap_update_bits(ds90ux9xx->regmap, SER_DES_REG_CONFIG,
++				  PIXEL_CLK_EDGE_RISING,
++				  rising ? PIXEL_CLK_EDGE_RISING : 0x0);
++}
++
++static ssize_t backward_compatible_mode_show(struct device *dev,
++					     struct device_attribute *attr,
++					     char *buf)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int cfg_reg, sts_reg, val;
++	int ret, bcmode;
++
++	if (ds90ux9xx_is_serializer(ds90ux9xx->dev)) {
++		cfg_reg = SER_REG_MODE_SELECT;
++		sts_reg = SER_REG_CTRL_STATUS;
++	} else {
++		cfg_reg = DES_REG_GEN_CONFIG0;
++		sts_reg = DES_REG_MODE_STATUS;
++	}
++
++	ret = regmap_read(ds90ux9xx->regmap, cfg_reg, &val);
++	if (ret)
++		return ret;
++
++	if (val & BKWD_MODE_OVERRIDE) {
++		bcmode = val & BKWD_MODE_ENABLED;
++	} else {
++		/* Read mode from pin status */
++		ret = regmap_read(ds90ux9xx->regmap, sts_reg, &val);
++		if (ret)
++			return ret;
++
++		bcmode = val & BKWD_MODE_PIN_STATUS;
++	}
++
++	return sprintf(buf, "%d\n", bcmode ? 1 : 0);
++}
++
++static ssize_t backward_compatible_mode_store(struct device *dev,
++					      struct device_attribute *attr,
++					      const char *buf, size_t count)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int val;
++	int ret;
++
++	ret = kstrtouint(buf, 0, &val);
++	if (ret)
++		return ret;
++
++	ret = ds90ux9xx_set_bcmode(ds90ux9xx, val);
++	if (ret)
++		return ret;
++
++	return count;
++}
++static DEVICE_ATTR_RW(backward_compatible_mode);
++
++static ssize_t low_frequency_mode_show(struct device *dev,
++				       struct device_attribute *attr, char *buf)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int cfg_reg, sts_reg, val;
++	int ret, lfmode;
++
++	if (ds90ux9xx_is_serializer(ds90ux9xx->dev)) {
++		cfg_reg = SER_REG_MODE_SELECT;
++		sts_reg = SER_REG_CTRL_STATUS;
++	} else {
++		cfg_reg = DES_REG_GEN_CONFIG0;
++		sts_reg = DES_REG_MODE_STATUS;
++	}
++
++	ret = regmap_read(ds90ux9xx->regmap, cfg_reg, &val);
++	if (ret)
++		return ret;
++
++	if (val & LF_MODE_OVERRIDE) {
++		lfmode = val & LF_MODE_ENABLED;
++	} else {
++		/* Read mode from pin status */
++		ret = regmap_read(ds90ux9xx->regmap, sts_reg, &val);
++		if (ret)
++			return ret;
++
++		lfmode = val & LF_MODE_PIN_STATUS;
++	}
++
++	return sprintf(buf, "%d\n", lfmode ? 1 : 0);
++}
++
++static ssize_t low_frequency_mode_store(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t count)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int val;
++	int ret;
++
++	ret = kstrtouint(buf, 0, &val);
++	if (ret)
++		return ret;
++
++	ret = ds90ux9xx_set_lfmode(ds90ux9xx, val);
++	if (ret)
++		return ret;
++
++	return count;
++}
++static DEVICE_ATTR_RW(low_frequency_mode);
++
++static ssize_t sscg_show(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int val;
++	int ret;
++
++	ret = regmap_read(ds90ux9xx->regmap, DES_REG_SSCG_CTRL, &val);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%d\n", val & SSCG_REG_MASK);
++}
++
++static ssize_t sscg_store(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	int ret, val;
++
++	ret = kstrtoint(buf, 0, &val);
++	if (ret)
++		return ret;
++
++	ret = ds90ux9xx_set_sscg(ds90ux9xx, val);
++	if (ret)
++		return ret;
++
++	return count;
++}
++static DEVICE_ATTR_RW(sscg);
++
++static ssize_t pixel_clock_edge_show(struct device *dev,
++				     struct device_attribute *attr, char *buf)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	unsigned int val;
++	int ret;
++
++	ret = regmap_read(ds90ux9xx->regmap, SER_DES_REG_CONFIG, &val);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%s\n",
++		       (val & PIXEL_CLK_EDGE_RISING) ? "rising" : "falling");
++}
++
++static ssize_t pixel_clock_edge_store(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf, size_t count)
++{
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	bool rising;
++	int ret;
++
++	if (sysfs_streq(buf, "rising") || sysfs_streq(buf, "1"))
++		rising = true;
++	else if (sysfs_streq(buf, "falling") || sysfs_streq(buf, "0"))
++		rising = false;
++	else
++		return -EINVAL;
++
++	ret = ds90ux9xx_set_pixel_clk_edge(ds90ux9xx, rising);
++	if (ret)
++		return ret;
++
++	return count;
++}
++static DEVICE_ATTR_RW(pixel_clock_edge);
++
++static ssize_t link_show(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	unsigned int link;
++	bool locked;
++	int ret;
++
++	ret = ds90ux9xx_get_link_status(dev, &link, &locked);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%u: %s\n", link, locked ? "locked" : "unlocked");
++}
++static DEVICE_ATTR_RO(link);
++
++static struct attribute *ds90ux9xx_attributes[] = {
++	&dev_attr_backward_compatible_mode.attr,
++	&dev_attr_low_frequency_mode.attr,
++	&dev_attr_sscg.attr,
++	&dev_attr_pixel_clock_edge.attr,
++	&dev_attr_link.attr,
++	NULL,
++};
++
++static umode_t ds90ux9xx_attr_is_visible(struct kobject *kobj,
++					 struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct ds90ux9xx *ds90ux9xx = dev_get_drvdata(dev);
++	enum ds90ux9xx_capability cap;
++
++	/* Attribute indices match the ds90ux9xx_attributes[] array indices */
++	switch (index) {
++	case 0:	/* Backward compatible mode */
++	case 1:	/* Low frequency mode */
++		cap = DS90UX9XX_CAP_MODES;
++		break;
++	case 2:	/* Spread spectrum clock generator */
++		cap = DS90UX9XX_CAP_SSCG;
++		break;
++	case 3:	/* Pixel clock edge */
++		cap = DS90UX9XX_CAP_PIXEL_CLK_EDGE;
++		break;
++	case 4: /* FPD-III link lock status - visible for all chips */
++		return attr->mode;
++	default:
++		return 0;
++	}
++
++	return ds90ux9xx_has_capability(ds90ux9xx, cap) ? attr->mode : 0;
++}
++
++static const struct attribute_group ds90ux9xx_attr_group = {
++	.attrs = ds90ux9xx_attributes,
++	.is_visible = ds90ux9xx_attr_is_visible,
++};
++__ATTRIBUTE_GROUPS(ds90ux9xx_attr);
++
++static int ds90ux9xx_config_modes(struct ds90ux9xx *ds90ux9xx)
++{
++	struct device_node *np = ds90ux9xx->dev->of_node;
++	u32 mode;
++	int ret;
++
++	if (!ds90ux9xx_has_capability(ds90ux9xx, DS90UX9XX_CAP_MODES))
++		return 0;
++
++	ret = of_property_read_u32(np, "ti,backward-compatible-mode", &mode);
++	if (!ret) {
++		ret = ds90ux9xx_set_bcmode(ds90ux9xx, mode);
++		if (ret)
++			return ret;
++	} else {
++		ret = ds90ux9xx_set_de_gate(ds90ux9xx, true);
++		if (ret)
++			return ret;
++	}
++
++	ret = of_property_read_u32(np, "ti,low-frequency-mode", &mode);
++	if (!ret) {
++		ret = ds90ux9xx_set_lfmode(ds90ux9xx, mode);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int ds90ux9xx_config_sscg(struct ds90ux9xx *ds90ux9xx)
++{
++	struct device_node *np = ds90ux9xx->dev->of_node;
++	u32 sscg;
++	int ret;
++
++	if (!ds90ux9xx_has_capability(ds90ux9xx, DS90UX9XX_CAP_SSCG))
++		return 0;
++
++	ret = of_property_read_u32(np, "ti,spread-spectrum-clock-generation",
++				   &sscg);
++	if (ret)
++		return 0;
++
++	return ds90ux9xx_set_sscg(ds90ux9xx, sscg);
++}
++
++static int ds90ux9xx_config_pixel_clk_edge(struct ds90ux9xx *ds90ux9xx)
++{
++	struct device_node *np = ds90ux9xx->dev->of_node;
++	const char *pixel;
++	bool rising;
++
++	if (!ds90ux9xx_has_capability(ds90ux9xx, DS90UX9XX_CAP_PIXEL_CLK_EDGE))
++		return 0;
++
++	if (of_property_read_string(np, "ti,pixel-clock-edge", &pixel))
++		return 0;
++
++	if (!strcmp(pixel, "rising"))
++		rising = true;
++	else if (!strcmp(pixel, "falling"))
++		rising = false;
++	else
++		return -EINVAL;
++
++	return ds90ux9xx_set_pixel_clk_edge(ds90ux9xx, rising);
++}
++
++static int ds90ux9xx_config_map_select(struct ds90ux9xx *ds90ux9xx)
++{
++	struct device_node *np = ds90ux9xx->dev->of_node;
++	unsigned int reg, val;
++
++	if (!ds90ux9xx_has_capability(ds90ux9xx, DS90UX9XX_CAP_MAPSEL))
++		return 0;
++
++	if (ds90ux9xx_is_serializer(ds90ux9xx->dev))
++		reg = SER_REG_CTRL_STATUS;
++	else
++		reg = DES_REG_MAPSEL;
++
++	if (of_property_read_bool(np, "ti,video-map-select-msb"))
++		val = MAPSEL_SET | MAPSEL_MSB;
++	else if (of_property_read_bool(np, "ti,video-map-select-lsb"))
++		val = MAPSEL_SET;
++	else
++		val = 0;
++
++	return regmap_update_bits(ds90ux9xx->regmap, reg, MAPSEL_MASK, val);
++}
++
++static int ds90ux9xx_config_properties(struct ds90ux9xx *ds90ux9xx)
++{
++	int ret;
++
++	ret = ds90ux9xx_config_modes(ds90ux9xx);
++	if (ret)
++		return ret;
++
++	ret = ds90ux9xx_config_sscg(ds90ux9xx);
++	if (ret)
++		return ret;
++
++	ret = ds90ux9xx_config_pixel_clk_edge(ds90ux9xx);
++	if (ret)
++		return ret;
++
++	return ds90ux9xx_config_map_select(ds90ux9xx);
++}
++
++static const struct i2c_device_id ds90ux9xx_ids[] = {
++	/* Supported serializers */
++	{ "ds90ub925q", TI_DS90UB925 },
++	{ "ds90uh925q", TI_DS90UH925 },
++	{ "ds90ub927q", TI_DS90UB927 },
++	{ "ds90uh927q", TI_DS90UH927 },
++
++	/* Supported deserializers */
++	{ "ds90ub926q", TI_DS90UB926 },
++	{ "ds90uh926q", TI_DS90UH926 },
++	{ "ds90ub928q", TI_DS90UB928 },
++	{ "ds90uh928q", TI_DS90UH928 },
++	{ "ds90ub940q", TI_DS90UB940 },
++	{ "ds90uh940q", TI_DS90UH940 },
++	{ },
++};
++MODULE_DEVICE_TABLE(i2c, ds90ux9xx_ids);
++
++static const struct of_device_id ds90ux9xx_dt_ids[] = {
++	{ .compatible = "ti,ds90ux9xx",  },
++	{ .compatible = "ti,ds90ub925q", },
++	{ .compatible = "ti,ds90uh925q", },
++	{ .compatible = "ti,ds90ub927q", },
++	{ .compatible = "ti,ds90uh927q", },
++	{ .compatible = "ti,ds90ub926q", },
++	{ .compatible = "ti,ds90uh926q", },
++	{ .compatible = "ti,ds90ub928q", },
++	{ .compatible = "ti,ds90uh928q", },
++	{ .compatible = "ti,ds90ub940q", },
++	{ .compatible = "ti,ds90uh940q", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, ds90ux9xx_dt_ids);
++
++static int ds90ux9xx_read_ic_type(struct i2c_client *client,
++				  struct ds90ux9xx *ds90ux9xx)
++{
++	u8 device_id[DEVICE_ID_LEN + 1] = { 0 };
++	const struct i2c_device_id *id;
++	const char *id_code;
++	unsigned int i;
++	int ret;
++
++	ret = regmap_raw_read(ds90ux9xx->regmap, SER_DES_DEVICE_ID_REG,
++			      device_id, DEVICE_ID_LEN);
++	if (ret < 0) {
++		dev_err(ds90ux9xx->dev, "Failed to read device id: %d\n", ret);
++		return ret;
++	}
++
++	id = i2c_match_id(ds90ux9xx_ids, client);
++	if (id) {
++		id_code = ds90ux9xx_devices[id->driver_data].id;
++		if (!strncmp(device_id, id_code, DEVICE_ID_LEN)) {
++			ds90ux9xx->dev_id = id->driver_data;
++			return 0;
 +		}
 +	}
 +
-+	pctrl->groups = devm_kcalloc(pctrl->dev, pctrl->ngroups,
-+				     sizeof(*pctrl->groups), GFP_KERNEL);
-+	if (!pctrl->groups)
-+		return -ENOMEM;
-+
-+	/* Firstly scan for GPIOs as individual pin groups */
-+	group = pctrl->groups;
-+	for (i = 0; i < pctrl->npins; i++) {
-+		group->name = pctrl->pins[i].name;
-+		group->pins[0] = pctrl->pins[i].id;
-+		group->npins = 1;
-+		group++;
++	/* DS90UH925 device quirk */
++	if (!memcmp(device_id, "\0\0\0\0\0\0", DEVICE_ID_LEN)) {
++		if (id && id->driver_data != TI_DS90UH925)
++			dev_err(ds90ux9xx->dev,
++				"Device ID returned all zeroes, assuming device is DS90UH925\n");
++		ds90ux9xx->dev_id = TI_DS90UH925;
++		return 0;
 +	}
 +
-+	/* Now scan for the rest of pin groups, which has own functions */
-+	for (i = 0; i < pctrl->nfunctions; i++) {
-+		func_id = pctrl->functions[i].id;
-+
-+		/* Those pin groups were accounted above as pin functions */
-+		if (ds90ux9xx_pin_function(func_id))
++	for (i = 0; i < ARRAY_SIZE(ds90ux9xx_devices); i++) {
++		if (strncmp(device_id, ds90ux9xx_devices[i].id, DEVICE_ID_LEN))
 +			continue;
 +
-+		group->name = ds90ux9xx_func_names[func_id];
-+		for (j = 0; j < pctrl->npins; j++) {
-+			if (ds90ux9xx_func_in_group(pctrl->pins[j].func_mask,
-+						    func_id)) {
-+				group->pins[group->npins] = pctrl->pins[j].id;
-+				group->npins++;
-+			}
-+		}
++		if (id)
++			dev_err(ds90ux9xx->dev,
++				"Mismatch between probed device ID [%s] and HW device ID [%s]\n",
++				id_code, device_id);
 +
-+		group++;
++		ds90ux9xx->dev_id = i;
++		return 0;
 +	}
 +
-+	return 0;
++	dev_err(ds90ux9xx->dev, "Device ID [%s] is not supported\n", device_id);
++
++	return -ENODEV;
 +}
 +
-+static int ds90ux9xx_get_groups_count(struct pinctrl_dev *pctldev)
++static int ds90ux9xx_probe(struct i2c_client *client)
 +{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+
-+	return pctrl->ngroups;
-+}
-+
-+static const char *ds90ux9xx_get_group_name(struct pinctrl_dev *pctldev,
-+					    unsigned int group)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+
-+	return pctrl->groups[group].name;
-+}
-+
-+static int ds90ux9xx_get_group_pins(struct pinctrl_dev *pctldev,
-+				    unsigned int group,
-+				    const unsigned int **pins,
-+				    unsigned int *num_pins)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+
-+	*pins = pctrl->groups[group].pins;
-+	*num_pins = pctrl->groups[group].npins;
-+
-+	return 0;
-+}
-+
-+static const struct pinctrl_ops ds90ux9xx_pinctrl_ops = {
-+	.get_groups_count	= ds90ux9xx_get_groups_count,
-+	.get_group_name		= ds90ux9xx_get_group_name,
-+	.get_group_pins		= ds90ux9xx_get_group_pins,
-+	.dt_node_to_map		= pinconf_generic_dt_node_to_map_all,
-+	.dt_free_map		= pinctrl_utils_free_map,
-+};
-+
-+static int ds90ux9xx_get_funcs_count(struct pinctrl_dev *pctldev)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+
-+	return pctrl->nfunctions;
-+}
-+
-+static const char *ds90ux9xx_get_func_name(struct pinctrl_dev *pctldev,
-+					   unsigned int function)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+
-+	return ds90ux9xx_func_names[pctrl->functions[function].id];
-+}
-+
-+static int ds90ux9xx_get_func_groups(struct pinctrl_dev *pctldev,
-+				     unsigned int function,
-+				     const char * const **groups,
-+				     unsigned int * const num_groups)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+
-+	*groups = pctrl->functions[function].groups;
-+	*num_groups = pctrl->functions[function].ngroups;
-+
-+	return 0;
-+}
-+
-+static int ds90ux9xx_gpio_read(struct ds90ux9xx_pinctrl *pctrl,
-+			       unsigned int offset, u8 *value)
-+{
-+	const struct ds90ux9xx_gpio *gpio;
-+	unsigned int val;
++	struct ds90ux9xx *ds90ux9xx;
 +	int ret;
 +
-+	gpio = &pctrl->pins[offset].gpio;
++	ds90ux9xx = devm_kzalloc(&client->dev, sizeof(*ds90ux9xx), GFP_KERNEL);
++	if (!ds90ux9xx)
++		return -ENOMEM;
 +
-+	ret = regmap_read(pctrl->regmap, gpio->cfg_reg, &val);
-+	if (ret) {
-+		dev_err(pctrl->dev, "Failed to read register %#x, gpio %d\n",
-+			gpio->cfg_reg, offset);
-+		return ret;
-+	}
++	/* Get optional GPIO connected to PDB pin */
++	ds90ux9xx->power_gpio = devm_gpiod_get_optional(&client->dev, "power",
++							GPIOD_OUT_HIGH);
++	if (IS_ERR(ds90ux9xx->power_gpio))
++		return PTR_ERR(ds90ux9xx->power_gpio);
 +
-+	*value = val & gpio->cfg_mask;
-+	if (gpio->cfg_mask == 0xf0)
-+		*value >>= 4;
++	/* Give time to the controller to initialize itself after power-up */
++	if (ds90ux9xx->power_gpio)
++		usleep_range(2000, 2500);
 +
-+	return 0;
-+}
++	ds90ux9xx->dev = &client->dev;
++	ds90ux9xx->regmap = devm_regmap_init_i2c(client,
++						 &ds90ux9xx_regmap_config);
++	if (IS_ERR(ds90ux9xx->regmap))
++		return PTR_ERR(ds90ux9xx->regmap);
 +
-+static int ds90ux9xx_gpio_read_stat(struct ds90ux9xx_pinctrl *pctrl,
-+				    unsigned int offset, u8 *value)
-+{
-+	const struct ds90ux9xx_gpio *gpio;
-+	unsigned int val;
-+	int ret;
++	mutex_init(&ds90ux9xx->indirect);
 +
-+	gpio = &pctrl->pins[offset].gpio;
-+
-+	if (!gpio->stat_bit)
-+		return -EINVAL;
-+
-+	ret = regmap_read(pctrl->regmap, gpio->stat_reg, &val);
-+	if (ret) {
-+		dev_err(pctrl->dev, "Failed to read register %#x, gpio %d\n",
-+			gpio->stat_reg, offset);
-+		return ret;
-+	}
-+
-+	*value = val & gpio->stat_bit;
-+
-+	return 0;
-+}
-+
-+static int ds90ux9xx_gpio_write(struct ds90ux9xx_pinctrl *pctrl,
-+				unsigned int offset, u8 value)
-+{
-+	const struct ds90ux9xx_gpio *gpio;
-+	int ret;
-+
-+	gpio = &pctrl->pins[offset].gpio;
-+
-+	if (value & DIR_INPUT && !gpio->input)
-+		return -EINVAL;
-+
-+	if (gpio->cfg_mask == 0xf0)
-+		value <<= 4;
-+
-+	ret = regmap_update_bits(pctrl->regmap, gpio->cfg_reg,
-+				 gpio->cfg_mask, value);
++	ret = ds90ux9xx_read_ic_type(client, ds90ux9xx);
 +	if (ret)
-+		dev_err(pctrl->dev, "Failed to modify register %#x, gpio %d\n",
-+			gpio->cfg_reg, offset);
++		return ret;
++
++	ds90ux9xx->property = &ds90ux9xx_devices[ds90ux9xx->dev_id];
++
++	i2c_set_clientdata(client, ds90ux9xx);
++
++	ret = ds90ux9xx_config_properties(ds90ux9xx);
++	if (ret)
++		return ret;
++
++	ret = sysfs_create_groups(&ds90ux9xx->dev->kobj, ds90ux9xx_attr_groups);
++	if (ret)
++		return ret;
++
++	ret = devm_of_platform_populate(ds90ux9xx->dev);
++	if (ret)
++		sysfs_remove_groups(&ds90ux9xx->dev->kobj,
++				    ds90ux9xx_attr_groups);
 +
 +	return ret;
 +}
 +
-+static int ds90ux940_set_pass(struct ds90ux9xx_pinctrl *pctrl,
-+			      unsigned int pin, bool enable)
++static int ds90ux9xx_remove(struct i2c_client *client)
 +{
-+	u8 bit = pctrl->pins[pin].pass_bit;
++	struct ds90ux9xx *ds90ux9xx = i2c_get_clientdata(client);
 +
-+	return ds90ux9xx_update_bits_indirect(pctrl->dev->parent,
-+			DES_REG_INDIRECT_PASS, bit, enable ? bit : 0x0);
-+}
++	sysfs_remove_groups(&ds90ux9xx->dev->kobj, ds90ux9xx_attr_groups);
 +
-+static int ds90ux9xx_pinctrl_group_disable(struct ds90ux9xx_pinctrl *pctrl,
-+					   enum ds90ux9xx_function function,
-+					   unsigned int pin)
-+{
-+	int ret;
-+
-+	switch (function) {
-+	case DS90UX9XX_FUNC_GPIO:
-+	case DS90UX9XX_FUNC_REMOTE:
-+		return ds90ux9xx_gpio_write(pctrl, pin, 0x0);
-+	case DS90UX9XX_FUNC_PASS:
-+		return ds90ux940_set_pass(pctrl, pin, false);
-+	default:
-+		break;
-+	}
-+
-+	if (!ds90ux9xx_is_serializer(pctrl->dev->parent))
-+		return 0;
-+
-+	switch (function) {
-+	case DS90UX9XX_FUNC_PARALLEL:
-+		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
-+					  PIN_CTRL_RGB18, PIN_CTRL_RGB18);
-+	case DS90UX9XX_FUNC_I2S_4:
-+	case DS90UX9XX_FUNC_I2S_3:
-+		ret = regmap_update_bits(pctrl->regmap, SER_REG_I2S_SURROUND,
-+					 PIN_CTRL_I2S_SURR_BIT, 0x0);
-+		if (ret)
-+			return ret;
-+		/* Fall through */
-+	case DS90UX9XX_FUNC_I2S_2:
-+		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
-+					  PIN_CTRL_I2S_CHANNEL_B, 0x0);
-+	default:
-+		break;
-+	}
++	if (ds90ux9xx->power_gpio)
++		gpiod_set_value_cansleep(ds90ux9xx->power_gpio, 0);
 +
 +	return 0;
 +}
 +
-+static int ds90ux9xx_pinctrl_group_enable(struct ds90ux9xx_pinctrl *pctrl,
-+					  enum ds90ux9xx_function function,
-+					  struct ds90ux9xx_pin_group *group)
-+{
-+	unsigned int pin = group->pins[0];
-+	int ret;
-+
-+	switch (function) {
-+	case DS90UX9XX_FUNC_GPIO:
-+		/* Not all GPIOs can be set to input, fallback to output low */
-+		ret = ds90ux9xx_gpio_write(pctrl, pin, GPIO_AS_INPUT);
-+		if (ret < 0)
-+			ret = ds90ux9xx_gpio_write(pctrl, pin, GPIO_OUTPUT_LOW);
-+		return ret;
-+	case DS90UX9XX_FUNC_REMOTE:
-+		return ds90ux9xx_gpio_write(pctrl, pin, GPIO_OUTPUT_REMOTE);
-+	case DS90UX9XX_FUNC_PASS:
-+		return ds90ux940_set_pass(pctrl, pin, true);
-+	default:
-+		break;
-+	}
-+
-+	if (!ds90ux9xx_is_serializer(pctrl->dev->parent))
-+		return 0;
-+
-+	switch (function) {
-+	case DS90UX9XX_FUNC_PARALLEL:
-+		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
-+					  PIN_CTRL_RGB18, 0x0);
-+	case DS90UX9XX_FUNC_I2S_4:
-+	case DS90UX9XX_FUNC_I2S_3:
-+		ret = regmap_update_bits(pctrl->regmap, SER_REG_I2S_SURROUND,
-+					 PIN_CTRL_I2S_SURR_BIT,
-+					 PIN_CTRL_I2S_SURR_BIT);
-+		if (ret)
-+			return ret;
-+		/* Fall through */
-+	case DS90UX9XX_FUNC_I2S_2:
-+		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
-+			PIN_CTRL_I2S_CHANNEL_B | PIN_CTRL_I2S_DATA_ISLAND,
-+					  PIN_CTRL_I2S_CHANNEL_B);
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ds90ux9xx_pinctrl_func_enable(struct ds90ux9xx_pinctrl *pctrl,
-+					 enum ds90ux9xx_function function,
-+					 struct ds90ux9xx_pin_group *group)
-+{
-+	enum ds90ux9xx_function func;
-+	unsigned int i, pin;
-+	u32 func_mask;
-+	int ret;
-+
-+	/* Disable probably enabled pin functions with pin resource conflicts */
-+	for (i = 0; i < group->npins; i++) {
-+		pin = group->pins[i];
-+
-+		func_mask = pctrl->pins[pin].func_mask & ~BIT(function);
-+
-+		/* Abandon remote GPIOs which are covered by GPIO function */
-+		if (function == DS90UX9XX_FUNC_REMOTE)
-+			func_mask &= ~BIT(DS90UX9XX_FUNC_GPIO);
-+		else
-+			func_mask &= ~BIT(DS90UX9XX_FUNC_REMOTE);
-+
-+		/* Zero to three possible conflicting pin functions */
-+		while (func_mask) {
-+			func = __ffs(func_mask);
-+			func_mask &= ~BIT(func);
-+			ret = ds90ux9xx_pinctrl_group_disable(pctrl, func, pin);
-+			if (ret)
-+				return ret;
-+		}
-+	}
-+
-+	return ds90ux9xx_pinctrl_group_enable(pctrl, function, group);
-+}
-+
-+static int ds90ux9xx_set_mux(struct pinctrl_dev *pctldev,
-+			     unsigned int function, unsigned int group)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+	enum ds90ux9xx_function func = pctrl->functions[function].id;
-+	struct ds90ux9xx_pin_group *grp = &pctrl->groups[group];
-+
-+	return ds90ux9xx_pinctrl_func_enable(pctrl, func, grp);
-+}
-+
-+static int ds90ux9xx_gpio_request_enable(struct pinctrl_dev *pctldev,
-+					 struct pinctrl_gpio_range *range,
-+					 unsigned int offset)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-+
-+	return ds90ux9xx_pinctrl_func_enable(pctrl, DS90UX9XX_FUNC_GPIO,
-+					     &pctrl->groups[offset]);
-+}
-+
-+static const struct pinmux_ops ds90ux9xx_pinmux_ops = {
-+	.get_functions_count	= ds90ux9xx_get_funcs_count,
-+	.get_function_name	= ds90ux9xx_get_func_name,
-+	.get_function_groups	= ds90ux9xx_get_func_groups,
-+	.set_mux		= ds90ux9xx_set_mux,
-+	.gpio_request_enable	= ds90ux9xx_gpio_request_enable,
-+	.strict = true,
-+};
-+
-+static const struct pinctrl_desc ds90ux9xx_pinctrl_desc = {
-+	.pctlops	= &ds90ux9xx_pinctrl_ops,
-+	.pmxops		= &ds90ux9xx_pinmux_ops,
-+};
-+
-+static int ds90ux9xx_gpio_get(struct gpio_chip *chip, unsigned int offset)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
-+	int ret;
-+	u8 val;
-+
-+	ret = ds90ux9xx_gpio_read(pctrl, offset, &val);
-+	if (ret)
-+		return ret;
-+
-+	if (!(val & DIR_INPUT))
-+		return !!(val & OUTPUT_HIGH);
-+
-+	ret = ds90ux9xx_gpio_read_stat(pctrl, offset, &val);
-+	if (ret)
-+		return ret;
-+
-+	return !!val;
-+}
-+
-+static void ds90ux9xx_gpio_set(struct gpio_chip *chip, unsigned int offset,
-+			       int value)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
-+	u8 val = value ? GPIO_OUTPUT_HIGH : GPIO_OUTPUT_LOW;
-+
-+	ds90ux9xx_gpio_write(pctrl, offset, val);
-+}
-+
-+static int ds90ux9xx_gpio_get_direction(struct gpio_chip *chip,
-+					unsigned int offset)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
-+	int ret;
-+	u8 val;
-+
-+	ret = ds90ux9xx_gpio_read(pctrl, offset, &val);
-+	if (ret)
-+		return ret;
-+
-+	return !!(val & DIR_INPUT);
-+}
-+
-+static int ds90ux9xx_gpio_direction_input(struct gpio_chip *chip,
-+					  unsigned int offset)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
-+
-+	return ds90ux9xx_gpio_write(pctrl, offset, GPIO_AS_INPUT);
-+}
-+
-+static int ds90ux9xx_gpio_direction_output(struct gpio_chip *chip,
-+					   unsigned int offset, int value)
-+{
-+	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
-+	u8 val = value ? GPIO_OUTPUT_HIGH : GPIO_OUTPUT_LOW;
-+
-+	return ds90ux9xx_gpio_write(pctrl, offset, val);
-+}
-+
-+static const struct gpio_chip ds90ux9xx_gpio_chip = {
-+	.owner			= THIS_MODULE,
-+	.get			= ds90ux9xx_gpio_get,
-+	.set			= ds90ux9xx_gpio_set,
-+	.get_direction		= ds90ux9xx_gpio_get_direction,
-+	.direction_input	= ds90ux9xx_gpio_direction_input,
-+	.direction_output	= ds90ux9xx_gpio_direction_output,
-+	.base			= -1,
-+	.can_sleep		= 1,
-+	.of_gpio_n_cells	= 2,
-+	.of_xlate		= of_gpio_simple_xlate,
-+};
-+
-+static int ds90ux9xx_parse_dt_properties(struct ds90ux9xx_pinctrl *pctrl)
-+{
-+	struct device_node *np = pctrl->dev->of_node;
-+	unsigned int val;
-+
-+	if (!ds90ux9xx_is_serializer(pctrl->dev->parent))
-+		return 0;
-+
-+	/*
-+	 * Optionally set "Video Color Depth Mode" to RGB18 mode, it may be
-+	 * needed if DS90Ux927 serializer is paired with DS90Ux926 deserializer
-+	 * or if there is no pins conflicting with the "parallel" pin group
-+	 * to disable RGB24 mode implicitly.
-+	 */
-+	if (of_property_read_bool(np, "ti,video-depth-18bit"))
-+		val = PIN_CTRL_RGB18;
-+	else
-+		val = 0;
-+
-+	return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
-+				  PIN_CTRL_RGB18, val);
-+}
-+
-+static void ds90ux9xx_get_data(struct ds90ux9xx_pinctrl *pctrl,
-+			       const struct ds90ux9xx_pinctrl_data **pctrl_data)
-+{
-+	enum ds90ux9xx_device_id id = ds90ux9xx_get_ic_type(pctrl->dev->parent);
-+
-+	switch (id) {
-+	case TI_DS90UB925:
-+	case TI_DS90UH925:
-+		*pctrl_data = &ds90ux925_pinctrl;
-+		break;
-+	case TI_DS90UB927:
-+	case TI_DS90UH927:
-+		*pctrl_data = &ds90ux927_pinctrl;
-+		break;
-+	case TI_DS90UB926:
-+	case TI_DS90UH926:
-+		*pctrl_data = &ds90ux926_pinctrl;
-+		break;
-+	case TI_DS90UB928:
-+	case TI_DS90UH928:
-+		*pctrl_data = &ds90ux928_pinctrl;
-+		break;
-+	case TI_DS90UB940:
-+	case TI_DS90UH940:
-+		*pctrl_data = &ds90ux940_pinctrl;
-+		break;
-+	default:
-+		dev_err(pctrl->dev, "Unsupported hardware id %d\n", id);
-+	}
-+}
-+
-+static int ds90ux9xx_pinctrl_probe(struct platform_device *pdev)
-+{
-+	const struct ds90ux9xx_pinctrl_data *pctrl_data;
-+	struct ds90ux9xx_pinctrl *pctrl;
-+	struct device *dev = &pdev->dev;
-+	int ret;
-+
-+	pctrl = devm_kzalloc(dev, sizeof(*pctrl), GFP_KERNEL);
-+	if (!pctrl)
-+		return -ENOMEM;
-+
-+	pctrl->dev = dev;
-+	pctrl->regmap = dev_get_regmap(dev->parent, NULL);
-+	if (!pctrl->regmap)
-+		return -ENODEV;
-+
-+	pctrl_data = of_device_get_match_data(dev);
-+	if (!pctrl_data)
-+		ds90ux9xx_get_data(pctrl, &pctrl_data);
-+
-+	if (!pctrl_data)
-+		return -ENODEV;
-+
-+	ret = ds90ux9xx_populate_groups(pctrl, pctrl_data);
-+	if (ret)
-+		return ret;
-+
-+	ret = ds90ux9xx_parse_dt_properties(pctrl);
-+	if (ret)
-+		return ret;
-+
-+	pctrl->desc = ds90ux9xx_pinctrl_desc;
-+	pctrl->desc.name = pctrl_data->name;
-+	pctrl->desc.pins = pctrl_data->pins_desc;
-+	pctrl->desc.npins = pctrl_data->npins;
-+
-+	pctrl->pctrl = devm_pinctrl_register(dev, &pctrl->desc, pctrl);
-+	if (IS_ERR(pctrl->pctrl))
-+		return PTR_ERR(pctrl->pctrl);
-+
-+	platform_set_drvdata(pdev, pctrl);
-+
-+	pctrl->gpiochip = ds90ux9xx_gpio_chip;
-+	pctrl->gpiochip.parent = dev;
-+	pctrl->gpiochip.label = pctrl_data->name;
-+	pctrl->gpiochip.ngpio = pctrl->ngpios;
-+
-+	if (of_property_read_bool(dev->of_node, "gpio-ranges")) {
-+		pctrl->gpiochip.request = gpiochip_generic_request;
-+		pctrl->gpiochip.free = gpiochip_generic_free;
-+	}
-+
-+	return devm_gpiochip_add_data(dev, &pctrl->gpiochip, pctrl);
-+}
-+
-+static const struct of_device_id ds90ux9xx_pinctrl_dt_ids[] = {
-+	{ .compatible = "ti,ds90ux9xx-pinctrl", },
-+	{ .compatible = "ti,ds90ux925-pinctrl", .data = &ds90ux925_pinctrl, },
-+	{ .compatible = "ti,ds90ux926-pinctrl", .data = &ds90ux926_pinctrl, },
-+	{ .compatible = "ti,ds90ux927-pinctrl", .data = &ds90ux927_pinctrl, },
-+	{ .compatible = "ti,ds90ux928-pinctrl", .data = &ds90ux928_pinctrl, },
-+	{ .compatible = "ti,ds90ux940-pinctrl", .data = &ds90ux940_pinctrl, },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, ds90ux9xx_pinctrl_dt_ids);
-+
-+static struct platform_driver ds90ux9xx_pinctrl_driver = {
-+	.probe = ds90ux9xx_pinctrl_probe,
++static struct i2c_driver ds90ux9xx_driver = {
 +	.driver = {
-+		.name = "ds90ux9xx-pinctrl",
-+		.of_match_table = ds90ux9xx_pinctrl_dt_ids,
++		.name = "ds90ux9xx",
++		.of_match_table = ds90ux9xx_dt_ids,
 +	},
++	.probe_new = ds90ux9xx_probe,
++	.remove = ds90ux9xx_remove,
++	.id_table = ds90ux9xx_ids,
 +};
-+module_platform_driver(ds90ux9xx_pinctrl_driver);
++module_i2c_driver(ds90ux9xx_driver);
 +
++MODULE_AUTHOR("Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>");
 +MODULE_AUTHOR("Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>");
-+MODULE_DESCRIPTION("TI DS90Ux9xx pinmux and GPIO controller driver");
++MODULE_DESCRIPTION("TI DS90Ux9xx MFD driver");
 +MODULE_LICENSE("GPL");
+diff --git a/include/linux/mfd/ds90ux9xx.h b/include/linux/mfd/ds90ux9xx.h
+new file mode 100644
+index 000000000000..72a5928b6ad1
+--- /dev/null
++++ b/include/linux/mfd/ds90ux9xx.h
+@@ -0,0 +1,42 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * TI DS90Ux9xx MFD driver
++ *
++ * Copyright (c) 2017-2018 Mentor Graphics Inc.
++ */
++
++#ifndef __LINUX_MFD_DS90UX9XX_H
++#define __LINUX_MFD_DS90UX9XX_H
++
++#include <linux/types.h>
++
++enum ds90ux9xx_device_id {
++	/* Supported serializers */
++	TI_DS90UB925,
++	TI_DS90UH925,
++	TI_DS90UB927,
++	TI_DS90UH927,
++
++	/* Supported deserializers */
++	TI_DS90UB926,
++	TI_DS90UH926,
++	TI_DS90UB928,
++	TI_DS90UH928,
++	TI_DS90UB940,
++	TI_DS90UH940,
++};
++
++struct device;
++
++bool ds90ux9xx_is_serializer(struct device *dev);
++enum ds90ux9xx_device_id ds90ux9xx_get_ic_type(struct device *dev);
++unsigned int ds90ux9xx_num_fpd_links(struct device *dev);
++
++int ds90ux9xx_get_link_status(struct device *dev, unsigned int *link,
++			      bool *locked);
++
++int ds90ux9xx_update_bits_indirect(struct device *dev, u8 reg, u8 mask, u8 val);
++int ds90ux9xx_write_indirect(struct device *dev, unsigned char reg, u8 val);
++int ds90ux9xx_read_indirect(struct device *dev, u8 reg, u8 *val);
++
++#endif /*__LINUX_MFD_DS90UX9XX_H */
 -- 
 2.17.1
