@@ -1,117 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:57472 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725989AbeJKK4e (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:56090 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725914AbeJHUMo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Oct 2018 06:56:34 -0400
-Message-ID: <17907e485a97d332020b43856663ede5@smtp-cloud7.xs4all.net>
-Date: Thu, 11 Oct 2018 05:31:18 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Mon, 8 Oct 2018 16:12:44 -0400
+Subject: Re: [PATCH 5/5] omapdrm/dss/hdmi4_cec.c: don't set the retransmit
+ count
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <20181004090900.32915-1-hverkuil@xs4all.nl>
+ <20181004090900.32915-6-hverkuil@xs4all.nl>
+ <7b609cdf-ff95-f32c-8431-59f04f87de56@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <959571c2-4a0d-87be-2ff3-4417aee152f1@xs4all.nl>
+Date: Mon, 8 Oct 2018 15:01:02 +0200
+MIME-Version: 1.0
+In-Reply-To: <7b609cdf-ff95-f32c-8431-59f04f87de56@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 10/08/2018 02:47 PM, Tomi Valkeinen wrote:
+> On 04/10/18 12:09, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The HDMI_CEC_DBG_3 register does have a retransmit count, but you
+>> can't write to it, those bits are read-only.
+>>
+>> So drop the attempt to set the retransmit count, since it doesn't
+>> work.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c | 3 ---
+>>  1 file changed, 3 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+>> index dee66a5101b5..00407f1995a8 100644
+>> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+>> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+>> @@ -280,9 +280,6 @@ static int hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
+>>  	hdmi_write_reg(core->base, HDMI_CEC_INT_STATUS_1,
+>>  		       HDMI_CEC_RETRANSMIT_CNT_INT_MASK);
+>>  
+>> -	/* Set the retry count */
+>> -	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, attempts - 1, 6, 4);
+>> -
+> 
+> I presume there's no harm in having a different retry count in the HW
+> than what was requested via the API?
 
-Results of the daily build of media_tree:
+Correct.
 
-date:			Thu Oct 11 05:00:11 CEST 2018
-media-tree git hash:	8caec72e8cbff65afa38928197bea5a393b67975
-media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
-v4l-utils git hash:	9d7d01f24b5e8ac73fbed783cffd5c0f5f6e8a87
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
+Some CEC HW implementations expect that the software calculates the retry count,
+but the omap4 does this in hardware (not quite optimally, I'm afraid) and those
+just ignore the argument.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Regards,
 
-Detailed results are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
+> Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> 
+>  Tomi
+> 
