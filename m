@@ -1,50 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:37759 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728139AbeJCD6y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2018 23:58:54 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:38722 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726193AbeJHRSJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Oct 2018 13:18:09 -0400
+Subject: Re: [RFC PATCH] media: docs-rst: Document m2m stateless video decoder
+ interface
+To: Tomasz Figa <tfiga@chromium.org>
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: i2c: TDA1997x: select CONFIG_HDMI
-Date: Tue,  2 Oct 2018 23:12:43 +0200
-Message-Id: <20181002211324.2696685-1-arnd@arndb.de>
+        Pawel Osciak <posciak@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+References: <20180831074743.235010-1-acourbot@chromium.org>
+ <b8a80df8-fd07-6820-3021-670c360ff306@xs4all.nl>
+ <CAPBb6MU=wJ5WrHpwXZcWLsv7dD42UT+R6ppKyLnZesuExAbNWA@mail.gmail.com>
+ <604a46db-b912-4b78-620e-1b1ba38fa130@xs4all.nl>
+ <CAAFQd5ANVWury7c1xH6r6uX-SFgSzsTyonFan5TjdOytmoW-kw@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3cd8e2f0-d9c1-6907-d16b-d3c6699c9ef8@xs4all.nl>
+Date: Mon, 8 Oct 2018 12:07:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAAFQd5ANVWury7c1xH6r6uX-SFgSzsTyonFan5TjdOytmoW-kw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without CONFIG_HDMI, we get a link error for this driver:
+On 10/03/2018 12:10 PM, Tomasz Figa wrote:
+> On Tue, Sep 11, 2018 at 5:48 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>> On 09/11/18 10:40, Alexandre Courbot wrote:
+>>>> I am not sure whether this should be documented, but there are some additional
+>>>> restrictions w.r.t. reference frames:
+>>>>
+>>>> Since decoders need access to the decoded reference frames there are some corner
+>>>> cases that need to be checked:
+>>>>
+>>>> 1) V4L2_MEMORY_USERPTR cannot be used for the capture queue: the driver does not
+>>>>    know when a malloced but dequeued buffer is freed, so the reference frame
+>>>>    could suddenly be gone.
+>>>
+>>> It it is confirmed that we cannot use USERPTR buffers as CAPTURE then
+>>> this probably needs to be documented. I wonder if there isn't a way to
+>>> avoid this by having vb2 keep a reference to the pages in such a way
+>>> that they would not be recycled after after userspace calls free() on
+>>> the buffer. Is that possible with user-allocated memory?
+>>
+>> vb2 keeps a reference while the buffer is queued, but that reference is
+>> released once the buffer is dequeued. Correctly, IMHO. If you provide
+>> USERPTR, than userspace is responsible for the memory. Changing this
+>> would require changing the API, since USERPTR has always worked like
+>> this.
+> 
+> That would be a userspace bug wouldn't it? The next try to get user
+> pages would fail in that case and we could just fail such decode
+> request, couldn't we?
+> 
+> (Personally I'm not a big fan of USERPTR, though.)
 
-drivers/media/i2c/tda1997x.o: In function `tda1997x_parse_infoframe':
-tda1997x.c:(.text+0x2195): undefined reference to `hdmi_infoframe_unpack'
-tda1997x.c:(.text+0x21b6): undefined reference to `hdmi_infoframe_log'
-drivers/media/i2c/tda1997x.o: In function `tda1997x_log_infoframe':
-tda1997x.c:(.text.unlikely+0x13d3): undefined reference to `hdmi_infoframe_unpack'
-tda1997x.c:(.text.unlikely+0x1426): undefined reference to `hdmi_infoframe_log'
+Yes, just don't support USERPTR for drivers like this. USERPTR just
+doesn't make sense.
 
-All other drivers in this directory that use HDMI select CONFIG_HDMI,
-so do the same here:
+> 
+>>
+>>>
+>>> Not that I think that forbidding USERPTR buffers in this scenario
+>>> would be a big problem.
+>>
+>> I think it is perfectly OK to forbid this. Ideally I would like to have
+>> some test in v4l2-compliance or (even better) v4l2-mem2mem.c for this,
+>> but it is actually not that easy to identify drivers like this.
+>>
+>> Suggestions for this on a postcard...
+>>
+>>>
+>>>>
+>>>> 2) V4L2_MEMORY_DMABUF can be used, but drivers should check that the dma buffer is
+>>>>    still available AND increase the dmabuf refcount while it is used by the HW.
+>>>
+>>> Yeah, with DMABUF the above problem can easily be avoided at least.
+>>>
+>>>>
+>>>> 3) What to do if userspace has requeued a buffer containing a reference frame,
+>>>>    and you want to decode a B/P-frame that refers to that buffer? We need to
+>>>>    check against that: I think that when you queue a capture buffer whose index
+>>>>    is used in a pending request as a reference frame, than that should fail with
+>>>>    an error.
 
-Fixes: 9ac0038db9a7 ("media: i2c: Add TDA1997x HDMI receiver driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/i2c/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Perhaps an error is overkill, but I think a warning should be issued.
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index bcf0686190e0..d958b7fd9e73 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -61,6 +61,7 @@ config VIDEO_TDA1997X
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	depends on SND_SOC
- 	select SND_PCM
-+	select HDMI
- 	---help---
- 	  V4L2 subdevice driver for the NXP TDA1997x HDMI receivers.
- 
--- 
-2.18.0
+ And trying to queue a request referring to a buffer that has been
+ requeued should also fail.
+
+I don't think this is right, this is likely a valid case.
+
+Regards,
+
+	Hans
+
+>>>>
+>>>> We might need to add some support for this in v4l2-mem2mem.c or vb2.
+>>>
+>>> Sounds good, and we should document this as well.
+>>>
+>>
+>> Right. And test it!
+> 
+> I'm not convinced that we should be enforcing this. Moreover,
+> requeuing a buffer containing a reference frame for a pending request
+> is not bound to be an error. It might be a legit case when the same
+> entry in the reference list is replaced with a different key frame
+> decoded into the same buffer as the reference list entry pointed until
+> now.
+> 
+> Best regards,
+> Tomasz
+> 
