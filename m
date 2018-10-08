@@ -1,40 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelv0143.ext.ti.com ([198.47.23.248]:34052 "EHLO
-        lelv0143.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725893AbeJHUDu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 16:03:50 -0400
-Subject: Re: [PATCH 4/5] omapdrm/dss/hdmi4_cec.c: clear TX FIFO before
- transmit_done
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>
-References: <20181004090900.32915-1-hverkuil@xs4all.nl>
- <20181004090900.32915-5-hverkuil@xs4all.nl>
- <33ddd03f-91aa-6c19-380e-a81abf390180@xs4all.nl>
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Message-ID: <d6b30689-2529-f3ed-9886-de0ef634388c@ti.com>
-Date: Mon, 8 Oct 2018 15:52:12 +0300
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:49073 "EHLO
+        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725941AbeJHUTC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Oct 2018 16:19:02 -0400
+Date: Mon, 8 Oct 2018 15:07:19 +0200
+From: Greg KH <greg@kroah.com>
+To: Dafna Hirschfeld <dafna3@gmail.com>
+Cc: isely@pobox.com, mchehab@kernel.org, helen.koike@collabora.com,
+        hverkuil@xs4all.nl, outreachy-kernel@googlegroups.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Outreachy kernel] [PATCH vicodec] media: pvrusb2: replace
+ `printk` with `pr_*`
+Message-ID: <20181008130719.GA20351@kroah.com>
+References: <20181008120647.10271-1-dafna3@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <33ddd03f-91aa-6c19-380e-a81abf390180@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181008120647.10271-1-dafna3@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-On 05/10/18 17:13, Hans Verkuil wrote:
-> Tomi,
+On Mon, Oct 08, 2018 at 03:06:47PM +0300, Dafna Hirschfeld wrote:
+> Replace calls to `printk` with the appropriate `pr_*`
+> macro.
 > 
-> Can you review this patch and the next? They should go to 4.20.
-> This patch in particular is a nasty one, hard to reproduce.
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> ---
+>  drivers/media/usb/pvrusb2/pvrusb2-debug.h    |  2 +-
+>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c      |  8 +++---
+>  drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 28 +++++++++-----------
+>  drivers/media/usb/pvrusb2/pvrusb2-main.c     |  4 +--
+>  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |  4 +--
+>  5 files changed, 22 insertions(+), 24 deletions(-)
 > 
-> This patch should also be Cc-ed to stable for 4.15 and up.
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-debug.h b/drivers/media/usb/pvrusb2/pvrusb2-debug.h
+> index 5cd16292e2fa..1323f949f454 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-debug.h
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-debug.h
+> @@ -17,7 +17,7 @@
+>  
+>  extern int pvrusb2_debug;
+>  
+> -#define pvr2_trace(msk, fmt, arg...) do {if(msk & pvrusb2_debug) printk(KERN_INFO "pvrusb2: " fmt "\n", ##arg); } while (0)
+> +#define pvr2_trace(msk, fmt, arg...) do {if (msk & pvrusb2_debug) pr_info("pvrusb2: " fmt "\n", ##arg); } while (0)
 
-Done. There's no dependency from the omapdrm patches to the first patch,
-is there? I.e. I can apply these via omapdrm?
+You should not need prefixes for pr_info() calls.
 
- Tomi
+>  
+>  /* These are listed in *rough* order of decreasing usefulness and
+>     increasing noise level. */
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> index a8519da0020b..7702285c1519 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> @@ -3293,12 +3293,12 @@ void pvr2_hdw_trigger_module_log(struct pvr2_hdw *hdw)
+>  	int nr = pvr2_hdw_get_unit_number(hdw);
+>  	LOCK_TAKE(hdw->big_lock);
+>  	do {
+> -		printk(KERN_INFO "pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
+> +		pr_info("pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
 
--- 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+A driver should be using dev_info(), not pr_*.
+
+Also, for the outreachy application process, I can not accept patches
+outside of drivers/staging/.
+
+sorry,
+
+greg k-h
