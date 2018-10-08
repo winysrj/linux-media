@@ -1,60 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:40074 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725837AbeJJE2Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 00:28:25 -0400
-Subject: Re: [PATCH] media: tc358743: Remove unnecessary self assignment
-To: Nathan Chancellor <natechancellor@gmail.com>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20181008221128.22510-1-natechancellor@gmail.com>
-Reply-To: kieran.bingham+renesas@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <b5f1c169-3770-96a7-cd1a-59939de8064b@ideasonboard.com>
-Date: Tue, 9 Oct 2018 22:09:31 +0100
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:63415 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726075AbeJHTkf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 15:40:35 -0400
+From: bwinther@cisco.com
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com,
+        =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+Subject: [PATCH 1/2] media: v4l2-tpg-core: Add 16-bit bayer
+Date: Mon,  8 Oct 2018 14:29:06 +0200
+Message-Id: <20181008122907.26059-1-bwinther@cisco.com>
 MIME-Version: 1.0
-In-Reply-To: <20181008221128.22510-1-natechancellor@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nathan,
+From: Bård Eirik Winther <bwinther@cisco.com>
 
-Thank you for the patch,
+Add 16-bit bayer formats to the test pattern generator, namely
+  V4L2_PIX_FMT_SRGGB16
+  V4L2_PIX_FMT_SGRBG16
+  V4L2_PIX_FMT_SGBRG16
+  V4L2_PIX_FMT_SBGGR16
 
-On 08/10/18 23:11, Nathan Chancellor wrote:
-> Clang warns when a variable is assigned to itself.
-> 
-> drivers/media/i2c/tc358743.c:1921:7: warning: explicitly assigning value
-> of variable of type 'int' to itself [-Wself-assign]
->                 ret = ret;
->                 ~~~ ^ ~~~
-> 1 warning generated.
-> 
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 28 +++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-Certainly somewhat redundant.
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/i2c/tc358743.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index ca5d92942820..41d470d9ca94 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -1918,7 +1918,6 @@ static int tc358743_probe_of(struct tc358743_state *state)
->  	ret = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(ep), &endpoint);
->  	if (ret) {
->  		dev_err(dev, "failed to parse endpoint\n");
-> -		ret = ret;
->  		goto put_node;
->  	}
->  
-> 
+diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+index f3d9c1140ffa..76b125ebee6d 100644
+--- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
++++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
+@@ -202,6 +202,10 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_SGBRG12:
+ 	case V4L2_PIX_FMT_SGRBG12:
+ 	case V4L2_PIX_FMT_SRGGB12:
++	case V4L2_PIX_FMT_SBGGR16:
++	case V4L2_PIX_FMT_SGBRG16:
++	case V4L2_PIX_FMT_SGRBG16:
++	case V4L2_PIX_FMT_SRGGB16:
+ 		tpg->interleaved = true;
+ 		tpg->vdownsampling[1] = 1;
+ 		tpg->hdownsampling[1] = 1;
+@@ -394,6 +398,10 @@ bool tpg_s_fourcc(struct tpg_data *tpg, u32 fourcc)
+ 	case V4L2_PIX_FMT_SGRBG12:
+ 	case V4L2_PIX_FMT_SGBRG12:
+ 	case V4L2_PIX_FMT_SBGGR12:
++	case V4L2_PIX_FMT_SRGGB16:
++	case V4L2_PIX_FMT_SGRBG16:
++	case V4L2_PIX_FMT_SGBRG16:
++	case V4L2_PIX_FMT_SBGGR16:
+ 		tpg->twopixelsize[0] = 4;
+ 		tpg->twopixelsize[1] = 4;
+ 		break;
+@@ -1358,6 +1366,22 @@ static void gen_twopix(struct tpg_data *tpg,
+ 		buf[0][offset] |= (buf[0][offset] >> 4) & 0xf;
+ 		buf[1][offset] |= (buf[1][offset] >> 4) & 0xf;
+ 		break;
++	case V4L2_PIX_FMT_SBGGR16:
++		buf[0][offset] = buf[0][offset + 1] = odd ? g_u_s : b_v;
++		buf[1][offset] = buf[1][offset + 1] = odd ? r_y_h : g_u_s;
++		break;
++	case V4L2_PIX_FMT_SGBRG16:
++		buf[0][offset] = buf[0][offset + 1] = odd ? b_v : g_u_s;
++		buf[1][offset] = buf[1][offset + 1] = odd ? g_u_s : r_y_h;
++		break;
++	case V4L2_PIX_FMT_SGRBG16:
++		buf[0][offset] = buf[0][offset + 1] = odd ? r_y_h : g_u_s;
++		buf[1][offset] = buf[1][offset + 1] = odd ? g_u_s : b_v;
++		break;
++	case V4L2_PIX_FMT_SRGGB16:
++		buf[0][offset] = buf[0][offset + 1] = odd ? g_u_s : r_y_h;
++		buf[1][offset] = buf[1][offset + 1] = odd ? b_v : g_u_s;
++		break;
+ 	}
+ }
+ 
+@@ -1376,6 +1400,10 @@ unsigned tpg_g_interleaved_plane(const struct tpg_data *tpg, unsigned buf_line)
+ 	case V4L2_PIX_FMT_SGBRG12:
+ 	case V4L2_PIX_FMT_SGRBG12:
+ 	case V4L2_PIX_FMT_SRGGB12:
++	case V4L2_PIX_FMT_SBGGR16:
++	case V4L2_PIX_FMT_SGBRG16:
++	case V4L2_PIX_FMT_SGRBG16:
++	case V4L2_PIX_FMT_SRGGB16:
+ 		return buf_line & 1;
+ 	default:
+ 		return 0;
+-- 
+2.17.1
