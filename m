@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:20084 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727305AbeJKQim (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Oct 2018 12:38:42 -0400
-Subject: Re: [PATCH 2/2] ipu3-cio2: Use cio2_queues_exit
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: rajmohan.mani@intel.com, yong.zhi@intel.com, bingbu.cao@intel.com,
-        tian.shu.qiu@intel.com, jian.xu.zheng@intel.com
-References: <20181010083231.27492-1-sakari.ailus@linux.intel.com>
- <20181010083231.27492-3-sakari.ailus@linux.intel.com>
-From: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <044f336d-657e-2a02-f5b2-1437589c8537@linux.intel.com>
-Date: Thu, 11 Oct 2018 17:16:30 +0800
-MIME-Version: 1.0
-In-Reply-To: <20181010083231.27492-3-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from smtp.codeaurora.org ([198.145.29.96]:38550 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726014AbeJHUfW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 16:35:22 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+Subject: [PATCH v10 5/5] dt-bindings: media: Document bindings for venus firmware device
+Date: Mon,  8 Oct 2018 18:53:02 +0530
+Message-Id: <1539004982-32555-6-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1539004982-32555-1-git-send-email-vgarodia@codeaurora.org>
+References: <1539004982-32555-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tested-by: Bingbu Cao <bingbu.cao@intel.com>
-Reviewed-by: Bingbu Cao <bingbu.cao@intel.com>
+Add devicetree binding documentation for firmware loader for video
+hardware running on qualcomm chip.
 
-On 10/10/2018 04:32 PM, Sakari Ailus wrote:
-> The ipu3-cio2 driver has a function to tear down video devices as well as
-> the associated video buffer queues. Use it.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> index 723022ef3662..447baaebca44 100644
-> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> @@ -1844,12 +1844,10 @@ static int cio2_pci_probe(struct pci_dev *pci_dev,
->  static void cio2_pci_remove(struct pci_dev *pci_dev)
->  {
->  	struct cio2_device *cio2 = pci_get_drvdata(pci_dev);
-> -	unsigned int i;
->  
->  	media_device_unregister(&cio2->media_dev);
->  	cio2_notifier_exit(cio2);
-> -	for (i = 0; i < CIO2_QUEUES; i++)
-> -		cio2_queue_exit(cio2, &cio2->queue[i]);
-> +	cio2_queues_exit(cio2);
->  	cio2_fbpt_exit_dummy(cio2);
->  	v4l2_device_unregister(&cio2->v4l2_dev);
->  	media_device_cleanup(&cio2->media_dev);
+Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ Documentation/devicetree/bindings/media/qcom,venus.txt | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+index 00d0d1b..7e04586 100644
+--- a/Documentation/devicetree/bindings/media/qcom,venus.txt
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -53,7 +53,7 @@
+ 
+ * Subnodes
+ The Venus video-codec node must contain two subnodes representing
+-video-decoder and video-encoder.
++video-decoder and video-encoder, and one optional firmware subnode.
+ 
+ Every of video-encoder or video-decoder subnode should have:
+ 
+@@ -79,6 +79,13 @@ Every of video-encoder or video-decoder subnode should have:
+ 		    power domain which is responsible for collapsing
+ 		    and restoring power to the subcore.
+ 
++The firmware subnode must have:
++
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++
+ * An Example
+ 	video-codec@1d00000 {
+ 		compatible = "qcom,msm8916-venus";
+@@ -105,4 +112,8 @@ Every of video-encoder or video-decoder subnode should have:
+ 			clock-names = "core";
+ 			power-domains = <&mmcc VENUS_CORE1_GDSC>;
+ 		};
++
++		video-firmware {
++			iommus = <&apps_iommu 0x10b2 0x0>;
++		};
+ 	};
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
