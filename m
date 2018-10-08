@@ -1,54 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48628 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726373AbeJHUq1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 16:46:27 -0400
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34842 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726056AbeJHVIp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Oct 2018 17:08:45 -0400
+To: Maling list - DRI developers <dri-devel@lists.freedesktop.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] omapdrm/dss/hdmi4_cec.c: simplify clear_tx/rx_fifo functions
+Message-ID: <3bc5d91c-89ce-1885-7b56-7e6047c7ff8b@xs4all.nl>
+Date: Mon, 8 Oct 2018 15:56:49 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Date: Mon, 08 Oct 2018 19:04:41 +0530
-From: Vikash Garodia <vgarodia@codeaurora.org>
-To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
-        linux-media-owner@vger.kernel.org
-Subject: Re: [PATCH v10 0/5] Venus updates - PIL
-In-Reply-To: <1539004982-32555-1-git-send-email-vgarodia@codeaurora.org>
-References: <1539004982-32555-1-git-send-email-vgarodia@codeaurora.org>
-Message-ID: <20bef432f5c7c98e6fc623efdded8c94@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please ignore this version. Forgot to update the documentation.
-Updated the same in v11 and posted it.
+Use REG_GET to avoid the temp variable.
 
-On 2018-10-08 18:52, Vikash Garodia wrote:
-> This version of the series
-> * extends the description of firmware subnode in documentation.
-> * renames the flag suggesting the presence of tz and update code
->   accordingly.
-> 
-> Stanimir Varbanov (1):
->   venus: firmware: register separate platform_device for firmware 
-> loader
-> 
-> Vikash Garodia (4):
->   venus: firmware: add routine to reset ARM9
->   venus: firmware: move load firmware in a separate function
->   venus: firmware: add no TZ boot and shutdown routine
->   dt-bindings: media: Document bindings for venus firmware device
-> 
->  .../devicetree/bindings/media/qcom,venus.txt       |  13 +-
->  drivers/media/platform/qcom/venus/core.c           |  24 ++-
->  drivers/media/platform/qcom/venus/core.h           |   6 +
->  drivers/media/platform/qcom/venus/firmware.c       | 235 
-> +++++++++++++++++++--
->  drivers/media/platform/qcom/venus/firmware.h       |  17 +-
->  drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
->  drivers/media/platform/qcom/venus/hfi_venus_io.h   |   8 +
->  7 files changed, 273 insertions(+), 43 deletions(-)
+Add pr_err_once if hdmi_cec_clear_tx_fifo() fails in hdmi4_cec_irq().
 
-Thanks,
-Vikash
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+Note: the FIFOs are cleared almost immediately (after just one try), so adding
+delays is overkill.
+---
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+index 00407f1995a8..92b55780aafd 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
+@@ -110,16 +110,12 @@ static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
+ {
+ 	struct hdmi_core_data *core = cec_get_drvdata(adap);
+ 	int retry = HDMI_CORE_CEC_RETRY;
+-	int temp;
+
+ 	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
+-	while (retry) {
+-		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
+-		if (FLD_GET(temp, 7, 7) == 0)
+-			break;
+-		retry--;
+-	}
+-	return retry != 0;
++	while (retry--)
++		if (!REG_GET(core->base, HDMI_CEC_DBG_3, 7, 7))
++			return true;
++	return false;
+ }
+
+ void hdmi4_cec_irq(struct hdmi_core_data *core)
+@@ -136,7 +132,9 @@ void hdmi4_cec_irq(struct hdmi_core_data *core)
+ 	} else if (stat1 & 0x02) {
+ 		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
+
+-		hdmi_cec_clear_tx_fifo(core->adap);
++		if (!hdmi_cec_clear_tx_fifo(core->adap))
++			pr_err_once("cec-%s: could not clear TX FIFO\n",
++				    core->adap->name);
+ 		cec_transmit_done(core->adap,
+ 				  CEC_TX_STATUS_NACK |
+ 				  CEC_TX_STATUS_MAX_RETRIES,
+@@ -150,17 +148,12 @@ static bool hdmi_cec_clear_rx_fifo(struct cec_adapter *adap)
+ {
+ 	struct hdmi_core_data *core = cec_get_drvdata(adap);
+ 	int retry = HDMI_CORE_CEC_RETRY;
+-	int temp;
+
+ 	hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 0x3);
+-	retry = HDMI_CORE_CEC_RETRY;
+-	while (retry) {
+-		temp = hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL);
+-		if (FLD_GET(temp, 1, 0) == 0)
+-			break;
+-		retry--;
+-	}
+-	return retry != 0;
++	while (retry--)
++		if (!REG_GET(core->base, HDMI_CEC_RX_CONTROL, 1, 0))
++			return true;
++	return false;
+ }
+
+ static int hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
