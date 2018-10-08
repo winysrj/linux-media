@@ -1,84 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44339 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726409AbeJFQ5V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 6 Oct 2018 12:57:21 -0400
-Subject: Re: [PATCH v2 0/2] Add SECO Boards CEC device driver
-To: ektor5 <ek5.chimenti@gmail.com>
-Cc: luca.pisani@udoo.org, sean@mess.org, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org
-References: <cover.1538474121.git.ek5.chimenti@gmail.com>
- <cover.1538760098.git.ek5.chimenti@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bdec2327-8c19-8ffb-9862-6df2e6e697c7@xs4all.nl>
-Date: Sat, 6 Oct 2018 11:54:38 +0200
+Received: from perceval.ideasonboard.com ([213.167.242.64]:34812 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726096AbeJHPpn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 11:45:43 -0400
+Subject: Re: [PATCH] media: vivid: Support 480p for webcam capture
+To: Keiichi Watanabe <keiichiw@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricky Liang <jcliang@chromium.org>,
+        Shik Chen <shik@chromium.org>
+References: <20181003070656.193854-1-keiichiw@chromium.org>
+ <CAD90VcbBUcpwLsY0sHim+mML6esSjZA2ocX0Ff-YiZxBsLTZ+w@mail.gmail.com>
+ <5b236e95-b737-51b3-df4f-eea41a36735e@xs4all.nl>
+ <CAD90VcaexKNsRE9s32UanzE32YM2EXFySCArkt_Zo2V3-eRnqQ@mail.gmail.com>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <997483ea-4a41-a947-2cc8-45892ef91bc6@ideasonboard.com>
+Date: Mon, 8 Oct 2018 09:35:03 +0100
 MIME-Version: 1.0
-In-Reply-To: <cover.1538760098.git.ek5.chimenti@gmail.com>
+In-Reply-To: <CAD90VcaexKNsRE9s32UanzE32YM2EXFySCArkt_Zo2V3-eRnqQ@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ettore,
-
-On 10/05/2018 07:33 PM, ektor5 wrote:
-> This series of patches aims to add CEC functionalities to SECO
-> devices, in particular UDOO X86.
+On 06/10/18 11:29, Keiichi Watanabe wrote:
+> Hi all,
 > 
-> The communication is achieved via Braswell SMBus (i2c-i801) to the
-> onboard STM32 microcontroller that handles the CEC signals. The driver
-> use direct access to the PCI addresses, due to the limitations of the
-> specific driver in presence of ACPI calls.
+> On Fri, Oct 5, 2018 at 6:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 10/03/18 09:08, Keiichi Watanabe wrote:
+>>> I think 480p is a common frame size and it's worth supporting in vivid.
+>>> But, my patch might be ad-hoc. Actually, I'm not sure which values are
+>>> suitable for the intervals.
+>>
+>> I can apply this ad-hoc patch as-is.
+>>
+>> Or do you want to postpone this and work on a more generic solution?
+>> Although I am not sure what that would look like.
 > 
-> The basic functionalities are tested with success with cec-ctl and
-> cec-compliance.
+> I prefer providing a more flexible way rather than this ad-hoc patch.
+> It would be helpful if there is a way of changing supported frame sizes easily.
+> Perhaps, Kieran and me would use it, at least:)
+> 
 
-This series looks good to me. But can you do one more test:
+o/ <raising hand in agreement>
 
-Update your kernel to the latest media_tree master and also update your
-v4l-utils repo to the latest master code.
+>>
+>> Proposals are welcome!
+>>
+>> The main purpose of this code is to have something that kind of acts like
+>> a real webcam that has various resolutions, and a slower framerate for
+>> higher resolutions (as you would expect).
+> 
+> This sounds reasonable, so I guess we can keep this way as default and
+> provide a way for specifying extra frame sizes as an option.
+> 
+> For example, how about a module option like this?
+> "webcam_sizes=640x480@15,320x240@30"
+> 
+> If this parameter is passed to vivid, vivid works like a webcam that
+> supports the following 7 pairs of frame size and fps:
+> - 5 pairs of frame sizes and fps, as with the current implementation
+> - 640x480 (15fps)
+> - 320x240 (30fps)
 
-With all that in place please run:
+I like the concept of being able to specify as a module parameter.
 
-cec-compliance -A
+Perhaps we could have a magic marker on the string to define if the
+existing frame sizes should be kept - or if this is just a complete
+override ?
 
-(have the HDMI output connected to a CEC-capable TV when running this test).
+ vivid.webcam=640x480@15,320x240@30  # Specify sizes explicitly
+ vivid.webcam=+640x480@15,320x240@30  # Append to existing frames
+              ^ Magic Marker
 
-Please report back the output of cec-compliance.
+We might of course want multiple rates per frame,
 
-A bunch of CEC bug fixes and improvements were merged yesterday, and the
-cec-compliance adapter test is improved to check for issues that were hard
-to find in the past.
+ vivid.webcam=640x480@15-25-30-90-120, # Separator to be defined...
 
-So it will be good to have a final check of this driver.
-
-Regards,
-
-	Hans
 
 > 
-> v2:
->  - Removed useless debug prints
->  - Added DMI && PCI to dependences
->  - Removed useless ifdefs
->  - Renamed all irda references to ir
->  - Fixed SPDX clause
->  - Several style fixes
+> If this parameter is not passed, vivid's behavior won't change from
+> the current one.
 > 
-> Ettore Chimenti (2):
->   media: add SECO cec driver
->   seco-cec: add Consumer-IR support
+> How do you think?
 > 
->  MAINTAINERS                                |   6 +
->  drivers/media/platform/Kconfig             |  22 +
->  drivers/media/platform/Makefile            |   2 +
->  drivers/media/platform/seco-cec/Makefile   |   1 +
->  drivers/media/platform/seco-cec/seco-cec.c | 829 +++++++++++++++++++++
->  drivers/media/platform/seco-cec/seco-cec.h | 141 ++++
->  6 files changed, 1001 insertions(+)
->  create mode 100644 drivers/media/platform/seco-cec/Makefile
->  create mode 100644 drivers/media/platform/seco-cec/seco-cec.c
->  create mode 100644 drivers/media/platform/seco-cec/seco-cec.h
+> We might want to stop using the default framesizes, i.e. vivid only
+> supports framesize/fps that passed as the option.
+> But, if we do so, the parameter will become mandatory and it would be annoying.
+
+I think mandatory would be annoying yes.
+
+Thus my suggestion for a magic marker above :)
+
+--
+Kieran
+
+
+> So, I personally like to keep the default framesizes.
 > 
+> Best regards,
+> Kei
+> 
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>
+>>> We might want to add a more flexible/extensible way to specify frame sizes.
+>>> e.g. passing frame sizes and intervals as module parameters
+>>>
+>>> Kei
+>>>
+>>> On Wed, Oct 3, 2018 at 4:06 PM, Keiichi Watanabe <keiichiw@chromium.org> wrote:
+>>>> Support 640x480 as a frame size for video input devices of vivid.
+>>>>
+>>>> Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
+>>>> ---
+>>>>  drivers/media/platform/vivid/vivid-vid-cap.c | 5 ++++-
+>>>>  1 file changed, 4 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+>>>> index 58e14dd1dcd3..da80bf4bc365 100644
+>>>> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+>>>> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+>>>> @@ -51,7 +51,7 @@ static const struct vivid_fmt formats_ovl[] = {
+>>>>  };
+>>>>
+>>>>  /* The number of discrete webcam framesizes */
+>>>> -#define VIVID_WEBCAM_SIZES 5
+>>>> +#define VIVID_WEBCAM_SIZES 6
+>>>>  /* The number of discrete webcam frameintervals */
+>>>>  #define VIVID_WEBCAM_IVALS (VIVID_WEBCAM_SIZES * 2)
+>>>>
+>>>> @@ -59,6 +59,7 @@ static const struct vivid_fmt formats_ovl[] = {
+>>>>  static const struct v4l2_frmsize_discrete webcam_sizes[VIVID_WEBCAM_SIZES] = {
+>>>>         {  320, 180 },
+>>>>         {  640, 360 },
+>>>> +       {  640, 480 },
+>>>>         { 1280, 720 },
+>>>>         { 1920, 1080 },
+>>>>         { 3840, 2160 },
+>>>> @@ -75,6 +76,8 @@ static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
+>>>>         {  1, 5 },
+>>>>         {  1, 10 },
+>>>>         {  1, 15 },
+>>>> +       {  1, 15 },
+>>>> +       {  1, 25 },
+>>>>         {  1, 25 },
+>>>>         {  1, 30 },
+>>>>         {  1, 50 },
+>>>> --
+>>>> 2.19.0.605.g01d371f741-goog
+>>>>
+>>
+
+
+-- 
+Regards
+--
+Kieran
