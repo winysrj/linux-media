@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mleia.com ([178.79.152.223]:35518 "EHLO mail.mleia.com"
+Received: from mleia.com ([178.79.152.223]:35472 "EHLO mail.mleia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726896AbeJIEZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        id S1726969AbeJIEZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
         Tue, 9 Oct 2018 00:25:57 -0400
 From: Vladimir Zapolskiy <vz@mleia.com>
 To: Lee Jones <lee.jones@linaro.org>,
@@ -13,9 +13,9 @@ Cc: Marek Vasut <marek.vasut@gmail.com>,
         linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: [PATCH 5/7] mfd: ds90ux9xx: add I2C bridge/alias and link connection driver
-Date: Tue,  9 Oct 2018 00:12:03 +0300
-Message-Id: <20181008211205.2900-6-vz@mleia.com>
+Subject: [PATCH 6/7] pinctrl: ds90ux9xx: add TI DS90Ux9xx pinmux and GPIO controller driver
+Date: Tue,  9 Oct 2018 00:12:04 +0300
+Message-Id: <20181008211205.2900-7-vz@mleia.com>
 In-Reply-To: <20181008211205.2900-1-vz@mleia.com>
 References: <20181008211205.2900-1-vz@mleia.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -23,833 +23,1026 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 
-The change adds TI DS90Ux9xx I2C bridge/alias subdevice driver and
-FPD Link connection handling mechanism.
-
-Access to I2C devices connected to a remote de-/serializer is done in
-a transparent way, on established link detection event such devices
-are registered on an I2C bus, which serves a local de-/serializer IC.
-
-The development of the driver was a collaborative work, the
-contribution done by Balasubramani Vivekanandan includes:
-* original simplistic implementation of the driver,
-* support of implicitly specified devices in device tree,
-* support of multiple FPD links for TI DS90Ux9xx,
-* other kind of valuable review comments, clean-ups and fixes.
-
-Also Steve Longerbeam made the following changes:
-* clear address maps after linked device removal,
-* disable pass-through in disconnection,
-* qualify locked status with non-zero remote address.
+The change adds an MFD cell driver for managing pin functions on
+TI DS90Ux9xx de-/serializers.
 
 Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 ---
- drivers/mfd/Kconfig                |   8 +
- drivers/mfd/Makefile               |   1 +
- drivers/mfd/ds90ux9xx-i2c-bridge.c | 764 +++++++++++++++++++++++++++++
- 3 files changed, 773 insertions(+)
- create mode 100644 drivers/mfd/ds90ux9xx-i2c-bridge.c
+ drivers/pinctrl/Kconfig             |  11 +
+ drivers/pinctrl/Makefile            |   1 +
+ drivers/pinctrl/pinctrl-ds90ux9xx.c | 970 ++++++++++++++++++++++++++++
+ 3 files changed, 982 insertions(+)
+ create mode 100644 drivers/pinctrl/pinctrl-ds90ux9xx.c
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index a969fa123f64..d97f652046d9 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1294,6 +1294,14 @@ config MFD_DS90UX9XX
- 	  controller and so on are provided by separate drivers and should
- 	  enabled individually.
+diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
+index 978b2ed4d014..9350263cac4b 100644
+--- a/drivers/pinctrl/Kconfig
++++ b/drivers/pinctrl/Kconfig
+@@ -123,6 +123,17 @@ config PINCTRL_DIGICOLOR
+ 	select PINMUX
+ 	select GENERIC_PINCONF
  
-+config MFD_DS90UX9XX_I2C
-+	tristate "TI DS90Ux9xx I2C bridge/alias driver"
-+	default MFD_DS90UX9XX
++config PINCTRL_DS90UX9XX
++	tristate "TI DS90Ux9xx pin multiplexer and GPIO driver"
 +	depends on MFD_DS90UX9XX
++	default MFD_DS90UX9XX
++	select GPIOLIB
++	select PINMUX
++	select GENERIC_PINCONF
 +	help
-+	  Select this option to enable I2C bridge/alias and link connection
-+	  handling driver for the TI DS90Ux9xx FPD Link de-/serializer ICs.
++	  Select this option to enable pinmux and GPIO bridge/controller
++	  driver for the TI DS90Ux9xx de-/serializer chip family.
 +
- config MFD_LP3943
- 	tristate "TI/National Semiconductor LP3943 MFD Driver"
- 	depends on I2C
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index cc92bf5394b7..5414d0cc0898 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -225,6 +225,7 @@ obj-$(CONFIG_MFD_DLN2)		+= dln2.o
- obj-$(CONFIG_MFD_RT5033)	+= rt5033.o
- obj-$(CONFIG_MFD_SKY81452)	+= sky81452.o
- obj-$(CONFIG_MFD_DS90UX9XX)	+= ds90ux9xx-core.o
-+obj-$(CONFIG_MFD_DS90UX9XX_I2C)	+= ds90ux9xx-i2c-bridge.o
- 
- intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
- obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
-diff --git a/drivers/mfd/ds90ux9xx-i2c-bridge.c b/drivers/mfd/ds90ux9xx-i2c-bridge.c
+ config PINCTRL_LANTIQ
+ 	bool
+ 	depends on LANTIQ
+diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
+index 8e127bd8610f..34fc2dbfb9c1 100644
+--- a/drivers/pinctrl/Makefile
++++ b/drivers/pinctrl/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_PINCTRL_AT91PIO4)	+= pinctrl-at91-pio4.o
+ obj-$(CONFIG_PINCTRL_AMD)	+= pinctrl-amd.o
+ obj-$(CONFIG_PINCTRL_DA850_PUPD) += pinctrl-da850-pupd.o
+ obj-$(CONFIG_PINCTRL_DIGICOLOR)	+= pinctrl-digicolor.o
++obj-$(CONFIG_PINCTRL_DS90UX9XX)	+= pinctrl-ds90ux9xx.o
+ obj-$(CONFIG_PINCTRL_FALCON)	+= pinctrl-falcon.o
+ obj-$(CONFIG_PINCTRL_GEMINI)	+= pinctrl-gemini.o
+ obj-$(CONFIG_PINCTRL_MAX77620)	+= pinctrl-max77620.o
+diff --git a/drivers/pinctrl/pinctrl-ds90ux9xx.c b/drivers/pinctrl/pinctrl-ds90ux9xx.c
 new file mode 100644
-index 000000000000..f35af0f238c8
+index 000000000000..7fdb5c15743a
 --- /dev/null
-+++ b/drivers/mfd/ds90ux9xx-i2c-bridge.c
-@@ -0,0 +1,764 @@
++++ b/drivers/pinctrl/pinctrl-ds90ux9xx.c
+@@ -0,0 +1,970 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
-+ * TI DS90Ux9xx I2C bridge/alias controller driver
++ * Pinmux and GPIO controller driver for TI DS90Ux9xx De-/Serializer hardware
 + *
 + * Copyright (c) 2017-2018 Mentor Graphics Inc.
 + */
 +
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/kthread.h>
++#include <linux/gpio/driver.h>
 +#include <linux/mfd/ds90ux9xx.h>
 +#include <linux/module.h>
 +#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/pinctrl/pinconf-generic.h>
++#include <linux/pinctrl/pinctrl.h>
++#include <linux/pinctrl/pinmux.h>
 +#include <linux/platform_device.h>
 +#include <linux/regmap.h>
++#include <linux/sysfs.h>
 +
-+/* Serializer Registers */
-+#define SER_REG_REMOTE_ID		0x06
-+#define SER_REG_I2C_CTRL		0x17
++#include "pinctrl-utils.h"
 +
-+/* Deserializer Registers */
-+#define DES_REG_I2C_CTRL		0x05
-+#define DES_REG_REMOTE_ID		0x07
++#define SER_REG_PIN_CTRL		0x12
++#define PIN_CTRL_RGB18			BIT(2)
++#define PIN_CTRL_I2S_DATA_ISLAND	BIT(1)
++#define PIN_CTRL_I2S_CHANNEL_B		(BIT(0) | BIT(3))
 +
-+/* Common Register address */
-+#define SER_DES_REG_DEVICE_ID		0x00
-+#define DEVICE_ID_OVERRIDE		BIT(0)
++#define SER_REG_I2S_SURROUND		0x1A
++#define PIN_CTRL_I2S_SURR_BIT		BIT(0)
 +
-+#define SER_DES_REG_CONFIG		0x03
-+#define SER_CONFIG_I2C_AUTO_ACK		BIT(5)
-+#define CONFIG_I2C_PASS_THROUGH		BIT(3)
-+#define DES_CONFIG_I2C_AUTO_ACK	BIT(2)
++#define DES_REG_INDIRECT_PASS		0x16
 +
-+#define I2C_CTRL_PASS_ALL		BIT(7)
++#define OUTPUT_HIGH			BIT(3)
++#define REMOTE_CONTROL			BIT(2)
++#define DIR_INPUT			BIT(1)
++#define ENABLE_GPIO			BIT(0)
 +
-+#define DS90UX9XX_MAX_LINKED_DEVICES	2
-+#define DS90UX9XX_MAX_SLAVE_DEVICES	8
++#define GPIO_AS_INPUT			(ENABLE_GPIO | DIR_INPUT)
++#define GPIO_AS_OUTPUT			ENABLE_GPIO
++#define GPIO_OUTPUT_HIGH		(GPIO_AS_OUTPUT | OUTPUT_HIGH)
++#define GPIO_OUTPUT_LOW			GPIO_AS_OUTPUT
++#define GPIO_OUTPUT_REMOTE		(GPIO_AS_OUTPUT | REMOTE_CONTROL)
 +
-+/* Chosen link connection timings */
-+#define CONN_MIN_TIME_MSEC		400U
-+#define CONN_STEP_TIME_MSEC		50U
-+#define CONN_MAX_TIME_MSEC		1000U
++#define DS90UX9XX_MAX_GROUP_PINS	6
 +
-+struct ds90ux9xx_i2c_data {
-+	const u8 slave_reg[DS90UX9XX_MAX_SLAVE_DEVICES];
-+	const u8 alias_reg[DS90UX9XX_MAX_SLAVE_DEVICES];
-+	const unsigned int num_slaves;
++struct ds90ux9xx_gpio {
++	const u8 cfg_reg;
++	const u8 cfg_mask;
++	const u8 stat_reg;
++	const u8 stat_bit;
++	const bool input;
 +};
 +
-+static const struct ds90ux9xx_i2c_data ds90ux925_i2c = {
-+	.slave_reg = { 0x07, },
-+	.alias_reg = { 0x08, },
-+	.num_slaves = 1,
++#define DS90UX9XX_PIN_GPIO_SIMPLE(_cfg, _high, _input)		\
++	{							\
++		.cfg_reg	= _cfg,				\
++		.cfg_mask	= _high ? 0xf0 : 0x0f,		\
++		.stat_reg	= 0x0,				\
++		.stat_bit	= 0x0,				\
++		.input		= _input ? true : false,	\
++	}
++
++#define DS90UX9XX_PIN_GPIO(_cfg, _high, _stat, _bit)		\
++	{							\
++		.cfg_reg	= _cfg,				\
++		.cfg_mask	= _high ? 0xf0 : 0x0f,		\
++		.stat_reg	= _stat,			\
++		.stat_bit	= BIT(_bit),			\
++		.input		= true,				\
++	}
++
++enum ds90ux9xx_function {
++	DS90UX9XX_FUNC_NONE,
++	DS90UX9XX_FUNC_GPIO,
++	DS90UX9XX_FUNC_REMOTE,
++	DS90UX9XX_FUNC_PASS,
++	DS90UX9XX_FUNC_I2S_1,
++	DS90UX9XX_FUNC_I2S_2,
++	DS90UX9XX_FUNC_I2S_3,
++	DS90UX9XX_FUNC_I2S_4,
++	DS90UX9XX_FUNC_I2S_M,
++	DS90UX9XX_FUNC_PARALLEL,
 +};
 +
-+static const struct ds90ux9xx_i2c_data ds90ux926_i2c = {
-+	.slave_reg = { 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, },
-+	.alias_reg = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, },
-+	.num_slaves = 8,
++struct ds90ux9xx_pin {
++	const unsigned int id;
++	const char *name;
++	const u32 func_mask;
++	const u8 pass_bit;
++	const struct ds90ux9xx_gpio gpio;
 +};
 +
-+static const struct ds90ux9xx_i2c_data ds90ux927_i2c = {
-+	.slave_reg = { 0x07, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, },
-+	.alias_reg = { 0x08, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, },
-+	.num_slaves = 8,
++#define TO_BIT(_f)	(DS90UX9XX_FUNC_##_f ? BIT(DS90UX9XX_FUNC_##_f) : 0)
++#define DS90UX9XX_GPIO(_pin, _name, _f1, _f2, _f3)			\
++	[_pin] = {							\
++		.id = _pin,						\
++		.name = _name,						\
++		.func_mask = TO_BIT(GPIO) | TO_BIT(_f2) | TO_BIT(_f3),	\
++		.gpio = DS90UX9XX_PIN_##_f1,				\
++	}
++
++#define DS90UX940_GPIO(_pin, _name, _f1, _f2, _f3, _pass)		\
++	[_pin] = {							\
++		.id = _pin,						\
++		.name = _name,						\
++		.func_mask = TO_BIT(GPIO) | TO_BIT(PASS) |		\
++			     TO_BIT(_f2) | TO_BIT(_f3),			\
++		.pass_bit = BIT(_pass),					\
++		.gpio = DS90UX9XX_PIN_##_f1,				\
++	}
++
++struct ds90ux9xx_pinctrl_data {
++	const char *name;
++	const struct ds90ux9xx_pin *pins;
++	const struct pinctrl_pin_desc *pins_desc;
++	const unsigned int npins;
++	const enum ds90ux9xx_function *functions;
++	const unsigned int nfunctions;
 +};
 +
-+struct ds90ux9xx_i2c_bridged {
-+	struct device_node *np;
-+	struct i2c_client *i2c;
-+	u8 addr;
++static const struct pinctrl_pin_desc ds90ux925_926_pins_desc[] = {
++	PINCTRL_PIN(0, "gpio0"),	/* DS90Ux925 pin 25, DS90Ux926 pin 41 */
++	PINCTRL_PIN(1, "gpio1"),	/* DS90Ux925 pin 26, DS90Ux926 pin 40 */
++	PINCTRL_PIN(2, "gpio2"),	/* DS90Ux925 pin 35, DS90Ux926 pin 28 */
++	PINCTRL_PIN(3, "gpio3"),	/* DS90Ux925 pin 36, DS90Ux926 pin 27 */
++	PINCTRL_PIN(4, "gpio4"),	/* DS90Ux925 pin 43, DS90Ux926 pin 19 */
++	PINCTRL_PIN(5, "gpio5"),	/* DS90Ux925 pin 44, DS90Ux926 pin 18 */
++	PINCTRL_PIN(6, "gpio6"),	/* DS90Ux925 pin 11, DS90Ux926 pin 45 */
++	PINCTRL_PIN(7, "gpio7"),	/* DS90Ux925 pin 12, DS90Ux926 pin 30 */
++	PINCTRL_PIN(8, "gpio8"),	/* DS90Ux925 pin 13, DS90Ux926 pin  1 */
 +};
 +
-+struct ds90ux9xx_i2c_map {
-+	u8 real_addr;
-+	u8 alias_addr;
++static const struct pinctrl_pin_desc ds90ux927_928_pins_desc[] = {
++	PINCTRL_PIN(0, "gpio0"),	/* DS90Ux927 pin 39, DS90Ux928 pin 14 */
++	PINCTRL_PIN(1, "gpio1"),	/* DS90Ux927 pin 40, DS90Ux928 pin 13 */
++	PINCTRL_PIN(2, "gpio2"),	/* DS90Ux927 pin  5, DS90Ux928 pin 37 */
++	PINCTRL_PIN(3, "gpio3"),	/* DS90Ux927 pin  6, DS90Ux928 pin 36 */
++	PINCTRL_PIN(4, "gpio5"),	/* DS90Ux927 pin  4, DS90Ux928 pin  3 */
++	PINCTRL_PIN(5, "gpio6"),	/* DS90Ux927 pin  3, DS90Ux928 pin  7 */
++	PINCTRL_PIN(6, "gpio7"),	/* DS90Ux927 pin  2, DS90Ux928 pin 10 */
++	PINCTRL_PIN(7, "gpio8"),	/* DS90Ux927 pin  1, DS90Ux928 pin  8 */
 +};
 +
-+struct ds90ux9xx_i2c_linked {
-+	struct ds90ux9xx_i2c_bridged remote;
-+	struct ds90ux9xx_i2c_bridged slave[DS90UX9XX_MAX_SLAVE_DEVICES];
-+	struct ds90ux9xx_i2c_map map[DS90UX9XX_MAX_SLAVE_DEVICES];
-+	unsigned int num_slaves;
-+	unsigned int num_maps;
-+	bool is_bridged;
++static const struct pinctrl_pin_desc ds90ux940_pins_desc[] = {
++	PINCTRL_PIN(0, "gpio0"),	/* DS90Ux940 pin  7 */
++	PINCTRL_PIN(1, "gpio1"),	/* DS90Ux940 pin  8 */
++	PINCTRL_PIN(2, "gpio2"),	/* DS90Ux940 pin 10 */
++	PINCTRL_PIN(3, "gpio3"),	/* DS90Ux940 pin  9 */
++	PINCTRL_PIN(4, "gpio5"),	/* DS90Ux940 pin 11 */
++	PINCTRL_PIN(5, "gpio6"),	/* DS90Ux940 pin 12 */
++	PINCTRL_PIN(6, "gpio7"),	/* DS90Ux940 pin 14 */
++	PINCTRL_PIN(7, "gpio8"),	/* DS90Ux940 pin 13 */
++	PINCTRL_PIN(8, "gpio9"),	/* DS90Ux940 pin 15 */
 +};
 +
-+struct ds90ux9xx_i2c {
++static const struct ds90ux9xx_pin ds90ux925_pins[] = {
++	DS90UX9XX_GPIO(0, "gpio0", GPIO_SIMPLE(0x0d, 0, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(1, "gpio1", GPIO_SIMPLE(0x0e, 0, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(2, "gpio2", GPIO_SIMPLE(0x0e, 1, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(3, "gpio3", GPIO_SIMPLE(0x0f, 0, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(4, "gpio4", GPIO_SIMPLE(0x0f, 1, 0),   NONE, PARALLEL),
++	DS90UX9XX_GPIO(5, "gpio5", GPIO_SIMPLE(0x10, 0, 0),  I2S_2, PARALLEL),
++	DS90UX9XX_GPIO(6, "gpio6", GPIO_SIMPLE(0x10, 1, 0),  I2S_1,     NONE),
++	DS90UX9XX_GPIO(7, "gpio7", GPIO_SIMPLE(0x11, 0, 0),  I2S_1,     NONE),
++	DS90UX9XX_GPIO(8, "gpio8", GPIO_SIMPLE(0x11, 1, 0),  I2S_1,     NONE),
++};
++
++static const struct ds90ux9xx_pin ds90ux926_pins[] = {
++	DS90UX9XX_GPIO(0, "gpio0", GPIO_SIMPLE(0x1d, 0, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(1, "gpio1", GPIO_SIMPLE(0x1e, 0, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(2, "gpio2", GPIO_SIMPLE(0x1e, 1, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(3, "gpio3", GPIO_SIMPLE(0x1f, 0, 1), REMOTE, PARALLEL),
++	DS90UX9XX_GPIO(4, "gpio4", GPIO_SIMPLE(0x1f, 1, 0),   NONE, PARALLEL),
++	DS90UX9XX_GPIO(5, "gpio5", GPIO_SIMPLE(0x20, 0, 0),  I2S_2, PARALLEL),
++	DS90UX9XX_GPIO(6, "gpio6", GPIO_SIMPLE(0x20, 1, 0),  I2S_1,     NONE),
++	DS90UX9XX_GPIO(7, "gpio7", GPIO_SIMPLE(0x21, 0, 0),  I2S_1,     NONE),
++	DS90UX9XX_GPIO(8, "gpio8", GPIO_SIMPLE(0x21, 1, 0),  I2S_1,     NONE),
++};
++
++static const struct ds90ux9xx_pin ds90ux927_pins[] = {
++	DS90UX9XX_GPIO(0, "gpio0", GPIO(0x0d, 0, 0x1c, 0), REMOTE,  NONE),
++	DS90UX9XX_GPIO(1, "gpio1", GPIO(0x0e, 0, 0x1c, 1), REMOTE,  NONE),
++	DS90UX9XX_GPIO(2, "gpio2", GPIO(0x0e, 1, 0x1c, 2), REMOTE, I2S_3),
++	DS90UX9XX_GPIO(3, "gpio3", GPIO(0x0f, 0, 0x1c, 3), REMOTE, I2S_4),
++	DS90UX9XX_GPIO(4, "gpio5", GPIO(0x10, 0, 0x1c, 5),   NONE, I2S_2),
++	DS90UX9XX_GPIO(5, "gpio6", GPIO(0x10, 1, 0x1c, 6),   NONE, I2S_1),
++	DS90UX9XX_GPIO(6, "gpio7", GPIO(0x11, 0, 0x1c, 7),   NONE, I2S_1),
++	DS90UX9XX_GPIO(7, "gpio8", GPIO(0x11, 1, 0x1d, 0),   NONE, I2S_1),
++};
++
++static const struct ds90ux9xx_pin ds90ux928_pins[] = {
++	DS90UX9XX_GPIO(0, "gpio0", GPIO(0x1d, 0, 0x6e, 0), REMOTE, I2S_M),
++	DS90UX9XX_GPIO(1, "gpio1", GPIO(0x1e, 0, 0x6e, 1), REMOTE, I2S_M),
++	DS90UX9XX_GPIO(2, "gpio2", GPIO(0x1e, 1, 0x6e, 2), REMOTE, I2S_3),
++	DS90UX9XX_GPIO(3, "gpio3", GPIO(0x1f, 0, 0x6e, 3), REMOTE, I2S_4),
++	DS90UX9XX_GPIO(4, "gpio5", GPIO(0x20, 0, 0x6e, 5),   NONE, I2S_2),
++	DS90UX9XX_GPIO(5, "gpio6", GPIO(0x20, 1, 0x6e, 6),   NONE, I2S_1),
++	DS90UX9XX_GPIO(6, "gpio7", GPIO(0x21, 0, 0x6e, 7),   NONE, I2S_1),
++	DS90UX9XX_GPIO(7, "gpio8", GPIO(0x21, 1, 0x6f, 0),   NONE, I2S_1),
++};
++
++static const struct ds90ux9xx_pin ds90ux940_pins[] = {
++	DS90UX940_GPIO(0, "gpio0", GPIO(0x1d, 0, 0x6e, 0), REMOTE, I2S_M, 1),
++	DS90UX9XX_GPIO(1, "gpio1", GPIO(0x1e, 0, 0x6e, 1), REMOTE, I2S_M),
++	DS90UX9XX_GPIO(2, "gpio2", GPIO(0x1e, 1, 0x6e, 2), REMOTE, I2S_3),
++	DS90UX940_GPIO(3, "gpio3", GPIO(0x1f, 0, 0x6e, 3), REMOTE, I2S_4, 2),
++	DS90UX9XX_GPIO(4, "gpio5", GPIO(0x20, 0, 0x6e, 5),   NONE, I2S_2),
++	DS90UX9XX_GPIO(5, "gpio6", GPIO(0x20, 1, 0x6e, 6),   NONE, I2S_1),
++	DS90UX9XX_GPIO(6, "gpio7", GPIO(0x21, 0, 0x6e, 7),   NONE, I2S_1),
++	DS90UX9XX_GPIO(7, "gpio8", GPIO(0x21, 1, 0x6f, 0),   NONE, I2S_1),
++	DS90UX9XX_GPIO(8, "gpio9", GPIO_SIMPLE(0x1a, 0, 1),  NONE, I2S_M),
++};
++
++static const enum ds90ux9xx_function ds90ux925_926_pin_functions[] = {
++	DS90UX9XX_FUNC_GPIO,
++	DS90UX9XX_FUNC_REMOTE,
++	DS90UX9XX_FUNC_I2S_1,
++	DS90UX9XX_FUNC_I2S_2,
++	DS90UX9XX_FUNC_PARALLEL,
++};
++
++static const enum ds90ux9xx_function ds90ux927_pin_functions[] = {
++	DS90UX9XX_FUNC_GPIO,
++	DS90UX9XX_FUNC_REMOTE,
++	DS90UX9XX_FUNC_I2S_1,
++	DS90UX9XX_FUNC_I2S_2,
++	DS90UX9XX_FUNC_I2S_3,
++	DS90UX9XX_FUNC_I2S_4,
++};
++
++static const enum ds90ux9xx_function ds90ux928_pin_functions[] = {
++	DS90UX9XX_FUNC_GPIO,
++	DS90UX9XX_FUNC_REMOTE,
++	DS90UX9XX_FUNC_I2S_1,
++	DS90UX9XX_FUNC_I2S_2,
++	DS90UX9XX_FUNC_I2S_3,
++	DS90UX9XX_FUNC_I2S_4,
++	DS90UX9XX_FUNC_I2S_M,
++};
++
++static const enum ds90ux9xx_function ds90ux940_pin_functions[] = {
++	DS90UX9XX_FUNC_GPIO,
++	DS90UX9XX_FUNC_REMOTE,
++	DS90UX9XX_FUNC_PASS,
++	DS90UX9XX_FUNC_I2S_1,
++	DS90UX9XX_FUNC_I2S_2,
++	DS90UX9XX_FUNC_I2S_3,
++	DS90UX9XX_FUNC_I2S_4,
++	DS90UX9XX_FUNC_I2S_M,
++};
++
++static const struct ds90ux9xx_pinctrl_data ds90ux925_pinctrl = {
++	.name = "ds90ux925",
++	.pins_desc = ds90ux925_926_pins_desc,
++	.pins = ds90ux925_pins,
++	.npins = ARRAY_SIZE(ds90ux925_pins),
++	.functions = ds90ux925_926_pin_functions,
++	.nfunctions = ARRAY_SIZE(ds90ux925_926_pin_functions),
++};
++
++static const struct ds90ux9xx_pinctrl_data ds90ux926_pinctrl = {
++	.name = "ds90ux926",
++	.pins_desc = ds90ux925_926_pins_desc,
++	.pins = ds90ux926_pins,
++	.npins = ARRAY_SIZE(ds90ux926_pins),
++	.functions = ds90ux925_926_pin_functions,
++	.nfunctions = ARRAY_SIZE(ds90ux925_926_pin_functions),
++};
++
++static const struct ds90ux9xx_pinctrl_data ds90ux927_pinctrl = {
++	.name = "ds90ux927",
++	.pins_desc = ds90ux927_928_pins_desc,
++	.pins = ds90ux927_pins,
++	.npins = ARRAY_SIZE(ds90ux927_pins),
++	.functions = ds90ux927_pin_functions,
++	.nfunctions = ARRAY_SIZE(ds90ux927_pin_functions),
++};
++
++static const struct ds90ux9xx_pinctrl_data ds90ux928_pinctrl = {
++	.name = "ds90ux928",
++	.pins_desc = ds90ux927_928_pins_desc,
++	.pins = ds90ux928_pins,
++	.npins = ARRAY_SIZE(ds90ux928_pins),
++	.functions = ds90ux928_pin_functions,
++	.nfunctions = ARRAY_SIZE(ds90ux928_pin_functions),
++};
++
++static const struct ds90ux9xx_pinctrl_data ds90ux940_pinctrl = {
++	.name = "ds90ux940",
++	.pins_desc = ds90ux940_pins_desc,
++	.pins = ds90ux940_pins,
++	.npins = ARRAY_SIZE(ds90ux940_pins),
++	.functions = ds90ux940_pin_functions,
++	.nfunctions = ARRAY_SIZE(ds90ux940_pin_functions),
++};
++
++struct ds90ux9xx_pin_function {
++	enum ds90ux9xx_function id;
++	const char **groups;
++	unsigned int ngroups;
++};
++
++struct ds90ux9xx_pin_group {
++	const char *name;
++	unsigned int pins[DS90UX9XX_MAX_GROUP_PINS];
++	unsigned int npins;
++};
++
++struct ds90ux9xx_pinctrl {
 +	struct device *dev;
 +	struct regmap *regmap;
-+	struct i2c_adapter *adapter;
-+	const struct ds90ux9xx_i2c_data *i2c_data;
-+	bool remote;
-+	struct task_struct *conn_monitor;
-+	struct ds90ux9xx_i2c_linked linked[DS90UX9XX_MAX_LINKED_DEVICES];
-+	unsigned int link;
-+	bool pass_all;
++
++	struct pinctrl_dev *pctrl;
++	struct pinctrl_desc desc;
++
++	struct ds90ux9xx_pin_function *functions;
++	unsigned int nfunctions;
++
++	struct ds90ux9xx_pin_group *groups;
++	unsigned int ngroups;
++
++	const struct ds90ux9xx_pin *pins;
++	unsigned int npins;
++
++	struct gpio_chip gpiochip;
++	unsigned int ngpios;
 +};
 +
-+static int ds90ux9xx_setup_i2c_pass_through(struct ds90ux9xx_i2c *i2c_bridge,
-+					    bool enable)
++static const char *const ds90ux9xx_func_names[] = {
++	[DS90UX9XX_FUNC_NONE]		= "none",
++	[DS90UX9XX_FUNC_GPIO]		= "gpio",
++	[DS90UX9XX_FUNC_REMOTE]		= "gpio-remote",
++	[DS90UX9XX_FUNC_PASS]		= "pass",
++	[DS90UX9XX_FUNC_I2S_1]		= "i2s-1",
++	[DS90UX9XX_FUNC_I2S_2]		= "i2s-2",
++	[DS90UX9XX_FUNC_I2S_3]		= "i2s-3",
++	[DS90UX9XX_FUNC_I2S_4]		= "i2s-4",
++	[DS90UX9XX_FUNC_I2S_M]		= "i2s-m",
++	[DS90UX9XX_FUNC_PARALLEL]	= "parallel",
++};
++
++static bool ds90ux9xx_func_in_group(u32 func_mask, enum ds90ux9xx_function id)
 +{
-+	int ret;
++	u32 mask = BIT(id);
 +
-+	ret = regmap_update_bits(i2c_bridge->regmap, SER_DES_REG_CONFIG,
-+				 CONFIG_I2C_PASS_THROUGH,
-+				 enable ? CONFIG_I2C_PASS_THROUGH : 0x0);
-+	if (ret)
-+		dev_err(i2c_bridge->dev, "Failed to setup pass through\n");
++	if (id == DS90UX9XX_FUNC_I2S_4) {
++		mask |= BIT(DS90UX9XX_FUNC_I2S_3);
++		id = DS90UX9XX_FUNC_I2S_3;
++	}
 +
-+	return ret;
++	if (id == DS90UX9XX_FUNC_I2S_3) {
++		mask |= BIT(DS90UX9XX_FUNC_I2S_2);
++		id = DS90UX9XX_FUNC_I2S_2;
++	}
++
++	if (id == DS90UX9XX_FUNC_I2S_2)
++		mask |= BIT(DS90UX9XX_FUNC_I2S_1);
++
++	return func_mask & mask;
 +}
 +
-+static int ds90ux9xx_setup_i2c_pass_all(struct ds90ux9xx_i2c *i2c_bridge,
-+					bool enable)
++static bool ds90ux9xx_pin_function(enum ds90ux9xx_function id)
 +{
-+	unsigned int reg;
-+	int ret;
++	if (id == DS90UX9XX_FUNC_GPIO || id == DS90UX9XX_FUNC_REMOTE ||
++	    id == DS90UX9XX_FUNC_PASS)
++		return true;
 +
-+	if (ds90ux9xx_is_serializer(i2c_bridge->dev->parent))
-+		reg = SER_REG_I2C_CTRL;
-+	else
-+		reg = DES_REG_I2C_CTRL;
-+
-+	ret = regmap_update_bits(i2c_bridge->regmap, reg, I2C_CTRL_PASS_ALL,
-+				 enable ? I2C_CTRL_PASS_ALL : 0x0);
-+	if (ret)
-+		dev_err(i2c_bridge->dev, "Failed to setup pass all mode\n");
-+
-+	return ret;
++	return false;
 +}
 +
-+static int ds90ux9xx_setup_auto_ack(struct ds90ux9xx_i2c *i2c_bridge,
-+				    bool enable)
++static int ds90ux9xx_populate_groups(struct ds90ux9xx_pinctrl *pctrl,
++				     const struct ds90ux9xx_pinctrl_data *cfg)
 +{
++	struct ds90ux9xx_pin_function *func;
++	struct ds90ux9xx_pin_group *group;
++	enum ds90ux9xx_function func_id;
++	unsigned int i, j, n;
++
++	pctrl->pins = cfg->pins;
++	pctrl->npins = cfg->npins;
++
++	/* Assert that only GPIO pins are muxed, it may be changed in future */
++	for (j = 0; j < pctrl->npins; j++)
++		if (!(pctrl->pins[j].func_mask & BIT(DS90UX9XX_FUNC_GPIO)))
++			return -EINVAL;
++
++	pctrl->ngpios = pctrl->npins;
++
++	pctrl->nfunctions = cfg->nfunctions;
++	pctrl->functions = devm_kcalloc(pctrl->dev, pctrl->nfunctions,
++					sizeof(*pctrl->functions), GFP_KERNEL);
++	if (!pctrl->functions)
++		return -ENOMEM;
++
++	for (i = 0; i < pctrl->nfunctions; i++) {
++		func = &pctrl->functions[i];
++		func->id = cfg->functions[i];
++
++		/*
++		 * Number of pin groups is a sum of pins and pin group functions
++		 */
++		if (ds90ux9xx_pin_function(func->id)) {
++			for (j = 0; j < pctrl->npins; j++) {
++				if (func->id == DS90UX9XX_FUNC_GPIO)
++					pctrl->ngroups++;
++
++				if (pctrl->pins[j].func_mask & BIT(func->id))
++					func->ngroups++;
++			}
++		} else {
++			pctrl->ngroups++;
++			func->ngroups = 1;
++		}
++
++		func->groups = devm_kcalloc(pctrl->dev, func->ngroups,
++					    sizeof(*func->groups), GFP_KERNEL);
++		if (!func->groups)
++			return -ENOMEM;
++
++		if (ds90ux9xx_pin_function(func->id)) {
++			n = 0;
++			for (j = 0; j < pctrl->npins; j++)
++				if (pctrl->pins[j].func_mask & BIT(func->id))
++					func->groups[n++] = pctrl->pins[j].name;
++		} else {
++			/* Group name matches function name */
++			func->groups[0] = ds90ux9xx_func_names[func->id];
++		}
++	}
++
++	pctrl->groups = devm_kcalloc(pctrl->dev, pctrl->ngroups,
++				     sizeof(*pctrl->groups), GFP_KERNEL);
++	if (!pctrl->groups)
++		return -ENOMEM;
++
++	/* Firstly scan for GPIOs as individual pin groups */
++	group = pctrl->groups;
++	for (i = 0; i < pctrl->npins; i++) {
++		group->name = pctrl->pins[i].name;
++		group->pins[0] = pctrl->pins[i].id;
++		group->npins = 1;
++		group++;
++	}
++
++	/* Now scan for the rest of pin groups, which has own functions */
++	for (i = 0; i < pctrl->nfunctions; i++) {
++		func_id = pctrl->functions[i].id;
++
++		/* Those pin groups were accounted above as pin functions */
++		if (ds90ux9xx_pin_function(func_id))
++			continue;
++
++		group->name = ds90ux9xx_func_names[func_id];
++		for (j = 0; j < pctrl->npins; j++) {
++			if (ds90ux9xx_func_in_group(pctrl->pins[j].func_mask,
++						    func_id)) {
++				group->pins[group->npins] = pctrl->pins[j].id;
++				group->npins++;
++			}
++		}
++
++		group++;
++	}
++
++	return 0;
++}
++
++static int ds90ux9xx_get_groups_count(struct pinctrl_dev *pctldev)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++
++	return pctrl->ngroups;
++}
++
++static const char *ds90ux9xx_get_group_name(struct pinctrl_dev *pctldev,
++					    unsigned int group)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++
++	return pctrl->groups[group].name;
++}
++
++static int ds90ux9xx_get_group_pins(struct pinctrl_dev *pctldev,
++				    unsigned int group,
++				    const unsigned int **pins,
++				    unsigned int *num_pins)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++
++	*pins = pctrl->groups[group].pins;
++	*num_pins = pctrl->groups[group].npins;
++
++	return 0;
++}
++
++static const struct pinctrl_ops ds90ux9xx_pinctrl_ops = {
++	.get_groups_count	= ds90ux9xx_get_groups_count,
++	.get_group_name		= ds90ux9xx_get_group_name,
++	.get_group_pins		= ds90ux9xx_get_group_pins,
++	.dt_node_to_map		= pinconf_generic_dt_node_to_map_all,
++	.dt_free_map		= pinctrl_utils_free_map,
++};
++
++static int ds90ux9xx_get_funcs_count(struct pinctrl_dev *pctldev)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++
++	return pctrl->nfunctions;
++}
++
++static const char *ds90ux9xx_get_func_name(struct pinctrl_dev *pctldev,
++					   unsigned int function)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++
++	return ds90ux9xx_func_names[pctrl->functions[function].id];
++}
++
++static int ds90ux9xx_get_func_groups(struct pinctrl_dev *pctldev,
++				     unsigned int function,
++				     const char * const **groups,
++				     unsigned int * const num_groups)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++
++	*groups = pctrl->functions[function].groups;
++	*num_groups = pctrl->functions[function].ngroups;
++
++	return 0;
++}
++
++static int ds90ux9xx_gpio_read(struct ds90ux9xx_pinctrl *pctrl,
++			       unsigned int offset, u8 *value)
++{
++	const struct ds90ux9xx_gpio *gpio;
 +	unsigned int val;
 +	int ret;
 +
-+	if (ds90ux9xx_is_serializer(i2c_bridge->dev->parent))
-+		val = SER_CONFIG_I2C_AUTO_ACK;
-+	else
-+		val = DES_CONFIG_I2C_AUTO_ACK;
++	gpio = &pctrl->pins[offset].gpio;
 +
-+	ret = regmap_update_bits(i2c_bridge->regmap, SER_DES_REG_CONFIG, val,
-+				 enable ? val : 0x0);
++	ret = regmap_read(pctrl->regmap, gpio->cfg_reg, &val);
++	if (ret) {
++		dev_err(pctrl->dev, "Failed to read register %#x, gpio %d\n",
++			gpio->cfg_reg, offset);
++		return ret;
++	}
++
++	*value = val & gpio->cfg_mask;
++	if (gpio->cfg_mask == 0xf0)
++		*value >>= 4;
++
++	return 0;
++}
++
++static int ds90ux9xx_gpio_read_stat(struct ds90ux9xx_pinctrl *pctrl,
++				    unsigned int offset, u8 *value)
++{
++	const struct ds90ux9xx_gpio *gpio;
++	unsigned int val;
++	int ret;
++
++	gpio = &pctrl->pins[offset].gpio;
++
++	if (!gpio->stat_bit)
++		return -EINVAL;
++
++	ret = regmap_read(pctrl->regmap, gpio->stat_reg, &val);
++	if (ret) {
++		dev_err(pctrl->dev, "Failed to read register %#x, gpio %d\n",
++			gpio->stat_reg, offset);
++		return ret;
++	}
++
++	*value = val & gpio->stat_bit;
++
++	return 0;
++}
++
++static int ds90ux9xx_gpio_write(struct ds90ux9xx_pinctrl *pctrl,
++				unsigned int offset, u8 value)
++{
++	const struct ds90ux9xx_gpio *gpio;
++	int ret;
++
++	gpio = &pctrl->pins[offset].gpio;
++
++	if (value & DIR_INPUT && !gpio->input)
++		return -EINVAL;
++
++	if (gpio->cfg_mask == 0xf0)
++		value <<= 4;
++
++	ret = regmap_update_bits(pctrl->regmap, gpio->cfg_reg,
++				 gpio->cfg_mask, value);
 +	if (ret)
-+		dev_err(i2c_bridge->dev, "Failed to setup auto ack mode\n");
++		dev_err(pctrl->dev, "Failed to modify register %#x, gpio %d\n",
++			gpio->cfg_reg, offset);
 +
 +	return ret;
 +}
 +
-+static int ds90ux9xx_setup_address_mapping(struct ds90ux9xx_i2c *i2c_bridge,
-+					   unsigned int i, u8 slave, u8 alias)
++static int ds90ux940_set_pass(struct ds90ux9xx_pinctrl *pctrl,
++			      unsigned int pin, bool enable)
 +{
-+	const struct ds90ux9xx_i2c_data *i2c_data = i2c_bridge->i2c_data;
-+	int ret;
++	u8 bit = pctrl->pins[pin].pass_bit;
 +
-+	if (i >= i2c_data->num_slaves)
-+		return -EINVAL;
-+
-+	ret = regmap_write(i2c_bridge->regmap, i2c_data->slave_reg[i],
-+			   slave << 1);
-+	if (ret)
-+		return ret;
-+
-+	return regmap_write(i2c_bridge->regmap, i2c_data->alias_reg[i],
-+			    alias << 1);
++	return ds90ux9xx_update_bits_indirect(pctrl->dev->parent,
++			DES_REG_INDIRECT_PASS, bit, enable ? bit : 0x0);
 +}
 +
-+static void ds90ux9xx_clear_address_mappings(struct ds90ux9xx_i2c *i2c_bridge)
++static int ds90ux9xx_pinctrl_group_disable(struct ds90ux9xx_pinctrl *pctrl,
++					   enum ds90ux9xx_function function,
++					   unsigned int pin)
 +{
-+	unsigned int i;
-+
-+	for (i = 0; i < i2c_bridge->i2c_data->num_slaves; i++)
-+		ds90ux9xx_setup_address_mapping(i2c_bridge, i, 0, 0);
-+}
-+
-+static int ds90ux9xx_setup_address_mappings(struct ds90ux9xx_i2c *i2c_bridge,
-+					    struct ds90ux9xx_i2c_linked *linked)
-+{
-+	struct ds90ux9xx_i2c_map *map;
-+	unsigned int i;
 +	int ret;
 +
-+	/* To avoid address collisions disable the remaining slave/aliases */
-+	for (i = 0; i < i2c_bridge->i2c_data->num_slaves; i++) {
-+		map = &linked->map[i];
++	switch (function) {
++	case DS90UX9XX_FUNC_GPIO:
++	case DS90UX9XX_FUNC_REMOTE:
++		return ds90ux9xx_gpio_write(pctrl, pin, 0x0);
++	case DS90UX9XX_FUNC_PASS:
++		return ds90ux940_set_pass(pctrl, pin, false);
++	default:
++		break;
++	}
 +
-+		if (i < linked->num_maps)
-+			dev_dbg(i2c_bridge->dev, "Mapping remote slave %#x to %#x\n",
-+				map->real_addr, map->alias_addr);
++	if (!ds90ux9xx_is_serializer(pctrl->dev->parent))
++		return 0;
 +
-+		ret = ds90ux9xx_setup_address_mapping(i2c_bridge, i,
-+						      map->real_addr,
-+						      map->alias_addr);
++	switch (function) {
++	case DS90UX9XX_FUNC_PARALLEL:
++		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
++					  PIN_CTRL_RGB18, PIN_CTRL_RGB18);
++	case DS90UX9XX_FUNC_I2S_4:
++	case DS90UX9XX_FUNC_I2S_3:
++		ret = regmap_update_bits(pctrl->regmap, SER_REG_I2S_SURROUND,
++					 PIN_CTRL_I2S_SURR_BIT, 0x0);
 +		if (ret)
 +			return ret;
++		/* Fall through */
++	case DS90UX9XX_FUNC_I2S_2:
++		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
++					  PIN_CTRL_I2S_CHANNEL_B, 0x0);
++	default:
++		break;
 +	}
 +
 +	return 0;
 +}
 +
-+static int ds90ux9xx_get_remote_addr(struct ds90ux9xx_i2c *i2c_bridge, u8 *addr)
++static int ds90ux9xx_pinctrl_group_enable(struct ds90ux9xx_pinctrl *pctrl,
++					  enum ds90ux9xx_function function,
++					  struct ds90ux9xx_pin_group *group)
 +{
-+	unsigned int reg, val;
++	unsigned int pin = group->pins[0];
 +	int ret;
 +
-+	if (ds90ux9xx_is_serializer(i2c_bridge->dev->parent))
-+		reg = SER_REG_REMOTE_ID;
-+	else
-+		reg = DES_REG_REMOTE_ID;
-+
-+	ret = regmap_read(i2c_bridge->regmap, reg, &val);
-+	if (ret)
-+		dev_err(i2c_bridge->dev, "Failed to get remote addr: %d\n",
-+			ret);
-+	else
-+		*addr = val >> 1;
-+
-+	return ret;
-+}
-+
-+static int ds90ux9xx_set_remote_addr(struct ds90ux9xx_i2c *i2c_bridge, u8 addr)
-+{
-+	u8 remote_addr, data[2] = { SER_DES_REG_DEVICE_ID,
-+				    (addr << 1) | DEVICE_ID_OVERRIDE };
-+	struct i2c_msg msg = {
-+		.addr	= addr,
-+		.flags	= 0x00,
-+		.len	= 2,
-+		.buf	= data,
-+	};
-+	int ret;
-+
-+	ret = ds90ux9xx_get_remote_addr(i2c_bridge, &remote_addr);
-+	if (ret)
-+		return ret;
-+
-+	if (remote_addr == addr)
-+		return 0;
-+
-+	ret = ds90ux9xx_setup_address_mapping(i2c_bridge, 0, remote_addr, addr);
-+	if (ret)
-+		return ret;
-+
-+	ret = i2c_transfer(i2c_bridge->adapter, &msg, 1);
-+	if (ret != 1)
-+		return ret ? ret : -EIO;
-+
-+	dev_dbg(i2c_bridge->dev, "New address set for remote %#x\n", addr);
-+
-+	return 0;
-+}
-+
-+static void ds90ux9xx_remove_slave_devices(struct ds90ux9xx_i2c_linked *linked,
-+					   bool drop_reference)
-+{
-+	struct ds90ux9xx_i2c_bridged *slave;
-+	unsigned int i;
-+
-+	if (!linked->is_bridged)
-+		return;
-+
-+	for (i = 0; i < linked->num_slaves; i++) {
-+		slave = &linked->slave[i];
-+
-+		if (slave->i2c) {
-+			i2c_unregister_device(slave->i2c);
-+			slave->i2c = NULL;
-+		}
-+
-+		if (drop_reference && slave->np) {
-+			of_node_put(slave->np);
-+			slave->np = NULL;
-+		}
-+	}
-+}
-+
-+static void ds90ux9xx_remove_linked_device(struct ds90ux9xx_i2c *i2c_bridge,
-+					   struct ds90ux9xx_i2c_linked *linked,
-+					   bool drop_reference)
-+{
-+	struct ds90ux9xx_i2c_bridged *remote = &linked->remote;
-+
-+	ds90ux9xx_remove_slave_devices(linked, drop_reference);
-+
-+	if (remote->i2c) {
-+		if (linked->is_bridged)
-+			i2c_unregister_device(remote->i2c);
-+		else
-+			put_device(&remote->i2c->dev);
-+
-+		remote->i2c = NULL;
-+	}
-+
-+	if (drop_reference && remote->np) {
-+		of_node_put(remote->np);
-+		remote->np = NULL;
-+	}
-+
-+	ds90ux9xx_clear_address_mappings(i2c_bridge);
-+}
-+
-+static void ds90ux9xx_remove_linked_devices(struct ds90ux9xx_i2c *i2c_bridge)
-+{
-+	struct ds90ux9xx_i2c_linked *linked;
-+	unsigned int i;
-+
-+	for (i = 0; i < ds90ux9xx_num_fpd_links(i2c_bridge->dev->parent); i++) {
-+		linked = &i2c_bridge->linked[i];
-+		ds90ux9xx_remove_linked_device(i2c_bridge, linked, true);
-+	}
-+}
-+
-+static void ds90ux9xx_add_bridged_device(struct ds90ux9xx_i2c *i2c_bridge,
-+					 struct ds90ux9xx_i2c_bridged *bridged)
-+{
-+	struct i2c_board_info info = {};
-+	int ret;
-+
-+	dev_dbg(i2c_bridge->dev, "Add I2C device '%s'\n", bridged->np->name);
-+
-+	info.addr = bridged->addr;
-+	info.of_node = bridged->np;
-+
-+	/* Non-critical, in case of the problem report it and fallback */
-+	ret = of_modalias_node(bridged->np, info.type, sizeof(info.type));
-+	if (ret)
-+		dev_err(i2c_bridge->dev, "Cannot get module alias for '%s'\n",
-+			bridged->np->full_name);
-+
-+	bridged->i2c = i2c_new_device(i2c_bridge->adapter, &info);
-+	if (!bridged->i2c)
-+		dev_err(i2c_bridge->dev, "Cannot add new I2C device\n");
-+}
-+
-+static int ds90ux9xx_configure_remote_devices(struct ds90ux9xx_i2c *i2c_bridge,
-+					struct ds90ux9xx_i2c_linked *linked)
-+{
-+	struct ds90ux9xx_i2c_bridged *remote = &linked->remote, *slave;
-+	unsigned int i;
-+	int ret;
-+
-+	ret = ds90ux9xx_setup_address_mappings(i2c_bridge, linked);
-+	if (ret)
-+		return ret;
-+
-+	ds90ux9xx_add_bridged_device(i2c_bridge, remote);
-+	if (!remote->i2c)
-+		return -ENODEV;
-+
-+	for (i = 0; i < linked->num_slaves; i++) {
-+		slave = &linked->slave[i];
-+
-+		ds90ux9xx_add_bridged_device(i2c_bridge, slave);
-+		if (!slave->i2c) {
-+			ds90ux9xx_remove_linked_device(i2c_bridge,
-+						       linked, false);
-+			return -ENODEV;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void ds90ux9xx_disconnect_remotes(struct ds90ux9xx_i2c *i2c_bridge)
-+{
-+	unsigned int link = i2c_bridge->link;
-+
-+	dev_dbg(i2c_bridge->dev, "Link %d is disconnected\n", link);
-+
-+	ds90ux9xx_remove_linked_device(i2c_bridge,
-+				       &i2c_bridge->linked[link], false);
-+
-+	ds90ux9xx_setup_i2c_pass_through(i2c_bridge, false);
-+}
-+
-+static int ds90ux9xx_connect_remotes(struct ds90ux9xx_i2c *i2c_bridge,
-+				     unsigned int link)
-+{
-+	struct ds90ux9xx_i2c_linked *linked = &i2c_bridge->linked[link];
-+	struct ds90ux9xx_i2c_bridged *remote = &linked->remote;
-+	int ret;
-+
-+	dev_dbg(i2c_bridge->dev, "Link %d is connected\n", link);
-+
-+	i2c_bridge->link = link;
-+
-+	ret = ds90ux9xx_setup_i2c_pass_through(i2c_bridge, linked->is_bridged);
-+	if (ret)
-+		return ret;
-+
-+	if (!linked->is_bridged) {
-+		remote->i2c = of_find_i2c_device_by_node(remote->np);
-+		return remote->i2c ? 0 : -ENODEV;
-+	}
-+
-+	ret = ds90ux9xx_set_remote_addr(i2c_bridge, remote->addr);
-+	if (ret)
-+		return ret;
-+
-+	return ds90ux9xx_configure_remote_devices(i2c_bridge, linked);
-+}
-+
-+static int ds90ux9xx_conn_monitor(void *data)
-+{
-+	unsigned int link, sleep_time = CONN_MIN_TIME_MSEC;
-+	struct ds90ux9xx_i2c *i2c_bridge = data;
-+	struct ds90ux9xx_i2c_bridged *remote;
-+	struct ds90ux9xx_i2c_linked *linked;
-+	bool lock;
-+	u8 addr;
-+	int ret;
-+
-+	while (!kthread_should_stop()) {
-+		ret = ds90ux9xx_get_link_status(i2c_bridge->dev->parent,
-+						&link, &lock);
-+		if (ret)
-+			goto sleep;
-+
-+		linked = &i2c_bridge->linked[i2c_bridge->link];
-+		remote = &linked->remote;
-+
-+		ret = ds90ux9xx_get_remote_addr(i2c_bridge, &addr);
++	switch (function) {
++	case DS90UX9XX_FUNC_GPIO:
++		/* Not all GPIOs can be set to input, fallback to output low */
++		ret = ds90ux9xx_gpio_write(pctrl, pin, GPIO_AS_INPUT);
 +		if (ret < 0)
-+			goto sleep;
-+
-+		lock = lock && (addr != 0);
-+
-+		if (lock)
-+			sleep_time = CONN_MAX_TIME_MSEC;
-+		else if (remote->i2c)
-+			sleep_time = CONN_MIN_TIME_MSEC;
-+		else
-+			sleep_time = min_t(unsigned int, CONN_MAX_TIME_MSEC,
-+					   sleep_time + CONN_STEP_TIME_MSEC);
-+
-+		if (remote->i2c && lock && i2c_bridge->link == link) {
-+			if (!linked->is_bridged)
-+				goto sleep;
-+
-+			if (remote->addr == addr)
-+				goto sleep;
-+		}
-+
-+		if (remote->i2c)
-+			ds90ux9xx_disconnect_remotes(i2c_bridge);
-+
-+		if (!remote->i2c && lock) {
-+			ret = ds90ux9xx_connect_remotes(i2c_bridge, link);
-+			if (ret < 0)
-+				dev_err(i2c_bridge->dev,
-+					"Can't establish connection\n");
-+		}
-+sleep:
-+		msleep(sleep_time);
++			ret = ds90ux9xx_gpio_write(pctrl, pin, GPIO_OUTPUT_LOW);
++		return ret;
++	case DS90UX9XX_FUNC_REMOTE:
++		return ds90ux9xx_gpio_write(pctrl, pin, GPIO_OUTPUT_REMOTE);
++	case DS90UX9XX_FUNC_PASS:
++		return ds90ux940_set_pass(pctrl, pin, true);
++	default:
++		break;
 +	}
 +
-+	return 0;
-+}
-+
-+static int ds90ux9xx_parse_address_mappings(struct ds90ux9xx_i2c *i2c_bridge)
-+{
-+	const struct ds90ux9xx_i2c_data *i2c_data = i2c_bridge->i2c_data;
-+	struct ds90ux9xx_i2c_linked *remote;
-+	u32 link, real_addr, alias_addr;
-+	unsigned int size, i;
-+	const __be32 *list;
-+
-+	list = of_get_property(i2c_bridge->dev->of_node, "ti,i2c-bridge-maps",
-+			       &size);
-+	if (!list)
++	if (!ds90ux9xx_is_serializer(pctrl->dev->parent))
 +		return 0;
 +
-+	if (!size || size % 12) {
-+		dev_err(i2c_bridge->dev, "Failed to get valid alias maps\n");
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < size / 12; i++) {
-+		link = be32_to_cpu(*list++);
-+		real_addr = be32_to_cpu(*list++);
-+		alias_addr = be32_to_cpu(*list++);
-+
-+		if (link >= ds90ux9xx_num_fpd_links(i2c_bridge->dev->parent)) {
-+			dev_info(i2c_bridge->dev, "Invalid link id %d\n", i);
-+			continue;
-+		}
-+
-+		remote = &i2c_bridge->linked[link];
-+		if (remote->num_maps >= i2c_data->num_slaves) {
-+			dev_info(i2c_bridge->dev, "Too many aliases\n");
-+			break;
-+		}
-+
-+		remote->map[remote->num_maps].real_addr = real_addr;
-+		remote->map[remote->num_maps].alias_addr = alias_addr;
-+		remote->num_maps++;
-+	}
-+
-+	return 0;
-+}
-+
-+static u8 ds90ux9xx_get_mapped_address(struct ds90ux9xx_i2c_linked *linked,
-+				       u8 remote_addr)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < linked->num_maps; i++) {
-+		if (linked->map[i].real_addr == remote_addr)
-+			return linked->map[i].alias_addr;
-+	}
-+
-+	/* Fallback to preset address, remote device may be inaccessible */
-+	return remote_addr;
-+}
-+
-+static int ds90ux9xx_parse_remote_slaves(struct ds90ux9xx_i2c *i2c_bridge,
-+					 struct ds90ux9xx_i2c_linked *linked)
-+{
-+	struct ds90ux9xx_i2c_bridged *slave;
-+	struct device_node *child, *np;
-+	u32 addr;
-+
-+	np = of_get_child_by_name(linked->remote.np, "i2c-bridge");
-+	if (!np) {
-+		dev_info(i2c_bridge->dev, "I2C bridge device node not found\n");
-+		return 0;
-+	}
-+
-+	if (of_get_child_count(np) > DS90UX9XX_MAX_SLAVE_DEVICES) {
-+		dev_err(i2c_bridge->dev, "Too many aliased I2C devices\n");
-+		of_node_put(np);
-+		return -EINVAL;
-+	}
-+
-+	for_each_child_of_node(np, child) {
-+		if (of_property_read_u32(child, "reg", &addr)) {
-+			dev_err(i2c_bridge->dev, "No I2C device address '%s'\n",
-+				child->full_name);
-+			/* Try the next one */
-+			continue;
-+		}
-+
-+		slave = &linked->slave[linked->num_slaves];
-+		slave->np = of_node_get(child);
-+		if (i2c_bridge->pass_all)
-+			slave->addr = addr;
-+		else
-+			slave->addr = ds90ux9xx_get_mapped_address(linked,
-+								   addr);
-+
-+		linked->num_slaves++;
-+	}
-+
-+	of_node_put(np);
-+
-+	return 0;
-+}
-+
-+static int ds90ux9xx_configure_link(struct ds90ux9xx_i2c *i2c_bridge)
-+{
-+	struct device_node *np = i2c_bridge->dev->parent->of_node;
-+	struct i2c_client *client;
-+	int ret;
-+
-+	/* The link value is updated when established connection is detected */
-+	i2c_bridge->link = 0;
-+
-+	client = of_find_i2c_device_by_node(np);
-+	if (!client || !client->adapter)
-+		return -ENODEV;
-+
-+	i2c_bridge->adapter = client->adapter;
-+	put_device(&client->dev);
-+
-+	ret = ds90ux9xx_setup_i2c_pass_all(i2c_bridge, i2c_bridge->pass_all);
-+	if (ret)
-+		return ret;
-+
-+	i2c_bridge->conn_monitor = kthread_run(ds90ux9xx_conn_monitor,
-+					       i2c_bridge,
-+					       "ds90ux9xx_conn_monitor");
-+	if (IS_ERR(i2c_bridge->conn_monitor))
-+		return PTR_ERR(i2c_bridge->conn_monitor);
-+
-+	return 0;
-+}
-+
-+static int ds90ux9xx_set_link_attributes(struct ds90ux9xx_i2c *i2c_bridge)
-+{
-+	struct device_node *np = i2c_bridge->dev->of_node;
-+	struct ds90ux9xx_i2c_linked *linked;
-+	struct of_phandle_args remote;
-+	unsigned int link, num_links, i;
-+	bool auto_ack;
-+	int ret;
-+
-+	if (of_property_read_bool(np, "ti,i2c-bridge-pass-all"))
-+		i2c_bridge->pass_all = true;
-+
-+	auto_ack = of_property_read_bool(np, "ti,i2c-bridge-auto-ack");
-+	ret = ds90ux9xx_setup_auto_ack(i2c_bridge, auto_ack);
-+	if (ret)
-+		return ret;
-+
-+	ret = ds90ux9xx_parse_address_mappings(i2c_bridge);
-+	if (ret)
-+		return ret;
-+
-+	num_links = ds90ux9xx_num_fpd_links(i2c_bridge->dev->parent);
-+
-+	for (i = 0; i < num_links; i++) {
-+		ret = of_parse_phandle_with_fixed_args(np, "ti,i2c-bridges",
-+						       2, i, &remote);
-+		if (ret) {
-+			if (ret == -ENOENT)
-+				break;
-+			goto drop_nodes;
-+		}
-+
-+		link = remote.args[0];
-+		if (link >= num_links) {
-+			ret = -EINVAL;
-+			goto drop_nodes;
-+		}
-+
-+		linked = &i2c_bridge->linked[link];
-+		if (linked->remote.np) {
-+			ret = -EINVAL;
-+			goto drop_nodes;
-+		}
-+
-+		linked->remote.np = remote.np;
-+		linked->remote.addr = remote.args[1];
-+
-+		/*
-+		 * Don't open I2C access over the FPD-link bidirectional channel
-+		 * to the remote's slave devices, if the remote is an I2C slave
-+		 * attached to a local bus, because the remote's slaves would
-+		 * also necessarily have to hang off the same local bus.
-+		 * Enabling pass-through in this case will cause I2C collisions
-+		 * due to multiple routes to the same device.
-+		 */
-+		if (of_property_read_bool(linked->remote.np, "reg")) {
-+			linked->is_bridged = false;
-+			continue;
-+		}
-+
-+		linked->is_bridged = true;
-+
-+		ret = ds90ux9xx_parse_remote_slaves(i2c_bridge, linked);
++	switch (function) {
++	case DS90UX9XX_FUNC_PARALLEL:
++		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
++					  PIN_CTRL_RGB18, 0x0);
++	case DS90UX9XX_FUNC_I2S_4:
++	case DS90UX9XX_FUNC_I2S_3:
++		ret = regmap_update_bits(pctrl->regmap, SER_REG_I2S_SURROUND,
++					 PIN_CTRL_I2S_SURR_BIT,
++					 PIN_CTRL_I2S_SURR_BIT);
 +		if (ret)
-+			goto drop_nodes;
++			return ret;
++		/* Fall through */
++	case DS90UX9XX_FUNC_I2S_2:
++		return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
++			PIN_CTRL_I2S_CHANNEL_B | PIN_CTRL_I2S_DATA_ISLAND,
++					  PIN_CTRL_I2S_CHANNEL_B);
++	default:
++		break;
 +	}
 +
-+	ret = ds90ux9xx_configure_link(i2c_bridge);
-+	if (ret)
-+		goto drop_nodes;
-+
 +	return 0;
-+
-+drop_nodes:
-+	ds90ux9xx_remove_linked_devices(i2c_bridge);
-+
-+	return ret;
 +}
 +
-+static void ds90ux9xx_get_i2c_data(struct ds90ux9xx_i2c *i2c_bridge)
++static int ds90ux9xx_pinctrl_func_enable(struct ds90ux9xx_pinctrl *pctrl,
++					 enum ds90ux9xx_function function,
++					 struct ds90ux9xx_pin_group *group)
 +{
-+	enum ds90ux9xx_device_id id =
-+		ds90ux9xx_get_ic_type(i2c_bridge->dev->parent);
++	enum ds90ux9xx_function func;
++	unsigned int i, pin;
++	u32 func_mask;
++	int ret;
++
++	/* Disable probably enabled pin functions with pin resource conflicts */
++	for (i = 0; i < group->npins; i++) {
++		pin = group->pins[i];
++
++		func_mask = pctrl->pins[pin].func_mask & ~BIT(function);
++
++		/* Abandon remote GPIOs which are covered by GPIO function */
++		if (function == DS90UX9XX_FUNC_REMOTE)
++			func_mask &= ~BIT(DS90UX9XX_FUNC_GPIO);
++		else
++			func_mask &= ~BIT(DS90UX9XX_FUNC_REMOTE);
++
++		/* Zero to three possible conflicting pin functions */
++		while (func_mask) {
++			func = __ffs(func_mask);
++			func_mask &= ~BIT(func);
++			ret = ds90ux9xx_pinctrl_group_disable(pctrl, func, pin);
++			if (ret)
++				return ret;
++		}
++	}
++
++	return ds90ux9xx_pinctrl_group_enable(pctrl, function, group);
++}
++
++static int ds90ux9xx_set_mux(struct pinctrl_dev *pctldev,
++			     unsigned int function, unsigned int group)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++	enum ds90ux9xx_function func = pctrl->functions[function].id;
++	struct ds90ux9xx_pin_group *grp = &pctrl->groups[group];
++
++	return ds90ux9xx_pinctrl_func_enable(pctrl, func, grp);
++}
++
++static int ds90ux9xx_gpio_request_enable(struct pinctrl_dev *pctldev,
++					 struct pinctrl_gpio_range *range,
++					 unsigned int offset)
++{
++	struct ds90ux9xx_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
++
++	return ds90ux9xx_pinctrl_func_enable(pctrl, DS90UX9XX_FUNC_GPIO,
++					     &pctrl->groups[offset]);
++}
++
++static const struct pinmux_ops ds90ux9xx_pinmux_ops = {
++	.get_functions_count	= ds90ux9xx_get_funcs_count,
++	.get_function_name	= ds90ux9xx_get_func_name,
++	.get_function_groups	= ds90ux9xx_get_func_groups,
++	.set_mux		= ds90ux9xx_set_mux,
++	.gpio_request_enable	= ds90ux9xx_gpio_request_enable,
++	.strict = true,
++};
++
++static const struct pinctrl_desc ds90ux9xx_pinctrl_desc = {
++	.pctlops	= &ds90ux9xx_pinctrl_ops,
++	.pmxops		= &ds90ux9xx_pinmux_ops,
++};
++
++static int ds90ux9xx_gpio_get(struct gpio_chip *chip, unsigned int offset)
++{
++	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
++	int ret;
++	u8 val;
++
++	ret = ds90ux9xx_gpio_read(pctrl, offset, &val);
++	if (ret)
++		return ret;
++
++	if (!(val & DIR_INPUT))
++		return !!(val & OUTPUT_HIGH);
++
++	ret = ds90ux9xx_gpio_read_stat(pctrl, offset, &val);
++	if (ret)
++		return ret;
++
++	return !!val;
++}
++
++static void ds90ux9xx_gpio_set(struct gpio_chip *chip, unsigned int offset,
++			       int value)
++{
++	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
++	u8 val = value ? GPIO_OUTPUT_HIGH : GPIO_OUTPUT_LOW;
++
++	ds90ux9xx_gpio_write(pctrl, offset, val);
++}
++
++static int ds90ux9xx_gpio_get_direction(struct gpio_chip *chip,
++					unsigned int offset)
++{
++	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
++	int ret;
++	u8 val;
++
++	ret = ds90ux9xx_gpio_read(pctrl, offset, &val);
++	if (ret)
++		return ret;
++
++	return !!(val & DIR_INPUT);
++}
++
++static int ds90ux9xx_gpio_direction_input(struct gpio_chip *chip,
++					  unsigned int offset)
++{
++	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
++
++	return ds90ux9xx_gpio_write(pctrl, offset, GPIO_AS_INPUT);
++}
++
++static int ds90ux9xx_gpio_direction_output(struct gpio_chip *chip,
++					   unsigned int offset, int value)
++{
++	struct ds90ux9xx_pinctrl *pctrl = gpiochip_get_data(chip);
++	u8 val = value ? GPIO_OUTPUT_HIGH : GPIO_OUTPUT_LOW;
++
++	return ds90ux9xx_gpio_write(pctrl, offset, val);
++}
++
++static const struct gpio_chip ds90ux9xx_gpio_chip = {
++	.owner			= THIS_MODULE,
++	.get			= ds90ux9xx_gpio_get,
++	.set			= ds90ux9xx_gpio_set,
++	.get_direction		= ds90ux9xx_gpio_get_direction,
++	.direction_input	= ds90ux9xx_gpio_direction_input,
++	.direction_output	= ds90ux9xx_gpio_direction_output,
++	.base			= -1,
++	.can_sleep		= 1,
++	.of_gpio_n_cells	= 2,
++	.of_xlate		= of_gpio_simple_xlate,
++};
++
++static int ds90ux9xx_parse_dt_properties(struct ds90ux9xx_pinctrl *pctrl)
++{
++	struct device_node *np = pctrl->dev->of_node;
++	unsigned int val;
++
++	if (!ds90ux9xx_is_serializer(pctrl->dev->parent))
++		return 0;
++
++	/*
++	 * Optionally set "Video Color Depth Mode" to RGB18 mode, it may be
++	 * needed if DS90Ux927 serializer is paired with DS90Ux926 deserializer
++	 * or if there is no pins conflicting with the "parallel" pin group
++	 * to disable RGB24 mode implicitly.
++	 */
++	if (of_property_read_bool(np, "ti,video-depth-18bit"))
++		val = PIN_CTRL_RGB18;
++	else
++		val = 0;
++
++	return regmap_update_bits(pctrl->regmap, SER_REG_PIN_CTRL,
++				  PIN_CTRL_RGB18, val);
++}
++
++static void ds90ux9xx_get_data(struct ds90ux9xx_pinctrl *pctrl,
++			       const struct ds90ux9xx_pinctrl_data **pctrl_data)
++{
++	enum ds90ux9xx_device_id id = ds90ux9xx_get_ic_type(pctrl->dev->parent);
 +
 +	switch (id) {
 +	case TI_DS90UB925:
 +	case TI_DS90UH925:
-+		i2c_bridge->i2c_data = &ds90ux925_i2c;
++		*pctrl_data = &ds90ux925_pinctrl;
 +		break;
 +	case TI_DS90UB927:
 +	case TI_DS90UH927:
-+		i2c_bridge->i2c_data = &ds90ux927_i2c;
++		*pctrl_data = &ds90ux927_pinctrl;
 +		break;
 +	case TI_DS90UB926:
 +	case TI_DS90UH926:
++		*pctrl_data = &ds90ux926_pinctrl;
++		break;
 +	case TI_DS90UB928:
 +	case TI_DS90UH928:
++		*pctrl_data = &ds90ux928_pinctrl;
++		break;
 +	case TI_DS90UB940:
 +	case TI_DS90UH940:
-+		i2c_bridge->i2c_data = &ds90ux926_i2c;
++		*pctrl_data = &ds90ux940_pinctrl;
 +		break;
 +	default:
-+		dev_err(i2c_bridge->dev, "Not supported hardware: [%d]\n", id);
++		dev_err(pctrl->dev, "Unsupported hardware id %d\n", id);
 +	}
 +}
 +
-+static int ds90ux9xx_i2c_bridge_probe(struct platform_device *pdev)
++static int ds90ux9xx_pinctrl_probe(struct platform_device *pdev)
 +{
-+	struct ds90ux9xx_i2c *i2c_bridge;
++	const struct ds90ux9xx_pinctrl_data *pctrl_data;
++	struct ds90ux9xx_pinctrl *pctrl;
 +	struct device *dev = &pdev->dev;
++	int ret;
 +
-+	i2c_bridge = devm_kzalloc(dev, sizeof(*i2c_bridge), GFP_KERNEL);
-+	if (!i2c_bridge)
++	pctrl = devm_kzalloc(dev, sizeof(*pctrl), GFP_KERNEL);
++	if (!pctrl)
 +		return -ENOMEM;
 +
-+	i2c_bridge->dev = dev;
-+	i2c_bridge->regmap = dev_get_regmap(dev->parent, NULL);
-+	if (!i2c_bridge->regmap)
++	pctrl->dev = dev;
++	pctrl->regmap = dev_get_regmap(dev->parent, NULL);
++	if (!pctrl->regmap)
 +		return -ENODEV;
 +
-+	i2c_bridge->i2c_data = of_device_get_match_data(dev);
-+	if (!i2c_bridge->i2c_data)
-+		ds90ux9xx_get_i2c_data(i2c_bridge);
++	pctrl_data = of_device_get_match_data(dev);
++	if (!pctrl_data)
++		ds90ux9xx_get_data(pctrl, &pctrl_data);
 +
-+	if (!i2c_bridge->i2c_data)
++	if (!pctrl_data)
 +		return -ENODEV;
 +
-+	platform_set_drvdata(pdev, i2c_bridge);
++	ret = ds90ux9xx_populate_groups(pctrl, pctrl_data);
++	if (ret)
++		return ret;
 +
-+	if (of_property_read_bool(dev->of_node, "ti,i2c-bridges"))
-+		return ds90ux9xx_set_link_attributes(i2c_bridge);
++	ret = ds90ux9xx_parse_dt_properties(pctrl);
++	if (ret)
++		return ret;
 +
-+	i2c_bridge->remote = true;
++	pctrl->desc = ds90ux9xx_pinctrl_desc;
++	pctrl->desc.name = pctrl_data->name;
++	pctrl->desc.pins = pctrl_data->pins_desc;
++	pctrl->desc.npins = pctrl_data->npins;
 +
-+	return ds90ux9xx_setup_i2c_pass_through(i2c_bridge, false);
++	pctrl->pctrl = devm_pinctrl_register(dev, &pctrl->desc, pctrl);
++	if (IS_ERR(pctrl->pctrl))
++		return PTR_ERR(pctrl->pctrl);
++
++	platform_set_drvdata(pdev, pctrl);
++
++	pctrl->gpiochip = ds90ux9xx_gpio_chip;
++	pctrl->gpiochip.parent = dev;
++	pctrl->gpiochip.label = pctrl_data->name;
++	pctrl->gpiochip.ngpio = pctrl->ngpios;
++
++	if (of_property_read_bool(dev->of_node, "gpio-ranges")) {
++		pctrl->gpiochip.request = gpiochip_generic_request;
++		pctrl->gpiochip.free = gpiochip_generic_free;
++	}
++
++	return devm_gpiochip_add_data(dev, &pctrl->gpiochip, pctrl);
 +}
 +
-+static int ds90ux9xx_i2c_bridge_remove(struct platform_device *pdev)
-+{
-+	struct ds90ux9xx_i2c *i2c_bridge = platform_get_drvdata(pdev);
-+
-+	if (i2c_bridge->remote)
-+		return 0;
-+
-+	kthread_stop(i2c_bridge->conn_monitor);
-+	ds90ux9xx_remove_linked_devices(i2c_bridge);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id ds90ux9xx_i2c_dt_ids[] = {
-+	{ .compatible = "ti,ds90ux9xx-i2c-bridge", },
-+	{ .compatible = "ti,ds90ux925-i2c-bridge", .data = &ds90ux925_i2c, },
-+	{ .compatible = "ti,ds90ux926-i2c-bridge", .data = &ds90ux926_i2c, },
-+	{ .compatible = "ti,ds90ux927-i2c-bridge", .data = &ds90ux927_i2c, },
-+	{ .compatible = "ti,ds90ux928-i2c-bridge", .data = &ds90ux926_i2c, },
-+	{ .compatible = "ti,ds90ux940-i2c-bridge", .data = &ds90ux926_i2c, },
++static const struct of_device_id ds90ux9xx_pinctrl_dt_ids[] = {
++	{ .compatible = "ti,ds90ux9xx-pinctrl", },
++	{ .compatible = "ti,ds90ux925-pinctrl", .data = &ds90ux925_pinctrl, },
++	{ .compatible = "ti,ds90ux926-pinctrl", .data = &ds90ux926_pinctrl, },
++	{ .compatible = "ti,ds90ux927-pinctrl", .data = &ds90ux927_pinctrl, },
++	{ .compatible = "ti,ds90ux928-pinctrl", .data = &ds90ux928_pinctrl, },
++	{ .compatible = "ti,ds90ux940-pinctrl", .data = &ds90ux940_pinctrl, },
 +	{ },
 +};
-+MODULE_DEVICE_TABLE(of, ds90ux9xx_i2c_dt_ids);
++MODULE_DEVICE_TABLE(of, ds90ux9xx_pinctrl_dt_ids);
 +
-+static struct platform_driver ds90ux9xx_i2c_bridge_driver = {
-+	.probe = ds90ux9xx_i2c_bridge_probe,
-+	.remove = ds90ux9xx_i2c_bridge_remove,
++static struct platform_driver ds90ux9xx_pinctrl_driver = {
++	.probe = ds90ux9xx_pinctrl_probe,
 +	.driver = {
-+		.name = "ds90ux9xx-i2c-bridge",
-+		.of_match_table = ds90ux9xx_i2c_dt_ids,
++		.name = "ds90ux9xx-pinctrl",
++		.of_match_table = ds90ux9xx_pinctrl_dt_ids,
 +	},
 +};
-+module_platform_driver(ds90ux9xx_i2c_bridge_driver);
++module_platform_driver(ds90ux9xx_pinctrl_driver);
 +
 +MODULE_AUTHOR("Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>");
-+MODULE_AUTHOR("Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>");
-+MODULE_DESCRIPTION("TI DS90Ux9xx I2C bridge/alias controller driver");
++MODULE_DESCRIPTION("TI DS90Ux9xx pinmux and GPIO controller driver");
 +MODULE_LICENSE("GPL");
 -- 
 2.17.1
