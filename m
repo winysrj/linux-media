@@ -1,61 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45634 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1728395AbeJHWpH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Oct 2018 18:45:07 -0400
-Date: Mon, 8 Oct 2018 18:32:49 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Tomasz Figa <tfiga@chromium.org>, snawrocki@kernel.org
-Subject: Re: [RFC PATCH 00/11] Convert last remaining g/s_crop/cropcap drivers
-Message-ID: <20181008153249.oyip4u3ij2ufd2f4@valkosipuli.retiisi.org.uk>
-References: <20181005074911.47574-1-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.133]:37674 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726692AbeJHXJv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 19:09:51 -0400
+Date: Mon, 8 Oct 2018 12:57:22 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Rob Herring <robh@kernel.org>
+Subject: Re: [GIT PULL for 4.20] Lens driver fixes, imx214 sensor driver
+Message-ID: <20181008125722.68fc5f2d@coco.lan>
+In-Reply-To: <20181007130557.dfjrfvv2tip2inpr@valkosipuli.retiisi.org.uk>
+References: <20181007130557.dfjrfvv2tip2inpr@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181005074911.47574-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Sun, 7 Oct 2018 16:05:57 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-On Fri, Oct 05, 2018 at 09:49:00AM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Hi Mauro,
 > 
-> This patch series converts the last remaining drivers that use g/s_crop and
-> cropcap to g/s_selection.
+> This last pull for 4.20 contains dw9714 and dw9807 lens driver probe error
+> handling fixes and the Sony imx214 sensor driver. In other words, patches
+> that have roughly nil changes of breaking something.
 > 
-> The first two patches do some minor code cleanup.
+> Compile tested with and without both subdev uAPI and MC on x86-64, plus on
+> arm as well.
 > 
-> The third patch adds a new video_device flag to indicate that the driver
-> inverts the normal usage of g/s_crop/cropcap. This applies to the old
-> Samsung drivers that predate the Selection API and that abused the existing
-> crop API.
+> Please pull.
 > 
-> The next three patches do some code cleanup and prepare drivers for the
-> removal of g/s_crop and ensure that cropcap only returns the pixelaspect.
 > 
-> The next three patches convert the remaining Samsung drivers and set the
-> QUIRK flag for all three.
+> The following changes since commit 557c97b5133669297be561e6091da9ab6e488e65:
 > 
-> The final two patches remove vidioc_g/s_crop and rename vidioc_cropcap
-> to vidioc_g_pixelaspect.
+>   media: cec: name for RC passthrough device does not need 'RC for' (2018-10-05 11:28:13 -0400)
+> 
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/sailus/media_tree.git tags/for-4.20-11-sign
+> 
+> for you to fetch changes up to a8f772a119afcc1dfabf4d8b7e258b9f90d2c561:
+> 
+>   imx214: Add imx214 camera sensor driver (2018-10-06 21:20:40 +0300)
+> 
+> ----------------------------------------------------------------
+> dw9714 and dw9807 fixes; imx214 driver
+> 
+> ----------------------------------------------------------------
+> Rajmohan Mani (1):
+>       media: dw9714: Fix error handling in probe function
+> 
+> Ricardo Ribalda Delgado (2):
+>       imx214: device tree binding
+>       imx214: Add imx214 camera sensor driver
 
-Nice one; thanks!
+I'm missing the ack from Rob on the DT patch. Will apply the
+remaining ones from this series as they're independent.
 
-For patches 1, 2, 3, 10 and 11:
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Sakari Ailus (2):
+>       dw9714: Remove useless error message
+>       dw9807-vcm: Fix probe error handling
 
-I didn't read through the driver changes but I assume they would be fine.
-:-)
+> 
+>  .../devicetree/bindings/media/i2c/sony,imx214.txt  |   53 +
+>  MAINTAINERS                                        |    8 +
+>  drivers/media/i2c/Kconfig                          |   12 +
+>  drivers/media/i2c/Makefile                         |    1 +
+>  drivers/media/i2c/dw9714.c                         |    5 +-
+>  drivers/media/i2c/dw9807-vcm.c                     |    3 +-
+>  drivers/media/i2c/imx214.c                         | 1118 ++++++++++++++++++++
+>  7 files changed, 1197 insertions(+), 3 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/sony,imx214.txt
+>  create mode 100644 drivers/media/i2c/imx214.c
+> 
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Thanks,
+Mauro
