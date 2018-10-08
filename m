@@ -1,53 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38451 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726522AbeJICeO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Oct 2018 22:34:14 -0400
-Subject: Re: [PATCH] vivid: fix kernel oops when enabling HFLIP and OSD
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:47006 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726646AbeJIDcI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 23:32:08 -0400
+Subject: Re: [RFC] Informal meeting during ELCE to discuss userspace support
+ for stateless codecs
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <407e067b-47be-e8da-848d-edb6c04f5c1c@xs4all.nl>
-Message-ID: <28100124-7461-3610-a811-5db8fd8496d0@xs4all.nl>
-Date: Mon, 8 Oct 2018 21:20:53 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <fb778f04-a16b-8f1e-e2d6-c94870e00998@ideasonboard.com>
+Date: Mon, 8 Oct 2018 21:18:34 +0100
 MIME-Version: 1.0
-In-Reply-To: <407e067b-47be-e8da-848d-edb6c04f5c1c@xs4all.nl>
+In-Reply-To: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/08/2018 09:08 PM, Hans Verkuil wrote:
-> When the OSD is on (i.e. vivid displays text on top of the test pattern), and
-> you enable hflip, then the driver crashes.
+Hi Hans
+
+On 08/10/18 12:53, Hans Verkuil wrote:
+> Hi all,
 > 
-> The cause turned out to be a division of a negative number by an unsigned value.
-> You expect that -8 / 2 would be -4, but in reality it is 2147483644 :-(
+> I would like to meet up somewhere during the ELCE to discuss userspace support
+> for stateless (and perhaps stateful as well?) codecs.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index f3d9c1140ffa..e76f87dc4368 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -1773,7 +1773,7 @@ typedef struct { u16 __; u8 _; } __packed x24;
->  				pos[7] = (chr & (0x01 << 0) ? fg : bg);	\
->  			} \
->  	\
-> -			pos += (tpg->hflip ? -8 : 8) / hdiv;	\
-> +			pos += (tpg->hflip ? -8 : 8) / (int)hdiv;	\
->  		}	\
->  	}	\
->  } while (0)
+> It is also planned as a topic during the summit, but I would prefer to prepare
+> for that in advance, esp. since I myself do not have any experience writing
+> userspace SW for such devices.
 > 
+> Nicolas, it would be really great if you can participate in this meeting
+> since you probably have the most experience with this by far.
+> 
+> Looking through the ELCE program I found two timeslots that are likely to work
+> for most of us (because the topics in the program appear to be boring for us
+> media types!):
+> 
+> Tuesday from 10:50-15:50
+> 
+> or:
+> 
+> Monday from 15:45 onward
+> 
+> My guess is that we need 2-3 hours or so. Hard to predict.
+> 
+> The basic question that I would like to have answered is what the userspace
+> component should look like? libv4l-like plugin or a library that userspace can
+> link with? Do we want more general support for stateful codecs as well that deals
+> with resolution changes and the more complex parts of the codec API?
+> 
+> I've mailed this directly to those that I expect are most interested in this,
+> but if someone want to join in let me know.
 
-This can be CC-ed to stable for 4.7 and up.
+Depending on time and availability I might like to join in on this.
+Consider me non-essential however and if I'm not around don't wait for me.
 
-It actually broke in 4.1, but it was called vivid-tpg.c at that time.
+I have a desire to work on the codecs for Renesas (although it seems
+unlikely to be possible due to licensing issues)
 
-Regards,
 
-	Hans
+> I want to keep the group small though, so you need to bring relevant experience
+> to the table.
+
+I can offer outdated experience managing the codec firmwares, and
+decode/encode stacks for the ST SDK2 player implementation.
+
+However that was 4 or 5 years ago - so I now deny all knowledge of
+knowing anything from back then :-)
+
+--
+Regards
+
+Kieran
