@@ -1,298 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46142 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726396AbeJHXgH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Oct 2018 19:36:07 -0400
-Date: Mon, 8 Oct 2018 19:23:35 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 2/3] rcar-vin: add support for UDS (Up Down Scaler)
-Message-ID: <20181008162335.lq3kn4jgrmcjjorm@valkosipuli.retiisi.org.uk>
-References: <20181004200402.15113-1-niklas.soderlund+renesas@ragnatech.se>
- <20181004200402.15113-3-niklas.soderlund+renesas@ragnatech.se>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:35384 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726193AbeJHQ6p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 12:58:45 -0400
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH] media: vivid: Support 480p for webcam capture
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Keiichi Watanabe <keiichiw@chromium.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ricky Liang <jcliang@chromium.org>,
+        Shik Chen <shik@chromium.org>
+References: <20181003070656.193854-1-keiichiw@chromium.org>
+ <CAD90VcbBUcpwLsY0sHim+mML6esSjZA2ocX0Ff-YiZxBsLTZ+w@mail.gmail.com>
+ <5b236e95-b737-51b3-df4f-eea41a36735e@xs4all.nl>
+ <CAD90VcaexKNsRE9s32UanzE32YM2EXFySCArkt_Zo2V3-eRnqQ@mail.gmail.com>
+ <997483ea-4a41-a947-2cc8-45892ef91bc6@ideasonboard.com>
+ <d8b8d5bb-788d-1089-3a9d-ca42926ecc7b@xs4all.nl>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <ce006570-af4a-f4a5-fd0b-74d0638da56d@ideasonboard.com>
+Date: Mon, 8 Oct 2018 10:47:48 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <d8b8d5bb-788d-1089-3a9d-ca42926ecc7b@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181004200402.15113-3-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-On Thu, Oct 04, 2018 at 10:04:01PM +0200, Niklas Söderlund wrote:
-> Some VIN instances have access to a Up Down Scaler (UDS). The UDS are on
-> most SoCs shared between two VINs, the UDS can of course only be used by
-> one VIN at a time.
+On 08/10/18 10:00, Hans Verkuil wrote:
+> On 10/08/2018 10:35 AM, Kieran Bingham wrote:
+>> On 06/10/18 11:29, Keiichi Watanabe wrote:
+>>> Hi all,
+>>>
+>>> On Fri, Oct 5, 2018 at 6:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 10/03/18 09:08, Keiichi Watanabe wrote:
+>>>>> I think 480p is a common frame size and it's worth supporting in vivid.
+>>>>> But, my patch might be ad-hoc. Actually, I'm not sure which values are
+>>>>> suitable for the intervals.
+>>>>
+>>>> I can apply this ad-hoc patch as-is.
+>>>>
+>>>> Or do you want to postpone this and work on a more generic solution?
+>>>> Although I am not sure what that would look like.
+>>>
+>>> I prefer providing a more flexible way rather than this ad-hoc patch.
+>>> It would be helpful if there is a way of changing supported frame sizes easily.
+>>> Perhaps, Kieran and me would use it, at least:)
+>>>
+>>
+>> o/ <raising hand in agreement>
+>>
+>>>>
+>>>> Proposals are welcome!
+>>>>
+>>>> The main purpose of this code is to have something that kind of acts like
+>>>> a real webcam that has various resolutions, and a slower framerate for
+>>>> higher resolutions (as you would expect).
+>>>
+>>> This sounds reasonable, so I guess we can keep this way as default and
+>>> provide a way for specifying extra frame sizes as an option.
+>>>
+>>> For example, how about a module option like this?
+>>> "webcam_sizes=640x480@15,320x240@30"
+>>>
+>>> If this parameter is passed to vivid, vivid works like a webcam that
+>>> supports the following 7 pairs of frame size and fps:
+>>> - 5 pairs of frame sizes and fps, as with the current implementation
+>>> - 640x480 (15fps)
+>>> - 320x240 (30fps)
+>>
+>> I like the concept of being able to specify as a module parameter.
+>>
+>> Perhaps we could have a magic marker on the string to define if the
+>> existing frame sizes should be kept - or if this is just a complete
+>> override ?
 > 
-> Add support to configure the UDS registers which are mapped to both VINs
-> sharing the UDS address-space. While validations the format at stream
-> start make sure the companion VIN is not already using the scaler. If
-> the scaler already is in use return -EBUSY.
+> No, just override. It's hard otherwise since you would have to keep the
+> lists sorted by resolution/fps.
 > 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 134 ++++++++++++++++++++-
->  drivers/media/platform/rcar-vin/rcar-vin.h |  24 ++++
->  2 files changed, 152 insertions(+), 6 deletions(-)
+> If you want to set it yourself, then just do a complete override.
+
+OK. That's reasonable for me.
+
+ @@ -9,3 +9,0 @@ suggestion
+ - magic-marker
+
+
+>>  vivid.webcam=640x480@15,320x240@30  # Specify sizes explicitly
+>>  vivid.webcam=+640x480@15,320x240@30  # Append to existing frames
+>>               ^ Magic Marker
+>>
+>> We might of course want multiple rates per frame,
+>>
+>>  vivid.webcam=640x480@15-25-30-90-120, # Separator to be defined...
 > 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> index e752bc86e40153b1..f33146bda9300c21 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -74,6 +74,10 @@
->  
->  /* Register offsets specific for Gen3 */
->  #define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
-> +#define VNUDS_CTRL_REG		0x80 /* Video n scaling control register */
-> +#define VNUDS_SCALE_REG		0x84 /* Video n scaling factor register */
-> +#define VNUDS_PASS_BWIDTH_REG	0x90 /* Video n passband register */
-> +#define VNUDS_CLIP_SIZE_REG	0xa4 /* Video n UDS output size clipping reg */
->  
->  /* Register bit fields for R-Car VIN */
->  /* Video n Main Control Register bits */
-> @@ -129,6 +133,9 @@
->  #define VNCSI_IFMD_CSI_CHSEL(n) (((n) & 0xf) << 0)
->  #define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
->  
-> +/* Video n scaling control register (Gen3) */
-> +#define VNUDS_CTRL_AMD		(1 << 30)
-> +
->  struct rvin_buffer {
->  	struct vb2_v4l2_buffer vb;
->  	struct list_head list;
-> @@ -572,6 +579,78 @@ static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
->  		0, 0);
->  }
->  
-> +static unsigned int rvin_scale_ratio(unsigned int in, unsigned int out)
-> +{
-> +	unsigned int ratio;
-> +
-> +	ratio = in * 4096 / out;
-> +	return ratio >= 0x10000 ? 0xffff : ratio;
-> +}
-> +
-> +static unsigned int rvin_ratio_to_bwidth(unsigned int ratio)
-> +{
-> +	unsigned int mant, frac;
-> +
-> +	mant = (ratio & 0xF000) >> 12;
-> +	frac = ratio & 0x0FFF;
-> +	if (mant)
-> +		return 64 * 4096 * mant / (4096 * mant + frac);
-> +
-> +	return 64;
-> +}
-> +
-> +static bool rvin_gen3_need_scaling(struct rvin_dev *vin)
-> +{
-> +	if (vin->info->model != RCAR_GEN3)
-> +		return false;
-> +
-> +	return vin->crop.width != vin->format.width ||
-> +		vin->crop.height != vin->format.height;
-> +}
-> +
-> +static void rvin_crop_scale_comp_gen3(struct rvin_dev *vin)
-> +{
-> +	unsigned int ratio_h, ratio_v;
-> +	unsigned int bwidth_h, bwidth_v;
-> +	u32 vnmc, clip_size;
-> +
-> +	if (!rvin_gen3_need_scaling(vin))
-> +		return;
-> +
-> +	ratio_h = rvin_scale_ratio(vin->crop.width, vin->format.width);
-> +	bwidth_h = rvin_ratio_to_bwidth(ratio_h);
-> +
-> +	ratio_v = rvin_scale_ratio(vin->crop.height, vin->format.height);
-> +	bwidth_v = rvin_ratio_to_bwidth(ratio_v);
-> +
-> +	clip_size = vin->format.width << 16;
-> +
-> +	switch (vin->format.field) {
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +	case V4L2_FIELD_INTERLACED:
-> +	case V4L2_FIELD_SEQ_TB:
-> +	case V4L2_FIELD_SEQ_BT:
-> +		clip_size |= vin->format.height / 2;
-> +		break;
-> +	default:
-> +		clip_size |= vin->format.height;
-> +		break;
-> +	}
-> +
-> +	vnmc = rvin_read(vin, VNMC_REG);
-> +	rvin_write(vin, (vnmc & ~VNMC_VUP) | VNMC_SCLE, VNMC_REG);
-> +	rvin_write(vin, VNUDS_CTRL_AMD, VNUDS_CTRL_REG);
-> +	rvin_write(vin, (ratio_h << 16) | ratio_v, VNUDS_SCALE_REG);
-> +	rvin_write(vin, (bwidth_h << 16) | bwidth_v, VNUDS_PASS_BWIDTH_REG);
-> +	rvin_write(vin, clip_size, VNUDS_CLIP_SIZE_REG);
-> +	rvin_write(vin, vnmc, VNMC_REG);
-> +
-> +	vin_dbg(vin, "Pre-Clip: %ux%u@%u:%u Post-Clip: %ux%u@%u:%u\n",
-> +		vin->crop.width, vin->crop.height, vin->crop.left,
-> +		vin->crop.top, vin->format.width, vin->format.height, 0, 0);
-> +}
+> Stick to @, so: vivid.webcam=640x480@15@25@30@90@120
 
-How's this visible to the user? I'd expect this to be configurable using
-the COMPOSE selection target.
+Yes, of course that makes a lot more sense now I see it :-)
 
-And... how about the support for the file handle specific try
-configuration?
+--
+Kieran
 
-> +
->  void rvin_crop_scale_comp(struct rvin_dev *vin)
->  {
->  	/* Set Start/End Pixel/Line Pre-Clip */
-> @@ -593,8 +672,9 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
->  		break;
->  	}
->  
-> -	/* TODO: Add support for the UDS scaler. */
-> -	if (vin->info->model != RCAR_GEN3)
-> +	if (vin->info->model == RCAR_GEN3)
-> +		rvin_crop_scale_comp_gen3(vin);
-> +	else
->  		rvin_crop_scale_comp_gen2(vin);
->  
->  	rvin_write(vin, vin->format.width, VNIS_REG);
-> @@ -748,6 +828,9 @@ static int rvin_setup(struct rvin_dev *vin)
->  			vnmc |= VNMC_DPINE;
->  	}
->  
-> +	if (rvin_gen3_need_scaling(vin))
-> +		vnmc |= VNMC_SCLE;
-> +
->  	/* Progressive or interlaced mode */
->  	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
->  
-> @@ -1078,10 +1161,42 @@ static int rvin_mc_validate_format(struct rvin_dev *vin, struct v4l2_subdev *sd,
->  		return -EPIPE;
->  	}
->  
-> -	if (fmt.format.width != vin->format.width ||
-> -	    fmt.format.height != vin->format.height ||
-> -	    fmt.format.code != vin->mbus_code)
-> -		return -EPIPE;
-> +	vin->crop.width = fmt.format.width;
-> +	vin->crop.height = fmt.format.height;
-> +
-> +	if (rvin_gen3_need_scaling(vin)) {
-> +		const struct rvin_group_scaler *scaler;
-> +		struct rvin_dev *companion;
-> +
-> +		if (fmt.format.code != vin->mbus_code)
-> +			return -EPIPE;
-> +
-> +		if (!vin->info->scalers)
-> +			return -EPIPE;
-> +
-> +		for (scaler = vin->info->scalers;
-> +		     scaler->vin || scaler->companion; scaler++)
-> +			if (scaler->vin == vin->id)
-> +				break;
-> +
-> +		/* No scaler found for VIN. */
-> +		if (!scaler->vin && !scaler->companion)
-> +			return -EPIPE;
-> +
-> +		/* Make sure companion not using scaler. */
-> +		if (scaler->companion != -1) {
-> +			companion = vin->group->vin[scaler->companion];
-> +			if (companion &&
-> +			    companion->state != STOPPED &&
-> +			    rvin_gen3_need_scaling(companion))
-> +				return -EBUSY;
-> +		}
-> +	} else {
-> +		if (fmt.format.width != vin->format.width ||
-> +		    fmt.format.height != vin->format.height ||
-> +		    fmt.format.code != vin->mbus_code)
-> +			return -EPIPE;
-> +	}
->  
->  	return 0;
->  }
-> @@ -1189,6 +1304,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
->  	struct rvin_dev *vin = vb2_get_drv_priv(vq);
->  	unsigned long flags;
->  	int retries = 0;
-> +	u32 vnmc;
->  
->  	spin_lock_irqsave(&vin->qlock, flags);
->  
-> @@ -1220,6 +1336,12 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
->  		vin->state = STOPPED;
->  	}
->  
-> +	/* Clear UDS usage after we have stopped */
-> +	if (vin->info->model == RCAR_GEN3) {
-> +		vnmc = rvin_read(vin, VNMC_REG) & ~(VNMC_SCLE | VNMC_VUP);
-> +		rvin_write(vin, vnmc, VNMC_REG);
-> +	}
-> +
->  	/* Release all active buffers */
->  	return_all_buffers(vin, VB2_BUF_STATE_ERROR);
->  
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-> index 0b13b34d03e3dce4..5a617a30ba8c9a5a 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -122,6 +122,28 @@ struct rvin_group_route {
->  	unsigned int mask;
->  };
->  
-> +/**
-> + * struct rvin_group_scaler - describes a scaler attached to a VIN
-> + *
-> + * @vin:	Numerical VIN id that have access to a UDS.
-> + * @companion:  Numerical VIN id that @vin share the UDS with.
-> + *
-> + * -- note::
-> + *	Some R-Car VIN instances have access to a Up Down Scaler (UDS).
-> + *	If a VIN have a UDS attached it's almost always shared between
-> + *	two VIN instances. The UDS can only be used by one VIN at a time,
-> + *	so the companion relationship needs to be described as well.
-> + *
-> + *	There are at most two VINs sharing a UDS. For each UDS shared
-> + *	between two VINs there needs to be two instances of struct
-> + *	rvin_group_scaler describing each of the VINs individually. If
-> + *	a VIN do not share its UDS set companion to -1.
-> + */
-> +struct rvin_group_scaler {
-> +	int vin;
-> +	int companion;
-> +};
-> +
->  /**
->   * struct rvin_info - Information about the particular VIN implementation
->   * @model:		VIN model
-> @@ -130,6 +152,7 @@ struct rvin_group_route {
->   * @max_height:		max input height the VIN supports
->   * @routes:		list of possible routes from the CSI-2 recivers to
->   *			all VINs. The list mush be NULL terminated.
-> + * @scalers:		List of available scalers, must be NULL terminated.
->   */
->  struct rvin_info {
->  	enum model_id model;
-> @@ -138,6 +161,7 @@ struct rvin_info {
->  	unsigned int max_width;
->  	unsigned int max_height;
->  	const struct rvin_group_route *routes;
-> +	const struct rvin_group_scaler *scalers;
->  };
->  
->  /**
+
+> This looks like a good proposal to me.
+> 
+> BTW, I still would like to add 640x480 added to the default list:
+> it's a common resolution and it makes sense to add it.
+> 
+> So I plan to accept the patch regardless.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>>
+>>>
+>>> If this parameter is not passed, vivid's behavior won't change from
+>>> the current one.
+>>>
+>>> How do you think?
+>>>
+>>> We might want to stop using the default framesizes, i.e. vivid only
+>>> supports framesize/fps that passed as the option.
+>>> But, if we do so, the parameter will become mandatory and it would be annoying.
+>>
+>> I think mandatory would be annoying yes.
+>>
+>> Thus my suggestion for a magic marker above :)
+>>
+>> --
+>> Kieran
+>>
+>>
+>>> So, I personally like to keep the default framesizes.
+>>>
+>>> Best regards,
+>>> Kei
+>>>
+>>>>
+>>>> Regards,
+>>>>
+>>>>         Hans
+>>>>
+>>>>>
+>>>>> We might want to add a more flexible/extensible way to specify frame sizes.
+>>>>> e.g. passing frame sizes and intervals as module parameters
+>>>>>
+>>>>> Kei
+>>>>>
+>>>>> On Wed, Oct 3, 2018 at 4:06 PM, Keiichi Watanabe <keiichiw@chromium.org> wrote:
+>>>>>> Support 640x480 as a frame size for video input devices of vivid.
+>>>>>>
+>>>>>> Signed-off-by: Keiichi Watanabe <keiichiw@chromium.org>
+>>>>>> ---
+>>>>>>  drivers/media/platform/vivid/vivid-vid-cap.c | 5 ++++-
+>>>>>>  1 file changed, 4 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+>>>>>> index 58e14dd1dcd3..da80bf4bc365 100644
+>>>>>> --- a/drivers/media/platform/vivid/vivid-vid-cap.c
+>>>>>> +++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+>>>>>> @@ -51,7 +51,7 @@ static const struct vivid_fmt formats_ovl[] = {
+>>>>>>  };
+>>>>>>
+>>>>>>  /* The number of discrete webcam framesizes */
+>>>>>> -#define VIVID_WEBCAM_SIZES 5
+>>>>>> +#define VIVID_WEBCAM_SIZES 6
+>>>>>>  /* The number of discrete webcam frameintervals */
+>>>>>>  #define VIVID_WEBCAM_IVALS (VIVID_WEBCAM_SIZES * 2)
+>>>>>>
+>>>>>> @@ -59,6 +59,7 @@ static const struct vivid_fmt formats_ovl[] = {
+>>>>>>  static const struct v4l2_frmsize_discrete webcam_sizes[VIVID_WEBCAM_SIZES] = {
+>>>>>>         {  320, 180 },
+>>>>>>         {  640, 360 },
+>>>>>> +       {  640, 480 },
+>>>>>>         { 1280, 720 },
+>>>>>>         { 1920, 1080 },
+>>>>>>         { 3840, 2160 },
+>>>>>> @@ -75,6 +76,8 @@ static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
+>>>>>>         {  1, 5 },
+>>>>>>         {  1, 10 },
+>>>>>>         {  1, 15 },
+>>>>>> +       {  1, 15 },
+>>>>>> +       {  1, 25 },
+>>>>>>         {  1, 25 },
+>>>>>>         {  1, 30 },
+>>>>>>         {  1, 50 },
+>>>>>> --
+>>>>>> 2.19.0.605.g01d371f741-goog
+>>>>>>
+>>>>
+>>
+>>
+> 
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards
+--
+Kieran
