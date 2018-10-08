@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mleia.com ([178.79.152.223]:35472 "EHLO mail.mleia.com"
+Received: from mleia.com ([178.79.152.223]:35412 "EHLO mail.mleia.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725794AbeJIEZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Oct 2018 00:25:53 -0400
+        id S1725794AbeJIEZu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Oct 2018 00:25:50 -0400
 From: Vladimir Zapolskiy <vz@mleia.com>
 To: Lee Jones <lee.jones@linaro.org>,
         Linus Walleij <linus.walleij@linaro.org>,
@@ -11,119 +11,82 @@ Cc: Marek Vasut <marek.vasut@gmail.com>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: [PATCH 3/7] dt-bindings: pinctrl: ds90ux9xx: add description of TI DS90Ux9xx pinmux
-Date: Tue,  9 Oct 2018 00:12:01 +0300
-Message-Id: <20181008211205.2900-4-vz@mleia.com>
-In-Reply-To: <20181008211205.2900-1-vz@mleia.com>
-References: <20181008211205.2900-1-vz@mleia.com>
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 0/7] mfd/pinctrl: add initial support of TI DS90Ux9xx ICs
+Date: Tue,  9 Oct 2018 00:11:58 +0300
+Message-Id: <20181008211205.2900-1-vz@mleia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+The published drivers describe the essential and generic parts of
+TI DS90Ux9xx series of ICs, which allow to transfer video, audio and
+control signals between FPD-Link III serializers and deserializers.
 
-TI DS90Ux9xx de-/serializers have a capability to multiplex pin functions,
-in particular a pin may have selectable functions of GPIO, GPIO line
-transmitter, one of I2S lines, one of RGB24 video signal lines and so on.
+The placement of TI DS90Ux9xx I2C client driver was selected to be
+drivers/mfd as the most natural location of a true MFD driver,
+apparently drivers/media/i2c is for another type of device drivers,
+also DS90Ux9xx I2C bridge subcontroller driver is placed nearby,
+because drivers/i2c for it would be an inappropriate destination
+as well. Informally the TI DS90Ux9xx ICs serve a similar function
+to SMSC/Microchip MOST, and its drivers are in drivers/staging/most,
+the final destination is unknown to me. Please feel free to advise
+a better location for the published drivers, at the moment the core
+drivers are in drivers/mfd, but I select linux-media as a mailing list.
 
-The change adds a description of DS90Ux9xx pin multiplexers and GPIO
-controllers.
+The published drivers instantly give a chance to test video bridge
+functionality to a TI DS90Ux9xx deserializer equipped display panel
+with the aide of Laurent's "lvds-encoder" driver by misusing it
+as a generic and transparent drm bridge with no particular LVDS
+specifics in it, for that it should be sufficient just to add the
+corresponding device node and input/output ports as children of
+a serializer connected to an application controller.
 
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
----
- .../bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt | 83 +++++++++++++++++++
- 1 file changed, 83 insertions(+)
+While the selected scheme of IC description by a list of subdevices,
+where each one described in its own device node, works pretty well,
+it might lead to unnecessary overcomplicated description of connections
+between subdevices on serializer and deserializer sides, i.e. for
+proper description of links/connections video serializer should
+be linked to video deserializer, audio serializer should be linked
+to audio deserializer and so on, however formally there is just one
+FPD-III Link connection between two ICs.
+
+The series of patches is rebased on top of linux-next, and there are
+more changes in the queue to provide better support of TI DS90Ux9xx ICs.
+
+The introduction to the ICs and drivers can be found in my presentation
+https://schd.ws/hosted_files/ossalsjp18/8a/vzapolskiy_als2018.pdf
+
+Sandeep Jain (1):
+  dt-bindings: mfd: ds90ux9xx: add description of TI DS90Ux9xx ICs
+
+Vladimir Zapolskiy (6):
+  dt-bindings: mfd: ds90ux9xx: add description of TI DS90Ux9xx I2C bridge
+  dt-bindings: pinctrl: ds90ux9xx: add description of TI DS90Ux9xx pinmux
+  mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD driver
+  mfd: ds90ux9xx: add I2C bridge/alias and link connection driver
+  pinctrl: ds90ux9xx: add TI DS90Ux9xx pinmux and GPIO controller driver
+  MAINTAINERS: add entry for TI DS90Ux9xx FPD-Link III drivers
+
+ .../bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt  |  61 ++
+ .../devicetree/bindings/mfd/ti,ds90ux9xx.txt  |  66 ++
+ .../bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt |  83 ++
+ MAINTAINERS                                   |  10 +
+ drivers/mfd/Kconfig                           |  22 +
+ drivers/mfd/Makefile                          |   2 +
+ drivers/mfd/ds90ux9xx-core.c                  | 879 ++++++++++++++++
+ drivers/mfd/ds90ux9xx-i2c-bridge.c            | 764 ++++++++++++++
+ drivers/pinctrl/Kconfig                       |  11 +
+ drivers/pinctrl/Makefile                      |   1 +
+ drivers/pinctrl/pinctrl-ds90ux9xx.c           | 970 ++++++++++++++++++
+ include/linux/mfd/ds90ux9xx.h                 |  42 +
+ 12 files changed, 2911 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt
+ create mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
  create mode 100644 Documentation/devicetree/bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt
+ create mode 100644 drivers/mfd/ds90ux9xx-core.c
+ create mode 100644 drivers/mfd/ds90ux9xx-i2c-bridge.c
+ create mode 100644 drivers/pinctrl/pinctrl-ds90ux9xx.c
+ create mode 100644 include/linux/mfd/ds90ux9xx.h
 
-diff --git a/Documentation/devicetree/bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt b/Documentation/devicetree/bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt
-new file mode 100644
-index 000000000000..fbfa1a3cdf9f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt
-@@ -0,0 +1,83 @@
-+TI DS90Ux9xx de-/serializer pinmux and GPIO subcontroller
-+
-+Required properties:
-+- compatible: Must contain a generic "ti,ds90ux9xx-pinctrl" value and
-+	may contain one more specific value from the list:
-+	"ti,ds90ux925-pinctrl",
-+	"ti,ds90ux926-pinctrl",
-+	"ti,ds90ux927-pinctrl",
-+	"ti,ds90ux928-pinctrl",
-+	"ti,ds90ux940-pinctrl".
-+
-+- gpio-controller: Marks the device node as a GPIO controller.
-+
-+- #gpio-cells: Must be set to 2,
-+	- the first cell is the GPIO offset number within the controller,
-+	- the second cell is used to specify the GPIO line polarity.
-+
-+- gpio-ranges: Mapping to pin controller pins (as described in
-+	Documentation/devicetree/bindings/gpio/gpio.txt)
-+
-+Optional properties:
-+- ti,video-depth-18bit: Sets video bridge pins to RGB 18-bit mode.
-+
-+Available pins, groups and functions (reference to device datasheets):
-+
-+function: "gpio" ("gpio4" is on DS90Ux925 and DS90Ux926 only,
-+		  "gpio9" is on DS90Ux940 only)
-+ - pins: "gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6",
-+	 "gpio7", "gpio8", "gpio9"
-+
-+function: "gpio-remote"
-+ - pins: "gpio0", "gpio1", "gpio2", "gpio3"
-+
-+function: "pass" (DS90Ux940 specific only)
-+ - pins: "gpio0", "gpio3"
-+
-+function: "i2s-1"
-+ - group: "i2s-1"
-+
-+function: "i2s-2"
-+ - group: "i2s-2"
-+
-+function: "i2s-3" (DS90Ux927, DS90Ux928 and DS90Ux940 specific only)
-+ - group: "i2s-3"
-+
-+function: "i2s-4" (DS90Ux927, DS90Ux928 and DS90Ux940 specific only)
-+ - group: "i2s-4"
-+
-+function: "i2s-m" (DS90Ux928 and DS90Ux940 specific only)
-+ - group: "i2s-m"
-+
-+function: "parallel" (DS90Ux925 and DS90Ux926 specific only)
-+ - group: "parallel"
-+
-+Example (deserializer with pins GPIO[3:0] set to bridged output
-+	 function and pin GPIO4 in standard hogged GPIO function):
-+
-+deserializer {
-+	compatible = "ti,ds90ub928q", "ti,ds90ux9xx";
-+
-+	ds90ux928_pctrl: pin-controller {
-+		compatible = "ti,ds90ux928-pinctrl", "ti,ds90ux9xx-pinctrl";
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+		gpio-ranges = <&ds90ux928_pctrl 0 0 8>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&ds90ux928_pins>;
-+
-+		ds90ux928_pins: pinmux {
-+			gpio-remote {
-+				pins = "gpio0", "gpio1", "gpio2", "gpio3";
-+				function = "gpio-remote";
-+			};
-+		};
-+
-+		rst {
-+			gpio-hog;
-+			gpios = <4 GPIO_ACTIVE_HIGH>;
-+			output-high;
-+		};
-+	};
-+};
 -- 
 2.17.1
