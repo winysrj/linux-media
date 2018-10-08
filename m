@@ -1,98 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:38428 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726065AbeJHUkw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Oct 2018 16:40:52 -0400
-Subject: Re: [Outreachy kernel] [PATCH vicodec] media: pvrusb2: replace
- `printk` with `pr_*`
-To: Greg KH <greg@kroah.com>, Dafna Hirschfeld <dafna3@gmail.com>
-Cc: isely@pobox.com, mchehab@kernel.org, helen.koike@collabora.com,
-        outreachy-kernel@googlegroups.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20181008120647.10271-1-dafna3@gmail.com>
- <20181008130719.GA20351@kroah.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8882bb79-b4cc-ca79-30b9-2f983cea6f37@xs4all.nl>
-Date: Mon, 8 Oct 2018 15:29:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <20181008130719.GA20351@kroah.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from smtp.codeaurora.org ([198.145.29.96]:47358 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726014AbeJHUo4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 16:44:56 -0400
+From: Vikash Garodia <vgarodia@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org
+Subject: [PATCH v11 1/5] venus: firmware: add routine to reset ARM9
+Date: Mon,  8 Oct 2018 19:02:48 +0530
+Message-Id: <1539005572-803-2-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1539005572-803-1-git-send-email-vgarodia@codeaurora.org>
+References: <1539005572-803-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/08/2018 03:07 PM, Greg KH wrote:
-> On Mon, Oct 08, 2018 at 03:06:47PM +0300, Dafna Hirschfeld wrote:
->> Replace calls to `printk` with the appropriate `pr_*`
->> macro.
->>
->> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
->> ---
->>  drivers/media/usb/pvrusb2/pvrusb2-debug.h    |  2 +-
->>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c      |  8 +++---
->>  drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 28 +++++++++-----------
->>  drivers/media/usb/pvrusb2/pvrusb2-main.c     |  4 +--
->>  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |  4 +--
->>  5 files changed, 22 insertions(+), 24 deletions(-)
->>
->> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-debug.h b/drivers/media/usb/pvrusb2/pvrusb2-debug.h
->> index 5cd16292e2fa..1323f949f454 100644
->> --- a/drivers/media/usb/pvrusb2/pvrusb2-debug.h
->> +++ b/drivers/media/usb/pvrusb2/pvrusb2-debug.h
->> @@ -17,7 +17,7 @@
->>  
->>  extern int pvrusb2_debug;
->>  
->> -#define pvr2_trace(msk, fmt, arg...) do {if(msk & pvrusb2_debug) printk(KERN_INFO "pvrusb2: " fmt "\n", ##arg); } while (0)
->> +#define pvr2_trace(msk, fmt, arg...) do {if (msk & pvrusb2_debug) pr_info("pvrusb2: " fmt "\n", ##arg); } while (0)
-> 
-> You should not need prefixes for pr_info() calls.
-> 
->>  
->>  /* These are listed in *rough* order of decreasing usefulness and
->>     increasing noise level. */
->> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
->> index a8519da0020b..7702285c1519 100644
->> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
->> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
->> @@ -3293,12 +3293,12 @@ void pvr2_hdw_trigger_module_log(struct pvr2_hdw *hdw)
->>  	int nr = pvr2_hdw_get_unit_number(hdw);
->>  	LOCK_TAKE(hdw->big_lock);
->>  	do {
->> -		printk(KERN_INFO "pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
->> +		pr_info("pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
-> 
-> A driver should be using dev_info(), not pr_*.
+Add routine to reset the ARM9 and brings it out of reset. Also
+abstract the Venus CPU state handling with a new function. This
+is in preparation to add PIL functionality in venus driver.
 
-pvrusb2 is an exception due to historical reasons. I'd rather not switch
-over to dev_*.
+Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+---
+ drivers/media/platform/qcom/venus/core.h         |  2 ++
+ drivers/media/platform/qcom/venus/firmware.c     | 33 ++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
+ drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
+ 5 files changed, 57 insertions(+), 9 deletions(-)
 
-> 
-> Also, for the outreachy application process, I can not accept patches
-> outside of drivers/staging/.
-
-Hmm, that means media drivers are out of bounds since drivers in staging/media
-are either high-quality drivers waiting for missing core features or that need maturing,
-or they are deprecated drivers that will be removed in the not-too-distant future and
-we're not accepting patches for those.
-
-Whereas there are loads of old media drivers in driver/media that could use some TLC.
-Although pvrusb2 was an unfortunate driver to pick, but Dafna had no way of knowing that.
-
-There might be the odd checkpatch issue in staging/media, but I expect that that will be
-slim pickings...
-
-Sorry Dafna, I wasn't aware of this restriction. It looks like you will need to look
-elsewhere in staging.
-
-Regards,
-
-	Hans
-
-> 
-> sorry,
-> 
-> greg k-h
-> 
+diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+index 2f02365..385e309 100644
+--- a/drivers/media/platform/qcom/venus/core.h
++++ b/drivers/media/platform/qcom/venus/core.h
+@@ -98,6 +98,7 @@ struct venus_caps {
+  * @dev:		convenience struct device pointer
+  * @dev_dec:	convenience struct device pointer for decoder device
+  * @dev_enc:	convenience struct device pointer for encoder device
++ * @use_tz:	a flag that suggests presence of trustzone
+  * @lock:	a lock for this strucure
+  * @instances:	a list_head of all instances
+  * @insts_count:	num of instances
+@@ -129,6 +130,7 @@ struct venus_core {
+ 	struct device *dev;
+ 	struct device *dev_dec;
+ 	struct device *dev_enc;
++	bool use_tz;
+ 	struct mutex lock;
+ 	struct list_head instances;
+ 	atomic_t insts_count;
+diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+index c4a5778..0e21a90 100644
+--- a/drivers/media/platform/qcom/venus/firmware.c
++++ b/drivers/media/platform/qcom/venus/firmware.c
+@@ -22,10 +22,43 @@
+ #include <linux/sizes.h>
+ #include <linux/soc/qcom/mdt_loader.h>
+ 
++#include "core.h"
+ #include "firmware.h"
++#include "hfi_venus_io.h"
+ 
+ #define VENUS_PAS_ID			9
+ #define VENUS_FW_MEM_SIZE		(6 * SZ_1M)
++#define VENUS_FW_START_ADDR		0x0
++
++static void venus_reset_cpu(struct venus_core *core)
++{
++	void __iomem *base = core->base;
++
++	writel(0, base + WRAPPER_FW_START_ADDR);
++	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_FW_END_ADDR);
++	writel(0, base + WRAPPER_CPA_START_ADDR);
++	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_CPA_END_ADDR);
++	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_START_ADDR);
++	writel(VENUS_FW_MEM_SIZE, base + WRAPPER_NONPIX_END_ADDR);
++	writel(0x0, base + WRAPPER_CPU_CGC_DIS);
++	writel(0x0, base + WRAPPER_CPU_CLOCK_CONFIG);
++
++	/* Bring ARM9 out of reset */
++	writel(0, base + WRAPPER_A9SS_SW_RESET);
++}
++
++int venus_set_hw_state(struct venus_core *core, bool resume)
++{
++	if (core->use_tz)
++		return qcom_scm_set_remote_state(resume, 0);
++
++	if (resume)
++		venus_reset_cpu(core);
++	else
++		writel(1, core->base + WRAPPER_A9SS_SW_RESET);
++
++	return 0;
++}
+ 
+ int venus_boot(struct device *dev, const char *fwname)
+ {
+diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
+index 428efb5..397570c 100644
+--- a/drivers/media/platform/qcom/venus/firmware.h
++++ b/drivers/media/platform/qcom/venus/firmware.h
+@@ -18,5 +18,16 @@
+ 
+ int venus_boot(struct device *dev, const char *fwname);
+ int venus_shutdown(struct device *dev);
++int venus_set_hw_state(struct venus_core *core, bool suspend);
++
++static inline int venus_set_hw_state_suspend(struct venus_core *core)
++{
++	return venus_set_hw_state(core, false);
++}
++
++static inline int venus_set_hw_state_resume(struct venus_core *core)
++{
++	return venus_set_hw_state(core, true);
++}
+ 
+ #endif
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+index 1240855..074837e 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus.c
++++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+@@ -19,7 +19,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/iopoll.h>
+ #include <linux/kernel.h>
+-#include <linux/qcom_scm.h>
+ #include <linux/slab.h>
+ 
+ #include "core.h"
+@@ -27,6 +26,7 @@
+ #include "hfi_msgs.h"
+ #include "hfi_venus.h"
+ #include "hfi_venus_io.h"
++#include "firmware.h"
+ 
+ #define HFI_MASK_QHDR_TX_TYPE		0xff000000
+ #define HFI_MASK_QHDR_RX_TYPE		0x00ff0000
+@@ -55,11 +55,6 @@
+ #define IFACEQ_VAR_LARGE_PKT_SIZE	512
+ #define IFACEQ_VAR_HUGE_PKT_SIZE	(1024 * 12)
+ 
+-enum tzbsp_video_state {
+-	TZBSP_VIDEO_STATE_SUSPEND = 0,
+-	TZBSP_VIDEO_STATE_RESUME
+-};
+-
+ struct hfi_queue_table_header {
+ 	u32 version;
+ 	u32 size;
+@@ -575,7 +570,7 @@ static int venus_power_off(struct venus_hfi_device *hdev)
+ 	if (!hdev->power_enabled)
+ 		return 0;
+ 
+-	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
++	ret = venus_set_hw_state_suspend(hdev->core);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -595,7 +590,7 @@ static int venus_power_on(struct venus_hfi_device *hdev)
+ 	if (hdev->power_enabled)
+ 		return 0;
+ 
+-	ret = qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_RESUME, 0);
++	ret = venus_set_hw_state_resume(hdev->core);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -608,7 +603,7 @@ static int venus_power_on(struct venus_hfi_device *hdev)
+ 	return 0;
+ 
+ err_suspend:
+-	qcom_scm_set_remote_state(TZBSP_VIDEO_STATE_SUSPEND, 0);
++	venus_set_hw_state_suspend(hdev->core);
+ err:
+ 	hdev->power_enabled = false;
+ 	return ret;
+diff --git a/drivers/media/platform/qcom/venus/hfi_venus_io.h b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+index def0926..d69f51b 100644
+--- a/drivers/media/platform/qcom/venus/hfi_venus_io.h
++++ b/drivers/media/platform/qcom/venus/hfi_venus_io.h
+@@ -112,6 +112,13 @@
+ #define WRAPPER_CPU_STATUS			(WRAPPER_BASE + 0x2014)
+ #define WRAPPER_CPU_STATUS_WFI			BIT(0)
+ #define WRAPPER_SW_RESET			(WRAPPER_BASE + 0x3000)
++#define WRAPPER_CPA_START_ADDR			(WRAPPER_BASE + 0x1020)
++#define WRAPPER_CPA_END_ADDR			(WRAPPER_BASE + 0x1024)
++#define WRAPPER_FW_START_ADDR			(WRAPPER_BASE + 0x1028)
++#define WRAPPER_FW_END_ADDR			(WRAPPER_BASE + 0x102C)
++#define WRAPPER_NONPIX_START_ADDR		(WRAPPER_BASE + 0x1030)
++#define WRAPPER_NONPIX_END_ADDR			(WRAPPER_BASE + 0x1034)
++#define WRAPPER_A9SS_SW_RESET			(WRAPPER_BASE + 0x3000)
+ 
+ /* Venus 4xx */
+ #define WRAPPER_VCODEC0_MMCC_POWER_STATUS	(WRAPPER_BASE + 0x90)
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
