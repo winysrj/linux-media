@@ -1,87 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34842 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726056AbeJHVIp (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:35067 "EHLO
+        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726450AbeJHVNa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Oct 2018 17:08:45 -0400
-To: Maling list - DRI developers <dri-devel@lists.freedesktop.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] omapdrm/dss/hdmi4_cec.c: simplify clear_tx/rx_fifo functions
-Message-ID: <3bc5d91c-89ce-1885-7b56-7e6047c7ff8b@xs4all.nl>
-Date: Mon, 8 Oct 2018 15:56:49 +0200
+        Mon, 8 Oct 2018 17:13:30 -0400
+Date: Mon, 8 Oct 2018 15:52:51 +0200
+From: Greg KH <greg@kroah.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dafna Hirschfeld <dafna3@gmail.com>, isely@pobox.com,
+        mchehab@kernel.org, helen.koike@collabora.com,
+        outreachy-kernel@googlegroups.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Outreachy kernel] [PATCH vicodec] media: pvrusb2: replace
+ `printk` with `pr_*`
+Message-ID: <20181008135251.GB31820@kroah.com>
+References: <20181008120647.10271-1-dafna3@gmail.com>
+ <20181008130719.GA20351@kroah.com>
+ <8882bb79-b4cc-ca79-30b9-2f983cea6f37@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8882bb79-b4cc-ca79-30b9-2f983cea6f37@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use REG_GET to avoid the temp variable.
+On Mon, Oct 08, 2018 at 03:29:03PM +0200, Hans Verkuil wrote:
+> On 10/08/2018 03:07 PM, Greg KH wrote:
+> > On Mon, Oct 08, 2018 at 03:06:47PM +0300, Dafna Hirschfeld wrote:
+> >> Replace calls to `printk` with the appropriate `pr_*`
+> >> macro.
+> >>
+> >> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+> >> ---
+> >>  drivers/media/usb/pvrusb2/pvrusb2-debug.h    |  2 +-
+> >>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c      |  8 +++---
+> >>  drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 28 +++++++++-----------
+> >>  drivers/media/usb/pvrusb2/pvrusb2-main.c     |  4 +--
+> >>  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |  4 +--
+> >>  5 files changed, 22 insertions(+), 24 deletions(-)
+> >>
+> >> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-debug.h b/drivers/media/usb/pvrusb2/pvrusb2-debug.h
+> >> index 5cd16292e2fa..1323f949f454 100644
+> >> --- a/drivers/media/usb/pvrusb2/pvrusb2-debug.h
+> >> +++ b/drivers/media/usb/pvrusb2/pvrusb2-debug.h
+> >> @@ -17,7 +17,7 @@
+> >>  
+> >>  extern int pvrusb2_debug;
+> >>  
+> >> -#define pvr2_trace(msk, fmt, arg...) do {if(msk & pvrusb2_debug) printk(KERN_INFO "pvrusb2: " fmt "\n", ##arg); } while (0)
+> >> +#define pvr2_trace(msk, fmt, arg...) do {if (msk & pvrusb2_debug) pr_info("pvrusb2: " fmt "\n", ##arg); } while (0)
+> > 
+> > You should not need prefixes for pr_info() calls.
+> > 
+> >>  
+> >>  /* These are listed in *rough* order of decreasing usefulness and
+> >>     increasing noise level. */
+> >> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> >> index a8519da0020b..7702285c1519 100644
+> >> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> >> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> >> @@ -3293,12 +3293,12 @@ void pvr2_hdw_trigger_module_log(struct pvr2_hdw *hdw)
+> >>  	int nr = pvr2_hdw_get_unit_number(hdw);
+> >>  	LOCK_TAKE(hdw->big_lock);
+> >>  	do {
+> >> -		printk(KERN_INFO "pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
+> >> +		pr_info("pvrusb2: =================  START STATUS CARD #%d  =================\n", nr);
+> > 
+> > A driver should be using dev_info(), not pr_*.
+> 
+> pvrusb2 is an exception due to historical reasons. I'd rather not switch
+> over to dev_*.
 
-Add pr_err_once if hdmi_cec_clear_tx_fifo() fails in hdmi4_cec_irq().
+Why should a historical reason be needed to fix up code to be correct?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-Note: the FIFOs are cleared almost immediately (after just one try), so adding
-delays is overkill.
----
-diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-index 00407f1995a8..92b55780aafd 100644
---- a/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-+++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_cec.c
-@@ -110,16 +110,12 @@ static bool hdmi_cec_clear_tx_fifo(struct cec_adapter *adap)
- {
- 	struct hdmi_core_data *core = cec_get_drvdata(adap);
- 	int retry = HDMI_CORE_CEC_RETRY;
--	int temp;
+Why not use the correct functions?  You will just constantly be
+rejecting patches like this for the next 20+ years :(
 
- 	REG_FLD_MOD(core->base, HDMI_CEC_DBG_3, 0x1, 7, 7);
--	while (retry) {
--		temp = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
--		if (FLD_GET(temp, 7, 7) == 0)
--			break;
--		retry--;
--	}
--	return retry != 0;
-+	while (retry--)
-+		if (!REG_GET(core->base, HDMI_CEC_DBG_3, 7, 7))
-+			return true;
-+	return false;
- }
+thanks,
 
- void hdmi4_cec_irq(struct hdmi_core_data *core)
-@@ -136,7 +132,9 @@ void hdmi4_cec_irq(struct hdmi_core_data *core)
- 	} else if (stat1 & 0x02) {
- 		u32 dbg3 = hdmi_read_reg(core->base, HDMI_CEC_DBG_3);
-
--		hdmi_cec_clear_tx_fifo(core->adap);
-+		if (!hdmi_cec_clear_tx_fifo(core->adap))
-+			pr_err_once("cec-%s: could not clear TX FIFO\n",
-+				    core->adap->name);
- 		cec_transmit_done(core->adap,
- 				  CEC_TX_STATUS_NACK |
- 				  CEC_TX_STATUS_MAX_RETRIES,
-@@ -150,17 +148,12 @@ static bool hdmi_cec_clear_rx_fifo(struct cec_adapter *adap)
- {
- 	struct hdmi_core_data *core = cec_get_drvdata(adap);
- 	int retry = HDMI_CORE_CEC_RETRY;
--	int temp;
-
- 	hdmi_write_reg(core->base, HDMI_CEC_RX_CONTROL, 0x3);
--	retry = HDMI_CORE_CEC_RETRY;
--	while (retry) {
--		temp = hdmi_read_reg(core->base, HDMI_CEC_RX_CONTROL);
--		if (FLD_GET(temp, 1, 0) == 0)
--			break;
--		retry--;
--	}
--	return retry != 0;
-+	while (retry--)
-+		if (!REG_GET(core->base, HDMI_CEC_RX_CONTROL, 1, 0))
-+			return true;
-+	return false;
- }
-
- static int hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
+greg k-h
