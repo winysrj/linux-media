@@ -1,32 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mbkd0131.ocn.ad.jp ([153.149.230.32]:38000 "EHLO
-        mbkd0131.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727486AbeJJDfl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 23:35:41 -0400
-Message-ID: <1539116016.9yNpgAIInEH5B9yNpgHM6w@ocn-vc-mts-101c1.ocn.ad.jp>
-Reply-To: <interpolinvestigationpolice@gmail.com>
-From: "wayne" <wayne@dream.ocn.ne.jp>
-Subject: You must not Ignore
-Date: Tue, 9 Oct 2018 13:13:36 -0700
+Received: from mleia.com ([178.79.152.223]:43364 "EHLO mail.mleia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726479AbeJJEOa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Oct 2018 00:14:30 -0400
+Subject: Re: [PATCH 1/7] dt-bindings: mfd: ds90ux9xx: add description of TI
+ DS90Ux9xx ICs
+From: Vladimir Zapolskiy <vz@mleia.com>
+To: Marek Vasut <marek.vasut@gmail.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Sandeep Jain <Sandeep_Jain@mentor.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+References: <20181008211205.2900-1-vz@mleia.com>
+ <20181008211205.2900-2-vz@mleia.com>
+ <5631ac17-a1c1-af12-8b30-314880af42df@gmail.com>
+ <4569f3e3-3812-f423-eda9-51e7a4d56a58@mleia.com>
+Message-ID: <d7536af1-d78f-6d20-81a0-288be1d67f25@mleia.com>
+Date: Tue, 9 Oct 2018 23:55:39 +0300
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="Windows-1251"
+In-Reply-To: <4569f3e3-3812-f423-eda9-51e7a4d56a58@mleia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Foremost, we introduce this commission, The INTERPOL. We fight global crime including internet fraud and money laundering. Our commission has rounded-up well over 27,000 fraudsters and we are still battling these nefarious individuals. We are aware that quite a lot of people have been conned into parting with huge amounts.
+On 10/09/2018 02:11 PM, Vladimir Zapolskiy wrote:
+> Hi Marek,
+> 
+> On 10/09/2018 03:13 AM, Marek Vasut wrote:
+>> On 10/08/2018 11:11 PM, Vladimir Zapolskiy wrote:
+>>> From: Sandeep Jain <Sandeep_Jain@mentor.com>
+>>>
+>>> The change adds device tree binding description of TI DS90Ux9xx
+>>> series of serializer and deserializer controllers which support video,
+>>> audio and control data transmission over FPD-III Link connection.
+>>>
 
-The United Nation has vowed to combat these crimes. As such due to their efforts and contributions, we have been able to recovered over USD$1.3 Million Dollars (One Million Three Hundred Thousand United States Dollars) till date.
-Amongst the details yours was found to include your email. Our aim is to return all lost assets including funds to legitimate individuals identified.
+[snip]
 
-After a mandated investigation of the apprehended persons, the United Nations has approved the total sum of USD$1,000,000 (One Million United States Dollars only), as compensation to the funds you lost. This amount will be paid to you in the oncoming days with your co-operation as we commence to conclude the investigation on your case.
+>>> +Optional properties:
+>>> +- reg : Specifies the I2C slave address of a local de-/serializer.
+>>> +- power-gpios : GPIO line to control supplied power to the device.
+>>
+>> Shouldn't this be regulator phandle ?
+> 
+> It could be, right. I'll ponder upon it.
+> 
 
-There will be a series of questions we will ask to aid us in rounding-up your case file. Please respond with your full names and address, country of origin, company's name and position (if any), current occupation, daytime mobile (phone) number for easy communication for ratification and to redeem your fund.
+No, it can not.
 
-We await your swift response to this notification.
+The property describes PDB "Power-down Mode Input Pin", it is a control
+pin with the predefined voltage, so regulator phandle is not applicable
+here.
 
-Regards Deputy Director
-W. Salzgaber
-Investigations Department
+--
+Best wishes,
+Vladimir
