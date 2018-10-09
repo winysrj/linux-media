@@ -1,135 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:42596 "EHLO
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:37753 "EHLO
         mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725749AbeJIH15 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 03:27:57 -0400
-Subject: Re: [PATCH 1/7] dt-bindings: mfd: ds90ux9xx: add description of TI
- DS90Ux9xx ICs
-To: Vladimir Zapolskiy <vz@mleia.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Sandeep Jain <Sandeep_Jain@mentor.com>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-References: <20181008211205.2900-1-vz@mleia.com>
- <20181008211205.2900-2-vz@mleia.com>
-From: Marek Vasut <marek.vasut@gmail.com>
-Message-ID: <5631ac17-a1c1-af12-8b30-314880af42df@gmail.com>
-Date: Tue, 9 Oct 2018 02:13:38 +0200
+        with ESMTP id S1725823AbeJIIWR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 04:22:17 -0400
+Subject: Re: [PATCH v4 10/11] media: imx: Allow interweave with top/bottom
+ lines swapped
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <20181004185401.15751-1-slongerbeam@gmail.com>
+ <20181004185401.15751-11-slongerbeam@gmail.com>
+ <1538736221.3545.17.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <6c8404fa-88b4-9e07-34d4-bc6652736644@gmail.com>
+Date: Mon, 8 Oct 2018 18:07:46 -0700
 MIME-Version: 1.0
-In-Reply-To: <20181008211205.2900-2-vz@mleia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <1538736221.3545.17.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/08/2018 11:11 PM, Vladimir Zapolskiy wrote:
-> From: Sandeep Jain <Sandeep_Jain@mentor.com>
-> 
-> The change adds device tree binding description of TI DS90Ux9xx
-> series of serializer and deserializer controllers which support video,
-> audio and control data transmission over FPD-III Link connection.
-> 
-> Signed-off-by: Sandeep Jain <Sandeep_Jain@mentor.com>
-> [vzapolskiy: various updates and corrections of secondary importance]
-> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-> ---
->  .../devicetree/bindings/mfd/ti,ds90ux9xx.txt  | 66 +++++++++++++++++++
->  1 file changed, 66 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
-> new file mode 100644
-> index 000000000000..0733da88f7ef
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
-> @@ -0,0 +1,66 @@
-> +Texas Instruments DS90Ux9xx de-/serializer controllers
-> +
-> +Required properties:
-> +- compatible: Must contain a generic "ti,ds90ux9xx" value and
-> +	may contain one more specific value from the list:
-> +	"ti,ds90ub925q",
-> +	"ti,ds90uh925q",
-> +	"ti,ds90ub927q",
-> +	"ti,ds90uh927q",
-> +	"ti,ds90ub926q",
-> +	"ti,ds90uh926q",
-
-Keep the list sorted.
-
-> +	"ti,ds90ub928q",
-> +	"ti,ds90uh928q",
-> +	"ti,ds90ub940q",
-> +	"ti,ds90uh940q".
-> +
-> +Optional properties:
-> +- reg : Specifies the I2C slave address of a local de-/serializer.
-> +- power-gpios : GPIO line to control supplied power to the device.
-
-Shouldn't this be regulator phandle ?
-
-> +- ti,backward-compatible-mode : Overrides backward compatibility mode.
-> +	Possible values are "<1>" or "<0>".
-
-Make this bool , ie. present or not.
-
-> +	If "ti,backward-compatible-mode" is not mentioned, the backward
-> +	compatibility mode is not touched and given by hardware pin strapping.
-> +- ti,low-frequency-mode : Overrides low frequency mode.
-> +	Possible values are "<1>" or "<0>".
-> +	If "ti,low-frequency-mode" is not mentioned, the low frequency mode
-> +	is not touched and given by hardware pin strapping.
-> +- ti,video-map-select-msb: Sets video bridge pins to MSB mode, if it is set
-> +	MAPSEL pin value is ignored.
-> +- ti,video-map-select-lsb: Sets video bridge pins to LSB mode, if it is set
-> +	MAPSEL pin value is ignored.
-
-This needs some additional explanation, what's this about ?
-
-> +- ti,pixel-clock-edge : Selects Pixel Clock Edge.
-> +	Possible values are "<1>" or "<0>".
-> +	If "ti,pixel-clock-edge" is High <1>, output data is strobed on the
-> +	Rising edge of the PCLK. If ti,pixel-clock-edge is Low <0>, data is
-> +	strobed on the Falling edge of the PCLK.
-> +	If "ti,pixel-clock-edge" is not mentioned, the pixel clock edge
-> +	value is not touched and given by hardware pin strapping.
-> +- ti,spread-spectrum-clock-generation : Spread Sprectrum Clock Generation.
-> +	Possible values are from "<0>" to "<7>". The same value will be
-> +	written to SSC register. If "ti,spread-spectrum-clock-gen" is not
-> +	found, then SSCG will be disabled.
-> +
-> +TI DS90Ux9xx serializers and deserializer device nodes may contain a number
-> +of children device nodes to describe and enable particular subcomponents
-> +found on ICs.
-> +
-> +Example:
-> +
-> +serializer: serializer@c {
-> +	compatible = "ti,ds90ub927q", "ti,ds90ux9xx";
-> +	reg = <0xc>;
-> +	power-gpios = <&gpio5 12 GPIO_ACTIVE_HIGH>;
-> +	ti,backward-compatible-mode = <0>;
-> +	ti,low-frequency-mode = <0>;
-> +	ti,pixel-clock-edge = <0>;
-> +	...
-> +}
-> +
-> +deserializer: deserializer@3c {
-> +	compatible = "ti,ds90ub940q", "ti,ds90ux9xx";
-> +	reg = <0x3c>;
-> +	power-gpios = <&gpio6 31 GPIO_ACTIVE_HIGH>;
-> +	...
-> +}
-> +
-> 
+Hi Philipp,
 
 
--- 
-Best regards,
-Marek Vasut
+On 10/05/2018 03:43 AM, Philipp Zabel wrote:
+> Hi Steve,
+>
+> On Thu, 2018-10-04 at 11:54 -0700, Steve Longerbeam wrote:
+>> Allow sequential->interlaced interweaving but with top/bottom
+>> lines swapped to the output buffer.
+>>
+>> This can be accomplished by adding one line length to IDMAC output
+>> channel address, with a negative line length for the interlace offset.
+>>
+>> This is to allow the seq-bt -> interlaced-bt transformation, where
+>> bottom lines are still dominant (older in time) but with top lines
+>> first in the interweaved output buffer.
+>>
+>> With this support, the CSI can now allow seq-bt at its source pads,
+>> e.g. the following transformations are allowed in CSI from sink to
+>> source:
+>>
+>> seq-tb -> seq-bt
+>> seq-bt -> seq-bt
+>> alternate -> seq-bt
+>>
+>> Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
+>> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+>> ---
+>>   drivers/staging/media/imx/imx-ic-prpencvf.c | 17 +++++++-
+>>   drivers/staging/media/imx/imx-media-csi.c   | 46 +++++++++++++++++----
+>>   2 files changed, 53 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> index cf76b0432371..1499b0c62d74 100644
+>> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> @@ -106,6 +106,8 @@ struct prp_priv {
+>>   	u32 frame_sequence; /* frame sequence counter */
+>>   	bool last_eof;  /* waiting for last EOF at stream off */
+>>   	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+>> +	u32 interweave_offset; /* interweave line offset to swap
+>> +				  top/bottom lines */
+> We have to store this instead of using vdev->fmt.fmt.bytesperline
+> because this potentially is the pre-rotation stride instead?
+
+interweave_offset was used by prp_vb2_buf_done() below, but in fact
+that function is passed the non-rotation IDMAC channel (priv->out_ch)
+_only_ if rotation is not enabled, so it is actually safe to use
+vdev->fmt.fmt.bytesperline for the interweave offset in
+prp_vb2_buf_done().
+
+So I've gotten rid of interweave_offset in both imx-ic-prpencvf.c and
+imx-media-csi.c, and replaced with a boolean interweave_swap as you
+suggested. I agree it is much cleaner.
+   
+
+>>
+>> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+>> index 679295da5dde..592f7d6edec1 100644
+>> --- a/drivers/staging/media/imx/imx-media-csi.c
+>> +++ b/drivers/staging/media/imx/imx-media-csi.c
+>> @@ -114,6 +114,8 @@ struct csi_priv {
+>>   	u32 frame_sequence; /* frame sequence counter */
+>>   	bool last_eof;   /* waiting for last EOF at stream off */
+>>   	bool nfb4eof;    /* NFB4EOF encountered during streaming */
+>> +	u32 interweave_offset; /* interweave line offset to swap
+>> +				  top/bottom lines */
+> This doesn't seem necessary. Since there is no rotation here, the offset
+> is just vdev->fmt.fmt.pix.bytesperline if interweave_swap is enabled.
+> Maybe turn this into a bool interweave_swap?
+
+Agreed.
+
+>
+>>   	struct completion last_eof_comp;
+>>   };
+>>   
+>> @@ -286,7 +288,8 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+>>   	if (ipu_idmac_buffer_is_ready(priv->idmac_ch, priv->ipu_buf_num))
+>>   		ipu_idmac_clear_buffer(priv->idmac_ch, priv->ipu_buf_num);
+>>   
+>> -	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num, phys);
+>> +	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num,
+>> +			     phys + priv->interweave_offset);
+>>   }
+>>   
+>>   static irqreturn_t csi_idmac_eof_interrupt(int irq, void *dev_id)
+>> @@ -396,10 +399,10 @@ static void csi_idmac_unsetup_vb2_buf(struct csi_priv *priv,
+>>   static int csi_idmac_setup_channel(struct csi_priv *priv)
+>>   {
+>>   	struct imx_media_video_dev *vdev = priv->vdev;
+>> +	bool passthrough, interweave, interweave_swap;
+>>   	const struct imx_media_pixfmt *incc;
+>>   	struct v4l2_mbus_framefmt *infmt;
+>>   	struct v4l2_mbus_framefmt *outfmt;
+>> -	bool passthrough, interweave;
+>>   	struct ipu_image image;
+>>   	u32 passthrough_bits;
+>>   	u32 passthrough_cycles;
+>> @@ -433,6 +436,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+>>   	 */
+>>   	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+>>   		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
+>> +	interweave_swap = interweave &&
+>> +		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+> Although this could just as well be recalculated in csi_vb2_buf_done.
+
+In the future yes, when we add support for alternate mode (I assume
+that's what you are getting at?).
+
+
+> Apart from that,
+>
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+Thanks.
+
+Steve
