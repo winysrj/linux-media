@@ -1,121 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:58613 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725855AbeJIPXk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Oct 2018 11:23:40 -0400
-Subject: Re: [RFC PATCH v2] media: docs-rst: Document m2m stateless video
- decoder interface
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+Received: from mail.bootlin.com ([62.4.15.54]:45152 "EHLO mail.bootlin.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725927AbeJIQZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Oct 2018 12:25:11 -0400
+Date: Tue, 9 Oct 2018 11:09:04 +0200
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-References: <20181004081119.102575-1-acourbot@chromium.org>
- <676a5e92-86c2-cf5a-9409-ef490ad8e828@xs4all.nl>
- <CAAFQd5AULSY9d0wHXBD227k-F_ER4f+=LkMnp8GOdV3uaCsyeA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4fc9af27-3086-f4bd-c77c-5515ab872d10@xs4all.nl>
-Date: Tue, 9 Oct 2018 10:07:52 +0200
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Informal meeting during ELCE to discuss userspace support
+ for stateless codecs
+Message-ID: <20181009090904.gd52akdyfdy6pwgl@flea>
+References: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAAFQd5AULSY9d0wHXBD227k-F_ER4f+=LkMnp8GOdV3uaCsyeA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ccfacdjbrhduzyqt"
+Content-Disposition: inline
+In-Reply-To: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/09/18 09:41, Tomasz Figa wrote:
-> On Mon, Oct 8, 2018 at 8:02 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> On 10/04/2018 10:11 AM, Alexandre Courbot wrote:
->>> This patch documents the protocol that user-space should follow when
->>> communicating with stateless video decoders. It is based on the
->>> following references:
->>>
->>> * The current protocol used by Chromium (converted from config store to
->>>   request API)
->>>
->>> * The submitted Cedrus VPU driver
->>>
->>> As such, some things may not be entirely consistent with the current
->>> state of drivers, so it would be great if all stakeholders could point
->>> out these inconsistencies. :)
->>>
->>> This patch is supposed to be applied on top of the Request API V18 as
->>> well as the memory-to-memory video decoder interface series by Tomasz
->>> Figa.
->>>
->>> Changes since V1:
->>>
->>> * Applied fixes received as feedback,
->>> * Moved controls descriptions to the extended controls file,
->>> * Document reference frame management and referencing (need Hans' feedback on
->>>   that).
->>>
->>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
->>> ---
->>>  .../media/uapi/v4l/dev-stateless-decoder.rst  | 348 ++++++++++++++++++
->>>  Documentation/media/uapi/v4l/devices.rst      |   1 +
->>>  .../media/uapi/v4l/extended-controls.rst      |  25 ++
->>>  .../media/uapi/v4l/pixfmt-compressed.rst      |  54 ++-
->>>  4 files changed, 424 insertions(+), 4 deletions(-)
->>>  create mode 100644 Documentation/media/uapi/v4l/dev-stateless-decoder.rst
->>>
->>> diff --git a/Documentation/media/uapi/v4l/dev-stateless-decoder.rst b/Documentation/media/uapi/v4l/dev-stateless-decoder.rst
->>
->> <snip>
->>
->>> +Buffer management during decoding
->>> +=================================
->>> +Contrary to stateful decoder drivers, a stateless decoder driver does not
->>> +perform any kind of buffer management. In particular, it guarantees that
->>> +``CAPTURE`` buffers will be dequeued in the same order as they are queued. This
->>> +allows user-space to know in advance which ``CAPTURE`` buffer will contain a
->>> +given frame, and thus to use that buffer ID as the key to indicate a reference
->>> +frame.
->>> +
->>> +This also means that user-space is fully responsible for not queuing a given
->>> +``CAPTURE`` buffer for as long as it is used as a reference frame. Failure to do
->>> +so will overwrite the reference frame's data while it is still in use, and
->>> +result in visual corruption of future frames.
->>> +
->>> +Note that this applies to all types of buffers, and not only to
->>> +``V4L2_MEMORY_MMAP`` ones, as drivers supporting ``V4L2_MEMORY_DMABUF`` will
->>> +typically maintain a map of buffer IDs to DMABUF handles for reference frame
->>> +management. Queueing a buffer will result in the map entry to be overwritten
->>> +with the new DMABUF handle submitted in the :c:func:`VIDIOC_QBUF` ioctl.
->>
->> The more I think about this, the more I believe that relying on capture buffer
->> indices is wrong. It's easy enough if there is a straightforward 1-1 relationship,
->> but what if you have H264 slices as Nicolas mentioned and it becomes a N-1 relationship?
->>
->> Yes, you can still do this in userspace, but it becomes a lot more complicated.
->>
->> And what if in the future instead of having one capture buffer per decoded frame
->> there will be multiple capture buffers per decoded frame, each with a single
->> slice (for example)?
-> 
-> Is there any particular scenario you have in mind, where such case would happen?
 
-Video conferencing to reduce the latency, i.e. no need to wait for the full frame
-to be available, just start processing as soon as a decoded slice arrives.
+--ccfacdjbrhduzyqt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
->>
->> I would feel much happier if we used a 'cookie' to refer to buffers.
-> 
-> Hmm, how would this cookie work in a case of N OUTPUT -> 1 CAPTURE case?
+Hi!
 
-The output buffers would use the same cookie.
+Thanks for setting this up
 
-Regards,
+On Mon, Oct 08, 2018 at 01:53:29PM +0200, Hans Verkuil wrote:
+> Hi all,
+>=20
+> I would like to meet up somewhere during the ELCE to discuss userspace su=
+pport
+> for stateless (and perhaps stateful as well?) codecs.
+>=20
+> It is also planned as a topic during the summit, but I would prefer to pr=
+epare
+> for that in advance, esp. since I myself do not have any experience writi=
+ng
+> userspace SW for such devices.
+>=20
+> Nicolas, it would be really great if you can participate in this meeting
+> since you probably have the most experience with this by far.
+>=20
+> Looking through the ELCE program I found two timeslots that are likely to=
+ work
+> for most of us (because the topics in the program appear to be boring for=
+ us
+> media types!):
+>=20
+> Tuesday from 10:50-15:50
+>=20
+> or:
+>=20
+> Monday from 15:45 onward
 
-	Hans
+I have no strong preference there, both work for me.
 
-> 
-> Best regards,
-> Tomasz
-> 
+Maxime
+
+--=20
+Maxime Ripard, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
+
+--ccfacdjbrhduzyqt
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlu8cCoACgkQ0rTAlCFN
+r3QWPg/+K2usH72WLaCqZQXi7vFZKQdQPJAYc7EHRz0TiqqG+D/cIYZZaWH5P0IV
+d9QlBZJamhdHmtzfD1ExYe8AMNzD63TsHlgLRm5pzXJeAv9G+Nknb0qjXTRQw58t
+nL0guq/NvJtYHJmXxaQpcYTQAMPMk8Q7KCsBMinTmWAy+H9SWnAFqgLD4QaiUey9
+eBRQSBUrWjlUKpMXdO9Ocx5iPlWdmn8+Qakc3nD+FyJtLtAV2M0C44SEpDXfxpev
+RRrX8ZBlJ+vFQuMF/tC4EJa0/P5cqzdKy8EJpkMOh5J6SfhDGxljKIpJdlBTk0ms
+a0Iqv0C0uAzUN23h0gh7jLwLkUR45Hfe7evyOcSmlHfJLqggsGaWpYrKBeaV3PHH
+5ggL1PAEW11OVHzkhZYx3Nme9Sh9cknua2VOHDjFrnzEbgJkE3hikB4nQ0ja7T18
+pCcNKpxhfUewVUuby3AeXiyypdoftLCAeOAFJWw7bD+nKep6ehREI5lZB1/n6Zrv
+JJCkdVsmzLuY+mdgXTJgavzIDL/2U+WZXG2zUlaC9ZhX56yW/L01O7jfx3Nmx5/I
+3a5p3BaQM4KVf6JEcorTv0edLvk9KM+s2fXQdjcCxPYlce9AkM4yvr9Au3b6jnLv
+hVnVJEGToMYi3yLwbGyfps6AUAMHV4Aii1vejhRMceYvp0vq3zY=
+=Vnm8
+-----END PGP SIGNATURE-----
+
+--ccfacdjbrhduzyqt--
