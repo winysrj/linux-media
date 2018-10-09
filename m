@@ -1,91 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:37418 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727484AbeJLPlV (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:41640 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726663AbeJIStf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 11:41:21 -0400
-Received: by mail-wm1-f68.google.com with SMTP id 185-v6so12051951wmt.2
-        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2018 01:10:05 -0700 (PDT)
-Subject: Re: [PATCH] media: venus: add support for key frame
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: mgottam@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
-References: <1539071634-1644-1-git-send-email-mgottam@codeaurora.org>
- <CAPBb6MUt_V4zEKGcRYXRXNRVdjF2uspOvEj0T-dH6dBZ9ya9CA@mail.gmail.com>
- <f1bb2ead-fe8e-af6a-1b96-9460a7b01f29@linaro.org>
- <CAPBb6MXxaGMCY43fXwWYZmYmiVwDA6kdJRwWZGqUHhWOGXSz7Q@mail.gmail.com>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <40d15ea4-48e2-b2c7-1d70-68dcc1b08990@linaro.org>
-Date: Fri, 12 Oct 2018 11:10:01 +0300
+        Tue, 9 Oct 2018 14:49:35 -0400
+Subject: Re: [PATCH 1/1] media: docs: Document metadata format in struct
+ v4l2_format
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <20181009113106.14202-1-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <14bd1646-6b9d-1b14-5f21-ba39cd8a5391@xs4all.nl>
+Date: Tue, 9 Oct 2018 13:32:57 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAPBb6MXxaGMCY43fXwWYZmYmiVwDA6kdJRwWZGqUHhWOGXSz7Q@mail.gmail.com>
+In-Reply-To: <20181009113106.14202-1-sakari.ailus@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 10/12/2018 11:06 AM, Alexandre Courbot wrote:
-> On Fri, Oct 12, 2018 at 4:37 PM Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
->>
->> Hi Alex,
->>
->> On 10/12/2018 08:26 AM, Alexandre Courbot wrote:
->>> On Tue, Oct 9, 2018 at 4:54 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
->>>>
->>>> When client requests for a keyframe, set the property
->>>> to hardware to generate the sync frame.
->>>>
->>>> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
->>>> ---
->>>>  drivers/media/platform/qcom/venus/venc_ctrls.c | 13 +++++++++++++
->>>>  1 file changed, 13 insertions(+)
->>>>
->>>> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
->>>> index 45910172..f332c8e 100644
->>>> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
->>>> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
->>>> @@ -81,6 +81,8 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->>>>         struct venc_controls *ctr = &inst->controls.enc;
->>>>         u32 bframes;
->>>>         int ret;
->>>> +       void *ptr;
->>>> +       u32 ptype;
->>>>
->>>>         switch (ctrl->id) {
->>>>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
->>>> @@ -173,6 +175,14 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->>>>
->>>>                 ctr->num_b_frames = bframes;
->>>>                 break;
->>>> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
->>>> +               ptype = HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME;
->>>> +               ret = hfi_session_set_property(inst, ptype, ptr);
->>>
->>> The test bot already said it, but ptr is passed to
->>> hfi_session_set_property() uninitialized. And as can be expected the
->>> call returns -EINVAL on my board.
->>>
->>> Looking at other uses of HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME I
->>> see that the packet sent to the firmware does not have room for an
->>> argument, so I tried to pass NULL but got the same result.
->>
->> yes, because pdata cannot be NULL. I'd suggest to make a pointer to
->> struct hfi_enable and pass it to the set_property function.
+On 10/09/18 13:31, Sakari Ailus wrote:
+> The format fields in struct v4l2_format were otherwise reported but the
+> meta field was missing. Document it.
 > 
-> FWIW I also tried doing this and got the same error, strange...
+> Reported-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
+
+> ---
+>  Documentation/media/uapi/v4l/dev-meta.rst     | 2 +-
+>  Documentation/media/uapi/v4l/vidioc-g-fmt.rst | 5 +++++
+>  2 files changed, 6 insertions(+), 1 deletion(-)
 > 
-
-OK, when you calling the v4l control? It makes sense when you calling
-it, because set_property checks does the session is on START state (i.e.
-streamon on both queues).
-
--- 
-regards,
-Stan
+> diff --git a/Documentation/media/uapi/v4l/dev-meta.rst b/Documentation/media/uapi/v4l/dev-meta.rst
+> index f7ac8d0d3af14..b65dc078abeb8 100644
+> --- a/Documentation/media/uapi/v4l/dev-meta.rst
+> +++ b/Documentation/media/uapi/v4l/dev-meta.rst
+> @@ -40,7 +40,7 @@ To use the :ref:`format` ioctls applications set the ``type`` field of the
+>  the desired operation. Both drivers and applications must set the remainder of
+>  the :c:type:`v4l2_format` structure to 0.
+>  
+> -.. _v4l2-meta-format:
+> +.. c:type:: v4l2_meta_format
+>  
+>  .. tabularcolumns:: |p{1.4cm}|p{2.2cm}|p{13.9cm}|
+>  
+> diff --git a/Documentation/media/uapi/v4l/vidioc-g-fmt.rst b/Documentation/media/uapi/v4l/vidioc-g-fmt.rst
+> index 3ead350e099f9..9ea494a8facab 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-g-fmt.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-g-fmt.rst
+> @@ -133,6 +133,11 @@ The format as returned by :ref:`VIDIOC_TRY_FMT <VIDIOC_G_FMT>` must be identical
+>        - Definition of a data format, see :ref:`pixfmt`, used by SDR
+>  	capture and output devices.
+>      * -
+> +      - struct :c:type:`v4l2_meta_format`
+> +      - ``meta``
+> +      - Definition of a metadata format, see :ref:`meta-formats`, used by
+> +	metadata capture devices.
+> +    * -
+>        - __u8
+>        - ``raw_data``\ [200]
+>        - Place holder for future extensions.
+> 
