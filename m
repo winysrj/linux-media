@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:46755 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728395AbeJKQsB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Oct 2018 12:48:01 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v4 11/12] media: ov5640: Remove duplicate auto-exposure setup
-Date: Thu, 11 Oct 2018 11:21:06 +0200
-Message-Id: <20181011092107.30715-12-maxime.ripard@bootlin.com>
-In-Reply-To: <20181011092107.30715-1-maxime.ripard@bootlin.com>
-References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from alexa-out-blr-01.qualcomm.com ([103.229.18.197]:62860 "EHLO
+        alexa-out-blr-01.qualcomm.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725855AbeJIPOL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Oct 2018 11:14:11 -0400
+From: Malathi Gottam <mgottam@codeaurora.org>
+To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
+        vgarodia@codeaurora.org, mgottam@codeaurora.org
+Subject: [PATCH] media: venus: amend buffer size for bitstream plane
+Date: Tue,  9 Oct 2018 13:22:10 +0530
+Message-Id: <1539071530-1441-1-git-send-email-mgottam@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The autoexposure setup in the 1080p init array is redundant with the
-default value of the sensor.
+For lower resolutions, incase of encoder, the compressed
+frame size is more than half of the corresponding input
+YUV. Keep the size as same as YUV considering worst case.
 
-Remove it.
-
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
 ---
- drivers/media/i2c/ov5640.c | 2 +-
+ drivers/media/platform/qcom/venus/helpers.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 9ce12c3cf7c7..818411400ef6 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -504,7 +504,7 @@ static const struct reg_value ov5640_setting_1080P_1920_1080[] = {
- 	{0x3a0e, 0x03, 0, 0}, {0x3a0d, 0x04, 0, 0}, {0x3a14, 0x04, 0, 0},
- 	{0x3a15, 0x60, 0, 0}, {0x4713, 0x02, 0, 0}, {0x4407, 0x04, 0, 0},
- 	{0x460b, 0x37, 0, 0}, {0x460c, 0x20, 0, 0}, {0x3824, 0x04, 0, 0},
--	{0x4005, 0x1a, 0, 0}, {0x3008, 0x02, 0, 0}, {0x3503, 0, 0, 0},
-+	{0x4005, 0x1a, 0, 0}, {0x3008, 0x02, 0, 0},
- };
+diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+index 2679adb..05c5423 100644
+--- a/drivers/media/platform/qcom/venus/helpers.c
++++ b/drivers/media/platform/qcom/venus/helpers.c
+@@ -649,7 +649,7 @@ u32 venus_helper_get_framesz(u32 v4l2_fmt, u32 width, u32 height)
+ 	}
  
- static const struct reg_value ov5640_setting_QSXGA_2592_1944[] = {
+ 	if (compressed) {
+-		sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2 / 2;
++		sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
+ 		return ALIGN(sz, SZ_4K);
+ 	}
+ 
 -- 
-2.19.1
+1.9.1
