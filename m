@@ -1,87 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f68.google.com ([209.85.221.68]:39138 "EHLO
-        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726160AbeJISVJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 14:21:09 -0400
-Received: by mail-wr1-f68.google.com with SMTP id 61-v6so1337261wrb.6
-        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2018 04:04:44 -0700 (PDT)
+Received: from mleia.com ([178.79.152.223]:39608 "EHLO mail.mleia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726103AbeJIS1w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Oct 2018 14:27:52 -0400
+Subject: Re: [PATCH 1/7] dt-bindings: mfd: ds90ux9xx: add description of TI
+ DS90Ux9xx ICs
+To: Marek Vasut <marek.vasut@gmail.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Sandeep Jain <Sandeep_Jain@mentor.com>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+References: <20181008211205.2900-1-vz@mleia.com>
+ <20181008211205.2900-2-vz@mleia.com>
+ <5631ac17-a1c1-af12-8b30-314880af42df@gmail.com>
+From: Vladimir Zapolskiy <vz@mleia.com>
+Message-ID: <4569f3e3-3812-f423-eda9-51e7a4d56a58@mleia.com>
+Date: Tue, 9 Oct 2018 14:11:23 +0300
 MIME-Version: 1.0
-References: <20181004133739.19086-1-mjourdan@baylibre.com> <CAAFQd5BTD6mwB1O4SVeKfKOho7cMMufuenu5xE0BjCAq1GuTag@mail.gmail.com>
-In-Reply-To: <CAAFQd5BTD6mwB1O4SVeKfKOho7cMMufuenu5xE0BjCAq1GuTag@mail.gmail.com>
-From: Maxime Jourdan <mjourdan@baylibre.com>
-Date: Tue, 9 Oct 2018 13:04:32 +0200
-Message-ID: <CAMO6naz9tivLwmum1Fdq-fpsjG8tp1xThm65Ux_oJBPKL19i9A@mail.gmail.com>
-Subject: Re: [PATCH] media: videodev2: add V4L2_FMT_FLAG_NO_SOURCE_CHANGE
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <5631ac17-a1c1-af12-8b30-314880af42df@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi Marek,
 
-On Tue, Oct 9, 2018 at 9:59 AM Tomasz Figa <tfiga@chromium.org> wrote:
->
-> Hi Maxime,
->
-> On Thu, Oct 4, 2018 at 10:38 PM Maxime Jourdan <mjourdan@baylibre.com> wrote:
-> >
-> > When a v4l2 driver exposes V4L2_EVENT_SOURCE_CHANGE, some (usually
-> > OUTPUT) formats may not be able to trigger this event.
-> >
-> > Add a enum_fmt format flag to tag those specific formats.
-> >
-> > Signed-off-by: Maxime Jourdan <mjourdan@baylibre.com>
-> > ---
-> >  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 5 +++++
-> >  include/uapi/linux/videodev2.h                   | 5 +++--
-> >  2 files changed, 8 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> > index 019c513df217..e0040b36ac43 100644
-> > --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> > +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> > @@ -116,6 +116,11 @@ one until ``EINVAL`` is returned.
-> >        - This format is not native to the device but emulated through
-> >         software (usually libv4l2), where possible try to use a native
-> >         format instead for better performance.
-> > +    * - ``V4L2_FMT_FLAG_NO_SOURCE_CHANGE``
-> > +      - 0x0004
-> > +      - The event ``V4L2_EVENT_SOURCE_CHANGE`` is not supported
-> > +       for this format.
-> > +
-> >
-> >
-> >  Return Value
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 3a65951ca51e..a28acee1cb52 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -723,8 +723,9 @@ struct v4l2_fmtdesc {
-> >         __u32               reserved[4];
-> >  };
-> >
-> > -#define V4L2_FMT_FLAG_COMPRESSED 0x0001
-> > -#define V4L2_FMT_FLAG_EMULATED   0x0002
-> > +#define V4L2_FMT_FLAG_COMPRESSED       0x0001
-> > +#define V4L2_FMT_FLAG_EMULATED         0x0002
-> > +#define V4L2_FMT_FLAG_NO_SOURCE_CHANGE 0x0004
->
-> I think it indeed makes sense. I'd suggest submitting this patch
-> together with the series that adds the affected driver, though, since
-> we'd be otherwise just adding a dead API.
->
-> Also, it would be good to refer to it from the Decoder Interface
-> documentation. Depending on which one gets in earlier, you might
-> either want to base on it or I'd add a note myself.
->
-> Best regards,
-> Tomasz
+On 10/09/2018 03:13 AM, Marek Vasut wrote:
+> On 10/08/2018 11:11 PM, Vladimir Zapolskiy wrote:
+>> From: Sandeep Jain <Sandeep_Jain@mentor.com>
+>>
+>> The change adds device tree binding description of TI DS90Ux9xx
+>> series of serializer and deserializer controllers which support video,
+>> audio and control data transmission over FPD-III Link connection.
+>>
+>> Signed-off-by: Sandeep Jain <Sandeep_Jain@mentor.com>
+>> [vzapolskiy: various updates and corrections of secondary importance]
+>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>> ---
+>>  .../devicetree/bindings/mfd/ti,ds90ux9xx.txt  | 66 +++++++++++++++++++
+>>  1 file changed, 66 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+>> new file mode 100644
+>> index 000000000000..0733da88f7ef
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+>> @@ -0,0 +1,66 @@
+>> +Texas Instruments DS90Ux9xx de-/serializer controllers
+>> +
+>> +Required properties:
+>> +- compatible: Must contain a generic "ti,ds90ux9xx" value and
+>> +	may contain one more specific value from the list:
+>> +	"ti,ds90ub925q",
+>> +	"ti,ds90uh925q",
+>> +	"ti,ds90ub927q",
+>> +	"ti,ds90uh927q",
+>> +	"ti,ds90ub926q",
+>> +	"ti,ds90uh926q",
+> 
+> Keep the list sorted.
+> 
 
-Agreed on both points. If your documentation makes it in before, I'll
-update it within the patch. We'll have time to sync on that anyway in
-the coming weeks.
+actually the list is a concatenation of two sorted lists, one for
+serializers, another for deserializers.
 
-Maxime
+Perhaps it makes sense to keep the list as it is done now and just
+mention the selected order, but then it will complicate the formal
+description.
+
+>> +	"ti,ds90ub928q",
+>> +	"ti,ds90uh928q",
+>> +	"ti,ds90ub940q",
+>> +	"ti,ds90uh940q".
+>> +
+>> +Optional properties:
+>> +- reg : Specifies the I2C slave address of a local de-/serializer.
+>> +- power-gpios : GPIO line to control supplied power to the device.
+> 
+> Shouldn't this be regulator phandle ?
+
+It could be, right. I'll ponder upon it.
+
+>> +- ti,backward-compatible-mode : Overrides backward compatibility mode.
+>> +	Possible values are "<1>" or "<0>".
+> 
+> Make this bool , ie. present or not.
+> 
+
+It is a real tristate property which is represented by non-present, 0, 1.
+It shall not be bool IMHO.
+
+>> +	If "ti,backward-compatible-mode" is not mentioned, the backward
+>> +	compatibility mode is not touched and given by hardware pin strapping.
+>> +- ti,low-frequency-mode : Overrides low frequency mode.
+>> +	Possible values are "<1>" or "<0>".
+>> +	If "ti,low-frequency-mode" is not mentioned, the low frequency mode
+>> +	is not touched and given by hardware pin strapping.
+>> +- ti,video-map-select-msb: Sets video bridge pins to MSB mode, if it is set
+>> +	MAPSEL pin value is ignored.
+>> +- ti,video-map-select-lsb: Sets video bridge pins to LSB mode, if it is set
+>> +	MAPSEL pin value is ignored.
+> 
+> This needs some additional explanation, what's this about ?
+> 
+
+Please reference to datasheet, for instance search for MAPSEL pin description
+and overriding I2C commands in http://www.ti.com/lit/ds/symlink/ds90ub927q-q1.pdf
+
+I believe it makes little sense to copy excessive information from an open
+datasheet into bindings documentation.
+
+>> +- ti,pixel-clock-edge : Selects Pixel Clock Edge.
+>> +	Possible values are "<1>" or "<0>".
+>> +	If "ti,pixel-clock-edge" is High <1>, output data is strobed on the
+>> +	Rising edge of the PCLK. If ti,pixel-clock-edge is Low <0>, data is
+>> +	strobed on the Falling edge of the PCLK.
+>> +	If "ti,pixel-clock-edge" is not mentioned, the pixel clock edge
+>> +	value is not touched and given by hardware pin strapping.
+>> +- ti,spread-spectrum-clock-generation : Spread Sprectrum Clock Generation.
+>> +	Possible values are from "<0>" to "<7>". The same value will be
+>> +	written to SSC register. If "ti,spread-spectrum-clock-gen" is not
+>> +	found, then SSCG will be disabled.
+>> +
+>> +TI DS90Ux9xx serializers and deserializer device nodes may contain a number
+>> +of children device nodes to describe and enable particular subcomponents
+>> +found on ICs.
+>> +
+>> +Example:
+>> +
+>> +serializer: serializer@c {
+>> +	compatible = "ti,ds90ub927q", "ti,ds90ux9xx";
+>> +	reg = <0xc>;
+>> +	power-gpios = <&gpio5 12 GPIO_ACTIVE_HIGH>;
+>> +	ti,backward-compatible-mode = <0>;
+>> +	ti,low-frequency-mode = <0>;
+>> +	ti,pixel-clock-edge = <0>;
+>> +	...
+>> +}
+>> +
+>> +deserializer: deserializer@3c {
+>> +	compatible = "ti,ds90ub940q", "ti,ds90ux9xx";
+>> +	reg = <0x3c>;
+>> +	power-gpios = <&gpio6 31 GPIO_ACTIVE_HIGH>;
+>> +	...
+>> +}
+>> +
+>>
+> 
+
+--
+Best wishes,
+Vladimir
