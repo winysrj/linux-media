@@ -1,68 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f68.google.com ([209.85.128.68]:37305 "EHLO
-        mail-wm1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727941AbeJFAgk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2018 20:36:40 -0400
-From: ektor5 <ek5.chimenti@gmail.com>
-Cc: hverkuil@xs4all.nl, luca.pisani@udoo.org, jose.abreu@synopsys.com,
-        sean@mess.org, sakari.ailus@linux.intel.com,
-        ektor5 <ek5.chimenti@gmail.com>, jacopo@jmondi.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 0/2] Add SECO Boards CEC device driver
-Date: Fri,  5 Oct 2018 19:33:57 +0200
-Message-Id: <cover.1538760098.git.ek5.chimenti@gmail.com>
-In-Reply-To: <cover.1538474121.git.ek5.chimenti@gmail.com>
-References: <cover.1538474121.git.ek5.chimenti@gmail.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:45487 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726596AbeJIIYP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 04:24:15 -0400
+Subject: Re: [PATCH v4 11/11] media: imx.rst: Update doc to reflect fixes to
+ interlaced capture
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <20181004185401.15751-1-slongerbeam@gmail.com>
+ <20181004185401.15751-12-slongerbeam@gmail.com>
+ <1538736767.3545.20.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <539cd27c-5c7c-7ea9-af1b-143ac97f9a15@gmail.com>
+Date: Mon, 8 Oct 2018 18:09:47 -0700
+MIME-Version: 1.0
+In-Reply-To: <1538736767.3545.20.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches aims to add CEC functionalities to SECO
-devices, in particular UDOO X86.
 
-The communication is achieved via Braswell SMBus (i2c-i801) to the
-onboard STM32 microcontroller that handles the CEC signals. The driver
-use direct access to the PCI addresses, due to the limitations of the
-specific driver in presence of ACPI calls.
 
-The basic functionalities are tested with success with cec-ctl and
-cec-compliance.
+On 10/05/2018 03:52 AM, Philipp Zabel wrote:
+> Hi Steve,
+>
+> On Thu, 2018-10-04 at 11:54 -0700, Steve Longerbeam wrote:
+> <snip>
+>> +or bottom-top or alternate, and the capture interface field type is set
+>> +to interlaced (t-b, b-t, or unqualified interlaced). The capture interface
+>> +will enforce the same field order if the source pad field type is seq-bt
+>> +or seq-tb. However if the source pad's field type is alternate, any
+>> +interlaced type at the capture interface will be accepted.
+> This part is fine, though, as are the following changes. I'd just like
+> to avoid giving the wrong impression that the CSI does line interweaving
+> or pixel reordering into the output pixel format.
 
-v2:
- - Removed useless debug prints
- - Added DMI && PCI to dependences
- - Removed useless ifdefs
- - Renamed all irda references to ir
- - Fixed SPDX clause
- - Several style fixes
+Agreed, I made the wording more clear.
 
-Ettore Chimenti (2):
-  media: add SECO cec driver
-  seco-cec: add Consumer-IR support
-
- MAINTAINERS                                |   6 +
- drivers/media/platform/Kconfig             |  22 +
- drivers/media/platform/Makefile            |   2 +
- drivers/media/platform/seco-cec/Makefile   |   1 +
- drivers/media/platform/seco-cec/seco-cec.c | 829 +++++++++++++++++++++
- drivers/media/platform/seco-cec/seco-cec.h | 141 ++++
- 6 files changed, 1001 insertions(+)
- create mode 100644 drivers/media/platform/seco-cec/Makefile
- create mode 100644 drivers/media/platform/seco-cec/seco-cec.c
- create mode 100644 drivers/media/platform/seco-cec/seco-cec.h
-
--- 
-2.18.0
+Steve
