@@ -1,63 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:33612 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726415AbeJIVuw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 17:50:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] omap3isp: Unregister media device as first
-Date: Tue, 09 Oct 2018 17:33:37 +0300
-Message-ID: <3170095.c0OUfTCF4a@avalon>
-In-Reply-To: <20181009120316.27649-1-sakari.ailus@linux.intel.com>
-References: <20181009120316.27649-1-sakari.ailus@linux.intel.com>
+Received: from fanzine.igalia.com ([91.117.99.155]:51463 "EHLO
+        fanzine.igalia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726393AbeJIVkC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 17:40:02 -0400
+Date: Tue, 9 Oct 2018 15:59:26 +0200
+From: =?utf-8?B?VsOtY3RvciBKw6FxdWV6?= <vjaquez@igalia.com>
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Informal meeting during ELCE to discuss userspace support
+ for stateless codecs
+Message-ID: <20181009135926.wux6jsqrscqdvyvu@miau>
+References: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
+ <20181009072904.19a7a8f2@coco.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20181009072904.19a7a8f2@coco.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Thank you for the patch.
-
-On Tuesday, 9 October 2018 15:03:16 EEST Sakari Ailus wrote:
-> While there are issues related to object lifetime management, unregister the
-> media device first when the driver is being unbound. This is slightly
-> safer.
+On Tue, 09 Oct 2018 at 07:29, Mauro Carvalho Chehab wrote:
+> Em Mon, 8 Oct 2018 13:53:29 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/omap3isp/isp.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> > Hi all,
+> > 
+> > I would like to meet up somewhere during the ELCE to discuss userspace support
+> > for stateless (and perhaps stateful as well?) codecs.
+> > 
+> > It is also planned as a topic during the summit, but I would prefer to prepare
+> > for that in advance, esp. since I myself do not have any experience writing
+> > userspace SW for such devices.
+> > 
+> > Nicolas, it would be really great if you can participate in this meeting
+> > since you probably have the most experience with this by far.
+> > 
+> > Looking through the ELCE program I found two timeslots that are likely to work
+> > for most of us (because the topics in the program appear to be boring for us
+> > media types!):
+> > 
+> > Tuesday from 10:50-15:50
 > 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 93f032a39470..4194ea82e6c4
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1587,6 +1587,8 @@ static void isp_pm_complete(struct device *dev)
-> 
->  static void isp_unregister_entities(struct isp_device *isp)
->  {
-> +	media_device_unregister(&isp->media_dev);
-> +
->  	omap3isp_csi2_unregister_entities(&isp->isp_csi2a);
->  	omap3isp_ccp2_unregister_entities(&isp->isp_ccp2);
->  	omap3isp_ccdc_unregister_entities(&isp->isp_ccdc);
-> @@ -1597,7 +1599,6 @@ static void isp_unregister_entities(struct isp_device
-> *isp) omap3isp_stat_unregister_entities(&isp->isp_hist);
-> 
->  	v4l2_device_unregister(&isp->v4l2_dev);
-> -	media_device_unregister(&isp->media_dev);
->  	media_device_cleanup(&isp->media_dev);
->  }
 
+I would like to participate in the meeting too.  And Tuesday fits to me, since
+I'll arrive to Edinburgh on Monday night.
 
--- 
-Regards,
-
-Laurent Pinchart
+vmjl
