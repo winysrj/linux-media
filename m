@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:25068 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726056AbeJHTkg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2018 15:40:36 -0400
-From: bwinther@cisco.com
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com,
-        =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-Subject: [PATCH 2/2] media: vivid: Add 16-bit bayer to format list
-Date: Mon,  8 Oct 2018 14:29:07 +0200
-Message-Id: <20181008122907.26059-2-bwinther@cisco.com>
-In-Reply-To: <20181008122907.26059-1-bwinther@cisco.com>
-References: <20181008122907.26059-1-bwinther@cisco.com>
+Received: from perceval.ideasonboard.com ([213.167.242.64]:40074 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725837AbeJJE2Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Oct 2018 00:28:25 -0400
+Subject: Re: [PATCH] media: tc358743: Remove unnecessary self assignment
+To: Nathan Chancellor <natechancellor@gmail.com>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20181008221128.22510-1-natechancellor@gmail.com>
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <b5f1c169-3770-96a7-cd1a-59939de8064b@ideasonboard.com>
+Date: Tue, 9 Oct 2018 22:09:31 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181008221128.22510-1-natechancellor@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Bård Eirik Winther <bwinther@cisco.com>
+Hi Nathan,
 
-New 16-bit bayer options are available in tpg so enable them in vivid.
+Thank you for the patch,
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- .../media/platform/vivid/vivid-vid-common.c   | 28 +++++++++++++++++++
- 1 file changed, 28 insertions(+)
+On 08/10/18 23:11, Nathan Chancellor wrote:
+> Clang warns when a variable is assigned to itself.
+> 
+> drivers/media/i2c/tc358743.c:1921:7: warning: explicitly assigning value
+> of variable of type 'int' to itself [-Wself-assign]
+>                 ret = ret;
+>                 ~~~ ^ ~~~
+> 1 warning generated.
+> 
+> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 27a0000a5973..9645a91b8782 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -449,6 +449,34 @@ struct vivid_fmt vivid_formats[] = {
- 		.planes   = 1,
- 		.buffers = 1,
- 	},
-+	{
-+		.fourcc   = V4L2_PIX_FMT_SBGGR16, /* Bayer BG/GR */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
-+	{
-+		.fourcc   = V4L2_PIX_FMT_SGBRG16, /* Bayer GB/RG */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
-+	{
-+		.fourcc   = V4L2_PIX_FMT_SGRBG16, /* Bayer GR/BG */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
-+	{
-+		.fourcc   = V4L2_PIX_FMT_SRGGB16, /* Bayer RG/GB */
-+		.vdownsampling = { 1 },
-+		.bit_depth = { 16 },
-+		.planes   = 1,
-+		.buffers = 1,
-+	},
- 	{
- 		.fourcc   = V4L2_PIX_FMT_HSV24, /* HSV 24bits */
- 		.color_enc = TGP_COLOR_ENC_HSV,
--- 
-2.17.1
+Certainly somewhat redundant.
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/i2c/tc358743.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+> index ca5d92942820..41d470d9ca94 100644
+> --- a/drivers/media/i2c/tc358743.c
+> +++ b/drivers/media/i2c/tc358743.c
+> @@ -1918,7 +1918,6 @@ static int tc358743_probe_of(struct tc358743_state *state)
+>  	ret = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(ep), &endpoint);
+>  	if (ret) {
+>  		dev_err(dev, "failed to parse endpoint\n");
+> -		ret = ret;
+>  		goto put_node;
+>  	}
+>  
+> 
