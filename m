@@ -1,51 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:44005 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725749AbeJIFa3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Oct 2018 01:30:29 -0400
-Subject: Re: [PATCH] vivid: fix kernel oops when enabling HFLIP and OSD
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <407e067b-47be-e8da-848d-edb6c04f5c1c@xs4all.nl>
-Message-ID: <b0c7c982-2c93-0840-038f-78196de6c212@xs4all.nl>
-Date: Tue, 9 Oct 2018 00:16:28 +0200
+Received: from mail-wr1-f65.google.com ([209.85.221.65]:40895 "EHLO
+        mail-wr1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725759AbeJIHXp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2018 03:23:45 -0400
+Subject: Re: [PATCH v4 03/11] gpu: ipu-v3: Add planar support to interlaced
+ scan
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        "open list:DRM DRIVERS FOR FREESCALE IMX"
+        <dri-devel@lists.freedesktop.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>,
+        "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <20181004185401.15751-1-slongerbeam@gmail.com>
+ <20181004185401.15751-4-slongerbeam@gmail.com>
+ <1538732937.3545.8.camel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <2f5cbf7c-4a1c-96c2-971c-86a97ae6dbe1@gmail.com>
+Date: Mon, 8 Oct 2018 17:09:24 -0700
 MIME-Version: 1.0
-In-Reply-To: <407e067b-47be-e8da-848d-edb6c04f5c1c@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <1538732937.3545.8.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/08/2018 09:08 PM, Hans Verkuil wrote:
-> When the OSD is on (i.e. vivid displays text on top of the test pattern), and
-> you enable hflip, then the driver crashes.
-> 
-> The cause turned out to be a division of a negative number by an unsigned value.
-> You expect that -8 / 2 would be -4, but in reality it is 2147483644 :-(
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Reported-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> ---
-> diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> index f3d9c1140ffa..e76f87dc4368 100644
-> --- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> +++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-> @@ -1773,7 +1773,7 @@ typedef struct { u16 __; u8 _; } __packed x24;
->  				pos[7] = (chr & (0x01 << 0) ? fg : bg);	\
->  			} \
->  	\
-> -			pos += (tpg->hflip ? -8 : 8) / hdiv;	\
-> +			pos += (tpg->hflip ? -8 : 8) / (int)hdiv;	\
->  		}	\
->  	}	\
->  } while (0)
-> 
 
-Fixes: 3e14e7a82c1ef ("vivid-tpg: add hor/vert downsampling support to tpg_gen_text")
 
-Regards,
+On 10/05/2018 02:48 AM, Philipp Zabel wrote:
+> On Thu, 2018-10-04 at 11:53 -0700, Steve Longerbeam wrote:
+>> To support interlaced scan with planar formats, cpmem SLUV must
+>> be programmed with the correct chroma line stride. For full and
+>> partial planar 4:2:2 (YUV422P, NV16), chroma line stride must
+>> be doubled. For full and partial planar 4:2:0 (YUV420, YVU420, NV12),
+>> chroma line stride must _not_ be doubled, since a single chroma line
+>> is shared by two luma lines.
+>>
+>> Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+>> ---
+>>   drivers/gpu/ipu-v3/ipu-cpmem.c              | 26 +++++++++++++++++++--
+>>   drivers/staging/media/imx/imx-ic-prpencvf.c |  3 ++-
+>>   drivers/staging/media/imx/imx-media-csi.c   |  3 ++-
+>>   include/video/imx-ipu-v3.h                  |  3 ++-
+>>   4 files changed, 30 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
+>> index a9d2501500a1..d41df8034c5b 100644
+>> --- a/drivers/gpu/ipu-v3/ipu-cpmem.c
+>> +++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
+>> @@ -273,9 +273,10 @@ void ipu_cpmem_set_uv_offset(struct ipuv3_channel *ch, u32 u_off, u32 v_off)
+>>   }
+>>   EXPORT_SYMBOL_GPL(ipu_cpmem_set_uv_offset);
+>>   
+>> -void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
+>> +void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride,
+>> +			       u32 pixelformat)
+>>   {
+>> -	u32 ilo, sly;
+>> +	u32 ilo, sly, sluv;
+>>   
+>>   	if (stride < 0) {
+>>   		stride = -stride;
+>> @@ -286,9 +287,30 @@ void ipu_cpmem_interlaced_scan(struct ipuv3_channel *ch, int stride)
+>>   
+>>   	sly = (stride * 2) - 1;
+>>   
+>> +	switch (pixelformat) {
+>> +	case V4L2_PIX_FMT_YUV420:
+>> +	case V4L2_PIX_FMT_YVU420:
+>> +		sluv = stride / 2 - 1;
+>> +		break;
+>> +	case V4L2_PIX_FMT_NV12:
+>> +		sluv = stride - 1;
+>> +		break;
+>> +	case V4L2_PIX_FMT_YUV422P:
+>> +		sluv = stride - 1;
+>> +		break;
+>> +	case V4L2_PIX_FMT_NV16:
+>> +		sluv = stride * 2 - 1;
+>> +		break;
+>> +	default:
+>> +		sluv = 0;
+>> +		break;
+>> +	}
+>> +
+>>   	ipu_ch_param_write_field(ch, IPU_FIELD_SO, 1);
+>>   	ipu_ch_param_write_field(ch, IPU_FIELD_ILO, ilo);
+>>   	ipu_ch_param_write_field(ch, IPU_FIELD_SLY, sly);
+>> +	if (sluv)
+>> +		ipu_ch_param_write_field(ch, IPU_FIELD_SLUV, sluv);
+>>   };
+>>   EXPORT_SYMBOL_GPL(ipu_cpmem_interlaced_scan);
+> [...]
+>
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+>
+> and
+>
+> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+>
+> to be merged with the rest of the series via the media tree. I'll take
+> care not to introduce nontrivial conflicts in imx-drm.
 
-	Hans
+Ok thanks.
+
+Hans, for v5 I will just include the two IPU patches as before. As Philipp
+stated, he is OK with merging them to the media tree (after his ack of
+course), along with the rest of the patches in this series.
+
+Steve
