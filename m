@@ -1,83 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:51113 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726810AbeJJQK3 (ORCPT
+Received: from relay1-d.mail.gandi.net ([217.70.183.193]:50237 "EHLO
+        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726722AbeJJQJ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 12:10:29 -0400
-Date: Wed, 10 Oct 2018 10:49:16 +0200
+        Wed, 10 Oct 2018 12:09:29 -0400
+Date: Wed, 10 Oct 2018 10:48:17 +0200
 From: jacopo mondi <jacopo@jmondi.org>
 To: Sam Bobrowicz <sam@elite-embedded.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/4] media: ov5640: fix get_light_freq on auto
-Message-ID: <20181010084916.GC7677@w540>
+Subject: Re: [PATCH 3/4] media: ov5640: Don't access ctrl regs when off
+Message-ID: <20181010084817.GB7677@w540>
 References: <1539067682-60604-1-git-send-email-sam@elite-embedded.com>
- <1539067682-60604-3-git-send-email-sam@elite-embedded.com>
+ <1539067682-60604-4-git-send-email-sam@elite-embedded.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="raC6veAxrt5nqIoY"
+        protocol="application/pgp-signature"; boundary="TakKZr9L6Hm6aLOc"
 Content-Disposition: inline
-In-Reply-To: <1539067682-60604-3-git-send-email-sam@elite-embedded.com>
+In-Reply-To: <1539067682-60604-4-git-send-email-sam@elite-embedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---raC6veAxrt5nqIoY
+--TakKZr9L6Hm6aLOc
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 
 Hi Sam,
+   thanks for the patch.
 
-On Mon, Oct 08, 2018 at 11:48:00PM -0700, Sam Bobrowicz wrote:
-> Light frequency was not properly returned when in auto
-> mode and the detected frequency was 60Hz. Fix this.
+On Mon, Oct 08, 2018 at 11:48:01PM -0700, Sam Bobrowicz wrote:
+> Add a check to g_volatile_ctrl to prevent trying to read
+> registers when the sensor is not powered.
 >
 > Signed-off-by: Sam Bobrowicz <sam@elite-embedded.com>
 
-This is indeed a bugfix
+I've been carrying a similar patch in my tree. I found it is required
+when the sensor control handler is add to the receiver driver control
+handler, and thus g_voltaile_ctrl can be called when the sensor is
+powered off.
 
+Please add my:
 Acked-by: Jacopo Mondi <jacopo@jmondi.org>
 
 Thanks
-  j
+   j
+
 > ---
->  drivers/media/i2c/ov5640.c | 1 +
->  1 file changed, 1 insertion(+)
+>  drivers/media/i2c/ov5640.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 >
 > diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 5031aab..f183222 100644
+> index f183222..a50d884 100644
 > --- a/drivers/media/i2c/ov5640.c
 > +++ b/drivers/media/i2c/ov5640.c
-> @@ -1295,6 +1295,7 @@ static int ov5640_get_light_freq(struct ov5640_dev *sensor)
->  			light_freq = 50;
->  		} else {
->  			/* 60Hz */
-> +			light_freq = 60;
->  		}
->  	}
+> @@ -2336,6 +2336,13 @@ static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 >
+>  	/* v4l2_ctrl_lock() locks our own mutex */
+>
+> +	/*
+> +	 * If the sensor is not powered up by the host driver, do
+> +	 * not try to access it to update the volatile controls.
+> +	 */
+> +	if (sensor->power_count == 0)
+> +		return 0;
+> +
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_AUTOGAIN:
+>  		val = ov5640_get_gain(sensor);
 > --
 > 2.7.4
 >
 
---raC6veAxrt5nqIoY
+--TakKZr9L6Hm6aLOc
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJbvb0MAAoJEHI0Bo8WoVY8ECMP/RI32kjE21k3G/v9z/wL/QF6
-iGobyM+XM2THVWDuu6lVyJ/H9XZEUSZ9zw5kAPQ789+74XQmstRLLDrwIihUOHKZ
-RL2exdPufHM5NTstw7IfN55XlWIFO1s9YzschrlVILZSw2S6tOLX4jtOW/wObuS7
-ILE/IQC2yVont7JXviNH4hvmjbOFnqXa/3TZ9G5/mSzUoiaPJVEiFOisdycsmNBL
-nkA7ouvhDnhwYX0NzrATSqIG4IRH0QwBSVSp0bsjR7ef1ka9i5FAeVeXAyWgHDdF
-oapbZG+yledVyTORd8mGmVff+Nd+3hfeqmZf4qzbOWRDCX+8mCU2GTxnO9Grs95H
-dQno37Yx4JxEZ+3+G6PCnJxaFjrOXA3Qz2Gua/ezWRgAauckbOsZWCfZ6bpTLnZ8
-eXfMUMGdENxrGpi2s3hf2/PuKWLWLmmg0Y+jbC2LiTYrlnod+pAu6/vJY1oDQstI
-a4jJ45AUT6h2rWGD1mdam5TxmPsQRQ4b0PGT5/X+GhJpufmmkUNc/TPYNLK+kB6V
-Wia82fUQEXKxpz1jjqfVYN9+PI/2WsrYWYKZFwLYmmiXUiW7Mb1q14XEZDfdom4U
-ET/VnejVRk37yaM/uezlRj5zdpIADuSSy5HkHNkedUP1q8x3oZd90NWLFaucUVUt
-anlykBVl2Bcs76ndhRDr
-=sk7O
+iQIcBAEBAgAGBQJbvbzQAAoJEHI0Bo8WoVY8aQMQALPPvYsfQ0bWTIrSoA5JXhDq
+7DwnOV7koDj8L/rt2NABjYjw+xuQKKkxn8VHfUQb9Yr6M9EzYRrgESKP+zIatDy9
+k38cbF2+p/CQc3E/aoSO6WK8lekVIg73vtU8b/MeXNObO8HTMxc/aAhLz+Wq4Ura
+bwxcRuM5tWaRXSH84CXKd2LmII8b3nlZEdlAoha/lkBpC2I1xyaPtxzwsmIk3Vhc
+wf8QVl8jygt4+dWPLyegLK12fMSsjy/Y/Oo7oel+RPUIeYQjePHTMIKNKt/PEVP8
+hQRQdznu2ZEJFc+dztWJjGuzdAOFIQhsHdbbSywTdqyGdh6WFxLogxBdkaLj8/dI
+5VmgKiUP0uTlRsbPAqomEhey0VW59TcNYgBKiPoGu25HMQHv326+clKuP9j1K4yn
+oOy/p2WTrMivafJ0zO8pNamWJEaV6PtFdcBGLOwaNoPeoWaoU9i6J19KzsFSqbAQ
+zWyfh5j3Q5IR1AEj5YNxxAPNl+BfeKQEYre7f8uQBX0g4DD04O7ob9MefHQ3buwx
+iJRjcy47sE9bQ1anOXX50n3074PVoNOnzdfN2Hn5T5zejQ4A5dSAhsi1maxpN7Bl
++1/ahzJZp/Ua6LMBCwKhmn+OrOCS6243+bI6FY7J6GxoLQrhgQHNhgnbzqHvAMW1
+zCtZhyorDlCWVaydbJBe
+=u8KJ
 -----END PGP SIGNATURE-----
 
---raC6veAxrt5nqIoY--
+--TakKZr9L6Hm6aLOc--
