@@ -1,46 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:24330 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725750AbeJJHN0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 03:13:26 -0400
-From: Rajmohan Mani <rajmohan.mani@intel.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:43082 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726468AbeJJIBC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Oct 2018 04:01:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Bingbu Cao <bingbu.cao@intel.com>,
-        Tian Shu Qiu <tian.shu.qiu@intel.com>,
-        Jian Xu Zheng <jian.xu.zheng@intel.com>
-Cc: tfiga@chromium.org, Rajmohan Mani <rajmohan.mani@intel.com>
-Subject: [PATCH] media: intel-ipu3: cio2: Remove redundant definitions
-Date: Tue,  9 Oct 2018 16:42:45 -0700
-Message-Id: <20181009234245.25830-1-rajmohan.mani@intel.com>
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Informal meeting during ELCE to discuss userspace support for stateless codecs
+Date: Wed, 10 Oct 2018 03:41:31 +0300
+Message-ID: <1742364.KYHYimKmd3@avalon>
+In-Reply-To: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
+References: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removed redundant CIO2_IMAGE_MAX_* definitions
+Hi Hans,
 
-Fixes: c2a6a07afe4a ("media: intel-ipu3: cio2: add new MIPI-CSI2 driver")
+On Monday, 8 October 2018 14:53:29 EEST Hans Verkuil wrote:
+> Hi all,
+> 
+> I would like to meet up somewhere during the ELCE to discuss userspace
+> support for stateless (and perhaps stateful as well?) codecs.
+> 
+> It is also planned as a topic during the summit, but I would prefer to
+> prepare for that in advance, esp. since I myself do not have any experience
+> writing userspace SW for such devices.
+> 
+> Nicolas, it would be really great if you can participate in this meeting
+> since you probably have the most experience with this by far.
+> 
+> Looking through the ELCE program I found two timeslots that are likely to
+> work for most of us (because the topics in the program appear to be boring
+> for us media types!):
+> 
+> Tuesday from 10:50-15:50
+> 
+> or:
+> 
+> Monday from 15:45 onward
 
-Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
----
- drivers/media/pci/intel/ipu3/ipu3-cio2.h | 2 --
- 1 file changed, 2 deletions(-)
+On Tuesday I would prefer 12:20 onward. Monday works for me.
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.h b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
-index 240635be7a31..7caab9b8c2b9 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-cio2.h
-+++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
-@@ -10,8 +10,6 @@
- #define CIO2_PCI_ID					0x9d32
- #define CIO2_PCI_BAR					0
- #define CIO2_DMA_MASK					DMA_BIT_MASK(39)
--#define CIO2_IMAGE_MAX_WIDTH				4224
--#define CIO2_IMAGE_MAX_LENGTH				3136
- 
- #define CIO2_IMAGE_MAX_WIDTH				4224
- #define CIO2_IMAGE_MAX_LENGTH				3136
+> My guess is that we need 2-3 hours or so. Hard to predict.
+> 
+> The basic question that I would like to have answered is what the userspace
+> component should look like? libv4l-like plugin or a library that userspace
+> can link with? Do we want more general support for stateful codecs as well
+> that deals with resolution changes and the more complex parts of the codec
+> API?
+> 
+> I've mailed this directly to those that I expect are most interested in
+> this, but if someone want to join in let me know.
+> 
+> I want to keep the group small though, so you need to bring relevant
+> experience to the table.
+
 -- 
-2.19.1
+Regards,
+
+Laurent Pinchart
