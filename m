@@ -1,84 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:60109 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726476AbeJJOQj (ORCPT
+Received: from mail-it1-f195.google.com ([209.85.166.195]:55159 "EHLO
+        mail-it1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726468AbeJJOWX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 10:16:39 -0400
-Subject: Re: [RFC] Informal meeting during ELCE to discuss userspace support
- for stateless codecs
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Ezequiel Garcia <ezequiel@collabora.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        =?UTF-8?B?VsOtY3RvciBKw6FxdWV6?= <vjaquez@igalia.com>
-References: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
-Message-ID: <fe5f3088-84cc-b15d-a8a7-a9557aeb7246@xs4all.nl>
-Date: Wed, 10 Oct 2018 08:55:49 +0200
+        Wed, 10 Oct 2018 10:22:23 -0400
+Received: by mail-it1-f195.google.com with SMTP id l191-v6so6505277ita.4
+        for <linux-media@vger.kernel.org>; Wed, 10 Oct 2018 00:01:38 -0700 (PDT)
+Received: from mail-it1-f170.google.com (mail-it1-f170.google.com. [209.85.166.170])
+        by smtp.gmail.com with ESMTPSA id x21-v6sm8335968ita.6.2018.10.10.00.01.36
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 10 Oct 2018 00:01:37 -0700 (PDT)
+Received: by mail-it1-f170.google.com with SMTP id q70-v6so6521802itb.3
+        for <linux-media@vger.kernel.org>; Wed, 10 Oct 2018 00:01:36 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+References: <1538996944-15042-1-git-send-email-vgarodia@codeaurora.org>
+In-Reply-To: <1538996944-15042-1-git-send-email-vgarodia@codeaurora.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Wed, 10 Oct 2018 16:01:24 +0900
+Message-ID: <CAPBb6MV3ih-tOr=kt6NvYD4ZQPrs2eRpzdnCOZLhEhXeYMatrQ@mail.gmail.com>
+Subject: Re: [PATCH v2] venus: vdec: fix decoded data size
+To: vgarodia@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/08/2018 01:53 PM, Hans Verkuil wrote:
-> Hi all,
-> 
-> I would like to meet up somewhere during the ELCE to discuss userspace support
-> for stateless (and perhaps stateful as well?) codecs.
-> 
-> It is also planned as a topic during the summit, but I would prefer to prepare
-> for that in advance, esp. since I myself do not have any experience writing
-> userspace SW for such devices.
-> 
-> Nicolas, it would be really great if you can participate in this meeting
-> since you probably have the most experience with this by far.
-> 
-> Looking through the ELCE program I found two timeslots that are likely to work
-> for most of us (because the topics in the program appear to be boring for us
-> media types!):
-> 
-> Tuesday from 10:50-15:50
+On Mon, Oct 8, 2018 at 8:09 PM Vikash Garodia <vgarodia@codeaurora.org> wrote:
+>
+> Existing code returns the max of the decoded size and buffer size.
+> It turns out that buffer size is always greater due to hardware
+> alignment requirement. As a result, payload size given to client
+> is incorrect. This change ensures that the bytesused is assigned
+> to actual payload size, when available.
+>
+> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
 
-Let's do this Tuesday. Let's meet at the Linux Foundation Registration
-Desk at 11:00. I'll try to figure out where we can sit the day before.
-Please check your email Tuesday morning for any last minute changes.
-
-Tomasz, it would be nice indeed if we can get you and Paul in as well
-using Hangouts on my laptop.
-
-I would very much appreciate it if those who have experience with the
-userspace support think about this beforehand and make some requirements
-list of what you would like to see.
-
-Regards,
-
-	Hans
-
-> 
-> or:
-> 
-> Monday from 15:45 onward
-> 
-> My guess is that we need 2-3 hours or so. Hard to predict.
-> 
-> The basic question that I would like to have answered is what the userspace
-> component should look like? libv4l-like plugin or a library that userspace can
-> link with? Do we want more general support for stateful codecs as well that deals
-> with resolution changes and the more complex parts of the codec API?
-> 
-> I've mailed this directly to those that I expect are most interested in this,
-> but if someone want to join in let me know.
-> 
-> I want to keep the group small though, so you need to bring relevant experience
-> to the table.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Tested-by: Alexandre Courbot <acourbot@chromium.org>
