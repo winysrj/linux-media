@@ -1,95 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:50237 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726722AbeJJQJ3 (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:48786 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726476AbeJJQpw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 12:09:29 -0400
-Date: Wed, 10 Oct 2018 10:48:17 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sam Bobrowicz <sam@elite-embedded.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] media: ov5640: Don't access ctrl regs when off
-Message-ID: <20181010084817.GB7677@w540>
-References: <1539067682-60604-1-git-send-email-sam@elite-embedded.com>
- <1539067682-60604-4-git-send-email-sam@elite-embedded.com>
+        Wed, 10 Oct 2018 12:45:52 -0400
+Subject: Re: [PATCH] vicodec: lower minimum height to 360
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Helen Koike <helen.koike@collabora.com>
+References: <42690466-7b3e-acd6-de8e-d55cbe96dcf4@xs4all.nl>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+Message-ID: <d31cb75e-9cee-78bf-9a17-7f312dc39f9c@ideasonboard.com>
+Date: Wed, 10 Oct 2018 10:24:30 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="TakKZr9L6Hm6aLOc"
-Content-Disposition: inline
-In-Reply-To: <1539067682-60604-4-git-send-email-sam@elite-embedded.com>
+In-Reply-To: <42690466-7b3e-acd6-de8e-d55cbe96dcf4@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---TakKZr9L6Hm6aLOc
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Thank you for the patch,
 
-Hi Sam,
-   thanks for the patch.
+On 10/10/18 08:03, Hans Verkuil wrote:
+> Lower the minimum height to 360 to be consistent with the webcam input of vivid.
+> 
+> The 480 was rather arbitrary but it made it harder to use vivid as a source for
+> encoding since the default resolution when you load vivid is 640x360.
 
-On Mon, Oct 08, 2018 at 11:48:01PM -0700, Sam Bobrowicz wrote:
-> Add a check to g_volatile_ctrl to prevent trying to read
-> registers when the sensor is not powered.
->
-> Signed-off-by: Sam Bobrowicz <sam@elite-embedded.com>
+As this is a virtual codec, is the minimum width and height really so
+'large' ?
 
-I've been carrying a similar patch in my tree. I found it is required
-when the sensor control handler is add to the receiver driver control
-handler, and thus g_voltaile_ctrl can be called when the sensor is
-powered off.
+What about 320x240 or such? (or even 32x32...)
 
-Please add my:
-Acked-by: Jacopo Mondi <jacopo@jmondi.org>
+Or is the aim to provide minimum frame sizes and a means to verify
+userspace correctly handles the minimum frame sizes too ?
 
-Thanks
-   j
+I could certainly acknowledge it's worth providing a means for a
+userspace app to test that it handles minimum sizes correctly.
+
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+If the minimum is desired:
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
 > ---
->  drivers/media/i2c/ov5640.c | 7 +++++++
->  1 file changed, 7 insertions(+)
->
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index f183222..a50d884 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -2336,6 +2336,13 @@ static int ov5640_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->
->  	/* v4l2_ctrl_lock() locks our own mutex */
->
-> +	/*
-> +	 * If the sensor is not powered up by the host driver, do
-> +	 * not try to access it to update the volatile controls.
-> +	 */
-> +	if (sensor->power_count == 0)
-> +		return 0;
-> +
->  	switch (ctrl->id) {
->  	case V4L2_CID_AUTOGAIN:
->  		val = ov5640_get_gain(sensor);
-> --
-> 2.7.4
->
-
---TakKZr9L6Hm6aLOc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbvbzQAAoJEHI0Bo8WoVY8aQMQALPPvYsfQ0bWTIrSoA5JXhDq
-7DwnOV7koDj8L/rt2NABjYjw+xuQKKkxn8VHfUQb9Yr6M9EzYRrgESKP+zIatDy9
-k38cbF2+p/CQc3E/aoSO6WK8lekVIg73vtU8b/MeXNObO8HTMxc/aAhLz+Wq4Ura
-bwxcRuM5tWaRXSH84CXKd2LmII8b3nlZEdlAoha/lkBpC2I1xyaPtxzwsmIk3Vhc
-wf8QVl8jygt4+dWPLyegLK12fMSsjy/Y/Oo7oel+RPUIeYQjePHTMIKNKt/PEVP8
-hQRQdznu2ZEJFc+dztWJjGuzdAOFIQhsHdbbSywTdqyGdh6WFxLogxBdkaLj8/dI
-5VmgKiUP0uTlRsbPAqomEhey0VW59TcNYgBKiPoGu25HMQHv326+clKuP9j1K4yn
-oOy/p2WTrMivafJ0zO8pNamWJEaV6PtFdcBGLOwaNoPeoWaoU9i6J19KzsFSqbAQ
-zWyfh5j3Q5IR1AEj5YNxxAPNl+BfeKQEYre7f8uQBX0g4DD04O7ob9MefHQ3buwx
-iJRjcy47sE9bQ1anOXX50n3074PVoNOnzdfN2Hn5T5zejQ4A5dSAhsi1maxpN7Bl
-+1/ahzJZp/Ua6LMBCwKhmn+OrOCS6243+bI6FY7J6GxoLQrhgQHNhgnbzqHvAMW1
-zCtZhyorDlCWVaydbJBe
-=u8KJ
------END PGP SIGNATURE-----
-
---TakKZr9L6Hm6aLOc--
+> diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
+> index 1eb9132bfc85..b292cff26c86 100644
+> --- a/drivers/media/platform/vicodec/vicodec-core.c
+> +++ b/drivers/media/platform/vicodec/vicodec-core.c
+> @@ -42,7 +42,7 @@ MODULE_PARM_DESC(debug, " activates debug info");
+>  #define MAX_WIDTH		4096U
+>  #define MIN_WIDTH		640U
+>  #define MAX_HEIGHT		2160U
+> -#define MIN_HEIGHT		480U
+> +#define MIN_HEIGHT		360U
+> 
+>  #define dprintk(dev, fmt, arg...) \
+>  	v4l2_dbg(1, debug, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
+> 
