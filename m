@@ -1,165 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:53382 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726600AbeJJUDm (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55389 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726600AbeJJVH4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 16:03:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Sam Bobrowicz <sam@elite-embedded.com>,
-        linux-media@vger.kernel.org,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        loic.poulain@linaro.org, slongerbeam@gmail.com, daniel@zonque.org,
-        maxime.ripard@bootlin.com
-Subject: Re: [PATCH 1/4] media: ov5640: fix resolution update
-Date: Wed, 10 Oct 2018 15:41:41 +0300
-Message-ID: <5292714.SW9firoZdu@avalon>
-In-Reply-To: <20181010105804.GD7677@w540>
-References: <1539067682-60604-1-git-send-email-sam@elite-embedded.com> <1539067682-60604-2-git-send-email-sam@elite-embedded.com> <20181010105804.GD7677@w540>
+        Wed, 10 Oct 2018 17:07:56 -0400
+Subject: Re: [PATCH v2 0/2] Add SECO Boards CEC device driver
+To: ektor5 <ek5.chimenti@gmail.com>
+Cc: luca.pisani@udoo.org, linux-media@vger.kernel.org
+References: <cover.1538474121.git.ek5.chimenti@gmail.com>
+ <cover.1538760098.git.ek5.chimenti@gmail.com>
+ <bdec2327-8c19-8ffb-9862-6df2e6e697c7@xs4all.nl>
+ <20181010120928.cx6mlwigrl4zim2c@Ettosoft-T55>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d1027940-5c27-650e-3250-8d75cf496f84@xs4all.nl>
+Date: Wed, 10 Oct 2018 15:45:35 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20181010120928.cx6mlwigrl4zim2c@Ettosoft-T55>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+On 10/10/18 14:09, ektor5 wrote:
+> Hi Hans,
+> 
+> On Sat, Oct 06, 2018 at 11:54:38AM +0200, Hans Verkuil wrote:
+>> Hi Ettore,
+>>
+>> On 10/05/2018 07:33 PM, ektor5 wrote:
+>>> This series of patches aims to add CEC functionalities to SECO
+>>> devices, in particular UDOO X86.
+>>>
+>>> The communication is achieved via Braswell SMBus (i2c-i801) to the
+>>> onboard STM32 microcontroller that handles the CEC signals. The driver
+>>> use direct access to the PCI addresses, due to the limitations of the
+>>> specific driver in presence of ACPI calls.
+>>>
+>>> The basic functionalities are tested with success with cec-ctl and
+>>> cec-compliance.
+>>
+>> This series looks good to me. But can you do one more test:
+>>
+>> Update your kernel to the latest media_tree master and also update your
+>> v4l-utils repo to the latest master code.
+>>
+>> With all that in place please run:
+>>
+>> cec-compliance -A
+>>
+>> (have the HDMI output connected to a CEC-capable TV when running this test).
+>>
+>> Please report back the output of cec-compliance.
+>>
+>> A bunch of CEC bug fixes and improvements were merged yesterday, and the
+>> cec-compliance adapter test is improved to check for issues that were hard
+>> to find in the past.
+>>
+>> So it will be good to have a final check of this driver.
+> 
+> Here it is, compiled media-tree and latest v4l-utils:
+> 
+> udoo@udoo-UDOO-x86:~/v4l-utils/utils/cec-compliance$ uname -a
+> Linux udoo-UDOO-x86 4.19.0-041900rc7-generic #201810071631+cec SMP Tue Oct 9 17:36:11 CEST 2018 x86_64 x86_64 x86_64 GNU/Linux
+> udoo@udoo-UDOO-x86:~/v4l-utils/utils/cec-compliance$ ./cec-compliance -A
+> cec-compliance SHA                 : 06ad469e966aafaf39c1cc76e6e0953ec7d4f9c9
+> Driver Info:
+> 	Driver Name                : secocec
+> 	Adapter Name               : CEC00001:00
+> 	Capabilities               : 0x0000000e
+> 		Logical Addresses
+> 		Transmit
+> 		Passthrough
+> 	Driver version             : 4.19.0
+> 	Available Logical Addresses: 1
+> 	Physical Address           : 3.0.0.0
+> 	Logical Address Mask       : 0x0010
+> 	CEC Version                : 2.0
+> 	Vendor ID                  : 0x000c03 (HDMI)
+> 	OSD Name                   : Playback
+> 	Logical Addresses          : 1 
+> 
+> 	  Logical Address          : 4 (Playback Device 1)
+> 	    Primary Device Type    : Playback
+> 	    Logical Address Type   : Playback
+> 	    All Device Types       : Playback
+> 	    RC TV Profile          : None
+> 	    Device Features        :
+> 		None
+> 
+> Compliance test for device /dev/cec0:
+> 
+>     The test results mean the following:
+>         OK                  Supported correctly by the device.
+>         OK (Not Supported)  Not supported and not mandatory for the device.
+>         OK (Presumed)       Presumably supported.  Manually check to confirm.
+>         OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
+>         OK (Refused)        Supported by the device, but was refused.
+>         FAIL                Failed and was expected to be supported by this device.
+> 
+> Find remote devices:
+> 	Polling: OK
+> 
+> CEC API:
+> 	CEC_ADAP_G_CAPS: OK
+> 	CEC_DQEVENT: OK
+> 	CEC_ADAP_G/S_PHYS_ADDR: OK
+> 	CEC_ADAP_G/S_LOG_ADDRS: OK
+> 	CEC_TRANSMIT: OK
+> 	CEC_RECEIVE: OK
+> 	CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+> 	CEC_G/S_MODE: OK
+> 		fail: cec-test-adapter.cpp(1042): There were 142 pending messages for 83 transmitted messages
 
-On Wednesday, 10 October 2018 13:58:04 EEST jacopo mondi wrote:
-> Hi Sam,
->    thanks for the patch, I see the same issue you reported, but I
-> think this patch can be improved.
-> 
-> (expanding the Cc list to all people involved in recent ov5640
-> developemts, not just for this patch, but for the whole series to look
-> at. Copying names from another series cover letter, hope it is
-> complete.)
-> 
-> On Mon, Oct 08, 2018 at 11:47:59PM -0700, Sam Bobrowicz wrote:
-> > set_fmt was not properly triggering a mode change when
-> > a new mode was set that happened to have the same format
-> > as the previous mode (for example, when only changing the
-> > frame dimensions). Fix this.
-> > 
-> > Signed-off-by: Sam Bobrowicz <sam@elite-embedded.com>
-> > ---
-> > 
-> >  drivers/media/i2c/ov5640.c | 8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> > index eaefdb5..5031aab 100644
-> > --- a/drivers/media/i2c/ov5640.c
-> > +++ b/drivers/media/i2c/ov5640.c
-> > @@ -2045,12 +2045,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
-> > 
-> >  		goto out;
-> >  	
-> >  	}
-> > 
-> > -	if (new_mode != sensor->current_mode) {
-> > +
-> > +	if (new_mode != sensor->current_mode ||
-> > +	    mbus_fmt->code != sensor->fmt.code) {
-> > +		sensor->fmt = *mbus_fmt;
-> > 
-> >  		sensor->current_mode = new_mode;
-> >  		sensor->pending_mode_change = true;
-> > 
-> > -	}
-> > -	if (mbus_fmt->code != sensor->fmt.code) {
-> > -		sensor->fmt = *mbus_fmt;
-> > 
-> >  		sensor->pending_fmt_change = true;
-> >  	
-> >  	}
-> 
-> How I did reproduce the issue:
-> 
-> # Set 1024x768 on ov5640 without changing the image format
-> # (default image size at startup is 640x480)
-> $ media-ctl --set-v4l2 "'ov5640 2-003c':0[fmt:UYVY2X8/1024x768 field:none]"
->   sensor->pending_mode_change = true; //verified this flag gets set
-> 
-> # Start streaming, after having configured the whole pipeline to work
-> # with 1024x768
-> $  yavta -c10 -n4 -f UYVY -s 1024x768 /dev/video4
->    Unable to start streaming: Broken pipe (32).
-> 
-> # Inspect which part of pipeline validation went wrong
-> # Turns out the sensor->fmt field is not updated, and when get_fmt()
-> # is called, the old one is returned.
-> $ media-ctl -e "ov5640 2-003c" -p
->   ...
->   [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb xfer:srgb ycbcr:601
-> quantization:full-range] ^^^ ^^^
-> 
-> So yes, sensor->fmt is not udapted as it should be when only image
-> resolution is changed.
-> 
-> Although I still see value in having two separate flags for the
-> 'mode_change' (which in ov5640 lingo is resolution) and 'fmt_change' (which
-> in ov5640 lingo is the image format), and write their configuration to
-> registers only when they get actually changed.
-> 
-> For this reasons I would like to propse the following patch which I
-> have tested by:
-> 1) changing resolution only
-> 2) changing format only
-> 3) change both
-> 
-> What do you and others think?
+That's not good.
 
-I think that the format setting code should be completely rewritten, it's 
-pretty much unmaintainable as-is.
+If you look in the kernel log, do you see 'timed out' cec messages?
 
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index eaefdb5..e392b9d 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -2020,6 +2020,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
->         struct ov5640_dev *sensor = to_ov5640_dev(sd);
->         const struct ov5640_mode_info *new_mode;
->         struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
-> +       struct v4l2_mbus_framefmt *fmt;
->         int ret;
-> 
->         if (format->pad != 0)
-> @@ -2037,22 +2038,19 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
->         if (ret)
->                 goto out;
-> 
-> -       if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
-> -               struct v4l2_mbus_framefmt *fmt =
-> -                       v4l2_subdev_get_try_format(sd, cfg, 0);
-> +       if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-> +               fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-> +       else
-> +               fmt = &sensor->fmt;
-> 
-> -               *fmt = *mbus_fmt;
-> -               goto out;
-> -       }
-> +       *fmt = *mbus_fmt;
-> 
->         if (new_mode != sensor->current_mode) {
->                 sensor->current_mode = new_mode;
->                 sensor->pending_mode_change = true;
->         }
-> -       if (mbus_fmt->code != sensor->fmt.code) {
-> -               sensor->fmt = *mbus_fmt;
-> +       if (mbus_fmt->code != sensor->fmt.code)
->                 sensor->pending_fmt_change = true;
-> -       }
->  out:
->         mutex_unlock(&sensor->lock);
->         return ret;
-> 
-> >  out:
-> > --
-> > 2.7.4
+Note: that message is a warning since commit 7ec2b3b941a666a942859684281b5f6460a0c234.
+Before that you first need to enable debugging:
 
+echo 1 >/sys/module/cec/parameters/debug
 
--- 
+My guess is that this might be a fw bug. Does the firmware handle Signal Free Time
+correctly? My guess is that it doesn't do that and that this test causes what is
+effectively a 'denial of service' situation: the transmitter gets blocked waiting
+for sufficient signal free time.
+
+I have updated cec-compliance to give better information about what was received,
+so can you update cec-compliance and run again?
+
+Also, run 'cec-ctl -m >cec.log' at the same time and mail me that log.
+
+There are two types of CEC adapters: those that handle retransmits automatically
+(and they determine the Signal Free Time themselves) and those that don't do
+automatic retransmits, and there you normally need to program the Signal Free Time
+before starting the transmit.
+
+This driver falls in the second category, but the SFT isn't set anywhere.
+
+This particular adapter test actually tests this, and I have seen this
+symptom before if the SFT wasn't set correctly.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 	CEC_EVENT_LOST_MSGS: FAIL
+> 
+> Network topology:
+> 	System Information for device 0 (TV) from device 4 (Playback Device 1):
+> 		CEC Version                : 1.4
+> 		Physical Address           : 0.0.0.0
+> 		Primary Device Type        : TV
+> 		Vendor ID                  : 0x00e091
+> 		OSD Name                   : Tx, OK, Rx, Timeout
+> 		Menu Language              : kor
+> 		Power Status               : On
+> 
+> Total: 10, Succeeded: 9, Failed: 1, Warnings: 0
+> 
+> Thanks,
+> 	Ettore
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> v2:
+>>>  - Removed useless debug prints
+>>>  - Added DMI && PCI to dependences
+>>>  - Removed useless ifdefs
+>>>  - Renamed all irda references to ir
+>>>  - Fixed SPDX clause
+>>>  - Several style fixes
+>>>
+>>> Ettore Chimenti (2):
+>>>   media: add SECO cec driver
+>>>   seco-cec: add Consumer-IR support
+>>>
+>>>  MAINTAINERS                                |   6 +
+>>>  drivers/media/platform/Kconfig             |  22 +
+>>>  drivers/media/platform/Makefile            |   2 +
+>>>  drivers/media/platform/seco-cec/Makefile   |   1 +
+>>>  drivers/media/platform/seco-cec/seco-cec.c | 829 +++++++++++++++++++++
+>>>  drivers/media/platform/seco-cec/seco-cec.h | 141 ++++
+>>>  6 files changed, 1001 insertions(+)
+>>>  create mode 100644 drivers/media/platform/seco-cec/Makefile
+>>>  create mode 100644 drivers/media/platform/seco-cec/seco-cec.c
+>>>  create mode 100644 drivers/media/platform/seco-cec/seco-cec.h
+>>>
+>>
