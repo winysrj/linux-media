@@ -1,846 +1,360 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:46790 "EHLO vps-vb.mhejs.net"
+Received: from vps-vb.mhejs.net ([37.28.154.113]:46828 "EHLO vps-vb.mhejs.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726036AbeJKEV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Oct 2018 00:21:26 -0400
+        id S1726036AbeJKEVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Oct 2018 00:21:30 -0400
 From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
 To: Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Andy Walls <awalls@md.metrocast.net>,
         linux-kernel <linux-kernel@vger.kernel.org>,
         linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v8 2/4] [media] cxusb: implement Medion MD95700 digital / analog coexistence
-Date: Wed, 10 Oct 2018 22:27:18 +0200
-Message-Id: <700db2ae44d82bd0627821e1a6976a1d20febf3a.1539198676.git.mail@maciej.szmigiero.name>
+Subject: [PATCH v8 4/4] [media] cxusb: add raw mode support for Medion MD95700
+Date: Wed, 10 Oct 2018 22:27:20 +0200
+Message-Id: <9fa99ccced709ca7b35c333baf59197450a2ee21.1539198676.git.mail@maciej.szmigiero.name>
 In-Reply-To: <cover.1539198675.git.mail@maciej.szmigiero.name>
 References: <cover.1539198675.git.mail@maciej.szmigiero.name>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch prepares cxusb driver for supporting the analog part of
-Medion 95700 (previously only the digital - DVB - mode was supported).
-
-Specifically, it adds support for:
-* switching the device between analog and digital modes of operation,
-* enforcing that only one mode is active at the same time due to hardware
-limitations.
-
-Actual implementation of the analog mode will be provided by the next
-commit.
+This adds raw (unprocessed) BT.656 stream capturing support for the analog
+part of Medion 95700.
+It can be enabled by setting CXUSB_EXTENDEDMODE_CAPTURE_RAW flag in
+parm.capture.extendedmode passed to VIDIOC_S_PARM.
 
 Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
 ---
- drivers/media/usb/dvb-usb/cxusb.c        | 450 ++++++++++++++++++++---
- drivers/media/usb/dvb-usb/cxusb.h        |  48 +++
- drivers/media/usb/dvb-usb/dvb-usb-dvb.c  |  20 +-
- drivers/media/usb/dvb-usb/dvb-usb-init.c |  13 +
- drivers/media/usb/dvb-usb/dvb-usb.h      |   8 +
- 5 files changed, 486 insertions(+), 53 deletions(-)
+ drivers/media/usb/dvb-usb/cxusb-analog.c | 190 +++++++++++++++++++----
+ drivers/media/usb/dvb-usb/cxusb.h        |   4 +
+ drivers/media/v4l2-core/v4l2-ioctl.c     |   3 +-
+ 3 files changed, 163 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index a51a45c60233..fc4702d5a2a9 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -16,6 +16,7 @@
-  * Copyright (C) 2005 Patrick Boettcher (patrick.boettcher@posteo.de)
-  * Copyright (C) 2006 Michael Krufky (mkrufky@linuxtv.org)
-  * Copyright (C) 2006, 2007 Chris Pascoe (c.pascoe@itee.uq.edu.au)
-+ * Copyright (C) 2011, 2017 Maciej S. Szmigiero (mail@maciej.szmigiero.name)
-  *
-  *   This program is free software; you can redistribute it and/or modify it
-  *   under the terms of the GNU General Public License as published by the Free
-@@ -24,9 +25,12 @@
-  * see Documentation/media/dvb-drivers/dvb-usb.rst for more information
-  */
- #include <media/tuner.h>
--#include <linux/vmalloc.h>
--#include <linux/slab.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
- #include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/vmalloc.h>
- 
- #include "cxusb.h"
- 
-@@ -47,17 +51,45 @@
- #include "si2157.h"
- 
- /* debug */
--static int dvb_usb_cxusb_debug;
-+int dvb_usb_cxusb_debug;
- module_param_named(debug, dvb_usb_cxusb_debug, int, 0644);
--MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
-+MODULE_PARM_DESC(debug, "set debugging level (see cxusb.h)."
-+		 DVB_USB_DEBUG_STATUS);
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
--#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug, 0x03, args)
--#define deb_i2c(args...)    dprintk(dvb_usb_cxusb_debug, 0x02, args)
-+#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug, CXUSB_DBG_MISC, args)
-+#define deb_i2c(args...)    dprintk(dvb_usb_cxusb_debug, CXUSB_DBG_I2C, args)
-+
-+enum cxusb_table_index {
-+	MEDION_MD95700,
-+	DVICO_BLUEBIRD_LG064F_COLD,
-+	DVICO_BLUEBIRD_LG064F_WARM,
-+	DVICO_BLUEBIRD_DUAL_1_COLD,
-+	DVICO_BLUEBIRD_DUAL_1_WARM,
-+	DVICO_BLUEBIRD_LGZ201_COLD,
-+	DVICO_BLUEBIRD_LGZ201_WARM,
-+	DVICO_BLUEBIRD_TH7579_COLD,
-+	DVICO_BLUEBIRD_TH7579_WARM,
-+	DIGITALNOW_BLUEBIRD_DUAL_1_COLD,
-+	DIGITALNOW_BLUEBIRD_DUAL_1_WARM,
-+	DVICO_BLUEBIRD_DUAL_2_COLD,
-+	DVICO_BLUEBIRD_DUAL_2_WARM,
-+	DVICO_BLUEBIRD_DUAL_4,
-+	DVICO_BLUEBIRD_DVB_T_NANO_2,
-+	DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM,
-+	AVERMEDIA_VOLAR_A868R,
-+	DVICO_BLUEBIRD_DUAL_4_REV_2,
-+	CONEXANT_D680_DMB,
-+	MYGICA_D689,
-+	MYGICA_T230,
-+	NR__cxusb_table_index
-+};
-+
-+static struct usb_device_id cxusb_table[];
- 
--static int cxusb_ctrl_msg(struct dvb_usb_device *d,
--			  u8 cmd, const u8 *wbuf, int wlen, u8 *rbuf, int rlen)
-+int cxusb_ctrl_msg(struct dvb_usb_device *d,
-+		   u8 cmd, const u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+diff --git a/drivers/media/usb/dvb-usb/cxusb-analog.c b/drivers/media/usb/dvb-usb/cxusb-analog.c
+index c726e578b5da..f8dcb8240d5c 100644
+--- a/drivers/media/usb/dvb-usb/cxusb-analog.c
++++ b/drivers/media/usb/dvb-usb/cxusb-analog.c
+@@ -44,7 +44,9 @@ static int cxusb_medion_v_queue_setup(struct vb2_queue *q,
  {
- 	struct cxusb_state *st = d->priv;
- 	int ret;
-@@ -89,7 +121,8 @@ static void cxusb_gpio_tuner(struct dvb_usb_device *d, int onoff)
- 	struct cxusb_state *st = d->priv;
- 	u8 o[2], i;
+ 	struct dvb_usb_device *dvbdev = vb2_get_drv_priv(q);
+ 	struct cxusb_medion_dev *cxdev = dvbdev->priv;
+-	unsigned int size = cxdev->width * cxdev->height * 2;
++	unsigned int size = cxdev->raw_mode ?
++		CXUSB_VIDEO_MAX_FRAME_SIZE :
++		cxdev->width * cxdev->height * 2;
  
--	if (st->gpio_write_state[GPIO_TUNER] == onoff)
-+	if (st->gpio_write_state[GPIO_TUNER] == onoff &&
-+	    !st->gpio_write_refresh[GPIO_TUNER])
- 		return;
+ 	if (*num_planes > 0) {
+ 		if (*num_planes != 1)
+@@ -67,8 +69,13 @@ static int cxusb_medion_v_buf_init(struct vb2_buffer *vb)
  
- 	o[0] = GPIO_TUNER;
-@@ -100,6 +133,7 @@ static void cxusb_gpio_tuner(struct dvb_usb_device *d, int onoff)
- 		deb_info("gpio_write failed.\n");
+ 	cxusb_vprintk(dvbdev, OPS, "buffer init\n");
  
- 	st->gpio_write_state[GPIO_TUNER] = onoff;
-+	st->gpio_write_refresh[GPIO_TUNER] = false;
- }
- 
- static int cxusb_bluebird_gpio_rw(struct dvb_usb_device *d, u8 changemask,
-@@ -259,7 +293,7 @@ static int cxusb_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 
- static u32 cxusb_i2c_func(struct i2c_adapter *adapter)
- {
--	return I2C_FUNC_I2C;
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
- }
- 
- static struct i2c_algorithm cxusb_i2c_algo = {
-@@ -267,15 +301,48 @@ static struct i2c_algorithm cxusb_i2c_algo = {
- 	.functionality = cxusb_i2c_func,
- };
- 
--static int cxusb_power_ctrl(struct dvb_usb_device *d, int onoff)
-+static int _cxusb_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	u8 b = 0;
-+
-+	deb_info("setting power %s\n", onoff ? "ON" : "OFF");
-+
- 	if (onoff)
- 		return cxusb_ctrl_msg(d, CMD_POWER_ON, &b, 1, NULL, 0);
- 	else
- 		return cxusb_ctrl_msg(d, CMD_POWER_OFF, &b, 1, NULL, 0);
- }
- 
-+static int cxusb_power_ctrl(struct dvb_usb_device *d, int onoff)
-+{
-+	bool is_medion = d->props.devices[0].warm_ids[0] ==
-+		&cxusb_table[MEDION_MD95700];
-+	int ret;
-+
-+	if (is_medion && !onoff) {
-+		struct cxusb_medion_dev *cxdev = d->priv;
-+
-+		mutex_lock(&cxdev->open_lock);
-+
-+		if (cxdev->open_type == CXUSB_OPEN_ANALOG) {
-+			deb_info("preventing DVB core from setting power OFF while we are in analog mode\n");
-+			ret = -EBUSY;
-+			goto ret_unlock;
-+		}
-+	}
-+
-+	ret = _cxusb_power_ctrl(d, onoff);
-+
-+ret_unlock:
-+	if (is_medion && !onoff) {
-+		struct cxusb_medion_dev *cxdev = d->priv;
-+
-+		mutex_unlock(&cxdev->open_lock);
-+	}
-+
-+	return ret;
-+}
-+
- static int cxusb_aver_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	int ret;
-@@ -353,11 +420,26 @@ static int cxusb_d680_dmb_power_ctrl(struct dvb_usb_device *d, int onoff)
- 
- static int cxusb_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
-+	struct dvb_usb_device *dvbdev = adap->dev;
-+	bool is_medion = dvbdev->props.devices[0].warm_ids[0] ==
-+		&cxusb_table[MEDION_MD95700];
- 	u8 buf[2] = { 0x03, 0x00 };
-+
-+	if (is_medion && onoff) {
-+		int ret;
-+
-+		ret = cxusb_medion_get(dvbdev, CXUSB_OPEN_DIGITAL);
-+		if (ret != 0)
-+			return ret;
-+	}
-+
- 	if (onoff)
--		cxusb_ctrl_msg(adap->dev, CMD_STREAMING_ON, buf, 2, NULL, 0);
-+		cxusb_ctrl_msg(dvbdev, CMD_STREAMING_ON, buf, 2, NULL, 0);
- 	else
--		cxusb_ctrl_msg(adap->dev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
-+		cxusb_ctrl_msg(dvbdev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
-+
-+	if (is_medion && !onoff)
-+		cxusb_medion_put(dvbdev);
- 
- 	return 0;
- }
-@@ -630,9 +712,21 @@ static struct max2165_config mygica_d689_max2165_cfg = {
- /* Callbacks for DVB USB */
- static int cxusb_fmd1216me_tuner_attach(struct dvb_usb_adapter *adap)
- {
-+	struct dvb_usb_device *dvbdev = adap->dev;
-+	bool is_medion = dvbdev->props.devices[0].warm_ids[0] ==
-+		&cxusb_table[MEDION_MD95700];
-+
- 	dvb_attach(simple_tuner_attach, adap->fe_adap[0].fe,
--		   &adap->dev->i2c_adap, 0x61,
-+		   &dvbdev->i2c_adap, 0x61,
- 		   TUNER_PHILIPS_FMD1216ME_MK3);
-+
-+	if (is_medion && adap->fe_adap[0].fe != NULL)
-+		/*
-+		 * make sure that DVB core won't put to sleep (reset, really)
-+		 * tuner when we might be open in analog mode
-+		 */
-+		adap->fe_adap[0].fe->ops.tuner_ops.sleep = NULL;
-+
- 	return 0;
- }
- 
-@@ -736,20 +830,105 @@ static int cxusb_mygica_d689_tuner_attach(struct dvb_usb_adapter *adap)
- 	return (fe == NULL) ? -EIO : 0;
- }
- 
--static int cxusb_cx22702_frontend_attach(struct dvb_usb_adapter *adap)
-+static int cxusb_medion_fe_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
- {
-+	struct dvb_usb_adapter *adap = fe->dvb->priv;
-+	struct dvb_usb_device *dvbdev = adap->dev;
-+
-+	if (acquire)
-+		return cxusb_medion_get(dvbdev, CXUSB_OPEN_DIGITAL);
-+
-+	cxusb_medion_put(dvbdev);
-+
-+	return 0;
-+}
-+
-+static int cxusb_medion_set_mode(struct dvb_usb_device *dvbdev, bool digital)
-+{
-+	struct cxusb_state *st = dvbdev->priv;
-+	int ret;
- 	u8 b;
--	if (usb_set_interface(adap->dev->udev, 0, 6) < 0)
--		err("set interface failed");
-+	unsigned int i;
-+
-+	/*
-+	 * switching mode while doing an I2C transaction often causes
-+	 * the device to crash
-+	 */
-+	mutex_lock(&dvbdev->i2c_mutex);
-+
-+	if (digital) {
-+		ret = usb_set_interface(dvbdev->udev, 0, 6);
-+		if (ret != 0) {
-+			dev_err(&dvbdev->udev->dev,
-+				"digital interface selection failed (%d)\n",
-+				ret);
-+			goto ret_unlock;
-+		}
+-	if (vb2_plane_size(vb, 0) < cxdev->width * cxdev->height * 2)
+-		return -ENOMEM;
++	if (cxdev->raw_mode) {
++		if (vb2_plane_size(vb, 0) < CXUSB_VIDEO_MAX_FRAME_SIZE)
++			return -ENOMEM;
 +	} else {
-+		ret = usb_set_interface(dvbdev->udev, 0, 1);
-+		if (ret != 0) {
-+			dev_err(&dvbdev->udev->dev,
-+				"analog interface selection failed (%d)\n",
-+				ret);
-+			goto ret_unlock;
-+		}
-+	}
-+
-+	/* pipes need to be cleared after setting interface */
-+	ret = usb_clear_halt(dvbdev->udev, usb_rcvbulkpipe(dvbdev->udev, 1));
-+	if (ret != 0)
-+		dev_warn(&dvbdev->udev->dev,
-+			 "clear halt on IN pipe failed (%d)\n",
-+			 ret);
-+
-+	ret = usb_clear_halt(dvbdev->udev, usb_sndbulkpipe(dvbdev->udev, 1));
-+	if (ret != 0)
-+		dev_warn(&dvbdev->udev->dev,
-+			 "clear halt on OUT pipe failed (%d)\n",
-+			 ret);
-+
-+	ret = cxusb_ctrl_msg(dvbdev, digital ? CMD_DIGITAL : CMD_ANALOG,
-+			     NULL, 0, &b, 1);
-+	if (ret != 0) {
-+		dev_err(&dvbdev->udev->dev, "mode switch failed (%d)\n",
-+			ret);
-+		goto ret_unlock;
-+	}
-+
-+	/* mode switch seems to reset GPIO states */
-+	for (i = 0; i < ARRAY_SIZE(st->gpio_write_refresh); i++)
-+		st->gpio_write_refresh[i] = true;
- 
--	cxusb_ctrl_msg(adap->dev, CMD_DIGITAL, NULL, 0, &b, 1);
-+ret_unlock:
-+	mutex_unlock(&dvbdev->i2c_mutex);
-+
-+	return ret;
-+}
-+
-+static int cxusb_cx22702_frontend_attach(struct dvb_usb_adapter *adap)
-+{
-+	struct dvb_usb_device *dvbdev = adap->dev;
-+	bool is_medion = dvbdev->props.devices[0].warm_ids[0] ==
-+		&cxusb_table[MEDION_MD95700];
-+
-+	if (is_medion) {
-+		int ret;
-+
-+		ret = cxusb_medion_set_mode(dvbdev, true);
-+		if (ret)
-+			return ret;
++		if (vb2_plane_size(vb, 0) < cxdev->width * cxdev->height * 2)
++			return -ENOMEM;
 +	}
  
- 	adap->fe_adap[0].fe = dvb_attach(cx22702_attach, &cxusb_cx22702_config,
--					 &adap->dev->i2c_adap);
--	if ((adap->fe_adap[0].fe) != NULL)
--		return 0;
-+					 &dvbdev->i2c_adap);
-+	if (adap->fe_adap[0].fe == NULL)
-+		return -EIO;
+ 	cxusb_vprintk(dvbdev, OPS, "buffer OK\n");
  
--	return -EIO;
-+	if (is_medion)
-+		adap->fe_adap[0].fe->ops.ts_bus_ctrl =
-+			cxusb_medion_fe_ts_bus_ctrl;
-+
-+	return 0;
+@@ -442,6 +449,45 @@ static bool cxusb_medion_copy_field(struct dvb_usb_device *dvbdev,
+ 	return true;
  }
  
- static int cxusb_lgdt3303_frontend_attach(struct dvb_usb_adapter *adap)
-@@ -1312,6 +1491,101 @@ static int bluebird_patch_dvico_firmware_download(struct usb_device *udev,
- 	return -EINVAL;
- }
- 
-+int cxusb_medion_get(struct dvb_usb_device *dvbdev,
-+		     enum cxusb_open_type open_type)
++static void cxusb_medion_v_process_urb_raw(struct cxusb_medion_dev *cxdev,
++					   struct urb *urb)
 +{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+	int ret = 0;
++	struct dvb_usb_device *dvbdev = cxdev->dvbdev;
++	u8 *buf;
++	struct cxusb_medion_vbuffer *vbuf;
++	int i;
++	unsigned long len;
 +
-+	mutex_lock(&cxdev->open_lock);
-+
-+	if (WARN_ON((cxdev->open_type == CXUSB_OPEN_INIT ||
-+		     cxdev->open_type == CXUSB_OPEN_NONE) &&
-+		    cxdev->open_ctr != 0)) {
-+		ret = -EINVAL;
-+		goto ret_unlock;
++	if (list_empty(&cxdev->buflist)) {
++		dev_warn(&dvbdev->udev->dev, "no free buffers\n");
++		cxdev->vbuf_sequence++;
++		return;
 +	}
 +
-+	if (cxdev->open_type == CXUSB_OPEN_INIT) {
-+		ret = -EAGAIN;
-+		goto ret_unlock;
++	vbuf = list_first_entry(&cxdev->buflist, struct cxusb_medion_vbuffer,
++				list);
++	list_del(&vbuf->list);
++
++	vbuf->vb2.field = V4L2_FIELD_NONE;
++	vbuf->vb2.sequence = cxdev->vbuf_sequence++;
++	vbuf->vb2.vb2_buf.timestamp = ktime_get_ns();
++
++	buf = vb2_plane_vaddr(&vbuf->vb2.vb2_buf, 0);
++
++	for (i = 0, len = 0; i < urb->number_of_packets; i++) {
++		memcpy(buf, urb->transfer_buffer +
++		       urb->iso_frame_desc[i].offset,
++		       urb->iso_frame_desc[i].actual_length);
++
++		buf += urb->iso_frame_desc[i].actual_length;
++		len += urb->iso_frame_desc[i].actual_length;
 +	}
 +
-+	if (cxdev->open_ctr == 0) {
-+		if (cxdev->open_type != open_type) {
-+			deb_info("will acquire and switch to %s\n",
-+				 open_type == CXUSB_OPEN_ANALOG ?
-+				 "analog" : "digital");
++	vb2_set_plane_payload(&vbuf->vb2.vb2_buf, 0, len);
 +
-+			if (open_type == CXUSB_OPEN_ANALOG) {
-+				ret = _cxusb_power_ctrl(dvbdev, 1);
-+				if (ret != 0)
-+					dev_warn(&dvbdev->udev->dev,
-+						 "powerup for analog switch failed (%d)\n",
-+						 ret);
-+
-+				ret = cxusb_medion_set_mode(dvbdev, false);
-+				if (ret != 0)
-+					goto ret_unlock;
-+
-+				ret = cxusb_medion_analog_init(dvbdev);
-+				if (ret != 0)
-+					goto ret_unlock;
-+			} else { /* digital */
-+				ret = _cxusb_power_ctrl(dvbdev, 1);
-+				if (ret != 0)
-+					dev_warn(&dvbdev->udev->dev,
-+						 "powerup for digital switch failed (%d)\n",
-+						 ret);
-+
-+				ret = cxusb_medion_set_mode(dvbdev, true);
-+				if (ret != 0)
-+					goto ret_unlock;
-+			}
-+
-+			cxdev->open_type = open_type;
-+		} else
-+			deb_info("reacquired idle %s\n",
-+				 open_type == CXUSB_OPEN_ANALOG ?
-+				 "analog" : "digital");
-+
-+		cxdev->open_ctr = 1;
-+	} else if (cxdev->open_type == open_type) {
-+		cxdev->open_ctr++;
-+		deb_info("acquired %s\n", open_type == CXUSB_OPEN_ANALOG ?
-+			 "analog" : "digital");
-+	} else
-+		ret = -EBUSY;
-+
-+ret_unlock:
-+	mutex_unlock(&cxdev->open_lock);
-+
-+	return ret;
++	vb2_buffer_done(&vbuf->vb2.vb2_buf, VB2_BUF_STATE_DONE);
 +}
 +
-+void cxusb_medion_put(struct dvb_usb_device *dvbdev)
-+{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	mutex_lock(&cxdev->open_lock);
-+
-+	if (cxdev->open_type == CXUSB_OPEN_INIT) {
-+		WARN_ON(cxdev->open_ctr != 0);
-+		cxdev->open_type = CXUSB_OPEN_NONE;
-+		goto unlock;
-+	}
-+
-+	if (!WARN_ON(cxdev->open_ctr < 1)) {
-+		cxdev->open_ctr--;
-+
-+		deb_info("release %s\n", cxdev->open_type ==
-+			 CXUSB_OPEN_ANALOG ? "analog" : "digital");
-+	}
-+
-+unlock:
-+	mutex_unlock(&cxdev->open_lock);
-+}
-+
- /* DVB USB Driver stuff */
- static struct dvb_usb_device_properties cxusb_medion_properties;
- static struct dvb_usb_device_properties cxusb_bluebird_lgh064f_properties;
-@@ -1327,12 +1601,101 @@ static struct dvb_usb_device_properties cxusb_d680_dmb_properties;
- static struct dvb_usb_device_properties cxusb_mygica_d689_properties;
- static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
- 
-+static int cxusb_medion_priv_init(struct dvb_usb_device *dvbdev)
-+{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	cxdev->dvbdev = dvbdev;
-+	cxdev->open_type = CXUSB_OPEN_INIT;
-+	mutex_init(&cxdev->open_lock);
-+
-+	return 0;
-+}
-+
-+static void cxusb_medion_priv_destroy(struct dvb_usb_device *dvbdev)
-+{
-+	struct cxusb_medion_dev *cxdev = dvbdev->priv;
-+
-+	mutex_destroy(&cxdev->open_lock);
-+}
-+
-+static bool cxusb_medion_check_altsetting(struct usb_host_interface *as)
-+{
-+	unsigned int ctr;
-+
-+	for (ctr = 0; ctr < as->desc.bNumEndpoints; ctr++) {
-+		if ((as->endpoint[ctr].desc.bEndpointAddress &
-+		     USB_ENDPOINT_NUMBER_MASK) != 2)
-+			continue;
-+
-+		if (as->endpoint[ctr].desc.bEndpointAddress & USB_DIR_IN &&
-+		    ((as->endpoint[ctr].desc.bmAttributes &
-+		      USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_ISOC))
-+			return true;
-+
-+		break;
-+	}
-+
-+	return false;
-+}
-+
-+static bool cxusb_medion_check_intf(struct usb_interface *intf)
-+{
-+	unsigned int ctr;
-+
-+	if (intf->num_altsetting < 2) {
-+		dev_err(intf->usb_dev, "no alternate interface");
-+
-+		return false;
-+	}
-+
-+	for (ctr = 0; ctr < intf->num_altsetting; ctr++) {
-+		if (intf->altsetting[ctr].desc.bAlternateSetting != 1)
-+			continue;
-+
-+		if (cxusb_medion_check_altsetting(&intf->altsetting[ctr]))
-+			return true;
-+
-+		break;
-+	}
-+
-+	dev_err(intf->usb_dev, "no iso interface");
-+
-+	return false;
-+}
-+
- static int cxusb_probe(struct usb_interface *intf,
- 		       const struct usb_device_id *id)
+ static bool cxusb_medion_v_process_auxbuf(struct cxusb_medion_dev *cxdev,
+ 					  bool reset)
  {
-+	struct dvb_usb_device *dvbdev;
+@@ -566,22 +612,26 @@ static bool cxusb_medion_v_complete_handle_urb(struct cxusb_medion_dev *cxdev,
+ 			      len);
+ 
+ 		if (len > 0) {
+-			cxusb_vprintk(dvbdev, URB, "appending URB\n");
+-
+-			/*
+-			 * append new data to auxbuf while
+-			 * overwriting old data if necessary
+-			 *
+-			 * if any overwrite happens then we can no
+-			 * longer rely on consistency of the whole
+-			 * data so let's start again the current
+-			 * auxbuf frame assembling process from
+-			 * the beginning
+-			 */
+-			*auxbuf_reset =
+-				!cxusb_auxbuf_append_urb(dvbdev,
+-							 &cxdev->auxbuf,
+-							 urb);
++			if (cxdev->raw_mode)
++				cxusb_medion_v_process_urb_raw(cxdev, urb);
++			else {
++				cxusb_vprintk(dvbdev, URB, "appending URB\n");
++
++				/*
++				 * append new data to auxbuf while
++				 * overwriting old data if necessary
++				 *
++				 * if any overwrite happens then we can no
++				 * longer rely on consistency of the whole
++				 * data so let's start again the current
++				 * auxbuf frame assembling process from
++				 * the beginning
++				 */
++				*auxbuf_reset =
++					!cxusb_auxbuf_append_urb(dvbdev,
++								 &cxdev->auxbuf,
++								 urb);
++			}
+ 		}
+ 	}
+ 
+@@ -616,7 +666,8 @@ static void cxusb_medion_v_complete_work(struct work_struct *work)
+ 
+ 	reschedule = cxusb_medion_v_complete_handle_urb(cxdev, &auxbuf_reset);
+ 
+-	if (cxusb_medion_v_process_auxbuf(cxdev, auxbuf_reset))
++	if (!cxdev->raw_mode && cxusb_medion_v_process_auxbuf(cxdev,
++							      auxbuf_reset))
+ 		/* reschedule us until auxbuf no longer can produce any frame */
+ 		reschedule = true;
+ 
+@@ -755,9 +806,13 @@ static int cxusb_medion_v_start_streaming(struct vb2_queue *q,
+ 		goto ret_unstream_cx;
+ 	}
+ 
+-	ret = cxusb_medion_v_ss_auxbuf_alloc(cxdev, &npackets);
+-	if (ret != 0)
+-		goto ret_unstream_md;
++	if (cxdev->raw_mode)
++		npackets = CXUSB_VIDEO_MAX_FRAME_PKTS;
++	else {
++		ret = cxusb_medion_v_ss_auxbuf_alloc(cxdev, &npackets);
++		if (ret != 0)
++			goto ret_unstream_md;
++	}
+ 
+ 	for (i = 0; i < CXUSB_VIDEO_URBS; i++) {
+ 		int framen;
+@@ -813,9 +868,11 @@ static int cxusb_medion_v_start_streaming(struct vb2_queue *q,
+ 	cxdev->nexturb = 0;
+ 	cxdev->vbuf_sequence = 0;
+ 
+-	cxdev->vbuf = NULL;
+-	cxdev->bt656.mode = NEW_FRAME;
+-	cxdev->bt656.buf = NULL;
++	if (!cxdev->raw_mode) {
++		cxdev->vbuf = NULL;
++		cxdev->bt656.mode = NEW_FRAME;
++		cxdev->bt656.buf = NULL;
++	}
+ 
+ 	for (i = 0; i < CXUSB_VIDEO_URBS; i++)
+ 		if (cxdev->streamurbs[i] != NULL) {
+@@ -833,7 +890,8 @@ static int cxusb_medion_v_start_streaming(struct vb2_queue *q,
+ 	cxusb_medion_urbs_free(cxdev);
+ 
+ ret_freeab:
+-	vfree(cxdev->auxbuf.buf);
++	if (!cxdev->raw_mode)
++		vfree(cxdev->auxbuf.buf);
+ 
+ ret_unstream_md:
+ 	cxusb_ctrl_msg(dvbdev, CMD_STREAMING_OFF, NULL, 0, NULL, 0);
+@@ -880,7 +938,8 @@ static void cxusb_medion_v_stop_streaming(struct vb2_queue *q)
+ 	mutex_lock(cxdev->videodev->lock);
+ 
+ 	/* free transfer buffer and URB */
+-	vfree(cxdev->auxbuf.buf);
++	if (!cxdev->raw_mode)
++		vfree(cxdev->auxbuf.buf);
+ 
+ 	cxusb_medion_urbs_free(cxdev);
+ 
+@@ -953,9 +1012,11 @@ static int cxusb_medion_g_fmt_vid_cap(struct file *file, void *fh,
+ 	f->fmt.pix.height = cxdev->height;
+ 	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+ 	f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
+-	f->fmt.pix.bytesperline = cxdev->width * 2;
++	f->fmt.pix.bytesperline = cxdev->raw_mode ? 0 : cxdev->width * 2;
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+-	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * f->fmt.pix.height;
++	f->fmt.pix.sizeimage =
++		cxdev->raw_mode ? CXUSB_VIDEO_MAX_FRAME_SIZE :
++		f->fmt.pix.bytesperline * f->fmt.pix.height;
+ 	f->fmt.pix.priv = 0;
+ 
+ 	return 0;
+@@ -1010,8 +1071,10 @@ static int cxusb_medion_try_s_fmt_vid_cap(struct file *file,
+ 	f->fmt.pix.height = subfmt.format.height;
+ 	f->fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+ 	f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
+-	f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
+-	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * f->fmt.pix.height;
++	f->fmt.pix.bytesperline = cxdev->raw_mode ? 0 : f->fmt.pix.width * 2;
++	f->fmt.pix.sizeimage =
++		cxdev->raw_mode ? CXUSB_VIDEO_MAX_FRAME_SIZE :
++		f->fmt.pix.bytesperline * f->fmt.pix.height;
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	f->fmt.pix.priv = 0;
+ 
+@@ -1340,6 +1403,67 @@ static int cxusb_medion_s_std(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static int cxusb_medion_g_s_parm(struct file *file, void *fh,
++				 struct v4l2_streamparm *param)
++{
++	v4l2_std_id std;
++
++	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	param->parm.capture.readbuffers = 2;
++
++	if (cxusb_medion_g_std(file, fh, &std) == 0)
++		v4l2_video_std_frame_period(std,
++					    &param->parm.capture.timeperframe);
++
++	return 0;
++}
++
++static int cxusb_medion_g_parm(struct file *file, void *fh,
++			       struct v4l2_streamparm *param)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
 +	int ret;
 +
-+	/* Medion 95700 */
- 	if (0 == dvb_usb_device_init(intf, &cxusb_medion_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
--	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgh064f_properties,
-+				     THIS_MODULE, &dvbdev, adapter_nr)) {
-+		if (!cxusb_medion_check_intf(intf)) {
-+			ret = -ENODEV;
-+			goto ret_uninit;
-+		}
++	ret = cxusb_medion_g_s_parm(file, fh, param);
++	if (ret != 0)
++		return ret;
 +
-+		_cxusb_power_ctrl(dvbdev, 1);
-+		ret = cxusb_medion_set_mode(dvbdev, false);
-+		if (ret)
-+			goto ret_uninit;
++	if (cxdev->raw_mode)
++		param->parm.capture.extendedmode |=
++			CXUSB_EXTENDEDMODE_CAPTURE_RAW;
 +
-+		ret = cxusb_medion_register_analog(dvbdev);
++	return 0;
++}
 +
-+		cxusb_medion_set_mode(dvbdev, true);
-+		_cxusb_power_ctrl(dvbdev, 0);
++static int cxusb_medion_s_parm(struct file *file, void *fh,
++			       struct v4l2_streamparm *param)
++{
++	struct dvb_usb_device *dvbdev = video_drvdata(file);
++	struct cxusb_medion_dev *cxdev = dvbdev->priv;
++	int ret;
++	bool want_raw;
 +
-+		if (ret != 0)
-+			goto ret_uninit;
++	ret = cxusb_medion_g_s_parm(file, fh, param);
++	if (ret != 0)
++		return ret;
 +
-+		/* release device from INIT mode to normal operation */
-+		cxusb_medion_put(dvbdev);
++	want_raw = param->parm.capture.extendedmode &
++		CXUSB_EXTENDEDMODE_CAPTURE_RAW;
 +
-+		return 0;
-+	} else if (0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgh064f_properties,
- 				     THIS_MODULE, NULL, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dee1601_properties,
- 				     THIS_MODULE, NULL, adapter_nr) ||
-@@ -1362,6 +1725,11 @@ static int cxusb_probe(struct usb_interface *intf,
- 		return 0;
- 
- 	return -EINVAL;
++	if (want_raw != cxdev->raw_mode) {
++		if (vb2_start_streaming_called(&cxdev->videoqueue) ||
++		    cxdev->stop_streaming)
++			return -EBUSY;
 +
-+ret_uninit:
-+	dvb_usb_device_exit(intf);
++		cxdev->raw_mode = want_raw;
++	}
 +
-+	return ret;
- }
- 
- static void cxusb_disconnect(struct usb_interface *intf)
-@@ -1370,6 +1738,9 @@ static void cxusb_disconnect(struct usb_interface *intf)
- 	struct cxusb_state *st = d->priv;
- 	struct i2c_client *client;
- 
-+	if (d->props.devices[0].warm_ids[0] == &cxusb_table[MEDION_MD95700])
-+		cxusb_medion_unregister_analog(d);
++	return 0;
++}
 +
- 	/* remove I2C client for tuner */
- 	client = st->i2c_client_tuner;
- 	if (client) {
-@@ -1387,31 +1758,6 @@ static void cxusb_disconnect(struct usb_interface *intf)
- 	dvb_usb_device_exit(intf);
- }
- 
--enum cxusb_table_index {
--	MEDION_MD95700,
--	DVICO_BLUEBIRD_LG064F_COLD,
--	DVICO_BLUEBIRD_LG064F_WARM,
--	DVICO_BLUEBIRD_DUAL_1_COLD,
--	DVICO_BLUEBIRD_DUAL_1_WARM,
--	DVICO_BLUEBIRD_LGZ201_COLD,
--	DVICO_BLUEBIRD_LGZ201_WARM,
--	DVICO_BLUEBIRD_TH7579_COLD,
--	DVICO_BLUEBIRD_TH7579_WARM,
--	DIGITALNOW_BLUEBIRD_DUAL_1_COLD,
--	DIGITALNOW_BLUEBIRD_DUAL_1_WARM,
--	DVICO_BLUEBIRD_DUAL_2_COLD,
--	DVICO_BLUEBIRD_DUAL_2_WARM,
--	DVICO_BLUEBIRD_DUAL_4,
--	DVICO_BLUEBIRD_DVB_T_NANO_2,
--	DVICO_BLUEBIRD_DVB_T_NANO_2_NFW_WARM,
--	AVERMEDIA_VOLAR_A868R,
--	DVICO_BLUEBIRD_DUAL_4_REV_2,
--	CONEXANT_D680_DMB,
--	MYGICA_D689,
--	MYGICA_T230,
--	NR__cxusb_table_index
--};
--
- static struct usb_device_id cxusb_table[NR__cxusb_table_index + 1] = {
- 	[MEDION_MD95700] = {
- 		USB_DEVICE(USB_VID_MEDION, USB_PID_MEDION_MD95700)
-@@ -1485,13 +1831,16 @@ static struct dvb_usb_device_properties cxusb_medion_properties = {
- 
- 	.usb_ctrl = CYPRESS_FX2,
- 
--	.size_of_priv     = sizeof(struct cxusb_state),
-+	.size_of_priv     = sizeof(struct cxusb_medion_dev),
-+	.priv_init        = cxusb_medion_priv_init,
-+	.priv_destroy     = cxusb_medion_priv_destroy,
- 
- 	.num_adapters = 1,
- 	.adapter = {
- 		{
- 		.num_frontends = 1,
- 		.fe = {{
-+			.caps = DVB_USB_ADAP_STREAMING_CTRL_NO_URB,
- 			.streaming_ctrl   = cxusb_streaming_ctrl,
- 			.frontend_attach  = cxusb_cx22702_frontend_attach,
- 			.tuner_attach     = cxusb_fmd1216me_tuner_attach,
-@@ -2198,6 +2547,7 @@ module_usb_driver(cxusb_driver);
- MODULE_AUTHOR("Patrick Boettcher <patrick.boettcher@posteo.de>");
- MODULE_AUTHOR("Michael Krufky <mkrufky@linuxtv.org>");
- MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
-+MODULE_AUTHOR("Maciej S. Szmigiero <mail@maciej.szmigiero.name>");
- MODULE_DESCRIPTION("Driver for Conexant USB2.0 hybrid reference design");
- MODULE_VERSION("1.0-alpha");
- MODULE_LICENSE("GPL");
+ static int cxusb_medion_log_status(struct file *file, void *fh)
+ {
+ 	struct dvb_usb_device *dvbdev = video_drvdata(file);
+@@ -1359,6 +1483,8 @@ static const struct v4l2_ioctl_ops cxusb_video_ioctl = {
+ 	.vidioc_enum_input = cxusb_medion_enum_input,
+ 	.vidioc_g_input = cxusb_medion_g_input,
+ 	.vidioc_s_input = cxusb_medion_s_input,
++	.vidioc_g_parm = cxusb_medion_g_parm,
++	.vidioc_s_parm = cxusb_medion_s_parm,
+ 	.vidioc_g_tuner = cxusb_medion_g_tuner,
+ 	.vidioc_s_tuner = cxusb_medion_s_tuner,
+ 	.vidioc_g_frequency = cxusb_medion_g_frequency,
 diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
-index 88f9b9804b25..f586d61a7bf8 100644
+index edd7e873e619..e08c946f7c35 100644
 --- a/drivers/media/usb/dvb-usb/cxusb.h
 +++ b/drivers/media/usb/dvb-usb/cxusb.h
-@@ -2,6 +2,9 @@
- #ifndef _DVB_USB_CXUSB_H_
- #define _DVB_USB_CXUSB_H_
+@@ -130,6 +130,7 @@ struct cxusb_medion_dev {
+ 	u32 input;
+ 	bool stop_streaming;
+ 	u32 width, height;
++	bool raw_mode;
+ 	struct cxusb_medion_auxbuf auxbuf;
+ 	v4l2_std_id norm;
  
-+#include <linux/i2c.h>
-+#include <linux/mutex.h>
-+
- #define DVB_USB_LOG_PREFIX "cxusb"
- #include "dvb-usb.h"
- 
-@@ -34,6 +37,7 @@
- 
- struct cxusb_state {
- 	u8 gpio_write_state[3];
-+	bool gpio_write_refresh[3];
- 	struct i2c_client *i2c_client_demod;
- 	struct i2c_client *i2c_client_tuner;
- 
-@@ -45,4 +49,48 @@ struct cxusb_state {
- 		enum fe_status *status);
+@@ -153,6 +154,9 @@ struct cxusb_medion_vbuffer {
+ 	struct list_head list;
  };
  
-+enum cxusb_open_type {
-+	CXUSB_OPEN_INIT, CXUSB_OPEN_NONE,
-+	CXUSB_OPEN_ANALOG, CXUSB_OPEN_DIGITAL
-+};
++/* Capture streaming parameters extendedmode field flags */
++#define CXUSB_EXTENDEDMODE_CAPTURE_RAW 1
 +
-+struct cxusb_medion_dev {
-+	/* has to be the first one */
-+	struct cxusb_state state;
-+
-+	struct dvb_usb_device *dvbdev;
-+
-+	enum cxusb_open_type open_type;
-+	unsigned int open_ctr;
-+	struct mutex open_lock;
-+};
-+
-+/* defines for "debug" module parameter */
-+#define CXUSB_DBG_RC BIT(0)
-+#define CXUSB_DBG_I2C BIT(1)
-+#define CXUSB_DBG_MISC BIT(2)
-+
-+extern int dvb_usb_cxusb_debug;
-+
-+int cxusb_ctrl_msg(struct dvb_usb_device *d,
-+		   u8 cmd, const u8 *wbuf, int wlen, u8 *rbuf, int rlen);
-+
-+static inline int cxusb_medion_analog_init(struct dvb_usb_device *dvbdev)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int cxusb_medion_register_analog(struct dvb_usb_device *dvbdev)
-+{
-+	return 0;
-+}
-+
-+static inline void cxusb_medion_unregister_analog(struct dvb_usb_device *dvbdev)
-+{
-+}
-+
-+int cxusb_medion_get(struct dvb_usb_device *dvbdev,
-+		     enum cxusb_open_type open_type);
-+void cxusb_medion_put(struct dvb_usb_device *dvbdev);
-+
- #endif
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-index 8056053c9ab0..01987ec5e0c5 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-+++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
-@@ -15,6 +15,7 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- {
- 	struct dvb_usb_adapter *adap = dvbdmxfeed->demux->priv;
- 	int newfeedcount, ret;
-+	bool streaming_ctrl_no_urb;
+ /* defines for "debug" module parameter */
+ #define CXUSB_DBG_RC BIT(0)
+ #define CXUSB_DBG_I2C BIT(1)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7de041bae84f..3784d3bfd964 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1970,7 +1970,7 @@ static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
+ 	if (ret)
+ 		return ret;
  
- 	if (adap == NULL)
- 		return -ENODEV;
-@@ -24,12 +25,16 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- 		return -EINVAL;
+-	/* Note: extendedmode is never used in drivers */
++	/* Note: extendedmode is never used in output drivers */
+ 	if (V4L2_TYPE_IS_OUTPUT(p->type)) {
+ 		memset(p->parm.output.reserved, 0,
+ 		       sizeof(p->parm.output.reserved));
+@@ -1979,7 +1979,6 @@ static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
+ 	} else {
+ 		memset(p->parm.capture.reserved, 0,
+ 		       sizeof(p->parm.capture.reserved));
+-		p->parm.capture.extendedmode = 0;
+ 		p->parm.capture.capturemode &= V4L2_MODE_HIGHQUALITY;
  	}
- 
-+	streaming_ctrl_no_urb = adap->props.fe[adap->active_fe].caps &
-+		DVB_USB_ADAP_STREAMING_CTRL_NO_URB;
- 	newfeedcount = adap->feedcount + (onoff ? 1 : -1);
- 
- 	/* stop feed before setting a new pid if there will be no pid anymore */
- 	if (newfeedcount == 0) {
- 		deb_ts("stop feeding\n");
--		usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
-+
-+		if (streaming_ctrl_no_urb)
-+			usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
- 
- 		if (adap->props.fe[adap->active_fe].streaming_ctrl != NULL) {
- 			ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
-@@ -38,6 +43,9 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- 				return ret;
- 			}
- 		}
-+
-+		if (!streaming_ctrl_no_urb)
-+			usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
- 	}
- 
- 	adap->feedcount = newfeedcount;
-@@ -56,8 +64,10 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- 	 * for reception.
- 	 */
- 	if (adap->feedcount == onoff && adap->feedcount > 0) {
--		deb_ts("submitting all URBs\n");
--		usb_urb_submit(&adap->fe_adap[adap->active_fe].stream);
-+		if (!streaming_ctrl_no_urb) {
-+			deb_ts("submitting all URBs early\n");
-+			usb_urb_submit(&adap->fe_adap[adap->active_fe].stream);
-+		}
- 
- 		deb_ts("controlling pid parser\n");
- 		if (adap->props.fe[adap->active_fe].caps & DVB_USB_ADAP_HAS_PID_FILTER &&
-@@ -80,6 +90,10 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- 			}
- 		}
- 
-+		if (streaming_ctrl_no_urb) {
-+			deb_ts("submitting all URBs late\n");
-+			usb_urb_submit(&adap->fe_adap[adap->active_fe].stream);
-+		}
- 	}
- 	return 0;
- }
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb-init.c b/drivers/media/usb/dvb-usb/dvb-usb-init.c
-index 40ca4eafb137..dddf4eea8934 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb-init.c
-+++ b/drivers/media/usb/dvb-usb/dvb-usb-init.c
-@@ -133,6 +133,10 @@ static int dvb_usb_exit(struct dvb_usb_device *d)
- 	dvb_usb_i2c_exit(d);
- 	deb_info("state should be zero now: %x\n", d->state);
- 	d->state = DVB_USB_STATE_INIT;
-+
-+	if (d->priv != NULL && d->props.priv_destroy != NULL)
-+		d->props.priv_destroy(d);
-+
- 	kfree(d->priv);
- 	kfree(d);
- 	return 0;
-@@ -154,6 +158,15 @@ static int dvb_usb_init(struct dvb_usb_device *d, short *adapter_nums)
- 			err("no memory for priv in 'struct dvb_usb_device'");
- 			return -ENOMEM;
- 		}
-+
-+		if (d->props.priv_init != NULL) {
-+			ret = d->props.priv_init(d);
-+			if (ret != 0) {
-+				kfree(d->priv);
-+				d->priv = NULL;
-+				return ret;
-+			}
-+		}
- 	}
- 
- 	/* check the capabilities and set appropriate variables */
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
-index 317ed6a82d19..b2ae6849f138 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb.h
-+++ b/drivers/media/usb/dvb-usb/dvb-usb.h
-@@ -143,6 +143,7 @@ struct dvb_usb_adapter_fe_properties {
- #define DVB_USB_ADAP_NEED_PID_FILTERING           0x04
- #define DVB_USB_ADAP_RECEIVES_204_BYTE_TS         0x08
- #define DVB_USB_ADAP_RECEIVES_RAW_PAYLOAD         0x10
-+#define DVB_USB_ADAP_STREAMING_CTRL_NO_URB        0x20
- 	int caps;
- 	int pid_filter_count;
- 
-@@ -234,6 +235,11 @@ enum dvb_usb_mode {
-  *
-  * @size_of_priv: how many bytes shall be allocated for the private field
-  *  of struct dvb_usb_device.
-+ * @priv_init: optional callback to initialize the variable that private field
-+ * of struct dvb_usb_device has pointer to just after it had been allocated and
-+ * zeroed.
-+ * @priv_destroy: just like priv_init, only called before deallocating
-+ * the memory pointed by private field of struct dvb_usb_device.
-  *
-  * @power_ctrl: called to enable/disable power of the device.
-  * @read_mac_address: called to read the MAC address of the device.
-@@ -275,6 +281,8 @@ struct dvb_usb_device_properties {
- 	int        no_reconnect;
- 
- 	int size_of_priv;
-+	int (*priv_init)(struct dvb_usb_device *);
-+	void (*priv_destroy)(struct dvb_usb_device *);
- 
- 	int num_adapters;
- 	struct dvb_usb_adapter_properties adapter[MAX_NO_OF_ADAPTER_PER_DEVICE];
+ 	return ops->vidioc_s_parm(file, fh, p);
