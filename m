@@ -1,100 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f195.google.com ([209.85.166.195]:36428 "EHLO
-        mail-it1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726986AbeJJQ0G (ORCPT
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:52219 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726468AbeJJSTq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 12:26:06 -0400
-Received: by mail-it1-f195.google.com with SMTP id c85-v6so6914427itd.1
-        for <linux-media@vger.kernel.org>; Wed, 10 Oct 2018 02:04:53 -0700 (PDT)
-MIME-Version: 1.0
-References: <20181008211205.2900-1-vz@mleia.com> <20181008211205.2900-7-vz@mleia.com>
-In-Reply-To: <20181008211205.2900-7-vz@mleia.com>
-From: Linus Walleij <linus.walleij@linaro.org>
-Date: Wed, 10 Oct 2018 11:04:41 +0200
-Message-ID: <CACRpkdbMMnXzA_j_p=nGgT1SyECrhCNRC6wWQ-+COMEkSQdPAA@mail.gmail.com>
-Subject: Re: [PATCH 6/7] pinctrl: ds90ux9xx: add TI DS90Ux9xx pinmux and GPIO
- controller driver
-To: Vladimir Zapolskiy <vz@mleia.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Vasut <marek.vasut@gmail.com>,
+        Wed, 10 Oct 2018 14:19:46 -0400
+Date: Wed, 10 Oct 2018 12:58:04 +0200
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sam Bobrowicz <sam@elite-embedded.com>
+Cc: linux-media@vger.kernel.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        linux-media@vger.kernel.org,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        loic.poulain@linaro.org, slongerbeam@gmail.com, daniel@zonque.org,
+        maxime.ripard@bootlin.com
+Subject: Re: [PATCH 1/4] media: ov5640: fix resolution update
+Message-ID: <20181010105804.GD7677@w540>
+References: <1539067682-60604-1-git-send-email-sam@elite-embedded.com>
+ <1539067682-60604-2-git-send-email-sam@elite-embedded.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="q9KOos5vDmpwPx9o"
+Content-Disposition: inline
+In-Reply-To: <1539067682-60604-2-git-send-email-sam@elite-embedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vladimir,
 
-thanks for your patch! Some review comments:
+--q9KOos5vDmpwPx9o
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-On Mon, Oct 8, 2018 at 11:12 PM Vladimir Zapolskiy <vz@mleia.com> wrote:
+Hi Sam,
+   thanks for the patch, I see the same issue you reported, but I
+think this patch can be improved.
 
-> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+(expanding the Cc list to all people involved in recent ov5640
+developemts, not just for this patch, but for the whole series to look
+at. Copying names from another series cover letter, hope it is
+complete.)
+
+On Mon, Oct 08, 2018 at 11:47:59PM -0700, Sam Bobrowicz wrote:
+> set_fmt was not properly triggering a mode change when
+> a new mode was set that happened to have the same format
+> as the previous mode (for example, when only changing the
+> frame dimensions). Fix this.
 >
-> The change adds an MFD cell driver for managing pin functions on
-> TI DS90Ux9xx de-/serializers.
+> Signed-off-by: Sam Bobrowicz <sam@elite-embedded.com>
+> ---
+>  drivers/media/i2c/ov5640.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 >
-> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-
-Please mention in the commit that you are also adding a GPIO
-chip driver.
-
-> +// SPDX-License-Identifier: GPL-2.0-or-later
-
-I prefer the simple "GPL-2.0+" here.
-
-> +#include <linux/of_gpio.h>
-
-You should not need this include. If you do, something is wrong.
-
-> +#define SER_REG_PIN_CTRL               0x12
-> +#define PIN_CTRL_RGB18                 BIT(2)
-> +#define PIN_CTRL_I2S_DATA_ISLAND       BIT(1)
-> +#define PIN_CTRL_I2S_CHANNEL_B         (BIT(0) | BIT(3))
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index eaefdb5..5031aab 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -2045,12 +2045,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+>  		goto out;
+>  	}
+>
+> -	if (new_mode != sensor->current_mode) {
 > +
-> +#define SER_REG_I2S_SURROUND           0x1A
-> +#define PIN_CTRL_I2S_SURR_BIT          BIT(0)
-> +
-> +#define DES_REG_INDIRECT_PASS          0x16
-> +
-> +#define OUTPUT_HIGH                    BIT(3)
-> +#define REMOTE_CONTROL                 BIT(2)
-> +#define DIR_INPUT                      BIT(1)
-> +#define ENABLE_GPIO                    BIT(0)
-> +
-> +#define GPIO_AS_INPUT                  (ENABLE_GPIO | DIR_INPUT)
-> +#define GPIO_AS_OUTPUT                 ENABLE_GPIO
-> +#define GPIO_OUTPUT_HIGH               (GPIO_AS_OUTPUT | OUTPUT_HIGH)
-> +#define GPIO_OUTPUT_LOW                        GPIO_AS_OUTPUT
-> +#define GPIO_OUTPUT_REMOTE             (GPIO_AS_OUTPUT | REMOTE_CONTROL)
+> +	if (new_mode != sensor->current_mode ||
+> +	    mbus_fmt->code != sensor->fmt.code) {
+> +		sensor->fmt = *mbus_fmt;
+>  		sensor->current_mode = new_mode;
+>  		sensor->pending_mode_change = true;
+> -	}
+> -	if (mbus_fmt->code != sensor->fmt.code) {
+> -		sensor->fmt = *mbus_fmt;
+>  		sensor->pending_fmt_change = true;
+>  	}
 
-These have a creepily generic look, like they hit the global GPIO
-namespace without really clashing. It gets confusing when reading
-the code.
+How I did reproduce the issue:
 
-Do you think you could prefix them with DS90_* or something
-so it is clear that these defines belong in this driver?
+# Set 1024x768 on ov5640 without changing the image format
+# (default image size at startup is 640x480)
+$ media-ctl --set-v4l2 "'ov5640 2-003c':0[fmt:UYVY2X8/1024x768 field:none]"
+  sensor->pending_mode_change = true; //verified this flag gets set
 
-> +static const struct gpio_chip ds90ux9xx_gpio_chip = {
-> +       .owner                  = THIS_MODULE,
-> +       .get                    = ds90ux9xx_gpio_get,
-> +       .set                    = ds90ux9xx_gpio_set,
-> +       .get_direction          = ds90ux9xx_gpio_get_direction,
-> +       .direction_input        = ds90ux9xx_gpio_direction_input,
-> +       .direction_output       = ds90ux9xx_gpio_direction_output,
-> +       .base                   = -1,
-> +       .can_sleep              = 1,
+# Start streaming, after having configured the whole pipeline to work
+# with 1024x768
+$  yavta -c10 -n4 -f UYVY -s 1024x768 /dev/video4
+   Unable to start streaming: Broken pipe (32).
 
-This is bool so set it = true;
+# Inspect which part of pipeline validation went wrong
+# Turns out the sensor->fmt field is not updated, and when get_fmt()
+# is called, the old one is returned.
+$ media-ctl -e "ov5640 2-003c" -p
+  ...
+  [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb xfer:srgb ycbcr:601 quantization:full-range]
+                 ^^^ ^^^
 
-Overall it's a very nice driver. It is pretty complex but pin control
-is complex so that's a fact of life.
+So yes, sensor->fmt is not udapted as it should be when only image
+resolution is changed.
 
-Yours,
-Linus Walleij
+Although I still see value in having two separate flags for the
+'mode_change' (which in ov5640 lingo is resolution) and 'fmt_change' (which
+in ov5640 lingo is the image format), and write their configuration to
+registers only when they get actually changed.
+
+For this reasons I would like to propse the following patch which I
+have tested by:
+1) changing resolution only
+2) changing format only
+3) change both
+
+What do you and others think?
+
+Thanks
+  j
+
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index eaefdb5..e392b9d 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -2020,6 +2020,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+        struct ov5640_dev *sensor = to_ov5640_dev(sd);
+        const struct ov5640_mode_info *new_mode;
+        struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
++       struct v4l2_mbus_framefmt *fmt;
+        int ret;
+
+        if (format->pad != 0)
+@@ -2037,22 +2038,19 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+        if (ret)
+                goto out;
+
+-       if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+-               struct v4l2_mbus_framefmt *fmt =
+-                       v4l2_subdev_get_try_format(sd, cfg, 0);
++       if (format->which == V4L2_SUBDEV_FORMAT_TRY)
++               fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
++       else
++               fmt = &sensor->fmt;
+
+-               *fmt = *mbus_fmt;
+-               goto out;
+-       }
++       *fmt = *mbus_fmt;
+
+        if (new_mode != sensor->current_mode) {
+                sensor->current_mode = new_mode;
+                sensor->pending_mode_change = true;
+        }
+-       if (mbus_fmt->code != sensor->fmt.code) {
+-               sensor->fmt = *mbus_fmt;
++       if (mbus_fmt->code != sensor->fmt.code)
+                sensor->pending_fmt_change = true;
+-       }
+ out:
+        mutex_unlock(&sensor->lock);
+        return ret;
+
+>  out:
+> --
+> 2.7.4
+>
+
+--q9KOos5vDmpwPx9o
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJbvds8AAoJEHI0Bo8WoVY8KuMQAL2U+wSjUqYwT3UyJZd05FYA
+xYUpWTCcdUrzYNtkyjz9M2NsFgBj9+D+LXLI4JsV0Zc7bVAwhCz6IhQ5mlWCKV0F
+SL2hi1rkZ1W5C9yrl+l4hV9hv92ym7hUW2jHC0DrHf/GQAJpgHBN1SXESYsZq4HQ
+8+JwRv5PU2L1Urnp17KOuZm8uscsPcm5tEFIFqfiyuYi3FPjFqSICltd7BnJhq92
+N4KAU1uJzh8cJEykyYZUt9KcV6F/u/4bm2PQwkwBaQpX9+kJWElO0UVKpb2RTXDT
+c7Cf4yZc8ShAnP/viy3XxwyU1n8v73J/UHwjdb02DVeIC+meliBGv2YfJJgZHBmn
+2Oy2qcZCk4JnNhrMN4/i+VXyEc+IMs16lHabPCDupgPs/tVsq5f+vV5Ck0qEMq4K
+mCAv2n+0sHT0m5Eqco2YUD3CbDjTXiStyRH3vBO1GRYLsnhAJKm84gFehfFE16fk
+3OmwgJP+afM9S3NUr1zZ8V/jZFM6LR7qLnT4DJWfNT1oyvsCan42O/txuMzHD5pn
+sCNkrqLa1SjNVCjpM9Y0ejLCBjL2ld7S8t+0cd92ir/3CMVi7fORSBbQifQ66YQO
+3+ShN/j2cpmNMgI4IPXeiSOxRs0juuzFop/kHRvI4B1csIVZU4Psx4OCCW9LsCkt
+PlDb4BdxWR53McHVZgYx
+=uloh
+-----END PGP SIGNATURE-----
+
+--q9KOos5vDmpwPx9o--
