@@ -1,117 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51498 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725860AbeJJK7M (ORCPT
+Received: from mail-yw1-f50.google.com ([209.85.161.50]:39350 "EHLO
+        mail-yw1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725860AbeJJLVb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 06:59:12 -0400
-Message-ID: <79b7e69b00e6c4e1322f61d5569dcc41@smtp-cloud8.xs4all.net>
-Date: Wed, 10 Oct 2018 05:39:03 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Wed, 10 Oct 2018 07:21:31 -0400
+Received: by mail-yw1-f50.google.com with SMTP id v1-v6so1625692ywv.6
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2018 21:01:22 -0700 (PDT)
+Received: from mail-yb1-f179.google.com (mail-yb1-f179.google.com. [209.85.219.179])
+        by smtp.gmail.com with ESMTPSA id x13-v6sm10527493ywj.89.2018.10.09.21.01.20
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 09 Oct 2018 21:01:20 -0700 (PDT)
+Received: by mail-yb1-f179.google.com with SMTP id x5-v6so1646597ybl.11
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2018 21:01:20 -0700 (PDT)
+MIME-Version: 1.0
+References: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
+In-Reply-To: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 10 Oct 2018 13:01:08 +0900
+Message-ID: <CAAFQd5DTMo3uqZnLGr+QkhdJiXLFm0OmGJcC==5NJROS3u1Wug@mail.gmail.com>
+Subject: Re: [RFC] Informal meeting during ELCE to discuss userspace support
+ for stateless codecs
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: nicolas@ndufresne.ca, maxime.ripard@free-electrons.com,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+On Mon, Oct 8, 2018 at 8:53 PM Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Hi all,
+>
+> I would like to meet up somewhere during the ELCE to discuss userspace support
+> for stateless (and perhaps stateful as well?) codecs.
+>
+> It is also planned as a topic during the summit, but I would prefer to prepare
+> for that in advance, esp. since I myself do not have any experience writing
+> userspace SW for such devices.
+>
+> Nicolas, it would be really great if you can participate in this meeting
+> since you probably have the most experience with this by far.
+>
+> Looking through the ELCE program I found two timeslots that are likely to work
+> for most of us (because the topics in the program appear to be boring for us
+> media types!):
+>
+> Tuesday from 10:50-15:50
 
-date:			Wed Oct 10 05:00:09 CEST 2018
-media-tree git hash:	8caec72e8cbff65afa38928197bea5a393b67975
-media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
-v4l-utils git hash:	06ad469e966aafaf39c1cc76e6e0953ec7d4f9c9
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
+If we end up with this or similar time slot (compatible with APAC time
+zones), do you think it would be possible to set up a video conference
+for me and/or Alex to join remotely? I can help figuring out any
+necessary infrastructure.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+Tomasz
