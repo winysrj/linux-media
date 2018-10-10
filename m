@@ -1,19 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f66.google.com ([209.85.166.66]:46157 "EHLO
-        mail-io1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727417AbeJJQC6 (ORCPT
+Received: from mail-it1-f194.google.com ([209.85.166.194]:51686 "EHLO
+        mail-it1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726617AbeJJQHE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 12:02:58 -0400
-Received: by mail-io1-f66.google.com with SMTP id t7-v6so3264005ioj.13
-        for <linux-media@vger.kernel.org>; Wed, 10 Oct 2018 01:41:51 -0700 (PDT)
+        Wed, 10 Oct 2018 12:07:04 -0400
+Received: by mail-it1-f194.google.com with SMTP id 74-v6so6870504itw.1
+        for <linux-media@vger.kernel.org>; Wed, 10 Oct 2018 01:45:55 -0700 (PDT)
 MIME-Version: 1.0
-References: <20181008211205.2900-1-vz@mleia.com> <20181008211205.2900-2-vz@mleia.com>
-In-Reply-To: <20181008211205.2900-2-vz@mleia.com>
+References: <20181008211205.2900-1-vz@mleia.com> <20181008211205.2900-4-vz@mleia.com>
+In-Reply-To: <20181008211205.2900-4-vz@mleia.com>
 From: Linus Walleij <linus.walleij@linaro.org>
-Date: Wed, 10 Oct 2018 10:41:38 +0200
-Message-ID: <CACRpkdb9Lwshpt+haJur_7ESOD50t=8PE-ct-UO5yJFRfrM6Lw@mail.gmail.com>
-Subject: Re: [PATCH 1/7] dt-bindings: mfd: ds90ux9xx: add description of TI
- DS90Ux9xx ICs
+Date: Wed, 10 Oct 2018 10:45:43 +0200
+Message-ID: <CACRpkdZJMPYWHBUXohjxo12XZpLdz7OzcWRBrrkcB8YLLd5StA@mail.gmail.com>
+Subject: Re: [PATCH 3/7] dt-bindings: pinctrl: ds90ux9xx: add description of
+ TI DS90Ux9xx pinmux
 To: Vladimir Zapolskiy <vz@mleia.com>
 Cc: Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>,
         Mark Vasut <marek.vasut@gmail.com>,
@@ -24,29 +24,44 @@ Cc: Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>,
         "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
         linux-media@vger.kernel.org,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Sandeep_Jain@mentor.com,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        "open list:DRM PANEL DRIVERS" <dri-devel@lists.freedesktop.org>
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- On Mon, Oct 8, 2018 at 11:12 PM Vladimir Zapolskiy <vz@mleia.com> wrote:
-> From: Sandeep Jain <Sandeep_Jain@mentor.com>
+Hi Vladimir,
+
+thanks for your patch!
+
+Can we change the subject to something like "add DT bindings" rather than
+"add description" as it is more specific and makes it easier for me as
+maintainer.
+
+On Mon, Oct 8, 2018 at 11:12 PM Vladimir Zapolskiy <vz@mleia.com> wrote:
+
+> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>
+> TI DS90Ux9xx de-/serializers have a capability to multiplex pin functions,
+> in particular a pin may have selectable functions of GPIO, GPIO line
+> transmitter, one of I2S lines, one of RGB24 video signal lines and so on.
+>
+> The change adds a description of DS90Ux9xx pin multiplexers and GPIO
+> controllers.
+>
+> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 (...)
-> +- ti,pixel-clock-edge : Selects Pixel Clock Edge.
-> +       Possible values are "<1>" or "<0>".
-> +       If "ti,pixel-clock-edge" is High <1>, output data is strobed on the
-> +       Rising edge of the PCLK. If ti,pixel-clock-edge is Low <0>, data is
-> +       strobed on the Falling edge of the PCLK.
-> +       If "ti,pixel-clock-edge" is not mentioned, the pixel clock edge
-> +       value is not touched and given by hardware pin strapping.
+> +- gpio-ranges: Mapping to pin controller pins (as described in
+> +       Documentation/devicetree/bindings/gpio/gpio.txt)
+> +
+> +Optional properties:
+> +- ti,video-depth-18bit: Sets video bridge pins to RGB 18-bit mode.
+> +
+> +Available pins, groups and functions (reference to device datasheets):
 
-Please use the existing binding in
-Documentation/devicetree/bindings/display/panel/display-timing.txt
-for this: pixelclk-active = [<0>|<1>];
+Please reference the generic binding you're using here:
+Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
 
-Please reference the above document in your binding.
+Apart from these small nitpicks it looks very standard and good.
 
 Yours,
 Linus Walleij
