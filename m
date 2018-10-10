@@ -1,124 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33668 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725789AbeJJIqA (ORCPT
+Received: from mail-qk1-f180.google.com ([209.85.222.180]:43059 "EHLO
+        mail-qk1-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725789AbeJJItk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 04:46:00 -0400
-Subject: Re: [PATCH] media: vivid: Improve timestamping
-To: Gabriel Francisco Mandaji <gfmandaji@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: lkcamp@lists.libreplanetbr.org
-References: <20181010004921.GA6532@gfm-note>
-From: Helen Koike <helen.koike@collabora.com>
-Message-ID: <06d3f4d3-f864-6cca-9c3a-45909f7188da@collabora.com>
-Date: Tue, 9 Oct 2018 22:26:11 -0300
-MIME-Version: 1.0
-In-Reply-To: <20181010004921.GA6532@gfm-note>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Wed, 10 Oct 2018 04:49:40 -0400
+Received: by mail-qk1-f180.google.com with SMTP id 12-v6so2219186qkj.10
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2018 18:29:55 -0700 (PDT)
+Message-ID: <65498b0fd8467e4fbd4518c6fd21e30624f7ce51.camel@ndufresne.ca>
+Subject: Re: [RFC] Informal meeting during ELCE to discuss userspace support
+ for stateless codecs
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Tue, 09 Oct 2018 21:29:53 -0400
+In-Reply-To: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
+References: <b9b2f5ea-8593-d1bf-6d4f-c2efddaa7002@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gabriel,
-
-Thanks for your patch.
-
-On 10/9/18 9:49 PM, Gabriel Francisco Mandaji wrote:
-> Simulate a more precise timestamp by calculating it based on the
-> current framerate.
+Le lundi 08 octobre 2018 à 13:53 +0200, Hans Verkuil a écrit :
+> Hi all,
 > 
-> Signed-off-by: Gabriel Francisco Mandaji <gfmandaji@gmail.com>
-> ---
->  drivers/media/platform/vivid/vivid-core.h        |  1 +
->  drivers/media/platform/vivid/vivid-kthread-cap.c | 24 ++++++++++++++++--------
->  2 files changed, 17 insertions(+), 8 deletions(-)
+> I would like to meet up somewhere during the ELCE to discuss userspace support
+> for stateless (and perhaps stateful as well?) codecs.
 > 
-> diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-> index cd4c823..cbdadd8 100644
-> --- a/drivers/media/platform/vivid/vivid-core.h
-> +++ b/drivers/media/platform/vivid/vivid-core.h
-> @@ -384,6 +384,7 @@ struct vivid_dev {
->  	/* thread for generating video capture stream */
->  	struct task_struct		*kthread_vid_cap;
->  	unsigned long			jiffies_vid_cap;
-> +	u64				cap_stream_start;
->  	u32				cap_seq_offset;
->  	u32				cap_seq_count;
->  	bool				cap_seq_resync;
-> diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> index f06003b..0793b15 100644
-> --- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> @@ -416,6 +416,7 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
->  	char str[100];
->  	s32 gain;
->  	bool is_loop = false;
-> +	u64 soe_time = 0;
->  
->  	if (dev->loop_video && dev->can_loop_video &&
->  		((vivid_is_svid_cap(dev) &&
-> @@ -426,11 +427,11 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
->  
->  	buf->vb.sequence = dev->vid_cap_seq_count;
->  	/*
-> -	 * Take the timestamp now if the timestamp source is set to
-> -	 * "Start of Exposure".
-> +	 * Store the current time to calculate the delta if source is set to
-> +	 * "End of Frame".
->  	 */
-> -	if (dev->tstamp_src_is_soe)
-> -		buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> +	if (!dev->tstamp_src_is_soe)
-> +		soe_time = ktime_get_ns();
->  	if (dev->field_cap == V4L2_FIELD_ALTERNATE) {
->  		/*
->  		 * 60 Hz standards start with the bottom field, 50 Hz standards
-> @@ -556,12 +557,18 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
->  	}
->  
->  	/*
-> -	 * If "End of Frame" is specified at the timestamp source, then take
-> -	 * the timestamp now.
-> +	 * If "End of Frame", then calculate the "exposition time" and add
-> +	 * it to the timestamp.
->  	 */
->  	if (!dev->tstamp_src_is_soe)
-> -		buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> -	buf->vb.vb2_buf.timestamp += dev->time_wrap_offset;
-> +		soe_time = ktime_get_ns() - soe_time;
-
-If I understand correctly, soe_time here is the elapsed time (the delta
-between the beginning of the frame and the end of it), so I thing naming
-it etime or frame_time or delta_time would be clearer, because soe
-stands for "start of exposure" and doesn't seem to be the right meaning.
-
-> +	buf->vb.vb2_buf.timestamp = dev->timeperframe_vid_cap.numerator *
-> +				    1000000000 /
-> +				    dev->timeperframe_vid_cap.denominator *
-> +				    dev->vid_cap_seq_count +
-> +				    dev->cap_stream_start +
-> +				    soe_time +
-> +				    dev->time_wrap_offset;
-
-Could you move the dev->vid_cap_seq_count to the top? I got confused if
-it was multiplying only the denominator, I think moving to the top makes
-it clearer (or add parenthesis).
-
->  }
->  
->  /*
-> @@ -759,6 +766,7 @@ static int vivid_thread_vid_cap(void *data)
->  	dev->cap_seq_count = 0;
->  	dev->cap_seq_resync = false;
->  	dev->jiffies_vid_cap = jiffies;
-> +	dev->cap_stream_start = ktime_get_ns();
->  
->  	for (;;) {
->  		try_to_freeze();
+> It is also planned as a topic during the summit, but I would prefer to prepare
+> for that in advance, esp. since I myself do not have any experience writing
+> userspace SW for such devices.
 > 
+> Nicolas, it would be really great if you can participate in this meeting
+> since you probably have the most experience with this by far.
+> 
+> Looking through the ELCE program I found two timeslots that are likely to work
+> for most of us (because the topics in the program appear to be boring for us
+> media types!):
+> 
+> Tuesday from 10:50-15:50
+> 
+> or:
+> 
+> Monday from 15:45 onward
 
-Thanks
-Helen
+Both works for me.
+
+> 
+> My guess is that we need 2-3 hours or so. Hard to predict.
+> 
+> The basic question that I would like to have answered is what the userspace
+> component should look like? libv4l-like plugin or a library that userspace can
+> link with? Do we want more general support for stateful codecs as well that deals
+> with resolution changes and the more complex parts of the codec API?
+> 
+> I've mailed this directly to those that I expect are most interested in this,
+> but if someone want to join in let me know.
+> 
+> I want to keep the group small though, so you need to bring relevant experience
+> to the table.
+> 
+> Regards,
+> 
+> 	Hans
