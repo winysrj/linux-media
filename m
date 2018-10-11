@@ -1,45 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io1-f68.google.com ([209.85.166.68]:37961 "EHLO
-        mail-io1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727600AbeJKQCK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Oct 2018 12:02:10 -0400
-Received: by mail-io1-f68.google.com with SMTP id n5-v6so5970003ioh.5
-        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 01:35:56 -0700 (PDT)
-Received: from mail-it1-f176.google.com (mail-it1-f176.google.com. [209.85.166.176])
-        by smtp.gmail.com with ESMTPSA id u1-v6sm16045746itu.42.2018.10.11.01.35.54
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 11 Oct 2018 01:35:54 -0700 (PDT)
-Received: by mail-it1-f176.google.com with SMTP id i191-v6so12011622iti.5
-        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 01:35:54 -0700 (PDT)
+Received: from mga09.intel.com ([134.134.136.24]:42572 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727305AbeJKQiK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Oct 2018 12:38:10 -0400
+Subject: Re: [PATCH 1/2] ipu3-cio2: Unregister device nodes first, then
+ release resources
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Cc: rajmohan.mani@intel.com, yong.zhi@intel.com, bingbu.cao@intel.com,
+        tian.shu.qiu@intel.com, jian.xu.zheng@intel.com
+References: <20181010083231.27492-1-sakari.ailus@linux.intel.com>
+ <20181010083231.27492-2-sakari.ailus@linux.intel.com>
+From: Bing Bu Cao <bingbu.cao@linux.intel.com>
+Message-ID: <32526d30-eb77-328f-1cc0-2b168bb163a8@linux.intel.com>
+Date: Thu, 11 Oct 2018 17:15:58 +0800
 MIME-Version: 1.0
-References: <20181011064608.37435-1-acourbot@chromium.org> <CAPBb6MXXwCOP6w7WdAFXdbmBLWKFp9gVDUW=uE=UFGiq_jPakg@mail.gmail.com>
- <93410466-ae47-b3ef-98ed-7cfe24a91776@linaro.org>
-In-Reply-To: <93410466-ae47-b3ef-98ed-7cfe24a91776@linaro.org>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Thu, 11 Oct 2018 17:35:42 +0900
-Message-ID: <CAPBb6MVP84xSRrM9tuoG7zhUS1tGSJSNBCjwWBCyqWJ4D8jHRA@mail.gmail.com>
-Subject: Re: [PATCH] media: venus: support VB2_USERPTR IO mode
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181010083231.27492-2-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 11, 2018 at 5:26 PM Stanimir Varbanov
-<stanimir.varbanov@linaro.org> wrote:
->
-> Hi Alex,
->
-> On 10/11/2018 09:50 AM, Alexandre Courbot wrote:
-> > Please ignore this patch - I did not notice that a similar one has
-> > been sent before.
->
-> The difference is that you made it for decoder as well. Do you need
-> userptr for decoder?
+Tested-by: Bingbu Cao <bingbu.cao@intel.com>
+Reviewed-by: Bingbu Cao <bingbu.cao@intel.com>
 
-Not at the moment, so this part has not been tested. Better to take
-Malathi's patch.
+On 10/10/2018 04:32 PM, Sakari Ailus wrote:
+> While there are issues related to object lifetime management, unregister
+> the media device first, followed immediately by other device nodes when
+> the driver is being unbound. Only then the resources needed by the driver
+> may be released. This is slightly safer.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> index 452eb9b42140..723022ef3662 100644
+> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> @@ -1846,12 +1846,12 @@ static void cio2_pci_remove(struct pci_dev *pci_dev)
+>  	struct cio2_device *cio2 = pci_get_drvdata(pci_dev);
+>  	unsigned int i;
+>  
+> +	media_device_unregister(&cio2->media_dev);
+>  	cio2_notifier_exit(cio2);
+> -	cio2_fbpt_exit_dummy(cio2);
+>  	for (i = 0; i < CIO2_QUEUES; i++)
+>  		cio2_queue_exit(cio2, &cio2->queue[i]);
+> +	cio2_fbpt_exit_dummy(cio2);
+>  	v4l2_device_unregister(&cio2->v4l2_dev);
+> -	media_device_unregister(&cio2->media_dev);
+>  	media_device_cleanup(&cio2->media_dev);
+>  	mutex_destroy(&cio2->lock);
+>  }
