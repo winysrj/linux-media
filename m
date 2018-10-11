@@ -1,91 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:46708 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728357AbeJKQrz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Oct 2018 12:47:55 -0400
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from perceval.ideasonboard.com ([213.167.242.64]:44922 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726960AbeJKQ7y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Oct 2018 12:59:54 -0400
+Subject: Re: [PATCH] media: intel-ipu3: cio2: Remove redundant definitions
+To: Rajmohan Mani <rajmohan.mani@intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v4 09/12] media: ov5640: Make the FPS clamping / rounding more extendable
-Date: Thu, 11 Oct 2018 11:21:04 +0200
-Message-Id: <20181011092107.30715-10-maxime.ripard@bootlin.com>
-In-Reply-To: <20181011092107.30715-1-maxime.ripard@bootlin.com>
-References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Yong Zhi <yong.zhi@intel.com>,
+        Bingbu Cao <bingbu.cao@intel.com>,
+        Tian Shu Qiu <tian.shu.qiu@intel.com>,
+        Jian Xu Zheng <jian.xu.zheng@intel.com>
+Cc: tfiga@chromium.org
+References: <20181009234245.25830-1-rajmohan.mani@intel.com>
+Reply-To: kieran.bingham+renesas@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <33c53caf-633a-f359-4312-9c2dc317efc5@ideasonboard.com>
+Date: Thu, 11 Oct 2018 10:33:21 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181009234245.25830-1-rajmohan.mani@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current code uses an algorithm to clamp the FPS values and round them
-to the closest supported one that isn't really allows to be extended to
-more than two values.
+Hi Rajmohan
 
-Rework it a bit to make it much easier to extend the amount of FPS options
-we support.
+Thank you for the patch,
 
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- drivers/media/i2c/ov5640.c | 27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+On 10/10/18 00:42, Rajmohan Mani wrote:
+> Removed redundant CIO2_IMAGE_MAX_* definitions
+> 
+> Fixes: c2a6a07afe4a ("media: intel-ipu3: cio2: add new MIPI-CSI2 driver")
+> 
+> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index d7a1e1928baf..b2206fa71b0d 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1976,7 +1976,8 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
- {
- 	const struct ov5640_mode_info *mode;
- 	enum ov5640_frame_rate rate = OV5640_30_FPS;
--	u32 minfps, maxfps, fps;
-+	int minfps, maxfps, best_fps, fps;
-+	int i;
- 
- 	minfps = ov5640_framerates[OV5640_15_FPS];
- 	maxfps = ov5640_framerates[OV5640_30_FPS];
-@@ -1987,19 +1988,21 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
- 		return OV5640_30_FPS;
- 	}
- 
--	fps = DIV_ROUND_CLOSEST(fi->denominator, fi->numerator);
-+	fps = clamp_val(DIV_ROUND_CLOSEST(fi->denominator, fi->numerator),
-+			minfps, maxfps);
-+
-+	best_fps = minfps;
-+	for (i = 0; i < ARRAY_SIZE(ov5640_framerates); i++) {
-+		int curr_fps = ov5640_framerates[i];
-+
-+		if (abs(curr_fps - fps) < abs(best_fps - fps)) {
-+			best_fps = curr_fps;
-+			rate = i;
-+		}
-+	}
- 
- 	fi->numerator = 1;
--	if (fps > maxfps)
--		fi->denominator = maxfps;
--	else if (fps < minfps)
--		fi->denominator = minfps;
--	else if (2 * fps >= 2 * minfps + (maxfps - minfps))
--		fi->denominator = maxfps;
--	else
--		fi->denominator = minfps;
--
--	rate = (fi->denominator == minfps) ? OV5640_15_FPS : OV5640_30_FPS;
-+	fi->denominator = best_fps;
- 
- 	mode = ov5640_find_mode(sensor, rate, width, height, false);
- 	return mode ? rate : -EINVAL;
--- 
-2.19.1
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Looks like this {sh,c}ould be bundled in with
+ "[PATCH 0/2] Trivial CIO2 patches" from Sakari at integration.
+
+--
+Regards
+
+Kieran Bingham
+
+> ---
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.h | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.h b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+> index 240635be7a31..7caab9b8c2b9 100644
+> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+> @@ -10,8 +10,6 @@
+>  #define CIO2_PCI_ID					0x9d32
+>  #define CIO2_PCI_BAR					0
+>  #define CIO2_DMA_MASK					DMA_BIT_MASK(39)
+> -#define CIO2_IMAGE_MAX_WIDTH				4224
+> -#define CIO2_IMAGE_MAX_LENGTH				3136
+>  
+>  #define CIO2_IMAGE_MAX_WIDTH				4224
+>  #define CIO2_IMAGE_MAX_LENGTH				3136
+> 
