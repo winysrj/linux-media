@@ -1,243 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:33183 "EHLO
-        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728639AbeJLV6E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 17:58:04 -0400
-Received: by mail-wr1-f66.google.com with SMTP id e4-v6so13669291wrs.0
-        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2018 07:25:21 -0700 (PDT)
-Date: Fri, 12 Oct 2018 15:25:18 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Vladimir Zapolskiy <vz@mleia.com>
+Received: from mleia.com ([178.79.152.223]:33586 "EHLO mail.mleia.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728354AbeJLWJ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Oct 2018 18:09:26 -0400
+Subject: Re: [PATCH 5/7] mfd: ds90ux9xx: add I2C bridge/alias and link
+ connection driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        kieran.bingham@ideasonboard.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Lee Jones <lee.jones@linaro.org>,
         Linus Walleij <linus.walleij@linaro.org>,
         Rob Herring <robh+dt@kernel.org>,
         Marek Vasut <marek.vasut@gmail.com>,
         Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
         linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD
- driver
-Message-ID: <20181012142518.GB4939@dell>
-References: <20181008211205.2900-1-vz@mleia.com>
- <20181008211205.2900-5-vz@mleia.com>
- <20181012060314.GU4939@dell>
- <63733d2e-f95e-8894-f2b0-0b551b5cfeeb@mentor.com>
- <20181012083924.GW4939@dell>
- <eef99526-9232-8cd4-9a7c-c30114d58806@ideasonboard.com>
- <506c03d7-7986-44dd-3290-92d16a8106ad@mentor.com>
- <20181012113415.GZ4939@dell>
- <d7bfd5d8-2c85-1f82-a673-4e8d159a15d8@mleia.com>
+References: <20181008211205.2900-1-vz@mleia.com> <20181012060455.GV4939@dell>
+ <c8f01b88-c14f-867d-d796-7464b2e8ccfb@mentor.com> <1584081.CVFmJobd6K@avalon>
+From: Vladimir Zapolskiy <vz@mleia.com>
+Message-ID: <0be75b0d-eb61-02e5-a086-be6a9d32841a@mleia.com>
+Date: Fri, 12 Oct 2018 17:36:39 +0300
 MIME-Version: 1.0
+In-Reply-To: <1584081.CVFmJobd6K@avalon>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <d7bfd5d8-2c85-1f82-a673-4e8d159a15d8@mleia.com>
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 12 Oct 2018, Vladimir Zapolskiy wrote:
+Hi Laurent
 
-> Hi Lee,
+On 10/12/2018 04:12 PM, Laurent Pinchart wrote:
+> Hi Vladimir,
 > 
-> On 10/12/2018 02:34 PM, Lee Jones wrote:
-> > On Fri, 12 Oct 2018, Vladimir Zapolskiy wrote:
-> >> On 10/12/2018 12:20 PM, Kieran Bingham wrote:
-> >>> Hi Vladimir,
-> >>> On 12/10/18 09:39, Lee Jones wrote:
-> >>>> On Fri, 12 Oct 2018, Vladimir Zapolskiy wrote:
-> >>>>> On 10/12/2018 09:03 AM, Lee Jones wrote:
-> >>>>>> On Tue, 09 Oct 2018, Vladimir Zapolskiy wrote:
-> >>>>>>
-> >>>>>>> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-> >>>>>>>
-> >>>>>>> The change adds I2C device driver for TI DS90Ux9xx de-/serializers,
-> >>>>>>> support of subdevice controllers is done in separate drivers, because
-> >>>>>>> not all IC functionality may be needed in particular situations, and
-> >>>>>>> this can be fine grained controlled in device tree.
-> >>>>>>>
-> >>>>>>> The development of the driver was a collaborative work, the
-> >>>>>>> contribution done by Balasubramani Vivekanandan includes:
-> >>>>>>> * original implementation of the driver based on a reference driver,
-> >>>>>>> * regmap powered interrupt controller support on serializers,
-> >>>>>>> * support of implicitly or improperly specified in device tree ICs,
-> >>>>>>> * support of device properties and attributes: backward compatible
-> >>>>>>>   mode, low frequency operation mode, spread spectrum clock generator.
-> >>>>>>>
-> >>>>>>> Contribution by Steve Longerbeam:
-> >>>>>>> * added ds90ux9xx_read_indirect() function,
-> >>>>>>> * moved number of links property and added ds90ux9xx_num_fpd_links(),
-> >>>>>>> * moved and updated ds90ux9xx_get_link_status() function to core driver,
-> >>>>>>> * added fpd_link_show device attribute.
-> >>>>>>>
-> >>>>>>> Sandeep Jain added support of pixel clock edge configuration.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-> >>>>>>> ---
-> >>>>>>>  drivers/mfd/Kconfig           |  14 +
-> >>>>>>>  drivers/mfd/Makefile          |   1 +
-> >>>>>>>  drivers/mfd/ds90ux9xx-core.c  | 879 ++++++++++++++++++++++++++++++++++
-> >>>>>>>  include/linux/mfd/ds90ux9xx.h |  42 ++
-> >>>>>>>  4 files changed, 936 insertions(+)
-> >>>>>>>  create mode 100644 drivers/mfd/ds90ux9xx-core.c
-> >>>>>>>  create mode 100644 include/linux/mfd/ds90ux9xx.h
-> >>>>>>>
-> >>>>>>> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> >>>>>>> index 8c5dfdce4326..a969fa123f64 100644
-> >>>>>>> --- a/drivers/mfd/Kconfig
-> >>>>>>> +++ b/drivers/mfd/Kconfig
-> >>>>>>> @@ -1280,6 +1280,20 @@ config MFD_DM355EVM_MSP
-> >>>>>>>  	  boards.  MSP430 firmware manages resets and power sequencing,
-> >>>>>>>  	  inputs from buttons and the IR remote, LEDs, an RTC, and more.
-> >>>>>>>  
-> >>>>>>> +config MFD_DS90UX9XX
-> >>>>>>> +	tristate "TI DS90Ux9xx FPD-Link de-/serializer driver"
-> >>>>>>> +	depends on I2C && OF
-> >>>>>>> +	select MFD_CORE
-> >>>>>>> +	select REGMAP_I2C
-> >>>>>>> +	help
-> >>>>>>> +	  Say yes here to enable support for TI DS90UX9XX de-/serializer ICs.
-> >>>>>>> +
-> >>>>>>> +	  This driver provides basic support for setting up the de-/serializer
-> >>>>>>> +	  chips. Additional functionalities like connection handling to
-> >>>>>>> +	  remote de-/serializers, I2C bridging, pin multiplexing, GPIO
-> >>>>>>> +	  controller and so on are provided by separate drivers and should
-> >>>>>>> +	  enabled individually.
-> >>>>>>
-> >>>>>> This is not an MFD driver.
-> >>>>>
-> >>>>> Why do you think so? The representation of the ICs into device tree format
-> >>>>> of hardware description shows that this is a truly MFD driver with multiple
-> >>>>> IP subcomponents naturally mapped into MFD cells.
-> >>>>
-> >>>> This driver does too much real work ('stuff') to be an MFD driver.
-> >>>> MFD drivers should not need to care of; links, gates, modes, pixels,
-> >>>> frequencies maps or properties.  Nor should they contain elaborate
-> >>>> sysfs structures to control the aforementioned 'stuff'.
-> >>>>
-> >>>> Granted, there may be some code in there which could be appropriate
-> >>>> for an MFD driver.  However most of it needs moving out into a
-> >>>> function driver (or two).
-> >>>>
-> >>>>> Basically it is possible to replace explicit of_platform_populate() by
-> >>>>> adding a "simple-mfd" compatible, if it is desired.
-> >>>>>
-> >>>>>> After a 30 second Google of what this device actually does, perhaps
-> >>>>>> drivers/media might be a better fit?
-> >>>>>
-> >>>>> I assume it would be quite unusual to add a driver with NO media functions
-> >>>>> and controls into drivers/media.
-> >>>>
-> >>>> drivers/media may very well not be the correct place for this.  In my
-> >>>> 30 second Google, I saw that this device has a lot to do with cameras,
-> >>>> hence my media association.
-> >>>>
-> >>>> If *all* else fails, there is always drivers/misc, but this should be
-> >>>> avoided if at all possible.
-> >>>
-> >>> The device as a whole is FPD Link for camera devices I believe, but it
-> >>
-> >> I still don't understand (I could be biased though) why there is such
-> >> a strong emphasis on cameras and media stuff in the discussion.
-> >>
-> >> No, "the device as a whole is FPD Link for camera devices" is a wrong
-> >> statement. On hand I have a number of boards with serializers/deserializers
-> >> from the TI DS90Ux9xx IC series and sensors are NOT connected to them.
-> >>
-> >>> certainly has different functions which are broken out in this
-> >>> implementation.
-> >>
-> >> No, there is absolutely nothing broken out from the presented MFD drivers,
-> >> the drivers are completely integral and basically I don't expect any.
-> >>
-> >> If you are concerned about media functionality, the correspondent MFD
-> >> *cell* drivers will be added into drivers/media, drivers/gpu/drm or
-> >> whatever is to be a proper place.
-> >>
-> >>> I think it might be quite awkward having the i2c components in
-> >>> drivers/i2c and the media components in drivers/media/i2c, so what about
-> >>> creating drivers/media/i2c/fpd-link (or such) as a container?
-> >>
-> >> I open drivers/media/i2c/Kconfig and all entries with no exception are
-> >> under from 'if VIDEO_V4L2'. The MFD drivers do NOT require on depend on
-> >> VIDEO_V4L2 or any other multimedia frameworks, nor the MFD drivers export
-> >> any multimedia controls.
-> >>
-> >>> Our GMSL implementation is also a complex camera(s) device - but does
-> >>> not yet use the MFD framework, perhaps that's something to add to my
-> >>> todo list.
-> >>>
-> >>
-> >> Okay, but the TI DS90Ux9xx is NOT a camera device, and it is NOT a multimedia
-> >> device, but it is a pure MFD device so the argument is not applicable.
-> > 
-> > You keep saying that "this is an MFD device" without any obvious
-> > comprehension of what an MFD is.  Just saying that it is one
-> > over-and-over does not make it so.
-> > An MFD should be little more than parent to other functional devices.
-> > Their role is to register children which in turn conduct operations
-> > on the hardware in a useful way.  Some MFDs also house common functions
-> > to save repetition of code in each of the child devices.  They do not
-> > tend to offer any useful functionality (stuff) in their own right. 
+> (CC'ing Wolfram)
 > 
-> This describes the presented MFD driver quite closely, if I remove
-> a few OF controls from ds90ux9xx-core.c:
-> * ti,video-map-select-*,
-> * ti,pixel-clock-edge,
-> * ti,spread-spectrum-clock-generation
+> On Friday, 12 October 2018 10:32:32 EEST Vladimir Zapolskiy wrote:
+>> On 10/12/2018 09:04 AM, Lee Jones wrote:
+>>> On Tue, 09 Oct 2018, Vladimir Zapolskiy wrote:
+>>>> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>>>>
+>>>> The change adds TI DS90Ux9xx I2C bridge/alias subdevice driver and
+>>>> FPD Link connection handling mechanism.
+>>>>
+>>>> Access to I2C devices connected to a remote de-/serializer is done in
+>>>> a transparent way, on established link detection event such devices
+>>>> are registered on an I2C bus, which serves a local de-/serializer IC.
+>>>>
+>>>> The development of the driver was a collaborative work, the
+>>>> contribution done by Balasubramani Vivekanandan includes:
+>>>> * original simplistic implementation of the driver,
+>>>> * support of implicitly specified devices in device tree,
+>>>> * support of multiple FPD links for TI DS90Ux9xx,
+>>>> * other kind of valuable review comments, clean-ups and fixes.
+>>>>
+>>>> Also Steve Longerbeam made the following changes:
+>>>> * clear address maps after linked device removal,
+>>>> * disable pass-through in disconnection,
+>>>> * qualify locked status with non-zero remote address.
+>>>>
+>>>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>>>> ---
+>>>>
+>>>>  drivers/mfd/Kconfig                |   8 +
+>>>>  drivers/mfd/Makefile               |   1 +
+>>>>  drivers/mfd/ds90ux9xx-i2c-bridge.c | 764 +++++++++++++++++++++++++++++
+>>>>  3 files changed, 773 insertions(+)
+>>>>  create mode 100644 drivers/mfd/ds90ux9xx-i2c-bridge.c
+>>>
+>>> Shouldn't this live in drivers/i2c?
+>>
+>> no, the driver is not for an I2C controller of any kind, and the driver does
+>> not register itself in the I2C subsystem by calling i2c_add_adapter() or
+>> i2c_add_numbered_adapter() or i2c_mux_add_adapter() etc, this topic was
+>> discussed with Wolfram also.
 > 
-> Then the MFD device driver will not have any useful functionality
-> apart of what you've listed above, please feel free to recheck.
+> (Who is now on CC)
 > 
-> Should I just go ahead and do the change with the assumption that
-> the modified MFD driver suits MFD framework?
 
-Since this device seems to be truly multi-function, I have no qualms
-with it being represented by a parent MFD driver.  Providing any
-useful functionality (code that actually does stuff) is removed and
-placed in a more suitable location, it sounds like a reasonably good
-fit for MFD.
+Wolfram has copies of the drivers and discussion right from the beginning,
+hopefully he won't get two copies ;)
 
-> > As I already mentioned, you need to figure out what this device is
-> > and move all of the functionality into the appropriate subsystem.
+>> Formally the driver converts the managed IC into a multi-address I2C
+>> slave device, I understand that it does not sound like a well suited driver
+>> for MFD, but ds90ux9xx-core.c and ds90ux9xx-i2c-bridge.c drivers are quite
+>> tightly coupled.
 > 
-> By definition as I comprehend it only MFD cell device drivers should
-> be relocated into the correspondent subsystems, but ds90ux9xx-core
-> remains in drivers/mfd, no?
+> As mentioned in other e-mails in this thread I don't think this should be 
+> split out to a separate driver,> I would move the functionality to the 
+> ds90ux9xx driver.
 
-Sounds about right.
+The proposal may have the grounds, but the I2C bridging functionality of ICs
+is quite detached from all other ones, thus it found its place in the cell
+driver per se.
 
-> Probably ds90ux9xx-i2c-bridge cell driver could enter drivers/misc.
-
-Let's see what Wolfram has to say WRT Laurent's suggestion.
-
-> > Since an MFD isn't a real thing/device (it's a Linuxy-shim which 
-> > only serves to register sub-devices and (sometimes) provide a space
-> > for common functionality to be located), drivers/mfd is not the
-> > subsystem which you seek. 
+> You may want to register an I2C mux, but as you have a single port, that
+> could be overkill. I haven't studied in details how to best support this
+> chip using the existing I2C subsystems APIs (which we may want to extend
+> if it needed), but I believe that (in your use cases) the deserializer
+> should be a child of the serializer, and modeled as an I2C device.
 > 
-> Oh, that's exactly the case with DS90Ux9xx driver 'ds90ux9xx-core.c',
-> it's just a common place to store the shared boilerplate code
-> snippets for all cell device drivers and various flavours of ICs
-> from the series.
 
-What you're using it for now is out-of-scope of an MFD driver.  Which
-if the functions are called from more than 1 call-site?  Those have a
-chance of residing - we'll discuss those on an ad-hoc basis.  Anything
-else needs relocating to the relevant subsystem.
+Formally in OF terms to define a link between devices by a phandle should
+be sufficient, panels are not the children of LVDS controllers under OF graph
+constraints in DT representation, the panels become secondary in runtime
+only, I'd like to reuse the concept. Also it adds a better sense of symmetry
+of deserializer <-> serializer connections relatively to a SoC/data source.
 
-We should also speak to Mark Brown about the indirect Regmap stuff.
-Perhaps this would better suit a header file.
-
-> >>> We currently keep all of the complexity within the max9286.c driver, but
-> >>> I could foresee that being split further if more devices add to the
-> >>> complexity of managing the bus. At which point we might want an
-> >>> equivalent drivers/media/i2c/gmsl/ perhaps?
-
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+--
+Best wishes,
+Vladimir
