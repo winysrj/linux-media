@@ -1,50 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi1-f194.google.com ([209.85.167.194]:39740 "EHLO
-        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725902AbeJMAUM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 20:20:12 -0400
-Date: Fri, 12 Oct 2018 11:46:49 -0500
-From: Rob Herring <robh@kernel.org>
-To: Luis Oliveira <Luis.Oliveira@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Joao.Pinto@synopsys.com, festevam@gmail.com,
-        Mark Rutland <mark.rutland@arm.com>,
+Received: from mga18.intel.com ([134.134.136.126]:17370 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725919AbeJMCek (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Oct 2018 22:34:40 -0400
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Bing Bu Cao <bingbu.cao@linux.intel.com>,
+        "kieran.bingham+renesas@ideasonboard.com"
+        <kieran.bingham+renesas@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Jacob Chen <jacob-chen@iotwrt.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Keiichi Watanabe <keiichiw@chromium.org>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        devicetree@vger.kernel.org
-Subject: Re: [V2, 2/5] Documentation: dt-bindings: Document the Synopsys MIPI
- DPHY Rx bindings
-Message-ID: <20181012164649.GA31690@bogus>
-References: <20180920111648.27000-1-lolivei@synopsys.com>
- <20180920111648.27000-3-lolivei@synopsys.com>
- <20181012164548.GA11873@bogus>
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>
+CC: "tfiga@chromium.org" <tfiga@chromium.org>
+Subject: RE: [PATCH] media: intel-ipu3: cio2: Remove redundant definitions
+Date: Fri, 12 Oct 2018 19:00:44 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5981515F2D@fmsmsx122.amr.corp.intel.com>
+References: <20181009234245.25830-1-rajmohan.mani@intel.com>
+ <33c53caf-633a-f359-4312-9c2dc317efc5@ideasonboard.com>
+ <39c26dd4-4454-f557-f510-ae973f5d9c89@linux.intel.com>
+In-Reply-To: <39c26dd4-4454-f557-f510-ae973f5d9c89@linux.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20181012164548.GA11873@bogus>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 12, 2018 at 11:45:48AM -0500, Rob Herring wrote:
-> On Thu, Sep 20, 2018 at 01:16:40PM +0200, Luis Oliveira wrote:
-> > Add device-tree bindings documentation for SNPS DesignWare MIPI D-PHY in
-> > RX mode.
-> 
-> "dt-bindings: phy: ..." for the subject.
-> 
-> > 
-> > Signed-off-by: Luis Oliveira <lolivei@synopsys.com>
+Hi Bingbu, Kieren,
 
-Also, checkpatch.pl complains the author and S-o-b emails don't match.
+> Subject: Re: [PATCH] media: intel-ipu3: cio2: Remove redundant definitions
+> 
+> 
+> 
+> On 10/11/2018 05:33 PM, Kieran Bingham wrote:
+> > Hi Rajmohan
+> >
+> > Thank you for the patch,
+> >
+> > On 10/10/18 00:42, Rajmohan Mani wrote:
+> >> Removed redundant CIO2_IMAGE_MAX_* definitions
+> >>
+> >> Fixes: c2a6a07afe4a ("media: intel-ipu3: cio2: add new MIPI-CSI2
+> >> driver")
+> >>
+> >> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
+> > Reviewed-by: Kieran Bingham
+> <kieran.bingham+renesas@ideasonboard.com>
+> >
+> > Looks like this {sh,c}ould be bundled in with  "[PATCH 0/2] Trivial
+> > CIO2 patches" from Sakari at integration.
+> Raj and Sakari, I think this change could be bundled into the Trivial patch sets,
+> what do you think?
+> >
 
-Rob
+Sounds good to me.
+I will leave this up to Sakari.
+
+Thanks
+Raj
