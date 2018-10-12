@@ -1,117 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42690 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726280AbeJLLCR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 07:02:17 -0400
-Message-ID: <bab8b485f5bb22a7cf847de1bc1d2a45@smtp-cloud7.xs4all.net>
-Date: Fri, 12 Oct 2018 05:31:55 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+Received: from mga12.intel.com ([192.55.52.136]:21726 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726731AbeJLMDg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Oct 2018 08:03:36 -0400
+From: "Zhang, Ning A" <ning.a.zhang@intel.com>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: question about V4L2_MEMORY_USERPTR on 64bit applications
+Date: Fri, 12 Oct 2018 04:33:03 +0000
+Message-ID: <1539318782.21249.7.camel@intel.com>
+References: <1539313441.21249.3.camel@intel.com>
+In-Reply-To: <1539313441.21249.3.camel@intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <9FBD4F6272ACF147B26934BDF01033E9@intel.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
-
-Results of the daily build of media_tree:
-
-date:			Fri Oct 12 05:00:10 CEST 2018
-media-tree git hash:	8caec72e8cbff65afa38928197bea5a393b67975
-media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
-v4l-utils git hash:	9d7d01f24b5e8ac73fbed783cffd5c0f5f6e8a87
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+c29ycnkgZm9yIHdyb25nIHF1ZXN0aW9uLCBJIHJlYWxseSBtZWV0IG1lbW9yeSBhZGRyZXNzIHRy
+dW5jYXRlZCBpc3N1ZSwNCndoZW4gdXNlIFY0TDIga2VybmVsIEFQSXMuDQoNCmluIGEga2VybmVs
+IHRocmVhZCBjcmVhdGVkIGJ5IGtlcm5lbF90aHJlYWQoKQ0KSSB2bV9tbWFwIGEgc2htZW1fZmls
+ZSB0byBhZGRyOiAwMDAwN2ZmZmY3ZmE4MDAwDQphbmQgcXVldWUgaXQgdG8gVjRMMiwgYWZ0ZXIg
+ZGVxdWV1ZSBpdCwgYW5kIEkgZmluZCB0aGUgYWRkcmVzcyBpcw0KdHJ1bmNhdGVkIHRvIDAwMDAw
+MDAwZjdmYTgwMDANCg0KSSB1c2UgX191NjQge2FrYSBsb25nIGxvbmcgdW5zaWduZWQgaW50fSB0
+byBzYXZlIGFkZHJlc3MsIGFuZCBJIGZpbmQNCnVzZXJwdHIgaXMgdW5zaWduZWQgbG9uZywgd3Jv
+bmdseSB0aGluayBpdCBhcyAiZGF0YSB0cnVuY2F0ZWQiDQphbmQgYSBsb3Qgb2YgX191MzIgaW4g
+dGhpcyBzdHJ1Y3R1cmUuDQoNCmV2ZXJ5dGhpbmcgd29ya3MgZmluZSwgYnV0IEkgc3RpbGwgZG9u
+J3QgdW5kZXJzdGFuZCB3aHkgaGlnaCAzMmJpdCBiZQ0KMC4uDQoNCkJSLg0KTmluZy4NCg0KDQrl
+nKggMjAxOC0xMC0xMuS6lOeahCAxMTowNCArMDgwMO+8jFpoYW5nIE5pbmflhpnpgZPvvJoNCj4g
+SGksDQo+IA0KPiBJIGhhdmUgcXVlc3Rpb24gYWJvdXQgVjRMMl9NRU1PUllfVVNFUlBUUiBvbiA2
+NGJpdCBhcHBsaWNhdGlvbnMuDQo+IA0KPiBzdHJ1Y3QgdjRsMl9idWZmZXIgew0KPiAJX191MzIJ
+CQlpbmRleDsNCj4gCV9fdTMyCQkJdHlwZTsNCj4gCV9fdTMyCQkJYnl0ZXN1c2VkOw0KPiAJX191
+MzIJCQlmbGFnczsNCj4gCV9fdTMyCQkJZmllbGQ7DQo+IAlzdHJ1Y3QgdGltZXZhbAkJdGltZXN0
+YW1wOw0KPiAJc3RydWN0IHY0bDJfdGltZWNvZGUJdGltZWNvZGU7DQo+IAlfX3UzMgkJCXNlcXVl
+bmNlOw0KPiANCj4gCS8qIG1lbW9yeSBsb2NhdGlvbiAqLw0KPiAJX191MzIJCQltZW1vcnk7DQo+
+IAl1bmlvbiB7DQo+IAkJX191MzLCoMKgwqDCoMKgwqDCoMKgwqDCoMKgb2Zmc2V0Ow0KPiAJCXVu
+c2lnbmVkIGxvbmfCoMKgwqB1c2VycHRyOyAgIDw8PC0tLSB0aGlzIGlzIGEgMzJiaXQgYWRkci4N
+Cj4gCQlzdHJ1Y3QgdjRsMl9wbGFuZSAqcGxhbmVzOw0KPiAJCV9fczMyCQlmZDsNCj4gCX0gbTsN
+Cj4gCV9fdTMyCQkJbGVuZ3RoOw0KPiAJX191MzIJCQlyZXNlcnZlZDI7DQo+IAlfX3UzMgkJCXJl
+c2VydmVkOw0KPiB9Ow0KPiANCj4gd2hlbiB1c2UgYSA2NGJpdCBhcHBsaWNhdGlvbiwgbWVtb3J5
+IGZyb20gbWFsbG9jIGlzIDY0Yml0IGFkZHJlc3MuDQo+IG1lbW9yeSBmcm9tIEdQVSAoZWcsIGlu
+dGVsIGk5MTUpIGFyZSBhbHNvIDY0Yml0IGFkZHJlc3MuDQo+IA0KPiB3aGVuIHVzZSB0aGVzZSBr
+aW5kIG9mIG1lbW9yeSBhc8KgVjRMMl9NRU1PUllfVVNFUlBUUiwgYWRkcmVzcyB3aWxsIGJlDQo+
+IHRydW5jYXRlZCBpbnRvIDMyYml0Lg0KPiANCj4gdGhpcyB3b3VsZCBiZSBlcnJvciwgYnV0IGFj
+dHVhbGx5IG5vdC4gSSByZWFsbHkgZG9uJ3QgdW5kZXJzdGFuZC4NCj4gDQo+IEJSLg0KPiBOaW5n
+Lg==
