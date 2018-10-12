@@ -1,12 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr1-f66.google.com ([209.85.221.66]:46986 "EHLO
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:41069 "EHLO
         mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727302AbeJLNeJ (ORCPT
+        with ESMTP id S1727286AbeJLNft (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 09:34:09 -0400
-Received: by mail-wr1-f66.google.com with SMTP id n11-v6so11964215wru.13
-        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 23:03:19 -0700 (PDT)
-Date: Fri, 12 Oct 2018 07:03:14 +0100
+        Fri, 12 Oct 2018 09:35:49 -0400
+Received: by mail-wr1-f66.google.com with SMTP id x12-v6so12043884wru.8
+        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 23:04:59 -0700 (PDT)
+Date: Fri, 12 Oct 2018 07:04:55 +0100
 From: Lee Jones <lee.jones@linaro.org>
 To: Vladimir Zapolskiy <vz@mleia.com>
 Cc: Linus Walleij <linus.walleij@linaro.org>,
@@ -17,16 +17,16 @@ Cc: Linus Walleij <linus.walleij@linaro.org>,
         linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: Re: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD
- driver
-Message-ID: <20181012060314.GU4939@dell>
+Subject: Re: [PATCH 5/7] mfd: ds90ux9xx: add I2C bridge/alias and link
+ connection driver
+Message-ID: <20181012060455.GV4939@dell>
 References: <20181008211205.2900-1-vz@mleia.com>
- <20181008211205.2900-5-vz@mleia.com>
+ <20181008211205.2900-6-vz@mleia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20181008211205.2900-5-vz@mleia.com>
+In-Reply-To: <20181008211205.2900-6-vz@mleia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -34,63 +34,34 @@ On Tue, 09 Oct 2018, Vladimir Zapolskiy wrote:
 
 > From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 > 
-> The change adds I2C device driver for TI DS90Ux9xx de-/serializers,
-> support of subdevice controllers is done in separate drivers, because
-> not all IC functionality may be needed in particular situations, and
-> this can be fine grained controlled in device tree.
+> The change adds TI DS90Ux9xx I2C bridge/alias subdevice driver and
+> FPD Link connection handling mechanism.
+> 
+> Access to I2C devices connected to a remote de-/serializer is done in
+> a transparent way, on established link detection event such devices
+> are registered on an I2C bus, which serves a local de-/serializer IC.
 > 
 > The development of the driver was a collaborative work, the
 > contribution done by Balasubramani Vivekanandan includes:
-> * original implementation of the driver based on a reference driver,
-> * regmap powered interrupt controller support on serializers,
-> * support of implicitly or improperly specified in device tree ICs,
-> * support of device properties and attributes: backward compatible
->   mode, low frequency operation mode, spread spectrum clock generator.
+> * original simplistic implementation of the driver,
+> * support of implicitly specified devices in device tree,
+> * support of multiple FPD links for TI DS90Ux9xx,
+> * other kind of valuable review comments, clean-ups and fixes.
 > 
-> Contribution by Steve Longerbeam:
-> * added ds90ux9xx_read_indirect() function,
-> * moved number of links property and added ds90ux9xx_num_fpd_links(),
-> * moved and updated ds90ux9xx_get_link_status() function to core driver,
-> * added fpd_link_show device attribute.
-> 
-> Sandeep Jain added support of pixel clock edge configuration.
+> Also Steve Longerbeam made the following changes:
+> * clear address maps after linked device removal,
+> * disable pass-through in disconnection,
+> * qualify locked status with non-zero remote address.
 > 
 > Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 > ---
->  drivers/mfd/Kconfig           |  14 +
->  drivers/mfd/Makefile          |   1 +
->  drivers/mfd/ds90ux9xx-core.c  | 879 ++++++++++++++++++++++++++++++++++
->  include/linux/mfd/ds90ux9xx.h |  42 ++
->  4 files changed, 936 insertions(+)
->  create mode 100644 drivers/mfd/ds90ux9xx-core.c
->  create mode 100644 include/linux/mfd/ds90ux9xx.h
-> 
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index 8c5dfdce4326..a969fa123f64 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -1280,6 +1280,20 @@ config MFD_DM355EVM_MSP
->  	  boards.  MSP430 firmware manages resets and power sequencing,
->  	  inputs from buttons and the IR remote, LEDs, an RTC, and more.
->  
-> +config MFD_DS90UX9XX
-> +	tristate "TI DS90Ux9xx FPD-Link de-/serializer driver"
-> +	depends on I2C && OF
-> +	select MFD_CORE
-> +	select REGMAP_I2C
-> +	help
-> +	  Say yes here to enable support for TI DS90UX9XX de-/serializer ICs.
-> +
-> +	  This driver provides basic support for setting up the de-/serializer
-> +	  chips. Additional functionalities like connection handling to
-> +	  remote de-/serializers, I2C bridging, pin multiplexing, GPIO
-> +	  controller and so on are provided by separate drivers and should
-> +	  enabled individually.
+>  drivers/mfd/Kconfig                |   8 +
+>  drivers/mfd/Makefile               |   1 +
+>  drivers/mfd/ds90ux9xx-i2c-bridge.c | 764 +++++++++++++++++++++++++++++
+>  3 files changed, 773 insertions(+)
+>  create mode 100644 drivers/mfd/ds90ux9xx-i2c-bridge.c
 
-This is not an MFD driver.
-
-After a 30 second Google of what this device actually does, perhaps
-drivers/media might be a better fit?
+Shouldn't this live in drivers/i2c?
 
 -- 
 Lee Jones [李琼斯]
