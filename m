@@ -1,133 +1,322 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw1-f68.google.com ([209.85.161.68]:40371 "EHLO
-        mail-yw1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726761AbeJLPiY (ORCPT
+Received: from mail-ed1-f68.google.com ([209.85.208.68]:42687 "EHLO
+        mail-ed1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727370AbeJLPxX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 11:38:24 -0400
-Received: by mail-yw1-f68.google.com with SMTP id l79-v6so4645106ywc.7
-        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2018 01:07:10 -0700 (PDT)
+        Fri, 12 Oct 2018 11:53:23 -0400
+Received: by mail-ed1-f68.google.com with SMTP id b7-v6so10689569edd.9
+        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2018 01:22:03 -0700 (PDT)
+Subject: Re: [PATCH 1/8] dma-buf: remove shared fence staging in reservation
+ object
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+To: amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>
+References: <20181004131250.2373-1-christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        Chris Wilson <chris@chris-wilson.co.uk>
+Message-ID: <30ba1fc8-58d5-1c75-406e-d10e68ec4b18@gmail.com>
+Date: Fri, 12 Oct 2018 10:22:00 +0200
 MIME-Version: 1.0
-References: <1537929738-27745-1-git-send-email-bingbu.cao@intel.com>
- <CAAFQd5Cv1r_d01ZM2z4wwyGNtrgXnfVivGXxqoVO5eiCQhPauQ@mail.gmail.com> <20181012075839.76xr3gu4jkpyf3yb@paasikivi.fi.intel.com>
-In-Reply-To: <20181012075839.76xr3gu4jkpyf3yb@paasikivi.fi.intel.com>
-From: Tomasz Figa <tfiga@google.com>
-Date: Fri, 12 Oct 2018 17:06:56 +0900
-Message-ID: <CAAFQd5DbPEWSU0Q3okdx1hDwgPya2NEPNmraTK-O2OR8KuRFXg@mail.gmail.com>
-Subject: Re: [PATCH v7] media: add imx319 camera sensor driver
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Cao Bing Bu <bingbu.cao@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        bingbu.cao@linux.intel.com,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20181004131250.2373-1-christian.koenig@amd.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 12, 2018 at 4:58 PM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Hi Tomasz,
->
-> On Fri, Oct 12, 2018 at 01:51:10PM +0900, Tomasz Figa wrote:
-> > Hi Sakari,
-> >
-> > On Wed, Sep 26, 2018 at 11:38 AM <bingbu.cao@intel.com> wrote:
-> > >
-> > > From: Bingbu Cao <bingbu.cao@intel.com>
-> > >
-> > > Add a v4l2 sub-device driver for the Sony imx319 image sensor.
-> > > This is a camera sensor using the i2c bus for control and the
-> > > csi-2 bus for data.
-> > >
-> > > This driver supports following features:
-> > > - manual exposure and analog/digital gain control support
-> > > - vblank/hblank control support
-> > > -  4 test patterns control support
-> > > - vflip/hflip control support (will impact the output bayer order)
-> > > - support following resolutions:
-> > >     - 3264x2448, 3280x2464 @ 30fps
-> > >     - 1936x1096, 1920x1080 @ 60fps
-> > >     - 1640x1232, 1640x922, 1296x736, 1280x720 @ 120fps
-> > > - support 4 bayer orders output (via change v/hflip)
-> > >     - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
-> > >
-> > > Cc: Tomasz Figa <tfiga@chromium.org>
-> > > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> > > Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> > >
-> > > ---
-> > >
-> > > This patch is based on sakari's media-tree git:
-> > > https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.20-1
-> > >
-> > > Changes from v5:
-> > >  - add some comments for gain calculation
-> > >  - use lock to protect the format
-> > >  - fix some style issues
-> > >
-> > > Changes from v4 to v5:
-> > >  - use single PLL for all internal clocks
-> > >  - change link frequency to 482.4MHz
-> > >  - adjust frame timing for 2x2 binning modes
-> > >    and enlarge frame readout time
-> > >  - get CSI-2 link frequencies and external clock
-> > >    from firmware
-> >
-> > If I remember correctly, that was suggested by you. Why do we need to
-> > specify link frequency in firmware if it's fully configured by the
-> > driver, with the only external dependency being the external clock?
->
-> The driver that's now in upstream supports, for now, a very limited set of
-> configurations from what the sensor supports. These are more or less
-> tailored to the particular system where it is being used right now (output
-> image size, external clock frequency, frame rates, link frequencies etc.).
+Ping! Adding a few people directly and more mailing lists.
 
-As a side note, they're tailored to exactly the system I mentioned,
-with different link frequency hardcoded in the firmware, coming from
-earlier stage of development.
+Can I get an acked-by/rb for this? It's only a cleanup and not much 
+functional change.
 
-> If the same sensor is needed elsewhere (quite likely), the configuration
-> needed elsewhere is very likely to be different from what you're using now.
+Regards,
+Christian.
+
+Am 04.10.2018 um 15:12 schrieb Christian König:
+> No need for that any more. Just replace the list when there isn't enough
+> room any more for the additional fence.
 >
-> The link frequency in particular is important as using a different link
-> frequency (which could be fine elsewhere) could cause EMI issues, e.g.
-> rendering your GPS receiver inoperable during the time the camera sensor is
-> streaming images.
+> Signed-off-by: Christian König <christian.koenig@amd.com>
+> ---
+>   drivers/dma-buf/reservation.c | 178 ++++++++++++++----------------------------
+>   include/linux/reservation.h   |   4 -
+>   2 files changed, 58 insertions(+), 124 deletions(-)
 >
-> Should new configurations be added to this driver to support a different
-> system, the link frequencies used by those configurations may be
-> problematic to your system, and after a software update the driver could as
-> well use those new frequencies. That's a big no-no.
->
-
-Okay, those are some valid points indeed, thanks for clarifying.
-
-> >
-> > We're having problems with firmware listing the link frequency from v4
-> > and we can't easily change it anymore to report the new one. I feel
-> > like this dependency on the firmware here is unnecessary, as long as
-> > the external clock frequency matches.
->
-> This is information you really need to know.
->
-> A number of older drivers do not use the link frequency information from
-> the firmware but that comes with a risk. Really, it's better to change the
-> frequency now to something you can choose, rather than have it changed
-> later on to something someone else chose for you.
-
-I guess it means that we have to carry a local downstream patch that
-bypasses this check, since we cannot easily change the firmware
-anymore.
-
-An alternative would be to make the driver try to select a frequency
-that matches what's in the firmware, but issue a warning and fall back
-to a default one if a matching is not found. It might be actually
-better than nothing for some early testing on new systems, since it
-wouldn't require firmware changes.
-
-Best regards,
-Tomasz
+> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+> index 6c95f61a32e7..5825fc336a13 100644
+> --- a/drivers/dma-buf/reservation.c
+> +++ b/drivers/dma-buf/reservation.c
+> @@ -68,105 +68,23 @@ EXPORT_SYMBOL(reservation_seqcount_string);
+>    */
+>   int reservation_object_reserve_shared(struct reservation_object *obj)
+>   {
+> -	struct reservation_object_list *fobj, *old;
+> -	u32 max;
+> +	struct reservation_object_list *old, *new;
+> +	unsigned int i, j, k, max;
+>   
+>   	old = reservation_object_get_list(obj);
+>   
+>   	if (old && old->shared_max) {
+> -		if (old->shared_count < old->shared_max) {
+> -			/* perform an in-place update */
+> -			kfree(obj->staged);
+> -			obj->staged = NULL;
+> +		if (old->shared_count < old->shared_max)
+>   			return 0;
+> -		} else
+> +		else
+>   			max = old->shared_max * 2;
+> -	} else
+> -		max = 4;
+> -
+> -	/*
+> -	 * resize obj->staged or allocate if it doesn't exist,
+> -	 * noop if already correct size
+> -	 */
+> -	fobj = krealloc(obj->staged, offsetof(typeof(*fobj), shared[max]),
+> -			GFP_KERNEL);
+> -	if (!fobj)
+> -		return -ENOMEM;
+> -
+> -	obj->staged = fobj;
+> -	fobj->shared_max = max;
+> -	return 0;
+> -}
+> -EXPORT_SYMBOL(reservation_object_reserve_shared);
+> -
+> -static void
+> -reservation_object_add_shared_inplace(struct reservation_object *obj,
+> -				      struct reservation_object_list *fobj,
+> -				      struct dma_fence *fence)
+> -{
+> -	struct dma_fence *signaled = NULL;
+> -	u32 i, signaled_idx;
+> -
+> -	dma_fence_get(fence);
+> -
+> -	preempt_disable();
+> -	write_seqcount_begin(&obj->seq);
+> -
+> -	for (i = 0; i < fobj->shared_count; ++i) {
+> -		struct dma_fence *old_fence;
+> -
+> -		old_fence = rcu_dereference_protected(fobj->shared[i],
+> -						reservation_object_held(obj));
+> -
+> -		if (old_fence->context == fence->context) {
+> -			/* memory barrier is added by write_seqcount_begin */
+> -			RCU_INIT_POINTER(fobj->shared[i], fence);
+> -			write_seqcount_end(&obj->seq);
+> -			preempt_enable();
+> -
+> -			dma_fence_put(old_fence);
+> -			return;
+> -		}
+> -
+> -		if (!signaled && dma_fence_is_signaled(old_fence)) {
+> -			signaled = old_fence;
+> -			signaled_idx = i;
+> -		}
+> -	}
+> -
+> -	/*
+> -	 * memory barrier is added by write_seqcount_begin,
+> -	 * fobj->shared_count is protected by this lock too
+> -	 */
+> -	if (signaled) {
+> -		RCU_INIT_POINTER(fobj->shared[signaled_idx], fence);
+>   	} else {
+> -		BUG_ON(fobj->shared_count >= fobj->shared_max);
+> -		RCU_INIT_POINTER(fobj->shared[fobj->shared_count], fence);
+> -		fobj->shared_count++;
+> +		max = 4;
+>   	}
+>   
+> -	write_seqcount_end(&obj->seq);
+> -	preempt_enable();
+> -
+> -	dma_fence_put(signaled);
+> -}
+> -
+> -static void
+> -reservation_object_add_shared_replace(struct reservation_object *obj,
+> -				      struct reservation_object_list *old,
+> -				      struct reservation_object_list *fobj,
+> -				      struct dma_fence *fence)
+> -{
+> -	unsigned i, j, k;
+> -
+> -	dma_fence_get(fence);
+> -
+> -	if (!old) {
+> -		RCU_INIT_POINTER(fobj->shared[0], fence);
+> -		fobj->shared_count = 1;
+> -		goto done;
+> -	}
+> +	new = kmalloc(offsetof(typeof(*new), shared[max]), GFP_KERNEL);
+> +	if (!new)
+> +		return -ENOMEM;
+>   
+>   	/*
+>   	 * no need to bump fence refcounts, rcu_read access
+> @@ -174,46 +92,45 @@ reservation_object_add_shared_replace(struct reservation_object *obj,
+>   	 * references from the old struct are carried over to
+>   	 * the new.
+>   	 */
+> -	for (i = 0, j = 0, k = fobj->shared_max; i < old->shared_count; ++i) {
+> -		struct dma_fence *check;
+> +	for (i = 0, j = 0, k = max; i < (old ? old->shared_count : 0); ++i) {
+> +		struct dma_fence *fence;
+>   
+> -		check = rcu_dereference_protected(old->shared[i],
+> -						reservation_object_held(obj));
+> -
+> -		if (check->context == fence->context ||
+> -		    dma_fence_is_signaled(check))
+> -			RCU_INIT_POINTER(fobj->shared[--k], check);
+> +		fence = rcu_dereference_protected(old->shared[i],
+> +						  reservation_object_held(obj));
+> +		if (dma_fence_is_signaled(fence))
+> +			RCU_INIT_POINTER(new->shared[--k], fence);
+>   		else
+> -			RCU_INIT_POINTER(fobj->shared[j++], check);
+> +			RCU_INIT_POINTER(new->shared[j++], fence);
+>   	}
+> -	fobj->shared_count = j;
+> -	RCU_INIT_POINTER(fobj->shared[fobj->shared_count], fence);
+> -	fobj->shared_count++;
+> +	new->shared_count = j;
+> +	new->shared_max = max;
+>   
+> -done:
+>   	preempt_disable();
+>   	write_seqcount_begin(&obj->seq);
+>   	/*
+>   	 * RCU_INIT_POINTER can be used here,
+>   	 * seqcount provides the necessary barriers
+>   	 */
+> -	RCU_INIT_POINTER(obj->fence, fobj);
+> +	RCU_INIT_POINTER(obj->fence, new);
+>   	write_seqcount_end(&obj->seq);
+>   	preempt_enable();
+>   
+>   	if (!old)
+> -		return;
+> +		return 0;
+>   
+>   	/* Drop the references to the signaled fences */
+> -	for (i = k; i < fobj->shared_max; ++i) {
+> -		struct dma_fence *f;
+> +	for (i = k; i < new->shared_max; ++i) {
+> +		struct dma_fence *fence;
+>   
+> -		f = rcu_dereference_protected(fobj->shared[i],
+> -					      reservation_object_held(obj));
+> -		dma_fence_put(f);
+> +		fence = rcu_dereference_protected(new->shared[i],
+> +						  reservation_object_held(obj));
+> +		dma_fence_put(fence);
+>   	}
+>   	kfree_rcu(old, rcu);
+> +
+> +	return 0;
+>   }
+> +EXPORT_SYMBOL(reservation_object_reserve_shared);
+>   
+>   /**
+>    * reservation_object_add_shared_fence - Add a fence to a shared slot
+> @@ -226,15 +143,39 @@ reservation_object_add_shared_replace(struct reservation_object *obj,
+>   void reservation_object_add_shared_fence(struct reservation_object *obj,
+>   					 struct dma_fence *fence)
+>   {
+> -	struct reservation_object_list *old, *fobj = obj->staged;
+> +	struct reservation_object_list *fobj;
+> +	unsigned int i;
+>   
+> -	old = reservation_object_get_list(obj);
+> -	obj->staged = NULL;
+> +	dma_fence_get(fence);
+> +
+> +	fobj = reservation_object_get_list(obj);
+>   
+> -	if (!fobj)
+> -		reservation_object_add_shared_inplace(obj, old, fence);
+> -	else
+> -		reservation_object_add_shared_replace(obj, old, fobj, fence);
+> +	preempt_disable();
+> +	write_seqcount_begin(&obj->seq);
+> +
+> +	for (i = 0; i < fobj->shared_count; ++i) {
+> +		struct dma_fence *old_fence;
+> +
+> +		old_fence = rcu_dereference_protected(fobj->shared[i],
+> +						      reservation_object_held(obj));
+> +		if (old_fence->context == fence->context ||
+> +		    dma_fence_is_signaled(old_fence)) {
+> +			dma_fence_put(old_fence);
+> +			goto replace;
+> +		}
+> +	}
+> +
+> +	BUG_ON(fobj->shared_count >= fobj->shared_max);
+> +	fobj->shared_count++;
+> +
+> +replace:
+> +	/*
+> +	 * memory barrier is added by write_seqcount_begin,
+> +	 * fobj->shared_count is protected by this lock too
+> +	 */
+> +	RCU_INIT_POINTER(fobj->shared[i], fence);
+> +	write_seqcount_end(&obj->seq);
+> +	preempt_enable();
+>   }
+>   EXPORT_SYMBOL(reservation_object_add_shared_fence);
+>   
+> @@ -343,9 +284,6 @@ int reservation_object_copy_fences(struct reservation_object *dst,
+>   	new = dma_fence_get_rcu_safe(&src->fence_excl);
+>   	rcu_read_unlock();
+>   
+> -	kfree(dst->staged);
+> -	dst->staged = NULL;
+> -
+>   	src_list = reservation_object_get_list(dst);
+>   	old = reservation_object_get_excl(dst);
+>   
+> diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+> index 02166e815afb..54cf6773a14c 100644
+> --- a/include/linux/reservation.h
+> +++ b/include/linux/reservation.h
+> @@ -68,7 +68,6 @@ struct reservation_object_list {
+>    * @seq: sequence count for managing RCU read-side synchronization
+>    * @fence_excl: the exclusive fence, if there is one currently
+>    * @fence: list of current shared fences
+> - * @staged: staged copy of shared fences for RCU updates
+>    */
+>   struct reservation_object {
+>   	struct ww_mutex lock;
+> @@ -76,7 +75,6 @@ struct reservation_object {
+>   
+>   	struct dma_fence __rcu *fence_excl;
+>   	struct reservation_object_list __rcu *fence;
+> -	struct reservation_object_list *staged;
+>   };
+>   
+>   #define reservation_object_held(obj) lockdep_is_held(&(obj)->lock.base)
+> @@ -95,7 +93,6 @@ reservation_object_init(struct reservation_object *obj)
+>   	__seqcount_init(&obj->seq, reservation_seqcount_string, &reservation_seqcount_class);
+>   	RCU_INIT_POINTER(obj->fence, NULL);
+>   	RCU_INIT_POINTER(obj->fence_excl, NULL);
+> -	obj->staged = NULL;
+>   }
+>   
+>   /**
+> @@ -124,7 +121,6 @@ reservation_object_fini(struct reservation_object *obj)
+>   
+>   		kfree(fobj);
+>   	}
+> -	kfree(obj->staged);
+>   
+>   	ww_mutex_destroy(&obj->lock);
+>   }
