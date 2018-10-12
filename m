@@ -1,96 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it1-f193.google.com ([209.85.166.193]:35960 "EHLO
-        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727056AbeJLM5W (ORCPT
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:46986 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727302AbeJLNeJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 08:57:22 -0400
-Received: by mail-it1-f193.google.com with SMTP id c85-v6so16643005itd.1
-        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 22:26:40 -0700 (PDT)
-Received: from mail-io1-f50.google.com (mail-io1-f50.google.com. [209.85.166.50])
-        by smtp.gmail.com with ESMTPSA id b26-v6sm22326iod.38.2018.10.11.22.26.38
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 11 Oct 2018 22:26:39 -0700 (PDT)
-Received: by mail-io1-f50.google.com with SMTP id p4-v6so8386407iom.3
-        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 22:26:38 -0700 (PDT)
+        Fri, 12 Oct 2018 09:34:09 -0400
+Received: by mail-wr1-f66.google.com with SMTP id n11-v6so11964215wru.13
+        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 23:03:19 -0700 (PDT)
+Date: Fri, 12 Oct 2018 07:03:14 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Vladimir Zapolskiy <vz@mleia.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: Re: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD
+ driver
+Message-ID: <20181012060314.GU4939@dell>
+References: <20181008211205.2900-1-vz@mleia.com>
+ <20181008211205.2900-5-vz@mleia.com>
 MIME-Version: 1.0
-References: <1539071634-1644-1-git-send-email-mgottam@codeaurora.org>
-In-Reply-To: <1539071634-1644-1-git-send-email-mgottam@codeaurora.org>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Fri, 12 Oct 2018 14:26:26 +0900
-Message-ID: <CAPBb6MUt_V4zEKGcRYXRXNRVdjF2uspOvEj0T-dH6dBZ9ya9CA@mail.gmail.com>
-Subject: Re: [PATCH] media: venus: add support for key frame
-To: mgottam@codeaurora.org
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20181008211205.2900-5-vz@mleia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 9, 2018 at 4:54 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
->
-> When client requests for a keyframe, set the property
-> to hardware to generate the sync frame.
->
-> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+On Tue, 09 Oct 2018, Vladimir Zapolskiy wrote:
+
+> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> 
+> The change adds I2C device driver for TI DS90Ux9xx de-/serializers,
+> support of subdevice controllers is done in separate drivers, because
+> not all IC functionality may be needed in particular situations, and
+> this can be fine grained controlled in device tree.
+> 
+> The development of the driver was a collaborative work, the
+> contribution done by Balasubramani Vivekanandan includes:
+> * original implementation of the driver based on a reference driver,
+> * regmap powered interrupt controller support on serializers,
+> * support of implicitly or improperly specified in device tree ICs,
+> * support of device properties and attributes: backward compatible
+>   mode, low frequency operation mode, spread spectrum clock generator.
+> 
+> Contribution by Steve Longerbeam:
+> * added ds90ux9xx_read_indirect() function,
+> * moved number of links property and added ds90ux9xx_num_fpd_links(),
+> * moved and updated ds90ux9xx_get_link_status() function to core driver,
+> * added fpd_link_show device attribute.
+> 
+> Sandeep Jain added support of pixel clock edge configuration.
+> 
+> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 > ---
->  drivers/media/platform/qcom/venus/venc_ctrls.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
->
-> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> index 45910172..f332c8e 100644
-> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
-> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
-> @@ -81,6 +81,8 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->         struct venc_controls *ctr = &inst->controls.enc;
->         u32 bframes;
->         int ret;
-> +       void *ptr;
-> +       u32 ptype;
->
->         switch (ctrl->id) {
->         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
-> @@ -173,6 +175,14 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
->
->                 ctr->num_b_frames = bframes;
->                 break;
-> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
-> +               ptype = HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME;
-> +               ret = hfi_session_set_property(inst, ptype, ptr);
-
-The test bot already said it, but ptr is passed to
-hfi_session_set_property() uninitialized. And as can be expected the
-call returns -EINVAL on my board.
-
-Looking at other uses of HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME I
-see that the packet sent to the firmware does not have room for an
-argument, so I tried to pass NULL but got the same result.
-
+>  drivers/mfd/Kconfig           |  14 +
+>  drivers/mfd/Makefile          |   1 +
+>  drivers/mfd/ds90ux9xx-core.c  | 879 ++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/ds90ux9xx.h |  42 ++
+>  4 files changed, 936 insertions(+)
+>  create mode 100644 drivers/mfd/ds90ux9xx-core.c
+>  create mode 100644 include/linux/mfd/ds90ux9xx.h
+> 
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index 8c5dfdce4326..a969fa123f64 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -1280,6 +1280,20 @@ config MFD_DM355EVM_MSP
+>  	  boards.  MSP430 firmware manages resets and power sequencing,
+>  	  inputs from buttons and the IR remote, LEDs, an RTC, and more.
+>  
+> +config MFD_DS90UX9XX
+> +	tristate "TI DS90Ux9xx FPD-Link de-/serializer driver"
+> +	depends on I2C && OF
+> +	select MFD_CORE
+> +	select REGMAP_I2C
+> +	help
+> +	  Say yes here to enable support for TI DS90UX9XX de-/serializer ICs.
 > +
+> +	  This driver provides basic support for setting up the de-/serializer
+> +	  chips. Additional functionalities like connection handling to
+> +	  remote de-/serializers, I2C bridging, pin multiplexing, GPIO
+> +	  controller and so on are provided by separate drivers and should
+> +	  enabled individually.
 
-This newline is unnecessary.
+This is not an MFD driver.
 
-> +               if (ret)
-> +                       return ret;
-> +
-> +               break;
->         default:
->                 return -EINVAL;
->         }
-> @@ -309,6 +319,9 @@ int venc_ctrl_init(struct venus_inst *inst)
->         v4l2_ctrl_new_std(&inst->ctrl_handler, &venc_ctrl_ops,
->                 V4L2_CID_MPEG_VIDEO_H264_I_PERIOD, 0, (1 << 16) - 1, 1, 0);
->
-> +       v4l2_ctrl_new_std(&inst->ctrl_handler, &venc_ctrl_ops,
-> +                         V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME, 0, 0, 0, 0);
-> +
->         ret = inst->ctrl_handler.error;
->         if (ret)
->                 goto err;
-> --
-> 1.9.1
->
+After a 30 second Google of what this device actually does, perhaps
+drivers/media might be a better fit?
+
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
