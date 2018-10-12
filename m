@@ -1,66 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:37826 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726255AbeJMUK2 (ORCPT
+Received: from mail-ot1-f67.google.com ([209.85.210.67]:46226 "EHLO
+        mail-ot1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726608AbeJMATM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 Oct 2018 16:10:28 -0400
-Subject: Re: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD
- driver
-To: <kieran.bingham@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20181008211205.2900-1-vz@mleia.com>
- <20181008211205.2900-5-vz@mleia.com> <20181012060314.GU4939@dell>
- <63733d2e-f95e-8894-f2b0-0b551b5cfeeb@mentor.com>
- <20181012083924.GW4939@dell>
- <eef99526-9232-8cd4-9a7c-c30114d58806@ideasonboard.com>
- <506c03d7-7986-44dd-3290-92d16a8106ad@mentor.com>
- <4a807a53-1592-a895-f140-54e7acc473b3@ideasonboard.com>
-CC: Lee Jones <lee.jones@linaro.org>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>, <devicetree@vger.kernel.org>,
-        <linux-gpio@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <646af723-b78b-4481-50d9-e1b8f57abd79@mentor.com>
-Date: Sat, 13 Oct 2018 15:33:21 +0300
+        Fri, 12 Oct 2018 20:19:12 -0400
+Date: Fri, 12 Oct 2018 11:45:48 -0500
+From: Rob Herring <robh@kernel.org>
+To: Luis Oliveira <Luis.Oliveira@synopsys.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Joao.Pinto@synopsys.com, festevam@gmail.com,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        devicetree@vger.kernel.org
+Subject: Re: [V2, 2/5] Documentation: dt-bindings: Document the Synopsys MIPI
+ DPHY Rx bindings
+Message-ID: <20181012164548.GA11873@bogus>
+References: <20180920111648.27000-1-lolivei@synopsys.com>
+ <20180920111648.27000-3-lolivei@synopsys.com>
 MIME-Version: 1.0
-In-Reply-To: <4a807a53-1592-a895-f140-54e7acc473b3@ideasonboard.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180920111648.27000-3-lolivei@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+On Thu, Sep 20, 2018 at 01:16:40PM +0200, Luis Oliveira wrote:
+> Add device-tree bindings documentation for SNPS DesignWare MIPI D-PHY in
+> RX mode.
 
-On 10/12/2018 02:47 PM, Kieran Bingham wrote:
-> Hi Vladimir,
-> 
-
-[snip]
+"dt-bindings: phy: ..." for the subject.
 
 > 
-> Essentially they are multi purpose buses - which do not yet have a home.
-> We have used media as a home because of our use case.
+> Signed-off-by: Luis Oliveira <lolivei@synopsys.com>
+> ---
+> Changelog
+> v2:
+> - no changes
 > 
-> The use case whether they transfer frames from a camera or to a display
-> are of course closely related, but ultimately covered by two separate
-> subsystems at the pixel level (DRM vs V4L, or other for other data)
+>  .../devicetree/bindings/phy/snps,dphy-rx.txt       | 36 ++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
 > 
-> Perhaps as they are buses - on a level with USB or I2C (except they can
-> of course carry I2C or Serial as well as 'bi-directional video' etc ),
-> they are looking for their own subsystem.
-> 
-> Except I don't think we don't want to add a new subsystem for just one
-> (or two) devices...
-> 
+> diff --git a/Documentation/devicetree/bindings/phy/snps,dphy-rx.txt b/Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
+> new file mode 100644
+> index 0000000..9079f4a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
+> @@ -0,0 +1,36 @@
+> +Synopsys DesignWare MIPI Rx D-PHY block details
+> +
+> +Description
+> +-----------
+> +
+> +The Synopsys MIPI D-PHY controller supports MIPI-DPHY in receiver mode.
+> +Please refer to phy-bindings.txt for more information.
+> +
+> +Required properties:
+> +- compatible		: Shall be "snps,dphy-rx".
+> +- #phy-cells		: Must be 1.
+> +- snps,dphy-frequency	: Output frequency of the D-PHY.
+> +- snps,dphy-te-len	: Size of the communication interface (8 bits->8 or 12bits->12).
+> +- reg			: Physical base address and size of the device memory mapped
+> +		 	  registers;
+> +
+> +Optional properties:
+> +- snps,compat-mode	: Compatibility mode control
 
-I suppose that the incomplete list includes Maxim GMSL, TI FPD-Link III,
-SMSC/Microchip MOST (drivers/staging/most -- what's the destination after
-exiting staging?) an Inova APIX.
+type? values?
 
---
-Best wishes,
-Vladimir
+> +
+> +The per-board settings:
+> +- gpios 		: Synopsys testchip used as reference uses this to change setup
+> +		  	  configurations.
+
+Preferred to be named (e.g. foo-gpios). How many? What are their 
+functions?
+
+> +
+> +Example:
+> +
+> +	mipi_dphy_rx1: dphy@3040 {
+> +		compatible = "snps,dphy-rx";
+> +		#phy-cells = <1>;
+> +		snps,dphy-frequency = <300000>;
+> +		snps,dphy-te-len = <12>;
+> +		snps,compat-mode = <1>;
+> +		reg = < 0x03040 0x20
+> +			0x08000 0x100
+> +			0x09000 0x100>;
+> +	};
+> +
+> -- 
+> 2.9.3
+> 
