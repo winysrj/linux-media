@@ -1,49 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:21726 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726731AbeJLMDg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 08:03:36 -0400
-From: "Zhang, Ning A" <ning.a.zhang@intel.com>
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: question about V4L2_MEMORY_USERPTR on 64bit applications
-Date: Fri, 12 Oct 2018 04:33:03 +0000
-Message-ID: <1539318782.21249.7.camel@intel.com>
-References: <1539313441.21249.3.camel@intel.com>
-In-Reply-To: <1539313441.21249.3.camel@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <9FBD4F6272ACF147B26934BDF01033E9@intel.com>
-Content-Transfer-Encoding: base64
+Received: from mail-yb1-f196.google.com ([209.85.219.196]:42118 "EHLO
+        mail-yb1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727042AbeJLMV6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Oct 2018 08:21:58 -0400
+Received: by mail-yb1-f196.google.com with SMTP id p74-v6so4489594ybc.9
+        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 21:51:23 -0700 (PDT)
 MIME-Version: 1.0
+References: <1537929738-27745-1-git-send-email-bingbu.cao@intel.com>
+In-Reply-To: <1537929738-27745-1-git-send-email-bingbu.cao@intel.com>
+From: Tomasz Figa <tfiga@google.com>
+Date: Fri, 12 Oct 2018 13:51:10 +0900
+Message-ID: <CAAFQd5Cv1r_d01ZM2z4wwyGNtrgXnfVivGXxqoVO5eiCQhPauQ@mail.gmail.com>
+Subject: Re: [PATCH v7] media: add imx319 camera sensor driver
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Cao Bing Bu <bingbu.cao@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        bingbu.cao@linux.intel.com,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-c29ycnkgZm9yIHdyb25nIHF1ZXN0aW9uLCBJIHJlYWxseSBtZWV0IG1lbW9yeSBhZGRyZXNzIHRy
-dW5jYXRlZCBpc3N1ZSwNCndoZW4gdXNlIFY0TDIga2VybmVsIEFQSXMuDQoNCmluIGEga2VybmVs
-IHRocmVhZCBjcmVhdGVkIGJ5IGtlcm5lbF90aHJlYWQoKQ0KSSB2bV9tbWFwIGEgc2htZW1fZmls
-ZSB0byBhZGRyOiAwMDAwN2ZmZmY3ZmE4MDAwDQphbmQgcXVldWUgaXQgdG8gVjRMMiwgYWZ0ZXIg
-ZGVxdWV1ZSBpdCwgYW5kIEkgZmluZCB0aGUgYWRkcmVzcyBpcw0KdHJ1bmNhdGVkIHRvIDAwMDAw
-MDAwZjdmYTgwMDANCg0KSSB1c2UgX191NjQge2FrYSBsb25nIGxvbmcgdW5zaWduZWQgaW50fSB0
-byBzYXZlIGFkZHJlc3MsIGFuZCBJIGZpbmQNCnVzZXJwdHIgaXMgdW5zaWduZWQgbG9uZywgd3Jv
-bmdseSB0aGluayBpdCBhcyAiZGF0YSB0cnVuY2F0ZWQiDQphbmQgYSBsb3Qgb2YgX191MzIgaW4g
-dGhpcyBzdHJ1Y3R1cmUuDQoNCmV2ZXJ5dGhpbmcgd29ya3MgZmluZSwgYnV0IEkgc3RpbGwgZG9u
-J3QgdW5kZXJzdGFuZCB3aHkgaGlnaCAzMmJpdCBiZQ0KMC4uDQoNCkJSLg0KTmluZy4NCg0KDQrl
-nKggMjAxOC0xMC0xMuS6lOeahCAxMTowNCArMDgwMO+8jFpoYW5nIE5pbmflhpnpgZPvvJoNCj4g
-SGksDQo+IA0KPiBJIGhhdmUgcXVlc3Rpb24gYWJvdXQgVjRMMl9NRU1PUllfVVNFUlBUUiBvbiA2
-NGJpdCBhcHBsaWNhdGlvbnMuDQo+IA0KPiBzdHJ1Y3QgdjRsMl9idWZmZXIgew0KPiAJX191MzIJ
-CQlpbmRleDsNCj4gCV9fdTMyCQkJdHlwZTsNCj4gCV9fdTMyCQkJYnl0ZXN1c2VkOw0KPiAJX191
-MzIJCQlmbGFnczsNCj4gCV9fdTMyCQkJZmllbGQ7DQo+IAlzdHJ1Y3QgdGltZXZhbAkJdGltZXN0
-YW1wOw0KPiAJc3RydWN0IHY0bDJfdGltZWNvZGUJdGltZWNvZGU7DQo+IAlfX3UzMgkJCXNlcXVl
-bmNlOw0KPiANCj4gCS8qIG1lbW9yeSBsb2NhdGlvbiAqLw0KPiAJX191MzIJCQltZW1vcnk7DQo+
-IAl1bmlvbiB7DQo+IAkJX191MzLCoMKgwqDCoMKgwqDCoMKgwqDCoMKgb2Zmc2V0Ow0KPiAJCXVu
-c2lnbmVkIGxvbmfCoMKgwqB1c2VycHRyOyAgIDw8PC0tLSB0aGlzIGlzIGEgMzJiaXQgYWRkci4N
-Cj4gCQlzdHJ1Y3QgdjRsMl9wbGFuZSAqcGxhbmVzOw0KPiAJCV9fczMyCQlmZDsNCj4gCX0gbTsN
-Cj4gCV9fdTMyCQkJbGVuZ3RoOw0KPiAJX191MzIJCQlyZXNlcnZlZDI7DQo+IAlfX3UzMgkJCXJl
-c2VydmVkOw0KPiB9Ow0KPiANCj4gd2hlbiB1c2UgYSA2NGJpdCBhcHBsaWNhdGlvbiwgbWVtb3J5
-IGZyb20gbWFsbG9jIGlzIDY0Yml0IGFkZHJlc3MuDQo+IG1lbW9yeSBmcm9tIEdQVSAoZWcsIGlu
-dGVsIGk5MTUpIGFyZSBhbHNvIDY0Yml0IGFkZHJlc3MuDQo+IA0KPiB3aGVuIHVzZSB0aGVzZSBr
-aW5kIG9mIG1lbW9yeSBhc8KgVjRMMl9NRU1PUllfVVNFUlBUUiwgYWRkcmVzcyB3aWxsIGJlDQo+
-IHRydW5jYXRlZCBpbnRvIDMyYml0Lg0KPiANCj4gdGhpcyB3b3VsZCBiZSBlcnJvciwgYnV0IGFj
-dHVhbGx5IG5vdC4gSSByZWFsbHkgZG9uJ3QgdW5kZXJzdGFuZC4NCj4gDQo+IEJSLg0KPiBOaW5n
-Lg==
+Hi Sakari,
+
+On Wed, Sep 26, 2018 at 11:38 AM <bingbu.cao@intel.com> wrote:
+>
+> From: Bingbu Cao <bingbu.cao@intel.com>
+>
+> Add a v4l2 sub-device driver for the Sony imx319 image sensor.
+> This is a camera sensor using the i2c bus for control and the
+> csi-2 bus for data.
+>
+> This driver supports following features:
+> - manual exposure and analog/digital gain control support
+> - vblank/hblank control support
+> -  4 test patterns control support
+> - vflip/hflip control support (will impact the output bayer order)
+> - support following resolutions:
+>     - 3264x2448, 3280x2464 @ 30fps
+>     - 1936x1096, 1920x1080 @ 60fps
+>     - 1640x1232, 1640x922, 1296x736, 1280x720 @ 120fps
+> - support 4 bayer orders output (via change v/hflip)
+>     - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
+>
+> Cc: Tomasz Figa <tfiga@chromium.org>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
+> Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
+>
+> ---
+>
+> This patch is based on sakari's media-tree git:
+> https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.20-1
+>
+> Changes from v5:
+>  - add some comments for gain calculation
+>  - use lock to protect the format
+>  - fix some style issues
+>
+> Changes from v4 to v5:
+>  - use single PLL for all internal clocks
+>  - change link frequency to 482.4MHz
+>  - adjust frame timing for 2x2 binning modes
+>    and enlarge frame readout time
+>  - get CSI-2 link frequencies and external clock
+>    from firmware
+
+If I remember correctly, that was suggested by you. Why do we need to
+specify link frequency in firmware if it's fully configured by the
+driver, with the only external dependency being the external clock?
+
+We're having problems with firmware listing the link frequency from v4
+and we can't easily change it anymore to report the new one. I feel
+like this dependency on the firmware here is unnecessary, as long as
+the external clock frequency matches.
+
+Best regards,
+Tomasz
