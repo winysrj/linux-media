@@ -1,293 +1,777 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leonov.paulk.fr ([185.233.101.22]:36804 "EHLO leonov.paulk.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728131AbeJLUAV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 16:00:21 -0400
-Message-ID: <ff0c60810411c9f25b7412746a8e91d7e099774a.camel@paulk.fr>
-Subject: Re: [RFC PATCH v2] media: docs-rst: Document m2m stateless video
- decoder interface
-From: Paul Kocialkowski <contact@paulk.fr>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Pawel Osciak <posciak@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Date: Fri, 12 Oct 2018 14:28:34 +0200
-In-Reply-To: <CAAFQd5DvkvjMrdSVd-Ba5RiGUjM6Jp8hruk23A87sd4htoFovw@mail.gmail.com>
-References: <20181004081119.102575-1-acourbot@chromium.org>
-         <7bd6883f43f3ffa1803975236eb18b5e63d3455a.camel@paulk.fr>
-         <CAAFQd5DvkvjMrdSVd-Ba5RiGUjM6Jp8hruk23A87sd4htoFovw@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-4D5luGoNjzPR1BXOT9NZ"
-Mime-Version: 1.0
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:48305 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728145AbeJLTyg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Oct 2018 15:54:36 -0400
+Subject: Re: [PATCH v4 2/2] media: platform: Add Aspeed Video Engine driver
+To: Eddie James <eajames@linux.ibm.com>, linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
+        linux-aspeed@lists.ozlabs.org, andrew@aj.id.au,
+        openbmc@lists.ozlabs.org, robh+dt@kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, joel@jms.id.au
+References: <1538769466-14860-1-git-send-email-eajames@linux.ibm.com>
+ <1538769466-14860-3-git-send-email-eajames@linux.ibm.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bf07eb1f-bc17-ac59-d341-f19e2ab0c2e2@xs4all.nl>
+Date: Fri, 12 Oct 2018 14:22:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <1538769466-14860-3-git-send-email-eajames@linux.ibm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/05/2018 09:57 PM, Eddie James wrote:
+> The Video Engine (VE) embedded in the Aspeed AST2400 and AST2500 SOCs
+> can capture and compress video data from digital or analog sources. With
+> the Aspeed chip acting a service processor, the Video Engine can capture
+> the host processor graphics output.
+> 
+> Add a V4L2 driver to capture video data and compress it to JPEG images.
+> Make the video frames available through the V4L2 streaming interface.
+> 
+> Signed-off-by: Eddie James <eajames@linux.ibm.com>
+> ---
+>  MAINTAINERS                           |    8 +
+>  drivers/media/platform/Kconfig        |    8 +
+>  drivers/media/platform/Makefile       |    1 +
+>  drivers/media/platform/aspeed-video.c | 1674 +++++++++++++++++++++++++++++++++
+>  4 files changed, 1691 insertions(+)
+>  create mode 100644 drivers/media/platform/aspeed-video.c
+> 
 
---=-4D5luGoNjzPR1BXOT9NZ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+<snip>
 
-Hi,
+> +static int aspeed_video_enum_input(struct file *file, void *fh,
+> +				   struct v4l2_input *inp)
+> +{
+> +	if (inp->index)
+> +		return -EINVAL;
+> +
+> +	strscpy(inp->name, "Host VGA capture", sizeof(inp->name));
+> +	inp->type = V4L2_INPUT_TYPE_CAMERA;
+> +	inp->capabilities = V4L2_IN_CAP_DV_TIMINGS;
+> +	inp->status = V4L2_IN_ST_NO_SIGNAL | V4L2_IN_ST_NO_SYNC;
 
-Le mardi 09 octobre 2018 =C3=A0 14:58 +0900, Tomasz Figa a =C3=A9crit :
-> Hi Paul,
->=20
-> On Thu, Oct 4, 2018 at 9:40 PM Paul Kocialkowski <contact@paulk.fr> wrote=
-:
-> > Hi Alexandre,
-> >=20
-> > Thanks for submitting this second version of the RFC, it is very
-> > appreciated! I will try to provide useful feedback here and hopefully
-> > be more reactive than during v1 review!
-> >=20
-> > Most of it looks good to me, but there is a specific point I'd like to
-> > keep discussing.
-> >=20
-> > Le jeudi 04 octobre 2018 =C3=A0 17:11 +0900, Alexandre Courbot a =C3=A9=
-crit :
-> > > This patch documents the protocol that user-space should follow when
-> > > communicating with stateless video decoders. It is based on the
-> > > following references:
-> > >=20
-> > > * The current protocol used by Chromium (converted from config store =
-to
-> > >   request API)
-> > >=20
-> > > * The submitted Cedrus VPU driver
-> > >=20
-> > > As such, some things may not be entirely consistent with the current
-> > > state of drivers, so it would be great if all stakeholders could poin=
-t
-> > > out these inconsistencies. :)
-> > >=20
-> > > This patch is supposed to be applied on top of the Request API V18 as
-> > > well as the memory-to-memory video decoder interface series by Tomasz
-> > > Figa.
-> > >=20
-> > > Changes since V1:
-> > >=20
-> > > * Applied fixes received as feedback,
-> > > * Moved controls descriptions to the extended controls file,
-> > > * Document reference frame management and referencing (need Hans' fee=
-dback on
-> > >   that).
-> > >=20
-> > > Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> > > ---
-> > >  .../media/uapi/v4l/dev-stateless-decoder.rst  | 348 ++++++++++++++++=
-++
-> > >  Documentation/media/uapi/v4l/devices.rst      |   1 +
-> > >  .../media/uapi/v4l/extended-controls.rst      |  25 ++
-> > >  .../media/uapi/v4l/pixfmt-compressed.rst      |  54 ++-
-> > >  4 files changed, 424 insertions(+), 4 deletions(-)
-> > >  create mode 100644 Documentation/media/uapi/v4l/dev-stateless-decode=
-r.rst
-> > >=20
-> > > diff --git a/Documentation/media/uapi/v4l/dev-stateless-decoder.rst b=
-/Documentation/media/uapi/v4l/dev-stateless-decoder.rst
-> > > new file mode 100644
-> > > index 000000000000..e54246df18d0
-> > > --- /dev/null
-> > > +++ b/Documentation/media/uapi/v4l/dev-stateless-decoder.rst
-> > > @@ -0,0 +1,348 @@
-> > > +.. -*- coding: utf-8; mode: rst -*-
-> > > +
-> > > +.. _stateless_decoder:
-> > > +
-> > > +**************************************************
-> > > +Memory-to-memory Stateless Video Decoder Interface
-> > > +**************************************************
-> > > +
-> > > +A stateless decoder is a decoder that works without retaining any ki=
-nd of state
-> > > +between processing frames. This means that each frame is decoded ind=
-ependently
-> > > +of any previous and future frames, and that the client is responsibl=
-e for
-> > > +maintaining the decoding state and providing it to the driver. This =
-is in
-> > > +contrast to the stateful video decoder interface, where the hardware=
- maintains
-> > > +the decoding state and all the client has to do is to provide the ra=
-w encoded
-> > > +stream.
-> > > +
-> > > +This section describes how user-space ("the client") is expected to =
-communicate
-> > > +with such decoders in order to successfully decode an encoded stream=
-. Compared
-> > > +to stateful codecs, the driver/client sequence is simpler, but the c=
-ost of this
-> > > +simplicity is extra complexity in the client which must maintain a c=
-onsistent
-> > > +decoding state.
-> > > +
-> > > +Querying capabilities
-> > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > +
-> > > +1. To enumerate the set of coded formats supported by the driver, th=
-e client
-> > > +   calls :c:func:`VIDIOC_ENUM_FMT` on the ``OUTPUT`` queue.
-> > > +
-> > > +   * The driver must always return the full set of supported ``OUTPU=
-T`` formats,
-> > > +     irrespective of the format currently set on the ``CAPTURE`` que=
-ue.
-> > > +
-> > > +2. To enumerate the set of supported raw formats, the client calls
-> > > +   :c:func:`VIDIOC_ENUM_FMT` on the ``CAPTURE`` queue.
-> > > +
-> > > +   * The driver must return only the formats supported for the forma=
-t currently
-> > > +     active on the ``OUTPUT`` queue.
-> > > +
-> > > +   * Depending on the currently set ``OUTPUT`` format, the set of su=
-pported raw
-> > > +     formats may depend on the value of some controls (e.g. H264 or =
-VP9
-> > > +     profile). The client is responsible for making sure that these =
-controls
-> > > +     are set to the desired value before querying the ``CAPTURE`` qu=
-eue.
-> >=20
-> > I still think we have a problem when enumerating CAPTURE formats, that
-> > providing the profile/level information does not help solving.
-> >=20
-> > From previous emails on v1 (to which I failed to react to), it seems
-> > that the consensus was to set the profile/level indication beforehand
-> > to reduce the subset of possible formats and return that as enumerated
-> > possible formats.
->=20
-> I think the consensus was to set all the the parsed header controls
-> and actually Alex seems to have mentioned it slightly further in his
-> patch:
->=20
-> +   * In order to enumerate raw formats supported by a given coded format=
-, the
-> +     client must thus set that coded format on the ``OUTPUT`` queue firs=
-t, then
-> +     set any control listed on the format's description, and finally enu=
-merate
-> +     the ``CAPTURE`` queue.
->=20
-> > However, it does not really solve the issue here, given the following
-> > distinct cases:
-> >=20
-> > 1. The VPU can only output the format for the decoded frame and that
-> > format is not known until the first buffer metadata is passed.
->=20
-> That's why I later suggested metadata (parsed header controls) and not
-> just some selective controls, such as profiles.
+This can't be right. If there is a valid signal, then status should be 0.
+And ideally you can tell the difference between no signal and no sync
+as well.
 
-Oh sorry, it seems that I misunderstood this part. I totally agree with
-the approach of setting the required codec controls then.
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_get_input(struct file *file, void *fh, unsigned int *i)
+> +{
+> +	*i = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_set_input(struct file *file, void *fh, unsigned int i)
+> +{
+> +	if (i)
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_get_parm(struct file *file, void *fh,
+> +				 struct v4l2_streamparm *a)
+> +{
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	a->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> +	a->parm.capture.readbuffers = 3;
+> +	a->parm.capture.timeperframe.numerator = 1;
+> +	if (!video->frame_rate)
+> +		a->parm.capture.timeperframe.denominator = MAX_FRAME_RATE + 1;
+> +	else
+> +		a->parm.capture.timeperframe.denominator = video->frame_rate;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_set_parm(struct file *file, void *fh,
+> +				 struct v4l2_streamparm *a)
+> +{
+> +	unsigned int frame_rate = 0;
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	a->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+> +	a->parm.capture.readbuffers = 3;
+> +
+> +	if (a->parm.capture.timeperframe.numerator)
+> +		frame_rate = a->parm.capture.timeperframe.denominator /
+> +			a->parm.capture.timeperframe.numerator;
+> +
+> +	if (!frame_rate || frame_rate > MAX_FRAME_RATE) {
+> +		frame_rate = 0;
+> +
+> +		/*
+> +		 * Set to max + 1 to differentiate between max and 0, which
+> +		 * means "don't care".
 
-I will look into how that can be managed with VAAPI. I recall that the
-format negotiation part happens very early (no metadata passed yet) and
-I don't think there's a way to change the format afterwards. But if
-there's a problem there, it's definitely on VAAPI's side and that
-should not contaminate our API.
+But what does "don't care" mean in practice? It's still not clear to me how this
+is supposed to work.
 
-> > Everything that is reported as supported at this point should be
-> > understood as supported formats for the decoded bitstreams, but
-> > userspace would have to pick the one matching the decoded format of the
-> > bitstream to decode. I don't really see the point of trying to reduce
-> > that list by providing the profile/level.
-> >=20
-> > 2. The VPU has some format conversion block in its pipeline and can
-> > actually provide a range of different formats for CAPTURE buffers,
-> > independently from the format of the decoded bitstream.
-> >=20
-> > Either way, I think (correct me if I'm wrong) that players do know the
-> > format from the decoded bitstream here, so enumeration only makes sense
-> > for case 2.
->=20
-> Players don't know the format for the decoded bitstream, as I already
-> explained before. From stream metadata they would only know whether
-> the stream is YUV 4:2:0 vs 4:2:2, but wouldn't know the exact hardware
-> constraints, e.g. whether NV12 or YUV420 is supported for given YUV
-> 4:2:0 stream.
+> +		 */
+> +		a->parm.capture.timeperframe.denominator = MAX_FRAME_RATE + 1;
 
-That's a good point, thanks!
+And regardless of anything else this timeperframe is out of the range that
+aspeed_video_enum_frameintervals() returns.
 
-> > Something we could do is to not enumerate any format for case 1., which
-> > we would specify as an indication that only the decoded bitstream
-> > format must be set. Then in case 2., we would enumerate the possible
-> > formats.
-> >=20
-> > For case 1., having the driver expose the supported profiles ensures
-> > that any format in a supported profile is valid although not
-> > enumerated.
->=20
-> Profile doesn't fully determine a specific pixel format, only the
-> abstract format (see above).
+> +		a->parm.capture.timeperframe.numerator = 1;
+> +	}
+> +
+> +	if (video->frame_rate != frame_rate) {
+> +		video->frame_rate = frame_rate;
+> +		aspeed_video_update(video, VE_CTRL, VE_CTRL_FRC,
+> +				    FIELD_PREP(VE_CTRL_FRC, frame_rate));
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_enum_framesizes(struct file *file, void *fh,
+> +					struct v4l2_frmsizeenum *fsize)
+> +{
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	if (fsize->index)
+> +		return -EINVAL;
+> +
+> +	if (fsize->pixel_format != V4L2_PIX_FMT_JPEG)
+> +		return -EINVAL;
+> +
+> +	fsize->discrete.width = video->pix_fmt.width;
+> +	fsize->discrete.height = video->pix_fmt.height;
+> +	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_enum_frameintervals(struct file *file, void *fh,
+> +					    struct v4l2_frmivalenum *fival)
+> +{
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	if (fival->index)
+> +		return -EINVAL;
+> +
+> +	if (fival->width != video->width || fival->height != video->height)
+> +		return -EINVAL;
+> +
+> +	if (fival->pixel_format != V4L2_PIX_FMT_JPEG)
+> +		return -EINVAL;
+> +
+> +	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+> +
+> +	fival->stepwise.min.denominator = MAX_FRAME_RATE;
+> +	fival->stepwise.min.numerator = 1;
+> +	fival->stepwise.max.denominator = 1;
+> +	fival->stepwise.max.numerator = 1;
+> +	fival->stepwise.step = fival->stepwise.max;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_set_dv_timings(struct file *file, void *fh,
+> +				       struct v4l2_dv_timings *timings)
+> +{
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
 
-=46rom what I've understood, profile indicates which YUV sub-sampling
-configuration is allowed, but there may be multiple ones. For instance,
-the High 4:4:4 profile allows both 4:2:2 and 4:4:4 sub-sampling.
+If vb2_is_busy() returns true, then return -EBUSY here. It is not allowed to
+set the timings while vb2 is busy.
 
-So I maintain that it doesn't make much sense to set the profile while
-decoding. Instead, I think it should be a read-only control that
-indicates what the hardware can do. Reading this control would allow
-userspace to find out whether the current video can be decoded in
-hardware or not (so this could be added to the Querying capabilities
-part of the doc).
+> +	if (video->width != timings->bt.width ||
+> +	    video->height != timings->bt.height)
+> +		return -EINVAL;
+> +
+> +	video->pix_fmt.width = timings->bt.width;
+> +	video->pix_fmt.height = timings->bt.height;
+> +	video->pix_fmt.sizeimage = video->max_compressed_size;
+> +	video->timings.width = timings->bt.width;
+> +	video->timings.height = timings->bt.height;
+> +
+> +	timings->type = V4L2_DV_BT_656_1120;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_get_dv_timings(struct file *file, void *fh,
+> +				       struct v4l2_dv_timings *timings)
+> +{
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	timings->type = V4L2_DV_BT_656_1120;
+> +	timings->bt = video->timings;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_query_dv_timings(struct file *file, void *fh,
+> +					 struct v4l2_dv_timings *timings)
+> +{
+> +	int rc;
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	if (file->f_flags & O_NONBLOCK) {
+> +		if (test_bit(VIDEO_RES_CHANGE, &video->flags))
+> +			return -EAGAIN;
+> +	} else {
+> +		rc = wait_event_interruptible(video->wait,
+> +					      !test_bit(VIDEO_RES_CHANGE,
+> +							&video->flags));
+> +		if (rc)
+> +			return -EINTR;
+> +	}
+> +
+> +	timings->type = V4L2_DV_BT_656_1120;
+> +	timings->bt = video->timings;
+> +	timings->bt.width = video->width;
+> +	timings->bt.height = video->height;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_enum_dv_timings(struct file *file, void *fh,
+> +					struct v4l2_enum_dv_timings *timings)
+> +{
+> +	if (timings->index)
+> +		return -EINVAL;
+> +
+> +	return aspeed_video_get_dv_timings(file, fh, &timings->timings);
+> +}
+> +
+> +static int aspeed_video_dv_timings_cap(struct file *file, void *fh,
+> +				       struct v4l2_dv_timings_cap *cap)
+> +{
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	cap->type = V4L2_DV_BT_656_1120;
+> +	cap->bt.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE;
+> +	cap->bt.min_width = video->width;
+> +	cap->bt.max_width = video->width;
+> +	cap->bt.min_height = video->height;
+> +	cap->bt.max_height = video->height;
 
-> > Alternatively, we could go with a control that indicates whether the
-> > driver supports a format decorrelated from the decoded bitstream format
-> > and still enumerate all formats in case 1., with the implication that
-> > only the right one must be picked by userspace. Here again, I don't see
-> > the point of reducing the list by setting the profile/level.
-> >=20
-> > So my goal here is to clearly enable userspace to distinguish between
-> > the two situations.
-> >=20
-> > What do you think?
->=20
-> Why would we need to create a control, if we already have the ENUM_FMT
-> API existing exactly to achieve this? We already have this problem
-> solved for stateful decoders and if we request the userspace to
-> actually set all the necessary metadata beforehand, the resulting
-> behavior (initialization sequence) would be much more consistent
-> between these 2 APIs.
+This should return the capabilities of the aspeed. In this case I'd
+guess that the max width/height is 1920x1080 (or perhaps 1200).
 
-Let's drop this idea altogether, setting required controls feels like a
-much more generic and cleaner approach.
+The minimum is probably the VGA resolution.
 
-Cheers,
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_sub_event(struct v4l2_fh *fh,
+> +				  const struct v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_SOURCE_CHANGE:
+> +		return v4l2_src_change_event_subscribe(fh, sub);
+> +	}
+> +
+> +	return v4l2_ctrl_subscribe_event(fh, sub);
+> +}
+> +
+> +static const struct v4l2_ioctl_ops aspeed_video_ioctl_ops = {
+> +	.vidioc_querycap = aspeed_video_querycap,
+> +
+> +	.vidioc_enum_fmt_vid_cap = aspeed_video_enum_format,
+> +	.vidioc_g_fmt_vid_cap = aspeed_video_get_format,
+> +	.vidioc_s_fmt_vid_cap = aspeed_video_get_format,
+> +	.vidioc_try_fmt_vid_cap = aspeed_video_get_format,
+> +
+> +	.vidioc_reqbufs = vb2_ioctl_reqbufs,
+> +	.vidioc_querybuf = vb2_ioctl_querybuf,
+> +	.vidioc_qbuf = vb2_ioctl_qbuf,
+> +	.vidioc_dqbuf = vb2_ioctl_dqbuf,
+> +	.vidioc_create_bufs = vb2_ioctl_create_bufs,
+> +	.vidioc_prepare_buf = vb2_ioctl_prepare_buf,
+> +	.vidioc_streamon = vb2_ioctl_streamon,
+> +	.vidioc_streamoff = vb2_ioctl_streamoff,
+> +
+> +	.vidioc_enum_input = aspeed_video_enum_input,
+> +	.vidioc_g_input = aspeed_video_get_input,
+> +	.vidioc_s_input = aspeed_video_set_input,
+> +
+> +	.vidioc_g_parm = aspeed_video_get_parm,
+> +	.vidioc_s_parm = aspeed_video_set_parm,
+> +	.vidioc_enum_framesizes = aspeed_video_enum_framesizes,
+> +	.vidioc_enum_frameintervals = aspeed_video_enum_frameintervals,
+> +
+> +	.vidioc_s_dv_timings = aspeed_video_set_dv_timings,
+> +	.vidioc_g_dv_timings = aspeed_video_get_dv_timings,
+> +	.vidioc_query_dv_timings = aspeed_video_query_dv_timings,
+> +	.vidioc_enum_dv_timings = aspeed_video_enum_dv_timings,
+> +	.vidioc_dv_timings_cap = aspeed_video_dv_timings_cap,
+> +
+> +	.vidioc_subscribe_event = aspeed_video_sub_event,
+> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+> +};
+> +
+> +static void aspeed_video_update_jpeg_quality(struct aspeed_video *video)
+> +{
+> +	u32 comp_ctrl = FIELD_PREP(VE_COMP_CTRL_DCT_LUM, video->jpeg_quality) |
+> +		FIELD_PREP(VE_COMP_CTRL_DCT_CHR, video->jpeg_quality | 0x10);
+> +
+> +	aspeed_video_update(video, VE_COMP_CTRL,
+> +			    VE_COMP_CTRL_DCT_LUM | VE_COMP_CTRL_DCT_CHR,
+> +			    comp_ctrl);
+> +}
+> +
+> +static void aspeed_video_update_subsampling(struct aspeed_video *video)
+> +{
+> +	if (video->jpeg.virt)
+> +		aspeed_video_init_jpeg_table(video->jpeg.virt, video->yuv420);
+> +
+> +	if (video->yuv420)
+> +		aspeed_video_update(video, VE_SEQ_CTRL, 0, VE_SEQ_CTRL_YUV420);
+> +	else
+> +		aspeed_video_update(video, VE_SEQ_CTRL, VE_SEQ_CTRL_YUV420, 0);
+> +}
+> +
+> +static int aspeed_video_set_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct aspeed_video *video = container_of(ctrl->handler,
+> +						  struct aspeed_video,
+> +						  ctrl_handler);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
+> +		video->jpeg_quality = ctrl->val;
+> +		aspeed_video_update_jpeg_quality(video);
+> +		break;
+> +	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+> +		if (ctrl->val == V4L2_JPEG_CHROMA_SUBSAMPLING_420) {
+> +			video->yuv420 = true;
+> +			aspeed_video_update_subsampling(video);
+> +		} else {
+> +			video->yuv420 = false;
+> +			aspeed_video_update_subsampling(video);
+> +		}
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops aspeed_video_ctrl_ops = {
+> +	.s_ctrl = aspeed_video_set_ctrl,
+> +};
+> +
+> +static void aspeed_video_resolution_work(struct work_struct *work)
+> +{
+> +	int rc;
+> +	struct delayed_work *dwork = to_delayed_work(work);
+> +	struct aspeed_video *video = container_of(dwork, struct aspeed_video,
+> +						  res_work);
+> +
+> +	/* No clients remaining after delay */
+> +	if (atomic_read(&video->clients) == 0)
+> +		goto done;
+> +
+> +	aspeed_video_on(video);
+> +
+> +	aspeed_video_init_regs(video);
+> +
+> +	rc = aspeed_video_get_resolution(video);
+> +	if (rc)
+> +		dev_err(video->dev,
+> +			"resolution changed; couldn't get new resolution\n");
+> +	else if (test_bit(VIDEO_STREAMING, &video->flags))
+> +		aspeed_video_start_frame(video);
+> +
+> +	if (video->width != video->pix_fmt.width ||
+> +	    video->height != video->pix_fmt.height) {
+> +		static const struct v4l2_event ev = {
+> +			.type = V4L2_EVENT_SOURCE_CHANGE,
+> +			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
+> +		};
+> +
+> +		v4l2_event_queue(&video->vdev, &ev);
+> +	}
+> +
+> +done:
+> +	clear_bit(VIDEO_RES_CHANGE, &video->flags);
+> +	wake_up_interruptible_all(&video->wait);
+> +}
+> +
+> +static int aspeed_video_open(struct file *file)
+> +{
+> +	int rc;
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	mutex_lock(&video->video_lock);
+> +
+> +	if (atomic_inc_return(&video->clients) == 1) {
+> +		rc = aspeed_video_start(video);
+> +		if (rc) {
+> +			dev_err(video->dev, "Failed to start video engine\n");
+> +			atomic_dec(&video->clients);
+> +			mutex_unlock(&video->video_lock);
+> +			return rc;
+> +		}
+> +	}
+> +
+> +	mutex_unlock(&video->video_lock);
+> +
+> +	return v4l2_fh_open(file);
+> +}
+> +
+> +static int aspeed_video_release(struct file *file)
+> +{
+> +	int rc;
+> +	struct aspeed_video *video = video_drvdata(file);
+> +
+> +	rc = vb2_fop_release(file);
+> +
+> +	mutex_lock(&video->video_lock);
+> +
+> +	if (atomic_dec_return(&video->clients) == 0)
+> +		aspeed_video_stop(video);
+> +
+> +	mutex_unlock(&video->video_lock);
+> +
+> +	return rc;
+> +}
+> +
+> +static const struct v4l2_file_operations aspeed_video_v4l2_fops = {
+> +	.owner = THIS_MODULE,
+> +	.read = vb2_fop_read,
+> +	.poll = vb2_fop_poll,
+> +	.unlocked_ioctl = video_ioctl2,
+> +	.mmap = vb2_fop_mmap,
+> +	.open = aspeed_video_open,
+> +	.release = aspeed_video_release,
+> +};
+> +
+> +static int aspeed_video_queue_setup(struct vb2_queue *q,
+> +				    unsigned int *num_buffers,
+> +				    unsigned int *num_planes,
+> +				    unsigned int sizes[],
+> +				    struct device *alloc_devs[])
+> +{
+> +	struct aspeed_video *video = vb2_get_drv_priv(q);
+> +
+> +	if (*num_planes) {
+> +		if (sizes[0] < video->max_compressed_size)
+> +			return -EINVAL;
+> +
+> +		return 0;
+> +	}
+> +
+> +	*num_planes = 1;
+> +	sizes[0] = video->max_compressed_size;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_buf_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct aspeed_video *video = vb2_get_drv_priv(vb->vb2_queue);
+> +
+> +	if (vb2_plane_size(vb, 0) < video->max_compressed_size)
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_start_streaming(struct vb2_queue *q,
+> +					unsigned int count)
+> +{
+> +	int rc;
+> +	struct aspeed_video *video = vb2_get_drv_priv(q);
+> +
+> +	rc = aspeed_video_start_frame(video);
+> +	if (rc) {
+> +		aspeed_video_bufs_done(video, VB2_BUF_STATE_QUEUED);
+> +		return rc;
+> +	}
+> +
+> +	video->sequence = 0;
+> +	set_bit(VIDEO_STREAMING, &video->flags);
+> +	return 0;
+> +}
+> +
+> +static void aspeed_video_stop_streaming(struct vb2_queue *q)
+> +{
+> +	int rc;
+> +	struct aspeed_video *video = vb2_get_drv_priv(q);
+> +
+> +	clear_bit(VIDEO_STREAMING, &video->flags);
+> +
+> +	rc = wait_event_timeout(video->wait,
+> +				!test_bit(VIDEO_FRAME_INPRG, &video->flags),
+> +				STOP_TIMEOUT);
+> +	if (!rc) {
+> +		dev_err(video->dev, "Timed out when stopping streaming\n");
+> +		aspeed_video_stop(video);
+> +	}
+> +
+> +	aspeed_video_bufs_done(video, VB2_BUF_STATE_ERROR);
+> +}
+> +
+> +static void aspeed_video_buf_queue(struct vb2_buffer *vb)
+> +{
+> +	struct aspeed_video *video = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct aspeed_video_buffer *avb = to_aspeed_video_buffer(vbuf);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&video->lock, flags);
+> +	list_add_tail(&avb->link, &video->buffers);
+> +	spin_unlock_irqrestore(&video->lock, flags);
+> +}
+> +
+> +static const struct vb2_ops aspeed_video_vb2_ops = {
+> +	.queue_setup = aspeed_video_queue_setup,
+> +	.wait_prepare = vb2_ops_wait_prepare,
+> +	.wait_finish = vb2_ops_wait_finish,
+> +	.buf_prepare = aspeed_video_buf_prepare,
+> +	.start_streaming = aspeed_video_start_streaming,
+> +	.stop_streaming = aspeed_video_stop_streaming,
+> +	.buf_queue =  aspeed_video_buf_queue,
+> +};
+> +
+> +static int aspeed_video_setup_video(struct aspeed_video *video)
+> +{
+> +	const u64 mask = ~(BIT(V4L2_JPEG_CHROMA_SUBSAMPLING_444) |
+> +			   BIT(V4L2_JPEG_CHROMA_SUBSAMPLING_420));
+> +	struct v4l2_device *v4l2_dev = &video->v4l2_dev;
+> +	struct vb2_queue *vbq = &video->queue;
+> +	struct video_device *vdev = &video->vdev;
+> +	int rc;
+> +
+> +	video->pix_fmt.pixelformat = V4L2_PIX_FMT_JPEG;
+> +	video->pix_fmt.field = V4L2_FIELD_NONE;
+> +	video->pix_fmt.colorspace = V4L2_COLORSPACE_SRGB;
+> +	video->pix_fmt.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+> +
+> +	rc = v4l2_device_register(video->dev, v4l2_dev);
+> +	if (rc) {
+> +		dev_err(video->dev, "Failed to register v4l2 device\n");
+> +		return rc;
+> +	}
+> +
+> +	v4l2_ctrl_handler_init(&video->ctrl_handler, 2);
+> +	v4l2_ctrl_new_std(&video->ctrl_handler, &aspeed_video_ctrl_ops,
+> +			  V4L2_CID_JPEG_COMPRESSION_QUALITY, 0,
+> +			  ASPEED_VIDEO_JPEG_NUM_QUALITIES - 1, 1, 0);
+> +	v4l2_ctrl_new_std_menu(&video->ctrl_handler, &aspeed_video_ctrl_ops,
+> +			       V4L2_CID_JPEG_CHROMA_SUBSAMPLING,
+> +			       V4L2_JPEG_CHROMA_SUBSAMPLING_420, mask,
+> +			       V4L2_JPEG_CHROMA_SUBSAMPLING_444);
+> +
+> +	if (video->ctrl_handler.error) {
+> +		v4l2_ctrl_handler_free(&video->ctrl_handler);
+> +		v4l2_device_unregister(v4l2_dev);
+> +
+> +		dev_err(video->dev, "Failed to init controls: %d\n",
+> +			video->ctrl_handler.error);
+> +		return rc;
+> +	}
+> +
+> +	v4l2_dev->ctrl_handler = &video->ctrl_handler;
+> +
+> +	vbq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	vbq->io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF;
+> +	vbq->dev = v4l2_dev->dev;
+> +	vbq->lock = &video->video_lock;
+> +	vbq->ops = &aspeed_video_vb2_ops;
+> +	vbq->mem_ops = &vb2_dma_contig_memops;
+> +	vbq->drv_priv = video;
+> +	vbq->buf_struct_size = sizeof(struct aspeed_video_buffer);
+> +	vbq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	vbq->min_buffers_needed = 3;
+> +
+> +	rc = vb2_queue_init(vbq);
+> +	if (rc) {
+> +		v4l2_ctrl_handler_free(&video->ctrl_handler);
+> +		v4l2_device_unregister(v4l2_dev);
+> +
+> +		dev_err(video->dev, "Failed to init vb2 queue\n");
+> +		return rc;
+> +	}
+> +
+> +	vdev->queue = vbq;
+> +	vdev->fops = &aspeed_video_v4l2_fops;
+> +	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
 
-Paul
+READWRITE doesn't work for JPEG since there is no clear end of a frame. Just drop
+this and the read op in aspeed_video_v4l2_fops.
 
---=20
-Developer of free digital technology and hardware support.
+> +		V4L2_CAP_STREAMING;
+> +	vdev->v4l2_dev = v4l2_dev;
+> +	strscpy(vdev->name, DEVICE_NAME, sizeof(vdev->name));
+> +	vdev->vfl_type = VFL_TYPE_GRABBER;
+> +	vdev->vfl_dir = VFL_DIR_RX;
+> +	vdev->release = video_device_release_empty;
+> +	vdev->ioctl_ops = &aspeed_video_ioctl_ops;
+> +	vdev->lock = &video->video_lock;
+> +
+> +	video_set_drvdata(vdev, video);
+> +	rc = video_register_device(vdev, VFL_TYPE_GRABBER, 0);
+> +	if (rc) {
+> +		vb2_queue_release(vbq);
+> +		v4l2_ctrl_handler_free(&video->ctrl_handler);
+> +		v4l2_device_unregister(v4l2_dev);
+> +
+> +		dev_err(video->dev, "Failed to register video device\n");
+> +		return rc;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_init(struct aspeed_video *video)
+> +{
+> +	int irq;
+> +	int rc;
+> +	struct device *dev = video->dev;
+> +
+> +	irq = irq_of_parse_and_map(dev->of_node, 0);
+> +	if (!irq) {
+> +		dev_err(dev, "Unable to find IRQ\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	rc = devm_request_irq(dev, irq, aspeed_video_irq, IRQF_SHARED,
+> +			      DEVICE_NAME, video);
+> +	if (rc < 0) {
+> +		dev_err(dev, "Unable to request IRQ %d\n", irq);
+> +		return rc;
+> +	}
+> +
+> +	video->eclk = devm_clk_get(dev, "eclk");
+> +	if (IS_ERR(video->eclk)) {
+> +		dev_err(dev, "Unable to get ECLK\n");
+> +		return PTR_ERR(video->eclk);
+> +	}
+> +
+> +	video->vclk = devm_clk_get(dev, "vclk");
+> +	if (IS_ERR(video->vclk)) {
+> +		dev_err(dev, "Unable to get VCLK\n");
+> +		return PTR_ERR(video->vclk);
+> +	}
+> +
+> +	video->rst = devm_reset_control_get_exclusive(dev, NULL);
+> +	if (IS_ERR(video->rst)) {
+> +		dev_err(dev, "Unable to get VE reset\n");
+> +		return PTR_ERR(video->rst);
+> +	}
+> +
+> +	rc = of_reserved_mem_device_init(dev);
+> +	if (rc) {
+> +		dev_err(dev, "Unable to reserve memory\n");
+> +		return rc;
+> +	}
+> +
+> +	rc = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32));
+> +	if (rc) {
+> +		dev_err(dev, "Failed to set DMA mask\n");
+> +		of_reserved_mem_device_release(dev);
+> +		return rc;
+> +	}
+> +
+> +	if (!aspeed_video_alloc_buf(video, &video->jpeg,
+> +				    VE_JPEG_HEADER_SIZE)) {
+> +		dev_err(dev, "Failed to allocate DMA for JPEG header\n");
+> +		of_reserved_mem_device_release(dev);
+> +		return rc;
+> +	}
+> +
+> +	aspeed_video_init_jpeg_table(video->jpeg.virt, video->yuv420);
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_probe(struct platform_device *pdev)
+> +{
+> +	int rc;
+> +	struct resource *res;
+> +	struct aspeed_video *video = kzalloc(sizeof(*video), GFP_KERNEL);
+> +
+> +	if (!video)
+> +		return -ENOMEM;
+> +
+> +	video->frame_rate = 30;
+> +	video->dev = &pdev->dev;
+> +	mutex_init(&video->video_lock);
+> +	init_waitqueue_head(&video->wait);
+> +	INIT_DELAYED_WORK(&video->res_work, aspeed_video_resolution_work);
+> +	INIT_LIST_HEAD(&video->buffers);
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +
+> +	video->base = devm_ioremap_resource(video->dev, res);
+> +
+> +	if (IS_ERR(video->base))
+> +		return PTR_ERR(video->base);
+> +
+> +	rc = aspeed_video_init(video);
+> +	if (rc)
+> +		return rc;
+> +
+> +	rc = aspeed_video_setup_video(video);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return 0;
+> +}
+> +
+> +static int aspeed_video_remove(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
+> +	struct aspeed_video *video = to_aspeed_video(v4l2_dev);
+> +
+> +	video_unregister_device(&video->vdev);
+> +
+> +	vb2_queue_release(&video->queue);
+> +
+> +	v4l2_ctrl_handler_free(&video->ctrl_handler);
+> +
+> +	v4l2_device_unregister(v4l2_dev);
+> +
+> +	dma_free_coherent(video->dev, VE_JPEG_HEADER_SIZE, video->jpeg.virt,
+> +			  video->jpeg.dma);
+> +
+> +	of_reserved_mem_device_release(dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id aspeed_video_of_match[] = {
+> +	{ .compatible = "aspeed,ast2400-video-engine" },
+> +	{ .compatible = "aspeed,ast2500-video-engine" },
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(of, aspeed_video_of_match);
+> +
+> +static struct platform_driver aspeed_video_driver = {
+> +	.driver = {
+> +		.name = DEVICE_NAME,
+> +		.of_match_table = aspeed_video_of_match,
+> +	},
+> +	.probe = aspeed_video_probe,
+> +	.remove = aspeed_video_remove,
+> +};
+> +
+> +module_platform_driver(aspeed_video_driver);
+> +
+> +MODULE_DESCRIPTION("ASPEED Video Engine Driver");
+> +MODULE_AUTHOR("Eddie James");
+> +MODULE_LICENSE("GPL v2");
+> 
 
-Website: https://www.paulk.fr/
-Coding blog: https://code.paulk.fr/
-Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
+Regards,
 
---=-4D5luGoNjzPR1BXOT9NZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEAbcMXZQMtj1fphLChP3B6o/ulQwFAlvAk3IACgkQhP3B6o/u
-lQwhHA//QjpEnNZTqcwc7ApvVPj/L4CK8Y6d0ZChHL5CpNx9HfKoqdCp9KhsYV+o
-jOZ16/y98fMJsyYmDNWVe0CIkSjHVGqNyHEa0MtyVNov4ikqDGbYrNC6rNIdM5rZ
-Y7nNec+9sAQHfvL7v9GVkwGEhgJ3QrgYzCJaQj13CdPAQrgxqcIYiasSfhBySxLg
-q8gcjzZVCj3G30oEkAvI0mpW7I3xQiSdT/IDIVZtorl/EfEwaKYEExXMNBsdIu1w
-25qXA+CCBQ55wFJofGspjJzslooahJr+iSRMaaixgEhGB8h0gqhE0QC8gw9lJVNF
-vLwfg//4z1UwgP5tNET+OoAcQ1PfLWnK2e8usl+SYQA+MLzwRnTbqYB3wEOeKjlT
-Pbt7wgg6ZNQId+IZHUzwEP0TCrSONekjIZdy2rHkFdI5S/LYzdIrjyKhQOYppazN
-Jqh/yarxegIeenUHF6msPKQckNKwdnmMRBI0KZ6tnwRuvcWQ6f43aIERaCsoE3A9
-pKLazi3aLKqf0geG185FaYdB+pa3rydqNozyZvgowTqaj36zCbDM5+f4iyEZy+IN
-cNKkq3RBMgB9Av6zeWC8LQ8wFZPNuItkyXOPu4La296Mz7eH1H6s+uQFjkTbz7I2
-hOP7NcQR6Q56VRftbJPksdEO6qwwhRTSUrBZhfW1f+LZIUrWjw8=
-=XgDL
------END PGP SIGNATURE-----
-
---=-4D5luGoNjzPR1BXOT9NZ--
+	Hans
