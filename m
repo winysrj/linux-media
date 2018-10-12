@@ -1,113 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:56435 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727151AbeJLP35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 11:29:57 -0400
-Date: Fri, 12 Oct 2018 10:58:39 +0300
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@google.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Cao Bing Bu <bingbu.cao@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        bingbu.cao@linux.intel.com,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
-Subject: Re: [PATCH v7] media: add imx319 camera sensor driver
-Message-ID: <20181012075839.76xr3gu4jkpyf3yb@paasikivi.fi.intel.com>
-References: <1537929738-27745-1-git-send-email-bingbu.cao@intel.com>
- <CAAFQd5Cv1r_d01ZM2z4wwyGNtrgXnfVivGXxqoVO5eiCQhPauQ@mail.gmail.com>
+Received: from mail-it1-f196.google.com ([209.85.166.196]:36447 "EHLO
+        mail-it1-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727378AbeJLPhh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Oct 2018 11:37:37 -0400
+Received: by mail-it1-f196.google.com with SMTP id c85-v6so17078412itd.1
+        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2018 01:06:23 -0700 (PDT)
+Received: from mail-it1-f181.google.com (mail-it1-f181.google.com. [209.85.166.181])
+        by smtp.gmail.com with ESMTPSA id g200-v6sm257888ita.44.2018.10.12.01.06.21
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 12 Oct 2018 01:06:21 -0700 (PDT)
+Received: by mail-it1-f181.google.com with SMTP id i76-v6so17062538ita.3
+        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2018 01:06:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5Cv1r_d01ZM2z4wwyGNtrgXnfVivGXxqoVO5eiCQhPauQ@mail.gmail.com>
+References: <1539071634-1644-1-git-send-email-mgottam@codeaurora.org>
+ <CAPBb6MUt_V4zEKGcRYXRXNRVdjF2uspOvEj0T-dH6dBZ9ya9CA@mail.gmail.com> <f1bb2ead-fe8e-af6a-1b96-9460a7b01f29@linaro.org>
+In-Reply-To: <f1bb2ead-fe8e-af6a-1b96-9460a7b01f29@linaro.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Fri, 12 Oct 2018 17:06:09 +0900
+Message-ID: <CAPBb6MXxaGMCY43fXwWYZmYmiVwDA6kdJRwWZGqUHhWOGXSz7Q@mail.gmail.com>
+Subject: Re: [PATCH] media: venus: add support for key frame
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: mgottam@codeaurora.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-On Fri, Oct 12, 2018 at 01:51:10PM +0900, Tomasz Figa wrote:
-> Hi Sakari,
-> 
-> On Wed, Sep 26, 2018 at 11:38 AM <bingbu.cao@intel.com> wrote:
+On Fri, Oct 12, 2018 at 4:37 PM Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+>
+> Hi Alex,
+>
+> On 10/12/2018 08:26 AM, Alexandre Courbot wrote:
+> > On Tue, Oct 9, 2018 at 4:54 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
+> >>
+> >> When client requests for a keyframe, set the property
+> >> to hardware to generate the sync frame.
+> >>
+> >> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> >> ---
+> >>  drivers/media/platform/qcom/venus/venc_ctrls.c | 13 +++++++++++++
+> >>  1 file changed, 13 insertions(+)
+> >>
+> >> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> index 45910172..f332c8e 100644
+> >> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> @@ -81,6 +81,8 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>         struct venc_controls *ctr = &inst->controls.enc;
+> >>         u32 bframes;
+> >>         int ret;
+> >> +       void *ptr;
+> >> +       u32 ptype;
+> >>
+> >>         switch (ctrl->id) {
+> >>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+> >> @@ -173,6 +175,14 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>
+> >>                 ctr->num_b_frames = bframes;
+> >>                 break;
+> >> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
+> >> +               ptype = HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME;
+> >> +               ret = hfi_session_set_property(inst, ptype, ptr);
 > >
-> > From: Bingbu Cao <bingbu.cao@intel.com>
+> > The test bot already said it, but ptr is passed to
+> > hfi_session_set_property() uninitialized. And as can be expected the
+> > call returns -EINVAL on my board.
 > >
-> > Add a v4l2 sub-device driver for the Sony imx319 image sensor.
-> > This is a camera sensor using the i2c bus for control and the
-> > csi-2 bus for data.
-> >
-> > This driver supports following features:
-> > - manual exposure and analog/digital gain control support
-> > - vblank/hblank control support
-> > -  4 test patterns control support
-> > - vflip/hflip control support (will impact the output bayer order)
-> > - support following resolutions:
-> >     - 3264x2448, 3280x2464 @ 30fps
-> >     - 1936x1096, 1920x1080 @ 60fps
-> >     - 1640x1232, 1640x922, 1296x736, 1280x720 @ 120fps
-> > - support 4 bayer orders output (via change v/hflip)
-> >     - SRGGB10(default), SGRBG10, SGBRG10, SBGGR10
-> >
-> > Cc: Tomasz Figa <tfiga@chromium.org>
-> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Signed-off-by: Bingbu Cao <bingbu.cao@intel.com>
-> > Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> >
-> > ---
-> >
-> > This patch is based on sakari's media-tree git:
-> > https://git.linuxtv.org/sailus/media_tree.git/log/?h=for-4.20-1
-> >
-> > Changes from v5:
-> >  - add some comments for gain calculation
-> >  - use lock to protect the format
-> >  - fix some style issues
-> >
-> > Changes from v4 to v5:
-> >  - use single PLL for all internal clocks
-> >  - change link frequency to 482.4MHz
-> >  - adjust frame timing for 2x2 binning modes
-> >    and enlarge frame readout time
-> >  - get CSI-2 link frequencies and external clock
-> >    from firmware
-> 
-> If I remember correctly, that was suggested by you. Why do we need to
-> specify link frequency in firmware if it's fully configured by the
-> driver, with the only external dependency being the external clock?
+> > Looking at other uses of HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME I
+> > see that the packet sent to the firmware does not have room for an
+> > argument, so I tried to pass NULL but got the same result.
+>
+> yes, because pdata cannot be NULL. I'd suggest to make a pointer to
+> struct hfi_enable and pass it to the set_property function.
 
-The driver that's now in upstream supports, for now, a very limited set of
-configurations from what the sensor supports. These are more or less
-tailored to the particular system where it is being used right now (output
-image size, external clock frequency, frame rates, link frequencies etc.).
-If the same sensor is needed elsewhere (quite likely), the configuration
-needed elsewhere is very likely to be different from what you're using now.
-
-The link frequency in particular is important as using a different link
-frequency (which could be fine elsewhere) could cause EMI issues, e.g.
-rendering your GPS receiver inoperable during the time the camera sensor is
-streaming images.
-
-Should new configurations be added to this driver to support a different
-system, the link frequencies used by those configurations may be
-problematic to your system, and after a software update the driver could as
-well use those new frequencies. That's a big no-no.
-
-> 
-> We're having problems with firmware listing the link frequency from v4
-> and we can't easily change it anymore to report the new one. I feel
-> like this dependency on the firmware here is unnecessary, as long as
-> the external clock frequency matches.
-
-This is information you really need to know.
-
-A number of older drivers do not use the link frequency information from
-the firmware but that comes with a risk. Really, it's better to change the
-frequency now to something you can choose, rather than have it changed
-later on to something someone else chose for you.
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+FWIW I also tried doing this and got the same error, strange...
