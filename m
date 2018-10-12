@@ -1,90 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:45454 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726731AbeJLMxi (ORCPT
+Received: from mail-it1-f193.google.com ([209.85.166.193]:35960 "EHLO
+        mail-it1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727056AbeJLM5W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 08:53:38 -0400
-From: <tbhardwa@codeaurora.org>
-To: "'Zhang, Ning A'" <ning.a.zhang@intel.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-References: <1539313441.21249.3.camel@intel.com> <1539318782.21249.7.camel@intel.com>
-In-Reply-To: <1539318782.21249.7.camel@intel.com>
-Subject: RE: question about V4L2_MEMORY_USERPTR on 64bit applications
-Date: Fri, 12 Oct 2018 10:52:51 +0530
-Message-ID: <000601d461eb$a1f7afc0$e5e70f40$@codeaurora.org>
+        Fri, 12 Oct 2018 08:57:22 -0400
+Received: by mail-it1-f193.google.com with SMTP id c85-v6so16643005itd.1
+        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 22:26:40 -0700 (PDT)
+Received: from mail-io1-f50.google.com (mail-io1-f50.google.com. [209.85.166.50])
+        by smtp.gmail.com with ESMTPSA id b26-v6sm22326iod.38.2018.10.11.22.26.38
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 11 Oct 2018 22:26:39 -0700 (PDT)
+Received: by mail-io1-f50.google.com with SMTP id p4-v6so8386407iom.3
+        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2018 22:26:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-us
+References: <1539071634-1644-1-git-send-email-mgottam@codeaurora.org>
+In-Reply-To: <1539071634-1644-1-git-send-email-mgottam@codeaurora.org>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Fri, 12 Oct 2018 14:26:26 +0900
+Message-ID: <CAPBb6MUt_V4zEKGcRYXRXNRVdjF2uspOvEj0T-dH6dBZ9ya9CA@mail.gmail.com>
+Subject: Re: [PATCH] media: venus: add support for key frame
+To: mgottam@codeaurora.org
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org, vgarodia@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-64 bit kernel have 64 bit long(not 32 bit), which is not the case with =
-userspace (in 64 bit userspace long is 32-bit). Probably thig got you =
-confused.
+On Tue, Oct 9, 2018 at 4:54 PM Malathi Gottam <mgottam@codeaurora.org> wrote:
+>
+> When client requests for a keyframe, set the property
+> to hardware to generate the sync frame.
+>
+> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/venc_ctrls.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+>
+> diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> index 45910172..f332c8e 100644
+> --- a/drivers/media/platform/qcom/venus/venc_ctrls.c
+> +++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+> @@ -81,6 +81,8 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+>         struct venc_controls *ctr = &inst->controls.enc;
+>         u32 bframes;
+>         int ret;
+> +       void *ptr;
+> +       u32 ptype;
+>
+>         switch (ctrl->id) {
+>         case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+> @@ -173,6 +175,14 @@ static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
+>
+>                 ctr->num_b_frames = bframes;
+>                 break;
+> +       case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
+> +               ptype = HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME;
+> +               ret = hfi_session_set_property(inst, ptype, ptr);
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org =
-<linux-media-owner@vger.kernel.org> On Behalf Of Zhang, Ning A
-Sent: Friday, October 12, 2018 10:03 AM
-To: linux-kernel@vger.kernel.org; linux-media@vger.kernel.org
-Subject: Re: question about V4L2_MEMORY_USERPTR on 64bit applications
+The test bot already said it, but ptr is passed to
+hfi_session_set_property() uninitialized. And as can be expected the
+call returns -EINVAL on my board.
 
-sorry for wrong question, I really meet memory address truncated issue, =
-when use V4L2 kernel APIs.
+Looking at other uses of HFI_PROPERTY_CONFIG_VENC_REQUEST_SYNC_FRAME I
+see that the packet sent to the firmware does not have room for an
+argument, so I tried to pass NULL but got the same result.
 
-in a kernel thread created by kernel_thread() I vm_mmap a shmem_file to =
-addr: 00007ffff7fa8000 and queue it to V4L2, after dequeue it, and I =
-find the address is truncated to 00000000f7fa8000
+> +
 
-I use __u64 {aka long long unsigned int} to save address, and I find =
-userptr is unsigned long, wrongly think it as "data truncated"
-and a lot of __u32 in this structure.
+This newline is unnecessary.
 
-everything works fine, but I still don't understand why high 32bit be =
-0..
-
-BR.
-Ning.
-
-
-=E5=9C=A8 2018-10-12=E4=BA=94=E7=9A=84 11:04 +0800=EF=BC=8CZhang =
-Ning=E5=86=99=E9=81=93=EF=BC=9A
-> Hi,
->=20
-> I have question about V4L2_MEMORY_USERPTR on 64bit applications.
->=20
-> struct v4l2_buffer {
-> 	__u32			index;
-> 	__u32			type;
-> 	__u32			bytesused;
-> 	__u32			flags;
-> 	__u32			field;
-> 	struct timeval		timestamp;
-> 	struct v4l2_timecode	timecode;
-> 	__u32			sequence;
->=20
-> 	/* memory location */
-> 	__u32			memory;
-> 	union {
-> 		__u32           offset;
-> 		unsigned long   userptr;   <<<--- this is a 32bit addr.
-> 		struct v4l2_plane *planes;
-> 		__s32		fd;
-> 	} m;
-> 	__u32			length;
-> 	__u32			reserved2;
-> 	__u32			reserved;
-> };
->=20
-> when use a 64bit application, memory from malloc is 64bit address.
-> memory from GPU (eg, intel i915) are also 64bit address.
->=20
-> when use these kind of memory as V4L2_MEMORY_USERPTR, address will be=20
-> truncated into 32bit.
->=20
-> this would be error, but actually not. I really don't understand.
->=20
-> BR.
-> Ning.
+> +               if (ret)
+> +                       return ret;
+> +
+> +               break;
+>         default:
+>                 return -EINVAL;
+>         }
+> @@ -309,6 +319,9 @@ int venc_ctrl_init(struct venus_inst *inst)
+>         v4l2_ctrl_new_std(&inst->ctrl_handler, &venc_ctrl_ops,
+>                 V4L2_CID_MPEG_VIDEO_H264_I_PERIOD, 0, (1 << 16) - 1, 1, 0);
+>
+> +       v4l2_ctrl_new_std(&inst->ctrl_handler, &venc_ctrl_ops,
+> +                         V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME, 0, 0, 0, 0);
+> +
+>         ret = inst->ctrl_handler.error;
+>         if (ret)
+>                 goto err;
+> --
+> 1.9.1
+>
