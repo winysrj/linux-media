@@ -1,177 +1,381 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:50451 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726917AbeJLSad (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33154 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726568AbeJLSyy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 14:30:33 -0400
-Subject: Re: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD
- driver
-To: <kieran.bingham@ideasonboard.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20181008211205.2900-1-vz@mleia.com>
- <20181008211205.2900-5-vz@mleia.com> <20181012060314.GU4939@dell>
- <63733d2e-f95e-8894-f2b0-0b551b5cfeeb@mentor.com>
- <20181012083924.GW4939@dell>
- <eef99526-9232-8cd4-9a7c-c30114d58806@ideasonboard.com>
-CC: Vladimir Zapolskiy <vz@mleia.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>, <devicetree@vger.kernel.org>,
-        <linux-gpio@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <506c03d7-7986-44dd-3290-92d16a8106ad@mentor.com>
-Date: Fri, 12 Oct 2018 13:58:15 +0300
+        Fri, 12 Oct 2018 14:54:54 -0400
+Subject: Re: [PATCH vicodec] media: davinci_vpfe: Replace function names with
+ __func__
+To: Dafna Hirschfeld <dafna3@gmail.com>, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, helen.koike@collabora.com
+Cc: outreachy-kernel@googlegroups.com, linux-media@vger.kernel.org
+References: <20181011185410.26268-1-dafna3@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <64389a68-482e-f048-c1fb-38b249502d2a@xs4all.nl>
+Date: Fri, 12 Oct 2018 13:22:49 +0200
 MIME-Version: 1.0
-In-Reply-To: <eef99526-9232-8cd4-9a7c-c30114d58806@ideasonboard.com>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20181011185410.26268-1-dafna3@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-On 10/12/2018 12:20 PM, Kieran Bingham wrote:
-> Hi Vladimir,
+On 10/11/2018 08:54 PM, Dafna Hirschfeld wrote:
+> Replace hardcoded function names with `__func__`
+> in debug prints.
 > 
-> On 12/10/18 09:39, Lee Jones wrote:
->> On Fri, 12 Oct 2018, Vladimir Zapolskiy wrote:
->>> On 10/12/2018 09:03 AM, Lee Jones wrote:
->>>> On Tue, 09 Oct 2018, Vladimir Zapolskiy wrote:
->>>>
->>>>> From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
->>>>>
->>>>> The change adds I2C device driver for TI DS90Ux9xx de-/serializers,
->>>>> support of subdevice controllers is done in separate drivers, because
->>>>> not all IC functionality may be needed in particular situations, and
->>>>> this can be fine grained controlled in device tree.
->>>>>
->>>>> The development of the driver was a collaborative work, the
->>>>> contribution done by Balasubramani Vivekanandan includes:
->>>>> * original implementation of the driver based on a reference driver,
->>>>> * regmap powered interrupt controller support on serializers,
->>>>> * support of implicitly or improperly specified in device tree ICs,
->>>>> * support of device properties and attributes: backward compatible
->>>>>   mode, low frequency operation mode, spread spectrum clock generator.
->>>>>
->>>>> Contribution by Steve Longerbeam:
->>>>> * added ds90ux9xx_read_indirect() function,
->>>>> * moved number of links property and added ds90ux9xx_num_fpd_links(),
->>>>> * moved and updated ds90ux9xx_get_link_status() function to core driver,
->>>>> * added fpd_link_show device attribute.
->>>>>
->>>>> Sandeep Jain added support of pixel clock edge configuration.
->>>>>
->>>>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
->>>>> ---
->>>>>  drivers/mfd/Kconfig           |  14 +
->>>>>  drivers/mfd/Makefile          |   1 +
->>>>>  drivers/mfd/ds90ux9xx-core.c  | 879 ++++++++++++++++++++++++++++++++++
->>>>>  include/linux/mfd/ds90ux9xx.h |  42 ++
->>>>>  4 files changed, 936 insertions(+)
->>>>>  create mode 100644 drivers/mfd/ds90ux9xx-core.c
->>>>>  create mode 100644 include/linux/mfd/ds90ux9xx.h
->>>>>
->>>>> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
->>>>> index 8c5dfdce4326..a969fa123f64 100644
->>>>> --- a/drivers/mfd/Kconfig
->>>>> +++ b/drivers/mfd/Kconfig
->>>>> @@ -1280,6 +1280,20 @@ config MFD_DM355EVM_MSP
->>>>>  	  boards.  MSP430 firmware manages resets and power sequencing,
->>>>>  	  inputs from buttons and the IR remote, LEDs, an RTC, and more.
->>>>>  
->>>>> +config MFD_DS90UX9XX
->>>>> +	tristate "TI DS90Ux9xx FPD-Link de-/serializer driver"
->>>>> +	depends on I2C && OF
->>>>> +	select MFD_CORE
->>>>> +	select REGMAP_I2C
->>>>> +	help
->>>>> +	  Say yes here to enable support for TI DS90UX9XX de-/serializer ICs.
->>>>> +
->>>>> +	  This driver provides basic support for setting up the de-/serializer
->>>>> +	  chips. Additional functionalities like connection handling to
->>>>> +	  remote de-/serializers, I2C bridging, pin multiplexing, GPIO
->>>>> +	  controller and so on are provided by separate drivers and should
->>>>> +	  enabled individually.
->>>>
->>>> This is not an MFD driver.
->>>
->>> Why do you think so? The representation of the ICs into device tree format
->>> of hardware description shows that this is a truly MFD driver with multiple
->>> IP subcomponents naturally mapped into MFD cells.
->>
->> This driver does too much real work ('stuff') to be an MFD driver.
->> MFD drivers should not need to care of; links, gates, modes, pixels,
->> frequencies maps or properties.  Nor should they contain elaborate
->> sysfs structures to control the aforementioned 'stuff'.
->>
->> Granted, there may be some code in there which could be appropriate
->> for an MFD driver.  However most of it needs moving out into a
->> function driver (or two).
->>
->>> Basically it is possible to replace explicit of_platform_populate() by
->>> adding a "simple-mfd" compatible, if it is desired.
->>>
->>>> After a 30 second Google of what this device actually does, perhaps
->>>> drivers/media might be a better fit?
->>>
->>> I assume it would be quite unusual to add a driver with NO media functions
->>> and controls into drivers/media.
->>
->> drivers/media may very well not be the correct place for this.  In my
->> 30 second Google, I saw that this device has a lot to do with cameras,
->> hence my media association.
->>
->> If *all* else fails, there is always drivers/misc, but this should be
->> avoided if at all possible.
+> Signed-off-by: Dafna Hirschfeld <dafna3@gmail.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
+
+> ---
+>  .../staging/media/davinci_vpfe/dm365_ipipe.c  |  6 +-
+>  .../media/davinci_vpfe/dm365_resizer.c        |  2 +-
+>  .../media/davinci_vpfe/vpfe_mc_capture.c      |  8 +--
+>  .../staging/media/davinci_vpfe/vpfe_video.c   | 56 +++++++++----------
+>  4 files changed, 36 insertions(+), 36 deletions(-)
 > 
-> The device as a whole is FPD Link for camera devices I believe, but it
-
-I still don't understand (I could be biased though) why there is such
-a strong emphasis on cameras and media stuff in the discussion.
-
-No, "the device as a whole is FPD Link for camera devices" is a wrong
-statement. On hand I have a number of boards with serializers/deserializers
-from the TI DS90Ux9xx IC series and sensors are NOT connected to them.
-
-> certainly has different functions which are broken out in this
-> implementation.
-
-No, there is absolutely nothing broken out from the presented MFD drivers,
-the drivers are completely integral and basically I don't expect any.
-
-If you are concerned about media functionality, the correspondent MFD
-*cell* drivers will be added into drivers/media, drivers/gpu/drm or
-whatever is to be a proper place.
-
-> I think it might be quite awkward having the i2c components in
-> drivers/i2c and the media components in drivers/media/i2c, so what about
-> creating drivers/media/i2c/fpd-link (or such) as a container?
-
-I open drivers/media/i2c/Kconfig and all entries with no exception are
-under from 'if VIDEO_V4L2'. The MFD drivers do NOT require on depend on
-VIDEO_V4L2 or any other multimedia frameworks, nor the MFD drivers export
-any multimedia controls.
-
-> Our GMSL implementation is also a complex camera(s) device - but does
-> not yet use the MFD framework, perhaps that's something to add to my
-> todo list.
-> 
-
-Okay, but the TI DS90Ux9xx is NOT a camera device, and it is NOT a multimedia
-device, but it is a pure MFD device so the argument is not applicable.
-
-> We currently keep all of the complexity within the max9286.c driver, but
-> I could foresee that being split further if more devices add to the
-> complexity of managing the bus. At which point we might want an
-> equivalent drivers/media/i2c/gmsl/ perhaps?
-> 
-
---
-Best wishes,
-Vladimir
-
->>> Laurent, can you please share your opinion?
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> index 95942768..4d09e814 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> @@ -695,21 +695,21 @@ static int ipipe_get_gamma_params(struct vpfe_ipipe_device *ipipe, void *param)
+>  
+>  	if (!gamma->bypass_r) {
+>  		dev_err(dev,
+> -			"ipipe_get_gamma_params: table ptr empty for R\n");
+> +			"%s: table ptr empty for R\n", __func__);
+>  		return -EINVAL;
+>  	}
+>  	memcpy(gamma_param->table_r, gamma->table_r,
+>  	       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+>  
+>  	if (!gamma->bypass_g) {
+> -		dev_err(dev, "ipipe_get_gamma_params: table ptr empty for G\n");
+> +		dev_err(dev, "%s: table ptr empty for G\n", __func__);
+>  		return -EINVAL;
+>  	}
+>  	memcpy(gamma_param->table_g, gamma->table_g,
+>  	       (table_size * sizeof(struct vpfe_ipipe_gamma_entry)));
+>  
+>  	if (!gamma->bypass_b) {
+> -		dev_err(dev, "ipipe_get_gamma_params: table ptr empty for B\n");
+> +		dev_err(dev, "%s: table ptr empty for B\n", __func__);
+>  		return -EINVAL;
+>  	}
+>  	memcpy(gamma_param->table_b, gamma->table_b,
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> index 2b797474..cdf7ea4f 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> @@ -946,7 +946,7 @@ resizer_get_configuration(struct vpfe_resizer_device *resizer,
+>  	if (copy_to_user((void __user *)chan_config->config,
+>  			 (void *)&resizer->config.user_config,
+>  			 sizeof(struct vpfe_rsz_config_params))) {
+> -		dev_err(dev, "resizer_get_configuration: Error in copy to user\n");
+> +		dev_err(dev, "%s: Error in copy to user\n", __func__);
+>  		return -EFAULT;
+>  	}
+>  
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> index e55c815b..8cb587d0 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> @@ -161,7 +161,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+>  {
+>  	struct vpfe_device *vpfe_dev = dev_id;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_isr\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	vpfe_isif_buffer_isr(&vpfe_dev->vpfe_isif);
+>  	vpfe_resizer_buffer_isr(&vpfe_dev->vpfe_resizer);
+>  	return IRQ_HANDLED;
+> @@ -172,7 +172,7 @@ static irqreturn_t vpfe_vdint1_isr(int irq, void *dev_id)
+>  {
+>  	struct vpfe_device *vpfe_dev = dev_id;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_vdint1_isr\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	vpfe_isif_vidint1_isr(&vpfe_dev->vpfe_isif);
+>  	return IRQ_HANDLED;
+>  }
+> @@ -182,7 +182,7 @@ static irqreturn_t vpfe_imp_dma_isr(int irq, void *dev_id)
+>  {
+>  	struct vpfe_device *vpfe_dev = dev_id;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_imp_dma_isr\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	vpfe_ipipeif_ss_buffer_isr(&vpfe_dev->vpfe_ipipeif);
+>  	vpfe_resizer_dma_isr(&vpfe_dev->vpfe_resizer);
+>  	return IRQ_HANDLED;
+> @@ -693,7 +693,7 @@ static int vpfe_remove(struct platform_device *pdev)
+>  {
+>  	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
+>  
+> -	v4l2_info(pdev->dev.driver, "vpfe_remove\n");
+> +	v4l2_info(pdev->dev.driver, "%s\n", __func__);
+>  
+>  	kzfree(vpfe_dev->sd);
+>  	vpfe_detach_irq(vpfe_dev);
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index 1269a983..b9bb6dac 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -521,7 +521,7 @@ static int vpfe_release(struct file *file)
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  	struct vpfe_fh *fh = container_of(vfh, struct vpfe_fh, vfh);
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_release\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	/* Get the device lock */
+>  	mutex_lock(&video->lock);
+> @@ -566,7 +566,7 @@ static int vpfe_mmap(struct file *file, struct vm_area_struct *vma)
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_mmap\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	return vb2_mmap(&video->buffer_queue, vma);
+>  }
+>  
+> @@ -578,7 +578,7 @@ static __poll_t vpfe_poll(struct file *file, poll_table *wait)
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_poll\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	if (video->started)
+>  		return vb2_poll(&video->buffer_queue, file, wait);
+>  	return 0;
+> @@ -610,7 +610,7 @@ static int vpfe_querycap(struct file *file, void  *priv,
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querycap\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>  		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+> @@ -641,7 +641,7 @@ static int vpfe_g_fmt(struct file *file, void *priv,
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_fmt\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	/* Fill in the information about format */
+>  	*fmt = video->fmt;
+>  	return 0;
+> @@ -670,7 +670,7 @@ static int vpfe_enum_fmt(struct file *file, void  *priv,
+>  	struct media_pad *remote;
+>  	int ret;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_fmt\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	/*
+>  	 * since already subdev pad format is set,
+> @@ -730,7 +730,7 @@ static int vpfe_s_fmt(struct file *file, void *priv,
+>  	struct v4l2_format format;
+>  	int ret;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_fmt\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	/* If streaming is started, return error */
+>  	if (video->started) {
+>  		v4l2_err(&vpfe_dev->v4l2_dev, "Streaming is started\n");
+> @@ -764,7 +764,7 @@ static int vpfe_try_fmt(struct file *file, void *priv,
+>  	struct v4l2_format format;
+>  	int ret;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_try_fmt\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	/* get adjacent subdev's output pad format */
+>  	ret = __vpfe_video_get_format(video, &format);
+>  	if (ret)
+> @@ -792,7 +792,7 @@ static int vpfe_enum_input(struct file *file, void *priv,
+>  	struct vpfe_ext_subdev_info *sdinfo = video->current_ext_subdev;
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_input\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	/* enumerate from the subdev user has chosen through mc */
+>  	if (inp->index < sdinfo->num_inputs) {
+>  		memcpy(inp, &sdinfo->inputs[inp->index],
+> @@ -815,7 +815,7 @@ static int vpfe_g_input(struct file *file, void *priv, unsigned int *index)
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_input\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	*index = video->current_input;
+>  	return 0;
+> @@ -843,7 +843,7 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
+>  	int ret;
+>  	int i;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_input\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	ret = mutex_lock_interruptible(&video->lock);
+>  	if (ret)
+> @@ -880,7 +880,7 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
+>  						 s_routing, input, output, 0);
+>  		if (ret) {
+>  			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+> -				"s_input:error in setting input in decoder\n");
+> +				"%s: error in setting input in decoder\n", __func__);
+>  			ret = -EINVAL;
+>  			goto unlock_out;
+>  		}
+> @@ -914,7 +914,7 @@ static int vpfe_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
+>  	struct vpfe_ext_subdev_info *sdinfo;
+>  	int ret;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querystd\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	ret = mutex_lock_interruptible(&video->lock);
+>  	sdinfo = video->current_ext_subdev;
+> @@ -945,7 +945,7 @@ static int vpfe_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+>  	struct vpfe_ext_subdev_info *sdinfo;
+>  	int ret;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_std\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	/* Call decoder driver function to set the standard */
+>  	ret = mutex_lock_interruptible(&video->lock);
+> @@ -976,7 +976,7 @@ static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_std\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	*tvnorm = video->stdid;
+>  	return 0;
+>  }
+> @@ -1003,7 +1003,7 @@ vpfe_enum_dv_timings(struct file *file, void *fh,
+>  
+>  	timings->pad = 0;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_dv_timings\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	return v4l2_subdev_call(subdev, pad, enum_dv_timings, timings);
+>  }
+>  
+> @@ -1027,7 +1027,7 @@ vpfe_query_dv_timings(struct file *file, void *fh,
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  	struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_query_dv_timings\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	return v4l2_subdev_call(subdev, video, query_dv_timings, timings);
+>  }
+>  
+> @@ -1049,7 +1049,7 @@ vpfe_s_dv_timings(struct file *file, void *fh,
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_dv_timings\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	video->stdid = V4L2_STD_UNKNOWN;
+>  	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
+> @@ -1076,7 +1076,7 @@ vpfe_g_dv_timings(struct file *file, void *fh,
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  	struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_dv_timings\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	return v4l2_subdev_call(subdev, video, g_dv_timings, timings);
+>  }
+>  
+> @@ -1105,7 +1105,7 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq,
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  	unsigned long size;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_queue_setup\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	size = video->fmt.fmt.pix.sizeimage;
+>  
+>  	if (vq->num_buffers + *nbuffers < 3)
+> @@ -1133,7 +1133,7 @@ static int vpfe_buffer_prepare(struct vb2_buffer *vb)
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  	unsigned long addr;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_prepare\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (vb->state != VB2_BUF_STATE_ACTIVE &&
+>  	    vb->state != VB2_BUF_STATE_PREPARED)
+> @@ -1299,7 +1299,7 @@ static void vpfe_buf_cleanup(struct vb2_buffer *vb)
+>  	struct vpfe_cap_buffer *buf = container_of(vbuf,
+>  					struct vpfe_cap_buffer, vb);
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buf_cleanup\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  	if (vb->state == VB2_BUF_STATE_ACTIVE)
+>  		list_del_init(&buf->list);
+>  }
+> @@ -1329,7 +1329,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+>  	struct vb2_queue *q;
+>  	int ret;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (req_buf->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>  	    req_buf->type != V4L2_BUF_TYPE_VIDEO_OUTPUT){
+> @@ -1386,7 +1386,7 @@ static int vpfe_querybuf(struct file *file, void *priv,
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querybuf\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (buf->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>  	    buf->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> @@ -1413,7 +1413,7 @@ static int vpfe_qbuf(struct file *file, void *priv,
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  	struct vpfe_fh *fh = file->private_data;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_qbuf\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>  	    p->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> @@ -1441,7 +1441,7 @@ static int vpfe_dqbuf(struct file *file, void *priv,
+>  	struct vpfe_video_device *video = video_drvdata(file);
+>  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_dqbuf\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (buf->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>  	    buf->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> @@ -1473,7 +1473,7 @@ static int vpfe_streamon(struct file *file, void *priv,
+>  	struct vpfe_fh *fh = file->private_data;
+>  	int ret = -EINVAL;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamon\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>  	    buf_type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> @@ -1518,7 +1518,7 @@ static int vpfe_streamoff(struct file *file, void *priv,
+>  	struct vpfe_fh *fh = file->private_data;
+>  	int ret = 0;
+>  
+> -	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamoff\n");
+> +	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "%s\n", __func__);
+>  
+>  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>  	    buf_type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
 > 
