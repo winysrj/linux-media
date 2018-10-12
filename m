@@ -1,68 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga18.intel.com ([134.134.136.126]:27723 "EHLO mga18.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726280AbeJLKyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 06:54:21 -0400
-Subject: Re: question about V4L2_MEMORY_USERPTR on 64bit applications
-To: "Zhang, Ning A" <ning.a.zhang@intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1539313441.21249.3.camel@intel.com>
-From: Bing Bu Cao <bingbu.cao@linux.intel.com>
-Message-ID: <91f5d31a-d60e-c810-6b0c-23edddef6f1c@linux.intel.com>
-Date: Fri, 12 Oct 2018 11:25:56 +0800
-MIME-Version: 1.0
-In-Reply-To: <1539313441.21249.3.camel@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42690 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726280AbeJLLCR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Oct 2018 07:02:17 -0400
+Message-ID: <bab8b485f5bb22a7cf847de1bc1d2a45@smtp-cloud7.xs4all.net>
+Date: Fri, 12 Oct 2018 05:31:55 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Ning,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-unsigned long   userptr; <<<--- this is a 32bit addr.
+Results of the daily build of media_tree:
 
-I think it's wrong here,for LP64 data modelmachine(unix-like systems), the
-actual size ofdata type 'unsigned long'is 8(64bits value)whichis equal
-to pointer.
- 
+date:			Fri Oct 12 05:00:10 CEST 2018
+media-tree git hash:	8caec72e8cbff65afa38928197bea5a393b67975
+media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
+v4l-utils git hash:	9d7d01f24b5e8ac73fbed783cffd5c0f5f6e8a87
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.11-marune
 
-On 10/12/2018 11:04 AM, Zhang, Ning A wrote:
-> Hi,
->
-> I have question about V4L2_MEMORY_USERPTR on 64bit applications.
->
-> struct v4l2_buffer {
-> 	__u32			index;
-> 	__u32			type;
-> 	__u32			bytesused;
-> 	__u32			flags;
-> 	__u32			field;
-> 	struct timeval		timestamp;
-> 	struct v4l2_timecode	timecode;
-> 	__u32			sequence;
->
-> 	/* memory location */
-> 	__u32			memory;
-> 	union {
-> 		__u32           offset;
-> 		unsigned long   userptr;   <<<--- this is a 32bit addr.
-> 		struct v4l2_plane *planes;
-> 		__s32		fd;
-> 	} m;
-> 	__u32			length;
-> 	__u32			reserved2;
-> 	__u32			reserved;
-> };
->
-> when use a 64bit application, memory from malloc is 64bit address.
-> memory from GPU (eg, intel i915) are also 64bit address.
->
-> when use these kind of memory as V4L2_MEMORY_USERPTR, address will be
-> truncated into 32bit.
->
-> this would be error, but actually not. I really don't understand.
->
-> BR.
-> Ning.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-rc6-i686: OK
+linux-4.19-rc6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
