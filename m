@@ -1,180 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:52219 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726468AbeJJSTq (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:45278 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727838AbeJLTGv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Oct 2018 14:19:46 -0400
-Date: Wed, 10 Oct 2018 12:58:04 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sam Bobrowicz <sam@elite-embedded.com>
-Cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        loic.poulain@linaro.org, slongerbeam@gmail.com, daniel@zonque.org,
-        maxime.ripard@bootlin.com
-Subject: Re: [PATCH 1/4] media: ov5640: fix resolution update
-Message-ID: <20181010105804.GD7677@w540>
-References: <1539067682-60604-1-git-send-email-sam@elite-embedded.com>
- <1539067682-60604-2-git-send-email-sam@elite-embedded.com>
+        Fri, 12 Oct 2018 15:06:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Vladimir Zapolskiy <vz@mleia.com>
+Cc: Lee Jones <lee.jones@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/7] mfd/pinctrl: add initial support of TI DS90Ux9xx ICs
+Date: Fri, 12 Oct 2018 14:34:53 +0300
+Message-ID: <1799007.AefaWafTOB@avalon>
+In-Reply-To: <20181008211205.2900-1-vz@mleia.com>
+References: <20181008211205.2900-1-vz@mleia.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="q9KOos5vDmpwPx9o"
-Content-Disposition: inline
-In-Reply-To: <1539067682-60604-2-git-send-email-sam@elite-embedded.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Vladimir,
 
---q9KOos5vDmpwPx9o
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Thank you for the patches.
 
-Hi Sam,
-   thanks for the patch, I see the same issue you reported, but I
-think this patch can be improved.
+On Tuesday, 9 October 2018 00:11:58 EEST Vladimir Zapolskiy wrote:
+> The published drivers describe the essential and generic parts of
+> TI DS90Ux9xx series of ICs, which allow to transfer video, audio and
+> control signals between FPD-Link III serializers and deserializers.
+> 
+> The placement of TI DS90Ux9xx I2C client driver was selected to be
+> drivers/mfd as the most natural location of a true MFD driver,
 
-(expanding the Cc list to all people involved in recent ov5640
-developemts, not just for this patch, but for the whole series to look
-at. Copying names from another series cover letter, hope it is
-complete.)
+Why does this have to be an MFD driver ? It's not uncommon for random devices 
+to expose a few GPIOs or clocks to the outside world, to support their main 
+feature (video transmission in this case). HDMI cables transport I2C on the 
+DDC pins, and HDMI encoders usually have an I2C master controller to read 
+EDID, and a GPIO pin to connect to the HPD signal. We don't model them as MFD 
+drivers. You can register an I2C adapter and a GPIO controller from within any 
+driver without a need to involve the MFD framework. I think it's completely 
+overkill in this case.
 
-On Mon, Oct 08, 2018 at 11:47:59PM -0700, Sam Bobrowicz wrote:
-> set_fmt was not properly triggering a mode change when
-> a new mode was set that happened to have the same format
-> as the previous mode (for example, when only changing the
-> frame dimensions). Fix this.
->
-> Signed-off-by: Sam Bobrowicz <sam@elite-embedded.com>
-> ---
->  drivers/media/i2c/ov5640.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index eaefdb5..5031aab 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -2045,12 +2045,12 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
->  		goto out;
->  	}
->
-> -	if (new_mode != sensor->current_mode) {
-> +
-> +	if (new_mode != sensor->current_mode ||
-> +	    mbus_fmt->code != sensor->fmt.code) {
-> +		sensor->fmt = *mbus_fmt;
->  		sensor->current_mode = new_mode;
->  		sensor->pending_mode_change = true;
-> -	}
-> -	if (mbus_fmt->code != sensor->fmt.code) {
-> -		sensor->fmt = *mbus_fmt;
->  		sensor->pending_fmt_change = true;
->  	}
+> apparently drivers/media/i2c is for another type of device drivers,
+> also DS90Ux9xx I2C bridge subcontroller driver is placed nearby,
+> because drivers/i2c for it would be an inappropriate destination
+> as well. Informally the TI DS90Ux9xx ICs serve a similar function
+> to SMSC/Microchip MOST, and its drivers are in drivers/staging/most,
+> the final destination is unknown to me. Please feel free to advise
+> a better location for the published drivers, at the moment the core
+> drivers are in drivers/mfd, but I select linux-media as a mailing list.
+> 
+> The published drivers instantly give a chance to test video bridge
+> functionality to a TI DS90Ux9xx deserializer equipped display panel
+> with the aide of Laurent's "lvds-encoder" driver by misusing it
+> as a generic and transparent drm bridge with no particular LVDS
+> specifics in it, for that it should be sufficient just to add the
+> corresponding device node and input/output ports as children of
+> a serializer connected to an application controller.
+> 
+> While the selected scheme of IC description by a list of subdevices,
+> where each one described in its own device node, works pretty well,
+> it might lead to unnecessary overcomplicated description of connections
+> between subdevices on serializer and deserializer sides, i.e. for
+> proper description of links/connections video serializer should
+> be linked to video deserializer, audio serializer should be linked
+> to audio deserializer and so on, however formally there is just one
+> FPD-III Link connection between two ICs.
 
-How I did reproduce the issue:
+Could you please provide a complete DT example ? The series is titled "initial 
+support", but it's hard to ascertain that it's taking the right direction 
+without seeing where you want to go. In particular, I want to see how devices 
+on both sides of the serializer and deserializer will be modeled.
 
-# Set 1024x768 on ov5640 without changing the image format
-# (default image size at startup is 640x480)
-$ media-ctl --set-v4l2 "'ov5640 2-003c':0[fmt:UYVY2X8/1024x768 field:none]"
-  sensor->pending_mode_change = true; //verified this flag gets set
+> The series of patches is rebased on top of linux-next, and there are
+> more changes in the queue to provide better support of TI DS90Ux9xx ICs.
+> 
+> The introduction to the ICs and drivers can be found in my presentation
+> https://schd.ws/hosted_files/ossalsjp18/8a/vzapolskiy_als2018.pdf
+> 
+> Sandeep Jain (1):
+>   dt-bindings: mfd: ds90ux9xx: add description of TI DS90Ux9xx ICs
+> 
+> Vladimir Zapolskiy (6):
+>   dt-bindings: mfd: ds90ux9xx: add description of TI DS90Ux9xx I2C bridge
+>   dt-bindings: pinctrl: ds90ux9xx: add description of TI DS90Ux9xx pinmux
+>   mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD driver
+>   mfd: ds90ux9xx: add I2C bridge/alias and link connection driver
+>   pinctrl: ds90ux9xx: add TI DS90Ux9xx pinmux and GPIO controller driver
+>   MAINTAINERS: add entry for TI DS90Ux9xx FPD-Link III drivers
+> 
+>  .../bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt  |  61 ++
+>  .../devicetree/bindings/mfd/ti,ds90ux9xx.txt  |  66 ++
+>  .../bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt |  83 ++
+>  MAINTAINERS                                   |  10 +
+>  drivers/mfd/Kconfig                           |  22 +
+>  drivers/mfd/Makefile                          |   2 +
+>  drivers/mfd/ds90ux9xx-core.c                  | 879 ++++++++++++++++
+>  drivers/mfd/ds90ux9xx-i2c-bridge.c            | 764 ++++++++++++++
+>  drivers/pinctrl/Kconfig                       |  11 +
+>  drivers/pinctrl/Makefile                      |   1 +
+>  drivers/pinctrl/pinctrl-ds90ux9xx.c           | 970 ++++++++++++++++++
+>  include/linux/mfd/ds90ux9xx.h                 |  42 +
+>  12 files changed, 2911 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/mfd/ti,ds90ux9xx-i2c-bridge.txt create
+> mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt create
+> mode 100644
+> Documentation/devicetree/bindings/pinctrl/ti,ds90ux9xx-pinctrl.txt create
+> mode 100644 drivers/mfd/ds90ux9xx-core.c
+>  create mode 100644 drivers/mfd/ds90ux9xx-i2c-bridge.c
+>  create mode 100644 drivers/pinctrl/pinctrl-ds90ux9xx.c
+>  create mode 100644 include/linux/mfd/ds90ux9xx.h
 
-# Start streaming, after having configured the whole pipeline to work
-# with 1024x768
-$  yavta -c10 -n4 -f UYVY -s 1024x768 /dev/video4
-   Unable to start streaming: Broken pipe (32).
+-- 
+Regards,
 
-# Inspect which part of pipeline validation went wrong
-# Turns out the sensor->fmt field is not updated, and when get_fmt()
-# is called, the old one is returned.
-$ media-ctl -e "ov5640 2-003c" -p
-  ...
-  [fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:srgb xfer:srgb ycbcr:601 quantization:full-range]
-                 ^^^ ^^^
-
-So yes, sensor->fmt is not udapted as it should be when only image
-resolution is changed.
-
-Although I still see value in having two separate flags for the
-'mode_change' (which in ov5640 lingo is resolution) and 'fmt_change' (which
-in ov5640 lingo is the image format), and write their configuration to
-registers only when they get actually changed.
-
-For this reasons I would like to propse the following patch which I
-have tested by:
-1) changing resolution only
-2) changing format only
-3) change both
-
-What do you and others think?
-
-Thanks
-  j
-
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index eaefdb5..e392b9d 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2020,6 +2020,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
-        struct ov5640_dev *sensor = to_ov5640_dev(sd);
-        const struct ov5640_mode_info *new_mode;
-        struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
-+       struct v4l2_mbus_framefmt *fmt;
-        int ret;
-
-        if (format->pad != 0)
-@@ -2037,22 +2038,19 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
-        if (ret)
-                goto out;
-
--       if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
--               struct v4l2_mbus_framefmt *fmt =
--                       v4l2_subdev_get_try_format(sd, cfg, 0);
-+       if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-+               fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-+       else
-+               fmt = &sensor->fmt;
-
--               *fmt = *mbus_fmt;
--               goto out;
--       }
-+       *fmt = *mbus_fmt;
-
-        if (new_mode != sensor->current_mode) {
-                sensor->current_mode = new_mode;
-                sensor->pending_mode_change = true;
-        }
--       if (mbus_fmt->code != sensor->fmt.code) {
--               sensor->fmt = *mbus_fmt;
-+       if (mbus_fmt->code != sensor->fmt.code)
-                sensor->pending_fmt_change = true;
--       }
- out:
-        mutex_unlock(&sensor->lock);
-        return ret;
-
->  out:
-> --
-> 2.7.4
->
-
---q9KOos5vDmpwPx9o
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbvds8AAoJEHI0Bo8WoVY8KuMQAL2U+wSjUqYwT3UyJZd05FYA
-xYUpWTCcdUrzYNtkyjz9M2NsFgBj9+D+LXLI4JsV0Zc7bVAwhCz6IhQ5mlWCKV0F
-SL2hi1rkZ1W5C9yrl+l4hV9hv92ym7hUW2jHC0DrHf/GQAJpgHBN1SXESYsZq4HQ
-8+JwRv5PU2L1Urnp17KOuZm8uscsPcm5tEFIFqfiyuYi3FPjFqSICltd7BnJhq92
-N4KAU1uJzh8cJEykyYZUt9KcV6F/u/4bm2PQwkwBaQpX9+kJWElO0UVKpb2RTXDT
-c7Cf4yZc8ShAnP/viy3XxwyU1n8v73J/UHwjdb02DVeIC+meliBGv2YfJJgZHBmn
-2Oy2qcZCk4JnNhrMN4/i+VXyEc+IMs16lHabPCDupgPs/tVsq5f+vV5Ck0qEMq4K
-mCAv2n+0sHT0m5Eqco2YUD3CbDjTXiStyRH3vBO1GRYLsnhAJKm84gFehfFE16fk
-3OmwgJP+afM9S3NUr1zZ8V/jZFM6LR7qLnT4DJWfNT1oyvsCan42O/txuMzHD5pn
-sCNkrqLa1SjNVCjpM9Y0ejLCBjL2ld7S8t+0cd92ir/3CMVi7fORSBbQifQ66YQO
-3+ShN/j2cpmNMgI4IPXeiSOxRs0juuzFop/kHRvI4B1csIVZU4Psx4OCCW9LsCkt
-PlDb4BdxWR53McHVZgYx
-=uloh
------END PGP SIGNATURE-----
-
---q9KOos5vDmpwPx9o--
+Laurent Pinchart
