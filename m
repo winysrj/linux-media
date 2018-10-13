@@ -1,177 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from leonov.paulk.fr ([185.233.101.22]:36964 "EHLO leonov.paulk.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726211AbeJMDe3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 23:34:29 -0400
-Message-ID: <2878c8fa36f6e775079f53ba79518a53e1ea6bc5.camel@paulk.fr>
-Subject: Re: [PATCH v5 5/6] media: Add controls for JPEG quantization tables
-From: Paul Kocialkowski <contact@paulk.fr>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Ezequiel Garcia <ezequiel@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, myy@miouyouyou.fr,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Date: Fri, 12 Oct 2018 22:00:37 +0200
-In-Reply-To: <CAAFQd5Bir0uMsaJPHdgQDvcYHpxZ4sUSn10OPpRXcnn-THUx2A@mail.gmail.com>
-References: <20180905220011.16612-1-ezequiel@collabora.com>
-         <20180905220011.16612-6-ezequiel@collabora.com>
-         <e7126e89d8984eb93216ec75c83ce1fc5afc437d.camel@paulk.fr>
-         <CAAFQd5Bir0uMsaJPHdgQDvcYHpxZ4sUSn10OPpRXcnn-THUx2A@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-KT2J0RnSouw8PFjMAmWn"
-Mime-Version: 1.0
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:39054 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725812AbeJMIEa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 13 Oct 2018 04:04:30 -0400
+Received: by mail-wr1-f68.google.com with SMTP id 61-v6so15105991wrb.6
+        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2018 17:29:34 -0700 (PDT)
+Subject: Re: [PATCH v3 00/16] i.MX media mem2mem scaler
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
+References: <20180918093421.12930-1-p.zabel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <cc2a7233-2761-902b-843a-0e3f458f230b@gmail.com>
+Date: Fri, 12 Oct 2018 17:29:28 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180918093421.12930-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Philipp,
 
---=-KT2J0RnSouw8PFjMAmWn
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I finished some fairly comprehensive testing on this series,
+scaling to and from the following common resolutions:
 
-Hi,
+640x480,
+720x480,
+720x576,
+800x480,
+800x600,
+1024x768,
+1152x720,
+1280x720,
+1280x768,
+1280x800,
+1280x1024,
+1920x1080,
+1920x1200,
+2560x1440,
+2560x1600,
+2592x1944
 
-Le mercredi 19 septembre 2018 =C3=A0 13:28 +0900, Tomasz Figa a =C3=A9crit =
-:
-> On Thu, Sep 13, 2018 at 9:15 PM Paul Kocialkowski <contact@paulk.fr> wrot=
-e:
-> > Hi,
-> >=20
-> > On Wed, 2018-09-05 at 19:00 -0300, Ezequiel Garcia wrote:
-> > > From: Shunqian Zheng <zhengsq@rock-chips.com>
-> > >=20
-> > > Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
-> > > configure the JPEG quantization tables.
-> > >=20
-> > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > > ---
-> > >  .../media/uapi/v4l/extended-controls.rst      | 31 +++++++++++++++++=
-++
-> > >  .../media/videodev2.h.rst.exceptions          |  1 +
-> > >  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++
-> > >  include/uapi/linux/v4l2-controls.h            | 12 +++++++
-> > >  include/uapi/linux/videodev2.h                |  1 +
-> > >  5 files changed, 55 insertions(+)
-> > >=20
-> > > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Doc=
-umentation/media/uapi/v4l/extended-controls.rst
-> > > index 9f7312bf3365..1335d27d30f3 100644
-> > > --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> > > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> > > @@ -3354,7 +3354,38 @@ JPEG Control IDs
-> > >      Specify which JPEG markers are included in compressed stream. Th=
-is
-> > >      control is valid only for encoders.
-> > >=20
-> > > +.. _jpeg-quant-tables-control:
-> >=20
-> > I just had a look at how the Allwinner VPU handles JPEG decoding and it
-> > seems to require the following information (in addition to
-> > quantization):
->=20
-> I assume the hardware doesn't have the ability to parse those from the
-> stream and so they need to be parsed by user space and given to the
-> driver?
+and within each scaling conversion, I tested converting to and from
+all the pixel formats supported by the mem2mem device:
 
-That's correct, we are also dealing with a stateless decoder here. It's
-actually the same hardware engine that's used for MPEG2 decoding, only
-configured differently.
+422p, nv12, rgb4, yu12, bgr3, nv16,
+rgbp, yuyv, bgr4, rgb3, uyvy, yv12
 
-So we will need to introduce a pixfmt for compressed JPEG data without
-headers, reuse JPEG controls that apply and perhaps introduce new ones
-too if needed.
+What I found is that most of these conversions are working, producing
+no mis-aligned tile buffer addresses, except for one exception: converting
+to or from a packed 24-bit pixel format (rgb3 or bgr3). For example,
+try 640x480.rgb3 -> 1920x1080.yu12.
 
-I am also wondering about how MJPEG support should fit into this. As
-far as I understood, it shouldn't be very different from JPEG so we
-might want to have common controls for both.
+I found the cause of that, I added the following patch to my fork
+git@github.com:slongerbeam/mediatree.git, branch imx-mem2mem.3:
 
-> > * Horizontal and vertical sampling factors for each Y/U/V component:
-> >=20
-> > The number of components and sampling factors are coded separately in
-> > the bitstream, but it's probably easier to use the already-existing
-> > V4L2_CID_JPEG_CHROMA_SUBSAMPLING control for specifying that.
-> >=20
-> > However, this is potentially very much related to the destination
-> > format. If we decide that this format should match the format resulting
-> > from decompression, we don't need to specify it through an external
-> > control. On the other hand, it's possible that the VPU has format
-> > conversion block integrated in its pipeline so it would also make sense
-> > to consider the destination format as independent.
->=20
-> +1 for keeping it separate.
+"gpu: ipu-v3: image-convert: Fix tile_left_align()"
 
-Just like for the stateless decoding API, it would make sense to expect
-userspace to set those before enumerating CAPTURE formats in order to
-determine what the hardware can output.
+Feel free to squash it with
 
-> > * Custom Huffman tables (DC and AC), both for luma and chroma
-> >=20
-> > It seems that there is a default table when no Huffman table is provide=
-d
-> > in the bitstream (I'm not too sure how standard that is, just started
-> > learning about JPEG). We probably need a specific control for that.
->=20
-> What happens if there is one in the bitstream? Would the hardware pick
-> it automatically?
+"gpu: ipu-v3: image-convert: select optimal seam positions"
 
-In our case, this part of the bitstream wouldn't be sent to the
-hardware anyway.
+I've also added a few other patches to my branch:
 
-> I think it might make sense to just have a general control for Huffman
-> table, which would be always provided by the user space, regardless of
-> whether it's parsed from the stream or default, so that drivers don't
-> have to care and could just always use it.
+"gpu: ipu-v3: Add chroma plane offset overrides to ipu_cpmem_set_image()"
 
-For MPEG-2 support (and probably also H.265), we have considered the
-quantization tables optional and kept a default value in the driver.
-That's because said tables are not supported in all profiles, so they
-are de-facto optional. I think it's fair to consider that userspace
-does not need to implement more than what is needed for decoding. This
-makes our interface closer to the data obtained from the bitstream.
+which fixes a false warning in ipu_cpmem_set_yuv_planar_full().
 
-However, having one copy of the default table per driver is far from
-optimal. I would suggest moving it to common v4l2 functions instead,
-but keeping it in kernel space.
+Also added:
 
-What do you think?
+"gpu: ipu-v3: image-convert: Prevent race between run and unprepare"
+"gpu: ipu-v3: image-convert: Only wait for abort completion if active run"
+"gpu: ipu-v3: image-convert: Allow reentrancy into abort"
+"gpu: ipu-v3: image-convert: Remove need_abort flag"
+"gpu: ipu-v3: image-convert: Catch unaligned tile offsets"
 
-Cheers,
+With the fix to tile_left_align(), all conversions for the above scaling
+resolutions are not producing mis-aligned tile buffers anymore, for all
+pixel formats.
 
-Paul
+But one last thing. Conversions to and from YV12 are producing images
+with wrong colors, it looks like the .uv_swapped boolean needs to be checked
+additionally somewhere. Any ideas?
 
---=20
-Developer of free digital technology and hardware support.
 
-Website: https://www.paulk.fr/
-Coding blog: https://code.paulk.fr/
-Git repositories: https://git.paulk.fr/ https://git.code.paulk.fr/
+Steve
 
---=-KT2J0RnSouw8PFjMAmWn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEAbcMXZQMtj1fphLChP3B6o/ulQwFAlvA/WUACgkQhP3B6o/u
-lQydHA//XaEr+l8FVt0vIpDNVROQv0rx++IPIY48JC20j9Lfj/rDyjaziKBVxt/R
-y7A/cSbRK4bkEYAhGbG/H2I0hcpoLTH9oHxFh53KX7p2ri0+SGzICilgH7PgSkTH
-YXvTZrT7sDelq+Q3t+soAoFjK/J2gNl1Ee0H80pgo4XktumMm+QTHO2HoTmw6EsS
-7pIlQoayRC5j+ugOf8d21Rd7KoJm6AIxFV2SWSWnQH75JEbkwEUYhnU3jiIImEQK
-JNdY3y2Ur1Lwyi7YrRH4fkF2DzST72/GUBVfZ2tM34EgAInrZhdxvyXbVy/AXO70
-01ctNZI5Wu580EC7UlbTRBQeNdGAXC8MFeJwqWGdGuOpJDuhY9PD70v0IOXXFFfP
-EBsM5zfPKxYB3zyRNyfbe8JWCZrQlSe46YRb9+xVek/VyiHXXXbySrAf82nQ1THE
-Z75Bf70lIUnHtegpikLNcuNXAkDd6tV1FKdG2C5KPFnqymrPNwP1tp7VbFJ849Qy
-FuUA/51U1ohnxQgK5lv9meWCyEilO6Nm8KTp/Mo5uBeoy7gfcSTIuISMr7mWvl6l
-Tbm13bbd/Xlc6ODK4mH1ewJVSo8XtnKoTrEluwjcm35NEtQ+/8X8y4pY/zWs7lWY
-gccjQKV00ppjT7sxV0dX4/KS/Ok+2pkL3icd3w+F1JTabQU+wsw=
-=j1HJ
------END PGP SIGNATURE-----
-
---=-KT2J0RnSouw8PFjMAmWn--
+On 09/18/2018 02:34 AM, Philipp Zabel wrote:
+> Hi,
+>
+> this is the third version of the i.MX mem2mem scaler series.
+>
+> The driver patch has been moved to the beginning, as Steve suggested.
+> I've added his warning patch to catch alignment bugs to the series,
+> seam position selection has been fixed for more corner cases, the
+> alignment restriction relaxation patches have been merged into one
+> patch, and support for tiling with three rows or columns has been added
+> to avoid unnecessary overhead.
+>
+> Changes since v2:
+>   - Rely on ipu_image_convert_adjust() in mem2mem_try_fmt() for format
+>     adjustments. This makes the mem2mem driver mostly a V4L2 mem2mem API
+>     wrapper around the IPU image converter, and independent of the
+>     internal image converter implementation.
+>   - Remove the source and destination buffers on error in device_run().
+>     Otherwise the conversion is re-attempted apparently over and over
+>     again (with WARN() backtraces).
+>   - Allow subscribing to control changes.
+>   - Fix seam position selection for more corner cases:
+>      - Switch width/height properly and align tile top left positions to 8x8
+>        IRT block size when rotating.
+>      - Align input width to input burst length in case the scaling step
+>        flips horizontally.
+>      - Fix bottom edge calculation.
+>
+> Changes since v1:
+>   - Fix inverted allow_overshoot logic
+>   - Correctly switch horizontal / vertical tile alignment when
+>     determining seam positions with the 90° rotator active.
+>   - Fix SPDX-License-Identifier and remove superfluous license
+>     text.
+>   - Fix uninitialized walign in try_fmt
+>
+> Previous cover letter:
+>
+> we have image conversion code for scaling and colorspace conversion in
+> the IPUv3 base driver for a while. Since the IC hardware can only write
+> up to 1024x1024 pixel buffers, it scales to larger output buffers by
+> splitting the input and output frame into similarly sized tiles.
+>
+> This causes the issue that the bilinear interpolation resets at the tile
+> boundary: instead of smoothly interpolating across the seam, there is a
+> jump in the input sample position that is very apparent for high
+> upscaling factors. This can be avoided by slightly changing the scaling
+> coefficients to let the left/top tiles overshoot their input sampling
+> into the first pixel / line of their right / bottom neighbors. The error
+> can be further reduced by letting tiles be differently sized and by
+> selecting seam positions that minimize the input sampling position error
+> at tile boundaries.
+> This is complicated by different DMA start address, burst size, and
+> rotator block size alignment requirements, depending on the input and
+> output pixel formats, and the fact that flipping happens in different
+> places depending on the rotation.
+>
+> This series implements optimal seam position selection and seam hiding
+> with per-tile resizing coefficients and adds a scaling mem2mem device
+> to the imx-media driver.
+>
+> regards
+> Philipp
+>
+> Philipp Zabel (15):
+>    media: imx: add mem2mem device
+>    gpu: ipu-v3: ipu-ic: allow to manually set resize coefficients
+>    gpu: ipu-v3: image-convert: prepare for per-tile configuration
+>    gpu: ipu-v3: image-convert: calculate per-tile resize coefficients
+>    gpu: ipu-v3: image-convert: reconfigure IC per tile
+>    gpu: ipu-v3: image-convert: store tile top/left position
+>    gpu: ipu-v3: image-convert: calculate tile dimensions and offsets
+>      outside fill_image
+>    gpu: ipu-v3: image-convert: move tile alignment helpers
+>    gpu: ipu-v3: image-convert: select optimal seam positions
+>    gpu: ipu-v3: image-convert: fix debug output for varying tile sizes
+>    gpu: ipu-v3: image-convert: relax alignment restrictions
+>    gpu: ipu-v3: image-convert: fix bytesperline adjustment
+>    gpu: ipu-v3: image-convert: add some ASCII art to the exposition
+>    gpu: ipu-v3: image-convert: disable double buffering if necessary
+>    gpu: ipu-v3: image-convert: allow three rows or columns
+>
+> Steve Longerbeam (1):
+>    gpu: ipu-cpmem: add WARN_ON_ONCE() for unaligned dma buffers
+>
+>   drivers/gpu/ipu-v3/ipu-cpmem.c                |   6 +
+>   drivers/gpu/ipu-v3/ipu-ic.c                   |  52 +-
+>   drivers/gpu/ipu-v3/ipu-image-convert.c        | 919 +++++++++++++++---
+>   drivers/staging/media/imx/Kconfig             |   1 +
+>   drivers/staging/media/imx/Makefile            |   1 +
+>   drivers/staging/media/imx/imx-media-dev.c     |  11 +
+>   drivers/staging/media/imx/imx-media-mem2mem.c | 873 +++++++++++++++++
+>   drivers/staging/media/imx/imx-media.h         |  10 +
+>   include/video/imx-ipu-v3.h                    |   6 +
+>   9 files changed, 1727 insertions(+), 152 deletions(-)
+>   create mode 100644 drivers/staging/media/imx/imx-media-mem2mem.c
+>
