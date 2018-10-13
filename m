@@ -1,117 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56450 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725970AbeJMLH3 (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:41269 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726235AbeJMWGh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 Oct 2018 07:07:29 -0400
-Message-ID: <efdf0be0a07d079657a3582db76833cd@smtp-cloud7.xs4all.net>
-Date: Sat, 13 Oct 2018 05:31:59 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Sat, 13 Oct 2018 18:06:37 -0400
+Subject: Re: [PATCH 1/7] dt-bindings: mfd: ds90ux9xx: add description of TI
+ DS90Ux9xx ICs
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20181008211205.2900-1-vz@mleia.com>
+ <20181008211205.2900-2-vz@mleia.com> <1884479.fINZhmP2Mi@avalon>
+CC: Vladimir Zapolskiy <vz@mleia.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>, <devicetree@vger.kernel.org>,
+        <linux-gpio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        Sandeep Jain <Sandeep_Jain@mentor.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <55fe6c51-20e0-a10b-97fd-23c6f030acac@mentor.com>
+Date: Sat, 13 Oct 2018 17:28:30 +0300
+MIME-Version: 1.0
+In-Reply-To: <1884479.fINZhmP2Mi@avalon>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+thank you for review, please find my comments below.
 
-date:			Sat Oct 13 05:00:09 CEST 2018
-media-tree git hash:	8caec72e8cbff65afa38928197bea5a393b67975
-media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
-v4l-utils git hash:	9d7d01f24b5e8ac73fbed783cffd5c0f5f6e8a87
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
+On 10/12/2018 02:44 PM, Laurent Pinchart wrote:
+> Hi Vladimir,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday, 9 October 2018 00:11:59 EEST Vladimir Zapolskiy wrote:
+>> From: Sandeep Jain <Sandeep_Jain@mentor.com>
+>>
+>> The change adds device tree binding description of TI DS90Ux9xx
+>> series of serializer and deserializer controllers which support video,
+>> audio and control data transmission over FPD-III Link connection.
+>>
+>> Signed-off-by: Sandeep Jain <Sandeep_Jain@mentor.com>
+>> [vzapolskiy: various updates and corrections of secondary importance]
+>> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+>> ---
+>>  .../devicetree/bindings/mfd/ti,ds90ux9xx.txt  | 66 +++++++++++++++++++
+>>  1 file changed, 66 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+>> b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt new file mode
+>> 100644
+>> index 000000000000..0733da88f7ef
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+>> @@ -0,0 +1,66 @@
+>> +Texas Instruments DS90Ux9xx de-/serializer controllers
+>> +
+>> +Required properties:
+>> +- compatible: Must contain a generic "ti,ds90ux9xx" value and
+>> +	may contain one more specific value from the list:
+> 
+> If it "may" contain one more specific value, when should that value be 
+> present, and when can it be absent ?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+Practically you can always omit a specific compatible, because (with a number
+of minor exceptions like DS90UH925Q case, see a quirk in the code) it is
+possible to read out the IC type in runtime.
 
-Detailed results are available here:
+Nevertheless I prefer to have a complete list of all specific compatibles
+to avoid problems with maintenance in future, recently I had a long discussion
+with Jassi Brar about iMX* mailbox compatibles on the DT mailing list,
+the arguments remain the same, but I don't feel enough internal power to start
+another such an exhaustive discussion right at the moment.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+>> +	"ti,ds90ub925q",
+>> +	"ti,ds90uh925q",
+>> +	"ti,ds90ub927q",
+>> +	"ti,ds90uh927q",
+>> +	"ti,ds90ub926q",
+>> +	"ti,ds90uh926q",
+>> +	"ti,ds90ub928q",
+>> +	"ti,ds90uh928q",
+>> +	"ti,ds90ub940q",
+>> +	"ti,ds90uh940q".
+>> +
+>> +Optional properties:
+>> +- reg : Specifies the I2C slave address of a local de-/serializer.
+> 
+> You should explain when the reg property is required and when it isn't. This
 
-Full logs are available here:
+Talking about TI DS90Ux9xx IC series, ideally I'd like to shift from
+serializer/deserializer concept and promote "remote" and "local" IC, by the
+way, and if I'm not mistaken, MOST ICs are truly identical on both ends.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+So, here "reg" property is need only if the IC (serializer or deserializer,
+it does not matter) is on the "local" side, i.e. it is a slave I2C device
+discovered on an I2C bus, which is under control by an application processor.
 
-The Media Infrastructure API from this daily build is here:
+If IC is on the "remote" side, in other words separated by the serial link
+from the "local" IC, then "reg" property is not needed.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> will in my opinion require a more detailed explanation of the DT model for 
+> this device.
+> 
+>> +- power-gpios : GPIO line to control supplied power to the device.
+> 
+> As Marek mentioned, a regulator would be better. I would make it a mandatory 
+> property, as the device always needs to be powered.
+> 
+
+I get a memory flashback. Did we discuss recently a right property name to
+control panel power by a GPIO or was it something else?
+
+There are quite many properties of exactly the same functionality:
+* powerdown-gpios
+* pd-gpios
+* pdn-gpios
+* power-gpios
+* powerdn-gpio
+* power-down-gpios
+* ...
+
+Probably device tree maintainers should unify the names, but my point is that
+your argument should be applicable to all such device tree nodes / property
+descriptions and usages. Do I understand you correctly?
+
+I would prefer to reference to a regulator while dealing with the power
+rails, and reference to a GPIO in case of power control only like in the
+case above.
+
+>> +- ti,backward-compatible-mode : Overrides backward compatibility mode.
+>> +	Possible values are "<1>" or "<0>".
+>> +	If "ti,backward-compatible-mode" is not mentioned, the backward
+>> +	compatibility mode is not touched and given by hardware pin strapping.
+> 
+> This doesn't seem to be a device description to me, it's a software 
+> configuration. You should handle it in drivers.
+> 
+
+No, it is a hardware description which allows to connect/discover ICs of
+different series, please reference to the datasheet for examples of its
+usage.
+
+>> +- ti,low-frequency-mode : Overrides low frequency mode.
+>> +	Possible values are "<1>" or "<0>".
+>> +	If "ti,low-frequency-mode" is not mentioned, the low frequency mode
+>> +	is not touched and given by hardware pin strapping.
+> 
+> This sounds the same. How about giving a real life example of a case where you 
+> need to set these two properties to override the pin strapping, for the 
+> purpose of discussing the DT bindings ?
+
+I have to ask, what do you mean by "a software configuration"?
+
+Both properties are IC controls (= hardware configuration in my language),
+and these hardware properties shall be set (if needed of course) on a "local" IC
+*before* a discovery of some "remote" IC, thus the property are in the DT.
+
+>> +- ti,video-map-select-msb: Sets video bridge pins to MSB mode, if it is set
+>> +	MAPSEL pin value is ignored.
+>> +- ti,video-map-select-lsb: Sets video bridge pins to LSB mode, if it is set
+>> +	MAPSEL pin value is ignored.
+> 
+> I assume those two are mutually exclusive, this should be documented, or you 
+> could merge the two properties into one. Same comment as above though, why do 
+> you need an override in DT ?
+> 
+
+The property are mutually exclusive, but it is a tristate property, please
+see my answer to a similar question from Marek.
+
+>> +- ti,pixel-clock-edge : Selects Pixel Clock Edge.
+>> +	Possible values are "<1>" or "<0>".
+>> +	If "ti,pixel-clock-edge" is High <1>, output data is strobed on the
+>> +	Rising edge of the PCLK. If ti,pixel-clock-edge is Low <0>, data is
+>> +	strobed on the Falling edge of the PCLK.
+>> +	If "ti,pixel-clock-edge" is not mentioned, the pixel clock edge
+>> +	value is not touched and given by hardware pin strapping.
+> 
+> We have a standard property in Documentation/devicetree/bindings/media/video-
+> interfaces.txt for this, please use it.
+> 
+
+Okay, thank you for the link.
+
+>> +- ti,spread-spectrum-clock-generation : Spread Sprectrum Clock Generation.
+>> +	Possible values are from "<0>" to "<7>". The same value will be
+>> +	written to SSC register. If "ti,spread-spectrum-clock-gen" is not
+>> +	found, then SSCG will be disabled.
+> 
+> This makes sense in DT in my opinion, as EMC is a system property. I wonder 
+> however if exposing the hardware register directly is the best option. Could 
+> you elaborate on how a system designer will select which value to use, in 
+> order to find the best DT description ?
+> 
+
+Hm, I suppose IC datasheets should serve as a better source of information.
+
+>> +TI DS90Ux9xx serializers and deserializer device nodes may contain a number
+>> +of children device nodes to describe and enable particular subcomponents
+>> +found on ICs.
+> 
+> As mentioned in my review of the cover letter I don't think this is necessary. 
+
+It is, in my humble opinion if an IC can be described as "a _pinmux_ + loads
+of other functions" it makes it an MFD.
+
+> You can make the serializer and deserializer I2C controllers without subnodes. 
+> Same goes for GPIO control.
+> 
+
+I have to define pinmuxes, one of the complicated and essential parts of IC
+configuration is unfairly excluded from the consideration.
+
+>> +Example:
+>> +
+>> +serializer: serializer@c {
+>> +	compatible = "ti,ds90ub927q", "ti,ds90ux9xx";
+>> +	reg = <0xc>;
+>> +	power-gpios = <&gpio5 12 GPIO_ACTIVE_HIGH>;
+>> +	ti,backward-compatible-mode = <0>;
+>> +	ti,low-frequency-mode = <0>;
+>> +	ti,pixel-clock-edge = <0>;
+>> +	...
+>> +}
+>> +
+>> +deserializer: deserializer@3c {
+>> +	compatible = "ti,ds90ub940q", "ti,ds90ux9xx";
+>> +	reg = <0x3c>;
+>> +	power-gpios = <&gpio6 31 GPIO_ACTIVE_HIGH>;
+>> +	...
+>> +}
+>> +
+> 
+> Extra blank line ?
+> 
+
+Right, thank you for comments.
+
+--
+Best wishes,
+Vladimir
