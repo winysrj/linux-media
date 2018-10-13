@@ -1,43 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:46818 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728816AbeJLWwa (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:37826 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726255AbeJMUK2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Oct 2018 18:52:30 -0400
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: dib0700: fix spelling mistake "Amplifyer" -> "Amplifier"
-Date: Fri, 12 Oct 2018 16:19:32 +0100
-Message-Id: <20181012151932.21841-1-colin.king@canonical.com>
+        Sat, 13 Oct 2018 16:10:28 -0400
+Subject: Re: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD
+ driver
+To: <kieran.bingham@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20181008211205.2900-1-vz@mleia.com>
+ <20181008211205.2900-5-vz@mleia.com> <20181012060314.GU4939@dell>
+ <63733d2e-f95e-8894-f2b0-0b551b5cfeeb@mentor.com>
+ <20181012083924.GW4939@dell>
+ <eef99526-9232-8cd4-9a7c-c30114d58806@ideasonboard.com>
+ <506c03d7-7986-44dd-3290-92d16a8106ad@mentor.com>
+ <4a807a53-1592-a895-f140-54e7acc473b3@ideasonboard.com>
+CC: Lee Jones <lee.jones@linaro.org>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>, <devicetree@vger.kernel.org>,
+        <linux-gpio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <646af723-b78b-4481-50d9-e1b8f57abd79@mentor.com>
+Date: Sat, 13 Oct 2018 15:33:21 +0300
 MIME-Version: 1.0
+In-Reply-To: <4a807a53-1592-a895-f140-54e7acc473b3@ideasonboard.com>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Hi Kieran,
 
-Trivial fix to spelling mistake in MODULE_PARM_DESC text
+On 10/12/2018 02:47 PM, Kieran Bingham wrote:
+> Hi Vladimir,
+> 
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/usb/dvb-usb/dib0700_devices.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[snip]
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 7551dce96f64..9311f7d4bba5 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -29,7 +29,7 @@
- 
- static int force_lna_activation;
- module_param(force_lna_activation, int, 0644);
--MODULE_PARM_DESC(force_lna_activation, "force the activation of Low-Noise-Amplifyer(s) (LNA), if applicable for the device (default: 0=automatic/off).");
-+MODULE_PARM_DESC(force_lna_activation, "force the activation of Low-Noise-Amplifier(s) (LNA), if applicable for the device (default: 0=automatic/off).");
- 
- struct dib0700_adapter_state {
- 	int (*set_param_save) (struct dvb_frontend *);
--- 
-2.17.1
+> 
+> Essentially they are multi purpose buses - which do not yet have a home.
+> We have used media as a home because of our use case.
+> 
+> The use case whether they transfer frames from a camera or to a display
+> are of course closely related, but ultimately covered by two separate
+> subsystems at the pixel level (DRM vs V4L, or other for other data)
+> 
+> Perhaps as they are buses - on a level with USB or I2C (except they can
+> of course carry I2C or Serial as well as 'bi-directional video' etc ),
+> they are looking for their own subsystem.
+> 
+> Except I don't think we don't want to add a new subsystem for just one
+> (or two) devices...
+> 
+
+I suppose that the incomplete list includes Maxim GMSL, TI FPD-Link III,
+SMSC/Microchip MOST (drivers/staging/most -- what's the destination after
+exiting staging?) an Inova APIX.
+
+--
+Best wishes,
+Vladimir
