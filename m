@@ -1,217 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf1-f66.google.com ([209.85.167.66]:41088 "EHLO
-        mail-lf1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726422AbeJOXAv (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:30609 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726585AbeJOW7A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Oct 2018 19:00:51 -0400
-Received: by mail-lf1-f66.google.com with SMTP id q39-v6so14345547lfi.8
-        for <linux-media@vger.kernel.org>; Mon, 15 Oct 2018 08:15:08 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Mon, 15 Oct 2018 17:15:05 +0200
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] adv7604: add CEC support for adv7611/adv7612
-Message-ID: <20181015151505.GA14189@bigcity.dyn.berto.se>
-References: <9f1afd35-b8b4-fc3c-c634-21bc6c6d9c35@xs4all.nl>
+        Mon, 15 Oct 2018 18:59:00 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        jacopo mondi <jacopo@jmondi.org>,
+        Sam Bobrowicz <sam@elite-embedded.com>,
+        "slongerbeam@gmail.com" <slongerbeam@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "loic.poulain@linaro.org" <loic.poulain@linaro.org>,
+        "daniel@zonque.org" <daniel@zonque.org>,
+        "maxime.ripard@bootlin.com" <maxime.ripard@bootlin.com>
+Subject: Re: [PATCH 1/4] media: ov5640: fix resolution update
+Date: Mon, 15 Oct 2018 15:13:12 +0000
+Message-ID: <0295fe15-6802-ecd9-f42d-391184fc1344@st.com>
+References: <1539067682-60604-1-git-send-email-sam@elite-embedded.com>
+ <1539067682-60604-2-git-send-email-sam@elite-embedded.com>
+ <20181010105804.GD7677@w540> <5292714.SW9firoZdu@avalon>
+In-Reply-To: <5292714.SW9firoZdu@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <1541F7E91D8D2143BD605B358D4587B6@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <9f1afd35-b8b4-fc3c-c634-21bc6c6d9c35@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thanks for your patch.
-
-On 2018-10-12 13:30:02 +0200, Hans Verkuil wrote:
-> The CEC IP is very similar between the three HDMI receivers, but
-> not identical. Add support for all three variants.
-> 
-> Tested with an adv7604 and an adv7612.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-This fixes CEC on my Koelsch board using the adv7604.
-
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Side note do you know of a way to simulate a cycling of the physical HDMI 
-cable? My current test-case for CEC is:
-
-    v4l2-ctl -d $(grep -l "adv7612" /sys/class/video4linux/*/name | sed 's#.*video4linux\(.*\)/name#/dev\1#g') --set-edid=type=hdmi
-    cec-ctl -d 0 --playback
-    cec-ctl -d 1 --tv
-    # Here I need to attach or if it already is connected disconnect and 
-    # reconnect the HDMI cable
-    cec-ctl -d 0 -S
-    cec-ctl -d 1 -S
-
-If that step could be done in software I can add this test to my 
-automatic test scripts which would be nice.
-
-> ---
->  drivers/media/i2c/adv7604.c | 63 +++++++++++++++++++++++++++++++------
->  1 file changed, 53 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 9eb7c70a7712..88786276dbe4 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -114,6 +114,11 @@ struct adv76xx_chip_info {
->  	unsigned int fmt_change_digital_mask;
->  	unsigned int cp_csc;
-> 
-> +	unsigned int cec_irq_status;
-> +	unsigned int cec_rx_enable;
-> +	unsigned int cec_rx_enable_mask;
-> +	bool cec_irq_swap;
-> +
->  	const struct adv76xx_format_info *formats;
->  	unsigned int nformats;
-> 
-> @@ -2003,10 +2008,11 @@ static void adv76xx_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
->  static void adv76xx_cec_isr(struct v4l2_subdev *sd, bool *handled)
->  {
->  	struct adv76xx_state *state = to_state(sd);
-> +	const struct adv76xx_chip_info *info = state->info;
->  	u8 cec_irq;
-> 
->  	/* cec controller */
-> -	cec_irq = io_read(sd, 0x4d) & 0x0f;
-> +	cec_irq = io_read(sd, info->cec_irq_status) & 0x0f;
->  	if (!cec_irq)
->  		return;
-> 
-> @@ -2024,15 +2030,21 @@ static void adv76xx_cec_isr(struct v4l2_subdev *sd, bool *handled)
-> 
->  			for (i = 0; i < msg.len; i++)
->  				msg.msg[i] = cec_read(sd, i + 0x15);
-> -			cec_write(sd, 0x26, 0x01); /* re-enable rx */
-> +			cec_write(sd, info->cec_rx_enable,
-> +				  info->cec_rx_enable_mask); /* re-enable rx */
->  			cec_received_msg(state->cec_adap, &msg);
->  		}
->  	}
-> 
-> -	/* note: the bit order is swapped between 0x4d and 0x4e */
-> -	cec_irq = ((cec_irq & 0x08) >> 3) | ((cec_irq & 0x04) >> 1) |
-> -		  ((cec_irq & 0x02) << 1) | ((cec_irq & 0x01) << 3);
-> -	io_write(sd, 0x4e, cec_irq);
-> +	if (info->cec_irq_swap) {
-> +		/*
-> +		 * Note: the bit order is swapped between 0x4d and 0x4e
-> +		 * on adv7604
-> +		 */
-> +		cec_irq = ((cec_irq & 0x08) >> 3) | ((cec_irq & 0x04) >> 1) |
-> +			  ((cec_irq & 0x02) << 1) | ((cec_irq & 0x01) << 3);
-> +	}
-> +	io_write(sd, info->cec_irq_status + 1, cec_irq);
-> 
->  	if (handled)
->  		*handled = true;
-> @@ -2041,6 +2053,7 @@ static void adv76xx_cec_isr(struct v4l2_subdev *sd, bool *handled)
->  static int adv76xx_cec_adap_enable(struct cec_adapter *adap, bool enable)
->  {
->  	struct adv76xx_state *state = cec_get_drvdata(adap);
-> +	const struct adv76xx_chip_info *info = state->info;
->  	struct v4l2_subdev *sd = &state->sd;
-> 
->  	if (!state->cec_enabled_adap && enable) {
-> @@ -2052,11 +2065,11 @@ static int adv76xx_cec_adap_enable(struct cec_adapter *adap, bool enable)
->  		/* tx: arbitration lost */
->  		/* tx: retry timeout */
->  		/* rx: ready */
-> -		io_write_clr_set(sd, 0x50, 0x0f, 0x0f);
-> -		cec_write(sd, 0x26, 0x01);            /* enable rx */
-> +		io_write_clr_set(sd, info->cec_irq_status + 3, 0x0f, 0x0f);
-> +		cec_write(sd, info->cec_rx_enable, info->cec_rx_enable_mask);
->  	} else if (state->cec_enabled_adap && !enable) {
->  		/* disable cec interrupts */
-> -		io_write_clr_set(sd, 0x50, 0x0f, 0x00);
-> +		io_write_clr_set(sd, info->cec_irq_status + 3, 0x0f, 0x00);
->  		/* disable address mask 1-3 */
->  		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
->  		/* power down cec section */
-> @@ -2221,6 +2234,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
->  	return 0;
->  }
-> 
-> +static irqreturn_t adv76xx_irq_handler(int irq, void *dev_id)
-> +{
-> +	struct adv76xx_state *state = dev_id;
-> +	bool handled = false;
-> +
-> +	adv76xx_isr(&state->sd, 0, &handled);
-> +
-> +	return handled ? IRQ_HANDLED : IRQ_NONE;
-> +}
-> +
->  static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
->  {
->  	struct adv76xx_state *state = to_state(sd);
-> @@ -2960,6 +2983,10 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
->  		.cable_det_mask = 0x1e,
->  		.fmt_change_digital_mask = 0xc1,
->  		.cp_csc = 0xfc,
-> +		.cec_irq_status = 0x4d,
-> +		.cec_rx_enable = 0x26,
-> +		.cec_rx_enable_mask = 0x01,
-> +		.cec_irq_swap = true,
->  		.formats = adv7604_formats,
->  		.nformats = ARRAY_SIZE(adv7604_formats),
->  		.set_termination = adv7604_set_termination,
-> @@ -3006,6 +3033,9 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
->  		.cable_det_mask = 0x01,
->  		.fmt_change_digital_mask = 0x03,
->  		.cp_csc = 0xf4,
-> +		.cec_irq_status = 0x93,
-> +		.cec_rx_enable = 0x2c,
-> +		.cec_rx_enable_mask = 0x02,
->  		.formats = adv7611_formats,
->  		.nformats = ARRAY_SIZE(adv7611_formats),
->  		.set_termination = adv7611_set_termination,
-> @@ -3047,6 +3077,9 @@ static const struct adv76xx_chip_info adv76xx_chip_info[] = {
->  		.cable_det_mask = 0x01,
->  		.fmt_change_digital_mask = 0x03,
->  		.cp_csc = 0xf4,
-> +		.cec_irq_status = 0x93,
-> +		.cec_rx_enable = 0x2c,
-> +		.cec_rx_enable_mask = 0x02,
->  		.formats = adv7612_formats,
->  		.nformats = ARRAY_SIZE(adv7612_formats),
->  		.set_termination = adv7611_set_termination,
-> @@ -3134,7 +3167,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
->  		state->pdata.insert_av_codes = 1;
-> 
->  	/* Disable the interrupt for now as no DT-based board uses it. */
-> -	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
-> +	state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_HIGH;
-> 
->  	/* Hardcode the remaining platform data fields. */
->  	state->pdata.disable_pwrdnb = 0;
-> @@ -3517,6 +3550,16 @@ static int adv76xx_probe(struct i2c_client *client,
->  	if (err)
->  		goto err_entity;
-> 
-> +	if (client->irq) {
-> +		err = devm_request_threaded_irq(&client->dev,
-> +						client->irq,
-> +						NULL, adv76xx_irq_handler,
-> +						IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-> +						client->name, state);
-> +		if (err)
-> +			goto err_entity;
-> +	}
-> +
->  #if IS_ENABLED(CONFIG_VIDEO_ADV7604_CEC)
->  	state->cec_adap = cec_allocate_adapter(&adv76xx_cec_adap_ops,
->  		state, dev_name(&client->dev),
-> -- 
-> 2.18.0
-> 
-
--- 
-Regards,
-Niklas Söderlund
+SGkgTGF1cmVudCwgSmFjb3BvLCBTYW0sDQoNCkknbSBhbHNvIE9LIHRvIGNoYW5nZSB0byBhIHNp
+bXBsZXIgYWx0ZXJuYXRpdmU7DQotIGRyb3AgdGhlICJyZXN0b3JlIiBzdGVwDQotIHNlbmQgdGhl
+IHdob2xlIGluaXQgcmVnaXN0ZXIgc2VxdWVuY2UgKyBtb2RlIGNoYW5nZXMgKyBmb3JtYXQgY2hh
+bmdlcyANCmF0IHN0cmVhbW9uDQoNCmlzIHRoaXMgd2hhdCB5b3UgaGF2ZSBpbiBtaW5kIExhdXJl
+bnQgPw0KDQpPbiAxMC8xMC8yMDE4IDAyOjQxIFBNLCBMYXVyZW50IFBpbmNoYXJ0IHdyb3RlOg0K
+PiBIaSBKYWNvcG8sDQo+IA0KPiBPbiBXZWRuZXNkYXksIDEwIE9jdG9iZXIgMjAxOCAxMzo1ODow
+NCBFRVNUIGphY29wbyBtb25kaSB3cm90ZToNCj4+IEhpIFNhbSwNCj4+ICAgICB0aGFua3MgZm9y
+IHRoZSBwYXRjaCwgSSBzZWUgdGhlIHNhbWUgaXNzdWUgeW91IHJlcG9ydGVkLCBidXQgSQ0KPj4g
+dGhpbmsgdGhpcyBwYXRjaCBjYW4gYmUgaW1wcm92ZWQuDQo+Pg0KPj4gKGV4cGFuZGluZyB0aGUg
+Q2MgbGlzdCB0byBhbGwgcGVvcGxlIGludm9sdmVkIGluIHJlY2VudCBvdjU2NDANCj4+IGRldmVs
+b3BlbXRzLCBub3QganVzdCBmb3IgdGhpcyBwYXRjaCwgYnV0IGZvciB0aGUgd2hvbGUgc2VyaWVz
+IHRvIGxvb2sNCj4+IGF0LiBDb3B5aW5nIG5hbWVzIGZyb20gYW5vdGhlciBzZXJpZXMgY292ZXIg
+bGV0dGVyLCBob3BlIGl0IGlzDQo+PiBjb21wbGV0ZS4pDQo+Pg0KPj4gT24gTW9uLCBPY3QgMDgs
+IDIwMTggYXQgMTE6NDc6NTlQTSAtMDcwMCwgU2FtIEJvYnJvd2ljeiB3cm90ZToNCj4+PiBzZXRf
+Zm10IHdhcyBub3QgcHJvcGVybHkgdHJpZ2dlcmluZyBhIG1vZGUgY2hhbmdlIHdoZW4NCj4+PiBh
+IG5ldyBtb2RlIHdhcyBzZXQgdGhhdCBoYXBwZW5lZCB0byBoYXZlIHRoZSBzYW1lIGZvcm1hdA0K
+Pj4+IGFzIHRoZSBwcmV2aW91cyBtb2RlIChmb3IgZXhhbXBsZSwgd2hlbiBvbmx5IGNoYW5naW5n
+IHRoZQ0KPj4+IGZyYW1lIGRpbWVuc2lvbnMpLiBGaXggdGhpcy4NCj4+Pg0KPj4+IFNpZ25lZC1v
+ZmYtYnk6IFNhbSBCb2Jyb3dpY3ogPHNhbUBlbGl0ZS1lbWJlZGRlZC5jb20+DQo+Pj4gLS0tDQo+
+Pj4NCj4+PiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgOCArKysrLS0tLQ0KPj4+ICAg
+MSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkNCj4+Pg0KPj4+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyBiL2RyaXZlcnMvbWVkaWEv
+aTJjL292NTY0MC5jDQo+Pj4gaW5kZXggZWFlZmRiNS4uNTAzMWFhYiAxMDA2NDQNCj4+PiAtLS0g
+YS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvaTJj
+L292NTY0MC5jDQo+Pj4gQEAgLTIwNDUsMTIgKzIwNDUsMTIgQEAgc3RhdGljIGludCBvdjU2NDBf
+c2V0X2ZtdChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLA0KPj4+DQo+Pj4gICAJCWdvdG8gb3V0Ow0K
+Pj4+ICAgCQ0KPj4+ICAgCX0NCj4+Pg0KPj4+IC0JaWYgKG5ld19tb2RlICE9IHNlbnNvci0+Y3Vy
+cmVudF9tb2RlKSB7DQo+Pj4gKw0KPj4+ICsJaWYgKG5ld19tb2RlICE9IHNlbnNvci0+Y3VycmVu
+dF9tb2RlIHx8DQo+Pj4gKwkgICAgbWJ1c19mbXQtPmNvZGUgIT0gc2Vuc29yLT5mbXQuY29kZSkg
+ew0KPj4+ICsJCXNlbnNvci0+Zm10ID0gKm1idXNfZm10Ow0KPj4+DQo+Pj4gICAJCXNlbnNvci0+
+Y3VycmVudF9tb2RlID0gbmV3X21vZGU7DQo+Pj4gICAJCXNlbnNvci0+cGVuZGluZ19tb2RlX2No
+YW5nZSA9IHRydWU7DQo+Pj4NCj4+PiAtCX0NCj4+PiAtCWlmIChtYnVzX2ZtdC0+Y29kZSAhPSBz
+ZW5zb3ItPmZtdC5jb2RlKSB7DQo+Pj4gLQkJc2Vuc29yLT5mbXQgPSAqbWJ1c19mbXQ7DQo+Pj4N
+Cj4+PiAgIAkJc2Vuc29yLT5wZW5kaW5nX2ZtdF9jaGFuZ2UgPSB0cnVlOw0KPj4+ICAgCQ0KPj4+
+ICAgCX0NCj4+DQo+PiBIb3cgSSBkaWQgcmVwcm9kdWNlIHRoZSBpc3N1ZToNCj4+DQo+PiAjIFNl
+dCAxMDI0eDc2OCBvbiBvdjU2NDAgd2l0aG91dCBjaGFuZ2luZyB0aGUgaW1hZ2UgZm9ybWF0DQo+
+PiAjIChkZWZhdWx0IGltYWdlIHNpemUgYXQgc3RhcnR1cCBpcyA2NDB4NDgwKQ0KPj4gJCBtZWRp
+YS1jdGwgLS1zZXQtdjRsMiAiJ292NTY0MCAyLTAwM2MnOjBbZm10OlVZVlkyWDgvMTAyNHg3Njgg
+ZmllbGQ6bm9uZV0iDQo+PiAgICBzZW5zb3ItPnBlbmRpbmdfbW9kZV9jaGFuZ2UgPSB0cnVlOyAv
+L3ZlcmlmaWVkIHRoaXMgZmxhZyBnZXRzIHNldA0KPj4NCj4+ICMgU3RhcnQgc3RyZWFtaW5nLCBh
+ZnRlciBoYXZpbmcgY29uZmlndXJlZCB0aGUgd2hvbGUgcGlwZWxpbmUgdG8gd29yaw0KPj4gIyB3
+aXRoIDEwMjR4NzY4DQo+PiAkICB5YXZ0YSAtYzEwIC1uNCAtZiBVWVZZIC1zIDEwMjR4NzY4IC9k
+ZXYvdmlkZW80DQo+PiAgICAgVW5hYmxlIHRvIHN0YXJ0IHN0cmVhbWluZzogQnJva2VuIHBpcGUg
+KDMyKS4NCj4+DQo+PiAjIEluc3BlY3Qgd2hpY2ggcGFydCBvZiBwaXBlbGluZSB2YWxpZGF0aW9u
+IHdlbnQgd3JvbmcNCj4+ICMgVHVybnMgb3V0IHRoZSBzZW5zb3ItPmZtdCBmaWVsZCBpcyBub3Qg
+dXBkYXRlZCwgYW5kIHdoZW4gZ2V0X2ZtdCgpDQo+PiAjIGlzIGNhbGxlZCwgdGhlIG9sZCBvbmUg
+aXMgcmV0dXJuZWQuDQo+PiAkIG1lZGlhLWN0bCAtZSAib3Y1NjQwIDItMDAzYyIgLXANCj4+ICAg
+IC4uLg0KPj4gICAgW2ZtdDpVWVZZOF8yWDgvNjQweDQ4MEAxLzMwIGZpZWxkOm5vbmUgY29sb3Jz
+cGFjZTpzcmdiIHhmZXI6c3JnYiB5Y2Jjcjo2MDENCj4+IHF1YW50aXphdGlvbjpmdWxsLXJhbmdl
+XSBeXl4gXl5eDQo+Pg0KPj4gU28geWVzLCBzZW5zb3ItPmZtdCBpcyBub3QgdWRhcHRlZCBhcyBp
+dCBzaG91bGQgYmUgd2hlbiBvbmx5IGltYWdlDQo+PiByZXNvbHV0aW9uIGlzIGNoYW5nZWQuDQo+
+Pg0KPj4gQWx0aG91Z2ggSSBzdGlsbCBzZWUgdmFsdWUgaW4gaGF2aW5nIHR3byBzZXBhcmF0ZSBm
+bGFncyBmb3IgdGhlDQo+PiAnbW9kZV9jaGFuZ2UnICh3aGljaCBpbiBvdjU2NDAgbGluZ28gaXMg
+cmVzb2x1dGlvbikgYW5kICdmbXRfY2hhbmdlJyAod2hpY2gNCj4+IGluIG92NTY0MCBsaW5nbyBp
+cyB0aGUgaW1hZ2UgZm9ybWF0KSwgYW5kIHdyaXRlIHRoZWlyIGNvbmZpZ3VyYXRpb24gdG8NCj4+
+IHJlZ2lzdGVycyBvbmx5IHdoZW4gdGhleSBnZXQgYWN0dWFsbHkgY2hhbmdlZC4NCj4+DQo+PiBG
+b3IgdGhpcyByZWFzb25zIEkgd291bGQgbGlrZSB0byBwcm9wc2UgdGhlIGZvbGxvd2luZyBwYXRj
+aCB3aGljaCBJDQo+PiBoYXZlIHRlc3RlZCBieToNCj4+IDEpIGNoYW5naW5nIHJlc29sdXRpb24g
+b25seQ0KPj4gMikgY2hhbmdpbmcgZm9ybWF0IG9ubHkNCj4+IDMpIGNoYW5nZSBib3RoDQo+Pg0K
+Pj4gV2hhdCBkbyB5b3UgYW5kIG90aGVycyB0aGluaz8NCj4gDQo+IEkgdGhpbmsgdGhhdCB0aGUg
+Zm9ybWF0IHNldHRpbmcgY29kZSBzaG91bGQgYmUgY29tcGxldGVseSByZXdyaXR0ZW4sIGl0J3MN
+Cj4gcHJldHR5IG11Y2ggdW5tYWludGFpbmFibGUgYXMtaXMuDQo+IA0KPj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMN
+Cj4+IGluZGV4IGVhZWZkYjUuLmUzOTJiOWQgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlh
+L2kyYy9vdjU2NDAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IEBA
+IC0yMDIwLDYgKzIwMjAsNyBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfZm10KHN0cnVjdCB2NGwy
+X3N1YmRldiAqc2QsDQo+PiAgICAgICAgICBzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yID0gdG9f
+b3Y1NjQwX2RldihzZCk7DQo+PiAgICAgICAgICBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5m
+byAqbmV3X21vZGU7DQo+PiAgICAgICAgICBzdHJ1Y3QgdjRsMl9tYnVzX2ZyYW1lZm10ICptYnVz
+X2ZtdCA9ICZmb3JtYXQtPmZvcm1hdDsNCj4+ICsgICAgICAgc3RydWN0IHY0bDJfbWJ1c19mcmFt
+ZWZtdCAqZm10Ow0KPj4gICAgICAgICAgaW50IHJldDsNCj4+DQo+PiAgICAgICAgICBpZiAoZm9y
+bWF0LT5wYWQgIT0gMCkNCj4+IEBAIC0yMDM3LDIyICsyMDM4LDE5IEBAIHN0YXRpYyBpbnQgb3Y1
+NjQwX3NldF9mbXQoc3RydWN0IHY0bDJfc3ViZGV2ICpzZCwNCj4+ICAgICAgICAgIGlmIChyZXQp
+DQo+PiAgICAgICAgICAgICAgICAgIGdvdG8gb3V0Ow0KPj4NCj4+IC0gICAgICAgaWYgKGZvcm1h
+dC0+d2hpY2ggPT0gVjRMMl9TVUJERVZfRk9STUFUX1RSWSkgew0KPj4gLSAgICAgICAgICAgICAg
+IHN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKmZtdCA9DQo+PiAtICAgICAgICAgICAgICAgICAg
+ICAgICB2NGwyX3N1YmRldl9nZXRfdHJ5X2Zvcm1hdChzZCwgY2ZnLCAwKTsNCj4+ICsgICAgICAg
+aWYgKGZvcm1hdC0+d2hpY2ggPT0gVjRMMl9TVUJERVZfRk9STUFUX1RSWSkNCj4+ICsgICAgICAg
+ICAgICAgICBmbXQgPSB2NGwyX3N1YmRldl9nZXRfdHJ5X2Zvcm1hdChzZCwgY2ZnLCAwKTsNCj4+
+ICsgICAgICAgZWxzZQ0KPj4gKyAgICAgICAgICAgICAgIGZtdCA9ICZzZW5zb3ItPmZtdDsNCj4+
+DQo+PiAtICAgICAgICAgICAgICAgKmZtdCA9ICptYnVzX2ZtdDsNCj4+IC0gICAgICAgICAgICAg
+ICBnb3RvIG91dDsNCj4+IC0gICAgICAgfQ0KPj4gKyAgICAgICAqZm10ID0gKm1idXNfZm10Ow0K
+Pj4NCj4+ICAgICAgICAgIGlmIChuZXdfbW9kZSAhPSBzZW5zb3ItPmN1cnJlbnRfbW9kZSkgew0K
+Pj4gICAgICAgICAgICAgICAgICBzZW5zb3ItPmN1cnJlbnRfbW9kZSA9IG5ld19tb2RlOw0KPj4g
+ICAgICAgICAgICAgICAgICBzZW5zb3ItPnBlbmRpbmdfbW9kZV9jaGFuZ2UgPSB0cnVlOw0KPj4g
+ICAgICAgICAgfQ0KPj4gLSAgICAgICBpZiAobWJ1c19mbXQtPmNvZGUgIT0gc2Vuc29yLT5mbXQu
+Y29kZSkgew0KPj4gLSAgICAgICAgICAgICAgIHNlbnNvci0+Zm10ID0gKm1idXNfZm10Ow0KPj4g
+KyAgICAgICBpZiAobWJ1c19mbXQtPmNvZGUgIT0gc2Vuc29yLT5mbXQuY29kZSkNCj4+ICAgICAg
+ICAgICAgICAgICAgc2Vuc29yLT5wZW5kaW5nX2ZtdF9jaGFuZ2UgPSB0cnVlOw0KPj4gLSAgICAg
+ICB9DQo+PiAgIG91dDoNCj4+ICAgICAgICAgIG11dGV4X3VubG9jaygmc2Vuc29yLT5sb2NrKTsN
+Cj4+ICAgICAgICAgIHJldHVybiByZXQ7DQo+Pg0KPj4+ICAgb3V0Og0KPj4+IC0tDQo+Pj4gMi43
+LjQNCj4gDQo+IA0KDQpCUiwNCkh1Z3Vlcy4=
