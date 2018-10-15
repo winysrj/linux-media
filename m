@@ -1,104 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:36352 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726651AbeJOXxi (ORCPT
+Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:48236 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726576AbeJPAHI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Oct 2018 19:53:38 -0400
-Message-ID: <1579e9b6bcce59ae43cf92c34e2114ebad45b0e9.camel@collabora.com>
-Subject: Re: [PATCH v5 5/6] media: Add controls for JPEG quantization tables
-From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Paul Kocialkowski <contact@paulk.fr>,
-        Tomasz Figa <tfiga@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, myy@miouyouyou.fr,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Date: Mon, 15 Oct 2018 13:07:35 -0300
-In-Reply-To: <2878c8fa36f6e775079f53ba79518a53e1ea6bc5.camel@paulk.fr>
-References: <20180905220011.16612-1-ezequiel@collabora.com>
-         <20180905220011.16612-6-ezequiel@collabora.com>
-         <e7126e89d8984eb93216ec75c83ce1fc5afc437d.camel@paulk.fr>
-         <CAAFQd5Bir0uMsaJPHdgQDvcYHpxZ4sUSn10OPpRXcnn-THUx2A@mail.gmail.com>
-         <2878c8fa36f6e775079f53ba79518a53e1ea6bc5.camel@paulk.fr>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Mon, 15 Oct 2018 20:07:08 -0400
+Subject: Re: [V2, 2/5] Documentation: dt-bindings: Document the Synopsys MIPI
+ DPHY Rx bindings
+To: Rob Herring <robh@kernel.org>,
+        Luis Oliveira <Luis.Oliveira@synopsys.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <Joao.Pinto@synopsys.com>, <festevam@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hans.verkuil@cisco.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Keiichi Watanabe <keiichiw@chromium.org>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        <devicetree@vger.kernel.org>
+References: <20180920111648.27000-1-lolivei@synopsys.com>
+ <20180920111648.27000-3-lolivei@synopsys.com> <20181012164548.GA11873@bogus>
+From: Luis Oliveira <luis.oliveira@synopsys.com>
+Message-ID: <5f3b530b-1869-2749-ef05-60fb272d56f8@synopsys.com>
+Date: Mon, 15 Oct 2018 17:21:03 +0100
+MIME-Version: 1.0
+In-Reply-To: <20181012164548.GA11873@bogus>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2018-10-12 at 22:00 +0200, Paul Kocialkowski wrote:
-> Hi,
+Hi Rob,
+
+On 12-Oct-18 17:45, Rob Herring wrote:
+> On Thu, Sep 20, 2018 at 01:16:40PM +0200, Luis Oliveira wrote:
+>> Add device-tree bindings documentation for SNPS DesignWare MIPI D-PHY in
+>> RX mode.
 > 
-> Le mercredi 19 septembre 2018 à 13:28 +0900, Tomasz Figa a écrit :
-> > On Thu, Sep 13, 2018 at 9:15 PM Paul Kocialkowski <contact@paulk.fr> wrote:
-> > > Hi,
-> > > 
-> > > On Wed, 2018-09-05 at 19:00 -0300, Ezequiel Garcia wrote:
-> > > > From: Shunqian Zheng <zhengsq@rock-chips.com>
-> > > > 
-> > > > Add V4L2_CID_JPEG_QUANTIZATION compound control to allow userspace
-> > > > configure the JPEG quantization tables.
-> > > > 
-> > > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> > > > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > > > ---
-> > > >  .../media/uapi/v4l/extended-controls.rst      | 31 +++++++++++++++++++
-> > > >  .../media/videodev2.h.rst.exceptions          |  1 +
-> > > >  drivers/media/v4l2-core/v4l2-ctrls.c          | 10 ++++++
-> > > >  include/uapi/linux/v4l2-controls.h            | 12 +++++++
-> > > >  include/uapi/linux/videodev2.h                |  1 +
-> > > >  5 files changed, 55 insertions(+)
-> > > > 
-> > > > diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> > > > index 9f7312bf3365..1335d27d30f3 100644
-> > > > --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> > > > +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> > > > @@ -3354,7 +3354,38 @@ JPEG Control IDs
-> > > >      Specify which JPEG markers are included in compressed stream. This
-> > > >      control is valid only for encoders.
-> > > > 
-> > > > +.. _jpeg-quant-tables-control:
-> > > 
-> > > I just had a look at how the Allwinner VPU handles JPEG decoding and it
-> > > seems to require the following information (in addition to
-> > > quantization):
-> > 
-> > I assume the hardware doesn't have the ability to parse those from the
-> > stream and so they need to be parsed by user space and given to the
-> > driver?
+> "dt-bindings: phy: ..." for the subject.
 > 
-> That's correct, we are also dealing with a stateless decoder here. It's
-> actually the same hardware engine that's used for MPEG2 decoding, only
-> configured differently.
+Yes, you are right.
+
+>>
+>> Signed-off-by: Luis Oliveira <lolivei@synopsys.com>
+>> ---
+>> Changelog
+>> v2:
+>> - no changes
+>>
+>>  .../devicetree/bindings/phy/snps,dphy-rx.txt       | 36 ++++++++++++++++++++++
+>>  1 file changed, 36 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/phy/snps,dphy-rx.txt b/Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
+>> new file mode 100644
+>> index 0000000..9079f4a
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/phy/snps,dphy-rx.txt
+>> @@ -0,0 +1,36 @@
+>> +Synopsys DesignWare MIPI Rx D-PHY block details
+>> +
+>> +Description
+>> +-----------
+>> +
+>> +The Synopsys MIPI D-PHY controller supports MIPI-DPHY in receiver mode.
+>> +Please refer to phy-bindings.txt for more information.
+>> +
+>> +Required properties:
+>> +- compatible		: Shall be "snps,dphy-rx".
+>> +- #phy-cells		: Must be 1.
+>> +- snps,dphy-frequency	: Output frequency of the D-PHY.
+>> +- snps,dphy-te-len	: Size of the communication interface (8 bits->8 or 12bits->12).
+>> +- reg			: Physical base address and size of the device memory mapped
+>> +		 	  registers;
+>> +
+>> +Optional properties:
+>> +- snps,compat-mode	: Compatibility mode control
 > 
-> So we will need to introduce a pixfmt for compressed JPEG data without
-> headers, reuse JPEG controls that apply and perhaps introduce new ones
-> too if needed.
-> 
-> I am also wondering about how MJPEG support should fit into this. As
-> far as I understood, it shouldn't be very different from JPEG so we
-> might want to have common controls for both.
+> type? values?
 > 
 
-We've recently discussed this and we were proposing to just drop
-MJPEG and stick to JPEG. The reason is that MJPEG is not clearly
-defined. Note that others treat MJPEG and JPEG as aliases.
+I will remove this in V3.
 
-See "Re: [RFC] V4L2_PIX_FMT_MJPEG vs V4L2_PIX_FMT_JPEG".
+>> +
+>> +The per-board settings:
+>> +- gpios 		: Synopsys testchip used as reference uses this to change setup
+>> +		  	  configurations.
+> 
+> Preferred to be named (e.g. foo-gpios). How many? What are their 
+> functions?
+> 
 
-Also, I'll be adding support for spec-compliant JPEG frames
-in rockchip JPEG encoder. This will allow to use the driver
-with already available userspace. IOW, we don't absolutely
-need a new pixelformat for encoders.
+Ok, thanks for reviewing this.
 
-Decoders, on the other side, would be a different story,
-as parsing headers in the kernel can raise some safety
-concerns.
-
-Regards,
-Ezequiel
+>> +
+>> +Example:
+>> +
+>> +	mipi_dphy_rx1: dphy@3040 {
+>> +		compatible = "snps,dphy-rx";
+>> +		#phy-cells = <1>;
+>> +		snps,dphy-frequency = <300000>;
+>> +		snps,dphy-te-len = <12>;
+>> +		snps,compat-mode = <1>;
+>> +		reg = < 0x03040 0x20
+>> +			0x08000 0x100
+>> +			0x09000 0x100>;
+>> +	};
+>> +
+>> -- 
+>> 2.9.3
+>>
