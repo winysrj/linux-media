@@ -1,156 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:32899 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726319AbeJOTVG (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:39138 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726422AbeJOVpT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Oct 2018 15:21:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [ANN] Agenda for the media summit on Thursday Oct 25th in Edinburgh
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <d337a1fd-ddb8-cb6a-beff-3e8fe96d75b0@xs4all.nl>
-Date: Mon, 15 Oct 2018 13:36:08 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+        Mon, 15 Oct 2018 17:45:19 -0400
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Maxime Ripard <maxime.ripard@bootlin.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Mylene Josserand <mylene.josserand@bootlin.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Sakari Ailus" <sakari.ailus@linux.intel.com>,
+        Loic Poulain <loic.poulain@linaro.org>,
+        Samuel Bobrowicz <sam@elite-embedded.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Daniel Mack <daniel@zonque.org>,
+        Jacopo Mondi <jacopo@jmondi.org>
+Subject: Re: [PATCH v4 12/12] ov5640: Enforce a mode change when changing the
+ framerate
+Date: Mon, 15 Oct 2018 13:57:40 +0000
+Message-ID: <45c2db62-b6b9-34a6-1e4b-16d622f8461a@st.com>
+References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
+ <20181011092107.30715-13-maxime.ripard@bootlin.com>
+In-Reply-To: <20181011092107.30715-13-maxime.ripard@bootlin.com>
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <C73D8567AE4B7C438608DF26B502130A@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-
-We are organizing a media mini-summit on Thursday October 25th in
-Edinburgh, Edinburgh International Conference Centre.
-
-If you plan to attend, please register on the ELCE/OSS site since we're
-using there tracking system:
-
-https://events.linuxfoundation.org/events/elc-openiot-europe-2018/register/
-
-Name of the room for the summit: Tinto, Level 0 of the EICC
-
-We had 75 people sign up for the summit as of a week ago, which is quite
-amazing. I'm not listing all of them here, just those that I know are active
-media developers:
-
-Sakari Ailus <sakari.ailus@linux.intel.com>
-Neil Armstrong <narmstrong@baylibre.com>
-Kieran Bingham <kieran.bingham@ideasonboard.com>
-Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Nicolas Dufresne <nicolas@ndufresne.ca> (Collabora)
-Ezequiel Garcia <ezequiel@collabora.com>
-Helen Koike <helen.koike@collabora.com>
-Michael Ira Krufky <mkrufky@linuxtv.org> (Vimeo/Livestream)
-Brad Love <brad@nextdimension.cc>
-Jacopo Mondi <jacopo+renesas@jmondi.org>
-Gustavo Padovan <gustavo@padovan.org>
-Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> (Qtechnology A/S)
-Maxime Ripard <maxime.ripard@bootlin.com>
-Niklas Söderlund <niklas.soderlund@ragnatech.se>
-Hans Verkuil <hverkuil@xs4all.nl> (Cisco)
-Sean Young <sean@mess.org> (Monax)
-
-Agenda
-======
-
-General remarks: the given start/end times for the various topics are
-approximate since it is always hard to predict how long a discussion will take.
-If people are attending other summits and those conflict with specific topics
-they want to be part of, then let me know and we can rearrange the schedule
-to (hopefully) accomodate that.
-
-Let me know asap if there are problems with this schedule, or if new topics
-are requested.
-
-9:00-9:25: Introduction (Hans Verkuil)
-	Settling in, hooking everything up, getting wifi/projector/etc.
-	to work, drinking coffee/tea/water and a short intro :-)
-
-9:25-9:35: Status of the HDMI CEC kernel support (Hans Verkuil)
-	Give a quick overview of the status: what has been merged, what is
-	still pending, what is under development.
-
-9:35-9:45: Status of the RC kernel support (Sean Young)
-	A 10 minute status update on rc-core, present and future. I'll give a
-	brief presentation and leave some time for discussion.
-
-9:45-10:00: Save/restore controls from MTD (Ricardo Ribalda Delgado)
-	Industrial/Scientific sensors usually come with very extensive
-	calibration information such as: per column gain, list of dead
-	pixels, temperature sensor offset... etc
-
-	We are saving that information on an flash device that is located
-	by the sensor.
-
-	Show how we are integrating that calibration flash with v4l2-ctrl.
-	And if this feature is useful for someone else and upstream it.
-
-10:00-10:10: dri-devel and 'dim' (Laurent Pinchart)
-	Experiences (good and bad) with the dri-devel 'dim' utility.
-
-10:10-11:00: Automated Testing (Ezequiel Garcia)
-	There is a lot of discussion going on around testing,
-	so it's a good opportunity for us to talk about our
-	current testing infrastructure.
-
-	We are already doing a good job with v4l2-compliance.
-	Can we do more?
-
-11:00-11:15: Break
-
-11:15-12:00: Stateless Codec userspace (Hans Verkuil)
-	Support for stateless codecs and Request API should be merged for
-	4.20, and the next step is to discuss how to organize the userspace
-	support.
-
-	Hopefully by the time the media summit starts we'll have some better
-	ideas of what we want in this area.
-
-12:00-13:30: Lunch
-
-13:30-14:30: Which ioctls should be replaced with better versions? (Hans Verkuil)
-	Some parts of the V4L2 API are awkward to use and I think it would be
-	a good idea to look at possible candidates for that.
-
-	Examples are the ioctls that use struct v4l2_buffer: the multiplanar support is
-	really horrible, and writing code to support both single and multiplanar is hard.
-	We are also running out of fields and the timeval isn't y2038 compliant.
-
-	A proof-of-concept is here:
-
-	https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95549df06d9900f3559afdbb9da06bd4b22d1f3
-
-	It's a bit old, but it gives a good impression of what I have in mind.
-
-	Another candidate is VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS:
-	expressing frame intervals as a fraction is really awkward and so is the fact
-	that the subdev and 'normal' ioctls are not the same.
-
-	Discuss what possible other ioctls are candidates for a refresh.
-
-14:30-15:00: Fault tolerant V4L2 (Kieran Bingham)
-	In other words, how should we handle complex devices which do not 'fully
-	probe' since one or more subdevices (e.g. sensors) are broken (or break
-	while in use!).
-
-15:00-15:15: Break
-
-15:15-16:00: Tentative: Complex Cameras (Mauro Carvalho Chehab)
-	The idea is to discuss about the undergoing work with complex camera
-	development is happening.
-
-	As we're working to merge request API, another topic for discussion
-	is how to add support for requests on it (or on a separate but related
-	library).
-
-	Note: to be confirmed, this topic might be dropped.
-
-16:00-16:30: Discuss the media development process
-	Since we are all here, discuss any issues there may be with the media
-	subsystem development process. Anything to improve?
-
-16:30-16:45: Wrap up
-	Create action items (and who will take care of them) if needed.
-	Summarize and conclude the day.
-
-End of the day: Key Signing Party
+SGkgTWF4aW1lLA0KDQpUaGlzIGlzIGFscmVhZHkgZml4ZWQgaW4gbWVkaWEgdHJlZToNCjA5Mjk5
+ODNlNDljODFjMWQ0MTM3MDJjZDliODNiYjA2YzRhMjU1NWMgbWVkaWE6IG92NTY0MDogZml4IGZy
+YW1lcmF0ZSB1cGRhdGUNCg0KDQpPbiAxMC8xMS8yMDE4IDExOjIxIEFNLCBNYXhpbWUgUmlwYXJk
+IHdyb3RlOg0KPiBUaGUgY3VycmVudCBsb2dpYyBvbmx5IHJlcXVpcmVzIHRvIGNhbGwgb3Y1NjQw
+X3NldF9tb2RlLCB3aGljaCB3aWxsIGluIHR1cm4NCj4gY2hhbmdlIHRoZSBjbG9jayByYXRlcyBh
+Y2NvcmRpbmcgdG8gdGhlIG1vZGUgYW5kIGZyYW1lIGludGVydmFsLCB3aGVuIGEgbmV3DQo+IG1v
+ZGUgaXMgc2V0IHVwLg0KPiANCj4gSG93ZXZlciwgd2hlbiBvbmx5IHRoZSBmcmFtZSBpbnRlcnZh
+bCBpcyBjaGFuZ2VkIGJ1dCB0aGUgbW9kZSBpc24ndCwNCj4gb3Y1NjQwX3NldF9tb2RlIGlzIG5l
+dmVyIGNhbGxlZCBhbmQgdGhlIHJlc3VsdGluZyBmcmFtZSByYXRlIHdpbGwgYmUgb2xkIG9yDQo+
+IGRlZmF1bHQgb25lLiBGaXggdGhpcyBieSByZXF1aXJpbmcgdGhhdCBvdjU2NDBfc2V0X21vZGUg
+aXMgY2FsbGVkIHdoZW4gdGhlDQo+IGZyYW1lIGludGVydmFsIGlzIGNoYW5nZWQgYXMgd2VsbC4N
+Cj4gDQo+IFNpZ25lZC1vZmYtYnk6IE1heGltZSBSaXBhcmQgPG1heGltZS5yaXBhcmRAYm9vdGxp
+bi5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgOCArKysrKyst
+LQ0KPiAgIDEgZmlsZSBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+
+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMgYi9kcml2ZXJzL21l
+ZGlhL2kyYy9vdjU2NDAuYw0KPiBpbmRleCA4MTg0MTE0MDBlZjYuLmUwMWQyY2I5M2M2NyAxMDA2
+NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4gKysrIGIvZHJpdmVycy9t
+ZWRpYS9pMmMvb3Y1NjQwLmMNCj4gQEAgLTI2MzgsOCArMjYzOCwxMiBAQCBzdGF0aWMgaW50IG92
+NTY0MF9zX2ZyYW1lX2ludGVydmFsKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsDQo+ICAgCQlnb3Rv
+IG91dDsNCj4gICAJfQ0KPiAgIA0KPiAtCXNlbnNvci0+Y3VycmVudF9mciA9IGZyYW1lX3JhdGU7
+DQo+IC0Jc2Vuc29yLT5mcmFtZV9pbnRlcnZhbCA9IGZpLT5pbnRlcnZhbDsNCj4gKwlpZiAoZnJh
+bWVfcmF0ZSAhPSBzZW5zb3ItPmN1cnJlbnRfZnIpIHsNCj4gKwkJc2Vuc29yLT5jdXJyZW50X2Zy
+ID0gZnJhbWVfcmF0ZTsNCj4gKwkJc2Vuc29yLT5mcmFtZV9pbnRlcnZhbCA9IGZpLT5pbnRlcnZh
+bDsNCj4gKwkJc2Vuc29yLT5wZW5kaW5nX21vZGVfY2hhbmdlID0gdHJ1ZTsNCj4gKwl9DQo+ICsN
+Cj4gICAJbW9kZSA9IG92NTY0MF9maW5kX21vZGUoc2Vuc29yLCBmcmFtZV9yYXRlLCBtb2RlLT5o
+YWN0LA0KPiAgIAkJCQltb2RlLT52YWN0LCB0cnVlKTsNCj4gICAJaWYgKCFtb2RlKSB7DQo+IA0K
+DQpCUiwNCkh1Z3Vlcy4=
