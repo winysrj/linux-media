@@ -1,122 +1,320 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:30609 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726585AbeJOW7A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Oct 2018 18:59:00 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        jacopo mondi <jacopo@jmondi.org>,
-        Sam Bobrowicz <sam@elite-embedded.com>,
-        "slongerbeam@gmail.com" <slongerbeam@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "loic.poulain@linaro.org" <loic.poulain@linaro.org>,
-        "daniel@zonque.org" <daniel@zonque.org>,
-        "maxime.ripard@bootlin.com" <maxime.ripard@bootlin.com>
-Subject: Re: [PATCH 1/4] media: ov5640: fix resolution update
-Date: Mon, 15 Oct 2018 15:13:12 +0000
-Message-ID: <0295fe15-6802-ecd9-f42d-391184fc1344@st.com>
-References: <1539067682-60604-1-git-send-email-sam@elite-embedded.com>
- <1539067682-60604-2-git-send-email-sam@elite-embedded.com>
- <20181010105804.GD7677@w540> <5292714.SW9firoZdu@avalon>
-In-Reply-To: <5292714.SW9firoZdu@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <1541F7E91D8D2143BD605B358D4587B6@st.com>
-Content-Transfer-Encoding: base64
+Received: from mga03.intel.com ([134.134.136.65]:58975 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726935AbeJOXRA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 15 Oct 2018 19:17:00 -0400
+Date: Mon, 15 Oct 2018 18:31:13 +0300
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [PATCH v3 6/6] media: video-i2c: support runtime PM
+Message-ID: <20181015153112.sshgnv7un4mm6tav@paasikivi.fi.intel.com>
+References: <1539453759-29976-1-git-send-email-akinobu.mita@gmail.com>
+ <1539453759-29976-7-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1539453759-29976-7-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTGF1cmVudCwgSmFjb3BvLCBTYW0sDQoNCkknbSBhbHNvIE9LIHRvIGNoYW5nZSB0byBhIHNp
-bXBsZXIgYWx0ZXJuYXRpdmU7DQotIGRyb3AgdGhlICJyZXN0b3JlIiBzdGVwDQotIHNlbmQgdGhl
-IHdob2xlIGluaXQgcmVnaXN0ZXIgc2VxdWVuY2UgKyBtb2RlIGNoYW5nZXMgKyBmb3JtYXQgY2hh
-bmdlcyANCmF0IHN0cmVhbW9uDQoNCmlzIHRoaXMgd2hhdCB5b3UgaGF2ZSBpbiBtaW5kIExhdXJl
-bnQgPw0KDQpPbiAxMC8xMC8yMDE4IDAyOjQxIFBNLCBMYXVyZW50IFBpbmNoYXJ0IHdyb3RlOg0K
-PiBIaSBKYWNvcG8sDQo+IA0KPiBPbiBXZWRuZXNkYXksIDEwIE9jdG9iZXIgMjAxOCAxMzo1ODow
-NCBFRVNUIGphY29wbyBtb25kaSB3cm90ZToNCj4+IEhpIFNhbSwNCj4+ICAgICB0aGFua3MgZm9y
-IHRoZSBwYXRjaCwgSSBzZWUgdGhlIHNhbWUgaXNzdWUgeW91IHJlcG9ydGVkLCBidXQgSQ0KPj4g
-dGhpbmsgdGhpcyBwYXRjaCBjYW4gYmUgaW1wcm92ZWQuDQo+Pg0KPj4gKGV4cGFuZGluZyB0aGUg
-Q2MgbGlzdCB0byBhbGwgcGVvcGxlIGludm9sdmVkIGluIHJlY2VudCBvdjU2NDANCj4+IGRldmVs
-b3BlbXRzLCBub3QganVzdCBmb3IgdGhpcyBwYXRjaCwgYnV0IGZvciB0aGUgd2hvbGUgc2VyaWVz
-IHRvIGxvb2sNCj4+IGF0LiBDb3B5aW5nIG5hbWVzIGZyb20gYW5vdGhlciBzZXJpZXMgY292ZXIg
-bGV0dGVyLCBob3BlIGl0IGlzDQo+PiBjb21wbGV0ZS4pDQo+Pg0KPj4gT24gTW9uLCBPY3QgMDgs
-IDIwMTggYXQgMTE6NDc6NTlQTSAtMDcwMCwgU2FtIEJvYnJvd2ljeiB3cm90ZToNCj4+PiBzZXRf
-Zm10IHdhcyBub3QgcHJvcGVybHkgdHJpZ2dlcmluZyBhIG1vZGUgY2hhbmdlIHdoZW4NCj4+PiBh
-IG5ldyBtb2RlIHdhcyBzZXQgdGhhdCBoYXBwZW5lZCB0byBoYXZlIHRoZSBzYW1lIGZvcm1hdA0K
-Pj4+IGFzIHRoZSBwcmV2aW91cyBtb2RlIChmb3IgZXhhbXBsZSwgd2hlbiBvbmx5IGNoYW5naW5n
-IHRoZQ0KPj4+IGZyYW1lIGRpbWVuc2lvbnMpLiBGaXggdGhpcy4NCj4+Pg0KPj4+IFNpZ25lZC1v
-ZmYtYnk6IFNhbSBCb2Jyb3dpY3ogPHNhbUBlbGl0ZS1lbWJlZGRlZC5jb20+DQo+Pj4gLS0tDQo+
-Pj4NCj4+PiAgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgOCArKysrLS0tLQ0KPj4+ICAg
-MSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkNCj4+Pg0KPj4+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyBiL2RyaXZlcnMvbWVkaWEv
-aTJjL292NTY0MC5jDQo+Pj4gaW5kZXggZWFlZmRiNS4uNTAzMWFhYiAxMDA2NDQNCj4+PiAtLS0g
-YS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYw0KPj4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvaTJj
-L292NTY0MC5jDQo+Pj4gQEAgLTIwNDUsMTIgKzIwNDUsMTIgQEAgc3RhdGljIGludCBvdjU2NDBf
-c2V0X2ZtdChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLA0KPj4+DQo+Pj4gICAJCWdvdG8gb3V0Ow0K
-Pj4+ICAgCQ0KPj4+ICAgCX0NCj4+Pg0KPj4+IC0JaWYgKG5ld19tb2RlICE9IHNlbnNvci0+Y3Vy
-cmVudF9tb2RlKSB7DQo+Pj4gKw0KPj4+ICsJaWYgKG5ld19tb2RlICE9IHNlbnNvci0+Y3VycmVu
-dF9tb2RlIHx8DQo+Pj4gKwkgICAgbWJ1c19mbXQtPmNvZGUgIT0gc2Vuc29yLT5mbXQuY29kZSkg
-ew0KPj4+ICsJCXNlbnNvci0+Zm10ID0gKm1idXNfZm10Ow0KPj4+DQo+Pj4gICAJCXNlbnNvci0+
-Y3VycmVudF9tb2RlID0gbmV3X21vZGU7DQo+Pj4gICAJCXNlbnNvci0+cGVuZGluZ19tb2RlX2No
-YW5nZSA9IHRydWU7DQo+Pj4NCj4+PiAtCX0NCj4+PiAtCWlmIChtYnVzX2ZtdC0+Y29kZSAhPSBz
-ZW5zb3ItPmZtdC5jb2RlKSB7DQo+Pj4gLQkJc2Vuc29yLT5mbXQgPSAqbWJ1c19mbXQ7DQo+Pj4N
-Cj4+PiAgIAkJc2Vuc29yLT5wZW5kaW5nX2ZtdF9jaGFuZ2UgPSB0cnVlOw0KPj4+ICAgCQ0KPj4+
-ICAgCX0NCj4+DQo+PiBIb3cgSSBkaWQgcmVwcm9kdWNlIHRoZSBpc3N1ZToNCj4+DQo+PiAjIFNl
-dCAxMDI0eDc2OCBvbiBvdjU2NDAgd2l0aG91dCBjaGFuZ2luZyB0aGUgaW1hZ2UgZm9ybWF0DQo+
-PiAjIChkZWZhdWx0IGltYWdlIHNpemUgYXQgc3RhcnR1cCBpcyA2NDB4NDgwKQ0KPj4gJCBtZWRp
-YS1jdGwgLS1zZXQtdjRsMiAiJ292NTY0MCAyLTAwM2MnOjBbZm10OlVZVlkyWDgvMTAyNHg3Njgg
-ZmllbGQ6bm9uZV0iDQo+PiAgICBzZW5zb3ItPnBlbmRpbmdfbW9kZV9jaGFuZ2UgPSB0cnVlOyAv
-L3ZlcmlmaWVkIHRoaXMgZmxhZyBnZXRzIHNldA0KPj4NCj4+ICMgU3RhcnQgc3RyZWFtaW5nLCBh
-ZnRlciBoYXZpbmcgY29uZmlndXJlZCB0aGUgd2hvbGUgcGlwZWxpbmUgdG8gd29yaw0KPj4gIyB3
-aXRoIDEwMjR4NzY4DQo+PiAkICB5YXZ0YSAtYzEwIC1uNCAtZiBVWVZZIC1zIDEwMjR4NzY4IC9k
-ZXYvdmlkZW80DQo+PiAgICAgVW5hYmxlIHRvIHN0YXJ0IHN0cmVhbWluZzogQnJva2VuIHBpcGUg
-KDMyKS4NCj4+DQo+PiAjIEluc3BlY3Qgd2hpY2ggcGFydCBvZiBwaXBlbGluZSB2YWxpZGF0aW9u
-IHdlbnQgd3JvbmcNCj4+ICMgVHVybnMgb3V0IHRoZSBzZW5zb3ItPmZtdCBmaWVsZCBpcyBub3Qg
-dXBkYXRlZCwgYW5kIHdoZW4gZ2V0X2ZtdCgpDQo+PiAjIGlzIGNhbGxlZCwgdGhlIG9sZCBvbmUg
-aXMgcmV0dXJuZWQuDQo+PiAkIG1lZGlhLWN0bCAtZSAib3Y1NjQwIDItMDAzYyIgLXANCj4+ICAg
-IC4uLg0KPj4gICAgW2ZtdDpVWVZZOF8yWDgvNjQweDQ4MEAxLzMwIGZpZWxkOm5vbmUgY29sb3Jz
-cGFjZTpzcmdiIHhmZXI6c3JnYiB5Y2Jjcjo2MDENCj4+IHF1YW50aXphdGlvbjpmdWxsLXJhbmdl
-XSBeXl4gXl5eDQo+Pg0KPj4gU28geWVzLCBzZW5zb3ItPmZtdCBpcyBub3QgdWRhcHRlZCBhcyBp
-dCBzaG91bGQgYmUgd2hlbiBvbmx5IGltYWdlDQo+PiByZXNvbHV0aW9uIGlzIGNoYW5nZWQuDQo+
-Pg0KPj4gQWx0aG91Z2ggSSBzdGlsbCBzZWUgdmFsdWUgaW4gaGF2aW5nIHR3byBzZXBhcmF0ZSBm
-bGFncyBmb3IgdGhlDQo+PiAnbW9kZV9jaGFuZ2UnICh3aGljaCBpbiBvdjU2NDAgbGluZ28gaXMg
-cmVzb2x1dGlvbikgYW5kICdmbXRfY2hhbmdlJyAod2hpY2gNCj4+IGluIG92NTY0MCBsaW5nbyBp
-cyB0aGUgaW1hZ2UgZm9ybWF0KSwgYW5kIHdyaXRlIHRoZWlyIGNvbmZpZ3VyYXRpb24gdG8NCj4+
-IHJlZ2lzdGVycyBvbmx5IHdoZW4gdGhleSBnZXQgYWN0dWFsbHkgY2hhbmdlZC4NCj4+DQo+PiBG
-b3IgdGhpcyByZWFzb25zIEkgd291bGQgbGlrZSB0byBwcm9wc2UgdGhlIGZvbGxvd2luZyBwYXRj
-aCB3aGljaCBJDQo+PiBoYXZlIHRlc3RlZCBieToNCj4+IDEpIGNoYW5naW5nIHJlc29sdXRpb24g
-b25seQ0KPj4gMikgY2hhbmdpbmcgZm9ybWF0IG9ubHkNCj4+IDMpIGNoYW5nZSBib3RoDQo+Pg0K
-Pj4gV2hhdCBkbyB5b3UgYW5kIG90aGVycyB0aGluaz8NCj4gDQo+IEkgdGhpbmsgdGhhdCB0aGUg
-Zm9ybWF0IHNldHRpbmcgY29kZSBzaG91bGQgYmUgY29tcGxldGVseSByZXdyaXR0ZW4sIGl0J3MN
-Cj4gcHJldHR5IG11Y2ggdW5tYWludGFpbmFibGUgYXMtaXMuDQo+IA0KPj4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMN
-Cj4+IGluZGV4IGVhZWZkYjUuLmUzOTJiOWQgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21lZGlh
-L2kyYy9vdjU2NDAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+IEBA
-IC0yMDIwLDYgKzIwMjAsNyBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfZm10KHN0cnVjdCB2NGwy
-X3N1YmRldiAqc2QsDQo+PiAgICAgICAgICBzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yID0gdG9f
-b3Y1NjQwX2RldihzZCk7DQo+PiAgICAgICAgICBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5m
-byAqbmV3X21vZGU7DQo+PiAgICAgICAgICBzdHJ1Y3QgdjRsMl9tYnVzX2ZyYW1lZm10ICptYnVz
-X2ZtdCA9ICZmb3JtYXQtPmZvcm1hdDsNCj4+ICsgICAgICAgc3RydWN0IHY0bDJfbWJ1c19mcmFt
-ZWZtdCAqZm10Ow0KPj4gICAgICAgICAgaW50IHJldDsNCj4+DQo+PiAgICAgICAgICBpZiAoZm9y
-bWF0LT5wYWQgIT0gMCkNCj4+IEBAIC0yMDM3LDIyICsyMDM4LDE5IEBAIHN0YXRpYyBpbnQgb3Y1
-NjQwX3NldF9mbXQoc3RydWN0IHY0bDJfc3ViZGV2ICpzZCwNCj4+ICAgICAgICAgIGlmIChyZXQp
-DQo+PiAgICAgICAgICAgICAgICAgIGdvdG8gb3V0Ow0KPj4NCj4+IC0gICAgICAgaWYgKGZvcm1h
-dC0+d2hpY2ggPT0gVjRMMl9TVUJERVZfRk9STUFUX1RSWSkgew0KPj4gLSAgICAgICAgICAgICAg
-IHN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKmZtdCA9DQo+PiAtICAgICAgICAgICAgICAgICAg
-ICAgICB2NGwyX3N1YmRldl9nZXRfdHJ5X2Zvcm1hdChzZCwgY2ZnLCAwKTsNCj4+ICsgICAgICAg
-aWYgKGZvcm1hdC0+d2hpY2ggPT0gVjRMMl9TVUJERVZfRk9STUFUX1RSWSkNCj4+ICsgICAgICAg
-ICAgICAgICBmbXQgPSB2NGwyX3N1YmRldl9nZXRfdHJ5X2Zvcm1hdChzZCwgY2ZnLCAwKTsNCj4+
-ICsgICAgICAgZWxzZQ0KPj4gKyAgICAgICAgICAgICAgIGZtdCA9ICZzZW5zb3ItPmZtdDsNCj4+
-DQo+PiAtICAgICAgICAgICAgICAgKmZtdCA9ICptYnVzX2ZtdDsNCj4+IC0gICAgICAgICAgICAg
-ICBnb3RvIG91dDsNCj4+IC0gICAgICAgfQ0KPj4gKyAgICAgICAqZm10ID0gKm1idXNfZm10Ow0K
-Pj4NCj4+ICAgICAgICAgIGlmIChuZXdfbW9kZSAhPSBzZW5zb3ItPmN1cnJlbnRfbW9kZSkgew0K
-Pj4gICAgICAgICAgICAgICAgICBzZW5zb3ItPmN1cnJlbnRfbW9kZSA9IG5ld19tb2RlOw0KPj4g
-ICAgICAgICAgICAgICAgICBzZW5zb3ItPnBlbmRpbmdfbW9kZV9jaGFuZ2UgPSB0cnVlOw0KPj4g
-ICAgICAgICAgfQ0KPj4gLSAgICAgICBpZiAobWJ1c19mbXQtPmNvZGUgIT0gc2Vuc29yLT5mbXQu
-Y29kZSkgew0KPj4gLSAgICAgICAgICAgICAgIHNlbnNvci0+Zm10ID0gKm1idXNfZm10Ow0KPj4g
-KyAgICAgICBpZiAobWJ1c19mbXQtPmNvZGUgIT0gc2Vuc29yLT5mbXQuY29kZSkNCj4+ICAgICAg
-ICAgICAgICAgICAgc2Vuc29yLT5wZW5kaW5nX2ZtdF9jaGFuZ2UgPSB0cnVlOw0KPj4gLSAgICAg
-ICB9DQo+PiAgIG91dDoNCj4+ICAgICAgICAgIG11dGV4X3VubG9jaygmc2Vuc29yLT5sb2NrKTsN
-Cj4+ICAgICAgICAgIHJldHVybiByZXQ7DQo+Pg0KPj4+ICAgb3V0Og0KPj4+IC0tDQo+Pj4gMi43
-LjQNCj4gDQo+IA0KDQpCUiwNCkh1Z3Vlcy4=
+Hi Mita-san,
+
+On Sun, Oct 14, 2018 at 03:02:39AM +0900, Akinobu Mita wrote:
+> AMG88xx has a register for setting operating mode.  This adds support
+> runtime PM by changing the operating mode.
+> 
+> The instruction for changing sleep mode to normal mode is from the
+> reference specifications.
+> 
+> https://docid81hrs3j1.cloudfront.net/medialibrary/2017/11/PANA-S-A0002141979-1.pdf
+> 
+> Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Hans Verkuil <hansverk@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Reviewed-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+> * v3
+> - Move chip->set_power() call to the video device release() callback.
+> - Add Acked-by line
+> 
+>  drivers/media/i2c/video-i2c.c | 141 +++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 139 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+> index 3334fc2..22fdc43 100644
+> --- a/drivers/media/i2c/video-i2c.c
+> +++ b/drivers/media/i2c/video-i2c.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/of_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/regmap.h>
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+> @@ -94,10 +95,23 @@ struct video_i2c_chip {
+>  	/* xfer function */
+>  	int (*xfer)(struct video_i2c_data *data, char *buf);
+>  
+> +	/* power control function */
+> +	int (*set_power)(struct video_i2c_data *data, bool on);
+> +
+>  	/* hwmon init function */
+>  	int (*hwmon_init)(struct video_i2c_data *data);
+>  };
+>  
+> +/* Power control register */
+> +#define AMG88XX_REG_PCTL	0x00
+> +#define AMG88XX_PCTL_NORMAL		0x00
+> +#define AMG88XX_PCTL_SLEEP		0x10
+> +
+> +/* Reset register */
+> +#define AMG88XX_REG_RST		0x01
+> +#define AMG88XX_RST_FLAG		0x30
+> +#define AMG88XX_RST_INIT		0x3f
+> +
+>  /* Frame rate register */
+>  #define AMG88XX_REG_FPSC	0x02
+>  #define AMG88XX_FPSC_1FPS		BIT(0)
+> @@ -127,6 +141,59 @@ static int amg88xx_setup(struct video_i2c_data *data)
+>  	return regmap_update_bits(data->regmap, AMG88XX_REG_FPSC, mask, val);
+>  }
+>  
+> +static int amg88xx_set_power_on(struct video_i2c_data *data)
+> +{
+> +	int ret;
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_NORMAL);
+> +	if (ret)
+> +		return ret;
+> +
+> +	msleep(50);
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_INIT);
+> +	if (ret)
+> +		return ret;
+> +
+> +	msleep(2);
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_RST_FLAG);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/*
+> +	 * Wait two frames before reading thermistor and temperature registers
+> +	 */
+> +	msleep(200);
+> +
+> +	return 0;
+> +}
+> +
+> +static int amg88xx_set_power_off(struct video_i2c_data *data)
+> +{
+> +	int ret;
+> +
+> +	ret = regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_PCTL_SLEEP);
+> +	if (ret)
+> +		return ret;
+> +	/*
+> +	 * Wait for a while to avoid resuming normal mode immediately after
+> +	 * entering sleep mode, otherwise the device occasionally goes wrong
+> +	 * (thermistor and temperature registers are not updated at all)
+> +	 */
+> +	msleep(100);
+> +
+> +	return 0;
+> +}
+> +
+> +static int amg88xx_set_power(struct video_i2c_data *data, bool on)
+> +{
+> +	if (on)
+> +		return amg88xx_set_power_on(data);
+> +
+> +	return amg88xx_set_power_off(data);
+> +}
+> +
+>  #if IS_ENABLED(CONFIG_HWMON)
+>  
+>  static const u32 amg88xx_temp_config[] = {
+> @@ -158,7 +225,15 @@ static int amg88xx_read(struct device *dev, enum hwmon_sensor_types type,
+>  	__le16 buf;
+>  	int tmp;
+>  
+> +	tmp = pm_runtime_get_sync(regmap_get_device(data->regmap));
+> +	if (tmp < 0) {
+> +		pm_runtime_put_noidle(regmap_get_device(data->regmap));
+> +		return tmp;
+> +	}
+> +
+>  	tmp = regmap_bulk_read(data->regmap, AMG88XX_REG_TTHL, &buf, 2);
+> +	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
+> +	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
+>  	if (tmp)
+>  		return tmp;
+>  
+> @@ -217,6 +292,7 @@ static const struct video_i2c_chip video_i2c_chip[] = {
+>  		.regmap_config	= &amg88xx_regmap_config,
+>  		.setup		= &amg88xx_setup,
+>  		.xfer		= &amg88xx_xfer,
+> +		.set_power	= amg88xx_set_power,
+>  		.hwmon_init	= amg88xx_hwmon_init,
+>  	},
+>  };
+> @@ -343,14 +419,21 @@ static void video_i2c_del_list(struct vb2_queue *vq, enum vb2_buffer_state state
+>  static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>  {
+>  	struct video_i2c_data *data = vb2_get_drv_priv(vq);
+> +	struct device *dev = regmap_get_device(data->regmap);
+>  	int ret;
+>  
+>  	if (data->kthread_vid_cap)
+>  		return 0;
+>  
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret < 0) {
+> +		pm_runtime_put_noidle(dev);
+> +		goto error_del_list;
+> +	}
+> +
+>  	ret = data->chip->setup(data);
+>  	if (ret)
+> -		goto error_del_list;
+> +		goto error_rpm_put;
+>  
+>  	data->sequence = 0;
+>  	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
+> @@ -359,6 +442,9 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	if (!ret)
+>  		return 0;
+>  
+> +error_rpm_put:
+> +	pm_runtime_mark_last_busy(dev);
+> +	pm_runtime_put_autosuspend(dev);
+>  error_del_list:
+>  	video_i2c_del_list(vq, VB2_BUF_STATE_QUEUED);
+>  
+> @@ -374,6 +460,8 @@ static void stop_streaming(struct vb2_queue *vq)
+>  
+>  	kthread_stop(data->kthread_vid_cap);
+>  	data->kthread_vid_cap = NULL;
+> +	pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
+> +	pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
+>  
+>  	video_i2c_del_list(vq, VB2_BUF_STATE_ERROR);
+>  }
+> @@ -569,6 +657,7 @@ static void video_i2c_release(struct video_device *vdev)
+>  {
+>  	struct video_i2c_data *data = video_get_drvdata(vdev);
+>  
+> +	data->chip->set_power(data, false);
+>  	v4l2_device_unregister(&data->v4l2_dev);
+>  	mutex_destroy(&data->lock);
+>  	mutex_destroy(&data->queue_lock);
+> @@ -648,6 +737,16 @@ static int video_i2c_probe(struct i2c_client *client,
+>  	video_set_drvdata(&data->vdev, data);
+>  	i2c_set_clientdata(client, data);
+>  
+> +	ret = data->chip->set_power(data, true);
+> +	if (ret)
+> +		goto error_unregister_device;
+> +
+> +	pm_runtime_get_noresume(&client->dev);
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+> +	pm_runtime_set_autosuspend_delay(&client->dev, 2000);
+> +	pm_runtime_use_autosuspend(&client->dev);
+> +
+>  	if (data->chip->hwmon_init) {
+>  		ret = data->chip->hwmon_init(data);
+>  		if (ret < 0) {
+> @@ -658,10 +757,19 @@ static int video_i2c_probe(struct i2c_client *client,
+>  
+>  	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
+>  	if (ret < 0)
+> -		goto error_unregister_device;
+> +		goto error_pm_disable;
+> +
+> +	pm_runtime_mark_last_busy(&client->dev);
+> +	pm_runtime_put_autosuspend(&client->dev);
+>  
+>  	return 0;
+>  
+> +error_pm_disable:
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +	pm_runtime_put_noidle(&client->dev);
+> +	data->chip->set_power(data, false);
+> +
+>  error_unregister_device:
+>  	v4l2_device_unregister(v4l2_dev);
+>  	mutex_destroy(&data->lock);
+> @@ -680,11 +788,39 @@ static int video_i2c_remove(struct i2c_client *client)
+>  {
+>  	struct video_i2c_data *data = i2c_get_clientdata(client);
+>  
+> +	pm_runtime_get_sync(&client->dev);
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +	pm_runtime_put_noidle(&client->dev);
+
+The release callback exists so you can release the allocated resources, but
+the I²C transactions need to cease after that. So you should call the
+set_power() callback here instead --- as you do in probe() function's error
+handling.
+
+With that fixed, for the set:
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> +
+>  	video_unregister_device(&data->vdev);
+>  
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_PM
+> +
+> +static int video_i2c_pm_runtime_suspend(struct device *dev)
+> +{
+> +	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
+> +
+> +	return data->chip->set_power(data, false);
+> +}
+> +
+> +static int video_i2c_pm_runtime_resume(struct device *dev)
+> +{
+> +	struct video_i2c_data *data = i2c_get_clientdata(to_i2c_client(dev));
+> +
+> +	return data->chip->set_power(data, true);
+> +}
+> +
+> +#endif
+> +
+> +static const struct dev_pm_ops video_i2c_pm_ops = {
+> +	SET_RUNTIME_PM_OPS(video_i2c_pm_runtime_suspend,
+> +			   video_i2c_pm_runtime_resume, NULL)
+> +};
+> +
+>  static const struct i2c_device_id video_i2c_id_table[] = {
+>  	{ "amg88xx", AMG88XX },
+>  	{}
+> @@ -701,6 +837,7 @@ static struct i2c_driver video_i2c_driver = {
+>  	.driver = {
+>  		.name	= VIDEO_I2C_DRIVER,
+>  		.of_match_table = video_i2c_of_match,
+> +		.pm	= &video_i2c_pm_ops,
+>  	},
+>  	.probe		= video_i2c_probe,
+>  	.remove		= video_i2c_remove,
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
