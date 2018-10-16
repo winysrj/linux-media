@@ -1,96 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:39504 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726760AbeJPVCW (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:54021 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727043AbeJPVko (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Oct 2018 17:02:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Cc: kieran.bingham@ideasonboard.com, Lee Jones <lee.jones@linaro.org>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/7] mfd: ds90ux9xx: add TI DS90Ux9xx de-/serializer MFD driver
-Date: Tue, 16 Oct 2018 16:12:02 +0300
-Message-ID: <6392366.NPbusjoGUK@avalon>
-In-Reply-To: <369ef3ac-6f68-c450-713f-762b1c5cd5c9@mentor.com>
-References: <20181008211205.2900-1-vz@mleia.com> <3599186.afdMBtdL0k@avalon> <369ef3ac-6f68-c450-713f-762b1c5cd5c9@mentor.com>
+        Tue, 16 Oct 2018 17:40:44 -0400
+Subject: Re: [PATCH 2/2] media: docs-rst: Document memory-to-memory video
+ encoder interface
+To: Tomasz Figa <tfiga@chromium.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Alexandre Courbot <acourbot@chromium.org>, kamil@wypas.org,
+        a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
+        jtp.park@samsung.com,
+        =?UTF-8?B?VGlmZmFueSBMaW4gKOael+aFp+ePiik=?=
+        <tiffany.lin@mediatek.com>,
+        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
+        <andrew-ct.chen@mediatek.com>, todor.tomov@linaro.org,
+        nicolas@ndufresne.ca,
+        Paul Kocialkowski <paul.kocialkowski@bootlin.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dave.stevenson@raspberrypi.org,
+        Ezequiel Garcia <ezequiel@collabora.com>
+References: <20180724140621.59624-1-tfiga@chromium.org>
+ <20180724140621.59624-3-tfiga@chromium.org>
+ <4168da98-fa01-ea2f-8162-385501e666be@xs4all.nl>
+ <CAAFQd5BqtKFeJniNaqahi9h_zKR+rPrWUiyx004Z=MWDj7q++w@mail.gmail.com>
+ <CAAFQd5Djur9y+=UHTx9ZSx310p2ShCsBTqsEA1UHCMoawuDscA@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7b8b56e7-1617-5de6-9fa9-a10897a8f2f1@xs4all.nl>
+Date: Tue, 16 Oct 2018 15:49:58 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAAFQd5Djur9y+=UHTx9ZSx310p2ShCsBTqsEA1UHCMoawuDscA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vladimir,
+On 10/16/18 09:36, Tomasz Figa wrote:
+> On Tue, Aug 7, 2018 at 3:54 PM Tomasz Figa <tfiga@chromium.org> wrote:
+>>>> +   * The driver must expose following selection targets on ``OUTPUT``:
+>>>> +
+>>>> +     ``V4L2_SEL_TGT_CROP_BOUNDS``
+>>>> +         maximum crop bounds within the source buffer supported by the
+>>>> +         encoder
+>>>> +
+>>>> +     ``V4L2_SEL_TGT_CROP_DEFAULT``
+>>>> +         suggested cropping rectangle that covers the whole source picture
+>>>> +
+>>>> +     ``V4L2_SEL_TGT_CROP``
+>>>> +         rectangle within the source buffer to be encoded into the
+>>>> +         ``CAPTURE`` stream; defaults to ``V4L2_SEL_TGT_CROP_DEFAULT``
+>>>> +
+>>>> +     ``V4L2_SEL_TGT_COMPOSE_BOUNDS``
+>>>> +         maximum rectangle within the coded resolution, which the cropped
+>>>> +         source frame can be output into; always equal to (0, 0)x(width of
+>>>> +         ``V4L2_SEL_TGT_CROP``, height of ``V4L2_SEL_TGT_CROP``), if the
+>>>> +         hardware does not support compose/scaling
 
-On Saturday, 13 October 2018 18:10:25 EEST Vladimir Zapolskiy wrote:
-> On 10/12/2018 04:01 PM, Laurent Pinchart wrote:
-> > On Friday, 12 October 2018 14:47:52 EEST Kieran Bingham wrote:
-> >> On 12/10/18 11:58, Vladimir Zapolskiy wrote:
-> [snip]
-> 
-> >> Essentially they are multi purpose buses - which do not yet have a home.
-> >> We have used media as a home because of our use case.
-> >> 
-> >> The use case whether they transfer frames from a camera or to a display
-> >> are of course closely related, but ultimately covered by two separate
-> >> subsystems at the pixel level (DRM vs V4L, or other for other data)
-> >> 
-> >> Perhaps as they are buses - on a level with USB or I2C (except they can
-> >> of course carry I2C or Serial as well as 'bi-directional video' etc ),
-> >> they are looking for their own subsystem.
-> >> 
-> >> Except I don't think we don't want to add a new subsystem for just one
-> >> (or two) devices...
-> > 
-> > I'm not sure a new subsystem is needed. As you've noted there's an overlap
-> > between drivers/media/ and drivers/gpu/drm/ in terms of supported
-> > hardware. We even have a devices supported by two drivers, one in drivers/
-> > media/ and one in drivers/gpu/drm/ (I'm thinking about the adv7511 in
-> > particular). This is a well known issue, and so far nothing has been done
-> > in mainline to try and solve it.
-> 
-> I agree that there's an overlap between drivers/media/ and drivers/gpu/drm/,
-> formally a hypothetical (sic!) DS90Ux9xx video bridge cell driver should be
-> added into both subsystems also, and the actual driver of two should be
-> selected in runtime. I call such a driver 'hypothetical', because in fact I
-> don't have it, and I'm not so sure that its existence is justified, but
-> that's only because DS90Ux9xx video bridge functionality is _transparent_,
-> it does not have any controls literally, but it is a pure luck eventually.
+Re-reading this I would rewrite this a bit:
 
-I don't think that's entirely correct, there's at least the video bus width 
-(18-bit/24-bit) that needs to be selected. You currently do so through a 
-pinctrl property, but that's not right.
+if the hardware does not support composition or scaling, then this is always
+equal to (0, 0)x(width of ``V4L2_SEL_TGT_CROP``, height of ``V4L2_SEL_TGT_CROP``).
 
-> So, as I've stated in my cover letter, I can misuse yours 'lvds-encoder'
-> driver only for the purpose of establishing a mediated link between
-> an LVDS controller and a panel over a serializer-deserializer pair.
+>>>> +
+>>>> +     ``V4L2_SEL_TGT_COMPOSE_DEFAULT``
+>>>> +         equal to ``V4L2_SEL_TGT_CROP``
+>>>> +
+>>>> +     ``V4L2_SEL_TGT_COMPOSE``
+>>>> +         rectangle within the coded frame, which the cropped source frame
+>>>> +         is to be output into; defaults to
+>>>> +         ``V4L2_SEL_TGT_COMPOSE_DEFAULT``; read-only on hardware without
+>>>> +         additional compose/scaling capabilities; resulting stream will
+>>>> +         have this rectangle encoded as the visible rectangle in its
+>>>> +         metadata
+>>>> +
+>>>> +     ``V4L2_SEL_TGT_COMPOSE_PADDED``
+>>>> +         always equal to coded resolution of the stream, as selected by the
+>>>> +         encoder based on source resolution and crop/compose rectangles
+>>>
+>>> Are there codec drivers that support composition? I can't remember seeing any.
+>>>
+>>
+>> Hmm, I was convinced that MFC could scale and we just lacked support
+>> in the driver, but I checked the documentation and it doesn't seem to
+>> be able to do so. I guess we could drop the COMPOSE rectangles for
+>> now, until we find any hardware that can do scaling or composing on
+>> the fly.
+>>
 > 
-> > Trying to find another home in drivers/mfd/ to escape from the problem
-> > isn't a good solution in my opinion. The best option from a Linux point
-> > of view would be to unify V4L2 and DRM/KMS when it comes to bridge
-> > support, but that's a long way down the road (I won't complain if you
-> > want to give it a go though> 
-> > :-)).
+> On the other hand, having them defined already wouldn't complicate
+> existing drivers too much either, because they would just handle all
+> of them in the same switch case, i.e.
 > 
-> I return you a wider smile :)
+> case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> case V4L2_SEL_TGT_COMPOSE:
+> case V4L2_SEL_TGT_COMPOSE_PADDED:
+>      return visible_rectangle;
 > 
-> > As your use cases are display, focused, I would propose to start with
-> > drivers/gpu/drm/bridge/, and leave the problem of camera support for first
-> > person who will have such a use case.
-> 
-> Frankly speaking I would like to start from copy-pasting your 'lvds-encoder'
-> driver into an 'absolutely-transparent-video-bridge' driver with no LVDS or
-> 'encoder' specifics, adding just a new compatible may suffice, if the
-> driver is renamed/redefined.
-> 
-> PS, I remember I owe you a reference OF snippet of data path to a panel.
+> That would need one change, though. We would define
+> V4L2_SEL_TGT_COMPOSE_DEFAULT to be equal to (0, 0)x(width of
+> V4L2_SEL_TGT_CROP - 1, height of ``V4L2_SEL_TGT_CROP - 1), which
 
--- 
+" - 1"? Where does that come from?
+
+Usually rectangles are specified as widthxheight@left,top.
+
+> makes more sense than current definition, since it would bypass any
+> compose/scaling by default.
+
+I have no problem with drivers optionally implementing these rectangles,
+even if they don't do scaling or composition. The question is, should it
+be required for decoders? If there is a good reason, then I'm OK with it.
+
 Regards,
 
-Laurent Pinchart
+	Hans
