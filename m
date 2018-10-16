@@ -1,73 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f67.google.com ([209.85.128.67]:33184 "EHLO
-        mail-wm1-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726541AbeJPRbZ (ORCPT
+Received: from perceval.ideasonboard.com ([213.167.242.64]:38032 "EHLO
+        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726595AbeJPUUz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Oct 2018 13:31:25 -0400
-Received: by mail-wm1-f67.google.com with SMTP id y140-v6so24897142wmd.0
-        for <linux-media@vger.kernel.org>; Tue, 16 Oct 2018 02:41:49 -0700 (PDT)
-Subject: Re: [PATCH] media: venus: add support for selection rectangles
-To: Malathi Gottam <mgottam@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
-        vgarodia@codeaurora.org
-References: <1539071603-1588-1-git-send-email-mgottam@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <0e0f689e-f6e3-73a6-e145-deb2ef7cafc8@linaro.org>
-Date: Tue, 16 Oct 2018 12:41:45 +0300
+        Tue, 16 Oct 2018 16:20:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Vladimir Zapolskiy <vz@mleia.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Sandeep Jain <Sandeep_Jain@mentor.com>
+Subject: Re: [PATCH 1/7] dt-bindings: mfd: ds90ux9xx: add description of TI DS90Ux9xx ICs
+Date: Tue, 16 Oct 2018 15:30:44 +0300
+Message-ID: <1569908.lXeeGn9YFn@avalon>
+In-Reply-To: <55fe6c51-20e0-a10b-97fd-23c6f030acac@mentor.com>
+References: <20181008211205.2900-1-vz@mleia.com> <1884479.fINZhmP2Mi@avalon> <55fe6c51-20e0-a10b-97fd-23c6f030acac@mentor.com>
 MIME-Version: 1.0
-In-Reply-To: <1539071603-1588-1-git-send-email-mgottam@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Malathi,
+Hi Vladimir,
 
-On 10/09/2018 10:53 AM, Malathi Gottam wrote:
-> Handles target type crop by setting the new active rectangle
-> to hardware. The new rectangle should be within YUV size.
+On Saturday, 13 October 2018 17:28:30 EEST Vladimir Zapolskiy wrote:
+> On 10/12/2018 02:44 PM, Laurent Pinchart wrote:
+> > On Tuesday, 9 October 2018 00:11:59 EEST Vladimir Zapolskiy wrote:
+> >> From: Sandeep Jain <Sandeep_Jain@mentor.com>
+> >> 
+> >> The change adds device tree binding description of TI DS90Ux9xx
+> >> series of serializer and deserializer controllers which support video,
+> >> audio and control data transmission over FPD-III Link connection.
+> >> 
+> >> Signed-off-by: Sandeep Jain <Sandeep_Jain@mentor.com>
+> >> [vzapolskiy: various updates and corrections of secondary importance]
+> >> Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+> >> ---
+> >> 
+> >>  .../devicetree/bindings/mfd/ti,ds90ux9xx.txt  | 66 +++++++++++++++++++
+> >>  1 file changed, 66 insertions(+)
+> >>  create mode 100644
+> >>  Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+> >> 
+> >> diff --git a/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+> >> b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt new file mode
+> >> 100644
+> >> index 000000000000..0733da88f7ef
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/mfd/ti,ds90ux9xx.txt
+> >> @@ -0,0 +1,66 @@
+> >> +Texas Instruments DS90Ux9xx de-/serializer controllers
+> >> +
+> >> +Required properties:
+> >> +- compatible: Must contain a generic "ti,ds90ux9xx" value and
+> > 
+> >> +	may contain one more specific value from the list:
+> > If it "may" contain one more specific value, when should that value be
+> > present, and when can it be absent ?
 > 
-> Signed-off-by: Malathi Gottam <mgottam@codeaurora.org>
-> ---
->  drivers/media/platform/qcom/venus/venc.c | 19 +++++++++++++++++--
->  1 file changed, 17 insertions(+), 2 deletions(-)
+> Practically you can always omit a specific compatible, because (with a
+> number of minor exceptions like DS90UH925Q case, see a quirk in the code)
+> it is possible to read out the IC type in runtime.
 > 
-> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-> index 3f50cd0..754c19a 100644
-> --- a/drivers/media/platform/qcom/venus/venc.c
-> +++ b/drivers/media/platform/qcom/venus/venc.c
-> @@ -478,16 +478,31 @@ static int venc_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
->  venc_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
->  {
->  	struct venus_inst *inst = to_inst(file);
-> +	int ret;
-> +	u32 buftype;
->  
->  	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
->  		return -EINVAL;
->  
->  	switch (s->target) {
->  	case V4L2_SEL_TGT_CROP:
-> -		if (s->r.width != inst->out_width ||
-> -		    s->r.height != inst->out_height ||
-> +		if (s->r.width > inst->out_width ||
-> +		    s->r.height > inst->out_height ||
->  		    s->r.top != 0 || s->r.left != 0)
->  			return -EINVAL;
-> +		if (s->r.width != inst->width ||
-> +		    s->r.height != inst->height) {
-> +			buftype = HFI_BUFFER_OUTPUT;
-> +			ret = venus_helper_set_output_resolution(inst,
-> +								 s->r.width,
-> +								 s->r.height,
-> +								 buftype);
+> Nevertheless I prefer to have a complete list of all specific compatibles
+> to avoid problems with maintenance in future,
 
-I'm afraid that set_output_resolution cannot be called at any time. Do
-you think we can set it after start_session?
+I agree with you. Let's thus word this as
+
+Shall contain exactly one value from the list below, and the generic 
+"ti,ds90ux9xx" value, in that order.
+
+> recently I had a long
+> discussion with Jassi Brar about iMX* mailbox compatibles on the DT mailing
+> list, the arguments remain the same, but I don't feel enough internal power
+> to start another such an exhaustive discussion right at the moment.
+> 
+> >> +	"ti,ds90ub925q",
+> >> +	"ti,ds90uh925q",
+> >> +	"ti,ds90ub927q",
+> >> +	"ti,ds90uh927q",
+> >> +	"ti,ds90ub926q",
+> >> +	"ti,ds90uh926q",
+> >> +	"ti,ds90ub928q",
+> >> +	"ti,ds90uh928q",
+> >> +	"ti,ds90ub940q",
+> >> +	"ti,ds90uh940q".
+> >> +
+> >> +Optional properties:
+> >> +- reg : Specifies the I2C slave address of a local de-/serializer.
+> > 
+> > You should explain when the reg property is required and when it isn't.
+> > This
+> 
+> Talking about TI DS90Ux9xx IC series, ideally I'd like to shift from
+> serializer/deserializer concept and promote "remote" and "local" IC, by the
+> way, and if I'm not mistaken, MOST ICs are truly identical on both ends.
+> 
+> So, here "reg" property is need only if the IC (serializer or deserializer,
+> it does not matter) is on the "local" side, i.e. it is a slave I2C device
+> discovered on an I2C bus, which is under control by an application
+> processor.
+> 
+> If IC is on the "remote" side, in other words separated by the serial link
+> from the "local" IC, then "reg" property is not needed.
+
+Let's document this then. Please make sure to document the local and remote 
+concepts in the introduction first.
+
+> > will in my opinion require a more detailed explanation of the DT model for
+> > this device.
+> > 
+> >> +- power-gpios : GPIO line to control supplied power to the device.
+> > 
+> > As Marek mentioned, a regulator would be better. I would make it a
+> > mandatory property, as the device always needs to be powered.
+> 
+> I get a memory flashback. Did we discuss recently a right property name to
+> control panel power by a GPIO or was it something else?
+> 
+> There are quite many properties of exactly the same functionality:
+> * powerdown-gpios
+> * pd-gpios
+> * pdn-gpios
+> * power-gpios
+> * powerdn-gpio
+> * power-down-gpios
+> * ...
+> 
+> Probably device tree maintainers should unify the names, but my point is
+> that your argument should be applicable to all such device tree nodes /
+> property descriptions and usages. Do I understand you correctly?
+
+The general agreement is that we should try to standardize the naming of 
+GPIOs. As powerdown is the inverse of enable, it has been proposed to use 
+enable-gpios instead.
+
+> I would prefer to reference to a regulator while dealing with the power
+> rails, and reference to a GPIO in case of power control only like in the
+> case above.
+
+The patch made me think that the GPIO controls a regulator, which is why I 
+advised using regulators. If that's not the case, if the GPIO is connected to 
+a pin of the device, you should document which pin, and rephrase the 
+description to remove the ambiguity.
+
+> >> +- ti,backward-compatible-mode : Overrides backward compatibility mode.
+> >> +	Possible values are "<1>" or "<0>".
+> >> +	If "ti,backward-compatible-mode" is not mentioned, the backward
+> >> +	compatibility mode is not touched and given by hardware pin strapping.
+> > 
+> > This doesn't seem to be a device description to me, it's a software
+> > configuration. You should handle it in drivers.
+> 
+> No, it is a hardware description which allows to connect/discover ICs of
+> different series, please reference to the datasheet for examples of its
+> usage.
+
+Could you please point us to the right section of the right document ?
+
+> >> +- ti,low-frequency-mode : Overrides low frequency mode.
+> >> +	Possible values are "<1>" or "<0>".
+> >> +	If "ti,low-frequency-mode" is not mentioned, the low frequency mode
+> >> +	is not touched and given by hardware pin strapping.
+> > 
+> > This sounds the same. How about giving a real life example of a case where
+> > you need to set these two properties to override the pin strapping, for
+> > the purpose of discussing the DT bindings ?
+> 
+> I have to ask, what do you mean by "a software configuration"?
+> 
+> Both properties are IC controls (= hardware configuration in my language),
+> and these hardware properties shall be set (if needed of course) on a
+> "local" IC *before* a discovery of some "remote" IC, thus the property are
+> in the DT.
+
+Software configuration refers to configuration parameters that are modified in 
+software based on a policy that can be established by the software. If you can 
+provide real examples that show why and how pin strapping needs to be 
+overridden, that would help discussing the DT bindings.
+
+> >> +- ti,video-map-select-msb: Sets video bridge pins to MSB mode, if it is
+> >> set +	MAPSEL pin value is ignored.
+> >> +- ti,video-map-select-lsb: Sets video bridge pins to LSB mode, if it is
+> >> set +	MAPSEL pin value is ignored.
+> > 
+> > I assume those two are mutually exclusive, this should be documented, or
+> > you could merge the two properties into one. Same comment as above
+> > though, why do you need an override in DT ?
+> 
+> The property are mutually exclusive, but it is a tristate property, please
+> see my answer to a similar question from Marek.
+
+You can implement a tristate property with 0, 1 and absent (or "lsb", "msb" or 
+absent, or something similar), you don't need two properties.
+
+> >> +- ti,pixel-clock-edge : Selects Pixel Clock Edge.
+> >> +	Possible values are "<1>" or "<0>".
+> >> +	If "ti,pixel-clock-edge" is High <1>, output data is strobed on the
+> >> +	Rising edge of the PCLK. If ti,pixel-clock-edge is Low <0>, data is
+> >> +	strobed on the Falling edge of the PCLK.
+> >> +	If "ti,pixel-clock-edge" is not mentioned, the pixel clock edge
+> >> +	value is not touched and given by hardware pin strapping.
+> > 
+> > We have a standard property in
+> > Documentation/devicetree/bindings/media/video-interfaces.txt for this,
+> > please use it.
+> 
+> Okay, thank you for the link.
+> 
+> >> +- ti,spread-spectrum-clock-generation : Spread Sprectrum Clock
+> >> Generation.
+> >> +	Possible values are from "<0>" to "<7>". The same value will be
+> >> +	written to SSC register. If "ti,spread-spectrum-clock-gen" is not
+> >> +	found, then SSCG will be disabled.
+> > 
+> > This makes sense in DT in my opinion, as EMC is a system property. I
+> > wonder however if exposing the hardware register directly is the best
+> > option. Could you elaborate on how a system designer will select which
+> > value to use, in order to find the best DT description ?
+> 
+> Hm, I suppose IC datasheets should serve as a better source of information.
+
+Could you please point us to the right section(s) of the right datasheet(s) ?
+
+> >> +TI DS90Ux9xx serializers and deserializer device nodes may contain a
+> >> number +of children device nodes to describe and enable particular
+> >> subcomponents +found on ICs.
+> > 
+> > As mentioned in my review of the cover letter I don't think this is
+> > necessary.
+> 
+> It is, in my humble opinion if an IC can be described as "a _pinmux_ + loads
+> of other functions" it makes it an MFD.
+
+We do disagree :-)
+
+> > You can make the serializer and deserializer I2C controllers without
+> > subnodes. Same goes for GPIO control.
+> 
+> I have to define pinmuxes, one of the complicated and essential parts of IC
+> configuration is unfairly excluded from the consideration.
+> 
+> >> +Example:
+> >> +
+> >> +serializer: serializer@c {
+> >> +	compatible = "ti,ds90ub927q", "ti,ds90ux9xx";
+> >> +	reg = <0xc>;
+> >> +	power-gpios = <&gpio5 12 GPIO_ACTIVE_HIGH>;
+> >> +	ti,backward-compatible-mode = <0>;
+> >> +	ti,low-frequency-mode = <0>;
+> >> +	ti,pixel-clock-edge = <0>;
+> >> +	...
+> >> +}
+> >> +
+> >> +deserializer: deserializer@3c {
+> >> +	compatible = "ti,ds90ub940q", "ti,ds90ux9xx";
+> >> +	reg = <0x3c>;
+> >> +	power-gpios = <&gpio6 31 GPIO_ACTIVE_HIGH>;
+> >> +	...
+> >> +}
+> >> +
+> > 
+> > Extra blank line ?
+> 
+> Right, thank you for comments.
 
 -- 
-regards,
-Stan
+Regards,
+
+Laurent Pinchart
