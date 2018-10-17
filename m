@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([185.11.138.130]:52924 "EHLO gloria.sntech.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726974AbeJQVE5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 17:04:57 -0400
-From: Heiko Stuebner <heiko@sntech.de>
-To: Ezequiel Garcia <ezequiel@collabora.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-rockchip@lists.infradead.org,
-        Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Miouyouyou <myy@miouyouyou.fr>
-Subject: Re: [PATCH v7 2/6] ARM: dts: rockchip: add VPU device node for RK3288
-Date: Wed, 17 Oct 2018 15:09:14 +0200
-Message-ID: <23332335.MzEh2vEgkF@phil>
-In-Reply-To: <2088426.XNZsqnkTft@phil>
-References: <20181005001226.12789-1-ezequiel@collabora.com> <20181005001226.12789-3-ezequiel@collabora.com> <2088426.XNZsqnkTft@phil>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:44419 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726922AbeJQTFv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 Oct 2018 15:05:51 -0400
+Message-ID: <1539774637.4729.3.camel@pengutronix.de>
+Subject: Re: [PATCH v3 10/16] gpu: ipu-v3: image-convert: select optimal
+ seam positions
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
+Date: Wed, 17 Oct 2018 13:10:37 +0200
+In-Reply-To: <d3e2a6ec-2961-2f97-7a53-d016bc6ad515@gmail.com>
+References: <20180918093421.12930-1-p.zabel@pengutronix.de>
+         <20180918093421.12930-11-p.zabel@pengutronix.de>
+         <d3e2a6ec-2961-2f97-7a53-d016bc6ad515@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, 5. Oktober 2018, 14:04:04 CEST schrieb Heiko Stuebner:
-> Am Freitag, 5. Oktober 2018, 02:12:22 CEST schrieb Ezequiel Garcia:
-> > Add the Video Processing Unit node for RK3288 SoC.
-> > 
-> > Fix the VPU IOMMU node, which was disabled and lacking
-> > its power domain property.
-> > 
-> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+On Fri, 2018-10-12 at 17:33 -0700, Steve Longerbeam wrote:
 > 
-> applied for 4.20 (may possibly move to 4.21 though)
-> after moving power-domain* below (#)iommu* to keep
-> alphabetical sorting.
+> On 09/18/2018 02:34 AM, Philipp Zabel wrote:
+> 
+> <snip>
+> > +/*
+> > + * Tile left edges are required to be aligned to multiples of 8 bytes
+> > + * by the IDMAC.
+> > + */
+> > +static inline u32 tile_left_align(const struct ipu_image_pixfmt *fmt)
+> > +{
+> > +	return fmt->planar ? 8 * fmt->uv_width_dec : 64 / fmt->bpp;
+> > +}
+> 
+> <snip>
+> 
+> As I indicated, shouldn't this be
+> 
+> return fmt->planar ? 8 * fmt->uv_width_dec : 8;
+> 
+> ?
+>
+> Just from a unit analysis perspective, "64 / fmt->bp" has
+> units of pixels / 8-bytes, it should have units of bytes.
 
-as Mauro did have additional comments and the pull request is
-still open, I've dropped the 2 dts patches from my tree again
-for now.
+The tile alignment is in pixels, not in bytes. For 16-bit and 32-bit
+packed formats, we only need to align to 4 or 2 pixels, respectively,
+as the LCM of 8-byte alignment and 2-byte or 4-byte pixel size is
+always 8 bytes.
 
-We'll revisit once the code changes moved again.
+But now that you pointed it out, it is quite obvious that this can't
+work for 24-bit packed formats. Here the LCM of 8-byte alignment and 3-
+byte pixels is 24 bytes, or 8 pixels.
 
+How about:
 
-Heiko
+	if (fmt->planar)
+		return fmt->uv_packed ? 8 : 8 * fmt->uv_width_dec;
+	else
+		return fmt->bpp == 32 ? 2 : fmt->bpp == 16 ? 4 : 8;
+
+regards
+Philipp
