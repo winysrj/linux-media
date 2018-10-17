@@ -1,46 +1,411 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot1-f66.google.com ([209.85.210.66]:47037 "EHLO
-        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727047AbeJQW7A (ORCPT
+Received: from mail-pg1-f194.google.com ([209.85.215.194]:46042 "EHLO
+        mail-pg1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727013AbeJQXSC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 18:59:00 -0400
-Date: Wed, 17 Oct 2018 10:02:52 -0500
-From: Rob Herring <robh@kernel.org>
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Vladimir Zapolskiy <vz@mleia.com>,
-        Lee Jones <lee.jones@linaro.org>,
-        Mark Vasut <marek.vasut@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
-        linux-media@vger.kernel.org,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: Re: [PATCH 3/7] dt-bindings: pinctrl: ds90ux9xx: add description of
- TI DS90Ux9xx pinmux
-Message-ID: <20181017150252.GA11075@bogus>
-References: <20181008211205.2900-1-vz@mleia.com>
- <20181008211205.2900-4-vz@mleia.com>
- <CACRpkdZJMPYWHBUXohjxo12XZpLdz7OzcWRBrrkcB8YLLd5StA@mail.gmail.com>
+        Wed, 17 Oct 2018 19:18:02 -0400
+Received: by mail-pg1-f194.google.com with SMTP id t70-v6so12686208pgd.12
+        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2018 08:21:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZJMPYWHBUXohjxo12XZpLdz7OzcWRBrrkcB8YLLd5StA@mail.gmail.com>
+References: <1539453759-29976-1-git-send-email-akinobu.mita@gmail.com>
+ <1539453759-29976-7-git-send-email-akinobu.mita@gmail.com>
+ <20181015153112.sshgnv7un4mm6tav@paasikivi.fi.intel.com> <CAC5umyjqz5rW9dnyCEeHVwvRe0LXXaKZQ-OLHFwCgZp2NwcPvA@mail.gmail.com>
+ <20181017071857.yr7umu5gfbrz7pw7@kekkonen.localdomain>
+In-Reply-To: <20181017071857.yr7umu5gfbrz7pw7@kekkonen.localdomain>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Date: Thu, 18 Oct 2018 00:21:38 +0900
+Message-ID: <CAC5umyiycNkRTL2xGfvT4TP-s5cHB4WzcO_CFoYG3UHq6q4hCg@mail.gmail.com>
+Subject: Re: [PATCH v3 6/6] media: video-i2c: support runtime PM
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org,
+        Matt Ranostay <matt.ranostay@konsulko.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 10, 2018 at 10:45:43AM +0200, Linus Walleij wrote:
-> Hi Vladimir,
-> 
-> thanks for your patch!
-> 
-> Can we change the subject to something like "add DT bindings" rather than
-> "add description" as it is more specific and makes it easier for me as
-> maintainer.
+2018=E5=B9=B410=E6=9C=8817=E6=97=A5(=E6=B0=B4) 16:19 Sakari Ailus <sakari.a=
+ilus@linux.intel.com>:
+>
+> On Wed, Oct 17, 2018 at 12:07:50AM +0900, Akinobu Mita wrote:
+> > 2018=E5=B9=B410=E6=9C=8816=E6=97=A5(=E7=81=AB) 0:31 Sakari Ailus <sakar=
+i.ailus@linux.intel.com>:
+> > >
+> > > Hi Mita-san,
+> > >
+> > > On Sun, Oct 14, 2018 at 03:02:39AM +0900, Akinobu Mita wrote:
+> > > > AMG88xx has a register for setting operating mode.  This adds suppo=
+rt
+> > > > runtime PM by changing the operating mode.
+> > > >
+> > > > The instruction for changing sleep mode to normal mode is from the
+> > > > reference specifications.
+> > > >
+> > > > https://docid81hrs3j1.cloudfront.net/medialibrary/2017/11/PANA-S-A0=
+002141979-1.pdf
+> > > >
+> > > > Cc: Matt Ranostay <matt.ranostay@konsulko.com>
+> > > > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > Cc: Hans Verkuil <hansverk@cisco.com>
+> > > > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > > > Reviewed-by: Matt Ranostay <matt.ranostay@konsulko.com>
+> > > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> > > > ---
+> > > > * v3
+> > > > - Move chip->set_power() call to the video device release() callbac=
+k.
+> > > > - Add Acked-by line
+> > > >
+> > > >  drivers/media/i2c/video-i2c.c | 141 ++++++++++++++++++++++++++++++=
++++++++++++-
+> > > >  1 file changed, 139 insertions(+), 2 deletions(-)
+> > > >
+> > > > diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/vide=
+o-i2c.c
+> > > > index 3334fc2..22fdc43 100644
+> > > > --- a/drivers/media/i2c/video-i2c.c
+> > > > +++ b/drivers/media/i2c/video-i2c.c
+> > > > @@ -17,6 +17,7 @@
+> > > >  #include <linux/module.h>
+> > > >  #include <linux/mutex.h>
+> > > >  #include <linux/of_device.h>
+> > > > +#include <linux/pm_runtime.h>
+> > > >  #include <linux/regmap.h>
+> > > >  #include <linux/sched.h>
+> > > >  #include <linux/slab.h>
+> > > > @@ -94,10 +95,23 @@ struct video_i2c_chip {
+> > > >       /* xfer function */
+> > > >       int (*xfer)(struct video_i2c_data *data, char *buf);
+> > > >
+> > > > +     /* power control function */
+> > > > +     int (*set_power)(struct video_i2c_data *data, bool on);
+> > > > +
+> > > >       /* hwmon init function */
+> > > >       int (*hwmon_init)(struct video_i2c_data *data);
+> > > >  };
+> > > >
+> > > > +/* Power control register */
+> > > > +#define AMG88XX_REG_PCTL     0x00
+> > > > +#define AMG88XX_PCTL_NORMAL          0x00
+> > > > +#define AMG88XX_PCTL_SLEEP           0x10
+> > > > +
+> > > > +/* Reset register */
+> > > > +#define AMG88XX_REG_RST              0x01
+> > > > +#define AMG88XX_RST_FLAG             0x30
+> > > > +#define AMG88XX_RST_INIT             0x3f
+> > > > +
+> > > >  /* Frame rate register */
+> > > >  #define AMG88XX_REG_FPSC     0x02
+> > > >  #define AMG88XX_FPSC_1FPS            BIT(0)
+> > > > @@ -127,6 +141,59 @@ static int amg88xx_setup(struct video_i2c_data=
+ *data)
+> > > >       return regmap_update_bits(data->regmap, AMG88XX_REG_FPSC, mas=
+k, val);
+> > > >  }
+> > > >
+> > > > +static int amg88xx_set_power_on(struct video_i2c_data *data)
+> > > > +{
+> > > > +     int ret;
+> > > > +
+> > > > +     ret =3D regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_=
+PCTL_NORMAL);
+> > > > +     if (ret)
+> > > > +             return ret;
+> > > > +
+> > > > +     msleep(50);
+> > > > +
+> > > > +     ret =3D regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_R=
+ST_INIT);
+> > > > +     if (ret)
+> > > > +             return ret;
+> > > > +
+> > > > +     msleep(2);
+> > > > +
+> > > > +     ret =3D regmap_write(data->regmap, AMG88XX_REG_RST, AMG88XX_R=
+ST_FLAG);
+> > > > +     if (ret)
+> > > > +             return ret;
+> > > > +
+> > > > +     /*
+> > > > +      * Wait two frames before reading thermistor and temperature =
+registers
+> > > > +      */
+> > > > +     msleep(200);
+> > > > +
+> > > > +     return 0;
+> > > > +}
+> > > > +
+> > > > +static int amg88xx_set_power_off(struct video_i2c_data *data)
+> > > > +{
+> > > > +     int ret;
+> > > > +
+> > > > +     ret =3D regmap_write(data->regmap, AMG88XX_REG_PCTL, AMG88XX_=
+PCTL_SLEEP);
+> > > > +     if (ret)
+> > > > +             return ret;
+> > > > +     /*
+> > > > +      * Wait for a while to avoid resuming normal mode immediately=
+ after
+> > > > +      * entering sleep mode, otherwise the device occasionally goe=
+s wrong
+> > > > +      * (thermistor and temperature registers are not updated at a=
+ll)
+> > > > +      */
+> > > > +     msleep(100);
+> > > > +
+> > > > +     return 0;
+> > > > +}
+> > > > +
+> > > > +static int amg88xx_set_power(struct video_i2c_data *data, bool on)
+> > > > +{
+> > > > +     if (on)
+> > > > +             return amg88xx_set_power_on(data);
+> > > > +
+> > > > +     return amg88xx_set_power_off(data);
+> > > > +}
+> > > > +
+> > > >  #if IS_ENABLED(CONFIG_HWMON)
+> > > >
+> > > >  static const u32 amg88xx_temp_config[] =3D {
+> > > > @@ -158,7 +225,15 @@ static int amg88xx_read(struct device *dev, en=
+um hwmon_sensor_types type,
+> > > >       __le16 buf;
+> > > >       int tmp;
+> > > >
+> > > > +     tmp =3D pm_runtime_get_sync(regmap_get_device(data->regmap));
+> > > > +     if (tmp < 0) {
+> > > > +             pm_runtime_put_noidle(regmap_get_device(data->regmap)=
+);
+> > > > +             return tmp;
+> > > > +     }
+> > > > +
+> > > >       tmp =3D regmap_bulk_read(data->regmap, AMG88XX_REG_TTHL, &buf=
+, 2);
+> > > > +     pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
+> > > > +     pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
+> > > >       if (tmp)
+> > > >               return tmp;
+> > > >
+> > > > @@ -217,6 +292,7 @@ static const struct video_i2c_chip video_i2c_ch=
+ip[] =3D {
+> > > >               .regmap_config  =3D &amg88xx_regmap_config,
+> > > >               .setup          =3D &amg88xx_setup,
+> > > >               .xfer           =3D &amg88xx_xfer,
+> > > > +             .set_power      =3D amg88xx_set_power,
+> > > >               .hwmon_init     =3D amg88xx_hwmon_init,
+> > > >       },
+> > > >  };
+> > > > @@ -343,14 +419,21 @@ static void video_i2c_del_list(struct vb2_que=
+ue *vq, enum vb2_buffer_state state
+> > > >  static int start_streaming(struct vb2_queue *vq, unsigned int coun=
+t)
+> > > >  {
+> > > >       struct video_i2c_data *data =3D vb2_get_drv_priv(vq);
+> > > > +     struct device *dev =3D regmap_get_device(data->regmap);
+> > > >       int ret;
+> > > >
+> > > >       if (data->kthread_vid_cap)
+> > > >               return 0;
+> > > >
+> > > > +     ret =3D pm_runtime_get_sync(dev);
+> > > > +     if (ret < 0) {
+> > > > +             pm_runtime_put_noidle(dev);
+> > > > +             goto error_del_list;
+> > > > +     }
+> > > > +
+> > > >       ret =3D data->chip->setup(data);
+> > > >       if (ret)
+> > > > -             goto error_del_list;
+> > > > +             goto error_rpm_put;
+> > > >
+> > > >       data->sequence =3D 0;
+> > > >       data->kthread_vid_cap =3D kthread_run(video_i2c_thread_vid_ca=
+p, data,
+> > > > @@ -359,6 +442,9 @@ static int start_streaming(struct vb2_queue *vq=
+, unsigned int count)
+> > > >       if (!ret)
+> > > >               return 0;
+> > > >
+> > > > +error_rpm_put:
+> > > > +     pm_runtime_mark_last_busy(dev);
+> > > > +     pm_runtime_put_autosuspend(dev);
+> > > >  error_del_list:
+> > > >       video_i2c_del_list(vq, VB2_BUF_STATE_QUEUED);
+> > > >
+> > > > @@ -374,6 +460,8 @@ static void stop_streaming(struct vb2_queue *vq=
+)
+> > > >
+> > > >       kthread_stop(data->kthread_vid_cap);
+> > > >       data->kthread_vid_cap =3D NULL;
+> > > > +     pm_runtime_mark_last_busy(regmap_get_device(data->regmap));
+> > > > +     pm_runtime_put_autosuspend(regmap_get_device(data->regmap));
+> > > >
+> > > >       video_i2c_del_list(vq, VB2_BUF_STATE_ERROR);
+> > > >  }
+> > > > @@ -569,6 +657,7 @@ static void video_i2c_release(struct video_devi=
+ce *vdev)
+> > > >  {
+> > > >       struct video_i2c_data *data =3D video_get_drvdata(vdev);
+> > > >
+> > > > +     data->chip->set_power(data, false);
+> > > >       v4l2_device_unregister(&data->v4l2_dev);
+> > > >       mutex_destroy(&data->lock);
+> > > >       mutex_destroy(&data->queue_lock);
+> > > > @@ -648,6 +737,16 @@ static int video_i2c_probe(struct i2c_client *=
+client,
+> > > >       video_set_drvdata(&data->vdev, data);
+> > > >       i2c_set_clientdata(client, data);
+> > > >
+> > > > +     ret =3D data->chip->set_power(data, true);
+> > > > +     if (ret)
+> > > > +             goto error_unregister_device;
+> > > > +
+> > > > +     pm_runtime_get_noresume(&client->dev);
+> > > > +     pm_runtime_set_active(&client->dev);
+> > > > +     pm_runtime_enable(&client->dev);
+> > > > +     pm_runtime_set_autosuspend_delay(&client->dev, 2000);
+> > > > +     pm_runtime_use_autosuspend(&client->dev);
+> > > > +
+> > > >       if (data->chip->hwmon_init) {
+> > > >               ret =3D data->chip->hwmon_init(data);
+> > > >               if (ret < 0) {
+> > > > @@ -658,10 +757,19 @@ static int video_i2c_probe(struct i2c_client =
+*client,
+> > > >
+> > > >       ret =3D video_register_device(&data->vdev, VFL_TYPE_GRABBER, =
+-1);
+> > > >       if (ret < 0)
+> > > > -             goto error_unregister_device;
+> > > > +             goto error_pm_disable;
+> > > > +
+> > > > +     pm_runtime_mark_last_busy(&client->dev);
+> > > > +     pm_runtime_put_autosuspend(&client->dev);
+> > > >
+> > > >       return 0;
+> > > >
+> > > > +error_pm_disable:
+> > > > +     pm_runtime_disable(&client->dev);
+> > > > +     pm_runtime_set_suspended(&client->dev);
+> > > > +     pm_runtime_put_noidle(&client->dev);
+> > > > +     data->chip->set_power(data, false);
+> > > > +
+> > > >  error_unregister_device:
+> > > >       v4l2_device_unregister(v4l2_dev);
+> > > >       mutex_destroy(&data->lock);
+> > > > @@ -680,11 +788,39 @@ static int video_i2c_remove(struct i2c_client=
+ *client)
+> > > >  {
+> > > >       struct video_i2c_data *data =3D i2c_get_clientdata(client);
+> > > >
+> > > > +     pm_runtime_get_sync(&client->dev);
+> > > > +     pm_runtime_disable(&client->dev);
+> > > > +     pm_runtime_set_suspended(&client->dev);
+> > > > +     pm_runtime_put_noidle(&client->dev);
+> > >
+> > > The release callback exists so you can release the allocated resource=
+s, but
+> > > the I=E6=B6=8E transactions need to cease after that. So you should c=
+all the
+> > > set_power() callback here instead --- as you do in probe() function's=
+ error
+> > > handling.
+> >
+> > Hi Sakari,
+> >
+> > The set_power() callback is called in video_i2c_release() release
+> > callback in this patch, so it should be the last I2C transaction.
+>
+> You can no longer access the device once the remove callback has finished=
+.
+> If you need to do access it, it's there, not later.
 
-To add to the nitpicking, The subject already says DT and bindings, so 
-no need to repeat it. I'd just drop "description of" if anything.
+OK, I see.
 
-Rob
+> >
+> > case a.1)  When the driver is unbound, no users grab a file handle.
+> >
+> > video_i2c_remove
+> >  |
+> >  -> pm_runtime_*
+> >  -> video_unregister_device
+> >      :
+> >      -> video_i2c_release
+> >          |
+> >          -> data->chip->set_power
+> >          -> v4l2_device_unregister
+> >          -> mutex_destroy
+> >          -> regmap_exit(data->regmap);
+> >          -> kfree
+> >
+> > case a.2)  When the driver is unbound, some users grab a file handle.
+> >
+> > video_i2c_remove
+> >  |
+> >  -> pm_runtime_*
+> >  -> video_unregister_device
+> >
+> > <All users ungrab a file handle>
+> >
+> > video_i2c_release
+> >  |
+> >  -> data->chip->set_power
+> >  -> v4l2_device_unregister
+> >  -> mutex_destroy
+> >  -> regmap_exit(data->regmap);
+> >  -> kfree
+> >
+> > If the set_power() callback is moved to video_i2c_remove() as you
+> > suggested, it doesn't ensure set_power() callback is the last I2C
+> > transaction in case b.2), does it?
+>
+> That's something the driver would need to ensure in principle. The I=C2=
+=B2C core
+> doesn't seem to help there either. In I=C2=B2C case I presume you'd get a=
+n error
+> if the device was already powered down by that point but on other busses
+> you might get a system crash.
+
+Thanks for the explanation. I'll move the set_power() call  to
+video_i2c_remove() in v4.
+
+> >
+> > case b.1)  When the driver is unbound, no users grab a file handle.
+> >
+> > video_i2c_remove
+> >  |
+> >  -> pm_runtime_*
+> >  -> data->chip->set_power
+> >  -> video_unregister_device
+> >      :
+> >      -> video_i2c_release
+> >          |
+> >          -> v4l2_device_unregister
+> >          -> mutex_destroy
+> >          -> regmap_exit(data->regmap);
+> >          -> kfree
+> >
+> > case b.2)  When the driver is unbound, some users grab a file handle.
+> >
+> > video_i2c_remove
+> >  |
+> >  -> pm_runtime_*
+> >  -> data->chip->set_power
+> >  -> video_unregister_device
+> >
+> > <All users ungrab a file handle>
+> >
+> > video_i2c_release
+> >  |
+> >  -> v4l2_device_unregister
+> >  -> mutex_destroy
+> >  -> regmap_exit(data->regmap);
+> >  -> kfree
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
