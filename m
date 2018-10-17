@@ -1,90 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53328 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726964AbeJQRLG (ORCPT
+Received: from mail-pg1-f193.google.com ([209.85.215.193]:44943 "EHLO
+        mail-pg1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727646AbeJQHxq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 13:11:06 -0400
-Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
- <1711632.PTPtFUq1Nv@avalon>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3d5261b9-05e5-8d32-37c9-628ac0071ef3@xs4all.nl>
-Date: Wed, 17 Oct 2018 11:16:14 +0200
-MIME-Version: 1.0
-In-Reply-To: <1711632.PTPtFUq1Nv@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 17 Oct 2018 03:53:46 -0400
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v5 11/12] media: imx: Allow interweave with top/bottom lines swapped
+Date: Tue, 16 Oct 2018 17:00:26 -0700
+Message-Id: <20181017000027.23696-12-slongerbeam@gmail.com>
+In-Reply-To: <20181017000027.23696-1-slongerbeam@gmail.com>
+References: <20181017000027.23696-1-slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/17/2018 10:57 AM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Thursday, 20 September 2018 17:42:15 EEST Hans Verkuil wrote:
->> Some parts of the V4L2 API are awkward to use and I think it would be
->> a good idea to look at possible candidates for that.
->>
->> Examples are the ioctls that use struct v4l2_buffer: the multiplanar support
->> is really horrible, and writing code to support both single and multiplanar
->> is hard. We are also running out of fields and the timeval isn't y2038
->> compliant.
->>
->> A proof-of-concept is here:
->>
->> https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95
->> 549df06d9900f3559afdbb9da06bd4b22d1f3
->>
->> It's a bit old, but it gives a good impression of what I have in mind.
->>
->> Another candidate is
->> VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS: expressing
->> frame intervals as a fraction is really awkward and so is the fact that the
->> subdev and 'normal' ioctls are not the same.
->>
->> Would using nanoseconds or something along those lines for intervals be
->> better?
->>
->> I have similar concerns with VIDIOC_SUBDEV_ENUM_FRAME_SIZE where there is no
->> stepwise option, making it different from VIDIOC_ENUM_FRAMESIZES. But it
->> should be possible to extend VIDIOC_SUBDEV_ENUM_FRAME_SIZE with stepwise
->> support, I think.
-> 
-> If we refresh the enumeration ioctls, I propose moving away from the one 
-> syscall per value model, and returning everything in one (userspace-allocated) 
-> buffer. The same could apply to all enumerations (such as controls for 
-> instance), even if we don't address them all in one go.
+Allow sequential->interlaced interweaving but with top/bottom
+lines swapped to the output buffer.
 
-I'm not convinced about this, primarily because I think these enums are done
-at configuration time, and rarely if ever while streaming. So does it really
-make a difference in practice? Feedback on this would be welcome during the
-summit meeting.
+This can be accomplished by adding one line length to IDMAC output
+channel address, with a negative line length for the interlace offset.
 
-> 
->> Do we have more ioctls that could use a refresh? S/G/TRY_FMT perhaps, again
->> in order to improve single vs multiplanar handling.
-> 
-> If we refresh the G/S/TRY format ioctls (and I think we should), I would 
-> propose moving to a G/S model with ACTIVE and TRY formats, as for subdevs. 
-> This should make it easier to construct full device states internally, in 
-> order to implement proper request API support for formats. We should then also 
-> document much better how formats and selection rectangles interact.
+This is to allow the seq-bt -> interlaced-bt transformation, where
+bottom lines are still dominant (older in time) but with top lines
+first in the interweaved output buffer.
 
-Interesting. I was planning a slide for this.
+With this support, the CSI can now allow seq-bt at its source pads,
+e.g. the following transformations are allowed in CSI from sink to
+source:
 
->> It is not the intention to come to a full design, it's more to test the
->> waters so to speak.
-> 
-> Another item that we're missing is a way to delete buffers (the counterpart of 
-> VIDIOC_CREATE_BUFS). As this will introduce holes in the buffer indices, we 
-> might also need to revamp VIDIOC_CREATE_BUFS (which would give us a chance to 
-> move away from the format structure passed to that ioctl).
-> 
+seq-tb -> seq-bt
+seq-bt -> seq-bt
+alternate -> seq-bt
 
-I'm just writing the slide for that :-)
+Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v4:
+- Removed interweave_offset and replace with boolean interweave_swap,
+  suggested by Philipp Zabel.
+---
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 25 +++++++++----
+ drivers/staging/media/imx/imx-media-csi.c   | 40 ++++++++++++++++++---
+ 2 files changed, 54 insertions(+), 11 deletions(-)
 
-Regards,
-
-	Hans
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index cf76b0432371..33ada6612fee 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -106,6 +106,7 @@ struct prp_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;  /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	bool interweave_swap; /* swap top/bottom lines when interweaving */
+ 	struct completion last_eof_comp;
+ };
+ 
+@@ -235,6 +236,9 @@ static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
+ 	if (ipu_idmac_buffer_is_ready(ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(ch, priv->ipu_buf_num);
+ 
++	if (priv->interweave_swap && ch == priv->out_ch)
++		phys += vdev->fmt.fmt.pix.bytesperline;
++
+ 	ipu_cpmem_set_buffer(ch, priv->ipu_buf_num, phys);
+ }
+ 
+@@ -376,8 +380,9 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	 * the IDMAC output channel.
+ 	 */
+ 	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+-		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field) &&
+-		channel == priv->out_ch;
++		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
++	priv->interweave_swap = interweave &&
++		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+ 
+ 	if (rot_swap_width_height) {
+ 		swap(image.pix.width, image.pix.height);
+@@ -388,6 +393,11 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 			(image.pix.width * outcc->bpp) >> 3;
+ 	}
+ 
++	if (priv->interweave_swap && channel == priv->out_ch) {
++		/* start interweave scan at 1st top line (2nd line) */
++		image.rect.top = 1;
++	}
++
+ 	image.phys0 = addr0;
+ 	image.phys1 = addr1;
+ 
+@@ -396,8 +406,8 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	 * channels for planar 4:2:0 (but not when enabling IDMAC
+ 	 * interweaving, they are incompatible).
+ 	 */
+-	if (!interweave && (channel == priv->out_ch ||
+-			    channel == priv->rot_out_ch)) {
++	if ((channel == priv->out_ch && !interweave) ||
++	    channel == priv->rot_out_ch) {
+ 		switch (image.pix.pixelformat) {
+ 		case V4L2_PIX_FMT_YUV420:
+ 		case V4L2_PIX_FMT_YVU420:
+@@ -424,8 +434,11 @@ static int prp_setup_channel(struct prp_priv *priv,
+ 	if (rot_mode)
+ 		ipu_cpmem_set_rotation(channel, rot_mode);
+ 
+-	if (interweave)
+-		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline,
++	if (interweave && channel == priv->out_ch)
++		ipu_cpmem_interlaced_scan(channel,
++					  priv->interweave_swap ?
++					  -image.pix.bytesperline :
++					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
+ 
+ 	ret = ipu_ic_task_idma_init(priv->ic, channel,
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 0d494a7db211..73c9f3ae4221 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -114,6 +114,7 @@ struct csi_priv {
+ 	u32 frame_sequence; /* frame sequence counter */
+ 	bool last_eof;   /* waiting for last EOF at stream off */
+ 	bool nfb4eof;    /* NFB4EOF encountered during streaming */
++	bool interweave_swap; /* swap top/bottom lines when interweaving */
+ 	struct completion last_eof_comp;
+ };
+ 
+@@ -286,6 +287,9 @@ static void csi_vb2_buf_done(struct csi_priv *priv)
+ 	if (ipu_idmac_buffer_is_ready(priv->idmac_ch, priv->ipu_buf_num))
+ 		ipu_idmac_clear_buffer(priv->idmac_ch, priv->ipu_buf_num);
+ 
++	if (priv->interweave_swap)
++		phys += vdev->fmt.fmt.pix.bytesperline;
++
+ 	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num, phys);
+ }
+ 
+@@ -433,6 +437,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	 */
+ 	interweave = V4L2_FIELD_IS_INTERLACED(image.pix.field) &&
+ 		V4L2_FIELD_IS_SEQUENTIAL(outfmt->field);
++	priv->interweave_swap = interweave &&
++		image.pix.field == V4L2_FIELD_INTERLACED_BT;
+ 
+ 	switch (image.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_SBGGR8:
+@@ -486,6 +492,12 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	}
+ 
+ 	if (passthrough) {
++		if (priv->interweave_swap) {
++			/* start interweave scan at 1st top line (2nd line) */
++			image.phys0 += image.pix.bytesperline;
++			image.phys1 += image.pix.bytesperline;
++		}
++
+ 		ipu_cpmem_set_resolution(priv->idmac_ch,
+ 					 image.rect.width * passthrough_cycles,
+ 					 image.rect.height);
+@@ -495,6 +507,11 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
+ 						 passthrough_bits);
+ 	} else {
++		if (priv->interweave_swap) {
++			/* start interweave scan at 1st top line (2nd line) */
++			image.rect.top = 1;
++		}
++
+ 		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
+ 		if (ret)
+ 			goto unsetup_vb2;
+@@ -526,6 +543,8 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 
+ 	if (interweave)
+ 		ipu_cpmem_interlaced_scan(priv->idmac_ch,
++					  priv->interweave_swap ?
++					  -image.pix.bytesperline :
+ 					  image.pix.bytesperline,
+ 					  image.pix.pixelformat);
+ 
+@@ -1336,16 +1355,27 @@ static void csi_try_field(struct csi_priv *priv,
+ 	switch (infmt->field) {
+ 	case V4L2_FIELD_SEQ_TB:
+ 	case V4L2_FIELD_SEQ_BT:
++		/*
++		 * If the user requests sequential at the source pad,
++		 * allow it (along with possibly inverting field order).
++		 * Otherwise passthrough the field type.
++		 */
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = infmt->field;
++		break;
+ 	case V4L2_FIELD_ALTERNATE:
+ 		/*
+-		 * If the sink is sequential or alternating fields,
+-		 * allow only SEQ_TB at the source.
+-		 *
+ 		 * This driver does not support alternate field mode, and
+ 		 * the CSI captures a whole frame, so the CSI never presents
+-		 * alternate mode at its source pads.
++		 * alternate mode at its source pads. If user has not
++		 * already requested sequential, translate ALTERNATE at
++		 * sink pad to SEQ_TB or SEQ_BT at the source pad depending
++		 * on input height (assume NTSC BT order if 480 total active
++		 * frame lines, otherwise PAL TB order).
+ 		 */
+-		sdformat->format.field = V4L2_FIELD_SEQ_TB;
++		if (!V4L2_FIELD_IS_SEQUENTIAL(sdformat->format.field))
++			sdformat->format.field = (infmt->height == 480 / 2) ?
++				V4L2_FIELD_SEQ_BT : V4L2_FIELD_SEQ_TB;
+ 		break;
+ 	default:
+ 		/* Passthrough for all other input field types */
+-- 
+2.17.1
