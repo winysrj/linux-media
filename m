@@ -1,173 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:37616 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:37900 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727053AbeJQVOe (ORCPT
+        with ESMTP id S1727053AbeJQVOp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 17:14:34 -0400
+        Wed, 17 Oct 2018 17:14:45 -0400
 From: Vikash Garodia <vgarodia@codeaurora.org>
 To: stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
         mchehab@kernel.org
 Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, acourbot@chromium.org,
         vgarodia@codeaurora.org
-Subject: [PATCH v12 3/5] venus: firmware: register separate platform_device for firmware loader
-Date: Wed, 17 Oct 2018 18:48:21 +0530
-Message-Id: <1539782303-4091-4-git-send-email-vgarodia@codeaurora.org>
+Subject: [PATCH v12 5/5] dt-bindings: media: Document bindings for venus firmware device
+Date: Wed, 17 Oct 2018 18:48:23 +0530
+Message-Id: <1539782303-4091-6-git-send-email-vgarodia@codeaurora.org>
 In-Reply-To: <1539782303-4091-1-git-send-email-vgarodia@codeaurora.org>
 References: <1539782303-4091-1-git-send-email-vgarodia@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Add devicetree binding documentation for firmware loader for video
+hardware running on qualcomm chip.
 
-This registers a firmware platform_device and associate it with
-video-firmware DT subnode. Then calls dma configure to initialize
-dma and iommu.
-
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/platform/qcom/venus/core.c     | 14 +++++--
- drivers/media/platform/qcom/venus/core.h     |  3 ++
- drivers/media/platform/qcom/venus/firmware.c | 55 ++++++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/firmware.h |  2 +
- 4 files changed, 70 insertions(+), 4 deletions(-)
+ Documentation/devicetree/bindings/media/qcom,venus.txt | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
-index 75b9785..440f25f 100644
---- a/drivers/media/platform/qcom/venus/core.c
-+++ b/drivers/media/platform/qcom/venus/core.c
-@@ -284,6 +284,14 @@ static int venus_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto err_runtime_disable;
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+index 00d0d1b..b602c4c 100644
+--- a/Documentation/devicetree/bindings/media/qcom,venus.txt
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -53,7 +53,8 @@
  
-+	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
-+	if (ret)
-+		goto err_runtime_disable;
-+
-+	ret = venus_firmware_init(core);
-+	if (ret)
-+		goto err_runtime_disable;
-+
- 	ret = venus_boot(core);
- 	if (ret)
- 		goto err_runtime_disable;
-@@ -308,10 +316,6 @@ static int venus_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_core_deinit;
+ * Subnodes
+ The Venus video-codec node must contain two subnodes representing
+-video-decoder and video-encoder.
++video-decoder and video-encoder, and one optional firmware subnode.
++Firmware subnode is needed when the platform does not have TrustZone.
  
--	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
--	if (ret)
--		goto err_dev_unregister;
--
- 	ret = pm_runtime_put_sync(dev);
- 	if (ret)
- 		goto err_dev_unregister;
-@@ -347,6 +351,8 @@ static int venus_remove(struct platform_device *pdev)
- 	venus_shutdown(dev);
- 	of_platform_depopulate(dev);
+ Every of video-encoder or video-decoder subnode should have:
  
-+	venus_firmware_deinit(core);
-+
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
+@@ -79,6 +80,13 @@ Every of video-encoder or video-decoder subnode should have:
+ 		    power domain which is responsible for collapsing
+ 		    and restoring power to the subcore.
  
-diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-index 8b85dc8..c629666 100644
---- a/drivers/media/platform/qcom/venus/core.h
-+++ b/drivers/media/platform/qcom/venus/core.h
-@@ -131,6 +131,9 @@ struct venus_core {
- 	struct device *dev_dec;
- 	struct device *dev_enc;
- 	unsigned int use_tz;
-+	struct video_firmware {
-+		struct device *dev;
-+	} fw;
- 	struct mutex lock;
- 	struct list_head instances;
- 	atomic_t insts_count;
-diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-index 1d4f066..98b3b16 100644
---- a/drivers/media/platform/qcom/venus/firmware.c
-+++ b/drivers/media/platform/qcom/venus/firmware.c
-@@ -18,6 +18,8 @@
- #include <linux/io.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
-+#include <linux/platform_device.h>
-+#include <linux/of_device.h>
- #include <linux/qcom_scm.h>
- #include <linux/sizes.h>
- #include <linux/soc/qcom/mdt_loader.h>
-@@ -144,3 +146,56 @@ int venus_shutdown(struct device *dev)
- {
- 	return qcom_scm_pas_shutdown(VENUS_PAS_ID);
- }
++The firmware subnode must have:
 +
-+int venus_firmware_init(struct venus_core *core)
-+{
-+	struct platform_device_info info;
-+	struct platform_device *pdev;
-+	struct device_node *np;
-+	int ret;
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
 +
-+	np = of_get_child_by_name(core->dev->of_node, "video-firmware");
-+	if (!np) {
-+		core->use_tz = true;
-+		return 0;
-+	}
+ * An Example
+ 	video-codec@1d00000 {
+ 		compatible = "qcom,msm8916-venus";
+@@ -105,4 +113,8 @@ Every of video-encoder or video-decoder subnode should have:
+ 			clock-names = "core";
+ 			power-domains = <&mmcc VENUS_CORE1_GDSC>;
+ 		};
 +
-+	memset(&info, 0, sizeof(info));
-+	info.fwnode = &np->fwnode;
-+	info.parent = core->dev;
-+	info.name = np->name;
-+	info.dma_mask = DMA_BIT_MASK(32);
-+
-+	pdev = platform_device_register_full(&info);
-+	if (IS_ERR(pdev)) {
-+		of_node_put(np);
-+		return PTR_ERR(pdev);
-+	}
-+
-+	pdev->dev.of_node = np;
-+
-+	ret = of_dma_configure(&pdev->dev, np, true);
-+	if (ret) {
-+		dev_err(core->dev, "dma configure fail\n");
-+		goto err_unregister;
-+	}
-+
-+	core->fw.dev = &pdev->dev;
-+
-+	of_node_put(np);
-+
-+	return 0;
-+
-+err_unregister:
-+	platform_device_unregister(pdev);
-+	of_node_put(np);
-+	return ret;
-+}
-+
-+void venus_firmware_deinit(struct venus_core *core)
-+{
-+	if (!core->fw.dev)
-+		return;
-+
-+	platform_device_unregister(to_platform_device(core->fw.dev));
-+}
-diff --git a/drivers/media/platform/qcom/venus/firmware.h b/drivers/media/platform/qcom/venus/firmware.h
-index 1343747..fd7edf0 100644
---- a/drivers/media/platform/qcom/venus/firmware.h
-+++ b/drivers/media/platform/qcom/venus/firmware.h
-@@ -16,6 +16,8 @@
- 
- struct device;
- 
-+int venus_firmware_init(struct venus_core *core);
-+void venus_firmware_deinit(struct venus_core *core);
- int venus_boot(struct venus_core *core);
- int venus_shutdown(struct device *dev);
- int venus_set_hw_state(struct venus_core *core, bool suspend);
++		video-firmware {
++			iommus = <&apps_iommu 0x10b2 0x0>;
++		};
+ 	};
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
