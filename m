@@ -1,67 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:44419 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726922AbeJQTFv (ORCPT
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:42218 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727013AbeJQTua (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 15:05:51 -0400
-Message-ID: <1539774637.4729.3.camel@pengutronix.de>
-Subject: Re: [PATCH v3 10/16] gpu: ipu-v3: image-convert: select optimal
- seam positions
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        linux-media@vger.kernel.org
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>, kernel@pengutronix.de
-Date: Wed, 17 Oct 2018 13:10:37 +0200
-In-Reply-To: <d3e2a6ec-2961-2f97-7a53-d016bc6ad515@gmail.com>
-References: <20180918093421.12930-1-p.zabel@pengutronix.de>
-         <20180918093421.12930-11-p.zabel@pengutronix.de>
-         <d3e2a6ec-2961-2f97-7a53-d016bc6ad515@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Wed, 17 Oct 2018 15:50:30 -0400
+From: Mark Brown <broonie@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Mark Brown <broonie@kernel.org>, linux-pm@vger.kernel.org,
+        linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-spi@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org
+Subject: Applied "spi: pic32-sqi: don't pass GFP_DMA32 to dma_alloc_coherent" to the spi tree
+In-Reply-To: <20181013151707.32210-4-hch@lst.de>
+Message-Id: <20181017115504.2A15E11224C4@debutante.sirena.org.uk>
+Date: Wed, 17 Oct 2018 12:55:04 +0100 (BST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2018-10-12 at 17:33 -0700, Steve Longerbeam wrote:
-> 
-> On 09/18/2018 02:34 AM, Philipp Zabel wrote:
-> 
-> <snip>
-> > +/*
-> > + * Tile left edges are required to be aligned to multiples of 8 bytes
-> > + * by the IDMAC.
-> > + */
-> > +static inline u32 tile_left_align(const struct ipu_image_pixfmt *fmt)
-> > +{
-> > +	return fmt->planar ? 8 * fmt->uv_width_dec : 64 / fmt->bpp;
-> > +}
-> 
-> <snip>
-> 
-> As I indicated, shouldn't this be
-> 
-> return fmt->planar ? 8 * fmt->uv_width_dec : 8;
-> 
-> ?
->
-> Just from a unit analysis perspective, "64 / fmt->bp" has
-> units of pixels / 8-bytes, it should have units of bytes.
+The patch
 
-The tile alignment is in pixels, not in bytes. For 16-bit and 32-bit
-packed formats, we only need to align to 4 or 2 pixels, respectively,
-as the LCM of 8-byte alignment and 2-byte or 4-byte pixel size is
-always 8 bytes.
+   spi: pic32-sqi: don't pass GFP_DMA32 to dma_alloc_coherent
 
-But now that you pointed it out, it is quite obvious that this can't
-work for 24-bit packed formats. Here the LCM of 8-byte alignment and 3-
-byte pixels is 24 bytes, or 8 pixels.
+has been applied to the spi tree at
 
-How about:
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
 
-	if (fmt->planar)
-		return fmt->uv_packed ? 8 : 8 * fmt->uv_width_dec;
-	else
-		return fmt->bpp == 32 ? 2 : fmt->bpp == 16 ? 4 : 8;
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-regards
-Philipp
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From ec506e9246bf42795f1fa8a5cd00740e5686ba73 Mon Sep 17 00:00:00 2001
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 13 Oct 2018 17:17:02 +0200
+Subject: [PATCH] spi: pic32-sqi: don't pass GFP_DMA32 to dma_alloc_coherent
+
+The DMA API does its own zone decisions based on the coherent_dma_mask.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/spi/spi-pic32-sqi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/spi/spi-pic32-sqi.c b/drivers/spi/spi-pic32-sqi.c
+index 62e6bf1f50b1..d7e4e18ec3df 100644
+--- a/drivers/spi/spi-pic32-sqi.c
++++ b/drivers/spi/spi-pic32-sqi.c
+@@ -468,7 +468,7 @@ static int ring_desc_ring_alloc(struct pic32_sqi *sqi)
+ 	/* allocate coherent DMAable memory for hardware buffer descriptors. */
+ 	sqi->bd = dma_zalloc_coherent(&sqi->master->dev,
+ 				      sizeof(*bd) * PESQI_BD_COUNT,
+-				      &sqi->bd_dma, GFP_DMA32);
++				      &sqi->bd_dma, GFP_KERNEL);
+ 	if (!sqi->bd) {
+ 		dev_err(&sqi->master->dev, "failed allocating dma buffer\n");
+ 		return -ENOMEM;
+-- 
+2.19.0.rc2
