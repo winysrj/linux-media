@@ -1,144 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1-d.mail.gandi.net ([217.70.183.193]:57093 "EHLO
-        relay1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727014AbeJSVTk (ORCPT
+Received: from mail-wr1-f68.google.com ([209.85.221.68]:46582 "EHLO
+        mail-wr1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726334AbeJRFb1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 17:19:40 -0400
-Date: Fri, 19 Oct 2018 15:13:28 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab+samsung@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kate Stewart <kstewart@linuxfoundation.org>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
+        Thu, 18 Oct 2018 01:31:27 -0400
+From: ektor5 <ek5.chimenti@gmail.com>
+Cc: hverkuil@xs4all.nl, luca.pisani@udoo.org, jose.abreu@synopsys.com,
+        sean@mess.org, sakari.ailus@linux.intel.com,
+        Ettore Chimenti <ek5.chimenti@gmail.com>, jacopo@jmondi.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Maxime Ripard <maxime.ripard@bootlin.com>,
         Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Akinobu Mita <akinobu.mita@gmail.com>, petrcvekcz@gmail.com
-Subject: Re: [PATCH] media: rename soc_camera I2C drivers
-Message-ID: <20181019131328.GG11703@w540>
-References: <3e42194ffb936ec9d0a4d361f06c6a4b0e88173f.1539949382.git.mchehab+samsung@kernel.org>
- <fa7f6ef2-af25-a554-2ecc-e99c9fb1e68d@cisco.com>
- <20181019093146.195d0be5@coco.lan>
- <7bd0c2fd-f852-e880-f1ae-85f27b44fc9b@cisco.com>
- <20181019125851.kch2qxv6mjshwk76@kekkonen.localdomain>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+sHJum3is6Tsg7/J"
-Content-Disposition: inline
-In-Reply-To: <20181019125851.kch2qxv6mjshwk76@kekkonen.localdomain>
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v3 2/2] seco-cec: add Consumer-IR support
+Date: Wed, 17 Oct 2018 23:31:42 +0200
+Message-Id: <0529aedcfa366f6f228dd334b0915aeb828fbe6b.1539807092.git.ek5.chimenti@gmail.com>
+In-Reply-To: <cover.1539807092.git.ek5.chimenti@gmail.com>
+References: <cover.1539807092.git.ek5.chimenti@gmail.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Ettore Chimenti <ek5.chimenti@gmail.com>
 
---+sHJum3is6Tsg7/J
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Introduce support for Consumer-IR into seco-cec driver, as it shares the
+same interrupt for receiving messages.
+The device decodes RC5 signals only, defaults to hauppauge mapping.
+It will spawn an input interface using the RC framework (like CEC
+device).
 
-Hi Mauro, Hans, Sakari,
+Signed-off-by: Ettore Chimenti <ek5.chimenti@gmail.com>
+Reviewed-by: Sean Young <sean@mess.org>
+---
+ drivers/media/platform/Kconfig             |  10 ++
+ drivers/media/platform/seco-cec/seco-cec.c | 125 ++++++++++++++++++++-
+ drivers/media/platform/seco-cec/seco-cec.h |  11 ++
+ 3 files changed, 145 insertions(+), 1 deletion(-)
 
-On Fri, Oct 19, 2018 at 03:58:51PM +0300, Sakari Ailus wrote:
-> Hi Hans, Mauro,
->
-> On Fri, Oct 19, 2018 at 02:39:27PM +0200, Hans Verkuil wrote:
-> > On 10/19/18 14:31, Mauro Carvalho Chehab wrote:
-> > > Em Fri, 19 Oct 2018 13:45:32 +0200
-> > > Hans Verkuil <hansverk@cisco.com> escreveu:
-> > >
-> > >> On 10/19/18 13:43, Mauro Carvalho Chehab wrote:
-> > >>> Those drivers are part of the legacy SoC camera framework.
-> > >>> They're being converted to not use it, but sometimes we're
-> > >>> keeping both legacy any new driver.
-> > >>>
-> > >>> This time, for example, we have two drivers on media with
-> > >>> the same name: ov772x. That's bad.
-> > >>>
-> > >>> So, in order to prevent that to happen, let's prepend the SoC
-> > >>> legacy drivers with soc_.
-> > >>>
-> > >>> No functional changes.
-> > >>>
-> > >>> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> > >>
-> > >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > >
-> > > For now, let's just avoid the conflict if one builds both modules and
-> > > do a modprobe ov772x.
-> > >
-> > >> Let's kill all of these in the next kernel. I see no reason for keep=
-ing
-> > >> them around.
-> > >
-> > > While people are doing those SoC conversions, I would keep it. We
-> >
-> > Which people are doing SoC conversions? Nobody is using soc-camera anym=
-ore.
-> > It is a dead driver. The only reason it hasn't been removed yet is lack=
- of
-> > time since it is not just removing the driver, but also patching old bo=
-ard
-> > files that use soc_camera headers. Really left-overs since the correspo=
-nding
-> > soc-camera drivers have long since been removed.
-> >
-> > > could move it to staging, to let it clear that those drivers require
-> > > conversion, and give people some time to work on it.
-> >
-> > There is nobody working on it. These are old sensors, and few will have
-> > the hardware to test it. If someone needs such a sensor driver, then th=
-ey
-> > can always look at an older kernel version. It's still in git after all.
-> >
-> > Just kill it rather then polluting the media tree.
->
-> I remember at least Jacopo has been doing some. There was someone else as
-> well, but I don't remember right now who it was. That said, I'm not sure =
-if
-> there's anything happening to the rest.
-
-Yes, I did port a few drivers and there are patches for others coming.
-
-[PATCH v2 0/4] media: soc_camera: ov9640: switch driver to v4l2_async
-=66rom Peter Cvek (now in Cc)
->
-> Is there something that prevents removing these right away? As you said
-> it's not functional and people can always check old versions if they want
-> to port the driver to V4L2 sub-device framework.
-
-All dependencies should have been solved so far, but given that
-someone might want to do the porting at some point, I don't see how
-bad would it be to have them in staging, even if people could look
-into the git history...
-
->
-> --
-> Regards,
->
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
-
---+sHJum3is6Tsg7/J
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbydh4AAoJEHI0Bo8WoVY89rQQAJ8E7vcJCr1mULsqC+seVYM2
-NKH++T9d8eVN9PXxoLXsKfS1ZDNwxZSj53TKyoCWDhBkOtV15P4EmiQLMk+hF/+P
-ykl2tSXtvHl9ByEQUpOWKDU/6ByKlAfYp6gXiGayUeMiq8H3Chh2DFdLO1z2pLnC
-RXIQb3xpktXpQ3QeMLZ5sIuO7ePP4ch876+t+Rqg+4O+GolReOz/t+wHQjWEVuqx
-zFMTO21f2wO9y/dnyHP94T2IA6VIbBCMi+12z5yJAbfOqUJ4rt9Z/IpOIL0SSw6Q
-mrDUWx1cTD8pwFcy3MjwIlB4/QTVW1S04qihuZFImnU3Mg52QIY8IPbmMhB33AkI
-1r74dC1FiAC7Xl+ZvUibu43pm3JjkfxHJi98IVkkn7WEa7Ow/3HBAmwDI16K2jhg
-LJT8JuJZTNAWbjnC8jzbtz4XxW0wNtE5hkiPr9KbHMm1MrNmKN/R5rrhibmalQDk
-yPKdMpee1rRkQyRepy2hU1qCprGVD11HXrgvpRxn0OuOMd9dmuvo4AKCO3u1dq7Q
-mJQyh1nzMi3V6ZgYhjnK8FeXkH63ugyJuoWkTOmdKDwE9ZhxV5xeJmD9xSWl/F1i
-2t2yW4pgh5NZyd4uls3+rAu0n6iVf0BTemYSQSkNrAuJyUjXjZiEmwMUK4rC2y6c
-6TRZ7+CPauK/azLnuKSC
-=WYhl
------END PGP SIGNATURE-----
-
---+sHJum3is6Tsg7/J--
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 51cd1fd005e3..e6b45da2af6d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -625,6 +625,16 @@ config VIDEO_SECO_CEC
+ 	  CEC bus is present in the HDMI connector and enables communication
+ 	  between compatible devices.
+ 
++config VIDEO_SECO_RC
++	bool "SECO Boards IR RC5 support"
++	depends on VIDEO_SECO_CEC
++	select RC_CORE
++	help
++	  If you say yes here you will get support for the
++	  SECO Boards Consumer-IR in seco-cec driver.
++	  The embedded controller supports RC5 protocol only, default mapping
++	  is set to rc-hauppauge.
++
+ endif #CEC_PLATFORM_DRIVERS
+ 
+ menuconfig SDR_PLATFORM_DRIVERS
+diff --git a/drivers/media/platform/seco-cec/seco-cec.c b/drivers/media/platform/seco-cec/seco-cec.c
+index 9ac9a1f36bc0..c5af913d4715 100644
+--- a/drivers/media/platform/seco-cec/seco-cec.c
++++ b/drivers/media/platform/seco-cec/seco-cec.c
+@@ -26,6 +26,8 @@ struct secocec_data {
+ 	struct platform_device *pdev;
+ 	struct cec_adapter *cec_adap;
+ 	struct cec_notifier *notifier;
++	struct rc_dev *ir;
++	char ir_input_phys[32];
+ 	int irq;
+ };
+ 
+@@ -364,6 +366,114 @@ struct cec_adap_ops secocec_cec_adap_ops = {
+ 	.adap_transmit = secocec_adap_transmit,
+ };
+ 
++#ifdef CONFIG_VIDEO_SECO_RC
++static int secocec_ir_probe(void *priv)
++{
++	struct secocec_data *cec = priv;
++	struct device *dev = cec->dev;
++	int status;
++	u16 val;
++
++	/* Prepare the RC input device */
++	cec->ir = devm_rc_allocate_device(dev, RC_DRIVER_SCANCODE);
++	if (!cec->ir)
++		return -ENOMEM;
++
++	snprintf(cec->ir_input_phys, sizeof(cec->ir_input_phys),
++		 "%s/input0", dev_name(dev));
++
++	cec->ir->device_name = dev_name(dev);
++	cec->ir->input_phys = cec->ir_input_phys;
++	cec->ir->input_id.bustype = BUS_HOST;
++	cec->ir->input_id.vendor = 0;
++	cec->ir->input_id.product = 0;
++	cec->ir->input_id.version = 1;
++	cec->ir->driver_name = SECOCEC_DEV_NAME;
++	cec->ir->allowed_protocols = RC_PROTO_BIT_RC5;
++	cec->ir->priv = cec;
++	cec->ir->map_name = RC_MAP_HAUPPAUGE;
++	cec->ir->timeout = MS_TO_NS(100);
++
++	/* Clear the status register */
++	status = smb_rd16(SECOCEC_STATUS_REG_1, &val);
++	if (status != 0)
++		goto err;
++
++	status = smb_wr16(SECOCEC_STATUS_REG_1, val);
++	if (status != 0)
++		goto err;
++
++	/* Enable the interrupts */
++	status = smb_rd16(SECOCEC_ENABLE_REG_1, &val);
++	if (status != 0)
++		goto err;
++
++	status = smb_wr16(SECOCEC_ENABLE_REG_1,
++			  val | SECOCEC_ENABLE_REG_1_IR);
++	if (status != 0)
++		goto err;
++
++	dev_dbg(dev, "IR enabled");
++
++	status = devm_rc_register_device(dev, cec->ir);
++
++	if (status) {
++		dev_err(dev, "Failed to prepare input device");
++		cec->ir = NULL;
++		goto err;
++	}
++
++	return 0;
++
++err:
++	smb_rd16(SECOCEC_ENABLE_REG_1, &val);
++
++	smb_wr16(SECOCEC_ENABLE_REG_1,
++		 val & ~SECOCEC_ENABLE_REG_1_IR);
++
++	dev_dbg(dev, "IR disabled");
++	return status;
++}
++
++static int secocec_ir_rx(struct secocec_data *priv)
++{
++	struct secocec_data *cec = priv;
++	struct device *dev = cec->dev;
++	u16 val, status, key, addr, toggle;
++
++	if (!cec->ir)
++		return -ENODEV;
++
++	status = smb_rd16(SECOCEC_IR_READ_DATA, &val);
++	if (status != 0)
++		goto err;
++
++	key = val & SECOCEC_IR_COMMAND_MASK;
++	addr = (val & SECOCEC_IR_ADDRESS_MASK) >> SECOCEC_IR_ADDRESS_SHL;
++	toggle = (val & SECOCEC_IR_TOGGLE_MASK) >> SECOCEC_IR_TOGGLE_SHL;
++
++	rc_keydown(cec->ir, RC_PROTO_RC5, RC_SCANCODE_RC5(addr, key), toggle);
++
++	dev_dbg(dev, "IR key pressed: 0x%02x addr 0x%02x toggle 0x%02x", key,
++		addr, toggle);
++
++	return 0;
++
++err:
++	dev_err(dev, "IR Receive message failed (%d)", status);
++	return -EIO;
++}
++#else
++static void secocec_ir_rx(struct secocec_data *priv)
++{
++}
++
++static int secocec_ir_probe(void *priv)
++{
++	return 0;
++}
++#endif
++
+ static irqreturn_t secocec_irq_handler(int irq, void *priv)
+ {
+ 	struct secocec_data *cec = priv;
+@@ -399,7 +509,8 @@ static irqreturn_t secocec_irq_handler(int irq, void *priv)
+ 	if (status_val & SECOCEC_STATUS_REG_1_IR) {
+ 		dev_dbg(dev, "IR RC5 Interrupt Caught");
+ 		val |= SECOCEC_STATUS_REG_1_IR;
+-		/* TODO IRDA RX */
++
++		secocec_ir_rx(cec);
+ 	}
+ 
+ 	/*  Reset status register */
+@@ -569,6 +680,10 @@ static int secocec_probe(struct platform_device *pdev)
+ 	if (secocec->notifier)
+ 		cec_register_cec_notifier(secocec->cec_adap, secocec->notifier);
+ 
++	ret = secocec_ir_probe(secocec);
++	if (ret)
++		goto err_delete_adapter;
++
+ 	platform_set_drvdata(pdev, secocec);
+ 
+ 	dev_dbg(dev, "Device registered");
+@@ -586,7 +701,15 @@ static int secocec_probe(struct platform_device *pdev)
+ static int secocec_remove(struct platform_device *pdev)
+ {
+ 	struct secocec_data *secocec = platform_get_drvdata(pdev);
++	u16 val;
++
++	if (secocec->ir) {
++		smb_rd16(SECOCEC_ENABLE_REG_1, &val);
+ 
++		smb_wr16(SECOCEC_ENABLE_REG_1, val & ~SECOCEC_ENABLE_REG_1_IR);
++
++		dev_dbg(&pdev->dev, "IR disabled");
++	}
+ 	cec_unregister_adapter(secocec->cec_adap);
+ 
+ 	if (secocec->notifier)
+diff --git a/drivers/media/platform/seco-cec/seco-cec.h b/drivers/media/platform/seco-cec/seco-cec.h
+index 93020900935e..3f1aad89b073 100644
+--- a/drivers/media/platform/seco-cec/seco-cec.h
++++ b/drivers/media/platform/seco-cec/seco-cec.h
+@@ -99,6 +99,17 @@
+ 
+ #define SECOCEC_IR_READ_DATA		0x3e
+ 
++/*
++ * IR
++ */
++
++#define SECOCEC_IR_COMMAND_MASK		0x007F
++#define SECOCEC_IR_COMMAND_SHL		0
++#define SECOCEC_IR_ADDRESS_MASK		0x1F00
++#define SECOCEC_IR_ADDRESS_SHL		7
++#define SECOCEC_IR_TOGGLE_MASK		0x8000
++#define SECOCEC_IR_TOGGLE_SHL		15
++
+ /*
+  * Enabling register
+  */
+-- 
+2.18.0
