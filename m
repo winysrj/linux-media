@@ -1,28 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.octours.com.ec ([138.122.109.190]:56565 "EHLO
-        octours.com.ec" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727014AbeJQVsk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 17:48:40 -0400
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from couponcabin.com ([185.53.169.31]:33632 "EHLO thegrizzled.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1727103AbeJQVxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 Oct 2018 17:53:19 -0400
+To: linux-media@vger.kernel.org
+Subject: For your photos 25
+Message-ID: <a2ba7d4e1fe7223c5ef710106c5962f3@cottonginlodging.com>
+Date: Wed, 17 Oct 2018 13:19:24 +0200
+From: "Jenny" <detinteerpdarnlkt@verizon.net>
+Reply-To: loshtane@aliyun.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: my subject
-To: Recipients <test@comstar.ru>
-From: test@comstar.ru
-Date: Wed, 17 Oct 2018 04:28:34 -0700
-Reply-To: peterwong20177@qq.com
-Message-Id: <20181017035458.19D01E151391@octours.com.ec>
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am Peter Wong director of operations, Hong Kong and Shanghai Banking
-Corporation Limited Hong Kong. I have a very confidential business
-proposition involving transfer of $18.350.000.00 that will be of great
-benefit for both of us. Reply for more details as regards this
-transaction
+We provide photoshop services to some of the companies from around the
+world.
 
-Best Regards
-Peter Wong
-ec
+Some online stores use our services for retouching portraits, jewelry,
+apparels, furnitures etc.
+
+Here are the details of what we provide:
+Clipping path
+Deep etching
+Image masking
+Portrait retouching
+Jewelry retouching
+Fashion retouching
+
+Please reply back for further info.
+We can provide testing for your photos if needed.
+
+Thanks,
+Jenny
