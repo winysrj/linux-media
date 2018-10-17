@@ -1,77 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([213.167.242.64]:56412 "EHLO
-        perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726714AbeJQQv6 (ORCPT
+Received: from mail-wr1-f66.google.com ([209.85.221.66]:43714 "EHLO
+        mail-wr1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726727AbeJQQoX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 12:51:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFP] Which V4L2 ioctls could be replaced by better versions?
-Date: Wed, 17 Oct 2018 11:57:24 +0300
-Message-ID: <1711632.PTPtFUq1Nv@avalon>
-In-Reply-To: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
-References: <d49940b7-af62-594e-06ad-8ec113589340@xs4all.nl>
+        Wed, 17 Oct 2018 12:44:23 -0400
+Received: by mail-wr1-f66.google.com with SMTP id n1-v6so28669026wrt.10
+        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2018 01:49:42 -0700 (PDT)
+Subject: Re: [PATCH v11 1/5] venus: firmware: add routine to reset ARM9
+To: Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org
+References: <1539005572-803-1-git-send-email-vgarodia@codeaurora.org>
+ <1539005572-803-2-git-send-email-vgarodia@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <fffd5b1f-73b5-81d5-a95b-a2dc9db1961d@linaro.org>
+Date: Wed, 17 Oct 2018 11:49:39 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1539005572-803-2-git-send-email-vgarodia@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Vikash,
 
-On Thursday, 20 September 2018 17:42:15 EEST Hans Verkuil wrote:
-> Some parts of the V4L2 API are awkward to use and I think it would be
-> a good idea to look at possible candidates for that.
+On 10/08/2018 04:32 PM, Vikash Garodia wrote:
+> Add routine to reset the ARM9 and brings it out of reset. Also
+> abstract the Venus CPU state handling with a new function. This
+> is in preparation to add PIL functionality in venus driver.
 > 
-> Examples are the ioctls that use struct v4l2_buffer: the multiplanar support
-> is really horrible, and writing code to support both single and multiplanar
-> is hard. We are also running out of fields and the timeval isn't y2038
-> compliant.
+> Signed-off-by: Vikash Garodia <vgarodia@codeaurora.org>
+> ---
+>  drivers/media/platform/qcom/venus/core.h         |  2 ++
+>  drivers/media/platform/qcom/venus/firmware.c     | 33 ++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/firmware.h     | 11 ++++++++
+>  drivers/media/platform/qcom/venus/hfi_venus.c    | 13 +++-------
+>  drivers/media/platform/qcom/venus/hfi_venus_io.h |  7 +++++
+>  5 files changed, 57 insertions(+), 9 deletions(-)
 > 
-> A proof-of-concept is here:
-> 
-> https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=v4l2-buffer&id=a95
-> 549df06d9900f3559afdbb9da06bd4b22d1f3
-> 
-> It's a bit old, but it gives a good impression of what I have in mind.
-> 
-> Another candidate is
-> VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL/VIDIOC_ENUM_FRAMEINTERVALS: expressing
-> frame intervals as a fraction is really awkward and so is the fact that the
-> subdev and 'normal' ioctls are not the same.
-> 
-> Would using nanoseconds or something along those lines for intervals be
-> better?
-> 
-> I have similar concerns with VIDIOC_SUBDEV_ENUM_FRAME_SIZE where there is no
-> stepwise option, making it different from VIDIOC_ENUM_FRAMESIZES. But it
-> should be possible to extend VIDIOC_SUBDEV_ENUM_FRAME_SIZE with stepwise
-> support, I think.
+> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+> index 2f02365..385e309 100644
+> --- a/drivers/media/platform/qcom/venus/core.h
+> +++ b/drivers/media/platform/qcom/venus/core.h
+> @@ -98,6 +98,7 @@ struct venus_caps {
+>   * @dev:		convenience struct device pointer
+>   * @dev_dec:	convenience struct device pointer for decoder device
+>   * @dev_enc:	convenience struct device pointer for encoder device
+> + * @use_tz:	a flag that suggests presence of trustzone
+>   * @lock:	a lock for this strucure
+>   * @instances:	a list_head of all instances
+>   * @insts_count:	num of instances
+> @@ -129,6 +130,7 @@ struct venus_core {
+>  	struct device *dev;
+>  	struct device *dev_dec;
+>  	struct device *dev_enc;
+> +	bool use_tz;
 
-If we refresh the enumeration ioctls, I propose moving away from the one 
-syscall per value model, and returning everything in one (userspace-allocated) 
-buffer. The same could apply to all enumerations (such as controls for 
-instance), even if we don't address them all in one go.
+could you make it unsigned? For more info please run checkpatch --strict.
 
-> Do we have more ioctls that could use a refresh? S/G/TRY_FMT perhaps, again
-> in order to improve single vs multiplanar handling.
-
-If we refresh the G/S/TRY format ioctls (and I think we should), I would 
-propose moving to a G/S model with ACTIVE and TRY formats, as for subdevs. 
-This should make it easier to construct full device states internally, in 
-order to implement proper request API support for formats. We should then also 
-document much better how formats and selection rectangles interact.
-
-> It is not the intention to come to a full design, it's more to test the
-> waters so to speak.
-
-Another item that we're missing is a way to delete buffers (the counterpart of 
-VIDIOC_CREATE_BUFS). As this will introduce holes in the buffer indices, we 
-might also need to revamp VIDIOC_CREATE_BUFS (which would give us a chance to 
-move away from the format structure passed to that ioctl).
+I know that we have structure members of type bool already - that should
+be fixed with follow-up patches, I guess.
 
 -- 
-Regards,
-
-Laurent Pinchart
+regards,
+Stan
