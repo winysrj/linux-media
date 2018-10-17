@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:43291 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727569AbeJQHxh (ORCPT
+Received: from mail-pl1-f193.google.com ([209.85.214.193]:34400 "EHLO
+        mail-pl1-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727569AbeJQHxm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 03:53:37 -0400
+        Wed, 17 Oct 2018 03:53:42 -0400
 From: Steve Longerbeam <slongerbeam@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Steve Longerbeam <slongerbeam@gmail.com>,
@@ -12,84 +12,60 @@ Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         devel@driverdev.osuosl.org (open list:STAGING SUBSYSTEM),
         linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v5 06/12] media: imx-csi: Double crop height for alternate fields at sink
-Date: Tue, 16 Oct 2018 17:00:21 -0700
-Message-Id: <20181017000027.23696-7-slongerbeam@gmail.com>
+Subject: [PATCH v5 09/12] media: imx: vdic: rely on VDIC for correct field order
+Date: Tue, 16 Oct 2018 17:00:24 -0700
+Message-Id: <20181017000027.23696-10-slongerbeam@gmail.com>
 In-Reply-To: <20181017000027.23696-1-slongerbeam@gmail.com>
 References: <20181017000027.23696-1-slongerbeam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the incoming sink field type is alternate, the reset crop height
-and crop height bounds must be set to twice the incoming height,
-because in alternate field mode, upstream will report only the
-lines for a single field, and the CSI captures the whole frame.
+prepare_vdi_in_buffers() was setting up the dma pointers as if the
+VDIC is always programmed to receive the fields in bottom-top order,
+i.e. as if ipu_vdi_set_field_order() only programs BT order in the VDIC.
+But that's not true, ipu_vdi_set_field_order() is working correctly.
+
+So fix prepare_vdi_in_buffers() to give the VDIC the fields in whatever
+order they were received by the video source, and rely on the VDIC to
+sort out which is top and which is bottom.
 
 Signed-off-by: Steve Longerbeam <slongerbeam@gmail.com>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ drivers/staging/media/imx/imx-media-vdic.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 8f52428d2c75..d5b0f8a66750 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1140,6 +1140,8 @@ static void csi_try_crop(struct csi_priv *priv,
- 			 struct v4l2_mbus_framefmt *infmt,
- 			 struct v4l2_fwnode_endpoint *upstream_ep)
- {
-+	u32 in_height;
-+
- 	crop->width = min_t(__u32, infmt->width, crop->width);
- 	if (crop->left + crop->width > infmt->width)
- 		crop->left = infmt->width - crop->width;
-@@ -1147,6 +1149,10 @@ static void csi_try_crop(struct csi_priv *priv,
- 	crop->left &= ~0x3;
- 	crop->width &= ~0x7;
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index 482250d47e7c..4a890714193e 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -219,26 +219,18 @@ static void __maybe_unused prepare_vdi_in_buffers(struct vdic_priv *priv,
  
-+	in_height = infmt->height;
-+	if (infmt->field == V4L2_FIELD_ALTERNATE)
-+		in_height *= 2;
-+
- 	/*
- 	 * FIXME: not sure why yet, but on interlaced bt.656,
- 	 * changing the vertical cropping causes loss of vertical
-@@ -1156,12 +1162,12 @@ static void csi_try_crop(struct csi_priv *priv,
- 	if (upstream_ep->bus_type == V4L2_MBUS_BT656 &&
- 	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
- 	     infmt->field == V4L2_FIELD_ALTERNATE)) {
--		crop->height = infmt->height;
--		crop->top = (infmt->height == 480) ? 2 : 0;
-+		crop->height = in_height;
-+		crop->top = (in_height == 480) ? 2 : 0;
- 	} else {
--		crop->height = min_t(__u32, infmt->height, crop->height);
--		if (crop->top + crop->height > infmt->height)
--			crop->top = infmt->height - crop->height;
-+		crop->height = min_t(__u32, in_height, crop->height);
-+		if (crop->top + crop->height > in_height)
-+			crop->top = in_height - crop->height;
- 	}
- }
- 
-@@ -1401,6 +1407,8 @@ static void csi_try_fmt(struct csi_priv *priv,
- 		crop->top = 0;
- 		crop->width = sdformat->format.width;
- 		crop->height = sdformat->format.height;
-+		if (sdformat->format.field == V4L2_FIELD_ALTERNATE)
-+			crop->height *= 2;
- 		csi_try_crop(priv, crop, cfg, &sdformat->format, upstream_ep);
- 		compose->left = 0;
- 		compose->top = 0;
-@@ -1528,6 +1536,8 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 		sel->r.top = 0;
- 		sel->r.width = infmt->width;
- 		sel->r.height = infmt->height;
-+		if (infmt->field == V4L2_FIELD_ALTERNATE)
-+			sel->r.height *= 2;
+ 	switch (priv->fieldtype) {
+ 	case V4L2_FIELD_SEQ_TB:
+-		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0);
+-		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + fs;
+-		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+-		break;
+ 	case V4L2_FIELD_SEQ_BT:
+ 		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0) + fs;
+ 		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+ 		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + fs;
  		break;
- 	case V4L2_SEL_TGT_CROP:
- 		sel->r = *crop;
++	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
+ 		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0) + is;
+ 		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+ 		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + is;
+ 		break;
+-	default:
+-		/* assume V4L2_FIELD_INTERLACED_TB */
+-		prev_phys = vb2_dma_contig_plane_dma_addr(prev_vb, 0);
+-		curr_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0) + is;
+-		next_phys = vb2_dma_contig_plane_dma_addr(curr_vb, 0);
+-		break;
+ 	}
+ 
+ 	ipu_cpmem_set_buffer(priv->vdi_in_ch_p, 0, prev_phys);
 -- 
 2.17.1
