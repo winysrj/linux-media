@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay10.mail.gandi.net ([217.70.178.230]:56421 "EHLO
+Received: from relay10.mail.gandi.net ([217.70.178.230]:47481 "EHLO
         relay10.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728129AbeJRDen (ORCPT
+        with ESMTP id S1728129AbeJRDeq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 23:34:43 -0400
+        Wed, 17 Oct 2018 23:34:46 -0400
 From: Jacopo Mondi <jacopo+renesas@jmondi.org>
 To: maxime.ripard@bootlin.com, sam@elite-embedded.com,
         mchehab@kernel.org
@@ -11,75 +11,170 @@ Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
         laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
         sakari.ailus@linux.intel.com, linux-media@vger.kernel.org,
         hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org
-Subject: [PATCH 1/2] media: ov5640: Add check for PLL1 output max frequency
-Date: Wed, 17 Oct 2018 21:37:17 +0200
-Message-Id: <1539805038-22321-2-git-send-email-jacopo+renesas@jmondi.org>
+Subject: [PATCH 2/2] media: ov5640: Re-implement MIPI clock configuration
+Date: Wed, 17 Oct 2018 21:37:18 +0200
+Message-Id: <1539805038-22321-3-git-send-email-jacopo+renesas@jmondi.org>
 In-Reply-To: <1539805038-22321-1-git-send-email-jacopo+renesas@jmondi.org>
 References: <1539805038-22321-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check that the PLL1 output frequency does not exceed the maximum allowed 1GHz
-frequency.
+Modify the MIPI clock tree calculation procedure.
+The implemented function receives the total bandwidth required in bytes
+and calculate the sample rate and the MIPI clock rate accordingly.
+
+Tested with capture at 1080p, 720p, VGA and QVGA.
 
 Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/i2c/ov5640.c | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ drivers/media/i2c/ov5640.c | 101 +++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 80 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index e098435..1f2e72d 100644
+index 1f2e72d..8a0ead9 100644
 --- a/drivers/media/i2c/ov5640.c
 +++ b/drivers/media/i2c/ov5640.c
-@@ -770,7 +770,7 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
-  * always set to either 1 or 2 in the vendor kernels.
+@@ -720,6 +720,9 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
+  *               +->| MIPI Divider | - reg 0x3035, bits 0-3
+  *               |  +-+------------+
+  *               |    +----------------> MIPI SCLK
++ *               |    +  +-----+
++ *               |    +->| / 2 |-------> MIPI BIT CLK
++ *               |       +-----+
+  *               |  +--------------+
+  *               +->| PLL Root Div | - reg 0x3037, bit 4
+  *                  +-+------------+
+@@ -782,13 +785,14 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
+  * This is supposed to be ranging from 1 to 2, but the value is always
+  * set to 2 in the vendor kernels.
   */
- #define OV5640_SYSDIV_MIN	1
--#define OV5640_SYSDIV_MAX	2
-+#define OV5640_SYSDIV_MAX	16
+-#define OV5640_PLL_ROOT_DIV	2
++#define OV5640_PLL_ROOT_DIV			2
++#define OV5640_PLL_CTRL3_PLL_ROOT_DIV_2		BIT(4)
  
  /*
-  * This is supposed to be ranging from 1 to 16, but the value is always
-@@ -806,15 +806,20 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
-  * This is supposed to be ranging from 1 to 8, but the value is always
-  * set to 1 in the vendor kernels.
+- * This is supposed to be either 1, 2 or 2.5, but the value is always
+- * set to 2 in the vendor kernels.
++ * We only supports 8-bit formats at the moment
   */
--#define OV5640_PCLK_ROOT_DIV	1
-+#define OV5640_PCLK_ROOT_DIV			1
-+#define OV5640_PLL_SYS_ROOT_DIVIDER_BYPASS	0x00
+-#define OV5640_BIT_DIV		2
++#define OV5640_BIT_DIV				2
++#define OV5640_PLL_CTRL0_MIPI_MODE_8BIT		0x08
  
- static unsigned long ov5640_compute_sys_clk(struct ov5640_dev *sensor,
- 					    u8 pll_prediv, u8 pll_mult,
- 					    u8 sysdiv)
- {
--	unsigned long rate = clk_get_rate(sensor->xclk);
-+	unsigned long sysclk = sensor->xclk_freq / pll_prediv * pll_mult;
- 
--	return rate / pll_prediv * pll_mult / sysdiv;
-+	/* PLL1 output cannot exceed 1GHz. */
-+	if (sysclk / 1000000 > 1000)
-+		return 0;
+ /*
+  * This is supposed to be ranging from 1 to 8, but the value is always
+@@ -874,32 +878,81 @@ static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
+ 	*sysdiv = best_sysdiv;
+ 	*pll_prediv = OV5640_PLL_PREDIV;
+ 	*pll_mult = best_mult;
 +
-+	return sysclk / sysdiv;
+ 	return best;
  }
  
- static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
-@@ -844,6 +849,16 @@ static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
- 			_rate = ov5640_compute_sys_clk(sensor,
- 						       OV5640_PLL_PREDIV,
- 						       _pll_mult, _sysdiv);
+-static unsigned long ov5640_calc_mipi_clk(struct ov5640_dev *sensor,
+-					  unsigned long rate,
+-					  u8 *pll_prediv, u8 *pll_mult,
+-					  u8 *sysdiv, u8 *mipi_div)
++/*
++ * ov5640_set_mipi_pclk() - Calculate the clock tree configuration values
++ *			    for the MIPI CSI-2 output.
++ *
++ * @rate: The requested bandwidth in bytes per second.
++ *	  It is calculated as: HTOT * VTOT * FPS * bpp
++ *
++ * This function use the requested bandwidth to calculate:
++ * - sample_rate = bandwidth / bpp;
++ * - mipi_clk = bandwidth / num_lanes / 2; ( / 2 for CSI-2 DDR)
++ *
++ * The bandwidth corresponds to the SYSCLK frequency generated by the
++ * PLL pre-divider, the PLL multiplier and the SYS divider (see the clock
++ * tree documented here above).
++ *
++ * From the SYSCLK frequency, the MIPI CSI-2 clock tree generates the
++ * pixel clock and the MIPI BIT clock as follows:
++ *
++ * MIPI_BIT_CLK = SYSCLK / MIPI_DIV / 2;
++ * PIXEL_CLK = SYSCLK / PLL_RDVI / BIT_DIVIDER / PCLK_DIV / MIPI_DIV
++ *
++ * with this fixed parameters:
++ * PLL_RDIV	= 2;
++ * BIT_DIVIDER	= 2; (MIPI_BIT_MODE == 8 ? 2 : 2,5);
++ * PCLK_DIV	= 1;
++ *
++ * With these values we have:
++ *
++ * pixel_clock = bandwidth / bpp
++ * 	       = bandwidth / 4 / MIPI_DIV;
++ *
++ * And so we can calculate MIPI_DIV as:
++ * MIPI_DIV = bpp / 4;
++ */
++static int ov5640_set_mipi_pclk(struct ov5640_dev *sensor,
++				unsigned long rate)
+ {
+-	unsigned long _rate = rate * OV5640_MIPI_DIV;
++	const struct ov5640_mode_info *mode = sensor->current_mode;
++	u8 mipi_div = OV5640_MIPI_DIV;
++	u8 prediv, mult, sysdiv;
++	int ret;
+ 
+-	_rate = ov5640_calc_sys_clk(sensor, _rate, pll_prediv, pll_mult,
+-				    sysdiv);
+-	*mipi_div = OV5640_MIPI_DIV;
++	/* FIXME:
++	 * Practical experience shows we get a correct frame rate by
++	 * halving the bandwidth rate by 2, to slow down SYSCLK frequency.
++	 * Divide both SYSCLK and MIPI_DIV by two (with OV5640_MIPI_DIV
++	 * currently fixed at value '2', while according to the above
++	 * formula it should have been = bpp / 4 = 4).
++	 *
++	 * So that:
++	 * pixel_clock = bandwidth / 2 / bpp
++	 * 	       = bandwidth / 2 / 4 / MIPI_DIV;
++	 * MIPI_DIV = bpp / 4 / 2;
++	 */
++	rate /= 2;
+ 
+-	return _rate / *mipi_div;
+-}
++	/* FIXME:
++	 * High resolution modes (1280x720, 1920x1080) requires an higher
++	 * clock speed. Half the MIPI_DIVIDER value to double the output
++	 * pixel clock and MIPI_CLK speeds.
++	 */
++	if (mode->hact > 1024)
++		mipi_div /= 2;
+ 
+-static int ov5640_set_mipi_pclk(struct ov5640_dev *sensor, unsigned long rate)
+-{
+-	u8 prediv, mult, sysdiv, mipi_div;
+-	int ret;
++	ov5640_calc_sys_clk(sensor, rate, &prediv, &mult, &sysdiv);
+ 
+-	ov5640_calc_mipi_clk(sensor, rate, &prediv, &mult, &sysdiv, &mipi_div);
++	ret = ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL0,
++			     0x0f, OV5640_PLL_CTRL0_MIPI_MODE_8BIT);
+ 
+ 	ret = ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1,
+-			     0xff, sysdiv << 4 | (mipi_div - 1));
++			     0xff, sysdiv << 4 | mipi_div);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -907,7 +960,13 @@ static int ov5640_set_mipi_pclk(struct ov5640_dev *sensor, unsigned long rate)
+ 	if (ret)
+ 		return ret;
+ 
+-	return ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL3, 0xf, prediv);
++	ret = ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL3,
++			     0x1f, OV5640_PLL_CTRL3_PLL_ROOT_DIV_2 | prediv);
++	if (ret)
++		return ret;
 +
-+			/*
-+			 * We have reached the maximum allowed PLL1 output,
-+			 * increase sysdiv.
-+			 */
-+			if (rate == 0) {
-+				_pll_mult = OV5640_PLL_MULT_MAX + 1;
-+				continue;
-+			}
-+
- 			if (abs(rate - _rate) < abs(rate - best)) {
- 				best = _rate;
- 				best_sysdiv = _sysdiv;
++	return ov5640_mod_reg(sensor, OV5640_REG_SYS_ROOT_DIVIDER,
++			      0x30, OV5640_PLL_SYS_ROOT_DIVIDER_BYPASS);
+ }
+ 
+ static unsigned long ov5640_calc_pclk(struct ov5640_dev *sensor,
 -- 
 2.7.4
