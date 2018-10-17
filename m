@@ -1,117 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33973 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727111AbeJQL0O (ORCPT
+Received: from mail-wm1-f65.google.com ([209.85.128.65]:40877 "EHLO
+        mail-wm1-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727196AbeJQPBk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 07:26:14 -0400
-Message-ID: <23c2251b71d40c6ea0fdb2c2b29f8f98@smtp-cloud7.xs4all.net>
-Date: Wed, 17 Oct 2018 05:32:37 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
+        Wed, 17 Oct 2018 11:01:40 -0400
+Received: by mail-wm1-f65.google.com with SMTP id z204-v6so932469wmc.5
+        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2018 00:07:23 -0700 (PDT)
+Subject: Re: [PATCH v11 0/5] Venus updates - PIL
+To: Vikash Garodia <vgarodia@codeaurora.org>,
+        stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, acourbot@chromium.org
+References: <1539005572-803-1-git-send-email-vgarodia@codeaurora.org>
+ <fb81c8b7946898bc61e9b8c793c74184@codeaurora.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <62411a58-f23a-6215-3b9e-cf3b6b08ffdc@linaro.org>
+Date: Wed, 17 Oct 2018 10:07:20 +0300
+MIME-Version: 1.0
+In-Reply-To: <fb81c8b7946898bc61e9b8c793c74184@codeaurora.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Vikash,
 
-Results of the daily build of media_tree:
+On 10/16/2018 06:55 PM, Vikash Garodia wrote:
+> <A Friendly reminder for review>
 
-date:			Wed Oct 17 05:00:10 CEST 2018
-media-tree git hash:	490d84f6d73c12f4204241cff8651eed60aae914
-media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
-v4l-utils git hash:	e84c8bdb0af5b79efa26aabc7b17d1ddead56c70
-edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
-gcc version:		i686-linux-gcc (GCC) 8.2.0
-sparse version:		0.5.2
-smatch version:		0.5.1
-host hardware:		x86_64
-host os:		4.18.11-marune
+I have no review comments. I'll need some time to test this version on
+v1 and v3.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-i686: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-Check COMPILE_TEST: OK
-linux-3.10.108-i686: OK
-linux-3.10.108-x86_64: OK
-linux-3.11.10-i686: OK
-linux-3.11.10-x86_64: OK
-linux-3.12.74-i686: OK
-linux-3.12.74-x86_64: OK
-linux-3.13.11-i686: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.79-i686: OK
-linux-3.14.79-x86_64: OK
-linux-3.15.10-i686: OK
-linux-3.15.10-x86_64: OK
-linux-3.16.57-i686: OK
-linux-3.16.57-x86_64: OK
-linux-3.17.8-i686: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.123-i686: OK
-linux-3.18.123-x86_64: OK
-linux-3.19.8-i686: OK
-linux-3.19.8-x86_64: OK
-linux-4.0.9-i686: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.52-i686: OK
-linux-4.1.52-x86_64: OK
-linux-4.2.8-i686: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-i686: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.159-i686: OK
-linux-4.4.159-x86_64: OK
-linux-4.5.7-i686: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.10-i686: OK
-linux-4.7.10-x86_64: OK
-linux-4.8.17-i686: OK
-linux-4.8.17-x86_64: OK
-linux-4.9.131-i686: OK
-linux-4.9.131-x86_64: OK
-linux-4.10.17-i686: OK
-linux-4.10.17-x86_64: OK
-linux-4.11.12-i686: OK
-linux-4.11.12-x86_64: OK
-linux-4.12.14-i686: OK
-linux-4.12.14-x86_64: OK
-linux-4.13.16-i686: OK
-linux-4.13.16-x86_64: OK
-linux-4.14.74-i686: OK
-linux-4.14.74-x86_64: OK
-linux-4.15.18-i686: OK
-linux-4.15.18-x86_64: OK
-linux-4.16.18-i686: OK
-linux-4.16.18-x86_64: OK
-linux-4.17.19-i686: OK
-linux-4.17.19-x86_64: OK
-linux-4.18.12-i686: OK
-linux-4.18.12-x86_64: OK
-linux-4.19-rc6-i686: OK
-linux-4.19-rc6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+> 
+> On 2018-10-08 19:02, Vikash Garodia wrote:
+>> This version of the series
+>> * extends the description of firmware subnode in documentation.
+>> * renames the flag suggesting the presence of tz and update code
+>>   accordingly.
+>>
+>> Stanimir Varbanov (1):
+>>   venus: firmware: register separate platform_device for firmware loader
+>>
+>> Vikash Garodia (4):
+>>   venus: firmware: add routine to reset ARM9
+>>   venus: firmware: move load firmware in a separate function
+>>   venus: firmware: add no TZ boot and shutdown routine
+>>   dt-bindings: media: Document bindings for venus firmware device
+>>
+>>  .../devicetree/bindings/media/qcom,venus.txt       |  14 +-
+>>  drivers/media/platform/qcom/venus/core.c           |  24 ++-
+>>  drivers/media/platform/qcom/venus/core.h           |   6 +
+>>  drivers/media/platform/qcom/venus/firmware.c       | 235
+>> +++++++++++++++++++--
+>>  drivers/media/platform/qcom/venus/firmware.h       |  17 +-
+>>  drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
+>>  drivers/media/platform/qcom/venus/hfi_venus_io.h   |   8 +
+>>  7 files changed, 274 insertions(+), 43 deletions(-)
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+regards,
+Stan
