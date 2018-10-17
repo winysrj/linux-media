@@ -1,56 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm1-f66.google.com ([209.85.128.66]:37262 "EHLO
-        mail-wm1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727103AbeJQWGx (ORCPT
+Received: from mail-ot1-f66.google.com ([209.85.210.66]:47037 "EHLO
+        mail-ot1-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727047AbeJQW7A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Oct 2018 18:06:53 -0400
-Received: by mail-wm1-f66.google.com with SMTP id 185-v6so2375632wmt.2
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2018 07:11:00 -0700 (PDT)
-Subject: Re: [PATCH v12 0/5] Venus updates - PIL
-To: Vikash Garodia <vgarodia@codeaurora.org>,
-        stanimir.varbanov@linaro.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org
-References: <1539782303-4091-1-git-send-email-vgarodia@codeaurora.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <5a6bf95a-da0f-2304-3f42-68aedd6f88c8@linaro.org>
-Date: Wed, 17 Oct 2018 17:10:56 +0300
+        Wed, 17 Oct 2018 18:59:00 -0400
+Date: Wed, 17 Oct 2018 10:02:52 -0500
+From: Rob Herring <robh@kernel.org>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Vladimir Zapolskiy <vz@mleia.com>,
+        Lee Jones <lee.jones@linaro.org>,
+        Mark Vasut <marek.vasut@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wolfram Sang <wsa@the-dreams.de>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: Re: [PATCH 3/7] dt-bindings: pinctrl: ds90ux9xx: add description of
+ TI DS90Ux9xx pinmux
+Message-ID: <20181017150252.GA11075@bogus>
+References: <20181008211205.2900-1-vz@mleia.com>
+ <20181008211205.2900-4-vz@mleia.com>
+ <CACRpkdZJMPYWHBUXohjxo12XZpLdz7OzcWRBrrkcB8YLLd5StA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1539782303-4091-1-git-send-email-vgarodia@codeaurora.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZJMPYWHBUXohjxo12XZpLdz7OzcWRBrrkcB8YLLd5StA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vikash, thanks for the patches!
+On Wed, Oct 10, 2018 at 10:45:43AM +0200, Linus Walleij wrote:
+> Hi Vladimir,
+> 
+> thanks for your patch!
+> 
+> Can we change the subject to something like "add DT bindings" rather than
+> "add description" as it is more specific and makes it easier for me as
+> maintainer.
 
-On 10/17/2018 04:18 PM, Vikash Garodia wrote:
-> This version of the series
-> * updates the tz flag to unsigned
-> 
-> Stanimir Varbanov (1):
->   venus: firmware: register separate platform_device for firmware loader
-> 
-> Vikash Garodia (4):
->   venus: firmware: add routine to reset ARM9
->   venus: firmware: move load firmware in a separate function
->   venus: firmware: add no TZ boot and shutdown routine
->   dt-bindings: media: Document bindings for venus firmware device
-> 
->  .../devicetree/bindings/media/qcom,venus.txt       |  14 +-
->  drivers/media/platform/qcom/venus/core.c           |  24 ++-
->  drivers/media/platform/qcom/venus/core.h           |   6 +
->  drivers/media/platform/qcom/venus/firmware.c       | 235 +++++++++++++++++++--
->  drivers/media/platform/qcom/venus/firmware.h       |  17 +-
->  drivers/media/platform/qcom/venus/hfi_venus.c      |  13 +-
->  drivers/media/platform/qcom/venus/hfi_venus_io.h   |   8 +
->  7 files changed, 274 insertions(+), 43 deletions(-)
-> 
+To add to the nitpicking, The subject already says DT and bindings, so 
+no need to repeat it. I'd just drop "description of" if anything.
 
-Acked-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-
--- 
-regards,
-Stan
+Rob
