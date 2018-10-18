@@ -1,215 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:40403 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726932AbeJRVrT (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55288 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727859AbeJSAK3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Oct 2018 17:47:19 -0400
-Date: Thu, 18 Oct 2018 15:46:05 +0200
-From: jacopo mondi <jacopo@jmondi.org>
-To: Maxime Ripard <maxime.ripard@bootlin.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH v4 01/12] media: ov5640: Adjust the clock based on the
- expected rate
-Message-ID: <20181018134605.GH17549@w540>
-References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
- <20181011092107.30715-2-maxime.ripard@bootlin.com>
- <20181016165450.GB11703@w540>
- <20181018092912.u23arvx5ope24m5t@flea>
+        Thu, 18 Oct 2018 20:10:29 -0400
+From: Ezequiel Garcia <ezequiel@collabora.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH 0/2] vicodec: a couple fixes towards spec compliancy
+Date: Thu, 18 Oct 2018 13:08:39 -0300
+Message-Id: <20181018160841.17674-1-ezequiel@collabora.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="wZdghQXYJzyo6AGC"
-Content-Disposition: inline
-In-Reply-To: <20181018092912.u23arvx5ope24m5t@flea>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Given the stateful codec specification is still a moving target,
+it doesn't make any sense to try to comply fully with it.
 
---wZdghQXYJzyo6AGC
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+On the other side, we can still comply with some basic userspace
+expectations, with just a couple small changes.
 
-Hello Maxime,
+This series implements proper resolution changes propagation,
+and fixes the CMD_STOP so it actually works.
 
-On Thu, Oct 18, 2018 at 11:29:12AM +0200, Maxime Ripard wrote:
-> Hi Jacopo,
->
-> Thanks for reviewing this patch
->
-> On Tue, Oct 16, 2018 at 06:54:50PM +0200, jacopo mondi wrote:
-> > > +static unsigned long ov5640_compute_sys_clk(struct ov5640_dev *sensor,
-> > > +					    u8 pll_prediv, u8 pll_mult,
-> > > +					    u8 sysdiv)
-> > > +{
-> > > +	unsigned long rate = clk_get_rate(sensor->xclk);
-> >
-> > The clock rate is stored in sensor->xclk at probe time, no need to
-> > query it every iteration.
->
-> From a clk API point of view though, there's nothing that guarantees
-> that the clock rate hasn't changed between the probe and the time
-> where this function is called.
+The intention of this series is to be able to test this driver
+using already existing userspace, gstreamer in particular.
+With this changes, it's possible to construct variations of
+this pipeline:
 
-Correct, bell, it can be queried in the caller and re-used here :)
->
-> I appreciate that we're probably connected to an oscillator, but even
-> then, on the Allwinner SoCs we've had the issue recently that one
-> oscillator feeding the BT chip was actually had a muxer, with each
-> option having a slightly different rate, which was bad enough for the
-> BT chip to be non-functional.
->
-> I can definitely imagine the same case happening here for some
-> SoCs. Plus, the clock framework will cache the rate as well when
-> possible, so we're not losing anything here.
+  gst-launch-1.0 videotestsrc ! v4l2fwhtenc ! v4l2fwhtdec ! fakevideosink
 
-I see, so please ignore this comment :)
+Ezequiel Garcia (2):
+  vicodec: Have decoder propagate changes to the CAPTURE queue
+  vicodec: Implement spec-compliant stop command
 
->
-> > > +
-> > > +	return rate / pll_prediv * pll_mult / sysdiv;
-> > > +}
-> > > +
-> > > +static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
-> > > +					 unsigned long rate,
-> > > +					 u8 *pll_prediv, u8 *pll_mult,
-> > > +					 u8 *sysdiv)
-> > > +{
-> > > +	unsigned long best = ~0;
-> > > +	u8 best_sysdiv = 1, best_mult = 1;
-> > > +	u8 _sysdiv, _pll_mult;
-> > > +
-> > > +	for (_sysdiv = OV5640_SYSDIV_MIN;
-> > > +	     _sysdiv <= OV5640_SYSDIV_MAX;
-> > > +	     _sysdiv++) {
-> > > +		for (_pll_mult = OV5640_PLL_MULT_MIN;
-> > > +		     _pll_mult <= OV5640_PLL_MULT_MAX;
-> > > +		     _pll_mult++) {
-> > > +			unsigned long _rate;
-> > > +
-> > > +			/*
-> > > +			 * The PLL multiplier cannot be odd if above
-> > > +			 * 127.
-> > > +			 */
-> > > +			if (_pll_mult > 127 && (_pll_mult % 2))
-> > > +				continue;
-> > > +
-> > > +			_rate = ov5640_compute_sys_clk(sensor,
-> > > +						       OV5640_PLL_PREDIV,
-> > > +						       _pll_mult, _sysdiv);
-> >
-> > I'm under the impression a system clock slower than the requested one, even
-> > if more accurate is not good.
-> >
-> > I'm still working on understanding how all CSI-2 related timing
-> > parameters play together, but since the system clock is calculated
-> > from the pixel clock (which comes from the frame dimensions, bpp, and
-> > rate), and it is then used to calculate the MIPI BIT clock frequency,
-> > I think it would be better to be a little faster than a bit slower,
-> > otherwise the serial lane clock wouldn't be fast enough to output
-> > frames generated by the sensor core (or maybe it would just decrease
-> > the frame rate and that's it, but I don't think it is just this).
-> >
-> > What do you think of adding the following here:
-> >
-> >                 if (_rate < rate)
-> >                         continue
->
-> I really don't know MIPI-CSI2 enough to be able to comment on your
-> concerns, but when reaching the end of the operating limit of the
-> clock, it would prevent us from having any rate at all, which seems
-> bad too.
+ drivers/media/platform/vicodec/vicodec-core.c | 95 ++++++++++++-------
+ 1 file changed, 59 insertions(+), 36 deletions(-)
 
-Are you referring to the 1GHz limit of the (xvlkc / pre_div * mult)
-output here? If that's your concern we should adjust the requested
-SYSCLK rate then (and I added a check for that in my patches on top of
-yours, but it could be improved to be honest, as it just refuses the
-current rate, while it should increment the pre_divider instead, now
-that I think better about that).
-
->
-> > > +			if (abs(rate - _rate) < abs(rate - best)) {
-> > > +				best = _rate;
-> > > +				best_sysdiv = _sysdiv;
-> > > +				best_mult = _pll_mult;
-> > > +			}
-> > > +
-> > > +			if (_rate == rate)
-> > > +				goto out;
-> > > +		}
-> > > +	}
-> > > +
-> > > +out:
-> > > +	*sysdiv = best_sysdiv;
-> > > +	*pll_prediv = OV5640_PLL_PREDIV;
-> > > +	*pll_mult = best_mult;
-> > > +	return best;
-> > > +}
-> >
-> > These function gets called at s_stream time, and cycle for a while,
-> > and I'm under the impression the MIPI state machine doesn't like
-> > delays too much, as I see timeouts on the receiver side.
-> >
-> > I have tried to move this function at set_fmt() time, every time a new
-> > mode is selected, sysdiv, pll_prediv and pll_mult gets recalculated
-> > (and stored in the ov5640_dev structure). I now have other timeouts on
-> > missing EOF, but not anymore at startup time it seems.
->
-> I have no objection caching the values if it solves issues with CSI :)
->
-> Can you send that patch?
-
-Actually I think I was wrong. The timeout I saw have gone with the
-last version I sent, even with this computation performed at
-s_stream() time. And re-thinking this, the MIPI state machine should
-get started after the data lanes are put in LP11 state, which happens
-after this function ends.
-
-We can discuss however if it is better to do this calculations at
-s_fmt time or s_stream time as a general thing, but I think (also)
-this comment might be ignored for now :)
-
-Thanks
-  j
->
-> Thanks!
-> Maxime
->
-> --
-> Maxime Ripard, Bootlin
-> Embedded Linux and Kernel engineering
-> https://bootlin.com
-
-
-
---wZdghQXYJzyo6AGC
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJbyI6dAAoJEHI0Bo8WoVY8GnUQAJYpCHvTQl/XoGHauv00Ijhq
-th+WvcHXsFmE5HfiK7ht8D48oyFi9ygehutTDxDSuackgkpricPELj9894k6IHiq
-ARfHW8Nblv+NqHeBczMlblW+l1jVkVAbHB/sJMNAi/q9QbXMcm/uzS0z8XHXctK/
-OQPrP645Ulq+FiQ/fxGry4pa47Da1DLg87hPimJCoRq1j9de3mbfHq5EfyNsvN6/
-aeLVxSyuR+Q/nzEL0DbIXWw0e/yy88B076dPwnAcYneN+3RpRAovkVsqNBDxfnMF
-FTaMmdYkgia0NnEQ0NdkpnEmNMFbcXR4xRhWLiexl/fgQy8kBRyTSRl6AS/uy9HS
-rzhx1IhB9cTlHMU0rOyYNT+dL30rLb7JpJ+fdMBDKlr8opYZKVN8TBfMbPJ6IAo0
-LpvxfHnhdz132PzX9gE5Rza45u+EYkxzZvnnz7AsB4Ne1VfhbBZMC7JqZp1vaiLB
-wt+ECB1ef2dY34v/nWJqWuD2j1Qb0lX2P3h+dBmIek41CYz6piLRqv+uOHDIJUcA
-dJB8QSzJ6UtQbTFhZN+TmLkNQb0Sd5EIHKso5nCcl7TpvWn8VDNYl+Tvtoj8GeBi
-LQLeFGMPRHFiq97baSpdd8sJs0NlvzIXbnovfcsoGhw5Eb2Q/5GnpJEwLTskyqQZ
-tBXZkI8Lb8UH6rjJGkrt
-=/3wJ
------END PGP SIGNATURE-----
-
---wZdghQXYJzyo6AGC--
+-- 
+2.19.1
