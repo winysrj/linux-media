@@ -1,156 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:53257 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:52850 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727363AbeJRR3W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Oct 2018 13:29:22 -0400
-Date: Thu, 18 Oct 2018 11:29:12 +0200
+        id S1727519AbeJRRP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Oct 2018 13:15:57 -0400
+Date: Thu, 18 Oct 2018 11:15:50 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH v4 01/12] media: ov5640: Adjust the clock based on the
- expected rate
-Message-ID: <20181018092912.u23arvx5ope24m5t@flea>
-References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
- <20181011092107.30715-2-maxime.ripard@bootlin.com>
- <20181016165450.GB11703@w540>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: sam@elite-embedded.com, mchehab@kernel.org,
+        laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, linux-media@vger.kernel.org,
+        hugues.fruchet@st.com, loic.poulain@linaro.org, daniel@zonque.org
+Subject: Re: [PATCH 1/2] media: ov5640: Add check for PLL1 output max
+ frequency
+Message-ID: <20181018091550.64thz7irmbyymj5b@flea>
+References: <1539805038-22321-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1539805038-22321-2-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fkdb2cekh5vu3nxx"
+        protocol="application/pgp-signature"; boundary="fptgibnuibvnu7n3"
 Content-Disposition: inline
-In-Reply-To: <20181016165450.GB11703@w540>
+In-Reply-To: <1539805038-22321-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---fkdb2cekh5vu3nxx
+--fptgibnuibvnu7n3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Jacopo,
-
-Thanks for reviewing this patch
-
-On Tue, Oct 16, 2018 at 06:54:50PM +0200, jacopo mondi wrote:
-> > +static unsigned long ov5640_compute_sys_clk(struct ov5640_dev *sensor,
-> > +					    u8 pll_prediv, u8 pll_mult,
-> > +					    u8 sysdiv)
-> > +{
-> > +	unsigned long rate =3D clk_get_rate(sensor->xclk);
+On Wed, Oct 17, 2018 at 09:37:17PM +0200, Jacopo Mondi wrote:
+> Check that the PLL1 output frequency does not exceed the maximum allowed =
+1GHz
+> frequency.
 >=20
-> The clock rate is stored in sensor->xclk at probe time, no need to
-> query it every iteration.
-
-=46rom a clk API point of view though, there's nothing that guarantees
-that the clock rate hasn't changed between the probe and the time
-where this function is called.
-
-I appreciate that we're probably connected to an oscillator, but even
-then, on the Allwinner SoCs we've had the issue recently that one
-oscillator feeding the BT chip was actually had a muxer, with each
-option having a slightly different rate, which was bad enough for the
-BT chip to be non-functional.
-
-I can definitely imagine the same case happening here for some
-SoCs. Plus, the clock framework will cache the rate as well when
-possible, so we're not losing anything here.
-
-> > +
-> > +	return rate / pll_prediv * pll_mult / sysdiv;
-> > +}
-> > +
-> > +static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
-> > +					 unsigned long rate,
-> > +					 u8 *pll_prediv, u8 *pll_mult,
-> > +					 u8 *sysdiv)
-> > +{
-> > +	unsigned long best =3D ~0;
-> > +	u8 best_sysdiv =3D 1, best_mult =3D 1;
-> > +	u8 _sysdiv, _pll_mult;
-> > +
-> > +	for (_sysdiv =3D OV5640_SYSDIV_MIN;
-> > +	     _sysdiv <=3D OV5640_SYSDIV_MAX;
-> > +	     _sysdiv++) {
-> > +		for (_pll_mult =3D OV5640_PLL_MULT_MIN;
-> > +		     _pll_mult <=3D OV5640_PLL_MULT_MAX;
-> > +		     _pll_mult++) {
-> > +			unsigned long _rate;
-> > +
-> > +			/*
-> > +			 * The PLL multiplier cannot be odd if above
-> > +			 * 127.
-> > +			 */
-> > +			if (_pll_mult > 127 && (_pll_mult % 2))
-> > +				continue;
-> > +
-> > +			_rate =3D ov5640_compute_sys_clk(sensor,
-> > +						       OV5640_PLL_PREDIV,
-> > +						       _pll_mult, _sysdiv);
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/i2c/ov5640.c | 23 +++++++++++++++++++----
+>  1 file changed, 19 insertions(+), 4 deletions(-)
 >=20
-> I'm under the impression a system clock slower than the requested one, ev=
-en
-> if more accurate is not good.
->=20
-> I'm still working on understanding how all CSI-2 related timing
-> parameters play together, but since the system clock is calculated
-> from the pixel clock (which comes from the frame dimensions, bpp, and
-> rate), and it is then used to calculate the MIPI BIT clock frequency,
-> I think it would be better to be a little faster than a bit slower,
-> otherwise the serial lane clock wouldn't be fast enough to output
-> frames generated by the sensor core (or maybe it would just decrease
-> the frame rate and that's it, but I don't think it is just this).
->=20
-> What do you think of adding the following here:
->=20
->                 if (_rate < rate)
->                         continue
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index e098435..1f2e72d 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -770,7 +770,7 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, =
+u16 reg,
+>   * always set to either 1 or 2 in the vendor kernels.
+>   */
+>  #define OV5640_SYSDIV_MIN	1
+> -#define OV5640_SYSDIV_MAX	2
+> +#define OV5640_SYSDIV_MAX	16
+> =20
+>  /*
+>   * This is supposed to be ranging from 1 to 16, but the value is always
+> @@ -806,15 +806,20 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor=
+, u16 reg,
+>   * This is supposed to be ranging from 1 to 8, but the value is always
+>   * set to 1 in the vendor kernels.
+>   */
+> -#define OV5640_PCLK_ROOT_DIV	1
+> +#define OV5640_PCLK_ROOT_DIV			1
+> +#define OV5640_PLL_SYS_ROOT_DIVIDER_BYPASS	0x00
+> =20
+>  static unsigned long ov5640_compute_sys_clk(struct ov5640_dev *sensor,
+>  					    u8 pll_prediv, u8 pll_mult,
+>  					    u8 sysdiv)
+>  {
+> -	unsigned long rate =3D clk_get_rate(sensor->xclk);
+> +	unsigned long sysclk =3D sensor->xclk_freq / pll_prediv * pll_mult;
+> =20
+> -	return rate / pll_prediv * pll_mult / sysdiv;
+> +	/* PLL1 output cannot exceed 1GHz. */
+> +	if (sysclk / 1000000 > 1000)
+> +		return 0;
+> +
+> +	return sysclk / sysdiv;
+>  }
+> =20
+>  static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
+> @@ -844,6 +849,16 @@ static unsigned long ov5640_calc_sys_clk(struct ov56=
+40_dev *sensor,
+>  			_rate =3D ov5640_compute_sys_clk(sensor,
+>  						       OV5640_PLL_PREDIV,
+>  						       _pll_mult, _sysdiv);
+> +
+> +			/*
+> +			 * We have reached the maximum allowed PLL1 output,
+> +			 * increase sysdiv.
+> +			 */
+> +			if (rate =3D=3D 0) {
+> +				_pll_mult =3D OV5640_PLL_MULT_MAX + 1;
+> +				continue;
+> +			}
+> +
 
-I really don't know MIPI-CSI2 enough to be able to comment on your
-concerns, but when reaching the end of the operating limit of the
-clock, it would prevent us from having any rate at all, which seems
-bad too.
+Both your patches look sane to me. However, I guess here you're
+setting _pll_mult at this value so that you won't reach the for
+condition on the next iteration?
 
-> > +			if (abs(rate - _rate) < abs(rate - best)) {
-> > +				best =3D _rate;
-> > +				best_sysdiv =3D _sysdiv;
-> > +				best_mult =3D _pll_mult;
-> > +			}
-> > +
-> > +			if (_rate =3D=3D rate)
-> > +				goto out;
-> > +		}
-> > +	}
-> > +
-> > +out:
-> > +	*sysdiv =3D best_sysdiv;
-> > +	*pll_prediv =3D OV5640_PLL_PREDIV;
-> > +	*pll_mult =3D best_mult;
-> > +	return best;
-> > +}
->=20
-> These function gets called at s_stream time, and cycle for a while,
-> and I'm under the impression the MIPI state machine doesn't like
-> delays too much, as I see timeouts on the receiver side.
->=20
-> I have tried to move this function at set_fmt() time, every time a new
-> mode is selected, sysdiv, pll_prediv and pll_mult gets recalculated
-> (and stored in the ov5640_dev structure). I now have other timeouts on
-> missing EOF, but not anymore at startup time it seems.
-
-I have no objection caching the values if it solves issues with CSI :)
-
-Can you send that patch?
+Wouldn't it be cleaner to just use a break statement here?
 
 Thanks!
 Maxime
@@ -160,24 +108,24 @@ Maxime Ripard, Bootlin
 Embedded Linux and Kernel engineering
 https://bootlin.com
 
---fkdb2cekh5vu3nxx
+--fptgibnuibvnu7n3
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlvIUmcACgkQ0rTAlCFN
-r3TgaA//WbwerGmMRGQQCPCmHScxJnpa9V8sgOvZG0FnW2kYjNgvRQE7SZjQm5Aw
-95xoeCAIInFWNoXxPc+WgQf4pQ2/TGZWnR5NnRgzOTxQOjcuQJcl2sP0xgwuQP+j
-6ba0UIq4OJDCIlbbVDIG7M4Fc2gBqvyQykc4b4pAFxtXVvomSYXpBbT/hijHLXeJ
-iOgMaXPsF7tNQY3LpewNTgfq17NPdMxQI/OWBoxCsclJ6Es3nGqD15qMEm5d+GeB
-DRfCp98lfWi9QkhBAyJWZyGYXsZt8bJBmMQVxQJHAab5cOzeosIplAQ8k0U55rwN
-2hHbOvvIrNRx+WJ5FXby6euO1rZPTCNP/GVRY+TtJPz8U/344Hp4c1vnL0aLb+xN
-TmtomPHmiZF6wqWwJij3IaCz++C4KJgYtQVM8pZa28z/mgxZ42t5Nawi5UjVdrNy
-Jun+HVzX8TrmibC9nbN4MvInZIPP7mUDVL+rPQtJotDkei5uWPCQnzKbr7sd3cdS
-m1+gx2NfLiRCm02vu+oLFUEFMYR9bHQo9oH3YVsQpUIYvXn9x7trZsjgwW5TDnrr
-AxK2Xcp2OMW8c7xYlxFq9OW142s46oXgGs6QjtejNdJH9I30YjuBojOA2yueclx3
-l975LX9em8IMQLVdhDrSTtlcjjtjJnICpD2pdXqul511ryzIfkk=
-=7FeE
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlvIT0UACgkQ0rTAlCFN
+r3TsYQ/6A0uPMHuFBCYJmognpsiJ8R0AKxY2I+HEmvurFxfPMKyWVjnm4Gizwkmb
+Y0R7soaBZLCNnbRFWkm0aICy0w+BNTgWm0SfwLFd7QSjb/CoVIMO47IAJ+5qPmpc
+G3zh18bul/kUQUVUVfAFXl9YI3UAjvXu5W/BjkNlUlceTW0C6yeh+lUpnvPLABUy
+9PI2pOgJ1LBNWE34SY0AjTUgTqpF6kx6zG0SrY/oip5CFlB9l9v617C6p30hhdxz
+6ZdGTv7Jw/KyZ32F9N4R3DShl2UoRaSudMCwGEF0xKwVP2xrw4+F0J+VhTvr4M9f
+cvJwDLcZjkVQna915JEIwgTDuc175r928JVOSUS6VT+g9pxP3Ktt8Nckja6azQAu
+nkAAr6JbY+EqckeLYOH8pBaUUJx+V7A8Z2Pqqnb56UPRcUqHeVWD9KokaBP+kbm9
+cb9RWojfE5GJQh0xQOdDS31aa3RojSG6kUIGh8ZhXMOW2+slp2uoktgDHC6oc0Zc
+l0CD+eLPCgvRgsMRzCVzphEMJoAl/Q8QBJR+vGYc3Z7NmNGXgZfwpvhIRKUiQlgu
+BIdOnXB7zRtrAQm6HlNYWK/k1ujG1d3aUtfFqsU7sU2wp2nq1noTVqcm/2Q3/3WP
+EaHynRLQvBDnmHig0Uk2oJHiCIbidXpCeIJfurnQf5JH9cbT/vA=
+=D6E7
 -----END PGP SIGNATURE-----
 
---fkdb2cekh5vu3nxx--
+--fptgibnuibvnu7n3--
