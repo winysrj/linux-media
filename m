@@ -1,188 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:59207 "EHLO mail.bootlin.com"
+Received: from mail.bootlin.com ([62.4.15.54]:59195 "EHLO mail.bootlin.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726903AbeJSSYD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 14:24:03 -0400
-Date: Thu, 18 Oct 2018 18:56:54 +0200
+        id S1726690AbeJSSYC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Oct 2018 14:24:02 -0400
+Date: Thu, 18 Oct 2018 18:51:49 +0200
 From: Maxime Ripard <maxime.ripard@bootlin.com>
 To: jacopo mondi <jacopo@jmondi.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Mylene Josserand <mylene.josserand@bootlin.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Samuel Bobrowicz <sam@elite-embedded.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH v4 01/12] media: ov5640: Adjust the clock based on the
- expected rate
-Message-ID: <20181018165654.ecb5hpotay4qzurg@flea>
-References: <20181011092107.30715-1-maxime.ripard@bootlin.com>
- <20181011092107.30715-2-maxime.ripard@bootlin.com>
- <20181016165450.GB11703@w540>
- <20181018092912.u23arvx5ope24m5t@flea>
- <20181018134605.GH17549@w540>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, sam@elite-embedded.com,
+        mchehab@kernel.org, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, hugues.fruchet@st.com,
+        loic.poulain@linaro.org, daniel@zonque.org
+Subject: Re: [PATCH 1/2] media: ov5640: Add check for PLL1 output max
+ frequency
+Message-ID: <20181018165149.3ykbmq5hz64mywyb@flea>
+References: <1539805038-22321-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1539805038-22321-2-git-send-email-jacopo+renesas@jmondi.org>
+ <20181018091550.64thz7irmbyymj5b@flea>
+ <20181018133525.GG17549@w540>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20181018134605.GH17549@w540>
+In-Reply-To: <20181018133525.GG17549@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi,
 
-On Thu, Oct 18, 2018 at 03:46:05PM +0200, jacopo mondi wrote:
-> Hello Maxime,
+On Thu, Oct 18, 2018 at 03:35:25PM +0200, jacopo mondi wrote:
+> Hi Maxime,
 > 
-> On Thu, Oct 18, 2018 at 11:29:12AM +0200, Maxime Ripard wrote:
-> > Hi Jacopo,
-> >
-> > Thanks for reviewing this patch
-> >
-> > On Tue, Oct 16, 2018 at 06:54:50PM +0200, jacopo mondi wrote:
-> > > > +static unsigned long ov5640_compute_sys_clk(struct ov5640_dev *sensor,
-> > > > +					    u8 pll_prediv, u8 pll_mult,
-> > > > +					    u8 sysdiv)
-> > > > +{
-> > > > +	unsigned long rate = clk_get_rate(sensor->xclk);
+> On Thu, Oct 18, 2018 at 11:15:50AM +0200, Maxime Ripard wrote:
+> > On Wed, Oct 17, 2018 at 09:37:17PM +0200, Jacopo Mondi wrote:
+> > > Check that the PLL1 output frequency does not exceed the maximum allowed 1GHz
+> > > frequency.
 > > >
-> > > The clock rate is stored in sensor->xclk at probe time, no need to
-> > > query it every iteration.
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > ---
+> > >  drivers/media/i2c/ov5640.c | 23 +++++++++++++++++++----
+> > >  1 file changed, 19 insertions(+), 4 deletions(-)
+> > >
+> > > diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> > > index e098435..1f2e72d 100644
+> > > --- a/drivers/media/i2c/ov5640.c
+> > > +++ b/drivers/media/i2c/ov5640.c
+> > > @@ -770,7 +770,7 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
+> > >   * always set to either 1 or 2 in the vendor kernels.
+> > >   */
+> > >  #define OV5640_SYSDIV_MIN	1
+> > > -#define OV5640_SYSDIV_MAX	2
+> > > +#define OV5640_SYSDIV_MAX	16
+> > >
+> > >  /*
+> > >   * This is supposed to be ranging from 1 to 16, but the value is always
+> > > @@ -806,15 +806,20 @@ static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
+> > >   * This is supposed to be ranging from 1 to 8, but the value is always
+> > >   * set to 1 in the vendor kernels.
+> > >   */
+> > > -#define OV5640_PCLK_ROOT_DIV	1
+> > > +#define OV5640_PCLK_ROOT_DIV			1
+> > > +#define OV5640_PLL_SYS_ROOT_DIVIDER_BYPASS	0x00
+> > >
+> > >  static unsigned long ov5640_compute_sys_clk(struct ov5640_dev *sensor,
+> > >  					    u8 pll_prediv, u8 pll_mult,
+> > >  					    u8 sysdiv)
+> > >  {
+> > > -	unsigned long rate = clk_get_rate(sensor->xclk);
+> > > +	unsigned long sysclk = sensor->xclk_freq / pll_prediv * pll_mult;
+> > >
+> > > -	return rate / pll_prediv * pll_mult / sysdiv;
+> > > +	/* PLL1 output cannot exceed 1GHz. */
+> > > +	if (sysclk / 1000000 > 1000)
+> > > +		return 0;
+> > > +
+> > > +	return sysclk / sysdiv;
+> > >  }
+> > >
+> > >  static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
+> > > @@ -844,6 +849,16 @@ static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
+> > >  			_rate = ov5640_compute_sys_clk(sensor,
+> > >  						       OV5640_PLL_PREDIV,
+> > >  						       _pll_mult, _sysdiv);
+> > > +
+> > > +			/*
+> > > +			 * We have reached the maximum allowed PLL1 output,
+> > > +			 * increase sysdiv.
+> > > +			 */
+> > > +			if (rate == 0) {
+> > > +				_pll_mult = OV5640_PLL_MULT_MAX + 1;
+> > > +				continue;
+> > > +			}
+> > > +
 > >
-> > From a clk API point of view though, there's nothing that guarantees
-> > that the clock rate hasn't changed between the probe and the time
-> > where this function is called.
+> > Both your patches look sane to me. However, I guess here you're
+> > setting _pll_mult at this value so that you won't reach the for
+> > condition on the next iteration?
+> >
+> > Wouldn't it be cleaner to just use a break statement here?
 > 
-> Correct, bell, it can be queried in the caller and re-used here :)
-> >
-> > I appreciate that we're probably connected to an oscillator, but even
-> > then, on the Allwinner SoCs we've had the issue recently that one
-> > oscillator feeding the BT chip was actually had a muxer, with each
-> > option having a slightly different rate, which was bad enough for the
-> > BT chip to be non-functional.
-> >
-> > I can definitely imagine the same case happening here for some
-> > SoCs. Plus, the clock framework will cache the rate as well when
-> > possible, so we're not losing anything here.
+> Yes, it's much cleaner indeed. Not sure why I thought this was a good
+> idea tbh.
 > 
-> I see, so please ignore this comment :)
-> 
-> >
-> > > > +
-> > > > +	return rate / pll_prediv * pll_mult / sysdiv;
-> > > > +}
-> > > > +
-> > > > +static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
-> > > > +					 unsigned long rate,
-> > > > +					 u8 *pll_prediv, u8 *pll_mult,
-> > > > +					 u8 *sysdiv)
-> > > > +{
-> > > > +	unsigned long best = ~0;
-> > > > +	u8 best_sysdiv = 1, best_mult = 1;
-> > > > +	u8 _sysdiv, _pll_mult;
-> > > > +
-> > > > +	for (_sysdiv = OV5640_SYSDIV_MIN;
-> > > > +	     _sysdiv <= OV5640_SYSDIV_MAX;
-> > > > +	     _sysdiv++) {
-> > > > +		for (_pll_mult = OV5640_PLL_MULT_MIN;
-> > > > +		     _pll_mult <= OV5640_PLL_MULT_MAX;
-> > > > +		     _pll_mult++) {
-> > > > +			unsigned long _rate;
-> > > > +
-> > > > +			/*
-> > > > +			 * The PLL multiplier cannot be odd if above
-> > > > +			 * 127.
-> > > > +			 */
-> > > > +			if (_pll_mult > 127 && (_pll_mult % 2))
-> > > > +				continue;
-> > > > +
-> > > > +			_rate = ov5640_compute_sys_clk(sensor,
-> > > > +						       OV5640_PLL_PREDIV,
-> > > > +						       _pll_mult, _sysdiv);
-> > >
-> > > I'm under the impression a system clock slower than the requested one, even
-> > > if more accurate is not good.
-> > >
-> > > I'm still working on understanding how all CSI-2 related timing
-> > > parameters play together, but since the system clock is calculated
-> > > from the pixel clock (which comes from the frame dimensions, bpp, and
-> > > rate), and it is then used to calculate the MIPI BIT clock frequency,
-> > > I think it would be better to be a little faster than a bit slower,
-> > > otherwise the serial lane clock wouldn't be fast enough to output
-> > > frames generated by the sensor core (or maybe it would just decrease
-> > > the frame rate and that's it, but I don't think it is just this).
-> > >
-> > > What do you think of adding the following here:
-> > >
-> > >                 if (_rate < rate)
-> > >                         continue
-> >
-> > I really don't know MIPI-CSI2 enough to be able to comment on your
-> > concerns, but when reaching the end of the operating limit of the
-> > clock, it would prevent us from having any rate at all, which seems
-> > bad too.
-> 
-> Are you referring to the 1GHz limit of the (xvlkc / pre_div * mult)
-> output here? If that's your concern we should adjust the requested
-> SYSCLK rate then (and I added a check for that in my patches on top of
-> yours, but it could be improved to be honest, as it just refuses the
-> current rate, while it should increment the pre_divider instead, now
-> that I think better about that).
+> Would you like me to send a v2, or can you take care of this when
+> re-sending v5?
 
-I meant to the limits of the PCLK / MIPI bit clock, so the rate we are
-expected to reach. But I really don't have any opinion on this, so
-I'll just merge your suggestion for the next version.
+I'll squash it in the v5, thanks!
 
-> >
-> > > > +			if (abs(rate - _rate) < abs(rate - best)) {
-> > > > +				best = _rate;
-> > > > +				best_sysdiv = _sysdiv;
-> > > > +				best_mult = _pll_mult;
-> > > > +			}
-> > > > +
-> > > > +			if (_rate == rate)
-> > > > +				goto out;
-> > > > +		}
-> > > > +	}
-> > > > +
-> > > > +out:
-> > > > +	*sysdiv = best_sysdiv;
-> > > > +	*pll_prediv = OV5640_PLL_PREDIV;
-> > > > +	*pll_mult = best_mult;
-> > > > +	return best;
-> > > > +}
-> > >
-> > > These function gets called at s_stream time, and cycle for a while,
-> > > and I'm under the impression the MIPI state machine doesn't like
-> > > delays too much, as I see timeouts on the receiver side.
-> > >
-> > > I have tried to move this function at set_fmt() time, every time a new
-> > > mode is selected, sysdiv, pll_prediv and pll_mult gets recalculated
-> > > (and stored in the ov5640_dev structure). I now have other timeouts on
-> > > missing EOF, but not anymore at startup time it seems.
-> >
-> > I have no objection caching the values if it solves issues with CSI :)
-> >
-> > Can you send that patch?
-> 
-> Actually I think I was wrong. The timeout I saw have gone with the
-> last version I sent, even with this computation performed at
-> s_stream() time. And re-thinking this, the MIPI state machine should
-> get started after the data lanes are put in LP11 state, which happens
-> after this function ends.
-> 
-> We can discuss however if it is better to do this calculations at
-> s_fmt time or s_stream time as a general thing, but I think (also)
-> this comment might be ignored for now :)
-
-That works for me :)
-
-Thanks!
 Maxime
 
 -- 
