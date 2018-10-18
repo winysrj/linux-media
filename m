@@ -1,87 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59736 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55684 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727672AbeJSVG3 (ORCPT
+        with ESMTP id S1729137AbeJSCEu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 17:06:29 -0400
-Message-ID: <457d3a25453d27135270ee4318a3afc1c5da51fb.camel@collabora.com>
-Subject: Re: [PATCH 1/2] vicodec: Have decoder propagate changes to the
- CAPTURE queue
+        Thu, 18 Oct 2018 22:04:50 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, kernel@collabora.com,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Date: Fri, 19 Oct 2018 10:00:17 -0300
-In-Reply-To: <a81e37eb-9d85-7a52-1098-d067c719f1e1@xs4all.nl>
-References: <20181018160841.17674-1-ezequiel@collabora.com>
-         <20181018160841.17674-2-ezequiel@collabora.com>
-         <a81e37eb-9d85-7a52-1098-d067c719f1e1@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
+        paul.kocialkowski@bootlin.com, maxime.ripard@bootlin.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Ezequiel Garcia <ezequiel@collabora.com>
+Subject: [PATCH v5 4/5] v4l2-mem2mem: Avoid calling .device_run in v4l2_m2m_job_finish
+Date: Thu, 18 Oct 2018 15:02:23 -0300
+Message-Id: <20181018180224.3392-5-ezequiel@collabora.com>
+In-Reply-To: <20181018180224.3392-1-ezequiel@collabora.com>
+References: <20181018180224.3392-1-ezequiel@collabora.com>
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2018-10-19 at 09:14 +0200, Hans Verkuil wrote:
-> On 10/18/2018 06:08 PM, Ezequiel Garcia wrote:
-> > The decoder interface (not yet merged) specifies that
-> > width and height values set on the OUTPUT queue, must
-> > be propagated to the CAPTURE queue.
-> > 
-> > This is not enough to comply with the specification,
-> > which would require to properly support stream resolution
-> > changes detection and notification.
-> > 
-> > However, it's a relatively small change, which fixes behavior
-> > required by some applications such as gstreamer.
-> > 
-> > With this change, it's possible to run a simple T(T⁻¹) pipeline:
-> > 
-> > gst-launch-1.0 videotestsrc ! v4l2fwhtenc ! v4l2fwhtdec ! fakevideosink
-> > 
-> > Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
-> > ---
-> >  drivers/media/platform/vicodec/vicodec-core.c | 15 +++++++++++++++
-> >  1 file changed, 15 insertions(+)
-> > 
-> > diff --git a/drivers/media/platform/vicodec/vicodec-core.c b/drivers/media/platform/vicodec/vicodec-core.c
-> > index 1eb9132bfc85..a2c487b4b80d 100644
-> > --- a/drivers/media/platform/vicodec/vicodec-core.c
-> > +++ b/drivers/media/platform/vicodec/vicodec-core.c
-> > @@ -673,6 +673,13 @@ static int vidioc_s_fmt(struct vicodec_ctx *ctx, struct v4l2_format *f)
-> >  		q_data->width = pix->width;
-> >  		q_data->height = pix->height;
-> >  		q_data->sizeimage = pix->sizeimage;
-> > +
-> > +		/* Propagate changes to CAPTURE queue */
-> > +		if (!ctx->is_enc && V4L2_TYPE_IS_OUTPUT(f->type)) {
-> 
-> Do we need !ctx->is_enc? Isn't this the same for both decoder and encoder?
-> 
+v4l2_m2m_job_finish() is typically called when
+DMA operations complete, in interrupt handlers or DMA
+completion callbacks. Calling .device_run from v4l2_m2m_job_finish
+creates a nasty re-entrancy path into the driver.
 
-Well, I wasn't really sure about this. The decoder document clearly
-says that changes has to be propagated to the capture queue, but that statement
-is not in the encoder spec.
+Moreover, some implementation of .device_run might need to sleep,
+as is the case for drivers supporting the Request API,
+where controls are applied via v4l2_ctrl_request_setup,
+which takes the ctrl handler mutex.
 
-Since gstreamer didn't needs this, I decided not to add it.
+This commit adds a deferred context that calls v4l2_m2m_try_run,
+and gets scheduled by v4l2_m2m_job_finish().
 
-Perhaps it's something to correct in the encoder spec?
+Before this change, device_run would be called from these
+paths:
 
-> > +			ctx->q_data[V4L2_M2M_DST].width = pix->width;
-> > +			ctx->q_data[V4L2_M2M_DST].height = pix->height;
-> > +			ctx->q_data[V4L2_M2M_DST].sizeimage = pix->sizeimage;
-> 
-> This is wrong: you are copying the sizeimage for the compressed format as the
-> sizeimage for the raw format, which is quite different.
-> 
+vb2_m2m_request_queue, or
+v4l2_m2m_streamon, or
+v4l2_m2m_qbuf
+  v4l2_m2m_try_schedule
+    v4l2_m2m_try_run
+      .device_run
 
-Doh, you are right.
+v4l2_m2m_job_finish
+  v4l2_m2m_try_run
+    .device_run
 
-> I think you need to make a little helper function that can update the width/height
-> of a particular queue and that can calculate the sizeimage correctly.
-> 
+After this change, the latter is now gone and instead:
 
-Sounds good.
+v4l2_m2m_device_run_work
+  v4l2_m2m_try_run
+    .device_run
 
-Thanks for the review,
-Ezequiel
+Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 0665a97ed89e..2b250fd10531 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -87,6 +87,7 @@ static const char * const m2m_entity_name[] = {
+  * @curr_ctx:		currently running instance
+  * @job_queue:		instances queued to run
+  * @job_spinlock:	protects job_queue
++ * @job_work:		worker to run queued jobs.
+  * @m2m_ops:		driver callbacks
+  */
+ struct v4l2_m2m_dev {
+@@ -103,6 +104,7 @@ struct v4l2_m2m_dev {
+ 
+ 	struct list_head	job_queue;
+ 	spinlock_t		job_spinlock;
++	struct work_struct	job_work;
+ 
+ 	const struct v4l2_m2m_ops *m2m_ops;
+ };
+@@ -244,6 +246,9 @@ EXPORT_SYMBOL(v4l2_m2m_get_curr_priv);
+  * @m2m_dev: per-device context
+  *
+  * Get next transaction (if present) from the waiting jobs list and run it.
++ *
++ * Note that this function can run on a given v4l2_m2m_ctx context,
++ * but call .device_run for another context.
+  */
+ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+ {
+@@ -362,6 +367,18 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
+ 
++/**
++ * v4l2_m2m_device_run_work() - run pending jobs for the context
++ * @work: Work structure used for scheduling the execution of this function.
++ */
++static void v4l2_m2m_device_run_work(struct work_struct *work)
++{
++	struct v4l2_m2m_dev *m2m_dev =
++		container_of(work, struct v4l2_m2m_dev, job_work);
++
++	v4l2_m2m_try_run(m2m_dev);
++}
++
+ /**
+  * v4l2_m2m_cancel_job() - cancel pending jobs for the context
+  * @m2m_ctx: m2m context with jobs to be canceled
+@@ -421,7 +438,12 @@ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+ 	/* This instance might have more buffers ready, but since we do not
+ 	 * allow more than one job on the job_queue per instance, each has
+ 	 * to be scheduled separately after the previous one finishes. */
+-	v4l2_m2m_try_schedule(m2m_ctx);
++	__v4l2_m2m_try_queue(m2m_dev, m2m_ctx);
++
++	/* We might be running in atomic context,
++	 * but the job must be run in non-atomic context.
++	 */
++	schedule_work(&m2m_dev->job_work);
+ }
+ EXPORT_SYMBOL(v4l2_m2m_job_finish);
+ 
+@@ -863,6 +885,7 @@ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
+ 	m2m_dev->m2m_ops = m2m_ops;
+ 	INIT_LIST_HEAD(&m2m_dev->job_queue);
+ 	spin_lock_init(&m2m_dev->job_spinlock);
++	INIT_WORK(&m2m_dev->job_work, v4l2_m2m_device_run_work);
+ 
+ 	return m2m_dev;
+ }
+-- 
+2.19.1
