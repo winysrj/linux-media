@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55684 "EHLO
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:55678 "EHLO
         bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729137AbeJSCEu (ORCPT
+        with ESMTP id S1729794AbeJSCEr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Oct 2018 22:04:50 -0400
+        Thu, 18 Oct 2018 22:04:47 -0400
 From: Ezequiel Garcia <ezequiel@collabora.com>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hverkuil@xs4all.nl>, kernel@collabora.com,
         paul.kocialkowski@bootlin.com, maxime.ripard@bootlin.com,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         Ezequiel Garcia <ezequiel@collabora.com>
-Subject: [PATCH v5 4/5] v4l2-mem2mem: Avoid calling .device_run in v4l2_m2m_job_finish
-Date: Thu, 18 Oct 2018 15:02:23 -0300
-Message-Id: <20181018180224.3392-5-ezequiel@collabora.com>
+Subject: [PATCH v5 3/5] v4l2-mem2mem: Simplify exiting the function in __v4l2_m2m_try_schedule
+Date: Thu, 18 Oct 2018 15:02:22 -0300
+Message-Id: <20181018180224.3392-4-ezequiel@collabora.com>
 In-Reply-To: <20181018180224.3392-1-ezequiel@collabora.com>
 References: <20181018180224.3392-1-ezequiel@collabora.com>
 MIME-Version: 1.0
@@ -20,114 +20,86 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_m2m_job_finish() is typically called when
-DMA operations complete, in interrupt handlers or DMA
-completion callbacks. Calling .device_run from v4l2_m2m_job_finish
-creates a nasty re-entrancy path into the driver.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Moreover, some implementation of .device_run might need to sleep,
-as is the case for drivers supporting the Request API,
-where controls are applied via v4l2_ctrl_request_setup,
-which takes the ctrl handler mutex.
+The __v4l2_m2m_try_schedule function acquires and releases multiple
+spinlocks. Simplify unlocking the job lock by adding labels to unlock
+the lock and exit the function.
 
-This commit adds a deferred context that calls v4l2_m2m_try_run,
-and gets scheduled by v4l2_m2m_job_finish().
-
-Before this change, device_run would be called from these
-paths:
-
-vb2_m2m_request_queue, or
-v4l2_m2m_streamon, or
-v4l2_m2m_qbuf
-  v4l2_m2m_try_schedule
-    v4l2_m2m_try_run
-      .device_run
-
-v4l2_m2m_job_finish
-  v4l2_m2m_try_run
-    .device_run
-
-After this change, the latter is now gone and instead:
-
-v4l2_m2m_device_run_work
-  v4l2_m2m_try_run
-    .device_run
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Ezequiel Garcia <ezequiel@collabora.com>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 29 ++++++++++++--------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 0665a97ed89e..2b250fd10531 100644
+index bc72243eb91d..0665a97ed89e 100644
 --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
 +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -87,6 +87,7 @@ static const char * const m2m_entity_name[] = {
-  * @curr_ctx:		currently running instance
-  * @job_queue:		instances queued to run
-  * @job_spinlock:	protects job_queue
-+ * @job_work:		worker to run queued jobs.
-  * @m2m_ops:		driver callbacks
-  */
- struct v4l2_m2m_dev {
-@@ -103,6 +104,7 @@ struct v4l2_m2m_dev {
+@@ -297,51 +297,48 @@ static void __v4l2_m2m_try_queue(struct v4l2_m2m_dev *m2m_dev,
  
- 	struct list_head	job_queue;
- 	spinlock_t		job_spinlock;
-+	struct work_struct	job_work;
+ 	/* If the context is aborted then don't schedule it */
+ 	if (m2m_ctx->job_flags & TRANS_ABORT) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("Aborted context\n");
+-		return;
++		goto job_unlock;
+ 	}
  
- 	const struct v4l2_m2m_ops *m2m_ops;
- };
-@@ -244,6 +246,9 @@ EXPORT_SYMBOL(v4l2_m2m_get_curr_priv);
-  * @m2m_dev: per-device context
-  *
-  * Get next transaction (if present) from the waiting jobs list and run it.
-+ *
-+ * Note that this function can run on a given v4l2_m2m_ctx context,
-+ * but call .device_run for another context.
-  */
- static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
- {
-@@ -362,6 +367,18 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	if (m2m_ctx->job_flags & TRANS_QUEUED) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("On job queue already\n");
+-		return;
++		goto job_unlock;
+ 	}
+ 
+ 	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+ 	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)
+ 	    && !m2m_ctx->out_q_ctx.buffered) {
+-		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+-					flags_out);
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No input buffers available\n");
+-		return;
++		goto out_unlock;
+ 	}
+ 	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
+ 	    && !m2m_ctx->cap_q_ctx.buffered) {
+-		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock,
+-					flags_cap);
+-		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+-					flags_out);
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No output buffers available\n");
+-		return;
++		goto cap_unlock;
+ 	}
+ 	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+ 
+ 	if (m2m_dev->m2m_ops->job_ready
+ 		&& (!m2m_dev->m2m_ops->job_ready(m2m_ctx->priv))) {
+-		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("Driver not ready\n");
+-		return;
++		goto job_unlock;
+ 	}
+ 
+ 	list_add_tail(&m2m_ctx->queue, &m2m_dev->job_queue);
+ 	m2m_ctx->job_flags |= TRANS_QUEUED;
+ 
+ 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
++	return;
++
++cap_unlock:
++	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
++out_unlock:
++	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
++job_unlock:
++	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
  }
- EXPORT_SYMBOL_GPL(v4l2_m2m_try_schedule);
  
-+/**
-+ * v4l2_m2m_device_run_work() - run pending jobs for the context
-+ * @work: Work structure used for scheduling the execution of this function.
-+ */
-+static void v4l2_m2m_device_run_work(struct work_struct *work)
-+{
-+	struct v4l2_m2m_dev *m2m_dev =
-+		container_of(work, struct v4l2_m2m_dev, job_work);
-+
-+	v4l2_m2m_try_run(m2m_dev);
-+}
-+
  /**
-  * v4l2_m2m_cancel_job() - cancel pending jobs for the context
-  * @m2m_ctx: m2m context with jobs to be canceled
-@@ -421,7 +438,12 @@ void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
- 	/* This instance might have more buffers ready, but since we do not
- 	 * allow more than one job on the job_queue per instance, each has
- 	 * to be scheduled separately after the previous one finishes. */
--	v4l2_m2m_try_schedule(m2m_ctx);
-+	__v4l2_m2m_try_queue(m2m_dev, m2m_ctx);
-+
-+	/* We might be running in atomic context,
-+	 * but the job must be run in non-atomic context.
-+	 */
-+	schedule_work(&m2m_dev->job_work);
- }
- EXPORT_SYMBOL(v4l2_m2m_job_finish);
- 
-@@ -863,6 +885,7 @@ struct v4l2_m2m_dev *v4l2_m2m_init(const struct v4l2_m2m_ops *m2m_ops)
- 	m2m_dev->m2m_ops = m2m_ops;
- 	INIT_LIST_HEAD(&m2m_dev->job_queue);
- 	spin_lock_init(&m2m_dev->job_spinlock);
-+	INIT_WORK(&m2m_dev->job_work, v4l2_m2m_device_run_work);
- 
- 	return m2m_dev;
- }
 -- 
 2.19.1
