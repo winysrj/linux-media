@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:43443 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725751AbeJSESn (ORCPT
+Received: from mail-pl1-f194.google.com ([209.85.214.194]:45534 "EHLO
+        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725735AbeJSE2d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Oct 2018 00:18:43 -0400
-Received: by mail-pg1-f195.google.com with SMTP id d8-v6so3480499pgv.10
-        for <linux-media@vger.kernel.org>; Thu, 18 Oct 2018 13:16:04 -0700 (PDT)
+        Fri, 19 Oct 2018 00:28:33 -0400
+Received: by mail-pl1-f194.google.com with SMTP id y15-v6so14811756plr.12
+        for <linux-media@vger.kernel.org>; Thu, 18 Oct 2018 13:25:51 -0700 (PDT)
 Content-Type: text/plain;
         charset=utf-8
 Mime-Version: 1.0 (1.0)
 Subject: Re: [PATCH v4 01/12] media: ov5640: Adjust the clock based on the expected rate
 From: Samuel Bobrowicz <sam@elite-embedded.com>
-In-Reply-To: <20181017194835.GA17549@w540>
-Date: Thu, 18 Oct 2018 13:15:56 -0700
+In-Reply-To: <20181018100332.GE17549@w540>
+Date: Thu, 18 Oct 2018 13:25:43 -0700
 Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -26,669 +26,89 @@ Cc: Maxime Ripard <maxime.ripard@bootlin.com>,
         Steve Longerbeam <slongerbeam@gmail.com>,
         Daniel Mack <daniel@zonque.org>
 Content-Transfer-Encoding: quoted-printable
-Message-Id: <D5644C6E-9E99-471E-86A3-066BD8B06F1C@elite-embedded.com>
-References: <20181011092107.30715-1-maxime.ripard@bootlin.com> <20181011092107.30715-2-maxime.ripard@bootlin.com> <20181016165450.GB11703@w540> <CAFwsNOHpZ+Kf6YQnENuYLtwenjGzWfy=TYqaEC5tjLmaoeTA+g@mail.gmail.com> <20181017194835.GA17549@w540>
+Message-Id: <1D62DB82-AE43-44F3-8FA6-485105E1C351@elite-embedded.com>
+References: <20181011092107.30715-1-maxime.ripard@bootlin.com> <20181011092107.30715-2-maxime.ripard@bootlin.com> <20181016165450.GB11703@w540> <CAFwsNOHpZ+Kf6YQnENuYLtwenjGzWfy=TYqaEC5tjLmaoeTA+g@mail.gmail.com> <20181017194835.GA17549@w540> <20181018093152.q5yusjycwbzxnyfq@flea> <20181018100332.GE17549@w540>
 To: jacopo mondi <jacopo@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Jacobi,
 
- Not a lot of time to respond right now, these days I=E2=80=99m bouncing aro=
-und between a couple jobs. I=E2=80=99ll be trying your and Maximes patches a=
-nd responding to tech details this weekend.
 
-Just want to say that as long as we get the driver working I=E2=80=99m happy=
- :) The VAST majority of time put into this has been the reverse engineering=
- effort to understand how the part works. Iterating through various  version=
-s takes time as we get on the same page, but will be necessary to make sure w=
-e don=E2=80=99t introduce any regressions on any platforms. I don=E2=80=99t t=
-hink it is time wasted.
-
-I don=E2=80=99t think my patch is competing, submitting it was just the best=
- way to communicate what works on my platform. I don=E2=80=99t expect the fi=
-nal patch we land on to be designated as =E2=80=9Cauthored by=E2=80=9D me, e=
-specially since it was copied mostly from Maximes patch. Also, FYI, I=E2=80=99=
-ve put my other patch series about the ov5640 on hold until we figure this o=
-ut.
-
-Sam
-
-Sent from my iPhone
-
-> On Oct 17, 2018, at 12:51 PM, jacopo mondi <jacopo@jmondi.org> wrote:
+> On Oct 18, 2018, at 3:03 AM, jacopo mondi <jacopo@jmondi.org> wrote:
 >=20
-> Hello Sam and Maxime (and other ov5640-ers :)
->=20
->> On Wed, Oct 17, 2018 at 10:54:01AM -0700, Sam Bobrowicz wrote:
->> Hello Maxime and Jacopo (and other ov5640-ers),
+>> On Thu, Oct 18, 2018 at 11:31:52AM +0200, Maxime Ripard wrote:
+>>> On Wed, Oct 17, 2018 at 09:51:43PM +0200, jacopo mondi wrote:
+>>> Hello Sam and Maxime (and other ov5640-ers :)
+>>>=20
+>>>> On Wed, Oct 17, 2018 at 10:54:01AM -0700, Sam Bobrowicz wrote:
+>>>> Hello Maxime and Jacopo (and other ov5640-ers),
+>>>>=20
+>>>> I just submitted my version of this patch to the mailing list as RFC.
+>>>> It is working on my MIPI platform. Please try it if you have time.
+>>>> Hopefully we can merge these two into a single patch that doesn't
+>>>> break any platforms.
+>>>=20
+>>> Thanks, I have seen your patch but it seems to contain a lot of things
+>>> already part of Maxime's series. Was this intentional?
+>>>=20
+>>> Now the un-pleaseant part: I have just sent out my re-implementation
+>>> of the MIPI clock tree configuration, based on top of Maxime's series.
+>>> Both you and me have spent a looot of time on this I'm sure, and now
+>>> we have two competing implementations.
+>>>=20
+>>> I had a quick look at yours, and for sure there are things I am not
+>>> taking care of (I'm thinking about the 0x4837 register that seems to
+>>> be important for your platform), so I think both our implementations
+>>> can benefits from a comparison. What is important to me is that both
+>>> you and me don't feel like our work has been wasted, so let's try to
+>>> find out a way to get the better of the two put together, and possibly
+>>> applied on top of Maxime's series, so that a v5 of this will work for
+>>> both MIPI and DVP interfaces. How to do that I'm not sure atm, I think
+>>> other reviewers might help in that if they want to have a look at both
+>>> our series :)
 >>=20
->> I just submitted my version of this patch to the mailing list as RFC.
->> It is working on my MIPI platform. Please try it if you have time.
->> Hopefully we can merge these two into a single patch that doesn't
->> break any platforms.
+>> IIRC, Sam's system has never worked with the ov5640 driver, and his
+>> patches now make it work.
+>>=20
+>> Your patches on the other hand make sure that the current series
+>> doesn't break existing users. So I guess we could merge your current
+>> patches into the v5 of my rework, and have Sam send his work on top of
+>> that.
+>>=20
+>> Does that make sense?
 >=20
-> Thanks, I have seen your patch but it seems to contain a lot of things
-> already part of Maxime's series. Was this intentional?
+> It does for me, but it puts the burden on Sam to re-apply his work
+> on top of [yours+mine] (which is something he would have had to do
+> anyhow to have his patches accepted, as he would have had to rebase on
+> top of your series).
 >=20
-> Now the un-pleaseant part: I have just sent out my re-implementation
-> of the MIPI clock tree configuration, based on top of Maxime's series.
-> Both you and me have spent a looot of time on this I'm sure, and now
-> we have two competing implementations.
->=20
-> I had a quick look at yours, and for sure there are things I am not
-> taking care of (I'm thinking about the 0x4837 register that seems to
-> be important for your platform), so I think both our implementations
-> can benefits from a comparison. What is important to me is that both
-> you and me don't feel like our work has been wasted, so let's try to
-> find out a way to get the better of the two put together, and possibly
-> applied on top of Maxime's series, so that a v5 of this will work for
-> both MIPI and DVP interfaces. How to do that I'm not sure atm, I think
-> other reviewers might help in that if they want to have a look at both
-> our series :)
->=20
-> Thanks everyone for the hard work on this sensor for now!
+Don=E2=80=99t worry about it :)
+
+> I hope to find some more time to look into his series and find out how
+> hard it would be to add his changes on top of mine, and hopefully help
+> with this.
+> Also, testing my patches with DVP would be nice (it should not be
+> affected at all, but still...)
 >=20
 > Thanks
 >   j
 >=20
 >>=20
->> Thanks,
->> Sam
+>> Maxime
 >>=20
->> Additional notes below.
->>=20
->>> On Tue, Oct 16, 2018 at 9:54 AM jacopo mondi <jacopo@jmondi.org> wrote:
->>>=20
->>> Hello Maxime,
->>>   a few comments I have collected while testing the series.
->>>=20
->>> Please see below.
->>>=20
->>>> On Thu, Oct 11, 2018 at 11:20:56AM +0200, Maxime Ripard wrote:
->>>> The clock structure for the PCLK is quite obscure in the documentation,=
- and
->>>> was hardcoded through the bytes array of each and every mode.
->>>>=20
->>>> This is troublesome, since we cannot adjust it at runtime based on othe=
-r
->>>> parameters (such as the number of bytes per pixel), and we can't suppor=
-t
->>>> either framerates that have not been used by the various vendors, since=
- we
->>>> don't have the needed initialization sequence.
->>>>=20
->>>> We can however understand how the clock tree works, and then implement s=
-ome
->>>> functions to derive the various parameters from a given rate. And now t=
-hat
->>>> those parameters are calculated at runtime, we can remove them from the=
+>> --
+>> Maxime Ripard, Bootlin
+>> Embedded Linux and Kernel engineering
+>> https://bootlin.com
+>=20
+>=20
 
->>>> initialization sequence.
->>>>=20
->>>> The modes also gained a new parameter which is the clock that they are
->>>> running at, from the register writes they were doing, so for now the sw=
-itch
->>>> to the new algorithm should be transparent.
->>>>=20
->>>> Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
->>>> ---
->>>> drivers/media/i2c/ov5640.c | 289 ++++++++++++++++++++++++++++++++++++-
->>>> 1 file changed, 288 insertions(+), 1 deletion(-)
->>>>=20
->>>> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
->>>> index 30b15e91d8be..88fb16341466 100644
->>>> --- a/drivers/media/i2c/ov5640.c
->>>> +++ b/drivers/media/i2c/ov5640.c
->>>> @@ -175,6 +175,7 @@ struct ov5640_mode_info {
->>>>      u32 htot;
->>>>      u32 vact;
->>>>      u32 vtot;
->>>> +     u32 pixel_clock;
->>>>      const struct reg_value *reg_data;
->>>>      u32 reg_data_size;
->>>> };
->>>> @@ -700,6 +701,7 @@ static const struct reg_value ov5640_setting_15fps_=
-QSXGA_2592_1944[] =3D {
->>>> /* power-on sensor init reg table */
->>>> static const struct ov5640_mode_info ov5640_mode_init_data =3D {
->>>>      0, SUBSAMPLING, 640, 1896, 480, 984,
->>>> +     56000000,
->>>>      ov5640_init_setting_30fps_VGA,
->>>>      ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
->>>> };
->>>> @@ -709,74 +711,91 @@ ov5640_mode_data[OV5640_NUM_FRAMERATES][OV5640_NU=
-M_MODES] =3D {
->>>>      {
->>>>              {OV5640_MODE_QCIF_176_144, SUBSAMPLING,
->>>>               176, 1896, 144, 984,
->>>> +              28000000,
->>>>               ov5640_setting_15fps_QCIF_176_144,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_QCIF_176_144)},
->>>>              {OV5640_MODE_QVGA_320_240, SUBSAMPLING,
->>>>               320, 1896, 240, 984,
->>>> +              28000000,
->>>>               ov5640_setting_15fps_QVGA_320_240,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_QVGA_320_240)},
->>>>              {OV5640_MODE_VGA_640_480, SUBSAMPLING,
->>>>               640, 1896, 480, 1080,
->>>> +              28000000,
->>>>               ov5640_setting_15fps_VGA_640_480,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_VGA_640_480)},
->>>>              {OV5640_MODE_NTSC_720_480, SUBSAMPLING,
->>>>               720, 1896, 480, 984,
->>>> +              28000000,
->>>>               ov5640_setting_15fps_NTSC_720_480,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_NTSC_720_480)},
->>>>              {OV5640_MODE_PAL_720_576, SUBSAMPLING,
->>>>               720, 1896, 576, 984,
->>>> +              28000000,
->>>>               ov5640_setting_15fps_PAL_720_576,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_PAL_720_576)},
->>>>              {OV5640_MODE_XGA_1024_768, SUBSAMPLING,
->>>>               1024, 1896, 768, 1080,
->>>> +              28000000,
->>>>               ov5640_setting_15fps_XGA_1024_768,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_XGA_1024_768)},
->>>>              {OV5640_MODE_720P_1280_720, SUBSAMPLING,
->>>>               1280, 1892, 720, 740,
->>>> +              21000000,
->>>>               ov5640_setting_15fps_720P_1280_720,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_720P_1280_720)},
->>>>              {OV5640_MODE_1080P_1920_1080, SCALING,
->>>>               1920, 2500, 1080, 1120,
->>>> +              42000000,
->>>>               ov5640_setting_15fps_1080P_1920_1080,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_1080P_1920_1080)},
->>>>              {OV5640_MODE_QSXGA_2592_1944, SCALING,
->>>>               2592, 2844, 1944, 1968,
->>>> +              84000000,
->>>>               ov5640_setting_15fps_QSXGA_2592_1944,
->>>>               ARRAY_SIZE(ov5640_setting_15fps_QSXGA_2592_1944)},
->>>>      }, {
->>>>              {OV5640_MODE_QCIF_176_144, SUBSAMPLING,
->>>>               176, 1896, 144, 984,
->>>> +              56000000,
->>>>               ov5640_setting_30fps_QCIF_176_144,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_QCIF_176_144)},
->>>>              {OV5640_MODE_QVGA_320_240, SUBSAMPLING,
->>>>               320, 1896, 240, 984,
->>>> +              56000000,
->>>>               ov5640_setting_30fps_QVGA_320_240,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_QVGA_320_240)},
->>>>              {OV5640_MODE_VGA_640_480, SUBSAMPLING,
->>>>               640, 1896, 480, 1080,
->>>> +              56000000,
->>>>               ov5640_setting_30fps_VGA_640_480,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_VGA_640_480)},
->>>>              {OV5640_MODE_NTSC_720_480, SUBSAMPLING,
->>>>               720, 1896, 480, 984,
->>>> +              56000000,
->>>>               ov5640_setting_30fps_NTSC_720_480,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_NTSC_720_480)},
->>>>              {OV5640_MODE_PAL_720_576, SUBSAMPLING,
->>>>               720, 1896, 576, 984,
->>>> +              56000000,
->>>>               ov5640_setting_30fps_PAL_720_576,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_PAL_720_576)},
->>>>              {OV5640_MODE_XGA_1024_768, SUBSAMPLING,
->>>>               1024, 1896, 768, 1080,
->>>> +              56000000,
->>>>               ov5640_setting_30fps_XGA_1024_768,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_XGA_1024_768)},
->>>>              {OV5640_MODE_720P_1280_720, SUBSAMPLING,
->>>>               1280, 1892, 720, 740,
->>>> +              42000000,
->>>>               ov5640_setting_30fps_720P_1280_720,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_720P_1280_720)},
->>>>              {OV5640_MODE_1080P_1920_1080, SCALING,
->>>>               1920, 2500, 1080, 1120,
->>>> +              84000000,
->>>>               ov5640_setting_30fps_1080P_1920_1080,
->>>>               ARRAY_SIZE(ov5640_setting_30fps_1080P_1920_1080)},
->>>> -             {OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, NULL, 0},
->>>> +             {OV5640_MODE_QSXGA_2592_1944, -1, 0, 0, 0, 0, 0, NULL, 0}=
-,
->>>>      },
->>>> };
->>>>=20
->>>> @@ -909,6 +928,255 @@ static int ov5640_mod_reg(struct ov5640_dev *sens=
-or, u16 reg,
->>>>      return ov5640_write_reg(sensor, reg, val);
->>>> }
->>>>=20
->>>> +/*
->>>> + * After trying the various combinations, reading various
->>>> + * documentations spreaded around the net, and from the various
->>>> + * feedback, the clock tree is probably as follows:
->>>> + *
->>>> + *   +--------------+
->>>> + *   |  Ext. Clock  |
->>>> + *   +-+------------+
->>>> + *     |  +----------+
->>>> + *     +->|   PLL1   | - reg 0x3036, for the multiplier
->>>> + *        +-+--------+ - reg 0x3037, bits 0-3 for the pre-divider
->>>> + *          |  +--------------+
->>>> + *          +->| System Clock |  - reg 0x3035, bits 4-7
->>>> + *             +-+------------+
->>>> + *               |  +--------------+
->>>> + *               +->| MIPI Divider | - reg 0x3035, bits 0-3
->>>> + *               |  +-+------------+
->>>> + *               |    +----------------> MIPI SCLK
->>>> + *               |  +--------------+
->>>> + *               +->| PLL Root Div | - reg 0x3037, bit 4
->>>> + *                  +-+------------+
->>>> + *                    |  +---------+
->>>> + *                    +->| Bit Div | - reg 0x3035, bits 0-3
->>>> + *                       +-+-------+
->>>> + *                         |  +-------------+
->>>> + *                         +->| SCLK Div    | - reg 0x3108, bits 0-1
->>>> + *                         |  +-+-----------+
->>>> + *                         |    +---------------> SCLK
->>>> + *                         |  +-------------+
->>>> + *                         +->| SCLK 2X Div | - reg 0x3108, bits 2-3
->>>> + *                         |  +-+-----------+
->>>> + *                         |    +---------------> SCLK 2X
->>>> + *                         |  +-------------+
->>>> + *                         +->| PCLK Div    | - reg 0x3108, bits 4-5
->>>> + *                            +-+-----------+
->>>> + *                              +---------------> PCLK
->>>> + *
->>>> + * This is deviating from the datasheet at least for the register
->>>> + * 0x3108, since it's said here that the PCLK would be clocked from
->>>> + * the PLL.
->>>> + *
->>>> + * There seems to be also (unverified) constraints:
->>>> + *  - the PLL pre-divider output rate should be in the 4-27MHz range
->>>> + *  - the PLL multiplier output rate should be in the 500-1000MHz rang=
-e
->>>> + *  - PCLK >=3D SCLK * 2 in YUV, >=3D SCLK in Raw or JPEG
->>>> + *  - MIPI SCLK =3D (bpp / lanes) / PCLK
->>>=20
->>> This last line probably wrong...
->>>=20
->>>> + *
->>>> + * In the two latter cases, these constraints are met since our
->>>> + * factors are hardcoded. If we were to change that, we would need to
->>>> + * take this into account. The only varying parts are the PLL
->>>> + * multiplier and the system clock divider, which are shared between
->>>> + * all these clocks so won't cause any issue.
->>>> + */
->>>> +
->>>> +/*
->>>> + * This is supposed to be ranging from 1 to 8, but the value is always=
+I=E2=80=99m fine with this approach, but it takes my ability to easily test y=
+our changes on my MIPI platform off the table. I will be around to run some m=
+anual tests on your algorithms and answer tech details about my experiments w=
+ith the sensor, but it will fall on Jacobi to ensure that whatever patch you=
+ land on doesn=E2=80=99t introduce a regression for MIPI platforms. I can th=
+en submit a PCLK period patch on top of what you end up with, which will the=
+n put my platform in the game.=20
 
->>>> + * set to 3 in the vendor kernels.
->>>> + */
->>>> +#define OV5640_PLL_PREDIV    3
->>>> +
->>>> +#define OV5640_PLL_MULT_MIN  4
->>>> +#define OV5640_PLL_MULT_MAX  252
->>>> +
->>>> +/*
->>>> + * This is supposed to be ranging from 1 to 16, but the value is
->>>> + * always set to either 1 or 2 in the vendor kernels.
->>>> + */
->>>> +#define OV5640_SYSDIV_MIN    1
->>>> +#define OV5640_SYSDIV_MAX    2
->>>> +
->>>> +/*
->>>> + * This is supposed to be ranging from 1 to 16, but the value is alway=
-s
->>>> + * set to 2 in the vendor kernels.
->>>> + */
->>>> +#define OV5640_MIPI_DIV              2
->>>> +
->>>> +/*
->>>> + * This is supposed to be ranging from 1 to 2, but the value is always=
-
->>>> + * set to 2 in the vendor kernels.
->>>> + */
->>>> +#define OV5640_PLL_ROOT_DIV  2
->>>> +
->>>> +/*
->>>> + * This is supposed to be either 1, 2 or 2.5, but the value is always
->>>> + * set to 2 in the vendor kernels.
->>>> + */
->>>> +#define OV5640_BIT_DIV               2
->>>> +
->>>> +/*
->>>> + * This is supposed to be ranging from 1 to 8, but the value is always=
-
->>>> + * set to 2 in the vendor kernels.
->>>> + */
->>>> +#define OV5640_SCLK_ROOT_DIV 2
->>>> +
->>>> +/*
->>>> + * This is hardcoded so that the consistency is maintained between SCL=
-K and
->>>> + * SCLK 2x.
->>>> + */
->>>> +#define OV5640_SCLK2X_ROOT_DIV (OV5640_SCLK_ROOT_DIV / 2)
->>>> +
->>>> +/*
->>>> + * This is supposed to be ranging from 1 to 8, but the value is always=
-
->>>> + * set to 1 in the vendor kernels.
->>>> + */
->>>> +#define OV5640_PCLK_ROOT_DIV 1
->>>> +
->>>> +static unsigned long ov5640_compute_sys_clk(struct ov5640_dev *sensor,=
-
->>>> +                                         u8 pll_prediv, u8 pll_mult,
->>>> +                                         u8 sysdiv)
->>>> +{
->>>> +     unsigned long rate =3D clk_get_rate(sensor->xclk);
->>>=20
->>> The clock rate is stored in sensor->xclk at probe time, no need to
->>> query it every iteration.
->>>=20
->>>> +
->>>> +     return rate / pll_prediv * pll_mult / sysdiv;
->>>> +}
->>>> +
->>>> +static unsigned long ov5640_calc_sys_clk(struct ov5640_dev *sensor,
->>>> +                                      unsigned long rate,
->>>> +                                      u8 *pll_prediv, u8 *pll_mult,
->>>> +                                      u8 *sysdiv)
->>>> +{
->>>> +     unsigned long best =3D ~0;
->>>> +     u8 best_sysdiv =3D 1, best_mult =3D 1;
->>>> +     u8 _sysdiv, _pll_mult;
->>>> +
->>>> +     for (_sysdiv =3D OV5640_SYSDIV_MIN;
->>>> +          _sysdiv <=3D OV5640_SYSDIV_MAX;
->>>> +          _sysdiv++) {
->>>> +             for (_pll_mult =3D OV5640_PLL_MULT_MIN;
->>>> +                  _pll_mult <=3D OV5640_PLL_MULT_MAX;
->>>> +                  _pll_mult++) {
->>>> +                     unsigned long _rate;
->>>> +
->>>> +                     /*
->>>> +                      * The PLL multiplier cannot be odd if above
->>>> +                      * 127.
->>>> +                      */
->>>> +                     if (_pll_mult > 127 && (_pll_mult % 2))
->>>> +                             continue;
->>>> +
->>>> +                     _rate =3D ov5640_compute_sys_clk(sensor,
->>>> +                                                    OV5640_PLL_PREDIV,=
-
->>>> +                                                    _pll_mult, _sysdiv=
-);
->>>=20
->>> I'm under the impression a system clock slower than the requested one, e=
-ven
->>> if more accurate is not good.
->>>=20
->>> I'm still working on understanding how all CSI-2 related timing
->>> parameters play together, but since the system clock is calculated
->>> from the pixel clock (which comes from the frame dimensions, bpp, and
->>> rate), and it is then used to calculate the MIPI BIT clock frequency,
->>> I think it would be better to be a little faster than a bit slower,
->>> otherwise the serial lane clock wouldn't be fast enough to output
->>> frames generated by the sensor core (or maybe it would just decrease
->>> the frame rate and that's it, but I don't think it is just this).
->>>=20
->>> What do you think of adding the following here:
->>>=20
->>>                if (_rate < rate)
->>>                        continue
->>>=20
->>>=20
->> Good point, I second this.
->>>> +                     if (abs(rate - _rate) < abs(rate - best)) {
->>>> +                             best =3D _rate;
->>>> +                             best_sysdiv =3D _sysdiv;
->>>> +                             best_mult =3D _pll_mult;
->>>> +                     }
->>>> +
->>>> +                     if (_rate =3D=3D rate)
->>>> +                             goto out;
->>>> +             }
->>>> +     }
->>>> +
->>>> +out:
->>>> +     *sysdiv =3D best_sysdiv;
->>>> +     *pll_prediv =3D OV5640_PLL_PREDIV;
->>>> +     *pll_mult =3D best_mult;
->>>> +     return best;
->>>> +}
->>>=20
->>> These function gets called at s_stream time, and cycle for a while,
->>> and I'm under the impression the MIPI state machine doesn't like
->>> delays too much, as I see timeouts on the receiver side.
->>>=20
->>> I have tried to move this function at set_fmt() time, every time a new
->>> mode is selected, sysdiv, pll_prediv and pll_mult gets recalculated
->>> (and stored in the ov5640_dev structure). I now have other timeouts on
->>> missing EOF, but not anymore at startup time it seems.
->>>=20
->> I'm open to this solution, but ideally we should just cut down the
->> execution time. I calculate the min's and max's for the PLL values
->> dynamically and also include some additional breaks in my loop that
->> should cut execution time quite a bit (even though I check many more
->> sysdiv values. My algorithm still has plenty of room for further
->> optimization too.
->>>=20
->>> On a general testing note: I have tried hardcoding all PLL
->>> configuration paramters to their values as specified in the
->>> initialization blob you have removed, and still, I have EOF timeouts
->>> on the CSI-2 bus. There is something we're still missing on the MIPI
->>> clock generation part, even if the documentation I have matches your
->>> understandings..
->>>=20
->>>> +
->>>> +static unsigned long ov5640_calc_mipi_clk(struct ov5640_dev *sensor,
->>>> +                                       unsigned long rate,
->>>> +                                       u8 *pll_prediv, u8 *pll_mult,
->>>> +                                       u8 *sysdiv, u8 *mipi_div)
->>>> +{
->>>> +     unsigned long _rate =3D rate * OV5640_MIPI_DIV;
->>>> +
->>>> +     _rate =3D ov5640_calc_sys_clk(sensor, _rate, pll_prediv, pll_mult=
-,
->>>> +                                 sysdiv);
->>>> +     *mipi_div =3D OV5640_MIPI_DIV;
->>>> +
->>>> +     return _rate / *mipi_div;
->>>> +}
->>>> +
->>>> +static int ov5640_set_mipi_pclk(struct ov5640_dev *sensor, unsigned lo=
-ng rate)
->>>> +{
->>>> +     u8 prediv, mult, sysdiv, mipi_div;
->>>> +     int ret;
->>>> +
->>>> +     ov5640_calc_mipi_clk(sensor, rate, &prediv, &mult, &sysdiv, &mipi=
-_div);
->>>=20
->>> Confusingly, register PLL_CTRL0 (0x3034) controls the "MIPI bit mode",
->>> which I'm not a 100% sure what represents, and it is not written here
->>> in the MIPI clock configuration function.
->>>=20
->>> As in the clock diagram I have it reads as:
->>> 0x3034 MIPI BIT MODE
->>>        0x08 =3D / 2
->>>        0x0A =3D / 2.5
->>>=20
->>> I suspect it is used to maintain a correct relationship between the
->>> pixel clock (in samples/second) and the total bandwidth in bytes and
->>> thus it has to be written here.
->>>=20
->>> Reading the clock tree in the opposite direction I see:
->>>=20
->>> ------------------------------
->>> |pixel clk (htot * vtot * rate)|
->>> -----------------------------
->>>            |   --------------------------------------------
->>>            |->| P_DIV: 2lanes ? MIPI_DIV : 2 * MIPI_DIV   |
->>>                --------------------------------------------
->>>                                   |   --------
->>>                                   |->|PCLK_DIV|
->>>                                       --------
->>>                                          |   ------------
->>>                                          |->|   BIT_DIV  |
->>>                                              ------------
->>>                                                    |   ----------
->>>                                                    |->| PLL_R DIV|
->>>                                                        ---------
->>>                                                            |
->>>                                                            |--------->SY=
-SCLK
->>>=20
->>> And I then suspect that:
->>>   P_DIV * PCLK_DIV * BIT_DIV =3D bpp
->>>=20
->>> So that, if we hardcode PLL_R div to 1, the system clock is
->>> actually the total bandwidth in bytes.
->>>=20
->>> This would be then be:
->>>  bandwidth =3D pixel_clk * rate * bpp
->>>            =3D pixel_clk * rate * (MIPI_DIV * PCLK_DIV * BIT_DIV)
->>>            =3D SYSCLK
->>>=20
->>> and then depending on the current format's bbp:
->>>  PCLK_DIV =3D bpp / (BIT_DIV * num_lanes)
->>>=20
->>> This matches the other part of the MIPI clock tree, the MIPI_CLK
->>> generation part, where the SYSCLK is divided again by MIPI_DIV and
->>> then by 2 to take into account the CSI-2 DDR.
->>>=20
->>>  MIPI BIT CLK =3D bandwidth / num_lanes / 2
->>>               =3D SYS_CLK / MIPI_DIV / 2
->>>=20
->>> While this works pretty well in my head, it does not on the sensor :/
->>>=20
->>> So I might have mis-intrpreted something, or we're missing some part
->>> of the clock tree that impacts the CSI-2 bus.
->>>=20
->>> I recall Sam had a pretty well understanding of this part.
->>> I wonder if he has comments... :)
->>>=20
->> Check out the comments in my patch (as well as the algorithms I use)
->> and see if that makes more sense. Then let's continue the discussion.
->>> Thanks
->>>   j
->>>> +
->>>> +     ret =3D ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1,
->>>> +                          0xff, sysdiv << 4 | (mipi_div - 1));
->>>> +     if (ret)
->>>> +             return ret;
->>>> +
->>>> +     ret =3D ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL2, 0xff, mul=
-t);
->>>> +     if (ret)
->>>> +             return ret;
->>>> +
->>>> +     return ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL3, 0xf, predi=
-v);
->>>> +}
->>>> +
->>>> +static unsigned long ov5640_calc_pclk(struct ov5640_dev *sensor,
->>>> +                                   unsigned long rate,
->>>> +                                   u8 *pll_prediv, u8 *pll_mult, u8 *s=
-ysdiv,
->>>> +                                   u8 *pll_rdiv, u8 *bit_div, u8 *pclk=
-_div)
->>>> +{
->>>> +     unsigned long _rate =3D rate * OV5640_PLL_ROOT_DIV * OV5640_BIT_D=
-IV *
->>>> +                             OV5640_PCLK_ROOT_DIV;
->>>> +
->>>> +     _rate =3D ov5640_calc_sys_clk(sensor, _rate, pll_prediv, pll_mult=
-,
->>>> +                                 sysdiv);
->>>> +     *pll_rdiv =3D OV5640_PLL_ROOT_DIV;
->>>> +     *bit_div =3D OV5640_BIT_DIV;
->>>> +     *pclk_div =3D OV5640_PCLK_ROOT_DIV;
->>>> +
->>>> +     return _rate / *pll_rdiv / *bit_div / *pclk_div;
->>>> +}
->>>> +
->>>> +static int ov5640_set_dvp_pclk(struct ov5640_dev *sensor, unsigned lon=
-g rate)
->>>> +{
->>>> +     u8 prediv, mult, sysdiv, pll_rdiv, bit_div, pclk_div;
->>>> +     int ret;
->>>> +
->>>> +     ov5640_calc_pclk(sensor, rate, &prediv, &mult, &sysdiv, &pll_rdiv=
-,
->>>> +                      &bit_div, &pclk_div);
->>>> +
->>>> +     if (bit_div =3D=3D 2)
->>>> +             bit_div =3D 8;
->>>> +
->>>> +     ret =3D ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL0,
->>>> +                          0x0f, bit_div);
->>>> +     if (ret)
->>>> +             return ret;
->>>> +
->>>> +     /*
->>>> +      * We need to set sysdiv according to the clock, and to clear
->>>> +      * the MIPI divider.
->>>> +      */
->>>> +     ret =3D ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1,
->>>> +                          0xff, sysdiv << 4);
->>>> +     if (ret)
->>>> +             return ret;
->>>> +
->>>> +     ret =3D ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL2,
->>>> +                          0xff, mult);
->>>> +     if (ret)
->>>> +             return ret;
->>>> +
->>>> +     ret =3D ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL3,
->>>> +                          0x1f, prediv | ((pll_rdiv - 1) << 4));
->>>> +     if (ret)
->>>> +             return ret;
->>>> +
->>>> +     return ov5640_mod_reg(sensor, OV5640_REG_SYS_ROOT_DIVIDER, 0x30,
->>>> +                           (ilog2(pclk_div) << 4));
->>>> +}
->>>> +
->>>> /* download ov5640 settings to sensor through i2c */
->>>> static int ov5640_set_timings(struct ov5640_dev *sensor,
->>>>                            const struct ov5640_mode_info *mode)
->>>> @@ -1637,6 +1905,8 @@ static int ov5640_set_mode(struct ov5640_dev *sen=
-sor)
->>>>      enum ov5640_downsize_mode dn_mode, orig_dn_mode;
->>>>      bool auto_gain =3D sensor->ctrls.auto_gain->val =3D=3D 1;
->>>>      bool auto_exp =3D  sensor->ctrls.auto_exp->val =3D=3D V4L2_EXPOSUR=
-E_AUTO;
->>>> +     unsigned long rate;
->>>> +     unsigned char bpp;
->>>>      int ret;
->>>>=20
->>>>      dn_mode =3D mode->dn_mode;
->>>> @@ -1655,6 +1925,23 @@ static int ov5640_set_mode(struct ov5640_dev *se=
-nsor)
->>>>                      goto restore_auto_gain;
->>>>      }
->>>>=20
->>>> +     /*
->>>> +      * All the formats we support have 16 bits per pixel, except for J=
-PEG
->>>> +      * which is 8 bits per pixel.
->>>> +      */
->>>> +     bpp =3D sensor->fmt.code =3D=3D MEDIA_BUS_FMT_JPEG_1X8 ? 8 : 16;
->>>> +     rate =3D mode->pixel_clock * bpp;
->>>> +     if (sensor->ep.bus_type =3D=3D V4L2_MBUS_CSI2) {
->>>> +             rate =3D rate / sensor->ep.bus.mipi_csi2.num_data_lanes;
->>>> +             ret =3D ov5640_set_mipi_pclk(sensor, rate);
->>>> +     } else {
->>>> +             rate =3D rate / sensor->ep.bus.parallel.bus_width;
->>>> +             ret =3D ov5640_set_dvp_pclk(sensor, rate);
->>>> +     }
->>>> +
->>>> +     if (ret < 0)
->>>> +             return 0;
->>>> +
->>>>      if ((dn_mode =3D=3D SUBSAMPLING && orig_dn_mode =3D=3D SCALING) ||=
-
->>>>          (dn_mode =3D=3D SCALING && orig_dn_mode =3D=3D SUBSAMPLING)) {=
-
->>>>              /*
->>>> --
->>>> 2.19.1
->>>>=20
+Sam=
