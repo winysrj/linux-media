@@ -1,55 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0014.hostedemail.com ([216.40.44.14]:38035 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1727090AbeJRJl0 (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:55222 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1727260AbeJRLat (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Oct 2018 05:41:26 -0400
-Message-ID: <864470f074e634e7276bf999e3c3704b58c1e913.camel@perches.com>
-Subject: Re: [PATCH v11 1/5] venus: firmware: add routine to reset ARM9
-From: Joe Perches <joe@perches.com>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Vikash Garodia <vgarodia@codeaurora.org>, hverkuil@xs4all.nl,
-        mchehab@kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, acourbot@chromium.org
-Date: Wed, 17 Oct 2018 18:42:51 -0700
-In-Reply-To: <fffd5b1f-73b5-81d5-a95b-a2dc9db1961d@linaro.org>
-References: <1539005572-803-1-git-send-email-vgarodia@codeaurora.org>
-         <1539005572-803-2-git-send-email-vgarodia@codeaurora.org>
-         <fffd5b1f-73b5-81d5-a95b-a2dc9db1961d@linaro.org>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Thu, 18 Oct 2018 07:30:49 -0400
+Message-ID: <e394cff8b3a230f262315d80649a948f@smtp-cloud8.xs4all.net>
+Date: Thu, 18 Oct 2018 05:31:57 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2018-10-17 at 11:49 +0300, Stanimir Varbanov wrote:
-> On 10/08/2018 04:32 PM, Vikash Garodia wrote:
-> > Add routine to reset the ARM9 and brings it out of reset. Also
-> > abstract the Venus CPU state handling with a new function. This
-> > is in preparation to add PIL functionality in venus driver.
-[]
-> > diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
-[]
-> > @@ -129,6 +130,7 @@ struct venus_core {
-> >  	struct device *dev;
-> >  	struct device *dev_dec;
-> >  	struct device *dev_enc;
-> > +	bool use_tz;
-> 
-> could you make it unsigned? For more info please run checkpatch --strict.
-> 
-> I know that we have structure members of type bool already - that should
-> be fixed with follow-up patches, I guess.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-That's probably not necessary.
+Results of the daily build of media_tree:
 
-I personally have no issue with bool struct members that
-are only used on a transitory basis and not used by hardware
-or shared between multiple cpus with different hardware
-alignment requirements.
+date:			Thu Oct 18 05:00:10 CEST 2018
+media-tree git hash:	490d84f6d73c12f4204241cff8651eed60aae914
+media_build git hash:	9f419c414672676f63e85a61ea99df0ddcd6e9a7
+v4l-utils git hash:	e889b0d56757b9a74eb8c4c8cc2ebd5b18e228b2
+edid-decode git hash:	5eeb151a748788666534d6ea3da07f90400d24c2
+gcc version:		i686-linux-gcc (GCC) 8.2.0
+sparse version:		0.5.2
+smatch version:		0.5.1
+host hardware:		x86_64
+host os:		4.18.11-marune
 
-Nothing in this struct is saved or shared.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-arm64: OK
+linux-git-i686: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+Check COMPILE_TEST: OK
+linux-3.10.108-i686: OK
+linux-3.10.108-x86_64: OK
+linux-3.11.10-i686: OK
+linux-3.11.10-x86_64: OK
+linux-3.12.74-i686: OK
+linux-3.12.74-x86_64: OK
+linux-3.13.11-i686: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.79-i686: OK
+linux-3.14.79-x86_64: OK
+linux-3.15.10-i686: OK
+linux-3.15.10-x86_64: OK
+linux-3.16.57-i686: OK
+linux-3.16.57-x86_64: OK
+linux-3.17.8-i686: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.123-i686: OK
+linux-3.18.123-x86_64: OK
+linux-3.19.8-i686: OK
+linux-3.19.8-x86_64: OK
+linux-4.0.9-i686: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.52-i686: OK
+linux-4.1.52-x86_64: OK
+linux-4.2.8-i686: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-i686: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.159-i686: OK
+linux-4.4.159-x86_64: OK
+linux-4.5.7-i686: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-i686: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.10-i686: OK
+linux-4.7.10-x86_64: OK
+linux-4.8.17-i686: OK
+linux-4.8.17-x86_64: OK
+linux-4.9.131-i686: OK
+linux-4.9.131-x86_64: OK
+linux-4.10.17-i686: OK
+linux-4.10.17-x86_64: OK
+linux-4.11.12-i686: OK
+linux-4.11.12-x86_64: OK
+linux-4.12.14-i686: OK
+linux-4.12.14-x86_64: OK
+linux-4.13.16-i686: OK
+linux-4.13.16-x86_64: OK
+linux-4.14.74-i686: OK
+linux-4.14.74-x86_64: OK
+linux-4.15.18-i686: OK
+linux-4.15.18-x86_64: OK
+linux-4.16.18-i686: OK
+linux-4.16.18-x86_64: OK
+linux-4.17.19-i686: OK
+linux-4.17.19-x86_64: OK
+linux-4.18.12-i686: OK
+linux-4.18.12-x86_64: OK
+linux-4.19-rc6-i686: OK
+linux-4.19-rc6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-Perhaps the checkpatch message should be expanded to
-enumerate when bool use in a struct is acceptable.
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
